@@ -1,14 +1,24 @@
 //! Platform DSR cascade app boundary.
 //!
-//! This crate owns REST-boundary normalization, authorization proof checks,
-//! request fingerprint idempotency, cross-axis store/proof projection, and
-//! DSR completion record assembly around the Platform DSR kernel. Queue fan-out,
-//! adapter execution, audit-chain append, and Trust Portal publication remain
-//! adapter/application concerns.
+//! This crate owns REST-boundary normalization, fail-closed verified-principal +
+//! server-side PDP authorization (see [`authz`]), request fingerprint
+//! idempotency, cross-axis store/proof projection, and DSR completion record
+//! assembly around the Platform DSR kernel. Queue fan-out, adapter execution,
+//! audit-chain append, and Trust Portal publication remain adapter/application
+//! concerns. The concrete cloud-iam Cedar PDP client and credential store are
+//! adapters that live OUTSIDE this crate (the owned-W5 destination).
+
+pub mod authz;
+
+pub use authz::{
+    AuthzProviderConfigError, CallerCredential, ConfiguredBearerPrincipalVerifier,
+    DSR_PLATFORM_TENANT_SENTINEL, DsrCascadeAuthorizationError, DsrCascadeAuthorizer,
+    DsrCascadeAuthzProvider, DsrCascadeResource, DsrCascadeScope, PrincipalVerificationError,
+    PrincipalVerifier, VerifiedDsrPrincipal, constant_time_eq,
+};
 
 use std::collections::BTreeMap;
 
-use oya_data_boundary_kernel::parse_data_class_label;
 use compliance_dsr::{
     DsrAckReason, DsrAckStatus, DsrAction, DsrAxis, DsrCascadeAck, DsrCascadeAckCreate,
     DsrCompletionRecord, DsrCompletionRecordCreate, DsrDispatch, DsrDispatchCreate, DsrProofMethod,
@@ -16,6 +26,7 @@ use compliance_dsr::{
     DsrStoreRefCreate, ErasureProof, ErasureProofCreate, PlatformDsrError,
     platform_dsr_data_class_from_legacy,
 };
+use oya_data_boundary_kernel::parse_data_class_label;
 
 pub const PLATFORM_DSR_CASCADE_EXECUTE_SURFACE: &str = "dsr.cascade.execute";
 pub const PLATFORM_DSR_OPENAPI_CONTRACT: &str = "contracts/openapi/platform/platform-dsr-v1.yaml";
@@ -50,10 +61,11 @@ pub enum PlatformDsrApiErrorCode {
     DsrIdInvalid,
     DsrIdMismatch,
     TenantMismatch,
-    AuthorizationDecisionIdEmpty,
+    Unauthenticated,
     AuthorizationTenantMismatch,
     AuthorizationPrincipalMismatch,
     AuthorizationDenied,
+    AuthorizationFault,
     IdempotencyKeyReused,
     CascadeAlreadyCompleted,
     ActionInvalid,
@@ -78,10 +90,11 @@ impl PlatformDsrApiErrorCode {
             Self::DsrIdInvalid => "PLATFORM_DSR_ID_INVALID",
             Self::DsrIdMismatch => "PLATFORM_DSR_ID_MISMATCH",
             Self::TenantMismatch => "PLATFORM_DSR_TENANT_MISMATCH",
-            Self::AuthorizationDecisionIdEmpty => "PLATFORM_DSR_AUTHORIZATION_DECISION_ID_EMPTY",
+            Self::Unauthenticated => "PLATFORM_DSR_UNAUTHENTICATED",
             Self::AuthorizationTenantMismatch => "PLATFORM_DSR_AUTHORIZATION_TENANT_MISMATCH",
             Self::AuthorizationPrincipalMismatch => "PLATFORM_DSR_AUTHORIZATION_PRINCIPAL_MISMATCH",
             Self::AuthorizationDenied => "PLATFORM_DSR_AUTHORIZATION_DENIED",
+            Self::AuthorizationFault => "PLATFORM_DSR_AUTHORIZATION_FAULT",
             Self::IdempotencyKeyReused => "PLATFORM_DSR_IDEMPOTENCY_KEY_REUSED",
             Self::CascadeAlreadyCompleted => "PLATFORM_DSR_CASCADE_ALREADY_COMPLETED",
             Self::ActionInvalid => "PLATFORM_DSR_ACTION_INVALID",
@@ -111,12 +124,30 @@ pub struct PlatformDsrApiPrincipal {
     pub principal_id: String, // data_class: PII_IDENTIFYING
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct PlatformDsrApiAuthorization {
-    pub tenant_id: String,             // data_class: INTERNAL_ONLY
-    pub principal_id: String,          // data_class: PII_IDENTIFYING
-    pub decision_id: String,           // data_class: INTERNAL_ONLY
-    pub allowed_surfaces: Vec<String>, // data_class: INTERNAL_ONLY
+/// Non-authoritative correlation carried alongside a cascade request.
+///
+/// ## SECURITY: this is NOT an authorization grant
+///
+/// Before ADR-0589 this struct carried caller-supplied
+/// `{tenant_id, principal_id, allowed_surfaces}` and a `validate_authorization`
+/// routine "authorized" a request by checking that those caller-controlled
+/// fields agreed with each other and that `allowed_surfaces` contained the
+/// surface. That was a forgeable PDP bypass (C16): any caller set
+/// `allowed_surfaces = ["dsr.cascade.execute"]` and self-authorized an erasure
+/// cascade.
+///
+/// The authority fields are REMOVED. The real authorization is now a verified
+/// principal ([`authz::VerifiedDsrPrincipal`]) + a server-side PDP decision
+/// ([`authz::DsrCascadeAuthorizer`]) enforced by
+/// [`execute_dsr_cascade_from_api`]. `decision_id` is retained ONLY as a
+/// non-authoritative correlation id (a log-join hint); it grants nothing and is
+/// never compared against an allow-list. It is optional and absence never
+/// affects the authorization outcome.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct PlatformDsrApiAuthorizationCorrelation {
+    /// A caller-supplied correlation id for log joins. NOT an authorization
+    /// grant — the PDP decision is the only source of authority.
+    pub decision_id: Option<String>, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -168,7 +199,11 @@ pub struct PlatformDsrCascadeExecuteApiRequest {
     pub path_dsr_id: String,                         // data_class: INTERNAL_ONLY
     pub boundary: PlatformDsrCascadeBoundaryContext, // data_class: INTERNAL_ONLY
     pub principal: PlatformDsrApiPrincipal,          // data_class: PII_IDENTIFYING
-    pub authorization: PlatformDsrApiAuthorization,  // data_class: INTERNAL_ONLY
+    /// Non-authoritative correlation only — see
+    /// [`PlatformDsrApiAuthorizationCorrelation`]. The actual authorization is a
+    /// verified principal + server-side PDP decision passed to
+    /// [`execute_dsr_cascade_from_api`]; this field grants nothing.
+    pub authorization: PlatformDsrApiAuthorizationCorrelation, // data_class: INTERNAL_ONLY
     pub body: PlatformDsrCascadeExecuteRequest,      // data_class: INTERNAL_ONLY
 }
 
@@ -318,16 +353,31 @@ pub enum PlatformDsrApiError {
         authorization_tenant_id: Option<String>,
         body_tenant_id: Option<String>,
     },
-    EmptyAuthorizationDecisionId,
+    /// No verified principal could be derived from the caller credential
+    /// (missing or invalid bearer/SVID). Fail-closed: maps to HTTP 401. The
+    /// request never reaches the PDP or any mutation.
+    Unauthenticated,
+    /// The request's self-asserted principal tenant did not match the VERIFIED
+    /// principal's tenant — the caller substituted a different identity. 403.
     AuthorizationTenantMismatch {
         authorization_tenant_id: String,
         principal_tenant_id: String,
     },
+    /// The request's self-asserted principal id did not match the VERIFIED
+    /// principal's id — the caller substituted a different identity. 403.
     AuthorizationPrincipalMismatch {
         authorization_principal_id: String,
         principal_id: String,
     },
+    /// The server-side PDP returned a deny decision for the verified principal on
+    /// the target cascade resource (`action = dsr.cascade.execute`). 403.
     AuthorizationDenied {
+        surface: String,
+    },
+    /// The server-side PDP refused/faulted (timeout, network, unavailability,
+    /// panic). Fail-closed: a refusal is treated as deny. 403 — never 500, so a
+    /// PDP outage cannot fail open. The request never reaches a mutation.
+    AuthorizationFault {
         surface: String,
     },
     IdempotencyKeyReused {
@@ -371,6 +421,7 @@ impl PlatformDsrApiError {
     pub fn status_code(&self) -> u16 {
         match self.status_kind() {
             PlatformDsrApiStatusKind::BadRequest => 400,
+            PlatformDsrApiStatusKind::Unauthorized => 401,
             PlatformDsrApiStatusKind::Forbidden => 403,
             PlatformDsrApiStatusKind::Conflict => 409,
             PlatformDsrApiStatusKind::UnprocessableEntity => 422,
@@ -386,9 +437,7 @@ impl PlatformDsrApiError {
             Self::InvalidDsrId { .. } => PlatformDsrApiErrorCode::DsrIdInvalid,
             Self::DsrIdMismatch { .. } => PlatformDsrApiErrorCode::DsrIdMismatch,
             Self::TenantMismatch { .. } => PlatformDsrApiErrorCode::TenantMismatch,
-            Self::EmptyAuthorizationDecisionId => {
-                PlatformDsrApiErrorCode::AuthorizationDecisionIdEmpty
-            }
+            Self::Unauthenticated => PlatformDsrApiErrorCode::Unauthenticated,
             Self::AuthorizationTenantMismatch { .. } => {
                 PlatformDsrApiErrorCode::AuthorizationTenantMismatch
             }
@@ -396,6 +445,7 @@ impl PlatformDsrApiError {
                 PlatformDsrApiErrorCode::AuthorizationPrincipalMismatch
             }
             Self::AuthorizationDenied { .. } => PlatformDsrApiErrorCode::AuthorizationDenied,
+            Self::AuthorizationFault { .. } => PlatformDsrApiErrorCode::AuthorizationFault,
             Self::IdempotencyKeyReused { .. } => PlatformDsrApiErrorCode::IdempotencyKeyReused,
             Self::CascadeAlreadyCompleted { .. } => {
                 PlatformDsrApiErrorCode::CascadeAlreadyCompleted
@@ -428,12 +478,13 @@ impl PlatformDsrApiError {
 
     fn status_kind(&self) -> PlatformDsrApiStatusKind {
         match self {
+            Self::Unauthenticated => PlatformDsrApiStatusKind::Unauthorized,
             Self::TenantMismatch { .. }
             | Self::EmptyPrincipalId
-            | Self::EmptyAuthorizationDecisionId
             | Self::AuthorizationTenantMismatch { .. }
             | Self::AuthorizationPrincipalMismatch { .. }
-            | Self::AuthorizationDenied { .. } => PlatformDsrApiStatusKind::Forbidden,
+            | Self::AuthorizationDenied { .. }
+            | Self::AuthorizationFault { .. } => PlatformDsrApiStatusKind::Forbidden,
             Self::CascadeAlreadyCompleted { .. } => PlatformDsrApiStatusKind::Conflict,
             Self::IdempotencyKeyReused { .. } => PlatformDsrApiStatusKind::UnprocessableEntity,
             Self::EmptyRequestId
@@ -463,17 +514,22 @@ impl PlatformDsrApiError {
             Self::InvalidDsrId { .. } => "DSR id is required",
             Self::DsrIdMismatch { .. } => "Path and body DSR ids must match",
             Self::TenantMismatch { .. } => {
-                "Tenant header must match authenticated principal, authorization, and body tenant"
+                "Tenant header must match authenticated principal and body tenant"
             }
-            Self::EmptyAuthorizationDecisionId => "Authorization decision id is required",
+            Self::Unauthenticated => {
+                "A verified principal is required (missing or invalid credential)"
+            }
             Self::AuthorizationTenantMismatch { .. } => {
-                "Authorization decision tenant must match the authenticated principal"
+                "Request principal tenant must match the verified principal"
             }
             Self::AuthorizationPrincipalMismatch { .. } => {
-                "Authorization decision principal must match the authenticated principal"
+                "Request principal id must match the verified principal"
             }
             Self::AuthorizationDenied { .. } => {
-                "Authorization decision does not allow the DSR cascade execute surface"
+                "The authorization decision denies the DSR cascade execute action"
+            }
+            Self::AuthorizationFault { .. } => {
+                "The authorization decision could not be obtained (fail-closed deny)"
             }
             Self::IdempotencyKeyReused { .. } => {
                 "Idempotency key was already used with a different request"
@@ -508,23 +564,27 @@ impl PlatformDsrApiError {
             }
             Self::TenantMismatch { .. } => vec![detail(
                 "tenant_id",
-                "header tenant, principal tenant, authorization tenant, and body tenant_id must match",
+                "header tenant, principal tenant, and body tenant_id must match",
             )],
-            Self::EmptyAuthorizationDecisionId => vec![detail(
-                "authorization.decision_id",
-                "must be non-empty authorization evidence",
+            Self::Unauthenticated => vec![detail(
+                "credential",
+                "a verified principal (bearer/SVID) is required",
             )],
             Self::AuthorizationTenantMismatch { .. } => vec![detail(
-                "authorization.tenant_id",
-                "must match the authenticated principal tenant",
+                "principal.tenant_id",
+                "must match the verified principal tenant",
             )],
             Self::AuthorizationPrincipalMismatch { .. } => vec![detail(
-                "authorization.principal_id",
-                "must match the authenticated principal id",
+                "principal.principal_id",
+                "must match the verified principal id",
             )],
             Self::AuthorizationDenied { .. } => vec![detail(
-                "authorization.allowed_surfaces",
-                "must include dsr.cascade.execute",
+                "action.dsr.cascade.execute",
+                "denied by the server-side authorization decision",
+            )],
+            Self::AuthorizationFault { .. } => vec![detail(
+                "action.dsr.cascade.execute",
+                "authorization decision unavailable (fail-closed deny)",
             )],
             Self::IdempotencyKeyReused { .. } => vec![detail(
                 "header.Idempotency-Key",
@@ -577,12 +637,24 @@ impl PlatformDsrApiError {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum PlatformDsrApiStatusKind {
     BadRequest,
+    Unauthorized,
     Forbidden,
     Conflict,
     UnprocessableEntity,
 }
 
+/// Validate the request shape and bind the self-asserted identity against the
+/// VERIFIED principal.
+///
+/// `verified` is an [`authz::VerifiedDsrPrincipal`] — an unforgeable token that
+/// only an [`authz::PrincipalVerifier`] inside this crate can mint. The
+/// self-attested `request.principal` fields are CROSS-CHECK inputs only: any
+/// mismatch against the verified identity means the caller substituted a
+/// different principal/tenant and is rejected (403). This function does NOT make
+/// the PDP decision — that requires the [`authz::DsrCascadeAuthzProvider`] and is
+/// performed by [`execute_dsr_cascade_from_api`] before any mutation.
 pub fn validate_platform_dsr_cascade_execute_request(
+    verified: &authz::VerifiedDsrPrincipal,
     request: &PlatformDsrCascadeExecuteApiRequest,
 ) -> Result<(), PlatformDsrApiError> {
     validate_boundary(&request.boundary)?;
@@ -596,29 +668,97 @@ pub fn validate_platform_dsr_cascade_execute_request(
     validate_tenant_binding(
         &request.boundary.tenant_id,
         &request.principal,
-        &request.authorization,
         Some(&request.body.tenant_id),
     )?;
-    validate_authorization(
-        &request.principal,
-        &request.authorization,
-        PLATFORM_DSR_CASCADE_EXECUTE_SURFACE,
-    )?;
+    cross_check_verified_principal(verified, &request.principal)?;
     Ok(())
 }
 
+/// Cross-check the self-asserted request principal against the VERIFIED
+/// principal. A non-empty request field that disagrees with the verified
+/// identity means the caller forged/substituted a different identity in the
+/// request body — reject as Forbidden. Empty fields are left to
+/// [`validate_tenant_binding`], which returns the correct 403
+/// (`EmptyPrincipalId`).
+fn cross_check_verified_principal(
+    verified: &authz::VerifiedDsrPrincipal,
+    principal: &PlatformDsrApiPrincipal,
+) -> Result<(), PlatformDsrApiError> {
+    if !principal.principal_id.is_empty() && principal.principal_id != verified.principal_id() {
+        return Err(PlatformDsrApiError::AuthorizationPrincipalMismatch {
+            authorization_principal_id: verified.principal_id().to_string(),
+            principal_id: principal.principal_id.clone(),
+        });
+    }
+    if !principal.tenant_id.is_empty() && principal.tenant_id != verified.tenant_id() {
+        return Err(PlatformDsrApiError::AuthorizationTenantMismatch {
+            authorization_tenant_id: verified.tenant_id().to_string(),
+            principal_tenant_id: principal.tenant_id.clone(),
+        });
+    }
+    Ok(())
+}
+
+/// Execute the DSR cascade behind a FAIL-CLOSED authorization gate (ADR-0589).
+///
+/// The gate runs BEFORE any mutation and cannot be bypassed:
+/// - `verified`: an [`authz::VerifiedDsrPrincipal`] proving the caller's identity
+///   was derived from an unforgeable credential (the HTTP edge runs the
+///   [`authz::PrincipalVerifier`] BEFORE body deserialization; an absent/invalid
+///   credential is a 401 [`PlatformDsrApiError::Unauthenticated`] and never
+///   reaches this function).
+/// - The self-asserted request principal/tenant are cross-checked against
+///   `verified` (mismatch → 403).
+/// - `authz`: the [`authz::DsrCascadeAuthzProvider`] makes the SERVER-SIDE PDP
+///   decision for `action = dsr.cascade.execute` on the TARGET resource derived
+///   from TRUSTED inputs (path `dsr_id` + body tenant, already bound equal). A
+///   deny or any PDP fault is a 403 — never 500, never fail-open. Platform-scoped
+///   (cross-tenant) targets present a distinct platform resource so a tenant
+///   admin cannot self-authorize a platform-wide erasure (true blast-radius).
+///
+/// The provider is NON-OPTIONAL by type: there is no `Default` impl and no
+/// default-allow fallback, so the binary refuses to act without a configured
+/// authz seam.
 pub fn execute_dsr_cascade_from_api(
+    verified: &authz::VerifiedDsrPrincipal,
+    authz: &authz::DsrCascadeAuthzProvider,
     directory: &mut PlatformDsrCascadeDirectory,
     idempotency_ledger: &mut PlatformDsrCascadeExecuteIdempotencyLedger,
     request: PlatformDsrCascadeExecuteApiRequest,
 ) -> Result<PlatformDsrCascadeExecuteSuccessResponse, PlatformDsrApiError> {
-    validate_platform_dsr_cascade_execute_request(&request)?;
+    validate_platform_dsr_cascade_execute_request(verified, &request)?;
+
+    // SERVER-SIDE PDP DECISION (default-deny). The resource is derived from
+    // TRUSTED inputs — the path dsr_id and the body tenant, which
+    // `validate_tenant_binding` has already bound equal to the header tenant and
+    // the verified principal's tenant. We do NOT flatten cross-tenant targets to
+    // the caller's own tenant: `DsrCascadeResource::for_target` presents a
+    // distinct platform resource when the target tenant is the platform sentinel,
+    // so the PDP sees the true blast radius (no IDOR, no cross-tenant escalation).
+    let resource =
+        authz::DsrCascadeResource::for_target(&request.body.dsr_id, &request.body.tenant_id);
+    match authz.ensure_authorized(verified, &resource) {
+        Ok(()) => {}
+        Err(authz::DsrCascadeAuthorizationError::Denied) => {
+            return Err(PlatformDsrApiError::AuthorizationDenied {
+                surface: PLATFORM_DSR_CASCADE_EXECUTE_SURFACE.to_string(),
+            });
+        }
+        Err(authz::DsrCascadeAuthorizationError::Refused) => {
+            return Err(PlatformDsrApiError::AuthorizationFault {
+                surface: PLATFORM_DSR_CASCADE_EXECUTE_SURFACE.to_string(),
+            });
+        }
+    }
+
+    // Key the idempotency ledger on the VERIFIED principal id (authoritative),
+    // not the caller-supplied one (which is cross-checked equal above).
     let key = idempotency_key_for(
         &request.boundary,
-        &request.principal,
+        verified.principal_id(),
         PLATFORM_DSR_CASCADE_EXECUTE_SURFACE,
     );
-    let fingerprint = cascade_fingerprint_for(&request);
+    let fingerprint = cascade_fingerprint_for(verified, &request);
     if let Some(entry) = idempotency_ledger.entries.get(&key) {
         if entry.fingerprint == fingerprint {
             return Ok(entry.result.clone());
@@ -819,53 +959,19 @@ fn validate_path_dsr_id(dsr_id: &str) -> Result<(), PlatformDsrApiError> {
 fn validate_tenant_binding(
     header_tenant_id: &str,
     principal: &PlatformDsrApiPrincipal,
-    authorization: &PlatformDsrApiAuthorization,
     body_tenant_id: Option<&str>,
 ) -> Result<(), PlatformDsrApiError> {
     if principal.principal_id.trim().is_empty() {
         return Err(PlatformDsrApiError::EmptyPrincipalId);
     }
     if header_tenant_id != principal.tenant_id
-        || header_tenant_id != authorization.tenant_id
         || body_tenant_id.is_some_and(|tenant_id| header_tenant_id != tenant_id)
     {
         return Err(PlatformDsrApiError::TenantMismatch {
             header_tenant_id: header_tenant_id.to_string(),
             principal_tenant_id: principal.tenant_id.clone(),
-            authorization_tenant_id: Some(authorization.tenant_id.clone()),
+            authorization_tenant_id: None,
             body_tenant_id: body_tenant_id.map(str::to_string),
-        });
-    }
-    Ok(())
-}
-
-fn validate_authorization(
-    principal: &PlatformDsrApiPrincipal,
-    authorization: &PlatformDsrApiAuthorization,
-    surface: &str,
-) -> Result<(), PlatformDsrApiError> {
-    if authorization.decision_id.trim().is_empty() {
-        return Err(PlatformDsrApiError::EmptyAuthorizationDecisionId);
-    }
-    if authorization.tenant_id != principal.tenant_id {
-        return Err(PlatformDsrApiError::AuthorizationTenantMismatch {
-            authorization_tenant_id: authorization.tenant_id.clone(),
-            principal_tenant_id: principal.tenant_id.clone(),
-        });
-    }
-    if authorization.principal_id != principal.principal_id {
-        return Err(PlatformDsrApiError::AuthorizationPrincipalMismatch {
-            authorization_principal_id: authorization.principal_id.clone(),
-            principal_id: principal.principal_id.clone(),
-        });
-    }
-    if !authorization
-        .allowed_surfaces
-        .iter()
-        .any(|allowed| allowed == surface)
-    {
-        return Err(PlatformDsrApiError::AuthorizationDenied {
-            surface: surface.to_string(),
         });
     }
     Ok(())
@@ -1041,18 +1147,19 @@ fn require_target_field(
 
 fn idempotency_key_for(
     boundary: &PlatformDsrCascadeBoundaryContext,
-    principal: &PlatformDsrApiPrincipal,
+    principal_id: &str,
     surface: &str,
 ) -> PlatformDsrIdempotencyLedgerKey {
     PlatformDsrIdempotencyLedgerKey {
         tenant_id: boundary.tenant_id.clone(),
-        principal_id: principal.principal_id.clone(),
+        principal_id: principal_id.to_string(),
         surface: surface.to_string(),
         idempotency_key: boundary.idempotency_key.clone(),
     }
 }
 
 fn cascade_fingerprint_for(
+    verified: &authz::VerifiedDsrPrincipal,
     request: &PlatformDsrCascadeExecuteApiRequest,
 ) -> PlatformDsrRequestFingerprint {
     let targets = request
@@ -1096,23 +1203,13 @@ fn cascade_fingerprint_for(
         canonical: [
             format!("path.dsr_id={}", request.path_dsr_id),
             format!("header.tenant_id={}", request.boundary.tenant_id),
-            format!("principal.tenant_id={}", request.principal.tenant_id),
-            format!("principal.principal_id={}", request.principal.principal_id),
-            format!(
-                "authorization.tenant_id={}",
-                request.authorization.tenant_id
-            ),
-            format!(
-                "authorization.principal_id={}",
-                request.authorization.principal_id
-            ),
+            // Authoritative identity: the VERIFIED principal, not the
+            // caller-supplied request fields.
+            format!("verified.tenant_id={}", verified.tenant_id()),
+            format!("verified.principal_id={}", verified.principal_id()),
             format!(
                 "authorization.decision_id={}",
-                request.authorization.decision_id
-            ),
-            format!(
-                "authorization.allowed_surfaces={}",
-                request.authorization.allowed_surfaces.join(",")
+                request.authorization.decision_id.as_deref().unwrap_or("")
             ),
             format!("body.dsr_id={}", request.body.dsr_id),
             format!("body.tenant_id={}", request.body.tenant_id),
