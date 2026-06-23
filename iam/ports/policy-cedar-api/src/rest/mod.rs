@@ -368,14 +368,21 @@ async fn publish_handler(
         return response;
     }
 
-    // Use the VERIFIED identity for audit/binding (not the self-attested headers).
+    // Use the VERIFIED identity for principal binding and audit fields.
+    // The caller-supplied x-authorization-principal-id / x-authorization-tenant-id
+    // headers are NOT recorded as authoritative audit evidence: a caller can forge
+    // them. The authoritative principal and tenant always come from the verified
+    // credential (set by bearer_auth_middleware before any body bytes are read).
     let principal_id = verified.principal_id().to_string();
     let principal_tenant_id = verified.tenant_id().to_string();
 
-    // Extract authorization headers.
-    let authz_decision_id = header_str(&headers, "x-authorization-decision-id");
-    let authz_tenant_id = header_str(&headers, "x-authorization-tenant-id");
-    let authz_principal_id = header_str(&headers, "x-authorization-principal-id");
+    // x-authorization-decision-id is a CALLER-SUPPLIED correlation id, NOT an
+    // authorization grant. It is recorded as a correlation hint for log joins; the
+    // real authorization decision was made by the PublishAuthorizer PDP port above.
+    // FUTURE: when the PublishAuthorizer port is extended to return a decision
+    // record (fast-follow), replace this with the server-derived decision id from
+    // that record so the audit trail is fully authoritative end-to-end.
+    let authz_correlation_id = header_str(&headers, "x-authorization-decision-id");
     let authz_surfaces = header_csv(&headers, "x-authorization-surfaces");
 
     let api_request = CedarPolicyPublishApiRequest {
@@ -387,13 +394,15 @@ async fn publish_handler(
             idempotency_key,
         },
         principal: CedarPolicyApiPrincipal {
-            tenant_id: principal_tenant_id,
-            principal_id,
+            tenant_id: principal_tenant_id.clone(),
+            principal_id: principal_id.clone(),
         },
         authorization: CedarPolicyApiAuthorization {
-            tenant_id: authz_tenant_id,
-            principal_id: authz_principal_id,
-            decision_id: authz_decision_id,
+            // Derive tenant and principal from the verified identity, not headers.
+            tenant_id: principal_tenant_id,
+            principal_id,
+            // Caller-supplied correlation id (see note above).
+            decision_id: authz_correlation_id,
             allowed_surfaces: authz_surfaces,
         },
         body: dto_to_request_body(body),
@@ -470,10 +479,27 @@ fn enforce_publish_authz(
     verified: &VerifiedPrincipal,
     body: &PublishRequestBody,
 ) -> Result<(), Response> {
-    // (1) Cross-check — the verified identity is authoritative. A caller
-    // attempting to act as a different operator, principal, or tenant is forbidden.
+    // (1) Cross-check — the verified identity is authoritative.
+    //
+    // Header contract for this control plane:
+    // - `x-principal-id` is REQUIRED and MUST match the verified principal id.
+    //   Absent or empty → 403 (not 401: the bearer credential verified; the
+    //   caller simply failed to assert an identity that can be cross-checked).
+    //   Non-empty but mismatched → 403 (substitution attempt).
+    // - `x-tenant-id` (operator tenant) and `x-principal-tenant-id` are checked
+    //   when non-empty; if absent the verified tenant is authoritative and the
+    //   PDP decision enforces the tenant axis.
     let claimed_principal_id = header_str(headers, "x-principal-id");
     let claimed_principal_tenant_id = header_str(headers, "x-principal-tenant-id");
+
+    // x-principal-id is required: absent/empty means the caller did not assert
+    // an identity, which this control plane does not allow.
+    if claimed_principal_id.is_empty() {
+        return Err(authorization_denied_response(request_id, "principal_id_missing"));
+    }
+    if claimed_principal_id != verified.principal_id() {
+        return Err(authorization_denied_response(request_id, "principal_id"));
+    }
     if !operator_tenant_id.is_empty() && operator_tenant_id != verified.tenant_id() {
         return Err(authorization_denied_response(request_id, "operator_tenant"));
     }
@@ -481,9 +507,6 @@ fn enforce_publish_authz(
         && claimed_principal_tenant_id != verified.tenant_id()
     {
         return Err(authorization_denied_response(request_id, "principal_tenant"));
-    }
-    if !claimed_principal_id.is_empty() && claimed_principal_id != verified.principal_id() {
-        return Err(authorization_denied_response(request_id, "principal_id"));
     }
 
     // (2) Reject unrecognised scope kinds BEFORE the PDP so the domain

@@ -74,8 +74,12 @@ adapter, and the constant-time comparison utility that implements this decision.
    NOT be presented to the PDP as a per-tenant resource (that would silently authorize tenant-admins
    for platform-wide policy control — the CRITICAL escalation that a prior implementation contained
    by mapping `scope:global → operator_tenant`). Default-deny: any deny/refusal → **HTTP 403**. The
-   cloud-iam Cedar PDP client (ADR-0559) is the canonical W5 adapter. PDP panics are caught via
-   `catch_unwind` and mapped to `Refused → 403` (fail-closed; a panic must not produce a 500).
+   cloud-iam Cedar PDP client (ADR-0559) is the canonical W5 adapter. In test builds
+   (`panic = unwind`) `catch_unwind` wraps the authorizer call and maps panics to `Refused → 403`;
+   in release builds (`panic = "abort"`, `Cargo.toml [profile.release]`) `catch_unwind` is a no-op
+   and a panicking adapter aborts the process. The real production guarantee is the
+   `PublishAuthorizer` adapter contract: adapters MUST NOT panic and MUST map every fault to
+   `Err(Refused)`.
 
 3. **Refuse to serve without a provider.** `CedarPolicyRestState` carries a **required,
    non-optional** `CedarPolicyAuthzProvider`; there is no constructor that yields router state
@@ -86,14 +90,26 @@ adapter, and the constant-time comparison utility that implements this decision.
    (`x-tenant-id`) or self-attested principal tenant differs from the verified tenant is denied
    (403) before the PDP decision.
 
-5. **Type-enforced boundary API precondition.** `publish_cedar_policy_from_api` (the public crate
-   API, `iam/ports/policy-cedar-api/src/lib.rs`) requires a `&VerifiedPrincipal` as its first
-   argument. This token is only mintable by the `PrincipalVerifier` port, so no in-process caller
-   or future route can reach the mutation without first completing principal verification. The REST
-   handler is not the only guard.
+5. **Type-level defense-in-depth at the boundary API.** `publish_cedar_policy_from_api` (the
+   public crate API, `iam/ports/policy-cedar-api/src/lib.rs`) requires a `&VerifiedPrincipal`
+   as its first argument. External crates cannot build this type by struct literal (private fields,
+   `pub(crate)` constructor); they must run a real `PrincipalVerifier`. This is structural
+   defense-in-depth — it prevents accidental bypass and proves a verifier ran — but it is NOT a
+   cryptographic guarantee: hostile in-process code could construct its own
+   `ConfiguredBearerPrincipalVerifier` with a known secret. The real security comes from the
+   combination of bearer middleware + PDP decision + active principal cross-check in
+   `publish_cedar_policy_from_api`. The REST handler is not the only guard.
 
-The legacy `validate_authorization` header-consistency checks are retained as defense-in-depth after
-the verified-principal + PDP gate, not as the authorization boundary.
+6. **Audit fields derived from the verified identity.** The `CedarPolicyApiAuthorization` fields
+   `principal_id` and `tenant_id` are populated from the `VerifiedPrincipal` (not from the
+   caller-supplied `x-authorization-principal-id` / `x-authorization-tenant-id` headers), so the
+   audit trail cannot be forged by header manipulation. The `decision_id` field records the
+   caller-supplied `x-authorization-decision-id` as a **correlation hint** only (not an
+   authorization grant); a future fast-follow will extend the `PublishAuthorizer` port to return a
+   server-derived decision record, making the decision id fully authoritative end-to-end.
+
+The legacy `validate_authorization` header-consistency checks run after the verified-principal + PDP
+gate as non-authoritative correlation/consistency validation, not as the authorization boundary.
 
 The AUTH-005 baseline entry for this surface is **removed** from
 `cloud/cloud-ci/gates/oya-cloud-ci-authz-coverage-app/authz-coverage-policy.json`

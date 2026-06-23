@@ -597,6 +597,65 @@ async fn publish_authenticated_but_pdp_denies_returns_403() {
     );
 }
 
+	#[tokio::test]
+	async fn forged_authorization_headers_do_not_affect_recorded_principal() {
+	    // Audit-evidence integrity: a caller who presents a valid bearer but forges
+	    // x-authorization-principal-id / x-authorization-tenant-id to claim a
+	    // different identity must NOT have that forged identity recorded. The
+	    // metadata in the 201 response must always reflect the VERIFIED principal,
+	    // not the caller-supplied headers.
+	    let (status, body) = post_publish_with_overrides(
+	        fresh_router(),
+	        POLICY_ID,
+	        VERSION,
+	        valid_body(POLICY_ID, VERSION),
+	        &[
+	            ("x-authorization-principal-id", "usr_forged_attacker"),
+	            ("x-authorization-tenant-id", "ten_forged"),
+	        ],
+	    )
+	    .await;
+
+	    assert_eq!(
+	        status,
+	        StatusCode::CREATED,
+	        "a valid bearer with forged authz headers should still publish (bearer is the gate)"
+	    );
+	    // The recorded principal_id MUST be the verified identity, not the forged header.
+	    assert_eq!(
+	        body["metadata"]["principal_id"],
+	        PRINCIPAL_ID,
+	        "metadata.principal_id must be derived from the verified credential, not x-authorization-principal-id"
+	    );
+	    assert_eq!(
+	        body["metadata"]["operator_tenant_id"],
+	        TENANT_ID,
+	        "metadata.operator_tenant_id must be derived from the verified credential, not x-authorization-tenant-id"
+	    );
+	}
+
+	#[tokio::test]
+	async fn absent_principal_id_header_returns_403() {
+	    // x-principal-id is required by this control plane's header contract.
+	    // Absent (empty) x-principal-id → 403: the bearer verified but the caller
+	    // did not assert a principal id for cross-checking.
+	    let (status, resp_body) = post_publish_with_overrides(
+	        fresh_router(),
+	        POLICY_ID,
+	        VERSION,
+	        valid_body(POLICY_ID, VERSION),
+	        &[("x-principal-id", "")],
+	    )
+	    .await;
+
+	    assert_eq!(
+	        status,
+	        StatusCode::FORBIDDEN,
+	        "absent x-principal-id must be 403 (header is required by this control plane)"
+	    );
+	    assert_eq!(resp_body["error"]["code"], "CEDAR_POLICY_PUBLISH_FORBIDDEN");
+	}
+
 // ── CRITICAL escalation RED test (task #124 / ADR-0572) ──────────────────────
 //
 // The CRITICAL fix: global-scope publish is presented to the PDP with
@@ -640,8 +699,13 @@ async fn publish_global_scope_denied_for_tenant_admin_returns_403() {
 
 #[tokio::test]
 async fn publish_pdp_panic_returns_403_not_500() {
-    // MEDIUM fix: a panicking PDP must be caught and mapped to 403 (fail-closed)
-    // NOT an uncontrolled 500. This proves catch_unwind wraps the authorizer call.
+    // In test builds (panic strategy = unwind) catch_unwind catches a panicking
+    // authorizer and maps it to 403 (fail-closed), not an uncontrolled 500.
+    // In release builds (panic = "abort", Cargo.toml profile.release) catch_unwind
+    // is a no-op and a panicking adapter aborts the process — the real guarantee
+    // in production is the PublishAuthorizer adapter contract: adapters MUST NOT
+    // panic and MUST map every fault to Err(Refused). This test exercises the
+    // test-environment backstop only.
     let (status, resp_body) = post_publish(
         panic_authorizer_router(),
         POLICY_ID,
