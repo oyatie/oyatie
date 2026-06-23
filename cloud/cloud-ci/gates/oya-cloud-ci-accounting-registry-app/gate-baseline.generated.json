@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:5a663b7cf0e326ef",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:c3d95d5b708358a5"
+    "source_inputs_digest": "fnv1a64:6c3c254f0d415f7b"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -5029,7 +5029,6 @@
           "audit/core/sealing-domain/src/lib.rs",
           "audit/core/usecase/BUCK",
           "audit/core/usecase/Cargo.toml",
-          "audit/core/usecase/src/lib.rs",
           "audit/core/usecase/tests/audit_event_emit.rs",
           "audit/core/verification-domain/BUCK",
           "audit/core/verification-domain/Cargo.toml",
