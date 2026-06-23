@@ -7,7 +7,9 @@ use iam_policy_cedar_api::{
     CedarPolicyApiAuthorization, CedarPolicyApiBoundaryContext, CedarPolicyApiPrincipal,
     CedarPolicyPublishApiError, CedarPolicyPublishApiRequest, CedarPolicyPublishApiStatus,
     CedarPolicyPublishIdempotencyLedger, CedarPolicyPublishRequest, CedarPolicyRequiredAttribute,
-    CedarPolicyRuleRef, CedarPolicyScopeRef, authz::VerifiedPrincipal, publish_cedar_policy_from_api,
+    CedarPolicyRuleRef, CedarPolicyScopeRef,
+    authz::{CallerCredential, ConfiguredBearerPrincipalVerifier, PrincipalVerifier, VerifiedPrincipal},
+    publish_cedar_policy_from_api,
 };
 use iam_policy_cedar_domain::{AuthorizationQuery, AuthorizationSubject, PolicySet};
 use std::collections::BTreeMap;
@@ -18,14 +20,28 @@ const OPERATOR_TENANT_ID: &str = "ten_platform";
 const POLICY_ID: &str = "pol_tenant_admin";
 const VERSION: &str = "1.0.0";
 
-/// Test helper: a pre-verified platform principal (the type-level precondition
-/// for `publish_cedar_policy_from_api`). In production this token is minted by
-/// the `PrincipalVerifier` port after credential verification.
+/// Bearer secret used exclusively by the test verifier. Not a production secret.
+const TEST_BEARER_SECRET: &str = "test-bearer-secret-for-unit-tests";
+/// Principal id bound to the test verifier (matches `policy_request` body).
+const TEST_PRINCIPAL_ID: &str = "usr_platform_admin";
+
+/// Test helper: mint a [`VerifiedPrincipal`] by running through the legitimate
+/// [`ConfiguredBearerPrincipalVerifier`] path — the same path production uses.
+/// This proves that external crates CANNOT forge a `VerifiedPrincipal` by struct
+/// literal (the fields are private); they MUST go through a real verifier.
 fn test_principal() -> VerifiedPrincipal {
-    VerifiedPrincipal {
-        principal_id: "usr_platform_admin".to_string(),
-        tenant_id: OPERATOR_TENANT_ID.to_string(),
-    }
+    ConfiguredBearerPrincipalVerifier::new(
+        TEST_BEARER_SECRET,
+        TEST_PRINCIPAL_ID,
+        OPERATOR_TENANT_ID,
+    )
+    .expect("test verifier constructs with non-empty secret and identity")
+    .verify_principal(&CallerCredential {
+        authorization: Some(format!("Bearer {TEST_BEARER_SECRET}")),
+        claimed_principal_id: TEST_PRINCIPAL_ID.to_string(),
+        claimed_tenant_id: OPERATOR_TENANT_ID.to_string(),
+    })
+    .expect("test credential verifies")
 }
 
 #[test]

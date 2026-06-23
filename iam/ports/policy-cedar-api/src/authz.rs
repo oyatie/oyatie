@@ -59,15 +59,54 @@ pub struct CallerCredential {
 
 /// A principal whose identity has been VERIFIED from an unforgeable credential.
 ///
-/// Only the [`PrincipalVerifier`] port may construct this; the fields are the
-/// authoritative identity bound from the verified credential, NOT the
-/// self-attested headers.
+/// ## Unforgeability guarantee
+///
+/// The fields are **private**; the only constructor is [`VerifiedPrincipal::new`]
+/// which is `pub(crate)` — it can only be called by code inside this crate
+/// (i.e. the [`PrincipalVerifier`] implementations in [`authz`]).  External
+/// crates (other modules, adapters, or test helpers outside this crate) CANNOT
+/// construct a `VerifiedPrincipal` by struct literal or any public API; they must
+/// obtain one by running a real [`PrincipalVerifier`].  This is the compile-time
+/// enforcement that makes the type-level precondition on
+/// [`crate::publish_cedar_policy_from_api`] meaningful.
+///
+/// Within the same crate, tests use the `#[cfg(test)]` constructor
+/// [`VerifiedPrincipal::new_for_test`] to mint tokens without a real credential.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct VerifiedPrincipal {
-    /// Authoritative principal id derived from the verified credential.
-    pub principal_id: String, // data_class: INTERNAL_ONLY
-    /// Authoritative tenant the principal acts within.
-    pub tenant_id: String, // data_class: INTERNAL_ONLY
+    principal_id: String, // data_class: INTERNAL_ONLY — private: see unforgeability note above
+    tenant_id: String,    // data_class: INTERNAL_ONLY — private: see unforgeability note above
+}
+
+impl VerifiedPrincipal {
+    /// Mint a verified principal. **`pub(crate)` only** — callers outside this
+    /// crate cannot call this; they must go through a [`PrincipalVerifier`].
+    pub(crate) fn new(principal_id: impl Into<String>, tenant_id: impl Into<String>) -> Self {
+        Self {
+            principal_id: principal_id.into(),
+            tenant_id: tenant_id.into(),
+        }
+    }
+
+    /// The authoritative principal id bound from the verified credential.
+    pub fn principal_id(&self) -> &str {
+        &self.principal_id
+    }
+
+    /// The authoritative tenant the principal acts within.
+    pub fn tenant_id(&self) -> &str {
+        &self.tenant_id
+    }
+
+    /// Test-only constructor that mints a token without a real credential.
+    /// Only available inside this crate under `#[cfg(test)]`.
+    #[cfg(test)]
+    pub(crate) fn new_for_test(
+        principal_id: impl Into<String>,
+        tenant_id: impl Into<String>,
+    ) -> Self {
+        Self::new(principal_id, tenant_id)
+    }
 }
 
 /// Why principal verification refused. Every variant is fail-closed: the caller
@@ -155,12 +194,33 @@ pub trait PrincipalVerifier: Send + Sync {
 /// The decision is `decide(principal, action = cedar.policy.publish, resource)`.
 /// Adapter: the cloud-iam PDP client (the owned W5 destination). The default
 /// posture is deny; any refusal is treated as deny (fail-closed).
+///
+/// ## Adapter implementation contract (MUST follow; enforcement is by convention)
+///
+/// 1. **Map every internal fault to `Err(Refused)`.** Network errors, timeouts,
+///    parse failures, and unavailability MUST all return
+///    `Err(PublishAuthorizationError::Refused)` so the caller can map them to
+///    HTTP 403 (fail-closed). Never propagate an internal error as `Ok(())`.
+///
+/// 2. **Enforce a deadline.** This is a synchronous call on a request path;
+///    a hung PDP hangs the caller thread.  Adapters MUST enforce their own
+///    deadline and map expiry to `Err(Refused)`.  No deadline is enforced by
+///    this port — it is the adapter's responsibility.
+///
+/// 3. **Do not panic.** The release profile uses `panic = "abort"` (Cargo.toml
+///    `[profile.release]`), so a panic in production terminates the process
+///    rather than being catchable.  The `CedarPolicyAuthzProvider` wrapper
+///    calls `catch_unwind` as a **debug/test-only best-effort** backstop that
+///    works only when the panic strategy is `unwind` (i.e. in tests); it MUST
+///    NOT be relied upon in production.  Adapters MUST NOT panic — use
+///    `Err(Refused)` for every recoverable and unrecoverable fault.
 pub trait PublishAuthorizer: Send + Sync {
     /// Authorize `principal` to publish `resource`, or refuse.
     ///
     /// # Errors
-    /// [`PublishAuthorizationError`] on an explicit deny or a PDP refusal
-    /// (fail-closed: the caller MUST treat this as 403).
+    /// [`PublishAuthorizationError`] on an explicit deny or any PDP fault
+    /// (timeout, network, unavailability — all MUST be `Refused`; fail-closed:
+    /// the caller maps this to HTTP 403).
     fn ensure_authorized(
         &self,
         principal: &VerifiedPrincipal,
@@ -205,9 +265,18 @@ impl CedarPolicyAuthzProvider {
     /// Authorize the verified principal for the publish resource via the PDP
     /// port. Default-deny / fail-closed.
     ///
-    /// A PDP panic is caught and mapped to [`PublishAuthorizationError::Refused`]
-    /// (a panic unwind to the caller would produce an uncontrolled 500, violating
-    /// the fail-closed requirement that any refusal MUST be a 403 deny).
+    /// ## Panic / fault handling
+    ///
+    /// This wrapper calls `catch_unwind` as a **test/debug-only best-effort**
+    /// backstop for panicking authorizer implementations.  In production the
+    /// release profile sets `panic = "abort"` (Cargo.toml line 896), which
+    /// terminates the process immediately on panic without any unwinding —
+    /// `catch_unwind` has NO effect and the process aborts.  The real
+    /// fail-closed guarantee comes from the [`PublishAuthorizer`] adapter
+    /// contract: adapters MUST map every fault (timeout, network error,
+    /// unavailability) to `Err(Refused)` and MUST NOT panic.  The catch_unwind
+    /// here catches only test panics so the router integration tests can verify
+    /// the `PanicAuthorizer → 403` property without process termination.
     ///
     /// # Errors
     /// [`PublishAuthorizationError`] — caller maps to HTTP 403.
@@ -216,10 +285,10 @@ impl CedarPolicyAuthzProvider {
         principal: &VerifiedPrincipal,
         resource: &PublishResource,
     ) -> Result<(), PublishAuthorizationError> {
-        // Catch authorizer panics so they map to Refused (fail-closed → 403),
-        // not an uncontrolled unwind that would produce a 500.
-        // AssertUnwindSafe: we never observe the authorizer again after a panic
-        // (the Arc is dropped), so it is safe to assert unwind-safety here.
+        // Best-effort catch for test-environment panics (panic strategy = unwind).
+        // In production (panic = "abort") this catch_unwind is a no-op and a
+        // panicking adapter terminates the process — do not rely on this for
+        // production fault isolation.
         let authorizer = std::sync::Arc::clone(&self.authorizer);
         let principal = principal.clone();
         let resource = resource.clone();
@@ -319,10 +388,10 @@ impl PrincipalVerifier for ConfiguredBearerPrincipalVerifier {
         if !constant_time_eq(presented.as_bytes(), self.bearer_secret.as_bytes()) {
             return Err(PrincipalVerificationError::InvalidCredential);
         }
-        Ok(VerifiedPrincipal {
-            principal_id: self.bound_principal_id.clone(),
-            tenant_id: self.bound_tenant_id.clone(),
-        })
+        Ok(VerifiedPrincipal::new(
+            self.bound_principal_id.clone(),
+            self.bound_tenant_id.clone(),
+        ))
     }
 }
 
