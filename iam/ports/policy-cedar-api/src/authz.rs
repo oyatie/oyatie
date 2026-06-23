@@ -57,18 +57,27 @@ pub struct CallerCredential {
     pub claimed_tenant_id: String, // data_class: INTERNAL_ONLY
 }
 
-/// A principal whose identity has been VERIFIED from an unforgeable credential.
+/// A principal whose identity has been verified from a caller credential.
 ///
-/// ## Unforgeability guarantee
+/// ## Type-level defense-in-depth (NOT a cryptographic guarantee)
 ///
-/// The fields are **private**; the only constructor is [`VerifiedPrincipal::new`]
-/// which is `pub(crate)` — it can only be called by code inside this crate
-/// (i.e. the [`PrincipalVerifier`] implementations in [`authz`]).  External
-/// crates (other modules, adapters, or test helpers outside this crate) CANNOT
-/// construct a `VerifiedPrincipal` by struct literal or any public API; they must
-/// obtain one by running a real [`PrincipalVerifier`].  This is the compile-time
-/// enforcement that makes the type-level precondition on
-/// [`crate::publish_cedar_policy_from_api`] meaningful.
+/// The fields are **private**; the only public constructor is absent — external
+/// crates cannot build a `VerifiedPrincipal` by struct literal or any public API.
+/// [`VerifiedPrincipal::new`] is `pub(crate)`, callable only by
+/// [`PrincipalVerifier`] implementations inside this crate.  External crates must
+/// obtain one by running a real [`PrincipalVerifier`] (e.g.
+/// [`ConfiguredBearerPrincipalVerifier`]).
+///
+/// **Limits of this guarantee:** this is *structural* defense-in-depth, not a
+/// cryptographic proof.  It prevents accidental struct-literal forging and proves
+/// that *some* `PrincipalVerifier` ran.  It does NOT prevent hostile in-process
+/// code from constructing its own `ConfiguredBearerPrincipalVerifier` with a
+/// known secret and minting a token that way, nor does it protect against a
+/// compromised or stub verifier implementation.  The real security guarantee
+/// comes from the *combination* of: (1) bearer middleware running before body
+/// deserialization, (2) the PDP authorization decision, and (3) the active
+/// cross-check in [`crate::publish_cedar_policy_from_api`].  This type is one
+/// layer of that defense, not the sole barrier.
 ///
 /// Within the same crate, tests use the `#[cfg(test)]` constructor
 /// [`VerifiedPrincipal::new_for_test`] to mint tokens without a real credential.
