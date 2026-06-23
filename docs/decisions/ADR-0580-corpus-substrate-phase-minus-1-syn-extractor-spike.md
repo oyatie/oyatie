@@ -176,12 +176,20 @@ top-level impl block in any file.
 first 8 hex characters of the blake3 hash of the impl block's own normalized token body
 (`impl_body_disambiguator`). This is a property of the impl's own structure, independent of which
 file it lives in or how many sibling impls exist. `WalkState.impl_ordinals` is removed entirely.
-Two structurally distinct `impl Foo` blocks (even with the same self-type and trait) have different
-method/body tokens → different hash prefix → different `fqpath`. Any hash collision on the 32-bit
-prefix is detected by `FactSet::from_facts_checked` and surfaced as `OpaqueReason::AddressCollision`.
+Two structurally distinct `impl Foo` blocks have different method/body tokens → different hash
+prefix → different `fqpath`. Crucially, the disambiguator is also included in the **signature
+pre-image** (`impl {trait} for {self} #{disambig}`), so a 32-bit prefix collision (two distinct
+impl bodies hashing to the same 8-hex prefix) still produces facts with different `body_hash`
+values → NOT byte-identical → caught by the `extract_corpus` collision-drain as
+`OpaqueReason::AddressCollision`. A degenerate bit-exact collision (truly identical bodies AND
+identical prefix, i.e. source-level indistinguishable) produces byte-identical facts → legit
+dedup, which is correct. The safety claim "disambiguator collisions are caught as
+`AddressCollision`" is therefore literally true with the disambiguator in the sig pre-image.
 
-RED test: `cross_file_impls_same_type_produce_distinct_facts` — two `impl Foo` blocks in `lib.rs`
-+ `main.rs` of one crate → two distinct impl facts + both methods present.
+RED tests: `cross_file_impls_same_type_produce_distinct_facts` (HIGH-1: cross-file impls produce
+distinct facts) and `impl_signature_hash_varies_with_body_content` (MEDIUM-1: proves the
+disambiguator is in the sig pre-image — different-body impls always get different
+`signature_hash`es).
 
 ### A2 — HIGH-2 fix: collision detected, not silently merged
 
@@ -264,6 +272,20 @@ semantic, post-expansion fact source) is deferred to a W-tier general fallback.
 sub-extractor lands and its OPAQUE-RATE is measured. The current `syn`-over-source extractor is
 sufficient only for non-proto capabilities (where OPAQUE-RATE ≤ 10% has been validated). This
 tracks as the next corpus substrate slice, separate from this PR.
+
+### A7 — MEDIUM-2 fix: `#![warn(non_exhaustive_omitted_patterns)]` replaces false exhaustiveness claim
+
+The previous `_ => {}` arm comment in `walk_item` claimed the compiler would warn when `syn` adds a
+new `Item` variant. This was FALSE: `syn::Item` is `#[non_exhaustive]`, so the wildcard arm
+SUPPRESSES the `non_exhaustive_omitted_patterns` lint — new variants added in future `syn` releases
+would silently fall through into the empty arm with no compiler signal.
+
+**Fix**: `#![warn(non_exhaustive_omitted_patterns)]` is added as a crate-level attribute on
+`corpus-extract`. With this lint active, the compiler emits a warning whenever the wildcard arm
+catches a non-exhaustive variant that was not named above — forcing an explicit decision (route to
+fact / `OpaqueReason::Unhandled` / intentional silent-drop with a named arm) for every new `syn`
+item kind. The false comment is replaced with the true explanation of what the wildcard arm does
+and when the lint fires.
 
 ## Governed surfaces
 
