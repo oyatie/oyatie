@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:5a663b7cf0e326ef",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:3e065dd6a5e63242"
+    "source_inputs_digest": "fnv1a64:74fa2c20bbfc500b"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -4625,7 +4625,8 @@
           "ADR-0508",
           "ADR-0510",
           "ADR-0512",
-          "ADR-0515"
+          "ADR-0515",
+          "ADR-0572"
         ],
         "mode": "baseline-block-on-new"
       }
@@ -10774,7 +10775,6 @@
           "iam/ports/identity-workload-api/tests/contracts.rs",
           "iam/ports/policy-cedar-api/BUCK",
           "iam/ports/policy-cedar-api/Cargo.toml",
-          "iam/ports/policy-cedar-api/src/lib.rs",
           "iam/ports/policy-cedar-api/src/rest/mod.rs",
           "iam/ports/policy-cedar-api/tests/cedar_policy_publish_api.rs",
           "iam/ports/policy-cedar-api/tests/rest_router.rs",
