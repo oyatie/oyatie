@@ -118,6 +118,10 @@
       "prefix": "intelligence/OWNERS"
     },
     {
+      "anchor": "ADR-0580 ownership seed: the Phase -1 corpus substrate tree's OWNERS marker (council-architecture). The live-AST governance 'corpus' is physically homed under the governance/ meta directory at governance/corpus/{core,extract} — governance-engine code (the source-level AstSource extractor + the content-addressed Function fact model), NOT a capability crate (consistent with the capability-registry governance meta_dir owns_crates:false carve-out: it owns no CAPABILITY crates, but governance/ hosts governance-engine code). breadth-unlimited (ADR-0555) so it covers the whole governance/corpus subtree (corpus-core, corpus-extract, their BUCK/src). The crates are membership-mapped via the capability-registry governance meta:governance/ glob governance/corpus/* and workspace-member-covered via the root Cargo.toml governance/corpus/* glob; any catalog record they carry is born-reachable via the existing registry/catalog/ prefix.",
+      "prefix": "governance/corpus/OWNERS"
+    },
+    {
       "anchor": "ADR-0555 D3: the governance decision corpus — every decision is crosswalk-accounted (decision-crosswalk.generated.json); orphan/unpropagated/status pathologies are the cross-artifact gate's BLOCKING codes, so per-decision reachability is derived from the corpus itself, not hand-mentioned per file",
       "prefix": "docs/decisions/"
     },
