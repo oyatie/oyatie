@@ -574,7 +574,14 @@ pub fn validate_cedar_policy_publish_request(
     Ok(())
 }
 
+/// Publish a Cedar policy version, requiring a verified caller principal as a
+/// **type-level precondition**. The `verified` token is only mintable by the
+/// [`crate::authz::PrincipalVerifier`] port, so no in-process caller can reach
+/// the mutation without first completing principal verification + PDP
+/// authorization. The REST handler is NOT the only guard; this boundary API
+/// enforces the same invariant for any future route or adapter that imports it.
 pub fn publish_cedar_policy_from_api(
+    _verified: &crate::authz::VerifiedPrincipal,
     policies: &mut PolicySet,
     idempotency_ledger: &mut CedarPolicyPublishIdempotencyLedger,
     request: CedarPolicyPublishApiRequest,
