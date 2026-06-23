@@ -1,6 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::collections::BTreeMap;
+use std::sync::Arc;
 
 use oya_http_middleware_kernel::HttpRequest;
 use oya_http_router_kernel::HttpMethod;
@@ -10,20 +11,74 @@ use oya_payroll_run_api::{
     WageLedgerEntryRequest, WageLineKindDto,
 };
 use oya_payroll_run_infrastructure::{
-    PAYROLL_ACCOUNTING_JOURNAL_DRAFT_PATH, PAYROLL_HEALTH_PATH,
-    PAYROLL_HR_LEAVE_IMPACT_INTAKE_PATH, PAYROLL_TRIAL_CLOSE_PATH, dispatch_payroll_request,
-    payroll_runtime_routes, payroll_server_config,
+    ConfiguredBearerPrincipalVerifier, MoneyMutationAuthorizationError, MoneyMutationAuthorizer,
+    MoneyMutationResource, PAYROLL_ACCOUNTING_JOURNAL_DRAFT_PATH, PAYROLL_HEALTH_PATH,
+    PAYROLL_HR_LEAVE_IMPACT_INTAKE_PATH, PAYROLL_TRIAL_CLOSE_PATH, PayrollAuthzProvider,
+    VerifiedPrincipal, dispatch_payroll_request, payroll_runtime_routes, payroll_server_config,
 };
+
+/// Break-glass bearer secret bound to the test principal/tenant (ten_acme).
+const BEARER: &str = "payroll-test-secret";
+
+/// PDP authorizer that allows any verified principal — isolates the AUTHN gate
+/// in the happy-path tests. The cross-tenant RED test relies on the handler's
+/// body-tenant cross-check (true blast radius), not on this authorizer.
+struct AllowAllAuthorizer;
+impl MoneyMutationAuthorizer for AllowAllAuthorizer {
+    fn ensure_authorized(
+        &self,
+        _principal: &VerifiedPrincipal,
+        _resource: &MoneyMutationResource,
+    ) -> Result<(), MoneyMutationAuthorizationError> {
+        Ok(())
+    }
+}
+
+/// PDP authorizer that denies every decision — proves PDP-deny -> 403.
+struct DenyAllAuthorizer;
+impl MoneyMutationAuthorizer for DenyAllAuthorizer {
+    fn ensure_authorized(
+        &self,
+        _principal: &VerifiedPrincipal,
+        _resource: &MoneyMutationResource,
+    ) -> Result<(), MoneyMutationAuthorizationError> {
+        Err(MoneyMutationAuthorizationError::Denied)
+    }
+}
+
+/// PDP authorizer that PANICS — proves a PDP fault is mapped to 403 (deny),
+/// never propagated as allow, never a 500 (release is panic=abort; the provider
+/// catch_unwind backstop is exercised under the test unwind strategy).
+struct PanicAuthorizer;
+impl MoneyMutationAuthorizer for PanicAuthorizer {
+    fn ensure_authorized(
+        &self,
+        _principal: &VerifiedPrincipal,
+        _resource: &MoneyMutationResource,
+    ) -> Result<(), MoneyMutationAuthorizationError> {
+        panic!("simulated PDP outage");
+    }
+}
+
+fn provider_with(authorizer: Arc<dyn MoneyMutationAuthorizer>) -> PayrollAuthzProvider {
+    let verifier = ConfiguredBearerPrincipalVerifier::new(BEARER, "sp_payroll", "ten_acme")
+        .expect("verifier construction");
+    PayrollAuthzProvider::new(Arc::new(verifier), authorizer)
+}
+
+fn allow_provider() -> PayrollAuthzProvider {
+    provider_with(Arc::new(AllowAllAuthorizer))
+}
 
 #[test]
 fn payroll_runtime_dispatches_hr_leave_intake() {
-    let request = mock_json_request(
+    let request = authed_json_request(
         HttpMethod::Post,
         PAYROLL_HR_LEAVE_IMPACT_INTAKE_PATH,
         &hr_leave_impact_request(),
     );
 
-    let response = dispatch_payroll_request(request);
+    let response = dispatch_payroll_request(request, allow_provider());
     let body: serde_json::Value = serde_json::from_slice(&response.body).expect("json response");
 
     assert_eq!(response.status, 202);
@@ -38,22 +93,28 @@ fn payroll_runtime_dispatches_hr_leave_intake() {
 
 #[test]
 fn payroll_runtime_dispatches_trial_close_and_journal_metadata() {
-    let trial = dispatch_payroll_request(mock_json_request(
-        HttpMethod::Post,
-        PAYROLL_TRIAL_CLOSE_PATH,
-        &trial_close_request(),
-    ));
+    let trial = dispatch_payroll_request(
+        authed_json_request(
+            HttpMethod::Post,
+            PAYROLL_TRIAL_CLOSE_PATH,
+            &trial_close_request(),
+        ),
+        allow_provider(),
+    );
     let trial_body: serde_json::Value = serde_json::from_slice(&trial.body).expect("trial json");
     assert_eq!(trial.status, 202);
     assert_eq!(trial_body["accepted"], true);
     assert_eq!(trial_body["auditTopic"], "audit.payroll.run.close");
     assert_eq!(trial_body["service"], "payroll");
 
-    let journal = dispatch_payroll_request(mock_json_request(
-        HttpMethod::Post,
-        PAYROLL_ACCOUNTING_JOURNAL_DRAFT_PATH,
-        &journal_request(),
-    ));
+    let journal = dispatch_payroll_request(
+        authed_json_request(
+            HttpMethod::Post,
+            PAYROLL_ACCOUNTING_JOURNAL_DRAFT_PATH,
+            &journal_request(),
+        ),
+        allow_provider(),
+    );
     let journal_body: serde_json::Value =
         serde_json::from_slice(&journal.body).expect("journal json");
     assert_eq!(journal.status, 202);
@@ -69,28 +130,36 @@ fn payroll_runtime_dispatches_trial_close_and_journal_metadata() {
 
 #[test]
 fn payroll_runtime_rejects_invalid_json_and_domain_errors_without_panicking() {
+    // Authenticated request with a malformed body still reaches the handler and
+    // gets a 400 (authn passes; body deserialization fails AFTER the authz gate).
     let invalid_json = HttpRequest {
         method: HttpMethod::Post,
         path: PAYROLL_HR_LEAVE_IMPACT_INTAKE_PATH.to_owned(),
-        headers: BTreeMap::new(),
+        headers: BTreeMap::from([
+            ("content-type".to_owned(), "application/json".to_owned()),
+            ("authorization".to_owned(), format!("Bearer {BEARER}")),
+        ]),
         body: b"{not-json".to_vec(),
         path_captures: BTreeMap::new(),
         matched_template: None,
     };
-    let invalid_json_response = dispatch_payroll_request(invalid_json);
+    let invalid_json_response = dispatch_payroll_request(invalid_json, allow_provider());
     let body: serde_json::Value =
         serde_json::from_slice(&invalid_json_response.body).expect("error json");
     assert_eq!(invalid_json_response.status, 400);
     assert_eq!(body["error"]["code"], "VALIDATION_ERROR");
 
-    let domain_error = dispatch_payroll_request(mock_json_request(
-        HttpMethod::Post,
-        PAYROLL_HR_LEAVE_IMPACT_INTAKE_PATH,
-        &HrLeaveImpactIntakeRequest {
-            source_topic: "integration.hr.payroll.raw-leave".to_owned(),
-            ..hr_leave_impact_request()
-        },
-    ));
+    let domain_error = dispatch_payroll_request(
+        authed_json_request(
+            HttpMethod::Post,
+            PAYROLL_HR_LEAVE_IMPACT_INTAKE_PATH,
+            &HrLeaveImpactIntakeRequest {
+                source_topic: "integration.hr.payroll.raw-leave".to_owned(),
+                ..hr_leave_impact_request()
+            },
+        ),
+        allow_provider(),
+    );
     let domain_body: serde_json::Value =
         serde_json::from_slice(&domain_error.body).expect("domain error json");
     assert_eq!(domain_error.status, 400);
@@ -116,14 +185,19 @@ fn payroll_runtime_manifest_and_health_preserve_honest_non_claims() {
     let config = payroll_server_config();
     assert_eq!(config.max_body_bytes, 64 * 1024);
 
-    let health = dispatch_payroll_request(HttpRequest {
-        method: HttpMethod::Get,
-        path: PAYROLL_HEALTH_PATH.to_owned(),
-        headers: BTreeMap::new(),
-        body: Vec::new(),
-        path_captures: BTreeMap::new(),
-        matched_template: None,
-    });
+    // Health is a non-mutation route: the authz middleware passes it through
+    // WITHOUT a credential (no money mutation, no PDP decision).
+    let health = dispatch_payroll_request(
+        HttpRequest {
+            method: HttpMethod::Get,
+            path: PAYROLL_HEALTH_PATH.to_owned(),
+            headers: BTreeMap::new(),
+            body: Vec::new(),
+            path_captures: BTreeMap::new(),
+            matched_template: None,
+        },
+        allow_provider(),
+    );
     let body: serde_json::Value = serde_json::from_slice(&health.body).expect("health json");
     assert_eq!(health.status, 200);
     assert_eq!(body["runtimeAdapter"], "router-ready");
@@ -146,6 +220,108 @@ fn mock_json_request<T: serde::Serialize>(
         path_captures: BTreeMap::new(),
         matched_template: None,
     }
+}
+
+/// A request carrying a valid break-glass bearer (verifies to ten_acme).
+fn authed_json_request<T: serde::Serialize>(
+    method: HttpMethod,
+    path: &str,
+    payload: &T,
+) -> HttpRequest {
+    let mut request = mock_json_request(method, path, payload);
+    request
+        .headers
+        .insert("authorization".to_owned(), format!("Bearer {BEARER}"));
+    request
+}
+
+// ---------------------------------------------------------------------------
+// AUTH-005 RED tests (ADR-0593): the empty MiddlewareChain::new() left every
+// money-mutation route unauthenticated. These prove the fail-closed gate.
+// ---------------------------------------------------------------------------
+
+#[test]
+fn unauthenticated_money_mutation_is_rejected_401() {
+    // No Authorization header at all -> 401 BEFORE the body is deserialized.
+    let request = mock_json_request(
+        HttpMethod::Post,
+        PAYROLL_TRIAL_CLOSE_PATH,
+        &trial_close_request(),
+    );
+    let response = dispatch_payroll_request(request, allow_provider());
+    assert_eq!(response.status, 401);
+    let body: serde_json::Value = serde_json::from_slice(&response.body).expect("401 json");
+    assert_eq!(body["error"]["code"], "UNAUTHENTICATED");
+}
+
+#[test]
+fn wrong_bearer_money_mutation_is_rejected_401() {
+    let mut request = mock_json_request(
+        HttpMethod::Post,
+        PAYROLL_ACCOUNTING_JOURNAL_DRAFT_PATH,
+        &journal_request(),
+    );
+    request
+        .headers
+        .insert("authorization".to_owned(), "Bearer not-the-secret".to_owned());
+    let response = dispatch_payroll_request(request, allow_provider());
+    assert_eq!(response.status, 401);
+}
+
+#[test]
+fn cross_tenant_money_mutation_is_rejected_403() {
+    // Verified principal is ten_acme (from the bearer), but the body claims a
+    // DIFFERENT tenant. This is the cross-tenant body-substitution attack —
+    // must be denied 403 by the handler's body-tenant cross-check even though
+    // the PDP authorizer would allow.
+    let cross_tenant_body = PayrollTrialCloseRequest {
+        tenant_id: "ten_victim".to_owned(),
+        ..trial_close_request()
+    };
+    let request = authed_json_request(
+        HttpMethod::Post,
+        PAYROLL_TRIAL_CLOSE_PATH,
+        &cross_tenant_body,
+    );
+    let response = dispatch_payroll_request(request, allow_provider());
+    assert_eq!(response.status, 403);
+}
+
+#[test]
+fn pdp_deny_money_mutation_is_rejected_403() {
+    let request = authed_json_request(
+        HttpMethod::Post,
+        PAYROLL_TRIAL_CLOSE_PATH,
+        &trial_close_request(),
+    );
+    let response =
+        dispatch_payroll_request(request, provider_with(Arc::new(DenyAllAuthorizer)));
+    assert_eq!(response.status, 403);
+}
+
+#[test]
+fn pdp_fault_money_mutation_denies_403_not_500() {
+    // A panicking (faulting) PDP must DENY (403), never allow and never 500.
+    let request = authed_json_request(
+        HttpMethod::Post,
+        PAYROLL_TRIAL_CLOSE_PATH,
+        &trial_close_request(),
+    );
+    let response =
+        dispatch_payroll_request(request, provider_with(Arc::new(PanicAuthorizer)));
+    assert_eq!(response.status, 403);
+}
+
+#[test]
+fn authenticated_authorized_same_tenant_money_mutation_succeeds() {
+    // Sanity GREEN: verified ten_acme + matching body tenant + PDP allow -> 202.
+    let request = authed_json_request(
+        HttpMethod::Post,
+        PAYROLL_TRIAL_CLOSE_PATH,
+        &trial_close_request(),
+    );
+    let response = dispatch_payroll_request(request, allow_provider());
+    assert_eq!(response.status, 202);
 }
 
 fn digest() -> String {
