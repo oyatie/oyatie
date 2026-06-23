@@ -6,9 +6,11 @@
 //! `frozen_dto_authz_trust_instances`, so the verdict is GREEN and no NEW instance is present. It
 //! also asserts the FIXED iam/ports/policy-cedar-api/src/authz.rs PDP-port pattern is NOT flagged
 //! (the GREEN reference) and a representative known instance (secrets/ports/kms-api) IS in the
-//! baseline. The RED fixture proves the gate genuinely FAILS on a NEW function that trusts a forged
-//! authorization DTO with no PDP call; the GREEN fixture proves a verify_principal +
-//! ensure_authorized PDP handler is tolerated even when it also reads the DTO.
+//! baseline (matched by file+fn prefix since v2 keys include a body-hash suffix). The RED fixture
+//! proves the gate genuinely FAILS on a NEW function that trusts a forged authorization DTO with no
+//! PDP call; the GREEN fixture proves an ensure_authorized PDP handler is tolerated even when it
+//! also reads the DTO. NOTE: verify_principal is AUTHN not AUTHZ and is absent from
+//! pdp_decision_idents since v2; GREEN_PDP_BACKED uses ensure_authorized as the PDP call.
 //!
 //! ADR-0083 Tier-3: integration tests use unwrap/expect/panic to assert invariants.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
@@ -47,6 +49,8 @@ fn load_committed_policy(root: &Path) -> Value {
 
 /// Test-only policy whose scan_roots point at a fixture directory written under a temp dir, so the
 /// RED/GREEN exhibits are evaluated in isolation from the live tree.
+/// NOTE: `verify_principal` is deliberately ABSENT from `pdp_decision_idents` since v2 — it is
+/// AUTHN not AUTHZ and must not satisfy the PDP-call check.
 fn fixture_policy(scan_root: &str) -> Value {
     json!({
         "gate_id": GATE_ID,
@@ -54,10 +58,15 @@ fn fixture_policy(scan_root: &str) -> Value {
         "scan_roots": [scan_root],
         "excluded_dir_names": ["target", "third-party"],
         "authorization_dto_type_suffixes": ["Authorization"],
-        "trigger_decision_field_idents": ["allowed_surfaces"],
+        "trigger_decision_field_idents": ["allowed_surfaces", "permitted_scopes", "caller_roles", "granted", "allowed_actions"],
         "decision_field_idents": ["allowed_surfaces", "decision_id"],
-        "authorization_header_idents": ["x-authorization-decision"],
-        "pdp_decision_idents": [".decide(", "ensure_authorized", "verify_principal", "check_authz", "ensure_authz"],
+        "authorization_header_idents": [
+            "x-authorization-decision-id",
+            "x-authorization-surfaces",
+            "x-authorization-principal-id",
+            "x-authorization-tenant-id"
+        ],
+        "pdp_decision_idents": [".decide(", "ensure_authorized", "check_authz", "ensure_authz", "authorize_decision", "pdp_decide"],
         "self_compare_tokens": ["==", "!=", ".iter().any(", ".contains("],
         "frozen_dto_authz_trust_instances": []
     })
@@ -103,21 +112,26 @@ fn baseline_is_nonempty_and_covers_a_known_instance() {
 
     assert!(
         baseline.len() >= 40,
-        "expected the frozen baseline to enumerate the ~50 known instances the review found; got {}",
+        "expected the frozen baseline to enumerate the known instances the review found; got {}",
         baseline.len()
     );
-    // A representative confirmed instance from the task must be in the baseline.
-    for expected in [
-        "secrets/ports/kms-api/src/lib.rs#validate_authorization",
-        "tenancy/ports/api/src/lib.rs#validate_authorization",
-        "network/ports/lb/src/lib.rs#validate_authorization",
-        "audit/core/usecase/src/lib.rs#validate_authorization",
-        "observability/core/api/src/lib.rs#validate_authorization",
-        "billing/ports/finops-api/src/lib.rs#validate_authorization",
+    // v2 keys have the format `<file>#<fn>:<body_hash>` — match by `<file>#<fn>:` prefix so the
+    // check is stable across body edits that change the hash but not the identity. These are
+    // confirmed caller-supplied-authz-trust instances that REMAIN un-remediated on the dev tip the
+    // gate was re-baselined against (the secrets/kms-api, tenancy/api, network/lb, audit, observability
+    // and finops `validate_authorization` instances were remediated by the AUTH-005 W2/W2b PRs — they
+    // legitimately dropped from the shrink-only baseline and are no longer expected here).
+    for expected_prefix in [
+        "cell/ports/region/src/lib.rs#validate_authorization:",
+        "compute/facade/vm/src/lib.rs#validate_authorization:",
+        "iam/ports/cloud-api/src/lib.rs#validate_authorization:",
+        "storage/ports/object-api/src/lib.rs#validate_authorization:",
+        "data/ports/ontology-api/src/lib.rs#validate_authorization:",
+        "oya/application/crates/oya-workspace-chat-api/src/lib.rs#validate_authorization:",
     ] {
         assert!(
-            baseline.iter().any(|k| k == expected),
-            "expected confirmed instance `{expected}` in the frozen baseline"
+            baseline.iter().any(|k| k.starts_with(expected_prefix)),
+            "expected confirmed instance with prefix `{expected_prefix}` in the frozen baseline"
         );
     }
 }
@@ -241,8 +255,19 @@ fn baselined_instance_is_tolerated_but_a_sibling_new_one_is_not() {
     // Two instances in one fixture: one baselined (tolerated), one NOT (must RED).
     let dir = write_fixture("baseline", "lib", RED_FORGED_DTO);
     let mut policy = fixture_policy("src");
-    // Baseline the fixture's instance key.
-    policy["frozen_dto_authz_trust_instances"] = json!(["src/lib.rs#validate_authorization"]);
+
+    // First collect with empty baseline to learn the actual v2 key (file#fn:<body_hash>).
+    let observed_initial = collect_instances(&dir, &policy).expect("collect initial");
+    let actual_key = observed_initial
+        .get("instances")
+        .and_then(Value::as_array)
+        .and_then(|arr| arr.iter().find(|i| i.get("fn").and_then(Value::as_str) == Some("validate_authorization")))
+        .and_then(|i| i.get("key").and_then(Value::as_str))
+        .expect("expected validate_authorization instance with key")
+        .to_owned();
+
+    // Baseline using the actual v2 key (includes body-hash suffix).
+    policy["frozen_dto_authz_trust_instances"] = json!([actual_key]);
     let observed = collect_instances(&dir, &policy).expect("collect");
     let report = evaluate(&policy, &observed);
     assert_eq!(
