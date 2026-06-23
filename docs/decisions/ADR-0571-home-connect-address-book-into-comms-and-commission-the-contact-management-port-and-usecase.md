@@ -41,9 +41,12 @@ for the W-Workspace Org Address Book adjunct surface (ADR-0029): per-tenant + pe
 validation plus consent-gated cross-tenant directory exposure, with NO CardDAV / identity-lookup /
 search-indexing adapters. The address book is a contacts/directory concern of the multi-channel
 communications plane (`comms` charter: email/mail, messenger, meet, notifications, contact-center),
-so its home is `comms`, not a standalone app vertical. It has no governance md tree (no OWNERS, no
-docs, no ADR-bound catalog/SLO record), its sole dependency is `libs/oya-data-boundary-kernel`
-(downward, safe), and no other crate depends on it — the cleanest single-crate lift in the surface.
+so its home is `comms`, not a standalone app vertical. `oya/connect` itself has no governance md
+tree (no OWNERS, no docs), but the moved domain crate DOES carry one gate-bound catalog record
+(`registry/catalog/oya-address-book-domain.yaml` — catalog-liveness + slo-coverage key on the file
+stem == crate id), which co-moves and is re-keyed to the live crate id. Its sole dependency is
+`libs/oya-data-boundary-kernel` (downward, safe), and no other crate depends on it — the cleanest
+single-crate lift in the surface.
 
 Two seams stay open at the domain rung: there is no typed contact-management API surface, and no
 application usecase wiring the domain through a port. The persistence/identity/cloud adapters are
@@ -106,9 +109,14 @@ owner for every file under the `comms/` subtree, including the moved + new crate
 sources, `Cargo.toml`, and `BUCK` files are reachable via the `comms/*/*` member glob (ADR-0538) +
 the breadth-unlimited `comms/OWNERS` reachability anchor (ADR-0555). The committed move-plan
 `specs/reorg/connect-move-plan.json` is reachable via the existing `specs/reorg/` ADR-0563 prefix.
-No catalog record is minted (the moved domain carried none; the gate-tool default). The MOVED
-domain crate's files are co-moved by the rename-aware move-manifest (ADR-0563) and inherit their
-baseline disposition, so they are not net-new. The net-new files commissioned by this decision:
+No NEW catalog record is minted for the two commissioned crates (the gate-tool default; neither
+catalog-liveness nor slo-coverage requires every live crate to carry a record). The MOVED domain
+crate's catalog record co-moves as a non-crate artifact of the move-plan: it is re-keyed
+`registry/catalog/oya-address-book-domain.yaml` → `registry/catalog/connect-address-book-domain.yaml`
+to track the de-branded live crate id (both gates key on the file stem == crate id), and the
+rename-aware move-manifest (ADR-0563) relabels its path-keyed baseline disposition so it is NOT
+net-new. The MOVED domain crate's source files are likewise co-moved and inherit their baseline
+disposition, so they are not net-new. The net-new files commissioned by this decision:
 
 `comms/ports/connect-address-book-api/BUCK`,
 `comms/ports/connect-address-book-api/Cargo.toml`,
