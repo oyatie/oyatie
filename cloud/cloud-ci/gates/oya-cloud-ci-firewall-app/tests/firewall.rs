@@ -17,7 +17,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use oya_cloud_ci_firewall_app::{
-    Baseline, FrozenBaseline, SignOff, baseline_keys_map, evaluate_firewall,
+    Baseline, FrozenBaseline, SignOff, baseline_keys_map, evaluate_firewall, ratchet_growth,
     FROZEN_SNAPSHOT_PATH, RATCHET_POLICY_PATH, SIGNOFF_FIXER_COMMAND, SIGNOFF_PATH,
 };
 use serde_json::Value;
@@ -338,6 +338,106 @@ fn firewall_is_green_on_the_live_corpus_with_the_baseline() {
             )
         })
         .collect();
+    // BOOTSTRAP WINDOW: when the gate-baseline face was absent at the merge-base (e.g. the
+    // one-time hotfix PR that re-introduces a face that was incorrectly de-committed), the
+    // frozen reference is empty.  Comparing against an empty baseline produces only false
+    // positives — the corpus has not grown, the REFERENCE was simply absent.  We skip the
+    // empty-baseline regression comparison but enforce two real invariants:
+    //
+    // (1) COMMITTED-BLOB CHECK: the face must be committed at HEAD (not just materialized on
+    //     disk by the CI materialize step).  Uses `git cat-file -e HEAD:<path>` — the same
+    //     oracle the emitter uses for the merge-base side — rather than `is_file()`.
+    //
+    // (2) NO NEW RATCHET GROWTH vs PRE-DECOMMIT BASELINE: we load the last-good baseline
+    //     from `git show <merge_base>^:<face_path>` (the parent of the broken merge-base,
+    //     i.e. the commit just before the de-commit PR landed) and use it as the growth-check
+    //     reference.  This correctly distinguishes pre-existing debt (present in both the
+    //     last-good and the re-introduced baseline) from genuinely new debt introduced by
+    //     this PR.  Against an empty frozen (as `ratchet_growth` with `&frozen.baseline`
+    //     would use), ALL 48k pre-existing keys appear as "unsigned growth" — a false alarm
+    //     that would make the bootstrap PR permanently un-mergeable without signing off every
+    //     pre-existing key.  Using the parent commit restores the correct debt ceiling.
+    //
+    // Once this PR merges, future PRs will have the face at their merge-base,
+    // `missing_at_merge_base=false`, and the normal GO-LIVE path resumes.
+    if frozen.missing_at_merge_base {
+        let policy = load_json(&ratchet_policy_path(&root));
+        let face_path = policy["frozen_reference"]["face_path"]
+            .as_str()
+            .expect("ratchet policy frozen_reference.face_path");
+
+        // (1) Committed-blob check: the face must be a committed git blob at HEAD.
+        let cat = Command::new("git")
+            .args(["cat-file", "-e", &format!("HEAD:{face_path}")])
+            .current_dir(&root)
+            .status()
+            .expect("git cat-file");
+        assert!(
+            cat.success(),
+            "BOOTSTRAP: frozen.missing_at_merge_base is true but {face_path} is NOT \
+             committed at HEAD — the face must be committed (not just materialized to disk) \
+             for a legitimate bootstrap. Check ratchet-policy.json frozen_reference.face_path."
+        );
+
+        // (2) Load the last-good baseline from the parent of the broken merge-base commit
+        // (`<merge_base>^`), i.e. the state just before the de-commit PR landed.  This is
+        // the correct debt ceiling: the bootstrap PR is allowed to freeze exactly what was
+        // already in the corpus, but no new unsigned blocking keys.
+        let parent_ref = format!("{}^:{face_path}", frozen.merge_base);
+        let parent_output = Command::new("git")
+            .args(["show", &parent_ref])
+            .current_dir(&root)
+            .output()
+            .expect("git show parent baseline");
+        assert!(
+            parent_output.status.success(),
+            "BOOTSTRAP: could not load the pre-decommit baseline from {parent_ref} — \
+             the parent of the broken merge-base must carry the last-good face. \
+             stderr: {}",
+            String::from_utf8_lossy(&parent_output.stderr)
+        );
+        let parent_value: Value = serde_json::from_slice(&parent_output.stdout)
+            .expect("parse parent baseline JSON");
+        let pre_decommit = Baseline::from_value(&parent_value);
+
+        let new_growth: Vec<(String, String, String)> =
+            ratchet_growth(&pre_decommit, &proposed, &signoff);
+        let new_growth_detail: Vec<String> = new_growth
+            .iter()
+            .map(|(gate, code, key)| {
+                let remediation = proposed
+                    .gates
+                    .get(gate)
+                    .and_then(|codes| codes.get(code))
+                    .and_then(|cb| cb.remediation.as_deref())
+                    .unwrap_or("(no remediation stamped — fix the disposition DATA)");
+                format!(
+                    "[{gate}] {code} new unsigned key {key:?}\n  REGISTRATION REQUIRED: \
+                     {remediation}"
+                )
+            })
+            .collect();
+        assert!(
+            new_growth.is_empty(),
+            "BOOTSTRAP: the re-introduction PR carries NEW unsigned blocking debt vs the \
+             pre-decommit baseline ({parent_ref}).  New debt must pass through the sign-off \
+             door or be removed.  New unsigned keys:\n{}",
+            new_growth_detail.join("\n")
+        );
+
+        assert!(
+            !proposed.gates.is_empty(),
+            "BOOTSTRAP: candidate baseline must be non-empty even during bootstrap window"
+        );
+        eprintln!(
+            "BOOTSTRAP WINDOW: frozen.missing_at_merge_base=true; skipping empty-baseline \
+             regression check (merge-base {} has no face).  Committed-blob check passed; \
+             zero new growth vs pre-decommit parent {} confirmed.",
+            frozen.merge_base, parent_ref
+        );
+        return;
+    }
+
     assert!(
         failing.is_empty(),
         "GO-LIVE: firewall must be GREEN on today's corpus (no NEW debt vs the merge-base), \
@@ -554,6 +654,41 @@ fn frozen_snapshot_provenance_matches_ratchet_policy() {
         policy["frozen_reference"]["face_path"],
         "snapshot must record the (frozen) policy face path"
     );
+    // BOOTSTRAP WINDOW: when missing_at_merge_base=true the face was absent at the
+    // merge-base.  There are exactly two legitimate causes:
+    //   (a) wrong path — the emitter extracted a non-existent path (BUG);
+    //   (b) one-time re-introduction PR — the face is being re-committed after it was
+    //       incorrectly de-committed (e.g. ADR-0595 false-premise hotfix).
+    // We distinguish (a) from (b) by verifying the face is committed at HEAD via
+    // `git cat-file -e HEAD:<path>` — the same oracle the emitter uses for the merge-base
+    // side.  `is_file()` (disk read) would be wrong here: the CI materialize step writes
+    // the face to disk before gates run, so it returns true regardless of commit state.
+    // Once this PR merges, future PRs will see the face at their merge-base (normal path).
+    if frozen.missing_at_merge_base {
+        let face_path = policy["frozen_reference"]["face_path"]
+            .as_str()
+            .expect("ratchet policy frozen_reference.face_path");
+        // `git cat-file -e HEAD:<face_path>` exits 0 iff the blob is committed at HEAD.
+        let cat = Command::new("git")
+            .args(["cat-file", "-e", &format!("HEAD:{face_path}")])
+            .current_dir(&root)
+            .status()
+            .expect("git cat-file");
+        assert!(
+            cat.success(),
+            "frozen.missing_at_merge_base is true AND the candidate face {face_path} is NOT \
+             committed at HEAD — this is case (a): the emitter extracted the wrong path, or \
+             the face was not committed (only materialized to disk by CI). Check \
+             ratchet-policy.json frozen_reference.face_path."
+        );
+        // Case (b) confirmed: bootstrap window for the re-introduction PR.  No further
+        // assertion needed here — firewall_is_green_on_the_live_corpus_with_the_baseline
+        // enforces committed-blob + zero unsigned ratchet growth.
+        return;
+    }
+    // Normal steady-state path: gate-baseline exists at the merge-base.
+    // (This assertion is structurally redundant after the early-return above, but kept as
+    // an explicit invariant statement for readability.)
     assert!(
         !frozen.missing_at_merge_base,
         "this repo's gate-baseline face exists at the merge-base; a missing-face snapshot \
