@@ -12,7 +12,8 @@
   --rule: oklch(89.5% 0.008 240);
   --rule-strong: oklch(82% 0.010 240);
 
-  --ink-faint: oklch(64% 0.012 240);
+  --ink-faint: oklch(64% 0.012 240);     /* DECORATIVE ONLY — 2.2:1 fails WCAG AA for text */
+  --ink-decorative: oklch(64% 0.012 240); /* alias: separators, non-text glyphs, decorative dividers */
   --ink-subtle: oklch(52% 0.013 240);
   --ink-muted: oklch(40% 0.013 240);
   --ink: oklch(22% 0.014 240);
@@ -32,6 +33,7 @@
   --ai-tint-border: oklch(86% 0.04 290);
   --ai-tint-ink: oklch(40% 0.10 290);
 
+  --text-2xs: 0.625rem;   /* micro-labels: kbd hints, status glyphs, mono caps codes */
   --text-xs: 0.6875rem;
   --text-cap: 0.75rem;
   --text-sm: 0.8125rem;

@@ -269,6 +269,8 @@ pub fn App() -> impl IntoView {
         <div class="oya-console-app">
             <a class="skip-link" href="#console-shell">"Skip to dashboard"</a>
             <ShellRail />
+            // R-1: bottom tab bar replaces rail navigation at ≤72rem breakpoint
+            <MobileNavBar />
             <ShellHeader />
             <main
                 id="console-shell"
@@ -357,17 +359,58 @@ fn ShellRail() -> impl IntoView {
     }
 }
 
+/// R-1: Mobile bottom tab bar — shown at ≤72rem when .app-rail is hidden.
+/// Provides keyboard-accessible navigation equivalent to the rail.
+#[component]
+fn MobileNavBar() -> impl IntoView {
+    view! {
+        <nav class="mobile-nav-bar" aria-label="Primary navigation">
+            <div class="mobile-nav-bar-inner">
+                <a href="#console-shell" class="active">
+                    <span aria-hidden="true">"⌂"</span>
+                    "Command"
+                </a>
+                <a href="#business-logics">
+                    <span aria-hidden="true">"⌬"</span>
+                    "Operate"
+                </a>
+                <a href="#workflow-studio">
+                    <span aria-hidden="true">"⌘"</span>
+                    "Workflow"
+                </a>
+                <a href="#work-hub">
+                    <span aria-hidden="true">"✉"</span>
+                    "Comms"
+                </a>
+                <a href="#identity-workforce-service">
+                    <span aria-hidden="true">"⚿"</span>
+                    "Identity"
+                </a>
+                <a href="#cloud-ops-cockpit">
+                    <span aria-hidden="true">"◫"</span>
+                    "Cloud"
+                </a>
+                <a href="#resource-audit-console">
+                    <span aria-hidden="true">"▤"</span>
+                    "Audit"
+                </a>
+            </div>
+        </nav>
+    }
+}
+
 #[component]
 fn ShellHeader() -> impl IntoView {
     view! {
         <header class="app-header" role="banner">
-            <div class="top-breadcrumb" aria-label="Breadcrumb">
+            // A-7: breadcrumb div → nav landmark + aria-current="page" on active item
+            <nav class="top-breadcrumb" aria-label="Breadcrumb">
                 <span>"Oyatie Cloud"</span>
-                <span class="sep">"/"</span>
+                <span class="sep" aria-hidden="true">"/"</span>
                 <span>"Operations"</span>
-                <span class="sep">"/"</span>
-                <strong>"Control Center"</strong>
-            </div>
+                <span class="sep" aria-hidden="true">"/"</span>
+                <strong aria-current="page">"Control Center"</strong>
+            </nav>
             <div class="header-route-strip" aria-label="FD-001 and Oyatie Cloud quick routes">
                 <button type="button" class="is-selected" data-header-route="fd001"><span>"FD-001"</span>"Service graph"</button>
                 <button type="button" data-header-route="cloud"><span>"Cloud"</span>"Substrate"</button>
@@ -386,8 +429,9 @@ fn ShellHeader() -> impl IntoView {
                 <kbd>"⌘K"</kbd>
             </button>
             <div class="header-actions" aria-label="Shell render status">
-                <button type="button" class="header-status">"SSR shell"</button>
-                <button type="button" class="header-status muted">"Selective WASM islands"</button>
+                // A-10: status badges convey information, not action — use span[role=status]
+                <span role="status" class="header-status" aria-label="Render mode: SSR shell">"SSR shell"</span>
+                <span role="status" class="header-status muted" aria-label="Hydration mode: Selective WASM islands">"Selective WASM islands"</span>
                 <button type="button" class="header-icon" data-header-action="notifications" aria-label="Open notifications">
                     "◔"
                     <span class="header-badge" data-activity-badge="true">"3"</span>
@@ -572,13 +616,14 @@ fn UtilityPanels() -> impl IntoView {
                 <span class="workspace-avatar" aria-hidden="true">"최"</span>
                 <div><strong>"최유나 · Choi Yu-na"</strong><p>"Tenant admin · Finance owner · PIPA-safe transitional data"</p></div>
             </div>
-            <div class="settings-tabs" role="tablist" aria-label="Settings panels">
-                <button type="button" class="active" data-settings-tab="profile" role="tab" aria-selected="true">"Profile"</button>
-                <button type="button" data-settings-tab="appearance" role="tab" aria-selected="false">"Appearance"</button>
-                <button type="button" data-settings-tab="integrations" role="tab" aria-selected="false">"Integrations"</button>
-                <button type="button" data-settings-tab="audit" role="tab" aria-selected="false">"Audit"</button>
+            // A-2: settings tablist — aria-orientation + id/aria-controls on tabs + role=tabpanel on panels
+            <div class="settings-tabs" role="tablist" aria-label="Settings panels" aria-orientation="horizontal">
+                <button type="button" id="settings-tab-profile" class="active" data-settings-tab="profile" role="tab" aria-selected="true" aria-controls="settings-panel-profile">"Profile"</button>
+                <button type="button" id="settings-tab-appearance" data-settings-tab="appearance" role="tab" aria-selected="false" aria-controls="settings-panel-appearance">"Appearance"</button>
+                <button type="button" id="settings-tab-integrations" data-settings-tab="integrations" role="tab" aria-selected="false" aria-controls="settings-panel-integrations">"Integrations"</button>
+                <button type="button" id="settings-tab-audit" data-settings-tab="audit" role="tab" aria-selected="false" aria-controls="settings-panel-audit">"Audit"</button>
             </div>
-            <article class="settings-panel active" data-settings-panel="profile">
+            <article id="settings-panel-profile" class="settings-panel active" data-settings-panel="profile" role="tabpanel" aria-labelledby="settings-tab-profile">
                 <dl class="settings-kv">
                     <div><dt>"Workspace"</dt><dd>"Oyatie Corp. · 118 employees"</dd></div>
                     <div><dt>"Role"</dt><dd>"Admin · payroll close approver"</dd></div>
@@ -586,7 +631,7 @@ fn UtilityPanels() -> impl IntoView {
                 </dl>
                 <button type="button" data-settings-action="open-identity">"Open identity profile"</button>
             </article>
-            <article class="settings-panel" data-settings-panel="appearance">
+            <article id="settings-panel-appearance" class="settings-panel" data-settings-panel="appearance" role="tabpanel" aria-labelledby="settings-tab-appearance">
                 <p>"Adjust local visual density and shell language without changing server state."</p>
                 <div class="settings-action-grid">
                     <button type="button" data-settings-action="density-comfortable">"Comfortable"</button>
@@ -595,14 +640,14 @@ fn UtilityPanels() -> impl IntoView {
                     <button type="button" data-settings-action="locale-en">"English labels"</button>
                 </div>
             </article>
-            <article class="settings-panel" data-settings-panel="integrations">
+            <article id="settings-panel-integrations" class="settings-panel" data-settings-panel="integrations" role="tabpanel" aria-labelledby="settings-tab-integrations">
                 <ol class="integration-list">
                     <li><strong>"Shinhan Bank"</strong><span class="status-chip success">"verified"</span><small>"Bank transport staged locally; no money movement."</small></li>
                     <li><strong>"HomeTax"</strong><span class="status-chip warning">"review"</span><small>"Filing transport waits for human attestation."</small></li>
                     <li><strong>"Google Workspace"</strong><span class="status-chip">"local"</span><small>"Mail and community previews only."</small></li>
                 </ol>
             </article>
-            <article class="settings-panel" data-settings-panel="audit">
+            <article id="settings-panel-audit" class="settings-panel" data-settings-panel="audit" role="tabpanel" aria-labelledby="settings-tab-audit">
                 <ol class="activity-list compact">
                     <li><time>"09:14"</time><strong>"Settings drawer opened"</strong><p>"Local shell state only."</p></li>
                     <li><time>"09:18"</time><strong>"Density preference staged"</strong><p>"Stored in this browser session."</p></li>
@@ -1692,10 +1737,11 @@ fn tenant_rbac_board(envelope: TenantRenderEnvelope) -> impl IntoView {
                 <p class="screen-anchor">"FILING READINESS"</p>
                 <h4>"Withholding return"</h4>
                 <p class="service-card-brief">"Korea localization workload joins the same substrate proof loop: reviewer attestation, transport, and receipt."</p>
+                // A-6: added role=progressbar + aria-value* attributes
                 <div class="readiness-bars compact" aria-label="Filing readiness">
-                    <span style="--bar: 86%"><em>"Employee validation"</em></span>
-                    <span style="--bar: 64%"><em>"HomeTax transport"</em></span>
-                    <span style="--bar: 52%"><em>"Reviewer attestation"</em></span>
+                    <span role="progressbar" aria-valuenow="86" aria-valuemin="0" aria-valuemax="100" aria-label="Employee validation: 86%" style="--bar: 86%"><em aria-hidden="true">"Employee validation"</em></span>
+                    <span role="progressbar" aria-valuenow="64" aria-valuemin="0" aria-valuemax="100" aria-label="HomeTax transport: 64%" style="--bar: 64%"><em aria-hidden="true">"HomeTax transport"</em></span>
+                    <span role="progressbar" aria-valuenow="52" aria-valuemin="0" aria-valuemax="100" aria-label="Reviewer attestation: 52%" style="--bar: 52%"><em aria-hidden="true">"Reviewer attestation"</em></span>
                 </div>
                 <div class="service-card-actions">
                     <button type="button" data-sidepeek-trigger="filing" data-sidepeek-title="Withholding return" data-sidepeek-id="FILE-KR-2026-04" data-sidepeek-desc="Filing readiness is staged locally and never submitted before live integration." data-sidepeek-owner="Finance close" data-sidepeek-risk="2 review" data-sidepeek-sla="Due 2026-05-10">"Inspect"</button>
@@ -1939,11 +1985,12 @@ fn governance_ops_command_board(workflow_name: String) -> impl IntoView {
                         </div>
                         <span class="status-chip success">"sealed draft"</span>
                     </div>
+                    // A-6: role=progressbar + aria-value*
                     <div class="evidence-readiness-lanes" aria-label="Evidence readiness lanes">
-                        <span style="--bar: 92%"><strong>"Workflow receipts"</strong><em>"11 / 12"</em></span>
-                        <span style="--bar: 78%"><strong>"Mail approvals"</strong><em>"7 linked"</em></span>
-                        <span style="--bar: 64%"><strong>"Cloud runbooks"</strong><em>"2 waiting"</em></span>
-                        <span style="--bar: 86%"><strong>"PIPA audit"</strong><em>"vendor gated"</em></span>
+                        <span role="progressbar" aria-valuenow="92" aria-valuemin="0" aria-valuemax="100" aria-label="Workflow receipts: 92%" style="--bar: 92%"><strong aria-hidden="true">"Workflow receipts"</strong><em aria-hidden="true">"11 / 12"</em></span>
+                        <span role="progressbar" aria-valuenow="78" aria-valuemin="0" aria-valuemax="100" aria-label="Mail approvals: 78%" style="--bar: 78%"><strong aria-hidden="true">"Mail approvals"</strong><em aria-hidden="true">"7 linked"</em></span>
+                        <span role="progressbar" aria-valuenow="64" aria-valuemin="0" aria-valuemax="100" aria-label="Cloud runbooks: 64%" style="--bar: 64%"><strong aria-hidden="true">"Cloud runbooks"</strong><em aria-hidden="true">"2 waiting"</em></span>
+                        <span role="progressbar" aria-valuenow="86" aria-valuemin="0" aria-valuemax="100" aria-label="PIPA audit: 86%" style="--bar: 86%"><strong aria-hidden="true">"PIPA audit"</strong><em aria-hidden="true">"vendor gated"</em></span>
                     </div>
                 </article>
 
@@ -2194,16 +2241,17 @@ fn identity_workforce_service() -> impl IntoView {
                 </aside>
 
                 <div class="identity-service-main">
-                    <div class="identity-tabs" role="tablist" aria-label="Identity service views">
-                        <button type="button" class="active" data-identity-tab="auth" role="tab" aria-selected="true">"Auth"</button>
-                        <button type="button" data-identity-tab="sessions" role="tab" aria-selected="false">"Sessions"</button>
-                        <button type="button" data-identity-tab="roles" role="tab" aria-selected="false">"Roles"</button>
-                        <button type="button" data-identity-tab="org" role="tab" aria-selected="false">"Org profile"</button>
-                        <button type="button" data-identity-tab="employees" role="tab" aria-selected="false">"Employees"</button>
-                        <button type="button" data-identity-tab="onboarding" role="tab" aria-selected="false">"Onboarding"</button>
+                    // A-2: identity tablist — aria-orientation + id/aria-controls + role=tabpanel
+                    <div class="identity-tabs" role="tablist" aria-label="Identity service views" aria-orientation="horizontal">
+                        <button type="button" id="identity-tab-auth" class="active" data-identity-tab="auth" role="tab" aria-selected="true" aria-controls="identity-panel-auth">"Auth"</button>
+                        <button type="button" id="identity-tab-sessions" data-identity-tab="sessions" role="tab" aria-selected="false" aria-controls="identity-panel-sessions">"Sessions"</button>
+                        <button type="button" id="identity-tab-roles" data-identity-tab="roles" role="tab" aria-selected="false" aria-controls="identity-panel-roles">"Roles"</button>
+                        <button type="button" id="identity-tab-org" data-identity-tab="org" role="tab" aria-selected="false" aria-controls="identity-panel-org">"Org profile"</button>
+                        <button type="button" id="identity-tab-employees" data-identity-tab="employees" role="tab" aria-selected="false" aria-controls="identity-panel-employees">"Employees"</button>
+                        <button type="button" id="identity-tab-onboarding" data-identity-tab="onboarding" role="tab" aria-selected="false" aria-controls="identity-panel-onboarding">"Onboarding"</button>
                     </div>
 
-                    <article id="identity-auth" class="identity-panel active" data-identity-panel="auth" aria-labelledby="auth-panel-title">
+                    <article id="identity-panel-auth" class="identity-panel active" data-identity-panel="auth" role="tabpanel" aria-labelledby="identity-tab-auth">
                         <div class="identity-panel-copy">
                             <p class="screen-anchor">"ACCOUNT · PASSKEYS"</p>
                             <h4 id="auth-panel-title">"패스키 · MFA"</h4>
@@ -2219,7 +2267,8 @@ fn identity_workforce_service() -> impl IntoView {
                             <aside class="security-score-card">
                                 <p class="screen-anchor">"SECURITY SCORE"</p>
                                 <strong data-security-score="true">"94/100"</strong>
-                                <span class="score-bar" style="--bar: 94%"><em></em></span>
+                                // A-6: security score progressbar
+                                <span class="score-bar" role="progressbar" aria-valuenow="94" aria-valuemin="0" aria-valuemax="100" aria-label="Security score: 94 out of 100" style="--bar: 94%"><em aria-hidden="true"></em></span>
                                 <ol>
                                     <li>"✓ 패스키 2개 등록됨"</li>
                                     <li>"✓ TOTP 백업 활성화"</li>
@@ -2232,7 +2281,7 @@ fn identity_workforce_service() -> impl IntoView {
                         {identity_command_board()}
                     </article>
 
-                    <article id="identity-sessions" class="identity-panel" data-identity-panel="sessions" aria-labelledby="sessions-panel-title">
+                    <article id="identity-panel-sessions" class="identity-panel" data-identity-panel="sessions" role="tabpanel" aria-labelledby="identity-tab-sessions">
                         <div class="identity-panel-copy">
                             <p class="screen-anchor">"ACCOUNT · SESSIONS"</p>
                             <h4 id="sessions-panel-title">"세션 · 기기"</h4>
@@ -2263,7 +2312,7 @@ fn identity_workforce_service() -> impl IntoView {
                         {identity_sessions_anchor_board()}
                     </article>
 
-                    <article id="identity-roles" class="identity-panel" data-identity-panel="roles" aria-labelledby="roles-panel-title">
+                    <article id="identity-panel-roles" class="identity-panel" data-identity-panel="roles" role="tabpanel" aria-labelledby="identity-tab-roles">
                         <div class="identity-panel-copy">
                             <p class="screen-anchor">"ACCOUNT · ACCESS"</p>
                             <h4 id="roles-panel-title">"역할 · 권한"</h4>
@@ -2281,7 +2330,7 @@ fn identity_workforce_service() -> impl IntoView {
                         {identity_roles_anchor_board()}
                     </article>
 
-                    <article id="identity-org" class="identity-panel" data-identity-panel="org" aria-labelledby="org-panel-title">
+                    <article id="identity-panel-org" class="identity-panel" data-identity-panel="org" role="tabpanel" aria-labelledby="identity-tab-org">
                         <div class="identity-panel-copy">
                             <p class="screen-anchor">"SETTINGS · OVERVIEW"</p>
                             <h4 id="org-panel-title">"조직 프로필"</h4>
@@ -2302,7 +2351,7 @@ fn identity_workforce_service() -> impl IntoView {
                         {identity_org_anchor_board()}
                     </article>
 
-                    <article id="identity-employees" class="identity-panel" data-identity-panel="employees" aria-labelledby="employees-panel-title">
+                    <article id="identity-panel-employees" class="identity-panel" data-identity-panel="employees" role="tabpanel" aria-labelledby="identity-tab-employees">
                         <div class="identity-panel-copy">
                             <p class="screen-anchor">"SETTINGS · EMPLOYEES"</p>
                             <h4 id="employees-panel-title">"직원 디렉토리"</h4>
@@ -2342,7 +2391,7 @@ fn identity_workforce_service() -> impl IntoView {
                         </table>
                     </article>
 
-                    <article id="identity-onboarding" class="identity-panel" data-identity-panel="onboarding" aria-labelledby="onboarding-panel-title">
+                    <article id="identity-panel-onboarding" class="identity-panel" data-identity-panel="onboarding" role="tabpanel" aria-labelledby="identity-tab-onboarding">
                         <div class="identity-panel-copy">
                             <p class="screen-anchor">"WORKSPACE SETUP"</p>
                             <h4 id="onboarding-panel-title">"워크스페이스 설정"</h4>
@@ -2355,7 +2404,7 @@ fn identity_workforce_service() -> impl IntoView {
                         <div class="onboarding-flow">
                             <div class="onboarding-progress">
                                 <strong data-onboarding-percent="true">"56%"</strong>
-                                <span class="score-bar" style="--bar: 56%"><em></em></span>
+                                <span class="score-bar" role="progressbar" aria-valuenow="56" aria-valuemin="0" aria-valuemax="100" aria-label="Onboarding progress: 56%" style="--bar: 56%"><em aria-hidden="true"></em></span>
                                 <button type="button" data-identity-action="advance-onboarding">"다음 단계 완료"</button>
                             </div>
                             <article class="setup-current-step">
@@ -2682,11 +2731,12 @@ fn identity_command_board() -> impl IntoView {
                     </div>
                     <button type="button" data-identity-route-action="employees">"Open people"</button>
                 </div>
+                // A-6: role=progressbar + aria-value*
                 <div class="identity-lifecycle-grid" aria-label="Workforce lifecycle state">
-                    <span style="--bar: 77%"><strong>"Onboarding"</strong><em>"6 active · 77%"</em></span>
-                    <span style="--bar: 64%"><strong>"Role review"</strong><em>"14 grants · 64%"</em></span>
-                    <span style="--bar: 48%"><strong>"Session hygiene"</strong><em>"3 stale · 48%"</em></span>
-                    <span style="--bar: 83%"><strong>"Payroll readiness"</strong><em>"109 active · 83%"</em></span>
+                    <span role="progressbar" aria-valuenow="77" aria-valuemin="0" aria-valuemax="100" aria-label="Onboarding: 77%" style="--bar: 77%"><strong aria-hidden="true">"Onboarding"</strong><em aria-hidden="true">"6 active · 77%"</em></span>
+                    <span role="progressbar" aria-valuenow="64" aria-valuemin="0" aria-valuemax="100" aria-label="Role review: 64%" style="--bar: 64%"><strong aria-hidden="true">"Role review"</strong><em aria-hidden="true">"14 grants · 64%"</em></span>
+                    <span role="progressbar" aria-valuenow="48" aria-valuemin="0" aria-valuemax="100" aria-label="Session hygiene: 48%" style="--bar: 48%"><strong aria-hidden="true">"Session hygiene"</strong><em aria-hidden="true">"3 stale · 48%"</em></span>
+                    <span role="progressbar" aria-valuenow="83" aria-valuemin="0" aria-valuemax="100" aria-label="Payroll readiness: 83%" style="--bar: 83%"><strong aria-hidden="true">"Payroll readiness"</strong><em aria-hidden="true">"109 active · 83%"</em></span>
                 </div>
             </section>
 
@@ -2748,31 +2798,33 @@ fn finance_commercial_service() -> impl IntoView {
                     <div class="finance-close-card">
                         <small>"APRIL CLOSE"</small>
                         <strong>"73%"</strong>
-                        <span class="score-bar" style="--bar: 73%"><em></em></span>
+                        <span class="score-bar" role="progressbar" aria-valuenow="73" aria-valuemin="0" aria-valuemax="100" aria-label="April close readiness: 73%" style="--bar: 73%"><em aria-hidden="true"></em></span>
                         <p>"Payroll, withholding, and vendor accruals are staged for 2-person review."</p>
                     </div>
                 </aside>
 
                 <div class="finance-service-main">
-                    <div class="finance-tabs" role="tablist" aria-label="Finance service views">
-                        <button type="button" class="active" data-finance-tab="ledger" role="tab" aria-selected="true">"Ledger"</button>
-                        <button type="button" data-finance-tab="vendors" role="tab" aria-selected="false">"Vendors"</button>
-                        <button type="button" data-finance-tab="billing" role="tab" aria-selected="false">"Billing"</button>
-                        <button type="button" data-finance-tab="leave" role="tab" aria-selected="false">"Leave & time"</button>
+                    // A-2: finance tablist — aria-orientation + id/aria-controls + role=tabpanel
+                    <div class="finance-tabs" role="tablist" aria-label="Finance service views" aria-orientation="horizontal">
+                        <button type="button" id="finance-tab-ledger" class="active" data-finance-tab="ledger" role="tab" aria-selected="true" aria-controls="finance-panel-ledger">"Ledger"</button>
+                        <button type="button" id="finance-tab-vendors" data-finance-tab="vendors" role="tab" aria-selected="false" aria-controls="finance-panel-vendors">"Vendors"</button>
+                        <button type="button" id="finance-tab-billing" data-finance-tab="billing" role="tab" aria-selected="false" aria-controls="finance-panel-billing">"Billing"</button>
+                        <button type="button" id="finance-tab-leave" data-finance-tab="leave" role="tab" aria-selected="false" aria-controls="finance-panel-leave">"Leave & time"</button>
                     </div>
 
-                    <article id="ledger-preview" class="finance-panel active" data-finance-panel="ledger" aria-labelledby="ledger-panel-title">
+                    <article id="finance-panel-ledger" class="finance-panel active" data-finance-panel="ledger" role="tabpanel" aria-labelledby="finance-tab-ledger">
                         <div class="finance-panel-copy">
                             <p class="screen-anchor">"LEDGER · CLOSE PACKAGE"</p>
                             <h4 id="ledger-panel-title">"Ledger close cockpit"</h4>
                             <p>"Every payroll, filing, vendor, and billing event resolves into one audit-ready close package."</p>
                         </div>
                         <div class="ledger-layout">
+                            // A-6: role=progressbar + aria-value* on reconciliation bars
                             <div class="ledger-reconciliation">
-                                <span style="--bar: 92%"><em>"Bank feed match · 92%"</em></span>
-                                <span style="--bar: 86%"><em>"Payroll accrual · 86%"</em></span>
-                                <span style="--bar: 68%"><em>"Vendor accrual · 68%"</em></span>
-                                <span style="--bar: 51%"><em>"Tax evidence · 51%"</em></span>
+                                <span role="progressbar" aria-valuenow="92" aria-valuemin="0" aria-valuemax="100" aria-label="Bank feed match: 92%" style="--bar: 92%"><em aria-hidden="true">"Bank feed match · 92%"</em></span>
+                                <span role="progressbar" aria-valuenow="86" aria-valuemin="0" aria-valuemax="100" aria-label="Payroll accrual: 86%" style="--bar: 86%"><em aria-hidden="true">"Payroll accrual · 86%"</em></span>
+                                <span role="progressbar" aria-valuenow="68" aria-valuemin="0" aria-valuemax="100" aria-label="Vendor accrual: 68%" style="--bar: 68%"><em aria-hidden="true">"Vendor accrual · 68%"</em></span>
+                                <span role="progressbar" aria-valuenow="51" aria-valuemin="0" aria-valuemax="100" aria-label="Tax evidence: 51%" style="--bar: 51%"><em aria-hidden="true">"Tax evidence · 51%"</em></span>
                             </div>
                             <table class="finance-table">
                                 <thead><tr><th>"Time"</th><th>"Account"</th><th>"Object"</th><th>"Amount"</th><th>"State"</th></tr></thead>
@@ -2788,7 +2840,7 @@ fn finance_commercial_service() -> impl IntoView {
                         {ledger_preview_anchor_board()}
                     </article>
 
-                    <article id="vendors-spend" class="finance-panel" data-finance-panel="vendors" aria-labelledby="vendors-panel-title">
+                    <article id="finance-panel-vendors" class="finance-panel" data-finance-panel="vendors" role="tabpanel" aria-labelledby="finance-tab-vendors">
                         <div class="finance-panel-copy">
                             <p class="screen-anchor">"PROCUREMENT · VENDORS"</p>
                             <h4 id="vendors-panel-title">"Vendors & spend control"</h4>
@@ -2809,7 +2861,7 @@ fn finance_commercial_service() -> impl IntoView {
                         {finance_vendors_anchor_board()}
                     </article>
 
-                    <article id="billing-tax" class="finance-panel" data-finance-panel="billing" aria-labelledby="billing-panel-title">
+                    <article id="finance-panel-billing" class="finance-panel" data-finance-panel="billing" role="tabpanel" aria-labelledby="finance-tab-billing">
                         <div class="finance-panel-copy">
                             <p class="screen-anchor">"BILLING · TAX"</p>
                             <h4 id="billing-panel-title">"Billing, plans, and filings"</h4>
@@ -2823,7 +2875,7 @@ fn finance_commercial_service() -> impl IntoView {
                         {finance_billing_anchor_board()}
                     </article>
 
-                    <article id="leave-time" class="finance-panel" data-finance-panel="leave" aria-labelledby="leave-panel-title">
+                    <article id="finance-panel-leave" class="finance-panel" data-finance-panel="leave" role="tabpanel" aria-labelledby="finance-tab-leave">
                         <div class="finance-panel-copy">
                             <p class="screen-anchor">"PEOPLE COST · LEAVE"</p>
                             <h4 id="leave-panel-title">"Leave & time liability"</h4>
@@ -3642,15 +3694,16 @@ fn tenant_operations_cockpit(envelope: TenantRenderEnvelope) -> impl IntoView {
                     <p class="eyebrow">"Operate"</p>
                     <h3 id="ops-cockpit-title">"Cloud, policy, and FinOps cockpit"</h3>
                 </div>
-                <div class="cockpit-tabs" role="tablist" aria-label="Operations cockpit views">
-                    <button type="button" class="active" data-cockpit-tab="topology" role="tab" aria-selected="true">"Topology"</button>
-                    <button type="button" data-cockpit-tab="policy" role="tab" aria-selected="false">"Policy"</button>
-                    <button type="button" data-cockpit-tab="finops" role="tab" aria-selected="false">"FinOps"</button>
+                // A-2: cockpit tablist — aria-orientation + id/aria-controls + role=tabpanel
+                <div class="cockpit-tabs" role="tablist" aria-label="Operations cockpit views" aria-orientation="horizontal">
+                    <button type="button" id="cockpit-tab-topology" class="active" data-cockpit-tab="topology" role="tab" aria-selected="true" aria-controls="cockpit-panel-topology">"Topology"</button>
+                    <button type="button" id="cockpit-tab-policy" data-cockpit-tab="policy" role="tab" aria-selected="false" aria-controls="cockpit-panel-policy">"Policy"</button>
+                    <button type="button" id="cockpit-tab-finops" data-cockpit-tab="finops" role="tab" aria-selected="false" aria-controls="cockpit-panel-finops">"FinOps"</button>
                 </div>
             </div>
 
             <div class="cockpit-panels">
-                <article class="cockpit-panel active" data-cockpit-panel="topology" aria-labelledby="cloud-topology-title">
+                <article id="cockpit-panel-topology" class="cockpit-panel active" data-cockpit-panel="topology" role="tabpanel" aria-labelledby="cockpit-tab-topology">
                     <div class="cockpit-column-head">
                         <p class="screen-anchor">"CLOUD TOPOLOGY"</p>
                         <h4 id="cloud-topology-title">"Tenant runtime map"</h4>
@@ -3715,7 +3768,7 @@ fn tenant_operations_cockpit(envelope: TenantRenderEnvelope) -> impl IntoView {
                     </div>
                 </article>
 
-                <article id="policy-access" class="cockpit-panel" data-cockpit-panel="policy" aria-labelledby="policy-access-title">
+                <article id="cockpit-panel-policy" class="cockpit-panel" data-cockpit-panel="policy" role="tabpanel" aria-labelledby="cockpit-tab-policy">
                     <div class="cockpit-column-head">
                         <p class="screen-anchor">"POLICY & ACCESS"</p>
                         <h4 id="policy-access-title">"Policy envelope command board"</h4>
@@ -3814,7 +3867,7 @@ fn tenant_operations_cockpit(envelope: TenantRenderEnvelope) -> impl IntoView {
                     </div>
                 </article>
 
-                <article id="finops-pane" class="cockpit-panel" data-cockpit-panel="finops" aria-labelledby="finops-title">
+                <article id="cockpit-panel-finops" class="cockpit-panel" data-cockpit-panel="finops" role="tabpanel" aria-labelledby="cockpit-tab-finops">
                     <div class="cockpit-column-head">
                         <p class="screen-anchor">"FINOPS"</p>
                         <h4 id="finops-title">"Run-rate and sustainability"</h4>
@@ -4123,10 +4176,11 @@ fn resource_audit_console(envelope: TenantRenderEnvelope) -> impl IntoView {
                     <p class="eyebrow">"Operate · Trust"</p>
                     <h3 id="resource-audit-title">"Resource inventory, audit ledger, and deployment gates"</h3>
                 </div>
-                <div class="resource-tabs" role="tablist" aria-label="Resource and audit console views">
-                    <button type="button" class="active" data-resource-tab="inventory" role="tab" aria-selected="true">"Inventory"</button>
-                    <button type="button" data-resource-tab="audit" role="tab" aria-selected="false">"Audit ledger"</button>
-                    <button type="button" data-resource-tab="gates" role="tab" aria-selected="false">"Deployment gates"</button>
+                // A-2: resource-audit tablist — aria-orientation + id/aria-controls + role=tabpanel
+                <div class="resource-tabs" role="tablist" aria-label="Resource and audit console views" aria-orientation="horizontal">
+                    <button type="button" id="resource-tab-inventory" class="active" data-resource-tab="inventory" role="tab" aria-selected="true" aria-controls="resource-panel-inventory">"Inventory"</button>
+                    <button type="button" id="resource-tab-audit" data-resource-tab="audit" role="tab" aria-selected="false" aria-controls="resource-panel-audit">"Audit ledger"</button>
+                    <button type="button" id="resource-tab-gates" data-resource-tab="gates" role="tab" aria-selected="false" aria-controls="resource-panel-gates">"Deployment gates"</button>
                 </div>
             </div>
 
@@ -4157,10 +4211,11 @@ fn resource_audit_console(envelope: TenantRenderEnvelope) -> impl IntoView {
 
             <div class="resource-panels">
                 <article
-                    id="resource-inventory"
+                    id="resource-panel-inventory"
                     class="resource-panel active"
                     data-resource-panel="inventory"
-                    aria-labelledby="resource-inventory-title"
+                    role="tabpanel"
+                    aria-labelledby="resource-tab-inventory"
                 >
                     <div class="cockpit-column-head">
                         <p class="screen-anchor">"RESOURCE INVENTORY"</p>
@@ -4209,10 +4264,11 @@ fn resource_audit_console(envelope: TenantRenderEnvelope) -> impl IntoView {
                 </article>
 
                 <article
-                    id="audit-ledger"
+                    id="resource-panel-audit"
                     class="resource-panel"
                     data-resource-panel="audit"
-                    aria-labelledby="audit-ledger-title"
+                    role="tabpanel"
+                    aria-labelledby="resource-tab-audit"
                 >
                     <div class="cockpit-column-head">
                         <p class="screen-anchor">"AUDIT LEDGER"</p>
@@ -4282,10 +4338,11 @@ fn resource_audit_console(envelope: TenantRenderEnvelope) -> impl IntoView {
                 </article>
 
                 <article
-                    id="deployment-gates"
+                    id="resource-panel-gates"
                     class="resource-panel"
                     data-resource-panel="gates"
-                    aria-labelledby="deployment-gates-title"
+                    role="tabpanel"
+                    aria-labelledby="resource-tab-gates"
                 >
                     <div class="cockpit-column-head">
                         <p class="screen-anchor">"DEPLOYMENT GATES"</p>
@@ -7542,7 +7599,7 @@ fn static_tenant_operations_cockpit(envelope: &TenantRenderEnvelope) -> String {
     let visible_modules = envelope.modules.len();
 
     format!(
-        r#"<section id="cloud-ops-cockpit" class="ops-cockpit panel" aria-labelledby="ops-cockpit-title"><div class="panel-header cockpit-header"><div><p class="eyebrow">Operate</p><h3 id="ops-cockpit-title">Cloud, policy, and FinOps cockpit</h3></div><div class="cockpit-tabs" role="tablist" aria-label="Operations cockpit views"><button type="button" class="active" data-cockpit-tab="topology" role="tab" aria-selected="true">Topology</button><button type="button" data-cockpit-tab="policy" role="tab" aria-selected="false">Policy</button><button type="button" data-cockpit-tab="finops" role="tab" aria-selected="false">FinOps</button></div></div><div class="cockpit-panels"><article class="cockpit-panel active" data-cockpit-panel="topology" aria-labelledby="cloud-topology-title"><div class="cockpit-column-head"><p class="screen-anchor">CLOUD TOPOLOGY</p><h4 id="cloud-topology-title">Tenant runtime map</h4></div><div class="topology-map" aria-hidden="true"><span class="region primary">us-east-2<em>cell active</em></span><span class="region">eu-west-1<em>warm standby</em></span><span class="region">kr-seoul<em>pack gated</em></span><span class="service compute">Compute</span><span class="service network">Network</span><span class="service storage">Storage</span><span class="service audit">Audit chain</span></div>{ops_command_matrix}<div class="ops-metrics-strip" aria-label="Cloud operations live posture"><span><small>Availability</small><strong>99.96%</strong><em>+0.01 vs SLO</em></span><span><small>Pending rollbacks</small><strong>2</strong><em>1 network · 1 key</em></span><span><small>Run-rate</small><strong>$48.2k</strong><em>4% under commit</em></span><span><small>Evidence age</small><strong>12m</strong><em>fresh</em></span></div><div class="topology-detail-grid"><article><p class="screen-anchor">INCIDENT THREAD</p><ol class="ops-timeline"><li><time>09:18</time><strong>Mesh split detected</strong><span>northwind-prod-mesh · rollback evidence requested</span></li><li><time>09:42</time><strong>DNS policy verified</strong><span>tenant-control-plane routes stay global</span></li><li><time>10:05</time><strong>Audit sidecar healthy</strong><span>receipt vault sealed draft attached</span></li></ol></article><article><p class="screen-anchor">RUNBOOK QUEUE</p><div class="runbook-list"><button type="button" data-cockpit-action="reconcile-cell">Reconcile cell evidence</button><button type="button" data-cockpit-action="simulate-failover">Simulate failover</button><button type="button" data-cockpit-action="queue-runbook">Queue rollback runbook</button></div></article><article><p class="screen-anchor">REGIONAL CAPACITY</p><div class="capacity-bars"><span style="--bar: 72%"><em>us-east-2</em></span><span style="--bar: 44%"><em>eu-west-1</em></span><span style="--bar: 28%"><em>kr-seoul</em></span></div></article></div><div class="cockpit-actions"><button type="button" data-sidepeek-trigger="topology" data-sidepeek-title="Tenant runtime map" data-sidepeek-id="CELL-US-EAST-2" data-sidepeek-desc="Primary cell running compute, network, storage, and audit-chain staged surfaces." data-sidepeek-owner="Cloud infrastructure" data-sidepeek-risk="Medium" data-sidepeek-sla="99.95% target · local data">Inspect cell</button><button type="button" data-command-trigger="true">Search resources</button><span class="cockpit-status" data-cockpit-status="true">Topology ready · local runbooks only.</span></div></article><article id="policy-access" class="cockpit-panel" data-cockpit-panel="policy" aria-labelledby="policy-access-title"><div class="cockpit-column-head"><p class="screen-anchor">POLICY &amp; ACCESS</p><h4 id="policy-access-title">Policy envelope command board</h4></div><div class="policy-command-grid" aria-label="FD-001 and Oyatie Cloud policy proof"><article class="policy-command-card selected" data-policy-card="fd001"><div><p class="screen-anchor">FD-001 TENANT</p><h5>Product delivery stays the goal</h5><p>Messenger, Mail, Community, Workflow, Ontology, and Intelligence run as tenant workloads; Oyatie Cloud proves they can be hosted without moving the tenant workload north star.</p></div><div class="policy-command-actions" aria-label="FD-001 policy routes"><button type="button" data-policy-anchor-action="role-review">Review role grants</button><button type="button" data-policy-anchor-action="open-identity">Open identity</button><button type="button" data-policy-anchor-action="route-evidence">Evidence spine</button></div></article><article class="policy-command-card" data-policy-card="substrate"><div><p class="screen-anchor">OYATIE CLOUD</p><h5>Dogfood substrate boundary</h5><p>Cloud controls stay tenant-scoped, PIPA-aware, auditable, and local-only until real FD-001 services are admitted through release gates.</p></div><div class="policy-command-actions" aria-label="Oyatie Cloud policy routes"><button type="button" data-policy-anchor-action="route-cloud">Cloud topology</button><button type="button" data-policy-anchor-action="pipa-boundary">PIPA boundary</button><button type="button" data-policy-anchor-action="open-audit">Audit trail</button></div></article><article class="policy-command-card" data-policy-card="autonomy"><div><p class="screen-anchor">AUTONOMY CEILING</p><h5>Interactive, never wired</h5><p>Policy can preview allow, gate, deny, rollback, and reviewer paths, but every action is visual state with no cloud, billing, DNS, or workflow mutation.</p></div><div class="policy-command-actions" aria-label="Autonomy policy routes"><button type="button" data-policy-anchor-action="autonomy-ceiling">Show ceiling</button><button type="button" data-policy-anchor-action="residency">Residency pack</button><button type="button" data-policy-anchor-action="route-mail">Mail brief</button></div></article></div><table class="policy-table"><thead><tr><th>Subject</th><th>Scope</th><th>Decision</th><th>Reason</th></tr></thead><tbody><tr><td>Tenant admin</td><td>Cloud controls</td><td><span class="status-chip success">Allow</span></td><td>Owner role</td></tr><tr><td>{role}</td><td>Healthcare</td><td><span class="status-chip warning">{healthcare_gate}</span></td><td>Accreditation</td></tr><tr><td>Workflow builder</td><td>Execution</td><td><span class="status-chip danger">Deny</span></td><td>Autonomy ceiling</td></tr></tbody></table><div class="policy-evidence-grid"><span><strong>12</strong><small>Cedar rules mirrored</small></span><span><strong>7</strong><small>tenant pack grants</small></span><span><strong>3</strong><small>human review stops</small></span></div><div class="policy-decision-strip" aria-label="Policy decision proof path"><article class="policy-decision-card" data-policy-card="allow"><span class="status-chip success">Allow</span><strong>Tenant admin → Cloud controls</strong><p>Owner-scoped controls stay inside the dogfood substrate and attach receipt IDs before promotion.</p><button type="button" data-policy-anchor-action="route-cloud">Inspect controls</button></article><article class="policy-decision-card" data-policy-card="gate"><span class="status-chip warning">Gate</span><strong>{role} → regulated data</strong><p>{healthcare_gate} · reviewer evidence and residency pack required before any FD-001 workload placement.</p><button type="button" data-policy-anchor-action="residency">Review gate</button></article><article class="policy-decision-card" data-policy-card="deny"><span class="status-chip danger">Deny</span><strong>Workflow builder → execution</strong><p>The autonomy ceiling blocks real execution; visual routing proves the UX without wiring side effects.</p><button type="button" data-policy-anchor-action="autonomy-ceiling">Trace denial</button></article></div><div class="policy-anchor-footer"><span class="cockpit-status" data-policy-anchor-status="true">Policy board ready · FD-001 workloads dogfood Oyatie Cloud as tenant surfaces.</span><div class="policy-anchor-routes" aria-label="Connected policy routes"><button type="button" data-policy-anchor-action="route-community">Community review</button><button type="button" data-policy-anchor-action="open-audit">Audit ledger</button><button type="button" data-policy-anchor-action="route-evidence">Evidence graph</button></div></div></article><article id="finops-pane" class="cockpit-panel" data-cockpit-panel="finops" aria-labelledby="finops-title"><div class="cockpit-column-head"><p class="screen-anchor">FINOPS</p><h4 id="finops-title">Run-rate and sustainability</h4></div><div class="finops-bars" aria-label="FinOps breakdown"><span style="--bar: 72%"><em>Compute · $21.4k</em></span><span style="--bar: 51%"><em>Network · $9.8k</em></span><span style="--bar: 43%"><em>Storage · $7.2k</em></span><span style="--bar: 26%"><em>Audit · $3.1k</em></span></div><div class="finops-action-grid"><button type="button" data-cockpit-action="open-commit">Open commit plan</button><button type="button" data-cockpit-action="tag-anomaly">Tag anomaly</button><button type="button" data-cockpit-action="draft-budget-note">Draft budget note</button></div><span class="cockpit-status" data-cockpit-status="true">FinOps ready · local budget actions only.</span>{finops_anchor_board}<p class="cockpit-note">{visible_modules} services visible in this envelope · backend wiring remains disabled</p></article></div></section>"#,
+        r#"<section id="cloud-ops-cockpit" class="ops-cockpit panel" aria-labelledby="ops-cockpit-title"><div class="panel-header cockpit-header"><div><p class="eyebrow">Operate</p><h3 id="ops-cockpit-title">Cloud, policy, and FinOps cockpit</h3></div><div class="cockpit-tabs" role="tablist" aria-label="Operations cockpit views"><button type="button" class="active" data-cockpit-tab="topology" role="tab" aria-selected="true">Topology</button><button type="button" data-cockpit-tab="policy" role="tab" aria-selected="false">Policy</button><button type="button" data-cockpit-tab="finops" role="tab" aria-selected="false">FinOps</button></div></div><div class="cockpit-panels"><article class="cockpit-panel active" data-cockpit-panel="topology" aria-labelledby="cloud-topology-title"><div class="cockpit-column-head"><p class="screen-anchor">CLOUD TOPOLOGY</p><h4 id="cloud-topology-title">Tenant runtime map</h4></div><div class="topology-map" aria-hidden="true"><span class="region primary">us-east-2<em>cell active</em></span><span class="region">eu-west-1<em>warm standby</em></span><span class="region">kr-seoul<em>pack gated</em></span><span class="service compute">Compute</span><span class="service network">Network</span><span class="service storage">Storage</span><span class="service audit">Audit chain</span></div>{ops_command_matrix}<div class="ops-metrics-strip" aria-label="Cloud operations live posture"><span><small>Availability</small><strong>99.96%</strong><em>+0.01 vs SLO</em></span><span><small>Pending rollbacks</small><strong>2</strong><em>1 network · 1 key</em></span><span><small>Run-rate</small><strong>$48.2k</strong><em>4% under commit</em></span><span><small>Evidence age</small><strong>12m</strong><em>fresh</em></span></div><div class="topology-detail-grid"><article><p class="screen-anchor">INCIDENT THREAD</p><ol class="ops-timeline"><li><time>09:18</time><strong>Mesh split detected</strong><span>northwind-prod-mesh · rollback evidence requested</span></li><li><time>09:42</time><strong>DNS policy verified</strong><span>tenant-control-plane routes stay global</span></li><li><time>10:05</time><strong>Audit sidecar healthy</strong><span>receipt vault sealed draft attached</span></li></ol></article><article><p class="screen-anchor">RUNBOOK QUEUE</p><div class="runbook-list"><button type="button" data-cockpit-action="reconcile-cell">Reconcile cell evidence</button><button type="button" data-cockpit-action="simulate-failover">Simulate failover</button><button type="button" data-cockpit-action="queue-runbook">Queue rollback runbook</button></div></article><article><p class="screen-anchor">REGIONAL CAPACITY</p><div class="capacity-bars"><span style="--bar: 72%"><em>us-east-2</em></span><span style="--bar: 44%"><em>eu-west-1</em></span><span style="--bar: 28%"><em>kr-seoul</em></span></div></article></div><div class="cockpit-actions"><button type="button" data-sidepeek-trigger="topology" data-sidepeek-title="Tenant runtime map" data-sidepeek-id="CELL-US-EAST-2" data-sidepeek-desc="Primary cell running compute, network, storage, and audit-chain staged surfaces." data-sidepeek-owner="Cloud infrastructure" data-sidepeek-risk="Medium" data-sidepeek-sla="99.95% target · local data">Inspect cell</button><button type="button" data-command-trigger="true">Search resources</button><span class="cockpit-status" data-cockpit-status="true">Topology ready · local runbooks only.</span></div></article><article id="cockpit-panel-policy" class="cockpit-panel" data-cockpit-panel="policy" aria-labelledby="policy-access-title"><div class="cockpit-column-head"><p class="screen-anchor">POLICY &amp; ACCESS</p><h4 id="policy-access-title">Policy envelope command board</h4></div><div class="policy-command-grid" aria-label="FD-001 and Oyatie Cloud policy proof"><article class="policy-command-card selected" data-policy-card="fd001"><div><p class="screen-anchor">FD-001 TENANT</p><h5>Product delivery stays the goal</h5><p>Messenger, Mail, Community, Workflow, Ontology, and Intelligence run as tenant workloads; Oyatie Cloud proves they can be hosted without moving the tenant workload north star.</p></div><div class="policy-command-actions" aria-label="FD-001 policy routes"><button type="button" data-policy-anchor-action="role-review">Review role grants</button><button type="button" data-policy-anchor-action="open-identity">Open identity</button><button type="button" data-policy-anchor-action="route-evidence">Evidence spine</button></div></article><article class="policy-command-card" data-policy-card="substrate"><div><p class="screen-anchor">OYATIE CLOUD</p><h5>Dogfood substrate boundary</h5><p>Cloud controls stay tenant-scoped, PIPA-aware, auditable, and local-only until real FD-001 services are admitted through release gates.</p></div><div class="policy-command-actions" aria-label="Oyatie Cloud policy routes"><button type="button" data-policy-anchor-action="route-cloud">Cloud topology</button><button type="button" data-policy-anchor-action="pipa-boundary">PIPA boundary</button><button type="button" data-policy-anchor-action="open-audit">Audit trail</button></div></article><article class="policy-command-card" data-policy-card="autonomy"><div><p class="screen-anchor">AUTONOMY CEILING</p><h5>Interactive, never wired</h5><p>Policy can preview allow, gate, deny, rollback, and reviewer paths, but every action is visual state with no cloud, billing, DNS, or workflow mutation.</p></div><div class="policy-command-actions" aria-label="Autonomy policy routes"><button type="button" data-policy-anchor-action="autonomy-ceiling">Show ceiling</button><button type="button" data-policy-anchor-action="residency">Residency pack</button><button type="button" data-policy-anchor-action="route-mail">Mail brief</button></div></article></div><table class="policy-table"><thead><tr><th>Subject</th><th>Scope</th><th>Decision</th><th>Reason</th></tr></thead><tbody><tr><td>Tenant admin</td><td>Cloud controls</td><td><span class="status-chip success">Allow</span></td><td>Owner role</td></tr><tr><td>{role}</td><td>Healthcare</td><td><span class="status-chip warning">{healthcare_gate}</span></td><td>Accreditation</td></tr><tr><td>Workflow builder</td><td>Execution</td><td><span class="status-chip danger">Deny</span></td><td>Autonomy ceiling</td></tr></tbody></table><div class="policy-evidence-grid"><span><strong>12</strong><small>Cedar rules mirrored</small></span><span><strong>7</strong><small>tenant pack grants</small></span><span><strong>3</strong><small>human review stops</small></span></div><div class="policy-decision-strip" aria-label="Policy decision proof path"><article class="policy-decision-card" data-policy-card="allow"><span class="status-chip success">Allow</span><strong>Tenant admin → Cloud controls</strong><p>Owner-scoped controls stay inside the dogfood substrate and attach receipt IDs before promotion.</p><button type="button" data-policy-anchor-action="route-cloud">Inspect controls</button></article><article class="policy-decision-card" data-policy-card="gate"><span class="status-chip warning">Gate</span><strong>{role} → regulated data</strong><p>{healthcare_gate} · reviewer evidence and residency pack required before any FD-001 workload placement.</p><button type="button" data-policy-anchor-action="residency">Review gate</button></article><article class="policy-decision-card" data-policy-card="deny"><span class="status-chip danger">Deny</span><strong>Workflow builder → execution</strong><p>The autonomy ceiling blocks real execution; visual routing proves the UX without wiring side effects.</p><button type="button" data-policy-anchor-action="autonomy-ceiling">Trace denial</button></article></div><div class="policy-anchor-footer"><span class="cockpit-status" data-policy-anchor-status="true">Policy board ready · FD-001 workloads dogfood Oyatie Cloud as tenant surfaces.</span><div class="policy-anchor-routes" aria-label="Connected policy routes"><button type="button" data-policy-anchor-action="route-community">Community review</button><button type="button" data-policy-anchor-action="open-audit">Audit ledger</button><button type="button" data-policy-anchor-action="route-evidence">Evidence graph</button></div></div></article><article id="cockpit-panel-finops" class="cockpit-panel" data-cockpit-panel="finops" aria-labelledby="finops-title"><div class="cockpit-column-head"><p class="screen-anchor">FINOPS</p><h4 id="finops-title">Run-rate and sustainability</h4></div><div class="finops-bars" aria-label="FinOps breakdown"><span style="--bar: 72%"><em>Compute · $21.4k</em></span><span style="--bar: 51%"><em>Network · $9.8k</em></span><span style="--bar: 43%"><em>Storage · $7.2k</em></span><span style="--bar: 26%"><em>Audit · $3.1k</em></span></div><div class="finops-action-grid"><button type="button" data-cockpit-action="open-commit">Open commit plan</button><button type="button" data-cockpit-action="tag-anomaly">Tag anomaly</button><button type="button" data-cockpit-action="draft-budget-note">Draft budget note</button></div><span class="cockpit-status" data-cockpit-status="true">FinOps ready · local budget actions only.</span>{finops_anchor_board}<p class="cockpit-note">{visible_modules} services visible in this envelope · backend wiring remains disabled</p></article></div></section>"#,
         role = escape(&envelope.role_name),
         healthcare_gate = escape(healthcare_gate),
         visible_modules = visible_modules,
@@ -7567,7 +7624,7 @@ fn static_resource_audit_console(envelope: &TenantRenderEnvelope) -> String {
     let gate_cards = gates.iter().map(static_deployment_gate).collect::<String>();
 
     format!(
-        r#"<section id="resource-audit-console" class="resource-audit-console panel" aria-labelledby="resource-audit-title"><div class="panel-header resource-console-header"><div><p class="eyebrow">Operate · Trust</p><h3 id="resource-audit-title">Resource inventory, audit ledger, and deployment gates</h3></div><div class="resource-tabs" role="tablist" aria-label="Resource and audit console views"><button type="button" class="active" data-resource-tab="inventory" role="tab" aria-selected="true">Inventory</button><button type="button" data-resource-tab="audit" role="tab" aria-selected="false">Audit ledger</button><button type="button" data-resource-tab="gates" role="tab" aria-selected="false">Deployment gates</button></div></div><div class="resource-console-spine" aria-label="Console summary"><span><strong>{resource_count}</strong> resources</span><span><strong>{audit_count}</strong> receipts staged</span><span><strong>{module_count}</strong> modules visible</span><span><strong>{approval_count}</strong> approvals linked</span></div><div class="resource-toolbar" aria-label="Resource console controls"><label><span aria-hidden="true">⌕</span><input data-resource-search="true" aria-label="Search resources and receipts" placeholder="Search resource, owner, region, receipt..." /></label><div class="resource-filter-pills" role="toolbar" aria-label="Resource state filters"><button type="button" class="active" data-resource-filter="all">All</button><button type="button" data-resource-filter="attention">Attention</button><button type="button" data-resource-filter="review">Review</button><button type="button" data-resource-filter="active">Active</button></div><div class="resource-actions"><button type="button" data-resource-action="refresh">Refresh data</button><button type="button" data-resource-action="export">Export CSV</button></div><span data-resource-status="true">6 visible · local inventory only</span></div><div class="resource-panels"><article id="resource-inventory" class="resource-panel active" data-resource-panel="inventory" aria-labelledby="resource-inventory-title"><div class="cockpit-column-head"><p class="screen-anchor">RESOURCE INVENTORY</p><h4 id="resource-inventory-title">Tenant assets with ownership, region, cost, and risk</h4></div><table class="resource-table"><thead><tr><th>Kind</th><th>Name</th><th>Region</th><th>Owner</th><th>State</th><th>Monthly</th><th>Action</th></tr></thead><tbody>{resource_rows}</tbody></table>{resource_inventory_anchor_board}</article><article id="audit-ledger" class="resource-panel" data-resource-panel="audit" aria-labelledby="audit-ledger-title"><div class="cockpit-column-head"><p class="screen-anchor">AUDIT LEDGER</p><h4 id="audit-ledger-title">Immutable tenant-workload proof stream</h4></div>{receipt_stitching_console}<div class="audit-proof-grid" aria-label="FD-001 tenant workload receipt proof"><article class="audit-proof-card selected" data-audit-card="fd001"><p class="screen-anchor">FD-001 RECEIPTS</p><h5>Product delivery remains master plan</h5><p>Every Messenger, Mail, Community, Workflow, Ontology, and Intelligence preview action creates a visible receipt so FD-001 can be dogfooded as a real tenant workload.</p><div class="audit-command-actions"><button type="button" data-audit-anchor-action="open-evidence">Open evidence</button><button type="button" data-audit-anchor-action="route-mail">Mail brief</button></div></article><article class="audit-proof-card" data-audit-card="cloud"><p class="screen-anchor">OYATIE CLOUD</p><h5>Oyatie Cloud substrate proves hosting posture</h5><p>The cloud substrate records residency, release, cost, policy, and rollback checks before a tenant surface can claim production readiness.</p><div class="audit-command-actions"><button type="button" data-audit-anchor-action="route-cloud">Cloud topology</button><button type="button" data-audit-anchor-action="route-gates">Release gates</button></div></article><article class="audit-proof-card" data-audit-card="sealed"><p class="screen-anchor">SEALED PACKET</p><h5>Interactive local receipt vault</h5><p>Operators can inspect, seal, route, and brief a receipt packet visually while backend, billing, deploy, and cloud mutations remain disconnected.</p><div class="audit-command-actions"><button type="button" data-audit-anchor-action="seal-packet">Seal packet</button><button type="button" data-audit-anchor-action="route-policy">Policy board</button></div></article></div><ol class="audit-ledger-list">{audit_rows}</ol><div class="audit-anchor-footer"><span data-audit-anchor-status="true">Audit ledger ready · FD-001 tenant workload receipts remain local visual evidence.</span><div class="audit-command-actions" aria-label="Audit ledger connected routes"><button type="button" data-audit-anchor-action="route-workflow">Workflow proof</button><button type="button" data-audit-anchor-action="route-community">Community review</button><button type="button" data-audit-anchor-action="open-evidence">Evidence graph</button></div></div></article><article id="deployment-gates" class="resource-panel" data-resource-panel="gates" aria-labelledby="deployment-gates-title"><div class="cockpit-column-head"><p class="screen-anchor">DEPLOYMENT GATES</p><h4 id="deployment-gates-title">FD-001 tenant workload admission gates</h4></div>{deployment_gate_command_board}<div class="gate-grid">{gate_cards}</div><div class="deployment-gate-footer"><span data-deployment-gate-status="true">Deployment gates ready · FD-001 microservices are tenant workloads on Oyatie Cloud.</span><div class="deployment-gate-routes" aria-label="Deployment gate connected routes"><button type="button" data-deployment-gate-action="route-policy">Policy envelope</button><button type="button" data-deployment-gate-action="route-audit">Audit packet</button><button type="button" data-deployment-gate-action="route-community">Community note</button><button type="button" data-deployment-gate-action="route-cloud">Cloud cells</button></div></div></article></div></section>"#,
+        r#"<section id="resource-audit-console" class="resource-audit-console panel" aria-labelledby="resource-audit-title"><div class="panel-header resource-console-header"><div><p class="eyebrow">Operate · Trust</p><h3 id="resource-audit-title">Resource inventory, audit ledger, and deployment gates</h3></div><div class="resource-tabs" role="tablist" aria-label="Resource and audit console views"><button type="button" class="active" data-resource-tab="inventory" role="tab" aria-selected="true">Inventory</button><button type="button" data-resource-tab="audit" role="tab" aria-selected="false">Audit ledger</button><button type="button" data-resource-tab="gates" role="tab" aria-selected="false">Deployment gates</button></div></div><div class="resource-console-spine" aria-label="Console summary"><span><strong>{resource_count}</strong> resources</span><span><strong>{audit_count}</strong> receipts staged</span><span><strong>{module_count}</strong> modules visible</span><span><strong>{approval_count}</strong> approvals linked</span></div><div class="resource-toolbar" aria-label="Resource console controls"><label><span aria-hidden="true">⌕</span><input data-resource-search="true" aria-label="Search resources and receipts" placeholder="Search resource, owner, region, receipt..." /></label><div class="resource-filter-pills" role="toolbar" aria-label="Resource state filters"><button type="button" class="active" data-resource-filter="all">All</button><button type="button" data-resource-filter="attention">Attention</button><button type="button" data-resource-filter="review">Review</button><button type="button" data-resource-filter="active">Active</button></div><div class="resource-actions"><button type="button" data-resource-action="refresh">Refresh data</button><button type="button" data-resource-action="export">Export CSV</button></div><span data-resource-status="true">6 visible · local inventory only</span></div><div class="resource-panels"><article id="resource-panel-inventory" class="resource-panel active" data-resource-panel="inventory" aria-labelledby="resource-inventory-title"><div class="cockpit-column-head"><p class="screen-anchor">RESOURCE INVENTORY</p><h4 id="resource-inventory-title">Tenant assets with ownership, region, cost, and risk</h4></div><table class="resource-table"><thead><tr><th>Kind</th><th>Name</th><th>Region</th><th>Owner</th><th>State</th><th>Monthly</th><th>Action</th></tr></thead><tbody>{resource_rows}</tbody></table>{resource_inventory_anchor_board}</article><article id="resource-panel-audit" class="resource-panel" data-resource-panel="audit" aria-labelledby="audit-ledger-title"><div class="cockpit-column-head"><p class="screen-anchor">AUDIT LEDGER</p><h4 id="audit-ledger-title">Immutable tenant-workload proof stream</h4></div>{receipt_stitching_console}<div class="audit-proof-grid" aria-label="FD-001 tenant workload receipt proof"><article class="audit-proof-card selected" data-audit-card="fd001"><p class="screen-anchor">FD-001 RECEIPTS</p><h5>Product delivery remains master plan</h5><p>Every Messenger, Mail, Community, Workflow, Ontology, and Intelligence preview action creates a visible receipt so FD-001 can be dogfooded as a real tenant workload.</p><div class="audit-command-actions"><button type="button" data-audit-anchor-action="open-evidence">Open evidence</button><button type="button" data-audit-anchor-action="route-mail">Mail brief</button></div></article><article class="audit-proof-card" data-audit-card="cloud"><p class="screen-anchor">OYATIE CLOUD</p><h5>Oyatie Cloud substrate proves hosting posture</h5><p>The cloud substrate records residency, release, cost, policy, and rollback checks before a tenant surface can claim production readiness.</p><div class="audit-command-actions"><button type="button" data-audit-anchor-action="route-cloud">Cloud topology</button><button type="button" data-audit-anchor-action="route-gates">Release gates</button></div></article><article class="audit-proof-card" data-audit-card="sealed"><p class="screen-anchor">SEALED PACKET</p><h5>Interactive local receipt vault</h5><p>Operators can inspect, seal, route, and brief a receipt packet visually while backend, billing, deploy, and cloud mutations remain disconnected.</p><div class="audit-command-actions"><button type="button" data-audit-anchor-action="seal-packet">Seal packet</button><button type="button" data-audit-anchor-action="route-policy">Policy board</button></div></article></div><ol class="audit-ledger-list">{audit_rows}</ol><div class="audit-anchor-footer"><span data-audit-anchor-status="true">Audit ledger ready · FD-001 tenant workload receipts remain local visual evidence.</span><div class="audit-command-actions" aria-label="Audit ledger connected routes"><button type="button" data-audit-anchor-action="route-workflow">Workflow proof</button><button type="button" data-audit-anchor-action="route-community">Community review</button><button type="button" data-audit-anchor-action="open-evidence">Evidence graph</button></div></div></article><article id="resource-panel-gates" class="resource-panel" data-resource-panel="gates" aria-labelledby="deployment-gates-title"><div class="cockpit-column-head"><p class="screen-anchor">DEPLOYMENT GATES</p><h4 id="deployment-gates-title">FD-001 tenant workload admission gates</h4></div>{deployment_gate_command_board}<div class="gate-grid">{gate_cards}</div><div class="deployment-gate-footer"><span data-deployment-gate-status="true">Deployment gates ready · FD-001 microservices are tenant workloads on Oyatie Cloud.</span><div class="deployment-gate-routes" aria-label="Deployment gate connected routes"><button type="button" data-deployment-gate-action="route-policy">Policy envelope</button><button type="button" data-deployment-gate-action="route-audit">Audit packet</button><button type="button" data-deployment-gate-action="route-community">Community note</button><button type="button" data-deployment-gate-action="route-cloud">Cloud cells</button></div></div></article></div></section>"#,
         resource_count = resources.len(),
         audit_count = audit_events.len(),
         module_count = envelope.modules.len(),

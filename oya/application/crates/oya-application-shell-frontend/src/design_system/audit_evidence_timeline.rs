@@ -147,13 +147,15 @@ pub fn AuditEvidenceTimeline(variant: TimelineVariant, rows: Vec<EvidenceRow>) -
                             .map(EvidencePath::display)
                             .unwrap_or_else(|| "evidence missing".to_owned());
                         view! {
+                            // A-12: removed redundant role="listitem" (implicit on <li>);
+                            // blocking alert moved to inline data-attribute for CSS targeting only.
                             <li
                                 data-severity=match severity {
                                     RowSeverity::Ok => "ok",
                                     RowSeverity::Warning => "warning",
                                     RowSeverity::Blocking => "blocking",
                                 }
-                                role=if blocking { "alert" } else { "listitem" }
+                                data-blocking=blocking
                             >
                                 <time>{row.timestamp.clone()}</time>
                                 <strong>{row.event_type.clone()}</strong>
