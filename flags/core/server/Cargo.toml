@@ -13,4 +13,5 @@ path = "src/main.rs"
 path = "src/lib.rs"
 
 [dependencies]
+flags-evaluation-domain = { path = "../evaluation-domain" }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
