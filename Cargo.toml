@@ -335,6 +335,14 @@ members = [
   # non-crate artifacts (manifest.json/docs/PRD/IPs/contracts/iac/k8s/policy/Dockerfile) + the remaining 126
   # oya/intelligence crates are homed in later sub-batches / phase-2 (task #62).
   "intelligence/*/*",
+  # Phase -1 corpus substrate (ADR-0580): the live-AST governance "corpus" homes its crates under
+  # the governance/ meta directory at governance/corpus/<leaf> (corpus-core, corpus-extract). The
+  # leaf is de-branded (cargo names corpus-core / corpus-extract), so the leaf segment stays a bare
+  # `*`. `governance/corpus/*` is a 3-segment glob (it MUST be — the members-kernel matches `*`
+  # per-path-component with an exact segment-count, so a 2-segment `governance/*` would NOT match a
+  # 3-segment crate dir). Narrow (corpus-scoped, not `governance/*/*`) per the closed-registry
+  # anti-junk-drawer intent: each future governance sub-substrate adds its own glob via its own ADR.
+  "governance/corpus/*",
 ]
 exclude = [
   # cloud/cloud-kernel is a SEPARATE no_std bare-metal workspace (its own [workspace]
@@ -721,6 +729,16 @@ status = "planned"
 aws-lc-rs = { version = "1" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+# Phase -1 corpus extractor (ADR-0580): the source-level Rust AST parser behind the corpus
+# `AstSource` seam. Promoted from a transitive-only dep to a DIRECT workspace dep so reindeer emits
+# a PUBLIC `third-party//:syn` alias (the buck dep label); the locked version (2.0.117) and the
+# generated feature set (full/extra-traits/parsing/visit/clone-impls) are unchanged by this flip.
+syn = { version = "2.0", features = ["full", "extra-traits", "parsing", "visit", "clone-impls"] }
+# Companion to `syn` for the corpus extractor (ADR-0580): renders parsed AST nodes back to a
+# canonical, whitespace/comment-normalized token string (the reformatting-invariant signature
+# pre-image). Promoted to a DIRECT workspace dep so reindeer emits a PUBLIC `third-party//:quote`
+# alias; the locked version (1.0.45) is unchanged by this flip.
+quote = "1.0"
 libc = "0.2"
 prost = "0.14.3"
 protoc-bin-vendored = "3.2.0"

@@ -35,7 +35,8 @@
     "network",
     "secrets",
     "billing",
-    "intelligence"
+    "intelligence",
+    "governance"
   ],
   "meta_directories": [
     "kernel",
