@@ -438,6 +438,7 @@
     "cloud/cloud-ci/gates/OWNERS",
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/BUCK",
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/Cargo.toml",
+    "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/lib.rs",
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/main.rs",
