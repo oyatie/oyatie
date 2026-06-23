@@ -1,5 +1,5 @@
 ---
-id: ADR-0581
+id: ADR-0582
 title: "DTO-authz-trust gate (caller-supplied authorization decision backstop)"
 status: Proposed
 planning_impact: false
@@ -17,7 +17,7 @@ related_specs:
 milestone: W0
 ---
 
-# ADR-0581: DTO-authz-trust gate (caller-supplied authorization decision backstop)
+# ADR-0582: DTO-authz-trust gate (caller-supplied authorization decision backstop)
 
 ## Status
 
@@ -66,47 +66,94 @@ against a frozen baseline.
 
 ### D1 — The antipattern, mechanically
 
-A function is a DTO-AUTHZ-TRUST instance iff ALL THREE hold over its CODE-ONLY body (comments and
+A function is a DTO-AUTHZ-TRUST instance iff BOTH hold over its CODE-ONLY body (comments and
 string/char literal CONTENT elided via a length-preserving mask, so a doc-comment mention never
-triggers):
+triggers). This is the **v2 two-signal heuristic** (v1 had a third self-compare precondition that
+was evadable by `Vec::contains` / `binary_search` / `is_superset`; v2 inverts it — FN-06):
 
 - **(a) it reads a CALLER-SUPPLIED authorization-decision field** — it takes a parameter whose type
   name tail ends with the policy `authorization_dto_type_suffixes` (default `Authorization` — the
-  forged blob), OR its body reads a `trigger_decision_field_idents` member (default `allowed_surfaces`
-  — an authz allow-list with no benign business meaning) off a binding, OR it reads an
-  `authorization_header_idents` (`x-authorization-*`);
-- **(b) the only "check" is self-comparison / equality / membership against the request** — the body
-  contains a `self_compare_tokens` operator (`==` / `!=` / `.iter().any(` / `.contains(`);
-- **(c) the body makes NO whole-token CALL to a `pdp_decision_idents` port** (`.decide(`,
-  `ensure_authorized`, `verify_principal`, `check_authz`, `ensure_authz`).
+  forged blob), OR its body reads a `trigger_decision_field_idents` member (`allowed_surfaces`,
+  `permitted_scopes`, `caller_roles`, `granted`, `allowed_actions` — authz allow-lists/grants with
+  no benign business meaning) off a binding, OR it reads an `authorization_header_idents`
+  (`x-authorization-decision-id`, `x-authorization-surfaces`, `x-authorization-principal-id`,
+  `x-authorization-tenant-id`) — detected in a comment-stripped string-preserving body view so
+  header names in string literals are found but header names only in comments are not (FP-01);
+- **(b) the body makes NO whole-token CALL to a `pdp_decision_idents` port** (`.decide(`,
+  `ensure_authorized`, `check_authz`, `ensure_authz`, `authorize_decision`, `pdp_decide`).
+
+**`verify_principal` is intentionally ABSENT from `pdp_decision_idents`** — it is an
+AUTHENTICATION step (verifies identity from an unforgeable credential), not an authorization
+decision. A function that calls `verify_principal` but self-compares the authz DTO is still flagged.
+The authorization decision requires a server-side PDP call (`ensure_authorized` / `.decide()`).
+
+Self-compare tokens (`==`, `!=`, `.iter().any(`, `.contains(`) are retained in policy as
+description-enrichment signals only — they annotate the finding narrative but are not a gate
+precondition (FN-06 inversion).
+
+Header detection runs on a comment-stripped but string-preserving view of the body (not the
+fully-masked body and not the raw original text), so header names in string literals trigger while
+header names only in comments do not (FP-01 fix).
+
+`#[cfg(not(test))]`-gated items are PRODUCTION code and are scanned. Only `#[cfg(test)]` positive
+predicates mark test-fixture blocks that are excluded (FN-05 fix).
 
 ### D2 — Conservative in the SAFE direction + honest limits
 
-For (c), a PDP-port call recognized as a whole-token CALL in the code-only body marks the function
+For (b), a PDP-port call recognized as a whole-token CALL in the code-only body marks the function
 GREEN — the gate never invents a false finding for a function that genuinely delegates to a PDP. A
-function that BOTH self-compares an authorization DTO AND calls a PDP port is GREEN: the PDP call is
-the real decision, the self-comparison is a redundant precondition.
+function that BOTH reads an authorization DTO AND calls a PDP port is GREEN: the PDP call is the
+real decision, the DTO read is a redundant precondition.
+
+**v2.1 sibling-PDP-delegation recognition (ADR-0591 split-decision):** the AUTH-005 remediations
+landed a benign mirror of the opaque-helper limit — a use-case splits its authorization into (i) the
+authoritative server-side PDP `ensure_authorized`/`decide` and (ii) a residual NON-AUTHORITATIVE
+correlation-consistency cross-check (a `*_correlation` function that reads the authorization DTO but
+"NEVER grants"). The per-function detector flags (ii) as a false positive because the PDP call lives
+in the use-case root. The policy flag `recognize_sibling_pdp_delegation` (DATA, default OFF for
+portability; ON in this repo) closes this: a flagged function is GREEN iff it is TRANSITIVELY
+REACHABLE, via the same-file call graph, from a function that calls a PDP decision-port ident in its
+own body (e.g. `generate_cloud_finops_report_from_api` → `validate_cloud_finops_report_request` →
+`validate_authorization_correlation`). The recognition is bound to the actual CALL GRAPH (a
+PDP-guarded path reaches the flagged fn), NOT type coincidence, so an unrelated in-file PDP call
+cannot launder a forgeable check no PDP-guarded path reaches. This eliminated the
+`billing/ports/finops-api` and `observability/core/api` correlation-check false positives that the
+rebase onto the AUTH-005 tip surfaced, WITHOUT growing the baseline (no `--allow-new`): the fix is in
+the engine, per the doctrine this gate exists to enforce, not a grandfathered instance.
 
 Honest LIMITS (documented, not hidden):
 
-- The gate recognizes the dominant corpus shape: a synchronous `fn` with an `*Authorization` DTO
-  param (or an `allowed_surfaces` read) that self-compares. A handler that hides the same
-  self-comparison behind an opaque helper giving NO authorization-DTO signal is outside the envelope
-  (human review + the authz-coverage gate own that). This deliberate boundary keeps the baseline
-  meaningful and the false-positive rate near zero.
+- **Dead-code evasion**: `if false { .decide() }` suppresses signal (b). The gate does not perform
+  reachability analysis — a PDP ident in the code-only body marks the function GREEN regardless of
+  control flow. Code reviewers must catch intentional `if false { decide() }` suppressions.
+- **Wrong-receiver evasion**: `other_svc.ensure_authorized()` on a different receiver also suppresses
+  signal (b). Policy-keyed idents should be scoped to the owned PDP port shape.
 - (a) is the load-bearing precision lever: requiring an *authorization-DTO* / *authz-specific
   allow-list* signal (NOT just any `tenant_id` comparison) is what keeps benign tenant/path-binding
   validators GREEN. An overloaded field (`decision_id`, which also names retention/policy business
   keys) is a description-only corroborator, never a standalone trigger — so the gate does not
   false-positive on retention/policy `decision_id` integrity checks.
+- Opaque-helper evasion: a handler that hides the same authz-decision behind a helper giving NO
+  authorization-DTO signal is outside the envelope (human review + the authz-coverage gate own that).
+- Sibling-PDP-delegation evasion (the dual of v2.1's recognition): deliberately routing a forgeable
+  check through a PDP-calling caller that does NOT actually let the PDP decide first would be marked
+  GREEN by the call-graph bind. This is the same intentional-evasion residual class as the dead-code
+  limit (code review owns it); for the dominant remediation corpus the call-graph bind is precise.
 
-### D3 — Born-blocking with a FROZEN, SHRINK-ONLY baseline
+### D3 — Born-blocking with a FROZEN, SHRINK-ONLY baseline (v2: body-hash keying)
 
-The ~52 pre-existing instances are enumerated and FROZEN as known debt
-(`frozen_dto_authz_trust_instances`, keyed by stable `<file>#<fn>` so a line shift never re-REDs a
-baselined instance). An instance whose key is in the baseline is ACCEPTED (no block) — each owner's
-remediation over time. A NEW instance whose key is NOT in the baseline → RED. The baseline is
-shrink-only by construction (a fixed/removed instance drops its key); a stale key self-cleans via
+The pre-existing instances are enumerated and FROZEN as known debt
+(`frozen_dto_authz_trust_instances`, keyed by stable `<file>#<fn>:<body_hash>` — a 32-hex-char
+FNV-1a hash of the code-only masked function body is appended to the file+fn components). The
+baseline is **73 keys** on the rebased dev tip: it was re-anchored by a SHRINK-ONLY `--write` (no
+`--allow-new`, no firewall-door sign-off) after the rebase onto the AUTH-005 W2/W2b integration tip
+dropped the ~18 instances those PRs remediated and the v2.1 sibling-PDP-delegation fix cleared the 2
+split-decision false positives. This
+prevents a NEW function with the SAME name in a different `mod` (or a refactored body) from
+auto-laundering as a baselined instance (FN-02). A line shift with no body change does NOT change
+the key. An instance whose key is in the baseline is ACCEPTED (no block) — each owner's remediation
+over time. A NEW instance whose key is NOT in the baseline → RED. The baseline is shrink-only by
+construction (a fixed/removed instance drops its key); a stale key self-cleans via
 `DAT-STALE-BASELINE`. AUTOMATED: re-baselining is mechanical via the gate binary `--write`
 (shrink-only; growing requires the explicit `--allow-new` flag, a reviewed grandfather).
 
@@ -141,6 +188,22 @@ live-corpus + RED/GREEN self-test in
   deriving the principal from a verified mTLS/SVID/bearer credential and calling the cloud-iam Cedar
   PDP server-side to `decide(principal, action, resource)`, failing closed.
 - The gate runs in the single `oya-ci-required` fan-in (matrix `gate` lane), so it gates merge.
+
+## Deferred — baseline merge-base anchoring (INTEGRITY-01)
+
+The `frozen_dto_authz_trust_instances` baseline carried inline in
+`dto-authz-trust-policy.json` is, like every other gate's frozen baseline, an in-tree
+reference rather than a value materialized from `git merge-base <base_ref> HEAD`. The
+gate-baseline PR/push asymmetry (a frozen-in-tree reference can be edited within the same
+PR that adds a new instance) is the INTEGRITY-01 residual. It is **intentionally deferred
+here**: anchoring this gate's baseline to the merge-base is a single instance of a
+**fleet-wide class** that must be solved once, uniformly, for ALL gate baselines by the
+merge-base-anchor meta-enforcement program (the same program that owns the
+`gate-baseline.generated.json` merge-candidate materialization via the scm-facts emitter).
+This PR does not block on it; the `dto-authz-trust-policy.json` baseline anchoring is
+**tracked there** and will be migrated in lockstep with the other gates rather than as a
+bespoke one-off here. Until then the binary-level shrink-only `--write` (growing requires
+the explicit `--allow-new` reviewed grandfather) is the enforcement floor.
 
 ## Alternatives considered
 
