@@ -4,6 +4,28 @@
 //! binding, request fingerprint idempotency, and global tenant-id uniqueness for
 //! `tenant.create` before handing typed construction to the platform tenant
 //! kernel.
+//!
+//! ## Authorization posture (AUTH-005, SECURITY remediation — fail-closed)
+//!
+//! Authorization is decided SERVER-SIDE by a Policy Decision Point ([`TenantCreateAuthorizer`])
+//! the boundary OWNS, NEVER from caller-supplied decision fields. The historical
+//! `TenantApiAuthorization` request DTO (which carried a caller-supplied
+//! `{decision_id, tenant_id, principal_id, allowed_surfaces}` grant the boundary
+//! merely cross-checked against the caller-supplied principal) was a self-attested
+//! authorization: any caller could supply `allowed_surfaces: ["tenant.create"]`
+//! and a matching principal and be authorized. It is REMOVED.
+//!
+//! The boundary now:
+//!   - takes an UNFORGEABLE [`VerifiedTenantPrincipal`] (private fields, no public
+//!     constructor — only a credential verifier outside this crate can mint one;
+//!     it is never deserialized from the request), and
+//!   - asks the injected [`TenantCreateAuthorizer`] PDP to `decide()` the
+//!     `tenant.create` surface against the TARGET tenant (the path tenant id,
+//!     a trusted source) on a separate axis from the caller's own tenant.
+//!
+//! Default-deny: no path reaches the directory mutation without a PDP `Ok(true)`.
+//! Any PDP fault (error/timeout/unavailability) maps to a fail-closed deny, never
+//! an allow (see the [`TenantCreateAuthorizer`] adapter contract).
 
 use std::collections::BTreeMap;
 
@@ -45,10 +67,11 @@ pub enum TenantCreateApiErrorCode {
     PrincipalIdEmpty,
     PathTenantIdEmpty,
     TenantPathBodyMismatch,
-    AuthorizationDecisionIdEmpty,
-    AuthorizationTenantMismatch,
-    AuthorizationPrincipalMismatch,
+    /// The server-side PDP returned an explicit deny for the verified caller.
     AuthorizationDenied,
+    /// The server-side PDP adapter faulted (error/timeout/unavailability);
+    /// fail-closed → deny.
+    AuthorizationFault,
     ResidencyClassInvalid,
     DuplicateTenant,
     IdempotencyKeyReused,
@@ -68,12 +91,8 @@ impl TenantCreateApiErrorCode {
             Self::PrincipalIdEmpty => "TENANT_CREATE_PRINCIPAL_ID_EMPTY",
             Self::PathTenantIdEmpty => "TENANT_CREATE_PATH_TENANT_ID_EMPTY",
             Self::TenantPathBodyMismatch => "TENANT_CREATE_PATH_BODY_MISMATCH",
-            Self::AuthorizationDecisionIdEmpty => "TENANT_CREATE_AUTHORIZATION_DECISION_ID_EMPTY",
-            Self::AuthorizationTenantMismatch => "TENANT_CREATE_AUTHORIZATION_TENANT_MISMATCH",
-            Self::AuthorizationPrincipalMismatch => {
-                "TENANT_CREATE_AUTHORIZATION_PRINCIPAL_MISMATCH"
-            }
             Self::AuthorizationDenied => "TENANT_CREATE_AUTHORIZATION_DENIED",
+            Self::AuthorizationFault => "TENANT_CREATE_AUTHORIZATION_FAULT",
             Self::ResidencyClassInvalid => "TENANT_CREATE_RESIDENCY_CLASS_INVALID",
             Self::DuplicateTenant => "TENANT_CREATE_DUPLICATE_TENANT",
             Self::IdempotencyKeyReused => "TENANT_CREATE_IDEMPOTENCY_KEY_REUSED",
@@ -93,18 +112,130 @@ pub struct TenantApiBoundaryContext {
     pub idempotency_key: String, // data_class: INTERNAL_ONLY
 }
 
+/// A caller principal whose credential a verifier OUTSIDE this crate has
+/// PROVEN. The inner fields are private and there is NO public constructor, so a
+/// [`VerifiedTenantPrincipal`] can ONLY be minted by a verifier that checked an
+/// UNFORGEABLE credential (an mTLS/SPIFFE peer identity or a constant-time bearer
+/// compare in the boundary adapter). The boundary NEVER deserializes one from the
+/// request body or from caller-supplied `x-principal-*`/`x-authorization-*`
+/// headers — it is the type-level proof that authentication ran before any
+/// authorization or mutation, and the cross-tenant axis the PDP checks against.
+///
+/// Construction lives behind `pub(crate)` + a `#[cfg(test)]` test constructor so
+/// no downstream crate can forge one (the SECURITY remediation lesson: a public
+/// constructor / public fields is a forgeable token — do NOT repeat it).
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct TenantApiPrincipal {
-    pub tenant_id: String,    // data_class: INTERNAL_ONLY
-    pub principal_id: String, // data_class: INTERNAL_ONLY
+pub struct VerifiedTenantPrincipal {
+    /// The verified caller's own tenant (derived from the credential, NEVER from
+    /// a request field). Distinct axis from the TARGET tenant the PDP authorizes.
+    caller_tenant_id: String, // data_class: INTERNAL_ONLY
+    /// A stable identity label for the verified caller (credential subject), for
+    /// the PDP request + audit attribution.
+    caller_principal_id: String, // data_class: INTERNAL_ONLY
 }
 
+impl VerifiedTenantPrincipal {
+    /// Mint a verified principal. `pub(crate)` so ONLY this crate's verifier
+    /// adapter (which proved an unforgeable credential) can construct one — a
+    /// downstream handler cannot fabricate authority from caller-supplied input.
+    #[must_use]
+    pub(crate) fn new(
+        caller_tenant_id: impl Into<String>,
+        caller_principal_id: impl Into<String>,
+    ) -> Self {
+        Self {
+            caller_tenant_id: caller_tenant_id.into(),
+            caller_principal_id: caller_principal_id.into(),
+        }
+    }
+
+    /// Test-only constructor: lets tests mint a verified principal WITHOUT a live
+    /// credential verifier. Gated behind `#[cfg(test)]` so it never exists in a
+    /// release build — production code can only obtain one from a real verifier.
+    #[cfg(test)]
+    #[must_use]
+    pub fn for_test(
+        caller_tenant_id: impl Into<String>,
+        caller_principal_id: impl Into<String>,
+    ) -> Self {
+        Self::new(caller_tenant_id, caller_principal_id)
+    }
+
+    /// The verified caller's own tenant.
+    #[must_use]
+    pub fn caller_tenant_id(&self) -> &str {
+        &self.caller_tenant_id
+    }
+
+    /// The verified caller's identity label.
+    #[must_use]
+    pub fn caller_principal_id(&self) -> &str {
+        &self.caller_principal_id
+    }
+}
+
+/// A fully-bound, server-side tenant-create authorization request handed to the
+/// PDP. `caller_tenant_id`/`caller_principal_id` come from the VERIFIED principal
+/// (trusted); `target_tenant_id` is the TARGET tenant (the request path tenant id
+/// — a trusted source, NOT a caller-supplied grant) on a SEPARATE axis so a PDP
+/// that enforces isolation can DENY a cross-tenant create (true blast radius / no
+/// IDOR). `surface` is the action slug (`tenant.create`).
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct TenantApiAuthorization {
-    pub tenant_id: String,             // data_class: INTERNAL_ONLY
-    pub principal_id: String,          // data_class: INTERNAL_ONLY
-    pub decision_id: String,           // data_class: INTERNAL_ONLY
-    pub allowed_surfaces: Vec<String>, // data_class: INTERNAL_ONLY
+pub struct TenantCreateAuthzRequest<'a> {
+    pub caller_tenant_id: &'a str,    // data_class: INTERNAL_ONLY (verified)
+    pub caller_principal_id: &'a str, // data_class: INTERNAL_ONLY (verified)
+    pub target_tenant_id: &'a str,    // data_class: INTERNAL_ONLY (path-derived)
+    pub surface: &'a str,             // data_class: PUBLIC
+}
+
+/// A fail-closed PDP fault. Any adapter error/timeout/unavailability maps to this
+/// and the boundary DENIES (403) — a PDP outage never allows and never panics
+/// (release builds use `panic = "abort"`, so `catch_unwind` is NOT a backstop;
+/// the adapter MUST surface failures as `Err(AuthzFault)`).
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct AuthzFault {
+    detail: String, // data_class: INTERNAL_ONLY
+}
+
+impl AuthzFault {
+    /// Construct a fault with a human-facing detail.
+    #[must_use]
+    pub fn new(detail: impl Into<String>) -> Self {
+        Self {
+            detail: detail.into(),
+        }
+    }
+
+    /// Borrow the detail string.
+    #[must_use]
+    pub fn detail(&self) -> &str {
+        &self.detail
+    }
+}
+
+/// The server-side tenant-create authorization PORT (the PDP seam). The boundary
+/// OWNS this port; the concrete PDP client + credential store are adapters
+/// OUTSIDE this crate (owned-W5 shape — a cloud-iam Cedar PDP client). Returns
+/// `Ok(true)` to PERMIT, `Ok(false)` to DENY, and `Err(AuthzFault)` for any
+/// adapter fault — the boundary maps BOTH `Ok(false)` and `Err(_)` to a 403
+/// (fail-closed, default-deny).
+///
+/// # Adapter contract (MUST be upheld by every implementation)
+///
+/// 1. **Fault mapping**: every error, timeout, or unavailability MUST map to
+///    `Err(AuthzFault)` — never panic, never return `Ok(true)` on failure.
+/// 2. **Deadline enforcement**: the adapter MUST enforce its own call deadline.
+/// 3. **No panics**: the adapter MUST NOT panic. Release builds abort on panic,
+///    so `catch_unwind` is NOT a backstop — surface failures as `Err`.
+/// 4. **Cross-tenant deny is authoritative**: a request whose `target_tenant_id`
+///    the verified caller has no proven authority over MUST be denied regardless
+///    of how many allow rules match.
+pub trait TenantCreateAuthorizer {
+    /// Decide whether the verified caller may create the target tenant.
+    ///
+    /// # Errors
+    /// Returns [`AuthzFault`] on any PDP adapter failure; the boundary denies.
+    fn decide(&self, request: &TenantCreateAuthzRequest<'_>) -> Result<bool, AuthzFault>;
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -123,11 +254,14 @@ pub struct TenantCreateRequest {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TenantCreateApiRequest {
-    pub path_tenant_id: String,                // data_class: INTERNAL_ONLY
-    pub boundary: TenantApiBoundaryContext,    // data_class: INTERNAL_ONLY
-    pub principal: TenantApiPrincipal,         // data_class: INTERNAL_ONLY
-    pub authorization: TenantApiAuthorization, // data_class: INTERNAL_ONLY
-    pub body: TenantCreateRequest,             // data_class: INTERNAL_ONLY
+    pub path_tenant_id: String,             // data_class: INTERNAL_ONLY
+    pub boundary: TenantApiBoundaryContext, // data_class: INTERNAL_ONLY
+    /// The UNFORGEABLE verified caller. NOT deserialized from the request — it is
+    /// minted by a credential verifier (outside this crate) and handed in. There
+    /// is no caller-supplied `authorization` grant: authority is decided
+    /// server-side by the [`TenantCreateAuthorizer`] PDP.
+    pub principal: VerifiedTenantPrincipal, // data_class: INTERNAL_ONLY (verified)
+    pub body: TenantCreateRequest,          // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -195,8 +329,10 @@ impl TenantCreateSuccessResponse {
             data,
             metadata: TenantCreateMetadata {
                 request_id: request.boundary.request_id.clone(),
-                operator_tenant_id: request.boundary.tenant_id.clone(),
-                principal_id: request.principal.principal_id.clone(),
+                // Audit attribution reflects the VERIFIED caller, never a
+                // caller-supplied header/grant.
+                operator_tenant_id: request.principal.caller_tenant_id().to_owned(),
+                principal_id: request.principal.caller_principal_id().to_owned(),
             },
         }
     }
@@ -251,17 +387,13 @@ pub enum TenantCreateApiError {
         path_tenant_id: String,
         body_tenant_id: String,
     },
-    EmptyAuthorizationDecisionId,
-    AuthorizationTenantMismatch {
-        authorization_tenant_id: String,
-        principal_tenant_id: String,
-    },
-    AuthorizationPrincipalMismatch {
-        authorization_principal_id: String,
-        principal_id: String,
-    },
+    /// The server-side PDP returned an explicit deny (`Ok(false)`).
     AuthorizationDenied {
         surface: String,
+    },
+    /// The server-side PDP adapter faulted; fail-closed → deny (403).
+    AuthorizationFault {
+        detail: String,
     },
     InvalidResidencyClass {
         residency_class: String,
@@ -300,16 +432,8 @@ impl TenantCreateApiError {
             Self::EmptyPrincipalId => TenantCreateApiErrorCode::PrincipalIdEmpty,
             Self::EmptyPathTenantId => TenantCreateApiErrorCode::PathTenantIdEmpty,
             Self::TenantPathBodyMismatch { .. } => TenantCreateApiErrorCode::TenantPathBodyMismatch,
-            Self::EmptyAuthorizationDecisionId => {
-                TenantCreateApiErrorCode::AuthorizationDecisionIdEmpty
-            }
-            Self::AuthorizationTenantMismatch { .. } => {
-                TenantCreateApiErrorCode::AuthorizationTenantMismatch
-            }
-            Self::AuthorizationPrincipalMismatch { .. } => {
-                TenantCreateApiErrorCode::AuthorizationPrincipalMismatch
-            }
             Self::AuthorizationDenied { .. } => TenantCreateApiErrorCode::AuthorizationDenied,
+            Self::AuthorizationFault { .. } => TenantCreateApiErrorCode::AuthorizationFault,
             Self::InvalidResidencyClass { .. } => TenantCreateApiErrorCode::ResidencyClassInvalid,
             Self::DuplicateTenant { .. } => TenantCreateApiErrorCode::DuplicateTenant,
             Self::IdempotencyKeyReused { .. } => TenantCreateApiErrorCode::IdempotencyKeyReused,
@@ -333,10 +457,9 @@ impl TenantCreateApiError {
     fn status_kind(&self) -> TenantCreateApiStatusKind {
         match self {
             Self::EmptyPrincipalId => TenantCreateApiStatusKind::Unauthorized,
-            Self::EmptyAuthorizationDecisionId
-            | Self::AuthorizationTenantMismatch { .. }
-            | Self::AuthorizationPrincipalMismatch { .. }
-            | Self::AuthorizationDenied { .. } => TenantCreateApiStatusKind::Forbidden,
+            Self::AuthorizationDenied { .. } | Self::AuthorizationFault { .. } => {
+                TenantCreateApiStatusKind::Forbidden
+            }
             Self::DuplicateTenant { .. } => TenantCreateApiStatusKind::Conflict,
             Self::IdempotencyKeyReused { .. } => TenantCreateApiStatusKind::UnprocessableEntity,
             Self::EmptyRequestId
@@ -359,15 +482,11 @@ impl TenantCreateApiError {
             Self::TenantPathBodyMismatch { .. } => {
                 "Path tenant id must match request body tenant_id"
             }
-            Self::EmptyAuthorizationDecisionId => "Authorization decision id is required",
-            Self::AuthorizationTenantMismatch { .. } => {
-                "Authorization decision tenant must match the authenticated principal"
-            }
-            Self::AuthorizationPrincipalMismatch { .. } => {
-                "Authorization decision principal must match the authenticated principal id"
-            }
             Self::AuthorizationDenied { .. } => {
-                "Authorization decision does not allow the requested tenant creation surface"
+                "The verified caller is not authorized for the requested tenant creation"
+            }
+            Self::AuthorizationFault { .. } => {
+                "The authorization decision point is unavailable; request denied (fail-closed)"
             }
             Self::InvalidResidencyClass { .. } => {
                 "Request residency_class must be a supported residency class label"
@@ -395,21 +514,13 @@ impl TenantCreateApiError {
                 "body.tenant_id",
                 "must match the tenant_id path parameter",
             )],
-            Self::EmptyAuthorizationDecisionId => vec![detail(
-                "authorization.decision_id",
-                "must be non-empty authorization evidence",
-            )],
-            Self::AuthorizationTenantMismatch { .. } => vec![detail(
-                "authorization.tenant_id",
-                "must match the authenticated principal tenant",
-            )],
-            Self::AuthorizationPrincipalMismatch { .. } => vec![detail(
-                "authorization.principal_id",
-                "must match the authenticated principal id",
-            )],
             Self::AuthorizationDenied { .. } => vec![detail(
-                "authorization.allowed_surfaces",
-                "must include the requested tenant.create surface",
+                "authorization.decision",
+                "the server-side policy decision point denied tenant.create for the verified caller",
+            )],
+            Self::AuthorizationFault { .. } => vec![detail(
+                "authorization.decision",
+                "the server-side policy decision point faulted; request denied fail-closed",
             )],
             Self::InvalidResidencyClass { .. } => vec![detail(
                 "body.residency_class",
@@ -436,27 +547,41 @@ enum TenantCreateApiStatusKind {
     UnprocessableEntity,
 }
 
+/// Validate the request shape (boundary headers, path/body binding, principal
+/// presence, residency class) WITHOUT deciding authorization. Authorization is a
+/// server-side PDP decision (see [`create_tenant_from_api`]); a pure shape check
+/// must not be mistaken for an authorization. Kept public for callers that want
+/// to surface a 400 before reaching the PDP.
 pub fn validate_tenant_create_request(
     request: &TenantCreateApiRequest,
 ) -> Result<(), TenantCreateApiError> {
     validate_boundary(&request.boundary)?;
     validate_path_body_binding(&request.path_tenant_id, &request.body.tenant_id)?;
-    validate_operator_binding(&request.boundary, &request.principal)?;
-    validate_authorization(
-        &request.principal,
-        &request.authorization,
-        TENANT_CREATE_SURFACE,
-    )?;
+    validate_principal_present(&request.principal)?;
     parse_api_residency_class(&request.body.residency_class)?;
     Ok(())
 }
 
+/// Create a tenant, authorizing the VERIFIED caller against the TARGET tenant via
+/// the SERVER-SIDE `authorizer` PDP (fail-closed, default-deny). No path reaches
+/// the directory mutation without an `Ok(true)` from the PDP: a deny (`Ok(false)`)
+/// or any adapter fault (`Err`) returns a 403 before any state changes.
+///
+/// The TARGET tenant the PDP authorizes is `request.path_tenant_id` (a trusted,
+/// path-derived source — verified equal to `body.tenant_id` first), held on a
+/// SEPARATE axis from the verified caller's own tenant so a cross-tenant create
+/// is deniable at the PDP (true blast radius / no IDOR).
 pub fn create_tenant_from_api(
     directory: &mut TenantDirectory,
     idempotency_ledger: &mut TenantCreateIdempotencyLedger,
+    authorizer: &dyn TenantCreateAuthorizer,
     request: TenantCreateApiRequest,
 ) -> Result<TenantCreateSuccessResponse, TenantCreateApiError> {
     validate_tenant_create_request(&request)?;
+    // SERVER-SIDE authorization: ask the PDP, fail-closed. The decision is made
+    // HERE from trusted inputs (verified principal + path-derived target), never
+    // read from a caller-supplied grant.
+    authorize_tenant_create(authorizer, &request)?;
     let key = idempotency_key_for(&request.boundary, &request.principal, TENANT_CREATE_SURFACE);
     let fingerprint = tenant_create_fingerprint_for(&request);
     if let Some(entry) = idempotency_ledger.entries.get(&key) {
@@ -515,52 +640,43 @@ fn validate_path_body_binding(
     Ok(())
 }
 
-fn validate_operator_binding(
-    boundary: &TenantApiBoundaryContext,
-    principal: &TenantApiPrincipal,
+/// A verified principal must carry a non-empty identity. The principal is
+/// UNFORGEABLE (only a verifier mints it), so an empty identity means a
+/// misconfigured verifier rather than an authn bypass — surface it as a 401 so
+/// the boundary refuses to act on a principal with no subject.
+fn validate_principal_present(
+    principal: &VerifiedTenantPrincipal,
 ) -> Result<(), TenantCreateApiError> {
-    if principal.principal_id.trim().is_empty() {
+    if principal.caller_principal_id().trim().is_empty() {
         return Err(TenantCreateApiError::EmptyPrincipalId);
-    }
-    if boundary.tenant_id != principal.tenant_id {
-        return Err(TenantCreateApiError::AuthorizationTenantMismatch {
-            authorization_tenant_id: boundary.tenant_id.clone(),
-            principal_tenant_id: principal.tenant_id.clone(),
-        });
     }
     Ok(())
 }
 
-fn validate_authorization(
-    principal: &TenantApiPrincipal,
-    authorization: &TenantApiAuthorization,
-    surface: &str,
+/// Ask the SERVER-SIDE PDP whether the verified caller may create the target
+/// tenant. Fail-closed: an explicit deny (`Ok(false)`) and any adapter fault
+/// (`Err`) BOTH map to a 403 — only `Ok(true)` permits. The TARGET tenant is the
+/// path-derived `path_tenant_id` (trusted), bound on a separate axis from the
+/// caller's own tenant so the PDP can deny a cross-tenant create.
+fn authorize_tenant_create(
+    authorizer: &dyn TenantCreateAuthorizer,
+    request: &TenantCreateApiRequest,
 ) -> Result<(), TenantCreateApiError> {
-    if authorization.decision_id.trim().is_empty() {
-        return Err(TenantCreateApiError::EmptyAuthorizationDecisionId);
+    let authz_request = TenantCreateAuthzRequest {
+        caller_tenant_id: request.principal.caller_tenant_id(),
+        caller_principal_id: request.principal.caller_principal_id(),
+        target_tenant_id: &request.path_tenant_id,
+        surface: TENANT_CREATE_SURFACE,
+    };
+    match authorizer.decide(&authz_request) {
+        Ok(true) => Ok(()),
+        Ok(false) => Err(TenantCreateApiError::AuthorizationDenied {
+            surface: TENANT_CREATE_SURFACE.to_string(),
+        }),
+        Err(fault) => Err(TenantCreateApiError::AuthorizationFault {
+            detail: fault.detail().to_string(),
+        }),
     }
-    if authorization.tenant_id != principal.tenant_id {
-        return Err(TenantCreateApiError::AuthorizationTenantMismatch {
-            authorization_tenant_id: authorization.tenant_id.clone(),
-            principal_tenant_id: principal.tenant_id.clone(),
-        });
-    }
-    if authorization.principal_id != principal.principal_id {
-        return Err(TenantCreateApiError::AuthorizationPrincipalMismatch {
-            authorization_principal_id: authorization.principal_id.clone(),
-            principal_id: principal.principal_id.clone(),
-        });
-    }
-    if !authorization
-        .allowed_surfaces
-        .iter()
-        .any(|allowed_surface| allowed_surface == surface)
-    {
-        return Err(TenantCreateApiError::AuthorizationDenied {
-            surface: surface.to_string(),
-        });
-    }
-    Ok(())
 }
 
 fn tenant_from_request(body: &TenantCreateRequest) -> Result<Tenant, TenantCreateApiError> {
@@ -587,12 +703,15 @@ fn parse_api_residency_class(
 
 fn idempotency_key_for(
     boundary: &TenantApiBoundaryContext,
-    principal: &TenantApiPrincipal,
+    principal: &VerifiedTenantPrincipal,
     surface: &str,
 ) -> TenantCreateIdempotencyLedgerKey {
+    // Key the idempotency ledger on the VERIFIED caller (tenant + principal),
+    // never on a caller-supplied header/grant, so a replay is scoped to the
+    // authenticated identity that issued the original request.
     TenantCreateIdempotencyLedgerKey {
-        operator_tenant_id: boundary.tenant_id.clone(),
-        principal_id: principal.principal_id.clone(),
+        operator_tenant_id: principal.caller_tenant_id().to_owned(),
+        principal_id: principal.caller_principal_id().to_owned(),
         surface: surface.to_string(),
         idempotency_key: boundary.idempotency_key.clone(),
     }
@@ -605,23 +724,14 @@ fn tenant_create_fingerprint_for(
         canonical: [
             format!("path.tenant_id={}", request.path_tenant_id),
             format!("header.operator_tenant_id={}", request.boundary.tenant_id),
-            format!("principal.tenant_id={}", request.principal.tenant_id),
-            format!("principal.principal_id={}", request.principal.principal_id),
+            // VERIFIED caller axes (not caller-supplied authorization fields).
             format!(
-                "authorization.tenant_id={}",
-                request.authorization.tenant_id
+                "principal.caller_tenant_id={}",
+                request.principal.caller_tenant_id()
             ),
             format!(
-                "authorization.principal_id={}",
-                request.authorization.principal_id
-            ),
-            format!(
-                "authorization.decision_id={}",
-                request.authorization.decision_id
-            ),
-            format!(
-                "authorization.allowed_surfaces={}",
-                request.authorization.allowed_surfaces.join(",")
+                "principal.caller_principal_id={}",
+                request.principal.caller_principal_id()
             ),
             format!("body.tenant_id={}", request.body.tenant_id),
             format!("body.legal_name={}", request.body.legal_name),
@@ -704,5 +814,87 @@ fn detail(field: impl Into<String>, issue: impl Into<String>) -> TenantCreateApi
     TenantCreateApiErrorDetail {
         field: field.into(),
         issue: issue.into(),
+    }
+}
+
+// ============================================================
+// Reference credential verifier (the unforgeable-token minter)
+// ============================================================
+
+/// Constant-time byte comparison (no early-out on first mismatch): never leak a
+/// token's length or content through timing. Mirrors the established
+/// constant-time doctrine — do NOT hand-roll a naive `==` for a credential.
+#[must_use]
+fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
+    let max_len = a.len().max(b.len());
+    let mut diff = a.len() ^ b.len();
+    for index in 0..max_len {
+        let left = a.get(index).copied().unwrap_or(0);
+        let right = b.get(index).copied().unwrap_or(0);
+        diff |= (left ^ right) as usize;
+    }
+    diff == 0
+}
+
+/// Caller-authentication PORT for the tenant-create boundary: derive a
+/// [`VerifiedTenantPrincipal`] from an UNFORGEABLE credential. Returns `None`
+/// when no valid credential is present (the boundary maps that to a 401,
+/// default-deny). Caller-supplied `x-principal-*`/`x-authorization-*` fields MUST
+/// NOT authorize — only a verified credential mints a principal. A production
+/// adapter (mTLS/SPIFFE peer identity, or a cloud-iam credential-store client)
+/// implements this OUTSIDE the boundary; the reference
+/// [`BearerTenantPrincipalVerifier`] below is the W5-shaped seed used by tests
+/// and single-node bring-up.
+pub trait TenantPrincipalVerifier {
+    /// Verify a presented bearer credential; `None` ⇒ no verified principal.
+    fn verify(&self, presented_bearer: Option<&str>) -> Option<VerifiedTenantPrincipal>;
+}
+
+/// Reference [`TenantPrincipalVerifier`]: one configured bearer token bound to a
+/// single caller identity + tenant, compared in constant time. This is the ONLY
+/// place outside the type itself that mints a [`VerifiedTenantPrincipal`] (via
+/// the `pub(crate)` constructor), so a downstream crate cannot forge one. An
+/// empty/unset configured token verifies NOTHING (every caller is unauthenticated):
+/// there is no allow-all path.
+#[derive(Clone, Debug)]
+pub struct BearerTenantPrincipalVerifier {
+    token: String,            // data_class: SECRET
+    caller_tenant_id: String, // data_class: INTERNAL_ONLY
+    caller_principal_id: String, // data_class: INTERNAL_ONLY
+}
+
+impl BearerTenantPrincipalVerifier {
+    /// Build a verifier for one configured bearer credential. The bound caller
+    /// identity + tenant are what a successful verify returns (never a header).
+    #[must_use]
+    pub fn new(
+        token: impl Into<String>,
+        caller_tenant_id: impl Into<String>,
+        caller_principal_id: impl Into<String>,
+    ) -> Self {
+        Self {
+            token: token.into(),
+            caller_tenant_id: caller_tenant_id.into(),
+            caller_principal_id: caller_principal_id.into(),
+        }
+    }
+}
+
+impl TenantPrincipalVerifier for BearerTenantPrincipalVerifier {
+    fn verify(&self, presented_bearer: Option<&str>) -> Option<VerifiedTenantPrincipal> {
+        // An unset configured token authenticates no one (no allow-all).
+        if self.token.is_empty() {
+            return None;
+        }
+        let presented = presented_bearer?;
+        if constant_time_eq(presented.as_bytes(), self.token.as_bytes()) {
+            // Mint the unforgeable principal ONLY after the credential verified.
+            Some(VerifiedTenantPrincipal::new(
+                self.caller_tenant_id.clone(),
+                self.caller_principal_id.clone(),
+            ))
+        } else {
+            None
+        }
     }
 }

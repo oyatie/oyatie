@@ -1,11 +1,51 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use billing_accounting_journal::{
-    AccountingDomainError, JournalLineInput, PeriodState, post_journal,
+    AccountingDomainError, JournalLineInput, PeriodState, idempotency_body_fingerprint, post_journal,
+    scoped_idempotency_key,
 };
 
 mod support;
 use support::journal_input;
+
+#[test]
+fn fingerprint_is_deterministic() {
+    let a = idempotency_body_fingerprint(&["ten_acme", "jrn_1", "100"]);
+    let b = idempotency_body_fingerprint(&["ten_acme", "jrn_1", "100"]);
+    assert_eq!(a, b);
+    assert_eq!(a.len(), 16, "fingerprint is 16 hex digits");
+}
+
+#[test]
+fn fingerprint_detects_changed_body() {
+    let original = idempotency_body_fingerprint(&["ten_acme", "jrn_1", "100"]);
+    let changed = idempotency_body_fingerprint(&["ten_acme", "jrn_1", "101"]);
+    assert_ne!(
+        original, changed,
+        "a changed body field must change the fingerprint"
+    );
+}
+
+#[test]
+fn fingerprint_is_length_prefixed_against_field_boundary_collisions() {
+    // Without length-prefixing, ["ab", "c"] and ["a", "bc"] would concatenate
+    // to the same byte stream. They must produce different fingerprints.
+    let left = idempotency_body_fingerprint(&["ab", "c"]);
+    let right = idempotency_body_fingerprint(&["a", "bc"]);
+    assert_ne!(left, right, "field boundaries must be unambiguous");
+}
+
+#[test]
+fn scoped_key_places_tenant_first() {
+    // The LOGICAL key encodes (tenant, scope, primary_ref) only; the body
+    // fingerprint is carried separately so the store can detect a changed body
+    // under a reused logical key (ADR-0592).
+    let key = scoped_idempotency_key("ten_acme", "journal-posted", "jrn_1");
+    assert_eq!(key, "idem-v2:ten_acme:journal-posted:jrn_1");
+    // Two tenants with the same primary_ref never collide.
+    let other = scoped_idempotency_key("ten_beta", "journal-posted", "jrn_1");
+    assert_ne!(key, other);
+}
 
 #[test]
 fn test_post_requires_balanced_open_period() {
