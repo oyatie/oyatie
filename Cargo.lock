@@ -6222,6 +6222,7 @@ name = "oya-cloud-ci-freshness-app"
 version = "0.1.0"
 dependencies = [
  "oya-workspace-members-kernel",
+ "serde_json",
  "toml 0.8.23",
 ]
 

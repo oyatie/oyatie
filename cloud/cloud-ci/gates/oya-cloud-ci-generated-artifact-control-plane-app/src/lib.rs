@@ -35,13 +35,23 @@ const ARTIFACT_CLASSES: [&str; 7] = [
     "scm-facts-boundary-snapshot",
 ];
 
-const MATERIALIZATION_MODES: [&str; 5] = [
+const MATERIALIZATION_MODES: [&str; 6] = [
     "source-authored",
     "branch-committed-regenerated-until-controller-materialization",
     "merge-candidate-regenerated",
     "main-branch-materialized",
     "ci-artifact-only",
+    // De-commit class (ADR-0595): the artifact is a pure derivation that is intentionally NOT
+    // tracked in git. It is derived on demand and materialized out-of-graph for consumers, so it
+    // is never a contributor merge surface. A declared path in this mode is EXEMPT from the
+    // declared-path-must-be-tracked predicate below.
+    "not-tracked-in-git",
 ];
+
+/// Materialization mode marking a declared generated artifact as intentionally de-committed
+/// (derive-on-demand). Paths in this mode must NOT be tracked in git and are therefore exempt
+/// from `generated_artifact_declared_path_not_tracked`.
+const NOT_TRACKED_IN_GIT_MODE: &str = "not-tracked-in-git";
 
 const MERGE_POLICIES: [&str; 5] = [
     "normal-source-merge",
@@ -1002,6 +1012,14 @@ pub fn evaluate_keyed(manifest: &Value, scm_facts: &Value) -> BTreeSet<Finding> 
         .iter()
         .map(|artifact| artifact.path.clone())
         .collect();
+    // De-commit class (ADR-0595): declared paths intentionally NOT tracked in git. These are
+    // pure derivations materialized out-of-graph; they are EXEMPT from the
+    // `declared_path_not_tracked` predicate and instead FORBIDDEN from being tracked.
+    let not_tracked_paths: BTreeSet<String> = declared
+        .iter()
+        .filter(|artifact| artifact.materialization_mode == NOT_TRACKED_IN_GIT_MODE)
+        .map(|artifact| artifact.path.clone())
+        .collect();
     let tracked_generated = tracked_generated_artifact_paths(scm_facts, &generated_path_rules);
 
     for path in tracked_generated.difference(&declared_paths) {
@@ -1011,8 +1029,22 @@ pub fn evaluate_keyed(manifest: &Value, scm_facts: &Value) -> BTreeSet<Finding> 
         ));
     }
     for path in declared_paths.difference(&tracked_generated) {
+        // A de-commit-class path is SUPPOSED to be absent from the tracked tree, so its absence
+        // is the desired state, not a finding. All other declared generated paths must be tracked.
+        if not_tracked_paths.contains(path) {
+            continue;
+        }
         findings.insert(Finding::new(
             "generated_artifact_declared_path_not_tracked",
+            path,
+        ));
+    }
+    // One-way door (ADR-0595): once a generated artifact is declared de-commit class it must
+    // never be re-tracked in git. Re-adding it to the tree is a hard finding so the de-commit
+    // cannot be silently reverted by a future PR.
+    for path in not_tracked_paths.intersection(&tracked_generated) {
+        findings.insert(Finding::new(
+            "generated_artifact_not_tracked_path_is_tracked",
             path,
         ));
     }
@@ -1305,6 +1337,42 @@ mod tests {
             finding.code == "generated_artifact_declared_path_not_tracked"
                 && finding.key == "out/example.generated.json"
         }));
+    }
+
+    #[test]
+    fn not_tracked_in_git_declared_path_is_exempt_from_not_tracked_finding() {
+        // ADR-0595: a de-commit-class declared path is SUPPOSED to be absent from the tracked
+        // tree, so its absence must NOT fire declared_path_not_tracked.
+        let mut face = artifact("decommitted-face", "out/example.generated.json");
+        face["materialization_mode"] = json!("not-tracked-in-git");
+        let manifest = manifest(vec![face]);
+        let scm_facts = scm(&[]);
+        let findings = evaluate_keyed(&manifest, &scm_facts);
+        assert!(
+            !findings.iter().any(|finding| {
+                finding.code == "generated_artifact_declared_path_not_tracked"
+                    && finding.key == "out/example.generated.json"
+            }),
+            "de-commit-class path must be exempt; findings: {findings:#?}"
+        );
+        assert_eq!(evaluate(&manifest, &scm_facts).verdict, Verdict::Green);
+    }
+
+    #[test]
+    fn not_tracked_in_git_path_that_is_still_tracked_is_red_one_way_door() {
+        // ADR-0595 one-way door: once a face is de-commit class it must never be re-tracked.
+        let mut face = artifact("decommitted-face", "out/example.generated.json");
+        face["materialization_mode"] = json!("not-tracked-in-git");
+        let manifest = manifest(vec![face]);
+        let scm_facts = scm(&["out/example.generated.json"]);
+        let findings = evaluate_keyed(&manifest, &scm_facts);
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "generated_artifact_not_tracked_path_is_tracked"
+                    && finding.key == "out/example.generated.json"
+            }),
+            "re-tracking a de-commit-class face must RED; findings: {findings:#?}"
+        );
     }
 
     #[test]

@@ -10,7 +10,7 @@
       "artifact_id": "cloud-ci-accounting-registry-face",
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
       "artifact_class": "main-materialized-aggregate",
-      "materialization_mode": "merge-candidate-regenerated",
+      "materialization_mode": "not-tracked-in-git",
       "merge_policy": "never-manual-merge-regenerate-from-source-tree",
       "owner_team": "cloud-ci-platform",
       "source_inputs": [
@@ -20,7 +20,7 @@
         "specs/**",
         "oya-ci.toml"
       ],
-      "final_tree_validation": "cloud-ci materializes this face from the checked-out candidate tree before gates consume it; registry-drift then byte-compares the materialized workspace output against a fresh regeneration.",
+      "final_tree_validation": "ADR-0595 de-commit class: this face is NOT tracked in git; cloud-ci materializes it on demand from the checked-out candidate tree before gates consume it. The freshness gate requires it to regenerate successfully and to be byte-stable across two regenerations (determinism canary); registry-drift byte-compares the materialized output against a fresh regeneration. Byte parity against a committed copy is intentionally retired for this face.",
       "public_product_contract": "A repo-wide accounting projection must be controller-regenerated; humans and agents must not resolve conflicts by editing the JSON.",
       "generator": {
         "runner": "buck2",
@@ -41,7 +41,7 @@
       "artifact_id": "cloud-ci-decision-crosswalk-face",
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json",
       "artifact_class": "main-materialized-aggregate",
-      "materialization_mode": "merge-candidate-regenerated",
+      "materialization_mode": "not-tracked-in-git",
       "merge_policy": "never-manual-merge-regenerate-from-source-tree",
       "owner_team": "cloud-ci-platform",
       "source_inputs": [
@@ -49,7 +49,7 @@
         "docs/machine-readable/*.json",
         "contracts/**"
       ],
-      "final_tree_validation": "cloud-ci materializes this face from the checked-out candidate tree before gates consume it; registry-drift then byte-compares the materialized workspace output against a fresh regeneration.",
+      "final_tree_validation": "ADR-0595 de-commit class: this face is NOT tracked in git; cloud-ci materializes it on demand from the checked-out candidate tree before gates consume it. The freshness gate requires it to regenerate successfully and to be byte-stable across two regenerations (determinism canary); registry-drift byte-compares the materialized output against a fresh regeneration. Byte parity against a committed copy is intentionally retired for this face.",
       "public_product_contract": "Cross-artifact agreement data is a generated projection and must be regenerated rather than hand-merged.",
       "generator": {
         "runner": "buck2",
@@ -70,7 +70,7 @@
       "artifact_id": "cloud-ci-enforcement-inventory-face",
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/enforcement-inventory.generated.json",
       "artifact_class": "main-materialized-aggregate",
-      "materialization_mode": "merge-candidate-regenerated",
+      "materialization_mode": "not-tracked-in-git",
       "merge_policy": "never-manual-merge-regenerate-from-source-tree",
       "owner_team": "cloud-ci-platform",
       "source_inputs": [
@@ -78,7 +78,7 @@
         "cloud/cloud-ci/gates/**",
         "oya-ci.toml"
       ],
-      "final_tree_validation": "cloud-ci materializes this face from the checked-out candidate tree before gates consume it; registry-drift then byte-compares the materialized workspace output against a fresh regeneration.",
+      "final_tree_validation": "ADR-0595 de-commit class: this face is NOT tracked in git; cloud-ci materializes it on demand from the checked-out candidate tree before gates consume it. The freshness gate requires it to regenerate successfully and to be byte-stable across two regenerations (determinism canary); registry-drift byte-compares the materialized output against a fresh regeneration. Byte parity against a committed copy is intentionally retired for this face.",
       "public_product_contract": "Enforcement inventory is generated CI product metadata and must have deterministic final-tree parity.",
       "generator": {
         "runner": "buck2",
@@ -99,7 +99,7 @@
       "artifact_id": "cloud-ci-enforcement-liveness-face",
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/enforcement-liveness.generated.json",
       "artifact_class": "main-materialized-aggregate",
-      "materialization_mode": "merge-candidate-regenerated",
+      "materialization_mode": "not-tracked-in-git",
       "merge_policy": "never-manual-merge-regenerate-from-source-tree",
       "owner_team": "cloud-ci-platform",
       "source_inputs": [
@@ -108,7 +108,7 @@
         ".codex/hooks.json",
         "oya-ci.toml"
       ],
-      "final_tree_validation": "cloud-ci materializes this face from the checked-out candidate tree before gates consume it; registry-drift then byte-compares the materialized workspace output against a fresh regeneration.",
+      "final_tree_validation": "ADR-0595 de-commit class: this face is NOT tracked in git; cloud-ci materializes it on demand from the checked-out candidate tree before gates consume it. The freshness gate requires it to regenerate successfully and to be byte-stable across two regenerations (determinism canary); registry-drift byte-compares the materialized output against a fresh regeneration. Byte parity against a committed copy is intentionally retired for this face.",
       "public_product_contract": "Enforcement liveness is generated hook wiring metadata and must be regenerated rather than hand-merged.",
       "generator": {
         "runner": "buck2",
@@ -129,7 +129,7 @@
       "artifact_id": "cloud-ci-gate-baseline-ratchet-face",
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
       "artifact_class": "main-materialized-aggregate",
-      "materialization_mode": "merge-candidate-regenerated",
+      "materialization_mode": "not-tracked-in-git",
       "merge_policy": "never-manual-merge-regenerate-from-source-tree",
       "owner_team": "cloud-ci-platform",
       "source_inputs": [
@@ -137,7 +137,7 @@
         "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.signoff.json",
         "oya-ci.toml"
       ],
-      "final_tree_validation": "cloud-ci materializes this face from the checked-out candidate tree before gates consume it; registry-drift then byte-compares the materialized workspace output against a fresh regeneration.",
+      "final_tree_validation": "ADR-0595 de-commit class: this face is NOT tracked in git; cloud-ci materializes it on demand from the checked-out candidate tree before gates consume it. The freshness gate requires it to regenerate successfully and to be byte-stable across two regenerations (determinism canary); registry-drift byte-compares the materialized output against a fresh regeneration. Byte parity against a committed copy is intentionally retired for this face.",
       "public_product_contract": "The baseline ratchet is shrink-only generated policy; merge conflict handling must not launder new debt into the baseline.",
       "generator": {
         "runner": "buck2",
@@ -185,14 +185,14 @@
       "artifact_id": "cloud-ci-ttl-policy-face",
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/ttl-policy.generated.json",
       "artifact_class": "main-materialized-aggregate",
-      "materialization_mode": "merge-candidate-regenerated",
+      "materialization_mode": "not-tracked-in-git",
       "merge_policy": "never-manual-merge-regenerate-from-source-tree",
       "owner_team": "cloud-ci-platform",
       "source_inputs": [
         "libs/oya-ci-config/src/bundled/ttl-policy.json",
         "oya-ci.toml"
       ],
-      "final_tree_validation": "cloud-ci materializes this face from the checked-out candidate tree before gates consume it; registry-drift then byte-compares the materialized workspace output against a fresh regeneration.",
+      "final_tree_validation": "ADR-0595 de-commit class: this face is NOT tracked in git; cloud-ci materializes it on demand from the checked-out candidate tree before gates consume it. The freshness gate requires it to regenerate successfully and to be byte-stable across two regenerations (determinism canary); registry-drift byte-compares the materialized output against a fresh regeneration. Byte parity against a committed copy is intentionally retired for this face.",
       "public_product_contract": "TTL policy is data-derived generated CI policy and must be deterministic across repositories.",
       "generator": {
         "runner": "buck2",
