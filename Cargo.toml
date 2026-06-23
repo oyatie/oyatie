@@ -93,14 +93,20 @@ members = [
   # Capability-first home (ADR-0562 strangler move 8): the `flags` capability absorbs the former
   # oya/feature-flags evaluation server at flags/core/server (one face, core). flags is the
   # feature-flag / configuration substrate (dag_node flags): the OFREP/gRPC/REST flag-evaluation
-  # engine. The single moved crate (the OFREP/gRPC/REST evaluation server, with its ofrep/grpc/rest/
-  # targeting/evaluation/storage/tenants/observability internal modules) IS the substrate engine, so
-  # it homes to core/; the aspirational ADR-0481 three-crate split (kernel/rest/app) was never built.
-  # It is de-branded (cargo name flags-server; the oya-flags prefix drops to the capability slug), so
-  # the leaf segment stays a bare `*`. `flags/*/*` covers the single core face + leaf
-  # (flags/core/server) with one glob, satisfying ADR-0538's glob-only members contract (no
-  # explicit-path members); the crate-empty oya/oya-flags placeholder + oya/feature-flags non-crate
-  # artifacts are not swept (no Cargo.toml) and are homed in phase-2 (task #62).
+  # engine. The originally-moved crate (the OFREP/gRPC/REST evaluation server, with its ofrep/grpc/
+  # rest/targeting/evaluation/storage/tenants/observability internal modules) IS the substrate engine,
+  # so it homes to core/; the aspirational ADR-0481 three-crate split (kernel/rest/app) was never
+  # built. Wave-1 BUILD slice (this PR): the pure, cloud-agnostic deterministic evaluation engine
+  # (rule targeting + percentage bucketing + variant resolution, ADR-0481 evaluation TODO) is
+  # decomposed OUT of the bundled server into a second core crate `flags/core/evaluation-domain`
+  # (cargo name flags-evaluation-domain; zero cloud/persistence/identity/runtime deps — tokio-free),
+  # with the storage/cloud/identity adapters DEFERRED behind its `FlagSource` port (clean-arch
+  # ports-in-core per ADR-0570). Both are de-branded (the oya-flags prefix drops to the capability
+  # slug), so the leaf segment stays a bare `*`. `flags/*/*` covers BOTH core-face leaves
+  # (flags/core/server, flags/core/evaluation-domain) with one glob — no members edit was needed,
+  # satisfying ADR-0538's glob-only members contract (no explicit-path members); the crate-empty
+  # oya/oya-flags placeholder + oya/feature-flags non-crate artifacts are not swept (no Cargo.toml)
+  # and are homed in phase-2 (task #62).
   "flags/*/*",
   # Capability-first home (ADR-0562 strangler move 9): the `marketplace` capability absorbs the
   # former cloud/cloud-marketplace + oya/marketplace + oya/developer-sdk crates into
