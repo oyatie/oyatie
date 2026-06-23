@@ -49,6 +49,68 @@ pub struct CallerIdentity {
     pub platform_admin: bool,
 }
 
+/// A fail-closed membership-resolution fault. Any backing-store error/timeout
+/// maps to this and the PEP DENIES (the operator gets no proven tenant scope) —
+/// a membership-store outage never grants a tenant axis (default-deny).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct MembershipFault {
+    detail: String,
+}
+
+impl MembershipFault {
+    /// Construct a fault with a human-facing detail.
+    #[must_use]
+    pub fn new(detail: impl Into<String>) -> Self {
+        Self {
+            detail: detail.into(),
+        }
+    }
+
+    /// Borrow the detail string.
+    #[must_use]
+    pub fn detail(&self) -> &str {
+        &self.detail
+    }
+}
+
+impl fmt::Display for MembershipFault {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "tenant-membership resolution failed: {}", self.detail)
+    }
+}
+
+impl std::error::Error for MembershipFault {}
+
+/// SERVER-SIDE tenant-membership resolution PORT (the SECURITY remediation core).
+///
+/// The tenant-operator bearer is a SHARED credential; on its own it proves only
+/// that the caller is *some* operator, NEVER which tenants that operator may act
+/// for. A self-attested `x-oya-tenant` header therefore MUST NOT grant a tenant
+/// axis (the C7 finding: an operator holding the shared bearer could select ANY
+/// victim tenant via the header). This port resolves — from a TRUSTED server-side
+/// source keyed on the VERIFIED operator principal — the exact set of tenants the
+/// operator is assigned to. The PEP binds the tenant axis ONLY to a tenant in
+/// this set; the `x-oya-tenant` header may at most SELECT among assigned tenants,
+/// never grant an unassigned one.
+///
+/// Default-deny: an unknown operator resolves to an EMPTY membership set, so
+/// every per-tenant op denies. Any backing-store fault maps to `Err` (the PEP
+/// denies) — never an allow. A production adapter is the cloud-iam / OIDC
+/// membership store; the in-memory seed adapter lives in the composition root.
+pub trait TenantMembershipResolver: Send + Sync {
+    /// Resolve the set of tenant ids the verified operator principal is assigned
+    /// to. `operator_principal_id` is the VERIFIED operator's stable id (derived
+    /// from the credential, never from a self-attested header).
+    ///
+    /// # Errors
+    /// Returns [`MembershipFault`] on any backing-store failure; the PEP denies
+    /// (fail-closed — the operator gets no tenant axis).
+    fn assigned_tenants(
+        &self,
+        operator_principal_id: &str,
+    ) -> Result<Vec<String>, MembershipFault>;
+}
+
 /// The tenancy control-plane actions guarded by this port. Each maps to a
 /// stable action slug the backing engine resolves; the slug is the contract,
 /// not the Rust variant name.
