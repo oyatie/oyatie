@@ -24,3 +24,17 @@ rust_test(
         "//messaging/core/domain:messaging-domain",
     ],
 )
+
+rust_test(
+    name = "audit-usecase-audit-event-emit-authz",
+    srcs = ["tests/audit_event_emit_authz.rs"],
+    crate = "audit_usecase_audit_event_emit_authz",
+    crate_root = "tests/audit_event_emit_authz.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":audit-usecase",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//audit/core/chain-domain:audit-chain-domain",
+        "//messaging/core/domain:messaging-domain",
+    ],
+)
