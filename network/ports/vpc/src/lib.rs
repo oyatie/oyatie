@@ -13,6 +13,15 @@ use network_domain::{
 use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
 use network_residency::{ResidencyClass, parse_residency_class_label};
 
+pub mod authz;
+
+pub use authz::{
+    AuthzProviderConfigError, CallerCredential, CloudNetworkVpcAuthzProvider,
+    ConfiguredBearerPrincipalVerifier, PrincipalVerificationError, PrincipalVerifier,
+    VerifiedPrincipal, VpcCreateAuthorizationError, VpcCreateAuthorizer, VpcCreateResource,
+    constant_time_eq,
+};
+
 pub const CLOUD_NETWORK_VPC_CREATE_SURFACE: &str = "cloud.network.vpc.create";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -49,9 +58,9 @@ pub enum CloudNetworkVpcApiErrorCode {
     PathVpcIdEmpty,
     VpcIdMismatch,
     TenantMismatch,
-    AuthorizationDecisionIdEmpty,
-    AuthorizationTenantMismatch,
-    AuthorizationPrincipalMismatch,
+    CallerUnauthenticated,
+    VerifiedPrincipalMismatch,
+    VerifiedTenantMismatch,
     AuthorizationDenied,
     IdempotencyKeyReused,
     ResidencyInvalid,
@@ -76,13 +85,9 @@ impl CloudNetworkVpcApiErrorCode {
             Self::PathVpcIdEmpty => "CLOUD_NETWORK_VPC_PATH_VPC_ID_EMPTY",
             Self::VpcIdMismatch => "CLOUD_NETWORK_VPC_ID_MISMATCH",
             Self::TenantMismatch => "CLOUD_NETWORK_VPC_TENANT_MISMATCH",
-            Self::AuthorizationDecisionIdEmpty => {
-                "CLOUD_NETWORK_VPC_AUTHORIZATION_DECISION_ID_EMPTY"
-            }
-            Self::AuthorizationTenantMismatch => "CLOUD_NETWORK_VPC_AUTHORIZATION_TENANT_MISMATCH",
-            Self::AuthorizationPrincipalMismatch => {
-                "CLOUD_NETWORK_VPC_AUTHORIZATION_PRINCIPAL_MISMATCH"
-            }
+            Self::CallerUnauthenticated => "CLOUD_NETWORK_VPC_CALLER_UNAUTHENTICATED",
+            Self::VerifiedPrincipalMismatch => "CLOUD_NETWORK_VPC_VERIFIED_PRINCIPAL_MISMATCH",
+            Self::VerifiedTenantMismatch => "CLOUD_NETWORK_VPC_VERIFIED_TENANT_MISMATCH",
             Self::AuthorizationDenied => "CLOUD_NETWORK_VPC_AUTHORIZATION_DENIED",
             Self::IdempotencyKeyReused => "CLOUD_NETWORK_VPC_IDEMPOTENCY_KEY_REUSED",
             Self::ResidencyInvalid => "CLOUD_NETWORK_VPC_RESIDENCY_INVALID",
@@ -110,14 +115,6 @@ pub struct CloudNetworkVpcApiBoundaryContext {
 pub struct CloudNetworkVpcApiPrincipal {
     pub tenant_id: String,    // data_class: INTERNAL_ONLY
     pub principal_id: String, // data_class: INTERNAL_ONLY
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct CloudNetworkVpcApiAuthorization {
-    pub tenant_id: String,             // data_class: INTERNAL_ONLY
-    pub principal_id: String,          // data_class: INTERNAL_ONLY
-    pub decision_id: String,           // data_class: INTERNAL_ONLY
-    pub allowed_surfaces: Vec<String>, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -169,7 +166,11 @@ pub struct CloudNetworkVpcCreateApiRequest {
     pub path_vpc_id: String,                         // data_class: INTERNAL_ONLY
     pub boundary: CloudNetworkVpcApiBoundaryContext, // data_class: INTERNAL_ONLY
     pub principal: CloudNetworkVpcApiPrincipal,      // data_class: INTERNAL_ONLY
-    pub authorization: CloudNetworkVpcApiAuthorization, // data_class: INTERNAL_ONLY
+    /// The caller credential (e.g. bearer token). The boundary verifies this via
+    /// the injected [`authz::PrincipalVerifier`]; the request-supplied
+    /// `principal` above is only ever a CROSS-CHECK against the verified
+    /// identity, never a grant. (C10 fix: a request blob never authorizes.)
+    pub credential: authz::CallerCredential, // data_class: SECRET
     pub body: CloudNetworkVpcCreateRequest,          // data_class: INTERNAL_ONLY
 }
 
@@ -287,15 +288,22 @@ pub enum CloudNetworkVpcApiError {
         principal_tenant_id: String,
         body_tenant_id: String,
     },
-    EmptyAuthorizationDecisionId,
-    AuthorizationTenantMismatch {
-        authorization_tenant_id: String,
-        principal_tenant_id: String,
+    /// The caller credential did not verify (missing or invalid). 401.
+    CallerUnauthenticated,
+    /// The request-supplied principal id did not match the VERIFIED principal.
+    /// 403 (an authenticated caller cannot act as a different principal).
+    VerifiedPrincipalMismatch {
+        verified_principal_id: String,
+        request_principal_id: String,
     },
-    AuthorizationPrincipalMismatch {
-        authorization_principal_id: String,
-        principal_id: String,
+    /// The request/target tenant did not match the VERIFIED principal's tenant.
+    /// 403 (an authenticated caller cannot act on another tenant's resource).
+    VerifiedTenantMismatch {
+        verified_tenant_id: String,
+        request_tenant_id: String,
     },
+    /// The PDP denied or refused (fail-closed) the create on the target
+    /// resource. 403.
     AuthorizationDenied {
         surface: String,
     },
@@ -350,14 +358,12 @@ impl CloudNetworkVpcApiError {
             Self::EmptyPathVpcId => CloudNetworkVpcApiErrorCode::PathVpcIdEmpty,
             Self::VpcIdMismatch { .. } => CloudNetworkVpcApiErrorCode::VpcIdMismatch,
             Self::TenantMismatch { .. } => CloudNetworkVpcApiErrorCode::TenantMismatch,
-            Self::EmptyAuthorizationDecisionId => {
-                CloudNetworkVpcApiErrorCode::AuthorizationDecisionIdEmpty
+            Self::CallerUnauthenticated => CloudNetworkVpcApiErrorCode::CallerUnauthenticated,
+            Self::VerifiedPrincipalMismatch { .. } => {
+                CloudNetworkVpcApiErrorCode::VerifiedPrincipalMismatch
             }
-            Self::AuthorizationTenantMismatch { .. } => {
-                CloudNetworkVpcApiErrorCode::AuthorizationTenantMismatch
-            }
-            Self::AuthorizationPrincipalMismatch { .. } => {
-                CloudNetworkVpcApiErrorCode::AuthorizationPrincipalMismatch
+            Self::VerifiedTenantMismatch { .. } => {
+                CloudNetworkVpcApiErrorCode::VerifiedTenantMismatch
             }
             Self::AuthorizationDenied { .. } => CloudNetworkVpcApiErrorCode::AuthorizationDenied,
             Self::IdempotencyKeyReused { .. } => CloudNetworkVpcApiErrorCode::IdempotencyKeyReused,
@@ -407,11 +413,12 @@ impl CloudNetworkVpcApiError {
 
     fn status_kind(&self) -> CloudNetworkVpcApiStatusKind {
         match self {
-            Self::EmptyPrincipalId => CloudNetworkVpcApiStatusKind::Unauthorized,
+            Self::EmptyPrincipalId | Self::CallerUnauthenticated => {
+                CloudNetworkVpcApiStatusKind::Unauthorized
+            }
             Self::TenantMismatch { .. }
-            | Self::EmptyAuthorizationDecisionId
-            | Self::AuthorizationTenantMismatch { .. }
-            | Self::AuthorizationPrincipalMismatch { .. }
+            | Self::VerifiedPrincipalMismatch { .. }
+            | Self::VerifiedTenantMismatch { .. }
             | Self::AuthorizationDenied { .. } => CloudNetworkVpcApiStatusKind::Forbidden,
             Self::IdempotencyKeyReused { .. } => CloudNetworkVpcApiStatusKind::UnprocessableEntity,
             Self::Network(error) => cloud_network_status_kind(error),
@@ -440,15 +447,15 @@ impl CloudNetworkVpcApiError {
             Self::TenantMismatch { .. } => {
                 "Tenant header must match authenticated principal and request body"
             }
-            Self::EmptyAuthorizationDecisionId => "Authorization decision id is required",
-            Self::AuthorizationTenantMismatch { .. } => {
-                "Authorization decision tenant must match the authenticated principal"
+            Self::CallerUnauthenticated => "A verified caller credential is required",
+            Self::VerifiedPrincipalMismatch { .. } => {
+                "Request principal must match the verified caller identity"
             }
-            Self::AuthorizationPrincipalMismatch { .. } => {
-                "Authorization decision principal must match the authenticated principal"
+            Self::VerifiedTenantMismatch { .. } => {
+                "Request tenant must match the verified caller identity"
             }
             Self::AuthorizationDenied { .. } => {
-                "Authorization decision does not allow the requested Cloud Network VPC surface"
+                "The policy decision point denied the requested Cloud Network VPC surface"
             }
             Self::IdempotencyKeyReused { .. } => {
                 "Idempotency key was already used with a different request"
@@ -490,21 +497,21 @@ impl CloudNetworkVpcApiError {
                 "tenant_id",
                 "header tenant, principal tenant, and body tenant_id must match",
             )],
-            Self::EmptyAuthorizationDecisionId => vec![detail(
-                "authorization.decision_id",
-                "must be non-empty authorization evidence",
+            Self::CallerUnauthenticated => vec![detail(
+                "header.Authorization",
+                "must present a credential the policy decision point can verify",
             )],
-            Self::AuthorizationTenantMismatch { .. } => vec![detail(
-                "authorization.tenant_id",
-                "must match the authenticated principal tenant",
+            Self::VerifiedPrincipalMismatch { .. } => vec![detail(
+                "principal.principal_id",
+                "must equal the verified caller principal id",
             )],
-            Self::AuthorizationPrincipalMismatch { .. } => vec![detail(
-                "authorization.principal_id",
-                "must match the authenticated principal id",
+            Self::VerifiedTenantMismatch { .. } => vec![detail(
+                "tenant_id",
+                "must equal the verified caller tenant id",
             )],
             Self::AuthorizationDenied { .. } => vec![detail(
-                "authorization.allowed_surfaces",
-                "must include the requested Cloud Network VPC surface",
+                "authorization",
+                "the policy decision point must allow this principal/action/resource",
             )],
             Self::IdempotencyKeyReused { .. } => vec![detail(
                 "header.Idempotency-Key",
@@ -549,6 +556,12 @@ enum CloudNetworkVpcApiStatusKind {
     UnprocessableEntity,
 }
 
+/// Validate the request SHAPE (boundary headers, path/body id binding, tenant
+/// self-consistency). This does NOT authorize — authorization requires a
+/// verified credential and a PDP decision and lives in
+/// [`create_cloud_network_vpc_from_api`], which holds the injected
+/// [`authz::CloudNetworkVpcAuthzProvider`]. Shape validation alone NEVER grants
+/// the request.
 pub fn validate_cloud_network_vpc_create_request(
     request: &CloudNetworkVpcCreateApiRequest,
 ) -> Result<(), CloudNetworkVpcApiError> {
@@ -558,20 +571,32 @@ pub fn validate_cloud_network_vpc_create_request(
         &request.boundary,
         &request.principal,
         &request.body.tenant_id,
-    )?;
-    validate_authorization(
-        &request.principal,
-        &request.authorization,
-        CLOUD_NETWORK_VPC_CREATE_SURFACE,
     )
 }
 
+/// Create a Cloud Network VPC from an API request, FAIL-CLOSED.
+///
+/// The flow is (C10 fix; ADR-0587):
+/// 1. validate request shape (headers, id binding, tenant self-consistency);
+/// 2. VERIFY the caller credential via the injected provider → `401`
+///    ([`CloudNetworkVpcApiError::CallerUnauthenticated`]) on missing/invalid;
+/// 3. CROSS-CHECK the request principal/tenant against the verified identity →
+///    `403` on mismatch (a verified caller cannot act as another
+///    principal/tenant);
+/// 4. AUTHORIZE via the PDP against the TARGET `{tenant, vpc}` derived from the
+///    trusted body → `403` on deny/fault (fail-closed, never allow);
+/// 5. only then mutate the catalog.
+///
+/// The `authz_provider` is REQUIRED (non-optional): there is no code path to the
+/// mutation that skips the gate, and there is no default-allow provider.
 pub fn create_cloud_network_vpc_from_api(
     catalog: &mut CloudNetworkCatalog,
     idempotency_ledger: &mut CloudNetworkVpcCreateIdempotencyLedger,
+    authz_provider: &authz::CloudNetworkVpcAuthzProvider,
     request: CloudNetworkVpcCreateApiRequest,
 ) -> Result<CloudNetworkVpcCreateSuccessResponse, CloudNetworkVpcApiError> {
     validate_cloud_network_vpc_create_request(&request)?;
+    authorize_request(authz_provider, &request)?;
     let key = idempotency_key_for(
         &request.boundary,
         &request.principal,
@@ -654,36 +679,57 @@ fn validate_tenant_binding(
     Ok(())
 }
 
-fn validate_authorization(
-    principal: &CloudNetworkVpcApiPrincipal,
-    authorization: &CloudNetworkVpcApiAuthorization,
-    surface: &str,
+/// FAIL-CLOSED authorization: verify the caller credential, cross-check the
+/// request principal/tenant against the verified identity, then ask the PDP for
+/// a decision against the TARGET resource (the trusted body tenant + path/body
+/// VPC id). No request-supplied blob authorizes anything.
+fn authorize_request(
+    authz_provider: &authz::CloudNetworkVpcAuthzProvider,
+    request: &CloudNetworkVpcCreateApiRequest,
 ) -> Result<(), CloudNetworkVpcApiError> {
-    if authorization.decision_id.trim().is_empty() {
-        return Err(CloudNetworkVpcApiError::EmptyAuthorizationDecisionId);
-    }
-    if authorization.tenant_id != principal.tenant_id {
-        return Err(CloudNetworkVpcApiError::AuthorizationTenantMismatch {
-            authorization_tenant_id: authorization.tenant_id.clone(),
-            principal_tenant_id: principal.tenant_id.clone(),
+    // (2) Verify the caller credential. Missing/invalid → 401. The verified
+    // principal — never the request blob — is the source of truth.
+    let verified = authz_provider
+        .verify_principal(&request.credential)
+        .map_err(|error| match error {
+            authz::PrincipalVerificationError::MissingCredential
+            | authz::PrincipalVerificationError::InvalidCredential => {
+                CloudNetworkVpcApiError::CallerUnauthenticated
+            }
+        })?;
+
+    // (3) Cross-check the request-asserted principal/tenant against the verified
+    // identity. A verified caller cannot act as another principal or tenant.
+    if verified.principal_id() != request.principal.principal_id {
+        return Err(CloudNetworkVpcApiError::VerifiedPrincipalMismatch {
+            verified_principal_id: verified.principal_id().to_string(),
+            request_principal_id: request.principal.principal_id.clone(),
         });
     }
-    if authorization.principal_id != principal.principal_id {
-        return Err(CloudNetworkVpcApiError::AuthorizationPrincipalMismatch {
-            authorization_principal_id: authorization.principal_id.clone(),
-            principal_id: principal.principal_id.clone(),
+    if verified.tenant_id() != request.body.tenant_id {
+        return Err(CloudNetworkVpcApiError::VerifiedTenantMismatch {
+            verified_tenant_id: verified.tenant_id().to_string(),
+            request_tenant_id: request.body.tenant_id.clone(),
         });
     }
-    if !authorization
-        .allowed_surfaces
-        .iter()
-        .any(|allowed_surface| allowed_surface == surface)
-    {
-        return Err(CloudNetworkVpcApiError::AuthorizationDenied {
-            surface: surface.to_string(),
-        });
-    }
-    Ok(())
+
+    // (4) Ask the PDP for a decision against the TARGET resource. The tenant is
+    // the trusted body tenant (not a flattened caller tenant); a cross-tenant
+    // create is deniable here. Deny OR any fault → 403 (fail-closed).
+    let resource = authz::VpcCreateResource {
+        tenant_id: request.body.tenant_id.clone(),
+        vpc_id: request.body.resource_id.clone(),
+    };
+    authz_provider
+        .ensure_authorized(&verified, &resource)
+        .map_err(|error| match error {
+            authz::VpcCreateAuthorizationError::Denied
+            | authz::VpcCreateAuthorizationError::Refused => {
+                CloudNetworkVpcApiError::AuthorizationDenied {
+                    surface: CLOUD_NETWORK_VPC_CREATE_SURFACE.to_string(),
+                }
+            }
+        })
 }
 
 fn vpc_create_input(
@@ -834,22 +880,6 @@ fn vpc_create_fingerprint_for(
             format!("header.tenant_id={}", request.boundary.tenant_id),
             format!("principal.tenant_id={}", request.principal.tenant_id),
             format!("principal.principal_id={}", request.principal.principal_id),
-            format!(
-                "authorization.tenant_id={}",
-                request.authorization.tenant_id
-            ),
-            format!(
-                "authorization.principal_id={}",
-                request.authorization.principal_id
-            ),
-            format!(
-                "authorization.decision_id={}",
-                request.authorization.decision_id
-            ),
-            format!(
-                "authorization.allowed_surfaces={}",
-                request.authorization.allowed_surfaces.join(",")
-            ),
             format!("body.resource_id={}", request.body.resource_id),
             format!("body.tenant_id={}", request.body.tenant_id),
             format!("body.region={}", request.body.region),
