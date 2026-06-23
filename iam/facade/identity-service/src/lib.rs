@@ -11,6 +11,7 @@
 pub mod auth;
 pub mod config;
 pub mod grpc;
+pub mod lifecycle_authz;
 pub mod oauth2;
 pub mod observability;
 pub mod oidc;

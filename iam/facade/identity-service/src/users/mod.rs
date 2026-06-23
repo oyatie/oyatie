@@ -389,7 +389,12 @@ where
     guard!(state, headers, tenant);
     match state
         .server
-        .replace_user(&TenantId(tenant), &ScimId(id), input, (state.now_provider)())
+        .replace_user(
+            &TenantId(tenant),
+            &ScimId(id),
+            input,
+            (state.now_provider)(),
+        )
         .await
     {
         Ok(user) => Json(user).into_response(),
@@ -642,7 +647,9 @@ mod tests {
     use iam_identity_workload_authz_cedar::CedarWorkloadAuthorizer;
     use iam_identity_workload_domain::{WorkloadPrincipal, WorkloadState};
     use iam_identity_workload_oidc::Jwk;
-    use iam_identity_workload_rest::{InMemoryAuditSink, WorkloadAuthzState};
+    use iam_identity_workload_rest::{BearerCallerVerifier, InMemoryAuditSink, WorkloadAuthzState};
+
+    use crate::lifecycle_authz::TenantScopedLifecycleAuthorizer;
 
     const ISSUER: &str = "https://idp.oyatie.com";
     const AUDIENCE: &str = "oya-identity-scim";
@@ -727,6 +734,12 @@ mod tests {
             jwks.clone(),
             ValidationConfig::new(ISSUER, AUDIENCE),
             audit.clone(),
+            Arc::new(BearerCallerVerifier::new(
+                "scim-test-lifecycle-bearer",
+                "ten_acme",
+                "scim-test-control-plane",
+            )),
+            Arc::new(TenantScopedLifecycleAuthorizer::new()),
             || NOW,
         ));
         let state = Arc::new(ScimSurfaceState::new(

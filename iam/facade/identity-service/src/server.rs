@@ -19,7 +19,7 @@ use iam_identity_oidc_issuer_kernel::{IssuerError, IssuerUrl};
 use iam_identity_workload_app::{InMemoryRevocationDenylist, InMemoryWorkloadPrincipalRepository};
 use iam_identity_workload_authz_cedar::{CedarAuthzError, CedarWorkloadAuthorizer};
 use iam_identity_workload_oidc::ValidationConfig;
-use iam_identity_workload_rest::WorkloadAuthzState;
+use iam_identity_workload_rest::{BearerCallerVerifier, WorkloadAuthzState};
 use identity_scim_store_postgres::{
     PgScimGroupStore, PgScimUserStore, assert_rls_enforceable, connect_pool,
 };
@@ -27,6 +27,7 @@ use oya_shared_scim_server_kernel::{InMemoryGroupStore, InMemoryUserStore};
 
 use crate::AppState;
 use crate::config::Config;
+use crate::lifecycle_authz::TenantScopedLifecycleAuthorizer;
 use crate::observability::TracingAuditSink;
 use crate::oidc::issuer::{Es256FileSigner, IssuerState, build_issuer_router};
 use crate::oidc::{JwksParseError, jwks_from_json};
@@ -117,7 +118,10 @@ pub const ENV_SCIM_DATABASE_URL: &str = "OYA_BACKBONE_POSTGRES_URL";
 /// without a network, a runtime, or any side effects.
 #[must_use]
 pub fn select_scim_store_kind(database_url: Option<String>) -> ScimStoreSelection {
-    match database_url.map(|u| u.trim().to_owned()).filter(|u| !u.is_empty()) {
+    match database_url
+        .map(|u| u.trim().to_owned())
+        .filter(|u| !u.is_empty())
+    {
         Some(url) => ScimStoreSelection::Postgres(url),
         None => ScimStoreSelection::InMemory,
     }
@@ -215,6 +219,16 @@ pub fn build_state(config: &Config) -> Result<Arc<AppState>, StartError> {
             InMemoryRevocationDenylist::new(),
         ),
     };
+    // AUTH-005 fail-closed mutating control plane (ADR-0581): the lifecycle
+    // routes are served ONLY with a verified-caller port + a fail-closed PDP
+    // port. Both are REQUIRED here; `Config::from_env` already refuses to load
+    // without the bearer credential, so a serving binary always has the seam.
+    let caller_verifier = Arc::new(BearerCallerVerifier::new(
+        config.lifecycle_bearer.clone(),
+        config.lifecycle_caller_tenant.clone(),
+        config.lifecycle_caller_id.clone(),
+    ));
+    let lifecycle_authorizer = Arc::new(TenantScopedLifecycleAuthorizer::new());
     Ok(Arc::new(WorkloadAuthzState::new(
         repository,
         denylist,
@@ -222,6 +236,8 @@ pub fn build_state(config: &Config) -> Result<Arc<AppState>, StartError> {
         jwks,
         ValidationConfig::new(&config.issuer, &config.audience),
         TracingAuditSink::new(),
+        caller_verifier,
+        lifecycle_authorizer,
     )))
 }
 
@@ -270,44 +286,43 @@ pub async fn start_with_scim_url(
     // bypass-capable role fails before any socket is allocated.
     let scim_base_url = format!("{}{}", config.issuer.trim_end_matches('/'), SCIM_BASE);
     let scim_validation = ValidationConfig::new(&config.issuer, &config.audience);
-    let (scim_router, scim_store_kind) =
-        match select_scim_store_kind(scim_database_url) {
-            ScimStoreSelection::Postgres(url) => {
-                // FAIL-CLOSED: a connect failure or RLS-bypass role propagates;
-                // NEVER fall back to in-memory when a durable backend was
-                // configured. The composition root OWNS the shared pool (typed
-                // here so the sqlx dependency is named, not merely transitive)
-                // and runs the RLS-enforceability guard once over it.
-                let pool: sqlx::PgPool = connect_pool(&url)
-                    .await
-                    .map_err(|e| StartError::Store(e.to_string()))?;
-                assert_rls_enforceable(&pool)
-                    .await
-                    .map_err(|e| StartError::Store(e.to_string()))?;
-                let scim_state = Arc::new(ScimSurfaceState::new(
-                    scim_base_url,
-                    jwks_from_json(&read_file(&config.jwks_path)?).map_err(StartError::Jwks)?,
-                    scim_validation,
-                    default_now_epoch_seconds,
-                    Arc::clone(&state),
-                    PgScimUserStore::from_pool(pool.clone()),
-                    PgScimGroupStore::from_pool(pool),
-                ));
-                (build_scim_router(scim_state), "postgres")
-            }
-            ScimStoreSelection::InMemory => {
-                let scim_state = Arc::new(ScimSurfaceState::new(
-                    scim_base_url,
-                    jwks_from_json(&read_file(&config.jwks_path)?).map_err(StartError::Jwks)?,
-                    scim_validation,
-                    default_now_epoch_seconds,
-                    Arc::clone(&state),
-                    InMemoryUserStore::default(),
-                    InMemoryGroupStore::default(),
-                ));
-                (build_scim_router(scim_state), "inmemory")
-            }
-        };
+    let (scim_router, scim_store_kind) = match select_scim_store_kind(scim_database_url) {
+        ScimStoreSelection::Postgres(url) => {
+            // FAIL-CLOSED: a connect failure or RLS-bypass role propagates;
+            // NEVER fall back to in-memory when a durable backend was
+            // configured. The composition root OWNS the shared pool (typed
+            // here so the sqlx dependency is named, not merely transitive)
+            // and runs the RLS-enforceability guard once over it.
+            let pool: sqlx::PgPool = connect_pool(&url)
+                .await
+                .map_err(|e| StartError::Store(e.to_string()))?;
+            assert_rls_enforceable(&pool)
+                .await
+                .map_err(|e| StartError::Store(e.to_string()))?;
+            let scim_state = Arc::new(ScimSurfaceState::new(
+                scim_base_url,
+                jwks_from_json(&read_file(&config.jwks_path)?).map_err(StartError::Jwks)?,
+                scim_validation,
+                default_now_epoch_seconds,
+                Arc::clone(&state),
+                PgScimUserStore::from_pool(pool.clone()),
+                PgScimGroupStore::from_pool(pool),
+            ));
+            (build_scim_router(scim_state), "postgres")
+        }
+        ScimStoreSelection::InMemory => {
+            let scim_state = Arc::new(ScimSurfaceState::new(
+                scim_base_url,
+                jwks_from_json(&read_file(&config.jwks_path)?).map_err(StartError::Jwks)?,
+                scim_validation,
+                default_now_epoch_seconds,
+                Arc::clone(&state),
+                InMemoryUserStore::default(),
+                InMemoryGroupStore::default(),
+            ));
+            (build_scim_router(scim_state), "inmemory")
+        }
+    };
 
     let rest_listener = TcpListener::bind(&config.rest_addr)
         .await

@@ -32,8 +32,8 @@ use axum::body::Body;
 use axum::http::{Request, StatusCode};
 use http_body_util::BodyExt as _;
 use serde_json::{Value, json};
-use tower::ServiceExt as _;
 use tonic::Request as TonicRequest;
+use tower::ServiceExt as _;
 
 use iam_identity_workload_app::{
     InMemoryRevocationDenylist, InMemoryWorkloadPrincipalRepository, activate, provision,
@@ -48,8 +48,7 @@ use iam_identity_workload_rest::{
         WorkloadGrpcServer,
         proto::{
             AuthorizeRequest, AuthorizeWithTokenRequest, BatchAuthorizeRequest, DecisionEffect,
-            ValidateTokenRequest,
-            validate_token_response,
+            ValidateTokenRequest, validate_token_response,
             workload_authorizer_server::WorkloadAuthorizer as _,
             workload_token_validator_server::WorkloadTokenValidator as _,
         },
@@ -57,7 +56,8 @@ use iam_identity_workload_rest::{
 };
 
 use common::{
-    AUDIENCE, FailingRepository, ISSUER, NOW, mint_token, permit_authorizer, provisioned_state,
+    AUDIENCE, FailingRepository, ISSUER, LIFECYCLE_BEARER, NOW, SameTenantLifecycleAuthorizer,
+    lifecycle_verifier, mint_token, permit_authorizer, provisioned_state,
 };
 
 // =====================================================================
@@ -65,12 +65,33 @@ use common::{
 // =====================================================================
 
 async fn post_json(router: axum::Router, path: &str, body: Value) -> (StatusCode, Value) {
-    let request = Request::builder()
+    post_json_inner(router, path, body, None).await
+}
+
+/// POST with an `Authorization: Bearer <token>` header (lifecycle control plane).
+async fn post_json_bearer(
+    router: axum::Router,
+    path: &str,
+    body: Value,
+    bearer: &str,
+) -> (StatusCode, Value) {
+    post_json_inner(router, path, body, Some(bearer)).await
+}
+
+async fn post_json_inner(
+    router: axum::Router,
+    path: &str,
+    body: Value,
+    bearer: Option<&str>,
+) -> (StatusCode, Value) {
+    let mut builder = Request::builder()
         .method("POST")
         .uri(path)
-        .header("content-type", "application/json")
-        .body(Body::from(body.to_string()))
-        .expect("request");
+        .header("content-type", "application/json");
+    if let Some(bearer) = bearer {
+        builder = builder.header("authorization", format!("Bearer {bearer}"));
+    }
+    let request = builder.body(Body::from(body.to_string())).expect("request");
     let response = router.oneshot(request).await.expect("response");
     let status = response.status();
     let bytes = response
@@ -117,7 +138,11 @@ fn audit_event_token_validation_label_is_workload_token_validation_v1() {
 fn audit_record_accessors_with_no_workload_id_and_no_detail() {
     let rec = AuditRecord::new(AuditEvent::TokenValidation, None, "validation-failed", None);
     assert_eq!(rec.event(), AuditEvent::TokenValidation);
-    assert_eq!(rec.workload_id(), None, "workload_id must be None for a forged-token record");
+    assert_eq!(
+        rec.workload_id(),
+        None,
+        "workload_id must be None for a forged-token record"
+    );
     assert_eq!(rec.outcome(), "validation-failed");
     assert_eq!(rec.detail(), None);
 }
@@ -159,11 +184,7 @@ async fn authorize_already_verified_principal_default_deny_is_403() {
     // No Cedar policies -> default deny.
     let mut repo = InMemoryWorkloadPrincipalRepository::new();
     provision(&mut repo, "ten_acme", "wl_secrets_sync", "cap.cloud.kms").unwrap();
-    activate(
-        &mut repo,
-        &WorkloadId::new("wl_secrets_sync").unwrap(),
-    )
-    .unwrap();
+    activate(&mut repo, &WorkloadId::new("wl_secrets_sync").unwrap()).unwrap();
     let state: SharedState<_, _, _, _> = Arc::new(WorkloadAuthzState::with_clock(
         repo,
         InMemoryRevocationDenylist::new(),
@@ -171,6 +192,8 @@ async fn authorize_already_verified_principal_default_deny_is_403() {
         Jwks::new().add_key(minted.jwk.clone()),
         ValidationConfig::new(ISSUER, AUDIENCE),
         InMemoryAuditSink::new(),
+        lifecycle_verifier(),
+        Arc::new(SameTenantLifecycleAuthorizer),
         || NOW,
     ));
     let router = build_router(state);
@@ -211,6 +234,8 @@ async fn authorize_batch_with_store_unavailable_returns_200_with_deny_per_item()
         Jwks::new().add_key(minted.jwk.clone()),
         ValidationConfig::new(ISSUER, AUDIENCE),
         InMemoryAuditSink::new(),
+        lifecycle_verifier(),
+        Arc::new(SameTenantLifecycleAuthorizer),
         || NOW,
     ));
     let audit = state.audit().clone();
@@ -239,7 +264,11 @@ async fn authorize_batch_with_store_unavailable_returns_200_with_deny_per_item()
         "store-unavailable batch item must be a DENY decision"
     );
     // One audit record emitted even for the failing item.
-    assert_eq!(audit.len(), 1, "one audit record must be emitted per batch item");
+    assert_eq!(
+        audit.len(),
+        1,
+        "one audit record must be emitted per batch item"
+    );
     assert_eq!(audit.records()[0].outcome(), "store-unavailable");
 }
 
@@ -253,10 +282,11 @@ async fn retire_known_principal_returns_200_with_retired_state() {
     let state = provisioned_state(minted.jwk.clone());
     let router = build_router(state);
 
-    let (status, body) = post_json(
+    let (status, body) = post_json_bearer(
         router,
         "/principals/wl_secrets_sync:retire",
         json!({}),
+        LIFECYCLE_BEARER,
     )
     .await;
 
@@ -278,11 +308,12 @@ async fn retire_then_authorize_is_403_fail_closed() {
     let state = provisioned_state(minted.jwk.clone());
     let router = build_router(state);
 
-    // Retire the principal.
-    let (retire_status, _) = post_json(
+    // Retire the principal (verified same-tenant caller).
+    let (retire_status, _) = post_json_bearer(
         router.clone(),
         "/principals/wl_secrets_sync:retire",
         json!({}),
+        LIFECYCLE_BEARER,
     )
     .await;
     assert_eq!(retire_status, StatusCode::OK);
@@ -311,12 +342,7 @@ async fn unknown_lifecycle_verb_returns_404() {
     let state = provisioned_state(minted.jwk.clone());
     let router = build_router(state);
 
-    let (status, body) = post_json(
-        router,
-        "/principals/wl_secrets_sync:delete",
-        json!({}),
-    )
-    .await;
+    let (status, body) = post_json(router, "/principals/wl_secrets_sync:delete", json!({})).await;
 
     assert_eq!(
         status,
@@ -336,20 +362,22 @@ async fn suspend_already_suspended_principal_returns_409() {
     let state = provisioned_state(minted.jwk.clone());
     let router = build_router(state);
 
-    // First suspend succeeds.
-    let (first_status, _) = post_json(
+    // First suspend succeeds (verified same-tenant caller).
+    let (first_status, _) = post_json_bearer(
         router.clone(),
         "/principals/wl_secrets_sync:suspend",
         json!({}),
+        LIFECYCLE_BEARER,
     )
     .await;
     assert_eq!(first_status, StatusCode::OK);
 
     // Second suspend is an illegal domain transition -> 409 Conflict.
-    let (second_status, body) = post_json(
+    let (second_status, body) = post_json_bearer(
         router,
         "/principals/wl_secrets_sync:suspend",
         json!({}),
+        LIFECYCLE_BEARER,
     )
     .await;
     assert_eq!(
@@ -422,6 +450,8 @@ async fn grpc_authorize_batch_store_unavailable_returns_per_item_deny_not_error(
         Jwks::new().add_key(minted.jwk.clone()),
         ValidationConfig::new(ISSUER, AUDIENCE),
         InMemoryAuditSink::new(),
+        lifecycle_verifier(),
+        Arc::new(SameTenantLifecycleAuthorizer),
         || NOW,
     ));
     let audit = state.audit().clone();
@@ -473,11 +503,7 @@ async fn grpc_validate_token_expired_returns_typed_expired_error() {
         {
             let mut repo = InMemoryWorkloadPrincipalRepository::new();
             provision(&mut repo, "ten_acme", "wl_secrets_sync", "cap.cloud.kms").unwrap();
-            activate(
-                &mut repo,
-                &WorkloadId::new("wl_secrets_sync").unwrap(),
-            )
-            .unwrap();
+            activate(&mut repo, &WorkloadId::new("wl_secrets_sync").unwrap()).unwrap();
             repo
         },
         InMemoryRevocationDenylist::new(),
@@ -485,6 +511,8 @@ async fn grpc_validate_token_expired_returns_typed_expired_error() {
         Jwks::new().add_key(minted2.jwk.clone()),
         ValidationConfig::new(ISSUER, AUDIENCE),
         InMemoryAuditSink::new(),
+        lifecycle_verifier(),
+        Arc::new(SameTenantLifecycleAuthorizer),
         // clock is NOW + 1000, well past exp = NOW + 300
         || NOW + 1000,
     ));
@@ -520,7 +548,6 @@ async fn grpc_validate_token_expired_returns_typed_expired_error() {
         None,
         "failed token validation must not carry a workload_id in the audit record"
     );
-
 }
 
 // =====================================================================
@@ -552,6 +579,8 @@ async fn grpc_authorize_with_token_revoked_principal_returns_deny() {
         Jwks::new().add_key(minted.jwk.clone()),
         ValidationConfig::new(ISSUER, AUDIENCE),
         InMemoryAuditSink::new(),
+        lifecycle_verifier(),
+        Arc::new(SameTenantLifecycleAuthorizer),
         || NOW,
     ));
     let audit = state.audit().clone();

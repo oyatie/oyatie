@@ -36,10 +36,9 @@ use iam_identity_workload_rest::{
         WorkloadGrpcServer,
         proto::{
             AuthorizeRequest, AuthorizeWithTokenRequest, BatchAuthorizeRequest, DecisionEffect,
-            ValidateTokenRequest,
+            ValidateTokenRequest, validate_token_response,
             workload_authorizer_server::WorkloadAuthorizer as _,
             workload_token_validator_server::WorkloadTokenValidator as _,
-            validate_token_response,
         },
     },
 };
@@ -47,7 +46,8 @@ use iam_identity_workload_rest::{
 use iam_identity_workload_rest::grpc::proto::claim_value::Value as ProtoClaimValue;
 
 use common::{
-    FailingRepository, AUDIENCE, ISSUER, NOW, mint_token, permit_authorizer, provisioned_state,
+    AUDIENCE, FailingRepository, ISSUER, NOW, SameTenantLifecycleAuthorizer, lifecycle_verifier,
+    mint_token, permit_authorizer, provisioned_state,
 };
 
 // =====================================================================
@@ -118,6 +118,8 @@ async fn authorize_with_token_deny_is_response_not_error() {
         Jwks::new().add_key(minted.jwk.clone()),
         ValidationConfig::new(ISSUER, AUDIENCE),
         InMemoryAuditSink::new(),
+        lifecycle_verifier(),
+        Arc::new(SameTenantLifecycleAuthorizer),
         || NOW,
     ));
     let server = WorkloadGrpcServer::new(state.clone());
@@ -132,7 +134,10 @@ async fn authorize_with_token_deny_is_response_not_error() {
         }))
         .await;
 
-    assert!(result.is_ok(), "a deny must be a response value, not a tonic Err");
+    assert!(
+        result.is_ok(),
+        "a deny must be a response value, not a tonic Err"
+    );
     assert_eq!(
         result.unwrap().into_inner().effect,
         DecisionEffect::Deny as i32,
@@ -169,7 +174,10 @@ async fn validate_token_invalid_returns_typed_error_not_rpc_error() {
     let resp = result.unwrap().into_inner();
     assert!(!resp.ok, "ok must be false for invalid token");
     assert!(
-        matches!(resp.outcome, Some(validate_token_response::Outcome::Error(_))),
+        matches!(
+            resp.outcome,
+            Some(validate_token_response::Outcome::Error(_))
+        ),
         "outcome must be Error variant"
     );
     // One audit record for the validation failure.
@@ -215,6 +223,8 @@ async fn authorize_with_invalid_token_engine_not_consulted() {
             Jwks::new().add_key(jwk),
             ValidationConfig::new(ISSUER, AUDIENCE),
             InMemoryAuditSink::new(),
+            lifecycle_verifier(),
+            Arc::new(SameTenantLifecycleAuthorizer),
             || NOW,
         ));
         let audit = state.audit().clone();
@@ -276,6 +286,8 @@ async fn store_unavailable_is_grpc_unavailable() {
         Jwks::new().add_key(minted.jwk.clone()),
         ValidationConfig::new(ISSUER, AUDIENCE),
         InMemoryAuditSink::new(),
+        lifecycle_verifier(),
+        Arc::new(SameTenantLifecycleAuthorizer),
         || NOW,
     ));
     let server = WorkloadGrpcServer::new(state.clone());
@@ -380,7 +392,10 @@ async fn authorize_already_verified_principal_permit() {
         .await;
 
     // (i) permit -> DECISION_EFFECT_ALLOW.
-    assert!(result.is_ok(), "authorize must succeed for permitted principal");
+    assert!(
+        result.is_ok(),
+        "authorize must succeed for permitted principal"
+    );
     assert_eq!(
         result.unwrap().into_inner().effect,
         DecisionEffect::Allow as i32,
@@ -411,6 +426,8 @@ async fn authorize_already_verified_principal_default_deny() {
         Jwks::new().add_key(minted.jwk.clone()),
         ValidationConfig::new(ISSUER, AUDIENCE),
         InMemoryAuditSink::new(),
+        lifecycle_verifier(),
+        Arc::new(SameTenantLifecycleAuthorizer),
         || NOW,
     ));
     let server = WorkloadGrpcServer::new(state.clone());
@@ -429,14 +446,21 @@ async fn authorize_already_verified_principal_default_deny() {
         .await;
 
     // A deny is a response value, NOT a tonic Err (key PEP invariant).
-    assert!(result.is_ok(), "a deny must be a response value, not a tonic Err");
+    assert!(
+        result.is_ok(),
+        "a deny must be a response value, not a tonic Err"
+    );
     assert_eq!(
         result.unwrap().into_inner().effect,
         DecisionEffect::Deny as i32,
         "expected DECISION_EFFECT_DENY for default-deny authorizer"
     );
     let records = state.audit().records();
-    assert_eq!(records.len(), 1, "exactly one audit record per authorize call");
+    assert_eq!(
+        records.len(),
+        1,
+        "exactly one audit record per authorize call"
+    );
     assert_eq!(records[0].outcome(), "deny");
 }
 
@@ -483,6 +507,8 @@ async fn authorize_claims_gated_permit_returns_allow_when_claim_present() {
         Jwks::new().add_key(minted.jwk.clone()),
         ValidationConfig::new(ISSUER, AUDIENCE),
         InMemoryAuditSink::new(),
+        lifecycle_verifier(),
+        Arc::new(SameTenantLifecycleAuthorizer),
         || NOW,
     ));
     let server = WorkloadGrpcServer::new(state.clone());
