@@ -1,3 +1,11 @@
+# Frozen-reference ratchet policy (ADR-0551), exported so downstream gates can read the
+# authoritative frozen_reference.face_path set as a declared input. The control-plane gate
+# consumes this to forbid de-committing any firewall frozen-reference artifact (the #828 guard).
+export_file(
+    name = "ratchet-policy.json",
+    visibility = ["PUBLIC"],
+)
+
 rust_library(
     name = "oya-cloud-ci-firewall-app",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
