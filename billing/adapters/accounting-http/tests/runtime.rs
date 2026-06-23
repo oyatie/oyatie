@@ -43,9 +43,13 @@ fn accounting_runtime_dispatches_journal_payroll_and_vat() {
         payroll_body["auditTopic"],
         "audit.accounting.payroll.posted"
     );
-    assert_eq!(
-        payroll_body["idempotencyKey"],
-        "ten_acme:jrn_payroll_2026_01:payroll-posted"
+    // SECURITY (ADR-0592): tenant-scoped + body-fingerprinted idempotency key.
+    let payroll_key = payroll_body["idempotencyKey"]
+        .as_str()
+        .expect("idempotency key string");
+    assert!(
+        payroll_key.starts_with("idem-v2:ten_acme:payroll-posted:jrn_payroll_2026_01#"),
+        "payroll idempotency key must be tenant-scoped + fingerprinted, got: {payroll_key}"
     );
 
     let vat = dispatch_accounting_request(mock_json_request(

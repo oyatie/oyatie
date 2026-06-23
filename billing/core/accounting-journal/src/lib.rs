@@ -368,6 +368,7 @@ pub struct AccountingStoredRecord {
     pub legal_entity_id: String,          // data_class: INTERNAL_ONLY
     pub primary_ref: String,              // data_class: INTERNAL_ONLY
     pub idempotency_key: String,          // data_class: INTERNAL_ONLY
+    pub body_fingerprint: String,         // data_class: INTERNAL_ONLY
     pub payload_data_class: String,       // data_class: INTERNAL_ONLY
     pub evidence_ref_count: usize,        // data_class: INTERNAL_ONLY
     pub storage_backend: String,          // data_class: PUBLIC
@@ -378,6 +379,14 @@ pub struct AccountingStoredRecord {
 pub enum AccountingStorageError {
     DuplicateIdempotencyKey(String),
     InvalidIdempotencyKey(String),
+    /// The same idempotency key was replayed with a different request body.
+    /// This is NOT a safe replay: returning the prior outcome would silently
+    /// substitute a different command, so the store refuses it. ADR-0592.
+    IdempotencyKeyBodyMismatch {
+        key: String,        // data_class: INTERNAL_ONLY
+        stored: String,     // data_class: INTERNAL_ONLY
+        candidate: String,  // data_class: INTERNAL_ONLY
+    },
     MissingRecord(String),
 }
 
@@ -397,6 +406,63 @@ pub trait AccountingJournalStoragePort {
     fn list_records(&self) -> Vec<&AccountingStoredRecord>;
     fn len(&self) -> usize;
     fn is_empty(&self) -> bool;
+}
+
+/// Current idempotency-key schema version. Bumped from the implicit v1 (which
+/// omitted tenant scoping on the journal-post key) to v2 by ADR-0592.
+pub const IDEMPOTENCY_KEY_SCHEME: &str = "idem-v2";
+
+/// Build a tenant-scoped, body-fingerprinted idempotency key.
+///
+/// SECURITY (ADR-0592, AUTH-005 Wave-2b): `tenant_id` is the FIRST keyed
+/// component so two tenants can never produce the same key for the same
+/// `primary_ref` (e.g. an attacker-chosen `journal_id`). Without tenant scoping,
+/// tenant A posting `journal_id = X` would collide with tenant B's `X`, letting
+/// A's record suppress B's audit record (a cross-tenant money-integrity defect).
+///
+/// `body_fingerprint` distinguishes a genuine replay (same key, same body) from
+/// a changed body submitted under a reused key, so the store can refuse the
+/// latter instead of silently treating it as an already-completed command.
+#[must_use]
+pub fn scoped_idempotency_key(
+    tenant_id: &str,
+    scope: &str,
+    primary_ref: &str,
+    body_fingerprint: &str,
+) -> String {
+    format!("{IDEMPOTENCY_KEY_SCHEME}:{tenant_id}:{scope}:{primary_ref}#{body_fingerprint}")
+}
+
+/// Deterministic, dependency-free fingerprint over the request-body-distinguishing
+/// fields of an accounting command.
+///
+/// Encoding is canonical and unambiguous: each field is length-prefixed before
+/// hashing, so `["ab", "c"]` and `["a", "bc"]` never collide via concatenation.
+/// The hash is FNV-1a/64 rendered as 16 lowercase hex digits.
+///
+/// SCOPE: this is a *change-detection* fingerprint for replay-vs-changed-body
+/// distinction within a trusted-construction app layer, not a collision-resistant
+/// MAC against an adversary who can choose both bodies. The durable adapter
+/// (Postgres/RLS) will additionally enforce isolation via row-level security and
+/// can upgrade this to a cryptographic digest from the owned crypto substrate.
+#[must_use]
+pub fn idempotency_body_fingerprint(fields: &[&str]) -> String {
+    const FNV_OFFSET_BASIS: u64 = 0xcbf2_9ce4_8422_2325;
+    const FNV_PRIME: u64 = 0x0000_0100_0000_01b3;
+
+    let mut hash = FNV_OFFSET_BASIS;
+    let mut mix = |bytes: &[u8]| {
+        for &byte in bytes {
+            hash ^= u64::from(byte);
+            hash = hash.wrapping_mul(FNV_PRIME);
+        }
+    };
+    for field in fields {
+        // Length-prefix each field so field boundaries are unambiguous.
+        mix(&(field.len() as u64).to_le_bytes());
+        mix(field.as_bytes());
+    }
+    format!("{hash:016x}")
 }
 
 pub fn post_journal(input: JournalPostInput) -> Result<JournalVoucher, AccountingDomainError> {

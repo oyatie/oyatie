@@ -83,13 +83,103 @@ fn accounting_storage_refuses_duplicate_idempotency_keys() {
         .persist_journal_post_audit(&journal.audit_envelope)
         .expect("first persist");
 
+    // A genuine replay (identical envelope -> identical key AND fingerprint) is
+    // refused as a plain duplicate, not a body mismatch.
+    let key = journal.audit_envelope.idempotency_key.value.clone();
     let error = store
         .persist_journal_post_audit(&journal.audit_envelope)
         .expect_err("duplicate idempotency key must be refused");
     assert_eq!(
         error,
-        AccountingStorageError::DuplicateIdempotencyKey("jrn_2026_01:1:posted".to_owned())
+        AccountingStorageError::DuplicateIdempotencyKey(key.clone())
     );
+    // SECURITY (ADR-0592): the journal-post key MUST be tenant-scoped. The prior
+    // implementation produced `"jrn_2026_01:1:posted"` with no tenant, allowing
+    // cross-tenant collisions. Pin that the tenant id is now part of the key.
+    assert!(
+        key.contains("ten_acme"),
+        "journal-post idempotency key must be tenant-scoped, got: {key}"
+    );
+}
+
+/// RED (ADR-0592, AUTH-005 Wave-2b): the SAME caller-chosen `journal_id` posted
+/// by TWO different tenants must NOT collide. Before the fix the key was
+/// `"{journal_id}:1:posted"` (no tenant), so tenant B's audit record was
+/// suppressed by tenant A's identical key -- a cross-tenant money-integrity
+/// defect. Both records must persist independently.
+#[test]
+fn accounting_storage_same_journal_id_across_tenants_does_not_collide() {
+    let mut store = InMemoryAccountingJournalStore::new();
+
+    let mut tenant_a = journal_input();
+    tenant_a.tenant_id = "ten_alpha".to_owned();
+    tenant_a.journal_id = "jrn_shared_id".to_owned();
+    let outcome_a = post_journal_with_audit(tenant_a).expect("tenant A journal");
+
+    let mut tenant_b = journal_input();
+    tenant_b.tenant_id = "ten_beta".to_owned();
+    tenant_b.journal_id = "jrn_shared_id".to_owned();
+    let outcome_b = post_journal_with_audit(tenant_b).expect("tenant B journal");
+
+    // Keys must differ even though the caller-chosen journal_id is identical.
+    assert_ne!(
+        outcome_a.audit_envelope.idempotency_key.value,
+        outcome_b.audit_envelope.idempotency_key.value,
+        "cross-tenant idempotency keys must not collide on a shared journal_id"
+    );
+
+    store
+        .persist_journal_post_audit(&outcome_a.audit_envelope)
+        .expect("tenant A persists");
+    // Tenant B must NOT be suppressed by tenant A's identical journal_id.
+    store
+        .persist_journal_post_audit(&outcome_b.audit_envelope)
+        .expect("tenant B must persist independently, not collide with tenant A");
+    assert_eq!(store.len(), 2, "both tenants' records must coexist");
+}
+
+/// RED (ADR-0592): a reused idempotency key carrying a CHANGED body must be
+/// rejected as a body mismatch, not silently accepted as a replay. We force a
+/// key reuse by constructing a record with the same key but a different body
+/// fingerprint, proving the store distinguishes a mutated command from a replay.
+#[test]
+fn accounting_storage_same_key_changed_body_is_rejected() {
+    use billing_accounting_journal::{
+        AccountingJournalStoragePort, AccountingStoredRecord, AccountingStoredRecordKind,
+    };
+
+    let mut store = InMemoryAccountingJournalStore::new();
+    let journal = post_journal_with_audit(journal_input()).expect("journal outcome");
+    let first = store
+        .persist_journal_post_audit(&journal.audit_envelope)
+        .expect("first persist");
+
+    // Same key, different body fingerprint == a different command under a reused key.
+    let tampered = AccountingStoredRecord {
+        kind: AccountingStoredRecordKind::JournalPostAudit,
+        topic: first.topic.clone(),
+        tenant_id: first.tenant_id.clone(),
+        legal_entity_id: first.legal_entity_id.clone(),
+        primary_ref: first.primary_ref.clone(),
+        idempotency_key: first.idempotency_key.clone(),
+        body_fingerprint: format!("{}-tampered", first.body_fingerprint),
+        payload_data_class: first.payload_data_class.clone(),
+        evidence_ref_count: first.evidence_ref_count,
+        storage_backend: first.storage_backend.clone(),
+        schema_version: first.schema_version,
+    };
+    let error = store
+        .put_record(tampered)
+        .expect_err("changed body under a reused key must be rejected");
+    assert_eq!(
+        error,
+        AccountingStorageError::IdempotencyKeyBodyMismatch {
+            key: first.idempotency_key.clone(),
+            stored: first.body_fingerprint.clone(),
+            candidate: format!("{}-tampered", first.body_fingerprint),
+        }
+    );
+    assert_eq!(store.len(), 1, "tampered record must not be stored");
 }
 
 #[test]

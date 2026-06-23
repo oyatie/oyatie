@@ -94,9 +94,20 @@ fn payroll_posting_emits_accounting_audit_event() {
         "audit/accounting/payroll/reversal"
     );
     assert_eq!(outcome.audit_envelope.wage_ledger_refs.value.len(), 1);
-    assert_eq!(
-        outcome.audit_envelope.idempotency_key.value,
-        "ten_acme:jrn_payroll_2026_01:payroll-posted"
+    // SECURITY (ADR-0592): tenant-scoped + body-fingerprinted key. Leading
+    // scheme + tenant + scope + primary_ref, then `#<fingerprint>`.
+    let key = &outcome.audit_envelope.idempotency_key.value;
+    assert!(
+        key.starts_with("idem-v2:ten_acme:payroll-posted:jrn_payroll_2026_01#"),
+        "payroll-posting key must be tenant-scoped + fingerprinted, got: {key}"
+    );
+    assert!(
+        !outcome.audit_envelope.body_fingerprint.value.is_empty(),
+        "payroll-posting envelope must carry a body fingerprint"
+    );
+    assert!(
+        key.ends_with(outcome.audit_envelope.body_fingerprint.value.as_str()),
+        "key must embed the envelope body fingerprint"
     );
 }
 

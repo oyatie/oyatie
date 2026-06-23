@@ -60,6 +60,7 @@ impl InMemoryAccountingJournalStore {
             legal_entity_id: envelope.legal_entity_id.value.value.clone(),
             primary_ref: envelope.journal_id.value.value.clone(),
             idempotency_key: envelope.idempotency_key.value.clone(),
+            body_fingerprint: envelope.body_fingerprint.value.clone(),
             payload_data_class: format!("{:?}", envelope.payload_data_class.value),
             evidence_ref_count: 1,
             storage_backend: IN_MEMORY_ACCOUNTING_STORAGE_LABEL.to_owned(),
@@ -80,6 +81,7 @@ impl InMemoryAccountingJournalStore {
             legal_entity_id: envelope.legal_entity_id.value.value.clone(),
             primary_ref: envelope.journal_id.value.value.clone(),
             idempotency_key: envelope.idempotency_key.value.clone(),
+            body_fingerprint: envelope.body_fingerprint.value.clone(),
             payload_data_class: format!("{:?}", envelope.payload_data_class.value),
             evidence_ref_count: 2 + envelope.wage_ledger_refs.value.len(),
             storage_backend: IN_MEMORY_ACCOUNTING_STORAGE_LABEL.to_owned(),
@@ -100,6 +102,7 @@ impl InMemoryAccountingJournalStore {
             legal_entity_id: envelope.legal_entity_id.value.value.clone(),
             primary_ref: envelope.return_id.value.value.clone(),
             idempotency_key: envelope.idempotency_key.value.clone(),
+            body_fingerprint: envelope.body_fingerprint.value.clone(),
             payload_data_class: format!("{:?}", envelope.payload_data_class.value),
             evidence_ref_count: envelope.evidence_refs.value.len(),
             storage_backend: IN_MEMORY_ACCOUNTING_STORAGE_LABEL.to_owned(),
@@ -125,10 +128,18 @@ impl AccountingJournalStoragePort for InMemoryAccountingJournalStore {
 
     fn put_record(&mut self, record: AccountingStoredRecord) -> Result<(), AccountingStorageError> {
         validate_idempotency_key(&record.idempotency_key)?;
-        if self
-            .records_by_idempotency_key
-            .contains_key(&record.idempotency_key)
-        {
+        if let Some(existing) = self.records_by_idempotency_key.get(&record.idempotency_key) {
+            // SECURITY (ADR-0592): a key collision with a DIFFERENT body
+            // fingerprint is a changed command under a reused key, not a safe
+            // replay. Returning the prior outcome would silently substitute a
+            // different command, so refuse it distinctly from a true replay.
+            if existing.body_fingerprint != record.body_fingerprint {
+                return Err(AccountingStorageError::IdempotencyKeyBodyMismatch {
+                    key: record.idempotency_key,
+                    stored: existing.body_fingerprint.clone(),
+                    candidate: record.body_fingerprint,
+                });
+            }
             return Err(AccountingStorageError::DuplicateIdempotencyKey(
                 record.idempotency_key,
             ));

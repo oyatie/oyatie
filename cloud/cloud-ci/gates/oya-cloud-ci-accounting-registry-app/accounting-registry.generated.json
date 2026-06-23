@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 18501,
-    "source_inputs_digest": "fnv1a64:999c45fd88563f36"
+    "source_inputs_digest": "fnv1a64:6541c6e072ddf1dd"
   },
   "rows": [
     {
@@ -2444,7 +2444,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0592",
       "owner": "OWNERS:billing",
       "path": "billing/core/accounting-app/src/lib.rs",
       "reachable_from": [
@@ -2458,7 +2458,7 @@
         "ttl_class": "code"
       },
       "unit_class": "code",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {

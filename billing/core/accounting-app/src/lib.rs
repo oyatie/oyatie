@@ -13,7 +13,8 @@ use billing_accounting_journal::{
     AccountingDomainError, EvidenceDigest, EvidenceRef, JournalId, JournalPostInput,
     JournalVoucher, LegalEntityId, PayrollPostingEvidence, PayrollPostingInput, TenantId,
     VatDeadlineInput, VatReturnId, VatReturnWorkflow, VatWorkflowStep, WorkflowRef,
-    evaluate_vat_deadline, payroll_posting, post_journal,
+    evaluate_vat_deadline, idempotency_body_fingerprint, payroll_posting, post_journal,
+    scoped_idempotency_key,
 };
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
@@ -29,6 +30,7 @@ pub struct AccountingAuditEnvelope {
     pub journal_id: Classified<JournalId>, // data_class: INTERNAL_ONLY
     pub approval_evidence_ref: Classified<EvidenceRef>, // data_class: INTERNAL_ONLY
     pub idempotency_key: Classified<String>, // data_class: INTERNAL_ONLY
+    pub body_fingerprint: Classified<String>, // data_class: INTERNAL_ONLY
     pub payload_data_class: Classified<DataClass>, // data_class: INTERNAL_ONLY
     pub schema_version: Classified<u32>, // data_class: PUBLIC
 }
@@ -44,6 +46,7 @@ pub struct AccountingWorkflowDispatchEnvelope {
     pub required_steps: Classified<Vec<VatWorkflowStep>>, // data_class: INTERNAL_ONLY
     pub evidence_refs: Classified<Vec<EvidenceRef>>, // data_class: INTERNAL_ONLY
     pub idempotency_key: Classified<String>, // data_class: INTERNAL_ONLY
+    pub body_fingerprint: Classified<String>, // data_class: INTERNAL_ONLY
     pub payload_data_class: Classified<DataClass>, // data_class: INTERNAL_ONLY
     pub schema_version: Classified<u32>, // data_class: PUBLIC
 }
@@ -59,6 +62,7 @@ pub struct AccountingPayrollPostingAuditEnvelope {
     pub reversal_path_ref: Classified<EvidenceRef>, // data_class: INTERNAL_ONLY
     pub wage_ledger_refs: Classified<Vec<EvidenceRef>>, // data_class: INTERNAL_ONLY
     pub idempotency_key: Classified<String>, // data_class: INTERNAL_ONLY
+    pub body_fingerprint: Classified<String>, // data_class: INTERNAL_ONLY
     pub payload_data_class: Classified<DataClass>, // data_class: INTERNAL_ONLY
     pub schema_version: Classified<u32>, // data_class: PUBLIC
 }
@@ -126,19 +130,58 @@ pub fn record_payroll_posting(
 }
 
 fn journal_audit_envelope(journal: &JournalVoucher) -> AccountingAuditEnvelope {
+    let tenant = journal.tenant_id.value.value.as_str();
+    // Body fingerprint over the financially-material, request-distinguishing
+    // fields. A changed body under the same (tenant, journal_id) yields a
+    // different fingerprint so a reused key with a mutated body is detectable.
+    let mut fp_fields: Vec<String> = vec![
+        tenant.to_owned(),
+        journal.legal_entity_id.value.value.clone(),
+        journal.journal_id.value.value.clone(),
+        journal.period.value.clone(),
+        journal.approval_evidence_ref.value.value.clone(),
+        journal.total_debit_minor.value.to_string(),
+        journal.total_credit_minor.value.to_string(),
+    ];
+    for line in &journal.lines.value {
+        fp_fields.push(line.account_code.value.clone());
+        fp_fields.push(line.debit_minor.value.to_string());
+        fp_fields.push(line.credit_minor.value.to_string());
+    }
+    let fingerprint =
+        idempotency_body_fingerprint(&fp_fields.iter().map(String::as_str).collect::<Vec<_>>());
     AccountingAuditEnvelope {
         topic: internal(ACCOUNTING_JOURNAL_TOPIC.to_owned()),
         tenant_id: internal(journal.tenant_id.value.clone()),
         legal_entity_id: internal(journal.legal_entity_id.value.clone()),
         journal_id: internal(journal.journal_id.value.clone()),
         approval_evidence_ref: internal(journal.approval_evidence_ref.value.clone()),
-        idempotency_key: internal(format!("{}:{}:posted", journal.journal_id.value.value, 1)),
+        // SECURITY (ADR-0592): tenant-scoped + body-fingerprinted. The prior key
+        // `"{journal_id}:1:posted"` omitted the tenant, so two tenants posting
+        // the same journal_id collided and one suppressed the other's audit
+        // record (cross-tenant money-integrity defect, AUTH-005 Wave-2b).
+        idempotency_key: internal(scoped_idempotency_key(
+            tenant,
+            "journal-posted",
+            journal.journal_id.value.value.as_str(),
+            &fingerprint,
+        )),
+        body_fingerprint: internal(fingerprint),
         payload_data_class: internal(DataClass::Financial),
         schema_version: public(1),
     }
 }
 
 fn vat_dispatch_envelope(workflow: &VatReturnWorkflow) -> AccountingWorkflowDispatchEnvelope {
+    let tenant = workflow.tenant_id.value.value.as_str();
+    let fingerprint = idempotency_body_fingerprint(&[
+        tenant,
+        workflow.legal_entity_id.value.value.as_str(),
+        workflow.return_id.value.value.as_str(),
+        workflow.period.value.as_str(),
+        workflow.workflow_ref.value.value.as_str(),
+        workflow.hometax_export_hash.value.value.as_str(),
+    ]);
     AccountingWorkflowDispatchEnvelope {
         topic: internal(ACCOUNTING_VAT_WORKFLOW_TOPIC.to_owned()),
         tenant_id: internal(workflow.tenant_id.value.clone()),
@@ -148,10 +191,15 @@ fn vat_dispatch_envelope(workflow: &VatReturnWorkflow) -> AccountingWorkflowDisp
         hometax_export_hash: financial(workflow.hometax_export_hash.value.clone()),
         required_steps: internal(workflow.required_steps.value.clone()),
         evidence_refs: internal(workflow.evidence_paths.value.clone()),
-        idempotency_key: internal(format!(
-            "{}:{}:vat-workflow",
-            workflow.tenant_id.value.value, workflow.return_id.value.value
+        // SECURITY (ADR-0592): already tenant-scoped; now also body-fingerprinted
+        // so a reused key with a mutated VAT body is distinguishable.
+        idempotency_key: internal(scoped_idempotency_key(
+            tenant,
+            "vat-workflow",
+            workflow.return_id.value.value.as_str(),
+            &fingerprint,
         )),
+        body_fingerprint: internal(fingerprint),
         payload_data_class: internal(DataClass::Financial),
         schema_version: public(1),
     }
@@ -160,6 +208,22 @@ fn vat_dispatch_envelope(workflow: &VatReturnWorkflow) -> AccountingWorkflowDisp
 fn payroll_posting_audit_envelope(
     evidence: &PayrollPostingEvidence,
 ) -> AccountingPayrollPostingAuditEnvelope {
+    let tenant = evidence.journal.tenant_id.value.value.as_str();
+    let mut fp_fields: Vec<String> = vec![
+        tenant.to_owned(),
+        evidence.journal.legal_entity_id.value.value.clone(),
+        evidence.journal.journal_id.value.value.clone(),
+        evidence.journal.period.value.clone(),
+        evidence.source_payroll_digest.value.value.clone(),
+        evidence.reversal_path_ref.value.value.clone(),
+        evidence.journal.total_debit_minor.value.to_string(),
+        evidence.journal.total_credit_minor.value.to_string(),
+    ];
+    for wage_ref in &evidence.wage_ledger_refs.value {
+        fp_fields.push(wage_ref.value.clone());
+    }
+    let fingerprint =
+        idempotency_body_fingerprint(&fp_fields.iter().map(String::as_str).collect::<Vec<_>>());
     AccountingPayrollPostingAuditEnvelope {
         topic: internal(ACCOUNTING_PAYROLL_POSTING_TOPIC.to_owned()),
         tenant_id: internal(evidence.journal.tenant_id.value.clone()),
@@ -169,10 +233,14 @@ fn payroll_posting_audit_envelope(
         approval_evidence_ref: internal(evidence.journal.approval_evidence_ref.value.clone()),
         reversal_path_ref: internal(evidence.reversal_path_ref.value.clone()),
         wage_ledger_refs: internal(evidence.wage_ledger_refs.value.clone()),
-        idempotency_key: internal(format!(
-            "{}:{}:payroll-posted",
-            evidence.journal.tenant_id.value.value, evidence.journal.journal_id.value.value
+        // SECURITY (ADR-0592): already tenant-scoped; now also body-fingerprinted.
+        idempotency_key: internal(scoped_idempotency_key(
+            tenant,
+            "payroll-posted",
+            evidence.journal.journal_id.value.value.as_str(),
+            &fingerprint,
         )),
+        body_fingerprint: internal(fingerprint),
         payload_data_class: internal(DataClass::Financial),
         schema_version: public(1),
     }
