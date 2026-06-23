@@ -7,8 +7,11 @@
 //!
 //! ## Modules
 //!
+//! - [`authz`] — fail-closed principal-verification + PDP authorization PORTS
+//!   for the publish control plane (AUTH-005 / task #124 / ADR-0572).
 //! - [`rest`] — axum control-plane REST edge (ADR-0090 amendment).
 
+pub mod authz;
 pub mod rest;
 
 use std::collections::BTreeMap;
