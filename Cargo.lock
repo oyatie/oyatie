@@ -6084,6 +6084,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-ci-authz-coverage-app"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "oya-cloud-ci-automation-ratchet-app"
 version = "0.1.0"
 dependencies = [
