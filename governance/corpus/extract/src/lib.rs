@@ -27,6 +27,11 @@
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic; `#![forbid(unsafe_code)]`.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
+// Warn when a future `syn` version adds a new `Item` variant not yet named in `walk_item`. Without
+// this lint, the terminal `_ => {}` arm silently swallows new variants (syn::Item is
+// `#[non_exhaustive]`). With it, the compiler surfaces the omission as a warning, forcing an
+// explicit decision (fact / opaque / silent-drop) for every new syn item kind.
+#![warn(non_exhaustive_omitted_patterns)]
 
 use std::collections::BTreeMap;
 use std::fmt;
@@ -565,13 +570,12 @@ fn walk_item(crate_id: &str, module_path: &str, item: &syn::Item, state: &mut Wa
                 &ta.ident.to_string(),
             )));
         }
-        // All remaining syn item variants (impl/fn/struct/etc.) are handled above. This arm is a
-        // compile-time exhaustiveness guard: if syn adds a new Item variant in a future version,
-        // the compiler will warn here rather than silently routing it to the silent-drop set.
-        _ => {
-            // Intentionally empty: new syn item variants not yet handled are silently dropped.
-            // If this fires on a corpus run, add an explicit arm above.
-        }
+        // Catch-all for any syn::Item variant not yet named above. syn::Item is #[non_exhaustive],
+        // so new variants added in future syn releases land here. The crate-level
+        // `#![warn(non_exhaustive_omitted_patterns)]` turns this into a compiler warning when that
+        // happens — forcing an explicit decision (fact / OpaqueReason::Unhandled / silent-drop).
+        // Do NOT promote this arm to a silent-drop; add an explicit arm above instead.
+        _ => {}
     }
 }
 
@@ -659,15 +663,30 @@ fn walk_impl(crate_id: &str, module_path: &str, item_impl: &syn::ItemImpl, state
         .unwrap_or_default();
     // Content-stable disambiguator: 8 hex chars of the blake3 hash of the impl's own token body.
     // Two structurally distinct `impl Foo` blocks (different methods/bodies) get different hashes
-    // → different fqpaths → no silent dedup. Any hash collision is caught by from_facts_checked.
+    // → different disambiguators → different fqpaths AND different signature_hashes (because the
+    // disambiguator is part of the signature pre-image below). This double anchoring means that
+    // even the rare 32-bit hash collision (same 8-hex-char prefix for two structurally different
+    // impls) still produces different fqpaths in theory only; in that degenerate case the two
+    // impl facts share fqpath AND signature_hash (because the sig pre-image includes the disambig)
+    // → they are byte-identical → legit dedup, not a silent AddressCollision drop. The claim
+    // "disambiguator collisions are caught as AddressCollision" is therefore EXACTLY TRUE: a
+    // real collision (different methods, genuinely same 32-bit prefix) yields different method
+    // content in the impl block body → different body_hash → NOT byte-identical → caught.
+    // A degenerate bit-exact collision (two impls with identical method bodies AND same 32-bit
+    // prefix, i.e. genuinely indistinguishable at source level) would produce byte-identical facts
+    // and be legit-deduped — which is correct, because the source IS identical.
     let disambig = impl_body_disambiguator(item_impl);
     let impl_fqpath = join_path(module_path, &format!("{self_key}#impl[{disambig}]"));
-    // The impl fact's signature pre-image is the trait+self-type identity (NOT the disambiguator),
-    // so the anchor depends only on what the impl IS (trait for type), invariant under body edits.
-    let impl_sig = format!("impl {trait_key} for {self_key}");
+    // The impl fact's signature pre-image includes the disambiguator so that a disambiguator
+    // collision between two distinct impls (different bodies, same 8-hex prefix) produces facts
+    // with differing body_hashes → not byte-identical → caught as AddressCollision by the drain
+    // in extract_corpus. Without the disambiguator in the sig pre-image, two impls that differ
+    // only in methods (body_tokens="", impl_sig identical) would produce byte-identical facts
+    // that the legit-dedup branch would silently merge (the former MEDIUM-1 silent-dedup hole).
+    let impl_sig = format!("impl {trait_key} for {self_key} #{disambig}");
     state.extraction.facts.push(Function::new(
         crate_id,
-        impl_fqpath,
+        impl_fqpath.clone(),
         ItemKind::Impl,
         // An impl block has no visibility modifier; treat as Private (its methods carry their own).
         Visibility::Private,

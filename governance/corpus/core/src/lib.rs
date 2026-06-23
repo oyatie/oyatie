@@ -288,13 +288,13 @@ impl FactSet {
     /// duplicate is silently dropped, as usual. **Collision** (two DISTINCT items that compute the
     /// same `(crate_id, fqpath, item_kind, visibility)` but differ in their hash fields): this is a
     /// trust-root fault — a content-addressed substrate MUST NOT silently merge two distinct items
-    /// into one. The colliding fact is replaced with an [`OpaqueReason::AddressCollision`] entry in
-    /// the returned [`CollisionReport`]. Use [`FactSet::from_facts_checked`] when you need to inspect
-    /// collisions; use [`FactSet::from_facts`] when duplicates are expected to be byte-identical.
+    /// into one. Use [`FactSet::from_facts_checked`] for a non-panicking path that returns a
+    /// [`FactSetError`] on collision; use this method when duplicates are expected to be
+    /// byte-identical.
     ///
     /// # Panics
-    /// Panics if a hash-collision (two structurally distinct items share the same content-address
-    /// key) is detected. Callers that need a non-panicking path must use [`FactSet::from_facts_checked`].
+    /// Panics if two structurally distinct items share the same content-address key. Callers that
+    /// need a non-panicking path must use [`FactSet::from_facts_checked`].
     #[must_use]
     pub fn from_facts(facts: impl IntoIterator<Item = Function>) -> Self {
         match Self::from_facts_checked(facts) {
@@ -310,11 +310,11 @@ impl FactSet {
     /// share the same content-address key `(crate_id, fqpath, item_kind, visibility)`.
     ///
     /// A byte-identical duplicate (same item re-extracted) is silently dropped. A collision (distinct
-    /// items, same key, different hashes) returns [`FactSetError::AddressCollision`].
+    /// items, same key, different hashes) returns [`Err(FactSetError)`].
     ///
     /// # Errors
-    /// Returns [`FactSetError::AddressCollision`] if two structurally distinct items map to the same
-    /// content-address key.
+    /// Returns [`FactSetError`] if two structurally distinct items map to the same content-address
+    /// key (`crate_id` + `fqpath` + `item_kind` + `visibility` are equal but hashes differ).
     pub fn from_facts_checked(
         facts: impl IntoIterator<Item = Function>,
     ) -> Result<Self, FactSetError> {

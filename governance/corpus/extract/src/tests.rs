@@ -258,6 +258,33 @@ fn module_path_for_conventional_files() {
     assert_eq!(module_path_for("flags/core/x", "flags/core/x/src/a/b.rs"), "a::b");
 }
 
+// MEDIUM-1 TEST: the impl fact's signature_hash must vary with the impl body (disambiguator is
+// included in the signature pre-image). Without this, two distinct impls whose 32-bit body-hash
+// prefix collides would produce byte-identical impl facts and be silently deduped rather than
+// caught as AddressCollision. With the disambiguator in the sig pre-image, impls with different
+// body content always produce different signature_hashes — the claim in A1 is literally true.
+#[test]
+fn impl_signature_hash_varies_with_body_content() {
+    // Two `impl Foo` blocks in the SAME file; different method bodies → different disambiguators
+    // → different fqpaths AND different signature_hashes (disambig is in the sig pre-image).
+    let src = "pub struct Foo;\
+               impl Foo { pub fn a(&self) -> u32 { 1 } }\
+               impl Foo { pub fn b(&self) -> u32 { 2 } }";
+    let e = extract(src);
+    let impl_facts: Vec<_> = e
+        .facts
+        .facts()
+        .iter()
+        .filter(|f| f.item_kind == corpus_core::ItemKind::Impl)
+        .collect();
+    assert_eq!(impl_facts.len(), 2, "two impl blocks must produce two impl facts");
+    assert_ne!(
+        impl_facts[0].signature_hash,
+        impl_facts[1].signature_hash,
+        "impls with different bodies MUST have different signature_hashes (disambig in sig pre-image)"
+    );
+}
+
 // HIGH-1 RED TEST: two `impl Foo` blocks in SEPARATE FILES of the same crate (same module_path "")
 // must produce two DISTINCT facts — not the same fqpath (which would cause silent dedup).
 //
