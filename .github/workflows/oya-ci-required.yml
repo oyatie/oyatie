@@ -135,6 +135,7 @@ jobs:
           - { crate: oya-cloud-ci-crypto-backend-purity-app,   label: "gate · crypto-backend-purity (ADR-0506, ring forbidden / aws-lc-rs mandated — zero ring activation)" }
           - { crate: oya-cloud-ci-no-graphql-without-adr-app,  label: "gate · no-graphql-without-adr (ADR-0565, zero-GraphQL: no graphql lib / .graphql/.gql/.sdl reintroduction without a reversing ADR — candidate-tree evaluated, EMPTY frozen baseline)" }
           - { crate: oya-cloud-ci-authz-coverage-app,          label: "gate · authz-coverage (issue #770 / AUTH-005, NEW unauthenticated HTTP control planes blocked vs frozen baseline)" }
+          - { crate: oya-cloud-ci-dto-authz-trust-app,         label: "gate · dto-authz-trust (ADR-0581, the CLASS-FIX for caller-supplied-authz-trust: a NEW fn that trusts a forged *Authorization DTO / x-authorization-* header self-comparison in place of a server-side PDP decide() is blocked vs the frozen baseline of ~52 known instances)" }
           - { crate: oya-cloud-ci-generated-artifact-control-plane-app, label: "gate · generated-artifact-control-plane (public hermetic CI artifact policy)" }
           - { crate: oya-cloud-ci-cache-wiring-app,            label: "gate · cache-wiring conformance (ADR-0560/ADR-0556, dark-wiring + cold floor + kill-switch)" }
           - { crate: oya-cloud-ci-substrate-dependency-dag-acyclicity-app, label: "gate · substrate-dependency-dag-acyclicity (ADR-0280 §D-3, Tarjan SCC + Kahn topo-order + forbidden-edge honouring)" }
