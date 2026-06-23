@@ -40,6 +40,13 @@ evidence/oci-readiness/a1-capacity-retry.log
 # runtime roots.
 **/*.json.tmp.*
 
+# Per-clone git-hooks activation state (ADR-0571, task #125): installed idempotently by
+# `oya-repo-hooks-bootstrap` (the CI step + local first-run), pointing core.hooksPath at
+# clone-local shims that invoke the built oya-faces-merge-driver/oya-repo-hooks-bootstrap
+# binaries. Like the merge-driver git config + the ADR-0551/0552 per-checkout derived
+# baselines, this is runtime activation state, never a committed artifact.
+/.githooks/
+
 # Agent-spawned Claude Code worktrees (transient; each is a git worktree itself).
 # .claude/settings.json (project-scoped) and .claude/commands/ remain tracked.
 .claude/worktrees/

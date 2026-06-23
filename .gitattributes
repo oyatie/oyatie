@@ -42,3 +42,13 @@ Cargo.lock merge=cargo-lock
 # Registration is per-clone (see the crate README): actors without the `merge.friction-ledger`
 # git config get a normal conflict; cloud-ci gates remain the canonical backstop.
 /.omc/ultragoal/friction-ledger.jsonl merge=friction-ledger
+
+# BEGIN oya-faces merge driver glob (generated from control-plane; do not hand-edit)
+cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json merge=oya-faces
+cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json merge=oya-faces
+cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/enforcement-inventory.generated.json merge=oya-faces
+cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/enforcement-liveness.generated.json merge=oya-faces
+cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json merge=oya-faces
+cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json merge=oya-faces
+cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/ttl-policy.generated.json merge=oya-faces
+# END oya-faces merge driver glob

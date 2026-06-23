@@ -1,0 +1,67 @@
+rust_library(
+    name = "oya-faces-merge-driver-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_faces_merge_driver_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-freshness-app",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_binary(
+    name = "oya-faces-merge-driver",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-faces-merge-driver-app",
+    ],
+)
+
+rust_test(
+    name = "oya-faces-merge-driver-app-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_faces_merge_driver_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-freshness-app",
+        "third-party//:serde_json",
+    ],
+)
+
+# task #125 fail-closed proof: a faces merge conflict resolves deterministically via the per-file
+# driver (cosmetic) + the post-merge settle (authoritative), and ANY regen/determinism/drift/dirty-
+# tree failure leaves the conflict and exits nonzero — NEVER a guessed or partial faces file. The
+# settle reuses the doctrine-blessed `oya-cloud-ci-freshness-app::settle_regenerated_faces` engine
+# over a FakeRegenPort so the integration tests run with NO buck2.
+rust_test(
+    name = "oya-faces-merge-driver-app-settle-fixtures",
+    srcs = ["tests/settle.rs"],
+    crate = "oya_faces_merge_driver_app_settle_fixtures",
+    crate_root = "tests/settle.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-faces-merge-driver-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-freshness-app",
+    ],
+)
+
+# Process-level fixtures for the merge-driver binary (`driver %O %A %B %P` + `settle`): the cosmetic
+# per-file resolve writes theirs over %A and exits 0; a non-declared face declines (exit 1, %A
+# untouched); usage errors exit 2. buck2 injects the binary path via $(location :…).
+rust_test(
+    name = "oya-faces-merge-driver-app-cli-fixtures",
+    srcs = ["tests/cli_fixtures.rs"],
+    crate = "oya_faces_merge_driver_app_cli_fixtures",
+    crate_root = "tests/cli_fixtures.rs",
+    env = {
+        "OYA_FACES_MERGE_DRIVER": "$(location :oya-faces-merge-driver)",
+    },
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-faces-merge-driver-app",
+    ],
+)

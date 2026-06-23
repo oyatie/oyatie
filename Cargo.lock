@@ -6942,6 +6942,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-faces-merge-driver-app"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-ci-freshness-app",
+ "serde_json",
+]
+
+[[package]]
 name = "oya-financial-planning-forecast-scenario-app"
 version = "0.1.0"
 dependencies = [
@@ -8945,6 +8953,14 @@ dependencies = [
  "oya-workspace-members-kernel",
  "serde_json",
  "toml_edit",
+]
+
+[[package]]
+name = "oya-repo-hooks-bootstrap-app"
+version = "0.1.0"
+dependencies = [
+ "oya-faces-merge-driver-app",
+ "serde_json",
 ]
 
 [[package]]
