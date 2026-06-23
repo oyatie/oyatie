@@ -1,0 +1,259 @@
+//! Unit tests for the corpus extractor: determinism (byte-identical facts for identical input),
+//! the RED liveness test (a renamed/removed fn changes the fact set), reformatting invariance of
+//! the signature anchor, and opaque-category classification.
+
+use super::*;
+use corpus_core::{ItemKind, Visibility};
+
+/// Build a single-file source set for a synthetic crate.
+fn one_file(source: &str) -> SourceSet {
+    SourceSet::new([SourceFile {
+        crate_id: "test-crate".to_owned(),
+        module_path: String::new(),
+        source: source.to_owned(),
+    }])
+}
+
+fn extract(source: &str) -> CorpusExtraction {
+    extract_corpus(&SynAstSource::new(), &one_file(source)).expect("infallible source")
+}
+
+#[test]
+fn determinism_byte_identical_for_identical_input() {
+    let src = r#"
+        pub fn alpha(x: u32) -> u32 { x + 1 }
+        pub struct Beta { pub n: u32 }
+        fn gamma() {}
+    "#;
+    let a = extract(src).facts.canonical_json().unwrap();
+    let b = extract(src).facts.canonical_json().unwrap();
+    assert_eq!(a, b, "same input must yield byte-identical fact JSON");
+}
+
+#[test]
+fn determinism_independent_of_file_order() {
+    let f1 = SourceFile {
+        crate_id: "c".to_owned(),
+        module_path: "a".to_owned(),
+        source: "pub fn one() {}".to_owned(),
+    };
+    let f2 = SourceFile {
+        crate_id: "c".to_owned(),
+        module_path: "b".to_owned(),
+        source: "pub fn two() {}".to_owned(),
+    };
+    let forward = extract_corpus(
+        &SynAstSource::new(),
+        &SourceSet::new([f1.clone(), f2.clone()]),
+    )
+    .unwrap();
+    let reverse =
+        extract_corpus(&SynAstSource::new(), &SourceSet::new([f2, f1])).unwrap();
+    assert_eq!(
+        forward.facts.canonical_json().unwrap(),
+        reverse.facts.canonical_json().unwrap()
+    );
+}
+
+#[test]
+fn red_test_rename_changes_fact_set() {
+    let before = extract("pub fn evaluate() {}");
+    let after = extract("pub fn evaluate_v2() {}");
+    assert_ne!(
+        before.facts.canonical_json().unwrap(),
+        after.facts.canonical_json().unwrap(),
+        "a renamed fn MUST change the fact set (liveness detects rename)"
+    );
+    // The signature anchor itself must differ (not just the fqpath text).
+    let sig_before = &before.facts.facts()[0].signature_hash;
+    let sig_after = &after.facts.facts()[0].signature_hash;
+    assert_ne!(sig_before, sig_after);
+}
+
+#[test]
+fn red_test_removal_changes_fact_set() {
+    let before = extract("pub fn keep() {}\npub fn remove_me() {}");
+    let after = extract("pub fn keep() {}");
+    assert_eq!(before.facts.len(), 2);
+    assert_eq!(after.facts.len(), 1);
+    assert_ne!(
+        before.facts.canonical_json().unwrap(),
+        after.facts.canonical_json().unwrap(),
+        "a removed fn MUST change the fact set (liveness detects removal)"
+    );
+}
+
+#[test]
+fn reformatting_does_not_churn_signature_hash() {
+    let tight = "pub fn evaluate(flag:&Flag)->Decision{let x=1;x}";
+    let loose = r#"
+        // a leading comment that must not affect the signature anchor
+        pub fn evaluate(
+            flag: &Flag,   // an arg comment
+        ) -> Decision {
+            let x = 1;
+
+            x
+        }
+    "#;
+    let a = extract(tight);
+    let b = extract(loose);
+    assert_eq!(a.facts.len(), 1);
+    assert_eq!(b.facts.len(), 1);
+    assert_eq!(
+        a.facts.facts()[0].signature_hash,
+        b.facts.facts()[0].signature_hash,
+        "whitespace/comment reformatting MUST NOT churn the signature anchor"
+    );
+}
+
+#[test]
+fn impl_anchor_invariant_under_reformatting() {
+    // Two impls on the same type must stay distinct AND keep stable signature anchors when blank
+    // lines shift their source positions (the regression the line-based anchor caused).
+    let tight = "pub struct S;\nimpl S { pub fn a(&self) {} }\nimpl S { pub fn b(&self) {} }";
+    let loose = "pub struct S;\n\n\nimpl S {\n\n pub fn a(&self) {}\n}\n\n\n\nimpl S {\n\n pub fn b(&self) {}\n}";
+    let a = extract(tight);
+    let b = extract(loose);
+    let sig_set = |e: &CorpusExtraction| -> Vec<String> {
+        let mut v: Vec<String> = e
+            .facts
+            .facts()
+            .iter()
+            .filter(|f| f.item_kind == ItemKind::Impl)
+            .map(|f| f.signature_hash.to_string())
+            .collect();
+        v.sort();
+        v
+    };
+    // Two distinct impl facts in each.
+    assert_eq!(sig_set(&a).len(), 2);
+    // Identical impl signature-hash set across reformatting (no line-number churn).
+    assert_eq!(sig_set(&a), sig_set(&b), "impl anchors must not churn on reformat");
+}
+
+#[test]
+fn body_hash_may_change_when_body_changes() {
+    let a = extract("pub fn f() { let x = 1; }");
+    let b = extract("pub fn f() { let x = 2; }");
+    assert_eq!(
+        a.facts.facts()[0].signature_hash,
+        b.facts.facts()[0].signature_hash,
+        "signature stable across body edit"
+    );
+    assert_ne!(
+        a.facts.facts()[0].body_hash,
+        b.facts.facts()[0].body_hash,
+        "body hash legitimately churns on a body edit"
+    );
+}
+
+#[test]
+fn classifies_item_kinds() {
+    let src = r#"
+        pub fn free_fn() {}
+        pub struct AStruct;
+        pub enum AnEnum { X }
+        pub trait ATrait {}
+        impl AStruct { pub fn method(&self) {} }
+        pub const A_CONST: u32 = 1;
+        #[get("/health")]
+        pub fn health() {}
+    "#;
+    let kinds: Vec<ItemKind> = extract(src)
+        .facts
+        .facts()
+        .iter()
+        .map(|f| f.item_kind)
+        .collect();
+    assert!(kinds.contains(&ItemKind::Function));
+    assert!(kinds.contains(&ItemKind::Type));
+    assert!(kinds.contains(&ItemKind::Impl));
+    assert!(kinds.contains(&ItemKind::PubItem));
+    assert!(kinds.contains(&ItemKind::Route), "route attr → Route kind");
+}
+
+#[test]
+fn opaque_macro_generated_counted() {
+    // An item-position macro invocation is opaque (generated items invisible to source-level syn).
+    let src = "tonic::include_proto!(\"pkg\");";
+    let e = extract(src);
+    assert_eq!(e.facts.len(), 0);
+    assert_eq!(e.report.opaque.len(), 1);
+    assert_eq!(e.report.by_category.get("macro_generated").copied(), Some(1));
+}
+
+#[test]
+fn opaque_cfg_gated_counted() {
+    let src = r#"
+        pub fn always() {}
+        #[cfg(feature = "x")]
+        pub fn maybe() {}
+    "#;
+    let e = extract(src);
+    // `always` is a clean fact; `maybe` is opaque (cfg-gated).
+    assert_eq!(e.report.clean_facts, 1);
+    assert_eq!(e.report.by_category.get("cfg_gated").copied(), Some(1));
+}
+
+#[test]
+fn opaque_parse_error_counted_not_fatal() {
+    let e = extract("pub fn broken( {{{ this is not rust");
+    assert_eq!(e.report.clean_facts, 0);
+    assert_eq!(e.report.by_category.get("parse_error").copied(), Some(1));
+}
+
+#[test]
+fn opaque_rate_bps_computed() {
+    // 1 clean + 1 opaque = 50% = 5000 bps.
+    let src = r#"
+        pub fn clean() {}
+        #[cfg(test)]
+        pub fn gated() {}
+    "#;
+    let e = extract(src);
+    assert_eq!(e.report.total_units(), 2);
+    assert_eq!(e.report.opaque_rate_bps(), 5000);
+}
+
+#[test]
+fn nested_module_path_in_fqpath() {
+    let src = r#"
+        pub mod inner {
+            pub fn deep() {}
+        }
+    "#;
+    let e = extract(src);
+    let fq: Vec<&str> = e.facts.facts().iter().map(|f| f.fqpath.as_str()).collect();
+    assert!(fq.iter().any(|p| *p == "inner::deep"), "got {fq:?}");
+}
+
+#[test]
+fn visibility_normalized() {
+    let src = r#"
+        pub fn p() {}
+        pub(crate) fn c() {}
+        fn priv_fn() {}
+    "#;
+    let e = extract(src);
+    let by_path = |p: &str| -> Visibility {
+        e.facts
+            .facts()
+            .iter()
+            .find(|f| f.fqpath == p)
+            .map(|f| f.visibility)
+            .expect("fact present")
+    };
+    assert_eq!(by_path("p"), Visibility::Public);
+    assert_eq!(by_path("c"), Visibility::Crate);
+    assert_eq!(by_path("priv_fn"), Visibility::Private);
+}
+
+#[test]
+fn module_path_for_conventional_files() {
+    assert_eq!(module_path_for("flags/core/x", "flags/core/x/src/lib.rs"), "");
+    assert_eq!(module_path_for("flags/core/x", "flags/core/x/src/main.rs"), "");
+    assert_eq!(module_path_for("flags/core/x", "flags/core/x/src/engine.rs"), "engine");
+    assert_eq!(module_path_for("flags/core/x", "flags/core/x/src/a/mod.rs"), "a");
+    assert_eq!(module_path_for("flags/core/x", "flags/core/x/src/a/b.rs"), "a::b");
+}

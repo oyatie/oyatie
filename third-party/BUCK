@@ -12319,6 +12319,12 @@ cargo.rust_library(
     visibility = [],
 )
 
+alias(
+    name = "quote",
+    actual = ":quote-1",
+    visibility = ["PUBLIC"],
+)
+
 http_archive(
     name = "quote-1.0.45.crate",
     sha256 = "41f2619966050689382d2b44f664f4bc593e129785a36d6ee376ddf37259b924",
@@ -16166,6 +16172,12 @@ cargo.rust_library(
         ":quote-1",
         ":unicode-ident-1",
     ],
+)
+
+alias(
+    name = "syn",
+    actual = ":syn-2",
+    visibility = ["PUBLIC"],
 )
 
 http_archive(

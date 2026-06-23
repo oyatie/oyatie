@@ -487,12 +487,13 @@
     ],
     "absorbs_current_crate_globs": [
       {
-        "_comment": "The dep-lint / check authority + the governance kernels. ADR-0562 §1 names 'the dep-lint authority' as a governance/ resident; owns_crates:false on the meta dir means it owns no CAPABILITY crates, not that governance/ hosts no governance-engine code (consistent with build/'s 'Owns zero capability crates' wording). The libs/oya-check-* and libs/oya-governance-* crates ARE the dep-lint authority.",
+        "_comment": "The dep-lint / check authority + the governance kernels + the corpus substrate. ADR-0562 §1 names 'the dep-lint authority' as a governance/ resident; owns_crates:false on the meta dir means it owns no CAPABILITY crates, not that governance/ hosts no governance-engine code (consistent with build/'s 'Owns zero capability crates' wording). The libs/oya-check-* and libs/oya-governance-* crates ARE the dep-lint authority; ADR-0580's governance/corpus/* crates (corpus-core, corpus-extract) are the Phase -1 live-AST corpus substrate physically homed under governance/ — also governance-engine code, not a capability crate. The membership-lint glob is a stem starts_with match, so governance/corpus/* covers both leaves.",
         "meta_dir": "governance/",
         "globs": [
           "libs/oya-check-*",
           "libs/oya-governance-*",
-          "tools/oya-governance-*"
+          "tools/oya-governance-*",
+          "governance/corpus/*"
         ]
       },
       {
