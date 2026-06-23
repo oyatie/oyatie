@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:5a663b7cf0e326ef",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:47f8d022eb2d23d2"
+    "source_inputs_digest": "fnv1a64:993deb8e749b7f68"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -5361,7 +5361,6 @@
           "cloud/cloud-billing/tutorials/meter-attribute-invoice-and-export-focus.md",
           "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/BUCK",
           "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/Cargo.toml",
-          "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
           "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
           "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/lib.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/main.rs",

@@ -33,6 +33,10 @@ rust_test(
     env = {
         "OYA_CI_GENERATED_ARTIFACT_MANIFEST": "$(location //registry:generated-artifact-control-plane.json)",
         "OYA_CI_GENERATED_ARTIFACT_SCM_FACTS": "$(location //cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:scm-facts.generated.json)",
+        # The firewall ratchet policy is the authoritative source of the frozen-reference set
+        # (ADR-0551 frozen_reference.face_path). The gate forbids declaring any frozen reference
+        # de-commit class (the #828 make-it-impossible guard).
+        "OYA_CI_GENERATED_ARTIFACT_RATCHET_POLICY": "$(location //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:ratchet-policy.json)",
     },
     visibility = ["PUBLIC"],
     deps = [
