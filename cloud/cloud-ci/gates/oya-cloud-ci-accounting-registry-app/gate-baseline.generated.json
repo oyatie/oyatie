@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:5a663b7cf0e326ef",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:c3d95d5b708358a5"
+    "source_inputs_digest": "fnv1a64:2af7c9269f1ac434"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -7448,8 +7448,6 @@
           "compliance/observability/slos/phi-anomaly-detection-fidelity.openslo.yaml",
           "compliance/ports/dsr-usecase/BUCK",
           "compliance/ports/dsr-usecase/Cargo.toml",
-          "compliance/ports/dsr-usecase/src/lib.rs",
-          "compliance/ports/dsr-usecase/tests/dsr_cascade_execute_api.rs",
           "console/adapters/docs-portal-adapter/BUCK",
           "console/adapters/docs-portal-adapter/Cargo.toml",
           "console/adapters/docs-portal-adapter/src/lib.rs",
