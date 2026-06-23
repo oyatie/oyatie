@@ -12,6 +12,15 @@ use observability_aggregate::{
 };
 use oya_data_boundary_kernel::{OperationalDataClass, Purpose};
 
+pub mod authz;
+
+pub use authz::{
+    AuditReadAction, AuditReadAuthorizationError, AuditReadAuthorizer, AuditReadAuthzProvider,
+    AuditReadResource, AuthzProviderConfigError, CallerCredential,
+    ConfiguredBearerPrincipalVerifier, PrincipalVerificationError, PrincipalVerifier,
+    VerifiedPrincipal, constant_time_eq,
+};
+
 pub const CLOUD_OBSERVABILITY_AUDIT_READ_SURFACE: &str = "cloud.observability.audit.read";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -42,7 +51,7 @@ pub enum CloudObservabilityApiErrorCode {
     PrincipalMissing,
     PrincipalIdEmpty,
     TenantMismatch,
-    AuthorizationDecisionIdEmpty,
+    PrincipalUnverified,
     AuthorizationTenantMismatch,
     AuthorizationPrincipalMismatch,
     AuthorizationDenied,
@@ -61,9 +70,7 @@ impl CloudObservabilityApiErrorCode {
             Self::PrincipalMissing => "CLOUD_OBSERVABILITY_PRINCIPAL_MISSING",
             Self::PrincipalIdEmpty => "CLOUD_OBSERVABILITY_PRINCIPAL_ID_EMPTY",
             Self::TenantMismatch => "CLOUD_OBSERVABILITY_TENANT_MISMATCH",
-            Self::AuthorizationDecisionIdEmpty => {
-                "CLOUD_OBSERVABILITY_AUTHORIZATION_DECISION_ID_EMPTY"
-            }
+            Self::PrincipalUnverified => "CLOUD_OBSERVABILITY_PRINCIPAL_UNVERIFIED",
             Self::AuthorizationTenantMismatch => {
                 "CLOUD_OBSERVABILITY_AUTHORIZATION_TENANT_MISMATCH"
             }
@@ -92,12 +99,27 @@ pub struct CloudObservabilityApiPrincipal {
     pub principal_id: String, // data_class: INTERNAL_ONLY
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+/// NON-AUTHORITATIVE caller correlation metadata.
+///
+/// ## ⚠ This is NOT an authorization grant (C18 / ADR-0590)
+///
+/// Before ADR-0590 the boundary trusted the `allowed_surfaces` list on this DTO
+/// as the authorization decision: a caller who set
+/// `allowed_surfaces = ["cloud.observability.audit.read"]` was "authorized".
+/// That was **self-granting evidence** — the caller authored the very decision
+/// meant to authorize them.  The `allowed_surfaces` field is REMOVED.
+///
+/// The remaining fields are a caller-supplied **correlation id only** for tracing
+/// — they confer NO authority.  Authorization is decided server-side by the
+/// [`authz::AuditReadAuthorizer`] PDP port against the
+/// [`authz::VerifiedPrincipal`].  The `tenant_id` / `principal_id` here are
+/// cross-checked against the verified principal and rejected on mismatch; they
+/// never grant.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct CloudObservabilityApiAuthorization {
-    pub tenant_id: String,             // data_class: INTERNAL_ONLY
-    pub principal_id: String,          // data_class: INTERNAL_ONLY
-    pub decision_id: String,           // data_class: INTERNAL_ONLY
-    pub allowed_surfaces: Vec<String>, // data_class: INTERNAL_ONLY
+    pub tenant_id: String, // data_class: INTERNAL_ONLY — cross-check only, never a grant
+    pub principal_id: String, // data_class: INTERNAL_ONLY — cross-check only, never a grant
+    pub correlation_id: String, // data_class: INTERNAL_ONLY — non-authoritative trace id
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -219,7 +241,8 @@ pub enum CloudObservabilityApiError {
         principal_tenant_id: Option<String>,
         body_tenant_id: String,
     },
-    EmptyAuthorizationDecisionId,
+    /// The presented credential did not verify into a real principal (401).
+    PrincipalUnverified,
     AuthorizationTenantMismatch {
         authorization_tenant_id: String,
         principal_tenant_id: String,
@@ -228,8 +251,10 @@ pub enum CloudObservabilityApiError {
         authorization_principal_id: String,
         principal_id: String,
     },
+    /// The server-side PDP denied (or refused, fail-closed) the audit read for
+    /// the verified principal on the scope-derived action (403).
     AuthorizationDenied {
-        surface: String,
+        action: String,
     },
     InvalidAuditScopeLabel {
         scope: String,
@@ -269,9 +294,7 @@ impl CloudObservabilityApiError {
             Self::MissingPrincipal => CloudObservabilityApiErrorCode::PrincipalMissing,
             Self::EmptyPrincipalId => CloudObservabilityApiErrorCode::PrincipalIdEmpty,
             Self::TenantMismatch { .. } => CloudObservabilityApiErrorCode::TenantMismatch,
-            Self::EmptyAuthorizationDecisionId => {
-                CloudObservabilityApiErrorCode::AuthorizationDecisionIdEmpty
-            }
+            Self::PrincipalUnverified => CloudObservabilityApiErrorCode::PrincipalUnverified,
             Self::AuthorizationTenantMismatch { .. } => {
                 CloudObservabilityApiErrorCode::AuthorizationTenantMismatch
             }
@@ -320,11 +343,10 @@ impl CloudObservabilityApiError {
 
     fn status_kind(&self) -> CloudObservabilityApiStatusKind {
         match self {
-            Self::MissingPrincipal | Self::EmptyPrincipalId => {
+            Self::MissingPrincipal | Self::EmptyPrincipalId | Self::PrincipalUnverified => {
                 CloudObservabilityApiStatusKind::Unauthorized
             }
             Self::TenantMismatch { .. }
-            | Self::EmptyAuthorizationDecisionId
             | Self::AuthorizationTenantMismatch { .. }
             | Self::AuthorizationPrincipalMismatch { .. }
             | Self::AuthorizationDenied { .. } => CloudObservabilityApiStatusKind::Forbidden,
@@ -345,15 +367,15 @@ impl CloudObservabilityApiError {
             Self::TenantMismatch { .. } => {
                 "Tenant header must match authenticated principal and request body"
             }
-            Self::EmptyAuthorizationDecisionId => "Authorization decision id is required",
+            Self::PrincipalUnverified => "Presented credential did not verify a principal",
             Self::AuthorizationTenantMismatch { .. } => {
-                "Authorization decision tenant must match the authenticated principal"
+                "Request tenant must match the verified principal tenant"
             }
             Self::AuthorizationPrincipalMismatch { .. } => {
-                "Authorization decision principal must match the authenticated principal id"
+                "Request principal must match the verified principal id"
             }
             Self::AuthorizationDenied { .. } => {
-                "Authorization decision does not allow the requested Cloud Observability surface"
+                "Server-side authorization denied the requested Cloud Observability audit read"
             }
             Self::InvalidAuditScopeLabel { .. } => "Audit read scope label is not supported",
             Self::InvalidAuditTopicLabel { .. } => "Audit topic label is not supported",
@@ -371,21 +393,21 @@ impl CloudObservabilityApiError {
                 "tenant_id",
                 "header tenant, principal tenant, and request body tenant must match",
             )],
-            Self::EmptyAuthorizationDecisionId => vec![detail(
-                "authorization.decision_id",
-                "must be non-empty authorization evidence",
+            Self::PrincipalUnverified => vec![detail(
+                "credential",
+                "presented credential did not verify a principal",
             )],
             Self::AuthorizationTenantMismatch { .. } => vec![detail(
-                "authorization.tenant_id",
-                "must match the authenticated principal tenant",
+                "principal.tenant_id",
+                "must match the verified principal tenant",
             )],
             Self::AuthorizationPrincipalMismatch { .. } => vec![detail(
-                "authorization.principal_id",
-                "must match the authenticated principal id",
+                "principal.principal_id",
+                "must match the verified principal id",
             )],
             Self::AuthorizationDenied { .. } => vec![detail(
-                "authorization.allowed_surfaces",
-                "must include the Cloud Observability audit read surface",
+                "authorization",
+                "server-side PDP denied the audit read for the verified principal",
             )],
             Self::InvalidAuditScopeLabel { .. } => vec![detail(
                 "body.scope",
@@ -412,26 +434,81 @@ enum CloudObservabilityApiStatusKind {
     UnprocessableEntity,
 }
 
+/// Serve an immutable Cloud Observability audit read, fail-closed.
+///
+/// ## Authorization contract (C18 / ADR-0590)
+///
+/// The first argument is an [`authz::VerifiedPrincipal`] — a token whose private
+/// fields and `pub(crate)` constructor mean it can ONLY be produced by running a
+/// real [`authz::PrincipalVerifier`] inside this crate.  The boundary therefore
+/// cannot be reached without a verified credential; an absent/forged credential
+/// never mints a `VerifiedPrincipal` (the caller maps the verifier's 401-class
+/// refusal before calling this fn).
+///
+/// The `authorizer` is the server-side PDP [`authz::AuditReadAuthorizer`] port.
+/// There is NO default-allow path: the boundary takes the authorizer by
+/// reference and ALWAYS calls `ensure_authorized` before any catalog read.  The
+/// decision is bound to the scope-derived [`authz::AuditReadAction`] (so the
+/// broader `all_tenant_audit` scope requires its own grant — the coarse-scope
+/// fix) and to the TARGET tenant taken from the verified principal (so a
+/// cross-tenant read is deniable at the PDP — the blast-radius binding).
+///
+/// The self-attested `request.authorization` / `request.principal` fields NEVER
+/// authorize: they are cross-checked against the verified principal and rejected
+/// on mismatch.  A request body tenant that differs from the verified tenant is a
+/// `TenantMismatch` (403); a self-attested principal/tenant that differs from the
+/// verified identity is an `AuthorizationPrincipalMismatch` /
+/// `AuthorizationTenantMismatch` (403).
 pub fn read_cloud_observability_audit_from_api(
+    verified: &authz::VerifiedPrincipal,
+    authorizer: &dyn authz::AuditReadAuthorizer,
     catalog: &CloudObservabilityCatalog,
     request: CloudObservabilityAuditReadApiRequest,
 ) -> Result<CloudObservabilityAuditReadSuccessResponse, CloudObservabilityApiError> {
     validate_boundary(&request.boundary)?;
-    let principal = request
-        .principal
-        .as_ref()
-        .ok_or(CloudObservabilityApiError::MissingPrincipal)?;
-    validate_tenant_binding(&request.boundary, principal, &request.body.tenant_id)?;
-    validate_authorization(
-        principal,
-        &request.authorization,
-        CLOUD_OBSERVABILITY_AUDIT_READ_SURFACE,
-    )?;
+    // The self-attested principal DTO is optional and NON-AUTHORITATIVE. When
+    // present it must agree with the verified identity; when absent the verified
+    // principal alone is authoritative. The verified principal is ALWAYS the
+    // source of truth — never the DTO.
+    if let Some(principal) = request.principal.as_ref() {
+        if principal.principal_id.trim().is_empty() {
+            return Err(CloudObservabilityApiError::EmptyPrincipalId);
+        }
+        cross_check_verified_principal(verified, principal)?;
+    }
+    // The verified tenant is the TRUSTED tenant axis. Bind the request body to
+    // it; a body tenant that differs is a cross-tenant attempt (403). The header
+    // tenant is likewise bound for defense in depth.
+    bind_tenant_to_verified(verified, &request.boundary, &request.body.tenant_id)?;
+    // Cross-check the non-authoritative correlation DTO when populated.
+    cross_check_authorization_correlation(verified, &request.authorization)?;
+
+    // Derive the action from the requested scope so the broader all-tenant-audit
+    // scope requires strictly more authority than control-plane reads.
+    let scope = parse_audit_scope(&request.body.scope)?;
+    let action = audit_read_action(scope);
+    let resource = authz::AuditReadResource {
+        tenant_id: verified.tenant_id().to_string(),
+        region: request.body.region.clone(),
+        action,
+        request_hash: audit_read_request_hash(verified, action, &request.body),
+    };
+    // SERVER-SIDE PDP decision. Fail-closed: deny and refuse both map to 403.
+    authorizer
+        .ensure_authorized(verified, &resource)
+        .map_err(|_| CloudObservabilityApiError::AuthorizationDenied {
+            action: action.as_str().to_string(),
+        })?;
 
     let request_id = request.boundary.request_id.clone();
-    let tenant_id = request.body.tenant_id.clone();
+    // Project the metadata tenant from the VERIFIED principal, not the caller DTO.
+    let tenant_id = verified.tenant_id().to_string();
     let region = request.body.region.clone();
-    let kernel_request = audit_read_request(request.body)?;
+    // Force the kernel read tenant to the verified tenant so the served data is
+    // scoped to the authorized tenant regardless of any residual DTO value.
+    let mut body = request.body;
+    body.tenant_id = verified.tenant_id().to_string();
+    let kernel_request = audit_read_request(body)?;
     let result = catalog
         .read_audit(kernel_request)
         .map_err(CloudObservabilityApiError::Observability)?;
@@ -451,6 +528,143 @@ pub fn read_cloud_observability_audit_from_api(
     ))
 }
 
+/// Map an audit-read scope to its PDP action. The all-tenant scope exposes
+/// data-plane-security / KMS-use / billing audit and therefore requires its OWN,
+/// strictly-more-privileged action (the C18 coarse-scope fix).
+const fn audit_read_action(scope: AuditReadScope) -> authz::AuditReadAction {
+    match scope {
+        AuditReadScope::ControlPlaneMutations => authz::AuditReadAction::ControlPlaneAuditRead,
+        AuditReadScope::AllTenantAudit => authz::AuditReadAction::AllTenantAuditRead,
+    }
+}
+
+/// A stable, collision-resistant-by-construction hash of the authorized request
+/// shape. Binds the PDP decision to THIS request so it cannot be replayed against
+/// a different body. Uses a length-prefixed field encoding (no separator
+/// injection) hashed with FNV-1a — sufficient as a binding token (NOT a security
+/// MAC; the decision itself is the authority).
+fn audit_read_request_hash(
+    verified: &authz::VerifiedPrincipal,
+    action: authz::AuditReadAction,
+    body: &CloudObservabilityAuditReadRequest,
+) -> String {
+    let mut hasher = Fnv1a::new();
+    hasher.field(CLOUD_OBSERVABILITY_AUDIT_READ_SURFACE.as_bytes());
+    hasher.field(action.as_str().as_bytes());
+    hasher.field(verified.principal_id().as_bytes());
+    hasher.field(verified.tenant_id().as_bytes());
+    hasher.field(body.region.as_bytes());
+    hasher.field(body.scope.trim().as_bytes());
+    let mut topics = body
+        .topics
+        .iter()
+        .map(|topic| topic.value.trim().to_string())
+        .collect::<Vec<_>>();
+    topics.sort();
+    for topic in &topics {
+        hasher.field(topic.as_bytes());
+    }
+    format!("h:{:016x}", hasher.finish())
+}
+
+/// Minimal FNV-1a 64-bit hasher with length-prefixed field framing so distinct
+/// field boundaries cannot be confused by concatenation.
+struct Fnv1a {
+    state: u64,
+}
+
+impl Fnv1a {
+    const OFFSET: u64 = 0xcbf2_9ce4_8422_2325;
+    const PRIME: u64 = 0x0000_0100_0000_01b3;
+
+    fn new() -> Self {
+        Self {
+            state: Self::OFFSET,
+        }
+    }
+
+    fn byte(&mut self, b: u8) {
+        self.state ^= u64::from(b);
+        self.state = self.state.wrapping_mul(Self::PRIME);
+    }
+
+    fn field(&mut self, bytes: &[u8]) {
+        for b in (bytes.len() as u64).to_le_bytes() {
+            self.byte(b);
+        }
+        for &b in bytes {
+            self.byte(b);
+        }
+    }
+
+    fn finish(&self) -> u64 {
+        self.state
+    }
+}
+
+/// Cross-check the self-attested principal DTO against the verified identity. A
+/// mismatch means the caller substituted a different identity than the verifier
+/// bound — reject as Forbidden (never trust the DTO over the credential).
+fn cross_check_verified_principal(
+    verified: &authz::VerifiedPrincipal,
+    principal: &CloudObservabilityApiPrincipal,
+) -> Result<(), CloudObservabilityApiError> {
+    if principal.principal_id != verified.principal_id() {
+        return Err(CloudObservabilityApiError::AuthorizationPrincipalMismatch {
+            authorization_principal_id: verified.principal_id().to_string(),
+            principal_id: principal.principal_id.clone(),
+        });
+    }
+    if principal.tenant_id != verified.tenant_id() {
+        return Err(CloudObservabilityApiError::AuthorizationTenantMismatch {
+            authorization_tenant_id: verified.tenant_id().to_string(),
+            principal_tenant_id: principal.tenant_id.clone(),
+        });
+    }
+    Ok(())
+}
+
+/// Bind the header tenant and the request body tenant to the VERIFIED tenant. A
+/// body or header tenant that differs from the verified tenant is a cross-tenant
+/// attempt (the blast-radius binding) and is rejected.
+fn bind_tenant_to_verified(
+    verified: &authz::VerifiedPrincipal,
+    boundary: &CloudObservabilityApiBoundaryContext,
+    body_tenant_id: &str,
+) -> Result<(), CloudObservabilityApiError> {
+    if boundary.tenant_id != verified.tenant_id() || body_tenant_id != verified.tenant_id() {
+        return Err(CloudObservabilityApiError::TenantMismatch {
+            header_tenant_id: boundary.tenant_id.clone(),
+            principal_tenant_id: Some(verified.tenant_id().to_string()),
+            body_tenant_id: body_tenant_id.to_string(),
+        });
+    }
+    Ok(())
+}
+
+/// Cross-check the NON-AUTHORITATIVE correlation DTO. Its tenant/principal fields,
+/// when populated, must agree with the verified identity; they NEVER grant.
+fn cross_check_authorization_correlation(
+    verified: &authz::VerifiedPrincipal,
+    authorization: &CloudObservabilityApiAuthorization,
+) -> Result<(), CloudObservabilityApiError> {
+    if !authorization.tenant_id.is_empty() && authorization.tenant_id != verified.tenant_id() {
+        return Err(CloudObservabilityApiError::AuthorizationTenantMismatch {
+            authorization_tenant_id: authorization.tenant_id.clone(),
+            principal_tenant_id: verified.tenant_id().to_string(),
+        });
+    }
+    if !authorization.principal_id.is_empty()
+        && authorization.principal_id != verified.principal_id()
+    {
+        return Err(CloudObservabilityApiError::AuthorizationPrincipalMismatch {
+            authorization_principal_id: authorization.principal_id.clone(),
+            principal_id: verified.principal_id().to_string(),
+        });
+    }
+    Ok(())
+}
+
 fn validate_boundary(
     boundary: &CloudObservabilityApiBoundaryContext,
 ) -> Result<(), CloudObservabilityApiError> {
@@ -459,56 +673,6 @@ fn validate_boundary(
     }
     if boundary.tenant_id.trim().is_empty() {
         return Err(CloudObservabilityApiError::EmptyTenantHeader);
-    }
-    Ok(())
-}
-
-fn validate_tenant_binding(
-    boundary: &CloudObservabilityApiBoundaryContext,
-    principal: &CloudObservabilityApiPrincipal,
-    body_tenant_id: &str,
-) -> Result<(), CloudObservabilityApiError> {
-    if principal.principal_id.trim().is_empty() {
-        return Err(CloudObservabilityApiError::EmptyPrincipalId);
-    }
-    if boundary.tenant_id != principal.tenant_id || boundary.tenant_id != body_tenant_id {
-        return Err(CloudObservabilityApiError::TenantMismatch {
-            header_tenant_id: boundary.tenant_id.clone(),
-            principal_tenant_id: Some(principal.tenant_id.clone()),
-            body_tenant_id: body_tenant_id.to_string(),
-        });
-    }
-    Ok(())
-}
-
-fn validate_authorization(
-    principal: &CloudObservabilityApiPrincipal,
-    authorization: &CloudObservabilityApiAuthorization,
-    surface: &str,
-) -> Result<(), CloudObservabilityApiError> {
-    if authorization.decision_id.trim().is_empty() {
-        return Err(CloudObservabilityApiError::EmptyAuthorizationDecisionId);
-    }
-    if authorization.tenant_id != principal.tenant_id {
-        return Err(CloudObservabilityApiError::AuthorizationTenantMismatch {
-            authorization_tenant_id: authorization.tenant_id.clone(),
-            principal_tenant_id: principal.tenant_id.clone(),
-        });
-    }
-    if authorization.principal_id != principal.principal_id {
-        return Err(CloudObservabilityApiError::AuthorizationPrincipalMismatch {
-            authorization_principal_id: authorization.principal_id.clone(),
-            principal_id: principal.principal_id.clone(),
-        });
-    }
-    if !authorization
-        .allowed_surfaces
-        .iter()
-        .any(|allowed_surface| allowed_surface == surface)
-    {
-        return Err(CloudObservabilityApiError::AuthorizationDenied {
-            surface: surface.to_string(),
-        });
     }
     Ok(())
 }
@@ -632,17 +796,11 @@ fn audit_record_class_label(
     record_class: observability_aggregate::AuditRecordClass,
 ) -> &'static str {
     match record_class {
-        observability_aggregate::AuditRecordClass::ControlPlaneMutation => {
-            "control_plane_mutation"
-        }
-        observability_aggregate::AuditRecordClass::DataPlaneSecurity => {
-            "data_plane_security"
-        }
+        observability_aggregate::AuditRecordClass::ControlPlaneMutation => "control_plane_mutation",
+        observability_aggregate::AuditRecordClass::DataPlaneSecurity => "data_plane_security",
         observability_aggregate::AuditRecordClass::BillingAnalytics => "billing_analytics",
         observability_aggregate::AuditRecordClass::Replication => "replication",
-        observability_aggregate::AuditRecordClass::CapacityOperations => {
-            "capacity_operations"
-        }
+        observability_aggregate::AuditRecordClass::CapacityOperations => "capacity_operations",
     }
 }
 
