@@ -257,3 +257,91 @@ fn module_path_for_conventional_files() {
     assert_eq!(module_path_for("flags/core/x", "flags/core/x/src/a/mod.rs"), "a");
     assert_eq!(module_path_for("flags/core/x", "flags/core/x/src/a/b.rs"), "a::b");
 }
+
+// HIGH-1 RED TEST: two `impl Foo` blocks in SEPARATE FILES of the same crate (same module_path "")
+// must produce two DISTINCT facts — not the same fqpath (which would cause silent dedup).
+//
+// The HIGH-1 defect: `WalkState` was reset per `extract_file` call, so both impls got ordinal 0
+// → identical fqpath `Foo#impl[0]` → identical signature_hash → FactSet::from_facts silently
+// dropped one. Fix: use a content-hash disambiguator (impl body tokens) that is per-impl, not
+// per-file-position.
+#[test]
+fn cross_file_impls_same_type_produce_distinct_facts() {
+    // lib.rs: `impl Foo` with method `a`
+    let lib_rs = SourceFile {
+        crate_id: "test-crate".to_owned(),
+        module_path: String::new(), // crate root
+        source: "pub struct Foo; impl Foo { pub fn a(&self) -> u32 { 1 } }".to_owned(),
+    };
+    // main.rs: another `impl Foo` with method `b` — same crate, same module_path, different body
+    let main_rs = SourceFile {
+        crate_id: "test-crate".to_owned(),
+        module_path: String::new(), // also crate root
+        source: "impl Foo { pub fn b(&self) -> u32 { 2 } }".to_owned(),
+    };
+
+    let set = SourceSet::new([lib_rs, main_rs]);
+    let result = extract_corpus(&SynAstSource::new(), &set).unwrap();
+
+    // Collect the impl facts.
+    let impl_facts: Vec<_> = result
+        .facts
+        .facts()
+        .iter()
+        .filter(|f| f.item_kind == corpus_core::ItemKind::Impl)
+        .collect();
+
+    assert_eq!(
+        impl_facts.len(),
+        2,
+        "two `impl Foo` blocks across two files MUST produce 2 distinct impl facts, got {}: {:?}",
+        impl_facts.len(),
+        impl_facts.iter().map(|f| &f.fqpath).collect::<Vec<_>>()
+    );
+
+    // The two impl facts must have different fqpaths (different disambiguators).
+    assert_ne!(
+        impl_facts[0].fqpath, impl_facts[1].fqpath,
+        "cross-file `impl Foo` blocks must have distinct fqpaths"
+    );
+
+    // Methods from both impls must be present (4 total: struct Foo + 2 impls + 2 methods).
+    let method_fqpaths: Vec<_> = result
+        .facts
+        .facts()
+        .iter()
+        .filter(|f| f.item_kind == corpus_core::ItemKind::Function)
+        .map(|f| f.fqpath.as_str())
+        .collect();
+    assert!(method_fqpaths.contains(&"Foo::a"), "method `a` from lib.rs impl must be present");
+    assert!(method_fqpaths.contains(&"Foo::b"), "method `b` from main.rs impl must be present");
+}
+
+// MEDIUM-a TEST: `extern "C" { … }` (ForeignMod) must be counted as opaque (Unhandled),
+// not silently dropped. Same for `trait Alias = Bound;` (TraitAlias).
+#[test]
+fn foreign_mod_and_trait_alias_are_unhandled_opaque() {
+    // ForeignMod: extern "C" block — neither a fact nor a silent drop; must be Unhandled.
+    let foreign_src = r#"
+        extern "C" {
+            pub fn c_fn(x: i32) -> i32;
+        }
+    "#;
+    let e = extract(foreign_src);
+    assert_eq!(e.facts.len(), 0, "ForeignMod must not produce a clean fact");
+    assert_eq!(
+        e.report.by_category.get("unhandled").copied(),
+        Some(1),
+        "ForeignMod must be counted as unhandled opaque"
+    );
+
+    // TraitAlias: `trait Foo = Bar;` — must be Unhandled.
+    let alias_src = "trait MyAlias = Clone + Send;";
+    let e2 = extract(alias_src);
+    assert_eq!(e2.facts.len(), 0, "TraitAlias must not produce a clean fact");
+    assert_eq!(
+        e2.report.by_category.get("unhandled").copied(),
+        Some(1),
+        "TraitAlias must be counted as unhandled opaque"
+    );
+}

@@ -160,6 +160,111 @@ layering, `cargo-semver-checks`' rustdoc-JSON liveness, Bazel's content-addresse
 Google's Kythe/Grok corpus — each a content-addressed code-fact substrate, here reimplemented
 Rust-native, source-level first, semantic-layer deferred behind a port.
 
+## Addendum (post-adversarial-review fixes, same PR)
+
+### A1 — HIGH-1 fix: content-stable impl disambiguator (cross-file impl identity)
+
+The initial spike used a **document-order positional ordinal** (`#impl[0]`, `#impl[1]`, …) keyed
+per `extract_file` call inside `WalkState`. This was per-file-scoped: two `impl Foo` blocks in
+`lib.rs` and `main.rs` of the same crate (same `module_path ""`) both received ordinal 0 →
+identical `fqpath = "Foo#impl[0]"` → identical `signature_hash` → `FactSet::from_facts_checked`
+detected the collision (after the HIGH-2 fix) or silently deduped one away (before). The defect is
+latent in `flags/core/server` today and becomes active as soon as the server adds a second
+top-level impl block in any file.
+
+**Fix**: replace the positional ordinal with a **content-stable body-hash disambiguator** — the
+first 8 hex characters of the blake3 hash of the impl block's own normalized token body
+(`impl_body_disambiguator`). This is a property of the impl's own structure, independent of which
+file it lives in or how many sibling impls exist. `WalkState.impl_ordinals` is removed entirely.
+Two structurally distinct `impl Foo` blocks (even with the same self-type and trait) have different
+method/body tokens → different hash prefix → different `fqpath`. Any hash collision on the 32-bit
+prefix is detected by `FactSet::from_facts_checked` and surfaced as `OpaqueReason::AddressCollision`.
+
+RED test: `cross_file_impls_same_type_produce_distinct_facts` — two `impl Foo` blocks in `lib.rs`
++ `main.rs` of one crate → two distinct impl facts + both methods present.
+
+### A2 — HIGH-2 fix: collision detected, not silently merged
+
+`FactSet::from_facts` previously called `Vec::dedup()` after sort, which silently collapses any
+two facts that compare equal under the total `Ord` — INCLUDING two structurally DISTINCT items
+whose `(crate_id, fqpath, item_kind, visibility)` key is identical but whose hash fields differ.
+For a content-addressed trust root, this is a fault, not a dedup.
+
+**Fix**: `FactSet::from_facts_checked` walks adjacent pairs after sort and distinguishes:
+- **Byte-identical** (same item re-extracted): silent dedup — correct.
+- **Same key, different hashes** (distinct items, same address): returns `Err(FactSetError)` —
+  the corpus extraction layer routes these to `OpaqueReason::AddressCollision` entries in the
+  OPAQUE-RATE report, so both colliding items are visible and neither is silently merged.
+
+`FactSet::from_facts` wraps `from_facts_checked` and panics on collision (the contract for
+callers with already-validated inputs). `extract_corpus` uses the single-pass variant that
+drains collisions to opaque entries in one walk.
+
+RED test: `factset_collision_detected_not_silently_merged` — two facts with same sig pre-image but
+different body tokens → `from_facts_checked` returns `Err`.
+
+### A3 — MEDIUM-a fix: ForeignMod + TraitAlias routed to OpaqueReason::Unhandled
+
+The initial `walk_item` terminal `_ => {}` arm silently dropped `Item::ForeignMod` (`extern "C" {
+… }`) and `Item::TraitAlias` (`trait Alias = Bound;`). These carry real surface area (FFI bindings,
+trait aliases) that a future extractor version should resolve. Routing them to the silent-drop set
+made the OPAQUE-RATE false-low (the dangerous mode: the extractor appeared to see more than it
+could).
+
+**Fix**: `Item::ForeignMod` and `Item::TraitAlias` now emit `OpaqueReason::Unhandled(detail)` so
+they appear in the category-bucketed report. `Item::Use`, `Item::ExternCrate`, and `Item::Verbatim`
+are explicitly named silent-drop arms with comments (they carry no standalone liveness surface in
+v1 and are intentionally not opaque).
+
+A new `OpaqueReason::Unhandled(String)` variant is added to `corpus-core` with a stable category
+tag `"unhandled"`.
+
+Test: `foreign_mod_and_trait_alias_are_unhandled_opaque`.
+
+### A4 — MEDIUM-b: cfg-gated module granularity rule (documented, not changed)
+
+A cfg-gated inline module (`#[cfg(…)] mod tests { … }`) emits **exactly one** `OpaqueReason::CfgGated`
+unit for the entire module, NOT one per descendant item. This is the v1 "1 unit per gated module"
+rule: the extractor cannot walk inside a gated module without evaluating the cfg predicate, so the
+module is a single opaque unit. The consequence: the reported `cfg_gated` count is
+MODULE-granular, not item-granular. A gated module with 50 items counts as 1 opaque unit; the
+item-granular miss-rate is proportionally understated. Report consumers must read `cfg_gated` as
+module-granular. The CfgGated variant doc-comment in `corpus-core` is updated to state this
+explicitly.
+
+For the `flags` spike, all 3 opaque units are `#[cfg(test)] mod tests` modules — so the 6.81%
+opaque rate is 3 modules, not 3 items. The production-item opaque rate is still effectively 0%.
+
+### A5 — v1 liveness granularity limitation: trait methods not individually pinnable
+
+In v1, a `trait Foo { fn method(&self); }` produces **one `Type` fact** for the trait (the whole
+trait token stream is the signature pre-image). The individual method declarations inside the trait
+are not extracted as separate `Function` facts. This means governance can pin the trait's existence
+and whole-definition stability, but cannot pin the liveness of an individual trait method in
+isolation. This is a known v1 limitation of the `syn`-over-source `AstSource` impl.
+
+The `AstSource` seam is forward-compatible: a future v2 extractor can emit per-method trait facts
+without changing the `Function` fact model or any consumer. The limitation is not a blocker for the
+Phase -1 de-risk goal (which is OPAQUE-RATE measurement, not per-method pinning).
+
+### A6 — Proto/codegen blind spot: 45% aggregate true-miss on include_proto! crates
+
+A follow-up measurement spike applied the `syn`-over-source extractor to a proto-heavy capability
+(gRPC services with `tonic::include_proto!` macros). Result: **45% aggregate true-miss** on those
+crates — the `include_proto!` macro expands to a generated module that `syn` sees only as a
+`MacroGenerated` opaque unit, so all generated types/RPCs are invisible to the source-level
+extractor. This is the macro_generated blind spot the spike warned about.
+
+**Founder decision**: the fix is a **contract-IDL sub-extractor FAMILY** behind the `AstSource`
+seam — a `.proto` file parser that emits facts directly from the IDL (not from the generated Rust
+source), extendable to OpenAPI/Cedar/SQL IDLs via the same trait. The rust-analyzer HIR path (a
+semantic, post-expansion fact source) is deferred to a W-tier general fallback.
+
+**Corpus clearance gate**: the corpus is **NOT cleared corpus-wide** until the proto-IDL
+sub-extractor lands and its OPAQUE-RATE is measured. The current `syn`-over-source extractor is
+sufficient only for non-proto capabilities (where OPAQUE-RATE ≤ 10% has been validated). This
+tracks as the next corpus substrate slice, separate from this PR.
+
 ## Governed surfaces
 
 The following repo paths are governed by this ADR. The accounting gate validates that each is

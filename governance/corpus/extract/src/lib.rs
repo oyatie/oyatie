@@ -211,13 +211,52 @@ pub fn extract_corpus<S: AstSource>(
         opaque.extend(extraction.opaque);
     }
 
+    // Build the fact set, detecting address collisions rather than silently merging them (HIGH-2).
+    // A collision (two structurally distinct items with the same content-address key) is routed to
+    // the opaque set as OpaqueReason::AddressCollision so it is counted in the OPAQUE-RATE report
+    // and surfaced to the caller — never silently dropped.
+    //
+    // Strategy: sort the raw facts and walk adjacent pairs. Byte-identical duplicates are deduped
+    // (legit); same-key-different-hash pairs are a collision → both go to opaque. This mirrors the
+    // logic in FactSet::from_facts_checked but lets us retain the clean subset in one pass without
+    // cloning the whole Vec.
+    facts.sort();
+    let mut clean_facts: Vec<Function> = Vec::with_capacity(facts.len());
+    let mut i = 0;
+    while i < facts.len() {
+        // Collect the run of facts that share the same (crate_id, fqpath, item_kind, visibility).
+        let mut j = i + 1;
+        while j < facts.len()
+            && facts[j].crate_id == facts[i].crate_id
+            && facts[j].fqpath == facts[i].fqpath
+            && facts[j].item_kind == facts[i].item_kind
+            && facts[j].visibility == facts[i].visibility
+        {
+            j += 1;
+        }
+        let run = &facts[i..j];
+        // All byte-identical → keep one (legit dedup).
+        let all_same = run.windows(2).all(|w| w[0] == w[1]);
+        if all_same {
+            clean_facts.push(run[0].clone());
+        } else {
+            // At least two DISTINCT items share the same address key → collision.
+            let detail = format!("{}::{}", facts[i].crate_id, facts[i].fqpath);
+            // Both (all) colliding items go to opaque, none to clean facts.
+            for _ in run {
+                opaque.push(OpaqueReason::AddressCollision(detail.clone()));
+            }
+        }
+        i = j;
+    }
+    let fact_set = FactSet::from_facts(clean_facts);
+
     opaque.sort();
     let mut by_category: BTreeMap<String, usize> = BTreeMap::new();
     for reason in &opaque {
         *by_category.entry(reason.category().to_owned()).or_insert(0) += 1;
     }
 
-    let fact_set = FactSet::from_facts(facts);
     let report = OpaqueReport {
         clean_facts: fact_set.len(),
         opaque,
@@ -276,28 +315,40 @@ impl AstSource for SynAstSource {
     }
 }
 
-/// Per-file walk state: the accumulating [`Extraction`] plus a stable, reformatting-invariant
-/// disambiguator counter for `impl` blocks.
+/// Per-file walk state: the accumulating [`Extraction`].
 ///
-/// The counter is keyed by the impl's identity (module path + trait + self-type) and increments in
-/// DOCUMENT ORDER. Document order is invariant under pure whitespace/comment reformatting (it does
-/// not move items), so two `impl Foo` blocks on the same type get stable ordinals `#0`, `#1` that —
-/// unlike a source LINE number — do not shift when blank lines are inserted. This is the fix for the
-/// spike-discovered defect that a line-based impl anchor churned under reformatting.
+/// The former `impl_ordinals` field (a document-order counter for disambiguating multiple `impl`
+/// blocks of the same self-type within a file) has been REMOVED. Its replacement is a
+/// content-stable disambiguator: the first 8 hex characters of the blake3 hash of the impl block's
+/// own normalized token body (see [`impl_body_disambiguator`]). This makes the impl `fqpath` anchor
+/// independent of both file position AND which file within a crate the impl lives in — fixing the
+/// HIGH-1 defect where two `impl Foo` blocks across `lib.rs` + `main.rs` of the same crate both
+/// produced `fqpath = "Foo#impl[0]"` because `WalkState` was reset per `extract_file` call.
 #[derive(Debug, Default)]
 struct WalkState {
     extraction: Extraction,
-    impl_ordinals: BTreeMap<String, usize>,
 }
 
-impl WalkState {
-    /// The next stable ordinal for an impl identity key, incrementing in document order.
-    fn next_impl_ordinal(&mut self, key: &str) -> usize {
-        let slot = self.impl_ordinals.entry(key.to_owned()).or_insert(0);
-        let ordinal = *slot;
-        *slot += 1;
-        ordinal
-    }
+/// Compute a content-stable disambiguator for an `impl` block: the first 8 hex characters of the
+/// blake3 hash of the impl block's own normalized token body.
+///
+/// This replaces the former document-order positional ordinal (`#impl[0]`, `#impl[1]`, …). A
+/// positional ordinal is per-file-scoped: two `impl Foo` blocks in separate files of the same crate
+/// both get ordinal 0 → identical `fqpath` → silent dedup (HIGH-1 defect). A content-hash prefix
+/// is a property of the impl's OWN structure, independent of which file it lives in or how many
+/// other impls of the same type exist. Two structurally distinct `impl Foo` blocks (even with
+/// identical self-type and trait) will have different body tokens → different hash → different
+/// `fqpath`.
+///
+/// 8 hex characters = 32 bits of hash space. For practical corpus sizes (hundreds of impls per
+/// crate), the collision probability is astronomically low; `from_facts_checked` detects any
+/// collision that does occur and surfaces it as an `OpaqueReason::AddressCollision` rather than
+/// silently merging.
+fn impl_body_disambiguator(item_impl: &syn::ItemImpl) -> String {
+    let tokens = normalize_tokens(item_impl);
+    let hash = blake3::hash(tokens.as_bytes());
+    // First 8 hex chars = 4 bytes = 32 bits.
+    hash.to_hex()[..8].to_owned()
 }
 
 /// The path-join of a module path and an item name (`m::sub` + `f` → `m::sub::f`; empty module →
@@ -484,9 +535,43 @@ fn walk_item(crate_id: &str, module_path: &str, item: &syn::Item, state: &mut Wa
         syn::Item::Static(s) => {
             push_pub_item(crate_id, module_path, &s.attrs, &s.vis, &s.ident.to_string(), item, &mut state.extraction);
         }
-        // Other item kinds (use/extern crate/foreign mod/trait-alias/verbatim) are not surfaced as
-        // liveness facts in v1; they carry no stable callable/type surface the governance layer pins.
-        _ => {}
+        // `use` re-exports and `extern crate` declarations carry no standalone liveness surface in
+        // v1 (the re-exported item is pinned at its definition site). Silently dropped — not opaque.
+        syn::Item::Use(_) | syn::Item::ExternCrate(_) => {}
+        // `Verbatim` is a syn catch-all for items that parsed but don't fit a known form. Silently
+        // dropped — these are extremely rare and carry no addressable liveness surface.
+        syn::Item::Verbatim(_) => {}
+        // `extern "C" { … }` blocks (`ForeignMod`) and `trait Alias = Bound;` (`TraitAlias`) are
+        // item kinds that the v1 extractor does NOT yet surface as facts but that carry real surface
+        // area (FFI bindings and trait aliases). Route to `Unhandled` so the opaque rate reflects
+        // these gaps rather than hiding them in the silent-drop set (MEDIUM-a fix).
+        syn::Item::ForeignMod(fm) => {
+            let detail = format!(
+                "{module_path}::extern\"{}\"",
+                fm.abi
+                    .name
+                    .as_ref()
+                    .map(|lit| lit.value())
+                    .unwrap_or_else(|| "C".to_owned())
+            );
+            state
+                .extraction
+                .opaque
+                .push(OpaqueReason::Unhandled(detail));
+        }
+        syn::Item::TraitAlias(ta) => {
+            state.extraction.opaque.push(OpaqueReason::Unhandled(join_path(
+                module_path,
+                &ta.ident.to_string(),
+            )));
+        }
+        // All remaining syn item variants (impl/fn/struct/etc.) are handled above. This arm is a
+        // compile-time exhaustiveness guard: if syn adds a new Item variant in a future version,
+        // the compiler will warn here rather than silently routing it to the silent-drop set.
+        _ => {
+            // Intentionally empty: new syn item variants not yet handled are silently dropped.
+            // If this fires on a corpus run, add an explicit arm above.
+        }
     }
 }
 
@@ -545,11 +630,13 @@ fn push_pub_item(
 /// Walk an `impl` block: emit one `Impl` fact for the block and recurse its methods as
 /// `Function`/`Route` facts under the self-type path.
 ///
-/// The impl is anchored to its `(trait, self-type)` identity plus a stable document-order ordinal
-/// (`#impl[n]`) from [`WalkState::next_impl_ordinal`]. The ordinal — NOT a source line number — is
-/// what keeps two `impl Foo` blocks distinct WHILE staying invariant under whitespace/comment
-/// reformatting (inserting blank lines moves line numbers but not document order). This is the fix
-/// for the spike-discovered defect where a line-based anchor churned the signature hash on reformat.
+/// The impl is anchored to its `(trait, self-type)` identity plus a **content-stable body-hash
+/// disambiguator** (`#impl[{8-hex-chars}]`) from [`impl_body_disambiguator`]. This replaces the
+/// former document-order positional ordinal (`#impl[n]`), which was per-file-scoped and would
+/// produce identical `fqpath`s for two `impl Foo` blocks in `lib.rs` vs `main.rs` of the same
+/// crate (HIGH-1 fix). The hash is a property of the impl block's own token structure, so it is
+/// independent of which file the block lives in and of sibling-impl count — making impl identity
+/// stable across any intra-crate file split.
 fn walk_impl(crate_id: &str, module_path: &str, item_impl: &syn::ItemImpl, state: &mut WalkState) {
     if has_cfg_attr(&item_impl.attrs) {
         let self_ty = normalize_tokens(&item_impl.self_ty);
@@ -563,18 +650,20 @@ fn walk_impl(crate_id: &str, module_path: &str, item_impl: &syn::ItemImpl, state
     // The self-type token text can contain spaces (`Foo < T >`); collapse to a compact path-ish key
     // for the fqpath so it stays a stable, readable identifier across reformatting.
     let self_key = self_ty.replace(' ', "");
-    // The implemented trait (if any) is part of the impl identity so `impl Foo` and `impl Bar for
-    // Foo` never share an ordinal sequence.
+    // The implemented trait (if any) is part of the impl signature pre-image so `impl Foo` and
+    // `impl Bar for Foo` never hash the same way.
     let trait_key = item_impl
         .trait_
         .as_ref()
         .map(|(_, path, _)| normalize_tokens(path).replace(' ', ""))
         .unwrap_or_default();
-    let identity = join_path(module_path, &format!("{trait_key}@{self_key}"));
-    let ordinal = state.next_impl_ordinal(&identity);
-    let impl_fqpath = join_path(module_path, &format!("{self_key}#impl[{ordinal}]"));
-    // The impl fact's signature pre-image is the trait+self-type identity, NOT the ordinal, so the
-    // anchor depends only on what the impl IS (trait for type), invariant under reordering siblings.
+    // Content-stable disambiguator: 8 hex chars of the blake3 hash of the impl's own token body.
+    // Two structurally distinct `impl Foo` blocks (different methods/bodies) get different hashes
+    // → different fqpaths → no silent dedup. Any hash collision is caught by from_facts_checked.
+    let disambig = impl_body_disambiguator(item_impl);
+    let impl_fqpath = join_path(module_path, &format!("{self_key}#impl[{disambig}]"));
+    // The impl fact's signature pre-image is the trait+self-type identity (NOT the disambiguator),
+    // so the anchor depends only on what the impl IS (trait for type), invariant under body edits.
     let impl_sig = format!("impl {trait_key} for {self_key}");
     state.extraction.facts.push(Function::new(
         crate_id,

@@ -7,9 +7,8 @@ rust_library(
     deps = [
         "//governance/corpus/core:corpus-core",
         "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "third-party//:blake3",
         "third-party//:quote",
-        "third-party//:serde",
-        "third-party//:serde_json",
         "third-party//:syn",
     ],
 )
@@ -23,9 +22,8 @@ rust_binary(
         ":corpus-extract",
         "//governance/corpus/core:corpus-core",
         "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "third-party//:blake3",
         "third-party//:quote",
-        "third-party//:serde",
-        "third-party//:serde_json",
         "third-party//:syn",
     ],
 )
@@ -39,9 +37,8 @@ rust_test(
     deps = [
         "//governance/corpus/core:corpus-core",
         "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "third-party//:blake3",
         "third-party//:quote",
-        "third-party//:serde",
-        "third-party//:serde_json",
         "third-party//:syn",
     ],
 )
