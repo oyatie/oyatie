@@ -3813,6 +3813,7 @@
     "docs/decisions/ADR-0572-fail-closed-authz-for-cedar-policy-publish-control-plane.md",
     "docs/decisions/ADR-0580-corpus-substrate-phase-minus-1-syn-extractor-spike.md",
     "docs/decisions/ADR-0581-fail-closed-authz-for-workload-principal-lifecycle-control-plane.md",
+    "docs/decisions/ADR-0586-fail-closed-verified-principal-and-server-side-pdp-authz-for-tenant-create-and-tenant-lifecycle.md",
     "docs/decisions/INDEX.md",
     "docs/decisions/OWNERS",
     "docs/decisions/README.md",
