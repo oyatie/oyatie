@@ -1568,6 +1568,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "connect-address-book-api"
+version = "0.1.0"
+
+[[package]]
+name = "connect-address-book-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "connect-address-book-usecase"
+version = "0.1.0"
+dependencies = [
+ "connect-address-book-api",
+ "connect-address-book-domain",
+]
+
+[[package]]
 name = "console-docs-portal-adapter"
 version = "0.1.0"
 dependencies = [
@@ -5479,13 +5498,6 @@ dependencies = [
 [[package]]
 name = "oya-adapter-substitution-test-app"
 version = "0.1.0"
-
-[[package]]
-name = "oya-address-book-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
 
 [[package]]
 name = "oya-application-app"

@@ -1,21 +1,23 @@
 rust_library(
-    name = "oya-address-book-domain",
+    name = "connect-address-book-usecase",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_address_book_domain",
+    crate = "connect_address_book_usecase",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//comms/core/connect-address-book-domain:connect-address-book-domain",
+        "//comms/ports/connect-address-book-api:connect-address-book-api",
     ],
 )
 
 rust_test(
-    name = "oya-address-book-domain-unittest",
+    name = "connect-address-book-usecase-unittest",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_address_book_domain",
+    crate = "connect_address_book_usecase",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//comms/core/connect-address-book-domain:connect-address-book-domain",
+        "//comms/ports/connect-address-book-api:connect-address-book-api",
     ],
 )
