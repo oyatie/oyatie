@@ -52,7 +52,7 @@ use std::sync::{Arc, Mutex};
 
 use axum::Json;
 use axum::Router;
-use axum::extract::{DefaultBodyLimit, Path, State};
+use axum::extract::{Path, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::routing::post;
@@ -98,13 +98,6 @@ pub const PRINCIPAL_RETIRE_ROUTE: &str = "/principals/{id}:retire";
 /// The two public `*_ROUTE` constants above remain the documented/OpenAPI shape.
 const PRINCIPAL_LIFECYCLE_PATTERN: &str = "/principals/{id_and_verb}";
 
-/// Maximum request body the lifecycle control-plane accepts before deserializing.
-/// A mutating control plane must bound the body it reads from an unverified socket
-/// (AUTH-005 failure-class (e): authn-before-body). 16 KiB is generous for the
-/// empty/near-empty lifecycle request envelope; oversized bodies are 413 before
-/// any work. The authorize/validate PEP endpoints carry a JWT and keep the axum
-/// default; only the lifecycle surface tightens here.
-const LIFECYCLE_MAX_BODY_BYTES: usize = 16 * 1024;
 
 // =====================================================================
 // Caller authorization seam (AUTH-005 fail-closed control plane)
@@ -230,11 +223,23 @@ impl AuthzFault {
 /// maps both `Ok(false)` and `Err(_)` to `403` (fail-closed; failure-class (e)).
 /// Cross-tenant requests MUST be denied regardless of how many allow rules match
 /// (deny is authoritative at the service boundary). A production adapter is the
-/// cloud-iam Cedar PDP client; it must catch its own panics and surface them as
-/// `Err` rather than unwinding into this `#![forbid(unsafe_code)]` crate.
+/// cloud-iam Cedar PDP client.
+///
+/// # Adapter contract (MUST be upheld by every implementation)
+///
+/// 1. **Fault mapping**: every error, timeout, or unavailability MUST map to
+///    `Err(AuthzFault)` — never panic, never return `Ok(true)` on failure.
+/// 2. **Deadline enforcement**: the adapter MUST enforce its own call deadline.
+///    `decide()` is called WITHOUT any repository or denylist lock held; a slow
+///    adapter stalls only the in-flight request, not the service mutex.
+/// 3. **No panics**: the adapter MUST NOT panic. Production release builds use
+///    `panic = "abort"`, so `catch_unwind` is not a backstop — a panicking
+///    adapter aborts the process. Surface all failures as `Err(AuthzFault)`.
 pub trait LifecycleAuthorizer: Send + Sync {
     /// Decide whether the verified caller may perform the lifecycle mutation on
     /// the target principal.
+    ///
+    /// Called with NO locks held. See the trait-level adapter contract above.
     ///
     /// # Errors
     /// Returns [`AuthzFault`] on any PDP adapter failure; the caller denies.
@@ -352,6 +357,11 @@ pub struct AuditRecord {
     action: Option<String>, // data_class: INTERNAL_ONLY
     resource_type: Option<String>, // data_class: INTERNAL_ONLY
     resource_id: Option<String>,   // data_class: INTERNAL_ONLY
+    /// Verified caller identity that authorized (or attempted) the operation.
+    /// Populated on lifecycle-control-plane decisions where a verified caller
+    /// is present; `None` on token-validation records.
+    caller_id: Option<String>,     // data_class: INTERNAL_ONLY
+    caller_tenant: Option<String>, // data_class: INTERNAL_ONLY
 }
 
 impl AuditRecord {
@@ -371,6 +381,8 @@ impl AuditRecord {
             action: None,
             resource_type: None,
             resource_id: None,
+            caller_id: None,
+            caller_tenant: None,
         }
     }
 
@@ -386,6 +398,20 @@ impl AuditRecord {
         self.action = Some(action.into());
         self.resource_type = Some(resource_type.into());
         self.resource_id = Some(resource_id.into());
+        self
+    }
+
+    /// Attach the verified caller identity that authorized (or attempted) the
+    /// operation. Must be set for all lifecycle-control-plane audit records so
+    /// incident response can answer "who authorized the retire/suspend".
+    #[must_use]
+    pub fn with_caller(
+        mut self,
+        caller_id: impl Into<String>,
+        caller_tenant: impl Into<String>,
+    ) -> Self {
+        self.caller_id = Some(caller_id.into());
+        self.caller_tenant = Some(caller_tenant.into());
         self
     }
 
@@ -429,6 +455,18 @@ impl AuditRecord {
     #[must_use]
     pub fn resource_id(&self) -> Option<&str> {
         self.resource_id.as_deref()
+    }
+
+    /// The verified caller id, when attached (lifecycle control-plane records).
+    #[must_use]
+    pub fn caller_id(&self) -> Option<&str> {
+        self.caller_id.as_deref()
+    }
+
+    /// The verified caller's tenant, when attached (lifecycle control-plane records).
+    #[must_use]
+    pub fn caller_tenant(&self) -> Option<&str> {
+        self.caller_tenant.as_deref()
     }
 }
 
@@ -738,12 +776,11 @@ where
         )
         .route(
             PRINCIPAL_LIFECYCLE_PATTERN,
-            // AUTH-005 failure-class (e): bound the body the mutating control
-            // plane reads from an unverified socket. The route_layer applies the
-            // limit to this lifecycle route only; the authz check itself runs in
-            // the handler on the request Parts (headers) before the body is read.
-            post(principal_lifecycle_handler::<R, D, A, S>)
-                .route_layer(DefaultBodyLimit::max(LIFECYCLE_MAX_BODY_BYTES)),
+            // The lifecycle handler reads only request Parts (headers + path params);
+            // there is no body extractor, so DefaultBodyLimit would never fire a 413.
+            // Body-limit enforcement is deferred to the global axum layer at the
+            // service entry point (ADR-0581 §"Body-limit").
+            post(principal_lifecycle_handler::<R, D, A, S>),
         )
         .with_state(state)
 }
@@ -1128,21 +1165,27 @@ impl LifecycleOp {
 ///    verified principal ⇒ `401` (failure-class (b): caller headers never
 ///    authorize). Done before any store work.
 /// 2. Validate the id shape (`400` on a malformed id).
-/// 3. LOAD the target principal under the repository lock to derive its REAL
-///    tenant from the trusted store (NOT the caller's tenant, NOT a header)
-///    (failure-class (d): true blast radius / no IDOR). An unknown principal is
-///    a `404` after authn (existence is not leaked to an unauthenticated caller).
-/// 4. Authorize via the PDP ([`LifecycleAuthorizer`]) bound to caller_tenant +
-///    the TARGET's tenant + action; a `Forbid` OR any `Err` (PDP fault/timeout)
-///    ⇒ `403` (failure-class (e): fail-closed, never `500`/allow). A cross-tenant
-///    suspend/retire is deniable here.
-/// 5. ONLY THEN run the app use-case against the mutex-guarded store + denylist.
+/// 3. Acquire the repository + denylist locks, LOAD the target principal to
+///    derive its REAL tenant from the trusted store (NOT the caller's tenant,
+///    NOT a header) (failure-class (d): true blast radius / no IDOR), then
+///    **release the locks**. An unknown principal is a `404` after authn.
+/// 4. Authorize via the PDP ([`LifecycleAuthorizer`]) — **WITHOUT any lock
+///    held** — bound to `caller_tenant` + the TARGET's tenant + action. A slow
+///    or hung PDP adapter stalls only this request, not the service mutex.
+///    `Ok(false)` ⇒ `403` (policy deny). `Err(_)` ⇒ `403` (PDP fault —
+///    fail-closed, never `500`/allow; failure-class (e)). The two outcomes
+///    emit DISTINCT audit details for incident-response separability.
+/// 5. Re-acquire the locks, re-load the target to guard against the
+///    load→authorize→mutate TOCTOU window, then run the use-case.
+///
+///    The load (step 3) and re-load (step 5) intentionally re-read from the
+///    same mutex-guarded store so a concurrent state change is never silently
+///    clobbered.
 ///    An illegal transition is `409`; a store outage is `503`.
 ///
-/// The load (step 3) and the mutation (step 5) hold the SAME repository lock, so
-/// the load→authorize→mutate window is atomic w.r.t. the mutex (no TOCTOU on the
-/// target's tenant). Exactly one audit record is emitted for the authorize
-/// decision (preserving the per-decision audit invariant).
+/// Exactly one audit record is emitted for the authorize decision (preserving
+/// the per-decision audit invariant). The record includes the verified caller
+/// identity (caller_id + caller_tenant) for incident-response attribution.
 fn lifecycle_transition<R, D, A, S>(
     state: &WorkloadAuthzState<R, D, A, S>,
     headers: &HeaderMap,
@@ -1190,6 +1233,108 @@ where
         }
     };
 
+    // (3) Acquire locks, load the target to derive its REAL tenant, then DROP
+    // locks before calling the PDP. A slow/hung PDP adapter must not hold the
+    // repository or denylist lock — it stalls only the current request.
+    let target_tenant = {
+        let mut repo_guard = match state.repository.lock() {
+            Ok(guard) => guard,
+            Err(poisoned) => poisoned.into_inner(),
+        };
+        match repo_guard.load(&workload_id) {
+            Ok(Some(principal)) => principal.tenant_id().as_str().to_owned(),
+            Ok(None) => {
+                // Authenticated caller, but no such principal: 404. An UNVERIFIED
+                // caller never reaches here — it 401s at step 1. See ADR-0581
+                // §"Existence oracle" for the verified-caller-only residual.
+                return (
+                    StatusCode::NOT_FOUND,
+                    Json(ApiErrorEnvelope::not_found(None)),
+                )
+                    .into_response();
+            }
+            Err(_) => {
+                // Store read failure ⇒ fail-closed 503 (never allow the mutation).
+                return (
+                    StatusCode::SERVICE_UNAVAILABLE,
+                    Json(ApiErrorEnvelope::dependency_unavailable(None)),
+                )
+                    .into_response();
+            }
+        }
+        // repo_guard drops here — locks released before PDP call below.
+    };
+    let action = op.action();
+
+    // (4) PDP decision — NO locks held. The LifecycleAuthorizer adapter contract
+    // requires adapters to enforce their own deadline and surface all faults as
+    // Err(AuthzFault) rather than panicking. See trait-level doc for the full
+    // contract. `Ok(true)` = permit; `Ok(false)` = policy deny; `Err(_)` = PDP
+    // fault. The last two both return 403 (fail-closed) but emit DISTINCT audit
+    // details so a PDP outage is distinguishable from a real policy deny.
+    let authz_request = LifecycleAuthzRequest {
+        caller_tenant: caller.caller_tenant(),
+        caller_id: caller.caller_id(),
+        action,
+        target_tenant: &target_tenant,
+        target_workload_id: workload_id.as_str(),
+    };
+    let decide_result = state.lifecycle_authorizer.decide(&authz_request);
+    match decide_result {
+        Ok(true) => {} // fall through to re-acquire + mutate
+        Ok(false) => {
+            // Intentional policy deny.
+            state.audit.record(
+                AuditRecord::new(
+                    AuditEvent::Authorize,
+                    Some(workload_id.as_str().to_owned()),
+                    "deny",
+                    Some("lifecycle-forbidden".to_owned()),
+                )
+                .with_authorization_target(action.as_str(), "Workload", workload_id.as_str())
+                .with_caller(caller.caller_id(), caller.caller_tenant()),
+            );
+            return (
+                StatusCode::FORBIDDEN,
+                Json(ApiErrorEnvelope::forbidden(None)),
+            )
+                .into_response();
+        }
+        Err(_fault) => {
+            // PDP fault/outage — fail-closed 403, DISTINCT detail from policy deny.
+            state.audit.record(
+                AuditRecord::new(
+                    AuditEvent::Authorize,
+                    Some(workload_id.as_str().to_owned()),
+                    "deny",
+                    Some("lifecycle-pdp-fault".to_owned()),
+                )
+                .with_authorization_target(action.as_str(), "Workload", workload_id.as_str())
+                .with_caller(caller.caller_id(), caller.caller_tenant()),
+            );
+            return (
+                StatusCode::FORBIDDEN,
+                Json(ApiErrorEnvelope::forbidden(None)),
+            )
+                .into_response();
+        }
+    }
+
+    // Authorized: emit the allow record (with caller attribution) before mutating.
+    state.audit.record(
+        AuditRecord::new(
+            AuditEvent::Authorize,
+            Some(workload_id.as_str().to_owned()),
+            "allow",
+            Some("lifecycle-permitted".to_owned()),
+        )
+        .with_authorization_target(action.as_str(), "Workload", workload_id.as_str())
+        .with_caller(caller.caller_id(), caller.caller_tenant()),
+    );
+
+    // (5) Re-acquire locks and re-load the target to guard the TOCTOU window
+    // between step 3 (load for tenant derivation) and the mutation: a concurrent
+    // state change must not be silently clobbered.
     let mut repo_guard = match state.repository.lock() {
         Ok(guard) => guard,
         Err(poisoned) => poisoned.into_inner(),
@@ -1198,79 +1343,6 @@ where
         Ok(guard) => guard,
         Err(poisoned) => poisoned.into_inner(),
     };
-
-    // (3) Load the target FIRST to derive its REAL tenant from the trusted store.
-    let target_principal = match repo_guard.load(&workload_id) {
-        Ok(Some(principal)) => principal,
-        Ok(None) => {
-            // Authenticated caller, but no such principal: a 404 (the caller is
-            // verified, so leaking existence is acceptable; an UNVERIFIED caller
-            // never reaches here — it 401s at step 1).
-            return (
-                StatusCode::NOT_FOUND,
-                Json(ApiErrorEnvelope::not_found(None)),
-            )
-                .into_response();
-        }
-        Err(_) => {
-            // Store read failure ⇒ fail-closed 503 (never allow the mutation).
-            return (
-                StatusCode::SERVICE_UNAVAILABLE,
-                Json(ApiErrorEnvelope::dependency_unavailable(None)),
-            )
-                .into_response();
-        }
-    };
-    let target_tenant = target_principal.tenant_id().as_str().to_owned();
-    let action = op.action();
-
-    // (4) PDP decision bound to caller_tenant + the TARGET's tenant. Both an
-    // explicit deny and any PDP fault map to a fail-closed 403.
-    let authz_request = LifecycleAuthzRequest {
-        caller_tenant: caller.caller_tenant(),
-        caller_id: caller.caller_id(),
-        action,
-        target_tenant: &target_tenant,
-        target_workload_id: workload_id.as_str(),
-    };
-    // PDP fault/timeout ⇒ fail-closed deny (never 500, never allow, never hang):
-    // `Err(_)` and `Ok(false)` both collapse to `false` (bool default).
-    let permitted = state
-        .lifecycle_authorizer
-        .decide(&authz_request)
-        .unwrap_or_default();
-    if !permitted {
-        state.audit.record(
-            AuditRecord::new(
-                AuditEvent::Authorize,
-                Some(workload_id.as_str().to_owned()),
-                "deny",
-                Some("lifecycle-forbidden".to_owned()),
-            )
-            .with_authorization_target(
-                action.as_str(),
-                "Workload",
-                workload_id.as_str(),
-            ),
-        );
-        return (
-            StatusCode::FORBIDDEN,
-            Json(ApiErrorEnvelope::forbidden(None)),
-        )
-            .into_response();
-    }
-    // Authorized: one audit record for the allow decision before mutating.
-    state.audit.record(
-        AuditRecord::new(
-            AuditEvent::Authorize,
-            Some(workload_id.as_str().to_owned()),
-            "allow",
-            Some("lifecycle-permitted".to_owned()),
-        )
-        .with_authorization_target(action.as_str(), "Workload", workload_id.as_str()),
-    );
-
-    // (5) Run the mutation under the SAME lock acquisition (atomic w.r.t. step 3).
     let result = match op {
         LifecycleOp::Suspend => suspend(&mut *repo_guard, &mut *denylist_guard, &workload_id),
         LifecycleOp::Retire => retire(&mut *repo_guard, &mut *denylist_guard, &workload_id),

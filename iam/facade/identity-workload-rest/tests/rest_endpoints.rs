@@ -31,13 +31,14 @@ use iam_identity_workload_authz_cedar::CedarWorkloadAuthorizer;
 use iam_identity_workload_domain::{WorkloadId, WorkloadPrincipal};
 use iam_identity_workload_oidc::{Jwk, Jwks, ValidationConfig};
 use iam_identity_workload_rest::{
-    AuditEvent, InMemoryAuditSink, SharedState, WorkloadAuthzState, build_router,
+    AuditEvent, AuditRecord, InMemoryAuditSink, SharedState, WorkloadAuthzState, build_router,
 };
 
 use common::{
     AUDIENCE, AllowAllLifecycleAuthorizer, FailingRepository, FaultingLifecycleAuthorizer, ISSUER,
-    LIFECYCLE_BEARER, NOW, SameTenantLifecycleAuthorizer, lifecycle_verifier, mint_token,
-    permit_authorizer, provisioned_state,
+    LIFECYCLE_BEARER, LIFECYCLE_CALLER_ID, LIFECYCLE_CALLER_TENANT, NOW,
+    SameTenantLifecycleAuthorizer, lifecycle_verifier, mint_token, permit_authorizer,
+    provisioned_state,
 };
 use iam_identity_workload_rest::BearerCallerVerifier;
 
@@ -605,5 +606,141 @@ async fn lifecycle_pdp_fault_is_403_not_500() {
         status,
         StatusCode::FORBIDDEN,
         "a PDP fault must fail closed to 403, never 500 or allow"
+    );
+}
+
+/// PDP-FAULT audit detail is DISTINCT from a policy-deny detail. Both return 403
+/// but a PDP outage must be distinguishable from an intentional deny in the audit
+/// chain so incident response can tell misconfiguration from a real policy block.
+#[tokio::test]
+async fn lifecycle_pdp_fault_audit_detail_is_distinct_from_policy_deny() {
+    let minted = mint_token();
+
+    // --- fault case: FaultingLifecycleAuthorizer ---
+    let mut repo_fault = InMemoryWorkloadPrincipalRepository::new();
+    provision(&mut repo_fault, "ten_acme", "wl_secrets_sync", "cap.cloud.kms")
+        .expect("provision");
+    activate(&mut repo_fault, &WorkloadId::new("wl_secrets_sync").unwrap()).expect("activate");
+    let audit_fault = InMemoryAuditSink::new();
+    let state_fault: SharedState<_, _, _, _> = Arc::new(WorkloadAuthzState::with_clock(
+        repo_fault,
+        InMemoryRevocationDenylist::new(),
+        permit_authorizer(),
+        Jwks::new().add_key(minted.jwk.clone()),
+        ValidationConfig::new(ISSUER, AUDIENCE),
+        audit_fault.clone(),
+        lifecycle_verifier(),
+        Arc::new(FaultingLifecycleAuthorizer),
+        || NOW,
+    ));
+    let (status_fault, _) = post_json_bearer(
+        build_router(state_fault),
+        "/principals/wl_secrets_sync:suspend",
+        json!({}),
+        LIFECYCLE_BEARER,
+    )
+    .await;
+    assert_eq!(status_fault, StatusCode::FORBIDDEN);
+    let fault_records: Vec<AuditRecord> = audit_fault
+        .records()
+        .into_iter()
+        .filter(|r| r.event() == AuditEvent::Authorize && r.outcome() == "deny")
+        .collect();
+    assert_eq!(fault_records.len(), 1, "exactly one deny audit record");
+    assert_eq!(
+        fault_records[0].detail(),
+        Some("lifecycle-pdp-fault"),
+        "PDP fault must emit 'lifecycle-pdp-fault', not 'lifecycle-forbidden'"
+    );
+
+    // --- policy-deny case: cross-tenant caller forces SameTenantLifecycleAuthorizer to deny ---
+    let mut repo_deny = InMemoryWorkloadPrincipalRepository::new();
+    provision(&mut repo_deny, "ten_acme", "wl_secrets_sync", "cap.cloud.kms")
+        .expect("provision");
+    activate(&mut repo_deny, &WorkloadId::new("wl_secrets_sync").unwrap()).expect("activate");
+    let audit_deny = InMemoryAuditSink::new();
+    let deny_verifier = Arc::new(BearerCallerVerifier::new(
+        LIFECYCLE_BEARER,
+        "ten_other", // different tenant -> SameTenant denies
+        "other-plane",
+    ));
+    let state_deny: SharedState<_, _, _, _> = Arc::new(WorkloadAuthzState::with_clock(
+        repo_deny,
+        InMemoryRevocationDenylist::new(),
+        permit_authorizer(),
+        Jwks::new().add_key(minted.jwk.clone()),
+        ValidationConfig::new(ISSUER, AUDIENCE),
+        audit_deny.clone(),
+        deny_verifier,
+        Arc::new(SameTenantLifecycleAuthorizer),
+        || NOW,
+    ));
+    let (status_deny, _) = post_json_bearer(
+        build_router(state_deny),
+        "/principals/wl_secrets_sync:suspend",
+        json!({}),
+        LIFECYCLE_BEARER,
+    )
+    .await;
+    assert_eq!(status_deny, StatusCode::FORBIDDEN);
+    let deny_records: Vec<AuditRecord> = audit_deny
+        .records()
+        .into_iter()
+        .filter(|r| r.event() == AuditEvent::Authorize && r.outcome() == "deny")
+        .collect();
+    assert_eq!(deny_records.len(), 1, "exactly one deny audit record");
+    assert_eq!(
+        deny_records[0].detail(),
+        Some("lifecycle-forbidden"),
+        "policy deny must emit 'lifecycle-forbidden', not 'lifecycle-pdp-fault'"
+    );
+}
+
+/// AUDIT ATTRIBUTION: the lifecycle audit record for an authorized allow (and
+/// deny) must carry the verified caller's id and tenant — not None — so incident
+/// response can answer "WHO authorized the retire/suspend".
+#[tokio::test]
+async fn lifecycle_audit_records_caller_attribution() {
+    let minted = mint_token();
+    let mut repo = InMemoryWorkloadPrincipalRepository::new();
+    provision(&mut repo, "ten_acme", "wl_secrets_sync", "cap.cloud.kms").expect("provision");
+    activate(&mut repo, &WorkloadId::new("wl_secrets_sync").unwrap()).expect("activate");
+    let audit = InMemoryAuditSink::new();
+    let state: SharedState<_, _, _, _> = Arc::new(WorkloadAuthzState::with_clock(
+        repo,
+        InMemoryRevocationDenylist::new(),
+        permit_authorizer(),
+        Jwks::new().add_key(minted.jwk.clone()),
+        ValidationConfig::new(ISSUER, AUDIENCE),
+        audit.clone(),
+        lifecycle_verifier(), // bound to LIFECYCLE_CALLER_ID / LIFECYCLE_CALLER_TENANT
+        Arc::new(AllowAllLifecycleAuthorizer),
+        || NOW,
+    ));
+
+    let (status, _) = post_json_bearer(
+        build_router(state),
+        "/principals/wl_secrets_sync:suspend",
+        json!({}),
+        LIFECYCLE_BEARER,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+
+    let allow_records: Vec<AuditRecord> = audit
+        .records()
+        .into_iter()
+        .filter(|r| r.event() == AuditEvent::Authorize && r.outcome() == "allow")
+        .collect();
+    assert_eq!(allow_records.len(), 1, "exactly one allow audit record");
+    assert_eq!(
+        allow_records[0].caller_id(),
+        Some(LIFECYCLE_CALLER_ID),
+        "audit record must carry the verified caller_id"
+    );
+    assert_eq!(
+        allow_records[0].caller_tenant(),
+        Some(LIFECYCLE_CALLER_TENANT),
+        "audit record must carry the verified caller_tenant"
     );
 }

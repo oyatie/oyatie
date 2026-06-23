@@ -74,20 +74,28 @@ the cedar-publish remediation surfaced.
    app-layer `suspend`/`retire` (the gRPC surface does not expose lifecycle). Any in-crate caller of
    a lifecycle mutation passes the same gate.
 
-4. **True blast radius / no IDOR.** The handler LOADS the target principal first, under the same
-   repository lock it later mutates under, and derives `target_tenant` from the loaded store record —
-   never from the caller's tenant or a header. A cross-tenant suspend/retire (caller in tenant A
-   acting on tenant B's principal) is therefore deniable by the tenant-scoped PDP. The load and the
-   mutation share one lock-acquisition window, so there is no TOCTOU on the target's tenant.
+4. **True blast radius / no IDOR.** The handler acquires the repository lock, loads the target
+   principal, derives `target_tenant` from the loaded store record — never from the caller's tenant
+   or a header — then DROPS the lock before calling the PDP. On an allow decision the lock is
+   re-acquired and the mutation runs. A cross-tenant suspend/retire (caller in tenant A acting on
+   tenant B's principal) is therefore deniable by the tenant-scoped PDP. The load→drop→decide→
+   re-acquire pattern means a slow or hung PDP adapter stalls only the in-flight request, not the
+   service mutex (availability fix, round-2 hardening).
 
 5. **Authn before body + PDP-fault → deny.** The handler extracts `HeaderMap` (a `FromRequestParts`
-   extractor, evaluated before any body) and the lifecycle route carries an explicit
-   `DefaultBodyLimit`. A PDP `Err`/`Ok(false)` both map to a fail-closed `403` — never `500`, never
-   allow, never hang. No verified caller is `401`.
+   extractor, evaluated before any body — no body extractor is present, so no body bytes are read).
+   A PDP `Err` maps to a fail-closed `403` with audit detail `"lifecycle-pdp-fault"`; `Ok(false)`
+   (explicit policy deny) maps to `403` with distinct detail `"lifecycle-forbidden"`. Both never
+   `500`, never allow. No verified caller is `401`. The two fault classes emit distinct audit details
+   so a PDP outage is distinguishable from a real policy block during incident response
+   (round-2 hardening).
 
-6. **Audit invariant preserved.** Exactly one immutable `AuditRecord` is emitted per lifecycle
-   authorize decision (deny-on-unverified, deny-on-forbid, allow-before-mutation), with the
-   authorization target attached, consistent with the crate's one-record-per-decision contract.
+6. **Audit invariant preserved with caller attribution.** Exactly one immutable `AuditRecord` is
+   emitted per lifecycle authorize decision (deny-on-unverified, deny-on-policy, deny-on-pdp-fault,
+   allow-before-mutation). Every deny/allow record carries `with_caller(caller_id, caller_tenant)`
+   from the verified `VerifiedCaller` so incident response can answer WHO authorized a retire/suspend
+   (round-2 hardening). The `LifecycleAuthorizer` adapter contract is documented on the trait:
+   adapters MUST map every fault to `Err`, MUST enforce their own deadline, MUST NOT panic.
 
 ## Consequences
 
@@ -111,6 +119,31 @@ the cedar-publish remediation surfaced.
 - The reference `TenantScopedLifecycleAuthorizer` (composition root) enforces same-tenant isolation;
   a richer Cedar-policy-backed cloud-iam PDP swaps in behind the `LifecycleAuthorizer` port without
   touching the REST surface.
+
+## Accepted residuals (verified-caller-only; not security gaps)
+
+### Existence oracle (LOW)
+
+After a successful authn step (step 1 in `lifecycle_transition`) the handler returns `404` for an
+unknown target principal and `403` for a known-but-unauthorized one. A lifecycle-bearer holder can
+therefore distinguish "this workload id does not exist" from "this workload id exists but you are
+denied". This is an **accepted residual**: the information is disclosed only to a verified, bearer-
+authenticated caller, never to an unauthenticated one (unauthenticated callers get `401` before any
+store work). The blast radius is confined to bearer holders, who are already trusted to know the
+workload ids they operate on. If this residual is ever re-evaluated (e.g., a future control-plane
+audit finds the distinction actionable to an insider), the fix is to return `403` uniformly after
+authn (collapsing 404 and 403), which is a one-line change in `lifecycle_transition`.
+
+### Body-limit (LOW)
+
+The lifecycle routes previously carried `DefaultBodyLimit::max(16 KiB)` via `route_layer`. The
+handler `principal_lifecycle_handler` has no body extractor (`Json`, `Bytes`, etc.) — it reads only
+`HeaderMap` + `Path` (both `FromRequestParts`). Without a body extractor axum never reads the
+request body; the `DefaultBodyLimit` middleware would therefore never trigger a `413`. To avoid
+overclaiming ("body limit enforced" when it is not), the `DefaultBodyLimit` route layer and the
+`LIFECYCLE_MAX_BODY_BYTES` const have been removed. Body-size limiting for the lifecycle surface is
+deferred to the global axum `DefaultBodyLimit` layer applied at the service entry point (the binary's
+`build_service` in `identity-service`), which covers all routes including the lifecycle ones.
 
 ## Alternatives considered
 
