@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:5a663b7cf0e326ef",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:c3d95d5b708358a5"
+    "source_inputs_digest": "fnv1a64:b378be5fc91e834d"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -21764,8 +21764,6 @@
           "tenancy/observability/slos/latency.openslo.yaml",
           "tenancy/ports/api/BUCK",
           "tenancy/ports/api/Cargo.toml",
-          "tenancy/ports/api/src/lib.rs",
-          "tenancy/ports/api/tests/tenant_create_api.rs",
           "tenancy/ports/cli/BUCK",
           "tenancy/ports/cli/Cargo.toml",
           "tenancy/ports/cli/src/main.rs",
