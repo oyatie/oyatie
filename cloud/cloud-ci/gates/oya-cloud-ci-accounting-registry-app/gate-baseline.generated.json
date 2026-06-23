@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:5a663b7cf0e326ef",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:47f8d022eb2d23d2"
+    "source_inputs_digest": "fnv1a64:2c2ed3db1623566d"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -5083,7 +5083,6 @@
           "billing/adapters/accounting-storage-inmemory/tests/storage.rs",
           "billing/core/accounting-app/BUCK",
           "billing/core/accounting-app/Cargo.toml",
-          "billing/core/accounting-app/src/lib.rs",
           "billing/core/accounting-app/tests/app_envelopes.rs",
           "billing/core/accounting-journal/BUCK",
           "billing/core/accounting-journal/Cargo.toml",
@@ -21753,8 +21752,6 @@
           "tenancy/observability/slos/latency.openslo.yaml",
           "tenancy/ports/api/BUCK",
           "tenancy/ports/api/Cargo.toml",
-          "tenancy/ports/api/src/lib.rs",
-          "tenancy/ports/api/tests/tenant_create_api.rs",
           "tenancy/ports/cli/BUCK",
           "tenancy/ports/cli/Cargo.toml",
           "tenancy/ports/cli/src/main.rs",
@@ -33609,10 +33606,6 @@
           "oya/payroll/crates/oya-payroll-run-domain/tests/rulepack_manifest.rs",
           "oya/payroll/crates/oya-payroll-run-domain/tests/support.rs",
           "oya/payroll/crates/oya-payroll-run-domain/tests/variance.rs",
-          "oya/payroll/crates/oya-payroll-run-infrastructure/BUCK",
-          "oya/payroll/crates/oya-payroll-run-infrastructure/Cargo.toml",
-          "oya/payroll/crates/oya-payroll-run-infrastructure/src/lib.rs",
-          "oya/payroll/crates/oya-payroll-run-infrastructure/tests/runtime.rs",
           "oya/payroll/crates/oya-payroll-run-storage-adapter-inmemory/BUCK",
           "oya/payroll/crates/oya-payroll-run-storage-adapter-inmemory/Cargo.toml",
           "oya/payroll/crates/oya-payroll-run-storage-adapter-inmemory/src/lib.rs",

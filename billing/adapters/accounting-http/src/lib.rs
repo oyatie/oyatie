@@ -11,6 +11,16 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
+mod authz;
+
+pub use authz::{
+    AUTHORIZATION_HEADER, AccountingAuthzMiddleware, AccountingAuthzProvider,
+    AccountingMutationAction, AccountingMutationAuthorizationError, AccountingMutationAuthorizer,
+    AccountingMutationResource, AuthzProviderConfigError, CallerCredential,
+    ConfiguredBearerPrincipalVerifier, PrincipalVerificationError, PrincipalVerifier,
+    VERIFIED_TENANT_CAPTURE_KEY, VerifiedPrincipal, action_for_template, constant_time_eq,
+};
+
 use std::time::Duration;
 
 use billing_accounting_api::{
@@ -141,8 +151,20 @@ pub fn accounting_server_config() -> ServerConfig {
         .with_keepalive_timeout(Duration::from_secs(30))
 }
 
-pub fn accounting_runtime_chain() -> MiddlewareChain<HttpRequest, HttpResponse> {
-    MiddlewareChain::new()
+/// Build the runtime middleware chain with the AUTH-005 fail-closed authz
+/// middleware installed FIRST (ADR-0593). The [`AccountingAuthzMiddleware`]
+/// verifies the caller principal and runs the PDP decision on every
+/// money-mutation route BEFORE the terminal handler deserializes the body; it
+/// short-circuits 401/403.
+///
+/// There is NO zero-argument / default chain: the composition root MUST supply
+/// an [`AccountingAuthzProvider`] (verifier + PDP authorizer), so a money
+/// mutation can never be served without both ports running.
+#[must_use]
+pub fn accounting_runtime_chain(
+    provider: AccountingAuthzProvider,
+) -> MiddlewareChain<HttpRequest, HttpResponse> {
+    MiddlewareChain::new().push(Box::new(AccountingAuthzMiddleware::new(provider)))
 }
 
 pub fn accounting_runtime_router() -> Result<Router<SyncHandler>, AccountingRuntimeError> {
@@ -170,9 +192,16 @@ pub fn accounting_runtime_router() -> Result<Router<SyncHandler>, AccountingRunt
     Ok(router)
 }
 
-pub fn dispatch_accounting_request(request: HttpRequest) -> HttpResponse {
+/// Dispatch an accounting runtime request through the fail-closed authz chain
+/// (ADR-0593). The `provider` (principal verifier + PDP authorizer) is required —
+/// money-mutation routes are gated 401/403 before any handler runs. Health is
+/// passed through unauthenticated by the middleware.
+pub fn dispatch_accounting_request(
+    request: HttpRequest,
+    provider: AccountingAuthzProvider,
+) -> HttpResponse {
     match accounting_runtime_router() {
-        Ok(router) => dispatch_http(request, &router, &accounting_runtime_chain()),
+        Ok(router) => dispatch_http(request, &router, &accounting_runtime_chain(provider)),
         Err(error) => json_response(
             500,
             &ApiErrorEnvelope::validation(
@@ -180,6 +209,32 @@ pub fn dispatch_accounting_request(request: HttpRequest) -> HttpResponse {
                 Some(error.to_string()),
             ),
         ),
+    }
+}
+
+/// Cross-check that the body-claimed `tenant_id` equals the VERIFIED tenant the
+/// authz middleware injected into `path_captures`. A mismatch is a cross-tenant
+/// body substitution attempt (true blast radius): tenant A presenting a verified
+/// credential but a body naming tenant B. Fail-closed -> HTTP 403.
+///
+/// Returns `Err(403)` when the verified tenant is absent (the mutation reached a
+/// handler without passing the authz middleware — defense in depth) or differs
+/// from the body tenant.
+fn enforce_body_tenant_matches_verified(
+    req: &HttpRequest,
+    body_tenant_id: &str,
+) -> Result<(), HttpResponse> {
+    match req.path_captures.get(VERIFIED_TENANT_CAPTURE_KEY) {
+        Some(verified) if constant_time_eq(verified.as_bytes(), body_tenant_id.as_bytes()) => {
+            Ok(())
+        }
+        _ => Err(json_response(
+            403,
+            &ApiErrorEnvelope::validation(
+                "Accounting mutation tenant does not match the verified principal",
+                None,
+            ),
+        )),
     }
 }
 
@@ -193,6 +248,7 @@ impl oya_http_middleware_kernel::Handler for JournalPostHandler {
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
         let request: JournalPostRequest = parse_json(&req.body)?;
+        enforce_body_tenant_matches_verified(&req, &request.tenant_id)?;
         let outcome = post_journal_with_audit(request.into_domain()).map_err(app_error_response)?;
         Ok(json_response(
             202,
@@ -212,6 +268,7 @@ impl oya_http_middleware_kernel::Handler for PayrollPostingHandler {
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
         let request: PayrollPostingRequest = parse_json(&req.body)?;
+        enforce_body_tenant_matches_verified(&req, &request.tenant_id)?;
         let outcome = record_payroll_posting(request.into_domain()).map_err(app_error_response)?;
         Ok(json_response(
             202,
@@ -231,6 +288,7 @@ impl oya_http_middleware_kernel::Handler for VatWorkflowHandler {
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
         let request: VatDeadlineRequest = parse_json(&req.body)?;
+        enforce_body_tenant_matches_verified(&req, &request.tenant_id)?;
         let outcome = plan_vat_workflow(request.into_domain()).map_err(app_error_response)?;
         let response = match outcome.dispatch_envelope {
             Some(envelope) => VatWorkflowPlanResponse {
