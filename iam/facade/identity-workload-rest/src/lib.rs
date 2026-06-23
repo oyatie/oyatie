@@ -52,8 +52,8 @@ use std::sync::{Arc, Mutex};
 
 use axum::Json;
 use axum::Router;
-use axum::extract::{Path, State};
-use axum::http::StatusCode;
+use axum::extract::{DefaultBodyLimit, Path, State};
+use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::routing::post;
 
@@ -68,8 +68,8 @@ use iam_identity_workload_app::{
 };
 use iam_identity_workload_authz_cedar::WorkloadAuthorizer;
 use iam_identity_workload_domain::{
-    Action, AuthorizationDecision, AuthorizationRequest, ClaimValue, WorkloadId, WorkloadPrincipal,
-    Resource, WorkloadState,
+    Action, AuthorizationDecision, AuthorizationRequest, ClaimValue, Resource, WorkloadId,
+    WorkloadPrincipal, WorkloadState,
 };
 use iam_identity_workload_oidc::{Jwks, ValidationConfig, validate_workload_token};
 
@@ -97,6 +97,215 @@ pub const PRINCIPAL_RETIRE_ROUTE: &str = "/principals/{id}:retire";
 /// segment — `<id>:<verb>` — is captured in one param and split in the handler.
 /// The two public `*_ROUTE` constants above remain the documented/OpenAPI shape.
 const PRINCIPAL_LIFECYCLE_PATTERN: &str = "/principals/{id_and_verb}";
+
+/// Maximum request body the lifecycle control-plane accepts before deserializing.
+/// A mutating control plane must bound the body it reads from an unverified socket
+/// (AUTH-005 failure-class (e): authn-before-body). 16 KiB is generous for the
+/// empty/near-empty lifecycle request envelope; oversized bodies are 413 before
+/// any work. The authorize/validate PEP endpoints carry a JWT and keep the axum
+/// default; only the lifecycle surface tightens here.
+const LIFECYCLE_MAX_BODY_BYTES: usize = 16 * 1024;
+
+// =====================================================================
+// Caller authorization seam (AUTH-005 fail-closed control plane)
+// =====================================================================
+//
+// The two mutating lifecycle routes (`:suspend`, `:retire`) are a control plane:
+// without a guard, any caller who reaches the socket can revoke/terminate any
+// principal. ADR-0581 closes that by requiring, for every lifecycle mutation,
+// BOTH a verified UNFORGEABLE caller credential (failure-class (b)) AND a
+// fail-closed PDP authorization decision scoped to the TARGET principal's real
+// tenant (failure-class (d)). Both are clean PORTS owned by this boundary crate;
+// the concrete cloud-iam PDP client + credential store are adapters outside it
+// (owned-W5 shape). The guard is enforced at the in-crate choke point
+// [`lifecycle_transition`], not only at the HTTP edge (failure-class (c)).
+
+/// A caller whose credential the [`CallerVerifier`] has VERIFIED. The inner
+/// fields are private and there is no public constructor, so a `VerifiedCaller`
+/// can ONLY be minted by a verifier that proved an unforgeable credential — a
+/// handler cannot fabricate one from caller-supplied headers (failure-class (b)).
+/// It is the type-level proof that authn ran before any mutation.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct VerifiedCaller {
+    /// The tenant the verified caller acts within (derived from the credential,
+    /// NEVER from a caller-supplied `x-*` header).
+    caller_tenant: String, // data_class: INTERNAL_ONLY
+    /// A stable identity label for the caller (e.g. the credential subject), for
+    /// the PDP request + audit detail.
+    caller_id: String, // data_class: INTERNAL_ONLY
+}
+
+impl VerifiedCaller {
+    /// The verified caller's tenant.
+    #[must_use]
+    pub fn caller_tenant(&self) -> &str {
+        &self.caller_tenant
+    }
+
+    /// The verified caller's identity label.
+    #[must_use]
+    pub fn caller_id(&self) -> &str {
+        &self.caller_id
+    }
+}
+
+/// Caller-authentication PORT: derive a [`VerifiedCaller`] from the request
+/// headers by checking an UNFORGEABLE credential (a constant-time bearer compare,
+/// or — in a production adapter — mTLS/SPIFFE peer identity). Returns `None` when
+/// no valid credential is present: the handler maps that to `401` (default-deny).
+/// Caller-supplied `x-principal-*` / `x-authorization-*` headers MUST NOT
+/// authorize — only a verified credential mints a [`VerifiedCaller`].
+pub trait CallerVerifier: Send + Sync {
+    /// Verify the caller's credential. `None` ⇒ no verified principal ⇒ `401`.
+    fn verify_principal(&self, headers: &HeaderMap) -> Option<VerifiedCaller>;
+}
+
+/// Which lifecycle mutation a [`LifecycleAuthorizer`] is being asked to permit.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum LifecycleAction {
+    /// `POST /principals/{id}:suspend`.
+    Suspend,
+    /// `POST /principals/{id}:retire`.
+    Retire,
+}
+
+impl LifecycleAction {
+    /// Stable wire label (mirrors the Cedar action names).
+    #[must_use]
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Suspend => "identity.workload.Suspend",
+            Self::Retire => "identity.workload.Retire",
+        }
+    }
+}
+
+/// A fully-bound lifecycle authorization request handed to the PDP. The
+/// `caller_tenant` is the verified caller's tenant; the `target_tenant` is the
+/// TARGET principal's real tenant, derived from the trusted store after loading
+/// it (NEVER the caller's own tenant, NEVER a header). A PDP that enforces
+/// tenant isolation can therefore DENY a cross-tenant suspend/retire (caller in
+/// tenant A retiring tenant B's principal) — closing the IDOR/blast-radius axis
+/// (failure-class (d)).
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct LifecycleAuthzRequest<'a> {
+    /// Verified caller's tenant (trusted).
+    pub caller_tenant: &'a str,
+    /// Verified caller's identity label (trusted).
+    pub caller_id: &'a str,
+    /// The mutation requested.
+    pub action: LifecycleAction,
+    /// The TARGET principal's tenant, derived from the loaded store record.
+    pub target_tenant: &'a str,
+    /// The TARGET principal's workload id.
+    pub target_workload_id: &'a str,
+}
+
+/// A fail-closed PDP fault. Any adapter error/timeout maps to this and the
+/// handler denies (`403`) — a PDP outage never allows and never 500s
+/// (failure-class (e)).
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct AuthzFault {
+    detail: String, // data_class: INTERNAL_ONLY
+}
+
+impl AuthzFault {
+    /// Construct a fault with a human-facing detail.
+    #[must_use]
+    pub fn new(detail: impl Into<String>) -> Self {
+        Self {
+            detail: detail.into(),
+        }
+    }
+
+    /// Borrow the detail string.
+    #[must_use]
+    pub fn detail(&self) -> &str {
+        &self.detail
+    }
+}
+
+/// Lifecycle authorization PORT (the PDP seam). Returns `Ok(true)` to PERMIT,
+/// `Ok(false)` to DENY, and `Err(AuthzFault)` for any adapter fault — the caller
+/// maps both `Ok(false)` and `Err(_)` to `403` (fail-closed; failure-class (e)).
+/// Cross-tenant requests MUST be denied regardless of how many allow rules match
+/// (deny is authoritative at the service boundary). A production adapter is the
+/// cloud-iam Cedar PDP client; it must catch its own panics and surface them as
+/// `Err` rather than unwinding into this `#![forbid(unsafe_code)]` crate.
+pub trait LifecycleAuthorizer: Send + Sync {
+    /// Decide whether the verified caller may perform the lifecycle mutation on
+    /// the target principal.
+    ///
+    /// # Errors
+    /// Returns [`AuthzFault`] on any PDP adapter failure; the caller denies.
+    fn decide(&self, request: &LifecycleAuthzRequest<'_>) -> Result<bool, AuthzFault>;
+}
+
+/// Constant-time byte comparison — NEVER `==` for a credential (timing-safe).
+/// Mirrors the proven `intelligence/adapters/rest` helper; kept local so the
+/// boundary crate has no extra dependency.
+#[must_use]
+fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
+    let max_len = a.len().max(b.len());
+    let mut diff = a.len() ^ b.len();
+    for index in 0..max_len {
+        let left = a.get(index).copied().unwrap_or(0);
+        let right = b.get(index).copied().unwrap_or(0);
+        diff |= (left ^ right) as usize;
+    }
+    diff == 0
+}
+
+/// Reference [`CallerVerifier`] adapter: a single configured bearer token bound
+/// to one caller identity + tenant, compared in constant time. Production swaps
+/// in an mTLS/SPIFFE or cloud-iam credential-store adapter behind the same port.
+/// An empty/unset configured token verifies NOTHING (every caller is `401`):
+/// there is no allow-all path.
+#[derive(Clone, Debug)]
+pub struct BearerCallerVerifier {
+    token: String,         // data_class: SECRET
+    caller_tenant: String, // data_class: INTERNAL_ONLY
+    caller_id: String,     // data_class: INTERNAL_ONLY
+}
+
+impl BearerCallerVerifier {
+    /// Build a verifier for one configured bearer credential. The bound caller
+    /// identity + tenant are what a successful verify returns (never headers).
+    #[must_use]
+    pub fn new(
+        token: impl Into<String>,
+        caller_tenant: impl Into<String>,
+        caller_id: impl Into<String>,
+    ) -> Self {
+        Self {
+            token: token.into(),
+            caller_tenant: caller_tenant.into(),
+            caller_id: caller_id.into(),
+        }
+    }
+}
+
+impl CallerVerifier for BearerCallerVerifier {
+    fn verify_principal(&self, headers: &HeaderMap) -> Option<VerifiedCaller> {
+        let configured = self.token.trim();
+        if configured.is_empty() {
+            // No configured credential ⇒ no caller can be verified (fail-closed).
+            return None;
+        }
+        let presented = headers
+            .get("authorization")
+            .and_then(|value| value.to_str().ok())
+            .and_then(|value| value.strip_prefix("Bearer "))?;
+        if constant_time_eq(presented.as_bytes(), configured.as_bytes()) {
+            Some(VerifiedCaller {
+                caller_tenant: self.caller_tenant.clone(),
+                caller_id: self.caller_id.clone(),
+            })
+        } else {
+            None
+        }
+    }
+}
 
 // =====================================================================
 // Audit sink (PRD §3.3 / AC-W-13)
@@ -304,6 +513,13 @@ where
     config: ValidationConfig,
     audit: S,
     now_provider: fn() -> i64,
+    /// Caller-authentication port for the mutating lifecycle control plane.
+    /// REQUIRED (non-optional): the router cannot serve `:suspend`/`:retire`
+    /// without it, and there is no allow-all default (AUTH-005 default-deny).
+    caller_verifier: Arc<dyn CallerVerifier>,
+    /// Lifecycle authorization (PDP) port for the mutating control plane.
+    /// REQUIRED (non-optional): a missing/erroring decision is fail-closed deny.
+    lifecycle_authorizer: Arc<dyn LifecycleAuthorizer>,
 }
 
 impl<R, D, A, S> WorkloadAuthzState<R, D, A, S>
@@ -314,8 +530,10 @@ where
     S: AuditSink + 'static,
 {
     /// Assemble the state from its parts, using a real wall-clock for token
-    /// temporal validation.
+    /// temporal validation. The caller-verifier + lifecycle-authorizer ports are
+    /// REQUIRED — the mutating control plane cannot be built without them.
     #[must_use]
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         repository: R,
         denylist: D,
@@ -323,6 +541,8 @@ where
         jwks: Jwks,
         config: ValidationConfig,
         audit: S,
+        caller_verifier: Arc<dyn CallerVerifier>,
+        lifecycle_authorizer: Arc<dyn LifecycleAuthorizer>,
     ) -> Self {
         Self::with_clock(
             repository,
@@ -331,13 +551,16 @@ where
             jwks,
             config,
             audit,
+            caller_verifier,
+            lifecycle_authorizer,
             default_now,
         )
     }
 
     /// Assemble the state with an explicit `now` provider (deterministic clock
-    /// for tests).
+    /// for tests). The caller-verifier + lifecycle-authorizer ports are REQUIRED.
     #[must_use]
+    #[allow(clippy::too_many_arguments)]
     pub fn with_clock(
         repository: R,
         denylist: D,
@@ -345,6 +568,8 @@ where
         jwks: Jwks,
         config: ValidationConfig,
         audit: S,
+        caller_verifier: Arc<dyn CallerVerifier>,
+        lifecycle_authorizer: Arc<dyn LifecycleAuthorizer>,
         now_provider: fn() -> i64,
     ) -> Self {
         Self {
@@ -355,6 +580,8 @@ where
             config,
             audit,
             now_provider,
+            caller_verifier,
+            lifecycle_authorizer,
         }
     }
 
@@ -511,7 +738,12 @@ where
         )
         .route(
             PRINCIPAL_LIFECYCLE_PATTERN,
-            post(principal_lifecycle_handler::<R, D, A, S>),
+            // AUTH-005 failure-class (e): bound the body the mutating control
+            // plane reads from an unverified socket. The route_layer applies the
+            // limit to this lifecycle route only; the authz check itself runs in
+            // the handler on the request Parts (headers) before the body is read.
+            post(principal_lifecycle_handler::<R, D, A, S>)
+                .route_layer(DefaultBodyLimit::max(LIFECYCLE_MAX_BODY_BYTES)),
         )
         .with_state(state)
 }
@@ -742,6 +974,11 @@ where
 /// method).
 async fn principal_lifecycle_handler<R, D, A, S>(
     State(state): State<SharedState<R, D, A, S>>,
+    // `HeaderMap` is a `FromRequestParts` extractor — it runs BEFORE any body is
+    // read, so the caller is verified before an arbitrary body is deserialized
+    // (AUTH-005 failure-class (e): authn before body). The lifecycle envelope is
+    // intentionally empty, so this handler never deserializes a body at all.
+    headers: HeaderMap,
     Path(id_and_verb): Path<String>,
 ) -> Response
 where
@@ -772,7 +1009,7 @@ where
                 .into_response();
         }
     };
-    lifecycle_transition(&state, id, op)
+    lifecycle_transition(&state, &headers, id, op)
 }
 
 // =====================================================================
@@ -872,12 +1109,43 @@ enum LifecycleOp {
     Retire,
 }
 
-/// Shared suspend/retire control-plane flow: validate the id shape, run the
-/// app use-case against the mutex-guarded store + denylist, and map the result
-/// onto an HTTP response. A not-found principal is a `404`; an illegal
-/// transition is a `409`; a store outage is `503`.
+impl LifecycleOp {
+    /// The PDP action this operation authorizes against.
+    fn action(self) -> LifecycleAction {
+        match self {
+            Self::Suspend => LifecycleAction::Suspend,
+            Self::Retire => LifecycleAction::Retire,
+        }
+    }
+}
+
+/// Shared suspend/retire control-plane flow — the FAIL-CLOSED choke point for the
+/// mutating lifecycle routes (ADR-0581 / AUTH-005). Enforced HERE (not only at the
+/// HTTP edge) so any in-crate caller of a lifecycle mutation passes the same gate
+/// (failure-class (c)). Order is deliberate and fail-closed:
+///
+/// 1. Verify the caller's UNFORGEABLE credential ([`CallerVerifier`]); no
+///    verified principal ⇒ `401` (failure-class (b): caller headers never
+///    authorize). Done before any store work.
+/// 2. Validate the id shape (`400` on a malformed id).
+/// 3. LOAD the target principal under the repository lock to derive its REAL
+///    tenant from the trusted store (NOT the caller's tenant, NOT a header)
+///    (failure-class (d): true blast radius / no IDOR). An unknown principal is
+///    a `404` after authn (existence is not leaked to an unauthenticated caller).
+/// 4. Authorize via the PDP ([`LifecycleAuthorizer`]) bound to caller_tenant +
+///    the TARGET's tenant + action; a `Forbid` OR any `Err` (PDP fault/timeout)
+///    ⇒ `403` (failure-class (e): fail-closed, never `500`/allow). A cross-tenant
+///    suspend/retire is deniable here.
+/// 5. ONLY THEN run the app use-case against the mutex-guarded store + denylist.
+///    An illegal transition is `409`; a store outage is `503`.
+///
+/// The load (step 3) and the mutation (step 5) hold the SAME repository lock, so
+/// the load→authorize→mutate window is atomic w.r.t. the mutex (no TOCTOU on the
+/// target's tenant). Exactly one audit record is emitted for the authorize
+/// decision (preserving the per-decision audit invariant).
 fn lifecycle_transition<R, D, A, S>(
     state: &WorkloadAuthzState<R, D, A, S>,
+    headers: &HeaderMap,
     id: &str,
     op: LifecycleOp,
 ) -> Response
@@ -887,6 +1155,27 @@ where
     A: WorkloadAuthorizer + Send + Sync + 'static,
     S: AuditSink + 'static,
 {
+    // (1) AUTHN — unforgeable verified caller, BEFORE any store work or body read.
+    let Some(caller) = state.caller_verifier.verify_principal(headers) else {
+        // No verified principal ⇒ default-deny 401. A self-attested header cannot
+        // reach this branch's `Some` (the verifier ignores them).
+        state.audit.record(
+            AuditRecord::new(
+                AuditEvent::Authorize,
+                None,
+                "deny",
+                Some("unverified-caller".to_owned()),
+            )
+            .with_authorization_target(op.action().as_str(), "Workload", id),
+        );
+        return (
+            StatusCode::UNAUTHORIZED,
+            Json(ApiErrorEnvelope::unauthorized(None)),
+        )
+            .into_response();
+    };
+
+    // (2) Validate the id shape.
     let workload_id = match WorkloadId::new(id.to_owned()) {
         Ok(id) => id,
         Err(error) => {
@@ -900,6 +1189,7 @@ where
                 .into_response();
         }
     };
+
     let mut repo_guard = match state.repository.lock() {
         Ok(guard) => guard,
         Err(poisoned) => poisoned.into_inner(),
@@ -908,6 +1198,79 @@ where
         Ok(guard) => guard,
         Err(poisoned) => poisoned.into_inner(),
     };
+
+    // (3) Load the target FIRST to derive its REAL tenant from the trusted store.
+    let target_principal = match repo_guard.load(&workload_id) {
+        Ok(Some(principal)) => principal,
+        Ok(None) => {
+            // Authenticated caller, but no such principal: a 404 (the caller is
+            // verified, so leaking existence is acceptable; an UNVERIFIED caller
+            // never reaches here — it 401s at step 1).
+            return (
+                StatusCode::NOT_FOUND,
+                Json(ApiErrorEnvelope::not_found(None)),
+            )
+                .into_response();
+        }
+        Err(_) => {
+            // Store read failure ⇒ fail-closed 503 (never allow the mutation).
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(ApiErrorEnvelope::dependency_unavailable(None)),
+            )
+                .into_response();
+        }
+    };
+    let target_tenant = target_principal.tenant_id().as_str().to_owned();
+    let action = op.action();
+
+    // (4) PDP decision bound to caller_tenant + the TARGET's tenant. Both an
+    // explicit deny and any PDP fault map to a fail-closed 403.
+    let authz_request = LifecycleAuthzRequest {
+        caller_tenant: caller.caller_tenant(),
+        caller_id: caller.caller_id(),
+        action,
+        target_tenant: &target_tenant,
+        target_workload_id: workload_id.as_str(),
+    };
+    // PDP fault/timeout ⇒ fail-closed deny (never 500, never allow, never hang):
+    // `Err(_)` and `Ok(false)` both collapse to `false` (bool default).
+    let permitted = state
+        .lifecycle_authorizer
+        .decide(&authz_request)
+        .unwrap_or_default();
+    if !permitted {
+        state.audit.record(
+            AuditRecord::new(
+                AuditEvent::Authorize,
+                Some(workload_id.as_str().to_owned()),
+                "deny",
+                Some("lifecycle-forbidden".to_owned()),
+            )
+            .with_authorization_target(
+                action.as_str(),
+                "Workload",
+                workload_id.as_str(),
+            ),
+        );
+        return (
+            StatusCode::FORBIDDEN,
+            Json(ApiErrorEnvelope::forbidden(None)),
+        )
+            .into_response();
+    }
+    // Authorized: one audit record for the allow decision before mutating.
+    state.audit.record(
+        AuditRecord::new(
+            AuditEvent::Authorize,
+            Some(workload_id.as_str().to_owned()),
+            "allow",
+            Some("lifecycle-permitted".to_owned()),
+        )
+        .with_authorization_target(action.as_str(), "Workload", workload_id.as_str()),
+    );
+
+    // (5) Run the mutation under the SAME lock acquisition (atomic w.r.t. step 3).
     let result = match op {
         LifecycleOp::Suspend => suspend(&mut *repo_guard, &mut *denylist_guard, &workload_id),
         LifecycleOp::Retire => retire(&mut *repo_guard, &mut *denylist_guard, &workload_id),
