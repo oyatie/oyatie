@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:5a663b7cf0e326ef",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:c3d95d5b708358a5"
+    "source_inputs_digest": "fnv1a64:32c6fe8daeac6340"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -11929,15 +11929,12 @@
           "network/observability/slos/cloud-network/autosharding-events.openslo.yaml",
           "network/ports/dns/BUCK",
           "network/ports/dns/Cargo.toml",
-          "network/ports/dns/src/lib.rs",
           "network/ports/dns/tests/cloud_network_dns_api.rs",
           "network/ports/lb/BUCK",
           "network/ports/lb/Cargo.toml",
-          "network/ports/lb/src/lib.rs",
           "network/ports/lb/tests/cloud_network_lb_api.rs",
           "network/ports/vpc/BUCK",
           "network/ports/vpc/Cargo.toml",
-          "network/ports/vpc/src/lib.rs",
           "network/ports/vpc/tests/cloud_network_vpc_api.rs",
           "observability/observability/slos/alerting-fanout-latency.openslo.yaml",
           "observability/observability/slos/clickhouse-ingest-throughput.openslo.yaml",
