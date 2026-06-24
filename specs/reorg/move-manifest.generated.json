@@ -2,32 +2,32 @@
   "capability": "comms",
   "crate_dirs": [
     {
-      "new_path": "comms/core/connect-address-book-domain",
-      "old_path": "oya/connect/crates/oya-address-book-domain"
+      "new_path": "comms/core/calendar-domain",
+      "old_path": "oya/calendar/crates/oya-calendar-domain"
     }
   ],
   "crate_idents": [
     {
-      "new": "connect-address-book-domain",
-      "old": "oya-address-book-domain"
+      "new": "comms-calendar-domain",
+      "old": "oya-calendar-domain"
     }
   ],
   "files": [
     {
-      "new_path": "comms/core/connect-address-book-domain/BUCK",
-      "old_path": "oya/connect/crates/oya-address-book-domain/BUCK"
+      "new_path": "comms/core/calendar-domain/BUCK",
+      "old_path": "oya/calendar/crates/oya-calendar-domain/BUCK"
     },
     {
-      "new_path": "comms/core/connect-address-book-domain/Cargo.toml",
-      "old_path": "oya/connect/crates/oya-address-book-domain/Cargo.toml"
+      "new_path": "comms/core/calendar-domain/Cargo.toml",
+      "old_path": "oya/calendar/crates/oya-calendar-domain/Cargo.toml"
     },
     {
-      "new_path": "comms/core/connect-address-book-domain/src/lib.rs",
-      "old_path": "oya/connect/crates/oya-address-book-domain/src/lib.rs"
+      "new_path": "comms/core/calendar-domain/src/lib.rs",
+      "old_path": "oya/calendar/crates/oya-calendar-domain/src/lib.rs"
     },
     {
-      "new_path": "registry/catalog/connect-address-book-domain.yaml",
-      "old_path": "registry/catalog/oya-address-book-domain.yaml"
+      "new_path": "registry/catalog/comms-calendar-domain.yaml",
+      "old_path": "registry/catalog/oya-calendar-domain.yaml"
     }
   ],
   "schema": "oya-ci/reorg-move-manifest/v1"
