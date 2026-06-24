@@ -1365,10 +1365,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "comms-meet-api"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-protocol-parity-kernel",
+]
+
+[[package]]
 name = "comms-meet-domain"
 version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "comms-meet-usecase"
+version = "0.1.0"
+dependencies = [
+ "comms-meet-api",
+ "comms-meet-domain",
 ]
 
 [[package]]
