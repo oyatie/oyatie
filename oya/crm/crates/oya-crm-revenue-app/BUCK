@@ -48,3 +48,20 @@ rust_test(
         "third-party//:tracing-subscriber",
     ],
 )
+
+rust_test(
+    name = "oya-crm-revenue-app-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_crm_revenue_app",
+    crate_root = "src/lib.rs",
+    env = {"CARGO_PKG_VERSION": "0.1.0", "CARGO_PKG_NAME": "oya-crm-revenue-app"},
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:clap",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:toml",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)
