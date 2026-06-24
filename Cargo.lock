@@ -6021,6 +6021,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-ci-materializer-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "oya-ci-tide-app"
 version = "0.1.0"
 dependencies = [

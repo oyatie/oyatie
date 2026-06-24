@@ -134,6 +134,29 @@ The synthetic fixture (`tests/fixtures/synthetic-repo/control-plane.json`) conta
 repo with `buck2` + `node-codegen` runners, proving the engine is repo-agnostic with ZERO engine
 code changes — only a runner binding + manifest rows.
 
+### Ownership + justification manifest (ADR-0555 D2 / total-accounting onboarding)
+
+Owner: `libs/oya-ci-materializer-kernel/OWNERS` = `cloud-ci-platform` — the build/ meta-home owner
+(ADR-0562 capability-registry membership_lint_coverage: `libs/oya-ci-materializer-kernel` maps to
+the `build/` meta directory, the off-runtime-ladder CI engines + buck2/workspace/manifest tooling,
+the same team that owns the cloud-ci gate fleet and the `tools/oya-*-app` build tooling). The
+crate's sources are reachable via the `libs/oya-*` cargo-members glob (ADR-0538); the
+member-dir prefix covers the whole crate directory, not only Rust files, so the `BUCK`, `Cargo.toml`,
+`OWNERS`, and `tests/fixtures/*.json` non-Rust files are reachable too. No catalog record is minted:
+the pure `libs/*-kernel` siblings (`libs/oya-ci-config`, `libs/oya-crate-registrar-kernel`) carry
+none (the gate-tool default for a build/-home kernel). Files commissioned by this decision:
+
+`libs/oya-ci-materializer-kernel/BUCK`,
+`libs/oya-ci-materializer-kernel/Cargo.toml`,
+`libs/oya-ci-materializer-kernel/OWNERS`,
+`libs/oya-ci-materializer-kernel/src/evaluate.rs`,
+`libs/oya-ci-materializer-kernel/src/lib.rs`,
+`libs/oya-ci-materializer-kernel/src/model.rs`,
+`libs/oya-ci-materializer-kernel/src/plan.rs`,
+`libs/oya-ci-materializer-kernel/tests/conformance.rs`,
+`libs/oya-ci-materializer-kernel/tests/fixtures/synthetic-repo/control-plane.json`,
+`libs/oya-ci-materializer-kernel/tests/fixtures/synthetic-repo/transitive-chain.json`.
+
 ## Consequences
 
 ### Positive
