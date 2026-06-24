@@ -126,7 +126,10 @@ impl ExportPacket {
 
 /// WCAG 2.2 AA timeline: an ordered list with per-row announcements covering
 /// event type, timestamp, evidence path, freshness, signature status, and
-/// linked change id; blocking gaps render with `role="alert"`.
+/// linked change id. The `<li>` carries no explicit `role` (A-12: the implicit
+/// list-item role is preserved); a blocking row instead emits a dedicated
+/// `role="alert"` gap message *inside* the row, so assistive tech announces the
+/// blocking gap without overriding the list-item semantics.
 #[component]
 pub fn AuditEvidenceTimeline(variant: TimelineVariant, rows: Vec<EvidenceRow>) -> impl IntoView {
     view! {
@@ -147,13 +150,16 @@ pub fn AuditEvidenceTimeline(variant: TimelineVariant, rows: Vec<EvidenceRow>) -
                             .map(EvidencePath::display)
                             .unwrap_or_else(|| "evidence missing".to_owned());
                         view! {
+                            // A-12: no role="listitem" on <li> (implicit role preserved). data-severity /
+                            // data-blocking drive CSS only; the blocking announcement is carried by the
+                            // role="alert" gap message below, not by the list item.
                             <li
                                 data-severity=match severity {
                                     RowSeverity::Ok => "ok",
                                     RowSeverity::Warning => "warning",
                                     RowSeverity::Blocking => "blocking",
                                 }
-                                role=if blocking { "alert" } else { "listitem" }
+                                data-blocking=blocking
                             >
                                 <time>{row.timestamp.clone()}</time>
                                 <strong>{row.event_type.clone()}</strong>
@@ -162,7 +168,10 @@ pub fn AuditEvidenceTimeline(variant: TimelineVariant, rows: Vec<EvidenceRow>) -
                                 <span class="ds-linked-change">{row.linked_change_id.clone()}</span>
                                 {blocking
                                     .then(|| view! {
-                                        <p class="ds-blocking-gap">
+                                        // A-12: blocking gaps must be announced — role="alert" on the
+                                        // dedicated message element (not the <li>) restores the assertive
+                                        // live-region announcement without clobbering list semantics.
+                                        <p class="ds-blocking-gap" role="alert">
                                             "Blocking gap: this row must be resolved before the timeline can certify"
                                         </p>
                                     })}
