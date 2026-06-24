@@ -21,24 +21,20 @@ rust_test(
 )
 
 # ADR-0600 root-workspace-hygiene: the born-blocking self-test over the live tracked-path corpus.
-# It loads the committed allowlist policy + the producer's git-ls-files snapshot
-# (scm-facts.generated.json), asserts the gate is GREEN on today's clean allowlisted root tree,
-# and proves a tracked `foo.log` injected at root is born-blocking RED (the make-impossible
-# guarantee). HERMETIC: the test execs the buck2-BUILT producer to materialize scm-facts (no
-# `cargo run`); the producer reads the committed scm-facts face (a declared input) — no git in the
-# action. G-INTEGRITY track: no build-graph dep on the firewall.
+# It loads the committed allowlist policy + the committed scm-facts.generated.json snapshot
+# (a declared hermetic input — no git, no producer exec in the action), asserts the gate is GREEN
+# on today's clean allowlisted root tree, and proves a synthetic tracked `foo.log` at root is
+# born-blocking RED (the make-impossible guarantee). Runs in the cargo-matrix lane
+# (`cargo test -p oya-cloud-ci-root-workspace-hygiene-app`) via the in-repo working tree.
+# G-INTEGRITY track: no build-graph dep on the firewall.
 rust_test(
     name = "oya-cloud-ci-root-workspace-hygiene-app-gate",
     srcs = glob(["tests/**/*.rs"]),
     crate = "oya_cloud_ci_root_workspace_hygiene_app_corpus",
     crate_root = "tests/root_workspace_hygiene.rs",
-    env = {
-        "OYA_CI_PRODUCER_BIN": "$(exe //cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin)",
-    },
     visibility = ["PUBLIC"],
     deps = [
         ":oya-cloud-ci-root-workspace-hygiene-app",
-        "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app",
         "third-party//:serde_json",
     ],
 )
