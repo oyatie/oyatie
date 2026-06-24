@@ -144,6 +144,7 @@ jobs:
           - { crate: oya-cloud-ci-capability-membership-app,   label: "gate · capability-membership (Phase-0 reorg ADR-0562 §6, the anti-junk-drawer MEMBERSHIP lint: every crate → exactly one registered capability/meta home, no NEW unmapped crate, no NEW top-level dir, base/-admission; born-advisory + enforce-no-regression vs the frozen unmapped baseline)" }
           - { crate: oya-cloud-ci-runner-disk-reclaim-app,     label: "gate · runner-disk-reclaim conformance (FRIC-017 productization, ADR-0548 pipeline-as-product: policy parse + threshold/INFRA-RED discrimination + reclaim plan)" }
           - { crate: oya-cloud-ci-port-placement-app,          label: "gate · port-placement (ADR-0570, clean-arch ports-in-core: no storage-port trait DEFINED in an */adapters/* crate — productizes the #116 defect class; born-advisory + enforce-no-regression vs frozen baseline)" }
+          - { crate: oya-cloud-ci-root-workspace-hygiene-app,  label: "gate · root-workspace-hygiene (ADR-0600, allowlist-as-DATA default-DENY: every TRACKED repo-root file must match the allowlist + every top-level dir must be a permitted capability/meta home — makes committed root scratch structurally impossible; complements the scratch DENYLIST)" }
     steps:
       # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
