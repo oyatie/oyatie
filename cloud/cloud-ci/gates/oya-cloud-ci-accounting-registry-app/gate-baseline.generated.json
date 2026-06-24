@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:5a663b7cf0e326ef",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:526a681e7a1d7a85"
+    "source_inputs_digest": "fnv1a64:9098e4bcfdf4336b"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -20520,7 +20520,6 @@
           "registry/catalog/comms-mail-mailbox-postgres.yaml",
           "registry/catalog/comms-mail-mailbox-rest.yaml",
           "registry/catalog/comms-mail-mailbox-usecase.yaml",
-          "registry/catalog/comms-meet-domain.yaml",
           "registry/catalog/comms-messenger-domain.yaml",
           "registry/catalog/comms-messenger-stream-api.yaml",
           "registry/catalog/comms-messenger-stream-app.yaml",
