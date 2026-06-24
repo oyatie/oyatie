@@ -63,9 +63,12 @@ crate:
 1. **Unforgeable verified identity.** A `VerifiedPrincipal { principal_id,
    tenant_id }` with **private fields**, a `pub(crate)` constructor, and a
    `cfg(test)` constructor only. External crates cannot struct-literal one; they
-   must run a `PrincipalVerifier` port. The caller-supplied `tenant_id` /
-   `principal_id` are demoted to **non-authoritative cross-check data** — they
-   grant nothing and never select the resource tenant.
+   must run a `PrincipalVerifier` port. `CallerCredential` carries **only** the
+   unforgeable transport credential (the `Authorization` header) — it holds no
+   caller-asserted `tenant_id` / `principal_id`, so a body claim can never be
+   mistaken for an authz input. The request-DTO `tenant_id` / `principal_id`
+   remain on the wire types but are **structurally never read** by the gate or as
+   the resource tenant.
 
 2. **Verified-from-transport, not body.** The `PrincipalVerifier` port derives
    the principal from a credential the caller cannot forge (a bearer token
@@ -76,16 +79,34 @@ crate:
 3. **PDP authorization with true blast-radius.** A `CrmAuthorizer` Cedar-PDP
    port decides `decide(principal, action = crm.<capability>.mutate, resource)`
    where `CrmResource.target_tenant_id` is bound from the **verified principal**
-   (a trusted source), never from the caller body. A verified caller whose body
-   claims a different tenant is denied; a cross-tenant grant must come from the
-   PDP against the verified tenant. Default-deny; any PDP fault is treated as
-   deny (fail-closed → HTTP 403).
+   (a trusted source), never from the caller body. The gate takes no request
+   body at all, so there is no body tenant that could ever bind the resource;
+   `authorize_crm_command` returns an `AuthorizedCrmContext` carrying only the
+   verified principal + action, and the adapters bind the resource scope from
+   `AuthorizedCrmContext::tenant_id()` (the verified tenant) — the body
+   `tenant_id` is structurally ignored, never honored, never denied-on-mismatch
+   because it is never an input. Default-deny; any PDP fault is treated as deny
+   (fail-closed → HTTP 403).
 
 4. **Authn-before-body and refuse-to-serve.** `HttpHandler::handle` /
-   `GrpcHandler::handle` now require a `&CrmAuthzProvider` plus a transport-
-   supplied `CallerCredential` and run the gate FIRST. The capability comes from
-   server-side route/method metadata, not the body. Verification failure → 401,
-   authorization failure → 403, both mapped to an `Authorization` `ServiceError`.
+   `GrpcHandler::handle` / `AsyncApiHandler::handle` now require a
+   `&CrmAuthzProvider` plus a transport-supplied `CallerCredential` and run the
+   gate FIRST (via `resolve_scope`). The capability comes from server-side
+   route/method metadata, not the body. Verification failure → 401, authorization
+   failure → 403, mapped to **distinct** `ServiceError` kinds
+   (`Unauthenticated` / `Forbidden`) so the edge derives the HTTP status
+   structurally from the kind, not by matching a message string.
+
+## Tracked surfaces
+
+This decision introduces and owns the following new tracked paths (cited here so
+the accounting registry traces them to this ADR):
+
+- `oya/crm/crates/oya-crm-revenue-app/src/authz.rs` — the unforgeable-authz seam
+  (`VerifiedPrincipal`, `CallerCredential`, `PrincipalVerifier`, `CrmAuthorizer`,
+  `AuthorizedCrmContext`, `authorize_crm_command`).
+- `oya/crm/crates/oya-crm-revenue-app/OWNERS` — ownership registration (ADR-0555)
+  for the crate, naming `axis-cloud-platform` as the owning team.
 
 ## Edge obligation (deferred to when the listener binds)
 
@@ -107,20 +128,31 @@ obligation the edge MUST satisfy when it binds a real listener:
   the event/receipt tenant) from that caller-built actor — the un-gated residual
   of the AUTH-005 class. The edge that wires an adapter to `submit_command`
   MUST enter the interactor with an actor whose `tenant_id`/`principal_id` come
-  from the `VerifiedPrincipal` returned by `authorize_crm_command`, and the
-  interactor's identity fields SHOULD drop `Deserialize` so a caller can never
-  supply them. Until that refactor lands, the adapters are the only gated entry
-  and MUST NOT be wired to bypass the gate into the interactor.
+  from the `AuthorizedCrmContext` returned by `authorize_crm_command` (i.e. the
+  verified principal, via `AuthorizedCrmContext::tenant_id()` /
+  `::principal_id()`), and the interactor's identity fields SHOULD drop
+  `Deserialize` so a caller can never supply them. Until that refactor lands, the
+  adapters are the only gated entry and MUST NOT be wired to bypass the gate into
+  the interactor. This residual is **not currently reachable** — no live caller
+  binds an adapter to the interactor and no socket is bound — so it stays
+  recorded as a deferred edge obligation, not a live defect.
 
 ## Consequences
 
-- The body `tenant_id` / `principal_id` fields are retained as non-authoritative
-  cross-check data (they grant nothing). They MAY be removed entirely once the
-  proto/DTO contract is revised; that is a follow-on contract change.
+- The request-DTO `tenant_id` / `principal_id` fields remain on the wire types
+  but are non-authoritative and **structurally never read** — neither by the gate
+  nor as the resource tenant. `CallerCredential` no longer carries any
+  caller-asserted claim, so the gate performs no body-vs-verified cross-check; a
+  forged body tenant is simply ignored. The DTO fields MAY be removed entirely
+  once the proto/DTO contract is revised; that is a follow-on contract change.
 - The break-glass `ConfiguredBearerPrincipalVerifier` binds a single static
   identity to one shared secret — suitable only for a single-principal
   break-glass token or tests. Multi-tenant production uses the cloud-iam SVID
   verifier (ADR-0561).
-- Tests cover the RED paths (no credential → 401, bad bearer → 401, cross-tenant
-  body claim → 403, PDP deny → 403, PDP fault → 403) and the GREEN path
-  (verified + PDP grant → reaches the scaffolded business handler).
+- Tests cover the RED paths (no credential → 401, bad bearer → 401, PDP deny →
+  403, PDP fault → 403), the cross-tenant invariant (a forged body
+  `tenant_id = victim` with a valid bearer for `alpha` resolves the resource
+  tenant to `alpha`, never `victim` —
+  `forged_body_tenant_never_becomes_the_resource_tenant`), the 401-vs-403
+  distinct-kind mapping, the redacting `CallerCredential` `Debug`, and the GREEN
+  path (verified + PDP grant → reaches the scaffolded business handler).
