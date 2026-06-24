@@ -163,3 +163,22 @@ code changes — only a runner binding + manifest rows.
   with the shell before the shell is deleted.
 - **Feeds** E3 (gate repoint + merge-base anchoring): the keystone that makes the gate a pure
   predicate fed by the executor.
+
+## Governed surfaces
+
+The following repo paths are governed by this ADR. The accounting gate validates that each is
+justified (this ADR is the justification reference); every path is enumerated verbatim, one per
+line, brace-glob-free, matching the producer's exact-token `resolve_justifications` match.
+
+```
+libs/oya-ci-materializer-kernel/BUCK
+libs/oya-ci-materializer-kernel/Cargo.toml
+libs/oya-ci-materializer-kernel/OWNERS
+libs/oya-ci-materializer-kernel/src/lib.rs
+libs/oya-ci-materializer-kernel/src/plan.rs
+libs/oya-ci-materializer-kernel/src/evaluate.rs
+libs/oya-ci-materializer-kernel/src/model.rs
+libs/oya-ci-materializer-kernel/tests/conformance.rs
+libs/oya-ci-materializer-kernel/tests/fixtures/synthetic-repo/control-plane.json
+libs/oya-ci-materializer-kernel/tests/fixtures/synthetic-repo/transitive-chain.json
+```
