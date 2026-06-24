@@ -1,5 +1,5 @@
 ---
-id: ADR-0597
+id: ADR-0598
 title: "Commission the comms meet capability-first core slice (comms-meet-api port + comms-meet-usecase)"
 status: Proposed
 planning_impact: false
@@ -18,7 +18,7 @@ related_specs:
 milestone: W2
 ---
 
-# ADR-0597: Commission the comms meet capability-first core slice
+# ADR-0598: Commission the comms meet capability-first core slice
 
 ## Status
 
@@ -94,14 +94,14 @@ The meet capability gains a tested, cloud-agnostic core (existing domain + new p
 with fail-closed authorization wired at the application boundary, while deferring every transient-infra
 concern behind clean-arch ports. The slice is byte-deterministic (producer-regenerated faces) and adds
 zero new acyclicity/membership/total-accounting debt: the new crates + catalog records are justified by
-THIS ADR (the producer derives `justification_ref: ADR-0597` from the paths named below), owned by
+THIS ADR (the producer derives `justification_ref: ADR-0598` from the paths named below), owned by
 `comms/OWNERS` / `registry/catalog/OWNERS`, and reachable via the existing `comms/OWNERS` and
 `registry/catalog/` reachability anchors.
 
 ## Files
 
 This ADR commissions and justifies the following born paths (the producer's justification resolver
-maps each tracked path mentioned here to `ADR-0597`):
+maps each tracked path mentioned here to `ADR-0598`):
 
 `comms/ports/meet-api/BUCK`,
 `comms/ports/meet-api/Cargo.toml`,
