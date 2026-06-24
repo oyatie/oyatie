@@ -72,3 +72,75 @@ fn public_surface_names_required_handlers() {
     assert!(surface.iter().any(|name| name.contains("GrpcHandler")));
     assert!(surface.iter().any(|name| name.contains("AsyncApiHandler")));
 }
+
+// ---------------------------------------------------------------------------
+// AUTH-005 (ADR-0603): caller-supplied identity at the CRM adapters is
+// non-authoritative. A forged-identity mutation is rejected (401/403); a
+// PDP-authorized request reaches the (scaffolded) business handler.
+// ---------------------------------------------------------------------------
+
+use oya_crm_revenue_app::adapter::http::{HttpHandler, HttpRequest};
+use oya_crm_revenue_app::authz::{
+    CallerCredential, ConfiguredBearerPrincipalVerifier, CrmAuthorizationError, CrmAuthorizer,
+    CrmAuthzProvider, CrmResource, VerifiedPrincipal,
+};
+use oya_crm_revenue_app::error::ServiceErrorKind;
+use std::sync::Arc;
+
+struct AllowAuthorizer;
+impl CrmAuthorizer for AllowAuthorizer {
+    fn ensure_authorized(&self, _p: &VerifiedPrincipal, _r: &CrmResource) -> Result<(), CrmAuthorizationError> { Ok(()) }
+}
+
+fn provider() -> CrmAuthzProvider {
+    let verifier = ConfiguredBearerPrincipalVerifier::new("bearer-secret-abc", "svc-crm", "tenant-alpha").unwrap();
+    CrmAuthzProvider::new(Arc::new(verifier), Arc::new(AllowAuthorizer))
+}
+
+fn forged_request(body_tenant: &str) -> HttpRequest {
+    HttpRequest {
+        tenant_id: body_tenant.to_string(),
+        principal_id: "attacker-claims-anything".to_string(),
+        request_id: "req-1".to_string(),
+        idempotency_key: "crm-key-0001".to_string(),
+        body: serde_json::json!({"resource": "x"}),
+    }
+}
+
+#[test]
+fn forged_crm_mutation_without_credential_is_unauthenticated() {
+    // RED: no bearer credential but the body claims a victim tenant → 401.
+    let cred = CallerCredential { authorization: None };
+    let err = HttpHandler::handle(&provider(), &cred, Capability::AccountMaster, forged_request("tenant-victim")).unwrap_err();
+    assert_eq!(err.kind(), ServiceErrorKind::Unauthenticated);
+    assert_eq!(err.http_status(), 401);
+}
+
+// HIGH (cross-model + in-house): the gate must validate the REAL request body,
+// not a free-floating claim. A valid bearer for tenant-alpha with the body
+// forging `tenant_id = "tenant-victim"` must NEVER resolve the resource tenant to
+// the victim. The resource scope is structurally the VERIFIED tenant (alpha).
+// This fails against the pre-fix code (the body tenant was never bound to the
+// gate and the handler ignored `_request`, so a buggy/forgeable edge that left
+// `request.tenant_id = "victim"` downstream would mutate the victim's records).
+#[test]
+fn forged_body_tenant_never_becomes_the_resource_tenant() {
+    let cred = CallerCredential { authorization: Some("Bearer bearer-secret-abc".into()) };
+    let scope = HttpHandler::resolve_scope(&provider(), &cred, Capability::Opportunity, &forged_request("tenant-victim"))
+        .expect("valid bearer authorizes");
+    // The resolved resource/scope tenant is the VERIFIED tenant, never the forged body tenant.
+    assert_eq!(scope.tenant_id(), "tenant-alpha");
+    assert_ne!(scope.tenant_id(), "tenant-victim");
+    // And the verified actor is the bound principal, never the body-claimed one.
+    assert_eq!(scope.principal_id(), "svc-crm");
+}
+
+#[test]
+fn pdp_authorized_request_reaches_business_handler() {
+    // GREEN: valid bearer + PDP grant → passes the gate, reaches the scaffolded
+    // business handler (ContractStub). The body identity grants nothing even
+    // though the body still carries a (now non-authoritative) tenant.
+    let cred = CallerCredential { authorization: Some("Bearer bearer-secret-abc".into()) };
+    let err = HttpHandler::handle(&provider(), &cred, Capability::Quote, forged_request("tenant-victim")).unwrap_err();
+    assert_eq!(err.kind(), ServiceErrorKind::ContractStub);
+}
