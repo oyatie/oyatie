@@ -1,0 +1,18 @@
+{
+  "_comment": "ADR-0562 wave-1 capability-first move: home the workspace calendar DOMAIN crate into the comms capability tree (comms/{core,ports,adapters,facade}/). ONE crate physically exists under oya/calendar today (crates/oya-calendar-domain, the 430-line W-Workspace calendar kernel); the other oya/calendar/catalog/*.yaml records name unbuilt event-store/availability/recurrence/ics crates that do NOT move (no live crate to relocate). The single domain crate is de-branded to comms-calendar-domain (drop the oya- vendor prefix, path-tail == cargo name, face dir NOT in the name) and lands at comms/core/calendar-domain, mirroring the move-12 comms precedent (mail/messenger/meet/contact-center; ADR-0562 §10.16, #757) where each comms leaf is a bare `*` covered by the existing comms/*/* glob (ADR-0538 glob-only members; ZERO root-workspace members edit). FACE: the domain is a pure-serde control-plane leaf whose ONLY Cargo dep is libs/oya-data-boundary-kernel (the meet coupling is a domain error-variant InvalidMeetSessionId, NOT a build-time crate dep), so calendar moves independently of meet => core/. NO reverse-deps on oya-calendar-domain (verified) => the move is import-rewrite-free. ARTIFACTS co-move the one gate-bound catalog record (catalog-liveness keys on the file stem == crate id; registry/catalog/oya-calendar-domain.yaml -> comms-calendar-domain.yaml). The calendar SLO subtree (oya/calendar/slos/*) is NOT co-moved: those SLOs gate the unbuilt event-store/availability/recurrence adapters+workers (caldav/ics/rsvp/freebusy/tzdb), not the domain crate that moves; they home when the calendar product fully lands (intelligence-move precedent: co-move ONLY the SLOs of the crates that move). reachability seed: the existing comms/OWNERS prefix (specs/reachability-registry.json §10.16) is breadth-unlimited (ADR-0555) and already covers the whole comms subtree including comms/core/calendar-domain. capability mapping: the new path's top-level dir `comms` is in the closed allowed_top_level_dirs + capability-registry comms; the membership lint reads PRE-MOVE paths and POST-move the path IS the namespace (no NEW unmapped crate). VIOLATION-SOURCE: none — the sole outbound edge points DOWN to libs/oya-data-boundary-kernel; zero NEW acyclicity/total-accounting violations (rename-aware engine, ADR-0563).",
+  "capability": "comms",
+  "moves": [
+    {
+      "old_path": "oya/calendar/crates/oya-calendar-domain",
+      "new_path": "comms/core/calendar-domain",
+      "old_cargo_name": "oya-calendar-domain",
+      "new_cargo_name": "comms-calendar-domain"
+    }
+  ],
+  "artifacts": [
+    {
+      "old_path": "registry/catalog/oya-calendar-domain.yaml",
+      "new_path": "registry/catalog/comms-calendar-domain.yaml"
+    }
+  ]
+}

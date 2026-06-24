@@ -1,21 +1,21 @@
 rust_library(
-    name = "oya-calendar-domain",
+    name = "comms-calendar-api",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_calendar_domain",
+    crate = "comms_calendar_api",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//comms/core/calendar-domain:comms-calendar-domain",
     ],
 )
 
 rust_test(
-    name = "oya-calendar-domain-unittest",
+    name = "comms-calendar-api-unittest",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_calendar_domain",
+    crate = "comms_calendar_api",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//comms/core/calendar-domain:comms-calendar-domain",
     ],
 )
