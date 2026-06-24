@@ -110,16 +110,25 @@ test-results/
 # buck2 build output
 /buck-out/
 
-# Repo-root build/test SCRATCH artifacts (prevention layer; the cloud-ci-total-accounting
-# `scratch_artifact` frozen_empty code is the blocking backstop per enforcement-layering:
-# automation default + blocking backstop). These root-anchored patterns block the slice-NN
-# burndown / retest scratch class (#671 G011 residue) from being staged again. Root-anchored
-# so legitimately nested tracked files are untouched; force-add (`git add -f`) still routes
-# the file through the gate, which is the construction layer that makes scratch unmergeable.
+# Repo-root build/test SCRATCH artifacts (prevention layer; the cloud-ci-root-workspace-hygiene
+# allowlist gate (ADR-0600) + the cloud-ci-total-accounting `scratch_artifact` frozen_empty code
+# are the blocking backstops per enforcement-layering: automation default + blocking backstop).
+# These root-anchored patterns block the slice-NN burndown / retest / lane-scratch class (#671
+# G011 residue + the Jun-10 slice-6 logs + the *-targets.txt / premise / review-verdict pollution)
+# from being staged again. Root-anchored so legitimately nested tracked files are untouched;
+# force-add (`git add -f`) still routes the file through the allowlist gate, which is the
+# construction layer that makes committed root scratch unmergeable (.gitignore alone cannot catch
+# `git add -f` or already-tracked files — the gate is the real enforcement).
 /*.log
+/*.tmp
+/*.out
 /run-*.sh
 /run-slice.sh
 /retest-targets.txt
+/*-targets.txt
+/branch-wired-members.txt
+/premise.txt
+/review-verdict.txt
 /slice*-*.log
 /slice*-*.txt
 
