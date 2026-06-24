@@ -158,8 +158,8 @@
       "artifact_id": "cloud-ci-scm-facts-boundary-snapshot",
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
       "artifact_class": "scm-facts-boundary-snapshot",
-      "materialization_mode": "main-branch-materialized",
-      "merge_policy": "controller-owned-main-materialization",
+      "materialization_mode": "not-tracked-in-git",
+      "merge_policy": "never-manual-merge-regenerate-from-source-tree",
       "owner_team": "cloud-ci-platform",
       "source_inputs": [
         "full-depth SCM checkout",
@@ -167,7 +167,7 @@
         "last-touch commit map",
         "commit author timestamps"
       ],
-      "final_tree_validation": "The protected-branch push trigger and merge-queue projected-state controller regenerate SCM facts from the accepted final tree; branch-head facts are advisory only for squash-only merge paths.",
+      "final_tree_validation": "ADR-0597 de-commit class (completes the ADR-0595 strangler): this SCM-facts boundary snapshot is the LAST committed pure-derivation face and is now NOT tracked in git. cloud-ci materializes it on demand from the accepted final tree (the scm-facts emitter, the single out-of-graph git boundary) before gates consume it; the firewall's FROZEN reference (gate-baseline) stays committed and is unaffected. The freshness gate requires it to regenerate successfully and to be byte-stable across two regenerations (determinism canary); registry-drift byte-compares two fresh regenerations of the snapshot. Byte parity against a committed copy is intentionally retired for this face, because a committed copy lists itself in tracked_paths and so mutates on every PR — the exact faces-serialization cascade this de-commit kills. The protected-branch push trigger and merge-queue projected-state controller still regenerate SCM facts from the accepted final tree; branch-head facts are advisory only for squash-only merge paths.",
       "public_product_contract": "SCM facts are the single non-hermetic boundary snapshot. Native cloud-ci must materialize them from the accepted final tree, not hand-merge branch-head JSON.",
       "generator": {
         "runner": "buck2",

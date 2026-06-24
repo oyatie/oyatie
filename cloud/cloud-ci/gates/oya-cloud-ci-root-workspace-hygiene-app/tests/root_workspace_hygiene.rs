@@ -7,9 +7,10 @@
 //   2. proves a synthetic tracked `foo.log` injected at the repo ROOT is born-blocking RED
 //      (RED/GREEN evidence — the gate is non-inert).
 //
-// HERMETIC: the test reads the committed scm-facts face from the source tree (no git, no network).
-// Under the CI matrix lane (`cargo test -p oya-cloud-ci-root-workspace-hygiene-app`) the repo-root
-// walk reaches it directly. ADR-0083 Tier-3: integration tests use unwrap/expect/panic.
+// HERMETIC: the test reads the MATERIALIZED scm-facts face from the source tree (no git, no
+// network). scm-facts is the ADR-0597 de-commit class (NOT tracked in git): the CI producer-regen
+// job materializes it and every gate matrix leg downloads it before `cargo test`, so the repo-root
+// walk reaches it on disk. ADR-0083 Tier-3: integration tests use unwrap/expect/panic.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::fs;
