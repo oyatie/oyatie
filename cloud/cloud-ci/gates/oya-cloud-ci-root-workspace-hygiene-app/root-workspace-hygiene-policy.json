@@ -4,21 +4,22 @@
   "match_kinds": {
     "exact": "the tracked root file basename equals `value`",
     "suffix": "the tracked root file basename ends with `value` (e.g. an extension or a family like `.buckconfig`)",
-    "prefix": "the tracked root file basename starts with `value` (e.g. README*, LICENSE*)"
+    "prefix": "the tracked root file basename starts with `value` (broad — matches any continuation)",
+    "prefix_dot": "the tracked root file basename equals `value` OR starts with `value` followed by `.` or `-` (tight family: README → README, README.md, README-internal.md but NOT READMEILY)"
   },
   "allowed_root_files": [
     { "id": "cargo-manifest",        "kind": "exact",  "value": "Cargo.toml",          "reason": "workspace Cargo manifest" },
     { "id": "cargo-lock",            "kind": "exact",  "value": "Cargo.lock",          "reason": "generated lockfile (kept tracked)" },
     { "id": "buck-target",           "kind": "exact",  "value": "BUCK",                "reason": "root buck2 target file" },
-    { "id": "buckconfig",            "kind": "suffix", "value": ".buckconfig",         "reason": "buck2 config (.buckconfig, .buckconfig.*)" },
+    { "id": "buckconfig",            "kind": "prefix_dot", "value": ".buckconfig",     "reason": "buck2 config (.buckconfig, .buckconfig.local, …) but NOT notes.buckconfig" },
     { "id": "buckroot",              "kind": "exact",  "value": ".buckroot",           "reason": "buck2 cell-root marker" },
     { "id": "rust-toolchain",        "kind": "exact",  "value": "rust-toolchain.toml", "reason": "pinned Rust toolchain" },
     { "id": "rust-project",          "kind": "exact",  "value": "rust-project.json",   "reason": "rust-analyzer project descriptor (if present)" },
     { "id": "rustfmt",               "kind": "exact",  "value": "rustfmt.toml",        "reason": "rustfmt config" },
     { "id": "reindeer",              "kind": "exact",  "value": "reindeer.toml",       "reason": "reindeer (buck2 third-party) config" },
     { "id": "deny",                  "kind": "exact",  "value": "deny.toml",           "reason": "cargo-deny supply-chain policy" },
-    { "id": "readme",                "kind": "prefix", "value": "README",              "reason": "README, README.md, README.*" },
-    { "id": "license",               "kind": "prefix", "value": "LICENSE",             "reason": "LICENSE, LICENSE-*, LICENSE.*" },
+    { "id": "readme",                "kind": "prefix_dot", "value": "README",          "reason": "README, README.md, README-internal.md — NOT READMEILY.txt" },
+    { "id": "license",               "kind": "prefix_dot", "value": "LICENSE",         "reason": "LICENSE, LICENSE.md, LICENSE-Apache-2.0 — NOT LICENSEKEY.txt (no separator)" },
     { "id": "claude-md",             "kind": "exact",  "value": "CLAUDE.md",           "reason": "project agent-rules source (root authority)" },
     { "id": "agents-md",             "kind": "exact",  "value": "AGENTS.md",           "reason": "agent operating contract pointer" },
     { "id": "handoff-md",            "kind": "exact",  "value": "HANDOFF.md",          "reason": "session handoff anchor (masterplan companion)" },
