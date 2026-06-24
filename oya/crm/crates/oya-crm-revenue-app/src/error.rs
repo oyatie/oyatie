@@ -14,7 +14,9 @@ impl ServiceError {
     pub fn configuration(message: impl Into<String>) -> Self { Self::new(ServiceErrorKind::Configuration, message) }
     pub fn invariant(field: &'static str, message: impl Into<String>) -> Self { Self::with_field(ServiceErrorKind::InvariantViolation, field, message) }
     pub fn validation(field: &'static str, message: impl Into<String>) -> Self { Self::with_field(ServiceErrorKind::Validation, field, message) }
+    pub fn authorization(field: &'static str, message: impl Into<String>) -> Self { Self::with_field(ServiceErrorKind::Authorization, field, message) }
     pub fn contract_stub(surface: &'static str) -> Self { Self::with_field(ServiceErrorKind::ContractStub, surface, "handler is intentionally scaffolded until implementation packet lands") }
+    pub fn kind(&self) -> ServiceErrorKind { self.kind }
 }
 
 impl Display for ServiceError {

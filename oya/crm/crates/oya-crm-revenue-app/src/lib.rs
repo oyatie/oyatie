@@ -2,11 +2,13 @@
 #![forbid(unsafe_code)]
 
 pub mod adapter;
+pub mod authz;
 pub mod config;
 pub mod domain;
 pub mod error;
 pub mod usecase;
 
+pub use crate::authz::{authorize_crm_command, CallerCredential, CrmAction, CrmAuthorizationError, CrmAuthorizer, CrmAuthzProvider, CrmGateError, CrmResource, PrincipalVerificationError, PrincipalVerifier, VerifiedPrincipal};
 pub use crate::config::ServiceConfig;
 pub use crate::domain::{Capability, Layer, ServiceCommand, ServiceEvent, ServiceInvariant, TenantId};
 pub use crate::error::{Result, ServiceError, ServiceErrorKind};
