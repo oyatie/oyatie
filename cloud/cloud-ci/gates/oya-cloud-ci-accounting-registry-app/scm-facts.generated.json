@@ -3848,7 +3848,7 @@
     "docs/decisions/ADR-0593-fail-closed-authz-for-accounting-payroll-money-mutation-control-plane.md",
     "docs/decisions/ADR-0595-de-commit-pure-derivation-cloud-ci-faces.md",
     "docs/decisions/ADR-0596-forbid-de-committing-firewall-frozen-reference-artifacts.md",
-    "docs/decisions/ADR-0597-commission-comms-meet-capability-first-core-slice.md",
+    "docs/decisions/ADR-0598-commission-comms-meet-capability-first-core-slice.md",
     "docs/decisions/ADR-0599-commission-comms-calendar-capability-first-core-slice.md",
     "docs/decisions/INDEX.md",
     "docs/decisions/OWNERS",
