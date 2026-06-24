@@ -97,9 +97,9 @@ fn provider() -> CrmAuthzProvider {
     CrmAuthzProvider::new(Arc::new(verifier), Arc::new(AllowAuthorizer))
 }
 
-fn forged_request(claimed_tenant: &str) -> HttpRequest {
+fn forged_request(body_tenant: &str) -> HttpRequest {
     HttpRequest {
-        tenant_id: claimed_tenant.to_string(),
+        tenant_id: body_tenant.to_string(),
         principal_id: "attacker-claims-anything".to_string(),
         request_id: "req-1".to_string(),
         idempotency_key: "crm-key-0001".to_string(),
@@ -108,27 +108,39 @@ fn forged_request(claimed_tenant: &str) -> HttpRequest {
 }
 
 #[test]
-fn forged_crm_mutation_without_credential_is_unauthorized() {
-    // RED: no bearer credential but the body claims a victim tenant.
-    let cred = CallerCredential { authorization: None, claimed_principal_id: "attacker".into(), claimed_tenant_id: "tenant-victim".into() };
+fn forged_crm_mutation_without_credential_is_unauthenticated() {
+    // RED: no bearer credential but the body claims a victim tenant → 401.
+    let cred = CallerCredential { authorization: None };
     let err = HttpHandler::handle(&provider(), &cred, Capability::AccountMaster, forged_request("tenant-victim")).unwrap_err();
-    assert_eq!(err.kind(), ServiceErrorKind::Authorization);
+    assert_eq!(err.kind(), ServiceErrorKind::Unauthenticated);
+    assert_eq!(err.http_status(), 401);
 }
 
+// HIGH (cross-model + in-house): the gate must validate the REAL request body,
+// not a free-floating claim. A valid bearer for tenant-alpha with the body
+// forging `tenant_id = "tenant-victim"` must NEVER resolve the resource tenant to
+// the victim. The resource scope is structurally the VERIFIED tenant (alpha).
+// This fails against the pre-fix code (the body tenant was never bound to the
+// gate and the handler ignored `_request`, so a buggy/forgeable edge that left
+// `request.tenant_id = "victim"` downstream would mutate the victim's records).
 #[test]
-fn forged_cross_tenant_body_claim_is_unauthorized() {
-    // RED: valid bearer (binds tenant-alpha) but body forges tenant-victim → denied.
-    let cred = CallerCredential { authorization: Some("Bearer bearer-secret-abc".into()), claimed_principal_id: "x".into(), claimed_tenant_id: "tenant-victim".into() };
-    let err = HttpHandler::handle(&provider(), &cred, Capability::Opportunity, forged_request("tenant-victim")).unwrap_err();
-    assert_eq!(err.kind(), ServiceErrorKind::Authorization);
+fn forged_body_tenant_never_becomes_the_resource_tenant() {
+    let cred = CallerCredential { authorization: Some("Bearer bearer-secret-abc".into()) };
+    let scope = HttpHandler::resolve_scope(&provider(), &cred, Capability::Opportunity, &forged_request("tenant-victim"))
+        .expect("valid bearer authorizes");
+    // The resolved resource/scope tenant is the VERIFIED tenant, never the forged body tenant.
+    assert_eq!(scope.tenant_id(), "tenant-alpha");
+    assert_ne!(scope.tenant_id(), "tenant-victim");
+    // And the verified actor is the bound principal, never the body-claimed one.
+    assert_eq!(scope.principal_id(), "svc-crm");
 }
 
 #[test]
 fn pdp_authorized_request_reaches_business_handler() {
-    // GREEN: valid bearer + matching/blank tenant + blank principal claim + PDP
-    // grant → passes the gate, reaches the scaffolded business handler
-    // (ContractStub, not Authorization). The body identity grants nothing.
-    let cred = CallerCredential { authorization: Some("Bearer bearer-secret-abc".into()), claimed_principal_id: String::new(), claimed_tenant_id: "tenant-alpha".into() };
-    let err = HttpHandler::handle(&provider(), &cred, Capability::Quote, forged_request("tenant-alpha")).unwrap_err();
+    // GREEN: valid bearer + PDP grant → passes the gate, reaches the scaffolded
+    // business handler (ContractStub). The body identity grants nothing even
+    // though the body still carries a (now non-authoritative) tenant.
+    let cred = CallerCredential { authorization: Some("Bearer bearer-secret-abc".into()) };
+    let err = HttpHandler::handle(&provider(), &cred, Capability::Quote, forged_request("tenant-victim")).unwrap_err();
     assert_eq!(err.kind(), ServiceErrorKind::ContractStub);
 }

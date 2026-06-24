@@ -20,9 +20,12 @@
 //! 1. A real principal is VERIFIED from a credential the caller cannot forge —
 //!    a bearer token compared in constant time against a configured secret (the
 //!    [`PrincipalVerifier`] port; an mTLS/SPIFFE peer-SVID verifier is a
-//!    drop-in alternate adapter). The body/header-supplied `principal_id` /
-//!    `tenant_id` are NEVER the source of truth; they are non-authoritative
-//!    cross-check inputs only.
+//!    drop-in alternate adapter). The body-supplied `principal_id` / `tenant_id`
+//!    are NEVER the source of truth and are NEVER read by the gate:
+//!    [`CallerCredential`] carries only the unforgeable credential, and
+//!    [`authorize_crm_command`] takes no request body, so a forged body claim is
+//!    structurally ignored — it can be neither an authz input nor the resource
+//!    tenant.
 //! 2. The verified principal is AUTHORIZED for the CRM action
 //!    (`crm.<capability>.mutate`) on the TARGET tenant via a Cedar PDP
 //!    [`CrmAuthorizer`] port (`decide`). The tenant axis is asserted by the
@@ -46,9 +49,11 @@
 //!   * refuse to boot without a [`PrincipalVerifier`] + [`CrmAuthorizer`]
 //!     configured (mirror the cloud-pdp boot-refusal doctrine), and
 //!   * enter `usecase::ServiceInteractor` ONLY with an actor derived from the
-//!     [`VerifiedPrincipal`] this gate returns. `usecase::UsecaseContext`
-//!     currently builds its actor from `Deserialize` (caller-supplied) — the
-//!     un-gated AUTH-005 residual (ADR-0603). The edge MUST NOT route an adapter
+//!     verified principal in the [`AuthorizedCrmContext`] this gate returns
+//!     (via `AuthorizedCrmContext::tenant_id` / `::principal_id`).
+//!     `usecase::UsecaseContext` currently builds its actor from `Deserialize`
+//!     (caller-supplied) — the un-gated AUTH-005 residual (ADR-0603), not
+//!     currently reachable (no live caller, no bound socket). The edge MUST NOT route an adapter
 //!     into `submit_command` with a caller-built actor; bind tenant/principal
 //!     from the verified principal instead.
 //!
@@ -68,16 +73,29 @@ use crate::domain::Capability;
 ///
 /// Today this is a bearer token (constant-time compared by
 /// [`ConfiguredBearerPrincipalVerifier`]); an mTLS/SPIFFE peer-SVID adapter is a
-/// drop-in alternate. The body/header-supplied principal id and tenant id
-/// travel alongside as CROSS-CHECK inputs only — never as proof of identity.
-#[derive(Clone, Debug, Eq, PartialEq)]
+/// drop-in alternate that consumes a verified peer leaf instead. Built from the
+/// transport `Authorization` header by the edge middleware — NEVER from the body.
+///
+/// It deliberately carries ONLY the unforgeable credential. There is no
+/// caller-asserted `principal_id` / `tenant_id` field: a free-floating body
+/// claim must never look like an authz input, and the verified identity is the
+/// sole source of truth (see [`authorize_crm_command`] / [`AuthorizedCrmContext`]).
+#[derive(Clone, Eq, PartialEq)]
 pub struct CallerCredential {
     /// Raw `Authorization` header value (e.g. `"Bearer abc..."`), if present.
     pub authorization: Option<String>, // data_class: SECRET
-    /// The caller-asserted principal id from the request DTO (cross-check input).
-    pub claimed_principal_id: String, // data_class: INTERNAL_ONLY
-    /// The caller-asserted tenant id from the request DTO (cross-check input).
-    pub claimed_tenant_id: String, // data_class: INTERNAL_ONLY
+}
+
+/// Custom `Debug` that REDACTS the `authorization` field (data_class: SECRET) so
+/// the live bearer token never appears in logs, tracing spans, or panic output.
+/// Mirrors the redacting pattern on `ConfiguredBearerPrincipalVerifier` and the
+/// payroll adapter's `CallerCredential` (#133 secret-Debug class).
+impl std::fmt::Debug for CallerCredential {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("CallerCredential")
+            .field("authorization", &"<redacted>")
+            .finish()
+    }
 }
 
 /// A principal whose identity has been verified from a caller credential.
@@ -260,17 +278,54 @@ impl CrmAuthzProvider {
     }
 }
 
+/// The proof a handler holds AFTER the fail-closed gate has run: the verified
+/// principal and the authorized action, nothing else. It is the ONLY value an
+/// adapter may use to derive the resource/scope tenant downstream.
+///
+/// ## Why this type exists (the cross-tenant invariant)
+///
+/// The request DTOs (`HttpRequest`, `GrpcRequest`, `AsyncApiMessage`) still carry
+/// a caller-supplied body `tenant_id` / `principal_id`. If a handler ever read
+/// the body tenant as the resource tenant, a valid caller could forge a victim
+/// tenant in the body and mutate the victim's records while authorized as their
+/// own tenant. To make that STRUCTURALLY impossible, the gate does not return a
+/// bare principal alongside the still-readable body; it returns this context,
+/// and the adapters bind the resource scope from [`Self::tenant_id`] only. The
+/// body tenant can therefore never be the authz basis NOR the resource tenant.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct AuthorizedCrmContext {
+    principal: VerifiedPrincipal,
+    action: CrmAction,
+}
+
+impl AuthorizedCrmContext {
+    /// The verified principal that passed the gate.
+    #[must_use]
+    pub fn principal(&self) -> &VerifiedPrincipal { &self.principal }
+
+    /// The authorized CRM action (from server-side route metadata).
+    #[must_use]
+    pub fn action(&self) -> CrmAction { self.action }
+
+    /// The VERIFIED tenant — the ONLY legitimate resource/scope tenant. Adapters
+    /// MUST bind the resource tenant from this, never from the request body.
+    #[must_use]
+    pub fn tenant_id(&self) -> &str { self.principal.tenant_id() }
+
+    /// The VERIFIED principal id — the ONLY legitimate actor identity.
+    #[must_use]
+    pub fn principal_id(&self) -> &str { self.principal.principal_id() }
+}
+
 /// Drive the full fail-closed gate for one CRM mutation: verify the caller
 /// credential, bind the target tenant from the TRUSTED verified principal, then
-/// authorize the action against that tenant via the PDP. Returns the verified
-/// principal on success; any failure is fail-closed (401 on verification, 403
-/// on authorization).
+/// authorize the action against that tenant via the PDP. Returns an
+/// [`AuthorizedCrmContext`] on success; any failure is fail-closed (401 on
+/// verification, 403 on authorization).
 ///
-/// `claimed_tenant_id` (from the caller body) is used ONLY as a non-authoritative
-/// cross-check: if present and it disagrees with the verified principal's
-/// tenant, the request is denied (a verified caller asking to act on a tenant
-/// other than their own is rejected here; a cross-tenant grant must come from
-/// the PDP against the verified tenant, never from the body).
+/// The request body is NOT a parameter and is NEVER consulted: the resource
+/// tenant is bound solely from the verified principal, so a forged body tenant
+/// is structurally ignored — it cannot be an authz input nor the resource scope.
 ///
 /// # Errors
 /// [`CrmGateError`] — `Unauthenticated` maps to 401, `Unauthorized` to 403.
@@ -278,32 +333,16 @@ pub fn authorize_crm_command(
     provider: &CrmAuthzProvider,
     credential: &CallerCredential,
     action: CrmAction,
-) -> Result<VerifiedPrincipal, CrmGateError> {
+) -> Result<AuthorizedCrmContext, CrmGateError> {
     let principal = provider
         .verify_principal(credential)
         .map_err(CrmGateError::Unauthenticated)?;
-
-    // Cross-check: a body-claimed tenant or principal (if any) must not disagree
-    // with the verified identity. The verified values — not the body — are
-    // authoritative (true blast-radius); a blank claim is allowed (grants
-    // nothing). A non-blank claim that disagrees is an attribution/escalation
-    // attempt and is denied so a forged claim can never be trusted downstream.
-    if !credential.claimed_tenant_id.trim().is_empty()
-        && credential.claimed_tenant_id != principal.tenant_id()
-    {
-        return Err(CrmGateError::Unauthorized(CrmAuthorizationError::Denied));
-    }
-    if !credential.claimed_principal_id.trim().is_empty()
-        && credential.claimed_principal_id != principal.principal_id()
-    {
-        return Err(CrmGateError::Unauthorized(CrmAuthorizationError::Denied));
-    }
 
     let resource = CrmResource { action, target_tenant_id: principal.tenant_id().to_string() };
     provider
         .ensure_authorized(&principal, &resource)
         .map_err(CrmGateError::Unauthorized)?;
-    Ok(principal)
+    Ok(AuthorizedCrmContext { principal, action })
 }
 
 /// The outcome of the fail-closed CRM gate. `Unauthenticated` → 401,
@@ -328,14 +367,15 @@ impl CrmGateError {
 }
 
 impl From<CrmGateError> for crate::error::ServiceError {
-    /// Map the fail-closed gate failure to an `Authorization` service error. The
-    /// message is deliberately coarse (no "wrong token" vs "no principal"
-    /// distinction) so probing cannot fingerprint the failure mode.
+    /// Map the fail-closed gate failure to a service error whose KIND carries the
+    /// 401-vs-403 distinction STRUCTURALLY (`Unauthenticated` / `Forbidden`), so
+    /// the edge maps the HTTP status from the kind, not by matching the message
+    /// string. The message stays deliberately coarse (no "wrong token" vs "no
+    /// principal" distinction) so probing cannot fingerprint the failure mode.
     fn from(error: CrmGateError) -> Self {
-        let status = error.http_status();
-        match status {
-            401 => crate::error::ServiceError::authorization("authorization", "unauthenticated"),
-            _ => crate::error::ServiceError::authorization("authorization", "forbidden"),
+        match error {
+            CrmGateError::Unauthenticated(_) => crate::error::ServiceError::unauthenticated("authorization", "unauthenticated"),
+            CrmGateError::Unauthorized(_) => crate::error::ServiceError::forbidden("authorization", "forbidden"),
         }
     }
 }
@@ -465,54 +505,27 @@ mod tests {
         CrmAuthzProvider::new(std::sync::Arc::new(verifier), authorizer)
     }
 
-    fn credential(auth: Option<&str>, claimed_tenant: &str) -> CallerCredential {
-        // Blank principal claim: the verifier binds the authoritative principal.
-        CallerCredential {
-            authorization: auth.map(str::to_string),
-            claimed_principal_id: String::new(),
-            claimed_tenant_id: claimed_tenant.to_string(),
-        }
+    fn credential(auth: Option<&str>) -> CallerCredential {
+        CallerCredential { authorization: auth.map(str::to_string) }
     }
 
     // RED: forged identity (no/invalid credential) is rejected 401, never reaches PDP.
     #[test]
     fn forged_request_without_credential_is_401() {
         let provider = bearer_provider(std::sync::Arc::new(AllowAuthorizer));
-        let err = authorize_crm_command(&provider, &credential(None, "tenant-victim"), CrmAction(Capability::AccountMaster)).unwrap_err();
+        let err = authorize_crm_command(&provider, &credential(None), CrmAction(Capability::AccountMaster)).unwrap_err();
         assert_eq!(err.http_status(), 401);
     }
 
     #[test]
     fn forged_request_with_bad_bearer_is_401() {
         let provider = bearer_provider(std::sync::Arc::new(AllowAuthorizer));
-        let err = authorize_crm_command(&provider, &credential(Some("Bearer wrong-token"), "tenant-victim"), CrmAction(Capability::Opportunity)).unwrap_err();
+        let err = authorize_crm_command(&provider, &credential(Some("Bearer wrong-token")), CrmAction(Capability::Opportunity)).unwrap_err();
         assert_eq!(err.http_status(), 401);
     }
 
-    // RED: caller forges a cross-tenant body claim despite a valid credential → denied (the AUTH-005 escalation).
-    #[test]
-    fn cross_tenant_body_claim_is_403() {
-        let provider = bearer_provider(std::sync::Arc::new(AllowAuthorizer));
-        // Valid bearer binds tenant-alpha, but body claims tenant-victim.
-        let err = authorize_crm_command(&provider, &credential(Some("Bearer s3cr3t-bearer-token"), "tenant-victim"), CrmAction(Capability::Quote)).unwrap_err();
-        assert_eq!(err.http_status(), 403);
-    }
-
-    // RED: caller forges a different principal id despite a valid credential → denied (attribution spoof).
-    #[test]
-    fn forged_principal_claim_is_403() {
-        let provider = bearer_provider(std::sync::Arc::new(AllowAuthorizer));
-        let cred = CallerCredential {
-            authorization: Some("Bearer s3cr3t-bearer-token".to_string()),
-            claimed_principal_id: "some-other-principal".to_string(), // verifier binds svc-crm-op
-            claimed_tenant_id: "tenant-alpha".to_string(),
-        };
-        let err = authorize_crm_command(&provider, &cred, CrmAction(Capability::Opportunity)).unwrap_err();
-        assert_eq!(err.http_status(), 403);
-    }
-
-    // Invariant: the PDP resource tenant is ALWAYS the verified tenant, never the
-    // (possibly blank) body claim — pins the blank-claim branch as non-bypassable.
+    // Invariant: the PDP resource tenant is ALWAYS the verified tenant. The gate
+    // takes no body, so there is no body tenant that could ever bind the resource.
     #[test]
     fn resource_tenant_is_always_the_verified_tenant() {
         struct CaptureAuthorizer(std::sync::Mutex<Option<String>>);
@@ -524,16 +537,17 @@ mod tests {
         }
         let capture = std::sync::Arc::new(CaptureAuthorizer(std::sync::Mutex::new(None)));
         let provider = bearer_provider(capture.clone());
-        // Blank body tenant must still bind the resource to the verified tenant.
-        authorize_crm_command(&provider, &credential(Some("Bearer s3cr3t-bearer-token"), ""), CrmAction(Capability::Quote)).expect("authorized");
+        let ctx = authorize_crm_command(&provider, &credential(Some("Bearer s3cr3t-bearer-token")), CrmAction(Capability::Quote)).expect("authorized");
         assert_eq!(capture.0.lock().unwrap().as_deref(), Some("tenant-alpha"));
+        // The returned context's tenant is the verified tenant — the only legitimate scope.
+        assert_eq!(ctx.tenant_id(), "tenant-alpha");
     }
 
     // RED: PDP deny → 403.
     #[test]
     fn pdp_deny_is_403() {
         let provider = bearer_provider(std::sync::Arc::new(DenyAuthorizer));
-        let err = authorize_crm_command(&provider, &credential(Some("Bearer s3cr3t-bearer-token"), "tenant-alpha"), CrmAction(Capability::Campaign)).unwrap_err();
+        let err = authorize_crm_command(&provider, &credential(Some("Bearer s3cr3t-bearer-token")), CrmAction(Capability::Campaign)).unwrap_err();
         assert_eq!(err.http_status(), 403);
     }
 
@@ -541,25 +555,39 @@ mod tests {
     #[test]
     fn pdp_fault_is_403_fail_closed() {
         let provider = bearer_provider(std::sync::Arc::new(FaultAuthorizer));
-        let err = authorize_crm_command(&provider, &credential(Some("Bearer s3cr3t-bearer-token"), "tenant-alpha"), CrmAction(Capability::ServiceCase)).unwrap_err();
+        let err = authorize_crm_command(&provider, &credential(Some("Bearer s3cr3t-bearer-token")), CrmAction(Capability::ServiceCase)).unwrap_err();
         assert_eq!(err.http_status(), 403);
     }
 
-    // GREEN: valid credential + matching/blank tenant + PDP grant → authorized, resource bound to the VERIFIED tenant.
+    // GREEN: valid credential + PDP grant → authorized; context bound to the VERIFIED identity.
     #[test]
     fn properly_authorized_request_succeeds_on_verified_tenant() {
         let provider = bearer_provider(std::sync::Arc::new(AllowAuthorizer));
-        let principal = authorize_crm_command(&provider, &credential(Some("Bearer s3cr3t-bearer-token"), "tenant-alpha"), CrmAction(Capability::AccountMaster)).expect("authorized");
-        assert_eq!(principal.tenant_id(), "tenant-alpha");
-        // The bound identity comes from the verifier, NOT the caller-claimed value.
-        assert_eq!(principal.principal_id(), "svc-crm-op");
+        let ctx = authorize_crm_command(&provider, &credential(Some("Bearer s3cr3t-bearer-token")), CrmAction(Capability::AccountMaster)).expect("authorized");
+        assert_eq!(ctx.tenant_id(), "tenant-alpha");
+        // The bound identity comes from the verifier, NOT any caller-supplied value.
+        assert_eq!(ctx.principal_id(), "svc-crm-op");
     }
 
+    // The redacting Debug must never print the live bearer token.
     #[test]
-    fn blank_body_tenant_claim_grants_nothing_but_does_not_block() {
-        let provider = bearer_provider(std::sync::Arc::new(AllowAuthorizer));
-        let principal = authorize_crm_command(&provider, &credential(Some("Bearer s3cr3t-bearer-token"), ""), CrmAction(Capability::Opportunity)).expect("authorized");
-        assert_eq!(principal.tenant_id(), "tenant-alpha");
+    fn caller_credential_debug_redacts_bearer() {
+        let cred = credential(Some("Bearer s3cr3t-bearer-token"));
+        let rendered = format!("{cred:?}");
+        assert!(rendered.contains("<redacted>"), "{rendered}");
+        assert!(!rendered.contains("s3cr3t-bearer-token"), "{rendered}");
+    }
+
+    // 401 and 403 map to DISTINCT ServiceError kinds, not one Authorization kind.
+    #[test]
+    fn gate_error_maps_to_distinct_service_error_kinds() {
+        use crate::error::ServiceErrorKind;
+        let unauth: crate::error::ServiceError = CrmGateError::Unauthenticated(PrincipalVerificationError::MissingCredential).into();
+        let forbid: crate::error::ServiceError = CrmGateError::Unauthorized(CrmAuthorizationError::Denied).into();
+        assert_eq!(unauth.kind(), ServiceErrorKind::Unauthenticated);
+        assert_eq!(unauth.http_status(), 401);
+        assert_eq!(forbid.kind(), ServiceErrorKind::Forbidden);
+        assert_eq!(forbid.http_status(), 403);
     }
 
     #[test]
