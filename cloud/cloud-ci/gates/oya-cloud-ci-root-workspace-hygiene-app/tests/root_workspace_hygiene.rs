@@ -1,0 +1,170 @@
+// Born-blocking self-test over TODAY's real tracked-path corpus (ADR-0600).
+//
+// It loads the committed allowlist policy + the producer's git-ls-files snapshot
+// (scm-facts.generated.json, a declared hermetic input that lists every tracked path), then:
+//   1. asserts the gate is GREEN on the live, clean, allowlisted root tree (the make-impossible
+//      guarantee holds today);
+//   2. proves a synthetic tracked `foo.log` injected at the repo ROOT is born-blocking RED
+//      (RED/GREEN evidence — the gate is non-inert).
+//
+// HERMETIC: the test reads the committed scm-facts face from the source tree (no git, no network).
+// Under the CI matrix lane (`cargo test -p oya-cloud-ci-root-workspace-hygiene-app`) the repo-root
+// walk reaches it directly. ADR-0083 Tier-3: integration tests use unwrap/expect/panic.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
+use std::fs;
+use std::path::{Path, PathBuf};
+
+use oya_cloud_ci_root_workspace_hygiene_app::{Verdict, evaluate, evaluate_keyed};
+use serde_json::{Value, json};
+
+/// Walk up from the test's working directory to the repo root (the dir holding the canonical
+/// `specs/root-hub-pointers.json`). Mirrors the helper used by the sibling gate tests.
+fn repo_root() -> PathBuf {
+    let mut dir = std::env::current_dir().expect("current_dir");
+    for _ in 0..16 {
+        if dir.join("specs/root-hub-pointers.json").is_file() {
+            return dir;
+        }
+        if !dir.pop() {
+            break;
+        }
+    }
+    panic!("failed to locate repo root from test current_dir");
+}
+
+fn gate_dir(root: &Path) -> PathBuf {
+    root.join("cloud/cloud-ci/gates/oya-cloud-ci-root-workspace-hygiene-app")
+}
+
+fn load_json(path: &Path) -> Value {
+    let text = fs::read_to_string(path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+    serde_json::from_str(&text).unwrap_or_else(|e| panic!("parse {}: {e}", path.display()))
+}
+
+fn load_policy(root: &Path) -> Value {
+    load_json(&gate_dir(root).join("root-workspace-hygiene-policy.json"))
+}
+
+/// Decode git's C-style path quoting: git surrounds a path containing special bytes with double
+/// quotes and octal/`\`-escapes the inner bytes. The scm-facts snapshot carries those quoted forms
+/// verbatim. For the purpose of TOP-LEVEL-segment + ROOT-file classification we only need the
+/// quotes stripped (so `"oya/…µservice….md"` classifies under the real `oya` dir, not `"oya`).
+/// We strip a surrounding pair of double-quotes if present; the inner escapes do not affect the
+/// first path segment for any real corpus path.
+fn unquote_git_path(raw: &str) -> String {
+    let trimmed = raw.trim();
+    if trimmed.len() >= 2 && trimmed.starts_with('"') && trimmed.ends_with('"') {
+        trimmed[1..trimmed.len() - 1].to_owned()
+    } else {
+        trimmed.to_owned()
+    }
+}
+
+/// Build the `{ "rows": [{"path": ...}] }` observed inventory from the committed scm-facts snapshot.
+fn observed_from_scm_facts(root: &Path) -> Value {
+    let scm = load_json(
+        &root.join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json"),
+    );
+    let paths = scm["tracked_paths"]
+        .as_array()
+        .expect("scm-facts.generated.json must carry a tracked_paths array");
+    let rows: Vec<Value> = paths
+        .iter()
+        .filter_map(Value::as_str)
+        .map(|p| json!({ "path": unquote_git_path(p) }))
+        .collect();
+    json!({ "rows": rows })
+}
+
+#[test]
+fn live_tracked_root_tree_is_allowlist_clean_green() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let observed = observed_from_scm_facts(&root);
+
+    let rows = observed["rows"].as_array().expect("rows");
+    assert!(
+        rows.len() > 1000,
+        "expected the full tracked-path corpus, got {} rows",
+        rows.len()
+    );
+
+    let findings = evaluate_keyed(&policy, &observed);
+    assert!(
+        findings.is_empty(),
+        "root-workspace-hygiene gate found violations over the live tracked tree — the allowlist \
+         either forbids a legitimate root surface or a scratch file is still tracked:\n{findings:#?}"
+    );
+    assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Green);
+}
+
+/// RED FIXTURE (mandatory, proves non-inert): injecting a tracked `foo.log` at the repo ROOT must
+/// make the gate RED with the offending key surfaced under the unallowlisted-file code — this IS
+/// the "committed root scratch is structurally impossible" guarantee.
+#[test]
+fn synthetic_tracked_root_log_is_born_blocking_red() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let mut observed = observed_from_scm_facts(&root);
+
+    observed["rows"]
+        .as_array_mut()
+        .expect("rows array")
+        .push(json!({ "path": "foo.log" }));
+
+    let findings = evaluate_keyed(&policy, &observed);
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.code == "root_workspace_unallowlisted_file" && f.key == "foo.log"),
+        "a tracked root `foo.log` must be born-blocking with its key surfaced; got {findings:#?}"
+    );
+    assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
+}
+
+/// The exact root scratch this PR removes must each fail the live allowlist (regression guard:
+/// the gate would have caught the original pollution).
+#[test]
+fn the_removed_root_scratch_shapes_are_red_against_the_live_policy() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    for scratch in [
+        "backfill-targets.txt",
+        "branch-wired-members.txt",
+        "final-targets.txt",
+        "slice06-progress.log",
+        "retest-targets.txt",
+        "run-slice.sh",
+        "premise.txt",
+        "review-verdict.txt",
+    ] {
+        let observed = json!({ "rows": [{ "path": scratch }] });
+        let findings = evaluate_keyed(&policy, &observed);
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "root_workspace_unallowlisted_file" && f.key == scratch),
+            "{scratch} must be born-blocking against the live allowlist policy"
+        );
+    }
+}
+
+/// Every offending finding must carry a concrete auto-fix remediation (relocate to `.omc/` or
+/// `git rm`) — the gate is auto-fixing, not flag-only.
+#[test]
+fn live_policy_findings_carry_concrete_remediation() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let observed = json!({ "rows": [{ "path": "foo.log" }] });
+    let findings = evaluate_keyed(&policy, &observed);
+    let f = findings
+        .iter()
+        .find(|f| f.key == "foo.log")
+        .expect("finding for foo.log");
+    assert!(
+        f.detail.contains("git rm") && f.detail.contains(".omc/"),
+        "remediation must name the concrete auto-fix; got: {}",
+        f.detail
+    );
+}
