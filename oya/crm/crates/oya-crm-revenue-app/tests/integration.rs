@@ -72,3 +72,63 @@ fn public_surface_names_required_handlers() {
     assert!(surface.iter().any(|name| name.contains("GrpcHandler")));
     assert!(surface.iter().any(|name| name.contains("AsyncApiHandler")));
 }
+
+// ---------------------------------------------------------------------------
+// AUTH-005 (ADR-0603): caller-supplied identity at the CRM adapters is
+// non-authoritative. A forged-identity mutation is rejected (401/403); a
+// PDP-authorized request reaches the (scaffolded) business handler.
+// ---------------------------------------------------------------------------
+
+use oya_crm_revenue_app::adapter::http::{HttpHandler, HttpRequest};
+use oya_crm_revenue_app::authz::{
+    CallerCredential, ConfiguredBearerPrincipalVerifier, CrmAuthorizationError, CrmAuthorizer,
+    CrmAuthzProvider, CrmResource, VerifiedPrincipal,
+};
+use oya_crm_revenue_app::error::ServiceErrorKind;
+use std::sync::Arc;
+
+struct AllowAuthorizer;
+impl CrmAuthorizer for AllowAuthorizer {
+    fn ensure_authorized(&self, _p: &VerifiedPrincipal, _r: &CrmResource) -> Result<(), CrmAuthorizationError> { Ok(()) }
+}
+
+fn provider() -> CrmAuthzProvider {
+    let verifier = ConfiguredBearerPrincipalVerifier::new("bearer-secret-abc", "svc-crm", "tenant-alpha").unwrap();
+    CrmAuthzProvider::new(Arc::new(verifier), Arc::new(AllowAuthorizer))
+}
+
+fn forged_request(claimed_tenant: &str) -> HttpRequest {
+    HttpRequest {
+        tenant_id: claimed_tenant.to_string(),
+        principal_id: "attacker-claims-anything".to_string(),
+        request_id: "req-1".to_string(),
+        idempotency_key: "crm-key-0001".to_string(),
+        body: serde_json::json!({"resource": "x"}),
+    }
+}
+
+#[test]
+fn forged_crm_mutation_without_credential_is_unauthorized() {
+    // RED: no bearer credential but the body claims a victim tenant.
+    let cred = CallerCredential { authorization: None, claimed_principal_id: "attacker".into(), claimed_tenant_id: "tenant-victim".into() };
+    let err = HttpHandler::handle(&provider(), &cred, Capability::AccountMaster, forged_request("tenant-victim")).unwrap_err();
+    assert_eq!(err.kind(), ServiceErrorKind::Authorization);
+}
+
+#[test]
+fn forged_cross_tenant_body_claim_is_unauthorized() {
+    // RED: valid bearer (binds tenant-alpha) but body forges tenant-victim → denied.
+    let cred = CallerCredential { authorization: Some("Bearer bearer-secret-abc".into()), claimed_principal_id: "x".into(), claimed_tenant_id: "tenant-victim".into() };
+    let err = HttpHandler::handle(&provider(), &cred, Capability::Opportunity, forged_request("tenant-victim")).unwrap_err();
+    assert_eq!(err.kind(), ServiceErrorKind::Authorization);
+}
+
+#[test]
+fn pdp_authorized_request_reaches_business_handler() {
+    // GREEN: valid bearer + matching/blank tenant + blank principal claim + PDP
+    // grant → passes the gate, reaches the scaffolded business handler
+    // (ContractStub, not Authorization). The body identity grants nothing.
+    let cred = CallerCredential { authorization: Some("Bearer bearer-secret-abc".into()), claimed_principal_id: String::new(), claimed_tenant_id: "tenant-alpha".into() };
+    let err = HttpHandler::handle(&provider(), &cred, Capability::Quote, forged_request("tenant-alpha")).unwrap_err();
+    assert_eq!(err.kind(), ServiceErrorKind::ContractStub);
+}

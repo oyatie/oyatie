@@ -1,3 +1,25 @@
+//! CRM AsyncAPI adapter.
+//!
+//! ## AUTH-005 fail-closed seam (ADR-0603)
+//!
+//! [`AsyncApiMessage::tenant_id`] is a CALLER/PRODUCER-SUPPLIED field — it is
+//! **non-authoritative** (grants nothing, never selects the resource tenant).
+//! An inbound message that drives a CRM MUTATION MUST go through
+//! [`AsyncApiHandler::handle`], which runs the [`crate::authz`] fail-closed gate
+//! FIRST against a principal derived from the broker's verified producer
+//! identity (SASL/mTLS principal or a signed envelope), NOT from the message
+//! body. Subscribe-only projection channels that mutate nothing are exempt; the
+//! command-bearing channels are not.
+//!
+//! ## Edge obligation (dead-until-edge)
+//!
+//! The business logic still returns `contract_stub`. The broker consumer that
+//! binds a real subscription MUST derive the verified producer credential from
+//! the transport (NOT the message body), refuse to consume without a
+//! [`crate::authz::CrmAuthzProvider`], and run the gate before dispatch.
+
+use crate::authz::{authorize_crm_command, CallerCredential, CrmAction, CrmAuthzProvider};
+use crate::domain::Capability;
 use crate::error::{Result, ServiceError};
 use serde::{Deserialize, Serialize};
 
@@ -6,6 +28,8 @@ pub struct AsyncApiChannel { pub channel: &'static str, pub direction: ChannelDi
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum ChannelDirection { Publish, Subscribe }
+/// AsyncAPI message DTO. NOTE: `tenant_id` is non-authoritative
+/// producer-supplied cross-check data (see module docs / ADR-0603).
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct AsyncApiMessage { pub tenant_id: String, pub message_type: String, pub payload_json: serde_json::Value }
 
@@ -20,7 +44,22 @@ impl AsyncApiHandler {
             AsyncApiChannel { channel: "crm.finance.approval-changed.v1", direction: ChannelDirection::Subscribe, message: "FinanceApprovalChanged" },
         ]
     }
-    pub fn handle(_message: AsyncApiMessage) -> Result<()> { Err(ServiceError::contract_stub("asyncapi")) }
+
+    /// Handle an inbound CRM-mutating message through the fail-closed authz gate.
+    ///
+    /// `credential` is the verified producer credential from the broker
+    /// transport (SASL/mTLS / signed envelope), NOT the message body.
+    /// `capability` is server-side channel metadata. The gate verifies the
+    /// producer and authorizes the action against the VERIFIED tenant before any
+    /// business logic.
+    ///
+    /// # Errors
+    /// `Authorization` on a failed gate; `ContractStub` once authorized.
+    pub fn handle(provider: &CrmAuthzProvider, credential: &CallerCredential, capability: Capability, _message: AsyncApiMessage) -> Result<()> {
+        let _principal = authorize_crm_command(provider, credential, CrmAction(capability))
+            .map_err(ServiceError::from)?;
+        Err(ServiceError::contract_stub("asyncapi"))
+    }
 }
 
 pub fn validate_channels(channels: &[AsyncApiChannel]) -> Result<()> {
