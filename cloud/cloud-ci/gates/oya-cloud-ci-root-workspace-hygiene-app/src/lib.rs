@@ -105,6 +105,14 @@ fn rule_matches(rule: &AllowRule, basename: &str) -> bool {
         "exact" => basename == rule.value,
         "suffix" => basename.ends_with(&rule.value),
         "prefix" => basename.starts_with(&rule.value),
+        // `prefix_dot`: exact match OR starts-with `value` followed by `.` or `-`.
+        // Tighter than bare `prefix`: `README` matches README and README.md but NOT READMEILY.
+        // Pattern in DATA: `{ "kind": "prefix_dot", "value": "README" }`.
+        "prefix_dot" => {
+            basename == rule.value
+                || basename.starts_with(&format!("{}.", rule.value))
+                || basename.starts_with(&format!("{}-", rule.value))
+        }
         // Unknown kinds never match (the malformed-rule finding flags them separately).
         _ => false,
     }
@@ -129,11 +137,11 @@ fn allow_rules(policy: &Value, findings: &mut BTreeSet<Finding>) -> Vec<AllowRul
         } else {
             id.to_owned()
         };
-        if id.is_empty() || value.is_empty() || !matches!(kind, "exact" | "suffix" | "prefix") {
+        if id.is_empty() || value.is_empty() || !matches!(kind, "exact" | "suffix" | "prefix" | "prefix_dot") {
             findings.insert(Finding::new(
                 "root_workspace_policy_malformed_rule",
                 &key,
-                "allowlist rule must carry a non-empty `id`, a non-empty `value`, and a `kind` of exact|suffix|prefix",
+                "allowlist rule must carry a non-empty `id`, a non-empty `value`, and a `kind` of exact|suffix|prefix|prefix_dot",
             ));
             continue;
         }
@@ -166,8 +174,8 @@ fn root_file_remediation(path: &str) -> String {
     format!(
         "tracked repo-root file `{path}` matches no allowlist rule. AUTO-FIX: if it is process \
          scratch, `git rm` it (and rely on the .gitignore root-scratch backstop) or relocate it \
-         under `.omc/` (the gitignored scratch home); if it is a genuinely legitimate root \
-         surface, add a reviewed allowlist rule to root-workspace-hygiene-policy.json \
+         under the repo's gitignored scratch home (e.g. `.omc/`); if it is a genuinely legitimate \
+         root surface, add a reviewed allowlist rule to root-workspace-hygiene-policy.json \
          (allowed_root_files) — a DATA edit, never a scanner change."
     )
 }
@@ -261,10 +269,10 @@ mod tests {
         json!({
             "gate_id": GATE_ID,
             "allowed_root_files": [
-                { "id": "cargo-manifest", "kind": "exact",  "value": "Cargo.toml" },
-                { "id": "readme",         "kind": "prefix", "value": "README" },
-                { "id": "license",        "kind": "prefix", "value": "LICENSE" },
-                { "id": "buckconfig",     "kind": "suffix", "value": ".buckconfig" }
+                { "id": "cargo-manifest", "kind": "exact",      "value": "Cargo.toml" },
+                { "id": "readme",         "kind": "prefix_dot", "value": "README" },
+                { "id": "license",        "kind": "prefix_dot", "value": "LICENSE" },
+                { "id": "buckconfig",     "kind": "prefix_dot", "value": ".buckconfig" }
             ],
             "allowed_root_dirs": ["cloud", "libs", "docs"]
         })
@@ -377,6 +385,81 @@ mod tests {
         });
         let findings = evaluate_keyed(&bad, &observed(&[]));
         assert!(findings.iter().any(|f| f.code == "root_workspace_policy_malformed_rule"));
+    }
+
+    // --- prefix_dot tightening: RED cases (over-broad prefix would have allowed these) ---
+
+    #[test]
+    fn readme_family_without_separator_is_red() {
+        // "READMEILY.md" starts with "README" but has no "." or "-" separator — must be blocked.
+        let findings = evaluate_keyed(&policy(), &observed(&["READMEILY.md"]));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "root_workspace_unallowlisted_file" && f.key == "READMEILY.md"),
+            "READMEILY.md must be born-blocking (no separator after README); got {findings:#?}"
+        );
+    }
+
+    #[test]
+    fn readme_scratch_txt_without_separator_is_red() {
+        let findings = evaluate_keyed(&policy(), &observed(&["README-scratch.txt"]));
+        // README-scratch.txt HAS a "-" separator so prefix_dot admits it — this is intentional
+        // (README-* is a legitimate family). Verify GREEN (no false-block).
+        assert!(
+            !findings
+                .iter()
+                .any(|f| f.code == "root_workspace_unallowlisted_file" && f.key == "README-scratch.txt"),
+            "README-scratch.txt has a '-' separator and should be admitted by prefix_dot; got {findings:#?}"
+        );
+    }
+
+    #[test]
+    fn notes_buckconfig_is_red() {
+        // "notes.buckconfig" ends with ".buckconfig" (old suffix rule allowed it) but does NOT
+        // start with ".buckconfig" — must now be born-blocking.
+        let findings = evaluate_keyed(&policy(), &observed(&["notes.buckconfig"]));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "root_workspace_unallowlisted_file" && f.key == "notes.buckconfig"),
+            "notes.buckconfig must be born-blocking (suffix match removed); got {findings:#?}"
+        );
+    }
+
+    #[test]
+    fn scratch_buckconfig_is_red() {
+        let findings = evaluate_keyed(&policy(), &observed(&["scratch.buckconfig"]));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "root_workspace_unallowlisted_file" && f.key == "scratch.buckconfig"),
+            "scratch.buckconfig must be born-blocking; got {findings:#?}"
+        );
+    }
+
+    // --- prefix_dot tightening: GREEN cases (legitimate files must still pass) ---
+
+    #[test]
+    fn legitimate_readme_and_license_and_buckconfig_still_pass() {
+        let report = evaluate(
+            &policy(),
+            &observed(&[
+                "README",
+                "README.md",
+                "README.rst",
+                "LICENSE",
+                "LICENSE.md",
+                "LICENSE-Apache-2.0",
+                ".buckconfig",
+                ".buckconfig.local",
+            ]),
+        );
+        assert_eq!(
+            report.verdict,
+            Verdict::Green,
+            "legitimate README/LICENSE/.buckconfig family must not be false-blocked; got {report:#?}"
+        );
     }
 
     #[test]
