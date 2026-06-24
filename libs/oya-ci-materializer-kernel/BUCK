@@ -1,6 +1,9 @@
 rust_library(
     name = "oya-ci-materializer-kernel",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    # ADR-0597 — E1: pure planner kernel. Library sources are Rust-only; the broad
+    # data-file glob is unnecessary here (fixtures live under tests/ and belong to the
+    # conformance target). Narrowed to src/**/*.rs to keep the cache key tight.
+    srcs = glob(["src/**/*.rs"]),
     crate = "oya_ci_materializer_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
@@ -12,7 +15,8 @@ rust_library(
 
 rust_test(
     name = "oya-ci-materializer-kernel-unittest",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    # Inline #[cfg(test)] modules compile only the library Rust sources.
+    srcs = glob(["src/**/*.rs"]),
     crate = "oya_ci_materializer_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],

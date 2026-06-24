@@ -117,6 +117,9 @@ pub fn evaluate(
 
         if decommit_ids.contains(id) {
             // De-commit class: verify regeneration succeeded and is deterministic.
+            // INTENTIONAL asymmetry: `committed` bytes are ignored for this class —
+            // de-commit artifacts have no committed copy by definition (byte-parity-to-
+            // committed is structurally removed), so only the two canary passes matter.
             match (pass_a_map.get(id), pass_b_map.get(id)) {
                 (None, _) => {
                     findings.insert(Finding::new(
@@ -138,6 +141,9 @@ pub fn evaluate(
             }
         } else {
             // Committed class: byte-parity check.
+            // INTENTIONAL asymmetry: `pass_b` (the second canary pass) is ignored for
+            // this class — committed artifacts are verified by parity against the
+            // committed copy, not by the two-pass determinism canary.
             match (pass_a_map.get(id), committed_map.get(id)) {
                 (Some(regen), Some(committed_bytes)) if *regen == *committed_bytes => {
                     // GREEN.

@@ -19,8 +19,19 @@ use oya_ci_materializer_kernel::{
 const SYNTHETIC_FIXTURE_JSON: &str =
     include_str!("fixtures/synthetic-repo/control-plane.json");
 
+/// Minimal 3-node producer -> intermediate -> leaf chain. Exercises the TRANSITIVE
+/// (multi-hop) input_contract closure: the leaf's input_contract references only the
+/// intermediate, so the producer is reachable ONLY through a second hop.
+const TRANSITIVE_CHAIN_FIXTURE_JSON: &str =
+    include_str!("fixtures/synthetic-repo/transitive-chain.json");
+
 fn synthetic_manifest() -> ControlPlane {
     ControlPlane::from_json(SYNTHETIC_FIXTURE_JSON).expect("synthetic fixture must parse")
+}
+
+fn transitive_chain_manifest() -> ControlPlane {
+    ControlPlane::from_json(TRANSITIVE_CHAIN_FIXTURE_JSON)
+        .expect("transitive-chain fixture must parse")
 }
 
 fn minimal_two_artifact_manifest() -> ControlPlane {
@@ -121,6 +132,51 @@ fn cp2_topological_order_node_codegen_synthetic() {
     let schema_pos = ids.iter().position(|&id| id == "synthetic-ts-schema").unwrap();
     let client_pos = ids.iter().position(|&id| id == "synthetic-api-client").unwrap();
     assert!(schema_pos < client_pos, "CP-2: ts-schema must precede api-client");
+}
+
+// ─── CP-2 / closure: transitive target expansion ──────────────────────────────
+
+/// CP-closure: requesting ONLY a leaf artifact path must pull its full transitive
+/// `input_contract` closure into the plan — not just the directly-referenced parent.
+///
+/// Chain: chain-producer -> chain-intermediate -> chain-leaf. The leaf's input_contract
+/// references only the INTERMEDIATE (`emit-chain-intermediate`); the producer is reachable
+/// solely through a SECOND hop. Asking for the leaf path alone must therefore include the
+/// producer (the transitive hop) AND order it before the leaf.
+///
+/// RED before the closure fix: the old `plan()` used the directly-matched seed set verbatim,
+/// so this plan would contain ONLY `chain-leaf` and `position("chain-producer")` would panic.
+#[test]
+fn cp_closure_includes_transitive_deps() {
+    let manifest = transitive_chain_manifest();
+
+    // Request ONLY the leaf path.
+    let mut targets = BTreeSet::new();
+    targets.insert("gen/chain/leaf.ts".to_owned());
+
+    let result = plan(&manifest, MaterializeScope::Consume { target_paths: targets }).unwrap();
+    let ids: Vec<&str> = result.steps.iter().map(|s| s.artifact_id.as_str()).collect();
+
+    // The transitive producer (two hops up from the leaf) MUST be in the plan.
+    assert!(
+        ids.contains(&"chain-producer"),
+        "closure: transitive producer 'chain-producer' must be included when only the leaf is requested; got {ids:?}"
+    );
+    // The direct intermediate parent MUST be in the plan.
+    assert!(
+        ids.contains(&"chain-intermediate"),
+        "closure: intermediate 'chain-intermediate' must be included; got {ids:?}"
+    );
+    assert!(ids.contains(&"chain-leaf"), "closure: leaf must be in the plan; got {ids:?}");
+
+    // The transitive producer must be ORDERED BEFORE the leaf.
+    let producer_pos = ids.iter().position(|&id| id == "chain-producer").unwrap();
+    let intermediate_pos = ids.iter().position(|&id| id == "chain-intermediate").unwrap();
+    let leaf_pos = ids.iter().position(|&id| id == "chain-leaf").unwrap();
+    assert!(
+        producer_pos < intermediate_pos && intermediate_pos < leaf_pos,
+        "closure: order must be producer < intermediate < leaf; got {ids:?}"
+    );
 }
 
 // ─── CP-3: Canary catches nondeterminism ──────────────────────────────────────
