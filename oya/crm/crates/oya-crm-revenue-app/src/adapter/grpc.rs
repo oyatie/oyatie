@@ -15,15 +15,16 @@
 //! transport (NOT the payload), refuse to boot without a
 //! [`crate::authz::CrmAuthzProvider`], and run the gate before dispatch.
 
-use crate::authz::{authorize_crm_command, CallerCredential, CrmAction, CrmAuthzProvider};
+use crate::authz::{authorize_crm_command, AuthorizedCrmContext, CallerCredential, CrmAction, CrmAuthzProvider};
 use crate::domain::Capability;
 use crate::error::{Result, ServiceError};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct GrpcMethod { pub service: &'static str, pub method: &'static str, pub request: &'static str, pub response: &'static str }
-/// gRPC request DTO. NOTE: `tenant_id` is non-authoritative caller-supplied
-/// cross-check data (see module docs / ADR-0603).
+/// gRPC request DTO. NOTE: `tenant_id` is non-authoritative caller-supplied data
+/// (see module docs / ADR-0603); it is structurally never read by the gate and
+/// never selects the resource tenant.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct GrpcRequest { pub tenant_id: String, pub method: String, pub payload_json: serde_json::Value }
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -47,12 +48,27 @@ impl GrpcHandler {
     /// metadata, NOT the payload. The gate verifies the caller and authorizes
     /// the action against the VERIFIED tenant before any business logic.
     ///
+    /// The resource scope is bound by [`Self::resolve_scope`] from the VERIFIED
+    /// tenant, NEVER from `request.tenant_id` — a forged payload tenant is
+    /// structurally ignored.
+    ///
     /// # Errors
-    /// `Authorization` on a failed gate; `ContractStub` once authorized.
-    pub fn handle(provider: &CrmAuthzProvider, credential: &CallerCredential, capability: Capability, _request: GrpcRequest) -> Result<GrpcResponse> {
-        let _principal = authorize_crm_command(provider, credential, CrmAction(capability))
-            .map_err(ServiceError::from)?;
+    /// `Unauthenticated`/`Forbidden` on a failed gate; `ContractStub` once
+    /// authorized.
+    pub fn handle(provider: &CrmAuthzProvider, credential: &CallerCredential, capability: Capability, request: GrpcRequest) -> Result<GrpcResponse> {
+        let scope = Self::resolve_scope(provider, credential, capability, &request)?;
+        let _ = scope.tenant_id();
         Err(ServiceError::contract_stub("grpc"))
+    }
+
+    /// Run the fail-closed gate and return the scope the handler MUST act within.
+    /// The returned context's tenant is the VERIFIED tenant; `request.tenant_id`
+    /// is structurally discarded.
+    ///
+    /// # Errors
+    /// `Unauthenticated`/`Forbidden` on a failed gate.
+    pub fn resolve_scope(provider: &CrmAuthzProvider, credential: &CallerCredential, capability: Capability, _request: &GrpcRequest) -> Result<AuthorizedCrmContext> {
+        authorize_crm_command(provider, credential, CrmAction(capability)).map_err(ServiceError::from)
     }
 }
 
