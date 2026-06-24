@@ -70,8 +70,9 @@ rust_test(
     crate_root = "tests/firewall.rs",
     # HERMETIC: the test regenerates the gate-baseline by execing the buck2-BUILT producer binary
     # (no `env!("CARGO")`, no `cargo run`). `$(exe ...)` makes buck2 build the producer and
-    # substitute its sandbox path; the producer reads the committed scm-facts face (a declared
-    # input) — no action calls git.
+    # substitute its sandbox path; the producer reads the materialized scm-facts face from the
+    # repo root (ADR-0604 de-commit class: not tracked in git; the CI/local materialize boundary
+    # regenerates it on the candidate tree before gates run) — no action calls git.
     env = {
         "OYA_CI_PRODUCER_BIN": "$(exe //cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin)",
     },

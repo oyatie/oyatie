@@ -8,7 +8,7 @@
 //      (RED/GREEN evidence — the gate is non-inert).
 //
 // HERMETIC: the test reads the MATERIALIZED scm-facts face from the source tree (no git, no
-// network). scm-facts is the ADR-0597 de-commit class (NOT tracked in git): the CI producer-regen
+// network). scm-facts is the ADR-0604 de-commit class (NOT tracked in git): the CI producer-regen
 // job materializes it and every gate matrix leg downloads it before `cargo test`, so the repo-root
 // walk reaches it on disk. ADR-0083 Tier-3: integration tests use unwrap/expect/panic.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]

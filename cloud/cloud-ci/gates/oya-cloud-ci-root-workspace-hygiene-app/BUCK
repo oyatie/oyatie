@@ -21,8 +21,9 @@ rust_test(
 )
 
 # ADR-0600 root-workspace-hygiene: the born-blocking self-test over the live tracked-path corpus.
-# It loads the committed allowlist policy + the committed scm-facts.generated.json snapshot
-# (a declared hermetic input — no git, no producer exec in the action), asserts the gate is GREEN
+# It loads the committed allowlist policy + the materialized scm-facts.generated.json snapshot
+# (ADR-0604 de-commit class: not tracked in git; the CI/local materialize boundary regenerates it
+# on the candidate tree before gates run — no git, no producer exec in the action), asserts the gate is GREEN
 # on today's clean allowlisted root tree, and proves a synthetic tracked `foo.log` at root is
 # born-blocking RED (the make-impossible guarantee). Runs in the cargo-matrix lane
 # (`cargo test -p oya-cloud-ci-root-workspace-hygiene-app`) via the in-repo working tree.

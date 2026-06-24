@@ -1,6 +1,6 @@
 // :registry-drift gate — committed == regenerated (PHASE-0-FIREWALL-PLAN §5.3).
 // Re-runs the producer in --stdout (sandbox) mode and byte-diffs against the committed
-// accounting faces. The scm-facts face is now the ADR-0597 DE-COMMIT class (the last committed
+// accounting faces. The scm-facts face is now the ADR-0604 DE-COMMIT class (the last committed
 // pure-derivation face, de-committed to kill the faces-serialization cascade): it has no
 // committed copy to byte-compare, so it is validated by the REGENERATE-TWICE DETERMINISM canary
 // (two fresh emitter runs must be byte-identical), matching the freshness gate's
@@ -14,7 +14,7 @@
 //   - under cargo (local dev): the producer/emitter are invoked via the runtime `CARGO` env
 //     var (`cargo run -p <crate>`), which cargo sets for integration tests — a RUNTIME read,
 //     never a compile-time `env!`, so there is no cargo-specific compile-time coupling.
-// The scm-facts face the producer consumes is materialized on demand (ADR-0597 de-commit class:
+// The scm-facts face the producer consumes is materialized on demand (ADR-0604 de-commit class:
 // it is no longer tracked in git; CI/local materialize writes it to the faces dir before the
 // producer reads it); the producer never calls git.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
@@ -276,7 +276,7 @@ fn committed_faces_equal_regenerated() {
 }
 
 /// Regenerate the scm-facts face (the single git boundary) TWICE and assert the two emissions are
-/// byte-identical (ADR-0597 de-commit-class determinism canary). scm-facts is no longer tracked in
+/// byte-identical (ADR-0604 de-commit-class determinism canary). scm-facts is no longer tracked in
 /// git, so there is no committed copy to byte-compare; with byte-parity-to-committed retired, the
 /// regenerate-twice determinism check is the integrity canary that keeps derive-on-demand sound —
 /// a non-deterministic emitter must hard-fail here rather than silently green. This is the
@@ -314,7 +314,7 @@ fn scm_facts_regenerates_deterministically() {
     assert_eq!(
         first, second,
         "SCM-FACTS NON-DETERMINISTIC: two fresh emissions of {SCM_FACTS_FACE} differ. \
-         The scm-facts emitter must be a pure function of the tracked tree (ADR-0597 de-commit \
+         The scm-facts emitter must be a pure function of the tracked tree (ADR-0604 de-commit \
          class: there is no committed copy, so regenerate-twice determinism is the integrity \
          canary). A non-deterministic emitter is a hard failure."
     );

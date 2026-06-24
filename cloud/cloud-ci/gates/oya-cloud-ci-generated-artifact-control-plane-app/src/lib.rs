@@ -1162,10 +1162,10 @@ pub fn evaluate_keyed_with_frozen_references(
             ));
         }
         // The SCM-facts boundary snapshot must be controller-materialized, never a hand-merged
-        // contributor surface. Two controller-materialized shapes are valid (ADR-0597):
+        // contributor surface. Two controller-materialized shapes are valid (ADR-0604):
         //   - `main-branch-materialized` (legacy committed shape): the controller writes the face
         //     on the protected branch and it is tracked in git.
-        //   - `not-tracked-in-git` (de-commit class, ADR-0597): the controller materializes it on
+        //   - `not-tracked-in-git` (de-commit class, ADR-0604): the controller materializes it on
         //     demand and it is NEVER tracked — killing the faces-serialization cascade, because a
         //     committed snapshot lists itself in tracked_paths and so mutates on every PR.
         // Both are controller-owned and non-source-authored; only these two pass. Any other mode
@@ -1641,7 +1641,7 @@ mod tests {
 
     #[test]
     fn scm_facts_boundary_not_tracked_in_git_is_green() {
-        // ADR-0597 keystone GREEN: the de-commit class is a valid controller-materialized shape for
+        // ADR-0604 keystone GREEN: the de-commit class is a valid controller-materialized shape for
         // the SCM-facts boundary snapshot. A not-tracked snapshot paired with the regenerate-from-
         // source-tree merge policy must NOT fire either boundary rule, and (being absent from the
         // tracked tree) is exempt from declared_path_not_tracked.
@@ -1665,7 +1665,7 @@ mod tests {
 
     #[test]
     fn scm_facts_boundary_not_tracked_with_wrong_merge_policy_is_red() {
-        // ADR-0597 RED guard: the de-commit class must still carry the regenerate-from-source-tree
+        // ADR-0604 RED guard: the de-commit class must still carry the regenerate-from-source-tree
         // merge policy. A not-tracked snapshot with controller-owned-main-materialization (the
         // committed-shape policy) is a mismatch and must RED — the two valid shapes do not
         // cross-pollinate their merge policies.
