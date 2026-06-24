@@ -179,7 +179,7 @@ h4 { margin-top: 0; }
   border-radius: 999px;
   background: var(--oya-color-accent-soft);
   color: var(--oya-color-accent-strong);
-  font-size: 0.72rem;
+  font-size: var(--text-cap); /* T-1: snapped from 0.72rem */
   font-weight: 800;
   line-height: 1;
   margin-top: var(--oya-space-2);
@@ -220,7 +220,7 @@ h4 { margin-top: 0; }
 /* .context-icon legacy dimensions removed — S-7: Bominal .context-icon at ~line 2001 wins */
 
 .context-label { font-weight: 800; }
-.context-role { color: var(--oya-color-text-muted); font-size: 0.92rem; }
+.context-role { color: var(--oya-color-text-muted); font-size: var(--text-md); } /* T-1: snapped from 0.92rem */
 
 .envelope-detail { display: grid; gap: var(--oya-space-3); }
 
@@ -274,7 +274,7 @@ time { color: var(--oya-color-accent-strong); font-weight: 800; }
 .ontology-list span {
   display: block;
   color: var(--oya-color-accent-strong);
-  font-size: 0.84rem;
+  font-size: var(--text-sm); /* T-1: snapped from 0.84rem */
   font-weight: 800;
 }
 
@@ -326,8 +326,8 @@ time { color: var(--oya-color-accent-strong); font-weight: 800; }
 .workflow-canvas svg { width: 100%; min-height: 13rem; }
 .workflow-edge { stroke: #6a7b91; stroke-width: 3; stroke-linecap: round; }
 .workflow-node { fill: #fff; stroke: var(--oya-color-accent); stroke-width: 2; }
-.workflow-canvas text { fill: var(--oya-color-text); font-size: 0.78rem; font-weight: 800; }
-.workflow-canvas text.node-kind { fill: var(--oya-color-text-muted); font-size: 0.68rem; }
+.workflow-canvas text { fill: var(--oya-color-text); font-size: 0.78rem; font-weight: 800; } /* deliberate: SVG coordinate-space label, not the rem type scale */
+.workflow-canvas text.node-kind { fill: var(--oya-color-text-muted); font-size: 0.68rem; } /* deliberate: SVG coordinate-space label, not the rem type scale */
 
 .node-toolbar { display: flex; flex-wrap: wrap; gap: var(--oya-space-2); }
 .node-inspector {
@@ -373,7 +373,7 @@ time { color: var(--oya-color-accent-strong); font-weight: 800; }
 .surface-card span {
   color: var(--oya-color-accent-strong);
   font-family: var(--oya-font-mono);
-  font-size: 0.78rem;
+  font-size: var(--text-sm); /* T-1: snapped from 0.78rem */
   font-weight: 800;
 }
 
@@ -398,7 +398,7 @@ time { color: var(--oya-color-accent-strong); font-weight: 800; }
 
 .surface-command small {
   color: var(--oya-color-text-muted);
-  font-size: 0.82rem;
+  font-size: var(--text-sm); /* T-1: snapped from 0.82rem */
   font-weight: 700;
 }
 
@@ -497,7 +497,7 @@ time { color: var(--oya-color-accent-strong); font-weight: 800; }
 .hub-meta {
   color: var(--oya-color-accent-strong);
   font-family: var(--oya-font-mono);
-  font-size: 0.76rem;
+  font-size: var(--text-cap); /* T-1: snapped from 0.76rem */
   font-weight: 800;
 }
 
@@ -578,7 +578,7 @@ time { color: var(--oya-color-accent-strong); font-weight: 800; }
   background: #fff;
   color: var(--oya-color-text-muted);
   font-family: var(--oya-font-mono);
-  font-size: 0.76rem;
+  font-size: var(--text-cap); /* T-1: snapped from 0.76rem */
   font-weight: 800;
   padding: var(--oya-space-1) var(--oya-space-3);
 }
@@ -616,7 +616,7 @@ time { color: var(--oya-color-accent-strong); font-weight: 800; }
 .workflow-palette h4 {
   margin: var(--oya-space-2) 0 0;
   color: var(--oya-color-text-muted);
-  font-size: 0.85rem;
+  font-size: var(--text-sm); /* T-1: snapped from 0.85rem */
 }
 
 .workflow-palette button {
@@ -671,7 +671,7 @@ time { color: var(--oya-color-accent-strong); font-weight: 800; }
 
 .inspector-fields dt {
   color: var(--oya-color-text-muted);
-  font-size: 0.78rem;
+  font-size: var(--text-sm); /* T-1: snapped from 0.78rem */
   font-weight: 800;
   text-transform: uppercase;
 }
@@ -713,7 +713,7 @@ time { color: var(--oya-color-accent-strong); font-weight: 800; }
 .zoom-controls span {
   color: var(--oya-color-text-muted);
   font-family: var(--oya-font-mono);
-  font-size: 0.78rem;
+  font-size: var(--text-sm); /* T-1: snapped from 0.78rem */
   font-weight: 800;
 }
 
@@ -987,7 +987,7 @@ textarea {
   margin: 0;
   color: var(--accent-deep);
   font-family: var(--oya-font-mono);
-  font-size: var(--text-2xs)  /* T-1 */;
+  font-size: var(--text-2xs); /* T-1 */
   font-weight: 900;
   letter-spacing: 0.08em;
   line-height: 1.25;
@@ -1008,7 +1008,7 @@ textarea {
 .rail-proof-card small {
   color: var(--accent-deep);
   font-family: var(--oya-font-mono);
-  font-size: var(--text-2xs)  /* T-1 */;
+  font-size: var(--text-2xs); /* T-1 */
   font-weight: 800;
   line-height: 1.35;
 }
@@ -1051,7 +1051,7 @@ textarea {
   cursor: pointer;
   font: inherit;
   font-family: var(--oya-font-mono);
-  font-size: var(--text-2xs)  /* T-1 */;
+  font-size: var(--text-2xs); /* T-1 */
   font-weight: 900;
   line-height: 1.1;
   padding: 0.1875rem 0.25rem;
@@ -1135,7 +1135,7 @@ textarea {
 .header-route-strip button span {
   color: var(--accent-deep);
   font-family: var(--oya-font-mono);
-  font-size: var(--text-2xs)  /* T-1 */;
+  font-size: var(--text-2xs); /* T-1 */
   font-weight: 900;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1159,7 +1159,7 @@ textarea {
   max-width: 12rem;
   color: var(--ink-muted); /* T-2: raised from --ink-faint (2.2:1) to --ink-muted (4.9:1) */
   font-family: var(--oya-font-mono);
-  font-size: var(--text-2xs)  /* T-1 */;
+  font-size: var(--text-2xs); /* T-1 */
   font-weight: 800;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1174,7 +1174,7 @@ textarea {
 .header-comms-switcher button {
   min-height: 1.5rem;
   font-family: var(--oya-font-mono);
-  font-size: var(--text-2xs)  /* T-1 */;
+  font-size: var(--text-2xs); /* T-1 */
   font-weight: 900;
   padding: 0.1875rem 0.375rem;
 }
@@ -1207,7 +1207,7 @@ textarea {
   background: var(--paper-sunken);
   color: var(--ink-muted); /* T-2: raised from --ink-faint (2.2:1) to --ink-muted (4.9:1) */
   font-family: var(--oya-font-mono);
-  font-size: var(--text-2xs)  /* T-1 */;
+  font-size: var(--text-2xs); /* T-1 */
   font-weight: 700;
   padding: 0.0625rem 0.25rem;
 }
@@ -1263,7 +1263,7 @@ textarea {
   background: var(--danger);
   color: var(--paper-raised);
   font-family: var(--oya-font-mono);
-  font-size: var(--text-2xs)  /* T-1 */;
+  font-size: var(--text-2xs); /* T-1 */
   font-weight: 900;
   padding: 0 0.1875rem;
 }
@@ -1530,7 +1530,7 @@ h3 {
   background: var(--paper-sunken);
   color: var(--accent-deep);
   font-family: var(--oya-font-mono);
-  font-size: var(--text-xs)  /* T-1 */;
+  font-size: var(--text-xs); /* T-1 */
   font-weight: 900;
   padding: 0.125rem 0.5rem;
   text-transform: uppercase;
@@ -1594,7 +1594,7 @@ h3 {
 
 .activity-route-column span {
   color: var(--ink-muted); /* T-2: raised from --ink-faint (2.2:1) to --ink-muted (4.9:1) */
-  font-size: var(--text-xs)  /* T-1 */;
+  font-size: var(--text-xs); /* T-1 */
 }
 
 .activity-route-column button:hover,
@@ -1662,7 +1662,7 @@ h3 {
 .activity-step-card span {
   color: var(--ink-muted); /* T-2: raised from --ink-faint (2.2:1) to --ink-muted (4.9:1) */
   font-family: var(--oya-font-mono);
-  font-size: var(--text-2xs)  /* T-1 */;
+  font-size: var(--text-2xs); /* T-1 */
   font-weight: 900;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -1688,7 +1688,7 @@ h3 {
   background: var(--paper-sunken);
   color: var(--ink-muted); /* T-2: raised from --ink-faint (2.2:1) to --ink-muted (4.9:1) */
   font-family: var(--oya-font-mono);
-  font-size: var(--text-2xs)  /* T-1 */;
+  font-size: var(--text-2xs); /* T-1 */
   font-style: normal;
   font-weight: 900;
   padding: 0.125rem 0.375rem;
@@ -1755,7 +1755,7 @@ h3 {
 .activity-inspector-card dt {
   color: var(--ink-muted); /* T-2: raised from --ink-faint (2.2:1) to --ink-muted (4.9:1) */
   font-family: var(--oya-font-mono);
-  font-size: var(--text-2xs)  /* T-1 */;
+  font-size: var(--text-2xs); /* T-1 */
   font-weight: 900;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -1788,7 +1788,7 @@ h3 {
   background: var(--paper-sunken);
   color: var(--ink-muted); /* T-2: raised from --ink-faint (2.2:1) to --ink-muted (4.9:1) */
   font-family: var(--oya-font-mono);
-  font-size: var(--text-xs)  /* T-1 */;
+  font-size: var(--text-xs); /* T-1 */
   font-weight: 800;
   overflow-x: auto;
   padding: 0 var(--space-4);
@@ -1855,7 +1855,7 @@ h3 {
   overflow: hidden;
   color: var(--ink-muted); /* T-2: raised from --ink-faint (2.2:1) to --ink-muted (4.9:1) */
   font-family: var(--oya-font-mono);
-  font-size: 0.5625rem;
+  font-size: var(--text-2xs); /* T-1: snapped up from 0.5625rem (sub-2xs) to the a11y micro-label floor */
   font-weight: 900;
   letter-spacing: 0.05em;
   text-overflow: ellipsis;
@@ -1867,7 +1867,7 @@ h3 {
   overflow: hidden;
   color: var(--ink);
   font-family: var(--oya-font-mono);
-  font-size: var(--text-xs)  /* T-1 */;
+  font-size: var(--text-xs); /* T-1 */
   font-weight: 900;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1906,7 +1906,7 @@ h3 {
 .command-shell-routes button span {
   overflow: hidden;
   color: var(--ink-muted); /* T-2: raised from --ink-faint (2.2:1) to --ink-muted (4.9:1) */
-  font-size: var(--text-2xs)  /* T-1 */;
+  font-size: var(--text-2xs); /* T-1 */
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2052,7 +2052,7 @@ h3 {
 }
 
 .metric-card strong {
-  font-size: 1.35rem;
+  font-size: var(--text-xl); /* T-1: snapped from 1.35rem (metric display value) */
   font-weight: 650;
   letter-spacing: -0.015em;
 }
@@ -3904,7 +3904,7 @@ h3 {
 
 .comms-sidebar span {
   color: var(--ink-muted); /* T-2: raised from --ink-faint (2.2:1) to --ink-muted (4.9:1) */
-  font-size: var(--text-2xs)  /* T-1 */;
+  font-size: var(--text-2xs); /* T-1 */
 }
 
 .comms-message-toolbar {
@@ -3959,7 +3959,7 @@ h3 {
   background: var(--ink);
   color: var(--paper);
   font-family: var(--oya-font-mono);
-  font-size: 0.58rem;
+  font-size: var(--text-2xs); /* T-1: snapped up from 0.58rem to the a11y micro-label floor */
   font-style: normal;
   font-weight: 900;
 }
@@ -3992,7 +3992,7 @@ h3 {
 .comms-kv dt {
   color: var(--ink-muted); /* T-2: raised from --ink-faint (2.2:1) to --ink-muted (4.9:1) */
   font-family: var(--oya-font-mono);
-  font-size: var(--text-2xs)  /* T-1 */;
+  font-size: var(--text-2xs); /* T-1 */
   font-weight: 800;
   text-transform: uppercase;
 }
@@ -4127,7 +4127,7 @@ h3 {
   background: var(--paper);
   color: var(--ink-muted); /* T-2: raised from --ink-faint (2.2:1) to --ink-muted (4.9:1) */
   font-family: var(--oya-font-mono);
-  font-size: var(--text-2xs)  /* T-1 */;
+  font-size: var(--text-2xs); /* T-1 */
   padding: 0.0625rem 0.25rem;
 }
 
@@ -4284,7 +4284,7 @@ h3 {
 .workflow-card-type {
   color: var(--accent);
   font-family: var(--oya-font-mono);
-  font-size: 0.58rem;
+  font-size: var(--text-2xs); /* T-1: snapped up from 0.58rem to the a11y micro-label floor */
   font-weight: 900;
   text-transform: uppercase;
 }
@@ -4301,7 +4301,7 @@ h3 {
   display: -webkit-box;
   overflow: hidden;
   color: var(--ink-muted);
-  font-size: var(--text-2xs)  /* T-1 */;
+  font-size: var(--text-2xs); /* T-1 */
   line-height: 1.25;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -4346,13 +4346,14 @@ h3 {
 }
 
 .workflow-canvas text {
-  font-size: 0.67rem;
+  font-size: 0.67rem; /* deliberate: SVG coordinate-space label sized to the canvas viewBox, not the rem type scale */
   font-weight: 700;
 }
 
 .workflow-canvas text.node-kind {
-  fill: var(--ink-faint);
-  font-size: 0.58rem;
+  /* A-2/T-2: informational diagram label — --ink-muted (8.98:1, AA) not --ink-faint (3.28:1, decorative-only) */
+  fill: var(--ink-muted);
+  font-size: 0.58rem; /* deliberate: SVG coordinate-space label sized to the canvas viewBox, not the rem type scale */
 }
 
 .node-inspector {
@@ -7432,7 +7433,7 @@ h3 {
 .workflow-palette button small {
   grid-column: 1;
   color: var(--ink-muted); /* T-2: raised from --ink-faint (2.2:1) to --ink-muted (4.9:1) */
-  font-size: var(--text-2xs)  /* T-1 */;
+  font-size: var(--text-2xs); /* T-1 */
   font-weight: 500;
 }
 
@@ -7445,7 +7446,7 @@ h3 {
   background: var(--paper-raised);
   color: var(--ink-muted); /* T-2: raised from --ink-faint (2.2:1) to --ink-muted (4.9:1) */
   font-family: var(--oya-font-mono);
-  font-size: var(--text-2xs)  /* T-1 */;
+  font-size: var(--text-2xs); /* T-1 */
   padding: 0.0625rem 0.25rem;
 }
 
@@ -7483,7 +7484,7 @@ h3 {
 .workflow-ai-suggestion span {
   color: var(--ink-muted); /* T-2: raised from --ink-faint (2.2:1) to --ink-muted (4.9:1) */
   font-family: var(--oya-font-mono);
-  font-size: var(--text-2xs)  /* T-1 */;
+  font-size: var(--text-2xs); /* T-1 */
 }
 
 .workflow-ai-suggestion div {
@@ -7752,12 +7753,12 @@ h3 {
   border-radius: 0.25rem;
   background: var(--accent-bg);
   color: var(--accent-deep);
-  font-size: 0.68rem;
+  font-size: var(--text-xs); /* T-1: snapped from 0.68rem */
 }
 
 .workflow-connector-grid span {
   color: var(--ink-muted);
-  font-size: var(--text-2xs)  /* T-1 */;
+  font-size: var(--text-2xs); /* T-1 */
 }
 
 .workflow-canvas-metrics {
@@ -7794,7 +7795,7 @@ h3 {
 .workflow-canvas-metrics em {
   color: var(--ink-muted);
   font-family: var(--oya-font-mono);
-  font-size: var(--text-2xs)  /* T-1 */;
+  font-size: var(--text-2xs); /* T-1 */
   font-style: normal;
 }
 
@@ -7917,7 +7918,7 @@ h3 {
 
 .mobile-nav-bar a span,
 .mobile-nav-bar button span {
-  font-size: 1rem;
+  font-size: 1rem; /* deliberate: icon glyph sized to 1rem optical baseline, not a text-scale step */
   line-height: 1;
 }
 
@@ -8750,7 +8751,7 @@ h3 {
   background: var(--ink);
   color: var(--paper);
   display: inline-flex;
-  font-size: 0.58rem;
+  font-size: var(--text-2xs); /* T-1: snapped up from 0.58rem to the a11y micro-label floor */
   font-weight: 900;
   height: 1.25rem;
   justify-content: center;
@@ -8872,7 +8873,7 @@ h3 {
   counter-increment: graph-step;
   display: inline-flex;
   font-family: var(--oya-font-mono);
-  font-size: 0.58rem;
+  font-size: var(--text-2xs); /* T-1: snapped up from 0.58rem to the a11y micro-label floor */
   font-weight: 900;
   height: 1.35rem;
   justify-content: center;
@@ -9437,7 +9438,7 @@ h3 {
   background: var(--paper-raised);
   color: var(--ink-muted);
   font-family: var(--oya-font-mono);
-  font-size: var(--text-2xs)  /* T-1 */;
+  font-size: var(--text-2xs); /* T-1 */
   text-align: left;
 }
 
@@ -9878,7 +9879,7 @@ h3 {
   position: absolute;
   color: var(--ink-muted); /* T-2: raised from --ink-faint (2.2:1) to --ink-muted (4.9:1) */
   font-family: var(--oya-font-mono);
-  font-size: 0.6rem;
+  font-size: var(--text-2xs); /* T-1: snapped from 0.6rem */
   font-weight: 800;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -10279,6 +10280,15 @@ h3 {
   background: var(--paper-sunken);
   color: var(--ink-muted); /* T-2: raised from --ink-faint (2.2:1) to --ink-muted (4.9:1) */
   padding: 0 var(--space-3);
+}
+
+/* A-1/WCAG 2.4.11: the inner input resets its own outline so it can sit flush
+   inside the composite search box; the visible keyboard focus indicator is
+   carried by the wrapper via :focus-within so tabbing into the field still
+   shows a ring (no global outline:none reintroduced). */
+.evidence-search:focus-within {
+  outline: 2px solid var(--oya-color-focus);
+  outline-offset: 2px;
 }
 
 .evidence-search input {
@@ -12555,7 +12565,7 @@ h3 {
 }
 
 .service-people-stats strong {
-  font-size: 1.2rem;
+  font-size: 1.2rem; /* deliberate: compact stat display value between --text-lg and --text-xl */
   line-height: 1;
 }
 
