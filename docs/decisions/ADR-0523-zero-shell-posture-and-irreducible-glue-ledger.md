@@ -90,6 +90,67 @@ complements/operationalizes ADR-0515's "no shell, declarative gitops" firewall p
 precisely what minimal residue is permitted and why. door:one-way.
 
 ---
+
+## Addendum 2026-06-23 — verified-dead `.sh` retirement set (deletion step 1)
+
+**Founder-directed shell-retirement execution, step 1.** Determination `wsk1vi3j1` set-reconciled the
+49 tracked `.sh` to exactly **28 DELETE-as-dead + 11 MIGRATE-to-non-CLI + 10 IRREDUCIBLE-GLUE** (the
+10 = the ADR-0523 ledger of this document). The DELETE set is dead cruft — verified to have **no live
+invoker** — so per the founder directive "don't migrate stale, deprecated, no longer valid shell
+scripts," the correct outcome is deletion, not migration.
+
+This PR retires the verified-dead subset. Each script was re-verified to have NO live invoker before
+deletion: greps of the canonical CI (the GitHub-workflows gate-fleet + the check-substrates lanes), the
+Claude and Codex project hook wiring files, the root Makefile and BUCK, and all surviving live scripts.
+A script was deleted ONLY when its sole remaining references were the script itself, the generated
+born-accounting faces (accounting-registry, scm-facts, gate-baseline), the shrink-only
+rust-first-automation hygiene baseline, debt-inventory/audit docs, the retirement-marked
+oya-dev-cli gate-list surfaces (the quality-lanes registry, the marketplace dev-cli facade, the
+governance gate-catalog domain lib — local bridge feedback, never merge authority per
+`cli_surface_policy`), or other dead scripts in the same delete set.
+
+**Deleted (26)** — verified-dead, no live invoker:
+
+- Superseded PR-queue automation (ADR-0363/0515): `scripts/trigger-next-queue-automerge.sh`,
+  `scripts/repair-sequential-pr-queue.sh`, `scripts/check-sequential-pr-merge-conflicts.sh`.
+- Skip-everything no-op hook: `scripts/hooks/pre-push.sh`.
+- Shims over RETIRED `oya` commands (Rust ports complete): `scripts/onprem-bring-up.sh`,
+  `scripts/onprem-host-decommission.sh`, `scripts/supply-chain-adr0039.sh`,
+  `scripts/install-trivy-ci.sh`.
+- Dead `reject-*` duplicates of shipped Rust kernels: `scripts/reject-retired-grouping-wording.sh`,
+  `scripts/reject-public-dev-domains.sh`, `scripts/reject-placeholder-digests.sh`.
+- Dead CI bridges over the retired `./bin/oya`: `scripts/ci/oya-ci-post.sh`,
+  `scripts/github-actions-required-secrets-check.sh`, `scripts/evidence-secret-scan.sh`,
+  `scripts/pr-review-workflow-pr-head-check.sh` (targets a nonexistent workflow).
+- Six orphan `scripts/tests/*.test.sh` harnesses (no runner; die with their dead targets):
+  `github-actions-required-secrets-check.test.sh`, `pr-review-workflow-pr-head-check.test.sh`,
+  `reject-placeholder-digests.test.sh`, `reject-public-dev-domains.test.sh`,
+  `reject-retired-grouping-wording.test.sh`, `trigger-next-queue-automerge-required-contexts.test.sh`.
+- Born-advisory / structurally-broken / cargo-era residue: `tools/governance/adr-0221-governance-gates.sh`
+  (cited wiring absent), `oya/intelligence/iac/cedar/guardrails-build.sh` (ADR-0140-retired),
+  `scripts/agent-pre-push-validate.sh` (cargo-era), `scripts/branch-protection-apply.sh`,
+  `scripts/build/build-and-push-cloud-intelligence.sh` (targets the retired `microservices/` tree, 0
+  files).
+
+**Excluded — kept because a live invoker was found (2, reported for founder review):** the two
+session-start-context-inject and userprompt-canonical-primer compat-no-op hook stubs under tools/hooks/.
+The determination classed both as dead unwired stubs, and they ARE unwired in the Claude/Codex hook
+files. BUT the canonical, matrix-registered, born-blocking `oya-cloud-ci-enforcement-liveness-app` gate
+carries a hardcoded live-corpus census assertion — `hook_rows == 12`, `stub_rows == 2` — over the actual
+tracked top-level hook-script tree (these two ARE the 2 `stub_marked` rows). Deleting them would drop
+the census to `hook_rows == 10` / `stub_rows == 0` and turn that canonical gate RED. Per the safety
+rule (a script with an unexpected live invoker is excluded, kept, and reported), these two are retained;
+their retirement requires a paired update to the enforcement-liveness census, sequenced separately.
+
+**Faces + baselines re-regenerated** (via the cloud-ci faces materialize command): the deleted paths
+drop out of accounting-registry, scm-facts, and gate-baseline (rows 18485 → 18459, −26; gate-baseline
+0 keys added / 76 removed) and the 25 corresponding rust-first-automation hygiene exceptions are removed
+(the gate's `exception_stale` shrinkage rule). Every baseline SHRANK; none grew. Committed == regenerated.
+
+door:one-way (touches the IRREDUCIBLE-GLUE ledger context only by deleting NON-ledger residue; no
+ledger item is modified).
+
+---
 *Accepted 2026-06-08 (founder-ruled; door:one-way). Source:
 LIFECYCLE-HERMETICITY-ZERO-SHELL-ARCHITECTURE.md (RATIFY-TO-ADR). Refines ADR-0515 D3. Item (2)
-supplied by ADR-0525.*
+supplied by ADR-0525. Addendum 2026-06-23: verified-dead `.sh` retirement step 1.*
