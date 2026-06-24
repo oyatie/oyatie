@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:5a663b7cf0e326ef",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:567d8a01f1d98000"
+    "source_inputs_digest": "fnv1a64:31459432944c4bc6"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -28960,19 +28960,6 @@
           "oya/crm/crates/oya-crm-customer-engagement-domain/Cargo.toml",
           "oya/crm/crates/oya-crm-customer-engagement-domain/src/lib.rs",
           "oya/crm/crates/oya-crm-customer-engagement-domain/tests/customer_engagement.rs",
-          "oya/crm/crates/oya-crm-revenue-app/BUCK",
-          "oya/crm/crates/oya-crm-revenue-app/Cargo.toml",
-          "oya/crm/crates/oya-crm-revenue-app/src/adapter/asyncapi.rs",
-          "oya/crm/crates/oya-crm-revenue-app/src/adapter/grpc.rs",
-          "oya/crm/crates/oya-crm-revenue-app/src/adapter/http.rs",
-          "oya/crm/crates/oya-crm-revenue-app/src/adapter/mod.rs",
-          "oya/crm/crates/oya-crm-revenue-app/src/config.rs",
-          "oya/crm/crates/oya-crm-revenue-app/src/domain/mod.rs",
-          "oya/crm/crates/oya-crm-revenue-app/src/error.rs",
-          "oya/crm/crates/oya-crm-revenue-app/src/lib.rs",
-          "oya/crm/crates/oya-crm-revenue-app/src/main.rs",
-          "oya/crm/crates/oya-crm-revenue-app/src/usecase/mod.rs",
-          "oya/crm/crates/oya-crm-revenue-app/tests/integration.rs",
           "oya/crm/crates/oya-procurement-source-to-pay-domain/BUCK",
           "oya/crm/crates/oya-procurement-source-to-pay-domain/Cargo.toml",
           "oya/crm/crates/oya-procurement-source-to-pay-domain/src/lib.rs",
