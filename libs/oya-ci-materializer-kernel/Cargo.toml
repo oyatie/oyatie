@@ -1,7 +1,8 @@
-# Pure planner kernel for the universal generated-artifact lifecycle engine (ADR-0596).
+# Pure planner kernel for the universal generated-artifact lifecycle engine (ADR-0597 — E1).
 # ZERO I/O, ZERO clock, ZERO net, ZERO subprocess, ZERO git. serde_json + std-collections only.
 # All impurity is confined to oya-ci-materializer-app (the thin executor).
-# authoring_adrs: ADR-0596, ADR-0595, ADR-0551, ADR-0552, ADR-0523
+# authoring_adrs: ADR-0597
+# depends_on_adrs: ADR-0596, ADR-0595, ADR-0551, ADR-0552, ADR-0523
 
 [package]
 name = "oya-ci-materializer-kernel"
