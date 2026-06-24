@@ -189,17 +189,18 @@ fn validate_generator(
     Ok(())
 }
 
-/// Derive a topological order from `input_contract` edges.
+/// Resolve `input_contract` dependency edges for a set of artifacts.
 ///
 /// `input_contract` tokens are matched against artifact `operation_id` values and
 /// `artifact_id` values. An artifact B whose `input_contract` contains token T,
-/// where T equals another artifact A's `operation_id` or `artifact_id`, is
-/// sequenced AFTER A. This is CP-2 (topological order from input_contract).
+/// where T equals another artifact A's `operation_id` or `artifact_id`, depends on A.
 ///
-/// Returns Err on a cycle.
-fn topological_order(
-    artifacts: &[&GeneratedArtifact],
-) -> Result<Vec<ArtifactId>, PlanError> {
+/// Returns the adjacency map `artifact_id -> set of artifact_ids it depends on`.
+/// This is the SINGLE source of edge semantics — `topological_order()` (sequencing)
+/// and `materialize_closure()`/`plan()` (target expansion) share it so they cannot drift.
+fn resolve_dependency_edges<'a>(
+    artifacts: &[&'a GeneratedArtifact],
+) -> BTreeMap<&'a str, BTreeSet<&'a str>> {
     // Build a map from (operation_id | artifact_id) -> artifact_id for dependency resolution.
     let mut token_to_id: BTreeMap<&str, &str> = BTreeMap::new();
     for artifact in artifacts {
@@ -225,6 +226,22 @@ fn topological_order(
         }
         deps.insert(id, dep_set);
     }
+
+    deps
+}
+
+/// Derive a topological order from `input_contract` edges.
+///
+/// An artifact B whose `input_contract` resolves to another artifact A is sequenced
+/// AFTER A. This is CP-2 (topological order from input_contract). Edge resolution is
+/// delegated to `resolve_dependency_edges()` so closure and ordering share semantics.
+///
+/// Returns Err on a cycle.
+fn topological_order(
+    artifacts: &[&GeneratedArtifact],
+) -> Result<Vec<ArtifactId>, PlanError> {
+    // Build adjacency: artifact_id -> set of artifact_ids it depends on.
+    let deps = resolve_dependency_edges(artifacts);
 
     // Kahn's algorithm for topological sort (deterministic — uses BTreeSet).
     let mut in_degree: BTreeMap<&str, usize> = BTreeMap::new();
@@ -355,18 +372,37 @@ pub fn plan(
         // Empty target set = plan ALL artifacts.
         manifest.artifacts.iter().collect()
     } else {
-        // Filter to artifacts whose path is in the target set (or dependencies thereof).
-        let target_ids: BTreeSet<&str> = manifest
-            .artifacts
+        // Seed: artifacts whose path is DIRECTLY in the requested target set.
+        let all_artifacts: Vec<&GeneratedArtifact> = manifest.artifacts.iter().collect();
+        let seed_ids: BTreeSet<&str> = all_artifacts
             .iter()
             .filter(|a| target_paths.contains(&a.path))
             .map(|a| a.artifact_id.as_str())
             .collect();
-        // Include transitive dependencies.
+
+        // Expand to the TRANSITIVE closure over input_contract dependency edges.
+        // Worklist/BFS to a fixpoint: for each id in the set, pull in every id its
+        // input_contract resolves to (via the SHARED edge resolver), repeat until no
+        // new ids are added. This guarantees an upstream producer is included even when
+        // only a downstream leaf path was requested. Pure + deterministic (BTree order).
+        let deps = resolve_dependency_edges(&all_artifacts);
+        let mut closed_ids: BTreeSet<&str> = seed_ids.clone();
+        let mut worklist: Vec<&str> = seed_ids.into_iter().collect();
+        while let Some(id) = worklist.pop() {
+            if let Some(dep_set) = deps.get(id) {
+                for &dep_id in dep_set {
+                    if closed_ids.insert(dep_id) {
+                        worklist.push(dep_id);
+                    }
+                }
+            }
+        }
+
+        // Filter to the closed (target + transitive-dependency) set.
         manifest
             .artifacts
             .iter()
-            .filter(|a| target_ids.contains(a.artifact_id.as_str()))
+            .filter(|a| closed_ids.contains(a.artifact_id.as_str()))
             .collect()
     };
 

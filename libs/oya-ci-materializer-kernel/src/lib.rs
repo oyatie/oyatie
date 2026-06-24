@@ -1,10 +1,10 @@
 //! # oya-ci-materializer-kernel
 //!
 //! Pure planner + predicate kernel for the universal generated-artifact lifecycle engine
-//! (ADR-0596). This crate is the analysis phase of the Bazel/Buck genrule
+//! (ADR-0597 — E1). This crate is the analysis phase of the Bazel/Buck genrule
 //! "analysis → action" pattern, reimplemented Rust-native.
 //!
-//! ## Purity guarantee (MF-2 / ADR-0596)
+//! ## Purity guarantee (MF-2 / ADR-0597)
 //!
 //! This crate MUST contain ZERO uses of:
 //!   - `std::process`   (no subprocess spawn)
@@ -40,7 +40,8 @@
 //! `manifest: &ControlPlane` as a separate parameter (not baked in) so E3 can pass the
 //! merge-base-materialised manifest without a schema break.
 //!
-//! ADR-0596: Rust-native materializer kernel (E1 — pure planner).
+//! ADR-0597: Rust-native materializer kernel (E1 — pure planner).
+//! Depends on ADR-0596 (the de-commit firewall guard this kernel materializes around).
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
