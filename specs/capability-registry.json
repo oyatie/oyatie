@@ -502,6 +502,7 @@
         "globs": [
           "libs/oya-buck-syntax-kernel",
           "libs/oya-ci-config",
+          "libs/oya-ci-materializer-kernel",
           "libs/oya-crate-registrar-app",
           "libs/oya-crate-registrar-kernel",
           "libs/oya-workspace-members-kernel",
