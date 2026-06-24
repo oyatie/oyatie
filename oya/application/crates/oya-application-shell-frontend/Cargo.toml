@@ -34,7 +34,20 @@ wasm-bindgen = { version = "=0.2.121", optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures = "=0.4.71"
-web-sys = { version = "=0.3.98", features = ["Document", "Element", "HtmlElement", "Response", "Window"] }
+web-sys = { version = "=0.3.98", features = [
+    "Document",
+    "DomTokenList",
+    "Element",
+    "Event",
+    "EventTarget",
+    "HtmlCollection",
+    "HtmlElement",
+    "KeyboardEvent",
+    "MouseEvent",
+    "Node",
+    "Response",
+    "Window",
+] }
 
 [package.metadata.leptos]
 output-name = "oya_application_shell_frontend"
