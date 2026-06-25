@@ -13,7 +13,7 @@ info:
     - ADR-0314
   x-naming-justifications:
     bnf_v4: "service.action.resource grammar uses marketplace.DealSet.<action>"
-    layer_enum: "13-layer-enum: kernel, domain, usecase, app, adapter, infrastructure, rest, grpc, graphql, worker, cli, sdk, api"
+    layer_enum: "12-layer-enum: kernel, domain, usecase, app, adapter, infrastructure, rest, grpc, worker, cli, sdk, api"
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 servers:
   - url: https://api.oyatie.example/marketplace/v1

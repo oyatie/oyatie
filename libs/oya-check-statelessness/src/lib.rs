@@ -1,7 +1,7 @@
 //! Statelessness check (ADR-0062 §"sharded state"; decision-principles.json DP-09).
 //!
 //! Outer-layer crates (`application`, `app`, `worker`, presentation-entry-points
-//! `rest|grpc|graphql|cli|sdk`) MUST NOT carry module-level mutable state.
+//! `rest|grpc|cli|sdk`) MUST NOT carry module-level mutable state.
 //! Mutable globals break horizontal-scale invariants (every replica diverges)
 //! and the audit-chain emission rule (state changes that don't flow through a
 //! port can't be audited).
@@ -59,16 +59,7 @@ impl fmt::Display for CheckMode {
 /// Inner-ring crates (`kernel`, `domain`) are exempt because they typically
 /// contain only types + pure logic; if they do violate, they need a separate
 /// review anyway. The check is opt-in by layer.
-pub const SCOPED_LAYERS: [&str; 8] = [
-    "application",
-    "app",
-    "worker",
-    "rest",
-    "grpc",
-    "graphql",
-    "cli",
-    "sdk",
-];
+pub const SCOPED_LAYERS: [&str; 7] = ["application", "app", "worker", "rest", "grpc", "cli", "sdk"];
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SourceFile {

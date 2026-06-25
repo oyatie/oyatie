@@ -18,7 +18,6 @@ pub mod domain {
         Layer::Infrastructure,
         Layer::Rest,
         Layer::Grpc,
-        Layer::Graphql,
         Layer::Worker,
         Layer::Cli,
         Layer::Sdk,
@@ -35,7 +34,6 @@ pub mod domain {
         Infrastructure,
         Rest,
         Grpc,
-        Graphql,
         Worker,
         Cli,
         Sdk,
@@ -53,7 +51,6 @@ pub mod domain {
                 Self::Infrastructure => "infrastructure",
                 Self::Rest => "rest",
                 Self::Grpc => "grpc",
-                Self::Graphql => "graphql",
                 Self::Worker => "worker",
                 Self::Cli => "cli",
                 Self::Sdk => "sdk",
@@ -94,7 +91,7 @@ pub fn scaffold() -> DocSetScaffold {
 
 pub fn validate_scaffold() -> Result<(), &'static str> {
     let scaffold = scaffold();
-    if scaffold.layer_count() != 13 {
+    if scaffold.layer_count() != 12 {
         return Err("adr_0105_layer_count");
     }
 
@@ -126,7 +123,7 @@ mod tests {
     }
 
     #[test]
-    fn declares_13_canonical_layers() {
+    fn declares_12_canonical_layers() {
         let layers: Vec<_> = LAYERS.iter().map(Layer::slug).collect();
         assert_eq!(
             layers,
@@ -139,7 +136,6 @@ mod tests {
                 "infrastructure",
                 "rest",
                 "grpc",
-                "graphql",
                 "worker",
                 "cli",
                 "sdk",
@@ -153,9 +149,9 @@ mod tests {
     }
 
     #[test]
-    fn scaffold_validation_walks_13_layer_enum() {
+    fn scaffold_validation_walks_12_layer_enum() {
         let descriptor = scaffold();
-        assert_eq!(descriptor.layer_count(), 13);
+        assert_eq!(descriptor.layer_count(), 12);
         assert!(descriptor.includes_layer(Layer::Kernel));
         assert!(descriptor.includes_layer(Layer::Usecase));
         assert!(descriptor.includes_layer(Layer::Api));

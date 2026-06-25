@@ -14,7 +14,9 @@ fn scaffold_declares_expected_contracts() {
     assert_eq!(scaffold.contracts.grpc, "contracts/treasury-v1.proto");
 }
 #[test]
-fn scaffold_declares_adr_0105_layers() { assert_eq!(scaffold().layers.len(), 13); }
+fn scaffold_declares_adr_0105_layers() {
+    assert_eq!(scaffold().layers.len(), 12);
+}
 #[test]
 fn scaffold_declares_domain_capabilities() {
     let scaffold = scaffold();
@@ -22,7 +24,11 @@ fn scaffold_declares_domain_capabilities() {
     assert!(scaffold.capabilities.contains(&Capability::FxExposure));
 }
 #[test]
-fn config_default_validates_with_named_cli_args() { ServiceConfig::local_default("tenant-alpha", 9080).validate().expect("default config validates"); }
+fn config_default_validates_with_named_cli_args() {
+    ServiceConfig::local_default("tenant-alpha", 9080)
+        .validate()
+        .expect("default config validates");
+}
 #[test]
 fn adapter_registry_contains_three_contract_surfaces() {
     let registry = AdapterRegistry::scaffolded();
@@ -32,7 +38,9 @@ fn adapter_registry_contains_three_contract_surfaces() {
     assert!(registry.asyncapi_channels.len() >= 5);
 }
 #[test]
-fn tenant_id_rejects_empty_value() { assert!(TenantId::new("   ").is_err()); }
+fn tenant_id_rejects_empty_value() {
+    assert!(TenantId::new("   ").is_err());
+}
 #[test]
 fn idempotency_key_requires_stable_length() {
     assert!(IdempotencyKey::new("short").is_err());

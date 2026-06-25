@@ -126,7 +126,7 @@ graph MUST topologically match it.
   role: `app`.
 
 - **`api`** — **Inbound** adapter that exposes the app's use-cases over
-  a transport (HTTP, gRPC, GraphQL). Owns request/response types,
+  a transport (HTTP, gRPC, event, or realtime). Owns request/response types,
   serialization, validation, auth-extraction. Depends on `kernel`,
   `domain`, `app`. MUST NOT contain business logic; if a handler grows
   branching that does not collapse to "extract → call app → format", that

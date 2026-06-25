@@ -7,14 +7,14 @@
 #   - bc-tokens:          `pr-review-dispatcher` (3 kebab tokens; describes
 #                         the bounded-context concept — the dispatcher that
 #                         fans out the multispectrum review panel on PR).
-#   - layer (slot-N):     `app` — 13-value layer enum (per ADR-0056 amended
-#                         by ADR-0105 + ADR-0106). Bin-only tool that
+#   - layer (slot-N):     `app` — 12-value layer enum (per ADR-0056 amended
+#                         by ADR-0105 + ADR-0106 + ADR-0565). Bin-only tool that
 #                         orchestrates kernels per ADR-0107 §"tools/ binding"
 #                         (no implicit-app exception; every tools/ crate
 #                         carries a canonical layer suffix; binary tools use
 #                         `-app`).
 #   - 12-layer-enum conformance: `app` ∈ {kernel, domain, usecase, app,
-#                         adapter, infrastructure, cli, rest, grpc, graphql,
+#                         adapter, infrastructure, cli, rest, grpc,
 #                         worker, sdk, api}. ✓
 #   - Sibling pattern:    matches every other tools/oya-foundry-*-app crate
 #                         (banned-primitives, adr-shape, authoritative-tracked,

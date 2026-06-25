@@ -8,7 +8,7 @@ primary_adr: ADR-0320
 related_adrs: [ADR-0105, ADR-0131, ADR-0243, ADR-0244, ADR-0263, ADR-0319, ADR-0320]
 companion_docs: [oya/workplace-integration/README.md, docs/products/workplace-integration/PRD.md, docs/standards/documentation-rigor.md]
 planned_enforcement_ref: D-GOVERNANCE-CENTRAL
-naming_justifications: BNF v4 service_action_resource grammar and 13-layer-enum conformance are declared inline in this document
+naming_justifications: BNF v4 service_action_resource grammar and 12-layer-enum conformance are declared inline in this document
 ---
 
 # Workplace Integration
@@ -44,11 +44,11 @@ Implementation IPs present in this doc set:
 
 Related journey anchors live in ../../docs/user-journeys/ and remain the source for persona/story/UX/test-plan context until a workplace-integration implementation IP exists for that journey. This README does not claim missing IP files as complete.
 
-## Naming justifications: BNF v4 and 13-layer enum conformance
+## Naming justifications: BNF v4 and 12-layer enum conformance
 
 Every new artifact uses the BNF v4 grammar `<service>.<bounded_context>.<action>.<resource>` for actions and `oya-workplace-integration-<bounded-context>-<layer>` for crate and catalog names.
-The ADR-0105 canonical 13-layer enum used by this doc set is kernel, domain, usecase, app, adapter, infrastructure, rest, grpc, graphql, worker, cli, sdk, api.
-The manifest uses the ADR-0105 canonical 13-layer enum for bounded-context layers; iac, policy, and observability remain operational artifact groups rather than layer-enum values.
+The ADR-0105/ADR-0565 canonical 12-layer enum used by this doc set is kernel, domain, usecase, app, adapter, infrastructure, rest, grpc, worker, cli, sdk, api.
+The manifest uses the ADR-0105/ADR-0565 canonical 12-layer enum for bounded-context layers; iac, policy, and observability remain operational artifact groups rather than layer-enum values.
 The service slug `workplace-integration` is retained because it is already the service directory name, policy prefix, catalog prefix, and endpoint namespace.
 The primitive name `WorkplaceAgreement` is retained because it is the smallest stable object that lets the journey IP slices share one contract without leaking unrelated service ownership.
 The secondary primitive `ESignSession` is retained because it names the audit-backed record that downstream services consume without taking direct table ownership.

@@ -8,10 +8,10 @@
 #                      this app ships the binary entrypoint + adapter
 #                      implementations (live Anthropic HTTP + deterministic
 #                      mock re-export).
-#   - layer (slot-N):  `app` — closed 13-value enum {kernel, domain,
+#   - layer (slot-N):  `app` — closed 12-value enum {kernel, domain,
 #                      usecase, app, adapter, infrastructure, cli, rest,
-#                      grpc, graphql, worker, sdk, api} per ADR-0056
-#                      amended by ADR-0105+ADR-0106. ✓
+#                      grpc, worker, sdk, api} per ADR-0056 amended by
+#                      ADR-0105+ADR-0106+ADR-0565. ✓
 #   - Sibling pattern: every other `tools/oya-foundry-*-app` crate
 #                      (banned-primitives, pr-review-dispatcher, etc.).
 #   - Introducing IP:  M01-P17-IP-009 (subagent runtime).

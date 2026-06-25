@@ -13,21 +13,32 @@ fn scaffold_declares_expected_contracts() {
     assert_eq!(scaffold.microservice, "contract-lifecycle-management");
     assert_eq!(scaffold.contracts.openapi, "contracts/openapi-v1.yaml");
     assert_eq!(scaffold.contracts.asyncapi, "contracts/asyncapi-v1.yaml");
-    assert_eq!(scaffold.contracts.grpc, "contracts/contract-lifecycle-management-v1.proto");
+    assert_eq!(
+        scaffold.contracts.grpc,
+        "contracts/contract-lifecycle-management-v1.proto"
+    );
 }
 
 #[test]
 fn scaffold_declares_adr_0105_layers() {
     let scaffold = scaffold();
-    assert_eq!(scaffold.layers.len(), 13);
+    assert_eq!(scaffold.layers.len(), 12);
 }
 
 #[test]
 fn scaffold_declares_contract_lifecycle_capabilities() {
     let scaffold = scaffold();
-    assert!(scaffold.capabilities.contains(&Capability::ContractDraftCreate));
+    assert!(
+        scaffold
+            .capabilities
+            .contains(&Capability::ContractDraftCreate)
+    );
     assert!(scaffold.capabilities.contains(&Capability::ObligationTrack));
-    assert!(scaffold.capabilities.contains(&Capability::DealSetContractBind));
+    assert!(
+        scaffold
+            .capabilities
+            .contains(&Capability::DealSetContractBind)
+    );
 }
 
 #[test]
