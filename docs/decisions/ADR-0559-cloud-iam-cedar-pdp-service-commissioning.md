@@ -176,6 +176,16 @@ cloud-intelligence owner). Files commissioned by this decision:
 `iam/facade/cloud-pdp-app/tests/e2e_live_socket.rs`,
 `iam/facade/cloud-pdp-app/tests/seed_parity.rs`.
 
+Wave A Cloud IAM API-first parity addendum: the REST/OpenAPI contract and its
+Buck2 parity gate are commissioned under the same Cloud IAM authorization
+decision surface, reusing `iam/ports/cloud-api` surface constants rather than
+minting a second source of truth:
+
+`cloud/cloud-iam/contracts/openapi/cloud/cloud-iam-v1.yaml`,
+`cloud/cloud-iam/contracts/BUCK`,
+`cloud/cloud-iam/contracts/tests/openapi_parity.rs`,
+`evidence/multispectrum/waveA-cloud-iam-openapi-parity-20260625-1782426426.json`.
+
 The gRPC proto stays crate-local in slice 1 (structurally accounted via cargo-members
 reachability); it promotes to `cloud/cloud-iam/contracts/proto/` (export_file PUBLIC + its own
 reachability registration) with the first external consumer slice.

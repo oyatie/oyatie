@@ -18,6 +18,10 @@
       "prefix": "cloud/cloud-iam/OWNERS"
     },
     {
+      "anchor": "ADR-0559 Wave A API-first parity addendum: cloud/cloud-iam/contracts/ houses the Cloud IAM OpenAPI contract and Buck2 parity test for the provider-neutral IAM surface constants; breadth is only the contract/gate subtree, not the whole service.",
+      "prefix": "cloud/cloud-iam/contracts/"
+    },
+    {
       "anchor": "ADR-0562 §10.5 ownership seed: the messaging capability tree's OWNERS marker (axis-cloud-platform), homed by the first strangler move (oya/eventing → messaging/)",
       "prefix": "messaging/OWNERS"
     },
