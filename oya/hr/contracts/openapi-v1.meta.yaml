@@ -17,3 +17,6 @@ change_notes:
   - id: CS-ENT-HR-006
     date: 2026-05-23
     summary: Adds HR runtime adapter crate that dispatches existing preview routes through the repo-native Hyper foundation; deployed listener, storage, Workflow execution, Payroll calls, sensitive-data fetch, and runtime audit emission remain non-claims.
+  - id: CS-ENT-HR-007
+    date: 2026-06-25
+    summary: Adds fail-closed runtime authz port coverage for tenant-scoped HR control-plane mutations; deployed listener, storage, Workflow execution, Payroll calls, sensitive-data fetch, and runtime audit emission remain non-claims.
