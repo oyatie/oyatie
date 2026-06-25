@@ -33,7 +33,7 @@ if [ -f "${asset_path}" ] \
   echo "buck2 release asset cache hit (SHA-256 verified): ${asset_path} — skipping download." >&2
 else
   rm -f "${asset_path}"
-  curl -fsSL "https://github.com/facebook/buck2/releases/download/${BUCK2_RELEASE}/${BUCK2_ASSET}" -o "${asset_path}"
+  curl --retry 5 --retry-all-errors --retry-delay 2 --connect-timeout 20 -fsSL "https://github.com/facebook/buck2/releases/download/${BUCK2_RELEASE}/${BUCK2_ASSET}" -o "${asset_path}"
 fi
 
 # Integrity is non-negotiable (ADR-0556: the SHA check is the integrity anchor that makes the
