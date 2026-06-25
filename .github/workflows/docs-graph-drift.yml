@@ -67,6 +67,7 @@ jobs:
         run: |
           set -euo pipefail
           infra/ci/install-buck2.sh
+          export PATH="/tmp/oya-ci-buck2-2026-06-01:${PATH}"
           rustc --version
           buck2 build root//tools/oya-architecture-graph-generator-app:oya-architecture-graph-generator
           buck2 test \
