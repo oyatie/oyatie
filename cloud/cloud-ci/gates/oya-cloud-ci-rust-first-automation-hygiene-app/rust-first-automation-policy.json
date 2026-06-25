@@ -324,9 +324,9 @@
         ".github/workflows/cache-integrity-canary.yml": 12,
         ".github/workflows/check-substrates.yml": 5,
         ".github/workflows/docs-graph-drift.yml": 3,
-        ".github/workflows/oya-ci-required.yml": 37
+        ".github/workflows/oya-ci-required.yml": 36
       },
-      "keys_total": 57
+      "keys_total": 56
     },
     "codes": {
       "rust_first_automation_unbaselined_workflow_inline_shell": [
@@ -353,7 +353,6 @@
         ".github/workflows/oya-ci-required.yml::app-shell-codegen::step-1",
         ".github/workflows/oya-ci-required.yml::app-shell-codegen::step-2",
         ".github/workflows/oya-ci-required.yml::buck2::step-1",
-        ".github/workflows/oya-ci-required.yml::buck2::step-10",
         ".github/workflows/oya-ci-required.yml::buck2::step-3",
         ".github/workflows/oya-ci-required.yml::buck2::step-4",
         ".github/workflows/oya-ci-required.yml::buck2::step-6",
