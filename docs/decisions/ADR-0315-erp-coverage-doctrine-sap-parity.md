@@ -26,6 +26,8 @@ enforced_by:
 
 Proposed - 2026-05-20. This ADR is doctrine for ERP parity and authorizes the nine Wave-3-G microservice scaffolds created with this brief.
 
+2026-06-25 governance evidence for the ERP hyperscaler parity benchmark-surface gate is recorded at `evidence/multispectrum/waveA-erp-hyperscaler-benchmark-gate-20260625-1782430048.json`.
+
 ## §A Context
 
 Enterprise resource planning remains one of the most valuable software categories in the world. SAP, Oracle, Microsoft, Workday, NetSuite, Sage Intacct, Infor, and IFS all monetize tenant lock-in around finance, procurement, supply chain, HR, operations, and reporting. SAP alone operates a $60B-plus business across ERP, procurement network, HCM, analytics, and platform extensions.
