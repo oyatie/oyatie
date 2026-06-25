@@ -151,6 +151,29 @@ fn the_removed_root_scratch_shapes_are_red_against_the_live_policy() {
     }
 }
 
+/// RED FIXTURE: the retired direnv + bin/oya CLI shim must not return as tracked roots.
+#[test]
+fn retired_dev_env_cli_surfaces_are_born_blocking_red() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+
+    let root_file_findings = evaluate_keyed(&policy, &json!({ "rows": [{ "path": ".envrc" }] }));
+    assert!(
+        root_file_findings
+            .iter()
+            .any(|f| f.code == "root_workspace_unallowlisted_file" && f.key == ".envrc"),
+        ".envrc must stay retired from the tracked repo root; got {root_file_findings:#?}"
+    );
+
+    let bin_dir_findings = evaluate_keyed(&policy, &json!({ "rows": [{ "path": "bin/oya" }] }));
+    assert!(
+        bin_dir_findings
+            .iter()
+            .any(|f| f.code == "root_workspace_unallowlisted_dir" && f.key == "bin"),
+        "bin/oya must stay retired because top-level bin/ is no longer allowlisted; got {bin_dir_findings:#?}"
+    );
+}
+
 /// Every offending finding must carry a concrete auto-fix remediation (relocate to `.omc/` or
 /// `git rm`) — the gate is auto-fixing, not flag-only.
 #[test]

@@ -439,8 +439,8 @@
   "planning_closure": {
     "status": "blocked_until_planning_closure_gate_green",
     "contract_ref": "/specs/planning-closure-contract.json",
-    "gate_command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
-    "gate_command_authority_note": "bridge-only local feedback per the founder all-CLI-retirement directive of 2026-06-09; merge authority is the cloud-ci gate apps behind the single required context oya-ci-required, and this oya-dev-cli invocation is never merge or exit authority",
+    "gate_command": "oya-ci-required cloud-ci planning-closure Rust gate packet",
+    "gate_command_authority_note": "destination authority per the founder all-CLI-retirement directive of 2026-06-09; legacy oya-dev-cli planning-closure validation is provenance-only migration input and is never merge or exit authority",
     "authority": {
       "current_path": "/specs/masterplan.json",
       "root_hub_pointer": "/specs/root-hub-pointers.json#entry_points.masterplan",
@@ -778,7 +778,7 @@
       ],
       "current_gate_evidence": {
         "status": "local-green-online-audit-strict-evidence-pass",
-        "gate": "cargo run -q -p oya-dev-cli -- gate validate dependency-seam --repo-root . --online-audit --severity error --emit-report evidence/fd001/cs-p13-dependency-seam-report.json",
+        "gate": "oya-ci-required cloud-ci dependency-seam Rust gate packet with evidence/fd001/cs-p13-dependency-seam-report.json emission",
         "result": "6 pass, 0 skipped, 0 diagnostics, 0 blocking",
         "evidence_refs": [
           "/evidence/fd001/cs-p13-dependency-seam-report.json",
@@ -1210,7 +1210,7 @@
     "authority_cutover": {
       "closure_authority": "Oya VCS ChangeBundle -> Promotion -> ReleaseTrain",
       "legacy_surfaces": "grit/icm/rtk/vox/omx/omc are compatibility/provenance only and cannot satisfy forward promotion authority",
-      "admission_lane": "cargo run -q -p oya-vcs-admission-gate-app"
+      "admission_lane": "oya-ci-required cloud-ci admission Rust gate packet"
     },
     "ci_admission_lane": {
       "workflow_job": "oya-vcs-admission",
@@ -5933,7 +5933,7 @@
           "dr_exit": "Multi-region DR with RTO/RPO matrix per service + per-compliance-pack (ADR-0343); >=1 executed cross-region failover drill per region pair (evidence, not claim).",
           "security_exit": "Cedar default-deny universal gate (ADR-0243); tenant isolation proven for BOTH shared (logical: cell+Cedar+per-tenant-encryption) and dedicated (physical cell pinning); cosign-signed images verified at admission via Kubewarden (ADR-0181); 0 critical/high CVE (trivy); no raw secret/PII in logs; audit-chain emission live (ADR-0263).",
           "cost_exit": "FinOps per-tenant cost attribution + OpenCost/FOCUS export live (ADR-0344); mandatory quota/metering/billing resource contract per resource type.",
-          "ci_cd_exit": "cloud-ci full required context green and cloud-cd progressive delivery evidence green; Jenkins and ArgoCD/Rollouts may only satisfy this during an explicitly documented bridge window with deletion criteria, tenant isolation, canary/bake/rollback evidence, merge-queue speculative+batch evidence (ADR-0111), and local oya verify mirror green (ADR-0346).",
+          "ci_cd_exit": "cloud-ci full required context green and cloud-cd progressive delivery evidence green; Jenkins and ArgoCD/Rollouts may only satisfy this during an explicitly documented bridge window with deletion criteria, tenant isolation, canary/bake/rollback evidence, merge-queue speculative+batch evidence (ADR-0111), and the ADR-0346 full-mirror semantics ported into cloud-ci/oya-ci gate packets.",
           "master_exit_rule": "100 = the full cloud-* substrate LIVE across shared+dedicated deployment, multi-region hyperscale, KR-compliant, with ALL exit gates GREEN on measured evidence. Until then every production/hyperscaler-maturity claim stays blocked_until_required_evidence_is_green (hyperscaler-gates.json).",
           "quality_evidence_kits": [
             "overload/fairness/load-shedding (request-cost classes, retry budgets, queue limits) — AWS load-shedding",
@@ -6139,7 +6139,7 @@
     "standards_hygiene_cadence": "Re-check pinned standard versions (OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, OpenTelemetry, SLSA, NIST CSF/Privacy, FOCUS, Kubernetes PSS, Cedar, Pulsar, Kubewarden, Argo) against official/upstream before each production commitment; quarterly otherwise.",
     "toolchain_target_current_reconciliation_2026_06_02": {
       "supersedes_stale_fields": "Existing toolchain_target text mentions Bazel/Jenkins-sole/GitHub-only retirement as historical; current direction is Buck2 + oya-ci + GitHub/Jenkins bridge + bespoke Rust cloud SCM/CI/CD services.",
-      "build_graph": "Buck2-first-party with generated-not-hand-maintained target coverage and cargo authoritative bridge until parity is proven.",
+      "build_graph": "Buck2-first-party with generated-not-hand-maintained target coverage; legacy Cargo evidence is advisory only and cannot be merge authority.",
       "ci": "cloud-ci/oya-ci Rust service is destination; current branch protection must require a full bespoke cloud-ci/oya-ci required context produced from trusted trunk/controller state before enforcement claims. Legacy `oya verify`/`oya gate` output is local/bridge evidence only, never merge authority.",
       "scm": "cloud-scm is placed in P-TOOLCHAIN as Oya VCS productization; GitHub/git are bridge adapters.",
       "cd": "cloud-cd is placed in P-TOOLCHAIN as Rust release-ledger/reconciler/product surface; Argo CD/Rollouts are bridge adapters/reference substrate.",
