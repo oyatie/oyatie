@@ -9,6 +9,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use oya_workspace_members_kernel::resolve_member_dirs;
 
+mod rust_toolchain_drift;
+pub use rust_toolchain_drift::{evaluate_rust_toolchain_drift, read_pinned_rust_toolchain};
+
 pub const LOCK_REMEDIATION_COMMAND: &str = "cargo metadata >/dev/null";
 pub const FACE_REMEDIATION_COMMAND: &str = "infra/ci/materialize-cloud-ci-generated-faces.sh .";
 pub const FACE_SETTLE_PROTOCOL: &str = "commit content changes first; faces regenerate from the TRACKED TREE STATE (ADR-0552: committed faces carry no history-derived data, so commit ids never enter them); never mix content and regenerated faces in one commit; then run the materialize command; then commit the faces-only diff; then run oya-cloud-ci-face-settle --verify as the LAST step before EVERY push";
@@ -57,6 +60,7 @@ pub enum FindingCode {
     LockStaleMemberVersion,
     LockOrphanPathPackage,
     GeneratedFaceStale,
+    RustToolchainDrift,
 }
 
 impl FindingCode {
@@ -66,6 +70,7 @@ impl FindingCode {
             FindingCode::LockStaleMemberVersion => "lock_stale_member_version",
             FindingCode::LockOrphanPathPackage => "lock_orphan_path_package",
             FindingCode::GeneratedFaceStale => "generated_face_stale",
+            FindingCode::RustToolchainDrift => "rust_toolchain_drift",
         }
     }
 }
@@ -592,6 +597,7 @@ pub fn check_repo_with_regenerated_faces(
         &regenerated_faces,
         &decommitted,
     ));
+    findings.extend(evaluate_rust_toolchain_drift(repo_root)?);
 
     Ok(CheckReport {
         findings: findings.into_iter().collect(),
@@ -750,7 +756,7 @@ pub fn evaluate_face_determinism(
 
 pub fn render_remediation() -> String {
     format!(
-        "Remediation:\n  lock: {LOCK_REMEDIATION_COMMAND}\n  faces: {FACE_REMEDIATION_COMMAND}\n  face settle protocol: {FACE_SETTLE_PROTOCOL}"
+        "Remediation:\n  lock: {LOCK_REMEDIATION_COMMAND}\n  faces: {FACE_REMEDIATION_COMMAND}\n  rust-toolchain: align rust-toolchain.toml, Cargo manifests, service manifests, Dockerfiles, workflows, and active standards/spec text to one exact stable patch\n  face settle protocol: {FACE_SETTLE_PROTOCOL}"
     )
 }
 

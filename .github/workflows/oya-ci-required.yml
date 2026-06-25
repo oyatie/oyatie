@@ -184,8 +184,6 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - name: Check Rust toolchain drift
-        run: python3 infra/ci/check-rust-toolchain-drift.py .
       - name: Install buck2 (digest-pinned prebuilt release)
         run: infra/ci/install-buck2.sh
       # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4: the toolchain is a
