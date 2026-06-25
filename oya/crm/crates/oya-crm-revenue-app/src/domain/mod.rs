@@ -243,9 +243,21 @@ impl CapabilityDescriptor {
             .copied()
             .map(|capability| Self {
                 capability,
-                bounded_context: BoundedContext::Opportunity,
+                bounded_context: capability.bounded_context(),
                 invariant: ServiceInvariant::TenantScoped,
             })
             .collect()
+    }
+}
+
+impl Capability {
+    pub fn bounded_context(self) -> BoundedContext {
+        match self {
+            Self::AccountMaster => BoundedContext::AccountMaster,
+            Self::Opportunity => BoundedContext::Opportunity,
+            Self::Quote => BoundedContext::Quote,
+            Self::Campaign => BoundedContext::Campaign,
+            Self::ServiceCase => BoundedContext::ServiceCase,
+        }
     }
 }

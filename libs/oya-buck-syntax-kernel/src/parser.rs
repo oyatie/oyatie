@@ -21,6 +21,9 @@
 
 use crate::lexer::{LexError, LexOutput, Span, Token, TokenKind, lex};
 
+// ponytail: keep this as a parser-owned ceiling until callers need explicit parse budgets.
+const MAX_EXPR_NESTING_DEPTH: usize = 128;
+
 /// A parse failure: the text cannot be soundly modeled. Fail-closed.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ParseError {
@@ -376,6 +379,15 @@ impl<'t> Parser<'t> {
         }
     }
 
+    fn check_expr_depth(&self, depth: usize) -> Result<(), ParseError> {
+        if depth > MAX_EXPR_NESTING_DEPTH {
+            return Err(self.error(format!(
+                "expression nesting depth exceeds {MAX_EXPR_NESTING_DEPTH}"
+            )));
+        }
+        Ok(())
+    }
+
     fn parse_stmt(&mut self) -> Result<Stmt, ParseError> {
         let Some(first) = self.peek() else {
             return Err(self.error("expected a statement"));
@@ -432,7 +444,7 @@ impl<'t> Parser<'t> {
                 }
                 // NAME ( args )
                 Some(TokenKind::Punct('(')) => {
-                    let call = self.parse_call(name, name_span)?;
+                    let call = self.parse_call(name, name_span, 0)?;
                     if let Some(tail_end) = self.finish_stmt_line() {
                         return Ok(Stmt::Opaque {
                             span: Span::new(start, tail_end),
@@ -483,7 +495,12 @@ impl<'t> Parser<'t> {
     }
 
     /// Parse a call whose `func` ident is the CURRENT token and `(` is the next.
-    fn parse_call(&mut self, func: String, func_span: Span) -> Result<CallExpr, ParseError> {
+    fn parse_call(
+        &mut self,
+        func: String,
+        func_span: Span,
+        depth: usize,
+    ) -> Result<CallExpr, ParseError> {
         // Consume IDENT and '('.
         self.pos += 1;
         let open = match self.bump() {
@@ -527,7 +544,7 @@ impl<'t> Parser<'t> {
             } else {
                 (None, None)
             };
-            let value = self.parse_expr()?;
+            let value = self.parse_expr_at_depth(depth + 1)?;
             let mut span = Span::new(arg_start, value.span.end);
             if span.end < span.start {
                 span = Span::new(arg_start, arg_start);
@@ -579,13 +596,18 @@ impl<'t> Parser<'t> {
     /// Parse an expression: a `+`-chain of primaries. A postfix the subset does not model
     /// (`.method(...)`, `[index]`, `% fmt`) widens the node to Opaque (exact span, no guess).
     fn parse_expr(&mut self) -> Result<ExprNode, ParseError> {
-        let first = self.parse_primary()?;
+        self.parse_expr_at_depth(0)
+    }
+
+    fn parse_expr_at_depth(&mut self, depth: usize) -> Result<ExprNode, ParseError> {
+        self.check_expr_depth(depth)?;
+        let first = self.parse_primary_at_depth(depth)?;
         let mut operands = vec![first];
         loop {
             match self.peek().map(|t| &t.kind) {
                 Some(TokenKind::Punct('+')) => {
                     self.pos += 1;
-                    operands.push(self.parse_primary()?);
+                    operands.push(self.parse_primary_at_depth(depth)?);
                 }
                 // Unmodeled postfix/binary shape: widen to opaque, consume to terminator.
                 Some(TokenKind::Punct('.'))
@@ -625,7 +647,7 @@ impl<'t> Parser<'t> {
         })
     }
 
-    fn parse_primary(&mut self) -> Result<ExprNode, ParseError> {
+    fn parse_primary_at_depth(&mut self, depth: usize) -> Result<ExprNode, ParseError> {
         let Some(token) = self.peek() else {
             return Err(self.error("expected an expression"));
         };
@@ -650,7 +672,7 @@ impl<'t> Parser<'t> {
             TokenKind::Ident(name) => {
                 let name = name.clone();
                 if matches!(self.peek_at(1).map(|t| &t.kind), Some(TokenKind::Punct('('))) {
-                    let call = self.parse_call(name, span)?;
+                    let call = self.parse_call(name, span, depth)?;
                     let call_span = call.span;
                     return Ok(ExprNode {
                         expr: Expr::Call(Box::new(call)),
@@ -663,13 +685,13 @@ impl<'t> Parser<'t> {
                     span,
                 })
             }
-            TokenKind::Punct('[') => self.parse_list(),
-            TokenKind::Punct('{') => self.parse_dict(),
+            TokenKind::Punct('[') => self.parse_list(depth),
+            TokenKind::Punct('{') => self.parse_dict(depth),
             TokenKind::Punct('(') => {
                 // Parenthesized expression: parse the inner expr; the span covers the parens.
                 let open = span.start;
                 self.pos += 1;
-                let inner = self.parse_expr()?;
+                let inner = self.parse_expr_at_depth(depth + 1)?;
                 if let Some(Token {
                     kind: TokenKind::Punct(')'),
                     span: close_span,
@@ -716,7 +738,7 @@ impl<'t> Parser<'t> {
         }
     }
 
-    fn parse_list(&mut self) -> Result<ExprNode, ParseError> {
+    fn parse_list(&mut self, depth: usize) -> Result<ExprNode, ParseError> {
         let open = match self.bump() {
             Some(Token {
                 kind: TokenKind::Punct('['),
@@ -744,7 +766,7 @@ impl<'t> Parser<'t> {
                     span: Span::new(open, close + 1),
                 });
             }
-            let value = self.parse_expr()?;
+            let value = self.parse_expr_at_depth(depth + 1)?;
             let comma = if let Some(Token {
                 kind: TokenKind::Punct(','),
                 span: comma_span,
@@ -778,7 +800,7 @@ impl<'t> Parser<'t> {
         }
     }
 
-    fn parse_dict(&mut self) -> Result<ExprNode, ParseError> {
+    fn parse_dict(&mut self, depth: usize) -> Result<ExprNode, ParseError> {
         let open = match self.bump() {
             Some(Token {
                 kind: TokenKind::Punct('{'),
@@ -809,7 +831,7 @@ impl<'t> Parser<'t> {
                 });
             }
             let entry_start = token.span.start;
-            let key = self.parse_expr()?;
+            let key = self.parse_expr_at_depth(depth + 1)?;
             if !matches!(self.peek().map(|t| &t.kind), Some(TokenKind::Punct(':'))) {
                 // Not `key: value` — consume to the closing brace as opaque content.
                 self.consume_opaque_until_terminator()?;
@@ -817,7 +839,7 @@ impl<'t> Parser<'t> {
                 continue;
             }
             self.pos += 1; // ':'
-            let value = self.parse_expr()?;
+            let value = self.parse_expr_at_depth(depth + 1)?;
             // Comprehension: `for VAR in ITER` after the first key:value.
             if let Some(Token {
                 kind: TokenKind::Ident(kw),
@@ -922,6 +944,14 @@ impl<'t> Parser<'t> {
             match &token.kind {
                 TokenKind::Newline => return Ok(consumed),
                 TokenKind::Punct('(') | TokenKind::Punct('[') | TokenKind::Punct('{') => {
+                    if depth >= MAX_EXPR_NESTING_DEPTH {
+                        return Err(ParseError {
+                            offset: token.span.start,
+                            message: format!(
+                                "expression nesting depth exceeds {MAX_EXPR_NESTING_DEPTH}"
+                            ),
+                        });
+                    }
                     depth += 1;
                 }
                 TokenKind::Punct(')') | TokenKind::Punct(']') | TokenKind::Punct('}') => {
