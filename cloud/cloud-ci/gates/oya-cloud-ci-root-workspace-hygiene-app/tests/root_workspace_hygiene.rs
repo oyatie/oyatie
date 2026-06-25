@@ -47,6 +47,14 @@ fn load_policy(root: &Path) -> Value {
     load_json(&gate_dir(root).join("root-workspace-hygiene-policy.json"))
 }
 
+const SYNTHETIC_RUNTIME_STATE_PATHS: [&str; 5] = [
+    ".claude/worktrees/old-lane/marker",
+    ".claude/settings.local.json",
+    ".codex/.DS_Store",
+    ".omc/state/team/mailbox.json",
+    ".omx/state/team/mailbox.json",
+];
+
 /// Decode git's C-style path quoting: git surrounds a path containing special bytes with double
 /// quotes and octal/`\`-escapes the inner bytes. The scm-facts snapshot carries those quoted forms
 /// verbatim. For the purpose of TOP-LEVEL-segment + ROOT-file classification we only need the
@@ -64,9 +72,9 @@ fn unquote_git_path(raw: &str) -> String {
 
 /// Build the `{ "rows": [{"path": ...}] }` observed inventory from the committed scm-facts snapshot.
 fn observed_from_scm_facts(root: &Path) -> Value {
-    let scm = load_json(
-        &root.join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json"),
-    );
+    let scm = load_json(&root.join(
+        "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+    ));
     let paths = scm["tracked_paths"]
         .as_array()
         .expect("scm-facts.generated.json must carry a tracked_paths array");
@@ -100,6 +108,23 @@ fn live_tracked_root_tree_is_allowlist_clean_green() {
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Green);
 }
 
+/// The live tracked agent/runtime surface must contain only explicit exceptions. Local worktrees,
+/// tmux/team state, caches, and settings.local files must stay ignored and untracked.
+#[test]
+fn live_tracked_runtime_state_dirs_are_explicitly_allowlisted_green() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let observed = observed_from_scm_facts(&root);
+
+    let findings = evaluate_keyed(&policy, &observed);
+    assert!(
+        !findings
+            .iter()
+            .any(|f| f.code == "root_workspace_restricted_dir_unallowlisted_path"),
+        "live tracked runtime/provenance paths must all be explicit exceptions; got {findings:#?}"
+    );
+}
+
 /// RED FIXTURE (mandatory, proves non-inert): injecting a tracked `foo.log` at the repo ROOT must
 /// make the gate RED with the offending key surfaced under the unallowlisted-file code — this IS
 /// the "committed root scratch is structurally impossible" guarantee.
@@ -121,6 +146,34 @@ fn synthetic_tracked_root_log_is_born_blocking_red() {
             .any(|f| f.code == "root_workspace_unallowlisted_file" && f.key == "foo.log"),
         "a tracked root `foo.log` must be born-blocking with its key surfaced; got {findings:#?}"
     );
+    assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
+}
+
+/// RED FIXTURE: local agent runtime state under `.claude/.codex/.omc/.omx` must be born-blocking
+/// if it is ever forced into the tracked-path corpus. This prevents the four agent-state trees from
+/// drifting into committed merge-conflict surfaces.
+#[test]
+fn synthetic_tracked_runtime_state_paths_are_born_blocking_red() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let mut observed = observed_from_scm_facts(&root);
+
+    for path in SYNTHETIC_RUNTIME_STATE_PATHS {
+        observed["rows"]
+            .as_array_mut()
+            .expect("rows array")
+            .push(json!({ "path": path }));
+    }
+
+    let findings = evaluate_keyed(&policy, &observed);
+    for path in SYNTHETIC_RUNTIME_STATE_PATHS {
+        assert!(
+            findings.iter().any(|f| {
+                f.code == "root_workspace_restricted_dir_unallowlisted_path" && f.key == path
+            }),
+            "{path} must be born-blocking under restricted runtime/state roots; got {findings:#?}"
+        );
+    }
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
 }
 
