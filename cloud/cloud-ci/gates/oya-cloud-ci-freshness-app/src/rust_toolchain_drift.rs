@@ -51,6 +51,17 @@ pub fn read_pinned_rust_toolchain(repo_root: &Path) -> Result<String, FreshnessE
 }
 
 pub fn evaluate_rust_toolchain_drift(repo_root: &Path) -> Result<Vec<Finding>, FreshnessError> {
+    let toolchain_path = repo_root.join("rust-toolchain.toml");
+    if !toolchain_path.is_file() {
+        if repo_root.join("specs/root-hub-pointers.json").is_file() {
+            return Ok(vec![drift_finding(
+                "rust-toolchain.toml",
+                "missing canonical Rust toolchain pin",
+            )]);
+        }
+        return Ok(Vec::new());
+    }
+
     let want = read_pinned_rust_toolchain(repo_root)?;
     let mut findings = BTreeSet::new();
 
