@@ -93,62 +93,62 @@ INV-010: Audit-chain sealing is mandatory before success is reported for privile
 ## 3. Twelve Active Layer Placement under ADR-0079
 Layer-01: kernel
 - Placement: primitive types: CellId, LifecycleVersion, HlcTimestamp, Tier, TenantClassScope, EvidenceDigest.
-- Constraint: GraphQL is deliberately absent in this service; public lifecycle commands are REST/OpenAPI and internal automation may use gRPC.
+- Constraint: public lifecycle commands are REST/OpenAPI and internal automation may use gRPC.
 - Dependency rule: inner layers do not import adapters, transport, Postgres, Valkey, or OpenTelemetry clients.
 - Verification: downstream code must keep imports directional and layer names aligned with ADR-0079 enum spelling.
 Layer-02: domain
 - Placement: Cell aggregate, LifecycleHistory entity, EvidencePack value object, state-machine transition rules.
-- Constraint: GraphQL is deliberately absent in this service; public lifecycle commands are REST/OpenAPI and internal automation may use gRPC.
+- Constraint: public lifecycle commands are REST/OpenAPI and internal automation may use gRPC.
 - Dependency rule: inner layers do not import adapters, transport, Postgres, Valkey, or OpenTelemetry clients.
 - Verification: downstream code must keep imports directional and layer names aligned with ADR-0079 enum spelling.
 Layer-03: usecase
 - Placement: RegisterCell, ActivateCell, PromoteCell, DrainCell, DecommissionCell, ListCells, GetLifecycle orchestration.
-- Constraint: GraphQL is deliberately absent in this service; public lifecycle commands are REST/OpenAPI and internal automation may use gRPC.
+- Constraint: public lifecycle commands are REST/OpenAPI and internal automation may use gRPC.
 - Dependency rule: inner layers do not import adapters, transport, Postgres, Valkey, or OpenTelemetry clients.
 - Verification: downstream code must keep imports directional and layer names aligned with ADR-0079 enum spelling.
 Layer-04: api
 - Placement: DTOs and versioned carrier envelope shared by REST, gRPC, and SDK.
-- Constraint: GraphQL is deliberately absent in this service; public lifecycle commands are REST/OpenAPI and internal automation may use gRPC.
+- Constraint: public lifecycle commands are REST/OpenAPI and internal automation may use gRPC.
 - Dependency rule: inner layers do not import adapters, transport, Postgres, Valkey, or OpenTelemetry clients.
 - Verification: downstream code must keep imports directional and layer names aligned with ADR-0079 enum spelling.
 Layer-05: rest
 - Placement: HTTP/3 REST handlers generated from OpenAPI 3.2.0 in downstream implementation.
-- Constraint: GraphQL is deliberately absent in this service; public lifecycle commands are REST/OpenAPI and internal automation may use gRPC.
+- Constraint: public lifecycle commands are REST/OpenAPI and internal automation may use gRPC.
 - Dependency rule: inner layers do not import adapters, transport, Postgres, Valkey, or OpenTelemetry clients.
 - Verification: downstream code must keep imports directional and layer names aligned with ADR-0079 enum spelling.
 Layer-06: grpc
 - Placement: internal automation RPC surface over HTTP/3 without bypassing Cedar or evidence checks.
-- Constraint: GraphQL is deliberately absent in this service; public lifecycle commands are REST/OpenAPI and internal automation may use gRPC.
+- Constraint: public lifecycle commands are REST/OpenAPI and internal automation may use gRPC.
 - Dependency rule: inner layers do not import adapters, transport, Postgres, Valkey, or OpenTelemetry clients.
 - Verification: downstream code must keep imports directional and layer names aligned with ADR-0079 enum spelling.
 Layer-07: adapter
 - Placement: shared adapter trait implementations and error mapping.
-- Constraint: GraphQL is deliberately absent in this service; public lifecycle commands are REST/OpenAPI and internal automation may use gRPC.
+- Constraint: public lifecycle commands are REST/OpenAPI and internal automation may use gRPC.
 - Dependency rule: inner layers do not import adapters, transport, Postgres, Valkey, or OpenTelemetry clients.
 - Verification: downstream code must keep imports directional and layer names aligned with ADR-0079 enum spelling.
 Layer-08: infrastructure
 - Placement: composition of Postgres, Valkey, OpenTelemetry, and mesh clients at app boundary.
-- Constraint: GraphQL is deliberately absent in this service; public lifecycle commands are REST/OpenAPI and internal automation may use gRPC.
+- Constraint: public lifecycle commands are REST/OpenAPI and internal automation may use gRPC.
 - Dependency rule: inner layers do not import adapters, transport, Postgres, Valkey, or OpenTelemetry clients.
 - Verification: downstream code must keep imports directional and layer names aligned with ADR-0079 enum spelling.
 Layer-09: worker
 - Placement: future background evidence revalidation, cache refresh, and stale transition detector.
-- Constraint: GraphQL is deliberately absent in this service; public lifecycle commands are REST/OpenAPI and internal automation may use gRPC.
+- Constraint: public lifecycle commands are REST/OpenAPI and internal automation may use gRPC.
 - Dependency rule: inner layers do not import adapters, transport, Postgres, Valkey, or OpenTelemetry clients.
 - Verification: downstream code must keep imports directional and layer names aligned with ADR-0079 enum spelling.
 Layer-10: sdk
 - Placement: developer-sdk generated clients pinning ADR-0267 date versions under semver releases.
-- Constraint: GraphQL is deliberately absent in this service; public lifecycle commands are REST/OpenAPI and internal automation may use gRPC.
+- Constraint: public lifecycle commands are REST/OpenAPI and internal automation may use gRPC.
 - Dependency rule: inner layers do not import adapters, transport, Postgres, Valkey, or OpenTelemetry clients.
 - Verification: downstream code must keep imports directional and layer names aligned with ADR-0079 enum spelling.
 Layer-11: app
 - Placement: composition root wiring ports, adapters, telemetry, and shutdown lifecycle.
-- Constraint: GraphQL is deliberately absent in this service; public lifecycle commands are REST/OpenAPI and internal automation may use gRPC.
+- Constraint: public lifecycle commands are REST/OpenAPI and internal automation may use gRPC.
 - Dependency rule: inner layers do not import adapters, transport, Postgres, Valkey, or OpenTelemetry clients.
 - Verification: downstream code must keep imports directional and layer names aligned with ADR-0079 enum spelling.
 Layer-12: cli
 - Placement: diagnostic-only operator wrapper for local runbook support; no privileged bypass.
-- Constraint: GraphQL is deliberately absent in this service; public lifecycle commands are REST/OpenAPI and internal automation may use gRPC.
+- Constraint: public lifecycle commands are REST/OpenAPI and internal automation may use gRPC.
 - Dependency rule: inner layers do not import adapters, transport, Postgres, Valkey, or OpenTelemetry clients.
 - Verification: downstream code must keep imports directional and layer names aligned with ADR-0079 enum spelling.
 
