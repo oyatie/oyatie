@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:5a663b7cf0e326ef",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:28e1cd6835697dac"
+    "source_inputs_digest": "fnv1a64:6a59ac3f5fe966f9"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -4761,9 +4761,6 @@
       "manifest_missing_rust_version_workspace": {
         "keys": [
           "oya-collab-crdt-portability-kernel",
-          "oya-design-collaboration-creative-artifact-service",
-          "oya-governance-adr-shape-app",
-          "oya-governance-adr-shape-kernel",
           "oya-governance-audit-event-emission",
           "oya-governance-byok-disambiguation",
           "oya-governance-capability-tier-coverage",
@@ -4805,15 +4802,6 @@
           "oya-intelligence-supervisor-app",
           "oya-intelligence-supervisor-kernel",
           "oya-intelligence-supervisor-security-adapter",
-          "oya-itsm-escalation-policy",
-          "oya-itsm-incident-room",
-          "oya-itsm-on-call-schedule",
-          "oya-itsm-postmortem",
-          "oya-itsm-service-management-service",
-          "oya-itsm-status-update",
-          "oya-learning-management-course-progress-service",
-          "oya-performance-management-review-calibration-service",
-          "oya-shuffle-sharding",
           "oya-workplace-integration-doc-set-scaffold"
         ],
         "mode": "baseline-block-on-new"
@@ -26700,13 +26688,6 @@
           "infra/capi/init.sh",
           "infra/ci-webhook-gateway/buildkit-build.yaml",
           "infra/ci-webhook-gateway/gateway.k8s.yaml",
-          "infra/ci/argocd/README.md",
-          "infra/ci/argocd/git-server.Dockerfile",
-          "infra/ci/argocd/git-server.yaml",
-          "infra/ci/argocd/rollouts-demo.yaml",
-          "infra/ci/buck2-affected-gate.sh",
-          "infra/ci/install-buck2.sh",
-          "infra/ci/materialize-cloud-ci-generated-faces.sh",
           "infra/cilium/cell-boundaries/oya-ci-ingress.netpol.yaml",
           "infra/cilium/cell-boundaries/oya-cloud-intelligence-ingress.netpol.yaml",
           "infra/cilium/cell-boundaries/oya-forge-ingress.netpol.yaml",
