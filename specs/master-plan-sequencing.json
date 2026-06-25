@@ -65,8 +65,8 @@
   "planning_closure_contract": {
     "status": "blocked_until_planning_closure_gate_green",
     "contract_ref": "/specs/planning-closure-contract.json",
-    "gate_command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
-    "gate_command_authority_note": "bridge-only local feedback per the founder all-CLI-retirement directive of 2026-06-09; merge authority is the cloud-ci gate apps behind the single required context oya-ci-required, and this oya-dev-cli invocation is never merge or exit authority",
+    "gate_command": "oya-ci-required cloud-ci planning-closure Rust gate packet",
+    "gate_command_authority_note": "destination authority per the founder all-CLI-retirement directive of 2026-06-09; legacy oya-dev-cli planning-closure validation is provenance-only migration input and is never merge or exit authority",
     "master_plan_authority": "/specs/masterplan.json",
     "compatibility_projection": "docs/MASTERPLAN.md",
     "implementation_start_claim_rule": "Implementation may start only after the planning-closure gate proves product scope, architecture/system design, sequencing, acceptance criteria, KR localization, and no-placeholder posture are complete enough to avoid implementation-time invention."
@@ -700,10 +700,10 @@
         "ADR-0346": {
           "path": "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
           "queued_sub_wave": "15-ZA-oya-verify-full-ci-mirror",
-          "purpose_excerpt": "ADR-0346 is amended by ADR-0513/platform-readiness: legacy `./bin/oya verify --ci-required` may remain local mirror evidence only, never protected-branch merge/exit authority. Destination enforcement is Prow-shaped cloud-ci/oya-ci Rust required contexts with full-matrix gate packets, RED/GREEN fixtures, and branch protection.",
+          "purpose_excerpt": "ADR-0346 is amended by ADR-0513/platform-readiness: the retired `./bin/oya verify --ci-required` path is historical/provenance-only and must not be invoked or recreated; its full-mirror semantics remain migration input only, never protected-branch merge/exit authority. Destination enforcement is Prow-shaped cloud-ci/oya-ci Rust required contexts with full-matrix gate packets, RED/GREEN fixtures, and branch protection.",
           "enforced_by": [
             "cloud-ci-required-context-producer (blocks required contexts produced by legacy oya CLI/local-only/advisory status)",
-            "cloud-ci-full-matrix-gate-packet (fmt/check/clippy/nextest/deny/security/governance semantics as Rust/cloud-ci gates, not oya-dev-cli extension)",
+            "cloud-ci-full-matrix-gate-packet (format/build/test/lint/supply-chain/security/governance semantics as Rust/cloud-ci gates, not oya-dev-cli extension)",
             "cloud-ci-legacy-oya-retirement-scanner (blocks new oya verify/oya gate protected-branch authority and requires retirement packet for residual invocations)"
           ]
         },
@@ -1401,7 +1401,7 @@
             "per-entry schema (dep_name + stewardship_class + owner_team + CVE SLA + resourcing + license + source_url + adr_provenance + mitigation_strategies + notes)",
             "Maintainer-class enumeration (oya-* crates roll-up + key substrate crates; ~200+ entries via Wave 15X-OSS-stewardship per-crate manifest authoring)",
             "Contributor-class enumeration (Cilium / Istio / Valkey / OpenTofu / Cedar / OpenBao / Wasmtime / Iceberg / Kafka / OpenSearch / Kyverno; 11 floor entries)",
-            "Consumer-class enumeration (PostgreSQL / ClickHouse / Linux distros / Talos / distroless / OpenTelemetry / rust-toolchain / cargo-deny / cargo-vet / cosign; ~15-20 floor entries)",
+            "Consumer-class enumeration (PostgreSQL / ClickHouse / Linux distros / Talos / distroless / OpenTelemetry / rust-toolchain / cloud-ci-supply-chain-policy / cloud-ci-vendor-provenance-policy / cosign; ~15-20 floor entries)",
             "per-microservice manifest.json consumes_upstream_oss field (lists dep_name references; per-µservice authoring)",
             "SBOM cross-reference contract (every direct upstream in SBOM references registry by dep_name)",
             "SOC2 + ISO 27001 audit evidence pipeline (evidence/audit/oss-stewardship/<auditor-pack>/)",
@@ -1456,8 +1456,8 @@
               "static-debian13",
               "opentelemetry",
               "rust-toolchain",
-              "cargo-deny",
-              "cargo-vet",
+              "cloud-ci-supply-chain-policy",
+              "cloud-ci-vendor-provenance-policy",
               "cosign"
             ]
           },
@@ -1704,7 +1704,7 @@
             ]
           },
           "zf_4_validation": [
-            "cargo run -q -p oya-dev-cli -- gate validate adr-citation --docs-dir docs --decisions-dir docs/decisions",
+            "oya-ci-required cloud-ci ADR-citation Rust gate packet",
             "jq empty specs/root-hub-pointers.json specs/master-plan-sequencing.json"
           ],
           "skill_binding": "every subagent uses installed runtime skills {spec-driven-development,documentation-and-adrs} + .omc/state/oyatie-architecture-2026-05-21.md + .omc/state/audit-doctrine-2026-05-21.md + ADR-0346/0347/0348/0349 before authoring per feedback_wave_d_skill_bound_dispatch_2026_05_21; repo-vendored tools/agent-skills is retired",
@@ -1943,7 +1943,7 @@
       "go",
       "fsharp"
     ],
-    "build_invocation": "cargo build --workspace --release --all-features --locked",
+    "build_invocation": "buck2 build //...",
     "exception_protocol": "per-µservice ADR under microservices/<name>/decisions/ADR-MS-NNN-non-rust-justification.md",
     "rationale_adr": "docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md#D-18"
   },

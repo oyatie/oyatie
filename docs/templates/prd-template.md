@@ -139,10 +139,10 @@ crate at any layer. All cross-product flows go through Workflow (events) or
 Ontology (entity reads/writes). LEAN-A2 CI lane enforces.
 
 CI lanes that must green:
-- `oya gate validate lean-a1 --ms <µservice>` — dependency-direction
-- `oya gate validate lean-a2 --ms <µservice>` — cross-product-refusal
-- `oya gate validate port-location --ms <µservice>` — ports in kernel
-- `oya gate validate layer-correctness --ms <µservice>` — layer enum match
+- `buck2 test <cloud-ci-lean-a1-target>` — dependency-direction
+- `buck2 test <cloud-ci-lean-a2-target>` — cross-product-refusal
+- `buck2 test <cloud-ci-port-location-target>` — ports in kernel
+- `buck2 test <cloud-ci-layer-correctness-target>` — layer enum match
 
 ---
 

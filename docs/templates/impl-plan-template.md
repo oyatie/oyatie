@@ -36,11 +36,11 @@ blocked_by:
   - impl_plan: <impl-plan-name>   # or omit if unblocked
     reason: "<one line>"
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
+  - buck2-build
+  - buck2-test
+  - cloud-ci-static-analysis
+  - cloud-ci-supply-chain
+  - cloud-ci-formatting
   - lean-a1
   - lean-a2
   - lean-a3
@@ -165,29 +165,26 @@ tokio = { workspace = true, features = ["full", "test-util"] }
 Per-lane commands + exit-0 expectations. Run in order; stop at first failure.
 
 ```bash
-# 1. Compile
-cargo check -p oya-<ms>-<bc>-<layer> --all-features       # exit 0
+# 1. Build
+buck2 build <crate-or-app-target>                         # exit 0
 
-# 2. Build
-cargo build -p oya-<ms>-<bc>-<layer> --all-features       # exit 0
+# 2. Tests
+buck2 test <targeted-test-targets>                        # exit 0; 0 failures
 
-# 3. Lint
-cargo clippy -p oya-<ms>-<bc>-<layer> --all-features -- -D warnings  # exit 0; 0 warnings
+# 3. Static/lint gate packets
+buck2 test <relevant-cloud-ci-static-analysis-targets>    # exit 0
 
-# 4. Tests
-cargo nextest run -p oya-<ms>-<bc>-<layer> --all-features  # exit 0; 0 failures
+# 4. Supply chain
+buck2 test <supply-chain-cloud-ci-target>                 # exit 0
 
-# 5. Supply chain
-cargo deny check                                           # exit 0
+# 5. Docs/API contract checks
+buck2 test <docs-or-api-contract-cloud-ci-targets>        # exit 0
 
-# 6. Docs
-cargo doc -p oya-<ms>-<bc>-<layer> --no-deps              # exit 0; 0 warnings
-
-# 7. LEAN checks (per ADR-0057)
-oya gate validate lean-a1 --crate oya-<ms>-<bc>-<layer>   # layer ordering
-oya gate validate lean-a2 --crate oya-<ms>-<bc>-<layer>   # cross-vertical refusal
-oya gate validate lean-a3 --crate oya-<ms>-<bc>-<layer>   # BC boundary
-oya gate validate lean-a4 --crate oya-<ms>-<bc>-<layer>   # naming conformance
+# 6. LEAN / architecture checks (per ADR-0057)
+buck2 test <cloud-ci-lean-a1-target>                     # layer ordering
+buck2 test <cloud-ci-lean-a2-target>                     # cross-vertical refusal
+buck2 test <cloud-ci-lean-a3-target>                     # BC boundary
+buck2 test <cloud-ci-lean-a4-target>                     # naming conformance
 ```
 
 ---
@@ -215,7 +212,7 @@ Location: `crates/oya-<ms>-<bc>-<layer>/tests/<test_file>.rs`
 
 | Scenario | Command | Expected output |
 |---|---|---|
-| `<scenario>` | `cargo nextest run --test <test_name>` | `PASS; 0 failures` |
+| `<scenario>` | `buck2 test <acceptance-test-target>` | `PASS; 0 failures` |
 
 ---
 
@@ -266,16 +263,15 @@ cross-product data flow uses:
 - Workflow events (action/orchestration) — list event types: `<EventType>`
 - Ontology reads/writes (information) — list Object Types: `<ObjectType>`
 
-If this IP is for a product µservice: confirm `oya gate validate lean-a2`
-will pass by design (no product crate deps in `[dependencies]`).
+If this IP is for a product µservice: confirm the Buck2/cloud-ci lean-a2 gate will pass by design (no product crate deps in `[dependencies]`).
 
 ### CI lanes this IP must green
 
 ```bash
-oya gate validate lean-a1 --crate oya-<ms>-<bc>-<layer>    # dependency-direction
-oya gate validate lean-a2 --crate oya-<ms>-<bc>-<layer>    # cross-product-refusal
-oya gate validate port-location --crate oya-<ms>-<bc>-kernel  # ports in kernel
-oya gate validate layer-correctness --crate oya-<ms>-<bc>-<layer>
+buck2 test <cloud-ci-dependency-direction-target>          # dependency-direction
+buck2 test <cloud-ci-cross-product-refusal-target>         # cross-product-refusal
+buck2 test <cloud-ci-port-location-target>                 # ports in kernel
+buck2 test <cloud-ci-layer-correctness-target>             # layer correctness
 ```
 
 ---
@@ -365,7 +361,7 @@ Emit at IP completion (mandatory per `CLAUDE.md §Store — MANDATORY triggers`)
 
 Stop work and escalate to architect agent if ANY of the following occur:
 
-1. `cargo check` fails after 3 attempts with the same error.
+1. `buck2 build <touched-build-targets>` or `buck2 test <targeted-test-targets>` fails after 3 attempts with the same error.
 2. A LEAN-A2 (cross-vertical refusal) violation cannot be resolved by moving
    code — indicates a design boundary error; requires ADR amendment.
 3. A new crate name cannot satisfy BNF v4.1 justification — do not land an
