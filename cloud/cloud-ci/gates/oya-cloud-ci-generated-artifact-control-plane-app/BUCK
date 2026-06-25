@@ -23,7 +23,7 @@ rust_test(
 # Productized generated-artifact control-plane gate. The gate reads the repo-authored manifest
 # and the firewall ratchet policy as declared inputs, plus the SCM facts snapshot. scm-facts is
 # the ADR-0604 de-commit class (NOT tracked in git, NOT a buck source member): the CI/local
-# materialize boundary (infra/ci/materialize-cloud-ci-generated-faces.sh) regenerates it on the
+# materialize boundary (buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin) regenerates it on the
 # checked-out candidate tree before gates run, so the test reads it from the on-disk repo root
 # via the SCM_FACTS_ENV fallback (repo_root().join(path)) — mirroring how every other gate test
 # (e.g. the firewall) consumes the de-committed faces. No $(location) on scm-facts, because an

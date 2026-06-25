@@ -35,7 +35,7 @@ CAS deployment (the queued W3 vertical) consume. It classifies; it deploys nothi
 The live `oya-ci-required` workflow (`.github/workflows/oya-ci-required.yml`) is cold almost
 everywhere:
 
-- The generated-face materialization (`infra/ci/materialize-cloud-ci-generated-faces.sh`) runs in
+- The generated-face materialization (`buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin`) runs in
   **every one of the 16 gate matrix legs** plus the producer-regen, registry-drift,
   cloud-ci-firewall, buck2, and affected-set lanes — the same accounting-registry producer hub is
   rebuilt over and over per workflow run, even though every invocation derives from the same
@@ -216,7 +216,7 @@ throughout"*; ADR-0515 D3; ADR-0523 zero-shell posture; ADR-0555 D4 precedent):
    telemetry/API responses; **canary-RED remediation** (eviction, quarantine, class degradation)
    is a reconciler/API action.
 6. **Transitional bridges are named as such**: the workflow's bash steps this ADR touches or
-   references (`infra/ci/materialize-cloud-ci-generated-faces.sh`, `infra/ci/install-buck2.sh`,
+   references (`buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin`, `infra/ci/install-buck2.sh`,
    `infra/ci/buck2-affected-gate.sh`) are transitional local bridges per `cli_surface_policy`
    whose successors are Rust services/jobs under the G011 zero-shell ratchet (ADR-0523); any
    interim gate-binary modes remain local bridges whose successors are reconcilers per ADR-0555

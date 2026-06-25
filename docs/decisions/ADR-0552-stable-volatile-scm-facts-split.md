@@ -138,7 +138,7 @@ directive, construction wins.
    split itself.
 4. **Fail-closed seams.** The producer hard-errors on a missing/malformed stable face
    (unchanged). The staleness gate hard-fails on a missing/malformed volatile snapshot,
-   naming `infra/ci/materialize-cloud-ci-generated-faces.sh` (CI rematerializes before
+   naming `buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin` (CI rematerializes before
    every gate lane; the snapshot is never silently defaulted). `face-settle --verify`
    stays read-only: its regeneration routes the volatile snapshot to a temp path.
 5. **Convergence pin (charter requirement).** Generated-class paths are excluded from

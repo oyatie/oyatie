@@ -37,12 +37,6 @@
       "status": "temporary_legacy_bridge"
     },
     {
-      "path": "infra/ci/materialize-cloud-ci-generated-faces.sh",
-      "reason": "Infrastructure bootstrap bridge retained as explicit debt until the cloud-native reconciler/controller owns the operation.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate plus Kubernetes/GitOps controller contract for the same operation.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
       "path": "infra/seaweedfs/tests/test_seaweedfs_manifest.py",
       "reason": "Infrastructure bootstrap bridge retained as explicit debt until the cloud-native reconciler/controller owns the operation.",
       "replacement": "Replace with Rust Buck2 cloud-ci gate plus Kubernetes/GitOps controller contract for the same operation.",

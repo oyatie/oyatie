@@ -93,7 +93,7 @@ test-results/
 # ADR-0595/ADR-0597 de-commit class: the SIX cloud-ci faces below are pure derivations
 # (git ls-files x OWNERS x ADR front-matter x specs). They were the #1 merge-conflict /
 # merge-queue friction because every PR re-materialized multi-MB blobs. They are now DERIVED ON
-# DEMAND (infra/ci/materialize-cloud-ci-generated-faces.sh) and materialized out-of-graph for
+# DEMAND (buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin) and materialized out-of-graph for
 # consumers, whose gates re-derive content from the candidate tree; the freshness gate validates
 # regenerate-success + regenerate-twice determinism instead of byte parity, and the control-plane
 # gate forbids re-tracking them (materialization_mode: not-tracked-in-git). They are already

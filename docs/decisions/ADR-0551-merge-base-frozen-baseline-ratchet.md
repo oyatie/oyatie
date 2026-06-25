@@ -79,7 +79,7 @@ Two in-tree comments already named this hole as the "merge-base ratchet" follow-
    The snapshot is untracked and gitignored: it varies with the base branch position, so it
    can never be a committed face; its `.generated.json` suffix makes any force-add a
    generated-output-diff-policy rejection; CI rematerializes it before gates consume it
-   (`infra/ci/materialize-cloud-ci-generated-faces.sh`, the canonical remediation command).
+   (`buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin`, the canonical remediation command).
    No buck2 action calls git; the firewall gate only parses the snapshot.
 
 4. **Fail-closed everywhere.** An unresolvable `base_ref` or merge-base is a hard emitter

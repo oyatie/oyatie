@@ -64,7 +64,7 @@ jobs:
           set -euo pipefail
           rustup toolchain install
       - name: Materialize cloud-ci generated faces (out-of-graph boundary)
-        run: infra/ci/materialize-cloud-ci-generated-faces.sh .
+        run: buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
       # The pinned target set is policy DATA (canary-policy.json), resolved by the
       # buck2-built toolkit — the workflow hardcodes no target list.
       - name: Resolve pinned canary target set (policy-as-data)

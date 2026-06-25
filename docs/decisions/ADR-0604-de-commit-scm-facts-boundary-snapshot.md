@@ -51,7 +51,7 @@ not-tracked-in-git` (was `main-branch-materialized`) with `merge_policy:
 never-manual-merge-regenerate-from-source-tree` in
 `registry/generated-artifact-control-plane.json`, removed from git (`git rm --cached`), and
 covered by the existing `**/*.generated.json` ignore. It is derived on demand via
-`infra/ci/materialize-cloud-ci-generated-faces.sh` (which already writes it to the canonical
+`buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin` (which already writes it to the canonical
 path) and materialized out-of-graph for consumers before gates run.
 
 This is **NOT** the #828→#830 dev-deadlock class and does **NOT** trip the #831/ADR-0596
@@ -110,7 +110,7 @@ materialized from `git show <merge-base>:<path>`, never the candidate copy).
 
 Every scm-facts consumer materializes it on demand rather than reading a committed copy:
 
-- The **CI producer-regen job** runs `materialize-cloud-ci-generated-faces.sh` (which writes
+- The **CI producer-regen job** runs `oya-cloud-ci-materialize-generated-faces-bin` (which writes
   scm-facts to its canonical path) and uploads `accounting-registry-app/*.generated.json` — a
   FILESYSTEM glob that captures the untracked scm-facts — as the `accounting-faces` artifact.
 - Every **gate matrix leg** downloads `accounting-faces` into `cloud/cloud-ci/gates` before
@@ -120,7 +120,7 @@ Every scm-facts consumer materializes it on demand rather than reading a committ
   faces.
 - **registry-drift** and the **firewall lane** re-materialize in-job (they are detectors and must
   not consume a shared artifact).
-- **Local dev**: run `infra/ci/materialize-cloud-ci-generated-faces.sh .` first, identical to the
+- **Local dev**: run `buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .` first, identical to the
   six ADR-0595 faces.
 
 So no CI workflow change is required: the producer-regen → upload → matrix-leg download chain
@@ -141,8 +141,10 @@ not it is tracked).
 - Born-accounting / register-crate remain fully enforceable: the producer derives the registry
   each PR from the materialized scm-facts; nothing about born-accounting depended on scm-facts
   being committed.
-- The materializer remains a transitional shell script (ADR-0523 irreducible-glue) pending a
-  Rust-native materialization controller; this ADR does not change it.
+- The materializer now runs through the Rust/Buck2 binary
+  `//cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin`;
+  the transitional shell bridge is retired. The remaining destination is a cloud-ci controller
+  path for final-tree materialization.
 
 ## Alternatives considered
 

@@ -58,7 +58,7 @@ jobs:
       - name: Install buck2 (digest-pinned prebuilt release)
         run: infra/ci/install-buck2.sh
       - name: Materialize cloud-ci generated faces
-        run: infra/ci/materialize-cloud-ci-generated-faces.sh .
+        run: rustup toolchain install && rustc --version && buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
       - name: Upload regenerated faces
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -239,7 +239,9 @@ jobs:
       # check self-referential. Detectors never consume the thing they attest.
       - name: Materialize faces then assert byte-parity
         run: |
-          infra/ci/materialize-cloud-ci-generated-faces.sh .
+          rustup toolchain install
+          rustc --version
+          buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
           buck2 test //cloud/cloud-ci/gates/registry-drift:registry-drift-gate
 
   # ── cloud-ci-firewall: the baseline ratchet (blocks only NEW debt) + the gate-registration
@@ -268,7 +270,7 @@ jobs:
       # This lane therefore KEEPS its own materialization (ADR-0556 D5 cold-must-stay list);
       # it is never converted to artifact reuse.
       - name: Materialize cloud-ci generated faces
-        run: infra/ci/materialize-cloud-ci-generated-faces.sh .
+        run: rustup toolchain install && rustc --version && buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
       - name: buck2 test cloud-ci-firewall
         run: |
           set -euo pipefail
@@ -448,7 +450,7 @@ jobs:
       # by design (ADR-0551) and deliberately absent from the producer-regen artifact; this
       # step is the sanctioned boundary that feeds ALL declared generated inputs to the graph.
       - name: Materialize cloud-ci generated faces (out-of-graph boundary)
-        run: infra/ci/materialize-cloud-ci-generated-faces.sh .
+        run: buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
       # The hermetic gate: buck2 BUILDS every cloud-ci target (proves the env!CARGO eradication —
       # these targets could not compile under buck2 before) and TESTS them (the gate rust_tests
       # run green, fully hermetic, with verdicts identical to the targeted gate matrix). This is the
@@ -578,7 +580,7 @@ jobs:
       # baseline (ADR-0551), and this lane's own build-health baseline below is per-job by
       # design (ADR-0554 round-3).
       - name: Materialize cloud-ci generated faces (out-of-graph boundary)
-        run: infra/ci/materialize-cloud-ci-generated-faces.sh .
+        run: buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
       - name: Fetch base ref for the merge-base anchor
         if: ${{ github.event_name == 'pull_request' }}
         env:

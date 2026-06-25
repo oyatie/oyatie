@@ -268,7 +268,7 @@ fn volatile_facts_value(root: &Path) -> Value {
         panic!(
             "FAIL-CLOSED: scm-volatile-facts snapshot missing at {} ({e}). History-derived \
              aging facts are materialized, never committed (ADR-0552). Materialize them: \
-             infra/ci/materialize-cloud-ci-generated-faces.sh . (CI runs this before every \
+             buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . (CI runs this before every \
              gate lane).",
             path.display()
         )

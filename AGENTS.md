@@ -21,7 +21,7 @@ required_sequence:
   - open a PR against dev               # enters the governance pipeline
   - single required status context oya-ci-required green (produced by the cloud-ci gate apps per ADR-0515)
   - review threads resolved, then squash merge
-generated_faces_policy: never add or modify any *.generated.json by hand; infra/ci/materialize-cloud-ci-generated-faces.sh materializes them and the diff-policy gate fails closed on hand edits
+generated_faces_policy: never add or modify any *.generated.json by hand; buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin materializes them and the diff-policy gate fails closed on hand edits
 scaffold_protocol:
   mechanism: per-agent isolated worktree plus admission-gate concurrent-safe-paths
   adr: docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md
