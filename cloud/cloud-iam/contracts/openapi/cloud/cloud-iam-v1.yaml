@@ -33,17 +33,6 @@ paths:
         required_surface: cloud.iam.identity_provider.list
         authority: ingress_pdp_cedar_decision
         caller_supplied_authorization_headers: forbidden
-      x-oyatie-parity:
-        comparable_surfaces:
-          - AWS IAM identity providers
-          - GCP workforce/workload identity pools
-          - Okta identity provider directory
-        criteria:
-          - control-plane API
-          - tenant/account isolation
-          - IAM/authz policy
-          - regional/cell/residency behavior
-          - audit/event trail
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - $ref: '#/components/parameters/TenantId'
@@ -148,17 +137,6 @@ paths:
         required_surface: cloud.iam.role.create
         authority: ingress_pdp_cedar_decision
         caller_supplied_authorization_headers: forbidden
-      x-oyatie-parity:
-        comparable_surfaces:
-          - AWS IAM roles
-          - GCP IAM custom roles and service accounts
-          - Azure Entra application roles
-        criteria:
-          - resource model
-          - lifecycle operations
-          - IAM/authz policy
-          - audit/event trail
-          - SDK/API ergonomics
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - $ref: '#/components/parameters/TenantId'
@@ -187,17 +165,6 @@ paths:
         required_surface: cloud.iam.sts.token
         authority: ingress_pdp_cedar_decision
         caller_supplied_authorization_headers: forbidden
-      x-oyatie-parity:
-        comparable_surfaces:
-          - AWS STS AssumeRole
-          - GCP Security Token Service
-          - Azure workload identity federation
-        criteria:
-          - lifecycle operations
-          - tenant/account isolation
-          - IAM/authz policy
-          - audit/event trail
-          - security/threat model
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - $ref: '#/components/parameters/TenantId'
