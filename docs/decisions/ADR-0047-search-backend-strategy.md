@@ -170,6 +170,18 @@ This ADR does not own the search architecture (per ADR-0030, but supplies the en
 - Per-quarter LGPL legal-isolation evidence review.
 - Per-PR forbidden-license scan (per ADR-0039 supply-chain) blocks Elasticsearch.
 
+### Addendum 2026-06-25 -- office search rebuild planning
+
+`oya/office/oya-office-search-kernel/src/lib.rs` now carries the provider-neutral
+`SearchIndexRebuildPlan` contract for Drive search index rebuilds. The contract keeps rebuild
+planning in the kernel: tenant/cell scope, active-vs-rebuild index names, source cursor, and batch
+size are validated before any pgroonga, Tantivy, or OpenSearch adapter performs lifecycle work. This
+preserves ADR-0047's adapter-only backend strategy while adding a rollback-safe lifecycle seam for
+future managed-search parity.
+
+The review evidence for this addendum is
+`evidence/multispectrum/wavea-office-search-rebuild-20260625-1782426039.json`.
+
 ---
 
 ## Alternatives considered
