@@ -1,5 +1,5 @@
 ADAPTER_ROOT = "intelligence/adapters/authz-cedar-adapter"
-ADAPTER_SRCS = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"])
+ADAPTER_SRCS = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"])
 ADAPTER_MAPPED_SRCS = {src: ADAPTER_ROOT + "/" + src for src in ADAPTER_SRCS}
 # Place the shared cedar policy at the path src/lib.rs include_str!("../policy/...")
 # resolves to inside the hermetic sandbox (ADAPTER_ROOT/policy/...), not the repo

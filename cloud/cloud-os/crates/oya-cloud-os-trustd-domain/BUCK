@@ -11,7 +11,7 @@ _DEPS = [
 
 rust_library(
     name = "oya-cloud-os-trustd-domain",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
     crate = "oya_cloud_os_trustd_domain",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
@@ -20,7 +20,7 @@ rust_library(
 
 rust_test(
     name = "oya-cloud-os-trustd-domain-unittest",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt", "testdata/**"]),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt", "testdata/**"]),
     crate = "oya_cloud_os_trustd_domain",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],

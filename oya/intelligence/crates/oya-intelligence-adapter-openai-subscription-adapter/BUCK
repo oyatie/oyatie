@@ -1,6 +1,6 @@
 rust_library(
     name = "oya-intelligence-adapter-openai-subscription-adapter",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
     crate = "oya_intelligence_adapter_openai_subscription_adapter",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
@@ -21,7 +21,7 @@ rust_library(
 
 rust_test(
     name = "oya-intelligence-adapter-openai-subscription-adapter-unittest",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
     crate = "oya_intelligence_adapter_openai_subscription_adapter",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],

@@ -78,6 +78,8 @@
 //!   without an allowlisted+validated authorizing ADR reference.
 //! - `NGQL-SCHEMA-FILE`       — a `.graphql`/`.gql`/`.graphqls`/`.gqls`/`.sdl` GraphQL schema file is
 //!   present without an allowlisted+validated authorizing ADR reference.
+//! - `NGQL-BUILD-GRAPH-SCHEMA-GLOB` — a `BUCK` build graph still admits GraphQL schema files via a
+//!   `**/*.graphql`/`.gql`/`.sdl` glob, which would make regression invisible to owners.
 //! - `NGQL-LOCK-FORBIDDEN`    — a forbidden GraphQL crate is present in the resolved `Cargo.lock`
 //!   graph (catches a transitive reintroduction no manifest names directly), without a tree-wide
 //!   allowlisted+validated authorizing ADR reference.
@@ -102,9 +104,10 @@ use serde_json::{Value, json};
 pub const GATE_ID: &str = "cloud-ci-no-graphql-without-adr";
 
 /// The blocking + structural violation codes, in canonical order.
-pub const VIOLATION_CODES: [&str; 6] = [
+pub const VIOLATION_CODES: [&str; 7] = [
     "NGQL-FORBIDDEN-LIB",
     "NGQL-SCHEMA-FILE",
+    "NGQL-BUILD-GRAPH-SCHEMA-GLOB",
     "NGQL-LOCK-FORBIDDEN",
     "NGQL-EMPTY-SCAN",
     "NGQL-POLICY-GATE-ID-MISMATCH",
@@ -265,7 +268,24 @@ pub fn collect_graphql_artifacts(root: &Path, policy: &Value) -> Result<Value, C
             .cmp(b.get("path").and_then(Value::as_str).unwrap_or_default())
     });
 
-    // --- (3) Cargo.lock resolved graph (transitive reintroduction catch) ---
+    // --- (3) BUCK build graph globs that would keep admitting GraphQL schema files ---
+    let mut build_graph_schema_globs: Vec<Value> = Vec::new();
+    collect_build_graph_schema_globs(
+        root,
+        root,
+        &exts,
+        &excluded,
+        forbidding_adr.as_deref(),
+        &mut build_graph_schema_globs,
+    )?;
+    build_graph_schema_globs.sort_by(|a, b| {
+        a.get("path")
+            .and_then(Value::as_str)
+            .unwrap_or_default()
+            .cmp(b.get("path").and_then(Value::as_str).unwrap_or_default())
+    });
+
+    // --- (4) Cargo.lock resolved graph (transitive reintroduction catch) ---
     let lock = collect_lock_packages(root, forbidding_adr.as_deref())?;
 
     Ok(json!({
@@ -273,6 +293,7 @@ pub fn collect_graphql_artifacts(root: &Path, policy: &Value) -> Result<Value, C
         "valid_authorizing_adrs": valid_authorizing_adrs.into_iter().collect::<Vec<_>>(),
         "manifests": manifests,
         "schema_files": schema_files,
+        "build_graph_schema_globs": build_graph_schema_globs,
         "lock": lock,
     }))
 }
@@ -916,6 +937,69 @@ fn collect_schema_files(
     Ok(())
 }
 
+/// Recursively walk `BUCK` files and collect build-graph source globs that still admit GraphQL
+/// schema files. A repo may carry zero actual `.graphql` files while stale `srcs` globs keep
+/// normalizing their return; this closes that regression hole without shelling out to Buck2.
+fn collect_build_graph_schema_globs(
+    root: &Path,
+    dir: &Path,
+    exts: &[String],
+    excluded: &[String],
+    forbidding_adr: Option<&str>,
+    out: &mut Vec<Value>,
+) -> Result<(), CollectError> {
+    let entries = match fs::read_dir(dir) {
+        Ok(entries) => entries,
+        Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(e) => return Err(CollectError::Io(format!("read dir {}: {e}", dir.display()))),
+    };
+    let forbidden_globs: Vec<String> = exts.iter().map(|ext| format!("**/*.{ext}")).collect();
+    for entry in entries {
+        let entry =
+            entry.map_err(|e| CollectError::Io(format!("read entry in {}: {e}", dir.display())))?;
+        let path = entry.path();
+        let rel = path.strip_prefix(root).unwrap_or(&path);
+        let rel_str = rel.to_string_lossy().replace('\\', "/");
+        if is_skipped_dir(&rel_str, excluded) {
+            continue;
+        }
+        let file_type = entry
+            .file_type()
+            .map_err(|e| CollectError::Io(format!("file_type {}: {e}", path.display())))?;
+        let is_dir = if file_type.is_dir() {
+            true
+        } else if file_type.is_symlink() {
+            fs::metadata(&path).map(|m| m.is_dir()).unwrap_or(false)
+        } else {
+            false
+        };
+        if is_dir {
+            collect_build_graph_schema_globs(root, &path, exts, excluded, forbidding_adr, out)?;
+            continue;
+        }
+        if path.file_name().and_then(|name| name.to_str()) != Some("BUCK") {
+            continue;
+        }
+        let text = fs::read_to_string(&path)
+            .map_err(|e| CollectError::Io(format!("read {}: {e}", path.display())))?;
+        let cited = cited_authorizing_adrs(&text, forbidding_adr);
+        for (line_idx, line) in text.lines().enumerate() {
+            if line.trim_start().starts_with('#') {
+                continue;
+            }
+            if let Some(glob) = forbidden_globs.iter().find(|glob| line.contains(glob.as_str())) {
+                out.push(json!({
+                    "path": rel_str,
+                    "line": line_idx + 1,
+                    "glob": glob,
+                    "cited_adrs": cited.iter().cloned().collect::<Vec<_>>(),
+                }));
+            }
+        }
+    }
+    Ok(())
+}
+
 /// Whether a path's extension is one of the GraphQL schema extensions (case-insensitive).
 fn has_graphql_ext(path: &str, exts: &[String]) -> bool {
     let lower = path.to_ascii_lowercase();
@@ -1134,6 +1218,35 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
         ));
     }
 
+    // --- BUCK build graph globs that still admit GraphQL schema files ---
+    let build_graph_schema_globs = observed
+        .get("build_graph_schema_globs")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    for entry in &build_graph_schema_globs {
+        let path = entry
+            .get("path")
+            .and_then(Value::as_str)
+            .unwrap_or("<unknown-buck>");
+        let line = entry.get("line").and_then(Value::as_u64).unwrap_or(0);
+        let glob = entry
+            .get("glob")
+            .and_then(Value::as_str)
+            .unwrap_or("**/*.graphql");
+        let launders = entry.get("cited_adrs").map(&cites_validated).unwrap_or(false);
+        if launders {
+            continue;
+        }
+        findings.insert(Finding::new(
+            "NGQL-BUILD-GRAPH-SCHEMA-GLOB",
+            &format!("{path}:{line}:{glob}"),
+            format!(
+                "`{path}:{line}` keeps the GraphQL schema glob `{glob}` in the Buck2 build graph, which {forbidding} forbids for the owned stack. Remove the glob so generated or hand-authored GraphQL schema files cannot become normal build inputs without a future ADR that explicitly reverses {forbidding}."
+            ),
+        ));
+    }
+
     // --- forbidden GraphQL crates in the resolved Cargo.lock graph (transitive catch) ---
     if let Some(lock) = observed.get("lock") {
         let present = lock.get("present").and_then(Value::as_bool).unwrap_or(false);
@@ -1178,7 +1291,7 @@ pub fn evaluate(policy: &Value, observed: &Value) -> Report {
 /// Human-readable render of the findings. Never a bare FAIL — every finding prints its detail.
 pub fn render_findings(findings: &BTreeSet<Finding>) -> String {
     if findings.is_empty() {
-        return "no-graphql-without-adr gate passed: the candidate tree carries no GraphQL library nor schema file (the owned stack is GraphQL-free — ADR-0565)".to_owned();
+        return "no-graphql-without-adr gate passed: the candidate tree carries no GraphQL library, schema file, nor build-graph schema glob (the owned stack is GraphQL-free — ADR-0565)".to_owned();
     }
     let mut out = String::from("no-graphql-without-adr gate failed (ADR-0565):\n");
     for finding in findings {
@@ -1302,6 +1415,24 @@ mod tests {
             .find(|f| f.code == "NGQL-SCHEMA-FILE")
             .unwrap_or_else(|| panic!("a .sdl schema file must be RED: {findings:?}"));
         assert_eq!(f.key, "oya/analytics/contracts/graphql-v1.sdl");
+        assert_eq!(evaluate(&policy(), &observed).verdict, Verdict::Red);
+    }
+
+    #[test]
+    fn red_when_buck_keeps_a_graphql_schema_glob() {
+        let mut observed = observed(500, json!([]), json!([]));
+        observed["build_graph_schema_globs"] = json!([{
+            "path": "cloud/gw/BUCK",
+            "line": 3,
+            "glob": "**/*.graphql",
+            "cited_adrs": []
+        }]);
+        let findings = evaluate_keyed(&policy(), &observed);
+        let f = findings
+            .iter()
+            .find(|f| f.code == "NGQL-BUILD-GRAPH-SCHEMA-GLOB")
+            .unwrap_or_else(|| panic!("a GraphQL schema glob in BUCK must be RED: {findings:?}"));
+        assert_eq!(f.key, "cloud/gw/BUCK:3:**/*.graphql");
         assert_eq!(evaluate(&policy(), &observed).verdict, Verdict::Red);
     }
 
