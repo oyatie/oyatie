@@ -92,28 +92,6 @@ pub enum HyperscalerParityFacet {
     OperationalRunbooks,
 }
 
-impl HyperscalerParityFacet {
-    pub fn as_str(self) -> &'static str {
-        match self {
-            Self::ControlPlaneApi => "control-plane API",
-            Self::ResourceModel => "resource model",
-            Self::LifecycleOperations => "lifecycle operations",
-            Self::TenantAccountIsolation => "tenant/project/account isolation",
-            Self::IamAuthzPolicy => "IAM/authz policy",
-            Self::QuotaCapacity => "quota/capacity",
-            Self::BillingMetering => "billing/metering",
-            Self::AuditEventTrail => "audit/event trail",
-            Self::ObservabilitySlos => "observability/SLOs",
-            Self::RegionalCellResidency => "regional/cell/residency behavior",
-            Self::BackupRestoreRollback => "backup/restore or rollback",
-            Self::SecurityThreatModel => "security/threat model",
-            Self::ComplianceEvidence => "compliance evidence",
-            Self::SdkApiErgonomics => "SDK/API ergonomics",
-            Self::OperationalRunbooks => "operational runbooks",
-        }
-    }
-}
-
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum HyperscalerParityStatus {
     Verified,
