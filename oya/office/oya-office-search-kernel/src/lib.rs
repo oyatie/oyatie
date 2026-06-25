@@ -4,7 +4,7 @@
 //! This crate keeps search contracts tenant-scoped and redacted before any OpenSearch-compatible
 //! adapter is adopted.
 
-use oya_office_kernel::{DataClass, ObjectId, TenantId};
+use oya_office_kernel::{CellId, DataClass, ObjectId, TenantId};
 
 /// Stable crate identifier used by workspace and Buck2 scaffold verification.
 pub const CRATE_NAME: &str = "oya-office-search-kernel";
@@ -221,13 +221,108 @@ impl DriveSearchQuery {
     }
 }
 
+/// Provider-neutral index rebuild plan.
+///
+/// Rebuilds target a separate index so adapters can replay from a known source cursor and roll
+/// back by keeping the active index untouched until the switch is explicitly authorized.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SearchIndexRebuildPlan {
+    tenant_id: TenantId,                 // data_class: INTERNAL_ONLY
+    cell_id: CellId,                     // data_class: INTERNAL_ONLY
+    active_index_name: SearchIndexName,  // data_class: INTERNAL_ONLY
+    rebuild_index_name: SearchIndexName, // data_class: INTERNAL_ONLY
+    source_cursor: String,               // data_class: INTERNAL_ONLY
+    batch_size: u16,                     // data_class: INTERNAL_ONLY
+}
+
+impl SearchIndexRebuildPlan {
+    /// Default records an adapter may process in one rebuild batch.
+    pub const DEFAULT_BATCH_SIZE: u16 = 500;
+
+    /// Maximum records an adapter may process in one rebuild batch.
+    pub const MAX_BATCH_SIZE: u16 = 10_000;
+
+    /// Creates a tenant/cell-scoped search index rebuild plan.
+    pub fn new(
+        tenant_id: TenantId,
+        cell_id: CellId,
+        active_index_name: SearchIndexName,
+        rebuild_index_name: SearchIndexName,
+        source_cursor: impl Into<String>,
+        batch_size: u16,
+    ) -> Result<Self, SearchPortError> {
+        if active_index_name == rebuild_index_name {
+            return Err(SearchPortError::new(
+                "active and rebuild index names must differ",
+            ));
+        }
+        let source_cursor = source_cursor.into();
+        if source_cursor.trim().is_empty() {
+            return Err(SearchPortError::new(
+                "search rebuild source cursor must not be empty",
+            ));
+        }
+        let batch_size = if batch_size == 0 {
+            Self::DEFAULT_BATCH_SIZE
+        } else if batch_size > Self::MAX_BATCH_SIZE {
+            Self::MAX_BATCH_SIZE
+        } else {
+            batch_size
+        };
+        Ok(Self {
+            tenant_id,
+            cell_id,
+            active_index_name,
+            rebuild_index_name,
+            source_cursor: source_cursor.trim().to_owned(),
+            batch_size,
+        })
+    }
+
+    /// Returns tenant id.
+    #[must_use]
+    pub const fn tenant_id(&self) -> &TenantId {
+        &self.tenant_id
+    }
+
+    /// Returns serving cell id.
+    #[must_use]
+    pub const fn cell_id(&self) -> &CellId {
+        &self.cell_id
+    }
+
+    /// Returns the currently serving index retained for rollback.
+    #[must_use]
+    pub const fn active_index_name(&self) -> &SearchIndexName {
+        &self.active_index_name
+    }
+
+    /// Returns the isolated rebuild target index.
+    #[must_use]
+    pub const fn rebuild_index_name(&self) -> &SearchIndexName {
+        &self.rebuild_index_name
+    }
+
+    /// Returns the source cursor or high-watermark used for replay.
+    #[must_use]
+    pub fn source_cursor(&self) -> &str {
+        self.source_cursor.as_str()
+    }
+
+    /// Returns bounded batch size.
+    #[must_use]
+    pub const fn batch_size(&self) -> u16 {
+        self.batch_size
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use oya_office_kernel::{DataClass, ObjectId, TenantId};
+    use oya_office_kernel::{CellId, DataClass, ObjectId, TenantId};
 
     use super::{
         ARCHITECTURE_LAYER, CRATE_NAME, DriveSearchDocument, DriveSearchQuery, SearchIndexName,
-        SearchProjection, VERTICAL_SLICE,
+        SearchIndexRebuildPlan, SearchProjection, VERTICAL_SLICE,
     };
 
     #[test]
@@ -258,5 +353,72 @@ mod tests {
         )
         .expect("valid query");
         assert_eq!(query.limit(), DriveSearchQuery::MAX_LIMIT);
+    }
+
+    #[test]
+    fn rebuild_plan_preserves_cell_scope_and_rollback_index() {
+        let plan = SearchIndexRebuildPlan::new(
+            TenantId::new("tenant-alpha").expect("valid tenant id"),
+            CellId::new("cell-us-1").expect("valid cell id"),
+            SearchIndexName::new("drive-active").expect("valid active index"),
+            SearchIndexName::new("drive-rebuild").expect("valid rebuild index"),
+            "checkpoint-42",
+            25_000,
+        )
+        .expect("valid rebuild plan");
+
+        assert_eq!(plan.tenant_id().as_str(), "tenant-alpha");
+        assert_eq!(plan.cell_id().as_str(), "cell-us-1");
+        assert_eq!(plan.active_index_name().as_str(), "drive-active");
+        assert_eq!(plan.rebuild_index_name().as_str(), "drive-rebuild");
+        assert_eq!(plan.source_cursor(), "checkpoint-42");
+        assert_eq!(plan.batch_size(), SearchIndexRebuildPlan::MAX_BATCH_SIZE);
+    }
+
+    #[test]
+    fn rebuild_plan_rejects_non_rollback_safe_inputs() {
+        let tenant_id = TenantId::new("tenant-alpha").expect("valid tenant id");
+        let cell_id = CellId::new("cell-us-1").expect("valid cell id");
+        let active_index = SearchIndexName::new("drive-active").expect("valid active index");
+
+        let same_index_error = SearchIndexRebuildPlan::new(
+            tenant_id.clone(),
+            cell_id.clone(),
+            active_index.clone(),
+            active_index,
+            "checkpoint-42",
+            100,
+        )
+        .expect_err("rebuild target must not overwrite active index");
+        assert!(same_index_error.message().contains("must differ"));
+
+        let empty_cursor_error = SearchIndexRebuildPlan::new(
+            tenant_id,
+            cell_id,
+            SearchIndexName::new("drive-active").expect("valid active index"),
+            SearchIndexName::new("drive-rebuild").expect("valid rebuild index"),
+            " ",
+            100,
+        )
+        .expect_err("source cursor is required for replay and rollback evidence");
+        assert!(empty_cursor_error.message().contains("source cursor"));
+    }
+
+    #[test]
+    fn rebuild_plan_defaults_empty_batch_size() {
+        let plan = SearchIndexRebuildPlan::new(
+            TenantId::new("tenant-alpha").expect("valid tenant id"),
+            CellId::new("cell-us-1").expect("valid cell id"),
+            SearchIndexName::new("drive-active").expect("valid active index"),
+            SearchIndexName::new("drive-rebuild").expect("valid rebuild index"),
+            "checkpoint-42",
+            0,
+        )
+        .expect("valid rebuild plan");
+
+        assert_eq!(
+            plan.batch_size(),
+            SearchIndexRebuildPlan::DEFAULT_BATCH_SIZE
+        );
     }
 }
