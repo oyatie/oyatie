@@ -107,6 +107,9 @@ the accounting registry traces them to this ADR):
   `AuthorizedCrmContext`, `authorize_crm_command`).
 - `oya/crm/crates/oya-crm-revenue-app/OWNERS` — ownership registration (ADR-0555)
   for the crate, naming `axis-cloud-platform` as the owning team.
+- `evidence/multispectrum/waveA-crm-resource-model-boundaries-20260625-1782426015.json`
+  — Wave A CRM evidence that capability descriptor resource-model boundaries stay
+  aligned with the CRM bounded contexts named by this decision.
 
 ## Edge obligation (deferred to when the listener binds)
 
