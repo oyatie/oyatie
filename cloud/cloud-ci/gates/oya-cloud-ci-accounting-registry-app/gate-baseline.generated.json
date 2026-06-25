@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:5a663b7cf0e326ef",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:69dce485d2e43c94"
+    "source_inputs_digest": "fnv1a64:28e1cd6835697dac"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -4761,6 +4761,9 @@
       "manifest_missing_rust_version_workspace": {
         "keys": [
           "oya-collab-crdt-portability-kernel",
+          "oya-design-collaboration-creative-artifact-service",
+          "oya-governance-adr-shape-app",
+          "oya-governance-adr-shape-kernel",
           "oya-governance-audit-event-emission",
           "oya-governance-byok-disambiguation",
           "oya-governance-capability-tier-coverage",
@@ -4802,6 +4805,15 @@
           "oya-intelligence-supervisor-app",
           "oya-intelligence-supervisor-kernel",
           "oya-intelligence-supervisor-security-adapter",
+          "oya-itsm-escalation-policy",
+          "oya-itsm-incident-room",
+          "oya-itsm-on-call-schedule",
+          "oya-itsm-postmortem",
+          "oya-itsm-service-management-service",
+          "oya-itsm-status-update",
+          "oya-learning-management-course-progress-service",
+          "oya-performance-management-review-calibration-service",
+          "oya-shuffle-sharding",
           "oya-workplace-integration-doc-set-scaffold"
         ],
         "mode": "baseline-block-on-new"
@@ -5391,7 +5403,6 @@
           "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/bin/oya-cloud-ci-face-settle.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/lib.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/main.rs",
-          "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/rust_toolchain_drift.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/tests/face_settle.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/tests/freshness.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app/BUCK",

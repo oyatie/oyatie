@@ -104,6 +104,10 @@ The frozen-reference set is derived **universally from DATA, not hardcoded paths
   can declare multiple frozen baselines.
 - The de-commit-mode set is also DATA (a named constant list), so adding a new
   derive-on-demand materialization mode extends the list, not the predicate.
+- The live gate-baseline manifest row may use `materialization_mode: main-branch-materialized`
+  with `merge_policy: controller-owned-main-materialization`. That mode still means the baseline
+  stays committed on the integration branch for merge-base reads, but contributor PRs do not own
+  generated baseline byte churn; cloud-ci/controllers materialize it from source.
 
 The gate carries **no hardcoded oyatie face paths**. It works on any repo that ships its own
 `ratchet-policy.json` + control-plane manifest: the same predicate forbids de-committing

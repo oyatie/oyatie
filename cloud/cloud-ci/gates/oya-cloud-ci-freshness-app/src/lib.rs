@@ -14,7 +14,7 @@ pub use rust_toolchain_drift::{evaluate_rust_toolchain_drift, read_pinned_rust_t
 
 pub const LOCK_REMEDIATION_COMMAND: &str = "cargo metadata >/dev/null";
 pub const FACE_REMEDIATION_COMMAND: &str = "infra/ci/materialize-cloud-ci-generated-faces.sh .";
-pub const FACE_SETTLE_PROTOCOL: &str = "commit content changes first; faces regenerate from the TRACKED TREE STATE (ADR-0552: committed faces carry no history-derived data, so commit ids never enter them); never mix content and regenerated faces in one commit; then run the materialize command; then commit the faces-only diff; then run oya-cloud-ci-face-settle --verify as the LAST step before EVERY push";
+pub const FACE_SETTLE_PROTOCOL: &str = "commit content changes first; faces regenerate from the TRACKED TREE STATE (ADR-0552: committed faces carry no history-derived data, so commit ids never enter them); never mix content and regenerated faces in one commit; then run the materialize command; commit only PR-owned generated face diffs; controller-owned generated faces are materialized by cloud-ci/integration controllers, not contributor PRs; then run oya-cloud-ci-face-settle --verify as the LAST step before EVERY push";
 pub const FACE_VERIFY_REMEDIATION_COMMAND: &str = "oya-cloud-ci-face-settle --settle --commit";
 pub const FACE_SETTLE_COMMIT_COMMAND: &str =
     "git commit -S -m \"chore: settle generated cloud-ci faces\"";
@@ -22,11 +22,14 @@ const FACE_SETTLE_COMMIT_MESSAGE: &str = "chore: settle generated cloud-ci faces
 const FACES_DIR: &str = "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app";
 const SCM_FACTS_FACE: &str = "scm-facts.generated.json";
 /// The generated-artifact control-plane manifest. Faces whose `materialization_mode` is
-/// `not-tracked-in-git` are de-commit class (ADR-0595): derived on demand, not byte-compared
-/// against a committed copy.
+/// non-PR-owned are materialized by cloud-ci/controllers, not byte-compared against contributor
+/// branch copies.
 const CONTROL_PLANE_MANIFEST: &str = "registry/generated-artifact-control-plane.json";
 /// Materialization mode marking a declared generated artifact as intentionally de-committed.
 const NOT_TRACKED_IN_GIT_MODE: &str = "not-tracked-in-git";
+/// Materialization mode marking a declared generated artifact as an integration-branch baseline:
+/// committed on the protected branch for merge-base consumers, but not a contributor PR byte-diff.
+const MAIN_BRANCH_MATERIALIZED_MODE: &str = "main-branch-materialized";
 const GENERATED_FACE_PATHS: [&str; 7] = [
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
@@ -270,11 +273,11 @@ pub fn evaluate_lock_freshness(
 
 pub fn check_repo(repo_root: &Path) -> Result<CheckReport, FreshnessError> {
     let decommitted = read_decommitted_face_names(repo_root);
-    // Determinism canary (ADR-0595): for de-commit-class faces there is no committed copy to
-    // byte-compare, so regenerate the producer faces a SECOND time (from the SAME scm-facts) and
-    // require byte stability. A nondeterministic producer must hard-fail here rather than silently
-    // green. When nothing is de-commit class, take the single-pass path so the committed-byte-
-    // parity check pays no extra regeneration cost.
+    // Determinism canary: for non-PR-owned faces there is no contributor-branch byte copy to
+    // trust, so regenerate the producer faces a SECOND time (from the SAME scm-facts) and require
+    // byte stability. A nondeterministic producer must hard-fail here rather than silently green.
+    // When every face is PR-owned, take the single-pass path so committed-byte parity pays no
+    // extra regeneration cost.
     if decommitted.is_empty() {
         let regenerated_faces = regenerate_faces_with_buck2(repo_root)?;
         return check_repo_with_regenerated_faces(repo_root, regenerated_faces);
@@ -480,11 +483,17 @@ pub fn settle_regenerated_faces(
     mode: FaceSettleMode,
 ) -> Result<FaceSettleReport, FreshnessError> {
     assert_non_face_tree_clean(repo_root)?;
-    write_regenerated_faces(repo_root, &regenerated_faces)?;
+    let non_pr_owned = read_decommitted_face_names(repo_root);
+    write_regenerated_faces(repo_root, &regenerated_faces, &non_pr_owned)?;
+    let pr_owned_face_paths = pr_owned_generated_face_paths(&non_pr_owned);
     let changed_faces = tracked_face_changes(repo_root)?;
-    if changed_faces.is_empty() {
+    let changed_pr_owned_faces: Vec<String> = changed_faces
+        .into_iter()
+        .filter(|path| pr_owned_face_paths.iter().any(|allowed| allowed == path))
+        .collect();
+    if changed_pr_owned_faces.is_empty() {
         return Ok(FaceSettleReport {
-            message: "generated cloud-ci faces are already settled".to_owned(),
+            message: "generated cloud-ci PR-owned faces are already settled".to_owned(),
             stale_faces: Vec::new(),
             lock_findings: Vec::new(),
             staged_faces: Vec::new(),
@@ -492,9 +501,9 @@ pub fn settle_regenerated_faces(
         });
     }
 
-    git_add_face_paths(repo_root)?;
+    git_add_face_paths(repo_root, &pr_owned_face_paths)?;
     let staged_faces = staged_paths(repo_root)?;
-    assert_staged_paths_are_faces(&staged_faces)?;
+    assert_staged_paths_are_pr_owned_faces(&staged_faces, &pr_owned_face_paths)?;
     let committed = if mode == FaceSettleMode::SettleAndCommit {
         git_commit_faces(repo_root)?;
         true
@@ -652,14 +661,16 @@ pub fn parse_member_package_manifest(
 
 /// Evaluate generated-face freshness.
 ///
-/// Two predicate classes (ADR-0595):
+/// Two predicate classes:
 ///   - committed-class faces (NOT in `decommitted`): byte parity — committed bytes must equal the
 ///     buck2-regenerated bytes, and a regeneration that produces a face with no committed copy is
 ///     stale. This is the unchanged contract for any face still tracked in git.
-///   - de-commit-class faces (in `decommitted`): the face is intentionally untracked and derived
-///     on demand, so there is no committed copy to byte-compare. Freshness instead requires the
-///     face to regenerate successfully (it must be present in `regenerated`). Determinism
-///     (regenerate-twice byte-stability) is enforced separately by [`evaluate_face_determinism`].
+///   - non-PR-owned faces (in `decommitted`, a legacy parameter name): the face is either
+///     de-committed (`not-tracked-in-git`) or integration-controller-owned
+///     (`main-branch-materialized`), so contributor PRs do not own byte parity against the local
+///     checkout copy. Freshness instead requires the face to regenerate successfully (it must be
+///     present in `regenerated`). Determinism (regenerate-twice byte-stability) is enforced
+///     separately by [`evaluate_face_determinism`].
 pub fn evaluate_face_freshness(
     committed: &[(String, String)],
     regenerated: &[(String, String)],
@@ -673,9 +684,9 @@ pub fn evaluate_face_freshness(
     let mut findings = BTreeSet::new();
 
     for (name, committed_bytes) in committed {
-        // A de-commit-class face that lingers on disk is not a contributor merge surface; do not
-        // require byte parity against a (no longer committed) copy. It is validated via the
-        // regenerated loop below + the determinism canary.
+        // A non-PR-owned face that lingers on disk is not a contributor merge surface; do not
+        // require byte parity against a local copy. It is validated via the regenerated loop below
+        // + the determinism canary.
         if decommitted.contains(name) {
             continue;
         }
@@ -698,7 +709,7 @@ pub fn evaluate_face_freshness(
 
     for (name, _) in regenerated {
         if decommitted.contains(name) {
-            // De-commit class: regeneration producing this face is the REQUIRED state, not stale.
+            // Non-PR-owned class: regeneration producing this face is the REQUIRED state, not stale.
             continue;
         }
         if !committed_names.contains(name.as_str()) {
@@ -709,13 +720,14 @@ pub fn evaluate_face_freshness(
         }
     }
 
-    // Every declared de-commit-class face must still regenerate; a producer that silently stops
-    // emitting one would otherwise pass (it has no committed copy and no regenerated entry).
+    // Every declared non-PR-owned face must still regenerate; a producer that silently stops
+    // emitting one would otherwise pass (it has no contributor-owned byte parity and no regenerated
+    // entry).
     for name in decommitted {
         if !regenerated_by_name.contains_key(name.as_str()) {
             findings.insert(stale_face_finding(
                 name,
-                "de-commit-class face was not produced by regeneration",
+                "non-PR-owned generated face was not produced by regeneration",
             ));
         }
     }
@@ -723,10 +735,10 @@ pub fn evaluate_face_freshness(
     findings.into_iter().collect()
 }
 
-/// Determinism canary for de-commit-class faces (ADR-0595): regenerating twice must yield
-/// byte-identical output. With byte-parity-to-committed removed for these faces, this is the
-/// integrity canary that keeps derive-on-demand sound — a nondeterministic producer must hard-fail
-/// here rather than silently green.
+/// Determinism canary for non-PR-owned faces: regenerating twice must yield byte-identical output.
+/// With contributor-branch byte parity removed for these faces, this is the integrity canary that
+/// keeps derive-on-demand/controller-materialization sound — a nondeterministic producer must
+/// hard-fail here rather than silently green.
 pub fn evaluate_face_determinism(
     first: &[(String, String)],
     second: &[(String, String)],
@@ -746,7 +758,7 @@ pub fn evaluate_face_determinism(
             _ => {
                 findings.insert(stale_face_finding(
                     name,
-                    "de-commit-class face is not deterministic across regenerations",
+                    "non-PR-owned generated face is not deterministic across regenerations",
                 ));
             }
         }
@@ -817,10 +829,10 @@ pub fn read_committed_generated_faces(
     Ok(faces)
 }
 
-/// Read the file names of de-commit-class faces (ADR-0595) from the generated-artifact
-/// control-plane manifest. A declared artifact whose `materialization_mode` is
-/// `not-tracked-in-git` AND whose `path` EXACTLY equals one of this gate's canonical generated-face
-/// paths ([`GENERATED_FACE_PATHS`]) is returned by its file basename (e.g.
+/// Read the file names of non-PR-owned faces from the generated-artifact control-plane manifest.
+/// A declared artifact whose `materialization_mode` is `not-tracked-in-git` OR
+/// `main-branch-materialized` AND whose `path` EXACTLY equals one of this gate's canonical
+/// generated-face paths ([`GENERATED_FACE_PATHS`]) is returned by its file basename (e.g.
 /// `ttl-policy.generated.json`), matching the keys used everywhere else in this gate. A missing or
 /// malformed manifest yields an empty set, so the byte-parity contract is the safe default (no face
 /// is silently exempted).
@@ -846,7 +858,7 @@ pub fn read_decommitted_face_names(repo_root: &Path) -> BTreeSet<String> {
         let mode = artifact
             .get("materialization_mode")
             .and_then(|value| value.as_str());
-        if mode != Some(NOT_TRACKED_IN_GIT_MODE) {
+        if mode != Some(NOT_TRACKED_IN_GIT_MODE) && mode != Some(MAIN_BRANCH_MATERIALIZED_MODE) {
             continue;
         }
         let Some(path) = artifact.get("path").and_then(|value| value.as_str()) else {
@@ -961,8 +973,12 @@ fn regenerate_producer_faces(
 fn write_regenerated_faces(
     repo_root: &Path,
     regenerated_faces: &[(String, String)],
+    non_pr_owned: &BTreeSet<String>,
 ) -> Result<(), FreshnessError> {
     for (name, bytes) in regenerated_faces {
+        if non_pr_owned.contains(name) {
+            continue;
+        }
         let path = generated_face_path_for_name(name)
             .ok_or_else(|| FreshnessError::new(format!("unknown generated face {name:?}")))?;
         let full_path = repo_root.join(path);
@@ -984,6 +1000,14 @@ fn generated_face_path_for_name(name: &str) -> Option<&'static str> {
             .map(|file_name| file_name == name)
             .unwrap_or(false)
     })
+}
+
+fn pr_owned_generated_face_paths(non_pr_owned: &BTreeSet<String>) -> Vec<String> {
+    GENERATED_FACE_PATHS
+        .iter()
+        .filter(|path| !non_pr_owned.contains(file_basename(path)))
+        .map(|path| (*path).to_owned())
+        .collect()
 }
 
 fn tracked_non_face_changes(repo_root: &Path) -> Result<Vec<String>, FreshnessError> {
@@ -1071,14 +1095,14 @@ fn is_generated_face_path(path: &str) -> bool {
     GENERATED_FACE_PATHS.contains(&path)
 }
 
-fn git_add_face_paths(repo_root: &Path) -> Result<(), FreshnessError> {
+fn git_add_face_paths(repo_root: &Path, paths: &[String]) -> Result<(), FreshnessError> {
     run_status(
         Command::new("git")
             .arg("add")
             .arg("--")
-            .args(GENERATED_FACE_PATHS)
+            .args(paths)
             .current_dir(repo_root),
-        "git add generated face paths",
+        "git add PR-owned generated face paths",
     )
 }
 
@@ -1091,23 +1115,27 @@ fn git_commit_faces(repo_root: &Path) -> Result<(), FreshnessError> {
     )
 }
 
-fn assert_staged_paths_are_faces(paths: &[String]) -> Result<(), FreshnessError> {
+fn assert_staged_paths_are_pr_owned_faces(
+    paths: &[String],
+    allowed_paths: &[String],
+) -> Result<(), FreshnessError> {
     if paths.is_empty() {
         return Err(FreshnessError::new(
             "no generated face paths are staged for settle commit",
         ));
     }
-    let non_face_paths: Vec<String> = paths
+    let allowed: BTreeSet<&str> = allowed_paths.iter().map(String::as_str).collect();
+    let bad: Vec<String> = paths
         .iter()
-        .filter(|path| !is_generated_face_path(path))
+        .filter(|path| !allowed.contains(path.as_str()))
         .cloned()
         .collect();
-    if non_face_paths.is_empty() {
+    if bad.is_empty() {
         Ok(())
     } else {
         Err(FreshnessError::new(format!(
-            "settle commit may stage only generated face paths, found:\n{}\nProtocol: {FACE_SETTLE_PROTOCOL}",
-            bullet_list(&non_face_paths)
+            "settle commit may stage only PR-owned generated face paths, found:\n{}\nProtocol: {FACE_SETTLE_PROTOCOL}",
+            bullet_list(&bad)
         )))
     }
 }
