@@ -17,7 +17,7 @@ use serde_yaml::Value as YamlValue;
 
 pub const GATE_ID: &str = "cloud-ci-rust-first-automation-hygiene";
 
-pub const VIOLATION_CODES: [&str; 9] = [
+pub const VIOLATION_CODES: [&str; 10] = [
     "rust_first_automation_gate_id_mismatch",
     "rust_first_automation_exception_duplicate",
     "rust_first_automation_exception_missing_field",
@@ -31,6 +31,10 @@ pub const VIOLATION_CODES: [&str; 9] = [
     // baseline of today's accepted legacy-bridge inline shell.
     "rust_first_automation_unbaselined_workflow_inline_shell",
     "rust_first_automation_workflow_inline_shell_baseline_stale",
+    // Workflow-uses dimension: the Buck2 setup action is not an allowed bridge. The repo-owned
+    // installer may download the official facebook/buck2 release asset, but CI must not outsource
+    // that policy boundary to a marketplace action.
+    "rust_first_automation_forbidden_workflow_action",
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -225,31 +229,43 @@ fn collect_workflow_files(
         if !absolute.exists() {
             continue;
         }
-        for path in sorted_dir_entries(&absolute)? {
-            let metadata = fs::symlink_metadata(&path).map_err(|e| {
-                ScanError::Io(format!(
-                    "symlink_metadata {} during workflow scan: {e}",
-                    path.display()
-                ))
-            })?;
-            if metadata.file_type().is_symlink() || !metadata.is_file() {
-                continue;
-            }
-            if !has_non_rust_extension(&path, extensions) {
-                continue;
-            }
-            let rel = path
-                .strip_prefix(repo_root)
-                .map_err(|e| {
-                    ScanError::Io(format!("strip repo root from {}: {e}", path.display()))
-                })?
-                .to_string_lossy()
-                .replace('\\', "/");
-            files.push((path, rel));
-        }
+        visit_workflow_files(repo_root, &absolute, extensions, &mut files)?;
     }
     files.sort_by(|a, b| a.1.cmp(&b.1));
     Ok(files)
+}
+
+fn visit_workflow_files(
+    repo_root: &Path,
+    dir: &Path,
+    extensions: &BTreeSet<String>,
+    files: &mut Vec<(PathBuf, String)>,
+) -> Result<(), ScanError> {
+    for path in sorted_dir_entries(dir)? {
+        let metadata = fs::symlink_metadata(&path).map_err(|e| {
+            ScanError::Io(format!(
+                "symlink_metadata {} during workflow scan: {e}",
+                path.display()
+            ))
+        })?;
+        if metadata.file_type().is_symlink() {
+            continue;
+        }
+        if metadata.is_dir() {
+            visit_workflow_files(repo_root, &path, extensions, files)?;
+            continue;
+        }
+        if !metadata.is_file() || !has_non_rust_extension(&path, extensions) {
+            continue;
+        }
+        let rel = path
+            .strip_prefix(repo_root)
+            .map_err(|e| ScanError::Io(format!("strip repo root from {}: {e}", path.display())))?
+            .to_string_lossy()
+            .replace('\\', "/");
+        files.push((path, rel));
+    }
+    Ok(())
 }
 
 /// Extract every inline-shell step from a parsed workflow document. The shape is the GitHub Actions
@@ -298,7 +314,9 @@ pub fn collect_observed_workflow_inline_shell(
     repo_root: &Path,
     policy: &Value,
 ) -> Result<Value, ScanError> {
-    let block = policy.get("scan").and_then(|scan| scan.get("workflow_inline_shell"));
+    let block = policy
+        .get("scan")
+        .and_then(|scan| scan.get("workflow_inline_shell"));
     let enabled = block
         .and_then(|block| block.get("enabled"))
         .and_then(Value::as_bool)
@@ -324,22 +342,33 @@ pub fn collect_observed_workflow_inline_shell(
     Ok(json!({ "steps": rows }))
 }
 
-fn workflow_string_array(block: Option<&Value>, key: &str) -> Result<Vec<String>, ScanError> {
+fn workflow_block_string_array(
+    block: Option<&Value>,
+    block_name: &str,
+    key: &str,
+) -> Result<Vec<String>, ScanError> {
     block
         .and_then(|block| block.get(key))
         .and_then(Value::as_array)
-        .ok_or_else(|| ScanError::MissingScanArray(format!("workflow_inline_shell.{key}")))?
+        .ok_or_else(|| ScanError::MissingScanArray(format!("{block_name}.{key}")))?
         .iter()
         .map(|v| {
             v.as_str()
                 .map(str::to_owned)
-                .ok_or_else(|| ScanError::MissingScanArray(format!("workflow_inline_shell.{key}")))
+                .ok_or_else(|| ScanError::MissingScanArray(format!("{block_name}.{key}")))
         })
         .collect()
 }
 
+fn workflow_string_array(block: Option<&Value>, key: &str) -> Result<Vec<String>, ScanError> {
+    workflow_block_string_array(block, "workflow_inline_shell", key)
+}
+
 /// The set of inline-shell keys observed in the live workflow corpus.
-fn observed_workflow_shell_keys(observed: &Value, findings: &mut BTreeSet<Finding>) -> BTreeSet<String> {
+fn observed_workflow_shell_keys(
+    observed: &Value,
+    findings: &mut BTreeSet<Finding>,
+) -> BTreeSet<String> {
     let mut keys = BTreeSet::new();
     for row in observed
         .get("steps")
@@ -415,6 +444,138 @@ pub fn evaluate_workflow_inline_shell_keyed(
         }
     }
 
+    findings
+}
+
+// ─────────────────────────── forbidden workflow `uses:` dimension ───────────────────────────
+//
+// `workflow_inline_shell` owns inline `run:` debt. It intentionally skips `uses:` steps, so a
+// marketplace action can re-enter without adding any shell. This dimension is a tiny, data-driven
+// negative-space guard for that shape. It is deliberately narrow today: forbid Buck2 setup actions
+// while still allowing the repo-owned installer to download the official facebook/buck2 release
+// asset and verify its pinned SHA-256.
+
+fn workflow_forbidden_uses_block(policy: &Value) -> Option<&Value> {
+    policy
+        .get("scan")
+        .and_then(|scan| scan.get("workflow_forbidden_uses"))
+}
+
+fn forbidden_workflow_uses_key(rel: &str, job: &str, step_index: usize, uses: &str) -> String {
+    format!("{rel}::{job}::step-{step_index}::{uses}")
+}
+
+fn extract_forbidden_workflow_uses(
+    rel: &str,
+    doc: &YamlValue,
+    forbidden_substrings: &[String],
+    rows: &mut Vec<Value>,
+) {
+    let mut record_steps = |job: &str, steps: &YamlValue| {
+        let Some(steps) = steps.as_sequence() else {
+            return;
+        };
+        for (index, step) in steps.iter().enumerate() {
+            let Some(uses) = step.get("uses").and_then(YamlValue::as_str) else {
+                continue;
+            };
+            let normalized_uses = uses.to_ascii_lowercase();
+            for forbidden in forbidden_substrings {
+                if normalized_uses.contains(forbidden) {
+                    rows.push(json!({
+                        "key": forbidden_workflow_uses_key(rel, job, index, uses),
+                        "file": rel,
+                        "job": job,
+                        "step_index": index,
+                        "uses": uses,
+                        "forbidden_substring": forbidden,
+                    }));
+                }
+            }
+        }
+    };
+
+    if let Some(jobs) = doc.get("jobs").and_then(YamlValue::as_mapping) {
+        for (job_id, job) in jobs {
+            let job_name = job_id.as_str().unwrap_or("<job>");
+            if let Some(steps) = job.get("steps") {
+                record_steps(job_name, steps);
+            }
+        }
+    }
+
+    if let Some(steps) = doc.get("runs").and_then(|runs| runs.get("steps")) {
+        record_steps("runs", steps);
+    }
+}
+
+pub fn collect_observed_forbidden_workflow_uses(
+    repo_root: &Path,
+    policy: &Value,
+) -> Result<Value, ScanError> {
+    let block = workflow_forbidden_uses_block(policy);
+    let enabled = block
+        .and_then(|block| block.get("enabled"))
+        .and_then(Value::as_bool)
+        .unwrap_or(false);
+    if !enabled {
+        return Ok(json!({ "uses": [] }));
+    }
+
+    let roots = workflow_block_string_array(block, "workflow_forbidden_uses", "roots")?;
+    let extensions = workflow_block_string_array(block, "workflow_forbidden_uses", "extensions")?
+        .into_iter()
+        .collect::<BTreeSet<_>>();
+    let forbidden_substrings = workflow_block_string_array(
+        block,
+        "workflow_forbidden_uses",
+        "forbidden_uses_substrings",
+    )?
+    .into_iter()
+    .map(|pattern| pattern.to_ascii_lowercase())
+    .collect::<Vec<_>>();
+
+    let mut rows = Vec::new();
+    for (path, rel) in collect_workflow_files(repo_root, &roots, &extensions)? {
+        let text = fs::read_to_string(&path)
+            .map_err(|e| ScanError::Io(format!("read workflow {}: {e}", path.display())))?;
+        let doc: YamlValue = serde_yaml::from_str(&text)
+            .map_err(|e| ScanError::Io(format!("parse workflow yaml {}: {e}", path.display())))?;
+        extract_forbidden_workflow_uses(&rel, &doc, &forbidden_substrings, &mut rows);
+    }
+    rows.sort_by(|a, b| string_field(a, "key").cmp(&string_field(b, "key")));
+    Ok(json!({ "uses": rows }))
+}
+
+pub fn evaluate_forbidden_workflow_uses(observed: &Value) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+    for row in observed
+        .get("uses")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+    {
+        match string_field(row, "key").filter(|k| !k.is_empty()) {
+            Some(key) => {
+                let uses = string_field(row, "uses").unwrap_or("<unknown>");
+                findings.insert(Finding::new(
+                    "rust_first_automation_forbidden_workflow_action",
+                    key,
+                    format!(
+                        "forbidden workflow action `{uses}`; use repo-owned infra/ci/install-buck2.sh \
+                         to download the official facebook/buck2 release asset with pinned SHA-256"
+                    ),
+                ));
+            }
+            None => {
+                findings.insert(Finding::new(
+                    "rust_first_automation_observed_path_missing_field",
+                    "<observed-workflow-uses>",
+                    "observed workflow uses row missing non-empty `key`",
+                ));
+            }
+        }
+    }
     findings
 }
 
@@ -785,11 +946,92 @@ mod tests {
         ) {
             emitted.insert(f.code);
         }
+        for f in evaluate_forbidden_workflow_uses(
+            &json!({"uses": [{"key": "a.yml::j::step-0::x/setup-buck2@v1", "uses": "x/setup-buck2@v1"}]}),
+        ) {
+            emitted.insert(f.code);
+        }
         for code in &emitted {
             assert!(
                 declared.contains(code.as_str()),
                 "evaluator emitted `{code}` which is not in VIOLATION_CODES"
             );
         }
+    }
+
+    #[test]
+    fn forbidden_workflow_uses_flags_setup_buck2_action() {
+        let findings = evaluate_forbidden_workflow_uses(&json!({"uses": [{
+            "key": ".github/workflows/ci.yml::build::step-0::example/setup-buck2@v1",
+            "uses": "example/setup-buck2@v1"
+        }]}));
+        assert!(findings.iter().any(|f| {
+            f.code == "rust_first_automation_forbidden_workflow_action"
+                && f.key == ".github/workflows/ci.yml::build::step-0::example/setup-buck2@v1"
+        }));
+    }
+
+    #[test]
+    fn extract_forbidden_workflow_uses_scans_uses_not_run_steps() {
+        let doc: YamlValue = serde_yaml::from_str(
+            "jobs:\n  build:\n    steps:\n      - uses: actions/checkout@v4\n      - uses: example/setup-buck2@v1\n      - run: infra/ci/install-buck2.sh\n",
+        )
+        .unwrap();
+        let mut rows = Vec::new();
+        extract_forbidden_workflow_uses(
+            ".github/workflows/ci.yml",
+            &doc,
+            &["setup-buck2".to_owned()],
+            &mut rows,
+        );
+        let keys: Vec<&str> = rows.iter().filter_map(|r| r["key"].as_str()).collect();
+        assert_eq!(
+            keys,
+            vec![".github/workflows/ci.yml::build::step-1::example/setup-buck2@v1"]
+        );
+    }
+
+    #[test]
+    fn forbidden_uses_scan_recurses_into_nested_composite_actions() {
+        let mut root = std::env::temp_dir();
+        root.push(format!(
+            "oya-rust-first-action-scan-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        let action_dir = root.join(".github/actions/buck");
+        std::fs::create_dir_all(&action_dir).unwrap();
+        std::fs::write(
+            action_dir.join("action.yml"),
+            "name: nested\nruns:\n  using: composite\n  steps:\n    - uses: example/setup-buck2@v1\n",
+        )
+        .unwrap();
+
+        let policy = json!({
+            "scan": {
+                "workflow_forbidden_uses": {
+                    "enabled": true,
+                    "roots": [".github/actions"],
+                    "extensions": [".yml", ".yaml"],
+                    "forbidden_uses_substrings": ["setup-buck2"]
+                }
+            }
+        });
+        let observed = collect_observed_forbidden_workflow_uses(&root, &policy).unwrap();
+        let _ = std::fs::remove_dir_all(&root);
+
+        let findings = evaluate_forbidden_workflow_uses(&observed);
+        assert!(
+            findings.iter().any(|f| {
+                f.code == "rust_first_automation_forbidden_workflow_action"
+                    && f.key
+                        == ".github/actions/buck/action.yml::runs::step-0::example/setup-buck2@v1"
+            }),
+            "nested composite action setup-buck2 use must be found; observed={observed:#?}; \
+             findings={findings:#?}"
+        );
     }
 }

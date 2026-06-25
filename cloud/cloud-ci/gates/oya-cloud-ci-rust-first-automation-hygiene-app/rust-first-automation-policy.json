@@ -310,6 +310,21 @@
         ".github/workflows",
         ".github/actions"
       ]
+    },
+    "workflow_forbidden_uses": {
+      "_comment": "Forbid third-party / marketplace Buck2 setup actions. The allowed bridge is repo-owned infra/ci/install-buck2.sh, which downloads the official facebook/buck2 release asset and verifies the pinned SHA-256 before execution.",
+      "enabled": true,
+      "extensions": [
+        ".yaml",
+        ".yml"
+      ],
+      "roots": [
+        ".github/workflows",
+        ".github/actions"
+      ],
+      "forbidden_uses_substrings": [
+        "setup-buck2"
+      ]
     }
   },
   "schema_version": "1.1.0",
