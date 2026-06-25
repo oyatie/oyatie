@@ -2,12 +2,14 @@
 // tree plus hermetic RED/GREEN fixtures. It asserts:
 //   * the LIVE post-drop worktree is born-blocking GREEN — the real candidate-tree collector finds
 //     zero GraphQL library (in ANY Cargo.toml), zero forbidden crate in Cargo.lock, and zero
-//     .graphql/.graphqls/.gql/.gqls/.sdl schema file, so the frozen baseline is EMPTY and any NEW
-//     GraphQL artifact fails closed on arrival.
+//     .graphql/.graphqls/.gql/.gqls/.sdl schema file or build-graph glob, so the frozen baseline is
+//     EMPTY and any NEW GraphQL artifact fails closed on arrival.
 //   * a RED fixture (a synthetic candidate tree whose member Cargo.toml adds `async-graphql`) makes
 //     the gate FAIL — proving it genuinely catches a reintroduced lib, not an always-pass stub.
 //   * a RED fixture (a synthetic candidate tree with a new `.graphql` schema file, no ADR ref)
 //     makes the gate FAIL.
+//   * a RED fixture (a synthetic candidate tree with a BUCK `**/*.graphql` srcs glob) makes the gate
+//     FAIL before a schema can become a normal build input.
 //   * a RED fixture (`async-graphql` smuggled via a `[workspace.dependencies]` rename + a member
 //     `{ workspace = true }` inheritance) makes the gate FAIL — the workspace-rename backdoor.
 //   * a RED fixture (`async-graphql` in a NON-member `services/gw/Cargo.toml`) makes the gate FAIL —
@@ -352,6 +354,40 @@ fn red_fixture_new_graphql_schema_file() {
     assert!(
         f.key.ends_with("schema.graphql"),
         "the finding key must name the schema path: {f:?}"
+    );
+    assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
+
+    fs::remove_dir_all(&root).expect("remove temp repo");
+}
+
+#[test]
+fn red_fixture_buck_graphql_schema_glob() {
+    // RED, hermetic: a synthetic candidate tree with no schema file yet, but a BUCK source glob that
+    // would keep admitting GraphQL schemas as normal build inputs.
+    let root = temp_repo();
+    write_member(
+        &root,
+        "analytics-api",
+        "[package]\nname = \"analytics-api\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\nserde = \"1\"\n",
+        None,
+    );
+    write_file(
+        &root,
+        "crates/analytics-api/BUCK",
+        "rust_library(\n    name = \"analytics-api\",\n    srcs = glob([\"src/**/*.rs\", \"**/*.graphql\"]),\n)\n",
+    );
+
+    let policy = fixture_policy();
+    let observed = collect_graphql_artifacts(&root, &policy).expect("collect on temp tree");
+    let findings = evaluate_keyed(&policy, &observed);
+
+    let f = findings
+        .iter()
+        .find(|f| f.code == "NGQL-BUILD-GRAPH-SCHEMA-GLOB")
+        .unwrap_or_else(|| panic!("a BUCK GraphQL schema glob must be RED: {findings:#?}"));
+    assert!(
+        f.key.contains("crates/analytics-api/BUCK:3:**/*.graphql"),
+        "the finding key must name the BUCK path, line, and glob: {f:?}"
     );
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
 

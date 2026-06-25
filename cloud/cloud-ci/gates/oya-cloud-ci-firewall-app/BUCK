@@ -8,7 +8,7 @@ export_file(
 
 rust_library(
     name = "oya-cloud-ci-firewall-app",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
     crate = "oya_cloud_ci_firewall_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
@@ -19,7 +19,7 @@ rust_library(
 
 rust_test(
     name = "oya-cloud-ci-firewall-app-unittest",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
     crate = "oya_cloud_ci_firewall_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],

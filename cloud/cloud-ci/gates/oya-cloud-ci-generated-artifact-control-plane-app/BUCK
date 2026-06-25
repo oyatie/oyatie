@@ -1,6 +1,6 @@
 rust_library(
     name = "oya-cloud-ci-generated-artifact-control-plane-app",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
     crate = "oya_cloud_ci_generated_artifact_control_plane_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
@@ -11,7 +11,7 @@ rust_library(
 
 rust_test(
     name = "oya-cloud-ci-generated-artifact-control-plane-app-unittest",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
     crate = "oya_cloud_ci_generated_artifact_control_plane_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
@@ -51,7 +51,7 @@ rust_test(
 
 rust_binary(
     name = "oya-cloud-ci-generated-output-diff-policy",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
     crate_root = "src/diff_policy.rs",
     visibility = ["PUBLIC"],
     deps = [

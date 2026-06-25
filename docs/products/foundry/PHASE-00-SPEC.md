@@ -285,9 +285,9 @@ Validator: `validate-foundry-phase00-evidence.mjs`
 
 ### Transport Layer parity — P00-06
 
-**Requirement:** REST, gRPC, GraphQL, WebSocket, SSE, Webhooks, and Kafka/MQ adapters call the same application/use-case ports or event ports.
+**Requirement:** REST, gRPC, WebSocket, SSE, Webhooks, and Kafka/MQ adapters call the same application/use-case ports or event ports.
 
-**Phase 00 scope:** REST/GraphQL/SSE/WebSocket command input and status subscription foundations.
+**Phase 00 scope:** REST/SSE/WebSocket command input and status subscription foundations.
 
 **Phase 05 scope:** gRPC, Webhook, Kafka/MQ write-capable ops.
 

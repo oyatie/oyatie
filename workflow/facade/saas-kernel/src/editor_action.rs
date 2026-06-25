@@ -92,7 +92,7 @@ pub enum NodeKind {
     Timer,
     /// LLM / AI agent node dispatched through the agentic runtime.
     Agentic,
-    /// Third-party integration node (OAuth, REST, GraphQL).
+    /// Third-party integration node (OAuth and REST).
     Integration,
     /// Nested sub-workflow invocation.
     SubWorkflow,

@@ -7,7 +7,7 @@
 # This is the cloud-intelligence cedar-adapter pattern (the proven fix for the same defect class).
 # The include literal is deliberately unchanged: editing it would break the cargo build path.
 ADAPTER_ROOT = "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-authz-cedar-adapter"
-ADAPTER_SRCS = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"])
+ADAPTER_SRCS = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"])
 ADAPTER_MAPPED_SRCS = {src: ADAPTER_ROOT + "/" + src for src in ADAPTER_SRCS}
 ADAPTER_MAPPED_SRCS["//oya/ci-webhook-gateway/policy:ci-webhook-gateway.cedar"] = "oya/ci-webhook-gateway/policy/ci-webhook-gateway.cedar"
 
