@@ -161,6 +161,8 @@ edit paths are independently guarded and refuse unsound input outright.
      file untouched;
   3. both gate binaries run at base and at head produce identical stdout + exit codes.
 - `buck2 test //cloud/cloud-ci/...` + `//libs/oya-buck-syntax-kernel:...-unittest` green.
+- Follow-up parser hardening evidence:
+  `evidence/multispectrum/buck-syntax-parser-depth-cap-20260625-1782429922.json`.
 
 ## Consequences
 
