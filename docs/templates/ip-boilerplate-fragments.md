@@ -47,14 +47,13 @@ Per-µservice IPs add: µservice-specific halt conditions (e.g.
 
 ## Fragment: Verification
 
-Every IP author runs ALL of these BEFORE marking the IP complete:
+Every IP author collects ALL of these BEFORE marking the IP complete:
 
-1. `cargo build --workspace` exits 0
-2. `cargo test --workspace` exits 0
-3. `cargo clippy --workspace -- -D warnings` exits 0
-4. `cargo fmt --check` exits 0
-5. `cargo run -p oya-dev-cli -- gate validate` exits 0 with all acceptance
-   lanes from frontmatter listed green
+1. `buck2 build <touched-build-targets>` exits 0
+2. `buck2 test <touched-test-targets>` exits 0
+3. the relevant Buck2/cloud-ci lint/static-analysis gate exits 0
+4. the relevant Buck2/cloud-ci formatting gate exits 0
+5. the relevant cloud-ci acceptance gate packet is green in `oya-ci-required`
 6. New / modified files match canonical schemas:
    - `*.cedar` → `specs/policy/cedar-scope-schema.md`
    - `iac/helm/*/Chart.yaml` → depends on `_oya-helpers`

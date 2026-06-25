@@ -14,10 +14,10 @@ Closes #<n> (or Refs #<n> if not closing). One line.
 - Include the *why*; the diff already shows the *what*.
 
 ## Verification
-- ☐ `cargo nextest run --workspace --all-features` (paste the pass/fail line)
-- ☐ `cargo clippy -D warnings` (pass)
-- ☐ ADR-0346 pre-push contract: `./bin/oya verify --ci-required` (canonical local pre-push verifier; MUST locally mirror the full CI matrix and block on exit-0 of EACH mandatory step before returning success)
-- ☐ Per-change-class fitness lane(s): `<list>`
+- ☐ Targeted Buck2 tests: `buck2 test <target(s)>` (paste pass/fail excerpt)
+- ☐ Targeted Buck2 builds, if applicable: `buck2 build <target(s)>` (paste pass/fail excerpt)
+- ☐ Required cloud-ci context: `oya-ci-required` green on the PR head
+- ☐ Per-change-class Buck2/cloud-ci lane(s): `<list>`
 - ☐ Per-change-class reviewer agent run (paste verdict)
 
 ## Traceability

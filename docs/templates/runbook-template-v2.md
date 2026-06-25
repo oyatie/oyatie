@@ -73,7 +73,7 @@ If any pre-check fails, **STOP** and route to a different runbook (cite which) o
 
 <!-- agent-instructions:start -->
 **Agent path** (Foundry runbook-execution capability):
-- Every diagnostic step **MUST** be invoked via `oya-tooling-agent-read run-evidence <cmd>` (ADR-0053 sanctioned primitive); raw stdout is captured to the audit chain.
+- Every diagnostic step **MUST** capture raw stdout/stderr from a sanctioned command and attach it to the audit chain; retired helper wrappers must not be required.
 - After step completion, emit `EVT-RUNBOOK-STEP-<n>` with step ID + outcome + timestamp.
 - Halt and emit `BLOCKED_ON_HUMAN_ORCHESTRATOR` per `docs/checklists/escalation-checklist.md` if an unexpected outcome appears at any step.
 <!-- agent-instructions:end -->
@@ -85,7 +85,7 @@ If any pre-check fails, **STOP** and route to a different runbook (cite which) o
    Expected: <output shape>
    If differs: route to RB-<other>; do not proceed.
 
-2. Inspect recent deploys — `oya-tooling-agent-read deploy-log --last 1h`
+2. Inspect recent deploys — `<sanctioned deploy-log query>`
    Expected: <output shape>
    If differs: suspect deploy; jump to Mitigation step `M2`.
 

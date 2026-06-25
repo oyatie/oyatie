@@ -51,7 +51,7 @@ authority_chain_declaration: |
 
 ## Purpose
 
-One paragraph. What this IP delivers. Why now (its position in the phase dependency graph). Inherits which Master Plan principles (1-12) explicitly. **MUST** state the durable outcome in the present tense (e.g., "Ships `oya-tooling-agent-read pr-view` with audit-chain emission on every invocation.") — not "will ship."
+One paragraph. What this IP delivers. Why now (its position in the phase dependency graph). Inherits which Master Plan principles (1-12) explicitly. **MUST** state the durable outcome in the present tense (e.g., "Ships `<capability-or-api>` with audit-chain emission on every invocation.") — not "will ship."
 
 
 ## ChangeSet boundary
@@ -76,25 +76,25 @@ contracts/<surface>.openapi.yaml::<operationId>
 5. Read `docs/CONSTITUTION.md §Decision principles + §Prohibitions`.
 <!-- agent-instructions:end -->
 
-**Human path:** read the same files; run `oya gate validate plan-hierarchy --ip IP-NNN-<slug>` to confirm parent pointers resolve and frontmatter is well-formed.
+**Human path:** read the same files; run the Buck2/cloud-ci plan-hierarchy gate target to confirm parent pointers resolve and frontmatter is well-formed.
 
 ## Acceptance test commands
 
 Each row is a runnable command + expected pass token. CI replays these on every PR that touches this IP.
 
 ```
-$ cargo nextest run -p oya-<crate> --all-features            # expect: PASS, 0 failures
-$ cargo clippy -p oya-<crate> --all-features -- -D warnings  # expect: PASS, 0 warnings
-$ cargo deny check                                            # expect: PASS
-$ oya gate validate <lane-name>                               # expect: PASS
-$ oya-tooling-agent-read run-evidence <demo-cmd>              # expect: <captured shape>
+$ buck2 test <targeted-test-targets>                        # expect: PASS, 0 failures
+$ buck2 build <targeted-build-targets>                        # expect: PASS
+$ buck2 test <supply-chain-cloud-ci-target>                   # expect: PASS
+$ buck2 test <lane-specific-cloud-ci-target>                  # expect: PASS
+$ <sanctioned command>                                        # expect: <captured evidence shape>
 ```
 
 ## Done criteria
 
 - [ ] `docs/AGENTS.md §Done-Definition checklist` D1-D18 walked (see `docs/checklists/done-definition-checklist.md`).
 - [ ] All acceptance commands PASS; outputs captured in PR `## Verification`.
-- [ ] Dependency additions cleared `cargo deny check` and named in PR `## Traceability`.
+- [ ] Dependency additions cleared the Buck2/cloud-ci supply-chain lane and are named in PR `## Traceability`.
 - [ ] Audit-chain `EVT-<topic>` emitted; ID pasted in PR `## Evidence`.
 - [ ] Phase INDEX `§Implementation Plans` row updated to `merged`.
 - [ ] Inventory ledger row added if migration-class (per ADR-0052).

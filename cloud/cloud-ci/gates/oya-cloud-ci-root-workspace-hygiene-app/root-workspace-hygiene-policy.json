@@ -29,12 +29,11 @@
     { "id": "dockerfile-distroless", "kind": "exact",  "value": "Dockerfile.distroless", "reason": "release image build descriptor" },
     { "id": "gitignore",             "kind": "exact",  "value": ".gitignore",          "reason": "git ignore policy" },
     { "id": "gitattributes",         "kind": "exact",  "value": ".gitattributes",      "reason": "git attributes policy" },
-    { "id": "editorconfig",          "kind": "exact",  "value": ".editorconfig",       "reason": "editor config (if present)" },
-    { "id": "envrc",                 "kind": "exact",  "value": ".envrc",              "reason": "direnv environment loader" }
+    { "id": "editorconfig",          "kind": "exact",  "value": ".editorconfig",       "reason": "editor config (if present)" }
   ],
   "allowed_root_dirs": [
     ".cargo", ".claude", ".codex", ".config", ".github", ".omc",
-    "audit", "benchmarks", "billing", "bin", "cell", "cloud", "comms",
+    "audit", "benchmarks", "billing", "cell", "cloud", "comms",
     "compliance", "compute", "console", "contracts", "data", "docs",
     "evidence", "flags", "gateway", "governance", "iac", "iam", "infra",
     "intelligence", "k8s", "libs", "marketplace", "messaging", "network",

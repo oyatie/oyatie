@@ -58,7 +58,7 @@ Every agent MUST treat [ADR-0346](decisions/ADR-0346-oya-verify-must-run-full-ci
 
 | ADR | Operating-contract binding | Enforced-by lanes agents MUST preserve |
 |---|---|---|
-| ADR-0346 (amended by ADR-0513/platform-readiness) | `./bin/oya verify --ci-required` is legacy/local mirror evidence only until P0.0 cloud-ci required contexts replace it. It must not be extended or treated as protected-branch merge/exit authority; preserve its old semantics only as migration input while porting them into cloud-ci/Rust gate contexts. | Transitional mirror lanes may remain until cutover, but destination enforcement is `cloud-ci-required` / `oya-ci-required` plus Rust gate packets; do not add new `oya` CLI CI authority. |
+| ADR-0346 (amended by ADR-0513/platform-readiness) | ADR-0346's retired `./bin/oya verify --ci-required` path is historical/provenance-only; do not invoke or recreate the tracked `bin/oya` shim. The old full-mirror semantics survive only as migration input while porting them into cloud-ci/Rust gate contexts, and must never be extended or treated as protected-branch merge/exit authority. | Transitional mirror lanes may remain until cutover, but destination enforcement is `cloud-ci-required` / `oya-ci-required` plus Rust gate packets; do not add new `oya` CLI CI authority. |
 | ADR-0347 | Every `oya-governance-*` CI lane prefix RENAMES to `oya-governance-*` in one Wave 15-ZB bulk-rename pull request; the rename is name-only and lane invariants remain preserved. | `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, `oya-governance-rename-inventory-presence`. |
 | ADR-0348 | Cellular topology MUST support autosharding, auto-rebalance, and dynamic sharding through manifest-declared `sharding_automation` blocks, honoring residency, reversibility, and audit-chain emission. | `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, `oya-governance-tenant-migration-reversibility`. |
 | ADR-0349 (amended by ADR-0359/ADR-0361/ADR-0513) | Jenkins (LTS) is the current bridge substrate, not the destination CI authority. ADR-0513 makes Prow-shaped cloud-ci/oya-ci the canonical CI orchestrator/merge-admission service; ArgoCD/Argo Rollouts remain CD bridge/reference adapters where separately authorized. GitHub Actions is retired. | Preserve existing Jenkins bridge lanes until P0.0/P1 cutover, but do not add new Jenkins/Groovy or `oya` CLI CI authority. Destination lanes are cloud-ci/oya-ci Rust gate contexts plus ArgoCD tenant-isolation/deploy audit lanes. |
@@ -140,7 +140,7 @@ Before any change, every agent and every human MUST complete these items.
 2. **Read the canonical authority for the change class.** Use the §"Canonical doc map" table. *Why:* one-paragraph orientation prevents the most common failure (acting on stale repo memory). *Test:* PR `## Traceability` cites the doc(s) read.
 3. **Confirm Data Use Boundary.** Every new field on a kernel struct MUST carry a `data_class` annotation. *Why:* cross-pillar flows that bypass `data_class` violate the cohesion principle. *Test:* `oya-governance-data-class` lane.
 4. **Confirm autonomy ceiling.** Capability bindings MUST declare T1 / T2 / T3 / T4 in the capability record. Tier uplift MUST land an accompanying Cedar policy + runtime gate. *Why:* config-flag tier uplift bypasses the audit chain. *Test:* `oya-governance-autonomy-ceiling` lane.
-5. **Confirm license posture.** New dependencies MUST clear `cargo deny check`. AGPL / GPL / SSPL / BUSL / RSAL are not permitted in product code. *Why:* license drift is hard to undo. *Test:* `cargo deny check` exit 0.
+5. **Confirm license posture.** New dependencies MUST clear the Buck2/cloud-ci supply-chain lane. AGPL / GPL / SSPL / BUSL / RSAL are not permitted in product code. *Why:* license drift is hard to undo. *Test:* supply-chain gate target exits 0.
 6. **Search MISTAKES-LEDGER for the failure-mode class.** *Why:* re-introducing a fixed defect is a regression. *Test:* PR `## Traceability` cites the relevant `MFL-NNNN` row OR a "no prior row" search note.
 7. **Identify the per-change-class reviewer agent.** *Why:* the reviewer signs `## Code Review` at merge time; no signature, no merge. *Test:* §"Per-change-class reviewer agents" table below; merge-gate hook validates.
 8. **For cross-axis contract changes:** apply the cross-axis review label per [`checklists/cross-axis-contract-change.md`](checklists/cross-axis-contract-change.md) <!-- forward-reference: wave-1 -->; notify consumer-axis teams. *Why:* silent cross-axis changes break consumers. *Test:* PR label + `oya-governance-cross-axis-notify` lane.
@@ -176,7 +176,7 @@ While the change is in flight, every agent and every human MUST observe these ru
 - **No new struct fields in kernel crates without `data_class`.** Pre-commit blocks; respect it.
 - **No quarantining flaky tests without a 14-day fix SLA.** Quarantine assigns the test to the `flaky/` lane; the SLA is tracked.
 - **No editing legacy retired paths.** If a path was retired in a consolidation event, do not recreate it.
-- **Bacon for dev-loop, nextest for evidence.** Prefer `bacon check / clippy / nextest` for fast feedback. Final evidence runs `cargo nextest run --workspace --all-features --no-fail-fast` per [`standards/testing.md`](standards/testing.md) <!-- forward-reference: wave-1 -->.
+- **Buck2 for evidence.** Local editor loops are advisory; final evidence comes from targeted `buck2 test` / `buck2 build` plus cloud-ci gate packets per [`standards/testing.md`](standards/testing.md) <!-- forward-reference: wave-1 -->.
 ## Sanctioned primitives
 
 Agent coordination uses plain `git`. ADR-0363 retires the prior wrapper/ratchet
@@ -230,11 +230,11 @@ Before declaring any change complete, every agent and every human MUST re-walk t
 - [ ] **D6** New schemas (if any) carry `oyatie.data_class = "..."` per field. *Test:* `oya-governance-data-class` lane.
 - [ ] **D7** Per-PR fitness lanes pass: `oya-governance-{license, data-class, cohesion, glossary, adr-citation, brand-residue, bypass, flat-crates, runbook-index-resolves, doc-catalog}`. *Test:* CI status check.
 - [ ] **D8** Per-change-class reviewer agent ran; verdict captured in `## Code Review`. *Test:* merge-gate hook (`scripts/hooks/guard-pr-merge-review.mjs`).
-- [ ] **D9** `cargo nextest run --workspace --all-features --no-fail-fast` passes. *Test:* command output pasted in `## Verification`.
-- [ ] **D10** `cargo clippy --workspace --all-features --all-targets -- -D warnings` passes. *Test:* command output.
-- [ ] **D11** `cargo deny check` passes. *Test:* command output.
+- [ ] **D9** Targeted `buck2 test <target(s)>` passes. *Test:* command output pasted in `## Verification`.
+- [ ] **D10** Targeted `buck2 build <target(s)>` and relevant cloud-ci lint/static-analysis gate packets pass. *Test:* command output.
+- [ ] **D11** Buck2/cloud-ci supply-chain lane passes. *Test:* command output or required context evidence.
 - [ ] **D12** Required cloud-ci/oya-ci context and Rust gate packets pass for the change class. *Test:* required
-  status/evidence bundle. Legacy `oya verify` output is optional local mirror evidence until P0.0 cutover, never a
+  status/evidence bundle. Legacy `oya` CLI output is historical/local advisory only and never a
   completion/merge authority.
 - [ ] **D13** Performance changes carry benchmark + ≥2 stress-scenario evidence. *Test:* `oya-governance-perf-evidence` lane.
 - [ ] **D14** Schema migrations ship up + down + dry-run + per-tenant + per-cell rollback. *Test:* `oya-governance-schema-migration` lane.
@@ -297,7 +297,7 @@ Self-test: `npm --prefix /Users/home/.codex test` before relying on hook / harne
 
 The Codex CLI loads `AGENTS.md` at workspace creation, per the cross-tool [AGENTS.md convention](https://agents.md). Repo-root `AGENTS.md` is a Redirect-class file pointing to this contract.
 
-Build / test commands: `cargo build`, `cargo test`, `cargo nextest run --workspace --all-features --no-fail-fast`, `cargo clippy --all-features --all-targets -- -D warnings`, `pnpm build`, `pnpm test` (Node 20). Lint: `cargo clippy`, `pnpm lint`.
+Build / test commands: targeted `buck2 build <target(s)>` and `buck2 test <target(s)>`; UI-only surfaces may also use `pnpm build`, `pnpm test`, and `pnpm lint` (Node 20) as local evidence when relevant.
 
 Active integration: `.codex/skills/` holds project skills. Coordination follows §Sanctioned primitives; workspace setup is owned by the runtime and claim lifecycle, not by repo-local bootstrap scripts.
 

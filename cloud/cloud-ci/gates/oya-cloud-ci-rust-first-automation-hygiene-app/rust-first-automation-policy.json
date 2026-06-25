@@ -1,12 +1,6 @@
 {
   "exceptions": [
     {
-      "path": "bin/oya",
-      "reason": "Retired local CLI compatibility shim retained only until root-surface cleanup removes product/operator CLI entrypoints.",
-      "replacement": "Retire in favor of Rust Buck2 cloud-ci gates and Kubernetes/cloud-native API or controller workflows.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
       "path": "cloud/cloud-k8s/tests/test_runtime_substrate_validation.py",
       "reason": "Cloud validation helper retained as explicit debt while the cloud-ci gate family absorbs the check in Rust.",
       "replacement": "Replace with Rust Buck2 cloud-ci gate or Kubernetes-native controller/admission validation.",

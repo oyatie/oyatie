@@ -54,11 +54,11 @@ default-DENY posture and the legitimate root surface expressed as DATA.
 `allowed_root_files` (a rule table of `exact`/`suffix`/`prefix` basename matchers) and
 `allowed_root_dirs` (the permitted top-level capability/meta homes). The engine reads both as
 DATA, so it runs on ANY repo; oyatie's allowlist is just the pack. Oyatie's `allowed_root_files`
-admits exactly the legitimate root surface (`Cargo.toml`, `Cargo.lock`, `BUCK`, `.buckconfig*`,
+admits exactly the legitimate root surface (`Cargo.toml`, `Cargo.lock`, `.buckconfig*`,
 `.buckroot`, `rust-toolchain.toml`, `rustfmt.toml`, `reindeer.toml`, `deny.toml`, `README*`,
 `LICENSE*`, `CLAUDE.md`, `AGENTS.md`, `HANDOFF.md`, `ADR-INVENTORY.tsv`, `goal.json`,
 `oya-ci.toml`, `Makefile`, `Dockerfile.distroless`, `.gitignore`, `.gitattributes`,
-`.editorconfig`, `.envrc`); `allowed_root_dirs` enumerates the ~48 real top-level directories.
+`.editorconfig`); `allowed_root_dirs` enumerates the ~47 real top-level directories.
 The removed scratch shapes are NOT allowlisted.
 
 **Pure evaluator (hermetic).** The gate is a pure function over `(policy DATA, observed
