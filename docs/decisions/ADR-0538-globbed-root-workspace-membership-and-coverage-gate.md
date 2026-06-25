@@ -138,3 +138,5 @@ not introduce new Workflow events or Ontology writes.
 - `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin-unittest`
 - `cargo metadata --format-version 1 --no-deps` before/after member-set equivalence proof recorded
   in the PR body.
+- Follow-up fail-closed producer-evidence guard:
+  `evidence/multispectrum/cloud-ci-workspace-glob-no-rows-20260625-1782426431.json`.
