@@ -158,7 +158,11 @@ fn face_freshness_reports_stale_generated_face() {
             .detail
             .contains("never mix content and regenerated faces in one commit")
     );
-    assert!(findings[0].detail.contains("commit the faces-only diff"));
+    assert!(
+        findings[0]
+            .detail
+            .contains("commit only PR-owned generated face diffs")
+    );
 }
 
 #[test]
@@ -176,11 +180,31 @@ fn decommit_class_face_is_green_without_a_committed_copy() {
 fn decommit_class_face_does_not_require_byte_parity_when_a_stale_copy_lingers() {
     // A lingering on-disk copy (e.g. a previous materialization) must not trigger byte parity
     // for a de-commit-class face: the source of truth is the regeneration, not the disk bytes.
-    let committed = vec![("ttl-policy.generated.json".to_owned(), "lingering\n".to_owned())];
+    let committed = vec![(
+        "ttl-policy.generated.json".to_owned(),
+        "lingering\n".to_owned(),
+    )];
     let regenerated = vec![("ttl-policy.generated.json".to_owned(), "fresh\n".to_owned())];
     let decommitted = BTreeSet::from(["ttl-policy.generated.json".to_owned()]);
 
     assert!(evaluate_face_freshness(&committed, &regenerated, &decommitted).is_empty());
+}
+
+#[test]
+fn controller_owned_main_materialized_face_does_not_require_pr_byte_parity() {
+    // The gate-baseline face must remain committed on the integration branch for merge-base
+    // ratchet consumers, but contributor PRs must not carry generated baseline byte churn.
+    let committed = vec![(
+        "gate-baseline.generated.json".to_owned(),
+        "old\n".to_owned(),
+    )];
+    let regenerated = vec![(
+        "gate-baseline.generated.json".to_owned(),
+        "fresh\n".to_owned(),
+    )];
+    let non_pr_owned = BTreeSet::from(["gate-baseline.generated.json".to_owned()]);
+
+    assert!(evaluate_face_freshness(&committed, &regenerated, &non_pr_owned).is_empty());
 }
 
 #[test]
@@ -198,14 +222,24 @@ fn decommit_class_face_is_stale_when_regeneration_stops_producing_it() {
         BTreeSet::from([FindingCode::GeneratedFaceStale])
     );
     assert_eq!(findings[0].key, "ttl-policy.generated.json");
-    assert!(findings[0].detail.contains("was not produced by regeneration"));
+    assert!(
+        findings[0]
+            .detail
+            .contains("was not produced by regeneration")
+    );
 }
 
 #[test]
 fn committed_class_face_keeps_byte_parity_when_other_faces_are_decommitted() {
     // Scope guard: de-committing one face must NOT weaken byte parity for a still-committed face.
-    let committed = vec![("move-manifest.generated.json".to_owned(), "old\n".to_owned())];
-    let regenerated = vec![("move-manifest.generated.json".to_owned(), "new\n".to_owned())];
+    let committed = vec![(
+        "move-manifest.generated.json".to_owned(),
+        "old\n".to_owned(),
+    )];
+    let regenerated = vec![(
+        "move-manifest.generated.json".to_owned(),
+        "new\n".to_owned(),
+    )];
     let decommitted = BTreeSet::from(["ttl-policy.generated.json".to_owned()]);
 
     let findings = evaluate_face_freshness(&committed, &regenerated, &decommitted);
@@ -220,11 +254,10 @@ fn committed_class_face_keeps_byte_parity_when_other_faces_are_decommitted() {
 
 #[test]
 fn decommit_exemption_matches_canonical_path_not_basename() {
-    // ADR-0595 security guard: the de-commit exemption must key on the CANONICAL FULL PATH, never
-    // the basename. A deceptive manifest row at a NON-canonical path that merely shares a basename
-    // with a still-committed face (here `scm-facts.generated.json`, which this PR keeps committed
-    // and byte-checked) must NOT retire that committed face's byte-parity. A legitimate canonical
-    // row is the positive control.
+    // Security guard: the non-PR-owned exemption must key on the CANONICAL FULL PATH, never the
+    // basename. A deceptive manifest row at a NON-canonical path that merely shares a basename with
+    // a still-PR-owned face must NOT retire that committed face's byte-parity. Legitimate canonical
+    // rows are the positive controls.
     let root = fixture_root();
     std::fs::create_dir_all(root.join("registry")).expect("create registry dir");
     let manifest = r#"{
@@ -236,6 +269,10 @@ fn decommit_exemption_matches_canonical_path_not_basename() {
     {
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/ttl-policy.generated.json",
       "materialization_mode": "not-tracked-in-git"
+    },
+    {
+      "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
+      "materialization_mode": "main-branch-materialized"
     }
   ]
 }"#;
@@ -258,7 +295,11 @@ fn decommit_exemption_matches_canonical_path_not_basename() {
         names.contains("ttl-policy.generated.json"),
         "a canonical-path de-commit row must be exempted by its basename"
     );
-    assert_eq!(names.len(), 1, "only the canonical-path row may be exempted");
+    assert!(
+        names.contains("gate-baseline.generated.json"),
+        "a canonical-path controller-owned baseline row must be exempted by its basename"
+    );
+    assert_eq!(names.len(), 2, "only canonical-path rows may be exempted");
 }
 
 #[test]
@@ -305,7 +346,8 @@ fn remediation_includes_exact_sanctioned_commands() {
     assert!(remediation.contains("commit content changes first"));
     assert!(remediation.contains("faces regenerate from the TRACKED TREE STATE"));
     assert!(remediation.contains("never mix content and regenerated faces in one commit"));
-    assert!(remediation.contains("commit the faces-only diff"));
+    assert!(remediation.contains("commit only PR-owned generated face diffs"));
+    assert!(remediation.contains("not contributor PRs"));
 }
 
 #[test]

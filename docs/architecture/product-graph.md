@@ -236,7 +236,7 @@ Crate naming: `oya-<microservice>(-<bc-tokens>)?-<layer>` (ADR-0056).
 
 | Layer | Crate suffix | Tech stack | Owns | Forbidden in this layer |
 |---|---|---|---|---|
-| `kernel` | `-kernel` | Pure Rust 1.82+ (`std`); `serde`, `thiserror`, `chrono`, `uuid`, `rust_decimal` only | Value objects + sealed port-trait declarations | Async; I/O; framework deps |
+| `kernel` | `-kernel` | Pure Rust 1.96+ (`std`); `serde`, `thiserror`, `chrono`, `uuid`, `rust_decimal` only | Value objects + sealed port-trait declarations | Async; I/O; framework deps |
 | `domain` | `-domain` | Pure Rust; same constraints as kernel + business-logic helpers | Business logic (aggregates, invariants, value objects); calls through kernel ports | I/O; framework deps |
 | `application` | `-application` | Rust + `async-trait`, `tokio` (consumer of port traits only) | Use-case orchestrators; port-trait-bounded transactions | Direct DB / Kafka / Cedar / HTTP |
 | `adapter` | `-adapter` | Rust + `sqlx`/`tokio-postgres`, `kafka` (or `rdkafka`/`apache_kafka`), `cedar-policy`, `aws-sdk-s3`, etc. | Trait impls of kernel ports + DTO mappers | Cross-adapter imports (impl A → impl B) |
@@ -257,7 +257,7 @@ Crate naming: `oya-<microservice>(-<bc-tokens>)?-<layer>` (ADR-0056).
 
 | Concern | Choice | Source |
 |---|---|---|
-| **Language** | Rust 1.82+ (workspace.rust-version) | Cargo.toml |
+| **Language** | Rust 1.96+ (workspace.rust-version) | Cargo.toml |
 | **Async runtime** | tokio 1.42+ multi-threaded; `JoinSet`/`select!` structured concurrency | feedback_clean_architecture_requirements §13 |
 | **Database** | Postgres 16 + Citus (sharded by tenant_id) + RLS | Bominal ADR-0117 |
 | **Analytics DB** | ClickHouse + replicas | Bominal stack |

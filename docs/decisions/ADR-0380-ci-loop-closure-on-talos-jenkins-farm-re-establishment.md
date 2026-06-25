@@ -22,7 +22,7 @@ deliverables:
     exit_criteria: "Jenkins on Talos has generic-webhook-trigger + build-token-root + http_request + git installed and visible in /pluginManager/api; helm upgrade completes; Jenkins restart leaves the existing CasC oya-ci-farm cloud config valid (no boot failure)."
     verified_by: "kubectl -n oya-ci-jenkins exec oya-jenkins-0 -c jenkins -- sh -c 'curl -sf -u admin:$PASS http://localhost:8080/pluginManager/api/json?depth=1 | grep -c generic-webhook-trigger'"
   - id: ADR-0380-D2
-    description: "Redesign the Jenkins agent pod templates for Talos: drop the SeaweedFS sccache substrate (retired with colima) and the hostPath /Users/jasonlee/Developer/source mount (a Talos VM cannot see the macOS host filesystem). Replace with a self-contained git-clone-on-demand agent: a rust:1-bookworm container that clones the repo (via the gateway-build-git Secret's gh token, ESO-projected) and runs `oya gate run-all` against the cloned tree. Caching is honest-deferred (no sccache) until Oyatie's own SeaweedFS-on-Talos object-store substrate (per ADR-0349; we ship + run an S3-API-compatible store, NOT a dependency on AWS S3) is restored on the Talos cluster."
+    description: "Redesign the Jenkins agent pod templates for Talos: drop the SeaweedFS sccache substrate (retired with colima) and the hostPath /Users/jasonlee/Developer/source mount (a Talos VM cannot see the macOS host filesystem). Replace with a self-contained git-clone-on-demand agent: a rust:1.96.0-bookworm container that clones the repo (via the gateway-build-git Secret's gh token, ESO-projected) and runs `oya gate run-all` against the cloned tree. Caching is honest-deferred (no sccache) until Oyatie's own SeaweedFS-on-Talos object-store substrate (per ADR-0349; we ship + run an S3-API-compatible store, NOT a dependency on AWS S3) is restored on the Talos cluster."
     exit_criteria: "infra/ci/jenkins/values-local.yaml's agent pod templates do NOT reference seaweedfs-s3.oya-ci-jenkins.svc nor hostPath /Users/jasonlee; the rust-ci template clones from git via a Secret-bound token; cargo runs in /workspace (cloned, not bind-mounted) and succeeds."
     verified_by: "a manually-launched rust-ci agent pod clones the repo + runs `oya gate validate fmt` (smoke) end-to-end without sccache or hostPath."
   - id: ADR-0380-D3
@@ -86,7 +86,7 @@ API + `github-ci-token`. No gitea plugin involvement.
   when an in-cluster S3 lands.
 - Remove the `hostPath: /Users/jasonlee/Developer/source` mount (structurally broken on
   Talos — the VM cannot see the macOS host filesystem).
-- The new template is `rust:1-bookworm` + `git` installed, with the
+- The new template is `rust:1.96.0-bookworm` + `git` installed, with the
   `oya-ci/gateway-build-git` Secret's gh token projected as `GH_TOKEN` for
   pipeline-step clone. PSA-restricted securityContext unchanged.
 - D3's Jenkinsfile FIRST stage clones the PR ref into the workspace
