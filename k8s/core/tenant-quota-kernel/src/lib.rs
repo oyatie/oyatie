@@ -206,6 +206,15 @@ impl ProvisionRequest {
         if requested_clusters == 0 {
             return Err(QuotaModelError::ZeroCeiling("requested_clusters"));
         }
+        if requested_nodes_per_cluster == 0 {
+            return Err(QuotaModelError::ZeroCeiling("requested_nodes_per_cluster"));
+        }
+        if requested_vcpu_per_cluster == 0 {
+            return Err(QuotaModelError::ZeroCeiling("requested_vcpu_per_cluster"));
+        }
+        if requested_ram_gib_per_cluster == 0 {
+            return Err(QuotaModelError::ZeroCeiling("requested_ram_gib_per_cluster"));
+        }
         Ok(Self {
             tenant_id,
             requested_clusters,
@@ -964,6 +973,26 @@ mod tests {
     #[test]
     fn zero_ceiling_rejected() {
         assert!(TenantQuota::new("ten_acme", 0, 10, 32, 128).is_err());
+    }
+
+    #[test]
+    fn zero_requested_resources_rejected() {
+        assert_eq!(
+            ProvisionRequest::new("ten_acme", 0, 1, 1, 1),
+            Err(QuotaModelError::ZeroCeiling("requested_clusters"))
+        );
+        assert_eq!(
+            ProvisionRequest::new("ten_acme", 1, 0, 1, 1),
+            Err(QuotaModelError::ZeroCeiling("requested_nodes_per_cluster"))
+        );
+        assert_eq!(
+            ProvisionRequest::new("ten_acme", 1, 1, 0, 1),
+            Err(QuotaModelError::ZeroCeiling("requested_vcpu_per_cluster"))
+        );
+        assert_eq!(
+            ProvisionRequest::new("ten_acme", 1, 1, 1, 0),
+            Err(QuotaModelError::ZeroCeiling("requested_ram_gib_per_cluster"))
+        );
     }
 
     #[test]

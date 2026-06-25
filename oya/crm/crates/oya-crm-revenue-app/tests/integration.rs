@@ -2,7 +2,9 @@
 
 use oya_crm_revenue_app::adapter::AdapterRegistry;
 use oya_crm_revenue_app::config::ServiceConfig;
-use oya_crm_revenue_app::domain::{Capability, IdempotencyKey, TenantId};
+use oya_crm_revenue_app::domain::{
+    BoundedContext, Capability, CapabilityDescriptor, IdempotencyKey, ServiceInvariant, TenantId,
+};
 use oya_crm_revenue_app::{public_api_surface, scaffold};
 
 #[test]
@@ -24,6 +26,29 @@ fn scaffold_declares_domain_capabilities() {
     let scaffold = scaffold();
     assert!(scaffold.capabilities.contains(&Capability::AccountMaster));
     assert!(scaffold.capabilities.contains(&Capability::Opportunity));
+}
+
+#[test]
+fn capability_descriptors_preserve_resource_model_boundaries() {
+    let descriptors = CapabilityDescriptor::descriptors();
+    let expected = [
+        (Capability::AccountMaster, BoundedContext::AccountMaster),
+        (Capability::Opportunity, BoundedContext::Opportunity),
+        (Capability::Quote, BoundedContext::Quote),
+        (Capability::Campaign, BoundedContext::Campaign),
+        (Capability::ServiceCase, BoundedContext::ServiceCase),
+    ];
+
+    assert_eq!(descriptors.len(), expected.len());
+    assert_eq!(
+        scaffold().capabilities,
+        expected.map(|(capability, _)| capability)
+    );
+    for (descriptor, (capability, bounded_context)) in descriptors.iter().zip(expected) {
+        assert_eq!(descriptor.capability, capability);
+        assert_eq!(descriptor.bounded_context, bounded_context);
+        assert_eq!(descriptor.invariant, ServiceInvariant::TenantScoped);
+    }
 }
 
 #[test]
