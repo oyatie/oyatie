@@ -6234,6 +6234,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-ci-dependency-automation-app"
+version = "0.1.0"
+dependencies = [
+ "toml 0.8.23",
+]
+
+[[package]]
 name = "oya-cloud-ci-dto-authz-trust-app"
 version = "0.1.0"
 dependencies = [

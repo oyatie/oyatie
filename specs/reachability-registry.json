@@ -2,6 +2,14 @@
   "_comment": "Reviewed reachability registrations (ADR-0555). Each entry registers a tree (dir prefix ending '/') or an exact path as reached, and MUST carry an anchor naming WHY. Registration is a review-visible design act — the ADR-0551 trust class (same as ratchet-policy.json) — never a silent exemption. Hand-edited (or via the transitional --fix-reachability bridge); the producer fails LOUD on a malformed entry.",
   "registered": [
     {
+      "anchor": "ADR-0555 + ADR-0535: root OWNERS is the narrow ownership marker for root DATA files; it is not a blanket subtree owner.",
+      "prefix": "OWNERS"
+    },
+    {
+      "anchor": "ADR-0535 §5: root oya-deps.toml is the closed-schema DATA contract for the owned Rust dependency bump-bot and dependency-automation gate.",
+      "prefix": "oya-deps.toml"
+    },
+    {
       "anchor": "ADR-0555 ownership seed: the cloud-ci gate tree's OWNERS marker (cloud-ci-platform)",
       "prefix": "cloud/cloud-ci/gates/OWNERS"
     },

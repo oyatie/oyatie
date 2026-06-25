@@ -276,7 +276,7 @@
       "score": 18,
       "tier": "watching",
       "owner": "ops-security",
-      "mitigation": "Trivy 4-layer per ADR-0039; weekly cargo-audit; auto-PR via Renovate-or-equivalent"
+      "mitigation": "Trivy 4-layer per ADR-0039; weekly cargo-audit; auto-PR via in-house oya-deps bump-bot"
     }
   ],
   "anti_patterns": [

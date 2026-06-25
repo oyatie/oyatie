@@ -692,12 +692,9 @@ fn producer_face_keys(
         // ADR-0533 items 1/2: route the PROFILE-RESOLVED `[naming]` config (oyatie default ==
         // today's consts, byte-identical; neutral == empty prefix, de-branded).
         GateFace::BnfLayerSuffix => group_findings(
-            oya_cloud_ci_bnf_layer_suffix_app::evaluate_keyed_with(
-                inputs.bnf_layer_suffix,
-                naming,
-            )
-            .into_iter()
-            .map(|f| (f.code, f.key)),
+            oya_cloud_ci_bnf_layer_suffix_app::evaluate_keyed_with(inputs.bnf_layer_suffix, naming)
+                .into_iter()
+                .map(|f| (f.code, f.key)),
         ),
         GateFace::ManifestHygiene => group_findings(
             oya_cloud_ci_manifest_hygiene_app::evaluate_keyed(inputs.manifest_hygiene)
@@ -832,7 +829,7 @@ pub fn build_gate_baseline(
             None => {
                 return Err(ProducerError::Policy(format!(
                     "disposition missing gate {gate}"
-                )))
+                )));
             }
         };
         let empty = BTreeMap::new();
@@ -1052,9 +1049,7 @@ pub fn is_valid_owner_principal(s: &str) -> bool {
         return false;
     }
     let alnum = |b: u8| b.is_ascii_lowercase() || b.is_ascii_digit();
-    alnum(bytes[0])
-        && alnum(bytes[bytes.len() - 1])
-        && bytes.iter().all(|&b| alnum(b) || b == b'-')
+    alnum(bytes[0]) && alnum(bytes[bytes.len() - 1]) && bytes.iter().all(|&b| alnum(b) || b == b'-')
 }
 
 /// Parse OWNERS content against the minimal codified schema (ADR-0555 hardening,
@@ -1083,7 +1078,7 @@ fn parse_owners_content(text: &str) -> Result<Vec<String>, String> {
         return Err(
             "zero owner principals (an empty or comment-only OWNERS file is NOT \
              ownership — name at least one owning team, one principal per line)"
-            .to_owned(),
+                .to_owned(),
         );
     }
     Ok(principals)
@@ -1184,6 +1179,13 @@ pub fn resolve_owners(
         if let Some(owner_dir) = nearest_ancestor(path, &all_dirs)
             && valid_dirs.contains(&owner_dir)
         {
+            // A root-level OWNERS file is the narrow registration for root DATA files.
+            // Letting it own every otherwise-unowned subtree would bulk-neuter accounting
+            // and immediately trip the breadth bound on large repos. Subtrees keep their
+            // own nearest-ancestor OWNERS registrations.
+            if owner_dir.is_empty() && path.contains('/') {
+                continue;
+            }
             covered.entry(owner_dir).or_default().push(path.clone());
         }
     }
@@ -1596,7 +1598,10 @@ mod tests {
         // stale_over_budget_unreachable stays advisory BY DESIGN (time-driven decay —
         // its convergence surface is the reaper reconciler, not admission).
         let sr = &baseline["gates"]["cloud-ci-staleness-reaper"];
-        assert_eq!(sr["stale_over_budget_unreachable"]["mode"], "advisory-until-infra");
+        assert_eq!(
+            sr["stale_over_budget_unreachable"]["mode"],
+            "advisory-until-infra"
+        );
         assert_eq!(sr["untyped_staleness"]["mode"], "baseline-block-on-new");
         // registry_drift is frozen_empty: never accumulates a key even if one were present.
         assert_eq!(ta["registry_drift"]["frozen_empty"], true);
@@ -1833,6 +1838,46 @@ mod tests {
     }
 
     #[test]
+    fn root_owners_covers_only_root_files_not_every_subtree() {
+        let root = unique_temp_repo();
+        std::fs::write(root.join("OWNERS"), "cloud-ci-platform\n").expect("write root owners");
+        std::fs::create_dir_all(root.join("docs")).expect("create docs dir");
+        std::fs::write(root.join("docs/doc.md"), "doc\n").expect("write nested doc");
+        std::fs::create_dir_all(root.join("cloud/gate")).expect("create gate dir");
+        std::fs::write(root.join("cloud/gate/app.rs"), "fn main() {}\n")
+            .expect("write nested code");
+
+        let cfg = oya_ci_config_kernel::OyaCiConfig::from_toml_str(
+            "[owners]\nmax_paths_per_owners_file = 3\n",
+        )
+        .expect("bound parses");
+        let resolution = resolve_owners(
+            &root,
+            &tracked(&[
+                "OWNERS",
+                "oya-deps.toml",
+                "docs/doc.md",
+                "cloud/gate/app.rs",
+            ]),
+            &cfg,
+        );
+
+        assert_eq!(
+            resolution.by_path,
+            BTreeMap::from([
+                ("OWNERS".to_owned(), "OWNERS:".to_owned()),
+                ("oya-deps.toml".to_owned(), "OWNERS:".to_owned())
+            ]),
+            "root OWNERS should be a narrow root-DATA owner, not a blanket subtree owner"
+        );
+        assert!(
+            resolution.integrity.over_broad.is_empty(),
+            "nested paths skipped by root OWNERS must not count against the breadth bound"
+        );
+        std::fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    #[test]
     fn fix_owners_refuses_schema_invalid_and_over_broad_registrations() {
         let root = unique_temp_repo();
         std::fs::create_dir_all(root.join("docs/decisions")).expect("create dir");
@@ -1954,7 +1999,10 @@ mod tests {
         std::fs::write(decisions.join("README.md"), "not an ADR\n").expect("write readme");
 
         let next = allocate_next_adr_id(&decisions).expect("allocate");
-        assert_eq!(next, "ADR-0010", "max(filename 2,5; front-matter 9) + 1 = 10");
+        assert_eq!(
+            next, "ADR-0010",
+            "max(filename 2,5; front-matter 9) + 1 = 10"
+        );
 
         // An empty / missing decisions dir is the zero-config default (ADR-0001).
         let empty = unique_temp_repo();

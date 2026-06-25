@@ -1,5 +1,5 @@
 ---
-purpose: "Cross-cutting dependency policy. Defines LTS pinning (per the verified roster), license posture (no AGPL / GPL / SSPL / BUSL / RSAL in product code), `cargo-vet` + `cargo-deny` enforcement, the Renovate configuration baseline."
+purpose: "Cross-cutting dependency policy. Defines LTS pinning (per the verified roster), license posture (no AGPL / GPL / SSPL / BUSL / RSAL in product code), `cargo-vet` + `cargo-deny` enforcement, and the owned `oya-deps.toml` dependency-automation baseline."
 doc_status: published
 ---
 
@@ -13,7 +13,7 @@ date: 2026-05-12
 purpose: |
   Cross-cutting dependency policy. Defines LTS pinning (per the verified roster),
   license posture (no AGPL / GPL / SSPL / BUSL / RSAL in product code),
-  `cargo-vet` + `cargo-deny` enforcement, the Renovate configuration baseline,
+  `cargo-vet` + `cargo-deny` enforcement, the owned `oya-deps.toml` dependency-automation baseline,
   and the provider-SDK strategy: Anthropic / OpenAI / Gemini SDKs sit behind a
   `ProviderAdapter` trait so the workspace remains provider-agnostic per
   MASTERPLAN Directive 4.
@@ -117,36 +117,31 @@ Pinning rules:
 - `cargo-vet` audits live under `supply-chain/audits.toml`; share-points
   imported from AWS and Mozilla published audits.
 
-## 4. Renovate baseline
+## 4. Owned dependency-automation baseline
 
-Per [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
-Domain 4: **Renovate** is the canonical dependency-update bot
-(supports 30+ ecosystems vs Dependabot's 14). Dependabot remains
-enabled for security-advisory fan-in only.
+ADR-0535 supersedes the earlier external-bot baseline: Oyatie uses a
+closed-schema root [`oya-deps.toml`](../../oya-deps.toml) as DATA for an
+in-house Rust bump-bot. The bot opens provider-neutral scm-facts ChangeSets,
+runs license/advisory/version gates before proposing updates, and reaches merge
+only through the single `oya-ci-required` context. GitHub Actions is a
+transitional runner adapter; GitHub PRs are an adapter surface, not the
+canonical automation substrate.
 
-Baseline `renovate.json`:
+Baseline invariants:
 
-```json
-{
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base", ":semanticCommits"],
-  "schedule": ["before 06:00 on Monday"],
-  "labels": ["deps", "renovate"],
-  "rangeStrategy": "bump",
-  "packageRules": [
-    { "matchUpdateTypes": ["minor", "patch"], "matchCurrentVersion": "!/^0/",
-      "automerge": true, "platformAutomerge": true },
-    { "matchUpdateTypes": ["major"], "automerge": false },
-    { "matchPackagePrefixes": ["openssl", "rustls", "ring"], "labels": ["deps","security"] }
-  ],
-  "vulnerabilityAlerts": { "labels": ["security"], "automerge": false }
-}
-```
+- `automation.engine = "owned-rust-bump-bot"`.
+- `automation.changeset_transport = "scm-facts"`.
+- `automation.external_bots = "disabled"`.
+- `rust.update_policy = "latest-stable"` and `rust.pin` stays synchronized with
+  `rust-toolchain.toml`, root workspace `rust-version`, container builder pins,
+  and Buck2 toolchain notes.
+- `supply_chain` points at `deny.toml`, the cargo-deny/advisory lane, cargo-vet,
+  and the OSS stewardship registry.
 
-Lane: `oya-governance-renovate-config` validates the file is
-present and grouped.
+Lane: `cloud-ci-dependency-automation` validates `oya-deps.toml`, rejects
+external bot configs, and catches Rust pin split-brain.
 
-Source: [Renovate docs](https://docs.renovatebot.com/).
+Source: ADR-0535 and root `oya-deps.toml`.
 
 ## 5. Provider-SDK strategy — `ProviderAdapter`
 
@@ -248,7 +243,7 @@ Bazel / Buck2 are **not adopted** at current scale (Cargo workspace +
   Domain 3 + 4.
 - [Mozilla — cargo-vet](https://mozilla.github.io/cargo-vet/);
   [cargo-deny](https://embarkstudios.github.io/cargo-deny/);
-  [Renovate](https://docs.renovatebot.com/).
+  [ADR-0535](../decisions/ADR-0535-cross-product-versioning-release-governance.md).
 - [OpenBao](https://openbao.org/), [Valkey](https://valkey.io/),
   [GitLab Handbook — ADR 007 OpenBao](https://handbook.gitlab.com/handbook/engineering/architecture/design-documents/secret_manager/decisions/007_openbao/).
 
@@ -257,7 +252,7 @@ Bazel / Buck2 are **not adopted** at current scale (Cargo workspace +
 Per [ADR-0345](../decisions/ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md),
 every direct upstream OSS dependency Oyatie consumes — every crate listed in
 §1 (LTS pinning), every license substitute named in §2.1, every supply-chain
-tool in §3, every Renovate-managed dependency in §4, every provider SDK in §5,
+tool in §3, every owned dependency-automation surface in §4, every provider SDK in §5,
 every secret-provider substrate in §6, every data-store substrate in §7, every
 CI/CD-platform dependency in §8 — MUST be classified into one of three
 **OSS stewardship classes** at the canonical registry path:

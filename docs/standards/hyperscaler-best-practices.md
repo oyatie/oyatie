@@ -201,7 +201,7 @@ GitHub OIDC + Fulcio + Cosign + Rekor delivers SLSA L2 in weeks. ([Wiz — SLSA 
 
 ### Dependency management
 
-Renovate vs Dependabot: Renovate supports 30+ package managers (vs Dependabot's 14), has an opinionated Dependency Dashboard issue, groups deps, schedule rules, automerge on minor/patch for stable deps. Renovate is the more capable tool; Dependabot is simpler and tightly GitHub-native (the security-advisory side is fed back to Renovate). ([Renovate docs](https://docs.renovatebot.com/); [DEV — Renovate vs Dependabot](https://dev.to/alex_aslam/renovate-vs-dependabot-which-bot-will-rule-your-monorepo-4431); [TurboStarter — Renovate vs Dependabot](https://www.turbostarter.dev/blog/renovate-vs-dependabot-whats-the-best-tool-to-automate-your-dependency-updates))
+Dependency updates: ADR-0535 supersedes earlier external-bot recommendations for Oyatie. The active path is the owned `oya-deps.toml` contract plus an in-house Rust bump-bot that emits scm-facts ChangeSets and runs supply-chain gates before merge.
 
 ### Secret management
 
@@ -270,7 +270,7 @@ Pattern that hyperscalers converge on: **fast checks (formatters, simple linters
 |---|---|---|---|
 | 1 | **Cosign keyless OIDC + Syft SBOM + SLSA L2 provenance attestation on every artifact emit** — new `oya-governance-supply-chain` lane; cluster-side Kyverno verification at admission | medium | critical |
 | 2 | **Chainguard/Wolfi or distroless-static base images for every container** — `chainguard/static` + statically-linked musl binary; ban Debian/Alpine bases in product crates | medium | high |
-| 3 | **Renovate over Dependabot** — `renovate.json` with grouped updates, schedule rules, automerge-on-green for patch/minor; Dependability used for security-advisory fan-in | low | high |
+| 3 | **Owned dependency bump-bot over external bots** — `oya-deps.toml` drives a Rust actuator with grouped updates, license/advisory/version gates, and scm-facts ChangeSets | low | high |
 | 4 | **OpenTelemetry collector deployed agent + gateway** — standardize OTLP emission, single ingestion fabric; route to chosen backend (Grafana stack or Honeycomb) via env-config so the choice is reversible | medium | high |
 | 5 | **`SecretProvider` trait + OpenBao primary** — keep AWS Secrets Manager / GSM / Azure KV as injection-only adapters; the source of truth lives in OpenBao | medium | high |
 
@@ -318,7 +318,7 @@ Pattern that hyperscalers converge on: **fast checks (formatters, simple linters
 | thiserror/anyhow boundary rule | M01-P15 | `oya-governance-error-boundary` (lib crates ban `anyhow`; bin crates ban exposed `thiserror` enums in internal-lib public APIs) | (extend `standards/error-handling.md`) |
 | Cosign + Syft + SLSA L2 | M01-P15 | `oya-governance-supply-chain` (signed + SBOM-attached + provenance-attested) | ADR-SUP-002 Sigstore + SLSA L2 |
 | Chainguard/distroless-static images | M01-P13 Distroless + image discipline | `oya-governance-container-base` (ban Debian/Alpine in product crates) | ADR-INF-001 Container base policy |
-| Renovate adoption | M01-P15 | `oya-governance-renovate-config` (renovate.json under repo root, grouped + scheduled) | ADR-INF-002 Dep-update bot |
+| Owned dependency automation | M01-P15 | `cloud-ci-dependency-automation` (`oya-deps.toml` closed-schema policy + Rust bump-bot contract) | ADR-0535 / P7 bump-bot |
 | OTel collector agent+gateway | M01-P17 Pipeline maturity glue | `oya-governance-otel-emit` (every service emits OTLP via a documented exporter) | ADR-OBS-001 OpenTelemetry as canonical fabric |
 | `SecretProvider` trait + OpenBao primary | M01-P15 | `oya-governance-secret-provider` (no direct AWS SM / GSM / Azure KV calls in product code; all via trait) | ADR-SEC-001 Secret abstraction |
 

@@ -67,7 +67,7 @@ We score each risk on three dimensions:
 | R-021 | Catalog projection drift (`goals.json` ↔ `batch-manifest.json`) | 2 | 4 | 2 | 16 | `axis-foundry` (foundry) | Autosync per Issue #1486; CI check | Drift-detection alerts |
 | R-022 | Worktree leakage / branch-name collision | 3 | 3 | 2 | 18 | `axis-foundry` (foundry) | Worktree-isolation guardrails; branch-name collision detection at spawn (#58) | Per-spawn collision-check log |
 | R-023 | Foreign data localization law shift (e.g., new India / Russia / KSA mandate) | 4 | 2 | 2 | 16 | `regional-packs` + `ops-compliance` | Per-pack residency declaration; cross-region replication opt-in only; legal watch | Per-region legal-watch reports |
-| R-024 | OSS dependency vulnerability (CVE on a runtime dep) | 3 | 3 | 2 | 18 | `ops-security` | Trivy 4-layer per ADR-0039; weekly cargo-audit; auto-PR via Renovate (or in-house equivalent) | RUSTSEC backlog; Trivy alerts |
+| R-024 | OSS dependency vulnerability (CVE on a runtime dep) | 3 | 3 | 2 | 18 | `ops-security` | Trivy 4-layer per ADR-0039; weekly cargo-audit; auto-ChangeSet via the in-house oya-deps bump-bot | RUSTSEC backlog; Trivy alerts |
 
 ### 2.5 Watching (score < 10)
 
