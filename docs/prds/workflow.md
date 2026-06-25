@@ -21,7 +21,7 @@ bominal_source:
   - ADR-0019   # runtime target metadata model (active-active compatibility)
 doc_status: published
 amended_by:
-  - ADR-0565-zero-graphql-in-the-owned-api-surface.md (its Bounded Contexts table and Clean Architecture layer map named `studio-graphql` as a BC crate family; its horizontal-scalability section named `Studio REST/GraphQL` as a stateless-compatible layer; GraphQL is dropped from the owned surface per ADR-0565 — the studio-rest and studio-sdk BCs are unchanged)
+  - ADR-0565 (amends the studio bounded-context and clean-architecture surface set; the studio-rest and studio-sdk BCs are unchanged)
 ---
 
 # PRD-workflow: Workflow Studio (Shared Substrate + Hero Product)
@@ -185,7 +185,7 @@ Per `feedback_quality_performance_scalability_bar.md` + `feedback_workflow_studi
 
 | BC name | Crate family (BNF v4.1) | Purpose | Key entities |
 |---|---|---|---|
-| `studio` | `oya-workflow-studio-{rest,~~graphql~~,sdk}` [~~graphql~~ dropped per ADR-0565] | Visual editor authoring surface; version history; template library | `WorkflowDefinition`, `WorkflowVersion` |
+| `studio` | `oya-workflow-studio-{rest,sdk}` | Visual editor authoring surface; version history; template library | `WorkflowDefinition`, `WorkflowVersion` |
 | `engine` | `oya-workflow-engine-{kernel,domain,application,adapter,worker}` | Runtime: state machines, DAGs, transitions, schedulers, step executors | `WorkflowRun`, `StepExecution` |
 | `transitions` | `oya-workflow-transitions-{kernel,domain}` | Transition rules + invariants; state machine graph validation | `Transition`, `TransitionRule` |
 | `approvals` | `oya-workflow-approvals-{kernel,domain,application}` | Multi-step + four-eyes approval primitive | `ApprovalRequest`, `ApprovalDecision` |
@@ -200,7 +200,7 @@ Per `feedback_quality_performance_scalability_bar.md` + `feedback_workflow_studi
 Dependency direction: strictly inward-only. Per `feedback_clean_architecture_requirements.md`.
 
 ```
-{studio-rest, ~~studio-graphql~~ [dropped per ADR-0565], triggers-adapter, integrations-adapter, worker}
+{studio-rest, triggers-adapter, integrations-adapter, worker}
         ↑ depends on
    {engine-adapter, automations-worker, sla-worker}
         ↑ depends on
@@ -388,7 +388,7 @@ SLO burn-rate alarms: engine 3×; editor 5×.
 definitions + run state; `object-storage` for large step payloads (OCI Object
 Storage); Kafka KRaft for event bus.
 
-**Active-active compatibility**: `stateless-compatible` for Studio REST/~~GraphQL~~ [dropped per ADR-0565]
+**Active-active compatibility**: `stateless-compatible` for Studio REST
 layers and trigger adapter; `single-writer-compatible` for engine workers
 processing a specific run (one worker owns one run; no concurrent writers per run).
 
@@ -403,7 +403,7 @@ Per-cell capacity envelope:
 
 Scale-out policy:
 - Engine workers: stateless HPA on queue depth >5k; min 3; max 200 pods.
-- Studio REST/~~GraphQL~~ [dropped per ADR-0565]: stateless HPA on CPU >70%; min 2; max 50 pods.
+- Studio REST: stateless HPA on CPU >70%; min 2; max 50 pods.
 - Trigger adapter: stateless; Kafka consumer group auto-rebalance.
 - Postgres + Citus: `tenant_id` shard key; linear shard addition.
 - State store: Postgres append-only run log; ClickHouse replica for run history
