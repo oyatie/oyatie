@@ -162,12 +162,11 @@ jobs:
           name: accounting-faces
           path: cloud/cloud-ci/gates
       # The materialize script used to provision the pinned toolchain as a side effect; the
-      # legs still need it for `cargo test` (rust-toolchain.toml pins 1.95.0 + components).
+      # legs still need it for `cargo test` (rust-toolchain.toml pins the workspace toolchain + components).
       - name: Pre-provision pinned Rust toolchain for cargo test
         run: |
           set -euo pipefail
-          rustup show active-toolchain || rustup toolchain install 1.95.0 --profile minimal --component rustfmt --component clippy
-          rustup component add rustfmt clippy --toolchain 1.95.0
+          rustup toolchain install
           rustc --version
           cargo --version
       - name: cargo test ${{ matrix.crate }}
@@ -195,14 +194,13 @@ jobs:
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: |
-            ~/.rustup/toolchains/1.95.0-*
+            ~/.rustup/toolchains
             ~/.rustup/update-hashes
           key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
       - name: Pre-provision pinned Rust toolchain for Buck2 freshness binaries
         run: |
           set -euo pipefail
-          rustup show active-toolchain || rustup toolchain install 1.95.0 --profile minimal --component rustfmt --component clippy
-          rustup component add rustfmt clippy --toolchain 1.95.0
+          rustup toolchain install
           rustc --version
           cargo --version
       - name: Run freshness gate
@@ -293,14 +291,13 @@ jobs:
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: |
-            ~/.rustup/toolchains/1.95.0-*
+            ~/.rustup/toolchains
             ~/.rustup/update-hashes
           key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
       - name: Pre-provision pinned Rust toolchain for Buck2 policy binary
         run: |
           set -euo pipefail
-          rustup show active-toolchain || rustup toolchain install 1.95.0 --profile minimal --component rustfmt --component clippy
-          rustup component add rustfmt clippy --toolchain 1.95.0
+          rustup toolchain install
           rustc --version
           cargo --version
       - name: Reject non-deletion generated output edits
@@ -352,14 +349,14 @@ jobs:
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: |
-            ~/.rustup/toolchains/1.95.0-*
+            ~/.rustup/toolchains
             ~/.rustup/update-hashes
           key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
       # Pre-provision the pinned rust toolchain ONCE, serially, before the buck2 build.
       # The buck2 rust toolchain (toolchains/BUCK: system_rust_toolchain via the rustup shim)
       # resolves rustc/cargo/clippy per-compile-action, and buck2 runs those actions in
       # PARALLEL. On a cold runner each action's first shim call triggers rustup to install the
-      # rust-toolchain.toml channel (1.95.0 + rustfmt,clippy) concurrently — the racing rustup
+      # rust-toolchain.toml channel (+ rustfmt,clippy) concurrently — the racing rustup
       # processes collide on the shared `~/.rustup/downloads/*.partial` files and fail with
       # `rustup::utils::rename ... No such file or directory (os error 2)` (a different component
       # each run: clippy, then cargo — proving a concurrency race, not a config defect). rustup
@@ -369,8 +366,7 @@ jobs:
       - name: Pre-provision pinned rust toolchain (serialize rustup before parallel buck2)
         run: |
           set -euo pipefail
-          rustup show active-toolchain || rustup toolchain install 1.95.0 --profile minimal --component rustfmt --component clippy
-          rustup component add rustfmt clippy --toolchain 1.95.0
+          rustup toolchain install
           rustc --version
           cargo --version
       # Restore buck-out across runs so ephemeral runners start warm (design §3.1 / ADR-0515 D4).
@@ -392,7 +388,8 @@ jobs:
       # hit. PRs never write, eliminating the per-commit multi-GB write-churn/eviction (the
       # Bazel/Google post-merge-fills-the-cache pattern).
       #
-      # Cache key is STABLE per dependency-set (.buckconfig + toolchains/BUCK + Cargo.lock),
+      # Cache key is STABLE per dependency/toolchain-set (.buckconfig + toolchains/BUCK +
+      # Cargo.lock + rust-toolchain.toml),
       # NOT per-commit. The previous `-${{ github.sha }}` suffix made the primary key unique
       # every commit, so actions/cache SAVED a fresh full buck-out (multi-GB) on EVERY run and
       # never hit the primary key — bloating the 10GB repo cache into constant LRU eviction and
@@ -400,7 +397,9 @@ jobs:
       # FRIC-017). A stable key saves once per dependency-set and restores it exactly: deterministic
       # warm start, no per-commit bloat. Changed crates still rebuild (buck2 is content-addressed,
       # so a restored hit is bit-identical to a cold build); only a Cargo.lock/toolchain/.buckconfig
-      # change mints a new entry. Interim warm-by-default until the shared content-addressed
+      # or Rust channel change mints a new entry. The restore prefix is scoped by
+      # rust-toolchain.toml so a Rust-version bump never reuses old rlibs into the new compiler.
+      # Interim warm-by-default until the shared content-addressed
       # remote cache (NativeLink/CAS, ADR-0560, HANDOFF W3) lands with a cold-canary integrity job
       # proving cold==warm. See friction-ledger buck2-no-shared-cache.
       # Reclaim preinstalled ubuntu-latest bloat (.NET/Android/GHC/CodeQL/preloaded Docker images:
@@ -431,9 +430,9 @@ jobs:
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: buck-out
-          key: buck-out-${{ runner.os }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
+          key: buck-out-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
           restore-keys: |
-            buck-out-${{ runner.os }}-
+            buck-out-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}-
       # Generated-face materialization — the SINGLE out-of-graph git boundary. Re-run the emitter
       # and producer against the checked-out candidate tree, then let buck2 consume those files as
       # declared inputs. We deliberately do NOT byte-compare against committed JSON here: that was
@@ -449,12 +448,9 @@ jobs:
       # run green, fully hermetic, with verdicts identical to the cargo lanes). This is the
       # refactor's scope and is the binding hermetic check for this stage.
       #
-      # NOTE: the affected-set driver (`infra/ci/buck2-affected-gate.sh`, uquery owner -> rdeps
-      # closure) is the design's speed mechanism (§3.2) and runs below as a best-effort fast path,
-      # but its whole-graph `rdeps(//..., ...)` currently FAILS CLOSED on a PRE-EXISTING stale
-      # git-worktree BUCK package (`.claire/worktrees/.../oya-payroll-run-usecase`) committed at
-      # base — graph pollution unrelated to this refactor. Until that is cleaned, the binding gate
-      # is the scoped `//cloud/cloud-ci/...` build+test above; the affected driver is advisory.
+      # The repo-wide affected-set verdict is owned by the binding gate-affected-set job below.
+      # Do not run a duplicate best-effort affected-set probe here: a non-blocking BUILD FAILED
+      # line inside a green job is indistinguishable from a false-green to humans and agents.
       - name: buck2 build + test (//cloud/cloud-ci/..., hermetic — binding)
         run: |
           set -euo pipefail
@@ -486,13 +482,6 @@ jobs:
           name: cache-hit-report-buck2-lane
           path: /tmp/cache-hit-report.json
           if-no-files-found: warn
-      - name: buck2 affected-set driver (advisory speed path)
-        continue-on-error: true
-        run: |
-          set -euo pipefail
-          chmod +x infra/ci/buck2-affected-gate.sh
-          BUCK2=buck2 infra/ci/buck2-affected-gate.sh "origin/${{ github.base_ref || 'dev' }}"
-
   # ── BINDING WORKSPACE COVERAGE (ADR-0554, FRIC-1781310000). Closes the largest false-green
   #    channel: the buck2 lane above is scoped to //cloud/cloud-ci/..., so code anywhere else
   #    (oya/*, libs/*, cloud/* services) could merge broken — proven live by PR #651 head
@@ -532,7 +521,7 @@ jobs:
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: |
-            ~/.rustup/toolchains/1.95.0-*
+            ~/.rustup/toolchains
             ~/.rustup/update-hashes
           key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
       # Same rustup serialization rationale as the buck2 lane above: parallel buck2 actions
@@ -540,11 +529,10 @@ jobs:
       - name: Pre-provision pinned rust toolchain (serialize rustup before parallel buck2)
         run: |
           set -euo pipefail
-          rustup show active-toolchain || rustup toolchain install 1.95.0 --profile minimal --component rustfmt --component clippy
-          rustup component add rustfmt clippy --toolchain 1.95.0
+          rustup toolchain install
           rustc --version
           cargo --version
-      # Restore buck-out read-only (ADR-0554 D9). Same stable per-dependency-set key as the buck2
+      # Restore buck-out read-only (ADR-0554 D9). Same stable per-dependency/toolchain-set key as the buck2
       # lane: warmth is 100% in buck-out/v2/cache + buck-out/v2/art (path-relocatable); ~/.buck2
       # and ~/.buck are daemon pid/endpoint/log scratch and are deliberately NOT cached. dev-push
       # is the sole writer (the save step below is push-to-dev-gated), so PR runs read only — no
@@ -577,9 +565,9 @@ jobs:
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: buck-out
-          key: buck-out-${{ runner.os }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
+          key: buck-out-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
           restore-keys: |
-            buck-out-${{ runner.os }}-
+            buck-out-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}-
       # KEEPS materializing (not converted to ADR-0556 D5 QW-1 artifact reuse): same rationale
       # as the buck2 lane — the cone's gate tests consume the per-job merge-base frozen
       # baseline (ADR-0551), and this lane's own build-health baseline below is per-job by
@@ -618,21 +606,38 @@ jobs:
           set -euo pipefail
           merge_base="$(git merge-base "origin/${BASE_REF}" HEAD)"
           orig_ref="$(git rev-parse HEAD)"
+          candidate_toolchain="$(awk -F'"' '/channel/ {print $2; exit}' rust-toolchain.toml)"
           echo "build-health baseline: merge-base=${merge_base} candidate=${orig_ref}"
           # ALWAYS restore the candidate tree on EXIT — a failed baseline build can never strand CI
           # on the merge-base tree (the subsequent Binding affected-set step runs on the candidate).
           # NOTE: if the timeout-minutes:45 rail SIGKILLs this build, the bash EXIT trap does NOT
           # fire (tree left detached at merge-base) — but a timeout fails the whole job RED → fan-in
           # RED, so it is fail-closed and never produces a wrong-baseline verdict.
-          trap 'git checkout --quiet --detach "${orig_ref}" 2>/dev/null || git checkout --quiet "${orig_ref}"' EXIT
+          restore_candidate_tree() {
+            local exit_status="$?"
+            git checkout --quiet --detach "${orig_ref}" 2>/dev/null || git checkout --quiet "${orig_ref}"
+            if [ "${candidate_toolchain}" != "${baseline_toolchain:-${candidate_toolchain}}" ]; then
+              echo "build-health baseline: cleaning buck-out after restoring candidate toolchain ${candidate_toolchain}"
+              buck2 clean
+            fi
+            exit "${exit_status}"
+          }
+          trap restore_candidate_tree EXIT
           # Detach the MAIN working tree to the merge-base COMMITTED tree-ish: the baseline is
           # computed from git object history (candidate-uncontrollable), and the candidate working
           # tree is removed from disk for the build, so a PR cannot grow its own baseline to
           # launder a regression.
           git checkout --quiet --detach "${merge_base}"
-          # Build the whole merge-base workspace keep-going, sharing the warm ./buck-out. The build
-          # is EXPECTED to be non-zero (dev carries pre-existing breakage) — that is the baseline,
-          # not a failure, so we never propagate its exit code.
+          baseline_toolchain="$(awk -F'"' '/channel/ {print $2; exit}' rust-toolchain.toml)"
+          rustup toolchain install
+          if [ "${candidate_toolchain}" != "${baseline_toolchain}" ]; then
+            echo "build-health baseline: Rust toolchain changed ${baseline_toolchain} -> ${candidate_toolchain}; isolating buck-out"
+            buck2 clean
+          fi
+          # Build the whole merge-base workspace keep-going. Same-channel PRs share warm ./buck-out;
+          # Rust-channel bump PRs intentionally go cold on both sides to avoid mixed-rustc rlibs.
+          # The build is EXPECTED to be non-zero (dev carries pre-existing breakage) — that is the
+          # baseline, not a failure, so we never propagate its exit code.
           buck2 build //... --keep-going \
               --build-report "${RUNNER_TEMP}/build-health-baseline.json" || true
           test -s "${RUNNER_TEMP}/build-health-baseline.json" \
@@ -679,7 +684,7 @@ jobs:
         uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: buck-out
-          key: buck-out-${{ runner.os }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
+          key: buck-out-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
       # ── BUILD-HEALTH BASELINE PRODUCER (ADR-0554 D7; ADR-0556 D5 QW-1 trusted-producer +
       #    postmerge-dev-trunk warmth class). ONLY a trusted push-to-dev publishes the admission
       #    build-report as the merge-base-to-be baseline artifact — NOT merge_group, NOT
@@ -807,8 +812,7 @@ jobs:
       - name: Pre-provision pinned Rust toolchain for cargo test
         run: |
           set -euo pipefail
-          rustup show active-toolchain || rustup toolchain install 1.95.0 --profile minimal --component rustfmt --component clippy
-          rustup component add rustfmt clippy --toolchain 1.95.0
+          rustup toolchain install
           rustc --version
           cargo --version
       # Postgres client for the inline bootstrap (psql applies the committed migrations verbatim;

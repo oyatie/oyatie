@@ -2,7 +2,7 @@
 name = "oya-itsm-incident-room"
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.85"
+rust-version.workspace = true
 license = "Apache-2.0"
 publish = false
 description = "Incident Room bounded context for the ITSM µservice (war-room/major-incident bridge; MLS-encrypted)."

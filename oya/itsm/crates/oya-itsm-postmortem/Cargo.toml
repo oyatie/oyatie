@@ -2,7 +2,7 @@
 name = "oya-itsm-postmortem"
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.85"
+rust-version.workspace = true
 license = "Apache-2.0"
 publish = false
 description = "Postmortem bounded context for the ITSM µservice (blameless retros, FireHydrant/Jeli displacement)."

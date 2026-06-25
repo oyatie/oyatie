@@ -84,9 +84,10 @@ test-results/
 # path to be a committed git blob on the main branch. #828 de-committed it, so at gate-time
 # `git cat-file -e <merge-base>:<path>` failed -> missing_at_merge_base=true -> empty frozen
 # baseline -> every pre-existing repo-wide debt item reported as a NEW regression on every
-# broad-affected-set PR. It is declared materialization_mode: merge-candidate-regenerated in
-# registry/generated-artifact-control-plane.json and byte-bound by freshness/registry-drift
-# committed==regenerated. Negate the broad *.generated.json ignore for exactly this path.
+# broad-affected-set PR. It is declared materialization_mode: main-branch-materialized in
+# registry/generated-artifact-control-plane.json: committed on the integration branch for merge-base
+# consumers, but controller-owned so contributor PRs do not carry generated baseline byte churn.
+# Negate the broad *.generated.json ignore for exactly this path.
 !cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json
 
 # ADR-0595/ADR-0597 de-commit class: the SIX cloud-ci faces below are pure derivations

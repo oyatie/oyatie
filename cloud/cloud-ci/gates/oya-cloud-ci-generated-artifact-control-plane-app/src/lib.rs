@@ -548,29 +548,12 @@ pub fn generated_output_diff_policy_violations(
 }
 
 fn diff_policy_allowed_generated_edit_paths(
-    manifest: &Value,
+    _manifest: &Value,
     _findings: &mut BTreeSet<Finding>,
 ) -> BTreeSet<String> {
-    let mut ignored_artifact_findings = BTreeSet::new();
-    parse_declared_artifacts(manifest, &mut ignored_artifact_findings)
-        .into_iter()
-        .filter(|artifact| {
-            matches!(
-                (
-                    artifact.materialization_mode.as_str(),
-                    artifact.merge_policy.as_str()
-                ),
-                (
-                    "merge-candidate-regenerated",
-                    "never-manual-merge-regenerate-from-source-tree"
-                ) | (
-                    "main-branch-materialized",
-                    "controller-owned-main-materialization"
-                )
-            )
-        })
-        .map(|artifact| artifact.path)
-        .collect()
+    // Contributor PRs must not own generated-output bytes. Declared artifacts can be regenerated
+    // or controller-materialized by cloud-ci, but the merge surface is the source tree.
+    BTreeSet::new()
 }
 
 fn validate_lifecycle_layers(manifest: &Value, findings: &mut BTreeSet<Finding>) {
@@ -1414,7 +1397,7 @@ mod tests {
     }
 
     #[test]
-    fn diff_policy_allows_declared_materialized_generated_artifact_edits() {
+    fn diff_policy_rejects_declared_generated_artifact_edits() {
         let mut face = artifact(
             "cloud-ci-accounting-registry-face",
             "out/example.generated.json",
@@ -1438,10 +1421,20 @@ mod tests {
         assert_eq!(findings, BTreeSet::new());
         assert_eq!(
             violations,
-            vec![DiffPolicyViolation {
-                status: "M".to_owned(),
-                path: "out/untracked.generated.json".to_owned(),
-            }]
+            vec![
+                DiffPolicyViolation {
+                    status: "M".to_owned(),
+                    path: "out/example.generated.json".to_owned(),
+                },
+                DiffPolicyViolation {
+                    status: "M".to_owned(),
+                    path: "out/scm-facts.generated.json".to_owned(),
+                },
+                DiffPolicyViolation {
+                    status: "M".to_owned(),
+                    path: "out/untracked.generated.json".to_owned(),
+                },
+            ]
         );
     }
 
@@ -1852,8 +1845,7 @@ mod tests {
         let scm_facts = scm(&[]);
         let frozen = frozen_set(&["out/gate-baseline.generated.json"]);
 
-        let findings =
-            evaluate_keyed_with_frozen_references(&manifest, &scm_facts, &frozen);
+        let findings = evaluate_keyed_with_frozen_references(&manifest, &scm_facts, &frozen);
         assert!(
             findings.iter().any(|finding| {
                 finding.code == "frozen_reference_artifact_must_stay_committed"
@@ -1876,7 +1868,8 @@ mod tests {
             "cloud-ci-gate-baseline-ratchet-face",
             "out/gate-baseline.generated.json",
         );
-        baseline["materialization_mode"] = json!("merge-candidate-regenerated");
+        baseline["materialization_mode"] = json!("main-branch-materialized");
+        baseline["merge_policy"] = json!("controller-owned-main-materialization");
         let mut pure_view = artifact("pure-view-face", "out/accounting-registry.generated.json");
         pure_view["materialization_mode"] = json!("not-tracked-in-git");
         let manifest = manifest(vec![baseline, pure_view]);
@@ -1884,8 +1877,7 @@ mod tests {
         let scm_facts = scm(&["out/gate-baseline.generated.json"]);
         let frozen = frozen_set(&["out/gate-baseline.generated.json"]);
 
-        let findings =
-            evaluate_keyed_with_frozen_references(&manifest, &scm_facts, &frozen);
+        let findings = evaluate_keyed_with_frozen_references(&manifest, &scm_facts, &frozen);
         assert!(
             !findings
                 .iter()
@@ -1908,8 +1900,7 @@ mod tests {
         let scm_facts = scm(&[]);
         let frozen = frozen_set(&["out/gate-baseline.generated.json"]);
 
-        let findings =
-            evaluate_keyed_with_frozen_references(&manifest, &scm_facts, &frozen);
+        let findings = evaluate_keyed_with_frozen_references(&manifest, &scm_facts, &frozen);
         assert!(
             !findings
                 .iter()

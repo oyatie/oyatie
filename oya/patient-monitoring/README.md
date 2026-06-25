@@ -95,7 +95,7 @@ cargo test -p patient-monitoring-smart-alarm-domain --features=rules-replay
 
 Local dev environment requires:
 
-- Rust 1.85.0-stable (MSRV 1.83.0)
+- Rust 1.96.0-stable
 - gRPC tooling: `protoc 25.x` + `prost 0.12` + `tonic 0.11`
 - FlatBuffers tooling: `flatc 24.x`
 - A Kafka-compatible stream broker (Redpanda dev container is acceptable)

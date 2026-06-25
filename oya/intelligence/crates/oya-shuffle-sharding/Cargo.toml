@@ -2,7 +2,7 @@
 name = "oya-shuffle-sharding"
 edition = "2024"
 version = "0.1.0"
-rust-version = "1.95.0"
+rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 description = "Pure deterministic shuffle-sharding cell selection for Oyatie tenant placement."

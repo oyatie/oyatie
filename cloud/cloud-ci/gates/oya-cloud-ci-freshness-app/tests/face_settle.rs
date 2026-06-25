@@ -117,6 +117,30 @@ fn regenerated_faces() -> Vec<(String, String)> {
         .collect()
 }
 
+fn mark_gate_baseline_controller_owned(root: &Path) {
+    std::fs::create_dir_all(root.join("registry")).expect("create registry dir");
+    std::fs::write(
+        root.join("registry/generated-artifact-control-plane.json"),
+        r#"{
+  "artifacts": [
+    {
+      "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
+      "materialization_mode": "main-branch-materialized"
+    }
+  ]
+}"#,
+    )
+    .expect("write control-plane manifest");
+    git(
+        root,
+        &["add", "registry/generated-artifact-control-plane.json"],
+    );
+    git(
+        root,
+        &["commit", "-m", "test: mark controller-owned baseline"],
+    );
+}
+
 #[test]
 fn dirty_tree_refusal_fixture_reports_settle_protocol() {
     let root = init_repo_with_faces();
@@ -170,6 +194,38 @@ fn faces_only_staging_fixture_stages_only_generated_faces() {
             .trim()
             .is_empty()
     );
+}
+
+#[test]
+fn face_settle_does_not_stage_controller_owned_baseline() {
+    let root = init_repo_with_faces();
+    mark_gate_baseline_controller_owned(&root);
+
+    let report = settle_regenerated_faces(&root, regenerated_faces(), FaceSettleMode::Settle)
+        .expect("settle regenerated faces");
+
+    assert!(
+        !report
+            .staged_faces
+            .iter()
+            .any(|path| path.ends_with("gate-baseline.generated.json"))
+    );
+    assert_eq!(
+        std::fs::read_to_string(root.join(
+            "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json"
+        ))
+        .expect("read baseline"),
+        "old face\n"
+    );
+    let staged: BTreeSet<String> = git_output(&root, &["diff", "--cached", "--name-only"])
+        .lines()
+        .map(str::to_owned)
+        .collect();
+    let expected: BTreeSet<String> = generated_face_paths()
+        .into_iter()
+        .filter(|path| !path.ends_with("gate-baseline.generated.json"))
+        .collect();
+    assert_eq!(staged, expected);
 }
 
 #[test]
@@ -336,7 +392,10 @@ fn verify_stays_green_after_lock_only_refresh_commit() {
     write_member_manifest(&root, "0.2.0");
     write_lock(&root, "0.1.0");
     git(&root, &["add", "."]);
-    git(&root, &["commit", "-m", "feat: bump fixture kernel (lock stale)"]);
+    git(
+        &root,
+        &["commit", "-m", "feat: bump fixture kernel (lock stale)"],
+    );
     settle_metadata_bearing_faces(&root);
     // Lock-only refresh commit AFTER the settle commit.
     write_lock(&root, "0.2.0");
@@ -367,7 +426,10 @@ fn verify_fails_after_docs_only_commit_following_settle() {
         .expect("verify stale tree");
 
     assert!(!report.is_success());
-    assert_eq!(report.stale_faces, vec!["scm-facts.generated.json".to_owned()]);
+    assert_eq!(
+        report.stale_faces,
+        vec!["scm-facts.generated.json".to_owned()]
+    );
     assert!(report.message.contains("STALE at HEAD"));
     assert!(report.message.contains("- scm-facts.generated.json"));
     assert!(report.message.contains(FACE_VERIFY_REMEDIATION_COMMAND));
@@ -392,7 +454,10 @@ fn verify_fails_when_settle_commit_sits_mid_stack() {
         .expect("verify stale tree");
 
     assert!(!report.is_success());
-    assert_eq!(report.stale_faces, vec!["scm-facts.generated.json".to_owned()]);
+    assert_eq!(
+        report.stale_faces,
+        vec!["scm-facts.generated.json".to_owned()]
+    );
     assert!(report.message.contains(FACE_VERIFY_REMEDIATION_COMMAND));
 }
 
@@ -406,7 +471,10 @@ fn verify_never_mutates_the_tree() {
 
     let snapshot = |label: &str| {
         let head = git_output(&root, &["rev-parse", "HEAD"]);
-        let status = git_output(&root, &["status", "--porcelain=v1", "--untracked-files=all"]);
+        let status = git_output(
+            &root,
+            &["status", "--porcelain=v1", "--untracked-files=all"],
+        );
         assert!(
             status.trim().is_empty(),
             "{label}: tree must be clean, got:\n{status}"

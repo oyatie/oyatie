@@ -62,8 +62,7 @@ jobs:
       - name: Pre-provision pinned rust toolchain (serialize rustup before parallel buck2)
         run: |
           set -euo pipefail
-          rustup show active-toolchain || rustup toolchain install 1.95.0 --profile minimal --component rustfmt --component clippy
-          rustup component add rustfmt clippy --toolchain 1.95.0
+          rustup toolchain install
       - name: Materialize cloud-ci generated faces (out-of-graph boundary)
         run: infra/ci/materialize-cloud-ci-generated-faces.sh .
       # The pinned target set is policy DATA (canary-policy.json), resolved by the

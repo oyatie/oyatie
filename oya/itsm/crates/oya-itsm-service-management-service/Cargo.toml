@@ -2,7 +2,7 @@
 name = "oya-itsm-service-management-service"
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.85"
+rust-version.workspace = true
 license = "Apache-2.0"
 publish = false
 description = "ITSM µservice umbrella: composes 5 bounded-context crates (on-call-schedule, escalation-policy, incident-room, status-update, postmortem) plus the legacy service-management aggregate."

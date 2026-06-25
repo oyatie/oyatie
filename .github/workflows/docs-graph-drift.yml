@@ -8,10 +8,11 @@ name: docs-graph-drift
 # byte-compares the result against the committed HTML. If the committed file is
 # stale, the job fails (red) and the author must run the generator and commit.
 #
-# Authority model: GitHub Actions (this workflow) is the SOLE live gating check
-# (D-CICD-AUTHORITY; the legacy CI bridge was retired 2026-06-07). Intentionally ABSENT from
-# the branch-protection required set (.github/branch-protection.yaml) — feedback only;
-# branch protection is NOT changed here.
+# Transitional runner model: GitHub Actions executes this feedback adapter today,
+# but the durable policy source is the owned Rust generator/gate and future cloud-ci
+# runner. Intentionally ABSENT from the branch-protection required set
+# (.github/branch-protection.yaml) — feedback only; branch protection is NOT
+# changed here.
 
 on:
   pull_request:
@@ -49,10 +50,10 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           persist-credentials: false
-      - name: Install Rust toolchain
+      - name: Install pinned Rust toolchain
         uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
         with:
-          toolchain: stable
+          toolchain: 1.96.0
       - name: Cache cargo registry + target
         # actions/cache@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
