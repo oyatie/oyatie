@@ -162,12 +162,11 @@ jobs:
           name: accounting-faces
           path: cloud/cloud-ci/gates
       # The materialize script used to provision the pinned toolchain as a side effect; the
-      # legs still need it for `cargo test` (rust-toolchain.toml pins 1.95.0 + components).
+      # legs still need it for `cargo test` (rust-toolchain.toml pins the workspace toolchain + components).
       - name: Pre-provision pinned Rust toolchain for cargo test
         run: |
           set -euo pipefail
-          rustup show active-toolchain || rustup toolchain install 1.95.0 --profile minimal --component rustfmt --component clippy
-          rustup component add rustfmt clippy --toolchain 1.95.0
+          rustup toolchain install
           rustc --version
           cargo --version
       - name: cargo test ${{ matrix.crate }}
@@ -185,6 +184,8 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
+      - name: Check Rust toolchain drift
+        run: python3 infra/ci/check-rust-toolchain-drift.py .
       - name: Install buck2 (digest-pinned prebuilt release)
         run: infra/ci/install-buck2.sh
       # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4: the toolchain is a
@@ -195,14 +196,13 @@ jobs:
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: |
-            ~/.rustup/toolchains/1.95.0-*
+            ~/.rustup/toolchains
             ~/.rustup/update-hashes
           key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
       - name: Pre-provision pinned Rust toolchain for Buck2 freshness binaries
         run: |
           set -euo pipefail
-          rustup show active-toolchain || rustup toolchain install 1.95.0 --profile minimal --component rustfmt --component clippy
-          rustup component add rustfmt clippy --toolchain 1.95.0
+          rustup toolchain install
           rustc --version
           cargo --version
       - name: Run freshness gate
@@ -293,14 +293,13 @@ jobs:
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: |
-            ~/.rustup/toolchains/1.95.0-*
+            ~/.rustup/toolchains
             ~/.rustup/update-hashes
           key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
       - name: Pre-provision pinned Rust toolchain for Buck2 policy binary
         run: |
           set -euo pipefail
-          rustup show active-toolchain || rustup toolchain install 1.95.0 --profile minimal --component rustfmt --component clippy
-          rustup component add rustfmt clippy --toolchain 1.95.0
+          rustup toolchain install
           rustc --version
           cargo --version
       - name: Reject non-deletion generated output edits
@@ -352,14 +351,14 @@ jobs:
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: |
-            ~/.rustup/toolchains/1.95.0-*
+            ~/.rustup/toolchains
             ~/.rustup/update-hashes
           key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
       # Pre-provision the pinned rust toolchain ONCE, serially, before the buck2 build.
       # The buck2 rust toolchain (toolchains/BUCK: system_rust_toolchain via the rustup shim)
       # resolves rustc/cargo/clippy per-compile-action, and buck2 runs those actions in
       # PARALLEL. On a cold runner each action's first shim call triggers rustup to install the
-      # rust-toolchain.toml channel (1.95.0 + rustfmt,clippy) concurrently — the racing rustup
+      # rust-toolchain.toml channel (+ rustfmt,clippy) concurrently — the racing rustup
       # processes collide on the shared `~/.rustup/downloads/*.partial` files and fail with
       # `rustup::utils::rename ... No such file or directory (os error 2)` (a different component
       # each run: clippy, then cargo — proving a concurrency race, not a config defect). rustup
@@ -369,8 +368,7 @@ jobs:
       - name: Pre-provision pinned rust toolchain (serialize rustup before parallel buck2)
         run: |
           set -euo pipefail
-          rustup show active-toolchain || rustup toolchain install 1.95.0 --profile minimal --component rustfmt --component clippy
-          rustup component add rustfmt clippy --toolchain 1.95.0
+          rustup toolchain install
           rustc --version
           cargo --version
       # Restore buck-out across runs so ephemeral runners start warm (design §3.1 / ADR-0515 D4).
@@ -532,7 +530,7 @@ jobs:
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: |
-            ~/.rustup/toolchains/1.95.0-*
+            ~/.rustup/toolchains
             ~/.rustup/update-hashes
           key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
       # Same rustup serialization rationale as the buck2 lane above: parallel buck2 actions
@@ -540,8 +538,7 @@ jobs:
       - name: Pre-provision pinned rust toolchain (serialize rustup before parallel buck2)
         run: |
           set -euo pipefail
-          rustup show active-toolchain || rustup toolchain install 1.95.0 --profile minimal --component rustfmt --component clippy
-          rustup component add rustfmt clippy --toolchain 1.95.0
+          rustup toolchain install
           rustc --version
           cargo --version
       # Restore buck-out read-only (ADR-0554 D9). Same stable per-dependency-set key as the buck2
@@ -807,8 +804,7 @@ jobs:
       - name: Pre-provision pinned Rust toolchain for cargo test
         run: |
           set -euo pipefail
-          rustup show active-toolchain || rustup toolchain install 1.95.0 --profile minimal --component rustfmt --component clippy
-          rustup component add rustfmt clippy --toolchain 1.95.0
+          rustup toolchain install
           rustc --version
           cargo --version
       # Postgres client for the inline bootstrap (psql applies the committed migrations verbatim;

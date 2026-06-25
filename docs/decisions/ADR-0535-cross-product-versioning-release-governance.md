@@ -89,7 +89,10 @@ gates pre-run. The OSS stewardship classes (Maintainer / Contributor / Consumer)
 SLAs (Contributor: P0 ≤7d, P1 ≤30d; Consumer: pin update ≤14d) become DATA in the stewardship registry.
 The verified-absent renovate.json/dependabot.yml are NOT adopted; build the release-governance gate
 crates + auto-changelog + EOL/sunset + branch-protection-drift bots, all on the same closed-schema
-config, all emitting scm-facts ChangeSets. The automation-first doctrine (formerly ADR-0050) is
+config, all emitting scm-facts ChangeSets. The Rust stable toolchain drift guard is
+`infra/ci/check-rust-toolchain-drift.py`, owned by `infra/ci/OWNERS`, and is wired into
+`oya-ci-required` so the repo follows the pinned stable channel without split-brain manifests,
+Docker tags, workflow pins, or active-doc residue. The automation-first doctrine (formerly ADR-0050) is
 governed by the AUTO/ADVISE/GATE safety governor (ADR-0519/0529).
 
 ## Drivers

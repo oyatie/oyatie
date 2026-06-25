@@ -64,8 +64,7 @@ jobs:
       - name: Pre-provision pinned Rust toolchain
         run: |
           set -euo pipefail
-          rustup show active-toolchain || rustup toolchain install 1.95.0 --profile minimal --component rustfmt --component clippy
-          rustup component add rustfmt clippy --toolchain 1.95.0
+          rustup toolchain install
           rustc --version
           cargo --version
 

@@ -68,7 +68,7 @@ graph LR
     cedar["Cedar 4.x<br/>cedar-policy<br/>oya-cloud-iam-kernel"]
   end
   subgraph "Runtime"
-    rust["Rust 1.82 stable<br/>workspace toolchain"]
+    rust["Rust 1.96 stable<br/>workspace toolchain"]
     distroless["gcr.io/distroless/cc-debian12<br/>base image"]
   end
   rust --> distroless
