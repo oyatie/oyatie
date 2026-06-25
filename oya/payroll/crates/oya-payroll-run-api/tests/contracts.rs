@@ -82,6 +82,44 @@ fn error_envelope_has_consistent_shape() {
     );
 }
 
+#[test]
+fn openapi_contract_declares_auth_failures_for_money_mutations() {
+    let contract_text = std::fs::read_to_string("oya/payroll/contracts/openapi-v1.yaml")
+        .expect("read payroll OpenAPI contract");
+    let contract: serde_json::Value =
+        serde_json::from_str(&contract_text).expect("parse payroll OpenAPI contract");
+
+    assert_eq!(
+        contract["security"][0]["tenantBearer"],
+        json!([]),
+        "payroll contract must keep tenant bearer auth at the API boundary"
+    );
+    assert_eq!(
+        contract["components"]["responses"]["AuthenticationError"]["content"]["application/json"]["schema"]
+            ["$ref"],
+        "#/components/schemas/ApiErrorEnvelope"
+    );
+    assert_eq!(
+        contract["components"]["responses"]["AuthorizationError"]["content"]["application/json"]["schema"]
+            ["$ref"],
+        "#/components/schemas/ApiErrorEnvelope"
+    );
+
+    for (path, methods) in contract["paths"].as_object().expect("paths object").iter() {
+        for (method, operation) in methods.as_object().expect("path methods").iter() {
+            let responses = &operation["responses"];
+            assert!(
+                responses.get("401").is_some(),
+                "{method} {path} must document unauthenticated failure"
+            );
+            assert!(
+                responses.get("403").is_some(),
+                "{method} {path} must document unauthorized failure"
+            );
+        }
+    }
+}
+
 fn digest() -> String {
     format!("sha256:{}", "a".repeat(64))
 }
