@@ -180,9 +180,9 @@ none (the gate-tool default for a build/-home kernel). Files commissioned by thi
 
 - **Implements** the E1 slice of the determination at
   `.omc/ultragoal/universal-generated-artifact-lifecycle-determination.md`.
-- **Completes** the E1 TODO in ADR-0595 ("materializer remains a shell script ... pending a
-  Rust-native materialisation controller") — partially. E2..E5 complete the remaining TODOs.
+- **Completes** the historical E1 TODO in ADR-0595 that called for Rust-native
+  materialization — partially. E2..E5 complete the remaining controller lifecycle TODOs.
 - **Feeds** E2 (`oya-ci-materializer-app`): the impure executor that byte-parity-proves parity
-  with the shell before the shell is deleted.
+  for the retired shell bridge and the Rust/Buck2 materializer path.
 - **Feeds** E3 (gate repoint + merge-base anchoring): the keystone that makes the gate a pure
   predicate fed by the executor.

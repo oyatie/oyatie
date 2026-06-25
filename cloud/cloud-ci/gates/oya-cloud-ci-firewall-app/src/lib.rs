@@ -82,7 +82,7 @@ pub const RATCHET_REGRESSION: &str = "ratchet_regression";
 /// shape change. v2 (FRIC-1781280000 frozen-policy-wins): the snapshot must declare
 /// `frozen_policy_source` — WHERE the policy facts that selected the frozen reference were
 /// read from. A stale v1 snapshot is rejected fail-closed (re-run
-/// `infra/ci/materialize-cloud-ci-generated-faces.sh`).
+/// `buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin`).
 pub const FROZEN_BASELINE_SCHEMA: &str = "oya-ci/merge-base-baseline/v2";
 
 /// `frozen_policy_source` value: the ratchet policy was read from the MERGE-BASE tree (the
@@ -210,7 +210,7 @@ impl FrozenBaseline {
             return Err(format!(
                 "frozen baseline schema mismatch: expected {FROZEN_BASELINE_SCHEMA:?}, got \
                  {schema:?} — re-materialize the snapshot: \
-                 infra/ci/materialize-cloud-ci-generated-faces.sh ."
+                 buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root ."
             ));
         }
         let base_ref = value

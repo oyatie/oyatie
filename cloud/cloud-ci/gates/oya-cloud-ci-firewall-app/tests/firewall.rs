@@ -63,7 +63,7 @@ fn load_frozen_baseline(root: &Path) -> FrozenBaseline {
             "FAIL-CLOSED: merge-base frozen baseline snapshot missing at {} ({e}). The \
              firewall compares against the gate-baseline face at `git merge-base <base_ref> \
              HEAD` (ADR-0551, FRIC-1781112000), never the PR-local copy. Materialize it: \
-             infra/ci/materialize-cloud-ci-generated-faces.sh . (CI runs this before every \
+             buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . (CI runs this before every \
              gate lane).",
             path.display()
         )

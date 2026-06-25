@@ -135,7 +135,7 @@ non-vacuity canary proving the marketplace pin fails without the C2 dispatch lin
 - `specs/reorg/move-manifest.generated.json` — the committed bijection face.
 - `registry/generated-artifact-control-plane.json` — the anti-forgery declaration.
 - `libs/oya-check-brand-residue/src/forbidden_vocab.rs` — the occurrence-identity SSOT.
-- `infra/ci/materialize-cloud-ci-generated-faces.sh` — the codemod->emitter->producer ordering.
+- `buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin` — the codemod->emitter->producer ordering.
 - `cloud/cloud-ci/gates/registry-drift/tests/registry_drift.rs` — the committed==regenerated coverage for the move-manifest face.
 
 The firewall-invariance fixtures pinning the relabeled-frozen-face behavior (the firewall is

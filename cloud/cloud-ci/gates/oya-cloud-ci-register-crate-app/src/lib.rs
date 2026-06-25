@@ -114,10 +114,9 @@ const PRODUCER_FACES: [(&str, &str); 6] = [
     ("gate-baseline.generated.json", "baseline"),
 ];
 
-/// The human remediation command for a settle failure — the ONLY surviving role of the
-/// materialize-…sh string (the RegenPort replaces the shell pipeline NATIVELY in Rust; the .sh
-/// lives on solely as this fix-it hint, mirroring the freshness gate's `FACE_REMEDIATION_COMMAND`).
-const FACE_REMEDIATION_COMMAND: &str = "infra/ci/materialize-cloud-ci-generated-faces.sh .";
+/// The human remediation command for a settle failure, mirroring the freshness gate's
+/// `FACE_REMEDIATION_COMMAND`.
+const FACE_REMEDIATION_COMMAND: &str = "buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .";
 
 /// The kind of edit an [`AppliedEdit`] records, mirroring the dispatched [`Edit`] variant.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -501,10 +500,9 @@ pub trait RegenPort {
     fn gate_input_face(&self, repo_root: &Path, face: &str) -> Result<Value, RegisterError>;
 }
 
-/// The production [`RegenPort`]: the NATIVE-in-Rust replacement for
-/// `infra/ci/materialize-cloud-ci-generated-faces.sh`. It subprocesses the BUILT binaries (codemod
-/// → emitter → producer, the load-bearing order) exactly as the canonical .sh does, never shelling
-/// to the .sh itself. This mirrors the doctrine-blessed precedent in
+/// The production [`RegenPort`]: invokes the BUILT binaries (codemod → emitter → producer,
+/// the load-bearing order) directly from Rust. It never shells through an external materializer
+/// bridge. This mirrors the doctrine-blessed precedent in
 /// `oya-cloud-ci-freshness-app::regenerate_faces_with_buck2` (lib.rs:726) — `Command::new` at the
 /// built-binary edge is the ESTABLISHED pattern, not a new CLI surface.
 ///

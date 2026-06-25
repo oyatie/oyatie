@@ -59,7 +59,7 @@ faces.
 STOP committing the six producer faces above. They are declared `materialization_mode:
 not-tracked-in-git` in `registry/generated-artifact-control-plane.json`, removed from git
 (`git rm --cached`), and covered by the existing `**/*.generated.json` ignore. They are derived
-on demand via `infra/ci/materialize-cloud-ci-generated-faces.sh` and materialized out-of-graph
+on demand via `buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin` and materialized out-of-graph
 for consumers before gates run.
 
 KEEP committed (human inputs / control surface, unchanged):
@@ -108,9 +108,10 @@ de-committed (ADR-0552).
   on-disk face (written by the materializer before gates run) against a fresh regeneration —
   i.e. a determinism check — for the de-commit-class faces. The materialization step must run
   before gates (already steady state per ADR-0551).
-- The materializer (`infra/ci/materialize-cloud-ci-generated-faces.sh`) remains a shell script.
-  It is transitional / irreducible-glue (ADR-0523) pending a Rust-native materialization
-  controller; this ADR does not change it.
+- The materializer is now the Rust/Buck2 binary
+  `//cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin`.
+  The former shell bridge has been retired; the remaining long-term target is an owned
+  Rust/controller materialization path in cloud-ci.
 
 ## Alternatives considered
 
