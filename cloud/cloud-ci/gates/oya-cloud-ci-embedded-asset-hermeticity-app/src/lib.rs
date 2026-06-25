@@ -58,11 +58,11 @@ use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+pub use oya_buck_syntax_kernel::glob_match;
 use oya_buck_syntax_kernel::{
     BuckDoc, Env, Expr, PreImageRegistry, Stmt, call_strings, dict_values, eval_string,
     find_target, guarded_rewrite, insert_dict_entry, insert_kwarg, replace_span, resolve_dict_var,
 };
-pub use oya_buck_syntax_kernel::glob_match;
 use serde_json::{Value, json};
 
 /// The gate id, matching the buck2 target + the oya-ci registry id.
@@ -109,7 +109,10 @@ impl std::fmt::Display for CollectError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             CollectError::MissingScanRoots => {
-                write!(f, "policy `scan_roots` must be a non-empty array of strings")
+                write!(
+                    f,
+                    "policy `scan_roots` must be a non-empty array of strings"
+                )
             }
             CollectError::Io(message) => write!(f, "embedded-asset scan io: {message}"),
         }
@@ -701,7 +704,11 @@ pub fn parse_buck_targets(buck_text: &str, crate_files: &[String]) -> Vec<BuckTa
 /// explicit srcs plus mapped_srcs values. `crate_files` is the crate's on-disk file list
 /// (crate-relative, `/`-separated). Returns crate-relative destinations for in-crate srcs and the
 /// raw mapped values (which are already sandbox-rooted, e.g. `cloud/.../policy/x.cedar`). Pure.
-pub fn target_destinations(target: &BuckTarget, crate_dir: &str, crate_files: &[String]) -> BTreeSet<String> {
+pub fn target_destinations(
+    target: &BuckTarget,
+    crate_dir: &str,
+    crate_files: &[String],
+) -> BTreeSet<String> {
     let mut dests = BTreeSet::new();
     // crate_root itself is always a destination.
     if let Some(root) = &target.crate_root {
@@ -985,7 +992,9 @@ pub fn collect_observed(root: &Path, policy: &Value) -> Result<Value, CollectErr
                 // D(T): short-path srcs ∪ mapped VALUES (inline + bare-var comprehension).
                 let mut dests = target_destinations(target, &crate_dir_rel, &crate_files);
                 if let Some(var) = mapped_srcs_var_for(&buck_text, &target.name) {
-                    for v in resolve_mapped_var(&buck_text, &var, &string_vars, &glob_vars, &crate_files) {
+                    for v in
+                        resolve_mapped_var(&buck_text, &var, &string_vars, &glob_vars, &crate_files)
+                    {
                         dests.insert(normalize_rel(&v));
                     }
                 }
@@ -1141,8 +1150,7 @@ fn walk_rust(
             .map_err(|e| CollectError::Io(format!("file_type {}: {e}", path.display())))?;
         if file_type.is_dir() {
             walk_rust(&path, rust_ext, excludes, out)?;
-        } else if file_type.is_file()
-            && path.extension().and_then(|e| e.to_str()) == Some(rust_ext)
+        } else if file_type.is_file() && path.extension().and_then(|e| e.to_str()) == Some(rust_ext)
         {
             out.push(path);
         }
@@ -1235,7 +1243,11 @@ fn parent_dir(path: &str) -> String {
 
 /// True if the include literal is an out-of-scope build-output path: it starts with one of the
 /// out-of-scope prefixes AND its extension is not an embedded-asset extension.
-fn is_out_of_scope(literal: &str, oos_prefixes: &[String], embedded_exts: &BTreeSet<String>) -> bool {
+fn is_out_of_scope(
+    literal: &str,
+    oos_prefixes: &[String],
+    embedded_exts: &BTreeSet<String>,
+) -> bool {
     let starts = oos_prefixes.iter().any(|p| literal.starts_with(p.as_str()));
     if !starts {
         return false;
@@ -1304,7 +1316,11 @@ pub fn derive_remediation(root: &Path, site: &Value) -> Vec<Remediation> {
     if site.get("status").and_then(Value::as_str) != Some("unmapped") {
         return Vec::new();
     }
-    let Some(resolved) = site.get("resolved").and_then(Value::as_str).map(str::to_owned) else {
+    let Some(resolved) = site
+        .get("resolved")
+        .and_then(Value::as_str)
+        .map(str::to_owned)
+    else {
         return Vec::new();
     };
 
@@ -1339,7 +1355,8 @@ pub fn derive_remediation(root: &Path, site: &Value) -> Vec<Remediation> {
             mapped_value: resolved,
             kind: RemediationKind::MappedEntry,
             applicable: false,
-            note: "could not bind the unmapped include to any owning target; manual fix required".to_owned(),
+            note: "could not bind the unmapped include to any owning target; manual fix required"
+                .to_owned(),
         }];
     }
 
@@ -1409,8 +1426,14 @@ fn buck_crate_root_is_root_prefixed(
     if matches!(crate_root.expr, Expr::Plus(_)) {
         return Some(true);
     }
-    let resolved = eval_string(crate_root, &env)
-        .unwrap_or_else(|| crate_root.span.slice(&text).trim().trim_matches('"').to_owned());
+    let resolved = eval_string(crate_root, &env).unwrap_or_else(|| {
+        crate_root
+            .span
+            .slice(&text)
+            .trim()
+            .trim_matches('"')
+            .to_owned()
+    });
     Some(resolved.starts_with(&format!("{crate_dir}/")) || resolved.starts_with(crate_dir))
 }
 
@@ -1427,7 +1450,9 @@ fn derive_mapped_key(root: &Path, resolved: &str, crate_dir: &str) -> (String, b
     let name = resolved.rsplit('/').next().unwrap_or(resolved);
     if pkg_dir == crate_dir {
         // Same package: map the source short path to itself (rare; usually glob already covers it).
-        let short = resolved.strip_prefix(&format!("{crate_dir}/")).unwrap_or(resolved);
+        let short = resolved
+            .strip_prefix(&format!("{crate_dir}/"))
+            .unwrap_or(resolved);
         (short.to_owned(), true)
     } else {
         // Cross-package: reference the sibling package's export_file label.
@@ -1485,10 +1510,8 @@ pub fn apply_remediation(buck_text: &str, rem: &Remediation) -> Result<String, S
                         &format!("\"{}\"", rem.mapped_value),
                     )
                     .map_err(|e| e.to_string())?,
-                    None => {
-                        insert_dict_entry(buck_text, dict, &rem.mapped_key, &rem.mapped_value)
-                            .map_err(|e| e.to_string())?
-                    }
+                    None => insert_dict_entry(buck_text, dict, &rem.mapped_key, &rem.mapped_value)
+                        .map_err(|e| e.to_string())?,
                 }
             }
             Expr::Dict(_) => {
@@ -1628,7 +1651,7 @@ fn rewrite_to_comprehension(
         srcs_expr.trim().to_owned()
     } else {
         // Default to the standard asset glob if srcs was empty/list — preserves all sources.
-        "glob([\"src/**/*.rs\", \"**/*.cedar\", \"**/*.sql\", \"**/*.json\", \"**/*.toml\", \"**/*.yaml\", \"**/*.yml\", \"**/*.proto\", \"**/*.graphql\", \"**/*.html\", \"**/*.css\", \"**/*.txt\"])".to_owned()
+        "glob([\"src/**/*.rs\", \"**/*.cedar\", \"**/*.sql\", \"**/*.json\", \"**/*.toml\", \"**/*.yaml\", \"**/*.yml\", \"**/*.proto\", \"**/*.html\", \"**/*.css\", \"**/*.txt\"])".to_owned()
     };
     let visibility = raw("visibility").unwrap_or_else(|| "[\"PUBLIC\"]".to_owned());
     let deps = raw("deps").unwrap_or_else(|| "[]".to_owned());
@@ -1703,7 +1726,10 @@ mod tests {
 
     #[test]
     fn normalize_resolves_dotdot() {
-        assert_eq!(normalize_rel("crate/src/../policy/x.cedar"), "crate/policy/x.cedar");
+        assert_eq!(
+            normalize_rel("crate/src/../policy/x.cedar"),
+            "crate/policy/x.cedar"
+        );
         assert_eq!(normalize_rel("a/./b"), "a/b");
         assert_eq!(normalize_rel("../../foo"), "../../foo");
         assert_eq!(normalize_rel("a/b/../../c"), "c");
@@ -1716,7 +1742,10 @@ mod tests {
             resolve_include("cloud/ci/adapter/src", "../policy/cloud-intelligence.cedar"),
             "cloud/ci/adapter/policy/cloud-intelligence.cedar"
         );
-        assert_eq!(resolve_include("crate/src", "bundled/x.json"), "crate/src/bundled/x.json");
+        assert_eq!(
+            resolve_include("crate/src", "bundled/x.json"),
+            "crate/src/bundled/x.json"
+        );
     }
 
     // ---- include-site extraction ----------------------------------------
@@ -1740,7 +1769,10 @@ mod tests {
         let src = r#"const A: &str = include_str!(concat!("a", "b"));"#;
         let sites = extract_include_sites(src);
         assert_eq!(sites.len(), 1);
-        assert!(sites[0].literal.is_none(), "concat! arg must be non-literal");
+        assert!(
+            sites[0].literal.is_none(),
+            "concat! arg must be non-literal"
+        );
     }
 
     #[test]
@@ -1812,9 +1844,17 @@ rust_library(
         let files = vec!["src/lib.rs".to_owned()];
         let string_vars = top_level_string_vars(buck);
         let glob_vars = top_level_glob_vars(buck);
-        let values = resolve_mapped_var(buck, "ADAPTER_MAPPED_SRCS", &string_vars, &glob_vars, &files);
+        let values = resolve_mapped_var(
+            buck,
+            "ADAPTER_MAPPED_SRCS",
+            &string_vars,
+            &glob_vars,
+            &files,
+        );
         assert!(
-            values.iter().any(|v| v == "cloud/ci/adapter/policy/x.cedar"),
+            values
+                .iter()
+                .any(|v| v == "cloud/ci/adapter/policy/x.cedar"),
             "explicit mapped value must resolve: {values:?}"
         );
         assert!(
@@ -1838,9 +1878,15 @@ rust_library(
     fn unmapped_site_is_red() {
         let findings = evaluate_keyed(
             &policy(),
-            &observed(vec![json!({"key":"a.rs:1","status":"unmapped","detail":"d"})]),
+            &observed(vec![
+                json!({"key":"a.rs:1","status":"unmapped","detail":"d"}),
+            ]),
         );
-        assert!(findings.iter().any(|f| f.code == "embedded_asset_unmapped_include" && f.key == "a.rs:1"));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "embedded_asset_unmapped_include" && f.key == "a.rs:1")
+        );
     }
 
     #[test]
@@ -1856,12 +1902,25 @@ rust_library(
         ]);
         let findings = evaluate_keyed(&policy(), &input);
         assert_eq!(findings.len(), 4, "every skip is surfaced: {findings:#?}");
-        for code in ["skip_non_literal_argument", "skip_no_owning_target", "skip_build_output_path", "skip_buck_unparseable"] {
+        for code in [
+            "skip_non_literal_argument",
+            "skip_no_owning_target",
+            "skip_build_output_path",
+            "skip_buck_unparseable",
+        ] {
             assert!(findings.iter().any(|f| f.code == code), "missing {code}");
         }
         let report = evaluate(&policy(), &input);
-        assert_eq!(report.verdict, Verdict::Green, "skips must not flip the verdict");
-        assert!(report.violations.is_empty(), "no blocking codes: {:?}", report.violations);
+        assert_eq!(
+            report.verdict,
+            Verdict::Green,
+            "skips must not flip the verdict"
+        );
+        assert!(
+            report.violations.is_empty(),
+            "no blocking codes: {:?}",
+            report.violations
+        );
     }
 
     #[test]
@@ -1874,7 +1933,9 @@ rust_library(
         assert_eq!(report.verdict, Verdict::Red);
         assert_eq!(
             report.violations,
-            ["embedded_asset_unmapped_include".to_owned()].into_iter().collect::<BTreeSet<_>>(),
+            ["embedded_asset_unmapped_include".to_owned()]
+                .into_iter()
+                .collect::<BTreeSet<_>>(),
             "only the blocking code is a violation; the skip is excluded"
         );
     }
@@ -1884,7 +1945,11 @@ rust_library(
         let mut bad = policy();
         bad["gate_id"] = json!("wrong");
         let report = evaluate(&bad, &observed(vec![]));
-        assert!(report.violations.contains("embedded_asset_policy_gate_id_mismatch"));
+        assert!(
+            report
+                .violations
+                .contains("embedded_asset_policy_gate_id_mismatch")
+        );
         assert_eq!(report.verdict, Verdict::Red);
     }
 
@@ -1918,7 +1983,11 @@ rust_library(
         let mut bad = policy();
         bad["gate_id"] = json!("wrong");
         for f in evaluate_keyed(&bad, &input) {
-            assert!(declared.contains(f.code.as_str()), "emitted undeclared code {}", f.code);
+            assert!(
+                declared.contains(f.code.as_str()),
+                "emitted undeclared code {}",
+                f.code
+            );
         }
     }
 
@@ -1946,7 +2015,12 @@ rust_library(
         let string_vars = top_level_string_vars(buck);
         let glob_vars = top_level_glob_vars(buck);
         let values = resolve_mapped_var(buck, "MAPPED", &string_vars, &glob_vars, &files);
-        assert!(values.iter().any(|v| v == "cloud/ci/adapter/policy/x.cedar"), "VALUE present");
+        assert!(
+            values
+                .iter()
+                .any(|v| v == "cloud/ci/adapter/policy/x.cedar"),
+            "VALUE present"
+        );
         assert!(
             !values.iter().any(|v| v == "//cloud/ci/policy:x.cedar"),
             "the mapped_srcs KEY must never enter the destination set: {values:?}"
@@ -1968,8 +2042,14 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
         let sv = top_level_string_vars(buck);
         let gv = top_level_glob_vars(buck);
         let values = resolve_mapped_var(buck, "MAPPED", &sv, &gv, &files);
-        assert!(values.iter().any(|v| v == "p/q/policy/y.cedar"), "explicit value: {values:?}");
-        assert!(values.iter().any(|v| v == "p/q/src/lib.rs"), "comprehension value: {values:?}");
+        assert!(
+            values.iter().any(|v| v == "p/q/policy/y.cedar"),
+            "explicit value: {values:?}"
+        );
+        assert!(
+            values.iter().any(|v| v == "p/q/src/lib.rs"),
+            "comprehension value: {values:?}"
+        );
     }
 
     // ---- scanner context-awareness (the self-flag correctness fix) ------------
@@ -1999,9 +2079,17 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
     #[test]
     fn is_out_of_scope_classifies_build_outputs() {
         let exts: BTreeSet<String> = ["cedar", "json"].into_iter().map(str::to_owned).collect();
-        assert!(is_out_of_scope("../../../out/svc.elf", &["../../../out/".to_owned()], &exts));
+        assert!(is_out_of_scope(
+            "../../../out/svc.elf",
+            &["../../../out/".to_owned()],
+            &exts
+        ));
         // a .cedar under out/ is still an embedded asset -> NOT out of scope.
-        assert!(!is_out_of_scope("../../../out/policy.cedar", &["../../../out/".to_owned()], &exts));
+        assert!(!is_out_of_scope(
+            "../../../out/policy.cedar",
+            &["../../../out/".to_owned()],
+            &exts
+        ));
     }
 
     // ---- auto-remediation (`--fix`) -------------------------------------------
@@ -2045,10 +2133,20 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
             note: String::new(),
         };
         let patched = apply_remediation(buck, &rem).expect("apply");
-        assert!(patched.contains("\"//y/policy:p.cedar\": \"y/policy/p.cedar\""), "value replaced: {patched}");
-        assert!(!patched.contains("\"policy/p.cedar\""), "old wrong value must be gone: {patched}");
+        assert!(
+            patched.contains("\"//y/policy:p.cedar\": \"y/policy/p.cedar\""),
+            "value replaced: {patched}"
+        );
+        assert!(
+            !patched.contains("\"policy/p.cedar\""),
+            "old wrong value must be gone: {patched}"
+        );
         // Exactly one occurrence of the key (no duplicate).
-        assert_eq!(patched.matches("//y/policy:p.cedar").count(), 1, "no duplicate key: {patched}");
+        assert_eq!(
+            patched.matches("//y/policy:p.cedar").count(),
+            1,
+            "no duplicate key: {patched}"
+        );
     }
 
     #[test]
@@ -2064,7 +2162,10 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
             note: String::new(),
         };
         let patched = apply_remediation(buck, &rem).expect("apply");
-        assert!(patched.contains("mapped_srcs = {"), "must add a mapped_srcs dict: {patched}");
+        assert!(
+            patched.contains("mapped_srcs = {"),
+            "must add a mapped_srcs dict: {patched}"
+        );
         assert!(patched.contains("\"//q:a.cedar\": \"q/a.cedar\""));
     }
 
@@ -2080,7 +2181,10 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
             note: "asset not found on disk; manual fix required".to_owned(),
         };
         let err = apply_remediation("rust_library(name = \"t\")", &rem).unwrap_err();
-        assert!(err.contains("manual fix required"), "must surface the manual note: {err}");
+        assert!(
+            err.contains("manual fix required"),
+            "must surface the manual note: {err}"
+        );
     }
 
     #[test]
@@ -2104,14 +2208,36 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
             note: String::new(),
         };
         let patched = apply_remediation(buck, &rem).expect("rewrite");
-        assert!(patched.contains("ASSET_ROOT = \"svc/crates/adapter\""), "ROOT var: {patched}");
-        assert!(patched.contains("crate_root = ASSET_ROOT + \"/src/lib.rs\""), "deep crate_root: {patched}");
-        assert!(patched.contains("{src: ASSET_ROOT + \"/\" + src for src in ASSET_SRCS}"), "comprehension: {patched}");
-        assert!(patched.contains("ASSET_MAPPED_SRCS[\"//svc/policy:p.cedar\"] = \"svc/policy/p.cedar\""), "explicit deep value: {patched}");
+        assert!(
+            patched.contains("ASSET_ROOT = \"svc/crates/adapter\""),
+            "ROOT var: {patched}"
+        );
+        assert!(
+            patched.contains("crate_root = ASSET_ROOT + \"/src/lib.rs\""),
+            "deep crate_root: {patched}"
+        );
+        assert!(
+            patched.contains("{src: ASSET_ROOT + \"/\" + src for src in ASSET_SRCS}"),
+            "comprehension: {patched}"
+        );
+        assert!(
+            patched
+                .contains("ASSET_MAPPED_SRCS[\"//svc/policy:p.cedar\"] = \"svc/policy/p.cedar\""),
+            "explicit deep value: {patched}"
+        );
         assert!(patched.contains("srcs = [],"), "srcs emptied: {patched}");
-        assert!(patched.contains("crate = \"adapter_crate\""), "crate preserved: {patched}");
-        assert!(!patched.contains("crate_root = \"src/lib.rs\""), "short crate_root removed: {patched}");
-        assert!(!patched.contains("\"policy/p.cedar\""), "wrong crate-local value removed: {patched}");
+        assert!(
+            patched.contains("crate = \"adapter_crate\""),
+            "crate preserved: {patched}"
+        );
+        assert!(
+            !patched.contains("crate_root = \"src/lib.rs\""),
+            "short crate_root removed: {patched}"
+        );
+        assert!(
+            !patched.contains("\"policy/p.cedar\""),
+            "wrong crate-local value removed: {patched}"
+        );
     }
 
     #[test]
@@ -2130,7 +2256,10 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
         // to confirm the guard still refuses unknown kinds. We test rust_binary support separately.
         // Re-purpose this fixture: pass a proc-macro-shaped block (unsupported kind).
         let buck_proc = "rust_proc_macro(\n    name = \"b\",\n    srcs = glob([\"src/**/*.rs\"]),\n    crate_root = \"src/main.rs\",\n)\n";
-        assert!(apply_remediation(buck_proc, &rem).is_err(), "proc_macro must be refused");
+        assert!(
+            apply_remediation(buck_proc, &rem).is_err(),
+            "proc_macro must be refused"
+        );
     }
 
     // ---- Finding 1 fix: no-trailing-comma + self-validation -----------------
@@ -2150,13 +2279,17 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
             applicable: true,
             note: String::new(),
         };
-        let patched = apply_remediation(buck, &rem).expect("must not corrupt on no-trailing-comma input");
+        let patched =
+            apply_remediation(buck, &rem).expect("must not corrupt on no-trailing-comma input");
         // The output must contain a comma separating the last existing field from mapped_srcs.
         assert!(
             patched.contains(",\n    mapped_srcs"),
             "separator comma required before mapped_srcs: {patched}"
         );
-        assert!(patched.contains("\"//q:asset.cedar\": \"q/asset.cedar\""), "entry present: {patched}");
+        assert!(
+            patched.contains("\"//q:asset.cedar\": \"q/asset.cedar\""),
+            "entry present: {patched}"
+        );
         // Self-validation: reparsing must succeed (target block findable + key visible).
         // apply_remediation itself runs validate_remediation_output; if we got Ok above, it passed.
     }
@@ -2180,12 +2313,24 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
         };
         let patched = apply_remediation(buck, &rem)
             .expect("comment-bearing block must now be edited soundly, not refused");
-        assert!(!patched.contains(",,"), "no double comma allowed: {patched}");
-        assert!(patched.contains("# trailing comment"), "comment preserved: {patched}");
-        assert!(patched.contains("\"//q:a.cedar\": \"q/a.cedar\""), "entry present: {patched}");
+        assert!(
+            !patched.contains(",,"),
+            "no double comma allowed: {patched}"
+        );
+        assert!(
+            patched.contains("# trailing comment"),
+            "comment preserved: {patched}"
+        );
+        assert!(
+            patched.contains("\"//q:a.cedar\": \"q/a.cedar\""),
+            "entry present: {patched}"
+        );
         // Full round-trip through the real detector parse path.
         let targets = parse_buck_targets(&patched, &[]);
-        let lib = targets.iter().find(|t| t.name == "lib").expect("target intact");
+        let lib = targets
+            .iter()
+            .find(|t| t.name == "lib")
+            .expect("target intact");
         assert!(
             lib.mapped_dest.iter().any(|v| v == "q/a.cedar"),
             "injected value visible after reparse: {targets:?}"
@@ -2208,7 +2353,10 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
             note: String::new(),
         };
         let result = apply_remediation(buck, &rem);
-        assert!(result.is_err(), "self-validation must refuse when target not found");
+        assert!(
+            result.is_err(),
+            "self-validation must refuse when target not found"
+        );
         let msg = result.unwrap_err();
         assert!(
             msg.contains("ghost") || msg.contains("not found"),
@@ -2226,7 +2374,10 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
         let buck = "rust_library(\n    # house style — em-dash comment\n    name = \"t\",\n    srcs = [],\n)\n";
         let targets = parse_buck_targets(buck, &[]);
         assert_eq!(targets.len(), 1, "must parse despite em-dash: {targets:?}");
-        assert_eq!(targets[0].name, "t", "name field bound correctly: {targets:?}");
+        assert_eq!(
+            targets[0].name, "t",
+            "name field bound correctly: {targets:?}"
+        );
     }
 
     #[test]
@@ -2259,12 +2410,20 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
         };
         let patched = apply_remediation(buck, &rem)
             .expect("comment + missing-comma block must be edited soundly");
-        assert!(patched.contains("\"src/lib.rs\","), "comma attached to the value: {patched}");
+        assert!(
+            patched.contains("\"src/lib.rs\","),
+            "comma attached to the value: {patched}"
+        );
         assert!(!patched.contains(",,"), "no double comma: {patched}");
-        assert!(patched.contains("# em-dash \u{2014} style"), "comment preserved: {patched}");
+        assert!(
+            patched.contains("# em-dash \u{2014} style"),
+            "comment preserved: {patched}"
+        );
         let targets = parse_buck_targets(&patched, &[]);
         assert!(
-            targets.iter().any(|t| t.name == "lib" && t.mapped_dest.iter().any(|v| v == "q/a.cedar")),
+            targets
+                .iter()
+                .any(|t| t.name == "lib" && t.mapped_dest.iter().any(|v| v == "q/a.cedar")),
             "round-trip green: {targets:?}"
         );
     }
@@ -2284,7 +2443,10 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
             note: String::new(),
         };
         let patched = apply_remediation(buck, &rem).expect("no comment — must succeed");
-        assert!(patched.contains("\"//r:new.cedar\": \"r/new.cedar\""), "entry injected: {patched}");
+        assert!(
+            patched.contains("\"//r:new.cedar\": \"r/new.cedar\""),
+            "entry injected: {patched}"
+        );
     }
 
     // ---- Finding 3 fix: multi-target patching --------------------------------
@@ -2309,12 +2471,25 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
             "literal": "../policy/asset.cedar"
         });
         let rems = derive_remediation(&tmp, &site);
-        assert_eq!(rems.len(), 2, "one remediation per covering target: {rems:?}");
+        assert_eq!(
+            rems.len(),
+            2,
+            "one remediation per covering target: {rems:?}"
+        );
         let targets: Vec<&str> = rems.iter().map(|r| r.target.as_str()).collect();
-        assert!(targets.contains(&"svc-lib"), "first target present: {targets:?}");
-        assert!(targets.contains(&"svc-lib-unittest"), "second target present: {targets:?}");
+        assert!(
+            targets.contains(&"svc-lib"),
+            "first target present: {targets:?}"
+        );
+        assert!(
+            targets.contains(&"svc-lib-unittest"),
+            "second target present: {targets:?}"
+        );
         // All entries are non-applicable (asset not on disk), so --fix reports them as manual.
-        assert!(rems.iter().all(|r| !r.applicable), "non-applicable without asset on disk");
+        assert!(
+            rems.iter().all(|r| !r.applicable),
+            "non-applicable without asset on disk"
+        );
         let _ = std::fs::remove_dir_all(&tmp);
     }
 

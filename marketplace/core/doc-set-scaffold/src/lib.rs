@@ -15,11 +15,10 @@ pub enum Layer {
     App,
     Adapter,
     Infrastructure,
+    Cli,
     Rest,
     Grpc,
-    Graphql,
     Worker,
-    Cli,
     Sdk,
     Api,
 }
@@ -33,11 +32,10 @@ impl Layer {
             Self::App => "app",
             Self::Adapter => "adapter",
             Self::Infrastructure => "infrastructure",
+            Self::Cli => "cli",
             Self::Rest => "rest",
             Self::Grpc => "grpc",
-            Self::Graphql => "graphql",
             Self::Worker => "worker",
-            Self::Cli => "cli",
             Self::Sdk => "sdk",
             Self::Api => "api",
         }
@@ -54,11 +52,10 @@ pub mod domain {
         Layer::App,
         Layer::Adapter,
         Layer::Infrastructure,
+        Layer::Cli,
         Layer::Rest,
         Layer::Grpc,
-        Layer::Graphql,
         Layer::Worker,
-        Layer::Cli,
         Layer::Sdk,
         Layer::Api,
     ];
@@ -84,8 +81,8 @@ pub fn scaffold() -> DocSetScaffold {
 pub fn validate_scaffold() -> Result<(), &'static str> {
     let scaffold = scaffold();
 
-    if scaffold.layers.len() != 13 {
-        return Err("ADR-0105 layer enum must declare exactly 13 layers");
+    if scaffold.layers.len() != 12 {
+        return Err("ADR-0105 layer enum must declare exactly 12 layers");
     }
 
     for (index, layer) in scaffold.layers.iter().enumerate() {
@@ -120,8 +117,8 @@ mod tests {
     }
 
     #[test]
-    fn declares_13_canonical_layers() {
-        assert_eq!(domain::LAYERS.len(), 13);
+    fn declares_12_canonical_layers() {
+        assert_eq!(domain::LAYERS.len(), 12);
         assert_eq!(
             domain::LAYERS,
             &[
@@ -131,11 +128,10 @@ mod tests {
                 Layer::App,
                 Layer::Adapter,
                 Layer::Infrastructure,
+                Layer::Cli,
                 Layer::Rest,
                 Layer::Grpc,
-                Layer::Graphql,
                 Layer::Worker,
-                Layer::Cli,
                 Layer::Sdk,
                 Layer::Api,
             ]

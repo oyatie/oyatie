@@ -100,10 +100,10 @@ pub fn default_domain_invariants() -> Vec<DomainInvariant> {
 
 pub fn validate_scaffold() -> ServiceResult<()> {
     let descriptor = descriptor();
-    if descriptor.layer_count() != 13 {
+    if descriptor.layer_count() != 12 {
         return Err(ServiceError::InvariantViolation {
             invariant: "adr_0105_layer_count",
-            details: format!("expected 13 layers, found {}", descriptor.layer_count()),
+            details: format!("expected 12 layers, found {}", descriptor.layer_count()),
         });
     }
     if descriptor.contract_count() != 3 {

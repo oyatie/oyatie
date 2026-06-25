@@ -27,14 +27,14 @@ decision_owner: axis-ontology
 - ADR-0243 requires Cedar before type registration, action invocation, query execution, public reads, and cross-tenant projections.
 - The local manifest already names Citus-backed entity-store work and ClickHouse history mirrors in implementation packet titles.
 - The local manifest names capabilities `cedar-evaluate`, `query-execute`, and `type-register`.
-- Product and agent workloads need typed graph traversal, object-type registration, link traversal, action invocation, and GraphQL-like projections.
+- Product and agent workloads need typed graph traversal, object-type registration, link traversal, action invocation, and typed query projections.
 - Data governance workloads need shape validation, schema revision, deprecation state, field-level data class, and proof that breaking changes followed the ADR-0257 handshake.
 - RDF and SHACL provide mature semantic-web standards for shape validation and interchange.
 - Property graphs provide ergonomic traversal and property-bearing edges that product developers and query authors understand.
 - Apache AGE adds graph functionality to PostgreSQL and supports Cypher-style graph queries as a Postgres extension.
 - Citus horizontally scales PostgreSQL through distributed tables, reference tables, and distributed query planning.
 - PostgreSQL keeps relational controls, migrations, transactional writes, row-level security, and operational expertise aligned with the rest of Oyatie.
-- GraphQL gives product and agent clients a typed projection model, but GraphQL is not the storage model.
+- Typed query projections give product and agent clients an ergonomic read model, but the projection layer is not the storage model.
 - A pure triple store would make RDF-native validation easy but complicate tenant-scoped relational controls and Citus sharding.
 - A pure property graph database would make traversal easy but could fragment the platform's Postgres and Cedar policy posture.
 - A pure relational model would be governable but less expressive for link traversal and graph-shaped queries.
@@ -44,19 +44,19 @@ decision_owner: axis-ontology
 - The ontology must support object types whose properties include scalar, vector, geo, timeseries, ciphertext, and struct fields.
 - The ontology must support action receipts and audit-chain evidence for graph writes.
 - The ontology must support history and analytics without putting OLAP pressure on the OLTP graph store.
-- The ontology must support GraphQL projection for client-facing read ergonomics and typed SDK generation.
+- The ontology must support typed query projection for client-facing read ergonomics and SDK generation.
 - The ontology must support RDF shape import/export for standards interop and external governance tools.
 - The ontology must make the storage choice clear enough for future implementers to avoid adding Neo4j, Stardog, or a triple store as a shadow source.
 - The ontology must keep tenant sharding and row-level controls explicit.
 - The ontology must keep graph traversal p99 targets realistic and measurable.
-- The ontology must document how RDF shapes, property graph rows, Citus distribution, and GraphQL projection relate.
+- The ontology must document how RDF shapes, property graph rows, Citus distribution, and typed query projection relate.
 
 ## Decision
 
 - Adopt PostgreSQL plus Citus as the tenant-distributed relational substrate for ontology persistence.
 - Adopt Apache AGE as the property graph extension for graph traversal and relationship queries where graph expression is valuable.
 - Use RDF/SHACL-style shapes as validation and interchange artifacts, not as the primary storage engine.
-- Use GraphQL as a projection and client contract layer, not as the persistence model.
+- Use generated query projections as client contract layers, not as the persistence model.
 - Store Object Types, Link Types, Action Types, Function Types, schema revisions, and deprecation state in relational tables.
 - Store entity instances and link instances in tenant-distributed Citus tables keyed by `tenant_id`.
 - Store graph labels and edge properties through AGE where traversal performance or query clarity requires graph operations.
@@ -64,8 +64,8 @@ decision_owner: axis-ontology
 - Generate RDF shape documents from canonical Object Type and Link Type definitions for export and external validation.
 - Accept RDF shape imports only through a compiler that produces canonical ontology type definitions and a validation report.
 - Reject direct RDF triple writes to production storage.
-- Expose GraphQL projection endpoints generated from active Object Type schema revisions.
-- Require GraphQL resolvers to call ontology query usecases and Cedar policy gates; resolvers never query AGE or Citus directly.
+- Expose generated query projection endpoints from active Object Type schema revisions.
+- Require projection handlers to call ontology query usecases and Cedar policy gates; handlers never query AGE or Citus directly.
 - Use Citus distribution column `tenant_id` for entity and link instance tables.
 - Use Citus reference tables for small global registries such as field type enum, data class enum, and built-in function signatures.
 - Use tenant-local schema revision id on every entity row and link row.
@@ -73,16 +73,16 @@ decision_owner: axis-ontology
 - Mirror graph history and high-volume analytics to ClickHouse where OLAP query patterns exceed OLTP budgets.
 - Keep vector search, full-text search, and temporal analytics as typed property adapters, not ad-hoc graph extensions.
 - Require every type registration and schema revision change to emit audit-chain evidence.
-- Require every GraphQL projection to include `schema_revision` and `deprecation_state` where the type is versioned.
+- Require every generated query projection to include `schema_revision` and `deprecation_state` where the type is versioned.
 - Require every write to check Cedar action `ontology::type_register`, `ontology::entity_write`, or `ontology::link_write`.
 - Require every read to check Cedar action `ontology::query_execute` or a narrower generated projection action.
 - Use p99 query target below 50 ms for simple type and function reads.
 - Use p99 query target below 250 ms for tenant-local bounded graph traversal up to depth 3.
 - Require explicit asynchronous job for graph traversal depth above 3 or estimated result set above 10,000 nodes.
-- Cap single GraphQL response at 2 MiB unless an export workflow is authorized.
+- Cap single query projection response at 2 MiB unless an export workflow is authorized.
 - Keep AGE schema per tenant shard where Citus placement requires locality and operational isolation.
 - Treat RDF export as a compatibility projection subject to the same tenant, data-class, and deprecation gates.
-- Treat GraphQL schema generation as deterministic build output from canonical type definitions.
+- Treat query projection schema generation as deterministic build output from canonical type definitions.
 
 ## Alternatives Considered
 
@@ -116,14 +116,14 @@ decision_owner: axis-ontology
 - Cons: product teams may build shadow graph projections to compensate.
 - Rejected because ontology is graph-shaped enough to justify AGE for bounded traversals.
 
-### Pure GraphQL storage abstraction
+### Pure query-projection storage abstraction
 
 - Pros: client and SDK ergonomics are excellent.
 - Pros: frontend teams get typed schemas and generated queries.
 - Pros: hides storage details from consumers.
-- Cons: GraphQL is a query and execution contract, not a durable storage model.
+- Cons: A query projection layer is an execution contract, not a durable storage model.
 - Cons: without canonical storage rules, resolvers can drift into ad-hoc policy and performance behavior.
-- Cons: schema lifecycle and deprecation handshake need a source below GraphQL.
+- Cons: schema lifecycle and deprecation handshake need a canonical source below the projection layer.
 - Rejected as storage; adopted as deterministic projection from canonical type definitions.
 
 ### TypeDB or Datalog-style knowledge base
@@ -132,7 +132,7 @@ decision_owner: axis-ontology
 - Pros: attractive for inference-heavy ontology workloads.
 - Pros: could reduce custom rule implementation.
 - Cons: new database family and operational model.
-- Cons: tenant sharding, Cedar coverage, and GraphQL projection still require custom integration.
+- Cons: tenant sharding, Cedar coverage, and generated query projections still require custom integration.
 - Cons: inference can obscure auditability if rule execution is not tightly controlled.
 - Rejected for this batch; inference can be layered as a function/action surface later.
 
@@ -141,7 +141,7 @@ decision_owner: axis-ontology
 - Positive: storage remains aligned with Postgres, Citus, migrations, RLS, backups, and existing operational expertise.
 - Positive: property graph traversal is available without adopting a separate graph database.
 - Positive: RDF shape export satisfies standards interop while canonical records remain governable.
-- Positive: GraphQL projections give clients typed read ergonomics without becoming source of truth.
+- Positive: Generated query projections give clients typed read ergonomics without becoming source of truth.
 - Positive: tenant sharding and schema revisions stay explicit.
 - Positive: audit-chain and Cedar gates can inspect canonical relational records.
 - Positive: ClickHouse can absorb analytical history without overloading OLTP traversal.
@@ -149,14 +149,14 @@ decision_owner: axis-ontology
 - Negative: RDF import/export compiler becomes a critical correctness surface.
 - Negative: some semantic-web-native use cases will find the storage model less natural.
 - Negative: graph traversal constraints must be enforced to avoid runaway queries.
-- Negative: GraphQL projection generation adds build and compatibility complexity.
-- Neutral: AGE and GraphQL are implementation choices under a stable ontology contract.
+- Negative: Query projection generation adds build and compatibility complexity.
+- Neutral: AGE and query projection adapters are implementation choices under a stable ontology contract.
 - Neutral: RDF shape documents are compatibility artifacts and may be regenerated.
 - Neutral: future inference engines can consume canonical type definitions and audit receipts.
 - Neutral: storage and projection versions can evolve on separate but linked timelines.
 - Follow-up: add RDF shape compiler fixtures for Object Type and Link Type examples.
 - Follow-up: add AGE+Citus integration benchmark for depth-3 tenant-local traversal.
-- Follow-up: add GraphQL schema generation reference tests.
+- Follow-up: add query projection schema generation reference tests.
 - Follow-up: add a migration guard preventing direct triple-store writes.
 - Follow-up: add a ClickHouse mirror contract for graph history.
 
@@ -169,19 +169,19 @@ decision_owner: axis-ontology
 - Data shape `EntityInstance`: `{tenant_id, entity_id, object_type_id, schema_revision, properties_jsonb, age_vertex_id, created_hlc, audit_event_id}`.
 - Data shape `LinkInstance`: `{tenant_id, link_id, link_type_id, from_entity_id, to_entity_id, properties_jsonb, age_edge_id, audit_event_id}`.
 - Data shape `RdfShapeProjection`: `{tenant_id, shape_id, source_type_id, schema_revision, shacl_doc_ref, generated_hash, generated_at}`.
-- Data shape `GraphqlProjectionSchema`: `{tenant_id, projection_id, schema_revision_set, graphql_sdl_hash, active_from, deprecated_after}`.
+- Data shape `QueryProjectionSchema`: `{tenant_id, projection_id, schema_revision_set, query_schema_hash, active_from, deprecated_after}`.
 - REST endpoint `POST /v1/ontology/object-types` registers Object Types after Cedar and shape validation.
 - REST endpoint `POST /v1/ontology/link-types` registers Link Types after Cedar and compatibility checks.
 - REST endpoint `POST /v1/ontology/entities` writes entity instances through canonical usecases.
 - REST endpoint `POST /v1/ontology/links` writes link instances and AGE edge records in one local transaction.
 - REST endpoint `POST /v1/ontology/rdf-shapes/import` compiles RDF shapes into proposed type definitions.
 - REST endpoint `GET /v1/ontology/rdf-shapes/export/{type_id}` exports generated RDF shape projection.
-- REST endpoint `POST /v1/ontology/graphql/query` executes generated GraphQL projection with Cedar preflight.
+- REST endpoint `POST /v1/ontology/queries/projection` executes generated query projection with Cedar preflight.
 - REST endpoint `POST /v1/ontology/queries/graph-traversal` executes bounded traversal with depth and cardinality limits.
 - Async event `ontology.object_type.registered.v1` carries schema revision and deprecation state.
 - Async event `ontology.link_instance.written.v1` carries link type, endpoints, and audit event id.
 - Async event `ontology.rdf_shape.generated.v1` carries shape hash and source revision.
-- Async event `ontology.graphql_projection.generated.v1` carries SDL hash and revision set.
+- Async event `ontology.query_projection.generated.v1` carries query schema hash and revision set.
 - Cedar permit `ontology::type_register::execute` requires tenant admin or authorized schema steward.
 - Cedar permit `ontology::entity_write::execute` requires type write permission and data-class purpose.
 - Cedar permit `ontology::link_write::execute` requires permission on both endpoint entities and link type.
@@ -194,7 +194,7 @@ decision_owner: axis-ontology
 - Distribution column for entity and link tables is `tenant_id`.
 - AGE graph name pattern is `ontology_<tenant_hash>_<cell_id>` or shard-local equivalent.
 - ClickHouse history mirror stores append-only entity and link change facts for analytics.
-- GraphQL resolver context always includes tenant, principal, projection id, schema revision set, and Cedar decision id.
+- Query projection context always includes tenant, principal, projection id, schema revision set, and Cedar decision id.
 - RDF import compiler emits proposed Object Type and Link Type diffs plus unsupported constraint warnings.
 - Migration guard rejects any production endpoint that writes raw RDF triples directly.
 - Traversal planner estimates depth, edge fanout, and response size before running graph queries.
@@ -204,11 +204,11 @@ decision_owner: axis-ontology
 
 - Unit test `object_type_requires_schema_revision` validates ADR-0257 handshake input.
 - Unit test `entity_instance_requires_tenant_distribution_key` validates Citus sharding.
-- Unit test `graphql_resolver_requires_cedar_decision` prevents direct resolver bypass.
+- Unit test `query_projection_requires_cedar_decision` prevents direct projection bypass.
 - Unit test `rdf_import_compiles_to_type_diff_not_direct_write` protects storage contract.
 - Unit test `link_write_requires_both_endpoint_permissions` validates policy composition.
 - Unit test `traversal_depth_above_three_requires_async_job` enforces query bound.
-- Property test `graphql_sdl_generation_deterministic` generates type definitions and compares hashes.
+- Property test `query_schema_generation_deterministic` generates projection definitions and compares hashes.
 - Property test `rdf_shape_export_import_roundtrip_supported_subset` validates interchange subset.
 - Property test `deprecation_state_propagates_to_projection` validates projection metadata.
 - Fuzz test `rdf_shape_parser_rejects_malformed_shapes` protects import path.
@@ -216,8 +216,8 @@ decision_owner: axis-ontology
 - Integration test `entity_write_creates_relational_row_and_age_vertex` validates dual persistence.
 - Integration test `link_write_creates_relational_row_and_age_edge` validates edge persistence.
 - Integration test `clickhouse_history_mirror_receives_graph_change` validates OLAP mirror.
-- Integration test `tenant_a_graphql_query_cannot_read_tenant_b` validates isolation.
-- Load test `type_registry_10k_types_generation` validates GraphQL and RDF projection scale.
+- Integration test `tenant_a_projection_query_cannot_read_tenant_b` validates isolation.
+- Load test `type_registry_10k_types_generation` validates query and RDF projection scale.
 - Load test `entity_write_5k_per_second_per_cell` validates write path.
 - Chaos test `age_extension_unavailable_fails_traversal_not_type_reads` validates degradation.
 - Chaos test `clickhouse_mirror_lag_does_not_block_oltp_write` validates async mirror.
@@ -225,14 +225,13 @@ decision_owner: axis-ontology
 - Dashboard check `read-path-library-freshness.json` shows schema revision propagation lag.
 - Metric check `ontology_rdf_import_unsupported_constraint_total` is visible by tenant and shape.
 - Static check no endpoint writes RDF triples directly to storage.
-- Static check GraphQL SDL is generated from canonical type definitions.
+- Static check projection schemas are generated from canonical type definitions.
 - Oya VCS evidence must include line count, root ADR cite count, and reference count for this ADR.
 
 ## References
 
 - Apache AGE overview and documentation: https://age.apache.org/overview/
 - Citus documentation for distributed PostgreSQL tables and multi-tenant scaling: https://docs.citusdata.com/
-- GraphQL Specification, October 2021: https://spec.graphql.org/October2021/
 - W3C RDF 1.1 Concepts and Abstract Syntax.
 - W3C SHACL, Shapes Constraint Language.
 - PostgreSQL row-level security and extension documentation.

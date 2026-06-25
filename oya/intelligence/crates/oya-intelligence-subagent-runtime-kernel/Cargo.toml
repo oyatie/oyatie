@@ -6,10 +6,10 @@
 #                      the per-facet subagent invocation substrate — the
 #                      port + value-objects that close the
 #                      `subagent_runtime_pending=true` gap in IP-004/IP-005/IP-006).
-#   - layer (slot-N):  `kernel` — closed 13-value enum {kernel, domain,
+#   - layer (slot-N):  `kernel` — closed 12-value enum {kernel, domain,
 #                      usecase, app, adapter, infrastructure, cli, rest,
-#                      grpc, graphql, worker, sdk, api} per ADR-0056
-#                      amended by ADR-0105+ADR-0106. ✓
+#                      grpc, worker, sdk, api} per ADR-0056 amended by
+#                      ADR-0105+ADR-0106+ADR-0565. ✓
 #   - Sibling pattern: every other `oya-foundry-*-kernel` crate (the
 #                      port-in-kernel substrate; adapter impls live
 #                      one ring out, binary entrypoints two rings out).

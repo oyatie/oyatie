@@ -96,8 +96,8 @@ pub(crate) fn validate_statelessness_gate(
     if report.files_in_scope == 0 && !args.allow_empty {
         return Err(format!(
             "statelessness validation has zero outer-ring files in scope (scanned {} total). \
-             Pass --allow-empty to acknowledge a tree with no application/app/worker/rest/grpc/\
-             graphql/cli/sdk crates is intentional; otherwise the lane refuses to falsely claim pass.",
+             Pass --allow-empty to acknowledge a tree with no usecase/app/worker/rest/grpc/\
+             api/cli/sdk crates is intentional; otherwise the lane refuses to falsely claim pass.",
             report.files_checked
         ));
     }

@@ -18,7 +18,7 @@ related_adrs:
   - ADR-0331
 naming_justifications:
   bnf_v4: "marketplace.category-datasets.listing"
-  layer_enum: "13-layer-enum: kernel, domain, usecase, app, adapter, infrastructure, rest, grpc, graphql, worker, cli, sdk, api"
+  layer_enum: "12-layer-enum: kernel, domain, usecase, app, adapter, infrastructure, rest, grpc, worker, cli, sdk, api"
 taxonomy:
   facets:
     - dataset_class: [tabular, image, audio, video, text-corpus, embeddings, time-series, geospatial, graph]

@@ -45,14 +45,14 @@ It applies to every capability contribution that names an implementation crate.
 It applies to every checker that classifies dependency direction.
 
 It applies to every design doc that says a component is kernel, domain, usecase,
-app, adapter, infrastructure, rest, grpc, graphql, worker, cli, or sdk.
+app, adapter, infrastructure, rest, grpc, worker, cli, or sdk.
 
 It applies retroactively to legacy labels such as `application` when they remain
 in compatibility rows.
 
 It does not decide whether a microservice should exist.
 
-It does not decide whether an API is REST, gRPC, or GraphQL.
+It does not decide whether an API is REST, gRPC, event-driven, or realtime.
 
 It does not authorize cross-layer imports for convenience.
 
@@ -77,7 +77,7 @@ L-007. `rest` is an inbound HTTP REST surface.
 
 L-008. `grpc` is an inbound or internal gRPC surface.
 
-L-009. `graphql` is an inbound GraphQL surface.
+L-009. Reserved; removed from the active owned-stack layer vocabulary by ADR-0565.
 
 L-010. `worker` is an inbound async, scheduled, stream, or queue processor.
 
@@ -125,7 +125,7 @@ R-011. `domain` crates MUST depend inward only.
 
 R-012. `domain` crates MUST NOT depend on adapters.
 
-R-013. `domain` crates MUST NOT depend on REST, gRPC, GraphQL, worker, CLI, or SDK layers.
+R-013. `domain` crates MUST NOT depend on REST, gRPC, worker, CLI, or SDK layers.
 
 R-014. `domain` crates SHOULD hold pure business workflows.
 
@@ -181,9 +181,9 @@ R-039. `grpc` crates MUST own proto3 service bindings and generated glue.
 
 R-040. `grpc` crates MUST bind to `proto3-authoring.md`.
 
-R-041. `graphql` crates MUST own schema and resolver mapping.
+R-041. Reserved; removed from the active owned-stack layer vocabulary by ADR-0565.
 
-R-042. `graphql` crates MUST not bypass Cedar policy checks.
+R-042. Reserved; removed from the active owned-stack layer vocabulary by ADR-0565.
 
 R-043. `worker` crates MUST own queue, stream, timer, or batch entrypoints.
 
@@ -427,7 +427,7 @@ Putting background timers in an app crate without worker classification is an an
 
 Putting generated server stubs in `kernel` is an anti-pattern.
 
-Putting Cedar authorization bypasses in GraphQL resolvers is an anti-pattern.
+Putting Cedar authorization bypasses in presentation handlers is an anti-pattern.
 
 Putting OpenAPI request types in a domain crate is an anti-pattern.
 
@@ -497,7 +497,7 @@ LAY-SB-009. Verify `rest` crates own HTTP mapping only.
 
 LAY-SB-010. Verify `grpc` crates own proto service mapping only.
 
-LAY-SB-011. Verify `graphql` crates own resolver mapping only.
+LAY-SB-011. Reserved; removed from the active owned-stack layer vocabulary by ADR-0565.
 
 LAY-SB-012. Verify `worker` crates own queue or timer entrypoints.
 

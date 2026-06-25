@@ -17,15 +17,23 @@ fn scaffold_declares_expected_contracts() {
 #[test]
 fn scaffold_declares_adr_0105_layers() {
     let scaffold = scaffold();
-    assert_eq!(scaffold.layers.len(), 13);
+    assert_eq!(scaffold.layers.len(), 12);
 }
 
 #[test]
 fn scaffold_declares_contact_center_capabilities() {
     let scaffold = scaffold();
     assert!(scaffold.capabilities.contains(&Capability::VoiceRoute));
-    assert!(scaffold.capabilities.contains(&Capability::RecordingConsent));
-    assert!(scaffold.capabilities.contains(&Capability::EmergencyCallerBypass));
+    assert!(
+        scaffold
+            .capabilities
+            .contains(&Capability::RecordingConsent)
+    );
+    assert!(
+        scaffold
+            .capabilities
+            .contains(&Capability::EmergencyCallerBypass)
+    );
 }
 
 #[test]
