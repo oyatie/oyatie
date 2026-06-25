@@ -225,6 +225,10 @@ never register as surfaces. `#![forbid(unsafe_code)]`; deterministic sorted outp
   fail-closed source module `oya/hr/crates/oya-hr-employment-infrastructure/src/authz.rs`. The
   module supplies the verified-principal/PDP seam for the HR mutating routes named in D4 without
   widening the authz-coverage gate policy.
+- The payroll auth-failure API-contract addendum is accounted by
+  `evidence/multispectrum/hr-payroll-payroll-auth-contract-20260625-1782429919.json`, which records
+  the HR/payroll capability matrix and Buck2 contract verification for the documented 401/403
+  payroll money-movement responses.
 
 ## Alternatives considered
 
