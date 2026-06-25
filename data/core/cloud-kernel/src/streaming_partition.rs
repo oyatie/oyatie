@@ -50,8 +50,8 @@ impl StreamingPartitionStrategy {
 /// Errors produced when validating a streaming partition configuration.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum StreamingPartitionError {
-    /// The requested strategy requires a non-empty partition key but none
-    /// was supplied.
+    /// The requested ordered strategy requires a non-empty partition key but
+    /// none was supplied.
     MissingPartitionKey,
     /// The supplied shard count is zero; at least one shard is required.
     ZeroShardCount,
@@ -61,7 +61,9 @@ impl StreamingPartitionError {
     /// Returns a human-readable description of the error.
     pub fn message(&self) -> &'static str {
         match self {
-            Self::MissingPartitionKey => "key-hash strategy requires a non-empty partition key",
+            Self::MissingPartitionKey => {
+                "ordered partition strategy requires a non-empty partition key"
+            }
             Self::ZeroShardCount => "shard count must be at least 1",
         }
     }
@@ -70,8 +72,9 @@ impl StreamingPartitionError {
 /// Validates a streaming partition configuration.
 ///
 /// `strategy` — the chosen partitioning strategy.
-/// `partition_key` — caller-supplied key; required when `strategy` is
-///   [`StreamingPartitionStrategy::KeyHash`], ignored otherwise.
+/// `partition_key` — caller-supplied key; required when `strategy` is ordered
+///   ([`StreamingPartitionStrategy::TenantAffine`] or
+///   [`StreamingPartitionStrategy::KeyHash`]), ignored otherwise.
 /// `shard_count` — total number of shards; must be ≥ 1.
 pub fn admit_streaming_partition(
     strategy: StreamingPartitionStrategy,
@@ -81,7 +84,7 @@ pub fn admit_streaming_partition(
     if shard_count == 0 {
         return Err(StreamingPartitionError::ZeroShardCount);
     }
-    if strategy == StreamingPartitionStrategy::KeyHash && partition_key.trim().is_empty() {
+    if strategy.is_ordered() && partition_key.trim().is_empty() {
         return Err(StreamingPartitionError::MissingPartitionKey);
     }
     Ok(())
@@ -119,6 +122,22 @@ mod tests {
         assert_eq!(
             admit_streaming_partition(StreamingPartitionStrategy::TenantAffine, "", 0),
             Err(StreamingPartitionError::ZeroShardCount)
+        );
+    }
+
+    #[test]
+    fn admit_tenant_affine_missing_key_rejected() {
+        assert_eq!(
+            admit_streaming_partition(StreamingPartitionStrategy::TenantAffine, "   ", 4),
+            Err(StreamingPartitionError::MissingPartitionKey)
+        );
+    }
+
+    #[test]
+    fn admit_tenant_affine_with_key_passes() {
+        assert!(
+            admit_streaming_partition(StreamingPartitionStrategy::TenantAffine, "tenant-1", 4)
+                .is_ok()
         );
     }
 
