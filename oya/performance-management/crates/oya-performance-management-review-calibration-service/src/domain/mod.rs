@@ -11,14 +11,13 @@ pub enum ArchitectureLayer {
     Cli,
     Rest,
     Grpc,
-    Graphql,
     Worker,
     Sdk,
     Api,
 }
 
 impl ArchitectureLayer {
-    pub const fn all() -> [Self; 13] {
+    pub const fn all() -> [Self; 12] {
         [
             Self::Kernel,
             Self::Domain,
@@ -29,7 +28,6 @@ impl ArchitectureLayer {
             Self::Cli,
             Self::Rest,
             Self::Grpc,
-            Self::Graphql,
             Self::Worker,
             Self::Sdk,
             Self::Api,
@@ -47,7 +45,6 @@ impl ArchitectureLayer {
             Self::Cli => "cli",
             Self::Rest => "rest",
             Self::Grpc => "grpc",
-            Self::Graphql => "graphql",
             Self::Worker => "worker",
             Self::Sdk => "sdk",
             Self::Api => "api",

@@ -14,7 +14,7 @@ related_adrs:
   - ADR-0314
 naming_justifications:
   bnf_v4: "marketplace.escrow-release.execute"
-  layer_enum: "13-layer-enum: kernel, domain, usecase, app, adapter, infrastructure, rest, grpc, graphql, worker, cli, sdk, api"
+  layer_enum: "12-layer-enum: kernel, domain, usecase, app, adapter, infrastructure, rest, grpc, worker, cli, sdk, api"
 inputs:
   - tenant_id
   - sub_scope_path

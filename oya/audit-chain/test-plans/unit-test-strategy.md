@@ -74,7 +74,6 @@ The plan is written against the `microservices/audit-chain/manifest.json` layer 
 - Adapter layer target: 82% line coverage for fake-HSM, fake-S3, and fake-Postgres mappers.
 - App layer target: 75% line coverage for composition guards.
 - ADR-0105 layer not directly present: `grpc`.
-- ADR-0105 layer not directly present: `graphql`.
 - ADR-0105 layer not directly present: `cli`.
 - ADR-0105 layer not directly present: `infrastructure`.
 - Mutation score target: 90% killed mutants for Merkle and signature logic.

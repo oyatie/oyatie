@@ -139,14 +139,14 @@ pub fn default_domain_invariants() -> Vec<DomainInvariant> {
     ]
 }
 
-/// Verify the µservice scaffold meets ADR-0105 (13 layers), ADR-0131 (flat layout),
+/// Verify the µservice scaffold meets ADR-0105/ADR-0565 (12 active layers), ADR-0131 (flat layout),
 /// 3 contracts, and the 5-bounded-context plurality (audit fix for F-IC-12/§C).
 pub fn validate_scaffold() -> ServiceResult<()> {
     let descriptor = descriptor();
-    if descriptor.layer_count() != 13 {
+    if descriptor.layer_count() != 12 {
         return Err(ServiceError::InvariantViolation {
             invariant: "adr_0105_layer_count",
-            details: format!("expected 13 layers, found {}", descriptor.layer_count()),
+            details: format!("expected 12 layers, found {}", descriptor.layer_count()),
         });
     }
     if descriptor.contract_count() != 3 {

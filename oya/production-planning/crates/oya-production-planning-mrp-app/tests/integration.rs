@@ -19,7 +19,7 @@ fn scaffold_declares_expected_contracts() {
 
 #[test]
 fn scaffold_declares_adr_0105_layers() {
-    assert_eq!(scaffold().layers.len(), 13);
+    assert_eq!(scaffold().layers.len(), 12);
 }
 
 #[test]

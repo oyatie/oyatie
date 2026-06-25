@@ -42,20 +42,21 @@ flowchart LR
 ```
 
 ## Layer Placement
-ADR-0079 currently defines a 13-value enum. The legacy 12-layer wording in some prompts maps to the current 13-value enum below.
+ADR-0105/ADR-0565 define the active 12-value enum:
+`kernel`, `domain`, `usecase`, `app`, `adapter`, `infrastructure`, `cli`, `rest`, `grpc`, `worker`, `sdk`, `api`.
+
 - kernel: RebalanceJob aggregate, TenantMigration entity, state machines, port traits, invariants.
 - domain: domain events, eligibility snapshot semantics, migration refusal reasons.
 - usecase: create job, validate job, start migration, abort job, rollback tenant, list history.
 - app: composition root for adapters, clock, id generator, persistence, telemetry.
-- api: protocol-neutral request/response/error types and versioned contract structs.
-- rest: OpenAPI HTTP/3 handlers and api-gateway boundary binding.
-- grpc: future public proto3 carrier-triplet service surface; not authored as Rust in this wave.
-- graphql: not planned; explicit non-layer for this microservice.
-- worker: durable workflow worker that drains and resumes jobs from PostgreSQL checkpoints.
 - adapter: tenancy, cloud-iac, observability, audit-chain, policy-engine, Postgres, Valkey adapters.
 - infrastructure: deployment, runtime, secrets, mesh, TLS, HLC, storage config.
 - cli: operator smoke and admin tooling in downstream implementation.
+- rest: OpenAPI HTTP/3 handlers and api-gateway boundary binding.
+- grpc: future public proto3 carrier-triplet service surface; not authored as Rust in this wave.
+- worker: durable workflow worker that drains and resumes jobs from PostgreSQL checkpoints.
 - sdk: generated SDK surface after public API adoption.
+- api: protocol-neutral request/response/error types and versioned contract structs.
 
 ## Aggregate Model
 ### RebalanceJob

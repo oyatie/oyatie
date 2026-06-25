@@ -33,7 +33,7 @@ A finer-grained view than `product-map-spec.md`: not "what products", but "what 
 ## 2. Inputs
 
 - Workspace `Cargo.toml` `[workspace.members]`.
-- Each crate's `Cargo.toml` `[package.metadata.oyatie]` block: `axis`, `layer ∈ {kernel, domain, usecase, app, adapter, infrastructure, cli, rest, grpc, graphql, worker, sdk, api}`, `role`.
+- Each crate's `Cargo.toml` `[package.metadata.oyatie]` block: `axis`, `layer ∈ {kernel, domain, usecase, app, adapter, infrastructure, cli, rest, grpc, worker, sdk, api}`, `role`.
 - Each crate's `Cargo.toml` `[dependencies]` and `[dev-dependencies]` keys (filtered to workspace-internal crates only — external deps live in `tech-stack-map-spec.md`).
 - The cross-crate link graph from `rustdoc-pipeline.md`.
 - The cross-axis contract records from `oya-governance-cohesion-fitness-kernel`.
@@ -47,7 +47,7 @@ A finer-grained view than `product-map-spec.md`: not "what products", but "what 
 | `usecase` | Application/use-case orchestration over domain ports | `oya-identity-usecase`, `oya-audit-chain-usecase` |
 | `app` | Deployable/composition root; composes usecases + adapters/surfaces; never imports another app | `oya-foundation-app`, `oya-cloud-billing-app` |
 | `adapter` | Provider-specific I/O (storage, network, KMS, AI) | `oya-intelligence-evidence-adapter-file`, `oya-intelligence-run-adapter-file` |
-| `rest` / `grpc` / `graphql` / `api` | External-surface handlers | `oya-intelligence-rest`, `oya-cloud-iam-api` |
+| `rest` / `grpc` / `api` | External-surface handlers | `oya-intelligence-rest`, `oya-cloud-iam-api` |
 | `worker` | Queue/scheduled entrypoints | `oya-intelligence-ci-worker` |
 
 Layer is declared in `[package.metadata.oya.layer]` / catalog `role`. The pipeline rejects crates without a catalog role. The active dependency rule is inward-only: `kernel <- domain <- usecase <- app`; `app -> app` is a blocker.

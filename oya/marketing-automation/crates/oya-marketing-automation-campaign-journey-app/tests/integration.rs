@@ -2,9 +2,7 @@
 
 use oya_marketing_automation_campaign_journey_app::adapter::AdapterRegistry;
 use oya_marketing_automation_campaign_journey_app::config::ServiceConfig;
-use oya_marketing_automation_campaign_journey_app::domain::{
-    Capability, IdempotencyKey, TenantId,
-};
+use oya_marketing_automation_campaign_journey_app::domain::{Capability, IdempotencyKey, TenantId};
 use oya_marketing_automation_campaign_journey_app::{public_api_surface, scaffold};
 
 #[test]
@@ -13,21 +11,32 @@ fn scaffold_declares_expected_contracts() {
     assert_eq!(scaffold.microservice, "marketing-automation");
     assert_eq!(scaffold.contracts.openapi, "contracts/openapi-v1.yaml");
     assert_eq!(scaffold.contracts.asyncapi, "contracts/asyncapi-v1.yaml");
-    assert_eq!(scaffold.contracts.grpc, "contracts/marketing-automation-v1.proto");
+    assert_eq!(
+        scaffold.contracts.grpc,
+        "contracts/marketing-automation-v1.proto"
+    );
 }
 
 #[test]
 fn scaffold_declares_adr_0105_layers() {
     let scaffold = scaffold();
-    assert_eq!(scaffold.layers.len(), 13);
+    assert_eq!(scaffold.layers.len(), 12);
 }
 
 #[test]
 fn scaffold_declares_marketing_capabilities() {
     let scaffold = scaffold();
     assert!(scaffold.capabilities.contains(&Capability::JourneyExecute));
-    assert!(scaffold.capabilities.contains(&Capability::SuppressionEnforce));
-    assert!(scaffold.capabilities.contains(&Capability::AttributionRollup));
+    assert!(
+        scaffold
+            .capabilities
+            .contains(&Capability::SuppressionEnforce)
+    );
+    assert!(
+        scaffold
+            .capabilities
+            .contains(&Capability::AttributionRollup)
+    );
 }
 
 #[test]

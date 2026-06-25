@@ -241,7 +241,7 @@ def generate_buck_content(
         out = []
         out.append(f"{rule}(")
         out.append(f'    name = "{rule_name}",')
-        out.append(f'    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),')
+        out.append(f'    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),')
         if rule in ("rust_library", "rust_test"):
             ci = crate_ident or crate_name_to_ident(rule_name)
             out.append(f'    crate = "{ci}",')
@@ -333,7 +333,7 @@ def generate_buck_content(
 
         lines.append(f"rust_binary(")
         lines.append(f'    name = "{buck_bin_name}",')
-        lines.append(f'    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),')
+        lines.append(f'    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),')
         lines.append(f'    crate_root = "{bin_crate_root}",')
         if edition != "2024":
             lines.append(f'    edition = "{edition}",')

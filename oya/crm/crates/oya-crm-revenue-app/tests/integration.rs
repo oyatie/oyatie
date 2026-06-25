@@ -15,7 +15,9 @@ fn scaffold_declares_expected_contracts() {
 }
 
 #[test]
-fn scaffold_declares_adr_0105_layers() { assert_eq!(scaffold().layers.len(), 13); }
+fn scaffold_declares_adr_0105_layers() {
+    assert_eq!(scaffold().layers.len(), 12);
+}
 
 #[test]
 fn scaffold_declares_domain_capabilities() {
@@ -25,7 +27,11 @@ fn scaffold_declares_domain_capabilities() {
 }
 
 #[test]
-fn config_default_validates_with_named_cli_args() { ServiceConfig::local_default("tenant-alpha", 9080).validate().expect("default config validates"); }
+fn config_default_validates_with_named_cli_args() {
+    ServiceConfig::local_default("tenant-alpha", 9080)
+        .validate()
+        .expect("default config validates");
+}
 
 #[test]
 fn adapter_registry_contains_three_contract_surfaces() {
@@ -37,7 +43,9 @@ fn adapter_registry_contains_three_contract_surfaces() {
 }
 
 #[test]
-fn tenant_id_rejects_empty_value() { assert!(TenantId::new("   ").is_err()); }
+fn tenant_id_rejects_empty_value() {
+    assert!(TenantId::new("   ").is_err());
+}
 
 #[test]
 fn idempotency_key_requires_stable_length() {
@@ -89,11 +97,19 @@ use std::sync::Arc;
 
 struct AllowAuthorizer;
 impl CrmAuthorizer for AllowAuthorizer {
-    fn ensure_authorized(&self, _p: &VerifiedPrincipal, _r: &CrmResource) -> Result<(), CrmAuthorizationError> { Ok(()) }
+    fn ensure_authorized(
+        &self,
+        _p: &VerifiedPrincipal,
+        _r: &CrmResource,
+    ) -> Result<(), CrmAuthorizationError> {
+        Ok(())
+    }
 }
 
 fn provider() -> CrmAuthzProvider {
-    let verifier = ConfiguredBearerPrincipalVerifier::new("bearer-secret-abc", "svc-crm", "tenant-alpha").unwrap();
+    let verifier =
+        ConfiguredBearerPrincipalVerifier::new("bearer-secret-abc", "svc-crm", "tenant-alpha")
+            .unwrap();
     CrmAuthzProvider::new(Arc::new(verifier), Arc::new(AllowAuthorizer))
 }
 
@@ -110,8 +126,16 @@ fn forged_request(body_tenant: &str) -> HttpRequest {
 #[test]
 fn forged_crm_mutation_without_credential_is_unauthenticated() {
     // RED: no bearer credential but the body claims a victim tenant → 401.
-    let cred = CallerCredential { authorization: None };
-    let err = HttpHandler::handle(&provider(), &cred, Capability::AccountMaster, forged_request("tenant-victim")).unwrap_err();
+    let cred = CallerCredential {
+        authorization: None,
+    };
+    let err = HttpHandler::handle(
+        &provider(),
+        &cred,
+        Capability::AccountMaster,
+        forged_request("tenant-victim"),
+    )
+    .unwrap_err();
     assert_eq!(err.kind(), ServiceErrorKind::Unauthenticated);
     assert_eq!(err.http_status(), 401);
 }
@@ -125,9 +149,16 @@ fn forged_crm_mutation_without_credential_is_unauthenticated() {
 // `request.tenant_id = "victim"` downstream would mutate the victim's records).
 #[test]
 fn forged_body_tenant_never_becomes_the_resource_tenant() {
-    let cred = CallerCredential { authorization: Some("Bearer bearer-secret-abc".into()) };
-    let scope = HttpHandler::resolve_scope(&provider(), &cred, Capability::Opportunity, &forged_request("tenant-victim"))
-        .expect("valid bearer authorizes");
+    let cred = CallerCredential {
+        authorization: Some("Bearer bearer-secret-abc".into()),
+    };
+    let scope = HttpHandler::resolve_scope(
+        &provider(),
+        &cred,
+        Capability::Opportunity,
+        &forged_request("tenant-victim"),
+    )
+    .expect("valid bearer authorizes");
     // The resolved resource/scope tenant is the VERIFIED tenant, never the forged body tenant.
     assert_eq!(scope.tenant_id(), "tenant-alpha");
     assert_ne!(scope.tenant_id(), "tenant-victim");
@@ -140,7 +171,15 @@ fn pdp_authorized_request_reaches_business_handler() {
     // GREEN: valid bearer + PDP grant → passes the gate, reaches the scaffolded
     // business handler (ContractStub). The body identity grants nothing even
     // though the body still carries a (now non-authoritative) tenant.
-    let cred = CallerCredential { authorization: Some("Bearer bearer-secret-abc".into()) };
-    let err = HttpHandler::handle(&provider(), &cred, Capability::Quote, forged_request("tenant-victim")).unwrap_err();
+    let cred = CallerCredential {
+        authorization: Some("Bearer bearer-secret-abc".into()),
+    };
+    let err = HttpHandler::handle(
+        &provider(),
+        &cred,
+        Capability::Quote,
+        forged_request("tenant-victim"),
+    )
+    .unwrap_err();
     assert_eq!(err.kind(), ServiceErrorKind::ContractStub);
 }

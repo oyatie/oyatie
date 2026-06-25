@@ -1,5 +1,5 @@
-use crate::error::{Result, ServiceError};
 use crate::MICROSERVICE;
+use crate::error::{Result, ServiceError};
 use serde::{Deserialize, Serialize};
 
 pub const LAYERS: &[Layer] = &[
@@ -9,11 +9,10 @@ pub const LAYERS: &[Layer] = &[
     Layer::App,
     Layer::Adapter,
     Layer::Infrastructure,
+    Layer::Cli,
     Layer::Rest,
     Layer::Grpc,
-    Layer::Graphql,
     Layer::Worker,
-    Layer::Cli,
     Layer::Sdk,
     Layer::Api,
 ];
@@ -36,11 +35,10 @@ pub enum Layer {
     App,
     Adapter,
     Infrastructure,
+    Cli,
     Rest,
     Grpc,
-    Graphql,
     Worker,
-    Cli,
     Sdk,
     Api,
 }
@@ -205,7 +203,10 @@ impl RecordingConsentRef {
 fn bounded_identifier(field: &'static str, value: String) -> Result<String> {
     let trimmed = value.trim();
     if trimmed.is_empty() {
-        return Err(ServiceError::invariant(field, "identifier must not be empty"));
+        return Err(ServiceError::invariant(
+            field,
+            "identifier must not be empty",
+        ));
     }
     if trimmed.len() > 128 {
         return Err(ServiceError::invariant(
@@ -505,14 +506,6 @@ pub fn layer_contracts() -> Vec<LayerContract> {
             allowed_dependencies: vec!["adapter", "usecase"],
             forbidden_dependencies: vec!["rest-only-types"],
             verification_hint: "methods reference the canonical proto package",
-        },
-        LayerContract {
-            layer: Layer::Graphql,
-            owner: MICROSERVICE,
-            responsibility: "future graph projection boundary",
-            allowed_dependencies: vec!["api", "sdk"],
-            forbidden_dependencies: vec!["write-side-domain-mutation"],
-            verification_hint: "graph projections remain read-model oriented",
         },
         LayerContract {
             layer: Layer::Worker,

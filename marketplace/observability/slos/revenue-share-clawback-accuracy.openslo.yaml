@@ -32,4 +32,4 @@ spec:
       isRolling: true
 naming_justifications:
   bnf_v4: "marketplace.slo.revenue-share-clawback-accuracy"
-  layer_enum: "13-layer-enum: kernel, domain, usecase, app, adapter, infrastructure, rest, grpc, graphql, worker, cli, sdk, api"
+  layer_enum: "12-layer-enum: kernel, domain, usecase, app, adapter, infrastructure, cli, rest, grpc, worker, sdk, api"

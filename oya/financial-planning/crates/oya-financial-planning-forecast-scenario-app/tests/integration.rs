@@ -2,9 +2,7 @@
 
 use oya_financial_planning_forecast_scenario_app::adapter::AdapterRegistry;
 use oya_financial_planning_forecast_scenario_app::config::ServiceConfig;
-use oya_financial_planning_forecast_scenario_app::domain::{
-    Capability, IdempotencyKey, TenantId,
-};
+use oya_financial_planning_forecast_scenario_app::domain::{Capability, IdempotencyKey, TenantId};
 use oya_financial_planning_forecast_scenario_app::{public_api_surface, scaffold};
 
 #[test]
@@ -13,20 +11,31 @@ fn scaffold_declares_expected_contracts() {
     assert_eq!(scaffold.microservice, "financial-planning");
     assert_eq!(scaffold.contracts.openapi, "contracts/openapi-v1.yaml");
     assert_eq!(scaffold.contracts.asyncapi, "contracts/asyncapi-v1.yaml");
-    assert_eq!(scaffold.contracts.grpc, "contracts/financial-planning-v1.proto");
+    assert_eq!(
+        scaffold.contracts.grpc,
+        "contracts/financial-planning-v1.proto"
+    );
 }
 
 #[test]
 fn scaffold_declares_adr_0105_layers() {
     let scaffold = scaffold();
-    assert_eq!(scaffold.layers.len(), 13);
+    assert_eq!(scaffold.layers.len(), 12);
 }
 
 #[test]
 fn scaffold_declares_financial_planning_capabilities() {
     let scaffold = scaffold();
-    assert!(scaffold.capabilities.contains(&Capability::ForecastVersionOpen));
-    assert!(scaffold.capabilities.contains(&Capability::ScenarioRecalculate));
+    assert!(
+        scaffold
+            .capabilities
+            .contains(&Capability::ForecastVersionOpen)
+    );
+    assert!(
+        scaffold
+            .capabilities
+            .contains(&Capability::ScenarioRecalculate)
+    );
     assert!(scaffold.capabilities.contains(&Capability::BoardReportSeal));
 }
 

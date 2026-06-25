@@ -39,7 +39,7 @@ as described in RFC 2119 and RFC 8174 when they appear in all capitals.
 
 This standard applies to every deployable microservice.
 
-It applies to every `app`, `rest`, `grpc`, `graphql`, `worker`, and `cli` crate
+It applies to every `app`, `rest`, `grpc`, `worker`, and `cli` crate
 that runs in an environment.
 
 It applies to `microservices/<ms>/manifest.json`.

@@ -17,7 +17,7 @@ fn scaffold_declares_expected_contracts() {
 #[test]
 fn scaffold_declares_adr_0105_layers() {
     let scaffold = scaffold();
-    assert_eq!(scaffold.layers.len(), 13);
+    assert_eq!(scaffold.layers.len(), 12);
 }
 
 #[test]
@@ -25,7 +25,11 @@ fn scaffold_declares_whiteboard_capabilities() {
     let scaffold = scaffold();
     assert!(scaffold.capabilities.contains(&Capability::BoardOpen));
     assert!(scaffold.capabilities.contains(&Capability::CanvasOpAppend));
-    assert!(scaffold.capabilities.contains(&Capability::TemplateMarketplaceInstall));
+    assert!(
+        scaffold
+            .capabilities
+            .contains(&Capability::TemplateMarketplaceInstall)
+    );
 }
 
 #[test]

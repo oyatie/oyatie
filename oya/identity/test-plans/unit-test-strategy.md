@@ -81,7 +81,6 @@ The bar is deterministic, mutation-resistant, property-rich unit coverage for ev
 - Adapter layer target: 80% line coverage for fake adapters and mapping code only.
 - App layer target: 75% line coverage for composition guards only.
 - ADR-0105 layer with no direct unit target here: `grpc`.
-- ADR-0105 layer with no direct unit target here: `graphql`.
 - ADR-0105 layer with no direct unit target here: `cli`.
 - ADR-0105 layer with no direct unit target here: `infrastructure`.
 - Mutation score target: 85% killed mutants for pure kernel/domain crates.

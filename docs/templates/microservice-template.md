@@ -53,17 +53,17 @@ JUSTIFICATION:
   omit if µservice has a single concept at this layer; ADR-0056 v4.1>
 - layer = <layer>: <12-enum value; ADR-0056 §"Layer semantics":
     domain          — pure business logic; port-traits + entities; no I/O
-    application     — use-case orchestrators; holds port-trait bounds
+    usecase         — use-case orchestrators; holds port-trait bounds
     infrastructure  — framework/driver implementations of port-traits
     kernel          — shared types + value objects (cross-layer)
     adapter         — adapter-layer glue (e.g. event-bus bridge)
     rest            — HTTP/REST handler wiring
     grpc            — gRPC handler wiring
-    graphql         — GraphQL schema + resolver wiring
     worker          — background job / queue consumer runner
     cli             — command-line binary
+    sdk             — generated/contract-bound client surface
+    api             — protocol-neutral API contract surface
     app             — composition-root binary (main.rs)
-    migration       — schema migration scripts>
 - exemptions: <none | cite ADR-0056 exception>
 ```
 
@@ -77,7 +77,7 @@ Add to root `Cargo.toml` `[workspace.members]`:
 [workspace.members]
 # ... existing members ...
 "crates/oya-<µservice>-<bc>-domain",
-"crates/oya-<µservice>-<bc>-application",
+"crates/oya-<µservice>-<bc>-usecase",
 "crates/oya-<µservice>-<bc>-infrastructure",
 "crates/oya-<µservice>-<bc>-rest",        # if REST surface needed
 "crates/oya-<µservice>-<bc>-grpc",        # if gRPC surface needed
@@ -97,11 +97,11 @@ needs; justify omissions. Dependency direction is strictly inward-only
 (per `feedback_clean_architecture_requirements.md` §2):
 
 ```
-{rest, grpc, graphql, worker, cli}   ← presentation
+{cli, rest, grpc, worker, sdk, api}   ← presentation / contract surfaces
          ↑ depends on
     {adapter, infrastructure}         ← outer adapters
          ↑ depends on
-       application                    ← use cases
+       usecase                        ← use cases
          ↑ depends on
          domain                       ← business logic
          ↑ depends on
@@ -114,15 +114,15 @@ needs; justify omissions. Dependency direction is strictly inward-only
 |---|---|---|---|
 | `kernel` | `oya-<ms>[-<bc>]-kernel` | Yes (always) | — |
 | `domain` | `oya-<ms>[-<bc>]-domain` | Yes (always) | — |
-| `application` | `oya-<ms>[-<bc>]-application` | Yes (always) | — |
+| `usecase` | `oya-<ms>[-<bc>]-usecase` | Yes (always) | — |
 | `adapter` | `oya-<ms>[-<bc>]-adapter` | Yes (if state) | Omit for stateless-only µservices |
 | `infrastructure` | `oya-<ms>[-<bc>]-infrastructure` | Conditional | Use adapter instead where possible |
 | `rest` | `oya-<ms>[-<bc>]-rest` | Conditional | Omit if gRPC-only surface |
 | `grpc` | `oya-<ms>[-<bc>]-grpc` | Conditional | Omit if REST-only surface |
-| `graphql` | `oya-<ms>[-<bc>]-graphql` | Conditional | Only for Studio-style surfaces |
 | `worker` | `oya-<ms>[-<bc>]-worker` | Conditional | Required if background jobs exist |
 | `cli` | `oya-<ms>[-<bc>]-cli` | Conditional | Internal tooling µservices only |
 | `sdk` | `oya-<ms>[-<bc>]-sdk` | Conditional | External client consumers only |
+| `api` | `oya-<ms>[-<bc>]-api` | Conditional | Protocol-neutral contract surface |
 | `app` | `oya-<ms>-app` | Yes (always) | Composition root binary |
 
 **Port trait rule**: ALL port traits live in `kernel`. Never in `domain`.

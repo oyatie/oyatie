@@ -95,10 +95,10 @@ microservice   ::= kebab-token ( "-" kebab-token )*    (* 1..3 tokens; registry-
 
 bc-tokens      ::= kebab-token ( "-" kebab-token )*    (* 0..N; OPTIONAL *)
 
-layer          ::= "kernel" | "domain" | "application" | "app"
+layer          ::= "kernel" | "domain" | "usecase" | "app"
                  | "adapter" | "infrastructure"
-                 | "cli" | "rest" | "grpc" | "graphql"
-                 | "worker" | "sdk"
+                 | "cli" | "rest" | "grpc"
+                 | "worker" | "sdk" | "api"
 
 rule-name      ::= kebab-token ( "-" kebab-token )*    (* 1..4 tokens *)
 
@@ -184,7 +184,7 @@ The canonical role taxonomy follows ADR-0105 + ADR-0106. Current inward dependen
 | `usecase` | application/use-case orchestration over domain ports; no concrete adapters | library only | optional | `kernel`, `domain` |
 | `app` | deployable/composition root wiring usecases, adapters, and surfaces | bin plus thin library shim when needed | optional | `kernel`, `domain`, `usecase`, `adapter`, `rest`; never another `app` |
 | `adapter` | provider implementations bound to one capability | library only | **REQUIRED** | `kernel`, `domain`, `usecase`; never another adapter |
-| `rest` / `grpc` / `graphql` / `api` | process-boundary inputs bound to a feature | library + optional bin | optional | `kernel`, `domain`, `usecase`, `app` only when the API intentionally calls the composition-root surface |
+| `rest` / `grpc` / `api` | process-boundary inputs bound to a feature | library + optional bin | optional | `kernel`, `domain`, `usecase`, `app` only when the API intentionally calls the composition-root surface |
 | `worker` | scheduled / queue-driven process | library + bin | optional | `kernel`, `domain`, `usecase`, `app` only when the worker intentionally calls the composition-root surface |
 | `cli` | developer/agent terminal tool (not deployed) | bin | optional | lower layers plus explicit app surfaces when the CLI is an operator wrapper |
 | `sdk` | externally-published client surface (consumer-facing) | library only | optional | generated/contract types only; no server app imports |
@@ -318,8 +318,8 @@ microservices = [
   "payments", "insurance", "finance-quant",
   "dining", "cellar",
 ]
-layers = ["kernel", "domain", "application", "app", "adapter", "infrastructure",
-          "cli", "rest", "grpc", "graphql", "worker", "sdk"]
+layers = ["kernel", "domain", "usecase", "app", "adapter", "infrastructure",
+          "cli", "rest", "grpc", "worker", "sdk", "api"]
 compound_bc_tokens = [
   "audit-chain", "policy-cedar", "regional-pack", "regulatory-pack",
   "compute-vm", "compute-k8s", "compute-functions",

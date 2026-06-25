@@ -16,8 +16,8 @@ purpose: |
   inheritance table, the `oya-<microservice>[-<bc>]-<layer>` BNF v4.1
   (per ADR-0056 v4.1; supersedes the v3 `oya-<context>-<role>[-<capability>]` and
   v4 `oya-<shared|vertical>-<bc>-<layer>` conventions),
-  and the 12-value canonical layer enum (kernel, domain, application, app, adapter,
-  infrastructure, cli, rest, grpc, graphql, worker, sdk) per ADR-0056.
+  and the 12-value canonical layer enum (kernel, domain, usecase, app, adapter,
+  infrastructure, cli, rest, grpc, worker, sdk, api) per ADR-0056 as amended by ADR-0565.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
 planned_enforcement_ref: oya-governance-clippy-pedantic
 companion_docs:
@@ -158,8 +158,8 @@ Rules:
 - `<bounded-context>` — slot 3: 1..N kebab tokens; open set; registered in
   `docs/standards/bounded-contexts.md`. Adding a BC is a 0-ADR action.
 - `<layer>` — slot 4 (final token): one of 12 canonical values per ADR-0056 §"12-Value Layer Enum":
-  `kernel`, `domain`, `application`, `app`, `adapter`, `infrastructure`,
-  `cli`, `rest`, `grpc`, `graphql`, `worker`, `sdk`. Adding a layer is a 1-ADR action.
+  `kernel`, `domain`, `usecase`, `app`, `adapter`, `infrastructure`,
+  `cli`, `rest`, `grpc`, `worker`, `sdk`, `api`. Adding a layer is a 1-ADR action.
 - Cross-cutting check crates use the flat namespace: `oya-check-<rule-name>` (exempt from 3-slot BNF).
 - Package name MUST equal the directory name. `[lib] name` MUST equal snake_case of `[package] name`.
   Enforced by `oya-shared-architecture-check-cli -- lib-name-parity`.
@@ -181,13 +181,13 @@ Per ADR-0015 layered architecture and **[ADR-0056](../decisions/ADR-0056-rust-cl
 (v4 3-slot BNF), dependencies flow **inward only** (outer → inner):
 
 ```
-{ cli | rest | grpc | graphql | worker }
+{ cli | rest | grpc | worker }
         │
         ▼
   { adapter | infrastructure }
         │
         ▼
-   application
+    usecase
         │
         ▼
      domain
@@ -201,11 +201,11 @@ Per ADR-0015 layered architecture and **[ADR-0056](../decisions/ADR-0056-rust-cl
 | Layer | Canonical meaning (ADR-0056 §"Layer semantics") | MAY import | MUST NOT import |
 |---|---|---|---|
 | `kernel` | Pure types + port trait declarations; zero logic, zero I/O | (nothing project-internal) | any other layer |
-| `domain` | Business logic on kernel types; uses ports defined in kernel | `kernel` | `application`, `adapter`, `infrastructure`, presentation, `app` |
-| `application` | Use-case orchestrators holding port-trait bounds | `domain`, `kernel` | `adapter`, `infrastructure`, presentation, `app` |
-| `adapter` | Trait implementations of kernel ports + DTO mappers | `application`, `domain`, `kernel` | `infrastructure`, presentation, `app`, other `adapter` |
-| `infrastructure` | Framework/driver glue (no kernel-trait impl as primary surface) | `application`, `domain`, `kernel`, `adapter` | presentation, `app` |
-| `cli` / `rest` / `grpc` / `graphql` / `worker` | Presentation / entry-point layers | `application`, `domain`, `kernel` | `adapter`, `infrastructure` directly (wire via `app`) |
+| `domain` | Business logic on kernel types; uses ports defined in kernel | `kernel` | `usecase`, `adapter`, `infrastructure`, presentation, `app` |
+| `usecase` | Use-case orchestrators holding port-trait bounds | `domain`, `kernel` | `adapter`, `infrastructure`, presentation, `app` |
+| `adapter` | Trait implementations of kernel ports + DTO mappers | `usecase`, `domain`, `kernel` | `infrastructure`, presentation, `app`, other `adapter` |
+| `infrastructure` | Framework/driver glue (no kernel-trait impl as primary surface) | `usecase`, `domain`, `kernel`, `adapter` | presentation, `app` |
+| `cli` / `rest` / `grpc` / `worker` / `api` | Presentation / entry-point layers | `usecase`, `domain`, `kernel` | `adapter`, `infrastructure` directly (wire via `app`) |
 | `app` | Composition-root binary; wires all layers into a deployable | every other layer | (none; unrestricted) |
 | `sdk` | Client library for external consumers | `kernel` | everything except `kernel` |
 

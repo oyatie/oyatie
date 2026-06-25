@@ -238,18 +238,18 @@ Crate naming: `oya-<microservice>(-<bc-tokens>)?-<layer>` (ADR-0056).
 |---|---|---|---|---|
 | `kernel` | `-kernel` | Pure Rust 1.96+ (`std`); `serde`, `thiserror`, `chrono`, `uuid`, `rust_decimal` only | Value objects + sealed port-trait declarations | Async; I/O; framework deps |
 | `domain` | `-domain` | Pure Rust; same constraints as kernel + business-logic helpers | Business logic (aggregates, invariants, value objects); calls through kernel ports | I/O; framework deps |
-| `application` | `-application` | Rust + `async-trait`, `tokio` (consumer of port traits only) | Use-case orchestrators; port-trait-bounded transactions | Direct DB / Kafka / Cedar / HTTP |
+| `usecase` | `-usecase` | Rust + `async-trait`, `tokio` (consumer of port traits only) | Use-case orchestrators; port-trait-bounded transactions | Direct DB / Kafka / Cedar / HTTP |
 | `adapter` | `-adapter` | Rust + `sqlx`/`tokio-postgres`, `kafka` (or `rdkafka`/`apache_kafka`), `cedar-policy`, `aws-sdk-s3`, etc. | Trait impls of kernel ports + DTO mappers | Cross-adapter imports (impl A → impl B) |
-| `infrastructure` | `-infrastructure` | Rust + framework glue (`axum`, `tonic`, `async-graphql`, runtime init) | Driver-side wiring (HTTP server boot, gRPC server boot, etc.) | Same as adapter |
-| `cli` | `-cli` | Rust + `clap` 4 derive | Command-line presentation; calls application layer | Direct DB / Kafka |
-| `rest` | `-rest` | Rust + `axum` 0.7+, `tower`, `OpenAPI` (`utoipa`/`apistos`), `validator` | HTTP/REST handlers; calls application layer | Same as cli |
-| `grpc` | `-grpc` | Rust + `tonic` 0.10+, `prost`, protobuf `.proto` | gRPC service impls; calls application layer | Same as cli |
-| `graphql` | `-graphql` | Rust + `async-graphql` 7+, schema builder | GraphQL resolvers; calls application layer | Same as cli |
-| `worker` | `-worker` | Rust + `tokio`, `rdkafka` consumer, outbox poller | Long-running background worker; calls application layer | Same as cli |
+| `infrastructure` | `-infrastructure` | Rust + framework glue (`axum`, `tonic`, runtime init) | Driver-side wiring (HTTP server boot, gRPC server boot, etc.) | Same as adapter |
+| `cli` | `-cli` | Rust + `clap` 4 derive | Command-line presentation; calls usecase layer | Direct DB / Kafka |
+| `rest` | `-rest` | Rust + `axum` 0.7+, `tower`, `OpenAPI` (`utoipa`/`apistos`), `validator` | HTTP/REST handlers; calls usecase layer | Same as cli |
+| `grpc` | `-grpc` | Rust + `tonic` 0.10+, `prost`, protobuf `.proto` | gRPC service impls; calls usecase layer | Same as cli |
+| `worker` | `-worker` | Rust + `tokio`, `rdkafka` consumer, outbox poller | Long-running background worker; calls usecase layer | Same as cli |
 | `app` | `-app` | Rust + DI/wiring (`tokio::main`, full app composition) | Composition-root binary; assembles all layers | Business logic |
 | `sdk` | `-sdk` | Rust client library + thin transport (`reqwest`/`tonic-client`) | External-consumer client; depends ONLY on `kernel` | Anything except kernel |
+| `api` | `-api` | Rust contract types + semver-bound schemas | Protocol-neutral API contract surface | Direct I/O |
 
-**Cross-layer dependency rule** (ADR-0056 §2.2): inward-only flow. `cli/rest/grpc/graphql/worker` → `application` → `domain` → `kernel`. `adapter/infrastructure` plug into ports defined in `kernel`. `app` is the only layer with unrestricted inward deps. LEAN-A1 (`dependency-direction`) CI-enforced.
+**Cross-layer dependency rule** (ADR-0056 §2.2): inward-only flow. `cli/rest/grpc/worker/api` → `usecase` → `domain` → `kernel`. `adapter/infrastructure` plug into ports defined in `kernel`. `app` is the only layer with unrestricted inward deps. LEAN-A1 (`dependency-direction`) CI-enforced.
 
 ---
 

@@ -57,8 +57,7 @@ fn gate_dir(root: &Path) -> PathBuf {
 }
 
 fn load_json(path: &Path) -> Value {
-    let text =
-        fs::read_to_string(path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+    let text = fs::read_to_string(path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
     serde_json::from_str(&text).unwrap_or_else(|e| panic!("parse {}: {e}", path.display()))
 }
 
@@ -79,7 +78,9 @@ fn live_workspace_is_born_blocking_green_zero_graphql() {
 
     // The member census floor must be met (a broken CWD / member glob would otherwise be a silent
     // false-green).
-    let members = observed["workspace_members_found"].as_u64().expect("member census");
+    let members = observed["workspace_members_found"]
+        .as_u64()
+        .expect("member census");
     let floor = policy["min_expected_workspace_members"]
         .as_u64()
         .expect("policy member floor");
@@ -106,6 +107,97 @@ fn live_workspace_is_born_blocking_green_zero_graphql() {
         "NO-GRAPHQL-WITHOUT-ADR live: members={members} graphql_schema_files={} (born-blocking green; EMPTY frozen baseline — ADR-0565)",
         schema_files.len()
     );
+}
+
+#[test]
+fn live_owned_stack_has_no_active_graphql_layer_vocabulary() {
+    // The policy evaluator already blocks real GraphQL libraries and schema files. This live
+    // regression scan closes the drift hole that let owned-stack scaffolds/docs keep the retired
+    // layer vocabulary even while the policy gate was green.
+    let root = repo_root();
+    let scan_roots = [
+        "cloud/cell-rebalancer/ARCH.md",
+        "comms/facade/contact-center-voice-routing",
+        "data/facade/pipeline-lineage-replay-service",
+        "docs/architecture/product-graph.md",
+        "docs/automation/service-map-spec.md",
+        "docs/GLOSSARY.md",
+        "docs/standards",
+        "docs/templates/microservice-template.md",
+        "libs/oya-check-statelessness",
+        "marketplace/core/doc-set-scaffold",
+        "marketplace/observability/slos",
+        "oya/marketplace",
+        "oya/ontology/decisions/ADR-ONT-001-rdf-shape-vs-property-graph-storage.md",
+        "oya/workplace-integration",
+        "scripts/gen_first_party_buck.py",
+    ];
+    let forbidden_needles = [
+        "Layer::Graphql",
+        "Self::Graphql",
+        "ArchitectureLayer::Graphql",
+        "Graphql,",
+        "\"graphql\"",
+        "`graphql`",
+        "-graphql",
+        ".graphql",
+        "rest, grpc, graphql",
+        "cli/rest/grpc/graphql",
+    ];
+
+    let mut hits = Vec::new();
+    for rel in scan_roots {
+        collect_active_vocabulary_hits(&root.join(rel), rel, &forbidden_needles, &mut hits);
+    }
+
+    assert!(
+        hits.is_empty(),
+        "active owned-stack paths must not carry retired GraphQL layer vocabulary:\n{}",
+        hits.join("\n")
+    );
+}
+
+fn collect_active_vocabulary_hits(
+    path: &Path,
+    rel: &str,
+    forbidden_needles: &[&str],
+    hits: &mut Vec<String>,
+) {
+    if path.is_dir() {
+        let mut entries = fs::read_dir(path)
+            .unwrap_or_else(|error| {
+                panic!("read active-vocabulary dir {}: {error}", path.display())
+            })
+            .map(|entry| entry.expect("read active-vocabulary dir entry").path())
+            .collect::<Vec<_>>();
+        entries.sort();
+        for entry in entries {
+            let name = entry
+                .file_name()
+                .and_then(|value| value.to_str())
+                .unwrap_or("");
+            if matches!(name, ".git" | "target" | "buck-out" | "BUCK") {
+                continue;
+            }
+            let child_rel = format!("{rel}/{name}");
+            collect_active_vocabulary_hits(&entry, &child_rel, forbidden_needles, hits);
+        }
+        return;
+    }
+
+    if !path.is_file() {
+        return;
+    }
+    let text =
+        fs::read_to_string(path).unwrap_or_else(|error| panic!("read {}: {error}", path.display()));
+    for (line_idx, line) in text.lines().enumerate() {
+        if let Some(needle) = forbidden_needles
+            .iter()
+            .find(|needle| line.contains(**needle))
+        {
+            hits.push(format!("{rel}:{} contains {needle}: {line}", line_idx + 1));
+        }
+    }
 }
 
 #[test]
@@ -225,7 +317,10 @@ fn red_fixture_cargo_toml_adds_async_graphql() {
         f.key.ends_with("Cargo.toml:async-graphql"),
         "the finding key must name the manifest + crate: {f:?}"
     );
-    assert!(f.detail.contains("ADR-0565"), "remediation must name the forbidding ADR: {f:?}");
+    assert!(
+        f.detail.contains("ADR-0565"),
+        "remediation must name the forbidding ADR: {f:?}"
+    );
     assert_eq!(
         evaluate(&policy, &observed).verdict,
         Verdict::Red,
@@ -254,7 +349,10 @@ fn red_fixture_new_graphql_schema_file() {
         .iter()
         .find(|f| f.code == "NGQL-SCHEMA-FILE")
         .unwrap_or_else(|| panic!("a new .graphql file must be RED: {findings:#?}"));
-    assert!(f.key.ends_with("schema.graphql"), "the finding key must name the schema path: {f:?}");
+    assert!(
+        f.key.ends_with("schema.graphql"),
+        "the finding key must name the schema path: {f:?}"
+    );
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
 
     fs::remove_dir_all(&root).expect("remove temp repo");
@@ -281,7 +379,9 @@ fn green_fixture_allowlisted_and_validated_adr() {
     let findings = evaluate_keyed(&policy, &observed);
 
     assert!(
-        !findings.iter().any(|f| f.code == "NGQL-FORBIDDEN-LIB" || f.code == "NGQL-SCHEMA-FILE"),
+        !findings
+            .iter()
+            .any(|f| f.code == "NGQL-FORBIDDEN-LIB" || f.code == "NGQL-SCHEMA-FILE"),
         "allowlisted+validated-ADR GraphQL artifacts must be allowed: {findings:#?}"
     );
     assert_eq!(
@@ -306,7 +406,11 @@ fn red_fixture_fabricated_adr_token_does_not_launder() {
         None,
     );
     // A real api.graphql + a sibling api.graphql.adr citing ADR-1234 — still not authorized.
-    write_file(&root, "crates/studio-graphql/api.graphql", "type Query { ok: Boolean }\n");
+    write_file(
+        &root,
+        "crates/studio-graphql/api.graphql",
+        "type Query { ok: Boolean }\n",
+    );
     write_file(&root, "crates/studio-graphql/api.graphql.adr", "ADR-1234\n");
 
     let policy = fixture_policy();
@@ -348,7 +452,9 @@ fn red_fixture_workspace_dependencies_rename_smuggle() {
     let findings = evaluate_keyed(&policy, &observed);
 
     assert!(
-        findings.iter().any(|f| f.code == "NGQL-FORBIDDEN-LIB" && f.key.ends_with("async-graphql")),
+        findings
+            .iter()
+            .any(|f| f.code == "NGQL-FORBIDDEN-LIB" && f.key.ends_with("async-graphql")),
         "a [workspace.dependencies] rename must be denied on the real name: {findings:#?}"
     );
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
@@ -381,7 +487,9 @@ fn red_fixture_non_member_cargo_toml() {
     let findings = evaluate_keyed(&policy, &observed);
 
     assert!(
-        findings.iter().any(|f| f.code == "NGQL-FORBIDDEN-LIB" && f.key.starts_with("services/gw/Cargo.toml")),
+        findings
+            .iter()
+            .any(|f| f.code == "NGQL-FORBIDDEN-LIB" && f.key.starts_with("services/gw/Cargo.toml")),
         "a forbidden dep in a NON-member Cargo.toml must be RED: {findings:#?}"
     );
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
@@ -399,14 +507,20 @@ fn red_fixture_graphqls_sdl_extension() {
         "[package]\nname = \"analytics-api\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\nserde = \"1\"\n",
         None,
     );
-    write_file(&root, "crates/analytics-api/schema.graphqls", "type Query { ok: Boolean }\n");
+    write_file(
+        &root,
+        "crates/analytics-api/schema.graphqls",
+        "type Query { ok: Boolean }\n",
+    );
 
     let policy = fixture_policy();
     let observed = collect_graphql_artifacts(&root, &policy).expect("collect on temp tree");
     let findings = evaluate_keyed(&policy, &observed);
 
     assert!(
-        findings.iter().any(|f| f.code == "NGQL-SCHEMA-FILE" && f.key.ends_with("schema.graphqls")),
+        findings
+            .iter()
+            .any(|f| f.code == "NGQL-SCHEMA-FILE" && f.key.ends_with("schema.graphqls")),
         "a .graphqls SDL file must be RED: {findings:#?}"
     );
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
@@ -438,7 +552,9 @@ fn red_fixture_transitive_crate_in_cargo_lock() {
     let f = findings
         .iter()
         .find(|f| f.code == "NGQL-LOCK-FORBIDDEN")
-        .unwrap_or_else(|| panic!("a transitive forbidden crate in Cargo.lock must be RED: {findings:#?}"));
+        .unwrap_or_else(|| {
+            panic!("a transitive forbidden crate in Cargo.lock must be RED: {findings:#?}")
+        });
     assert_eq!(f.key, "Cargo.lock:async-graphql");
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
 
@@ -484,7 +600,9 @@ fn red_fixture_mentioning_only_forbidding_adr_does_not_self_launder() {
     let observed = collect_graphql_artifacts(&root, &policy).expect("collect on temp tree");
     let findings = evaluate_keyed(&policy, &observed);
     assert!(
-        findings.iter().any(|f| f.code == "NGQL-FORBIDDEN-LIB" && f.key.ends_with("juniper")),
+        findings
+            .iter()
+            .any(|f| f.code == "NGQL-FORBIDDEN-LIB" && f.key.ends_with("juniper")),
         "citing only the forbidding ADR must NOT self-launder: {findings:#?}"
     );
 

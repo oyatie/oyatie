@@ -13,9 +13,9 @@ use oya_performance_management_review_calibration_service::{
 };
 
 #[test]
-fn descriptor_declares_thirteen_layers_and_three_contracts() {
+fn descriptor_declares_twelve_layers_and_three_contracts() {
     let descriptor = descriptor();
-    assert_eq!(descriptor.layer_count(), 13);
+    assert_eq!(descriptor.layer_count(), 12);
     assert_eq!(descriptor.contract_count(), 3);
     assert!(descriptor.includes_layer(ArchitectureLayer::Usecase));
     assert!(descriptor.includes_layer(ArchitectureLayer::Api));

@@ -12,7 +12,7 @@ info:
     - ADR-0320
   x-naming-justifications:
     bnf_v4: "workplace-integration.event.<name>"
-    layer_enum: "13-layer-enum: kernel, domain, usecase, app, adapter, infrastructure, rest, grpc, graphql, worker, cli, sdk, api"
+    layer_enum: "12-layer-enum: kernel, domain, usecase, app, adapter, infrastructure, rest, grpc, worker, cli, sdk, api"
 defaultContentType: application/json
 channels:
   workplace-integration.WorkplaceESignSessionCreated:
