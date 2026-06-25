@@ -134,7 +134,7 @@ Ship the **tiered** design (option c), evaluated against the alternatives below:
 | unwired tests/examples/benches (live audit 2026-06-12: 100 of 2253 tracked `.rs` files have no owning target — the ADR-0540 `member_test_code_without_rust_test_target` debt class; those tests run NOWHERE today) | REFUSE on touch — a green required context over an edited test that never executes is the silent variant of the defect class; refusal is the fix-on-touch ratchet and the message names the wiring fix |
 | buildfile edit (`BUCK`, `BUCK.v2`, `PACKAGE`) | FULL, ALWAYS (basename in `package_definition_basenames` + `**/PACKAGE` escape trigger). Blast radius is NOT bounded by the package's own rdeps: a BUCK edit can add/remove targets dependents resolve, a `BUCK.v2` SHADOWS the `BUCK` dependents load (buck2 default buildfile order `[BUCK.v2, BUCK]`, empirically verified), and a `PACKAGE` evaluates to `[]` (would otherwise look like a plain no-owner file). Reviewer-reproduced silent-PASS class F2; closed |
 | `.buckconfig.local` | full-trigger → FULL. Read by buck2, committable; was missing from the trigger list (F2) |
-| `cloud/cloud-kernel/**` owned sources (74 of 87 tracked `.rs`; `buck2 uquery //cloud/cloud-kernel/...` → 10 targets, present on dev since 2026-06-10) | ORDINARY owner-required files — seed their cone like any other. **CORRECTION:** an earlier pack `out_of_graph_roots: [cloud/cloud-kernel/**]` exemption was FACTUALLY FALSE (it claimed zero graph targets) and made an owned-kernel compile break PASS as NO-GRAPH-TARGETS — the exact cf16525 class. The exemption is DELETED; there is no path-prefix out-of-graph mechanism |
+| `cloud/cloud-kernel/**` Buck2-owned host-buildable sources | ORDINARY owner-required files — seed their cone like any other. **CORRECTION:** an earlier pack `out_of_graph_roots: [cloud/cloud-kernel/**]` exemption was FACTUALLY FALSE (it claimed zero graph targets) and made an owned-kernel compile break PASS as NO-GRAPH-TARGETS — the exact cf16525 class. The exemption is DELETED; there is no path-prefix out-of-graph mechanism. Bare-metal kernel-image / arch-backend sources plus their exact `linker.ld` scripts remain owner-required, but they intentionally have no placeholder Buck2 target until the repo has a real bare-metal Rust platform/toolchain; touching them REFUSES as unowned rather than passing via wildcard skip or an incompatible pseudo-target. |
 | `cloud/cloud-kernel/.../user-*-src/**` genuinely-unowned userspace sub-crates (13 sources; own `Cargo.toml` + own `rust-toolchain.toml`, not globbed by the parent BUCK, no buck2 target) | REFUSE on touch (the engine's ordinary unowned-owner-required handling) — never a silent PASS, never a hand exemption. The real residual coverage gap is owned by ledger row FRIC-1781310300 (queued: a dedicated kernel lane buckifies or builds them) |
 | buck2 binary pin bump (`infra/ci/install-buck2.sh`) | accepted seam: CI env, not graph; a pin bump mints a new cache key (full rebuild) and the full tier covers it at landing |
 | owner-query ERROR while an unowned source exists | escalates FULL (owner data unavailable; loudly logged) instead of refusing — the safest computable response |
@@ -176,12 +176,14 @@ Ship the **tiered** design (option c), evaluated against the alternatives below:
 
 ## Consequences
 
-- The cf16525 class is closed for every buck2-OWNED source: no owned code (anywhere, including
-  `cloud/cloud-kernel`) can merge without its cone building and testing green under buck2. A
-  genuinely-unowned owner-required source (e.g. a kernel userspace sub-crate buck2 does not
-  model) REFUSES the merge until it is wired — it can never silently PASS, and there is no
-  path-prefix exemption that could re-open the channel (the earlier `out_of_graph_roots`
-  exemption was unsound and is deleted; FRIC-1781310300 owns the kernel-userspace coverage gap).
+- The cf16525 class is closed for every buck2-owned or owner-required source: owned code
+  (anywhere, including host-buildable `cloud/cloud-kernel` crates) cannot merge without its cone
+  building and testing green under buck2. A genuinely-unowned owner-required source (e.g. a
+  kernel userspace sub-crate, or a bare-metal kernel app/arch backend/linker script before the
+  real bare-metal Buck2 Rust platform/toolchain exists) REFUSES the merge until it is wired — it
+  can never silently PASS, and there is no path-prefix exemption that could re-open the channel
+  (the earlier `out_of_graph_roots` exemption was unsound and is deleted; FRIC-1781310300 owns
+  the kernel-userspace coverage gap).
 ### D6 — Build-health ratchet on the FULL tier (round-3; the flag-day fix)
 
 The FULL tier as first shipped did a hard `buck2 build //...`, so it hard-failed on ANY pre-existing

@@ -1,15 +1,6 @@
-# The kernel image: links exactly one arch Frame backend at a bare-metal target
-# with a custom linker script. Bare-metal-only (see //cloud/cloud-kernel:BUCK).
-rust_binary(
-    name = "oya-cloud-kernel-app",
-    srcs = glob(["src/**/*.rs"]),
-    crate = "kernel",
-    crate_root = "src/main.rs",
-    edition = "2021",
-    visibility = ["PUBLIC"],
-    target_compatible_with = ["//cloud/cloud-kernel:bare-metal"],
-    named_deps = {
-        "hal": "//cloud/cloud-kernel/crates/oya-cloud-kernel-hal-kernel:oya-cloud-kernel-hal-kernel",
-        "frame": "//cloud/cloud-kernel/crates/oya-cloud-kernel-frame-kernel:oya-cloud-kernel-frame-kernel",
-    },
-)
+# Intentionally no Buck2 target yet.
+#
+# This kernel image links an arch Frame backend with a custom bare-metal linker
+# script. Exposing it as a placeholder Buck2 target before the real bare-metal
+# Rust platform/toolchain exists makes direct builds fail while wildcard builds
+# skip it, which is false-green CI coverage. See //cloud/cloud-kernel:BUCK.

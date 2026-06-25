@@ -36,7 +36,11 @@ fn policy() -> Policy {
                 "**/PACKAGE",
                 "rust-toolchain.toml"
             ],
-            "require_owner_patterns": ["**/*.rs"],
+            "require_owner_patterns": [
+                "**/*.rs",
+                "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/linker.ld",
+                "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/linker.ld"
+            ],
             "package_definition_basenames": ["BUCK.v2", "BUCK"],
             "package_sibling_basenames": ["Cargo.toml", "build.rs"],
             "cell_roots": {"": "//"},
@@ -323,11 +327,11 @@ fn build_script_is_a_package_sibling_not_a_refusal() {
 #[test]
 fn red_f1_owned_kernel_source_lands_in_its_cone_no_exemption() {
     // F1 (reviewer-reproduced, the bad one): the prior pack out-of-graph-exempted
-    // cloud/cloud-kernel/** — FACTUALLY FALSE (buck2 uquery //cloud/cloud-kernel/... returns 10
-    // targets; the cited oya-cloud-kernel-user-layout-kernel/src/lib.rs is owned by 2). The
-    // exemption made an OWNED .rs break PASS as NO-GRAPH-TARGETS — the exact cf16525 class,
-    // reintroduced by my own pack. The exemption is DELETED: an owned kernel source is an
-    // ordinary owner-required file and lands in its cone as a seed.
+    // cloud/cloud-kernel/** — FACTUALLY FALSE (the cited
+    // oya-cloud-kernel-user-layout-kernel/src/lib.rs is owned by two host-buildable Buck2
+    // targets). The exemption made an OWNED .rs break PASS as NO-GRAPH-TARGETS — the exact
+    // cf16525 class, reintroduced by my own pack. The exemption is DELETED: an owned kernel
+    // source is an ordinary owner-required file and lands in its cone as a seed.
     let p = policy();
     let path = "cloud/cloud-kernel/crates/oya-cloud-kernel-user-layout-kernel/src/lib.rs";
     let changes = [Change::Present(path.into())];
@@ -352,6 +356,43 @@ fn red_f1_owned_kernel_source_lands_in_its_cone_no_exemption() {
         ),
         other => panic!("owned kernel source must be Affected (not exempted), got {other:?}"),
     }
+}
+
+#[test]
+fn bare_metal_kernel_backend_without_buck2_platform_refuses_until_wired() {
+    // The bare-metal arch backends intentionally have no placeholder Buck2 target until the
+    // repo has a real bare-metal Rust platform/toolchain. That must fail closed: touching their
+    // owner-required Rust source REFUSES as unowned instead of silently passing or exposing an
+    // incompatible target that wildcard builds skip.
+    let p = policy();
+    let path = "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/src/lib.rs";
+    let changes = [Change::Present(path.into())];
+    let plan = plan_changes(&changes, &p);
+    let decision = resolve(&plan, &owners(&[(path, &[])]), &p);
+    assert_eq!(
+        decision,
+        Decision::RefuseUnowned {
+            paths: vec![path.into()]
+        }
+    );
+}
+
+#[test]
+fn bare_metal_kernel_linker_script_without_buck2_platform_refuses_until_wired() {
+    // The arch linker scripts are part of the same bare-metal surface as the backend Rust code.
+    // Without an exact owner-required pattern they would be unowned but not owner-required,
+    // reopening the no-graph-targets false-green seam for linker-script edits.
+    let p = policy();
+    let path = "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/linker.ld";
+    let changes = [Change::Present(path.into())];
+    let plan = plan_changes(&changes, &p);
+    let decision = resolve(&plan, &owners(&[(path, &[])]), &p);
+    assert_eq!(
+        decision,
+        Decision::RefuseUnowned {
+            paths: vec![path.into()]
+        }
+    );
 }
 
 #[test]
@@ -454,6 +495,12 @@ fn shipped_pack_parses_and_matches_the_engine() {
             .any(|t| t == "third-party/**")
     );
     assert!(p.require_owner_patterns.iter().any(|t| t == "**/*.rs"));
+    assert!(p.require_owner_patterns.iter().any(|t| {
+        t == "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/linker.ld"
+    }));
+    assert!(p.require_owner_patterns.iter().any(|t| {
+        t == "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/linker.ld"
+    }));
     assert!(
         p.package_sibling_basenames
             .iter()
