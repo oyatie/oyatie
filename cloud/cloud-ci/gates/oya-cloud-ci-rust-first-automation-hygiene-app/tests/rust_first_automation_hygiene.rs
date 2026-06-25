@@ -5,8 +5,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use oya_cloud_ci_rust_first_automation_hygiene_app::{
-    Finding, Verdict, collect_observed_non_rust_automation, collect_observed_workflow_inline_shell,
-    evaluate, evaluate_keyed, evaluate_workflow_inline_shell_keyed,
+    Finding, Verdict, collect_observed_forbidden_workflow_uses,
+    collect_observed_non_rust_automation, collect_observed_workflow_inline_shell, evaluate,
+    evaluate_forbidden_workflow_uses, evaluate_keyed, evaluate_workflow_inline_shell_keyed,
 };
 use serde_json::{Value, json};
 
@@ -146,14 +147,19 @@ fn live_workflow_inline_shell_matches_frozen_baseline_green() {
         findings.is_empty(),
         "workflow inline-shell dimension found shrink-only violations over {steps} observed steps: \
          {findings:#?}\n  unbaselined (new beyond baseline) = {:?}\n  stale (baselined but gone) = {:?}",
-        keys_for(&findings, "rust_first_automation_unbaselined_workflow_inline_shell"),
-        keys_for(&findings, "rust_first_automation_workflow_inline_shell_baseline_stale"),
+        keys_for(
+            &findings,
+            "rust_first_automation_unbaselined_workflow_inline_shell"
+        ),
+        keys_for(
+            &findings,
+            "rust_first_automation_workflow_inline_shell_baseline_stale"
+        ),
     );
 
     // The committed keys_total provenance must match the actual baseline key array length — a cheap
     // tripwire against a hand-edited baseline whose provenance count drifts from its `codes` array.
-    let codes_len = baseline["codes"]
-        ["rust_first_automation_unbaselined_workflow_inline_shell"]
+    let codes_len = baseline["codes"]["rust_first_automation_unbaselined_workflow_inline_shell"]
         .as_array()
         .expect("baseline codes array")
         .len();
@@ -218,4 +224,69 @@ fn retired_baselined_inline_shell_is_stale_red() {
         finding.code == "rust_first_automation_workflow_inline_shell_baseline_stale"
             && finding.key == ".github/workflows/docs-graph-drift.yml::docs-graph-drift::step-3"
     }));
+}
+
+// ───────────────────────── forbidden workflow `uses:` dimension ─────────────────────────────
+
+#[test]
+fn workflow_forbidden_uses_dimension_covers_dot_github_workflows() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let block = &policy["scan"]["workflow_forbidden_uses"];
+    assert_eq!(
+        block["enabled"].as_bool(),
+        Some(true),
+        "workflow_forbidden_uses dimension must be enabled in policy DATA"
+    );
+    let roots: Vec<&str> = block["roots"]
+        .as_array()
+        .expect("workflow_forbidden_uses.roots")
+        .iter()
+        .filter_map(Value::as_str)
+        .collect();
+    assert!(
+        roots.contains(&".github/workflows"),
+        ".github/workflows must be a declared forbidden-uses scan root; got {roots:?}"
+    );
+    let forbidden: Vec<&str> = block["forbidden_uses_substrings"]
+        .as_array()
+        .expect("workflow_forbidden_uses.forbidden_uses_substrings")
+        .iter()
+        .filter_map(Value::as_str)
+        .collect();
+    assert!(
+        forbidden.contains(&"setup-buck2"),
+        "setup-buck2 marketplace action residue must be a forbidden uses substring; got {forbidden:?}"
+    );
+}
+
+#[test]
+fn live_workflow_uses_do_not_reintroduce_setup_buck2_action() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let observed = collect_observed_forbidden_workflow_uses(&root, &policy)
+        .expect("read-only workflow uses scan should not need temp files or cleanup");
+    let findings = evaluate_forbidden_workflow_uses(&observed);
+    assert!(
+        findings.is_empty(),
+        "workflow uses scan found forbidden Buck2 setup action(s): {findings:#?}. \
+         Keep infra/ci/install-buck2.sh as the repo-owned path that downloads the official \
+         facebook/buck2 release asset with pinned SHA-256."
+    );
+}
+
+#[test]
+fn fixture_proves_setup_buck2_action_fails_closed() {
+    let observed = json!({"uses": [{
+        "key": ".github/workflows/ci.yml::build::step-0::some/setup-buck2@v1",
+        "uses": "some/setup-buck2@v1"
+    }]});
+    let findings = evaluate_forbidden_workflow_uses(&observed);
+    assert!(
+        findings.iter().any(|finding| {
+            finding.code == "rust_first_automation_forbidden_workflow_action"
+                && finding.key == ".github/workflows/ci.yml::build::step-0::some/setup-buck2@v1"
+        }),
+        "forbidden setup-buck2 action must fail closed; got {findings:#?}"
+    );
 }
