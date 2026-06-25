@@ -723,7 +723,9 @@ fn catalog_non_claims_declares_no_crate(contents: &str) -> bool {
             }
             let lower = trimmed.to_ascii_lowercase();
             if (lower.contains("no matching crate") || lower.contains("no live crate"))
-                && (lower.contains("exist") || lower.contains("checkout") || lower.contains("crate"))
+                && (lower.contains("exist")
+                    || lower.contains("checkout")
+                    || lower.contains("crate"))
             {
                 return true;
             }
@@ -1173,6 +1175,29 @@ mod tests {
         fs::remove_dir_all(root).expect("remove temp repo");
     }
 
+    #[test]
+    fn justifications_include_root_level_tracked_paths() {
+        let root = unique_temp_repo();
+        let decisions = root.join("docs/decisions");
+        fs::create_dir_all(&decisions).expect("create decisions dir");
+        fs::write(
+            decisions.join("ADR-9998-root-path-test.md"),
+            "The root dependency automation DATA contract is `oya-deps.toml`.\n",
+        )
+        .expect("write ADR");
+
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let paths = vec!["oya-deps.toml".to_owned()];
+        let justifications = resolve_justifications(&root, &paths, &cfg);
+
+        assert_eq!(
+            justifications.get("oya-deps.toml"),
+            Some(&"ADR-9998".to_owned())
+        );
+
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
     /// RED fixture for FRIC-1781320000: a duplicate-numbered ADR pair (the parallel-lane
     /// collision shape) must surface in `duplicate_ids`; a filename/front-matter id
     /// mismatch (the re-keying vector that can MASK such a collision) must surface in
@@ -1317,7 +1342,11 @@ mod tests {
         let mut sorted = list.to_vec();
         sorted.sort_unstable();
         sorted.dedup();
-        assert_eq!(sorted.as_slice(), list, "inventory must be sorted + deduped");
+        assert_eq!(
+            sorted.as_slice(),
+            list,
+            "inventory must be sorted + deduped"
+        );
     }
 
     /// A clean corpus carries no mismatch signal and allocates max+1 from the filename ids.
@@ -1348,11 +1377,8 @@ mod tests {
         // A root workspace manifest is required: the slo-coverage face now composes the
         // live-OR-marked predicate, which resolves workspace members in-process. An empty
         // members array yields an empty live set (these `service` rows are not live crates).
-        fs::write(
-            root.join("Cargo.toml"),
-            "[workspace]\nmembers = []\n",
-        )
-        .expect("write root manifest");
+        fs::write(root.join("Cargo.toml"), "[workspace]\nmembers = []\n")
+            .expect("write root manifest");
         let first = root.join("registry/catalog-a/service.yaml");
         let second = root.join("registry/catalog-b/service.yaml");
         fs::create_dir_all(first.parent().expect("first parent")).expect("create first parent");
@@ -1543,7 +1569,10 @@ mod tests {
                 if dir.join("specs/root-hub-pointers.json").is_file() {
                     break dir.join("specs/fixtures/owners-schema");
                 }
-                assert!(dir.pop(), "failed to locate repo root from test current_dir");
+                assert!(
+                    dir.pop(),
+                    "failed to locate repo root from test current_dir"
+                );
             }
         };
         let mut entries: Vec<PathBuf> = fs::read_dir(&fixtures_dir)
@@ -1563,7 +1592,10 @@ mod tests {
                 .unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
             let fixture: Value = serde_json::from_str(&text)
                 .unwrap_or_else(|e| panic!("parse {}: {e}", path.display()));
-            let id = fixture["fixture_id"].as_str().expect("fixture_id").to_owned();
+            let id = fixture["fixture_id"]
+                .as_str()
+                .expect("fixture_id")
+                .to_owned();
 
             let root = unique_temp_repo();
             for (rel, content) in fixture["owners_files"].as_object().expect("owners_files") {
@@ -1571,7 +1603,10 @@ mod tests {
                 fs::create_dir_all(abs.parent().expect("parent")).expect("create owners dir");
                 fs::write(&abs, content.as_str().expect("owners content")).expect("write");
             }
-            let cfg = match fixture.get("max_paths_per_owners_file").and_then(Value::as_u64) {
+            let cfg = match fixture
+                .get("max_paths_per_owners_file")
+                .and_then(Value::as_u64)
+            {
                 Some(bound) => oya_ci_config_kernel::OyaCiConfig::from_toml_str(&format!(
                     "[owners]\nmax_paths_per_owners_file = {bound}\n"
                 ))
@@ -1646,7 +1681,10 @@ mod tests {
                 if dir.join("specs/root-hub-pointers.json").is_file() {
                     break dir;
                 }
-                assert!(dir.pop(), "failed to locate repo root from test current_dir");
+                assert!(
+                    dir.pop(),
+                    "failed to locate repo root from test current_dir"
+                );
             }
         };
         let scm_facts = load_scm_facts(&root.join(
@@ -1673,7 +1711,6 @@ mod tests {
              the resolver regressed"
         );
     }
-
 }
 
 /// Extract `name = "..."` from the `[package]` table of a Cargo.toml. Lightweight line-scan
@@ -1841,14 +1878,13 @@ fn is_workspace_inherited(line: &str, key: &str) -> bool {
 /// NOT in this list: it was healed by minting the record, which is what keeps this lane's
 /// live key set empty.
 const GRANDFATHERED_PHANTOM_DECISION_IDS: [&str; 63] = [
-    "ADR-0000", "ADR-0012", "ADR-0033", "ADR-0037", "ADR-0041", "ADR-0050", "ADR-0086",
-    "ADR-0088", "ADR-0125", "ADR-0126", "ADR-0127", "ADR-0224", "ADR-0231", "ADR-0232",
-    "ADR-0247", "ADR-0322", "ADR-0323", "ADR-0327", "ADR-0342", "ADR-0345", "ADR-0395",
-    "ADR-0399", "ADR-0403", "ADR-0406", "ADR-0407", "ADR-0408", "ADR-0409", "ADR-0410",
-    "ADR-0411", "ADR-0413", "ADR-0416", "ADR-0418", "ADR-0419", "ADR-0420", "ADR-0421",
-    "ADR-0423", "ADR-0428", "ADR-0429", "ADR-0434", "ADR-0436", "ADR-0441", "ADR-0443",
-    "ADR-0448", "ADR-0449", "ADR-0450", "ADR-0451", "ADR-0454", "ADR-0457", "ADR-0458",
-    "ADR-0459", "ADR-0460", "ADR-0461", "ADR-0462", "ADR-0466", "ADR-0468", "ADR-0472",
+    "ADR-0000", "ADR-0012", "ADR-0033", "ADR-0037", "ADR-0041", "ADR-0050", "ADR-0086", "ADR-0088",
+    "ADR-0125", "ADR-0126", "ADR-0127", "ADR-0224", "ADR-0231", "ADR-0232", "ADR-0247", "ADR-0322",
+    "ADR-0323", "ADR-0327", "ADR-0342", "ADR-0345", "ADR-0395", "ADR-0399", "ADR-0403", "ADR-0406",
+    "ADR-0407", "ADR-0408", "ADR-0409", "ADR-0410", "ADR-0411", "ADR-0413", "ADR-0416", "ADR-0418",
+    "ADR-0419", "ADR-0420", "ADR-0421", "ADR-0423", "ADR-0428", "ADR-0429", "ADR-0434", "ADR-0436",
+    "ADR-0441", "ADR-0443", "ADR-0448", "ADR-0449", "ADR-0450", "ADR-0451", "ADR-0454", "ADR-0457",
+    "ADR-0458", "ADR-0459", "ADR-0460", "ADR-0461", "ADR-0462", "ADR-0466", "ADR-0468", "ADR-0472",
     "ADR-0473", "ADR-0474", "ADR-0475", "ADR-0477", "ADR-0483", "ADR-0484", "ADR-0488",
 ];
 
@@ -2000,7 +2036,8 @@ fn collect_crosswalk_inputs(
     // not re-implemented here — so `--next-adr`, this crosswalk pass, and the slice-3
     // register_crate app all share one allocator with no duplication. Infallible in
     // practice (a missing dir yields ADR-0001), but propagated for a uniform contract.
-    let next_free_id = allocate_next_adr_id(&decisions_dir).unwrap_or_else(|_| "ADR-0001".to_owned());
+    let next_free_id =
+        allocate_next_adr_id(&decisions_dir).unwrap_or_else(|_| "ADR-0001".to_owned());
 
     let phantom_citations = collect_phantom_citations(
         &known_ids,
@@ -2265,8 +2302,7 @@ fn resolve_reachability(
     let root_hub = read_text(&repo_root.join(&cfg.reachability.root_hub));
     let doc_catalog = read_text(&repo_root.join(&cfg.reachability.doc_catalog));
     let cargo_members = read_cargo_member_prefixes(repo_root);
-    let registrations =
-        load_reachability_registry(&repo_root.join(&cfg.reachability.registry))?;
+    let registrations = load_reachability_registry(&repo_root.join(&cfg.reachability.registry))?;
 
     let mut map: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for path in paths {
@@ -2354,7 +2390,7 @@ fn resolve_justifications(
             let token = raw
                 .trim_matches(|c: char| matches!(c, ':' | '#' | '*'))
                 .trim_end_matches('.');
-            if token.len() >= 4 && token.contains('/') && tracked.contains(token) {
+            if token.len() >= 4 && tracked.contains(token) {
                 mentioned
                     .entry(token.to_owned())
                     .or_insert_with(|| adr_id.clone());

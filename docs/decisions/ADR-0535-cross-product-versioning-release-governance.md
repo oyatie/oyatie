@@ -97,6 +97,15 @@ GitHub Actions remains only the transitional runner adapter, while the policy so
 owned cloud-ci Rust gate/API. The automation-first doctrine (formerly ADR-0050) is
 governed by the AUTO/ADVISE/GATE safety governor (ADR-0519/0529).
 
+Implementation guardrail (2026-06-25): the owned dependency-automation contract is born as
+`oya-deps.toml`, with root ownership carried by `OWNERS` and the first Rust cloud-ci enforcement
+surface at `cloud/cloud-ci/gates/oya-cloud-ci-dependency-automation-app/BUCK`,
+`cloud/cloud-ci/gates/oya-cloud-ci-dependency-automation-app/Cargo.toml`,
+`cloud/cloud-ci/gates/oya-cloud-ci-dependency-automation-app/OWNERS`,
+`cloud/cloud-ci/gates/oya-cloud-ci-dependency-automation-app/src/lib.rs`,
+`cloud/cloud-ci/gates/oya-cloud-ci-dependency-automation-app/src/main.rs`, and
+`cloud/cloud-ci/gates/oya-cloud-ci-dependency-automation-app/tests/dependency_automation.rs`.
+
 ## Drivers
 
 - The published-artifact-vs-no-external-blob doctrine collision (resolved: OCI + pinned-git,
