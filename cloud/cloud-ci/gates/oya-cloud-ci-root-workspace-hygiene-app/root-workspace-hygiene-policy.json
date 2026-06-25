@@ -10,7 +10,6 @@
   "allowed_root_files": [
     { "id": "cargo-manifest",        "kind": "exact",  "value": "Cargo.toml",          "reason": "workspace Cargo manifest" },
     { "id": "cargo-lock",            "kind": "exact",  "value": "Cargo.lock",          "reason": "generated lockfile (kept tracked)" },
-    { "id": "buck-target",           "kind": "exact",  "value": "BUCK",                "reason": "root buck2 target file" },
     { "id": "buckconfig",            "kind": "prefix_dot", "value": ".buckconfig",     "reason": "buck2 config (.buckconfig, .buckconfig.local, …) but NOT notes.buckconfig" },
     { "id": "buckroot",              "kind": "exact",  "value": ".buckroot",           "reason": "buck2 cell-root marker" },
     { "id": "rust-toolchain",        "kind": "exact",  "value": "rust-toolchain.toml", "reason": "pinned Rust toolchain" },
