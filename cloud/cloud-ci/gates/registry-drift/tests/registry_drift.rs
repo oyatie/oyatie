@@ -1,11 +1,14 @@
-// :registry-drift gate — committed == regenerated (PHASE-0-FIREWALL-PLAN §5.3).
+// :registry-drift gate — PR-owned committed faces == regenerated (PHASE-0-FIREWALL-PLAN §5.3).
 // Re-runs the producer in --stdout (sandbox) mode and byte-diffs against the committed
-// accounting faces. The scm-facts face is now the ADR-0604 DE-COMMIT class (the last committed
-// pure-derivation face, de-committed to kill the faces-serialization cascade): it has no
-// committed copy to byte-compare, so it is validated by the REGENERATE-TWICE DETERMINISM canary
-// (two fresh emitter runs must be byte-identical), matching the freshness gate's
-// evaluate_face_determinism for the de-commit class. A non-deterministic emitter still fails
-// here. ADR-0083 Tier-3: integration tests use unwrap/expect.
+// PR-owned accounting faces. Controller-owned/generated-output-control-plane faces are not PR
+// merge surfaces: they must still be committed on the integration branch for ratchet consumers,
+// and their producers must stay deterministic, but contributor PRs must not carry byte churn for
+// those faces. The scm-facts face is now the ADR-0604 DE-COMMIT class (the last committed
+// pure-derivation face, de-committed to kill the faces-serialization cascade): it has no committed
+// copy to byte-compare, so it is validated by the REGENERATE-TWICE DETERMINISM canary (two fresh
+// emitter runs must be byte-identical), matching the freshness gate's evaluate_face_determinism
+// for the de-commit class. A non-deterministic emitter still fails here. ADR-0083 Tier-3:
+// integration tests use unwrap/expect.
 //
 // HERMETIC: no `env!("CARGO")` (a compile-time cargo-only macro that breaks the buck2 build).
 // The producer + emitter binaries are resolved at RUNTIME:
@@ -40,13 +43,11 @@ fn faces_dir(root: &Path) -> PathBuf {
     root.join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app")
 }
 
-/// The committed generated faces and the `--face` name that regenerates each. registry-drift
-/// extends across ALL of them: the registry + ttl-policy + the GATE-1 decision-crosswalk +
-/// the GATE-4 enforcement-inventory/enforcement-liveness faces + the GO-LIVE gate-baseline (the accepted-debt
-/// ratchet). A hand-edit to any one fails this gate. The baseline being byte-diff-protected
-/// here is what makes laundering debt into the baseline tamper-evident: a hand-edit to widen
-/// the accepted-violation set is itself registry_drift RED.
-const FACES: [(&str, &str); 6] = [
+/// The PR-owned committed generated faces and the `--face` name that regenerates each.
+/// registry-drift byte-parity extends across the registry + ttl-policy + the GATE-1
+/// decision-crosswalk + the GATE-4 enforcement-inventory/enforcement-liveness faces.
+/// A PR-local hand-edit to any one fails this gate.
+const BYTE_PARITY_FACES: [(&str, &str); 5] = [
     ("accounting-registry.generated.json", "registry"),
     ("ttl-policy.generated.json", "ttl-policy"),
     ("decision-crosswalk.generated.json", "decision-crosswalk"),
@@ -58,8 +59,14 @@ const FACES: [(&str, &str); 6] = [
         "enforcement-liveness.generated.json",
         "enforcement-liveness",
     ),
-    ("gate-baseline.generated.json", "baseline"),
 ];
+
+/// Controller-owned faces are materialized on the integration branch for merge-base ratchet
+/// consumers, but they are not contributor-PR byte-churn surfaces. The generated-output diff
+/// policy rejects PR-local modifications to these faces; registry-drift therefore validates their
+/// producer determinism and committed presence without comparing candidate-tree bytes to the
+/// integration-branch snapshot.
+const CONTROLLER_OWNED_FACES: [(&str, &str); 1] = [("gate-baseline.generated.json", "baseline")];
 
 const SCM_FACTS_FACE: &str = "scm-facts.generated.json";
 
@@ -249,13 +256,14 @@ fn resolve_bin(root: &Path, bin: &str) -> PathBuf {
     if p.is_absolute() { p } else { root.join(p) }
 }
 
-/// Regenerate each face in-memory (sandbox) and assert it byte-matches the committed face.
+/// Regenerate each PR-owned face in-memory (sandbox) and assert it byte-matches the committed
+/// face.
 #[test]
 fn committed_faces_equal_regenerated() {
     let root = repo_root();
     let dir = faces_dir(&root);
 
-    for (file, face) in FACES {
+    for (file, face) in BYTE_PARITY_FACES {
         let committed_path = dir.join(file);
         let committed = fs::read_to_string(&committed_path).unwrap_or_else(|e| {
             panic!(
@@ -271,6 +279,40 @@ fn committed_faces_equal_regenerated() {
             "REGISTRY DRIFT: committed {file} != regenerated. \
              A generated face was hand-edited, or source changed without re-running the producer. \
              Re-run //cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app-bin to regenerate."
+        );
+    }
+}
+
+/// Controller-owned faces must remain committed for integration-branch ratchet consumers, and
+/// their producers must remain deterministic, but contributor PRs must not be forced to commit
+/// their regenerated bytes. This is the registry-drift counterpart to the generated-output diff
+/// policy's "not PR merge surfaces" rule.
+#[test]
+fn controller_owned_faces_regenerate_deterministically() {
+    let root = repo_root();
+    let dir = faces_dir(&root);
+
+    for (file, face) in CONTROLLER_OWNED_FACES {
+        let committed_path = dir.join(file);
+        assert!(
+            committed_path.is_file(),
+            "controller-owned face missing at {}; the integration branch must keep this \
+             materialized snapshot for merge-base ratchet consumers",
+            committed_path.display()
+        );
+
+        let first = regenerate_face(&root, face);
+        let second = regenerate_face(&root, face);
+
+        assert!(
+            !first.trim().is_empty(),
+            "controller-owned face {file} regenerated empty output"
+        );
+        assert_eq!(
+            first, second,
+            "CONTROLLER-OWNED FACE NON-DETERMINISTIC: two fresh emissions of {file} differ. \
+             Contributor PRs do not own generated byte churn for this face, so deterministic \
+             regeneration is the integrity canary."
         );
     }
 }
