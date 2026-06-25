@@ -85,6 +85,7 @@ freshness check for those cloud-ci faces.
 | Path / Crate | Change type | BNF v4.1 name | Layer |
 |---|---|---|---|
 | `cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/` | create | `oya-cloud-ci-freshness-app` | app |
+| `cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/bin/oya-cloud-ci-materialize-generated-faces.rs` | add Rust/Buck2 generated-face materializer bridge | `oya-cloud-ci-materialize-generated-faces` | app |
 | `marketplace/facade/dev-cli/src/freshness_gate.rs` | create bridge module | `marketplace-dev-cli` | cli |
 | `.github/workflows/oya-ci-required.yml` | add independent freshness job and fan-in need | - | - |
 | `oya-ci.toml` | register `cloud-ci-freshness` | - | - |

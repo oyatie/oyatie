@@ -13,7 +13,7 @@ mod rust_toolchain_drift;
 pub use rust_toolchain_drift::{evaluate_rust_toolchain_drift, read_pinned_rust_toolchain};
 
 pub const LOCK_REMEDIATION_COMMAND: &str = "cargo metadata >/dev/null";
-pub const FACE_REMEDIATION_COMMAND: &str = "infra/ci/materialize-cloud-ci-generated-faces.sh .";
+pub const FACE_REMEDIATION_COMMAND: &str = "buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .";
 pub const FACE_SETTLE_PROTOCOL: &str = "commit content changes first; faces regenerate from the TRACKED TREE STATE (ADR-0552: committed faces carry no history-derived data, so commit ids never enter them); never mix content and regenerated faces in one commit; then run the materialize command; commit only PR-owned generated face diffs; controller-owned generated faces are materialized by cloud-ci/integration controllers, not contributor PRs; then run oya-cloud-ci-face-settle --verify as the LAST step before EVERY push";
 pub const FACE_VERIFY_REMEDIATION_COMMAND: &str = "oya-cloud-ci-face-settle --settle --commit";
 pub const FACE_SETTLE_COMMIT_COMMAND: &str =
@@ -42,6 +42,8 @@ const GENERATED_FACE_PATHS: [&str; 7] = [
 const EMITTER_TARGET: &str =
     "//cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app:oya-cloud-ci-scm-facts-emitter-app";
 const PRODUCER_TARGET: &str = "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin";
+const CODEMOD_TARGET: &str = "//tools/oya-reorg-codemod-app:oya-reorg-codemod";
+const MOVE_MANIFEST_FACE: &str = "specs/reorg/move-manifest.generated.json";
 const PRODUCER_FACES: [(&str, &str); 6] = [
     ("accounting-registry.generated.json", "registry"),
     ("ttl-policy.generated.json", "ttl-policy"),
@@ -142,6 +144,11 @@ impl FaceSettleReport {
 pub struct FaceSettleArgs {
     pub repo_root: PathBuf,
     pub mode: FaceSettleMode,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MaterializeGeneratedFacesArgs {
+    pub repo_root: PathBuf,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -320,6 +327,55 @@ pub fn run_face_settle_with_buck2(
             settle_regenerated_faces(repo_root, regenerated_faces, mode)
         }
     }
+}
+
+pub fn materialize_generated_faces_with_buck2(repo_root: &Path) -> Result<(), FreshnessError> {
+    let tools = build_materializer_tools(repo_root)?;
+    materialize_move_manifest(&tools, repo_root)?;
+    let scm_facts = repo_root.join(FACES_DIR).join(SCM_FACTS_FACE);
+    emit_materialized_scm_facts(&tools, repo_root, &scm_facts)?;
+    run_status(
+        Command::new(&tools.producer)
+            .args(["--repo-root"])
+            .arg(repo_root)
+            .args(["--scm-facts"])
+            .arg(&scm_facts)
+            .current_dir(repo_root),
+        "materialize generated accounting faces",
+    )
+}
+
+pub fn parse_materialize_generated_faces_args(
+    args: Vec<String>,
+) -> Result<MaterializeGeneratedFacesArgs, FreshnessError> {
+    let mut repo_root = PathBuf::from(".");
+    let mut iter = args.into_iter();
+    while let Some(arg) = iter.next() {
+        match arg.as_str() {
+            "--repo-root" => {
+                let Some(value) = iter.next() else {
+                    return Err(FreshnessError::new(
+                        "materialize generated faces: --repo-root requires a path",
+                    ));
+                };
+                repo_root = PathBuf::from(value);
+            }
+            "--help" | "-h" => {
+                return Err(FreshnessError::new(materialize_generated_faces_usage()));
+            }
+            other => {
+                return Err(FreshnessError::new(format!(
+                    "materialize generated faces: unknown argument {other:?}; {}",
+                    materialize_generated_faces_usage()
+                )));
+            }
+        }
+    }
+    Ok(MaterializeGeneratedFacesArgs { repo_root })
+}
+
+pub fn materialize_generated_faces_usage() -> &'static str {
+    "usage: oya-cloud-ci-materialize-generated-faces [--repo-root <path>]"
 }
 
 pub fn parse_face_settle_args(args: Vec<String>) -> Result<FaceSettleArgs, FreshnessError> {
@@ -1153,6 +1209,12 @@ struct FaceTools {
     producer: PathBuf,
 }
 
+struct MaterializerTools {
+    emitter: PathBuf,
+    producer: PathBuf,
+    codemod: PathBuf,
+}
+
 fn build_face_tools(repo_root: &Path) -> Result<FaceTools, FreshnessError> {
     let output = run_output(
         Command::new("buck2")
@@ -1166,6 +1228,60 @@ fn build_face_tools(repo_root: &Path) -> Result<FaceTools, FreshnessError> {
     let emitter = parse_show_output_path(repo_root, &output, EMITTER_TARGET)?;
     let producer = parse_show_output_path(repo_root, &output, PRODUCER_TARGET)?;
     Ok(FaceTools { emitter, producer })
+}
+
+fn build_materializer_tools(repo_root: &Path) -> Result<MaterializerTools, FreshnessError> {
+    let output = run_output(
+        Command::new("buck2")
+            .arg("build")
+            .arg(EMITTER_TARGET)
+            .arg(PRODUCER_TARGET)
+            .arg(CODEMOD_TARGET)
+            .arg("--show-output")
+            .current_dir(repo_root),
+        "buck2 build generated-face materializer tools",
+    )?;
+    let emitter = parse_show_output_path(repo_root, &output, EMITTER_TARGET)?;
+    let producer = parse_show_output_path(repo_root, &output, PRODUCER_TARGET)?;
+    let codemod = parse_show_output_path(repo_root, &output, CODEMOD_TARGET)?;
+    Ok(MaterializerTools {
+        emitter,
+        producer,
+        codemod,
+    })
+}
+
+fn materialize_move_manifest(
+    tools: &MaterializerTools,
+    repo_root: &Path,
+) -> Result<(), FreshnessError> {
+    run_status(
+        Command::new(&tools.codemod)
+            .arg("manifest")
+            .args(["--repo-root"])
+            .arg(repo_root)
+            .args(["--out"])
+            .arg(repo_root.join(MOVE_MANIFEST_FACE))
+            .current_dir(repo_root),
+        "materialize reorg move manifest",
+    )
+}
+
+fn emit_materialized_scm_facts(
+    tools: &MaterializerTools,
+    repo_root: &Path,
+    scm_facts: &Path,
+) -> Result<(), FreshnessError> {
+    run_status(
+        Command::new(&tools.emitter)
+            .args(["--repo-root"])
+            .arg(repo_root)
+            .args(["--out"])
+            .arg(scm_facts)
+            .arg("--merge-base-baseline")
+            .current_dir(repo_root),
+        "materialize scm-facts boundary snapshot",
+    )
 }
 
 fn parse_show_output_path(
@@ -1321,4 +1437,57 @@ fn required_string(
         .and_then(toml::Value::as_str)
         .map(str::to_owned)
         .ok_or_else(|| FreshnessError::new(format!("{context} missing string `{key}`")))
+}
+
+#[cfg(test)]
+mod materialize_generated_faces_tests {
+    use super::*;
+
+    #[test]
+    fn parse_materialize_generated_faces_args_defaults_to_repo_root_dot() {
+        let parsed = parse_materialize_generated_faces_args(Vec::new())
+            .expect("empty args should use repository root default");
+
+        assert_eq!(parsed.repo_root, PathBuf::from("."));
+    }
+
+    #[test]
+    fn parse_materialize_generated_faces_args_accepts_repo_root() {
+        let parsed = parse_materialize_generated_faces_args(vec![
+            "--repo-root".to_owned(),
+            "/tmp/oyatie".to_owned(),
+        ])
+        .expect("parse explicit repository root");
+
+        assert_eq!(parsed.repo_root, PathBuf::from("/tmp/oyatie"));
+    }
+
+    #[test]
+    fn parse_materialize_generated_faces_args_rejects_unknown_flag() {
+        let error = parse_materialize_generated_faces_args(vec!["--settle".to_owned()])
+            .expect_err("materializer must not inherit face-settle modes");
+
+        assert!(error.to_string().contains("unknown argument"));
+        assert!(
+            error
+                .to_string()
+                .contains("oya-cloud-ci-materialize-generated-faces")
+        );
+    }
+
+    #[test]
+    fn parse_show_output_path_resolves_materializer_targets() {
+        let output = "\
+root//cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app:oya-cloud-ci-scm-facts-emitter-app buck-out/v2/gen/emitter\n\
+root//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin /tmp/producer\n\
+";
+
+        let emitter =
+            parse_show_output_path(Path::new("/repo"), output, EMITTER_TARGET).expect("emitter");
+        let producer =
+            parse_show_output_path(Path::new("/repo"), output, PRODUCER_TARGET).expect("producer");
+
+        assert_eq!(emitter, PathBuf::from("/repo/buck-out/v2/gen/emitter"));
+        assert_eq!(producer, PathBuf::from("/tmp/producer"));
+    }
 }

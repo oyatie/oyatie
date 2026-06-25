@@ -31,6 +31,16 @@ rust_binary(
     ],
 )
 
+rust_binary(
+    name = "oya-cloud-ci-materialize-generated-faces-bin",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/bin/oya-cloud-ci-materialize-generated-faces.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-ci-freshness-app",
+    ],
+)
+
 rust_test(
     name = "oya-cloud-ci-freshness-app-unittest",
     srcs = glob(["src/**/*.rs"]),
