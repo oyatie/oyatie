@@ -352,6 +352,40 @@ mod tests {
     }
 
     #[test]
+    fn excessively_nested_expressions_fail_closed_before_recursive_dos() {
+        fn assert_depth_capped(label: &str, expr: String) {
+            let buck = format!("X = {expr}\n");
+            let err = parse(&buck).expect_err("recursive input must be capped");
+
+            assert!(
+                err.message.contains("nesting depth"),
+                "{label}: depth cap must be explicit, got: {err}"
+            );
+        }
+
+        let mut list_expr = "\"leaf\"".to_owned();
+        let mut paren_expr = "\"leaf\"".to_owned();
+        let mut call_expr = "\"leaf\"".to_owned();
+        let mut dict_expr = "\"leaf\"".to_owned();
+        for _ in 0..300 {
+            list_expr = format!("[{list_expr}]");
+            paren_expr = format!("({paren_expr})");
+            call_expr = format!("f({call_expr})");
+            dict_expr = format!("{{\"k\": {dict_expr}}}");
+        }
+        assert_depth_capped("list", list_expr);
+        assert_depth_capped("parenthesized expression", paren_expr);
+        assert_depth_capped("call argument", call_expr);
+        assert_depth_capped("dict value", dict_expr);
+
+        let mut opaque_expr = "root.".to_owned();
+        opaque_expr.push_str(&"m(".repeat(300));
+        opaque_expr.push_str("\"leaf\"");
+        opaque_expr.push_str(&")".repeat(300));
+        assert_depth_capped("opaque postfix tail", opaque_expr);
+    }
+
+    #[test]
     fn index_assignments_and_comprehensions_parse() {
         let buck = concat!(
             "ROOT = \"cloud/ci/adapter\"\n",
