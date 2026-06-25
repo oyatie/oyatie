@@ -3,7 +3,7 @@
 //! This is intentionally a Rust API behind the existing freshness gate binary,
 //! not a Python/shell script. The repo-specific scope stays small and explicit:
 //! canonical Rust pins must follow `rust-toolchain.toml` across manifests,
-//! Dockerfiles, workflows/toolchains, and active standards/spec text.
+//! Dockerfiles, CI surfaces/toolchains, and active standards/spec text.
 
 use std::collections::{BTreeSet, VecDeque};
 use std::fs;
@@ -280,13 +280,12 @@ fn check_docker_text(rel: &str, text: &str, want: &str, findings: &mut BTreeSet<
             .trim_start()
             .strip_prefix("ARG RUST_VERSION=")
             .and_then(|rest| rest.split_whitespace().next())
+            .filter(|value| *value != want)
         {
-            if value != want {
-                findings.insert(drift_finding(
-                    rel,
-                    format!("ARG RUST_VERSION={value}, want {want}"),
-                ));
-            }
+            findings.insert(drift_finding(
+                rel,
+                format!("ARG RUST_VERSION={value}, want {want}"),
+            ));
         }
         let Some(tag) = line.trim_start().strip_prefix("FROM rust:") else {
             continue;
@@ -300,26 +299,38 @@ fn check_docker_text(rel: &str, text: &str, want: &str, findings: &mut BTreeSet<
 }
 
 fn check_ci_text(rel: &str, text: &str, want: &str, findings: &mut BTreeSet<Finding>) {
-    if text.contains("toolchain: stable") {
-        findings.insert(drift_finding(rel, "uses floating Rust stable"));
-    }
-
     for line in text.lines() {
-        if let Some(version) = version_after(line, ".rustup/toolchains/") {
-            if version != want {
+        if let Some(toolchain) = ci_surface_toolchain_value(line) {
+            let version = leading_version(&toolchain);
+            if version.is_empty() {
                 findings.insert(drift_finding(
                     rel,
-                    format!("rustup cache path pins {version}, want {want}"),
+                    format!(
+                        "CI surface uses non-canonical Rust toolchain {toolchain}, want {want}"
+                    ),
+                ));
+            } else if version != want {
+                findings.insert(drift_finding(
+                    rel,
+                    format!("CI surface toolchain pins {version}, want {want}"),
                 ));
             }
         }
-        if let Some(version) = version_after(line, "rustup toolchain install ") {
-            if version != want {
-                findings.insert(drift_finding(
-                    rel,
-                    format!("rustup install pins {version}, want {want}"),
-                ));
-            }
+        if let Some(version) =
+            version_after(line, ".rustup/toolchains/").filter(|version| version != want)
+        {
+            findings.insert(drift_finding(
+                rel,
+                format!("rustup cache path pins {version}, want {want}"),
+            ));
+        }
+        if let Some(version) =
+            version_after(line, "rustup toolchain install ").filter(|version| version != want)
+        {
+            findings.insert(drift_finding(
+                rel,
+                format!("rustup install pins {version}, want {want}"),
+            ));
         }
     }
     if rel.starts_with("toolchains/") {
@@ -332,6 +343,13 @@ fn check_ci_text(rel: &str, text: &str, want: &str, findings: &mut BTreeSet<Find
             }
         }
     }
+}
+
+fn ci_surface_toolchain_value(line: &str) -> Option<String> {
+    let value = line.trim_start().strip_prefix("toolchain:")?.trim();
+    let value = value.split('#').next().unwrap_or_default().trim();
+    let value = value.trim_matches(['"', '\'']);
+    (!value.is_empty()).then(|| value.to_owned())
 }
 
 fn check_active_text(rel: &str, text: &str, want: &str, findings: &mut BTreeSet<Finding>) {
@@ -402,17 +420,73 @@ mod tests {
         let mut findings = BTreeSet::new();
         check_ci_text(
             ".github/workflows/x.yml",
-            "toolchain: stable\nrustup toolchain install 1.95.0\n",
+            "toolchain: stable\n      toolchain: 1.95.0\nrustup toolchain install 1.95.0\n",
             "1.96.0",
             &mut findings,
         );
 
-        assert_eq!(findings.len(), 2, "{findings:#?}");
+        assert_eq!(findings.len(), 3, "{findings:#?}");
         assert!(
             findings
                 .iter()
                 .all(|finding| finding.code == FindingCode::RustToolchainDrift)
         );
+        assert!(findings.iter().any(|finding| {
+            finding
+                .detail
+                .contains("non-canonical Rust toolchain stable")
+        }));
+        assert!(
+            findings
+                .iter()
+                .any(|finding| { finding.detail.contains("CI surface toolchain pins 1.95.0") })
+        );
+        assert!(
+            findings
+                .iter()
+                .any(|finding| finding.detail.contains("rustup install pins 1.95.0"))
+        );
+    }
+
+    #[test]
+    fn ci_text_rejects_quoted_stale_pin_and_named_channels() {
+        let mut findings = BTreeSet::new();
+        check_ci_text(
+            ".github/workflows/x.yml",
+            "toolchain: \"1.95.0\"\ntoolchain: 'nightly'\ntoolchain: beta # comment\n",
+            "1.96.0",
+            &mut findings,
+        );
+
+        assert_eq!(findings.len(), 3, "{findings:#?}");
+        assert!(
+            findings
+                .iter()
+                .any(|finding| { finding.detail.contains("CI surface toolchain pins 1.95.0") })
+        );
+        assert!(findings.iter().any(|finding| {
+            finding
+                .detail
+                .contains("non-canonical Rust toolchain nightly")
+        }));
+        assert!(
+            findings
+                .iter()
+                .any(|finding| finding.detail.contains("non-canonical Rust toolchain beta"))
+        );
+    }
+
+    #[test]
+    fn ci_text_accepts_matching_workflow_action_pin() {
+        let mut findings = BTreeSet::new();
+        check_ci_text(
+            ".github/workflows/x.yml",
+            "toolchain: 1.96.0\ntoolchain: \"1.96.0\"\nrustup toolchain install 1.96.0\n",
+            "1.96.0",
+            &mut findings,
+        );
+
+        assert!(findings.is_empty(), "{findings:#?}");
     }
 
     #[test]

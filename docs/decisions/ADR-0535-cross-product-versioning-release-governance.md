@@ -91,7 +91,8 @@ The verified-absent renovate.json/dependabot.yml are NOT adopted; build the rele
 crates + auto-changelog + EOL/sunset + branch-protection-drift bots, all on the same closed-schema
 config, all emitting scm-facts ChangeSets. The Rust stable toolchain drift guard is embedded in the Rust `oya-cloud-ci-freshness-app` gate and is wired into
 `oya-ci-required` so the repo follows the pinned stable channel without split-brain manifests,
-Docker tags, workflow pins, or active-doc residue. The automation-first doctrine (formerly ADR-0050) is
+Docker tags, workflow pins, or active-doc residue; GitHub Actions remains only the transitional runner
+adapter, while the policy source of truth is the owned cloud-ci Rust gate/API. The automation-first doctrine (formerly ADR-0050) is
 governed by the AUTO/ADVISE/GATE safety governor (ADR-0519/0529).
 
 ## Drivers
