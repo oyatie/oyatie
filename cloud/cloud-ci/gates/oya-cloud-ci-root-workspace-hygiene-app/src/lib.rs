@@ -5,6 +5,8 @@
 //! glue: the legitimate root surface lives in DATA (`root-workspace-hygiene-policy.json`), while
 //! this crate evaluates the portable contract that EVERY tracked file at the repository ROOT
 //! matches the allowlist and EVERY tracked top-level directory is a permitted capability/meta home.
+//! Runtime/agent state directories can additionally be marked restricted so only explicitly
+//! allowlisted tracked config/provenance paths are admitted; local state stays ignored.
 //!
 //! ## Posture: default-DENY (allowlist), complementing the scratch DENYLIST
 //! The existing `cloud-ci-total-accounting` `scratch_artifact` code is a DENYLIST: it catches
@@ -30,13 +32,15 @@ use serde_json::Value;
 pub const GATE_ID: &str = "cloud-ci-root-workspace-hygiene";
 
 /// The blocking violation codes (stable slugs).
-pub const VIOLATION_CODES: [&str; 4] = [
+pub const VIOLATION_CODES: [&str; 5] = [
     // The policy `gate_id` does not match GATE_ID (config integrity).
     "root_workspace_gate_id_mismatch",
     // A tracked file at the repo ROOT matches no allowlist rule — born-blocking root scratch.
     "root_workspace_unallowlisted_file",
     // A tracked path's top-level directory is not a permitted capability/meta home.
     "root_workspace_unallowlisted_dir",
+    // A tracked path under a restricted runtime/state directory is not explicitly allowlisted.
+    "root_workspace_restricted_dir_unallowlisted_path",
     // An allowlist rule is malformed (missing/blank id, kind, or value).
     "root_workspace_policy_malformed_rule",
 ];
@@ -91,7 +95,8 @@ fn string_field<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
     value.get(key).and_then(Value::as_str).map(str::trim)
 }
 
-/// A single parsed allowlist rule: a match `kind` over the file basename and a `value`.
+/// A single parsed allowlist rule: a match `kind` over the file basename or full tracked path and
+/// a `value`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct AllowRule {
     id: String,
@@ -118,12 +123,17 @@ fn rule_matches(rule: &AllowRule, basename: &str) -> bool {
     }
 }
 
-/// Parse the `allowed_root_files` rule table, emitting `root_workspace_policy_malformed_rule`
-/// for any rule missing a non-empty id/kind/value or carrying an unknown kind.
-fn allow_rules(policy: &Value, findings: &mut BTreeSet<Finding>) -> Vec<AllowRule> {
+/// Parse a rule table, emitting `root_workspace_policy_malformed_rule` for any rule missing a
+/// non-empty id/kind/value or carrying an unknown kind.
+fn allow_rules_from(
+    policy: &Value,
+    table: &str,
+    rule_subject: &str,
+    findings: &mut BTreeSet<Finding>,
+) -> Vec<AllowRule> {
     let mut rules = Vec::new();
     for (index, raw) in policy
-        .get("allowed_root_files")
+        .get(table)
         .and_then(Value::as_array)
         .into_iter()
         .flatten()
@@ -133,15 +143,18 @@ fn allow_rules(policy: &Value, findings: &mut BTreeSet<Finding>) -> Vec<AllowRul
         let kind = string_field(raw, "kind").unwrap_or("");
         let value = string_field(raw, "value").unwrap_or("");
         let key = if id.is_empty() {
-            format!("allowed_root_files[{index}]")
+            format!("{table}[{index}]")
         } else {
             id.to_owned()
         };
-        if id.is_empty() || value.is_empty() || !matches!(kind, "exact" | "suffix" | "prefix" | "prefix_dot") {
+        if id.is_empty()
+            || value.is_empty()
+            || !matches!(kind, "exact" | "suffix" | "prefix" | "prefix_dot")
+        {
             findings.insert(Finding::new(
                 "root_workspace_policy_malformed_rule",
                 &key,
-                "allowlist rule must carry a non-empty `id`, a non-empty `value`, and a `kind` of exact|suffix|prefix|prefix_dot",
+                format!("{rule_subject} rule must carry a non-empty `id`, a non-empty `value`, and a `kind` of exact|suffix|prefix|prefix_dot"),
             ));
             continue;
         }
@@ -152,6 +165,11 @@ fn allow_rules(policy: &Value, findings: &mut BTreeSet<Finding>) -> Vec<AllowRul
         });
     }
     rules
+}
+
+/// Parse the `allowed_root_files` rule table.
+fn allow_rules(policy: &Value, findings: &mut BTreeSet<Finding>) -> Vec<AllowRule> {
+    allow_rules_from(policy, "allowed_root_files", "root allowlist", findings)
 }
 
 /// The set of permitted top-level directory names (data-driven).
@@ -167,6 +185,61 @@ fn allowed_dirs(policy: &Value) -> BTreeSet<String> {
                 .collect()
         })
         .unwrap_or_default()
+}
+
+/// Top-level directories whose tracked contents must be explicitly allowlisted path-by-path.
+fn restricted_roots(policy: &Value, findings: &mut BTreeSet<Finding>) -> BTreeSet<String> {
+    let mut roots = BTreeSet::new();
+    for (index, raw) in policy
+        .get("restricted_tracked_roots")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .enumerate()
+    {
+        let Some(root) = raw.as_str().map(str::trim).filter(|root| !root.is_empty()) else {
+            findings.insert(Finding::new(
+                "root_workspace_policy_malformed_rule",
+                &format!("restricted_tracked_roots[{index}]"),
+                "restricted root entries must be non-empty top-level directory names",
+            ));
+            continue;
+        };
+        if root.contains('/') {
+            findings.insert(Finding::new(
+                "root_workspace_policy_malformed_rule",
+                root,
+                "restricted root entries must name a top-level directory and must not contain `/`",
+            ));
+            continue;
+        }
+        roots.insert(root.to_owned());
+    }
+    roots
+}
+
+/// Parse exact tracked path exceptions for restricted runtime/state roots.
+fn allowed_tracked_paths(policy: &Value, findings: &mut BTreeSet<Finding>) -> BTreeSet<String> {
+    allow_rules_from(
+        policy,
+        "allowed_tracked_paths",
+        "tracked-path allowlist",
+        findings,
+    )
+    .into_iter()
+    .filter_map(|rule| {
+        if rule.kind == "exact" {
+            Some(rule.value)
+        } else {
+            findings.insert(Finding::new(
+                "root_workspace_policy_malformed_rule",
+                &rule.id,
+                "tracked-path allowlist rules must use `kind: exact` to avoid broad runtime-state merge surfaces",
+            ));
+            None
+        }
+    })
+    .collect()
 }
 
 /// The remediation printed for an unallowlisted root file (auto-fix, not flag-only).
@@ -190,6 +263,17 @@ fn root_dir_remediation(dir: &str) -> String {
     )
 }
 
+/// The remediation printed for a tracked path inside a restricted runtime/state directory.
+fn restricted_path_remediation(path: &str, root: &str) -> String {
+    format!(
+        "tracked path `{path}` lives under restricted runtime/state directory `{root}/` but is not \
+         explicitly allowlisted. AUTO-FIX: if it is local runtime/cache/worktree state, `git rm` \
+         it and keep it ignored; if it is intentional shared config or durable provenance, add a \
+         reviewed exact tracked-path rule to root-workspace-hygiene-policy.json \
+         (allowed_tracked_paths)."
+    )
+}
+
 /// Pure evaluator. `policy` is DATA (`root-workspace-hygiene-policy.json`); `observed` is the
 /// tracked-path inventory shaped as `{ "rows": [{"path": "..."}] }` (the producer's
 /// git-ls-files snapshot). Every tracked path whose basename carries no `/` is a ROOT file and
@@ -207,6 +291,8 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
 
     let rules = allow_rules(policy, &mut findings);
     let dirs = allowed_dirs(policy);
+    let restricted = restricted_roots(policy, &mut findings);
+    let allowed_paths = allowed_tracked_paths(policy, &mut findings);
 
     // De-duplicate top-level dirs so each offending dir is reported once with a stable key.
     let mut unallowlisted_dirs: BTreeMap<String, ()> = BTreeMap::new();
@@ -228,6 +314,13 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
             Some((top, _rest)) => {
                 if !dirs.contains(top) {
                     unallowlisted_dirs.entry(top.to_owned()).or_insert(());
+                }
+                if restricted.contains(top) && !allowed_paths.contains(path) {
+                    findings.insert(Finding::new(
+                        "root_workspace_restricted_dir_unallowlisted_path",
+                        path,
+                        restricted_path_remediation(path, top),
+                    ));
                 }
             }
             // Root-level file (no '/'): basename must match an allowlist rule.
@@ -274,7 +367,13 @@ mod tests {
                 { "id": "license",        "kind": "prefix_dot", "value": "LICENSE" },
                 { "id": "buckconfig",     "kind": "prefix_dot", "value": ".buckconfig" }
             ],
-            "allowed_root_dirs": ["cloud", "libs", "docs"]
+            "allowed_root_dirs": [".claude", ".codex", ".omc", "cloud", "libs", "docs"],
+            "restricted_tracked_roots": [".claude", ".codex", ".omc", ".omx"],
+            "allowed_tracked_paths": [
+                { "id": "claude-settings", "kind": "exact", "value": ".claude/settings.json" },
+                { "id": "codex-hooks", "kind": "exact", "value": ".codex/hooks.json" },
+                { "id": "omc-ultragoal-owners", "kind": "exact", "value": ".omc/ultragoal/OWNERS" }
+            ]
         })
     }
 
@@ -291,6 +390,9 @@ mod tests {
                 "README.md",
                 "LICENSE",
                 ".buckconfig",
+                ".claude/settings.json",
+                ".codex/hooks.json",
+                ".omc/ultragoal/OWNERS",
                 "cloud/cloud-ci/gates/x/src/lib.rs",
                 "libs/oya-foo/Cargo.toml",
                 "docs/decisions/ADR-0600.md",
@@ -305,9 +407,9 @@ mod tests {
         // The load-bearing RED case: a `foo.log` tracked at root matches no allowlist rule.
         let findings = evaluate_keyed(&policy(), &observed(&["Cargo.toml", "foo.log"]));
         assert!(
-            findings.iter().any(|f| {
-                f.code == "root_workspace_unallowlisted_file" && f.key == "foo.log"
-            }),
+            findings
+                .iter()
+                .any(|f| { f.code == "root_workspace_unallowlisted_file" && f.key == "foo.log" }),
             "a tracked root scratch file must be born-blocking with its key surfaced; got {findings:#?}"
         );
         // The legitimate root file must NOT be flagged (no false positive).
@@ -315,7 +417,10 @@ mod tests {
             !findings.iter().any(|f| f.key == "Cargo.toml"),
             "an allowlisted root file must not be flagged"
         );
-        assert_eq!(evaluate(&policy(), &observed(&["foo.log"])).verdict, Verdict::Red);
+        assert_eq!(
+            evaluate(&policy(), &observed(&["foo.log"])).verdict,
+            Verdict::Red
+        );
     }
 
     #[test]
@@ -365,15 +470,59 @@ mod tests {
             .iter()
             .filter(|f| f.code == "root_workspace_unallowlisted_dir")
             .collect();
-        assert_eq!(dir_findings.len(), 1, "the offending dir is reported once: {findings:#?}");
+        assert_eq!(
+            dir_findings.len(),
+            1,
+            "the offending dir is reported once: {findings:#?}"
+        );
         assert_eq!(dir_findings[0].key, "sandbox");
+    }
+
+    #[test]
+    fn restricted_runtime_state_paths_are_born_blocking_red() {
+        for path in [
+            ".claude/worktrees/old-lane/marker",
+            ".claude/settings.local.json",
+            ".codex/.DS_Store",
+            ".omc/state/team/mailbox.json",
+            ".omx/state/team/mailbox.json",
+        ] {
+            let findings = evaluate_keyed(&policy(), &observed(&[path]));
+            assert!(
+                findings.iter().any(|f| {
+                    f.code == "root_workspace_restricted_dir_unallowlisted_path" && f.key == path
+                }),
+                "{path} must be born-blocking under restricted runtime/state roots; got {findings:#?}"
+            );
+        }
+    }
+
+    #[test]
+    fn explicit_shared_agent_config_paths_are_green() {
+        let report = evaluate(
+            &policy(),
+            &observed(&[
+                ".claude/settings.json",
+                ".codex/hooks.json",
+                ".omc/ultragoal/OWNERS",
+            ]),
+        );
+        assert_eq!(
+            report.verdict,
+            Verdict::Green,
+            "explicit tracked config/provenance exceptions must remain green; got {report:#?}"
+        );
     }
 
     #[test]
     fn gate_id_mismatch_is_red() {
         let bad = json!({ "gate_id": "wrong", "allowed_root_files": [], "allowed_root_dirs": [] });
         let findings = evaluate_keyed(&bad, &observed(&[]));
-        assert!(findings.iter().any(|f| f.code == "root_workspace_gate_id_mismatch"));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "root_workspace_gate_id_mismatch")
+        );
     }
 
     #[test]
@@ -381,10 +530,30 @@ mod tests {
         let bad = json!({
             "gate_id": GATE_ID,
             "allowed_root_files": [ { "id": "", "kind": "nope", "value": "" } ],
-            "allowed_root_dirs": []
+            "allowed_root_dirs": [],
+            "restricted_tracked_roots": [""],
+            "allowed_tracked_paths": [ { "id": "", "kind": "nope", "value": "" } ]
         });
         let findings = evaluate_keyed(&bad, &observed(&[]));
-        assert!(findings.iter().any(|f| f.code == "root_workspace_policy_malformed_rule"));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "root_workspace_policy_malformed_rule")
+        );
+    }
+
+    #[test]
+    fn tracked_path_allowlist_rejects_broad_match_kinds() {
+        let mut bad = policy();
+        bad["allowed_tracked_paths"] =
+            json!([{ "id": "broad-omc", "kind": "prefix", "value": ".omc/" }]);
+        let findings = evaluate_keyed(&bad, &observed(&[]));
+        assert!(
+            findings.iter().any(|f| {
+                f.code == "root_workspace_policy_malformed_rule" && f.key == "broad-omc"
+            }),
+            "runtime/state tracked path exceptions must stay exact; got {findings:#?}"
+        );
     }
 
     // --- prefix_dot tightening: RED cases (over-broad prefix would have allowed these) ---
@@ -409,7 +578,8 @@ mod tests {
         assert!(
             !findings
                 .iter()
-                .any(|f| f.code == "root_workspace_unallowlisted_file" && f.key == "README-scratch.txt"),
+                .any(|f| f.code == "root_workspace_unallowlisted_file"
+                    && f.key == "README-scratch.txt"),
             "README-scratch.txt has a '-' separator and should be admitted by prefix_dot; got {findings:#?}"
         );
     }
@@ -422,7 +592,8 @@ mod tests {
         assert!(
             findings
                 .iter()
-                .any(|f| f.code == "root_workspace_unallowlisted_file" && f.key == "notes.buckconfig"),
+                .any(|f| f.code == "root_workspace_unallowlisted_file"
+                    && f.key == "notes.buckconfig"),
             "notes.buckconfig must be born-blocking (suffix match removed); got {findings:#?}"
         );
     }
@@ -433,7 +604,8 @@ mod tests {
         assert!(
             findings
                 .iter()
-                .any(|f| f.code == "root_workspace_unallowlisted_file" && f.key == "scratch.buckconfig"),
+                .any(|f| f.code == "root_workspace_unallowlisted_file"
+                    && f.key == "scratch.buckconfig"),
             "scratch.buckconfig must be born-blocking; got {findings:#?}"
         );
     }
@@ -468,9 +640,14 @@ mod tests {
         let bad = json!({
             "gate_id": "wrong",
             "allowed_root_files": [ { "id": "", "kind": "x", "value": "" } ],
-            "allowed_root_dirs": []
+            "allowed_root_dirs": [],
+            "restricted_tracked_roots": [".claude"],
+            "allowed_tracked_paths": []
         });
-        let findings = evaluate_keyed(&bad, &observed(&["foo.log", "sandbox/x.rs"]));
+        let findings = evaluate_keyed(
+            &bad,
+            &observed(&["foo.log", "sandbox/x.rs", ".claude/worktrees/x"]),
+        );
         for f in &findings {
             assert!(
                 declared.contains(f.code.as_str()),
