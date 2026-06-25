@@ -422,6 +422,21 @@ fn hyperscaler_parity_matrix_validation_rejects_missing_required_facet() {
 }
 
 #[test]
+fn hyperscaler_parity_matrix_validation_rejects_missing_benchmark_surface() {
+    let mut matrix = erp_hyperscaler_parity_matrix().to_vec();
+    matrix[0].benchmark_surface = " ";
+
+    let error = validate_erp_hyperscaler_parity_matrix(&matrix)
+        .expect_err("missing hyperscaler benchmark surface is rejected");
+    assert_eq!(
+        error,
+        ErpParityMapError::MissingHyperscalerParityBenchmark(
+            HyperscalerParityFacet::ControlPlaneApi,
+        )
+    );
+}
+
+#[test]
 fn hyperscaler_parity_matrix_evidence_refs_resolve_to_repo_paths() {
     let root = repo_root();
 

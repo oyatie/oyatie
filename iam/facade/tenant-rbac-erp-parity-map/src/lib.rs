@@ -147,6 +147,7 @@ pub enum ErpParityMapError {
     UnsupportedRuntimeClaim(SapModuleCode),
     MissingHyperscalerParityFacet(&'static str),
     DuplicateHyperscalerParityFacet(HyperscalerParityFacet),
+    MissingHyperscalerParityBenchmark(HyperscalerParityFacet),
     EmptyHyperscalerParityEvidence(HyperscalerParityFacet),
     MissingHyperscalerParityGate(HyperscalerParityFacet),
 }
@@ -1037,6 +1038,11 @@ pub fn validate_erp_hyperscaler_parity_matrix(
     }
 
     for criterion in matrix {
+        if criterion.benchmark_surface.trim().is_empty() {
+            return Err(ErpParityMapError::MissingHyperscalerParityBenchmark(
+                criterion.facet,
+            ));
+        }
         if criterion.oyatie_evidence_refs.is_empty() {
             return Err(ErpParityMapError::EmptyHyperscalerParityEvidence(
                 criterion.facet,
