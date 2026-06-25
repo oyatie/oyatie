@@ -765,7 +765,7 @@ Per-µservice docs: `policy/waf-rules.md` declaring the active rule sets + custo
 | SAST | Static analysis on every PR: rust-clippy + cargo-audit + Semgrep + CodeQL | Snyk Code, Semgrep Pro, GitHub Advanced Security, Checkmarx | `oya-governance-sast` |
 | DAST | Dynamic scan against staging: ZAP + Burp Suite + Pentest-Tools | OWASP ZAP, PortSwigger Burp Enterprise | `oya-governance-dast-staging` |
 | IAST | Instrumented test run captures coverage + vulns at runtime | Contrast Security, Synopsys Seeker | `oya-governance-iast` |
-| SCA | Dependency vuln scan + SBOM | Snyk Open Source, Dependabot, Renovate, Anchore | `oya-governance-sca` |
+| SCA | Dependency vuln scan + SBOM | owned SCA gate, SBOM, advisory feed, Anchore-compatible evidence | `oya-governance-sca` |
 | Fuzzing | Continuous fuzzing of public APIs + parsers | OSS-Fuzz, AFL++, libFuzzer, Honggfuzz | `oya-governance-fuzz` |
 | SBOM | SBOM in CycloneDX + SPDX; attached to every release; signed via cosign + Rekor | Sigstore SBOM, FOSSA, Anchore Enterprise | `oya-governance-sbom-coverage` |
 
@@ -779,7 +779,7 @@ Per-µservice docs: `policy/waf-rules.md` declaring the active rule sets + custo
 | SLSA level | SLSA L3+ build provenance for every image; hermetic builds; isolated builders | Google SLSA, GitHub Actions OIDC + Sigstore |
 | Vulnerability SLA | CVSS 9.0+: ≤24h patch; CVSS 7.0+: ≤7d; CVSS 4.0+: ≤30d | AWS Shield response SLA, Google VRP |
 | Build provenance | in-toto attestations; reproducible builds where possible | Sigstore, in-toto, Reproducible Builds |
-| Dependency pinning | Cargo.lock + npm package-lock + Pipfile.lock pinned + signed; no floating versions | Snyk pin policy, Dependabot lockfile-only |
+| Dependency pinning | Cargo.lock + npm package-lock + Pipfile.lock pinned + signed; no floating versions | owned lockfile freshness + dependency automation policy |
 
 #### Domain 6 — Network segmentation + zero-trust
 

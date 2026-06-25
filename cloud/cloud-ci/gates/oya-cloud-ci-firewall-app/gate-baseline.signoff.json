@@ -33,7 +33,6 @@
   "_sign_off_additions": {
     "cloud-ci-total-accounting": {
       "unjustified": [
-        "HANDOFF.md",
         "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/gate_registration.rs",
         "docs/standards/image-discipline.md",
         "docs/standards/security-review.md",
@@ -42,7 +41,6 @@
         "registry/stores/instructions-store.json"
       ],
       "unowned": [
-        "HANDOFF.md",
         "registry/stores/canon-id-crosswalk.json",
         "registry/stores/design-store.json",
         "registry/stores/instructions-store.json",
@@ -213,6 +211,26 @@
       "code": "unjustified",
       "keys": [
         "registry/stores/registry-store.json"
+      ]
+    },
+    {
+      "date": "2026-06-25",
+      "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "gate": "cloud-ci-total-accounting",
+      "code": "unjustified",
+      "keys": [
+        "HANDOFF.md"
+      ]
+    },
+    {
+      "date": "2026-06-25",
+      "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "gate": "cloud-ci-total-accounting",
+      "code": "unowned",
+      "keys": [
+        "HANDOFF.md"
       ]
     }
   ]
