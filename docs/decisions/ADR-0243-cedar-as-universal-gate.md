@@ -914,6 +914,17 @@ The selected alternative, fully specified in §Decision.
 | Migration sweep: removal of LaunchDarkly / Flagsmith / similar SDK calls (currently ~0; preemptive) | SWEEP |
 | Migration sweep: removal of in-code policy decisions from ~23 sites | SWEEP — per the §Context inventory |
 
+## 2026-06-25 Tenant Quota Adapter Evidence Addendum
+
+Wave A cloud-iac/cloud-k8s verified that
+`k8s/adapters/tenant-quota-adapter-cedar/src/lib.rs` enforces same-tenant
+quota reads and writes for tenant roles and reserves cross-tenant quota read
+authority to the platform quota scope. The accounting registration evidence is
+`evidence/multispectrum/waveA-iac-k8s-tenant-quota-rbac-20260625-1782430279.json`;
+it closes the ADR-0243 quota-tiering policy decision gap for
+tenant/project/account isolation without adding generated faces, new
+dependencies, provider adapters, workflows, or root-hub spec churn.
+
 ## Verification
 
 - [ ] `microservices/policy-engine/` is promoted to peer substrate µservice (ADR-0246 completed).
