@@ -50,16 +50,24 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           persist-credentials: false
-      - name: Install Buck2 (digest-pinned official prebuilt)
-        run: infra/ci/install-buck2.sh
-      - name: Pre-provision pinned Rust toolchain
-        run: |
-          set -euo pipefail
-          rustup toolchain install
-          rustc --version
+      - name: Install pinned Rust toolchain
+        uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: 1.96.0
+      - name: Cache Buck2 official prebuilt
+        # actions/cache@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        with:
+          path: /tmp/oya-ci-buck2-2026-06-01
+          # The cached asset is always SHA-256 verified by infra/ci/install-buck2.sh before execution.
+          key: docs-graph-drift-${{ runner.os }}-buck2-2026-06-01-4dd9ae54c87fdcf795101074f8788232af55523885135d5e3358c77365993555
+          restore-keys: |
+            docs-graph-drift-${{ runner.os }}-buck2-2026-06-01-
       - name: Build + test the architecture-graph generator
         run: |
           set -euo pipefail
+          infra/ci/install-buck2.sh
+          rustc --version
           buck2 build root//tools/oya-architecture-graph-generator-app:oya-architecture-graph-generator
           buck2 test \
             root//tools/oya-architecture-graph-generator-app:oya-architecture-graph-generator-regeneration-test \
