@@ -1503,7 +1503,6 @@ pub async fn employee_onboarding(ctx: Context, user_id: UserId) -> Result<()> {
 
 - Generic HTTP REST adapter (POST/GET/PUT/DELETE/PATCH).
 - Generic gRPC adapter.
-- Generic GraphQL adapter.
 - Webhook in / webhook out.
 
 Total adapter count target: 200+ at M02; 500+ by M04.

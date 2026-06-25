@@ -1,6 +1,6 @@
 rust_library(
     name = "oya-intelligence-pr-review-dispatcher-app",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
     crate = "oya_intelligence_pr_review_dispatcher_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
@@ -14,7 +14,7 @@ rust_library(
 
 rust_binary(
     name = "oya-intelligence-pr-review-dispatcher-app-bin",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -28,7 +28,7 @@ rust_binary(
 
 rust_test(
     name = "oya-intelligence-pr-review-dispatcher-app-unittest",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
     crate = "oya_intelligence_pr_review_dispatcher_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
