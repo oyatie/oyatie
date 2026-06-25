@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use oya_cloud_ci_freshness_app::{
-    FACE_SETTLE_PROTOCOL, Finding, FindingCode, LockPackage, MemberPackage,
+    FACE_REMEDIATION_COMMAND, FACE_SETTLE_PROTOCOL, Finding, FindingCode, LockPackage, MemberPackage,
     check_repo_with_regenerated_faces, evaluate_face_determinism, evaluate_face_freshness,
     evaluate_lock_freshness, parse_lock_packages, parse_member_package_manifest,
     read_decommitted_face_names, render_findings, render_remediation,
@@ -341,7 +341,7 @@ fn remediation_includes_exact_sanctioned_commands() {
     let remediation = render_remediation();
 
     assert!(remediation.contains("cargo metadata >/dev/null"));
-    assert!(remediation.contains("infra/ci/materialize-cloud-ci-generated-faces.sh ."));
+    assert!(remediation.contains(FACE_REMEDIATION_COMMAND));
     assert!(remediation.contains(FACE_SETTLE_PROTOCOL));
     assert!(remediation.contains("commit content changes first"));
     assert!(remediation.contains("faces regenerate from the TRACKED TREE STATE"));
@@ -380,7 +380,7 @@ fn rendered_findings_include_codes_keys_details_and_remediation() {
     assert!(rendered.contains("generated_face_stale"));
     assert!(rendered.contains("scm-facts.generated.json"));
     assert!(rendered.contains("committed bytes differ"));
-    assert!(rendered.contains("infra/ci/materialize-cloud-ci-generated-faces.sh ."));
+    assert!(rendered.contains(FACE_REMEDIATION_COMMAND));
 }
 
 #[test]

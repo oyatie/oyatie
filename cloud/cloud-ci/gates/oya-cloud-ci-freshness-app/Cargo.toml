@@ -25,6 +25,10 @@ path = "src/main.rs"
 name = "oya-cloud-ci-face-settle"
 path = "src/bin/oya-cloud-ci-face-settle.rs"
 
+[[bin]]
+name = "oya-cloud-ci-materialize-generated-faces"
+path = "src/bin/oya-cloud-ci-materialize-generated-faces.rs"
+
 [dependencies]
 oya-workspace-members-kernel = { path = "../../../../libs/oya-workspace-members-kernel" }
 serde_json = { workspace = true }
