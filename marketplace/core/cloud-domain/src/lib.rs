@@ -11,11 +11,11 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use billing_domain::{BillingAccountId, CloudBillingError, CurrencyCode, Money};
-use cell_region::RegionCode;
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use billing_metering::{
     AxisId, Meter, MeterEvent, MeterEventCreate, MeterUnit, MeteringError, PlaneTag,
 };
+use cell_region::RegionCode;
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const MARKETPLACE_SCHEMA_VERSION: u32 = 1;
 const TENANT_ID_PREFIX: &str = "ten_";
@@ -979,11 +979,23 @@ fn non_empty_limited(
 }
 
 fn validate_tenant_id(value: &str) -> Result<(), CloudMarketplaceError> {
-    if value.starts_with(TENANT_ID_PREFIX) && value.len() > TENANT_ID_PREFIX.len() {
+    if let Some(segment) = value.strip_prefix(TENANT_ID_PREFIX)
+        && is_canonical_tenant_segment(segment)
+    {
         Ok(())
     } else {
         Err(CloudMarketplaceError::InvalidTenantId)
     }
+}
+
+fn is_canonical_tenant_segment(segment: &str) -> bool {
+    !segment.is_empty()
+        && !segment.starts_with('-')
+        && !segment.ends_with('-')
+        && !segment.contains("--")
+        && segment.bytes().all(|byte| {
+            byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_' || byte == b'-'
+        })
 }
 
 fn validate_nonzero_time(value: u64) -> Result<(), CloudMarketplaceError> {
@@ -1392,5 +1404,42 @@ mod tests {
         assert_eq!(first.id.value, replay.id.value);
         assert_eq!(first.source_axis.value, AxisId::Marketplace);
         assert_eq!(catalog.meter_events().count(), 1);
+    }
+
+    #[test]
+    fn marketplace_tenant_references_use_canonical_tenant_segments() {
+        let mut catalog = published_catalog();
+
+        let private_offer_error = catalog
+            .create_private_offer(PrivateOfferCreate {
+                tenant_id: "ten_alpha ".to_string(),
+                ..private_offer()
+            })
+            .expect_err("private offer tenant ids must be canonical");
+        assert_eq!(private_offer_error, CloudMarketplaceError::InvalidTenantId);
+
+        let entitlement_error = catalog
+            .activate_entitlement(EntitlementCreate {
+                tenant_id: "ten_Alpha".to_string(),
+                ..entitlement(None)
+            })
+            .expect_err("entitlement tenant ids must be canonical");
+        assert_eq!(entitlement_error, CloudMarketplaceError::InvalidTenantId);
+
+        catalog
+            .activate_entitlement(entitlement(None))
+            .expect("active entitlement");
+        let fee_error = catalog
+            .record_marketplace_fee(MarketplaceFeeCreate {
+                meter_event_id: "mtr_market_fee_bad_tenant".to_string(),
+                entitlement_id: "cme_observability_agent_tenant_alpha".to_string(),
+                tenant_id: "ten_alpha--east".to_string(),
+                units: vec![MeterUnit::new(MeterUnitKind::Request, 1).expect("unit")],
+                recorded_at_epoch_seconds: 1_700_000_600,
+                idempotency_key: "idem_market_fee_bad_tenant".to_string(),
+                data_class: DataClass::Public,
+            })
+            .expect_err("fee tenant ids must be canonical before metering");
+        assert_eq!(fee_error, CloudMarketplaceError::InvalidTenantId);
     }
 }
