@@ -1814,6 +1814,8 @@ analytics app → `data/facade/analytics-app`, analytics tenant-bootstrap-app �
 `data/facade/warehouse-tenant-olap-service`. All twenty-three leaf dirs and cargo names are distinct
 (`MovePlan::validate` passes), and each cargo name equals `data-` + its de-branded path-tail EXACTLY (the
 target-parity + cargo-prefix relabel binding).
+Wave A kernel/OS parity evidence for the `data/core/cloud-kernel` streaming partition boundary is recorded at
+`evidence/multispectrum/wavea-kernel-os-tenant-affine-partition-20260625-1782430095.json`.
 
 **Face reasoning — ports/core/adapters/facade by WHAT EACH IS (§3), verified against REAL dep direction:** the
 kernel/domain/usecase engine crates (cloud-data, ontology core, the eight search-domain corpus engines, analytics
