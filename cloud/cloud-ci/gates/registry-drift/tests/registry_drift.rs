@@ -1,9 +1,11 @@
 // :registry-drift gate — committed == regenerated (PHASE-0-FIREWALL-PLAN §5.3).
 // Re-runs the producer in --stdout (sandbox) mode and byte-diffs against the committed
-// accounting faces, AND re-runs the scm-facts emitter and byte-diffs the committed
-// scm-facts.generated.json (OYA-CI-HERMETIC-EXECUTION-DESIGN §1, Option C: the scm-facts face
-// is byte-parity-protected exactly like the other faces). A hand-edit to any generated face —
-// including scm-facts — fails this test. ADR-0083 Tier-3: integration tests use unwrap/expect.
+// accounting faces. The scm-facts face is now the ADR-0604 DE-COMMIT class (the last committed
+// pure-derivation face, de-committed to kill the faces-serialization cascade): it has no
+// committed copy to byte-compare, so it is validated by the REGENERATE-TWICE DETERMINISM canary
+// (two fresh emitter runs must be byte-identical), matching the freshness gate's
+// evaluate_face_determinism for the de-commit class. A non-deterministic emitter still fails
+// here. ADR-0083 Tier-3: integration tests use unwrap/expect.
 //
 // HERMETIC: no `env!("CARGO")` (a compile-time cargo-only macro that breaks the buck2 build).
 // The producer + emitter binaries are resolved at RUNTIME:
@@ -12,8 +14,9 @@
 //   - under cargo (local dev): the producer/emitter are invoked via the runtime `CARGO` env
 //     var (`cargo run -p <crate>`), which cargo sets for integration tests — a RUNTIME read,
 //     never a compile-time `env!`, so there is no cargo-specific compile-time coupling.
-// The scm-facts face the producer consumes is the committed one (a declared input); the
-// producer never calls git.
+// The scm-facts face the producer consumes is materialized on demand (ADR-0604 de-commit class:
+// it is no longer tracked in git; CI/local materialize writes it to the faces dir before the
+// producer reads it); the producer never calls git.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::fs;
@@ -182,16 +185,18 @@ fn regenerate_move_manifest(root: &Path) -> String {
 
 /// Run the scm-facts emitter to regenerate the scm-facts face to a temp path, returning its
 /// bytes. Prefers the buck2-provided binary (`OYA_CI_EMITTER_BIN`), else `cargo run -p`.
-fn regenerate_scm_facts(root: &Path) -> String {
+/// `pass` discriminates the temp output path so the determinism canary can regenerate twice in
+/// one process without the two passes colliding on the same temp file.
+fn regenerate_scm_facts(root: &Path, pass: u32) -> String {
     let out = std::env::temp_dir().join(format!(
-        "oya-ci-scm-facts-regen-{}.json",
+        "oya-ci-scm-facts-regen-{}-{pass}.json",
         std::process::id()
     ));
     // Route the volatile snapshot to a temp path too (ADR-0552): this regeneration exists
-    // only to byte-diff the COMMITTED stable face — a test action must never write the
+    // only to derive the de-commit-class stable face — a test action must never write the
     // checkout's materialized scm-volatile-facts snapshot.
     let volatile_out = std::env::temp_dir().join(format!(
-        "oya-ci-scm-volatile-facts-regen-{}.json",
+        "oya-ci-scm-volatile-facts-regen-{}-{pass}.json",
         std::process::id()
     ));
     let status = if let Ok(bin) = std::env::var("OYA_CI_EMITTER_BIN") {
@@ -270,13 +275,16 @@ fn committed_faces_equal_regenerated() {
     }
 }
 
-/// Regenerate the scm-facts face (the single git boundary) and assert it byte-matches the
-/// committed scm-facts.generated.json. A hand-edit to scm-facts — or a stale scm-facts vs the
-/// real history — fails this test, identical to the other faces (OYA-CI-HERMETIC-EXECUTION-
-/// DESIGN §1.4: scm-facts folds into the existing registry-drift tamper-evidence, no new trust
-/// root).
+/// Regenerate the scm-facts face (the single git boundary) TWICE and assert the two emissions are
+/// byte-identical (ADR-0604 de-commit-class determinism canary). scm-facts is no longer tracked in
+/// git, so there is no committed copy to byte-compare; with byte-parity-to-committed retired, the
+/// regenerate-twice determinism check is the integrity canary that keeps derive-on-demand sound —
+/// a non-deterministic emitter must hard-fail here rather than silently green. This is the
+/// registry-drift analog of the freshness gate's `evaluate_face_determinism` (OYA-CI-HERMETIC-
+/// EXECUTION-DESIGN §1.4: scm-facts folds into the existing registry-drift tamper-evidence, no new
+/// trust root).
 #[test]
-fn committed_scm_facts_equal_regenerated() {
+fn scm_facts_regenerates_deterministically() {
     // The scm-facts emitter is the SINGLE out-of-graph git boundary (OYA-CI-HERMETIC-EXECUTION-
     // DESIGN §1.5): git is allowed to run in the CI scm-facts-regen pre-step and in local cargo
     // dev, but NEVER inside a hermetic buck2 action (no ambient git in the action graph — an RBE
@@ -300,21 +308,15 @@ fn committed_scm_facts_equal_regenerated() {
     }
 
     let root = repo_root();
-    let committed_path = faces_dir(&root).join(SCM_FACTS_FACE);
-    let committed = fs::read_to_string(&committed_path).unwrap_or_else(|e| {
-        panic!(
-            "committed scm-facts face missing at {} ({e}); run the scm-facts emitter to generate it",
-            committed_path.display()
-        )
-    });
-
-    let regenerated = regenerate_scm_facts(&root);
+    let first = regenerate_scm_facts(&root, 1);
+    let second = regenerate_scm_facts(&root, 2);
 
     assert_eq!(
-        committed, regenerated,
-        "SCM-FACTS DRIFT: committed {SCM_FACTS_FACE} != regenerated. \
-         The scm-facts face was hand-edited, or git history advanced without re-running the \
-         emitter. Re-run //cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app:oya-cloud-ci-scm-facts-emitter-app to regenerate."
+        first, second,
+        "SCM-FACTS NON-DETERMINISTIC: two fresh emissions of {SCM_FACTS_FACE} differ. \
+         The scm-facts emitter must be a pure function of the tracked tree (ADR-0604 de-commit \
+         class: there is no committed copy, so regenerate-twice determinism is the integrity \
+         canary). A non-deterministic emitter is a hard failure."
     );
 }
 

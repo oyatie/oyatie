@@ -1161,17 +1161,36 @@ pub fn evaluate_keyed_with_frozen_references(
                 &artifact.artifact_id,
             ));
         }
+        // The SCM-facts boundary snapshot must be controller-materialized, never a hand-merged
+        // contributor surface. Two controller-materialized shapes are valid (ADR-0604):
+        //   - `main-branch-materialized` (legacy committed shape): the controller writes the face
+        //     on the protected branch and it is tracked in git.
+        //   - `not-tracked-in-git` (de-commit class, ADR-0604): the controller materializes it on
+        //     demand and it is NEVER tracked — killing the faces-serialization cascade, because a
+        //     committed snapshot lists itself in tracked_paths and so mutates on every PR.
+        // Both are controller-owned and non-source-authored; only these two pass. Any other mode
+        // (source-authored, branch-committed, merge-candidate-regenerated, ci-artifact-only) would
+        // let the boundary snapshot become a contributor merge surface and is RED.
         if artifact.artifact_class == "scm-facts-boundary-snapshot"
             && artifact.materialization_mode != "main-branch-materialized"
+            && artifact.materialization_mode != NOT_TRACKED_IN_GIT_MODE
         {
             findings.insert(Finding::new(
                 "generated_artifact_scm_facts_not_final_tree_materialized",
                 &artifact.artifact_id,
             ));
         }
-        if artifact.artifact_class == "scm-facts-boundary-snapshot"
-            && artifact.merge_policy != "controller-owned-main-materialization"
-        {
+        // Merge policy must keep the snapshot a controller-owned, regenerate-not-hand-merge surface.
+        // `main-branch-materialized` pairs with `controller-owned-main-materialization`; the
+        // de-commit class pairs with `never-manual-merge-regenerate-from-source-tree` (the same
+        // policy every ADR-0595 de-committed face carries — derive-on-demand, never hand-merged).
+        let scm_facts_merge_policy_ok = match artifact.materialization_mode.as_str() {
+            NOT_TRACKED_IN_GIT_MODE => {
+                artifact.merge_policy == "never-manual-merge-regenerate-from-source-tree"
+            }
+            _ => artifact.merge_policy == "controller-owned-main-materialization",
+        };
+        if artifact.artifact_class == "scm-facts-boundary-snapshot" && !scm_facts_merge_policy_ok {
             findings.insert(Finding::new(
                 "generated_artifact_scm_facts_not_controller_owned",
                 &artifact.artifact_id,
@@ -1572,6 +1591,9 @@ mod tests {
 
     #[test]
     fn scm_facts_boundary_requires_final_tree_controller_materialization() {
+        // The default artifact() helper uses branch-committed mode + never-manual-merge policy:
+        // neither of the two controller-materialized shapes (main-branch-materialized /
+        // not-tracked-in-git with controller-owned / regenerate policy), so BOTH rules fire.
         let mut scm_artifact = artifact("scm-facts", "out/scm-facts.generated.json");
         scm_artifact["artifact_class"] = json!("scm-facts-boundary-snapshot");
         let manifest = manifest(vec![scm_artifact]);
@@ -1585,6 +1607,98 @@ mod tests {
             finding.code == "generated_artifact_scm_facts_not_controller_owned"
                 && finding.key == "scm-facts"
         }));
+    }
+
+    /// Build a controller-materialized scm-facts boundary-snapshot artifact in the legacy committed
+    /// shape (main-branch-materialized + controller-owned-main-materialization), with the boundary
+    /// generator contract (buck2 + declared-artifact-path-write + full-depth-scm) satisfied.
+    fn scm_facts_boundary(path: &str) -> Value {
+        let mut a = artifact("cloud-ci-scm-facts-boundary-snapshot", path);
+        a["artifact_class"] = json!("scm-facts-boundary-snapshot");
+        a["materialization_mode"] = json!("main-branch-materialized");
+        a["merge_policy"] = json!("controller-owned-main-materialization");
+        a["generator"]["operation_id"] = json!("emit-scm-facts-boundary-snapshot");
+        a["generator"]["output_mode"] = json!("declared-artifact-path-write");
+        a["generator"]["input_contract"] = json!(["repo-root", "full-depth-scm"]);
+        a
+    }
+
+    #[test]
+    fn scm_facts_boundary_main_branch_materialized_is_green() {
+        // GREEN baseline: the legacy committed controller shape stays valid (no regression).
+        let scm_artifact = scm_facts_boundary("out/scm-facts.generated.json");
+        let manifest = manifest(vec![scm_artifact]);
+        let scm_facts = scm(&["out/scm-facts.generated.json"]);
+        let findings = evaluate_keyed(&manifest, &scm_facts);
+        assert!(
+            !findings.iter().any(|f| {
+                f.code == "generated_artifact_scm_facts_not_final_tree_materialized"
+                    || f.code == "generated_artifact_scm_facts_not_controller_owned"
+            }),
+            "main-branch-materialized boundary snapshot must be green; findings: {findings:#?}"
+        );
+    }
+
+    #[test]
+    fn scm_facts_boundary_not_tracked_in_git_is_green() {
+        // ADR-0604 keystone GREEN: the de-commit class is a valid controller-materialized shape for
+        // the SCM-facts boundary snapshot. A not-tracked snapshot paired with the regenerate-from-
+        // source-tree merge policy must NOT fire either boundary rule, and (being absent from the
+        // tracked tree) is exempt from declared_path_not_tracked.
+        let mut scm_artifact = scm_facts_boundary("out/scm-facts.generated.json");
+        scm_artifact["materialization_mode"] = json!("not-tracked-in-git");
+        scm_artifact["merge_policy"] = json!("never-manual-merge-regenerate-from-source-tree");
+        let manifest = manifest(vec![scm_artifact]);
+        // De-commit class: the snapshot is intentionally NOT in tracked_paths.
+        let scm_facts = scm(&[]);
+        let findings = evaluate_keyed(&manifest, &scm_facts);
+        assert!(
+            !findings.iter().any(|f| {
+                f.code == "generated_artifact_scm_facts_not_final_tree_materialized"
+                    || f.code == "generated_artifact_scm_facts_not_controller_owned"
+                    || f.code == "generated_artifact_declared_path_not_tracked"
+            }),
+            "not-tracked-in-git boundary snapshot must be green; findings: {findings:#?}"
+        );
+        assert_eq!(evaluate(&manifest, &scm_facts).verdict, Verdict::Green);
+    }
+
+    #[test]
+    fn scm_facts_boundary_not_tracked_with_wrong_merge_policy_is_red() {
+        // ADR-0604 RED guard: the de-commit class must still carry the regenerate-from-source-tree
+        // merge policy. A not-tracked snapshot with controller-owned-main-materialization (the
+        // committed-shape policy) is a mismatch and must RED — the two valid shapes do not
+        // cross-pollinate their merge policies.
+        let mut scm_artifact = scm_facts_boundary("out/scm-facts.generated.json");
+        scm_artifact["materialization_mode"] = json!("not-tracked-in-git");
+        // merge_policy left as controller-owned-main-materialization (wrong for the de-commit class).
+        let manifest = manifest(vec![scm_artifact]);
+        let scm_facts = scm(&[]);
+        let findings = evaluate_keyed(&manifest, &scm_facts);
+        assert!(
+            findings.iter().any(|f| {
+                f.code == "generated_artifact_scm_facts_not_controller_owned"
+                    && f.key == "cloud-ci-scm-facts-boundary-snapshot"
+            }),
+            "not-tracked boundary snapshot with wrong merge policy must RED; findings: {findings:#?}"
+        );
+    }
+
+    #[test]
+    fn scm_facts_boundary_committed_with_wrong_merge_policy_is_red() {
+        // Symmetric RED guard: the committed shape must keep controller-owned-main-materialization.
+        let mut scm_artifact = scm_facts_boundary("out/scm-facts.generated.json");
+        scm_artifact["merge_policy"] = json!("never-manual-merge-regenerate-from-source-tree");
+        let manifest = manifest(vec![scm_artifact]);
+        let scm_facts = scm(&["out/scm-facts.generated.json"]);
+        let findings = evaluate_keyed(&manifest, &scm_facts);
+        assert!(
+            findings.iter().any(|f| {
+                f.code == "generated_artifact_scm_facts_not_controller_owned"
+                    && f.key == "cloud-ci-scm-facts-boundary-snapshot"
+            }),
+            "main-branch-materialized boundary snapshot with wrong merge policy must RED; findings: {findings:#?}"
+        );
     }
 
     #[test]
