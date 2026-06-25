@@ -31,7 +31,7 @@ permissions:
   contents: read
 
 # Surface-all: every gate lane runs to completion even if a sibling fails. The fan-in job
-# collects the join. (Lane-internal fail-fast is killed inside each `cargo test` invocation.)
+# collects the join. Matrix legs run one Buck2 target each, so a leg failure cannot hide a sibling.
 concurrency:
   group: oya-ci-required-${{ github.ref }}
   cancel-in-progress: false
@@ -78,7 +78,7 @@ jobs:
           if-no-files-found: error
 
   # ── GATE LANES (reusable matrix). Every homogeneous gate is the SAME step — one
-  #    `cargo test -p <gate crate>` — so instead of copy-pasting a job per gate, a single
+  #    `buck2 test //cloud/cloud-ci/gates/<crate>:{<crate>-unittest,<crate>-gate}` — so instead of copy-pasting a job per gate, a single
   #    matrixed `gate` job fans out over the crate list. Adding a gate is ONE line in the matrix
   #    below; the `gate_registration` meta-test (in the cloud-ci-firewall lane) ENFORCES that
   #    every in-tree gate crate is listed here AND that this job is a fan-in dependency, so a
@@ -94,7 +94,7 @@ jobs:
   #    FACES VIA ARTIFACT (ADR-0556 D5 QW-1, gate-fleet-shared-graph warm-safe same-run reuse):
   #    every leg here is a MERE READER of the generated faces — none re-verifies regeneration
   #    itself, so each leg downloads the producer-regen artifact instead of paying its own
-  #    install-buck2 + materialize (the audit-measured ~45-55s/leg hub rebuild, 16x per run).
+  #    materialize step (the audit-measured ~45-55s/leg hub rebuild, 16x per run).
   #    Same-run, same candidate tree, same trusted writer — no cross-run cache participation.
   #    The regeneration-checking gates KEEP materializing independently: registry-drift (the
   #    byte-parity detector — detectors never consume the thing they attest), producer-regen
@@ -161,20 +161,25 @@ jobs:
         with:
           name: accounting-faces
           path: cloud/cloud-ci/gates
-      # The materialize script used to provision the pinned toolchain as a side effect; the
-      # legs still need it for `cargo test` (rust-toolchain.toml pins the workspace toolchain + components).
-      - name: Pre-provision pinned Rust toolchain for cargo test
+      - name: Install buck2 (digest-pinned prebuilt release)
+        run: infra/ci/install-buck2.sh
+      # Buck2/rustc still use the pinned workspace toolchain + components; provision it before
+      # the test action starts to avoid concurrent rustup writes inside parallel Buck2 actions.
+      - name: Pre-provision pinned Rust toolchain for Buck2 gate tests
         run: |
           set -euo pipefail
           rustup toolchain install
           rustc --version
-          cargo --version
-      - name: cargo test ${{ matrix.crate }}
-        run: cargo test --locked --no-fail-fast -p ${{ matrix.crate }} -- --test-threads=1
+      - name: buck2 test ${{ matrix.crate }}
+        run: |
+          set -euo pipefail
+          buck2 test \
+            //cloud/cloud-ci/gates/${{ matrix.crate }}:${{ matrix.crate }}-unittest \
+            //cloud/cloud-ci/gates/${{ matrix.crate }}:${{ matrix.crate }}-gate
 
   # ── freshness: first-diagnosis gate for the two stale-output failures from PR #662.
   #    Runs as its own fast job with no needs edge so stale Cargo.lock and stale generated faces
-  #    surface together before the broader cargo/Buck lanes spend a full matrix round-trip.
+  #    surface together before the broader Buck2 lanes spend a full matrix round-trip.
   gate-freshness:
     name: freshness (lock + generated faces, ADR-0539)
     runs-on: ubuntu-latest
@@ -202,7 +207,6 @@ jobs:
           set -euo pipefail
           rustup toolchain install
           rustc --version
-          cargo --version
       - name: Run freshness gate
         run: |
           set -euo pipefail
@@ -236,7 +240,7 @@ jobs:
       - name: Materialize faces then assert byte-parity
         run: |
           infra/ci/materialize-cloud-ci-generated-faces.sh .
-          cargo test --locked --no-fail-fast -p registry-drift -- --test-threads=1
+          buck2 test //cloud/cloud-ci/gates/registry-drift:registry-drift-gate
 
   # ── cloud-ci-firewall: the baseline ratchet (blocks only NEW debt) + the gate-registration
   #    meta-test (no in-tree gate may go unregistered in this workflow). This is the surface-all
@@ -265,8 +269,14 @@ jobs:
       # it is never converted to artifact reuse.
       - name: Materialize cloud-ci generated faces
         run: infra/ci/materialize-cloud-ci-generated-faces.sh .
-      - name: cargo test cloud-ci-firewall
-        run: cargo test --locked --no-fail-fast -p oya-cloud-ci-firewall-app -- --test-threads=1
+      - name: buck2 test cloud-ci-firewall
+        run: |
+          set -euo pipefail
+          buck2 test \
+            //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-unittest \
+            //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-signoff-fixer-unittest \
+            //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-gate \
+            //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-gate-registration
 
   # ── GENERATED OUTPUT DIFF POLICY. Generated files may be deleted to retire a tracked output,
   #    but PRs must not add/modify generated outputs as merge surfaces. Classification comes from
@@ -299,7 +309,6 @@ jobs:
           set -euo pipefail
           rustup toolchain install
           rustc --version
-          cargo --version
       - name: Reject non-deletion generated output edits
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -316,7 +325,7 @@ jobs:
             | "${policy_bin}" --manifest registry/generated-artifact-control-plane.json
 
   # ── HERMETIC BUCK2 LANE (OYA-CI-HERMETIC-EXECUTION-DESIGN §3 + Stage P1/P2). Runs the SAME
-  #    gate logic as the cargo lanes above, but through buck2: `buck2 build` compiles every
+  #    gate logic through buck2: `buck2 build` compiles every
   #    target (the env!CARGO eradication) and `buck2 test` runs the gate rust_tests fully
   #    hermetically (no ambient git in any action — the producer reads the materialized scm-facts
   #    face; the scm-facts emitter is the single out-of-graph boundary, run in the
@@ -324,8 +333,7 @@ jobs:
   #    affected-set driver (`infra/ci/buck2-affected-gate.sh`: uquery owner -> rdeps closure,
   #    FAILS CLOSED) for speed. RBE/NativeLink is staged LAST (D4) and NOT required for
   #    hermeticity — local-on-runner execution via the wired `noop_test_toolchain` is sufficient
-  #    here. This lane runs ALONGSIDE the cargo lanes (both feed the fan-in); the cargo->buck2
-  #    required-context content swap is a separate founder-paired step.
+  #    here. This lane feeds the same fan-in as the targeted Buck2 gate matrix above.
   buck2:
     name: buck2 (hermetic build + affected gate tests)
     runs-on: ubuntu-latest
@@ -337,7 +345,7 @@ jobs:
           # Full history: the materialization step below runs the emitter, which derives
           # last_touch via `git log --name-only`; a shallow checkout collapses it (PM1).
           fetch-depth: 0
-      # buck2 is the BUILD TOOL (like cargo/rustc), installed as a prebuilt release.
+      # buck2 is the BUILD TOOL, installed as a prebuilt release.
       # The adapter edge is immutable at CI time: release tag selects the asset, SHA-256 pins
       # the bytes, and CI verifies the digest before decompression/execution. Bump together.
       - name: Install buck2 (digest-pinned prebuilt release)
@@ -354,21 +362,19 @@ jobs:
           key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
       # Pre-provision the pinned rust toolchain ONCE, serially, before the buck2 build.
       # The buck2 rust toolchain (toolchains/BUCK: system_rust_toolchain via the rustup shim)
-      # resolves rustc/cargo/clippy per-compile-action, and buck2 runs those actions in
+      # resolves rustc and toolchain components per compile action, and buck2 runs those actions in
       # PARALLEL. On a cold runner each action's first shim call triggers rustup to install the
       # rust-toolchain.toml channel (+ rustfmt,clippy) concurrently — the racing rustup
       # processes collide on the shared `~/.rustup/downloads/*.partial` files and fail with
       # `rustup::utils::rename ... No such file or directory (os error 2)` (a different component
-      # each run: clippy, then cargo — proving a concurrency race, not a config defect). rustup
+      # each run: clippy, then a second toolchain component — proving a concurrency race, not a config defect). rustup
       # is not concurrency-safe. Installing the toolchain once here makes it ambient so the
-      # parallel actions find it already present (no download). The cargo lanes never hit this
-      # because cargo provisions the toolchain in a single up-front invocation.
+      # parallel actions find it already present (no download).
       - name: Pre-provision pinned rust toolchain (serialize rustup before parallel buck2)
         run: |
           set -euo pipefail
           rustup toolchain install
           rustc --version
-          cargo --version
       # Restore buck-out across runs so ephemeral runners start warm (design §3.1 / ADR-0515 D4).
       #
       # WHAT IS WARMED, PRECISELY (ADR-0554 D9, round-5): 100% of buck2 cross-run warmth lives in
@@ -378,7 +384,7 @@ jobs:
       # only on buck2_revision + os + arch), so restoring it into any runner checkout is sound.
       # ~/.buck2 and ~/.buck hold ONLY daemon pid/endpoint/log scratch — ZERO action results — so
       # caching `path: buck-out` warms everything cacheable and ~/.buck2/~/.buck is DELIBERATELY
-      # NOT cached (caching daemon scratch warms nothing; do not cargo-cult global-state caching).
+      # NOT cached (caching daemon scratch warms nothing; do not copy-paste global-state caching).
       #
       # SAVE/RESTORE SPLIT (ADR-0554 D9; specs/cache-warmth-policy.json postmerge-dev-trunk = sole
       # writer, presubmit-trusted-affected-cone = reader). dev-push is the SOLE canonical writer via
@@ -445,7 +451,7 @@ jobs:
         run: infra/ci/materialize-cloud-ci-generated-faces.sh .
       # The hermetic gate: buck2 BUILDS every cloud-ci target (proves the env!CARGO eradication —
       # these targets could not compile under buck2 before) and TESTS them (the gate rust_tests
-      # run green, fully hermetic, with verdicts identical to the cargo lanes). This is the
+      # run green, fully hermetic, with verdicts identical to the targeted gate matrix). This is the
       # refactor's scope and is the binding hermetic check for this stage.
       #
       # The repo-wide affected-set verdict is owned by the binding gate-affected-set job below.
@@ -531,7 +537,6 @@ jobs:
           set -euo pipefail
           rustup toolchain install
           rustc --version
-          cargo --version
       # Restore buck-out read-only (ADR-0554 D9). Same stable per-dependency/toolchain-set key as the buck2
       # lane: warmth is 100% in buck-out/v2/cache + buck-out/v2/art (path-relocatable); ~/.buck2
       # and ~/.buck are daemon pid/endpoint/log scratch and are deliberately NOT cached. dev-push
@@ -743,17 +748,13 @@ jobs:
   #    reads tenant B's rows; the unset-GUC deny-all leaks) — proving the tests are real probes,
   #    not early-returns. The non-bypass app role (below) makes them pass.
   #
-  #    RUNNER = `cargo test` (TRANSITIONAL BRIDGE, explicit precedent: the `app-shell-codegen`
-  #    bridge lane "until the native cloud-ci runner has first-class … actions"). These tests are
-  #    inherently NON-hermetic — they require an external Postgres service reachable over the
-  #    network — which is the antithesis of buck2's hermetic, network-isolated test model.
-  #    Depending on buck2 forwarding undeclared host env + permitting network would be exactly the
-  #    false-green class the firewall exists to prevent (it happens to work under the local
-  #    `noop_test_toolchain`, but that is not a contract). cargo `test --locked -p <pkg>` is the
-  #    same execution path every `gate` matrix leg already uses here. CLOUD-NATIVE DESTINATION:
-  #    a buck2 `rust_test` action that declares the disposable database as a managed
-  #    `local_resource` (testcontainers-style ephemeral env), so the live tier becomes hermetic
-  #    and runner-portable; this bridge retires when that action exists.
+  #    RUNNER = `buck2 test --local-only` (transitional live-resource bridge). These tests are
+  #    intentionally outside remote execution today because they require the job's Postgres
+  #    service container over localhost. The env is passed explicitly through Buck2's test
+  #    executor (`-- --env ...`) so the live probes cannot silently early-return on missing vars.
+  #    CLOUD-NATIVE DESTINATION: a buck2 `rust_test` action that declares the disposable database
+  #    as a managed `local_resource` (testcontainers-style ephemeral env), so the live tier becomes
+  #    hermetic and runner-portable; this bridge retires when that action exists.
   #
   #    ENV CONTRACT (verified against each harness's source — names are load-bearing):
   #      - libs/oya-data-sql-adapter-sqlx        OYA_DATA_LIVE_POSTGRES + ADMIN/APP URLs
@@ -802,19 +803,23 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           persist-credentials: false
-      # Swatinem/rust-cache@v2.9.1 — caches ~/.cargo/registry + ~/.cargo/git + target/ so cold
-      # compiles (6 packages + their transitive deps) stay within the 40-minute timeout.
-      # Keyed on rust-toolchain.toml + Cargo.lock; save-if=true so the cache warms on first run.
-      # actions/cache@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - name: Install buck2 (digest-pinned prebuilt release)
+        run: infra/ci/install-buck2.sh
+      # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4); rustup still resolves and
+      # validates the toolchain on every run.
+      - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
+        # actions/cache@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
-          save-if: ${{ github.ref == 'refs/heads/dev' }}
-      - name: Pre-provision pinned Rust toolchain for cargo test
+          path: |
+            ~/.rustup/toolchains
+            ~/.rustup/update-hashes
+          key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
+      - name: Pre-provision pinned Rust toolchain for Buck2 live tests
         run: |
           set -euo pipefail
           rustup toolchain install
           rustc --version
-          cargo --version
       # Postgres client for the inline bootstrap (psql applies the committed migrations verbatim;
       # it handles the runtime-role `DO $$ … $$` dollar-quoted block natively, so no statement
       # splitter is needed). Transitional like the rest of this bridge lane — the cloud-native
@@ -857,9 +862,9 @@ jobs:
           # Confirm the app role is genuinely non-bypass (fail the lane LOUDLY if it ever is).
           "${ADMIN_PSQL[@]}" -c "SELECT rolname, rolsuper, rolbypassrls FROM pg_roles WHERE rolname IN ('postgres','oya_app','tenancy_lifecycle_runtime','identity_scim_runtime') ORDER BY rolname;"
       # ADAPTER tier: admin = SUPERUSER (DDL + the bypass-rejection assertion), app = app role.
-      # `--no-fail-fast` surfaces every failure; `--test-threads=1` because the harnesses share a
-      # single database/schema and assert on row counts (parallel writers would race).
-      - name: cargo test — durable adapters (admin=superuser, app=app-role)
+      # Each Buck2 invocation runs one test target locally with RUST_TEST_THREADS=1 because the
+      # harnesses share a single database/schema and assert on row counts (parallel writers race).
+      - name: buck2 test — durable adapters (admin=superuser, app=app-role)
         env:
           OYA_DATA_LIVE_POSTGRES: "1"
           OYA_DATA_POSTGRES_ADMIN_URL: ${{ env.OYA_PG_ADMIN_URL }}
@@ -872,10 +877,24 @@ jobs:
           OYA_BACKBONE_POSTGRES_APP_URL: ${{ env.OYA_PG_APP_URL }}
         run: |
           set -euo pipefail
-          cargo test --locked --no-fail-fast -p oya-data-sql-adapter-sqlx -- --test-threads=1
-          cargo test --locked --no-fail-fast -p oya-data-outbox-adapter-postgres -- --test-threads=1
-          cargo test --locked --no-fail-fast -p tenancy-tenant-lifecycle-store-postgres -- --test-threads=1
-          cargo test --locked --no-fail-fast -p identity-scim-store-postgres -- --test-threads=1
+          LIVE_ENV=(
+            --env RUST_TEST_THREADS=1
+            --env OYA_DATA_LIVE_POSTGRES="${OYA_DATA_LIVE_POSTGRES}"
+            --env OYA_DATA_POSTGRES_ADMIN_URL="${OYA_DATA_POSTGRES_ADMIN_URL}"
+            --env OYA_DATA_POSTGRES_APP_URL="${OYA_DATA_POSTGRES_APP_URL}"
+            --env OYA_OUTBOX_LIVE_POSTGRES="${OYA_OUTBOX_LIVE_POSTGRES}"
+            --env OYA_OUTBOX_POSTGRES_ADMIN_URL="${OYA_OUTBOX_POSTGRES_ADMIN_URL}"
+            --env OYA_OUTBOX_POSTGRES_APP_URL="${OYA_OUTBOX_POSTGRES_APP_URL}"
+            --env OYA_BACKBONE_LIVE_POSTGRES="${OYA_BACKBONE_LIVE_POSTGRES}"
+            --env OYA_BACKBONE_POSTGRES_URL="${OYA_BACKBONE_POSTGRES_URL}"
+            --env OYA_BACKBONE_POSTGRES_APP_URL="${OYA_BACKBONE_POSTGRES_APP_URL}"
+          )
+          buck2 test --local-only --num-threads 1 //libs/oya-data-sql-adapter-sqlx:oya-data-sql-adapter-sqlx-unittest -- "${LIVE_ENV[@]}"
+          buck2 test --local-only --num-threads 1 //libs/oya-data-outbox-adapter-postgres:oya-data-outbox-adapter-postgres-unittest -- "${LIVE_ENV[@]}"
+          buck2 test --local-only --num-threads 1 //tenancy/adapters/tenant-lifecycle-store-postgres:tenancy-tenant-lifecycle-store-postgres-unittest -- "${LIVE_ENV[@]}"
+          buck2 test --local-only --num-threads 1 //tenancy/adapters/tenant-lifecycle-store-postgres:tenancy-tenant-lifecycle-store-postgres-live -- "${LIVE_ENV[@]}"
+          buck2 test --local-only --num-threads 1 //iam/adapters/identity-scim-store-postgres:identity-scim-store-postgres-unittest -- "${LIVE_ENV[@]}"
+          buck2 test --local-only --num-threads 1 //iam/adapters/identity-scim-store-postgres:identity-scim-store-postgres-live -- "${LIVE_ENV[@]}"
       # FACADE tier: OYA_BACKBONE_POSTGRES_APP_URL = the APP (non-superuser, NOBYPASSRLS) role.
       # Both facades read ONLY OYA_BACKBONE_POSTGRES_APP_URL:
       #   - tenancy-app `LIVE_URL_ENV = "OYA_BACKBONE_POSTGRES_APP_URL"` (acceptance.rs:622)
@@ -885,14 +904,21 @@ jobs:
       #     mode, so the non-live tests pass without any DB connection. OYA_BACKBONE_POSTGRES_URL is
       #     intentionally NOT set here so those in-memory paths stay DB-free.
       # Both facades depend on the schema/role/grant from the bootstrap step above.
-      - name: cargo test — durable facades (live test = app-role, non-live = in-memory)
+      - name: buck2 test — durable facades (live test = app-role, non-live = in-memory)
         env:
           OYA_BACKBONE_LIVE_POSTGRES: "1"
           OYA_BACKBONE_POSTGRES_APP_URL: ${{ env.OYA_PG_APP_URL }}
         run: |
           set -euo pipefail
-          cargo test --locked --no-fail-fast -p iam-identity-service -- --test-threads=1
-          cargo test --locked --no-fail-fast -p tenancy-tenant-lifecycle-app -- --test-threads=1
+          FACADE_ENV=(
+            --env RUST_TEST_THREADS=1
+            --env OYA_BACKBONE_LIVE_POSTGRES="${OYA_BACKBONE_LIVE_POSTGRES}"
+            --env OYA_BACKBONE_POSTGRES_APP_URL="${OYA_BACKBONE_POSTGRES_APP_URL}"
+          )
+          buck2 test --local-only --num-threads 1 //iam/facade/identity-service:iam-identity-service-tests -- "${FACADE_ENV[@]}"
+          buck2 test --local-only --num-threads 1 //iam/facade/identity-service:iam-identity-service-e2e -- "${FACADE_ENV[@]}"
+          buck2 test --local-only --num-threads 1 //tenancy/facade/tenant-lifecycle-app:tenancy-tenant-lifecycle-app-unittest -- "${FACADE_ENV[@]}"
+          buck2 test --local-only --num-threads 1 //tenancy/facade/tenant-lifecycle-app:tenancy-tenant-lifecycle-app-acceptance -- "${FACADE_ENV[@]}"
 
   # ── THE FAN-IN. This is the single required context branch protection keys on. It has NO
   #    command of its own (Principle 1 — it NEVER re-runs a narrower subset): it is green IFF
@@ -908,7 +934,7 @@ jobs:
       - gate-registry-drift     # bespoke: materialized == regenerated byte-parity
       - gate-cloud-ci-firewall  # bespoke: baseline ratchet + gate_registration meta-test
       - generated-output-diff-policy # generated outputs are never PR merge surfaces
-      - buck2                   # hermetic buck2 build + affected gate tests (alongside cargo)
+      - buck2                   # hermetic buck2 build + affected gate tests
       - gate-affected-set       # binding workspace coverage: affected cone or fail-closed full run (ADR-0554)
       - app-shell-codegen       # ignored generated app-shell clients regenerate from canonical contracts
       - gate-live-postgres      # #101: durable cross-tenant-deny / RLS / CDC / SCIM tests run + gate against live Postgres
