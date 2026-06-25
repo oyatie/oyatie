@@ -11,9 +11,15 @@ use oya_architecture_graph_generator_app::render;
 use serde_json::Value;
 
 fn repo_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..")
+    std::env::current_dir()
+        .expect("current dir readable")
+        .ancestors()
+        .find(|dir| {
+            dir.join("docs/machine-readable/architecture-graph.json")
+                .exists()
+        })
+        .expect("could not locate Oyatie repo root from current dir")
+        .to_path_buf()
 }
 
 fn render_dashboard() -> String {

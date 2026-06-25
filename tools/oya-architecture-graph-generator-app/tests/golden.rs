@@ -27,11 +27,15 @@ use serde_json::Value;
 const DEFAULT_GOLDEN: &str = "/Users/jasonlee/Developer/linux/docs/audit/initial-sweep-2026-06-06/architecture/_graph-data.json";
 
 fn repo_root() -> PathBuf {
-    // tests run with CWD = crate dir; repo root is two levels up
-    // (tools/oya-architecture-graph-generator-app -> repo root).
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..")
+    std::env::current_dir()
+        .expect("current dir readable")
+        .ancestors()
+        .find(|dir| {
+            dir.join("docs/machine-readable/architecture-graph.json")
+                .exists()
+        })
+        .expect("could not locate Oyatie repo root from current dir")
+        .to_path_buf()
 }
 
 fn read_json(path: &Path) -> Value {

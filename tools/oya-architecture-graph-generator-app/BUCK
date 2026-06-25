@@ -20,3 +20,26 @@ rust_binary(
         "third-party//:serde_json",
     ],
 )
+
+_TEST_DEPS = [
+    ":oya-architecture-graph-generator-app",
+    "third-party//:serde_json",
+]
+
+rust_test(
+    name = "oya-architecture-graph-generator-regeneration-test",
+    srcs = ["tests/regeneration.rs"],
+    crate = "oya_architecture_graph_generator_regeneration_test",
+    crate_root = "tests/regeneration.rs",
+    visibility = ["PUBLIC"],
+    deps = _TEST_DEPS,
+)
+
+rust_test(
+    name = "oya-architecture-graph-generator-golden-test",
+    srcs = ["tests/golden.rs"],
+    crate = "oya_architecture_graph_generator_golden_test",
+    crate_root = "tests/golden.rs",
+    visibility = ["PUBLIC"],
+    deps = _TEST_DEPS,
+)
