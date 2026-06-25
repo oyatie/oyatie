@@ -6,9 +6,15 @@
 //! requirements are satisfied before an adapter is allowed to provision.
 //! The `data_service` module adds the managed `DatabaseEngine` catalogue
 //! and `DataService` aggregate (M03-P03-IP-001 `DataService`/`DatabaseEngine`).
+//! The `streaming_partition` module adds provider-neutral shard admission
+//! rules for stream data services (M06-P04-IP-002).
 
 pub mod data_service;
+pub mod streaming_partition;
 pub use data_service::{DataService, DataServiceError, DatabaseEngine, provision_data_service};
+pub use streaming_partition::{
+    StreamingPartitionError, StreamingPartitionStrategy, admit_streaming_partition,
+};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum DataServiceKind {
