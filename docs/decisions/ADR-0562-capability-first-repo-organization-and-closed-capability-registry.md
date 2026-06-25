@@ -2529,6 +2529,9 @@ born-accounted artifact roots are the sixteen crate dirs (each carrying its `Car
 ADR-0555, covering the whole billing subtree including the co-moved SLO subdirs), the sixteen re-keyed catalog records
 `registry/catalog/billing-*.yaml` (reached by the existing `registry/catalog/` reachability prefix), and the committed
 move-plan `specs/reorg/billing-move-plan.json` (reached by the existing ADR-0563 `specs/reorg/` reachability prefix). The
+Wave A metering quota-projection evidence `evidence/multispectrum/wavea-market-billing-metering-quota-20260625-1782430229.json`
+is justified by this same billing capability decision; it records a provider-neutral kernel slice and does not amend the move
+contract. The
 absorbed dirs' other non-crate artifacts (`oya/accounting/catalog/` product-catalog, `cloud/cloud-billing/manifest.json` +
 `cloud/cloud-billing-tax/manifest.json`, docs/PRD/IPs/contracts/iac) are homed in phase-2 (task #62), per the §10.5..§10.24
 precedent. Per the one-plan-per-PR contract the spent `specs/reorg/secrets-move-plan.json` (the §10.24 move-plan) is removed.
