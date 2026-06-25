@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:5a663b7cf0e326ef",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:6a59ac3f5fe966f9"
+    "source_inputs_digest": "fnv1a64:69dce485d2e43c94"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -5391,6 +5391,7 @@
           "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/bin/oya-cloud-ci-face-settle.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/lib.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/main.rs",
+          "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/rust_toolchain_drift.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/tests/face_settle.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/tests/freshness.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app/BUCK",
@@ -26688,6 +26689,13 @@
           "infra/capi/init.sh",
           "infra/ci-webhook-gateway/buildkit-build.yaml",
           "infra/ci-webhook-gateway/gateway.k8s.yaml",
+          "infra/ci/argocd/README.md",
+          "infra/ci/argocd/git-server.Dockerfile",
+          "infra/ci/argocd/git-server.yaml",
+          "infra/ci/argocd/rollouts-demo.yaml",
+          "infra/ci/buck2-affected-gate.sh",
+          "infra/ci/install-buck2.sh",
+          "infra/ci/materialize-cloud-ci-generated-faces.sh",
           "infra/cilium/cell-boundaries/oya-ci-ingress.netpol.yaml",
           "infra/cilium/cell-boundaries/oya-cloud-intelligence-ingress.netpol.yaml",
           "infra/cilium/cell-boundaries/oya-forge-ingress.netpol.yaml",
