@@ -1383,7 +1383,7 @@ pub fn fix_owners(
     Ok(format!(
         "fix-owners: wrote {owners_rel} (owner: {owner}); self-validation: {covered} tracked \
          path(s) under {dir}/ now ownership-resolve to OWNERS:{dir}. Next: git add \
-         {owners_rel}, then re-run infra/ci/materialize-cloud-ci-generated-faces.sh . and \
+         {owners_rel}, then re-run buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . and \
          settle the regenerated faces (the settle protocol)."
     ))
 }
@@ -1457,7 +1457,7 @@ pub fn fix_reachability(
         "fix-reachability: registered {prefix} in {registry_rel} (anchor: {anchor}); \
          self-validation: round-trip OK, {covered} tracked path(s) currently covered. \
          Next: git add {registry_rel}, then re-run \
-         infra/ci/materialize-cloud-ci-generated-faces.sh . and settle the regenerated \
+         buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . and settle the regenerated \
          faces (the settle protocol)."
     ))
 }

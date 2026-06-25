@@ -57,7 +57,7 @@ The gate enforces two freshness classes:
   violation codes are `lock_missing_member_package`, `lock_stale_member_version`, and
   `lock_orphan_path_package`.
 - **Generated-face freshness:** rebuild the same Buck2 targets used by
-  `infra/ci/materialize-cloud-ci-generated-faces.sh`, regenerate the SCM facts face plus the
+  `buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin`, regenerate the SCM facts face plus the
   accounting-registry producer faces, and byte-diff them against the committed
   `*.generated.json` files. The violation code is `generated_face_stale`.
 
@@ -65,7 +65,7 @@ Failure output MUST include the exact remediation commands:
 
 ```text
 cargo metadata >/dev/null
-infra/ci/materialize-cloud-ci-generated-faces.sh .
+buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
 ```
 
 Register `cloud-ci-freshness` as `frozen-empty-meta` in the oya-ci config and disposition table.
@@ -122,7 +122,7 @@ events, consume Workflow events, or write Ontology objects.
 - Canonical CI: `.github/workflows/oya-ci-required.yml` runs `gate-freshness` independently, with
   no `needs` edges to the other jobs, and folds it into the `oya-ci-required` fan-in result.
 - Generated faces remain generator-owned. Contributors must run
-  `infra/ci/materialize-cloud-ci-generated-faces.sh .`; they must not hand-edit
+  `buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .`; they must not hand-edit
   `*.generated.json`.
 
 ## Clean Architecture Impact

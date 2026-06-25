@@ -1131,7 +1131,7 @@ fn emit_scm_facts(source: &impl ScmFactsSource) -> Result<ScmFactsEmission, Stri
     });
     let volatile = json!({
         "schema": VOLATILE_SCHEMA,
-        "_comment": "GENERATED out-of-graph by oya-cloud-ci-scm-facts-emitter-app (ADR-0552, FRIC-1781234047). HISTORY-derived volatile facts: rewritten by squash-merges, so NEVER a committed merge surface and NEVER byte-compared. Untracked + gitignored; CI rematerializes it before gates consume it (infra/ci/materialize-cloud-ci-generated-faces.sh).",
+        "_comment": "GENERATED out-of-graph by oya-cloud-ci-scm-facts-emitter-app (ADR-0552, FRIC-1781234047). HISTORY-derived volatile facts: rewritten by squash-merges, so NEVER a committed merge surface and NEVER byte-compared. Untracked + gitignored; CI rematerializes it before gates consume it (buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin).",
         "head_time_secs": head_time_secs,
         "last_touch_commit": last_touch_commit,
         "commit_author_ts_secs": commit_author_ts_secs,

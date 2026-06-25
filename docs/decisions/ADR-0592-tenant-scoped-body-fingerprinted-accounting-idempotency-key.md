@@ -112,7 +112,7 @@ This change adds **no new crate** and therefore creates **no born-accounting reg
 modifies three existing crates (`billing-accounting-journal`, `billing-accounting-app`,
 `billing-accounting-storage-inmemory-adapter`) and one downstream test
 (`billing-accounting-http-adapter`). The generated cloud-ci faces are re-materialized via
-`infra/ci/materialize-cloud-ci-generated-faces.sh` so any derived totals/registry views stay
+`buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin` so any derived totals/registry views stay
 in-sync, but no new accounting identity is born.
 
 ## RED tests

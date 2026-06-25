@@ -84,7 +84,7 @@ The gate is registered in `oya-ci.toml`, `libs/oya-ci-config`, the oya-ci gate c
 materialized with:
 
 ```text
-infra/ci/materialize-cloud-ci-generated-faces.sh .
+buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
 ```
 
 ## Consequences
