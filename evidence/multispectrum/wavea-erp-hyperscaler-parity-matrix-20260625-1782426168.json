@@ -1,0 +1,68 @@
+{
+  "agent_id": "codex-wave-a-erp-domain-owner",
+  "branch": "agent/waveA-erp-20260625173629",
+  "change_class_id": "CC-2_feature",
+  "change_id": "wavea-erp-hyperscaler-parity-matrix-20260625",
+  "created_at": "2026-06-25T22:22:48Z",
+  "facets": {
+    "F1_correctness": "Adds an executable ERP hyperscaler parity matrix covering control-plane API, resource model, lifecycle operations, tenant isolation, IAM/authz, quota/capacity, billing/metering, audit trail, observability/SLOs, regional residency, backup/restore, security, compliance, SDK/API ergonomics, and runbooks.",
+    "F2_tests": "Buck2 parity test target now validates that every required hyperscaler facet is present, evidence-backed, repo-path-resolvable, and guarded by a gap-closure gate; a missing control-plane facet is rejected.",
+    "F3_maintainability": "The change stays in the existing tenant-rbac ERP parity-map crate and extends the current typed map/validation pattern without new dependencies or generated artifact edits.",
+    "F4_compatibility": "Existing ERP module rows, forbidden ERP-platform destination checks, capabilities schema version, and runtime/cloud non-claims remain intact. The matrix is exposed separately through erp_hyperscaler_parity_matrix().",
+    "F5_security": "No secrets, credentials, network calls, unsafe Rust, shell authority, or production service privileges are introduced. The matrix preserves provider-neutral composition and Cedar-backed authz references.",
+    "F6_privacy": "The matrix references public repository evidence only and does not process tenant, user, or personal data.",
+    "F7_operability": "Operational runbook, SLO, residency, rollback, and audit facets now have explicit tracked evidence so reviewers can see which gaps remain before ERP-wide promotion.",
+    "F8_performance": "The matrix is static Rust data validated with linear scans over 15 facets; no runtime hot path or data-plane service is affected.",
+    "F9_compliance": "SOX/compliance evidence remains explicit through ERP PRD, financial-planning manifest, DPIA, and audit-chain contract references.",
+    "F10_reversibility": "Rollback is a normal git revert of the additive Rust API, tests, and this evidence file. No migrations, generated faces, or production state are changed.",
+    "F11_observability": "The parity matrix includes observability/SLO and operational runbook facets as first-class review gates.",
+    "F13_migration": "Supports the owned-stack migration mandate by preventing ERP coverage from drifting into a monolithic ERP platform service or provider-specific runtime claim."
+  },
+  "hyperscaler_lens": {
+    "capability_matrix": "All 15 requested hyperscaler parity facets are now represented by typed Rust data and test validation.",
+    "provider_neutrality": "The matrix benchmarks AWS/GCP-class control-plane capabilities and ERP SaaS surfaces without binding the core map to a provider SDK.",
+    "separation_of_concerns": "Domain/kernel evidence remains provider-agnostic; service contracts, Cedar policy, runbooks, SLOs, and IaC remain adapter or application-layer references.",
+    "merge_conflict_resistance": "Only the ERP parity-map crate, its tests, and one unique evidence file are touched."
+  },
+  "known_gaps": [
+    "Remote oya-ci-required/cloud-ci status and reviewer approval remain pending until PR creation.",
+    "specs/multispectrum-review.json is absent in this checkout, so this file follows the existing 2.4.0-compatible evidence shape used under evidence/multispectrum.",
+    ".omx/ultragoal/goals.json and .omx/ultragoal/ledger.jsonl are not present in this worktree; final lane evidence will still name Ultragoal G015 per the orchestrator contract.",
+    "This slice establishes the verification gate; it does not claim live ERP runtime, cloud deployment, generated SDKs, or ERP-wide billing meters."
+  ],
+  "schema_version": "2.4.0-compatible",
+  "scope": {
+    "explicit_non_claims": [
+      "No ERP platform microservice is created.",
+      "No production runtime, deployed listener, durable business document store, workflow execution, cloud deployment, or runtime audit-chain emission is claimed.",
+      "No generated JSON face is hand-edited.",
+      "No new dependency is added."
+    ],
+    "files_touched": [
+      "iam/facade/tenant-rbac-erp-parity-map/src/lib.rs",
+      "iam/facade/tenant-rbac-erp-parity-map/tests/parity.rs",
+      "evidence/multispectrum/wavea-erp-hyperscaler-parity-matrix-20260625-1782426168.json"
+    ],
+    "summary": "Add an executable hyperscaler parity matrix and regression gate for ERP/SAP parity coverage."
+  },
+  "verification": [
+    {
+      "command": "rustfmt iam/facade/tenant-rbac-erp-parity-map/src/lib.rs iam/facade/tenant-rbac-erp-parity-map/tests/parity.rs",
+      "result": "pass"
+    },
+    {
+      "command": "buck2 build //iam/facade/tenant-rbac-erp-parity-map:iam-tenant-rbac-erp-parity-map",
+      "evidence": "BUILD SUCCEEDED",
+      "result": "pass"
+    },
+    {
+      "command": "buck2 test //iam/facade/tenant-rbac-erp-parity-map:iam-tenant-rbac-erp-parity-map-parity",
+      "evidence": "18 tests passed; includes hyperscaler_parity_matrix_tracks_required_control_plane_facets, hyperscaler_parity_matrix_validation_rejects_missing_required_facet, and hyperscaler_parity_matrix_evidence_refs_resolve_to_repo_paths",
+      "result": "pass"
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    }
+  ]
+}
