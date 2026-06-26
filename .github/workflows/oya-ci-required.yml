@@ -34,9 +34,10 @@ permissions:
 # collects the join. Matrix legs run one Buck2 target each, so a leg failure cannot hide a sibling.
 # PR supersession is different: an older head SHA can never satisfy branch protection after a newer
 # head exists, so keep only the newest run per PR. Push / merge_group / manual runs retain the full
-# non-cancelling surface-all behavior for integration evidence.
+# non-cancelling surface-all behavior for integration evidence. Group by workflow name instead of a
+# repository-specific literal so the pattern remains reusable by the owned cloud-ci adapter.
 concurrency:
-  group: oya-ci-required-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -472,19 +473,20 @@ jobs:
           # writes buck2's structured run record (cache_hit_rate, run_* counters)
           # for the telemetry step below and changes nothing about the build.
           buck2 test //cloud/cloud-ci/... --unstable-write-invocation-record /tmp/buck2-lane-invocation-record.json
-      # Per-lane cache-hit telemetry (ADR-0560; the audit's missing-SLO item):
-      # structured counters from buck2's invocation record — never log-grep — labeled
-      # with this lane's ADR-0556 build class. Non-blocking by construction
-      # (continue-on-error): telemetry must never affect merge authority. Today the
-      # lane runs bypass (the NativeLink wiring ships dark), so this baselines the
-      # 0%-hit cold state (FRIC-1781450000) that the warm substrate will move.
-      - name: Cache-hit telemetry (ADR-0560, structured per-lane report)
+      # Per-lane cache-hit telemetry + warm-mode guard (ADR-0560; the audit's missing-SLO item):
+      # structured counters from buck2's invocation record — never log-grep — labeled with this
+      # lane's ADR-0556 build class. The report is now binding for record-shape / warm-mode
+      # sanity: once owned cloud-ci flips this lane from `bypass` to warm-ro/rw, a 0%-hit run or
+      # missing cache counters is an INFRA-RED misconfiguration, not advisory noise. Today GitHub
+      # Actions remains the transitional adapter and this lane stays bypass while NativeLink is dark.
+      - name: Cache-hit telemetry + warm-mode guard (ADR-0560)
         if: always()
-        continue-on-error: true
         run: |
           set -euo pipefail
-          buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app:oya-cloud-ci-cache-wiring-bin -- report --record /tmp/buck2-lane-invocation-record.json --build-class gate-fleet-shared-graph --mode bypass --out /tmp/cache-hit-report.json
+          CACHE_MODE=bypass
+          buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app:oya-cloud-ci-cache-wiring-bin -- report --record /tmp/buck2-lane-invocation-record.json --build-class gate-fleet-shared-graph --mode "${CACHE_MODE}" --out /tmp/cache-hit-report.json
           cat /tmp/cache-hit-report.json
+          buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app:oya-cloud-ci-cache-wiring-bin -- assert-warm --record /tmp/buck2-lane-invocation-record.json --build-class gate-fleet-shared-graph --mode "${CACHE_MODE}"
       - name: Upload cache-hit telemetry artifact
         if: always()
         continue-on-error: true
