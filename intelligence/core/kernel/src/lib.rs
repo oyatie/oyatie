@@ -30,8 +30,11 @@ use std::time::{Duration, Instant};
 
 pub mod cost;
 pub mod model_routing;
+pub mod overage_guard;
 pub mod safety;
 pub mod xproxy_parity;
+
+use overage_guard::{GuardDecision, HaltReason};
 
 /// Build a stable sticky-affinity key without storing raw prompt content.
 pub fn privacy_preserving_sticky_key(first_user_message: &str) -> String {
@@ -163,6 +166,9 @@ pub enum CredentialMode {
 ///   Cooldown ──(timer elapsed)──► Active
 ///   Active|Cooldown ──(repeated failures > threshold)──► Blacklisted
 ///   Blacklisted is terminal until operator intervention.
+///   Active ──(SC8 overage guard trips, enforce mode)──► Halted
+///   Halted ──(resume_at elapsed)──► eligible again (cooldown-resume)
+///   Halted ──(operator admin-resume)──► Active
 /// ```
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum SubscriptionState {
@@ -180,6 +186,14 @@ pub enum SubscriptionState {
     },
     Blacklisted {
         reason: BlacklistReason,
+    },
+    /// SC8 overage-guard circuit-break: the seat tripped the representative-claim
+    /// overage guard (enforce mode) or hit per-credential quota exhaustion.
+    /// `resume_at == None` => admin-resume only; `Some(t)` => auto-resume
+    /// (cooldown-resume) once `now >= t`, with operator early-resume available.
+    Halted {
+        resume_at: Option<Instant>,
+        reason: HaltReason,
     },
 }
 
@@ -718,6 +732,7 @@ impl SubscriptionPool {
                     | SubscriptionState::Active => "active",
                     SubscriptionState::Cooldown { .. } => "cooldown",
                     SubscriptionState::Blacklisted { .. } => "blacklisted",
+                    SubscriptionState::Halted { .. } => "halted",
                 },
                 headroom_percent: (seat.headroom(now, 1) * 100.0).clamp(0.0, 100.0),
             })
@@ -1062,6 +1077,50 @@ impl SubscriptionPool {
         Ok(())
     }
 
+    /// Apply an SC8 overage [`GuardDecision`] to a seat.
+    ///
+    /// `Continue` / `Warn` leave seat state untouched — warn mode is
+    /// observability-only and the caller emits the event. `Halt` transitions
+    /// the seat to [`SubscriptionState::Halted`] and evicts its sticky bindings
+    /// so traffic re-routes immediately. Returns `Ok(true)` iff the seat was
+    /// halted. Overage halts do NOT touch `failure_count` — they are a billing
+    /// circuit-break, not a credential-health failure, so they never escalate
+    /// the seat toward [`SubscriptionState::Blacklisted`].
+    pub fn apply_overage_decision(
+        &mut self,
+        seat_id: &SeatId,
+        decision: &GuardDecision,
+        _now: Instant,
+    ) -> Result<bool, SubscriptionPoolError> {
+        let GuardDecision::Halt { reason, resume_at } = decision else {
+            return Ok(false);
+        };
+        self.remove_sticky_bindings_for_seat(seat_id);
+        let Some(seat) = self.seats.get_mut(seat_id) else {
+            return Err(SubscriptionPoolError::NoEligibleSeat);
+        };
+        seat.state = SubscriptionState::Halted {
+            resume_at: *resume_at,
+            reason: reason.clone(),
+        };
+        Ok(true)
+    }
+
+    /// Operator admin-resume: force a halted seat back to [`SubscriptionState::Active`]
+    /// ahead of its cooldown horizon. Returns `Ok(true)` if the seat was halted
+    /// and is now active, `Ok(false)` if the seat was not halted (no-op).
+    pub fn admin_resume(&mut self, seat_id: &SeatId) -> Result<bool, SubscriptionPoolError> {
+        let Some(seat) = self.seats.get_mut(seat_id) else {
+            return Err(SubscriptionPoolError::NoEligibleSeat);
+        };
+        if matches!(seat.state, SubscriptionState::Halted { .. }) {
+            seat.state = SubscriptionState::Active;
+            Ok(true)
+        } else {
+            Ok(false)
+        }
+    }
+
     /// Like [`select`] but also excludes currently-leased seats.
     fn select_excluding_leased(
         &mut self,
@@ -1123,6 +1182,11 @@ impl SubscriptionPool {
             SubscriptionState::Active => true,
             SubscriptionState::ActiveUntilExpiry { expires_at } => *expires_at > now,
             SubscriptionState::Cooldown { until, .. } => *until <= now,
+            // Cooldown-resume: a halt with a horizon self-heals once it passes.
+            // An admin-resume-only halt (resume_at None) stays ineligible.
+            SubscriptionState::Halted { resume_at, .. } => {
+                resume_at.is_some_and(|until| until <= now)
+            }
             SubscriptionState::Authorized
             | SubscriptionState::RefreshingToken { .. }
             | SubscriptionState::Blacklisted { .. } => false,

@@ -93,6 +93,18 @@ rust_test(
 )
 
 rust_test(
+    name = "intelligence-kernel-proptest-overage-guard-test",
+    srcs = glob(["tests/proptest_overage_guard.rs"]),
+    crate = "intelligence_kernel_proptest_overage_guard_test",
+    crate_root = "tests/proptest_overage_guard.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-kernel",
+        "third-party//:proptest",
+    ],
+)
+
+rust_test(
     name = "intelligence-kernel-loom-seat-lease-atomicity-test",
     srcs = glob(["tests/loom_seat_lease_atomicity.rs"]),
     crate = "intelligence_kernel_loom_seat_lease_atomicity_test",

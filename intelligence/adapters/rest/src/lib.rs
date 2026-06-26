@@ -50,7 +50,7 @@ use bytes::Bytes;
 use futures::Stream;
 use futures::StreamExt as _;
 use intelligence_codex_adapter::{
-    CodexAdapterError, CodexProxyRequest, CodexProxyResponse, OpenAiApiKeyAdapter,
+    CodexAdapter, CodexAdapterError, CodexProxyRequest, CodexProxyResponse, OpenAiApiKeyAdapter,
 };
 use intelligence_gemini_adapter::{
     GeminiAdapterError, GeminiApiKeyAdapter, GeminiProxyResponse,
@@ -269,6 +269,15 @@ const OPENAI_COMPATIBLE_BASE_URL: &str = "https://api.openai.com";
 
 /// Default Gemini API base URL for API-key provider pools.
 const GEMINI_BASE_URL: &str = "https://generativelanguage.googleapis.com/v1beta";
+
+/// Default ChatGPT base URL for Codex OAuth-subscription pools. Used for the
+/// session-token refresh + Codex data endpoint (distinct from the API-key
+/// `OPENAI_COMPATIBLE_BASE_URL`).
+const CODEX_OAUTH_BASE_URL: &str = "https://chatgpt.com";
+
+/// OpenAI-compatible upstream path that the Codex OAuth-subscription flow
+/// supports (the ChatGPT-backed responses endpoint is chat-shaped only).
+const CODEX_OAUTH_SUPPORTED_PATH: &str = "/v1/chat/completions";
 
 /// Anthropic API version header value.
 const ANTHROPIC_VERSION: &str = "2023-06-01";
@@ -1271,6 +1280,10 @@ pub struct AppState {
     pub secret_store: Arc<dyn SecretProviderStore>, // data_class: INTERNAL_ONLY
     pub anthropic_base_url: String,  // data_class: INTERNAL_ONLY
     pub openai_compatible_base_url: String, // data_class: INTERNAL_ONLY
+    /// ChatGPT base URL for Codex OAuth-subscription seats (session refresh +
+    /// Codex data endpoint). Distinct from `openai_compatible_base_url`, which
+    /// targets the documented API-key OpenAI shape.
+    pub codex_oauth_base_url: String, // data_class: INTERNAL_ONLY
     pub gemini_base_url: String,     // data_class: INTERNAL_ONLY
     pub tenant_id: TenantId,         // data_class: INTERNAL_ONLY
     /// Data-plane ingress bearer token. If unset, every `/v1/*` data-plane
@@ -1348,6 +1361,7 @@ impl AppState {
             secret_store,
             anthropic_base_url,
             openai_compatible_base_url: OPENAI_COMPATIBLE_BASE_URL.to_string(),
+            codex_oauth_base_url: CODEX_OAUTH_BASE_URL.to_string(),
             gemini_base_url: GEMINI_BASE_URL.to_string(),
             tenant_id,
             ingress_bearer_token,
@@ -2311,17 +2325,21 @@ async fn handle_openai_compatible_proxy(
         }
     };
 
-    if lease_context.credential_mode != CredentialMode::ApiKey {
-        let _ = lease_context
-            .lease
-            .complete(SeatOutcome::RefreshFailed, Instant::now());
-        return openai_error_response(
-            StatusCode::BAD_GATEWAY,
-            "upstream_error",
-            "openai_compatible_api_key_required",
-            "OpenAI-compatible routes require an API-key provider seat",
-            None,
-        );
+    // OAuth-subscription Codex seats route through the ChatGPT session OAuth
+    // flow + Codex data endpoint (subscription pooling). API-key seats fall
+    // through to the documented OpenAI-compatible API-key path below, which
+    // stays behavior-identical.
+    if lease_context.credential_mode == CredentialMode::OAuthSubscription {
+        return handle_codex_oauth_subscription_proxy(
+            &state,
+            &headers,
+            body,
+            upstream_path,
+            allow_stream,
+            lease_context,
+            agent_id,
+        )
+        .await;
     }
 
     let api_key = match state
@@ -2398,6 +2416,168 @@ async fn handle_openai_compatible_proxy(
         .proxy_openai_compatible_path(&api_key, upstream_path, request)
         .await
     {
+        Ok(resp) => {
+            let upstream_status = resp.status;
+            let _ = lease_context.lease.complete(
+                seat_outcome_for_upstream_status(upstream_status),
+                Instant::now(),
+            );
+            let now_ms = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_millis() as u64;
+            state.sink.emit(LlmGatewayEvent {
+                request_id: format!("req-{now_ms}"),
+                tenant_id: state.tenant_id.clone(),
+                agent_id,
+                seat_id: lease_context.seat_id,
+                provider: Provider::Codex,
+                model: String::new(),
+                prompt_tokens: 0,
+                completion_tokens: 0,
+                ms_latency: 0,
+                status: event_status_for_upstream_status(upstream_status),
+                timestamp_unix_ms: now_ms,
+            });
+            codex_proxy_response_to_axum(resp)
+        }
+        Err(CodexAdapterError::RateLimited { retry_after_secs }) => {
+            let _ = lease_context
+                .lease
+                .complete(SeatOutcome::RateLimited429, Instant::now());
+            openai_adapter_error_to_response(CodexAdapterError::RateLimited { retry_after_secs })
+        }
+        Err(error) => {
+            let _ = lease_context
+                .lease
+                .complete(SeatOutcome::ServerError5xx, Instant::now());
+            openai_adapter_error_to_response(error)
+        }
+    }
+}
+
+/// Codex OAuth-subscription data-plane path. Mirrors the Anthropic
+/// OAuth-subscription lifecycle in [`handle_proxy`]: resolve the seat's refresh
+/// token from the secret store (OpenBao seam), refresh the ChatGPT session
+/// token via the [`CodexAdapter`], then proxy (streaming or one-shot) to the
+/// Codex data endpoint, holding the [`SeatLease`] for the full response.
+///
+/// Fail-closed: a missing credential or a failed refresh releases the seat and
+/// denies the request — it never falls through to an unauthenticated upstream
+/// call. Codex wire-shape (cli User-Agent impersonation, `X-OpenAI-Beta`,
+/// hop-by-hop + provider-control header stripping) is owned by [`CodexAdapter`].
+#[allow(clippy::too_many_arguments)]
+async fn handle_codex_oauth_subscription_proxy(
+    state: &AppState,
+    headers: &HeaderMap,
+    body: Bytes,
+    upstream_path: &'static str,
+    allow_stream: bool,
+    lease_context: ProviderLeaseContext,
+    agent_id: AgentId,
+) -> Response {
+    // The ChatGPT-backed Codex responses endpoint serves chat-shaped requests
+    // only. Embeddings over an OAuth-subscription seat is a genuinely-
+    // unsupported combination and still fails closed (mirrors the api-key
+    // path's exact-path allowlist).
+    if upstream_path != CODEX_OAUTH_SUPPORTED_PATH {
+        let _ = lease_context
+            .lease
+            .complete(SeatOutcome::RefreshFailed, Instant::now());
+        return openai_error_response(
+            StatusCode::BAD_GATEWAY,
+            "upstream_error",
+            "codex_oauth_subscription_path_unsupported",
+            "Codex OAuth-subscription seats support only /v1/chat/completions",
+            None,
+        );
+    }
+
+    // Resolve the OAuth refresh token via the opaque credential handle. For
+    // OAuth seats this resolves to the ChatGPT session refresh token. Fail
+    // closed on a missing/unreadable credential.
+    let refresh_token = match state
+        .secret_store
+        .fetch_refresh_token(&lease_context.credential_handle)
+    {
+        Ok(token) => token,
+        Err(_) => {
+            let _ = lease_context
+                .lease
+                .complete(SeatOutcome::RefreshFailed, Instant::now());
+            return openai_error_response(
+                StatusCode::BAD_GATEWAY,
+                "upstream_error",
+                "provider_credential_unavailable",
+                "provider credential handle could not be resolved",
+                None,
+            );
+        }
+    };
+
+    let adapter = CodexAdapter::with_base_url(
+        Arc::clone(&state.http_client),
+        state.codex_oauth_base_url.clone(),
+    );
+
+    // Refresh the ChatGPT session token before streaming. On failure the seat
+    // is released (RefreshFailed) and the request denied — never falls through
+    // to an unauthenticated upstream call.
+    let access_token = match adapter.refresh_token(&refresh_token).await {
+        Ok(tokens) => tokens.access_token,
+        Err(error) => {
+            let _ = lease_context
+                .lease
+                .complete(SeatOutcome::RefreshFailed, Instant::now());
+            return openai_adapter_error_to_response(error);
+        }
+    };
+
+    let request = CodexProxyRequest {
+        body: body.to_vec(),
+        extra_headers: headers_to_btree(headers),
+    };
+
+    if allow_stream && openai_stream_requested(headers, &body) {
+        match adapter.proxy_stream(&access_token, request).await {
+            Ok((upstream_status, upstream_headers, byte_stream)) => {
+                let mapped: BoxStream<Result<Bytes, RestAdapterError>> =
+                    Box::pin(byte_stream.map(|chunk| {
+                        chunk.map_err(|e| RestAdapterError::UpstreamError {
+                            status: 502,
+                            body: e.to_string(),
+                        })
+                    }));
+                let lease_stream = SseStreamWithLease::new_with_clean_outcome(
+                    mapped,
+                    lease_context.lease,
+                    seat_outcome_for_upstream_status(upstream_status),
+                );
+                let mut builder = axum::response::Response::builder().status(upstream_status);
+                for (k, v) in &upstream_headers {
+                    if let (Ok(name), Ok(value)) = (
+                        HeaderName::from_bytes(k.as_bytes()),
+                        HeaderValue::from_str(v),
+                    ) {
+                        builder = builder.header(name, value);
+                    }
+                }
+                return builder
+                    .header("content-type", "text/event-stream")
+                    .header("cache-control", "no-cache")
+                    .body(Body::from_stream(lease_stream))
+                    .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response());
+            }
+            Err(error) => {
+                let _ = lease_context
+                    .lease
+                    .complete(SeatOutcome::ServerError5xx, Instant::now());
+                return openai_adapter_error_to_response(error);
+            }
+        }
+    }
+
+    match adapter.proxy(&access_token, request).await {
         Ok(resp) => {
             let upstream_status = resp.status;
             let _ = lease_context.lease.complete(
@@ -4879,6 +5059,272 @@ mod tests {
         assert!(
             !req.contains("must-not-forward"),
             "provider-control or connection-nominated headers leaked:\n{req}"
+        );
+    }
+
+    /// AppState with a Codex OAuth-subscription seat whose ChatGPT base URL
+    /// points at a loopback fake. Mirrors `openai_proxy_state` but the seat is
+    /// `OAuthSubscription` rather than `ApiKey`.
+    fn codex_oauth_proxy_state(base_url: String) -> Arc<AppState> {
+        let tenant_id = TenantId::new("tenant-a").unwrap();
+        let default_pool = Arc::new(Mutex::new(SubscriptionPool::new(
+            tenant_id.clone(),
+            Provider::Anthropic,
+            SelectionStrategy::RoundRobin,
+        )));
+
+        let mut codex_pool = SubscriptionPool::new(
+            tenant_id.clone(),
+            Provider::Codex,
+            SelectionStrategy::RoundRobin,
+        );
+        codex_pool
+            .add_seat(
+                OAuthSubscription::new(
+                    tenant_id.clone(),
+                    SeatId::new("codex-seat-a").unwrap(),
+                    SubscriptionId::new("codex-sub-a").unwrap(),
+                    Provider::Codex,
+                    SubscriptionState::Active,
+                    "secret-ref://tenant-a/codex/codex-seat-a",
+                    0,
+                )
+                .with_credential_mode(CredentialMode::OAuthSubscription),
+            )
+            .unwrap();
+
+        let registry = PoolRegistry::new();
+        registry.insert_pool(
+            tenant_id.clone(),
+            Provider::Anthropic,
+            Arc::clone(&default_pool),
+        );
+        registry.insert_pool(
+            tenant_id.clone(),
+            Provider::Codex,
+            Arc::new(Mutex::new(codex_pool)),
+        );
+
+        let mut state = AppState::new_with_pool_registry(
+            default_pool,
+            registry,
+            Arc::new(AllowGate),
+            Arc::new(NoopSink),
+            Arc::new(MemorySecretStore { ready: true }),
+            "http://127.0.0.1:1".to_string(),
+            tenant_id,
+            Some("ingress-token".to_string()),
+            Some("admin-token".to_string()),
+            "development".to_string(),
+            std::collections::HashSet::new(),
+        )
+        .unwrap();
+        state.codex_oauth_base_url = base_url;
+        Arc::new(state)
+    }
+
+    #[tokio::test]
+    async fn codex_oauth_subscription_refreshes_session_then_proxies_to_codex_data_endpoint() {
+        let session_body = r#"{"accessToken":"codex-access-xyz"}"#;
+        let upstream_body = r#"{"id":"resp-1","object":"response","output":[]}"#;
+        let (base_url, received, _server) = recording_multi_request_server(vec![
+            Box::leak(
+                format!(
+                    "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nConnection: close\r\nContent-Length: {}\r\n\r\n{}",
+                    session_body.len(),
+                    session_body
+                )
+                .into_boxed_str(),
+            ),
+            Box::leak(
+                format!(
+                    "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nConnection: close\r\nContent-Length: {}\r\n\r\n{}",
+                    upstream_body.len(),
+                    upstream_body
+                )
+                .into_boxed_str(),
+            ),
+        ]);
+        let state = codex_oauth_proxy_state(base_url);
+        let request_body = r#"{"model":"gpt-4o","messages":[{"role":"user","content":"hi"}]}"#;
+
+        let response = build_router(state)
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/v1/chat/completions")
+                    .header("x-agent-id", "agent-a")
+                    .header("authorization", "Bearer ingress-token")
+                    .header("user-agent", "evil-downstream-ua")
+                    .header("content-type", "application/json")
+                    .body(Body::from(request_body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        assert_eq!(std::str::from_utf8(&body).unwrap(), upstream_body);
+
+        let requests = received.lock().unwrap().clone();
+        assert_eq!(
+            requests.len(),
+            2,
+            "expected a session refresh followed by the codex data call"
+        );
+        let session_req = &requests[0];
+        assert!(
+            session_req.starts_with("POST /api/auth/session "),
+            "first call must be the session refresh:\n{session_req}"
+        );
+        assert!(
+            session_req.contains("__Secure-next-auth.session-token=test-refresh-token"),
+            "session refresh must present the seat refresh token as the cookie:\n{session_req}"
+        );
+
+        let data_req = &requests[1];
+        assert!(
+            data_req.starts_with("POST /backend-api/codex/responses "),
+            "second call must hit the Codex data endpoint:\n{data_req}"
+        );
+        assert_header(data_req, "authorization", "Bearer codex-access-xyz");
+        assert_header(data_req, "x-openai-beta", "codex-runs");
+        // Codex CLI User-Agent impersonation replaces the caller UA (Cloudflare 1010).
+        assert_header(data_req, "user-agent", "cli/0.27.0");
+        assert!(
+            data_req.contains(request_body),
+            "request body must be passed through:\n{data_req}"
+        );
+        assert!(
+            !data_req.contains("evil-downstream-ua"),
+            "caller User-Agent must be replaced, not forwarded:\n{data_req}"
+        );
+        assert!(
+            !data_req.contains("ingress-token"),
+            "caller ingress token must not be forwarded upstream:\n{data_req}"
+        );
+    }
+
+    #[tokio::test]
+    async fn codex_oauth_subscription_streaming_proxies_sse_from_codex_data_endpoint() {
+        let session_body = r#"{"accessToken":"codex-access-stream"}"#;
+        let (base_url, received, _server) = recording_multi_request_server(vec![
+            Box::leak(
+                format!(
+                    "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nConnection: close\r\nContent-Length: {}\r\n\r\n{}",
+                    session_body.len(),
+                    session_body
+                )
+                .into_boxed_str(),
+            ),
+            Box::leak(
+                "HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nConnection: close\r\nContent-Length: 10\r\n\r\ndata: hi\n\n"
+                    .to_string()
+                    .into_boxed_str(),
+            ),
+        ]);
+        let state = codex_oauth_proxy_state(base_url);
+        let request_body = r#"{"model":"gpt-4o","messages":[],"stream":true}"#;
+
+        let response = build_router(state)
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/v1/chat/completions")
+                    .header("x-agent-id", "agent-a")
+                    .header("authorization", "Bearer ingress-token")
+                    .header("accept", "text/event-stream")
+                    .header("content-type", "application/json")
+                    .body(Body::from(request_body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(
+            response
+                .headers()
+                .get("content-type")
+                .and_then(|v| v.to_str().ok()),
+            Some("text/event-stream")
+        );
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        assert_eq!(std::str::from_utf8(&body).unwrap(), "data: hi\n\n");
+
+        let requests = received.lock().unwrap().clone();
+        assert_eq!(requests.len(), 2);
+        assert!(requests[0].starts_with("POST /api/auth/session "));
+        assert!(requests[1].starts_with("POST /backend-api/codex/responses "));
+        assert_header(&requests[1], "authorization", "Bearer codex-access-stream");
+    }
+
+    #[tokio::test]
+    async fn codex_oauth_subscription_refresh_failure_fails_closed_without_data_call() {
+        // The session endpoint rejects the refresh token; the data endpoint must
+        // never be reached (no fall-through to an unauthenticated upstream call).
+        let (base_url, received, _server) = recording_multi_request_server(vec![Box::leak(
+            "HTTP/1.1 401 Unauthorized\r\nConnection: close\r\nContent-Length: 0\r\n\r\n"
+                .to_string()
+                .into_boxed_str(),
+        )]);
+        let state = codex_oauth_proxy_state(base_url);
+        let request_body = r#"{"model":"gpt-4o","messages":[]}"#;
+
+        let response = build_router(state)
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/v1/chat/completions")
+                    .header("x-agent-id", "agent-a")
+                    .header("authorization", "Bearer ingress-token")
+                    .header("content-type", "application/json")
+                    .body(Body::from(request_body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::BAD_GATEWAY);
+        let requests = received.lock().unwrap().clone();
+        assert_eq!(
+            requests.len(),
+            1,
+            "only the session refresh may be attempted; refresh failure must not call the data endpoint"
+        );
+        assert!(requests[0].starts_with("POST /api/auth/session "));
+    }
+
+    #[tokio::test]
+    async fn codex_oauth_subscription_embeddings_path_is_unsupported_and_fails_closed() {
+        // Embeddings over an OAuth-subscription Codex seat is genuinely
+        // unsupported (the ChatGPT responses endpoint is chat-shaped only) and
+        // is rejected before any refresh/proxy — no upstream server needed.
+        let state = codex_oauth_proxy_state("http://127.0.0.1:1".to_string());
+        let request_body = r#"{"model":"text-embedding-3-small","input":"hi"}"#;
+
+        let response = build_router(state)
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/v1/embeddings")
+                    .header("x-agent-id", "agent-a")
+                    .header("authorization", "Bearer ingress-token")
+                    .header("content-type", "application/json")
+                    .body(Body::from(request_body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::BAD_GATEWAY);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        assert!(
+            std::str::from_utf8(&body)
+                .unwrap()
+                .contains("codex_oauth_subscription_path_unsupported"),
+            "expected the unsupported-path error code in the body"
         );
     }
 
