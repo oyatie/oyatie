@@ -58,6 +58,9 @@ message StringList {
 message Resource {
   string resource_type = 1;
   string resource_id = 2;
+  // Resource attributes visible to PDP resource conditions, for example
+  // tenant_id for same-tenant Cedar policies.
+  map<string, ClaimValue> attributes = 3;
 }
 
 // --- Authorize requests -----------------------------------------------------

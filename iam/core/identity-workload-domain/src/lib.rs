@@ -579,6 +579,7 @@ impl fmt::Display for Action {
 pub struct Resource {
     resource_type: String,
     resource_id: String,
+    attributes: BTreeMap<String, ClaimValue>,
 }
 
 impl Resource {
@@ -588,6 +589,7 @@ impl Resource {
         Self {
             resource_type: resource_type.into(),
             resource_id: resource_id.into(),
+            attributes: BTreeMap::new(),
         }
     }
 
@@ -601,6 +603,19 @@ impl Resource {
     #[must_use]
     pub fn resource_id(&self) -> &str {
         &self.resource_id
+    }
+
+    /// Typed resource attributes visible to policy conditions.
+    #[must_use]
+    pub fn attributes(&self) -> &BTreeMap<String, ClaimValue> {
+        &self.attributes
+    }
+
+    /// Attach a policy-visible resource attribute (builder style).
+    #[must_use]
+    pub fn with_attribute(mut self, key: impl Into<String>, value: ClaimValue) -> Self {
+        self.attributes.insert(key.into(), value);
+        self
     }
 }
 
@@ -1078,6 +1093,21 @@ mod tests {
         assert_eq!(resource.to_string(), "Bucket::\"logs\"");
     }
 
+    #[test]
+    fn resource_builds_with_policy_attributes() {
+        let resource = Resource::new("QuotaRecord", "ten_acme")
+            .with_attribute("tenant_id", ClaimValue::Text("ten_acme".into()));
+
+        assert_eq!(resource.resource_type(), "QuotaRecord");
+        assert_eq!(
+            resource
+                .attributes()
+                .get("tenant_id")
+                .and_then(ClaimValue::as_text),
+            Some("ten_acme")
+        );
+    }
+
     // ──────────────────────────────────────────────────────────────────────────
     // evaluate_decision: table-driven acceptance tests
     // ──────────────────────────────────────────────────────────────────────────
@@ -1152,10 +1182,7 @@ mod tests {
     fn evaluate_decision_forbid_wins_over_permit() {
         let principal = active_principal();
         // Permit appears before forbid; forbid still wins.
-        let outcomes = vec![
-            PolicyOutcome::permit("p1"),
-            PolicyOutcome::forbid("f1"),
-        ];
+        let outcomes = vec![PolicyOutcome::permit("p1"), PolicyOutcome::forbid("f1")];
         let decision = evaluate_decision(&principal, &outcomes);
         assert_eq!(decision.effect(), Effect::Deny);
         assert!(matches!(
@@ -1168,10 +1195,7 @@ mod tests {
     #[test]
     fn evaluate_decision_forbid_wins_forbid_first() {
         let principal = active_principal();
-        let outcomes = vec![
-            PolicyOutcome::forbid("f2"),
-            PolicyOutcome::permit("p2"),
-        ];
+        let outcomes = vec![PolicyOutcome::forbid("f2"), PolicyOutcome::permit("p2")];
         let decision = evaluate_decision(&principal, &outcomes);
         assert_eq!(decision.effect(), Effect::Deny);
         assert!(matches!(
@@ -1184,10 +1208,7 @@ mod tests {
     #[test]
     fn evaluate_decision_permit_only_allows() {
         let principal = active_principal();
-        let outcomes = vec![
-            PolicyOutcome::permit("p1"),
-            PolicyOutcome::permit("p2"),
-        ];
+        let outcomes = vec![PolicyOutcome::permit("p1"), PolicyOutcome::permit("p2")];
         let decision = evaluate_decision(&principal, &outcomes);
         assert_eq!(decision.effect(), Effect::Allow);
         assert!(matches!(

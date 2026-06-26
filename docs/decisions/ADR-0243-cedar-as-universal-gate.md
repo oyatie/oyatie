@@ -1111,4 +1111,19 @@ Per `feedback_naming_justification`: every new name introduced by this ADR carri
   - §D-10 hot-reload: Scoped the <5s window to soak-phase shadow evaluation only; full enforcement requires soak completion with no anomaly per ADR-0294.
   - §D-11 failure modes: Added `fragment-revoked-by-soak-anomaly` as the third causal fallback path per ADR-0294 §D-8.
 
+
+## 2026-06-26 PDP Same-Tenant Policy Evidence Addendum
+
+Wave B IAM/PDP verified that the structured Cedar/PDP DSL can encode
+request-time same-tenant resource access with
+`principal.tenant_id == resource.tenant_id`, and that tenant-quota default
+policies enforce same-tenant read/write through the PDP policy path while the
+#872 adapter guard remains defense-in-depth. The accounting registration
+evidence is
+`evidence/multispectrum/waveB-pdp-same-tenant-879-20260626-1782441461.json`,
+with supplemental public API/gRPC projection evidence in
+`evidence/multispectrum/waveB-pdp-same-tenant-api-879-20260626-1782443622.json`; together they close the ADR-0243 same-tenant policy-layer
+follow-up for issue #879 without adding generated faces, new dependencies,
+provider adapters, workflows, or root-hub spec churn.
+
 *End of ADR-0243.*
