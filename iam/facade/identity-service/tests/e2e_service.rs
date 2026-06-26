@@ -260,13 +260,13 @@ async fn issuer_discovery_and_jwks_serve_on_the_live_socket() {
     assert_eq!(response.status().as_u16(), 200);
     let document: serde_json::Value = response.json().await.expect("discovery json");
     assert_eq!(document["issuer"], ISSUER);
-    assert_eq!(document["jwks_uri"], format!("{ISSUER}/oauth/jwks"));
+    assert_eq!(document["jwks_uri"], format!("{ISSUER}/oauth/v2/keys"));
 
     let response = client
-        .get(format!("{base}/oauth/jwks"))
+        .get(format!("{base}/oauth/v2/keys"))
         .send()
         .await
-        .expect("jwks responds");
+        .expect("canonical jwks responds");
     assert_eq!(response.status().as_u16(), 200);
     let document: serde_json::Value = response.json().await.expect("jwks json");
     let keys = document["keys"].as_array().expect("keys array");
@@ -274,6 +274,17 @@ async fn issuer_discovery_and_jwks_serve_on_the_live_socket() {
     assert_eq!(keys[0]["kid"], "oya-identity-e2e-k1");
     assert_eq!(keys[0]["alg"], "ES256");
     assert_eq!(keys[0]["use"], "sig");
+
+    let legacy_response = client
+        .get(format!("{base}/oauth/jwks"))
+        .send()
+        .await
+        .expect("legacy jwks responds");
+    assert_eq!(
+        legacy_response.status().as_u16(),
+        200,
+        "legacy JWKS alias stays mounted while discovery advertises the canonical OpenAPI path"
+    );
 
     handle.shutdown().await;
 }

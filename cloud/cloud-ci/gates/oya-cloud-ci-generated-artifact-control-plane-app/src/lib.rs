@@ -486,26 +486,75 @@ fn is_tracked_generated_artifact_path(path: &str, rules: &[GeneratedPathRule]) -
 fn tracked_generated_artifact_paths(
     scm_facts: &Value,
     rules: &[GeneratedPathRule],
+    findings: &mut BTreeSet<Finding>,
 ) -> BTreeSet<String> {
-    scm_facts
-        .get("tracked_paths")
-        .and_then(Value::as_array)
-        .into_iter()
-        .flatten()
-        .filter_map(Value::as_str)
-        .filter(|path| is_tracked_generated_artifact_path(path, rules))
-        .map(ToOwned::to_owned)
-        .collect()
+    let Some(tracked_paths) = scm_facts.get("tracked_paths") else {
+        findings.insert(Finding::new(
+            "generated_artifact_scm_facts_tracked_paths_missing",
+            "tracked_paths",
+        ));
+        return BTreeSet::new();
+    };
+    let Some(tracked_paths) = tracked_paths.as_array() else {
+        findings.insert(Finding::new(
+            "generated_artifact_scm_facts_tracked_paths_not_array",
+            "tracked_paths",
+        ));
+        return BTreeSet::new();
+    };
+
+    let mut parsed = BTreeSet::new();
+    for (index, path) in tracked_paths.iter().enumerate() {
+        let Some(path) = path.as_str().filter(|path| !path.trim().is_empty()) else {
+            findings.insert(Finding::new(
+                "generated_artifact_scm_facts_tracked_path_not_string",
+                format!("tracked_paths[{index}]"),
+            ));
+            continue;
+        };
+        if is_tracked_generated_artifact_path(path, rules) {
+            parsed.insert(path.to_owned());
+        }
+    }
+    parsed
 }
 
-fn diff_candidate_path<'a>(status: &str, paths: &'a [&'a str]) -> Option<&'a str> {
-    if status.starts_with('D') {
-        return None;
+fn diff_candidate_paths<'a>(status: &str, paths: &'a [&'a str]) -> Result<Vec<&'a str>, ()> {
+    let Some(status_kind) = status.chars().next() else {
+        return Err(());
+    };
+    let single_path = || {
+        if status.len() == 1 && paths.len() == 1 && !paths[0].is_empty() {
+            Ok(vec![paths[0]])
+        } else {
+            Err(())
+        }
+    };
+
+    match status_kind {
+        'D' => {
+            if status == "D" && paths.len() == 1 && !paths[0].is_empty() {
+                Ok(Vec::new())
+            } else {
+                Err(())
+            }
+        }
+        'R' | 'C' => {
+            let score = &status[1..];
+            if !score.is_empty()
+                && score.chars().all(|character| character.is_ascii_digit())
+                && paths.len() == 2
+                && !paths[0].is_empty()
+                && !paths[1].is_empty()
+            {
+                Ok(vec![paths[0], paths[1]])
+            } else {
+                Err(())
+            }
+        }
+        'A' | 'M' | 'T' | 'U' | 'X' | 'B' => single_path(),
+        _ => Err(()),
     }
-    if status.starts_with('R') || status.starts_with('C') {
-        return paths.get(1).copied();
-    }
-    paths.first().copied()
 }
 
 /// Productized bridge predicate for presubmit diff surfaces. The caller supplies a
@@ -517,28 +566,52 @@ pub fn generated_output_diff_policy_violations(
 ) -> (BTreeSet<Finding>, Vec<DiffPolicyViolation>) {
     let mut findings = BTreeSet::new();
     let generated_path_rules = parse_generated_path_rules(manifest, &mut findings);
-    parse_declared_artifacts(manifest, &mut findings);
+    let declared_artifact_paths = parse_declared_artifacts(manifest, &mut findings)
+        .into_iter()
+        .map(|artifact| artifact.path)
+        .collect::<BTreeSet<_>>();
     let allowed_generated_edit_paths =
         diff_policy_allowed_generated_edit_paths(manifest, &mut findings);
     if !findings.is_empty() {
         return (findings, Vec::new());
     }
 
-    let violations = diff_name_status
-        .lines()
-        .filter(|line| !line.trim().is_empty())
-        .filter_map(|line| {
-            let mut fields = line.split('\t');
-            let status = fields.next()?.to_owned();
-            let paths = fields.collect::<Vec<_>>();
-            let path = diff_candidate_path(&status, &paths)?;
-            if is_tracked_generated_artifact_path(path, &generated_path_rules)
-                && !allowed_generated_edit_paths.contains(path)
+    let mut diff_rows = Vec::new();
+    for (line_index, line) in diff_name_status.lines().enumerate() {
+        let line = line.strip_suffix('\r').unwrap_or(line);
+        if line.trim().is_empty() {
+            continue;
+        }
+
+        let mut fields = line.split('\t');
+        let status = fields.next().unwrap_or_default().to_owned();
+        let paths = fields.collect::<Vec<_>>();
+        match diff_candidate_paths(&status, &paths) {
+            Ok(paths) => diff_rows.extend(
+                paths
+                    .into_iter()
+                    .map(|path| (status.clone(), path.to_owned())),
+            ),
+            Err(()) => {
+                findings.insert(Finding::new(
+                    "generated_artifact_diff_name_status_malformed",
+                    format!("line {}", line_index + 1),
+                ));
+            }
+        }
+    }
+    if !findings.is_empty() {
+        return (findings, Vec::new());
+    }
+
+    let violations = diff_rows
+        .into_iter()
+        .filter_map(|(status, path)| {
+            if (is_tracked_generated_artifact_path(&path, &generated_path_rules)
+                || declared_artifact_paths.contains(&path))
+                && !allowed_generated_edit_paths.contains(&path)
             {
-                Some(DiffPolicyViolation {
-                    status,
-                    path: path.to_owned(),
-                })
+                Some(DiffPolicyViolation { status, path })
             } else {
                 None
             }
@@ -1003,30 +1076,70 @@ fn parse_declared_artifacts(
 /// face_path>` (ADR-0551). The function reads `frozen_reference.face_path`, tolerating either a
 /// single `frozen_reference` object or an array of them so adopters can declare multiple frozen
 /// baselines. It carries NO hardcoded oyatie path — the set is pure data from the policy files.
-pub fn frozen_reference_face_paths<'a, I>(ratchet_policies: I) -> BTreeSet<String>
+pub fn frozen_reference_face_paths_keyed<'a, I>(
+    ratchet_policies: I,
+) -> (BTreeSet<String>, BTreeSet<Finding>)
 where
     I: IntoIterator<Item = &'a Value>,
 {
     let mut paths = BTreeSet::new();
+    let mut findings = BTreeSet::new();
     for policy in ratchet_policies {
         let Some(frozen) = policy.get("frozen_reference") else {
             continue;
         };
         match frozen {
             Value::Array(entries) => {
-                for entry in entries {
-                    if let Some(face_path) = required_str(entry, "face_path") {
-                        paths.insert(face_path.to_owned());
-                    }
+                for (index, entry) in entries.iter().enumerate() {
+                    collect_frozen_reference_face_path(
+                        entry,
+                        &format!("frozen_reference[{index}]"),
+                        &mut paths,
+                        &mut findings,
+                    );
                 }
             }
             _ => {
-                if let Some(face_path) = required_str(frozen, "face_path") {
-                    paths.insert(face_path.to_owned());
-                }
+                collect_frozen_reference_face_path(
+                    frozen,
+                    "frozen_reference",
+                    &mut paths,
+                    &mut findings,
+                );
             }
         }
     }
+    (paths, findings)
+}
+
+fn collect_frozen_reference_face_path(
+    frozen_reference: &Value,
+    scope: &str,
+    paths: &mut BTreeSet<String>,
+    findings: &mut BTreeSet<Finding>,
+) {
+    if !frozen_reference.is_object() {
+        findings.insert(Finding::new(
+            "generated_artifact_ratchet_policy_frozen_reference_not_object",
+            scope,
+        ));
+        return;
+    }
+    let Some(face_path) = required_str(frozen_reference, "face_path") else {
+        findings.insert(Finding::new(
+            "generated_artifact_ratchet_policy_frozen_reference_face_path_missing",
+            format!("{scope}.face_path"),
+        ));
+        return;
+    };
+    paths.insert(face_path.to_owned());
+}
+
+pub fn frozen_reference_face_paths<'a, I>(ratchet_policies: I) -> BTreeSet<String>
+where
+    I: IntoIterator<Item = &'a Value>,
+{
+    let (paths, _) = frozen_reference_face_paths_keyed(ratchet_policies);
     paths
 }
 
@@ -1099,7 +1212,8 @@ pub fn evaluate_keyed_with_frozen_references(
         .filter(|artifact| artifact.materialization_mode == NOT_TRACKED_IN_GIT_MODE)
         .map(|artifact| artifact.path.clone())
         .collect();
-    let tracked_generated = tracked_generated_artifact_paths(scm_facts, &generated_path_rules);
+    let tracked_generated =
+        tracked_generated_artifact_paths(scm_facts, &generated_path_rules, &mut findings);
 
     for path in tracked_generated.difference(&declared_paths) {
         findings.insert(Finding::new(
@@ -1487,6 +1601,149 @@ mod tests {
     }
 
     #[test]
+    fn diff_policy_rejects_rename_or_copy_from_generated_output() {
+        let manifest = manifest(vec![artifact("example-face", "out/example.generated.json")]);
+        let diff = concat!(
+            "R100\tout/old.generated.json\tsrc/old.rs\n",
+            "C100\tout/copied.generated.json\tsrc/copied.rs\n",
+        );
+
+        let (findings, violations) = generated_output_diff_policy_violations(&manifest, diff);
+
+        assert_eq!(findings, BTreeSet::new());
+        assert_eq!(
+            violations,
+            vec![
+                DiffPolicyViolation {
+                    status: "R100".to_owned(),
+                    path: "out/old.generated.json".to_owned(),
+                },
+                DiffPolicyViolation {
+                    status: "C100".to_owned(),
+                    path: "out/copied.generated.json".to_owned(),
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn diff_policy_rejects_declared_artifact_even_when_path_rules_miss_it() {
+        let manifest = manifest(vec![artifact("canonical-face", "out/canonical-face.json")]);
+        let diff = "M\tout/canonical-face.json\n";
+
+        let (findings, violations) = generated_output_diff_policy_violations(&manifest, diff);
+
+        assert_eq!(findings, BTreeSet::new());
+        assert_eq!(
+            violations,
+            vec![DiffPolicyViolation {
+                status: "M".to_owned(),
+                path: "out/canonical-face.json".to_owned(),
+            }]
+        );
+    }
+
+    #[test]
+    fn diff_policy_fails_closed_on_malformed_name_status_lines() {
+        let manifest = manifest(vec![artifact("example-face", "out/example.generated.json")]);
+        let diff = concat!(
+            "M\tout/example.generated.json\n",
+            "M out/missing-tab.generated.json\n",
+            "R100\tout/old.generated.json\n",
+        );
+
+        let (findings, violations) = generated_output_diff_policy_violations(&manifest, diff);
+
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "generated_artifact_diff_name_status_malformed"
+                    && finding.key == "line 2"
+            }),
+            "space-delimited WIP diff rows must not be silently ignored: {findings:#?}"
+        );
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "generated_artifact_diff_name_status_malformed"
+                    && finding.key == "line 3"
+            }),
+            "rename/copy rows without both paths must fail closed: {findings:#?}"
+        );
+        assert!(
+            violations.is_empty(),
+            "malformed diff input should fail before reporting partial policy violations"
+        );
+    }
+
+    #[test]
+    fn diff_policy_fails_closed_on_bare_rename_or_copy_status() {
+        let manifest = manifest(vec![artifact("example-face", "out/example.generated.json")]);
+        let diff = concat!(
+            "R\tREADME.md\tREADME-copy.md\n",
+            "C\tREADME.md\tREADME-copy.md\n",
+        );
+
+        let (findings, violations) = generated_output_diff_policy_violations(&manifest, diff);
+
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "generated_artifact_diff_name_status_malformed"
+                    && finding.key == "line 1"
+            }),
+            "bare rename status must fail closed: {findings:#?}"
+        );
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "generated_artifact_diff_name_status_malformed"
+                    && finding.key == "line 2"
+            }),
+            "bare copy status must fail closed: {findings:#?}"
+        );
+        assert!(
+            violations.is_empty(),
+            "malformed bare rename/copy rows should fail before reporting partial policy violations"
+        );
+    }
+
+    #[test]
+    fn diff_policy_fails_closed_on_conflict_marker_diff_input() {
+        let manifest = manifest(vec![artifact("example-face", "out/example.generated.json")]);
+        let diff = concat!(
+            "<<<<<<< HEAD\n",
+            "M\tout/example.generated.json\n",
+            "=======\n",
+            ">>>>>>> branch\n",
+        );
+
+        let (findings, violations) = generated_output_diff_policy_violations(&manifest, diff);
+
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "generated_artifact_diff_name_status_malformed"
+                    && finding.key == "line 1"
+            }),
+            "preserved conflict-marker WIP must be treated as invalid data: {findings:#?}"
+        );
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "generated_artifact_diff_name_status_malformed"
+                    && finding.key == "line 3"
+            }),
+            "conflict separator must be treated as invalid data: {findings:#?}"
+        );
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "generated_artifact_diff_name_status_malformed"
+                    && finding.key == "line 4"
+            }),
+            "conflict trailer must be treated as invalid data: {findings:#?}"
+        );
+        assert!(
+            violations.is_empty(),
+            "malformed conflict input should fail before reporting partial policy violations"
+        );
+    }
+
+    #[test]
     fn invalid_generated_path_rules_are_red() {
         let mut manifest = manifest(vec![artifact("example-face", "out/example.generated.json")]);
         manifest["generated_path_rules"][0]["rule_kind"] = json!("regex");
@@ -1742,6 +1999,72 @@ mod tests {
     }
 
     #[test]
+    fn malformed_scm_facts_missing_tracked_paths_is_red() {
+        let mut face = artifact("decommitted-face", "out/example.generated.json");
+        face["materialization_mode"] = json!("not-tracked-in-git");
+        face["merge_policy"] = json!("not-tracked-in-git");
+        let manifest = manifest(vec![face]);
+        let scm_facts = json!({
+            "schema": "oya-ci/scm-facts/v1"
+        });
+
+        let findings = evaluate_keyed(&manifest, &scm_facts);
+
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "generated_artifact_scm_facts_tracked_paths_missing"
+                    && finding.key == "tracked_paths"
+            }),
+            "missing tracked_paths must fail closed even when all artifacts are de-commit class: {findings:#?}"
+        );
+    }
+
+    #[test]
+    fn malformed_scm_facts_tracked_paths_shape_is_red() {
+        let manifest = manifest(vec![artifact("example-face", "out/example.generated.json")]);
+        let scm_facts = json!({
+            "schema": "oya-ci/scm-facts/v1",
+            "tracked_paths": "out/example.generated.json"
+        });
+
+        let findings = evaluate_keyed(&manifest, &scm_facts);
+
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "generated_artifact_scm_facts_tracked_paths_not_array"
+                    && finding.key == "tracked_paths"
+            }),
+            "non-array tracked_paths must fail closed: {findings:#?}"
+        );
+    }
+
+    #[test]
+    fn malformed_scm_facts_tracked_path_items_are_red() {
+        let manifest = manifest(vec![artifact("example-face", "out/example.generated.json")]);
+        let scm_facts = json!({
+            "schema": "oya-ci/scm-facts/v1",
+            "tracked_paths": ["out/example.generated.json", 7, " "]
+        });
+
+        let findings = evaluate_keyed(&manifest, &scm_facts);
+
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "generated_artifact_scm_facts_tracked_path_not_string"
+                    && finding.key == "tracked_paths[1]"
+            }),
+            "non-string tracked path items must fail closed: {findings:#?}"
+        );
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "generated_artifact_scm_facts_tracked_path_not_string"
+                    && finding.key == "tracked_paths[2]"
+            }),
+            "blank tracked path items must fail closed: {findings:#?}"
+        );
+    }
+
+    #[test]
     fn scm_facts_boundary_committed_with_wrong_merge_policy_is_red() {
         // Symmetric RED guard: the committed shape must keep controller-owned-main-materialization.
         let mut scm_artifact = scm_facts_boundary("out/scm-facts.generated.json");
@@ -1893,6 +2216,37 @@ mod tests {
         assert!(paths.contains("a/baseline.generated.json"));
         assert!(paths.contains("b/baseline.generated.json"));
         assert_eq!(paths.len(), 2);
+    }
+
+    #[test]
+    fn malformed_frozen_reference_rows_are_red() {
+        let policy = json!({
+            "base_ref": "origin/main",
+            "frozen_reference": [
+                { "out_path": "o/a.json" },
+                "not-an-object",
+                { "face_path": "b/baseline.generated.json", "out_path": "o/b.json" }
+            ]
+        });
+
+        let (paths, findings) = frozen_reference_face_paths_keyed(std::iter::once(&policy));
+
+        assert!(paths.contains("b/baseline.generated.json"));
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code
+                    == "generated_artifact_ratchet_policy_frozen_reference_face_path_missing"
+                    && finding.key == "frozen_reference[0].face_path"
+            }),
+            "missing frozen_reference face_path must fail closed: {findings:#?}"
+        );
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "generated_artifact_ratchet_policy_frozen_reference_not_object"
+                    && finding.key == "frozen_reference[1]"
+            }),
+            "non-object frozen_reference rows must fail closed: {findings:#?}"
+        );
     }
 
     #[test]

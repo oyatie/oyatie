@@ -1,7 +1,7 @@
 //! OIDC issuer delivery surface over `oya-identity-oidc-issuer-kernel`.
 //!
 //! RFC 8414 discovery (`/.well-known/openid-configuration`) + RFC 7517 JWKS
-//! publication (`/oauth/jwks`, the kernel's canonical `jwks_uri` path) + an
+//! publication (`/oauth/v2/keys`, the kernel's canonical `jwks_uri` path) + an
 //! RFC 9068 access-token mint use-case. The kernel owns every policy decision
 //! (claim validation, TTL ceilings, key lifecycle, JWKS filtering); this
 //! module only serializes and signs.
@@ -35,7 +35,9 @@ use iam_identity_oidc_issuer_kernel::{
 /// `GET` — RFC 8414 / OIDC discovery document.
 pub const DISCOVERY_ROUTE: &str = "/.well-known/openid-configuration";
 /// `GET` — published JWKS (the kernel's canonical `jwks_uri` path).
-pub const JWKS_ROUTE: &str = "/oauth/jwks";
+pub const JWKS_ROUTE: &str = "/oauth/v2/keys";
+/// `GET` — legacy JWKS alias retained during client migration.
+pub const LEGACY_JWKS_ROUTE: &str = "/oauth/jwks";
 
 // =====================================================================
 // ES256 file signer (transitional custody behind the JwsSigner port)
@@ -291,6 +293,7 @@ pub fn build_issuer_router(state: SharedIssuerState) -> Router {
     Router::new()
         .route(DISCOVERY_ROUTE, get(discovery_handler))
         .route(JWKS_ROUTE, get(jwks_handler))
+        .route(LEGACY_JWKS_ROUTE, get(jwks_handler))
         .with_state(state)
 }
 
@@ -451,7 +454,7 @@ mod tests {
             .expect("body");
         let document: serde_json::Value = serde_json::from_slice(&body).expect("json");
         assert_eq!(document["issuer"], ISSUER);
-        assert_eq!(document["jwks_uri"], format!("{ISSUER}/oauth/jwks"));
+        assert_eq!(document["jwks_uri"], format!("{ISSUER}/oauth/v2/keys"));
         assert!(
             document["id_token_signing_alg_values_supported"]
                 .as_array()
