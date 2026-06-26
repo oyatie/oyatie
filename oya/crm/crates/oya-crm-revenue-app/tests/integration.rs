@@ -3,7 +3,8 @@
 use oya_crm_revenue_app::adapter::AdapterRegistry;
 use oya_crm_revenue_app::config::ServiceConfig;
 use oya_crm_revenue_app::domain::{
-    BoundedContext, Capability, CapabilityDescriptor, IdempotencyKey, ServiceInvariant, TenantId,
+    BoundedContext, Capability, CapabilityDescriptor, CapabilityTier, CompliancePack, DataBoundary,
+    IdempotencyKey, ServiceInvariant, TenantId,
 };
 use oya_crm_revenue_app::{public_api_surface, scaffold};
 
@@ -32,22 +33,82 @@ fn scaffold_declares_domain_capabilities() {
 fn capability_descriptors_preserve_resource_model_boundaries() {
     let descriptors = CapabilityDescriptor::descriptors();
     let expected = [
-        (Capability::AccountMaster, BoundedContext::AccountMaster),
-        (Capability::Opportunity, BoundedContext::Opportunity),
-        (Capability::Quote, BoundedContext::Quote),
-        (Capability::Campaign, BoundedContext::Campaign),
-        (Capability::ServiceCase, BoundedContext::ServiceCase),
+        (
+            Capability::AccountMaster,
+            BoundedContext::AccountMaster,
+            CapabilityTier::Regulated,
+            DataBoundary::CustomerMasterRecord,
+            &[
+                CompliancePack::Soc2,
+                CompliancePack::Iso27001,
+                CompliancePack::Gdpr,
+                CompliancePack::Lgpd,
+                CompliancePack::KrPipa,
+            ][..],
+        ),
+        (
+            Capability::Opportunity,
+            BoundedContext::Opportunity,
+            CapabilityTier::Regulated,
+            DataBoundary::RevenuePipelineRecord,
+            &[
+                CompliancePack::Sox404,
+                CompliancePack::Soc2,
+                CompliancePack::JurisdictionalTax,
+            ],
+        ),
+        (
+            Capability::Quote,
+            BoundedContext::Quote,
+            CapabilityTier::Regulated,
+            DataBoundary::CommercialQuoteRecord,
+            &[
+                CompliancePack::Sox404,
+                CompliancePack::Soc2,
+                CompliancePack::JurisdictionalTax,
+            ],
+        ),
+        (
+            Capability::Campaign,
+            BoundedContext::Campaign,
+            CapabilityTier::Regulated,
+            DataBoundary::CampaignEngagementRecord,
+            &[
+                CompliancePack::Soc2,
+                CompliancePack::Gdpr,
+                CompliancePack::Lgpd,
+                CompliancePack::KrPipa,
+            ],
+        ),
+        (
+            Capability::ServiceCase,
+            BoundedContext::ServiceCase,
+            CapabilityTier::Regulated,
+            DataBoundary::ServiceCaseRecord,
+            &[
+                CompliancePack::Soc2,
+                CompliancePack::Iso27001,
+                CompliancePack::Gdpr,
+                CompliancePack::Lgpd,
+                CompliancePack::KrPipa,
+            ],
+        ),
     ];
 
     assert_eq!(descriptors.len(), expected.len());
     assert_eq!(
         scaffold().capabilities,
-        expected.map(|(capability, _)| capability)
+        expected.map(|(capability, _, _, _, _)| capability)
     );
-    for (descriptor, (capability, bounded_context)) in descriptors.iter().zip(expected) {
+    for (descriptor, (capability, bounded_context, tier, data_boundary, packs)) in
+        descriptors.iter().zip(expected)
+    {
         assert_eq!(descriptor.capability, capability);
         assert_eq!(descriptor.bounded_context, bounded_context);
         assert_eq!(descriptor.invariant, ServiceInvariant::TenantScoped);
+        assert_eq!(descriptor.tier, tier);
+        assert_eq!(descriptor.data_boundary, data_boundary);
+        assert_eq!(descriptor.required_packs, packs);
     }
 }
 
