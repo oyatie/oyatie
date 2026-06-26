@@ -36,17 +36,33 @@ fn repo_root() -> PathBuf {
 }
 
 fn load_produced_face(corpus: &DeclaredCorpus) -> Value {
+    load_produced_face_with_tracked_paths(corpus, current_enforcement_tracked_paths(corpus))
+}
+
+fn load_produced_face_with_tracked_paths(
+    corpus: &DeclaredCorpus,
+    tracked_paths: Vec<String>,
+) -> Value {
     let producer = std::env::var(PRODUCER_ENV).unwrap_or_else(|e| {
         panic!("{PRODUCER_ENV} must point at Buck-built accounting-registry producer: {e}")
     });
     let root = repo_root();
-    let (scm_facts_dir, scm_facts) = write_current_enforcement_scm_facts(corpus);
+    let (scm_facts_dir, scm_facts) = write_enforcement_scm_facts(tracked_paths);
     let output = Command::new(&producer)
         .args([
             "--repo-root",
             root.to_str().expect("repo root utf-8"),
             "--scm-facts",
             scm_facts.to_str().expect("scm facts path utf-8"),
+            "--enforcement-liveness-claude-settings",
+            corpus
+                .claude_settings
+                .to_str()
+                .expect("claude settings path utf-8"),
+            "--enforcement-liveness-codex-hooks",
+            corpus.codex_hooks.to_str().expect("codex hooks path utf-8"),
+            "--enforcement-liveness-hooks-dir",
+            corpus.hooks_dir.to_str().expect("hooks dir path utf-8"),
             "--stdout",
             "--face",
             "enforcement-liveness",
@@ -103,7 +119,47 @@ fn declared_dir(env: &str) -> PathBuf {
     );
 }
 
-fn write_current_enforcement_scm_facts(corpus: &DeclaredCorpus) -> (PathBuf, PathBuf) {
+fn synthetic_declared_corpus() -> (PathBuf, DeclaredCorpus) {
+    let nonce = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("system time before unix epoch")
+        .as_nanos();
+    let root = std::env::temp_dir().join(format!(
+        "oya-enforcement-liveness-declared-corpus-{}-{nonce}",
+        std::process::id()
+    ));
+    let hooks_dir = root.join("hooks");
+    std::fs::create_dir_all(&hooks_dir).expect("create synthetic hooks dir");
+
+    let claude_settings = root.join("settings.json");
+    let codex_hooks = root.join("hooks.json");
+    std::fs::write(
+        &claude_settings,
+        r#"{"hooks":{"PreToolUse":[{"hooks":[{"command":"./tools/hooks/hermetic-fixture.sh --from-claude"}]}]}}"#,
+    )
+    .expect("write synthetic claude settings");
+    std::fs::write(
+        &codex_hooks,
+        r#"{"hooks":{"UserPromptSubmit":[{"command":"./tools/hooks/hermetic-fixture.sh --from-codex"}]}}"#,
+    )
+    .expect("write synthetic codex hooks");
+    std::fs::write(
+        hooks_dir.join("hermetic-fixture.sh"),
+        "#!/usr/bin/env bash\necho hermetic fixture\n",
+    )
+    .expect("write synthetic hook");
+
+    (
+        root,
+        DeclaredCorpus {
+            claude_settings,
+            codex_hooks,
+            hooks_dir,
+        },
+    )
+}
+
+fn write_enforcement_scm_facts(tracked_paths: Vec<String>) -> (PathBuf, PathBuf) {
     let nonce = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .expect("system time before unix epoch")
@@ -118,7 +174,7 @@ fn write_current_enforcement_scm_facts(corpus: &DeclaredCorpus) -> (PathBuf, Pat
         &path,
         serde_json::to_string_pretty(&json!({
             "schema": "oya-ci/scm-facts/v2",
-            "tracked_paths": current_enforcement_tracked_paths(corpus),
+            "tracked_paths": tracked_paths,
         }))
         .expect("serialize current enforcement scm facts")
             + "\n",
@@ -356,6 +412,36 @@ fn evaluate_is_bare_projection_of_evaluate_keyed() {
     ] {
         assert!(projected.contains(code), "expected {code} in {projected:?}");
     }
+}
+
+#[test]
+fn producer_consumes_declared_corpus_for_synthetic_hook_paths() {
+    let (declared_root, corpus) = synthetic_declared_corpus();
+    let tracked_paths = vec![
+        ".claude/settings.json".to_owned(),
+        ".codex/hooks.json".to_owned(),
+        "tools/hooks/hermetic-fixture.sh".to_owned(),
+    ];
+
+    let face = load_produced_face_with_tracked_paths(&corpus, tracked_paths);
+    let rows = face["rows"].as_array().expect("enforcement-liveness rows");
+    let hook_row = rows
+        .iter()
+        .find(|row| {
+            row["row_type"] == "hook" && row["hook_path"] == "tools/hooks/hermetic-fixture.sh"
+        })
+        .expect("synthetic hook row");
+
+    assert_eq!(hook_row["wired_in_claude"].as_bool(), Some(true));
+    assert_eq!(hook_row["wired_in_codex"].as_bool(), Some(true));
+    assert_eq!(hook_row["stub_marked"].as_bool(), Some(false));
+    assert!(
+        evaluate_keyed(&face).is_empty(),
+        "synthetic declared corpus should be green when producer consumes the declared paths: {face}"
+    );
+    assert_eq!(evaluate(&face).verdict, Verdict::Green);
+
+    std::fs::remove_dir_all(declared_root).expect("remove synthetic declared corpus");
 }
 
 #[test]

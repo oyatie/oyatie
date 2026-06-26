@@ -11,6 +11,9 @@
 //! Usage:
 //!   oya-cloud-ci-accounting-registry-app [--repo-root <path>] [--out-dir <path>] [--stdout]
 //!                                        [--scm-facts <path>]
+//!                                        [--enforcement-liveness-claude-settings <path>]
+//!                                        [--enforcement-liveness-codex-hooks <path>]
+//!                                        [--enforcement-liveness-hooks-dir <path>]
 //!                                        [--fix-owners <dir>=<owner>]
 //!                                        [--fix-reachability <prefix>=<anchor>]
 //!
@@ -129,6 +132,9 @@ fn run() -> Result<(), CliError> {
     let mut repo_root: Option<PathBuf> = None;
     let mut out_dir: Option<PathBuf> = None;
     let mut scm_facts_path: Option<PathBuf> = None;
+    let mut enforcement_liveness_claude_settings: Option<PathBuf> = None;
+    let mut enforcement_liveness_codex_hooks: Option<PathBuf> = None;
+    let mut enforcement_liveness_hooks_dir: Option<PathBuf> = None;
     let mut to_stdout = false;
     // Allocator mode (FRIC-1781320000): print the next unallocated decision number derived
     // from the tree and exit. Lanes allocate ADR numbers by running this, never by
@@ -155,6 +161,18 @@ fn run() -> Result<(), CliError> {
             "--scm-facts" => {
                 i += 1;
                 scm_facts_path = args.get(i).map(PathBuf::from);
+            }
+            "--enforcement-liveness-claude-settings" => {
+                i += 1;
+                enforcement_liveness_claude_settings = args.get(i).map(PathBuf::from);
+            }
+            "--enforcement-liveness-codex-hooks" => {
+                i += 1;
+                enforcement_liveness_codex_hooks = args.get(i).map(PathBuf::from);
+            }
+            "--enforcement-liveness-hooks-dir" => {
+                i += 1;
+                enforcement_liveness_hooks_dir = args.get(i).map(PathBuf::from);
             }
             "--face" => {
                 i += 1;
@@ -315,7 +333,15 @@ fn run() -> Result<(), CliError> {
     let workspace_glob_coverage =
         collect_workspace_glob_coverage(&repo_root, &inputs.tracked_paths, &cfg)?;
     let target_parity = collect_target_parity(&repo_root, &inputs.tracked_paths, &cfg)?;
-    let enforcement_liveness = collect_enforcement_liveness(&repo_root, &inputs.tracked_paths);
+    let enforcement_liveness_corpus = EnforcementLivenessCorpus::from_args(
+        &repo_root,
+        &inputs.tracked_paths,
+        enforcement_liveness_claude_settings.as_deref(),
+        enforcement_liveness_codex_hooks.as_deref(),
+        enforcement_liveness_hooks_dir.as_deref(),
+    )?;
+    let enforcement_liveness =
+        collect_enforcement_liveness(&inputs.tracked_paths, &enforcement_liveness_corpus)?;
     let gate_inputs = GateInputs {
         total_accounting: &registry,
         cross_artifact: &crosswalk,
@@ -931,26 +957,133 @@ fn collect_target_parity(
     Ok(json!({ "rows": rows }))
 }
 
-fn collect_enforcement_liveness(repo_root: &Path, tracked_paths: &[String]) -> Value {
-    const CLAUDE_WIRING_FILE: &str = ".claude/settings.json";
-    const CODEX_WIRING_FILE: &str = ".codex/hooks.json";
+const CLAUDE_WIRING_FILE: &str = ".claude/settings.json";
+const CODEX_WIRING_FILE: &str = ".codex/hooks.json";
+const HOOKS_DIR: &str = "tools/hooks";
+const COMPATIBILITY_STUB_MARKER: &str = "Compatibility stub only";
 
+#[derive(Debug)]
+struct EnforcementLivenessCorpus {
+    texts: BTreeMap<String, String>,
+}
+
+impl EnforcementLivenessCorpus {
+    fn from_args(
+        repo_root: &Path,
+        tracked_paths: &[String],
+        claude_settings: Option<&Path>,
+        codex_hooks: Option<&Path>,
+        hooks_dir: Option<&Path>,
+    ) -> Result<Self, CliError> {
+        match (claude_settings, codex_hooks, hooks_dir) {
+            (Some(claude_settings), Some(codex_hooks), Some(hooks_dir)) => {
+                Self::from_declared_paths(tracked_paths, claude_settings, codex_hooks, hooks_dir)
+            }
+            (None, None, None) => Self::from_repo_root(repo_root, tracked_paths),
+            _ => Err(CliError::Io(
+                "--enforcement-liveness-claude-settings, \
+                 --enforcement-liveness-codex-hooks, and \
+                 --enforcement-liveness-hooks-dir must be provided together"
+                    .to_owned(),
+            )),
+        }
+    }
+
+    fn from_repo_root(repo_root: &Path, tracked_paths: &[String]) -> Result<Self, CliError> {
+        let mut texts = BTreeMap::new();
+        texts.insert(
+            CLAUDE_WIRING_FILE.to_owned(),
+            read_required_text(&repo_root.join(CLAUDE_WIRING_FILE), CLAUDE_WIRING_FILE)?,
+        );
+        texts.insert(
+            CODEX_WIRING_FILE.to_owned(),
+            read_required_text(&repo_root.join(CODEX_WIRING_FILE), CODEX_WIRING_FILE)?,
+        );
+        for hook_path in tracked_paths
+            .iter()
+            .filter(|path| is_top_level_hook_script(path))
+        {
+            texts.insert(
+                hook_path.clone(),
+                read_required_text(&repo_root.join(hook_path), hook_path)?,
+            );
+        }
+        Ok(Self { texts })
+    }
+
+    fn from_declared_paths(
+        tracked_paths: &[String],
+        claude_settings: &Path,
+        codex_hooks: &Path,
+        hooks_dir: &Path,
+    ) -> Result<Self, CliError> {
+        if !hooks_dir.is_dir() {
+            return Err(CliError::Io(format!(
+                "{}: declared enforcement-liveness hooks corpus is not a directory",
+                hooks_dir.display()
+            )));
+        }
+
+        let mut texts = BTreeMap::new();
+        texts.insert(
+            CLAUDE_WIRING_FILE.to_owned(),
+            read_required_text(claude_settings, CLAUDE_WIRING_FILE)?,
+        );
+        texts.insert(
+            CODEX_WIRING_FILE.to_owned(),
+            read_required_text(codex_hooks, CODEX_WIRING_FILE)?,
+        );
+        for hook_path in tracked_paths
+            .iter()
+            .filter(|path| is_top_level_hook_script(path))
+        {
+            let Some(file_name) = hook_file_name(hook_path) else {
+                continue;
+            };
+            texts.insert(
+                hook_path.clone(),
+                read_required_text(
+                    &hooks_dir.join(file_name),
+                    &format!("declared enforcement-liveness input {hook_path}"),
+                )?,
+            );
+        }
+        Ok(Self { texts })
+    }
+
+    fn text(&self, logical_path: &str) -> Result<&str, CliError> {
+        self.texts
+            .get(logical_path)
+            .map(String::as_str)
+            .ok_or_else(|| {
+                CliError::Io(format!(
+                    "declared enforcement-liveness corpus missing logical path {logical_path}"
+                ))
+            })
+    }
+}
+
+fn collect_enforcement_liveness(
+    tracked_paths: &[String],
+    corpus: &EnforcementLivenessCorpus,
+) -> Result<Value, CliError> {
     let tracked: BTreeSet<&str> = tracked_paths.iter().map(String::as_str).collect();
-    let claude_refs = collect_hook_command_refs(repo_root, CLAUDE_WIRING_FILE);
-    let codex_refs = collect_hook_command_refs(repo_root, CODEX_WIRING_FILE);
+    let claude_refs =
+        collect_hook_command_refs(CLAUDE_WIRING_FILE, corpus.text(CLAUDE_WIRING_FILE)?)?;
+    let codex_refs = collect_hook_command_refs(CODEX_WIRING_FILE, corpus.text(CODEX_WIRING_FILE)?)?;
 
     let mut rows: Vec<Value> = Vec::new();
     for hook_path in tracked_paths
         .iter()
         .filter(|path| is_top_level_hook_script(path))
     {
-        let body = read_text(&repo_root.join(hook_path));
+        let body = corpus.text(hook_path)?;
         rows.push(json!({
             "row_type": "hook",
             "hook_path": hook_path,
             "wired_in_claude": claude_refs.contains(hook_path),
             "wired_in_codex": codex_refs.contains(hook_path),
-            "stub_marked": body.contains("Compatibility stub only"),
+            "stub_marked": body.contains(COMPATIBILITY_STUB_MARKER),
         }));
     }
 
@@ -968,7 +1101,7 @@ fn collect_enforcement_liveness(repo_root: &Path, tracked_paths: &[String]) -> V
         }
     }
 
-    json!({ "rows": rows })
+    Ok(json!({ "rows": rows }))
 }
 
 fn is_top_level_hook_script(path: &str) -> bool {
@@ -978,14 +1111,16 @@ fn is_top_level_hook_script(path: &str) -> bool {
     !name.contains('/') && name.ends_with(".sh")
 }
 
-fn collect_hook_command_refs(repo_root: &Path, wiring_file: &str) -> BTreeSet<String> {
-    let text = read_text(&repo_root.join(wiring_file));
-    let Ok(value) = serde_json::from_str::<Value>(&text) else {
-        return BTreeSet::new();
-    };
+fn hook_file_name(hook_path: &str) -> Option<&str> {
+    hook_path.strip_prefix(&format!("{HOOKS_DIR}/"))
+}
+
+fn collect_hook_command_refs(wiring_file: &str, text: &str) -> Result<BTreeSet<String>, CliError> {
+    let value = serde_json::from_str::<Value>(text)
+        .map_err(|e| CliError::Io(format!("{wiring_file}: parse hook wiring JSON: {e}")))?;
     let mut refs = BTreeSet::new();
     collect_command_values(&value, &mut refs);
-    refs
+    Ok(refs)
 }
 
 fn collect_command_values(value: &Value, refs: &mut BTreeSet<String>) {
@@ -1150,6 +1285,119 @@ mod tests {
         ));
         fs::create_dir_all(&root).expect("create temp repo");
         root
+    }
+
+    fn write_test_file(root: &Path, rel: &str, body: &str) -> PathBuf {
+        let path = root.join(rel);
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent).expect("create test file parent");
+        }
+        fs::write(&path, body).expect("write test file");
+        path
+    }
+
+    #[test]
+    fn enforcement_liveness_declared_corpus_prevents_stale_repo_root_false_green() {
+        let root = unique_temp_repo();
+        let tracked_paths = vec![
+            CLAUDE_WIRING_FILE.to_owned(),
+            CODEX_WIRING_FILE.to_owned(),
+            "tools/hooks/hermetic-check.sh".to_owned(),
+        ];
+
+        write_test_file(
+            &root,
+            CLAUDE_WIRING_FILE,
+            r#"{"hooks":{"PreToolUse":[{"hooks":[{"command":"./tools/hooks/hermetic-check.sh"}]}]}}"#,
+        );
+        write_test_file(
+            &root,
+            CODEX_WIRING_FILE,
+            r#"{"hooks":{"UserPromptSubmit":[{"command":"./tools/hooks/hermetic-check.sh"}]}}"#,
+        );
+        write_test_file(
+            &root,
+            "tools/hooks/hermetic-check.sh",
+            "#!/usr/bin/env bash\n# Compatibility stub only\n",
+        );
+        let ambient_corpus =
+            EnforcementLivenessCorpus::from_repo_root(&root, &tracked_paths).unwrap();
+        let ambient_face = collect_enforcement_liveness(&tracked_paths, &ambient_corpus).unwrap();
+        assert_eq!(
+            oya_cloud_ci_enforcement_liveness_app::evaluate(&ambient_face).verdict,
+            oya_cloud_ci_enforcement_liveness_app::Verdict::Green,
+            "fixture sanity: stale ambient repo-root corpus would have false-greened"
+        );
+
+        let declared_root = root.join("buck-declared-corpus");
+        let declared_claude = write_test_file(&declared_root, "settings.json", r#"{"hooks":{}}"#);
+        let declared_codex = write_test_file(&declared_root, "hooks.json", r#"{"hooks":{}}"#);
+        let declared_hooks_dir = declared_root.join("hooks");
+        write_test_file(
+            &declared_hooks_dir,
+            "hermetic-check.sh",
+            "#!/usr/bin/env bash\necho live hook\n",
+        );
+
+        let declared_corpus = EnforcementLivenessCorpus::from_declared_paths(
+            &tracked_paths,
+            &declared_claude,
+            &declared_codex,
+            &declared_hooks_dir,
+        )
+        .unwrap();
+        let declared_face = collect_enforcement_liveness(&tracked_paths, &declared_corpus).unwrap();
+        let hook_row = declared_face["rows"]
+            .as_array()
+            .expect("rows")
+            .iter()
+            .find(|row| row["hook_path"] == "tools/hooks/hermetic-check.sh")
+            .expect("hermetic hook row");
+        assert_eq!(hook_row["wired_in_claude"].as_bool(), Some(false));
+        assert_eq!(hook_row["wired_in_codex"].as_bool(), Some(false));
+        assert_eq!(hook_row["stub_marked"].as_bool(), Some(false));
+        assert_eq!(
+            oya_cloud_ci_enforcement_liveness_app::evaluate(&declared_face).verdict,
+            oya_cloud_ci_enforcement_liveness_app::Verdict::Red,
+            "declared Buck corpus, not stale repo-root content, must drive the face"
+        );
+
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    #[test]
+    fn enforcement_liveness_declared_corpus_fails_on_missing_tracked_hook_input() {
+        let root = unique_temp_repo();
+        let tracked_paths = vec![
+            CLAUDE_WIRING_FILE.to_owned(),
+            CODEX_WIRING_FILE.to_owned(),
+            "tools/hooks/missing-from-declared-corpus.sh".to_owned(),
+        ];
+        let declared_root = root.join("buck-declared-corpus");
+        let declared_claude = write_test_file(&declared_root, "settings.json", r#"{"hooks":{}}"#);
+        let declared_codex = write_test_file(&declared_root, "hooks.json", r#"{"hooks":{}}"#);
+        let declared_hooks_dir = declared_root.join("hooks");
+        fs::create_dir_all(&declared_hooks_dir).expect("create declared hooks dir");
+
+        let error = EnforcementLivenessCorpus::from_declared_paths(
+            &tracked_paths,
+            &declared_claude,
+            &declared_codex,
+            &declared_hooks_dir,
+        )
+        .unwrap_err()
+        .to_string();
+
+        assert!(
+            error.contains("tools/hooks/missing-from-declared-corpus.sh"),
+            "missing declared hook path must be named in the error: {error}"
+        );
+        assert!(
+            error.contains("declared enforcement-liveness input"),
+            "missing input must fail as a declared corpus error: {error}"
+        );
+
+        fs::remove_dir_all(root).expect("remove temp repo");
     }
 
     #[test]
@@ -2418,6 +2666,15 @@ fn resolve_justifications(
 
 fn read_text(path: &Path) -> String {
     std::fs::read_to_string(path).unwrap_or_default()
+}
+
+fn read_required_text(path: &Path, label: &str) -> Result<String, CliError> {
+    std::fs::read_to_string(path).map_err(|e| {
+        CliError::Io(format!(
+            "{label}: read declared enforcement-liveness input {}: {e}",
+            path.display()
+        ))
+    })
 }
 
 /// Whether a tracked path is excluded by the config's `[repo].path_excludes` (the producer's
