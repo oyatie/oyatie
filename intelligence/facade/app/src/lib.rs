@@ -493,6 +493,7 @@ fn parse_selection_strategy(raw: &str) -> Result<SelectionStrategy, AppBuildErro
         | "time-normalized-quota-percent"
         | "time_normalized"
         | "time-normalized" => Ok(SelectionStrategy::TimeNormalizedQuotaPercent),
+        "max_headroom" | "max-headroom" => Ok(SelectionStrategy::MaxHeadroom),
         other => Err(AppBuildError::Config(format!(
             "unsupported tenant pool selection strategy: {other}"
         ))),

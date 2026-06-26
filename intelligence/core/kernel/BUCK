@@ -81,6 +81,18 @@ rust_test(
 )
 
 rust_test(
+    name = "intelligence-kernel-headroom-cooldown-ladder-test",
+    srcs = glob(["tests/headroom_cooldown_ladder.rs"]),
+    crate = "intelligence_kernel_headroom_cooldown_ladder_test",
+    crate_root = "tests/headroom_cooldown_ladder.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-kernel",
+        "third-party//:proptest",
+    ],
+)
+
+rust_test(
     name = "intelligence-kernel-loom-seat-lease-atomicity-test",
     srcs = glob(["tests/loom_seat_lease_atomicity.rs"]),
     crate = "intelligence_kernel_loom_seat_lease_atomicity_test",
