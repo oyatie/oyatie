@@ -61,6 +61,12 @@
       "status": "temporary_legacy_bridge"
     },
     {
+      "path": "scripts/asyncapi-lint.mjs",
+      "reason": "Legacy Node compatibility shim retained only for old callers; validator logic is already owned by the Rust oya-dev-cli lint surface.",
+      "replacement": "Use the Rust oya-dev-cli lint asyncapi contract through Cargo today and Buck2/cloud-ci gate wiring for admission.",
+      "status": "rust_backed_compatibility_shim"
+    },
+    {
       "path": "scripts/ci/regen-third-party.sh",
       "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
       "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
@@ -89,6 +95,12 @@
       "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
       "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
       "status": "temporary_legacy_bridge"
+    },
+    {
+      "path": "scripts/proto-lint.mjs",
+      "reason": "Legacy Node compatibility shim retained only for old callers; validator logic is already owned by the Rust oya-dev-cli lint surface.",
+      "replacement": "Use the Rust oya-dev-cli lint proto contract through Cargo today and Buck2/cloud-ci gate wiring for admission.",
+      "status": "rust_backed_compatibility_shim"
     },
     {
       "path": "scripts/tests/cloud_control_plane_operation_contract_check.py",
@@ -134,15 +146,15 @@
     },
     {
       "path": "scripts/validate-adr-shape.mjs",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
+      "reason": "Legacy Node compatibility shim retained only for old callers; validator logic is already owned by the Rust oya-dev-cli lint surface.",
+      "replacement": "Use the Rust oya-dev-cli lint adr-shape contract through Cargo today and Buck2/cloud-ci gate wiring for admission.",
+      "status": "rust_backed_compatibility_shim"
     },
     {
       "path": "scripts/validate-foundry-phase00-evidence.mjs",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
+      "reason": "Legacy Node compatibility shim retained only for old callers; validator logic is already owned by the Rust oya-dev-cli lint surface.",
+      "replacement": "Use the Rust oya-dev-cli lint foundry-phase00-evidence contract through Cargo today and Buck2/cloud-ci gate wiring for admission.",
+      "status": "rust_backed_compatibility_shim"
     },
     {
       "path": "tools/anchor-sweep/inject_anchors.py",

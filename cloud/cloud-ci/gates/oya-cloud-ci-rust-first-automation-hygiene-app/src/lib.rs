@@ -657,6 +657,14 @@ fn replacement_is_cloud_native_rust_contract(replacement: &str) -> bool {
     names_rust && names_execution_contract
 }
 
+fn rust_backed_shim_names_rust_lint_contract(replacement: &str) -> bool {
+    let normalized = replacement.to_ascii_lowercase();
+    normalized.contains("rust")
+        && normalized.contains("oya-dev-cli")
+        && normalized.contains("lint")
+        && (normalized.contains("cargo") || normalized.contains("buck2"))
+}
+
 fn exception_map(policy: &Value, findings: &mut BTreeSet<Finding>) -> BTreeMap<String, Value> {
     let mut exceptions = BTreeMap::new();
     for exception in policy
@@ -707,14 +715,27 @@ fn exception_map(policy: &Value, findings: &mut BTreeSet<Finding>) -> BTreeMap<S
         if let Some(status) = status {
             if !matches!(
                 status,
-                "temporary_legacy_bridge" | "portable_declarative_bridge"
+                "temporary_legacy_bridge"
+                    | "portable_declarative_bridge"
+                    | "rust_backed_compatibility_shim"
             ) {
                 findings.insert(Finding::new(
                     "rust_first_automation_exception_missing_field",
                     path,
-                    "status must be temporary_legacy_bridge or portable_declarative_bridge",
+                    "status must be temporary_legacy_bridge, portable_declarative_bridge, or rust_backed_compatibility_shim",
                 ));
             }
+        }
+        if matches!(status, Some("rust_backed_compatibility_shim"))
+            && !replacement
+                .map(rust_backed_shim_names_rust_lint_contract)
+                .unwrap_or(false)
+        {
+            findings.insert(Finding::new(
+                "rust_first_automation_exception_missing_replacement_contract",
+                path,
+                "rust-backed compatibility shims must name the Rust oya-dev-cli lint contract and Cargo/Buck2 execution path",
+            ));
         }
 
         exceptions.insert(path.to_owned(), exception.clone());
@@ -853,6 +874,38 @@ mod tests {
             finding.code == "rust_first_automation_exception_missing_replacement_contract"
                 && finding.key == "scripts/legacy.sh"
         }));
+    }
+
+    #[test]
+    fn rust_backed_compatibility_shim_must_name_rust_lint_contract() {
+        let weak = json!({
+            "gate_id": GATE_ID,
+            "exceptions": [{
+                "path": "scripts/validate-adr-shape.mjs",
+                "status": "rust_backed_compatibility_shim",
+                "reason": "Node shim is retained only for old callers while the validator logic lives in Rust.",
+                "replacement": "invoke the old node wrapper"
+            }]
+        });
+        let findings = evaluate_keyed(&weak, &observed(&["scripts/validate-adr-shape.mjs"]));
+        assert!(findings.iter().any(|finding| {
+            finding.code == "rust_first_automation_exception_missing_replacement_contract"
+                && finding.key == "scripts/validate-adr-shape.mjs"
+        }));
+
+        let strong = json!({
+            "gate_id": GATE_ID,
+            "exceptions": [{
+                "path": "scripts/validate-adr-shape.mjs",
+                "status": "rust_backed_compatibility_shim",
+                "reason": "Node shim is retained only for old callers while the validator logic lives in Rust.",
+                "replacement": "Use the Rust oya-dev-cli lint adr-shape contract through Cargo today and Buck2/cloud-ci gate wiring for admission."
+            }]
+        });
+        assert_eq!(
+            evaluate(&strong, &observed(&["scripts/validate-adr-shape.mjs"])).verdict,
+            Verdict::Green
+        );
     }
 
     // ───────────────── workflow-inline-shell evaluator unit tests (pipeline-glue(a)) ─────────────
