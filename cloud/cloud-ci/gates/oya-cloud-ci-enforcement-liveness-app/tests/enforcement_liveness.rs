@@ -1,35 +1,54 @@
-// FRIC-012/G011 enforcement-liveness live-corpus gate. Loads the Buck-declared
-// materialized enforcement-liveness face, then asserts today's tracked hooks are all either
-// wired in both project wiring files or marked as compatibility stubs.
+// FRIC-012/G011 enforcement-liveness live-corpus gate. Runs the Buck-declared
+// accounting-registry producer for the enforcement-liveness face, then asserts today's tracked
+// hooks are all either wired in both project wiring files or marked as compatibility stubs.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::collections::BTreeSet;
 use std::path::PathBuf;
+use std::process::Command;
 
 use oya_cloud_ci_enforcement_liveness_app::{Verdict, evaluate, evaluate_keyed};
 use serde_json::{Value, json};
 
-const FACE_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_FACE";
+const PRODUCER_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER";
 
-fn load_declared_face() -> Value {
-    let env_path = std::env::var(FACE_ENV)
-        .unwrap_or_else(|e| panic!("{FACE_ENV} must point at Buck-declared generated face: {e}"));
-    let mut path = PathBuf::from(env_path);
-    if path.is_dir() {
-        path.push("enforcement-liveness.generated.json");
+fn repo_root() -> PathBuf {
+    let mut dir = std::env::current_dir().expect("current_dir");
+    for _ in 0..16 {
+        if dir.join("specs/root-hub-pointers.json").is_file() {
+            return dir;
+        }
+        if !dir.pop() {
+            break;
+        }
     }
-    let text = std::fs::read_to_string(&path).unwrap_or_else(|e| {
-        panic!(
-            "read Buck-declared enforcement-liveness face {}: {e}",
-            path.display()
-        )
+    panic!("failed to locate repo root from test current_dir");
+}
+
+fn load_produced_face() -> Value {
+    let producer = std::env::var(PRODUCER_ENV).unwrap_or_else(|e| {
+        panic!("{PRODUCER_ENV} must point at Buck-built accounting-registry producer: {e}")
     });
-    serde_json::from_str(&text).unwrap_or_else(|e| {
+    let root = repo_root();
+    let output = Command::new(&producer)
+        .args([
+            "--repo-root",
+            root.to_str().expect("repo root utf-8"),
+            "--stdout",
+            "--face",
+            "enforcement-liveness",
+        ])
+        .output()
+        .unwrap_or_else(|e| panic!("run Buck-built enforcement-liveness producer {producer}: {e}"));
+    if !output.status.success() {
         panic!(
-            "parse Buck-declared enforcement-liveness face {}: {e}",
-            path.display()
-        )
-    })
+            "Buck-built enforcement-liveness producer failed with status {:?}\nstderr:\n{}",
+            output.status.code(),
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+    serde_json::from_slice(&output.stdout)
+        .unwrap_or_else(|e| panic!("parse Buck-produced enforcement-liveness face: {e}"))
 }
 
 #[test]
@@ -168,7 +187,7 @@ fn evaluate_is_bare_projection_of_evaluate_keyed() {
 
 #[test]
 fn enforcement_liveness_face_reports_current_tree_green() {
-    let face = load_declared_face();
+    let face = load_produced_face();
     let rows = face["rows"].as_array().expect("enforcement-liveness rows");
     let hook_rows = rows.iter().filter(|row| row["row_type"] == "hook").count();
     let command_rows = rows
