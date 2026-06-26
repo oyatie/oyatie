@@ -432,6 +432,17 @@ impl CapabilityDescriptor {
                 required_packs: vec![CompliancePack::Soc2, CompliancePack::Lgpd],
             },
             Self {
+                capability: Capability::ConsentExport,
+                bounded_context: BoundedContext::ConsentAudience,
+                tier: CapabilityTier::Regulated,
+                data_boundary: DataBoundary::ConsentLedgerProjection,
+                required_packs: vec![
+                    CompliancePack::Gdpr,
+                    CompliancePack::KrPipa,
+                    CompliancePack::Cpra,
+                ],
+            },
+            Self {
                 capability: Capability::MarketplaceAudienceLicense,
                 bounded_context: BoundedContext::ConsentAudience,
                 tier: CapabilityTier::MarketplaceLinked,
