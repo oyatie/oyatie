@@ -357,7 +357,7 @@ fn run() -> Result<(), CliError> {
             enforcement_liveness,
             brand_residue: &brand_residue,
         };
-        build_gate_baseline(&cfg, &gate_inputs, &config_digest)
+        Ok(build_gate_baseline(&cfg, &gate_inputs, &config_digest)?)
     };
 
     if to_stdout {
