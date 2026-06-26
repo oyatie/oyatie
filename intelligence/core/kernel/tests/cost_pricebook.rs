@@ -177,11 +177,12 @@ fn anthropic_real_usage_fixture_prices_exactly() {
 
 #[test]
 fn anthropic_per_ttl_cache_creation_fixture() {
-    // Newer Anthropic response: scalar absent, per-TTL breakdown present.
+    // Newer Anthropic response: detailed per-TTL breakdown wins over the legacy scalar.
     let raw: AnthropicUsage = serde_json::from_str(
         r#"{
             "input_tokens": 500,
             "output_tokens": 250,
+            "cache_creation_input_tokens": 1000,
             "cache_read_input_tokens": 100,
             "cache_creation": {
                 "ephemeral_5m_input_tokens": 400,
