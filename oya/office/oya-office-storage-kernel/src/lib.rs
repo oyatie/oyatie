@@ -4,7 +4,7 @@
 //! This crate is intentionally runtime-dependency-free at scaffold time. It models
 //! Drive upload/download intent boundaries without coupling Oya Office to one object-store vendor.
 
-use oya_office_kernel::{DataClass, ObjectId, TenantId};
+use oya_office_kernel::{CellId, DataClass, ObjectId, TenantId};
 
 /// Stable crate identifier used by workspace and Buck2 scaffold verification.
 pub const CRATE_NAME: &str = "oya-office-storage-kernel";
@@ -118,6 +118,7 @@ impl ByteRange {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct UploadIntent {
     tenant_id: TenantId,
+    cell_id: CellId,
     object_id: ObjectId,
     storage_key: StorageObjectKey,
     max_size_bytes: u64,
@@ -128,6 +129,7 @@ impl UploadIntent {
     /// Creates an upload intent.
     pub fn new(
         tenant_id: TenantId,
+        cell_id: CellId,
         object_id: ObjectId,
         storage_key: StorageObjectKey,
         max_size_bytes: u64,
@@ -140,6 +142,7 @@ impl UploadIntent {
         }
         Ok(Self {
             tenant_id,
+            cell_id,
             object_id,
             storage_key,
             max_size_bytes,
@@ -151,6 +154,12 @@ impl UploadIntent {
     #[must_use]
     pub const fn tenant_id(&self) -> &TenantId {
         &self.tenant_id
+    }
+
+    /// Returns serving or home cell id.
+    #[must_use]
+    pub const fn cell_id(&self) -> &CellId {
+        &self.cell_id
     }
 
     /// Returns object id.
@@ -182,6 +191,7 @@ impl UploadIntent {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct DownloadIntent {
     tenant_id: TenantId,
+    cell_id: CellId,
     object_id: ObjectId,
     storage_key: StorageObjectKey,
     byte_range: Option<ByteRange>,
@@ -193,6 +203,7 @@ impl DownloadIntent {
     #[must_use]
     pub const fn new(
         tenant_id: TenantId,
+        cell_id: CellId,
         object_id: ObjectId,
         storage_key: StorageObjectKey,
         byte_range: Option<ByteRange>,
@@ -200,6 +211,7 @@ impl DownloadIntent {
     ) -> Self {
         Self {
             tenant_id,
+            cell_id,
             object_id,
             storage_key,
             byte_range,
@@ -211,6 +223,12 @@ impl DownloadIntent {
     #[must_use]
     pub const fn tenant_id(&self) -> &TenantId {
         &self.tenant_id
+    }
+
+    /// Returns serving or home cell id.
+    #[must_use]
+    pub const fn cell_id(&self) -> &CellId {
+        &self.cell_id
     }
 
     /// Returns object id.
@@ -260,7 +278,7 @@ impl StorageOperation {
 
 #[cfg(test)]
 mod tests {
-    use oya_office_kernel::{DataClass, ObjectId, TenantId};
+    use oya_office_kernel::{CellId, DataClass, ObjectId, TenantId};
 
     use super::{
         ARCHITECTURE_LAYER, ByteRange, CRATE_NAME, DownloadIntent, StorageObjectKey, UploadIntent,
@@ -275,11 +293,12 @@ mod tests {
     }
 
     #[test]
-    fn upload_download_intents_are_tenant_and_object_scoped() {
+    fn upload_download_intents_are_tenant_cell_and_object_scoped() {
         let key = StorageObjectKey::new("tenant-alpha/drive/object-1/content")
             .expect("valid storage key");
         let upload = UploadIntent::new(
             TenantId::new("tenant-alpha").expect("valid tenant id"),
+            CellId::new("cell-us-1").expect("valid cell id"),
             ObjectId::new("object-1").expect("valid object id"),
             key.clone(),
             4096,
@@ -289,12 +308,15 @@ mod tests {
 
         let download = DownloadIntent::new(
             upload.tenant_id().clone(),
+            upload.cell_id().clone(),
             upload.object_id().clone(),
             key,
             Some(ByteRange::new(0, 1023).expect("valid range")),
             upload.data_class(),
         );
 
+        assert_eq!(download.tenant_id().as_str(), "tenant-alpha");
+        assert_eq!(download.cell_id().as_str(), "cell-us-1");
         assert_eq!(download.byte_range().expect("range").length(), 1024);
     }
 }

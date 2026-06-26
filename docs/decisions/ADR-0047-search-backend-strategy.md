@@ -180,7 +180,8 @@ preserves ADR-0047's adapter-only backend strategy while adding a rollback-safe 
 future managed-search parity.
 
 The review evidence for this addendum is
-`evidence/multispectrum/wavea-office-search-rebuild-20260625-1782426039.json`.
+`evidence/multispectrum/wavea-office-search-rebuild-20260625-1782426039.json` and
+`evidence/multispectrum/wavea-office-cell-scoped-intents-20260625-1782429856.json`.
 
 ---
 

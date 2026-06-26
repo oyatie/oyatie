@@ -153,6 +153,7 @@ impl DriveSearchDocument {
 pub struct DriveSearchQuery {
     index_name: SearchIndexName,
     tenant_id: TenantId,
+    cell_id: CellId,
     query: String,
     limit: u16,
     projection: SearchProjection,
@@ -166,6 +167,7 @@ impl DriveSearchQuery {
     pub fn new(
         index_name: SearchIndexName,
         tenant_id: TenantId,
+        cell_id: CellId,
         query: impl Into<String>,
         limit: u16,
         projection: SearchProjection,
@@ -184,6 +186,7 @@ impl DriveSearchQuery {
         Ok(Self {
             index_name,
             tenant_id,
+            cell_id,
             query: query.trim().to_owned(),
             limit,
             projection,
@@ -200,6 +203,12 @@ impl DriveSearchQuery {
     #[must_use]
     pub const fn tenant_id(&self) -> &TenantId {
         &self.tenant_id
+    }
+
+    /// Returns serving or home cell id.
+    #[must_use]
+    pub const fn cell_id(&self) -> &CellId {
+        &self.cell_id
     }
 
     /// Returns query string.
@@ -333,7 +342,7 @@ mod tests {
     }
 
     #[test]
-    fn search_documents_and_queries_are_tenant_scoped_and_bounded() {
+    fn search_documents_and_queries_are_tenant_cell_scoped_and_bounded() {
         let document = DriveSearchDocument::new(
             TenantId::new("tenant-alpha").expect("valid tenant id"),
             ObjectId::new("object-1").expect("valid object id"),
@@ -347,11 +356,14 @@ mod tests {
         let query = DriveSearchQuery::new(
             SearchIndexName::new("drive-metadata").expect("valid index"),
             TenantId::new("tenant-alpha").expect("valid tenant id"),
+            CellId::new("cell-us-1").expect("valid cell id"),
             "plan",
             999,
             SearchProjection::MetadataOnly,
         )
         .expect("valid query");
+        assert_eq!(query.tenant_id().as_str(), "tenant-alpha");
+        assert_eq!(query.cell_id().as_str(), "cell-us-1");
         assert_eq!(query.limit(), DriveSearchQuery::MAX_LIMIT);
     }
 
