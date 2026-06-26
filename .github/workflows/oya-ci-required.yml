@@ -32,9 +32,12 @@ permissions:
 
 # Surface-all: every gate lane runs to completion even if a sibling fails. The fan-in job
 # collects the join. Matrix legs run one Buck2 target each, so a leg failure cannot hide a sibling.
+# PR supersession is different: an older head SHA can never satisfy branch protection after a newer
+# head exists, so keep only the newest run per PR. Push / merge_group / manual runs retain the full
+# non-cancelling surface-all behavior for integration evidence.
 concurrency:
-  group: oya-ci-required-${{ github.ref }}
-  cancel-in-progress: false
+  group: oya-ci-required-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   # ── Producer regen: materialize the cloud-ci generated faces from the checked-out candidate
