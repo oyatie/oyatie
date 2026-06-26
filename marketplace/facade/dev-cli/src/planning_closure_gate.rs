@@ -522,6 +522,12 @@ fn validate_live_planning_root_authority(
                     line_number = index + 1,
                 ));
             }
+            if retired_oya_vcs_ratchet_is_active_authority(line) {
+                return Err(format!(
+                    "{live_root}:{line_number} contains retired Oya VCS claim/verify/done/promote ratchet wording as active authority; live planning roots must use plain git plus protected PRs and {EXPECTED_GATE_COMMAND:?}, or mark the retired ratchet as retired/provenance-only",
+                    line_number = index + 1,
+                ));
+            }
         }
     }
     Ok(())
@@ -530,6 +536,15 @@ fn validate_live_planning_root_authority(
 fn retired_planning_closure_command_is_provenance_only(line: &str) -> bool {
     let lower = line.to_ascii_lowercase();
     lower.contains("retired") && lower.contains("provenance-only")
+}
+
+fn retired_oya_vcs_ratchet_is_active_authority(line: &str) -> bool {
+    let lower = line.to_ascii_lowercase();
+    lower.contains("claim each changeset with oya vcs")
+        && lower.contains("verify before downstream work")
+        && lower.contains("mark done")
+        && lower.contains("promote only after review")
+        && !retired_planning_closure_command_is_provenance_only(line)
 }
 
 fn validate_root_hub(root: &Map<String, Value>) -> Result<(), String> {
