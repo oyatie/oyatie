@@ -198,6 +198,14 @@ aggregate into one `FirewallReport` → one Check-Run with per-finding annotatio
 sweep surfaces every error. A presubmit branch-protection **drift gate** byte-diffs live `gh`
 protection against the re-authored SSOT, making the protection config self-defending.
 
+The hyperscaler parity taxonomy Rust gate is admitted as a born-blocking cloud-ci gate under this
+substrate; the implementation surface is intentionally limited to:
+
+- `cloud/cloud-ci/gates/oya-cloud-ci-hyperscaler-parity-taxonomy-app/BUCK`
+- `cloud/cloud-ci/gates/oya-cloud-ci-hyperscaler-parity-taxonomy-app/Cargo.toml`
+- `cloud/cloud-ci/gates/oya-cloud-ci-hyperscaler-parity-taxonomy-app/src/lib.rs`
+- `cloud/cloud-ci/gates/oya-cloud-ci-hyperscaler-parity-taxonomy-app/tests/hyperscaler_parity_taxonomy.rs`
+
 ### D3. Gates are Rust binaries run automatically — no CLI, no shell, declarative gitops
 - **Pipeline, not CLI** (D-CLOUD-NATIVE / D-GOVERNANCE-CENTRAL). All CI / governance / automation are
   **Rust gate binaries run by GitHub Actions** (live) and oya-ci (shadow readiness); evidence is

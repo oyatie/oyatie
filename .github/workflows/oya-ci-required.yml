@@ -134,6 +134,7 @@ jobs:
           - { crate: oya-cloud-ci-enforcement-liveness-app,    label: "gate · enforcement-liveness (FRIC-012, hook mirror liveness)" }
           - { crate: oya-cloud-ci-friction-accounting-app,     label: "gate · friction-accounting (ADR-0544, closed-loop friction-ledger accounting)" }
           - { crate: oya-cloud-ci-canonical-json-app,          label: "gate · canonical-json (ADR-0546, deterministic JSON serialization)" }
+          - { crate: oya-cloud-ci-hyperscaler-parity-taxonomy-app, label: "gate · hyperscaler-parity-taxonomy (cloud hyperscaler parity taxonomy, born-blocking)" }
           - { crate: oya-cloud-ci-embedded-asset-hermeticity-app, label: "gate · embedded-asset-hermeticity (ADR-0545, include_str!/include_bytes! __srcs-tree mapping)" }
           - { crate: oya-cloud-ci-kernel-purity-app,           label: "gate · kernel-purity (ADR-0547, *-kernel/*-core zero transient-tech deps)" }
           - { crate: oya-cloud-ci-crypto-backend-purity-app,   label: "gate · crypto-backend-purity (ADR-0506, ring forbidden / aws-lc-rs mandated — zero ring activation)" }
