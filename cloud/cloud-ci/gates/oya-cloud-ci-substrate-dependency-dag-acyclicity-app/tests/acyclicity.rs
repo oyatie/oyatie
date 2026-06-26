@@ -1,6 +1,6 @@
 // ADR-0280 §D-3 substrate-dependency-dag acyclicity lane: the live-corpus + RED-fixture gate.
 //
-// 1. LIVE: load the REAL canonical specs/substrate-dependency-dag.json and assert it is GREEN —
+// 1. LIVE: load the REAL policy-declared substrate dependency DAG and assert it is GREEN —
 //    acyclic (Tarjan), forbidden edges honoured, bootstrap_order == Kahn topo-sort, §D-1 schema
 //    complete. This is the born-blocking proof that the populated §D-1 DAG is sound.
 // 2. RED FIXTURES: load each tests/fixtures/dag-cycles/*.json and assert the validator FAILS it
@@ -15,21 +15,23 @@
 use std::path::PathBuf;
 
 use oya_cloud_ci_substrate_dependency_dag_acyclicity_app::{
-    DAG_PATH, GATE_ID, Verdict, evaluate_with_raw, parse_dag,
+    DEFAULT_POLICY_PATH, GATE_ID, Policy, Verdict, evaluate_with_raw, load_policy, parse_dag,
 };
 
-/// Walk up from the test's working directory to the repo root (the dir holding the canonical DAG).
+/// Walk up from the test's working directory to the repo root (the dir holding the gate policy).
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
     for _ in 0..16 {
-        if dir.join(DAG_PATH).is_file() {
+        if dir.join(DEFAULT_POLICY_PATH).is_file() {
             return dir;
         }
         if !dir.pop() {
             break;
         }
     }
-    panic!("failed to locate repo root (the dir holding {DAG_PATH}) from the test current_dir");
+    panic!(
+        "failed to locate repo root (the dir holding {DEFAULT_POLICY_PATH}) from the test current_dir"
+    );
 }
 
 /// Locate the on-disk cycle-fixtures directory. Under cargo the fixtures sit at
@@ -64,22 +66,37 @@ fn fixtures_dir() -> PathBuf {
 fn load_live_dag() -> (
     oya_cloud_ci_substrate_dependency_dag_acyclicity_app::Dag,
     serde_json::Value,
+    Policy,
 ) {
     let root = repo_root();
-    let bytes = std::fs::read_to_string(root.join(DAG_PATH)).expect("read live DAG");
+    let policy = load_policy(&root, DEFAULT_POLICY_PATH).expect("read live DAG policy");
+    let bytes = std::fs::read_to_string(root.join(&policy.dag_path)).expect("read live DAG");
     let dag = parse_dag(&bytes).expect("parse live DAG");
     let raw: serde_json::Value = serde_json::from_str(&bytes).expect("re-parse live DAG value");
-    (dag, raw)
+    (dag, raw, policy)
+}
+
+#[test]
+fn live_policy_points_at_existing_dag_data_pack() {
+    let root = repo_root();
+    let policy = load_policy(&root, DEFAULT_POLICY_PATH).expect("read live DAG policy");
+    assert_eq!(policy.gate_id, GATE_ID);
+    assert!(
+        root.join(&policy.dag_path).is_file(),
+        "policy dag_path must point at an existing repo-relative DAG document: {}",
+        policy.dag_path
+    );
 }
 
 #[test]
 fn live_canonical_dag_is_green() {
-    let (dag, raw) = load_live_dag();
+    let (dag, raw, policy) = load_live_dag();
     let report = evaluate_with_raw(&dag, &raw);
     assert_eq!(
         report.verdict,
         Verdict::Green,
-        "the canonical {DAG_PATH} must be GREEN; findings:\n{}",
+        "the policy-declared DAG {} must be GREEN; findings:\n{}",
+        policy.dag_path,
         report
             .findings
             .iter()
@@ -87,20 +104,34 @@ fn live_canonical_dag_is_green() {
             .collect::<Vec<_>>()
             .join("\n")
     );
-    eprintln!("{GATE_ID} live corpus: GREEN (acyclic, forbidden-edges honoured, bootstrap coherent)");
+    eprintln!(
+        "{GATE_ID} live corpus: GREEN (acyclic, forbidden-edges honoured, bootstrap coherent)"
+    );
 }
 
 #[test]
 fn live_dag_matches_adr_0280_d1_shape() {
-    let (dag, raw) = load_live_dag();
-    assert_eq!(dag.nodes.len(), 10, "ADR-0280 §D-1 Tier-1 has exactly 10 nodes");
-    assert_eq!(dag.edges.len(), 42, "ADR-0280 §D-1 has exactly 42 positive edges");
+    let (dag, raw, _policy) = load_live_dag();
+    assert_eq!(
+        dag.nodes.len(),
+        10,
+        "ADR-0280 §D-1 Tier-1 has exactly 10 nodes"
+    );
+    assert_eq!(
+        dag.edges.len(),
+        42,
+        "ADR-0280 §D-1 has exactly 42 positive edges"
+    );
     assert_eq!(
         dag.forbidden_edges.len(),
         21,
         "ADR-0280 §D-1 has exactly 21 forbidden-edge assertions"
     );
-    assert_eq!(dag.bootstrap_order.len(), 10, "ADR-0280 §D-1 bootstrap_order has 10 steps");
+    assert_eq!(
+        dag.bootstrap_order.len(),
+        10,
+        "ADR-0280 §D-1 bootstrap_order has 10 steps"
+    );
     assert_eq!(raw["version"].as_str(), Some("1.0.0"));
     assert_eq!(raw["doctrine_adr"].as_str(), Some("ADR-0280"));
 
@@ -117,7 +148,10 @@ fn live_dag_matches_adr_0280_d1_shape() {
         "intelligence",
         "workflow-engine",
     ];
-    assert_eq!(dag.bootstrap_order, expected, "bootstrap_order == ADR-0280 §D-1 list");
+    assert_eq!(
+        dag.bootstrap_order, expected,
+        "bootstrap_order == ADR-0280 §D-1 list"
+    );
 }
 
 #[test]
@@ -129,7 +163,7 @@ fn live_dag_bootstrap_order_is_a_valid_topological_order() {
     // it is provisioned after identity via the Shamir-genesis bootstrap-only seam). The invariant
     // is that the declared order is *a* VALID topological order; the gate proves that and surfaces
     // the alphabetical Kahn sort as the canonical suggestion.
-    let (dag, raw) = load_live_dag();
+    let (dag, raw, _policy) = load_live_dag();
     let report = evaluate_with_raw(&dag, &raw);
     assert!(
         !report
@@ -203,5 +237,8 @@ fn fixtures_directory_holds_only_the_four_red_classes() {
         "three-node.json".to_string(),
     ];
     expected.sort();
-    assert_eq!(found, expected, "exactly the four named RED cycle fixtures must exist");
+    assert_eq!(
+        found, expected,
+        "exactly the four named RED cycle fixtures must exist"
+    );
 }
