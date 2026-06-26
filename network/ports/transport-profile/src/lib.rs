@@ -49,6 +49,9 @@ pub enum TlsSupportedGroup {
     X25519,
 }
 
+const PQC_TRANSITION_SUPPORTED_GROUPS: [TlsSupportedGroup; 2] =
+    [TlsSupportedGroup::X25519MlKem768, TlsSupportedGroup::X25519];
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct EchPolicy {
@@ -101,17 +104,24 @@ pub struct PqcPolicy {
     pub kem: Option<HybridKem>,
     /// data_class: PUBLIC - standardized hybrid signature identifier.
     pub signature: Option<HybridSignature>,
+    /// data_class: PUBLIC - concrete TLS 1.3 supported_groups order advertised by this endpoint.
+    pub supported_groups: Vec<TlsSupportedGroup>,
     /// data_class: PUBLIC - whether classical fallback is allowed during rollout.
     pub classical_transition_fallback_allowed: bool,
 }
 
 impl PqcPolicy {
+    pub fn transition_supported_groups() -> Vec<TlsSupportedGroup> {
+        PQC_TRANSITION_SUPPORTED_GROUPS.to_vec()
+    }
+
     pub fn hybrid_required() -> Self {
         Self {
             enabled: true,
             hybrid_negotiation_required: true,
             kem: Some(HybridKem::X25519MlKem768),
             signature: Some(HybridSignature::Ed25519MlDsa65),
+            supported_groups: Self::transition_supported_groups(),
             classical_transition_fallback_allowed: true,
         }
     }
@@ -122,6 +132,7 @@ impl PqcPolicy {
             hybrid_negotiation_required: false,
             kem: Some(HybridKem::X25519MlKem768),
             signature: Some(HybridSignature::Ed25519MlDsa65),
+            supported_groups: Self::transition_supported_groups(),
             classical_transition_fallback_allowed: true,
         }
     }
@@ -132,19 +143,13 @@ impl PqcPolicy {
             hybrid_negotiation_required: false,
             kem: None,
             signature: None,
+            supported_groups: Vec::new(),
             classical_transition_fallback_allowed: true,
         }
     }
 
     pub fn tls_supported_groups(&self) -> Vec<TlsSupportedGroup> {
-        let mut supported_groups = Vec::new();
-        if self.enabled && self.kem == Some(HybridKem::X25519MlKem768) {
-            supported_groups.push(TlsSupportedGroup::X25519MlKem768);
-        }
-        if self.classical_transition_fallback_allowed {
-            supported_groups.push(TlsSupportedGroup::X25519);
-        }
-        supported_groups
+        self.supported_groups.clone()
     }
 }
 
@@ -293,7 +298,7 @@ impl TransportEndpointSpec {
                 "external pqc requires classical fallback during transition",
             );
         }
-        validate_transition_supported_groups(&self.pqc.tls_supported_groups())?;
+        validate_transition_supported_groups(&self.pqc.supported_groups)?;
         Ok(())
     }
 
@@ -311,7 +316,7 @@ impl TransportEndpointSpec {
                 "inter-cell pqc requires classical fallback during transition",
             );
         }
-        validate_transition_supported_groups(&self.pqc.tls_supported_groups())?;
+        validate_transition_supported_groups(&self.pqc.supported_groups)?;
         Ok(())
     }
 
@@ -392,6 +397,12 @@ fn advertises_h3_443(alt_svc: &str) -> bool {
 fn validate_transition_supported_groups(
     supported_groups: &[TlsSupportedGroup],
 ) -> Result<(), TransportProfileError> {
+    if supported_groups.is_empty() {
+        return invalid(
+            "pqc.supported_groups",
+            "pqc supported_groups must declare x25519mlkem768 and x25519 fallback",
+        );
+    }
     if supported_groups.first() != Some(&TlsSupportedGroup::X25519MlKem768) {
         return invalid(
             "pqc.supported_groups",
@@ -402,6 +413,12 @@ fn validate_transition_supported_groups(
         return invalid(
             "pqc.supported_groups",
             "pqc transition supported_groups must include x25519 classical fallback",
+        );
+    }
+    if supported_groups != PQC_TRANSITION_SUPPORTED_GROUPS {
+        return invalid(
+            "pqc.supported_groups",
+            "pqc supported_groups must exactly declare x25519mlkem768 then x25519",
         );
     }
     Ok(())
@@ -491,6 +508,10 @@ mod tests {
         assert_eq!(spec.ech.plaintext_sni_fallback_allowed, true);
         assert_eq!(spec.pqc.enabled, true);
         assert_eq!(spec.pqc.hybrid_negotiation_required, true);
+        assert_eq!(
+            spec.pqc.supported_groups,
+            PqcPolicy::transition_supported_groups()
+        );
         assert_eq!(spec.pqc.classical_transition_fallback_allowed, true);
         assert_eq!(spec.validate(), Ok(()));
     }
@@ -545,8 +566,8 @@ mod tests {
         assert_eq!(spec.pqc.enabled, true);
         assert_eq!(spec.pqc.hybrid_negotiation_required, true);
         assert_eq!(
-            spec.pqc.tls_supported_groups(),
-            vec![TlsSupportedGroup::X25519MlKem768, TlsSupportedGroup::X25519]
+            spec.pqc.supported_groups,
+            PqcPolicy::transition_supported_groups()
         );
         assert_eq!(spec.validate(), Ok(()));
     }
@@ -622,33 +643,71 @@ mod tests {
         let spec = TransportEndpointSpec::external_http3("public-inference-stream");
 
         assert_eq!(
-            spec.pqc.tls_supported_groups(),
-            vec![TlsSupportedGroup::X25519MlKem768, TlsSupportedGroup::X25519]
+            spec.pqc.supported_groups,
+            PqcPolicy::transition_supported_groups()
         );
         assert_eq!(
-            validate_transition_supported_groups(&spec.pqc.tls_supported_groups()),
+            validate_transition_supported_groups(&spec.pqc.supported_groups),
             Ok(())
         );
     }
 
     #[test]
     fn rejects_missing_or_misordered_pqc_transition_supported_groups() {
+        let mut missing_groups = TransportEndpointSpec::external_http3("public-inference-stream");
+        missing_groups.pqc.supported_groups = Vec::new();
         assert_eq!(
-            validate_transition_supported_groups(&[TlsSupportedGroup::X25519MlKem768]),
+            missing_groups.validate(),
+            Err(TransportProfileError::InvalidField {
+                field: "pqc.supported_groups",
+                reason: "pqc supported_groups must declare x25519mlkem768 and x25519 fallback"
+            })
+        );
+
+        let mut missing_classical =
+            TransportEndpointSpec::external_http3("public-inference-stream");
+        missing_classical.pqc.supported_groups = vec![TlsSupportedGroup::X25519MlKem768];
+        assert_eq!(
+            missing_classical.validate(),
             Err(TransportProfileError::InvalidField {
                 field: "pqc.supported_groups",
                 reason: "pqc transition supported_groups must include x25519 classical fallback"
             })
         );
+
+        let mut misordered = TransportEndpointSpec::inter_cell_grpc_h2("cell-rebalance-events");
+        misordered.pqc.supported_groups =
+            vec![TlsSupportedGroup::X25519, TlsSupportedGroup::X25519MlKem768];
         assert_eq!(
-            validate_transition_supported_groups(&[
-                TlsSupportedGroup::X25519,
-                TlsSupportedGroup::X25519MlKem768,
-            ]),
+            misordered.validate(),
             Err(TransportProfileError::InvalidField {
                 field: "pqc.supported_groups",
                 reason: "pqc supported_groups must start with x25519mlkem768"
             })
+        );
+    }
+
+    #[test]
+    fn rejects_endpoint_json_without_pqc_supported_groups() {
+        let mut endpoint =
+            serde_json::to_value(TransportEndpointSpec::external_http3("api-gateway-public"))
+                .expect("serialize endpoint spec");
+        endpoint
+            .as_object_mut()
+            .expect("endpoint object")
+            .get_mut("pqc")
+            .expect("pqc object")
+            .as_object_mut()
+            .expect("pqc policy object")
+            .remove("supported_groups");
+
+        let error = serde_json::from_value::<TransportEndpointSpec>(endpoint)
+            .expect_err("endpoint JSON must declare concrete pqc supported_groups");
+        assert!(
+            error
+                .to_string()
+                .contains("missing field `supported_groups`"),
+            "{error}"
         );
     }
 
@@ -884,7 +943,10 @@ mod tests {
         assert_eq!(inter_cell.alt_svc, "forbidden");
         assert_eq!(inter_cell.fallback_timeout_ms, "forbidden");
         assert_eq!(inter_cell.ech, "forbidden");
-        assert_eq!(inter_cell.pqc, "hybrid_declared_rollout_optional");
+        assert_eq!(
+            inter_cell.pqc,
+            "hybrid_negotiation_required_with_classical_transition_fallback"
+        );
 
         let internal = contract
             .capability_classes
