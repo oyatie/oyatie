@@ -24,7 +24,7 @@ use axum::http::{Method, Request, StatusCode};
 use http_body_util::BodyExt;
 use tenancy_tenant_lifecycle_app::{
     BootError, InMemoryTenantMembershipResolver, SharedMembershipResolver, build_inmemory_router,
-    build_postgres_router,
+    build_inmemory_router_with_tenant_bound_operator_tokens, build_postgres_router,
 };
 use tower::ServiceExt;
 
@@ -32,6 +32,8 @@ use tower::ServiceExt;
 const PLATFORM_TOKEN: &str = "test-platform-admin-secret";
 /// The tenant-operator bearer the test router is configured with.
 const OPERATOR_TOKEN: &str = "test-tenant-operator-secret";
+/// A tenant-bound operator bearer that proves authority for exactly `acme`.
+const ACME_OPERATOR_TOKEN: &str = "test-acme-operator-secret";
 /// The stable operator principal id the reference verifier binds the shared
 /// operator bearer to (the membership key).
 const OPERATOR_PRINCIPAL: &str = "tenant-operator";
@@ -45,7 +47,14 @@ const VICTIM_TENANT: &str = "victim";
 /// EXCLUDED so the cross-tenant self-attestation test denies.
 fn operator_tenants() -> Vec<String> {
     [
-        "acme", "globex", "alpha", "bravo", "ghost", "nobody", "ten_reused", "reused",
+        "acme",
+        "globex",
+        "alpha",
+        "bravo",
+        "ghost",
+        "nobody",
+        "ten_reused",
+        "reused",
     ]
     .into_iter()
     .map(str::to_owned)
@@ -69,6 +78,19 @@ fn app() -> axum::Router {
         membership(),
         Some(PLATFORM_TOKEN.to_owned()),
         Some(OPERATOR_TOKEN.to_owned()),
+    )
+    .expect("embedded authz bundle must compile and strict-validate")
+}
+
+/// Build a router with a tenant-bound operator credential. This is the #771
+/// retirement path: the verified credential carries the tenant axis, so the
+/// caller does not need to provide a self-asserted `x-oya-tenant` selector.
+fn app_with_tenant_bound_operator_token() -> axum::Router {
+    build_inmemory_router_with_tenant_bound_operator_tokens(
+        membership(),
+        Some(PLATFORM_TOKEN.to_owned()),
+        Some(OPERATOR_TOKEN.to_owned()),
+        std::collections::BTreeMap::from([("acme".to_owned(), ACME_OPERATOR_TOKEN.to_owned())]),
     )
     .expect("embedded authz bundle must compile and strict-validate")
 }
@@ -103,7 +125,9 @@ async fn register(app: &axum::Router, tenant_id: &str, idem: &str) -> axum::http
                 .header("content-type", "application/json")
                 .header("idempotency-key", idem)
                 .header("authorization", format!("Bearer {PLATFORM_TOKEN}"))
-                .body(Body::from(serde_json::to_vec(&register_body(tenant_id)).unwrap()))
+                .body(Body::from(
+                    serde_json::to_vec(&register_body(tenant_id)).unwrap(),
+                ))
                 .unwrap(),
         )
         .await
@@ -205,10 +229,15 @@ async fn register_then_provision_drives_provisioning_to_active() {
 #[tokio::test]
 async fn full_lifecycle_transitions_over_http() {
     let app = app();
-    assert_eq!(register(&app, "globex", &key(1)).await.status(), StatusCode::CREATED);
+    assert_eq!(
+        register(&app, "globex", &key(1)).await.status(),
+        StatusCode::CREATED
+    );
 
     assert_eq!(
-        lifecycle(&app, "globex", "provision", &key(2)).await.status(),
+        lifecycle(&app, "globex", "provision", &key(2))
+            .await
+            .status(),
         StatusCode::OK
     );
     let resp = lifecycle(&app, "globex", "suspend", &key(3)).await;
@@ -252,7 +281,9 @@ async fn register_requires_idempotency_key() {
                 .uri("/v1/tenants")
                 .header("content-type", "application/json")
                 .header("authorization", format!("Bearer {PLATFORM_TOKEN}"))
-                .body(Body::from(serde_json::to_vec(&register_body("acme")).unwrap()))
+                .body(Body::from(
+                    serde_json::to_vec(&register_body("acme")).unwrap(),
+                ))
                 .unwrap(),
         )
         .await
@@ -264,7 +295,10 @@ async fn register_requires_idempotency_key() {
 #[tokio::test]
 async fn register_replay_is_idempotent() {
     let app = app();
-    assert_eq!(register(&app, "acme", &key(1)).await.status(), StatusCode::CREATED);
+    assert_eq!(
+        register(&app, "acme", &key(1)).await.status(),
+        StatusCode::CREATED
+    );
     let resp = register(&app, "acme", &key(1)).await;
     assert_eq!(resp.status(), StatusCode::OK);
     assert_eq!(body_json(resp.into_body()).await["state"], "provisioning");
@@ -274,7 +308,10 @@ async fn register_replay_is_idempotent() {
 #[tokio::test]
 async fn register_existing_tenant_new_key_conflicts() {
     let app = app();
-    assert_eq!(register(&app, "acme", &key(1)).await.status(), StatusCode::CREATED);
+    assert_eq!(
+        register(&app, "acme", &key(1)).await.status(),
+        StatusCode::CREATED
+    );
     let resp = register(&app, "acme", &key(2)).await;
     assert_eq!(resp.status(), StatusCode::CONFLICT);
 }
@@ -293,7 +330,10 @@ async fn provision_unknown_tenant_returns_404() {
 #[tokio::test]
 async fn suspend_before_provision_is_conflict() {
     let app = app();
-    assert_eq!(register(&app, "acme", &key(1)).await.status(), StatusCode::CREATED);
+    assert_eq!(
+        register(&app, "acme", &key(1)).await.status(),
+        StatusCode::CREATED
+    );
     let resp = lifecycle(&app, "acme", "suspend", &key(2)).await;
     assert_eq!(resp.status(), StatusCode::CONFLICT);
     // The failed transition left the tenant untouched.
@@ -313,8 +353,14 @@ async fn get_unknown_tenant_returns_404() {
 #[tokio::test]
 async fn list_returns_registered_tenants() {
     let app = app();
-    assert_eq!(register(&app, "alpha", &key(1)).await.status(), StatusCode::CREATED);
-    assert_eq!(register(&app, "bravo", &key(2)).await.status(), StatusCode::CREATED);
+    assert_eq!(
+        register(&app, "alpha", &key(1)).await.status(),
+        StatusCode::CREATED
+    );
+    assert_eq!(
+        register(&app, "bravo", &key(2)).await.status(),
+        StatusCode::CREATED
+    );
 
     let resp = app
         .oneshot(
@@ -357,12 +403,18 @@ async fn unauthenticated_requests_are_401_on_every_mutating_route() {
                 .uri("/v1/tenants")
                 .header("content-type", "application/json")
                 .header("idempotency-key", key(1))
-                .body(Body::from(serde_json::to_vec(&register_body("acme")).unwrap()))
+                .body(Body::from(
+                    serde_json::to_vec(&register_body("acme")).unwrap(),
+                ))
                 .unwrap(),
         )
         .await
         .unwrap();
-    assert_eq!(resp.status(), StatusCode::UNAUTHORIZED, "register must be 401");
+    assert_eq!(
+        resp.status(),
+        StatusCode::UNAUTHORIZED,
+        "register must be 401"
+    );
 
     // Per-tenant mutating verbs with no bearer.
     for (method, uri) in [
@@ -478,10 +530,18 @@ async fn unauthenticated_read_is_401() {
 async fn cross_tenant_operator_is_403_on_suspend_and_retire() {
     let app = app();
     // Both tenants exist and are active.
-    assert_eq!(register(&app, "acme", &key(1)).await.status(), StatusCode::CREATED);
-    assert_eq!(register(&app, "globex", &key(2)).await.status(), StatusCode::CREATED);
     assert_eq!(
-        lifecycle(&app, "globex", "provision", &key(3)).await.status(),
+        register(&app, "acme", &key(1)).await.status(),
+        StatusCode::CREATED
+    );
+    assert_eq!(
+        register(&app, "globex", &key(2)).await.status(),
+        StatusCode::CREATED
+    );
+    assert_eq!(
+        lifecycle(&app, "globex", "provision", &key(3))
+            .await
+            .status(),
         StatusCode::OK
     );
 
@@ -500,7 +560,11 @@ async fn cross_tenant_operator_is_403_on_suspend_and_retire() {
         )
         .await
         .unwrap();
-    assert_eq!(resp.status(), StatusCode::FORBIDDEN, "cross-tenant suspend must be 403");
+    assert_eq!(
+        resp.status(),
+        StatusCode::FORBIDDEN,
+        "cross-tenant suspend must be 403"
+    );
 
     // ...and retiring "globex" while scoped to "acme" is likewise 403.
     let resp = app
@@ -517,7 +581,11 @@ async fn cross_tenant_operator_is_403_on_suspend_and_retire() {
         )
         .await
         .unwrap();
-    assert_eq!(resp.status(), StatusCode::FORBIDDEN, "cross-tenant retire must be 403");
+    assert_eq!(
+        resp.status(),
+        StatusCode::FORBIDDEN,
+        "cross-tenant retire must be 403"
+    );
 
     // "globex" survived the cross-tenant retire attempt (still Active).
     let (status, view) = get_state(&app, "globex").await;
@@ -539,7 +607,9 @@ async fn tenant_operator_cannot_register() {
                 .header("idempotency-key", key(1))
                 .header("authorization", format!("Bearer {OPERATOR_TOKEN}"))
                 .header("x-oya-tenant", "acme")
-                .body(Body::from(serde_json::to_vec(&register_body("acme")).unwrap()))
+                .body(Body::from(
+                    serde_json::to_vec(&register_body("acme")).unwrap(),
+                ))
                 .unwrap(),
         )
         .await
@@ -665,10 +735,84 @@ async fn operator_cannot_select_unassigned_victim_tenant() {
 #[tokio::test]
 async fn operator_can_select_assigned_tenant() {
     let app = app();
-    assert_eq!(register(&app, "acme", &key(1)).await.status(), StatusCode::CREATED);
+    assert_eq!(
+        register(&app, "acme", &key(1)).await.status(),
+        StatusCode::CREATED
+    );
     // "acme" is in the operator's assigned set ⇒ provision succeeds.
     let resp = lifecycle(&app, "acme", "provision", &key(2)).await;
     assert_eq!(resp.status(), StatusCode::OK);
+}
+
+/// #771 W2-S2 retirement path: a tenant-bound credential carries a verified
+/// tenant claim (`acme`), so the caller can operate on `acme` without any
+/// `x-oya-tenant` header. If the caller sends a conflicting header, the request
+/// fails closed before the PDP can ever see a forged axis.
+#[tokio::test]
+async fn tenant_bound_operator_token_does_not_need_self_asserted_tenant_axis() {
+    let app = app_with_tenant_bound_operator_token();
+    assert_eq!(
+        register(&app, "acme", &key(1)).await.status(),
+        StatusCode::CREATED
+    );
+
+    let resp = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method(Method::POST)
+                .uri("/v1/tenants/acme/provision")
+                .header("idempotency-key", key(2))
+                .header("authorization", format!("Bearer {ACME_OPERATOR_TOKEN}"))
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(
+        resp.status(),
+        StatusCode::OK,
+        "tenant-bound credential must not require x-oya-tenant"
+    );
+
+    let resp = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method(Method::POST)
+                .uri("/v1/tenants/globex/suspend")
+                .header("idempotency-key", key(3))
+                .header("authorization", format!("Bearer {ACME_OPERATOR_TOKEN}"))
+                .header("x-oya-tenant", "globex")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(
+        resp.status(),
+        StatusCode::FORBIDDEN,
+        "acme-bound credential must not act on globex even with a matching self-asserted header"
+    );
+
+    let resp = app
+        .oneshot(
+            Request::builder()
+                .method(Method::POST)
+                .uri("/v1/tenants/acme/suspend")
+                .header("idempotency-key", key(4))
+                .header("authorization", format!("Bearer {ACME_OPERATOR_TOKEN}"))
+                .header("x-oya-tenant", "globex")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(
+        resp.status(),
+        StatusCode::FORBIDDEN,
+        "conflicting self-asserted tenant header must be denied"
+    );
 }
 
 /// A wrong/garbage bearer is rejected as unauthenticated (constant-time
@@ -698,7 +842,10 @@ async fn wrong_bearer_is_401() {
 #[tokio::test]
 async fn platform_admin_is_not_a_tenant_operator() {
     let app = app();
-    assert_eq!(register(&app, "acme", &key(1)).await.status(), StatusCode::CREATED);
+    assert_eq!(
+        register(&app, "acme", &key(1)).await.status(),
+        StatusCode::CREATED
+    );
     let resp = app
         .oneshot(
             Request::builder()
@@ -729,7 +876,10 @@ async fn platform_admin_is_not_a_tenant_operator() {
 #[tokio::test]
 async fn lifecycle_replay_same_key_is_idempotent() {
     let app = app();
-    assert_eq!(register(&app, "acme", &key(1)).await.status(), StatusCode::CREATED);
+    assert_eq!(
+        register(&app, "acme", &key(1)).await.status(),
+        StatusCode::CREATED
+    );
     assert_eq!(
         lifecycle(&app, "acme", "provision", &key(2)).await.status(),
         StatusCode::OK
@@ -752,7 +902,10 @@ async fn lifecycle_replay_same_key_is_idempotent() {
 #[tokio::test]
 async fn register_key_reuse_with_different_body_is_422() {
     let app = app();
-    assert_eq!(register(&app, "acme", &key(1)).await.status(), StatusCode::CREATED);
+    assert_eq!(
+        register(&app, "acme", &key(1)).await.status(),
+        StatusCode::CREATED
+    );
     // Same tenant + same key, but a DIFFERENT body ⇒ key reuse with different
     // params ⇒ 422.
     let mut different_body = register_body("acme");
@@ -779,7 +932,10 @@ async fn register_key_reuse_with_different_body_is_422() {
 #[tokio::test]
 async fn register_same_key_different_tenant_is_independent() {
     let app = app();
-    assert_eq!(register(&app, "acme", &key(1)).await.status(), StatusCode::CREATED);
+    assert_eq!(
+        register(&app, "acme", &key(1)).await.status(),
+        StatusCode::CREATED
+    );
     // Same key, different tenant_id ⇒ independent dedup namespace ⇒ 201.
     assert_eq!(
         register(&app, "different", &key(1)).await.status(),
@@ -806,7 +962,12 @@ const LIVE_URL_ENV: &str = "OYA_BACKBONE_POSTGRES_APP_URL";
 /// Truthy-gate identical to the adapter's live tests.
 fn live_enabled() -> bool {
     std::env::var(LIVE_ENV)
-        .map(|v| matches!(v.trim().to_ascii_lowercase().as_str(), "1" | "true" | "yes" | "on"))
+        .map(|v| {
+            matches!(
+                v.trim().to_ascii_lowercase().as_str(),
+                "1" | "true" | "yes" | "on"
+            )
+        })
         .unwrap_or(false)
 }
 

@@ -94,6 +94,7 @@ pub enum HyperscalerParityFacet {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum HyperscalerParityStatus {
+    /// Reserved for rows backed by semantic, crate-owned executable checks.
     Verified,
     GapTracked,
 }
@@ -150,6 +151,7 @@ pub enum ErpParityMapError {
     MissingHyperscalerParityBenchmark(HyperscalerParityFacet),
     EmptyHyperscalerParityEvidence(HyperscalerParityFacet),
     MissingHyperscalerParityGate(HyperscalerParityFacet),
+    UnverifiedHyperscalerParityClaim(HyperscalerParityFacet),
 }
 
 const REQUIRED_MODULES: &[(SapModuleCode, &str)] = &[
@@ -242,7 +244,7 @@ const ERP_HYPERSCALER_PARITY_MATRIX: &[ErpHyperscalerParityCriterion] = &[
             "docs/products/erp-coverage/PRD.md",
             "iam/facade/tenant-rbac-erp-parity-map/src/lib.rs",
         ],
-        status: HyperscalerParityStatus::Verified,
+        status: HyperscalerParityStatus::GapTracked,
         gap_closure_gate: "ERP modules must map to flat Oyatie destinations without introducing an ERP platform service.",
     },
     ErpHyperscalerParityCriterion {
@@ -264,7 +266,7 @@ const ERP_HYPERSCALER_PARITY_MATRIX: &[ErpHyperscalerParityCriterion] = &[
             "oya/financial-planning/contracts/openapi-v1.yaml",
             "iam/facade/tenant-rbac-erp-parity-map/src/lib.rs",
         ],
-        status: HyperscalerParityStatus::Verified,
+        status: HyperscalerParityStatus::GapTracked,
         gap_closure_gate: "ERP parity rows must preserve tenant and cell boundaries through existing domain services.",
     },
     ErpHyperscalerParityCriterion {
@@ -275,7 +277,7 @@ const ERP_HYPERSCALER_PARITY_MATRIX: &[ErpHyperscalerParityCriterion] = &[
             "oya/financial-planning/policy/forecast-scenario-authorization.cedar",
             "iam/facade/tenant-rbac-erp-parity-map/tests/parity.rs",
         ],
-        status: HyperscalerParityStatus::Verified,
+        status: HyperscalerParityStatus::GapTracked,
         gap_closure_gate: "ERP composition must retain Cedar-backed authorization instead of vendor-suite authority.",
     },
     ErpHyperscalerParityCriterion {
@@ -306,7 +308,7 @@ const ERP_HYPERSCALER_PARITY_MATRIX: &[ErpHyperscalerParityCriterion] = &[
             "oya/financial-planning/contracts/asyncapi-v1.yaml",
             "oya/financial-planning/contracts/openapi-v1.yaml",
         ],
-        status: HyperscalerParityStatus::Verified,
+        status: HyperscalerParityStatus::GapTracked,
         gap_closure_gate: "Audit event references must remain part of ERP product and API evidence before runtime claims.",
     },
     ErpHyperscalerParityCriterion {
@@ -317,7 +319,7 @@ const ERP_HYPERSCALER_PARITY_MATRIX: &[ErpHyperscalerParityCriterion] = &[
             "oya/financial-planning/slos/read-latency.openslo.yaml",
             "oya/financial-planning/dashboards/slo-and-error-budget.json",
         ],
-        status: HyperscalerParityStatus::Verified,
+        status: HyperscalerParityStatus::GapTracked,
         gap_closure_gate: "Each promoted ERP domain must retain SLO and dashboard evidence under its owning service.",
     },
     ErpHyperscalerParityCriterion {
@@ -328,7 +330,7 @@ const ERP_HYPERSCALER_PARITY_MATRIX: &[ErpHyperscalerParityCriterion] = &[
             "oya/financial-planning/iac/dr-failover.yaml",
             "oya/financial-planning/runbooks/regional-failover.md",
         ],
-        status: HyperscalerParityStatus::Verified,
+        status: HyperscalerParityStatus::GapTracked,
         gap_closure_gate: "ERP parity must preserve cell placement, residency, and pack constraints in composed services.",
     },
     ErpHyperscalerParityCriterion {
@@ -361,7 +363,7 @@ const ERP_HYPERSCALER_PARITY_MATRIX: &[ErpHyperscalerParityCriterion] = &[
             "oya/financial-planning/manifest.json",
             "oya/financial-planning/dpia/dpia.md",
         ],
-        status: HyperscalerParityStatus::Verified,
+        status: HyperscalerParityStatus::GapTracked,
         gap_closure_gate: "Compliance-pack evidence must be cited before any module parity row moves past composition.",
     },
     ErpHyperscalerParityCriterion {
@@ -383,7 +385,7 @@ const ERP_HYPERSCALER_PARITY_MATRIX: &[ErpHyperscalerParityCriterion] = &[
             "oya/financial-planning/runbooks/budget-lock-breakglass.md",
             "oya/financial-planning/runbooks/forecast-version-conflict.md",
         ],
-        status: HyperscalerParityStatus::Verified,
+        status: HyperscalerParityStatus::GapTracked,
         gap_closure_gate: "Every promoted ERP capability must retain an owning runbook or remain a tracked gap.",
     },
 ];
@@ -1050,6 +1052,11 @@ pub fn validate_erp_hyperscaler_parity_matrix(
         }
         if criterion.gap_closure_gate.trim().is_empty() {
             return Err(ErpParityMapError::MissingHyperscalerParityGate(
+                criterion.facet,
+            ));
+        }
+        if criterion.status == HyperscalerParityStatus::Verified {
+            return Err(ErpParityMapError::UnverifiedHyperscalerParityClaim(
                 criterion.facet,
             ));
         }
