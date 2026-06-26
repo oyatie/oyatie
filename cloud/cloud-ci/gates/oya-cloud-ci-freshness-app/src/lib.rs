@@ -343,11 +343,9 @@ pub fn materialize_generated_faces_with_buck2(repo_root: &Path) -> Result<(), Fr
         .arg(repo_root)
         .args(["--scm-facts"])
         .arg(&scm_facts);
-    add_enforcement_liveness_corpus_args(&mut command, repo_root);
-    run_status(
-        command.current_dir(repo_root),
-        "materialize generated accounting faces",
-    )
+    append_enforcement_liveness_corpus_args(&mut command, repo_root);
+    command.current_dir(repo_root);
+    run_status(&mut command, "materialize generated accounting faces")
 }
 
 pub fn parse_materialize_generated_faces_args(
@@ -1008,16 +1006,6 @@ fn emit_scm_facts(
     )
 }
 
-fn add_enforcement_liveness_corpus_args(command: &mut Command, repo_root: &Path) {
-    command
-        .args(["--enforcement-liveness-claude-settings"])
-        .arg(repo_root.join(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS))
-        .args(["--enforcement-liveness-codex-hooks"])
-        .arg(repo_root.join(ENFORCEMENT_LIVENESS_CODEX_HOOKS))
-        .args(["--enforcement-liveness-hooks-dir"])
-        .arg(repo_root.join(ENFORCEMENT_LIVENESS_HOOKS_DIR));
-}
-
 fn regenerate_producer_faces(
     tools: &FaceTools,
     repo_root: &Path,
@@ -1030,17 +1018,40 @@ fn regenerate_producer_faces(
             .args(["--repo-root"])
             .arg(repo_root)
             .args(["--scm-facts"])
-            .arg(scm_facts)
-            .args(["--stdout", "--face", face_name]);
-        add_enforcement_liveness_corpus_args(&mut command, repo_root);
-        let output = run_output(
-            command.current_dir(repo_root),
-            &format!("regenerate {file_name}"),
-        )?;
+            .arg(scm_facts);
+        append_enforcement_liveness_corpus_args(&mut command, repo_root);
+        command
+            .args(["--stdout", "--face", face_name])
+            .current_dir(repo_root);
+        let output = run_output(&mut command, &format!("regenerate {file_name}"))?;
         regenerated.push((file_name.to_owned(), output));
     }
     regenerated.sort_by(|left, right| left.0.cmp(&right.0));
     Ok(regenerated)
+}
+
+fn append_enforcement_liveness_corpus_args(command: &mut Command, repo_root: &Path) {
+    append_enforcement_liveness_corpus_paths(
+        command,
+        &repo_root.join(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS),
+        &repo_root.join(ENFORCEMENT_LIVENESS_CODEX_HOOKS),
+        &repo_root.join(ENFORCEMENT_LIVENESS_HOOKS_DIR),
+    );
+}
+
+fn append_enforcement_liveness_corpus_paths(
+    command: &mut Command,
+    claude_settings: &Path,
+    codex_hooks: &Path,
+    hooks_dir: &Path,
+) {
+    command
+        .arg("--enforcement-liveness-claude-settings")
+        .arg(claude_settings)
+        .arg("--enforcement-liveness-codex-hooks")
+        .arg(codex_hooks)
+        .arg("--enforcement-liveness-hooks-dir")
+        .arg(hooks_dir);
 }
 
 fn write_regenerated_faces(
@@ -1489,6 +1500,39 @@ mod materialize_generated_faces_tests {
             error
                 .to_string()
                 .contains("oya-cloud-ci-materialize-generated-faces")
+        );
+    }
+
+    #[test]
+    fn producer_regeneration_commands_declare_enforcement_liveness_corpus() {
+        let mut command = Command::new("/tmp/producer");
+        append_enforcement_liveness_corpus_paths(
+            &mut command,
+            Path::new("/repo/.claude/settings.json"),
+            Path::new("/repo/.codex/hooks.json"),
+            Path::new("/repo/tools/hooks"),
+        );
+
+        let args: Vec<String> = command
+            .get_args()
+            .map(|arg| arg.to_string_lossy().into_owned())
+            .collect();
+
+        assert!(args.windows(2).any(|pair| {
+            pair == [
+                "--enforcement-liveness-claude-settings",
+                "/repo/.claude/settings.json",
+            ]
+        }));
+        assert!(args.windows(2).any(|pair| {
+            pair == [
+                "--enforcement-liveness-codex-hooks",
+                "/repo/.codex/hooks.json",
+            ]
+        }));
+        assert!(
+            args.windows(2)
+                .any(|pair| { pair == ["--enforcement-liveness-hooks-dir", "/repo/tools/hooks",] })
         );
     }
 
