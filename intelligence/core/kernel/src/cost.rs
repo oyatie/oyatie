@@ -3,16 +3,16 @@
 //!
 //! Three pure capabilities, zero I/O:
 //!
-//! - [`PriceBook`] — policy-as-data [`RateCard`] table keyed by canonical
-//!   upstream model id. Rates are loaded from a typed table ([`PriceBookFile`])
-//!   via the pure [`PriceBook::from_file`] constructor; the bundled JSON table is
-//!   embedded as [`CANONICAL_PRICEBOOK_JSON`]. The kernel never hardcodes a rate.
+//! - [`PriceBook`] — policy-as-data [`RateCard`] table keyed by provider and
+//!   canonical upstream model id. Rates are loaded from a typed table
+//!   ([`PriceBookFile`]) via the pure [`PriceBook::from_file`] constructor.
 //!
 //! Per the kernel's hexagonal layering, JSON *parsing* lives in the adapter/test
-//! layer (which owns `serde_json`): deserialize [`CANONICAL_PRICEBOOK_JSON`] (or
-//! an operator-supplied table) into a [`PriceBookFile`], then hand it to
-//! [`PriceBook::from_file`]. The kernel lib itself takes no `serde_json`
-//! dependency — it only derives `serde` shapes and applies pure logic.
+//! layer (which owns `serde_json`): deserialize a FinOps/Billing-owned table
+//! into a [`PriceBookFile`], then hand it to [`PriceBook::from_file`]. The
+//! kernel lib itself takes no `serde_json` dependency and does not select the
+//! canonical rate version — it only validates typed rate data and applies pure
+//! math.
 //! - [`UsageExtractor`] — normalizes the three provider usage shapes (Anthropic
 //!   Messages, OpenAI Responses, Gemini `usageMetadata`) into one canonical
 //!   [`TokenUsage`] with four disjoint billable token classes.
@@ -233,10 +233,6 @@ impl UsageExtractor {
 // PriceBook — policy-as-data rate table
 // ---------------------------------------------------------------------------
 
-/// The bundled canonical rate table (policy-as-data, updated out-of-band).
-pub const CANONICAL_PRICEBOOK_JSON: &str =
-    include_str!("../pricebook/pricebook-20260626.json");
-
 /// Per-model rate card. Rates are integer nanoUSD per 1,000,000 tokens.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct RateCard {
@@ -269,44 +265,59 @@ impl RateCard {
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
 pub struct RateCardRow {
     pub model: String,
-    #[serde(default)]
-    pub provider: Option<String>,
+    pub provider: String,
     pub input_nanos_per_mtok: i64,
     pub output_nanos_per_mtok: i64,
     pub cache_read_nanos_per_mtok: i64,
     pub cache_write_nanos_per_mtok: i64,
 }
 
-/// The typed rate table as authored on disk (see [`CANONICAL_PRICEBOOK_JSON`]).
+/// The typed rate table supplied by the Billing/FinOps adapter.
 #[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize)]
 pub struct PriceBookFile {
     #[serde(default)]
     pub schema_version: String,
+    pub effective_at: String,
     pub cards: Vec<RateCardRow>,
 }
 
-/// Policy-as-data rate table keyed by canonical upstream model id
+/// Policy-as-data rate table keyed by provider + canonical upstream model id
 /// (lower-cased on load and lookup so casing never causes a silent miss).
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct PriceBook {
     schema_version: String,
-    cards: BTreeMap<String, RateCard>,
+    effective_at: String,
+    cards: BTreeMap<RateCardKey, RateCard>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+struct RateCardKey {
+    provider: String,
+    model: String,
 }
 
 impl PriceBook {
     /// Build a validated, indexed price book from a typed table.
     ///
     /// Pure: no I/O, no JSON parsing. The caller deserializes
-    /// [`CANONICAL_PRICEBOOK_JSON`] (or an operator-supplied table) into a
-    /// [`PriceBookFile`] and hands it here. Fails closed on an empty key,
-    /// duplicate model, or negative rate so a malformed table cannot misbill.
+    /// a Billing/FinOps-owned table into a [`PriceBookFile`] and hands it here.
+    /// Fails closed on an empty key, duplicate provider/model, or negative rate
+    /// so a malformed table cannot misbill.
     pub fn from_file(file: PriceBookFile) -> Result<Self, CostError> {
+        if file.effective_at.trim().is_empty() {
+            return Err(CostError::EmptyEffectiveAt);
+        }
         let mut cards = BTreeMap::new();
         for row in file.cards {
-            let key = normalize_model_key(&row.model);
-            if key.is_empty() {
+            let provider = normalize_provider_key(&row.provider);
+            if provider.is_empty() {
+                return Err(CostError::EmptyProviderKey);
+            }
+            let model = normalize_model_key(&row.model);
+            if model.is_empty() {
                 return Err(CostError::EmptyModelKey);
             }
+            let key = RateCardKey { provider, model };
             let card = RateCard {
                 input_nanos_per_mtok: row.input_nanos_per_mtok,
                 output_nanos_per_mtok: row.output_nanos_per_mtok,
@@ -315,17 +326,25 @@ impl PriceBook {
             };
             card.validate()?;
             if cards.insert(key.clone(), card).is_some() {
-                return Err(CostError::DuplicateModel(key));
+                return Err(CostError::DuplicateRateCard {
+                    provider: key.provider,
+                    model: key.model,
+                });
             }
         }
         Ok(Self {
             schema_version: file.schema_version,
+            effective_at: file.effective_at,
             cards,
         })
     }
 
     pub fn schema_version(&self) -> &str {
         &self.schema_version
+    }
+
+    pub fn effective_at(&self) -> &str {
+        &self.effective_at
     }
 
     pub fn len(&self) -> usize {
@@ -336,19 +355,40 @@ impl PriceBook {
         self.cards.is_empty()
     }
 
-    /// Look up the rate card for a canonical upstream model id (case-insensitive).
-    pub fn rate_card(&self, model: &str) -> Option<&RateCard> {
-        self.cards.get(&normalize_model_key(model))
+    /// Look up the rate card for a provider/model pair (case-insensitive).
+    pub fn rate_card(&self, provider: &str, model: &str) -> Option<&RateCard> {
+        self.cards.get(&rate_card_key(provider, model)?)
     }
 
-    /// Price a normalized usage against the card for `model`, failing closed
-    /// (never zero-cost) when the model is absent from the table.
-    pub fn cost_for(&self, model: &str, usage: &TokenUsage) -> Result<CostRecord, CostError> {
+    /// Price a normalized usage against the provider/model card, failing closed
+    /// (never zero-cost) when the card is absent from the table.
+    pub fn cost_for(
+        &self,
+        provider: &str,
+        model: &str,
+        usage: &TokenUsage,
+    ) -> Result<CostRecord, CostError> {
         let card = self
-            .rate_card(model)
-            .ok_or_else(|| CostError::UnknownModel(model.to_string()))?;
+            .rate_card(provider, model)
+            .ok_or_else(|| CostError::UnknownRateCard {
+                provider: provider.to_string(),
+                model: model.to_string(),
+            })?;
         Ok(cost_of(usage, card))
     }
+}
+
+fn rate_card_key(provider: &str, model: &str) -> Option<RateCardKey> {
+    let provider = normalize_provider_key(provider);
+    let model = normalize_model_key(model);
+    if provider.is_empty() || model.is_empty() {
+        return None;
+    }
+    Some(RateCardKey { provider, model })
+}
+
+fn normalize_provider_key(provider: &str) -> String {
+    provider.trim().to_ascii_lowercase()
 }
 
 fn normalize_model_key(model: &str) -> String {
@@ -425,23 +465,36 @@ pub fn cost_of(usage: &TokenUsage, card: &RateCard) -> CostRecord {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CostError {
+    /// A rate table row had an empty provider key.
+    EmptyProviderKey,
     /// A rate table row had an empty model key.
     EmptyModelKey,
-    /// Two rows resolved to the same model key.
-    DuplicateModel(String),
+    /// The table omitted its effective timestamp/version boundary.
+    EmptyEffectiveAt,
+    /// Two rows resolved to the same provider/model key.
+    DuplicateRateCard { provider: String, model: String },
     /// A rate was negative.
     NegativeRate,
-    /// No rate card exists for the requested model — fail closed, never $0.
-    UnknownModel(String),
+    /// No rate card exists for the requested provider/model — fail closed, never $0.
+    UnknownRateCard { provider: String, model: String },
 }
 
 impl std::fmt::Display for CostError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::EmptyProviderKey => write!(f, "pricebook row has empty provider key"),
             Self::EmptyModelKey => write!(f, "pricebook row has empty model key"),
-            Self::DuplicateModel(m) => write!(f, "pricebook has duplicate model key: {m}"),
+            Self::EmptyEffectiveAt => write!(f, "pricebook effective_at is empty"),
+            Self::DuplicateRateCard { provider, model } => {
+                write!(
+                    f,
+                    "pricebook has duplicate rate-card key: {provider}/{model}"
+                )
+            }
             Self::NegativeRate => write!(f, "pricebook rate is negative"),
-            Self::UnknownModel(m) => write!(f, "no rate card for model: {m}"),
+            Self::UnknownRateCard { provider, model } => {
+                write!(f, "no rate card for provider/model: {provider}/{model}")
+            }
         }
     }
 }
@@ -591,10 +644,10 @@ mod tests {
         assert_eq!(UsageExtractor.from_openai_responses(&raw).input, 0);
     }
 
-    fn row(model: &str, input: i64) -> RateCardRow {
+    fn row(provider: &str, model: &str, input: i64) -> RateCardRow {
         RateCardRow {
             model: model.to_string(),
-            provider: None,
+            provider: provider.to_string(),
             input_nanos_per_mtok: input,
             output_nanos_per_mtok: 0,
             cache_read_nanos_per_mtok: 0,
@@ -606,15 +659,18 @@ mod tests {
     fn from_file_indexes_and_prices_case_insensitively() {
         let pb = PriceBook::from_file(PriceBookFile {
             schema_version: "cost-pricebook/v1".to_string(),
-            cards: vec![row("claude-sonnet-4-5", 3_000_000_000)],
+            effective_at: "2026-06-26T00:00:00Z".to_string(),
+            cards: vec![row("anthropic", "claude-sonnet-4-5", 3_000_000_000)],
         })
         .expect("valid table");
         assert_eq!(pb.len(), 1);
         assert_eq!(pb.schema_version(), "cost-pricebook/v1");
+        assert_eq!(pb.effective_at(), "2026-06-26T00:00:00Z");
         // Case-insensitive lookup.
-        assert!(pb.rate_card("CLAUDE-SONNET-4-5").is_some());
+        assert!(pb.rate_card("ANTHROPIC", "CLAUDE-SONNET-4-5").is_some());
         let rec = pb
             .cost_for(
+                "anthropic",
                 "claude-sonnet-4-5",
                 &TokenUsage {
                     input: 1_000_000,
@@ -630,39 +686,82 @@ mod tests {
     fn unknown_model_fails_closed() {
         let pb = PriceBook::from_file(PriceBookFile {
             schema_version: "v".to_string(),
-            cards: vec![row("known", 1)],
+            effective_at: "2026-06-26T00:00:00Z".to_string(),
+            cards: vec![row("anthropic", "known", 1)],
         })
         .unwrap();
         assert_eq!(
-            pb.cost_for("no-such-model", &TokenUsage::default()),
-            Err(CostError::UnknownModel("no-such-model".to_string()))
+            pb.cost_for("anthropic", "no-such-model", &TokenUsage::default()),
+            Err(CostError::UnknownRateCard {
+                provider: "anthropic".to_string(),
+                model: "no-such-model".to_string()
+            })
         );
+    }
+
+    #[test]
+    fn empty_provider_key_rejected() {
+        let err = PriceBook::from_file(PriceBookFile {
+            schema_version: "v".to_string(),
+            effective_at: "2026-06-26T00:00:00Z".to_string(),
+            cards: vec![row("   ", "m", 1)],
+        });
+        assert_eq!(err, Err(CostError::EmptyProviderKey));
     }
 
     #[test]
     fn empty_model_key_rejected() {
         let err = PriceBook::from_file(PriceBookFile {
             schema_version: "v".to_string(),
-            cards: vec![row("   ", 1)],
+            effective_at: "2026-06-26T00:00:00Z".to_string(),
+            cards: vec![row("anthropic", "   ", 1)],
         });
         assert_eq!(err, Err(CostError::EmptyModelKey));
+    }
+
+    #[test]
+    fn empty_effective_at_rejected() {
+        let err = PriceBook::from_file(PriceBookFile {
+            schema_version: "v".to_string(),
+            effective_at: "   ".to_string(),
+            cards: vec![row("anthropic", "m", 1)],
+        });
+        assert_eq!(err, Err(CostError::EmptyEffectiveAt));
     }
 
     #[test]
     fn negative_rate_rejected() {
         let err = PriceBook::from_file(PriceBookFile {
             schema_version: "v".to_string(),
-            cards: vec![row("m", -1)],
+            effective_at: "2026-06-26T00:00:00Z".to_string(),
+            cards: vec![row("anthropic", "m", -1)],
         });
         assert_eq!(err, Err(CostError::NegativeRate));
     }
 
     #[test]
-    fn duplicate_model_rejected() {
+    fn duplicate_provider_model_rejected() {
         let err = PriceBook::from_file(PriceBookFile {
             schema_version: "v".to_string(),
-            cards: vec![row("M", 1), row("m", 2)],
+            effective_at: "2026-06-26T00:00:00Z".to_string(),
+            cards: vec![row("anthropic", "M", 1), row("ANTHROPIC", "m", 2)],
         });
-        assert_eq!(err, Err(CostError::DuplicateModel("m".to_string())));
+        assert_eq!(
+            err,
+            Err(CostError::DuplicateRateCard {
+                provider: "anthropic".to_string(),
+                model: "m".to_string()
+            })
+        );
+    }
+
+    #[test]
+    fn same_model_can_exist_under_different_provider() {
+        let pb = PriceBook::from_file(PriceBookFile {
+            schema_version: "v".to_string(),
+            effective_at: "2026-06-26T00:00:00Z".to_string(),
+            cards: vec![row("anthropic", "shared", 1), row("openai", "shared", 2)],
+        });
+        assert!(pb.is_ok());
     }
 }
