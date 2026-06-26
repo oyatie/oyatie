@@ -171,10 +171,7 @@ fn enforcement_liveness_face_reports_current_tree_green() {
     let root = repo_root();
     let face = load_materialized_face(&root, "enforcement-liveness");
     let rows = face["rows"].as_array().expect("enforcement-liveness rows");
-    let hook_rows = rows
-        .iter()
-        .filter(|row| row["row_type"] == "hook")
-        .count();
+    let hook_rows = rows.iter().filter(|row| row["row_type"] == "hook").count();
     let command_rows = rows
         .iter()
         .filter(|row| row["row_type"] == "command_reference")
@@ -189,7 +186,10 @@ fn enforcement_liveness_face_reports_current_tree_green() {
     );
 
     assert_eq!(hook_rows, 12, "tracked tools/hooks/*.sh census changed");
-    assert_eq!(command_rows, 20, "Claude+Codex hook command reference census changed");
+    assert_eq!(
+        command_rows, 20,
+        "Claude+Codex hook command reference census changed"
+    );
     assert_eq!(stub_rows, 2, "compatibility stub count changed");
     assert!(evaluate_keyed(&face).is_empty());
     assert_eq!(evaluate(&face).verdict, Verdict::Green);
