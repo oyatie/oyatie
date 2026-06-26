@@ -26,9 +26,13 @@ use std::sync::Arc;
 use tonic::{Request, Response, Status};
 
 use iam_identity_workload_api::ClaimValueDto;
-use iam_identity_workload_app::{AuthorizeOutcome, RevocationDenylist, WorkloadPrincipalRepository, authorize_with_token};
+use iam_identity_workload_app::{
+    AuthorizeOutcome, RevocationDenylist, WorkloadPrincipalRepository, authorize_with_token,
+};
 use iam_identity_workload_authz_cedar::WorkloadAuthorizer;
-use iam_identity_workload_domain::{Action, AuthorizationDecision, AuthorizationRequest, ClaimValue, Resource};
+use iam_identity_workload_domain::{
+    Action, AuthorizationDecision, AuthorizationRequest, ClaimValue, Resource,
+};
 use iam_identity_workload_oidc::{OidcValidationError, validate_workload_token};
 
 use crate::{AuditEvent, AuditRecord, AuditSink, WorkloadAuthzState, build_active_principal};
@@ -42,15 +46,12 @@ pub use proto::workload_authorizer_server::WorkloadAuthorizerServer;
 pub use proto::workload_token_validator_server::WorkloadTokenValidatorServer;
 
 use proto::{
-    AuthorizeRequest as ProtoAuthorizeRequest,
-    AuthorizeResponse as ProtoAuthorizeResponse,
+    AuthorizeRequest as ProtoAuthorizeRequest, AuthorizeResponse as ProtoAuthorizeResponse,
     AuthorizeWithTokenRequest as ProtoAuthorizeWithTokenRequest,
     BatchAuthorizeRequest as ProtoBatchAuthorizeRequest,
-    BatchAuthorizeResponse as ProtoBatchAuthorizeResponse,
-    DecisionEffect,
+    BatchAuthorizeResponse as ProtoBatchAuthorizeResponse, DecisionEffect,
     ValidateTokenRequest as ProtoValidateTokenRequest,
-    ValidateTokenResponse as ProtoValidateTokenResponse,
-    VerifiedPrincipal,
+    ValidateTokenResponse as ProtoValidateTokenResponse, VerifiedPrincipal,
     workload_authorizer_server::WorkloadAuthorizer as WorkloadAuthorizerTrait,
     workload_token_validator_server::WorkloadTokenValidator as WorkloadTokenValidatorTrait,
 };
@@ -163,13 +164,22 @@ fn decode_authorize_with_token_request(
     req: &ProtoAuthorizeWithTokenRequest,
 ) -> (Action, Resource, BTreeMap<String, ClaimValue>) {
     let action = Action::new(req.action.clone());
-    let resource = req
-        .resource
-        .as_ref()
-        .map(|r| Resource::new(r.resource_type.clone(), r.resource_id.clone()))
-        .unwrap_or_else(|| Resource::new(String::new(), String::new()));
+    let resource = proto_resource_to_domain(req.resource.as_ref());
     let context = proto_context_to_domain(&req.context);
     (action, resource, context)
+}
+
+/// Convert a proto resource reference plus attributes to the domain resource.
+fn proto_resource_to_domain(resource: Option<&proto::Resource>) -> Resource {
+    let Some(resource) = resource else {
+        return Resource::new(String::new(), String::new());
+    };
+    proto_context_to_domain(&resource.attributes)
+        .into_iter()
+        .fold(
+            Resource::new(resource.resource_type.clone(), resource.resource_id.clone()),
+            |domain, (key, value)| domain.with_attribute(key, value),
+        )
 }
 
 /// Convert proto `map<string, ClaimValue>` to domain `BTreeMap<String, ClaimValue>`.
@@ -207,17 +217,16 @@ fn oidc_error_to_kind(error: &OidcValidationError) -> proto::ValidationErrorKind
         OidcValidationError::AlgNone => Kind::AlgNone,
         OidcValidationError::InvalidType => Kind::InvalidType,
         OidcValidationError::UntrustedKeySourceUrl => Kind::UntrustedKeySourceUrl,
-        OidcValidationError::AlgorithmMismatch
-        | OidcValidationError::UnsupportedAlgorithm => Kind::AlgorithmMismatch,
+        OidcValidationError::AlgorithmMismatch | OidcValidationError::UnsupportedAlgorithm => {
+            Kind::AlgorithmMismatch
+        }
         OidcValidationError::UnknownKey => Kind::UnknownKey,
         OidcValidationError::SignatureInvalid => Kind::SignatureInvalid,
         OidcValidationError::IssuerMismatch => Kind::IssuerMismatch,
         OidcValidationError::AudienceMismatch => Kind::AudienceMismatch,
         OidcValidationError::Expired => Kind::Expired,
         OidcValidationError::NotYetValid => Kind::NotYetValid,
-        OidcValidationError::MissingClaim(_) | OidcValidationError::Domain(_) => {
-            Kind::MissingClaim
-        }
+        OidcValidationError::MissingClaim(_) | OidcValidationError::Domain(_) => Kind::MissingClaim,
     }
 }
 
@@ -239,13 +248,8 @@ where
     ) -> Result<Response<ProtoAuthorizeResponse>, Status> {
         let req = request.into_inner();
         let (action, resource, context) = decode_authorize_with_token_request(&req);
-        let outcome = run_authorize_with_token_grpc(
-            &self.state,
-            &req.token,
-            action,
-            resource,
-            context,
-        )?;
+        let outcome =
+            run_authorize_with_token_grpc(&self.state, &req.token, action, resource, context)?;
 
         // Determine workload_id for audit (best-effort from token).
         let workload_id = best_effort_workload_id(&self.state, &req.token);
@@ -291,6 +295,14 @@ where
                 iam_identity_workload_api::ResourceDto {
                     resource_type: r.map(|x| x.resource_type.clone()).unwrap_or_default(),
                     resource_id: r.map(|x| x.resource_id.clone()).unwrap_or_default(),
+                    attributes: r
+                        .map(|x| {
+                            proto_context_to_domain(&x.attributes)
+                                .into_iter()
+                                .map(|(k, v)| (k, ClaimValueDto::from(&v)))
+                                .collect()
+                        })
+                        .unwrap_or_default(),
                 }
             },
         };
@@ -316,10 +328,7 @@ where
         let mut authz_request = AuthorizationRequest::new(
             principal,
             Action::new(req.action.clone()),
-            req.resource
-                .as_ref()
-                .map(|r| Resource::new(r.resource_type.clone(), r.resource_id.clone()))
-                .unwrap_or_else(|| Resource::new(String::new(), String::new())),
+            proto_resource_to_domain(req.resource.as_ref()),
         );
         authz_request.context = proto_context_to_domain(&req.context);
 
@@ -346,13 +355,8 @@ where
 
         for item in &req.requests {
             let (action, resource, context) = decode_authorize_with_token_request(item);
-            let outcome = run_authorize_with_token_grpc(
-                &self.state,
-                &item.token,
-                action,
-                resource,
-                context,
-            )?;
+            let outcome =
+                run_authorize_with_token_grpc(&self.state, &item.token, action, resource, context)?;
 
             let workload_id = best_effort_workload_id(&self.state, &item.token);
             let outcome_label = authorize_outcome_label(&outcome);
@@ -391,7 +395,12 @@ where
         let req = request.into_inner();
         let now = (self.state.now_provider_ref())();
 
-        match validate_workload_token(&req.token, self.state.jwks_ref(), self.state.config_ref(), now) {
+        match validate_workload_token(
+            &req.token,
+            self.state.jwks_ref(),
+            self.state.config_ref(),
+            now,
+        ) {
             Ok(principal) => {
                 self.state.audit().record(AuditRecord::new(
                     AuditEvent::TokenValidation,

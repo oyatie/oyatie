@@ -15,7 +15,7 @@ use iam_identity_workload_api::{
     ClaimValueDto, DecisionReasonDto, EffectDto, PrincipalLifecycleResponse, ResourceDto,
     ValidateTokenResponse,
 };
-use iam_identity_workload_domain::{AuthorizationDecision, WorkloadState};
+use iam_identity_workload_domain::{AuthorizationDecision, ClaimValue, WorkloadState};
 use serde_json::json;
 
 #[test]
@@ -28,6 +28,7 @@ fn authorize_with_token_request_uses_camel_case_and_typed_claims() {
         resource: ResourceDto {
             resource_type: "Secret".to_owned(),
             resource_id: "db-password".to_owned(),
+            attributes: BTreeMap::new(),
         },
         context,
     };
@@ -43,6 +44,31 @@ fn authorize_with_token_request_uses_camel_case_and_typed_claims() {
     // The action + context project into the domain shapes.
     assert_eq!(request.action().as_str(), "cloud.kms.Decrypt");
     assert!(request.context_domain().contains_key("mfa"));
+}
+
+#[test]
+fn resource_attributes_round_trip_into_domain_resource() {
+    let request: AuthorizeWithTokenRequest = serde_json::from_value(json!({
+        "token": "header.payload.sig",
+        "action": "quota:Read",
+        "resource": {
+            "resourceType": "QuotaRecord",
+            "resourceId": "ten_acme",
+            "attributes": {
+                "tenant_id": { "kind": "text", "value": "ten_acme" }
+            }
+        },
+        "context": {}
+    }))
+    .expect("deserialize authorize request");
+
+    let domain = request.resource.into_domain();
+
+    assert_eq!(
+        domain.attributes().get("tenant_id"),
+        Some(&ClaimValue::Text("ten_acme".to_owned())),
+        "resource tenant_id must reach the PDP domain resource for same-tenant Cedar policies"
+    );
 }
 
 #[test]

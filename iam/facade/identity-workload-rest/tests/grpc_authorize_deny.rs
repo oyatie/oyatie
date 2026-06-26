@@ -58,6 +58,7 @@ fn secret_resource() -> iam_identity_workload_rest::grpc::proto::Resource {
     iam_identity_workload_rest::grpc::proto::Resource {
         resource_type: "Secret".to_owned(),
         resource_id: "db-password".to_owned(),
+        attributes: Default::default(),
     }
 }
 
@@ -235,6 +236,7 @@ async fn authorize_with_invalid_token_engine_not_consulted() {
                 resource: Some(iam_identity_workload_rest::grpc::proto::Resource {
                     resource_type: "Secret".to_owned(),
                     resource_id: "db-password".to_owned(),
+                    attributes: Default::default(),
                 }),
                 context: Default::default(),
             }))
@@ -561,6 +563,106 @@ async fn authorize_claims_gated_permit_returns_allow_when_claim_present() {
     );
 
     // Two audit records, one per authorize call.
+    assert_eq!(state.audit().len(), 2);
+    assert_eq!(state.audit().records()[0].outcome(), "allow");
+    assert_eq!(state.audit().records()[1].outcome(), "deny");
+}
+
+#[tokio::test]
+async fn authorize_resource_attributes_drive_same_tenant_pdp_condition() {
+    let same_tenant_policy = CedarWorkloadAuthorizer::from_cedar_policies(
+        r#"
+        @id("permit-same-tenant-quota-read")
+        permit (
+          principal is Workload,
+          action == Action::"quota:Read",
+          resource is QuotaRecord
+        ) when {
+          principal.tenant_id == "ten_acme" &&
+          principal.scopes.contains("quota:read") &&
+          resource has tenant_id &&
+          principal.tenant_id == resource.tenant_id
+        };
+        "#,
+    )
+    .expect("cedar parses");
+
+    let minted = mint_token();
+    let mut repo = iam_identity_workload_app::InMemoryWorkloadPrincipalRepository::new();
+    iam_identity_workload_app::provision(&mut repo, "ten_acme", "wl_secrets_sync", "cap.cloud.kms")
+        .unwrap();
+    iam_identity_workload_app::activate(
+        &mut repo,
+        &iam_identity_workload_domain::WorkloadId::new("wl_secrets_sync").unwrap(),
+    )
+    .unwrap();
+    let state: SharedState<_, _, _, _> = Arc::new(WorkloadAuthzState::with_clock(
+        repo,
+        InMemoryRevocationDenylist::new(),
+        same_tenant_policy,
+        Jwks::new().add_key(minted.jwk.clone()),
+        ValidationConfig::new(ISSUER, AUDIENCE),
+        InMemoryAuditSink::new(),
+        lifecycle_verifier(),
+        Arc::new(SameTenantLifecycleAuthorizer),
+        || NOW,
+    ));
+    let server = WorkloadGrpcServer::new(state.clone());
+
+    fn quota_resource(tenant_id: &str) -> iam_identity_workload_rest::grpc::proto::Resource {
+        iam_identity_workload_rest::grpc::proto::Resource {
+            resource_type: "QuotaRecord".to_owned(),
+            resource_id: tenant_id.to_owned(),
+            attributes: [(
+                "tenant_id".to_owned(),
+                iam_identity_workload_rest::grpc::proto::ClaimValue {
+                    value: Some(ProtoClaimValue::Text(tenant_id.to_owned())),
+                },
+            )]
+            .into_iter()
+            .collect(),
+        }
+    }
+
+    let allow = server
+        .authorize(Request::new(AuthorizeRequest {
+            tenant_id: "ten_acme".to_owned(),
+            workload_id: "wl_secrets_sync".to_owned(),
+            owning_capability: "cap.cloud.kms".to_owned(),
+            scopes: vec!["quota:read".to_owned()],
+            claims: Default::default(),
+            action: "quota:Read".to_owned(),
+            resource: Some(quota_resource("ten_acme")),
+            context: Default::default(),
+        }))
+        .await
+        .expect("rpc ok");
+
+    assert_eq!(
+        allow.into_inner().effect,
+        DecisionEffect::Allow as i32,
+        "same-tenant resource attribute must allow the matching PDP policy"
+    );
+
+    let deny = server
+        .authorize(Request::new(AuthorizeRequest {
+            tenant_id: "ten_acme".to_owned(),
+            workload_id: "wl_secrets_sync".to_owned(),
+            owning_capability: "cap.cloud.kms".to_owned(),
+            scopes: vec!["quota:read".to_owned()],
+            claims: Default::default(),
+            action: "quota:Read".to_owned(),
+            resource: Some(quota_resource("ten_globex")),
+            context: Default::default(),
+        }))
+        .await
+        .expect("rpc ok");
+
+    assert_eq!(
+        deny.into_inner().effect,
+        DecisionEffect::Deny as i32,
+        "cross-tenant resource attribute must deny/fail closed"
+    );
     assert_eq!(state.audit().len(), 2);
     assert_eq!(state.audit().records()[0].outcome(), "allow");
     assert_eq!(state.audit().records()[1].outcome(), "deny");
