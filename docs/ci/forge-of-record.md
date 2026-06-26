@@ -1,14 +1,15 @@
 # SCM of Record — CI Gating (ADR-0363)
 
 GitHub (interim) at `github.com/jason931225/oyatie` is the **gating SCM of
-record** for all PR merges to `dev`, per D-CLOUD-SCM. It is the merge authority:
-required status contexts must be green before a PR can merge.
+record** for all PR merges to `dev`, per D-CLOUD-SCM. Merge readiness is the
+protected `oya-ci-required` status context; local Cargo/`oya verify` output is
+advisory bridge evidence only and is never protected-branch authority.
 
 ## How gating works
 
-1. The oya-ci controller posts GitHub Commit Status API entries for the
-   `oya-ci-required` context (crier pattern; see
-   `oya/ci-controller/crates/oya-ci-controller-app`).
+1. The transitional GitHub Actions workflow `.github/workflows/oya-ci-required.yml`
+   posts the single `oya-ci-required` verdict today; the owned oya-ci controller
+   is the cloud-native successor producer for the same context.
 2. The GitHub branch-protection rule for `dev` requires all contexts in
    `infra/branch-protection/dev.json` to be green before a PR can merge.
 3. `.github/branch-protection.yaml` is the canonical branch-protection record.
@@ -17,12 +18,7 @@ required status contexts must be green before a PR can merge.
 
 | Context | Producer | Description |
 |---|---|---|
-| `cargo-fmt` | `oyaCiLane` | `cargo fmt --check` |
-| `cargo-check` | `oyaCiLane` | `cargo check --all-targets` |
-| `cargo-clippy` | `oyaCiLane` | `cargo clippy -- -D warnings` |
-| `cargo-nextest` | `oyaCiLane` | nextest test run |
-| `cargo-deny` | `oyaCiLane` | OSI license + advisory + bans gate |
-| `oya-verify` | `oyaCiLane` | Rolled-up `./bin/oya verify --affected` verdict |
+| `oya-ci-required` | GitHub Actions transition; owned oya-ci/cloud-ci successor | Single fan-in status over Buck2/cloud-ci gate jobs. |
 
 ## Phase-2 (pending)
 
