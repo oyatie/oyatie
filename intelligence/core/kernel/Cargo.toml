@@ -18,11 +18,14 @@ doctest = false
 
 [dependencies]
 serde = { workspace = true }
+# Runtime dep (promoted from dev): the `wire` module keeps caller-defined JSON
+# (tool `parameters`, `response_format.json_schema`) as `serde_json::Value`.
+# In-tree workspace dep, pure (no I/O) — kernel stays I/O-free.
+serde_json = { workspace = true }
 
 [dev-dependencies]
 tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "macros", "time"] }
 proptest = "1.5"
-serde_json = { workspace = true }
 
 [lints]
 workspace = true
