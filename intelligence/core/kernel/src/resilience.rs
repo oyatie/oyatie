@@ -353,7 +353,16 @@ impl RetryPolicy {
             .unwrap_or(u32::MAX);
         let capped = self.base_backoff.saturating_mul(factor).min(self.max_backoff);
 
-        let unit = jitter_unit.clamp(0.0, 1.0);
+        // A caller-sampled jitter that is NaN or ±inf must never reach
+        // `mul_f64`: `Duration::from_secs_f64` panics on any non-finite factor,
+        // and `f64::clamp` lets a NaN pass through unchanged. Treat a non-finite
+        // sample as "no jitter" so a buggy/hostile caller can't panic the worker
+        // or produce a garbage backoff. Finite values are clamped to `[0, 1]`.
+        let unit = if jitter_unit.is_finite() {
+            jitter_unit.clamp(0.0, 1.0)
+        } else {
+            0.0
+        };
         match self.jitter {
             JitterKind::None => capped,
             JitterKind::Full => capped.mul_f64(unit),
@@ -800,6 +809,39 @@ mod tests {
         let hi = p.backoff(1, None, 1.0);
         assert_eq!(lo, Duration::ZERO);
         assert_eq!(hi, Duration::from_millis(400));
+    }
+
+    #[test]
+    fn non_finite_jitter_is_sanitized_to_bounded_finite_backoff() {
+        // A caller-sampled jitter of NaN / +inf / -inf must not panic
+        // (`Duration::from_secs_f64` panics on a non-finite factor) nor produce a
+        // garbage backoff: `f64::clamp` leaves NaN unchanged, so without the
+        // is_finite() guard the NaN flows straight into `mul_f64`.
+        for &kind in &[JitterKind::Full, JitterKind::Equal] {
+            let p = RetryPolicy {
+                jitter: kind,
+                ..RetryPolicy::default()
+            };
+            // attempt 1: capped = 400ms; Equal floors at capped/2 = 200ms.
+            let capped = Duration::from_millis(400);
+            for &bad in &[f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+                let d = p.backoff(1, None, bad);
+                // No panic reaching here is half the proof; assert it is a sane,
+                // bounded, finite delay (non-finite jitter == "no jitter").
+                assert!(d <= capped, "{kind:?} jitter={bad} backoff {d:?} exceeds cap");
+                assert!(
+                    d.as_secs_f64().is_finite(),
+                    "{kind:?} jitter={bad} produced non-finite backoff {d:?}"
+                );
+                // "No jitter": Full -> 0 (lower bound), Equal -> capped/2.
+                let expected = match kind {
+                    JitterKind::Full => Duration::ZERO,
+                    JitterKind::Equal => capped / 2,
+                    JitterKind::None => unreachable!(),
+                };
+                assert_eq!(d, expected, "{kind:?} jitter={bad} not treated as no-jitter");
+            }
+        }
     }
 
     // --- FallbackChain ------------------------------------------------------
