@@ -62,6 +62,41 @@ const OPENAI_EMBEDDINGS_PATH: &str = "/v1/embeddings";
 /// X-OpenAI-Beta header value required by the Codex data plane.
 const OPENAI_BETA_CODEX: &str = "codex-runs";
 
+/// `Originator` header value classifying the request as Codex *subscription*
+/// (ChatGPT-seat) traffic rather than metered API-key traffic. The Codex CLI
+/// sends this on the subscription data plane; upstream uses it to bill against
+/// the ChatGPT plan instead of the API account. Set ONLY on the OAuth-
+/// subscription path ([`CodexAdapter::proxy`] / [`CodexAdapter::proxy_stream`]),
+/// never on the API-key path ([`OpenAiApiKeyAdapter`]).
+///
+/// MUST be the canonical first-party value the real Codex CLI sends by default,
+/// or upstream may mis-classify (or reject) the request and bill it against the
+/// metered API account — a fail-OPEN billing leak. Anything other than the
+/// accepted contract value is wrong; see the pinning test
+/// `originator_is_pinned_to_canonical_codex_cli_rs_contract`.
+///
+/// LIVE-RECONFIRM (2026-06): upstream `openai/codex`
+/// `codex-rs/login/src/auth/default_client.rs` —
+/// `pub const DEFAULT_ORIGINATOR: &str = "codex_cli_rs";`, attached via
+/// `headers.insert("originator", originator().header_value)`. `codex-tui` is
+/// only a legacy alias in `is_first_party_originator()`, NOT the wire default,
+/// so it is not on the accepted contract. Re-confirm against the upstream
+/// constant on each Codex CLI bump (tracked alongside [`CLI_VERSION`]).
+const CODEX_ORIGINATOR: &str = "codex_cli_rs";
+
+/// Header carrying the ChatGPT account id for subscription-classified traffic.
+const CHATGPT_ACCOUNT_ID_HEADER: &str = "Chatgpt-Account-Id";
+
+/// OpenID claim namespace under which Codex JWTs carry the ChatGPT auth block
+/// (`{ "chatgpt_account_id": "...", ... }`).
+const OPENAI_AUTH_CLAIM: &str = "https://api.openai.com/auth";
+
+/// Subscription-classification headers set from trusted adapter state. Any
+/// caller-supplied value for these is stripped before forwarding so a caller
+/// can never forge subscription billing classification or spoof another seat's
+/// account id.
+const SUBSCRIPTION_CLASS_HEADERS: &[&str] = &["originator", "chatgpt-account-id"];
+
 /// RFC 7230 §6.1 hop-by-hop headers — never forwarded upstream or to caller.
 pub const HOP_BY_HOP: &[&str] = &[
     "connection",
@@ -107,6 +142,56 @@ pub enum CodexAdapterError {
 struct SessionResponse {
     #[serde(rename = "accessToken")]
     access_token: String, // data_class: INTERNAL_ONLY
+    /// JWT identity token. Codex carries the ChatGPT account id in this token's
+    /// claims; on some session shapes the account id only lives in `accessToken`
+    /// (also a JWT), so refresh tries this first then falls back.
+    #[serde(default, rename = "idToken", alias = "id_token")]
+    id_token: Option<String>, // data_class: INTERNAL_ONLY
+}
+
+/// Decode a base64url (RFC 4648 §5, no padding) segment. Returns `None` on any
+/// invalid character so malformed JWTs never panic. Pure + allocation-bounded.
+fn base64url_decode(input: &str) -> Option<Vec<u8>> {
+    fn sextet(c: u8) -> Option<u32> {
+        match c {
+            b'A'..=b'Z' => Some((c - b'A') as u32),
+            b'a'..=b'z' => Some((c - b'a' + 26) as u32),
+            b'0'..=b'9' => Some((c - b'0' + 52) as u32),
+            b'-' => Some(62),
+            b'_' => Some(63),
+            _ => None,
+        }
+    }
+    let input = input.trim_end_matches('=').as_bytes();
+    let mut out = Vec::with_capacity(input.len() * 3 / 4);
+    let mut acc = 0u32;
+    let mut bits = 0u32;
+    for &c in input {
+        acc = (acc << 6) | sextet(c)?;
+        bits += 6;
+        if bits >= 8 {
+            bits -= 8;
+            out.push((acc >> bits) as u8);
+        }
+    }
+    Some(out)
+}
+
+/// Extract the ChatGPT account id from a Codex JWT (id_token or access_token).
+/// Codex carries it as `["https://api.openai.com/auth"]["chatgpt_account_id"]`
+/// in the JWT payload (the middle, base64url-encoded segment). Returns `None`
+/// if `jwt` is not a well-formed JWT, the payload is not JSON, or the claim is
+/// absent. Never panics on attacker-controlled input.
+fn extract_chatgpt_account_id(jwt: &str) -> Option<String> {
+    let payload_b64 = jwt.split('.').nth(1)?;
+    let payload = base64url_decode(payload_b64)?;
+    let claims: serde_json::Value = serde_json::from_slice(&payload).ok()?;
+    claims
+        .get(OPENAI_AUTH_CLAIM)?
+        .get("chatgpt_account_id")?
+        .as_str()
+        .filter(|s| !s.is_empty())
+        .map(str::to_string)
 }
 
 // ---------------------------------------------------------------------------
@@ -117,6 +202,10 @@ struct SessionResponse {
 #[derive(Debug)]
 pub struct CodexTokens {
     pub access_token: String, // data_class: INTERNAL_ONLY
+    /// ChatGPT account id resolved from the session JWT claims, used to set the
+    /// `Chatgpt-Account-Id` subscription-classification header. `None` when the
+    /// session response carried no decodable account id.
+    pub account_id: Option<String>, // data_class: INTERNAL_ONLY
 }
 
 /// Inbound proxy request forwarded to the Codex data endpoint.
@@ -490,8 +579,18 @@ impl CodexAdapter {
             .await
             .map_err(|e| CodexAdapterError::RefreshFailed(e.to_string()))?;
 
+        // The ChatGPT account id lives in a JWT claim. Prefer the dedicated
+        // id_token; fall back to the access_token (also a JWT) for session
+        // shapes that omit id_token. Absent/undecodable → None (header omitted).
+        let account_id = session
+            .id_token
+            .as_deref()
+            .and_then(extract_chatgpt_account_id)
+            .or_else(|| extract_chatgpt_account_id(&session.access_token));
+
         Ok(CodexTokens {
             access_token: session.access_token,
+            account_id,
         })
     }
 
@@ -501,6 +600,14 @@ impl CodexAdapter {
     /// - `Authorization: Bearer <access_token>`
     /// - `User-Agent: <cli_version>` (Stage-6 gap #11 impersonation)
     /// - `X-OpenAI-Beta: codex-runs`
+    /// - `Originator: codex_cli_rs` (subscription billing classification)
+    /// - `Chatgpt-Account-Id: <account_id>` when `account_id` is `Some`
+    ///
+    /// `account_id` is the ChatGPT account id resolved from the seat's session
+    /// JWT (see [`CodexTokens::account_id`]). It is threaded from trusted
+    /// adapter state, never from the caller: any caller-supplied `Originator`
+    /// or `Chatgpt-Account-Id` header is stripped so subscription
+    /// classification cannot be forged.
     ///
     /// Hop-by-hop headers from `request.extra_headers` are stripped before
     /// forwarding. Hop-by-hop headers in the upstream response are stripped
@@ -508,6 +615,7 @@ impl CodexAdapter {
     pub async fn proxy(
         &self,
         access_token: &str,
+        account_id: Option<&str>,
         request: CodexProxyRequest,
     ) -> Result<CodexProxyResponse, CodexAdapterError> {
         let url = format!("{}{}", self.base_url, CODEX_RESPONSES_PATH);
@@ -523,7 +631,12 @@ impl CodexAdapter {
             .header("Authorization", format!("Bearer {access_token}"))
             .header("User-Agent", &self.cli_version)
             .header("X-OpenAI-Beta", OPENAI_BETA_CODEX)
+            .header("Originator", CODEX_ORIGINATOR)
             .body(request.body);
+
+        if let Some(account_id) = account_id {
+            req_builder = req_builder.header(CHATGPT_ACCOUNT_ID_HEADER, account_id);
+        }
 
         for (k, v) in &request.extra_headers {
             let key_lower = k.to_lowercase();
@@ -531,6 +644,9 @@ impl CodexAdapter {
                 key_lower.as_str(),
                 "authorization" | "host" | "content-length" | "user-agent"
             ) {
+                continue;
+            }
+            if SUBSCRIPTION_CLASS_HEADERS.contains(&key_lower.as_str()) {
                 continue;
             }
             if is_provider_control_header(&key_lower) {
@@ -575,14 +691,17 @@ impl CodexAdapter {
     /// Forward `request` to the Codex data endpoint and return the raw response
     /// bytes stream for SSE / streaming responses.
     ///
-    /// Same header policy as [`CodexAdapter::proxy`] but returns the raw
-    /// [`bytes::Bytes`] chunks via the reqwest streaming API. The caller is
-    /// responsible for framing SSE events from the byte stream.
+    /// Same header policy as [`CodexAdapter::proxy`] (including the
+    /// `Originator` + `Chatgpt-Account-Id` subscription-classification headers
+    /// and caller-forgery stripping) but returns the raw [`bytes::Bytes`]
+    /// chunks via the reqwest streaming API. The caller is responsible for
+    /// framing SSE events from the byte stream.
     ///
     /// Returns `(status, headers, bytes_stream)` on success.
     pub async fn proxy_stream(
         &self,
         access_token: &str,
+        account_id: Option<&str>,
         request: CodexProxyRequest,
     ) -> Result<(u16, BTreeMap<String, String>, OpenAiByteStream), CodexAdapterError> {
         let url = format!("{}{}", self.base_url, CODEX_RESPONSES_PATH);
@@ -598,7 +717,12 @@ impl CodexAdapter {
             .header("Authorization", format!("Bearer {access_token}"))
             .header("User-Agent", &self.cli_version)
             .header("X-OpenAI-Beta", OPENAI_BETA_CODEX)
+            .header("Originator", CODEX_ORIGINATOR)
             .body(request.body);
+
+        if let Some(account_id) = account_id {
+            req_builder = req_builder.header(CHATGPT_ACCOUNT_ID_HEADER, account_id);
+        }
 
         for (k, v) in &request.extra_headers {
             let key_lower = k.to_lowercase();
@@ -606,6 +730,9 @@ impl CodexAdapter {
                 key_lower.as_str(),
                 "authorization" | "host" | "content-length" | "user-agent"
             ) {
+                continue;
+            }
+            if SUBSCRIPTION_CLASS_HEADERS.contains(&key_lower.as_str()) {
                 continue;
             }
             if is_provider_control_header(&key_lower) {
@@ -977,5 +1104,285 @@ mod tests {
         };
         let cloned = req.clone();
         assert_eq!(req.body, cloned.body);
+    }
+
+    // -----------------------------------------------------------------------
+    // Subscription-classification: account-id JWT extraction + header policy.
+    // -----------------------------------------------------------------------
+
+    /// base64url-encode (no padding) — inverse of [`base64url_decode`], used to
+    /// forge JWTs in tests.
+    fn b64url_enc(bytes: &[u8]) -> String {
+        const ALPHA: &[u8] =
+            b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+        let mut out = String::new();
+        for chunk in bytes.chunks(3) {
+            let b0 = chunk[0];
+            let b1 = *chunk.get(1).unwrap_or(&0);
+            let b2 = *chunk.get(2).unwrap_or(&0);
+            let n = ((b0 as u32) << 16) | ((b1 as u32) << 8) | (b2 as u32);
+            out.push(ALPHA[((n >> 18) & 63) as usize] as char);
+            out.push(ALPHA[((n >> 12) & 63) as usize] as char);
+            if chunk.len() > 1 {
+                out.push(ALPHA[((n >> 6) & 63) as usize] as char);
+            }
+            if chunk.len() > 2 {
+                out.push(ALPHA[(n & 63) as usize] as char);
+            }
+        }
+        out
+    }
+
+    fn jwt_with_claim(payload_json: &str) -> String {
+        format!(
+            "{}.{}.sig",
+            b64url_enc(br#"{"alg":"none"}"#),
+            b64url_enc(payload_json.as_bytes())
+        )
+    }
+
+    #[test]
+    fn base64url_decode_roundtrips_and_rejects_invalid() {
+        let samples: [&[u8]; 6] = [b"", b"a", b"ab", b"abc", b"abcd", br#"{"x":1}"#];
+        for sample in samples {
+            let encoded = b64url_enc(sample);
+            assert_eq!(base64url_decode(&encoded).as_deref(), Some(sample));
+        }
+        // `+` and `/` are standard-base64, not base64url — must be rejected.
+        assert_eq!(base64url_decode("ab+c"), None);
+        assert_eq!(base64url_decode("ab/c"), None);
+    }
+
+    #[test]
+    fn extract_account_id_reads_openai_auth_claim() {
+        let jwt = jwt_with_claim(
+            r#"{"https://api.openai.com/auth":{"chatgpt_account_id":"acct-xyz"},"sub":"u"}"#,
+        );
+        assert_eq!(
+            extract_chatgpt_account_id(&jwt),
+            Some("acct-xyz".to_string())
+        );
+    }
+
+    #[test]
+    fn extract_account_id_handles_malformed_and_missing() {
+        // Not a JWT.
+        assert_eq!(extract_chatgpt_account_id("opaque"), None);
+        // JWT with no auth claim.
+        assert_eq!(
+            extract_chatgpt_account_id(&jwt_with_claim(r#"{"sub":"u"}"#)),
+            None
+        );
+        // Auth claim present but no account id.
+        assert_eq!(
+            extract_chatgpt_account_id(&jwt_with_claim(
+                r#"{"https://api.openai.com/auth":{"user_id":"u"}}"#
+            )),
+            None
+        );
+        // Empty account id is treated as absent.
+        assert_eq!(
+            extract_chatgpt_account_id(&jwt_with_claim(
+                r#"{"https://api.openai.com/auth":{"chatgpt_account_id":""}}"#
+            )),
+            None
+        );
+        // Non-JSON payload segment must not panic.
+        assert_eq!(extract_chatgpt_account_id("a.!!!.c"), None);
+    }
+
+    #[tokio::test]
+    async fn codex_proxy_sets_subscription_headers_and_strips_caller_forgery() {
+        let (base_url, upstream_request) = one_shot_http_server(
+            "HTTP/1.1 200 OK\r\n\
+             Content-Type: application/json\r\n\
+             Content-Length: 11\r\n\
+             \r\n\
+             {\"ok\":true}",
+        )
+        .await;
+        let adapter = CodexAdapter::with_base_url(Arc::new(reqwest::Client::new()), base_url);
+
+        // The caller attempts to forge subscription classification.
+        let mut headers = BTreeMap::new();
+        headers.insert("Originator".to_string(), "evil-originator".to_string());
+        headers.insert(
+            "chatgpt-account-id".to_string(),
+            "spoofed-acct".to_string(),
+        );
+
+        adapter
+            .proxy(
+                "acc-tok",
+                Some("trusted-acct"),
+                CodexProxyRequest {
+                    body: b"{}".to_vec(),
+                    extra_headers: headers,
+                },
+            )
+            .await
+            .expect("proxy succeeds");
+
+        let request = upstream_request.await.expect("captured request");
+        assert_header(&request, "originator", "codex_cli_rs");
+        assert_header(&request, "chatgpt-account-id", "trusted-acct");
+        // Forged values must never reach upstream.
+        assert!(!request.contains("evil-originator"));
+        assert!(!request.contains("spoofed-acct"));
+        // Trusted headers must be sent exactly once (no caller duplication).
+        let originator_lines = request
+            .lines()
+            .filter(|l| l.to_ascii_lowercase().starts_with("originator:"))
+            .count();
+        assert_eq!(originator_lines, 1, "originator must not be duplicated");
+        let acct_lines = request
+            .lines()
+            .filter(|l| l.to_ascii_lowercase().starts_with("chatgpt-account-id:"))
+            .count();
+        assert_eq!(acct_lines, 1, "account-id must not be duplicated");
+    }
+
+    /// Accepted-contract originator value, LIVE-RECONFIRM (2026-06) against
+    /// upstream `openai/codex` `codex-rs/login/src/auth/default_client.rs`:
+    /// `pub const DEFAULT_ORIGINATOR: &str = "codex_cli_rs";`, attached via
+    /// `headers.insert("originator", originator().header_value)`.
+    ///
+    /// This is the SOURCE OF TRUTH for the wire contract, deliberately written
+    /// as a literal that is INDEPENDENT of [`CODEX_ORIGINATOR`]. The constant
+    /// must conform to this literal — not the other way around — so that any
+    /// future edit flipping the constant (e.g. back to the legacy `codex-tui`
+    /// alias, which upstream only treats as a first-party *alias* and never
+    /// sends by default) trips this canary instead of silently shipping a
+    /// mis-classification / fail-open billing leak.
+    const ACCEPTED_CONTRACT_ORIGINATOR: &str = "codex_cli_rs";
+
+    /// Legacy alias that is NOT on the accepted wire contract and must never be
+    /// sent. Upstream's `is_first_party_originator()` tolerates it on inbound
+    /// classification, but it is not `DEFAULT_ORIGINATOR`; sending it risks
+    /// upstream mis-classifying the request off the ChatGPT subscription plan.
+    const REJECTED_LEGACY_ORIGINATOR: &str = "codex-tui";
+
+    /// Pins the `Originator` wire value to the accepted contract
+    /// (`codex_cli_rs`), NOT to "whatever the adapter happens to send".
+    ///
+    /// Two-pronged, fail-closed:
+    /// 1. Drift canary — the trusted constant must EQUAL the externally-defined
+    ///    contract literal, and must NOT be the rejected legacy value.
+    /// 2. Wire proof — drive a real proxy and assert the bytes on the wire carry
+    ///    exactly `originator: codex_cli_rs` and that the rejected `codex-tui`
+    ///    value appears NOWHERE in the request.
+    #[tokio::test]
+    async fn originator_is_pinned_to_canonical_codex_cli_rs_contract() {
+        // (1) Drift canary: the constant conforms to the external contract.
+        assert_eq!(
+            CODEX_ORIGINATOR, ACCEPTED_CONTRACT_ORIGINATOR,
+            "CODEX_ORIGINATOR drifted off the accepted wire contract; \
+             upstream DEFAULT_ORIGINATOR is `{ACCEPTED_CONTRACT_ORIGINATOR}`"
+        );
+        assert_ne!(
+            CODEX_ORIGINATOR, REJECTED_LEGACY_ORIGINATOR,
+            "`{REJECTED_LEGACY_ORIGINATOR}` is a legacy alias, not the accepted \
+             contract value — sending it risks subscription mis-classification"
+        );
+
+        // (2) Wire proof: the contract value actually reaches upstream and the
+        //     rejected value never leaks onto the wire.
+        let (base_url, upstream_request) = one_shot_http_server(
+            "HTTP/1.1 200 OK\r\n\
+             Content-Type: application/json\r\n\
+             Content-Length: 11\r\n\
+             \r\n\
+             {\"ok\":true}",
+        )
+        .await;
+        let adapter = CodexAdapter::with_base_url(Arc::new(reqwest::Client::new()), base_url);
+
+        adapter
+            .proxy(
+                "acc-tok",
+                Some("trusted-acct"),
+                CodexProxyRequest {
+                    body: b"{}".to_vec(),
+                    extra_headers: BTreeMap::new(),
+                },
+            )
+            .await
+            .expect("proxy succeeds");
+
+        let request = upstream_request.await.expect("captured request");
+        // Pinned to the literal contract, decoupled from the constant.
+        assert_header(&request, "originator", ACCEPTED_CONTRACT_ORIGINATOR);
+        assert!(
+            !request
+                .to_ascii_lowercase()
+                .contains(REJECTED_LEGACY_ORIGINATOR),
+            "rejected legacy originator `{REJECTED_LEGACY_ORIGINATOR}` must never \
+             appear on the wire, found in request:\n{request}"
+        );
+    }
+
+    #[tokio::test]
+    async fn codex_proxy_omits_account_id_when_absent_but_keeps_originator() {
+        let (base_url, upstream_request) = one_shot_http_server(
+            "HTTP/1.1 200 OK\r\n\
+             Content-Type: application/json\r\n\
+             Content-Length: 11\r\n\
+             \r\n\
+             {\"ok\":true}",
+        )
+        .await;
+        let adapter = CodexAdapter::with_base_url(Arc::new(reqwest::Client::new()), base_url);
+
+        adapter
+            .proxy(
+                "acc-tok",
+                None,
+                CodexProxyRequest {
+                    body: b"{}".to_vec(),
+                    extra_headers: BTreeMap::new(),
+                },
+            )
+            .await
+            .expect("proxy succeeds");
+
+        let request = upstream_request.await.expect("captured request");
+        assert_header(&request, "originator", "codex_cli_rs");
+        assert!(
+            !request.to_ascii_lowercase().contains("chatgpt-account-id"),
+            "account-id header must be omitted when no account id is known"
+        );
+    }
+
+    #[tokio::test]
+    async fn api_key_path_never_classifies_as_subscription() {
+        let (base_url, upstream_request) = one_shot_http_server(
+            "HTTP/1.1 200 OK\r\n\
+             Content-Type: application/json\r\n\
+             Content-Length: 11\r\n\
+             \r\n\
+             {\"ok\":true}",
+        )
+        .await;
+        let adapter =
+            OpenAiApiKeyAdapter::with_base_url(Arc::new(reqwest::Client::new()), base_url);
+
+        adapter
+            .proxy_chat_completions(
+                "sk-provider",
+                CodexProxyRequest {
+                    body: br#"{"model":"gpt-test"}"#.to_vec(),
+                    extra_headers: BTreeMap::new(),
+                },
+            )
+            .await
+            .expect("api-key proxy succeeds");
+
+        let request = upstream_request.await.expect("captured request");
+        let lower = request.to_ascii_lowercase();
+        assert!(
+            !lower.contains("originator:"),
+            "api-key traffic must NOT be classified as subscription"
+        );
+        assert!(!lower.contains("chatgpt-account-id:"));
     }
 }
