@@ -445,6 +445,43 @@ fn producer_consumes_declared_corpus_for_synthetic_hook_paths() {
 }
 
 #[test]
+fn producer_declared_corpus_reports_missing_wired_hook_file() {
+    let (declared_root, corpus) = synthetic_declared_corpus();
+    std::fs::write(
+        &corpus.claude_settings,
+        r#"{"hooks":{"PreToolUse":[{"hooks":[{"command":"./tools/hooks/missing-declared-target.sh"}]}]}}"#,
+    )
+    .expect("rewrite synthetic claude settings with missing command target");
+    let tracked_paths = vec![
+        ".claude/settings.json".to_owned(),
+        ".codex/hooks.json".to_owned(),
+        "tools/hooks/hermetic-fixture.sh".to_owned(),
+    ];
+
+    let face = load_produced_face_with_tracked_paths(&corpus, tracked_paths);
+    let rows = face["rows"].as_array().expect("enforcement-liveness rows");
+    let command_row = rows
+        .iter()
+        .find(|row| {
+            row["row_type"] == "command_reference"
+                && row["command_path"] == "tools/hooks/missing-declared-target.sh"
+        })
+        .expect("missing command reference row from declared corpus");
+
+    assert_eq!(command_row["target_exists"].as_bool(), Some(false));
+    let findings = evaluate_keyed(&face);
+    assert!(
+        findings
+            .iter()
+            .any(|finding| finding.code == "wired_hook_missing_file"),
+        "producer-level declared corpus must surface missing wired hook file: {findings:?}"
+    );
+    assert_eq!(evaluate(&face).verdict, Verdict::Red);
+
+    std::fs::remove_dir_all(declared_root).expect("remove synthetic declared corpus");
+}
+
+#[test]
 fn enforcement_liveness_face_reports_current_tree_green() {
     let corpus = declared_corpus();
     let expected_hooks = current_hook_paths(&corpus.hooks_dir);
