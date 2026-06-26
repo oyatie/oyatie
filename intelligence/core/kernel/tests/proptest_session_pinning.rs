@@ -2,7 +2,7 @@
 //! wire-id precedence, no-raw-prompt leakage, and cache-key faithfulness.
 #![allow(clippy::expect_used, clippy::panic, clippy::unwrap_used)]
 
-use intelligence_kernel::{Provider, derive_sticky_key, prompt_cache_key};
+use intelligence_kernel::{Provider, TenantId, derive_sticky_key, prompt_cache_key};
 use proptest::prelude::*;
 
 proptest! {
@@ -40,9 +40,22 @@ proptest! {
         m1 in "[a-z0-9-]{1,30}",
         m2 in "[a-z0-9-]{1,30}",
     ) {
+        let tenant = TenantId::new("tenant-a").unwrap();
         let key = derive_sticky_key(Some(&wire), None).unwrap();
-        let k1 = prompt_cache_key(Provider::Anthropic, &key, &m1);
-        let k2 = prompt_cache_key(Provider::Anthropic, &key, &m2);
+        let k1 = prompt_cache_key(&tenant, Provider::Anthropic, &key, &m1);
+        let k2 = prompt_cache_key(&tenant, Provider::Anthropic, &key, &m2);
         prop_assert_eq!(k1 == k2, m1 == m2);
+    }
+
+    // Distinct tenants never share a prompt-cache slot for one provider/model/session.
+    #[test]
+    fn cache_key_separates_tenant(wire in "[!-~]{1,32}") {
+        let tenant_a = TenantId::new("tenant-a").unwrap();
+        let tenant_b = TenantId::new("tenant-b").unwrap();
+        let key = derive_sticky_key(Some(&wire), None).unwrap();
+        prop_assert_ne!(
+            prompt_cache_key(&tenant_a, Provider::Anthropic, &key, "claude"),
+            prompt_cache_key(&tenant_b, Provider::Anthropic, &key, "claude")
+        );
     }
 }

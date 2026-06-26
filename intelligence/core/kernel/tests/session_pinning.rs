@@ -1,5 +1,5 @@
 //! Session-pinning seam: dual-format sticky-key extraction, the 6h TTL,
-//! rebind-on-429 failover, and the `provider::session::model` cache key, wired
+//! rebind-on-429 failover, and the `tenant::provider::session::model` cache key, wired
 //! through the real [`SubscriptionPool`] lease path.
 #![allow(clippy::expect_used, clippy::panic, clippy::unwrap_used)]
 
@@ -7,10 +7,12 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use intelligence_kernel::{
-    AgentId, AuthzDecision, AuthzGate, AuthzRequest, DEFAULT_SESSION_TTL, OAuthSubscription,
-    Provider, SeatId, SeatOutcome, SelectionStrategy, SubscriptionId, SubscriptionPool,
-    SubscriptionState, TenantId, derive_sticky_key, prompt_cache_key,
+    AgentId, AuthzDecision, AuthzGate, AuthzRequest, OAuthSubscription, Provider, SeatId,
+    SeatOutcome, SelectionStrategy, SubscriptionId, SubscriptionPool, SubscriptionState, TenantId,
+    derive_sticky_key, prompt_cache_key,
 };
+
+const SESSION_TTL: Duration = Duration::from_secs(6 * 60 * 60);
 
 struct AllowAll;
 impl AuthzGate for AllowAll {
@@ -71,7 +73,7 @@ fn wire_session_id_pins_to_one_seat_for_the_default_ttl() {
         &gate,
         now,
         &key,
-        DEFAULT_SESSION_TTL,
+        SESSION_TTL,
         1,
     )
     .expect("first lease");
@@ -79,14 +81,14 @@ fn wire_session_id_pins_to_one_seat_for_the_default_ttl() {
     first.complete(SeatOutcome::Ok, now).unwrap();
 
     // Just under the 6h TTL: same seat.
-    let later = now + DEFAULT_SESSION_TTL - Duration::from_secs(1);
+    let later = now + SESSION_TTL - Duration::from_secs(1);
     let again = SubscriptionPool::lease_sticky_with_estimate(
         &pool,
         &agent(),
         &gate,
         later,
         &key,
-        DEFAULT_SESSION_TTL,
+        SESSION_TTL,
         1,
     )
     .expect("lease within ttl");
@@ -107,15 +109,13 @@ fn rebind_on_429_failover_moves_off_the_cooling_seat() {
         &gate,
         now,
         &key,
-        DEFAULT_SESSION_TTL,
+        SESSION_TTL,
         1,
     )
     .unwrap();
     let pinned = first.seat_id().clone();
     // 429 on the pinned seat drops the binding and cools the seat.
-    first
-        .complete(SeatOutcome::RateLimited429, now)
-        .unwrap();
+    first.complete(SeatOutcome::RateLimited429, now).unwrap();
 
     let rebound = SubscriptionPool::lease_sticky_with_estimate(
         &pool,
@@ -123,7 +123,7 @@ fn rebind_on_429_failover_moves_off_the_cooling_seat() {
         &gate,
         now + Duration::from_secs(1),
         &key,
-        DEFAULT_SESSION_TTL,
+        SESSION_TTL,
         1,
     )
     .expect("rebind after 429");
@@ -148,7 +148,7 @@ fn message_fingerprint_path_pins_when_no_wire_id() {
         &gate,
         now,
         &key,
-        DEFAULT_SESSION_TTL,
+        SESSION_TTL,
         1,
     )
     .unwrap();
@@ -161,7 +161,7 @@ fn message_fingerprint_path_pins_when_no_wire_id() {
         &gate,
         now + Duration::from_secs(5),
         &key,
-        DEFAULT_SESSION_TTL,
+        SESSION_TTL,
         1,
     )
     .unwrap();
@@ -173,17 +173,32 @@ fn message_fingerprint_path_pins_when_no_wire_id() {
 fn cache_key_namespaces_provider_session_and_model() {
     let key = derive_sticky_key(Some("conv-9"), None).unwrap();
     assert_eq!(
-        prompt_cache_key(Provider::Anthropic, &key, "claude-sonnet-4"),
-        "anthropic::wsid:conv-9::claude-sonnet-4"
+        prompt_cache_key(&tenant(), Provider::Anthropic, &key, "claude-sonnet-4"),
+        "v1:t8:tenant-ap9:anthropics11:wsid:conv-9m15:claude-sonnet-4"
+    );
+    // Distinct tenant => distinct cache slot (no cross-tenant cache reuse).
+    assert_ne!(
+        prompt_cache_key(
+            &TenantId::new("tenant-a").unwrap(),
+            Provider::Anthropic,
+            &key,
+            "m"
+        ),
+        prompt_cache_key(
+            &TenantId::new("tenant-b").unwrap(),
+            Provider::Anthropic,
+            &key,
+            "m"
+        )
     );
     // Distinct model => distinct cache slot (no cross-model cache reuse).
     assert_ne!(
-        prompt_cache_key(Provider::Anthropic, &key, "claude-opus-4"),
-        prompt_cache_key(Provider::Anthropic, &key, "claude-sonnet-4")
+        prompt_cache_key(&tenant(), Provider::Anthropic, &key, "claude-opus-4"),
+        prompt_cache_key(&tenant(), Provider::Anthropic, &key, "claude-sonnet-4")
     );
     // Distinct provider => distinct cache slot.
     assert_ne!(
-        prompt_cache_key(Provider::Anthropic, &key, "m"),
-        prompt_cache_key(Provider::Codex, &key, "m")
+        prompt_cache_key(&tenant(), Provider::Anthropic, &key, "m"),
+        prompt_cache_key(&tenant(), Provider::Codex, &key, "m")
     );
 }

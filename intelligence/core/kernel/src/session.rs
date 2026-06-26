@@ -14,26 +14,17 @@
 //!    stable for the whole conversation) or, when it does not, we derive a
 //!    privacy-preserving fingerprint from the first user message. We never store
 //!    or echo raw prompt content.
-//! 2. [`prompt_cache_key`] — the `provider::session::model` cache key the proxy
-//!    layer uses to address the upstream prompt cache.
+//! 2. [`prompt_cache_key`] — the `tenant::provider::session::model` cache key
+//!    the proxy layer uses to address the upstream prompt cache.
 //!
 //! Both are deterministic and side-effect free so they can be proptested and so
 //! two gateway replicas pin identical sessions to identical keys.
 
-use std::time::Duration;
+use std::fmt::Write as _;
 
 use sha2::{Digest, Sha256};
 
-use crate::Provider;
-
-/// Canonical session-pinning TTL. A conversation stays bound to its seat for
-/// this long after the most recent turn; past it the binding expires and the
-/// next request is free to land on the best seat per the pool's strategy.
-///
-/// Six hours mirrors the provider five-hour quota window plus headroom, so a
-/// pin survives a full active session without outliving the quota cycle it was
-/// optimized against.
-pub const DEFAULT_SESSION_TTL: Duration = Duration::from_secs(6 * 60 * 60);
+use crate::{Provider, TenantId};
 
 /// Namespace prefix for keys derived from a client-supplied wire session id.
 const WIRE_SESSION_PREFIX: &str = "wsid:";
@@ -72,7 +63,10 @@ pub fn derive_sticky_key(
 /// Build the message-derived sticky key: `sticky:<sha256(message)[:16 hex]>`.
 /// Raw prompt content never appears in the output.
 pub(crate) fn message_sticky_key(first_user_message: &str) -> String {
-    format!("{MESSAGE_PREFIX}{}", message_fingerprint(first_user_message))
+    format!(
+        "{MESSAGE_PREFIX}{}",
+        message_fingerprint(first_user_message)
+    )
 }
 
 fn message_fingerprint(first_user_message: &str) -> String {
@@ -90,10 +84,32 @@ fn message_fingerprint(first_user_message: &str) -> String {
 }
 
 /// Address the upstream prompt cache for a pinned session:
-/// `provider::session::model`. Deterministic in all three inputs so the proxy
-/// layer and any observer derive the same key.
-pub fn prompt_cache_key(provider: Provider, sticky_key: &str, model: &str) -> String {
-    format!("{provider}::{sticky_key}::{model}")
+/// `tenant::provider::session::model`. The tenant segment makes the helper safe
+/// for shared cache infrastructure; TTL stays caller-supplied at the pool seam.
+pub fn prompt_cache_key(
+    tenant_id: &TenantId,
+    provider: Provider,
+    sticky_key: &str,
+    model: &str,
+) -> String {
+    let mut key = String::with_capacity(
+        "v1:".len()
+            + tenant_id.as_str().len()
+            + provider.to_string().len()
+            + sticky_key.len()
+            + model.len()
+            + 32,
+    );
+    key.push_str("v1:");
+    push_segment(&mut key, 't', tenant_id.as_str());
+    push_segment(&mut key, 'p', &provider.to_string());
+    push_segment(&mut key, 's', sticky_key);
+    push_segment(&mut key, 'm', model);
+    key
+}
+
+fn push_segment(key: &mut String, tag: char, value: &str) {
+    let _ = write!(key, "{tag}{}:{value}", value.len());
 }
 
 #[cfg(test)]
@@ -102,15 +118,13 @@ mod tests {
 
     #[test]
     fn wire_session_id_takes_precedence_over_message() {
-        let key = derive_sticky_key(Some("conv-123"), Some("hello"))
-            .expect("a signal is present");
+        let key = derive_sticky_key(Some("conv-123"), Some("hello")).expect("a signal is present");
         assert_eq!(key, "wsid:conv-123");
     }
 
     #[test]
     fn falls_back_to_message_fingerprint_when_no_wire_id() {
-        let key = derive_sticky_key(None, Some("the user prompt"))
-            .expect("message present");
+        let key = derive_sticky_key(None, Some("the user prompt")).expect("message present");
         assert!(key.starts_with("sticky:"));
         assert!(!key.contains("the user prompt"));
         assert_eq!(key.len(), "sticky:".len() + FINGERPRINT_HEX_LEN);
@@ -135,13 +149,22 @@ mod tests {
     }
 
     #[test]
-    fn cache_key_is_provider_session_model() {
-        let key = prompt_cache_key(Provider::Anthropic, "wsid:conv-1", "claude-opus-4");
-        assert_eq!(key, "anthropic::wsid:conv-1::claude-opus-4");
+    fn cache_key_is_tenant_provider_session_model() {
+        let tenant = TenantId::new("tenant-a").unwrap();
+        let key = prompt_cache_key(&tenant, Provider::Anthropic, "wsid:conv-1", "claude-opus-4");
+        assert_eq!(
+            key,
+            "v1:t8:tenant-ap9:anthropics11:wsid:conv-1m14:claude-opus-4"
+        );
     }
 
     #[test]
-    fn ttl_is_six_hours() {
-        assert_eq!(DEFAULT_SESSION_TTL, Duration::from_secs(21_600));
+    fn cache_key_is_unambiguous_when_segments_contain_delimiters() {
+        let tenant = TenantId::new("a::b").unwrap();
+        let other_tenant = TenantId::new("a").unwrap();
+        assert_ne!(
+            prompt_cache_key(&tenant, Provider::Anthropic, "c", "d"),
+            prompt_cache_key(&other_tenant, Provider::Anthropic, "b::c", "d")
+        );
     }
 }
