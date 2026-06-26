@@ -1,7 +1,29 @@
 use iam_tenant_rbac_erp_parity_map::{
-    ErpParityMapError, ParityTier, SapModuleCode, erp_parity_map_capabilities, find_erp_module,
-    is_forbidden_erp_platform_destination, tenant_rbac_erp_parity_map, validate_erp_parity_map,
+    ErpParityMapError, HyperscalerParityFacet, HyperscalerParityStatus, ParityTier, SapModuleCode,
+    erp_hyperscaler_parity_matrix, erp_parity_map_capabilities, find_erp_module,
+    is_forbidden_erp_platform_destination, tenant_rbac_erp_parity_map,
+    validate_erp_hyperscaler_parity_matrix, validate_erp_parity_map,
 };
+use std::path::{Path, PathBuf};
+
+fn repo_root() -> PathBuf {
+    let mut dir = std::env::current_dir().expect("current_dir");
+    for _ in 0..16 {
+        if dir.join("specs/root-hub-pointers.json").is_file() {
+            return dir;
+        }
+        if !dir.pop() {
+            break;
+        }
+    }
+    panic!("failed to locate repo root from test current_dir");
+}
+
+fn path_without_fragment(reference: &str) -> &str {
+    reference
+        .split_once('#')
+        .map_or(reference, |(path, _)| path)
+}
 
 #[test]
 fn erp_parity_map_covers_sap_modules_without_erp_platform_service() {
@@ -343,6 +365,7 @@ fn capabilities_keep_runtime_and_cloud_non_claims_false() {
     assert!(!capabilities.workflow_engine_execution_attached);
     assert!(!capabilities.cloud_deployment_attached);
     assert!(!capabilities.runtime_audit_chain_emission_attached);
+    assert_eq!(capabilities.schema_version, 1);
 }
 
 #[test]
@@ -357,4 +380,83 @@ fn validation_rejects_erp_platform_destination() {
             destination: "microservices/erp",
         }
     );
+}
+
+#[test]
+fn hyperscaler_parity_matrix_tracks_required_control_plane_facets() {
+    let matrix = erp_hyperscaler_parity_matrix();
+    validate_erp_hyperscaler_parity_matrix(matrix).expect("hyperscaler parity matrix validates");
+    assert_eq!(matrix.len(), 15);
+
+    for criterion in matrix {
+        assert!(!criterion.benchmark_surface.trim().is_empty());
+        assert!(!criterion.oyatie_evidence_refs.is_empty());
+        assert!(!criterion.gap_closure_gate.trim().is_empty());
+    }
+
+    assert!(matrix.iter().any(|criterion| {
+        criterion.facet == HyperscalerParityFacet::ControlPlaneApi
+            && criterion.status == HyperscalerParityStatus::GapTracked
+    }));
+    assert!(matrix.iter().any(|criterion| {
+        criterion.facet == HyperscalerParityFacet::BillingMetering
+            && criterion.status == HyperscalerParityStatus::GapTracked
+    }));
+    assert!(matrix.iter().any(|criterion| {
+        criterion.facet == HyperscalerParityFacet::OperationalRunbooks
+            && criterion.status == HyperscalerParityStatus::Verified
+    }));
+}
+
+#[test]
+fn hyperscaler_parity_matrix_validation_rejects_missing_required_facet() {
+    let mut matrix = erp_hyperscaler_parity_matrix().to_vec();
+    matrix.retain(|criterion| criterion.facet != HyperscalerParityFacet::ControlPlaneApi);
+
+    let error = validate_erp_hyperscaler_parity_matrix(&matrix)
+        .expect_err("missing control-plane API facet is rejected");
+    assert_eq!(
+        error,
+        ErpParityMapError::MissingHyperscalerParityFacet("control-plane API")
+    );
+}
+
+#[test]
+fn hyperscaler_parity_matrix_validation_rejects_missing_benchmark_surface() {
+    let mut matrix = erp_hyperscaler_parity_matrix().to_vec();
+    matrix[0].benchmark_surface = " ";
+
+    let error = validate_erp_hyperscaler_parity_matrix(&matrix)
+        .expect_err("missing hyperscaler benchmark surface is rejected");
+    assert_eq!(
+        error,
+        ErpParityMapError::MissingHyperscalerParityBenchmark(
+            HyperscalerParityFacet::ControlPlaneApi,
+        )
+    );
+}
+
+#[test]
+fn hyperscaler_parity_matrix_evidence_refs_resolve_to_repo_paths() {
+    let root = repo_root();
+
+    for criterion in erp_hyperscaler_parity_matrix() {
+        for reference in criterion.oyatie_evidence_refs {
+            let path = path_without_fragment(reference);
+            assert!(
+                Path::new(path).is_relative(),
+                "matrix evidence references must stay repo-relative: {reference}"
+            );
+            assert!(
+                !Path::new(path)
+                    .components()
+                    .any(|component| matches!(component, std::path::Component::ParentDir)),
+                "matrix evidence references must not climb out of the repo: {reference}"
+            );
+            assert!(
+                root.join(path).exists(),
+                "matrix evidence reference does not resolve: {reference}"
+            );
+        }
+    }
 }

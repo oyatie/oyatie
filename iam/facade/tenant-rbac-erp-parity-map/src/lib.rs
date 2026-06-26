@@ -74,6 +74,40 @@ pub enum ParityTier {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum HyperscalerParityFacet {
+    ControlPlaneApi,
+    ResourceModel,
+    LifecycleOperations,
+    TenantAccountIsolation,
+    IamAuthzPolicy,
+    QuotaCapacity,
+    BillingMetering,
+    AuditEventTrail,
+    ObservabilitySlos,
+    RegionalCellResidency,
+    BackupRestoreRollback,
+    SecurityThreatModel,
+    ComplianceEvidence,
+    SdkApiErgonomics,
+    OperationalRunbooks,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum HyperscalerParityStatus {
+    Verified,
+    GapTracked,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct ErpHyperscalerParityCriterion {
+    pub facet: HyperscalerParityFacet,   // data_class: PUBLIC
+    pub benchmark_surface: &'static str, // data_class: PUBLIC
+    pub oyatie_evidence_refs: &'static [&'static str], // data_class: PUBLIC
+    pub status: HyperscalerParityStatus, // data_class: PUBLIC
+    pub gap_closure_gate: &'static str,  // data_class: PUBLIC
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ErpParityModuleCoverage {
     pub sap_code: SapModuleCode,                      // data_class: PUBLIC
     pub module_name: &'static str,                    // data_class: PUBLIC
@@ -111,6 +145,11 @@ pub enum ErpParityMapError {
         destination: &'static str,
     },
     UnsupportedRuntimeClaim(SapModuleCode),
+    MissingHyperscalerParityFacet(&'static str),
+    DuplicateHyperscalerParityFacet(HyperscalerParityFacet),
+    MissingHyperscalerParityBenchmark(HyperscalerParityFacet),
+    EmptyHyperscalerParityEvidence(HyperscalerParityFacet),
+    MissingHyperscalerParityGate(HyperscalerParityFacet),
 }
 
 const REQUIRED_MODULES: &[(SapModuleCode, &str)] = &[
@@ -137,6 +176,216 @@ const REQUIRED_MODULES: &[(SapModuleCode, &str)] = &[
     (SapModuleCode::Network, "NETWORK"),
     (SapModuleCode::Platform, "PLATFORM"),
     (SapModuleCode::Data, "DATA"),
+];
+
+const REQUIRED_HYPERSCALER_PARITY_FACETS: &[(HyperscalerParityFacet, &str)] = &[
+    (HyperscalerParityFacet::ControlPlaneApi, "control-plane API"),
+    (HyperscalerParityFacet::ResourceModel, "resource model"),
+    (
+        HyperscalerParityFacet::LifecycleOperations,
+        "lifecycle operations",
+    ),
+    (
+        HyperscalerParityFacet::TenantAccountIsolation,
+        "tenant/project/account isolation",
+    ),
+    (HyperscalerParityFacet::IamAuthzPolicy, "IAM/authz policy"),
+    (HyperscalerParityFacet::QuotaCapacity, "quota/capacity"),
+    (HyperscalerParityFacet::BillingMetering, "billing/metering"),
+    (HyperscalerParityFacet::AuditEventTrail, "audit/event trail"),
+    (
+        HyperscalerParityFacet::ObservabilitySlos,
+        "observability/SLOs",
+    ),
+    (
+        HyperscalerParityFacet::RegionalCellResidency,
+        "regional/cell/residency behavior",
+    ),
+    (
+        HyperscalerParityFacet::BackupRestoreRollback,
+        "backup/restore or rollback",
+    ),
+    (
+        HyperscalerParityFacet::SecurityThreatModel,
+        "security/threat model",
+    ),
+    (
+        HyperscalerParityFacet::ComplianceEvidence,
+        "compliance evidence",
+    ),
+    (
+        HyperscalerParityFacet::SdkApiErgonomics,
+        "SDK/API ergonomics",
+    ),
+    (
+        HyperscalerParityFacet::OperationalRunbooks,
+        "operational runbooks",
+    ),
+];
+
+const ERP_HYPERSCALER_PARITY_MATRIX: &[ErpHyperscalerParityCriterion] = &[
+    ErpHyperscalerParityCriterion {
+        facet: HyperscalerParityFacet::ControlPlaneApi,
+        benchmark_surface: "hyperscaler resource control planes and ERP SaaS administration APIs",
+        oyatie_evidence_refs: &[
+            "docs/products/erp-coverage/PRD.md",
+            "oya/financial-planning/contracts/openapi-v1.yaml",
+            "iam/facade/tenant-rbac-erp-parity-map/src/lib.rs",
+        ],
+        status: HyperscalerParityStatus::GapTracked,
+        gap_closure_gate: "Every ERP module parity row must remain API-contract-backed before any runtime claim.",
+    },
+    ErpHyperscalerParityCriterion {
+        facet: HyperscalerParityFacet::ResourceModel,
+        benchmark_surface: "hyperscaler resource graphs and enterprise ERP module taxonomy",
+        oyatie_evidence_refs: &[
+            "docs/products/erp-coverage/PRD.md",
+            "iam/facade/tenant-rbac-erp-parity-map/src/lib.rs",
+        ],
+        status: HyperscalerParityStatus::Verified,
+        gap_closure_gate: "ERP modules must map to flat Oyatie destinations without introducing an ERP platform service.",
+    },
+    ErpHyperscalerParityCriterion {
+        facet: HyperscalerParityFacet::LifecycleOperations,
+        benchmark_surface: "ERP SaaS module activation and cloud resource lifecycle operations",
+        oyatie_evidence_refs: &[
+            "docs/products/erp-coverage/PRD.md",
+            "oya/financial-planning/capabilities/forecast-version-open.yaml",
+            "oya/financial-planning/capabilities/scenario-recalculate.yaml",
+        ],
+        status: HyperscalerParityStatus::GapTracked,
+        gap_closure_gate: "Lifecycle semantics stay service-owned until each module publishes capability-level operations.",
+    },
+    ErpHyperscalerParityCriterion {
+        facet: HyperscalerParityFacet::TenantAccountIsolation,
+        benchmark_surface: "cloud account, project, cell, and ERP SaaS tenant isolation",
+        oyatie_evidence_refs: &[
+            "oya/financial-planning/manifest.json",
+            "oya/financial-planning/contracts/openapi-v1.yaml",
+            "iam/facade/tenant-rbac-erp-parity-map/src/lib.rs",
+        ],
+        status: HyperscalerParityStatus::Verified,
+        gap_closure_gate: "ERP parity rows must preserve tenant and cell boundaries through existing domain services.",
+    },
+    ErpHyperscalerParityCriterion {
+        facet: HyperscalerParityFacet::IamAuthzPolicy,
+        benchmark_surface: "cloud IAM, ERP authorization objects, and Cedar policy enforcement",
+        oyatie_evidence_refs: &[
+            "oya/financial-planning/cedar/policies.cedar",
+            "oya/financial-planning/policy/forecast-scenario-authorization.cedar",
+            "iam/facade/tenant-rbac-erp-parity-map/tests/parity.rs",
+        ],
+        status: HyperscalerParityStatus::Verified,
+        gap_closure_gate: "ERP composition must retain Cedar-backed authorization instead of vendor-suite authority.",
+    },
+    ErpHyperscalerParityCriterion {
+        facet: HyperscalerParityFacet::QuotaCapacity,
+        benchmark_surface: "cloud quotas, capacity reservations, and SaaS planning workload limits",
+        oyatie_evidence_refs: &[
+            "oya/financial-planning/manifest.json",
+            "oya/financial-planning/dashboards/tenant-cost-and-capacity.json",
+        ],
+        status: HyperscalerParityStatus::GapTracked,
+        gap_closure_gate: "Quota and capacity claims must remain explicit per composed service before ERP-wide promotion.",
+    },
+    ErpHyperscalerParityCriterion {
+        facet: HyperscalerParityFacet::BillingMetering,
+        benchmark_surface: "cloud billing, ERP entitlement, and SaaS usage meters",
+        oyatie_evidence_refs: &[
+            "docs/products/erp-coverage/PRD.md",
+            "oya/financial-planning/manifest.json",
+        ],
+        status: HyperscalerParityStatus::GapTracked,
+        gap_closure_gate: "Billing/metering remains DealSet and service-meter-owned until each module exposes meter events.",
+    },
+    ErpHyperscalerParityCriterion {
+        facet: HyperscalerParityFacet::AuditEventTrail,
+        benchmark_surface: "cloud audit logs and ERP financial control evidence",
+        oyatie_evidence_refs: &[
+            "docs/products/erp-coverage/PRD.md",
+            "oya/financial-planning/contracts/asyncapi-v1.yaml",
+            "oya/financial-planning/contracts/openapi-v1.yaml",
+        ],
+        status: HyperscalerParityStatus::Verified,
+        gap_closure_gate: "Audit event references must remain part of ERP product and API evidence before runtime claims.",
+    },
+    ErpHyperscalerParityCriterion {
+        facet: HyperscalerParityFacet::ObservabilitySlos,
+        benchmark_surface: "cloud monitoring, ERP operations cockpit, and planning SaaS SLOs",
+        oyatie_evidence_refs: &[
+            "oya/financial-planning/slos/availability.openslo.yaml",
+            "oya/financial-planning/slos/read-latency.openslo.yaml",
+            "oya/financial-planning/dashboards/slo-and-error-budget.json",
+        ],
+        status: HyperscalerParityStatus::Verified,
+        gap_closure_gate: "Each promoted ERP domain must retain SLO and dashboard evidence under its owning service.",
+    },
+    ErpHyperscalerParityCriterion {
+        facet: HyperscalerParityFacet::RegionalCellResidency,
+        benchmark_surface: "cloud regions, accounts, projects, and sovereign ERP tenant cells",
+        oyatie_evidence_refs: &[
+            "oya/financial-planning/manifest.json",
+            "oya/financial-planning/iac/dr-failover.yaml",
+            "oya/financial-planning/runbooks/regional-failover.md",
+        ],
+        status: HyperscalerParityStatus::Verified,
+        gap_closure_gate: "ERP parity must preserve cell placement, residency, and pack constraints in composed services.",
+    },
+    ErpHyperscalerParityCriterion {
+        facet: HyperscalerParityFacet::BackupRestoreRollback,
+        benchmark_surface: "cloud backup/restore, ERP period rollback, and planning scenario replay",
+        oyatie_evidence_refs: &[
+            "oya/financial-planning/manifest.json",
+            "oya/financial-planning/runbooks/driver-model-import-rollback.md",
+            "oya/financial-planning/runbooks/regional-failover.md",
+        ],
+        status: HyperscalerParityStatus::GapTracked,
+        gap_closure_gate: "Backup, restore, and rollback evidence must stay service-local until an ERP control plane exists.",
+    },
+    ErpHyperscalerParityCriterion {
+        facet: HyperscalerParityFacet::SecurityThreatModel,
+        benchmark_surface: "cloud shared-responsibility models and ERP segregation-of-duties controls",
+        oyatie_evidence_refs: &[
+            "docs/products/erp-coverage/PRD.md",
+            "oya/financial-planning/dpia/dpia.md",
+            "oya/financial-planning/policy/abuse-defence.cedar",
+        ],
+        status: HyperscalerParityStatus::GapTracked,
+        gap_closure_gate: "Security posture must remain explicit per module and policy file before ERP-wide exposure.",
+    },
+    ErpHyperscalerParityCriterion {
+        facet: HyperscalerParityFacet::ComplianceEvidence,
+        benchmark_surface: "cloud compliance reports, SOX evidence, and ERP audit packs",
+        oyatie_evidence_refs: &[
+            "docs/products/erp-coverage/PRD.md",
+            "oya/financial-planning/manifest.json",
+            "oya/financial-planning/dpia/dpia.md",
+        ],
+        status: HyperscalerParityStatus::Verified,
+        gap_closure_gate: "Compliance-pack evidence must be cited before any module parity row moves past composition.",
+    },
+    ErpHyperscalerParityCriterion {
+        facet: HyperscalerParityFacet::SdkApiErgonomics,
+        benchmark_surface: "cloud SDKs, ERP extension APIs, and financial planning public contracts",
+        oyatie_evidence_refs: &[
+            "oya/financial-planning/contracts/openapi-v1.yaml",
+            "oya/financial-planning/contracts/financial-planning-v1.proto",
+            "oya/financial-planning/contracts/asyncapi-v1.yaml",
+        ],
+        status: HyperscalerParityStatus::GapTracked,
+        gap_closure_gate: "SDK/API ergonomics stays contract-backed and provider-neutral before generated clients land.",
+    },
+    ErpHyperscalerParityCriterion {
+        facet: HyperscalerParityFacet::OperationalRunbooks,
+        benchmark_surface: "cloud service runbooks, ERP operations, and planning SaaS incident guides",
+        oyatie_evidence_refs: &[
+            "oya/financial-planning/runbooks/regional-failover.md",
+            "oya/financial-planning/runbooks/budget-lock-breakglass.md",
+            "oya/financial-planning/runbooks/forecast-version-conflict.md",
+        ],
+        status: HyperscalerParityStatus::Verified,
+        gap_closure_gate: "Every promoted ERP capability must retain an owning runbook or remain a tracked gap.",
+    },
 ];
 
 const ERP_PARITY_MODULES: &[ErpParityModuleCoverage] = &[
@@ -727,6 +976,10 @@ pub fn erp_parity_map_capabilities() -> ErpParityMapCapabilities {
     }
 }
 
+pub fn erp_hyperscaler_parity_matrix() -> &'static [ErpHyperscalerParityCriterion] {
+    ERP_HYPERSCALER_PARITY_MATRIX
+}
+
 pub fn find_erp_module(code: SapModuleCode) -> Option<&'static ErpParityModuleCoverage> {
     ERP_PARITY_MODULES
         .iter()
@@ -760,6 +1013,45 @@ pub fn validate_erp_parity_map(rows: &[ErpParityModuleCoverage]) -> Result<(), E
                 sap_code: row.sap_code,
                 destination,
             });
+        }
+    }
+
+    Ok(())
+}
+
+pub fn validate_erp_hyperscaler_parity_matrix(
+    matrix: &[ErpHyperscalerParityCriterion],
+) -> Result<(), ErpParityMapError> {
+    for (required, label) in REQUIRED_HYPERSCALER_PARITY_FACETS {
+        let count = matrix
+            .iter()
+            .filter(|criterion| criterion.facet == *required)
+            .count();
+        if count == 0 {
+            return Err(ErpParityMapError::MissingHyperscalerParityFacet(label));
+        }
+        if count > 1 {
+            return Err(ErpParityMapError::DuplicateHyperscalerParityFacet(
+                *required,
+            ));
+        }
+    }
+
+    for criterion in matrix {
+        if criterion.benchmark_surface.trim().is_empty() {
+            return Err(ErpParityMapError::MissingHyperscalerParityBenchmark(
+                criterion.facet,
+            ));
+        }
+        if criterion.oyatie_evidence_refs.is_empty() {
+            return Err(ErpParityMapError::EmptyHyperscalerParityEvidence(
+                criterion.facet,
+            ));
+        }
+        if criterion.gap_closure_gate.trim().is_empty() {
+            return Err(ErpParityMapError::MissingHyperscalerParityGate(
+                criterion.facet,
+            ));
         }
     }
 
