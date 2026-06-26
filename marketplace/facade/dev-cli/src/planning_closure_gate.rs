@@ -524,7 +524,7 @@ fn validate_live_planning_root_authority(
             }
             if retired_oya_vcs_ratchet_is_active_authority(line) {
                 return Err(format!(
-                    "{live_root}:{line_number} contains retired Oya VCS claim/verify/done/promote ratchet wording as active authority; live planning roots must use plain git plus protected PRs and {EXPECTED_GATE_COMMAND:?}, or mark the retired ratchet as retired/provenance-only",
+                    "{live_root}:{line_number} contains active Oya VCS claim/admission/claimable authority; live planning roots must use plain git plus protected PRs and {EXPECTED_GATE_COMMAND:?}, or mark Oya VCS references as retired/provenance-only/future-target",
                     line_number = index + 1,
                 ));
             }
@@ -540,11 +540,25 @@ fn retired_planning_closure_command_is_provenance_only(line: &str) -> bool {
 
 fn retired_oya_vcs_ratchet_is_active_authority(line: &str) -> bool {
     let lower = line.to_ascii_lowercase();
-    lower.contains("claim each changeset with oya vcs")
-        && lower.contains("verify before downstream work")
-        && lower.contains("mark done")
-        && lower.contains("promote only after review")
-        && !retired_planning_closure_command_is_provenance_only(line)
+    lower.contains("oya vcs")
+        && !oya_vcs_authority_is_marked_inactive(&lower)
+        && (lower.contains("claim/admission")
+            || lower.contains("claimable through")
+            || lower.contains("accepts the claim")
+            || lower.contains("claim state")
+            || lower.contains("admission names")
+            || (lower.contains("claim each changeset")
+                && lower.contains("verify before downstream work")
+                && lower.contains("mark done")
+                && lower.contains("promote only after review")))
+}
+
+fn oya_vcs_authority_is_marked_inactive(lower: &str) -> bool {
+    lower.contains("retired")
+        || lower.contains("provenance")
+        || lower.contains("historical")
+        || lower.contains("future-target")
+        || lower.contains("future target")
 }
 
 fn validate_root_hub(root: &Map<String, Value>) -> Result<(), String> {

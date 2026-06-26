@@ -5782,9 +5782,55 @@ fn planning_closure_gate_rejects_live_goal_prompt_with_retired_oya_vcs_ratchet()
     assert!(!output.status.success());
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
-        stderr.contains("retired Oya VCS claim/verify/done/promote ratchet")
+        stderr.contains("active Oya VCS claim/admission/claimable authority")
             && stderr.contains("fd001-planning-closure-implementation-goal-2026-05-19.json"),
         "stderr={stderr}"
+    );
+}
+
+#[test]
+fn planning_closure_gate_rejects_live_status_ledger_with_active_oya_vcs_authority() {
+    let temp = TempDirGuard::new("planning-closure-active-oya-vcs-status-ledger");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let root = repo_root();
+    let (root_hub, status_ledger) = write_planning_closure_repo_sidecars(temp.path());
+    let mut ledger = read_planning_closure_json(&status_ledger);
+    ledger["closure_scope"]["current_claim_alignment"]["authoritative_selection_inputs"][1] =
+        serde_json::json!("Oya VCS claim/admission state");
+    write_planning_closure_json(&status_ledger, &ledger);
+
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root_hub,
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("active Oya VCS claim/admission/claimable authority")
+            && stderr.contains("planning-closure-status-closure-ledger.json"),
+        "stderr={stderr}"
+    );
+
+    ledger["closure_scope"]["current_claim_alignment"]["authoritative_selection_inputs"][1] =
+        serde_json::json!("Oya VCS claim/admission state (future-target/provenance-only)");
+    write_planning_closure_json(&status_ledger, &ledger);
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root_hub,
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
     );
 }
 
