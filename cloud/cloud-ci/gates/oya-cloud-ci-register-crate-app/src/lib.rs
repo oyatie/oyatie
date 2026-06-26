@@ -65,13 +65,14 @@ use oya_cloud_ci_capability_membership_app::{Mapping, homes_for, parse_mapping};
 // `evaluate_keyed` is driven over the POST-settle faces so the just-registered crate is validated
 // against the SAME gate logic CI runs (never a reimplementation). All three are cycle-free (they dep
 // only serde_json / a downward libs/ crate, never back to this orchestrator).
-use oya_crate_registrar_app::{WriterError, adr_governed_paths, capability_mapping, catalog_yaml,
-    workspace_member_glob};
+use oya_ci_config_kernel::OyaCiConfig;
+use oya_crate_registrar_app::{
+    WriterError, adr_governed_paths, capability_mapping, catalog_yaml, workspace_member_glob,
+};
 use oya_crate_registrar_kernel::{
     CapabilitySet, CurrentState, Edit, RegisterCrateRequest, RegistrationPlan, ValidationError,
     plan_register_crate,
 };
-use oya_ci_config_kernel::OyaCiConfig;
 use serde_json::Value;
 
 /// The repo-relative closed capability registry — the SSOT for both the closed
@@ -84,6 +85,9 @@ const FACES_DIR: &str = "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-a
 
 /// The committed scm-facts snapshot face name (the emitter's `--out`, the producer's `--scm-facts`).
 const SCM_FACTS_FACE: &str = "scm-facts.generated.json";
+const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: &str = ".claude/settings.json";
+const ENFORCEMENT_LIVENESS_CODEX_HOOKS: &str = ".codex/hooks.json";
+const ENFORCEMENT_LIVENESS_HOOKS_DIR: &str = "tools/hooks";
 
 /// The repo-relative move-manifest the codemod's `manifest` subcommand emits and the emitter
 /// consumes (materialize.sh step 1 → step 2). A pure function of (committed plan + candidate tree).
@@ -98,8 +102,7 @@ const MOVE_PLAN_DIR: &str = "specs/reorg";
 /// built-binary path — the same shape the freshness gate's `build_face_tools` uses.
 const EMITTER_TARGET: &str =
     "//cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app:oya-cloud-ci-scm-facts-emitter-app";
-const PRODUCER_TARGET: &str =
-    "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin";
+const PRODUCER_TARGET: &str = "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin";
 const CODEMOD_TARGET: &str = "//tools/oya-reorg-codemod-app:oya-reorg-codemod";
 
 /// The 6 producer faces the producer writes (and the byte-rediff re-renders), as
@@ -109,10 +112,26 @@ const PRODUCER_FACES: [(&str, &str); 6] = [
     ("accounting-registry.generated.json", "registry"),
     ("ttl-policy.generated.json", "ttl-policy"),
     ("decision-crosswalk.generated.json", "decision-crosswalk"),
-    ("enforcement-inventory.generated.json", "enforcement-inventory"),
-    ("enforcement-liveness.generated.json", "enforcement-liveness"),
+    (
+        "enforcement-inventory.generated.json",
+        "enforcement-inventory",
+    ),
+    (
+        "enforcement-liveness.generated.json",
+        "enforcement-liveness",
+    ),
     ("gate-baseline.generated.json", "baseline"),
 ];
+
+fn append_enforcement_liveness_corpus_args(command: &mut Command, repo_root: &Path) {
+    command
+        .arg("--enforcement-liveness-claude-settings")
+        .arg(repo_root.join(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS))
+        .arg("--enforcement-liveness-codex-hooks")
+        .arg(repo_root.join(ENFORCEMENT_LIVENESS_CODEX_HOOKS))
+        .arg("--enforcement-liveness-hooks-dir")
+        .arg(repo_root.join(ENFORCEMENT_LIVENESS_HOOKS_DIR));
+}
 
 /// The human remediation command for a settle failure, mirroring the freshness gate's
 /// `FACE_REMEDIATION_COMMAND`.
@@ -288,7 +307,9 @@ impl std::fmt::Display for RegisterError {
                  exist before its governed surfaces can be appended"
             ),
             RegisterError::Io(m) => write!(f, "register-crate io: {m}"),
-            RegisterError::RegenFailed(m) => write!(f, "register-crate faces-settle regen failed: {m}"),
+            RegisterError::RegenFailed(m) => {
+                write!(f, "register-crate faces-settle regen failed: {m}")
+            }
             RegisterError::DriftDetected { face } => write!(
                 f,
                 "register-crate faces-settle drift: re-written face {face:?} did not byte-match a \
@@ -305,7 +326,11 @@ impl std::fmt::Display for RegisterError {
                     findings.len()
                 )?;
                 for finding in findings {
-                    write!(f, " [{}:{} key={}]", finding.gate, finding.code, finding.key)?;
+                    write!(
+                        f,
+                        " [{}:{} key={}]",
+                        finding.gate, finding.code, finding.key
+                    )?;
                 }
                 Ok(())
             }
@@ -320,7 +345,9 @@ impl From<WriterError> for RegisterError {
         // The member-glob uncovered case is surfaced as its own fail-closed variant (the human
         // must add a glob) rather than an opaque writer error.
         match e {
-            WriterError::WorkspaceMemberUncovered(dir) => RegisterError::MemberGlobUncovered { dir },
+            WriterError::WorkspaceMemberUncovered(dir) => {
+                RegisterError::MemberGlobUncovered { dir }
+            }
             other => RegisterError::Writer(other),
         }
     }
@@ -356,7 +383,10 @@ impl From<ValidationError> for RegisterError {
 /// # Errors
 /// [`RegisterError`] on a plan refusal, a writer/bridge failure, an uncovered member glob, a
 /// missing ADR file, or a loader IO failure.
-pub fn register_crate(repo_root: &Path, req: &RegisterCrateRequest) -> Result<Outcome, RegisterError> {
+pub fn register_crate(
+    repo_root: &Path,
+    req: &RegisterCrateRequest,
+) -> Result<Outcome, RegisterError> {
     match register_crate_detailed(repo_root, req) {
         RegisterOutcome::Done(outcome) => Ok(outcome),
         RegisterOutcome::Failed { error, .. } => Err(error),
@@ -390,28 +420,51 @@ pub fn register_crate_detailed(repo_root: &Path, req: &RegisterCrateRequest) -> 
     // for every loader + bridge. Fail-closed on a malformed file (see [`load_config`]).
     let cfg = match load_config(repo_root) {
         Ok(c) => c,
-        Err(e) => return RegisterOutcome::Failed { error: e, applied: Vec::new() },
+        Err(e) => {
+            return RegisterOutcome::Failed {
+                error: e,
+                applied: Vec::new(),
+            };
+        }
     };
 
     // --- LOADERS: live SSOT snapshot the pure kernel consumes ---
     let capabilities = match load_capability_set(repo_root) {
         Ok(c) => c,
-        Err(e) => return RegisterOutcome::Failed { error: e, applied: Vec::new() },
+        Err(e) => {
+            return RegisterOutcome::Failed {
+                error: e,
+                applied: Vec::new(),
+            };
+        }
     };
     let tracked_paths = match list_tracked_paths(repo_root) {
         Ok(t) => t,
-        Err(e) => return RegisterOutcome::Failed { error: e, applied: Vec::new() },
+        Err(e) => {
+            return RegisterOutcome::Failed {
+                error: e,
+                applied: Vec::new(),
+            };
+        }
     };
     let current = match load_current_state(repo_root, &cfg, req, &tracked_paths) {
         Ok(c) => c,
-        Err(e) => return RegisterOutcome::Failed { error: e, applied: Vec::new() },
+        Err(e) => {
+            return RegisterOutcome::Failed {
+                error: e,
+                applied: Vec::new(),
+            };
+        }
     };
 
     // --- PLAN: the pure kernel computes the ordered upsert diff ---
     let plan: RegistrationPlan = match plan_register_crate(req, &current, &capabilities) {
         Ok(p) => p,
         Err(e) => {
-            return RegisterOutcome::Failed { error: RegisterError::Plan(e), applied: Vec::new() };
+            return RegisterOutcome::Failed {
+                error: RegisterError::Plan(e),
+                applied: Vec::new(),
+            };
         }
     };
 
@@ -528,7 +581,10 @@ impl RegenPort for Buck2RegenAdapter {
         if let Some(plan) = first_move_plan(repo_root)? {
             codemod.args(["--plan"]).arg(plan);
         }
-        codemod.args(["--out"]).arg(&manifest_out).current_dir(repo_root);
+        codemod
+            .args(["--out"])
+            .arg(&manifest_out)
+            .current_dir(repo_root);
         run_settle_status(&mut codemod, "codemod manifest")?;
 
         // 2. emitter: write the REAL scm-facts snapshot (+ the frozen gate-baseline snapshot the
@@ -549,15 +605,15 @@ impl RegenPort for Buck2RegenAdapter {
         // 3. producer: regenerate the 6 producer faces from the just-written scm-facts. The emitter
         //    MUST have succeeded first — a missing scm-facts is a HARD producer error (main.rs:84);
         //    we never reach here on an emitter failure (step 2 propagates as RegenFailed).
-        run_settle_status(
-            Command::new(&tools.producer)
-                .args(["--repo-root"])
-                .arg(repo_root)
-                .args(["--scm-facts"])
-                .arg(&scm_facts)
-                .current_dir(repo_root),
-            "accounting-registry producer",
-        )?;
+        let mut producer_command = Command::new(&tools.producer);
+        producer_command
+            .args(["--repo-root"])
+            .arg(repo_root)
+            .args(["--scm-facts"])
+            .arg(&scm_facts);
+        append_enforcement_liveness_corpus_args(&mut producer_command, repo_root);
+        producer_command.current_dir(repo_root);
+        run_settle_status(&mut producer_command, "accounting-registry producer")?;
 
         let mut written: Vec<String> = vec![SCM_FACTS_FACE.to_owned()];
         for (file_name, _face) in PRODUCER_FACES {
@@ -576,16 +632,18 @@ impl RegenPort for Buck2RegenAdapter {
         let tools = build_face_tools(repo_root)?;
         let scm_facts = repo_root.join(FACES_DIR).join(SCM_FACTS_FACE);
         for (file_name, face_name) in PRODUCER_FACES {
-            let rerender = run_settle_output(
-                Command::new(&tools.producer)
-                    .args(["--repo-root"])
-                    .arg(repo_root)
-                    .args(["--scm-facts"])
-                    .arg(&scm_facts)
-                    .args(["--stdout", "--face", face_name])
-                    .current_dir(repo_root),
-                &format!("byte-rediff re-render {file_name}"),
-            )?;
+            let mut command = Command::new(&tools.producer);
+            command
+                .args(["--repo-root"])
+                .arg(repo_root)
+                .args(["--scm-facts"])
+                .arg(&scm_facts);
+            append_enforcement_liveness_corpus_args(&mut command, repo_root);
+            command
+                .args(["--stdout", "--face", face_name])
+                .current_dir(repo_root);
+            let rerender =
+                run_settle_output(&mut command, &format!("byte-rediff re-render {file_name}"))?;
             let on_disk_path = repo_root.join(FACES_DIR).join(file_name);
             let on_disk = std::fs::read_to_string(&on_disk_path).map_err(|e| {
                 RegisterError::RegenFailed(format!(
@@ -594,7 +652,9 @@ impl RegenPort for Buck2RegenAdapter {
                 ))
             })?;
             if on_disk != rerender {
-                return Err(RegisterError::DriftDetected { face: file_name.to_owned() });
+                return Err(RegisterError::DriftDetected {
+                    face: file_name.to_owned(),
+                });
             }
         }
         Ok(())
@@ -606,19 +666,22 @@ impl RegenPort for Buck2RegenAdapter {
         // before self-validation), so the producer reads a fresh declared input — no ambient git.
         let tools = build_face_tools(repo_root)?;
         let scm_facts = repo_root.join(FACES_DIR).join(SCM_FACTS_FACE);
+        let mut command = Command::new(&tools.producer);
+        command
+            .args(["--repo-root"])
+            .arg(repo_root)
+            .args(["--scm-facts"])
+            .arg(&scm_facts);
+        append_enforcement_liveness_corpus_args(&mut command, repo_root);
+        command
+            .args(["--stdout", "--face", face])
+            .current_dir(repo_root);
         let rendered = run_settle_output(
-            Command::new(&tools.producer)
-                .args(["--repo-root"])
-                .arg(repo_root)
-                .args(["--scm-facts"])
-                .arg(&scm_facts)
-                .args(["--stdout", "--face", face])
-                .current_dir(repo_root),
+            &mut command,
             &format!("self-validation gate-input face {face}"),
         )?;
-        serde_json::from_str(&rendered).map_err(|e| {
-            RegisterError::RegenFailed(format!("parse gate-input face {face}: {e}"))
-        })
+        serde_json::from_str(&rendered)
+            .map_err(|e| RegisterError::RegenFailed(format!("parse gate-input face {face}: {e}")))
     }
 }
 
@@ -649,7 +712,11 @@ fn build_face_tools(repo_root: &Path) -> Result<FaceTools, RegisterError> {
     let emitter = parse_show_output_path(repo_root, &output, EMITTER_TARGET)?;
     let producer = parse_show_output_path(repo_root, &output, PRODUCER_TARGET)?;
     let codemod = parse_show_output_path(repo_root, &output, CODEMOD_TARGET)?;
-    Ok(FaceTools { codemod, emitter, producer })
+    Ok(FaceTools {
+        codemod,
+        emitter,
+        producer,
+    })
 }
 
 /// Parse a single `<target> <path>` line out of `buck2 build --show-output` by target-name match,
@@ -665,7 +732,11 @@ fn parse_show_output_path(
         let path = parts.next().unwrap_or_default();
         if seen_target.contains(target) && !path.is_empty() {
             let path = std::path::PathBuf::from(path);
-            return Ok(if path.is_absolute() { path } else { repo_root.join(path) });
+            return Ok(if path.is_absolute() {
+                path
+            } else {
+                repo_root.join(path)
+            });
         }
     }
     Err(RegisterError::RegenFailed(format!(
@@ -684,12 +755,18 @@ fn first_move_plan(repo_root: &Path) -> Result<Option<std::path::PathBuf>, Regis
     let entries = match std::fs::read_dir(&dir) {
         Ok(entries) => entries,
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
-        Err(e) => return Err(RegisterError::RegenFailed(format!("read {}: {e}", dir.display()))),
+        Err(e) => {
+            return Err(RegisterError::RegenFailed(format!(
+                "read {}: {e}",
+                dir.display()
+            )));
+        }
     };
     let mut plans: Vec<std::path::PathBuf> = Vec::new();
     for entry in entries {
-        let entry = entry
-            .map_err(|e| RegisterError::RegenFailed(format!("read entry in {}: {e}", dir.display())))?;
+        let entry = entry.map_err(|e| {
+            RegisterError::RegenFailed(format!("read entry in {}: {e}", dir.display()))
+        })?;
         let path = entry.path();
         let is_plan = path
             .file_name()
@@ -790,7 +867,10 @@ pub fn register_crate_and_settle(
     // Byte-rediff drift check: re-render each producer face and byte-compare to the just-written one.
     regen.verify_drift(repo_root)?;
 
-    outcome.faces_settled = Some(FacesSettled { faces_written, drift_clean: true });
+    outcome.faces_settled = Some(FacesSettled {
+        faces_written,
+        drift_clean: true,
+    });
 
     // Slice 3d: MinimalSubset runs the crate-scoped subset gate self-validation AFTER the faces are
     // settled (so each gate's evaluate_keyed sees the POST-settle faces). Skip stays a no-op (3c
@@ -798,7 +878,9 @@ pub fn register_crate_and_settle(
     if validate == ValidationMode::MinimalSubset {
         let new_findings = run_self_validation(repo_root, req, &outcome, regen)?;
         if !new_findings.is_empty() {
-            return Err(RegisterError::SelfValidationFailed { findings: new_findings });
+            return Err(RegisterError::SelfValidationFailed {
+                findings: new_findings,
+            });
         }
         outcome.validation = Some(SelfValidation { new_findings });
     }
@@ -1102,9 +1184,8 @@ fn dispatch_edit(
         Edit::ReachabilityEntry { path } => {
             // Producer bridge: `<prefix>=<anchor>`. The anchor names WHY the tree is reached; for a
             // kernel-emitted non-crate governed path the anchor is the owning registration context.
-            let anchor = format!(
-                "ADR-0568 born-accounting: register-crate reachability entry for {path}"
-            );
+            let anchor =
+                format!("ADR-0568 born-accounting: register-crate reachability entry for {path}");
             let spec = format!("{path}={anchor}");
             fix_reachability(repo_root, cfg, tracked_paths, &spec)?;
             Ok(Some(AppliedEdit {
@@ -1182,7 +1263,10 @@ fn load_capability_set(repo_root: &Path) -> Result<CapabilitySet, RegisterError>
 
     // 2. The expressible meta homes: app_products → `app/`, meta_directory_absorbs → `kernel/`/`os/`.
     if let Some(app) = coverage.and_then(|m| m.get("app_products")) {
-        let meta = app.get("meta_dir").and_then(Value::as_str).unwrap_or("app/");
+        let meta = app
+            .get("meta_dir")
+            .and_then(Value::as_str)
+            .unwrap_or("app/");
         set.insert(meta.to_owned());
     }
     if let Some(entries) = coverage
@@ -1217,8 +1301,7 @@ fn load_mapping(repo_root: &Path) -> Result<Mapping, RegisterError> {
         .map_err(|e| RegisterError::Io(format!("read {CAPABILITY_REGISTRY_PATH}: {e}")))?;
     let root: Value = serde_json::from_str(&text)
         .map_err(|e| RegisterError::Io(format!("parse {CAPABILITY_REGISTRY_PATH}: {e}")))?;
-    parse_mapping(&root)
-        .map_err(|e| RegisterError::Io(format!("{CAPABILITY_REGISTRY_PATH}: {e}")))
+    parse_mapping(&root).map_err(|e| RegisterError::Io(format!("{CAPABILITY_REGISTRY_PATH}: {e}")))
 }
 
 /// True iff `crate_dir` already maps to at least one capability/meta home, computed by REUSING the
@@ -1310,7 +1393,10 @@ fn owners_resolve_dir(
 fn member_glob_covers_dir(repo_root: &Path, dir: &str) -> Result<bool, RegisterError> {
     let abs = repo_root.join(workspace_member_glob::MANIFEST_PATH);
     let current = std::fs::read_to_string(&abs).map_err(|e| {
-        RegisterError::Io(format!("read {}: {e}", workspace_member_glob::MANIFEST_PATH))
+        RegisterError::Io(format!(
+            "read {}: {e}",
+            workspace_member_glob::MANIFEST_PATH
+        ))
     })?;
     match workspace_member_glob::compute(&current, dir) {
         Ok(_) => Ok(true),

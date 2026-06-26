@@ -69,40 +69,22 @@ const BYTE_PARITY_FACES: [(&str, &str); 5] = [
 const CONTROLLER_OWNED_FACES: [(&str, &str); 1] = [("gate-baseline.generated.json", "baseline")];
 
 const SCM_FACTS_FACE: &str = "scm-facts.generated.json";
+const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_ENV: &str =
+    "OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS";
+const ENFORCEMENT_LIVENESS_CODEX_HOOKS_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS";
+const ENFORCEMENT_LIVENESS_HOOKS_DIR_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR";
+const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: &str = ".claude/settings.json";
+const ENFORCEMENT_LIVENESS_CODEX_HOOKS: &str = ".codex/hooks.json";
+const ENFORCEMENT_LIVENESS_HOOKS_DIR: &str = "tools/hooks";
 
 /// The committed reorg move-manifest face (task #64). Byte-bound to the codemod's deterministic
 /// output exactly like the accounting faces + scm-facts: a hand-forged manifest row is
 /// registry_drift RED before the firewall consumes it (the anti-forgery binding for the
 /// rename-aware path-keyed baseline relabel).
 const MOVE_MANIFEST_FACE: &str = "specs/reorg/move-manifest.generated.json";
-const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_ENV: &str =
-    "OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS";
-const ENFORCEMENT_LIVENESS_CODEX_HOOKS_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS";
-const ENFORCEMENT_LIVENESS_HOOKS_DIR_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR";
 
 /// Run the producer to regenerate a single face to stdout. Prefers the buck2-provided binary
 /// (`OYA_CI_PRODUCER_BIN`), else falls back to `cargo run -p` via the RUNTIME `CARGO` env var.
-fn add_enforcement_liveness_corpus_args(command: &mut Command) {
-    let claude_settings = std::env::var(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_ENV);
-    let codex_hooks = std::env::var(ENFORCEMENT_LIVENESS_CODEX_HOOKS_ENV);
-    let hooks_dir = std::env::var(ENFORCEMENT_LIVENESS_HOOKS_DIR_ENV);
-    match (claude_settings, codex_hooks, hooks_dir) {
-        (Ok(claude_settings), Ok(codex_hooks), Ok(hooks_dir)) => {
-            command
-                .args(["--enforcement-liveness-claude-settings"])
-                .arg(claude_settings)
-                .args(["--enforcement-liveness-codex-hooks"])
-                .arg(codex_hooks)
-                .args(["--enforcement-liveness-hooks-dir"])
-                .arg(hooks_dir);
-        }
-        (Err(_), Err(_), Err(_)) => {}
-        _ => panic!(
-            "enforcement-liveness declared corpus env must be provided all together: {ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_ENV}, {ENFORCEMENT_LIVENESS_CODEX_HOOKS_ENV}, {ENFORCEMENT_LIVENESS_HOOKS_DIR_ENV}"
-        ),
-    }
-}
-
 fn regenerate_face(root: &Path, face: &str) -> String {
     let scm_facts = faces_dir(root).join(SCM_FACTS_FACE);
     let output = if let Ok(bin) = std::env::var("OYA_CI_PRODUCER_BIN") {
@@ -111,10 +93,10 @@ fn regenerate_face(root: &Path, face: &str) -> String {
             .args(["--repo-root"])
             .arg(root)
             .args(["--scm-facts"])
-            .arg(&scm_facts)
-            .args(["--stdout", "--face", face]);
-        add_enforcement_liveness_corpus_args(&mut command);
+            .arg(&scm_facts);
+        append_declared_enforcement_liveness_corpus_args(&mut command, root);
         command
+            .args(["--stdout", "--face", face])
             .current_dir(root)
             .output()
             .expect("run producer binary")
@@ -131,13 +113,13 @@ fn regenerate_face(root: &Path, face: &str) -> String {
             ])
             .arg(root)
             .args(["--scm-facts"])
-            .arg(&scm_facts)
-            .args(["--stdout", "--face", face]);
-        add_enforcement_liveness_corpus_args(&mut command);
+            .arg(&scm_facts);
+        append_declared_enforcement_liveness_corpus_args(&mut command, root);
         command
+            .args(["--stdout", "--face", face])
             .current_dir(root)
             .output()
-            .expect("run producer")
+            .expect("cargo run producer")
     };
     assert!(
         output.status.success(),
@@ -145,6 +127,71 @@ fn regenerate_face(root: &Path, face: &str) -> String {
         String::from_utf8_lossy(&output.stderr)
     );
     String::from_utf8(output.stdout).expect("producer stdout utf8")
+}
+
+fn append_declared_enforcement_liveness_corpus_args(command: &mut Command, root: &Path) {
+    append_enforcement_liveness_corpus_paths(
+        command,
+        &declared_corpus_file(
+            root,
+            ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_ENV,
+            ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS,
+            "settings.json",
+        ),
+        &declared_corpus_file(
+            root,
+            ENFORCEMENT_LIVENESS_CODEX_HOOKS_ENV,
+            ENFORCEMENT_LIVENESS_CODEX_HOOKS,
+            "hooks.json",
+        ),
+        &declared_corpus_dir(
+            root,
+            ENFORCEMENT_LIVENESS_HOOKS_DIR_ENV,
+            ENFORCEMENT_LIVENESS_HOOKS_DIR,
+        ),
+    );
+}
+
+fn declared_corpus_file(
+    root: &Path,
+    env_key: &str,
+    fallback_rel: &str,
+    file_name: &str,
+) -> PathBuf {
+    let path = declared_corpus_path(root, env_key, fallback_rel);
+    if path.is_file() {
+        return path;
+    }
+    let nested = path.join(file_name);
+    if nested.is_file() {
+        return nested;
+    }
+    path
+}
+
+fn declared_corpus_dir(root: &Path, env_key: &str, fallback_rel: &str) -> PathBuf {
+    declared_corpus_path(root, env_key, fallback_rel)
+}
+
+fn declared_corpus_path(root: &Path, env_key: &str, fallback_rel: &str) -> PathBuf {
+    std::env::var(env_key)
+        .map(|value| resolve_bin(root, &value))
+        .unwrap_or_else(|_| root.join(fallback_rel))
+}
+
+fn append_enforcement_liveness_corpus_paths(
+    command: &mut Command,
+    claude_settings: &Path,
+    codex_hooks: &Path,
+    hooks_dir: &Path,
+) {
+    command
+        .arg("--enforcement-liveness-claude-settings")
+        .arg(claude_settings)
+        .arg("--enforcement-liveness-codex-hooks")
+        .arg(codex_hooks)
+        .arg("--enforcement-liveness-hooks-dir")
+        .arg(hooks_dir);
 }
 
 /// The committed per-PR move plan (task #64), if any: a MOVE PR commits exactly one
@@ -285,6 +332,39 @@ fn cargo() -> String {
 fn resolve_bin(root: &Path, bin: &str) -> PathBuf {
     let p = PathBuf::from(bin);
     if p.is_absolute() { p } else { root.join(p) }
+}
+
+#[test]
+fn producer_regeneration_declares_enforcement_liveness_corpus_args() {
+    let mut command = Command::new("/tmp/producer");
+    append_enforcement_liveness_corpus_paths(
+        &mut command,
+        Path::new("/repo/.claude/settings.json"),
+        Path::new("/repo/.codex/hooks.json"),
+        Path::new("/repo/tools/hooks"),
+    );
+
+    let args: Vec<String> = command
+        .get_args()
+        .map(|arg| arg.to_string_lossy().into_owned())
+        .collect();
+
+    assert!(args.windows(2).any(|pair| {
+        pair == [
+            "--enforcement-liveness-claude-settings",
+            "/repo/.claude/settings.json",
+        ]
+    }));
+    assert!(args.windows(2).any(|pair| {
+        pair == [
+            "--enforcement-liveness-codex-hooks",
+            "/repo/.codex/hooks.json",
+        ]
+    }));
+    assert!(
+        args.windows(2)
+            .any(|pair| { pair == ["--enforcement-liveness-hooks-dir", "/repo/tools/hooks",] })
+    );
 }
 
 /// Regenerate each PR-owned face in-memory (sandbox) and assert it byte-matches the committed
