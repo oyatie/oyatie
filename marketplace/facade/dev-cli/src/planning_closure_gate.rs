@@ -522,9 +522,9 @@ fn validate_live_planning_root_authority(
                     line_number = index + 1,
                 ));
             }
-            if retired_oya_vcs_ratchet_is_active_authority(line) {
+            if oya_vcs_authority_is_active(line) {
                 return Err(format!(
-                    "{live_root}:{line_number} contains retired Oya VCS claim/verify/done/promote ratchet wording as active authority; live planning roots must use plain git plus protected PRs and {EXPECTED_GATE_COMMAND:?}, or mark the retired ratchet as retired/provenance-only",
+                    "{live_root}:{line_number} contains active Oya VCS claim/admission/closure/promotion authority; live planning roots must use plain git plus protected PRs and {EXPECTED_GATE_COMMAND:?}, or mark Oya VCS references as retired/provenance-only/future-target",
                     line_number = index + 1,
                 ));
             }
@@ -538,13 +538,60 @@ fn retired_planning_closure_command_is_provenance_only(line: &str) -> bool {
     lower.contains("retired") && lower.contains("provenance-only")
 }
 
-fn retired_oya_vcs_ratchet_is_active_authority(line: &str) -> bool {
+fn oya_vcs_authority_is_active(line: &str) -> bool {
     let lower = line.to_ascii_lowercase();
-    lower.contains("claim each changeset with oya vcs")
-        && lower.contains("verify before downstream work")
-        && lower.contains("mark done")
-        && lower.contains("promote only after review")
-        && !retired_planning_closure_command_is_provenance_only(line)
+    lower.contains("oya vcs")
+        && !oya_vcs_authority_is_marked_inactive(&lower)
+        && (lower.contains("claim/admission")
+            || lower.contains("claimable through")
+            || lower.contains("accepts the claim")
+            || lower.contains("claim state")
+            || lower.contains("admission names")
+            || lower.contains("closure_authority")
+            || lower.contains("closure authority")
+            || oya_vcs_has_local_authority_word(&lower)
+            || lower.contains("promotion")
+            || lower.contains("promote")
+            || (lower.contains("claim each changeset")
+                && lower.contains("verify before downstream work")
+                && lower.contains("mark done")))
+}
+
+fn oya_vcs_has_local_authority_word(lower: &str) -> bool {
+    lower.match_indices("oya vcs").any(|(index, _)| {
+        lower[index..]
+            .find("authority")
+            .is_some_and(|offset| offset <= 64)
+    })
+}
+
+fn oya_vcs_authority_is_marked_inactive(lower: &str) -> bool {
+    has_unnegated_marker(lower, "provenance-only")
+        || has_unnegated_marker(lower, "future-target")
+        || has_unnegated_marker(lower, "future target")
+        || (lower.contains("retired")
+            && lower.contains("provenance")
+            && !lower.contains("not retired")
+            && !lower.contains("not provenance"))
+}
+
+fn has_unnegated_marker(lower: &str, marker: &str) -> bool {
+    lower.contains(marker)
+        && !lower.contains(&format!("not {marker}"))
+        && !lower.contains(&format!("not marked {marker}"))
+        && !lower.contains(&format!("without {marker}"))
+        && !combined_inactive_marker_is_negated(lower)
+}
+
+fn combined_inactive_marker_is_negated(lower: &str) -> bool {
+    ["not", "not marked", "without"].iter().any(|negation| {
+        [
+            "future-target/provenance-only",
+            "future target/provenance-only",
+        ]
+        .iter()
+        .any(|marker| lower.contains(&format!("{negation} {marker}")))
+    })
 }
 
 fn validate_root_hub(root: &Map<String, Value>) -> Result<(), String> {
