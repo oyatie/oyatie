@@ -767,8 +767,9 @@ jobs:
           set -euo pipefail
           pnpm --dir oya/app-shell-frontend install --frozen-lockfile
           pnpm --dir oya/app-shell-frontend codegen
-          pnpm --dir oya/app-shell-frontend codegen:check
           pnpm --dir oya/app-shell-frontend typecheck
+          rustc --edition=2021 oya/application/crates/oya-application-shell-frontend/tests/app_shell_frontend_retirement.rs -o /tmp/app-shell-frontend-retirement-check
+          /tmp/app-shell-frontend-retirement-check
 
   # ── LIVE-POSTGRES DURABLE-SUBSTRATE LANE (#101). Runs the env-gated cross-tenant-deny / RLS /
   #    CDC / SCIM durability integration tests against a CONTAINERIZED Postgres and GATES merge —
