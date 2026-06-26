@@ -22,6 +22,14 @@ use oya_cloud_ci_firewall_app::{
 };
 use serde_json::Value;
 
+const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_ENV: &str =
+    "OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS";
+const ENFORCEMENT_LIVENESS_CODEX_HOOKS_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS";
+const ENFORCEMENT_LIVENESS_HOOKS_DIR_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR";
+const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: &str = ".claude/settings.json";
+const ENFORCEMENT_LIVENESS_CODEX_HOOKS: &str = ".codex/hooks.json";
+const ENFORCEMENT_LIVENESS_HOOKS_DIR: &str = "tools/hooks";
+
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
     for _ in 0..16 {
@@ -87,16 +95,14 @@ fn load_json(path: &Path) -> Value {
 fn regenerate_baseline(root: &Path) -> Value {
     let scm_facts = faces_dir(root).join("scm-facts.generated.json");
     let output = if let Ok(bin) = std::env::var("OYA_CI_PRODUCER_BIN") {
-        let bin = if Path::new(&bin).is_absolute() {
-            PathBuf::from(bin)
-        } else {
-            root.join(bin)
-        };
-        Command::new(bin)
+        let mut command = Command::new(resolve_bin(root, &bin));
+        command
             .arg("--repo-root")
             .arg(root)
             .arg("--scm-facts")
-            .arg(&scm_facts)
+            .arg(&scm_facts);
+        append_declared_enforcement_liveness_corpus_args(&mut command, root);
+        command
             .arg("--stdout")
             .arg("--face")
             .arg("baseline")
@@ -104,7 +110,8 @@ fn regenerate_baseline(root: &Path) -> Value {
             .output()
             .expect("run producer binary")
     } else {
-        Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_owned()))
+        let mut command = Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_owned()));
+        command
             .arg("run")
             .arg("--quiet")
             .arg("-p")
@@ -113,7 +120,9 @@ fn regenerate_baseline(root: &Path) -> Value {
             .arg("--repo-root")
             .arg(root)
             .arg("--scm-facts")
-            .arg(&scm_facts)
+            .arg(&scm_facts);
+        append_declared_enforcement_liveness_corpus_args(&mut command, root);
+        command
             .arg("--stdout")
             .arg("--face")
             .arg("baseline")
@@ -127,6 +136,53 @@ fn regenerate_baseline(root: &Path) -> Value {
         String::from_utf8_lossy(&output.stderr)
     );
     serde_json::from_slice(&output.stdout).expect("baseline stdout is valid JSON")
+}
+
+fn resolve_bin(root: &Path, bin: &str) -> PathBuf {
+    let path = PathBuf::from(bin);
+    if path.is_absolute() { path } else { root.join(path) }
+}
+
+fn append_declared_enforcement_liveness_corpus_args(command: &mut Command, root: &Path) {
+    append_enforcement_liveness_corpus_paths(
+        command,
+        &declared_corpus_path(
+            root,
+            ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_ENV,
+            ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS,
+        ),
+        &declared_corpus_path(
+            root,
+            ENFORCEMENT_LIVENESS_CODEX_HOOKS_ENV,
+            ENFORCEMENT_LIVENESS_CODEX_HOOKS,
+        ),
+        &declared_corpus_path(
+            root,
+            ENFORCEMENT_LIVENESS_HOOKS_DIR_ENV,
+            ENFORCEMENT_LIVENESS_HOOKS_DIR,
+        ),
+    );
+}
+
+fn declared_corpus_path(root: &Path, env_key: &str, fallback_rel: &str) -> PathBuf {
+    std::env::var(env_key)
+        .map(|value| resolve_bin(root, &value))
+        .unwrap_or_else(|_| root.join(fallback_rel))
+}
+
+fn append_enforcement_liveness_corpus_paths(
+    command: &mut Command,
+    claude_settings: &Path,
+    codex_hooks: &Path,
+    hooks_dir: &Path,
+) {
+    command
+        .arg("--enforcement-liveness-claude-settings")
+        .arg(claude_settings)
+        .arg("--enforcement-liveness-codex-hooks")
+        .arg(codex_hooks)
+        .arg("--enforcement-liveness-hooks-dir")
+        .arg(hooks_dir);
 }
 
 fn fixture_dir(root: &Path) -> PathBuf {
