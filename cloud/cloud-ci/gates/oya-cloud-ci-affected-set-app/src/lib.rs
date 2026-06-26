@@ -154,12 +154,24 @@ impl Policy {
                 "policy `full_run_targets` must be non-empty".into(),
             ));
         }
+        let full_trigger_patterns = str_list_field(&v, "full_trigger_patterns")?;
+        if full_trigger_patterns.is_empty() {
+            return Err(PolicyError(
+                "policy `full_trigger_patterns` must be non-empty".into(),
+            ));
+        }
+        let require_owner_patterns = str_list_field(&v, "require_owner_patterns")?;
+        if require_owner_patterns.is_empty() {
+            return Err(PolicyError(
+                "policy `require_owner_patterns` must be non-empty".into(),
+            ));
+        }
         Ok(Policy {
             gate_id,
             universe: str_field(&v, "universe")?,
             full_run_targets,
-            full_trigger_patterns: str_list_field(&v, "full_trigger_patterns")?,
-            require_owner_patterns: str_list_field(&v, "require_owner_patterns")?,
+            full_trigger_patterns,
+            require_owner_patterns,
             package_definition_basenames: {
                 let names = str_list_field(&v, "package_definition_basenames")?;
                 if names.is_empty() {
