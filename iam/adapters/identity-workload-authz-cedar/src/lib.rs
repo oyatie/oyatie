@@ -169,6 +169,12 @@ impl ActionCondition {
 pub enum ResourceCondition {
     /// Resource type must equal this.
     TypeIs(String),
+    /// Resource type must equal this and `resource.tenant_id` must match
+    /// `principal.tenant_id` at request evaluation time.
+    SameTenantAsPrincipal {
+        /// Required resource type.
+        resource_type: String,
+    },
     /// Resource type and id must both equal these.
     Is {
         /// Required resource type.
@@ -187,6 +193,9 @@ impl ResourceCondition {
             Self::TypeIs(resource_type) => {
                 Ok(format!("resource is {}", cedar_type_name(resource_type)?))
             }
+            Self::SameTenantAsPrincipal { resource_type } => {
+                Ok(format!("resource is {}", cedar_type_name(resource_type)?))
+            }
             Self::Is {
                 resource_type,
                 resource_id,
@@ -196,6 +205,19 @@ impl ResourceCondition {
                 cedar_string(resource_id)?
             )),
             Self::Any => Ok("resource".to_string()),
+        }
+    }
+
+    /// Cedar `when`-clause fragment for resource conditions that need request
+    /// attributes rather than policy-head matching.
+    fn to_cedar_clause(&self) -> Option<String> {
+        match self {
+            Self::SameTenantAsPrincipal { .. } => Some(
+                "(principal has tenant_id && resource has tenant_id && \
+                 principal.tenant_id == resource.tenant_id)"
+                    .to_string(),
+            ),
+            Self::TypeIs(_) | Self::Is { .. } | Self::Any => None,
         }
     }
 }
@@ -306,14 +328,18 @@ impl Policy {
             .map_err(|e| CedarAuthzError::PolicyParse(e.to_string()))?;
         write!(text, ")").map_err(|e| CedarAuthzError::PolicyParse(e.to_string()))?;
 
-        if self.principal.is_empty() {
+        let mut clauses: Vec<String> = self
+            .principal
+            .iter()
+            .map(PrincipalCondition::to_cedar_clause)
+            .collect::<Result<_, _>>()?;
+        if let Some(resource_clause) = self.resource.to_cedar_clause() {
+            clauses.push(resource_clause);
+        }
+
+        if clauses.is_empty() {
             write!(text, ";").map_err(|e| CedarAuthzError::PolicyParse(e.to_string()))?;
         } else {
-            let clauses: Vec<String> = self
-                .principal
-                .iter()
-                .map(PrincipalCondition::to_cedar_clause)
-                .collect::<Result<_, _>>()?;
             write!(text, "\nwhen {{ {} }};", clauses.join(" && "))
                 .map_err(|e| CedarAuthzError::PolicyParse(e.to_string()))?;
         }
@@ -561,20 +587,19 @@ fn principal_entity(principal: &WorkloadPrincipal) -> Result<Entity, CedarAuthzE
         .map_err(|e| CedarAuthzError::EntityBuild(e.to_string()))
 }
 
-/// Build the Cedar resource entity (type + id, no attributes needed for the
-/// structured-policy surface; raw Cedar policies that read resource attrs run
-/// against an attribute-less entity and are guarded with `has` upstream).
+/// Build the Cedar resource entity (type + id + typed attributes).
 fn resource_entity(resource: &Resource) -> Result<Entity, CedarAuthzError> {
     let uid = entity_uid(
         &sanitize_type_name(resource.resource_type())?,
         resource.resource_id(),
     )?;
-    Entity::new(
-        uid,
-        std::collections::HashMap::new(),
-        std::collections::HashSet::new(),
-    )
-    .map_err(|e| CedarAuthzError::EntityBuild(e.to_string()))
+    let attrs = resource
+        .attributes()
+        .iter()
+        .map(|(key, value)| (key.clone(), policy_scalar_attribute(value)))
+        .collect();
+    Entity::new(uid, attrs, std::collections::HashSet::new())
+        .map_err(|e| CedarAuthzError::EntityBuild(e.to_string()))
 }
 
 /// The `Action::"..."` uid for the requested action.
@@ -588,7 +613,7 @@ fn request_context(
 ) -> Result<Context, CedarAuthzError> {
     let pairs = context
         .iter()
-        .map(|(key, value)| (key.clone(), context_scalar_attribute(value)));
+        .map(|(key, value)| (key.clone(), policy_scalar_attribute(value)));
     Context::from_pairs(pairs).map_err(|e| CedarAuthzError::RequestBuild(e.to_string()))
 }
 
@@ -621,13 +646,13 @@ fn claim_set_attribute(value: &ClaimValue) -> RestrictedExpression {
     RestrictedExpression::new_set(members.into_iter().map(RestrictedExpression::new_string))
 }
 
-/// Project a request-context [`ClaimValue`] onto its natural Cedar scalar so
-/// raw Cedar policies can test it with the idiomatic operator
+/// Project a policy-visible [`ClaimValue`] onto its natural Cedar scalar so
+/// raw/structured Cedar policies can test it with the idiomatic operator
 /// (`context.mfa_present == "true"`, `context.tier > 2`, list membership).
-/// Unlike principal claims, context attributes are read by hand-written Cedar
+/// Unlike principal claims, context/resource attributes are read by Cedar
 /// policy text, so we preserve the shape the policy author expects:
 /// `Bool` -> the string "true"/"false", `Int` -> a Long, list -> a Set.
-fn context_scalar_attribute(value: &ClaimValue) -> RestrictedExpression {
+fn policy_scalar_attribute(value: &ClaimValue) -> RestrictedExpression {
     match value {
         ClaimValue::Text(text) => RestrictedExpression::new_string(text.clone()),
         ClaimValue::Bool(flag) => {
@@ -827,6 +852,83 @@ mod tests {
             .expect("policy compiles");
         // active_principal() is ten_acme; cross-tenant permit must not apply.
         let decision = authorizer.authorize(&deploy_request(active_principal()));
+        assert_eq!(decision.effect(), Effect::Deny);
+    }
+
+    #[test]
+    fn same_tenant_resource_condition_matches_request_tenant_field() {
+        let authorizer = CedarWorkloadAuthorizer::new()
+            .add_policy(
+                Policy::permit("allow-own-quota")
+                    .when_principal(PrincipalCondition::HasScope("quota:read".into()))
+                    .for_action(ActionCondition::Equals("quota:Read".into()))
+                    .for_resource(ResourceCondition::SameTenantAsPrincipal {
+                        resource_type: "QuotaRecord".into(),
+                    }),
+            )
+            .expect("policy compiles");
+        let request = AuthorizationRequest::new(
+            active_principal()
+                .with_scope("quota:read")
+                .expect("scope ok"),
+            Action::new("quota:Read"),
+            Resource::new("QuotaRecord", "ten_acme")
+                .with_attribute("tenant_id", ClaimValue::Text("ten_acme".into())),
+        );
+
+        let decision = authorizer.authorize(&request);
+
+        assert!(decision.is_allow(), "expected allow, got {decision:?}");
+    }
+
+    #[test]
+    fn same_tenant_resource_condition_denies_cross_tenant_resource() {
+        let authorizer = CedarWorkloadAuthorizer::new()
+            .add_policy(
+                Policy::permit("allow-own-quota")
+                    .when_principal(PrincipalCondition::HasScope("quota:read".into()))
+                    .for_action(ActionCondition::Equals("quota:Read".into()))
+                    .for_resource(ResourceCondition::SameTenantAsPrincipal {
+                        resource_type: "QuotaRecord".into(),
+                    }),
+            )
+            .expect("policy compiles");
+        let request = AuthorizationRequest::new(
+            active_principal()
+                .with_scope("quota:read")
+                .expect("scope ok"),
+            Action::new("quota:Read"),
+            Resource::new("QuotaRecord", "ten_globex")
+                .with_attribute("tenant_id", ClaimValue::Text("ten_globex".into())),
+        );
+
+        let decision = authorizer.authorize(&request);
+
+        assert_eq!(decision.effect(), Effect::Deny);
+    }
+
+    #[test]
+    fn same_tenant_resource_condition_fails_closed_without_resource_tenant() {
+        let authorizer = CedarWorkloadAuthorizer::new()
+            .add_policy(
+                Policy::permit("allow-own-quota")
+                    .when_principal(PrincipalCondition::HasScope("quota:read".into()))
+                    .for_action(ActionCondition::Equals("quota:Read".into()))
+                    .for_resource(ResourceCondition::SameTenantAsPrincipal {
+                        resource_type: "QuotaRecord".into(),
+                    }),
+            )
+            .expect("policy compiles");
+        let request = AuthorizationRequest::new(
+            active_principal()
+                .with_scope("quota:read")
+                .expect("scope ok"),
+            Action::new("quota:Read"),
+            Resource::new("QuotaRecord", "ten_acme"),
+        );
+
+        let decision = authorizer.authorize(&request);
+
         assert_eq!(decision.effect(), Effect::Deny);
     }
 

@@ -8,12 +8,12 @@
 //!
 //! - **Cedar default-deny**: with no matching `permit`, access is denied.
 //! - **Tenant-admin sets own quota within plan ceiling**: a TenantAdmin principal
-//!   can write quota for their own tenant only (adapter same-tenant guard +
-//!   Cedar scope policy).
+//!   can write quota for their own tenant only (Cedar same-tenant policy plus
+//!   adapter defense-in-depth guard).
 //! - **Platform sets ceilings**: PlatformOperator role can write any tenant's ceiling.
 //! - **Cross-tenant read denied**: a tenant CANNOT read another tenant's quota/usage.
-//!   The adapter enforces `principal.tenant_id == resource_tenant_id` unless
-//!   platform-scoped.
+//!   Cedar enforces `principal.tenant_id == resource.tenant_id` for tenant
+//!   policies; the adapter also rejects cross-tenant non-platform requests.
 //! - **RBAC escalation mitigated**: no principal can grant themselves a higher role.
 //!
 //! ## Usage
@@ -31,7 +31,9 @@ use iam_identity_workload_authz_cedar::{
     ActionCondition, CedarWorkloadAuthorizer, Policy, PrincipalCondition, ResourceCondition,
     WorkloadAuthorizer,
 };
-use iam_identity_workload_domain::{Action, AuthorizationRequest, Resource, WorkloadPrincipal};
+use iam_identity_workload_domain::{
+    Action, AuthorizationRequest, ClaimValue, Resource, WorkloadPrincipal,
+};
 use k8s_tenant_quota_kernel::{RbacRole, TenantId};
 
 const PLATFORM_QUOTA_SCOPE: &str = "quota:platform:write";
@@ -82,33 +84,13 @@ impl QuotaRbacAuthorizer {
     /// - TenantViewer can read quota for their own tenant.
     /// - PlatformOperator can write/read quota for any tenant.
     ///
-    /// Tenant-role cross-tenant access is denied before Cedar evaluation.
+    /// Tenant-role cross-tenant access is denied by Cedar policy and by the
+    /// adapter's defense-in-depth guard.
     ///
     /// # Errors
     /// Returns [`RbacAuthzError::PolicyBuild`] if policy compilation fails.
     pub fn new_with_default_policies() -> Result<Self, RbacAuthzError> {
-        let policies = vec![
-            // TenantAdmin: write own-tenant quota only.
-            Policy::permit("quota-write-tenant-admin")
-                .when_principal(PrincipalCondition::HasScope("quota:write".into()))
-                .for_action(ActionCondition::Equals("quota:Write".into()))
-                .for_resource(ResourceCondition::TypeIs("QuotaRecord".into())),
-            // TenantViewer + TenantAdmin: read own-tenant quota only.
-            Policy::permit("quota-read-tenant")
-                .when_principal(PrincipalCondition::HasScope("quota:read".into()))
-                .for_action(ActionCondition::Equals("quota:Read".into()))
-                .for_resource(ResourceCondition::TypeIs("QuotaRecord".into())),
-            // PlatformOperator: write any tenant's quota (ceiling management).
-            Policy::permit("quota-write-platform-operator")
-                .when_principal(PrincipalCondition::HasScope(PLATFORM_QUOTA_SCOPE.into()))
-                .for_action(ActionCondition::Equals("quota:Write".into()))
-                .for_resource(ResourceCondition::TypeIs("QuotaRecord".into())),
-            Policy::permit("quota-read-platform-operator")
-                .when_principal(PrincipalCondition::HasScope(PLATFORM_QUOTA_SCOPE.into()))
-                .for_action(ActionCondition::Equals("quota:Read".into()))
-                .for_resource(ResourceCondition::TypeIs("QuotaRecord".into())),
-        ];
-        Self::with_policies(policies)
+        Self::with_policies(default_quota_policies())
     }
 
     /// Authorize a quota write operation for `target_tenant_id`.
@@ -128,7 +110,7 @@ impl QuotaRbacAuthorizer {
         let request = AuthorizationRequest::new(
             principal.clone(),
             Action::new("quota:Write"),
-            Resource::new("QuotaRecord", target_tenant_id.as_str()),
+            quota_resource(target_tenant_id),
         );
         let decision = self.inner.authorize(&request);
         if decision.is_allow() {
@@ -156,7 +138,7 @@ impl QuotaRbacAuthorizer {
         let request = AuthorizationRequest::new(
             principal.clone(),
             Action::new("quota:Read"),
-            Resource::new("QuotaRecord", target_tenant_id.as_str()),
+            quota_resource(target_tenant_id),
         );
         let decision = self.inner.authorize(&request);
         if decision.is_allow() {
@@ -182,6 +164,34 @@ impl QuotaRbacAuthorizer {
     }
 }
 
+fn default_quota_policies() -> Vec<Policy> {
+    vec![
+        // TenantAdmin: write own-tenant quota only.
+        Policy::permit("quota-write-tenant-admin")
+            .when_principal(PrincipalCondition::HasScope("quota:write".into()))
+            .for_action(ActionCondition::Equals("quota:Write".into()))
+            .for_resource(ResourceCondition::SameTenantAsPrincipal {
+                resource_type: "QuotaRecord".into(),
+            }),
+        // TenantViewer + TenantAdmin: read own-tenant quota only.
+        Policy::permit("quota-read-tenant")
+            .when_principal(PrincipalCondition::HasScope("quota:read".into()))
+            .for_action(ActionCondition::Equals("quota:Read".into()))
+            .for_resource(ResourceCondition::SameTenantAsPrincipal {
+                resource_type: "QuotaRecord".into(),
+            }),
+        // PlatformOperator: write any tenant's quota (ceiling management).
+        Policy::permit("quota-write-platform-operator")
+            .when_principal(PrincipalCondition::HasScope(PLATFORM_QUOTA_SCOPE.into()))
+            .for_action(ActionCondition::Equals("quota:Write".into()))
+            .for_resource(ResourceCondition::TypeIs("QuotaRecord".into())),
+        Policy::permit("quota-read-platform-operator")
+            .when_principal(PrincipalCondition::HasScope(PLATFORM_QUOTA_SCOPE.into()))
+            .for_action(ActionCondition::Equals("quota:Read".into()))
+            .for_resource(ResourceCondition::TypeIs("QuotaRecord".into())),
+    ]
+}
+
 fn deny_cross_tenant_without_platform_scope(
     principal: &WorkloadPrincipal,
     target_tenant_id: &TenantId,
@@ -200,10 +210,17 @@ fn deny_cross_tenant_without_platform_scope(
     )))
 }
 
+fn quota_resource(target_tenant_id: &TenantId) -> Resource {
+    Resource::new("QuotaRecord", target_tenant_id.as_str()).with_attribute(
+        "tenant_id",
+        ClaimValue::Text(target_tenant_id.as_str().to_string()),
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use iam_identity_workload_domain::WorkloadState;
+    use iam_identity_workload_domain::{Effect, WorkloadState};
 
     fn active_principal(tenant: &str, scope: &str) -> WorkloadPrincipal {
         let mut p = WorkloadPrincipal::provision(tenant, "wl_admin_01", "cap.quota.admin")
@@ -259,6 +276,38 @@ mod tests {
         let principal = active_principal("ten_acme", "quota:read");
         let tenant_id = TenantId::new("ten_globex").unwrap();
         assert!(authz.authorize_quota_read(&principal, &tenant_id).is_err());
+    }
+
+    #[test]
+    fn default_pdp_policy_denies_cross_tenant_quota_read() {
+        let pdp = CedarWorkloadAuthorizer::with_policies(default_quota_policies()).unwrap();
+        let principal = active_principal("ten_acme", "quota:read");
+        let tenant_id = TenantId::new("ten_globex").unwrap();
+        let request = AuthorizationRequest::new(
+            principal,
+            Action::new("quota:Read"),
+            quota_resource(&tenant_id),
+        );
+
+        let decision = pdp.authorize(&request);
+
+        assert_eq!(decision.effect(), Effect::Deny);
+    }
+
+    #[test]
+    fn default_pdp_policy_denies_cross_tenant_quota_write() {
+        let pdp = CedarWorkloadAuthorizer::with_policies(default_quota_policies()).unwrap();
+        let principal = active_principal("ten_acme", "quota:write");
+        let tenant_id = TenantId::new("ten_globex").unwrap();
+        let request = AuthorizationRequest::new(
+            principal,
+            Action::new("quota:Write"),
+            quota_resource(&tenant_id),
+        );
+
+        let decision = pdp.authorize(&request);
+
+        assert_eq!(decision.effect(), Effect::Deny);
     }
 
     #[test]
