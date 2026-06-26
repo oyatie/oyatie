@@ -21,6 +21,9 @@ pub const FACE_SETTLE_COMMIT_COMMAND: &str =
 const FACE_SETTLE_COMMIT_MESSAGE: &str = "chore: settle generated cloud-ci faces";
 const FACES_DIR: &str = "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app";
 const SCM_FACTS_FACE: &str = "scm-facts.generated.json";
+const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: &str = ".claude/settings.json";
+const ENFORCEMENT_LIVENESS_CODEX_HOOKS: &str = ".codex/hooks.json";
+const ENFORCEMENT_LIVENESS_HOOKS_DIR: &str = "tools/hooks";
 /// The generated-artifact control-plane manifest. Faces whose `materialization_mode` is
 /// non-PR-owned are materialized by cloud-ci/controllers, not byte-compared against contributor
 /// branch copies.
@@ -334,13 +337,15 @@ pub fn materialize_generated_faces_with_buck2(repo_root: &Path) -> Result<(), Fr
     materialize_move_manifest(&tools, repo_root)?;
     let scm_facts = repo_root.join(FACES_DIR).join(SCM_FACTS_FACE);
     emit_materialized_scm_facts(&tools, repo_root, &scm_facts)?;
+    let mut command = Command::new(&tools.producer);
+    command
+        .args(["--repo-root"])
+        .arg(repo_root)
+        .args(["--scm-facts"])
+        .arg(&scm_facts);
+    add_enforcement_liveness_corpus_args(&mut command, repo_root);
     run_status(
-        Command::new(&tools.producer)
-            .args(["--repo-root"])
-            .arg(repo_root)
-            .args(["--scm-facts"])
-            .arg(&scm_facts)
-            .current_dir(repo_root),
+        command.current_dir(repo_root),
         "materialize generated accounting faces",
     )
 }
@@ -1003,6 +1008,16 @@ fn emit_scm_facts(
     )
 }
 
+fn add_enforcement_liveness_corpus_args(command: &mut Command, repo_root: &Path) {
+    command
+        .args(["--enforcement-liveness-claude-settings"])
+        .arg(repo_root.join(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS))
+        .args(["--enforcement-liveness-codex-hooks"])
+        .arg(repo_root.join(ENFORCEMENT_LIVENESS_CODEX_HOOKS))
+        .args(["--enforcement-liveness-hooks-dir"])
+        .arg(repo_root.join(ENFORCEMENT_LIVENESS_HOOKS_DIR));
+}
+
 fn regenerate_producer_faces(
     tools: &FaceTools,
     repo_root: &Path,
@@ -1010,14 +1025,16 @@ fn regenerate_producer_faces(
 ) -> Result<RegeneratedFaces, FreshnessError> {
     let mut regenerated = vec![(SCM_FACTS_FACE.to_owned(), read_to_string(scm_facts)?)];
     for (file_name, face_name) in PRODUCER_FACES {
+        let mut command = Command::new(&tools.producer);
+        command
+            .args(["--repo-root"])
+            .arg(repo_root)
+            .args(["--scm-facts"])
+            .arg(scm_facts)
+            .args(["--stdout", "--face", face_name]);
+        add_enforcement_liveness_corpus_args(&mut command, repo_root);
         let output = run_output(
-            Command::new(&tools.producer)
-                .args(["--repo-root"])
-                .arg(repo_root)
-                .args(["--scm-facts"])
-                .arg(scm_facts)
-                .args(["--stdout", "--face", face_name])
-                .current_dir(repo_root),
+            command.current_dir(repo_root),
             &format!("regenerate {file_name}"),
         )?;
         regenerated.push((file_name.to_owned(), output));

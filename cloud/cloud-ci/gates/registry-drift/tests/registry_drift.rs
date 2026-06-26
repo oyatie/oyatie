@@ -75,23 +75,52 @@ const SCM_FACTS_FACE: &str = "scm-facts.generated.json";
 /// registry_drift RED before the firewall consumes it (the anti-forgery binding for the
 /// rename-aware path-keyed baseline relabel).
 const MOVE_MANIFEST_FACE: &str = "specs/reorg/move-manifest.generated.json";
+const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_ENV: &str =
+    "OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS";
+const ENFORCEMENT_LIVENESS_CODEX_HOOKS_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS";
+const ENFORCEMENT_LIVENESS_HOOKS_DIR_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR";
 
 /// Run the producer to regenerate a single face to stdout. Prefers the buck2-provided binary
 /// (`OYA_CI_PRODUCER_BIN`), else falls back to `cargo run -p` via the RUNTIME `CARGO` env var.
+fn add_enforcement_liveness_corpus_args(command: &mut Command) {
+    let claude_settings = std::env::var(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_ENV);
+    let codex_hooks = std::env::var(ENFORCEMENT_LIVENESS_CODEX_HOOKS_ENV);
+    let hooks_dir = std::env::var(ENFORCEMENT_LIVENESS_HOOKS_DIR_ENV);
+    match (claude_settings, codex_hooks, hooks_dir) {
+        (Ok(claude_settings), Ok(codex_hooks), Ok(hooks_dir)) => {
+            command
+                .args(["--enforcement-liveness-claude-settings"])
+                .arg(claude_settings)
+                .args(["--enforcement-liveness-codex-hooks"])
+                .arg(codex_hooks)
+                .args(["--enforcement-liveness-hooks-dir"])
+                .arg(hooks_dir);
+        }
+        (Err(_), Err(_), Err(_)) => {}
+        _ => panic!(
+            "enforcement-liveness declared corpus env must be provided all together: {ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_ENV}, {ENFORCEMENT_LIVENESS_CODEX_HOOKS_ENV}, {ENFORCEMENT_LIVENESS_HOOKS_DIR_ENV}"
+        ),
+    }
+}
+
 fn regenerate_face(root: &Path, face: &str) -> String {
     let scm_facts = faces_dir(root).join(SCM_FACTS_FACE);
     let output = if let Ok(bin) = std::env::var("OYA_CI_PRODUCER_BIN") {
-        Command::new(resolve_bin(root, &bin))
+        let mut command = Command::new(resolve_bin(root, &bin));
+        command
             .args(["--repo-root"])
             .arg(root)
             .args(["--scm-facts"])
             .arg(&scm_facts)
-            .args(["--stdout", "--face", face])
+            .args(["--stdout", "--face", face]);
+        add_enforcement_liveness_corpus_args(&mut command);
+        command
             .current_dir(root)
             .output()
             .expect("run producer binary")
     } else {
-        Command::new(cargo())
+        let mut command = Command::new(cargo());
+        command
             .args([
                 "run",
                 "--quiet",
@@ -103,10 +132,12 @@ fn regenerate_face(root: &Path, face: &str) -> String {
             .arg(root)
             .args(["--scm-facts"])
             .arg(&scm_facts)
-            .args(["--stdout", "--face", face])
+            .args(["--stdout", "--face", face]);
+        add_enforcement_liveness_corpus_args(&mut command);
+        command
             .current_dir(root)
             .output()
-            .expect("cargo run producer")
+            .expect("run producer")
     };
     assert!(
         output.status.success(),
