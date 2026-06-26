@@ -1393,7 +1393,7 @@
         "claim": "Oyatie Cloud now has a source-backed, machine-readable target taxonomy for core backend hyperscaler categories.",
         "evidence": [
           "specs/cloud-hyperscaler-parity-taxonomy.json",
-          "scripts/tests/cloud_hyperscaler_parity_taxonomy_check.py"
+          "//cloud/cloud-ci/gates/oya-cloud-ci-hyperscaler-parity-taxonomy-app:oya-cloud-ci-hyperscaler-parity-taxonomy-app-gate"
         ],
         "limits": "Target taxonomy only; runtime equivalence and operational launch language remain blocked in cannot_claim_yet and nonclaims."
       },

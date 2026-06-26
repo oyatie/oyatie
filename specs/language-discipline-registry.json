@@ -17,22 +17,22 @@
     "source_request": "Founder directive 2026-06-03: maintain modern Rust standards; use Buck2-native LLVM source-based coverage instead of Tarpaulin; preserve dual Cargo.toml + Buck2/Reindeer setup for local Cargo mutation testing; keep the language-discipline gate hyperscaler-oriented and suitable.",
     "official_references": [
       {
-        "name": "Rustc Book — Instrumentation-based Code Coverage",
+        "name": "Rustc Book \u2014 Instrumentation-based Code Coverage",
         "url": "https://doc.rust-lang.org/rustc/instrument-coverage.html",
         "used_for": "Records the Rust coverage standard as rustc/LLVM source-based coverage with rustc -C instrument-coverage."
       },
       {
-        "name": "LLVM — Source-based Code Coverage",
+        "name": "LLVM \u2014 Source-based Code Coverage",
         "url": "https://clang.llvm.org/docs/SourceBasedCodeCoverage.html",
         "used_for": "Records llvm-profdata/llvm-cov as the source-based coverage reporting path."
       },
       {
-        "name": "Buck2 — Commands",
+        "name": "Buck2 \u2014 Commands",
         "url": "https://buck2.build/docs/users/commands/",
         "used_for": "Records Buck2 target execution as local/static evidence and Build ID source."
       },
       {
-        "name": "Buck2 — Bootstrapping",
+        "name": "Buck2 \u2014 Bootstrapping",
         "url": "https://buck2.build/docs/about/bootstrapping/",
         "used_for": "Records dual Cargo+Buck2 ergonomics and reindeer-generated BUCK graph context."
       },
@@ -111,8 +111,8 @@
       {
         "path": "scripts/tests/cloud_hyperscaler_parity_taxonomy_check.py",
         "kind": "python_test_sprawl_backlog",
-        "present_in_current_head": true,
-        "retirement_action": "Port to Rust Buck2 gate before live language-discipline authority."
+        "present_in_current_head": false,
+        "retirement_action": "Ported to //cloud/cloud-ci/gates/oya-cloud-ci-hyperscaler-parity-taxonomy-app:oya-cloud-ci-hyperscaler-parity-taxonomy-app-gate and retired from scripts/tests."
       },
       {
         "path": "scripts/tests/cloud_observability_slo_evidence_check.py",
