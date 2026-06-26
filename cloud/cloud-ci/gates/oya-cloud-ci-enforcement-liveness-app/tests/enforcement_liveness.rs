@@ -1,35 +1,35 @@
-// FRIC-012/G011 enforcement-liveness live-corpus gate. Runs the producer
-// `--face enforcement-liveness`, then asserts today's tracked hooks are all either wired in
-// both project wiring files or marked as compatibility stubs.
+// FRIC-012/G011 enforcement-liveness live-corpus gate. Loads the Buck-declared
+// materialized enforcement-liveness face, then asserts today's tracked hooks are all either
+// wired in both project wiring files or marked as compatibility stubs.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::collections::BTreeSet;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use oya_cloud_ci_enforcement_liveness_app::{Verdict, evaluate, evaluate_keyed};
 use serde_json::{Value, json};
 
-fn repo_root() -> PathBuf {
-    let mut dir = std::env::current_dir().expect("current_dir");
-    for _ in 0..16 {
-        if dir.join("specs/root-hub-pointers.json").is_file() {
-            return dir;
-        }
-        if !dir.pop() {
-            break;
-        }
-    }
-    panic!("failed to locate repo root from test current_dir");
-}
+const FACE_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_FACE";
 
-fn load_materialized_face(root: &Path, face: &str) -> Value {
-    let path = root
-        .join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app")
-        .join(format!("{face}.generated.json"));
-    let text = std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read materialized {face} face {}: {e}", path.display()));
-    serde_json::from_str(&text)
-        .unwrap_or_else(|e| panic!("parse materialized {face} face {}: {e}", path.display()))
+fn load_declared_face() -> Value {
+    let env_path = std::env::var(FACE_ENV)
+        .unwrap_or_else(|e| panic!("{FACE_ENV} must point at Buck-declared generated face: {e}"));
+    let mut path = PathBuf::from(env_path);
+    if path.is_dir() {
+        path.push("enforcement-liveness.generated.json");
+    }
+    let text = std::fs::read_to_string(&path).unwrap_or_else(|e| {
+        panic!(
+            "read Buck-declared enforcement-liveness face {}: {e}",
+            path.display()
+        )
+    });
+    serde_json::from_str(&text).unwrap_or_else(|e| {
+        panic!(
+            "parse Buck-declared enforcement-liveness face {}: {e}",
+            path.display()
+        )
+    })
 }
 
 #[test]
@@ -168,8 +168,7 @@ fn evaluate_is_bare_projection_of_evaluate_keyed() {
 
 #[test]
 fn enforcement_liveness_face_reports_current_tree_green() {
-    let root = repo_root();
-    let face = load_materialized_face(&root, "enforcement-liveness");
+    let face = load_declared_face();
     let rows = face["rows"].as_array().expect("enforcement-liveness rows");
     let hook_rows = rows.iter().filter(|row| row["row_type"] == "hook").count();
     let command_rows = rows
