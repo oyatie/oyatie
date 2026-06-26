@@ -16,6 +16,11 @@ use tracing::debug;
 pub type GeminiByteStream =
     Pin<Box<dyn futures_core::Stream<Item = Result<Bytes, reqwest::Error>> + Send + 'static>>;
 
+/// Subscription-OAuth (Antigravity flow) adapter — lives alongside the API-key
+/// adapter in this crate. See [`oauth`].
+mod oauth;
+pub use oauth::{GeminiOAuthAdapter, GeminiOAuthError, ANTIGRAVITY_SCOPES};
+
 const GEMINI_DEFAULT_BASE_URL: &str = "https://generativelanguage.googleapis.com/v1beta";
 
 pub const HOP_BY_HOP: &[&str] = &[
@@ -297,11 +302,11 @@ fn sanitize_model_path_segment(model: &str) -> String {
         .to_string()
 }
 
-fn hop_by_hop_set() -> HashSet<&'static str> {
+pub(crate) fn hop_by_hop_set() -> HashSet<&'static str> {
     HOP_BY_HOP.iter().copied().collect()
 }
 
-fn connection_tokens(headers: &BTreeMap<String, String>) -> HashSet<String> {
+pub(crate) fn connection_tokens(headers: &BTreeMap<String, String>) -> HashSet<String> {
     let mut tokens = HashSet::new();
     for (k, v) in headers {
         if k.eq_ignore_ascii_case("connection") {
@@ -311,14 +316,16 @@ fn connection_tokens(headers: &BTreeMap<String, String>) -> HashSet<String> {
     tokens
 }
 
-fn retry_after_secs(resp: &reqwest::Response) -> Option<u64> {
+pub(crate) fn retry_after_secs(resp: &reqwest::Response) -> Option<u64> {
     resp.headers()
         .get("retry-after")
         .and_then(|v| v.to_str().ok())
         .and_then(|s| s.parse::<u64>().ok())
 }
 
-fn filtered_response_headers(headers: &reqwest::header::HeaderMap) -> BTreeMap<String, String> {
+pub(crate) fn filtered_response_headers(
+    headers: &reqwest::header::HeaderMap,
+) -> BTreeMap<String, String> {
     let hop_by_hop = hop_by_hop_set();
     let response_connection_tokens: HashSet<String> = headers
         .get("connection")

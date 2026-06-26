@@ -11,6 +11,7 @@ rust_library(
         "third-party//:reqwest",
         "third-party//:serde",
         "third-party//:serde_json",
+        "third-party//:tokio",
         "third-party//:tracing",
     ],
 )
@@ -32,5 +33,37 @@ rust_test(
         "third-party//:serde_json",
         "third-party//:tokio",
         "third-party//:tracing",
+    ],
+)
+
+rust_test(
+    name = "intelligence-gemini-adapter-unit-tests",
+    srcs = glob(["src/**/*.rs", "**/*.json", "**/*.yaml", "**/*.yml"]),
+    crate = "intelligence_gemini_adapter_unit",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/translation-kernel:intelligence-translation-kernel",
+        "third-party//:bytes",
+        "third-party//:futures-core",
+        "third-party//:reqwest",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+        "third-party//:tracing",
+    ],
+)
+
+rust_test(
+    name = "intelligence-gemini-adapter-oauth-tests",
+    srcs = glob(["tests/gemini_oauth_adapter.rs"]),
+    crate = "intelligence_gemini_adapter_oauth_tests",
+    crate_root = "tests/gemini_oauth_adapter.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-gemini-adapter",
+        "third-party//:futures-util",
+        "third-party//:reqwest",
+        "third-party//:tokio",
     ],
 )
