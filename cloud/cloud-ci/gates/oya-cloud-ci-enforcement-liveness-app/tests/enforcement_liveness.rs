@@ -4,14 +4,14 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::collections::BTreeSet;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use oya_cloud_ci_enforcement_liveness_app::{Verdict, evaluate, evaluate_keyed};
 use serde_json::{Value, json};
 
 const PRODUCER_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER";
-const SCM_FACTS_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_SCM_FACTS";
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
@@ -30,22 +30,21 @@ fn load_produced_face() -> Value {
     let producer = std::env::var(PRODUCER_ENV).unwrap_or_else(|e| {
         panic!("{PRODUCER_ENV} must point at Buck-built accounting-registry producer: {e}")
     });
-    let scm_facts = std::env::var(SCM_FACTS_ENV).unwrap_or_else(|e| {
-        panic!("{SCM_FACTS_ENV} must point at a Buck-declared scm-facts fixture: {e}")
-    });
     let root = repo_root();
+    let (scm_facts_dir, scm_facts) = write_current_enforcement_scm_facts(&root);
     let output = Command::new(&producer)
         .args([
             "--repo-root",
             root.to_str().expect("repo root utf-8"),
             "--scm-facts",
-            scm_facts.as_str(),
+            scm_facts.to_str().expect("scm facts path utf-8"),
             "--stdout",
             "--face",
             "enforcement-liveness",
         ])
         .output()
         .unwrap_or_else(|e| panic!("run Buck-built enforcement-liveness producer {producer}: {e}"));
+    let _ = std::fs::remove_dir_all(&scm_facts_dir);
     if !output.status.success() {
         panic!(
             "Buck-built enforcement-liveness producer failed with status {:?}\nstderr:\n{}",
@@ -55,6 +54,124 @@ fn load_produced_face() -> Value {
     }
     serde_json::from_slice(&output.stdout)
         .unwrap_or_else(|e| panic!("parse Buck-produced enforcement-liveness face: {e}"))
+}
+
+fn write_current_enforcement_scm_facts(repo_root: &Path) -> (PathBuf, PathBuf) {
+    let nonce = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("system time before unix epoch")
+        .as_nanos();
+    let dir = std::env::temp_dir().join(format!(
+        "oya-enforcement-liveness-scm-facts-{}-{nonce}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&dir).expect("create temp scm facts dir");
+    let path = dir.join("scm-facts.json");
+    std::fs::write(
+        &path,
+        serde_json::to_string_pretty(&json!({
+            "schema": "oya-ci/scm-facts/v2",
+            "tracked_paths": current_enforcement_tracked_paths(repo_root),
+        }))
+        .expect("serialize current enforcement scm facts")
+            + "\n",
+    )
+    .expect("write current enforcement scm facts");
+    (dir, path)
+}
+
+fn current_enforcement_tracked_paths(repo_root: &Path) -> Vec<String> {
+    let mut paths = BTreeSet::new();
+    for wiring_file in [".claude/settings.json", ".codex/hooks.json"] {
+        if repo_root.join(wiring_file).is_file() {
+            paths.insert(wiring_file.to_owned());
+        }
+    }
+    paths.extend(current_hook_paths(repo_root));
+    paths.into_iter().collect()
+}
+
+fn current_hook_paths(repo_root: &Path) -> BTreeSet<String> {
+    let mut paths = BTreeSet::new();
+    for entry in std::fs::read_dir(repo_root.join("tools/hooks")).expect("read tools/hooks") {
+        let entry = entry.expect("read hook dir entry");
+        let file_type = entry.file_type().expect("hook file type");
+        if !file_type.is_file() {
+            continue;
+        }
+        let name = entry.file_name();
+        let name = name.to_str().expect("hook file name utf-8");
+        if name.ends_with(".sh") {
+            paths.insert(format!("tools/hooks/{name}"));
+        }
+    }
+    paths
+}
+
+fn current_stub_paths(repo_root: &Path, hooks: &BTreeSet<String>) -> BTreeSet<String> {
+    hooks
+        .iter()
+        .filter(|hook_path| {
+            std::fs::read_to_string(repo_root.join(hook_path))
+                .expect("read hook body")
+                .contains("Compatibility stub only")
+        })
+        .cloned()
+        .collect()
+}
+
+fn current_hook_command_refs(repo_root: &Path, wiring_file: &str) -> BTreeSet<String> {
+    let text = std::fs::read_to_string(repo_root.join(wiring_file)).expect("read wiring file");
+    let value: Value = serde_json::from_str(&text).expect("parse wiring json");
+    let mut refs = BTreeSet::new();
+    collect_command_values(&value, &mut refs);
+    refs
+}
+
+fn collect_command_values(value: &Value, refs: &mut BTreeSet<String>) {
+    match value {
+        Value::Object(map) => {
+            for (key, nested) in map {
+                if key == "command"
+                    && let Some(command) = nested.as_str()
+                    && let Some(path) = normalize_hook_command(command)
+                {
+                    refs.insert(path);
+                }
+                collect_command_values(nested, refs);
+            }
+        }
+        Value::Array(items) => {
+            for item in items {
+                collect_command_values(item, refs);
+            }
+        }
+        _ => {}
+    }
+}
+
+fn normalize_hook_command(command: &str) -> Option<String> {
+    let first = command.split_whitespace().next()?;
+    let path = first.strip_prefix("./").unwrap_or(first);
+    if is_top_level_hook_script(path) {
+        Some(path.to_owned())
+    } else {
+        None
+    }
+}
+
+fn is_top_level_hook_script(path: &str) -> bool {
+    let Some(name) = path.strip_prefix("tools/hooks/") else {
+        return false;
+    };
+    !name.contains('/') && name.ends_with(".sh")
+}
+
+fn string_set_from_rows(rows: &[Value], row_type: &str, key: &str) -> BTreeSet<String> {
+    rows.iter()
+        .filter(|row| row["row_type"] == row_type)
+        .map(|row| row[key].as_str().expect("row string field").to_owned())
+        .collect()
 }
 
 #[test]
@@ -193,28 +310,43 @@ fn evaluate_is_bare_projection_of_evaluate_keyed() {
 
 #[test]
 fn enforcement_liveness_face_reports_current_tree_green() {
+    let root = repo_root();
+    let expected_hooks = current_hook_paths(&root);
+    let expected_stubs = current_stub_paths(&root, &expected_hooks);
+    let expected_command_refs = current_hook_command_refs(&root, ".claude/settings.json").len()
+        + current_hook_command_refs(&root, ".codex/hooks.json").len();
+
     let face = load_produced_face();
     let rows = face["rows"].as_array().expect("enforcement-liveness rows");
-    let hook_rows = rows.iter().filter(|row| row["row_type"] == "hook").count();
+    let hook_rows = string_set_from_rows(rows, "hook", "hook_path");
     let command_rows = rows
         .iter()
         .filter(|row| row["row_type"] == "command_reference")
         .count();
-    let stub_rows = rows
+    let stub_rows: BTreeSet<String> = rows
         .iter()
-        .filter(|row| row["stub_marked"].as_bool() == Some(true))
-        .count();
+        .filter(|row| row["row_type"] == "hook" && row["stub_marked"].as_bool() == Some(true))
+        .map(|row| row["hook_path"].as_str().expect("hook_path").to_owned())
+        .collect();
 
     eprintln!(
-        "ENFORCEMENT-LIVENESS live corpus: hooks={hook_rows} command_refs={command_rows} stubs={stub_rows}"
+        "ENFORCEMENT-LIVENESS live corpus: hooks={} command_refs={command_rows} stubs={}",
+        hook_rows.len(),
+        stub_rows.len()
     );
 
-    assert_eq!(hook_rows, 12, "tracked tools/hooks/*.sh census changed");
     assert_eq!(
-        command_rows, 20,
-        "Claude+Codex hook command reference census changed"
+        hook_rows, expected_hooks,
+        "enforcement-liveness must census today's tools/hooks/*.sh corpus, not a stale fixture"
     );
-    assert_eq!(stub_rows, 2, "compatibility stub count changed");
+    assert_eq!(
+        command_rows, expected_command_refs,
+        "enforcement-liveness must parse today's Claude+Codex hook command references"
+    );
+    assert_eq!(
+        stub_rows, expected_stubs,
+        "enforcement-liveness must derive compatibility stubs from today's hook bodies"
+    );
     assert!(evaluate_keyed(&face).is_empty());
     assert_eq!(evaluate(&face).verdict, Verdict::Green);
 }
