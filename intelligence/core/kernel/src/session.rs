@@ -154,7 +154,7 @@ mod tests {
         let key = prompt_cache_key(&tenant, Provider::Anthropic, "wsid:conv-1", "claude-opus-4");
         assert_eq!(
             key,
-            "v1:t8:tenant-ap9:anthropics11:wsid:conv-1m14:claude-opus-4"
+            "v1:t8:tenant-ap9:anthropics11:wsid:conv-1m13:claude-opus-4"
         );
     }
 
