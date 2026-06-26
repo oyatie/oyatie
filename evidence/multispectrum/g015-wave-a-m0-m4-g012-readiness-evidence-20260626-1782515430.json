@@ -1,30 +1,32 @@
 {
   "agent_id": "omx-worker-5",
   "artifacts": [
-    "evidence/quality-gate/g015-wave-a-m0-m4-g012-readiness-evidence-20260626.json"
+    "evidence/quality-gate/g015-wave-a-m0-m4-g012-readiness-evidence-20260626.json",
+    "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
   ],
   "branch": "g015-worker-5-g012-readiness-evidence",
-  "change_class_id": "CC-7_evidence_only",
+  "change_class_id": "CC-7_evidence_and_adr_registration",
   "change_id": "g015-wave-a-m0-m4-g012-readiness-evidence-20260626",
   "created_at": "2026-06-26T23:10:30Z",
   "facets": {
-    "F10_reversibility": "Rollback is a git revert of two evidence JSON files only.",
+    "F10_reversibility": "Rollback is a git revert of two evidence JSON files plus the narrow ADR-0515 exact-path registration paragraph.",
     "F11_observability": "Improves team observability by consolidating CI, generated-policy, and lane-state evidence in one machine-readable artifact.",
     "F13_migration": "Supports Wave A M0-M4 foundation closeout by separating evidence/readiness claims from implementation lanes.",
-    "F1_correctness": "Adds a G012 readiness matrix that honestly records origin/dev CI success, generated-artifact policy evidence, worker lane state, and launch blockers without claiming launch readiness.",
-    "F2_tests": "Validated JSON syntax, staged diff hygiene, generated-file diff absence, GitHub check-runs evidence, OMX task-state readback, and Buck2 evidence-target discovery.",
-    "F3_maintainability": "Keeps launch/readiness evidence in evidence/quality-gate with a small companion multispectrum file; no implementation paths or runtime configs touched.",
-    "F4_compatibility": "Evidence-only JSON addition does not change runtime behavior, APIs, build rules, workflows, or generated outputs.",
+    "F1_correctness": "Updates the G012 readiness matrix from stale non-terminal task counts to the observed terminal team state, while preserving the remaining CI/checkpoint/review blockers.",
+    "F2_tests": "Validated JSON syntax, diff hygiene, generated-file diff absence, targeted Buck2 unit/registration tests, and live total-accounting/firewall gate binaries after CI-style generated-face materialization; remote PR #915 oya-ci-required must rerun after this repair.",
+    "F3_maintainability": "Registers the exact evidence paths in ADR-0515 instead of adding a new policy mechanism or broad exception.",
+    "F4_compatibility": "Evidence/ADR-registration update does not change runtime behavior, APIs, build rules, workflows, or generated outputs.",
     "F5_security": "No secrets, credentials, authz rules, or production data added; evidence cites public repo check-run metadata and local team-state task statuses.",
     "F6_privacy": "No tenant, user, customer, or personal data introduced.",
-    "F7_operability": "Provides a concrete launch shutdown gate checklist and blocker list for the leader to reconcile before G015 checkpointing.",
+    "F7_operability": "Makes the closeout state actionable: team terminal, PR #914/#916 green, PR #915 repaired locally pending CI rerun, leader checkpoint still required.",
     "F8_performance": "No executable code or runtime path changed.",
-    "F9_compliance": "Preserves generated-file policy by not editing *.generated.json and records generated-artifact-control-plane success on origin/dev.",
-    "M1_challenge_assumption": "Does not treat green origin/dev checks as launch approval because team task state still has pending/in_progress work.",
-    "M2_zoomed_out_fit": "Aligns with WORK_LEDGER shutdown gate and leader-owned Ultragoal policy; worker-5 does not mutate .omx/ultragoal or Codex goal state."
+    "F9_compliance": "Preserves generated-file policy by not editing *.generated.json and keeps oya-ci-required as the only merge authority.",
+    "M1_challenge_assumption": "Does not treat terminal team state as aggregate launch completion because PR #915 CI, leader checkpoint, review, and merge gates remain distinct.",
+    "M2_zoomed_out_fit": "Aligns with WORK_LEDGER shutdown gate and leader-owned Ultragoal policy; worker evidence does not mutate .omx/ultragoal or Codex goal state."
   },
   "git_sha": "490311b9fd9cd3e65e139073d8a40e579f8e49b2",
-  "honest_claim": "Evidence/readiness artifact only. Launch remains BLOCKED_NOT_READY until non-terminal team tasks are completed or explicitly ledgered and leader performs final quality gates.",
+  "honest_claim": "Evidence/readiness artifact only. Team tasks are terminal, but launch remains pending PR #915 oya-ci-required rerun, leader G015 checkpoint with fresh get_goal, and governance review/merge requirements.",
+  "last_updated_at": "2026-06-26T23:26:00Z",
   "verification": [
     {
       "command": "python3 -m json.tool evidence/quality-gate/g015-wave-a-m0-m4-g012-readiness-evidence-20260626.json",
@@ -45,6 +47,46 @@
     {
       "command": "buck2 targets //evidence/...",
       "result": "PASS command exited 0; no evidence-specific Buck2 targets emitted"
+    },
+    {
+      "command": "python3 -m json.tool evidence/multispectrum/g015-wave-a-m0-m4-g012-readiness-evidence-20260626-1782515430.json",
+      "result": "PASS"
+    },
+    {
+      "command": "ADR-0515 exact-path registration for both G012 evidence files",
+      "result": "ADDED; remote oya-ci-required rerun pending after push"
+    },
+    {
+      "command": "omx team status g015-wave-a-m0-m4-fou-1fb6d50c --json --tail-lines 300",
+      "result": "PASS phase=complete; tasks completed=11 pending=0 in_progress=0 failed=0"
+    },
+    {
+      "command": "gh pr view 914/916 --json statusCheckRollup",
+      "result": "PASS oya-ci-required success on PR #914 and PR #916 at capture"
+    },
+    {
+      "command": "gh pr view 915 --json statusCheckRollup",
+      "result": "EXPECTED PRE-REPAIR FAILURE oya-ci-required before exact-path ADR registration"
+    },
+    {
+      "command": "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app:oya-cloud-ci-total-accounting-app-unittest //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-unittest //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-gate-registration",
+      "result": "PASS 3 targets; 32 tests total"
+    },
+    {
+      "command": "buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .",
+      "result": "PASS local CI-style generated faces materialized for gate execution only"
+    },
+    {
+      "command": "buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app:oya-cloud-ci-total-accounting-app-gate",
+      "result": "PASS 2 tests after materialization"
+    },
+    {
+      "command": "buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-gate",
+      "result": "PASS 10 tests after materialization"
+    },
+    {
+      "command": "git restore -- cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app/scm-volatile-facts.generated.json specs/reorg/move-manifest.generated.json",
+      "result": "PASS generated faces restored before commit"
     }
   ]
 }
