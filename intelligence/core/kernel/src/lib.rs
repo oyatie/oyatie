@@ -31,7 +31,7 @@ pub mod safety;
 pub mod session;
 pub mod xproxy_parity;
 
-pub use session::{DEFAULT_SESSION_TTL, derive_sticky_key, prompt_cache_key};
+pub use session::{derive_sticky_key, prompt_cache_key};
 
 /// Build a stable sticky-affinity key without storing raw prompt content.
 ///
