@@ -21,6 +21,9 @@ pub const FACE_SETTLE_COMMIT_COMMAND: &str =
 const FACE_SETTLE_COMMIT_MESSAGE: &str = "chore: settle generated cloud-ci faces";
 const FACES_DIR: &str = "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app";
 const SCM_FACTS_FACE: &str = "scm-facts.generated.json";
+const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: &str = ".claude/settings.json";
+const ENFORCEMENT_LIVENESS_CODEX_HOOKS: &str = ".codex/hooks.json";
+const ENFORCEMENT_LIVENESS_HOOKS_DIR: &str = "tools/hooks";
 /// The generated-artifact control-plane manifest. Faces whose `materialization_mode` is
 /// non-PR-owned are materialized by cloud-ci/controllers, not byte-compared against contributor
 /// branch copies.
@@ -30,6 +33,11 @@ const NOT_TRACKED_IN_GIT_MODE: &str = "not-tracked-in-git";
 /// Materialization mode marking a declared generated artifact as an integration-branch baseline:
 /// committed on the protected branch for merge-base consumers, but not a contributor PR byte-diff.
 const MAIN_BRANCH_MATERIALIZED_MODE: &str = "main-branch-materialized";
+const ARCHITECTURE_PRODUCT_GRAPH_FACE: &str = "product-graph.html";
+const ARCHITECTURE_PRODUCT_GRAPH_PATH: &str = "docs/architecture/product-graph.html";
+/// PR-owned / face-settle generated paths. Controller-owned generated artifacts that must be
+/// materialized on protected branches, such as `product-graph.html`, intentionally stay out of
+/// this list so contributor PRs do not acquire a new generated merge surface.
 const GENERATED_FACE_PATHS: [&str; 7] = [
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
@@ -39,10 +47,18 @@ const GENERATED_FACE_PATHS: [&str; 7] = [
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/enforcement-liveness.generated.json",
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
 ];
+/// Controller-owned generated artifacts whose freshness is proven by regeneration/determinism,
+/// but whose byte diffs are not staged by `oya-cloud-ci-face-settle` in contributor PRs.
+const CONTROLLER_MATERIALIZED_ARTIFACT_PATHS: [&str; 1] = [ARCHITECTURE_PRODUCT_GRAPH_PATH];
 const EMITTER_TARGET: &str =
     "//cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app:oya-cloud-ci-scm-facts-emitter-app";
 const PRODUCER_TARGET: &str = "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin";
 const CODEMOD_TARGET: &str = "//tools/oya-reorg-codemod-app:oya-reorg-codemod";
+const ARCHITECTURE_GRAPH_GENERATOR_TARGET: &str =
+    "//tools/oya-architecture-graph-generator-app:oya-architecture-graph-generator";
+const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_TARGET: &str = "//.claude:settings-json";
+const ENFORCEMENT_LIVENESS_CODEX_HOOKS_TARGET: &str = "//.codex:hooks-json";
+const ENFORCEMENT_LIVENESS_HOOKS_DIR_TARGET: &str = "//tools/hooks:top-level-hook-scripts";
 const MOVE_MANIFEST_FACE: &str = "specs/reorg/move-manifest.generated.json";
 const PRODUCER_FACES: [(&str, &str); 6] = [
     ("accounting-registry.generated.json", "registry"),
@@ -331,18 +347,26 @@ pub fn run_face_settle_with_buck2(
 
 pub fn materialize_generated_faces_with_buck2(repo_root: &Path) -> Result<(), FreshnessError> {
     let tools = build_materializer_tools(repo_root)?;
-    materialize_move_manifest(&tools, repo_root)?;
+    materialize_generated_faces_with_tools(&tools, repo_root)
+}
+
+fn materialize_generated_faces_with_tools(
+    tools: &MaterializerTools,
+    repo_root: &Path,
+) -> Result<(), FreshnessError> {
+    materialize_move_manifest(tools, repo_root)?;
     let scm_facts = repo_root.join(FACES_DIR).join(SCM_FACTS_FACE);
-    emit_materialized_scm_facts(&tools, repo_root, &scm_facts)?;
-    run_status(
-        Command::new(&tools.producer)
-            .args(["--repo-root"])
-            .arg(repo_root)
-            .args(["--scm-facts"])
-            .arg(&scm_facts)
-            .current_dir(repo_root),
-        "materialize generated accounting faces",
-    )
+    emit_materialized_scm_facts(tools, repo_root, &scm_facts)?;
+    let mut command = Command::new(&tools.producer);
+    command
+        .args(["--repo-root"])
+        .arg(repo_root)
+        .args(["--scm-facts"])
+        .arg(&scm_facts);
+    append_enforcement_liveness_corpus_args(&mut command, &tools.enforcement_liveness_corpus);
+    command.current_dir(repo_root);
+    run_status(&mut command, "materialize generated accounting faces")?;
+    materialize_architecture_product_graph(tools, repo_root)
 }
 
 pub fn parse_materialize_generated_faces_args(
@@ -881,6 +905,13 @@ pub fn read_committed_generated_faces(
         }
         faces.push((name.to_owned(), read_to_string(&path)?));
     }
+    let product_graph = repo_root.join(ARCHITECTURE_PRODUCT_GRAPH_PATH);
+    if product_graph.exists() {
+        faces.push((
+            ARCHITECTURE_PRODUCT_GRAPH_FACE.to_owned(),
+            read_to_string(&product_graph)?,
+        ));
+    }
     faces.sort_by(|left, right| left.0.cmp(&right.0));
     Ok(faces)
 }
@@ -888,7 +919,8 @@ pub fn read_committed_generated_faces(
 /// Read the file names of non-PR-owned faces from the generated-artifact control-plane manifest.
 /// A declared artifact whose `materialization_mode` is `not-tracked-in-git` OR
 /// `main-branch-materialized` AND whose `path` EXACTLY equals one of this gate's canonical
-/// generated-face paths ([`GENERATED_FACE_PATHS`]) is returned by its file basename (e.g.
+/// generated-face paths ([`GENERATED_FACE_PATHS`]) or explicitly controller-materialized paths
+/// ([`CONTROLLER_MATERIALIZED_ARTIFACT_PATHS`]) is returned by its file basename (e.g.
 /// `ttl-policy.generated.json`), matching the keys used everywhere else in this gate. A missing or
 /// malformed manifest yields an empty set, so the byte-parity contract is the safe default (no face
 /// is silently exempted).
@@ -920,12 +952,15 @@ pub fn read_decommitted_face_names(repo_root: &Path) -> BTreeSet<String> {
         let Some(path) = artifact.get("path").and_then(|value| value.as_str()) else {
             continue;
         };
-        // Scope strictly to this gate's faces by CANONICAL FULL PATH, never basename. Matching on
-        // basename would let a candidate-controlled manifest row at a non-canonical path (e.g.
-        // `anything/scm-facts.generated.json`) collapse to a committed face's name and silently
-        // retire that committed face's byte-parity check. An unrelated de-commit-class artifact
-        // elsewhere in the manifest must not change freshness behavior here.
-        if GENERATED_FACE_PATHS.contains(&path) {
+        // Scope strictly to this gate's materialized artifacts by CANONICAL FULL PATH, never
+        // basename. Matching on basename would let a candidate-controlled manifest row at a
+        // non-canonical path (e.g. `anything/scm-facts.generated.json`) collapse to a committed
+        // face's name and silently retire that committed face's byte-parity check. An unrelated
+        // de-commit-class artifact elsewhere in the manifest must not change freshness behavior
+        // here.
+        if GENERATED_FACE_PATHS.contains(&path)
+            || CONTROLLER_MATERIALIZED_ARTIFACT_PATHS.contains(&path)
+        {
             names.insert(file_basename(path).to_owned());
         }
     }
@@ -953,7 +988,7 @@ pub fn regenerate_faces_with_buck2(repo_root: &Path) -> Result<RegeneratedFaces,
         path: volatile_facts.clone(),
     };
     emit_scm_facts(&tools, repo_root, &scm_facts, &volatile_facts)?;
-    let regenerated = regenerate_producer_faces(&tools, repo_root, &scm_facts)?;
+    let regenerated = regenerate_all_faces(&tools, repo_root, &scm_facts)?;
     drop(cleanup);
     drop(volatile_cleanup);
     Ok(regenerated)
@@ -977,8 +1012,8 @@ pub fn regenerate_faces_twice_with_buck2(
         path: volatile_facts.clone(),
     };
     emit_scm_facts(&tools, repo_root, &scm_facts, &volatile_facts)?;
-    let first = regenerate_producer_faces(&tools, repo_root, &scm_facts)?;
-    let second = regenerate_producer_faces(&tools, repo_root, &scm_facts)?;
+    let first = regenerate_all_faces(&tools, repo_root, &scm_facts)?;
+    let second = regenerate_all_faces(&tools, repo_root, &scm_facts)?;
     drop(cleanup);
     drop(volatile_cleanup);
     Ok((first, second))
@@ -1010,20 +1045,80 @@ fn regenerate_producer_faces(
 ) -> Result<RegeneratedFaces, FreshnessError> {
     let mut regenerated = vec![(SCM_FACTS_FACE.to_owned(), read_to_string(scm_facts)?)];
     for (file_name, face_name) in PRODUCER_FACES {
-        let output = run_output(
-            Command::new(&tools.producer)
-                .args(["--repo-root"])
-                .arg(repo_root)
-                .args(["--scm-facts"])
-                .arg(scm_facts)
-                .args(["--stdout", "--face", face_name])
-                .current_dir(repo_root),
-            &format!("regenerate {file_name}"),
-        )?;
+        let mut command = Command::new(&tools.producer);
+        command
+            .args(["--repo-root"])
+            .arg(repo_root)
+            .args(["--scm-facts"])
+            .arg(scm_facts);
+        append_enforcement_liveness_corpus_args(&mut command, &tools.enforcement_liveness_corpus);
+        command
+            .args(["--stdout", "--face", face_name])
+            .current_dir(repo_root);
+        let output = run_output(&mut command, &format!("regenerate {file_name}"))?;
         regenerated.push((file_name.to_owned(), output));
     }
     regenerated.sort_by(|left, right| left.0.cmp(&right.0));
     Ok(regenerated)
+}
+
+fn append_enforcement_liveness_corpus_args(
+    command: &mut Command,
+    corpus: &EnforcementLivenessCorpusPaths,
+) {
+    append_enforcement_liveness_corpus_paths(
+        command,
+        &corpus.claude_settings,
+        &corpus.codex_hooks,
+        &corpus.hooks_dir,
+    );
+}
+
+fn append_enforcement_liveness_corpus_paths(
+    command: &mut Command,
+    claude_settings: &Path,
+    codex_hooks: &Path,
+    hooks_dir: &Path,
+) {
+    command
+        .arg("--enforcement-liveness-claude-settings")
+        .arg(claude_settings)
+        .arg("--enforcement-liveness-codex-hooks")
+        .arg(codex_hooks)
+        .arg("--enforcement-liveness-hooks-dir")
+        .arg(hooks_dir);
+}
+
+fn regenerate_all_faces(
+    tools: &FaceTools,
+    repo_root: &Path,
+    scm_facts: &Path,
+) -> Result<RegeneratedFaces, FreshnessError> {
+    let mut regenerated = regenerate_producer_faces(tools, repo_root, scm_facts)?;
+    regenerated.push(regenerate_architecture_product_graph(tools, repo_root)?);
+    regenerated.sort_by(|left, right| left.0.cmp(&right.0));
+    Ok(regenerated)
+}
+
+fn regenerate_architecture_product_graph(
+    tools: &FaceTools,
+    repo_root: &Path,
+) -> Result<(String, String), FreshnessError> {
+    let output = temporary_product_graph_path();
+    let cleanup = TempFileCleanup {
+        path: output.clone(),
+    };
+    run_status(
+        Command::new(&tools.architecture_graph_generator)
+            .arg("--write")
+            .args(["--output"])
+            .arg(&output)
+            .current_dir(repo_root),
+        "regenerate architecture product graph",
+    )?;
+    let bytes = read_to_string(&output)?;
+    drop(cleanup);
+    Ok((ARCHITECTURE_PRODUCT_GRAPH_FACE.to_owned(), bytes))
 }
 
 fn write_regenerated_faces(
@@ -1207,12 +1302,23 @@ fn bullet_list(items: &[String]) -> String {
 struct FaceTools {
     emitter: PathBuf,
     producer: PathBuf,
+    architecture_graph_generator: PathBuf,
+    enforcement_liveness_corpus: EnforcementLivenessCorpusPaths,
 }
 
 struct MaterializerTools {
     emitter: PathBuf,
     producer: PathBuf,
     codemod: PathBuf,
+    architecture_graph_generator: PathBuf,
+    enforcement_liveness_corpus: EnforcementLivenessCorpusPaths,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct EnforcementLivenessCorpusPaths {
+    claude_settings: PathBuf,
+    codex_hooks: PathBuf,
+    hooks_dir: PathBuf,
 }
 
 fn build_face_tools(repo_root: &Path) -> Result<FaceTools, FreshnessError> {
@@ -1221,13 +1327,25 @@ fn build_face_tools(repo_root: &Path) -> Result<FaceTools, FreshnessError> {
             .arg("build")
             .arg(EMITTER_TARGET)
             .arg(PRODUCER_TARGET)
+            .arg(ARCHITECTURE_GRAPH_GENERATOR_TARGET)
+            .arg(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_TARGET)
+            .arg(ENFORCEMENT_LIVENESS_CODEX_HOOKS_TARGET)
+            .arg(ENFORCEMENT_LIVENESS_HOOKS_DIR_TARGET)
             .arg("--show-output")
             .current_dir(repo_root),
         "buck2 build freshness face tools",
     )?;
     let emitter = parse_show_output_path(repo_root, &output, EMITTER_TARGET)?;
     let producer = parse_show_output_path(repo_root, &output, PRODUCER_TARGET)?;
-    Ok(FaceTools { emitter, producer })
+    let architecture_graph_generator =
+        parse_show_output_path(repo_root, &output, ARCHITECTURE_GRAPH_GENERATOR_TARGET)?;
+    let enforcement_liveness_corpus = parse_enforcement_liveness_corpus_paths(repo_root, &output)?;
+    Ok(FaceTools {
+        emitter,
+        producer,
+        architecture_graph_generator,
+        enforcement_liveness_corpus,
+    })
 }
 
 fn build_materializer_tools(repo_root: &Path) -> Result<MaterializerTools, FreshnessError> {
@@ -1237,6 +1355,10 @@ fn build_materializer_tools(repo_root: &Path) -> Result<MaterializerTools, Fresh
             .arg(EMITTER_TARGET)
             .arg(PRODUCER_TARGET)
             .arg(CODEMOD_TARGET)
+            .arg(ARCHITECTURE_GRAPH_GENERATOR_TARGET)
+            .arg(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_TARGET)
+            .arg(ENFORCEMENT_LIVENESS_CODEX_HOOKS_TARGET)
+            .arg(ENFORCEMENT_LIVENESS_HOOKS_DIR_TARGET)
             .arg("--show-output")
             .current_dir(repo_root),
         "buck2 build generated-face materializer tools",
@@ -1244,10 +1366,15 @@ fn build_materializer_tools(repo_root: &Path) -> Result<MaterializerTools, Fresh
     let emitter = parse_show_output_path(repo_root, &output, EMITTER_TARGET)?;
     let producer = parse_show_output_path(repo_root, &output, PRODUCER_TARGET)?;
     let codemod = parse_show_output_path(repo_root, &output, CODEMOD_TARGET)?;
+    let architecture_graph_generator =
+        parse_show_output_path(repo_root, &output, ARCHITECTURE_GRAPH_GENERATOR_TARGET)?;
+    let enforcement_liveness_corpus = parse_enforcement_liveness_corpus_paths(repo_root, &output)?;
     Ok(MaterializerTools {
         emitter,
         producer,
         codemod,
+        architecture_graph_generator,
+        enforcement_liveness_corpus,
     })
 }
 
@@ -1284,6 +1411,18 @@ fn emit_materialized_scm_facts(
     )
 }
 
+fn materialize_architecture_product_graph(
+    tools: &MaterializerTools,
+    repo_root: &Path,
+) -> Result<(), FreshnessError> {
+    run_status(
+        Command::new(&tools.architecture_graph_generator)
+            .arg("--write")
+            .current_dir(repo_root),
+        "materialize architecture product graph",
+    )
+}
+
 fn parse_show_output_path(
     repo_root: &Path,
     output: &str,
@@ -1305,6 +1444,34 @@ fn parse_show_output_path(
     Err(FreshnessError::new(format!(
         "buck2 --show-output did not include {target}"
     )))
+}
+
+fn parse_enforcement_liveness_corpus_paths(
+    repo_root: &Path,
+    output: &str,
+) -> Result<EnforcementLivenessCorpusPaths, FreshnessError> {
+    let claude_settings_output = parse_show_output_path(
+        repo_root,
+        output,
+        ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_TARGET,
+    )?;
+    let codex_hooks_output =
+        parse_show_output_path(repo_root, output, ENFORCEMENT_LIVENESS_CODEX_HOOKS_TARGET)?;
+    let hooks_dir =
+        parse_show_output_path(repo_root, output, ENFORCEMENT_LIVENESS_HOOKS_DIR_TARGET)?;
+    Ok(EnforcementLivenessCorpusPaths {
+        claude_settings: buck_filegroup_file(claude_settings_output, "settings.json"),
+        codex_hooks: buck_filegroup_file(codex_hooks_output, "hooks.json"),
+        hooks_dir,
+    })
+}
+
+fn buck_filegroup_file(output: PathBuf, file_name: &str) -> PathBuf {
+    if output.is_file() {
+        output
+    } else {
+        output.join(file_name)
+    }
 }
 
 fn read_workspace_version(repo_root: &Path) -> Result<String, FreshnessError> {
@@ -1381,6 +1548,17 @@ fn temporary_volatile_facts_path() -> PathBuf {
     ))
 }
 
+fn temporary_product_graph_path() -> PathBuf {
+    let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
+        Ok(duration) => duration.as_nanos(),
+        Err(_) => 0,
+    };
+    std::env::temp_dir().join(format!(
+        "oya-ci-freshness-product-graph-{}-{nanos}.html",
+        std::process::id()
+    ))
+}
+
 struct TempFileCleanup {
     path: PathBuf,
 }
@@ -1443,6 +1621,28 @@ fn required_string(
 mod materialize_generated_faces_tests {
     use super::*;
 
+    fn temp_root(label: &str) -> PathBuf {
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system clock after epoch")
+            .as_nanos();
+        let root = std::env::temp_dir().join(format!("{label}-{}-{nanos}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        root
+    }
+
+    #[cfg(unix)]
+    fn write_executable(path: &Path, body: &str) {
+        use std::os::unix::fs::PermissionsExt;
+
+        std::fs::write(path, body).expect("write executable");
+        let mut permissions = std::fs::metadata(path)
+            .expect("executable metadata")
+            .permissions();
+        permissions.set_mode(0o755);
+        std::fs::set_permissions(path, permissions).expect("chmod executable");
+    }
+
     #[test]
     fn parse_materialize_generated_faces_args_defaults_to_repo_root_dot() {
         let parsed = parse_materialize_generated_faces_args(Vec::new())
@@ -1476,18 +1676,350 @@ mod materialize_generated_faces_tests {
     }
 
     #[test]
+    fn producer_regeneration_commands_declare_enforcement_liveness_corpus() {
+        let mut command = Command::new("/tmp/producer");
+        let corpus = EnforcementLivenessCorpusPaths {
+            claude_settings: PathBuf::from("/buck/declared/settings-json/settings.json"),
+            codex_hooks: PathBuf::from("/buck/declared/hooks-json/hooks.json"),
+            hooks_dir: PathBuf::from("/buck/declared/top-level-hook-scripts"),
+        };
+        append_enforcement_liveness_corpus_args(&mut command, &corpus);
+
+        let args: Vec<String> = command
+            .get_args()
+            .map(|arg| arg.to_string_lossy().into_owned())
+            .collect();
+
+        assert!(args.windows(2).any(|pair| {
+            pair == [
+                "--enforcement-liveness-claude-settings",
+                "/buck/declared/settings-json/settings.json",
+            ]
+        }));
+        assert!(args.windows(2).any(|pair| {
+            pair == [
+                "--enforcement-liveness-codex-hooks",
+                "/buck/declared/hooks-json/hooks.json",
+            ]
+        }));
+        assert!(args.windows(2).any(|pair| {
+            pair == [
+                "--enforcement-liveness-hooks-dir",
+                "/buck/declared/top-level-hook-scripts",
+            ]
+        }));
+    }
+
+    #[test]
+    fn explicit_corpus_path_appender_preserves_paths() {
+        let mut command = Command::new("/tmp/producer");
+        append_enforcement_liveness_corpus_paths(
+            &mut command,
+            Path::new("/repo/.claude/settings.json"),
+            Path::new("/repo/.codex/hooks.json"),
+            Path::new("/repo/tools/hooks"),
+        );
+
+        let args: Vec<String> = command
+            .get_args()
+            .map(|arg| arg.to_string_lossy().into_owned())
+            .collect();
+
+        assert!(args.windows(2).any(|pair| {
+            pair == [
+                "--enforcement-liveness-claude-settings",
+                "/repo/.claude/settings.json",
+            ]
+        }));
+        assert!(args.windows(2).any(|pair| {
+            pair == [
+                "--enforcement-liveness-codex-hooks",
+                "/repo/.codex/hooks.json",
+            ]
+        }));
+        assert!(
+            args.windows(2)
+                .any(|pair| { pair == ["--enforcement-liveness-hooks-dir", "/repo/tools/hooks",] })
+        );
+    }
+
+    #[test]
     fn parse_show_output_path_resolves_materializer_targets() {
         let output = "\
 root//cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app:oya-cloud-ci-scm-facts-emitter-app buck-out/v2/gen/emitter\n\
 root//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin /tmp/producer\n\
+root//tools/oya-reorg-codemod-app:oya-reorg-codemod buck-out/v2/gen/codemod\n\
+root//tools/oya-architecture-graph-generator-app:oya-architecture-graph-generator buck-out/v2/gen/architecture-graph\n\
+root//.claude:settings-json buck-out/v2/gen/.claude/__settings-json__/settings-json\n\
+root//.codex:hooks-json buck-out/v2/gen/.codex/__hooks-json__/hooks-json\n\
+root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level-hook-scripts__/top-level-hook-scripts\n\
 ";
 
         let emitter =
             parse_show_output_path(Path::new("/repo"), output, EMITTER_TARGET).expect("emitter");
         let producer =
             parse_show_output_path(Path::new("/repo"), output, PRODUCER_TARGET).expect("producer");
+        let codemod =
+            parse_show_output_path(Path::new("/repo"), output, CODEMOD_TARGET).expect("codemod");
+        let architecture_graph_generator = parse_show_output_path(
+            Path::new("/repo"),
+            output,
+            ARCHITECTURE_GRAPH_GENERATOR_TARGET,
+        )
+        .expect("architecture graph generator");
 
         assert_eq!(emitter, PathBuf::from("/repo/buck-out/v2/gen/emitter"));
         assert_eq!(producer, PathBuf::from("/tmp/producer"));
+        assert_eq!(codemod, PathBuf::from("/repo/buck-out/v2/gen/codemod"));
+        assert_eq!(
+            architecture_graph_generator,
+            PathBuf::from("/repo/buck-out/v2/gen/architecture-graph")
+        );
+        let corpus =
+            parse_enforcement_liveness_corpus_paths(Path::new("/repo"), output).expect("corpus");
+        assert_eq!(
+            corpus.claude_settings,
+            PathBuf::from(
+                "/repo/buck-out/v2/gen/.claude/__settings-json__/settings-json/settings.json"
+            )
+        );
+        assert_eq!(
+            corpus.codex_hooks,
+            PathBuf::from("/repo/buck-out/v2/gen/.codex/__hooks-json__/hooks-json/hooks.json")
+        );
+        assert_eq!(
+            corpus.hooks_dir,
+            PathBuf::from(
+                "/repo/buck-out/v2/gen/tools/hooks/__top-level-hook-scripts__/top-level-hook-scripts"
+            )
+        );
+    }
+
+    #[test]
+    fn architecture_product_graph_is_controller_owned_not_pr_owned_face_path() {
+        let root = temp_root("oya-product-graph-controller-owned");
+        std::fs::create_dir_all(root.join("registry")).expect("create registry dir");
+        std::fs::write(
+            root.join(CONTROL_PLANE_MANIFEST),
+            serde_json::json!({
+                "artifacts": [
+                    {
+                        "path": ARCHITECTURE_PRODUCT_GRAPH_PATH,
+                        "materialization_mode": MAIN_BRANCH_MATERIALIZED_MODE
+                    },
+                    {
+                        "path": "elsewhere/product-graph.html",
+                        "materialization_mode": MAIN_BRANCH_MATERIALIZED_MODE
+                    }
+                ]
+            })
+            .to_string(),
+        )
+        .expect("write manifest");
+
+        let non_pr_owned = read_decommitted_face_names(&root);
+        let generated_paths = generated_face_paths();
+        let pr_owned_paths = pr_owned_generated_face_paths(&non_pr_owned);
+
+        assert!(non_pr_owned.contains(ARCHITECTURE_PRODUCT_GRAPH_FACE));
+        assert!(!generated_paths.contains(&ARCHITECTURE_PRODUCT_GRAPH_PATH.to_owned()));
+        assert!(!pr_owned_paths.contains(&ARCHITECTURE_PRODUCT_GRAPH_PATH.to_owned()));
+    }
+
+    #[test]
+    fn read_committed_generated_faces_includes_architecture_product_graph() {
+        let root = temp_root("oya-committed-faces");
+        std::fs::create_dir_all(root.join(FACES_DIR)).expect("create faces dir");
+        std::fs::create_dir_all(root.join("docs/architecture")).expect("create docs dir");
+        std::fs::write(root.join(FACES_DIR).join(SCM_FACTS_FACE), "scm\n").expect("write scm face");
+        std::fs::write(root.join(ARCHITECTURE_PRODUCT_GRAPH_PATH), "graph\n")
+            .expect("write product graph");
+
+        let faces = read_committed_generated_faces(&root).expect("read committed generated faces");
+
+        assert!(faces.contains(&(SCM_FACTS_FACE.to_owned(), "scm\n".to_owned())));
+        assert!(faces.contains(&(
+            ARCHITECTURE_PRODUCT_GRAPH_FACE.to_owned(),
+            "graph\n".to_owned()
+        )));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn regenerated_architecture_product_graph_uses_temporary_output() {
+        let root = temp_root("oya-regenerate-product-graph");
+        std::fs::create_dir_all(root.join("bin")).expect("create bin dir");
+        std::fs::create_dir_all(root.join("docs/architecture")).expect("create docs dir");
+        std::fs::write(
+            root.join(ARCHITECTURE_PRODUCT_GRAPH_PATH),
+            "committed graph\n",
+        )
+        .expect("write committed graph");
+        let generator = root.join("bin/architecture-graph");
+        write_executable(
+            &generator,
+            r#"#!/bin/sh
+set -eu
+out=""
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --output) shift; out="$1" ;;
+  esac
+  shift || true
+done
+test -n "$out"
+printf 'fresh graph\n' > "$out"
+"#,
+        );
+        let tools = FaceTools {
+            emitter: PathBuf::from("/unused-emitter"),
+            producer: PathBuf::from("/unused-producer"),
+            architecture_graph_generator: generator,
+            enforcement_liveness_corpus: EnforcementLivenessCorpusPaths {
+                claude_settings: root.join("buck/declared/settings.json"),
+                codex_hooks: root.join("buck/declared/hooks.json"),
+                hooks_dir: root.join("buck/declared/hooks"),
+            },
+        };
+
+        let regenerated = regenerate_architecture_product_graph(&tools, &root)
+            .expect("regenerate architecture product graph");
+
+        assert_eq!(
+            regenerated,
+            (
+                ARCHITECTURE_PRODUCT_GRAPH_FACE.to_owned(),
+                "fresh graph\n".to_owned()
+            )
+        );
+        assert_eq!(
+            std::fs::read_to_string(root.join(ARCHITECTURE_PRODUCT_GRAPH_PATH))
+                .expect("committed graph"),
+            "committed graph\n"
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn materializer_invokes_architecture_product_graph_generator() {
+        let root = temp_root("oya-materialize-faces");
+        std::fs::create_dir_all(root.join("bin")).expect("create bin dir");
+        let log = root.join("calls.log");
+        let log_path = log.display();
+
+        let codemod = root.join("bin/codemod");
+        write_executable(
+            &codemod,
+            &format!(
+                r#"#!/bin/sh
+set -eu
+printf 'codemod %s\n' "$*" >> "{log_path}"
+out=""
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --out) shift; out="$1" ;;
+  esac
+  shift || true
+done
+test -n "$out"
+mkdir -p "$(dirname "$out")"
+printf '{{"moves":[]}}\n' > "$out"
+"#
+            ),
+        );
+
+        let emitter = root.join("bin/emitter");
+        write_executable(
+            &emitter,
+            &format!(
+                r#"#!/bin/sh
+set -eu
+printf 'emitter %s\n' "$*" >> "{log_path}"
+out=""
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --out) shift; out="$1" ;;
+  esac
+  shift || true
+done
+test -n "$out"
+mkdir -p "$(dirname "$out")"
+printf '{{"facts":[]}}\n' > "$out"
+"#
+            ),
+        );
+
+        let producer = root.join("bin/producer");
+        write_executable(
+            &producer,
+            &format!(
+                r#"#!/bin/sh
+set -eu
+printf 'producer %s\n' "$*" >> "{log_path}"
+"#
+            ),
+        );
+
+        let architecture_graph_generator = root.join("bin/architecture-graph");
+        write_executable(
+            &architecture_graph_generator,
+            &format!(
+                r#"#!/bin/sh
+set -eu
+printf 'architecture %s\n' "$*" >> "{log_path}"
+test "$#" -eq 1
+test "$1" = "--write"
+mkdir -p docs/architecture
+printf 'generated dashboard\n' > docs/architecture/product-graph.html
+"#
+            ),
+        );
+
+        let tools = MaterializerTools {
+            emitter,
+            producer,
+            codemod,
+            architecture_graph_generator,
+            enforcement_liveness_corpus: EnforcementLivenessCorpusPaths {
+                claude_settings: root.join("buck/declared/settings.json"),
+                codex_hooks: root.join("buck/declared/hooks.json"),
+                hooks_dir: root.join("buck/declared/hooks"),
+            },
+        };
+
+        materialize_generated_faces_with_tools(&tools, &root)
+            .expect("materialize faces and architecture product graph");
+
+        let calls = std::fs::read_to_string(&log).expect("read call log");
+        let codemod_pos = calls.find("codemod manifest").expect("codemod call");
+        let emitter_pos = calls.find("emitter --repo-root").expect("emitter call");
+        let producer_pos = calls.find("producer --repo-root").expect("producer call");
+        let architecture_pos = calls
+            .find("architecture --write")
+            .expect("architecture generator call");
+        assert!(codemod_pos < emitter_pos);
+        assert!(emitter_pos < producer_pos);
+        assert!(producer_pos < architecture_pos);
+        assert!(calls.contains(&format!(
+            "--enforcement-liveness-claude-settings {}",
+            root.join("buck/declared/settings.json").display()
+        )));
+        assert!(calls.contains(&format!(
+            "--enforcement-liveness-codex-hooks {}",
+            root.join("buck/declared/hooks.json").display()
+        )));
+        assert!(calls.contains(&format!(
+            "--enforcement-liveness-hooks-dir {}",
+            root.join("buck/declared/hooks").display()
+        )));
+        assert!(!calls.contains(&format!(
+            "--enforcement-liveness-claude-settings {}",
+            root.join(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS).display()
+        )));
+        assert_eq!(
+            std::fs::read_to_string(root.join("docs/architecture/product-graph.html"))
+                .expect("product graph materialized"),
+            "generated dashboard\n"
+        );
     }
 }

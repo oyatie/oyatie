@@ -49,6 +49,10 @@
   "allowed_tracked_paths": [
     { "id": "claude-project-settings",       "kind": "exact", "value": ".claude/settings.json",                     "reason": "tracked project hook/config mirror; local settings/worktrees remain ignored" },
     { "id": "codex-hooks",                   "kind": "exact", "value": ".codex/hooks.json",                         "reason": "tracked Codex hook config mirror" },
+    { "id": "claude-buck-package",          "kind": "exact", "value": ".claude/BUCK",                               "reason": "Buck package marker for reviewed .claude/settings.json hook-config corpus target; not runtime state" },
+    { "id": "claude-owners-marker",          "kind": "exact", "value": ".claude/OWNERS",                             "reason": "ownership marker for reviewed .claude hook-config corpus metadata; not runtime state" },
+    { "id": "codex-buck-package",           "kind": "exact", "value": ".codex/BUCK",                                "reason": "Buck package marker for reviewed .codex/hooks.json hook-config corpus target; not runtime state" },
+    { "id": "codex-owners-marker",           "kind": "exact", "value": ".codex/OWNERS",                              "reason": "ownership marker for reviewed .codex hook-config corpus metadata; not runtime state" },
     { "id": "omc-ultragoal-owners",          "kind": "exact", "value": ".omc/ultragoal/OWNERS",                     "reason": "durable ultragoal ownership provenance" },
     { "id": "omc-ultragoal-preamble",        "kind": "exact", "value": ".omc/ultragoal/TEAMMATE-PREAMBLE.md",       "reason": "durable ultragoal teammate preamble" },
     { "id": "omc-ultragoal-friction-ledger", "kind": "exact", "value": ".omc/ultragoal/friction-ledger.jsonl",      "reason": "durable ultragoal friction provenance ledger" },
