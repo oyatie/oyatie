@@ -8,7 +8,7 @@
     "x-oyatie-contract-status": "preview-not-deployed",
     "x-oyatie-non-claims": [
       "no deployed HTTP runtime",
-      "no authentication enforcement runtime",
+      "no production IAM/SPIFFE adapter",
       "no storage adapter",
       "no Workflow dispatch execution",
       "no statutory filing transport",
@@ -53,6 +53,12 @@
           },
           "400": {
             "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationError"
           }
         }
       }
@@ -85,6 +91,12 @@
           },
           "400": {
             "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationError"
           }
         }
       }
@@ -118,8 +130,11 @@
           "400": {
             "$ref": "#/components/responses/ValidationError"
           },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationError"
+          },
           "403": {
-            "$ref": "#/components/responses/ValidationError"
+            "$ref": "#/components/responses/AuthorizationError"
           }
         }
       }
@@ -152,6 +167,12 @@
           },
           "400": {
             "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationError"
           }
         }
       }
@@ -185,6 +206,7 @@
                   "VALIDATION_ERROR",
                   "DOMAIN_ERROR",
                   "AUTH_REQUIRED",
+                  "UNAUTHENTICATED",
                   "FORBIDDEN"
                 ]
               },
@@ -740,6 +762,26 @@
     "responses": {
       "ValidationError": {
         "description": "Consistent validation error envelope.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiErrorEnvelope"
+            }
+          }
+        }
+      },
+      "AuthenticationError": {
+        "description": "Caller credential is absent or invalid.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiErrorEnvelope"
+            }
+          }
+        }
+      },
+      "AuthorizationError": {
+        "description": "Verified principal is not authorized for the tenant-scoped HR operation.",
         "content": {
           "application/json": {
             "schema": {

@@ -1,6 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::collections::BTreeMap;
+use std::sync::Arc;
 
 use oya_hr_employment_api::{
     EmploymentStatusDto, HrLifecycleKindDto, JurisdictionDto, LaborCompliancePlanRequest,
@@ -9,20 +10,70 @@ use oya_hr_employment_api::{
     SensitiveReadLegalBasisDto, SensitiveReadPurposeDto, TenantTierSnapshotDto,
 };
 use oya_hr_employment_infrastructure::{
-    HR_EMPLOYEES_PATH, HR_HEALTH_PATH, HR_LABOR_COMPLIANCE_WORKFLOW_PLANS_PATH,
-    HR_LEAVE_PAYROLL_IMPACT_PLANS_PATH, HR_SENSITIVE_READ_POLICY_DECISIONS_PATH,
-    dispatch_hr_request, hr_runtime_routes, hr_server_config,
+    ConfiguredBearerPrincipalVerifier, HR_EMPLOYEES_PATH, HR_HEALTH_PATH,
+    HR_LABOR_COMPLIANCE_WORKFLOW_PLANS_PATH, HR_LEAVE_PAYROLL_IMPACT_PLANS_PATH,
+    HR_SENSITIVE_READ_POLICY_DECISIONS_PATH, HrAuthzProvider, HrControlPlaneAuthorizationError,
+    HrControlPlaneAuthorizer, HrControlPlaneResource, VerifiedPrincipal, dispatch_hr_request,
+    hr_runtime_routes, hr_server_config,
 };
 use oya_http_middleware_kernel::HttpRequest;
 use oya_http_router_kernel::HttpMethod;
 
+const BEARER: &str = "hr-test-secret";
+
+struct AllowAllAuthorizer;
+impl HrControlPlaneAuthorizer for AllowAllAuthorizer {
+    fn ensure_authorized(
+        &self,
+        _principal: &VerifiedPrincipal,
+        _resource: &HrControlPlaneResource,
+    ) -> Result<(), HrControlPlaneAuthorizationError> {
+        Ok(())
+    }
+}
+
+struct DenyAllAuthorizer;
+impl HrControlPlaneAuthorizer for DenyAllAuthorizer {
+    fn ensure_authorized(
+        &self,
+        _principal: &VerifiedPrincipal,
+        _resource: &HrControlPlaneResource,
+    ) -> Result<(), HrControlPlaneAuthorizationError> {
+        Err(HrControlPlaneAuthorizationError::Denied)
+    }
+}
+
+struct RefuseAuthorizer;
+impl HrControlPlaneAuthorizer for RefuseAuthorizer {
+    fn ensure_authorized(
+        &self,
+        _principal: &VerifiedPrincipal,
+        _resource: &HrControlPlaneResource,
+    ) -> Result<(), HrControlPlaneAuthorizationError> {
+        Err(HrControlPlaneAuthorizationError::Refused)
+    }
+}
+
+fn provider_with(authorizer: Arc<dyn HrControlPlaneAuthorizer>) -> HrAuthzProvider {
+    let verifier =
+        ConfiguredBearerPrincipalVerifier::new(BEARER, "sp_hr", "ten_acme").expect("verifier");
+    HrAuthzProvider::new(Arc::new(verifier), authorizer)
+}
+
+fn allow_provider() -> HrAuthzProvider {
+    provider_with(Arc::new(AllowAllAuthorizer))
+}
+
 #[test]
 fn hr_runtime_dispatches_sensitive_read_and_leave() {
-    let sensitive = dispatch_hr_request(mock_json_request(
-        HttpMethod::Post,
-        HR_SENSITIVE_READ_POLICY_DECISIONS_PATH,
-        &sensitive_read_request(),
-    ));
+    let sensitive = dispatch_hr_request(
+        mock_json_request(
+            HttpMethod::Post,
+            HR_SENSITIVE_READ_POLICY_DECISIONS_PATH,
+            &sensitive_read_request(),
+        ),
+        allow_provider(),
+    );
     let sensitive_body: serde_json::Value =
         serde_json::from_slice(&sensitive.body).expect("sensitive read json");
     assert_eq!(sensitive.status, 200);
@@ -33,11 +84,14 @@ fn hr_runtime_dispatches_sensitive_read_and_leave() {
     );
     assert_eq!(sensitive_body["payloadDataClass"], "PHI");
 
-    let leave = dispatch_hr_request(mock_json_request(
-        HttpMethod::Post,
-        HR_LEAVE_PAYROLL_IMPACT_PLANS_PATH,
-        &leave_payroll_impact_request(),
-    ));
+    let leave = dispatch_hr_request(
+        mock_json_request(
+            HttpMethod::Post,
+            HR_LEAVE_PAYROLL_IMPACT_PLANS_PATH,
+            &leave_payroll_impact_request(),
+        ),
+        allow_provider(),
+    );
     let leave_body: serde_json::Value = serde_json::from_slice(&leave.body).expect("leave json");
     assert_eq!(leave.status, 200);
     assert_eq!(
@@ -50,11 +104,10 @@ fn hr_runtime_dispatches_sensitive_read_and_leave() {
 
 #[test]
 fn hr_runtime_dispatches_onboarding_and_labor_workflow_metadata() {
-    let onboard = dispatch_hr_request(mock_json_request(
-        HttpMethod::Post,
-        HR_EMPLOYEES_PATH,
-        &onboard_request(),
-    ));
+    let onboard = dispatch_hr_request(
+        mock_json_request(HttpMethod::Post, HR_EMPLOYEES_PATH, &onboard_request()),
+        allow_provider(),
+    );
     let onboard_body: serde_json::Value =
         serde_json::from_slice(&onboard.body).expect("onboard json");
     assert_eq!(onboard.status, 202);
@@ -62,11 +115,14 @@ fn hr_runtime_dispatches_onboarding_and_labor_workflow_metadata() {
     assert_eq!(onboard_body["auditTopic"], "audit.hr.employment.lifecycle");
     assert_eq!(onboard_body["service"], "hr");
 
-    let labor = dispatch_hr_request(mock_json_request(
-        HttpMethod::Post,
-        HR_LABOR_COMPLIANCE_WORKFLOW_PLANS_PATH,
-        &labor_request(),
-    ));
+    let labor = dispatch_hr_request(
+        mock_json_request(
+            HttpMethod::Post,
+            HR_LABOR_COMPLIANCE_WORKFLOW_PLANS_PATH,
+            &labor_request(),
+        ),
+        allow_provider(),
+    );
     let labor_body: serde_json::Value = serde_json::from_slice(&labor.body).expect("labor json");
     assert_eq!(labor.status, 200);
     assert_eq!(
@@ -86,20 +142,24 @@ fn hr_runtime_rejects_invalid_json_and_forbidden_sensitive_purpose() {
         path_captures: BTreeMap::new(),
         matched_template: None,
     };
-    let invalid_response = dispatch_hr_request(invalid_json);
+    let invalid_json = with_bearer(invalid_json, BEARER);
+    let invalid_response = dispatch_hr_request(invalid_json, allow_provider());
     let invalid_body: serde_json::Value =
         serde_json::from_slice(&invalid_response.body).expect("invalid json response");
     assert_eq!(invalid_response.status, 400);
     assert_eq!(invalid_body["error"]["code"], "VALIDATION_ERROR");
 
-    let forbidden = dispatch_hr_request(mock_json_request(
-        HttpMethod::Post,
-        HR_SENSITIVE_READ_POLICY_DECISIONS_PATH,
-        &SensitiveHrReadPolicyRequest {
-            purpose: SensitiveReadPurposeDto::GeneralBrowsing,
-            ..sensitive_read_request()
-        },
-    ));
+    let forbidden = dispatch_hr_request(
+        mock_json_request(
+            HttpMethod::Post,
+            HR_SENSITIVE_READ_POLICY_DECISIONS_PATH,
+            &SensitiveHrReadPolicyRequest {
+                purpose: SensitiveReadPurposeDto::GeneralBrowsing,
+                ..sensitive_read_request()
+            },
+        ),
+        allow_provider(),
+    );
     let forbidden_body: serde_json::Value =
         serde_json::from_slice(&forbidden.body).expect("forbidden json");
     assert_eq!(forbidden.status, 403);
@@ -124,14 +184,17 @@ fn hr_runtime_manifest_and_health_preserve_honest_non_claims() {
     let config = hr_server_config();
     assert_eq!(config.max_body_bytes, 64 * 1024);
 
-    let health = dispatch_hr_request(HttpRequest {
-        method: HttpMethod::Get,
-        path: HR_HEALTH_PATH.to_owned(),
-        headers: BTreeMap::new(),
-        body: Vec::new(),
-        path_captures: BTreeMap::new(),
-        matched_template: None,
-    });
+    let health = dispatch_hr_request(
+        HttpRequest {
+            method: HttpMethod::Get,
+            path: HR_HEALTH_PATH.to_owned(),
+            headers: BTreeMap::new(),
+            body: Vec::new(),
+            path_captures: BTreeMap::new(),
+            matched_template: None,
+        },
+        allow_provider(),
+    );
     let body: serde_json::Value = serde_json::from_slice(&health.body).expect("health json");
     assert_eq!(health.status, 200);
     assert_eq!(body["runtimeAdapter"], "router-ready");
@@ -142,11 +205,103 @@ fn hr_runtime_manifest_and_health_preserve_honest_non_claims() {
     assert_eq!(body["sensitiveDataFetch"], false);
 }
 
+#[test]
+fn unauthenticated_hr_mutation_is_rejected_401() {
+    let request = json_request(
+        HttpMethod::Post,
+        HR_SENSITIVE_READ_POLICY_DECISIONS_PATH,
+        &sensitive_read_request(),
+    );
+    let response = dispatch_hr_request(request, allow_provider());
+    assert_eq!(response.status, 401);
+    let body: serde_json::Value = serde_json::from_slice(&response.body).expect("401 json");
+    assert_eq!(body["error"]["code"], "UNAUTHENTICATED");
+}
+
+#[test]
+fn wrong_bearer_hr_mutation_is_rejected_401() {
+    let request = authed_json_request(
+        HttpMethod::Post,
+        HR_LEAVE_PAYROLL_IMPACT_PLANS_PATH,
+        &leave_payroll_impact_request(),
+        "wrong-secret",
+    );
+    let response = dispatch_hr_request(request, allow_provider());
+    assert_eq!(response.status, 401);
+}
+
+#[test]
+fn standard_authorization_header_casing_is_accepted() {
+    let mut request = json_request(
+        HttpMethod::Post,
+        HR_SENSITIVE_READ_POLICY_DECISIONS_PATH,
+        &sensitive_read_request(),
+    );
+    request
+        .headers
+        .insert("Authorization".to_owned(), format!("Bearer {BEARER}"));
+    let response = dispatch_hr_request(request, allow_provider());
+    assert_eq!(response.status, 200);
+}
+
+#[test]
+fn cross_tenant_hr_mutation_is_rejected_403() {
+    let request = authed_json_request(
+        HttpMethod::Post,
+        HR_EMPLOYEES_PATH,
+        &OnboardEmployeeRequest {
+            tenant_id: "ten_victim".to_owned(),
+            ..onboard_request()
+        },
+        BEARER,
+    );
+    let response = dispatch_hr_request(request, allow_provider());
+    assert_eq!(response.status, 403);
+}
+
+#[test]
+fn pdp_deny_hr_mutation_is_rejected_403() {
+    let request = authed_json_request(
+        HttpMethod::Post,
+        HR_SENSITIVE_READ_POLICY_DECISIONS_PATH,
+        &sensitive_read_request(),
+        BEARER,
+    );
+    let response = dispatch_hr_request(request, provider_with(Arc::new(DenyAllAuthorizer)));
+    assert_eq!(response.status, 403);
+}
+
+#[test]
+fn pdp_refusal_hr_mutation_denies_403_not_500() {
+    let request = authed_json_request(
+        HttpMethod::Post,
+        HR_SENSITIVE_READ_POLICY_DECISIONS_PATH,
+        &sensitive_read_request(),
+        BEARER,
+    );
+    let response = dispatch_hr_request(request, provider_with(Arc::new(RefuseAuthorizer)));
+    assert_eq!(response.status, 403);
+}
+
 fn mock_json_request<T: serde::Serialize>(
     method: HttpMethod,
     path: &str,
     payload: &T,
 ) -> HttpRequest {
+    with_bearer(json_request(method, path, payload), BEARER)
+}
+
+fn authed_json_request<T: serde::Serialize>(
+    method: HttpMethod,
+    path: &str,
+    payload: &T,
+    bearer: &str,
+) -> HttpRequest {
+    let request = json_request(method, path, payload);
+    with_bearer(request, bearer)
+}
+
+fn json_request<T: serde::Serialize>(method: HttpMethod, path: &str, payload: &T) -> HttpRequest {
     HttpRequest {
         method,
         path: path.to_owned(),
@@ -155,6 +310,13 @@ fn mock_json_request<T: serde::Serialize>(
         path_captures: BTreeMap::new(),
         matched_template: None,
     }
+}
+
+fn with_bearer(mut request: HttpRequest, bearer: &str) -> HttpRequest {
+    request
+        .headers
+        .insert("authorization".to_owned(), format!("Bearer {bearer}"));
+    request
 }
 
 fn onboard_request() -> OnboardEmployeeRequest {

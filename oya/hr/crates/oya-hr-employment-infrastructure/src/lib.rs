@@ -10,6 +10,16 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
+mod authz;
+
+pub use authz::{
+    AUTHORIZATION_HEADER, AuthzProviderConfigError, CallerCredential,
+    ConfiguredBearerPrincipalVerifier, HrAuthzMiddleware, HrAuthzProvider, HrControlPlaneAction,
+    HrControlPlaneAuthorizationError, HrControlPlaneAuthorizer, HrControlPlaneResource,
+    PrincipalVerificationError, PrincipalVerifier, VERIFIED_TENANT_CAPTURE_KEY, VerifiedPrincipal,
+    action_for_template, constant_time_eq,
+};
+
 use std::time::Duration;
 
 use oya_hr_employment_api::{
@@ -156,8 +166,9 @@ pub fn hr_server_config() -> ServerConfig {
         .with_keepalive_timeout(Duration::from_secs(30))
 }
 
-pub fn hr_runtime_chain() -> MiddlewareChain<HttpRequest, HttpResponse> {
-    MiddlewareChain::new()
+#[must_use]
+pub fn hr_runtime_chain(provider: HrAuthzProvider) -> MiddlewareChain<HttpRequest, HttpResponse> {
+    MiddlewareChain::new().push(Box::new(HrAuthzMiddleware::new(provider)))
 }
 
 pub fn hr_runtime_router() -> Result<Router<SyncHandler>, HrRuntimeError> {
@@ -190,13 +201,31 @@ pub fn hr_runtime_router() -> Result<Router<SyncHandler>, HrRuntimeError> {
     Ok(router)
 }
 
-pub fn dispatch_hr_request(request: HttpRequest) -> HttpResponse {
+pub fn dispatch_hr_request(request: HttpRequest, provider: HrAuthzProvider) -> HttpResponse {
     match hr_runtime_router() {
-        Ok(router) => dispatch_http(request, &router, &hr_runtime_chain()),
+        Ok(router) => dispatch_http(request, &router, &hr_runtime_chain(provider)),
         Err(error) => json_response(
             500,
             &ApiErrorEnvelope::validation("HR runtime router failed", Some(error.to_string())),
         ),
+    }
+}
+
+fn enforce_body_tenant_matches_verified(
+    req: &HttpRequest,
+    body_tenant_id: &str,
+) -> Result<(), HttpResponse> {
+    match req.path_captures.get(VERIFIED_TENANT_CAPTURE_KEY) {
+        Some(verified) if constant_time_eq(verified.as_bytes(), body_tenant_id.as_bytes()) => {
+            Ok(())
+        }
+        _ => Err(json_response(
+            403,
+            &ApiErrorEnvelope::validation(
+                "HR mutation tenant does not match the verified principal",
+                None,
+            ),
+        )),
     }
 }
 
@@ -211,6 +240,7 @@ impl oya_http_middleware_kernel::Handler for OnboardEmployeeHandler {
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
         let request: OnboardEmployeeRequest = parse_json(&req.body)?;
+        enforce_body_tenant_matches_verified(&req, &request.tenant_id)?;
         let outcome = onboard_employee(request.into_command()).map_err(app_error_response)?;
         Ok(json_response(
             202,
@@ -230,6 +260,7 @@ impl oya_http_middleware_kernel::Handler for LaborComplianceHandler {
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
         let request: LaborCompliancePlanRequest = parse_json(&req.body)?;
+        enforce_body_tenant_matches_verified(&req, &request.tenant_id)?;
         let outcome =
             plan_labor_compliance_workflows(request.into_snapshot()).map_err(app_error_response)?;
         let workflow_dispatches = outcome
@@ -257,6 +288,7 @@ impl oya_http_middleware_kernel::Handler for SensitiveReadHandler {
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
         let request: SensitiveHrReadPolicyRequest = parse_json(&req.body)?;
+        enforce_body_tenant_matches_verified(&req, &request.tenant_id)?;
         let outcome = prepare_sensitive_hr_read_envelope(request.into_domain_input())
             .map_err(app_error_response)?;
         Ok(json_response(
@@ -271,6 +303,7 @@ impl oya_http_middleware_kernel::Handler for LeavePayrollImpactHandler {
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
         let request: LeavePayrollImpactRequest = parse_json(&req.body)?;
+        enforce_body_tenant_matches_verified(&req, &request.tenant_id)?;
         let outcome = plan_leave_payroll_impact_envelope(request.into_domain_input())
             .map_err(app_error_response)?;
         Ok(json_response(
