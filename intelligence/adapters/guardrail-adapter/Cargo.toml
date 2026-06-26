@@ -1,0 +1,28 @@
+[package]
+name = "intelligence-guardrail-adapter"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# PII/secret redactor guardrail adapter for cloud-intelligence.
+#
+# Implements the kernel `Guardrail` port with a production redaction engine and
+# exposes the same engine as a non-bypassable `RedactingEventSink` decorator at
+# the `EventSink` boundary so no downstream sink can persist a secret.
+
+[lib]
+name = "intelligence_guardrail_adapter"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+intelligence-kernel = { path = "../../core/kernel" }
+regex = "1"
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt", "rt-multi-thread", "macros"] }
+
+[lints]
+workspace = true
