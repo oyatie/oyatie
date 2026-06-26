@@ -11,6 +11,7 @@ use oya_cloud_ci_enforcement_liveness_app::{Verdict, evaluate, evaluate_keyed};
 use serde_json::{Value, json};
 
 const PRODUCER_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER";
+const SCM_FACTS_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_SCM_FACTS";
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
@@ -29,11 +30,16 @@ fn load_produced_face() -> Value {
     let producer = std::env::var(PRODUCER_ENV).unwrap_or_else(|e| {
         panic!("{PRODUCER_ENV} must point at Buck-built accounting-registry producer: {e}")
     });
+    let scm_facts = std::env::var(SCM_FACTS_ENV).unwrap_or_else(|e| {
+        panic!("{SCM_FACTS_ENV} must point at a Buck-declared scm-facts fixture: {e}")
+    });
     let root = repo_root();
     let output = Command::new(&producer)
         .args([
             "--repo-root",
             root.to_str().expect("repo root utf-8"),
+            "--scm-facts",
+            scm_facts.as_str(),
             "--stdout",
             "--face",
             "enforcement-liveness",
