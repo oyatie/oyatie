@@ -1,7 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::collections::BTreeMap;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use oya_hr_employment_api::{
     EmploymentStatusDto, HrLifecycleKindDto, JurisdictionDto, LaborCompliancePlanRequest,
@@ -12,9 +12,9 @@ use oya_hr_employment_api::{
 use oya_hr_employment_infrastructure::{
     ConfiguredBearerPrincipalVerifier, HR_EMPLOYEES_PATH, HR_HEALTH_PATH,
     HR_LABOR_COMPLIANCE_WORKFLOW_PLANS_PATH, HR_LEAVE_PAYROLL_IMPACT_PLANS_PATH,
-    HR_SENSITIVE_READ_POLICY_DECISIONS_PATH, HrAuthzProvider, HrControlPlaneAuthorizationError,
-    HrControlPlaneAuthorizer, HrControlPlaneResource, VerifiedPrincipal, dispatch_hr_request,
-    hr_runtime_routes, hr_server_config,
+    HR_SENSITIVE_READ_POLICY_DECISIONS_PATH, HrAuthzProvider, HrControlPlaneAction,
+    HrControlPlaneAuthorizationError, HrControlPlaneAuthorizer, HrControlPlaneResource,
+    VerifiedPrincipal, dispatch_hr_request, hr_runtime_routes, hr_server_config,
 };
 use oya_http_middleware_kernel::HttpRequest;
 use oya_http_router_kernel::HttpMethod;
@@ -51,6 +51,42 @@ impl HrControlPlaneAuthorizer for RefuseAuthorizer {
         _resource: &HrControlPlaneResource,
     ) -> Result<(), HrControlPlaneAuthorizationError> {
         Err(HrControlPlaneAuthorizationError::Refused)
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct RecordedAuthorizationDecision {
+    principal_id: String,
+    principal_tenant_id: String,
+    resource: HrControlPlaneResource,
+}
+
+#[derive(Default)]
+struct RecordingAuthorizer {
+    decisions: Mutex<Vec<RecordedAuthorizationDecision>>,
+}
+
+impl RecordingAuthorizer {
+    fn decisions(&self) -> Vec<RecordedAuthorizationDecision> {
+        self.decisions.lock().expect("decisions lock").clone()
+    }
+}
+
+impl HrControlPlaneAuthorizer for RecordingAuthorizer {
+    fn ensure_authorized(
+        &self,
+        principal: &VerifiedPrincipal,
+        resource: &HrControlPlaneResource,
+    ) -> Result<(), HrControlPlaneAuthorizationError> {
+        self.decisions
+            .lock()
+            .expect("decisions lock")
+            .push(RecordedAuthorizationDecision {
+                principal_id: principal.principal_id().to_owned(),
+                principal_tenant_id: principal.tenant_id().to_owned(),
+                resource: resource.clone(),
+            });
+        Ok(())
     }
 }
 
@@ -281,6 +317,91 @@ fn pdp_refusal_hr_mutation_denies_403_not_500() {
     );
     let response = dispatch_hr_request(request, provider_with(Arc::new(RefuseAuthorizer)));
     assert_eq!(response.status, 403);
+}
+
+#[test]
+fn pdp_authorizer_receives_route_action_and_verified_tenant_for_every_mutation() {
+    struct RouteCase {
+        path: &'static str,
+        action: HrControlPlaneAction,
+        status: u16,
+        payload: serde_json::Value,
+    }
+
+    let cases = vec![
+        RouteCase {
+            path: HR_EMPLOYEES_PATH,
+            action: HrControlPlaneAction::OnboardEmployee,
+            status: 202,
+            payload: serde_json::to_value(onboard_request()).expect("onboard payload"),
+        },
+        RouteCase {
+            path: HR_LABOR_COMPLIANCE_WORKFLOW_PLANS_PATH,
+            action: HrControlPlaneAction::LaborCompliancePlan,
+            status: 200,
+            payload: serde_json::to_value(labor_request()).expect("labor payload"),
+        },
+        RouteCase {
+            path: HR_SENSITIVE_READ_POLICY_DECISIONS_PATH,
+            action: HrControlPlaneAction::SensitiveReadPolicyDecision,
+            status: 200,
+            payload: serde_json::to_value(sensitive_read_request()).expect("sensitive payload"),
+        },
+        RouteCase {
+            path: HR_LEAVE_PAYROLL_IMPACT_PLANS_PATH,
+            action: HrControlPlaneAction::LeavePayrollImpactPlan,
+            status: 200,
+            payload: serde_json::to_value(leave_payroll_impact_request()).expect("leave payload"),
+        },
+    ];
+
+    let recorder = Arc::new(RecordingAuthorizer::default());
+    let provider = provider_with(recorder.clone());
+    for case in &cases {
+        let response = dispatch_hr_request(
+            authed_json_request(HttpMethod::Post, case.path, &case.payload, BEARER),
+            provider.clone(),
+        );
+        assert_eq!(response.status, case.status, "{}", case.path);
+    }
+
+    let decisions = recorder.decisions();
+    assert_eq!(decisions.len(), cases.len());
+    for (decision, case) in decisions.iter().zip(cases.iter()) {
+        assert_eq!(decision.principal_id, "sp_hr", "{}", case.path);
+        assert_eq!(decision.principal_tenant_id, "ten_acme", "{}", case.path);
+        assert_eq!(decision.resource.tenant_id, "ten_acme", "{}", case.path);
+        assert_eq!(decision.resource.action, case.action, "{}", case.path);
+        assert_eq!(decision.resource.route_template, case.path, "{}", case.path);
+    }
+}
+
+#[test]
+fn pdp_authorizer_receives_verified_tenant_not_cross_tenant_body_tenant() {
+    let recorder = Arc::new(RecordingAuthorizer::default());
+    let response = dispatch_hr_request(
+        authed_json_request(
+            HttpMethod::Post,
+            HR_EMPLOYEES_PATH,
+            &OnboardEmployeeRequest {
+                tenant_id: "ten_victim".to_owned(),
+                ..onboard_request()
+            },
+            BEARER,
+        ),
+        provider_with(recorder.clone()),
+    );
+
+    assert_eq!(response.status, 403);
+    let decisions = recorder.decisions();
+    assert_eq!(decisions.len(), 1);
+    assert_eq!(decisions[0].principal_tenant_id, "ten_acme");
+    assert_eq!(decisions[0].resource.tenant_id, "ten_acme");
+    assert_eq!(
+        decisions[0].resource.action,
+        HrControlPlaneAction::OnboardEmployee
+    );
+    assert_eq!(decisions[0].resource.route_template, HR_EMPLOYEES_PATH);
 }
 
 fn mock_json_request<T: serde::Serialize>(

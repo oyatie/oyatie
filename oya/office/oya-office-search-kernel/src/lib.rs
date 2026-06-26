@@ -271,10 +271,13 @@ impl SearchIndexRebuildPlan {
                 "search rebuild source cursor must not be empty",
             ));
         }
+        if batch_size > Self::MAX_BATCH_SIZE {
+            return Err(SearchPortError::new(
+                "search rebuild batch size exceeds maximum",
+            ));
+        }
         let batch_size = if batch_size == 0 {
             Self::DEFAULT_BATCH_SIZE
-        } else if batch_size > Self::MAX_BATCH_SIZE {
-            Self::MAX_BATCH_SIZE
         } else {
             batch_size
         };
@@ -375,7 +378,7 @@ mod tests {
             SearchIndexName::new("drive-active").expect("valid active index"),
             SearchIndexName::new("drive-rebuild").expect("valid rebuild index"),
             "checkpoint-42",
-            25_000,
+            SearchIndexRebuildPlan::MAX_BATCH_SIZE,
         )
         .expect("valid rebuild plan");
 
@@ -403,6 +406,17 @@ mod tests {
         )
         .expect_err("rebuild target must not overwrite active index");
         assert!(same_index_error.message().contains("must differ"));
+
+        let over_limit_error = SearchIndexRebuildPlan::new(
+            tenant_id.clone(),
+            cell_id.clone(),
+            SearchIndexName::new("drive-active").expect("valid active index"),
+            SearchIndexName::new("drive-rebuild").expect("valid rebuild index"),
+            "checkpoint-42",
+            SearchIndexRebuildPlan::MAX_BATCH_SIZE + 1,
+        )
+        .expect_err("rebuild batch size must not exceed the capacity contract");
+        assert!(over_limit_error.message().contains("exceeds maximum"));
 
         let empty_cursor_error = SearchIndexRebuildPlan::new(
             tenant_id,
