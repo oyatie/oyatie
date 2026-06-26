@@ -1441,6 +1441,44 @@ mod tests {
     }
 
     #[test]
+    fn diff_policy_rejects_generated_json_add_modify_copy_and_rename_destinations() {
+        let manifest = manifest(vec![artifact("example-face", "out/example.generated.json")]);
+        let diff = concat!(
+            "M\tdocs/machine-readable/masterplan.generated.json\n",
+            "A\tdocs/machine-readable/new.generated.json\n",
+            "C100\tdocs/machine-readable/source.json\tdocs/machine-readable/copied.generated.json\n",
+            "R100\tdocs/machine-readable/source.json\tdocs/machine-readable/renamed.generated.json\n",
+            "D\tdocs/machine-readable/deleted.generated.json\n",
+            "M\tdocs/machine-readable/source.json\n",
+        );
+
+        let (findings, violations) = generated_output_diff_policy_violations(&manifest, diff);
+
+        assert_eq!(findings, BTreeSet::new());
+        assert_eq!(
+            violations,
+            vec![
+                DiffPolicyViolation {
+                    status: "M".to_owned(),
+                    path: "docs/machine-readable/masterplan.generated.json".to_owned(),
+                },
+                DiffPolicyViolation {
+                    status: "A".to_owned(),
+                    path: "docs/machine-readable/new.generated.json".to_owned(),
+                },
+                DiffPolicyViolation {
+                    status: "C100".to_owned(),
+                    path: "docs/machine-readable/copied.generated.json".to_owned(),
+                },
+                DiffPolicyViolation {
+                    status: "R100".to_owned(),
+                    path: "docs/machine-readable/renamed.generated.json".to_owned(),
+                },
+            ]
+        );
+    }
+
+    #[test]
     fn invalid_generated_path_rules_are_red() {
         let mut manifest = manifest(vec![artifact("example-face", "out/example.generated.json")]);
         manifest["generated_path_rules"][0]["rule_kind"] = json!("regex");
