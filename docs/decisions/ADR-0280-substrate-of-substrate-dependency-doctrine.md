@@ -199,6 +199,8 @@ silent false-green):
 - Prerequisite #2 (the Tarjan/Kahn validator + cycle fixtures):
   - `cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/BUCK`
   - `cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/Cargo.toml`
+  - `cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/substrate-dependency-dag-policy.json`
+  - `evidence/multispectrum/wavea-cloud-ci-substrate-dag-policy-boundary-20260626-1782507158.json`
   - `cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/src/lib.rs`
   - `cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/src/main.rs`
   - `cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/tests/acyclicity.rs`
