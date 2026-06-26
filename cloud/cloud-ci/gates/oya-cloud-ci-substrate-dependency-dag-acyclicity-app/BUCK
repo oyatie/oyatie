@@ -9,9 +9,9 @@ rust_library(
     ],
 )
 
-# Gate binary (ADR-0280 §D-3). Loads specs/substrate-dependency-dag.json and exits 0/1/2. LOCAL
-# BRIDGE feedback only (founder CLI-retirement directive): merge authority is the gate test below
-# + the check-substrates lane, never this binary.
+# Gate binary (ADR-0280 §D-3). Loads the policy-declared substrate DAG and exits 0/1/2.
+# LOCAL BRIDGE feedback only (founder CLI-retirement directive): merge authority is the gate test
+# below + the check-substrates lane, never this binary.
 rust_binary(
     name = "oya-cloud-ci-substrate-dependency-dag-acyclicity-bin",
     srcs = glob(["src/**/*.rs", "**/*.json"]),
@@ -36,8 +36,8 @@ rust_test(
     ],
 )
 
-# ADR-0280 §D-3 acyclicity lane: Buck2-native live-corpus self-test over the REAL canonical
-# specs/substrate-dependency-dag.json (must be GREEN: acyclic, forbidden edges honoured,
+# ADR-0280 §D-3 acyclicity lane: Buck2-native live-corpus self-test over the REAL policy-declared
+# substrate DAG (must be GREEN: acyclic, forbidden edges honoured,
 # bootstrap_order == Kahn topo-sort), plus the on-disk RED cycle fixtures under
 # tests/fixtures/dag-cycles/ (each MUST fail the validator).
 rust_test(
