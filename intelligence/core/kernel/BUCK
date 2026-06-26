@@ -7,6 +7,7 @@ rust_library(
     deps = [
         "third-party//:tokio",
         "third-party//:serde",
+        "third-party//:sha2",
     ],
 )
 
@@ -19,6 +20,7 @@ rust_test(
     deps = [
         "third-party//:tokio",
         "third-party//:serde",
+        "third-party//:sha2",
     ],
 )
 
@@ -167,5 +169,28 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":intelligence-kernel",
+    ],
+)
+
+rust_test(
+    name = "intelligence-kernel-session-pinning-test",
+    srcs = glob(["tests/session_pinning.rs"]),
+    crate = "intelligence_kernel_session_pinning_test",
+    crate_root = "tests/session_pinning.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-kernel",
+    ],
+)
+
+rust_test(
+    name = "intelligence-kernel-proptest-session-pinning-test",
+    srcs = glob(["tests/proptest_session_pinning.rs"]),
+    crate = "intelligence_kernel_proptest_session_pinning_test",
+    crate_root = "tests/proptest_session_pinning.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-kernel",
+        "third-party//:proptest",
     ],
 )
