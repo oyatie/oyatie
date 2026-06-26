@@ -1,8 +1,8 @@
 //! # cloud-ci-substrate-dependency-dag-acyclicity (ADR-0280 §D-3)
 //!
 //! The principal enforcement surface for the substrate-of-substrate dependency doctrine
-//! (ADR-0280, amended by ADR-0520 + ADR-0562). It loads the canonical
-//! `specs/substrate-dependency-dag.json` and proves the substrate dependency graph is a DAG:
+//! (ADR-0280, amended by ADR-0520 + ADR-0562). It loads the policy-declared substrate DAG and
+//! proves the substrate dependency graph is a DAG:
 //!
 //! 1. **Schema shape** — every node carries the §D-1 `required` fields; every edge carries the
 //!    §D-1 `required` fields with a `cascade_rule` in the allowed enum; endpoints reference
@@ -17,12 +17,14 @@
 //!    querying the DAG, never hard-coded (ADR-0280 §D-4).
 //!
 //! ## Born pack-shaped (R0)
-//! The crate is a NEUTRAL graph engine. The only repo-specific is the spec path
-//! ([`DAG_PATH`]); the Tarjan / Kahn / forbidden-edge / schema-shape logic is pure and runs on
-//! any DAG document of this schema. The kernel fixes only the algorithm, not the data.
+//! The crate is a NEUTRAL graph engine. Repo-specific adoption points live in
+//! `substrate-dependency-dag-policy.json`; the Tarjan / Kahn / forbidden-edge / schema-shape
+//! logic is pure and runs on any DAG document of this schema. The kernel fixes only the algorithm,
+//! not the data.
 //!
 //! ## Kernel contract
-//! - [`parse_dag`] `(bytes) -> Result<Dag, DagError>` is the only parse boundary (pure; no I/O).
+//! - [`parse_policy`] `(bytes) -> Result<Policy, DagError>` reads the data-pack boundary.
+//! - [`parse_dag`] `(bytes) -> Result<Dag, DagError>` is the DAG parse boundary (pure; no I/O).
 //! - [`load_dag`] `(root, path) -> Result<Dag, DagError>` is the only I/O (read-only file read).
 //! - [`evaluate`] `(&Dag) -> Report` is PURE and unit-testable without a filesystem; it keys
 //!   every finding by a stable code.
@@ -44,15 +46,15 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
-use std::path::Path;
+use std::path::{Component, Path};
 
 use serde_json::Value;
 
 /// The gate id, matching the buck2 target stem + the doctrine.
 pub const GATE_ID: &str = "cloud-ci-substrate-dependency-dag-acyclicity";
 
-/// The canonical DAG spec path, relative to the repo root (ADR-0280 §D-1). The only repo-specific.
-pub const DAG_PATH: &str = "specs/substrate-dependency-dag.json";
+/// Default policy data-pack path, relative to the repo root.
+pub const DEFAULT_POLICY_PATH: &str = "cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/substrate-dependency-dag-policy.json";
 
 /// The §D-1 node `required` fields.
 pub const NODE_REQUIRED_FIELDS: [&str; 6] = [
@@ -90,6 +92,15 @@ pub const VIOLATION_CODES: [&str; 8] = [
 ];
 
 // ───────────────────────────── parsed DAG ─────────────────────────────
+
+/// Policy data for this gate. Repo-specific adoption points belong here, not in Rust constants.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Policy {
+    /// The gate id this policy configures; must equal [`GATE_ID`].
+    pub gate_id: String,
+    /// Repo-relative path to the substrate dependency DAG document.
+    pub dag_path: String,
+}
 
 /// A parsed substrate dependency DAG: the node set (in declared order), the directed edges, the
 /// declared bootstrap order, and the forbidden-edge negative-space assertions.
@@ -172,11 +183,70 @@ impl Report {
 
 // ───────────────────────────── parse boundary ─────────────────────────────
 
-/// Read the DAG document from `<root>/<path>` and parse it. The only I/O in the crate.
+/// Read the policy document from `<root>/<path>` and parse it. Read-only I/O.
+pub fn load_policy(root: &Path, path: &str) -> Result<Policy, DagError> {
+    let full = root.join(path);
+    let bytes =
+        fs::read_to_string(&full).map_err(|e| DagError::Io(format!("{}: {e}", full.display())))?;
+    parse_policy(&bytes)
+}
+
+/// Parse the gate policy from JSON bytes. PURE — no I/O. Fails closed if the policy points outside
+/// the repo-relative data-pack boundary.
+pub fn parse_policy(bytes: &str) -> Result<Policy, DagError> {
+    let value: Value = serde_json::from_str(bytes)
+        .map_err(|e| DagError::Parse(format!("invalid policy json: {e}")))?;
+    let gate_id = required_string(&value, "gate_id")?;
+    if gate_id != GATE_ID {
+        return Err(DagError::Parse(format!(
+            "policy gate_id `{gate_id}` does not match `{GATE_ID}`"
+        )));
+    }
+    let dag_path = required_string(&value, "dag_path")?;
+    validate_repo_relative_path("dag_path", dag_path)?;
+    Ok(Policy {
+        gate_id: gate_id.to_owned(),
+        dag_path: dag_path.to_owned(),
+    })
+}
+
+fn required_string<'a>(value: &'a Value, key: &str) -> Result<&'a str, DagError> {
+    value
+        .get(key)
+        .and_then(Value::as_str)
+        .ok_or_else(|| DagError::Parse(format!("policy missing string `{key}`")))
+}
+
+fn validate_repo_relative_path(field: &str, path: &str) -> Result<(), DagError> {
+    if path.trim().is_empty() {
+        return Err(DagError::Parse(format!(
+            "policy `{field}` must not be empty"
+        )));
+    }
+    let parsed = Path::new(path);
+    for component in parsed.components() {
+        match component {
+            Component::ParentDir => {
+                return Err(DagError::Parse(format!(
+                    "policy `{field}` must stay repo-relative and must not contain `..`: {path}"
+                )));
+            }
+            Component::RootDir | Component::Prefix(_) => {
+                return Err(DagError::Parse(format!(
+                    "policy `{field}` must be repo-relative, got {path}"
+                )));
+            }
+            Component::CurDir | Component::Normal(_) => {}
+        }
+    }
+    Ok(())
+}
+
+/// Read the DAG document from `<root>/<path>` and parse it. Read-only I/O.
 pub fn load_dag(root: &Path, path: &str) -> Result<Dag, DagError> {
     let full = root.join(path);
-    let bytes = fs::read_to_string(&full)
-        .map_err(|e| DagError::Io(format!("{}: {e}", full.display())))?;
+    let bytes =
+        fs::read_to_string(&full).map_err(|e| DagError::Io(format!("{}: {e}", full.display())))?;
     parse_dag(&bytes)
 }
 
@@ -184,8 +254,8 @@ pub fn load_dag(root: &Path, path: &str) -> Result<Dag, DagError> {
 /// the graph; the field-completeness + cascade-enum + endpoint checks are findings in [`evaluate`]
 /// so the gate surfaces ALL coherence problems rather than aborting on the first.
 pub fn parse_dag(bytes: &str) -> Result<Dag, DagError> {
-    let value: Value = serde_json::from_str(bytes)
-        .map_err(|e| DagError::Parse(format!("invalid json: {e}")))?;
+    let value: Value =
+        serde_json::from_str(bytes).map_err(|e| DagError::Parse(format!("invalid json: {e}")))?;
 
     let nodes = parse_node_names(&value)?;
     let edges = parse_edge_endpoints(&value)?;
@@ -262,10 +332,14 @@ fn parse_forbidden_edges(value: &Value) -> Result<Vec<(String, String)>, DagErro
     let mut out = Vec::with_capacity(arr.len());
     for (i, e) in arr.iter().enumerate() {
         let from = e.get("from").and_then(Value::as_str).ok_or_else(|| {
-            DagError::Parse(format!("forbidden_edges_assertion[{i}] missing string `from`"))
+            DagError::Parse(format!(
+                "forbidden_edges_assertion[{i}] missing string `from`"
+            ))
         })?;
         let to = e.get("to").and_then(Value::as_str).ok_or_else(|| {
-            DagError::Parse(format!("forbidden_edges_assertion[{i}] missing string `to`"))
+            DagError::Parse(format!(
+                "forbidden_edges_assertion[{i}] missing string `to`"
+            ))
         })?;
         out.push((from.to_owned(), to.to_owned()));
     }
@@ -326,7 +400,9 @@ fn check_schema_completeness(value: &Value, dag: &Dag, findings: &mut Vec<Findin
                     findings.push(Finding {
                         code: "dag_edge_unknown_node".to_owned(),
                         subject: subject.clone(),
-                        detail: format!("edge `{subject}` `{role}` endpoint `{ep}` is not a declared node"),
+                        detail: format!(
+                            "edge `{subject}` `{role}` endpoint `{ep}` is not a declared node"
+                        ),
                     });
                 }
             }
@@ -525,7 +601,8 @@ pub fn validate_bootstrap_order(dag: &Dag) -> Option<String> {
         .collect();
     for (from, to) in &dag.edges {
         // Skip edges with undeclared endpoints (reported separately as dag_edge_unknown_node).
-        let (Some(&fp), Some(&tp)) = (position.get(from.as_str()), position.get(to.as_str())) else {
+        let (Some(&fp), Some(&tp)) = (position.get(from.as_str()), position.get(to.as_str()))
+        else {
             continue;
         };
         if tp >= fp {
@@ -658,16 +735,27 @@ mod tests {
     ) -> Dag {
         Dag {
             nodes: nodes.iter().map(|s| s.to_string()).collect(),
-            edges: edges.iter().map(|(a, b)| (a.to_string(), b.to_string())).collect(),
+            edges: edges
+                .iter()
+                .map(|(a, b)| (a.to_string(), b.to_string()))
+                .collect(),
             bootstrap_order: bootstrap.iter().map(|s| s.to_string()).collect(),
-            forbidden_edges: forbidden.iter().map(|(a, b)| (a.to_string(), b.to_string())).collect(),
+            forbidden_edges: forbidden
+                .iter()
+                .map(|(a, b)| (a.to_string(), b.to_string()))
+                .collect(),
         }
     }
 
     #[test]
     fn acyclic_chain_is_green() {
         // a -> b -> c (a depends on b depends on c). Bootstrap: c, b, a.
-        let d = dag(&["a", "b", "c"], &[("a", "b"), ("b", "c")], &["c", "b", "a"], &[]);
+        let d = dag(
+            &["a", "b", "c"],
+            &[("a", "b"), ("b", "c")],
+            &["c", "b", "a"],
+            &[],
+        );
         let report = evaluate(&d);
         assert_eq!(report.verdict, Verdict::Green, "{:?}", report.findings);
         assert_eq!(
@@ -744,17 +832,32 @@ mod tests {
         );
         let report = evaluate(&d);
         assert_eq!(report.verdict, Verdict::Red);
-        assert!(report.findings.iter().any(|f| f.code == "dag_forbidden_edge"));
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|f| f.code == "dag_forbidden_edge")
+        );
     }
 
     #[test]
     fn bootstrap_drift_is_red() {
         // Acyclic, but the declared order is NOT a valid topological order: a depends on b (edge
         // a->b) yet a is placed BEFORE b, so a dependency follows its dependent.
-        let d = dag(&["a", "b", "c"], &[("a", "b"), ("b", "c")], &["a", "b", "c"], &[]);
+        let d = dag(
+            &["a", "b", "c"],
+            &[("a", "b"), ("b", "c")],
+            &["a", "b", "c"],
+            &[],
+        );
         let report = evaluate(&d);
         assert_eq!(report.verdict, Verdict::Red);
-        assert!(report.findings.iter().any(|f| f.code == "dag_bootstrap_drift"));
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|f| f.code == "dag_bootstrap_drift")
+        );
     }
 
     #[test]
@@ -815,5 +918,42 @@ mod tests {
         assert_eq!(d.edges, vec![("a".to_string(), "b".to_string())]);
         assert_eq!(d.bootstrap_order, vec!["b", "a"]);
         assert_eq!(d.forbidden_edges, vec![("b".to_string(), "a".to_string())]);
+    }
+
+    #[test]
+    fn policy_accepts_neutral_repo_relative_dag_path() {
+        let doc = r#"{
+          "gate_id": "cloud-ci-substrate-dependency-dag-acyclicity",
+          "dag_path": "config/substrate/dag.json"
+        }"#;
+        let policy = parse_policy(doc).expect("neutral policy parses");
+        assert_eq!(policy.gate_id, GATE_ID);
+        assert_eq!(policy.dag_path, "config/substrate/dag.json");
+    }
+
+    #[test]
+    fn policy_rejects_wrong_gate_id() {
+        let doc = r#"{
+          "gate_id": "other-gate",
+          "dag_path": "config/substrate/dag.json"
+        }"#;
+        let error = parse_policy(doc).expect_err("wrong gate id must fail closed");
+        assert!(
+            error.to_string().contains("does not match"),
+            "unexpected error: {error}"
+        );
+    }
+
+    #[test]
+    fn policy_rejects_path_escape() {
+        let doc = r#"{
+          "gate_id": "cloud-ci-substrate-dependency-dag-acyclicity",
+          "dag_path": "../outside.json"
+        }"#;
+        let error = parse_policy(doc).expect_err("path escape must fail closed");
+        assert!(
+            error.to_string().contains("must not contain `..`"),
+            "unexpected error: {error}"
+        );
     }
 }
