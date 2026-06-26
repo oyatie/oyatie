@@ -333,50 +333,62 @@ fn run() -> Result<(), CliError> {
     let workspace_glob_coverage =
         collect_workspace_glob_coverage(&repo_root, &inputs.tracked_paths, &cfg)?;
     let target_parity = collect_target_parity(&repo_root, &inputs.tracked_paths, &cfg)?;
-    let enforcement_liveness_corpus = EnforcementLivenessCorpus::from_args(
-        &inputs.tracked_paths,
-        enforcement_liveness_claude_settings.as_deref(),
-        enforcement_liveness_codex_hooks.as_deref(),
-        enforcement_liveness_hooks_dir.as_deref(),
-    )?;
-    let enforcement_liveness =
-        collect_enforcement_liveness(&inputs.tracked_paths, &enforcement_liveness_corpus)?;
-    let gate_inputs = GateInputs {
-        total_accounting: &registry,
-        cross_artifact: &crosswalk,
-        automation_ratchet: &automation_matrix,
-        bnf_layer_suffix: &bnf_layer_suffix,
-        manifest_hygiene: &manifest_hygiene,
-        cargo_prefix: &cargo_prefix,
-        slo_coverage: &slo_coverage,
-        catalog_liveness: &catalog_liveness,
-        workspace_glob_coverage: &workspace_glob_coverage,
-        target_parity: &target_parity,
-        enforcement_liveness: &enforcement_liveness,
-        brand_residue: &brand_residue,
+    let collect_declared_enforcement_liveness = || -> Result<Value, CliError> {
+        let enforcement_liveness_corpus = EnforcementLivenessCorpus::from_args(
+            &inputs.tracked_paths,
+            enforcement_liveness_claude_settings.as_deref(),
+            enforcement_liveness_codex_hooks.as_deref(),
+            enforcement_liveness_hooks_dir.as_deref(),
+        )?;
+        collect_enforcement_liveness(&inputs.tracked_paths, &enforcement_liveness_corpus)
     };
-    let baseline = build_gate_baseline(&cfg, &gate_inputs, &config_digest)?;
+    let build_baseline_face = |enforcement_liveness: &Value| -> Result<Value, CliError> {
+        let gate_inputs = GateInputs {
+            total_accounting: &registry,
+            cross_artifact: &crosswalk,
+            automation_ratchet: &automation_matrix,
+            bnf_layer_suffix: &bnf_layer_suffix,
+            manifest_hygiene: &manifest_hygiene,
+            cargo_prefix: &cargo_prefix,
+            slo_coverage: &slo_coverage,
+            catalog_liveness: &catalog_liveness,
+            workspace_glob_coverage: &workspace_glob_coverage,
+            target_parity: &target_parity,
+            enforcement_liveness,
+            brand_residue: &brand_residue,
+        };
+        build_gate_baseline(&cfg, &gate_inputs, &config_digest)
+    };
 
     if to_stdout {
-        let value = match face.as_str() {
-            "registry" => &registry,
-            "decision-crosswalk" => &crosswalk,
-            "enforcement-inventory" => &enforcement,
-            "ttl-policy" => &policy.ttl_policy_face(),
-            "bnf-layer-suffix" => &bnf_layer_suffix,
-            "manifest-hygiene" => &manifest_hygiene,
-            "cargo-prefix" => &cargo_prefix,
-            "slo-coverage" => &slo_coverage,
-            "catalog-liveness" => &catalog_liveness,
-            "workspace-glob-coverage" => &workspace_glob_coverage,
-            "target-parity" => &target_parity,
-            "enforcement-liveness" => &enforcement_liveness,
-            "baseline" => &baseline,
+        match face.as_str() {
+            "registry" => print!("{}", to_canonical_json(&registry)?),
+            "decision-crosswalk" => print!("{}", to_canonical_json(&crosswalk)?),
+            "enforcement-inventory" => print!("{}", to_canonical_json(&enforcement)?),
+            "ttl-policy" => print!("{}", to_canonical_json(&policy.ttl_policy_face())?),
+            "bnf-layer-suffix" => print!("{}", to_canonical_json(&bnf_layer_suffix)?),
+            "manifest-hygiene" => print!("{}", to_canonical_json(&manifest_hygiene)?),
+            "cargo-prefix" => print!("{}", to_canonical_json(&cargo_prefix)?),
+            "slo-coverage" => print!("{}", to_canonical_json(&slo_coverage)?),
+            "catalog-liveness" => print!("{}", to_canonical_json(&catalog_liveness)?),
+            "workspace-glob-coverage" => print!("{}", to_canonical_json(&workspace_glob_coverage)?),
+            "target-parity" => print!("{}", to_canonical_json(&target_parity)?),
+            "enforcement-liveness" => {
+                let enforcement_liveness = collect_declared_enforcement_liveness()?;
+                print!("{}", to_canonical_json(&enforcement_liveness)?);
+            }
+            "baseline" => {
+                let enforcement_liveness = collect_declared_enforcement_liveness()?;
+                let baseline = build_baseline_face(&enforcement_liveness)?;
+                print!("{}", to_canonical_json(&baseline)?);
+            }
             other => return Err(CliError::Io(format!("unknown --face {other}"))),
-        };
-        print!("{}", to_canonical_json(value)?);
+        }
         return Ok(());
     }
+
+    let enforcement_liveness = collect_declared_enforcement_liveness()?;
+    let baseline = build_baseline_face(&enforcement_liveness)?;
 
     write_face(
         &out_dir.join("accounting-registry.generated.json"),
@@ -1296,14 +1308,6 @@ mod tests {
             "tools/hooks/hermetic-check.sh",
             "#!/usr/bin/env bash\n# Compatibility stub only\n",
         );
-        let ambient_corpus =
-            EnforcementLivenessCorpus::from_repo_root(&root, &tracked_paths).unwrap();
-        let ambient_face = collect_enforcement_liveness(&tracked_paths, &ambient_corpus).unwrap();
-        assert_eq!(
-            oya_cloud_ci_enforcement_liveness_app::evaluate(&ambient_face).verdict,
-            oya_cloud_ci_enforcement_liveness_app::Verdict::Green,
-            "fixture sanity: stale ambient repo-root corpus would have false-greened"
-        );
 
         let declared_root = root.join("buck-declared-corpus");
         let declared_claude = write_test_file(&declared_root, "settings.json", r#"{"hooks":{}}"#);
@@ -1339,6 +1343,36 @@ mod tests {
         );
 
         fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    #[test]
+    fn enforcement_liveness_rejects_missing_declared_corpus_args() {
+        let tracked_paths = vec![
+            CLAUDE_WIRING_FILE.to_owned(),
+            CODEX_WIRING_FILE.to_owned(),
+            "tools/hooks/hermetic-check.sh".to_owned(),
+        ];
+
+        let error = EnforcementLivenessCorpus::from_args(&tracked_paths, None, None, None)
+            .unwrap_err()
+            .to_string();
+
+        assert!(
+            error.contains("--enforcement-liveness-claude-settings"),
+            "missing declared corpus error must name the claude-settings arg: {error}"
+        );
+        assert!(
+            error.contains("--enforcement-liveness-codex-hooks"),
+            "missing declared corpus error must name the codex-hooks arg: {error}"
+        );
+        assert!(
+            error.contains("--enforcement-liveness-hooks-dir"),
+            "missing declared corpus error must name the hooks-dir arg: {error}"
+        );
+        assert!(
+            error.contains("required"),
+            "missing declared corpus error must fail closed, not fall back: {error}"
+        );
     }
 
     #[test]
