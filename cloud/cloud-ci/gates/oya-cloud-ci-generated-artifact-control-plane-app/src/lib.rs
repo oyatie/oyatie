@@ -540,9 +540,9 @@ fn diff_candidate_paths<'a>(status: &str, paths: &'a [&'a str]) -> Result<Vec<&'
             }
         }
         'R' | 'C' => {
-            if status[1..]
-                .chars()
-                .all(|character| character.is_ascii_digit())
+            let score = &status[1..];
+            if !score.is_empty()
+                && score.chars().all(|character| character.is_ascii_digit())
                 && paths.len() == 2
                 && !paths[0].is_empty()
                 && !paths[1].is_empty()
@@ -1625,6 +1625,36 @@ mod tests {
         assert!(
             violations.is_empty(),
             "malformed diff input should fail before reporting partial policy violations"
+        );
+    }
+
+    #[test]
+    fn diff_policy_fails_closed_on_bare_rename_or_copy_status() {
+        let manifest = manifest(vec![artifact("example-face", "out/example.generated.json")]);
+        let diff = concat!(
+            "R\tREADME.md\tREADME-copy.md\n",
+            "C\tREADME.md\tREADME-copy.md\n",
+        );
+
+        let (findings, violations) = generated_output_diff_policy_violations(&manifest, diff);
+
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "generated_artifact_diff_name_status_malformed"
+                    && finding.key == "line 1"
+            }),
+            "bare rename status must fail closed: {findings:#?}"
+        );
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "generated_artifact_diff_name_status_malformed"
+                    && finding.key == "line 2"
+            }),
+            "bare copy status must fail closed: {findings:#?}"
+        );
+        assert!(
+            violations.is_empty(),
+            "malformed bare rename/copy rows should fail before reporting partial policy violations"
         );
     }
 
