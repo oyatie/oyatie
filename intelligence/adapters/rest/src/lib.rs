@@ -3477,6 +3477,102 @@ oya_cloud_intelligence_up 1\n\
             status.provider, status.total_seats
         ));
     }
+
+    // ADR-0390 P2/P5 metrics derived from live in-process pool state. The
+    // per-seat account projection is the only request-pipeline state aggregated
+    // in-process; the P0/P1/P3/P4/P6/P7 counters flow fire-and-forget through
+    // the EventSink → ClickHouse/Valkey spine and are NOT yet re-aggregated here
+    // (see the TODO block below — we declare them rather than emit zeros that
+    // would read as a confident-wrong "no traffic").
+    let account_statuses = state.pool_registry.account_statuses();
+
+    // P2 — pool lease: eligible-to-lease seats per (tenant, provider). A seat
+    // in `active`/`authorized` state can be selected; `cooldown`/`blacklisted`
+    // cannot. Counted from the secret-free account projection.
+    body.push_str(
+        "# HELP oya_cloud_intelligence_p2_pool_active_seats Seats eligible to lease by tenant/provider (ADR-0390 P2)\n\
+# TYPE oya_cloud_intelligence_p2_pool_active_seats gauge\n",
+    );
+    let mut active_by_pool: std::collections::BTreeMap<(&str, &str), usize> =
+        std::collections::BTreeMap::new();
+    let mut seats_by_pool_state: std::collections::BTreeMap<(&str, &str, &str), usize> =
+        std::collections::BTreeMap::new();
+    for acct in &account_statuses {
+        let key = (acct.tenant_id.as_str(), acct.provider.as_str());
+        *seats_by_pool_state
+            .entry((acct.tenant_id.as_str(), acct.provider.as_str(), acct.state))
+            .or_insert(0) += 1;
+        if matches!(acct.state, "active" | "authorized") {
+            *active_by_pool.entry(key).or_insert(0) += 1;
+        } else {
+            active_by_pool.entry(key).or_insert(0);
+        }
+    }
+    for ((tenant, provider), count) in &active_by_pool {
+        body.push_str(&format!(
+            "oya_cloud_intelligence_p2_pool_active_seats{{tenant=\"{tenant}\",provider=\"{provider}\"}} {count}\n"
+        ));
+    }
+
+    // P2 — seat-state distribution (pool lease health): authorized/active/
+    // cooldown/blacklisted counts per tenant/provider.
+    body.push_str(
+        "# HELP oya_cloud_intelligence_p2_seat_state Seat count by tenant/provider/state (ADR-0390 P2)\n\
+# TYPE oya_cloud_intelligence_p2_seat_state gauge\n",
+    );
+    for ((tenant, provider, seat_state), count) in &seats_by_pool_state {
+        body.push_str(&format!(
+            "oya_cloud_intelligence_p2_seat_state{{tenant=\"{tenant}\",provider=\"{provider}\",state=\"{seat_state}\"}} {count}\n"
+        ));
+    }
+
+    // P5 — token-window: per-seat remaining quota headroom (0.0–1.0), the only
+    // window signal exposed by the secret-free projection. Raw 5h/weekly token
+    // sums (`p5_window_tokens`) are not surfaced on the redacted boundary.
+    body.push_str(
+        "# HELP oya_cloud_intelligence_p5_seat_headroom_ratio Per-seat quota-window headroom ratio 0..1 (ADR-0390 P5)\n\
+# TYPE oya_cloud_intelligence_p5_seat_headroom_ratio gauge\n",
+    );
+    for acct in &account_statuses {
+        body.push_str(&format!(
+            "oya_cloud_intelligence_p5_seat_headroom_ratio{{tenant=\"{}\",provider=\"{}\",seat=\"{}\"}} {}\n",
+            acct.tenant_id,
+            acct.provider,
+            acct.seat_id,
+            acct.headroom_percent / 100.0
+        ));
+    }
+
+    // ADR-0390 P0–P7 metrics that are genuinely NOT collected in-process today.
+    // They are measured per-request and emitted to the EventSink → ClickHouse
+    // (OLAP) + Valkey spine (see `LlmGatewayEvent`); aggregating them back into
+    // a Prometheus registry needs an in-process counting sink that does not yet
+    // exist. Declared here as TODO markers so the SC6 surface is honest about
+    // its coverage rather than emitting fabricated zeros.
+    // ponytail: TODO markers, not zero-valued series — add real counters when an
+    // in-process metrics-collecting EventSink lands (follow-up task).
+    body.push_str(
+        "# TODO(SC6/ADR-0390) the following are emitted to EventSink->ClickHouse, not yet aggregated in-process:\n\
+# TODO oya_cloud_intelligence_p0_requests_total{provider,status_code} counter (P0 ingress)\n\
+# TODO oya_cloud_intelligence_p0_body_bytes histogram (P0 ingress)\n\
+# TODO oya_cloud_intelligence_p1_decisions_total{decision} counter (P1 authz)\n\
+# TODO oya_cloud_intelligence_p1_latency_ms histogram (P1 authz)\n\
+# TODO oya_cloud_intelligence_p2_lease_acquisitions_total{strategy,result} counter (P2 lease)\n\
+# TODO oya_cloud_intelligence_p2_refresh_coalesced_total counter (P2 refresh singleflight)\n\
+# TODO oya_cloud_intelligence_p3_upstream_requests_total{provider,status_code} counter (P3 provider call)\n\
+# TODO oya_cloud_intelligence_p3_upstream_latency_ms histogram (P3 provider call)\n\
+# TODO oya_cloud_intelligence_p3_retry_total{reason} counter (P3 provider call)\n\
+# TODO oya_cloud_intelligence_p4_receipts_emitted_total{sink} counter (P4 receipt)\n\
+# TODO oya_cloud_intelligence_p4_idempotency_hits_total counter (P4 receipt)\n\
+# TODO oya_cloud_intelligence_p4_sink_lag_ms histogram (P4 receipt)\n\
+# TODO oya_cloud_intelligence_p5_window_tokens{tenant,seat,window} gauge (P5 window)\n\
+# TODO oya_cloud_intelligence_p5_window_reset_total{window} counter (P5 window)\n\
+# TODO oya_cloud_intelligence_p5_exhaustion_forecast_seconds gauge (P5 window)\n\
+# TODO oya_cloud_intelligence_p6_response_status_total{status_code} counter (P6 egress)\n\
+# TODO oya_cloud_intelligence_p7_audit_lag_seconds gauge (P7 audit)\n\
+# TODO oya_cloud_intelligence_p7_chain_depth gauge (P7 audit)\n",
+    );
+
     (
         StatusCode::OK,
         [("content-type", "text/plain; version=0.0.4")],
@@ -3814,6 +3910,106 @@ mod tests {
                 "expected {path} to be implemented"
             );
         }
+    }
+
+    #[tokio::test]
+    async fn metrics_endpoint_emits_well_formed_prometheus_text() {
+        let router = build_router(test_state(true, true));
+        let response = router
+            .oneshot(
+                Request::builder()
+                    .uri("/metrics")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+        let content_type = response
+            .headers()
+            .get("content-type")
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or_default()
+            .to_string();
+        assert!(
+            content_type.contains("text/plain") && content_type.contains("version=0.0.4"),
+            "metrics must use the Prometheus text exposition content-type, got {content_type:?}"
+        );
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let body = std::str::from_utf8(&body).unwrap();
+
+        // Process-liveness sentinel is always present.
+        assert!(body.contains("oya_cloud_intelligence_up 1\n"));
+
+        // Every declared TYPE must be a valid Prometheus metric type, and every
+        // metric that carries a TYPE must also carry a HELP line.
+        for line in body.lines() {
+            if let Some(rest) = line.strip_prefix("# TYPE ") {
+                let kind = rest.rsplit(' ').next().unwrap_or_default();
+                assert!(
+                    matches!(kind, "gauge" | "counter" | "histogram" | "summary"),
+                    "invalid TYPE line: {line:?}"
+                );
+            }
+        }
+        let help_metrics: std::collections::HashSet<&str> = body
+            .lines()
+            .filter_map(|l| l.strip_prefix("# HELP "))
+            .filter_map(|l| l.split(' ').next())
+            .collect();
+        for line in body.lines() {
+            if let Some(rest) = line.strip_prefix("# TYPE ") {
+                let metric = rest.split(' ').next().unwrap_or_default();
+                assert!(
+                    help_metrics.contains(metric),
+                    "metric {metric:?} has TYPE but no HELP"
+                );
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn metrics_endpoint_exposes_known_pool_and_token_window_gauges() {
+        // test_state(true, ..) registers one Active Anthropic seat for tenant-a/seat-a.
+        let router = build_router(test_state(true, true));
+        let response = router
+            .oneshot(
+                Request::builder()
+                    .uri("/metrics")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let body = std::str::from_utf8(&body).unwrap();
+
+        // Pre-existing pool gauge — must not regress.
+        assert!(
+            body.contains("oya_cloud_intelligence_provider_pool_seats{provider=\"anthropic\"} 1\n"),
+            "missing provider_pool_seats gauge:\n{body}"
+        );
+        // P2 — pool lease: the active seat is counted as eligible-to-lease.
+        assert!(
+            body.contains(
+                "oya_cloud_intelligence_p2_pool_active_seats{tenant=\"tenant-a\",provider=\"anthropic\"} 1\n"
+            ),
+            "missing p2_pool_active_seats gauge:\n{body}"
+        );
+        // P5 — token-window: a fresh seat has full (1) headroom.
+        assert!(
+            body.contains(
+                "oya_cloud_intelligence_p5_seat_headroom_ratio{tenant=\"tenant-a\",provider=\"anthropic\",seat=\"seat-a\"} 1\n"
+            ),
+            "missing p5_seat_headroom_ratio gauge:\n{body}"
+        );
+        // Genuinely-absent EventSink/ClickHouse-sourced metrics are declared as
+        // TODO markers, not silently dropped or emitted as confident-wrong zeros.
+        assert!(
+            body.contains("# TODO") && body.contains("oya_cloud_intelligence_p0_requests_total"),
+            "expected a TODO marker naming the absent P0 request counter:\n{body}"
+        );
     }
 
     #[tokio::test]
