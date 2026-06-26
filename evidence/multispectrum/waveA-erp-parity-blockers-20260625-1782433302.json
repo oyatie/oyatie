@@ -11,6 +11,7 @@
     "files_touched": [
       "iam/facade/tenant-rbac-erp-parity-map/src/lib.rs",
       "iam/facade/tenant-rbac-erp-parity-map/tests/parity.rs",
+      "docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md",
       "evidence/multispectrum/waveA-erp-parity-blockers-20260625-1782433302.json",
       "evidence/audit-chain.jsonl"
     ],
@@ -51,7 +52,7 @@
     "F6_privacy": "No tenant, user, payroll, financial, or personal data processing changes.",
     "F7_operability": "Hermetic Buck2 execution no longer depends on test current_dir containing specs/root-hub-pointers.json; future semantic Verified claims produce deterministic local and CI failure.",
     "F8_performance": "Validation adds one enum comparison per static criterion and removes filesystem existence checks from the test.",
-    "F9_compliance": "The corrective PR carries multispectrum and audit-chain evidence, preserves generated-artifact policy, and uses Buck2 as authoritative verification.",
+    "F9_compliance": "The corrective PR carries multispectrum and audit-chain evidence, registers the evidence path in ADR-0315, preserves generated-artifact policy, and uses Buck2 as authoritative verification.",
     "F10_reversibility": "Rollback is a normal revert of two Rust files plus evidence rows; no migration or live state is involved.",
     "F11_observability": "Evidence names the two blocker issues, the exact parity criteria affected, local Buck2 commands, review gate status, and remaining no-runtime-claim boundary.",
     "F13_migration": "Supports owned-stack migration by keeping ERP parity validation provider-neutral, Rust-owned, hermetic, and honest about non-executable semantic claims."
@@ -84,10 +85,15 @@
       "command": "buck2 build //iam/facade/tenant-rbac-erp-parity-map:iam-tenant-rbac-erp-parity-map",
       "result": "PASS",
       "evidence": "BUILD SUCCEEDED"
+    },
+    {
+      "command": "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-gate",
+      "result": "PASS",
+      "evidence": "Local reproduction after ADR-0315 registered the ERP blocker evidence path."
     }
   ],
   "known_gaps": [
-    "Remote oya-ci-required evidence is pending until after push and PR creation.",
+    "Remote oya-ci-required rerun is pending after corrective evidence-registration push; run 28209216956 failed cloud-ci-firewall before ADR-0315 registered this evidence path.",
     "specs/root-hub-pointers.json references /specs/multispectrum-review.json, but that exact spec file is absent in this worktree; existing evidence shape was reused instead."
   ]
 }
