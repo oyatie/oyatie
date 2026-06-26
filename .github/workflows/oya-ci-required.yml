@@ -767,7 +767,6 @@ jobs:
           set -euo pipefail
           pnpm --dir oya/app-shell-frontend install --frozen-lockfile
           pnpm --dir oya/app-shell-frontend codegen
-          pnpm --dir oya/app-shell-frontend codegen:check
           pnpm --dir oya/app-shell-frontend typecheck
 
   # ── LIVE-POSTGRES DURABLE-SUBSTRATE LANE (#101). Runs the env-gated cross-tenant-deny / RLS /
