@@ -26,6 +26,7 @@ use std::fmt;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
+pub mod cost;
 pub mod model_routing;
 pub mod overage_guard;
 pub mod safety;
