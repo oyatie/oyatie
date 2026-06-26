@@ -58,7 +58,7 @@ fn issuer_metadata_includes_required_oidc_fields() {
     assert_eq!(meta.issuer.as_str(), "https://identity-kr.oyatie.com");
     assert_eq!(
         meta.jwks_uri,
-        "https://identity-kr.oyatie.com/oauth/jwks".to_owned()
+        "https://identity-kr.oyatie.com/oauth/v2/keys".to_owned()
     );
     assert_eq!(
         meta.authorization_endpoint,
@@ -66,7 +66,7 @@ fn issuer_metadata_includes_required_oidc_fields() {
     );
     assert_eq!(
         meta.token_endpoint,
-        "https://identity-kr.oyatie.com/oauth/token".to_owned()
+        "https://identity-kr.oyatie.com/oauth/v2/token".to_owned()
     );
     assert!(meta.userinfo_endpoint.is_some());
     assert!(
@@ -98,7 +98,7 @@ fn issuer_metadata_strips_trailing_slash() {
     let meta = build_issuer_metadata(url, &[Algorithm::Rs256]).expect("ok");
     assert_eq!(
         meta.jwks_uri,
-        "https://identity-eu.oyatie.com/oauth/jwks".to_owned(),
+        "https://identity-eu.oyatie.com/oauth/v2/keys".to_owned(),
         "trailing slash should be normalised"
     );
 }
