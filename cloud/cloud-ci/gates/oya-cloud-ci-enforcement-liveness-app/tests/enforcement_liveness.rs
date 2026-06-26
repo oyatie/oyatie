@@ -5,7 +5,6 @@
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use oya_cloud_ci_enforcement_liveness_app::{Verdict, evaluate, evaluate_keyed};
 use serde_json::{Value, json};
@@ -23,50 +22,14 @@ fn repo_root() -> PathBuf {
     panic!("failed to locate repo root from test current_dir");
 }
 
-fn run_producer_face(root: &Path, face: &str) -> Value {
-    let scm_facts = root
-        .join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json");
-    let output = if let Ok(bin) = std::env::var("OYA_CI_PRODUCER_BIN") {
-        let bin = if Path::new(&bin).is_absolute() {
-            PathBuf::from(bin)
-        } else {
-            root.join(bin)
-        };
-        Command::new(bin)
-            .arg("--repo-root")
-            .arg(root)
-            .arg("--scm-facts")
-            .arg(&scm_facts)
-            .arg("--stdout")
-            .arg("--face")
-            .arg(face)
-            .current_dir(root)
-            .output()
-            .expect("run producer binary")
-    } else {
-        Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_owned()))
-            .arg("run")
-            .arg("--quiet")
-            .arg("-p")
-            .arg("oya-cloud-ci-accounting-registry-app")
-            .arg("--")
-            .arg("--repo-root")
-            .arg(root)
-            .arg("--scm-facts")
-            .arg(&scm_facts)
-            .arg("--stdout")
-            .arg("--face")
-            .arg(face)
-            .current_dir(root)
-            .output()
-            .expect("cargo run oya-cloud-ci-accounting-registry-app")
-    };
-    assert!(
-        output.status.success(),
-        "producer failed: {}",
-        String::from_utf8_lossy(&output.stderr)
-    );
-    serde_json::from_slice(&output.stdout).expect("producer face stdout is valid JSON")
+fn load_materialized_face(root: &Path, face: &str) -> Value {
+    let path = root
+        .join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app")
+        .join(format!("{face}.generated.json"));
+    let text = std::fs::read_to_string(&path)
+        .unwrap_or_else(|e| panic!("read materialized {face} face {}: {e}", path.display()));
+    serde_json::from_str(&text)
+        .unwrap_or_else(|e| panic!("parse materialized {face} face {}: {e}", path.display()))
 }
 
 #[test]
@@ -206,7 +169,7 @@ fn evaluate_is_bare_projection_of_evaluate_keyed() {
 #[test]
 fn enforcement_liveness_face_reports_current_tree_green() {
     let root = repo_root();
-    let face = run_producer_face(&root, "enforcement-liveness");
+    let face = load_materialized_face(&root, "enforcement-liveness");
     let rows = face["rows"].as_array().expect("enforcement-liveness rows");
     let hook_rows = rows
         .iter()
