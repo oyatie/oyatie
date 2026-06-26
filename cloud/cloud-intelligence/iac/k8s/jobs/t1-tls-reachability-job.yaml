@@ -1,0 +1,87 @@
+# T1 — TLS-fingerprint reachability spike (SC1 / F2 / OQ-7), run in-cluster.
+#
+# Runs the GATED `live_upstream_reachability_probe` integration test from
+# intelligence/adapters/rest/tests/t1_tls_reachability.rs against every
+# provider OAuth-token + API host with stock reqwest/rustls, and asserts none
+# return a Cloudflare 1010 / managed-challenge fingerprint block.
+#
+# Credential-free: NO secrets are mounted. The probe sends an empty body and no
+# Authorization header — it only distinguishes "normal HTTP response" (any 4xx
+# is success: TLS+HTTP reached the app) from "Cloudflare fingerprint block".
+#
+# This is the cloud-native, no-CLI verification surface: a declarative K8s Job,
+# not a hand-run command. CI never runs it (the test is `#[ignore]` and the
+# INTELLIGENCE_LIVE_UPSTREAM env guard below is the only thing that arms it).
+#
+# Egress: the probe talks to external provider hosts on :443. The cluster's
+# default-deny NetworkPolicy must allow this Job egress to the public internet
+# on 443 (Cloudflare/Google IPs rotate, so a CIDR allowlist is intentionally
+# NOT pinned here — scope egress to this Job's pod label via a sidecar/ambient
+# policy at deploy time). # ponytail: no fragile static IP allowlist.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cloud-intelligence-t1-tls-reachability
+  namespace: cloud-intelligence
+  labels:
+    app.kubernetes.io/name: cloud-intelligence-t1-tls-reachability
+    app.kubernetes.io/part-of: oyatie-microservices
+    app.kubernetes.io/component: verification-spike
+    oyatie.com/adr-0384: f2-oq7-tls-reachability
+  annotations:
+    oyatie.com/audit-chain-event: "tls-reachability-spike"
+    oyatie.com/credential-free: "true"
+spec:
+  backoffLimit: 1
+  # Reap the Job 1h after completion so it does not linger.
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: cloud-intelligence-t1-tls-reachability
+        # Opt OUT of the ambient mesh: this probe MUST present stock rustls's
+        # own ClientHello to upstreams, not the mesh proxy's — that is the
+        # whole point of the F2/OQ-7 fingerprint check.
+        istio.io/dataplane-mode: none
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: probe
+          # Test image carrying the compiled `intelligence-rest` test binaries.
+          # Pin by digest at deploy time (cosign-verified) per ADR-0181.
+          image: "registry.oyatie.com/cloud-intelligence-test:latest"
+          imagePullPolicy: IfNotPresent
+          env:
+            # The ONLY switch that arms the live probe. CI never sets it.
+            - name: INTELLIGENCE_LIVE_UPSTREAM
+              value: "1"
+          # Run the gated, #[ignore]'d test. nextest is the project's test
+          # runner (see spec Commands); --run-ignored all un-skips it.
+          command: ["cargo"]
+          args:
+            - "nextest"
+            - "run"
+            - "-p"
+            - "intelligence-rest"
+            - "--run-ignored"
+            - "all"
+            - "-E"
+            - "test(live_upstream_reachability_probe)"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
