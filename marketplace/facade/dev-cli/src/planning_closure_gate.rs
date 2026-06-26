@@ -17,7 +17,9 @@ const EXPECTED_STATUS: &str = "Accepted";
 const EXPECTED_CONTRACT_REF: &str = "/specs/planning-closure-contract.json";
 const EXPECTED_STATUS_LEDGER_REF: &str = "/specs/planning-closure-status-closure-ledger.json";
 const EXPECTED_MASTERPLAN_PATH: &str = "/specs/masterplan.json";
-const EXPECTED_GATE_COMMAND: &str = "cargo run -q -p oya-dev-cli -- gate validate planning-closure";
+const EXPECTED_GATE_COMMAND: &str = "oya-ci-required cloud-ci planning-closure Rust gate packet";
+const RETIRED_PLANNING_CLOSURE_COMMAND: &str =
+    "cargo run -q -p oya-dev-cli -- gate validate planning-closure";
 const EXPECTED_CLAIM_STATUS: &str = "blocked_until_planning_closure_gate_green";
 const EXPECTED_FIRST_DELIVERABLE_ID: &str = "FD-001-tenancy-rbac-microservice-core";
 const EXPECTED_DELIVERY_MODE: &str = "full_depth_production_hyperscaler_exit";
@@ -293,8 +295,9 @@ pub(crate) fn validate_planning_closure_gate(
         repo_root_for(&args.root_hub_path).join(EXPECTED_STATUS_LEDGER_REF.trim_start_matches('/'));
     let status_ledger = read_json(&status_ledger_path, "planning closure status ledger")?;
 
-    let contract_architecture_rules =
-        validate_contract(object(&contract, "planning closure contract root")?)?;
+    let contract_root = object(&contract, "planning closure contract root")?;
+    let contract_architecture_rules = validate_contract(contract_root)?;
+    validate_live_planning_root_authority(contract_root, &repo_root_for(&args.root_hub_path))?;
     validate_status_closure_ledger(object(
         &status_ledger,
         "planning closure status ledger root",
@@ -490,6 +493,109 @@ fn validate_stale_document_policy(
     )?;
     require_string_contains(policy, "rule", "local-only", context)?;
     Ok(())
+}
+
+fn validate_live_planning_root_authority(
+    contract: &Map<String, Value>,
+    repo_root: &Path,
+) -> Result<(), String> {
+    let policy = object_field(
+        contract,
+        "stale_document_policy",
+        "planning closure contract root",
+    )?;
+    let live_roots = string_set_field(policy, "live_planning_roots", "stale_document_policy")?;
+    for live_root in live_roots {
+        let live_root_path = repo_root.join(live_root.trim_start_matches('/'));
+        let contents = fs::read_to_string(&live_root_path).map_err(|error| {
+            format!(
+                "stale_document_policy.live_planning_roots entry {live_root:?} unreadable at {}: {error}",
+                live_root_path.display()
+            )
+        })?;
+        for (index, line) in contents.lines().enumerate() {
+            if line.contains(RETIRED_PLANNING_CLOSURE_COMMAND)
+                && !retired_planning_closure_command_is_provenance_only(line)
+            {
+                return Err(format!(
+                    "{live_root}:{line_number} contains retired Cargo planning-closure command as active authority; live planning roots must use {EXPECTED_GATE_COMMAND:?} or mark the retired command as retired/provenance-only",
+                    line_number = index + 1,
+                ));
+            }
+            if oya_vcs_authority_is_active(line) {
+                return Err(format!(
+                    "{live_root}:{line_number} contains active Oya VCS claim/admission/closure/promotion authority; live planning roots must use plain git plus protected PRs and {EXPECTED_GATE_COMMAND:?}, or mark Oya VCS references as retired/provenance-only/future-target",
+                    line_number = index + 1,
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
+fn retired_planning_closure_command_is_provenance_only(line: &str) -> bool {
+    let lower = line.to_ascii_lowercase();
+    lower.contains("retired") && lower.contains("provenance-only")
+}
+
+fn oya_vcs_authority_is_active(line: &str) -> bool {
+    let lower = line.to_ascii_lowercase();
+    lower.contains("oya vcs")
+        && !oya_vcs_authority_is_marked_inactive(&lower)
+        && (lower.contains("claim/admission")
+            || lower.contains("claimable through")
+            || lower.contains("accepts the claim")
+            || lower.contains("claim state")
+            || lower.contains("admission names")
+            || lower.contains("closure_authority")
+            || lower.contains("closure authority")
+            || oya_vcs_has_local_authority_word(&lower)
+            || lower.contains("promotion")
+            || lower.contains("promote")
+            || (lower.contains("claim each changeset")
+                && lower.contains("verify before downstream work")
+                && lower.contains("mark done")))
+}
+
+fn oya_vcs_has_local_authority_word(lower: &str) -> bool {
+    lower.match_indices("oya vcs").any(|(index, _)| {
+        lower[index..]
+            .find("authority")
+            .is_some_and(|offset| offset <= 64)
+    })
+}
+
+fn oya_vcs_authority_is_marked_inactive(lower: &str) -> bool {
+    has_unnegated_marker(lower, "provenance-only")
+        || has_unnegated_marker(lower, "future-target")
+        || has_unnegated_marker(lower, "future target")
+        || (lower.contains("retired")
+            && lower.contains("provenance")
+            && !lower.contains("not retired")
+            && !lower.contains("not provenance")
+            && !lower.contains("without retired")
+            && !lower.contains("without provenance")
+            && !combined_inactive_marker_is_negated(lower))
+}
+
+fn has_unnegated_marker(lower: &str, marker: &str) -> bool {
+    lower.contains(marker)
+        && !lower.contains(&format!("not {marker}"))
+        && !lower.contains(&format!("not marked {marker}"))
+        && !lower.contains(&format!("without {marker}"))
+        && !combined_inactive_marker_is_negated(lower)
+}
+
+fn combined_inactive_marker_is_negated(lower: &str) -> bool {
+    ["not", "not marked", "without"].iter().any(|negation| {
+        [
+            "future-target/provenance-only",
+            "future target/provenance-only",
+            "retired/provenance-only",
+        ]
+        .iter()
+        .any(|marker| lower.contains(&format!("{negation} {marker}")))
+    })
 }
 
 fn validate_root_hub(root: &Map<String, Value>) -> Result<(), String> {

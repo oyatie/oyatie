@@ -14,8 +14,8 @@ use std::path::PathBuf;
 use serde_json::{Value, json};
 
 use oya_cloud_ci_generated_artifact_control_plane_app::{
-    Verdict, evaluate_keyed, evaluate_keyed_with_frozen_references, evaluate_with_frozen_references,
-    frozen_reference_face_paths,
+    Verdict, evaluate_keyed, evaluate_keyed_with_frozen_references,
+    evaluate_with_frozen_references, frozen_reference_face_paths_keyed,
 };
 
 const MANIFEST_ENV: &str = "OYA_CI_GENERATED_ARTIFACT_MANIFEST";
@@ -56,7 +56,12 @@ fn read_json(path: PathBuf) -> Value {
 
 fn live_frozen_reference_paths() -> BTreeSet<String> {
     let ratchet_policy = read_json(input_path(RATCHET_POLICY_ENV, RATCHET_POLICY_DEFAULT_PATH));
-    frozen_reference_face_paths(std::iter::once(&ratchet_policy))
+    let (paths, findings) = frozen_reference_face_paths_keyed(std::iter::once(&ratchet_policy));
+    assert!(
+        findings.is_empty(),
+        "ratchet policy frozen-reference findings: {findings:#?}"
+    );
+    paths
 }
 
 #[test]

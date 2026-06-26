@@ -6,6 +6,30 @@
       "prefix": "OWNERS"
     },
     {
+      "anchor": "ADR-0600: Buck package marker for the reviewed .claude/settings.json enforcement-liveness corpus target.",
+      "prefix": ".claude/BUCK"
+    },
+    {
+      "anchor": "ADR-0600: OWNERS marker for the reviewed .claude hook-config corpus metadata.",
+      "prefix": ".claude/OWNERS"
+    },
+    {
+      "anchor": "ADR-0600: Buck package marker for the reviewed .codex/hooks.json enforcement-liveness corpus target.",
+      "prefix": ".codex/BUCK"
+    },
+    {
+      "anchor": "ADR-0600: OWNERS marker for the reviewed .codex hook-config corpus metadata.",
+      "prefix": ".codex/OWNERS"
+    },
+    {
+      "anchor": "ADR-0600: Buck package marker for the reviewed tools/hooks enforcement-liveness script corpus target.",
+      "prefix": "tools/hooks/BUCK"
+    },
+    {
+      "anchor": "ADR-0600: OWNERS marker for the reviewed tools/hooks enforcement-liveness script corpus metadata.",
+      "prefix": "tools/hooks/OWNERS"
+    },
+    {
       "anchor": "ADR-0535 §5: root oya-deps.toml is the closed-schema DATA contract for the owned Rust dependency bump-bot and dependency-automation gate.",
       "prefix": "oya-deps.toml"
     },
