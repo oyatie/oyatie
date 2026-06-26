@@ -6,14 +6,8 @@
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
-    "dev": "node scripts/run-vinxi.mjs dev",
-    "build": "node scripts/run-vinxi.mjs build",
-    "start": "node scripts/run-vinxi.mjs start",
     "typecheck": "tsc --noEmit",
-    "codegen": "openapi-typescript ../../contracts/ops-workspace-shell-v1.openapi.yaml -o ./generated/ops-workspace-shell.d.ts && openapi-typescript ../hr/contracts/openapi-v1.yaml -o ./generated/hr-api.d.ts",
-    "codegen:check": "node scripts/codegen-check.mjs",
-    "test": "node scripts/shell-contract-check.mjs",
-    "lint": "node scripts/shell-contract-check.mjs"
+    "codegen": "openapi-typescript ../../contracts/ops-workspace-shell-v1.openapi.yaml -o ./generated/ops-workspace-shell.d.ts && openapi-typescript ../hr/contracts/openapi-v1.yaml -o ./generated/hr-api.d.ts"
   },
   "dependencies": {
     "@solidjs/router": "0.14.10",
