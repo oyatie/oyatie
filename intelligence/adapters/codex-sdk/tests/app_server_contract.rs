@@ -202,10 +202,12 @@ fn main() {
         if scenario == "invalid-json" && method == "break-reader" {
             print!("{{invalid json\n");
             io::stdout().flush().unwrap();
+            raw_line.clear();
             continue;
         }
         if scenario == "malformed-response" && method == "malformed" {
             send(&format!(r#"{{"id":{}}}"#, id));
+            raw_line.clear();
             continue;
         }
         let result = result_for(&method, &line, &scenario, &mut reader);
