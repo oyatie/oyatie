@@ -155,6 +155,15 @@ intelligence/core/kernel/src/session.rs
 intelligence/core/kernel/tests/proptest_session_pinning.rs
 intelligence/core/kernel/tests/session_pinning.rs
 ```
+
+### Addendum 2026-06-26 — PR #897 cost-tracking continuation
+
+These additive `intelligence/core/kernel` surfaces are governed by the same XPROXY parity lane and ADR-0384 OAuth subscription-pool kernel boundary:
+
+```
+intelligence/core/kernel/src/cost.rs
+intelligence/core/kernel/tests/cost_pricebook.rs
+```
 ## Consequences
 
 **Positive:**
