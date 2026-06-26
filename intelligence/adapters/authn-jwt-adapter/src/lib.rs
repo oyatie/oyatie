@@ -58,6 +58,11 @@ pub enum JwksError {
     UnusableKey(String),
     /// The JWKS contained no usable keys.
     Empty,
+    /// Two JWKs declared the same `kid`. Fail-closed: a colliding kid would let a
+    /// later key silently shadow an earlier one (HashMap last-wins), so an
+    /// attacker who lands a key with a genuine signer's kid could displace it.
+    /// Reject the whole document rather than guess which key is authoritative.
+    DuplicateKeyId(String),
     /// Verifier configuration was invalid (e.g. empty issuer/audience).
     InvalidConfig(&'static str),
 }
@@ -68,6 +73,7 @@ impl std::fmt::Display for JwksError {
             JwksError::MalformedDocument(r) => write!(f, "malformed JWKS document: {r}"),
             JwksError::UnusableKey(r) => write!(f, "unusable JWK: {r}"),
             JwksError::Empty => write!(f, "JWKS contained no usable keys"),
+            JwksError::DuplicateKeyId(k) => write!(f, "duplicate JWK kid: {k}"),
             JwksError::InvalidConfig(r) => write!(f, "invalid verifier config: {r}"),
         }
     }
@@ -208,6 +214,11 @@ struct JwsHeader {
     alg: String,
     #[serde(default)]
     kid: Option<String>,
+    /// RFC 7515 §4.1.11 critical-extensions list. This adapter implements no
+    /// extensions, so any `crit` present names a header the verifier cannot
+    /// process and the token MUST be rejected.
+    #[serde(default)]
+    crit: Option<Vec<String>>,
 }
 
 /// JWT/OIDC implementation of [`PrincipalVerifier`].
@@ -245,7 +256,13 @@ impl JwtPrincipalVerifier {
             let kid = jwk.kid.clone();
             let key = parse_jwk(jwk)?;
             match kid {
+                // Fail-closed on a colliding kid: `insert` is last-wins, which
+                // would let a later JWK silently shadow the genuine signer that
+                // shares its kid. Reject the document rather than pick a winner.
                 Some(k) => {
+                    if keys_by_kid.contains_key(&k) {
+                        return Err(JwksError::DuplicateKeyId(k));
+                    }
                     keys_by_kid.insert(k, key);
                 }
                 None => keyless.push(key),
@@ -285,6 +302,15 @@ impl JwtPrincipalVerifier {
         };
 
         let header: JwsHeader = decode_json(h_b64).ok_or(AuthnError::MalformedToken)?;
+
+        // RFC 7515 §4.1.11: `crit` lists header params the recipient MUST
+        // understand. This adapter implements no JWS extensions, so any `crit`
+        // present (empty `[]` is itself malformed per the RFC) is unprocessable —
+        // reject before trusting the token rather than ignoring the directive.
+        if header.crit.is_some() {
+            return Err(AuthnError::MalformedToken);
+        }
+
         let alg = Alg::parse(&header.alg).ok_or(AuthnError::UnsupportedAlgorithm)?;
 
         let key = self.select_key(header.kid.as_deref())?;
@@ -627,5 +653,17 @@ mod tests {
         assert_eq!(Alg::parse("HS256"), None);
         assert!(Alg::parse("RS256").is_some());
         assert!(Alg::parse("ES256").is_some());
+    }
+
+    #[test]
+    fn crit_header_is_parsed_when_present() {
+        // Guards the RFC 7515 §4.1.11 rejection: a header carrying `crit` must
+        // deserialize into `Some(..)` so `verify_at` can fail closed on it. A
+        // plain header leaves it `None`.
+        let with: JwsHeader =
+            serde_json::from_str(r#"{"alg":"ES256","crit":["b64"]}"#).unwrap();
+        assert_eq!(with.crit.as_deref(), Some(&["b64".to_string()][..]));
+        let without: JwsHeader = serde_json::from_str(r#"{"alg":"ES256"}"#).unwrap();
+        assert!(without.crit.is_none());
     }
 }

@@ -305,6 +305,29 @@ fn hs256_symmetric_alg_is_unsupported() {
 }
 
 #[test]
+fn unrecognized_crit_header_is_rejected() {
+    // RFC 7515 §4.1.11: a `crit` header names extensions the recipient MUST
+    // understand. This adapter implements none, so ANY crit entry is unrecognized
+    // and the token must be rejected — even when the signature is otherwise valid.
+    // Signed with the real key so this proves crit is rejected on its own merits,
+    // not as a side effect of a signature/claim failure.
+    let (key, v) = verifier_es256();
+    let header = json!({ "alg": "ES256", "kid": "ec-1", "typ": "JWT", "crit": ["exp"], "exp": true });
+    let token = mint(&header, &good_claims(), |m| key.sign(m));
+    assert_eq!(v.verify_at(&token, NOW), Err(AuthnError::MalformedToken));
+}
+
+#[test]
+fn empty_crit_header_is_rejected() {
+    // RFC 7515 §4.1.11: `crit` MUST NOT be empty if present. A producer that
+    // emits `crit: []` is malformed — fail closed rather than treat it as absent.
+    let (key, v) = verifier_es256();
+    let header = json!({ "alg": "ES256", "kid": "ec-1", "typ": "JWT", "crit": [] });
+    let token = mint(&header, &good_claims(), |m| key.sign(m));
+    assert_eq!(v.verify_at(&token, NOW), Err(AuthnError::MalformedToken));
+}
+
+#[test]
 fn unknown_kid_is_rejected() {
     let (key, v) = verifier_es256();
     let header = json!({ "alg": "ES256", "kid": "other-kid", "typ": "JWT" });
@@ -316,10 +339,15 @@ fn unknown_kid_is_rejected() {
 fn tampered_signature_is_rejected() {
     let (key, v) = verifier_es256();
     let token = mint(&key.header(), &good_claims(), |m| key.sign(m));
-    // Flip the last character of the signature segment.
-    let mut t = token.clone();
-    let last = t.pop().unwrap();
-    t.push(if last == 'A' { 'B' } else { 'A' });
+    // Flip the FIRST char of the signature segment. The final char of a
+    // fixed-length ECDSA signature encodes only 2 significant bits (the low 4 are
+    // canonical-zero padding), so flipping it can yield a non-canonical
+    // base64url that decodes as MalformedToken rather than SignatureInvalid ~25%
+    // of the time. The first char is fully significant: it always decodes, and a
+    // one-byte change to `r` always breaks ECDSA verification deterministically.
+    let (rest, sig) = token.rsplit_once('.').unwrap();
+    let repl = if sig.starts_with('A') { 'B' } else { 'A' };
+    let t = format!("{rest}.{repl}{}", &sig[1..]);
     assert_eq!(v.verify_at(&t, NOW), Err(AuthnError::SignatureInvalid));
 }
 
@@ -454,6 +482,19 @@ fn enc_use_keys_are_skipped() {
     jwk["use"] = json!("enc");
     let err = JwtPrincipalVerifier::from_jwks_json(&jwks(&[jwk]), config()).unwrap_err();
     assert_eq!(err, JwksError::Empty);
+}
+
+#[test]
+fn duplicate_kid_in_jwks_fails_closed() {
+    // Two DIFFERENT keys sharing one kid. HashMap::insert last-wins would let the
+    // second silently shadow the first — an attacker who slips a key with a
+    // colliding kid into the JWKS could displace the genuine signer. Reject the
+    // whole document instead of guessing which key is authoritative.
+    let k1 = EcKey::generate("dup");
+    let k2 = EcKey::generate("dup");
+    let err = JwtPrincipalVerifier::from_jwks_json(&jwks(&[k1.jwk(), k2.jwk()]), config())
+        .unwrap_err();
+    assert_eq!(err, JwksError::DuplicateKeyId("dup".to_string()));
 }
 
 #[test]
