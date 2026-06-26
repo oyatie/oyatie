@@ -1555,6 +1555,52 @@ mod tests {
     }
 
     #[test]
+    fn product_graph_dashboard_rule_is_gate_accepted_and_pr_edit_rejected() {
+        let mut product_graph = artifact(
+            "architecture-product-graph-dashboard",
+            "docs/architecture/product-graph.html",
+        );
+        product_graph["materialization_mode"] = json!("main-branch-materialized");
+        product_graph["merge_policy"] = json!("controller-owned-main-materialization");
+        product_graph["generator"]["generator_target"] =
+            json!("//tools/oya-architecture-graph-generator-app:oya-architecture-graph-generator");
+        product_graph["generator"]["operation_id"] =
+            json!("emit-architecture-product-graph-dashboard");
+        product_graph["generator"]["parameters"] = json!({"mode": "write"});
+        product_graph["generator"]["input_contract"] =
+            json!(["repo-root", "declared-source-inputs"]);
+        product_graph["generator"]["output_mode"] = json!("declared-artifact-path-write");
+
+        let mut manifest = manifest(vec![product_graph]);
+        manifest["generated_path_rules"]
+            .as_array_mut()
+            .expect("generated path rules")
+            .push(json!({
+                "rule_id": "architecture-product-graph-dashboard",
+                "rule_kind": "path_suffix",
+                "pattern": "docs/architecture/product-graph.html",
+                "description": "controller-owned generated architecture dashboard"
+            }));
+        let scm_facts = scm(&["docs/architecture/product-graph.html"]);
+
+        assert_eq!(evaluate(&manifest, &scm_facts).verdict, Verdict::Green);
+
+        let (findings, violations) = generated_output_diff_policy_violations(
+            &manifest,
+            "M\tdocs/architecture/product-graph.html\n",
+        );
+
+        assert_eq!(findings, BTreeSet::new());
+        assert_eq!(
+            violations,
+            vec![DiffPolicyViolation {
+                status: "M".to_owned(),
+                path: "docs/architecture/product-graph.html".to_owned(),
+            }]
+        );
+    }
+
+    #[test]
     fn diff_policy_rejects_rename_or_copy_from_generated_output() {
         let manifest = manifest(vec![artifact("example-face", "out/example.generated.json")]);
         let diff = concat!(
