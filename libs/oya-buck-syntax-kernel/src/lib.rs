@@ -378,10 +378,7 @@ mod tests {
         assert_depth_capped("call argument", call_expr);
         assert_depth_capped("dict value", dict_expr);
 
-        let mut opaque_expr = "root.".to_owned();
-        opaque_expr.push_str(&"m(".repeat(300));
-        opaque_expr.push_str("\"leaf\"");
-        opaque_expr.push_str(&")".repeat(300));
+        let opaque_expr = format!("root.{}\"leaf\"{}", "m(".repeat(300), ")".repeat(300));
         assert_depth_capped("opaque postfix tail", opaque_expr);
     }
 
