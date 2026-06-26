@@ -229,24 +229,113 @@ pub enum ServiceInvariant {
     DataResidencyBound,
 }
 
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum CompliancePack {
+    Sox404,
+    Soc2,
+    Iso27001,
+    Gdpr,
+    Lgpd,
+    KrPipa,
+    JurisdictionalTax,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum DataBoundary {
+    CustomerMasterRecord,
+    RevenuePipelineRecord,
+    CommercialQuoteRecord,
+    CampaignEngagementRecord,
+    ServiceCaseRecord,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum CapabilityTier {
+    Regulated,
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CapabilityDescriptor {
     pub capability: Capability,
     pub bounded_context: BoundedContext,
     pub invariant: ServiceInvariant,
+    pub tier: CapabilityTier,
+    pub data_boundary: DataBoundary,
+    pub required_packs: Vec<CompliancePack>,
 }
 
 impl CapabilityDescriptor {
     pub fn descriptors() -> Vec<Self> {
-        CAPABILITIES
-            .iter()
-            .copied()
-            .map(|capability| Self {
-                capability,
-                bounded_context: capability.bounded_context(),
+        vec![
+            Self {
+                capability: Capability::AccountMaster,
+                bounded_context: BoundedContext::AccountMaster,
                 invariant: ServiceInvariant::TenantScoped,
-            })
-            .collect()
+                tier: CapabilityTier::Regulated,
+                data_boundary: DataBoundary::CustomerMasterRecord,
+                required_packs: vec![
+                    CompliancePack::Soc2,
+                    CompliancePack::Iso27001,
+                    CompliancePack::Gdpr,
+                    CompliancePack::Lgpd,
+                    CompliancePack::KrPipa,
+                ],
+            },
+            Self {
+                capability: Capability::Opportunity,
+                bounded_context: BoundedContext::Opportunity,
+                invariant: ServiceInvariant::TenantScoped,
+                tier: CapabilityTier::Regulated,
+                data_boundary: DataBoundary::RevenuePipelineRecord,
+                required_packs: vec![
+                    CompliancePack::Sox404,
+                    CompliancePack::Soc2,
+                    CompliancePack::JurisdictionalTax,
+                ],
+            },
+            Self {
+                capability: Capability::Quote,
+                bounded_context: BoundedContext::Quote,
+                invariant: ServiceInvariant::TenantScoped,
+                tier: CapabilityTier::Regulated,
+                data_boundary: DataBoundary::CommercialQuoteRecord,
+                required_packs: vec![
+                    CompliancePack::Sox404,
+                    CompliancePack::Soc2,
+                    CompliancePack::JurisdictionalTax,
+                ],
+            },
+            Self {
+                capability: Capability::Campaign,
+                bounded_context: BoundedContext::Campaign,
+                invariant: ServiceInvariant::TenantScoped,
+                tier: CapabilityTier::Regulated,
+                data_boundary: DataBoundary::CampaignEngagementRecord,
+                required_packs: vec![
+                    CompliancePack::Soc2,
+                    CompliancePack::Gdpr,
+                    CompliancePack::Lgpd,
+                    CompliancePack::KrPipa,
+                ],
+            },
+            Self {
+                capability: Capability::ServiceCase,
+                bounded_context: BoundedContext::ServiceCase,
+                invariant: ServiceInvariant::TenantScoped,
+                tier: CapabilityTier::Regulated,
+                data_boundary: DataBoundary::ServiceCaseRecord,
+                required_packs: vec![
+                    CompliancePack::Soc2,
+                    CompliancePack::Iso27001,
+                    CompliancePack::Gdpr,
+                    CompliancePack::Lgpd,
+                    CompliancePack::KrPipa,
+                ],
+            },
+        ]
     }
 }
 
