@@ -259,6 +259,37 @@ fn record_u64(record: &Value, key: &str) -> u64 {
     record.get(key).and_then(Value::as_u64).unwrap_or(0)
 }
 
+fn required_u64(record: &Value, key: &str, findings: &mut Vec<String>) -> Option<u64> {
+    match record.get(key).and_then(Value::as_u64) {
+        Some(value) => Some(value),
+        None => {
+            findings.push(format!(
+                "record-shape violation: counter `{key}` missing from the invocation record — \
+                 cannot prove warm cache behavior from an unrecognized record shape (fail closed)"
+            ));
+            None
+        }
+    }
+}
+
+fn required_last_snapshot_u64(
+    record: &Value,
+    key: &str,
+    findings: &mut Vec<String>,
+) -> Option<u64> {
+    let pointer = format!("/last_snapshot/{key}");
+    match record.pointer(&pointer).and_then(Value::as_u64) {
+        Some(value) => Some(value),
+        None => {
+            findings.push(format!(
+                "record-shape violation: last_snapshot.{key} missing — cannot prove warm cache \
+                 behavior from an unrecognized record shape (fail closed)"
+            ));
+            None
+        }
+    }
+}
+
 /// Build the structured per-lane cache-hit report (the audit's missing-SLO item):
 /// action-cache hits, local/remote executions, upload counts, and buck2's own
 /// cache_hit_rate, labeled with the lane's build class + resolved mode.
@@ -277,6 +308,98 @@ pub fn cache_hit_report(record: &Value, build_class: &str, mode: &str) -> Value 
         "cache_upload_count": record_u64(record, "cache_upload_count"),
         "exit_result_name": record.get("exit_result_name").and_then(Value::as_str).unwrap_or(""),
     })
+}
+
+/// Assert a build invocation succeeded and, when run in warm mode, actually
+/// participated in the warm cache and observed at least one action-cache hit.
+///
+/// This is deliberately stricter than telemetry. A warm lane with a 0% hit rate
+/// is usually an endpoint / credential / keying misconfiguration; allowing that
+/// to stay green recreates the "cache exists but never hits" false-green class.
+/// Bypass/cold modes still validate the recorded build result, because an error
+/// record must never be reclassified as green telemetry.
+pub fn assert_warm_cache_participation(
+    record: &Value,
+    build_class: &str,
+    mode: &str,
+) -> Result<(), Vec<String>> {
+    let normalized = mode.trim().to_ascii_lowercase();
+    let bypass_mode = matches!(normalized.as_str(), "bypass" | "cold" | "off" | "disabled");
+    let warm_mode = matches!(
+        normalized.as_str(),
+        "warm-ro" | "warm-rw" | "warm-read-only" | "warm-read-write"
+    );
+    let mut findings = Vec::new();
+    if !bypass_mode && !warm_mode {
+        findings.push(format!(
+            "cache mode `{mode}` for class `{build_class}` is not recognized — refusing to \
+             infer warm-cache correctness from an unknown mode (fail closed)"
+        ));
+    }
+
+    match record.get("exit_result_name").and_then(Value::as_str) {
+        Some("SUCCESS") => {}
+        Some(result) => findings.push(format!(
+            "warm cache guard saw non-success buck2 exit_result_name={result:?} for \
+             class `{build_class}` — refusing false-green telemetry"
+        )),
+        None => findings.push(
+            "record-shape violation: exit_result_name missing from the invocation record — \
+             cannot prove the guarded build succeeded (fail closed)"
+                .to_string(),
+        ),
+    }
+
+    let cache_hit_rate = match record.get("cache_hit_rate").and_then(Value::as_f64) {
+        Some(value) if value.is_finite() && value >= 0.0 => Some(value),
+        Some(value) => {
+            findings.push(format!(
+                "record-shape violation: cache_hit_rate={value:?} is not a finite non-negative \
+                 number (fail closed)"
+            ));
+            None
+        }
+        None => {
+            findings.push(
+                "record-shape violation: cache_hit_rate missing from the invocation record — \
+                 cannot prove warm cache hit rate (fail closed)"
+                    .to_string(),
+            );
+            None
+        }
+    };
+    let action_hits = required_u64(record, "run_action_cache_count", &mut findings);
+    let _local_actions = required_u64(record, "run_local_count", &mut findings);
+    let _remote_actions = required_u64(record, "run_remote_count", &mut findings);
+    let action_cache_started =
+        required_last_snapshot_u64(record, "re_action_cache_started", &mut findings);
+
+    if warm_mode {
+        if action_cache_started == Some(0) {
+            findings.push(format!(
+                "warm cache guard for class `{build_class}` ran in mode `{mode}` but \
+                 last_snapshot.re_action_cache_started=0 — the action cache did not start"
+            ));
+        }
+        if matches!(cache_hit_rate, Some(0.0)) {
+            findings.push(format!(
+                "warm cache guard for class `{build_class}` ran in mode `{mode}` with 0% hit rate \
+                 — this is an obvious warm-cache misconfiguration, not a green presubmit"
+            ));
+        }
+        if action_hits == Some(0) {
+            findings.push(format!(
+                "warm cache guard for class `{build_class}` ran in mode `{mode}` with \
+                 run_action_cache_count=0 — no action-cache hit was observed"
+            ));
+        }
+    }
+
+    if findings.is_empty() {
+        Ok(())
+    } else {
+        Err(findings)
+    }
 }
 
 /// Assert a build had ZERO cache participation (the canary's from-empty proof):
@@ -318,7 +441,11 @@ pub fn assert_cold(record: &Value) -> Result<(), Vec<String>> {
                 .to_string(),
         ),
     }
-    if findings.is_empty() { Ok(()) } else { Err(findings) }
+    if findings.is_empty() {
+        Ok(())
+    } else {
+        Err(findings)
+    }
 }
 
 fn hash_file(hasher: &mut Sha256, path: &Path) -> Result<(), String> {
@@ -377,7 +504,9 @@ pub fn digest_manifest_from_show_output(text: &str) -> Result<BTreeMap<String, S
             continue;
         }
         let Some((target, path)) = line.split_once(' ') else {
-            return Err(format!("malformed --show-full-output line (no space): {line}"));
+            return Err(format!(
+                "malformed --show-full-output line (no space): {line}"
+            ));
         };
         let digest = hash_output(Path::new(path.trim()))?;
         entries.insert(target.to_string(), digest);
@@ -436,7 +565,10 @@ impl CanaryStatus {
 
     /// Process exit semantics: RED and UNVERIFIED fail the canary job.
     pub fn is_failure(self) -> bool {
-        matches!(self, CanaryStatus::Red | CanaryStatus::UnverifiedEmptyOverlap)
+        matches!(
+            self,
+            CanaryStatus::Red | CanaryStatus::UnverifiedEmptyOverlap
+        )
     }
 }
 
@@ -532,7 +664,8 @@ pub fn parse_buckconfig(text: &str) -> BTreeMap<String, BTreeMap<String, String>
 pub const CANARY_POLICY: &str = include_str!("canary-policy.json");
 
 pub fn canary_policy() -> Result<Value, String> {
-    serde_json::from_str(CANARY_POLICY).map_err(|e| format!("parse bundled canary-policy.json: {e}"))
+    serde_json::from_str(CANARY_POLICY)
+        .map_err(|e| format!("parse bundled canary-policy.json: {e}"))
 }
 
 /// Walk up from `start` to the repo root (the standing live-corpus pattern).
@@ -584,7 +717,11 @@ mod tests {
         policy["build_classes"]["integrity-canary"] =
             json!({ "warmth": "warm", "cache_read": true, "cache_write": true });
         let r = resolve(&policy, &license(true), "integrity-canary").unwrap();
-        assert_eq!(r.mode, CacheMode::Bypass, "the trust anchor must win over tampered data");
+        assert_eq!(
+            r.mode,
+            CacheMode::Bypass,
+            "the trust anchor must win over tampered data"
+        );
     }
 
     #[test]
@@ -595,7 +732,12 @@ mod tests {
 
     #[test]
     fn cold_class_bypasses_under_a_green_license() {
-        let r = resolve(&policy_fixture(), &license(true), "release-production-image").unwrap();
+        let r = resolve(
+            &policy_fixture(),
+            &license(true),
+            "release-production-image",
+        )
+        .unwrap();
         assert_eq!(r.mode, CacheMode::Bypass);
     }
 
@@ -603,7 +745,11 @@ mod tests {
     fn warm_class_is_suspended_while_the_kill_switch_is_false() {
         let r = resolve(&policy_fixture(), &license(false), "dev-agentic-iteration").unwrap();
         assert_eq!(r.mode, CacheMode::Bypass);
-        assert!(r.reasons.iter().any(|m| m.contains("warm_reads_licensed=false")));
+        assert!(
+            r.reasons
+                .iter()
+                .any(|m| m.contains("warm_reads_licensed=false"))
+        );
     }
 
     #[test]
@@ -645,7 +791,8 @@ mod tests {
     #[test]
     fn warm_rw_argfile_selects_the_rw_overlay_and_carries_the_cert_flag() {
         let r = resolve(&policy_fixture(), &license(true), "dev-agentic-iteration").unwrap();
-        let lines = argfile_lines(&r, Some("/secrets/writer.pem"), Some("/secrets/ca.pem")).unwrap();
+        let lines =
+            argfile_lines(&r, Some("/secrets/writer.pem"), Some("/secrets/ca.pem")).unwrap();
         assert_eq!(lines[0], "--config-file");
         assert_eq!(lines[1], OVERLAY_RW_PATH);
         assert!(lines.contains(&"buck2_re_client.tls_client_cert=/secrets/writer.pem".to_string()));
@@ -660,9 +807,10 @@ mod tests {
     }
 
     fn record_fixture(action_cache: u64, remote: u64, uploads: u64) -> Value {
+        let cache_hit_rate = if action_cache == 0 { 0.0 } else { 0.5 };
         json!({
             "data": { "Record": { "data": { "InvocationRecord": {
-                "cache_hit_rate": 0.5,
+                "cache_hit_rate": cache_hit_rate,
                 "run_action_cache_count": action_cache,
                 "run_local_count": 7,
                 "run_remote_count": remote,
@@ -693,8 +841,157 @@ mod tests {
     }
 
     #[test]
+    fn assert_warm_allows_explicit_bypass_mode() {
+        let doc = record_fixture(0, 0, 0);
+        assert!(
+            assert_warm_cache_participation(
+                invocation_record(&doc).unwrap(),
+                "gate-fleet-shared-graph",
+                "bypass"
+            )
+            .is_ok()
+        );
+    }
+
+    #[test]
+    fn assert_warm_still_fails_on_bypass_error_record() {
+        let doc = json!({
+            "data": { "Record": { "data": { "InvocationRecord": {
+                "exit_result_name": "FAILURE"
+            } } } }
+        });
+        let findings = assert_warm_cache_participation(
+            invocation_record(&doc).unwrap(),
+            "gate-fleet-shared-graph",
+            "bypass",
+        )
+        .unwrap_err();
+        assert!(findings.iter().any(|f| f.contains("non-success")));
+    }
+
+    #[test]
+    fn assert_warm_accepts_positive_cache_hits() {
+        let doc = record_fixture(3, 0, 0);
+        assert!(
+            assert_warm_cache_participation(
+                invocation_record(&doc).unwrap(),
+                "gate-fleet-shared-graph",
+                "warm-rw"
+            )
+            .is_ok()
+        );
+    }
+
+    #[test]
+    fn assert_warm_fails_on_zero_hit_warm_mode() {
+        let doc = record_fixture(0, 0, 0);
+        let findings = assert_warm_cache_participation(
+            invocation_record(&doc).unwrap(),
+            "gate-fleet-shared-graph",
+            "warm-rw",
+        )
+        .unwrap_err();
+        assert!(findings.iter().any(|f| f.contains("0% hit rate")));
+        assert!(findings.iter().any(|f| f.contains("did not start")));
+    }
+
+    #[test]
+    fn assert_warm_rejects_zero_rate_even_with_positive_cache_count() {
+        let doc = json!({
+            "data": { "Record": { "data": { "InvocationRecord": {
+                "cache_hit_rate": 0.0,
+                "run_action_cache_count": 3,
+                "run_local_count": 4,
+                "run_remote_count": 0,
+                "run_skipped_count": 1,
+                "cache_upload_attempt_count": 0,
+                "cache_upload_count": 0,
+                "exit_result_name": "SUCCESS",
+                "last_snapshot": { "re_action_cache_started": 3 }
+            } } } }
+        });
+        let findings = assert_warm_cache_participation(
+            invocation_record(&doc).unwrap(),
+            "gate-fleet-shared-graph",
+            "warm-rw",
+        )
+        .unwrap_err();
+        assert!(findings.iter().any(|f| f.contains("0% hit rate")));
+    }
+
+    #[test]
+    fn assert_warm_rejects_positive_rate_with_zero_cache_count() {
+        let doc = json!({
+            "data": { "Record": { "data": { "InvocationRecord": {
+                "cache_hit_rate": 0.5,
+                "run_action_cache_count": 0,
+                "run_local_count": 4,
+                "run_remote_count": 0,
+                "run_skipped_count": 1,
+                "cache_upload_attempt_count": 0,
+                "cache_upload_count": 0,
+                "exit_result_name": "SUCCESS",
+                "last_snapshot": { "re_action_cache_started": 1 }
+            } } } }
+        });
+        let findings = assert_warm_cache_participation(
+            invocation_record(&doc).unwrap(),
+            "gate-fleet-shared-graph",
+            "warm-rw",
+        )
+        .unwrap_err();
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.contains("run_action_cache_count=0"))
+        );
+    }
+
+    #[test]
+    fn assert_warm_fails_closed_on_error_or_missing_shape() {
+        let error_doc = json!({
+            "data": { "Record": { "data": { "InvocationRecord": {
+                "cache_hit_rate": 1.0,
+                "run_action_cache_count": 1,
+                "run_local_count": 0,
+                "run_remote_count": 0,
+                "exit_result_name": "FAILURE",
+                "last_snapshot": { "re_action_cache_started": 1 }
+            } } } }
+        });
+        let findings = assert_warm_cache_participation(
+            invocation_record(&error_doc).unwrap(),
+            "gate-fleet-shared-graph",
+            "warm-rw",
+        )
+        .unwrap_err();
+        assert!(findings.iter().any(|f| f.contains("non-success")));
+
+        let missing_doc = json!({
+            "data": { "Record": { "data": { "InvocationRecord": {
+                "exit_result_name": "SUCCESS"
+            } } } }
+        });
+        let findings = assert_warm_cache_participation(
+            invocation_record(&missing_doc).unwrap(),
+            "gate-fleet-shared-graph",
+            "warm-rw",
+        )
+        .unwrap_err();
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.contains("record-shape violation"))
+        );
+    }
+
+    #[test]
     fn assert_cold_fails_closed_on_any_cache_participation() {
-        for doc in [record_fixture(1, 0, 0), record_fixture(0, 1, 0), record_fixture(0, 0, 1)] {
+        for doc in [
+            record_fixture(1, 0, 0),
+            record_fixture(0, 1, 0),
+            record_fixture(0, 0, 1),
+        ] {
             let findings = assert_cold(invocation_record(&doc).unwrap()).unwrap_err();
             assert!(!findings.is_empty());
         }
@@ -710,11 +1007,18 @@ mod tests {
             } } } }
         });
         let findings = assert_cold(invocation_record(&doc).unwrap()).unwrap_err();
-        assert!(findings.iter().any(|f| f.contains("record-shape violation")));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.contains("record-shape violation"))
+        );
     }
 
     fn manifest(pairs: &[(&str, &str)]) -> BTreeMap<String, String> {
-        pairs.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect()
+        pairs
+            .iter()
+            .map(|(k, v)| (k.to_string(), v.to_string()))
+            .collect()
     }
 
     #[test]
@@ -743,7 +1047,12 @@ mod tests {
         assert_eq!(status, CanaryStatus::Red);
         assert!(status.is_failure());
         assert_eq!(v["divergent_keys"].as_array().unwrap().len(), 1);
-        assert!(v["red_response"].as_str().unwrap().contains("suspend ALL warm reads"));
+        assert!(
+            v["red_response"]
+                .as_str()
+                .unwrap()
+                .contains("suspend ALL warm reads")
+        );
     }
 
     #[test]
@@ -757,10 +1066,8 @@ mod tests {
 
     #[test]
     fn digest_manifest_hashes_files_deterministically() {
-        let dir = std::env::temp_dir().join(format!(
-            "oya-cache-wiring-test-{}",
-            std::process::id()
-        ));
+        let dir =
+            std::env::temp_dir().join(format!("oya-cache-wiring-test-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let file = dir.join("out.bin");
         std::fs::write(&file, b"payload").unwrap();
