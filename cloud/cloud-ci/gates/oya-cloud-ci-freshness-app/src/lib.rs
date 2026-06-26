@@ -30,7 +30,9 @@ const NOT_TRACKED_IN_GIT_MODE: &str = "not-tracked-in-git";
 /// Materialization mode marking a declared generated artifact as an integration-branch baseline:
 /// committed on the protected branch for merge-base consumers, but not a contributor PR byte-diff.
 const MAIN_BRANCH_MATERIALIZED_MODE: &str = "main-branch-materialized";
-const GENERATED_FACE_PATHS: [&str; 7] = [
+const ARCHITECTURE_PRODUCT_GRAPH_FACE: &str = "product-graph.html";
+const ARCHITECTURE_PRODUCT_GRAPH_PATH: &str = "docs/architecture/product-graph.html";
+const GENERATED_FACE_PATHS: [&str; 8] = [
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/ttl-policy.generated.json",
@@ -38,11 +40,14 @@ const GENERATED_FACE_PATHS: [&str; 7] = [
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/enforcement-inventory.generated.json",
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/enforcement-liveness.generated.json",
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
+    ARCHITECTURE_PRODUCT_GRAPH_PATH,
 ];
 const EMITTER_TARGET: &str =
     "//cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app:oya-cloud-ci-scm-facts-emitter-app";
 const PRODUCER_TARGET: &str = "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin";
 const CODEMOD_TARGET: &str = "//tools/oya-reorg-codemod-app:oya-reorg-codemod";
+const ARCHITECTURE_GRAPH_GENERATOR_TARGET: &str =
+    "//tools/oya-architecture-graph-generator-app:oya-architecture-graph-generator";
 const MOVE_MANIFEST_FACE: &str = "specs/reorg/move-manifest.generated.json";
 const PRODUCER_FACES: [(&str, &str); 6] = [
     ("accounting-registry.generated.json", "registry"),
@@ -331,9 +336,16 @@ pub fn run_face_settle_with_buck2(
 
 pub fn materialize_generated_faces_with_buck2(repo_root: &Path) -> Result<(), FreshnessError> {
     let tools = build_materializer_tools(repo_root)?;
-    materialize_move_manifest(&tools, repo_root)?;
+    materialize_generated_faces_with_tools(&tools, repo_root)
+}
+
+fn materialize_generated_faces_with_tools(
+    tools: &MaterializerTools,
+    repo_root: &Path,
+) -> Result<(), FreshnessError> {
+    materialize_move_manifest(tools, repo_root)?;
     let scm_facts = repo_root.join(FACES_DIR).join(SCM_FACTS_FACE);
-    emit_materialized_scm_facts(&tools, repo_root, &scm_facts)?;
+    emit_materialized_scm_facts(tools, repo_root, &scm_facts)?;
     run_status(
         Command::new(&tools.producer)
             .args(["--repo-root"])
@@ -342,7 +354,8 @@ pub fn materialize_generated_faces_with_buck2(repo_root: &Path) -> Result<(), Fr
             .arg(&scm_facts)
             .current_dir(repo_root),
         "materialize generated accounting faces",
-    )
+    )?;
+    materialize_architecture_product_graph(tools, repo_root)
 }
 
 pub fn parse_materialize_generated_faces_args(
@@ -881,6 +894,13 @@ pub fn read_committed_generated_faces(
         }
         faces.push((name.to_owned(), read_to_string(&path)?));
     }
+    let product_graph = repo_root.join(ARCHITECTURE_PRODUCT_GRAPH_PATH);
+    if product_graph.exists() {
+        faces.push((
+            ARCHITECTURE_PRODUCT_GRAPH_FACE.to_owned(),
+            read_to_string(&product_graph)?,
+        ));
+    }
     faces.sort_by(|left, right| left.0.cmp(&right.0));
     Ok(faces)
 }
@@ -953,7 +973,7 @@ pub fn regenerate_faces_with_buck2(repo_root: &Path) -> Result<RegeneratedFaces,
         path: volatile_facts.clone(),
     };
     emit_scm_facts(&tools, repo_root, &scm_facts, &volatile_facts)?;
-    let regenerated = regenerate_producer_faces(&tools, repo_root, &scm_facts)?;
+    let regenerated = regenerate_all_faces(&tools, repo_root, &scm_facts)?;
     drop(cleanup);
     drop(volatile_cleanup);
     Ok(regenerated)
@@ -977,8 +997,8 @@ pub fn regenerate_faces_twice_with_buck2(
         path: volatile_facts.clone(),
     };
     emit_scm_facts(&tools, repo_root, &scm_facts, &volatile_facts)?;
-    let first = regenerate_producer_faces(&tools, repo_root, &scm_facts)?;
-    let second = regenerate_producer_faces(&tools, repo_root, &scm_facts)?;
+    let first = regenerate_all_faces(&tools, repo_root, &scm_facts)?;
+    let second = regenerate_all_faces(&tools, repo_root, &scm_facts)?;
     drop(cleanup);
     drop(volatile_cleanup);
     Ok((first, second))
@@ -1024,6 +1044,38 @@ fn regenerate_producer_faces(
     }
     regenerated.sort_by(|left, right| left.0.cmp(&right.0));
     Ok(regenerated)
+}
+
+fn regenerate_all_faces(
+    tools: &FaceTools,
+    repo_root: &Path,
+    scm_facts: &Path,
+) -> Result<RegeneratedFaces, FreshnessError> {
+    let mut regenerated = regenerate_producer_faces(tools, repo_root, scm_facts)?;
+    regenerated.push(regenerate_architecture_product_graph(tools, repo_root)?);
+    regenerated.sort_by(|left, right| left.0.cmp(&right.0));
+    Ok(regenerated)
+}
+
+fn regenerate_architecture_product_graph(
+    tools: &FaceTools,
+    repo_root: &Path,
+) -> Result<(String, String), FreshnessError> {
+    let output = temporary_product_graph_path();
+    let cleanup = TempFileCleanup {
+        path: output.clone(),
+    };
+    run_status(
+        Command::new(&tools.architecture_graph_generator)
+            .arg("--write")
+            .args(["--output"])
+            .arg(&output)
+            .current_dir(repo_root),
+        "regenerate architecture product graph",
+    )?;
+    let bytes = read_to_string(&output)?;
+    drop(cleanup);
+    Ok((ARCHITECTURE_PRODUCT_GRAPH_FACE.to_owned(), bytes))
 }
 
 fn write_regenerated_faces(
@@ -1207,12 +1259,14 @@ fn bullet_list(items: &[String]) -> String {
 struct FaceTools {
     emitter: PathBuf,
     producer: PathBuf,
+    architecture_graph_generator: PathBuf,
 }
 
 struct MaterializerTools {
     emitter: PathBuf,
     producer: PathBuf,
     codemod: PathBuf,
+    architecture_graph_generator: PathBuf,
 }
 
 fn build_face_tools(repo_root: &Path) -> Result<FaceTools, FreshnessError> {
@@ -1221,13 +1275,20 @@ fn build_face_tools(repo_root: &Path) -> Result<FaceTools, FreshnessError> {
             .arg("build")
             .arg(EMITTER_TARGET)
             .arg(PRODUCER_TARGET)
+            .arg(ARCHITECTURE_GRAPH_GENERATOR_TARGET)
             .arg("--show-output")
             .current_dir(repo_root),
         "buck2 build freshness face tools",
     )?;
     let emitter = parse_show_output_path(repo_root, &output, EMITTER_TARGET)?;
     let producer = parse_show_output_path(repo_root, &output, PRODUCER_TARGET)?;
-    Ok(FaceTools { emitter, producer })
+    let architecture_graph_generator =
+        parse_show_output_path(repo_root, &output, ARCHITECTURE_GRAPH_GENERATOR_TARGET)?;
+    Ok(FaceTools {
+        emitter,
+        producer,
+        architecture_graph_generator,
+    })
 }
 
 fn build_materializer_tools(repo_root: &Path) -> Result<MaterializerTools, FreshnessError> {
@@ -1237,6 +1298,7 @@ fn build_materializer_tools(repo_root: &Path) -> Result<MaterializerTools, Fresh
             .arg(EMITTER_TARGET)
             .arg(PRODUCER_TARGET)
             .arg(CODEMOD_TARGET)
+            .arg(ARCHITECTURE_GRAPH_GENERATOR_TARGET)
             .arg("--show-output")
             .current_dir(repo_root),
         "buck2 build generated-face materializer tools",
@@ -1244,10 +1306,13 @@ fn build_materializer_tools(repo_root: &Path) -> Result<MaterializerTools, Fresh
     let emitter = parse_show_output_path(repo_root, &output, EMITTER_TARGET)?;
     let producer = parse_show_output_path(repo_root, &output, PRODUCER_TARGET)?;
     let codemod = parse_show_output_path(repo_root, &output, CODEMOD_TARGET)?;
+    let architecture_graph_generator =
+        parse_show_output_path(repo_root, &output, ARCHITECTURE_GRAPH_GENERATOR_TARGET)?;
     Ok(MaterializerTools {
         emitter,
         producer,
         codemod,
+        architecture_graph_generator,
     })
 }
 
@@ -1281,6 +1346,18 @@ fn emit_materialized_scm_facts(
             .arg("--merge-base-baseline")
             .current_dir(repo_root),
         "materialize scm-facts boundary snapshot",
+    )
+}
+
+fn materialize_architecture_product_graph(
+    tools: &MaterializerTools,
+    repo_root: &Path,
+) -> Result<(), FreshnessError> {
+    run_status(
+        Command::new(&tools.architecture_graph_generator)
+            .arg("--write")
+            .current_dir(repo_root),
+        "materialize architecture product graph",
     )
 }
 
@@ -1381,6 +1458,17 @@ fn temporary_volatile_facts_path() -> PathBuf {
     ))
 }
 
+fn temporary_product_graph_path() -> PathBuf {
+    let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
+        Ok(duration) => duration.as_nanos(),
+        Err(_) => 0,
+    };
+    std::env::temp_dir().join(format!(
+        "oya-ci-freshness-product-graph-{}-{nanos}.html",
+        std::process::id()
+    ))
+}
+
 struct TempFileCleanup {
     path: PathBuf,
 }
@@ -1443,6 +1531,28 @@ fn required_string(
 mod materialize_generated_faces_tests {
     use super::*;
 
+    fn temp_root(label: &str) -> PathBuf {
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system clock after epoch")
+            .as_nanos();
+        let root = std::env::temp_dir().join(format!("{label}-{}-{nanos}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        root
+    }
+
+    #[cfg(unix)]
+    fn write_executable(path: &Path, body: &str) {
+        use std::os::unix::fs::PermissionsExt;
+
+        std::fs::write(path, body).expect("write executable");
+        let mut permissions = std::fs::metadata(path)
+            .expect("executable metadata")
+            .permissions();
+        permissions.set_mode(0o755);
+        std::fs::set_permissions(path, permissions).expect("chmod executable");
+    }
+
     #[test]
     fn parse_materialize_generated_faces_args_defaults_to_repo_root_dot() {
         let parsed = parse_materialize_generated_faces_args(Vec::new())
@@ -1480,14 +1590,200 @@ mod materialize_generated_faces_tests {
         let output = "\
 root//cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app:oya-cloud-ci-scm-facts-emitter-app buck-out/v2/gen/emitter\n\
 root//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin /tmp/producer\n\
+root//tools/oya-reorg-codemod-app:oya-reorg-codemod buck-out/v2/gen/codemod\n\
+root//tools/oya-architecture-graph-generator-app:oya-architecture-graph-generator buck-out/v2/gen/architecture-graph\n\
 ";
 
         let emitter =
             parse_show_output_path(Path::new("/repo"), output, EMITTER_TARGET).expect("emitter");
         let producer =
             parse_show_output_path(Path::new("/repo"), output, PRODUCER_TARGET).expect("producer");
+        let codemod =
+            parse_show_output_path(Path::new("/repo"), output, CODEMOD_TARGET).expect("codemod");
+        let architecture_graph_generator = parse_show_output_path(
+            Path::new("/repo"),
+            output,
+            ARCHITECTURE_GRAPH_GENERATOR_TARGET,
+        )
+        .expect("architecture graph generator");
 
         assert_eq!(emitter, PathBuf::from("/repo/buck-out/v2/gen/emitter"));
         assert_eq!(producer, PathBuf::from("/tmp/producer"));
+        assert_eq!(codemod, PathBuf::from("/repo/buck-out/v2/gen/codemod"));
+        assert_eq!(
+            architecture_graph_generator,
+            PathBuf::from("/repo/buck-out/v2/gen/architecture-graph")
+        );
+    }
+
+    #[test]
+    fn read_committed_generated_faces_includes_architecture_product_graph() {
+        let root = temp_root("oya-committed-faces");
+        std::fs::create_dir_all(root.join(FACES_DIR)).expect("create faces dir");
+        std::fs::create_dir_all(root.join("docs/architecture")).expect("create docs dir");
+        std::fs::write(root.join(FACES_DIR).join(SCM_FACTS_FACE), "scm\n").expect("write scm face");
+        std::fs::write(root.join(ARCHITECTURE_PRODUCT_GRAPH_PATH), "graph\n")
+            .expect("write product graph");
+
+        let faces = read_committed_generated_faces(&root).expect("read committed generated faces");
+
+        assert!(faces.contains(&(SCM_FACTS_FACE.to_owned(), "scm\n".to_owned())));
+        assert!(faces.contains(&(
+            ARCHITECTURE_PRODUCT_GRAPH_FACE.to_owned(),
+            "graph\n".to_owned()
+        )));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn regenerated_architecture_product_graph_uses_temporary_output() {
+        let root = temp_root("oya-regenerate-product-graph");
+        std::fs::create_dir_all(root.join("bin")).expect("create bin dir");
+        std::fs::create_dir_all(root.join("docs/architecture")).expect("create docs dir");
+        std::fs::write(
+            root.join(ARCHITECTURE_PRODUCT_GRAPH_PATH),
+            "committed graph\n",
+        )
+        .expect("write committed graph");
+        let generator = root.join("bin/architecture-graph");
+        write_executable(
+            &generator,
+            r#"#!/bin/sh
+set -eu
+out=""
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --output) shift; out="$1" ;;
+  esac
+  shift || true
+done
+test -n "$out"
+printf 'fresh graph\n' > "$out"
+"#,
+        );
+        let tools = FaceTools {
+            emitter: PathBuf::from("/unused-emitter"),
+            producer: PathBuf::from("/unused-producer"),
+            architecture_graph_generator: generator,
+        };
+
+        let regenerated = regenerate_architecture_product_graph(&tools, &root)
+            .expect("regenerate architecture product graph");
+
+        assert_eq!(
+            regenerated,
+            (
+                ARCHITECTURE_PRODUCT_GRAPH_FACE.to_owned(),
+                "fresh graph\n".to_owned()
+            )
+        );
+        assert_eq!(
+            std::fs::read_to_string(root.join(ARCHITECTURE_PRODUCT_GRAPH_PATH))
+                .expect("committed graph"),
+            "committed graph\n"
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn materializer_invokes_architecture_product_graph_generator() {
+        let root = temp_root("oya-materialize-faces");
+        std::fs::create_dir_all(root.join("bin")).expect("create bin dir");
+        let log = root.join("calls.log");
+        let log_path = log.display();
+
+        let codemod = root.join("bin/codemod");
+        write_executable(
+            &codemod,
+            &format!(
+                r#"#!/bin/sh
+set -eu
+printf 'codemod %s\n' "$*" >> "{log_path}"
+out=""
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --out) shift; out="$1" ;;
+  esac
+  shift || true
+done
+test -n "$out"
+mkdir -p "$(dirname "$out")"
+printf '{{"moves":[]}}\n' > "$out"
+"#
+            ),
+        );
+
+        let emitter = root.join("bin/emitter");
+        write_executable(
+            &emitter,
+            &format!(
+                r#"#!/bin/sh
+set -eu
+printf 'emitter %s\n' "$*" >> "{log_path}"
+out=""
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --out) shift; out="$1" ;;
+  esac
+  shift || true
+done
+test -n "$out"
+mkdir -p "$(dirname "$out")"
+printf '{{"facts":[]}}\n' > "$out"
+"#
+            ),
+        );
+
+        let producer = root.join("bin/producer");
+        write_executable(
+            &producer,
+            &format!(
+                r#"#!/bin/sh
+set -eu
+printf 'producer %s\n' "$*" >> "{log_path}"
+"#
+            ),
+        );
+
+        let architecture_graph_generator = root.join("bin/architecture-graph");
+        write_executable(
+            &architecture_graph_generator,
+            &format!(
+                r#"#!/bin/sh
+set -eu
+printf 'architecture %s\n' "$*" >> "{log_path}"
+test "$#" -eq 1
+test "$1" = "--write"
+mkdir -p docs/architecture
+printf 'generated dashboard\n' > docs/architecture/product-graph.html
+"#
+            ),
+        );
+
+        let tools = MaterializerTools {
+            emitter,
+            producer,
+            codemod,
+            architecture_graph_generator,
+        };
+
+        materialize_generated_faces_with_tools(&tools, &root)
+            .expect("materialize faces and architecture product graph");
+
+        let calls = std::fs::read_to_string(&log).expect("read call log");
+        let codemod_pos = calls.find("codemod manifest").expect("codemod call");
+        let emitter_pos = calls.find("emitter --repo-root").expect("emitter call");
+        let producer_pos = calls.find("producer --repo-root").expect("producer call");
+        let architecture_pos = calls
+            .find("architecture --write")
+            .expect("architecture generator call");
+        assert!(codemod_pos < emitter_pos);
+        assert!(emitter_pos < producer_pos);
+        assert!(producer_pos < architecture_pos);
+        assert_eq!(
+            std::fs::read_to_string(root.join("docs/architecture/product-graph.html"))
+                .expect("product graph materialized"),
+            "generated dashboard\n"
+        );
     }
 }
