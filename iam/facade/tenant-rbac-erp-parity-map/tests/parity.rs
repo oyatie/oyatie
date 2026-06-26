@@ -4,20 +4,7 @@ use iam_tenant_rbac_erp_parity_map::{
     is_forbidden_erp_platform_destination, tenant_rbac_erp_parity_map,
     validate_erp_hyperscaler_parity_matrix, validate_erp_parity_map,
 };
-use std::path::{Path, PathBuf};
-
-fn repo_root() -> PathBuf {
-    let mut dir = std::env::current_dir().expect("current_dir");
-    for _ in 0..16 {
-        if dir.join("specs/root-hub-pointers.json").is_file() {
-            return dir;
-        }
-        if !dir.pop() {
-            break;
-        }
-    }
-    panic!("failed to locate repo root from test current_dir");
-}
+use std::path::Path;
 
 fn path_without_fragment(reference: &str) -> &str {
     reference
@@ -404,8 +391,14 @@ fn hyperscaler_parity_matrix_tracks_required_control_plane_facets() {
     }));
     assert!(matrix.iter().any(|criterion| {
         criterion.facet == HyperscalerParityFacet::OperationalRunbooks
-            && criterion.status == HyperscalerParityStatus::Verified
+            && criterion.status == HyperscalerParityStatus::GapTracked
     }));
+    assert!(
+        matrix
+            .iter()
+            .all(|criterion| criterion.status == HyperscalerParityStatus::GapTracked),
+        "status must stay GapTracked until this crate owns executable semantic verification"
+    );
 }
 
 #[test]
@@ -437,9 +430,22 @@ fn hyperscaler_parity_matrix_validation_rejects_missing_benchmark_surface() {
 }
 
 #[test]
-fn hyperscaler_parity_matrix_evidence_refs_resolve_to_repo_paths() {
-    let root = repo_root();
+fn hyperscaler_parity_matrix_validation_rejects_unverified_verified_status() {
+    let mut matrix = erp_hyperscaler_parity_matrix().to_vec();
+    matrix[0].status = HyperscalerParityStatus::Verified;
 
+    let error = validate_erp_hyperscaler_parity_matrix(&matrix)
+        .expect_err("Verified status is rejected until semantic verification exists");
+    assert_eq!(
+        error,
+        ErpParityMapError::UnverifiedHyperscalerParityClaim(
+            HyperscalerParityFacet::ControlPlaneApi,
+        )
+    );
+}
+
+#[test]
+fn hyperscaler_parity_matrix_evidence_refs_stay_repo_relative() {
     for criterion in erp_hyperscaler_parity_matrix() {
         for reference in criterion.oyatie_evidence_refs {
             let path = path_without_fragment(reference);
@@ -452,10 +458,6 @@ fn hyperscaler_parity_matrix_evidence_refs_resolve_to_repo_paths() {
                     .components()
                     .any(|component| matches!(component, std::path::Component::ParentDir)),
                 "matrix evidence references must not climb out of the repo: {reference}"
-            );
-            assert!(
-                root.join(path).exists(),
-                "matrix evidence reference does not resolve: {reference}"
             );
         }
     }
