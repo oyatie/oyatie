@@ -8,10 +8,12 @@
 //!
 //! - **Cedar default-deny**: with no matching `permit`, access is denied.
 //! - **Tenant-admin sets own quota within plan ceiling**: a TenantAdmin principal
-//!   can write quota for their own tenant only (Cedar `tenant_id == principal.tenant_id`).
+//!   can write quota for their own tenant only (adapter same-tenant guard +
+//!   Cedar scope policy).
 //! - **Platform sets ceilings**: PlatformOperator role can write any tenant's ceiling.
 //! - **Cross-tenant read denied**: a tenant CANNOT read another tenant's quota/usage.
-//!   The Cedar policy enforces `principal.tenant_id == resource_tenant_id`.
+//!   The adapter enforces `principal.tenant_id == resource_tenant_id` unless
+//!   platform-scoped.
 //! - **RBAC escalation mitigated**: no principal can grant themselves a higher role.
 //!
 //! ## Usage
@@ -31,6 +33,8 @@ use iam_identity_workload_authz_cedar::{
 };
 use iam_identity_workload_domain::{Action, AuthorizationRequest, Resource, WorkloadPrincipal};
 use k8s_tenant_quota_kernel::{RbacRole, TenantId};
+
+const PLATFORM_QUOTA_SCOPE: &str = "quota:platform:write";
 
 /// Errors from the Cedar RBAC authorizer.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -78,7 +82,7 @@ impl QuotaRbacAuthorizer {
     /// - TenantViewer can read quota for their own tenant.
     /// - PlatformOperator can write/read quota for any tenant.
     ///
-    /// All cross-tenant access is denied by Cedar default-deny.
+    /// Tenant-role cross-tenant access is denied before Cedar evaluation.
     ///
     /// # Errors
     /// Returns [`RbacAuthzError::PolicyBuild`] if policy compilation fails.
@@ -96,8 +100,12 @@ impl QuotaRbacAuthorizer {
                 .for_resource(ResourceCondition::TypeIs("QuotaRecord".into())),
             // PlatformOperator: write any tenant's quota (ceiling management).
             Policy::permit("quota-write-platform-operator")
-                .when_principal(PrincipalCondition::HasScope("quota:platform:write".into()))
+                .when_principal(PrincipalCondition::HasScope(PLATFORM_QUOTA_SCOPE.into()))
                 .for_action(ActionCondition::Equals("quota:Write".into()))
+                .for_resource(ResourceCondition::TypeIs("QuotaRecord".into())),
+            Policy::permit("quota-read-platform-operator")
+                .when_principal(PrincipalCondition::HasScope(PLATFORM_QUOTA_SCOPE.into()))
+                .for_action(ActionCondition::Equals("quota:Read".into()))
                 .for_resource(ResourceCondition::TypeIs("QuotaRecord".into())),
         ];
         Self::with_policies(policies)
@@ -115,6 +123,8 @@ impl QuotaRbacAuthorizer {
         principal: &WorkloadPrincipal,
         target_tenant_id: &TenantId,
     ) -> Result<(), RbacAuthzError> {
+        deny_cross_tenant_without_platform_scope(principal, target_tenant_id, "quota:Write")?;
+
         let request = AuthorizationRequest::new(
             principal.clone(),
             Action::new("quota:Write"),
@@ -141,6 +151,8 @@ impl QuotaRbacAuthorizer {
         principal: &WorkloadPrincipal,
         target_tenant_id: &TenantId,
     ) -> Result<(), RbacAuthzError> {
+        deny_cross_tenant_without_platform_scope(principal, target_tenant_id, "quota:Read")?;
+
         let request = AuthorizationRequest::new(
             principal.clone(),
             Action::new("quota:Read"),
@@ -165,9 +177,27 @@ impl QuotaRbacAuthorizer {
         match role {
             RbacRole::TenantAdmin => "quota:write",
             RbacRole::TenantViewer => "quota:read",
-            RbacRole::PlatformOperator => "quota:platform:write",
+            RbacRole::PlatformOperator => PLATFORM_QUOTA_SCOPE,
         }
     }
+}
+
+fn deny_cross_tenant_without_platform_scope(
+    principal: &WorkloadPrincipal,
+    target_tenant_id: &TenantId,
+    action: &str,
+) -> Result<(), RbacAuthzError> {
+    if principal.tenant_id().as_str() == target_tenant_id.as_str()
+        || principal.has_scope(PLATFORM_QUOTA_SCOPE)
+    {
+        return Ok(());
+    }
+
+    Err(RbacAuthzError::Denied(format!(
+        "principal {} denied cross-tenant {action} on tenant {}",
+        principal.workload_id().as_str(),
+        target_tenant_id.as_str()
+    )))
 }
 
 #[cfg(test)]
@@ -213,6 +243,30 @@ mod tests {
         let principal = active_principal("ten_platform", "quota:platform:write");
         let tenant_id = TenantId::new("ten_acme").unwrap();
         assert!(authz.authorize_quota_write(&principal, &tenant_id).is_ok());
+    }
+
+    #[test]
+    fn tenant_admin_cannot_write_other_tenant_quota() {
+        let authz = QuotaRbacAuthorizer::new_with_default_policies().unwrap();
+        let principal = active_principal("ten_acme", "quota:write");
+        let tenant_id = TenantId::new("ten_globex").unwrap();
+        assert!(authz.authorize_quota_write(&principal, &tenant_id).is_err());
+    }
+
+    #[test]
+    fn tenant_viewer_cannot_read_other_tenant_quota() {
+        let authz = QuotaRbacAuthorizer::new_with_default_policies().unwrap();
+        let principal = active_principal("ten_acme", "quota:read");
+        let tenant_id = TenantId::new("ten_globex").unwrap();
+        assert!(authz.authorize_quota_read(&principal, &tenant_id).is_err());
+    }
+
+    #[test]
+    fn platform_operator_can_read_any_tenant() {
+        let authz = QuotaRbacAuthorizer::new_with_default_policies().unwrap();
+        let principal = active_principal("ten_platform", "quota:platform:write");
+        let tenant_id = TenantId::new("ten_acme").unwrap();
+        assert!(authz.authorize_quota_read(&principal, &tenant_id).is_ok());
     }
 
     #[test]
