@@ -1,0 +1,37 @@
+rust_library(
+    name = "intelligence-guardrail-adapter",
+    srcs = glob(["src/**/*.rs", "**/*.json", "**/*.toml", "**/*.txt"]),
+    crate = "intelligence_guardrail_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/kernel:intelligence-kernel",
+        "third-party//:regex",
+    ],
+)
+
+rust_test(
+    name = "intelligence-guardrail-adapter-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json", "**/*.toml", "**/*.txt"]),
+    crate = "intelligence_guardrail_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/kernel:intelligence-kernel",
+        "third-party//:regex",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "intelligence-guardrail-adapter-redactor-fixtures",
+    srcs = ["tests/redactor_secret_fixtures.rs"],
+    crate = "intelligence_guardrail_adapter_redactor_fixtures",
+    crate_root = "tests/redactor_secret_fixtures.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-guardrail-adapter",
+        "//intelligence/core/kernel:intelligence-kernel",
+        "third-party//:tokio",
+    ],
+)
