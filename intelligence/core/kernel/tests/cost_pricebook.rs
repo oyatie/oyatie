@@ -21,7 +21,8 @@ const PRICEBOOK_FIXTURE_JSON: &str = r#"{
       "input_nanos_per_mtok": 5000000000,
       "output_nanos_per_mtok": 25000000000,
       "cache_read_nanos_per_mtok": 500000000,
-      "cache_write_nanos_per_mtok": 6250000000
+      "cache_write_5m_nanos_per_mtok": 6250000000,
+      "cache_write_1h_nanos_per_mtok": 10000000000
     },
     {
       "model": "claude-opus-4-6",
@@ -29,7 +30,8 @@ const PRICEBOOK_FIXTURE_JSON: &str = r#"{
       "input_nanos_per_mtok": 5000000000,
       "output_nanos_per_mtok": 25000000000,
       "cache_read_nanos_per_mtok": 500000000,
-      "cache_write_nanos_per_mtok": 6250000000
+      "cache_write_5m_nanos_per_mtok": 6250000000,
+      "cache_write_1h_nanos_per_mtok": 10000000000
     },
     {
       "model": "claude-opus-4-5",
@@ -37,7 +39,8 @@ const PRICEBOOK_FIXTURE_JSON: &str = r#"{
       "input_nanos_per_mtok": 5000000000,
       "output_nanos_per_mtok": 25000000000,
       "cache_read_nanos_per_mtok": 500000000,
-      "cache_write_nanos_per_mtok": 6250000000
+      "cache_write_5m_nanos_per_mtok": 6250000000,
+      "cache_write_1h_nanos_per_mtok": 10000000000
     },
     {
       "model": "claude-sonnet-4-5",
@@ -45,7 +48,8 @@ const PRICEBOOK_FIXTURE_JSON: &str = r#"{
       "input_nanos_per_mtok": 3000000000,
       "output_nanos_per_mtok": 15000000000,
       "cache_read_nanos_per_mtok": 300000000,
-      "cache_write_nanos_per_mtok": 3750000000
+      "cache_write_5m_nanos_per_mtok": 3750000000,
+      "cache_write_1h_nanos_per_mtok": 6000000000
     },
     {
       "model": "claude-haiku-3-5",
@@ -53,7 +57,8 @@ const PRICEBOOK_FIXTURE_JSON: &str = r#"{
       "input_nanos_per_mtok": 800000000,
       "output_nanos_per_mtok": 4000000000,
       "cache_read_nanos_per_mtok": 80000000,
-      "cache_write_nanos_per_mtok": 1000000000
+      "cache_write_5m_nanos_per_mtok": 1000000000,
+      "cache_write_1h_nanos_per_mtok": 1600000000
     },
     {
       "model": "gpt-4.1",
@@ -61,7 +66,8 @@ const PRICEBOOK_FIXTURE_JSON: &str = r#"{
       "input_nanos_per_mtok": 2000000000,
       "output_nanos_per_mtok": 8000000000,
       "cache_read_nanos_per_mtok": 500000000,
-      "cache_write_nanos_per_mtok": 0
+      "cache_write_5m_nanos_per_mtok": 0,
+      "cache_write_1h_nanos_per_mtok": 0
     },
     {
       "model": "gpt-4o",
@@ -69,7 +75,8 @@ const PRICEBOOK_FIXTURE_JSON: &str = r#"{
       "input_nanos_per_mtok": 2500000000,
       "output_nanos_per_mtok": 10000000000,
       "cache_read_nanos_per_mtok": 1250000000,
-      "cache_write_nanos_per_mtok": 0
+      "cache_write_5m_nanos_per_mtok": 0,
+      "cache_write_1h_nanos_per_mtok": 0
     },
     {
       "model": "o3",
@@ -77,7 +84,8 @@ const PRICEBOOK_FIXTURE_JSON: &str = r#"{
       "input_nanos_per_mtok": 2000000000,
       "output_nanos_per_mtok": 8000000000,
       "cache_read_nanos_per_mtok": 500000000,
-      "cache_write_nanos_per_mtok": 0
+      "cache_write_5m_nanos_per_mtok": 0,
+      "cache_write_1h_nanos_per_mtok": 0
     },
     {
       "model": "gemini-2.5-pro",
@@ -85,7 +93,8 @@ const PRICEBOOK_FIXTURE_JSON: &str = r#"{
       "input_nanos_per_mtok": 1250000000,
       "output_nanos_per_mtok": 10000000000,
       "cache_read_nanos_per_mtok": 312500000,
-      "cache_write_nanos_per_mtok": 0
+      "cache_write_5m_nanos_per_mtok": 0,
+      "cache_write_1h_nanos_per_mtok": 0
     },
     {
       "model": "gemini-2.5-flash",
@@ -93,7 +102,8 @@ const PRICEBOOK_FIXTURE_JSON: &str = r#"{
       "input_nanos_per_mtok": 300000000,
       "output_nanos_per_mtok": 2500000000,
       "cache_read_nanos_per_mtok": 75000000,
-      "cache_write_nanos_per_mtok": 0
+      "cache_write_5m_nanos_per_mtok": 0,
+      "cache_write_1h_nanos_per_mtok": 0
     }
   ]
 }"#;
@@ -145,7 +155,8 @@ fn anthropic_real_usage_fixture_prices_exactly() {
             input: 1_000_000,
             output: 1_000_000,
             cache_read: 1_000_000,
-            cache_write: 1_000_000,
+            cache_write_5m: 1_000_000,
+            cache_write_1h: 0,
             reasoning: 0,
         }
     );
@@ -154,11 +165,12 @@ fn anthropic_real_usage_fixture_prices_exactly() {
     let rec = pb
         .cost_for("anthropic", "claude-sonnet-4-5", &usage)
         .unwrap();
-    // Sonnet 4.5: $3 in / $15 out / $0.30 read / $3.75 write per MTok, 1 MTok each.
+    // Sonnet 4.5: $3 in / $15 out / $0.30 read / $3.75 5m write per MTok.
     assert_eq!(rec.input_pico_usd, 3_000_000_000_000);
     assert_eq!(rec.output_pico_usd, 15_000_000_000_000);
     assert_eq!(rec.cache_read_pico_usd, 300_000_000_000);
-    assert_eq!(rec.cache_write_pico_usd, 3_750_000_000_000);
+    assert_eq!(rec.cache_write_5m_pico_usd, 3_750_000_000_000);
+    assert_eq!(rec.cache_write_1h_pico_usd, 0);
     assert_eq!(rec.total_pico_usd, 22_050_000_000_000); // $22.05
     assert_eq!(rec.format_usd(), "22.050000");
 }
@@ -179,9 +191,18 @@ fn anthropic_per_ttl_cache_creation_fixture() {
     )
     .unwrap();
     let usage = UsageExtractor.from_anthropic(&raw);
-    assert_eq!(usage.cache_write, 1000);
+    assert_eq!(usage.cache_write_5m, 400);
+    assert_eq!(usage.cache_write_1h, 600);
     assert_eq!(usage.input, 500);
     assert_eq!(usage.cache_read, 100);
+
+    let pb = test_pricebook();
+    let rec = pb
+        .cost_for("anthropic", "claude-sonnet-4-5", &usage)
+        .unwrap();
+    assert_eq!(rec.cache_write_5m_pico_usd, 400 * 3_750_000_000 / 1_000);
+    assert_eq!(rec.cache_write_1h_pico_usd, 600 * 6_000_000_000 / 1_000);
+    assert_eq!(rec.total_pico_usd, 10_380_000_000);
 }
 
 #[test]
@@ -205,7 +226,8 @@ fn openai_responses_real_usage_fixture_prices_exactly() {
             input: 600_000, // 1.0M - 0.4M cached
             output: 1_000_000,
             cache_read: 400_000,
-            cache_write: 0,
+            cache_write_5m: 0,
+            cache_write_1h: 0,
             reasoning: 250_000,
         }
     );
@@ -216,7 +238,8 @@ fn openai_responses_real_usage_fixture_prices_exactly() {
     assert_eq!(rec.input_pico_usd, 600_000 * 2_000_000_000 / 1_000); // 1_200_000_000_000
     assert_eq!(rec.output_pico_usd, 8_000_000_000_000);
     assert_eq!(rec.cache_read_pico_usd, 400_000 * 500_000_000 / 1_000); // 200_000_000_000
-    assert_eq!(rec.cache_write_pico_usd, 0);
+    assert_eq!(rec.cache_write_5m_pico_usd, 0);
+    assert_eq!(rec.cache_write_1h_pico_usd, 0);
     assert_eq!(rec.total_pico_usd, 9_400_000_000_000); // $9.40
 }
 
@@ -241,7 +264,8 @@ fn gemini_real_usage_fixture_prices_exactly() {
             input: 800_000,    // 1.0M - 0.2M cached
             output: 1_000_000, // 0.8M candidates + 0.2M thoughts
             cache_read: 200_000,
-            cache_write: 0,
+            cache_write_5m: 0,
+            cache_write_1h: 0,
             reasoning: 200_000,
         }
     );
@@ -252,7 +276,8 @@ fn gemini_real_usage_fixture_prices_exactly() {
     assert_eq!(rec.input_pico_usd, 800_000 * 1_250_000_000 / 1_000); // 1_000_000_000_000
     assert_eq!(rec.output_pico_usd, 10_000_000_000_000);
     assert_eq!(rec.cache_read_pico_usd, 200_000 * 312_500_000 / 1_000); // 62_500_000_000
-    assert_eq!(rec.cache_write_pico_usd, 0);
+    assert_eq!(rec.cache_write_5m_pico_usd, 0);
+    assert_eq!(rec.cache_write_1h_pico_usd, 0);
     assert_eq!(rec.total_pico_usd, 11_062_500_000_000); // $11.0625
     assert_eq!(rec.format_usd(), "11.062500");
 }
@@ -292,7 +317,8 @@ fn cost_of_matches_pricebook_path() {
         input: 123_456,
         output: 7_890,
         cache_read: 4_321,
-        cache_write: 0,
+        cache_write_5m: 0,
+        cache_write_1h: 0,
         reasoning: 0,
     };
     let card = pb.rate_card("anthropic", "claude-haiku-3-5").unwrap();
