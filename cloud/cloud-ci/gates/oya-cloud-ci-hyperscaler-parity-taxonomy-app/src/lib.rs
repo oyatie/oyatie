@@ -229,7 +229,7 @@ pub fn evaluate_keyed(spec: &Value) -> BTreeSet<Finding> {
         spec,
         &[
             "pure_dogfood_constraints",
-            "g007_must_reconcile_historical_jenkins_wording",
+            "g007_must_reconcile_historical_ci_wording",
         ],
         true,
         "missing_g007_reconciliation_constraint",
@@ -866,7 +866,7 @@ mod tests {
                 "self_hosted_github_kubernetes_ci_lane": true,
                 "dogfood_resource_substrate_required_before_external_provider_apply": true,
                 "vfkit_linux_or_kubernetes_cluster_tests_must_be_recorded_before_kubernetes_readiness_claim": true,
-                "g007_must_reconcile_historical_jenkins_wording": true
+                "g007_must_reconcile_historical_ci_wording": true
             },
             "evidence_vocabulary": {"required_category_evidence_classes": REQUIRED_EVIDENCE_CLASSES},
             "category_taxonomy": categories,

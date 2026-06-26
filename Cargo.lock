@@ -4081,6 +4081,7 @@ dependencies = [
  "proptest",
  "serde",
  "serde_json",
+ "sha2",
  "tokio",
 ]
 
@@ -6295,6 +6296,13 @@ dependencies = [
 
 [[package]]
 name = "oya-cloud-ci-generated-artifact-control-plane-app"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "oya-cloud-ci-hyperscaler-parity-taxonomy-app"
 version = "0.1.0"
 dependencies = [
  "serde_json",
