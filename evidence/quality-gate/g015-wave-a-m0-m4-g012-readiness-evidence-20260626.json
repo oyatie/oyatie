@@ -17,6 +17,11 @@
       "Generated faces were restored before commit; no *.generated.json is part of the PR diff."
     ],
     "reason": "PR #915 failed oya-ci-required because cloud-ci-total-accounting reported the two new evidence files as unjustified regressions.",
+    "remote_verification": [
+      "PR #915 head 58c870205a634b94458f9688804293069236ea93: oya-ci-required SUCCESS after exact-path ADR-0515 evidence registration",
+      "PR #915 head 58c870205a634b94458f9688804293069236ea93: no pending or failing checks in statusCheckRollup at 2026-06-26T23:41:40Z",
+      "PR #915 mergeStateStatus CLEAN at 2026-06-26T23:41:40Z"
+    ],
     "repair": [
       "ADR-0515 now names both exact repo-relative evidence paths as non-authoritative Wave A G015/G012 readiness evidence.",
       "The evidence files remain audit/readiness records only and do not bypass oya-ci-required."
@@ -33,19 +38,29 @@
     "buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-gate"
   ],
   "created_at": "2026-06-26T23:10:30Z",
+  "evidence_semantics": {
+    "authority_boundary": "This artifact is evidence for G015 checkpointing and review; merge authority remains GitHub protected PR governance plus oya-ci-required.",
+    "observed_field_policy": "Composite states that still depend on later governance lifecycle steps must not be encoded as PASS_* values. This artifact uses SATISFIED_* only for completed G015-local prerequisites and keeps governance merge readiness separate."
+  },
   "goal": "G012 verification/review/launch evidence",
-  "last_updated_at": "2026-06-26T23:26:00Z",
+  "last_updated_at": "2026-06-26T23:48:00Z",
   "launch_readiness": {
     "not_claimed": [
       "No merge authority is claimed by this evidence artifact",
-      "No G001 aggregate completion is claimed by this evidence artifact"
+      "No G001 aggregate completion is claimed by this evidence artifact",
+      "No production launch readiness is claimed by this evidence artifact"
     ],
     "ready_when": [
-      "PR #915 reruns oya-ci-required successfully after exact-path ADR-0515 evidence registration",
-      "leader captures fresh get_goal and checkpoints G015-wave-a-m0-m4-team-foundation from team evidence only",
-      "PR review/merge requirements are satisfied by the governance pipeline before aggregate G001 closeout"
+      "GitHub-side reviewer approval/merge requirements are satisfied by the governance pipeline",
+      "The green G015 PRs are merged or explicitly deferred with owner/issue evidence before aggregate G001 closeout",
+      "Post-merge cleanup and next-wave intake are captured before launching the next broad wave"
     ],
-    "verdict": "TEAM_TERMINAL_PENDING_PR915_CI_RECHECK_AND_LEADER_G015_CHECKPOINT"
+    "satisfied_for_g015_checkpoint": [
+      "Team g015-wave-a-m0-m4-fou-1fb6d50c is terminal: pending=0, in_progress=0, failed=0, completed=11",
+      "PRs #914, #915, and #916 have oya-ci-required SUCCESS and no pending/failing checks",
+      "Leader checkpointed G015-wave-a-m0-m4-team-foundation complete with fresh active Codex goal snapshot at .omx/ultragoal/checkpoints/get-goal-active-20260626T234252Z.json"
+    ],
+    "verdict": "TEAM_TERMINAL_PR_CI_GREEN_G015_CHECKPOINTED_PENDING_GOVERNANCE_MERGE"
   },
   "origin_dev_baseline": {
     "git_status_before_artifact": [
@@ -75,7 +90,7 @@
     "status_api_note": "GitHub statuses API returned state=pending with total_count=0 legacy statuses; check-runs API is the relevant evidence surface and shows oya-ci-required success."
   },
   "pull_request_snapshot": {
-    "captured_at": "2026-06-26T23:27:00Z",
+    "captured_at": "2026-06-26T23:41:40Z",
     "prs": [
       {
         "failing_checks": 0,
@@ -86,11 +101,11 @@
         "pending_checks": 0
       },
       {
-        "failing_checks": 3,
+        "failing_checks": 0,
         "head": "g015-worker-5-g012-readiness-evidence",
-        "merge_state": "BLOCKED_BEFORE_THIS_REPAIR",
+        "merge_state": "CLEAN",
         "number": 915,
-        "oya_ci_required": "FAILURE_BEFORE_THIS_REPAIR",
+        "oya_ci_required": "SUCCESS",
         "pending_checks": 0
       },
       {
@@ -143,7 +158,13 @@
   "team": "g015-wave-a-m0-m4-fou-1fb6d50c",
   "team_terminal_snapshot": {
     "captured_at": "2026-06-26T23:25:58Z",
-    "checkpoint_required": "G015-wave-a-m0-m4-team-foundation with fresh active get_goal JSON by leader",
+    "checkpoint_required": "completed: G015-wave-a-m0-m4-team-foundation checkpoint succeeded at 2026-06-26T23:43:08.649Z with fresh active Codex goal snapshot",
+    "g015_checkpoint": {
+      "codex_goal_snapshot": ".omx/ultragoal/checkpoints/get-goal-active-20260626T234252Z.json",
+      "completed_at": "2026-06-26T23:43:08.649Z",
+      "evidence": ".omx/context/g015-wave-a-m0-m4/final-evidence-20260626T234252Z.json",
+      "status": "complete"
+    },
     "phase": "complete",
     "tasks": {
       "blocked": 0,
@@ -183,25 +204,25 @@
       "evidence": "Team status at 2026-06-26T23:25:58Z: {'completed': 11, 'in_progress': 0, 'pending': 0, 'failed': 0}",
       "expected": "Every active worker lane terminal or explicitly ledgered before shutdown",
       "gate": "worker_lane_evidence",
-      "observed": "PASS"
+      "observed": "SATISFIED_TEAM_TERMINAL"
     },
     {
-      "evidence": "omx team status phase=complete; pending=0, in_progress=0, failed=0; checkpoint still leader-owned",
+      "evidence": "omx team status phase=complete; pending=0, in_progress=0, failed=0; leader G015 checkpoint completed at 2026-06-26T23:43:08.649Z",
       "expected": "Pending=0, in_progress=0, failed=0 or explicitly ledgered",
       "gate": "launch_shutdown_gate",
-      "observed": "PASS_TEAM_TERMINAL_PENDING_LEADER_CHECKPOINT"
+      "observed": "SATISFIED_FOR_G015_CHECKPOINT"
     },
     {
-      "evidence": "ADR-0515 exact-path registration added; JSON/diff hygiene passed; after CI-style generated-face materialization, buck2 run total-accounting-app-gate and firewall-app-gate passed locally.",
+      "evidence": "ADR-0515 exact-path registration added; local JSON/diff/Buck2 gates passed; remote PR #915 oya-ci-required succeeded on head 58c870205a634b94458f9688804293069236ea93.",
       "expected": "New evidence paths are exact-path justified without generated-file edits",
       "gate": "pr915_ci_repair",
-      "observed": "PASS_LOCAL_PENDING_REMOTE_RERUN"
+      "observed": "REMOTE_CI_GREEN"
     }
   ],
   "worker": "worker-5",
   "worker_lane_snapshot": {
-    "readiness_verdict": "team_terminal_pending_pr915_ci_recheck_and_leader_checkpoint",
-    "reason": "All team tasks are now terminal; PR #915 required an exact-path ADR registration repair before oya-ci-required can be green.",
+    "readiness_verdict": "team_terminal_pr_ci_green_g015_checkpointed_pending_governance_merge",
+    "reason": "All team tasks are terminal, PR #915 repair is green, and G015 is checkpointed; remaining lifecycle work is governance review/merge/cleanup before aggregate G001 closeout.",
     "selected_tasks": [
       {
         "status": "completed",
