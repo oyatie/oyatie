@@ -150,6 +150,12 @@ impl ThirdPartyGraph {
     fn load(root: &Path) -> Result<Self, CollectError> {
         let path = root.join("third-party/BUCK");
         let text = read_file(&path)?;
+        parse(&text).map_err(|e| {
+            CollectError::BuckGraph(format!(
+                "{} could not be parsed as BUCK: {e}",
+                path.display()
+            ))
+        })?;
         let mut graph = ThirdPartyGraph::default();
         for block in generated_buck_blocks(&text) {
             let Some(target) = generated_field(block, "name") else {
@@ -255,7 +261,7 @@ fn collect_first_party_third_party_roots(root: &Path) -> Result<BTreeSet<String>
             return Ok(());
         }
         let text = read_file(path)?;
-        collect_thirdparty_tokens_from_buck(&text, &mut roots);
+        collect_thirdparty_tokens_from_buck(path, &text, &mut roots)?;
         Ok(())
     })?;
     if roots.is_empty() {
@@ -266,7 +272,11 @@ fn collect_first_party_third_party_roots(root: &Path) -> Result<BTreeSet<String>
     Ok(roots)
 }
 
-fn collect_thirdparty_tokens_from_buck(text: &str, out: &mut BTreeSet<String>) {
+fn collect_thirdparty_tokens_from_buck(
+    path: &Path,
+    text: &str,
+    out: &mut BTreeSet<String>,
+) -> Result<(), CollectError> {
     match parse(text) {
         Ok(doc) => {
             doc.visit_calls(&mut |call| {
@@ -291,8 +301,12 @@ fn collect_thirdparty_tokens_from_buck(text: &str, out: &mut BTreeSet<String>) {
                     Stmt::Call(_) => {}
                 }
             }
+            Ok(())
         }
-        Err(_) => collect_thirdparty_tokens(text, out),
+        Err(e) => Err(CollectError::BuckGraph(format!(
+            "{} could not be parsed as BUCK: {e}",
+            path.display()
+        ))),
     }
 }
 
@@ -1051,6 +1065,67 @@ cargo.rust_library(
             .expect_err("empty roots fail closed");
         assert!(
             err.to_string().contains("no first-party BUCK references"),
+            "unexpected error: {err}"
+        );
+    }
+
+    #[test]
+    fn buck_graph_collector_fails_closed_on_unparseable_first_party_buck() {
+        let repo = TempRepo::new("bad-first-party-buck");
+        write_fixture_repo(
+            &repo,
+            r#"rust_library(
+    name = "app",
+    deps = ["third-party//:tls-stack"],
+"#,
+            r#"cargo.rust_library(
+    name = "tls-stack",
+    crate = "tls_stack",
+    env = {
+        "CARGO_PKG_NAME": "tls-stack",
+    },
+    visibility = [],
+)
+"#,
+        );
+
+        let err = collect_activated_backends(repo.root(), &policy())
+            .expect_err("unparseable first-party BUCK must fail closed");
+        assert!(
+            err.to_string().contains("app/BUCK could not be parsed"),
+            "unexpected error: {err}"
+        );
+    }
+
+    #[test]
+    fn buck_graph_collector_fails_closed_on_unparseable_third_party_buck() {
+        let repo = TempRepo::new("bad-third-party-buck");
+        write_fixture_repo(
+            &repo,
+            r#"rust_library(
+    name = "app",
+    deps = ["third-party//:tls-stack"],
+)
+"#,
+            r#"BROKEN = [":ring-0.17",,]
+
+cargo.rust_library(
+    name = "tls-stack",
+    crate = "tls_stack",
+    deps = [":ring-0.17"],
+    env = {
+        "CARGO_PKG_NAME": "tls-stack",
+    },
+    visibility = [],
+)
+"#,
+        );
+
+        let err = collect_activated_backends(repo.root(), &policy())
+            .expect_err("unparseable third-party BUCK must fail closed");
+        assert!(
+            err.to_string()
+                .contains("third-party/BUCK could not be parsed"),
             "unexpected error: {err}"
         );
     }
