@@ -197,7 +197,8 @@ fn main() {
         let line = raw_line.trim_end().to_string();
         write_message(&messages_path, &line);
         let Some(id) = extract_id(&line) else { continue };
-        let Some(method) = extract_string_field(&line, "method") else { continue };
+        let Some(mut method) = extract_string_field(&line, "method") else { continue };
+        if line.contains("turn/start") { method = "turn/start".to_string(); }
         if scenario == "invalid-json" && method == "break-reader" {
             print!("{{invalid json\n");
             io::stdout().flush().unwrap();
@@ -510,8 +511,6 @@ fn normalizes_app_server_inputs_and_receives_notifications() {
             Some(json!({"model":"gpt-turn", "outputSchema": {"type":"object"}})),
         )
         .unwrap();
-    eprintln!("DEBUG result={}", result);
-    eprintln!("DEBUG messages={:?}", fake.messages());
     let notification = client.next_turn_notification("turn-1").unwrap();
     client
         .turn_steer("thread-1", "turn-1", "additional steering")
