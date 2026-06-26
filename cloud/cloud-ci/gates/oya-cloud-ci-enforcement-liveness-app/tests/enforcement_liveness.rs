@@ -1,14 +1,17 @@
-// FRIC-012/G011 enforcement-liveness live-corpus gate. Runs the producer
-// `--face enforcement-liveness`, then asserts today's tracked hooks are all either wired in
-// both project wiring files or marked as compatibility stubs.
+// FRIC-012/G011 enforcement-liveness live-corpus gate. Runs the Buck-declared
+// accounting-registry producer for the enforcement-liveness face, then asserts today's tracked
+// hooks are all either wired in both project wiring files or marked as compatibility stubs.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::collections::BTreeSet;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::Command;
 
 use oya_cloud_ci_enforcement_liveness_app::{Verdict, evaluate, evaluate_keyed};
 use serde_json::{Value, json};
+
+const PRODUCER_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER";
+const SCM_FACTS_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_SCM_FACTS";
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
@@ -23,50 +26,35 @@ fn repo_root() -> PathBuf {
     panic!("failed to locate repo root from test current_dir");
 }
 
-fn run_producer_face(root: &Path, face: &str) -> Value {
-    let scm_facts = root
-        .join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json");
-    let output = if let Ok(bin) = std::env::var("OYA_CI_PRODUCER_BIN") {
-        let bin = if Path::new(&bin).is_absolute() {
-            PathBuf::from(bin)
-        } else {
-            root.join(bin)
-        };
-        Command::new(bin)
-            .arg("--repo-root")
-            .arg(root)
-            .arg("--scm-facts")
-            .arg(&scm_facts)
-            .arg("--stdout")
-            .arg("--face")
-            .arg(face)
-            .current_dir(root)
-            .output()
-            .expect("run producer binary")
-    } else {
-        Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_owned()))
-            .arg("run")
-            .arg("--quiet")
-            .arg("-p")
-            .arg("oya-cloud-ci-accounting-registry-app")
-            .arg("--")
-            .arg("--repo-root")
-            .arg(root)
-            .arg("--scm-facts")
-            .arg(&scm_facts)
-            .arg("--stdout")
-            .arg("--face")
-            .arg(face)
-            .current_dir(root)
-            .output()
-            .expect("cargo run oya-cloud-ci-accounting-registry-app")
-    };
-    assert!(
-        output.status.success(),
-        "producer failed: {}",
-        String::from_utf8_lossy(&output.stderr)
-    );
-    serde_json::from_slice(&output.stdout).expect("producer face stdout is valid JSON")
+fn load_produced_face() -> Value {
+    let producer = std::env::var(PRODUCER_ENV).unwrap_or_else(|e| {
+        panic!("{PRODUCER_ENV} must point at Buck-built accounting-registry producer: {e}")
+    });
+    let scm_facts = std::env::var(SCM_FACTS_ENV).unwrap_or_else(|e| {
+        panic!("{SCM_FACTS_ENV} must point at a Buck-declared scm-facts fixture: {e}")
+    });
+    let root = repo_root();
+    let output = Command::new(&producer)
+        .args([
+            "--repo-root",
+            root.to_str().expect("repo root utf-8"),
+            "--scm-facts",
+            scm_facts.as_str(),
+            "--stdout",
+            "--face",
+            "enforcement-liveness",
+        ])
+        .output()
+        .unwrap_or_else(|e| panic!("run Buck-built enforcement-liveness producer {producer}: {e}"));
+    if !output.status.success() {
+        panic!(
+            "Buck-built enforcement-liveness producer failed with status {:?}\nstderr:\n{}",
+            output.status.code(),
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+    serde_json::from_slice(&output.stdout)
+        .unwrap_or_else(|e| panic!("parse Buck-produced enforcement-liveness face: {e}"))
 }
 
 #[test]
@@ -205,13 +193,9 @@ fn evaluate_is_bare_projection_of_evaluate_keyed() {
 
 #[test]
 fn enforcement_liveness_face_reports_current_tree_green() {
-    let root = repo_root();
-    let face = run_producer_face(&root, "enforcement-liveness");
+    let face = load_produced_face();
     let rows = face["rows"].as_array().expect("enforcement-liveness rows");
-    let hook_rows = rows
-        .iter()
-        .filter(|row| row["row_type"] == "hook")
-        .count();
+    let hook_rows = rows.iter().filter(|row| row["row_type"] == "hook").count();
     let command_rows = rows
         .iter()
         .filter(|row| row["row_type"] == "command_reference")
@@ -226,7 +210,10 @@ fn enforcement_liveness_face_reports_current_tree_green() {
     );
 
     assert_eq!(hook_rows, 12, "tracked tools/hooks/*.sh census changed");
-    assert_eq!(command_rows, 20, "Claude+Codex hook command reference census changed");
+    assert_eq!(
+        command_rows, 20,
+        "Claude+Codex hook command reference census changed"
+    );
     assert_eq!(stub_rows, 2, "compatibility stub count changed");
     assert!(evaluate_keyed(&face).is_empty());
     assert_eq!(evaluate(&face).verdict, Verdict::Green);

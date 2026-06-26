@@ -133,9 +133,14 @@ the BUCK-fixer refusal precedent). Therefore:
    `third-party/OWNERS` + `evidence/OWNERS` (cloud-ci-platform — the owner the existing
    `.omc/ultragoal/OWNERS` precedent names); registry prefixes for `docs/decisions/`
    (crosswalk-accounted), `specs/fixtures/` (dir-loaded data-under-test), `third-party/`
-   (lockfile-derived), `evidence/` (TTL-accounted). New artifacts OUTSIDE these trees
-   must register in their own PR — the paved road is one OWNERS file + (where
-   applicable) one registry line, both printed verbatim by the failing gate.
+   (lockfile-derived), `evidence/` (TTL-accounted). The enforcement-liveness gate's
+   hermetic clean-checkout producer fixture
+   `cloud/cloud-ci/gates/oya-cloud-ci-enforcement-liveness-app/tests/scm-facts.fixture.json`
+   is a born-accounted data-under-test artifact under the cloud-ci gate tree, consumed by
+   the enforcement-liveness Buck gate to avoid relying on an absent generated SCM face.
+   New artifacts OUTSIDE these trees must register in their own PR — the paved road is
+   one OWNERS file + (where applicable) one registry line, both printed verbatim by the
+   failing gate.
 
 Hardening (2026-06-12, FRIC-1781400000 — closes the two acknowledged weaknesses from
 the PR #704 independent review, MED-2; amended in place per the ADR-0551 precedent for

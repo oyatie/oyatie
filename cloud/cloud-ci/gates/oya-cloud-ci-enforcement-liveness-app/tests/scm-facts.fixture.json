@@ -1,0 +1,19 @@
+{
+  "_comment": "Hermetic test fixture for enforcement-liveness: the declared tracked-path subset needed to census top-level hook scripts and validate hook command references. This is a normal fixture, not a generated merge surface.",
+  "tracked_paths": [
+    ".claude/settings.json",
+    ".codex/hooks.json",
+    "tools/hooks/adr-orphan-detect.sh",
+    "tools/hooks/injection-content-scanner.sh",
+    "tools/hooks/local-authority-enforcer.sh",
+    "tools/hooks/main-checkout-guard.sh",
+    "tools/hooks/no-cargo-enforcer.sh",
+    "tools/hooks/pre-dispatch-guide.sh",
+    "tools/hooks/session-start-context-inject.sh",
+    "tools/hooks/spec-version-pin-suggester.sh",
+    "tools/hooks/stale-tool-suggester.sh",
+    "tools/hooks/stop-did-you-forget-suggester.sh",
+    "tools/hooks/userprompt-canonical-primer.sh",
+    "tools/hooks/vacuous-green-gate-detect.sh"
+  ]
+}
