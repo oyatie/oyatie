@@ -44,6 +44,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
+use std::collections::BTreeMap;
 use std::fmt;
 use std::sync::Arc;
 
@@ -64,11 +65,11 @@ use oya_shared_resource_provider_contract_kernel::{
     IdempotencyKey, Operation, OperationResult, PageRequest, PageToken, ProviderError,
     ResourceName, ResourceProvider,
 };
+use tenancy_tenant_lifecycle_authz_pdp::PdpTenantLifecycleAuthorizer;
 use tenancy_tenant_lifecycle_authz_port::{
     AuthorizationDecision, AuthorizationOutcome, AuthorizationQuery, CallerIdentity,
     TenantLifecycleAction, TenantLifecycleAuthorizer, TenantMembershipResolver,
 };
-use tenancy_tenant_lifecycle_authz_pdp::PdpTenantLifecycleAuthorizer;
 use tenancy_tenant_lifecycle_kernel::TenantLifecycleStore;
 use tenancy_tenant_lifecycle_store_inmemory::InMemoryTenantLifecycleStore;
 use tenancy_tenant_lifecycle_store_postgres::PgTenantLifecycleStore;
@@ -101,6 +102,14 @@ const ENV_PLATFORM_ADMIN_TOKEN: &str = "TENANCY_PLATFORM_ADMIN_TOKEN";
 /// a tenant it is not a member of (the C7 self-attestation fix), and the PDP then
 /// backstops the membership-bound axis against the target {id}.
 const ENV_TENANT_OPERATOR_TOKEN: &str = "TENANCY_TENANT_OPERATOR_TOKEN";
+
+/// Env var carrying tenant-bound operator bearer credentials as
+/// `tenantA:tokenA,tenantB:tokenB`. This is the #771 retirement path for the
+/// shared operator bearer + self-asserted `x-oya-tenant` selector: the verified
+/// credential itself binds exactly one tenant axis. A conflicting
+/// `x-oya-tenant` header is denied, and an absent header is accepted because the
+/// tenant came from the credential, not from caller data.
+const ENV_TENANT_BOUND_OPERATOR_TOKENS: &str = "TENANCY_TENANT_BOUND_OPERATOR_TOKENS";
 
 /// Env var carrying the comma-separated tenant-operator membership assignments
 /// for the seed in-memory [`TenantMembershipResolver`], as
@@ -169,6 +178,11 @@ pub type SharedAuthorizer = Arc<dyn TenantLifecycleAuthorizer>;
 /// only be self-attested, which is exactly the C7 finding this fix closes.
 pub type SharedMembershipResolver = Arc<dyn TenantMembershipResolver>;
 
+/// Tenant id -> tenant-bound operator bearer token. Tokens are boot-time config
+/// only; production can replace this bridge with an OIDC/mTLS adapter while the
+/// [`CallerIdentity`] and PDP boundary stay unchanged.
+pub type TenantBoundOperatorTokens = BTreeMap<String, String>;
+
 /// Application state injected into every handler.
 pub struct AppState<S: LifecycleStore> {
     provider: SharedProvider<S>,
@@ -187,6 +201,9 @@ pub struct AppState<S: LifecycleStore> {
     /// Constant-time-verified tenant-operator bearer token. `None` means no
     /// tenant operator can authenticate (per-tenant ops deny-all).
     tenant_operator_token: Option<String>,
+    /// Constant-time-verified tenant-bound operator bearers. Each token binds a
+    /// single verified tenant axis and does not require `x-oya-tenant`.
+    tenant_bound_operator_tokens: TenantBoundOperatorTokens,
 }
 
 impl<S: LifecycleStore> Clone for AppState<S> {
@@ -197,6 +214,7 @@ impl<S: LifecycleStore> Clone for AppState<S> {
             membership: Arc::clone(&self.membership),
             platform_admin_token: self.platform_admin_token.clone(),
             tenant_operator_token: self.tenant_operator_token.clone(),
+            tenant_bound_operator_tokens: self.tenant_bound_operator_tokens.clone(),
         }
     }
 }
@@ -206,12 +224,33 @@ impl<S: LifecycleStore> AppState<S> {
     /// configuration for serving. There is no default-allow path: the
     /// authorizer is non-optional and the tokens gate authentication.
     #[must_use]
-    pub fn new(
+    fn new(
         provider: TenantLifecycleProvider<S>,
         authorizer: SharedAuthorizer,
         membership: SharedMembershipResolver,
         platform_admin_token: Option<String>,
         tenant_operator_token: Option<String>,
+    ) -> Self {
+        Self::new_with_tenant_bound_operator_tokens(
+            provider,
+            authorizer,
+            membership,
+            platform_admin_token,
+            tenant_operator_token,
+            BTreeMap::new(),
+        )
+    }
+
+    /// Same as [`Self::new`], plus tenant-bound operator bearers for the #771
+    /// migration path away from self-asserted tenant selection.
+    #[must_use]
+    fn new_with_tenant_bound_operator_tokens(
+        provider: TenantLifecycleProvider<S>,
+        authorizer: SharedAuthorizer,
+        membership: SharedMembershipResolver,
+        platform_admin_token: Option<String>,
+        tenant_operator_token: Option<String>,
+        tenant_bound_operator_tokens: TenantBoundOperatorTokens,
     ) -> Self {
         Self {
             provider: Arc::new(Mutex::new(provider)),
@@ -219,6 +258,9 @@ impl<S: LifecycleStore> AppState<S> {
             membership,
             platform_admin_token: normalize_token(platform_admin_token),
             tenant_operator_token: normalize_token(tenant_operator_token),
+            tenant_bound_operator_tokens: normalize_tenant_bound_operator_tokens(
+                tenant_bound_operator_tokens,
+            ),
         }
     }
 
@@ -236,9 +278,40 @@ impl<S: LifecycleStore> AppState<S> {
 /// Trim a configured token and treat empty/whitespace-only as unset (so a blank
 /// env var can never accidentally authenticate every caller).
 fn normalize_token(token: Option<String>) -> Option<String> {
-    token
-        .map(|t| t.trim().to_owned())
-        .filter(|t| !t.is_empty())
+    token.map(|t| t.trim().to_owned()).filter(|t| !t.is_empty())
+}
+
+fn normalize_tenant_bound_operator_tokens(
+    tokens: TenantBoundOperatorTokens,
+) -> TenantBoundOperatorTokens {
+    tokens
+        .into_iter()
+        .filter_map(|(tenant, token)| {
+            normalize_token(Some(token)).map(|token| (tenant.trim().to_owned(), token))
+        })
+        .filter(|(tenant, _)| !tenant.is_empty())
+        .collect()
+}
+
+fn normalize_and_validate_credentials(
+    platform_admin_token: Option<String>,
+    tenant_operator_token: Option<String>,
+    tenant_bound_operator_tokens: TenantBoundOperatorTokens,
+) -> Result<(Option<String>, Option<String>, TenantBoundOperatorTokens), BootError> {
+    let platform_admin_token = normalize_token(platform_admin_token);
+    let tenant_operator_token = normalize_token(tenant_operator_token);
+    let tenant_bound_operator_tokens =
+        normalize_tenant_bound_operator_tokens(tenant_bound_operator_tokens);
+    validate_credentials(
+        platform_admin_token.as_deref(),
+        tenant_operator_token.as_deref(),
+        &tenant_bound_operator_tokens,
+    )?;
+    Ok((
+        platform_admin_token,
+        tenant_operator_token,
+        tenant_bound_operator_tokens,
+    ))
 }
 
 /// Constant-time byte comparison (no early-out on first mismatch): never leak
@@ -272,6 +345,34 @@ fn bearer_matches(headers: &HeaderMap, configured: Option<&str>) -> bool {
         return false;
     };
     constant_time_eq(presented.as_bytes(), configured.as_bytes())
+}
+
+/// Borrow the optional tenant selector header. It is untrusted caller data:
+/// shared-operator credentials may only use it to select an assigned tenant,
+/// while tenant-bound credentials reject any conflicting value.
+fn tenant_axis_header(headers: &HeaderMap) -> Option<&str> {
+    headers
+        .get(HEADER_TENANT_AXIS)
+        .and_then(|value| value.to_str().ok())
+        .map(str::trim)
+        .filter(|axis| !axis.is_empty())
+}
+
+/// Find the tenant bound to the presented tenant-bound operator bearer, scanning
+/// the whole boot-time token map so the match position does not control the
+/// loop length. Duplicate tokens are refused at boot by [`validate_credentials`].
+fn matched_tenant_bound_operator<'a>(
+    headers: &HeaderMap,
+    tokens: &'a TenantBoundOperatorTokens,
+) -> Option<&'a str> {
+    let presented = bearer_token(headers)?;
+    let mut matched_tenant = None;
+    for (tenant, configured) in tokens {
+        if constant_time_eq(presented.as_bytes(), configured.as_bytes()) {
+            matched_tenant = Some(tenant.as_str());
+        }
+    }
+    matched_tenant
 }
 
 // ============================================================
@@ -494,6 +595,26 @@ where
             platform_admin: true,
         });
     }
+    if let Some(bound_tenant) =
+        matched_tenant_bound_operator(headers, &state.tenant_bound_operator_tokens)
+    {
+        if let Some(requested) = tenant_axis_header(headers) {
+            if requested != bound_tenant {
+                return Err(err(
+                    StatusCode::FORBIDDEN,
+                    "PERMISSION_DENIED",
+                    "tenant-bound credential does not match x-oya-tenant selection",
+                ));
+            }
+        }
+
+        return Ok(CallerIdentity {
+            principal_id: format!("tenant-operator:{bound_tenant}"),
+            // The tenant axis is credential-bound, not header-bound.
+            tenant_scope: Some(bound_tenant.to_owned()),
+            platform_admin: false,
+        });
+    }
     if bearer_matches(headers, state.tenant_operator_token.as_deref()) {
         // The verified operator's stable principal id is the membership key —
         // derived from the credential (the reference verifier binds the shared
@@ -529,12 +650,7 @@ where
         }
 
         // The header SELECTS among assigned tenants; it never grants one.
-        let selected = match headers
-            .get(HEADER_TENANT_AXIS)
-            .and_then(|value| value.to_str().ok())
-            .map(str::trim)
-            .filter(|axis| !axis.is_empty())
-        {
+        let selected = match tenant_axis_header(headers) {
             Some(requested) => {
                 // The selection MUST be a tenant the operator is assigned to.
                 // A request for an UNASSIGNED tenant (the C7 attack: selecting a
@@ -883,7 +999,13 @@ where
     let key = idempotency_key(&headers)?;
     let name = tenant_name(&tenant_id)?;
     let mut provider = state.lock().await;
-    run_lifecycle(&mut provider, &name, TenantLifecycleOperation::Activate, &key).await?;
+    run_lifecycle(
+        &mut provider,
+        &name,
+        TenantLifecycleOperation::Activate,
+        &key,
+    )
+    .await?;
     let tenant = provider.get(&name).await.map_err(map_provider_error)?;
     Ok(Json(TenantView::from(tenant)))
 }
@@ -907,7 +1029,13 @@ where
     let key = idempotency_key(&headers)?;
     let name = tenant_name(&tenant_id)?;
     let mut provider = state.lock().await;
-    run_lifecycle(&mut provider, &name, TenantLifecycleOperation::Suspend, &key).await?;
+    run_lifecycle(
+        &mut provider,
+        &name,
+        TenantLifecycleOperation::Suspend,
+        &key,
+    )
+    .await?;
     let tenant = provider.get(&name).await.map_err(map_provider_error)?;
     Ok(Json(TenantView::from(tenant)))
 }
@@ -975,7 +1103,7 @@ pub async fn healthz() -> StatusCode {
 /// the REQUIRED authorizer + bearer-token configuration. There is no
 /// authorizer-less overload: the only way to mount the routes is to supply a
 /// fail-closed authorizer (no default-allow surface can be constructed).
-pub fn build_router<S>(
+fn build_router<S>(
     provider: TenantLifecycleProvider<S>,
     authorizer: SharedAuthorizer,
     membership: SharedMembershipResolver,
@@ -985,12 +1113,36 @@ pub fn build_router<S>(
 where
     S: LifecycleStore + Sync,
 {
-    let state = AppState::new(
+    build_router_with_tenant_bound_operator_tokens(
         provider,
         authorizer,
         membership,
         platform_admin_token,
         tenant_operator_token,
+        BTreeMap::new(),
+    )
+}
+
+/// Build the axum router with tenant-bound operator bearers for the #771
+/// migration path away from self-asserted tenant-axis selection.
+fn build_router_with_tenant_bound_operator_tokens<S>(
+    provider: TenantLifecycleProvider<S>,
+    authorizer: SharedAuthorizer,
+    membership: SharedMembershipResolver,
+    platform_admin_token: Option<String>,
+    tenant_operator_token: Option<String>,
+    tenant_bound_operator_tokens: TenantBoundOperatorTokens,
+) -> Router
+where
+    S: LifecycleStore + Sync,
+{
+    let state = AppState::new_with_tenant_bound_operator_tokens(
+        provider,
+        authorizer,
+        membership,
+        platform_admin_token,
+        tenant_operator_token,
+        tenant_bound_operator_tokens,
     );
     Router::new()
         .route("/v1/tenants", post(register_tenant::<S>))
@@ -1022,14 +1174,36 @@ pub fn build_inmemory_router(
     platform_admin_token: Option<String>,
     tenant_operator_token: Option<String>,
 ) -> Result<Router, BootError> {
+    build_inmemory_router_with_tenant_bound_operator_tokens(
+        membership,
+        platform_admin_token,
+        tenant_operator_token,
+        BTreeMap::new(),
+    )
+}
+
+/// Build an in-memory router with tenant-bound operator bearers.
+pub fn build_inmemory_router_with_tenant_bound_operator_tokens(
+    membership: SharedMembershipResolver,
+    platform_admin_token: Option<String>,
+    tenant_operator_token: Option<String>,
+    tenant_bound_operator_tokens: TenantBoundOperatorTokens,
+) -> Result<Router, BootError> {
+    let (platform_admin_token, tenant_operator_token, tenant_bound_operator_tokens) =
+        normalize_and_validate_credentials(
+            platform_admin_token,
+            tenant_operator_token,
+            tenant_bound_operator_tokens,
+        )?;
     let authorizer = PdpTenantLifecycleAuthorizer::from_seed_bundle()
         .map_err(|e| BootError::Authz(e.to_string()))?;
-    Ok(build_router(
+    Ok(build_router_with_tenant_bound_operator_tokens(
         TenantLifecycleProvider::new(InMemoryTenantLifecycleStore::new()),
         Arc::new(authorizer),
         membership,
         platform_admin_token,
         tenant_operator_token,
+        tenant_bound_operator_tokens,
     ))
 }
 
@@ -1061,6 +1235,30 @@ pub async fn build_postgres_router(
     platform_admin_token: Option<String>,
     tenant_operator_token: Option<String>,
 ) -> Result<Router, BootError> {
+    build_postgres_router_with_tenant_bound_operator_tokens(
+        database_url,
+        membership,
+        platform_admin_token,
+        tenant_operator_token,
+        BTreeMap::new(),
+    )
+    .await
+}
+
+/// Build a durable Postgres router with tenant-bound operator bearers.
+pub async fn build_postgres_router_with_tenant_bound_operator_tokens(
+    database_url: &str,
+    membership: SharedMembershipResolver,
+    platform_admin_token: Option<String>,
+    tenant_operator_token: Option<String>,
+    tenant_bound_operator_tokens: TenantBoundOperatorTokens,
+) -> Result<Router, BootError> {
+    let (platform_admin_token, tenant_operator_token, tenant_bound_operator_tokens) =
+        normalize_and_validate_credentials(
+            platform_admin_token,
+            tenant_operator_token,
+            tenant_bound_operator_tokens,
+        )?;
     let store = PgTenantLifecycleStore::connect(database_url)
         .await
         .map_err(|e| BootError::Store(e.to_string()))?;
@@ -1079,12 +1277,13 @@ pub async fn build_postgres_router(
         .map_err(|e| BootError::Store(e.to_string()))?;
     let authorizer = PdpTenantLifecycleAuthorizer::from_seed_bundle()
         .map_err(|e| BootError::Authz(e.to_string()))?;
-    Ok(build_router(
+    Ok(build_router_with_tenant_bound_operator_tokens(
         TenantLifecycleProvider::new(store),
         Arc::new(authorizer),
         membership,
         platform_admin_token,
         tenant_operator_token,
+        tenant_bound_operator_tokens,
     ))
 }
 
@@ -1111,17 +1310,23 @@ pub enum BootError {
     /// `tenancy_lifecycle_runtime` exists provisioned with NOBYPASSRLS
     /// (deferred `0000_runtime_role.sql` follow-up).
     Store(String),
-    /// No bearer credential is configured at all (neither platform-admin nor
-    /// tenant-operator). With no way to authenticate ANY caller the service
-    /// would deny every request — refuse to start rather than serve a control
-    /// plane no one can ever drive (a misconfiguration, not a security posture).
+    /// No bearer credential is configured at all (platform-admin, legacy shared
+    /// tenant-operator, or tenant-bound operator). With no way to authenticate
+    /// ANY caller the service would deny every request — refuse to start rather
+    /// than serve a control plane no one can ever drive (a misconfiguration, not
+    /// a security posture).
     NoCredentialConfigured,
-    /// The platform-admin and tenant-operator bearer tokens are BOTH configured
-    /// and EQUAL. Because `authenticate_caller` checks the platform-admin token
-    /// first, a shared value would silently escalate every tenant operator to
-    /// platform-admin (a privilege escalation, not a valid posture). Refuse to
-    /// start — fail-closed at boot rather than serve an ambiguous credential.
+    /// Two credential authorities are configured with the same bearer token.
+    /// Because `authenticate_caller` checks platform-admin first, then
+    /// tenant-bound operator tokens, then the legacy shared tenant operator,
+    /// a duplicate would silently bind one bearer to multiple authorities.
+    /// Refuse to start — fail-closed at boot rather than serve an ambiguous
+    /// credential.
     AmbiguousCredential,
+    /// The tenant-bound operator token config is malformed. Refuse to serve
+    /// rather than silently skip a credential and leave an operator unable to
+    /// administer its tenant.
+    InvalidTenantBoundOperatorTokenConfig(String),
 }
 
 impl fmt::Display for BootError {
@@ -1129,19 +1334,27 @@ impl fmt::Display for BootError {
         match self {
             Self::Bind { address, error } => write!(f, "bind {address}: {error}"),
             Self::Serve(e) => write!(f, "serve error: {e}"),
-            Self::Authz(e) => write!(f, "authorization provider unavailable, refusing to serve: {e}"),
+            Self::Authz(e) => write!(
+                f,
+                "authorization provider unavailable, refusing to serve: {e}"
+            ),
             Self::Store(e) => write!(f, "tenant store unavailable, refusing to serve: {e}"),
             Self::NoCredentialConfigured => write!(
                 f,
                 "no bearer credential configured ({ENV_PLATFORM_ADMIN_TOKEN} / \
-                 {ENV_TENANT_OPERATOR_TOKEN}); refusing to start"
+                 {ENV_TENANT_OPERATOR_TOKEN} / {ENV_TENANT_BOUND_OPERATOR_TOKENS}); \
+                 refusing to start"
             ),
             Self::AmbiguousCredential => write!(
                 f,
-                "{ENV_PLATFORM_ADMIN_TOKEN} and {ENV_TENANT_OPERATOR_TOKEN} are equal; a \
-                 shared token would silently escalate every tenant operator to \
-                 platform-admin — refusing to start"
+                "{ENV_PLATFORM_ADMIN_TOKEN}, {ENV_TENANT_OPERATOR_TOKEN}, and/or \
+                 {ENV_TENANT_BOUND_OPERATOR_TOKENS} contain an ambiguous token; a \
+                 shared value would silently bind one bearer to multiple authorities — \
+                 refusing to start"
             ),
+            Self::InvalidTenantBoundOperatorTokenConfig(detail) => {
+                write!(f, "{ENV_TENANT_BOUND_OPERATOR_TOKENS} is invalid: {detail}")
+            }
         }
     }
 }
@@ -1178,8 +1391,10 @@ impl InMemoryTenantMembershipResolver {
         operator_principal_id: impl Into<String>,
         tenant_ids: impl IntoIterator<Item = String>,
     ) -> Self {
-        self.assignments
-            .insert(operator_principal_id.into(), tenant_ids.into_iter().collect());
+        self.assignments.insert(
+            operator_principal_id.into(),
+            tenant_ids.into_iter().collect(),
+        );
         self
     }
 
@@ -1260,29 +1475,95 @@ pub fn select_store_kind(database_url: Option<String>) -> StoreSelection {
     }
 }
 
+/// Parse tenant-bound operator tokens from boot config. Malformed entries are
+/// boot-fatal rather than silently skipped.
+fn parse_tenant_bound_operator_tokens(
+    raw: Option<&str>,
+) -> Result<TenantBoundOperatorTokens, BootError> {
+    let mut tokens = BTreeMap::new();
+    let Some(raw) = raw.map(str::trim).filter(|s| !s.is_empty()) else {
+        return Ok(tokens);
+    };
+
+    for entry in raw.split(',').map(str::trim).filter(|e| !e.is_empty()) {
+        let Some((tenant_raw, token_raw)) = entry.split_once(':') else {
+            return Err(BootError::InvalidTenantBoundOperatorTokenConfig(
+                "expected entries shaped tenant_id:token".to_owned(),
+            ));
+        };
+        let tenant = tenant_raw.trim();
+        if tenant.is_empty() {
+            return Err(BootError::InvalidTenantBoundOperatorTokenConfig(
+                "tenant id is empty".to_owned(),
+            ));
+        }
+        ResourceName::new(TENANT_COLLECTION, tenant).map_err(|e| {
+            BootError::InvalidTenantBoundOperatorTokenConfig(format!(
+                "tenant id {tenant:?} is invalid: {e}"
+            ))
+        })?;
+        let token = normalize_token(Some(token_raw.to_owned())).ok_or_else(|| {
+            BootError::InvalidTenantBoundOperatorTokenConfig(format!(
+                "token for tenant {tenant:?} is empty"
+            ))
+        })?;
+        if tokens.insert(tenant.to_owned(), token).is_some() {
+            return Err(BootError::InvalidTenantBoundOperatorTokenConfig(format!(
+                "tenant {tenant:?} is configured more than once"
+            )));
+        }
+    }
+
+    Ok(tokens)
+}
+
 /// Pure boot-time bearer-credential validation (no env, no I/O — unit-testable).
 ///
-/// Fail-closed at boot in two cases:
-///   - NEITHER token is configured ⇒ [`BootError::NoCredentialConfigured`] (no
-///     caller could ever authenticate — a misconfiguration, not a posture);
-///   - BOTH tokens are configured AND EQUAL (constant-time compare) ⇒
-///     [`BootError::AmbiguousCredential`]. `authenticate_caller` checks the
-///     platform-admin token FIRST, so a shared value would silently escalate
-///     every tenant operator to platform-admin — refuse to start.
-///
-/// Tokens are expected pre-normalized (trimmed, empty→`None`); the equality
-/// check uses [`constant_time_eq`] so boot never leaks token content via timing.
+/// Fail-closed when no credential exists, or when one bearer value maps to more
+/// than one authority. `authenticate_caller` checks platform-admin first, then
+/// tenant-bound tokens, then the legacy shared operator token, so any duplicate
+/// would silently bind the same bearer to the wrong authority unless boot
+/// refuses it here.
 fn validate_credentials(
     platform_admin_token: Option<&str>,
     tenant_operator_token: Option<&str>,
+    tenant_bound_operator_tokens: &TenantBoundOperatorTokens,
 ) -> Result<(), BootError> {
-    match (platform_admin_token, tenant_operator_token) {
-        (None, None) => Err(BootError::NoCredentialConfigured),
-        (Some(admin), Some(operator)) if constant_time_eq(admin.as_bytes(), operator.as_bytes()) => {
-            Err(BootError::AmbiguousCredential)
-        }
-        _ => Ok(()),
+    if platform_admin_token.is_none()
+        && tenant_operator_token.is_none()
+        && tenant_bound_operator_tokens.is_empty()
+    {
+        return Err(BootError::NoCredentialConfigured);
     }
+
+    if let (Some(admin), Some(operator)) = (platform_admin_token, tenant_operator_token) {
+        if constant_time_eq(admin.as_bytes(), operator.as_bytes()) {
+            return Err(BootError::AmbiguousCredential);
+        }
+    }
+
+    for (tenant, token) in tenant_bound_operator_tokens {
+        if let Some(admin) = platform_admin_token {
+            if constant_time_eq(token.as_bytes(), admin.as_bytes()) {
+                return Err(BootError::AmbiguousCredential);
+            }
+        }
+        if let Some(operator) = tenant_operator_token {
+            if constant_time_eq(token.as_bytes(), operator.as_bytes()) {
+                return Err(BootError::AmbiguousCredential);
+            }
+        }
+
+        // ponytail: boot-only env-sized list; O(n^2) avoids a token-index
+        // abstraction. Replace with fingerprints if this becomes dynamic.
+        for (other_tenant, other_token) in tenant_bound_operator_tokens {
+            if tenant < other_tenant && constant_time_eq(token.as_bytes(), other_token.as_bytes()) {
+                return Err(BootError::AmbiguousCredential);
+            }
+        }
+    }
+
+    Ok(())
 }
 
 /// Bind and serve the tenant lifecycle service on `listen_addr`, fail-closed.
@@ -1312,31 +1593,45 @@ fn validate_credentials(
 pub async fn serve(listen_addr: &str) -> Result<(), BootError> {
     let platform_admin_token = normalize_token(std::env::var(ENV_PLATFORM_ADMIN_TOKEN).ok());
     let tenant_operator_token = normalize_token(std::env::var(ENV_TENANT_OPERATOR_TOKEN).ok());
-    validate_credentials(platform_admin_token.as_deref(), tenant_operator_token.as_deref())?;
+    let tenant_bound_operator_tokens = parse_tenant_bound_operator_tokens(
+        std::env::var(ENV_TENANT_BOUND_OPERATOR_TOKENS)
+            .ok()
+            .as_deref(),
+    )?;
+    validate_credentials(
+        platform_admin_token.as_deref(),
+        tenant_operator_token.as_deref(),
+        &tenant_bound_operator_tokens,
+    )?;
     // The server-side membership resolver (REQUIRED). Seeded from the operator
     // membership env var; an absent value yields an empty resolver (every
     // per-tenant op denies — default-deny, never self-attested).
-    let membership: SharedMembershipResolver = Arc::new(InMemoryTenantMembershipResolver::from_env(
-        std::env::var(ENV_TENANT_OPERATOR_MEMBERSHIPS).ok().as_deref(),
-    ));
+    let membership: SharedMembershipResolver =
+        Arc::new(InMemoryTenantMembershipResolver::from_env(
+            std::env::var(ENV_TENANT_OPERATOR_MEMBERSHIPS)
+                .ok()
+                .as_deref(),
+        ));
     let (app, store_kind) = match select_store_kind(std::env::var(ENV_DATABASE_URL).ok()) {
         StoreSelection::Postgres(url) => (
             // FAIL-CLOSED: a connect failure or RLS-bypass role propagates;
             // NEVER fall back to in-memory when a durable backend was configured.
-            build_postgres_router(
+            build_postgres_router_with_tenant_bound_operator_tokens(
                 &url,
                 Arc::clone(&membership),
                 platform_admin_token,
                 tenant_operator_token,
+                tenant_bound_operator_tokens,
             )
             .await?,
             "postgres",
         ),
         StoreSelection::InMemory => (
-            build_inmemory_router(
+            build_inmemory_router_with_tenant_bound_operator_tokens(
                 Arc::clone(&membership),
                 platform_admin_token,
                 tenant_operator_token,
+                tenant_bound_operator_tokens,
             )?,
             "inmemory",
         ),
@@ -1439,21 +1734,36 @@ mod tests {
 
     #[test]
     fn validate_credentials_distinct_tokens_ok() {
-        assert!(validate_credentials(Some("admin-secret"), Some("operator-secret")).is_ok());
+        assert!(
+            validate_credentials(
+                Some("admin-secret"),
+                Some("operator-secret"),
+                &BTreeMap::new()
+            )
+            .is_ok()
+        );
     }
 
     #[test]
     fn validate_credentials_only_one_configured_ok() {
         // A single principal class is a valid posture (the other simply can't
         // authenticate); only ZERO-configured or EQUAL-both are boot errors.
-        assert!(validate_credentials(Some("admin-secret"), None).is_ok());
-        assert!(validate_credentials(None, Some("operator-secret")).is_ok());
+        assert!(validate_credentials(Some("admin-secret"), None, &BTreeMap::new()).is_ok());
+        assert!(validate_credentials(None, Some("operator-secret"), &BTreeMap::new()).is_ok());
+        assert!(
+            validate_credentials(
+                None,
+                None,
+                &BTreeMap::from([("acme".to_owned(), "acme-secret".to_owned())])
+            )
+            .is_ok()
+        );
     }
 
     #[test]
     fn validate_credentials_none_configured_is_no_credential() {
         assert!(matches!(
-            validate_credentials(None, None),
+            validate_credentials(None, None, &BTreeMap::new()),
             Err(BootError::NoCredentialConfigured)
         ));
     }
@@ -1463,9 +1773,87 @@ mod tests {
         // A shared platform-admin/operator token would silently escalate every
         // operator to platform-admin (admin is checked first) — refuse to boot.
         assert!(matches!(
-            validate_credentials(Some("shared-secret"), Some("shared-secret")),
+            validate_credentials(
+                Some("shared-secret"),
+                Some("shared-secret"),
+                &BTreeMap::new()
+            ),
             Err(BootError::AmbiguousCredential)
         ));
+        assert!(matches!(
+            validate_credentials(
+                Some("shared-secret"),
+                None,
+                &BTreeMap::from([("acme".to_owned(), "shared-secret".to_owned())])
+            ),
+            Err(BootError::AmbiguousCredential)
+        ));
+        assert!(matches!(
+            validate_credentials(
+                None,
+                Some("shared-secret"),
+                &BTreeMap::from([("acme".to_owned(), "shared-secret".to_owned())])
+            ),
+            Err(BootError::AmbiguousCredential)
+        ));
+        assert!(matches!(
+            validate_credentials(
+                None,
+                None,
+                &BTreeMap::from([
+                    ("acme".to_owned(), "shared-secret".to_owned()),
+                    ("globex".to_owned(), "shared-secret".to_owned()),
+                ])
+            ),
+            Err(BootError::AmbiguousCredential)
+        ));
+    }
+
+    #[test]
+    fn tenant_bound_operator_token_env_parses_and_rejects_malformed_entries() {
+        let tokens =
+            parse_tenant_bound_operator_tokens(Some("acme: acme-secret, globex:globex-secret"))
+                .unwrap();
+        assert_eq!(tokens.get("acme").map(String::as_str), Some("acme-secret"));
+        assert_eq!(
+            tokens.get("globex").map(String::as_str),
+            Some("globex-secret")
+        );
+
+        assert!(parse_tenant_bound_operator_tokens(None).unwrap().is_empty());
+        assert!(
+            parse_tenant_bound_operator_tokens(Some("   "))
+                .unwrap()
+                .is_empty()
+        );
+        assert!(matches!(
+            parse_tenant_bound_operator_tokens(Some("acme")),
+            Err(BootError::InvalidTenantBoundOperatorTokenConfig(_))
+        ));
+        assert!(matches!(
+            parse_tenant_bound_operator_tokens(Some("acme:")),
+            Err(BootError::InvalidTenantBoundOperatorTokenConfig(_))
+        ));
+        assert!(matches!(
+            parse_tenant_bound_operator_tokens(Some("bad tenant:secret")),
+            Err(BootError::InvalidTenantBoundOperatorTokenConfig(_))
+        ));
+    }
+
+    #[test]
+    fn tenant_bound_public_builder_rejects_ambiguous_normalized_tokens() {
+        let membership: SharedMembershipResolver =
+            Arc::new(InMemoryTenantMembershipResolver::new());
+        let result = build_inmemory_router_with_tenant_bound_operator_tokens(
+            membership,
+            None,
+            None,
+            BTreeMap::from([
+                ("acme".to_owned(), "shared-secret".to_owned()),
+                ("globex".to_owned(), " shared-secret ".to_owned()),
+            ]),
+        );
+        assert!(matches!(result, Err(BootError::AmbiguousCredential)));
     }
 
     #[test]
@@ -1503,18 +1891,21 @@ mod tests {
     #[test]
     fn membership_from_env_parses_grammar_and_defaults_to_reference_operator() {
         // Explicit operator prefixes.
-        let resolver =
-            InMemoryTenantMembershipResolver::from_env(Some("op-a:t1|t2, op-b:t3"));
+        let resolver = InMemoryTenantMembershipResolver::from_env(Some("op-a:t1|t2, op-b:t3"));
         assert_eq!(
             resolver.assigned_tenants("op-a").unwrap(),
             vec!["t1".to_owned(), "t2".to_owned()]
         );
-        assert_eq!(resolver.assigned_tenants("op-b").unwrap(), vec!["t3".to_owned()]);
+        assert_eq!(
+            resolver.assigned_tenants("op-b").unwrap(),
+            vec!["t3".to_owned()]
+        );
 
         // A bare `tenantA|tenantB` (no operator prefix) binds to the reference id.
         let bare = InMemoryTenantMembershipResolver::from_env(Some("acme|globex"));
         assert_eq!(
-            bare.assigned_tenants(REFERENCE_OPERATOR_PRINCIPAL_ID).unwrap(),
+            bare.assigned_tenants(REFERENCE_OPERATOR_PRINCIPAL_ID)
+                .unwrap(),
             vec!["acme".to_owned(), "globex".to_owned()]
         );
 
