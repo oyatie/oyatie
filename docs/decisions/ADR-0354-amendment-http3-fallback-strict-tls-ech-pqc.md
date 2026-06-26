@@ -765,6 +765,10 @@ External endpoint declarations use this canonical JSON shape:
     "hybrid_negotiation_required": true,
     "kem": "x25519mlkem768",
     "signature": "ed25519+ml_dsa_65",
+    "supported_groups": [
+      "x25519mlkem768",
+      "x25519"
+    ],
     "classical_transition_fallback_allowed": true
   }
 }
