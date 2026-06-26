@@ -19,6 +19,19 @@ rust_test(
     deps = [
         "third-party//:tokio",
         "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "intelligence-kernel-capability-registry-test",
+    srcs = glob(["tests/capability_registry.rs"]),
+    crate = "intelligence_kernel_capability_registry_test",
+    crate_root = "tests/capability_registry.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-kernel",
+        "third-party//:serde_json",
     ],
 )
 
