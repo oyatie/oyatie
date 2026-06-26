@@ -579,6 +579,15 @@ parses the contract artifact and rejects declarations that move
 inter-cell/internal traffic onto HTTP/3, add Alt-Svc to non-external
 endpoints, or weaken external ECH/PQC posture.
 
+**Structural accounting:** The initial protocol-boundary slice is
+limited to `network/ports/transport-profile/BUCK`,
+`network/ports/transport-profile/Cargo.toml`,
+`network/ports/transport-profile/src/lib.rs`, and
+`registry/catalog/network-transport-profile.yaml`. These files are
+the reviewed, provider-neutral port and catalog row for issue #773;
+runtime transport adapters remain deferred until a real endpoint
+pulls them.
+
 ---
 
 ## §C — Rationale
