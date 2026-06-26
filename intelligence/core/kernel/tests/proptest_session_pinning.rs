@@ -14,14 +14,18 @@ proptest! {
         prop_assert_eq!(a, b);
     }
 
-    // A non-blank wire session id always wins over the message fingerprint.
+    // A non-blank wire session id always wins over the message fingerprint,
+    // without embedding the raw client id in cache/sticky infrastructure.
     #[test]
     fn non_blank_wire_id_takes_precedence(
-        wire in "[!-~]{1,64}",
+        wire in "[A-Z]{17,64}",
         msg in ".{0,200}",
     ) {
         let key = derive_sticky_key(Some(&wire), Some(&msg)).unwrap();
-        prop_assert_eq!(key, format!("wsid:{}", wire.trim()));
+        prop_assert_eq!(&key, &derive_sticky_key(Some(&wire), None).unwrap());
+        prop_assert!(key.starts_with("wsid:"));
+        prop_assert!(!key.contains(&wire));
+        prop_assert_eq!(key.len(), "wsid:".len() + 16);
     }
 
     // The fingerprint never embeds raw prompt content and is fixed-width.

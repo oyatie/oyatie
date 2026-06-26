@@ -13,7 +13,7 @@
 //!    request either carries the client's own wire session id (authoritative,
 //!    stable for the whole conversation) or, when it does not, we derive a
 //!    privacy-preserving fingerprint from the first user message. We never store
-//!    or echo raw prompt content.
+//!    or echo raw prompt content or raw wire ids.
 //! 2. [`prompt_cache_key`] — the `tenant::provider::session::model` cache key
 //!    the proxy layer uses to address the upstream prompt cache.
 //!
@@ -29,8 +29,8 @@ use crate::{Provider, TenantId};
 /// Namespace prefix for keys derived from a client-supplied wire session id.
 const WIRE_SESSION_PREFIX: &str = "wsid:";
 /// Namespace prefix for keys derived from a first-user-message fingerprint.
-/// Kept identical to the legacy [`crate::privacy_preserving_sticky_key`] output
-/// so existing pins remain stable.
+/// Kept identical to the legacy [`crate::privacy_preserving_sticky_key`] prefix
+/// and width; the hash algorithm is SHA-256.
 const MESSAGE_PREFIX: &str = "sticky:";
 
 /// Width (in lowercase hex chars) of the message fingerprint. 16 hex chars =
@@ -54,7 +54,10 @@ pub fn derive_sticky_key(
     if let Some(raw) = wire_session_id {
         let trimmed = raw.trim();
         if !trimmed.is_empty() {
-            return Some(format!("{WIRE_SESSION_PREFIX}{trimmed}"));
+            return Some(format!(
+                "{WIRE_SESSION_PREFIX}{}",
+                message_fingerprint(trimmed)
+            ));
         }
     }
     first_user_message.map(message_sticky_key)
@@ -119,7 +122,9 @@ mod tests {
     #[test]
     fn wire_session_id_takes_precedence_over_message() {
         let key = derive_sticky_key(Some("conv-123"), Some("hello")).expect("a signal is present");
-        assert_eq!(key, "wsid:conv-123");
+        assert!(key.starts_with("wsid:"));
+        assert!(!key.contains("conv-123"));
+        assert_eq!(key.len(), "wsid:".len() + FINGERPRINT_HEX_LEN);
     }
 
     #[test]
@@ -151,10 +156,15 @@ mod tests {
     #[test]
     fn cache_key_is_tenant_provider_session_model() {
         let tenant = TenantId::new("tenant-a").unwrap();
-        let key = prompt_cache_key(&tenant, Provider::Anthropic, "wsid:conv-1", "claude-opus-4");
+        let sticky_key = derive_sticky_key(Some("conv-1"), None).unwrap();
+        let key = prompt_cache_key(&tenant, Provider::Anthropic, &sticky_key, "claude-opus-4");
         assert_eq!(
             key,
-            "v1:t8:tenant-ap9:anthropics11:wsid:conv-1m13:claude-opus-4"
+            format!(
+                "v1:t8:tenant-ap9:anthropics{}:{}m13:claude-opus-4",
+                sticky_key.len(),
+                sticky_key
+            )
         );
     }
 

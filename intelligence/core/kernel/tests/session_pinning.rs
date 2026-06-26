@@ -65,7 +65,8 @@ fn wire_session_id_pins_to_one_seat_for_the_default_ttl() {
     let gate = AllowAll;
 
     let key = derive_sticky_key(Some("wire-conv-7"), None).expect("wire id present");
-    assert_eq!(key, "wsid:wire-conv-7");
+    assert!(key.starts_with("wsid:"));
+    assert!(!key.contains("wire-conv-7"));
 
     let first = SubscriptionPool::lease_sticky_with_estimate(
         &pool,
@@ -174,7 +175,11 @@ fn cache_key_namespaces_provider_session_and_model() {
     let key = derive_sticky_key(Some("conv-9"), None).unwrap();
     assert_eq!(
         prompt_cache_key(&tenant(), Provider::Anthropic, &key, "claude-sonnet-4"),
-        "v1:t8:tenant-ap9:anthropics11:wsid:conv-9m15:claude-sonnet-4"
+        format!(
+            "v1:t8:tenant-ap9:anthropics{}:{}m15:claude-sonnet-4",
+            key.len(),
+            key
+        )
     );
     // Distinct tenant => distinct cache slot (no cross-tenant cache reuse).
     assert_ne!(
