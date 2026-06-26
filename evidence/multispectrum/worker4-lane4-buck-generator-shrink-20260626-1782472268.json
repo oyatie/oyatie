@@ -1,0 +1,75 @@
+{
+  "agent_id": "codex-worker-4-python-mjs-rust-retirement",
+  "branch": "agent/worker-4-lane4-buck-generator-shrink-20260626T111016Z",
+  "change_class_id": "CC-5_chore",
+  "change_id": "worker4-lane4-buck-generator-shrink-20260626",
+  "created_at": "2026-06-26T11:11:08Z",
+  "domain": "cloud-ci / Rust-first automation hygiene / Buck generator retirement",
+  "facets": {
+    "F1_correctness": "Deletes the stale tools/buck2/gen-first-party-buck.py duplicate and removes its Rust-first automation policy exception so the ratchet shrinks instead of preserving dead bridge debt.",
+    "F2_tests": "Buck2 unit and live gate tests for oya-cloud-ci-rust-first-automation-hygiene-app pass after the exception shrink.",
+    "F3_maintainability": "Removes a duplicate one-off Python generator while retaining the broader active scripts/gen_first_party_buck.py bridge for later owned migration.",
+    "F4_compatibility": "No live non-generated references to tools/buck2/gen-first-party-buck.py remain; generated accounting baselines are not hand-edited.",
+    "F5_security": "No auth, secrets, network, or permission boundary code changes; reduces unowned executable script surface.",
+    "F6_privacy": "No personal, tenant, or regulated data surfaces touched.",
+    "F7_operability": "Rust-first automation hygiene gate remains green and now has one fewer legacy exception to carry.",
+    "F8_performance": "No runtime path changes; repository scan has one fewer script and one fewer exception entry.",
+    "F9_compliance": "No generated JSON faces hand-edited; policy shrink is verified by the Buck2 gate that detects stale/missing exceptions.",
+    "F10_reversibility": "Rollback is a normal git revert restoring the deleted script and policy exception.",
+    "F11_observability": "No runtime telemetry changes; CI gate output is the observable proof surface.",
+    "F13_migration": "Advances Python/MJS to Rust retirement by deleting stale duplicate bridge debt instead of porting unused behavior.",
+    "M1_challenge_assumption": "Rejected porting the duplicate generator because references show the root scripts/gen_first_party_buck.py is the broader active bridge and this path has no live non-generated callers.",
+    "M2_zoomed_out_fit": "Keeps the slice small, avoids shared generated faces, and leaves remaining Lane 4 scripts for later independent slices."
+  },
+  "scope": {
+    "summary": "Retire a stale duplicate Buck generator script and shrink the Rust-first automation policy exception list.",
+    "files_touched": [
+      "cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app/rust-first-automation-policy.json",
+      "tools/buck2/gen-first-party-buck.py",
+      "evidence/multispectrum/worker4-lane4-buck-generator-shrink-20260626-1782472268.json",
+      "evidence/audit-chain.jsonl"
+    ],
+    "explicit_non_claims": [
+      "No generated JSON face is hand-edited.",
+      "No full replacement for scripts/gen_first_party_buck.py is claimed.",
+      "No Cargo, BUCK, workflow, dependency, runtime service, database, or API surface is changed."
+    ]
+  },
+  "verification": [
+    {
+      "command": "python3 -m json.tool cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app/rust-first-automation-policy.json >/dev/null",
+      "result": "pass",
+      "evidence": "policy JSON parsed successfully"
+    },
+    {
+      "command": "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app:oya-cloud-ci-rust-first-automation-hygiene-app-unittest //cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app:oya-cloud-ci-rust-first-automation-hygiene-app-gate",
+      "result": "pass",
+      "evidence": "Build ID 75d2045e-310a-44b6-9a96-f9a5bfab57a7; Pass 2 Fail 0; unittest 13 passed and gate 9 passed"
+    },
+    {
+      "command": "buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app:oya-cloud-ci-rust-first-automation-hygiene-app-gate",
+      "result": "pass",
+      "evidence": "Build ID 9e180c25-87d8-4796-a875-c02ca297e81a; BUILD SUCCEEDED"
+    },
+    {
+      "command": "rg -n \"tools/buck2/gen-first-party-buck.py|gen-first-party-buck.py\" -S cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app scripts tools docs oya registry --glob !*.generated.json",
+      "result": "pass",
+      "evidence": "no non-generated references remain; command exited 1 with no matches"
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass",
+      "evidence": "command exited 0"
+    }
+  ],
+  "known_gaps": [
+    "Remote oya-ci-required/cloud-ci and reviewer approval remain pending after PR open.",
+    "Remaining Lane 4 scripts are intentionally left for later slices."
+  ],
+  "pre_pr_review": {
+    "self_review_verdict": "approve",
+    "residual_gaps": [
+      "Remote CI/reviewer pending."
+    ]
+  }
+}
