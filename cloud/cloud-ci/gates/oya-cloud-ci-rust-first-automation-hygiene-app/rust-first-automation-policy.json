@@ -61,12 +61,6 @@
       "status": "temporary_legacy_bridge"
     },
     {
-      "path": "scripts/asyncapi-lint.mjs",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
       "path": "scripts/ci/regen-third-party.sh",
       "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
       "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
@@ -92,12 +86,6 @@
     },
     {
       "path": "scripts/generate-marketplace-workplace-doc-set.mjs",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "scripts/proto-lint.mjs",
       "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
       "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
       "status": "temporary_legacy_bridge"
@@ -140,18 +128,6 @@
     },
     {
       "path": "scripts/tests/governance-hooks-retired-vcs-surfaces.test.sh",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "scripts/validate-adr-shape.mjs",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "scripts/validate-foundry-phase00-evidence.mjs",
       "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
       "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
       "status": "temporary_legacy_bridge"
