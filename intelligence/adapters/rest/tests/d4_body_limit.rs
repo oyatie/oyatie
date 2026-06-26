@@ -67,6 +67,7 @@ fn make_state() -> Arc<AppState> {
         secret_store: Arc::new(StubStore),
         anthropic_base_url: "http://127.0.0.1:1".to_string(),
         openai_compatible_base_url: "http://127.0.0.1:1".to_string(),
+        codex_oauth_base_url: "http://127.0.0.1:1".to_string(),
         gemini_base_url: "http://127.0.0.1:1".to_string(),
         tenant_id: tenant,
         ingress_bearer_token: Some("ingress-token".to_string()),

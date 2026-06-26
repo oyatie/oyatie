@@ -584,14 +584,7 @@ impl CodexAdapter {
         &self,
         access_token: &str,
         request: CodexProxyRequest,
-    ) -> Result<
-        (
-            u16,
-            BTreeMap<String, String>,
-            impl futures_core::Stream<Item = Result<Bytes, reqwest::Error>>,
-        ),
-        CodexAdapterError,
-    > {
+    ) -> Result<(u16, BTreeMap<String, String>, OpenAiByteStream), CodexAdapterError> {
         let url = format!("{}{}", self.base_url, CODEX_RESPONSES_PATH);
         debug!(url = %url, "opening SSE stream to Codex data endpoint");
 
@@ -641,7 +634,7 @@ impl CodexAdapter {
         }
 
         let headers = filtered_response_headers(resp.headers());
-        let byte_stream = resp.bytes_stream();
+        let byte_stream: OpenAiByteStream = Box::pin(resp.bytes_stream());
         Ok((status, headers, byte_stream))
     }
 }

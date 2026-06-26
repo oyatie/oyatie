@@ -382,7 +382,12 @@ fn plane_class_gate_rejects_unreviewed_plane_changes() {
 #[test]
 fn claim_ceiling_gate_rejects_catalog_claims_above_foundation() {
     let temp = temp_dir("claim-ceiling");
-    write_catalog_record_with_claim(&temp, "oya-intelligence-capability-kernel", "control", "stable");
+    write_catalog_record_with_claim(
+        &temp,
+        "oya-intelligence-capability-kernel",
+        "control",
+        "stable",
+    );
 
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
         .args([
@@ -5691,6 +5696,318 @@ fn planning_closure_gate_rejects_vertical_adr_missing_false_green_phrase() {
 }
 
 #[test]
+fn planning_closure_gate_rejects_live_goal_prompt_with_retired_cargo_authority() {
+    let temp = TempDirGuard::new("planning-closure-retired-live-goal-authority");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let root = repo_root();
+    let (root_hub, _status_ledger) = write_planning_closure_repo_sidecars(temp.path());
+    let evidence_dir = temp.path().join("evidence/goals");
+    fs::create_dir_all(&evidence_dir).expect("goal fixture dir created");
+    fs::copy(
+        root.join("evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json"),
+        evidence_dir.join("fd001-planning-closure-implementation-goal-2026-05-19.json"),
+    )
+    .expect("live goal fixture copied");
+    let goal_path = evidence_dir.join("fd001-planning-closure-implementation-goal-2026-05-19.json");
+    let mut goal = read_planning_closure_json(&goal_path);
+    let prompt_lines = goal
+        .get_mut("goal_prompt_lines")
+        .and_then(serde_json::Value::as_array_mut)
+        .expect("goal prompt lines present");
+    let hard_entry_rule = prompt_lines
+        .iter_mut()
+        .find(|line| {
+            line.as_str()
+                .is_some_and(|line| line.starts_with("Hard entry rule:"))
+        })
+        .expect("hard entry rule present");
+    *hard_entry_rule = serde_json::json!(
+        "Hard entry rule: do not begin product implementation until `cargo run -q -p oya-dev-cli -- gate validate planning-closure` is green. Closing planning means doing the underlying work."
+    );
+    write_planning_closure_json(&goal_path, &goal);
+
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root_hub,
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("retired Cargo planning-closure command")
+            && stderr.contains("fd001-planning-closure-implementation-goal-2026-05-19.json"),
+        "stderr={stderr}"
+    );
+}
+
+#[test]
+fn planning_closure_gate_rejects_live_goal_prompt_with_retired_oya_vcs_ratchet() {
+    let temp = TempDirGuard::new("planning-closure-retired-oya-vcs-ratchet");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let root = repo_root();
+    let (root_hub, _status_ledger) = write_planning_closure_repo_sidecars(temp.path());
+    let goal_path = temp
+        .path()
+        .join("evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json");
+    let mut goal = read_planning_closure_json(&goal_path);
+    let prompt_lines = goal
+        .get_mut("goal_prompt_lines")
+        .and_then(serde_json::Value::as_array_mut)
+        .expect("goal prompt lines present");
+    let execution_sequence = prompt_lines
+        .iter_mut()
+        .find(|line| {
+            line.as_str()
+                .is_some_and(|line| line.starts_with("Execution sequence:"))
+        })
+        .expect("execution sequence present");
+    *execution_sequence = serde_json::json!(
+        "Execution sequence: claim each ChangeSet with Oya VCS, verify before downstream work, mark done only after evidence is produced, and promote only after review."
+    );
+    write_planning_closure_json(&goal_path, &goal);
+
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root_hub,
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("active Oya VCS claim/admission/closure/promotion authority")
+            && stderr.contains("fd001-planning-closure-implementation-goal-2026-05-19.json"),
+        "stderr={stderr}"
+    );
+}
+
+#[test]
+fn planning_closure_gate_rejects_live_status_ledger_with_active_oya_vcs_authority() {
+    let temp = TempDirGuard::new("planning-closure-active-oya-vcs-status-ledger");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let root = repo_root();
+    let (root_hub, status_ledger) = write_planning_closure_repo_sidecars(temp.path());
+    let mut ledger = read_planning_closure_json(&status_ledger);
+    ledger["closure_scope"]["current_claim_alignment"]["authoritative_selection_inputs"][1] =
+        serde_json::json!("Oya VCS claim/admission state");
+    write_planning_closure_json(&status_ledger, &ledger);
+
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root_hub,
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("active Oya VCS claim/admission/closure/promotion authority")
+            && stderr.contains("planning-closure-status-closure-ledger.json"),
+        "stderr={stderr}"
+    );
+
+    ledger["closure_scope"]["current_claim_alignment"]["authoritative_selection_inputs"][1] =
+        serde_json::json!("Oya VCS claim/admission state (not future-target/provenance-only)");
+    write_planning_closure_json(&status_ledger, &ledger);
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root_hub,
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+    assert!(!output.status.success());
+
+    ledger["closure_scope"]["current_claim_alignment"]["authoritative_selection_inputs"][1] =
+        serde_json::json!("Oya VCS claim/admission state (without future-target/provenance-only)");
+    write_planning_closure_json(&status_ledger, &ledger);
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root_hub,
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+    assert!(!output.status.success());
+
+    ledger["closure_scope"]["current_claim_alignment"]["authoritative_selection_inputs"][1] =
+        serde_json::json!("Oya VCS claim/admission state (future-target/provenance-only)");
+    write_planning_closure_json(&status_ledger, &ledger);
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root_hub,
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn planning_closure_gate_rejects_generic_live_oya_vcs_authority() {
+    let temp = TempDirGuard::new("planning-closure-generic-oya-vcs-authority");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let root = repo_root();
+    let (root_hub, status_ledger) = write_planning_closure_repo_sidecars(temp.path());
+    let mut ledger = read_planning_closure_json(&status_ledger);
+    ledger["closure_scope"]["current_claim_alignment"]["authoritative_selection_inputs"][1] =
+        serde_json::json!("Oya VCS authority is live/current");
+    write_planning_closure_json(&status_ledger, &ledger);
+
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root_hub,
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("active Oya VCS claim/admission/closure/promotion authority")
+            && stderr.contains("planning-closure-status-closure-ledger.json"),
+        "stderr={stderr}"
+    );
+
+    ledger["closure_scope"]["current_claim_alignment"]["authoritative_selection_inputs"][1] =
+        serde_json::json!("Oya VCS authority without retired/provenance-only");
+    write_planning_closure_json(&status_ledger, &ledger);
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root_hub,
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+    assert!(!output.status.success());
+
+    ledger["closure_scope"]["current_claim_alignment"]["authoritative_selection_inputs"][1] =
+        serde_json::json!("Oya VCS authority not retired/provenance-only");
+    write_planning_closure_json(&status_ledger, &ledger);
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root_hub,
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+    assert!(!output.status.success());
+
+    ledger["closure_scope"]["current_claim_alignment"]["authoritative_selection_inputs"][1] =
+        serde_json::json!("Oya VCS authority retired/provenance-only");
+    write_planning_closure_json(&status_ledger, &ledger);
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root_hub,
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+    assert!(
+        output.status.success(),
+        "stdout={}
+stderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    ledger["closure_scope"]["current_claim_alignment"]["authoritative_selection_inputs"][1] =
+        serde_json::json!("Oya VCS authority is future-target/provenance-only");
+    write_planning_closure_json(&status_ledger, &ledger);
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root_hub,
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+    assert!(
+        output.status.success(),
+        "stdout={}
+stderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn planning_closure_gate_rejects_live_masterplan_oya_vcs_closure_authority() {
+    let temp = TempDirGuard::new("planning-closure-active-oya-vcs-masterplan-authority");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let root = repo_root();
+    let (root_hub, _status_ledger) = write_planning_closure_repo_sidecars(temp.path());
+    let live_masterplan = temp.path().join("specs/masterplan.json");
+    let mut plan = read_planning_closure_json(&live_masterplan);
+    plan["gitops_vcs_replacement"]["authority_cutover"]["closure_authority"] =
+        serde_json::json!("Oya VCS ChangeBundle -> Promotion -> ReleaseTrain");
+    write_planning_closure_json(&live_masterplan, &plan);
+
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root_hub,
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("active Oya VCS claim/admission/closure/promotion authority")
+            && stderr.contains("masterplan.json"),
+        "stderr={stderr}"
+    );
+
+    plan["gitops_vcs_replacement"]["authority_cutover"]["closure_authority"] = serde_json::json!(
+        "Oya VCS ChangeBundle -> Promotion -> ReleaseTrain (not provenance-only)"
+    );
+    write_planning_closure_json(&live_masterplan, &plan);
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root_hub,
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+    assert!(!output.status.success());
+
+    plan["gitops_vcs_replacement"]["authority_cutover"]["closure_authority"] = serde_json::json!(
+        "future-target/provenance-only Oya VCS ChangeBundle -> Promotion -> ReleaseTrain"
+    );
+    write_planning_closure_json(&live_masterplan, &plan);
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root_hub,
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+    assert!(
+        output.status.success(),
+        "stdout={}
+stderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
 fn planning_closure_gate_rejects_no_placeholder_policy_without_false_signal_controls() {
     let temp = TempDirGuard::new("planning-closure-missing-false-signal-controls");
     fs::create_dir_all(temp.path()).expect("temp dir created");
@@ -8347,16 +8664,38 @@ fn write_planning_closure_repo_sidecars(dir: &Path) -> (PathBuf, PathBuf) {
     let root = repo_root();
     let specs_dir = dir.join("specs");
     fs::create_dir_all(&specs_dir).expect("specs fixture dir created");
+    let goals_dir = dir.join("evidence/goals");
+    fs::create_dir_all(&goals_dir).expect("goal fixture dir created");
 
     let root_hub = specs_dir.join("root-hub-pointers.json");
     fs::copy(root.join("specs/root-hub-pointers.json"), &root_hub)
         .expect("root hub fixture copied");
+    fs::copy(
+        root.join("specs/master-plan-sequencing.json"),
+        specs_dir.join("master-plan-sequencing.json"),
+    )
+    .expect("sequencing fixture copied");
+    fs::copy(
+        root.join("specs/masterplan.json"),
+        specs_dir.join("masterplan.json"),
+    )
+    .expect("masterplan fixture copied");
+    fs::copy(
+        root.join("specs/planning-closure-contract.json"),
+        specs_dir.join("planning-closure-contract.json"),
+    )
+    .expect("planning closure contract fixture copied");
     let status_ledger = specs_dir.join("planning-closure-status-closure-ledger.json");
     fs::copy(
         root.join("specs/planning-closure-status-closure-ledger.json"),
         &status_ledger,
     )
     .expect("status ledger fixture copied");
+    fs::copy(
+        root.join("evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json"),
+        goals_dir.join("fd001-planning-closure-implementation-goal-2026-05-19.json"),
+    )
+    .expect("live goal fixture copied");
 
     (root_hub, status_ledger)
 }
