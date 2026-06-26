@@ -334,7 +334,6 @@ fn run() -> Result<(), CliError> {
         collect_workspace_glob_coverage(&repo_root, &inputs.tracked_paths, &cfg)?;
     let target_parity = collect_target_parity(&repo_root, &inputs.tracked_paths, &cfg)?;
     let enforcement_liveness_corpus = EnforcementLivenessCorpus::from_args(
-        &repo_root,
         &inputs.tracked_paths,
         enforcement_liveness_claude_settings.as_deref(),
         enforcement_liveness_codex_hooks.as_deref(),
@@ -969,7 +968,6 @@ struct EnforcementLivenessCorpus {
 
 impl EnforcementLivenessCorpus {
     fn from_args(
-        repo_root: &Path,
         tracked_paths: &[String],
         claude_settings: Option<&Path>,
         codex_hooks: Option<&Path>,
@@ -979,36 +977,14 @@ impl EnforcementLivenessCorpus {
             (Some(claude_settings), Some(codex_hooks), Some(hooks_dir)) => {
                 Self::from_declared_paths(tracked_paths, claude_settings, codex_hooks, hooks_dir)
             }
-            (None, None, None) => Self::from_repo_root(repo_root, tracked_paths),
             _ => Err(CliError::Io(
                 "--enforcement-liveness-claude-settings, \
                  --enforcement-liveness-codex-hooks, and \
-                 --enforcement-liveness-hooks-dir must be provided together"
+                 --enforcement-liveness-hooks-dir are required when producing \
+                 enforcement-liveness or baseline faces"
                     .to_owned(),
             )),
         }
-    }
-
-    fn from_repo_root(repo_root: &Path, tracked_paths: &[String]) -> Result<Self, CliError> {
-        let mut texts = BTreeMap::new();
-        texts.insert(
-            CLAUDE_WIRING_FILE.to_owned(),
-            read_required_text(&repo_root.join(CLAUDE_WIRING_FILE), CLAUDE_WIRING_FILE)?,
-        );
-        texts.insert(
-            CODEX_WIRING_FILE.to_owned(),
-            read_required_text(&repo_root.join(CODEX_WIRING_FILE), CODEX_WIRING_FILE)?,
-        );
-        for hook_path in tracked_paths
-            .iter()
-            .filter(|path| is_top_level_hook_script(path))
-        {
-            texts.insert(
-                hook_path.clone(),
-                read_required_text(&repo_root.join(hook_path), hook_path)?,
-            );
-        }
-        Ok(Self { texts })
     }
 
     fn from_declared_paths(
