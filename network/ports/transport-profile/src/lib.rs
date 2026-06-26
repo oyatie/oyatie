@@ -573,10 +573,9 @@ mod tests {
             .iter()
             .map(|field| field.name.as_str())
             .collect();
-        let canonical_endpoint = serde_json::to_value(
-            TransportEndpointSpec::external_http3("api-gateway-public"),
-        )
-        .expect("serialize endpoint spec");
+        let canonical_endpoint =
+            serde_json::to_value(TransportEndpointSpec::external_http3("api-gateway-public"))
+                .expect("serialize endpoint spec");
         let mut canonical_fields: Vec<&str> = canonical_endpoint
             .as_object()
             .expect("endpoint spec object")
@@ -676,7 +675,8 @@ mod tests {
 
     fn adr_0354() -> String {
         fs::read_to_string(
-            repo_root().join("docs/decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md"),
+            repo_root()
+                .join("docs/decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md"),
         )
         .expect("ADR-0354 readable")
     }
