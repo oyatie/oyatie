@@ -271,6 +271,15 @@ pub struct MeterRollup {
     pub totals: BTreeMap<RollupKey, u64>,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct QuotaDecision {
+    pub used_microunits: u64,      // data_class: INTERNAL_ONLY
+    pub requested_microunits: u64, // data_class: INTERNAL_ONLY
+    pub limit_microunits: u64,     // data_class: INTERNAL_ONLY
+    pub remaining_microunits: u64, // data_class: INTERNAL_ONLY
+    pub allowed: bool,             // data_class: INTERNAL_ONLY
+}
+
 /// Aggregate all events in `meter` whose `recorded_at_epoch_seconds` falls
 /// within the closed interval `[window_start_epoch_s, window_end_epoch_s]`.
 ///
@@ -303,6 +312,33 @@ pub fn rollup_window(
         }
     }
     MeterRollup { totals }
+}
+
+/// Project quota availability from an already-materialized metering rollup.
+///
+/// This is a provider-neutral snapshot check. Authoritative admission still
+/// needs an outer reserve/consume/release workflow with concurrency control and
+/// audit emission.
+pub fn check_quota(
+    rollup: &MeterRollup,
+    key: &RollupKey,
+    requested_microunits: u64,
+    limit_microunits: u64,
+) -> QuotaDecision {
+    let used_microunits = rollup.totals.get(key).copied().unwrap_or(0);
+    let remaining_microunits = limit_microunits.saturating_sub(used_microunits);
+    let allowed = requested_microunits > 0
+        && used_microunits
+            .checked_add(requested_microunits)
+            .is_some_and(|projected| projected <= limit_microunits);
+
+    QuotaDecision {
+        used_microunits,
+        requested_microunits,
+        limit_microunits,
+        remaining_microunits,
+        allowed,
+    }
 }
 
 fn public_data_class(data_class: DataClass) -> Result<PrivacyDataClass, MeteringError> {
@@ -530,7 +566,10 @@ mod tests {
             capability_id: cap.to_string(),
             unit_kind: MeterUnitKind::Request,
         };
-        assert_eq!(rollup.totals[&key], 30, "only events at ts=100 and ts=200 count");
+        assert_eq!(
+            rollup.totals[&key], 30,
+            "only events at ts=100 and ts=200 count"
+        );
     }
 
     #[test]
@@ -619,7 +658,11 @@ mod tests {
         };
         assert_eq!(rollup.totals[&req_key], 8, "Request: 5+3");
         assert_eq!(rollup.totals[&byte_key], 1024, "ByteIn: 1024 only");
-        assert_eq!(rollup.totals.len(), 2, "exactly two distinct unit kind keys");
+        assert_eq!(
+            rollup.totals.len(),
+            2,
+            "exactly two distinct unit kind keys"
+        );
     }
 
     #[test]
@@ -657,7 +700,11 @@ mod tests {
             unit_kind: MeterUnitKind::Request,
         };
         assert_eq!(rollup.totals[&key], 50, "replay does not double-count");
-        assert_eq!(meter.events().count(), 1, "meter holds only one deduplicated event");
+        assert_eq!(
+            meter.events().count(),
+            1,
+            "meter holds only one deduplicated event"
+        );
     }
 
     #[test]
@@ -715,11 +762,17 @@ mod tests {
 
         // Empty window: no events in [600, 700]
         let rollup_no_match = rollup_window(&meter, 600, 700);
-        assert!(rollup_no_match.totals.is_empty(), "no events in window → empty rollup");
+        assert!(
+            rollup_no_match.totals.is_empty(),
+            "no events in window → empty rollup"
+        );
 
         // Inverted window: end < start
         let rollup_inverted = rollup_window(&meter, 700, 100);
-        assert!(rollup_inverted.totals.is_empty(), "inverted window → empty rollup");
+        assert!(
+            rollup_inverted.totals.is_empty(),
+            "inverted window → empty rollup"
+        );
     }
 
     #[test]
@@ -751,5 +804,78 @@ mod tests {
         assert_eq!(keys[1].capability_id, "cap.cloud.b");
         assert_eq!(keys[2].tenant_id, "ten_zz");
         assert_eq!(keys[2].capability_id, "cap.cloud.b");
+    }
+
+    #[test]
+    fn quota_check_admits_only_projected_usage_within_limit() {
+        let mut meter = Meter::default();
+        record_event(
+            &mut meter,
+            "mtr_q001",
+            "ten_alpha",
+            "cap.cloud.compute.request",
+            100,
+            "idem_q001",
+            vec![MeterUnit::new(MeterUnitKind::Request, 75).unwrap()],
+        );
+
+        let rollup = rollup_window(&meter, 0, u64::MAX);
+        let key = RollupKey {
+            tenant_id: "ten_alpha".to_string(),
+            capability_id: "cap.cloud.compute.request".to_string(),
+            unit_kind: MeterUnitKind::Request,
+        };
+        let decision = check_quota(&rollup, &key, 25, 100);
+
+        assert!(decision.allowed);
+        assert_eq!(decision.used_microunits, 75);
+        assert_eq!(decision.remaining_microunits, 25);
+
+        let denied = check_quota(&rollup, &key, 26, 100);
+
+        assert!(!denied.allowed);
+        assert_eq!(denied.remaining_microunits, 25);
+        assert!(!check_quota(&rollup, &key, 0, 100).allowed);
+        assert!(!check_quota(&rollup, &key, u64::MAX, u64::MAX).allowed);
+    }
+
+    #[test]
+    fn quota_check_is_tenant_capability_and_unit_scoped() {
+        let mut meter = Meter::default();
+        record_event(
+            &mut meter,
+            "mtr_q002",
+            "ten_alpha",
+            "cap.cloud.compute.request",
+            100,
+            "idem_q002",
+            vec![MeterUnit::new(MeterUnitKind::Request, 100).unwrap()],
+        );
+
+        let rollup = rollup_window(&meter, 0, u64::MAX);
+        let key = RollupKey {
+            tenant_id: "ten_beta".to_string(),
+            capability_id: "cap.cloud.compute.request".to_string(),
+            unit_kind: MeterUnitKind::Request,
+        };
+        let decision = check_quota(&rollup, &key, 1, 1);
+
+        assert!(decision.allowed);
+        assert_eq!(decision.used_microunits, 0);
+        assert_eq!(decision.remaining_microunits, 1);
+
+        let other_capability = RollupKey {
+            tenant_id: "ten_alpha".to_string(),
+            capability_id: "cap.cloud.storage.request".to_string(),
+            unit_kind: MeterUnitKind::Request,
+        };
+        let other_unit = RollupKey {
+            tenant_id: "ten_alpha".to_string(),
+            capability_id: "cap.cloud.compute.request".to_string(),
+            unit_kind: MeterUnitKind::ByteIn,
+        };
+
+        assert!(check_quota(&rollup, &other_capability, 1, 1).allowed);
+        assert!(check_quota(&rollup, &other_unit, 1, 1).allowed);
     }
 }
