@@ -28,13 +28,9 @@ rust_test(
     srcs = glob(["tests/**/*.rs"]),
     crate = "oya_cloud_ci_enforcement_liveness_app_corpus",
     crate_root = "tests/enforcement_liveness.rs",
-    env = {
-        "OYA_CI_PRODUCER_BIN": "$(exe //cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin)",
-    },
     visibility = ["PUBLIC"],
     deps = [
         ":oya-cloud-ci-enforcement-liveness-app",
-        "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app",
         "third-party//:serde_json",
     ],
 )
