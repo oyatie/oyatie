@@ -15,7 +15,7 @@
 //! math.
 //! - [`UsageExtractor`] — normalizes the three provider usage shapes (Anthropic
 //!   Messages, OpenAI Responses, Gemini `usageMetadata`) into one canonical
-//!   [`TokenUsage`] with four disjoint billable token classes.
+//!   [`TokenUsage`] with five disjoint billable token classes.
 //! - [`cost_of`] — pure fn mapping `(TokenUsage, RateCard)` to a [`CostRecord`].
 //!
 //! ## Money discipline
@@ -43,7 +43,7 @@ const TOKENS_PER_MTOK: i128 = 1_000_000;
 // Canonical token usage (provider-normalized)
 // ---------------------------------------------------------------------------
 
-/// Provider-normalized token usage with four **disjoint** billable classes.
+/// Provider-normalized token usage with five **disjoint** billable classes.
 ///
 /// Normalization guarantees the classes never double-count: a token billed as
 /// `cache_read` is excluded from `input`, and `output` already subsumes any
@@ -58,8 +58,10 @@ pub struct TokenUsage {
     pub output: u64,
     /// Cache-hit prompt tokens billed at the discounted cache-read rate.
     pub cache_read: u64,
-    /// Prompt-cache write tokens billed at the cache-write rate (Anthropic).
-    pub cache_write: u64,
+    /// Five-minute prompt-cache write tokens billed at the 5m cache-write rate (Anthropic).
+    pub cache_write_5m: u64,
+    /// One-hour prompt-cache write tokens billed at the 1h cache-write rate (Anthropic).
+    pub cache_write_1h: u64,
     /// Reasoning/thinking tokens — a subset of `output`, retained for
     /// observability. Not billed separately.
     pub reasoning: u64,
@@ -72,7 +74,8 @@ impl TokenUsage {
         self.input
             .saturating_add(self.output)
             .saturating_add(self.cache_read)
-            .saturating_add(self.cache_write)
+            .saturating_add(self.cache_write_5m)
+            .saturating_add(self.cache_write_1h)
     }
 }
 
@@ -165,29 +168,23 @@ impl UsageExtractor {
     /// Normalize an Anthropic Messages `usage` block.
     ///
     /// Anthropic input is already cache-exclusive. Cache-write is the scalar
-    /// `cache_creation_input_tokens` when present, else the sum of the per-TTL
-    /// breakdown.
-    //
-    // ponytail: one cache_write class with one rate. Anthropic bills 5m at
-    // 1.25x and 1h at 2x base-input; split into two classes + two rates only if
-    // per-TTL spend reporting is required.
+    /// `cache_creation_input_tokens` when present, else the per-TTL breakdown.
+    /// The legacy scalar is treated as the default five-minute cache write.
     pub fn from_anthropic(&self, raw: &AnthropicUsage) -> TokenUsage {
-        let cache_write = if raw.cache_creation_input_tokens > 0 {
-            raw.cache_creation_input_tokens
+        let (cache_write_5m, cache_write_1h) = if raw.cache_creation_input_tokens > 0 {
+            (raw.cache_creation_input_tokens, 0)
         } else {
             raw.cache_creation
                 .as_ref()
-                .map(|c| {
-                    c.ephemeral_5m_input_tokens
-                        .saturating_add(c.ephemeral_1h_input_tokens)
-                })
-                .unwrap_or(0)
+                .map(|c| (c.ephemeral_5m_input_tokens, c.ephemeral_1h_input_tokens))
+                .unwrap_or((0, 0))
         };
         TokenUsage {
             input: raw.input_tokens,
             output: raw.output_tokens,
             cache_read: raw.cache_read_input_tokens,
-            cache_write,
+            cache_write_5m,
+            cache_write_1h,
             reasoning: 0,
         }
     }
@@ -203,7 +200,8 @@ impl UsageExtractor {
             input: raw.input_tokens.saturating_sub(cache_read),
             output: raw.output_tokens,
             cache_read,
-            cache_write: 0,
+            cache_write_5m: 0,
+            cache_write_1h: 0,
             reasoning: raw.output_tokens_details.reasoning_tokens,
         }
     }
@@ -223,7 +221,8 @@ impl UsageExtractor {
                 .candidates_token_count
                 .saturating_add(raw.thoughts_token_count),
             cache_read,
-            cache_write: 0,
+            cache_write_5m: 0,
+            cache_write_1h: 0,
             reasoning: raw.thoughts_token_count,
         }
     }
@@ -239,7 +238,8 @@ pub struct RateCard {
     pub input_nanos_per_mtok: i64,
     pub output_nanos_per_mtok: i64,
     pub cache_read_nanos_per_mtok: i64,
-    pub cache_write_nanos_per_mtok: i64,
+    pub cache_write_5m_nanos_per_mtok: i64,
+    pub cache_write_1h_nanos_per_mtok: i64,
 }
 
 impl RateCard {
@@ -250,7 +250,8 @@ impl RateCard {
             self.input_nanos_per_mtok,
             self.output_nanos_per_mtok,
             self.cache_read_nanos_per_mtok,
-            self.cache_write_nanos_per_mtok,
+            self.cache_write_5m_nanos_per_mtok,
+            self.cache_write_1h_nanos_per_mtok,
         ] {
             if rate < 0 {
                 return Err(CostError::NegativeRate);
@@ -269,7 +270,8 @@ pub struct RateCardRow {
     pub input_nanos_per_mtok: i64,
     pub output_nanos_per_mtok: i64,
     pub cache_read_nanos_per_mtok: i64,
-    pub cache_write_nanos_per_mtok: i64,
+    pub cache_write_5m_nanos_per_mtok: i64,
+    pub cache_write_1h_nanos_per_mtok: i64,
 }
 
 /// The typed rate table supplied by the Billing/FinOps adapter.
@@ -322,7 +324,8 @@ impl PriceBook {
                 input_nanos_per_mtok: row.input_nanos_per_mtok,
                 output_nanos_per_mtok: row.output_nanos_per_mtok,
                 cache_read_nanos_per_mtok: row.cache_read_nanos_per_mtok,
-                cache_write_nanos_per_mtok: row.cache_write_nanos_per_mtok,
+                cache_write_5m_nanos_per_mtok: row.cache_write_5m_nanos_per_mtok,
+                cache_write_1h_nanos_per_mtok: row.cache_write_1h_nanos_per_mtok,
             };
             card.validate()?;
             if cards.insert(key.clone(), card).is_some() {
@@ -407,7 +410,8 @@ pub struct CostRecord {
     pub input_pico_usd: i128,
     pub output_pico_usd: i128,
     pub cache_read_pico_usd: i128,
-    pub cache_write_pico_usd: i128,
+    pub cache_write_5m_pico_usd: i128,
+    pub cache_write_1h_pico_usd: i128,
     pub total_pico_usd: i128,
 }
 
@@ -445,16 +449,21 @@ pub fn cost_of(usage: &TokenUsage, card: &RateCard) -> CostRecord {
     let input_pico_usd = class_cost_pico(usage.input, card.input_nanos_per_mtok);
     let output_pico_usd = class_cost_pico(usage.output, card.output_nanos_per_mtok);
     let cache_read_pico_usd = class_cost_pico(usage.cache_read, card.cache_read_nanos_per_mtok);
-    let cache_write_pico_usd = class_cost_pico(usage.cache_write, card.cache_write_nanos_per_mtok);
+    let cache_write_5m_pico_usd =
+        class_cost_pico(usage.cache_write_5m, card.cache_write_5m_nanos_per_mtok);
+    let cache_write_1h_pico_usd =
+        class_cost_pico(usage.cache_write_1h, card.cache_write_1h_nanos_per_mtok);
     let total_pico_usd = input_pico_usd
         .saturating_add(output_pico_usd)
         .saturating_add(cache_read_pico_usd)
-        .saturating_add(cache_write_pico_usd);
+        .saturating_add(cache_write_5m_pico_usd)
+        .saturating_add(cache_write_1h_pico_usd);
     CostRecord {
         input_pico_usd,
         output_pico_usd,
         cache_read_pico_usd,
-        cache_write_pico_usd,
+        cache_write_5m_pico_usd,
+        cache_write_1h_pico_usd,
         total_pico_usd,
     }
 }
@@ -515,7 +524,8 @@ mod tests {
             input_nanos_per_mtok: 5_000_000_000,
             output_nanos_per_mtok: 25_000_000_000,
             cache_read_nanos_per_mtok: 500_000_000,
-            cache_write_nanos_per_mtok: 6_250_000_000,
+            cache_write_5m_nanos_per_mtok: 6_250_000_000,
+            cache_write_1h_nanos_per_mtok: 10_000_000_000,
         }
     }
 
@@ -535,17 +545,19 @@ mod tests {
             input: 1_000_000,
             output: 1_000_000,
             cache_read: 1_000_000,
-            cache_write: 1_000_000,
+            cache_write_5m: 1_000_000,
+            cache_write_1h: 0,
             reasoning: 250_000,
         };
         let rec = cost_of(&usage, &opus_card());
         assert_eq!(rec.input_pico_usd, 5_000_000_000_000);
         assert_eq!(rec.output_pico_usd, 25_000_000_000_000);
         assert_eq!(rec.cache_read_pico_usd, 500_000_000_000);
-        assert_eq!(rec.cache_write_pico_usd, 6_250_000_000_000);
+        assert_eq!(rec.cache_write_5m_pico_usd, 6_250_000_000_000);
+        assert_eq!(rec.cache_write_1h_pico_usd, 0);
         assert_eq!(
             rec.total_pico_usd,
-            5_000_000_000_000 + 25_000_000_000_000 + 500_000_000_000 + 6_250_000_000_000
+            5_000_000_000_000 + 25_000_000_000_000 + 500_000_000_000 + 6_250_000_000_000 + 0
         );
         // $36.75 total.
         assert_eq!(rec.format_usd(), "36.750000");
@@ -567,7 +579,8 @@ mod tests {
                 input: 100,
                 output: 50,
                 cache_read: 300,
-                cache_write: 200,
+                cache_write_5m: 200,
+                cache_write_1h: 0,
                 reasoning: 0,
             }
         );
@@ -585,7 +598,9 @@ mod tests {
                 ephemeral_1h_input_tokens: 60,
             }),
         };
-        assert_eq!(UsageExtractor.from_anthropic(&raw).cache_write, 100);
+        let usage = UsageExtractor.from_anthropic(&raw);
+        assert_eq!(usage.cache_write_5m, 40);
+        assert_eq!(usage.cache_write_1h, 60);
     }
 
     #[test]
@@ -605,7 +620,8 @@ mod tests {
                 input: 70,
                 output: 80,
                 cache_read: 30,
-                cache_write: 0,
+                cache_write_5m: 0,
+                cache_write_1h: 0,
                 reasoning: 20,
             }
         );
@@ -626,7 +642,8 @@ mod tests {
                 input: 75,
                 output: 55, // 40 candidates + 15 thoughts
                 cache_read: 25,
-                cache_write: 0,
+                cache_write_5m: 0,
+                cache_write_1h: 0,
                 reasoning: 15,
             }
         );
@@ -651,7 +668,8 @@ mod tests {
             input_nanos_per_mtok: input,
             output_nanos_per_mtok: 0,
             cache_read_nanos_per_mtok: 0,
-            cache_write_nanos_per_mtok: 0,
+            cache_write_5m_nanos_per_mtok: 0,
+            cache_write_1h_nanos_per_mtok: 0,
         }
     }
 
