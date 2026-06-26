@@ -268,7 +268,7 @@
     {
       "artifact_id": "architecture-product-graph-dashboard",
       "path": "docs/architecture/product-graph.html",
-      "artifact_class": "main-materialized-dashboard",
+      "artifact_class": "main-materialized-aggregate",
       "materialization_mode": "main-branch-materialized",
       "merge_policy": "controller-owned-main-materialization",
       "owner_team": "architecture-platform",
