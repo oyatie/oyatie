@@ -21,6 +21,9 @@ pub const FACE_SETTLE_COMMIT_COMMAND: &str =
 const FACE_SETTLE_COMMIT_MESSAGE: &str = "chore: settle generated cloud-ci faces";
 const FACES_DIR: &str = "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app";
 const SCM_FACTS_FACE: &str = "scm-facts.generated.json";
+const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: &str = ".claude/settings.json";
+const ENFORCEMENT_LIVENESS_CODEX_HOOKS: &str = ".codex/hooks.json";
+const ENFORCEMENT_LIVENESS_HOOKS_DIR: &str = "tools/hooks";
 /// The generated-artifact control-plane manifest. Faces whose `materialization_mode` is
 /// non-PR-owned are materialized by cloud-ci/controllers, not byte-compared against contributor
 /// branch copies.
@@ -334,13 +337,16 @@ pub fn materialize_generated_faces_with_buck2(repo_root: &Path) -> Result<(), Fr
     materialize_move_manifest(&tools, repo_root)?;
     let scm_facts = repo_root.join(FACES_DIR).join(SCM_FACTS_FACE);
     emit_materialized_scm_facts(&tools, repo_root, &scm_facts)?;
+    let mut command = Command::new(&tools.producer);
+    command
+        .args(["--repo-root"])
+        .arg(repo_root)
+        .args(["--scm-facts"])
+        .arg(&scm_facts);
+    append_enforcement_liveness_corpus_args(&mut command, repo_root);
+    command.current_dir(repo_root);
     run_status(
-        Command::new(&tools.producer)
-            .args(["--repo-root"])
-            .arg(repo_root)
-            .args(["--scm-facts"])
-            .arg(&scm_facts)
-            .current_dir(repo_root),
+        &mut command,
         "materialize generated accounting faces",
     )
 }
@@ -1010,20 +1016,46 @@ fn regenerate_producer_faces(
 ) -> Result<RegeneratedFaces, FreshnessError> {
     let mut regenerated = vec![(SCM_FACTS_FACE.to_owned(), read_to_string(scm_facts)?)];
     for (file_name, face_name) in PRODUCER_FACES {
+        let mut command = Command::new(&tools.producer);
+        command
+            .args(["--repo-root"])
+            .arg(repo_root)
+            .args(["--scm-facts"])
+            .arg(scm_facts);
+        append_enforcement_liveness_corpus_args(&mut command, repo_root);
+        command.args(["--stdout", "--face", face_name]).current_dir(repo_root);
         let output = run_output(
-            Command::new(&tools.producer)
-                .args(["--repo-root"])
-                .arg(repo_root)
-                .args(["--scm-facts"])
-                .arg(scm_facts)
-                .args(["--stdout", "--face", face_name])
-                .current_dir(repo_root),
+            &mut command,
             &format!("regenerate {file_name}"),
         )?;
         regenerated.push((file_name.to_owned(), output));
     }
     regenerated.sort_by(|left, right| left.0.cmp(&right.0));
     Ok(regenerated)
+}
+
+fn append_enforcement_liveness_corpus_args(command: &mut Command, repo_root: &Path) {
+    append_enforcement_liveness_corpus_paths(
+        command,
+        &repo_root.join(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS),
+        &repo_root.join(ENFORCEMENT_LIVENESS_CODEX_HOOKS),
+        &repo_root.join(ENFORCEMENT_LIVENESS_HOOKS_DIR),
+    );
+}
+
+fn append_enforcement_liveness_corpus_paths(
+    command: &mut Command,
+    claude_settings: &Path,
+    codex_hooks: &Path,
+    hooks_dir: &Path,
+) {
+    command
+        .arg("--enforcement-liveness-claude-settings")
+        .arg(claude_settings)
+        .arg("--enforcement-liveness-codex-hooks")
+        .arg(codex_hooks)
+        .arg("--enforcement-liveness-hooks-dir")
+        .arg(hooks_dir);
 }
 
 fn write_regenerated_faces(
@@ -1473,6 +1505,41 @@ mod materialize_generated_faces_tests {
                 .to_string()
                 .contains("oya-cloud-ci-materialize-generated-faces")
         );
+    }
+
+    #[test]
+    fn producer_regeneration_commands_declare_enforcement_liveness_corpus() {
+        let mut command = Command::new("/tmp/producer");
+        append_enforcement_liveness_corpus_paths(
+            &mut command,
+            Path::new("/repo/.claude/settings.json"),
+            Path::new("/repo/.codex/hooks.json"),
+            Path::new("/repo/tools/hooks"),
+        );
+
+        let args: Vec<String> = command
+            .get_args()
+            .map(|arg| arg.to_string_lossy().into_owned())
+            .collect();
+
+        assert!(args.windows(2).any(|pair| {
+            pair == [
+                "--enforcement-liveness-claude-settings",
+                "/repo/.claude/settings.json",
+            ]
+        }));
+        assert!(args.windows(2).any(|pair| {
+            pair == [
+                "--enforcement-liveness-codex-hooks",
+                "/repo/.codex/hooks.json",
+            ]
+        }));
+        assert!(args.windows(2).any(|pair| {
+            pair == [
+                "--enforcement-liveness-hooks-dir",
+                "/repo/tools/hooks",
+            ]
+        }));
     }
 
     #[test]
