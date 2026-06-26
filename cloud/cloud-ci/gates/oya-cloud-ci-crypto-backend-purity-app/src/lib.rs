@@ -51,7 +51,7 @@ use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::fs;
 use std::path::Path;
 
-use oya_buck_syntax_kernel::{Stmt, call_strings, parse};
+use oya_buck_syntax_kernel::{ExprNode, Stmt, call_strings, expr_strings, parse};
 use serde_json::{Value, json};
 
 /// The gate id, matching the buck2 target + the policy `gate_id`.
@@ -258,6 +258,11 @@ fn collect_first_party_third_party_roots(root: &Path) -> Result<BTreeSet<String>
         collect_thirdparty_tokens_from_buck(&text, &mut roots);
         Ok(())
     })?;
+    if roots.is_empty() {
+        return Err(CollectError::BuckGraph(
+            "no first-party BUCK references to third-party// targets were found".to_owned(),
+        ));
+    }
     Ok(roots)
 }
 
@@ -274,12 +279,29 @@ fn collect_thirdparty_tokens_from_buck(text: &str, out: &mut BTreeSet<String>) {
                 }
             });
             for stmt in &doc.stmts {
-                if let Stmt::Opaque { .. } = stmt {
-                    collect_thirdparty_tokens(stmt.span().slice(text), out);
+                match stmt {
+                    Stmt::Assign { value, .. } => {
+                        collect_thirdparty_tokens_from_expr(text, value, out);
+                    }
+                    Stmt::IndexAssign { key, value, .. } => {
+                        collect_thirdparty_tokens_from_expr(text, key, out);
+                        collect_thirdparty_tokens_from_expr(text, value, out);
+                    }
+                    Stmt::Opaque { .. } => collect_thirdparty_tokens(stmt.span().slice(text), out),
+                    Stmt::Call(_) => {}
                 }
             }
         }
         Err(_) => collect_thirdparty_tokens(text, out),
+    }
+}
+
+fn collect_thirdparty_tokens_from_expr(text: &str, node: &ExprNode, out: &mut BTreeSet<String>) {
+    if node.has_opaque() {
+        collect_thirdparty_tokens(node.span.slice(text), out);
+    }
+    for s in expr_strings(node) {
+        collect_thirdparty_tokens(&s, out);
     }
 }
 
@@ -911,6 +933,56 @@ cargo.rust_library(
     }
 
     #[test]
+    fn buck_graph_collector_detects_variable_backed_first_party_deps() {
+        let repo = TempRepo::new("variable-backed-ring");
+        write_fixture_repo(
+            &repo,
+            r#"_DEPS = [
+    "third-party//:tls-stack",
+]
+
+rust_library(
+    name = "app",
+    deps = _DEPS,
+)
+"#,
+            r#"alias(
+    name = "tls-stack",
+    actual = ":tls-stack-1",
+    visibility = ["PUBLIC"],
+)
+
+cargo.rust_library(
+    name = "tls-stack-1",
+    crate = "tls_stack",
+    env = {
+        "CARGO_PKG_NAME": "tls-stack",
+    },
+    deps = [
+        ":ring-0.17",
+    ],
+)
+
+cargo.rust_library(
+    name = "ring-0.17",
+    crate = "ring",
+    env = {
+        "CARGO_PKG_NAME": "ring",
+    },
+    visibility = [],
+)
+"#,
+        );
+
+        let observed = collect_activated_backends(repo.root(), &policy()).expect("collect graph");
+        assert_eq!(
+            evaluate(&policy(), &observed).verdict,
+            Verdict::Red,
+            "variable-backed BUCK deps must seed first-party third-party roots"
+        );
+    }
+
+    #[test]
     fn buck_graph_collector_ignores_unreachable_generated_forbidden_target() {
         let repo = TempRepo::new("unreachable-ring");
         write_fixture_repo(
@@ -951,6 +1023,35 @@ cargo.rust_library(
         assert!(
             evaluate_keyed(&policy(), &observed).is_empty(),
             "unreachable generated ring target must not fail the gate: {observed}"
+        );
+    }
+
+    #[test]
+    fn buck_graph_collector_fails_closed_when_first_party_roots_are_empty() {
+        let repo = TempRepo::new("empty-roots");
+        write_fixture_repo(
+            &repo,
+            r#"rust_library(
+    name = "app",
+    deps = [],
+)
+"#,
+            r#"cargo.rust_library(
+    name = "ring-0.17",
+    crate = "ring",
+    env = {
+        "CARGO_PKG_NAME": "ring",
+    },
+    visibility = [],
+)
+"#,
+        );
+
+        let err = collect_activated_backends(repo.root(), &policy())
+            .expect_err("empty roots fail closed");
+        assert!(
+            err.to_string().contains("no first-party BUCK references"),
+            "unexpected error: {err}"
         );
     }
 
