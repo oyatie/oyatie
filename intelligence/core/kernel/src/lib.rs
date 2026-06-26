@@ -21,10 +21,8 @@
 //! envelope encryption (D8) is enforced in the REST/secret adapter, not here.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use std::collections::hash_map::DefaultHasher;
 use std::collections::{BTreeMap, HashSet};
 use std::fmt;
-use std::hash::{Hash, Hasher};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
@@ -32,15 +30,20 @@ pub mod cost;
 pub mod model_routing;
 pub mod overage_guard;
 pub mod safety;
+pub mod session;
 pub mod xproxy_parity;
 
 use overage_guard::{GuardDecision, HaltReason};
 
+pub use session::{derive_sticky_key, prompt_cache_key};
+
 /// Build a stable sticky-affinity key without storing raw prompt content.
+///
+/// Thin wrapper over the canonical message-fingerprint path in [`session`];
+/// kept for callers that only have a first user message. New call sites with a
+/// possible client wire session id should use [`session::derive_sticky_key`].
 pub fn privacy_preserving_sticky_key(first_user_message: &str) -> String {
-    let mut hasher = DefaultHasher::new();
-    first_user_message.hash(&mut hasher);
-    format!("sticky:{:016x}", hasher.finish())
+    session::message_sticky_key(first_user_message)
 }
 
 // ---------------------------------------------------------------------------
