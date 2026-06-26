@@ -85,18 +85,16 @@ impl TokenUsage {
 
 /// Anthropic Messages API `usage` block. `input_tokens` does **not** include
 /// cache tokens — Anthropic reports cache reads/writes as separate counts.
-#[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
 pub struct AnthropicUsage {
-    #[serde(default)]
     pub input_tokens: u64,
-    #[serde(default)]
     pub output_tokens: u64,
     #[serde(default)]
     pub cache_creation_input_tokens: u64,
     #[serde(default)]
     pub cache_read_input_tokens: u64,
-    /// Newer responses break cache creation into TTL buckets. When present and
-    /// the scalar `cache_creation_input_tokens` is absent, this is summed.
+    /// Newer responses break cache creation into TTL buckets. When present,
+    /// detailed per-TTL values win; the legacy scalar is fallback-only.
     #[serde(default)]
     pub cache_creation: Option<AnthropicCacheCreation>,
 }
@@ -113,11 +111,9 @@ pub struct AnthropicCacheCreation {
 /// OpenAI Responses API `usage` block. `input_tokens` **includes**
 /// `input_tokens_details.cached_tokens`; `output_tokens` **includes**
 /// `output_tokens_details.reasoning_tokens`.
-#[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
 pub struct OpenAiResponsesUsage {
-    #[serde(default)]
     pub input_tokens: u64,
-    #[serde(default)]
     pub output_tokens: u64,
     #[serde(default)]
     pub input_tokens_details: OpenAiInputTokensDetails,
@@ -141,12 +137,10 @@ pub struct OpenAiOutputTokensDetails {
 /// **includes** `cachedContentTokenCount`; thinking models report
 /// `thoughtsTokenCount` separately from `candidatesTokenCount`, billed at the
 /// output rate.
-#[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GeminiUsageMetadata {
-    #[serde(default)]
     pub prompt_token_count: u64,
-    #[serde(default)]
     pub candidates_token_count: u64,
     #[serde(default)]
     pub cached_content_token_count: u64,
