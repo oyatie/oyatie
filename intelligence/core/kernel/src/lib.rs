@@ -30,6 +30,7 @@ use std::time::{Duration, Instant};
 
 pub mod model_routing;
 pub mod safety;
+pub mod wire;
 pub mod xproxy_parity;
 
 /// Build a stable sticky-affinity key without storing raw prompt content.
