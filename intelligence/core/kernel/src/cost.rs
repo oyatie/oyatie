@@ -167,17 +167,19 @@ pub struct UsageExtractor;
 impl UsageExtractor {
     /// Normalize an Anthropic Messages `usage` block.
     ///
-    /// Anthropic input is already cache-exclusive. Cache-write is the scalar
-    /// `cache_creation_input_tokens` when present, else the per-TTL breakdown.
-    /// The legacy scalar is treated as the default five-minute cache write.
+    /// Anthropic input is already cache-exclusive. Detailed per-TTL cache
+    /// creation wins when present; the legacy scalar is a scalar-only fallback
+    /// treated as the default five-minute cache write.
     pub fn from_anthropic(&self, raw: &AnthropicUsage) -> TokenUsage {
-        let (cache_write_5m, cache_write_1h) = if raw.cache_creation_input_tokens > 0 {
+        let (cache_write_5m, cache_write_1h) = if let Some(cache_creation) = &raw.cache_creation {
+            (
+                cache_creation.ephemeral_5m_input_tokens,
+                cache_creation.ephemeral_1h_input_tokens,
+            )
+        } else if raw.cache_creation_input_tokens > 0 {
             (raw.cache_creation_input_tokens, 0)
         } else {
-            raw.cache_creation
-                .as_ref()
-                .map(|c| (c.ephemeral_5m_input_tokens, c.ephemeral_1h_input_tokens))
-                .unwrap_or((0, 0))
+            (0, 0)
         };
         TokenUsage {
             input: raw.input_tokens,
@@ -587,11 +589,11 @@ mod tests {
     }
 
     #[test]
-    fn anthropic_falls_back_to_per_ttl_cache_creation() {
+    fn anthropic_prefers_per_ttl_cache_creation_over_legacy_scalar() {
         let raw = AnthropicUsage {
             input_tokens: 10,
             output_tokens: 5,
-            cache_creation_input_tokens: 0,
+            cache_creation_input_tokens: 100,
             cache_read_input_tokens: 0,
             cache_creation: Some(AnthropicCacheCreation {
                 ephemeral_5m_input_tokens: 40,
