@@ -559,7 +559,7 @@ hybrid negotiation support through the `pqc` policy block.
 by `network/ports/transport-profile`, not by edge engines, cloud SDKs,
 shell scripts, or provider-specific adapters. The Rust port exposes
 `TransportEndpointSpec` and `TransportProfilePort` with the stable
-fields `endpoint_id`, `protocol`, `tls_profile`, `alt_svc`,
+fields `endpoint_id` (the required endpoint identifier), `protocol`, `tls_profile`, `alt_svc`,
 `fallback_timeout_ms`, `ech`, `pqc`, and `capability_class`. The
 crate-local contract artifact is
 `network/ports/transport-profile/endpoint-transport-profile.contract.json`.
