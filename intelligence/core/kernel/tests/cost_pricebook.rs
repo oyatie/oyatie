@@ -1,37 +1,128 @@
 //! Table-driven cost tests over REAL provider usage fixtures.
 //!
-//! These exercise the full seam end to end: parse the canonical pricebook JSON
-//! and raw provider `usage` blocks (as they appear on the wire) with
+//! These exercise the full seam end to end: parse an adapter-supplied pricebook
+//! JSON and raw provider `usage` blocks (as they appear on the wire) with
 //! `serde_json` — the same parse the REST/spend adapter performs — normalize via
 //! [`UsageExtractor`], and price against the [`PriceBook`]. `serde_json` lives in
 //! the test/adapter layer; the kernel lib never parses JSON itself.
 
 use intelligence_kernel::cost::{
-    cost_of, AnthropicUsage, CostError, GeminiUsageMetadata, OpenAiResponsesUsage, PriceBook,
-    PriceBookFile, TokenUsage, UsageExtractor, CANONICAL_PRICEBOOK_JSON,
+    AnthropicUsage, CostError, GeminiUsageMetadata, OpenAiResponsesUsage, PriceBook, PriceBookFile,
+    TokenUsage, UsageExtractor, cost_of,
 };
 
-fn canonical() -> PriceBook {
+const PRICEBOOK_FIXTURE_JSON: &str = r#"{
+  "schema_version": "cost-pricebook/v1",
+  "effective_at": "2026-06-26T00:00:00Z",
+  "cards": [
+    {
+      "model": "claude-opus-4-7",
+      "provider": "anthropic",
+      "input_nanos_per_mtok": 5000000000,
+      "output_nanos_per_mtok": 25000000000,
+      "cache_read_nanos_per_mtok": 500000000,
+      "cache_write_nanos_per_mtok": 6250000000
+    },
+    {
+      "model": "claude-opus-4-6",
+      "provider": "anthropic",
+      "input_nanos_per_mtok": 5000000000,
+      "output_nanos_per_mtok": 25000000000,
+      "cache_read_nanos_per_mtok": 500000000,
+      "cache_write_nanos_per_mtok": 6250000000
+    },
+    {
+      "model": "claude-opus-4-5",
+      "provider": "anthropic",
+      "input_nanos_per_mtok": 5000000000,
+      "output_nanos_per_mtok": 25000000000,
+      "cache_read_nanos_per_mtok": 500000000,
+      "cache_write_nanos_per_mtok": 6250000000
+    },
+    {
+      "model": "claude-sonnet-4-5",
+      "provider": "anthropic",
+      "input_nanos_per_mtok": 3000000000,
+      "output_nanos_per_mtok": 15000000000,
+      "cache_read_nanos_per_mtok": 300000000,
+      "cache_write_nanos_per_mtok": 3750000000
+    },
+    {
+      "model": "claude-haiku-3-5",
+      "provider": "anthropic",
+      "input_nanos_per_mtok": 800000000,
+      "output_nanos_per_mtok": 4000000000,
+      "cache_read_nanos_per_mtok": 80000000,
+      "cache_write_nanos_per_mtok": 1000000000
+    },
+    {
+      "model": "gpt-4.1",
+      "provider": "openai",
+      "input_nanos_per_mtok": 2000000000,
+      "output_nanos_per_mtok": 8000000000,
+      "cache_read_nanos_per_mtok": 500000000,
+      "cache_write_nanos_per_mtok": 0
+    },
+    {
+      "model": "gpt-4o",
+      "provider": "openai",
+      "input_nanos_per_mtok": 2500000000,
+      "output_nanos_per_mtok": 10000000000,
+      "cache_read_nanos_per_mtok": 1250000000,
+      "cache_write_nanos_per_mtok": 0
+    },
+    {
+      "model": "o3",
+      "provider": "openai",
+      "input_nanos_per_mtok": 2000000000,
+      "output_nanos_per_mtok": 8000000000,
+      "cache_read_nanos_per_mtok": 500000000,
+      "cache_write_nanos_per_mtok": 0
+    },
+    {
+      "model": "gemini-2.5-pro",
+      "provider": "gemini",
+      "input_nanos_per_mtok": 1250000000,
+      "output_nanos_per_mtok": 10000000000,
+      "cache_read_nanos_per_mtok": 312500000,
+      "cache_write_nanos_per_mtok": 0
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "provider": "gemini",
+      "input_nanos_per_mtok": 300000000,
+      "output_nanos_per_mtok": 2500000000,
+      "cache_read_nanos_per_mtok": 75000000,
+      "cache_write_nanos_per_mtok": 0
+    }
+  ]
+}"#;
+
+fn test_pricebook() -> PriceBook {
     let file: PriceBookFile =
-        serde_json::from_str(CANONICAL_PRICEBOOK_JSON).expect("canonical pricebook JSON parses");
-    PriceBook::from_file(file).expect("canonical pricebook is well-formed")
+        serde_json::from_str(PRICEBOOK_FIXTURE_JSON).expect("pricebook fixture JSON parses");
+    PriceBook::from_file(file).expect("pricebook fixture is well-formed")
 }
 
 #[test]
-fn canonical_pricebook_is_loadable_and_nonempty() {
-    let pb = canonical();
+fn adapter_supplied_pricebook_is_loadable_and_nonempty() {
+    let pb = test_pricebook();
     assert_eq!(pb.schema_version(), "cost-pricebook/v1");
-    assert!(pb.len() >= 10, "expected the full bundled rate table");
-    for model in [
-        "claude-opus-4-5",
-        "claude-sonnet-4-5",
-        "claude-haiku-3-5",
-        "gpt-4.1",
-        "o3",
-        "gemini-2.5-pro",
-        "gemini-2.5-flash",
+    assert_eq!(pb.effective_at(), "2026-06-26T00:00:00Z");
+    assert!(pb.len() >= 10, "expected the full fixture rate table");
+    for (provider, model) in [
+        ("anthropic", "claude-opus-4-5"),
+        ("anthropic", "claude-sonnet-4-5"),
+        ("anthropic", "claude-haiku-3-5"),
+        ("openai", "gpt-4.1"),
+        ("openai", "o3"),
+        ("gemini", "gemini-2.5-pro"),
+        ("gemini", "gemini-2.5-flash"),
     ] {
-        assert!(pb.rate_card(model).is_some(), "missing rate card: {model}");
+        assert!(
+            pb.rate_card(provider, model).is_some(),
+            "missing rate card: {provider}/{model}"
+        );
     }
 }
 
@@ -59,8 +150,10 @@ fn anthropic_real_usage_fixture_prices_exactly() {
         }
     );
 
-    let pb = canonical();
-    let rec = pb.cost_for("claude-sonnet-4-5", &usage).unwrap();
+    let pb = test_pricebook();
+    let rec = pb
+        .cost_for("anthropic", "claude-sonnet-4-5", &usage)
+        .unwrap();
     // Sonnet 4.5: $3 in / $15 out / $0.30 read / $3.75 write per MTok, 1 MTok each.
     assert_eq!(rec.input_pico_usd, 3_000_000_000_000);
     assert_eq!(rec.output_pico_usd, 15_000_000_000_000);
@@ -117,8 +210,8 @@ fn openai_responses_real_usage_fixture_prices_exactly() {
         }
     );
 
-    let pb = canonical();
-    let rec = pb.cost_for("gpt-4.1", &usage).unwrap();
+    let pb = test_pricebook();
+    let rec = pb.cost_for("openai", "gpt-4.1", &usage).unwrap();
     // gpt-4.1: $2 in / $8 out / $0.50 read per MTok, no write charge.
     assert_eq!(rec.input_pico_usd, 600_000 * 2_000_000_000 / 1_000); // 1_200_000_000_000
     assert_eq!(rec.output_pico_usd, 8_000_000_000_000);
@@ -153,8 +246,8 @@ fn gemini_real_usage_fixture_prices_exactly() {
         }
     );
 
-    let pb = canonical();
-    let rec = pb.cost_for("gemini-2.5-pro", &usage).unwrap();
+    let pb = test_pricebook();
+    let rec = pb.cost_for("gemini", "gemini-2.5-pro", &usage).unwrap();
     // gemini-2.5-pro: $1.25 in / $10 out / $0.3125 read per MTok.
     assert_eq!(rec.input_pico_usd, 800_000 * 1_250_000_000 / 1_000); // 1_000_000_000_000
     assert_eq!(rec.output_pico_usd, 10_000_000_000_000);
@@ -170,28 +263,31 @@ fn empty_usage_blocks_default_to_zero_cost() {
     let raw: AnthropicUsage = serde_json::from_str("{}").unwrap();
     let usage = UsageExtractor.from_anthropic(&raw);
     assert_eq!(usage, TokenUsage::default());
-    let pb = canonical();
-    let rec = pb.cost_for("claude-opus-4-5", &usage).unwrap();
+    let pb = test_pricebook();
+    let rec = pb.cost_for("anthropic", "claude-opus-4-5", &usage).unwrap();
     assert_eq!(rec.total_pico_usd, 0);
 }
 
 #[test]
 fn unknown_model_fails_closed_not_free() {
-    let pb = canonical();
+    let pb = test_pricebook();
     let usage = TokenUsage {
         output: 1_000_000,
         ..Default::default()
     };
     assert_eq!(
-        pb.cost_for("definitely-not-a-model", &usage),
-        Err(CostError::UnknownModel("definitely-not-a-model".to_string()))
+        pb.cost_for("anthropic", "definitely-not-a-model", &usage),
+        Err(CostError::UnknownRateCard {
+            provider: "anthropic".to_string(),
+            model: "definitely-not-a-model".to_string()
+        })
     );
 }
 
 #[test]
 fn cost_of_matches_pricebook_path() {
     // cost_of(usage, card) and PriceBook::cost_for agree.
-    let pb = canonical();
+    let pb = test_pricebook();
     let usage = TokenUsage {
         input: 123_456,
         output: 7_890,
@@ -199,6 +295,10 @@ fn cost_of_matches_pricebook_path() {
         cache_write: 0,
         reasoning: 0,
     };
-    let card = pb.rate_card("claude-haiku-3-5").unwrap();
-    assert_eq!(cost_of(&usage, card), pb.cost_for("claude-haiku-3-5", &usage).unwrap());
+    let card = pb.rate_card("anthropic", "claude-haiku-3-5").unwrap();
+    assert_eq!(
+        cost_of(&usage, card),
+        pb.cost_for("anthropic", "claude-haiku-3-5", &usage)
+            .unwrap()
+    );
 }
