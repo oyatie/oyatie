@@ -167,13 +167,20 @@ impl From<&ClaimValue> for ClaimValueDto {
 pub struct ResourceDto {
     pub resource_type: String, // data_class: INTERNAL_ONLY
     pub resource_id: String,   // data_class: INTERNAL_ONLY
+    /// Optional resource attributes visible to PDP resource conditions (for example
+    /// `tenant_id` for same-tenant Cedar policies).
+    #[serde(default)]
+    pub attributes: BTreeMap<String, ClaimValueDto>, // data_class: INTERNAL_ONLY
 }
 
 impl ResourceDto {
     /// Convert into the domain resource.
     #[must_use]
     pub fn into_domain(self) -> Resource {
-        Resource::new(self.resource_type, self.resource_id)
+        self.attributes.into_iter().fold(
+            Resource::new(self.resource_type, self.resource_id),
+            |resource, (key, value)| resource.with_attribute(key, value.into()),
+        )
     }
 }
 

@@ -291,6 +291,10 @@ components:
       properties:
         resourceType: { type: string }
         resourceId: { type: string }
+        attributes:
+          type: object
+          additionalProperties: { $ref: '#/components/schemas/ClaimValue' }
+          description: Optional PDP-visible resource attributes, including tenant_id for same-tenant policies.
     AuthorizeWithTokenRequest:
       type: object
       required: [token, action, resource]
