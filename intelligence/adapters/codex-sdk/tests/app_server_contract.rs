@@ -95,6 +95,7 @@ const FAKE_APP_SERVER_RS: &str = r####"
 use std::env;
 use std::fs::OpenOptions;
 use std::io::{self, BufRead, BufReader, Write};
+use std::time::Duration;
 
 fn write_message(path: &str, message: &str) {
     let mut file = OpenOptions::new().create(true).append(true).open(path).unwrap();
@@ -107,18 +108,20 @@ fn send(message: &str) {
 }
 
 fn extract_string_field(input: &str, field: &str) -> Option<String> {
-    let marker = format!("\"{}\":", field);
-    let start = input.find(&marker)? + marker.len();
-    let rest = input[start..].trim_start();
+    let key = format!("\"{}\"", field);
+    let key_start = input.find(&key)? + key.len();
+    let colon = input[key_start..].find(':')? + key_start;
+    let rest = input[colon + 1..].trim_start();
     let rest = rest.strip_prefix('"')?;
     let end = rest.find('"')?;
     Some(rest[..end].to_string())
 }
 
 fn extract_id(input: &str) -> Option<String> {
-    let marker = "\"id\":";
-    let start = input.find(marker)? + marker.len();
-    let rest = input[start..].trim_start();
+    let key = "\"id\"";
+    let key_start = input.find(key)? + key.len();
+    let colon = input[key_start..].find(':')? + key_start;
+    let rest = input[colon + 1..].trim_start();
     let end = rest.find([',', '}']).unwrap_or(rest.len());
     Some(rest[..end].trim().to_string())
 }
@@ -144,6 +147,7 @@ fn result_for(method: &str, message: &str, scenario: &str, reader: &mut impl Buf
             if scenario == "server-request" || scenario == "server-file-request" {
                 let approval_method = if scenario == "server-file-request" { "item/fileChange/requestApproval" } else { "item/commandExecution/requestApproval" };
                 send(&format!(r#"{{"id":"approval-1","method":{},"params":{{"threadId":{},"turnId":"turn-1"}}}}"#, json_string(approval_method), json_string(&tid)));
+                std::thread::sleep(Duration::from_millis(25));
                 let mut approval = String::new();
                 reader.read_line(&mut approval).unwrap();
                 if let Ok(path) = env::var("CODEX_APP_MESSAGES_FILE") {
@@ -205,6 +209,31 @@ fn main() {
         }
         let result = result_for(&method, &line, &scenario, &mut reader);
         send(&format!(r#"{{"id":{},"result":{}}}"#, id, result));
+        if method == "turn/start" {
+            std::thread::sleep(Duration::from_millis(25));
+            let tid = thread_id(&line);
+            send(&format!(
+                r#"{{"method":"turn/started","params":{{"threadId":{},"turn":{{"id":"turn-1","status":"running","items":[]}}}}}}"#,
+                json_string(&tid)
+            ));
+            if scenario == "complete-run" {
+                let final_item = r#"{"id":"item-final","type":"agentMessage","phase":"final_answer","text":"done from app api"}"#;
+                send(&format!(
+                    r#"{{"method":"item/completed","params":{{"threadId":{},"turnId":"turn-1","completedAtMs":2000,"item":{}}}}}"#,
+                    json_string(&tid),
+                    final_item
+                ));
+                send(&format!(
+                    r#"{{"method":"thread/tokenUsage/updated","params":{{"threadId":{},"turnId":"turn-1","tokenUsage":{{"inputTokens":11,"outputTokens":7,"totalTokens":18}}}}}}"#,
+                    json_string(&tid)
+                ));
+                send(&format!(
+                    r#"{{"method":"turn/completed","params":{{"threadId":{},"turn":{{"id":"turn-1","status":"completed","startedAt":1,"completedAt":2,"durationMs":1000,"items":[{}]}}}}}}"#,
+                    json_string(&tid),
+                    final_item
+                ));
+            }
+        }
         raw_line.clear();
     }
 }
@@ -481,6 +510,8 @@ fn normalizes_app_server_inputs_and_receives_notifications() {
             Some(json!({"model":"gpt-turn", "outputSchema": {"type":"object"}})),
         )
         .unwrap();
+    eprintln!("DEBUG result={}", result);
+    eprintln!("DEBUG messages={:?}", fake.messages());
     let notification = client.next_turn_notification("turn-1").unwrap();
     client
         .turn_steer("thread-1", "turn-1", "additional steering")
