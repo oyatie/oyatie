@@ -1,0 +1,204 @@
+//! Table-driven cost tests over REAL provider usage fixtures.
+//!
+//! These exercise the full seam end to end: parse the canonical pricebook JSON
+//! and raw provider `usage` blocks (as they appear on the wire) with
+//! `serde_json` — the same parse the REST/spend adapter performs — normalize via
+//! [`UsageExtractor`], and price against the [`PriceBook`]. `serde_json` lives in
+//! the test/adapter layer; the kernel lib never parses JSON itself.
+
+use intelligence_kernel::cost::{
+    cost_of, AnthropicUsage, CostError, GeminiUsageMetadata, OpenAiResponsesUsage, PriceBook,
+    PriceBookFile, TokenUsage, UsageExtractor, CANONICAL_PRICEBOOK_JSON,
+};
+
+fn canonical() -> PriceBook {
+    let file: PriceBookFile =
+        serde_json::from_str(CANONICAL_PRICEBOOK_JSON).expect("canonical pricebook JSON parses");
+    PriceBook::from_file(file).expect("canonical pricebook is well-formed")
+}
+
+#[test]
+fn canonical_pricebook_is_loadable_and_nonempty() {
+    let pb = canonical();
+    assert_eq!(pb.schema_version(), "cost-pricebook/v1");
+    assert!(pb.len() >= 10, "expected the full bundled rate table");
+    for model in [
+        "claude-opus-4-5",
+        "claude-sonnet-4-5",
+        "claude-haiku-3-5",
+        "gpt-4.1",
+        "o3",
+        "gemini-2.5-pro",
+        "gemini-2.5-flash",
+    ] {
+        assert!(pb.rate_card(model).is_some(), "missing rate card: {model}");
+    }
+}
+
+#[test]
+fn anthropic_real_usage_fixture_prices_exactly() {
+    // Real-shape Anthropic Messages `usage` block (cache-exclusive input).
+    let raw: AnthropicUsage = serde_json::from_str(
+        r#"{
+            "input_tokens": 1000000,
+            "output_tokens": 1000000,
+            "cache_creation_input_tokens": 1000000,
+            "cache_read_input_tokens": 1000000
+        }"#,
+    )
+    .unwrap();
+    let usage = UsageExtractor.from_anthropic(&raw);
+    assert_eq!(
+        usage,
+        TokenUsage {
+            input: 1_000_000,
+            output: 1_000_000,
+            cache_read: 1_000_000,
+            cache_write: 1_000_000,
+            reasoning: 0,
+        }
+    );
+
+    let pb = canonical();
+    let rec = pb.cost_for("claude-sonnet-4-5", &usage).unwrap();
+    // Sonnet 4.5: $3 in / $15 out / $0.30 read / $3.75 write per MTok, 1 MTok each.
+    assert_eq!(rec.input_pico_usd, 3_000_000_000_000);
+    assert_eq!(rec.output_pico_usd, 15_000_000_000_000);
+    assert_eq!(rec.cache_read_pico_usd, 300_000_000_000);
+    assert_eq!(rec.cache_write_pico_usd, 3_750_000_000_000);
+    assert_eq!(rec.total_pico_usd, 22_050_000_000_000); // $22.05
+    assert_eq!(rec.format_usd(), "22.050000");
+}
+
+#[test]
+fn anthropic_per_ttl_cache_creation_fixture() {
+    // Newer Anthropic response: scalar absent, per-TTL breakdown present.
+    let raw: AnthropicUsage = serde_json::from_str(
+        r#"{
+            "input_tokens": 500,
+            "output_tokens": 250,
+            "cache_read_input_tokens": 100,
+            "cache_creation": {
+                "ephemeral_5m_input_tokens": 400,
+                "ephemeral_1h_input_tokens": 600
+            }
+        }"#,
+    )
+    .unwrap();
+    let usage = UsageExtractor.from_anthropic(&raw);
+    assert_eq!(usage.cache_write, 1000);
+    assert_eq!(usage.input, 500);
+    assert_eq!(usage.cache_read, 100);
+}
+
+#[test]
+fn openai_responses_real_usage_fixture_prices_exactly() {
+    // Real-shape OpenAI Responses `usage`: input includes cached, output
+    // includes reasoning.
+    let raw: OpenAiResponsesUsage = serde_json::from_str(
+        r#"{
+            "input_tokens": 1000000,
+            "input_tokens_details": { "cached_tokens": 400000 },
+            "output_tokens": 1000000,
+            "output_tokens_details": { "reasoning_tokens": 250000 },
+            "total_tokens": 2000000
+        }"#,
+    )
+    .unwrap();
+    let usage = UsageExtractor.from_openai_responses(&raw);
+    assert_eq!(
+        usage,
+        TokenUsage {
+            input: 600_000, // 1.0M - 0.4M cached
+            output: 1_000_000,
+            cache_read: 400_000,
+            cache_write: 0,
+            reasoning: 250_000,
+        }
+    );
+
+    let pb = canonical();
+    let rec = pb.cost_for("gpt-4.1", &usage).unwrap();
+    // gpt-4.1: $2 in / $8 out / $0.50 read per MTok, no write charge.
+    assert_eq!(rec.input_pico_usd, 600_000 * 2_000_000_000 / 1_000); // 1_200_000_000_000
+    assert_eq!(rec.output_pico_usd, 8_000_000_000_000);
+    assert_eq!(rec.cache_read_pico_usd, 400_000 * 500_000_000 / 1_000); // 200_000_000_000
+    assert_eq!(rec.cache_write_pico_usd, 0);
+    assert_eq!(rec.total_pico_usd, 9_400_000_000_000); // $9.40
+}
+
+#[test]
+fn gemini_real_usage_fixture_prices_exactly() {
+    // Real-shape Gemini `usageMetadata`: prompt includes cached, thoughts
+    // separate from candidates.
+    let raw: GeminiUsageMetadata = serde_json::from_str(
+        r#"{
+            "promptTokenCount": 1000000,
+            "candidatesTokenCount": 800000,
+            "cachedContentTokenCount": 200000,
+            "thoughtsTokenCount": 200000,
+            "totalTokenCount": 2000000
+        }"#,
+    )
+    .unwrap();
+    let usage = UsageExtractor.from_gemini(&raw);
+    assert_eq!(
+        usage,
+        TokenUsage {
+            input: 800_000,    // 1.0M - 0.2M cached
+            output: 1_000_000, // 0.8M candidates + 0.2M thoughts
+            cache_read: 200_000,
+            cache_write: 0,
+            reasoning: 200_000,
+        }
+    );
+
+    let pb = canonical();
+    let rec = pb.cost_for("gemini-2.5-pro", &usage).unwrap();
+    // gemini-2.5-pro: $1.25 in / $10 out / $0.3125 read per MTok.
+    assert_eq!(rec.input_pico_usd, 800_000 * 1_250_000_000 / 1_000); // 1_000_000_000_000
+    assert_eq!(rec.output_pico_usd, 10_000_000_000_000);
+    assert_eq!(rec.cache_read_pico_usd, 200_000 * 312_500_000 / 1_000); // 62_500_000_000
+    assert_eq!(rec.cache_write_pico_usd, 0);
+    assert_eq!(rec.total_pico_usd, 11_062_500_000_000); // $11.0625
+    assert_eq!(rec.format_usd(), "11.062500");
+}
+
+#[test]
+fn empty_usage_blocks_default_to_zero_cost() {
+    // Absent fields must default to 0 (serde default), not fail.
+    let raw: AnthropicUsage = serde_json::from_str("{}").unwrap();
+    let usage = UsageExtractor.from_anthropic(&raw);
+    assert_eq!(usage, TokenUsage::default());
+    let pb = canonical();
+    let rec = pb.cost_for("claude-opus-4-5", &usage).unwrap();
+    assert_eq!(rec.total_pico_usd, 0);
+}
+
+#[test]
+fn unknown_model_fails_closed_not_free() {
+    let pb = canonical();
+    let usage = TokenUsage {
+        output: 1_000_000,
+        ..Default::default()
+    };
+    assert_eq!(
+        pb.cost_for("definitely-not-a-model", &usage),
+        Err(CostError::UnknownModel("definitely-not-a-model".to_string()))
+    );
+}
+
+#[test]
+fn cost_of_matches_pricebook_path() {
+    // cost_of(usage, card) and PriceBook::cost_for agree.
+    let pb = canonical();
+    let usage = TokenUsage {
+        input: 123_456,
+        output: 7_890,
+        cache_read: 4_321,
+        cache_write: 0,
+        reasoning: 0,
+    };
+    let card = pb.rate_card("claude-haiku-3-5").unwrap();
+    assert_eq!(cost_of(&usage, card), pb.cost_for("claude-haiku-3-5", &usage).unwrap());
+}

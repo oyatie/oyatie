@@ -23,6 +23,18 @@ rust_test(
 )
 
 rust_test(
+    name = "cost-pricebook-test",
+    srcs = glob(["tests/cost_pricebook.rs"]),
+    crate = "intelligence_kernel_cost_pricebook_test",
+    crate_root = "tests/cost_pricebook.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-kernel",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
     name = "xproxy-capability-parity-test",
     srcs = glob(["tests/xproxy_capability_parity.rs"]),
     crate = "intelligence_kernel_xproxy_capability_parity_test",

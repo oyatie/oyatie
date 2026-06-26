@@ -1,0 +1,89 @@
+{
+  "schema_version": "cost-pricebook/v1",
+  "kind": "RatePriceBook",
+  "currency": "USD",
+  "rate_unit": "nanos_usd_per_mtok",
+  "note": "Policy-as-data rate table for the cloud-intelligence spend sink. Rates are integer nanoUSD (1e-9 USD) per 1,000,000 tokens, keyed by canonical upstream model id (lower-cased on load). Cache-write applies to providers that bill prompt-cache writes (Anthropic); providers with no per-token cache-write charge set it to 0. Updated out-of-band; the kernel never hardcodes a rate.",
+  "cards": [
+    {
+      "model": "claude-opus-4-7",
+      "provider": "anthropic",
+      "input_nanos_per_mtok": 5000000000,
+      "output_nanos_per_mtok": 25000000000,
+      "cache_read_nanos_per_mtok": 500000000,
+      "cache_write_nanos_per_mtok": 6250000000
+    },
+    {
+      "model": "claude-opus-4-6",
+      "provider": "anthropic",
+      "input_nanos_per_mtok": 5000000000,
+      "output_nanos_per_mtok": 25000000000,
+      "cache_read_nanos_per_mtok": 500000000,
+      "cache_write_nanos_per_mtok": 6250000000
+    },
+    {
+      "model": "claude-opus-4-5",
+      "provider": "anthropic",
+      "input_nanos_per_mtok": 5000000000,
+      "output_nanos_per_mtok": 25000000000,
+      "cache_read_nanos_per_mtok": 500000000,
+      "cache_write_nanos_per_mtok": 6250000000
+    },
+    {
+      "model": "claude-sonnet-4-5",
+      "provider": "anthropic",
+      "input_nanos_per_mtok": 3000000000,
+      "output_nanos_per_mtok": 15000000000,
+      "cache_read_nanos_per_mtok": 300000000,
+      "cache_write_nanos_per_mtok": 3750000000
+    },
+    {
+      "model": "claude-haiku-3-5",
+      "provider": "anthropic",
+      "input_nanos_per_mtok": 800000000,
+      "output_nanos_per_mtok": 4000000000,
+      "cache_read_nanos_per_mtok": 80000000,
+      "cache_write_nanos_per_mtok": 1000000000
+    },
+    {
+      "model": "gpt-4.1",
+      "provider": "openai",
+      "input_nanos_per_mtok": 2000000000,
+      "output_nanos_per_mtok": 8000000000,
+      "cache_read_nanos_per_mtok": 500000000,
+      "cache_write_nanos_per_mtok": 0
+    },
+    {
+      "model": "gpt-4o",
+      "provider": "openai",
+      "input_nanos_per_mtok": 2500000000,
+      "output_nanos_per_mtok": 10000000000,
+      "cache_read_nanos_per_mtok": 1250000000,
+      "cache_write_nanos_per_mtok": 0
+    },
+    {
+      "model": "o3",
+      "provider": "openai",
+      "input_nanos_per_mtok": 2000000000,
+      "output_nanos_per_mtok": 8000000000,
+      "cache_read_nanos_per_mtok": 500000000,
+      "cache_write_nanos_per_mtok": 0
+    },
+    {
+      "model": "gemini-2.5-pro",
+      "provider": "gemini",
+      "input_nanos_per_mtok": 1250000000,
+      "output_nanos_per_mtok": 10000000000,
+      "cache_read_nanos_per_mtok": 312500000,
+      "cache_write_nanos_per_mtok": 0
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "provider": "gemini",
+      "input_nanos_per_mtok": 300000000,
+      "output_nanos_per_mtok": 2500000000,
+      "cache_read_nanos_per_mtok": 75000000,
+      "cache_write_nanos_per_mtok": 0
+    }
+  ]
+}
