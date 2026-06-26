@@ -19,7 +19,7 @@
       "ech": "forbidden",
       "fallback_timeout_ms": "forbidden",
       "name": "inter_cell",
-      "pqc": "hybrid_declared_rollout_optional",
+      "pqc": "hybrid_negotiation_required_with_classical_transition_fallback",
       "tls_profile": "spiffe_mtls_tls13"
     },
     {
@@ -50,7 +50,11 @@
       "enabled": true,
       "hybrid_negotiation_required": true,
       "kem": "x25519mlkem768",
-      "signature": "ed25519+ml_dsa_65"
+      "signature": "ed25519+ml_dsa_65",
+      "supported_groups": [
+        "x25519mlkem768",
+        "x25519"
+      ]
     },
     "protocol": "http3",
     "tls_profile": "strict_tls13"
