@@ -146,22 +146,40 @@ fn resolve_bin(root: &Path, bin: &str) -> PathBuf {
 fn append_declared_enforcement_liveness_corpus_args(command: &mut Command, root: &Path) {
     append_enforcement_liveness_corpus_paths(
         command,
-        &declared_corpus_path(
+        &declared_corpus_file(
             root,
             ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_ENV,
             ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS,
+            "settings.json",
         ),
-        &declared_corpus_path(
+        &declared_corpus_file(
             root,
             ENFORCEMENT_LIVENESS_CODEX_HOOKS_ENV,
             ENFORCEMENT_LIVENESS_CODEX_HOOKS,
+            "hooks.json",
         ),
-        &declared_corpus_path(
+        &declared_corpus_dir(
             root,
             ENFORCEMENT_LIVENESS_HOOKS_DIR_ENV,
             ENFORCEMENT_LIVENESS_HOOKS_DIR,
         ),
     );
+}
+
+fn declared_corpus_file(root: &Path, env_key: &str, fallback_rel: &str, file_name: &str) -> PathBuf {
+    let path = declared_corpus_path(root, env_key, fallback_rel);
+    if path.is_file() {
+        return path;
+    }
+    let nested = path.join(file_name);
+    if nested.is_file() {
+        return nested;
+    }
+    path
+}
+
+fn declared_corpus_dir(root: &Path, env_key: &str, fallback_rel: &str) -> PathBuf {
+    declared_corpus_path(root, env_key, fallback_rel)
 }
 
 fn declared_corpus_path(root: &Path, env_key: &str, fallback_rel: &str) -> PathBuf {
