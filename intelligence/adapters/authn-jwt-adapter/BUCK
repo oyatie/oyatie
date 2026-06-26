@@ -1,0 +1,29 @@
+rust_library(
+    name = "intelligence-authn-jwt-adapter",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "intelligence_authn_jwt_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/kernel:intelligence-kernel",
+        "third-party//:aws-lc-rs",
+        "third-party//:base64",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "intelligence-authn-jwt-adapter-verification",
+    srcs = ["tests/jwt_verification.rs"],
+    crate = "intelligence_authn_jwt_adapter_verification",
+    crate_root = "tests/jwt_verification.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-authn-jwt-adapter",
+        "//intelligence/core/kernel:intelligence-kernel",
+        "third-party//:aws-lc-rs",
+        "third-party//:base64",
+        "third-party//:serde_json",
+    ],
+)

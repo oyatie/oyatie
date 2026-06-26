@@ -1,0 +1,34 @@
+[package]
+name = "intelligence-authn-jwt-adapter"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# JWT/OIDC adapter implementing the kernel's PrincipalVerifier port — fail-closed
+# authentication against a cloud-iam-issued JWKS (ADR-0384 authn seam, distinct
+# from the D7 Cedar authz PDP). Signature verification runs on aws-lc-rs (ADR-0506
+# canonical crypto backend); the JWS/JWKS protocol mechanics are reimplemented
+# behind the port rather than pulling jsonwebtoken/jose (cutover litmus).
+#
+# Accepts asymmetric algorithms only (RS256/384/512, ES256/384); none and HS*
+# are rejected as a class (algorithm-confusion defense).
+
+[lib]
+name = "intelligence_authn_jwt_adapter"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+intelligence-kernel = { path = "../../core/kernel" }
+aws-lc-rs = { workspace = true }
+base64 = "0.22"
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true
