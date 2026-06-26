@@ -1,8 +1,8 @@
-//! cloud-ci-crypto-backend-purity gate binary (ADR-0506). It runs `cargo tree -i <crate>
-//! --target all` for each policy-forbidden crypto backend and FAILS iff any has an ACTIVATED
-//! dependent in the feature-resolved graph. It deliberately does NOT inspect Cargo.lock text nor
-//! cargo-metadata resolve-node dependency lists, which retain the documented unactivated
-//! optional-dep `ring` phantom (ADR-0506) and would false-RED.
+//! cloud-ci-crypto-backend-purity gate binary (ADR-0506). It reads first-party BUCK files plus
+//! generated `third-party/BUCK` and FAILS iff a policy-forbidden crypto backend is reachable from
+//! the local Buck graph. It deliberately does NOT inspect Cargo.lock text nor invoke Cargo, because
+//! lock/cargo-metadata supersets retain the documented unactivated optional-dep `ring` phantom
+//! (ADR-0506) and would false-RED.
 //!
 //! Usage:
 //!   oya-cloud-ci-crypto-backend-purity-app-bin [--repo-root <path>] [--policy <path>]
