@@ -1,9 +1,3 @@
-export_file(
-    name = "scm-facts.fixture.json",
-    src = "tests/scm-facts.fixture.json",
-    visibility = ["PUBLIC"],
-)
-
 rust_library(
     name = "oya-cloud-ci-enforcement-liveness-app",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
@@ -36,7 +30,6 @@ rust_test(
     crate_root = "tests/enforcement_liveness.rs",
     run_env = {
         "OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER": "$(location //cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin)",
-        "OYA_CI_ENFORCEMENT_LIVENESS_SCM_FACTS": "$(location :scm-facts.fixture.json)",
     },
     visibility = ["PUBLIC"],
     deps = [

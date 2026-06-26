@@ -796,10 +796,10 @@ pub fn build_issuer_metadata(
     }
     let base = issuer.as_str().trim_end_matches('/').to_owned();
     Ok(IssuerMetadata {
-        jwks_uri: format!("{base}/oauth/jwks"),
+        jwks_uri: format!("{base}/oauth/v2/keys"),
         authorization_endpoint: format!("{base}/oauth/authorize"),
-        token_endpoint: format!("{base}/oauth/token"),
-        userinfo_endpoint: Some(format!("{base}/oauth/userinfo")),
+        token_endpoint: format!("{base}/oauth/v2/token"),
+        userinfo_endpoint: Some(format!("{base}/oauth/v2/userinfo")),
         response_types_supported: vec!["code".to_owned(), "id_token".to_owned()],
         subject_types_supported: vec!["public".to_owned()],
         id_token_signing_alg_values_supported: signing_algs
@@ -1622,7 +1622,7 @@ mod tests {
         assert_eq!(meta.issuer.as_str(), issuer.as_str());
         assert_eq!(
             meta.jwks_uri,
-            "https://identity-kr.oyatie.com/oauth/jwks".to_owned()
+            "https://identity-kr.oyatie.com/oauth/v2/keys".to_owned()
         );
         assert_eq!(
             meta.id_token_signing_alg_values_supported,
