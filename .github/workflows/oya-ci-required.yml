@@ -592,6 +592,33 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref || 'dev' }}
         run: git fetch --no-tags --prune origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+      # Latency guard (CI12-B worker-2): derive the affected-set decision before the expensive
+      # merge-base FULL baseline. Cone-bound PRs should spend seconds deriving owner/rdeps, not
+      # minutes building a merge-base //... report they will never consume. If derivation says
+      # FULL (or the rdeps phase fail-closed escalates to FULL), the next step materializes the
+      # merge-base baseline and the binding step passes it to the ratchet. If the final binding
+      # decision unexpectedly escalates after a false derive negative, the still-passed baseline
+      # path is absent and the app fails closed instead of silently hard-fulling with grandfathered
+      # debt or laundering a candidate-controlled report.
+      - name: Derive affected-set plan before merge-base baseline
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          BASE_REF: ${{ github.base_ref || 'dev' }}
+        run: |
+          set -euo pipefail
+          gate_bin="$(buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app:oya-cloud-ci-affected-set-bin --show-output | awk '{print $2}')"
+          derive_log="${RUNNER_TEMP}/affected-set-derive.log"
+          "${gate_bin}" \
+            --policy cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/affected-set-policy.json \
+            --base "origin/${BASE_REF}" --mode auto --derive-only \
+            | tee "${derive_log}"
+          if grep -Eq 'decision=FULL|ESCALATE to FULL' "${derive_log}"; then
+            echo "AFFECTED_SET_NEEDS_BASELINE=true" >> "${GITHUB_ENV}"
+            echo "affected-set derive: FULL baseline required"
+          else
+            echo "AFFECTED_SET_NEEDS_BASELINE=false" >> "${GITHUB_ENV}"
+            echo "affected-set derive: cone/no-graph decision, skipping merge-base baseline"
+          fi
       # ── BUILD-HEALTH BASELINE (ADR-0554 D9 same-root build, round-5; ADR-0551 merge-base frozen
       #    pattern). On a pull_request, materialize the MERGE-BASE build-health baseline IN THE MAIN
       #    ROOT so it shares the warm ./buck-out restored above (the merge-base IS a dev commit, so
@@ -612,7 +639,7 @@ jobs:
       #    integrity-canary/release cold floor). This SUPERSEDES the deferred ADR-0554 D8 cross-run
       #    report-artifact CONSUMER (do not build it) — Option A warms the build directly.
       - name: Materialize merge-base build-health baseline (same-root, warm buck-out)
-        if: ${{ github.event_name == 'pull_request' }}
+        if: ${{ github.event_name == 'pull_request' && env.AFFECTED_SET_NEEDS_BASELINE == 'true' }}
         env:
           BASE_REF: ${{ github.base_ref || 'dev' }}
         run: |
