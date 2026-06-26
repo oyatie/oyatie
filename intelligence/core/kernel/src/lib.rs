@@ -28,9 +28,12 @@ use std::hash::{Hash, Hasher};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
+pub mod authn;
 pub mod model_routing;
 pub mod safety;
 pub mod xproxy_parity;
+
+pub use authn::{AuthnError, PrincipalVerifier, VerifiedPrincipal};
 
 /// Build a stable sticky-affinity key without storing raw prompt content.
 pub fn privacy_preserving_sticky_key(first_user_message: &str) -> String {
