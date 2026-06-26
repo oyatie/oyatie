@@ -250,6 +250,15 @@ fn required_array<'a>(object: &'a Value, key: &str) -> Option<&'a Vec<Value>> {
         .filter(|value| !value.is_empty())
 }
 
+fn clean_repo_relative_path(path: &str) -> bool {
+    !path.starts_with('/')
+        && !path.starts_with('\\')
+        && !path.contains('\\')
+        && path
+            .split('/')
+            .all(|component| !component.is_empty() && component != "." && component != "..")
+}
+
 fn validate_object_fields(
     value: &Value,
     allowed_fields: &[&str],
@@ -971,6 +980,12 @@ fn parse_declared_artifacts(
             ));
             continue;
         };
+        if !clean_repo_relative_path(path) {
+            findings.insert(Finding::new(
+                "generated_artifact_manifest_path_not_clean_repo_relative",
+                artifact_id,
+            ));
+        }
         let Some(artifact_class) = required_str(artifact, "artifact_class") else {
             findings.insert(Finding::new(
                 "generated_artifact_manifest_artifact_class_missing",
@@ -1769,6 +1784,28 @@ mod tests {
             finding.code == "generated_artifact_declared_path_not_tracked"
                 && finding.key == "out/example.generated.json"
         }));
+    }
+
+    #[test]
+    fn declared_generated_artifact_paths_must_be_clean_repo_relative() {
+        for path in [
+            "/abs/example.generated.json",
+            "../outside.generated.json",
+            "out/../outside.generated.json",
+            "out//example.generated.json",
+            r"out\example.generated.json",
+        ] {
+            let manifest = manifest(vec![artifact("example-face", path)]);
+            let scm_facts = scm(&[path]);
+            let findings = evaluate_keyed(&manifest, &scm_facts);
+            assert!(
+                findings.iter().any(|finding| {
+                    finding.code == "generated_artifact_manifest_path_not_clean_repo_relative"
+                        && finding.key == "example-face"
+                }),
+                "unclean path {path} must RED; findings: {findings:#?}"
+            );
+        }
     }
 
     #[test]
