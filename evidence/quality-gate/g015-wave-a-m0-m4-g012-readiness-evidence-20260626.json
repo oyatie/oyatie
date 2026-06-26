@@ -1,0 +1,184 @@
+{
+  "artifact_kind": "wave_a_verification_review_launch_evidence",
+  "change_id": "g015-wave-a-m0-m4-g012-readiness-evidence-20260626",
+  "commands_captured": [
+    "git fetch --prune origin dev && git reset --hard refs/remotes/origin/dev && git status --short --branch",
+    "cat $OMX_TEAM_STATE_ROOT/team/g015-wave-a-m0-m4-fou-1fb6d50c/WORK_LEDGER.md",
+    "gh api --paginate repos/jason931225/oyatie/commits/490311b9fd9cd3e65e139073d8a40e579f8e49b2/check-runs --jq ...",
+    "omx team api list-tasks --input {\"team_name\":\"g015-wave-a-m0-m4-fou-1fb6d50c\"} --json"
+  ],
+  "created_at": "2026-06-26T23:10:30Z",
+  "goal": "G012 verification/review/launch evidence",
+  "launch_readiness": {
+    "ready_when": [
+      "corrected worker-owned tasks 8-11 terminal or explicitly blocked",
+      "stale duplicate tasks 3-6 reconciled or explicitly terminal-ledgered",
+      "leader captures fresh get_goal and checkpoints G015 from team evidence only"
+    ],
+    "verdict": "BLOCKED_NOT_READY"
+  },
+  "origin_dev_baseline": {
+    "git_status_before_artifact": [
+      "## g015-worker-5-g012-readiness-evidence"
+    ],
+    "github_check_runs": {
+      "all_observed_success": true,
+      "observed_total": 42,
+      "required_context_observed": true,
+      "sample_required_contexts": [
+        {
+          "completed_at": "2026-06-26T22:40:05Z",
+          "conclusion": "success",
+          "name": "oya-ci-required",
+          "status": "completed"
+        },
+        {
+          "completed_at": "2026-06-26T22:18:22Z",
+          "conclusion": "success",
+          "name": "buck2 (hermetic build + affected gate tests)",
+          "status": "completed"
+        }
+      ],
+      "source_command": "gh api --paginate repos/jason931225/oyatie/commits/<sha>/check-runs --jq ..."
+    },
+    "sha": "490311b9fd9cd3e65e139073d8a40e579f8e49b2",
+    "status_api_note": "GitHub statuses API returned state=pending with total_count=0 legacy statuses; check-runs API is the relevant evidence surface and shows oya-ci-required success."
+  },
+  "review_evidence": {
+    "contract_risks": [
+      {
+        "impact": "shutdown monitors can report non-terminal duplicate tasks even when corrected worker-owned tasks progress",
+        "recommended_owner": "leader/team runtime state reconciliation",
+        "risk": "stale synthesized tasks 3-6 remain in_progress/owned by worker-1 while corrected tasks 8-11 exist"
+      },
+      {
+        "impact": "status consumers must use check-runs/required context evidence for this commit",
+        "recommended_owner": "cloud-ci/status adapter lane if this becomes merge-gate ambiguity",
+        "risk": "legacy GitHub statuses API has no contexts and reports pending"
+      }
+    ],
+    "policy_confirmations": [
+      "No .omx/ultragoal mutation by worker-5",
+      "No generated file edit in this evidence artifact",
+      "No implementation code touched"
+    ]
+  },
+  "schema_version": "1.0",
+  "scope": {
+    "forbidden_surfaces": [
+      ".omx/ultragoal/**",
+      "*.generated.json",
+      ".github/workflows/**",
+      "oya-ci.toml",
+      "implementation code except evidence/test artifacts"
+    ],
+    "owned_surfaces": [
+      "evidence/test matrix",
+      "review evidence",
+      "launch/readiness ledger"
+    ],
+    "work_ledger_path": "/Users/jasonlee/.omx-runs/run-20260626173753-6e97/.omx/state/team/g015-wave-a-m0-m4-fou-1fb6d50c/WORK_LEDGER.md"
+  },
+  "task_id": "11",
+  "team": "g015-wave-a-m0-m4-fou-1fb6d50c",
+  "verification_matrix": [
+    {
+      "evidence": "GitHub check-runs API for 490311b9fd9cd3e65e139073d8a40e579f8e49b2",
+      "expected": "oya-ci-required check run success on origin/dev HEAD",
+      "gate": "origin_dev_required_ci",
+      "observed": "PASS"
+    },
+    {
+      "evidence": "GitHub check-runs API",
+      "expected": "Buck2 affected gate check run success",
+      "gate": "buck2_hermetic_build_and_affected_tests",
+      "observed": "PASS"
+    },
+    {
+      "evidence": "WORK_LEDGER forbids *.generated.json mutation; check run succeeded",
+      "expected": "No worker edit to *.generated.json; generated-artifact-control-plane green on origin/dev",
+      "gate": "generated_file_policy",
+      "observed": "PASS"
+    },
+    {
+      "evidence": "Task status counts at capture: {'completed': 3, 'in_progress': 6, 'pending': 2}",
+      "expected": "Every active worker lane terminal or explicitly ledgered before shutdown",
+      "gate": "worker_lane_evidence",
+      "observed": "NOT_READY"
+    },
+    {
+      "evidence": "WORK_LEDGER shutdown gate not met during worker-5 capture",
+      "expected": "Pending=0, in_progress=0, failed=0 or explicitly ledgered",
+      "gate": "launch_shutdown_gate",
+      "observed": "NOT_READY"
+    }
+  ],
+  "worker": "worker-5",
+  "worker_lane_snapshot": {
+    "readiness_verdict": "not_ready",
+    "reason": "Team still has non-terminal tasks at capture; this artifact is a readiness matrix and honest blocker ledger, not a launch approval.",
+    "selected_tasks": [
+      {
+        "claim_owner": null,
+        "goal_or_subject": "G015 Wave A M0-M4 foundation execution after accepted G002 intake checkpoint. Fi",
+        "owner": "worker-1",
+        "requires_code_change": null,
+        "status": "completed",
+        "task_id": "1"
+      },
+      {
+        "claim_owner": null,
+        "goal_or_subject": "return evidence only. Disjoint lanes: worker-1 G003 repo hygiene/runtime boundar",
+        "owner": "worker-1",
+        "requires_code_change": null,
+        "status": "completed",
+        "task_id": "2"
+      },
+      {
+        "claim_owner": null,
+        "goal_or_subject": "report blockers/shared-file conflicts/scope expansion/verification failures.",
+        "owner": "worker-3",
+        "requires_code_change": null,
+        "status": "completed",
+        "task_id": "7"
+      },
+      {
+        "claim_owner": null,
+        "goal_or_subject": "G004 universal cloud-ci product boundary",
+        "owner": "worker-2",
+        "requires_code_change": true,
+        "status": "pending",
+        "task_id": "8"
+      },
+      {
+        "claim_owner": "worker-3",
+        "goal_or_subject": "G005 generated-artifact conflict controls",
+        "owner": "worker-3",
+        "requires_code_change": true,
+        "status": "in_progress",
+        "task_id": "9"
+      },
+      {
+        "claim_owner": null,
+        "goal_or_subject": "G006 Rust purity / Python-MJS retirement inventory",
+        "owner": "worker-4",
+        "requires_code_change": true,
+        "status": "pending",
+        "task_id": "10"
+      },
+      {
+        "claim_owner": "worker-5",
+        "goal_or_subject": "G012 verification/review/launch evidence",
+        "owner": "worker-5",
+        "requires_code_change": false,
+        "status": "in_progress",
+        "task_id": "11"
+      }
+    ],
+    "status_counts": {
+      "completed": 3,
+      "in_progress": 6,
+      "pending": 2
+    }
+  }
+}

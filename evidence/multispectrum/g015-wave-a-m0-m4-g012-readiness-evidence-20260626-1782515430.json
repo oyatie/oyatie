@@ -1,0 +1,50 @@
+{
+  "agent_id": "omx-worker-5",
+  "artifacts": [
+    "evidence/quality-gate/g015-wave-a-m0-m4-g012-readiness-evidence-20260626.json"
+  ],
+  "branch": "g015-worker-5-g012-readiness-evidence",
+  "change_class_id": "CC-7_evidence_only",
+  "change_id": "g015-wave-a-m0-m4-g012-readiness-evidence-20260626",
+  "created_at": "2026-06-26T23:10:30Z",
+  "facets": {
+    "F10_reversibility": "Rollback is a git revert of two evidence JSON files only.",
+    "F11_observability": "Improves team observability by consolidating CI, generated-policy, and lane-state evidence in one machine-readable artifact.",
+    "F13_migration": "Supports Wave A M0-M4 foundation closeout by separating evidence/readiness claims from implementation lanes.",
+    "F1_correctness": "Adds a G012 readiness matrix that honestly records origin/dev CI success, generated-artifact policy evidence, worker lane state, and launch blockers without claiming launch readiness.",
+    "F2_tests": "Validated JSON syntax, staged diff hygiene, generated-file diff absence, GitHub check-runs evidence, OMX task-state readback, and Buck2 evidence-target discovery.",
+    "F3_maintainability": "Keeps launch/readiness evidence in evidence/quality-gate with a small companion multispectrum file; no implementation paths or runtime configs touched.",
+    "F4_compatibility": "Evidence-only JSON addition does not change runtime behavior, APIs, build rules, workflows, or generated outputs.",
+    "F5_security": "No secrets, credentials, authz rules, or production data added; evidence cites public repo check-run metadata and local team-state task statuses.",
+    "F6_privacy": "No tenant, user, customer, or personal data introduced.",
+    "F7_operability": "Provides a concrete launch shutdown gate checklist and blocker list for the leader to reconcile before G015 checkpointing.",
+    "F8_performance": "No executable code or runtime path changed.",
+    "F9_compliance": "Preserves generated-file policy by not editing *.generated.json and records generated-artifact-control-plane success on origin/dev.",
+    "M1_challenge_assumption": "Does not treat green origin/dev checks as launch approval because team task state still has pending/in_progress work.",
+    "M2_zoomed_out_fit": "Aligns with WORK_LEDGER shutdown gate and leader-owned Ultragoal policy; worker-5 does not mutate .omx/ultragoal or Codex goal state."
+  },
+  "git_sha": "490311b9fd9cd3e65e139073d8a40e579f8e49b2",
+  "honest_claim": "Evidence/readiness artifact only. Launch remains BLOCKED_NOT_READY until non-terminal team tasks are completed or explicitly ledgered and leader performs final quality gates.",
+  "verification": [
+    {
+      "command": "python3 -m json.tool evidence/quality-gate/g015-wave-a-m0-m4-g012-readiness-evidence-20260626.json",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --cached --check",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --cached --name-only -- \"*.generated.json\"",
+      "result": "PASS empty output"
+    },
+    {
+      "command": "gh api --paginate repos/jason931225/oyatie/commits/490311b9fd9cd3e65e139073d8a40e579f8e49b2/check-runs --jq ...",
+      "result": "PASS 42 check-runs observed, all completed success including oya-ci-required"
+    },
+    {
+      "command": "buck2 targets //evidence/...",
+      "result": "PASS command exited 0; no evidence-specific Buck2 targets emitted"
+    }
+  ]
+}
