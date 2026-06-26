@@ -84,6 +84,9 @@ const FACES_DIR: &str = "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-a
 
 /// The committed scm-facts snapshot face name (the emitter's `--out`, the producer's `--scm-facts`).
 const SCM_FACTS_FACE: &str = "scm-facts.generated.json";
+const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: &str = ".claude/settings.json";
+const ENFORCEMENT_LIVENESS_CODEX_HOOKS: &str = ".codex/hooks.json";
+const ENFORCEMENT_LIVENESS_HOOKS_DIR: &str = "tools/hooks";
 
 /// The repo-relative move-manifest the codemod's `manifest` subcommand emits and the emitter
 /// consumes (materialize.sh step 1 → step 2). A pure function of (committed plan + candidate tree).
@@ -113,6 +116,16 @@ const PRODUCER_FACES: [(&str, &str); 6] = [
     ("enforcement-liveness.generated.json", "enforcement-liveness"),
     ("gate-baseline.generated.json", "baseline"),
 ];
+
+fn append_enforcement_liveness_corpus_args(command: &mut Command, repo_root: &Path) {
+    command
+        .arg("--enforcement-liveness-claude-settings")
+        .arg(repo_root.join(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS))
+        .arg("--enforcement-liveness-codex-hooks")
+        .arg(repo_root.join(ENFORCEMENT_LIVENESS_CODEX_HOOKS))
+        .arg("--enforcement-liveness-hooks-dir")
+        .arg(repo_root.join(ENFORCEMENT_LIVENESS_HOOKS_DIR));
+}
 
 /// The human remediation command for a settle failure, mirroring the freshness gate's
 /// `FACE_REMEDIATION_COMMAND`.
@@ -549,13 +562,16 @@ impl RegenPort for Buck2RegenAdapter {
         // 3. producer: regenerate the 6 producer faces from the just-written scm-facts. The emitter
         //    MUST have succeeded first — a missing scm-facts is a HARD producer error (main.rs:84);
         //    we never reach here on an emitter failure (step 2 propagates as RegenFailed).
+        let mut producer_command = Command::new(&tools.producer);
+        producer_command
+            .args(["--repo-root"])
+            .arg(repo_root)
+            .args(["--scm-facts"])
+            .arg(&scm_facts);
+        append_enforcement_liveness_corpus_args(&mut producer_command, repo_root);
+        producer_command.current_dir(repo_root);
         run_settle_status(
-            Command::new(&tools.producer)
-                .args(["--repo-root"])
-                .arg(repo_root)
-                .args(["--scm-facts"])
-                .arg(&scm_facts)
-                .current_dir(repo_root),
+            &mut producer_command,
             "accounting-registry producer",
         )?;
 
@@ -576,14 +592,18 @@ impl RegenPort for Buck2RegenAdapter {
         let tools = build_face_tools(repo_root)?;
         let scm_facts = repo_root.join(FACES_DIR).join(SCM_FACTS_FACE);
         for (file_name, face_name) in PRODUCER_FACES {
+            let mut command = Command::new(&tools.producer);
+            command
+                .args(["--repo-root"])
+                .arg(repo_root)
+                .args(["--scm-facts"])
+                .arg(&scm_facts);
+            append_enforcement_liveness_corpus_args(&mut command, repo_root);
+            command
+                .args(["--stdout", "--face", face_name])
+                .current_dir(repo_root);
             let rerender = run_settle_output(
-                Command::new(&tools.producer)
-                    .args(["--repo-root"])
-                    .arg(repo_root)
-                    .args(["--scm-facts"])
-                    .arg(&scm_facts)
-                    .args(["--stdout", "--face", face_name])
-                    .current_dir(repo_root),
+                &mut command,
                 &format!("byte-rediff re-render {file_name}"),
             )?;
             let on_disk_path = repo_root.join(FACES_DIR).join(file_name);
@@ -606,14 +626,16 @@ impl RegenPort for Buck2RegenAdapter {
         // before self-validation), so the producer reads a fresh declared input — no ambient git.
         let tools = build_face_tools(repo_root)?;
         let scm_facts = repo_root.join(FACES_DIR).join(SCM_FACTS_FACE);
+        let mut command = Command::new(&tools.producer);
+        command
+            .args(["--repo-root"])
+            .arg(repo_root)
+            .args(["--scm-facts"])
+            .arg(&scm_facts);
+        append_enforcement_liveness_corpus_args(&mut command, repo_root);
+        command.args(["--stdout", "--face", face]).current_dir(repo_root);
         let rendered = run_settle_output(
-            Command::new(&tools.producer)
-                .args(["--repo-root"])
-                .arg(repo_root)
-                .args(["--scm-facts"])
-                .arg(&scm_facts)
-                .args(["--stdout", "--face", face])
-                .current_dir(repo_root),
+            &mut command,
             &format!("self-validation gate-input face {face}"),
         )?;
         serde_json::from_str(&rendered).map_err(|e| {
