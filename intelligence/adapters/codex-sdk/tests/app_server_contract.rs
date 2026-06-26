@@ -94,7 +94,7 @@ fn write_fake_app_server(path: &Path) {
 const FAKE_APP_SERVER_RS: &str = r####"
 use std::env;
 use std::fs::OpenOptions;
-use std::io::{self, BufRead, Write};
+use std::io::{self, BufRead, BufReader, Write};
 
 fn write_message(path: &str, message: &str) {
     let mut file = OpenOptions::new().create(true).append(true).open(path).unwrap();
@@ -131,7 +131,7 @@ fn json_string(value: &str) -> String {
     format!("\"{}\"", value.replace('\\', "\\\\").replace('"', "\\\""))
 }
 
-fn result_for(method: &str, message: &str, scenario: &str) -> String {
+fn result_for(method: &str, message: &str, scenario: &str, reader: &mut impl BufRead) -> String {
     match method {
         "initialize" => r#"{"serverInfo":{"name":"codex-cli","version":"fake"},"userAgent":"codex-cli/fake","platformFamily":"unix","platformOs":"test"}"#.to_string(),
         "thread/start" | "thread/resume" | "thread/fork" | "thread/unarchive" | "thread/read" => {
@@ -145,7 +145,7 @@ fn result_for(method: &str, message: &str, scenario: &str) -> String {
                 let approval_method = if scenario == "server-file-request" { "item/fileChange/requestApproval" } else { "item/commandExecution/requestApproval" };
                 send(&format!(r#"{{"id":"approval-1","method":{},"params":{{"threadId":{},"turnId":"turn-1"}}}}"#, json_string(approval_method), json_string(&tid)));
                 let mut approval = String::new();
-                io::stdin().read_line(&mut approval).unwrap();
+                reader.read_line(&mut approval).unwrap();
                 if let Ok(path) = env::var("CODEX_APP_MESSAGES_FILE") {
                     write_message(&path, approval.trim_end());
                 }
@@ -186,8 +186,11 @@ fn main() {
         writeln!(args_file, "{}", arg).unwrap();
     }
 
-    for line in io::stdin().lock().lines() {
-        let line = line.unwrap();
+    let stdin = io::stdin();
+    let mut reader = BufReader::new(stdin.lock());
+    let mut raw_line = String::new();
+    while reader.read_line(&mut raw_line).unwrap() != 0 {
+        let line = raw_line.trim_end().to_string();
         write_message(&messages_path, &line);
         let Some(id) = extract_id(&line) else { continue };
         let Some(method) = extract_string_field(&line, "method") else { continue };
@@ -200,8 +203,9 @@ fn main() {
             send(&format!(r#"{{"id":{}}}"#, id));
             continue;
         }
-        let result = result_for(&method, &line, &scenario);
+        let result = result_for(&method, &line, &scenario, &mut reader);
         send(&format!(r#"{{"id":{},"result":{}}}"#, id, result));
+        raw_line.clear();
     }
 }
 "####;
