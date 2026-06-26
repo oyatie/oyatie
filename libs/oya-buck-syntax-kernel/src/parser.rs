@@ -379,11 +379,12 @@ impl<'t> Parser<'t> {
         }
     }
 
-    fn check_expr_depth(&self, depth: usize) -> Result<(), ParseError> {
+    fn check_expr_depth(&self, depth: usize, offset: usize) -> Result<(), ParseError> {
         if depth > MAX_EXPR_NESTING_DEPTH {
-            return Err(self.error(format!(
-                "expression nesting depth exceeds {MAX_EXPR_NESTING_DEPTH}"
-            )));
+            return Err(ParseError {
+                offset,
+                message: format!("expression nesting depth exceeds {MAX_EXPR_NESTING_DEPTH}"),
+            });
         }
         Ok(())
     }
@@ -600,7 +601,10 @@ impl<'t> Parser<'t> {
     }
 
     fn parse_expr_at_depth(&mut self, depth: usize) -> Result<ExprNode, ParseError> {
-        self.check_expr_depth(depth)?;
+        self.check_expr_depth(
+            depth,
+            self.peek().map(|t| t.span.start).unwrap_or(self.text_len),
+        )?;
         let first = self.parse_primary_at_depth(depth)?;
         let mut operands = vec![first];
         loop {
@@ -944,14 +948,7 @@ impl<'t> Parser<'t> {
             match &token.kind {
                 TokenKind::Newline => return Ok(consumed),
                 TokenKind::Punct('(') | TokenKind::Punct('[') | TokenKind::Punct('{') => {
-                    if depth >= MAX_EXPR_NESTING_DEPTH {
-                        return Err(ParseError {
-                            offset: token.span.start,
-                            message: format!(
-                                "expression nesting depth exceeds {MAX_EXPR_NESTING_DEPTH}"
-                            ),
-                        });
-                    }
+                    self.check_expr_depth(depth + 1, token.span.start)?;
                     depth += 1;
                 }
                 TokenKind::Punct(')') | TokenKind::Punct(']') | TokenKind::Punct('}') => {
