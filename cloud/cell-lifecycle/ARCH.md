@@ -24,7 +24,7 @@ INV-010: Audit-chain sealing is mandatory before success is reported for privile
 - Evidence: every successful adapter call contributes a receipt id or digest to LifecycleHistory when it influences a transition.
 - Test seam: Wave 15-ZD-impl can unit-test the usecase with fake adapters and integration-test adapters separately.
 ### 2.2 Port: InboundGrpcPort
-- Responsibility: future gRPC/HTTP3 surface for internal automation and SDK generation without bypassing domain logic.
+- Responsibility: future gRPC over HTTP/2 surface for internal automation and SDK generation without bypassing domain logic.
 - Direction: domain defines the interface; adapters implement transport, persistence, or substrate mechanics.
 - Failure mode: adapter failure is converted to a typed dependency error; domain state remains unchanged.
 - Evidence: every successful adapter call contributes a receipt id or digest to LifecycleHistory when it influences a transition.
@@ -117,7 +117,7 @@ Layer-05: rest
 - Dependency rule: inner layers do not import adapters, transport, Postgres, Valkey, or OpenTelemetry clients.
 - Verification: downstream code must keep imports directional and layer names aligned with ADR-0079 enum spelling.
 Layer-06: grpc
-- Placement: internal automation RPC surface over HTTP/3 without bypassing Cedar or evidence checks.
+- Placement: internal automation RPC surface over HTTP/2 without bypassing Cedar or evidence checks.
 - Constraint: public lifecycle commands are REST/OpenAPI and internal automation may use gRPC.
 - Dependency rule: inner layers do not import adapters, transport, Postgres, Valkey, or OpenTelemetry clients.
 - Verification: downstream code must keep imports directional and layer names aligned with ADR-0079 enum spelling.
@@ -393,8 +393,8 @@ API-001: OpenAPI file uses openapi 3.2.0.
 API-002: Every public REST operation carries Oyatie-Version header.
 API-003: The public server URL declares /v/{oyatie_version} as the date-version URL prefix carrier while service paths retain ADR-0276 /v1/cells shape.
 API-004: Request and response schemas include oyatie_version to align with ADR-0267 carrier triplet and SDK generation.
-API-005: HTTP/3 + QUIC is preferred, with strict TLS fallback per ADR-0209 when needed.
-API-006: gRPC is internal automation shape only and must preserve the same domain usecases and Cedar gates.
+API-005: Public REST uses HTTP/3 + QUIC with strict TLS fallback when needed.
+API-006: gRPC is internal automation shape over HTTP/2 and must preserve the same domain usecases and Cedar gates.
 API-007: api-gateway owns unsupported-version and carrier-conflict behavior; cell-lifecycle exposes contract metadata and validates received headers.
 
 ## 12. Failure Modes and Recovery
