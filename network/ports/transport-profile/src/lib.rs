@@ -243,10 +243,10 @@ impl TransportEndpointSpec {
                 "external ech must allow plaintext-sni fallback during transition",
             );
         }
-        if self.ech.key_rotation_hours.is_none_or(|hours| hours > 24) {
+        if !matches!(self.ech.key_rotation_hours, Some(1..=24)) {
             return invalid(
                 "ech.key_rotation_hours",
-                "external ech rotation must be <= 24h",
+                "external ech rotation must be between 1h and 24h",
             );
         }
         if !self.ech.grease_retry_configs {
@@ -255,8 +255,12 @@ impl TransportEndpointSpec {
                 "external ech requires grease retry configs",
             );
         }
-        if self.ech.outer_sni.as_deref().unwrap_or_default().is_empty() {
-            return invalid("ech.outer_sni", "external ech requires public cover name");
+        let outer_sni = self.ech.outer_sni.as_deref().unwrap_or_default();
+        if !is_shared_oyatie_cover_name(outer_sni) {
+            return invalid(
+                "ech.outer_sni",
+                "external ech outer_sni must be a shared oyatie.dev cover name",
+            );
         }
         if !self.pqc.enabled || !self.pqc.hybrid_negotiation_required {
             return invalid("pqc", "external endpoints must offer hybrid pqc");
@@ -283,6 +287,12 @@ impl TransportEndpointSpec {
         }
         if self.pqc.kem.is_none() || self.pqc.signature.is_none() {
             return invalid("pqc", "hybrid pqc requires kem and signature identifiers");
+        }
+        if !self.pqc.classical_transition_fallback_allowed {
+            return invalid(
+                "pqc.classical_transition_fallback_allowed",
+                "inter-cell pqc requires classical fallback during transition",
+            );
         }
         Ok(())
     }
@@ -361,6 +371,33 @@ fn advertises_h3_443(alt_svc: &str) -> bool {
     })
 }
 
+fn is_shared_oyatie_cover_name(outer_sni: &str) -> bool {
+    if outer_sni.is_empty()
+        || outer_sni.trim() != outer_sni
+        || outer_sni.len() > 253
+        || !outer_sni.is_ascii()
+        || outer_sni
+            .bytes()
+            .any(|byte| byte.is_ascii_control() || matches!(byte, b'*' | b'/' | b':' | b'@'))
+    {
+        return false;
+    }
+
+    let lower = outer_sni.to_ascii_lowercase();
+    let labels: Vec<&str> = lower.split('.').collect();
+    if labels.len() != 3 || labels[1] != "oyatie" || labels[2] != "dev" {
+        return false;
+    }
+
+    let cover = labels[0];
+    !cover.is_empty()
+        && !cover.starts_with('-')
+        && !cover.ends_with('-')
+        && cover
+            .bytes()
+            .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -425,6 +462,20 @@ mod tests {
             Err(TransportProfileError::InvalidField {
                 field: "protocol",
                 reason: "external endpoints require http3"
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_external_profile_without_strict_tls13() {
+        let mut spec = TransportEndpointSpec::external_http3("public-inference-stream");
+        spec.tls_profile = TlsProfile::SpiffeMtlsTls13;
+
+        assert_eq!(
+            spec.validate(),
+            Err(TransportProfileError::InvalidField {
+                field: "tls_profile",
+                reason: "external endpoints require strict tls 1.3"
             })
         );
     }
@@ -496,6 +547,30 @@ mod tests {
     }
 
     #[test]
+    fn rejects_external_profile_with_incomplete_hybrid_pqc_identifiers() {
+        let mut missing_kem = TransportEndpointSpec::external_http3("public-inference-stream");
+        missing_kem.pqc.kem = None;
+        assert_eq!(
+            missing_kem.validate(),
+            Err(TransportProfileError::InvalidField {
+                field: "pqc",
+                reason: "hybrid pqc requires kem and signature identifiers"
+            })
+        );
+
+        let mut missing_signature =
+            TransportEndpointSpec::external_http3("public-inference-stream");
+        missing_signature.pqc.signature = None;
+        assert_eq!(
+            missing_signature.validate(),
+            Err(TransportProfileError::InvalidField {
+                field: "pqc",
+                reason: "hybrid pqc requires kem and signature identifiers"
+            })
+        );
+    }
+
+    #[test]
     fn rejects_external_profile_without_ech_transition_fallback() {
         let mut spec = TransportEndpointSpec::external_http3("public-inference-stream");
         spec.ech.plaintext_sni_fallback_allowed = false;
@@ -562,6 +637,78 @@ mod tests {
                 field: "ech.grease_retry_configs",
                 reason: "external ech requires grease retry configs"
             })
+        );
+    }
+
+    #[test]
+    fn rejects_external_profile_with_zero_ech_rotation_window() {
+        let mut spec = TransportEndpointSpec::external_http3("public-inference-stream");
+        spec.ech.key_rotation_hours = Some(0);
+
+        assert_eq!(
+            spec.validate(),
+            Err(TransportProfileError::InvalidField {
+                field: "ech.key_rotation_hours",
+                reason: "external ech rotation must be between 1h and 24h"
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_external_profile_with_non_cover_outer_sni() {
+        let mut tenant_specific_sni =
+            TransportEndpointSpec::external_http3("public-inference-stream");
+        tenant_specific_sni.ech.outer_sni = Some("ten_alpha.api.oyatie.dev".to_owned());
+        assert_eq!(
+            tenant_specific_sni.validate(),
+            Err(TransportProfileError::InvalidField {
+                field: "ech.outer_sni",
+                reason: "external ech outer_sni must be a shared oyatie.dev cover name"
+            })
+        );
+
+        let mut foreign_sni = TransportEndpointSpec::external_http3("public-inference-stream");
+        foreign_sni.ech.outer_sni = Some("api.example.com".to_owned());
+        assert_eq!(
+            foreign_sni.validate(),
+            Err(TransportProfileError::InvalidField {
+                field: "ech.outer_sni",
+                reason: "external ech outer_sni must be a shared oyatie.dev cover name"
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_inter_cell_profile_without_pqc_transition_fallback() {
+        let mut spec = TransportEndpointSpec::inter_cell_grpc_h2("cell-rebalance-events");
+        spec.pqc.classical_transition_fallback_allowed = false;
+
+        assert_eq!(
+            spec.validate(),
+            Err(TransportProfileError::InvalidField {
+                field: "pqc.classical_transition_fallback_allowed",
+                reason: "inter-cell pqc requires classical fallback during transition"
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_unknown_root_fields_in_endpoint_json() {
+        let mut endpoint =
+            serde_json::to_value(TransportEndpointSpec::external_http3("api-gateway-public"))
+                .expect("serialize endpoint spec");
+        endpoint
+            .as_object_mut()
+            .expect("endpoint object")
+            .insert("legacy_tls12_grace".to_owned(), serde_json::json!(true));
+
+        let error = serde_json::from_value::<TransportEndpointSpec>(endpoint)
+            .expect_err("unknown security-critical endpoint fields are rejected");
+        assert!(
+            error
+                .to_string()
+                .contains("unknown field `legacy_tls12_grace`"),
+            "{error}"
         );
     }
 
