@@ -145,6 +145,16 @@ These additive `intelligence/core/kernel` surfaces are governed by the same XPRO
 intelligence/core/kernel/src/overage_guard.rs
 intelligence/core/kernel/tests/proptest_overage_guard.rs
 ```
+
+### Addendum 2026-06-26 — PR #896 session-pinning continuation
+
+These additive `intelligence/core/kernel` surfaces are governed by the same XPROXY parity lane and ADR-0384 OAuth subscription-pool kernel boundary:
+
+```
+intelligence/core/kernel/src/session.rs
+intelligence/core/kernel/tests/proptest_session_pinning.rs
+intelligence/core/kernel/tests/session_pinning.rs
+```
 ## Consequences
 
 **Positive:**
