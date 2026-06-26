@@ -187,3 +187,19 @@ rust_test(
         "third-party//:tokio",
     ],
 )
+
+# T1 — TLS-fingerprint reachability spike (SC1/F2/OQ-7). The pure `classify`
+# unit tests run hermetically; the live probe is `#[ignore]` + env-gated and
+# only executes in the T6 K8s Job, never CI.
+rust_test(
+    name = "intelligence-rest-t1-tls-reachability-test",
+    srcs = glob(["tests/t1_tls_reachability.rs"]),
+    crate = "intelligence_rest_t1_tls_reachability_test",
+    crate_root = "tests/t1_tls_reachability.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-rest",
+        "third-party//:reqwest",
+        "third-party//:tokio",
+    ],
+)
