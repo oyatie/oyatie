@@ -7,12 +7,11 @@ use std::process::Command;
 use std::time::Duration;
 
 use intelligence_codex_sdk::{
-    AppCodex, AppInput, AppServerClient, AppServerConfig, CodexError,
-    CURRENT_APP_SERVER_REQUEST_METHODS, CURRENT_UPSTREAM_MAIN_SHA,
+    AppCodex, AppInput, AppServerClient, AppServerConfig, CURRENT_APP_SERVER_REQUEST_METHODS,
+    CURRENT_UPSTREAM_MAIN_SHA, CodexError,
 };
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use tempfile::TempDir;
-
 
 struct FakeAppServer {
     _dir: TempDir,
@@ -92,7 +91,7 @@ fn write_fake_app_server(path: &Path) {
     );
 }
 
-const FAKE_APP_SERVER_RS: &str = r#"
+const FAKE_APP_SERVER_RS: &str = r####"
 use std::env;
 use std::fs::OpenOptions;
 use std::io::{self, BufRead, Write};
@@ -205,7 +204,7 @@ fn main() {
         send(&format!(r#"{{"id":{},"result":{}}}"#, id, result));
     }
 }
-"#;
+"####;
 
 fn client_with_fake(fake: &FakeAppServer) -> AppServerClient {
     AppServerClient::new(

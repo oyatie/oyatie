@@ -3,12 +3,11 @@
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 use intelligence_codex_sdk::{AppServerConfig, AsyncAppCodex};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use tempfile::TempDir;
-
-use std::os::unix::fs::PermissionsExt;
 
 struct FakeAppServer {
     _dir: TempDir,
@@ -55,81 +54,118 @@ impl FakeAppServer {
 }
 
 fn write_fake_app_server(path: &Path) {
-    fs::write(
-        path,
-        r#"#!/usr/bin/env python3
-import json
-import os
-import sys
+    let source_path = path.with_extension("rs");
+    fs::write(&source_path, FAKE_APP_SERVER_RS).unwrap();
 
-messages_path = os.environ["CODEX_APP_MESSAGES_FILE"]
-args_path = os.environ["CODEX_APP_ARGS_FILE"]
-
-with open(args_path, "w", encoding="utf-8") as args_file:
-    for arg in sys.argv[1:]:
-        args_file.write(arg + "\n")
-
-
-def write_message(message):
-    with open(messages_path, "a", encoding="utf-8") as messages_file:
-        messages_file.write(json.dumps(message, sort_keys=True) + "\n")
-
-
-def send(message):
-    sys.stdout.write(json.dumps(message, separators=(",", ":")) + "\n")
-    sys.stdout.flush()
-
-
-def result_for(method, params):
-    if method == "initialize":
-        return {"serverInfo": {"name": "codex-cli", "version": "fake"}, "userAgent": "codex-cli/fake"}
-    if method in ("thread/start", "thread/resume", "thread/fork", "thread/unarchive", "thread/read"):
-        return {"thread": {"id": params.get("threadId", "thread-1"), "items": [], "turns": []}}
-    if method == "thread/list":
-        return {"data": [{"id": "thread-1"}], "nextCursor": None, "backwardsCursor": None}
-    if method in ("thread/archive", "thread/compact/start", "thread/name/set"):
-        return {}
-    if method == "account/read":
-        return {"account": None}
-    if method == "account/logout":
-        return {}
-    if method == "account/login/cancel":
-        return {"status": "cancelled"}
-    if method == "account/login/start":
-        if params.get("type") == "chatgptDeviceCode":
-            send({"method": "account/login/completed", "params": {"loginId": "login-device", "success": True}})
-            return {"type": "chatgptDeviceCode", "loginId": "login-device", "verificationUrl": "https://example.test/device", "userCode": "ABCD-EFGH"}
-        return {"type": "apiKey"}
-    if method == "model/list":
-        return {"data": [{"id": "gpt-test"}]}
-    if method == "turn/start":
-        final_item = {"id": "item-final", "type": "agentMessage", "phase": "final_answer", "text": "async done"}
-        send({"method": "turn/started", "params": {"threadId": params["threadId"], "turn": {"id": "turn-1", "status": "running", "items": []}}})
-        send({"method": "item/completed", "params": {"threadId": params["threadId"], "turnId": "turn-1", "completedAtMs": 2000, "item": final_item}})
-        send({"method": "thread/tokenUsage/updated", "params": {"threadId": params["threadId"], "turnId": "turn-1", "tokenUsage": {"totalTokens": 3}}})
-        send({"method": "turn/completed", "params": {"threadId": params["threadId"], "turn": {"id": "turn-1", "status": "completed", "durationMs": 42, "items": [final_item]}}})
-        return {"turn": {"id": "turn-1", "status": "running", "items": []}}
-    if method == "turn/steer":
-        return {"accepted": True}
-    if method == "turn/interrupt":
-        return {"accepted": True}
-    return {"ok": True}
-
-for line in sys.stdin:
-    message = json.loads(line)
-    write_message(message)
-    if "id" not in message or "method" not in message:
-        continue
-    params = message.get("params") or {}
-    send({"id": message["id"], "result": result_for(message["method"], params)})
-"#,
-    )
-    .unwrap();
-
-    let mut perms = fs::metadata(path).unwrap().permissions();
-    perms.set_mode(0o755);
-    fs::set_permissions(path, perms).unwrap();
+    let rustc = std::env::var("RUSTC").unwrap_or_else(|_| "rustc".to_string());
+    let output = Command::new(rustc)
+        .arg("--edition=2021")
+        .arg(&source_path)
+        .arg("-o")
+        .arg(path)
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "failed to compile Rust fake app server\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
 }
+
+const FAKE_APP_SERVER_RS: &str = r####"
+use std::env;
+use std::fs::OpenOptions;
+use std::io::{self, BufRead, Write};
+
+fn write_message(path: &str, message: &str) {
+    let mut file = OpenOptions::new().create(true).append(true).open(path).unwrap();
+    writeln!(file, "{}", message).unwrap();
+}
+
+fn send(message: &str) {
+    println!("{}", message);
+    io::stdout().flush().unwrap();
+}
+
+fn extract_string_field(input: &str, field: &str) -> Option<String> {
+    let marker = format!("\"{}\":", field);
+    let start = input.find(&marker)? + marker.len();
+    let rest = input[start..].trim_start();
+    let rest = rest.strip_prefix('"')?;
+    let end = rest.find('"')?;
+    Some(rest[..end].to_string())
+}
+
+fn extract_id(input: &str) -> Option<String> {
+    let marker = "\"id\":";
+    let start = input.find(marker)? + marker.len();
+    let rest = input[start..].trim_start();
+    let end = rest.find([',', '}']).unwrap_or(rest.len());
+    Some(rest[..end].trim().to_string())
+}
+
+fn thread_id(input: &str) -> String {
+    extract_string_field(input, "threadId").unwrap_or_else(|| "thread-1".to_string())
+}
+
+fn json_string(value: &str) -> String {
+    format!("\"{}\"", value.replace('\\', "\\\\").replace('"', "\\\""))
+}
+
+fn result_for(method: &str, message: &str) -> String {
+    match method {
+        "initialize" => r#"{"serverInfo":{"name":"codex-cli","version":"fake"},"userAgent":"codex-cli/fake"}"#.to_string(),
+        "thread/start" | "thread/resume" | "thread/fork" | "thread/unarchive" | "thread/read" => {
+            format!(r#"{{"thread":{{"id":{},"items":[],"turns":[]}}}}"#, json_string(&thread_id(message)))
+        }
+        "thread/list" => r#"{"data":[{"id":"thread-1"}],"nextCursor":null,"backwardsCursor":null}"#.to_string(),
+        "thread/archive" | "thread/compact/start" | "thread/name/set" => "{}".to_string(),
+        "account/read" => r#"{"account":null}"#.to_string(),
+        "account/logout" => "{}".to_string(),
+        "account/login/cancel" => r#"{"status":"cancelled"}"#.to_string(),
+        "account/login/start" => {
+            if message.contains(r#""type":"chatgptDeviceCode""#) || message.contains(r#""type": "chatgptDeviceCode""#) {
+                send(r#"{"method":"account/login/completed","params":{"loginId":"login-device","success":true}}"#);
+                r#"{"type":"chatgptDeviceCode","loginId":"login-device","verificationUrl":"https://example.test/device","userCode":"ABCD-EFGH"}"#.to_string()
+            } else {
+                r#"{"type":"apiKey"}"#.to_string()
+            }
+        }
+        "model/list" => r#"{"data":[{"id":"gpt-test"}]}"#.to_string(),
+        "turn/start" => {
+            let tid = thread_id(message);
+            let final_item = r#"{"id":"item-final","type":"agentMessage","phase":"final_answer","text":"async done"}"#;
+            send(&format!(r#"{{"method":"turn/started","params":{{"threadId":{},"turn":{{"id":"turn-1","status":"running","items":[]}}}}}}"#, json_string(&tid)));
+            send(&format!(r#"{{"method":"item/completed","params":{{"threadId":{},"turnId":"turn-1","completedAtMs":2000,"item":{}}}}}"#, json_string(&tid), final_item));
+            send(&format!(r#"{{"method":"thread/tokenUsage/updated","params":{{"threadId":{},"turnId":"turn-1","tokenUsage":{{"totalTokens":3}}}}}}"#, json_string(&tid)));
+            send(&format!(r#"{{"method":"turn/completed","params":{{"threadId":{},"turn":{{"id":"turn-1","status":"completed","durationMs":42,"items":[{}]}}}}}}"#, json_string(&tid), final_item));
+            r#"{"turn":{"id":"turn-1","status":"running","items":[]}}"#.to_string()
+        }
+        "turn/steer" | "turn/interrupt" => r#"{"accepted":true}"#.to_string(),
+        _ => r#"{"ok":true}"#.to_string(),
+    }
+}
+
+fn main() {
+    let messages_path = env::var("CODEX_APP_MESSAGES_FILE").unwrap();
+    let args_path = env::var("CODEX_APP_ARGS_FILE").unwrap();
+
+    let mut args_file = std::fs::File::create(args_path).unwrap();
+    for arg in env::args().skip(1) {
+        writeln!(args_file, "{}", arg).unwrap();
+    }
+
+    for line in io::stdin().lock().lines() {
+        let line = line.unwrap();
+        write_message(&messages_path, &line);
+        let Some(id) = extract_id(&line) else { continue };
+        let Some(method) = extract_string_field(&line, "method") else { continue };
+        let result = result_for(&method, &line);
+        send(&format!(r#"{{"id":{},"result":{}}}"#, id, result));
+    }
+}
+"####;
 
 #[test]
 fn async_app_codex_runs_thread_and_collects_result() {
