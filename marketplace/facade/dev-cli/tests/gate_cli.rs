@@ -5745,6 +5745,50 @@ fn planning_closure_gate_rejects_live_goal_prompt_with_retired_cargo_authority()
 }
 
 #[test]
+fn planning_closure_gate_rejects_live_goal_prompt_with_retired_oya_vcs_ratchet() {
+    let temp = TempDirGuard::new("planning-closure-retired-oya-vcs-ratchet");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let root = repo_root();
+    let (root_hub, _status_ledger) = write_planning_closure_repo_sidecars(temp.path());
+    let goal_path = temp
+        .path()
+        .join("evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json");
+    let mut goal = read_planning_closure_json(&goal_path);
+    let prompt_lines = goal
+        .get_mut("goal_prompt_lines")
+        .and_then(serde_json::Value::as_array_mut)
+        .expect("goal prompt lines present");
+    let execution_sequence = prompt_lines
+        .iter_mut()
+        .find(|line| {
+            line.as_str()
+                .is_some_and(|line| line.starts_with("Execution sequence:"))
+        })
+        .expect("execution sequence present");
+    *execution_sequence = serde_json::json!(
+        "Execution sequence: claim each ChangeSet with Oya VCS, verify before downstream work, mark done only after evidence is produced, and promote only after review."
+    );
+    write_planning_closure_json(&goal_path, &goal);
+
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root_hub,
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("retired Oya VCS claim/verify/done/promote ratchet")
+            && stderr.contains("fd001-planning-closure-implementation-goal-2026-05-19.json"),
+        "stderr={stderr}"
+    );
+}
+
+#[test]
 fn planning_closure_gate_rejects_no_placeholder_policy_without_false_signal_controls() {
     let temp = TempDirGuard::new("planning-closure-missing-false-signal-controls");
     fs::create_dir_all(temp.path()).expect("temp dir created");
