@@ -137,6 +137,14 @@ governed surface of this lane and this ADR is its justification reference; all s
 touches were already governed by this ADR's list above. Per-lane unique emission IDs close the
 collision class.
 
+### Addendum 2026-06-26 — PR #895 overage-guard continuation
+
+These additive `intelligence/core/kernel` surfaces are governed by the same XPROXY parity lane and ADR-0384 OAuth subscription-pool kernel boundary:
+
+```
+intelligence/core/kernel/src/overage_guard.rs
+intelligence/core/kernel/tests/proptest_overage_guard.rs
+```
 ## Consequences
 
 **Positive:**
