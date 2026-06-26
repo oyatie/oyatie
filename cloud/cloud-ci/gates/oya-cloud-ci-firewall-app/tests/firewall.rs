@@ -17,10 +17,18 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use oya_cloud_ci_firewall_app::{
-    Baseline, FrozenBaseline, SignOff, baseline_keys_map, evaluate_firewall, ratchet_growth,
-    FROZEN_SNAPSHOT_PATH, RATCHET_POLICY_PATH, SIGNOFF_FIXER_COMMAND, SIGNOFF_PATH,
+    Baseline, FROZEN_SNAPSHOT_PATH, FrozenBaseline, RATCHET_POLICY_PATH, SIGNOFF_FIXER_COMMAND,
+    SIGNOFF_PATH, SignOff, baseline_keys_map, evaluate_firewall, ratchet_growth,
 };
 use serde_json::Value;
+
+const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_ENV: &str =
+    "OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS";
+const ENFORCEMENT_LIVENESS_CODEX_HOOKS_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS";
+const ENFORCEMENT_LIVENESS_HOOKS_DIR_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR";
+const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: &str = ".claude/settings.json";
+const ENFORCEMENT_LIVENESS_CODEX_HOOKS: &str = ".codex/hooks.json";
+const ENFORCEMENT_LIVENESS_HOOKS_DIR: &str = "tools/hooks";
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
@@ -87,16 +95,14 @@ fn load_json(path: &Path) -> Value {
 fn regenerate_baseline(root: &Path) -> Value {
     let scm_facts = faces_dir(root).join("scm-facts.generated.json");
     let output = if let Ok(bin) = std::env::var("OYA_CI_PRODUCER_BIN") {
-        let bin = if Path::new(&bin).is_absolute() {
-            PathBuf::from(bin)
-        } else {
-            root.join(bin)
-        };
-        Command::new(bin)
+        let mut command = Command::new(resolve_bin(root, &bin));
+        command
             .arg("--repo-root")
             .arg(root)
             .arg("--scm-facts")
-            .arg(&scm_facts)
+            .arg(&scm_facts);
+        append_declared_enforcement_liveness_corpus_args(&mut command, root);
+        command
             .arg("--stdout")
             .arg("--face")
             .arg("baseline")
@@ -104,7 +110,9 @@ fn regenerate_baseline(root: &Path) -> Value {
             .output()
             .expect("run producer binary")
     } else {
-        Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_owned()))
+        let mut command =
+            Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_owned()));
+        command
             .arg("run")
             .arg("--quiet")
             .arg("-p")
@@ -113,7 +121,9 @@ fn regenerate_baseline(root: &Path) -> Value {
             .arg("--repo-root")
             .arg(root)
             .arg("--scm-facts")
-            .arg(&scm_facts)
+            .arg(&scm_facts);
+        append_declared_enforcement_liveness_corpus_args(&mut command, root);
+        command
             .arg("--stdout")
             .arg("--face")
             .arg("baseline")
@@ -127,6 +137,151 @@ fn regenerate_baseline(root: &Path) -> Value {
         String::from_utf8_lossy(&output.stderr)
     );
     serde_json::from_slice(&output.stdout).expect("baseline stdout is valid JSON")
+}
+
+fn resolve_bin(root: &Path, bin: &str) -> PathBuf {
+    let path = PathBuf::from(bin);
+    if path.is_absolute() {
+        path
+    } else {
+        root.join(path)
+    }
+}
+
+fn append_declared_enforcement_liveness_corpus_args(command: &mut Command, root: &Path) {
+    append_enforcement_liveness_corpus_paths(
+        command,
+        &declared_corpus_file(
+            root,
+            ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_ENV,
+            ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS,
+            "settings.json",
+        ),
+        &declared_corpus_file(
+            root,
+            ENFORCEMENT_LIVENESS_CODEX_HOOKS_ENV,
+            ENFORCEMENT_LIVENESS_CODEX_HOOKS,
+            "hooks.json",
+        ),
+        &declared_corpus_path(
+            root,
+            ENFORCEMENT_LIVENESS_HOOKS_DIR_ENV,
+            ENFORCEMENT_LIVENESS_HOOKS_DIR,
+        ),
+    );
+}
+
+fn declared_corpus_file(
+    root: &Path,
+    env_key: &str,
+    fallback_rel: &str,
+    file_name: &str,
+) -> PathBuf {
+    let path = declared_corpus_path(root, env_key, fallback_rel);
+    if path.is_file() {
+        return path;
+    }
+    let nested = path.join(file_name);
+    if nested.is_file() {
+        return nested;
+    }
+    path
+}
+
+fn declared_corpus_path(root: &Path, env_key: &str, fallback_rel: &str) -> PathBuf {
+    declared_corpus_path_from_env(
+        root,
+        env_key,
+        fallback_rel,
+        std::env::var("OYA_CI_PRODUCER_BIN").is_ok(),
+        std::env::var(env_key).ok().as_deref(),
+    )
+}
+
+fn declared_corpus_path_from_env(
+    root: &Path,
+    env_key: &str,
+    fallback_rel: &str,
+    buck_backed_producer: bool,
+    env_value: Option<&str>,
+) -> PathBuf {
+    if let Some(value) = env_value {
+        return resolve_bin(root, value);
+    }
+    assert!(
+        !buck_backed_producer,
+        "FAIL-CLOSED: buck-backed firewall producer invocation is missing declared corpus env {env_key}"
+    );
+    root.join(fallback_rel)
+}
+
+fn append_enforcement_liveness_corpus_paths(
+    command: &mut Command,
+    claude_settings: &Path,
+    codex_hooks: &Path,
+    hooks_dir: &Path,
+) {
+    command
+        .arg("--enforcement-liveness-claude-settings")
+        .arg(claude_settings)
+        .arg("--enforcement-liveness-codex-hooks")
+        .arg(codex_hooks)
+        .arg("--enforcement-liveness-hooks-dir")
+        .arg(hooks_dir);
+}
+
+#[test]
+fn baseline_regeneration_declares_enforcement_liveness_corpus_args() {
+    let mut command = Command::new("/tmp/producer");
+    append_enforcement_liveness_corpus_paths(
+        &mut command,
+        Path::new("/repo/.claude/settings.json"),
+        Path::new("/repo/.codex/hooks.json"),
+        Path::new("/repo/tools/hooks"),
+    );
+
+    let args: Vec<String> = command
+        .get_args()
+        .map(|arg| arg.to_string_lossy().into_owned())
+        .collect();
+
+    assert!(args.windows(2).any(|pair| {
+        pair == [
+            "--enforcement-liveness-claude-settings",
+            "/repo/.claude/settings.json",
+        ]
+    }));
+    assert!(args.windows(2).any(|pair| {
+        pair == [
+            "--enforcement-liveness-codex-hooks",
+            "/repo/.codex/hooks.json",
+        ]
+    }));
+    assert!(
+        args.windows(2)
+            .any(|pair| { pair == ["--enforcement-liveness-hooks-dir", "/repo/tools/hooks",] })
+    );
+}
+
+#[test]
+fn buck_backed_firewall_requires_declared_corpus_env() {
+    let panic = std::panic::catch_unwind(|| {
+        declared_corpus_path_from_env(
+            Path::new("/repo"),
+            "MISSING_CORPUS_ENV",
+            "fallback",
+            true,
+            None,
+        );
+    })
+    .expect_err("buck-backed missing corpus env must fail closed");
+    let message = panic
+        .downcast_ref::<String>()
+        .map(String::as_str)
+        .or_else(|| panic.downcast_ref::<&str>().copied())
+        .unwrap_or("<non-string panic>");
+    assert!(message.contains("FAIL-CLOSED"));
+    assert!(message.contains("MISSING_CORPUS_ENV"));
 }
 
 fn fixture_dir(root: &Path) -> PathBuf {
@@ -396,8 +551,8 @@ fn firewall_is_green_on_the_live_corpus_with_the_baseline() {
              stderr: {}",
             String::from_utf8_lossy(&parent_output.stderr)
         );
-        let parent_value: Value = serde_json::from_slice(&parent_output.stdout)
-            .expect("parse parent baseline JSON");
+        let parent_value: Value =
+            serde_json::from_slice(&parent_output.stdout).expect("parse parent baseline JSON");
         let pre_decommit = Baseline::from_value(&parent_value);
 
         let new_growth: Vec<(String, String, String)> =
@@ -520,7 +675,9 @@ fn converted_accounting_codes_block_new_keys_when_armed() {
     // A FAIL is never a bare flag: the converted codes carry the registration remediation.
     for code in ["unowned", "unreachable"] {
         assert!(
-            ta[code]["remediation"].as_str().is_some_and(|t| !t.is_empty()),
+            ta[code]["remediation"]
+                .as_str()
+                .is_some_and(|t| !t.is_empty()),
             "ADR-0555: {code} must stamp its registration remediation as DATA"
         );
     }
@@ -560,12 +717,17 @@ fn converted_accounting_codes_block_new_keys_when_armed() {
         .find(|r| r.gate == "cloud-ci-total-accounting" && r.code == "unowned")
         .expect("unowned code present");
     assert!(
-        unowned.regressions.contains("SYNTHETIC/new-service/born-unowned.rs")
+        unowned
+            .regressions
+            .contains("SYNTHETIC/new-service/born-unowned.rs")
             && unowned.fails(),
         "a NEW unowned file must FAIL the armed firewall"
     );
     assert!(
-        unowned.remediation.as_deref().is_some_and(|t| t.contains("OWNERS")),
+        unowned
+            .remediation
+            .as_deref()
+            .is_some_and(|t| t.contains("OWNERS")),
         "the unowned FAIL must carry the exact registration edit, never a bare flag"
     );
     assert!(!report.is_green());
@@ -585,7 +747,9 @@ fn converted_accounting_codes_block_new_keys_when_armed() {
         .find(|r| r.gate == "cloud-ci-total-accounting" && r.code == "unreachable")
         .expect("unreachable code present");
     assert!(
-        unreachable.regressions.contains("SYNTHETIC/docs/born-unreachable.md")
+        unreachable
+            .regressions
+            .contains("SYNTHETIC/docs/born-unreachable.md")
             && unreachable.fails(),
         "a NEW unreachable file must FAIL the armed firewall"
     );
@@ -613,8 +777,12 @@ fn converted_accounting_codes_block_new_keys_when_armed() {
         ));
     }
     let laundered = Baseline::from_value(&laundered_value);
-    let report =
-        evaluate_firewall(&frozen, &laundered, &baseline_keys_map(&laundered), &signoff);
+    let report = evaluate_firewall(
+        &frozen,
+        &laundered,
+        &baseline_keys_map(&laundered),
+        &signoff,
+    );
     assert!(
         report.ratchet_growth.iter().any(|(_, code, key)| {
             code == "unowned" && key == "SYNTHETIC/new-service/born-unowned.rs"
@@ -650,8 +818,7 @@ fn frozen_snapshot_provenance_matches_ratchet_policy() {
     );
     let snapshot = load_json(&frozen_snapshot_path(&root));
     assert_eq!(
-        snapshot["face_path"],
-        policy["frozen_reference"]["face_path"],
+        snapshot["face_path"], policy["frozen_reference"]["face_path"],
         "snapshot must record the (frozen) policy face path"
     );
     // BOOTSTRAP WINDOW: when missing_at_merge_base=true the face was absent at the
@@ -737,7 +904,9 @@ fn firewall_blocks_same_pr_baseline_regen_laundering() {
         .and_then(|c| c.get_mut("keys"))
         .and_then(Value::as_array_mut)
     {
-        keys.push(Value::String("SYNTHETIC/laundered-in-same-pr.rs".to_owned()));
+        keys.push(Value::String(
+            "SYNTHETIC/laundered-in-same-pr.rs".to_owned(),
+        ));
     }
     let proposed = Baseline::from_value(&proposed_value);
     let pr_local_reference = proposed.clone(); // settle protocol: committed == regenerated
@@ -781,7 +950,10 @@ fn firewall_blocks_same_pr_baseline_regen_laundering() {
             .contains("SYNTHETIC/laundered-in-same-pr.rs"),
         "the laundered key must also be a compare-mode regression vs the merge-base"
     );
-    assert!(!report.is_green(), "firewall must be RED on same-PR laundering");
+    assert!(
+        !report.is_green(),
+        "firewall must be RED on same-PR laundering"
+    );
 }
 
 /// RED-on-NEW proof against the LIVE corpus: inject ONE synthetic NEW key into the live
