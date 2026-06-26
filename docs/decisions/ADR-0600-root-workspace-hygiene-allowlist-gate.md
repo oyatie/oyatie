@@ -128,7 +128,18 @@ cloud/cloud-ci/gates/oya-cloud-ci-root-workspace-hygiene-app/Cargo.toml
 cloud/cloud-ci/gates/oya-cloud-ci-root-workspace-hygiene-app/root-workspace-hygiene-policy.json
 cloud/cloud-ci/gates/oya-cloud-ci-root-workspace-hygiene-app/src/lib.rs
 cloud/cloud-ci/gates/oya-cloud-ci-root-workspace-hygiene-app/tests/root_workspace_hygiene.rs
+.claude/BUCK
+.claude/OWNERS
+.codex/BUCK
+.codex/OWNERS
+tools/hooks/BUCK
+tools/hooks/OWNERS
 ```
+
+The `.claude/BUCK`, `.claude/OWNERS`, `.codex/BUCK`, `.codex/OWNERS`,
+`tools/hooks/BUCK`, and `tools/hooks/OWNERS` markers are the reviewed DATA/ownership
+surface that lets enforcement-liveness declare the existing hook/config corpus as Buck inputs
+without broad root-state drift or generated-face edits.
 
 ## Born-accounting
 

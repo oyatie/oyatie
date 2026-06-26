@@ -12,6 +12,15 @@ use oya_cloud_ci_enforcement_liveness_app::{Verdict, evaluate, evaluate_keyed};
 use serde_json::{Value, json};
 
 const PRODUCER_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER";
+const CLAUDE_SETTINGS_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS";
+const CODEX_HOOKS_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS";
+const HOOKS_DIR_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR";
+
+struct DeclaredCorpus {
+    claude_settings: PathBuf,
+    codex_hooks: PathBuf,
+    hooks_dir: PathBuf,
+}
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
@@ -26,18 +35,34 @@ fn repo_root() -> PathBuf {
     panic!("failed to locate repo root from test current_dir");
 }
 
-fn load_produced_face() -> Value {
+fn load_produced_face(corpus: &DeclaredCorpus) -> Value {
+    load_produced_face_with_tracked_paths(corpus, current_enforcement_tracked_paths(corpus))
+}
+
+fn load_produced_face_with_tracked_paths(
+    corpus: &DeclaredCorpus,
+    tracked_paths: Vec<String>,
+) -> Value {
     let producer = std::env::var(PRODUCER_ENV).unwrap_or_else(|e| {
         panic!("{PRODUCER_ENV} must point at Buck-built accounting-registry producer: {e}")
     });
     let root = repo_root();
-    let (scm_facts_dir, scm_facts) = write_current_enforcement_scm_facts(&root);
+    let (scm_facts_dir, scm_facts) = write_enforcement_scm_facts(tracked_paths);
     let output = Command::new(&producer)
         .args([
             "--repo-root",
             root.to_str().expect("repo root utf-8"),
             "--scm-facts",
             scm_facts.to_str().expect("scm facts path utf-8"),
+            "--enforcement-liveness-claude-settings",
+            corpus
+                .claude_settings
+                .to_str()
+                .expect("claude settings path utf-8"),
+            "--enforcement-liveness-codex-hooks",
+            corpus.codex_hooks.to_str().expect("codex hooks path utf-8"),
+            "--enforcement-liveness-hooks-dir",
+            corpus.hooks_dir.to_str().expect("hooks dir path utf-8"),
             "--stdout",
             "--face",
             "enforcement-liveness",
@@ -56,7 +81,85 @@ fn load_produced_face() -> Value {
         .unwrap_or_else(|e| panic!("parse Buck-produced enforcement-liveness face: {e}"))
 }
 
-fn write_current_enforcement_scm_facts(repo_root: &Path) -> (PathBuf, PathBuf) {
+fn declared_corpus() -> DeclaredCorpus {
+    DeclaredCorpus {
+        claude_settings: declared_file(CLAUDE_SETTINGS_ENV, "settings.json"),
+        codex_hooks: declared_file(CODEX_HOOKS_ENV, "hooks.json"),
+        hooks_dir: declared_dir(HOOKS_DIR_ENV),
+    }
+}
+
+fn declared_file(env: &str, file_name: &str) -> PathBuf {
+    let path = PathBuf::from(
+        std::env::var(env).unwrap_or_else(|e| panic!("{env} must be a Buck-declared input: {e}")),
+    );
+    if path.is_file() {
+        return path;
+    }
+    let nested = path.join(file_name);
+    if nested.is_file() {
+        return nested;
+    }
+    panic!(
+        "{env} must resolve to `{file_name}` or a directory containing it, got {}",
+        path.display()
+    );
+}
+
+fn declared_dir(env: &str) -> PathBuf {
+    let path = PathBuf::from(
+        std::env::var(env).unwrap_or_else(|e| panic!("{env} must be a Buck-declared input: {e}")),
+    );
+    if path.is_dir() {
+        return path;
+    }
+    panic!(
+        "{env} must resolve to a Buck-declared directory, got {}",
+        path.display()
+    );
+}
+
+fn synthetic_declared_corpus() -> (PathBuf, DeclaredCorpus) {
+    let nonce = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("system time before unix epoch")
+        .as_nanos();
+    let root = std::env::temp_dir().join(format!(
+        "oya-enforcement-liveness-declared-corpus-{}-{nonce}",
+        std::process::id()
+    ));
+    let hooks_dir = root.join("hooks");
+    std::fs::create_dir_all(&hooks_dir).expect("create synthetic hooks dir");
+
+    let claude_settings = root.join("settings.json");
+    let codex_hooks = root.join("hooks.json");
+    std::fs::write(
+        &claude_settings,
+        r#"{"hooks":{"PreToolUse":[{"hooks":[{"command":"./tools/hooks/hermetic-fixture.sh --from-claude"}]}]}}"#,
+    )
+    .expect("write synthetic claude settings");
+    std::fs::write(
+        &codex_hooks,
+        r#"{"hooks":{"UserPromptSubmit":[{"command":"./tools/hooks/hermetic-fixture.sh --from-codex"}]}}"#,
+    )
+    .expect("write synthetic codex hooks");
+    std::fs::write(
+        hooks_dir.join("hermetic-fixture.sh"),
+        "#!/usr/bin/env bash\necho hermetic fixture\n",
+    )
+    .expect("write synthetic hook");
+
+    (
+        root,
+        DeclaredCorpus {
+            claude_settings,
+            codex_hooks,
+            hooks_dir,
+        },
+    )
+}
+
+fn write_enforcement_scm_facts(tracked_paths: Vec<String>) -> (PathBuf, PathBuf) {
     let nonce = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .expect("system time before unix epoch")
@@ -71,7 +174,7 @@ fn write_current_enforcement_scm_facts(repo_root: &Path) -> (PathBuf, PathBuf) {
         &path,
         serde_json::to_string_pretty(&json!({
             "schema": "oya-ci/scm-facts/v2",
-            "tracked_paths": current_enforcement_tracked_paths(repo_root),
+            "tracked_paths": tracked_paths,
         }))
         .expect("serialize current enforcement scm facts")
             + "\n",
@@ -80,20 +183,17 @@ fn write_current_enforcement_scm_facts(repo_root: &Path) -> (PathBuf, PathBuf) {
     (dir, path)
 }
 
-fn current_enforcement_tracked_paths(repo_root: &Path) -> Vec<String> {
+fn current_enforcement_tracked_paths(corpus: &DeclaredCorpus) -> Vec<String> {
     let mut paths = BTreeSet::new();
-    for wiring_file in [".claude/settings.json", ".codex/hooks.json"] {
-        if repo_root.join(wiring_file).is_file() {
-            paths.insert(wiring_file.to_owned());
-        }
-    }
-    paths.extend(current_hook_paths(repo_root));
+    paths.insert(".claude/settings.json".to_owned());
+    paths.insert(".codex/hooks.json".to_owned());
+    paths.extend(current_hook_paths(&corpus.hooks_dir));
     paths.into_iter().collect()
 }
 
-fn current_hook_paths(repo_root: &Path) -> BTreeSet<String> {
+fn current_hook_paths(hooks_dir: &Path) -> BTreeSet<String> {
     let mut paths = BTreeSet::new();
-    for entry in std::fs::read_dir(repo_root.join("tools/hooks")).expect("read tools/hooks") {
+    for entry in std::fs::read_dir(hooks_dir).expect("read Buck-declared tools/hooks corpus") {
         let entry = entry.expect("read hook dir entry");
         let file_type = entry.file_type().expect("hook file type");
         if !file_type.is_file() {
@@ -108,11 +208,11 @@ fn current_hook_paths(repo_root: &Path) -> BTreeSet<String> {
     paths
 }
 
-fn current_stub_paths(repo_root: &Path, hooks: &BTreeSet<String>) -> BTreeSet<String> {
+fn current_stub_paths(hooks_dir: &Path, hooks: &BTreeSet<String>) -> BTreeSet<String> {
     hooks
         .iter()
         .filter(|hook_path| {
-            std::fs::read_to_string(repo_root.join(hook_path))
+            std::fs::read_to_string(hooks_dir.join(hook_file_name(hook_path)))
                 .expect("read hook body")
                 .contains("Compatibility stub only")
         })
@@ -120,8 +220,14 @@ fn current_stub_paths(repo_root: &Path, hooks: &BTreeSet<String>) -> BTreeSet<St
         .collect()
 }
 
-fn current_hook_command_refs(repo_root: &Path, wiring_file: &str) -> BTreeSet<String> {
-    let text = std::fs::read_to_string(repo_root.join(wiring_file)).expect("read wiring file");
+fn hook_file_name(hook_path: &str) -> &str {
+    hook_path
+        .strip_prefix("tools/hooks/")
+        .expect("hook path must be tools/hooks relative")
+}
+
+fn current_hook_command_refs(wiring_file: &Path) -> BTreeSet<String> {
+    let text = std::fs::read_to_string(wiring_file).expect("read Buck-declared wiring file");
     let value: Value = serde_json::from_str(&text).expect("parse wiring json");
     let mut refs = BTreeSet::new();
     collect_command_values(&value, &mut refs);
@@ -309,14 +415,44 @@ fn evaluate_is_bare_projection_of_evaluate_keyed() {
 }
 
 #[test]
-fn enforcement_liveness_face_reports_current_tree_green() {
-    let root = repo_root();
-    let expected_hooks = current_hook_paths(&root);
-    let expected_stubs = current_stub_paths(&root, &expected_hooks);
-    let expected_command_refs = current_hook_command_refs(&root, ".claude/settings.json").len()
-        + current_hook_command_refs(&root, ".codex/hooks.json").len();
+fn producer_consumes_declared_corpus_for_synthetic_hook_paths() {
+    let (declared_root, corpus) = synthetic_declared_corpus();
+    let tracked_paths = vec![
+        ".claude/settings.json".to_owned(),
+        ".codex/hooks.json".to_owned(),
+        "tools/hooks/hermetic-fixture.sh".to_owned(),
+    ];
 
-    let face = load_produced_face();
+    let face = load_produced_face_with_tracked_paths(&corpus, tracked_paths);
+    let rows = face["rows"].as_array().expect("enforcement-liveness rows");
+    let hook_row = rows
+        .iter()
+        .find(|row| {
+            row["row_type"] == "hook" && row["hook_path"] == "tools/hooks/hermetic-fixture.sh"
+        })
+        .expect("synthetic hook row");
+
+    assert_eq!(hook_row["wired_in_claude"].as_bool(), Some(true));
+    assert_eq!(hook_row["wired_in_codex"].as_bool(), Some(true));
+    assert_eq!(hook_row["stub_marked"].as_bool(), Some(false));
+    assert!(
+        evaluate_keyed(&face).is_empty(),
+        "synthetic declared corpus should be green when producer consumes the declared paths: {face}"
+    );
+    assert_eq!(evaluate(&face).verdict, Verdict::Green);
+
+    std::fs::remove_dir_all(declared_root).expect("remove synthetic declared corpus");
+}
+
+#[test]
+fn enforcement_liveness_face_reports_current_tree_green() {
+    let corpus = declared_corpus();
+    let expected_hooks = current_hook_paths(&corpus.hooks_dir);
+    let expected_stubs = current_stub_paths(&corpus.hooks_dir, &expected_hooks);
+    let expected_command_refs = current_hook_command_refs(&corpus.claude_settings).len()
+        + current_hook_command_refs(&corpus.codex_hooks).len();
+
+    let face = load_produced_face(&corpus);
     let rows = face["rows"].as_array().expect("enforcement-liveness rows");
     let hook_rows = string_set_from_rows(rows, "hook", "hook_path");
     let command_rows = rows
