@@ -2523,8 +2523,8 @@ async fn handle_codex_oauth_subscription_proxy(
     // Refresh the ChatGPT session token before streaming. On failure the seat
     // is released (RefreshFailed) and the request denied — never falls through
     // to an unauthenticated upstream call.
-    let access_token = match adapter.refresh_token(&refresh_token).await {
-        Ok(tokens) => tokens.access_token,
+    let (access_token, account_id) = match adapter.refresh_token(&refresh_token).await {
+        Ok(tokens) => (tokens.access_token, tokens.account_id),
         Err(error) => {
             let _ = lease_context
                 .lease
@@ -2539,7 +2539,10 @@ async fn handle_codex_oauth_subscription_proxy(
     };
 
     if allow_stream && openai_stream_requested(headers, &body) {
-        match adapter.proxy_stream(&access_token, request).await {
+        match adapter
+            .proxy_stream(&access_token, account_id.as_deref(), request)
+            .await
+        {
             Ok((upstream_status, upstream_headers, byte_stream)) => {
                 let mapped: BoxStream<Result<Bytes, RestAdapterError>> =
                     Box::pin(byte_stream.map(|chunk| {
@@ -2577,7 +2580,10 @@ async fn handle_codex_oauth_subscription_proxy(
         }
     }
 
-    match adapter.proxy(&access_token, request).await {
+    match adapter
+        .proxy(&access_token, account_id.as_deref(), request)
+        .await
+    {
         Ok(resp) => {
             let upstream_status = resp.status;
             let _ = lease_context.lease.complete(

@@ -84,7 +84,7 @@ async fn proxy_sets_bearer_and_cli_version_user_agent() {
     });
 
     let adapter = CodexAdapter::with_base_url(make_client(), server.base_url());
-    let result = adapter.proxy("test-access-token", empty_request()).await;
+    let result = adapter.proxy("test-access-token", None, empty_request()).await;
 
     assert!(result.is_ok(), "expected Ok, got: {result:?}");
     let resp = result.unwrap();
@@ -109,7 +109,7 @@ async fn proxy_429_with_retry_after_returns_rate_limited_error() {
     });
 
     let adapter = CodexAdapter::with_base_url(make_client(), server.base_url());
-    let result = adapter.proxy("some-token", empty_request()).await;
+    let result = adapter.proxy("some-token", None, empty_request()).await;
 
     assert!(result.is_err());
     match result.unwrap_err() {
@@ -196,7 +196,7 @@ async fn proxy_stream_200_returns_upstream_bytes() {
     });
 
     let adapter = CodexAdapter::with_base_url(make_client(), server.base_url());
-    let stream_result = adapter.proxy_stream("stream-token", empty_request()).await;
+    let stream_result = adapter.proxy_stream("stream-token", None, empty_request()).await;
 
     assert!(stream_result.is_ok(), "expected Ok from proxy_stream");
     let (status, _headers, mut stream) = stream_result.unwrap();
@@ -234,7 +234,7 @@ async fn response_hop_by_hop_headers_stripped() {
     });
 
     let adapter = CodexAdapter::with_base_url(make_client(), server.base_url());
-    let result = adapter.proxy("hop-token", empty_request()).await;
+    let result = adapter.proxy("hop-token", None, empty_request()).await;
 
     assert!(result.is_ok());
     let resp = result.unwrap();
@@ -295,7 +295,7 @@ async fn request_hop_by_hop_headers_not_forwarded_upstream() {
         extra_headers: headers,
     };
 
-    let result = adapter.proxy("hop-req-token", req).await;
+    let result = adapter.proxy("hop-req-token", None, req).await;
     assert!(result.is_ok(), "proxy should succeed: {result:?}");
 
     success_mock.assert_hits(1);
@@ -306,4 +306,185 @@ async fn request_hop_by_hop_headers_not_forwarded_upstream() {
             "hop-by-hop header '{h}' was forwarded upstream — must be stripped"
         );
     }
+}
+
+// ---------------------------------------------------------------------------
+// Subscription-classification headers (Originator + Chatgpt-Account-Id).
+// ---------------------------------------------------------------------------
+
+/// base64url (no padding) — only used to forge a JWT payload in tests.
+fn b64url(bytes: &[u8]) -> String {
+    const ALPHA: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+    let mut out = String::new();
+    for chunk in bytes.chunks(3) {
+        let b0 = chunk[0];
+        let b1 = *chunk.get(1).unwrap_or(&0);
+        let b2 = *chunk.get(2).unwrap_or(&0);
+        let n = ((b0 as u32) << 16) | ((b1 as u32) << 8) | (b2 as u32);
+        out.push(ALPHA[((n >> 18) & 63) as usize] as char);
+        out.push(ALPHA[((n >> 12) & 63) as usize] as char);
+        if chunk.len() > 1 {
+            out.push(ALPHA[((n >> 6) & 63) as usize] as char);
+        }
+        if chunk.len() > 2 {
+            out.push(ALPHA[(n & 63) as usize] as char);
+        }
+    }
+    out
+}
+
+/// Build a JWT (`header.payload.sig`) carrying the ChatGPT account id under the
+/// `https://api.openai.com/auth` claim, as the real Codex tokens do.
+fn jwt_with_account_id(account_id: &str) -> String {
+    let header = b64url(br#"{"alg":"none","typ":"JWT"}"#);
+    let payload = b64url(
+        format!(r#"{{"https://api.openai.com/auth":{{"chatgpt_account_id":"{account_id}"}}}}"#)
+            .as_bytes(),
+    );
+    format!("{header}.{payload}.sig")
+}
+
+#[tokio::test]
+async fn refresh_extracts_account_id_from_id_token_and_proxy_sets_subscription_headers() {
+    let server = MockServer::start();
+
+    // Session returns an id_token JWT carrying chatgpt_account_id.
+    let id_token = jwt_with_account_id("acct-from-id-token");
+    let session_body = format!(r#"{{"accessToken":"access-tok","idToken":"{id_token}"}}"#);
+    server.mock(|when, then| {
+        when.method(POST).path("/api/auth/session");
+        then.status(200)
+            .header("content-type", "application/json")
+            .body(session_body);
+    });
+
+    let adapter = CodexAdapter::with_base_url(make_client(), server.base_url());
+    let tokens = adapter
+        .refresh_token("rt")
+        .await
+        .expect("refresh should succeed");
+    assert_eq!(
+        tokens.account_id.as_deref(),
+        Some("acct-from-id-token"),
+        "account id must be parsed from the id_token JWT claim"
+    );
+
+    // Subscription proxy must carry BOTH classification headers.
+    let codex_mock = server.mock(|when, then| {
+        when.method(POST)
+            .path("/backend-api/codex/responses")
+            .header("originator", "codex_cli_rs")
+            .header("chatgpt-account-id", "acct-from-id-token");
+        then.status(200)
+            .header("content-type", "application/json")
+            .body(r#"{"id":"ok"}"#);
+    });
+
+    let resp = adapter
+        .proxy("access-tok", tokens.account_id.as_deref(), empty_request())
+        .await
+        .expect("proxy should succeed");
+    assert_eq!(resp.status, 200);
+    codex_mock.assert_hits(1);
+}
+
+#[tokio::test]
+async fn refresh_falls_back_to_access_token_jwt_for_account_id() {
+    let server = MockServer::start();
+
+    // No idToken; the accessToken is itself a JWT carrying the claim.
+    let access_jwt = jwt_with_account_id("acct-from-access-token");
+    let session_body = format!(r#"{{"accessToken":"{access_jwt}"}}"#);
+    server.mock(|when, then| {
+        when.method(POST).path("/api/auth/session");
+        then.status(200)
+            .header("content-type", "application/json")
+            .body(session_body);
+    });
+
+    let adapter = CodexAdapter::with_base_url(make_client(), server.base_url());
+    let tokens = adapter.refresh_token("rt").await.expect("refresh ok");
+    assert_eq!(
+        tokens.account_id.as_deref(),
+        Some("acct-from-access-token"),
+        "account id must fall back to the access_token JWT claim"
+    );
+}
+
+#[tokio::test]
+async fn refresh_opaque_access_token_yields_no_account_id() {
+    let server = MockServer::start();
+
+    // accessToken is an opaque (non-JWT) token; no account id is derivable.
+    server.mock(|when, then| {
+        when.method(POST).path("/api/auth/session");
+        then.status(200)
+            .header("content-type", "application/json")
+            .body(r#"{"accessToken":"opaque-not-a-jwt"}"#);
+    });
+
+    let adapter = CodexAdapter::with_base_url(make_client(), server.base_url());
+    let tokens = adapter.refresh_token("rt").await.expect("refresh ok");
+    assert_eq!(tokens.account_id, None);
+}
+
+#[tokio::test]
+async fn proxy_strips_caller_forged_subscription_headers() {
+    let server = MockServer::start();
+
+    // The caller tries to forge classification with a different originator and a
+    // spoofed account id. The adapter MUST overwrite with its trusted values.
+    let codex_mock = server.mock(|when, then| {
+        when.method(POST)
+            .path("/backend-api/codex/responses")
+            .header("originator", "codex_cli_rs")
+            .header("chatgpt-account-id", "trusted-acct");
+        then.status(200)
+            .header("content-type", "application/json")
+            .body(r#"{"id":"ok"}"#);
+    });
+
+    let mut headers = BTreeMap::new();
+    headers.insert("Originator".to_string(), "evil-cli".to_string());
+    headers.insert("Chatgpt-Account-Id".to_string(), "spoofed-acct".to_string());
+
+    let adapter = CodexAdapter::with_base_url(make_client(), server.base_url());
+    let resp = adapter
+        .proxy(
+            "access-tok",
+            Some("trusted-acct"),
+            CodexProxyRequest {
+                body: b"{}".to_vec(),
+                extra_headers: headers,
+            },
+        )
+        .await
+        .expect("proxy ok");
+    assert_eq!(resp.status, 200);
+    codex_mock.assert_hits(1);
+}
+
+#[tokio::test]
+async fn proxy_stream_sets_subscription_headers() {
+    use futures_util::StreamExt;
+
+    let server = MockServer::start();
+    let codex_mock = server.mock(|when, then| {
+        when.method(POST)
+            .path("/backend-api/codex/responses")
+            .header("originator", "codex_cli_rs")
+            .header("chatgpt-account-id", "acct-stream");
+        then.status(200)
+            .header("content-type", "text/event-stream")
+            .body("data: [DONE]\n\n");
+    });
+
+    let adapter = CodexAdapter::with_base_url(make_client(), server.base_url());
+    let (status, _headers, mut stream) = adapter
+        .proxy_stream("access-tok", Some("acct-stream"), empty_request())
+        .await
+        .expect("stream ok");
+    assert_eq!(status, 200);
+    while stream.next().await.is_some() {}
+    codex_mock.assert_hits(1);
 }
