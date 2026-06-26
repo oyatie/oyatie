@@ -157,10 +157,10 @@ flowchart TB
 - Internal mesh calls do not carry public version triplets unless they are serving the public boundary through api-gateway.
 
 ## HTTP/3 And QUIC
-- Default transport is HTTP/3 over QUIC with fallback chain HTTP/3 to HTTP/2 to HTTP/1.1.
+- Public api-gateway boundary transport is HTTP/3 over QUIC with fallback chain HTTP/3 to HTTP/2 to HTTP/1.1.
 - TLS 1.3 is mandatory; TLS 1.2 is not acceptable for this substrate service.
 - External-facing calls support ECH and PQC hybrid where endpoint class requires it.
-- Inter-cell calls use SPIFFE-federated mTLS and emit protocol_fallback events when fallback occurs.
+- Inter-cell and internal calls use gRPC over HTTP/2 with SPIFFE-federated mTLS; they do not advertise Alt-Svc or pull QUIC runtime engines unless the typed transport profile reclassifies the endpoint.
 - API p99 budgets include fallback overhead; create must remain at 200 ms p99 and status at 50 ms p99.
 
 ## Workflow Durability

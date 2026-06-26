@@ -3,7 +3,8 @@
 use oya_crm_revenue_app::adapter::AdapterRegistry;
 use oya_crm_revenue_app::config::ServiceConfig;
 use oya_crm_revenue_app::domain::{
-    BoundedContext, Capability, CapabilityDescriptor, IdempotencyKey, ServiceInvariant, TenantId,
+    BoundedContext, Capability, CapabilityDescriptor, CapabilityTier, CompliancePack, DataBoundary,
+    IdempotencyKey, ServiceInvariant, TenantId,
 };
 use oya_crm_revenue_app::{public_api_surface, scaffold};
 
@@ -32,22 +33,169 @@ fn scaffold_declares_domain_capabilities() {
 fn capability_descriptors_preserve_resource_model_boundaries() {
     let descriptors = CapabilityDescriptor::descriptors();
     let expected = [
-        (Capability::AccountMaster, BoundedContext::AccountMaster),
-        (Capability::Opportunity, BoundedContext::Opportunity),
-        (Capability::Quote, BoundedContext::Quote),
-        (Capability::Campaign, BoundedContext::Campaign),
-        (Capability::ServiceCase, BoundedContext::ServiceCase),
+        (
+            Capability::AccountMaster,
+            BoundedContext::AccountMaster,
+            CapabilityTier::Regulated,
+            DataBoundary::CustomerMasterRecord,
+            &[
+                CompliancePack::Soc2,
+                CompliancePack::Iso27001,
+                CompliancePack::Gdpr,
+                CompliancePack::Lgpd,
+                CompliancePack::KrPipa,
+            ][..],
+        ),
+        (
+            Capability::Opportunity,
+            BoundedContext::Opportunity,
+            CapabilityTier::Regulated,
+            DataBoundary::RevenuePipelineRecord,
+            &[
+                CompliancePack::Sox404,
+                CompliancePack::Soc2,
+                CompliancePack::JurisdictionalTax,
+            ],
+        ),
+        (
+            Capability::Quote,
+            BoundedContext::Quote,
+            CapabilityTier::Regulated,
+            DataBoundary::CommercialQuoteRecord,
+            &[
+                CompliancePack::Sox404,
+                CompliancePack::Soc2,
+                CompliancePack::JurisdictionalTax,
+            ],
+        ),
+        (
+            Capability::Campaign,
+            BoundedContext::Campaign,
+            CapabilityTier::Regulated,
+            DataBoundary::CampaignEngagementRecord,
+            &[
+                CompliancePack::Soc2,
+                CompliancePack::Gdpr,
+                CompliancePack::Lgpd,
+                CompliancePack::KrPipa,
+            ],
+        ),
+        (
+            Capability::ServiceCase,
+            BoundedContext::ServiceCase,
+            CapabilityTier::Regulated,
+            DataBoundary::ServiceCaseRecord,
+            &[
+                CompliancePack::Soc2,
+                CompliancePack::Iso27001,
+                CompliancePack::Gdpr,
+                CompliancePack::Lgpd,
+                CompliancePack::KrPipa,
+            ],
+        ),
     ];
 
     assert_eq!(descriptors.len(), expected.len());
     assert_eq!(
         scaffold().capabilities,
-        expected.map(|(capability, _)| capability)
+        expected.map(|(capability, _, _, _, _)| capability)
     );
-    for (descriptor, (capability, bounded_context)) in descriptors.iter().zip(expected) {
+    for (descriptor, (capability, bounded_context, tier, data_boundary, packs)) in
+        descriptors.iter().zip(expected)
+    {
         assert_eq!(descriptor.capability, capability);
         assert_eq!(descriptor.bounded_context, bounded_context);
         assert_eq!(descriptor.invariant, ServiceInvariant::TenantScoped);
+        assert_eq!(descriptor.tier, tier);
+        assert_eq!(descriptor.data_boundary, data_boundary);
+        assert_eq!(descriptor.required_packs, packs);
+    }
+}
+
+#[test]
+fn serialized_capability_descriptors_expose_metadata_fields() {
+    let serialized = serde_json::to_value(CapabilityDescriptor::descriptors()).unwrap();
+    let descriptors = serialized
+        .as_array()
+        .expect("descriptors serialize as array");
+    let expected = [
+        (
+            "account-master",
+            "regulated",
+            "customer-master-record",
+            &["soc2", "iso27001", "gdpr", "lgpd", "kr-pipa"][..],
+        ),
+        (
+            "opportunity",
+            "regulated",
+            "revenue-pipeline-record",
+            &["sox404", "soc2", "jurisdictional-tax"],
+        ),
+        (
+            "quote",
+            "regulated",
+            "commercial-quote-record",
+            &["sox404", "soc2", "jurisdictional-tax"],
+        ),
+        (
+            "campaign",
+            "regulated",
+            "campaign-engagement-record",
+            &["soc2", "gdpr", "lgpd", "kr-pipa"],
+        ),
+        (
+            "service-case",
+            "regulated",
+            "service-case-record",
+            &["soc2", "iso27001", "gdpr", "lgpd", "kr-pipa"],
+        ),
+    ];
+
+    assert_eq!(descriptors.len(), expected.len());
+    for (descriptor, (capability, tier, data_boundary, required_packs)) in
+        descriptors.iter().zip(expected)
+    {
+        assert_eq!(descriptor["capability"], capability);
+        assert_eq!(descriptor["tier"], tier);
+        assert_eq!(descriptor["data_boundary"], data_boundary);
+        let packs: Vec<_> = descriptor["required_packs"]
+            .as_array()
+            .expect("required_packs serializes as array")
+            .iter()
+            .map(|pack| pack.as_str().expect("pack serializes as string"))
+            .collect();
+        assert_eq!(packs, required_packs);
+    }
+}
+
+#[test]
+fn capability_descriptor_metadata_has_no_missing_or_default_values() {
+    let descriptors = serde_json::to_value(CapabilityDescriptor::descriptors()).unwrap();
+    let descriptors = descriptors
+        .as_array()
+        .expect("descriptors serialize as array");
+    let placeholders = ["", "unknown", "default", "unspecified"];
+
+    for descriptor in descriptors {
+        for field in ["tier", "data_boundary"] {
+            let value = descriptor[field].as_str().expect("metadata field exists");
+            assert!(
+                !placeholders.contains(&value),
+                "{field} must not use placeholder metadata"
+            );
+        }
+
+        let packs = descriptor["required_packs"]
+            .as_array()
+            .expect("required_packs field exists");
+        assert!(!packs.is_empty(), "required_packs must not be empty");
+        for pack in packs {
+            let value = pack.as_str().expect("pack serializes as string");
+            assert!(
+                !placeholders.contains(&value),
+                "required_packs must not use placeholder metadata"
+            );
+        }
     }
 }
 
