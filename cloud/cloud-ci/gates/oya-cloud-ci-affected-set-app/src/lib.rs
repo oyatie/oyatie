@@ -636,6 +636,42 @@ mod tests {
         assert!(err.0.contains("does not match engine"), "{err}");
     }
 
+    fn minimal_policy_json(full_triggers: &str, require_owners: &str) -> String {
+        format!(
+            r#"{{
+                "gate_id": "{GATE_ID}",
+                "universe": "//...",
+                "full_run_targets": ["//..."],
+                "full_trigger_patterns": {full_triggers},
+                "require_owner_patterns": {require_owners},
+                "package_definition_basenames": ["BUCK.v2", "BUCK"],
+                "package_sibling_basenames": ["Cargo.toml", "build.rs"],
+                "cell_roots": {{"": "//"}},
+                "default_base_ref": "origin/dev"
+            }}"#
+        )
+    }
+
+    #[test]
+    fn policy_rejects_empty_full_trigger_patterns() {
+        let json = minimal_policy_json("[]", r#"["**/*.rs"]"#);
+        let err = Policy::from_json(&json).unwrap_err();
+        assert!(
+            err.0.contains("full_trigger_patterns") && err.0.contains("non-empty"),
+            "{err}"
+        );
+    }
+
+    #[test]
+    fn policy_rejects_empty_require_owner_patterns() {
+        let json = minimal_policy_json(r#"["third-party/**"]"#, "[]");
+        let err = Policy::from_json(&json).unwrap_err();
+        assert!(
+            err.0.contains("require_owner_patterns") && err.0.contains("non-empty"),
+            "{err}"
+        );
+    }
+
     fn set(items: &[&str]) -> BTreeSet<String> {
         items.iter().map(|s| s.to_string()).collect()
     }
