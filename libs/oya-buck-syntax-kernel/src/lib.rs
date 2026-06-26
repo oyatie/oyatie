@@ -383,6 +383,41 @@ mod tests {
     }
 
     #[test]
+    fn expression_nesting_boundary_allows_limit_and_rejects_next_level() {
+        fn nested_lists(depth: usize) -> String {
+            let mut expr = "\"leaf\"".to_owned();
+            for _ in 0..depth {
+                expr = format!("[{expr}]");
+            }
+            expr
+        }
+
+        fn opaque_call_tail(depth: usize) -> String {
+            format!("root.{}\"leaf\"{}", "m(".repeat(depth), ")".repeat(depth))
+        }
+
+        fn assert_parses(label: &str, expr: String) {
+            let buck = format!("X = {expr}\n");
+            parse(&buck)
+                .unwrap_or_else(|err| panic!("{label}: expected parse success, got {err}"));
+        }
+
+        fn assert_depth_capped(label: &str, expr: String) {
+            let buck = format!("X = {expr}\n");
+            let err = parse(&buck).expect_err("expression one past the cap must fail");
+            assert!(
+                err.message.contains("nesting depth exceeds 128"),
+                "{label}: depth cap must name the limit, got: {err}"
+            );
+        }
+
+        assert_parses("modeled expression at cap", nested_lists(128));
+        assert_depth_capped("modeled expression beyond cap", nested_lists(129));
+        assert_parses("opaque postfix tail at cap", opaque_call_tail(128));
+        assert_depth_capped("opaque postfix tail beyond cap", opaque_call_tail(129));
+    }
+
+    #[test]
     fn index_assignments_and_comprehensions_parse() {
         let buck = concat!(
             "ROOT = \"cloud/ci/adapter\"\n",
