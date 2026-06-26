@@ -1,31 +1,21 @@
 //! # cloud-ci-crypto-backend-purity (ADR-0506)
 //!
 //! The crypto-backend-purity gate. ADR-0506 mandates `aws-lc-rs` as the SINGLE canonical Phase-1
-//! crypto backend and FORBIDS `ring`. The ADR DESCRIBES the zero-ring invariant — "`cargo tree -i
-//! ring --target all` now prints nothing" and "`buck2 cquery \"deps(//...)\" | grep ring-0.17`
-//! returns 0" — but NOTHING mechanically enforced it. This gate is that enforcement (founder
-//! doctrine: flag-only/manual = incomplete; construction > reaction; automate everything
-//! automatable).
+//! crypto backend and FORBIDS `ring`. The ADR DESCRIBES the zero-ring invariant — the forbidden
+//! backend must be absent from the Buck2 build graph — but NOTHING mechanically enforced it.
+//! This gate is that enforcement (founder doctrine: flag-only/manual = incomplete; construction >
+//! reaction; automate everything automatable).
 //!
 //! ## The signal is feature-resolved ACTIVATION, not the dependency SUPERSET
 //! This is the load-bearing distinction the gate exists to draw correctly.
 //!
-//! `Cargo.lock` retains a `ring 0.17` stanza as an UNACTIVATED optional-dependency phantom:
-//! `reqwest`'s optional, never-enabled `http3` feature pulls `quinn -> quinn-proto -> ring`, and
-//! `rustls-webpki` carries an OFF `ring` feature. **Cargo stores resolved versions including
-//! optional deps, NOT feature activation** (ADR-0506). The SAME phantom is present in `cargo
-//! metadata`'s `resolve.nodes[].dependencies` AND `resolve.nodes[].deps[]` — neither prunes an
-//! optional edge whose feature is off, because `cargo metadata` reports the resolved superset, not
-//! the activated selection. Asserting on the lock text or on cargo-metadata resolve nodes would
-//! therefore FALSE-RED on a harmless phantom that is in no build graph and is never compiled.
-//!
-//! The correct, portable signal — the one ADR-0506 itself cites — is `cargo tree -i <crate>
-//! --target all`. The `-i` (inverse) view is FEATURE-RESOLVED: it prunes an optional dependency
-//! edge whose activating feature is off, so it prints "nothing to print" exactly when the backend
-//! is never activated for any target/feature, and prints the real activated dependents when it is.
-//! [`collect_activated_backends`] runs that command per forbidden crate; [`evaluate_keyed`] fails
-//! iff any forbidden backend has ≥1 ACTIVATED dependent. The gate thus distinguishes an ACTIVATED
-//! ring (FAIL) from the documented lock-superset phantom (OK).
+//! `Cargo.lock` may retain a `ring 0.17` stanza as an UNACTIVATED optional-dependency phantom:
+//! a disabled feature can keep a resolved version in the lock without compiling that backend.
+//! Lock text is therefore not authority. This gate reads the local Buck graph instead:
+//! first-party BUCK files provide the build roots, generated `third-party/BUCK` provides the
+//! vendored crate edges, and [`evaluate_keyed`] fails iff a forbidden backend is reachable from
+//! a first-party Buck target. The gate thus distinguishes an ACTIVATED ring (FAIL) from the
+//! documented lock-superset phantom (OK) without touching the network or invoking Cargo.
 //!
 //! ## Born pack-shaped
 //! The crate is a NEUTRAL engine. All repo-specifics — the forbidden-backend set, the mandated
@@ -33,9 +23,9 @@
 //! oyatie-specific is hardcoded in Rust; a different repo adopts the gate by repointing the policy.
 //!
 //! ## Kernel contract
-//! - [`collect_activated_backends`] `(root, policy) -> observed` is the ONLY I/O: it shells
-//!   `cargo tree -i <crate> --target all` for each forbidden crate and parses the activated
-//!   dependents. Read-only; writes no temp files.
+//! - [`collect_activated_backends`] `(root, policy) -> observed` is the ONLY I/O: it reads local
+//!   BUCK files and generated `third-party/BUCK`. Read-only; writes no temp files; runs no
+//!   subprocesses.
 //! - [`evaluate_keyed`] `(policy, observed) -> BTreeSet<Finding>` is PURE and unit-testable without
 //!   a filesystem or subprocess; it applies the forbidden set to the observed activation view.
 //! - [`evaluate`] is the bare-code projection of `evaluate_keyed`, the single source of the verdict.
@@ -47,9 +37,9 @@
 //!
 //! ## Violation codes (the contract — literal strings the gate emits)
 //! - `CBP-FORBIDDEN-BACKEND-ACTIVATED` — a forbidden crypto backend has ≥1 ACTIVATED dependent in
-//!   the feature-resolved `cargo tree -i <crate> --target all` graph.
+//!   the local Buck graph rooted at first-party BUCK targets.
 //! - `CBP-EMPTY-SCAN`                  — the workspace package census is below the policy floor
-//!   (catches a broken CWD / cargo invocation that would otherwise be a false-green).
+//!   (catches a broken repo-root invocation that would otherwise be a false-green).
 //! - `CBP-POLICY-GATE-ID-MISMATCH`     — the policy `gate_id` is not [`GATE_ID`] (fail-closed).
 //! - `CBP-POLICY-MALFORMED`            — the policy `forbidden` list is missing/malformed.
 //!
@@ -57,10 +47,11 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
+use std::fs;
 use std::path::Path;
-use std::process::Command;
 
+use oya_buck_syntax_kernel::{Stmt, call_strings, parse};
 use serde_json::{Value, json};
 
 /// The gate id, matching the buck2 target + the policy `gate_id`.
@@ -77,41 +68,31 @@ pub const VIOLATION_CODES: [&str; 4] = [
 /// The sentinel key for codes that are policy-level rather than per-backend.
 const POLICY_KEY: &str = "<policy>";
 
-/// The sentinel `cargo tree -i` emits (on stdout AND/OR stderr) when the queried crate has NO
-/// activated dependent in the feature-resolved graph. This is the OK signal — the backend is never
-/// compiled for any target/feature. We match on this substring rather than relying on an empty
-/// stdout, because cargo prints the message plus a hint, and routes it to stderr.
-pub const NOTHING_TO_PRINT: &str = "nothing to print";
-
 // ---------------------------------------------------------------------------
-// Collection (the only I/O; read-only subprocess)
+// Collection (the only I/O; local BUCK reads)
 // ---------------------------------------------------------------------------
 
 /// Errors collecting the observed activation graph. Returned instead of panicking so the caller
-/// (CI / a controller) decides how to surface them — a failed `cargo tree` is a fail-closed error,
-/// never a silently skipped backend.
+/// (CI / a controller) decides how to surface them — an unreadable or unparseable Buck graph is a
+/// fail-closed error, never a silently skipped backend.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CollectError {
-    /// `cargo` could not be spawned at all (no cargo on PATH).
-    Spawn(String),
-    /// `cargo tree` ran but exited non-zero for a reason OTHER than "nothing to print"
-    /// (e.g. a manifest error). Fail closed: the activation view is unknown, not empty.
-    CargoTree { crate_name: String, message: String },
-    /// `cargo metadata` (the package-census probe) could not be run or parsed.
-    Census(String),
+    /// A local graph file could not be read.
+    Io { path: String, message: String },
+    /// The local Buck graph could not be interpreted enough to enforce the policy.
+    BuckGraph(String),
 }
 
 impl std::fmt::Display for CollectError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            CollectError::Spawn(message) => write!(f, "crypto-backend-purity spawn cargo: {message}"),
-            CollectError::CargoTree { crate_name, message } => write!(
-                f,
-                "crypto-backend-purity `cargo tree -i {crate_name} --target all` failed (fail-closed): {message}"
-            ),
-            CollectError::Census(message) => {
-                write!(f, "crypto-backend-purity package census: {message}")
+            CollectError::Io { path, message } => {
+                write!(f, "crypto-backend-purity read {path}: {message}")
             }
+            CollectError::BuckGraph(message) => write!(
+                f,
+                "crypto-backend-purity Buck graph collection failed closed: {message}"
+            ),
         }
     }
 }
@@ -133,19 +114,20 @@ pub fn forbidden_crates(policy: &Value) -> Vec<String> {
 
 /// Collect the observed activation graph the policy asks about.
 ///
-/// For each forbidden crate, runs `cargo tree -i <crate> --target all` at `root` and records the
-/// ACTIVATED dependent lines (empty iff cargo printed the "nothing to print" sentinel — the backend
-/// is never compiled). Also probes the workspace package census via `cargo metadata --no-deps` so a
-/// broken CWD / cargo invocation fails closed via `CBP-EMPTY-SCAN` rather than passing as a
-/// false-green. Emits:
+/// For each forbidden crate, walks from first-party BUCK references into generated
+/// `third-party/BUCK` local labels and records reachable forbidden targets. Also probes the
+/// first-party manifest census from local `Cargo.toml` files so a broken repo root fails closed via
+/// `CBP-EMPTY-SCAN` rather than passing as a false-green. Emits:
 /// `{ "workspace_packages_found": <usize>, "backends": [ { "crate": <name>,
 ///    "activated_dependents": [ <line>, .. ] } ] }`.
 pub fn collect_activated_backends(root: &Path, policy: &Value) -> Result<Value, CollectError> {
     let census = workspace_package_count(root)?;
+    let graph = ThirdPartyGraph::load(root)?;
+    let roots = collect_first_party_third_party_roots(root)?;
 
     let mut backends = Vec::new();
     for crate_name in forbidden_crates(policy) {
-        let activated = activated_dependents_of(root, &crate_name)?;
+        let activated = graph.activated_dependents_of(&roots, &crate_name);
         backends.push(json!({
             "crate": crate_name,
             "activated_dependents": activated,
@@ -158,96 +140,342 @@ pub fn collect_activated_backends(root: &Path, policy: &Value) -> Result<Value, 
     }))
 }
 
-/// Run `cargo tree -i <crate_name> --target all` at `root` and return the ACTIVATED dependent
-/// lines. Returns an empty Vec iff cargo reported the "nothing to print" sentinel (the backend has
-/// no activated dependent — the OK signal). Any OTHER non-zero exit fails closed: we must never
-/// treat an unknown activation view as empty.
-fn activated_dependents_of(root: &Path, crate_name: &str) -> Result<Vec<String>, CollectError> {
-    let output = Command::new("cargo")
-        .args(["tree", "--invert", crate_name, "--target", "all"])
-        .current_dir(root)
-        .output()
-        .map_err(|e| CollectError::Spawn(e.to_string()))?;
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let stderr = String::from_utf8_lossy(&output.stderr);
-
-    // The "nothing to print" sentinel is the OK signal — the queried crate has no activated
-    // dependent for any target/feature. cargo routes it to stderr (with a hint) rather than
-    // stdout, so probe BOTH streams. `cargo tree` exits 0 in this case, so this branch is taken
-    // before the success check below.
-    if stdout.contains(NOTHING_TO_PRINT) || stderr.contains(NOTHING_TO_PRINT) {
-        return Ok(Vec::new());
-    }
-
-    if !output.status.success() {
-        // A genuine failure (manifest error, lock out of date, unknown crate handling, …). The
-        // activation view is UNKNOWN, not empty: fail closed so a broken probe cannot false-green.
-        let message = stderr.trim();
-        return Err(CollectError::CargoTree {
-            crate_name: crate_name.to_owned(),
-            message: if message.is_empty() {
-                format!("exit status {:?} with empty stderr", output.status.code())
-            } else {
-                message.to_owned()
-            },
-        });
-    }
-
-    Ok(parse_cargo_tree_dependents(&stdout))
+#[derive(Debug, Default)]
+struct ThirdPartyGraph {
+    deps_by_target: BTreeMap<String, BTreeSet<String>>,
+    crate_names_by_target: BTreeMap<String, BTreeSet<String>>,
 }
 
-/// Parse the activated dependent lines from `cargo tree -i` output. Each non-blank line names a
-/// crate that ACTIVATES (directly or transitively depends, with the feature on) the queried
-/// backend; the first line is the queried crate itself. We keep ALL crate lines as the evidence
-/// set (their presence at all means the backend is activated).
-///
-/// The "nothing to print" sentinel SHORT-CIRCUITS to an empty set: if it appears anywhere in the
-/// output, the queried crate has no activated dependent (the OK signal), regardless of any
-/// accompanying `warning:`/`hint:` advisory lines cargo prints alongside it. Advisory lines
-/// (`warning:`, `hint:`, `note:`) are filtered so they are never mistaken for crate lines. Pure
-/// helper, exposed for tests so the fixture-driven RED/GREEN cases need no live cargo.
-pub fn parse_cargo_tree_dependents(stdout: &str) -> Vec<String> {
-    if stdout.contains(NOTHING_TO_PRINT) {
-        return Vec::new();
+impl ThirdPartyGraph {
+    fn load(root: &Path) -> Result<Self, CollectError> {
+        let path = root.join("third-party/BUCK");
+        let text = read_file(&path)?;
+        let mut graph = ThirdPartyGraph::default();
+        for block in generated_buck_blocks(&text) {
+            let Some(target) = generated_field(block, "name") else {
+                continue;
+            };
+            graph
+                .deps_by_target
+                .entry(target.clone())
+                .or_default()
+                .extend(generated_local_deps(block));
+            for crate_name in crate_names_implied_by_target(&target, block) {
+                graph
+                    .crate_names_by_target
+                    .entry(target.clone())
+                    .or_default()
+                    .insert(crate_name);
+            }
+        }
+        if graph.deps_by_target.is_empty() {
+            return Err(CollectError::BuckGraph(format!(
+                "{} contained no generated targets",
+                path.display()
+            )));
+        }
+        Ok(graph)
     }
-    stdout
-        .lines()
-        .map(str::trim_end)
-        .filter(|line| !line.trim().is_empty())
-        .filter(|line| {
-            let trimmed = line.trim_start();
-            !(trimmed.starts_with("warning:")
-                || trimmed.starts_with("hint:")
-                || trimmed.starts_with("note:"))
-        })
-        .map(str::to_owned)
-        .collect()
+
+    fn activated_dependents_of(
+        &self,
+        first_party_roots: &BTreeSet<String>,
+        crate_name: &str,
+    ) -> Vec<String> {
+        let forbidden_targets = self.targets_for_crate(crate_name);
+        let mut activated = BTreeSet::new();
+        let mut queue = VecDeque::new();
+        let mut visited = BTreeSet::new();
+
+        for root in first_party_roots {
+            queue.push_back((root.clone(), root.clone()));
+        }
+
+        while let Some((root, target)) = queue.pop_front() {
+            if !visited.insert((root.clone(), target.clone())) {
+                continue;
+            }
+            if forbidden_targets.contains(&target)
+                || self.target_has_crate_name(&target, crate_name)
+                || target_belongs_to_crate(&target, crate_name)
+            {
+                activated.insert(format!(
+                    "third-party//:{target} reachable from first-party BUCK dependency third-party//:{root}"
+                ));
+                continue;
+            }
+            if let Some(deps) = self.deps_by_target.get(&target) {
+                for dep in deps {
+                    queue.push_back((root.clone(), dep.clone()));
+                }
+            }
+        }
+
+        activated.into_iter().collect()
+    }
+
+    fn targets_for_crate(&self, crate_name: &str) -> BTreeSet<String> {
+        let mut targets = BTreeSet::from([crate_name.to_owned()]);
+        for (target, names) in &self.crate_names_by_target {
+            if names.contains(crate_name) || target_belongs_to_crate(target, crate_name) {
+                targets.insert(target.clone());
+            }
+        }
+        targets
+    }
+
+    fn target_has_crate_name(&self, target: &str, crate_name: &str) -> bool {
+        self.crate_names_by_target
+            .get(target)
+            .is_some_and(|names| names.contains(crate_name))
+    }
 }
 
-/// Probe the workspace package census via `cargo metadata --no-deps` (the sole sanctioned cargo
-/// metadata invocation — the gate's own fail-closed floor). A too-small census trips
-/// `CBP-EMPTY-SCAN`, catching a broken CWD / cargo invocation that would otherwise pass as a
-/// false-green.
+/// Probe the first-party package census from local manifests. A too-small census trips
+/// `CBP-EMPTY-SCAN`, catching a broken repo root that would otherwise pass as a false-green.
 fn workspace_package_count(root: &Path) -> Result<u64, CollectError> {
-    let output = Command::new("cargo")
-        .args(["metadata", "--no-deps", "--format-version", "1"])
-        .current_dir(root)
-        .output()
-        .map_err(|e| CollectError::Spawn(e.to_string()))?;
-    if !output.status.success() {
-        return Err(CollectError::Census(
-            String::from_utf8_lossy(&output.stderr).trim().to_owned(),
-        ));
-    }
-    let metadata: Value = serde_json::from_slice(&output.stdout)
-        .map_err(|e| CollectError::Census(format!("parse cargo metadata: {e}")))?;
-    let count = metadata
-        .get("packages")
-        .and_then(Value::as_array)
-        .map(|packages| packages.len() as u64)
-        .unwrap_or(0);
+    let mut count = 0u64;
+    visit_files(root, &mut |path| {
+        if path.file_name().and_then(|name| name.to_str()) == Some("Cargo.toml") {
+            count += 1;
+        }
+        Ok(())
+    })?;
     Ok(count)
+}
+
+fn collect_first_party_third_party_roots(root: &Path) -> Result<BTreeSet<String>, CollectError> {
+    let third_party = root.join("third-party");
+    let mut roots = BTreeSet::new();
+    visit_files(root, &mut |path| {
+        if path.starts_with(&third_party) {
+            return Ok(());
+        }
+        if path.file_name().and_then(|name| name.to_str()) != Some("BUCK") {
+            return Ok(());
+        }
+        let text = read_file(path)?;
+        collect_thirdparty_tokens_from_buck(&text, &mut roots);
+        Ok(())
+    })?;
+    Ok(roots)
+}
+
+fn collect_thirdparty_tokens_from_buck(text: &str, out: &mut BTreeSet<String>) {
+    match parse(text) {
+        Ok(doc) => {
+            doc.visit_calls(&mut |call| {
+                if call.has_opaque() {
+                    collect_thirdparty_tokens(call.span.slice(text), out);
+                } else {
+                    for s in call_strings(call) {
+                        collect_thirdparty_tokens(&s, out);
+                    }
+                }
+            });
+            for stmt in &doc.stmts {
+                if let Stmt::Opaque { .. } = stmt {
+                    collect_thirdparty_tokens(stmt.span().slice(text), out);
+                }
+            }
+        }
+        Err(_) => collect_thirdparty_tokens(text, out),
+    }
+}
+
+fn collect_thirdparty_tokens(text: &str, out: &mut BTreeSet<String>) {
+    let marker = "third-party//:";
+    let mut from = 0usize;
+    while let Some(rel) = text[from..].find(marker) {
+        let start = from + rel + marker.len();
+        let name: String = text[start..]
+            .chars()
+            .take_while(|c| c.is_ascii_alphanumeric() || *c == '_' || *c == '-' || *c == '.')
+            .collect();
+        if !name.is_empty() {
+            out.insert(name);
+        }
+        from = start;
+    }
+}
+
+fn generated_buck_blocks(text: &str) -> Vec<&str> {
+    let mut blocks = Vec::new();
+    let mut start = None;
+    let mut offset = 0usize;
+    for line in text.split_inclusive('\n') {
+        let trimmed = line.trim();
+        if start.is_none() && trimmed.ends_with('(') && !trimmed.starts_with('#') {
+            start = Some(offset);
+        }
+        if trimmed == ")" {
+            if let Some(byte_start) = start.take() {
+                blocks.push(&text[byte_start..offset + line.len()]);
+            }
+        }
+        offset += line.len();
+    }
+    blocks
+}
+
+fn generated_field(block: &str, field: &str) -> Option<String> {
+    let prefix = format!("{field} = ");
+    for line in block.lines() {
+        let trimmed = line.trim();
+        if !trimmed.starts_with(&prefix) {
+            continue;
+        }
+        return quoted_strings(trimmed).into_iter().next();
+    }
+    None
+}
+
+fn crate_names_implied_by_target(target: &str, block: &str) -> BTreeSet<String> {
+    let mut names = BTreeSet::new();
+    if let Some(crate_name) = generated_field(block, "crate") {
+        insert_crate_name_spellings(&mut names, &crate_name);
+    }
+    for line in block.lines() {
+        if line.contains("\"CARGO_PKG_NAME\"") {
+            if let Some(crate_name) = quoted_strings(line).into_iter().last() {
+                insert_crate_name_spellings(&mut names, &crate_name);
+            }
+        }
+    }
+    if let Some((name, _version)) = target.rsplit_once('-') {
+        if target_belongs_to_crate(target, name) {
+            names.insert(name.to_owned());
+        }
+    }
+    names
+}
+
+fn insert_crate_name_spellings(names: &mut BTreeSet<String>, crate_name: &str) {
+    names.insert(crate_name.to_owned());
+    names.insert(crate_name.replace('_', "-"));
+}
+
+fn generated_local_deps(block: &str) -> BTreeSet<String> {
+    let mut deps = BTreeSet::new();
+    for quoted in quoted_strings(block) {
+        collect_colon_labels(&quoted, &mut deps);
+    }
+    deps
+}
+
+fn collect_colon_labels(text: &str, out: &mut BTreeSet<String>) {
+    let bytes = text.as_bytes();
+    let mut index = 0usize;
+    while index < bytes.len() {
+        if bytes[index] != b':' {
+            index += 1;
+            continue;
+        }
+        let start = index + 1;
+        let mut end = start;
+        while end < bytes.len() {
+            let ch = bytes[end] as char;
+            if ch.is_ascii_alphanumeric() || ch == '_' || ch == '-' || ch == '.' {
+                end += 1;
+            } else {
+                break;
+            }
+        }
+        if end > start {
+            out.insert(text[start..end].to_owned());
+        }
+        index = end.max(index + 1);
+    }
+}
+
+fn quoted_strings(text: &str) -> Vec<String> {
+    let mut strings = Vec::new();
+    let mut chars = text.char_indices().peekable();
+    while let Some((_start, ch)) = chars.next() {
+        if ch != '"' {
+            continue;
+        }
+        let mut escaped = false;
+        let mut value = String::new();
+        let mut closed = false;
+        for (_index, next) in chars.by_ref() {
+            if escaped {
+                value.push(next);
+                escaped = false;
+            } else if next == '\\' {
+                escaped = true;
+            } else if next == '"' {
+                closed = true;
+                break;
+            } else {
+                value.push(next);
+            }
+        }
+        if closed {
+            strings.push(value);
+        } else {
+            break;
+        }
+    }
+    strings
+}
+
+fn target_belongs_to_crate(target: &str, crate_name: &str) -> bool {
+    let Some(rest) = target.strip_prefix(crate_name) else {
+        return false;
+    };
+    if rest.is_empty() {
+        return true;
+    }
+    rest.strip_prefix('-')
+        .and_then(|suffix| suffix.chars().next())
+        .is_some_and(|ch| ch.is_ascii_digit())
+}
+
+fn visit_files<F>(root: &Path, visit: &mut F) -> Result<(), CollectError>
+where
+    F: FnMut(&Path) -> Result<(), CollectError>,
+{
+    let mut queue = VecDeque::from([root.to_path_buf()]);
+    while let Some(dir) = queue.pop_front() {
+        for entry in fs::read_dir(&dir).map_err(|e| CollectError::Io {
+            path: dir.display().to_string(),
+            message: e.to_string(),
+        })? {
+            let entry = entry.map_err(|e| CollectError::Io {
+                path: dir.display().to_string(),
+                message: e.to_string(),
+            })?;
+            let path = entry.path();
+            let file_type = entry.file_type().map_err(|e| CollectError::Io {
+                path: path.display().to_string(),
+                message: e.to_string(),
+            })?;
+            if file_type.is_dir() {
+                if should_skip_dir(&path) {
+                    continue;
+                }
+                queue.push_back(path);
+            } else if file_type.is_file() {
+                visit(&path)?;
+            }
+        }
+    }
+    Ok(())
+}
+
+fn should_skip_dir(path: &Path) -> bool {
+    matches!(
+        path.file_name().and_then(|name| name.to_str()),
+        Some(".git" | "buck-out" | "target" | "third-party")
+    )
+}
+
+fn read_file(path: &Path) -> Result<String, CollectError> {
+    fs::read_to_string(path).map_err(|e| CollectError::Io {
+        path: path.display().to_string(),
+        message: e.to_string(),
+    })
 }
 
 // ---------------------------------------------------------------------------
@@ -317,12 +545,11 @@ fn mandated_replacement_for(policy: &Value, crate_name: &str) -> String {
 /// collected activation graph shaped by [`collect_activated_backends`].
 ///
 /// CRITICAL (ADR-0506): the evaluator reads `observed.backends[].activated_dependents`, which the
-/// collector derives from `cargo tree -i <crate> --target all` — the FEATURE-RESOLVED activation
-/// view. It does NOT (and must not) read Cargo.lock text nor cargo-metadata resolve-node
-/// dependency lists: those retain the documented unactivated optional-dep `ring` phantom (reqwest's
-/// off `http3`/quinn chain; rustls-webpki's off `ring` feature) and would false-RED on a harmless
-/// stanza that is never compiled. An ACTIVATED forbidden backend (non-empty dependents) is a FAIL;
-/// the lock-superset phantom (which never appears here because the feature is off) is OK.
+/// collector derives from local first-party BUCK roots plus generated `third-party/BUCK` edges. It
+/// does NOT (and must not) read Cargo.lock text nor cargo-metadata resolve-node dependency lists:
+/// those retain the documented unactivated optional-dep `ring` phantom and would false-RED on a
+/// harmless stanza that is never compiled. A reachable forbidden backend is a FAIL; the
+/// lock-superset phantom (which never appears in the Buck graph) is OK.
 pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
     let mut findings = BTreeSet::new();
 
@@ -367,7 +594,7 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
             "CBP-EMPTY-SCAN",
             POLICY_KEY,
             format!(
-                "workspace package census {census} is below the policy floor of {min_expected}; the CWD or the cargo invocation is likely broken (fail-closed against a silent false-green where `cargo tree` saw an empty graph)"
+                "workspace package census {census} is below the policy floor of {min_expected}; the repo root is likely wrong (fail-closed against a silent false-green where the Buck graph saw an empty workspace)"
             ),
         ));
     }
@@ -389,7 +616,7 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
                 "CBP-FORBIDDEN-BACKEND-ACTIVATED",
                 crate_name,
                 format!(
-                    "no activation observation was produced for forbidden backend `{crate_name}`; the activation view is unknown — failing closed (re-run the collector / check `cargo tree -i {crate_name} --target all`)"
+                    "no activation observation was produced for forbidden backend `{crate_name}`; the Buck activation view is unknown — failing closed (re-run the collector / inspect first-party BUCK roots and generated third-party/BUCK)"
                 ),
             ));
             continue;
@@ -397,13 +624,17 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
         let dependents = entry
             .get("activated_dependents")
             .and_then(Value::as_array)
-            .map(|arr| arr.iter().filter_map(Value::as_str).map(str::to_owned).collect::<Vec<_>>())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(Value::as_str)
+                    .map(str::to_owned)
+                    .collect::<Vec<_>>()
+            })
             .unwrap_or_default();
         if dependents.is_empty() {
-            // The OK case: zero ACTIVATED dependents. (`cargo tree -i` printed "nothing to print".)
-            // The Cargo.lock / cargo-metadata SUPERSET may still list this crate as an unactivated
-            // optional-dep phantom — that is harmless (never compiled) and is deliberately NOT a
-            // finding (ADR-0506).
+            // The OK case: zero ACTIVATED dependents in the Buck graph. Cargo.lock may still list
+            // this crate as an unactivated optional-dep phantom — that is harmless (never compiled)
+            // and is deliberately NOT a finding (ADR-0506).
             continue;
         }
         let replacement = mandated_replacement_for(policy, crate_name);
@@ -417,7 +648,7 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
             "CBP-FORBIDDEN-BACKEND-ACTIVATED",
             crate_name,
             format!(
-                "forbidden crypto backend `{crate_name}` is ACTIVATED in the feature-resolved graph (`cargo tree -i {crate_name} --target all` shows activated dependents): {activators}. ADR-0506 forbids `{crate_name}` — find the feature that activates it (a rustls/sqlx backend flag flipped to ring, or reqwest's http3/quinn enabled) and switch it to the mandated backend.{replacement_note}"
+                "forbidden crypto backend `{crate_name}` is ACTIVATED in the local Buck graph: {activators}. ADR-0506 forbids `{crate_name}` — find the first-party BUCK target or generated third-party edge that activates it and switch it to the mandated backend.{replacement_note}"
             ),
         ));
     }
@@ -437,7 +668,10 @@ pub fn render_findings(findings: &BTreeSet<Finding>) -> String {
     }
     let mut out = String::from("crypto-backend-purity gate failed (ADR-0506):\n");
     for finding in findings {
-        out.push_str(&format!("    - {} {}\n        {}\n", finding.code, finding.key, finding.detail));
+        out.push_str(&format!(
+            "    - {} {}\n        {}\n",
+            finding.code, finding.key, finding.detail
+        ));
     }
     out
 }
@@ -445,6 +679,7 @@ pub fn render_findings(findings: &BTreeSet<Finding>) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::path::{Path, PathBuf};
 
     fn policy() -> Value {
         json!({
@@ -455,6 +690,50 @@ mod tests {
             ],
             "mandated": [{"crate": "aws-lc-rs"}]
         })
+    }
+
+    struct TempRepo {
+        root: PathBuf,
+    }
+
+    impl TempRepo {
+        fn new(name: &str) -> Self {
+            let nanos = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .expect("system time")
+                .as_nanos();
+            let root =
+                std::env::temp_dir().join(format!("oya-cbp-{name}-{}-{nanos}", std::process::id()));
+            std::fs::create_dir_all(&root).expect("create temp repo");
+            Self { root }
+        }
+
+        fn write(&self, relative: &str, text: &str) {
+            let path = self.root.join(relative);
+            if let Some(parent) = path.parent() {
+                std::fs::create_dir_all(parent).expect("create temp parent");
+            }
+            std::fs::write(&path, text).unwrap_or_else(|e| panic!("write {}: {e}", path.display()));
+        }
+
+        fn root(&self) -> &Path {
+            &self.root
+        }
+    }
+
+    impl Drop for TempRepo {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.root);
+        }
+    }
+
+    fn write_fixture_repo(repo: &TempRepo, first_party_buck: &str, third_party_buck: &str) {
+        repo.write(
+            "Cargo.toml",
+            "[package]\nname = \"fixture\"\nversion = \"0.0.0\"\nedition = \"2021\"\n",
+        );
+        repo.write("app/BUCK", first_party_buck);
+        repo.write("third-party/BUCK", third_party_buck);
     }
 
     fn observed(census: u64, ring_dependents: &[&str]) -> Value {
@@ -471,9 +750,9 @@ mod tests {
 
     #[test]
     fn green_when_no_forbidden_backend_is_activated() {
-        // The current-tree state: `cargo tree -i ring --target all` printed "nothing to print",
-        // so activated_dependents is empty. The gate PASSES even though Cargo.lock retains the
-        // unactivated optional-dep ring phantom (which never reaches this view).
+        // The current-tree state: the Buck graph has no reachable forbidden backend. The gate
+        // PASSES even when Cargo.lock retains an unactivated optional-dep phantom that never
+        // reaches the Buck graph.
         let report = evaluate(&policy(), &observed(100, &[]));
         assert_eq!(report.verdict, Verdict::Green, "no activated ring ⇒ green");
         assert!(report.violations.is_empty());
@@ -482,7 +761,7 @@ mod tests {
     #[test]
     fn red_when_a_crate_activates_ring() {
         // RED fixture: a crate ACTIVATES ring (e.g. a rustls/sqlx feature flipped back). The
-        // `cargo tree -i ring --target all` view shows real activated dependents ⇒ FAIL.
+        // observed Buck view shows real activated dependents ⇒ FAIL.
         let activated = &[
             "ring v0.17.14",
             "rustls v0.23.40",
@@ -496,28 +775,43 @@ mod tests {
             "an activated ring must produce CBP-FORBIDDEN-BACKEND-ACTIVATED: {findings:?}"
         );
         let f = findings.iter().find(|f| f.key == "ring").unwrap();
-        assert!(f.detail.contains("aws-lc-rs"), "remediation must name the mandated replacement: {f:?}");
-        assert!(f.detail.contains("some-workspace-crate"), "remediation must surface the activator: {f:?}");
-        assert_eq!(evaluate(&policy(), &observed(100, activated)).verdict, Verdict::Red);
+        assert!(
+            f.detail.contains("aws-lc-rs"),
+            "remediation must name the mandated replacement: {f:?}"
+        );
+        assert!(
+            f.detail.contains("some-workspace-crate"),
+            "remediation must surface the activator: {f:?}"
+        );
+        assert_eq!(
+            evaluate(&policy(), &observed(100, activated)).verdict,
+            Verdict::Red
+        );
     }
 
     #[test]
     fn the_lock_superset_phantom_is_not_a_finding() {
         // The crux assertion: the gate must distinguish ACTIVATED ring (FAIL) from the documented
         // Cargo.lock / cargo-metadata SUPERSET phantom (OK). The collector derives
-        // activated_dependents from `cargo tree -i` (the feature-resolved view), which prunes the
-        // unactivated optional edge — so the phantom NEVER appears in activated_dependents. An
-        // empty activated_dependents (the live-tree state) is GREEN by construction.
+        // activated_dependents from the Buck graph, so an uncompiled lock-only phantom never
+        // appears in activated_dependents. An empty activated_dependents view is GREEN by
+        // construction.
         let report = evaluate(&policy(), &observed(200, &[]));
         assert_eq!(report.verdict, Verdict::Green);
         let rendered = render_findings(&evaluate_keyed(&policy(), &observed(200, &[])));
-        assert!(rendered.contains("passed"), "phantom-only tree must read as passed: {rendered}");
-        assert!(rendered.contains("unactivated"), "the rendered pass must name the phantom distinction: {rendered}");
+        assert!(
+            rendered.contains("passed"),
+            "phantom-only tree must read as passed: {rendered}"
+        );
+        assert!(
+            rendered.contains("unactivated"),
+            "the rendered pass must name the phantom distinction: {rendered}"
+        );
     }
 
     #[test]
     fn empty_scan_fails_closed() {
-        // A broken probe (census below floor, e.g. cargo ran in the wrong CWD and saw nothing)
+        // A broken probe (census below floor, e.g. the repo root is wrong and saw nothing)
         // must fail closed rather than pass as a false-green.
         let findings = evaluate_keyed(&policy(), &observed(0, &[]));
         assert!(
@@ -545,7 +839,11 @@ mod tests {
         let mut p = policy();
         p["gate_id"] = Value::from("wrong-id");
         let findings = evaluate_keyed(&p, &observed(100, &[]));
-        assert!(findings.iter().any(|f| f.code == "CBP-POLICY-GATE-ID-MISMATCH"));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "CBP-POLICY-GATE-ID-MISMATCH")
+        );
     }
 
     #[test]
@@ -559,14 +857,109 @@ mod tests {
     }
 
     #[test]
-    fn parse_cargo_tree_dependents_drops_blanks_and_sentinel() {
-        // "nothing to print" parses to ZERO dependents (the OK signal).
-        assert!(parse_cargo_tree_dependents("warning: nothing to print.\n\nhint: ...\n").is_empty());
-        // Real output parses to the non-blank crate lines.
-        let out = "ring v0.17.14\n├── rustls v0.23.40\n│   └── my-crate v0.1.0\n";
-        let parsed = parse_cargo_tree_dependents(out);
-        assert_eq!(parsed.len(), 3, "three non-blank crate lines: {parsed:?}");
-        assert!(parsed[0].contains("ring"));
+    fn buck_graph_collector_detects_forbidden_backend_reachable_from_first_party_buck() {
+        let repo = TempRepo::new("reachable-ring");
+        write_fixture_repo(
+            &repo,
+            r#"rust_library(
+    name = "app",
+    deps = ["third-party//:tls-stack"],
+)
+"#,
+            r#"alias(
+    name = "tls-stack",
+    actual = ":tls-stack-1",
+    visibility = ["PUBLIC"],
+)
+
+cargo.rust_library(
+    name = "tls-stack-1",
+    crate = "tls_stack",
+    env = {
+        "CARGO_PKG_NAME": "tls-stack",
+    },
+    deps = [
+        ":ring-0.17",
+    ],
+)
+
+cargo.rust_library(
+    name = "ring-0.17",
+    crate = "ring",
+    env = {
+        "CARGO_PKG_NAME": "ring",
+    },
+    visibility = [],
+)
+"#,
+        );
+
+        let observed = collect_activated_backends(repo.root(), &policy()).expect("collect graph");
+        let findings = evaluate_keyed(&policy(), &observed);
+        assert_eq!(evaluate(&policy(), &observed).verdict, Verdict::Red);
+        let detail = findings
+            .iter()
+            .find(|finding| finding.key == "ring")
+            .expect("ring finding")
+            .detail
+            .clone();
+        assert!(
+            detail.contains("third-party//:ring-0.17")
+                && detail.contains("third-party//:tls-stack"),
+            "finding should show the generated forbidden target and first-party root: {detail}"
+        );
+    }
+
+    #[test]
+    fn buck_graph_collector_ignores_unreachable_generated_forbidden_target() {
+        let repo = TempRepo::new("unreachable-ring");
+        write_fixture_repo(
+            &repo,
+            r#"rust_library(
+    name = "app",
+    deps = ["third-party//:safe-stack"],
+)
+"#,
+            r#"alias(
+    name = "safe-stack",
+    actual = ":safe-stack-1",
+    visibility = ["PUBLIC"],
+)
+
+cargo.rust_library(
+    name = "safe-stack-1",
+    crate = "safe_stack",
+    env = {
+        "CARGO_PKG_NAME": "safe-stack",
+    },
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "ring-0.17",
+    crate = "ring",
+    env = {
+        "CARGO_PKG_NAME": "ring",
+    },
+    visibility = [],
+)
+"#,
+        );
+
+        let observed = collect_activated_backends(repo.root(), &policy()).expect("collect graph");
+        assert_eq!(evaluate(&policy(), &observed).verdict, Verdict::Green);
+        assert!(
+            evaluate_keyed(&policy(), &observed).is_empty(),
+            "unreachable generated ring target must not fail the gate: {observed}"
+        );
+    }
+
+    #[test]
+    fn crate_target_matching_does_not_confuse_ring_feature_names() {
+        assert!(target_belongs_to_crate("ring", "ring"));
+        assert!(target_belongs_to_crate("ring-0.17", "ring"));
+        assert!(!target_belongs_to_crate("ring-io-0.1", "ring"));
+        assert!(!target_belongs_to_crate("ring-sig-verify", "ring"));
     }
 
     #[test]
@@ -575,6 +968,9 @@ mod tests {
             "gate_id": GATE_ID,
             "forbidden": [{"crate": "ring"}, {"crate": "openssl-sys"}, {"crate": "ring"}]
         });
-        assert_eq!(forbidden_crates(&p), vec!["openssl-sys".to_owned(), "ring".to_owned()]);
+        assert_eq!(
+            forbidden_crates(&p),
+            vec!["openssl-sys".to_owned(), "ring".to_owned()]
+        );
     }
 }
