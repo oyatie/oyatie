@@ -112,7 +112,7 @@
         "path": "scripts/tests/cloud_hyperscaler_parity_taxonomy_check.py",
         "kind": "python_test_sprawl_backlog",
         "present_in_current_head": false,
-        "retirement_action": "Port to Rust Buck2 gate before live language-discipline authority."
+        "retirement_action": "Ported to //cloud/cloud-ci/gates/oya-cloud-ci-hyperscaler-parity-taxonomy-app:oya-cloud-ci-hyperscaler-parity-taxonomy-app-gate and retired from scripts/tests."
       },
       {
         "path": "scripts/tests/cloud_observability_slo_evidence_check.py",
