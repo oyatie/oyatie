@@ -388,6 +388,12 @@
       "description": "Canonical oya-ci generated JSON face suffix."
     },
     {
+      "rule_id": "architecture-product-graph-dashboard",
+      "rule_kind": "path_suffix",
+      "pattern": "docs/architecture/product-graph.html",
+      "description": "Controller-owned generated architecture dashboard materialized from machine-readable planning and architecture inputs."
+    },
+    {
       "rule_id": "generated-directory-component",
       "rule_kind": "path_component",
       "pattern": "generated",
