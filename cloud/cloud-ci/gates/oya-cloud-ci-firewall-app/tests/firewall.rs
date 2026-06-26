@@ -185,6 +185,41 @@ fn append_enforcement_liveness_corpus_paths(
         .arg(hooks_dir);
 }
 
+#[test]
+fn baseline_regeneration_declares_enforcement_liveness_corpus_args() {
+    let mut command = Command::new("/tmp/producer");
+    append_enforcement_liveness_corpus_paths(
+        &mut command,
+        Path::new("/repo/.claude/settings.json"),
+        Path::new("/repo/.codex/hooks.json"),
+        Path::new("/repo/tools/hooks"),
+    );
+
+    let args: Vec<String> = command
+        .get_args()
+        .map(|arg| arg.to_string_lossy().into_owned())
+        .collect();
+
+    assert!(args.windows(2).any(|pair| {
+        pair == [
+            "--enforcement-liveness-claude-settings",
+            "/repo/.claude/settings.json",
+        ]
+    }));
+    assert!(args.windows(2).any(|pair| {
+        pair == [
+            "--enforcement-liveness-codex-hooks",
+            "/repo/.codex/hooks.json",
+        ]
+    }));
+    assert!(args.windows(2).any(|pair| {
+        pair == [
+            "--enforcement-liveness-hooks-dir",
+            "/repo/tools/hooks",
+        ]
+    }));
+}
+
 fn fixture_dir(root: &Path) -> PathBuf {
     root.join("specs/fixtures/cloud-ci-firewall")
 }
