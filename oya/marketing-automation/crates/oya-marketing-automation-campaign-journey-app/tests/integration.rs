@@ -2,7 +2,10 @@
 
 use oya_marketing_automation_campaign_journey_app::adapter::AdapterRegistry;
 use oya_marketing_automation_campaign_journey_app::config::ServiceConfig;
-use oya_marketing_automation_campaign_journey_app::domain::{Capability, IdempotencyKey, TenantId};
+use oya_marketing_automation_campaign_journey_app::domain::{
+    BoundedContext, Capability, CapabilityDescriptor, CapabilityTier, CompliancePack, DataBoundary,
+    IdempotencyKey, TenantId,
+};
 use oya_marketing_automation_campaign_journey_app::{public_api_surface, scaffold};
 
 #[test]
@@ -37,6 +40,84 @@ fn scaffold_declares_marketing_capabilities() {
             .capabilities
             .contains(&Capability::AttributionRollup)
     );
+}
+
+#[test]
+fn capability_descriptors_cover_marketing_resource_boundaries() {
+    let descriptors = CapabilityDescriptor::descriptors();
+    let expected = [
+        (
+            Capability::JourneyExecute,
+            BoundedContext::Journey,
+            CapabilityTier::Regulated,
+            DataBoundary::TenantOnly,
+            &[
+                CompliancePack::Soc2,
+                CompliancePack::Gdpr,
+                CompliancePack::CanSpam,
+                CompliancePack::Casl,
+            ][..],
+        ),
+        (
+            Capability::SegmentSync,
+            BoundedContext::Segment,
+            CapabilityTier::Core,
+            DataBoundary::TenantAndAudienceProvider,
+            &[CompliancePack::Soc2, CompliancePack::Iso27001],
+        ),
+        (
+            Capability::SuppressionEnforce,
+            BoundedContext::ConsentAudience,
+            CapabilityTier::Regulated,
+            DataBoundary::ConsentLedgerProjection,
+            &[
+                CompliancePack::Gdpr,
+                CompliancePack::KrPipa,
+                CompliancePack::Cpra,
+                CompliancePack::CanSpam,
+            ],
+        ),
+        (
+            Capability::AttributionRollup,
+            BoundedContext::Attribution,
+            CapabilityTier::Core,
+            DataBoundary::AggregatedAttribution,
+            &[CompliancePack::Soc2, CompliancePack::Lgpd],
+        ),
+        (
+            Capability::ConsentExport,
+            BoundedContext::ConsentAudience,
+            CapabilityTier::Regulated,
+            DataBoundary::ConsentLedgerProjection,
+            &[
+                CompliancePack::Gdpr,
+                CompliancePack::KrPipa,
+                CompliancePack::Cpra,
+            ],
+        ),
+        (
+            Capability::MarketplaceAudienceLicense,
+            BoundedContext::ConsentAudience,
+            CapabilityTier::MarketplaceLinked,
+            DataBoundary::MarketplaceDealSetProjection,
+            &[CompliancePack::Soc2, CompliancePack::Gdpr],
+        ),
+    ];
+
+    assert_eq!(descriptors.len(), expected.len());
+    assert_eq!(
+        scaffold().capabilities,
+        expected.map(|(capability, _, _, _, _)| capability)
+    );
+    for (descriptor, (capability, bounded_context, tier, data_boundary, packs)) in
+        descriptors.iter().zip(expected)
+    {
+        assert_eq!(descriptor.capability, capability);
+        assert_eq!(descriptor.bounded_context, bounded_context);
+        assert_eq!(descriptor.tier, tier);
+        assert_eq!(descriptor.data_boundary, data_boundary);
+        assert_eq!(descriptor.required_packs, packs);
+    }
 }
 
 #[test]
