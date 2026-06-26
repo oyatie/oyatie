@@ -1,0 +1,117 @@
+{
+  "agent_id": "omx-wave-a-worker-3",
+  "branch": "worker-3/lane3-cloud-ci-boundary-20260626T204656Z",
+  "change_class_id": "CC-4_interface_lock",
+  "change_id": "wavea-cloud-ci-substrate-dag-policy-boundary-20260626",
+  "created_at": "2026-06-26T20:52:38Z",
+  "facets": {
+    "F1_correctness": "The substrate DAG acyclicity gate now reads the DAG path from a gate-local policy JSON instead of a Rust DAG_PATH constant, while preserving the same live DAG verdict and explicit --dag override behavior.",
+    "F2_tests": "Buck2 build, Buck2 check, Buck2 unit tests, Buck2 live gate tests, clippy diagnostics subtarget, rustfmt check, and Buck2 binary smoke runs passed for the changed cloud-ci gate.",
+    "F3_maintainability": "Repo-specific adoption data is isolated in substrate-dependency-dag-policy.json; the Rust crate remains a neutral graph/policy parser with focused parser tests.",
+    "F4_compatibility": "The binary keeps --dag as an explicit override and adds --policy for alternate data packs. The default Oyatie policy points at the same specs/substrate-dependency-dag.json as before.",
+    "F5_security": "Policy dag_path parsing fails closed on wrong gate_id, absolute paths, empty paths, and parent-directory escapes; no unsafe code, network, credentials, or production side effects are introduced.",
+    "F6_privacy": "No user, tenant, customer, or regulated data is read or added; only CI policy metadata and existing substrate DAG structure are involved.",
+    "F7_operability": "The Buck2 gate and binary keep the same GREEN report shape while making the DAG path configurable by data pack for future non-Oyatie adoption.",
+    "F8_performance": "The change adds one small policy JSON read at binary/live-test startup; graph evaluation complexity and Buck2 target shape remain unchanged.",
+    "F9_compliance": "No generated JSON was touched; Cargo command execution was blocked by repo policy and verification used Buck2 as canonical authority.",
+    "F10_reversibility": "Rollback is a normal git revert of one cloud-ci gate directory plus this append-only evidence file; no migrations or external state changes are involved.",
+    "F11_observability": "Gate output remains deterministic and now reports policy-loading errors distinctly from DAG parse errors, improving operator diagnosis.",
+    "F13_migration": "Moves cloud-ci one step from repo-specific bridge behavior toward universal Rust API/data-pack boundaries by putting the DAG adoption point in policy data.",
+    "M1_challenge_assumption": "Rejected the earlier idea to add Cargo.toml to the Buck-only rust-first automation hygiene gate after root Cargo comments showed that absence is intentional.",
+    "M2_zoomed_out_fit": "This is a narrow M2 Lane 3 cloud-ci slice: one gate-local data-pack boundary, no workflow/status-context changes, no lane-4 generated-artifact surface, and no generated outputs."
+  },
+  "hyperscaler_lens": {
+    "comparable_surfaces": [
+      "policy-as-data CI gates",
+      "portable conformance controllers",
+      "Prow-style repo-config driven checks"
+    ],
+    "improved_criterion": "cloud-ci universal product/API boundary and data-pack portability",
+    "provider_neutrality": "The graph engine contains no cloud provider SDK, shell bridge, VCS dependency, or Oyatie DAG path constant; adopters can point policy data at their DAG document.",
+    "merge_conflict_resistance": "All source changes are contained to one cloud-ci gate directory plus one unique append-only evidence JSON; no generated faces, workflows, oya-ci.toml, or root policy files changed."
+  },
+  "known_gaps": [
+    "Remote oya-ci-required/cloud-ci context is pending until branch push and PR creation.",
+    "Reviewer approval and merge queue admission remain pending until PR creation.",
+    "No broad cloud-ci API redesign is claimed; this is one PR-sized policy boundary slice."
+  ],
+  "scope": {
+    "explicit_non_claims": [
+      "No generated JSON face is hand-edited.",
+      "No .github/workflows, oya-ci.toml, root Cargo.toml, root specs, or generated materializer code is changed.",
+      "No production deployment, external service, or credentialed operation is performed."
+    ],
+    "files_touched": [
+      "cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/substrate-dependency-dag-policy.json",
+      "cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/src/lib.rs",
+      "cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/src/main.rs",
+      "cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/tests/acyclicity.rs",
+      "cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/BUCK",
+      "cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/Cargo.toml",
+      "evidence/multispectrum/wavea-cloud-ci-substrate-dag-policy-boundary-20260626-1782507158.json"
+    ],
+    "summary": "Move the substrate DAG gate's repo-specific DAG path into a gate-local policy data pack and verify the Buck2 gate remains green."
+  },
+  "verification": [
+    {
+      "command": "buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app:oya-cloud-ci-substrate-dependency-dag-acyclicity-app //cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app:oya-cloud-ci-substrate-dependency-dag-acyclicity-bin",
+      "result": "pass",
+      "evidence": "BUILD SUCCEEDED; 76 commands local"
+    },
+    {
+      "command": "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app:oya-cloud-ci-substrate-dependency-dag-acyclicity-app-unittest",
+      "result": "pass",
+      "evidence": "13 tests passed; 0 failed"
+    },
+    {
+      "command": "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app:oya-cloud-ci-substrate-dependency-dag-acyclicity-app-gate",
+      "result": "pass",
+      "evidence": "6 tests passed; 0 failed"
+    },
+    {
+      "command": "buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app:oya-cloud-ci-substrate-dependency-dag-acyclicity-app[check] //cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app:oya-cloud-ci-substrate-dependency-dag-acyclicity-app-unittest[check] //cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app:oya-cloud-ci-substrate-dependency-dag-acyclicity-app-gate[check]",
+      "result": "pass",
+      "evidence": "BUILD SUCCEEDED; 8 commands local"
+    },
+    {
+      "command": "buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app:oya-cloud-ci-substrate-dependency-dag-acyclicity-app[clippy.txt]",
+      "result": "pass",
+      "evidence": "BUILD SUCCEEDED; clippy diagnostics subtarget available and green"
+    },
+    {
+      "command": "rustfmt --check cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/src/lib.rs cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/src/main.rs cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/tests/acyclicity.rs",
+      "result": "pass",
+      "evidence": "rustfmt check passed"
+    },
+    {
+      "command": "buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app:oya-cloud-ci-substrate-dependency-dag-acyclicity-bin -- --repo-root .",
+      "result": "pass",
+      "evidence": "binary returned GREEN using default policy"
+    },
+    {
+      "command": "buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app:oya-cloud-ci-substrate-dependency-dag-acyclicity-bin -- --repo-root . --policy cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/substrate-dependency-dag-policy.json",
+      "result": "pass",
+      "evidence": "binary returned GREEN using explicit policy"
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass",
+      "evidence": "no whitespace errors"
+    },
+    {
+      "command": "git status --short | rg '\\.generated\\.json'",
+      "result": "pass",
+      "evidence": "no generated JSON touched"
+    }
+  ],
+  "pre_pr_review": {
+    "reviewer_agent_type": "self-review plus Buck2 gates",
+    "initial_verdict": "APPROVE",
+    "fixed_findings": [
+      "Earlier candidate to add a Cargo.toml to a sanctioned Buck-only gate was abandoned after reviewing root Cargo comments."
+    ],
+    "residual_gaps": [
+      "Remote oya-ci-required remains pending until PR creation and CI completion."
+    ]
+  }
+}
