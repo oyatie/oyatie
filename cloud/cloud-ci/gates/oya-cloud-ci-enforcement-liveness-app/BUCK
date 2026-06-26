@@ -29,6 +29,9 @@ rust_test(
     crate = "oya_cloud_ci_enforcement_liveness_app_corpus",
     crate_root = "tests/enforcement_liveness.rs",
     run_env = {
+        "OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS": "$(location //.claude:settings-json)",
+        "OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS": "$(location //.codex:hooks-json)",
+        "OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR": "$(location //tools/hooks:top-level-hook-scripts)",
         "OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER": "$(location //cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin)",
     },
     visibility = ["PUBLIC"],
