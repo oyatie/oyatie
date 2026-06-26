@@ -356,6 +356,7 @@ async fn grpc_surface_returns_identical_decisions() {
         resource: Some(proto::Resource {
             resource_type: "Secret".into(),
             resource_id: "sec_db_creds".into(),
+            attributes: Default::default(),
         }),
         context: Default::default(),
     };
