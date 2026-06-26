@@ -187,13 +187,166 @@ pub enum CooldownReason {
     UpstreamRateLimit429,
     UpstreamServerError5xx,
     RefreshTokenTransientFailure,
+    /// 401/403/`invalid_grant`/`refresh_token_reused` on a serving or refresh
+    /// request. Distinct from a rate-limit cooldown: an auth failure carries no
+    /// rate-limit headers, so the seat must not be treated as healthy by the
+    /// headroom selector while it cools. The auth ladder is permanent-leaning
+    /// (longer base + lower blacklist threshold) than the 429 ladder.
+    AuthFailure,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum BlacklistReason {
     RefreshTokenRevoked,
     RepeatedFailuresExceededThreshold { failure_count: u32 },
+    /// Repeated auth failures crossed the (lower) auth blacklist threshold.
+    /// Permanent-leaning: only operator action re-enables the seat.
+    AuthFailureRepeated { failure_count: u32 },
     OperatorAction,
+}
+
+/// Coarse upstream error taxonomy used to drive the split cooldown ladder.
+///
+/// Auth failures and rate limits demand different recovery policy: a 429 is a
+/// transient capacity signal that warrants exponential backoff, whereas a
+/// 401/403/`invalid_grant`/`refresh_token_reused` indicates a credential
+/// problem that will not heal on its own and must lean toward permanent
+/// removal. `classify` is the single inline classifier (no external taxonomy
+/// crate exists on this base); it is `const`-shaped and pure.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ErrorClass {
+    /// 2xx — the request succeeded.
+    Success,
+    /// 429 — provider rate limit / capacity signal. Exponential backoff.
+    RateLimit,
+    /// 401/403 or an OAuth auth error code. Permanent-leaning ladder.
+    AuthFailure,
+    /// 5xx — upstream server error. Backoff, treated as transient.
+    ServerError,
+    /// Transport / OAuth refresh failure that is not an HTTP auth rejection
+    /// (e.g. a secret-provider timeout). Backoff, treated as transient.
+    Transient,
+    /// Any other 4xx. Treated as a non-success failure (backoff), never as Ok,
+    /// so a malformed request can never falsely reset a seat's failure count.
+    OtherClientError,
+}
+
+impl ErrorClass {
+    /// Classify an upstream HTTP `status` plus an optional provider/OAuth
+    /// `error_code` (e.g. the `error` field of an OAuth error body) into the
+    /// cooldown taxonomy. The `error_code` wins when it names a known auth
+    /// failure so a provider that returns 400 with `invalid_grant` is still
+    /// routed down the auth ladder.
+    pub fn classify(status: u16, error_code: Option<&str>) -> Self {
+        if let Some(code) = error_code {
+            let lowered = code.trim().to_ascii_lowercase();
+            if matches!(
+                lowered.as_str(),
+                "invalid_grant"
+                    | "refresh_token_reused"
+                    | "invalid_token"
+                    | "invalid_client"
+                    | "unauthorized"
+                    | "access_denied"
+            ) {
+                return ErrorClass::AuthFailure;
+            }
+        }
+        match status {
+            200..=299 => ErrorClass::Success,
+            401 | 403 => ErrorClass::AuthFailure,
+            429 => ErrorClass::RateLimit,
+            500..=599 => ErrorClass::ServerError,
+            _ => ErrorClass::OtherClientError,
+        }
+    }
+}
+
+/// Unified rate-limit utilization reported by Anthropic's
+/// `anthropic-ratelimit-unified-*-utilization` response headers, normalized to
+/// fractions in `[0.0, 1.0]`.
+///
+/// Anthropic reports each value as a percentage in `[0, 100]`; [`parse_utilization_percent`]
+/// normalizes (and clamps) to a fraction. Each window is optional because a
+/// given response may omit windows the seat has not touched. An auth failure
+/// carries none of these headers, which is exactly why the headroom selector
+/// must rely on seat eligibility (cooldown/blacklist) and never resurrect a
+/// dead seat from stale utilization.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct UnifiedRateLimitUtilization {
+    /// `anthropic-ratelimit-unified-5h-utilization`.
+    pub five_hour: Option<f64>,
+    /// `anthropic-ratelimit-unified-7d-utilization`.
+    pub seven_day: Option<f64>,
+    /// `anthropic-ratelimit-unified-7d-<model>-utilization` (per-model 7d). When
+    /// several per-model headers are present, the most-utilized is retained.
+    pub seven_day_per_model: Option<f64>,
+}
+
+impl UnifiedRateLimitUtilization {
+    /// The driving utilization for headroom math: the most-utilized of the
+    /// reported windows, or `None` when no window was reported.
+    pub fn max_utilization(&self) -> Option<f64> {
+        [self.five_hour, self.seven_day, self.seven_day_per_model]
+            .into_iter()
+            .flatten()
+            .reduce(f64::max)
+    }
+
+    /// Parse a set of response headers into utilization windows. Header names
+    /// are matched case-insensitively. Returns `None` when no unified
+    /// utilization header was present (so callers leave the seat's prior
+    /// utilization untouched rather than zeroing it).
+    pub fn from_headers<'a, I>(headers: I) -> Option<Self>
+    where
+        I: IntoIterator<Item = (&'a str, &'a str)>,
+    {
+        let mut out = UnifiedRateLimitUtilization {
+            five_hour: None,
+            seven_day: None,
+            seven_day_per_model: None,
+        };
+        let mut seen = false;
+        for (name, value) in headers {
+            let key = name.trim().to_ascii_lowercase();
+            let Some(suffix) = key.strip_prefix("anthropic-ratelimit-unified-") else {
+                continue;
+            };
+            let Some(window) = suffix.strip_suffix("-utilization") else {
+                continue;
+            };
+            let Some(parsed) = parse_utilization_percent(value) else {
+                continue;
+            };
+            seen = true;
+            match window {
+                "5h" => out.five_hour = Some(parsed),
+                "7d" => out.seven_day = Some(parsed),
+                // Any other unified utilization window (e.g. `7d-opus`,
+                // `7d-sonnet`) is a per-model window; keep the worst.
+                _ => {
+                    out.seven_day_per_model = Some(
+                        out.seven_day_per_model
+                            .map_or(parsed, |existing| existing.max(parsed)),
+                    );
+                }
+            }
+        }
+        seen.then_some(out)
+    }
+}
+
+/// Parse one `anthropic-ratelimit-unified-*-utilization` header value (a
+/// percentage in `[0, 100]`) into a fraction in `[0.0, 1.0]`. Rejects
+/// non-numeric, negative, or non-finite inputs (`None`); clamps values above
+/// `100` to `1.0` (fully utilized) so an out-of-range header can never produce
+/// negative headroom.
+pub fn parse_utilization_percent(raw: &str) -> Option<f64> {
+    let value: f64 = raw.trim().parse().ok()?;
+    if !value.is_finite() || value < 0.0 {
+        return None;
+    }
+    Some((value / 100.0).clamp(0.0, 1.0))
 }
 
 /// Quota window type for a provider subscription.
@@ -349,6 +502,11 @@ pub struct OAuthSubscription {
     quota_windows: Vec<QuotaWindow>,     // data_class: INTERNAL_ONLY
     inflight_units: u64,                 // data_class: INTERNAL_ONLY
     pub failure_count: u32,              // data_class: INTERNAL_ONLY
+    /// Last unified rate-limit utilization reported by the provider, used by
+    /// [`SelectionStrategy::MaxHeadroom`]. `None` until the first response with
+    /// unified headers; never updated by an auth failure (which carries no such
+    /// headers), so a dead seat cannot masquerade as healthy.
+    reported_utilization: Option<UnifiedRateLimitUtilization>, // data_class: INTERNAL_ONLY
 }
 
 /// Account-shaped, secret-free seat status projection for admin read surfaces.
@@ -385,12 +543,28 @@ impl OAuthSubscription {
             quota_windows: Vec::new(),
             inflight_units: 0,
             failure_count,
+            reported_utilization: None,
         }
     }
 
     pub fn with_credential_mode(mut self, credential_mode: CredentialMode) -> Self {
         self.credential_mode = credential_mode;
         self
+    }
+
+    /// Seed the reported unified rate-limit utilization (builder form, mostly
+    /// for tests and bootstrap). At runtime the pool updates this via
+    /// [`SubscriptionPool::record_reported_utilization`].
+    pub fn with_reported_utilization(
+        mut self,
+        utilization: UnifiedRateLimitUtilization,
+    ) -> Self {
+        self.reported_utilization = Some(utilization);
+        self
+    }
+
+    pub fn reported_utilization(&self) -> Option<UnifiedRateLimitUtilization> {
+        self.reported_utilization
     }
 
     pub fn with_quota_windows(
@@ -458,7 +632,29 @@ impl OAuthSubscription {
             .unwrap_or(0.0);
         (1.0 - max_utilization).clamp(0.0, 1.0)
     }
+
+    /// Selection score for [`SelectionStrategy::MaxHeadroom`]:
+    /// `1 - max(util_5h, util_7d, per_model_7d)` from the provider's reported
+    /// unified rate-limit utilization, floored at [`HEADROOM_FLOOR`] so a fully
+    /// saturated seat still scores positive (it remains a last-resort pick
+    /// rather than collapsing the ordering to a tie at zero).
+    ///
+    /// When no unified utilization has been reported, falls back to the
+    /// kernel's quota-window headroom so a freshly-registered seat is still
+    /// rankable. Eligibility (cooldown/blacklist) is enforced upstream of this
+    /// score, so an auth-dead seat never enters the ranking regardless of any
+    /// stale utilization it may carry.
+    fn max_headroom_score(&self, now: Instant, estimated_units: u64) -> f64 {
+        match self.reported_utilization.and_then(|u| u.max_utilization()) {
+            Some(max_utilization) => (1.0 - max_utilization).clamp(HEADROOM_FLOOR, 1.0),
+            None => self.headroom(now, estimated_units).max(HEADROOM_FLOOR),
+        }
+    }
 }
+
+/// Floor applied to a seat's headroom score so a fully-utilized seat stays a
+/// positive, ordered, last-resort candidate instead of collapsing to zero.
+const HEADROOM_FLOOR: f64 = 0.02;
 
 impl fmt::Debug for OAuthSubscription {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -473,6 +669,7 @@ impl fmt::Debug for OAuthSubscription {
             .field("quota_windows", &self.quota_windows)
             .field("inflight_units", &self.inflight_units)
             .field("failure_count", &self.failure_count)
+            .field("reported_utilization", &self.reported_utilization)
             .finish()
     }
 }
@@ -566,6 +763,14 @@ pub enum SelectionStrategy {
     /// A five-hour window that is 80% elapsed but only 20% consumed should be
     /// drained faster than one that is 20% elapsed and 20% consumed.
     TimeNormalizedQuotaPercent,
+    /// Pick the eligible seat with the most remaining headroom, where
+    /// `headroom = 1 - max(util_5h, util_7d, per_model_7d)` is taken from the
+    /// provider's reported `anthropic-ratelimit-unified-*-utilization` headers
+    /// (falling back to kernel quota-window headroom when none have been
+    /// reported). Floors each seat's score at [`HEADROOM_FLOOR`]. Spreads load
+    /// toward the least-saturated subscription so no single seat trips a
+    /// provider rate limit while others sit idle.
+    MaxHeadroom,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -577,6 +782,136 @@ pub enum SubscriptionPoolError {
     DuplicateSeat,
     NoEligibleSeat,
     ForbiddenByPolicy,
+}
+
+/// Split cooldown ladder, expressed as policy-as-data so the recovery curve is
+/// inspectable and tunable without touching the state-machine code.
+///
+/// The kernel keeps two ladders because the failure classes recover
+/// differently:
+///
+/// * **Rate limit (429)** — a transient capacity signal. Exponential backoff
+///   from [`rate_limit_base`](Self::rate_limit_base) doubling per consecutive
+///   failure, capped at [`rate_limit_max`](Self::rate_limit_max). Blacklists
+///   only after [`blacklist_threshold`](Self::blacklist_threshold) failures.
+/// * **Auth failure (401/403/`invalid_grant`/`refresh_token_reused`)** —
+///   permanent-leaning. A much longer base, and a *lower*
+///   [`auth_blacklist_threshold`](Self::auth_blacklist_threshold) so a credential
+///   that the provider keeps rejecting is pulled from rotation fast rather than
+///   being retried on a cheap 60s timer. Auth failures carry no rate-limit
+///   headers, so the [`MaxHeadroom`](SelectionStrategy::MaxHeadroom) selector
+///   never sees a dead seat as healthy — it is gated out by cooldown/blacklist
+///   eligibility first.
+///
+/// Server errors (5xx), other 4xx, and transport/refresh transients use the
+/// `server_error_*` / `transient_*` ladders respectively.
+///
+/// Deterministic jitter ([`jitter_fraction`](Self::jitter_fraction)) is
+/// subtracted from each computed backoff, spreading retries earlier across
+/// seats to avoid a thundering herd while keeping the nominal backoff as a hard
+/// upper bound (so the cooldown is reproducible in a pure kernel — no RNG).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct CooldownPolicy {
+    pub rate_limit_base: Duration,
+    pub rate_limit_max: Duration,
+    pub server_error_base: Duration,
+    pub server_error_max: Duration,
+    pub auth_failure_base: Duration,
+    pub auth_failure_max: Duration,
+    pub transient_base: Duration,
+    pub transient_max: Duration,
+    /// Consecutive-failure count above which a rate-limit / 5xx / transient seat
+    /// is blacklisted instead of cooled again.
+    pub blacklist_threshold: u32,
+    /// Consecutive auth-failure count above which a seat is blacklisted. Lower
+    /// than [`blacklist_threshold`](Self::blacklist_threshold) — auth failures
+    /// are permanent-leaning.
+    pub auth_blacklist_threshold: u32,
+    /// Fraction (in `[0.0, 1.0)`) of the computed backoff that deterministic
+    /// jitter may subtract. `0.0` disables jitter.
+    pub jitter_fraction: f64,
+}
+
+impl Default for CooldownPolicy {
+    fn default() -> Self {
+        Self {
+            rate_limit_base: Duration::from_secs(60),
+            rate_limit_max: Duration::from_secs(60 * 60),
+            server_error_base: Duration::from_secs(60),
+            server_error_max: Duration::from_secs(60 * 60),
+            // Auth failures are credential problems: cool for a long time and
+            // blacklist quickly. 30 minutes base, escalating toward 24 hours.
+            auth_failure_base: Duration::from_secs(30 * 60),
+            auth_failure_max: Duration::from_secs(24 * 60 * 60),
+            transient_base: Duration::from_secs(60),
+            transient_max: Duration::from_secs(60 * 60),
+            blacklist_threshold: BLACKLIST_THRESHOLD,
+            auth_blacklist_threshold: 2,
+            jitter_fraction: 0.2,
+        }
+    }
+}
+
+impl CooldownPolicy {
+    /// The blacklist threshold for `class` — the lower auth threshold for
+    /// [`ErrorClass::AuthFailure`], otherwise [`blacklist_threshold`](Self::blacklist_threshold).
+    fn blacklist_threshold_for(&self, class: ErrorClass) -> u32 {
+        match class {
+            ErrorClass::AuthFailure => self.auth_blacklist_threshold,
+            _ => self.blacklist_threshold,
+        }
+    }
+
+    /// Compute the cooldown for `class` after `failure_count` consecutive
+    /// failures, applying exponential backoff (`base * 2^(failure_count-1)`,
+    /// capped at the class max) minus deterministic jitter derived from
+    /// `jitter_seed`. Pure: identical inputs yield an identical duration.
+    pub fn cooldown_duration(
+        &self,
+        class: ErrorClass,
+        failure_count: u32,
+        jitter_seed: u64,
+    ) -> Duration {
+        let (base, max) = match class {
+            ErrorClass::RateLimit => (self.rate_limit_base, self.rate_limit_max),
+            ErrorClass::AuthFailure => (self.auth_failure_base, self.auth_failure_max),
+            ErrorClass::Transient => (self.transient_base, self.transient_max),
+            // 5xx and other 4xx both ride the server-error ladder.
+            ErrorClass::ServerError | ErrorClass::OtherClientError => {
+                (self.server_error_base, self.server_error_max)
+            }
+            ErrorClass::Success => return Duration::ZERO,
+        };
+
+        // Exponential backoff. Cap the exponent so the shift never overflows and
+        // the multiply saturates into `max` rather than wrapping.
+        let exponent = failure_count.saturating_sub(1).min(20);
+        let factor = 1u32 << exponent;
+        let backoff = base.saturating_mul(factor).min(max);
+
+        self.apply_jitter(backoff, jitter_seed)
+    }
+
+    fn apply_jitter(&self, duration: Duration, jitter_seed: u64) -> Duration {
+        let fraction = self.jitter_fraction.clamp(0.0, 1.0);
+        if fraction <= 0.0 {
+            return duration;
+        }
+        // Deterministic unit fraction in [0, 1) from the seed.
+        let unit = (jitter_seed as f64) / (u64::MAX as f64 + 1.0);
+        let reduction = duration.mul_f64(unit * fraction);
+        duration.saturating_sub(reduction)
+    }
+}
+
+/// Deterministic jitter seed from a seat id and its failure count. Spreads
+/// jitter across seats and across retries without any RNG, keeping the kernel
+/// pure and the cooldown reproducible.
+fn cooldown_jitter_seed(seat_id: &str, failure_count: u32) -> u64 {
+    let mut hasher = DefaultHasher::new();
+    seat_id.hash(&mut hasher);
+    failure_count.hash(&mut hasher);
+    hasher.finish()
 }
 
 /// RAII lease on a single seat. Prevents double-allocation of the same seat
@@ -644,7 +979,7 @@ pub struct SubscriptionPool {
     strategy: SelectionStrategy,
     seats: BTreeMap<SeatId, OAuthSubscription>,
     round_robin_cursor: usize,
-    cooldown_duration_429: Duration,
+    cooldown_policy: CooldownPolicy,
     /// Seats currently held by an active [`SeatLease`]. These are excluded
     /// from selection to prevent double-allocation.
     leased_seats: HashSet<SeatId>,
@@ -665,10 +1000,21 @@ impl SubscriptionPool {
             strategy,
             seats: BTreeMap::new(),
             round_robin_cursor: 0,
-            cooldown_duration_429: Duration::from_secs(60),
+            cooldown_policy: CooldownPolicy::default(),
             leased_seats: HashSet::new(),
             sticky_bindings: BTreeMap::new(),
         }
+    }
+
+    /// Override the default split cooldown ladder. Policy-as-data: operators
+    /// tune the recovery curve without touching the state machine.
+    pub fn with_cooldown_policy(mut self, policy: CooldownPolicy) -> Self {
+        self.cooldown_policy = policy;
+        self
+    }
+
+    pub fn cooldown_policy(&self) -> &CooldownPolicy {
+        &self.cooldown_policy
     }
 
     pub fn tenant_id(&self) -> &TenantId {
@@ -868,6 +1214,39 @@ impl SubscriptionPool {
             .map(|seat| seat.headroom(now, estimated_units))
     }
 
+    /// Record the unified rate-limit utilization a provider returned for a
+    /// seat, feeding [`SelectionStrategy::MaxHeadroom`]. Adapters call this only
+    /// when a response actually carried `anthropic-ratelimit-unified-*`
+    /// headers; an auth failure carries none, so a dead seat is never refreshed
+    /// to look healthy. Returns `false` when the seat is unknown.
+    pub fn record_reported_utilization(
+        &mut self,
+        seat_id: &SeatId,
+        utilization: UnifiedRateLimitUtilization,
+    ) -> bool {
+        match self.seats.get_mut(seat_id) {
+            Some(seat) => {
+                seat.reported_utilization = Some(utilization);
+                true
+            }
+            None => false,
+        }
+    }
+
+    /// The [`MaxHeadroom`](SelectionStrategy::MaxHeadroom) selection score for a
+    /// seat (reported-utilization headroom, floored), for admin/telemetry read
+    /// surfaces.
+    pub fn seat_max_headroom_score(
+        &self,
+        seat_id: &SeatId,
+        now: Instant,
+        estimated_units: u64,
+    ) -> Option<f64> {
+        self.seats
+            .get(seat_id)
+            .map(|seat| seat.max_headroom_score(now, estimated_units))
+    }
+
     /// Select the next eligible seat for an inbound request (D1).
     ///
     /// D7 contract: the [`AuthzGate`] is consulted exactly once per call,
@@ -953,6 +1332,31 @@ impl SubscriptionPool {
                     Err(SubscriptionPoolError::NoEligibleSeat)
                 }
             }
+            SelectionStrategy::MaxHeadroom => {
+                let mut best: Option<(usize, SeatId, f64)> = None;
+                for offset in 0..n {
+                    let idx = (self.round_robin_cursor + offset) % n;
+                    let sid = &seat_ids[idx];
+                    if !self.is_selectable(sid, now, estimated_units, exclude_leased) {
+                        continue;
+                    }
+                    let score = self.seats[sid].max_headroom_score(now, estimated_units);
+                    let should_replace = best
+                        .as_ref()
+                        .map(|(_, _, best_score)| score > *best_score)
+                        .unwrap_or(true);
+                    if should_replace {
+                        best = Some((idx, sid.clone(), score));
+                    }
+                }
+
+                if let Some((idx, sid, _)) = best {
+                    self.round_robin_cursor = (idx + 1) % n;
+                    Ok(sid)
+                } else {
+                    Err(SubscriptionPoolError::NoEligibleSeat)
+                }
+            }
         }
     }
 
@@ -983,14 +1387,26 @@ impl SubscriptionPool {
     }
 
     /// Record an upstream outcome against a seat so the state machine can
-    /// transition (e.g. 429 -> Cooldown, repeated failures -> Blacklisted).
+    /// transition. Each failure class rides its own cooldown ladder
+    /// ([`CooldownPolicy`]):
+    ///
+    /// * `Ok` — reset failure count, return to `Active`.
+    /// * `RateLimited429` — rate-limit ladder (exponential backoff).
+    /// * `ServerError5xx` — server-error ladder (transient backoff).
+    /// * `AuthFailure` — permanent-leaning auth ladder (long base, low
+    ///   blacklist threshold). Carries no rate-limit headers, so the seat's
+    ///   reported utilization is left untouched and the headroom selector never
+    ///   sees it as healthy.
+    /// * `RefreshTokenRevoked` — immediate permanent blacklist.
+    /// * `RefreshFailed` — transient refresh ladder (backoff).
+    /// * `Released` — no-op.
     pub fn record_outcome(
         &mut self,
         seat_id: &SeatId,
         outcome: SeatOutcome,
         now: Instant,
     ) -> Result<(), SubscriptionPoolError> {
-        let cooldown = self.cooldown_duration_429;
+        let policy = self.cooldown_policy;
         if !matches!(outcome, SeatOutcome::Released | SeatOutcome::Ok) {
             self.remove_sticky_bindings_for_seat(seat_id);
         }
@@ -1001,64 +1417,79 @@ impl SubscriptionPool {
         match outcome {
             SeatOutcome::Released => {
                 // No-op: dropped without explicit complete; no penalty applied.
-                return Ok(());
             }
             SeatOutcome::Ok => {
                 seat.failure_count = 0;
                 seat.state = SubscriptionState::Active;
             }
-            SeatOutcome::RateLimited429 => {
-                seat.failure_count = seat.failure_count.saturating_add(1);
-                if seat.failure_count > BLACKLIST_THRESHOLD {
-                    seat.state = SubscriptionState::Blacklisted {
-                        reason: BlacklistReason::RepeatedFailuresExceededThreshold {
-                            failure_count: seat.failure_count,
-                        },
-                    };
-                } else {
-                    seat.state = SubscriptionState::Cooldown {
-                        until: now + cooldown,
-                        reason: CooldownReason::UpstreamRateLimit429,
-                    };
-                }
-            }
-            SeatOutcome::ServerError5xx => {
-                seat.failure_count = seat.failure_count.saturating_add(1);
-                if seat.failure_count > BLACKLIST_THRESHOLD {
-                    seat.state = SubscriptionState::Blacklisted {
-                        reason: BlacklistReason::RepeatedFailuresExceededThreshold {
-                            failure_count: seat.failure_count,
-                        },
-                    };
-                } else {
-                    seat.state = SubscriptionState::Cooldown {
-                        until: now + cooldown,
-                        reason: CooldownReason::UpstreamServerError5xx,
-                    };
-                }
-            }
+            SeatOutcome::RateLimited429 => Self::apply_failure_ladder(
+                seat,
+                now,
+                &policy,
+                ErrorClass::RateLimit,
+                CooldownReason::UpstreamRateLimit429,
+            ),
+            SeatOutcome::ServerError5xx => Self::apply_failure_ladder(
+                seat,
+                now,
+                &policy,
+                ErrorClass::ServerError,
+                CooldownReason::UpstreamServerError5xx,
+            ),
+            SeatOutcome::AuthFailure => Self::apply_failure_ladder(
+                seat,
+                now,
+                &policy,
+                ErrorClass::AuthFailure,
+                CooldownReason::AuthFailure,
+            ),
             SeatOutcome::RefreshTokenRevoked => {
                 seat.state = SubscriptionState::Blacklisted {
                     reason: BlacklistReason::RefreshTokenRevoked,
                 };
             }
-            SeatOutcome::RefreshFailed => {
-                seat.failure_count = seat.failure_count.saturating_add(1);
-                if seat.failure_count > BLACKLIST_THRESHOLD {
-                    seat.state = SubscriptionState::Blacklisted {
-                        reason: BlacklistReason::RepeatedFailuresExceededThreshold {
-                            failure_count: seat.failure_count,
-                        },
-                    };
-                } else {
-                    seat.state = SubscriptionState::Cooldown {
-                        until: now + cooldown,
-                        reason: CooldownReason::RefreshTokenTransientFailure,
-                    };
-                }
-            }
+            SeatOutcome::RefreshFailed => Self::apply_failure_ladder(
+                seat,
+                now,
+                &policy,
+                ErrorClass::Transient,
+                CooldownReason::RefreshTokenTransientFailure,
+            ),
         }
         Ok(())
+    }
+
+    /// Increment the failure count and either blacklist (threshold crossed) or
+    /// cool the seat per the class ladder. The blacklist reason is the auth
+    /// variant for [`ErrorClass::AuthFailure`], otherwise the generic
+    /// repeated-failures variant.
+    fn apply_failure_ladder(
+        seat: &mut OAuthSubscription,
+        now: Instant,
+        policy: &CooldownPolicy,
+        class: ErrorClass,
+        reason: CooldownReason,
+    ) {
+        seat.failure_count = seat.failure_count.saturating_add(1);
+        if seat.failure_count > policy.blacklist_threshold_for(class) {
+            seat.state = SubscriptionState::Blacklisted {
+                reason: match class {
+                    ErrorClass::AuthFailure => BlacklistReason::AuthFailureRepeated {
+                        failure_count: seat.failure_count,
+                    },
+                    _ => BlacklistReason::RepeatedFailuresExceededThreshold {
+                        failure_count: seat.failure_count,
+                    },
+                },
+            };
+            return;
+        }
+        let seed = cooldown_jitter_seed(seat.seat_id.as_str(), seat.failure_count);
+        let cooldown = policy.cooldown_duration(class, seat.failure_count, seed);
+        seat.state = SubscriptionState::Cooldown {
+            until: now + cooldown,
+            reason,
+        };
     }
 
     /// Like [`select`] but also excludes currently-leased seats.
@@ -1138,6 +1569,11 @@ pub enum SeatOutcome {
     Ok,
     RateLimited429,
     ServerError5xx,
+    /// 401/403/`invalid_grant`/`refresh_token_reused` on a serving or refresh
+    /// request. Routes the seat down the permanent-leaning auth cooldown
+    /// ladder (long base, low blacklist threshold) — distinct from a 429, which
+    /// is a transient capacity signal.
+    AuthFailure,
     RefreshTokenRevoked,
     /// Secret-provider or transient OAuth refresh failure (not a permanent revocation).
     /// Seat enters Cooldown with `RefreshTokenTransientFailure` reason.
@@ -1146,6 +1582,33 @@ pub enum SeatOutcome {
     /// (e.g. a future was cancelled). Treated as a no-op by the pool —
     /// no penalty is applied and failure_count is not incremented.
     Released,
+}
+
+impl SeatOutcome {
+    /// Map an upstream HTTP status (plus optional OAuth/provider error code)
+    /// onto a seat outcome via the [`ErrorClass`] taxonomy. This is the seam
+    /// adapters use so the auth-vs-rate-limit split is decided once, in the
+    /// kernel, rather than re-derived per adapter:
+    ///
+    /// * 2xx → `Ok`
+    /// * 429 → `RateLimited429`
+    /// * 401/403 or an auth error code → `AuthFailure`
+    /// * 5xx and any other 4xx → `ServerError5xx`
+    ///
+    /// Note: a permanently revoked refresh token should be reported directly as
+    /// [`SeatOutcome::RefreshTokenRevoked`]; this constructor never returns it
+    /// because revocation is a provider-semantic decision an adapter makes from
+    /// the refresh response body, not a bare status code.
+    pub fn from_upstream(status: u16, error_code: Option<&str>) -> Self {
+        match ErrorClass::classify(status, error_code) {
+            ErrorClass::Success => SeatOutcome::Ok,
+            ErrorClass::RateLimit => SeatOutcome::RateLimited429,
+            ErrorClass::AuthFailure => SeatOutcome::AuthFailure,
+            ErrorClass::ServerError | ErrorClass::OtherClientError | ErrorClass::Transient => {
+                SeatOutcome::ServerError5xx
+            }
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
