@@ -4,8 +4,17 @@
 //! all support the same request features. Sending a vision payload to a
 //! text-only model, function-calling to a model without tool support, or an
 //! over-long context to a small window is a guaranteed upstream 4xx that wastes
-//! a pooled seat's quota. This module lets callers **pre-flight reject** such
-//! requests *before* a seat is leased and a dispatch is attempted.
+//! a pooled seat's quota. This module lets a caller **pre-flight reject** such
+//! a request: the REST/translation adapter is expected to call
+//! [`CapabilityRegistry::preflight`] and bail on a rejection *before* it leases
+//! a seat, so a request that cannot succeed never burns pooled quota.
+//!
+//! The check is a pure function the adapter invokes; it is deliberately **not**
+//! wired into the kernel seat-lease path ([`crate::SubscriptionPool::lease`]),
+//! which never sees request content (it operates on the distilled, content-free
+//! [`CallRequirements`] the adapter builds). The `preflight → lease` ordering is
+//! therefore the **adapter's contract**, not a kernel-enforced gate — every
+//! dispatch call site must run pre-flight first.
 //!
 //! Shape mirrors [`crate::model_routing::ModelRouter`]: a [`CapabilityRegistry`]
 //! engine over a static policy table, with pure lookup + validation methods and
@@ -14,7 +23,15 @@
 //! `gpt-4o`, `gemini-2.5-pro`), so routing and capability enforcement stay
 //! aligned on a single identifier.
 //!
-//! Fail-closed: an unknown model is rejected, never waved through.
+//! Fail-closed: an unknown model is rejected, never waved through, and any
+//! capability not positively known to be supported defaults to `false` — a
+//! coarse family row must never grant a feature a specific variant lacks.
+//!
+//! LIVE-RECONFIRM: every model constant below (capability flags + token
+//! windows) is a point-in-time snapshot of upstream-published values. Providers
+//! ship silent wire changes (premortem P8), so each row is a drift-canary
+//! target, not a settled fact — re-verify against the live provider before
+//! relying on any single value.
 
 use crate::model_routing::ModelCapability;
 use serde::{Deserialize, Serialize};
@@ -130,12 +147,32 @@ impl ModelMatch {
     }
 }
 
-/// Reasoning-capable, vision-capable frontier model (Anthropic Opus/Sonnet 4.x,
-/// OpenAI o-series, Gemini 2.5). Defined once; rows below tweak token windows.
+/// Reasoning-capable, **vision-capable** frontier model (Anthropic Opus/Sonnet
+/// 4.x, full OpenAI o-series like `o1`/`o3`/`o4`/`o4-mini`, Gemini 2.5). Defined
+/// once; rows below tweak token windows. Do NOT use this for a text-only
+/// variant — `supports_vision: true` here would fail OPEN (premortem fail-closed
+/// rule). Reach for [`reasoning_text_only`] instead.
 const fn frontier(max_input_tokens: u32, max_output_tokens: u32) -> ModelCapabilities {
     ModelCapabilities {
         supports_function_calling: true,
         supports_vision: true,
+        supports_prompt_caching: true,
+        supports_reasoning: true,
+        supports_streaming: true,
+        max_input_tokens,
+        max_output_tokens,
+    }
+}
+
+/// Reasoning-capable but **text-only** model — the `*-mini` o-series variants
+/// (`o1-mini`, `o3-mini`) accept tools/reasoning/streaming but reject image
+/// parts. Same shape as [`frontier`] with `supports_vision: false` (fail-closed:
+/// a coarse `o1`/`o3` family row must never hand these a vision capability they
+/// do not have).
+const fn reasoning_text_only(max_input_tokens: u32, max_output_tokens: u32) -> ModelCapabilities {
+    ModelCapabilities {
+        supports_function_calling: true,
+        supports_vision: false,
         supports_prompt_caching: true,
         supports_reasoning: true,
         supports_streaming: true,
@@ -150,12 +187,15 @@ const fn frontier(max_input_tokens: u32, max_output_tokens: u32) -> ModelCapabil
 // wins, so row order is irrelevant.
 const PLATFORM_TABLE: &[(ModelMatch, ModelCapabilities)] = &[
     // --- Anthropic (subscription pool) ---
-    // Claude Opus 4.x — full feature set, 200k context, 64k output.
+    // Claude Opus 4.x — full feature set, 200k context, 32k output.
+    // LIVE-RECONFIRM: 32k is the Opus 4.x output ceiling; Sonnet 4.x is the 64k
+    // model (do not copy Sonnet's window onto Opus — that fails open on output).
     (
         ModelMatch::Prefix("claude-opus-4"),
-        frontier(200_000, 64_000),
+        frontier(200_000, 32_000),
     ),
-    // Claude Sonnet 4.x — same shape as Opus 4.x.
+    // Claude Sonnet 4.x — same feature set as Opus, but 64k output.
+    // LIVE-RECONFIRM.
     (
         ModelMatch::Prefix("claude-sonnet-4"),
         frontier(200_000, 64_000),
@@ -175,6 +215,7 @@ const PLATFORM_TABLE: &[(ModelMatch, ModelCapabilities)] = &[
     ),
     // --- OpenAI-compatible ---
     // GPT-4o family — vision + tools + caching + streaming, no reasoning effort.
+    // LIVE-RECONFIRM.
     (
         ModelMatch::Prefix("gpt-4o"),
         ModelCapabilities {
@@ -187,9 +228,39 @@ const PLATFORM_TABLE: &[(ModelMatch, ModelCapabilities)] = &[
             max_output_tokens: 16_384,
         },
     ),
-    // o-series reasoning models (o1 / o3 / o4) — reasoning + vision + tools.
+    // gpt-5.4-mini — HIDDEN auxiliary model (premortem P6). Codex fires it for
+    // background compaction/titling; it never appears in a user-facing picker,
+    // so a missing row makes those background calls fail closed as UnknownModel
+    // and the happy path silently breaks. Text-only utility model: tools +
+    // streaming, no vision. LIVE-RECONFIRM.
+    (
+        ModelMatch::Prefix("gpt-5.4-mini"),
+        ModelCapabilities {
+            supports_function_calling: true,
+            supports_vision: false,
+            supports_prompt_caching: true,
+            supports_reasoning: false,
+            supports_streaming: true,
+            max_input_tokens: 400_000,
+            max_output_tokens: 128_000,
+        },
+    ),
+    // o-series reasoning models. LIVE-RECONFIRM both the windows AND the vision
+    // flags: the full o1/o3/o4 (and o4-mini) accept image parts, but o1-mini and
+    // o3-mini are TEXT-ONLY. The coarse family prefixes below would grant the
+    // -mini variants vision via frontier(); the longer, more-specific -mini
+    // prefixes win the match and fail closed on vision (premortem fail-closed).
     (ModelMatch::Prefix("o1"), frontier(200_000, 100_000)),
+    (
+        ModelMatch::Prefix("o1-mini"),
+        reasoning_text_only(128_000, 65_536),
+    ),
     (ModelMatch::Prefix("o3"), frontier(200_000, 100_000)),
+    (
+        ModelMatch::Prefix("o3-mini"),
+        reasoning_text_only(200_000, 100_000),
+    ),
+    // o4 / o4-mini are multimodal — vision stays true (frontier).
     (ModelMatch::Prefix("o4"), frontier(200_000, 100_000)),
     // Embedding models — no chat features at all.
     (
@@ -341,7 +412,7 @@ mod tests {
                 true,
                 true,
                 200_000,
-                64_000,
+                32_000,
             ),
             (
                 "claude-opus-4-7",
@@ -351,7 +422,7 @@ mod tests {
                 true,
                 true,
                 200_000,
-                64_000,
+                32_000,
             ),
             (
                 "claude-sonnet-4-5",
@@ -374,7 +445,21 @@ mod tests {
                 8_192,
             ),
             ("gpt-4o", true, true, true, false, true, 128_000, 16_384),
-            ("o3-mini", true, true, true, true, true, 200_000, 100_000),
+            // gpt-5.4-mini (P6 auxiliary) — text-only utility model, no vision.
+            (
+                "gpt-5.4-mini",
+                true,
+                false,
+                true,
+                false,
+                true,
+                400_000,
+                128_000,
+            ),
+            // o1-mini / o3-mini are TEXT-ONLY: vision == false (fail-closed).
+            ("o1-mini", true, false, true, true, true, 128_000, 65_536),
+            ("o3-mini", true, false, true, true, true, 200_000, 100_000),
+            // o4-mini is multimodal: vision stays true.
             ("o4-mini", true, true, true, true, true, 200_000, 100_000),
             (
                 "text-embedding-3-large",
@@ -468,12 +553,13 @@ mod tests {
             needs_reasoning: true,
             needs_streaming: true,
             estimated_input_tokens: 150_000,
-            requested_max_output_tokens: 32_000,
+            requested_max_output_tokens: 30_000,
         };
         let caps = reg()
             .preflight("claude-opus-4-5", &[], &req)
             .expect("fully-supported call must pass");
-        assert_eq!(caps.max_output_tokens, 64_000);
+        // Opus 4.x output ceiling is 32k (NOT Sonnet's 64k).
+        assert_eq!(caps.max_output_tokens, 32_000);
     }
 
     #[test]
@@ -584,5 +670,125 @@ mod tests {
         let json = serde_json::to_string(&caps).expect("serialize");
         let back: ModelCapabilities = serde_json::from_str(&json).expect("deserialize");
         assert_eq!(caps, back);
+    }
+
+    // --- Fail-closed security tests (premortem: never fail open) ---
+
+    /// The o-series `*-mini` variants are TEXT-ONLY. The coarse `o1`/`o3` family
+    /// rows would grant them vision via `frontier()`; the specific `-mini` rows
+    /// must win the longest-prefix match and report `supports_vision == false`.
+    /// A regression here silently waves a vision payload through to a model that
+    /// 4xxs on it — exactly the fail-open the registry exists to prevent.
+    #[test]
+    fn o_series_mini_variants_are_text_only_fail_closed() {
+        for model in ["o1-mini", "o3-mini"] {
+            let caps = reg().lookup(model).unwrap_or_else(|| panic!("{model}"));
+            assert!(
+                !caps.supports_vision,
+                "{model} must NOT support vision (text-only) — fail closed"
+            );
+            // Still a reasoning model otherwise.
+            assert!(caps.supports_reasoning, "{model} reasoning");
+            assert!(caps.supports_function_calling, "{model} tools");
+        }
+        // The multimodal o4-mini is the counter-case: vision stays true.
+        assert!(
+            reg().lookup("o4-mini").expect("o4-mini").supports_vision,
+            "o4-mini is multimodal"
+        );
+    }
+
+    /// A vision request to a text-only `*-mini` reasoning model must be rejected
+    /// at pre-flight, not waved through. This is the end-to-end fail-closed proof
+    /// for the capability-data fix.
+    #[test]
+    fn vision_to_text_only_reasoning_mini_is_rejected_preflight() {
+        let req = CallRequirements {
+            needs_vision: true,
+            ..Default::default()
+        };
+        for model in ["o1-mini", "o3-mini"] {
+            let err = reg()
+                .preflight(model, &[], &req)
+                .expect_err("vision to a text-only mini must reject");
+            assert!(
+                err.violations
+                    .contains(&CapabilityViolation::VisionUnsupported),
+                "{model} must report VisionUnsupported"
+            );
+        }
+    }
+
+    /// Opus 4.x caps output at 32k; Sonnet 4.x at 64k. A request for 33k output
+    /// to Opus must be rejected (proves Opus didn't inherit Sonnet's window).
+    #[test]
+    fn opus_output_ceiling_is_32k_not_64k() {
+        let opus = reg().lookup("claude-opus-4-5").expect("opus");
+        assert_eq!(opus.max_output_tokens, 32_000, "Opus 4.x output is 32k");
+        let sonnet = reg().lookup("claude-sonnet-4-5").expect("sonnet");
+        assert_eq!(sonnet.max_output_tokens, 64_000, "Sonnet 4.x output is 64k");
+
+        // 33k output to Opus exceeds the 32k ceiling -> reject.
+        let req = CallRequirements {
+            requested_max_output_tokens: 33_000,
+            ..Default::default()
+        };
+        let err = reg()
+            .preflight("claude-opus-4-5", &[], &req)
+            .expect_err("33k output to Opus must reject");
+        assert!(err
+            .violations
+            .contains(&CapabilityViolation::OutputTokensExceeded {
+                requested: 33_000,
+                max: 32_000,
+            }));
+    }
+
+    /// Premortem P6: the hidden `gpt-5.4-mini` auxiliary model (Codex
+    /// compaction/titling) MUST be enumerated, or its background calls fail
+    /// closed as `UnknownModel` and the happy path silently breaks. Text-only.
+    #[test]
+    fn auxiliary_gpt_5_4_mini_is_enumerated_and_text_only() {
+        let caps = reg()
+            .lookup("gpt-5.4-mini")
+            .expect("P6: gpt-5.4-mini must be in the registry");
+        assert!(!caps.supports_vision, "gpt-5.4-mini is text-only");
+        assert!(caps.supports_streaming, "gpt-5.4-mini streams");
+
+        // A typical background compaction call (tools + streaming, modest
+        // tokens, no vision) must pre-flight CLEAN — not UnknownModel.
+        let req = CallRequirements {
+            needs_function_calling: true,
+            needs_streaming: true,
+            estimated_input_tokens: 120_000,
+            requested_max_output_tokens: 2_048,
+            ..Default::default()
+        };
+        reg()
+            .preflight("gpt-5.4-mini", &[], &req)
+            .expect("auxiliary model background call must pass pre-flight");
+    }
+
+    /// Fail-closed default: every capability flag the table does not positively
+    /// set to `true` must read `false`. Guards against a future row that forgets
+    /// a field (Rust requires all fields, but a tenant overlay built from JSON
+    /// or `Default` must not silently grant a capability).
+    #[test]
+    fn unknown_capabilities_default_to_false_not_true() {
+        let blank = ModelCapabilities {
+            supports_function_calling: false,
+            supports_vision: false,
+            supports_prompt_caching: false,
+            supports_reasoning: false,
+            supports_streaming: false,
+            max_input_tokens: 0,
+            max_output_tokens: 0,
+        };
+        // Round-trip a minimal row and confirm nothing flips on.
+        let json = serde_json::to_string(&blank).expect("serialize");
+        let back: ModelCapabilities = serde_json::from_str(&json).expect("deserialize");
+        assert_eq!(back, blank);
+        assert!(!back.supports_vision);
+        assert!(!back.supports_function_calling);
     }
 }

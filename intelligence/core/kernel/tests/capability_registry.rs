@@ -41,7 +41,12 @@ fn registry_table_matrix_matches_canonical_models() {
         ("sonnet", true, true),
         ("haiku", true, false),
         ("gpt-4o", true, false),
-        ("o3-mini", true, true),
+        // o3-mini / o1-mini are TEXT-ONLY reasoning models: vision == FALSE
+        // (fail-closed; the coarse o3/o1 family rows must not grant vision).
+        ("o3-mini", false, true),
+        ("o1-mini", false, true),
+        // o4-mini is multimodal: vision == true.
+        ("o4-mini", true, true),
         ("gemini-2.5-pro", true, true),
         ("claude:opus", true, true),
     ];
@@ -100,11 +105,41 @@ fn fully_supported_call_returns_effective_capabilities() {
         needs_reasoning: true,
         needs_streaming: true,
         estimated_input_tokens: 50_000,
-        requested_max_output_tokens: 60_000,
+        // Opus 4.x caps output at 32k — stay within it.
+        requested_max_output_tokens: 30_000,
     };
     let caps = route_then_preflight("opus", &req).expect("supported call passes");
     assert!(caps.supports_function_calling);
-    assert_eq!(caps.max_output_tokens, 64_000);
+    // Opus 4.x effective output ceiling is 32k (NOT Sonnet's 64k).
+    assert_eq!(caps.max_output_tokens, 32_000);
+}
+
+/// Premortem P6 at the router→registry seam: the hidden `gpt-5.4-mini`
+/// auxiliary model (Codex background compaction/titling) must route AND
+/// pre-flight clean, never falling through to `UnknownModel`. A vision payload
+/// to it must still be rejected (text-only, fail-closed).
+#[test]
+fn auxiliary_gpt_5_4_mini_routes_and_preflights_text_only() {
+    // A background compaction-shaped call passes pre-flight.
+    let bg = CallRequirements {
+        needs_function_calling: true,
+        needs_streaming: true,
+        estimated_input_tokens: 100_000,
+        requested_max_output_tokens: 1_024,
+        ..Default::default()
+    };
+    let caps = route_then_preflight("gpt-5.4-mini", &bg)
+        .unwrap_or_else(|v| panic!("gpt-5.4-mini must preflight clean (P6): {v:?}"));
+    assert!(!caps.supports_vision, "gpt-5.4-mini is text-only");
+
+    // A vision payload to the same model is rejected, not waved through.
+    let vision = CallRequirements {
+        needs_vision: true,
+        ..Default::default()
+    };
+    let violations = route_then_preflight("gpt-5.4-mini", &vision)
+        .expect_err("vision to text-only auxiliary model must reject");
+    assert!(violations.contains(&CapabilityViolation::VisionUnsupported));
 }
 
 #[test]
