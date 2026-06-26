@@ -41,6 +41,14 @@ pub enum HybridSignature {
     Ed25519MlDsa65,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum TlsSupportedGroup {
+    #[serde(rename = "x25519mlkem768")]
+    X25519MlKem768,
+    #[serde(rename = "x25519")]
+    X25519,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct EchPolicy {
@@ -127,6 +135,17 @@ impl PqcPolicy {
             classical_transition_fallback_allowed: true,
         }
     }
+
+    pub fn tls_supported_groups(&self) -> Vec<TlsSupportedGroup> {
+        let mut supported_groups = Vec::new();
+        if self.enabled && self.kem == Some(HybridKem::X25519MlKem768) {
+            supported_groups.push(TlsSupportedGroup::X25519MlKem768);
+        }
+        if self.classical_transition_fallback_allowed {
+            supported_groups.push(TlsSupportedGroup::X25519);
+        }
+        supported_groups
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -173,7 +192,7 @@ impl TransportEndpointSpec {
             alt_svc: None,
             fallback_timeout_ms: None,
             ech: EchPolicy::disabled(),
-            pqc: PqcPolicy::hybrid_optional(),
+            pqc: PqcPolicy::hybrid_required(),
         }
     }
 
@@ -274,16 +293,14 @@ impl TransportEndpointSpec {
                 "external pqc requires classical fallback during transition",
             );
         }
+        validate_transition_supported_groups(&self.pqc.tls_supported_groups())?;
         Ok(())
     }
 
     fn validate_inter_cell(&self) -> Result<(), TransportProfileError> {
         self.validate_non_external("inter-cell endpoints require grpc over http2")?;
-        if !self.pqc.enabled {
-            return invalid(
-                "pqc",
-                "inter-cell endpoints must declare hybrid pqc posture",
-            );
+        if !self.pqc.enabled || !self.pqc.hybrid_negotiation_required {
+            return invalid("pqc", "inter-cell endpoints must require hybrid pqc");
         }
         if self.pqc.kem.is_none() || self.pqc.signature.is_none() {
             return invalid("pqc", "hybrid pqc requires kem and signature identifiers");
@@ -294,6 +311,7 @@ impl TransportEndpointSpec {
                 "inter-cell pqc requires classical fallback during transition",
             );
         }
+        validate_transition_supported_groups(&self.pqc.tls_supported_groups())?;
         Ok(())
     }
 
@@ -371,6 +389,26 @@ fn advertises_h3_443(alt_svc: &str) -> bool {
     })
 }
 
+fn validate_transition_supported_groups(
+    supported_groups: &[TlsSupportedGroup],
+) -> Result<(), TransportProfileError> {
+    if supported_groups.first() != Some(&TlsSupportedGroup::X25519MlKem768) {
+        return invalid(
+            "pqc.supported_groups",
+            "pqc supported_groups must start with x25519mlkem768",
+        );
+    }
+    if !supported_groups.contains(&TlsSupportedGroup::X25519) {
+        return invalid(
+            "pqc.supported_groups",
+            "pqc transition supported_groups must include x25519 classical fallback",
+        );
+    }
+    Ok(())
+}
+
+const SHARED_ECH_OUTER_SNI_ALLOWLIST: &[&str] = &["api.oyatie.dev"];
+
 fn is_shared_oyatie_cover_name(outer_sni: &str) -> bool {
     if outer_sni.is_empty()
         || outer_sni.trim() != outer_sni
@@ -384,16 +422,21 @@ fn is_shared_oyatie_cover_name(outer_sni: &str) -> bool {
     }
 
     let lower = outer_sni.to_ascii_lowercase();
-    let labels: Vec<&str> = lower.split('.').collect();
-    if labels.len() != 3 || labels[1] != "oyatie" || labels[2] != "dev" {
+    if !lower.split('.').all(is_valid_dns_label) {
         return false;
     }
 
-    let cover = labels[0];
-    !cover.is_empty()
-        && !cover.starts_with('-')
-        && !cover.ends_with('-')
-        && cover
+    SHARED_ECH_OUTER_SNI_ALLOWLIST
+        .iter()
+        .any(|allowed| *allowed == lower)
+}
+
+fn is_valid_dns_label(label: &str) -> bool {
+    !label.is_empty()
+        && label.len() <= 63
+        && !label.starts_with('-')
+        && !label.ends_with('-')
+        && label
             .bytes()
             .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
 }
@@ -500,7 +543,11 @@ mod tests {
         assert_eq!(spec.alt_svc, None);
         assert_eq!(spec.ech.enabled, false);
         assert_eq!(spec.pqc.enabled, true);
-        assert_eq!(spec.pqc.hybrid_negotiation_required, false);
+        assert_eq!(spec.pqc.hybrid_negotiation_required, true);
+        assert_eq!(
+            spec.pqc.tls_supported_groups(),
+            vec![TlsSupportedGroup::X25519MlKem768, TlsSupportedGroup::X25519]
+        );
         assert_eq!(spec.validate(), Ok(()));
     }
 
@@ -566,6 +613,55 @@ mod tests {
             Err(TransportProfileError::InvalidField {
                 field: "pqc",
                 reason: "hybrid pqc requires kem and signature identifiers"
+            })
+        );
+    }
+
+    #[test]
+    fn external_pqc_supported_groups_pin_hybrid_first_and_transition_fallback() {
+        let spec = TransportEndpointSpec::external_http3("public-inference-stream");
+
+        assert_eq!(
+            spec.pqc.tls_supported_groups(),
+            vec![TlsSupportedGroup::X25519MlKem768, TlsSupportedGroup::X25519]
+        );
+        assert_eq!(
+            validate_transition_supported_groups(&spec.pqc.tls_supported_groups()),
+            Ok(())
+        );
+    }
+
+    #[test]
+    fn rejects_missing_or_misordered_pqc_transition_supported_groups() {
+        assert_eq!(
+            validate_transition_supported_groups(&[TlsSupportedGroup::X25519MlKem768]),
+            Err(TransportProfileError::InvalidField {
+                field: "pqc.supported_groups",
+                reason: "pqc transition supported_groups must include x25519 classical fallback"
+            })
+        );
+        assert_eq!(
+            validate_transition_supported_groups(&[
+                TlsSupportedGroup::X25519,
+                TlsSupportedGroup::X25519MlKem768,
+            ]),
+            Err(TransportProfileError::InvalidField {
+                field: "pqc.supported_groups",
+                reason: "pqc supported_groups must start with x25519mlkem768"
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_inter_cell_profile_without_required_hybrid_negotiation() {
+        let mut spec = TransportEndpointSpec::inter_cell_grpc_h2("cell-rebalance-events");
+        spec.pqc.hybrid_negotiation_required = false;
+
+        assert_eq!(
+            spec.validate(),
+            Err(TransportProfileError::InvalidField {
+                field: "pqc",
+                reason: "inter-cell endpoints must require hybrid pqc"
             })
         );
     }
@@ -671,6 +767,27 @@ mod tests {
         foreign_sni.ech.outer_sni = Some("api.example.com".to_owned());
         assert_eq!(
             foreign_sni.validate(),
+            Err(TransportProfileError::InvalidField {
+                field: "ech.outer_sni",
+                reason: "external ech outer_sni must be a shared oyatie.dev cover name"
+            })
+        );
+
+        let mut tenant_like_sni = TransportEndpointSpec::external_http3("public-inference-stream");
+        tenant_like_sni.ech.outer_sni = Some("tenant-alpha.oyatie.dev".to_owned());
+        assert_eq!(
+            tenant_like_sni.validate(),
+            Err(TransportProfileError::InvalidField {
+                field: "ech.outer_sni",
+                reason: "external ech outer_sni must be a shared oyatie.dev cover name"
+            })
+        );
+
+        let overlong_label = "a".repeat(64);
+        let mut overlong_sni = TransportEndpointSpec::external_http3("public-inference-stream");
+        overlong_sni.ech.outer_sni = Some(format!("{overlong_label}.oyatie.dev"));
+        assert_eq!(
+            overlong_sni.validate(),
             Err(TransportProfileError::InvalidField {
                 field: "ech.outer_sni",
                 reason: "external ech outer_sni must be a shared oyatie.dev cover name"
