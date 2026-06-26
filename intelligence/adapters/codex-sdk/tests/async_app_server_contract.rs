@@ -89,18 +89,20 @@ fn send(message: &str) {
 }
 
 fn extract_string_field(input: &str, field: &str) -> Option<String> {
-    let marker = format!("\"{}\":", field);
-    let start = input.find(&marker)? + marker.len();
-    let rest = input[start..].trim_start();
+    let key = format!("\"{}\"", field);
+    let key_start = input.find(&key)? + key.len();
+    let colon = input[key_start..].find(':')? + key_start;
+    let rest = input[colon + 1..].trim_start();
     let rest = rest.strip_prefix('"')?;
     let end = rest.find('"')?;
     Some(rest[..end].to_string())
 }
 
 fn extract_id(input: &str) -> Option<String> {
-    let marker = "\"id\":";
-    let start = input.find(marker)? + marker.len();
-    let rest = input[start..].trim_start();
+    let key = "\"id\"";
+    let key_start = input.find(key)? + key.len();
+    let colon = input[key_start..].find(':')? + key_start;
+    let rest = input[colon + 1..].trim_start();
     let end = rest.find([',', '}']).unwrap_or(rest.len());
     Some(rest[..end].trim().to_string())
 }
