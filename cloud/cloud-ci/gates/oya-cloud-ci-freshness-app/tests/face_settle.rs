@@ -290,6 +290,7 @@ fn is_generated_class(path: &str) -> bool {
     path.ends_with(".generated.json")
         || path.ends_with("Cargo.lock")
         || path.starts_with("docs/machine-readable/")
+        || path == "docs/architecture/product-graph.html"
 }
 
 /// SYNTHETIC drift-bearing stand-in for the regenerated faces. It deliberately encodes
