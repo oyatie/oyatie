@@ -8,6 +8,7 @@
 //!   resolve --build-class C [--emit-argfile PATH] [--require-bypass]
 //!   license-state                       (prints `warm_licensed=<bool>` for $GITHUB_OUTPUT)
 //!   report --record PATH --build-class C [--mode M] [--out PATH]
+//!   assert-warm --record PATH --build-class C --mode M
 //!   assert-cold --record PATH
 //!   hash-outputs --show-output PATH [--out PATH]
 //!   canary-verdict --cold PATH [--warm PATH] [--out PATH]
@@ -51,7 +52,8 @@ fn write_out(out: Option<String>, payload: &str) -> Result<(), String> {
     match out {
         Some(path) => {
             if let Some(parent) = Path::new(&path).parent() {
-                fs::create_dir_all(parent).map_err(|e| format!("mkdir {}: {e}", parent.display()))?;
+                fs::create_dir_all(parent)
+                    .map_err(|e| format!("mkdir {}: {e}", parent.display()))?;
             }
             fs::write(&path, payload).map_err(|e| format!("write {path}: {e}"))
         }
@@ -64,9 +66,11 @@ fn write_out(out: Option<String>, payload: &str) -> Result<(), String> {
 
 fn run(args: Vec<String>) -> Result<ExitCode, String> {
     let Some(command) = args.first().cloned() else {
-        return Err("missing subcommand (resolve | license-state | report | assert-cold | \
-                    hash-outputs | canary-verdict | canary-targets)"
-            .to_string());
+        return Err(
+            "missing subcommand (resolve | license-state | report | assert-warm | \
+                    assert-cold | hash-outputs | canary-verdict | canary-targets)"
+                .to_string(),
+        );
     };
     let rest = &args[1..];
 
@@ -125,6 +129,28 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
             write_out(flag_value(rest, "--out"), &payload)?;
             Ok(ExitCode::SUCCESS)
         }
+        "assert-warm" => {
+            let record_path = flag_value(rest, "--record")
+                .ok_or_else(|| "assert-warm requires --record".to_string())?;
+            let build_class = flag_value(rest, "--build-class")
+                .ok_or_else(|| "assert-warm requires --build-class".to_string())?;
+            let mode = flag_value(rest, "--mode")
+                .ok_or_else(|| "assert-warm requires --mode".to_string())?;
+            let doc = read_json(&record_path)?;
+            let record = app::invocation_record(&doc)?;
+            match app::assert_warm_cache_participation(record, &build_class, &mode) {
+                Ok(()) => {
+                    println!("warm-cache guard OK for class {build_class} in mode {mode}");
+                    Ok(ExitCode::SUCCESS)
+                }
+                Err(findings) => {
+                    for finding in findings {
+                        eprintln!("{finding}");
+                    }
+                    Ok(ExitCode::FAILURE)
+                }
+            }
+        }
         "assert-cold" => {
             let record_path = flag_value(rest, "--record")
                 .ok_or_else(|| "assert-cold requires --record".to_string())?;
@@ -146,8 +172,8 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
         "hash-outputs" => {
             let show_output = flag_value(rest, "--show-output")
                 .ok_or_else(|| "hash-outputs requires --show-output".to_string())?;
-            let text = fs::read_to_string(&show_output)
-                .map_err(|e| format!("read {show_output}: {e}"))?;
+            let text =
+                fs::read_to_string(&show_output).map_err(|e| format!("read {show_output}: {e}"))?;
             let entries = app::digest_manifest_from_show_output(&text)?;
             let payload = serde_json::to_string_pretty(&app::manifest_to_json(&entries))
                 .map_err(|e| format!("serialize manifest: {e}"))?;
