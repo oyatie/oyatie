@@ -12,6 +12,7 @@
 //! ## Contract
 //! Input: `{"rows":[{"member_entry": "...", "is_glob": bool},
 //! {"crate_dir": "...", "covered": bool, "excluded": bool}]}`.
+//! Missing or empty `rows` is red: the producer must prove it enumerated the workspace.
 //!
 //! `evaluate_keyed` emits one `Finding{code,key}` per offending member entry or crate dir;
 //! `evaluate` is the bare-code projection. ADR-0083 Tier-3: production code carries no
@@ -80,12 +81,15 @@ fn bool_field(row: &Value, key: &str) -> bool {
 /// Pure evaluator for workspace member-entry and crate-dir coverage rows.
 pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
     let mut findings = BTreeSet::new();
-    let rows = input
-        .get("rows")
-        .and_then(Value::as_array)
-        .cloned()
-        .unwrap_or_default();
-    for row in &rows {
+    let Some(rows) = input.get("rows").and_then(Value::as_array) else {
+        findings.insert(Finding::new("crate_dir_not_covered", "<missing-rows>"));
+        return findings;
+    };
+    if rows.is_empty() {
+        findings.insert(Finding::new("crate_dir_not_covered", "<empty-rows>"));
+        return findings;
+    }
+    for row in rows {
         if let Some(member_entry) = row.get("member_entry").and_then(Value::as_str) {
             if !bool_field(row, "is_glob") {
                 findings.insert(Finding::new(
@@ -187,7 +191,22 @@ mod tests {
     }
 
     #[test]
-    fn empty_corpus_is_green() {
-        assert_eq!(evaluate(&json!({ "rows": [] })).verdict, Verdict::Green);
+    fn empty_corpus_is_red() {
+        let findings = evaluate_keyed(&json!({ "rows": [] }));
+        assert_eq!(findings.len(), 1);
+        let finding = findings.iter().next().unwrap();
+        assert_eq!(finding.code, "crate_dir_not_covered");
+        assert_eq!(finding.key, "<empty-rows>");
+        assert_eq!(evaluate(&json!({ "rows": [] })).verdict, Verdict::Red);
+    }
+
+    #[test]
+    fn missing_rows_is_red() {
+        let findings = evaluate_keyed(&json!({}));
+        assert_eq!(findings.len(), 1);
+        let finding = findings.iter().next().unwrap();
+        assert_eq!(finding.code, "crate_dir_not_covered");
+        assert_eq!(finding.key, "<missing-rows>");
+        assert_eq!(evaluate(&json!({})).verdict, Verdict::Red);
     }
 }

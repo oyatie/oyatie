@@ -517,6 +517,7 @@ pub fn generated_output_diff_policy_violations(
 ) -> (BTreeSet<Finding>, Vec<DiffPolicyViolation>) {
     let mut findings = BTreeSet::new();
     let generated_path_rules = parse_generated_path_rules(manifest, &mut findings);
+    parse_declared_artifacts(manifest, &mut findings);
     let allowed_generated_edit_paths =
         diff_policy_allowed_generated_edit_paths(manifest, &mut findings);
     if !findings.is_empty() {
@@ -1371,7 +1372,7 @@ mod tests {
 
     #[test]
     fn diff_policy_is_manifest_derived_and_allows_deletions() {
-        let manifest = manifest(Vec::new());
+        let manifest = manifest(vec![artifact("example-face", "out/example.generated.json")]);
         let diff = concat!(
             "M\tsrc/__generated__/types.ts\n",
             "A\topenapi/client.generated.ts\n",
@@ -1408,6 +1409,7 @@ mod tests {
         scm_facts["materialization_mode"] = json!("main-branch-materialized");
         scm_facts["merge_policy"] = json!("controller-owned-main-materialization");
         scm_facts["generator"]["operation_id"] = json!("emit-scm-facts-boundary-snapshot");
+        scm_facts["generator"]["output_mode"] = json!("declared-artifact-path-write");
         scm_facts["generator"]["input_contract"] = json!(["repo-root", "full-depth-scm"]);
         let manifest = manifest(vec![face, scm_facts]);
         let diff = concat!(
@@ -1565,6 +1567,22 @@ mod tests {
             .remove("final_tree_materialization");
         let scm_facts = scm(&["out/example.generated.json"]);
         let findings = evaluate_keyed(&manifest, &scm_facts);
+        assert!(findings.iter().any(|finding| {
+            finding.code == "generated_artifact_manifest_final_tree_materialization_missing"
+        }));
+    }
+
+    #[test]
+    fn diff_policy_fails_closed_on_invalid_control_plane_manifest() {
+        let mut manifest = manifest(vec![artifact("example-face", "out/example.generated.json")]);
+        manifest
+            .as_object_mut()
+            .unwrap()
+            .remove("final_tree_materialization");
+
+        let (findings, violations) = generated_output_diff_policy_violations(&manifest, "");
+
+        assert!(violations.is_empty());
         assert!(findings.iter().any(|finding| {
             finding.code == "generated_artifact_manifest_final_tree_materialization_missing"
         }));
