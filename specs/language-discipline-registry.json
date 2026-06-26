@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.com/specs/language-discipline-registry.json",
   "title": "LanguageDisciplineRegistry",
-  "description": "Local/static AC-0.4 registry for the Phase-0 language-discipline allowlist. It validates GOOD/BAD changed-file fixtures and preserves the T0.4 cloud-check backlog inventory without claiming live cloud-ci authority.",
+  "description": "Local/static registry for Rust-default language discipline, current-head non-Rust inventory, and Phase-0 language-discipline allowlist/backlog. It preserves Python/MJS retirement findings without claiming live cloud-ci authority.",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-LANGUAGE-DISCIPLINE-REGISTRY",
@@ -10,7 +10,7 @@
     "status": "local_static_language_discipline_seed_not_live_context",
     "owner_team": "platform-toolchain + platform-governance",
     "created_at": "2026-06-03T00:00:00Z",
-    "updated_at": "2026-06-04T15:21:37Z",
+    "updated_at": "2026-06-26T11:00:00Z",
     "related_acceptance_criteria": [
       "AC-0.4"
     ],
@@ -93,7 +93,7 @@
       {
         "path": "scripts/tests/cloud_control_plane_operation_contract_check.py",
         "kind": "python_test_sprawl_backlog",
-        "present_in_current_head": false,
+        "present_in_current_head": true,
         "retirement_action": "Port to Rust Buck2 gate before live language-discipline authority."
       },
       {
@@ -105,31 +105,31 @@
       {
         "path": "scripts/tests/cloud_enforceability_facets_check.py",
         "kind": "python_test_sprawl_backlog",
-        "present_in_current_head": false,
+        "present_in_current_head": true,
         "retirement_action": "Port to Rust Buck2 gate before live language-discipline authority."
       },
       {
         "path": "scripts/tests/cloud_hyperscaler_parity_taxonomy_check.py",
         "kind": "python_test_sprawl_backlog",
-        "present_in_current_head": false,
+        "present_in_current_head": true,
         "retirement_action": "Port to Rust Buck2 gate before live language-discipline authority."
       },
       {
         "path": "scripts/tests/cloud_observability_slo_evidence_check.py",
         "kind": "python_test_sprawl_backlog",
-        "present_in_current_head": false,
+        "present_in_current_head": true,
         "retirement_action": "Port to Rust Buck2 gate before live language-discipline authority."
       },
       {
         "path": "scripts/tests/cloud_production_quality_kit_evidence_backlog_check.py",
         "kind": "python_test_sprawl_backlog",
-        "present_in_current_head": false,
+        "present_in_current_head": true,
         "retirement_action": "Port to Rust Buck2 gate before live language-discipline authority."
       },
       {
         "path": "scripts/tests/cloud_resource_contract_parity_catalog_check.py",
         "kind": "python_test_sprawl_backlog",
-        "present_in_current_head": false,
+        "present_in_current_head": true,
         "retirement_action": "Port to Rust Buck2 gate before live language-discipline authority."
       }
     ]
@@ -179,5 +179,81 @@
     "rustc --edition=2021 -D warnings scripts/tests/language_discipline_check.rs --test",
     "rustc --edition=2021 -D warnings scripts/ci/assert-language-discipline.rs",
     "buck2 build //:language-discipline-check"
-  ]
+  ],
+  "current_head_non_rust_inventory": {
+    "captured_at": "2026-06-26T11:00:00Z",
+    "source": "worker-3 python-mjs-to-rust retirement review using current checkout file inventory",
+    "claim_boundary": "inventory_only_no_live_gate_authority_no_runtime_retirement_claim",
+    "counts": {
+      "python_files": 14,
+      "mjs_files": 9,
+      "shell_files": 22,
+      "typescript_files": 6
+    },
+    "python": {
+      "active_gate_or_build_helper_candidates": [
+        "cloud/cloud-k8s/tests/test_runtime_substrate_validation.py",
+        "infra/seaweedfs/tests/test_seaweedfs_manifest.py",
+        "scripts/emit_rust_tests.py",
+        "scripts/gen_first_party_buck.py",
+        "scripts/tests/cloud_control_plane_operation_contract_check.py",
+        "scripts/tests/cloud_enforceability_facets_check.py",
+        "scripts/tests/cloud_hyperscaler_parity_taxonomy_check.py",
+        "scripts/tests/cloud_observability_slo_evidence_check.py",
+        "scripts/tests/cloud_production_quality_kit_evidence_backlog_check.py",
+        "scripts/tests/cloud_resource_contract_parity_catalog_check.py",
+        "tools/anchor-sweep/inject_anchors.py",
+        "tools/buck/apply-thirdparty-patches.py",
+        "tools/buck2/gen-first-party-buck.py"
+      ],
+      "product_or_reference_exceptions": [
+        "oya/feature-flags/reference-implementations/python-asyncio-client.py"
+      ],
+      "retirement_note": "Candidate-authored Python remains outside the empty new-file allowlist. Existing files are grandfathered inventory; active gate/build helpers should move to Rust/Buck2 before being treated as merge authority."
+    },
+    "mjs": {
+      "rust_delegating_compatibility_shims": [
+        "scripts/asyncapi-lint.mjs",
+        "scripts/proto-lint.mjs",
+        "scripts/validate-adr-shape.mjs",
+        "scripts/validate-foundry-phase00-evidence.mjs"
+      ],
+      "active_doc_generation_or_frontend_helpers": [
+        "oya/app-shell-frontend/scripts/codegen-check.mjs",
+        "oya/app-shell-frontend/scripts/run-vinxi.mjs",
+        "oya/app-shell-frontend/scripts/shell-contract-check.mjs",
+        "scripts/generate-erp-second-pass-docs.mjs",
+        "scripts/generate-marketplace-workplace-doc-set.mjs"
+      ],
+      "retirement_note": "The four lint/validate scripts delegate to oya-dev-cli Rust commands and remain compatibility shims; doc-generation and frontend helpers are still Node/MJS surfaces and need explicit exception or Rust/Buck2 replacement before promotion to gate authority."
+    },
+    "recommended_next_actions": [
+      {
+        "id": "port-scripts-tests-cloud-checks-to-rust",
+        "priority": "P00",
+        "paths_prefix": "scripts/tests/cloud_*_check.py",
+        "action": "Port present Python spec checks to Rust/Buck2 targets or mark them provenance-only; the prior registry incorrectly recorded these current-head files as absent."
+      },
+      {
+        "id": "retire-python-buck-generators",
+        "priority": "P01",
+        "paths": [
+          "scripts/gen_first_party_buck.py",
+          "scripts/emit_rust_tests.py",
+          "tools/buck2/gen-first-party-buck.py",
+          "tools/buck/apply-thirdparty-patches.py"
+        ],
+        "action": "Keep grandfathered until Rust/Buck2 replacements exist; do not expand their authority or add new Python generation paths."
+      },
+      {
+        "id": "classify-mjs-doc-generators",
+        "priority": "P01",
+        "paths": [
+          "scripts/generate-erp-second-pass-docs.mjs",
+          "scripts/generate-marketplace-workplace-doc-set.mjs"
+        ],
+        "action": "Either retire after one-shot historical generation or port any still-needed generator behavior to Rust before treating output production as active authority."
+      }
+    ]
+  }
 }
