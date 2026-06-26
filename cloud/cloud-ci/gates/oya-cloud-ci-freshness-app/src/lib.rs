@@ -32,7 +32,10 @@ const NOT_TRACKED_IN_GIT_MODE: &str = "not-tracked-in-git";
 const MAIN_BRANCH_MATERIALIZED_MODE: &str = "main-branch-materialized";
 const ARCHITECTURE_PRODUCT_GRAPH_FACE: &str = "product-graph.html";
 const ARCHITECTURE_PRODUCT_GRAPH_PATH: &str = "docs/architecture/product-graph.html";
-const GENERATED_FACE_PATHS: [&str; 8] = [
+/// PR-owned / face-settle generated paths. Controller-owned generated artifacts that must be
+/// materialized on protected branches, such as `product-graph.html`, intentionally stay out of
+/// this list so contributor PRs do not acquire a new generated merge surface.
+const GENERATED_FACE_PATHS: [&str; 7] = [
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/ttl-policy.generated.json",
@@ -40,8 +43,10 @@ const GENERATED_FACE_PATHS: [&str; 8] = [
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/enforcement-inventory.generated.json",
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/enforcement-liveness.generated.json",
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
-    ARCHITECTURE_PRODUCT_GRAPH_PATH,
 ];
+/// Controller-owned generated artifacts whose freshness is proven by regeneration/determinism,
+/// but whose byte diffs are not staged by `oya-cloud-ci-face-settle` in contributor PRs.
+const CONTROLLER_MATERIALIZED_ARTIFACT_PATHS: [&str; 1] = [ARCHITECTURE_PRODUCT_GRAPH_PATH];
 const EMITTER_TARGET: &str =
     "//cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app:oya-cloud-ci-scm-facts-emitter-app";
 const PRODUCER_TARGET: &str = "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin";
@@ -908,7 +913,8 @@ pub fn read_committed_generated_faces(
 /// Read the file names of non-PR-owned faces from the generated-artifact control-plane manifest.
 /// A declared artifact whose `materialization_mode` is `not-tracked-in-git` OR
 /// `main-branch-materialized` AND whose `path` EXACTLY equals one of this gate's canonical
-/// generated-face paths ([`GENERATED_FACE_PATHS`]) is returned by its file basename (e.g.
+/// generated-face paths ([`GENERATED_FACE_PATHS`]) or explicitly controller-materialized paths
+/// ([`CONTROLLER_MATERIALIZED_ARTIFACT_PATHS`]) is returned by its file basename (e.g.
 /// `ttl-policy.generated.json`), matching the keys used everywhere else in this gate. A missing or
 /// malformed manifest yields an empty set, so the byte-parity contract is the safe default (no face
 /// is silently exempted).
@@ -940,12 +946,15 @@ pub fn read_decommitted_face_names(repo_root: &Path) -> BTreeSet<String> {
         let Some(path) = artifact.get("path").and_then(|value| value.as_str()) else {
             continue;
         };
-        // Scope strictly to this gate's faces by CANONICAL FULL PATH, never basename. Matching on
-        // basename would let a candidate-controlled manifest row at a non-canonical path (e.g.
-        // `anything/scm-facts.generated.json`) collapse to a committed face's name and silently
-        // retire that committed face's byte-parity check. An unrelated de-commit-class artifact
-        // elsewhere in the manifest must not change freshness behavior here.
-        if GENERATED_FACE_PATHS.contains(&path) {
+        // Scope strictly to this gate's materialized artifacts by CANONICAL FULL PATH, never
+        // basename. Matching on basename would let a candidate-controlled manifest row at a
+        // non-canonical path (e.g. `anything/scm-facts.generated.json`) collapse to a committed
+        // face's name and silently retire that committed face's byte-parity check. An unrelated
+        // de-commit-class artifact elsewhere in the manifest must not change freshness behavior
+        // here.
+        if GENERATED_FACE_PATHS.contains(&path)
+            || CONTROLLER_MATERIALIZED_ARTIFACT_PATHS.contains(&path)
+        {
             names.insert(file_basename(path).to_owned());
         }
     }
@@ -1614,6 +1623,37 @@ root//tools/oya-architecture-graph-generator-app:oya-architecture-graph-generato
             architecture_graph_generator,
             PathBuf::from("/repo/buck-out/v2/gen/architecture-graph")
         );
+    }
+
+    #[test]
+    fn architecture_product_graph_is_controller_owned_not_pr_owned_face_path() {
+        let root = temp_root("oya-product-graph-controller-owned");
+        std::fs::create_dir_all(root.join("registry")).expect("create registry dir");
+        std::fs::write(
+            root.join(CONTROL_PLANE_MANIFEST),
+            serde_json::json!({
+                "artifacts": [
+                    {
+                        "path": ARCHITECTURE_PRODUCT_GRAPH_PATH,
+                        "materialization_mode": MAIN_BRANCH_MATERIALIZED_MODE
+                    },
+                    {
+                        "path": "elsewhere/product-graph.html",
+                        "materialization_mode": MAIN_BRANCH_MATERIALIZED_MODE
+                    }
+                ]
+            })
+            .to_string(),
+        )
+        .expect("write manifest");
+
+        let non_pr_owned = read_decommitted_face_names(&root);
+        let generated_paths = generated_face_paths();
+        let pr_owned_paths = pr_owned_generated_face_paths(&non_pr_owned);
+
+        assert!(non_pr_owned.contains(ARCHITECTURE_PRODUCT_GRAPH_FACE));
+        assert!(!generated_paths.contains(&ARCHITECTURE_PRODUCT_GRAPH_PATH.to_owned()));
+        assert!(!pr_owned_paths.contains(&ARCHITECTURE_PRODUCT_GRAPH_PATH.to_owned()));
     }
 
     #[test]
