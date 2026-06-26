@@ -393,7 +393,7 @@ Severity: P0 for canonical doctrine; P1 for scaffolds unless clearly tagged.
 Failure: a script produces plausible-looking docs by padding base text to a
 line floor.
 
-Wave-3-G adjacent case: generate-erp-second-pass-docs.mjs pads IP documents to
+Wave-3-G adjacent case: the now-retired ERP second-pass generator padded IP documents to
 80 lines with repeated "IP detail" bullets.
 
 Why it harms Oyatie: generated rows can pass mechanical size checks while
@@ -413,7 +413,7 @@ clearly marked scaffold and blocked from promotion.
 Safer replacement: canonical docs are authored or enriched with bespoke
 domain-specific decisions before promotion.
 
-Anchor: scripts/generate-erp-second-pass-docs.mjs ipDoc ensureLines call.
+Anchor: retired ERP second-pass generator ipDoc ensureLines pattern.
 
 Anchor: docs/standards/documentation-rigor.md §2 Implementation Plan floor.
 
@@ -713,7 +713,7 @@ Review cue: each AC should be falsifiable by one concrete check.
 Safer replacement: state exact command, file path, event class, and refusal
 case.
 
-Anchor: scripts/generate-erp-second-pass-docs.mjs IP acceptance template.
+Anchor: retired ERP second-pass generator IP acceptance-template pattern.
 
 ### AP-A16 Thin Implementation Plans From Filler Lines
 
@@ -2646,7 +2646,7 @@ variable or consequence.
 
 Incident class: AP-A04, AP-A15, AP-A16, AP-A23.
 
-Source: scripts/generate-erp-second-pass-docs.mjs.
+Source: retired ERP second-pass generator (removed from the live tree).
 
 The script includes an IP generator that builds a base implementation-plan
 body and pads it to 80 lines with repeated "IP detail" rows.
@@ -2851,7 +2851,7 @@ Unified ecosystem thesis:
 docs/architecture/unified-ecosystem-thesis-2026-05-21.md.
 
 ERP second-pass generator:
-scripts/generate-erp-second-pass-docs.mjs.
+retired from the live tree; see git history before removal if historical provenance is needed.
 
 ### §9.3 ADRs
 
