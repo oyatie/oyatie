@@ -30,6 +30,7 @@ related_specs:
   - /specs/network-topology.json
   - /specs/microservices/edge-gateway.json
   - /specs/tls-profile.json
+  - network/ports/transport-profile/endpoint-transport-profile.contract.json
 related_memory:
   - feedback_http3_quic_default_protocol
   - feedback_no_silent_regression
@@ -107,9 +108,11 @@ FixupTask family.
 
 ### §B-1 HTTP/3 Fallback Chain
 
-**Decision:** Every oyatie endpoint that accepts external or
-inter-cell traffic MUST implement the following protocol fallback
-chain in the listed priority order:
+**Decision:** Every oyatie endpoint that accepts external traffic MUST
+implement the following protocol fallback chain in the listed priority
+order. Inter-cell and internal endpoints are declared through §B-8 and
+remain gRPC over HTTP/2 with SPIFFE mTLS until a real endpoint-specific
+pull justifies a transport-runtime adapter.
 
 ```
 Priority 1 (default):  HTTP/3 over QUIC (RFC 9114)
@@ -428,7 +431,9 @@ intra-cell or inter-cell mesh only.
 **Default rule for µservices not listed:** If a µservice exposes
 any endpoint reachable from outside the cell boundary, HTTP/3,
 ECH, and PQC hybrid are all REQUIRED. When in doubt, treat as
-external.
+external. Cell-to-cell control-plane automation is inter-cell, not
+external, and remains on gRPC over HTTP/2 unless §B-8 reclassifies the
+endpoint.
 
 ---
 
@@ -540,6 +545,39 @@ the hybrid signature scheme.
    of handshakes by 2027-06-01.
 4. Set calendar reminder for 2027-12-31 `x25519mlkem768`-mandatory
    deadline for substrate inter-cell connections.
+
+---
+
+### §B-8 Protocol-Agnostic Transport Port
+
+**Decision:** Endpoint transport posture is a typed declaration owned
+by `network/ports/transport-profile`, not by edge engines, cloud SDKs,
+shell scripts, or provider-specific adapters. The Rust port exposes
+`TransportEndpointSpec` and `TransportProfilePort` with the stable
+fields `protocol`, `tls_profile`, `alt_svc`,
+`fallback_timeout_ms`, `ech`, `pqc`, and `capability_class`. The
+crate-local contract artifact is
+`network/ports/transport-profile/endpoint-transport-profile.contract.json`.
+
+**Capability classification:**
+
+| Class | Protocol | TLS profile | Alt-Svc / fallback | ECH | PQC | Adapter rule |
+|-------|----------|-------------|--------------------|-----|-----|--------------|
+| external | `http3` | `strict_tls13` | required; `fallback_timeout_ms <= 12500` | mandatory | mandatory hybrid with classical transition fallback | runtime adapter deferred |
+| inter_cell | `grpc_http2` | `spiffe_mtls_tls13` | forbidden | forbidden | hybrid declared, rollout optional | no QUIC engine |
+| internal | `grpc_http2` | `spiffe_mtls_tls13` | forbidden | forbidden | optional | no QUIC engine |
+
+**Runtime deferral:** An owned QUIC engine is not introduced by this
+ADR. If a real endpoint use later requires a Layer-5 transport runtime,
+the adapter binding point is a single transport-runtime adapter, with
+`s2n-quic` as the candidate engine. The port MUST remain
+protocol-agnostic and provider-neutral.
+
+**Verification:** `buck2 test
+//network/ports/transport-profile:network-transport-profile-unittest`
+parses the contract artifact and rejects declarations that move
+inter-cell/internal traffic onto HTTP/3, add Alt-Svc to non-external
+endpoints, or weaken external ECH/PQC posture.
 
 ---
 
@@ -823,6 +861,9 @@ carry a one-line justification.
 | `protocol_fallback` | structured log event name — snake_case per ADR-0153 observability naming convention |
 | `pqc_hybrid_kem_negotiated_total` | Prometheus counter name — snake_case + `_total` suffix per OpenMetrics convention |
 | `pqc_classical_fallback_total` | Prometheus counter name — snake_case + `_total` suffix per OpenMetrics convention |
+| `network-transport-profile` | `network` domain prefix + `transport-profile` typed endpoint contract; follows existing network port crate naming |
+| `TransportEndpointSpec` | typed declaration for one endpoint's protocol posture without naming a runtime engine |
+| `TransportProfilePort` | provider-neutral port returning endpoint transport declarations to future adapters |
 
 ---
 
@@ -830,4 +871,5 @@ carry a one-line justification.
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-06-26 | waveB-iac-transport-773-agent | Adds §B-8 typed protocol-agnostic transport port and contract artifact for issue #773; clarifies external HTTP/3 versus inter-cell/internal gRPC over HTTP/2 and defers QUIC engine adapters. |
 | 2026-05-20 | wave-3-a-cross-reference-wiring-agent | Initial creation. Amends ADR-0253 §D-4/§D-5/§D-7. Codifies HTTP/3→HTTP/2→HTTP/1.1 fallback chain (§B-1), strict TLS 1.3 profile (§B-2), ECH RFC 9460 (§B-3), PQC hybrid X25519MLKEM768 + ed25519+ml_dsa_65 (§B-4), per-µservice protocol table (§B-5), 4 CI enforcement lanes (§B-6), migration plan (§B-7). Cross-cutting impact noted for ADR-0293/0295/0247/Connect/KMS (§F). |
