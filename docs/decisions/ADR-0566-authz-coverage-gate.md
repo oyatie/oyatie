@@ -220,6 +220,15 @@ never register as surfaces. `#![forbid(unsafe_code)]`; deterministic sorted outp
 - A surface that grows the frozen baseline (a new unauthenticated control plane) requires real authz
   before merge; the `--write` re-baseline is shrink-only and refuses new keys without `--allow-new`,
   so a careless re-baseline cannot silently absorb a new gap.
+- The HR remediation of the grandfathered `oya/hr employment-infrastructure` surface is accounted
+  by the crate-scoped `oya/hr/crates/oya-hr-employment-infrastructure/OWNERS` boundary and the
+  fail-closed source module `oya/hr/crates/oya-hr-employment-infrastructure/src/authz.rs`. The
+  module supplies the verified-principal/PDP seam for the HR mutating routes named in D4 without
+  widening the authz-coverage gate policy.
+- The payroll auth-failure API-contract addendum is accounted by
+  `evidence/multispectrum/hr-payroll-payroll-auth-contract-20260625-1782429919.json`, which records
+  the HR/payroll capability matrix and Buck2 contract verification for the documented 401/403
+  payroll money-movement responses.
 
 ## Alternatives considered
 
