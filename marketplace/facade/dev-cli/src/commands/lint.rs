@@ -1,7 +1,7 @@
 //! `oya lint` — Rust-owned compatibility targets for retired Node validators.
 //!
 //! These commands replace the logic previously embedded in small `.mjs`
-//! validators. The scripts remain as compatibility shims only.
+//! validators. Retired root-level Node shims are intentionally not preserved.
 
 use std::fs;
 use std::path::{Path, PathBuf};
