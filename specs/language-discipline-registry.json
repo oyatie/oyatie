@@ -186,7 +186,7 @@
     "claim_boundary": "inventory_only_no_live_gate_authority_no_runtime_retirement_claim",
     "counts": {
       "python_files": 14,
-      "mjs_files": 9,
+      "mjs_files": 7,
       "shell_files": 22,
       "typescript_files": 6
     },
@@ -221,11 +221,9 @@
       "active_doc_generation_or_frontend_helpers": [
         "oya/app-shell-frontend/scripts/codegen-check.mjs",
         "oya/app-shell-frontend/scripts/run-vinxi.mjs",
-        "oya/app-shell-frontend/scripts/shell-contract-check.mjs",
-        "scripts/generate-erp-second-pass-docs.mjs",
-        "scripts/generate-marketplace-workplace-doc-set.mjs"
+        "oya/app-shell-frontend/scripts/shell-contract-check.mjs"
       ],
-      "retirement_note": "The four lint/validate scripts delegate to oya-dev-cli Rust commands and remain compatibility shims; doc-generation and frontend helpers are still Node/MJS surfaces and need explicit exception or Rust/Buck2 replacement before promotion to gate authority."
+      "retirement_note": "The four lint/validate scripts delegate to oya-dev-cli Rust commands and remain compatibility shims; app-shell frontend helpers are still Node/MJS surfaces owned by the app-shell lane and need explicit exception or Rust/Buck2 replacement before promotion to gate authority. The two root one-shot doc generators were removed from current-head inventory on 2026-06-26."
     },
     "recommended_next_actions": [
       {
@@ -252,7 +250,8 @@
           "scripts/generate-erp-second-pass-docs.mjs",
           "scripts/generate-marketplace-workplace-doc-set.mjs"
         ],
-        "action": "Either retire after one-shot historical generation or port any still-needed generator behavior to Rust before treating output production as active authority."
+        "action": "Removed stale one-shot root doc generators from current-head inventory and rust-first automation exceptions; historical anti-pattern citations remain as provenance only.",
+        "status": "completed_by_worker_3_2026_06_26"
       }
     ]
   }

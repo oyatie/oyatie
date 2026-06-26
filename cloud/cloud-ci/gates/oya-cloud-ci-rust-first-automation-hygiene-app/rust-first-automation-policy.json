@@ -85,18 +85,6 @@
       "status": "temporary_legacy_bridge"
     },
     {
-      "path": "scripts/generate-erp-second-pass-docs.mjs",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "scripts/generate-marketplace-workplace-doc-set.mjs",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
       "path": "scripts/proto-lint.mjs",
       "reason": "Legacy Node compatibility shim retained only for old callers; validator logic is already owned by the Rust oya-dev-cli lint surface.",
       "replacement": "Use the Rust oya-dev-cli lint proto contract through Cargo today and Buck2/cloud-ci gate wiring for admission.",
