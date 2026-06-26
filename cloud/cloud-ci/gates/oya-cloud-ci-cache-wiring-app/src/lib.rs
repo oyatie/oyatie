@@ -310,31 +310,27 @@ pub fn cache_hit_report(record: &Value, build_class: &str, mode: &str) -> Value 
     })
 }
 
-/// Assert a warm build actually participated in the warm cache and observed at
-/// least one action-cache hit.
+/// Assert a build invocation succeeded and, when run in warm mode, actually
+/// participated in the warm cache and observed at least one action-cache hit.
 ///
 /// This is deliberately stricter than telemetry. A warm lane with a 0% hit rate
 /// is usually an endpoint / credential / keying misconfiguration; allowing that
 /// to stay green recreates the "cache exists but never hits" false-green class.
-/// Bypass/cold modes are explicit no-ops because today's transitional GitHub
-/// Actions adapter runs with NativeLink dark until the owned cloud-ci cache
-/// controller licenses warmth.
+/// Bypass/cold modes still validate the recorded build result, because an error
+/// record must never be reclassified as green telemetry.
 pub fn assert_warm_cache_participation(
     record: &Value,
     build_class: &str,
     mode: &str,
 ) -> Result<(), Vec<String>> {
     let normalized = mode.trim().to_ascii_lowercase();
-    if matches!(normalized.as_str(), "bypass" | "cold" | "off" | "disabled") {
-        return Ok(());
-    }
-
+    let bypass_mode = matches!(normalized.as_str(), "bypass" | "cold" | "off" | "disabled");
     let warm_mode = matches!(
         normalized.as_str(),
         "warm-ro" | "warm-rw" | "warm-read-only" | "warm-read-write"
     );
     let mut findings = Vec::new();
-    if !warm_mode {
+    if !bypass_mode && !warm_mode {
         findings.push(format!(
             "cache mode `{mode}` for class `{build_class}` is not recognized — refusing to \
              infer warm-cache correctness from an unknown mode (fail closed)"
@@ -850,6 +846,22 @@ mod tests {
             )
             .is_ok()
         );
+    }
+
+    #[test]
+    fn assert_warm_still_fails_on_bypass_error_record() {
+        let doc = json!({
+            "data": { "Record": { "data": { "InvocationRecord": {
+                "exit_result_name": "FAILURE"
+            } } } }
+        });
+        let findings = assert_warm_cache_participation(
+            invocation_record(&doc).unwrap(),
+            "gate-fleet-shared-graph",
+            "bypass",
+        )
+        .unwrap_err();
+        assert!(findings.iter().any(|f| f.contains("non-success")));
     }
 
     #[test]
