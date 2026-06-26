@@ -381,11 +381,16 @@ pub fn assert_warm_cache_participation(
                  last_snapshot.re_action_cache_started=0 — the action cache did not start"
             ));
         }
-        if matches!(cache_hit_rate, Some(0.0)) && action_hits == Some(0) {
+        if matches!(cache_hit_rate, Some(0.0)) {
             findings.push(format!(
                 "warm cache guard for class `{build_class}` ran in mode `{mode}` with 0% hit rate \
-                 and run_action_cache_count=0 — this is an obvious warm-cache misconfiguration, \
-                 not a green presubmit"
+                 — this is an obvious warm-cache misconfiguration, not a green presubmit"
+            ));
+        }
+        if action_hits == Some(0) {
+            findings.push(format!(
+                "warm cache guard for class `{build_class}` ran in mode `{mode}` with \
+                 run_action_cache_count=0 — no action-cache hit was observed"
             ));
         }
     }
@@ -888,6 +893,58 @@ mod tests {
         .unwrap_err();
         assert!(findings.iter().any(|f| f.contains("0% hit rate")));
         assert!(findings.iter().any(|f| f.contains("did not start")));
+    }
+
+    #[test]
+    fn assert_warm_rejects_zero_rate_even_with_positive_cache_count() {
+        let doc = json!({
+            "data": { "Record": { "data": { "InvocationRecord": {
+                "cache_hit_rate": 0.0,
+                "run_action_cache_count": 3,
+                "run_local_count": 4,
+                "run_remote_count": 0,
+                "run_skipped_count": 1,
+                "cache_upload_attempt_count": 0,
+                "cache_upload_count": 0,
+                "exit_result_name": "SUCCESS",
+                "last_snapshot": { "re_action_cache_started": 3 }
+            } } } }
+        });
+        let findings = assert_warm_cache_participation(
+            invocation_record(&doc).unwrap(),
+            "gate-fleet-shared-graph",
+            "warm-rw",
+        )
+        .unwrap_err();
+        assert!(findings.iter().any(|f| f.contains("0% hit rate")));
+    }
+
+    #[test]
+    fn assert_warm_rejects_positive_rate_with_zero_cache_count() {
+        let doc = json!({
+            "data": { "Record": { "data": { "InvocationRecord": {
+                "cache_hit_rate": 0.5,
+                "run_action_cache_count": 0,
+                "run_local_count": 4,
+                "run_remote_count": 0,
+                "run_skipped_count": 1,
+                "cache_upload_attempt_count": 0,
+                "cache_upload_count": 0,
+                "exit_result_name": "SUCCESS",
+                "last_snapshot": { "re_action_cache_started": 1 }
+            } } } }
+        });
+        let findings = assert_warm_cache_participation(
+            invocation_record(&doc).unwrap(),
+            "gate-fleet-shared-graph",
+            "warm-rw",
+        )
+        .unwrap_err();
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.contains("run_action_cache_count=0"))
+        );
     }
 
     #[test]
