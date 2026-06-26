@@ -284,9 +284,21 @@ fn gemini_real_usage_fixture_prices_exactly() {
 }
 
 #[test]
-fn empty_usage_blocks_default_to_zero_cost() {
-    // Absent fields must default to 0 (serde default), not fail.
-    let raw: AnthropicUsage = serde_json::from_str("{}").unwrap();
+fn malformed_usage_blocks_fail_closed() {
+    assert!(serde_json::from_str::<AnthropicUsage>("{}").is_err());
+    assert!(serde_json::from_str::<OpenAiResponsesUsage>("{}").is_err());
+    assert!(serde_json::from_str::<GeminiUsageMetadata>("{}").is_err());
+}
+
+#[test]
+fn explicit_zero_usage_prices_as_zero() {
+    let raw: AnthropicUsage = serde_json::from_str(
+        r#"{
+            "input_tokens": 0,
+            "output_tokens": 0
+        }"#,
+    )
+    .unwrap();
     let usage = UsageExtractor.from_anthropic(&raw);
     assert_eq!(usage, TokenUsage::default());
     let pb = test_pricebook();
