@@ -29,6 +29,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 pub mod model_routing;
+pub mod resilience;
 pub mod safety;
 pub mod xproxy_parity;
 
