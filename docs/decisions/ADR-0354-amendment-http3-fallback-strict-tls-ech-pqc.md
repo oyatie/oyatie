@@ -485,30 +485,35 @@ declare ECH support in its microservice spec.
 **Sub-checks:**
 - `ech-mandatory-class-coverage` — scans all endpoint specs; any
   endpoint of type `edge-pop|api-gateway|inference-api|signalling|sts|policy-eval`
-  that lacks `ech: { enabled: true, key_rotation_hours: <N> }` fails.
+  that lacks `ech.enabled: true` and `ech.support_required: true` fails.
 - `ech-key-rotation-cadence` — `key_rotation_hours` value MUST be
   ≤ 24.
 - `ech-grease-handling-declared` — endpoint spec includes
-  `ech_grease_retry_configs: true` field.
+  `ech.grease_retry_configs: true`.
+- `ech-transition-fallback-declared` — endpoint spec includes
+  `ech.plaintext_sni_fallback_allowed: true` so §B-3.2 fallback
+  remains observable rather than hard-refused.
 - `ech-multi-tenant-outer-sni` — tenant-scoped endpoints use shared
-  outer SNI (`*.oyatie.dev` root) not tenant-specific hostname.
+  `ech.outer_sni` (`*.oyatie.dev` root) not tenant-specific hostname.
 
 **Severity ramp:** day-0 report-only; day-8 error.
 
 #### §B-6.4 `oya-check-pqc-hybrid-kem`
 
 **Purpose:** Every PQC-REQUIRED endpoint (§B-4.3) MUST declare
-`x25519mlkem768` as its first supported_group entry, and declare
-the hybrid signature scheme.
+hybrid negotiation support through the `pqc` policy block.
 
 **Sub-checks:**
-- `pqc-kem-declared` — endpoint spec `supported_groups[0]` equals
+- `pqc-kem-declared` — endpoint spec `pqc.kem` equals
   `x25519mlkem768`.
-- `pqc-hybrid-sig-declared` — endpoint spec `certificate_verify_sig`
-  field equals `ed25519+ml_dsa_65`.
+- `pqc-hybrid-sig-declared` — endpoint spec `pqc.signature` equals
+  `ed25519+ml_dsa_65`.
+- `pqc-hybrid-negotiation-required` — endpoint spec
+  `pqc.hybrid_negotiation_required` is true for PQC-required external
+  endpoints.
 - `pqc-classical-fallback-present` — endpoint spec includes
-  `x25519` in supported_groups (MUST NOT remove classical fallback
-  before 2027-12-31 deadline).
+  `pqc.classical_transition_fallback_allowed: true` (MUST NOT remove
+  classical fallback before 2027-12-31 deadline).
 - `pqc-metrics-registered` — observability registry carries
   `pqc_hybrid_kem_negotiated_total` and `pqc_classical_fallback_total`
   metrics for the endpoint.
@@ -554,7 +559,7 @@ the hybrid signature scheme.
 by `network/ports/transport-profile`, not by edge engines, cloud SDKs,
 shell scripts, or provider-specific adapters. The Rust port exposes
 `TransportEndpointSpec` and `TransportProfilePort` with the stable
-fields `protocol`, `tls_profile`, `alt_svc`,
+fields `endpoint_id`, `protocol`, `tls_profile`, `alt_svc`,
 `fallback_timeout_ms`, `ech`, `pqc`, and `capability_class`. The
 crate-local contract artifact is
 `network/ports/transport-profile/endpoint-transport-profile.contract.json`.
@@ -563,9 +568,14 @@ crate-local contract artifact is
 
 | Class | Protocol | TLS profile | Alt-Svc / fallback | ECH | PQC | Adapter rule |
 |-------|----------|-------------|--------------------|-----|-----|--------------|
-| external | `http3` | `strict_tls13` | required; `fallback_timeout_ms <= 12500` | mandatory | mandatory hybrid with classical transition fallback | runtime adapter deferred |
-| inter_cell | `grpc_http2` | `spiffe_mtls_tls13` | forbidden | forbidden | hybrid declared, rollout optional | no QUIC engine |
-| internal | `grpc_http2` | `spiffe_mtls_tls13` | forbidden | forbidden | optional | no QUIC engine |
+| external | `http3` | `strict_tls13` | required; `fallback_timeout_ms <= 12500` | `support_required=true`; `plaintext_sni_fallback_allowed=true` | `hybrid_negotiation_required=true`; `classical_transition_fallback_allowed=true` | runtime adapter deferred |
+| inter_cell | `grpc_http2` | `spiffe_mtls_tls13` | forbidden | disabled | hybrid declared, rollout optional | no QUIC engine |
+| internal | `grpc_http2` | `spiffe_mtls_tls13` | forbidden | disabled | optional | no QUIC engine |
+
+The external class requires endpoint support for ECH and hybrid PQC; it
+does not hard-refuse transition fallback paths. Plaintext-SNI fallback
+and classical PQC fallback remain explicitly allowed until the
+deadline and are governed by the §D-6 SLOs.
 
 **Runtime deferral:** An owned QUIC engine is not introduced by this
 ADR. If a real endpoint use later requires a Layer-5 transport runtime,
@@ -580,13 +590,15 @@ inter-cell/internal traffic onto HTTP/3, add Alt-Svc to non-external
 endpoints, or weaken external ECH/PQC posture.
 
 **Structural accounting:** The initial protocol-boundary slice is
-limited to `network/ports/transport-profile/BUCK`,
+the typed port plus its contract:
+`network/ports/transport-profile/BUCK`,
 `network/ports/transport-profile/Cargo.toml`,
 `network/ports/transport-profile/src/lib.rs`, and
-`registry/catalog/network-transport-profile.yaml`. These files are
-the reviewed, provider-neutral port and catalog row for issue #773;
-runtime transport adapters remain deferred until a real endpoint
-pulls them.
+`network/ports/transport-profile/endpoint-transport-profile.contract.json`,
+with `registry/catalog/network-transport-profile.yaml` as the catalog
+row. These files are the reviewed, provider-neutral port and catalog
+row for issue #773; runtime transport adapters remain deferred until
+a real endpoint pulls them.
 
 ---
 
@@ -726,34 +738,46 @@ creating a blanket TLS 1.2 surface on substrate endpoints.
 
 ### §D-7 Spec Field Additions
 
-Every µservice spec file at `/specs/microservices/<name>.json` that
-declares endpoints MUST add the following fields to each endpoint
-object when this amendment is in force:
+Every endpoint declaration governed by this amendment MUST serialize
+the `TransportEndpointSpec` shape from
+`network/ports/transport-profile/endpoint-transport-profile.contract.json`.
+External endpoint declarations use this canonical JSON shape:
 
+<!-- transport-profile-external-example:start -->
 ```json
 {
-  "protocol": "h3+h2+h1.1",
-  "tls_profile": "strict-tls13",
+  "endpoint_id": "api-gateway-public",
+  "capability_class": "external",
+  "protocol": "http3",
+  "tls_profile": "strict_tls13",
   "alt_svc": "h3=\":443\"; ma=86400",
-  "fallback_timeout_ms": 12500,
+  "fallback_timeout_ms": 500,
   "ech": {
     "enabled": true,
+    "support_required": true,
+    "plaintext_sni_fallback_allowed": true,
     "key_rotation_hours": 24,
-    "outer_sni": "api.oyatie.dev",
-    "grease_retry_configs": true
+    "grease_retry_configs": true,
+    "outer_sni": "api.oyatie.dev"
   },
   "pqc": {
+    "enabled": true,
+    "hybrid_negotiation_required": true,
     "kem": "x25519mlkem768",
-    "classical_fallback_kem": "x25519",
     "signature": "ed25519+ml_dsa_65",
-    "hybrid_mandatory_from": "2026-05-20"
+    "classical_transition_fallback_allowed": true
   }
 }
 ```
+<!-- transport-profile-external-example:end -->
 
-For internal-only endpoints (no external traffic), the `ech` block
-MAY be omitted; the `pqc` block MUST still be present for substrate
-µservices.
+For inter-cell and internal endpoints, the same serialized shape is
+used with `capability_class: "inter_cell"` or `"internal"`,
+`protocol: "grpc_http2"`, `tls_profile: "spiffe_mtls_tls13"`,
+`alt_svc: null`, `fallback_timeout_ms: null`, and
+`ech.enabled: false`. Inter-cell endpoints declare hybrid PQC posture
+with `pqc.enabled: true`; internal endpoints may set `pqc.enabled:
+false` unless a substrate-specific ADR raises the class.
 
 ---
 

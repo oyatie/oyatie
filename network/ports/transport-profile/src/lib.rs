@@ -30,14 +30,14 @@ pub enum TlsProfile {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
 pub enum HybridKem {
+    #[serde(rename = "x25519mlkem768")]
     X25519MlKem768,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
 pub enum HybridSignature {
+    #[serde(rename = "ed25519+ml_dsa_65")]
     Ed25519MlDsa65,
 }
 
@@ -46,8 +46,10 @@ pub enum HybridSignature {
 pub struct EchPolicy {
     /// data_class: PUBLIC - endpoint privacy posture advertised by the endpoint class.
     pub enabled: bool,
-    /// data_class: PUBLIC - whether clients may proceed without ECH.
-    pub mandatory: bool,
+    /// data_class: PUBLIC - whether the endpoint must publish and maintain ECH support.
+    pub support_required: bool,
+    /// data_class: PUBLIC - whether plaintext-SNI fallback remains allowed during transition.
+    pub plaintext_sni_fallback_allowed: bool,
     /// data_class: INTERNAL_ONLY - operational rotation objective, not a key value.
     pub key_rotation_hours: Option<u16>,
     /// data_class: PUBLIC - whether retry configs are greased for compatibility.
@@ -60,7 +62,8 @@ impl EchPolicy {
     pub fn external() -> Self {
         Self {
             enabled: true,
-            mandatory: true,
+            support_required: true,
+            plaintext_sni_fallback_allowed: true,
             key_rotation_hours: Some(24),
             grease_retry_configs: true,
             outer_sni: Some("api.oyatie.dev".to_owned()),
@@ -70,7 +73,8 @@ impl EchPolicy {
     pub fn disabled() -> Self {
         Self {
             enabled: false,
-            mandatory: false,
+            support_required: false,
+            plaintext_sni_fallback_allowed: false,
             key_rotation_hours: None,
             grease_retry_configs: false,
             outer_sni: None,
@@ -83,44 +87,44 @@ impl EchPolicy {
 pub struct PqcPolicy {
     /// data_class: PUBLIC - whether hybrid post-quantum negotiation is expected.
     pub enabled: bool,
-    /// data_class: PUBLIC - whether classical-only transport is refused.
-    pub mandatory: bool,
+    /// data_class: PUBLIC - whether the endpoint must offer hybrid negotiation.
+    pub hybrid_negotiation_required: bool,
     /// data_class: PUBLIC - standardized hybrid KEM identifier.
     pub kem: Option<HybridKem>,
     /// data_class: PUBLIC - standardized hybrid signature identifier.
     pub signature: Option<HybridSignature>,
     /// data_class: PUBLIC - whether classical fallback is allowed during rollout.
-    pub classical_fallback: bool,
+    pub classical_transition_fallback_allowed: bool,
 }
 
 impl PqcPolicy {
     pub fn hybrid_required() -> Self {
         Self {
             enabled: true,
-            mandatory: true,
+            hybrid_negotiation_required: true,
             kem: Some(HybridKem::X25519MlKem768),
             signature: Some(HybridSignature::Ed25519MlDsa65),
-            classical_fallback: true,
+            classical_transition_fallback_allowed: true,
         }
     }
 
     pub fn hybrid_optional() -> Self {
         Self {
             enabled: true,
-            mandatory: false,
+            hybrid_negotiation_required: false,
             kem: Some(HybridKem::X25519MlKem768),
             signature: Some(HybridSignature::Ed25519MlDsa65),
-            classical_fallback: true,
+            classical_transition_fallback_allowed: true,
         }
     }
 
     pub fn disabled() -> Self {
         Self {
             enabled: false,
-            mandatory: false,
+            hybrid_negotiation_required: false,
             kem: None,
             signature: None,
-            classical_fallback: true,
+            classical_transition_fallback_allowed: true,
         }
     }
 }
@@ -230,8 +234,14 @@ impl TransportEndpointSpec {
             );
         }
 
-        if !self.ech.enabled || !self.ech.mandatory {
-            return invalid("ech", "external endpoints require mandatory ech");
+        if !self.ech.enabled || !self.ech.support_required {
+            return invalid("ech", "external endpoints must support ech");
+        }
+        if !self.ech.plaintext_sni_fallback_allowed {
+            return invalid(
+                "ech.plaintext_sni_fallback_allowed",
+                "external ech must allow plaintext-sni fallback during transition",
+            );
         }
         if self.ech.key_rotation_hours.is_none_or(|hours| hours > 24) {
             return invalid(
@@ -248,15 +258,15 @@ impl TransportEndpointSpec {
         if self.ech.outer_sni.as_deref().unwrap_or_default().is_empty() {
             return invalid("ech.outer_sni", "external ech requires public cover name");
         }
-        if !self.pqc.enabled || !self.pqc.mandatory {
-            return invalid("pqc", "external endpoints require mandatory hybrid pqc");
+        if !self.pqc.enabled || !self.pqc.hybrid_negotiation_required {
+            return invalid("pqc", "external endpoints must offer hybrid pqc");
         }
         if self.pqc.kem.is_none() || self.pqc.signature.is_none() {
             return invalid("pqc", "hybrid pqc requires kem and signature identifiers");
         }
-        if !self.pqc.classical_fallback {
+        if !self.pqc.classical_transition_fallback_allowed {
             return invalid(
-                "pqc.classical_fallback",
+                "pqc.classical_transition_fallback_allowed",
                 "external pqc requires classical fallback during transition",
             );
         }
@@ -355,6 +365,7 @@ fn advertises_h3_443(alt_svc: &str) -> bool {
 mod tests {
     use super::*;
     use serde::Deserialize;
+    use std::{env, fs, path::PathBuf};
 
     const CONTRACT_SPEC: &str = include_str!("../endpoint-transport-profile.contract.json");
 
@@ -362,6 +373,7 @@ mod tests {
     struct ContractSpec {
         required_fields: Vec<ContractField>,
         capability_classes: Vec<CapabilityClass>,
+        canonical_external_endpoint: TransportEndpointSpec,
         deferred_adapters: Vec<DeferredAdapter>,
     }
 
@@ -395,10 +407,11 @@ mod tests {
         assert_eq!(spec.capability_class, TransportCapabilityClass::External);
         assert!(spec.alt_svc.as_deref().unwrap_or_default().contains("h3"));
         assert_eq!(spec.ech.enabled, true);
-        assert_eq!(spec.ech.mandatory, true);
+        assert_eq!(spec.ech.support_required, true);
+        assert_eq!(spec.ech.plaintext_sni_fallback_allowed, true);
         assert_eq!(spec.pqc.enabled, true);
-        assert_eq!(spec.pqc.mandatory, true);
-        assert_eq!(spec.pqc.classical_fallback, true);
+        assert_eq!(spec.pqc.hybrid_negotiation_required, true);
+        assert_eq!(spec.pqc.classical_transition_fallback_allowed, true);
         assert_eq!(spec.validate(), Ok(()));
     }
 
@@ -436,7 +449,7 @@ mod tests {
         assert_eq!(spec.alt_svc, None);
         assert_eq!(spec.ech.enabled, false);
         assert_eq!(spec.pqc.enabled, true);
-        assert_eq!(spec.pqc.mandatory, false);
+        assert_eq!(spec.pqc.hybrid_negotiation_required, false);
         assert_eq!(spec.validate(), Ok(()));
     }
 
@@ -471,13 +484,27 @@ mod tests {
     #[test]
     fn rejects_external_profile_without_pqc_transition_fallback() {
         let mut spec = TransportEndpointSpec::external_http3("public-inference-stream");
-        spec.pqc.classical_fallback = false;
+        spec.pqc.classical_transition_fallback_allowed = false;
 
         assert_eq!(
             spec.validate(),
             Err(TransportProfileError::InvalidField {
-                field: "pqc.classical_fallback",
+                field: "pqc.classical_transition_fallback_allowed",
                 reason: "external pqc requires classical fallback during transition"
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_external_profile_without_ech_transition_fallback() {
+        let mut spec = TransportEndpointSpec::external_http3("public-inference-stream");
+        spec.ech.plaintext_sni_fallback_allowed = false;
+
+        assert_eq!(
+            spec.validate(),
+            Err(TransportProfileError::InvalidField {
+                field: "ech.plaintext_sni_fallback_allowed",
+                reason: "external ech must allow plaintext-sni fallback during transition"
             })
         );
     }
@@ -541,24 +568,24 @@ mod tests {
     #[test]
     fn contract_artifact_declares_protocol_boundary_and_adapter_deferral() {
         let contract: ContractSpec = serde_json::from_str(CONTRACT_SPEC).expect("contract JSON");
-        let field_names: Vec<&str> = contract
+        let mut field_names: Vec<&str> = contract
             .required_fields
             .iter()
             .map(|field| field.name.as_str())
             .collect();
-
-        for field in [
-            "endpoint_id",
-            "capability_class",
-            "protocol",
-            "tls_profile",
-            "alt_svc",
-            "fallback_timeout_ms",
-            "ech",
-            "pqc",
-        ] {
-            assert!(field_names.contains(&field), "missing {field}");
-        }
+        let canonical_endpoint = serde_json::to_value(
+            TransportEndpointSpec::external_http3("api-gateway-public"),
+        )
+        .expect("serialize endpoint spec");
+        let mut canonical_fields: Vec<&str> = canonical_endpoint
+            .as_object()
+            .expect("endpoint spec object")
+            .keys()
+            .map(String::as_str)
+            .collect();
+        field_names.sort_unstable();
+        canonical_fields.sort_unstable();
+        assert_eq!(field_names, canonical_fields);
 
         let external = contract
             .capability_classes
@@ -570,11 +597,19 @@ mod tests {
         assert_eq!(external.alt_svc, "required");
         assert_eq!(external.fallback_timeout_ms["default"], 500);
         assert_eq!(external.fallback_timeout_ms["max"], 12_500);
-        assert_eq!(external.ech, "mandatory");
+        assert_eq!(
+            external.ech,
+            "support_required_with_plaintext_sni_transition_fallback"
+        );
         assert_eq!(
             external.pqc,
-            "mandatory_hybrid_with_classical_transition_fallback"
+            "hybrid_negotiation_required_with_classical_transition_fallback"
         );
+        assert_eq!(
+            contract.canonical_external_endpoint,
+            TransportEndpointSpec::external_http3("api-gateway-public")
+        );
+        assert_eq!(contract.canonical_external_endpoint.validate(), Ok(()));
 
         let inter_cell = contract
             .capability_classes
@@ -606,5 +641,55 @@ mod tests {
             .find(|adapter| adapter.name == "s2n_quic")
             .expect("s2n_quic deferral");
         assert_eq!(deferred.status, "deferred_no_dependency");
+    }
+
+    #[test]
+    fn adr_d7_example_uses_transport_endpoint_spec_shape() {
+        let adr = adr_0354();
+        let example = extract_json_between(
+            &adr,
+            "<!-- transport-profile-external-example:start -->",
+            "<!-- transport-profile-external-example:end -->",
+        );
+        let endpoint: TransportEndpointSpec =
+            serde_json::from_str(example).expect("ADR §D-7 endpoint example");
+
+        assert_eq!(
+            endpoint,
+            TransportEndpointSpec::external_http3("api-gateway-public")
+        );
+        assert_eq!(endpoint.validate(), Ok(()));
+    }
+
+    fn extract_json_between<'a>(body: &'a str, start: &str, end: &str) -> &'a str {
+        let after_start = body.split_once(start).expect("start marker").1;
+        let before_end = after_start.split_once(end).expect("end marker").0;
+        before_end
+            .split_once("```json")
+            .expect("json fence")
+            .1
+            .split_once("```")
+            .expect("closing json fence")
+            .0
+            .trim()
+    }
+
+    fn adr_0354() -> String {
+        fs::read_to_string(
+            repo_root().join("docs/decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md"),
+        )
+        .expect("ADR-0354 readable")
+    }
+
+    fn repo_root() -> PathBuf {
+        env::current_dir()
+            .expect("current dir")
+            .ancestors()
+            .find(|candidate| {
+                candidate.join("specs/masterplan.json").is_file()
+                    && candidate.join("HANDOFF.md").is_file()
+            })
+            .expect("repo root")
+            .to_path_buf()
     }
 }

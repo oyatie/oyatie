@@ -4,13 +4,13 @@
     {
       "alt_svc": "required",
       "default_protocol": "http3",
-      "ech": "mandatory",
+      "ech": "support_required_with_plaintext_sni_transition_fallback",
       "fallback_timeout_ms": {
         "default": 500,
         "max": 12500
       },
       "name": "external",
-      "pqc": "mandatory_hybrid_with_classical_transition_fallback",
+      "pqc": "hybrid_negotiation_required_with_classical_transition_fallback",
       "tls_profile": "strict_tls13"
     },
     {
@@ -32,6 +32,29 @@
       "tls_profile": "spiffe_mtls_tls13"
     }
   ],
+  "canonical_external_endpoint": {
+    "alt_svc": "h3=\":443\"; ma=86400",
+    "capability_class": "external",
+    "ech": {
+      "enabled": true,
+      "grease_retry_configs": true,
+      "key_rotation_hours": 24,
+      "outer_sni": "api.oyatie.dev",
+      "plaintext_sni_fallback_allowed": true,
+      "support_required": true
+    },
+    "endpoint_id": "api-gateway-public",
+    "fallback_timeout_ms": 500,
+    "pqc": {
+      "classical_transition_fallback_allowed": true,
+      "enabled": true,
+      "hybrid_negotiation_required": true,
+      "kem": "x25519mlkem768",
+      "signature": "ed25519+ml_dsa_65"
+    },
+    "protocol": "http3",
+    "tls_profile": "strict_tls13"
+  },
   "contract_id": "network.transport_profile.endpoint.v1",
   "deferred_adapters": [
     {
