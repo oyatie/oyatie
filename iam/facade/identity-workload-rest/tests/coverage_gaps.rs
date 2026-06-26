@@ -411,6 +411,7 @@ async fn grpc_authorize_invalid_principal_fields_returns_deny_not_error() {
             resource: Some(iam_identity_workload_rest::grpc::proto::Resource {
                 resource_type: "Secret".to_owned(),
                 resource_id: "db-password".to_owned(),
+                attributes: Default::default(),
             }),
             context: Default::default(),
         }))
@@ -465,6 +466,7 @@ async fn grpc_authorize_batch_store_unavailable_returns_per_item_deny_not_error(
                 resource: Some(iam_identity_workload_rest::grpc::proto::Resource {
                     resource_type: "Secret".to_owned(),
                     resource_id: "db-password".to_owned(),
+                    attributes: Default::default(),
                 }),
                 context: Default::default(),
             }],
@@ -593,6 +595,7 @@ async fn grpc_authorize_with_token_revoked_principal_returns_deny() {
             resource: Some(iam_identity_workload_rest::grpc::proto::Resource {
                 resource_type: "Secret".to_owned(),
                 resource_id: "db-password".to_owned(),
+                attributes: Default::default(),
             }),
             context: Default::default(),
         }))

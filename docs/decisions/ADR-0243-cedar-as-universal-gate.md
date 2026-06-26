@@ -1120,9 +1120,10 @@ request-time same-tenant resource access with
 policies enforce same-tenant read/write through the PDP policy path while the
 #872 adapter guard remains defense-in-depth. The accounting registration
 evidence is
-`evidence/multispectrum/waveB-pdp-same-tenant-879-20260626-1782441461.json`;
-it closes the ADR-0243 same-tenant policy-layer follow-up for issue #879
-without adding generated faces, new dependencies, provider adapters, workflows,
-or root-hub spec churn.
+`evidence/multispectrum/waveB-pdp-same-tenant-879-20260626-1782441461.json`,
+with supplemental public API/gRPC projection evidence in
+`evidence/multispectrum/waveB-pdp-same-tenant-api-879-20260626-1782443622.json`; together they close the ADR-0243 same-tenant policy-layer
+follow-up for issue #879 without adding generated faces, new dependencies,
+provider adapters, workflows, or root-hub spec churn.
 
 *End of ADR-0243.*
