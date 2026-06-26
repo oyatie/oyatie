@@ -593,14 +593,17 @@ jobs:
           BASE_REF: ${{ github.base_ref || 'dev' }}
         run: git fetch --no-tags --prune origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
       # ── BUILD-HEALTH BASELINE (ADR-0554 D9 same-root build, round-5; ADR-0551 merge-base frozen
-      #    pattern). On a pull_request, materialize the MERGE-BASE build-health baseline IN THE MAIN
-      #    ROOT so it shares the warm ./buck-out restored above (the merge-base IS a dev commit, so
-      #    the dev-keyed buck-out is near-fully-warm for it). We detach the SAME working tree to the
-      #    merge-base COMMITTED tree-ish (the candidate working tree is removed from disk for the
-      #    build), run the full keep-going build, capture per-target pass/fail, then a TRAP restores
-      #    the candidate on EXIT. The affected-set FULL tier grandfathers targets already failing at
-      #    the merge-base and blocks only REGRESSIONS. Skipped for push/merge_group/dispatch (the
-      #    admission tier is a hard full build — no grandfathering).
+      #    pattern). On a pull_request, derive the affected-set plan FIRST. Most PRs stay in the
+      #    affected cone and do not need a merge-base full-workspace build at all; only a derived
+      #    FULL decision needs the MERGE-BASE build-health baseline used by the ratchet. When FULL
+      #    is required, materialize that baseline IN THE MAIN ROOT so it shares the warm ./buck-out
+      #    restored above (the merge-base IS a dev commit, so the dev-keyed buck-out is near-fully
+      #    warm for it). We detach the SAME working tree to the merge-base COMMITTED tree-ish (the
+      #    candidate working tree is removed from disk for the build), run the full keep-going
+      #    build, capture per-target pass/fail, then a TRAP restores the candidate on EXIT. The
+      #    affected-set FULL tier grandfathers targets already failing at the merge-base and blocks
+      #    only REGRESSIONS. Skipped for push/merge_group/dispatch (the admission tier is a hard
+      #    full build — no grandfathering).
       #
       #    ANTI-LAUNDERING (ADR-0554 D6, preserved): the baseline failure-set comes ENTIRELY from
       #    the merge-base COMMITTED tree (git object history — candidate-uncontrollable); during the
@@ -611,7 +614,7 @@ jobs:
       #    under ADR-0556 with no policy change (trusted-author, content-addressed; not the
       #    integrity-canary/release cold floor). This SUPERSEDES the deferred ADR-0554 D8 cross-run
       #    report-artifact CONSUMER (do not build it) — Option A warms the build directly.
-      - name: Materialize merge-base build-health baseline (same-root, warm buck-out)
+      - name: Materialize merge-base build-health baseline when affected-set needs FULL
         if: ${{ github.event_name == 'pull_request' }}
         env:
           BASE_REF: ${{ github.base_ref || 'dev' }}
@@ -620,6 +623,22 @@ jobs:
           merge_base="$(git merge-base "origin/${BASE_REF}" HEAD)"
           orig_ref="$(git rev-parse HEAD)"
           candidate_toolchain="$(awk -F'"' '/channel/ {print $2; exit}' rust-toolchain.toml)"
+          decision_log="${RUNNER_TEMP}/affected-set-derive.log"
+          full_required_marker="${RUNNER_TEMP}/affected-set-full-required"
+          echo "false" > "${full_required_marker}"
+          gate_bin="$(buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app:oya-cloud-ci-affected-set-bin --show-output | awk '{print $2}')"
+          echo "affected-set preflight: derive plan before merge-base baseline"
+          "${gate_bin}" \
+            --policy cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/affected-set-policy.json \
+            --base "origin/${BASE_REF}" --mode auto --derive-only \
+            | tee "${decision_log}"
+          if grep -Eq '^affected-set: (decision=FULL|ESCALATE to FULL)' "${decision_log}"; then
+            echo "true" > "${full_required_marker}"
+            echo "affected-set preflight: FULL decision requires merge-base build-health baseline"
+          else
+            echo "affected-set preflight: derived non-FULL decision; skipping merge-base baseline"
+            exit 0
+          fi
           echo "build-health baseline: merge-base=${merge_base} candidate=${orig_ref}"
           # ALWAYS restore the candidate tree on EXIT — a failed baseline build can never strand CI
           # on the merge-base tree (the subsequent Binding affected-set step runs on the candidate).
@@ -664,11 +683,19 @@ jobs:
           gate_bin="$(buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app:oya-cloud-ci-affected-set-bin --show-output | awk '{print $2}')"
           if [ "${EVENT_NAME}" = "pull_request" ]; then
             # PR tier: auto (cone-binding, hard-fail on a NEW break in the changed cone); a FULL
-            # escalation runs the build-health ratchet against the merge-base baseline.
+            # escalation runs the build-health ratchet against the merge-base baseline. The
+            # baseline is only materialized when the derive preflight proves FULL is needed.
+            baseline_args=()
+            if [ -f "${RUNNER_TEMP}/affected-set-full-required" ] \
+                && grep -qx 'true' "${RUNNER_TEMP}/affected-set-full-required"; then
+              test -s "${RUNNER_TEMP}/build-health-baseline.json" \
+                || { echo "affected-set: FATAL missing baseline after FULL derive preflight"; exit 1; }
+              baseline_args=(--baseline-report "${RUNNER_TEMP}/build-health-baseline.json")
+            fi
             "${gate_bin}" \
               --policy cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/affected-set-policy.json \
               --base "origin/${BASE_REF}" --mode auto \
-              --baseline-report "${RUNNER_TEMP}/build-health-baseline.json"
+              "${baseline_args[@]}"
           else
             # Admission/integration tier (merge_group/push/dispatch): hard full build+test — the
             # integration tip MUST be green, no grandfathering. ADR-0554 D7: this run ALSO captures
