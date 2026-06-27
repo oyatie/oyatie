@@ -56,10 +56,12 @@ const LEGACY_IMPLEMENTATION_DIRS: [&str; 3] = ["modules", "services", "platform"
 /// `tools/`. New executable/governance tooling must use an explicit `oya-*`
 /// directory; arbitrary names would silently recreate the retired top-level
 /// implementation root that `docs/AGENTS.md` fences.
-const ALLOWED_TOOLS_SUPPORT_DIRS: [&str; 5] = [
+const ALLOWED_TOOLS_SUPPORT_DIRS: [&str; 7] = [
     "anchor-sweep",
     "buck",
+    "buck2",
     "completions",
+    "governance",
     "hooks",
     "opensk-vendored",
 ];
@@ -330,18 +332,42 @@ fn detect_legacy_dirs(repo_root: &Path) -> BTreeSet<String> {
 
 fn validate_tools_root_policy(repo_root: &Path) -> Vec<String> {
     let tools_root = repo_root.join("tools");
-    let Ok(entries) = std::fs::read_dir(&tools_root) else {
-        return Vec::new();
+    let entries = match std::fs::read_dir(&tools_root) {
+        Ok(entries) => entries,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Vec::new(),
+        Err(error) => return vec![format!("tools/ root unreadable: {error}")],
     };
-    let names = entries.filter_map(|entry| {
-        let entry = entry.ok()?;
-        let file_type = entry.file_type().ok()?;
-        if !file_type.is_dir() {
-            return None;
-        }
-        entry.file_name().to_str().map(str::to_string)
+    let entries = entries.map(|entry| {
+        let entry = entry.map_err(|error| error.to_string())?;
+        let name = entry
+            .file_name()
+            .into_string()
+            .map_err(|name| format!("entry name is not valid UTF-8: {}", name.to_string_lossy()))?;
+        let file_type = entry
+            .file_type()
+            .map_err(|error| format!("tools/{name}/ file type unreadable: {error}"))?;
+        Ok((name, file_type.is_dir()))
     });
-    validate_tools_root_entry_names(names)
+    validate_tools_root_entries(entries)
+}
+
+fn validate_tools_root_entries<I>(entries: I) -> Vec<String>
+where
+    I: IntoIterator<Item = Result<(String, bool), String>>,
+{
+    let mut errors = Vec::new();
+    let mut names = Vec::new();
+    for entry in entries {
+        match entry {
+            Ok((name, true)) => names.push(name),
+            Ok((_name, false)) => {}
+            Err(error) => errors.push(format!("tools/ root entry unreadable: {error}")),
+        }
+    }
+    errors.extend(validate_tools_root_entry_names(
+        names.iter().map(String::as_str),
+    ));
+    errors
 }
 
 fn validate_tools_root_entry_names<I>(names: I) -> Vec<String>
@@ -898,6 +924,8 @@ fn expect_self_test_tools_root_policy() -> Result<(), Vec<String>> {
         "oya-reorg-codemod-app",
         "hooks",
         "buck",
+        "buck2",
+        "governance",
     ]);
     assert_self_test("tools root policy allows bridge dirs", &allowed, None)?;
 
@@ -1019,6 +1047,37 @@ mod tests {
         let errors = validate_tools_root_entry_names(["repoctl", "oya-governance-adr-shape-app"]);
         assert_eq!(errors.len(), 1);
         assert!(errors[0].contains("tools/repoctl/"));
+    }
+
+    #[test]
+    fn tools_root_policy_allows_explicit_support_dirs() {
+        let errors = validate_tools_root_entry_names([
+            "anchor-sweep",
+            "buck",
+            "buck2",
+            "completions",
+            "governance",
+            "hooks",
+            "opensk-vendored",
+        ]);
+        assert!(errors.is_empty(), "{errors:?}");
+    }
+
+    #[test]
+    fn tools_root_policy_reports_unreadable_entries() {
+        let errors = validate_tools_root_entries([
+            Err("permission denied".to_string()),
+            Ok(("README.md".to_string(), false)),
+            Ok(("repoctl".to_string(), true)),
+            Ok(("oya-governance-adr-shape-app".to_string(), true)),
+        ]);
+        assert_eq!(errors.len(), 2);
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("permission denied"))
+        );
+        assert!(errors.iter().any(|error| error.contains("tools/repoctl/")));
     }
 
     #[test]
