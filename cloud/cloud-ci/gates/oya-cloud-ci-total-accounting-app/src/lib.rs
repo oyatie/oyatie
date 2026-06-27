@@ -6,7 +6,8 @@
 //! `report.violations == fixture.expected_violations` over `specs/fixtures/total-accounting/tc-*.json`.
 //!
 //! ## Blocking violation codes (the contract — literal strings the gate emits)
-//! - `unaccounted`     — a tracked path has no registry row
+//! - `unaccounted`     — a tracked path has no registry row, or producer data is
+//!   too malformed to identify tracked/path-level accounting safely (stable sentinel key)
 //! - `unowned`         — row has no OWNERS-resolvable owner (born-blocking: 0 OWNERS exist today)
 //! - `unjustified`     — `justification_ref` empty OR points at a claim that does not resolve
 //!   (the foundry-residue class: justified by ADR-0363's false "eradicated")
@@ -77,6 +78,14 @@ impl Finding {
 /// per-unit findings (`registry_drift`): they carry a single stable sentinel key
 /// so the ratchet treats them uniformly (their baseline is permanently empty).
 const GATE_KEY: &str = "<gate>";
+/// Stable fail-closed key when the registry corpus has no valid `rows` array.
+/// It intentionally uses `unaccounted`: no trustworthy rows means the gate cannot
+/// prove tracked paths are accounted for.
+const ROWS_KEY: &str = "<cloud-ci-total-accounting#rows>";
+/// Stable fail-closed key when an individual row cannot be keyed by a valid path.
+/// It intentionally uses `unaccounted`: a pathless row cannot account for any
+/// deterministic tracked path in the keyed ratchet.
+const ROW_KEY: &str = "<cloud-ci-total-accounting#row>";
 
 impl Report {
     fn from_violations(violations: BTreeSet<String>) -> Self {
@@ -119,35 +128,38 @@ pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
     let mut findings: BTreeSet<Finding> = BTreeSet::new();
 
     // Corpus-level signals (modeled as DATA in the fixture, not scanner branches).
-    for path in optional_str_array(fixture, "unaccounted_paths") {
+    let unaccounted_paths = optional_str_array(fixture, "unaccounted_paths");
+    for path in &unaccounted_paths {
         findings.insert(Finding::new("unaccounted", &path));
     }
-    if fixture
-        .get("registry_hand_edited")
-        .and_then(Value::as_bool)
-        == Some(true)
-    {
+    let registry_hand_edited =
+        fixture.get("registry_hand_edited").and_then(Value::as_bool) == Some(true);
+    if registry_hand_edited {
         // registry_drift is a binary committed!=regenerated predicate (frozen_empty):
         // not a per-path debt class, so it carries the single gate-level sentinel key.
         findings.insert(Finding::new("registry_drift", GATE_KEY));
     }
+    let tracked_paths = optional_str_array(fixture, "tracked_paths");
 
-    let rows = fixture
-        .get("rows")
-        .and_then(Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let rows = fixture.get("rows").and_then(Value::as_array);
+    let has_other_corpus_signal =
+        registry_hand_edited || !unaccounted_paths.is_empty() || !tracked_paths.is_empty();
+    if !matches!(rows, Some(rows) if !rows.is_empty()) && !has_other_corpus_signal {
+        findings.insert(Finding::new("unaccounted", ROWS_KEY));
+    }
 
     let mut accounted_paths: HashSet<String> = HashSet::new();
-    for row in &rows {
-        evaluate_row(row, &mut findings);
-        if let Some(path) = row.get("path").and_then(Value::as_str) {
-            accounted_paths.insert(path.to_owned());
+    if let Some(rows) = rows {
+        for row in rows {
+            evaluate_row(row, &mut findings);
+            if let Some(path) = row_path(row) {
+                accounted_paths.insert(path.to_owned());
+            }
         }
     }
 
     // A tracked path declared (via `tracked_paths`) without a corresponding row is unaccounted.
-    for tracked in optional_str_array(fixture, "tracked_paths") {
+    for tracked in tracked_paths {
         if !accounted_paths.contains(&tracked) {
             findings.insert(Finding::new("unaccounted", &tracked));
         }
@@ -160,9 +172,12 @@ pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
 /// `justification_ref` is unjustified, AND a non-empty ref that does not resolve
 /// (`justification_resolves:false` — e.g. ADR-0363 claiming the file was "eradicated")
 /// is ALSO unjustified. That is the foundry-residue exhibit. Every per-row code is
-/// keyed by the row `path` (empty when absent — still a stable key for that row).
+/// keyed by the row `path` when present, or a stable row-level sentinel when absent.
 fn evaluate_row(row: &Value, findings: &mut BTreeSet<Finding>) {
-    let key = row.get("path").and_then(Value::as_str).unwrap_or("");
+    let key = row_path(row).unwrap_or(ROW_KEY);
+    if key == ROW_KEY {
+        findings.insert(Finding::new("unaccounted", key));
+    }
 
     // scratch_artifact: a SHAPE-based class (build/test scratch identified by name/location
     // via the producer's unit-class-policy DATA table, NOT by registration). This fires on the
@@ -242,6 +257,12 @@ fn optional_str_array(value: &Value, field: &str) -> Vec<String> {
         .unwrap_or_default()
 }
 
+fn row_path(row: &Value) -> Option<&str> {
+    row.get("path")
+        .and_then(Value::as_str)
+        .filter(|value| !value.trim().is_empty())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -299,8 +320,7 @@ mod tests {
             "oya/intelligence/catalog/oya-intelligence-eval/src/lib.rs"
         )));
         // evaluate() is exactly the bare-code projection of evaluate_keyed().
-        let projected: BTreeSet<String> =
-            findings.iter().map(|f| f.code.clone()).collect();
+        let projected: BTreeSet<String> = findings.iter().map(|f| f.code.clone()).collect();
         assert_eq!(evaluate(&fixture).violations, projected);
     }
 
@@ -308,6 +328,37 @@ mod tests {
     fn registry_drift_keyed_to_gate_sentinel() {
         let findings = evaluate_keyed(&json!({"registry_hand_edited": true, "rows": []}));
         assert!(findings.contains(&Finding::new("registry_drift", GATE_KEY)));
+    }
+
+    #[test]
+    fn malformed_or_empty_rows_fail_closed() {
+        for fixture in [
+            json!({}),
+            json!({"rows": "not-an-array"}),
+            json!({"rows": []}),
+        ] {
+            let findings = evaluate_keyed(&fixture);
+            assert!(
+                findings.contains(&Finding::new("unaccounted", ROWS_KEY)),
+                "fixture must fail closed: {fixture:?}"
+            );
+            assert_eq!(evaluate(&fixture).verdict, Verdict::Red);
+        }
+    }
+
+    #[test]
+    fn row_without_path_fails_closed_with_stable_key() {
+        let findings = evaluate_keyed(&json!({
+            "rows": [{
+                "owner": "platform-ci",
+                "justification_ref": "ADR-0555",
+                "reachable_from": ["masterplan"],
+                "ttl": {"ttl_class": "code"}
+            }]
+        }));
+        assert!(findings.contains(&Finding::new("unaccounted", ROW_KEY)));
+        assert!(!findings.contains(&Finding::new("unaccounted", "")));
+        assert_eq!(evaluate(&json!({"rows": [{}]})).verdict, Verdict::Red);
     }
 
     #[test]
@@ -322,11 +373,17 @@ mod tests {
         assert!(evaluate(&json!({"rows":[{"path":"a","owner":"o","justification_ref":"ADR-1","reachable_from":["masterplan"]}]}))
             .violations.contains("no_ttl_class"));
         // unaccounted
-        assert!(evaluate(&json!({"unaccounted_paths":["new/file.rs"],"rows":[]}))
-            .violations.contains("unaccounted"));
+        assert!(
+            evaluate(&json!({"unaccounted_paths":["new/file.rs"],"rows":[]}))
+                .violations
+                .contains("unaccounted")
+        );
         // registry_drift
-        assert!(evaluate(&json!({"registry_hand_edited":true,"rows":[]}))
-            .violations.contains("registry_drift"));
+        assert!(
+            evaluate(&json!({"registry_hand_edited":true,"rows":[]}))
+                .violations
+                .contains("registry_drift")
+        );
         // scratch_artifact (unit_class scratch fires regardless of other fields)
         assert!(evaluate(&json!({"rows":[{"path":"x.log","unit_class":"scratch","owner":"o","justification_ref":"ADR-1","reachable_from":["masterplan"],"ttl":{"ttl_class":"scratch"}}]}))
             .violations.contains("scratch_artifact"));
