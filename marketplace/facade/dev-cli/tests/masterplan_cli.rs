@@ -86,6 +86,45 @@ fn gen_masterplan_excludes_non_accepted_planning_adrs() {
     fs::remove_dir_all(temp).ok();
 }
 
+#[test]
+fn live_masterplan_projection_excludes_superseded_solidjs_adr() {
+    let temp = temp_dir("gen-masterplan-live-solidjs-filter");
+    let decisions_dir = repo_root().join("docs/decisions");
+    let output_path = temp.join("docs/machine-readable/masterplan.generated.json");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gen",
+            "masterplan",
+            "--decisions-dir",
+            decisions_dir.to_str().expect("utf8 decisions dir"),
+            "--output",
+            output_path.to_str().expect("utf8 output path"),
+            "--write",
+        ])
+        .output()
+        .expect("live gen masterplan command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let projection_text = fs::read_to_string(&output_path).expect("projection written");
+    assert!(
+        !projection_text.contains("ADR-0372"),
+        "superseded ADR-0372 must not appear in live generated masterplan"
+    );
+    assert!(
+        !projection_text.contains("SolidJS") && !projection_text.contains("SolidStart"),
+        "retired SolidJS/SolidStart planning text must not appear in live generated masterplan"
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
 fn write_adr(decisions_dir: &Path, file_name: &str, status: &str, description: &str) {
     fs::write(
         decisions_dir.join(file_name),
@@ -107,6 +146,17 @@ deliverables:
         ),
     )
     .expect("ADR fixture written");
+}
+
+fn repo_root() -> PathBuf {
+    const ADR_0372: &str =
+        "docs/decisions/ADR-0372-frontend-stack-solidjs-ts-with-rust-wasm-compute-modules.md";
+    std::env::current_dir()
+        .expect("current dir readable")
+        .ancestors()
+        .find(|dir| dir.join(ADR_0372).exists())
+        .expect("could not locate Oyatie repo root from current dir")
+        .to_path_buf()
 }
 
 fn temp_dir(name: &str) -> PathBuf {

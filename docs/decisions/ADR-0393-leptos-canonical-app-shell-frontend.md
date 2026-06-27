@@ -138,6 +138,9 @@ manifests:
 - `evidence/multispectrum/retire-solidjs-app-shell-20260627-1782545469.json` is the PR-local
   evidence record for the retirement, generated-artifact controls, rust-first accounting shrink,
   and client-stack gate verification.
+- `evidence/multispectrum/solidjs-masterplan-projection-guard-20260627-1782566248.json` is the
+  follow-up PR evidence record for the live-source masterplan projection guard that prevents
+  superseded ADR-0372 planning text from re-entering controller-owned planning projections.
 
 ## References
 
