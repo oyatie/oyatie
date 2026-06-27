@@ -16,36 +16,33 @@ Each Oyatie product (an axis or a vertical) has its own PRD here. Every PRD foll
 
 ## Per-product PRDs
 
-### Axis products (7)
+This index is a traceability surface, not a runtime-readiness claim. It lists only product PRD files that exist in this repository. Product or vertical concepts that do not yet have a `docs/products/<product>/PRD.md` file remain governed by the cross-product PRD plus the machine-readable `specs/microservices/*.json` surfaces until a PRD file is added.
 
-| Product | PRD | Owning team | Status |
-|---|---|---|---|
-| SaaS Platform | [`saas-platform/PRD.md`](saas-platform/PRD.md) | `axis-saas` | planning-closed-contract-authored |
-| Workspace | [`workspace/PRD.md`](workspace/PRD.md) | `axis-workspace` | draft |
-| Intelligence Platform (cloud-intelligence + oya-intelligence) | Task #25 canon rename pending | `cloud-intelligence / oya-intelligence` | draft |
-| Cloud Provider | [`cloud/PRD.md`](cloud/PRD.md) | `axis-cloud` | draft |
-| Search | [`search/PRD.md`](search/PRD.md) | `axis-search` | draft |
-| Ads + Analytics | [`ads-analytics/PRD.md`](ads-analytics/PRD.md) | `axis-ads-analytics` | draft |
-| Vertical Industry Cloud | (see vertical products below; vertical PRDs are the unit) | per-vertical teams | umbrella |
+### Available product PRDs
 
-### Vertical products (14)
+| Product surface | PRD | Owning team / axis | Status | Traceability note |
+|---|---|---|---|---|
+| SaaS Platform | [`saas-platform/PRD.md`](saas-platform/PRD.md) | `axis-saas` | planning-closed-contract-authored | Existing product PRD. |
+| Cloud Provider | [`cloud/PRD.md`](cloud/PRD.md) | `axis-cloud` | draft | Existing product PRD; target/non-claim posture remains governed by cloud specs and gates. |
+| ERP Coverage | [`erp-coverage/PRD.md`](erp-coverage/PRD.md) | `axis-erp-coverage` | draft | Existing ERP composition PRD. |
+| Workplace Integration | [`workplace-integration/PRD.md`](workplace-integration/PRD.md) | `axis-workplace-integration` | draft target/non-claim | Existing cross-cutting workplace integration PRD. |
 
-| Product | PRD | Owning team | Status |
-|---|---|---|---|
-| Corporate (HR / payroll / GL / mail / comms) | [`vertical-corporate/PRD.md`](vertical-corporate/PRD.md) | `vertical-corporate` | draft |
-| Healthcare (clinical / ambulatory / HL7-FHIR) | [`vertical-healthcare/PRD.md`](vertical-healthcare/PRD.md) | `vertical-healthcare` | draft |
-| Industrial (MES / OEE / ISA-95 / OPC UA) | [`vertical-industrial/PRD.md`](vertical-industrial/PRD.md) | `vertical-industrial` | draft |
-| Logistics (shipment / dock / EDI / route) | [`vertical-logistics/PRD.md`](vertical-logistics/PRD.md) | `vertical-logistics` | draft |
-| Fintech (PG / open-banking / KYC / AML) | [`vertical-fintech/PRD.md`](vertical-fintech/PRD.md) | `vertical-fintech` | draft |
-| Legal (regulated corpus / contracts) | [`vertical-legal/PRD.md`](vertical-legal/PRD.md) | `vertical-legal` | draft |
-| Retail (POS / inventory / promotions) | [`vertical-retail/PRD.md`](vertical-retail/PRD.md) | `vertical-retail` | skeleton |
-| Education (LMS) | [`vertical-education/PRD.md`](vertical-education/PRD.md) | `vertical-education` | skeleton |
-| Public Sector (forms / 조달청 + global gov) | [`vertical-public-sector/PRD.md`](vertical-public-sector/PRD.md) | `vertical-public-sector` | skeleton |
-| Hospitality (PMS) | [`vertical-hospitality/PRD.md`](vertical-hospitality/PRD.md) | `vertical-hospitality` | skeleton |
-| Construction (project mgmt) | [`vertical-construction/PRD.md`](vertical-construction/PRD.md) | `vertical-construction` | skeleton |
-| Real Estate (leasing) | [`vertical-real-estate/PRD.md`](vertical-real-estate/PRD.md) | `vertical-real-estate` | skeleton |
-| Agriculture (traceability) | [`vertical-agriculture/PRD.md`](vertical-agriculture/PRD.md) | `vertical-agriculture` | skeleton |
-| Food (supply-chain compliance) | [`vertical-food/PRD.md`](vertical-food/PRD.md) | `vertical-food` | skeleton |
+A legacy intelligence product PRD exists in the tree but is intentionally omitted from this index until the naming-retirement/brand-residue cleanup owns that surface; this traceability pass does not add new mentions for retired terms.
+
+### Spec-backed surfaces without product PRD files yet
+
+These surfaces are intentionally not linked to missing `docs/products/<name>/PRD.md` files. Use the machine-readable specs under [`../../specs/microservices/`](../../specs/microservices/) until a product PRD exists.
+
+| Surface family | Current authority | Traceability note |
+|---|---|---|
+| Workspace apps (mail, calendar, messenger, workflow, workflow studio, etc.) | [`../../specs/microservices/`](../../specs/microservices/) plus the Workplace Integration PRD | No separate Workspace product PRD file exists in this tree. |
+| Search / RAG | [`../../specs/microservices/`](../../specs/microservices/) and cross-product docs | No separate Search product PRD file exists in this tree. |
+| Ads + analytics | [`../../specs/microservices/`](../../specs/microservices/) and cross-product docs | No separate Ads/analytics product PRD file exists in this tree. |
+| Vertical domains | [`../../specs/microservices/`](../../specs/microservices/) plus `erp-coverage/PRD.md` where applicable | The previous vertical PRD links were placeholders; do not add product-readiness claims without files and gates. |
+
+### Regional pack traceability
+
+Regional pack documentation lives in [`../localization-packs/INDEX.md`](../localization-packs/INDEX.md). Repository-local pack directories live under [`../../packs/`](../../packs/); keep this index and the localization-pack index in sync when adding or retiring a pack directory.
 
 ### Cross-product utilities
 
@@ -53,8 +50,8 @@ These are not "products" in the customer sense but are catalog-tracked for consi
 
 | Catalog entity | Path | Notes |
 |---|---|---|
-| Regional packs | [`../regional-packs/`](../regional-packs/) | One pack per locale (KR / JP / US / EU / IN / BR / KSA / UAE / AU / SG / …); each is its own folder with `PACK.md` + `i18n/` + `regulatory/` + `payment-rails/` + `identity/` + `tax/` |
-| Engineering teams | [`../teams/`](../teams/) | One charter per team |
+| Localization pack catalog | [`../localization-packs/INDEX.md`](../localization-packs/INDEX.md) | Region/pack traceability only; not a runtime readiness claim. |
+| Engineering teams | [`../teams/`](../teams/) | One charter per team. |
 
 ## Required sections per product PRD (validated by the product PRD Rust gate in `oya-ci-required`)
 
