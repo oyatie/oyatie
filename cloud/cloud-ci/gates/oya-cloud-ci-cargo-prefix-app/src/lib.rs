@@ -33,7 +33,9 @@
 use std::collections::BTreeSet;
 
 use oya_ci_config_kernel::NamingConfig;
-use oya_intelligence_cargo_prefix_domain::{validate_cargo_prefix, CargoPrefixError, CargoPrefixMember};
+use oya_intelligence_cargo_prefix_domain::{
+    CargoPrefixError, CargoPrefixMember, validate_cargo_prefix,
+};
 use serde_json::Value;
 
 /// The gate id, matching the buck2 target + the firewall baseline gate-id.
@@ -142,14 +144,27 @@ fn member_from_row(row: &Value) -> Option<CargoPrefixMember> {
 /// the resolved prefix is `oya-`, so findings are byte-identical to today.
 pub fn evaluate_keyed_with(input: &Value, naming: &NamingConfig) -> BTreeSet<Finding> {
     let prefix = naming.required_prefix.clone();
-    let rows = input
-        .get("rows")
-        .and_then(Value::as_array)
-        .cloned()
-        .unwrap_or_default();
     let mut findings = BTreeSet::new();
-    for row in &rows {
+
+    let Some(rows_value) = input.get("rows") else {
+        findings.insert(Finding::new("cargo_prefix_unresolvable", "<missing-rows>"));
+        return findings;
+    };
+    let Some(rows) = rows_value.as_array() else {
+        findings.insert(Finding::new(
+            "cargo_prefix_unresolvable",
+            "<non-array-rows>",
+        ));
+        return findings;
+    };
+    if rows.is_empty() {
+        findings.insert(Finding::new("cargo_prefix_unresolvable", "<empty-rows>"));
+        return findings;
+    }
+
+    for row in rows {
         let Some(member) = member_from_row(row) else {
+            findings.insert(Finding::new("cargo_prefix_unresolvable", "<malformed-row>"));
             continue;
         };
         // Run the policy over a SINGLE member so the first-error contract yields a per-crate
@@ -208,13 +223,21 @@ mod tests {
             ("oya/developer-sdk/crates/oya-dev-cli", "oya-dev-cli"),
         ]);
         let report = evaluate(&input);
-        assert_eq!(report.verdict, Verdict::Green, "got {:?}", report.violations);
+        assert_eq!(
+            report.verdict,
+            Verdict::Green,
+            "got {:?}",
+            report.violations
+        );
         assert!(evaluate_keyed(&input).is_empty());
     }
 
     #[test]
     fn unprefixed_member_path_fires_violation() {
-        let input = rows(&[("crates/acme-capability-kernel", "oya-intelligence-capability-kernel")]);
+        let input = rows(&[(
+            "crates/acme-capability-kernel",
+            "oya-intelligence-capability-kernel",
+        )]);
         let findings = evaluate_keyed(&input);
         assert_eq!(findings.len(), 1, "got {findings:?}");
         let f = findings.iter().next().unwrap();
@@ -225,7 +248,10 @@ mod tests {
 
     #[test]
     fn unprefixed_package_name_fires_violation() {
-        let input = rows(&[("crates/oya-intelligence-capability-kernel", "acme-capability-kernel")]);
+        let input = rows(&[(
+            "crates/oya-intelligence-capability-kernel",
+            "acme-capability-kernel",
+        )]);
         let findings = evaluate_keyed(&input);
         assert_eq!(findings.len(), 1, "got {findings:?}");
         let f = findings.iter().next().unwrap();
@@ -273,8 +299,46 @@ mod tests {
     }
 
     #[test]
-    fn empty_corpus_is_green() {
-        assert_eq!(evaluate(&json!({ "rows": [] })).verdict, Verdict::Green);
+    fn missing_rows_fail_closed_as_unresolvable() {
+        let findings = evaluate_keyed(&json!({}));
+        assert_eq!(findings.len(), 1, "got {findings:?}");
+        let f = findings.iter().next().unwrap();
+        assert_eq!(f.code, "cargo_prefix_unresolvable");
+        assert_eq!(f.key, "<missing-rows>");
+        assert_eq!(evaluate(&json!({})).verdict, Verdict::Red);
+    }
+
+    #[test]
+    fn non_array_rows_fail_closed_as_unresolvable() {
+        let input = json!({ "rows": "not-an-array" });
+        let findings = evaluate_keyed(&input);
+        assert_eq!(findings.len(), 1, "got {findings:?}");
+        let f = findings.iter().next().unwrap();
+        assert_eq!(f.code, "cargo_prefix_unresolvable");
+        assert_eq!(f.key, "<non-array-rows>");
+        assert_eq!(evaluate(&input).verdict, Verdict::Red);
+    }
+
+    #[test]
+    fn empty_corpus_fails_closed_as_unresolvable() {
+        let input = json!({ "rows": [] });
+        let findings = evaluate_keyed(&input);
+        assert_eq!(findings.len(), 1, "got {findings:?}");
+        let f = findings.iter().next().unwrap();
+        assert_eq!(f.code, "cargo_prefix_unresolvable");
+        assert_eq!(f.key, "<empty-rows>");
+        assert_eq!(evaluate(&input).verdict, Verdict::Red);
+    }
+
+    #[test]
+    fn malformed_rows_fail_closed_as_unresolvable() {
+        let input = json!({ "rows": [{}] });
+        let findings = evaluate_keyed(&input);
+        assert_eq!(findings.len(), 1, "got {findings:?}");
+        let f = findings.iter().next().unwrap();
+        assert_eq!(f.code, "cargo_prefix_unresolvable");
+        assert_eq!(f.key, "<malformed-row>");
+        assert_eq!(evaluate(&input).verdict, Verdict::Red);
     }
 
     /// ADR-0533 de-brand: under the NEUTRAL profile the resolved `required_prefix` is empty, so a
