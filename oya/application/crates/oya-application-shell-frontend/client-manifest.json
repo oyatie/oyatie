@@ -75,7 +75,6 @@
   "forbidden_fallbacks": [
     "React",
     "xyflow",
-    "SolidJS (retired by ADR-0393)",
     "client-side hiding of unauthorized modules as a security model"
   ],
   "initial_route": {
