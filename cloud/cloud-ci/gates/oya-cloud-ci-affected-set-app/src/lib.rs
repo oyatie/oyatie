@@ -154,12 +154,24 @@ impl Policy {
                 "policy `full_run_targets` must be non-empty".into(),
             ));
         }
+        let full_trigger_patterns = str_list_field(&v, "full_trigger_patterns")?;
+        if full_trigger_patterns.is_empty() {
+            return Err(PolicyError(
+                "policy `full_trigger_patterns` must be non-empty".into(),
+            ));
+        }
+        let require_owner_patterns = str_list_field(&v, "require_owner_patterns")?;
+        if require_owner_patterns.is_empty() {
+            return Err(PolicyError(
+                "policy `require_owner_patterns` must be non-empty".into(),
+            ));
+        }
         Ok(Policy {
             gate_id,
             universe: str_field(&v, "universe")?,
             full_run_targets,
-            full_trigger_patterns: str_list_field(&v, "full_trigger_patterns")?,
-            require_owner_patterns: str_list_field(&v, "require_owner_patterns")?,
+            full_trigger_patterns,
+            require_owner_patterns,
             package_definition_basenames: {
                 let names = str_list_field(&v, "package_definition_basenames")?;
                 if names.is_empty() {
@@ -622,6 +634,42 @@ mod tests {
     fn policy_rejects_wrong_gate_id() {
         let err = Policy::from_json(r#"{"gate_id": "other"}"#).unwrap_err();
         assert!(err.0.contains("does not match engine"), "{err}");
+    }
+
+    fn minimal_policy_json(full_triggers: &str, require_owners: &str) -> String {
+        format!(
+            r#"{{
+                "gate_id": "{GATE_ID}",
+                "universe": "//...",
+                "full_run_targets": ["//..."],
+                "full_trigger_patterns": {full_triggers},
+                "require_owner_patterns": {require_owners},
+                "package_definition_basenames": ["BUCK.v2", "BUCK"],
+                "package_sibling_basenames": ["Cargo.toml", "build.rs"],
+                "cell_roots": {{"": "//"}},
+                "default_base_ref": "origin/dev"
+            }}"#
+        )
+    }
+
+    #[test]
+    fn policy_rejects_empty_full_trigger_patterns() {
+        let json = minimal_policy_json("[]", r#"["**/*.rs"]"#);
+        let err = Policy::from_json(&json).unwrap_err();
+        assert!(
+            err.0.contains("full_trigger_patterns") && err.0.contains("non-empty"),
+            "{err}"
+        );
+    }
+
+    #[test]
+    fn policy_rejects_empty_require_owner_patterns() {
+        let json = minimal_policy_json(r#"["third-party/**"]"#, "[]");
+        let err = Policy::from_json(&json).unwrap_err();
+        assert!(
+            err.0.contains("require_owner_patterns") && err.0.contains("non-empty"),
+            "{err}"
+        );
     }
 
     fn set(items: &[&str]) -> BTreeSet<String> {
