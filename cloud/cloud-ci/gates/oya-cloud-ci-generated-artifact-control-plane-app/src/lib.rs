@@ -1574,7 +1574,7 @@ mod tests {
 
     #[test]
     fn worker_hand_edit_to_generated_json_is_rejected_by_diff_policy() {
-        let manifest = manifest(Vec::new());
+        let manifest = manifest(vec![artifact("example-face", "out/example.generated.json")]);
         let diff = "M\tdocs/machine-readable/masterplan.generated.json\n";
 
         let (findings, violations) = generated_output_diff_policy_violations(&manifest, diff);
