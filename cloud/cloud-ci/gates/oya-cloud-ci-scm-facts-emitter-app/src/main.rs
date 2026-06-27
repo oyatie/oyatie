@@ -1563,7 +1563,8 @@ mod tests {
             oya_cloud_ci_firewall_app::FrozenBaseline::from_value(&snapshot).unwrap();
         let proposed = oya_cloud_ci_firewall_app::Baseline::from_value(
             &RepointAttackRepo::attacked_face(),
-        );
+        )
+        .unwrap();
         let current = oya_cloud_ci_firewall_app::baseline_keys_map(&proposed);
         let report = oya_cloud_ci_firewall_app::evaluate_firewall(
             &frozen.baseline,
@@ -2346,7 +2347,8 @@ mod tests {
             oya_cloud_ci_firewall_app::FrozenBaseline::from_value(&snapshot).unwrap();
         // The candidate's observed brand-residue: the residue now lives at the NEW path.
         let candidate_face = brand_face(&code, &[new_file, "other/unmoved.rs"]);
-        let proposed = oya_cloud_ci_firewall_app::Baseline::from_value(&candidate_face);
+        let proposed =
+            oya_cloud_ci_firewall_app::Baseline::from_value(&candidate_face).unwrap();
         let current = oya_cloud_ci_firewall_app::baseline_keys_map(&proposed);
         let report = oya_cloud_ci_firewall_app::evaluate_firewall(
             &frozen_baseline.baseline,
@@ -2401,7 +2403,8 @@ mod tests {
         let frozen_baseline =
             oya_cloud_ci_firewall_app::FrozenBaseline::from_value(&snapshot).unwrap();
         let candidate_face = brand_face(&code, &[new_file]);
-        let proposed = oya_cloud_ci_firewall_app::Baseline::from_value(&candidate_face);
+        let proposed =
+            oya_cloud_ci_firewall_app::Baseline::from_value(&candidate_face).unwrap();
         let current = oya_cloud_ci_firewall_app::baseline_keys_map(&proposed);
         let report = oya_cloud_ci_firewall_app::evaluate_firewall(
             &frozen_baseline.baseline,
