@@ -6,8 +6,9 @@ use std::path::{Path, PathBuf};
 
 use oya_cloud_ci_rust_first_automation_hygiene_app::{
     Finding, Verdict, collect_observed_forbidden_workflow_uses,
-    collect_observed_non_rust_automation, collect_observed_workflow_inline_shell, evaluate,
-    evaluate_forbidden_workflow_uses, evaluate_keyed, evaluate_workflow_inline_shell_keyed,
+    collect_observed_interpreter_command_authority, collect_observed_non_rust_automation,
+    collect_observed_workflow_inline_shell, evaluate, evaluate_forbidden_workflow_uses,
+    evaluate_interpreter_command_authority, evaluate_keyed, evaluate_workflow_inline_shell_keyed,
 };
 use serde_json::{Value, json};
 
@@ -289,4 +290,74 @@ fn fixture_proves_setup_buck2_action_fails_closed() {
         }),
         "forbidden setup-buck2 action must fail closed; got {findings:#?}"
     );
+}
+
+// ───────────────────── interpreter command authority dimension (G006) ─────────────────────
+
+#[test]
+fn interpreter_command_authority_dimension_is_enabled_for_rust_automation_sources() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let block = &policy["scan"]["interpreter_command_authority"];
+    assert_eq!(
+        block["enabled"].as_bool(),
+        Some(true),
+        "interpreter_command_authority dimension must be enabled in policy DATA"
+    );
+    let roots: Vec<&str> = block["roots"]
+        .as_array()
+        .expect("interpreter_command_authority.roots")
+        .iter()
+        .filter_map(Value::as_str)
+        .collect();
+    assert!(
+        roots.contains(&"cloud/cloud-ci") && roots.contains(&"libs") && roots.contains(&"tools"),
+        "Rust automation/gate source roots must be declared for interpreter-command authority scan; got {roots:?}"
+    );
+    let excluded: Vec<&str> = block["exclude_prefixes"]
+        .as_array()
+        .expect("interpreter_command_authority.exclude_prefixes")
+        .iter()
+        .filter_map(Value::as_str)
+        .collect();
+    assert!(
+        excluded.contains(&"cloud/cloud-os/"),
+        "cloud/cloud-os is fenced to the later kernel/OS story for task-4; got {excluded:?}"
+    );
+}
+
+#[test]
+fn live_rust_automation_sources_do_not_spawn_retired_interpreters() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let observed = collect_observed_interpreter_command_authority(&root, &policy)
+        .expect("read-only interpreter-command scan should not need temp files or cleanup");
+    let findings = evaluate_interpreter_command_authority(&observed);
+    assert!(
+        findings.is_empty(),
+        "Rust automation/gate source contains retired interpreter command authority: {findings:#?}"
+    );
+}
+
+#[test]
+fn fixture_proves_python_node_and_mjs_command_authority_fail_closed() {
+    let observed = json!({"commands": [
+        {"key": "tools/example/src/main.rs:10::python3", "command": "python3"},
+        {"key": "libs/example/src/lib.rs:20::node", "command": "node"},
+        {"key": "cloud/cloud-ci/example/src/lib.rs:30::bin/check.mjs", "command": "bin/check.mjs"}
+    ]});
+    let findings = evaluate_interpreter_command_authority(&observed);
+    for key in [
+        "tools/example/src/main.rs:10::python3",
+        "libs/example/src/lib.rs:20::node",
+        "cloud/cloud-ci/example/src/lib.rs:30::bin/check.mjs",
+    ] {
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "rust_first_automation_interpreter_command_authority"
+                    && finding.key == key
+            }),
+            "retired interpreter command authority key {key} must fail closed; got {findings:#?}"
+        );
+    }
 }

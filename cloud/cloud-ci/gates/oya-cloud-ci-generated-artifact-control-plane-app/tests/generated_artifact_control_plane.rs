@@ -19,6 +19,7 @@ use oya_cloud_ci_generated_artifact_control_plane_app::{
 };
 
 const MANIFEST_ENV: &str = "OYA_CI_GENERATED_ARTIFACT_MANIFEST";
+const SCHEMA_ENV: &str = "OYA_CI_GENERATED_ARTIFACT_SCHEMA";
 const SCM_FACTS_ENV: &str = "OYA_CI_GENERATED_ARTIFACT_SCM_FACTS";
 // The firewall ratchet policy is the authoritative, repo-agnostic source of the frozen-reference
 // set (ADR-0551 `frozen_reference.face_path`). Adopters override the location; the default is the
@@ -54,6 +55,24 @@ fn read_json(path: PathBuf) -> Value {
         .unwrap_or_else(|e| panic!("parse {} as JSON: {e}", path.display()))
 }
 
+fn schema_enum_values<'a>(schema: &'a Value, property: &str) -> BTreeSet<&'a str> {
+    schema
+        .get("$defs")
+        .and_then(|defs| defs.get("artifact"))
+        .and_then(|artifact| artifact.get("properties"))
+        .and_then(|properties| properties.get(property))
+        .and_then(|property| property.get("enum"))
+        .and_then(Value::as_array)
+        .unwrap_or_else(|| panic!("schema missing artifact.{property}.enum"))
+        .iter()
+        .map(|entry| {
+            entry
+                .as_str()
+                .unwrap_or_else(|| panic!("schema artifact.{property}.enum entry is not a string"))
+        })
+        .collect()
+}
+
 fn live_frozen_reference_paths() -> BTreeSet<String> {
     let ratchet_policy = read_json(input_path(RATCHET_POLICY_ENV, RATCHET_POLICY_DEFAULT_PATH));
     let (paths, findings) = frozen_reference_face_paths_keyed(std::iter::once(&ratchet_policy));
@@ -62,6 +81,53 @@ fn live_frozen_reference_paths() -> BTreeSet<String> {
         "ratchet policy frozen-reference findings: {findings:#?}"
     );
     paths
+}
+
+#[test]
+fn live_schema_accepts_manifest_materialization_modes() {
+    let manifest = read_json(input_path(
+        MANIFEST_ENV,
+        "registry/generated-artifact-control-plane.json",
+    ));
+    let schema = read_json(input_path(
+        SCHEMA_ENV,
+        "specs/generated-artifact-control-plane.schema.json",
+    ));
+    let allowed_materialization_modes = schema_enum_values(&schema, "materialization_mode");
+    let allowed_merge_policies = schema_enum_values(&schema, "merge_policy");
+
+    assert!(
+        allowed_materialization_modes.contains("not-tracked-in-git"),
+        "schema must declare the ADR-0595/ADR-0604 de-commit materialization mode"
+    );
+
+    let artifacts = manifest
+        .get("artifacts")
+        .and_then(Value::as_array)
+        .expect("live generated-artifact manifest must contain artifacts");
+    for artifact in artifacts {
+        let artifact_id = artifact
+            .get("artifact_id")
+            .and_then(Value::as_str)
+            .expect("live generated-artifact row must have artifact_id");
+        let materialization_mode = artifact
+            .get("materialization_mode")
+            .and_then(Value::as_str)
+            .unwrap_or_else(|| panic!("{artifact_id} missing materialization_mode"));
+        assert!(
+            allowed_materialization_modes.contains(materialization_mode),
+            "{artifact_id} uses materialization_mode {materialization_mode:?} not declared by specs/generated-artifact-control-plane.schema.json"
+        );
+
+        let merge_policy = artifact
+            .get("merge_policy")
+            .and_then(Value::as_str)
+            .unwrap_or_else(|| panic!("{artifact_id} missing merge_policy"));
+        assert!(
+            allowed_merge_policies.contains(merge_policy),
+            "{artifact_id} uses merge_policy {merge_policy:?} not declared by specs/generated-artifact-control-plane.schema.json"
+        );
+    }
 }
 
 #[test]
