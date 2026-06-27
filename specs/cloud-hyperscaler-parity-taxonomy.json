@@ -1593,22 +1593,22 @@
       "live_provider_provisioning"
     ]
   },
-  "implementation_directory_absence_gate": {
-    "gate_id": "cloud-compute-observability-absence-nonclaim",
+  "implementation_directory_nonclaim_gate": {
+    "gate_id": "cloud-compute-observability-directory-nonclaim",
     "source_of_truth": [
-      "specs/cloud-resource-catalog-target.json#implementation_directory_absence_gate.cloud-compute",
-      "specs/cloud-observability-slo-target.json#implementation_directory_absence_gate.cloud-observability"
+      "specs/cloud-resource-catalog-target.json#implementation_directory_nonclaim_gate.cloud-compute",
+      "specs/cloud-observability-slo-target.json#implementation_directory_nonclaim_gate.cloud-observability"
     ],
-    "paths_that_must_remain_absent_until_runtime_evidence": [
+    "paths_that_remain_nonclaim_until_runtime_evidence": [
       "cloud/cloud-compute",
       "cloud/cloud-observability"
     ],
-    "status_when_absent": "target_non_claim_only",
+    "status_when_present_or_absent": "target_or_foundation_non_claim_only",
     "can_claim_now": [
-      "Clean dev intentionally keeps cloud/cloud-compute and cloud/cloud-observability implementation directories absent.",
-      "Compute and observability are discoverable as target/backlog vocabulary with explicit non-claims only."
+      "cloud/cloud-compute and cloud/cloud-observability may exist as foundation/contract surfaces, but they do not establish runtime compute or observability readiness.",
+      "Compute and observability are discoverable as target/backlog vocabulary with explicit non-claims until runtime, provisioning, and measured SLO evidence gates are green."
     ],
-    "cannot_claim_from_absence": [
+    "cannot_claim_from_directory_presence": [
       "implemented compute service",
       "runtime observability service",
       "provider provisioning",
