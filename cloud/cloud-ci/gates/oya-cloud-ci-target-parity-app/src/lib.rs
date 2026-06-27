@@ -27,6 +27,8 @@ pub const VIOLATION_CODES: [&str; 2] = [
     "member_test_code_without_rust_test_target",
 ];
 
+const TARGET_PARITY_ROWS_KEY: &str = "<cloud-ci-target-parity#rows>";
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Verdict {
     Green,
@@ -78,17 +80,29 @@ impl Finding {
             remediation: remediation(member_path),
         }
     }
+
+    /// Reuse the born-blocking `member_missing_buck` code for an absent corpus so the firewall
+    /// treats "no target-parity evidence" as immediately red without widening the public code set.
+    fn missing_target_parity_rows() -> Self {
+        Self {
+            code: "member_missing_buck".to_owned(),
+            key: TARGET_PARITY_ROWS_KEY.to_owned(),
+            remediation: "producer must emit a non-empty target-parity rows array so BUCK/workspace parity cannot pass on an absent corpus; see ADR-0540".to_owned(),
+        }
+    }
 }
 
 /// Pure evaluator for producer-emitted target-parity rows.
 pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
     let mut findings = BTreeSet::new();
-    let rows = input
-        .get("rows")
-        .and_then(Value::as_array)
-        .cloned()
-        .unwrap_or_default();
-    for row in &rows {
+    let rows = match input.get("rows").and_then(Value::as_array) {
+        Some(rows) if !rows.is_empty() => rows,
+        _ => {
+            findings.insert(Finding::missing_target_parity_rows());
+            return findings;
+        }
+    };
+    for row in rows {
         let Some(member_path) = row.get("member_path").and_then(Value::as_str) else {
             continue;
         };
@@ -221,7 +235,31 @@ mod tests {
     }
 
     #[test]
-    fn empty_corpus_is_green() {
-        assert_eq!(evaluate(&json!({ "rows": [] })).verdict, Verdict::Green);
+    fn missing_rows_input_fails_closed() {
+        let input = json!({});
+
+        let findings = evaluate_keyed(&input);
+        assert_eq!(findings.len(), 1);
+        let finding = findings.iter().next().unwrap();
+        assert_eq!(finding.code, "member_missing_buck");
+        assert_eq!(finding.key, TARGET_PARITY_ROWS_KEY);
+        assert!(
+            finding.remediation.contains("target-parity rows")
+                && finding.remediation.contains("ADR-0540"),
+            "missing producer rows remediation should name the broken face contract: {finding:?}"
+        );
+        assert_eq!(evaluate(&input).verdict, Verdict::Red);
+    }
+
+    #[test]
+    fn malformed_or_empty_rows_input_fails_closed() {
+        for input in [json!({ "rows": "not-an-array" }), json!({ "rows": [] })] {
+            let findings = evaluate_keyed(&input);
+            assert_eq!(findings.len(), 1);
+            let finding = findings.iter().next().unwrap();
+            assert_eq!(finding.code, "member_missing_buck");
+            assert_eq!(finding.key, TARGET_PARITY_ROWS_KEY);
+            assert_eq!(evaluate(&input).verdict, Verdict::Red);
+        }
     }
 }
