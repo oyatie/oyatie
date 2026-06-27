@@ -149,11 +149,11 @@
     "Target spec only — enumerates resource types + their control-plane contract; does NOT implement any provider provisioning, live resource CRUD, OpenTofu plan/apply, operator/Cluster-API/Argo runtime, or persistence.",
     "cloud-* services are metadata-only foundations today; live provisioning + measured SLO/DR/scale evidence are P-STRANGLE/P-PROD; all such claims stay blocked_until_required_evidence_is_green."
   ],
-  "implementation_directory_absence_gate": {
+  "implementation_directory_nonclaim_gate": {
     "cloud-compute": {
       "directory": "cloud/cloud-compute",
-      "status_when_directory_absent": "target_non_claim_only",
-      "required_truth": "The cloud-compute service row is target vocabulary only while this directory is absent; absence must not be backfilled with a stub service directory or runtime claim.",
+      "status_when_directory_present_or_absent": "target_or_foundation_non_claim_only",
+      "required_truth": "The cloud-compute directory may exist for foundation/contract code, but directory presence must not be read as provider provisioning, live resource CRUD, tenant workload readiness, or hyperscaler feature-parity claim.",
       "allowed_discovery_evidence": [
         "specs/cloud-resource-catalog-target.json",
         "specs/cloud-hyperscaler-parity-taxonomy.json"
