@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0",
+  "microservice": "cloud-compute",
+  "doc_class": "Machine-Readable-Spec",
+  "status": "target_non_claim_rehomed_discoverability_alias",
+  "tier": "substrate",
+  "tier_subtype": "substrate-compute",
+  "owner": "axis-cloud-compute",
+  "active_target": {
+    "path": "compute/",
+    "decision_ref": "ADR-0562 section 10.8",
+    "reason": "cloud-compute crates were rehomed to the top-level compute capability tree; this cloud-scoped manifest preserves discoverability for cloud substrate scans without reclaiming runtime authority."
+  },
+  "bounded_contexts": [
+    {
+      "name": "cloud-compute",
+      "description": "Discoverability alias for the rehomed compute capability tree. Active implementation metadata lives under compute/; this alias introduces no crate, provider adapter, control-plane runtime, VM, managed Kubernetes, function execution, OpenTofu plan/apply, measured SLO, production readiness, or hyperscaler maturity claim.",
+      "crates": []
+    }
+  ],
+  "layers": [
+    "metadata"
+  ],
+  "contracts": {
+    "openapi": [
+      "contracts/openapi/cloud/cloud-compute-vm-v1.yaml",
+      "contracts/openapi/cloud/cloud-compute-k8s-v1.yaml",
+      "contracts/openapi/cloud/cloud-compute-functions-v1.yaml"
+    ],
+    "asyncapi": [],
+    "proto": [],
+    "contract_status": "referenced_contracts_only; no cloud/cloud-compute runtime or transport implementation is claimed by this alias"
+  },
+  "capabilities": [],
+  "slos": [],
+  "ips": [],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "target_non_claim: no cloud/cloud-compute runtime circuit-breaker, bulkhead, retry, provider operation, or production evidence is implemented here",
+    "tenant_rate_limit": "target_non_claim: no runtime per-tenant compute quota or rate-limit enforcement is implemented here",
+    "golden_signals": "target_non_claim: no measured cloud-compute golden-signal emission evidence is implemented here",
+    "error_budget_burn": "target_non_claim: no measured compute SLI or burn-rate rule is implemented here"
+  },
+  "audit_chain": {
+    "runtime_audit_emitter": false,
+    "evidence_refs": [],
+    "non_claim": "This alias emits no runtime audit event and persists no compute operation evidence."
+  },
+  "explicit_non_claims": [
+    "No cloud/cloud-compute crate or runtime provider is introduced.",
+    "No VM, managed Kubernetes, function, GPU, bare-metal, or autoscaling runtime is implemented or promoted.",
+    "No production readiness, hyperscaler maturity, measured SLO, provider-live smoke, or branch-protection authority is claimed.",
+    "Buck2 discoverability of this alias is limited to the manifest target in cloud/cloud-compute/BUCK."
+  ]
+}
