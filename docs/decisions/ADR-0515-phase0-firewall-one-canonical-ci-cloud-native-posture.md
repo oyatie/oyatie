@@ -387,6 +387,12 @@ a known-good it passes + proof it runs in the pipeline and BLOCKS):
   complete" / "P0.0 green" / "mechanically enforced" / "production-ready" until the producer posts on
   real candidate SHAs AND the live ruleset requires `oya-ci-required` (closing the SSOT→live drift); only
   then may `claim_boundary.p0_0_green` flip true.
+- **G015/G012 readiness evidence registration (2026-06-26):** the repo-relative evidence artifacts
+  `evidence/quality-gate/g015-wave-a-m0-m4-g012-readiness-evidence-20260626.json` and
+  `evidence/multispectrum/g015-wave-a-m0-m4-g012-readiness-evidence-20260626-1782515430.json` are
+  non-authoritative Wave A team readiness evidence for the G015/G012 closeout. They are justified only as
+  audit/readiness records for the `oya-ci-required` governed path; they do not create merge authority,
+  bypass `oya-ci-required`, or mutate generated artifacts.
 
 ## Amendment (2026-06-08, WAVE-1 Agentic Delivery Fabric convergence — refined, NOT superseded)
 
