@@ -172,5 +172,10 @@
   "no_grouping_authority": "ADR-0132",
   "layer": "app",
   "data_classification": "INTERNAL_ONLY, AUDIT; tenant-scoped control-plane identity (tenant_id, cluster_name, opaque handle) — no tenant workload data",
-  "maturity_non_claim": "design-spec maturity (ADR-0376 lane): the kernel + ControlPlaneProvisioning port + in-memory adapter + composition root are BUILT and tested; the kube-rs CAPI adapter's LIVE Kamaji/Talos CRD reconciliation is honest-deferred (registry/placeholder-debt/adr-follow-ups.yaml#kamaji-provider-live-integration). Billing, public SLA, DPIA, and external multi-tenant GA are deferred to oya-managed-k8s-commercial-ga per ADR-0376. All aspirational fields below describe design intent, not runtime behavior."
+  "maturity_non_claim": "design-spec maturity (ADR-0376 lane): the kernel + ControlPlaneProvisioning port + in-memory adapter + composition root are BUILT and tested; the kube-rs CAPI adapter's LIVE Kamaji/Talos CRD reconciliation is honest-deferred (registry/placeholder-debt/adr-follow-ups.yaml#kamaji-provider-live-integration). Billing, public SLA, DPIA, and external multi-tenant GA are deferred to oya-managed-k8s-commercial-ga per ADR-0376. All aspirational fields below describe design intent, not runtime behavior.",
+  "explicit_non_claims": [
+    "No provider-live Kamaji/Talos/CAPI reconciliation, provider actuation, tenant workload hosting, or production readiness is implemented by this manifest.",
+    "The live CAPI adapter boundary remains honest-deferred behind kamaji-provider-live-integration; any provider-facing method must fail closed until that follow-on lands.",
+    "Hyperscaler inventory fields describe contract intent and local fail-closed seams only, not measured runtime readiness or live control-plane fleet operation."
+  ]
 }

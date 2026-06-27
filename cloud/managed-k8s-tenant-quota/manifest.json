@@ -200,5 +200,10 @@
     "quota_bypass": "mitigated: evaluate() checks all dimensions; deny-by-default when no quota record exists",
     "rbac_escalation": "mitigated: Cedar default-deny; no principal can grant their own role; PlatformOperator scope required for cross-tenant writes",
     "cross_tenant_limit_read": "mitigated: Cedar tenant_id condition on all read policies; TenantMismatch deny in evaluate()"
-  }
+  },
+  "explicit_non_claims": [
+    "No provider-live integration, provider actuation, tenant-cluster mutation, or production readiness is implemented by this manifest.",
+    "Quota and RBAC logic remain a local fail-closed decision seam; it does not provision clusters, purchase capacity, enforce live admission webhooks, or mutate provider resources.",
+    "Cedar and quota capability declarations are contract/gate evidence only and are not hyperscaler readiness or managed-Kubernetes GA evidence."
+  ]
 }
