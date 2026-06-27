@@ -4,6 +4,7 @@ title: "oya-identity: bespoke Rust human identity substrate"
 status: Accepted
 date: 2026-05-28
 authority: founder
+owner: platform-tenancy-identity
 milestone: M-IDENTITY-V2
 planning_impact: true
 supersedes: [ADR-0421]

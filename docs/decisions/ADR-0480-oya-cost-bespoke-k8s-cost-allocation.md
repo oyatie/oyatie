@@ -4,6 +4,7 @@ title: "oya-cost: bespoke Rust K8s cost allocation substrate"
 status: Accepted
 date: 2026-05-28
 authority: founder
+owner: council-cost
 planning_impact: true
 supersedes: [ADR-0443]
 superseded_by: []

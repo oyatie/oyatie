@@ -4,6 +4,7 @@ title: "oya-billing — bespoke Rust billing engine superseding Lago"
 status: Accepted
 date: 2026-05-28
 authority: founder
+owner: council-billing
 milestone: M-BILLING-ENGINE-V2
 planning_impact: true
 supersedes: [ADR-0457]
