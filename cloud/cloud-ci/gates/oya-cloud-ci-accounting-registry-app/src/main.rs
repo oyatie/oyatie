@@ -10,6 +10,7 @@
 //!
 //! Usage:
 //!   oya-cloud-ci-accounting-registry-app [--repo-root <path>] [--out-dir <path>] [--stdout]
+//!                                        [--policy-root <path>]
 //!                                        [--scm-facts <path>]
 //!                                        [--enforcement-liveness-claude-settings <path>]
 //!                                        [--enforcement-liveness-codex-hooks <path>]
@@ -130,6 +131,7 @@ impl CliError {
 fn run() -> Result<(), CliError> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let mut repo_root: Option<PathBuf> = None;
+    let mut policy_root: Option<PathBuf> = None;
     let mut out_dir: Option<PathBuf> = None;
     let mut scm_facts_path: Option<PathBuf> = None;
     let mut enforcement_liveness_claude_settings: Option<PathBuf> = None;
@@ -153,6 +155,10 @@ fn run() -> Result<(), CliError> {
             "--repo-root" => {
                 i += 1;
                 repo_root = args.get(i).map(PathBuf::from);
+            }
+            "--policy-root" => {
+                i += 1;
+                policy_root = args.get(i).map(PathBuf::from);
             }
             "--out-dir" => {
                 i += 1;
@@ -207,13 +213,14 @@ fn run() -> Result<(), CliError> {
     let out_dir = out_dir.unwrap_or_else(|| {
         repo_root.join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app")
     });
+    let policy_root = policy_root.as_deref();
 
     // Allocator mode: derive the next free decision number from the tree and exit.
     // Single-owner: the SAME `allocate_next_adr_id` the crosswalk pass and the slice-3
     // register_crate app call — one ADR-parsing implementation, no convention or leader
     // memory. Same config-declared decisions directory, same scan, byte-identical output.
     if next_adr_mode {
-        let cfg = load_config(&repo_root)?;
+        let cfg = load_policy_config(&repo_root, policy_root)?;
         let decisions_dir = repo_root.join(&cfg.justification.adr_dir);
         println!("{}", allocate_next_adr_id(&decisions_dir)?);
         return Ok(());
@@ -229,12 +236,13 @@ fn run() -> Result<(), CliError> {
     });
     let scm_facts = load_scm_facts(&scm_facts_path)?;
 
-    // The oya-ci policy (naming/vocab/manifest/roots/sources/gates) is sourced from the repo's
-    // `oya-ci.toml` (OYA-CI-CONFORMANCE-FLOOR-PLAN §3.3 / Stage 2), via the CLOSED-schema loader;
-    // when the file is absent the compiled-in bundled default applies (zero-config does
-    // something useful). oyatie's checked-in file reproduces today's values, so every existing
-    // face is byte-for-byte unchanged.
-    let cfg = load_config(&repo_root)?;
+    // The oya-ci policy (naming/vocab/manifest/roots/sources/gates) is sourced from the active
+    // policy root's `oya-ci.toml` (OYA-CI-CONFORMANCE-FLOOR-PLAN §3.3 / Stage 2), via the
+    // CLOSED-schema loader. `--policy-root` is the cloud-ci product boundary: the candidate repo
+    // supplies the corpus under test, while a controller can source gate policy from trusted
+    // control state. With no `--policy-root`, the default remains `<repo-root>/oya-ci.toml`,
+    // preserving today's byte-for-byte first-party behaviour.
+    let cfg = load_policy_config(&repo_root, policy_root)?;
     let config_digest = cfg.digest();
 
     // The TRANSITIONAL registration bridges run INSTEAD of face generation: apply the
@@ -420,14 +428,21 @@ fn run() -> Result<(), CliError> {
     Ok(())
 }
 
-/// Walk up from cwd to the repo root (the dir holding `specs/root-hub-pointers.json`),
-/// matching the existing kernel-test convention.
-/// Load the repo's `oya-ci.toml` (OYA-CI-CONFORMANCE-FLOOR-PLAN §3.3). When the file is present
+/// Load the cloud-ci policy config. `repo_root` is the candidate corpus under test;
+/// `policy_root`, when present, is trusted control state carrying `oya-ci.toml`.
+fn load_policy_config(
+    repo_root: &Path,
+    policy_root: Option<&Path>,
+) -> Result<oya_ci_config_kernel::OyaCiConfig, CliError> {
+    load_config(policy_root.unwrap_or(repo_root))
+}
+
+/// Load a root's `oya-ci.toml` (OYA-CI-CONFORMANCE-FLOOR-PLAN §3.3). When the file is present
 /// it is parsed by the CLOSED-schema loader (a malformed file / unknown key is a hard error, so
 /// a broken config fails LOUDLY rather than silently reverting policy); when it is absent the
 /// compiled-in bundled default applies (zero-config = today's language-agnostic posture).
-fn load_config(repo_root: &Path) -> Result<oya_ci_config_kernel::OyaCiConfig, CliError> {
-    let path = repo_root.join("oya-ci.toml");
+fn load_config(config_root: &Path) -> Result<oya_ci_config_kernel::OyaCiConfig, CliError> {
+    let path = config_root.join("oya-ci.toml");
     match std::fs::read_to_string(&path) {
         Ok(text) => oya_ci_config_kernel::OyaCiConfig::from_toml_str(&text)
             .map_err(|e| CliError::Io(format!("{}: {e}", path.display()))),
@@ -1284,6 +1299,39 @@ mod tests {
         path
     }
 
+    fn load_live_test_scm_facts(root: &Path) -> ScmFacts {
+        let face = root.join(
+            "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        );
+        if face.is_file() {
+            return load_scm_facts(&face).expect("committed scm-facts face loads");
+        }
+
+        // The live corpus unit test must not require a gitignored generated face to be
+        // present on every worker checkout. Fall back to the same tracked-path universe
+        // the face records, without hand-editing or copying generated JSON into place.
+        let output = std::process::Command::new("git")
+            .arg("-C")
+            .arg(root)
+            .arg("ls-files")
+            .output()
+            .expect("git ls-files for live OWNERS corpus");
+        assert!(
+            output.status.success(),
+            "git ls-files failed for live OWNERS corpus: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let mut tracked_paths: Vec<String> = String::from_utf8(output.stdout)
+            .expect("git ls-files output is utf-8")
+            .lines()
+            .filter(|line| !line.is_empty())
+            .map(str::to_owned)
+            .collect();
+        tracked_paths.sort();
+        tracked_paths.dedup();
+        ScmFacts { tracked_paths }
+    }
+
     #[test]
     fn enforcement_liveness_declared_corpus_prevents_stale_repo_root_false_green() {
         let root = unique_temp_repo();
@@ -1945,10 +1993,7 @@ mod tests {
                 );
             }
         };
-        let scm_facts = load_scm_facts(&root.join(
-            "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
-        ))
-        .expect("committed scm-facts face loads");
+        let scm_facts = load_live_test_scm_facts(&root);
         let cfg = load_config(&root).expect("repo oya-ci.toml loads");
         let resolution = resolve_owners(&root, &scm_facts.tracked_paths, &cfg);
         assert!(
@@ -1966,8 +2011,37 @@ mod tests {
         assert!(
             !resolution.by_path.is_empty(),
             "the live corpus carries valid OWNERS registrations; an empty owned set means \
-             the resolver regressed"
+            the resolver regressed"
         );
+    }
+
+    #[test]
+    fn policy_root_overrides_candidate_oya_ci_config() {
+        let candidate_root = unique_temp_repo();
+        let trusted_root = unique_temp_repo();
+        fs::write(candidate_root.join("oya-ci.toml"), "profile = 'neutral'\n")
+            .expect("write candidate policy");
+        fs::write(trusted_root.join("oya-ci.toml"), "profile = 'oyatie'\n")
+            .expect("write trusted policy");
+
+        let cfg = load_policy_config(&candidate_root, Some(&trusted_root))
+            .expect("trusted policy root loads");
+
+        assert_eq!(cfg.profile, oya_ci_config_kernel::Profile::Oyatie);
+        fs::remove_dir_all(candidate_root).expect("remove candidate temp repo");
+        fs::remove_dir_all(trusted_root).expect("remove trusted temp repo");
+    }
+
+    #[test]
+    fn policy_root_defaults_to_candidate_oya_ci_config() {
+        let candidate_root = unique_temp_repo();
+        fs::write(candidate_root.join("oya-ci.toml"), "profile = 'neutral'\n")
+            .expect("write candidate policy");
+
+        let cfg = load_policy_config(&candidate_root, None).expect("candidate policy root loads");
+
+        assert_eq!(cfg.profile, oya_ci_config_kernel::Profile::Neutral);
+        fs::remove_dir_all(candidate_root).expect("remove candidate temp repo");
     }
 }
 
