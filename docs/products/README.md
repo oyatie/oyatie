@@ -16,36 +16,39 @@ Each Oyatie product (an axis or a vertical) has its own PRD here. Every PRD foll
 
 ## Per-product PRDs
 
-### Axis products (7)
+### Authored product PRDs
 
 | Product | PRD | Owning team | Status |
 |---|---|---|---|
 | SaaS Platform | [`saas-platform/PRD.md`](saas-platform/PRD.md) | `axis-saas` | planning-closed-contract-authored |
-| Workspace | [`workspace/PRD.md`](workspace/PRD.md) | `axis-workspace` | draft |
-| Intelligence Platform (cloud-intelligence + oya-intelligence) | Task #25 canon rename pending | `cloud-intelligence / oya-intelligence` | draft |
 | Cloud Provider | [`cloud/PRD.md`](cloud/PRD.md) | `axis-cloud` | draft |
-| Search | [`search/PRD.md`](search/PRD.md) | `axis-search` | draft |
-| Ads + Analytics | [`ads-analytics/PRD.md`](ads-analytics/PRD.md) | `axis-ads-analytics` | draft |
-| Vertical Industry Cloud | (see vertical products below; vertical PRDs are the unit) | per-vertical teams | umbrella |
+| ERP Coverage | [`erp-coverage/PRD.md`](erp-coverage/PRD.md) | `axis-product + axis-architecture + axis-erp-parity` | draft |
+| Workplace Integration | [`workplace-integration/PRD.md`](workplace-integration/PRD.md) | `axis-workflow + axis-application-shell + axis-identity + axis-tenancy + axis-compliance` | draft |
 
-### Vertical products (14)
+### Planned product PRD slots (not yet authored)
 
-| Product | PRD | Owning team | Status |
+These rows keep the product-lane roster visible without linking to PRD files that do not exist yet. Add a link only in the same change that lands the corresponding `docs/products/<product>/PRD.md` file.
+
+| Product | PRD slot | Owning team | Status |
 |---|---|---|---|
-| Corporate (HR / payroll / GL / mail / comms) | [`vertical-corporate/PRD.md`](vertical-corporate/PRD.md) | `vertical-corporate` | draft |
-| Healthcare (clinical / ambulatory / HL7-FHIR) | [`vertical-healthcare/PRD.md`](vertical-healthcare/PRD.md) | `vertical-healthcare` | draft |
-| Industrial (MES / OEE / ISA-95 / OPC UA) | [`vertical-industrial/PRD.md`](vertical-industrial/PRD.md) | `vertical-industrial` | draft |
-| Logistics (shipment / dock / EDI / route) | [`vertical-logistics/PRD.md`](vertical-logistics/PRD.md) | `vertical-logistics` | draft |
-| Fintech (PG / open-banking / KYC / AML) | [`vertical-fintech/PRD.md`](vertical-fintech/PRD.md) | `vertical-fintech` | draft |
-| Legal (regulated corpus / contracts) | [`vertical-legal/PRD.md`](vertical-legal/PRD.md) | `vertical-legal` | draft |
-| Retail (POS / inventory / promotions) | [`vertical-retail/PRD.md`](vertical-retail/PRD.md) | `vertical-retail` | skeleton |
-| Education (LMS) | [`vertical-education/PRD.md`](vertical-education/PRD.md) | `vertical-education` | skeleton |
-| Public Sector (forms / 조달청 + global gov) | [`vertical-public-sector/PRD.md`](vertical-public-sector/PRD.md) | `vertical-public-sector` | skeleton |
-| Hospitality (PMS) | [`vertical-hospitality/PRD.md`](vertical-hospitality/PRD.md) | `vertical-hospitality` | skeleton |
-| Construction (project mgmt) | [`vertical-construction/PRD.md`](vertical-construction/PRD.md) | `vertical-construction` | skeleton |
-| Real Estate (leasing) | [`vertical-real-estate/PRD.md`](vertical-real-estate/PRD.md) | `vertical-real-estate` | skeleton |
-| Agriculture (traceability) | [`vertical-agriculture/PRD.md`](vertical-agriculture/PRD.md) | `vertical-agriculture` | skeleton |
-| Food (supply-chain compliance) | [`vertical-food/PRD.md`](vertical-food/PRD.md) | `vertical-food` | skeleton |
+| Workspace | `docs/products/workspace/PRD.md` | `axis-workspace` | draft slot; PRD not authored |
+| Intelligence Platform (cloud-intelligence + oya-intelligence) | `docs/products/intelligence-platform/PRD.md` | `cloud-intelligence / oya-intelligence` | draft slot; PRD not authored |
+| Search | `docs/products/search/PRD.md` | `axis-search` | draft slot; PRD not authored |
+| Ads + Analytics | `docs/products/ads-analytics/PRD.md` | `axis-ads-analytics` | draft slot; PRD not authored |
+| Corporate (HR / payroll / GL / mail / comms) | `docs/products/vertical-corporate/PRD.md` | `vertical-corporate` | draft slot; PRD not authored |
+| Healthcare (clinical / ambulatory / HL7-FHIR) | `docs/products/vertical-healthcare/PRD.md` | `vertical-healthcare` | draft slot; PRD not authored |
+| Industrial (MES / OEE / ISA-95 / OPC UA) | `docs/products/vertical-industrial/PRD.md` | `vertical-industrial` | draft slot; PRD not authored |
+| Logistics (shipment / dock / EDI / route) | `docs/products/vertical-logistics/PRD.md` | `vertical-logistics` | draft slot; PRD not authored |
+| Fintech (PG / open-banking / KYC / AML) | `docs/products/vertical-fintech/PRD.md` | `vertical-fintech` | draft slot; PRD not authored |
+| Legal (regulated corpus / contracts) | `docs/products/vertical-legal/PRD.md` | `vertical-legal` | draft slot; PRD not authored |
+| Retail (POS / inventory / promotions) | `docs/products/vertical-retail/PRD.md` | `vertical-retail` | skeleton slot; PRD not authored |
+| Education (LMS) | `docs/products/vertical-education/PRD.md` | `vertical-education` | skeleton slot; PRD not authored |
+| Public Sector (forms / 조달청 + global gov) | `docs/products/vertical-public-sector/PRD.md` | `vertical-public-sector` | skeleton slot; PRD not authored |
+| Hospitality (PMS) | `docs/products/vertical-hospitality/PRD.md` | `vertical-hospitality` | skeleton slot; PRD not authored |
+| Construction (project mgmt) | `docs/products/vertical-construction/PRD.md` | `vertical-construction` | skeleton slot; PRD not authored |
+| Real Estate (leasing) | `docs/products/vertical-real-estate/PRD.md` | `vertical-real-estate` | skeleton slot; PRD not authored |
+| Agriculture (traceability) | `docs/products/vertical-agriculture/PRD.md` | `vertical-agriculture` | skeleton slot; PRD not authored |
+| Food (supply-chain compliance) | `docs/products/vertical-food/PRD.md` | `vertical-food` | skeleton slot; PRD not authored |
 
 ### Cross-product utilities
 
@@ -53,7 +56,7 @@ These are not "products" in the customer sense but are catalog-tracked for consi
 
 | Catalog entity | Path | Notes |
 |---|---|---|
-| Regional packs | [`../regional-packs/`](../regional-packs/) | One pack per locale (KR / JP / US / EU / IN / BR / KSA / UAE / AU / SG / …); each is its own folder with `PACK.md` + `i18n/` + `regulatory/` + `payment-rails/` + `identity/` + `tax/` |
+| Regional packs | [`../localization-packs/INDEX.md`](../localization-packs/INDEX.md), [`../../packs/`](../../packs/) | Documentation-pack index plus repo-root regional pack artifacts. This is traceability only and does not claim pack runtime readiness. |
 | Engineering teams | [`../teams/`](../teams/) | One charter per team |
 
 ## Required sections per product PRD (validated by the product PRD Rust gate in `oya-ci-required`)
