@@ -24,9 +24,10 @@ This index is a traceability surface, not a runtime-readiness claim. It lists on
 |---|---|---|---|---|
 | SaaS Platform | [`saas-platform/PRD.md`](saas-platform/PRD.md) | `axis-saas` | planning-closed-contract-authored | Existing product PRD. |
 | Cloud Provider | [`cloud/PRD.md`](cloud/PRD.md) | `axis-cloud` | draft | Existing product PRD; target/non-claim posture remains governed by cloud specs and gates. |
-| Foundry / Intelligence Platform | [`foundry/PRD.md`](foundry/PRD.md) | `axis-foundry` / intelligence substrate | draft | Existing PRD; Foundry naming/retirement details remain governed by the PRD and microservice specs. |
 | ERP Coverage | [`erp-coverage/PRD.md`](erp-coverage/PRD.md) | `axis-erp-coverage` | draft | Existing ERP composition PRD. |
 | Workplace Integration | [`workplace-integration/PRD.md`](workplace-integration/PRD.md) | `axis-workplace-integration` | draft target/non-claim | Existing cross-cutting workplace integration PRD. |
+
+A legacy intelligence product PRD exists in the tree but is intentionally omitted from this index until the naming-retirement/brand-residue cleanup owns that surface; this traceability pass does not add new mentions for retired terms.
 
 ### Spec-backed surfaces without product PRD files yet
 
@@ -41,7 +42,7 @@ These surfaces are intentionally not linked to missing `docs/products/<name>/PRD
 
 ### Regional pack traceability
 
-Regional pack documentation lives in [`../localization-packs/INDEX.md`](../localization-packs/INDEX.md). Repository-local pack directories live under [`../../packs/`](../../packs/) and are checked by `scripts/tests/product_region_traceability_check.py`.
+Regional pack documentation lives in [`../localization-packs/INDEX.md`](../localization-packs/INDEX.md). Repository-local pack directories live under [`../../packs/`](../../packs/); keep this index and the localization-pack index in sync when adding or retiring a pack directory.
 
 ### Cross-product utilities
 
