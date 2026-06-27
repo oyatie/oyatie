@@ -26,6 +26,11 @@ fn service_local_openapi_tracks_cloud_iam_api_surfaces() {
         "cloud-iam service-local OpenAPI must not remain an empty path scaffold"
     );
 
+    assert!(
+        OPENAPI.lines().any(|line| line.contains("caller-supplied internal authorization headers")),
+        "cloud-iam OpenAPI must keep the ingress-owned policy-engine header-strip boundary explicit"
+    );
+
     for operation in [
         OperationExpectation {
             path: "/identity-providers",

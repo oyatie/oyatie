@@ -25,6 +25,7 @@
     "tmp",
     "home",
     "repo",
+    "repo-runtime-state",
     "build-artifacts",
     "oyatie-worktrees"
   ],
@@ -122,6 +123,26 @@
       "action": "inventory_only"
     },
     {
+      "id": "repo-runtime-state",
+      "roots": [
+        "."
+      ],
+      "missing_ok": false,
+      "max_depth": 2,
+      "match_globs": [
+        ".omx/context",
+        ".omx/logs",
+        ".omc",
+        ".cargo"
+      ],
+      "exempt_globs": [
+        ".omx/ultragoal/**"
+      ],
+      "audit_finding_budget": 500,
+      "strict_finding_budget": 0,
+      "action": "inventory_runtime_state_only"
+    },
+    {
       "id": "build-artifacts",
       "roots": [
         "."
@@ -130,6 +151,7 @@
       "max_depth": 2,
       "match_globs": [
         "target",
+        "buck-out",
         "target-*",
         "dist",
         "build",
@@ -143,6 +165,7 @@
       ],
       "cleanup_globs": [
         "target",
+        "buck-out",
         "target-*",
         "dist",
         ".next",
@@ -191,6 +214,10 @@
     {
       "id": "repo_root_ephemeral_artifacts",
       "description": "Root-level scratch targets, logs, or generated outputs that should be ignored, moved into evidence, or cleaned after closeout."
+    },
+    {
+      "id": "repo_runtime_state_inventory",
+      "description": "Repository-local runtime state roots such as .omx context/logs, .omc metadata, and tool configuration caches that should be inventoried before closeout without deleting leader-owned goal state."
     },
     {
       "id": "build_artifact_residue",
