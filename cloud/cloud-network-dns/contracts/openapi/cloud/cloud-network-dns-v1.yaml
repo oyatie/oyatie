@@ -28,13 +28,11 @@ components:
     doctrine_refs:
       ADR-0346:
         purpose: >-
-          Establish that ./bin/oya verify --ci-required is the canonical local pre-push verifier and MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH step before returning success to the caller.
+          Record the retired ./bin/oya verify --ci-required mirror as provenance only; network contract review now treats targeted Buck2 evidence plus the cloud-ci/oya-ci required context as merge authority and MUST NOT add new oya CLI verification authority.
         enforced_by:
-          - oya-governance-oya-verify-ci-mirror-coverage
-          - oya-governance-oya-verify-ci-step-exit-semantics
-          - oya-governance-oya-verify-skip-flag-allowlist
-          - oya-governance-oya-submit-calls-verify
-          - oya-governance-oya-verify-exit-code-contract
+          - oya-ci-required
+          - cloud-ci-required-status
+          - targeted-buck2-contract-evidence
       ADR-0347:
         purpose: >-
           Declare that every oya-governance-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
@@ -59,13 +57,11 @@ components:
           manifest_block: sharding_automation declares autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
       ADR-0349:
         purpose: >-
-          Declare Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
+          Record Jenkins and ArgoCD as bridge/reference CI/CD substrates only; network contract review must not claim canonical destination CI/CD authority outside cloud-ci/oya-ci required contexts and separately authorized CD adapters.
         enforced_by:
-          - oya-governance-jenkins-github-actions-parity
-          - oya-governance-argocd-application-cosign-verified
-          - oya-governance-argocd-tenant-namespace-isolation
-          - oya-governance-jenkins-jcasc-only
-          - oya-governance-deploy-audit-chain-emit
+          - oya-ci-required
+          - cloud-ci-required-status
+          - bridge-adapter-nonclaim-review
     consumer_guidance:
       generators: Ignore this x-extension for SDK and server wire generation.
       governance: Use this x-extension as doctrine metadata for sharding_automation event-surface review only.
