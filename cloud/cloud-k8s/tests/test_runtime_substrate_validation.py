@@ -5,6 +5,12 @@ import unittest
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 K8S_ROOT = REPO_ROOT / "cloud" / "cloud-k8s"
+MANAGED_K8S_ROOTS = [
+    REPO_ROOT / "cloud" / "managed-k8s-cluster-lifecycle",
+    REPO_ROOT / "cloud" / "managed-k8s-control-plane-host",
+    REPO_ROOT / "cloud" / "managed-k8s-sla-observability",
+    REPO_ROOT / "cloud" / "managed-k8s-tenant-quota",
+]
 BASE = K8S_ROOT / "iac" / "kustomize" / "base"
 HELM = K8S_ROOT / "iac" / "helm"
 
@@ -185,6 +191,17 @@ class RuntimeSubstrateValidationTest(unittest.TestCase):
         for block in re.findall(r"- secretKey:.*?(?=\n    - secretKey:|\n---|\Z)", text, re.DOTALL):
             self.assertIn("remoteRef:", block)
             self.assertIn("property:", block)
+
+    def test_managed_k8s_manifests_keep_provider_runtime_nonclaims_explicit(self):
+        for service_root in MANAGED_K8S_ROOTS:
+            manifest = read(service_root / "manifest.json")
+            self.assertIn('"explicit_non_claims"', manifest, service_root.name)
+            self.assertIn("production readiness", manifest.lower(), service_root.name)
+            self.assertRegex(
+                manifest.lower(),
+                r"(provider-live|live .*integration|runtime .*integration|provider .*actuation)",
+                service_root.name,
+            )
 
 
 if __name__ == "__main__":
