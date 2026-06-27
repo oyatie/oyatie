@@ -104,6 +104,14 @@ REQUIRED_RESULT_SUMMARY_KEYS = {
     "artifact_ref",
     "evaluation_status",
 }
+REQUIRED_MACHINE_CHECK_SURFACE_CHECKS = {
+    "target-kit coverage",
+    "objective-domain coverage",
+    "official-source allowlist",
+    "nonclaim controls",
+    "evidence schema completeness",
+    "backlog-only status semantics",
+}
 FORBIDDEN_POSITIVE_PATTERNS = [
     re.compile(pattern)
     for pattern in [
@@ -349,7 +357,15 @@ def validate(spec: dict) -> None:
 
     surfaces = {surface.get("id"): surface for surface in spec["machine_check_surfaces"]}
     require("g006-validator" in surfaces, "machine_check_surfaces must include g006-validator")
-    require(surfaces["g006-validator"].get("command") == "python3 scripts/tests/cloud_production_quality_kit_evidence_backlog_check.py", "g006-validator command mismatch")
+    validator_surface = surfaces["g006-validator"]
+    require(validator_surface.get("command") == "python3 scripts/tests/cloud_production_quality_kit_evidence_backlog_check.py", "g006-validator command mismatch")
+    require(validator_surface.get("status") == "implemented_legacy_bridge_local_only", "g006-validator must remain local-only bridge evidence")
+    require(set(validator_surface.get("checks", [])) >= REQUIRED_MACHINE_CHECK_SURFACE_CHECKS, "g006-validator checks do not cover the required backlog contract surfaces")
+    require(validator_surface.get("authority_fence") == "temporary_python_validator_local_only_not_merge_authority", "g006-validator authority fence must prevent Python local bridge promotion")
+    replacement_target = validator_surface.get("replacement_target", "")
+    require("Buck2-native Rust cloud-ci validator" in replacement_target, "g006-validator replacement_target must point to Buck2-native Rust cloud-ci validation")
+    retirement_action = validator_surface.get("retirement_action", "")
+    require("Port this validator to Rust/Buck2" in retirement_action and "delete scripts/tests/cloud_production_quality_kit_evidence_backlog_check.py" in retirement_action, "g006-validator retirement_action must preserve Rust/Buck2 port-and-delete path")
 
     nonclaim_ids = {item.get("id") for item in spec["nonclaims"]}
     require(REQUIRED_BLOCKED_CLAIMS <= nonclaim_ids, f"missing nonclaims {sorted(REQUIRED_BLOCKED_CLAIMS - nonclaim_ids)}")
@@ -406,6 +422,9 @@ def run_self_tests() -> None:
     expect_rejected("missing DR extension", lambda data: data["kit_backlog"][3].pop("dr_backlog_extension"))
     expect_rejected("missing DR receipt output", lambda data: data["kit_backlog"][3].update({"machine_check_outputs": [output for output in data["kit_backlog"][3]["machine_check_outputs"] if output != "dependency_failure_recovery_receipt"]}))
     expect_rejected("missing DR scenario", lambda data: data["kit_backlog"][3].update({"scenario_backlog": [scenario for scenario in data["kit_backlog"][3]["scenario_backlog"] if scenario["scenario_id"] != "QK-04-canary-prr-DR04"]}))
+    expect_rejected("missing machine-check surface coverage", lambda data: data["machine_check_surfaces"][0].update({"checks": ["target-kit coverage"]}))
+    expect_rejected("validator authority fence drift", lambda data: data["machine_check_surfaces"][0].update({"authority_fence": "merge_authority"}))
+    expect_rejected("validator replacement target drift", lambda data: data["machine_check_surfaces"][0].update({"replacement_target": "keep Python validator as authority"}))
     expect_rejected("production ready claim", lambda data: data["kit_backlog"][0].update({"honest_claim": "production ready"}))
     expect_rejected("production grade claim", lambda data: data["kit_backlog"][0].update({"honest_claim": "production-grade"}))
     expect_rejected("production capable claim", lambda data: data["kit_backlog"][0].update({"honest_claim": "production capable"}))
