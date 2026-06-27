@@ -139,14 +139,24 @@ pub fn evaluate(fixture: &Value) -> Report {
 pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
     let mut findings: BTreeSet<Finding> = BTreeSet::new();
 
-    let rows = fixture
-        .get("rows")
-        .and_then(Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let Some(rows) = fixture.get("rows").and_then(Value::as_array) else {
+        findings.insert(Finding::new(
+            "missing_or_empty_required_field",
+            "<matrix>#rows",
+        ));
+        return findings;
+    };
+
+    if rows.is_empty() {
+        findings.insert(Finding::new(
+            "missing_or_empty_required_field",
+            "<matrix>#rows",
+        ));
+        return findings;
+    }
 
     let mut seen_ids: HashSet<String> = HashSet::new();
-    for row in &rows {
+    for row in rows {
         let id = row.get("id").and_then(Value::as_str).unwrap_or("");
         // duplicate_row_id: keyed by the duplicated row id.
         if !id.trim().is_empty() && !seen_ids.insert(id.to_owned()) {
@@ -184,8 +194,10 @@ fn evaluate_row(row: &Value, findings: &mut BTreeSet<Finding>) {
         findings.insert(Finding::new("unknown_classification", id));
     }
 
-    let enforceable_or_automatable =
-        row.get("enforceable_or_automatable").and_then(Value::as_bool) == Some(true);
+    let enforceable_or_automatable = row
+        .get("enforceable_or_automatable")
+        .and_then(Value::as_bool)
+        == Some(true);
 
     // enforceable_or_automatable_marked_human_judgment
     if enforceable_or_automatable && classification == "not_automatable_human_judgment" {
@@ -211,19 +223,14 @@ fn evaluate_row(row: &Value, findings: &mut BTreeSet<Finding>) {
 
     // advisory_claiming_enforced (NET-NEW): claims enforcement but no wired buck2 target.
     let claims_enforced = row.get("claims_enforced").and_then(Value::as_bool) == Some(true)
-        || mentions_enforcement(
-            row.get("requirement").and_then(Value::as_str).unwrap_or(""),
-        )
+        || mentions_enforcement(row.get("requirement").and_then(Value::as_str).unwrap_or(""))
         || mentions_enforcement(target);
-    let has_wired_buck2_target = row
-        .get("has_wired_buck2_target")
-        .and_then(Value::as_bool)
-        == Some(true);
+    let has_wired_buck2_target =
+        row.get("has_wired_buck2_target").and_then(Value::as_bool) == Some(true);
     // Only the explicit `claims_enforced` flag (DATA) drives this code, so a real matrix
     // row whose prose merely describes enforcement is not falsely flagged; the prose check
     // is the corroborating signal used by the producer's enforcement-inventory face.
-    if row.get("claims_enforced").and_then(Value::as_bool) == Some(true)
-        && !has_wired_buck2_target
+    if row.get("claims_enforced").and_then(Value::as_bool) == Some(true) && !has_wired_buck2_target
     {
         findings.insert(Finding::new("advisory_claiming_enforced", id));
     }
@@ -287,15 +294,46 @@ mod tests {
     }
 
     #[test]
+    fn missing_rows_matrix_fails_closed() {
+        let findings = evaluate_keyed(&json!({}));
+        assert!(findings.contains(&Finding::new(
+            "missing_or_empty_required_field",
+            "<matrix>#rows"
+        )));
+
+        let report = evaluate(&json!({}));
+        assert_eq!(report.verdict, Verdict::Red);
+        assert!(
+            report
+                .violations
+                .contains("missing_or_empty_required_field")
+        );
+    }
+
+    #[test]
+    fn malformed_or_empty_rows_matrix_fails_closed() {
+        for fixture in [json!({"rows": "not-an-array"}), json!({"rows": []})] {
+            let findings = evaluate_keyed(&fixture);
+            assert!(findings.contains(&Finding::new(
+                "missing_or_empty_required_field",
+                "<matrix>#rows"
+            )));
+            assert_eq!(evaluate(&fixture).verdict, Verdict::Red);
+        }
+    }
+
+    #[test]
     fn oya_cli_authority_fires_blocking_invariant_mapped_to_oya_cli() {
         let mut row = good_row();
         row["classification"] = json!("automated_blocking_now");
         row["target_gate_or_controller"] = json!("oya gate run-all --ci-required");
         row["no_new_oya_cli_surface"] = json!(false);
         let report = evaluate(&json!({"rows": [row]}));
-        assert!(report
-            .violations
-            .contains("blocking_invariant_mapped_to_oya_cli"));
+        assert!(
+            report
+                .violations
+                .contains("blocking_invariant_mapped_to_oya_cli")
+        );
     }
 
     #[test]
@@ -303,9 +341,11 @@ mod tests {
         let mut row = good_row();
         row["enforceable_or_automatable"] = json!(true);
         let report = evaluate(&json!({"rows": [row]}));
-        assert!(report
-            .violations
-            .contains("enforceable_or_automatable_marked_human_judgment"));
+        assert!(
+            report
+                .violations
+                .contains("enforceable_or_automatable_marked_human_judgment")
+        );
     }
 
     #[test]
@@ -356,6 +396,10 @@ mod tests {
         ]}));
         assert!(report.violations.contains("duplicate_row_id"));
         assert!(report.violations.contains("unknown_classification"));
-        assert!(report.violations.contains("missing_or_empty_required_field"));
+        assert!(
+            report
+                .violations
+                .contains("missing_or_empty_required_field")
+        );
     }
 }
