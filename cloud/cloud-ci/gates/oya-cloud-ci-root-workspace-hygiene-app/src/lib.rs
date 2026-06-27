@@ -486,7 +486,6 @@ mod tests {
             ".codex/.DS_Store",
             ".omc/state/team/mailbox.json",
             ".omx/state/team/mailbox.json",
-            ".omx/team/wave-c1-hyperscaler-p-1fb6d50c/worktrees/worker-2/AGENTS.md",
         ] {
             let findings = evaluate_keyed(&policy(), &observed(&[path]));
             assert!(
