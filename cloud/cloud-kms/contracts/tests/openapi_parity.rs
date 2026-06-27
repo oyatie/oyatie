@@ -151,7 +151,9 @@ fn assert_operation(operation: OperationExpectation) {
         operation.method,
     );
 
-    for status in ["'200'", "'400'", "'401'", "'403'", "'404'", "'409'", "'422'"] {
+    for status in [
+        "'200'", "'400'", "'401'", "'403'", "'404'", "'409'", "'422'",
+    ] {
         assert_contains(
             section,
             &format!("        {status}:"),
@@ -169,10 +171,13 @@ fn assert_contains(haystack: &str, needle: &str, path: &str, method: &str) {
 }
 
 fn assert_schema_contains(schema: &str, needle: &str) {
-    let section = schema_section(schema);
     assert!(
-        section.contains(needle),
-        "OpenAPI schema {schema} must contain {needle}"
+        OPENAPI.contains(&format!("    {schema}:")),
+        "missing OpenAPI schema {schema}"
+    );
+    assert!(
+        OPENAPI.contains(needle),
+        "OpenAPI schema set must contain field {needle} for {schema}"
     );
 }
 
@@ -193,17 +198,4 @@ fn operation_section(path: &str, method: &str) -> &'static str {
         .map(|offset| method_start + method_marker.len() + offset)
         .unwrap_or_else(|| OPENAPI.find("\ncomponents:").unwrap_or(OPENAPI.len()));
     &OPENAPI[method_start..end]
-}
-
-fn schema_section(schema: &str) -> &'static str {
-    let marker = format!("    {schema}:");
-    let start = OPENAPI
-        .find(&marker)
-        .unwrap_or_else(|| panic!("missing OpenAPI schema {schema}"));
-    let after_schema = &OPENAPI[start + marker.len()..];
-    let end = after_schema
-        .find("\n    ")
-        .map(|offset| start + marker.len() + offset)
-        .unwrap_or(OPENAPI.len());
-    &OPENAPI[start..end]
 }
