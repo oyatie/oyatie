@@ -21,6 +21,8 @@
 //! - `dual_decision_collision`— two distinct decision FILES share one decision id (the
 //!   historical live exhibit: the two ADR-0377 files, resolved 2026-06-12 by renumbering
 //!   the newer one to ADR-0557 per FRIC-1781390000; frozen as tc-XA-bad-dup-adr-number).
+//! - `decision_id_mismatch` — a decision file whose front-matter id disagrees with its
+//!   filename number, which can mask duplicate-id detection.
 //! - `supersession_half_edge` — a supersession edge that is not reciprocal (A `supersedes`
 //!   B while B's `superseded_by` omits A, or the reverse): a half-built edge.
 //! - `phantom_decision_citation` — a governed surface (a decision body, the
@@ -44,13 +46,14 @@ use serde_json::Value;
 /// The gate id, matching the buck2 target + the §5.2 contract.
 pub const GATE_ID: &str = "cloud-ci-cross-artifact-agreement";
 
-/// The seven blocking codes, in canonical order. The fixtures pin exact subsets.
-pub const VIOLATION_CODES: [&str; 7] = [
+/// The eight blocking codes, in canonical order. The fixtures pin exact subsets.
+pub const VIOLATION_CODES: [&str; 8] = [
     "orphan_decision",
     "unpropagated_decision",
     "status_disagreement",
     "generated_face_drift",
     "dual_decision_collision",
+    "decision_id_mismatch",
     "supersession_half_edge",
     "phantom_decision_citation",
 ];
@@ -151,12 +154,17 @@ pub fn evaluate(fixture: &Value) -> Report {
 /// Evaluate a cross-artifact-agreement corpus into the keyed finding set — the single
 /// source of truth for the gate's detection logic.
 pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
-    let mut findings: BTreeSet<Finding> = BTreeSet::new();
+    let mut findings = validate_payload_shape(fixture);
 
-    let decisions = fixture
+    let decisions: Vec<&Value> = fixture
         .get("decisions")
         .and_then(Value::as_array)
-        .cloned()
+        .map(|values| {
+            values
+                .iter()
+                .filter(|decision| valid_decision_shape(decision))
+                .collect()
+        })
         .unwrap_or_default();
 
     // Index every decision's supersession edges so half-edges can be detected
@@ -183,7 +191,9 @@ pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
             // Only assert reciprocity when the counterpart decision is in-corpus; an
             // edge to an out-of-corpus id is not evidence of a half-edge here.
             if known_ids.contains(target)
-                && !superseded_by.get(target).is_some_and(|set| set.contains(id))
+                && !superseded_by
+                    .get(target)
+                    .is_some_and(|set| set.contains(id))
             {
                 findings.insert(Finding::new(
                     "supersession_half_edge",
@@ -230,11 +240,11 @@ pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
 
     // generated_face_drift: two generated faces disagree on a shared value. Keyed by
     // "<shared-value-name>@{sorted face names}".
-    if let Some(axes) = fixture.get("generated_face_axes").and_then(Value::as_object) {
-        let distinct: BTreeSet<String> = axes
-            .values()
-            .map(|value| value.to_string())
-            .collect();
+    if let Some(axes) = fixture
+        .get("generated_face_axes")
+        .and_then(Value::as_object)
+    {
+        let distinct: BTreeSet<String> = axes.values().map(|value| value.to_string()).collect();
         if distinct.len() > 1 {
             let faces: Vec<&str> = axes.keys().map(String::as_str).collect();
             // BTreeMap keys are already sorted; join the disagreeing face names.
@@ -281,13 +291,165 @@ fn evaluate_decision(decision: &Value, findings: &mut BTreeSet<Finding>) {
             if let Some(other) = face_status.as_str()
                 && !other.trim().eq_ignore_ascii_case(status)
             {
-                findings.insert(Finding::new(
-                    "status_disagreement",
-                    &format!("{id}@{face}"),
-                ));
+                findings.insert(Finding::new("status_disagreement", &format!("{id}@{face}")));
             }
         }
     }
+}
+
+fn validate_payload_shape(fixture: &Value) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+
+    let Some(decisions) = fixture.get("decisions") else {
+        findings.insert(Finding::new("orphan_decision", "<missing-decisions>"));
+        return findings;
+    };
+    let Some(decisions) = decisions.as_array() else {
+        findings.insert(Finding::new("orphan_decision", "<non-array-decisions>"));
+        return findings;
+    };
+    if decisions.is_empty() {
+        findings.insert(Finding::new("orphan_decision", "<empty-decisions>"));
+    }
+
+    for (index, decision) in decisions.iter().enumerate() {
+        let Some(object) = decision.as_object() else {
+            findings.insert(Finding::new(
+                "orphan_decision",
+                &format!("<malformed-decision-{index}>"),
+            ));
+            continue;
+        };
+        if !object.get("id").is_some_and(Value::is_string) {
+            findings.insert(Finding::new(
+                "orphan_decision",
+                &format!("<malformed-decision-{index}.id>"),
+            ));
+        }
+        if !object.get("status").is_some_and(Value::is_string) {
+            findings.insert(Finding::new(
+                "orphan_decision",
+                &format!("<malformed-decision-{index}.status>"),
+            ));
+        }
+        for field in ["supersedes", "superseded_by"] {
+            if decision.get(field).is_some_and(|value| !value.is_array()) {
+                findings.insert(Finding::new(
+                    "supersession_half_edge",
+                    &format!("<malformed-decision-{index}.{field}>"),
+                ));
+            }
+            if let Some(values) = decision.get(field).and_then(Value::as_array) {
+                for (value_index, value) in values.iter().enumerate() {
+                    if !value.is_string() {
+                        findings.insert(Finding::new(
+                            "supersession_half_edge",
+                            &format!("<malformed-decision-{index}.{field}-{value_index}>"),
+                        ));
+                    }
+                }
+            }
+        }
+        for field in ["in_spec", "in_masterplan", "in_roadmap"] {
+            if decision.get(field).is_some_and(|value| !value.is_boolean()) {
+                findings.insert(Finding::new(
+                    "unpropagated_decision",
+                    &format!("<malformed-decision-{index}.{field}>"),
+                ));
+            }
+        }
+        if decision
+            .get("face_statuses")
+            .is_some_and(|value| !value.is_object())
+        {
+            findings.insert(Finding::new(
+                "status_disagreement",
+                &format!("<malformed-decision-{index}.face_statuses>"),
+            ));
+        }
+        if let Some(face_statuses) = decision.get("face_statuses").and_then(Value::as_object) {
+            for (face, value) in face_statuses {
+                if !value.is_string() {
+                    findings.insert(Finding::new(
+                        "status_disagreement",
+                        &format!("<malformed-decision-{index}.face_statuses.{face}>"),
+                    ));
+                }
+            }
+        }
+    }
+
+    validate_string_array_field(
+        fixture,
+        "duplicate_ids",
+        "dual_decision_collision",
+        "duplicate-ids",
+        &mut findings,
+    );
+    validate_string_array_field(
+        fixture,
+        "id_mismatches",
+        "decision_id_mismatch",
+        "id-mismatches",
+        &mut findings,
+    );
+    validate_string_array_field(
+        fixture,
+        "phantom_citations",
+        "phantom_decision_citation",
+        "phantom-citations",
+        &mut findings,
+    );
+
+    if let Some(axes) = fixture.get("generated_face_axes") {
+        if !axes.is_object() || axes.as_object().is_some_and(serde_json::Map::is_empty) {
+            findings.insert(Finding::new(
+                "generated_face_drift",
+                "<malformed-generated-face-axes>",
+            ));
+        }
+        if let Some(axes) = axes.as_object() {
+            for (face, value) in axes {
+                if !value.is_number() {
+                    findings.insert(Finding::new(
+                        "generated_face_drift",
+                        &format!("<malformed-generated-face-axes.{face}>"),
+                    ));
+                }
+            }
+        }
+    }
+
+    findings
+}
+
+fn validate_string_array_field(
+    fixture: &Value,
+    field: &str,
+    code: &str,
+    sentinel: &str,
+    findings: &mut BTreeSet<Finding>,
+) {
+    let Some(value) = fixture.get(field) else {
+        return;
+    };
+    let Some(values) = value.as_array() else {
+        findings.insert(Finding::new(code, &format!("<malformed-{sentinel}>")));
+        return;
+    };
+    for (index, value) in values.iter().enumerate() {
+        if !value.is_string() {
+            findings.insert(Finding::new(
+                code,
+                &format!("<malformed-{sentinel}-{index}>"),
+            ));
+        }
+    }
+}
+
+fn valid_decision_shape(decision: &Value) -> bool {
+    decision.get("id").is_some_and(Value::is_string)
+        && decision.get("status").is_some_and(Value::is_string)
 }
 
 fn bool_field(value: &Value, field: &str) -> bool {
@@ -346,20 +508,24 @@ mod tests {
     #[test]
     fn axes_drift_fires_generated_face_drift() {
         let fixture = json!({
-            "decisions": [],
+            "decisions": [valid_decision()],
             "generated_face_axes": {"catalog.json": 6, "contracts.json": 7}
         });
-        assert!(evaluate(&fixture)
-            .violations
-            .contains("generated_face_drift"));
+        assert!(
+            evaluate(&fixture)
+                .violations
+                .contains("generated_face_drift")
+        );
     }
 
     #[test]
     fn duplicate_id_fires_dual_decision_collision() {
-        let fixture = json!({"decisions": [], "duplicate_ids": ["ADR-0377"]});
-        assert!(evaluate(&fixture)
-            .violations
-            .contains("dual_decision_collision"));
+        let fixture = json!({"decisions": [valid_decision()], "duplicate_ids": ["ADR-0377"]});
+        assert!(
+            evaluate(&fixture)
+                .violations
+                .contains("dual_decision_collision")
+        );
     }
 
     /// RED fixture (FRIC-1781430000): a governed surface citing a decision id with no
@@ -384,7 +550,7 @@ mod tests {
     /// An empty phantom_citations array (the healed live shape) contributes nothing.
     #[test]
     fn empty_phantom_citations_is_quiet() {
-        let fixture = json!({"decisions": [], "phantom_citations": []});
+        let fixture = json!({"decisions": [valid_decision()], "phantom_citations": []});
         assert_eq!(evaluate(&fixture).verdict, Verdict::Green);
     }
 
@@ -393,7 +559,7 @@ mod tests {
     #[test]
     fn id_mismatch_fires_decision_id_mismatch() {
         let fixture = json!({
-            "decisions": [],
+            "decisions": [valid_decision()],
             "id_mismatches": ["ADR-0552-x.md:ADR-0552!=ADR-0553"]
         });
         let report = evaluate(&fixture);
@@ -417,9 +583,11 @@ mod tests {
                 "supersedes": [], "superseded_by": ["ADR-0515"]
             }]
         });
-        assert!(evaluate(&fixture)
-            .violations
-            .contains("supersession_half_edge"));
+        assert!(
+            evaluate(&fixture)
+                .violations
+                .contains("supersession_half_edge")
+        );
     }
 
     #[test]
@@ -443,7 +611,10 @@ mod tests {
             "generated_face_axes": {"catalog.json": 6, "contracts.json": 7}
         });
         let findings = evaluate_keyed(&fixture);
-        assert!(findings.contains(&Finding::new("supersession_half_edge", "ADR-0511->ADR-0359")));
+        assert!(findings.contains(&Finding::new(
+            "supersession_half_edge",
+            "ADR-0511->ADR-0359"
+        )));
         assert!(findings.contains(&Finding::new("dual_decision_collision", "ADR-0377")));
         assert!(findings.contains(&Finding::new(
             "decision_id_mismatch",
@@ -470,6 +641,188 @@ mod tests {
             "face_statuses":{"roadmap":"Superseded"}
         }]}));
         assert!(findings.contains(&Finding::new("status_disagreement", "ADR-0500@roadmap")));
+    }
+
+    #[test]
+    fn malformed_payload_shapes_fail_closed_with_existing_codes() {
+        let malformed_cases = [
+            ("orphan_decision", "<missing-decisions>", json!({})),
+            (
+                "orphan_decision",
+                "<non-array-decisions>",
+                json!({"decisions": {}}),
+            ),
+            (
+                "orphan_decision",
+                "<empty-decisions>",
+                json!({"decisions": []}),
+            ),
+            (
+                "orphan_decision",
+                "<malformed-decision-0>",
+                json!({"decisions": [null]}),
+            ),
+            (
+                "orphan_decision",
+                "<malformed-decision-0.id>",
+                json!({"decisions": [{"status":"Accepted"}]}),
+            ),
+            (
+                "orphan_decision",
+                "<malformed-decision-0.status>",
+                json!({"decisions": [{"id":"ADR-0500"}]}),
+            ),
+            (
+                "dual_decision_collision",
+                "<malformed-duplicate-ids>",
+                json!({"decisions": [valid_decision()], "duplicate_ids": {}}),
+            ),
+            (
+                "dual_decision_collision",
+                "<malformed-duplicate-ids-0>",
+                json!({"decisions": [valid_decision()], "duplicate_ids": [7]}),
+            ),
+            (
+                "decision_id_mismatch",
+                "<malformed-id-mismatches>",
+                json!({"decisions": [valid_decision()], "id_mismatches": {}}),
+            ),
+            (
+                "decision_id_mismatch",
+                "<malformed-id-mismatches-0>",
+                json!({"decisions": [valid_decision()], "id_mismatches": [7]}),
+            ),
+            (
+                "phantom_decision_citation",
+                "<malformed-phantom-citations>",
+                json!({"decisions": [valid_decision()], "phantom_citations": {}}),
+            ),
+            (
+                "phantom_decision_citation",
+                "<malformed-phantom-citations-0>",
+                json!({"decisions": [valid_decision()], "phantom_citations": [7]}),
+            ),
+            (
+                "supersession_half_edge",
+                "<malformed-decision-0.supersedes>",
+                json!({"decisions": [decision_with("supersedes", json!({}))]}),
+            ),
+            (
+                "supersession_half_edge",
+                "<malformed-decision-0.supersedes-0>",
+                json!({"decisions": [decision_with("supersedes", json!([7]))]}),
+            ),
+            (
+                "supersession_half_edge",
+                "<malformed-decision-0.superseded_by>",
+                json!({"decisions": [decision_with("superseded_by", json!({}))]}),
+            ),
+            (
+                "supersession_half_edge",
+                "<malformed-decision-0.superseded_by-0>",
+                json!({"decisions": [decision_with("superseded_by", json!([7]))]}),
+            ),
+            (
+                "unpropagated_decision",
+                "<malformed-decision-0.in_spec>",
+                json!({"decisions": [decision_with("in_spec", json!("yes"))]}),
+            ),
+            (
+                "unpropagated_decision",
+                "<malformed-decision-0.in_masterplan>",
+                json!({"decisions": [decision_with("in_masterplan", json!("yes"))]}),
+            ),
+            (
+                "unpropagated_decision",
+                "<malformed-decision-0.in_roadmap>",
+                json!({"decisions": [decision_with("in_roadmap", json!("yes"))]}),
+            ),
+            (
+                "status_disagreement",
+                "<malformed-decision-0.face_statuses>",
+                json!({"decisions": [decision_with("face_statuses", json!([]))]}),
+            ),
+            (
+                "status_disagreement",
+                "<malformed-decision-0.face_statuses.roadmap>",
+                json!({"decisions": [decision_with("face_statuses", json!({"roadmap": 7}))]}),
+            ),
+            (
+                "generated_face_drift",
+                "<malformed-generated-face-axes>",
+                json!({"decisions": [valid_decision()], "generated_face_axes": []}),
+            ),
+            (
+                "generated_face_drift",
+                "<malformed-generated-face-axes>",
+                json!({"decisions": [valid_decision()], "generated_face_axes": {}}),
+            ),
+            (
+                "generated_face_drift",
+                "<malformed-generated-face-axes.catalog.json>",
+                json!({"decisions": [valid_decision()], "generated_face_axes": {"catalog.json": "six"}}),
+            ),
+        ];
+
+        for (code, key, fixture) in malformed_cases {
+            let findings = evaluate_keyed(&fixture);
+            assert!(
+                findings.contains(&Finding::new(code, key)),
+                "{code}/{key} should fail closed, got {findings:?}"
+            );
+            let report = evaluate(&fixture);
+            assert_eq!(report.verdict, Verdict::Red, "{code}/{key}");
+            assert!(report.violations.contains(code), "{code}/{key}");
+        }
+    }
+
+    #[test]
+    fn malformed_propagation_bool_on_non_accepted_decision_fails_closed() {
+        let mut decision = valid_decision();
+        decision["status"] = json!("Superseded");
+        decision["in_spec"] = json!("yes");
+        let fixture = json!({"decisions": [decision]});
+        assert_eq!(
+            evaluate_keyed(&fixture),
+            BTreeSet::from([Finding::new(
+                "unpropagated_decision",
+                "<malformed-decision-0.in_spec>"
+            )])
+        );
+        assert_eq!(evaluate(&fixture).verdict, Verdict::Red);
+    }
+
+    #[test]
+    fn public_code_list_includes_every_emitted_code_used_by_tests() {
+        let public: BTreeSet<&str> = VIOLATION_CODES.into_iter().collect();
+        for code in [
+            "orphan_decision",
+            "unpropagated_decision",
+            "status_disagreement",
+            "generated_face_drift",
+            "dual_decision_collision",
+            "decision_id_mismatch",
+            "supersession_half_edge",
+            "phantom_decision_citation",
+        ] {
+            assert!(public.contains(code), "missing public code {code}");
+        }
+    }
+
+    fn valid_decision() -> Value {
+        json!({
+            "id":"ADR-0500",
+            "status":"Accepted",
+            "in_spec":true,
+            "in_masterplan":true,
+            "in_roadmap":true
+        })
+    }
+
+    fn decision_with(field: &str, value: Value) -> Value {
+        let mut decision = valid_decision();
+        decision[field] = value;
+        decision
     }
 
     #[test]
