@@ -9,8 +9,9 @@
 //! "has_test_code": bool}]}`.
 //!
 //! `evaluate_keyed` emits one `Finding{code,key,remediation}` per offending member. `key` is
-//! always `member_path`; the firewall freezes today's accepted debt by key and blocks only
-//! new keys for `member_test_code_without_rust_test_target`.
+//! normally `member_path`; producer-contract defects use stable synthetic keys so malformed
+//! evidence cannot pass quietly. The firewall freezes today's accepted debt by key and blocks
+//! only new keys for `member_test_code_without_rust_test_target`.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
@@ -28,6 +29,7 @@ pub const VIOLATION_CODES: [&str; 2] = [
 ];
 
 const TARGET_PARITY_ROWS_KEY: &str = "<cloud-ci-target-parity#rows>";
+const TARGET_PARITY_ROW_KEY: &str = "<cloud-ci-target-parity#row>";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Verdict {
@@ -62,8 +64,14 @@ impl Report {
     }
 }
 
-fn bool_field(row: &Value, key: &str) -> bool {
-    row.get(key).and_then(Value::as_bool).unwrap_or(false)
+fn bool_field(row: &Value, key: &str) -> Option<bool> {
+    row.get(key).and_then(Value::as_bool)
+}
+
+fn row_has_required_bool_fields(row: &Value) -> bool {
+    ["has_buck", "has_rust_test_target", "has_test_code"]
+        .into_iter()
+        .all(|field| row.get(field).and_then(Value::as_bool).is_some())
 }
 
 fn remediation(member_path: &str) -> String {
@@ -90,6 +98,16 @@ impl Finding {
             remediation: "producer must emit a non-empty target-parity rows array so BUCK/workspace parity cannot pass on an absent corpus; see ADR-0540".to_owned(),
         }
     }
+
+    /// Reuse the born-blocking `member_missing_buck` code for malformed row entries so a
+    /// partially valid corpus cannot hide producer defects behind skipped members.
+    fn malformed_target_parity_row() -> Self {
+        Self {
+            code: "member_missing_buck".to_owned(),
+            key: TARGET_PARITY_ROW_KEY.to_owned(),
+            remediation: "producer must emit a non-empty string member_path for every target-parity row so BUCK/workspace parity cannot silently skip malformed members; see ADR-0540".to_owned(),
+        }
+    }
 }
 
 /// Pure evaluator for producer-emitted target-parity rows.
@@ -104,12 +122,22 @@ pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
     };
     for row in rows {
         let Some(member_path) = row.get("member_path").and_then(Value::as_str) else {
+            findings.insert(Finding::malformed_target_parity_row());
             continue;
         };
-        if !bool_field(row, "has_buck") {
+        if member_path.trim().is_empty()
+            || member_path.trim().len() != member_path.len()
+            || !row_has_required_bool_fields(row)
+        {
+            findings.insert(Finding::malformed_target_parity_row());
+            continue;
+        }
+        if !bool_field(row, "has_buck").unwrap_or(false) {
             findings.insert(Finding::new("member_missing_buck", member_path));
         }
-        if bool_field(row, "has_test_code") && !bool_field(row, "has_rust_test_target") {
+        if bool_field(row, "has_test_code").unwrap_or(false)
+            && !bool_field(row, "has_rust_test_target").unwrap_or(false)
+        {
             findings.insert(Finding::new(
                 "member_test_code_without_rust_test_target",
                 member_path,
@@ -132,6 +160,59 @@ pub fn evaluate(input: &Value) -> Report {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn malformed_member_path_rows_fail_closed_instead_of_skipping() {
+        for row in [
+            json!({
+                "has_buck": true,
+                "has_rust_test_target": true,
+                "has_test_code": false
+            }),
+            json!({
+                "member_path": 42,
+                "has_buck": true,
+                "has_rust_test_target": true,
+                "has_test_code": false
+            }),
+            json!({
+                "member_path": "   ",
+                "has_buck": true,
+                "has_rust_test_target": true,
+                "has_test_code": false
+            }),
+            json!({
+                "member_path": " libs/oya-ci-config ",
+                "has_buck": true,
+                "has_rust_test_target": true,
+                "has_test_code": false
+            }),
+            json!({
+                "member_path": "libs/oya-ci-config",
+                "has_buck": "true",
+                "has_rust_test_target": true,
+                "has_test_code": false
+            }),
+            json!({
+                "member_path": "libs/oya-ci-config",
+                "has_buck": true,
+                "has_rust_test_target": true
+            }),
+        ] {
+            let input = json!({"rows": [row]});
+            let findings = evaluate_keyed(&input);
+            assert_eq!(findings.len(), 1);
+            let finding = findings.iter().next().unwrap();
+            assert_eq!(finding.code, "member_missing_buck");
+            assert_eq!(finding.key, TARGET_PARITY_ROW_KEY);
+            assert!(
+                finding.remediation.contains("member_path")
+                    && finding.remediation.contains("ADR-0540"),
+                "malformed row remediation should name the broken face contract: {finding:?}"
+            );
+            assert_eq!(evaluate(&input).verdict, Verdict::Red);
+        }
+    }
 
     #[test]
     fn green_rows_cover_tested_and_untested_members() {
