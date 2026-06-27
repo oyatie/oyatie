@@ -706,8 +706,9 @@ pub fn validate_cloud_kms_decrypt_request(
 ///    [`CloudKmsApiError::VerifiedTenantMismatch`] (403). The caller-supplied
 ///    fields NEVER override the verified identity.
 /// 3. The server-side PDP ([`authz::KmsCryptoAuthorizer`]) decides over a
-///    resource bound to the VERIFIED tenant + the TARGET key id (trusted source,
-///    no IDOR / no cross-tenant flattening). Deny or any PDP fault →
+///    resource bound to the TARGET key-path tenant + the TARGET key id, with the
+///    verified principal passed separately (trusted source, no IDOR / no
+///    cross-tenant flattening). Deny or any PDP fault →
 ///    [`CloudKmsApiError::CryptoAuthorizationDenied`] (403). The caller-supplied
 ///    `allowed_surfaces` blob no longer exists and confers no authority.
 ///
@@ -776,8 +777,9 @@ pub fn authorize_cloud_kms_encrypt_from_api(
 /// Identical fail-closed gate to [`authorize_cloud_kms_encrypt_from_api`] but for
 /// the plaintext-revealing `cloud.kms.decrypt` action. Cross-tenant decrypt
 /// (verified tenant A targeting tenant B's key) is denied: the PDP resource is
-/// bound to the VERIFIED tenant + the TARGET key id, and the kernel additionally
-/// enforces `key.tenant == request.tenant` (`ResourceTenantMismatch`). Neither
+/// bound to the TARGET key-path tenant + the TARGET key id, with the verified
+/// principal passed separately, and the kernel additionally enforces
+/// `key.tenant == request.tenant` (`ResourceTenantMismatch`). Neither
 /// the caller-asserted tenant nor a forged `allowed_surfaces` blob can authorize
 /// the op.
 pub fn authorize_cloud_kms_decrypt_from_api(
@@ -924,6 +926,7 @@ fn validate_path_key_id(path_key_id: &str, body_key_id: &str) -> Result<(), Clou
     if path_key_id.trim().is_empty() {
         return Err(CloudKmsApiError::EmptyPathKeyId);
     }
+    key_tenant_from_path(path_key_id)?;
     if path_key_id != body_key_id {
         return Err(CloudKmsApiError::KeyIdMismatch {
             path_key_id: path_key_id.to_string(),
@@ -993,9 +996,9 @@ fn cross_check_verified_principal(
     Ok(())
 }
 
-/// Trusted inputs for the server-side PDP decision. Every authority-bearing field
-/// (tenant, principal) comes from the verified principal; `path_key_id` is the
-/// target key from the trusted path binding (format `kms/{region}/{tenant}/{name}`).
+/// Trusted inputs for the server-side PDP decision. Caller identity comes from
+/// the verified principal; resource identity comes from the trusted target key
+/// path binding (format `kms/{region}/{tenant}/{name}`).
 struct CloudKmsCryptoAuthzInputs<'a> {
     path_key_id: &'a str,
     action: KmsCryptoAction,
@@ -1013,13 +1016,23 @@ struct CloudKmsCryptoAuthzInputs<'a> {
 /// the actual key belongs to `ten_beta`.
 fn key_tenant_from_path(path_key_id: &str) -> Result<&str, CloudKmsApiError> {
     // Expected format: kms/{region}/{tenant}/{name}  (exactly 4 slash-delimited segments)
-    let parts: Vec<&str> = path_key_id.splitn(4, '/').collect();
-    match parts.as_slice() {
-        ["kms", _region, tenant, _name] if !tenant.is_empty() => Ok(tenant),
-        _ => Err(CloudKmsApiError::MalformedPathKeyId {
-            path_key_id: path_key_id.to_string(),
-        }),
+    let malformed = || CloudKmsApiError::MalformedPathKeyId {
+        path_key_id: path_key_id.to_string(),
+    };
+    let mut parts = path_key_id.split('/');
+    let (Some("kms"), Some(region), Some(tenant), Some(name), None) = (
+        parts.next(),
+        parts.next(),
+        parts.next(),
+        parts.next(),
+        parts.next(),
+    ) else {
+        return Err(malformed());
+    };
+    if region.trim().is_empty() || tenant.trim().is_empty() || name.trim().is_empty() {
+        return Err(malformed());
     }
+    Ok(tenant)
 }
 
 /// Run the server-side PDP decision (fail-closed). The PDP resource is bound to

@@ -80,9 +80,9 @@ impl KmsCryptoAuthorizer for PanicAuthorizer {
 }
 
 /// A PDP authorizer that allows ONLY when the resource tenant equals the
-/// verified principal tenant — i.e. it would otherwise allow the principal, so a
-/// cross-tenant 403 proves the BLAST-RADIUS binding (resource tenant comes from
-/// the verified identity, not caller input).
+/// verified principal tenant — i.e. it would otherwise allow same-tenant access,
+/// so a cross-tenant 403 proves the resource tenant is parsed from the target
+/// key path, not caller input.
 struct SameTenantAuthorizer;
 impl KmsCryptoAuthorizer for SameTenantAuthorizer {
     fn ensure_authorized(
@@ -208,6 +208,34 @@ fn decrypt_api_request(request_id: &str, idempotency_key: &str) -> CloudKmsDecry
             requested_at_epoch_seconds: 1_700_000_020,
         },
     }
+}
+
+#[test]
+fn decrypt_api_rejects_malformed_path_key_before_pdp_ledger_and_receipt() {
+    let mut directory = directory_with_key();
+    let mut ledger = CloudKmsCryptoIdempotencyLedger::default();
+    let malformed_key_id = "kms/region-home/ten_alpha/object-key/extra";
+    let mut request = decrypt_api_request("req-kms-malformed-key", "idem-kms-malformed-key");
+    request.path_key_id = malformed_key_id.to_string();
+    request.body.key_id = malformed_key_id.to_string();
+
+    let error = authorize_cloud_kms_decrypt_from_api(
+        &verified_storage_principal(),
+        &provider_with(Arc::new(DenyAllAuthorizer)),
+        &mut directory,
+        &mut ledger,
+        request,
+    )
+    .expect_err("malformed key path is rejected before PDP authorization");
+
+    assert_eq!(
+        error,
+        CloudKmsApiError::MalformedPathKeyId {
+            path_key_id: malformed_key_id.to_string(),
+        }
+    );
+    assert!(ledger.is_empty());
+    assert_eq!(directory.receipts().count(), 0);
 }
 
 #[test]

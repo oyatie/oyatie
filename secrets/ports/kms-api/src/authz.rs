@@ -30,10 +30,10 @@
 //! 2. The verified principal is AUTHORIZED for
 //!    `action = cloud.kms.encrypt|decrypt` on the target
 //!    `{tenant, key_id, data_class, purpose, request_id}` via a PDP
-//!    [`KmsCryptoAuthorizer`] port (`decide`).  The resource the PDP sees is
-//!    bound to the VERIFIED principal's tenant and the TARGET key id — never
-//!    flattened to caller input — so cross-tenant decrypt is deniable (no
-//!    key-id IDOR).
+//!    [`KmsCryptoAuthorizer`] port (`decide`). The resource tenant the PDP sees
+//!    is parsed from the TARGET key path, while caller identity comes from the
+//!    VERIFIED principal — never flattened to caller input — so cross-tenant
+//!    decrypt is deniable (no key-id IDOR).
 //! 3. The boundary REFUSES to authorize a crypto op without both ports running:
 //!    the public crate functions require a [`VerifiedKmsPrincipal`] (unforgeable
 //!    type) and the composition root binds a [`KmsCryptoAuthzProvider`] — there
@@ -98,7 +98,7 @@ impl std::fmt::Debug for CallerCredential {
 /// compromised or stub verifier implementation.  The real security guarantee
 /// comes from the *combination* of: (1) bearer/mTLS verification at the edge
 /// before the body is processed, (2) the PDP authorization decision bound to the
-/// verified tenant + target key, and (3) the active cross-check in
+/// verified principal + target key-path tenant, and (3) the active cross-check in
 /// [`crate::authorize_cloud_kms_encrypt_from_api`] /
 /// [`crate::authorize_cloud_kms_decrypt_from_api`].  This type is one layer of
 /// that defense, not the sole barrier.
@@ -195,18 +195,18 @@ impl KmsCryptoAction {
 ///
 /// ## True blast radius / no IDOR
 ///
-/// Every field that establishes authority — `tenant_id` and `principal_id` — is
-/// bound from the VERIFIED principal, NOT from caller input.  `key_id` is the
-/// TARGET key from the trusted path binding (already cross-checked equal to the
-/// body key id by [`crate::validate_path_key_id`]).  Presenting the resource with
-/// the caller's claimed tenant instead of the verified tenant would let tenant A
-/// authorize a decrypt of tenant B's key — the cross-tenant IDOR this binding
-/// prevents.  The PDP must deny when the verified tenant does not own the target
-/// key.
+/// `tenant_id` is the TARGET key tenant parsed from the trusted path binding
+/// (already cross-checked equal to the body key id by
+/// [`crate::validate_path_key_id`]); `key_id` is that same target key id. Caller
+/// identity is passed separately as [`VerifiedKmsPrincipal`]. Presenting the
+/// resource with the caller's claimed or verified tenant instead of the target
+/// key tenant would let tenant A authorize a decrypt of tenant B's key — the
+/// cross-tenant IDOR this binding prevents. The PDP must deny when the verified
+/// principal does not own the target key.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct KmsCryptoResource {
-    /// The verified tenant the principal acts within (authority source — NOT
-    /// caller input). The PDP decides cross-tenant access on this axis.
+    /// The target key tenant parsed from the trusted key path (authority source —
+    /// NOT caller input). The PDP decides cross-tenant access on this axis.
     pub tenant_id: String, // data_class: INTERNAL_ONLY
     /// The target key id from the trusted path binding.
     pub key_id: String, // data_class: INTERNAL_ONLY
