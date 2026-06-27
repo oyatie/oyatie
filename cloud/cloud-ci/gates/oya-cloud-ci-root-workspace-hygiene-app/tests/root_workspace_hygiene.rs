@@ -53,6 +53,7 @@ const SYNTHETIC_RUNTIME_STATE_PATHS: [&str; 5] = [
     ".codex/.DS_Store",
     ".omc/state/team/mailbox.json",
     ".omx/state/team/mailbox.json",
+    ".omx/team/wave-c1-hyperscaler-p-1fb6d50c/worktrees/worker-2/AGENTS.md",
 ];
 
 /// Decode git's C-style path quoting: git surrounds a path containing special bytes with double
