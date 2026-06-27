@@ -172,5 +172,10 @@
   ],
   "threat_model": {
     "stale_availability_summary": "mitigated by deterministic DTO summaries over snapshots; production Prometheus ingestion remains deferred behind the same port."
-  }
+  },
+  "explicit_non_claims": [
+    "No provider-live integration, live Prometheus/Kubernetes scrape, provider actuation, or production readiness is implemented by this manifest.",
+    "SLA observability remains deterministic snapshot summarization behind a port; it does not prove live managed-cluster SLOs or error-budget burn in production.",
+    "Declared SLOs are contract targets for future live integration and are not hyperscaler readiness evidence."
+  ]
 }
