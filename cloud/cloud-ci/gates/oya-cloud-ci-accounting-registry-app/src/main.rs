@@ -1966,8 +1966,25 @@ mod tests {
         assert!(
             !resolution.by_path.is_empty(),
             "the live corpus carries valid OWNERS registrations; an empty owned set means \
-             the resolver regressed"
+            the resolver regressed"
         );
+    }
+
+    #[test]
+    fn policy_root_overrides_candidate_oya_ci_config() {
+        let candidate_root = unique_temp_repo();
+        let trusted_root = unique_temp_repo();
+        fs::write(candidate_root.join("oya-ci.toml"), "profile = 'neutral'\n")
+            .expect("write candidate policy");
+        fs::write(trusted_root.join("oya-ci.toml"), "profile = 'oyatie'\n")
+            .expect("write trusted policy");
+
+        let cfg = load_policy_config(&candidate_root, Some(&trusted_root))
+            .expect("trusted policy root loads");
+
+        assert_eq!(cfg.profile, oya_ci_config_kernel::Profile::Oyatie);
+        fs::remove_dir_all(candidate_root).expect("remove candidate temp repo");
+        fs::remove_dir_all(trusted_root).expect("remove trusted temp repo");
     }
 }
 
