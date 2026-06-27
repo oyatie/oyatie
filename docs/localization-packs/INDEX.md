@@ -52,6 +52,24 @@ Scope summary — see each pack's `pack.yaml` manifest for authoritative `micros
 
 ---
 
+
+## Repository-local pack directories
+
+This table is a traceability inventory only. A listed directory does not imply tenant adoption, executable runtime evidence, or a shipped localization pack; lifecycle status remains governed by the pack docs/manifests and promotion gates.
+
+| Pack directory | Repository path | Documentation status |
+|---|---|---|
+| `au` | [`../../packs/au/`](../../packs/au/) | Repository-local localization docs present; no `docs/localization-packs/au.md` overview yet. |
+| `br` | [`../../packs/br/`](../../packs/br/) | Repository-local localization docs present; no `docs/localization-packs/br.md` overview yet. |
+| `cn` | [`../../packs/cn/`](../../packs/cn/) | Repository-local compliance pack docs present; no `docs/localization-packs/cn.md` overview yet. |
+| `eu` | [`../../packs/eu/`](../../packs/eu/) | Repository-local localization/sovereignty docs present; `docs/localization-packs/INDEX.md` tracks EU as planned. |
+| `in` | [`../../packs/in/`](../../packs/in/) | Repository-local localization docs present; no `docs/localization-packs/in.md` overview yet. |
+| `jp` | [`../../packs/jp/`](../../packs/jp/) | Repository-local localization/sovereignty docs present; index tracks JP as future. |
+| `kr` | [`../../packs/kr/`](../../packs/kr/) | Repository-local localization/sovereignty docs plus [`kr.md`](kr.md) and [`kr/pack.yaml`](kr/pack.yaml). |
+| `ksa` | [`../../packs/ksa/`](../../packs/ksa/) | Repository-local sovereignty overlay present; no `docs/localization-packs/ksa.md` overview yet. |
+| `mx` | [`../../packs/mx/`](../../packs/mx/) | Repository-local localization docs present; no `docs/localization-packs/mx.md` overview yet. |
+| `us` | [`../../packs/us/`](../../packs/us/) | Repository-local localization/sovereignty docs present; index tracks US as planned. |
+
 ## Pack lifecycle states
 
 - **`planned`** — catalog entry exists; manifest sketched; no crates yet
