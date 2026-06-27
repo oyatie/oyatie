@@ -188,9 +188,9 @@ fn stale_scm_facts_for_deleted_generated_outputs_are_red() {
         "registry/generated-artifact-control-plane.json",
     ));
     let stale_paths = [
-        "oya/app-shell-frontend/generated/hr-api.d.ts",
-        "oya/app-shell-frontend/generated/ops-workspace-shell-v1.patched.yaml",
-        "oya/app-shell-frontend/generated/ops-workspace-shell.d.ts",
+        "legacy/generated/hr-api.d.ts",
+        "legacy/generated/ops-workspace-shell-v1.patched.yaml",
+        "legacy/generated/ops-workspace-shell.d.ts",
     ];
     let scm_facts = json!({
         "schema": "oya-ci/scm-facts/v1",

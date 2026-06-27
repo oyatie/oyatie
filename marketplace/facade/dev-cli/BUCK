@@ -552,6 +552,20 @@ rust_test(
 )
 
 rust_test(
+    name = "marketplace-dev-cli-client-stack-discipline-cli",
+    srcs = ["tests/client_stack_discipline_cli.rs"],
+    crate = "marketplace_dev_cli_client_stack_discipline_cli",
+    crate_root = "tests/client_stack_discipline_cli.rs",
+    env = {
+        "CARGO_BIN_EXE_oya": "$(location :oya)",
+    },
+    visibility = ["PUBLIC"],
+    deps = [
+        ":marketplace-dev-cli",
+    ],
+)
+
+rust_test(
     name = "marketplace-dev-cli-demo-cli",
     srcs = ["tests/demo_cli.rs"],
     crate = "marketplace_dev_cli_demo_cli",

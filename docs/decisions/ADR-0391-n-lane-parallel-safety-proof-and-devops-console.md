@@ -75,7 +75,7 @@ The Loom proof for `SubscriptionPool::lease/complete` (ADR-0390 P2) is the N→�
 #### Microservice identity
 
 - **Path**: `microservices/devops-console/` (ADR-0131 flat layout, ADR-0132 no-suite).
-- **Stack**: SolidJS SPA served by an Axum static-file backend. Single-concern: aggregation + display. No new data storage.
+- **Stack**: Leptos/Rust-WASM shell served by an Axum static-file backend (ADR-0393). Single-concern: aggregation + display. No new data storage.
 - **Auth**: mTLS sidecar (Istio) for v0 — console accessible from within the cluster or via `kubectl port-forward` only. JWT-based auth for external access lands in v1.
 - **Cedar**: operator/founder realm only (same Cedar policy as cloud-intelligence gateway).
 
@@ -85,7 +85,7 @@ The Loom proof for `SubscriptionPool::lease/complete` (ADR-0390 P2) is the N→�
                   ┌──────────────────────────────────────────┐
                   │         devops-console (microservice)      │
                   │                                           │
-  browser ───────>│  SolidJS SPA (axum static-file serve)    │
+  browser ───────>│  Leptos shell (axum static-file serve)   │
                   │  ┌────────────────────────────────────┐  │
                   │  │  /api/subscriptions  (admin API)    │  │
                   │  │  /api/lanes          (GitHub API)  │  │
@@ -147,7 +147,7 @@ The backend is a thin aggregator: it calls the cloud-intelligence admin API (ADR
 
 - [ ] **Lane-overlap gate: merge batch boundary from ADR-0111 projected state.** Validate the interface: does `oya gate validate lane-overlap` read the projected-state file directly, or does it call `oya gen board-sync`? Design with ADR-0111 merge-queue owner.
 - [ ] **Lane-overlap gate performance**: validate `git diff --name-only` × 10 PRs in < 5s in a repo of this size.
-- [ ] **SolidJS SPA + Axum single flat-layout µservice**: scaffold the crate, confirm it compiles and serves a hello-world SPA.
+- [ ] **Leptos shell + Axum single flat-layout µservice**: scaffold the crate, confirm it compiles and serves a hello-world shell.
 - [ ] **Prometheus RBAC on Talos**: confirm Prometheus query API is accessible from the `cloud-intelligence` namespace pod without additional RBAC.
 - [ ] **GitHub batch commit-status endpoint**: review GitHub API docs for batch endpoint to avoid N+1 on lane count.
 - [ ] **Console auth v1 path**: document the JWT-based auth design for external console access (separate follow-up ADR or ADR-0391 amendment).
