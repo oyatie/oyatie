@@ -1592,5 +1592,29 @@
       "public_sla_or_slo",
       "live_provider_provisioning"
     ]
+  },
+  "implementation_directory_absence_gate": {
+    "gate_id": "cloud-compute-observability-absence-nonclaim",
+    "source_of_truth": [
+      "specs/cloud-resource-catalog-target.json#implementation_directory_absence_gate.cloud-compute",
+      "specs/cloud-observability-slo-target.json#implementation_directory_absence_gate.cloud-observability"
+    ],
+    "paths_that_must_remain_absent_until_runtime_evidence": [
+      "cloud/cloud-compute",
+      "cloud/cloud-observability"
+    ],
+    "status_when_absent": "target_non_claim_only",
+    "can_claim_now": [
+      "Clean dev intentionally keeps cloud/cloud-compute and cloud/cloud-observability implementation directories absent.",
+      "Compute and observability are discoverable as target/backlog vocabulary with explicit non-claims only."
+    ],
+    "cannot_claim_from_absence": [
+      "implemented compute service",
+      "runtime observability service",
+      "provider provisioning",
+      "measured SLO evidence",
+      "tenant workload readiness",
+      "hyperscaler feature parity"
+    ]
   }
 }

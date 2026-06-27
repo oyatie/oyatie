@@ -38,5 +38,22 @@
   "non_claims": [
     "Target spec only — references agentic-slo-gated-promotion + brownout schemas; does not implement the OTel collector, SLO engine, burn-rate alerting, dashboards, or promotion runtime.",
     "No measured SLO/DR/cost evidence; availability/latency/recovery claims stay blocked_until_required_evidence_is_green."
-  ]
+  ],
+  "implementation_directory_absence_gate": {
+    "cloud-observability": {
+      "directory": "cloud/cloud-observability",
+      "status_when_directory_absent": "target_non_claim_only",
+      "required_truth": "The observability/SLO target is planning vocabulary only while this directory is absent; absence must not be backfilled with a stub collector, SLO engine, dashboard, or measured-evidence claim.",
+      "allowed_discovery_evidence": [
+        "specs/cloud-observability-slo-target.json",
+        "specs/cloud-hyperscaler-parity-taxonomy.json"
+      ],
+      "blocked_claims": [
+        "runtime observability engine",
+        "measured SLO evidence",
+        "public SLA or SLO",
+        "production readiness"
+      ]
+    }
+  }
 }
