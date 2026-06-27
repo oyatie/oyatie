@@ -47,7 +47,7 @@ fn load_policy(root: &Path) -> Value {
     load_json(&gate_dir(root).join("root-workspace-hygiene-policy.json"))
 }
 
-const SYNTHETIC_RUNTIME_STATE_PATHS: [&str; 5] = [
+const SYNTHETIC_RUNTIME_STATE_PATHS: [&str; 6] = [
     ".claude/worktrees/old-lane/marker",
     ".claude/settings.local.json",
     ".codex/.DS_Store",
