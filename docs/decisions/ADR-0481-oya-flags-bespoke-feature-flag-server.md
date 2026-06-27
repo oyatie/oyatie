@@ -31,6 +31,7 @@ deliverables:
     description: "Tenant flag plane via Crossplane (ADR-0411) TenantApplication XR. Tenants set per-tenant flags via Self-Service UI (ADR-0434). oya-identity (ADR-0476) human auth + SPIFFE service auth."
     exit_criteria: "TenantApplication XR provisions a per-tenant flag namespace; Self-Service UI flag panel lists and toggles tenant-scoped flags; Cedar policy forbids cross-tenant flag writes."
     verified_by: "oya gate validate honest-claims + Self-Service UI integration test: toggle flag -> evaluate flag returns updated variation"
+owner: council-platform
 ---
 
 # ADR-0481 — oya-flags: bespoke Rust feature flag server superseding flagd
