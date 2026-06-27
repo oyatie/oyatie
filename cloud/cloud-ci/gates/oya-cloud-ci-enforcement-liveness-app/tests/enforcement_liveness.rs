@@ -312,6 +312,102 @@ fn green_rows_allow_dual_wired_hooks_and_marked_compatibility_stubs() {
 }
 
 #[test]
+fn missing_rows_array_is_red_not_empty_green() {
+    let input = json!({});
+
+    let findings = evaluate_keyed(&input);
+    assert!(findings.iter().any(|finding| {
+        finding.code == "malformed_enforcement_liveness_face"
+            && finding.key == "rows"
+            && finding.remediation.contains("rows")
+            && finding.remediation.contains("governance PR")
+    }));
+    assert_eq!(evaluate(&input).verdict, Verdict::Red);
+}
+
+#[test]
+fn malformed_rows_are_red_with_actionable_keys() {
+    let input = json!({
+        "rows": [
+            {"hook_path": "tools/hooks/no-cargo-enforcer.sh"},
+            {"row_type": "hook", "wired_in_claude": true, "wired_in_codex": true},
+            {
+                "row_type": "command_reference",
+                "wiring_file": ".codex/hooks.json",
+                "target_exists": true
+            }
+        ]
+    });
+
+    let findings = evaluate_keyed(&input);
+    let keyed: BTreeSet<_> = findings
+        .iter()
+        .map(|finding| (finding.code.as_str(), finding.key.as_str()))
+        .collect();
+    assert!(
+        keyed.contains(&("malformed_enforcement_liveness_row", "rows[0].row_type")),
+        "{keyed:?}"
+    );
+    assert!(
+        keyed.contains(&("malformed_enforcement_liveness_row", "rows[1].hook_path")),
+        "{keyed:?}"
+    );
+    assert!(
+        keyed.contains(&("malformed_enforcement_liveness_row", "rows[2].command_path")),
+        "{keyed:?}"
+    );
+    assert_eq!(evaluate(&input).verdict, Verdict::Red);
+}
+
+#[test]
+fn malformed_boolean_fields_are_red_not_coerced_to_false() {
+    let input = json!({
+        "rows": [
+            {
+                "row_type": "hook",
+                "hook_path": "tools/hooks/fully-wired-but-malformed.sh",
+                "wired_in_claude": true,
+                "wired_in_codex": true
+            },
+            {
+                "row_type": "hook",
+                "hook_path": "tools/hooks/marked-stub-but-malformed.sh",
+                "stub_marked": true
+            },
+            {
+                "row_type": "command_reference",
+                "wiring_file": ".codex/hooks.json",
+                "command_path": "tools/hooks/fully-wired-but-malformed.sh"
+            }
+        ]
+    });
+
+    let findings = evaluate_keyed(&input);
+    let keyed: BTreeSet<_> = findings
+        .iter()
+        .map(|finding| (finding.code.as_str(), finding.key.as_str()))
+        .collect();
+    for key in [
+        "rows[0].stub_marked",
+        "rows[1].wired_in_claude",
+        "rows[1].wired_in_codex",
+        "rows[2].target_exists",
+    ] {
+        assert!(
+            keyed.contains(&("malformed_enforcement_liveness_row", key)),
+            "expected malformed boolean field {key} in {keyed:?}"
+        );
+    }
+    assert!(
+        !keyed
+            .iter()
+            .any(|(code, _)| *code == "wired_hook_missing_file"),
+        "missing/non-bool target_exists is malformed producer output, not a missing-file fact: {keyed:?}"
+    );
+    assert_eq!(evaluate(&input).verdict, Verdict::Red);
+}
+
+#[test]
 fn live_hook_missing_dual_wiring_is_red() {
     let input = json!({
         "rows": [{

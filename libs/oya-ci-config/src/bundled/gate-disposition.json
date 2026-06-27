@@ -80,6 +80,8 @@
       "member_test_code_without_rust_test_target": {"mode": "baseline-block-on-new"}
     },
     "cloud-ci-enforcement-liveness": {
+      "malformed_enforcement_liveness_face": {"mode": "baseline-block-on-new", "frozen_empty": true, "remediation": "repair enforcement-liveness producer output so the top-level rows array is present and has the documented shape; land the correction through a governance PR"},
+      "malformed_enforcement_liveness_row": {"mode": "baseline-block-on-new", "frozen_empty": true, "remediation": "repair enforcement-liveness row fields so malformed producer output cannot pass as green; land the correction through a governance PR"},
       "hook_unwired_without_stub_marker": {"mode": "baseline-block-on-new", "frozen_empty": true},
       "hook_wiring_mirror_drift": {"mode": "baseline-block-on-new", "frozen_empty": true},
       "wired_hook_missing_file": {"mode": "baseline-block-on-new", "frozen_empty": true}
