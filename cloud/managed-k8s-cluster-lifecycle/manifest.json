@@ -165,5 +165,10 @@
   "threat_model": {
     "quota_bypass_on_create": "mitigated: cluster-lifecycle admission consults QuotaDecisionPort before ControlPlaneProvisioning; denial/not-found/failure fails closed (no provision call).",
     "provisioning_without_quota_check": "mitigated: admission code path has no branch that calls ControlPlaneProvisioning without first receiving a QuotaDecision::allowed=true."
-  }
+  },
+  "explicit_non_claims": [
+    "No provider-live integration, provider actuation, management-cluster write, tenant-cluster API call, or production readiness is implemented by this manifest.",
+    "Cluster lifecycle remains an admission/orchestration seam over QuotaDecisionPort and ControlPlaneProvisioning; it does not directly create, mutate, or delete Kubernetes control planes.",
+    "SLO and capability declarations are contract targets only and are not hyperscaler readiness or live managed-Kubernetes GA evidence."
+  ]
 }
