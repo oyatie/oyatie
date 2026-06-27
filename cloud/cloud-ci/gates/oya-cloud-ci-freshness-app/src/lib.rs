@@ -56,6 +56,7 @@ const PRODUCER_TARGET: &str = "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-re
 const CODEMOD_TARGET: &str = "//tools/oya-reorg-codemod-app:oya-reorg-codemod";
 const ARCHITECTURE_GRAPH_GENERATOR_TARGET: &str =
     "//tools/oya-architecture-graph-generator-app:oya-architecture-graph-generator";
+const MASTERPLAN_GENERATOR_TARGET: &str = "//marketplace/facade/dev-cli:oya";
 const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_TARGET: &str = "//.claude:settings-json";
 const ENFORCEMENT_LIVENESS_CODEX_HOOKS_TARGET: &str = "//.codex:hooks-json";
 const ENFORCEMENT_LIVENESS_HOOKS_DIR_TARGET: &str = "//tools/hooks:top-level-hook-scripts";
@@ -366,6 +367,7 @@ fn materialize_generated_faces_with_tools(
     append_enforcement_liveness_corpus_args(&mut command, &tools.enforcement_liveness_corpus);
     command.current_dir(repo_root);
     run_status(&mut command, "materialize generated accounting faces")?;
+    materialize_masterplan_projection(tools, repo_root)?;
     materialize_architecture_product_graph(tools, repo_root)
 }
 
@@ -1104,13 +1106,26 @@ fn regenerate_architecture_product_graph(
     tools: &FaceTools,
     repo_root: &Path,
 ) -> Result<(String, String), FreshnessError> {
+    let masterplan = temporary_masterplan_path();
+    let masterplan_cleanup = TempFileCleanup {
+        path: masterplan.clone(),
+    };
     let output = temporary_product_graph_path();
     let cleanup = TempFileCleanup {
         path: output.clone(),
     };
     run_status(
+        Command::new(&tools.masterplan_generator)
+            .args(["gen", "masterplan", "--write", "--output"])
+            .arg(&masterplan)
+            .current_dir(repo_root),
+        "regenerate masterplan projection for architecture product graph",
+    )?;
+    run_status(
         Command::new(&tools.architecture_graph_generator)
             .arg("--write")
+            .args(["--masterplan"])
+            .arg(&masterplan)
             .args(["--output"])
             .arg(&output)
             .current_dir(repo_root),
@@ -1118,6 +1133,7 @@ fn regenerate_architecture_product_graph(
     )?;
     let bytes = read_to_string(&output)?;
     drop(cleanup);
+    drop(masterplan_cleanup);
     Ok((ARCHITECTURE_PRODUCT_GRAPH_FACE.to_owned(), bytes))
 }
 
@@ -1302,6 +1318,7 @@ fn bullet_list(items: &[String]) -> String {
 struct FaceTools {
     emitter: PathBuf,
     producer: PathBuf,
+    masterplan_generator: PathBuf,
     architecture_graph_generator: PathBuf,
     enforcement_liveness_corpus: EnforcementLivenessCorpusPaths,
 }
@@ -1310,6 +1327,7 @@ struct MaterializerTools {
     emitter: PathBuf,
     producer: PathBuf,
     codemod: PathBuf,
+    masterplan_generator: PathBuf,
     architecture_graph_generator: PathBuf,
     enforcement_liveness_corpus: EnforcementLivenessCorpusPaths,
 }
@@ -1327,6 +1345,7 @@ fn build_face_tools(repo_root: &Path) -> Result<FaceTools, FreshnessError> {
             .arg("build")
             .arg(EMITTER_TARGET)
             .arg(PRODUCER_TARGET)
+            .arg(MASTERPLAN_GENERATOR_TARGET)
             .arg(ARCHITECTURE_GRAPH_GENERATOR_TARGET)
             .arg(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_TARGET)
             .arg(ENFORCEMENT_LIVENESS_CODEX_HOOKS_TARGET)
@@ -1337,12 +1356,15 @@ fn build_face_tools(repo_root: &Path) -> Result<FaceTools, FreshnessError> {
     )?;
     let emitter = parse_show_output_path(repo_root, &output, EMITTER_TARGET)?;
     let producer = parse_show_output_path(repo_root, &output, PRODUCER_TARGET)?;
+    let masterplan_generator =
+        parse_show_output_path(repo_root, &output, MASTERPLAN_GENERATOR_TARGET)?;
     let architecture_graph_generator =
         parse_show_output_path(repo_root, &output, ARCHITECTURE_GRAPH_GENERATOR_TARGET)?;
     let enforcement_liveness_corpus = parse_enforcement_liveness_corpus_paths(repo_root, &output)?;
     Ok(FaceTools {
         emitter,
         producer,
+        masterplan_generator,
         architecture_graph_generator,
         enforcement_liveness_corpus,
     })
@@ -1355,6 +1377,7 @@ fn build_materializer_tools(repo_root: &Path) -> Result<MaterializerTools, Fresh
             .arg(EMITTER_TARGET)
             .arg(PRODUCER_TARGET)
             .arg(CODEMOD_TARGET)
+            .arg(MASTERPLAN_GENERATOR_TARGET)
             .arg(ARCHITECTURE_GRAPH_GENERATOR_TARGET)
             .arg(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_TARGET)
             .arg(ENFORCEMENT_LIVENESS_CODEX_HOOKS_TARGET)
@@ -1366,6 +1389,8 @@ fn build_materializer_tools(repo_root: &Path) -> Result<MaterializerTools, Fresh
     let emitter = parse_show_output_path(repo_root, &output, EMITTER_TARGET)?;
     let producer = parse_show_output_path(repo_root, &output, PRODUCER_TARGET)?;
     let codemod = parse_show_output_path(repo_root, &output, CODEMOD_TARGET)?;
+    let masterplan_generator =
+        parse_show_output_path(repo_root, &output, MASTERPLAN_GENERATOR_TARGET)?;
     let architecture_graph_generator =
         parse_show_output_path(repo_root, &output, ARCHITECTURE_GRAPH_GENERATOR_TARGET)?;
     let enforcement_liveness_corpus = parse_enforcement_liveness_corpus_paths(repo_root, &output)?;
@@ -1373,6 +1398,7 @@ fn build_materializer_tools(repo_root: &Path) -> Result<MaterializerTools, Fresh
         emitter,
         producer,
         codemod,
+        masterplan_generator,
         architecture_graph_generator,
         enforcement_liveness_corpus,
     })
@@ -1408,6 +1434,18 @@ fn emit_materialized_scm_facts(
             .arg("--merge-base-baseline")
             .current_dir(repo_root),
         "materialize scm-facts boundary snapshot",
+    )
+}
+
+fn materialize_masterplan_projection(
+    tools: &MaterializerTools,
+    repo_root: &Path,
+) -> Result<(), FreshnessError> {
+    run_status(
+        Command::new(&tools.masterplan_generator)
+            .args(["gen", "masterplan", "--write"])
+            .current_dir(repo_root),
+        "materialize masterplan projection",
     )
 }
 
@@ -1544,6 +1582,17 @@ fn temporary_volatile_facts_path() -> PathBuf {
     };
     std::env::temp_dir().join(format!(
         "oya-ci-freshness-scm-volatile-facts-{}-{nanos}.json",
+        std::process::id()
+    ))
+}
+
+fn temporary_masterplan_path() -> PathBuf {
+    let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
+        Ok(duration) => duration.as_nanos(),
+        Err(_) => 0,
+    };
+    std::env::temp_dir().join(format!(
+        "oya-ci-freshness-masterplan-{}-{nanos}.generated.json",
         std::process::id()
     ))
 }
@@ -1749,6 +1798,7 @@ mod materialize_generated_faces_tests {
 root//cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app:oya-cloud-ci-scm-facts-emitter-app buck-out/v2/gen/emitter\n\
 root//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin /tmp/producer\n\
 root//tools/oya-reorg-codemod-app:oya-reorg-codemod buck-out/v2/gen/codemod\n\
+root//marketplace/facade/dev-cli:oya /tmp/oya\n\
 root//tools/oya-architecture-graph-generator-app:oya-architecture-graph-generator buck-out/v2/gen/architecture-graph\n\
 root//.claude:settings-json buck-out/v2/gen/.claude/__settings-json__/settings-json\n\
 root//.codex:hooks-json buck-out/v2/gen/.codex/__hooks-json__/hooks-json\n\
@@ -1761,6 +1811,9 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
             parse_show_output_path(Path::new("/repo"), output, PRODUCER_TARGET).expect("producer");
         let codemod =
             parse_show_output_path(Path::new("/repo"), output, CODEMOD_TARGET).expect("codemod");
+        let masterplan_generator =
+            parse_show_output_path(Path::new("/repo"), output, MASTERPLAN_GENERATOR_TARGET)
+                .expect("masterplan generator");
         let architecture_graph_generator = parse_show_output_path(
             Path::new("/repo"),
             output,
@@ -1771,6 +1824,7 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
         assert_eq!(emitter, PathBuf::from("/repo/buck-out/v2/gen/emitter"));
         assert_eq!(producer, PathBuf::from("/tmp/producer"));
         assert_eq!(codemod, PathBuf::from("/repo/buck-out/v2/gen/codemod"));
+        assert_eq!(masterplan_generator, PathBuf::from("/tmp/oya"));
         assert_eq!(
             architecture_graph_generator,
             PathBuf::from("/repo/buck-out/v2/gen/architecture-graph")
@@ -1850,14 +1904,20 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
         let root = temp_root("oya-regenerate-product-graph");
         std::fs::create_dir_all(root.join("bin")).expect("create bin dir");
         std::fs::create_dir_all(root.join("docs/architecture")).expect("create docs dir");
+        std::fs::create_dir_all(root.join("docs/machine-readable")).expect("create docs data dir");
         std::fs::write(
             root.join(ARCHITECTURE_PRODUCT_GRAPH_PATH),
             "committed graph\n",
         )
         .expect("write committed graph");
-        let generator = root.join("bin/architecture-graph");
+        std::fs::write(
+            root.join("docs/machine-readable/masterplan.generated.json"),
+            "committed masterplan\n",
+        )
+        .expect("write committed masterplan");
+        let masterplan_generator = root.join("bin/oya");
         write_executable(
-            &generator,
+            &masterplan_generator,
             r#"#!/bin/sh
 set -eu
 out=""
@@ -1868,12 +1928,34 @@ while [ "$#" -gt 0 ]; do
   shift || true
 done
 test -n "$out"
+mkdir -p "$(dirname "$out")"
+printf '{"milestones":[],"adr_count":0,"deliverable_count":0,"generator":"test"}\n' > "$out"
+"#,
+        );
+        let generator = root.join("bin/architecture-graph");
+        write_executable(
+            &generator,
+            r#"#!/bin/sh
+set -eu
+out=""
+masterplan=""
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --output) shift; out="$1" ;;
+    --masterplan) shift; masterplan="$1" ;;
+  esac
+  shift || true
+done
+test -n "$out"
+test -n "$masterplan"
+grep -q '"milestones"' "$masterplan"
 printf 'fresh graph\n' > "$out"
 "#,
         );
         let tools = FaceTools {
             emitter: PathBuf::from("/unused-emitter"),
             producer: PathBuf::from("/unused-producer"),
+            masterplan_generator,
             architecture_graph_generator: generator,
             enforcement_liveness_corpus: EnforcementLivenessCorpusPaths {
                 claude_settings: root.join("buck/declared/settings.json"),
@@ -1896,6 +1978,11 @@ printf 'fresh graph\n' > "$out"
             std::fs::read_to_string(root.join(ARCHITECTURE_PRODUCT_GRAPH_PATH))
                 .expect("committed graph"),
             "committed graph\n"
+        );
+        assert_eq!(
+            std::fs::read_to_string(root.join("docs/machine-readable/masterplan.generated.json"))
+                .expect("committed masterplan"),
+            "committed masterplan\n"
         );
     }
 
@@ -1960,6 +2047,23 @@ printf 'producer %s\n' "$*" >> "{log_path}"
             ),
         );
 
+        let masterplan_generator = root.join("bin/oya");
+        write_executable(
+            &masterplan_generator,
+            &format!(
+                r#"#!/bin/sh
+set -eu
+printf 'masterplan %s\n' "$*" >> "{log_path}"
+test "$#" -eq 3
+test "$1" = "gen"
+test "$2" = "masterplan"
+test "$3" = "--write"
+mkdir -p docs/machine-readable
+printf '{{"milestones":[],"adr_count":0,"deliverable_count":0,"generator":"test"}}\n' > docs/machine-readable/masterplan.generated.json
+"#
+            ),
+        );
+
         let architecture_graph_generator = root.join("bin/architecture-graph");
         write_executable(
             &architecture_graph_generator,
@@ -1979,6 +2083,7 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
             emitter,
             producer,
             codemod,
+            masterplan_generator,
             architecture_graph_generator,
             enforcement_liveness_corpus: EnforcementLivenessCorpusPaths {
                 claude_settings: root.join("buck/declared/settings.json"),
@@ -1994,12 +2099,16 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
         let codemod_pos = calls.find("codemod manifest").expect("codemod call");
         let emitter_pos = calls.find("emitter --repo-root").expect("emitter call");
         let producer_pos = calls.find("producer --repo-root").expect("producer call");
+        let masterplan_pos = calls
+            .find("masterplan gen masterplan --write")
+            .expect("masterplan generator call");
         let architecture_pos = calls
             .find("architecture --write")
             .expect("architecture generator call");
         assert!(codemod_pos < emitter_pos);
         assert!(emitter_pos < producer_pos);
-        assert!(producer_pos < architecture_pos);
+        assert!(producer_pos < masterplan_pos);
+        assert!(masterplan_pos < architecture_pos);
         assert!(calls.contains(&format!(
             "--enforcement-liveness-claude-settings {}",
             root.join("buck/declared/settings.json").display()
@@ -2016,6 +2125,11 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
             "--enforcement-liveness-claude-settings {}",
             root.join(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS).display()
         )));
+        assert_eq!(
+            std::fs::read_to_string(root.join("docs/machine-readable/masterplan.generated.json"))
+                .expect("masterplan materialized"),
+            "{\"milestones\":[],\"adr_count\":0,\"deliverable_count\":0,\"generator\":\"test\"}\n"
+        );
         assert_eq!(
             std::fs::read_to_string(root.join("docs/architecture/product-graph.html"))
                 .expect("product graph materialized"),
