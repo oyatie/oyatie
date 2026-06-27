@@ -19,6 +19,12 @@
     "hydration_model": "SSR-first shell with selective Leptos/WASM island mounting; interactive surfaces keep local state and fetch permitted render envelopes when context changes.",
     "island_entrypoint": "mount_dashboard_islands() exported from the WASM package"
   },
+  "api_contract_codegen": {
+    "recipe": "progenitor",
+    "openapi_version": "3.2.0",
+    "contract_source": "contracts/ops-workspace-shell-v1.openapi.yaml",
+    "status": "declared-client-recipe; live shell currently consumes locked Rust shell-BFF contracts until G05/G06 fan-in"
+  },
   "dev_commands": [
     {
       "name": "preferred local dev server",
@@ -73,7 +79,6 @@
     "interactive_but_unwired": "Workflow block additions, mode switching, hub channel switching, item inspection, and draft queueing are functional in local WASM state only until live service integration; no backend mutation, external send, or workflow execution occurs."
   },
   "forbidden_fallbacks": [
-    "React",
     "xyflow",
     "client-side hiding of unauthorized modules as a security model"
   ],
