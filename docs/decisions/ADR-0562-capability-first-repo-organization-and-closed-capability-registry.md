@@ -2641,3 +2641,16 @@ justified by this decision (ADR-0562 §6) together with ADR-0536, ADR-0280, and 
 - cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/src/tests.rs — unit RED/GREEN fixtures for the capability-membership kernel (crate in no/two capabilities, new top-level dir, base/-admission, frozen-baseline advisory)
 - cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/tests/capability_membership.rs — integration tests including the live-corpus born-advisory-green self-test and on-disk RED fixtures
 - cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/capability-membership-policy.json — policy DATA for the capability-membership lint (gate id, registry pointer, scan roots, closed meta-directory + top-level set, ignored build-artifact dirs, minimum crate count)
+
+Wave-D G003/G006 phase-0 foundation evidence is also justified by this ADR because it records the
+no-false-green boundary work that keeps the capability reorg honest while workflow, data/ontology,
+intelligence, billing, cell/capacity, and supporting cloud substrates are advanced in parallel. The
+tracked evidence artifacts are DATA, not generated faces, and must remain under the reviewed
+`evidence/` tree rather than `.omx/` runtime state:
+
+- evidence/wave-d-g003-g006/g003/graphql-boundary-evidence.md — GraphQL residue and boundary evidence for the zero-GraphQL capability boundary.
+- evidence/wave-d-g003-g006/g003/runtime-state-classification.md — runtime-state classification evidence used to avoid treating OMX/team state as repo source.
+- evidence/wave-d-g003-g006/g008/cell-capacity-evidence.md — cell/capacity substrate evidence for the foundation wave.
+- evidence/wave-d-g003-g006/g008/data-storage-no-op-evidence.md — data/storage no-op evidence that documents the verified absence of a merge-safe runtime slice.
+- evidence/wave-d-g003-g006/g009/workflow-no-op-evidence.md — workflow substrate no-op evidence for the parallel foundation wave.
+- evidence/wave-d-g003-g006/integration/foundation-wave-evidence.md — integrated Wave-D foundation evidence tying G003/G006 lane outputs to the phase-0 capability reorg.
