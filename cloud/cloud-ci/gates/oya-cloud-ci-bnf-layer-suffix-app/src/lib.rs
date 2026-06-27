@@ -34,8 +34,8 @@ use std::collections::BTreeSet;
 
 use oya_ci_config_kernel::NamingConfig;
 use oya_governance_predictable_naming_kernel::{
-    check_with_policy, is_backend_qualified_adapter_with, is_check_family_with,
-    is_doctrinal_carve_out_with, CrateNaming, NamingPolicy, NamingViolationKind,
+    CrateNaming, NamingPolicy, NamingViolationKind, check_with_policy,
+    is_backend_qualified_adapter_with, is_check_family_with, is_doctrinal_carve_out_with,
 };
 use serde_json::Value;
 
@@ -139,9 +139,7 @@ fn resolve_naming(crate_name: &str, policy: &NamingPolicy) -> CrateNaming {
         Some("adapter".to_owned())
     } else {
         // General case: the trailing dash-segment is the declared (== inferred) role.
-        crate_name
-            .rsplit_once('-')
-            .map(|(_, role)| role.to_owned())
+        crate_name.rsplit_once('-').map(|(_, role)| role.to_owned())
     };
     CrateNaming {
         crate_name: crate_name.to_owned(),
@@ -159,14 +157,36 @@ fn resolve_naming(crate_name: &str, policy: &NamingPolicy) -> CrateNaming {
 /// never raised (de-brand). Under `profile='oyatie'` the policy is today's consts, byte-identical.
 pub fn evaluate_keyed_with(input: &Value, naming: &NamingConfig) -> BTreeSet<Finding> {
     let policy = naming_policy(naming);
-    let rows = input
-        .get("rows")
-        .and_then(Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let rows = match input.get("rows") {
+        None => {
+            let mut out = BTreeSet::new();
+            out.insert(Finding::new("bnf_empty_after_prefix", "<missing-rows>"));
+            return out;
+        }
+        Some(rows) => match rows.as_array() {
+            Some(rows) if rows.is_empty() => {
+                let mut out = BTreeSet::new();
+                out.insert(Finding::new("bnf_empty_after_prefix", "<empty-rows>"));
+                return out;
+            }
+            Some(rows) => rows,
+            None => {
+                let mut out = BTreeSet::new();
+                out.insert(Finding::new("bnf_empty_after_prefix", "<malformed-rows>"));
+                return out;
+            }
+        },
+    };
+    let mut findings = BTreeSet::new();
     let namings: Vec<CrateNaming> = rows
         .iter()
-        .filter_map(|row| row.get("crate_name").and_then(Value::as_str))
+        .filter_map(|row| match row.get("crate_name").and_then(Value::as_str) {
+            Some(name) => Some(name),
+            None => {
+                findings.insert(Finding::new("bnf_empty_after_prefix", "<malformed-row>"));
+                None
+            }
+        })
         .map(|name| resolve_naming(name, &policy))
         .collect();
     let report = match check_with_policy(&namings, &policy) {
@@ -179,11 +199,13 @@ pub fn evaluate_keyed_with(input: &Value, naming: &NamingConfig) -> BTreeSet<Fin
             return out;
         }
     };
-    report
-        .violations
-        .into_iter()
-        .map(|v| Finding::new(code_slug(&v.kind), &v.crate_name))
-        .collect()
+    findings.extend(
+        report
+            .violations
+            .into_iter()
+            .map(|v| Finding::new(code_slug(&v.kind), &v.crate_name)),
+    );
+    findings
 }
 
 /// Bundled-default (oyatie profile) projection of [`evaluate_keyed_with`]. The producer routes
@@ -227,7 +249,12 @@ mod tests {
             "oya-baz-adapter",
         ]);
         let report = evaluate(&input);
-        assert_eq!(report.verdict, Verdict::Green, "got {:?}", report.violations);
+        assert_eq!(
+            report.verdict,
+            Verdict::Green,
+            "got {:?}",
+            report.violations
+        );
         assert!(evaluate_keyed(&input).is_empty());
     }
 
@@ -244,7 +271,10 @@ mod tests {
     #[test]
     fn check_family_is_exempt() {
         // `oya-check-data-class` ends in "class" (not a layer) but is self-layering → GREEN.
-        let input = rows(&["oya-check-data-class", "oya-check-layered-architecture-discipline"]);
+        let input = rows(&[
+            "oya-check-data-class",
+            "oya-check-layered-architecture-discipline",
+        ]);
         assert!(
             evaluate_keyed(&input).is_empty(),
             "check-family must be exempt: {:?}",
@@ -285,8 +315,26 @@ mod tests {
     }
 
     #[test]
-    fn empty_corpus_is_green() {
-        assert_eq!(evaluate(&json!({ "rows": [] })).verdict, Verdict::Green);
+    fn malformed_corpus_inputs_fail_closed() {
+        for (input, sentinel) in [
+            (json!({}), "<missing-rows>"),
+            (json!({ "rows": "not-an-array" }), "<malformed-rows>"),
+            (json!({ "rows": [] }), "<empty-rows>"),
+            (json!({ "rows": [{}] }), "<malformed-row>"),
+        ] {
+            let findings = evaluate_keyed(&input);
+            assert_eq!(
+                evaluate(&input).verdict,
+                Verdict::Red,
+                "input must fail closed: {input:?}"
+            );
+            assert!(
+                findings
+                    .iter()
+                    .any(|f| f.code == "bnf_empty_after_prefix" && f.key == sentinel),
+                "expected bnf_empty_after_prefix sentinel {sentinel}, got {findings:?}"
+            );
+        }
     }
 
     /// ADR-0533 de-brand (item 2): under the NEUTRAL profile `required_prefix` is empty, so
