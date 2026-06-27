@@ -744,32 +744,6 @@ jobs:
           retention-days: 90
           if-no-files-found: error
 
-  # ── APP-SHELL GENERATED CLIENT LANE. Generated TypeScript clients are intentionally ignored
-  #    in git, so clean checkout CI must prove they regenerate from canonical OpenAPI sources
-  #    before the single required fan-in can go green. This is a bridge lane until the native
-  #    cloud-ci runner has first-class non-Rust toolchain actions; the invariant is still the
-  #    productized generated-output policy above, not committed client files.
-  app-shell-codegen:
-    name: app-shell-codegen (ignored generated clients are reproducible)
-    runs-on: ubuntu-latest
-    steps:
-      # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
-        with:
-          persist-credentials: false
-      - name: Prepare pinned pnpm
-        run: |
-          set -euo pipefail
-          corepack enable
-          corepack prepare pnpm@11.5.2 --activate
-          pnpm --version
-      - name: Regenerate and verify app-shell clients
-        run: |
-          set -euo pipefail
-          pnpm --dir oya/app-shell-frontend install --frozen-lockfile
-          pnpm --dir oya/app-shell-frontend codegen
-          pnpm --dir oya/app-shell-frontend typecheck
-
   # ── LIVE-POSTGRES DURABLE-SUBSTRATE LANE (#101). Runs the env-gated cross-tenant-deny / RLS /
   #    CDC / SCIM durability integration tests against a CONTAINERIZED Postgres and GATES merge —
   #    converting the G03/G05/G06 false-green into real evidence. Before this lane those tests
@@ -971,7 +945,6 @@ jobs:
       - generated-output-diff-policy # generated outputs are never PR merge surfaces
       - buck2                   # hermetic buck2 build + affected gate tests
       - gate-affected-set       # binding workspace coverage: affected cone or fail-closed full run (ADR-0554)
-      - app-shell-codegen       # ignored generated app-shell clients regenerate from canonical contracts
       - gate-live-postgres      # #101: durable cross-tenant-deny / RLS / CDC / SCIM tests run + gate against live Postgres
     steps:
       - name: Fan-in verdict (green IFF every gate lane is green)
@@ -984,7 +957,6 @@ jobs:
           echo "  generated-diff    = ${{ needs.generated-output-diff-policy.result }}"
           echo "  buck2             = ${{ needs.buck2.result }}"
           echo "  affected-set      = ${{ needs.gate-affected-set.result }}"
-          echo "  app-shell-codegen = ${{ needs.app-shell-codegen.result }}"
           echo "  live-postgres     = ${{ needs.gate-live-postgres.result }}"
           # A matrix job's aggregate `.result` is success IFF ALL legs succeeded, failure if any
           # leg failed, skipped if it never ran — so one check covers every gate in the matrix.
@@ -995,7 +967,6 @@ jobs:
             && [ "${{ needs.generated-output-diff-policy.result }}" = "success" ] \
             && [ "${{ needs.buck2.result }}" = "success" ] \
             && [ "${{ needs.gate-affected-set.result }}" = "success" ] \
-            && [ "${{ needs.app-shell-codegen.result }}" = "success" ] \
             && [ "${{ needs.gate-live-postgres.result }}" = "success" ]; then
             echo "oya-ci-required: GREEN — every constituent gate lane passed."
             exit 0

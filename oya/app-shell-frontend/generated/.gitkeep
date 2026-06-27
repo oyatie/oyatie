@@ -1,4 +1,0 @@
-# Generated TypeScript clients are produced by `pnpm codegen` and intentionally not committed.
-# This sentinel keeps the directory present for deterministic local/CI codegen.
-# Files in this directory are machine-generated from OpenAPI 3.2.0 contracts;
-# do not edit by hand. ADR-0393 retires this TS client path after Leptos migration.

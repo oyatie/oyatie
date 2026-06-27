@@ -236,7 +236,7 @@ Steps 1-4 are **unblocked today** and need no controller. Step 5 depends on step
 
 ## 7. NOT Doing (and why)
 
-- **NOT building tide (merge-queue) + deck (SolidJS UI) + plugins (ChatOps) now.** Only the
+- **NOT building tide (merge-queue) + deck (Leptos UI) + plugins (ChatOps) now.** Only the
   gate is unreliable; these are separately-justified systems folded into ADR-0513 for
   narrative unity. They expand owned surface against narrow-spine/single-bootstrap. Defer
   behind explicit demand. (Trade-off: ADR-0513's "one platform" story lands incrementally,

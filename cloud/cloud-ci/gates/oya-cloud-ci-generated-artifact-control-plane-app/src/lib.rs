@@ -1508,7 +1508,7 @@ mod tests {
         let diff = concat!(
             "M\tsrc/__generated__/types.ts\n",
             "A\topenapi/client.generated.ts\n",
-            "D\toya/app-shell-frontend/generated/hr-api.d.ts\n",
+            "D\tlegacy/generated/hr-api.d.ts\n",
             "M\tapp/generated/.gitkeep\n",
             "M\tsrc/source.rs\n",
         );
