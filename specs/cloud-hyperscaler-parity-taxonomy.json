@@ -1569,6 +1569,26 @@
     "vfkit_linux_or_kubernetes_cluster_tests_must_be_recorded_before_kubernetes_readiness_claim": true,
     "g007_must_reconcile_historical_ci_wording": true
   },
+  "implementation_directory_absence_gate": {
+    "gate_id": "cloud-compute-observability-absence-nonclaim",
+    "status": "metadata_only_nonclaim_gate",
+    "paths_that_must_remain_absent_until_runtime_evidence": [
+      "cloud/cloud-compute",
+      "cloud/cloud-observability"
+    ],
+    "required_specs": [
+      "specs/cloud-resource-catalog-target.json",
+      "specs/cloud-observability-slo-target.json"
+    ],
+    "blocked_claim_families": [
+      "tenant_workload_ready",
+      "public_sla_or_slo",
+      "production_ready",
+      "hyperscaler_mature",
+      "live_provider_provisioning"
+    ],
+    "checker": "scripts/tests/check_cloud_absence_nonclaim.py"
+  },
   "evidence_vocabulary": {
     "required_category_evidence_classes": [
       "official-provider-category-evidence",
