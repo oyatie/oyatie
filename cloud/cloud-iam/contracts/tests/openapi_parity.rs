@@ -131,6 +131,24 @@ fn assert_operation(operation: OperationExpectation) {
     );
     assert_contains(
         section,
+        "default_decision: deny",
+        operation.path,
+        operation.method,
+    );
+    assert_contains(
+        section,
+        "tenant_scope: tenant_account_project_boundary",
+        operation.path,
+        operation.method,
+    );
+    assert_contains(
+        section,
+        "cross_tenant_access: forbidden",
+        operation.path,
+        operation.method,
+    );
+    assert_contains(
+        section,
         "caller_supplied_authorization_headers: forbidden",
         operation.path,
         operation.method,
