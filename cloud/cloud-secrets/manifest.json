@@ -34,9 +34,15 @@
     "domain"
   ],
   "contracts": {
-    "openapi": [],
-    "asyncapi": [],
-    "proto": []
+    "openapi": [
+      "contracts/openapi/cloud-secrets.yaml"
+    ],
+    "asyncapi": [
+      "contracts/asyncapi/cloud-secrets-events.yaml"
+    ],
+    "proto": [
+      "contracts/proto/cloud-secrets.proto"
+    ]
   },
   "capabilities": [
     {
