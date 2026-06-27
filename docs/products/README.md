@@ -16,32 +16,39 @@ Each Oyatie product (an axis or a vertical) has its own PRD here. Every PRD foll
 
 ## Per-product PRDs
 
-This index is a traceability surface, not a runtime-readiness claim. It lists only product PRD files that exist in this repository. Product or vertical concepts that do not yet have a `docs/products/<product>/PRD.md` file remain governed by the cross-product PRD plus the machine-readable `specs/microservices/*.json` surfaces until a PRD file is added.
+### Authored product PRDs
 
-### Available product PRDs
+| Product | PRD | Owning team | Status |
+|---|---|---|---|
+| SaaS Platform | [`saas-platform/PRD.md`](saas-platform/PRD.md) | `axis-saas` | planning-closed-contract-authored |
+| Cloud Provider | [`cloud/PRD.md`](cloud/PRD.md) | `axis-cloud` | draft |
+| ERP Coverage | [`erp-coverage/PRD.md`](erp-coverage/PRD.md) | `axis-product + axis-architecture + axis-erp-parity` | draft |
+| Workplace Integration | [`workplace-integration/PRD.md`](workplace-integration/PRD.md) | `axis-workflow + axis-application-shell + axis-identity + axis-tenancy + axis-compliance` | draft |
 
-| Product surface | PRD | Owning team / axis | Status | Traceability note |
-|---|---|---|---|---|
-| SaaS Platform | [`saas-platform/PRD.md`](saas-platform/PRD.md) | `axis-saas` | planning-closed-contract-authored | Existing product PRD. |
-| Cloud Provider | [`cloud/PRD.md`](cloud/PRD.md) | `axis-cloud` | draft | Existing product PRD; target/non-claim posture remains governed by cloud specs and gates. |
-| Foundry / Intelligence Platform | [`foundry/PRD.md`](foundry/PRD.md) | `axis-foundry` / intelligence substrate | draft | Existing PRD; Foundry naming/retirement details remain governed by the PRD and microservice specs. |
-| ERP Coverage | [`erp-coverage/PRD.md`](erp-coverage/PRD.md) | `axis-erp-coverage` | draft | Existing ERP composition PRD. |
-| Workplace Integration | [`workplace-integration/PRD.md`](workplace-integration/PRD.md) | `axis-workplace-integration` | draft target/non-claim | Existing cross-cutting workplace integration PRD. |
+### Planned product PRD slots (not yet authored)
 
-### Spec-backed surfaces without product PRD files yet
+These rows keep the product-lane roster visible without linking to PRD files that do not exist yet. Add a link only in the same change that lands the corresponding `docs/products/<product>/PRD.md` file.
 
-These surfaces are intentionally not linked to missing `docs/products/<name>/PRD.md` files. Use the machine-readable specs under [`../../specs/microservices/`](../../specs/microservices/) until a product PRD exists.
-
-| Surface family | Current authority | Traceability note |
-|---|---|---|
-| Workspace apps (mail, calendar, messenger, workflow, workflow studio, etc.) | [`../../specs/microservices/`](../../specs/microservices/) plus `docs/products/workplace-integration/PRD.md` | No separate `docs/products/workspace/PRD.md` file exists in this tree. |
-| Search / RAG | [`../../specs/microservices/`](../../specs/microservices/) and cross-product docs | No separate `docs/products/search/PRD.md` file exists in this tree. |
-| Ads + analytics | [`../../specs/microservices/`](../../specs/microservices/) and cross-product docs | No separate `docs/products/ads-analytics/PRD.md` file exists in this tree. |
-| Vertical domains | [`../../specs/microservices/`](../../specs/microservices/) plus `erp-coverage/PRD.md` where applicable | The previous vertical PRD links were placeholders; do not add product-readiness claims without files and gates. |
-
-### Regional pack traceability
-
-Regional pack documentation lives in [`../localization-packs/INDEX.md`](../localization-packs/INDEX.md). Repository-local pack directories live under [`../../packs/`](../../packs/) and are checked by `scripts/tests/product_region_traceability_check.py`.
+| Product | PRD slot | Owning team | Status |
+|---|---|---|---|
+| Workspace | `docs/products/workspace/PRD.md` | `axis-workspace` | draft slot; PRD not authored |
+| Intelligence Platform (cloud-intelligence + oya-intelligence) | `docs/products/intelligence-platform/PRD.md` | `cloud-intelligence / oya-intelligence` | draft slot; PRD not authored |
+| Search | `docs/products/search/PRD.md` | `axis-search` | draft slot; PRD not authored |
+| Ads + Analytics | `docs/products/ads-analytics/PRD.md` | `axis-ads-analytics` | draft slot; PRD not authored |
+| Corporate (HR / payroll / GL / mail / comms) | `docs/products/vertical-corporate/PRD.md` | `vertical-corporate` | draft slot; PRD not authored |
+| Healthcare (clinical / ambulatory / HL7-FHIR) | `docs/products/vertical-healthcare/PRD.md` | `vertical-healthcare` | draft slot; PRD not authored |
+| Industrial (MES / OEE / ISA-95 / OPC UA) | `docs/products/vertical-industrial/PRD.md` | `vertical-industrial` | draft slot; PRD not authored |
+| Logistics (shipment / dock / EDI / route) | `docs/products/vertical-logistics/PRD.md` | `vertical-logistics` | draft slot; PRD not authored |
+| Fintech (PG / open-banking / KYC / AML) | `docs/products/vertical-fintech/PRD.md` | `vertical-fintech` | draft slot; PRD not authored |
+| Legal (regulated corpus / contracts) | `docs/products/vertical-legal/PRD.md` | `vertical-legal` | draft slot; PRD not authored |
+| Retail (POS / inventory / promotions) | `docs/products/vertical-retail/PRD.md` | `vertical-retail` | skeleton slot; PRD not authored |
+| Education (LMS) | `docs/products/vertical-education/PRD.md` | `vertical-education` | skeleton slot; PRD not authored |
+| Public Sector (forms / 조달청 + global gov) | `docs/products/vertical-public-sector/PRD.md` | `vertical-public-sector` | skeleton slot; PRD not authored |
+| Hospitality (PMS) | `docs/products/vertical-hospitality/PRD.md` | `vertical-hospitality` | skeleton slot; PRD not authored |
+| Construction (project mgmt) | `docs/products/vertical-construction/PRD.md` | `vertical-construction` | skeleton slot; PRD not authored |
+| Real Estate (leasing) | `docs/products/vertical-real-estate/PRD.md` | `vertical-real-estate` | skeleton slot; PRD not authored |
+| Agriculture (traceability) | `docs/products/vertical-agriculture/PRD.md` | `vertical-agriculture` | skeleton slot; PRD not authored |
+| Food (supply-chain compliance) | `docs/products/vertical-food/PRD.md` | `vertical-food` | skeleton slot; PRD not authored |
 
 ### Cross-product utilities
 
@@ -49,8 +56,8 @@ These are not "products" in the customer sense but are catalog-tracked for consi
 
 | Catalog entity | Path | Notes |
 |---|---|---|
-| Localization pack catalog | [`../localization-packs/INDEX.md`](../localization-packs/INDEX.md) | Region/pack traceability only; not a runtime readiness claim. |
-| Engineering teams | [`../teams/`](../teams/) | One charter per team. |
+| Regional packs | [`../localization-packs/INDEX.md`](../localization-packs/INDEX.md), [`../../packs/`](../../packs/) | Documentation-pack index plus repo-root regional pack artifacts. This is traceability only and does not claim pack runtime readiness. |
+| Engineering teams | [`../teams/`](../teams/) | One charter per team |
 
 ## Required sections per product PRD (validated by the product PRD Rust gate in `oya-ci-required`)
 
