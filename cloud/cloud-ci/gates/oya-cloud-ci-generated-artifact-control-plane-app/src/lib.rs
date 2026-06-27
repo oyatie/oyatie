@@ -1573,6 +1573,23 @@ mod tests {
     }
 
     #[test]
+    fn worker_hand_edit_to_generated_json_is_rejected_by_diff_policy() {
+        let manifest = manifest(Vec::new());
+        let diff = "M\tdocs/machine-readable/masterplan.generated.json\n";
+
+        let (findings, violations) = generated_output_diff_policy_violations(&manifest, diff);
+
+        assert_eq!(findings, BTreeSet::new());
+        assert_eq!(
+            violations,
+            vec![DiffPolicyViolation {
+                status: "M".to_owned(),
+                path: "docs/machine-readable/masterplan.generated.json".to_owned(),
+            }]
+        );
+    }
+
+    #[test]
     fn product_graph_dashboard_rule_is_gate_accepted_and_pr_edit_rejected() {
         let mut product_graph = artifact(
             "architecture-product-graph-dashboard",
