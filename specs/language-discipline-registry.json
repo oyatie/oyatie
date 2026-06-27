@@ -93,8 +93,10 @@
       {
         "path": "scripts/tests/cloud_control_plane_operation_contract_check.py",
         "kind": "python_test_sprawl_backlog",
-        "present_in_current_head": false,
-        "retirement_action": "Port to Rust Buck2 gate before live language-discipline authority."
+        "present_in_current_head": true,
+        "retirement_action": "Live G006 sibling legacy bridge: fenced as temporary local-only Python validator debt until ported to a Rust/Buck2 cloud-ci gate before any merge-authority or runtime-maturity claim.",
+        "authority_fence": "local_legacy_bridge_not_merge_authority",
+        "replacement_target": "Rust/Buck2 cloud-ci gate for cloud control-plane operation contract validation"
       },
       {
         "path": "scripts/tests/cloud_dogfood_ci_toolchain_lane_reconciliation_check.py",
@@ -105,8 +107,10 @@
       {
         "path": "scripts/tests/cloud_enforceability_facets_check.py",
         "kind": "python_test_sprawl_backlog",
-        "present_in_current_head": false,
-        "retirement_action": "Port to Rust Buck2 gate before live language-discipline authority."
+        "present_in_current_head": true,
+        "retirement_action": "Live G006 sibling legacy bridge: fenced as temporary local-only Python validator debt until ported to a Rust/Buck2 cloud-ci gate before any merge-authority or runtime-maturity claim.",
+        "authority_fence": "local_legacy_bridge_not_merge_authority",
+        "replacement_target": "Rust/Buck2 cloud-ci gate for enforceability facets validation"
       },
       {
         "path": "scripts/tests/cloud_hyperscaler_parity_taxonomy_check.py",
@@ -117,20 +121,26 @@
       {
         "path": "scripts/tests/cloud_observability_slo_evidence_check.py",
         "kind": "python_test_sprawl_backlog",
-        "present_in_current_head": false,
-        "retirement_action": "Port to Rust Buck2 gate before live language-discipline authority."
+        "present_in_current_head": true,
+        "retirement_action": "Live G006 sibling legacy bridge: fenced as temporary local-only Python validator debt until ported to a Rust/Buck2 cloud-ci gate before any merge-authority or runtime-maturity claim.",
+        "authority_fence": "local_legacy_bridge_not_merge_authority",
+        "replacement_target": "Rust/Buck2 cloud-ci gate for observability SLO evidence validation"
       },
       {
         "path": "scripts/tests/cloud_production_quality_kit_evidence_backlog_check.py",
         "kind": "python_test_sprawl_backlog",
-        "present_in_current_head": false,
-        "retirement_action": "Port to Rust Buck2 gate before live language-discipline authority."
+        "present_in_current_head": true,
+        "retirement_action": "Live G006 legacy bridge: fenced as temporary local-only Python validator debt until ported to a Rust/Buck2 cloud-ci gate before any merge-authority or runtime-maturity claim.",
+        "authority_fence": "local_legacy_bridge_not_merge_authority",
+        "replacement_target": "Rust/Buck2 cloud-ci gate for cloud-production-quality-kit-evidence-backlog validation"
       },
       {
         "path": "scripts/tests/cloud_resource_contract_parity_catalog_check.py",
         "kind": "python_test_sprawl_backlog",
-        "present_in_current_head": false,
-        "retirement_action": "Port to Rust Buck2 gate before live language-discipline authority."
+        "present_in_current_head": true,
+        "retirement_action": "Live G006 sibling legacy bridge: fenced as temporary local-only Python validator debt until ported to a Rust/Buck2 cloud-ci gate before any merge-authority or runtime-maturity claim.",
+        "authority_fence": "local_legacy_bridge_not_merge_authority",
+        "replacement_target": "Rust/Buck2 cloud-ci gate for cloud resource contract parity catalog validation"
       }
     ]
   },
