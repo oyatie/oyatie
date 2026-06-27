@@ -2001,6 +2001,19 @@ mod tests {
         fs::remove_dir_all(candidate_root).expect("remove candidate temp repo");
         fs::remove_dir_all(trusted_root).expect("remove trusted temp repo");
     }
+
+    #[test]
+    fn policy_root_defaults_to_candidate_oya_ci_config() {
+        let candidate_root = unique_temp_repo();
+        fs::write(candidate_root.join("oya-ci.toml"), "profile = 'neutral'\n")
+            .expect("write candidate policy");
+
+        let cfg =
+            load_policy_config(&candidate_root, None).expect("candidate policy root loads");
+
+        assert_eq!(cfg.profile, oya_ci_config_kernel::Profile::Neutral);
+        fs::remove_dir_all(candidate_root).expect("remove candidate temp repo");
+    }
 }
 
 /// Extract `name = "..."` from the `[package]` table of a Cargo.toml. Lightweight line-scan
