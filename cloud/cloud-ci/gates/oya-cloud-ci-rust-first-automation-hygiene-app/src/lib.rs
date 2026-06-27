@@ -599,9 +599,13 @@ fn interpreter_command_block(policy: &Value) -> Option<&Value> {
 }
 
 fn command_literal_after_new(line: &str) -> Option<&str> {
+    let trimmed = line.trim_start();
+    if trimmed.starts_with("//") || trimmed.starts_with('*') {
+        return None;
+    }
     let marker = "Command::new";
-    let marker_index = line.find(marker)?;
-    let after_marker = &line[marker_index + marker.len()..];
+    let marker_index = trimmed.find(marker)?;
+    let after_marker = &trimmed[marker_index + marker.len()..];
     let open_index = after_marker.find('(')?;
     let after_open = after_marker[open_index + 1..].trim_start();
     let after_quote = after_open.strip_prefix('"')?;
@@ -671,11 +675,8 @@ pub fn collect_observed_interpreter_command_authority(
     }
 
     let roots = workflow_block_string_array(block, "interpreter_command_authority", "roots")?;
-    let exclude_prefixes = workflow_block_string_array(
-        block,
-        "interpreter_command_authority",
-        "exclude_prefixes",
-    )?;
+    let exclude_prefixes =
+        workflow_block_string_array(block, "interpreter_command_authority", "exclude_prefixes")?;
     let extensions =
         workflow_block_string_array(block, "interpreter_command_authority", "extensions")?
             .into_iter()
