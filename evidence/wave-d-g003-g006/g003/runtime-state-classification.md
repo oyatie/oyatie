@@ -6,7 +6,7 @@ Task: worker-1 continuation for task 2 / G003-B repo hygiene/runtime-state class
 
 Owned write scope used:
 
-- `.omx/context/wave-d-g003-worker2/**`
+- `evidence/wave-d-g003-g006/g003/**`
 - `specs/workspace-hygiene.json` only, after announcing the single-spec policy fix.
 
 Avoided `.codex/**`, `.claude/**`, `.omx/ultragoal/**`, generated files, workflow files, and `specs/repo-hygiene-automation.json`.
@@ -17,7 +17,7 @@ Current checkout drift is mostly ignored runtime/build state, not tracked produc
 
 - `git status --short --untracked-files=all` was clean before this task's evidence/policy edits.
 - `git status --ignored --short --untracked-files=all` showed ignored runtime/build outputs, including `.omx/logs/...` and `buck-out/...` from local OMX/Buck2 activity.
-- `.omx/context/wave-d-g003-worker2/` was absent before this evidence note.
+- `evidence/wave-d-g003-g006/g003/` was absent before this evidence note.
 
 Existing policy already covered root ephemeral artifacts and build artifacts broadly, but the repo scan surface did not explicitly inventory hidden repo-runtime state roots such as `.omx/context` and `.omx/logs`. The smallest preventive policy change is the new `repo-runtime-state` scan surface in `specs/workspace-hygiene.json`.
 

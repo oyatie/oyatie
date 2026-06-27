@@ -8,7 +8,7 @@ Owned write scope for this evidence:
 
 - `cloud/cloud-data/**` was read-only for this slice.
 - `cloud/cloud-storage/**` was read-only for this slice.
-- `.omx/context/wave-d-worker2-data-storage/**` is the owned evidence path used for this slice.
+- `evidence/wave-d-g003-g006/g008/**` is the owned evidence path used for this slice.
 
 ## Ledger note
 
