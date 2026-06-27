@@ -433,6 +433,32 @@
     "dr_tier": "T1",
     "replication_shape": "active-active-multi-az-cross-region-warm"
   },
+  "non_claims": [
+    "C2a Phase0 does not prove live multi-region active-active tenancy operation despite target DR posture metadata.",
+    "C2a Phase0 does not prove tenant migration, cell rebalance, failover drill, audit-chain seal persistence, or provider runtime execution.",
+    "C2a Phase0 does not prove measured SLO SLI burn-rate Prometheus runtime evidence."
+  ],
+  "c2a_phase0_substrate_gate": {
+    "changeset": "C2a-2R",
+    "scope": "region-cell-capacity-tenancy substrate seam",
+    "claim_ceiling": "contract/gate/traceability/nonclaim only",
+    "runtime_mode": "local-manifest-json-gate",
+    "source_of_truth": [
+      "cloud/cell-lifecycle/manifest.json#cloud_ops_foundation",
+      "cloud/cell-rebalancer/manifest.json#cloud_ops_foundation",
+      "cloud/tenancy/manifest.json#dr"
+    ],
+    "nonclaim_guard": [
+      "no live multi-region/cell operation claim",
+      "no fake runtime scaffold",
+      "no provider, database, broker, scheduler, audit-chain writer, or failover execution claim"
+    ],
+    "verification": {
+      "json_validation_required": true,
+      "targeted_buck_targets_present": false,
+      "owned_buck_target_discovery": "buck2 targets //cloud/cell-lifecycle/... //cloud/cell-rebalancer/... //cloud/tenancy/..."
+    }
+  },
   "pod_runtime_tier": 1,
   "pod_runtime_tier_justification": "Tenancy is the shared tenant isolation and placement substrate. It touches tenant metadata, jurisdiction codes, cell assignment, and policy routing state, so it is Tier 1 even though it does not run tenant-supplied code.",
   "pod_runtime_tier_surface_evidence": [
