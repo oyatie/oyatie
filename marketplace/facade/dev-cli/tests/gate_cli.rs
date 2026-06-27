@@ -8,6 +8,144 @@ use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 #[test]
+fn masterplan_drift_gate_accepts_controller_materialized_output_without_committed_byte_match() {
+    let temp = TempDirGuard::new("masterplan-drift-controller");
+    let decisions_dir = temp.path().join("docs/decisions");
+    fs::create_dir_all(&decisions_dir).expect("decisions dir created");
+    fs::write(
+        decisions_dir.join("ADR-2000-controller-masterplan.md"),
+        r#"---
+status: Accepted
+planning_impact: true
+milestone: M-CONTROLLER
+depends_on: []
+deliverables:
+  - id: ADR-2000-D1
+    description: "controller-owned masterplan projection"
+    exit_criteria: "source ADR projection regenerates successfully"
+    verified_by: "buck2 run //marketplace/facade/dev-cli:oya -- gate validate masterplan-drift"
+---
+# ADR-2000
+"#,
+    )
+    .expect("ADR fixture written");
+
+    let output_path = temp.path().join("docs/machine-readable");
+    fs::create_dir_all(&output_path).expect("machine-readable dir created");
+    fs::write(
+        output_path.join("masterplan.generated.json"),
+        "{\"stale\":\"committed bytes intentionally do not match regenerated projection\"}\n",
+    )
+    .expect("stale projection fixture written");
+
+    let registry_dir = temp.path().join("registry");
+    fs::create_dir_all(&registry_dir).expect("registry dir created");
+    fs::write(
+        registry_dir.join("generated-artifact-control-plane.json"),
+        r#"{
+  "artifacts": [
+    {
+      "path": "docs/machine-readable/masterplan.generated.json",
+      "merge_policy": "never-manual-merge-regenerate-from-source-tree",
+      "materialization_mode": "branch-committed-regenerated-until-controller-materialization",
+      "generator": {
+        "runner": "oya-ci-native-controller",
+        "generator_target": "oya-ci://generated-artifact-controller/planning/masterplan",
+        "output_mode": "controller-materialized"
+      }
+    }
+  ]
+}
+"#,
+    )
+    .expect("generated artifact control-plane fixture written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(["gate", "validate", "masterplan-drift"])
+        .current_dir(temp.path())
+        .output()
+        .expect("masterplan drift command runs");
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(output.status.success(), "stdout={stdout}\nstderr={stderr}");
+    assert!(
+        stdout.contains("controller-materialized")
+            && stdout.contains("source projection regenerated successfully"),
+        "stdout={stdout}"
+    );
+}
+
+#[test]
+fn masterplan_drift_gate_rejects_stale_bytes_without_exact_controller_output_mode() {
+    let temp = TempDirGuard::new("masterplan-drift-controller-fail-closed");
+    let decisions_dir = temp.path().join("docs/decisions");
+    fs::create_dir_all(&decisions_dir).expect("decisions dir created");
+    fs::write(
+        decisions_dir.join("ADR-2001-controller-masterplan.md"),
+        r#"---
+status: Accepted
+planning_impact: true
+milestone: M-CONTROLLER
+depends_on: []
+deliverables:
+  - id: ADR-2001-D1
+    description: "controller-owned masterplan projection"
+    exit_criteria: "source ADR projection regenerates successfully"
+    verified_by: "buck2 run //marketplace/facade/dev-cli:oya -- gate validate masterplan-drift"
+---
+# ADR-2001
+"#,
+    )
+    .expect("ADR fixture written");
+
+    let output_path = temp.path().join("docs/machine-readable");
+    fs::create_dir_all(&output_path).expect("machine-readable dir created");
+    fs::write(
+        output_path.join("masterplan.generated.json"),
+        "{\"stale\":\"committed bytes intentionally do not match regenerated projection\"}\n",
+    )
+    .expect("stale projection fixture written");
+
+    let registry_dir = temp.path().join("registry");
+    fs::create_dir_all(&registry_dir).expect("registry dir created");
+    fs::write(
+        registry_dir.join("generated-artifact-control-plane.json"),
+        r#"{
+  "artifacts": [
+    {
+      "path": "docs/machine-readable/masterplan.generated.json",
+      "merge_policy": "never-manual-merge-regenerate-from-source-tree",
+      "materialization_mode": "branch-committed-regenerated-until-controller-materialization",
+      "generator": {
+        "runner": "oya-ci-native-controller",
+        "generator_target": "oya-ci://generated-artifact-controller/planning/masterplan",
+        "output_mode": "branch-committed"
+      }
+    }
+  ]
+}
+"#,
+    )
+    .expect("generated artifact control-plane fixture written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(["gate", "validate", "masterplan-drift"])
+        .current_dir(temp.path())
+        .output()
+        .expect("masterplan drift command runs");
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(!output.status.success(), "stdout={stdout}\nstderr={stderr}");
+    assert!(
+        stderr.contains("gen masterplan --check failed")
+            && stderr.contains("drifted from the regenerated projection"),
+        "stderr={stderr}"
+    );
+}
+
+#[test]
 fn foundation_bypass_gate_allows_empty_or_fresh_ledgers() {
     let temp = temp_dir("gate-fresh");
     fs::create_dir_all(&temp).expect("ledger dir created");

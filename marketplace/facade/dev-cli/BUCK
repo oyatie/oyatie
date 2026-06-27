@@ -694,6 +694,21 @@ rust_test(
 )
 
 rust_test(
+    name = "marketplace-dev-cli-masterplan-cli",
+    srcs = ["tests/masterplan_cli.rs"],
+    crate = "marketplace_dev_cli_masterplan_cli",
+    crate_root = "tests/masterplan_cli.rs",
+    env = {
+        "CARGO_BIN_EXE_oya": "$(location :oya)",
+    },
+    visibility = ["PUBLIC"],
+    deps = [
+        ":marketplace-dev-cli",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
     name = "marketplace-dev-cli-loop-recovery-patterns",
     srcs = ["tests/loop_recovery_patterns.rs"],
     crate = "marketplace_dev_cli_loop_recovery_patterns",

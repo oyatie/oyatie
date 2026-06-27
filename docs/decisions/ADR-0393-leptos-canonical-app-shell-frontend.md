@@ -132,6 +132,9 @@ manifests:
 - `marketplace/facade/dev-cli/tests/client_stack_discipline_cli.rs` is the crate-shaped
   client-stack CLI regression that proves the active Leptos app-shell manifest is scanned and
   that a SolidJS/SolidStart manifest fails closed.
+- `marketplace/facade/dev-cli/tests/masterplan_cli.rs` is the masterplan projection regression
+  that proves Superseded/Proposed SolidJS planning ADRs are excluded from live masterplan output
+  while Accepted planning status variants remain included.
 - `evidence/multispectrum/retire-solidjs-app-shell-20260627-1782545469.json` is the PR-local
   evidence record for the retirement, generated-artifact controls, rust-first accounting shrink,
   and client-stack gate verification.

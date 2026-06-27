@@ -68,20 +68,13 @@ fn parse_args(args: Vec<String>, usage: &str) -> Result<GenMasterplanArgs, Strin
 }
 
 fn execute(args: &GenMasterplanArgs) -> ExitCode {
-    let adrs = match read_planning_impact_adrs(&args.decisions_dir) {
-        Ok(adrs) => adrs,
+    let (projection, json) = match render_projection(&args.decisions_dir) {
+        Ok(rendered) => rendered,
         Err(message) => {
             eprintln!("gen masterplan: {message}");
             return ExitCode::FAILURE;
         }
     };
-    let projection = generate_masterplan_projection(&adrs);
-    let json = serde_json::to_string_pretty(&projection_to_json(&projection))
-        .map(|mut text| {
-            text.push('\n');
-            text
-        })
-        .unwrap_or_else(|_| "{}\n".to_string());
 
     if args.check {
         let committed = match std::fs::read_to_string(&args.output) {
@@ -144,7 +137,7 @@ fn execute(args: &GenMasterplanArgs) -> ExitCode {
     }
 
     println!(
-        "gen masterplan summary: {} planning_impact ADRs, {} deliverables, {} milestones",
+        "gen masterplan summary: {} accepted planning_impact ADRs, {} deliverables, {} milestones",
         projection.adr_count,
         projection.deliverable_count,
         projection.milestones.len()
@@ -161,6 +154,20 @@ fn execute(args: &GenMasterplanArgs) -> ExitCode {
         }
     }
     ExitCode::SUCCESS
+}
+
+pub(crate) fn render_projection(
+    decisions_dir: &Path,
+) -> Result<(MasterplanProjection, String), String> {
+    let adrs = read_planning_impact_adrs(decisions_dir)?;
+    let projection = generate_masterplan_projection(&adrs);
+    let json = serde_json::to_string_pretty(&projection_to_json(&projection))
+        .map(|mut text| {
+            text.push('\n');
+            text
+        })
+        .map_err(|error| format!("projection serialization failed: {error}"))?;
+    Ok((projection, json))
 }
 
 fn first_diff_lines(committed: &str, regenerated: &str) -> Vec<String> {
@@ -212,10 +219,17 @@ pub(crate) struct ProjectedDeliverable {
     pub(crate) verified_by: String,
 }
 
-/// Build the masterplan projection: topo-sort ADRs by `depends_on`, then group
-/// by `milestone` (milestone order = first appearance in the topo-sorted list).
+/// Build the masterplan projection: keep only Accepted ADRs, topo-sort them by
+/// `depends_on`, then group by `milestone` (milestone order = first appearance
+/// in the topo-sorted list). Superseded/Proposed/Rejected ADRs are governance
+/// history or draft intent, not live masterplan work.
 pub(crate) fn generate_masterplan_projection(adrs: &[PlanningAdr]) -> MasterplanProjection {
-    let ordered = topo_sort(adrs);
+    let accepted: Vec<PlanningAdr> = adrs
+        .iter()
+        .filter(|adr| is_accepted_planning_status(&adr.status))
+        .cloned()
+        .collect();
+    let ordered = topo_sort(&accepted);
     let mut deliverable_count = 0usize;
     let mut milestone_order: Vec<String> = Vec::new();
     let mut grouped: BTreeMap<String, Vec<ProjectedAdr>> = BTreeMap::new();
@@ -261,6 +275,14 @@ pub(crate) fn generate_masterplan_projection(adrs: &[PlanningAdr]) -> Masterplan
         adr_count: ordered.len(),
         deliverable_count,
     }
+}
+
+fn is_accepted_planning_status(status: &str) -> bool {
+    let normalized = status.trim().to_ascii_lowercase();
+    normalized == "accepted"
+        || normalized
+            .strip_prefix("accepted")
+            .is_some_and(|suffix| suffix.trim_start().starts_with('('))
 }
 
 /// Stable, cycle-safe topological sort by `depends_on`. ADRs whose declared
