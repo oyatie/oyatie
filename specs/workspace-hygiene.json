@@ -140,7 +140,11 @@
       ],
       "audit_finding_budget": 500,
       "strict_finding_budget": 0,
-      "action": "inventory_runtime_state_only"
+      "action": "inventory_only",
+      "exemption_evidence_refs": [
+        "docs/AGENTS.md#state_management",
+        "evidence/wave-d-g003-g006/g003/runtime-state-classification.md"
+      ]
     },
     {
       "id": "build-artifacts",
