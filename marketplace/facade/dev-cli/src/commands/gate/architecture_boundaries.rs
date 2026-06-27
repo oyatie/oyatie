@@ -11,7 +11,7 @@
 //! 12-value layer enum at
 //! `crates/oya-governance-predictable-naming-kernel::ALLOWED_ROLES`.
 //!
-//! Validates four invariants from the legacy Python heredoc:
+//! Validates workspace/reorg invariants from the legacy Python heredoc:
 //! 1. Every workspace package uses the `oya-` prefix.
 //! 2. Every workspace package lives at `crates/<name>` or `tools/<name>`.
 //! 3. Every workspace package has a catalog record at
@@ -20,6 +20,9 @@
 //!    `ALLOWED_DEPENDENCY_ROLES` matrix.
 //! 5. Legacy implementation directories (`modules/`, `services/`,
 //!    `platform/`) are not present at repo root (ADR-0015/PRD ban).
+//! 6. The transitional `tools/` root contains only explicit governance/tooling
+//!    bridge entries (`oya-*`) or named support directories; arbitrary
+//!    `tools/<name>` implementation roots are rejected.
 //!
 //! `cargo metadata` is invoked once per run via `std::process::Command`;
 //! the resulting JSON is parsed with `serde_json`. Catalog YAML records
@@ -48,6 +51,18 @@ use serde_json::Value;
 /// Legacy implementation directories that ADR-0015/PRD forbid at repo
 /// root. Matches the Python `LEGACY_IMPLEMENTATION_DIRS` tuple.
 const LEGACY_IMPLEMENTATION_DIRS: [&str; 3] = ["modules", "services", "platform"];
+
+/// Non-crate support directories allowed to remain under transitional
+/// `tools/`. New executable/governance tooling must use an explicit `oya-*`
+/// directory; arbitrary names would silently recreate the retired top-level
+/// implementation root that `docs/AGENTS.md` fences.
+const ALLOWED_TOOLS_SUPPORT_DIRS: [&str; 5] = [
+    "anchor-sweep",
+    "buck",
+    "completions",
+    "hooks",
+    "opensk-vendored",
+];
 
 /// Role-based dependency-edge matrix. Key = depending role; value =
 /// roles that the depending crate is allowed to import from. This started as
@@ -246,7 +261,7 @@ pub(crate) fn run(args: Vec<String>) -> ExitCode {
         Ok(parsed) => match validate_architecture_boundaries(&parsed) {
             Ok(report) => {
                 if parsed.self_test {
-                    println!("architecture-boundaries self-test passed: 10 cases");
+                    println!("architecture-boundaries self-test passed: 11 cases");
                 } else {
                     println!(
                         "architecture-boundaries validation passed: {} packages, {} catalog records, {} dependency edges",
@@ -292,6 +307,8 @@ pub(crate) fn validate_architecture_boundaries(
     let legacy_dirs = detect_legacy_dirs(&absolute_root);
     let (errors, edges_checked, tenant_violations) =
         validate_packages(&packages, &catalog_records, &absolute_root, &legacy_dirs);
+    let mut errors = errors;
+    errors.extend(validate_tools_root_policy(&absolute_root));
     if !errors.is_empty() {
         return Err(errors);
     }
@@ -308,6 +325,43 @@ fn detect_legacy_dirs(repo_root: &Path) -> BTreeSet<String> {
         .iter()
         .filter(|name| repo_root.join(name).exists())
         .map(|name| (*name).to_string())
+        .collect()
+}
+
+fn validate_tools_root_policy(repo_root: &Path) -> Vec<String> {
+    let tools_root = repo_root.join("tools");
+    let Ok(entries) = std::fs::read_dir(&tools_root) else {
+        return Vec::new();
+    };
+    let names = entries.filter_map(|entry| {
+        let entry = entry.ok()?;
+        let file_type = entry.file_type().ok()?;
+        if !file_type.is_dir() {
+            return None;
+        }
+        entry.file_name().to_str().map(str::to_string)
+    });
+    validate_tools_root_entry_names(names)
+}
+
+fn validate_tools_root_entry_names<I>(names: I) -> Vec<String>
+where
+    I: IntoIterator,
+    I::Item: AsRef<str>,
+{
+    names
+        .into_iter()
+        .filter_map(|name| {
+            let name = name.as_ref();
+            if name.starts_with("oya-") || ALLOWED_TOOLS_SUPPORT_DIRS.contains(&name) {
+                None
+            } else {
+                Some(format!(
+                    "retired tools/ root may contain only oya-* governance/tooling bridge dirs or explicit support dirs {:?}; found tools/{name}/",
+                    ALLOWED_TOOLS_SUPPORT_DIRS
+                ))
+            }
+        })
         .collect()
 }
 
@@ -622,6 +676,7 @@ fn run_self_test() -> Result<ArchitectureBoundariesReport, Vec<String>> {
     expect_self_test_bad_prefix()?;
     expect_self_test_wrong_workspace_path()?;
     expect_self_test_legacy_top_level_dir()?;
+    expect_self_test_tools_root_policy()?;
     expect_self_test_extra_catalog_allowed()?;
     expect_self_test_infrastructure_and_test_roles()?;
     Ok(ArchitectureBoundariesReport {
@@ -837,6 +892,23 @@ fn expect_self_test_legacy_top_level_dir() -> Result<(), Vec<String>> {
     )
 }
 
+fn expect_self_test_tools_root_policy() -> Result<(), Vec<String>> {
+    let allowed = validate_tools_root_entry_names([
+        "oya-governance-purpose-audit-app",
+        "oya-reorg-codemod-app",
+        "hooks",
+        "buck",
+    ]);
+    assert_self_test("tools root policy allows bridge dirs", &allowed, None)?;
+
+    let errors = validate_tools_root_entry_names(["repoctl", "legacy-runner"]);
+    assert_self_test(
+        "tools root policy rejects arbitrary implementation dirs",
+        &errors,
+        Some("retired tools/ root"),
+    )
+}
+
 fn expect_self_test_extra_catalog_allowed() -> Result<(), Vec<String>> {
     let (kernel_pkg, kernel_rec) =
         fixture_package("oya-platform-tenant-kernel", "kernel", &[], "crates");
@@ -940,6 +1012,13 @@ mod tests {
             validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
         assert!(errors.is_empty(), "unexpected errors: {errors:?}");
         assert_eq!(edges, 1);
+    }
+
+    #[test]
+    fn tools_root_policy_rejects_non_oya_implementation_dirs() {
+        let errors = validate_tools_root_entry_names(["repoctl", "oya-governance-adr-shape-app"]);
+        assert_eq!(errors.len(), 1);
+        assert!(errors[0].contains("tools/repoctl/"));
     }
 
     #[test]
@@ -1332,8 +1411,7 @@ mod tests {
     fn libs_crate_path_passes() {
         // ADR-0512: libs/<lib> is a valid workspace member location for shared
         // cross-cutting libraries. Mirrors microservices_nested_crate_path_passes.
-        let (mut pkg, rec) =
-            fixture_package("oya-check-brand-residue", "kernel", &[], "crates");
+        let (mut pkg, rec) = fixture_package("oya-check-brand-residue", "kernel", &[], "crates");
         pkg.manifest_path = fixture_repo_root()
             .join("libs")
             .join("oya-check-brand-residue")
@@ -1393,8 +1471,12 @@ mod tests {
     fn tenant_boundary_oya_to_cloud_dep_is_report_only() {
         // An oya/-root crate that depends on a cloud/-root crate triggers the
         // tenant-boundary rule in REPORT-ONLY mode (violation count > 0, no error).
-        let (mut oya_pkg, oya_rec) =
-            fixture_package("oya-accounting-journal-domain", "domain", &["oya-cloud-billing-kernel"], "crates");
+        let (mut oya_pkg, oya_rec) = fixture_package(
+            "oya-accounting-journal-domain",
+            "domain",
+            &["oya-cloud-billing-kernel"],
+            "crates",
+        );
         oya_pkg.manifest_path = fixture_repo_root()
             .join("oya")
             .join("accounting")
