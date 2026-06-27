@@ -4,9 +4,12 @@ info:
   version: "1.0.0"
   summary: Contract scaffold for cloud-billing-tax.
   description: >-
-    Standard OpenAPI 3.2.0 contract scaffold for cloud-billing-tax. This file carries
-    Wave 15-ZF-13 components metadata only; endpoint wire shape remains
+    Standard OpenAPI 3.2.0 contract scaffold for cloud-billing-tax. This file
+    carries Wave 15-ZF-13 components metadata only; endpoint wire shape remains
     intentionally unimplemented until the service-owned contract wave authors it.
+    It validates invoice API request metadata and tax-invoice-format policy
+    labels only; it does not claim statutory tax calculation, filing, or
+    persistence runtime behavior.
   contact:
     name: axis-cloud-billing
   license:
