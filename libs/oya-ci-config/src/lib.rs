@@ -1497,6 +1497,8 @@ mod tests {
             .and_then(serde_json::Value::as_object)
             .expect("enforcement-liveness disposition");
         for code in [
+            "malformed_enforcement_liveness_face",
+            "malformed_enforcement_liveness_row",
             "hook_unwired_without_stub_marker",
             "hook_wiring_mirror_drift",
             "wired_hook_missing_file",
@@ -1514,6 +1516,16 @@ mod tests {
                     .and_then(serde_json::Value::as_bool),
                 Some(true)
             );
+            if code.starts_with("malformed_enforcement_liveness") {
+                assert!(
+                    disposition
+                        .get("remediation")
+                        .and_then(serde_json::Value::as_str)
+                        .is_some_and(|text| text.contains("producer output")
+                            && text.contains("governance PR")),
+                    "malformed enforcement-liveness dispositions must carry actionable remediation"
+                );
+            }
         }
     }
 
