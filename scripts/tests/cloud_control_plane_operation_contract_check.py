@@ -45,6 +45,12 @@ REQUIRED_OPERATION_STATES = {
     "rolled_back",
 }
 REQUIRED_SEMANTICS = {"idempotent_retry", "resumable_after_restart", "cancel_safe", "compensating_action", "no_partial_apply_without_ledger"}
+REQUIRED_CANNOT_CLAIM = {
+    "reconciler worker availability",
+    "adapter-side external execution",
+    "tenant workload migration",
+    "launch or availability guarantees",
+}
 REQUIRED_RESOURCE_TRANSITIONS = {"create", "update", "delete", "suspend", "resume", "purge"}
 FORBIDDEN_ACTUATION_MARKERS = {
     "terraform apply",
@@ -149,7 +155,12 @@ def validate(spec: dict) -> None:
     require(controls.get("metadata_only") is True, "claim_controls must be metadata_only")
     require(controls.get("no_provider_apply") is True, "claim_controls must forbid provider apply")
     require(controls.get("no_runtime_reconciler_claim") is True, "claim_controls must forbid runtime reconciler claim")
+    require(controls.get("strict_separation") is True, "claim_controls must require strict_separation")
+    require(controls.get("pure_dogfood") is True, "claim_controls must require pure_dogfood")
     require(not contains_any(controls.get("can_claim_now", []), FORBIDDEN_CLAIM_MARKERS), "can_claim_now contains forbidden readiness/parity wording")
+    cannot_claim_yet = set(controls.get("cannot_claim_yet", []))
+    require(REQUIRED_CANNOT_CLAIM <= cannot_claim_yet, f"claim_controls.cannot_claim_yet missing {sorted(REQUIRED_CANNOT_CLAIM - cannot_claim_yet)}")
+    require(not contains_any(controls.get("cannot_claim_yet", []), FORBIDDEN_ACTUATION_MARKERS), "cannot_claim_yet contains forbidden provider actuation wording")
     require(not contains_any(spec, FORBIDDEN_ACTUATION_MARKERS), "spec contains forbidden provider apply/actuation wording")
 
     pipeline = spec["pipeline"]
@@ -248,6 +259,10 @@ def run_self_tests() -> None:
     expect_rejected("missing resource contract coverage", lambda data: data["resource_state_transition_contract"].update({"applies_to_resource_contract_ids": []}))
     expect_rejected("production overclaim", lambda data: data["claim_controls"].update({"can_claim_now": ["production readiness achieved"]}))
     expect_rejected("runtime reconciler overclaim", lambda data: data["claim_controls"].update({"can_claim_now": ["runtime reconciler availability is achieved"]}))
+    expect_rejected("missing strict separation", lambda data: data["claim_controls"].update({"strict_separation": False}))
+    expect_rejected("missing pure dogfood", lambda data: data["claim_controls"].update({"pure_dogfood": False}))
+    expect_rejected("missing cannot-claim guard", lambda data: data["claim_controls"].update({"cannot_claim_yet": ["tenant workload migration"]}))
+    expect_rejected("cannot-claim provider marker", lambda data: data["claim_controls"].update({"cannot_claim_yet": ["reconciler worker availability", "adapter-side external execution", "tenant workload migration", "launch or availability guarantees", "live provider"]}))
     expect_rejected("external provider API overclaim", lambda data: data["claim_controls"].update({"can_claim_now": ["external providers execute through provider APIs"]}))
     expect_rejected("tenant workload overclaim", lambda data: data["claim_controls"].update({"can_claim_now": ["tenant workload ready"]}))
     expect_rejected("SLA availability overclaim", lambda data: data["claim_controls"].update({"can_claim_now": ["SLA-backed 99.9 availability"]}))
