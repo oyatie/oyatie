@@ -247,10 +247,6 @@ pub(crate) use honest_claims_gate::{
 pub(crate) use http_stack_gate::{
     HttpStackFindingKind, parse_http_stack_validate_args, validate_http_stack_gate,
 };
-pub(crate) use workspace_topology_gate::{
-    parse_workspace_topology_validate_args, validate_workspace_topology_gate,
-    WorkspaceTopologyRule,
-};
 pub(crate) use hyperscaler_arch_invariants_gate::{
     parse_hyperscaler_arch_invariants_validate_args, validate_hyperscaler_arch_invariants_gate,
 };
@@ -327,6 +323,9 @@ pub(crate) use workspace_hygiene_gate::{
 pub(crate) use workspace_manifest::{
     read_package_license, read_package_name, read_workspace_member_crate_ids,
     read_workspace_member_paths,
+};
+pub(crate) use workspace_topology_gate::{
+    WorkspaceTopologyRule, parse_workspace_topology_validate_args, validate_workspace_topology_gate,
 };
 pub(crate) use yaml_scan::{clean_yaml_value, parse_yaml_inline_values};
 
