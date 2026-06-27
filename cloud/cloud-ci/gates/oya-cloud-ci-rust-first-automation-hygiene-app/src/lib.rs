@@ -1124,6 +1124,11 @@ mod tests {
         ) {
             emitted.insert(f.code);
         }
+        for f in evaluate_interpreter_command_authority(
+            &json!({"commands": [{"key": "tools/x/src/main.rs:1::python3", "command": "python3"}]}),
+        ) {
+            emitted.insert(f.code);
+        }
         for code in &emitted {
             assert!(
                 declared.contains(code.as_str()),
