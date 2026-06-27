@@ -1299,6 +1299,39 @@ mod tests {
         path
     }
 
+    fn load_live_test_scm_facts(root: &Path) -> ScmFacts {
+        let face = root.join(
+            "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        );
+        if face.is_file() {
+            return load_scm_facts(&face).expect("committed scm-facts face loads");
+        }
+
+        // The live corpus unit test must not require a gitignored generated face to be
+        // present on every worker checkout. Fall back to the same tracked-path universe
+        // the face records, without hand-editing or copying generated JSON into place.
+        let output = std::process::Command::new("git")
+            .arg("-C")
+            .arg(root)
+            .arg("ls-files")
+            .output()
+            .expect("git ls-files for live OWNERS corpus");
+        assert!(
+            output.status.success(),
+            "git ls-files failed for live OWNERS corpus: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let mut tracked_paths: Vec<String> = String::from_utf8(output.stdout)
+            .expect("git ls-files output is utf-8")
+            .lines()
+            .filter(|line| !line.is_empty())
+            .map(str::to_owned)
+            .collect();
+        tracked_paths.sort();
+        tracked_paths.dedup();
+        ScmFacts { tracked_paths }
+    }
+
     #[test]
     fn enforcement_liveness_declared_corpus_prevents_stale_repo_root_false_green() {
         let root = unique_temp_repo();
@@ -1960,10 +1993,7 @@ mod tests {
                 );
             }
         };
-        let scm_facts = load_scm_facts(&root.join(
-            "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
-        ))
-        .expect("committed scm-facts face loads");
+        let scm_facts = load_live_test_scm_facts(&root);
         let cfg = load_config(&root).expect("repo oya-ci.toml loads");
         let resolution = resolve_owners(&root, &scm_facts.tracked_paths, &cfg);
         assert!(
