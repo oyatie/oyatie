@@ -28,9 +28,10 @@ use serde_json::Value;
 pub const GATE_ID: &str = "cloud-ci-workspace-glob-coverage";
 
 /// The blocking violation codes for ADR-0538's workspace glob contract.
-pub const VIOLATION_CODES: [&str; 2] = [
+pub const VIOLATION_CODES: [&str; 3] = [
     "workspace_member_explicit_path",
     "crate_dir_not_covered",
+    "workspace_glob_row_malformed",
 ];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -74,10 +75,6 @@ impl Report {
     }
 }
 
-fn bool_field(row: &Value, key: &str) -> bool {
-    row.get(key).and_then(Value::as_bool).unwrap_or(false)
-}
-
 /// Pure evaluator for workspace member-entry and crate-dir coverage rows.
 pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
     let mut findings = BTreeSet::new();
@@ -89,18 +86,42 @@ pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
         findings.insert(Finding::new("crate_dir_not_covered", "<empty-rows>"));
         return findings;
     }
-    for row in rows {
-        if let Some(member_entry) = row.get("member_entry").and_then(Value::as_str) {
-            if !bool_field(row, "is_glob") {
-                findings.insert(Finding::new(
-                    "workspace_member_explicit_path",
-                    member_entry,
-                ));
+    for (index, row) in rows.iter().enumerate() {
+        let malformed_key = format!("<row-{index}>");
+        match (row.get("member_entry"), row.get("crate_dir")) {
+            (Some(member_entry), None) => {
+                let Some(member_entry) = member_entry.as_str().filter(|value| !value.is_empty())
+                else {
+                    findings.insert(Finding::new("workspace_glob_row_malformed", &malformed_key));
+                    continue;
+                };
+                let Some(is_glob) = row.get("is_glob").and_then(Value::as_bool) else {
+                    findings.insert(Finding::new("workspace_glob_row_malformed", &malformed_key));
+                    continue;
+                };
+                if !is_glob {
+                    findings.insert(Finding::new("workspace_member_explicit_path", member_entry));
+                }
             }
-        }
-        if let Some(crate_dir) = row.get("crate_dir").and_then(Value::as_str) {
-            if !bool_field(row, "covered") && !bool_field(row, "excluded") {
-                findings.insert(Finding::new("crate_dir_not_covered", crate_dir));
+            (None, Some(crate_dir)) => {
+                let Some(crate_dir) = crate_dir.as_str().filter(|value| !value.is_empty()) else {
+                    findings.insert(Finding::new("workspace_glob_row_malformed", &malformed_key));
+                    continue;
+                };
+                let Some(covered) = row.get("covered").and_then(Value::as_bool) else {
+                    findings.insert(Finding::new("workspace_glob_row_malformed", &malformed_key));
+                    continue;
+                };
+                let Some(excluded) = row.get("excluded").and_then(Value::as_bool) else {
+                    findings.insert(Finding::new("workspace_glob_row_malformed", &malformed_key));
+                    continue;
+                };
+                if !covered && !excluded {
+                    findings.insert(Finding::new("crate_dir_not_covered", crate_dir));
+                }
+            }
+            _ => {
+                findings.insert(Finding::new("workspace_glob_row_malformed", &malformed_key));
             }
         }
     }
@@ -109,10 +130,7 @@ pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
 
 /// Bare-code projection of [`evaluate_keyed`]; the single source of truth for the verdict.
 pub fn evaluate(input: &Value) -> Report {
-    let codes: BTreeSet<String> = evaluate_keyed(input)
-        .into_iter()
-        .map(|f| f.code)
-        .collect();
+    let codes: BTreeSet<String> = evaluate_keyed(input).into_iter().map(|f| f.code).collect();
     Report::from_codes(codes)
 }
 
@@ -129,7 +147,12 @@ mod tests {
                 {"crate_dir": "libs/oya-foo-kernel", "covered": true, "excluded": false}
             ]
         });
-        assert_eq!(evaluate(&input).verdict, Verdict::Green, "{:?}", evaluate(&input).violations);
+        assert_eq!(
+            evaluate(&input).verdict,
+            Verdict::Green,
+            "{:?}",
+            evaluate(&input).violations
+        );
         assert!(evaluate_keyed(&input).is_empty());
     }
 
@@ -179,7 +202,8 @@ mod tests {
         let input = json!({
             "rows": [
                 {"member_entry": "libs/oya-foo-kernel", "is_glob": false},
-                {"crate_dir": "tools/oya-orphan-app", "covered": false, "excluded": false}
+                {"crate_dir": "tools/oya-orphan-app", "covered": false, "excluded": false},
+                {"unexpected": "producer-shape-regression"}
             ]
         });
         let projected: BTreeSet<String> =
@@ -208,5 +232,50 @@ mod tests {
         assert_eq!(finding.code, "crate_dir_not_covered");
         assert_eq!(finding.key, "<missing-rows>");
         assert_eq!(evaluate(&json!({})).verdict, Verdict::Red);
+    }
+
+    #[test]
+    fn malformed_row_without_known_shape_is_red() {
+        let input = json!({
+            "rows": [
+                {"unexpected": "producer-shape-regression"}
+            ]
+        });
+        let findings = evaluate_keyed(&input);
+        assert_eq!(findings.len(), 1);
+        let finding = findings.iter().next().unwrap();
+        assert_eq!(finding.code, "workspace_glob_row_malformed");
+        assert_eq!(finding.key, "<row-0>");
+        assert_eq!(evaluate(&input).verdict, Verdict::Red);
+    }
+
+    #[test]
+    fn malformed_member_row_missing_is_glob_is_red() {
+        let input = json!({
+            "rows": [
+                {"member_entry": "libs/oya-foo-kernel"}
+            ]
+        });
+        let findings = evaluate_keyed(&input);
+        assert_eq!(findings.len(), 1);
+        let finding = findings.iter().next().unwrap();
+        assert_eq!(finding.code, "workspace_glob_row_malformed");
+        assert_eq!(finding.key, "<row-0>");
+        assert_eq!(evaluate(&input).verdict, Verdict::Red);
+    }
+
+    #[test]
+    fn malformed_crate_row_missing_coverage_booleans_is_red() {
+        for input in [
+            json!({"rows": [{"crate_dir": "tools/oya-orphan-app", "excluded": false}]}),
+            json!({"rows": [{"crate_dir": "tools/oya-orphan-app", "covered": false}]}),
+        ] {
+            let findings = evaluate_keyed(&input);
+            assert_eq!(findings.len(), 1);
+            let finding = findings.iter().next().unwrap();
+            assert_eq!(finding.code, "workspace_glob_row_malformed");
+            assert_eq!(finding.key, "<row-0>");
+            assert_eq!(evaluate(&input).verdict, Verdict::Red);
+        }
     }
 }
