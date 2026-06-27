@@ -18,6 +18,8 @@ related_specs:
 milestone: W0
 ---
 
+# ADR-0591: Fail-closed authz for the Cloud FinOps report API (AUTH-005 capability-billing remediation)
+
 <!--
   Born-accounting justification (ADR-0552 / accounting-registry): the new source
   file `billing/ports/finops-api/src/authz.rs` is justified by this ADR. The
@@ -26,9 +28,6 @@ milestone: W0
   Decision section) is the load-bearing citation:
   billing/ports/finops-api/src/authz.rs
 -->
-
-
-# ADR-0591: Fail-closed authz for the Cloud FinOps report API (AUTH-005 capability-billing remediation)
 
 ## Status
 

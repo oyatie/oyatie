@@ -4,6 +4,7 @@ title: "oya-meter — bespoke Rust usage metering substrate"
 status: Accepted
 date: 2026-05-28
 authority: founder
+owner: axis-cloud
 planning_impact: true
 supersedes: [ADR-0429]
 superseded_by: []
