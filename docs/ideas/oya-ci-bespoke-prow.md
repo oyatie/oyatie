@@ -24,7 +24,7 @@ controller-spawns-Job-per-change + reports-status model + trunk-sourced presubmi
 | **crier** (report status/comments to forge) | reporter (reuse gateway's GitHub client) | Terminal-status-always; failure summary |
 | **ProwJob + config** (presubmit/postsubmit/periodic/batch) | `OyaCIJob` CRD + config | buck2-affected-gate = one presubmit job type |
 | **tide** (merge automation: pool, batch, retest, auto-merge) | `oya-ci-merge` controller | **= the merge-queue (ADR-0111 projected state)** + the Sweep engine's auto-merge + required-context/approval enforcement (ADR-0116 reviewer-APPROVE) |
-| **deck** (web UI: jobs, logs, history) | `oya-ci-deck` (SolidJS shell, reuse the existing oya UI stack) | CI visibility for founder + agents |
+| **deck** (web UI: jobs, logs, history) | `oya-ci-deck` (Leptos shell, reuse the canonical oya UI stack) | CI visibility for founder + agents |
 | **sinker** (GC) | K8s `ttlSecondsAfterFinished` + a GC loop | Cheap, K8s-native |
 | **plugins** (ChatOps: /test /retest /lgtm /approve + governance) | `oya-ci-plugins` on the gateway | The governance pipeline / agent ChatOps; reviewer-agent APPROVE |
 | pod-utils → **GCS** artifacts | `kubectl logs` + **SeaweedFS-S3** | No GCS coupling (self-host lens) |

@@ -9,7 +9,8 @@
 //!
 //! The runner I/O scans the canonical default paths in the repo
 //! (`cloud/*/manifest.json`, `oya/*/manifest.json`, and `microservices/*/manifest.json`
-//! for the layered gate; same roots for `*/clients/*/client-manifest.json`). Arguments are accepted but optional.
+//! for the layered gate; recursive `client-manifest.json` discovery under the
+//! same roots for client-stack discipline). Arguments are accepted but optional.
 
 use std::collections::BTreeSet;
 use std::fs;
@@ -72,34 +73,30 @@ fn list_manifest_paths_from_roots(roots: &[PathBuf]) -> Vec<PathBuf> {
 fn walk_client_manifests_from_roots(roots: &[PathBuf]) -> Vec<PathBuf> {
     let mut out = Vec::new();
     for root in roots {
-    let Ok(ms_entries) = fs::read_dir(root) else {
-        continue;
+        collect_client_manifests(root, &mut out);
+    }
+    out.sort();
+    out.dedup();
+    out
+}
+
+fn collect_client_manifests(dir: &Path, out: &mut Vec<PathBuf>) {
+    let Ok(entries) = fs::read_dir(dir) else {
+        return;
     };
-    for ms_entry in ms_entries.flatten() {
-        let ms_path = ms_entry.path();
-        if !ms_path.is_dir() {
-            continue;
-        }
-        let clients = ms_path.join("clients");
-        if !clients.is_dir() {
-            continue;
-        }
-        let Ok(surfaces) = fs::read_dir(&clients) else {
+    for entry in entries.flatten() {
+        let path = entry.path();
+        let Ok(file_type) = entry.file_type() else {
             continue;
         };
-        for surface_entry in surfaces.flatten() {
-            let surface_path = surface_entry.path();
-            if !surface_path.is_dir() {
-                continue;
-            }
-            let manifest = surface_path.join("client-manifest.json");
-            if manifest.exists() {
-                out.push(manifest);
-            }
+        if file_type.is_dir() {
+            collect_client_manifests(&path, out);
+            continue;
+        }
+        if path.file_name().and_then(|name| name.to_str()) == Some("client-manifest.json") {
+            out.push(path);
         }
     }
-    }
-    out
 }
 
 pub(crate) fn run_layered_architecture_discipline(args: Vec<String>) -> ExitCode {

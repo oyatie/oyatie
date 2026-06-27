@@ -123,6 +123,19 @@ ADR-0372's header/title still reads "SolidJS," it carries five SolidJS-committed
 - `microservices/app-shell-frontend/MIGRATION-PLAN.md` is frozen/marked superseded and the SolidJS tree is quarantined from the build/promotion path (implementation follow-up).
 - The portal-shell app crate + ops-BFF rest crate register `axum` justifications in `specs/http-stack-policy.json#justified_crates.axum` (implementation follow-up).
 
+### 2026-06-27 implementation follow-up
+
+The ADR-0393 retirement follow-up removes the tracked SolidJS/SolidStart app-shell skeleton
+and adds producer-visible CI guardrails so the retired stack cannot silently re-enter active
+manifests:
+
+- `marketplace/facade/dev-cli/tests/client_stack_discipline_cli.rs` is the crate-shaped
+  client-stack CLI regression that proves the active Leptos app-shell manifest is scanned and
+  that a SolidJS/SolidStart manifest fails closed.
+- `evidence/multispectrum/retire-solidjs-app-shell-20260627-1782545469.json` is the PR-local
+  evidence record for the retirement, generated-artifact controls, rust-first accounting shrink,
+  and client-stack gate verification.
+
 ## References
 
 - ADR-0372 — the superseded SolidJS frontend decision + its 2026-05-27 Leptos-retention amendment (this PR adds the `superseded_by` marker).
