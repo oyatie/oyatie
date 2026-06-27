@@ -1,8 +1,30 @@
 #![allow(clippy::expect_used, clippy::panic)]
 
+use std::{fs, path::PathBuf};
+
 const OPENAPI: &str = include_str!("../cloud-intelligence.openapi.yaml");
 const ASYNCAPI: &str = include_str!("../cloud-intelligence.asyncapi.yaml");
 const PROTO: &str = include_str!("../cloud-intelligence.proto");
+
+fn repo_root() -> PathBuf {
+    let mut dir = std::env::current_dir().expect("current_dir");
+    loop {
+        if dir.join("cloud/cloud-intelligence/README.md").exists()
+            && dir.join("cloud/cloud-intelligence/manifest.json").exists()
+        {
+            return dir;
+        }
+        if !dir.pop() {
+            break;
+        }
+    }
+    panic!("failed to locate repo root from current_dir");
+}
+
+fn read_repo_file(path: &str) -> String {
+    let path = repo_root().join(path);
+    fs::read_to_string(&path).unwrap_or_else(|err| panic!("failed to read {}: {err}", path.display()))
+}
 
 fn assert_contract_has_path(contract: &str, path: &str) {
     assert!(
@@ -316,6 +338,26 @@ fn cloud_intelligence_agent_and_canary_asyncapi_events_are_redacted_status_only(
                 .to_ascii_lowercase()
                 .contains(forbidden_positive_surface.as_str()),
             "proto must not expose positive local control-plane surface: {forbidden_positive_surface}"
+        );
+    }
+}
+
+#[test]
+fn cloud_intelligence_manifest_and_readme_lock_the_local_foundation_non_claims() {
+    let readme = read_repo_file("cloud/cloud-intelligence/README.md");
+    let manifest = read_repo_file("cloud/cloud-intelligence/manifest.json");
+    let readme = readme.to_ascii_lowercase();
+    let manifest = manifest.to_ascii_lowercase();
+
+    for required in [
+        "code-backed local foundation",
+        "machine-readable claim set and explicit non-claims",
+        "no runtime pod deployment is claimed for the local-foundation phase",
+        "no live slo burn is claimed for the local-foundation phase",
+    ] {
+        assert!(
+            readme.contains(required) || manifest.contains(required),
+            "foundation docs/manifests missing required non-claim phrase: {required}"
         );
     }
 }
