@@ -1,7 +1,13 @@
 # cloud-billing-tax
 
-`cloud-billing-tax` calculates tax, jurisdiction evidence, filing handoffs,
-and tax-code catalog binding for the billing substrate.
+`cloud-billing-tax` is the canonical source-of-truth for invoice API request
+validation and regional-pack tax-invoice-format policy metadata for the billing
+substrate.
+
+It does **not** claim a live tax calculation engine, rate catalog, exemption
+certificate check, filing artifact generation, tax authority adapter, or
+runtime persistence; those remain future implementation surfaces outside this
+local foundation slice.
 
 ## Tenant-class model
 
@@ -18,6 +24,15 @@ receive production filing, compliance-pack, and jurisdiction coverage through
 Cedar gates for `tenant_class`, `billing_components`, and active
 `compliance_pack` state. Demo-trial tenants see the same model shape with
 non-production caps.
+
+## Non-claims
+
+- No statutory tax calculation engine.
+- No tax-rate catalog runtime.
+- No exemption certificate validation runtime.
+- No filing-artifact generation runtime.
+- No tax-authority network adapter.
+- No live tax-ledger persistence.
 
 Canonical replacement authority: ADR-0330.
 
