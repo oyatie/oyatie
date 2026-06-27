@@ -1,0 +1,10 @@
+rust_test(
+    name = "cloud-kms-openapi-parity",
+    srcs = glob(["tests/**/*.rs", "openapi/**/*.yaml"]),
+    crate = "cloud_kms_openapi_parity",
+    crate_root = "tests/openapi_parity.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//secrets/ports/kms-api:secrets-kms-api",
+    ],
+)
