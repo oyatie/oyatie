@@ -1,7 +1,6 @@
 pub(crate) mod catalog;
 pub(crate) mod check;
 pub(crate) mod cleanup;
-pub(crate) mod codex_thread_sweep;
 pub(crate) mod demo;
 pub(crate) mod doc;
 pub(crate) mod gate;
