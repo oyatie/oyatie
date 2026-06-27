@@ -1,0 +1,9 @@
+# cloud-observability discoverability alias only.
+# Active implementation metadata lives under observability/ after ADR-0562 rehoming.
+# Do not add placeholder runtime/build targets here; this package intentionally exposes
+# only the manifest so cloud-scoped scans can resolve without a false green.
+filegroup(
+    name = "manifest",
+    srcs = ["manifest.json"],
+    visibility = ["PUBLIC"],
+)
