@@ -98,6 +98,9 @@ pub const FROZEN_POLICY_SOURCE_CANDIDATE_BOOTSTRAP: &str = "candidate-bootstrap"
 /// The compare-mode that blocks NEW debt; the only mode whose baseline is growth-protected.
 pub const MODE_BASELINE_BLOCK_ON_NEW: &str = "baseline-block-on-new";
 
+/// The compare-mode that reports debt but does not fail until prerequisite infra lands.
+pub const MODE_ADVISORY_UNTIL_INFRA: &str = "advisory-until-infra";
+
 /// Repo-relative path of the sign-off door file — the SINGLE owner of this path: the gate
 /// test and the signoff fixer both consume it from here.
 pub const SIGNOFF_PATH: &str =
@@ -139,38 +142,95 @@ pub struct CodeBaseline {
 
 impl Baseline {
     /// Parse a `gate-baseline.generated.json` `Value` into the typed baseline.
-    pub fn from_value(value: &Value) -> Self {
+    ///
+    /// FAIL-CLOSED: the firewall consumes producer output as control-plane DATA. A malformed
+    /// baseline cannot silently collapse into "empty", "blocking by default", or a typo-mode
+    /// that behaves like advisory; the parse error is the gate failure.
+    pub fn from_value(value: &Value) -> Result<Self, String> {
         let mut gates: BTreeMap<String, BTreeMap<String, CodeBaseline>> = BTreeMap::new();
-        if let Some(gate_obj) = value.get("gates").and_then(Value::as_object) {
-            for (gate, codes) in gate_obj {
-                let mut code_map: BTreeMap<String, CodeBaseline> = BTreeMap::new();
-                if let Some(codes_obj) = codes.as_object() {
-                    for (code, entry) in codes_obj {
-                        code_map.insert(
-                            code.clone(),
-                            CodeBaseline {
-                                mode: entry
-                                    .get("mode")
-                                    .and_then(Value::as_str)
-                                    .unwrap_or(MODE_BASELINE_BLOCK_ON_NEW)
-                                    .to_owned(),
-                                frozen_empty: entry
-                                    .get("frozen_empty")
-                                    .and_then(Value::as_bool)
-                                    == Some(true),
-                                keys: str_set(entry.get("keys")),
-                                remediation: entry
-                                    .get("remediation")
-                                    .and_then(Value::as_str)
-                                    .map(str::to_owned),
-                            },
-                        );
+        let gate_obj = value
+            .get("gates")
+            .and_then(Value::as_object)
+            .ok_or("baseline missing object field gates")?;
+        for (gate, codes) in gate_obj {
+            let codes_obj = codes
+                .as_object()
+                .ok_or_else(|| format!("baseline gate {gate:?} codes must be an object"))?;
+            let mut code_map: BTreeMap<String, CodeBaseline> = BTreeMap::new();
+            for (code, entry) in codes_obj {
+                let entry_obj = entry
+                    .as_object()
+                    .ok_or_else(|| format!("baseline entry {gate:?}/{code:?} must be an object"))?;
+                let mode = entry_obj
+                    .get("mode")
+                    .and_then(Value::as_str)
+                    .ok_or_else(|| {
+                        format!("baseline entry {gate:?}/{code:?} missing string mode")
+                    })?;
+                if mode != MODE_BASELINE_BLOCK_ON_NEW && mode != MODE_ADVISORY_UNTIL_INFRA {
+                    return Err(format!(
+                        "baseline entry {gate:?}/{code:?} has unknown mode {mode:?}; \
+                         expected {MODE_BASELINE_BLOCK_ON_NEW:?} or {MODE_ADVISORY_UNTIL_INFRA:?}"
+                    ));
+                }
+
+                let frozen_empty = match entry_obj.get("frozen_empty") {
+                    Some(value) => value.as_bool().ok_or_else(|| {
+                        format!("baseline entry {gate:?}/{code:?} frozen_empty must be bool")
+                    })?,
+                    None => false,
+                };
+
+                let keys_value = entry_obj
+                    .get("keys")
+                    .ok_or_else(|| format!("baseline entry {gate:?}/{code:?} missing keys"))?;
+                let keys_array = keys_value.as_array().ok_or_else(|| {
+                    format!("baseline entry {gate:?}/{code:?} keys must be an array")
+                })?;
+                let mut keys = BTreeSet::new();
+                for (index, key) in keys_array.iter().enumerate() {
+                    let key = key.as_str().ok_or_else(|| {
+                        format!(
+                            "baseline entry {gate:?}/{code:?} key at index {index} must be string"
+                        )
+                    })?;
+                    if key.is_empty() {
+                        return Err(format!(
+                            "baseline entry {gate:?}/{code:?} key at index {index} is empty"
+                        ));
+                    }
+                    if !keys.insert(key.to_owned()) {
+                        return Err(format!(
+                            "baseline entry {gate:?}/{code:?} duplicate key {key:?}"
+                        ));
                     }
                 }
-                gates.insert(gate.clone(), code_map);
+                let remediation = match entry_obj.get("remediation") {
+                    Some(value) => Some(
+                        value
+                            .as_str()
+                            .ok_or_else(|| {
+                                format!(
+                                    "baseline entry {gate:?}/{code:?} remediation must be string"
+                                )
+                            })?
+                            .to_owned(),
+                    ),
+                    None => None,
+                };
+                code_map.insert(
+                    code.clone(),
+                    CodeBaseline {
+                        mode: mode.to_owned(),
+                        frozen_empty,
+                        keys,
+                        remediation,
+                    },
+                );
             }
+            gates.insert(gate.clone(), code_map);
         }
-        Self { gates }
+        Ok(Self { gates })
     }
 }
 
@@ -247,14 +307,13 @@ impl FrozenBaseline {
                  (FRIC-1781280000 frozen-policy-wins; fail-closed)"
             ));
         }
-        let missing_at_merge_base = value
-            .get("missing_at_merge_base")
-            .and_then(Value::as_bool)
-            == Some(true);
-        let baseline = value
-            .get("baseline")
-            .map(Baseline::from_value)
-            .unwrap_or_default();
+        let missing_at_merge_base =
+            value.get("missing_at_merge_base").and_then(Value::as_bool) == Some(true);
+        let baseline = match value.get("baseline") {
+            Some(value) => Baseline::from_value(value)
+                .map_err(|e| format!("frozen baseline embedded baseline malformed: {e}"))?,
+            None => Baseline::default(),
+        };
         if !missing_at_merge_base && baseline.gates.is_empty() {
             return Err(
                 "frozen baseline carries no gates yet does not declare missing_at_merge_base \
@@ -290,10 +349,7 @@ pub struct SignOff {
 impl SignOff {
     pub fn from_value(value: &Value) -> Self {
         let mut additions: BTreeMap<String, BTreeMap<String, BTreeSet<String>>> = BTreeMap::new();
-        if let Some(gate_obj) = value
-            .get("_sign_off_additions")
-            .and_then(Value::as_object)
-        {
+        if let Some(gate_obj) = value.get("_sign_off_additions").and_then(Value::as_object) {
             for (gate, codes) in gate_obj {
                 let mut code_map: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
                 if let Some(codes_obj) = codes.as_object() {
@@ -407,8 +463,7 @@ pub fn compare(
         );
         for code in codes {
             let base = base_codes.and_then(|c| c.get(&code));
-            let baseline_keys: BTreeSet<String> =
-                base.map(|b| b.keys.clone()).unwrap_or_default();
+            let baseline_keys: BTreeSet<String> = base.map(|b| b.keys.clone()).unwrap_or_default();
             // The mode comes from the FROZEN reference (merge-base DATA a PR cannot
             // rewrite); a code absent at the merge-base defaults to blocking.
             let mode = base
@@ -430,10 +485,8 @@ pub fn compare(
             }
             let fixed: BTreeSet<String> =
                 baseline_keys.difference(&current_keys).cloned().collect();
-            let tolerated: BTreeSet<String> = current_keys
-                .intersection(&baseline_keys)
-                .cloned()
-                .collect();
+            let tolerated: BTreeSet<String> =
+                current_keys.intersection(&baseline_keys).cloned().collect();
 
             reports.push(CodeReport {
                 gate: gate.clone(),
@@ -642,18 +695,18 @@ mod tests {
                     "registry_drift": {"mode": "baseline-block-on-new", "keys": [], "frozen_empty": true}
                 }
             }
-        }))
+        })).unwrap()
     }
 
-    fn current(pairs: &[(&str, &str, &[&str])]) -> BTreeMap<String, BTreeMap<String, BTreeSet<String>>> {
+    fn current(
+        pairs: &[(&str, &str, &[&str])],
+    ) -> BTreeMap<String, BTreeMap<String, BTreeSet<String>>> {
         let mut out: BTreeMap<String, BTreeMap<String, BTreeSet<String>>> = BTreeMap::new();
         for (gate, code, keys) in pairs {
-            out.entry((*gate).to_owned())
-                .or_default()
-                .insert(
-                    (*code).to_owned(),
-                    keys.iter().map(|k| (*k).to_owned()).collect(),
-                );
+            out.entry((*gate).to_owned()).or_default().insert(
+                (*code).to_owned(),
+                keys.iter().map(|k| (*k).to_owned()).collect(),
+            );
         }
         out
     }
@@ -661,7 +714,11 @@ mod tests {
     #[test]
     fn tolerated_baselined_debt_does_not_fail() {
         // current == baseline => all tolerated, no regressions, GREEN.
-        let cur = current(&[("cloud-ci-total-accounting", "unjustified", &["a.rs", "b.rs"])]);
+        let cur = current(&[(
+            "cloud-ci-total-accounting",
+            "unjustified",
+            &["a.rs", "b.rs"],
+        )]);
         let reports = compare(&baseline_fixture(), &cur, &SignOff::default());
         let unjust = reports.iter().find(|r| r.code == "unjustified").unwrap();
         assert_eq!(unjust.regressions.len(), 0);
@@ -694,7 +751,10 @@ mod tests {
         let reports = compare(&baseline_fixture(), &cur, &SignOff::default());
         let unowned = reports.iter().find(|r| r.code == "unowned").unwrap();
         assert!(unowned.regressions.contains("z-NEW.rs"));
-        assert!(!unowned.fails(), "advisory-until-infra must NOT fail the verdict");
+        assert!(
+            !unowned.fails(),
+            "advisory-until-infra must NOT fail the verdict"
+        );
     }
 
     #[test]
@@ -725,7 +785,10 @@ mod tests {
         let unjust = reports.iter().find(|r| r.code == "unjustified").unwrap();
         assert!(unjust.signed_off.contains("d-SIGNED.rs"));
         assert!(unjust.regressions.is_empty());
-        assert!(!unjust.fails(), "a founder-admitted key must not fail compare-mode");
+        assert!(
+            !unjust.fails(),
+            "a founder-admitted key must not fail compare-mode"
+        );
     }
 
     #[test]
@@ -736,9 +799,13 @@ mod tests {
             "gates": {"cloud-ci-total-accounting": {
                 "unjustified": {"mode": "baseline-block-on-new", "keys": ["a.rs", "b.rs", "d-NEW.rs"]}
             }}
-        }));
+        })).unwrap();
         let growth = ratchet_growth(&frozen, &proposed, &SignOff::default());
-        assert!(growth.iter().any(|(_, c, k)| c == "unjustified" && k == "d-NEW.rs"));
+        assert!(
+            growth
+                .iter()
+                .any(|(_, c, k)| c == "unjustified" && k == "d-NEW.rs")
+        );
     }
 
     #[test]
@@ -748,12 +815,15 @@ mod tests {
             "gates": {"cloud-ci-total-accounting": {
                 "unjustified": {"mode": "baseline-block-on-new", "keys": ["a.rs", "b.rs", "d-NEW.rs"]}
             }}
-        }));
+        })).unwrap();
         let signoff = SignOff::from_value(&json!({
             "_sign_off_additions": {"cloud-ci-total-accounting": {"unjustified": ["d-NEW.rs"]}}
         }));
         let growth = ratchet_growth(&frozen, &proposed, &signoff);
-        assert!(growth.is_empty(), "a signed-off addition is exempt from the GROWTH check");
+        assert!(
+            growth.is_empty(),
+            "a signed-off addition is exempt from the GROWTH check"
+        );
     }
 
     #[test]
@@ -764,7 +834,7 @@ mod tests {
             "gates": {"cloud-ci-total-accounting": {
                 "registry_drift": {"mode": "baseline-block-on-new", "keys": ["<gate>"], "frozen_empty": true}
             }}
-        }));
+        })).unwrap();
         let growth = ratchet_growth(&frozen, &proposed, &SignOff::default());
         assert!(
             growth.iter().any(|(_, c, _)| c == "registry_drift"),
@@ -781,7 +851,8 @@ mod tests {
             "gates": {"cloud-ci-total-accounting": {
                 "unowned": {"mode": "advisory-until-infra", "keys": ["a.rs", "new-file.rs"]}
             }}
-        }));
+        }))
+        .unwrap();
         let growth = ratchet_growth(&frozen, &proposed, &SignOff::default());
         assert!(
             growth.is_empty(),
@@ -799,7 +870,8 @@ mod tests {
                 "unjustified": {"mode": "baseline-block-on-new", "keys": ["a.rs", "b.rs"],
                                  "remediation": "register it: the exact edit"}
             }}
-        }));
+        }))
+        .unwrap();
         let cur = current(&[(
             "cloud-ci-total-accounting",
             "unjustified",
@@ -828,12 +900,115 @@ mod tests {
             "gates": {"cloud-ci-total-accounting": {
                 "unjustified": {"mode": "advisory-until-infra", "keys": ["a.rs", "b.rs", "d-FLIPPED.rs"]}
             }}
-        }));
+        })).unwrap();
         let growth = ratchet_growth(&frozen, &proposed, &SignOff::default());
         assert!(
-            growth.iter().any(|(_, c, k)| c == "unjustified" && k == "d-FLIPPED.rs"),
+            growth
+                .iter()
+                .any(|(_, c, k)| c == "unjustified" && k == "d-FLIPPED.rs"),
             "a same-PR mode flip must not disarm the growth check"
         );
+    }
+
+    #[test]
+    fn malformed_baseline_mode_is_rejected_fail_closed() {
+        let err = Baseline::from_value(&json!({
+            "gates": {"cloud-ci-total-accounting": {
+                "unjustified": {"mode": "typo-not-a-mode", "keys": ["a.rs"]}
+            }}
+        }))
+        .unwrap_err();
+        assert!(err.contains("unknown mode"), "{err}");
+    }
+
+    #[test]
+    fn baseline_rejects_non_array_keys() {
+        let err = Baseline::from_value(&json!({
+            "gates": {"cloud-ci-total-accounting": {
+                "unjustified": {"mode": "baseline-block-on-new", "keys": "a.rs"}
+            }}
+        }))
+        .unwrap_err();
+        assert!(err.contains("keys must be an array"), "{err}");
+    }
+
+    #[test]
+    fn baseline_rejects_non_bool_frozen_empty() {
+        let err = Baseline::from_value(&json!({
+            "gates": {"cloud-ci-total-accounting": {
+                "registry_drift": {
+                    "mode": "baseline-block-on-new",
+                    "frozen_empty": "yes",
+                    "keys": []
+                }
+            }}
+        }))
+        .unwrap_err();
+        assert!(err.contains("frozen_empty must be bool"), "{err}");
+    }
+
+    #[test]
+    fn baseline_rejects_remaining_malformed_shapes() {
+        let cases = [
+            (
+                "missing gates",
+                json!({}),
+                "baseline missing object field gates",
+            ),
+            (
+                "non-object gates",
+                json!({"gates": []}),
+                "baseline missing object field gates",
+            ),
+            (
+                "non-object code map",
+                json!({"gates": {"cloud-ci-total-accounting": []}}),
+                "codes must be an object",
+            ),
+            (
+                "non-object entry",
+                json!({"gates": {"cloud-ci-total-accounting": {"unjustified": []}}}),
+                "must be an object",
+            ),
+            (
+                "missing mode",
+                json!({"gates": {"cloud-ci-total-accounting": {"unjustified": {"keys": []}}}}),
+                "missing string mode",
+            ),
+            (
+                "missing keys",
+                json!({"gates": {"cloud-ci-total-accounting": {"unjustified": {"mode": "baseline-block-on-new"}}}}),
+                "missing keys",
+            ),
+            (
+                "non-string key",
+                json!({"gates": {"cloud-ci-total-accounting": {"unjustified": {"mode": "baseline-block-on-new", "keys": [7]}}}}),
+                "key at index 0 must be string",
+            ),
+            (
+                "empty key",
+                json!({"gates": {"cloud-ci-total-accounting": {"unjustified": {"mode": "baseline-block-on-new", "keys": [""]}}}}),
+                "key at index 0 is empty",
+            ),
+            (
+                "duplicate key",
+                json!({"gates": {"cloud-ci-total-accounting": {"unjustified": {"mode": "baseline-block-on-new", "keys": ["a.rs", "a.rs"]}}}}),
+                "duplicate key",
+            ),
+            (
+                "non-string remediation",
+                json!({"gates": {"cloud-ci-total-accounting": {"unjustified": {"mode": "baseline-block-on-new", "keys": [], "remediation": false}}}}),
+                "remediation must be string",
+            ),
+        ];
+
+        for (name, value, expected) in cases {
+            let err = Baseline::from_value(&value).unwrap_err();
+            assert!(
+                err.contains(expected),
+                "{name}: expected {expected:?} in error, got {err:?}"
+            );
+        }
     }
 
     #[test]
@@ -841,9 +1016,11 @@ mod tests {
         let frozen = baseline_fixture();
         // current == frozen baseline keys, proposed == frozen => no regression, no growth.
         let cur = baseline_keys_map(&frozen);
-        let report =
-            evaluate_firewall(&frozen, &frozen, &cur, &SignOff::default());
-        assert!(report.is_green(), "frozen-at-today corpus must be GREEN with the baseline");
+        let report = evaluate_firewall(&frozen, &frozen, &cur, &SignOff::default());
+        assert!(
+            report.is_green(),
+            "frozen-at-today corpus must be GREEN with the baseline"
+        );
     }
 
     #[test]
@@ -855,13 +1032,16 @@ mod tests {
             "gates": {"cloud-ci-total-accounting": {
                 "unjustified": {"mode": "baseline-block-on-new", "keys": ["a.rs", "b.rs", "d-ADMITTED.rs"]}
             }}
-        }));
+        })).unwrap();
         let cur = baseline_keys_map(&proposed);
         let signoff = SignOff::from_value(&json!({
             "_sign_off_additions": {"cloud-ci-total-accounting": {"unjustified": ["d-ADMITTED.rs"]}}
         }));
         let report = evaluate_firewall(&frozen, &proposed, &cur, &signoff);
-        assert!(report.inert_signoff.is_empty(), "a LIVE in-flight admission must be tolerated");
+        assert!(
+            report.inert_signoff.is_empty(),
+            "a LIVE in-flight admission must be tolerated"
+        );
         assert!(report.is_green(), "the admitting PR itself must stay GREEN");
     }
 
@@ -899,7 +1079,10 @@ mod tests {
             "_sign_off_additions": {"cloud-ci-total-accounting": {"unjustified": ["a.rs"]}}
         }));
         let report = evaluate_firewall(&frozen, &frozen, &cur, &signoff);
-        assert!(report.inert_signoff.is_empty(), "still-present baselined debt is LIVE");
+        assert!(
+            report.inert_signoff.is_empty(),
+            "still-present baselined debt is LIVE"
+        );
         assert!(report.is_green());
     }
 
@@ -922,7 +1105,8 @@ mod tests {
             "gates": {"cloud-ci-total-accounting": {
                 "unjustified": {"mode": "baseline-block-on-new", "keys": ["b.rs"]}
             }}
-        }));
+        }))
+        .unwrap();
         let cur_fixed = baseline_keys_map(&fixed);
         let report = evaluate_firewall(&frozen, &fixed, &cur_fixed, &signoff);
         assert_eq!(
@@ -935,7 +1119,10 @@ mod tests {
             "an entry the candidate orphaned must be flagged inert at PR time (key ∈ frozen \
              must NOT veto the verdict — that is the FRIC-1781460000 asymmetry)"
         );
-        assert!(!report.is_green(), "the orphaning PR must FAIL CLOSED, not pass GREEN");
+        assert!(
+            !report.is_green(),
+            "the orphaning PR must FAIL CLOSED, not pass GREEN"
+        );
 
         // SYMMETRY: the push tier (frozen advanced to the integrated tip := fixed) reaches
         // the IDENTICAL verdict — the same lingering entry, the same inert RED.
@@ -968,10 +1155,18 @@ mod tests {
     fn frozen_baseline_parses_happy_path() {
         let frozen = FrozenBaseline::from_value(&frozen_value()).unwrap();
         assert_eq!(frozen.base_ref, "origin/dev");
-        assert_eq!(frozen.merge_base, "d5d8be5d4121e91655d7ba361f63271c98c57a68");
+        assert_eq!(
+            frozen.merge_base,
+            "d5d8be5d4121e91655d7ba361f63271c98c57a68"
+        );
         assert_eq!(frozen.frozen_policy_source, FROZEN_POLICY_SOURCE_MERGE_BASE);
         assert!(!frozen.missing_at_merge_base);
-        assert!(frozen.baseline.gates.contains_key("cloud-ci-total-accounting"));
+        assert!(
+            frozen
+                .baseline
+                .gates
+                .contains_key("cloud-ci-total-accounting")
+        );
     }
 
     #[test]
@@ -1031,6 +1226,16 @@ mod tests {
         let mut value = frozen_value();
         value["baseline"] = json!({"gates": {}});
         assert!(FrozenBaseline::from_value(&value).is_err());
+    }
+
+    #[test]
+    fn frozen_baseline_rejects_malformed_embedded_baseline() {
+        let mut value = frozen_value();
+        value["baseline"]["gates"]["cloud-ci-total-accounting"]["unjustified"]["keys"] =
+            json!("not-an-array");
+        let err = FrozenBaseline::from_value(&value).unwrap_err();
+        assert!(err.contains("embedded baseline malformed"), "{err}");
+        assert!(err.contains("keys must be an array"), "{err}");
     }
 
     #[test]

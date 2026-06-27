@@ -350,8 +350,8 @@ fn firewall_fixtures_execute_red_green_cases() {
             "{label}: stale fixture field committed_baseline — the frozen reference is the \
              merge-base baseline (merge_base_baseline) per ADR-0551/FRIC-1781112000"
         );
-        let frozen = Baseline::from_value(&fixture["merge_base_baseline"]);
-        let proposed = Baseline::from_value(&fixture["proposed_baseline"]);
+        let frozen = Baseline::from_value(&fixture["merge_base_baseline"]).unwrap();
+        let proposed = Baseline::from_value(&fixture["proposed_baseline"]).unwrap();
         let signoff = SignOff::from_value(&fixture["signoff"]);
         let current = current_from_value(&fixture["current"]);
 
@@ -428,7 +428,7 @@ fn firewall_is_green_on_the_live_corpus_with_the_baseline() {
 
     // The proposed baseline = what TODAY's corpus would freeze.
     let proposed_value = regenerate_baseline(&root);
-    let proposed = Baseline::from_value(&proposed_value);
+    let proposed = Baseline::from_value(&proposed_value).unwrap();
 
     // The sign-off door (the one-way exemption; empty = ratchet fully closed).
     let signoff = SignOff::from_value(&load_json(&signoff_path(&root)));
@@ -553,7 +553,7 @@ fn firewall_is_green_on_the_live_corpus_with_the_baseline() {
         );
         let parent_value: Value =
             serde_json::from_slice(&parent_output.stdout).expect("parse parent baseline JSON");
-        let pre_decommit = Baseline::from_value(&parent_value);
+        let pre_decommit = Baseline::from_value(&parent_value).unwrap();
 
         let new_growth: Vec<(String, String, String)> =
             ratchet_growth(&pre_decommit, &proposed, &signoff);
@@ -690,7 +690,7 @@ fn converted_accounting_codes_block_new_keys_when_armed() {
     // inert-door detector (FRIC-1781280001) would correctly flag — that is the inert-door
     // gate's concern, exercised by its own pins, not the conversion's. An empty door keeps
     // is_green() a faithful read of the conversion predicates alone.
-    let proposed = Baseline::from_value(&proposed_value);
+    let proposed = Baseline::from_value(&proposed_value).unwrap();
     let frozen = proposed.clone();
     let signoff = SignOff::default();
 
@@ -776,7 +776,7 @@ fn converted_accounting_codes_block_new_keys_when_armed() {
             "SYNTHETIC/new-service/born-unowned.rs".to_owned(),
         ));
     }
-    let laundered = Baseline::from_value(&laundered_value);
+    let laundered = Baseline::from_value(&laundered_value).unwrap();
     let report = evaluate_firewall(
         &frozen,
         &laundered,
@@ -908,7 +908,7 @@ fn firewall_blocks_same_pr_baseline_regen_laundering() {
             "SYNTHETIC/laundered-in-same-pr.rs".to_owned(),
         ));
     }
-    let proposed = Baseline::from_value(&proposed_value);
+    let proposed = Baseline::from_value(&proposed_value).unwrap();
     let pr_local_reference = proposed.clone(); // settle protocol: committed == regenerated
     let current = baseline_keys_map(&proposed);
 
@@ -963,7 +963,7 @@ fn firewall_blocks_same_pr_baseline_regen_laundering() {
 fn firewall_goes_red_on_a_synthetic_new_violation() {
     let root = repo_root();
     let frozen = load_frozen_baseline(&root);
-    let proposed = Baseline::from_value(&regenerate_baseline(&root));
+    let proposed = Baseline::from_value(&regenerate_baseline(&root)).unwrap();
     let signoff = SignOff::from_value(&load_json(&signoff_path(&root)));
 
     let mut current = baseline_keys_map(&proposed);
@@ -1015,7 +1015,7 @@ fn firewall_blocks_baseline_growth_without_signoff() {
     {
         keys.push(Value::String("SYNTHETIC/laundered-debt.rs".to_owned()));
     }
-    let proposed = Baseline::from_value(&proposed_value);
+    let proposed = Baseline::from_value(&proposed_value).unwrap();
     let current: BTreeMap<String, BTreeMap<String, BTreeSet<String>>> = BTreeMap::new();
 
     // Empty sign-off => the grown key is NOT exempt.
