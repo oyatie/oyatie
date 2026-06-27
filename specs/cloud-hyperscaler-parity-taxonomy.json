@@ -1605,7 +1605,7 @@
     ],
     "status_when_absent": "target_non_claim_only",
     "can_claim_now": [
-      "Clean dev intentionally has no cloud/cloud-compute or cloud/cloud-observability implementation directory.",
+      "Clean dev intentionally keeps cloud/cloud-compute and cloud/cloud-observability implementation directories absent.",
       "Compute and observability are discoverable as target/backlog vocabulary with explicit non-claims only."
     ],
     "cannot_claim_from_absence": [
