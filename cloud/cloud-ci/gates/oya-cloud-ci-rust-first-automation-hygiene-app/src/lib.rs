@@ -671,6 +671,11 @@ pub fn collect_observed_interpreter_command_authority(
     }
 
     let roots = workflow_block_string_array(block, "interpreter_command_authority", "roots")?;
+    let exclude_prefixes = workflow_block_string_array(
+        block,
+        "interpreter_command_authority",
+        "exclude_prefixes",
+    )?;
     let extensions =
         workflow_block_string_array(block, "interpreter_command_authority", "extensions")?
             .into_iter()
@@ -694,6 +699,9 @@ pub fn collect_observed_interpreter_command_authority(
 
     let mut rows = Vec::new();
     for (path, rel) in collect_files_with_extensions(repo_root, &roots, &extensions)? {
+        if path_is_excluded(&rel, &exclude_prefixes) {
+            continue;
+        }
         let text = fs::read_to_string(&path).map_err(|e| {
             ScanError::Io(format!(
                 "read source {} for interpreter-command scan: {e}",
