@@ -134,13 +134,13 @@ This file is the canonical coverage snapshot for the oyatie documentation set co
 | `cloud-tenancy` | 🔴 stub | N/A | M02-P18 | ⚪ awaits M02-P18 |
 | `cloud-iam` | 🔴 stub | N/A | M02-P18 | ⚪ awaits M02-P18 |
 | `cloud-kms` | 🔴 stub | N/A | M02-P08 | ⚪ awaits M02-P08 |
-| `cloud-compute` | 🔴 stub | N/A | M02-P18 | ⚪ awaits M02-P18 |
+| `cloud-compute` | 🔴 stub | N/A | M02-P18 | ⚪ no implementation directory until runtime evidence |
 | `cloud-storage` | 🔴 stub | N/A | M02-P18 | ⚪ awaits M02-P18 |
 | `cloud-network` | 🔴 stub | N/A | M02-P18 | ⚪ awaits M02-P18 |
 | `cloud-billing` | 🔴 stub | N/A | M02-P18 | ⚪ awaits M02-P18 |
 | `cloud-cell` | 🔴 stub | N/A | M02-P18 | ⚪ awaits M02-P18 |
 | `cloud-region` | 🔴 stub | N/A | M02-P18 | ⚪ awaits M02-P18 |
-| `cloud-observability` | 🔴 stub | N/A | M02-P07 / M02-P18 | ⚪ |
+| `cloud-observability` | 🔴 stub | N/A | M02-P07 / M02-P18 | ⚪ no implementation directory until measured SLO evidence |
 
 ### Foundry + Application
 

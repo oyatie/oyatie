@@ -35,6 +35,21 @@
   },
   "dr_observability": "RTO/RPO matrix (ADR-0343) instrumented; failover drills emit measured recovery-time/point evidence (not declared).",
   "cost_observability": "FinOps per-tenant cost attribution + OpenCost/FOCUS export (ADR-0344) as first-class observability dimensions.",
+  "implementation_directory_absence_gate": {
+    "gate_id": "cloud-compute-observability-absence-nonclaim",
+    "status": "target_spec_only_until_measured_slo_evidence",
+    "paths_that_must_remain_absent_until_runtime_evidence": [
+      "cloud/cloud-compute",
+      "cloud/cloud-observability"
+    ],
+    "blocked_claim_families": [
+      "no_runtime_observability_engine",
+      "no_measured_slo_claim",
+      "no_public_sla_slo_claim",
+      "no_production_readiness_claim"
+    ],
+    "checker": "scripts/tests/check_cloud_absence_nonclaim.py"
+  },
   "non_claims": [
     "Target spec only — references agentic-slo-gated-promotion + brownout schemas; does not implement the OTel collector, SLO engine, burn-rate alerting, dashboards, or promotion runtime.",
     "No measured SLO/DR/cost evidence; availability/latency/recovery claims stay blocked_until_required_evidence_is_green."

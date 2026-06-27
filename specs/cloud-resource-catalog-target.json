@@ -145,6 +145,21 @@
     "shared_cloud": "logical: cell + Cedar + per-tenant encryption; multi-tenant resource cells",
     "dedicated_cloud": "physical: dedicated cell pinning + shuffle-shard per tenant"
   },
+  "implementation_directory_absence_gate": {
+    "gate_id": "cloud-compute-observability-absence-nonclaim",
+    "status": "metadata_only_until_runtime_evidence",
+    "paths_that_must_remain_absent_until_runtime_evidence": [
+      "cloud/cloud-compute",
+      "cloud/cloud-observability"
+    ],
+    "blocked_claim_families": [
+      "no_tenant_workload_claim",
+      "no_public_sla_slo_claim",
+      "no_runtime_observability_engine",
+      "no_production_readiness_claim"
+    ],
+    "checker": "scripts/tests/check_cloud_absence_nonclaim.py"
+  },
   "non_claims": [
     "Target spec only — enumerates resource types + their control-plane contract; does NOT implement any provider provisioning, live resource CRUD, OpenTofu plan/apply, operator/Cluster-API/Argo runtime, or persistence.",
     "cloud-* services are metadata-only foundations today; live provisioning + measured SLO/DR/scale evidence are P-STRANGLE/P-PROD; all such claims stay blocked_until_required_evidence_is_green."
