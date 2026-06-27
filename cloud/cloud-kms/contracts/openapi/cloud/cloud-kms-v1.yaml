@@ -2,11 +2,13 @@ openapi: 3.2.0
 info:
   title: cloud-kms
   version: "1.0.0"
-  summary: Contract scaffold for cloud-kms.
+  summary: Metadata-only Cloud KMS crypto-operation contract.
   description: >-
-    Standard OpenAPI 3.2.0 contract scaffold for cloud-kms. This file carries
-    Wave 15-ZF-13 components metadata only; endpoint wire shape remains
-    intentionally unimplemented until the service-owned contract wave authors it.
+    Service-local OpenAPI contract for the Cloud KMS encrypt/decrypt API boundary.
+    The contract pins request shape, verified-principal authorization metadata,
+    default-deny posture, idempotency, and metadata-only receipt semantics. It
+    does not claim a live HSM, Cedar evaluator, provider integration, public SLA,
+    or tenant workload readiness.
   contact:
     name: axis-cloud-kms
   license:
@@ -17,55 +19,200 @@ servers:
       tenant:
         default: tenant-id
         description: Tenant subdomain per ADR-0244.
-paths: {}
+paths:
+  /keys/{key_id}:encrypt:
+    post:
+      operationId: encryptKeyMaterialReference
+      summary: Authorize an encrypt operation and return a metadata-only receipt.
+      x-oyatie-surface: cloud.kms.encrypt
+      x-oyatie-authorization:
+        required_surface: cloud.kms.encrypt
+        authority: verified_principal_plus_ingress_pdp_cedar_decision
+        default_decision: deny
+        tenant_scope: tenant_account_project_boundary
+        cross_tenant_access: forbidden
+        caller_supplied_authority_fields: forbidden
+        metadata_only_receipt: true
+        nonclaims:
+          - no_live_hsm_claim
+          - no_runtime_cedar_evaluator_claim
+          - no_provider_integration_claim
+          - no_tenant_workload_readiness_claim
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/BoundaryRegionId'
+        - $ref: '#/components/parameters/BoundaryCellId'
+        - $ref: '#/components/parameters/OyatieVersion'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/KeyId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KmsEncryptRequest'
+      responses:
+        '200':
+          description: Metadata-only crypto-use receipt.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KmsCryptoReceipt'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+  /keys/{key_id}:decrypt:
+    post:
+      operationId: decryptKeyMaterialReference
+      summary: Authorize a decrypt operation and return a metadata-only receipt.
+      x-oyatie-surface: cloud.kms.decrypt
+      x-oyatie-authorization:
+        required_surface: cloud.kms.decrypt
+        authority: verified_principal_plus_ingress_pdp_cedar_decision
+        default_decision: deny
+        tenant_scope: tenant_account_project_boundary
+        cross_tenant_access: forbidden
+        caller_supplied_authority_fields: forbidden
+        metadata_only_receipt: true
+        nonclaims:
+          - no_live_hsm_claim
+          - no_runtime_cedar_evaluator_claim
+          - no_provider_integration_claim
+          - no_tenant_workload_readiness_claim
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/BoundaryRegionId'
+        - $ref: '#/components/parameters/BoundaryCellId'
+        - $ref: '#/components/parameters/OyatieVersion'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/KeyId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KmsDecryptRequest'
+      responses:
+        '200':
+          description: Metadata-only crypto-use receipt.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KmsCryptoReceipt'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
 components:
-  x-oyatie-sharding-automation-event-surface:
-    microservice: cloud-kms
-    wave: 15-ZF-13
-    artifact_type: contracts
-    scope: OpenAPI components metadata for the sharding_automation event surface.
-    wire_shape: Extension-only annotation; no paths, operations, schemas, requestBodies, responses, headers, securitySchemes, or examples are added.
-    doctrine_refs:
-      ADR-0346:
-        purpose: >-
-          Establish that ./bin/oya verify --ci-required is the canonical local pre-push verifier and MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH step before returning success to the caller.
-        enforced_by:
-          - oya-governance-oya-verify-ci-mirror-coverage
-          - oya-governance-oya-verify-ci-step-exit-semantics
-          - oya-governance-oya-verify-skip-flag-allowlist
-          - oya-governance-oya-submit-calls-verify
-          - oya-governance-oya-verify-exit-code-contract
-      ADR-0347:
-        purpose: >-
-          Declare that every oya-governance-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
-        enforced_by:
-          - oya-governance-no-foundry-fitness-residue
-          - oya-governance-lane-prefix-vocabulary
-          - oya-governance-rename-inventory-presence
-      ADR-0348:
-        purpose: >-
-          Declare that cellular topology MUST support three control-plane-driven automation modes: AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING.
-        enforced_by:
-          - oya-governance-sharding-automation-coverage
-          - oya-governance-autosharding-manual-mode-refusal
-          - oya-governance-auto-rebalance-residency-honored
-          - oya-governance-dynamic-sharding-threshold-coverage
-          - oya-governance-audit-chain-emit-on-automation-events
-          - oya-governance-tenant-migration-reversibility
-        event_surface:
-          autosharding: tenant_to_cell_shard_placement is computed by the control plane automatically.
-          auto_rebalance: tenant migration honors residency and compliance pack constraints and is observable, reversible, and audit-chain-emit per ADR-0263.
-          dynamic_sharding: HOT-SPLIT and COLD-MERGE shard-count operations are atomic and audit-emit.
-          manifest_block: sharding_automation declares autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
-      ADR-0349:
-        purpose: >-
-          Declare Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
-        enforced_by:
-          - oya-governance-jenkins-github-actions-parity
-          - oya-governance-argocd-application-cosign-verified
-          - oya-governance-argocd-tenant-namespace-isolation
-          - oya-governance-jenkins-jcasc-only
-          - oya-governance-deploy-audit-chain-emit
-    consumer_guidance:
-      generators: Ignore this x-extension for SDK and server wire generation.
-      governance: Use this x-extension as doctrine metadata for sharding_automation event-surface review only.
+  parameters:
+    RequestId:
+      name: X-Request-Id
+      in: header
+      required: true
+      schema: { type: string, minLength: 1 }
+    TenantId:
+      name: X-Tenant-Id
+      in: header
+      required: true
+      schema: { type: string, minLength: 1 }
+    BoundaryRegionId:
+      name: X-Boundary-Region-Id
+      in: header
+      required: true
+      schema: { type: string, minLength: 1 }
+    BoundaryCellId:
+      name: X-Boundary-Cell-Id
+      in: header
+      required: true
+      schema: { type: string, minLength: 1 }
+    OyatieVersion:
+      name: Oyatie-Version
+      in: header
+      required: true
+      schema:
+        type: string
+        enum: ["2026-05-21", "2026-02-21", "2025-11-21"]
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: { type: string, minLength: 1 }
+    KeyId:
+      name: key_id
+      in: path
+      required: true
+      schema: { type: string, minLength: 1 }
+  schemas:
+    KmsEncryptRequest:
+      type: object
+      required: [event_id, key_id, tenant_id, plaintext_ref, ciphertext_ref, data_class, purpose, actor, aad_fingerprint, requested_at_epoch_seconds]
+      additionalProperties: false
+      properties:
+        event_id: { type: string, minLength: 1 }
+        key_id: { type: string, minLength: 1 }
+        tenant_id: { type: string, minLength: 1 }
+        plaintext_ref: { type: string, minLength: 1, description: Reference only; raw plaintext is never carried in this contract. }
+        ciphertext_ref: { type: string, minLength: 1 }
+        data_class: { type: string, minLength: 1 }
+        purpose: { type: string, minLength: 1 }
+        actor: { type: string, minLength: 1 }
+        aad_fingerprint: { type: string, minLength: 1 }
+        requested_at_epoch_seconds: { type: integer, minimum: 0 }
+    KmsDecryptRequest:
+      type: object
+      required: [event_id, key_id, tenant_id, ciphertext_ref, data_class, purpose, actor, requested_at_epoch_seconds]
+      additionalProperties: false
+      properties:
+        event_id: { type: string, minLength: 1 }
+        key_id: { type: string, minLength: 1 }
+        tenant_id: { type: string, minLength: 1 }
+        ciphertext_ref: { type: string, minLength: 1 }
+        data_class: { type: string, minLength: 1 }
+        purpose: { type: string, minLength: 1 }
+        actor: { type: string, minLength: 1 }
+        requested_at_epoch_seconds: { type: integer, minimum: 0 }
+    KmsCryptoReceipt:
+      type: object
+      required: [request_id, tenant_id, key_id, operation, authorization_decision_ref, metadata_only]
+      additionalProperties: false
+      properties:
+        request_id: { type: string, minLength: 1 }
+        tenant_id: { type: string, minLength: 1 }
+        key_id: { type: string, minLength: 1 }
+        operation: { type: string, enum: [encrypt, decrypt] }
+        authorization_decision_ref: { type: string, minLength: 1 }
+        metadata_only: { type: boolean, const: true }
+    ErrorResponse:
+      type: object
+      required: [code, message, message_localized]
+      additionalProperties: false
+      properties:
+        code: { type: string, minLength: 1 }
+        message: { type: string, minLength: 1 }
+        message_localized: { type: string, minLength: 1 }
+  responses:
+    BadRequest:
+      description: Request shape, path/body, tenant, boundary, or version validation failed.
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    Unauthorized:
+      description: Verified principal could not be established.
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    Forbidden:
+      description: Authorization denied or tenant/principal boundary mismatch.
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    NotFound:
+      description: KMS key metadata was not found.
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    Conflict:
+      description: Idempotency or key-state conflict.
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    UnprocessableEntity:
+      description: Data-class, purpose, key-usage, or residency validation failed.
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
