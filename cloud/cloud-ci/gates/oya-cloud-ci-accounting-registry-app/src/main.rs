@@ -2008,8 +2008,7 @@ mod tests {
         fs::write(candidate_root.join("oya-ci.toml"), "profile = 'neutral'\n")
             .expect("write candidate policy");
 
-        let cfg =
-            load_policy_config(&candidate_root, None).expect("candidate policy root loads");
+        let cfg = load_policy_config(&candidate_root, None).expect("candidate policy root loads");
 
         assert_eq!(cfg.profile, oya_ci_config_kernel::Profile::Neutral);
         fs::remove_dir_all(candidate_root).expect("remove candidate temp repo");
