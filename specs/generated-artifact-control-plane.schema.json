@@ -284,7 +284,8 @@
             "branch-committed-regenerated-until-controller-materialization",
             "merge-candidate-regenerated",
             "main-branch-materialized",
-            "ci-artifact-only"
+            "ci-artifact-only",
+            "not-tracked-in-git"
           ]
         },
         "merge_policy": {
