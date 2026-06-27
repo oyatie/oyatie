@@ -32,6 +32,9 @@ paths:
       x-oyatie-authorization:
         required_surface: cloud.iam.identity_provider.list
         authority: ingress_pdp_cedar_decision
+        default_decision: deny
+        tenant_scope: tenant_account_project_boundary
+        cross_tenant_access: forbidden
         caller_supplied_authorization_headers: forbidden
       parameters:
         - $ref: '#/components/parameters/RequestId'
@@ -58,6 +61,9 @@ paths:
       x-oyatie-authorization:
         required_surface: cloud.iam.identity_provider.create
         authority: ingress_pdp_cedar_decision
+        default_decision: deny
+        tenant_scope: tenant_account_project_boundary
+        cross_tenant_access: forbidden
         caller_supplied_authorization_headers: forbidden
       parameters:
         - $ref: '#/components/parameters/RequestId'
@@ -85,6 +91,9 @@ paths:
       x-oyatie-authorization:
         required_surface: cloud.iam.identity_provider.update
         authority: ingress_pdp_cedar_decision
+        default_decision: deny
+        tenant_scope: tenant_account_project_boundary
+        cross_tenant_access: forbidden
         caller_supplied_authorization_headers: forbidden
       parameters:
         - $ref: '#/components/parameters/RequestId'
@@ -112,6 +121,9 @@ paths:
       x-oyatie-authorization:
         required_surface: cloud.iam.identity_provider.delete
         authority: ingress_pdp_cedar_decision
+        default_decision: deny
+        tenant_scope: tenant_account_project_boundary
+        cross_tenant_access: forbidden
         caller_supplied_authorization_headers: forbidden
       parameters:
         - $ref: '#/components/parameters/RequestId'
@@ -136,6 +148,9 @@ paths:
       x-oyatie-authorization:
         required_surface: cloud.iam.role.create
         authority: ingress_pdp_cedar_decision
+        default_decision: deny
+        tenant_scope: tenant_account_project_boundary
+        cross_tenant_access: forbidden
         caller_supplied_authorization_headers: forbidden
       parameters:
         - $ref: '#/components/parameters/RequestId'
@@ -164,6 +179,9 @@ paths:
       x-oyatie-authorization:
         required_surface: cloud.iam.sts.token
         authority: ingress_pdp_cedar_decision
+        default_decision: deny
+        tenant_scope: tenant_account_project_boundary
+        cross_tenant_access: forbidden
         caller_supplied_authorization_headers: forbidden
       parameters:
         - $ref: '#/components/parameters/RequestId'
