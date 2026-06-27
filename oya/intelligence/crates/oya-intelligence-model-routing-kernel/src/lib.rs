@@ -252,6 +252,175 @@ mod tests {
     }
 
     #[test]
+    fn equal_priority_routes_by_provider_then_model_id_not_catalog_order() {
+        let decision = decide_route(
+            &request(),
+            &[
+                profile(ModelProvider::OpenAi, "zeta", 5),
+                profile(ModelProvider::AzureOpenAi, "beta", 5),
+                profile(ModelProvider::AzureOpenAi, "alpha", 5),
+                profile(ModelProvider::Anthropic, "claude", 5),
+            ],
+        );
+
+        assert_eq!(
+            decision,
+            RouteDecision::Allow(RouteSelection {
+                provider: ModelProvider::Anthropic,
+                model_id: "claude".to_owned(),
+                credential_mode: CredentialMode::TenantScoped,
+                evidence_refs: vec!["catalog:Anthropic".to_owned(), "req:42".to_owned()],
+            })
+        );
+    }
+
+    #[test]
+    fn same_provider_same_priority_routes_by_model_id_not_catalog_order() {
+        let decision = decide_route(
+            &request(),
+            &[
+                profile(ModelProvider::AzureOpenAi, "zeta", 7),
+                profile(ModelProvider::AzureOpenAi, "alpha", 7),
+            ],
+        );
+
+        assert_eq!(
+            decision,
+            RouteDecision::Allow(RouteSelection {
+                provider: ModelProvider::AzureOpenAi,
+                model_id: "alpha".to_owned(),
+                credential_mode: CredentialMode::TenantScoped,
+                evidence_refs: vec!["catalog:AzureOpenAi".to_owned(), "req:42".to_owned()],
+            })
+        );
+    }
+
+    #[test]
+    fn tenant_restriction_denies_unlisted_tenant_fail_closed() {
+        let mut restricted_profile = profile(ModelProvider::Gemini, "gemini", 1);
+        restricted_profile.allowed_tenants = BTreeSet::from(["ten_b".to_owned()]);
+
+        let decision = decide_route(&request(), &[restricted_profile]);
+
+        assert_eq!(
+            decision,
+            RouteDecision::Deny(RouteDenial {
+                reasons: BTreeSet::from([RouteDenialReason::TenantNotAllowed]),
+                evidence_refs: vec!["catalog:Gemini".to_owned(), "req:42".to_owned()],
+            })
+        );
+    }
+
+    #[test]
+    fn tenant_denied_candidate_falls_back_to_profile_allowing_request_tenant() {
+        let mut restricted_profile = profile(ModelProvider::Gemini, "gemini", 1);
+        restricted_profile.allowed_tenants = BTreeSet::from(["ten_b".to_owned()]);
+        let mut allowed_fallback = profile(ModelProvider::OpenAi, "tenant-safe-fallback", 100);
+        allowed_fallback.allowed_tenants = BTreeSet::from(["ten_a".to_owned()]);
+
+        let decision = decide_route(&request(), &[restricted_profile, allowed_fallback]);
+
+        assert_eq!(
+            decision,
+            RouteDecision::Allow(RouteSelection {
+                provider: ModelProvider::OpenAi,
+                model_id: "tenant-safe-fallback".to_owned(),
+                credential_mode: CredentialMode::TenantScoped,
+                evidence_refs: vec!["catalog:OpenAi".to_owned(), "req:42".to_owned()],
+            })
+        );
+    }
+
+    #[test]
+    fn disabled_candidate_does_not_block_enabled_fallback() {
+        let mut disabled_profile = profile(ModelProvider::Anthropic, "disabled", 1);
+        disabled_profile.enabled = false;
+
+        let decision = decide_route(
+            &request(),
+            &[
+                disabled_profile,
+                profile(ModelProvider::Local, "local-safe", 100),
+            ],
+        );
+
+        assert_eq!(
+            decision,
+            RouteDecision::Allow(RouteSelection {
+                provider: ModelProvider::Local,
+                model_id: "local-safe".to_owned(),
+                credential_mode: CredentialMode::TenantScoped,
+                evidence_refs: vec!["catalog:Local".to_owned(), "req:42".to_owned()],
+            })
+        );
+    }
+
+    #[test]
+    fn empty_catalog_denies_with_request_evidence_only() {
+        let decision = decide_route(&request(), &[]);
+
+        assert_eq!(
+            decision,
+            RouteDecision::Deny(RouteDenial {
+                reasons: BTreeSet::from([RouteDenialReason::NoEnabledProvider]),
+                evidence_refs: vec!["req:42".to_owned()],
+            })
+        );
+    }
+
+    #[test]
+    fn fully_disabled_catalog_denies_without_selecting_any_provider() {
+        let mut disabled_openai = profile(ModelProvider::OpenAi, "gpt", 1);
+        disabled_openai.enabled = false;
+        let mut disabled_local = profile(ModelProvider::Local, "local", 2);
+        disabled_local.enabled = false;
+
+        let decision = decide_route(&request(), &[disabled_openai, disabled_local]);
+
+        assert_eq!(
+            decision,
+            RouteDecision::Deny(RouteDenial {
+                reasons: BTreeSet::from([RouteDenialReason::NoEnabledProvider]),
+                evidence_refs: vec![
+                    "catalog:Local".to_owned(),
+                    "catalog:OpenAi".to_owned(),
+                    "req:42".to_owned(),
+                ],
+            })
+        );
+    }
+
+    #[test]
+    fn denial_evidence_refs_are_sorted_and_deduplicated_across_catalog() {
+        let mut blocked_openai = profile(ModelProvider::OpenAi, "gpt", 1);
+        blocked_openai.capabilities = BTreeSet::from([ModelCapability::Embedding]);
+        blocked_openai.evidence_refs = vec![
+            "catalog:z".to_owned(),
+            "catalog:a".to_owned(),
+            "catalog:a".to_owned(),
+        ];
+
+        let mut blocked_local = profile(ModelProvider::Local, "local", 2);
+        blocked_local.capabilities = BTreeSet::from([ModelCapability::Embedding]);
+        blocked_local.evidence_refs = vec!["catalog:m".to_owned(), "catalog:z".to_owned()];
+
+        let decision = decide_route(&request(), &[blocked_openai, blocked_local]);
+
+        assert_eq!(
+            decision,
+            RouteDecision::Deny(RouteDenial {
+                reasons: BTreeSet::from([RouteDenialReason::CapabilityUnavailable]),
+                evidence_refs: vec![
+                    "catalog:a".to_owned(),
+                    "catalog:m".to_owned(),
+                    "catalog:z".to_owned(),
+                    "req:42".to_owned(),
+                ],
+            })
+        );
+    }
+
+    #[test]
     fn denies_when_no_profile_supports_required_audience() {
         let mut blocked_profile = profile(ModelProvider::OpenAi, "gpt", 1);
         blocked_profile.allowed_audiences = BTreeSet::from([RequestAudience::InternalAutomation]);
