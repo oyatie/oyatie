@@ -327,5 +327,27 @@
     "explicit_non_claims": [
         "No live billing REST/gRPC server, SDK, worker, message broker, metering outbox, database ledger, payment processor, settlement rail, tax authority adapter, FOCUS export, OpenTofu plan/apply, provider-live smoke, measured SLO, capacity telemetry, DR, or audit-chain runtime persistence is implemented.",
         "Legacy Markdown benchmark/parity/runbook/implementation-plan files under microservices/cloud-billing remain planning/prose and are not readiness evidence for CS-CLOUD-BILLING-TAX-001."
-    ]
+    ],
+    "c2a_billing_finops_marketplace_metering_seam": {
+        "schema_version": 1,
+        "seam_kind": "contract_traceability_nonclaim",
+        "metering_contract_refs": [
+            "contracts/openapi.yaml#/paths/~1cloud-billing-event",
+            "contracts/openapi.yaml#/paths/~1meter-aggregate",
+            "contracts/asyncapi.yaml#/channels/cloud_billing.usage.recorded",
+            "contracts/proto/cloud-billing.proto"
+        ],
+        "settlement_contract_refs": [
+            "contracts/openapi.yaml#/paths/~1settlement",
+            "contracts/asyncapi.yaml#/channels/cloud_billing.settlement.computed",
+            "contracts/asyncapi.yaml#/channels/cloud_billing.settlement.payout_initiated"
+        ],
+        "downstream_traceability_refs": [
+            "../../oya/finops-portal/contracts/focus-export-internal.asyncapi.yaml",
+            "../../oya/finops-portal/contracts/tenant-invoice-public.openapi.yaml",
+            "../../oya/marketplace/contracts/openapi-v1.yaml",
+            "../../oya/marketplace/contracts/asyncapi-v1.yaml"
+        ],
+        "non_claim": "Traceability only: this records billing, FinOps, and marketplace contract handoff surfaces. It does not implement live metering ingest, FOCUS export generation, invoice rendering, settlement payout, escrow, entitlement, external marketplace API integration, broker delivery, storage, audit-chain persistence, or production billing readiness."
+    }
 }
