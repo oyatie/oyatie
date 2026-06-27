@@ -262,5 +262,20 @@
         "focus_export_runtime": false,
         "opencost_ingest_runtime": false,
         "non_claim": "FOCUS/OpenCost sources guided terminology, but this slice does not implement live FOCUS export or OpenCost ingestion."
+    },
+    "c2a_billing_metering_handoff": {
+        "schema_version": 1,
+        "seam_kind": "contract_traceability_nonclaim",
+        "upstream_billing_contract_refs": [
+            "../../cloud/cloud-billing/contracts/openapi.yaml#/paths/~1meter-aggregate",
+            "../../cloud/cloud-billing/contracts/openapi.yaml#/paths/~1focus-export",
+            "../../cloud/cloud-billing/contracts/asyncapi.yaml#/channels/cloud_billing.focus_export.completed"
+        ],
+        "local_contract_refs": [
+            "contracts/focus-export-internal.asyncapi.yaml",
+            "contracts/tenant-invoice-public.openapi.yaml",
+            "contracts/cost-allocation-policy-internal.proto"
+        ],
+        "non_claim": "Traceability only: this records the planned handoff from billing metering/export contracts into FinOps invoice and FOCUS contract surfaces. It does not implement OpenCost ingest, FOCUS data generation, portal UI, invoice PDF rendering, scheduler, database, or production FinOps runtime readiness."
     }
 }
