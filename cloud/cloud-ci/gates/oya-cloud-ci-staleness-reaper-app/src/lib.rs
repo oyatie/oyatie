@@ -40,6 +40,9 @@ pub const VIOLATION_CODES: [&str; 3] = [
     "reap_without_report",
 ];
 
+const STALENESS_ROWS_KEY: &str = "<cloud-ci-staleness-reaper#rows>";
+const STALENESS_ROW_KEY: &str = "<cloud-ci-staleness-reaper#row>";
+
 /// The gate report.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Report {
@@ -117,13 +120,15 @@ pub fn evaluate(fixture: &Value) -> Report {
 pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
     let mut findings: BTreeSet<Finding> = BTreeSet::new();
 
-    let rows = fixture
-        .get("rows")
-        .and_then(Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let rows = match fixture.get("rows").and_then(Value::as_array) {
+        Some(rows) if !rows.is_empty() => rows,
+        _ => {
+            findings.insert(Finding::new("untyped_staleness", STALENESS_ROWS_KEY));
+            return findings;
+        }
+    };
 
-    for row in &rows {
+    for row in rows {
         evaluate_row(row, &mut findings);
     }
 
@@ -131,7 +136,15 @@ pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
 }
 
 fn evaluate_row(row: &Value, findings: &mut BTreeSet<Finding>) {
-    let key = row.get("path").and_then(Value::as_str).unwrap_or("");
+    let Some(key) = row
+        .get("path")
+        .and_then(Value::as_str)
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+    else {
+        findings.insert(Finding::new("untyped_staleness", STALENESS_ROW_KEY));
+        return;
+    };
 
     // reap_without_report: a reap that skipped report -> git mv -> _archive/.
     let reaped = row.get("reaped").and_then(Value::as_bool) == Some(true);
@@ -163,7 +176,9 @@ fn evaluate_row(row: &Value, findings: &mut BTreeSet<Finding>) {
     }
 
     // stale_over_budget_unreachable: over budget AND unreachable.
-    let budget_days = ttl.and_then(|t| t.get("budget_days")).and_then(Value::as_u64);
+    let budget_days = ttl
+        .and_then(|t| t.get("budget_days"))
+        .and_then(Value::as_u64);
     let age_days = row.get("age_days").and_then(Value::as_u64);
     let unreachable = row
         .get("reachable_from")
@@ -183,6 +198,32 @@ fn evaluate_row(row: &Value, findings: &mut BTreeSet<Finding>) {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn absent_malformed_or_empty_rows_fail_closed() {
+        for fixture in [
+            json!({}),
+            json!({"rows": "not-an-array"}),
+            json!({"rows": []}),
+        ] {
+            let findings = evaluate_keyed(&fixture);
+            assert!(findings.contains(&Finding::new("untyped_staleness", STALENESS_ROWS_KEY)));
+            assert_eq!(evaluate(&fixture).verdict, Verdict::Red);
+        }
+    }
+
+    #[test]
+    fn malformed_row_without_path_fails_closed_with_stable_key() {
+        let fixture = json!({"rows":[{
+            "age_days": 120,
+            "reachable_from": [],
+            "ttl": {"ttl_class": "husk", "budget_days": 14, "protected": false, "action": "archive"}
+        }]});
+
+        let findings = evaluate_keyed(&fixture);
+        assert!(findings.contains(&Finding::new("untyped_staleness", STALENESS_ROW_KEY)));
+        assert_eq!(evaluate(&fixture).verdict, Verdict::Red);
+    }
 
     #[test]
     fn old_but_reachable_is_green() {
@@ -221,9 +262,11 @@ mod tests {
                 "ttl": {"ttl_class": "husk", "budget_days": 14, "protected": false, "action": "archive"}
             }]
         });
-        assert!(evaluate(&fixture)
-            .violations
-            .contains("stale_over_budget_unreachable"));
+        assert!(
+            evaluate(&fixture)
+                .violations
+                .contains("stale_over_budget_unreachable")
+        );
     }
 
     #[test]
@@ -244,8 +287,11 @@ mod tests {
     #[test]
     fn each_code_fires_in_isolation() {
         // untyped_staleness
-        assert!(evaluate(&json!({"rows":[{"path":"a","age_days":100,"reachable_from":[],"ttl":{}}]}))
-            .violations.contains("untyped_staleness"));
+        assert!(
+            evaluate(&json!({"rows":[{"path":"a","age_days":100,"reachable_from":[],"ttl":{}}]}))
+                .violations
+                .contains("untyped_staleness")
+        );
         // reap_without_report
         assert!(evaluate(&json!({"rows":[{"path":"a","reaped":true,"reported_then_archived":false,"ttl":{"ttl_class":"husk","budget_days":14,"protected":false}}]}))
             .violations.contains("reap_without_report"));
