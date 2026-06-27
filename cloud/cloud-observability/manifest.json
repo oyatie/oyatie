@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0",
+  "microservice": "cloud-observability",
+  "doc_class": "Machine-Readable-Spec",
+  "status": "target_non_claim_rehomed_discoverability_alias",
+  "tier": "substrate",
+  "tier_subtype": "substrate-observability",
+  "owner": "axis-cloud-platform",
+  "active_target": {
+    "path": "observability/",
+    "decision_ref": "ADR-0562 section 10.7",
+    "reason": "cloud-observability crates were rehomed to the top-level observability capability tree; this cloud-scoped manifest preserves discoverability for cloud substrate scans without reclaiming runtime authority."
+  },
+  "bounded_contexts": [
+    {
+      "name": "cloud-observability",
+      "description": "Discoverability alias for the rehomed observability capability tree. Active implementation metadata lives under observability/; this alias introduces no collector runtime, dashboard service, audit-read service, SLO engine, storage backend, measured SLO, production readiness, or hyperscaler maturity claim.",
+      "crates": []
+    }
+  ],
+  "layers": [
+    "metadata"
+  ],
+  "contracts": {
+    "openapi": [
+      "contracts/openapi/cloud/cloud-observability-audit-v1.yaml"
+    ],
+    "asyncapi": [],
+    "proto": [],
+    "contract_status": "referenced_contract_only; no cloud/cloud-observability runtime or transport implementation is claimed by this alias"
+  },
+  "capabilities": [],
+  "slos": [],
+  "ips": [],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "target_non_claim: no cloud/cloud-observability runtime circuit-breaker, bulkhead, retry, collector, or production evidence is implemented here",
+    "tenant_rate_limit": "target_non_claim: no runtime per-tenant observability quota or rate-limit enforcement is implemented here",
+    "golden_signals": "target_non_claim: no measured cloud-observability golden-signal emission evidence is implemented here",
+    "error_budget_burn": "target_non_claim: no measured observability SLI or burn-rate rule is implemented here"
+  },
+  "audit_chain": {
+    "runtime_audit_emitter": false,
+    "evidence_refs": [],
+    "non_claim": "This alias emits no runtime audit event and persists no observability operation evidence."
+  },
+  "explicit_non_claims": [
+    "No cloud/cloud-observability crate or runtime provider is introduced.",
+    "No collector, audit-read service, dashboard, SLO engine, trace/log/metric backend, or alerting runtime is implemented or promoted.",
+    "No production readiness, hyperscaler maturity, measured SLO, provider-live smoke, or branch-protection authority is claimed.",
+    "Buck2 discoverability of this alias is limited to the manifest target in cloud/cloud-observability/BUCK."
+  ]
+}
