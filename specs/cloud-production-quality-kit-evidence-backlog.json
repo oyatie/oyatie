@@ -1748,7 +1748,7 @@
     {
       "id": "g006-validator",
       "command": "python3 scripts/tests/cloud_production_quality_kit_evidence_backlog_check.py",
-      "status": "implemented",
+      "status": "implemented_legacy_bridge_local_only",
       "checks": [
         "target-kit coverage",
         "objective-domain coverage",
@@ -1756,7 +1756,10 @@
         "nonclaim controls",
         "evidence schema completeness",
         "backlog-only status semantics"
-      ]
+      ],
+      "authority_fence": "temporary_python_validator_local_only_not_merge_authority",
+      "replacement_target": "Buck2-native Rust cloud-ci validator before authority promotion",
+      "retirement_action": "Port this validator to Rust/Buck2, then delete scripts/tests/cloud_production_quality_kit_evidence_backlog_check.py and remove its rust-first automation exception."
     }
   ],
   "nonclaims": [
