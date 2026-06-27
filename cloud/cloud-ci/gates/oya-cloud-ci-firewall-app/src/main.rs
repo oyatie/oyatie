@@ -41,10 +41,10 @@ use std::collections::BTreeSet;
 use std::path::PathBuf;
 
 use oya_cloud_ci_firewall_app::{
-    Baseline, FrozenBaseline, SignOff, baseline_keys_map, inert_signoff_entries,
-    FROZEN_SNAPSHOT_PATH, RATCHET_POLICY_PATH, SIGNOFF_FIXER_COMMAND, SIGNOFF_PATH,
+    Baseline, FROZEN_SNAPSHOT_PATH, FrozenBaseline, RATCHET_POLICY_PATH, SIGNOFF_FIXER_COMMAND,
+    SIGNOFF_PATH, SignOff, baseline_keys_map, inert_signoff_entries,
 };
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 fn main() {
     match run() {
@@ -101,13 +101,14 @@ fn run() -> Result<i32, String> {
         .and_then(Value::as_str)
         .ok_or("ratchet-policy.json missing frozen_reference.face_path")?;
     let face = read_json(&root.join(face_path))?;
-    let proposed = Baseline::from_value(&face);
+    let proposed = Baseline::from_value(&face)
+        .map_err(|e| format!("invalid committed baseline face {face_path}: {e}"))?;
     let current = baseline_keys_map(&proposed);
 
     // The door file, via the one parser.
     let door_path = root.join(SIGNOFF_PATH);
-    let door_text = std::fs::read_to_string(&door_path)
-        .map_err(|e| format!("{}: {e}", door_path.display()))?;
+    let door_text =
+        std::fs::read_to_string(&door_path).map_err(|e| format!("{}: {e}", door_path.display()))?;
     let door: Value = serde_json::from_str(&door_text)
         .map_err(|e| format!("parse {}: {e}", door_path.display()))?;
     let signoff = SignOff::from_value(&door);
@@ -153,10 +154,16 @@ fn run() -> Result<i32, String> {
         + "\n";
 
     // SELF-VALIDATION: reparse the bytes we are about to write and refuse on any drift.
-    validate_retirement(&door, &fixed_text, &inert, &frozen.baseline, &proposed, &current)?;
+    validate_retirement(
+        &door,
+        &fixed_text,
+        &inert,
+        &frozen.baseline,
+        &proposed,
+        &current,
+    )?;
 
-    std::fs::write(&door_path, &fixed_text)
-        .map_err(|e| format!("{}: {e}", door_path.display()))?;
+    std::fs::write(&door_path, &fixed_text).map_err(|e| format!("{}: {e}", door_path.display()))?;
     println!(
         "oya-cloud-ci-firewall-signoff-fixer: retired {} entr{} into _sign_off_retirements \
          ({}) — re-run the firewall gate to confirm GREEN",
@@ -168,8 +175,7 @@ fn run() -> Result<i32, String> {
 }
 
 fn read_json(path: &std::path::Path) -> Result<Value, String> {
-    let text =
-        std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    let text = std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
     serde_json::from_str(&text).map_err(|e| format!("parse {}: {e}", path.display()))
 }
 
@@ -184,8 +190,10 @@ fn discover_repo_root() -> Result<PathBuf, String> {
             break;
         }
     }
-    Err("failed to locate repo root (no specs/root-hub-pointers.json up-tree); pass --repo-root"
-        .to_owned())
+    Err(
+        "failed to locate repo root (no specs/root-hub-pointers.json up-tree); pass --repo-root"
+            .to_owned(),
+    )
 }
 
 /// PURE: remove every inert `(gate, code, key)` from `_sign_off_additions` (dropping
@@ -360,6 +368,7 @@ mod tests {
         Baseline::from_value(&json!({
             "gates": {"g": {"c": {"mode": "baseline-block-on-new", "keys": ["frozen.rs"]}}}
         }))
+        .unwrap()
     }
 
     fn proposed_with_live_admission() -> Baseline {
@@ -367,6 +376,7 @@ mod tests {
             "gates": {"g": {"c": {"mode": "baseline-block-on-new",
                                    "keys": ["frozen.rs", "live-admitted.rs"]}}}
         }))
+        .unwrap()
     }
 
     fn door() -> Value {
