@@ -8,7 +8,7 @@ Owned write scope for this evidence:
 
 - `oya/intelligence/crates/oya-intelligence-api-graphql-kernel/**`
 - `oya/intelligence/crates/oya-intelligence-api-graphql-adapter/**`
-- `.omx/context/wave-d-g003-worker1/**`
+- `evidence/wave-d-g003-g006/g003/**`
 
 Avoided writes outside the owned scope. Root specs, cloud-ci, workflows, generated files, and historical/vendor truth were read-only or untouched.
 

@@ -9,7 +9,7 @@ Owned write scope for this evidence:
 - `workflow/**` was read-only for this slice.
 - `docs/specs/task-workflow*.md` was read-only.
 - `docs/prds/workflow.md` was read-only.
-- `.omx/context/wave-d-worker2-workflow/**` is the owned evidence path used for this slice.
+- `evidence/wave-d-g003-g006/g009/**` is the owned evidence path used for this slice.
 
 ## Ledger note
 
