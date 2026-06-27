@@ -17,7 +17,7 @@ use serde_yaml::Value as YamlValue;
 
 pub const GATE_ID: &str = "cloud-ci-rust-first-automation-hygiene";
 
-pub const VIOLATION_CODES: [&str; 10] = [
+pub const VIOLATION_CODES: [&str; 11] = [
     "rust_first_automation_gate_id_mismatch",
     "rust_first_automation_exception_duplicate",
     "rust_first_automation_exception_missing_field",
@@ -35,6 +35,10 @@ pub const VIOLATION_CODES: [&str; 10] = [
     // installer may download the official facebook/buck2 release asset, but CI must not outsource
     // that policy boundary to a marketplace action.
     "rust_first_automation_forbidden_workflow_action",
+    // Interpreter-command dimension (G006): Rust source must not re-authorize Python/Node/MJS by
+    // spawning interpreter commands directly. This inventory closes the gap where the extension scan
+    // is green but a Rust test/helper still shells out to a retired interpreter.
+    "rust_first_automation_interpreter_command_authority",
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -215,10 +219,10 @@ fn shell_line_count(run: &str) -> usize {
     run.lines().filter(|line| !line.trim().is_empty()).count()
 }
 
-/// Glob-free workflow file collector: the policy declares explicit directories + extensions for the
-/// workflow surface (`scan.workflow_inline_shell.{roots,extensions}`); we walk each root and keep
-/// files whose extension is in the set. Read-only, deterministic (sorted), no temp files.
-fn collect_workflow_files(
+/// Glob-free file collector: the policy declares explicit directories + extensions for a scan
+/// surface; we walk each root and keep files whose extension is in the set. Read-only,
+/// deterministic (sorted), no temp files.
+fn collect_files_with_extensions(
     repo_root: &Path,
     roots: &[String],
     extensions: &BTreeSet<String>,
@@ -229,13 +233,13 @@ fn collect_workflow_files(
         if !absolute.exists() {
             continue;
         }
-        visit_workflow_files(repo_root, &absolute, extensions, &mut files)?;
+        visit_files_with_extensions(repo_root, &absolute, extensions, &mut files)?;
     }
     files.sort_by(|a, b| a.1.cmp(&b.1));
     Ok(files)
 }
 
-fn visit_workflow_files(
+fn visit_files_with_extensions(
     repo_root: &Path,
     dir: &Path,
     extensions: &BTreeSet<String>,
@@ -252,7 +256,7 @@ fn visit_workflow_files(
             continue;
         }
         if metadata.is_dir() {
-            visit_workflow_files(repo_root, &path, extensions, files)?;
+            visit_files_with_extensions(repo_root, &path, extensions, files)?;
             continue;
         }
         if !metadata.is_file() || !has_non_rust_extension(&path, extensions) {
@@ -331,7 +335,7 @@ pub fn collect_observed_workflow_inline_shell(
         .collect::<BTreeSet<_>>();
 
     let mut rows = Vec::new();
-    for (path, rel) in collect_workflow_files(repo_root, &roots, &extensions)? {
+    for (path, rel) in collect_files_with_extensions(repo_root, &roots, &extensions)? {
         let text = fs::read_to_string(&path)
             .map_err(|e| ScanError::Io(format!("read workflow {}: {e}", path.display())))?;
         let doc: YamlValue = serde_yaml::from_str(&text)
@@ -536,7 +540,7 @@ pub fn collect_observed_forbidden_workflow_uses(
     .collect::<Vec<_>>();
 
     let mut rows = Vec::new();
-    for (path, rel) in collect_workflow_files(repo_root, &roots, &extensions)? {
+    for (path, rel) in collect_files_with_extensions(repo_root, &roots, &extensions)? {
         let text = fs::read_to_string(&path)
             .map_err(|e| ScanError::Io(format!("read workflow {}: {e}", path.display())))?;
         let doc: YamlValue = serde_yaml::from_str(&text)
@@ -572,6 +576,167 @@ pub fn evaluate_forbidden_workflow_uses(observed: &Value) -> BTreeSet<Finding> {
                     "rust_first_automation_observed_path_missing_field",
                     "<observed-workflow-uses>",
                     "observed workflow uses row missing non-empty `key`",
+                ));
+            }
+        }
+    }
+    findings
+}
+
+// ───────────────────── interpreter command authority dimension (G006) ─────────────────────
+//
+// The file-extension scan inventories non-Rust automation files. It does not catch Rust source that
+// re-introduces a retired interpreter by executing `Command::new("python3")` or
+// `Command::new("/path/to/tool.mjs")`. This dimension is intentionally inventory-first and narrow:
+// policy DATA declares Rust roots, exact forbidden interpreter command names, and forbidden command
+// suffixes; the scanner records direct `Command::new("<literal>")` authority sites with file:line
+// keys. Porting the two live python3 test bridges to Rust std keeps the live corpus green.
+
+fn interpreter_command_block(policy: &Value) -> Option<&Value> {
+    policy
+        .get("scan")
+        .and_then(|scan| scan.get("interpreter_command_authority"))
+}
+
+fn command_literal_after_new(line: &str) -> Option<&str> {
+    let marker = "Command::new";
+    let marker_index = line.find(marker)?;
+    let after_marker = &line[marker_index + marker.len()..];
+    let open_index = after_marker.find('(')?;
+    let after_open = after_marker[open_index + 1..].trim_start();
+    let after_quote = after_open.strip_prefix('"')?;
+    let close_index = after_quote.find('"')?;
+    Some(&after_quote[..close_index])
+}
+
+fn command_basename(command: &str) -> &str {
+    command
+        .rsplit(['/', '\\'])
+        .next()
+        .filter(|name| !name.is_empty())
+        .unwrap_or(command)
+}
+
+fn command_matches_interpreter_policy(
+    command: &str,
+    forbidden_commands: &BTreeSet<String>,
+    forbidden_suffixes: &[String],
+) -> bool {
+    let normalized = command.to_ascii_lowercase();
+    let basename = command_basename(&normalized);
+    forbidden_commands.contains(basename)
+        || forbidden_suffixes
+            .iter()
+            .any(|suffix| normalized.ends_with(suffix))
+}
+
+fn interpreter_command_key(rel: &str, line_number: usize, command: &str) -> String {
+    format!("{rel}:{line_number}::{command}")
+}
+
+fn extract_interpreter_command_authority(
+    rel: &str,
+    text: &str,
+    forbidden_commands: &BTreeSet<String>,
+    forbidden_suffixes: &[String],
+    rows: &mut Vec<Value>,
+) {
+    for (line_index, line) in text.lines().enumerate() {
+        let Some(command) = command_literal_after_new(line) else {
+            continue;
+        };
+        if command_matches_interpreter_policy(command, forbidden_commands, forbidden_suffixes) {
+            let line_number = line_index + 1;
+            rows.push(json!({
+                "key": interpreter_command_key(rel, line_number, command),
+                "file": rel,
+                "line": line_number,
+                "command": command,
+            }));
+        }
+    }
+}
+
+pub fn collect_observed_interpreter_command_authority(
+    repo_root: &Path,
+    policy: &Value,
+) -> Result<Value, ScanError> {
+    let block = interpreter_command_block(policy);
+    let enabled = block
+        .and_then(|block| block.get("enabled"))
+        .and_then(Value::as_bool)
+        .unwrap_or(false);
+    if !enabled {
+        return Ok(json!({ "commands": [] }));
+    }
+
+    let roots = workflow_block_string_array(block, "interpreter_command_authority", "roots")?;
+    let extensions =
+        workflow_block_string_array(block, "interpreter_command_authority", "extensions")?
+            .into_iter()
+            .collect::<BTreeSet<_>>();
+    let forbidden_commands = workflow_block_string_array(
+        block,
+        "interpreter_command_authority",
+        "forbidden_command_literals",
+    )?
+    .into_iter()
+    .map(|command| command.to_ascii_lowercase())
+    .collect::<BTreeSet<_>>();
+    let forbidden_suffixes = workflow_block_string_array(
+        block,
+        "interpreter_command_authority",
+        "forbidden_command_suffixes",
+    )?
+    .into_iter()
+    .map(|suffix| suffix.to_ascii_lowercase())
+    .collect::<Vec<_>>();
+
+    let mut rows = Vec::new();
+    for (path, rel) in collect_files_with_extensions(repo_root, &roots, &extensions)? {
+        let text = fs::read_to_string(&path).map_err(|e| {
+            ScanError::Io(format!(
+                "read source {} for interpreter-command scan: {e}",
+                path.display()
+            ))
+        })?;
+        extract_interpreter_command_authority(
+            &rel,
+            &text,
+            &forbidden_commands,
+            &forbidden_suffixes,
+            &mut rows,
+        );
+    }
+    rows.sort_by(|a, b| string_field(a, "key").cmp(&string_field(b, "key")));
+    Ok(json!({ "commands": rows }))
+}
+
+pub fn evaluate_interpreter_command_authority(observed: &Value) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+    for row in observed
+        .get("commands")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+    {
+        match string_field(row, "key").filter(|k| !k.is_empty()) {
+            Some(key) => {
+                let command = string_field(row, "command").unwrap_or("<unknown>");
+                findings.insert(Finding::new(
+                    "rust_first_automation_interpreter_command_authority",
+                    key,
+                    format!(
+                        "direct interpreter command `{command}` is retired authority; port the \
+                         behavior to Rust/Buck2/cloud-ci or record a narrower reviewed exception"
+                    ),
+                ));
+            }
+            None => {
+                findings.insert(Finding::new(
+                    "rust_first_automation_observed_path_missing_field",
+                    "<observed-interpreter-command>",
+                    "observed interpreter command row missing non-empty `key`",
                 ));
             }
         }
