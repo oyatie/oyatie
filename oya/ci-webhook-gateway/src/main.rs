@@ -69,9 +69,17 @@ async fn main() -> std::process::ExitCode {
             }
             DispatcherKind::Controller => {
                 tracing::info!("dispatcher: controller (oya-ci-controller /gate-run)");
+                if config.controller_bearer.is_none() {
+                    tracing::warn!(
+                        "{} is unset: controller dispatcher will POST /gate-run WITHOUT a bearer; \
+                         the controller fails closed (401) once it enforces keystone-1.",
+                        config::ENV_CONTROLLER_BEARER
+                    );
+                }
+                let bearer = config.controller_bearer.clone();
                 Arc::new(ControllerDispatcher::new(
                     config.controller_url.clone(),
-                    post_controller,
+                    move |url, body| post_controller(url, body, bearer.clone()),
                 ))
             }
         };
@@ -204,8 +212,14 @@ fn kick_jenkins(url: String, kickoff: PipelineKickoff) -> std::result::Result<()
 ///
 /// Uses the same minimal HTTP/1.1-over-TCP transport as `kick_jenkins` — no
 /// extra dependencies (in-cluster plain HTTP; TLS terminates at the mesh
-/// ingress). Returns `Err(reason)` on any transport/parse/non-2xx outcome.
-fn post_controller(url: String, body: GateRunBody) -> std::result::Result<(), String> {
+/// ingress). When `bearer` is `Some`, an `Authorization: Bearer <token>` header
+/// is sent so the controller's fail-closed `/gate-run` (keystone-1) admits the
+/// request. Returns `Err(reason)` on any transport/parse/non-2xx outcome.
+fn post_controller(
+    url: String,
+    body: GateRunBody,
+    bearer: Option<String>,
+) -> std::result::Result<(), String> {
     let (host, port, path) = parse_http_url(&url)?;
     let json_body = serde_json::json!({
         "pr_number": body.pr_number,
@@ -216,9 +230,14 @@ fn post_controller(url: String, body: GateRunBody) -> std::result::Result<(), St
 
     let handle = tokio::runtime::Handle::try_current()
         .map_err(|e| format!("no tokio runtime for controller post: {e}"))?;
+    // Only emit a non-empty bearer; an empty/whitespace token is treated as unset.
+    let auth_header = match bearer.as_deref().map(str::trim) {
+        Some(token) if !token.is_empty() => format!("Authorization: Bearer {token}\r\n"),
+        _ => String::new(),
+    };
     let request = format!(
         "POST {path} HTTP/1.1\r\nHost: {host}\r\nContent-Type: application/json\r\n\
-         Content-Length: {len}\r\nConnection: close\r\n\r\n{json_body}",
+         {auth_header}Content-Length: {len}\r\nConnection: close\r\n\r\n{json_body}",
         len = json_body.len(),
     );
 
