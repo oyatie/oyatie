@@ -1632,6 +1632,13 @@ mod tests {
             !inputs.rows.iter().any(|row| row
                 .source_artifact
                 .ends_with("ADR-0107-superseded-history-cli.md")),
+            "superseded ADR history must not become a live retired-CLI authority row: {:?}",
+            inputs.rows
+        );
+        assert!(
+            !inputs.rows.iter().any(|row| row
+                .source_artifact
+                .ends_with("ADR-0107-superseded-history-cli.md")),
             "superseded ADR history must not become a new live CLI authority row: {:?}",
             inputs.rows
         );
