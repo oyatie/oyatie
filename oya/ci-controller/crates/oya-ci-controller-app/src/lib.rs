@@ -40,9 +40,10 @@
 
 use axum::{
     Json, Router,
+    body::Bytes,
     extract::State,
-    http::StatusCode,
-    response::IntoResponse,
+    http::{HeaderMap, StatusCode},
+    response::{IntoResponse, Response},
     routing::{get, post},
 };
 use k8s_openapi::api::{batch::v1::Job, core::v1::Pod};
@@ -381,6 +382,142 @@ pub async fn run_controller(state: ControllerState) {
 // axum router — /healthz + /metrics + POST /gate-run
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// POST /gate-run authn + authz (keystone-1, AUTH-005 parity)
+//
+// `/gate-run` spawns K8s gate Jobs for any in-cluster caller. It is fail-closed:
+// authn an UNFORGEABLE bearer FIRST (before the request body is parsed), then
+// consult a default-deny authz seam. Mirrors the shipped gold standard at
+// intelligence/adapters/rest (VerifiedIngressPrincipal + ConfiguredBearer* +
+// constant-time compare). A caller-supplied `x-*` header can never authenticate.
+// ---------------------------------------------------------------------------
+
+/// A `/gate-run` caller whose bearer the [`CiTriggerAuthenticator`] has VERIFIED.
+/// The field is private with only a `pub(crate)` constructor, so a handler cannot
+/// fabricate one from caller-supplied headers — only a verifier that proved an
+/// unforgeable credential mints it. Mirrors `VerifiedIngressPrincipal`.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct VerifiedCiTrigger {
+    /// The verified trigger principal label (from the credential binding, NEVER
+    /// a caller-supplied header).
+    principal: String,
+}
+
+impl VerifiedCiTrigger {
+    /// Mint a verified trigger. Crate-private: only an authenticator in this
+    /// crate can construct one (no public constructor → unforgeable).
+    pub(crate) fn new(principal: impl Into<String>) -> Self {
+        Self {
+            principal: principal.into(),
+        }
+    }
+
+    /// The verified trigger principal label (trusted; from the credential).
+    #[must_use]
+    pub fn principal(&self) -> &str {
+        &self.principal
+    }
+}
+
+/// Gate-run authentication PORT: derive a [`VerifiedCiTrigger`] from the request
+/// headers by checking an UNFORGEABLE credential (a constant-time bearer compare
+/// today; mTLS/SPIFFE in a production adapter). `None` ⇒ no verified trigger ⇒
+/// `401` (default-deny). Caller-supplied `x-*` headers MUST NOT authenticate.
+pub trait CiTriggerAuthenticator: Send + Sync {
+    /// Verify the caller's credential. `None` ⇒ `401`.
+    fn verify(&self, headers: &HeaderMap) -> Option<VerifiedCiTrigger>;
+}
+
+/// Reference [`CiTriggerAuthenticator`] adapter: a single configured bearer token
+/// compared in constant time. An empty/unset token verifies NOTHING (every
+/// request `401`) — there is no allow-all path.
+#[derive(Clone)]
+pub struct ConfiguredBearerCiTriggerAuthenticator {
+    token: String, // data_class: SECRET
+}
+
+impl ConfiguredBearerCiTriggerAuthenticator {
+    /// Build an authenticator for one configured bearer credential.
+    #[must_use]
+    pub fn new(token: impl Into<String>) -> Self {
+        Self {
+            token: token.into(),
+        }
+    }
+}
+
+// Manual `Debug` so the SECRET-annotated bearer is never printed if this (or a
+// containing struct) is ever `dbg!`/derive-Debugged.
+impl std::fmt::Debug for ConfiguredBearerCiTriggerAuthenticator {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ConfiguredBearerCiTriggerAuthenticator")
+            .field("token", &"<redacted>")
+            .finish()
+    }
+}
+
+impl CiTriggerAuthenticator for ConfiguredBearerCiTriggerAuthenticator {
+    fn verify(&self, headers: &HeaderMap) -> Option<VerifiedCiTrigger> {
+        let configured = self.token.trim();
+        if configured.is_empty() {
+            // No configured credential ⇒ no caller can be verified (fail-closed).
+            return None;
+        }
+        let presented = headers
+            .get("authorization")
+            .and_then(|value| value.to_str().ok())
+            .and_then(|value| value.strip_prefix("Bearer "))?;
+        if constant_time_eq(presented.as_bytes(), configured.as_bytes()) {
+            Some(VerifiedCiTrigger::new("ci-gate-run-trigger"))
+        } else {
+            None
+        }
+    }
+}
+
+/// Constant-time byte comparison (no early return on first mismatch), so a
+/// bearer compare does not leak the matched prefix length via timing. Copied
+/// from the intelligence rest adapter (no new dependency).
+fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
+    let max_len = a.len().max(b.len());
+    let mut diff = a.len() ^ b.len();
+    for index in 0..max_len {
+        let left = a.get(index).copied().unwrap_or(0);
+        let right = b.get(index).copied().unwrap_or(0);
+        diff |= (left ^ right) as usize;
+    }
+    diff == 0
+}
+
+/// Authorization decision for a verified `/gate-run` trigger. Anything other
+/// than [`CiTriggerDecision::Allow`] is fail-closed `403`.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum CiTriggerDecision {
+    Allow,
+    Deny,
+}
+
+/// Gate-run authorization PORT (default-deny seam, parity with the sibling
+/// services' authz gates). Maps a VERIFIED trigger principal to a decision; a
+/// `Deny` (or any future fault mapped to `Deny`) ⇒ `403`.
+pub trait CiTriggerAuthz: Send + Sync {
+    /// Authorize a verified trigger. Non-`Allow` ⇒ `403`.
+    fn decide(&self, principal: &VerifiedCiTrigger) -> CiTriggerDecision;
+}
+
+/// v1 in-crate authz adapter: permits any VERIFIED trigger principal (the
+/// gateway is the only intended caller and is authenticated upstream by the
+/// bearer). A richer policy adapter can replace this behind the port without
+/// touching the handler.
+#[derive(Clone, Debug, Default)]
+pub struct AllowVerifiedTriggerAuthz;
+
+impl CiTriggerAuthz for AllowVerifiedTriggerAuthz {
+    fn decide(&self, _principal: &VerifiedCiTrigger) -> CiTriggerDecision {
+        CiTriggerDecision::Allow
+    }
+}
+
 /// Shared state for the health/metrics/gate-run server.
 #[derive(Clone)]
 pub struct ServerState {
@@ -389,6 +526,13 @@ pub struct ServerState {
     pub job_spawner: Arc<dyn JobSpawner>,
     /// Full gate-Job spec config (image, clone URL, SA, deadlines).
     pub gate_spec_config: GateSpecConfig,
+    /// Fail-closed bearer authenticator for POST /gate-run (keystone-1). An
+    /// empty/unset configured token ⇒ every gate-run request `401` (no
+    /// allow-all path); the binary refuses to start without the token.
+    pub authenticator: Arc<dyn CiTriggerAuthenticator>,
+    /// Default-deny authorization seam for POST /gate-run (parity with the
+    /// sibling services). A `Deny` ⇒ `403`.
+    pub authz: Arc<dyn CiTriggerAuthz>,
 }
 
 /// Static configuration for building gate Job specs.
@@ -459,16 +603,69 @@ async fn handle_metrics(_state: State<ServerState>) -> impl IntoResponse {
 ///
 /// Body: `{"pr_number": N, "head_sha": "...", "base_ref": "dev"}`
 ///
-/// Returns 200 (already exists — idempotent) or 201 (created).
-/// Returns 400 on invalid input, 500 on spawner failure.
+/// Fail-closed: a valid `Authorization: Bearer <token>` is REQUIRED — the body
+/// is not even parsed until the caller is authenticated + authorized.
+///
+/// Returns 401 (missing/invalid bearer), 403 (authz deny), 400 on invalid input,
+/// 200 (already exists — idempotent) or 201 (created), 500 on spawner failure.
 fn is_full_hex_commit_sha(value: &str) -> bool {
     value.len() == 40 && value.chars().all(|c| c.is_ascii_hexdigit())
 }
 
+/// Authenticate the gate-run caller against the configured bearer and authorize
+/// the verified trigger, fail-closed. No verified principal ⇒ `401`; a non-Allow
+/// authz decision ⇒ `403`. Mirrors the gold-standard ordering at
+/// intelligence/adapters/rest: authn first, then decide — both BEFORE the
+/// untrusted request body is parsed.
+fn require_gate_run_authz(state: &ServerState, headers: &HeaderMap) -> Result<VerifiedCiTrigger, Response> {
+    // (1) AUTHN — unforgeable verified principal. A self-attested header cannot
+    // reach the `Some` branch (the authenticator ignores them).
+    let Some(principal) = state.authenticator.verify(headers) else {
+        warn!("gate-run: missing or invalid bearer — refusing to spawn");
+        return Err((
+            StatusCode::UNAUTHORIZED,
+            Json(json!({"error": "gate-run requires a valid bearer token"})),
+        )
+            .into_response());
+    };
+    // (2) AUTHZ — default-deny seam; any non-Allow is fail-closed 403.
+    if state.authz.decide(&principal) != CiTriggerDecision::Allow {
+        warn!(principal = %principal.principal(), "gate-run: authz denied — refusing to spawn");
+        return Err((
+            StatusCode::FORBIDDEN,
+            Json(json!({"error": "gate-run trigger is not authorized"})),
+        )
+            .into_response());
+    }
+    Ok(principal)
+}
+
 async fn handle_gate_run(
     State(state): State<ServerState>,
-    Json(req): Json<GateRunRequest>,
+    headers: HeaderMap,
+    body: Bytes,
 ) -> impl IntoResponse {
+    // Authn + authz BEFORE parsing the untrusted body (authn-before-body-parse).
+    let principal = match require_gate_run_authz(&state, &headers) {
+        Ok(principal) => principal,
+        Err(response) => return response,
+    };
+
+    // Parse the body only after the caller is verified + authorized.
+    let req: GateRunRequest = match serde_json::from_slice(&body) {
+        Ok(req) => req,
+        Err(e) => {
+            warn!(error = %e, "gate-run: invalid JSON body");
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(json!({"error": "invalid JSON body"})),
+            )
+                .into_response();
+        }
+    };
+
+    info!(principal = %principal.principal(), pr = req.pr_number, "gate-run: authenticated trigger");
+
     // P0.0 required-context evidence must bind to the exact candidate commit.
     // Short SHAs are intentionally rejected because they can be ambiguous and
     // cannot prove that the protected required status was posted to the
@@ -621,10 +818,27 @@ mod tests {
                 runner_service_account: "oya-ci-gate-runner".to_owned(),
                 repo: "oya-admin/oyatie".to_owned(),
             },
+            authenticator: Arc::new(ConfiguredBearerCiTriggerAuthenticator::new(TEST_BEARER)),
+            authz: Arc::new(AllowVerifiedTriggerAuthz),
         }
     }
 
+    /// Configured gate-run bearer the test `ServerState` authenticates against.
+    const TEST_BEARER: &str = "test-gate-run-bearer-token";
+
+    /// Route a `/gate-run` POST with the valid configured bearer (the common
+    /// case for the body-validation/spawn tests).
     async fn route_request(router: &mut Router, body: &str) -> axum::response::Response {
+        route_request_with_bearer(router, body, Some(TEST_BEARER)).await
+    }
+
+    /// Route a `/gate-run` POST with an optional `Authorization: Bearer` header.
+    /// `None` omits the header entirely (simulating an unauthenticated caller).
+    async fn route_request_with_bearer(
+        router: &mut Router,
+        body: &str,
+        bearer: Option<&str>,
+    ) -> axum::response::Response {
         futures::future::poll_fn(|cx: &mut Context<'_>| {
             match <Router as Service<Request<Body>>>::poll_ready(router, cx) {
                 Poll::Ready(Ok(())) => Poll::Ready(()),
@@ -634,12 +848,17 @@ mod tests {
         })
         .await;
 
+        let mut builder = Request::builder()
+            .method("POST")
+            .uri("/gate-run")
+            .header("content-type", "application/json");
+        if let Some(token) = bearer {
+            builder = builder.header("authorization", format!("Bearer {token}"));
+        }
+
         <Router as Service<Request<Body>>>::call(
             router,
-            Request::builder()
-                .method("POST")
-                .uri("/gate-run")
-                .header("content-type", "application/json")
+            builder
                 .body(Body::from(body.to_owned()))
                 .expect("request builds"),
         )
@@ -723,5 +942,53 @@ mod tests {
         assert_eq!(response.status(), StatusCode::BAD_REQUEST);
         let calls = spawner.calls.lock().expect("calls lock");
         assert!(calls.is_empty(), "invalid branch must not spawn a Job");
+    }
+
+    // -----------------------------------------------------------------------
+    // Fail-closed bearer authn (keystone-1): /gate-run spawns K8s Jobs, so an
+    // unauthenticated/forged caller must be rejected BEFORE the body is parsed
+    // and BEFORE any spawn. Authn-before-body-parse + zero-spawn on deny.
+    // -----------------------------------------------------------------------
+
+    const VALID_GATE_RUN_BODY: &str =
+        r#"{"pr_number":42,"head_sha":"abcdef1234567890abcdef1234567890abcdef12"}"#;
+
+    #[tokio::test]
+    async fn gate_run_without_bearer_is_unauthorized_and_does_not_spawn() {
+        let spawner = Arc::new(RecordingSpawner::default());
+        let mut router = build_router(test_state(Arc::clone(&spawner)));
+
+        let response = route_request_with_bearer(&mut router, VALID_GATE_RUN_BODY, None).await;
+
+        assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+        let calls = spawner.calls.lock().expect("calls lock");
+        assert!(calls.is_empty(), "missing bearer must not spawn a Job");
+    }
+
+    #[tokio::test]
+    async fn gate_run_with_wrong_bearer_is_unauthorized_and_does_not_spawn() {
+        let spawner = Arc::new(RecordingSpawner::default());
+        let mut router = build_router(test_state(Arc::clone(&spawner)));
+
+        let response =
+            route_request_with_bearer(&mut router, VALID_GATE_RUN_BODY, Some("not-the-token"))
+                .await;
+
+        assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+        let calls = spawner.calls.lock().expect("calls lock");
+        assert!(calls.is_empty(), "wrong bearer must not spawn a Job");
+    }
+
+    #[tokio::test]
+    async fn gate_run_with_valid_bearer_spawns_one_job() {
+        let spawner = Arc::new(RecordingSpawner::default());
+        let mut router = build_router(test_state(Arc::clone(&spawner)));
+
+        let response =
+            route_request_with_bearer(&mut router, VALID_GATE_RUN_BODY, Some(TEST_BEARER)).await;
+
+        assert_eq!(response.status(), StatusCode::CREATED);
+        let calls = spawner.calls.lock().expect("calls lock");
+        assert_eq!(calls.len(), 1, "valid bearer must spawn exactly one Job");
     }
 }
