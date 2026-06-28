@@ -1,25 +1,113 @@
+use std::fs;
+use std::path::PathBuf;
+
 use oya_governance_audit_event_emission::{
-    ENFORCED_RULE, EnforcementStatus, RULE_ID, enforce_audit_event_emission,
+    ENFORCED_RULE, EnforcementStatus, FindingKind, RULE_ID, enforce_audit_event_emission,
 };
 
-#[test]
-fn scaffold_reports_rule_metadata() {
-    let outcome = enforce_audit_event_emission(".").expect("scaffold should report metadata");
+fn temp_repo(name: &str) -> PathBuf {
+    let root = std::env::temp_dir().join(format!(
+        "oya-governance-audit-event-emission-{name}-{}",
+        std::process::id()
+    ));
+    let _ = fs::remove_dir_all(&root);
+    fs::create_dir_all(&root).expect("create temp repo");
+    root
+}
 
-    assert_eq!(outcome.rule_id, RULE_ID);
-    assert_eq!(outcome.enforced_rule, ENFORCED_RULE);
-    assert_eq!(outcome.status, EnforcementStatus::Scaffolded);
-    assert!(outcome.is_scaffolded());
+fn write(root: &PathBuf, relative: &str, content: &str) {
+    let path = root.join(relative);
+    fs::create_dir_all(path.parent().expect("parent dir")).expect("create parent dir");
+    fs::write(path, content).expect("write fixture");
 }
 
 #[test]
-#[ignore = "Wave-3-I implementation will reject state-changing endpoints without audit event emission"]
-fn rejects_mutating_endpoint_without_audit_event() {}
+fn reports_rule_metadata_for_clean_repo() {
+    let root = temp_repo("metadata");
+    let outcome = enforce_audit_event_emission(&root).expect("check should report metadata");
+
+    assert_eq!(outcome.rule_id, RULE_ID);
+    assert_eq!(outcome.enforced_rule, ENFORCED_RULE);
+    assert_eq!(outcome.status, EnforcementStatus::Passed);
+    assert!(outcome.is_success());
+    assert!(!outcome.is_scaffolded());
+}
 
 #[test]
-#[ignore = "Wave-3-I implementation will accept mutating endpoints with registered audit event emission"]
-fn accepts_mutating_endpoint_with_registered_audit_event() {}
+fn rejects_mutating_endpoint_without_audit_event() {
+    let root = temp_repo("missing-audit-event");
+    write(
+        &root,
+        "contracts/openapi/widgets.openapi.yaml",
+        r#"openapi: 3.0.0
+paths:
+  /widgets:
+    post:
+      operationId: CreateWidget
+"#,
+    );
+
+    let outcome = enforce_audit_event_emission(&root).expect("check should run");
+
+    assert_eq!(outcome.status, EnforcementStatus::Failed);
+    assert_eq!(outcome.mutating_endpoint_identifiers, vec!["CreateWidget"]);
+    assert_eq!(outcome.findings.len(), 1);
+    assert_eq!(outcome.findings[0].kind, FindingKind::MissingAuditEvent);
+    assert_eq!(outcome.findings[0].identifier.as_deref(), Some("CreateWidget"));
+}
 
 #[test]
-#[ignore = "Wave-3-I implementation will report missing ADR-0263 event classes"]
-fn reports_missing_registered_audit_event_classes() {}
+fn accepts_mutating_endpoint_with_registered_audit_event() {
+    let root = temp_repo("registered-audit-event");
+    write(
+        &root,
+        "contracts/openapi/widgets.openapi.yaml",
+        r#"openapi: 3.0.0
+paths:
+  /widgets:
+    post:
+      operationId: CreateWidget
+"#,
+    );
+    write(
+        &root,
+        "registry/audit-events/widgets.yaml",
+        r#"events:
+  - class: widget.created
+    emitted_by: CreateWidget
+    adr: ADR-0263
+"#,
+    );
+
+    let outcome = enforce_audit_event_emission(&root).expect("check should run");
+
+    assert_eq!(outcome.status, EnforcementStatus::Passed);
+    assert_eq!(outcome.mutating_endpoint_identifiers, vec!["CreateWidget"]);
+    assert_eq!(outcome.audit_evidence_files.len(), 1);
+    assert!(outcome.findings.is_empty(), "{outcome:?}");
+}
+
+#[test]
+fn reports_missing_mutating_endpoint_identifiers() {
+    let root = temp_repo("missing-identifier");
+    write(
+        &root,
+        "contracts/openapi/widgets.openapi.yaml",
+        r#"openapi: 3.0.0
+paths:
+  /widgets:
+    post:
+      summary: Create widget
+"#,
+    );
+
+    let outcome = enforce_audit_event_emission(&root).expect("check should run");
+
+    assert_eq!(outcome.status, EnforcementStatus::Failed);
+    assert_eq!(outcome.findings.len(), 1);
+    assert_eq!(
+        outcome.findings[0].kind,
+        FindingKind::MissingEndpointIdentifier
+    );
+    assert!(outcome.findings[0].hint.contains("POST /widgets"));
+}
