@@ -1237,15 +1237,17 @@ impl PoolRegistry {
             .collect()
     }
 
-    /// Per-seat account statuses across all registered pools, projected via
-    /// the kernel's secret-free [`intelligence_kernel::RedactedSeatStatus`].
-    pub fn account_statuses(&self) -> Vec<AccountStatus> {
+    /// Per-seat account statuses for a single tenant.
+    pub fn account_statuses_for(&self, tenant: &TenantId) -> Vec<AccountStatus> {
         let Ok(pools) = self.pools.lock() else {
             return Vec::new();
         };
         let now = Instant::now();
         let mut statuses = Vec::new();
-        for pool in pools.values() {
+        for (key, pool) in pools.iter() {
+            if &key.tenant_id != tenant {
+                continue;
+            }
             let Ok(pool) = pool.lock() else {
                 continue;
             };
@@ -1261,6 +1263,15 @@ impl PoolRegistry {
             }));
         }
         statuses
+    }
+
+    /// Number of registered pools for a single tenant — the tenant-scoped variant
+    /// of [`pool_count`] used by authn-gated admin routes.
+    pub fn pool_count_for(&self, tenant: &TenantId) -> usize {
+        self.pools
+            .lock()
+            .map(|pools| pools.keys().filter(|k| &k.tenant_id == tenant).count())
+            .unwrap_or(0)
     }
 }
 
@@ -1292,6 +1303,12 @@ pub struct AppState {
     /// data-plane request fails closed with 401 (no allow-all path); the verified
     /// tenant then drives the in-process Cedar gate so cross-tenant is forbidden.
     pub ingress_authenticator: Arc<dyn IngressPrincipalAuthenticator>, // data_class: INTERNAL_ONLY
+    /// Admin control-plane authenticator (AUTH-005 / ADR-0573 PR2). Verifies the
+    /// configured admin bearer and mints a [`VerifiedAdminPrincipal`] bound to the
+    /// CONFIGURED admin tenant — NEVER the caller-supplied `x-oya-admin-tenant`
+    /// header. An empty/unset admin bearer verifies nothing, so every `/admin/v1/*`
+    /// tenant-scoped route fails closed with 401 (no allow-all path).
+    pub admin_authenticator: Arc<dyn AdminPrincipalAuthenticator>, // data_class: INTERNAL_ONLY
     pub admin_bearer_token: Option<String>, // data_class: SECRET
     /// Runtime environment string (e.g. `production`). Production enforces the
     /// provider OAuth-compliance fail-closed gate on the dynamic admin path,
@@ -1366,6 +1383,16 @@ impl AppState {
                 tenant_id.clone(),
             ),
         );
+        // Default admin authenticator: the configured admin bearer bound to this
+        // service's own tenant (the administered tenant). An empty token => every
+        // tenant-scoped admin request 401 (fail-closed); the verified admin tenant
+        // (never `x-oya-admin-tenant`) then drives the tenant-isolation guard + gate.
+        let admin_authenticator: Arc<dyn AdminPrincipalAuthenticator> = Arc::new(
+            ConfiguredBearerAdminAuthenticator::new(
+                admin_bearer_token.clone().unwrap_or_default(),
+                tenant_id.clone(),
+            ),
+        );
         Ok(Self {
             pool,
             pool_registry,
@@ -1378,6 +1405,7 @@ impl AppState {
             gemini_base_url: GEMINI_BASE_URL.to_string(),
             tenant_id,
             ingress_authenticator,
+            admin_authenticator,
             admin_bearer_token,
             environment,
             oauth_approved_providers,
@@ -1543,6 +1571,95 @@ impl IngressPrincipalAuthenticator for ConfiguredBearerIngressAuthenticator {
     }
 }
 
+// =====================================================================
+// Admin control-plane authn/authz (AUTH-005 / ADR-0573 PR2)
+//
+// The admin plane previously gated every `/admin/v1/*` route on a single global
+// admin bearer plus `admin_tenant_allowed`, which only checked the caller-supplied
+// `x-oya-admin-tenant` header against the path tenant — BOTH attacker-controlled —
+// and never invoked the authz gate. One admin credential could administer EVERY
+// tenant (cross-tenant IDOR). We mirror the shipped gold standard
+// (iam/facade/identity-workload-rest + TenantScopedLifecycleAuthorizer): verify an
+// UNFORGEABLE admin principal bound to the CONFIGURED admin tenant, enforce the
+// tenant-isolation invariant SERVER-SIDE (verified tenant == path tenant), and
+// consult the gate as the authoritative + auditable decision, fail-closed.
+// =====================================================================
+
+/// An admin caller whose bearer the [`AdminPrincipalAuthenticator`] has VERIFIED.
+/// The field is private with only a `pub(crate)` constructor, so a handler cannot
+/// fabricate one from caller-supplied `x-*` headers — only a verifier that proved
+/// an unforgeable credential mints it. Mirrors [`VerifiedIngressPrincipal`].
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct VerifiedAdminPrincipal {
+    /// The tenant this verified admin may administer (from the credential binding,
+    /// NEVER a caller-supplied header).
+    tenant: TenantId, // data_class: INTERNAL_ONLY
+}
+
+impl VerifiedAdminPrincipal {
+    /// Mint a verified admin principal. Crate-private: only an authenticator in
+    /// this crate can construct one (no public constructor → unforgeable).
+    pub(crate) fn new(tenant: TenantId) -> Self {
+        Self { tenant }
+    }
+
+    /// The tenant this verified admin may administer (trusted; from the credential).
+    #[must_use]
+    pub fn tenant(&self) -> &TenantId {
+        &self.tenant
+    }
+}
+
+/// Admin authentication PORT: derive a [`VerifiedAdminPrincipal`] from the request
+/// headers by checking an UNFORGEABLE credential (a constant-time bearer compare
+/// today; mTLS/SPIFFE in a production adapter). `None` ⇒ no verified admin ⇒ `401`
+/// (default-deny). Caller-supplied `x-*` headers MUST NOT authenticate.
+pub trait AdminPrincipalAuthenticator: Send + Sync {
+    /// Verify the admin caller's credential. `None` ⇒ `401`.
+    fn verify(&self, headers: &HeaderMap) -> Option<VerifiedAdminPrincipal>;
+}
+
+/// Reference [`AdminPrincipalAuthenticator`] adapter: a single configured admin
+/// bearer token bound to one admin tenant, compared in constant time. The minted
+/// principal carries the CONFIGURED admin tenant, NEVER a caller header. An
+/// empty/unset token verifies NOTHING (every request `401`) — no allow-all path.
+#[derive(Clone, Debug)]
+pub struct ConfiguredBearerAdminAuthenticator {
+    token: String,          // data_class: SECRET
+    admin_tenant: TenantId, // data_class: INTERNAL_ONLY
+}
+
+impl ConfiguredBearerAdminAuthenticator {
+    /// Build an authenticator for one configured admin bearer credential bound to
+    /// `admin_tenant` (what a successful verify returns; never a header).
+    #[must_use]
+    pub fn new(token: impl Into<String>, admin_tenant: TenantId) -> Self {
+        Self {
+            token: token.into(),
+            admin_tenant,
+        }
+    }
+}
+
+impl AdminPrincipalAuthenticator for ConfiguredBearerAdminAuthenticator {
+    fn verify(&self, headers: &HeaderMap) -> Option<VerifiedAdminPrincipal> {
+        let configured = self.token.trim();
+        if configured.is_empty() {
+            // No configured credential ⇒ no admin can be verified (fail-closed).
+            return None;
+        }
+        let presented = headers
+            .get("authorization")
+            .and_then(|value| value.to_str().ok())
+            .and_then(|value| value.strip_prefix("Bearer "))?;
+        if constant_time_eq(presented.as_bytes(), configured.as_bytes()) {
+            Some(VerifiedAdminPrincipal::new(self.admin_tenant.clone()))
+        } else {
+            None
+        }
+    }
+}
+
 /// Authenticate the data-plane ingress caller and authorize the request through
 /// the in-process Cedar gate, bound to the VERIFIED principal tenant vs the
 /// service resource tenant. Fail-closed: no verified principal ⇒ `401`; a gate
@@ -1610,6 +1727,57 @@ fn forbidden_ingress_response() -> Response {
         "ingress principal is not authorized for this tenant",
         None,
     )
+}
+
+/// Authenticate the admin caller and authorize the request, fail-closed. Mirrors
+/// the gold-standard ordering (iam/facade/identity-workload-rest +
+/// `TenantScopedLifecycleAuthorizer`): authn an UNFORGEABLE principal first,
+/// enforce tenant isolation against the administered (path) tenant SERVER-SIDE,
+/// then consult the in-process authz gate.
+///
+/// - No verified admin principal ⇒ `401`. The configured admin bearer is the only
+///   credential that mints one; a caller-supplied `x-oya-admin-tenant` header never
+///   does (it is no longer an authz input).
+/// - Verified admin tenant != the administered (path) tenant ⇒ `403`. This
+///   BLAST-RADIUS guard is MANDATORY because the admin Cedar rule is realm-scoped:
+///   `decide()` alone would Allow any admin principal on ANY tenant, so the tenant
+///   axis must be enforced here, not delegated to the gate (per #815/#124 review).
+/// - A gate `Forbid` — or any gate fault, which the adapter maps to `Forbid` —
+///   ⇒ `403`. The gate is the authoritative + auditable realm decision (admin
+///   actions map to the Cedar `AdminRealm` / `RefreshKeyPool`).
+fn require_admin_authz(
+    state: &AppState,
+    headers: &HeaderMap,
+    path_tenant: &str,
+) -> Result<VerifiedAdminPrincipal, Response> {
+    // (1) AUTHN — unforgeable verified admin principal. A self-attested header
+    // cannot reach the `Some` branch (the authenticator ignores them).
+    let Some(principal) = state.admin_authenticator.verify(headers) else {
+        return Err(StatusCode::UNAUTHORIZED.into_response());
+    };
+    // (2) TENANT ISOLATION (blast-radius guard) — the verified admin may only
+    // administer its own tenant. Deny-wins for any cross-tenant request.
+    if principal.tenant().as_str() != path_tenant {
+        return Err(StatusCode::FORBIDDEN.into_response());
+    }
+    // (3) AUTHZ — authoritative + auditable realm decision via the in-process gate.
+    // `RefreshToken` maps to the Cedar AdminRealm/RefreshKeyPool action; a Forbid or
+    // any gate fault is fail-closed 403. `resource_tenant == principal.tenant()` is
+    // sound: step (2) already proved the path tenant equals the verified tenant.
+    let Ok(agent) = AgentId::new(format!("admin:{}", principal.tenant().as_str())) else {
+        return Err(StatusCode::FORBIDDEN.into_response());
+    };
+    let request = AuthzRequest {
+        principal_tenant: principal.tenant(),
+        principal_agent: &agent,
+        action: AuthzAction::RefreshToken,
+        resource_tenant: principal.tenant(),
+        resource_provider: Provider::Anthropic,
+    };
+    if state.gate.decide(&request) == AuthzDecision::Forbid {
+        return Err(StatusCode::FORBIDDEN.into_response());
+    }
+    Ok(principal)
 }
 
 fn guard_in_transit_payload(body: &[u8]) -> Result<(), Response> {
@@ -3106,16 +3274,16 @@ async fn handle_models(State(state): State<Arc<AppState>>, headers: HeaderMap) -
 
 /// GET /admin/v1/status
 async fn handle_admin_status(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Response {
-    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
+    let Some(principal) = state.admin_authenticator.verify(&headers) else {
         return StatusCode::UNAUTHORIZED.into_response();
-    }
+    };
     let default_data_plane_ready = state
         .pool
         .lock()
         .map(|pool| pool.has_eligible_seat(Instant::now()))
         .unwrap_or(false);
     let secret_provider_ready = state.secret_store.readiness_probe().is_ok();
-    let route_controller_ready = state.pool_registry.pool_count() > 0;
+    let route_controller_ready = state.pool_registry.pool_count_for(principal.tenant()) > 0;
     let model_inventory_ready = true;
     let credential_worker_ready = default_data_plane_ready && secret_provider_ready;
     let policy_engine_ready = policy_engine_readiness_probe(&state);
@@ -3136,7 +3304,7 @@ async fn handle_admin_status(State(state): State<Arc<AppState>>, headers: Header
         policy_engine_ready,
         default_data_plane_ready,
         secret_provider_ready,
-        registered_pools: state.pool_registry.pool_count(),
+        registered_pools: state.pool_registry.pool_count_for(principal.tenant()),
         boundaries: AdminBoundaryStatus {
             secret_resolution: "owned-secret-provider-port",
             authorization: "owned-policy-engine-port",
@@ -3147,11 +3315,11 @@ async fn handle_admin_status(State(state): State<Arc<AppState>>, headers: Header
 
 /// GET /admin/v1/accounts
 async fn handle_admin_accounts(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Response {
-    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
+    let Some(principal) = state.admin_authenticator.verify(&headers) else {
         return StatusCode::UNAUTHORIZED.into_response();
-    }
+    };
     Json(AdminAccountsResponse {
-        accounts: state.pool_registry.account_statuses(),
+        accounts: state.pool_registry.account_statuses_for(principal.tenant()),
         redaction: "secret-handles-redacted",
     })
     .into_response()
@@ -3162,10 +3330,10 @@ async fn handle_admin_analytics(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
 ) -> Response {
-    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
+    let Some(principal) = state.admin_authenticator.verify(&headers) else {
         return StatusCode::UNAUTHORIZED.into_response();
-    }
-    let request_count = state.pool_registry.pool_statuses().len() as u64;
+    };
+    let request_count = state.pool_registry.pool_count_for(principal.tenant()) as u64;
     Json(AdminAnalyticsResponse {
         window: "PT5M",
         request_count,
@@ -3181,12 +3349,12 @@ async fn handle_admin_analytics_stream(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
 ) -> Response {
-    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
+    let Some(principal) = state.admin_authenticator.verify(&headers) else {
         return StatusCode::UNAUTHORIZED.into_response();
-    }
+    };
     let payload = serde_json::json!({
         "window": "PT5M",
-        "request_count": state.pool_registry.pool_statuses().len(),
+        "request_count": state.pool_registry.pool_count_for(principal.tenant()),
         "source": "cloud-admin-api"
     });
     (
@@ -3205,11 +3373,8 @@ async fn handle_admin_guardrails(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
 ) -> Response {
-    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
-        return StatusCode::UNAUTHORIZED.into_response();
-    }
-    if !admin_tenant_allowed(&headers, state.tenant_id.as_str()) {
-        return StatusCode::FORBIDDEN.into_response();
+    if let Err(response) = require_admin_authz(&state, &headers, state.tenant_id.as_str()) {
+        return response;
     }
     Json(serde_json::json!({
         "profiles": [{
@@ -3252,13 +3417,10 @@ async fn handle_admin_agent_runtimes(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
 ) -> Response {
-    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
-        return StatusCode::UNAUTHORIZED.into_response();
+    if let Err(response) = require_admin_authz(&state, &headers, state.tenant_id.as_str()) {
+        return response;
     }
     let tenant_id = state.tenant_id.as_str();
-    if !admin_tenant_allowed(&headers, tenant_id) {
-        return StatusCode::FORBIDDEN.into_response();
-    }
     Json(serde_json::json!({
         "runtimes": [{
             "kind": "AgentRuntimeProfile",
@@ -3301,13 +3463,10 @@ async fn handle_admin_agent_schedules(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
 ) -> Response {
-    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
-        return StatusCode::UNAUTHORIZED.into_response();
+    if let Err(response) = require_admin_authz(&state, &headers, state.tenant_id.as_str()) {
+        return response;
     }
     let tenant_id = state.tenant_id.as_str();
-    if !admin_tenant_allowed(&headers, tenant_id) {
-        return StatusCode::FORBIDDEN.into_response();
-    }
     let schedule_ref = format!("schedule-ref://{tenant_id}/nightly-drift-check");
     Json(serde_json::json!({
         "schedules": [{
@@ -3341,13 +3500,10 @@ async fn handle_admin_parity_canaries(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
 ) -> Response {
-    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
-        return StatusCode::UNAUTHORIZED.into_response();
+    if let Err(response) = require_admin_authz(&state, &headers, state.tenant_id.as_str()) {
+        return response;
     }
     let tenant_id = state.tenant_id.as_str();
-    if !admin_tenant_allowed(&headers, tenant_id) {
-        return StatusCode::FORBIDDEN.into_response();
-    }
     Json(serde_json::json!({
         "plans": [{
             "kind": "ParityCanaryPlan",
@@ -3385,11 +3541,8 @@ async fn handle_admin_guardrail_escalations(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
 ) -> Response {
-    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
-        return StatusCode::UNAUTHORIZED.into_response();
-    }
-    if !admin_tenant_allowed(&headers, state.tenant_id.as_str()) {
-        return StatusCode::FORBIDDEN.into_response();
+    if let Err(response) = require_admin_authz(&state, &headers, state.tenant_id.as_str()) {
+        return response;
     }
     Json(serde_json::json!({
         "escalations": [{
@@ -3410,11 +3563,8 @@ async fn handle_admin_evidence_retention(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
 ) -> Response {
-    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
-        return StatusCode::UNAUTHORIZED.into_response();
-    }
-    if !admin_tenant_allowed(&headers, state.tenant_id.as_str()) {
-        return StatusCode::FORBIDDEN.into_response();
+    if let Err(response) = require_admin_authz(&state, &headers, state.tenant_id.as_str()) {
+        return response;
     }
     Json(serde_json::json!({
         "profiles": [{
@@ -3443,11 +3593,8 @@ async fn handle_admin_redaction_profiles(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
 ) -> Response {
-    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
-        return StatusCode::UNAUTHORIZED.into_response();
-    }
-    if !admin_tenant_allowed(&headers, state.tenant_id.as_str()) {
-        return StatusCode::FORBIDDEN.into_response();
+    if let Err(response) = require_admin_authz(&state, &headers, state.tenant_id.as_str()) {
+        return response;
     }
     Json(serde_json::json!({
         "profiles": [{
@@ -3502,11 +3649,8 @@ async fn handle_admin_pool_status(
     Path((tenant_id_raw, provider_raw)): Path<(String, String)>,
     headers: HeaderMap,
 ) -> Response {
-    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
-        return StatusCode::UNAUTHORIZED.into_response();
-    }
-    if !admin_tenant_allowed(&headers, &tenant_id_raw) {
-        return StatusCode::FORBIDDEN.into_response();
+    if let Err(response) = require_admin_authz(&state, &headers, &tenant_id_raw) {
+        return response;
     }
     let tenant_id = match TenantId::new(tenant_id_raw) {
         Ok(tenant_id) => tenant_id,
@@ -3528,13 +3672,13 @@ async fn handle_admin_register_subscription(
     State(state): State<Arc<AppState>>,
     Path((tenant_id_raw, provider_raw)): Path<(String, String)>,
     headers: HeaderMap,
-    Json(request): Json<AdminRegisterSubscriptionRequest>,
+    body: Bytes,
 ) -> Response {
-    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
-        return StatusCode::UNAUTHORIZED.into_response();
-    }
-    if !admin_tenant_allowed(&headers, &tenant_id_raw) {
-        return StatusCode::FORBIDDEN.into_response();
+    // R4 + R5 (AUTH-005 / ADR-0573 PR2): authenticate + authorize BEFORE the
+    // untrusted body is deserialized. The `Bytes` extractor takes the raw body so
+    // no `serde` work happens on an unauthenticated request.
+    if let Err(response) = require_admin_authz(&state, &headers, &tenant_id_raw) {
+        return response;
     }
     if !has_valid_idempotency_key(&headers) {
         return (
@@ -3543,6 +3687,10 @@ async fn handle_admin_register_subscription(
         )
             .into_response();
     }
+    let request: AdminRegisterSubscriptionRequest = match serde_json::from_slice(&body) {
+        Ok(request) => request,
+        Err(_) => return (StatusCode::BAD_REQUEST, "malformed json").into_response(),
+    };
     let tenant_id = match TenantId::new(tenant_id_raw.clone()) {
         Ok(tenant_id) => tenant_id,
         Err(_) => return (StatusCode::BAD_REQUEST, "invalid tenant_id").into_response(),
@@ -3666,17 +3814,6 @@ fn estimate_input_tokens(payload: &serde_json::Value) -> u64 {
     } else {
         word_count
     }
-}
-
-/// Fail-closed admin tenant guard (FRIC-1781420000): the x-oya-admin-tenant
-/// assertion is REQUIRED and must match the administered tenant. An absent or
-/// unparseable header denies (default-deny doctrine) — bearer auth alone never
-/// grants the tenant axis.
-fn admin_tenant_allowed(headers: &HeaderMap, tenant_id: &str) -> bool {
-    headers
-        .get("x-oya-admin-tenant")
-        .and_then(|value| value.to_str().ok())
-        .is_some_and(|header_tenant| header_tenant == tenant_id)
 }
 
 /// Probe the owned-policy-engine port with a no-op decision request. The
@@ -4541,28 +4678,38 @@ mod tests {
             );
         }
 
+        // AUTH-005 / ADR-0573 PR2: these routes administer the service's own tenant
+        // (tenant-a). The `x-oya-admin-tenant` header is no longer an authz input —
+        // a forged value is DEAD INPUT and cannot redirect or deny the request. The
+        // verified admin credential (bound to tenant-a) authorizes; the gate decides.
         for path in [
             "/admin/v1/agent-runtimes",
             "/admin/v1/agent-schedules",
             "/admin/v1/parity/canaries",
         ] {
-            for forbidden_tenant in ["tenant-b", "oyatie"] {
-                let forbidden = router
+            for forged_tenant in ["tenant-b", "oyatie"] {
+                let forged = router
                     .clone()
                     .oneshot(
                         Request::builder()
                             .uri(path)
                             .header("authorization", "Bearer admin-token")
-                            .header("x-oya-admin-tenant", forbidden_tenant)
+                            .header("x-oya-admin-tenant", forged_tenant)
                             .body(Body::empty())
                             .unwrap(),
                     )
                     .await
                     .unwrap();
                 assert_eq!(
-                    forbidden.status(),
-                    StatusCode::FORBIDDEN,
-                    "{path} tenant {forbidden_tenant}"
+                    forged.status(),
+                    StatusCode::OK,
+                    "{path} forged tenant {forged_tenant} header must be ignored (dead input)"
+                );
+                let body = forged.into_body().collect().await.unwrap().to_bytes();
+                let body = std::str::from_utf8(&body).unwrap();
+                assert!(
+                    !body.contains("tenant-b") && !body.contains("oyatie"),
+                    "{path} must only ever expose the credential-bound tenant (tenant-a)"
                 );
             }
         }
@@ -4745,14 +4892,18 @@ mod tests {
         assert!(body.contains("restore_only_after_model_output"));
     }
 
-    /// FRIC-1781420000: the admin tenant guard must be fail-closed. A
-    /// bearer-authenticated admin request WITHOUT the x-oya-admin-tenant
-    /// assertion is denied 403 on every tenant-asserting admin route class
-    /// (default-deny doctrine); present+matching is allowed, present+foreign
-    /// stays denied.
+    /// AUTH-005 / ADR-0573 PR2: the admin tenant axis is bound to the VERIFIED
+    /// credential (the configured admin bearer → tenant-a here) and enforced against
+    /// the administered (path) tenant SERVER-SIDE. The caller-supplied
+    /// `x-oya-admin-tenant` header is NO LONGER an authz input — it can neither deny a
+    /// legitimate same-tenant request nor grant a cross-tenant one. (This supersedes
+    /// the FRIC-1781420000 header guard, which trusted a forgeable header.)
     #[tokio::test]
-    async fn admin_tenant_guard_fails_closed_when_tenant_header_absent() {
+    async fn admin_authz_is_credential_bound_not_header_bound() {
         let router = build_router(test_state(true, true));
+        // Same-tenant routes (administer tenant-a): a valid admin bearer authorizes
+        // regardless of the x-oya-admin-tenant header (absent OR forged => still OK);
+        // no bearer => 401.
         for path in [
             "/admin/v1/agent-runtimes",
             "/admin/v1/agent-schedules",
@@ -4763,66 +4914,63 @@ mod tests {
             "/admin/v1/redaction/profiles",
             "/admin/v1/tenants/tenant-a/providers/anthropic/pool",
         ] {
-            let absent = router
-                .clone()
-                .oneshot(
-                    Request::builder()
-                        .uri(path)
-                        .header("authorization", "Bearer admin-token")
-                        .body(Body::empty())
-                        .unwrap(),
-                )
-                .await
-                .unwrap();
-            assert_eq!(
-                absent.status(),
-                StatusCode::FORBIDDEN,
-                "{path} must deny when the admin tenant header is absent"
-            );
+            for header in [None, Some("tenant-b"), Some("oyatie")] {
+                let mut builder = Request::builder()
+                    .uri(path)
+                    .header("authorization", "Bearer admin-token");
+                if let Some(header) = header {
+                    builder = builder.header("x-oya-admin-tenant", header);
+                }
+                let response = router
+                    .clone()
+                    .oneshot(builder.body(Body::empty()).unwrap())
+                    .await
+                    .unwrap();
+                assert_eq!(
+                    response.status(),
+                    StatusCode::OK,
+                    "{path} must authorize the credential-bound admin regardless of the x-oya-admin-tenant header ({header:?})"
+                );
+            }
 
-            let foreign = router
+            let unauthenticated = router
                 .clone()
-                .oneshot(
-                    Request::builder()
-                        .uri(path)
-                        .header("authorization", "Bearer admin-token")
-                        .header("x-oya-admin-tenant", "tenant-b")
-                        .body(Body::empty())
-                        .unwrap(),
-                )
+                .oneshot(Request::builder().uri(path).body(Body::empty()).unwrap())
                 .await
                 .unwrap();
             assert_eq!(
-                foreign.status(),
-                StatusCode::FORBIDDEN,
-                "{path} must deny a foreign admin tenant header"
-            );
-
-            let matching = router
-                .clone()
-                .oneshot(
-                    Request::builder()
-                        .uri(path)
-                        .header("authorization", "Bearer admin-token")
-                        .header("x-oya-admin-tenant", "tenant-a")
-                        .body(Body::empty())
-                        .unwrap(),
-                )
-                .await
-                .unwrap();
-            assert_eq!(
-                matching.status(),
-                StatusCode::OK,
-                "{path} must allow the matching admin tenant header"
+                unauthenticated.status(),
+                StatusCode::UNAUTHORIZED,
+                "{path} must 401 without an admin bearer"
             );
         }
 
-        // Mutating admin surface: the tenant guard runs before idempotency
-        // and body validation, so an absent header denies outright.
-        let subscription_request = |tenant_header: Option<&str>| {
+        // Cross-tenant PATH: the admin credential is bound to tenant-a, so a tenant-b
+        // path is forbidden — even with a forged matching x-oya-admin-tenant header.
+        let cross_tenant_pool = build_router(test_state(true, true))
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/v1/tenants/tenant-b/providers/anthropic/pool")
+                    .header("authorization", "Bearer admin-token")
+                    .header("x-oya-admin-tenant", "tenant-b")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(
+            cross_tenant_pool.status(),
+            StatusCode::FORBIDDEN,
+            "admin bound to tenant-a must not read tenant-b's pool (cross-tenant)"
+        );
+
+        // Mutating admin surface: authn+authz run BEFORE idempotency/body parsing.
+        let subscription_request = |path_tenant: &str, tenant_header: Option<&str>| {
             let mut builder = Request::builder()
                 .method("POST")
-                .uri("/admin/v1/tenants/tenant-a/providers/anthropic/subscriptions")
+                .uri(format!(
+                    "/admin/v1/tenants/{path_tenant}/providers/anthropic/subscriptions"
+                ))
                 .header("authorization", "Bearer admin-token")
                 .header("idempotency-key", "44444444-4444-4444-8444-444444444444")
                 .header("content-type", "application/json");
@@ -4836,34 +4984,26 @@ mod tests {
                 .unwrap()
         };
 
-        let absent = build_router(test_state(true, true))
-            .oneshot(subscription_request(None))
+        // Cross-tenant PATH (with a forged matching header) => 403.
+        let cross_tenant_register = build_router(test_state(true, true))
+            .oneshot(subscription_request("tenant-b", Some("tenant-b")))
             .await
             .unwrap();
         assert_eq!(
-            absent.status(),
+            cross_tenant_register.status(),
             StatusCode::FORBIDDEN,
-            "subscription registration must deny when the admin tenant header is absent"
+            "subscription registration must deny a cross-tenant path"
         );
 
-        let foreign = build_router(test_state(true, true))
-            .oneshot(subscription_request(Some("tenant-b")))
+        // Same-tenant PATH (header absent — it is irrelevant) => CREATED.
+        let same_tenant_register = build_router(test_state(true, true))
+            .oneshot(subscription_request("tenant-a", None))
             .await
             .unwrap();
         assert_eq!(
-            foreign.status(),
-            StatusCode::FORBIDDEN,
-            "subscription registration must deny a foreign admin tenant header"
-        );
-
-        let matching = build_router(test_state(true, true))
-            .oneshot(subscription_request(Some("tenant-a")))
-            .await
-            .unwrap();
-        assert_eq!(
-            matching.status(),
+            same_tenant_register.status(),
             StatusCode::CREATED,
-            "subscription registration must allow the matching admin tenant header"
+            "same-tenant subscription registration must succeed regardless of the header"
         );
     }
 
@@ -5982,12 +6122,15 @@ mod tests {
         assert!(!body.contains("test-refresh-token"));
     }
 
+    /// AUTH-005 / ADR-0573 PR2: an admin credential bound to tenant-a must not read
+    /// another tenant's pool. The cross-tenant axis is the PATH tenant vs the verified
+    /// credential tenant — the forged `x-oya-admin-tenant` header cannot grant access.
     #[tokio::test]
-    async fn tenant_scoped_admin_pool_route_forbids_cross_tenant_header() {
+    async fn tenant_scoped_admin_pool_route_forbids_cross_tenant_path() {
         let response = build_router(test_state(true, true))
             .oneshot(
                 Request::builder()
-                    .uri("/admin/v1/tenants/tenant-a/providers/anthropic/pool")
+                    .uri("/admin/v1/tenants/tenant-b/providers/anthropic/pool")
                     .header("authorization", "Bearer admin-token")
                     .header("x-oya-admin-tenant", "tenant-b")
                     .body(Body::empty())
