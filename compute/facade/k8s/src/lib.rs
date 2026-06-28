@@ -129,6 +129,17 @@ pub struct CloudComputeK8sApiAuthorization {
     pub principal_id: String,          // data_class: INTERNAL_ONLY
     pub decision_id: String,           // data_class: INTERNAL_ONLY
     pub allowed_surfaces: Vec<String>, // data_class: INTERNAL_ONLY
+    pub proof: Option<CloudComputeK8sApiAuthorizationProof>, // data_class: INTERNAL_ONLY
+}
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudComputeK8sApiAuthorizationProof {
+    pub tenant_id: String,                // data_class: INTERNAL_ONLY
+    pub principal_id: String,             // data_class: INTERNAL_ONLY
+    pub surface: String,                  // data_class: INTERNAL_ONLY
+    pub decision_id: String,              // data_class: INTERNAL_ONLY
+    pub verified: bool,                   // data_class: INTERNAL_ONLY
+    pub issued_at_epoch_seconds: u64,     // data_class: INTERNAL_ONLY
+    pub expires_at_epoch_seconds: u64,    // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -777,10 +788,35 @@ fn validate_authorization(
             principal_id: principal.principal_id.clone(),
         });
     }
+    validate_authorization_proof(principal, authorization, surface)?;
     if !authorization
         .allowed_surfaces
         .iter()
         .any(|allowed_surface| allowed_surface == surface)
+    {
+        return Err(CloudComputeK8sApiError::AuthorizationDenied {
+            surface: surface.to_string(),
+        });
+    }
+    Ok(())
+}
+
+fn validate_authorization_proof(
+    principal: &CloudComputeK8sApiPrincipal,
+    authorization: &CloudComputeK8sApiAuthorization,
+    surface: &str,
+) -> Result<(), CloudComputeK8sApiError> {
+    let Some(proof) = authorization.proof.as_ref() else {
+        return Err(CloudComputeK8sApiError::AuthorizationDenied {
+            surface: surface.to_string(),
+        });
+    };
+    if !proof.verified
+        || proof.tenant_id != principal.tenant_id
+        || proof.principal_id != principal.principal_id
+        || proof.surface != surface
+        || proof.decision_id != authorization.decision_id
+        || proof.issued_at_epoch_seconds >= proof.expires_at_epoch_seconds
     {
         return Err(CloudComputeK8sApiError::AuthorizationDenied {
             surface: surface.to_string(),

@@ -46,6 +46,8 @@ fn authorization_for(
         tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
         decision_id: format!("authz_decision_{principal_id}"),
+        requested_surface: CLOUD_COMPUTE_FUNCTIONS_INVOKE_SURFACE.to_string(),
+        valid_until_epoch_seconds: 1_700_100_060,
         allowed_surfaces: surfaces
             .iter()
             .map(|surface| (*surface).to_string())
@@ -97,6 +99,7 @@ fn body(invocation_id: &str, payload_data_class: &str) -> CloudComputeFunctionsI
         function_id: FUNCTION_ID.to_string(),
         region: "region-home".to_string(),
         payload_data_class: payload_data_class.to_string(),
+        current_concurrent_invocations: 0,
         requested_at_epoch_seconds: 1_700_100_030,
     }
 }
@@ -218,7 +221,7 @@ fn functions_invoke_api_rejects_path_body_drift_before_catalog_mutation() {
 }
 
 #[test]
-fn functions_invoke_api_separates_missing_authentication_from_denied_authorization() {
+fn functions_invoke_api_separates_authentication_denied_authorization_and_forged_proof() {
     let mut catalog = CloudComputeCatalog::default();
     seed_active_function(&mut catalog);
     let mut ledger = CloudComputeFunctionsInvokeIdempotencyLedger::default();
@@ -255,6 +258,49 @@ fn functions_invoke_api_separates_missing_authentication_from_denied_authorizati
         }
     );
     assert_eq!(authz_error.invoke_status_code(), 403);
+    assert!(ledger.is_empty());
+    assert_eq!(catalog.invocations().count(), 0);
+
+    let mut forged_allowed_surface = request(
+        "req-compute-functions-authz-forged",
+        "idem-functions-authz-forged-001",
+        "fninv_authz_forged",
+    );
+    forged_allowed_surface.authorization.requested_surface = "cloud.compute.vm.create".to_string();
+    forged_allowed_surface.authorization.allowed_surfaces =
+        vec![CLOUD_COMPUTE_FUNCTIONS_INVOKE_SURFACE.to_string()];
+
+    let forged_error =
+        invoke_cloud_compute_function_from_api(&mut catalog, &mut ledger, forged_allowed_surface)
+            .expect_err("allowed_surfaces alone is not an authorization proof");
+
+    assert_eq!(
+        forged_error,
+        CloudComputeFunctionsApiError::AuthorizationDenied {
+            surface: CLOUD_COMPUTE_FUNCTIONS_INVOKE_SURFACE.to_string(),
+        }
+    );
+    assert_eq!(forged_error.invoke_status_code(), 403);
+    assert!(ledger.is_empty());
+    assert_eq!(catalog.invocations().count(), 0);
+
+    let mut expired = request(
+        "req-compute-functions-authz-expired",
+        "idem-functions-authz-expired-001",
+        "fninv_authz_expired",
+    );
+    expired.authorization.valid_until_epoch_seconds = expired.body.requested_at_epoch_seconds;
+
+    let expired_error = invoke_cloud_compute_function_from_api(&mut catalog, &mut ledger, expired)
+        .expect_err("expired authorization proof is fail-closed");
+
+    assert_eq!(
+        expired_error,
+        CloudComputeFunctionsApiError::AuthorizationDenied {
+            surface: CLOUD_COMPUTE_FUNCTIONS_INVOKE_SURFACE.to_string(),
+        }
+    );
+    assert_eq!(expired_error.invoke_status_code(), 403);
     assert!(ledger.is_empty());
     assert_eq!(catalog.invocations().count(), 0);
 }
@@ -405,6 +451,31 @@ fn functions_invoke_api_maps_payload_data_class_policy_without_masking() {
     assert_eq!(
         error,
         CloudComputeFunctionsApiError::Compute(CloudComputeError::PayloadDataClassNotAllowed)
+    );
+    assert_eq!(error.invoke_status_code(), 403);
+    assert_eq!(ledger.len(), 1);
+    assert_eq!(catalog.invocations().count(), 0);
+}
+
+
+#[test]
+fn functions_invoke_api_rejects_invocation_at_declared_max_concurrency() {
+    let mut catalog = CloudComputeCatalog::default();
+    seed_active_function(&mut catalog);
+    let mut ledger = CloudComputeFunctionsInvokeIdempotencyLedger::default();
+    let mut request = request(
+        "req-compute-functions-concurrency",
+        "idem-functions-concurrency-001",
+        "fninv_concurrency",
+    );
+    request.body.current_concurrent_invocations = 250;
+
+    let error = invoke_cloud_compute_function_from_api(&mut catalog, &mut ledger, request)
+        .expect_err("function max_concurrency is enforced by the domain");
+
+    assert_eq!(
+        error,
+        CloudComputeFunctionsApiError::Compute(CloudComputeError::QuotaExceeded)
     );
     assert_eq!(error.invoke_status_code(), 403);
     assert_eq!(ledger.len(), 1);

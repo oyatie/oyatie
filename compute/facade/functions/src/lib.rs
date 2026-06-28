@@ -110,10 +110,12 @@ pub struct CloudComputeFunctionsApiPrincipal {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudComputeFunctionsApiAuthorization {
-    pub tenant_id: String,             // data_class: INTERNAL_ONLY
-    pub principal_id: String,          // data_class: INTERNAL_ONLY
-    pub decision_id: String,           // data_class: INTERNAL_ONLY
-    pub allowed_surfaces: Vec<String>, // data_class: INTERNAL_ONLY
+    pub tenant_id: String,              // data_class: INTERNAL_ONLY
+    pub principal_id: String,           // data_class: INTERNAL_ONLY
+    pub decision_id: String,            // data_class: INTERNAL_ONLY
+    pub requested_surface: String,      // data_class: INTERNAL_ONLY
+    pub valid_until_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+    pub allowed_surfaces: Vec<String>,  // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -123,6 +125,7 @@ pub struct CloudComputeFunctionsInvokeRequest {
     pub function_id: String,             // data_class: INTERNAL_ONLY
     pub region: String,                  // data_class: PUBLIC
     pub payload_data_class: String,      // data_class: INTERNAL_ONLY
+    pub current_concurrent_invocations: u32, // data_class: INTERNAL_ONLY
     pub requested_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
 }
 
@@ -467,8 +470,8 @@ impl CloudComputeFunctionsApiError {
                 "must match the authenticated principal id",
             )],
             Self::AuthorizationDenied { .. } => vec![detail(
-                "authorization.allowed_surfaces",
-                "must include the requested Cloud Compute Functions surface",
+                "authorization",
+                "must bind tenant, principal, requested surface, and unexpired decision evidence",
             )],
             Self::IdempotencyKeyReused { .. } => vec![detail(
                 "header.Idempotency-Key",
@@ -509,6 +512,7 @@ pub fn validate_cloud_compute_functions_invoke_request(
         &request.principal,
         &request.authorization,
         CLOUD_COMPUTE_FUNCTIONS_INVOKE_SURFACE,
+        request.body.requested_at_epoch_seconds,
     )?;
     Ok(resource_id)
 }
@@ -651,6 +655,7 @@ fn validate_authorization(
     principal: &CloudComputeFunctionsApiPrincipal,
     authorization: &CloudComputeFunctionsApiAuthorization,
     surface: &str,
+    requested_at_epoch_seconds: u64,
 ) -> Result<(), CloudComputeFunctionsApiError> {
     if authorization.decision_id.trim().is_empty() {
         return Err(CloudComputeFunctionsApiError::EmptyAuthorizationDecisionId);
@@ -669,10 +674,12 @@ fn validate_authorization(
             },
         );
     }
-    if !authorization
-        .allowed_surfaces
-        .iter()
-        .any(|allowed_surface| allowed_surface == surface)
+    if authorization.requested_surface != surface
+        || authorization.valid_until_epoch_seconds <= requested_at_epoch_seconds
+        || !authorization
+            .allowed_surfaces
+            .iter()
+            .any(|allowed_surface| allowed_surface == surface)
     {
         return Err(CloudComputeFunctionsApiError::AuthorizationDenied {
             surface: surface.to_string(),
@@ -692,6 +699,7 @@ fn function_invoke_input(
         region: body.region.clone(),
         payload_data_class: parse_api_data_class(body.payload_data_class.clone())?,
         idempotency_key: boundary.idempotency_key.clone(),
+        current_concurrent_invocations: body.current_concurrent_invocations,
         requested_at_epoch_seconds: body.requested_at_epoch_seconds,
     })
 }
@@ -731,6 +739,10 @@ fn function_invoke_fingerprint_for(
             (
                 "body.payload_data_class",
                 input.payload_data_class.label().to_string(),
+            ),
+            (
+                "body.current_concurrent_invocations",
+                input.current_concurrent_invocations.to_string(),
             ),
             (
                 "body.requested_at_epoch_seconds",
@@ -865,7 +877,9 @@ fn cloud_compute_issue(error: &CloudComputeError) -> &'static str {
             "flavor resources must be positive and class-consistent"
         }
         CloudComputeError::InvalidQuota => "quota envelope must not start beyond its limits",
-        CloudComputeError::QuotaExceeded => "requested function exceeds tenant quota envelope",
+        CloudComputeError::QuotaExceeded => {
+            "requested function exceeds tenant quota envelope or concurrency limit"
+        }
         CloudComputeError::InvalidInstanceState => "VM create requests must start in Pending state",
         CloudComputeError::InvalidKubernetesState => {
             "Kubernetes create requests must start in Creating state"
