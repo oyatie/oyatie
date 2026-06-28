@@ -16,6 +16,7 @@ use network_residency::{ResidencyClass, parse_residency_class_label};
 use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
 
 pub const CLOUD_COMPUTE_VM_CREATE_SURFACE: &str = "cloud.compute.vm.create";
+const DEFAULT_VM_CREATE_IDEMPOTENCY_LEDGER_MAX_ENTRIES: usize = 1024;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CloudComputeVmCreateApiStatus {
@@ -202,18 +203,45 @@ pub struct CloudComputeVmCreateApiRequest {
     pub body: CloudComputeVmCreateRequest, // data_class: INTERNAL_ONLY
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudComputeVmCreateIdempotencyLedger {
     entries: BTreeMap<CloudComputeVmIdempotencyLedgerKey, CloudComputeVmCreateLedgerEntry>, // data_class: INTERNAL_ONLY
+    max_entries: usize, // data_class: INTERNAL_ONLY
+}
+
+impl Default for CloudComputeVmCreateIdempotencyLedger {
+    fn default() -> Self {
+        Self::with_max_entries(DEFAULT_VM_CREATE_IDEMPOTENCY_LEDGER_MAX_ENTRIES)
+    }
 }
 
 impl CloudComputeVmCreateIdempotencyLedger {
+    pub fn with_max_entries(max_entries: usize) -> Self {
+        Self {
+            entries: BTreeMap::new(),
+            max_entries: max_entries.max(1),
+        }
+    }
+
     pub fn len(&self) -> usize {
         self.entries.len()
     }
 
     pub fn is_empty(&self) -> bool {
         self.entries.is_empty()
+    }
+
+    fn remember(
+        &mut self,
+        key: CloudComputeVmIdempotencyLedgerKey,
+        entry: CloudComputeVmCreateLedgerEntry,
+    ) {
+        if self.entries.len() >= self.max_entries {
+            if let Some(evicted) = self.entries.keys().next().cloned() {
+                self.entries.remove(&evicted);
+            }
+        }
+        self.entries.insert(key, entry);
     }
 }
 
@@ -643,7 +671,7 @@ pub fn create_cloud_compute_vm_from_api(
         .map(|instance| {
             CloudComputeVmCreateSuccessResponse::created(vm_record(instance), request_id)
         });
-    idempotency_ledger.entries.insert(
+    idempotency_ledger.remember(
         key,
         CloudComputeVmCreateLedgerEntry {
             fingerprint,

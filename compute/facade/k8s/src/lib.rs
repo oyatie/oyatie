@@ -21,6 +21,8 @@ use network_residency::{ResidencyClass, parse_residency_class_label};
 use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
 
 pub const CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE: &str = "cloud.compute.k8s.cluster.create";
+const DEFAULT_K8S_CREATE_IDEMPOTENCY_LEDGER_MAX_ENTRIES: usize = 1024;
+const DEFAULT_K8S_DELETE_IDEMPOTENCY_LEDGER_MAX_ENTRIES: usize = 1024;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CloudComputeK8sClusterCreateApiStatus {
@@ -208,18 +210,45 @@ pub struct CloudComputeK8sClusterCreateApiRequest {
     pub body: CloudComputeK8sClusterCreateRequest, // data_class: INTERNAL_ONLY
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudComputeK8sCreateIdempotencyLedger {
     entries: BTreeMap<CloudComputeK8sIdempotencyLedgerKey, CloudComputeK8sCreateLedgerEntry>, // data_class: INTERNAL_ONLY
+    max_entries: usize, // data_class: INTERNAL_ONLY
+}
+
+impl Default for CloudComputeK8sCreateIdempotencyLedger {
+    fn default() -> Self {
+        Self::with_max_entries(DEFAULT_K8S_CREATE_IDEMPOTENCY_LEDGER_MAX_ENTRIES)
+    }
 }
 
 impl CloudComputeK8sCreateIdempotencyLedger {
+    pub fn with_max_entries(max_entries: usize) -> Self {
+        Self {
+            entries: BTreeMap::new(),
+            max_entries: max_entries.max(1),
+        }
+    }
+
     pub fn len(&self) -> usize {
         self.entries.len()
     }
 
     pub fn is_empty(&self) -> bool {
         self.entries.is_empty()
+    }
+
+    fn remember(
+        &mut self,
+        key: CloudComputeK8sIdempotencyLedgerKey,
+        entry: CloudComputeK8sCreateLedgerEntry,
+    ) {
+        if self.entries.len() >= self.max_entries {
+            if let Some(evicted) = self.entries.keys().next().cloned() {
+                self.entries.remove(&evicted);
+            }
+        }
+        self.entries.insert(key, entry);
     }
 }
 
@@ -666,7 +695,7 @@ pub fn create_cloud_compute_k8s_cluster_from_api(
                 request_id,
             )
         });
-    idempotency_ledger.entries.insert(
+    idempotency_ledger.remember(
         key,
         CloudComputeK8sCreateLedgerEntry {
             fingerprint,
@@ -1313,18 +1342,45 @@ type CloudComputeK8sDeleteApiResult =
 /// Keyed on `(tenant_id, principal_id, "cloud.compute.k8s.cluster.delete",
 /// idempotency_key)`. A replayed key with the same `path_cluster_id`
 /// fingerprint returns the identical response without a second teardown.
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudComputeK8sDeleteIdempotencyLedger {
     entries: BTreeMap<CloudComputeK8sIdempotencyLedgerKey, CloudComputeK8sDeleteLedgerEntry>, // data_class: INTERNAL_ONLY
+    max_entries: usize, // data_class: INTERNAL_ONLY
+}
+
+impl Default for CloudComputeK8sDeleteIdempotencyLedger {
+    fn default() -> Self {
+        Self::with_max_entries(DEFAULT_K8S_DELETE_IDEMPOTENCY_LEDGER_MAX_ENTRIES)
+    }
 }
 
 impl CloudComputeK8sDeleteIdempotencyLedger {
+    pub fn with_max_entries(max_entries: usize) -> Self {
+        Self {
+            entries: BTreeMap::new(),
+            max_entries: max_entries.max(1),
+        }
+    }
+
     pub fn len(&self) -> usize {
         self.entries.len()
     }
 
     pub fn is_empty(&self) -> bool {
         self.entries.is_empty()
+    }
+
+    fn remember(
+        &mut self,
+        key: CloudComputeK8sIdempotencyLedgerKey,
+        entry: CloudComputeK8sDeleteLedgerEntry,
+    ) {
+        if self.entries.len() >= self.max_entries {
+            if let Some(evicted) = self.entries.keys().next().cloned() {
+                self.entries.remove(&evicted);
+            }
+        }
+        self.entries.insert(key, entry);
     }
 }
 
@@ -1427,7 +1483,7 @@ pub fn delete_cloud_compute_k8s_cluster_from_api(
         CloudComputeK8sClusterDeleteSuccessResponse::accepted(record, request_id),
     );
 
-    idempotency_ledger.entries.insert(
+    idempotency_ledger.remember(
         key,
         CloudComputeK8sDeleteLedgerEntry {
             path_cluster_id: request.path_cluster_id,

@@ -23,6 +23,7 @@ const DCOPS_CABLE_SCHEMA_VERSION: u32 = 1;
 const DCOPS_BMS_SCHEMA_VERSION: u32 = 1;
 const DCOPS_WORK_ORDER_SCHEMA_VERSION: u32 = 1;
 const DCOPS_SUSTAINABILITY_SCHEMA_VERSION: u32 = 1;
+const DEFAULT_BMS_READING_RETENTION_LIMIT: usize = 1024;
 
 const SITE_ID_PREFIX: &str = "dc";
 const FACILITY_ZONE_ID_PREFIX: &str = "zone";
@@ -756,7 +757,7 @@ pub enum CloudDcopsError {
     CrossSiteReference,
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudDcopsCatalog {
     sites: BTreeMap<DatacenterSiteId, DatacenterSite>,
     facility_zones: BTreeMap<FacilityZoneId, FacilityZone>,
@@ -768,12 +769,19 @@ pub struct CloudDcopsCatalog {
     cable_runs: BTreeMap<CableRunId, CableRun>,
     bms_points: BTreeMap<BmsPointId, BmsPoint>,
     bms_readings: BTreeSet<(BmsPointId, u64)>,
+    bms_reading_retention_limit: usize,
     work_orders: BTreeMap<WorkOrderId, WorkOrder>,
     sustainability_snapshots: BTreeMap<SustainabilitySnapshotId, SustainabilitySnapshot>,
     rack_capacity_by_id: BTreeMap<RackId, RackCapacitySnapshot>,
     power_zone_used_watts_by_id: BTreeMap<PowerZoneId, u64>,
     cooling_zone_used_watts_by_id: BTreeMap<CoolingZoneId, u64>,
     rack_unit_allocations_by_id: BTreeMap<RackId, BTreeMap<EquipmentId, (u16, u16)>>,
+}
+
+impl Default for CloudDcopsCatalog {
+    fn default() -> Self {
+        Self::with_bms_reading_retention_limit(DEFAULT_BMS_READING_RETENTION_LIMIT)
+    }
 }
 
 impl DatacenterSiteId {
@@ -1660,6 +1668,44 @@ impl SustainabilitySnapshot {
 }
 
 impl CloudDcopsCatalog {
+    pub fn with_bms_reading_retention_limit(bms_reading_retention_limit: usize) -> Self {
+        Self {
+            sites: BTreeMap::new(),
+            facility_zones: BTreeMap::new(),
+            power_zones: BTreeMap::new(),
+            cooling_zones: BTreeMap::new(),
+            security_zones: BTreeMap::new(),
+            racks: BTreeMap::new(),
+            equipment: BTreeMap::new(),
+            cable_runs: BTreeMap::new(),
+            bms_points: BTreeMap::new(),
+            bms_readings: BTreeSet::new(),
+            bms_reading_retention_limit: bms_reading_retention_limit.max(1),
+            work_orders: BTreeMap::new(),
+            sustainability_snapshots: BTreeMap::new(),
+            rack_capacity_by_id: BTreeMap::new(),
+            power_zone_used_watts_by_id: BTreeMap::new(),
+            cooling_zone_used_watts_by_id: BTreeMap::new(),
+            rack_unit_allocations_by_id: BTreeMap::new(),
+        }
+    }
+
+    pub fn bms_reading_count(&self) -> usize {
+        self.bms_readings.len()
+    }
+
+    fn remember_bms_reading(&mut self, key: (BmsPointId, u64)) -> bool {
+        if self.bms_readings.contains(&key) {
+            return false;
+        }
+        if self.bms_readings.len() >= self.bms_reading_retention_limit {
+            if let Some(evicted) = self.bms_readings.iter().next().cloned() {
+                self.bms_readings.remove(&evicted);
+            }
+        }
+        self.bms_readings.insert(key)
+    }
+
     pub fn add_site(
         &mut self,
         input: DatacenterSiteCreate,
@@ -2014,7 +2060,7 @@ impl CloudDcopsCatalog {
             reading.point_id.value.clone(),
             reading.observed_at_epoch_seconds.value,
         );
-        if !self.bms_readings.insert(key) {
+        if !self.remember_bms_reading(key) {
             return Err(CloudDcopsError::DuplicateBmsReading);
         }
         Ok(reading)
@@ -3196,6 +3242,45 @@ mod tests {
                 .expect_err("duplicate point timestamp rejected"),
             CloudDcopsError::DuplicateBmsReading
         );
+    }
+
+    #[test]
+    fn bms_reading_store_enforces_bounded_retention() {
+        let mut catalog = active_catalog();
+        catalog.bms_reading_retention_limit = 1;
+        let point = catalog
+            .add_bms_point(BmsPointCreate {
+                id: "bms/dc/region-alpha1/site-a/temp-retention".to_string(),
+                site_id: SITE_ID.to_string(),
+                equipment_id: None,
+                kind: BmsPointKind::Temperature,
+                state: BmsPointState::Commissioning,
+                unit: "milli-celsius".to_string(),
+                created_at_epoch_seconds: 71,
+            })
+            .expect("point");
+        catalog
+            .transition_bms_point(&point.id.value, BmsPointState::Enabled, 72)
+            .expect("point enabled");
+
+        catalog
+            .record_bms_reading(BmsReadingCreate {
+                point_id: point.id.value.value.clone(),
+                site_id: SITE_ID.to_string(),
+                observed_at_epoch_seconds: 73,
+                milli_value: 22_000,
+            })
+            .expect("first reading");
+        catalog
+            .record_bms_reading(BmsReadingCreate {
+                point_id: point.id.value.value.clone(),
+                site_id: SITE_ID.to_string(),
+                observed_at_epoch_seconds: 74,
+                milli_value: 22_100,
+            })
+            .expect("second reading");
+
+        assert_eq!(catalog.bms_reading_count(), 1);
     }
 
     #[test]
