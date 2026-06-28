@@ -116,7 +116,13 @@ async fn chaos_lease_storm_100_tasks_5_seats_5_seconds() {
                 }
 
                 let now = Instant::now();
-                let lease_result = SubscriptionPool::lease(&pool_ref, &agent, gate.as_ref(), now);
+                let lease_result = SubscriptionPool::lease(
+                    &pool_ref,
+                    &TenantId::new("t-chaos").unwrap(),
+                    &agent,
+                    gate.as_ref(),
+                    now,
+                );
 
                 match lease_result {
                     Ok(lease) => {

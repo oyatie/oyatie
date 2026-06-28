@@ -70,6 +70,7 @@ fn wire_session_id_pins_to_one_seat_for_the_default_ttl() {
 
     let first = SubscriptionPool::lease_sticky_with_estimate(
         &pool,
+        &tenant(),
         &agent(),
         &gate,
         now,
@@ -85,6 +86,7 @@ fn wire_session_id_pins_to_one_seat_for_the_default_ttl() {
     let later = now + SESSION_TTL - Duration::from_secs(1);
     let again = SubscriptionPool::lease_sticky_with_estimate(
         &pool,
+        &tenant(),
         &agent(),
         &gate,
         later,
@@ -106,6 +108,7 @@ fn rebind_on_429_failover_moves_off_the_cooling_seat() {
 
     let first = SubscriptionPool::lease_sticky_with_estimate(
         &pool,
+        &tenant(),
         &agent(),
         &gate,
         now,
@@ -120,6 +123,7 @@ fn rebind_on_429_failover_moves_off_the_cooling_seat() {
 
     let rebound = SubscriptionPool::lease_sticky_with_estimate(
         &pool,
+        &tenant(),
         &agent(),
         &gate,
         now + Duration::from_secs(1),
@@ -145,6 +149,7 @@ fn message_fingerprint_path_pins_when_no_wire_id() {
 
     let first = SubscriptionPool::lease_sticky_with_estimate(
         &pool,
+        &tenant(),
         &agent(),
         &gate,
         now,
@@ -158,6 +163,7 @@ fn message_fingerprint_path_pins_when_no_wire_id() {
 
     let again = SubscriptionPool::lease_sticky_with_estimate(
         &pool,
+        &tenant(),
         &agent(),
         &gate,
         now + Duration::from_secs(5),

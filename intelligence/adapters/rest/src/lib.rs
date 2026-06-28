@@ -1571,6 +1571,60 @@ impl IngressPrincipalAuthenticator for ConfiguredBearerIngressAuthenticator {
     }
 }
 
+/// One bearer→principal binding for the multi-tenant ingress authenticator: a
+/// configured credential and the tenant (+ optional agent) a successful match
+/// acts as. The tenant/agent are NEVER caller-supplied headers.
+#[derive(Clone, Debug)]
+pub struct BearerBinding {
+    pub token: String,          // data_class: SECRET
+    pub tenant: TenantId,       // data_class: INTERNAL_ONLY
+    pub agent: Option<AgentId>, // data_class: INTERNAL_ONLY
+}
+
+/// Multi-tenant [`IngressPrincipalAuthenticator`] (AUTH-005 increment-3): a set
+/// of configured bearer credentials, each bound to one principal tenant. The
+/// verified tenant drives the pool keying + gate, so a tenant-B caller's bearer
+/// can only ever mint a tenant-B principal. `verify()` scans EVERY binding in
+/// constant time with NO early break, so a hit's position does not leak via
+/// timing. An empty set or an unknown token verifies NOTHING (every request
+/// `401`) — no allow-all path.
+#[derive(Clone, Debug)]
+pub struct ConfiguredBearerMapIngressAuthenticator {
+    bindings: Vec<BearerBinding>, // data_class: SECRET
+}
+
+impl ConfiguredBearerMapIngressAuthenticator {
+    /// Build a multi-tenant authenticator from token→principal bindings.
+    #[must_use]
+    pub fn new(bindings: Vec<BearerBinding>) -> Self {
+        Self { bindings }
+    }
+}
+
+impl IngressPrincipalAuthenticator for ConfiguredBearerMapIngressAuthenticator {
+    fn verify(&self, headers: &HeaderMap) -> Option<VerifiedIngressPrincipal> {
+        let presented = headers
+            .get("authorization")
+            .and_then(|value| value.to_str().ok())
+            .and_then(|value| value.strip_prefix("Bearer "))?
+            .as_bytes();
+        // Constant-time, no-early-break scan: every binding is compared so the
+        // matched binding's position never leaks via timing. A binding with an
+        // empty configured token can never match (fail-closed).
+        let mut matched: Option<&BearerBinding> = None;
+        for binding in &self.bindings {
+            let configured = binding.token.trim();
+            let is_match =
+                !configured.is_empty() && constant_time_eq(presented, configured.as_bytes());
+            if is_match {
+                matched = Some(binding);
+            }
+        }
+        matched
+            .map(|binding| VerifiedIngressPrincipal::new(binding.tenant.clone(), binding.agent.clone()))
+    }
+}
+
 // =====================================================================
 // Admin control-plane authn/authz (AUTH-005 / ADR-0573 PR2)
 //
@@ -1669,7 +1723,7 @@ impl AdminPrincipalAuthenticator for ConfiguredBearerAdminAuthenticator {
 fn require_data_plane_ingress_authz(
     state: &AppState,
     headers: &HeaderMap,
-) -> Result<(), Response> {
+) -> Result<VerifiedIngressPrincipal, Response> {
     // (1) AUTHN — unforgeable verified principal. A self-attested header cannot
     // reach the `Some` branch (the authenticator ignores them).
     let Some(principal) = state.ingress_authenticator.verify(headers) else {
@@ -1682,15 +1736,18 @@ fn require_data_plane_ingress_authz(
         ));
     };
 
-    // (2) AUTHZ — feed the VERIFIED principal tenant (never `state.tenant_id`,
-    // never a header) vs the service's own resource tenant to the in-process gate.
-    // Cross-tenant => Forbid (deny-wins); any gate fault also maps to Forbid
-    // inside the adapter, so both are fail-closed 403. The action is SelectSeat
-    // (→ Cedar InvokeChatCompletion), which carries the tenant-isolation forbid;
-    // the decision is tenant-based so the resource provider is representative.
-    // The agent label does not affect the tenant decision: prefer a verified
-    // agent (future mTLS adapter), else the caller's x-agent-id, else a
-    // tenant-derived sentinel so the Cedar Workload uid is always well-formed.
+    // (2) AUTHZ — intra-tenant gate check, scoped to the VERIFIED principal
+    // tenant (never `state.tenant_id`, never a header). The data plane is now
+    // multi-tenant: the caller acts on ITS OWN tenant's pool, so the resource
+    // tenant IS `principal.tenant()`. CROSS-tenant isolation is enforced by
+    // keying the pool by `principal.tenant()` (primary barrier) plus the kernel
+    // `authz_allows` backstop (principal=verified caller vs the pool's own
+    // tenant); this edge gate enforces whether the principal may SelectSeat at
+    // all within its tenant. A Forbid — or any gate fault, which the adapter
+    // maps to Forbid — is fail-closed 403. The agent label does not affect the
+    // tenant decision: prefer a verified agent (future mTLS adapter), else the
+    // caller's x-agent-id, else a tenant-derived sentinel so the Cedar Workload
+    // uid is always well-formed.
     let agent = principal
         .agent()
         .cloned()
@@ -1709,13 +1766,13 @@ fn require_data_plane_ingress_authz(
         principal_tenant: principal.tenant(),
         principal_agent: &agent,
         action: AuthzAction::SelectSeat,
-        resource_tenant: &state.tenant_id,
+        resource_tenant: principal.tenant(),
         resource_provider: Provider::Anthropic,
     };
     if state.gate.decide(&request) == AuthzDecision::Forbid {
         return Err(forbidden_ingress_response());
     }
-    Ok(())
+    Ok(principal)
 }
 
 /// Fail-closed 403 for a denied/faulted ingress authorization.
@@ -2048,9 +2105,10 @@ async fn handle_proxy(
     headers: HeaderMap,
     mut body: Bytes,
 ) -> Response {
-    if let Err(response) = require_data_plane_ingress_authz(&state, &headers) {
-        return response;
-    }
+    let principal = match require_data_plane_ingress_authz(&state, &headers) {
+        Ok(principal) => principal,
+        Err(response) => return response,
+    };
     if let Err(response) = guard_in_transit_payload(&body) {
         return response;
     }
@@ -2061,7 +2119,13 @@ async fn handle_proxy(
     body = rewrite_body_model(body, &route_decision.upstream_model);
     match route_decision.backend {
         BackendClass::GeminiNative => {
-            return handle_gemini_anthropic_messages_proxy(state, headers, body).await;
+            return handle_gemini_anthropic_messages_proxy(
+                state,
+                headers,
+                body,
+                principal.tenant(),
+            )
+            .await;
         }
         BackendClass::AnthropicSubscription => {}
         BackendClass::OpenAiCompatible => {
@@ -2087,9 +2151,20 @@ async fn handle_proxy(
         }
     };
 
+    // Resolve the VERIFIED caller tenant's Anthropic pool (multi-tenant: never
+    // `state.pool`, which is the process tenant's default). Absent => 503.
+    let Some(pool) = state
+        .pool_registry
+        .get_pool(principal.tenant(), Provider::Anthropic)
+    else {
+        warn!(tenant = %principal.tenant().as_str(), "no Anthropic pool for tenant");
+        return StatusCode::SERVICE_UNAVAILABLE.into_response();
+    };
+
     // Acquire a SeatLease (Fix-1: prevents same-seat double-allocation).
     let lease = match SubscriptionPool::lease(
-        &state.pool,
+        &pool,
+        principal.tenant(),
         &agent_id,
         state.gate.as_ref(),
         Instant::now(),
@@ -2122,13 +2197,14 @@ async fn handle_proxy(
         path: "/v1/messages".to_string(),
         headers: proxy_headers,
         body: body.to_vec(),
-        tenant_id: state.tenant_id.clone(),
+        tenant_id: principal.tenant().clone(),
     };
 
     // Resolve the leased seat's opaque credential handle AND its transport mode
     // in a single lock so OAuth-subscription vs API-key seats route to the
     // correct upstream path (API-key seats must NEVER trigger OAuth refresh).
-    let (credential_handle, credential_mode) = match state.pool.lock().ok().and_then(|pool| {
+    // Resolve from the SAME (caller-tenant) pool the seat was leased from.
+    let (credential_handle, credential_mode) = match pool.lock().ok().and_then(|pool| {
         let handle = pool.credential_secret_handle_for_seat(&seat_id)?;
         let mode = pool.credential_mode_for_seat(&seat_id)?;
         Some((handle, mode))
@@ -2258,7 +2334,7 @@ async fn handle_proxy(
                     .as_millis() as u64;
                 let event = LlmGatewayEvent {
                     request_id: format!("req-{now_ms}"),
-                    tenant_id: state.tenant_id.clone(),
+                    tenant_id: principal.tenant().clone(),
                     agent_id,
                     seat_id: seat_id.clone(),
                     provider: Provider::Anthropic,
@@ -2340,13 +2416,19 @@ fn headers_to_btree(headers: &HeaderMap) -> BTreeMap<String, String> {
 fn acquire_provider_lease(
     state: &AppState,
     provider: Provider,
+    principal_tenant: &TenantId,
     agent_id: &AgentId,
 ) -> Result<ProviderLeaseContext, LeaseError> {
-    let Some(pool) = state.pool_registry.get_pool(&state.tenant_id, provider) else {
+    let Some(pool) = state.pool_registry.get_pool(principal_tenant, provider) else {
         return Err(LeaseError::NoEligibleSeat);
     };
-    let lease = match SubscriptionPool::lease(&pool, agent_id, state.gate.as_ref(), Instant::now())
-    {
+    let lease = match SubscriptionPool::lease(
+        &pool,
+        principal_tenant,
+        agent_id,
+        state.gate.as_ref(),
+        Instant::now(),
+    ) {
         Ok(lease) => lease,
         Err(SubscriptionPoolError::ForbiddenByPolicy) => return Err(LeaseError::Forbidden),
         Err(SubscriptionPoolError::NoEligibleSeat) => return Err(LeaseError::NoEligibleSeat),
@@ -2592,9 +2674,10 @@ async fn handle_openai_compatible_proxy(
     upstream_path: &'static str,
     allow_stream: bool,
 ) -> Response {
-    if let Err(response) = require_data_plane_ingress_authz(&state, &headers) {
-        return response;
-    }
+    let principal = match require_data_plane_ingress_authz(&state, &headers) {
+        Ok(principal) => principal,
+        Err(response) => return response,
+    };
     if let Err(response) = guard_in_transit_payload(&body) {
         return response;
     }
@@ -2606,7 +2689,7 @@ async fn handle_openai_compatible_proxy(
     body = rewrite_body_model(body, &route_decision.upstream_model);
     match route_decision.backend {
         BackendClass::GeminiNative if upstream_path == "/v1/chat/completions" => {
-            return handle_gemini_openai_chat_proxy(state, headers, body).await;
+            return handle_gemini_openai_chat_proxy(state, headers, body, principal.tenant()).await;
         }
         BackendClass::GeminiNative => {
             return unsupported_translation_response(
@@ -2629,7 +2712,8 @@ async fn handle_openai_compatible_proxy(
         Ok(agent_id) => agent_id,
         Err(response) => return response,
     };
-    let lease_context = match acquire_provider_lease(&state, Provider::Codex, &agent_id) {
+    let lease_context =
+        match acquire_provider_lease(&state, Provider::Codex, principal.tenant(), &agent_id) {
         Ok(context) => context,
         Err(LeaseError::Forbidden) => {
             return openai_error_response(
@@ -2672,6 +2756,7 @@ async fn handle_openai_compatible_proxy(
             upstream_path,
             allow_stream,
             lease_context,
+            principal.tenant(),
             agent_id,
         )
         .await;
@@ -2763,7 +2848,7 @@ async fn handle_openai_compatible_proxy(
                 .as_millis() as u64;
             state.sink.emit(LlmGatewayEvent {
                 request_id: format!("req-{now_ms}"),
-                tenant_id: state.tenant_id.clone(),
+                tenant_id: principal.tenant().clone(),
                 agent_id,
                 seat_id: lease_context.seat_id,
                 provider: Provider::Codex,
@@ -2809,6 +2894,7 @@ async fn handle_codex_oauth_subscription_proxy(
     upstream_path: &'static str,
     allow_stream: bool,
     lease_context: ProviderLeaseContext,
+    principal_tenant: &TenantId,
     agent_id: AgentId,
 ) -> Response {
     // The ChatGPT-backed Codex responses endpoint serves chat-shaped requests
@@ -2925,7 +3011,7 @@ async fn handle_codex_oauth_subscription_proxy(
                 .as_millis() as u64;
             state.sink.emit(LlmGatewayEvent {
                 request_id: format!("req-{now_ms}"),
-                tenant_id: state.tenant_id.clone(),
+                tenant_id: principal_tenant.clone(),
                 agent_id,
                 seat_id: lease_context.seat_id,
                 provider: Provider::Codex,
@@ -2957,6 +3043,7 @@ async fn handle_gemini_openai_chat_proxy(
     state: Arc<AppState>,
     headers: HeaderMap,
     body: Bytes,
+    principal_tenant: &TenantId,
 ) -> Response {
     if openai_stream_requested(&headers, &body) {
         return openai_error_response(
@@ -2975,6 +3062,7 @@ async fn handle_gemini_openai_chat_proxy(
         state,
         headers,
         body,
+        principal_tenant,
         agent_id,
         GeminiRequestShape::OpenAiChat,
     )
@@ -2985,6 +3073,7 @@ async fn handle_gemini_anthropic_messages_proxy(
     state: Arc<AppState>,
     headers: HeaderMap,
     body: Bytes,
+    principal_tenant: &TenantId,
 ) -> Response {
     let agent_id_str = match headers.get("x-agent-id").and_then(|v| v.to_str().ok()) {
         Some(s) => s.to_string(),
@@ -2998,6 +3087,7 @@ async fn handle_gemini_anthropic_messages_proxy(
         state,
         headers,
         body,
+        principal_tenant,
         agent_id,
         GeminiRequestShape::AnthropicMessages,
     )
@@ -3014,10 +3104,12 @@ async fn handle_gemini_adapter_proxy(
     state: Arc<AppState>,
     headers: HeaderMap,
     body: Bytes,
+    principal_tenant: &TenantId,
     agent_id: AgentId,
     request_shape: GeminiRequestShape,
 ) -> Response {
-    let lease_context = match acquire_provider_lease(&state, Provider::Gemini, &agent_id) {
+    let lease_context =
+        match acquire_provider_lease(&state, Provider::Gemini, principal_tenant, &agent_id) {
         Ok(context) => context,
         Err(LeaseError::Forbidden) => {
             return gemini_adapter_error_to_response(GeminiAdapterError::InvalidRequest(
@@ -3106,7 +3198,7 @@ async fn handle_gemini_adapter_proxy(
                 .as_millis() as u64;
             state.sink.emit(LlmGatewayEvent {
                 request_id: format!("req-{now_ms}"),
-                tenant_id: state.tenant_id.clone(),
+                tenant_id: principal_tenant.clone(),
                 agent_id,
                 seat_id: lease_context.seat_id,
                 provider: Provider::Gemini,
@@ -3225,9 +3317,11 @@ async fn handle_count_tokens(
     headers: HeaderMap,
     body: Bytes,
 ) -> Response {
-    if let Err(response) = require_data_plane_ingress_authz(&state, &headers) {
-        return response;
-    }
+    // Non-leasing endpoint: still fail-closed authn, principal deliberately unused.
+    let _principal = match require_data_plane_ingress_authz(&state, &headers) {
+        Ok(principal) => principal,
+        Err(response) => return response,
+    };
     if let Err(response) = guard_in_transit_payload(&body) {
         return response;
     }
@@ -3244,9 +3338,11 @@ async fn handle_count_tokens(
 
 /// GET /v1/models
 async fn handle_models(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Response {
-    if let Err(response) = require_data_plane_ingress_authz(&state, &headers) {
-        return response;
-    }
+    // Non-leasing endpoint: still fail-closed authn, principal deliberately unused.
+    let _principal = match require_data_plane_ingress_authz(&state, &headers) {
+        Ok(principal) => principal,
+        Err(response) => return response,
+    };
     Json(ModelInventoryResponse {
         object: "list",
         data: vec![
@@ -4029,6 +4125,62 @@ mod tests {
 
     impl EventSink for NoopSink {
         fn emit(&self, _event: LlmGatewayEvent) {}
+    }
+
+    fn bearer_headers(token: &str) -> HeaderMap {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            "authorization",
+            HeaderValue::from_str(&format!("Bearer {token}")).unwrap(),
+        );
+        headers
+    }
+
+    #[test]
+    fn bearer_map_authenticator_verifies_tenant_by_token() {
+        let auth = ConfiguredBearerMapIngressAuthenticator::new(vec![
+            BearerBinding {
+                token: "tok-a".to_string(),
+                tenant: TenantId::new("tenant-a").unwrap(),
+                agent: None,
+            },
+            BearerBinding {
+                token: "tok-b".to_string(),
+                tenant: TenantId::new("tenant-b").unwrap(),
+                agent: None,
+            },
+        ]);
+
+        // Token A mints a principal bound to tenant-A (never a caller header).
+        let principal = auth
+            .verify(&bearer_headers("tok-a"))
+            .expect("token A must verify");
+        assert_eq!(principal.tenant().as_str(), "tenant-a");
+        // Token B mints tenant-B.
+        let principal_b = auth
+            .verify(&bearer_headers("tok-b"))
+            .expect("token B must verify");
+        assert_eq!(principal_b.tenant().as_str(), "tenant-b");
+
+        // Unknown token => None => 401 (no allow-all path).
+        assert!(auth.verify(&bearer_headers("tok-unknown")).is_none());
+        // No authorization header => None.
+        assert!(auth.verify(&HeaderMap::new()).is_none());
+    }
+
+    #[test]
+    fn bearer_map_authenticator_empty_bindings_verify_nothing() {
+        let auth = ConfiguredBearerMapIngressAuthenticator::new(vec![]);
+        // Fail-closed: an empty map can never mint a principal, even for a
+        // present bearer.
+        assert!(auth.verify(&bearer_headers("anything")).is_none());
+        // An empty configured token never matches an empty presented one either.
+        let auth_empty_tok = ConfiguredBearerMapIngressAuthenticator::new(vec![BearerBinding {
+            token: String::new(),
+            tenant: TenantId::new("tenant-a").unwrap(),
+            agent: None,
+        }]);
+        assert!(auth_empty_tok.verify(&bearer_headers("")).is_none());
     }
 
     struct MemorySecretStore {
