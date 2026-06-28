@@ -1286,10 +1286,12 @@ pub struct AppState {
     pub codex_oauth_base_url: String, // data_class: INTERNAL_ONLY
     pub gemini_base_url: String,     // data_class: INTERNAL_ONLY
     pub tenant_id: TenantId,         // data_class: INTERNAL_ONLY
-    /// Data-plane ingress bearer token. If unset, every `/v1/*` data-plane
-    /// request fails closed with 401 instead of relying on the provider token
-    /// or `x-agent-id` as an authentication boundary.
-    pub ingress_bearer_token: Option<String>, // data_class: SECRET
+    /// Data-plane ingress authenticator (AUTH-005). Verifies an unforgeable
+    /// credential and mints a [`VerifiedIngressPrincipal`] bound to the caller's
+    /// CONFIGURED tenant. If the bound token is empty/unset, every `/v1/*`
+    /// data-plane request fails closed with 401 (no allow-all path); the verified
+    /// tenant then drives the in-process Cedar gate so cross-tenant is forbidden.
+    pub ingress_authenticator: Arc<dyn IngressPrincipalAuthenticator>, // data_class: INTERNAL_ONLY
     pub admin_bearer_token: Option<String>, // data_class: SECRET
     /// Runtime environment string (e.g. `production`). Production enforces the
     /// provider OAuth-compliance fail-closed gate on the dynamic admin path,
@@ -1353,6 +1355,17 @@ impl AppState {
                 .timeout(Duration::from_secs(30))
                 .build()?,
         );
+        // Default ingress authenticator: the configured bearer bound to this
+        // service's own tenant. The composition root (facade `build_app`) or a
+        // test may override the binding via `with_ingress_authenticator` so a
+        // cross-tenant principal is expressible. An empty token => every
+        // data-plane request 401 (fail-closed).
+        let ingress_authenticator: Arc<dyn IngressPrincipalAuthenticator> = Arc::new(
+            ConfiguredBearerIngressAuthenticator::new(
+                ingress_bearer_token.unwrap_or_default(),
+                tenant_id.clone(),
+            ),
+        );
         Ok(Self {
             pool,
             pool_registry,
@@ -1364,7 +1377,7 @@ impl AppState {
             codex_oauth_base_url: CODEX_OAUTH_BASE_URL.to_string(),
             gemini_base_url: GEMINI_BASE_URL.to_string(),
             tenant_id,
-            ingress_bearer_token,
+            ingress_authenticator,
             admin_bearer_token,
             environment,
             oauth_approved_providers,
@@ -1373,11 +1386,29 @@ impl AppState {
         })
     }
 
-    /// Return a copy of this state with data-plane ingress bearer auth
-    /// configured. Test fixtures and embedding applications use this helper
-    /// instead of mutating the field directly.
+    /// Return this state with the data-plane ingress bearer authenticator
+    /// (re)configured, bound to this service's own tenant. Test fixtures and
+    /// embedding applications use this helper instead of mutating the field.
+    #[must_use]
     pub fn with_ingress_bearer_token(mut self, token: Option<String>) -> Self {
-        self.ingress_bearer_token = token;
+        self.ingress_authenticator = Arc::new(ConfiguredBearerIngressAuthenticator::new(
+            token.unwrap_or_default(),
+            self.tenant_id.clone(),
+        ));
+        self
+    }
+
+    /// Install a custom ingress authenticator (e.g. a cross-tenant-bound
+    /// reference adapter for tests, or a production mTLS/SPIFFE adapter).
+    /// Overrides the default bearer authenticator built from the configured
+    /// ingress token. No default-allow path exists: an authenticator that
+    /// verifies nothing leaves every data-plane request at 401.
+    #[must_use]
+    pub fn with_ingress_authenticator(
+        mut self,
+        authenticator: Arc<dyn IngressPrincipalAuthenticator>,
+    ) -> Self {
+        self.ingress_authenticator = authenticator;
         self
     }
 
@@ -1412,37 +1443,173 @@ enum SafetyBlockClass {
     PromptInjection,
 }
 
-fn data_plane_bearer_allowed(headers: &HeaderMap, configured_token: Option<&str>) -> bool {
-    let Some(configured_token) = configured_token else {
-        return false;
-    };
-    let configured_token = configured_token.trim();
-    if configured_token.is_empty() {
-        return false;
-    }
-    let Some(presented) = headers
-        .get("authorization")
-        .and_then(|value| value.to_str().ok())
-        .and_then(|value| value.strip_prefix("Bearer "))
-    else {
-        return false;
-    };
+// =====================================================================
+// Data-plane ingress authn/authz (AUTH-005 / ADR-0573)
+//
+// The data plane previously trusted any holder of the single shared ingress
+// bearer and fed the in-process Cedar gate `principal_tenant == resource_tenant
+// == state.tenant_id` with a hard-coded IngressRealm role, so the cross-tenant
+// forbid could never fire. We mirror the shipped gold standard
+// (iam/facade/identity-workload-rest): verify an UNFORGEABLE principal, then
+// feed its VERIFIED tenant (never a header, never `state.tenant_id`) to the gate,
+// fail-closed.
+// =====================================================================
 
-    constant_time_eq(presented.as_bytes(), configured_token.as_bytes())
+/// An ingress caller whose bearer the [`IngressPrincipalAuthenticator`] has
+/// VERIFIED. The fields are private with only a `pub(crate)` constructor, so a
+/// handler cannot fabricate one from caller-supplied `x-*` headers — only a
+/// verifier that proved an unforgeable credential mints it. Mirrors the
+/// `VerifiedCaller` newtype at iam/facade/identity-workload-rest.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct VerifiedIngressPrincipal {
+    /// The tenant the verified caller acts within (from the credential binding,
+    /// NEVER a caller-supplied header).
+    tenant: TenantId, // data_class: INTERNAL_ONLY
+    /// The verified caller's agent label, when the credential carries one.
+    agent: Option<AgentId>, // data_class: INTERNAL_ONLY
 }
 
-fn require_data_plane_bearer(state: &AppState, headers: &HeaderMap) -> Result<(), Response> {
-    if data_plane_bearer_allowed(headers, state.ingress_bearer_token.as_deref()) {
-        Ok(())
-    } else {
-        Err(openai_error_response(
+impl VerifiedIngressPrincipal {
+    /// Mint a verified principal. Crate-private: only an authenticator in this
+    /// crate can construct one (no public constructor → unforgeable).
+    pub(crate) fn new(tenant: TenantId, agent: Option<AgentId>) -> Self {
+        Self { tenant, agent }
+    }
+
+    /// The verified caller's tenant (trusted; derived from the credential).
+    #[must_use]
+    pub fn tenant(&self) -> &TenantId {
+        &self.tenant
+    }
+
+    /// The verified caller's agent label, when the credential carries one.
+    #[must_use]
+    pub fn agent(&self) -> Option<&AgentId> {
+        self.agent.as_ref()
+    }
+}
+
+/// Ingress authentication PORT: derive a [`VerifiedIngressPrincipal`] from the
+/// request headers by checking an UNFORGEABLE credential (a constant-time bearer
+/// compare today; mTLS/SPIFFE in a production adapter). `None` ⇒ no verified
+/// principal ⇒ `401` (default-deny). Caller-supplied `x-*` headers MUST NOT
+/// authenticate — only a verified credential mints a principal.
+pub trait IngressPrincipalAuthenticator: Send + Sync {
+    /// Verify the caller's credential. `None` ⇒ `401`.
+    fn verify(&self, headers: &HeaderMap) -> Option<VerifiedIngressPrincipal>;
+}
+
+/// Reference [`IngressPrincipalAuthenticator`] adapter: a single configured
+/// bearer token bound to one principal tenant, compared in constant time. The
+/// minted principal carries the CONFIGURED tenant, NEVER a caller header. An
+/// empty/unset token verifies NOTHING (every request `401`) — no allow-all path.
+#[derive(Clone, Debug)]
+pub struct ConfiguredBearerIngressAuthenticator {
+    token: String,              // data_class: SECRET
+    principal_tenant: TenantId, // data_class: INTERNAL_ONLY
+}
+
+impl ConfiguredBearerIngressAuthenticator {
+    /// Build an authenticator for one configured bearer credential bound to
+    /// `principal_tenant` (what a successful verify returns; never a header).
+    #[must_use]
+    pub fn new(token: impl Into<String>, principal_tenant: TenantId) -> Self {
+        Self {
+            token: token.into(),
+            principal_tenant,
+        }
+    }
+}
+
+impl IngressPrincipalAuthenticator for ConfiguredBearerIngressAuthenticator {
+    fn verify(&self, headers: &HeaderMap) -> Option<VerifiedIngressPrincipal> {
+        let configured = self.token.trim();
+        if configured.is_empty() {
+            // No configured credential ⇒ no caller can be verified (fail-closed).
+            return None;
+        }
+        let presented = headers
+            .get("authorization")
+            .and_then(|value| value.to_str().ok())
+            .and_then(|value| value.strip_prefix("Bearer "))?;
+        if constant_time_eq(presented.as_bytes(), configured.as_bytes()) {
+            Some(VerifiedIngressPrincipal::new(
+                self.principal_tenant.clone(),
+                None,
+            ))
+        } else {
+            None
+        }
+    }
+}
+
+/// Authenticate the data-plane ingress caller and authorize the request through
+/// the in-process Cedar gate, bound to the VERIFIED principal tenant vs the
+/// service resource tenant. Fail-closed: no verified principal ⇒ `401`; a gate
+/// `Forbid` (cross-tenant) or any gate fault ⇒ `403`. Mirrors the gold-standard
+/// ordering at iam/facade/identity-workload-rest: authn first, resolve the
+/// resource tenant server-side, then decide.
+fn require_data_plane_ingress_authz(
+    state: &AppState,
+    headers: &HeaderMap,
+) -> Result<(), Response> {
+    // (1) AUTHN — unforgeable verified principal. A self-attested header cannot
+    // reach the `Some` branch (the authenticator ignores them).
+    let Some(principal) = state.ingress_authenticator.verify(headers) else {
+        return Err(openai_error_response(
             StatusCode::UNAUTHORIZED,
             "authentication_error",
             "missing_or_invalid_ingress_bearer",
             "data-plane routes require a valid ingress bearer token",
             None,
-        ))
+        ));
+    };
+
+    // (2) AUTHZ — feed the VERIFIED principal tenant (never `state.tenant_id`,
+    // never a header) vs the service's own resource tenant to the in-process gate.
+    // Cross-tenant => Forbid (deny-wins); any gate fault also maps to Forbid
+    // inside the adapter, so both are fail-closed 403. The action is SelectSeat
+    // (→ Cedar InvokeChatCompletion), which carries the tenant-isolation forbid;
+    // the decision is tenant-based so the resource provider is representative.
+    // The agent label does not affect the tenant decision: prefer a verified
+    // agent (future mTLS adapter), else the caller's x-agent-id, else a
+    // tenant-derived sentinel so the Cedar Workload uid is always well-formed.
+    let agent = principal
+        .agent()
+        .cloned()
+        .or_else(|| {
+            headers
+                .get("x-agent-id")
+                .and_then(|value| value.to_str().ok())
+                .and_then(|value| AgentId::new(value).ok())
+        })
+        .or_else(|| AgentId::new(format!("ingress:{}", principal.tenant().as_str())).ok());
+    let Some(agent) = agent else {
+        // Could not construct any principal label => fail-closed 403.
+        return Err(forbidden_ingress_response());
+    };
+    let request = AuthzRequest {
+        principal_tenant: principal.tenant(),
+        principal_agent: &agent,
+        action: AuthzAction::SelectSeat,
+        resource_tenant: &state.tenant_id,
+        resource_provider: Provider::Anthropic,
+    };
+    if state.gate.decide(&request) == AuthzDecision::Forbid {
+        return Err(forbidden_ingress_response());
     }
+    Ok(())
+}
+
+/// Fail-closed 403 for a denied/faulted ingress authorization.
+fn forbidden_ingress_response() -> Response {
+    openai_error_response(
+        StatusCode::FORBIDDEN,
+        "permission_error",
+        "ingress_tenant_forbidden",
+        "ingress principal is not authorized for this tenant",
+        None,
+    )
 }
 
 fn guard_in_transit_payload(body: &[u8]) -> Result<(), Response> {
@@ -1713,7 +1880,7 @@ async fn handle_proxy(
     headers: HeaderMap,
     mut body: Bytes,
 ) -> Response {
-    if let Err(response) = require_data_plane_bearer(&state, &headers) {
+    if let Err(response) = require_data_plane_ingress_authz(&state, &headers) {
         return response;
     }
     if let Err(response) = guard_in_transit_payload(&body) {
@@ -2230,7 +2397,7 @@ async fn handle_legacy_complete(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
 ) -> Response {
-    if let Err(response) = require_data_plane_bearer(&state, &headers) {
+    if let Err(response) = require_data_plane_ingress_authz(&state, &headers) {
         return response;
     }
     let payload = OpenAiCompatibleErrorBody {
@@ -2257,7 +2424,7 @@ async fn handle_openai_compatible_proxy(
     upstream_path: &'static str,
     allow_stream: bool,
 ) -> Response {
-    if let Err(response) = require_data_plane_bearer(&state, &headers) {
+    if let Err(response) = require_data_plane_ingress_authz(&state, &headers) {
         return response;
     }
     if let Err(response) = guard_in_transit_payload(&body) {
@@ -2890,7 +3057,7 @@ async fn handle_count_tokens(
     headers: HeaderMap,
     body: Bytes,
 ) -> Response {
-    if let Err(response) = require_data_plane_bearer(&state, &headers) {
+    if let Err(response) = require_data_plane_ingress_authz(&state, &headers) {
         return response;
     }
     if let Err(response) = guard_in_transit_payload(&body) {
@@ -2909,7 +3076,7 @@ async fn handle_count_tokens(
 
 /// GET /v1/models
 async fn handle_models(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Response {
-    if let Err(response) = require_data_plane_bearer(&state, &headers) {
+    if let Err(response) = require_data_plane_ingress_authz(&state, &headers) {
         return response;
     }
     Json(ModelInventoryResponse {

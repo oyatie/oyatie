@@ -1157,6 +1157,13 @@ impl SubscriptionPool {
         agent_id: &AgentId,
         gate: &dyn AuthzGate,
     ) -> Result<(), SubscriptionPoolError> {
+        // ponytail: this kernel-level check stays self-referential
+        // (principal_tenant == resource_tenant == pool tenant) as redundant
+        // defense-in-depth. The cross-tenant decision now happens at the REST
+        // boundary (AUTH-005 / ADR-0573), which feeds the VERIFIED ingress
+        // principal tenant to the gate before leasing. Upgrade path: increment-2
+        // threads the verified principal into select/lease so this gate sees the
+        // real caller tenant instead of the pool's own tenant.
         let request = AuthzRequest {
             principal_tenant: &self.tenant_id,
             principal_agent: agent_id,
