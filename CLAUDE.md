@@ -33,11 +33,11 @@ required_workflow:
   - layer_0_isolation: one isolated worktree per agent lane
   - layer_2_entry: pull request against dev enters the governance pipeline
   - admission_gate: validate policy, evidence, and required Prow/cloud-ci status checks
-  - merge_queue: order and admit via ADR-0111 projected merge state owned by ADR-0515 cloud-ci/oya-ci-tide
+  - merge_queue: order and admit via ADR-0111 projected merge state, implemented by ADR-0515 cloud-ci/oya-ci-tide
   - completion_gate: reviewer-agent APPROVE plus cloud-ci green before auto-merge
 
 current_substrate_adrs:
-  - docs/decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md # folded into ADR-0515 cloud-ci/oya-ci Tide
+  - docs/decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md # projected-merge-state decision (status Proposed); mechanism implemented by ADR-0515 Tide; ADR-0111 not formally superseded
   - docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
   - docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md
   - docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md
