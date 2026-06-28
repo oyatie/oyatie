@@ -19,11 +19,11 @@
     "version": "1.0.0"
   },
   "agent_quick_start_protocol": {
-    "step_1_read_authority": "Read entry_points.decision_principles + .agent_operating_contract + .master_plan_sequencing + .markdown_retirement_policy + .gitops_vcs_replacement + .multispectrum_review.",
+    "step_1_read_authority": "Read entry_points.decision_principles + .agent_operating_contract + .master_plan_sequencing + .markdown_retirement_policy + .gitops_vcs_replacement.",
     "step_2_context_recall": "Prefer intelligence-native context once available (replaces prior Foundry framing per ADR-0335 Wave 15I); legacy icm recall-context is compatibility/provenance only and is never promotion authority.",
     "step_3_oya_vcs_state_transition": "Canonical path is plain `git` + protected PR against dev. Merge readiness is Prow/cloud-ci required context + reviewer APPROVE; legacy CI/`oya gate` output is bridge evidence only until P0.0 cloud-ci cutover. The bespoke Oya VCS claim → work → verify → done → promote ratchet is RETIRED (provenance/historical only per ADR-0363); legacy grit/icm/rtk/vox/omx/omc surfaces are likewise read/provenance only.",
     "step_4_active_artifact_contract": "Every new artifact under applicable_paths_glob conforms to active-artifact-contract v3.0.0 + registers a row in artifact-capabilities-registry.",
-    "step_5_multispectrum_evidence": "Every PR carries multispectrum evidence per /specs/multispectrum-review.json; missing or incomplete evidence blocks the governance gate. Destination enforcement is cloud-ci/oya-ci Rust gate context; legacy `oya gate run-all`/CI output is transition evidence only until P0.0 and must not be extended as new authority.",
+    "step_5_independent_review": "Preserve multi-lens review discipline through independent reviewer-agent passes, PR Code Review evidence, typed quality-gate artifacts, and cloud-ci/oya-ci gate packets. The standalone multispectrum evidence-file/spec convention is retired with the external coordination / Oya VCS / Jenkins-adapter admission path; do not emit new evidence/multispectrum files.",
     "step_6_gitops_vcs_replacement": "Before broad multi-agent fan-out, treat /specs/gitops-vcs-replacement.json as provenance/historical input only: the bespoke Oya VCS claim coverage, ChangeBundle closeout, controller rebase, and retired ratchet mechanisms are superseded by ADR-0363/ADR-0513. Live merge readiness is plain git + protected PR against dev + Prow/cloud-ci/oya-ci required context + reviewer APPROVE. Legacy CI/`oya gate` output is bridge evidence only until P0.0. Tide admission is cloud-ci-owned now: Phase 0 places the admission contract; Phase 1 scales projected-state, batching, auto-rebase, and auto-regeneration."
   },
   "by_kind": {
@@ -115,7 +115,7 @@
       "current_path": "docs/AGENTS.md",
       "kind": "spec",
       "migration_phase": "PHASE-5",
-      "purpose": "Canonical agent operating contract (done-definition checklist, plain-git protected-PR governance, Prow/cloud-ci transition target, multispectrum evidence, legacy-tool retirement notes).",
+      "purpose": "Canonical agent operating contract (done-definition checklist, plain-git protected-PR governance, Prow/cloud-ci transition target, independent reviewer-agent discipline, retired legacy-tool notes).",
       "target_path_after_md_retirement": "/specs/agent-operating-contract.json"
     },
     "agent_operating_contract_machine_projection": {
@@ -571,27 +571,30 @@
       "purpose": "Semantics for parked PRs in the vcs-orchestrator merge queue (per ADR-0111); admission criteria + unpark transitions. Originally framed as the Foundry merge queue; ownership relocated to vcs-orchestrator per ADR-0335 (Wave 15I) — see ADR-0335 Absorption Map row 'Merge queue projected state'.",
       "target_path_after_md_retirement": "same"
     },
-    "multispectrum_review": {
-      "current_path": "/specs/multispectrum-review.json",
-      "current_version": "2.1.0",
-      "human_companion_path": "docs/standards/multispectrum-review.md",
-      "kind": "spec",
-      "migration_phase": "complete",
-      "purpose": "Multispectrum review bar — 12 facets (F1..F13 minus F12-reserved) + 2 meta-facets (M1, M2). v2.0.0 added F8 performance + F9 compliance + meta-facets + enforcement_scopes (agentic_flow + dev_flow) + consensus_debate_protocol + alias_map. v2.1.0 added F10 reversibility + F11 observability + F13 migration + deterministic_layer_principle + scorecard_schema. Enforced mechanically by oya-check-dependency-seam sub-checks (multispectrum-evidence-attached, fixture-pair-coverage, change-class-declared) and by SessionStart hook reminder."
+    "retired_multispectrum_review": {
+      "current_path": null,
+      "retired_path": "/specs/multispectrum-review.json",
+      "retired_by_commit": "fd06b0ad2",
+      "retirement_reason": "Deleted with retired Oya VCS admission / provider crates and Jenkins adapter; the standalone evidence-file convention no longer has a live cloud-ci gate.",
+      "kind": "retired-spec",
+      "migration_phase": "retired",
+      "purpose": "Historical provenance only. Keep the multi-lens review practice through independent reviewer-agent passes, cloud-ci/oya-ci gate packets, and typed quality-gate artifacts; do not create new evidence/multispectrum files."
     },
     "multispectrum_evidence_g011_wiring": {
       "current_path": "evidence/multispectrum/g011-rust-test-wiring-generator-20260610-1781107105.json",
       "owners_path": "evidence/multispectrum/OWNERS",
       "kind": "evidence",
       "migration_phase": "complete",
-      "purpose": "Multispectrum evidence bundle for G011 rust-test-wiring-generator batch (ADR-0540 local bridge generator); records CC-3 tooling-feature change class, wired libs, and tool accounting justification."
+      "retired_usage": "Historical evidence only; do not use this entry as precedent for new evidence/multispectrum files.",
+      "purpose": "Historical multispectrum evidence bundle for G011 rust-test-wiring-generator batch (ADR-0540 local bridge generator); retained as provenance after the evidence-file convention retirement."
     },
     "multispectrum_evidence_cloud_intelligence_xproxy": {
       "current_path": "evidence/multispectrum/cloud-intelligence-xproxy-20260610-1781062794.json",
       "owners_path": "evidence/multispectrum/OWNERS",
       "kind": "evidence",
       "migration_phase": "complete",
-      "purpose": "Multispectrum evidence bundle for cloud-intelligence XPROXY external-proxy parity commissioning lane (PR #644, ADR-0542); records CC-4 new-surface change class, parity capabilities, and BNF/manifest debt fixes."
+      "retired_usage": "Historical evidence only; do not use this entry as precedent for new evidence/multispectrum files.",
+      "purpose": "Historical multispectrum evidence bundle for cloud-intelligence XPROXY external-proxy parity commissioning lane (PR #644, ADR-0542); retained as provenance after the evidence-file convention retirement."
     },
     "oyatie_doctrine": {
       "current_path": "/specs/oyatie-doctrine.json",
@@ -916,12 +919,13 @@
       "purpose": "Workflow Studio product PRD — visual editor + DSL backbone; n8n-class first hero product per feedback_workflow_studio_scope. Pairs with prd_workflow on the same canonical spec.",
       "target_path_after_md_retirement": "same"
     },
-    "pre_pr_multispectrum_checklist": {
-      "current_path": "/templates/checklists/pre-pr-multispectrum.json",
-      "human_companion_path_retired": "/templates/checklists/pre-pr-multispectrum.md (RETIRED 2026-05-14 — JSON template is the canonical form; markdown was duplicative human gateway)",
-      "kind": "template",
-      "migration_phase": "complete",
-      "purpose": "Machine-readable pre-PR gate template. Every changeset copies + fills evidence per facet; the seam lane refuses missing/incomplete sections. Iterative fix-and-review loop in /specs/iterative-fix-loop.json."
+    "retired_pre_pr_multispectrum_checklist": {
+      "current_path": null,
+      "retired_path": "/templates/checklists/pre-pr-multispectrum.json",
+      "human_companion_path_retired": "/templates/checklists/pre-pr-multispectrum.md (RETIRED 2026-05-14 — JSON template was previously treated as canonical)",
+      "kind": "retired-template",
+      "migration_phase": "retired",
+      "purpose": "Historical pre-PR multispectrum evidence checklist pointer. The standalone evidence-file/spec convention is retired; use PR Code Review, independent reviewer-agent passes, typed quality-gate artifacts, and cloud-ci/oya-ci gate packets for current review evidence."
     },
     "reusable_building_blocks_registry": {
       "current_path": "/registry/reusable-building-blocks-registry.json",
