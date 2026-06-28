@@ -499,6 +499,7 @@
         "_comment": "Off-runtime-ladder build/CI engines + buck2/workspace/manifest-generation tooling. ADR-0562 §1 build/ charter: 'buck2 prelude, toolchains, reindeer, third_party vendoring, CI engines'. The remaining tools/*-app crates are build/CI tooling, not capability engines.",
         "meta_dir": "build/",
         "globs": [
+          "libs/oya-advisory-mirror-kernel",
           "libs/oya-buck-syntax-kernel",
           "libs/oya-ci-config",
           "libs/oya-ci-materializer-kernel",
