@@ -9,6 +9,19 @@ use std::process::Command;
 use oya_cloud_ci_slo_coverage_app::{Verdict, evaluate, evaluate_keyed};
 use serde_json::Value;
 
+fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
+    if let Some(bin) = producer_bin {
+        let bin = if Path::new(bin).is_absolute() {
+            PathBuf::from(bin)
+        } else {
+            root.join(bin)
+        };
+        Ok(Command::new(bin))
+    } else {
+        Err("OYA_CI_PRODUCER_BIN is required for hermetic Buck2 gate execution".to_owned())
+    }
+}
+
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
     for _ in 0..16 {
@@ -25,24 +38,8 @@ fn repo_root() -> PathBuf {
 fn run_producer_face(root: &Path, face: &str) -> Value {
     let scm_facts = root
         .join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json");
-    let (mut command, run_description) = if let Ok(bin) = std::env::var("OYA_CI_PRODUCER_BIN") {
-        let bin = if Path::new(&bin).is_absolute() {
-            PathBuf::from(bin)
-        } else {
-            root.join(bin)
-        };
-        (Command::new(bin), "run producer binary")
-    } else {
-        let mut command =
-            Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_owned()));
-        command
-            .arg("run")
-            .arg("--quiet")
-            .arg("-p")
-            .arg("oya-cloud-ci-accounting-registry-app")
-            .arg("--");
-        (command, "cargo run oya-cloud-ci-accounting-registry-app")
-    };
+    let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
+    let mut command = producer_command(root, producer_bin.as_deref()).expect("producer command");
 
     let output = command
         .arg("--repo-root")
@@ -54,7 +51,7 @@ fn run_producer_face(root: &Path, face: &str) -> Value {
         .arg(face)
         .current_dir(root)
         .output()
-        .expect(run_description);
+        .expect("run producer binary");
 
     assert!(
         output.status.success(),
@@ -62,6 +59,16 @@ fn run_producer_face(root: &Path, face: &str) -> Value {
         String::from_utf8_lossy(&output.stderr)
     );
     serde_json::from_slice(&output.stdout).expect("producer face stdout is valid JSON")
+}
+
+#[test]
+fn producer_binary_env_is_required_for_hermetic_gate() {
+    let err = producer_command(Path::new("/repo"), None)
+        .expect_err("missing OYA_CI_PRODUCER_BIN must fail closed");
+    assert!(
+        err.contains("OYA_CI_PRODUCER_BIN"),
+        "error should name missing hermetic producer env, got {err}"
+    );
 }
 
 #[test]
