@@ -1,4 +1,8 @@
 //! Fix-4: Body-size limit — POST /v1/messages with body > 1 MiB receives 413.
+//!
+//! Also covers D7 — data-plane cross-tenant ingress forbid (AUTH-005 / ADR-0573):
+//! the REST boundary must feed the VERIFIED principal's tenant to the gate so the
+//! cross-tenant Cedar forbid actually fires.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::sync::{Arc, Mutex};
@@ -6,9 +10,10 @@ use std::sync::{Arc, Mutex};
 use axum::body::Body;
 use axum::http::{Request, StatusCode};
 use bytes::Bytes;
+use httpmock::prelude::*;
 use intelligence_kernel::{
-    AgentId, AuthzDecision, AuthzRequest, OAuthSubscription, Provider, SeatId, SelectionStrategy,
-    SubscriptionId, SubscriptionPool, SubscriptionState, TenantId,
+    AgentId, AuthzDecision, AuthzGate, AuthzRequest, OAuthSubscription, Provider, SeatId,
+    SelectionStrategy, SubscriptionId, SubscriptionPool, SubscriptionState, TenantId,
 };
 use intelligence_rest::{
     AppState, ConfiguredBearerIngressAuthenticator, EventSink, LlmGatewayEvent, PoolRegistry,
@@ -148,4 +153,135 @@ async fn healthz_returns_200() {
         .unwrap();
     let resp = router.oneshot(req).await.unwrap();
     assert_eq!(resp.status(), StatusCode::OK);
+}
+
+// ---------------------------------------------------------------------------
+// D7 — cross-tenant ingress forbid (AUTH-005 / ADR-0573)
+// ---------------------------------------------------------------------------
+
+/// Deny-wins gate: forbids when principal tenant differs from resource tenant.
+/// Mirrors the Cedar cross-tenant forbid without pulling the cedar adapter in.
+struct CrossTenantForbidGate;
+impl AuthzGate for CrossTenantForbidGate {
+    fn decide(&self, request: &AuthzRequest<'_>) -> AuthzDecision {
+        if request.principal_tenant != request.resource_tenant {
+            AuthzDecision::Forbid
+        } else {
+            AuthzDecision::Allow
+        }
+    }
+}
+
+fn make_pool_for(tenant: &str) -> Arc<Mutex<SubscriptionPool>> {
+    let t = TenantId::new(tenant).unwrap();
+    let mut pool = SubscriptionPool::new(t.clone(), Provider::Anthropic, SelectionStrategy::RoundRobin);
+    pool.add_seat(OAuthSubscription::new(
+        t.clone(),
+        SeatId::new("seat-1").unwrap(),
+        SubscriptionId::new("sub-1").unwrap(),
+        Provider::Anthropic,
+        SubscriptionState::Active,
+        format!("{tenant}/seat-1"),
+        0,
+    ))
+    .unwrap();
+    Arc::new(Mutex::new(pool))
+}
+
+fn make_cross_tenant_state(base_url: String, service_tenant: &str) -> AppState {
+    let tid = TenantId::new(service_tenant).unwrap();
+    let pool = make_pool_for(service_tenant);
+    let registry = PoolRegistry::new();
+    registry.insert_pool(tid.clone(), Provider::Anthropic, Arc::clone(&pool));
+    AppState::new_with_pool_registry(
+        pool,
+        registry,
+        Arc::new(CrossTenantForbidGate),
+        Arc::new(NoopSink),
+        Arc::new(StubStore),
+        base_url,
+        tid,
+        None,
+        None,
+        "development".to_string(),
+        std::collections::HashSet::new(),
+    )
+    .unwrap()
+}
+
+fn messages_request(bearer: Option<&str>) -> Request<Body> {
+    const BODY: &str = r#"{"model":"claude-opus-4-5","max_tokens":10,"messages":[]}"#;
+    let mut b = Request::builder()
+        .method("POST")
+        .uri("/v1/messages")
+        .header("content-type", "application/json")
+        .header("x-agent-id", "agent-x");
+    if let Some(tok) = bearer {
+        b = b.header("authorization", format!("Bearer {tok}"));
+    }
+    b.body(Body::from(BODY)).unwrap()
+}
+
+/// Cross-tenant: bearer bound to tenant-b on the tenant-a service => 403.
+#[tokio::test]
+async fn cross_tenant_ingress_principal_is_forbidden() {
+    let server = MockServer::start();
+    let state =
+        make_cross_tenant_state(server.base_url(), "tenant-a").with_ingress_authenticator(Arc::new(
+            ConfiguredBearerIngressAuthenticator::new("ingress-b", TenantId::new("tenant-b").unwrap()),
+        ));
+    let app = build_router(Arc::new(state));
+    let resp = app.oneshot(messages_request(Some("ingress-b"))).await.unwrap();
+    assert_eq!(resp.status(), StatusCode::FORBIDDEN, "cross-tenant must be 403");
+}
+
+/// Same-tenant: bearer bound to tenant-a on the tenant-a service => 200.
+#[tokio::test]
+async fn same_tenant_ingress_principal_is_allowed() {
+    let server = MockServer::start();
+    let _token = server.mock(|when, then| {
+        when.method(POST).path("/v1/oauth/token");
+        then.status(200)
+            .header("content-type", "application/json")
+            .body(r#"{"access_token":"tok","refresh_token":"rt2","expires_in":3600}"#);
+    });
+    let _msg = server.mock(|when, then| {
+        when.method(POST).path("/v1/messages");
+        then.status(200)
+            .header("content-type", "application/json")
+            .body(r#"{"id":"msg-1","type":"message"}"#);
+    });
+    let state =
+        make_cross_tenant_state(server.base_url(), "tenant-a").with_ingress_authenticator(Arc::new(
+            ConfiguredBearerIngressAuthenticator::new("ingress-a", TenantId::new("tenant-a").unwrap()),
+        ));
+    let app = build_router(Arc::new(state));
+    let resp = app.oneshot(messages_request(Some("ingress-a"))).await.unwrap();
+    assert_eq!(resp.status(), StatusCode::OK, "same-tenant must reach lease/proxy");
+}
+
+/// No bearer => 401 (default-deny before authz).
+#[tokio::test]
+async fn absent_bearer_is_unauthorized() {
+    let server = MockServer::start();
+    let state =
+        make_cross_tenant_state(server.base_url(), "tenant-a").with_ingress_authenticator(Arc::new(
+            ConfiguredBearerIngressAuthenticator::new("ingress-a", TenantId::new("tenant-a").unwrap()),
+        ));
+    let app = build_router(Arc::new(state));
+    let resp = app.oneshot(messages_request(None)).await.unwrap();
+    assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
+}
+
+/// Wrong bearer => 401 (constant-time compare fails).
+#[tokio::test]
+async fn wrong_bearer_is_unauthorized() {
+    let server = MockServer::start();
+    let state =
+        make_cross_tenant_state(server.base_url(), "tenant-a").with_ingress_authenticator(Arc::new(
+            ConfiguredBearerIngressAuthenticator::new("ingress-a", TenantId::new("tenant-a").unwrap()),
+        ));
+    let app = build_router(Arc::new(state));
+    let resp = app.oneshot(messages_request(Some("wrong-token"))).await.unwrap();
+    assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
 }
