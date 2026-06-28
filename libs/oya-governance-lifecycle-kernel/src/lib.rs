@@ -58,6 +58,31 @@ impl NaiveDate {
     pub const fn ymd(year: i32, month: u8, day: u8) -> Self {
         Self { year, month, day }
     }
+
+    pub fn checked_ymd(year: i32, month: u8, day: u8) -> Option<Self> {
+        if month == 0 || month > 12 {
+            return None;
+        }
+        let max_day = days_in_month(year, month);
+        if day == 0 || day > max_day {
+            return None;
+        }
+        Some(Self { year, month, day })
+    }
+}
+
+fn days_in_month(year: i32, month: u8) -> u8 {
+    match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if is_leap_year(year) => 29,
+        2 => 28,
+        _ => 0,
+    }
+}
+
+fn is_leap_year(year: i32) -> bool {
+    (year % 4 == 0 && year % 100 != 0) || year % 400 == 0
 }
 
 /// One declared stage in a lifecycle.
@@ -506,7 +531,7 @@ pub mod discovery {
         let y: i32 = parts[0].parse().ok()?;
         let m: u8 = parts[1].parse().ok()?;
         let d: u8 = parts[2].parse().ok()?;
-        Some(NaiveDate::ymd(y, m, d))
+        NaiveDate::checked_ymd(y, m, d)
     }
 
     pub fn frontmatter_scalar(raw: &str, field: &str) -> Option<String> {
@@ -553,11 +578,19 @@ pub mod discovery {
     fn shallow_glob(dir: &Path, pattern: &str) -> Result<Vec<PathBuf>, String> {
         let mut out = Vec::new();
         if !dir.exists() {
-            return Ok(out);
+            return Err(format!("missing source root: {}", dir.display()));
+        }
+        if !dir.is_dir() {
+            return Err(format!("source root is not a directory: {}", dir.display()));
         }
         let entries = fs::read_dir(dir).map_err(|e| format!("read_dir {}: {e}", dir.display()))?;
-        for entry in entries.flatten() {
-            if !entry.file_type().map(|t| t.is_file()).unwrap_or(false) {
+        for entry in entries {
+            let entry = entry.map_err(|e| format!("read_dir {}: {e}", dir.display()))?;
+            if !entry
+                .file_type()
+                .map_err(|e| format!("file_type {}: {e}", entry.path().display()))?
+                .is_file()
+            {
                 continue;
             }
             let name = entry.file_name().to_string_lossy().into_owned();
@@ -572,19 +605,24 @@ pub mod discovery {
     fn recursive(root: &Path, pattern: &str) -> Result<Vec<PathBuf>, String> {
         let mut out = Vec::new();
         if !root.exists() {
-            return Ok(out);
+            return Err(format!("missing source root: {}", root.display()));
+        }
+        if !root.is_dir() {
+            return Err(format!(
+                "source root is not a directory: {}",
+                root.display()
+            ));
         }
         let mut stack = vec![root.to_path_buf()];
         while let Some(dir) = stack.pop() {
-            let entries = match fs::read_dir(&dir) {
-                Ok(e) => e,
-                Err(_) => continue,
-            };
-            for entry in entries.flatten() {
+            let entries =
+                fs::read_dir(&dir).map_err(|e| format!("read_dir {}: {e}", dir.display()))?;
+            for entry in entries {
+                let entry = entry.map_err(|e| format!("read_dir {}: {e}", dir.display()))?;
                 let path = entry.path();
-                let Ok(ft) = entry.file_type() else {
-                    continue;
-                };
+                let ft = entry
+                    .file_type()
+                    .map_err(|e| format!("file_type {}: {e}", path.display()))?;
                 if ft.is_dir() {
                     stack.push(path);
                 } else if ft.is_file() {
@@ -939,9 +977,10 @@ pub mod cli {
     //! Per-lane wave is declared in `config.defaults.wave`:
     //!
     //! - `"A"` — WARN baseline. All findings reported on stdout; exit 0.
-    //! - `"B"` — delta-BLOCK. Findings on artifacts modified in the current
-    //!   commit (`git diff --name-only HEAD~1 HEAD`) BLOCK; older baseline
-    //!   findings still WARN. Exit non-zero only if any delta finding.
+    //! - `"B"` — delta-BLOCK. Findings on artifacts modified in the trusted
+    //!   changed range (`--changed-range BASE..HEAD`) or merge-base pair
+    //!   (`--changed-base BASE --changed-head HEAD`) BLOCK; older baseline
+    //!   findings still WARN. Missing/unresolvable range data fails closed.
     //! - `"C"` — full-BLOCK. ALL findings BLOCK (exit non-zero on any).
     //!
     //! CLI flags `--block` / `--warn-only` override the config wave for
@@ -959,8 +998,8 @@ pub mod cli {
         /// WARN-only: report on stdout, exit 0 unconditionally.
         A,
         /// Delta-BLOCK: BLOCK on findings whose `location` matches a path
-        /// in `git diff --name-only HEAD~1 HEAD` (changed-in-current-commit).
-        /// Older baseline findings still WARN.
+        /// in the trusted changed range. Missing or unresolved range inputs
+        /// fail closed to full-block behavior.
         B,
         /// Full-BLOCK: BLOCK on every finding.
         C,
@@ -1005,7 +1044,13 @@ pub mod cli {
             }
         };
         let wave = resolve_wave(&opts, &config);
-        let now = today();
+        let now = match trusted_today(&opts) {
+            Ok(d) => d,
+            Err(msg) => {
+                eprintln!("{lane_name} time error: {msg}");
+                return ExitCode::FAILURE;
+            }
+        };
         let artifacts = match discovery::discover(&config, now) {
             Ok(a) => a,
             Err(msg) => {
@@ -1014,7 +1059,7 @@ pub mod cli {
             }
         };
         let report = evaluate(&config, &artifacts, now, &opts.reached_milestones);
-        emit(lane_name, &report, wave)
+        emit(lane_name, &report, wave, &opts)
     }
 
     /// Resolve the effective wave for this invocation.
@@ -1040,16 +1085,39 @@ pub mod cli {
         Wave::A
     }
 
-    /// Set of file paths changed in the most recent commit. Used to compute
-    /// delta-BLOCK for Wave-B. Returns `None` on any git failure
-    /// (squash-merge with no HEAD~1, shallow clone with depth=1, missing
-    /// git binary, etc.) so the caller can distinguish "no new artifacts"
-    /// from "git failed" — the canonical fail-closed posture is to fall
-    /// back to Wave-C (full-block) on git failure rather than silently
-    /// degrading Wave-B to WARN-only.
-    fn changed_paths_in_head_commit() -> Option<BTreeSet<String>> {
+    /// Set of file paths changed in the trusted Wave-B range. Returns `None`
+    /// when the caller did not provide a range, merge-base resolution fails, or
+    /// `git diff --name-only` fails. Wave-B callers treat `None` as fail-closed
+    /// full-block behavior rather than silently falling back to HEAD-relative
+    /// assumptions.
+    fn changed_paths_for_wave_b(opts: &Options) -> Option<BTreeSet<String>> {
+        if let Some((base, head)) = &opts.changed_range {
+            return diff_name_only(base, head);
+        }
+
+        let (Some(base), Some(head)) = (&opts.changed_base, &opts.changed_head) else {
+            return None;
+        };
+        let merge_base = merge_base(base, head)?;
+        diff_name_only(&merge_base, head)
+    }
+
+    fn merge_base(base: &str, head: &str) -> Option<String> {
         let output = Command::new("git")
-            .args(["diff", "--name-only", "HEAD~1", "HEAD"])
+            .args(["merge-base", base, head])
+            .stderr(Stdio::null())
+            .output()
+            .ok()?;
+        if !output.status.success() {
+            return None;
+        }
+        let text = std::str::from_utf8(&output.stdout).ok()?.trim();
+        (!text.is_empty()).then(|| text.to_string())
+    }
+
+    fn diff_name_only(base: &str, head: &str) -> Option<BTreeSet<String>> {
+        let output = Command::new("git")
+            .args(["diff", "--name-only", base, head])
             .stderr(Stdio::null())
             .output()
             .ok()?;
@@ -1078,7 +1146,7 @@ pub mod cli {
         changed.iter().any(|c| violation.location.starts_with(c))
     }
 
-    fn emit(lane_name: &str, report: &LifecycleReport, wave: Wave) -> ExitCode {
+    fn emit(lane_name: &str, report: &LifecycleReport, wave: Wave, opts: &Options) -> ExitCode {
         if report.is_clean() {
             println!(
                 "{lane_name} ok (wave {}): artifacts_observed={} stage_counts={:?} violations=0",
@@ -1115,15 +1183,15 @@ pub mod cli {
                 ExitCode::SUCCESS
             }
             Wave::B => {
-                let changed = match changed_paths_in_head_commit() {
+                let changed = match changed_paths_for_wave_b(opts) {
                     Some(c) => c,
                     None => {
-                        // Git failed (squash-merge, shallow clone, missing
-                        // git binary). Fail-closed: fall back to Wave-C
-                        // full-block behavior rather than silently letting
-                        // new artifacts through with WARN-only.
+                        // Trusted changed-range input is missing or cannot be
+                        // resolved. Fail closed to Wave-C full-block behavior
+                        // rather than silently using a caller-forgeable or
+                        // HEAD-relative fallback.
                         eprintln!(
-                            "{lane_name} FAIL (wave B; git-diff unavailable → fail-closed to wave C full-block): artifacts_observed={} stage_counts={:?} violations={} breakdown={:?}",
+                            "{lane_name} FAIL (wave B; changed-range unavailable → fail-closed to wave C full-block): artifacts_observed={} stage_counts={:?} violations={} breakdown={:?}",
                             report.artifacts_observed,
                             report.stage_counts,
                             report.violations.len(),
@@ -1224,6 +1292,7 @@ pub mod cli {
         }
     }
 
+    #[derive(Debug)]
     pub struct Options {
         // data_class: INTERNAL_ONLY
         pub config: PathBuf, // data_class: INTERNAL_ONLY
@@ -1235,6 +1304,20 @@ pub mod cli {
         /// Legacy `--block` / `--warn-only` flags (mapped to C / A).
         // data_class: INTERNAL_ONLY
         pub legacy_wave_override: Option<Wave>, // data_class: INTERNAL_ONLY
+        /// Explicit trusted evaluation date. Required so stale build defaults
+        /// and caller-forgeable environment variables cannot make overdue
+        /// artifacts false-green.
+        // data_class: INTERNAL_ONLY
+        pub trusted_now: Option<NaiveDate>, // data_class: INTERNAL_ONLY
+        /// Explicit changed range for Wave-B delta blocking.
+        // data_class: INTERNAL_ONLY
+        pub changed_range: Option<(String, String)>, // data_class: INTERNAL_ONLY
+        /// Base ref used with `--changed-head` to compute a merge-base range.
+        // data_class: INTERNAL_ONLY
+        pub changed_base: Option<String>, // data_class: INTERNAL_ONLY
+        /// Head ref used with `--changed-base` to compute a merge-base range.
+        // data_class: INTERNAL_ONLY
+        pub changed_head: Option<String>, // data_class: INTERNAL_ONLY
     }
 
     impl Options {
@@ -1243,6 +1326,10 @@ pub mod cli {
             let mut reached_milestones: Vec<String> = Vec::new();
             let mut wave_override: Option<Wave> = None;
             let mut legacy_wave_override: Option<Wave> = None;
+            let mut trusted_now: Option<NaiveDate> = None;
+            let mut changed_range: Option<(String, String)> = None;
+            let mut changed_base: Option<String> = None;
+            let mut changed_head: Option<String> = None;
             let mut i = 0usize;
             while i < args.len() {
                 match args[i].as_str() {
@@ -1263,6 +1350,28 @@ pub mod cli {
                                 .ok_or_else(|| format!("--wave expects A|B|C, got `{v}`"))?,
                         );
                     }
+                    "--trusted-now" => {
+                        i += 1;
+                        let v = args.get(i).ok_or("--trusted-now needs YYYY-MM-DD")?;
+                        trusted_now = Some(discovery::parse_date(v).ok_or_else(|| {
+                            format!("--trusted-now expects YYYY-MM-DD, got `{v}`")
+                        })?);
+                    }
+                    "--changed-range" => {
+                        i += 1;
+                        let v = args.get(i).ok_or("--changed-range needs BASE..HEAD")?;
+                        changed_range = Some(parse_changed_range(v)?);
+                    }
+                    "--changed-base" => {
+                        i += 1;
+                        changed_base =
+                            Some(args.get(i).ok_or("--changed-base needs a ref")?.to_string());
+                    }
+                    "--changed-head" => {
+                        i += 1;
+                        changed_head =
+                            Some(args.get(i).ok_or("--changed-head needs a ref")?.to_string());
+                    }
                     "--block" => legacy_wave_override = Some(Wave::C),
                     "--warn-only" => legacy_wave_override = Some(Wave::A),
                     "--help" | "-h" => return Err(usage()),
@@ -1275,21 +1384,37 @@ pub mod cli {
                 reached_milestones,
                 wave_override,
                 legacy_wave_override,
+                trusted_now,
+                changed_range,
+                changed_base,
+                changed_head,
             })
         }
     }
 
     fn usage() -> String {
-        "options: [--config PATH] [--milestone ID]... [--wave A|B|C] [--block|--warn-only]".into()
+        "options: [--config PATH] [--milestone ID]... [--trusted-now YYYY-MM-DD] [--changed-range BASE..HEAD|--changed-base BASE --changed-head HEAD] [--wave A|B|C] [--block|--warn-only]".into()
     }
 
-    fn today() -> NaiveDate {
-        if let Ok(s) = env::var("OYA_LIFECYCLE_NOW")
-            && let Some(d) = discovery::parse_date(&s)
-        {
-            return d;
+    fn parse_changed_range(value: &str) -> Result<(String, String), String> {
+        let split = value
+            .split_once("...")
+            .or_else(|| value.split_once(".."))
+            .ok_or_else(|| format!("--changed-range expects BASE..HEAD, got `{value}`"))?;
+        let base = split.0.trim();
+        let head = split.1.trim();
+        if base.is_empty() || head.is_empty() {
+            return Err(format!(
+                "--changed-range expects non-empty BASE and HEAD, got `{value}`"
+            ));
         }
-        NaiveDate::ymd(2026, 5, 15)
+        Ok((base.to_string(), head.to_string()))
+    }
+
+    fn trusted_today(opts: &Options) -> Result<NaiveDate, String> {
+        opts.trusted_now.ok_or_else(|| {
+            "missing --trusted-now YYYY-MM-DD; lifecycle evaluation refuses stale default or environment-supplied clocks".into()
+        })
     }
 }
 
@@ -1499,6 +1624,85 @@ mod tests {
         assert_eq!(counts.get("proposed").copied().unwrap_or(0), 1);
     }
 
+    #[test]
+    fn cli_options_parse_trusted_date_and_merge_base_inputs() {
+        let opts = cli::Options::parse(
+            vec![
+                "--trusted-now".into(),
+                "2026-06-28".into(),
+                "--changed-base".into(),
+                "origin/dev".into(),
+                "--changed-head".into(),
+                "HEAD".into(),
+                "--wave".into(),
+                "B".into(),
+            ],
+            "specs/lifecycle-configs/adr-status.json",
+        )
+        .expect("options parse");
+
+        assert_eq!(opts.trusted_now, Some(NaiveDate::ymd(2026, 6, 28)));
+        assert_eq!(opts.changed_base.as_deref(), Some("origin/dev"));
+        assert_eq!(opts.changed_head.as_deref(), Some("HEAD"));
+        assert_eq!(opts.changed_range, None);
+        assert_eq!(opts.wave_override, Some(cli::Wave::B));
+    }
+
+    #[test]
+    fn cli_options_parse_explicit_changed_range() {
+        let opts = cli::Options::parse(
+            vec![
+                "--trusted-now".into(),
+                "2026-06-28".into(),
+                "--changed-range".into(),
+                "abc123..def456".into(),
+            ],
+            "specs/lifecycle-configs/adr-status.json",
+        )
+        .expect("options parse");
+
+        assert_eq!(opts.changed_range, Some(("abc123".into(), "def456".into())));
+        assert_eq!(opts.changed_base, None);
+        assert_eq!(opts.changed_head, None);
+    }
+
+    #[test]
+    fn cli_options_reject_invalid_trusted_date() {
+        let err = cli::Options::parse(
+            vec!["--trusted-now".into(), "not-a-date".into()],
+            "specs/lifecycle-configs/adr-status.json",
+        )
+        .expect_err("invalid date rejected");
+
+        assert!(err.contains("--trusted-now expects YYYY-MM-DD"));
+    }
+
+    #[test]
+    fn cli_options_reject_invalid_calendar_trusted_dates() {
+        for value in ["2026-13-40", "2026-00-01", "2025-02-29"] {
+            let err = cli::Options::parse(
+                vec!["--trusted-now".into(), value.into()],
+                "specs/lifecycle-configs/adr-status.json",
+            )
+            .expect_err("invalid calendar date rejected");
+
+            assert!(err.contains("--trusted-now expects YYYY-MM-DD"));
+        }
+    }
+
+    #[test]
+    fn discovery_rejects_missing_source_roots() {
+        let missing = std::env::temp_dir().join(format!(
+            "oya-governance-lifecycle-missing-{}",
+            std::process::id()
+        ));
+        let _ = std::fs::remove_dir_all(&missing);
+        let shallow = format!("{}/*.md", missing.display());
+        let recursive = format!("{}/**/*.md", missing.display());
+
+        assert!(discovery::expand_glob(&shallow).is_err());
+        assert!(discovery::expand_glob(&recursive).is_err());
+    }
     #[test]
     fn empty_input_is_clean() {
         let cfg = cfg_adr_status();

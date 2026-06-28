@@ -11,17 +11,18 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use iam_cloud_domain::IamRoleId;
-use network_domain::SecurityGroupId;
 use cell_region::{AzCode, CellId, RegionCode};
 use compute_resource::{
     CloudResourceError, FunctionRuntime, InstanceFlavor, K8sFlavor, ResourceId, ResourceKind,
 };
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use iam_cloud_domain::IamRoleId;
+use network_domain::SecurityGroupId;
 use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const COMPUTE_SCHEMA_VERSION: u32 = 1;
 pub const MAX_FUNCTION_COLD_START_BUDGET_MS: u32 = 1_000;
+const DEFAULT_FUNCTION_INVOCATION_RETENTION_LIMIT: usize = 1024;
 const TENANT_ID_PREFIX: &str = "ten_";
 const KEY_PAIR_ID_PREFIX: &str = "key_";
 const NODE_POOL_ID_PREFIX: &str = "np_";
@@ -286,13 +287,14 @@ pub struct FunctionDeployment {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct FunctionInvocationRequest {
-    pub invocation_id: String,           // data_class: INTERNAL_ONLY
-    pub tenant_id: String,               // data_class: INTERNAL_ONLY
-    pub function_id: String,             // data_class: INTERNAL_ONLY
-    pub region: String,                  // data_class: PUBLIC
-    pub payload_data_class: DataClass,   // data_class: INTERNAL_ONLY
-    pub idempotency_key: String,         // data_class: INTERNAL_ONLY
-    pub requested_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+    pub invocation_id: String,               // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                   // data_class: INTERNAL_ONLY
+    pub function_id: String,                 // data_class: INTERNAL_ONLY
+    pub region: String,                      // data_class: PUBLIC
+    pub payload_data_class: DataClass,       // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,             // data_class: INTERNAL_ONLY
+    pub current_concurrent_invocations: u32, // data_class: INTERNAL_ONLY
+    pub requested_at_epoch_seconds: u64,     // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -408,12 +410,19 @@ pub enum CloudComputeError {
     UnknownFunction,
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudComputeCatalog {
     instances: BTreeMap<ResourceId, Instance>,
     kubernetes_clusters: BTreeMap<ResourceId, KubernetesCluster>,
     functions: BTreeMap<ResourceId, FunctionDeployment>,
     invocations: BTreeMap<InvocationId, FunctionInvocationReceipt>,
+    invocation_retention_limit: usize,
+}
+
+impl Default for CloudComputeCatalog {
+    fn default() -> Self {
+        Self::with_invocation_retention_limit(DEFAULT_FUNCTION_INVOCATION_RETENTION_LIMIT)
+    }
 }
 
 pub trait ComputeRepo {
@@ -617,7 +626,7 @@ impl ComputeProviderVmCreateRequest {
             || self.provider_instance_ref.trim().is_empty()
             || self.tenant_id.trim().is_empty()
             || self.actor.trim().is_empty()
-            || self.idempotency_key.trim().is_empty()
+            || IdempotencyKey::new(self.idempotency_key.clone()).is_err()
             || self.tenant_id != self.instance.tenant_id.value
         {
             return Err(ComputeProviderVmError::InvalidRequest);
@@ -965,7 +974,12 @@ impl KubernetesCluster {
         let requested = node_pools
             .iter()
             .try_fold(ComputeUnits::default(), |sum, pool| {
-                sum.checked_add(pool.flavor.units().checked_mul(pool.min_nodes)?)
+                let admitted_nodes = if pool.autoscaling_enabled {
+                    pool.max_nodes
+                } else {
+                    pool.min_nodes
+                };
+                sum.checked_add(pool.flavor.units().checked_mul(admitted_nodes)?)
             })?;
         input.quota.admit(requested)?;
         Ok(Self {
@@ -1078,6 +1092,9 @@ impl FunctionDeployment {
         {
             return Err(CloudComputeError::PayloadDataClassNotAllowed);
         }
+        if input.current_concurrent_invocations >= self.max_concurrency.value {
+            return Err(CloudComputeError::QuotaExceeded);
+        }
         Ok(FunctionInvocationReceipt {
             invocation_id: internal(InvocationId::new(input.invocation_id)?),
             tenant_id: internal(input.tenant_id),
@@ -1161,12 +1178,35 @@ impl ComputeRepo for CloudComputeCatalog {
             .get(&function_id)
             .ok_or(CloudComputeError::UnknownFunction)?;
         let receipt = function.invoke(input)?;
-        self.invocations.insert(invocation_id, receipt.clone());
+        self.remember_invocation(invocation_id, receipt.clone());
         Ok(receipt)
     }
 }
 
 impl CloudComputeCatalog {
+    pub fn with_invocation_retention_limit(invocation_retention_limit: usize) -> Self {
+        Self {
+            instances: BTreeMap::new(),
+            kubernetes_clusters: BTreeMap::new(),
+            functions: BTreeMap::new(),
+            invocations: BTreeMap::new(),
+            invocation_retention_limit: invocation_retention_limit.max(1),
+        }
+    }
+
+    fn remember_invocation(
+        &mut self,
+        invocation_id: InvocationId,
+        receipt: FunctionInvocationReceipt,
+    ) {
+        if self.invocations.len() >= self.invocation_retention_limit {
+            if let Some(evicted) = self.invocations.keys().next().cloned() {
+                self.invocations.remove(&evicted);
+            }
+        }
+        self.invocations.insert(invocation_id, receipt);
+    }
+
     pub fn instances(&self) -> impl Iterator<Item = &Instance> {
         self.instances.values()
     }
@@ -1735,6 +1775,7 @@ mod tests {
             region: "region-alpha".to_string(),
             payload_data_class: data_class,
             idempotency_key: format!("idem-{id}-0123456789"),
+            current_concurrent_invocations: 0,
             requested_at_epoch_seconds: 1_700_100_030,
         }
     }
@@ -1782,6 +1823,16 @@ mod tests {
         assert_eq!(receipt.region, "region-alpha");
         assert_eq!(receipt.az, "region-alpha-a");
 
+        let mut invalid_idempotency_request = request.clone();
+        invalid_idempotency_request.idempotency_key = "short".to_string();
+        let invalid_idempotency = ComputeProviderVmReceipt::from_request(
+            ComputeProviderKind::AwsEc2,
+            invalid_idempotency_request,
+            "aws-req-001",
+            "aws-ec2://evidence/req-001",
+        )
+        .expect_err("provider VM idempotency key is bounded before adapter projection");
+        assert_eq!(invalid_idempotency, ComputeProviderVmError::InvalidRequest);
         let missing_request_id = ComputeProviderVmReceipt::from_request(
             ComputeProviderKind::AwsEc2,
             request.clone(),
@@ -1847,7 +1898,7 @@ mod tests {
     }
 
     #[test]
-    fn rejects_kubernetes_without_ha_spread_or_node_pool_quota() {
+    fn rejects_kubernetes_without_ha_spread_or_autoscale_max_node_quota() {
         let ha_error = KubernetesCluster::new(KubernetesClusterCreate {
             node_pools: vec![node_pool(
                 "np_a",
@@ -1868,6 +1919,15 @@ mod tests {
         })
         .expect_err("node pool minimum capacity must fit quota");
         assert_eq!(quota_error, CloudComputeError::QuotaExceeded);
+        let max_quota_error = KubernetesCluster::new(KubernetesClusterCreate {
+            quota: ComputeQuotaEnvelope {
+                vcpu_limit: 32,
+                ..quota()
+            },
+            ..k8s_create()
+        })
+        .expect_err("autoscale maximum capacity must fit quota even when min nodes fit");
+        assert_eq!(max_quota_error, CloudComputeError::QuotaExceeded);
     }
 
     #[test]
@@ -1920,7 +1980,7 @@ mod tests {
     }
 
     #[test]
-    fn rejects_function_budget_payload_class_duplicate_invocation_and_inactive() {
+    fn rejects_function_budget_payload_class_max_concurrency_duplicate_invocation_and_inactive() {
         let budget_error = FunctionDeployment::new(FunctionDeploymentCreate {
             cold_start_budget_ms: MAX_FUNCTION_COLD_START_BUDGET_MS + 1,
             ..function_create()
@@ -1946,6 +2006,14 @@ mod tests {
             .expect_err("payload data class must be allowlisted");
         assert_eq!(class_error, CloudComputeError::PayloadDataClassNotAllowed);
 
+        let concurrency_error = catalog
+            .invoke_function(FunctionInvocationRequest {
+                current_concurrent_invocations: 250,
+                ..invocation("fninv_concurrency", DataClass::Public)
+            })
+            .expect_err("function invocation cannot exceed declared max concurrency");
+        assert_eq!(concurrency_error, CloudComputeError::QuotaExceeded);
+
         catalog
             .invoke_function(invocation("fninv_003", DataClass::Public))
             .expect("first invocation records");
@@ -1953,6 +2021,26 @@ mod tests {
             .invoke_function(invocation("fninv_003", DataClass::Public))
             .expect_err("invocation ids are immutable evidence keys");
         assert_eq!(duplicate, CloudComputeError::DuplicateInvocation);
+    }
+
+    #[test]
+    fn function_invocation_store_enforces_bounded_retention() {
+        let mut catalog = CloudComputeCatalog::with_invocation_retention_limit(1);
+        let function = catalog
+            .register_function(function_create())
+            .expect("function registers");
+        catalog
+            .activate_function(&function.resource_id.value)
+            .expect("function activates");
+
+        catalog
+            .invoke_function(invocation("fninv_bound_1", DataClass::Public))
+            .expect("first invocation records");
+        catalog
+            .invoke_function(invocation("fninv_bound_2", DataClass::Public))
+            .expect("second invocation records");
+
+        assert_eq!(catalog.invocations().count(), 1);
     }
 
     #[test]

@@ -28,7 +28,6 @@ pub struct OciComputeAdapter {
     compartment_ref: String,     // data_class: INTERNAL_ONLY
     availability_domain: String, // data_class: INTERNAL_ONLY
     region: String,              // data_class: PUBLIC
-    clock_epoch_seconds: u64,    // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -67,13 +66,7 @@ impl OciComputeAdapter {
             compartment_ref,
             availability_domain,
             region,
-            clock_epoch_seconds: 0,
         })
-    }
-
-    pub fn with_clock(mut self, clock_epoch_seconds: u64) -> Self {
-        self.clock_epoch_seconds = clock_epoch_seconds;
-        self
     }
 
     pub fn provider_instance_ref(&self, instance_resource_id: &str) -> String {
@@ -130,10 +123,6 @@ impl OciComputeAdapter {
             })
         }
     }
-
-    fn provider_request_id(&self, request_id: &str) -> String {
-        format!("oci-compute-{}-{request_id}", self.clock_epoch_seconds)
-    }
 }
 
 impl ComputeProviderVmPort for OciComputeAdapter {
@@ -145,14 +134,12 @@ impl ComputeProviderVmPort for OciComputeAdapter {
         &self,
         input: ComputeProviderVmCreateRequest,
     ) -> Result<ComputeProviderVmReceipt, ComputeProviderVmError> {
-        let command = self.launch_instance_command(&input)?;
-        let provider_request_id = self.provider_request_id(&input.request_id);
-        ComputeProviderVmReceipt::from_request(
-            self.provider_kind(),
-            input,
-            provider_request_id,
-            command.provider_evidence_ref,
-        )
+        let _command = self.launch_instance_command(&input)?;
+        Err(ComputeProviderVmError::ProviderRejected {
+            provider: self.provider_kind(),
+            reason: "OCI Compute adapter is command-projection preview only; create_vm does not perform production provisioning"
+                .to_string(),
+        })
     }
 }
 
@@ -296,8 +283,8 @@ mod tests {
         ComputeQuotaEnvelope, InstanceCreate, InstanceState,
     };
     use compute_resource::InstanceFlavor;
-    use oya_data_boundary_kernel::DataClass;
     use network_residency::ResidencyClass;
+    use oya_data_boundary_kernel::DataClass;
 
     const DIGEST: &str = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 
@@ -348,7 +335,6 @@ mod tests {
             "ap-chuncheon-1",
         )
         .unwrap()
-        .with_clock(1_700_200_010)
     }
 
     fn request(adapter: &OciComputeAdapter) -> ComputeProviderVmCreateRequest {
@@ -401,20 +387,21 @@ mod tests {
     }
 
     #[test]
-    fn oci_compute_adapter_receipt_preserves_provider_neutral_vm_identity() {
+    fn oci_compute_adapter_preview_create_vm_does_not_report_provisioning_success() {
         let adapter = adapter();
         let request = request(&adapter);
-        let receipt = adapter.create_vm(request).expect("receipt emitted");
+        let error = adapter
+            .create_vm(request)
+            .expect_err("preview adapter must not emit production provisioning receipt");
 
-        assert_eq!(receipt.provider_kind, ComputeProviderKind::OciCompute);
         assert_eq!(
-            receipt.provider_request_id,
-            "oci-compute-1700200010-compute-vm-oci-001"
+            error,
+            ComputeProviderVmError::ProviderRejected {
+                provider: ComputeProviderKind::OciCompute,
+                reason: "OCI Compute adapter is command-projection preview only; create_vm does not perform production provisioning"
+                    .to_string(),
+            }
         );
-        assert_eq!(receipt.region, "ap-chuncheon-1");
-        assert_eq!(receipt.az, "ap-chuncheon-1-a");
-        assert_eq!(receipt.cell_id, "cell-ap-chuncheon-1-a-001");
-        assert_eq!(receipt.schema_version, 1);
     }
 
     #[test]
