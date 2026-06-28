@@ -442,8 +442,10 @@ fn shellish_token_segments(line: &str) -> Vec<Vec<String>> {
     while let Some(ch) = chars.next() {
         let boundary = match ch {
             ';' | '\n' | '`' => true,
-            '&' if chars.peek() == Some(&'&') => {
-                chars.next();
+            '&' => {
+                if chars.peek() == Some(&'&') {
+                    chars.next();
+                }
                 true
             }
             '|' => {
@@ -756,6 +758,38 @@ mod tests {
         });
 
         assert_eq!(scan.usages[0].primitive, PrimitiveKind::ManualPush);
+    }
+
+    #[test]
+    fn scan_command_invocation_rejects_background_laundered_git_push() {
+        let scan = scan_command_invocation(CommandInvocation {
+            source:
+                "registry/governance-corpora/banned-primitives/reject-ampersand-laundered-push.jsonl"
+                    .into(),
+            line: 1,
+            command: "oya & git push origin dev".into(),
+        });
+
+        assert_eq!(scan.usages[0].primitive, PrimitiveKind::ManualPush);
+    }
+
+    #[test]
+    fn scan_command_invocation_rejects_separator_laundered_git_push_variants() {
+        for separator in ["|", "||", "&", "&&", ";"] {
+            let scan = scan_command_invocation(CommandInvocation {
+                source:
+                    "registry/governance-corpora/banned-primitives/reject-separator-laundered-push.jsonl"
+                        .into(),
+                line: 1,
+                command: format!("oya {separator} git push origin dev"),
+            });
+
+            assert_eq!(
+                scan.usages[0].primitive,
+                PrimitiveKind::ManualPush,
+                "{separator} must not let prior `oya` sanitize `git push`"
+            );
+        }
     }
 
     #[test]

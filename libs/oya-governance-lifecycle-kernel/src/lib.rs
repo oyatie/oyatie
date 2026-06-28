@@ -58,6 +58,31 @@ impl NaiveDate {
     pub const fn ymd(year: i32, month: u8, day: u8) -> Self {
         Self { year, month, day }
     }
+
+    pub fn checked_ymd(year: i32, month: u8, day: u8) -> Option<Self> {
+        if month == 0 || month > 12 {
+            return None;
+        }
+        let max_day = days_in_month(year, month);
+        if day == 0 || day > max_day {
+            return None;
+        }
+        Some(Self { year, month, day })
+    }
+}
+
+fn days_in_month(year: i32, month: u8) -> u8 {
+    match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if is_leap_year(year) => 29,
+        2 => 28,
+        _ => 0,
+    }
+}
+
+fn is_leap_year(year: i32) -> bool {
+    (year % 4 == 0 && year % 100 != 0) || year % 400 == 0
 }
 
 /// One declared stage in a lifecycle.
@@ -506,7 +531,7 @@ pub mod discovery {
         let y: i32 = parts[0].parse().ok()?;
         let m: u8 = parts[1].parse().ok()?;
         let d: u8 = parts[2].parse().ok()?;
-        Some(NaiveDate::ymd(y, m, d))
+        NaiveDate::checked_ymd(y, m, d)
     }
 
     pub fn frontmatter_scalar(raw: &str, field: &str) -> Option<String> {
@@ -553,11 +578,19 @@ pub mod discovery {
     fn shallow_glob(dir: &Path, pattern: &str) -> Result<Vec<PathBuf>, String> {
         let mut out = Vec::new();
         if !dir.exists() {
-            return Ok(out);
+            return Err(format!("missing source root: {}", dir.display()));
+        }
+        if !dir.is_dir() {
+            return Err(format!("source root is not a directory: {}", dir.display()));
         }
         let entries = fs::read_dir(dir).map_err(|e| format!("read_dir {}: {e}", dir.display()))?;
-        for entry in entries.flatten() {
-            if !entry.file_type().map(|t| t.is_file()).unwrap_or(false) {
+        for entry in entries {
+            let entry = entry.map_err(|e| format!("read_dir {}: {e}", dir.display()))?;
+            if !entry
+                .file_type()
+                .map_err(|e| format!("file_type {}: {e}", entry.path().display()))?
+                .is_file()
+            {
                 continue;
             }
             let name = entry.file_name().to_string_lossy().into_owned();
@@ -572,19 +605,24 @@ pub mod discovery {
     fn recursive(root: &Path, pattern: &str) -> Result<Vec<PathBuf>, String> {
         let mut out = Vec::new();
         if !root.exists() {
-            return Ok(out);
+            return Err(format!("missing source root: {}", root.display()));
+        }
+        if !root.is_dir() {
+            return Err(format!(
+                "source root is not a directory: {}",
+                root.display()
+            ));
         }
         let mut stack = vec![root.to_path_buf()];
         while let Some(dir) = stack.pop() {
-            let entries = match fs::read_dir(&dir) {
-                Ok(e) => e,
-                Err(_) => continue,
-            };
-            for entry in entries.flatten() {
+            let entries =
+                fs::read_dir(&dir).map_err(|e| format!("read_dir {}: {e}", dir.display()))?;
+            for entry in entries {
+                let entry = entry.map_err(|e| format!("read_dir {}: {e}", dir.display()))?;
                 let path = entry.path();
-                let Ok(ft) = entry.file_type() else {
-                    continue;
-                };
+                let ft = entry
+                    .file_type()
+                    .map_err(|e| format!("file_type {}: {e}", path.display()))?;
                 if ft.is_dir() {
                     stack.push(path);
                 } else if ft.is_file() {
@@ -1637,6 +1675,33 @@ mod tests {
         .expect_err("invalid date rejected");
 
         assert!(err.contains("--trusted-now expects YYYY-MM-DD"));
+    }
+
+    #[test]
+    fn cli_options_reject_invalid_calendar_trusted_dates() {
+        for value in ["2026-13-40", "2026-00-01", "2025-02-29"] {
+            let err = cli::Options::parse(
+                vec!["--trusted-now".into(), value.into()],
+                "specs/lifecycle-configs/adr-status.json",
+            )
+            .expect_err("invalid calendar date rejected");
+
+            assert!(err.contains("--trusted-now expects YYYY-MM-DD"));
+        }
+    }
+
+    #[test]
+    fn discovery_rejects_missing_source_roots() {
+        let missing = std::env::temp_dir().join(format!(
+            "oya-governance-lifecycle-missing-{}",
+            std::process::id()
+        ));
+        let _ = std::fs::remove_dir_all(&missing);
+        let shallow = format!("{}/*.md", missing.display());
+        let recursive = format!("{}/**/*.md", missing.display());
+
+        assert!(discovery::expand_glob(&shallow).is_err());
+        assert!(discovery::expand_glob(&recursive).is_err());
     }
     #[test]
     fn empty_input_is_clean() {

@@ -223,6 +223,8 @@ fn vm_create_api_uses_trusted_verifier_and_ignores_caller_supplied_proof_fields(
         "req-compute-vm-ignore-caller-proof",
         "idem-compute-vm-ignore-caller-proof",
     );
+    request.authorization.tenant_id = "ten_forged".to_string();
+    request.authorization.principal_id = "sp_forged_compute".to_string();
     request.authorization.allowed_surfaces = vec!["cloud.compute.k8s.cluster.create".to_string()];
     let mut forged_proof = authorization_proof_for(
         "sp_attacker",

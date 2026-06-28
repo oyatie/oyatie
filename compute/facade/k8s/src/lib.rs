@@ -148,16 +148,30 @@ pub trait CloudComputeK8sAuthorizationVerifier {
         &self,
         decision_id: &str,
     ) -> Option<&CloudComputeK8sApiAuthorizationProof>;
+    fn evaluation_epoch_seconds(&self) -> u64;
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudComputeK8sTrustedAuthorizationVerifier {
+    evaluation_epoch_seconds: u64, // data_class: INTERNAL_ONLY
     proofs_by_decision_id: BTreeMap<String, CloudComputeK8sApiAuthorizationProof>, // data_class: INTERNAL_ONLY
 }
 
+impl Default for CloudComputeK8sTrustedAuthorizationVerifier {
+    fn default() -> Self {
+        Self {
+            evaluation_epoch_seconds: u64::MAX,
+            proofs_by_decision_id: BTreeMap::new(),
+        }
+    }
+}
+
 impl CloudComputeK8sTrustedAuthorizationVerifier {
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(evaluation_epoch_seconds: u64) -> Self {
+        Self {
+            evaluation_epoch_seconds,
+            proofs_by_decision_id: BTreeMap::new(),
+        }
     }
 
     pub fn trust_authorization_proof(
@@ -197,6 +211,10 @@ impl CloudComputeK8sAuthorizationVerifier for CloudComputeK8sTrustedAuthorizatio
     ) -> Option<&CloudComputeK8sApiAuthorizationProof> {
         self.proofs_by_decision_id.get(decision_id)
     }
+
+    fn evaluation_epoch_seconds(&self) -> u64 {
+        self.evaluation_epoch_seconds
+    }
 }
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
@@ -208,6 +226,10 @@ impl CloudComputeK8sAuthorizationVerifier for CloudComputeK8sFailClosedAuthoriza
         _decision_id: &str,
     ) -> Option<&CloudComputeK8sApiAuthorizationProof> {
         None
+    }
+
+    fn evaluation_epoch_seconds(&self) -> u64 {
+        u64::MAX
     }
 }
 
@@ -944,18 +966,6 @@ fn validate_authorization(
     if authorization.decision_id.trim().is_empty() {
         return Err(CloudComputeK8sApiError::EmptyAuthorizationDecisionId);
     }
-    if authorization.tenant_id != principal.tenant_id {
-        return Err(CloudComputeK8sApiError::AuthorizationTenantMismatch {
-            authorization_tenant_id: authorization.tenant_id.clone(),
-            principal_tenant_id: principal.tenant_id.clone(),
-        });
-    }
-    if authorization.principal_id != principal.principal_id {
-        return Err(CloudComputeK8sApiError::AuthorizationPrincipalMismatch {
-            authorization_principal_id: authorization.principal_id.clone(),
-            principal_id: principal.principal_id.clone(),
-        });
-    }
     validate_authorization_proof(principal, authorization, surface, authorization_verifier)
 }
 
@@ -972,12 +982,15 @@ fn validate_authorization_proof(
             surface: surface.to_string(),
         });
     };
+    let evaluation_epoch_seconds = authorization_verifier.evaluation_epoch_seconds();
     if !proof.verified
         || proof.tenant_id != principal.tenant_id
         || proof.principal_id != principal.principal_id
         || proof.surface != surface
         || proof.decision_id != authorization.decision_id
         || proof.issued_at_epoch_seconds >= proof.expires_at_epoch_seconds
+        || evaluation_epoch_seconds < proof.issued_at_epoch_seconds
+        || evaluation_epoch_seconds >= proof.expires_at_epoch_seconds
     {
         return Err(CloudComputeK8sApiError::AuthorizationDenied {
             surface: surface.to_string(),

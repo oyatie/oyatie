@@ -626,7 +626,7 @@ impl ComputeProviderVmCreateRequest {
             || self.provider_instance_ref.trim().is_empty()
             || self.tenant_id.trim().is_empty()
             || self.actor.trim().is_empty()
-            || self.idempotency_key.trim().is_empty()
+            || IdempotencyKey::new(self.idempotency_key.clone()).is_err()
             || self.tenant_id != self.instance.tenant_id.value
         {
             return Err(ComputeProviderVmError::InvalidRequest);
@@ -1823,6 +1823,16 @@ mod tests {
         assert_eq!(receipt.region, "region-alpha");
         assert_eq!(receipt.az, "region-alpha-a");
 
+        let mut invalid_idempotency_request = request.clone();
+        invalid_idempotency_request.idempotency_key = "short".to_string();
+        let invalid_idempotency = ComputeProviderVmReceipt::from_request(
+            ComputeProviderKind::AwsEc2,
+            invalid_idempotency_request,
+            "aws-req-001",
+            "aws-ec2://evidence/req-001",
+        )
+        .expect_err("provider VM idempotency key is bounded before adapter projection");
+        assert_eq!(invalid_idempotency, ComputeProviderVmError::InvalidRequest);
         let missing_request_id = ComputeProviderVmReceipt::from_request(
             ComputeProviderKind::AwsEc2,
             request.clone(),

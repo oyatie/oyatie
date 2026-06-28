@@ -23,6 +23,7 @@ use oya_data_boundary_kernel::DataClass;
 
 const FUNCTION_ID: &str = "oya:cloud:region-home:ten_alpha:function:image-resize";
 const DIGEST: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+const FUNCTIONS_AUTHZ_EVALUATION_EPOCH_SECONDS: u64 = 1_700_100_040;
 
 fn boundary_for(
     request_id: &str,
@@ -76,10 +77,11 @@ fn trusted_allow_for(
 fn authorization_verifier_for(
     request: &CloudComputeFunctionsInvokeApiRequest,
 ) -> CloudComputeFunctionsAuthorizationVerifier {
-    CloudComputeFunctionsAuthorizationVerifier::new().with_trusted_decision(trusted_allow_for(
-        &request.authorization.decision_id,
-        &request.principal.principal_id,
-    ))
+    CloudComputeFunctionsAuthorizationVerifier::new(FUNCTIONS_AUTHZ_EVALUATION_EPOCH_SECONDS)
+        .with_trusted_decision(trusted_allow_for(
+            &request.authorization.decision_id,
+            &request.principal.principal_id,
+        ))
 }
 
 fn invoke_with_trusted_verifier(
@@ -336,8 +338,9 @@ fn functions_invoke_api_rejects_trusted_authorization_binding_mismatches() {
         &tenant_mismatch.principal.principal_id,
     );
     tenant_mismatch_decision.tenant_id = "ten_beta".to_string();
-    let tenant_mismatch_verifier = CloudComputeFunctionsAuthorizationVerifier::new()
-        .with_trusted_decision(tenant_mismatch_decision);
+    let tenant_mismatch_verifier =
+        CloudComputeFunctionsAuthorizationVerifier::new(FUNCTIONS_AUTHZ_EVALUATION_EPOCH_SECONDS)
+            .with_trusted_decision(tenant_mismatch_decision);
 
     let tenant_mismatch_error = invoke_cloud_compute_function_from_api_with_authorization_verifier(
         &mut catalog,
@@ -360,11 +363,12 @@ fn functions_invoke_api_rejects_trusted_authorization_binding_mismatches() {
         "idem-functions-authz-principal-mismatch-001",
         "fninv_authz_principal_mismatch",
     );
-    let principal_mismatch_verifier = CloudComputeFunctionsAuthorizationVerifier::new()
-        .with_trusted_decision(trusted_allow_for(
-            &principal_mismatch.authorization.decision_id,
-            "sp_other_compute",
-        ));
+    let principal_mismatch_verifier =
+        CloudComputeFunctionsAuthorizationVerifier::new(FUNCTIONS_AUTHZ_EVALUATION_EPOCH_SECONDS)
+            .with_trusted_decision(trusted_allow_for(
+                &principal_mismatch.authorization.decision_id,
+                "sp_other_compute",
+            ));
 
     let principal_mismatch_error =
         invoke_cloud_compute_function_from_api_with_authorization_verifier(
@@ -393,8 +397,9 @@ fn functions_invoke_api_rejects_trusted_authorization_binding_mismatches() {
         &surface_mismatch.principal.principal_id,
     );
     surface_mismatch_decision.surface = "cloud.compute.vm.create".to_string();
-    let surface_mismatch_verifier = CloudComputeFunctionsAuthorizationVerifier::new()
-        .with_trusted_decision(surface_mismatch_decision);
+    let surface_mismatch_verifier =
+        CloudComputeFunctionsAuthorizationVerifier::new(FUNCTIONS_AUTHZ_EVALUATION_EPOCH_SECONDS)
+            .with_trusted_decision(surface_mismatch_decision);
 
     let surface_mismatch_error =
         invoke_cloud_compute_function_from_api_with_authorization_verifier(
@@ -417,11 +422,12 @@ fn functions_invoke_api_rejects_trusted_authorization_binding_mismatches() {
         "idem-functions-authz-decision-mismatch-001",
         "fninv_authz_decision_mismatch",
     );
-    let decision_mismatch_verifier = CloudComputeFunctionsAuthorizationVerifier::new()
-        .with_trusted_decision(trusted_allow_for(
-            "authz_decision_for_different_request",
-            &decision_mismatch.principal.principal_id,
-        ));
+    let decision_mismatch_verifier =
+        CloudComputeFunctionsAuthorizationVerifier::new(FUNCTIONS_AUTHZ_EVALUATION_EPOCH_SECONDS)
+            .with_trusted_decision(trusted_allow_for(
+                "authz_decision_for_different_request",
+                &decision_mismatch.principal.principal_id,
+            ));
 
     let decision_mismatch_error =
         invoke_cloud_compute_function_from_api_with_authorization_verifier(
@@ -449,8 +455,9 @@ fn functions_invoke_api_rejects_trusted_authorization_binding_mismatches() {
         &denied_decision.principal.principal_id,
     );
     denied_trusted_decision.decision = CloudComputeFunctionsAuthorizationDecision::Deny;
-    let denied_decision_verifier = CloudComputeFunctionsAuthorizationVerifier::new()
-        .with_trusted_decision(denied_trusted_decision);
+    let denied_decision_verifier =
+        CloudComputeFunctionsAuthorizationVerifier::new(FUNCTIONS_AUTHZ_EVALUATION_EPOCH_SECONDS)
+            .with_trusted_decision(denied_trusted_decision);
 
     let denied_decision_error = invoke_cloud_compute_function_from_api_with_authorization_verifier(
         &mut catalog,
@@ -467,18 +474,20 @@ fn functions_invoke_api_rejects_trusted_authorization_binding_mismatches() {
     );
     assert_eq!(denied_decision_error.invoke_status_code(), 403);
 
-    let expired = request(
+    let mut expired = request(
         "req-compute-functions-authz-expired",
         "idem-functions-authz-expired-001",
         "fninv_authz_expired",
     );
+    expired.body.requested_at_epoch_seconds = 1_700_099_000;
     let mut expired_decision = trusted_allow_for(
         &expired.authorization.decision_id,
         &expired.principal.principal_id,
     );
-    expired_decision.valid_until_epoch_seconds = expired.body.requested_at_epoch_seconds;
+    expired_decision.valid_until_epoch_seconds = FUNCTIONS_AUTHZ_EVALUATION_EPOCH_SECONDS;
     let expired_verifier =
-        CloudComputeFunctionsAuthorizationVerifier::new().with_trusted_decision(expired_decision);
+        CloudComputeFunctionsAuthorizationVerifier::new(FUNCTIONS_AUTHZ_EVALUATION_EPOCH_SECONDS)
+            .with_trusted_decision(expired_decision);
 
     let expired_error = invoke_cloud_compute_function_from_api_with_authorization_verifier(
         &mut catalog,
