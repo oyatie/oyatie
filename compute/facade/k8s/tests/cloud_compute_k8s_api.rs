@@ -8,12 +8,20 @@ use compute_k8s_api::{
     CloudComputeK8sApiAuthorization, CloudComputeK8sApiAuthorizationProof,
     CloudComputeK8sApiBoundaryContext, CloudComputeK8sApiError, CloudComputeK8sApiPrincipal,
     CloudComputeK8sClusterCreateApiRequest, CloudComputeK8sClusterCreateApiStatus,
-    CloudComputeK8sClusterCreateRequest, CloudComputeK8sClusterDeleteApiRequest,
-    CloudComputeK8sClusterDeleteApiStatus, CloudComputeK8sCreateIdempotencyLedger,
+    CloudComputeK8sClusterCreateRequest, CloudComputeK8sClusterCreateSuccessResponse,
+    CloudComputeK8sClusterDeleteApiRequest, CloudComputeK8sClusterDeleteApiStatus,
+    CloudComputeK8sClusterDeleteSuccessResponse, CloudComputeK8sCreateIdempotencyLedger,
     CloudComputeK8sDeleteIdempotencyLedger, CloudComputeK8sNodePoolCreateRequest,
     CloudComputeK8sNodePoolFlavorSpec, CloudComputeK8sQuotaEnvelope,
-    CloudComputeK8sSecurityGroupRef, create_cloud_compute_k8s_cluster_from_api, create_cluster,
-    delete_cloud_compute_k8s_cluster_from_api, delete_cluster,
+    CloudComputeK8sSecurityGroupRef, CloudComputeK8sTrustedAuthorizationVerifier,
+    create_cloud_compute_k8s_cluster_from_api as create_cloud_compute_k8s_cluster_from_api_without_authorization_verifier,
+    create_cloud_compute_k8s_cluster_from_api_with_authorization_verifier,
+    create_cluster as create_cluster_without_authorization_verifier,
+    create_cluster_with_authorization_verifier,
+    delete_cloud_compute_k8s_cluster_from_api as delete_cloud_compute_k8s_cluster_from_api_without_authorization_verifier,
+    delete_cloud_compute_k8s_cluster_from_api_with_authorization_verifier,
+    delete_cluster as delete_cluster_without_authorization_verifier,
+    delete_cluster_with_authorization_verifier,
 };
 
 const CLUSTER_ID: &str = "oya:cloud:region-home:ten_alpha:k8s:prod";
@@ -158,6 +166,41 @@ fn request(request_id: &str, idempotency_key: &str) -> CloudComputeK8sClusterCre
     }
 }
 
+fn trusted_create_verifier_for(
+    request: &CloudComputeK8sClusterCreateApiRequest,
+) -> CloudComputeK8sTrustedAuthorizationVerifier {
+    CloudComputeK8sTrustedAuthorizationVerifier::new().with_authorization_proof(
+        authorization_proof_for(
+            &request.principal.principal_id,
+            CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE,
+            &request.authorization.decision_id,
+        ),
+    )
+}
+
+fn create_cloud_compute_k8s_cluster_from_api(
+    catalog: &mut CloudComputeCatalog,
+    idempotency_ledger: &mut CloudComputeK8sCreateIdempotencyLedger,
+    request: CloudComputeK8sClusterCreateApiRequest,
+) -> Result<CloudComputeK8sClusterCreateSuccessResponse, CloudComputeK8sApiError> {
+    let verifier = trusted_create_verifier_for(&request);
+    create_cloud_compute_k8s_cluster_from_api_with_authorization_verifier(
+        catalog,
+        idempotency_ledger,
+        request,
+        &verifier,
+    )
+}
+
+fn create_cluster(
+    catalog: &mut CloudComputeCatalog,
+    idempotency_ledger: &mut CloudComputeK8sCreateIdempotencyLedger,
+    request: CloudComputeK8sClusterCreateApiRequest,
+) -> Result<CloudComputeK8sClusterCreateSuccessResponse, CloudComputeK8sApiError> {
+    let verifier = trusted_create_verifier_for(&request);
+    create_cluster_with_authorization_verifier(catalog, idempotency_ledger, request, &verifier)
+}
+
 #[test]
 fn api_surface_status_contracts_are_covered() {
     assert_eq!(
@@ -253,14 +296,20 @@ fn k8s_create_api_rejects_path_body_drift_before_catalog_mutation() {
 }
 
 #[test]
-fn k8s_create_api_rejects_unauthorized_same_tenant_principal_before_ledger() {
+fn k8s_create_api_legacy_entrypoint_fails_closed_without_authorization_verifier() {
     let mut catalog = CloudComputeCatalog::default();
     let mut ledger = CloudComputeK8sCreateIdempotencyLedger::default();
-    let mut request = request("req-compute-k8s-authz", "idem-compute-k8s-authz");
-    request.authorization.allowed_surfaces = vec!["cloud.compute.vm.create".to_string()];
+    let missing_verifier_request = request(
+        "req-compute-k8s-missing-verifier",
+        "idem-compute-k8s-missing-verifier",
+    );
 
-    let error = create_cloud_compute_k8s_cluster_from_api(&mut catalog, &mut ledger, request)
-        .expect_err("authorization decision does not allow cluster create");
+    let error = create_cloud_compute_k8s_cluster_from_api_without_authorization_verifier(
+        &mut catalog,
+        &mut ledger,
+        missing_verifier_request,
+    )
+    .expect_err("legacy create entrypoint has no trusted authorization verifier");
 
     assert_eq!(
         error,
@@ -269,86 +318,126 @@ fn k8s_create_api_rejects_unauthorized_same_tenant_principal_before_ledger() {
         }
     );
     assert_eq!(error.cluster_create_status_code(), 403);
+    let planned_error = create_cluster_without_authorization_verifier(
+        &mut catalog,
+        &mut ledger,
+        request(
+            "req-compute-k8s-planned-missing-verifier",
+            "idem-compute-k8s-planned-missing-verifier",
+        ),
+    )
+    .expect_err("legacy planned create entrypoint has no trusted authorization verifier");
+    assert_eq!(planned_error, error);
     assert!(ledger.is_empty());
     assert_eq!(catalog.kubernetes_clusters().count(), 0);
 }
+
 #[test]
-fn k8s_create_api_rejects_forged_allowed_surface_without_valid_compute_local_proof_before_ledger() {
+fn k8s_create_api_rejects_trusted_verifier_mismatches_before_ledger() {
+    for case in [
+        "forged",
+        "tenant",
+        "principal",
+        "surface",
+        "decision",
+        "expired",
+    ] {
+        let mut catalog = CloudComputeCatalog::default();
+        let mut ledger = CloudComputeK8sCreateIdempotencyLedger::default();
+        let request = request(
+            &format!("req-compute-k8s-authz-{case}"),
+            &format!("idem-compute-k8s-authz-{case}"),
+        );
+        let mut proof = authorization_proof_for(
+            "sp_compute",
+            CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE,
+            &request.authorization.decision_id,
+        );
+        let verifier_key = match case {
+            "forged" => {
+                proof.verified = false;
+                None
+            }
+            "tenant" => {
+                proof.tenant_id = "ten_other".to_string();
+                None
+            }
+            "principal" => {
+                proof.principal_id = "sp_other".to_string();
+                None
+            }
+            "surface" => {
+                proof.surface = "cloud.compute.vm.create".to_string();
+                None
+            }
+            "decision" => {
+                proof.decision_id = "authz_decision_other".to_string();
+                Some(request.authorization.decision_id.clone())
+            }
+            "expired" => {
+                proof.expires_at_epoch_seconds = proof.issued_at_epoch_seconds;
+                None
+            }
+            _ => unreachable!("test case is exhaustive"),
+        };
+        let mut verifier = CloudComputeK8sTrustedAuthorizationVerifier::new();
+        if let Some(decision_id) = verifier_key {
+            verifier.trust_authorization_proof_for_decision(decision_id, proof);
+        } else {
+            verifier.trust_authorization_proof(proof);
+        }
+
+        let error = create_cloud_compute_k8s_cluster_from_api_with_authorization_verifier(
+            &mut catalog,
+            &mut ledger,
+            request,
+            &verifier,
+        )
+        .expect_err("trusted verifier mismatch is rejected before mutation");
+
+        assert_eq!(
+            error,
+            CloudComputeK8sApiError::AuthorizationDenied {
+                surface: CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE.to_string(),
+            }
+        );
+        assert_eq!(error.cluster_create_status_code(), 403);
+        assert!(ledger.is_empty());
+        assert_eq!(catalog.kubernetes_clusters().count(), 0);
+    }
+}
+
+#[test]
+fn k8s_create_api_ignores_caller_supplied_authorization_proof() {
     let mut catalog = CloudComputeCatalog::default();
     let mut ledger = CloudComputeK8sCreateIdempotencyLedger::default();
     let mut request = request(
-        "req-compute-k8s-forged-authz",
-        "idem-compute-k8s-forged-authz",
+        "req-compute-k8s-ignore-proof",
+        "idem-compute-k8s-ignore-proof",
     );
-    request
-        .authorization
-        .proof
-        .as_mut()
-        .expect("fixture has proof")
-        .verified = false;
+    request.authorization.allowed_surfaces.clear();
+    request.authorization.proof = Some(CloudComputeK8sApiAuthorizationProof {
+        tenant_id: "ten_other".to_string(),
+        principal_id: "sp_other".to_string(),
+        surface: "cloud.compute.vm.create".to_string(),
+        decision_id: "authz_decision_other".to_string(),
+        verified: false,
+        issued_at_epoch_seconds: 1_700_099_000,
+        expires_at_epoch_seconds: 1_700_099_000,
+    });
+    let verifier = trusted_create_verifier_for(&request);
 
-    let error = create_cloud_compute_k8s_cluster_from_api(&mut catalog, &mut ledger, request)
-        .expect_err("forged allowed_surfaces with invalid proof is rejected");
+    let response = create_cloud_compute_k8s_cluster_from_api_with_authorization_verifier(
+        &mut catalog,
+        &mut ledger,
+        request,
+        &verifier,
+    )
+    .expect("trusted verifier state, not caller proof fields, authorizes create");
 
-    assert_eq!(
-        error,
-        CloudComputeK8sApiError::AuthorizationDenied {
-            surface: CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE.to_string(),
-        }
-    );
-    assert_eq!(error.cluster_create_status_code(), 403);
-    assert!(ledger.is_empty());
-    assert_eq!(catalog.kubernetes_clusters().count(), 0);
-}
-
-#[test]
-fn k8s_create_api_rejects_expired_or_unbound_compute_local_proof_before_ledger() {
-    let mut catalog = CloudComputeCatalog::default();
-    let mut ledger = CloudComputeK8sCreateIdempotencyLedger::default();
-
-    let mut expired = request(
-        "req-compute-k8s-expired-authz",
-        "idem-compute-k8s-expired-authz",
-    );
-    let proof = expired
-        .authorization
-        .proof
-        .as_mut()
-        .expect("fixture has proof");
-    proof.expires_at_epoch_seconds = proof.issued_at_epoch_seconds;
-
-    let expired_error =
-        create_cloud_compute_k8s_cluster_from_api(&mut catalog, &mut ledger, expired)
-            .expect_err("expired compute-local proof is rejected");
-    assert_eq!(
-        expired_error,
-        CloudComputeK8sApiError::AuthorizationDenied {
-            surface: CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE.to_string(),
-        }
-    );
-
-    let mut unbound = request(
-        "req-compute-k8s-unbound-authz",
-        "idem-compute-k8s-unbound-authz",
-    );
-    unbound
-        .authorization
-        .proof
-        .as_mut()
-        .expect("fixture has proof")
-        .decision_id = "authz_decision_other".to_string();
-
-    let unbound_error =
-        create_cloud_compute_k8s_cluster_from_api(&mut catalog, &mut ledger, unbound)
-            .expect_err("proof bound to another decision is rejected");
-    assert_eq!(
-        unbound_error,
-        CloudComputeK8sApiError::AuthorizationDenied {
-            surface: CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE.to_string(),
-        }
-    );
-    assert!(ledger.is_empty());
-    assert_eq!(catalog.kubernetes_clusters().count(), 0);
+    assert_eq!(response.data.resource_id, CLUSTER_ID);
+    assert_eq!(ledger.len(), 1);
+    assert_eq!(catalog.kubernetes_clusters().count(), 1);
 }
 
 #[test]
@@ -540,6 +629,41 @@ fn delete_request(
     }
 }
 
+fn trusted_delete_verifier_for(
+    request: &CloudComputeK8sClusterDeleteApiRequest,
+) -> CloudComputeK8sTrustedAuthorizationVerifier {
+    CloudComputeK8sTrustedAuthorizationVerifier::new().with_authorization_proof(
+        authorization_proof_for(
+            &request.principal.principal_id,
+            CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE,
+            &request.authorization.decision_id,
+        ),
+    )
+}
+
+fn delete_cloud_compute_k8s_cluster_from_api(
+    catalog: &CloudComputeCatalog,
+    idempotency_ledger: &mut CloudComputeK8sDeleteIdempotencyLedger,
+    request: CloudComputeK8sClusterDeleteApiRequest,
+) -> Result<CloudComputeK8sClusterDeleteSuccessResponse, CloudComputeK8sApiError> {
+    let verifier = trusted_delete_verifier_for(&request);
+    delete_cloud_compute_k8s_cluster_from_api_with_authorization_verifier(
+        catalog,
+        idempotency_ledger,
+        request,
+        &verifier,
+    )
+}
+
+fn delete_cluster(
+    catalog: &CloudComputeCatalog,
+    idempotency_ledger: &mut CloudComputeK8sDeleteIdempotencyLedger,
+    request: CloudComputeK8sClusterDeleteApiRequest,
+) -> Result<CloudComputeK8sClusterDeleteSuccessResponse, CloudComputeK8sApiError> {
+    let verifier = trusted_delete_verifier_for(&request);
+    delete_cluster_with_authorization_verifier(catalog, idempotency_ledger, request, &verifier)
+}
+
 /// Populate the catalog with one cluster so delete tests have something to find.
 fn catalog_with_cluster() -> (CloudComputeCatalog, CloudComputeK8sCreateIdempotencyLedger) {
     let mut catalog = CloudComputeCatalog::default();
@@ -699,14 +823,17 @@ fn k8s_delete_api_rejects_empty_principal_as_unauthorized() {
 }
 
 #[test]
-fn k8s_delete_api_rejects_missing_delete_surface_as_forbidden() {
+fn k8s_delete_api_legacy_entrypoint_fails_closed_without_authorization_verifier() {
     let (catalog, _) = catalog_with_cluster();
     let mut delete_ledger = CloudComputeK8sDeleteIdempotencyLedger::default();
-    let mut req = delete_request("req-del-denied", "idem-del-denied");
-    req.authorization.allowed_surfaces = vec![CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE.to_string()];
+    let req = delete_request("req-del-missing-verifier", "idem-del-missing-verifier");
 
-    let error = delete_cloud_compute_k8s_cluster_from_api(&catalog, &mut delete_ledger, req)
-        .expect_err("create surface does not cover delete");
+    let error = delete_cloud_compute_k8s_cluster_from_api_without_authorization_verifier(
+        &catalog,
+        &mut delete_ledger,
+        req,
+    )
+    .expect_err("legacy delete entrypoint has no trusted authorization verifier");
 
     assert_eq!(
         error,
@@ -715,7 +842,113 @@ fn k8s_delete_api_rejects_missing_delete_surface_as_forbidden() {
         }
     );
     assert_eq!(error.cluster_delete_status_code(), 403);
+    let planned_error = delete_cluster_without_authorization_verifier(
+        &catalog,
+        &mut delete_ledger,
+        delete_request(
+            "req-del-planned-missing-verifier",
+            "idem-del-planned-missing-verifier",
+        ),
+    )
+    .expect_err("legacy planned delete entrypoint has no trusted authorization verifier");
+    assert_eq!(planned_error, error);
     assert!(delete_ledger.is_empty());
+}
+
+#[test]
+fn k8s_delete_api_rejects_trusted_verifier_mismatches_before_ledger() {
+    for case in [
+        "forged",
+        "tenant",
+        "principal",
+        "surface",
+        "decision",
+        "expired",
+    ] {
+        let (catalog, _) = catalog_with_cluster();
+        let mut delete_ledger = CloudComputeK8sDeleteIdempotencyLedger::default();
+        let req = delete_request(
+            &format!("req-del-authz-{case}"),
+            &format!("idem-del-authz-{case}"),
+        );
+        let mut proof = authorization_proof_for(
+            "sp_compute",
+            CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE,
+            &req.authorization.decision_id,
+        );
+        let verifier_key = match case {
+            "forged" => {
+                proof.verified = false;
+                None
+            }
+            "tenant" => {
+                proof.tenant_id = "ten_other".to_string();
+                None
+            }
+            "principal" => {
+                proof.principal_id = "sp_other".to_string();
+                None
+            }
+            "surface" => {
+                proof.surface = CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE.to_string();
+                None
+            }
+            "decision" => {
+                proof.decision_id = "authz_del_other".to_string();
+                Some(req.authorization.decision_id.clone())
+            }
+            "expired" => {
+                proof.expires_at_epoch_seconds = proof.issued_at_epoch_seconds;
+                None
+            }
+            _ => unreachable!("test case is exhaustive"),
+        };
+        let mut verifier = CloudComputeK8sTrustedAuthorizationVerifier::new();
+        if let Some(decision_id) = verifier_key {
+            verifier.trust_authorization_proof_for_decision(decision_id, proof);
+        } else {
+            verifier.trust_authorization_proof(proof);
+        }
+
+        let error = delete_cloud_compute_k8s_cluster_from_api_with_authorization_verifier(
+            &catalog,
+            &mut delete_ledger,
+            req,
+            &verifier,
+        )
+        .expect_err("trusted verifier mismatch is rejected before mutation");
+
+        assert_eq!(
+            error,
+            CloudComputeK8sApiError::AuthorizationDenied {
+                surface: CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE.to_string(),
+            }
+        );
+        assert_eq!(error.cluster_delete_status_code(), 403);
+        assert!(delete_ledger.is_empty());
+    }
+}
+
+#[test]
+fn k8s_delete_api_ignores_caller_supplied_authorization_proof() {
+    let (catalog, _) = catalog_with_cluster();
+    let mut delete_ledger = CloudComputeK8sDeleteIdempotencyLedger::default();
+    let mut req = delete_request("req-del-ignore-proof", "idem-del-ignore-proof");
+    req.authorization.allowed_surfaces.clear();
+    req.authorization.proof = None;
+    let verifier = trusted_delete_verifier_for(&req);
+
+    let response = delete_cloud_compute_k8s_cluster_from_api_with_authorization_verifier(
+        &catalog,
+        &mut delete_ledger,
+        req,
+        &verifier,
+    )
+    .expect("trusted verifier state, not caller proof fields, authorizes delete");
+
+    assert_eq!(response.data.resource_id, CLUSTER_ID);
+    assert_eq!(response.data.state, "draining");
+    assert_eq!(delete_ledger.len(), 1);
 }
 
 #[test]

@@ -7,13 +7,16 @@ use compute_vm_api::{
     CLOUD_COMPUTE_VM_CREATE_SURFACE, CloudComputeVmApiAuthorization,
     CloudComputeVmApiAuthorizationProof, CloudComputeVmApiBoundaryContext, CloudComputeVmApiError,
     CloudComputeVmApiPrincipal, CloudComputeVmCreateApiRequest, CloudComputeVmCreateApiStatus,
-    CloudComputeVmCreateIdempotencyLedger, CloudComputeVmCreateRequest, CloudComputeVmFlavorSpec,
-    CloudComputeVmIamRoleRef, CloudComputeVmQuotaEnvelope, CloudComputeVmSecurityGroupRef,
-    create_cloud_compute_vm_from_api,
+    CloudComputeVmCreateIdempotencyLedger, CloudComputeVmCreateRequest,
+    CloudComputeVmCreateSuccessResponse, CloudComputeVmFlavorSpec, CloudComputeVmIamRoleRef,
+    CloudComputeVmQuotaEnvelope, CloudComputeVmSecurityGroupRef,
+    CloudComputeVmTrustedAuthorizationVerifier, create_cloud_compute_vm_from_api,
+    create_cloud_compute_vm_from_api_with_verifier,
 };
 
 const INSTANCE_ID: &str = "oya:cloud:region-home:ten_alpha:instance:app-1";
 const DIGEST: &str = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+const VERIFIER_EVALUATION_EPOCH_SECONDS: u64 = 1_700_099_500;
 
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudComputeVmApiBoundaryContext {
     CloudComputeVmApiBoundaryContext {
@@ -60,6 +63,39 @@ fn authorization_proof_for(
         verified: true,
         issued_at_epoch_seconds: 1_700_099_000,
         expires_at_epoch_seconds: 1_700_100_000,
+    }
+}
+
+fn trusted_verifier_for(
+    request: &CloudComputeVmCreateApiRequest,
+) -> CloudComputeVmTrustedAuthorizationVerifier {
+    CloudComputeVmTrustedAuthorizationVerifier::new(VERIFIER_EVALUATION_EPOCH_SECONDS)
+        .with_trusted_proof(authorization_proof_for(
+            &request.principal.principal_id,
+            CLOUD_COMPUTE_VM_CREATE_SURFACE,
+            &request.authorization.decision_id,
+        ))
+}
+
+fn trusted_verifier_with(
+    proof: CloudComputeVmApiAuthorizationProof,
+) -> CloudComputeVmTrustedAuthorizationVerifier {
+    CloudComputeVmTrustedAuthorizationVerifier::new(VERIFIER_EVALUATION_EPOCH_SECONDS)
+        .with_trusted_proof(proof)
+}
+
+fn create_vm_with_trusted_verifier(
+    catalog: &mut CloudComputeCatalog,
+    ledger: &mut CloudComputeVmCreateIdempotencyLedger,
+    request: CloudComputeVmCreateApiRequest,
+) -> Result<CloudComputeVmCreateSuccessResponse, CloudComputeVmApiError> {
+    let verifier = trusted_verifier_for(&request);
+    create_cloud_compute_vm_from_api_with_verifier(catalog, ledger, request, &verifier)
+}
+
+fn authorization_denied() -> CloudComputeVmApiError {
+    CloudComputeVmApiError::AuthorizationDenied {
+        surface: CLOUD_COMPUTE_VM_CREATE_SURFACE.to_string(),
     }
 }
 
@@ -157,9 +193,9 @@ fn vm_create_api_creates_instance_once_and_replays_same_idempotent_result() {
     let mut ledger = CloudComputeVmCreateIdempotencyLedger::default();
     let request = request("req-compute-vm-create", "idem-compute-vm-create");
 
-    let first = create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, request.clone())
+    let first = create_vm_with_trusted_verifier(&mut catalog, &mut ledger, request.clone())
         .expect("authorized VM create succeeds");
-    let second = create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, request)
+    let second = create_vm_with_trusted_verifier(&mut catalog, &mut ledger, request)
         .expect("same idempotency fingerprint replays");
 
     assert_eq!(first, second);
@@ -180,13 +216,39 @@ fn vm_create_api_creates_instance_once_and_replays_same_idempotent_result() {
 }
 
 #[test]
+fn vm_create_api_uses_trusted_verifier_and_ignores_caller_supplied_proof_fields() {
+    let mut catalog = CloudComputeCatalog::default();
+    let mut ledger = CloudComputeVmCreateIdempotencyLedger::default();
+    let mut request = request(
+        "req-compute-vm-ignore-caller-proof",
+        "idem-compute-vm-ignore-caller-proof",
+    );
+    request.authorization.allowed_surfaces = vec!["cloud.compute.k8s.cluster.create".to_string()];
+    let mut forged_proof = authorization_proof_for(
+        "sp_attacker",
+        "cloud.compute.k8s.cluster.create",
+        "authz_decision_attacker",
+    );
+    forged_proof.tenant_id = "ten_other".to_string();
+    forged_proof.expires_at_epoch_seconds = forged_proof.issued_at_epoch_seconds;
+    request.authorization.proof = Some(forged_proof);
+
+    let response = create_vm_with_trusted_verifier(&mut catalog, &mut ledger, request)
+        .expect("trusted verifier state authorizes independently of caller proof fields");
+
+    assert_eq!(response.data.resource_id, INSTANCE_ID);
+    assert_eq!(ledger.len(), 1);
+    assert_eq!(catalog.instances().count(), 1);
+}
+
+#[test]
 fn vm_create_api_rejects_path_body_drift_before_catalog_mutation() {
     let mut catalog = CloudComputeCatalog::default();
     let mut ledger = CloudComputeVmCreateIdempotencyLedger::default();
     let mut request = request("req-compute-vm-drift", "idem-compute-vm-drift");
     request.body.resource_id = "oya:cloud:region-home:ten_alpha:instance:other".to_string();
 
-    let error = create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, request)
+    let error = create_vm_with_trusted_verifier(&mut catalog, &mut ledger, request)
         .expect_err("path/body instance drift is rejected");
 
     assert_eq!(
@@ -207,13 +269,13 @@ fn vm_create_api_rejects_required_header_and_tenant_drift_before_ledger() {
     let mut ledger = CloudComputeVmCreateIdempotencyLedger::default();
     let mut empty_request = request(" ", "idem-compute-vm-empty-header");
     assert_eq!(
-        create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, empty_request.clone()),
+        create_vm_with_trusted_verifier(&mut catalog, &mut ledger, empty_request.clone()),
         Err(CloudComputeVmApiError::EmptyRequestId)
     );
 
     empty_request.boundary.request_id = "req-compute-vm-tenant-drift".to_string();
     empty_request.boundary.tenant_id = "ten_other".to_string();
-    let error = create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, empty_request)
+    let error = create_vm_with_trusted_verifier(&mut catalog, &mut ledger, empty_request)
         .expect_err("tenant drift is rejected before idempotency ledger write");
 
     assert_eq!(error.vm_create_status_code(), 403);
@@ -226,93 +288,160 @@ fn vm_create_api_rejects_required_header_and_tenant_drift_before_ledger() {
 }
 
 #[test]
-fn vm_create_api_rejects_unauthorized_same_tenant_principal_before_ledger() {
+fn vm_create_api_rejects_trusted_verifier_surface_mismatch_before_ledger() {
     let mut catalog = CloudComputeCatalog::default();
     let mut ledger = CloudComputeVmCreateIdempotencyLedger::default();
-    let mut request = request("req-compute-vm-authz", "idem-compute-vm-authz");
-    request.authorization.allowed_surfaces = vec!["cloud.compute.k8s.cluster.create".to_string()];
+    let request = request("req-compute-vm-authz", "idem-compute-vm-authz");
+    let verifier = trusted_verifier_with(authorization_proof_for(
+        "sp_compute",
+        "cloud.compute.k8s.cluster.create",
+        &request.authorization.decision_id,
+    ));
 
-    let error = create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, request)
-        .expect_err("authorization decision does not allow VM create");
+    let error = create_cloud_compute_vm_from_api_with_verifier(
+        &mut catalog,
+        &mut ledger,
+        request,
+        &verifier,
+    )
+    .expect_err("trusted verifier decision does not allow VM create");
 
-    assert_eq!(
-        error,
-        CloudComputeVmApiError::AuthorizationDenied {
-            surface: CLOUD_COMPUTE_VM_CREATE_SURFACE.to_string(),
-        }
-    );
-    assert_eq!(error.vm_create_status_code(), 403);
-    assert!(ledger.is_empty());
-    assert_eq!(catalog.instances().count(), 0);
-}
-#[test]
-fn vm_create_api_rejects_forged_allowed_surface_without_compute_local_proof_before_ledger() {
-    let mut catalog = CloudComputeCatalog::default();
-    let mut ledger = CloudComputeVmCreateIdempotencyLedger::default();
-    let mut request = request(
-        "req-compute-vm-forged-authz",
-        "idem-compute-vm-forged-authz",
-    );
-    request.authorization.proof = None;
-
-    let error = create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, request)
-        .expect_err("forged allowed_surfaces without compute-local proof is rejected");
-
-    assert_eq!(
-        error,
-        CloudComputeVmApiError::AuthorizationDenied {
-            surface: CLOUD_COMPUTE_VM_CREATE_SURFACE.to_string(),
-        }
-    );
+    assert_eq!(error, authorization_denied());
     assert_eq!(error.vm_create_status_code(), 403);
     assert!(ledger.is_empty());
     assert_eq!(catalog.instances().count(), 0);
 }
 
 #[test]
-fn vm_create_api_rejects_expired_or_unbound_compute_local_proof_before_ledger() {
+fn vm_create_api_legacy_entrypoint_fails_closed_without_verifier_before_ledger() {
+    let mut catalog = CloudComputeCatalog::default();
+    let mut ledger = CloudComputeVmCreateIdempotencyLedger::default();
+    let request = request(
+        "req-compute-vm-missing-verifier",
+        "idem-compute-vm-missing-verifier",
+    );
+
+    let error = create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, request)
+        .expect_err("legacy VM create entrypoint must not trust caller-supplied proof");
+
+    assert_eq!(error, authorization_denied());
+    assert_eq!(error.vm_create_status_code(), 403);
+    assert!(ledger.is_empty());
+    assert_eq!(catalog.instances().count(), 0);
+}
+
+#[test]
+fn vm_create_api_rejects_trusted_verifier_tenant_principal_and_decision_mismatch() {
     let mut catalog = CloudComputeCatalog::default();
     let mut ledger = CloudComputeVmCreateIdempotencyLedger::default();
 
-    let mut expired = request(
+    let tenant_request = request(
+        "req-compute-vm-tenant-authz",
+        "idem-compute-vm-tenant-authz",
+    );
+    let mut tenant_proof = authorization_proof_for(
+        "sp_compute",
+        CLOUD_COMPUTE_VM_CREATE_SURFACE,
+        &tenant_request.authorization.decision_id,
+    );
+    tenant_proof.tenant_id = "ten_other".to_string();
+    let tenant_verifier = trusted_verifier_with(tenant_proof);
+    let tenant_error = create_cloud_compute_vm_from_api_with_verifier(
+        &mut catalog,
+        &mut ledger,
+        tenant_request,
+        &tenant_verifier,
+    )
+    .expect_err("trusted verifier proof bound to another tenant is rejected");
+    assert_eq!(tenant_error, authorization_denied());
+
+    let principal_request = request(
+        "req-compute-vm-principal-authz",
+        "idem-compute-vm-principal-authz",
+    );
+    let principal_verifier = trusted_verifier_with(authorization_proof_for(
+        "sp_other",
+        CLOUD_COMPUTE_VM_CREATE_SURFACE,
+        &principal_request.authorization.decision_id,
+    ));
+    let principal_error = create_cloud_compute_vm_from_api_with_verifier(
+        &mut catalog,
+        &mut ledger,
+        principal_request,
+        &principal_verifier,
+    )
+    .expect_err("trusted verifier proof bound to another principal is rejected");
+    assert_eq!(principal_error, authorization_denied());
+
+    let decision_request = request(
+        "req-compute-vm-decision-authz",
+        "idem-compute-vm-decision-authz",
+    );
+    let decision_verifier = trusted_verifier_with(authorization_proof_for(
+        "sp_compute",
+        CLOUD_COMPUTE_VM_CREATE_SURFACE,
+        "authz_decision_other",
+    ));
+    let decision_error = create_cloud_compute_vm_from_api_with_verifier(
+        &mut catalog,
+        &mut ledger,
+        decision_request,
+        &decision_verifier,
+    )
+    .expect_err("trusted verifier state is keyed by the requested decision id");
+    assert_eq!(decision_error, authorization_denied());
+
+    assert!(ledger.is_empty());
+    assert_eq!(catalog.instances().count(), 0);
+}
+
+#[test]
+fn vm_create_api_rejects_unverified_or_expired_trusted_verifier_proof_before_ledger() {
+    let mut catalog = CloudComputeCatalog::default();
+    let mut ledger = CloudComputeVmCreateIdempotencyLedger::default();
+
+    let unverified_request = request(
+        "req-compute-vm-unverified-authz",
+        "idem-compute-vm-unverified-authz",
+    );
+    let mut unverified_proof = authorization_proof_for(
+        "sp_compute",
+        CLOUD_COMPUTE_VM_CREATE_SURFACE,
+        &unverified_request.authorization.decision_id,
+    );
+    unverified_proof.verified = false;
+    let unverified_verifier = trusted_verifier_with(unverified_proof);
+    let unverified_error = create_cloud_compute_vm_from_api_with_verifier(
+        &mut catalog,
+        &mut ledger,
+        unverified_request,
+        &unverified_verifier,
+    )
+    .expect_err("unverified trusted verifier proof is rejected");
+    assert_eq!(unverified_error, authorization_denied());
+    assert_eq!(unverified_error.vm_create_status_code(), 403);
+    let request = request(
         "req-compute-vm-expired-authz",
         "idem-compute-vm-expired-authz",
     );
-    let proof = expired
-        .authorization
-        .proof
-        .as_mut()
-        .expect("fixture has proof");
-    proof.expires_at_epoch_seconds = proof.issued_at_epoch_seconds;
-
-    let expired_error = create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, expired)
-        .expect_err("expired compute-local proof is rejected");
-    assert_eq!(
-        expired_error,
-        CloudComputeVmApiError::AuthorizationDenied {
-            surface: CLOUD_COMPUTE_VM_CREATE_SURFACE.to_string(),
-        }
+    let mut proof = authorization_proof_for(
+        "sp_compute",
+        CLOUD_COMPUTE_VM_CREATE_SURFACE,
+        &request.authorization.decision_id,
     );
+    proof.expires_at_epoch_seconds = VERIFIER_EVALUATION_EPOCH_SECONDS;
+    let verifier = trusted_verifier_with(proof);
 
-    let mut unbound = request(
-        "req-compute-vm-unbound-authz",
-        "idem-compute-vm-unbound-authz",
-    );
-    unbound
-        .authorization
-        .proof
-        .as_mut()
-        .expect("fixture has proof")
-        .surface = "cloud.compute.k8s.cluster.create".to_string();
+    let error = create_cloud_compute_vm_from_api_with_verifier(
+        &mut catalog,
+        &mut ledger,
+        request,
+        &verifier,
+    )
+    .expect_err("expired trusted verifier proof is rejected");
 
-    let unbound_error = create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, unbound)
-        .expect_err("proof bound to another surface is rejected");
-    assert_eq!(
-        unbound_error,
-        CloudComputeVmApiError::AuthorizationDenied {
-            surface: CLOUD_COMPUTE_VM_CREATE_SURFACE.to_string(),
-        }
-    );
+    assert_eq!(error, authorization_denied());
+    assert_eq!(error.vm_create_status_code(), 403);
     assert!(ledger.is_empty());
     assert_eq!(catalog.instances().count(), 0);
 }
@@ -324,7 +453,7 @@ fn vm_create_api_separates_missing_authentication_from_denied_authorization() {
     let mut request = request("req-compute-vm-authn", "idem-compute-vm-authn");
     request.principal.principal_id = " ".to_string();
 
-    let error = create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, request)
+    let error = create_vm_with_trusted_verifier(&mut catalog, &mut ledger, request)
         .expect_err("missing authenticated principal is an authentication failure");
 
     assert_eq!(error, CloudComputeVmApiError::EmptyPrincipalId);
@@ -341,7 +470,7 @@ fn vm_create_api_replays_with_refreshed_authz_and_reordered_security_groups() {
         "req-compute-vm-authz-refresh-1",
         "idem-compute-vm-authz-refresh",
     );
-    let first = create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, request.clone())
+    let first = create_vm_with_trusted_verifier(&mut catalog, &mut ledger, request.clone())
         .expect("initial VM create succeeds");
 
     let mut retry = request;
@@ -357,7 +486,7 @@ fn vm_create_api_replays_with_refreshed_authz_and_reordered_security_groups() {
         CLOUD_COMPUTE_VM_CREATE_SURFACE.to_string(),
     ];
     retry.body.security_groups.reverse();
-    let second = create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, retry)
+    let second = create_vm_with_trusted_verifier(&mut catalog, &mut ledger, retry)
         .expect("refreshed authorization evidence does not change operation fingerprint");
 
     assert_eq!(first, second);
@@ -372,7 +501,7 @@ fn vm_create_api_rejects_foreign_security_group_and_iam_role_proofs_before_ledge
     let mut group_request = request("req-compute-vm-sg-proof", "idem-compute-vm-sg-proof");
     group_request.body.security_groups[0].tenant_id = "ten_other".to_string();
 
-    let group_error = create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, group_request)
+    let group_error = create_vm_with_trusted_verifier(&mut catalog, &mut ledger, group_request)
         .expect_err("security group proof must match tenant boundary");
 
     assert!(matches!(
@@ -390,7 +519,7 @@ fn vm_create_api_rejects_foreign_security_group_and_iam_role_proofs_before_ledge
         .as_mut()
         .expect("role ref exists")
         .vpc_id = "oya:cloud:region-home:ten_other:vpc:foreign".to_string();
-    let role_error = create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, role_request)
+    let role_error = create_vm_with_trusted_verifier(&mut catalog, &mut ledger, role_request)
         .expect_err("IAM role proof must match VPC boundary");
 
     assert!(matches!(
@@ -407,13 +536,13 @@ fn vm_create_api_rejects_reused_idempotency_key_with_new_fingerprint() {
     let mut catalog = CloudComputeCatalog::default();
     let mut ledger = CloudComputeVmCreateIdempotencyLedger::default();
     let request = request("req-compute-vm-idem", "idem-compute-vm-idem");
-    create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, request.clone())
+    create_vm_with_trusted_verifier(&mut catalog, &mut ledger, request.clone())
         .expect("initial VM create succeeds");
 
     let mut drifted = request;
     drifted.body.flavor.memory_gb = 32;
     assert_eq!(
-        create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, drifted),
+        create_vm_with_trusted_verifier(&mut catalog, &mut ledger, drifted),
         Err(CloudComputeVmApiError::IdempotencyKeyReused {
             idempotency_key: "idem-compute-vm-idem".to_string(),
         })
@@ -425,14 +554,14 @@ fn vm_create_api_rejects_reused_idempotency_key_with_new_fingerprint() {
 fn vm_create_api_maps_duplicate_instance_to_conflict() {
     let mut catalog = CloudComputeCatalog::default();
     let mut ledger = CloudComputeVmCreateIdempotencyLedger::default();
-    create_cloud_compute_vm_from_api(
+    create_vm_with_trusted_verifier(
         &mut catalog,
         &mut ledger,
         request("req-compute-vm-dup-1", "idem-compute-vm-dup-1"),
     )
     .expect("first VM create succeeds");
 
-    let error = create_cloud_compute_vm_from_api(
+    let error = create_vm_with_trusted_verifier(
         &mut catalog,
         &mut ledger,
         request("req-compute-vm-dup-2", "idem-compute-vm-dup-2"),
@@ -453,7 +582,7 @@ fn vm_create_api_maps_quota_residency_and_invalid_image_without_masking() {
     let mut ledger = CloudComputeVmCreateIdempotencyLedger::default();
     let mut quota_request = request("req-compute-vm-quota", "idem-compute-vm-quota");
     quota_request.body.quota.vcpu_limit = 6;
-    let quota_error = create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, quota_request)
+    let quota_error = create_vm_with_trusted_verifier(&mut catalog, &mut ledger, quota_request)
         .expect_err("tenant quota is enforced");
     assert_eq!(
         quota_error,
@@ -480,7 +609,7 @@ fn vm_create_api_maps_quota_residency_and_invalid_image_without_masking() {
         role.vpc_id = "oya:cloud:failover-region:ten_alpha:vpc:prod".to_string();
     }
     let residency_error =
-        create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, residency_request)
+        create_vm_with_trusted_verifier(&mut catalog, &mut ledger, residency_request)
             .expect_err("strict home-region residency denies US VM placement");
     assert_eq!(
         residency_error,
@@ -490,7 +619,7 @@ fn vm_create_api_maps_quota_residency_and_invalid_image_without_masking() {
 
     let mut image_request = request("req-compute-vm-image", "idem-compute-vm-image");
     image_request.body.image = "oci://harbor.region-home.oya/ten_alpha/app:latest".to_string();
-    let image_error = create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, image_request)
+    let image_error = create_vm_with_trusted_verifier(&mut catalog, &mut ledger, image_request)
         .expect_err("image refs must be digest pinned");
     assert_eq!(
         image_error,
@@ -507,7 +636,7 @@ fn vm_create_api_rejects_unknown_data_class_label_before_catalog_mutation() {
     let mut request = request("req-compute-vm-class", "idem-compute-vm-class");
     request.body.data_class = "SECRET".to_string();
 
-    let error = create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, request)
+    let error = create_vm_with_trusted_verifier(&mut catalog, &mut ledger, request)
         .expect_err("operational markers are not VM API data classes");
 
     assert_eq!(
@@ -525,7 +654,7 @@ fn vm_create_idempotency_ledger_enforces_bounded_retention() {
     let mut catalog = CloudComputeCatalog::default();
     let mut ledger = CloudComputeVmCreateIdempotencyLedger::with_max_entries(1);
 
-    create_cloud_compute_vm_from_api(
+    create_vm_with_trusted_verifier(
         &mut catalog,
         &mut ledger,
         request("req-vm-bound-1", "idem-vm-bound-1"),
@@ -534,12 +663,12 @@ fn vm_create_idempotency_ledger_enforces_bounded_retention() {
     let mut second = request("req-vm-bound-2", "idem-vm-bound-2");
     second.path_instance_id = "oya:cloud:region-home:ten_alpha:instance:app-2".to_string();
     second.body.resource_id = second.path_instance_id.clone();
-    create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, second)
+    create_vm_with_trusted_verifier(&mut catalog, &mut ledger, second)
         .expect("second create succeeds");
 
     assert_eq!(ledger.len(), 1);
 
-    let replay_error = create_cloud_compute_vm_from_api(
+    let replay_error = create_vm_with_trusted_verifier(
         &mut catalog,
         &mut ledger,
         request("req-vm-bound-replay", "idem-vm-bound-1"),

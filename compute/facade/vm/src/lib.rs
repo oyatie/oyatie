@@ -1,7 +1,7 @@
 //! Cloud Compute VM API boundary for instance creation.
 //!
-//! This crate owns request boundary normalization, authorization proof checks,
-//! idempotent create semantics, and tenant-safe VM metadata projection around
+//! This crate owns request boundary normalization, compute-owned authorization
+//! verifier checks, idempotent create semantics, and tenant-safe VM metadata
 //! the Cloud compute kernel. Hypervisor scheduling and boot orchestration live
 //! behind later adapters.
 
@@ -134,6 +134,66 @@ pub struct CloudComputeVmApiAuthorizationProof {
     pub verified: bool,                // data_class: INTERNAL_ONLY
     pub issued_at_epoch_seconds: u64,  // data_class: INTERNAL_ONLY
     pub expires_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+}
+
+pub trait CloudComputeVmApiAuthorizationVerifier {
+    fn proof_for_decision(&self, decision_id: &str)
+    -> Option<&CloudComputeVmApiAuthorizationProof>;
+
+    fn evaluation_epoch_seconds(&self) -> u64;
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudComputeVmTrustedAuthorizationVerifier {
+    evaluation_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+    proofs_by_decision_id: BTreeMap<String, CloudComputeVmApiAuthorizationProof>, // data_class: INTERNAL_ONLY
+}
+
+impl CloudComputeVmTrustedAuthorizationVerifier {
+    pub fn new(evaluation_epoch_seconds: u64) -> Self {
+        Self {
+            evaluation_epoch_seconds,
+            proofs_by_decision_id: BTreeMap::new(),
+        }
+    }
+
+    pub fn with_trusted_proof(mut self, proof: CloudComputeVmApiAuthorizationProof) -> Self {
+        self.insert_trusted_proof(proof);
+        self
+    }
+
+    pub fn insert_trusted_proof(&mut self, proof: CloudComputeVmApiAuthorizationProof) {
+        self.proofs_by_decision_id
+            .insert(proof.decision_id.clone(), proof);
+    }
+}
+
+impl CloudComputeVmApiAuthorizationVerifier for CloudComputeVmTrustedAuthorizationVerifier {
+    fn proof_for_decision(
+        &self,
+        decision_id: &str,
+    ) -> Option<&CloudComputeVmApiAuthorizationProof> {
+        self.proofs_by_decision_id.get(decision_id)
+    }
+
+    fn evaluation_epoch_seconds(&self) -> u64 {
+        self.evaluation_epoch_seconds
+    }
+}
+
+struct CloudComputeVmMissingAuthorizationVerifier;
+
+impl CloudComputeVmApiAuthorizationVerifier for CloudComputeVmMissingAuthorizationVerifier {
+    fn proof_for_decision(
+        &self,
+        _decision_id: &str,
+    ) -> Option<&CloudComputeVmApiAuthorizationProof> {
+        None
+    }
+
+    fn evaluation_epoch_seconds(&self) -> u64 {
+        u64::MAX
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -523,7 +583,7 @@ impl CloudComputeVmApiError {
                 "Authorization decision principal must match the authenticated principal"
             }
             Self::AuthorizationDenied { .. } => {
-                "Authorization decision does not allow the requested Cloud Compute VM surface"
+                "Trusted authorization verifier does not allow the requested Cloud Compute VM surface"
             }
             Self::IdempotencyKeyReused { .. } => {
                 "Idempotency key was already used with a different request"
@@ -580,8 +640,8 @@ impl CloudComputeVmApiError {
                 "must match the authenticated principal id",
             )],
             Self::AuthorizationDenied { .. } => vec![detail(
-                "authorization.allowed_surfaces",
-                "must include the requested Cloud Compute VM surface",
+                "authorization.decision_id",
+                "must resolve to a non-expired compute-owned verifier proof for the requested Cloud Compute VM surface",
             )],
             Self::IdempotencyKeyReused { .. } => vec![detail(
                 "header.Idempotency-Key",
@@ -625,6 +685,16 @@ enum CloudComputeVmApiStatusKind {
 pub fn validate_cloud_compute_vm_create_request(
     request: &CloudComputeVmCreateApiRequest,
 ) -> Result<ResourceId, CloudComputeVmApiError> {
+    validate_cloud_compute_vm_create_request_with_verifier(
+        request,
+        &CloudComputeVmMissingAuthorizationVerifier,
+    )
+}
+
+pub fn validate_cloud_compute_vm_create_request_with_verifier(
+    request: &CloudComputeVmCreateApiRequest,
+    authorization_verifier: &impl CloudComputeVmApiAuthorizationVerifier,
+) -> Result<ResourceId, CloudComputeVmApiError> {
     validate_boundary(&request.boundary)?;
     validate_path_instance_id(&request.path_instance_id, &request.body.resource_id)?;
     let resource_id = validate_instance_resource_id(&request.path_instance_id)?;
@@ -638,6 +708,7 @@ pub fn validate_cloud_compute_vm_create_request(
         &request.principal,
         &request.authorization,
         CLOUD_COMPUTE_VM_CREATE_SURFACE,
+        authorization_verifier,
     )?;
     Ok(resource_id)
 }
@@ -647,7 +718,21 @@ pub fn create_cloud_compute_vm_from_api(
     idempotency_ledger: &mut CloudComputeVmCreateIdempotencyLedger,
     request: CloudComputeVmCreateApiRequest,
 ) -> Result<CloudComputeVmCreateSuccessResponse, CloudComputeVmApiError> {
-    validate_cloud_compute_vm_create_request(&request)?;
+    create_cloud_compute_vm_from_api_with_verifier(
+        catalog,
+        idempotency_ledger,
+        request,
+        &CloudComputeVmMissingAuthorizationVerifier,
+    )
+}
+
+pub fn create_cloud_compute_vm_from_api_with_verifier(
+    catalog: &mut CloudComputeCatalog,
+    idempotency_ledger: &mut CloudComputeVmCreateIdempotencyLedger,
+    request: CloudComputeVmCreateApiRequest,
+    authorization_verifier: &impl CloudComputeVmApiAuthorizationVerifier,
+) -> Result<CloudComputeVmCreateSuccessResponse, CloudComputeVmApiError> {
+    validate_cloud_compute_vm_create_request_with_verifier(&request, authorization_verifier)?;
     let input = instance_create_input(&request.body)?;
     let key = idempotency_key_for(
         &request.boundary,
@@ -765,6 +850,7 @@ fn validate_authorization(
     principal: &CloudComputeVmApiPrincipal,
     authorization: &CloudComputeVmApiAuthorization,
     surface: &str,
+    authorization_verifier: &impl CloudComputeVmApiAuthorizationVerifier,
 ) -> Result<(), CloudComputeVmApiError> {
     if authorization.decision_id.trim().is_empty() {
         return Err(CloudComputeVmApiError::EmptyAuthorizationDecisionId);
@@ -781,35 +867,34 @@ fn validate_authorization(
             principal_id: principal.principal_id.clone(),
         });
     }
-    validate_authorization_proof(principal, authorization, surface)?;
-    if !authorization
-        .allowed_surfaces
-        .iter()
-        .any(|allowed_surface| allowed_surface == surface)
-    {
-        return Err(CloudComputeVmApiError::AuthorizationDenied {
-            surface: surface.to_string(),
-        });
-    }
-    Ok(())
+    validate_authorization_proof(
+        principal,
+        &authorization.decision_id,
+        surface,
+        authorization_verifier,
+    )
 }
 
 fn validate_authorization_proof(
     principal: &CloudComputeVmApiPrincipal,
-    authorization: &CloudComputeVmApiAuthorization,
+    decision_id: &str,
     surface: &str,
+    authorization_verifier: &impl CloudComputeVmApiAuthorizationVerifier,
 ) -> Result<(), CloudComputeVmApiError> {
-    let Some(proof) = authorization.proof.as_ref() else {
+    let Some(proof) = authorization_verifier.proof_for_decision(decision_id) else {
         return Err(CloudComputeVmApiError::AuthorizationDenied {
             surface: surface.to_string(),
         });
     };
+    let evaluation_epoch_seconds = authorization_verifier.evaluation_epoch_seconds();
     if !proof.verified
         || proof.tenant_id != principal.tenant_id
         || proof.principal_id != principal.principal_id
         || proof.surface != surface
-        || proof.decision_id != authorization.decision_id
+        || proof.decision_id != decision_id
         || proof.issued_at_epoch_seconds >= proof.expires_at_epoch_seconds
+        || evaluation_epoch_seconds < proof.issued_at_epoch_seconds
+        || evaluation_epoch_seconds >= proof.expires_at_epoch_seconds
     {
         return Err(CloudComputeVmApiError::AuthorizationDenied {
             surface: surface.to_string(),

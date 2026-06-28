@@ -9,9 +9,13 @@ use compute_domain::{
 use compute_functions_api::{
     CLOUD_COMPUTE_FUNCTIONS_INVOKE_SURFACE, CloudComputeFunctionsApiAuthorization,
     CloudComputeFunctionsApiBoundaryContext, CloudComputeFunctionsApiError,
-    CloudComputeFunctionsApiPrincipal, CloudComputeFunctionsInvokeApiRequest,
+    CloudComputeFunctionsApiPrincipal, CloudComputeFunctionsAuthorizationDecision,
+    CloudComputeFunctionsAuthorizationVerifier, CloudComputeFunctionsInvokeApiRequest,
     CloudComputeFunctionsInvokeApiStatus, CloudComputeFunctionsInvokeIdempotencyLedger,
-    CloudComputeFunctionsInvokeRequest, invoke, invoke_cloud_compute_function_from_api,
+    CloudComputeFunctionsInvokeRequest, CloudComputeFunctionsTrustedAuthorizationDecision, invoke,
+    invoke_cloud_compute_function_from_api,
+    invoke_cloud_compute_function_from_api_with_authorization_verifier,
+    invoke_with_authorization_verifier,
 };
 use compute_resource::FunctionRuntime;
 use network_residency::ResidencyClass;
@@ -53,6 +57,46 @@ fn authorization_for(
             .map(|surface| (*surface).to_string())
             .collect(),
     }
+}
+
+fn trusted_allow_for(
+    decision_id: &str,
+    principal_id: &str,
+) -> CloudComputeFunctionsTrustedAuthorizationDecision {
+    CloudComputeFunctionsTrustedAuthorizationDecision {
+        tenant_id: "ten_alpha".to_string(),
+        principal_id: principal_id.to_string(),
+        decision_id: decision_id.to_string(),
+        surface: CLOUD_COMPUTE_FUNCTIONS_INVOKE_SURFACE.to_string(),
+        decision: CloudComputeFunctionsAuthorizationDecision::Allow,
+        valid_until_epoch_seconds: 1_700_100_060,
+    }
+}
+
+fn authorization_verifier_for(
+    request: &CloudComputeFunctionsInvokeApiRequest,
+) -> CloudComputeFunctionsAuthorizationVerifier {
+    CloudComputeFunctionsAuthorizationVerifier::new().with_trusted_decision(trusted_allow_for(
+        &request.authorization.decision_id,
+        &request.principal.principal_id,
+    ))
+}
+
+fn invoke_with_trusted_verifier(
+    catalog: &mut CloudComputeCatalog,
+    idempotency_ledger: &mut CloudComputeFunctionsInvokeIdempotencyLedger,
+    request: CloudComputeFunctionsInvokeApiRequest,
+) -> Result<
+    compute_functions_api::CloudComputeFunctionsInvokeSuccessResponse,
+    CloudComputeFunctionsApiError,
+> {
+    let authorization_verifier = authorization_verifier_for(&request);
+    invoke_cloud_compute_function_from_api_with_authorization_verifier(
+        catalog,
+        idempotency_ledger,
+        &authorization_verifier,
+        request,
+    )
 }
 
 fn function_create() -> FunctionDeploymentCreate {
@@ -150,9 +194,9 @@ fn functions_invoke_api_records_invocation_once_and_replays_same_idempotent_resu
         "fninv_001",
     );
 
-    let first = invoke_cloud_compute_function_from_api(&mut catalog, &mut ledger, request.clone())
+    let first = invoke_with_trusted_verifier(&mut catalog, &mut ledger, request.clone())
         .expect("authorized function invoke succeeds");
-    let second = invoke_cloud_compute_function_from_api(&mut catalog, &mut ledger, request)
+    let second = invoke_with_trusted_verifier(&mut catalog, &mut ledger, request)
         .expect("same idempotency fingerprint replays");
 
     assert_eq!(first, second);
@@ -170,18 +214,35 @@ fn functions_invoke_api_records_invocation_once_and_replays_same_idempotent_resu
 }
 
 #[test]
-fn planned_invoke_entrypoint_delegates_to_api_invoke() {
+fn planned_invoke_entrypoint_fails_closed_without_verifier_and_verified_entrypoint_succeeds() {
     let mut catalog = CloudComputeCatalog::default();
     seed_active_function(&mut catalog);
-    let mut ledger = CloudComputeFunctionsInvokeIdempotencyLedger::default();
+    let mut legacy_ledger = CloudComputeFunctionsInvokeIdempotencyLedger::default();
     let request = request(
         "req-compute-functions-invoke-alias",
         "idem-functions-invoke-alias",
         "fninv_alias",
     );
 
-    let response = invoke(&mut catalog, &mut ledger, request)
-        .expect("stable planned invoke entrypoint succeeds");
+    let legacy_error = invoke(&mut catalog, &mut legacy_ledger, request.clone())
+        .expect_err("legacy invoke entrypoint fails closed without compute verifier");
+    assert_eq!(
+        legacy_error,
+        CloudComputeFunctionsApiError::AuthorizationVerifierMissing
+    );
+    assert_eq!(legacy_error.invoke_status_code(), 403);
+    assert!(legacy_ledger.is_empty());
+    assert_eq!(catalog.invocations().count(), 0);
+
+    let authorization_verifier = authorization_verifier_for(&request);
+    let mut verified_ledger = CloudComputeFunctionsInvokeIdempotencyLedger::default();
+    let response = invoke_with_authorization_verifier(
+        &mut catalog,
+        &mut verified_ledger,
+        &authorization_verifier,
+        request,
+    )
+    .expect("stable planned invoke entrypoint succeeds with compute verifier");
 
     assert_eq!(
         response.metadata.request_id,
@@ -189,7 +250,7 @@ fn planned_invoke_entrypoint_delegates_to_api_invoke() {
     );
     assert_eq!(response.data.invocation_id, "fninv_alias");
     assert_eq!(response.data.function_id, FUNCTION_ID);
-    assert_eq!(ledger.len(), 1);
+    assert_eq!(verified_ledger.len(), 1);
     assert_eq!(catalog.invocations().count(), 1);
 }
 
@@ -205,7 +266,7 @@ fn functions_invoke_api_rejects_path_body_drift_before_catalog_mutation() {
     );
     request.body.function_id = "oya:cloud:region-home:ten_alpha:function:other".to_string();
 
-    let error = invoke_cloud_compute_function_from_api(&mut catalog, &mut ledger, request)
+    let error = invoke_with_trusted_verifier(&mut catalog, &mut ledger, request)
         .expect_err("path/body function drift is rejected");
 
     assert_eq!(
@@ -221,7 +282,7 @@ fn functions_invoke_api_rejects_path_body_drift_before_catalog_mutation() {
 }
 
 #[test]
-fn functions_invoke_api_separates_authentication_denied_authorization_and_forged_proof() {
+fn functions_invoke_api_separates_authentication_and_missing_authorization_verifier() {
     let mut catalog = CloudComputeCatalog::default();
     seed_active_function(&mut catalog);
     let mut ledger = CloudComputeFunctionsInvokeIdempotencyLedger::default();
@@ -232,68 +293,200 @@ fn functions_invoke_api_separates_authentication_denied_authorization_and_forged
     );
     missing_principal.principal.principal_id.clear();
 
-    let authn_error =
-        invoke_cloud_compute_function_from_api(&mut catalog, &mut ledger, missing_principal)
-            .expect_err("missing authenticated principal is an authentication failure");
+    let authn_error = invoke_with_trusted_verifier(&mut catalog, &mut ledger, missing_principal)
+        .expect_err("missing authenticated principal is an authentication failure");
 
     assert_eq!(authn_error, CloudComputeFunctionsApiError::EmptyPrincipalId);
     assert_eq!(authn_error.invoke_status_code(), 401);
     assert!(ledger.is_empty());
     assert_eq!(catalog.invocations().count(), 0);
 
-    let mut denied = request(
-        "req-compute-functions-authz",
-        "idem-functions-authz-001",
-        "fninv_authz",
+    let no_verifier = request(
+        "req-compute-functions-authz-no-verifier",
+        "idem-functions-authz-no-verifier-001",
+        "fninv_authz_no_verifier",
     );
-    denied.authorization.allowed_surfaces = vec!["cloud.compute.vm.create".to_string()];
 
-    let authz_error = invoke_cloud_compute_function_from_api(&mut catalog, &mut ledger, denied)
-        .expect_err("authorization decision does not allow invoke");
+    let no_verifier_error =
+        invoke_cloud_compute_function_from_api(&mut catalog, &mut ledger, no_verifier)
+            .expect_err("authorization verifier is required at the compute boundary");
 
     assert_eq!(
-        authz_error,
+        no_verifier_error,
+        CloudComputeFunctionsApiError::AuthorizationVerifierMissing
+    );
+    assert_eq!(no_verifier_error.invoke_status_code(), 403);
+    assert!(ledger.is_empty());
+    assert_eq!(catalog.invocations().count(), 0);
+}
+
+#[test]
+fn functions_invoke_api_rejects_trusted_authorization_binding_mismatches() {
+    let mut catalog = CloudComputeCatalog::default();
+    seed_active_function(&mut catalog);
+    let mut ledger = CloudComputeFunctionsInvokeIdempotencyLedger::default();
+
+    let tenant_mismatch = request(
+        "req-compute-functions-authz-tenant-mismatch",
+        "idem-functions-authz-tenant-mismatch-001",
+        "fninv_authz_tenant_mismatch",
+    );
+    let mut tenant_mismatch_decision = trusted_allow_for(
+        &tenant_mismatch.authorization.decision_id,
+        &tenant_mismatch.principal.principal_id,
+    );
+    tenant_mismatch_decision.tenant_id = "ten_beta".to_string();
+    let tenant_mismatch_verifier = CloudComputeFunctionsAuthorizationVerifier::new()
+        .with_trusted_decision(tenant_mismatch_decision);
+
+    let tenant_mismatch_error = invoke_cloud_compute_function_from_api_with_authorization_verifier(
+        &mut catalog,
+        &mut ledger,
+        &tenant_mismatch_verifier,
+        tenant_mismatch,
+    )
+    .expect_err("trusted decision tenant must match principal tenant");
+    assert_eq!(
+        tenant_mismatch_error,
+        CloudComputeFunctionsApiError::AuthorizationTenantMismatch {
+            authorization_tenant_id: "ten_beta".to_string(),
+            principal_tenant_id: "ten_alpha".to_string(),
+        }
+    );
+    assert_eq!(tenant_mismatch_error.invoke_status_code(), 403);
+
+    let principal_mismatch = request(
+        "req-compute-functions-authz-principal-mismatch",
+        "idem-functions-authz-principal-mismatch-001",
+        "fninv_authz_principal_mismatch",
+    );
+    let principal_mismatch_verifier = CloudComputeFunctionsAuthorizationVerifier::new()
+        .with_trusted_decision(trusted_allow_for(
+            &principal_mismatch.authorization.decision_id,
+            "sp_other_compute",
+        ));
+
+    let principal_mismatch_error =
+        invoke_cloud_compute_function_from_api_with_authorization_verifier(
+            &mut catalog,
+            &mut ledger,
+            &principal_mismatch_verifier,
+            principal_mismatch,
+        )
+        .expect_err("trusted decision principal must match authenticated principal");
+    assert_eq!(
+        principal_mismatch_error,
+        CloudComputeFunctionsApiError::AuthorizationPrincipalMismatch {
+            authorization_principal_id: "sp_other_compute".to_string(),
+            principal_id: "sp_compute".to_string(),
+        }
+    );
+    assert_eq!(principal_mismatch_error.invoke_status_code(), 403);
+
+    let surface_mismatch = request(
+        "req-compute-functions-authz-surface-mismatch",
+        "idem-functions-authz-surface-mismatch-001",
+        "fninv_authz_surface_mismatch",
+    );
+    let mut surface_mismatch_decision = trusted_allow_for(
+        &surface_mismatch.authorization.decision_id,
+        &surface_mismatch.principal.principal_id,
+    );
+    surface_mismatch_decision.surface = "cloud.compute.vm.create".to_string();
+    let surface_mismatch_verifier = CloudComputeFunctionsAuthorizationVerifier::new()
+        .with_trusted_decision(surface_mismatch_decision);
+
+    let surface_mismatch_error =
+        invoke_cloud_compute_function_from_api_with_authorization_verifier(
+            &mut catalog,
+            &mut ledger,
+            &surface_mismatch_verifier,
+            surface_mismatch,
+        )
+        .expect_err("trusted decision surface must match invoke surface");
+    assert_eq!(
+        surface_mismatch_error,
         CloudComputeFunctionsApiError::AuthorizationDenied {
             surface: CLOUD_COMPUTE_FUNCTIONS_INVOKE_SURFACE.to_string(),
         }
     );
-    assert_eq!(authz_error.invoke_status_code(), 403);
-    assert!(ledger.is_empty());
-    assert_eq!(catalog.invocations().count(), 0);
+    assert_eq!(surface_mismatch_error.invoke_status_code(), 403);
 
-    let mut forged_allowed_surface = request(
-        "req-compute-functions-authz-forged",
-        "idem-functions-authz-forged-001",
-        "fninv_authz_forged",
+    let decision_mismatch = request(
+        "req-compute-functions-authz-decision-mismatch",
+        "idem-functions-authz-decision-mismatch-001",
+        "fninv_authz_decision_mismatch",
     );
-    forged_allowed_surface.authorization.requested_surface = "cloud.compute.vm.create".to_string();
-    forged_allowed_surface.authorization.allowed_surfaces =
-        vec![CLOUD_COMPUTE_FUNCTIONS_INVOKE_SURFACE.to_string()];
+    let decision_mismatch_verifier = CloudComputeFunctionsAuthorizationVerifier::new()
+        .with_trusted_decision(trusted_allow_for(
+            "authz_decision_for_different_request",
+            &decision_mismatch.principal.principal_id,
+        ));
 
-    let forged_error =
-        invoke_cloud_compute_function_from_api(&mut catalog, &mut ledger, forged_allowed_surface)
-            .expect_err("allowed_surfaces alone is not an authorization proof");
-
+    let decision_mismatch_error =
+        invoke_cloud_compute_function_from_api_with_authorization_verifier(
+            &mut catalog,
+            &mut ledger,
+            &decision_mismatch_verifier,
+            decision_mismatch,
+        )
+        .expect_err("request decision_id must resolve in trusted verifier state");
     assert_eq!(
-        forged_error,
+        decision_mismatch_error,
         CloudComputeFunctionsApiError::AuthorizationDenied {
             surface: CLOUD_COMPUTE_FUNCTIONS_INVOKE_SURFACE.to_string(),
         }
     );
-    assert_eq!(forged_error.invoke_status_code(), 403);
-    assert!(ledger.is_empty());
-    assert_eq!(catalog.invocations().count(), 0);
+    assert_eq!(decision_mismatch_error.invoke_status_code(), 403);
 
-    let mut expired = request(
+    let denied_decision = request(
+        "req-compute-functions-authz-denied-decision",
+        "idem-functions-authz-denied-decision-001",
+        "fninv_authz_denied_decision",
+    );
+    let mut denied_trusted_decision = trusted_allow_for(
+        &denied_decision.authorization.decision_id,
+        &denied_decision.principal.principal_id,
+    );
+    denied_trusted_decision.decision = CloudComputeFunctionsAuthorizationDecision::Deny;
+    let denied_decision_verifier = CloudComputeFunctionsAuthorizationVerifier::new()
+        .with_trusted_decision(denied_trusted_decision);
+
+    let denied_decision_error = invoke_cloud_compute_function_from_api_with_authorization_verifier(
+        &mut catalog,
+        &mut ledger,
+        &denied_decision_verifier,
+        denied_decision,
+    )
+    .expect_err("trusted denial must fail closed");
+    assert_eq!(
+        denied_decision_error,
+        CloudComputeFunctionsApiError::AuthorizationDenied {
+            surface: CLOUD_COMPUTE_FUNCTIONS_INVOKE_SURFACE.to_string(),
+        }
+    );
+    assert_eq!(denied_decision_error.invoke_status_code(), 403);
+
+    let expired = request(
         "req-compute-functions-authz-expired",
         "idem-functions-authz-expired-001",
         "fninv_authz_expired",
     );
-    expired.authorization.valid_until_epoch_seconds = expired.body.requested_at_epoch_seconds;
+    let mut expired_decision = trusted_allow_for(
+        &expired.authorization.decision_id,
+        &expired.principal.principal_id,
+    );
+    expired_decision.valid_until_epoch_seconds = expired.body.requested_at_epoch_seconds;
+    let expired_verifier =
+        CloudComputeFunctionsAuthorizationVerifier::new().with_trusted_decision(expired_decision);
 
-    let expired_error = invoke_cloud_compute_function_from_api(&mut catalog, &mut ledger, expired)
-        .expect_err("expired authorization proof is fail-closed");
-
+    let expired_error = invoke_cloud_compute_function_from_api_with_authorization_verifier(
+        &mut catalog,
+        &mut ledger,
+        &expired_verifier,
+        expired,
+    )
+    .expect_err("expired trusted authorization proof is fail-closed");
     assert_eq!(
         expired_error,
         CloudComputeFunctionsApiError::AuthorizationDenied {
@@ -301,8 +494,40 @@ fn functions_invoke_api_separates_authentication_denied_authorization_and_forged
         }
     );
     assert_eq!(expired_error.invoke_status_code(), 403);
+
     assert!(ledger.is_empty());
     assert_eq!(catalog.invocations().count(), 0);
+}
+
+#[test]
+fn functions_invoke_api_ignores_caller_supplied_authorization_claim_fields() {
+    let mut catalog = CloudComputeCatalog::default();
+    seed_active_function(&mut catalog);
+    let mut ledger = CloudComputeFunctionsInvokeIdempotencyLedger::default();
+    let mut request = request(
+        "req-compute-functions-authz-caller-fields",
+        "idem-functions-authz-caller-fields-001",
+        "fninv_authz_caller_fields",
+    );
+    let authorization_verifier = authorization_verifier_for(&request);
+    request.authorization.tenant_id = "ten_beta".to_string();
+    request.authorization.principal_id = "sp_forged_compute".to_string();
+    request.authorization.requested_surface = "cloud.compute.vm.create".to_string();
+    request.authorization.valid_until_epoch_seconds = request.body.requested_at_epoch_seconds;
+    request.authorization.allowed_surfaces.clear();
+
+    let response = invoke_cloud_compute_function_from_api_with_authorization_verifier(
+        &mut catalog,
+        &mut ledger,
+        &authorization_verifier,
+        request,
+    )
+    .expect("compute verifier state, not caller-supplied authorization claims, controls allow");
+
+    assert_eq!(response.data.invocation_id, "fninv_authz_caller_fields");
+    assert_eq!(response.data.function_id, FUNCTION_ID);
+    assert_eq!(ledger.len(), 1);
+    assert_eq!(catalog.invocations().count(), 1);
 }
 
 #[test]
@@ -315,7 +540,7 @@ fn functions_invoke_api_replays_with_refreshed_authz() {
         "idem-functions-authz-refresh-001",
         "fninv_authz_refresh",
     );
-    let first = invoke_cloud_compute_function_from_api(&mut catalog, &mut ledger, request.clone())
+    let first = invoke_with_trusted_verifier(&mut catalog, &mut ledger, request.clone())
         .expect("initial function invoke succeeds");
 
     let mut retry = request;
@@ -325,7 +550,7 @@ fn functions_invoke_api_replays_with_refreshed_authz() {
         "cloud.compute.k8s.cluster.create".to_string(),
         CLOUD_COMPUTE_FUNCTIONS_INVOKE_SURFACE.to_string(),
     ];
-    let second = invoke_cloud_compute_function_from_api(&mut catalog, &mut ledger, retry)
+    let second = invoke_with_trusted_verifier(&mut catalog, &mut ledger, retry)
         .expect("refreshed authorization evidence does not change operation fingerprint");
 
     assert_eq!(first, second);
@@ -343,13 +568,13 @@ fn functions_invoke_api_rejects_reused_idempotency_key_with_new_fingerprint() {
         "idem-functions-idem-001",
         "fninv_idem",
     );
-    invoke_cloud_compute_function_from_api(&mut catalog, &mut ledger, request.clone())
+    invoke_with_trusted_verifier(&mut catalog, &mut ledger, request.clone())
         .expect("initial invoke succeeds");
 
     let mut drifted = request;
     drifted.body.payload_data_class = "PUBLIC".to_string();
     assert_eq!(
-        invoke_cloud_compute_function_from_api(&mut catalog, &mut ledger, drifted),
+        invoke_with_trusted_verifier(&mut catalog, &mut ledger, drifted),
         Err(CloudComputeFunctionsApiError::IdempotencyKeyReused {
             idempotency_key: "idem-functions-idem-001".to_string(),
         })
@@ -362,7 +587,7 @@ fn functions_invoke_api_rejects_reused_idempotency_key_with_new_fingerprint() {
 fn functions_invoke_api_maps_unknown_inactive_and_duplicate_invocations() {
     let mut catalog = CloudComputeCatalog::default();
     let mut ledger = CloudComputeFunctionsInvokeIdempotencyLedger::default();
-    let unknown = invoke_cloud_compute_function_from_api(
+    let unknown = invoke_with_trusted_verifier(
         &mut catalog,
         &mut ledger,
         request(
@@ -383,7 +608,7 @@ fn functions_invoke_api_maps_unknown_inactive_and_duplicate_invocations() {
     let mut inactive_catalog = CloudComputeCatalog::default();
     seed_deploying_function(&mut inactive_catalog);
     let mut inactive_ledger = CloudComputeFunctionsInvokeIdempotencyLedger::default();
-    let inactive = invoke_cloud_compute_function_from_api(
+    let inactive = invoke_with_trusted_verifier(
         &mut inactive_catalog,
         &mut inactive_ledger,
         request(
@@ -404,7 +629,7 @@ fn functions_invoke_api_maps_unknown_inactive_and_duplicate_invocations() {
     let mut active_catalog = CloudComputeCatalog::default();
     seed_active_function(&mut active_catalog);
     let mut duplicate_ledger = CloudComputeFunctionsInvokeIdempotencyLedger::default();
-    invoke_cloud_compute_function_from_api(
+    invoke_with_trusted_verifier(
         &mut active_catalog,
         &mut duplicate_ledger,
         request(
@@ -414,7 +639,7 @@ fn functions_invoke_api_maps_unknown_inactive_and_duplicate_invocations() {
         ),
     )
     .expect("first invoke succeeds");
-    let duplicate = invoke_cloud_compute_function_from_api(
+    let duplicate = invoke_with_trusted_verifier(
         &mut active_catalog,
         &mut duplicate_ledger,
         request(
@@ -445,7 +670,7 @@ fn functions_invoke_api_maps_payload_data_class_policy_without_masking() {
     );
     denied.body.payload_data_class = "PHI".to_string();
 
-    let error = invoke_cloud_compute_function_from_api(&mut catalog, &mut ledger, denied)
+    let error = invoke_with_trusted_verifier(&mut catalog, &mut ledger, denied)
         .expect_err("payload class must be allowed by deployment policy");
 
     assert_eq!(
@@ -469,7 +694,7 @@ fn functions_invoke_api_rejects_invocation_at_declared_max_concurrency() {
     );
     request.body.current_concurrent_invocations = 250;
 
-    let error = invoke_cloud_compute_function_from_api(&mut catalog, &mut ledger, request)
+    let error = invoke_with_trusted_verifier(&mut catalog, &mut ledger, request)
         .expect_err("function max_concurrency is enforced by the domain");
 
     assert_eq!(
@@ -493,7 +718,7 @@ fn functions_invoke_api_rejects_unknown_payload_data_class_before_ledger() {
     );
     request.body.payload_data_class = "NOT_A_DATA_CLASS".to_string();
 
-    let error = invoke_cloud_compute_function_from_api(&mut catalog, &mut ledger, request)
+    let error = invoke_with_trusted_verifier(&mut catalog, &mut ledger, request)
         .expect_err("unknown payload data class label is rejected before invocation");
 
     assert_eq!(
@@ -513,7 +738,7 @@ fn functions_invoke_idempotency_ledger_enforces_bounded_retention() {
     seed_active_function(&mut catalog);
     let mut ledger = CloudComputeFunctionsInvokeIdempotencyLedger::with_max_entries(1);
 
-    invoke_cloud_compute_function_from_api(
+    invoke_with_trusted_verifier(
         &mut catalog,
         &mut ledger,
         request(
@@ -523,7 +748,7 @@ fn functions_invoke_idempotency_ledger_enforces_bounded_retention() {
         ),
     )
     .expect("first invocation succeeds");
-    invoke_cloud_compute_function_from_api(
+    invoke_with_trusted_verifier(
         &mut catalog,
         &mut ledger,
         request(
@@ -536,7 +761,7 @@ fn functions_invoke_idempotency_ledger_enforces_bounded_retention() {
 
     assert_eq!(ledger.len(), 1);
 
-    let replay_error = invoke_cloud_compute_function_from_api(
+    let replay_error = invoke_with_trusted_verifier(
         &mut catalog,
         &mut ledger,
         request(
