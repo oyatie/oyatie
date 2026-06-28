@@ -96,6 +96,7 @@ rust_test(
         "//intelligence/core/kernel:intelligence-kernel",
         "third-party//:axum",
         "third-party//:bytes",
+        "third-party//:http-body-util",
         "third-party//:httpmock",
         "third-party//:reqwest",
         "third-party//:tokio",
