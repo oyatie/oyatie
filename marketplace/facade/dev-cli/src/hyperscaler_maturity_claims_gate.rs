@@ -657,7 +657,9 @@ fn parse_dev_branch_protection(contents: &str) -> Result<BranchProtectionContrac
             break;
         }
 
-        if trimmed.contains("Reviews are agent-run and fully automated") {
+        if trimmed.contains("reviews are agent-run and fully automated")
+            || trimmed.contains("Reviews are agent-run and fully automated")
+        {
             contract.agent_review_authority_comment = true;
         }
         if trimmed == "# - oya-pr-review" {

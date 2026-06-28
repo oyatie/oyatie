@@ -756,7 +756,7 @@ pub fn validate_cloud_compute_k8s_cluster_create_request_with_authorization_veri
     )?;
     validate_authorization(
         &request.principal,
-        &request.authorization,
+        &request.authorization.decision_id,
         CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE,
         authorization_verifier,
     )?;
@@ -959,25 +959,23 @@ fn validate_tenant_binding(
 
 fn validate_authorization(
     principal: &CloudComputeK8sApiPrincipal,
-    authorization: &CloudComputeK8sApiAuthorization,
+    decision_id: &str,
     surface: &str,
     authorization_verifier: &impl CloudComputeK8sAuthorizationVerifier,
 ) -> Result<(), CloudComputeK8sApiError> {
-    if authorization.decision_id.trim().is_empty() {
+    if decision_id.trim().is_empty() {
         return Err(CloudComputeK8sApiError::EmptyAuthorizationDecisionId);
     }
-    validate_authorization_proof(principal, authorization, surface, authorization_verifier)
+    validate_authorization_proof(principal, decision_id, surface, authorization_verifier)
 }
 
 fn validate_authorization_proof(
     principal: &CloudComputeK8sApiPrincipal,
-    authorization: &CloudComputeK8sApiAuthorization,
+    decision_id: &str,
     surface: &str,
     authorization_verifier: &impl CloudComputeK8sAuthorizationVerifier,
 ) -> Result<(), CloudComputeK8sApiError> {
-    let Some(proof) =
-        authorization_verifier.verified_authorization_proof(&authorization.decision_id)
-    else {
+    let Some(proof) = authorization_verifier.verified_authorization_proof(decision_id) else {
         return Err(CloudComputeK8sApiError::AuthorizationDenied {
             surface: surface.to_string(),
         });
@@ -987,7 +985,7 @@ fn validate_authorization_proof(
         || proof.tenant_id != principal.tenant_id
         || proof.principal_id != principal.principal_id
         || proof.surface != surface
-        || proof.decision_id != authorization.decision_id
+        || proof.decision_id != decision_id
         || proof.issued_at_epoch_seconds >= proof.expires_at_epoch_seconds
         || evaluation_epoch_seconds < proof.issued_at_epoch_seconds
         || evaluation_epoch_seconds >= proof.expires_at_epoch_seconds
@@ -1591,7 +1589,7 @@ pub fn validate_cloud_compute_k8s_cluster_delete_request_with_authorization_veri
     validate_delete_tenant_binding(&request.boundary, &request.principal, &resource_id)?;
     validate_authorization(
         &request.principal,
-        &request.authorization,
+        &request.authorization.decision_id,
         CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE,
         authorization_verifier,
     )?;

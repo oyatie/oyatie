@@ -7404,11 +7404,11 @@ fn aspirational_enforcement_gate_accepts_real_required_surfaces() {
 }
 
 #[test]
-fn banned_primitives_gate_accepts_sanctioned_oya_git_surface() {
-    let temp = TempDirGuard::new("banned-primitives-clean");
+fn banned_primitives_gate_rejects_retired_oya_git_surface() {
+    let temp = TempDirGuard::new("banned-primitives-retired-oya-git");
     write_banned_primitives_fixture(
         temp.path(),
-        "  - oya-git\nretirement_note: `oya git <git-subcommand>` is the git drop-in surface\n",
+        "  - oya-git\nretirement_note: `oya git <git-subcommand>` is the retired git wrapper\n",
     );
 
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
@@ -7430,13 +7430,13 @@ fn banned_primitives_gate_accepts_sanctioned_oya_git_surface() {
         .expect("gate command runs");
 
     assert!(
-        output.status.success(),
-        "expected sanctioned oya git surface to pass\nstdout={}\nstderr={}",
+        !output.status.success(),
+        "expected retired oya git surface to fail\nstdout={}\nstderr={}",
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
     assert!(
-        String::from_utf8_lossy(&output.stdout).contains("banned-primitives validation passed")
+        String::from_utf8_lossy(&output.stderr).contains("hard-banned primitive manual-mutation")
     );
 }
 
