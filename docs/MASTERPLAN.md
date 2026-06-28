@@ -35,11 +35,10 @@ This file is a compatibility projection for humans. It is not the implementation
 
 The canonical master plan is `/specs/masterplan.json`.
 
-The planning-closure gate is:
-
-```bash
-cargo run -q -p oya-dev-cli -- gate validate planning-closure
-```
+The planning-closure gate of record is the `oya-ci-required` cloud-ci planning-closure packet
+produced by the ADR-0515 gate apps. The retired `cargo run -q -p oya-dev-cli -- gate validate
+planning-closure` command is provenance-only migration history, not implementation-start, merge, or
+exit authority.
 
 The active long-running implementation goal is `/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json`.
 
