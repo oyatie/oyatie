@@ -92,18 +92,18 @@ purpose: >
   refuses minor-affecting traffic when the doctrine is not pinned.
 enforcement_status: blocker-before-any-b2c-tenant-onboarding
 enforced_by:
-  - oya gate validate minor-user-pack-pinning
-  - oya gate validate age-threshold-per-jurisdiction-coherence
-  - oya gate validate age-assurance-provider-binding
-  - oya gate validate parental-consent-workflow-coverage
-  - oya gate validate minor-default-privacy-maximal
-  - oya gate validate age-down-edit-refusal
-  - oya gate validate age-of-majority-migration-flow
-  - oya gate validate algorithm-transparency-for-minors
-  - oya gate validate marketplace-minor-purchase-gate
-  - oya gate validate per-microservice-minor-ux-binding
-  - oya gate validate audit-emission-on-minor-policy-decision
-  - oya gate validate tenant-override-bounds-check
+  - cloud-ci/Rust gate packet minor-user-pack-pinning
+  - cloud-ci/Rust gate packet age-threshold-per-jurisdiction-coherence
+  - cloud-ci/Rust gate packet age-assurance-provider-binding
+  - cloud-ci/Rust gate packet parental-consent-workflow-coverage
+  - cloud-ci/Rust gate packet minor-default-privacy-maximal
+  - cloud-ci/Rust gate packet age-down-edit-refusal
+  - cloud-ci/Rust gate packet age-of-majority-migration-flow
+  - cloud-ci/Rust gate packet algorithm-transparency-for-minors
+  - cloud-ci/Rust gate packet marketplace-minor-purchase-gate
+  - cloud-ci/Rust gate packet per-microservice-minor-ux-binding
+  - cloud-ci/Rust gate packet audit-emission-on-minor-policy-decision
+  - cloud-ci/Rust gate packet tenant-override-bounds-check
 ---
 
 # ADR-0292: Minor User Doctrine — COPPA + KOSA + EU Age Verification
@@ -946,7 +946,7 @@ Canonical bindings:
 
 Each binding is an enforcement contract recorded at
 `microservices/<svc>/policies/minor-user-binding.yaml` and validated
-at CI by `oya gate validate per-microservice-minor-ux-binding`.
+at CI by `cloud-ci/Rust gate packet per-microservice-minor-ux-binding`.
 
 ## Alternatives Considered
 
@@ -1233,33 +1233,33 @@ Following the canonical-base + per-pack-overlay pattern per ADR-0064:
 
 ### New CI lanes
 
-- `oya gate validate minor-user-pack-pinning` — verifies B2C tenants
+- `cloud-ci/Rust gate packet minor-user-pack-pinning` — verifies B2C tenants
   pin `MINOR-USER-2024@<version>`.
-- `oya gate validate age-threshold-per-jurisdiction-coherence` —
+- `cloud-ci/Rust gate packet age-threshold-per-jurisdiction-coherence` —
   verifies the jurisdiction matrix is well-formed and matches the
   Cedar fragment context.
-- `oya gate validate age-assurance-provider-binding` — verifies each
+- `cloud-ci/Rust gate packet age-assurance-provider-binding` — verifies each
   jurisdiction has primary + fallback + tertiary providers bound and
   the contracts are current.
-- `oya gate validate parental-consent-workflow-coverage` — verifies
+- `cloud-ci/Rust gate packet parental-consent-workflow-coverage` — verifies
   the consent state machine handles all transitions per D-3.
-- `oya gate validate minor-default-privacy-maximal` — verifies the
+- `cloud-ci/Rust gate packet minor-default-privacy-maximal` — verifies the
   default-restriction matrix per D-4 is enforced at each µservice.
-- `oya gate validate age-down-edit-refusal` — verifies the age-down
+- `cloud-ci/Rust gate packet age-down-edit-refusal` — verifies the age-down
   refusal logic per D-10 is enforced at identity.
-- `oya gate validate age-of-majority-migration-flow` — verifies the
+- `cloud-ci/Rust gate packet age-of-majority-migration-flow` — verifies the
   migration workflow per D-8 is end-to-end traversable.
-- `oya gate validate algorithm-transparency-for-minors` — verifies
+- `cloud-ci/Rust gate packet algorithm-transparency-for-minors` — verifies
   the "Why am I seeing this?" + non-profiled alternative are bound
   per recommendation surface.
-- `oya gate validate marketplace-minor-purchase-gate` — verifies
+- `cloud-ci/Rust gate packet marketplace-minor-purchase-gate` — verifies
   marketplace purchases by minors route through the parental-approval
   workflow per D-12.
-- `oya gate validate per-microservice-minor-ux-binding` — verifies
+- `cloud-ci/Rust gate packet per-microservice-minor-ux-binding` — verifies
   each µservice in the B2C BOM has a `minor-user-binding.yaml`.
-- `oya gate validate audit-emission-on-minor-policy-decision` —
+- `cloud-ci/Rust gate packet audit-emission-on-minor-policy-decision` —
   verifies the emission completeness per D-13 SLO.
-- `oya gate validate tenant-override-bounds-check` — verifies tenant
+- `cloud-ci/Rust gate packet tenant-override-bounds-check` — verifies tenant
   overrides do not violate the statutory floor.
 
 ### Migration of existing surfaces
@@ -1273,7 +1273,7 @@ B2C tenant is admitted. The onboarding sequence per µservice:
 3. Bind audit emission to `minor_policy_decision_v1`.
 4. Add the µservice to the B2C BOM in
    `/specs/platform-architecture.json`.
-5. Pass `oya gate validate per-microservice-minor-ux-binding`.
+5. Pass `cloud-ci/Rust gate packet per-microservice-minor-ux-binding`.
 6. Pass an end-to-end T&S drill: a synthetic 12-year-old account
    signs up; the consent flow runs; the migration workflow runs at
    the synthetic age-of-majority timestamp; the audit chain is
@@ -1300,7 +1300,7 @@ B2C tenant is admitted. The onboarding sequence per µservice:
 
 ### Doctrine-level
 
-- **V-1:** `oya gate validate minor-user-pack-pinning` returns clean
+- **V-1:** `cloud-ci/Rust gate packet minor-user-pack-pinning` returns clean
   on every B2C tenant.
 - **V-2:** `/specs/minor-user-doctrine.json` is well-formed JSON,
   schema-validated, and includes a row per jurisdiction in the matrix.
@@ -1322,7 +1322,7 @@ B2C tenant is admitted. The onboarding sequence per µservice:
 ### Per-µservice
 
 - **V-8:** Every µservice in the B2C BOM has a
-  `minor-user-binding.yaml` (per `oya gate validate per-microservice-
+  `minor-user-binding.yaml` (per `cloud-ci/Rust gate packet per-microservice-
   minor-ux-binding`).
 - **V-9:** Each binding declares the per-feature minor defaults per
   §D-4 and the audit-emission classes the µservice will produce.
@@ -1577,7 +1577,7 @@ Carol opens the B2C signup flow at `https://signup.<tenant>.app/`.
 
 The gateway resolves the request → routes to
 `microservices/identity/signup` → identifies the tenant as B2C-facing
-→ enforces pack-pinning (per `oya gate validate minor-user-pack-
+→ enforces pack-pinning (per `cloud-ci/Rust gate packet minor-user-pack-
 pinning`, ENFORCED) → loads
 `pack/MINOR-USER-2024@1.0.0/`.
 

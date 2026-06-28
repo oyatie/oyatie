@@ -90,12 +90,12 @@ purpose: >
   documentation-rigor.md §3.2.5 rows 4 + 20.
 enforcement_status: advisory-until-2026-09-15-blocker-thereafter
 enforced_by:
-  - oya gate validate cognitive-impairment-cooling-off-coverage
-  - oya gate validate cognitive-impairment-trusted-contact-binding
-  - oya gate validate cognitive-impairment-mutation-cool-down
-  - oya gate validate cognitive-impairment-guardianship-overlay
-  - oya gate validate cognitive-impairment-nudge-non-blocking
-  - oya gate validate cognitive-impairment-audit-emission
+  - cloud-ci/Rust gate packet cognitive-impairment-cooling-off-coverage
+  - cloud-ci/Rust gate packet cognitive-impairment-trusted-contact-binding
+  - cloud-ci/Rust gate packet cognitive-impairment-mutation-cool-down
+  - cloud-ci/Rust gate packet cognitive-impairment-guardianship-overlay
+  - cloud-ci/Rust gate packet cognitive-impairment-nudge-non-blocking
+  - cloud-ci/Rust gate packet cognitive-impairment-audit-emission
 naming_justifications:
   - name: oya-shared-decision-resilience
     layer: layer_5_shared_substrate

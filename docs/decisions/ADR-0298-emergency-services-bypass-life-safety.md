@@ -96,13 +96,13 @@ purpose: >
   1 of the 30-row critical-path matrix.
 enforcement_status: advisory-until-2026-08-15-blocker-thereafter
 enforced_by:
-  - oya gate validate emergency-services-bypass-attestation-chain
-  - oya gate validate emergency-services-bypass-cedar-fragment-present
-  - oya gate validate emergency-services-bypass-audit-event-class
-  - oya gate validate emergency-services-bypass-latency-budget
-  - oya gate validate emergency-services-bypass-revocation-window
-  - oya gate validate emergency-services-bypass-per-pack-registry
-  - oya gate validate emergency-services-bypass-no-rate-limit-floor
+  - cloud-ci/Rust gate packet emergency-services-bypass-attestation-chain
+  - cloud-ci/Rust gate packet emergency-services-bypass-cedar-fragment-present
+  - cloud-ci/Rust gate packet emergency-services-bypass-audit-event-class
+  - cloud-ci/Rust gate packet emergency-services-bypass-latency-budget
+  - cloud-ci/Rust gate packet emergency-services-bypass-revocation-window
+  - cloud-ci/Rust gate packet emergency-services-bypass-per-pack-registry
+  - cloud-ci/Rust gate packet emergency-services-bypass-no-rate-limit-floor
 naming_justifications:
   - name: oya-shared-emergency-services-bypass
     layer: layer_5_shared_substrate
@@ -1440,7 +1440,7 @@ One overlay per pack, per §D-5.
 .github/workflows/oya-governance-emergency-services-cedar-fragment-present.yml
 ```
 
-Each lane invokes the corresponding `oya gate validate ...` per the
+Each lane invokes the corresponding `cloud-ci/Rust gate packet ...` per the
 `enforced_by` block of this ADR's frontmatter.
 
 #### §E.7. Per-µservice manifest.json fields

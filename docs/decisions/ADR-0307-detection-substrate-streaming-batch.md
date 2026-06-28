@@ -108,16 +108,16 @@ purpose: >
   NIST AI RMF 1.0, and 18 USC §2258A NCMEC reporting obligations.
 enforcement_status: advisory-until-2026-09-15-blocker-thereafter
 enforced_by:
-  - oya gate validate detection-substrate-streaming-pipeline-coherence
-  - oya gate validate detection-substrate-batch-pipeline-coherence
-  - oya gate validate detection-substrate-feature-store-coherence
-  - oya gate validate detection-substrate-rules-engine-coherence
-  - oya gate validate detection-substrate-composite-scorer-coherence
-  - oya gate validate detection-substrate-graph-store-coherence
-  - oya gate validate detection-substrate-sandbox-replay-coherence
-  - oya gate validate detection-substrate-emission-per-microservice
-  - oya gate validate detection-substrate-rule-lifecycle-soak
-  - oya gate validate detection-family-coverage-eight-of-eight
+  - cloud-ci/Rust gate packet detection-substrate-streaming-pipeline-coherence
+  - cloud-ci/Rust gate packet detection-substrate-batch-pipeline-coherence
+  - cloud-ci/Rust gate packet detection-substrate-feature-store-coherence
+  - cloud-ci/Rust gate packet detection-substrate-rules-engine-coherence
+  - cloud-ci/Rust gate packet detection-substrate-composite-scorer-coherence
+  - cloud-ci/Rust gate packet detection-substrate-graph-store-coherence
+  - cloud-ci/Rust gate packet detection-substrate-sandbox-replay-coherence
+  - cloud-ci/Rust gate packet detection-substrate-emission-per-microservice
+  - cloud-ci/Rust gate packet detection-substrate-rule-lifecycle-soak
+  - cloud-ci/Rust gate packet detection-family-coverage-eight-of-eight
 naming_justifications:
   - name: microservices/detection
     layer: layer_5_shared_substrate

@@ -507,7 +507,7 @@ fn build_automation_matrix(enforcement: &Value) -> Value {
             "requirement": "Live enforcement surface inventoried by the producer.",
             "classification": if maps_oya { "automated_blocking_now" } else { "automated_advisory_until_p0_0" },
             "owner": "platform-governance",
-            "target_gate_or_controller": if maps_oya { "oya gate / oya gen verified_by authority" } else { src },
+            "target_gate_or_controller": if maps_oya { "retired oya CLI authority claim" } else { src },
             "blocking_fixture": "specs/fixtures/phase0-automation-ratchet/",
             "retirement_phase": "P0.0",
             "evidence_path": src,
@@ -1534,6 +1534,155 @@ mod tests {
         fs::remove_dir_all(root).expect("remove temp repo");
     }
 
+    #[test]
+    fn enforcement_inventory_flags_live_cli_authority_but_not_bridge_history() {
+        let root = unique_temp_repo();
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let decisions = root.join(&cfg.justification.adr_dir);
+        fs::create_dir_all(&decisions).expect("create decisions dir");
+        fs::write(
+            decisions.join("ADR-0100-live-cli-authority.md"),
+            "---\nid: ADR-0100\nstatus: Proposed\n---\nMerge authority is `oya gate run-all`; the pipeline must require it before promotion.\n",
+        )
+        .expect("write live cli authority ADR");
+        fs::write(
+            decisions.join("ADR-0101-bridge-history.md"),
+            "---\nid: ADR-0101\nstatus: Accepted\n---\nHistorical note: legacy `oya gate run-all` output is bridge evidence only, never merge authority.\n`oya gate` and `oya verify` may remain only as legacy/local migration wrappers until cloud-ci is live.\nUntil the cloud-ci required context is live, legacy `oya gate`/`oya verify`\noutput is migration evidence only and cannot be the merge/exit authority.\n",
+        )
+        .expect("write historical bridge ADR");
+        fs::write(
+            decisions.join("ADR-0102-split-line-live-cli-authority.md"),
+            "---\nid: ADR-0102\nstatus: Accepted\n---\nMerge authority is the required gate of record.\n`oya gate run-all`\n",
+        )
+        .expect("write split-line cli authority ADR");
+        fs::write(
+            decisions.join("ADR-0103-retired-contrast-live-cli-authority.md"),
+            "---\nid: ADR-0103\nstatus: Accepted\n---\nUnlike the retired bridge, `oya gate run-all` is now the required context.\n",
+        )
+        .expect("write retired-contrast cli authority ADR");
+        fs::write(
+            decisions.join("ADR-0104-active-enforced-by-cli.md"),
+            "---\nid: ADR-0104\nstatus: Accepted\nenforcement_status: active\nenforced_by: oya gate validate aspirational-enforcement\n---\n",
+        )
+        .expect("write active enforced_by cli ADR");
+        fs::write(
+            decisions.join("ADR-0105-future-blocking-enforced-by-cli.md"),
+            "---\nid: ADR-0105\nstatus: Accepted\nenforcement_status: advisory-until-2026-08-15-blocker-thereafter\nenforced_by:\n  - oya gate validate emergency-services-bypass-attestation-chain\n---\n",
+        )
+        .expect("write future-blocking enforced_by cli ADR");
+        fs::write(
+            decisions.join("ADR-0106-ci-lane-refuses-merge.md"),
+            "---\nid: ADR-0106\nstatus: Accepted\n---\nCI lane `oya gate validate multi-region-disposition` reads manifests and refuses merge on mismatch.\n",
+        )
+        .expect("write ci lane refuses merge ADR");
+        fs::write(
+            decisions.join("ADR-0107-superseded-history-cli.md"),
+            "---\nid: ADR-0107\nstatus: Superseded\nsuperseded_by: [ADR-0110]\n---\nA migration period used local `oya verify` as the gate of record during transition.\n",
+        )
+        .expect("write superseded history cli ADR");
+        fs::write(
+            decisions.join("ADR-0108-bridge-adjacent-live-authority.md"),
+            "---\nid: ADR-0108\nstatus: Accepted\n---\nLegacy `oya verify` output is bridge evidence only.\n`oya gate run-all` is now the required context.\n",
+        )
+        .expect("write bridge-adjacent live cli authority ADR");
+        fs::write(
+            decisions.join("ADR-0109-block-superseded-history-cli.md"),
+            "---
+id: ADR-0109
+status: Accepted
+superseded_by:
+  - ADR-0110
+---
+A migration period used local `oya verify` as the gate of record during transition.
+",
+        )
+        .expect("write block-superseded history cli ADR");
+        fs::write(
+            decisions.join("ADR-0110-adjacent-table-rows.md"),
+            "---
+id: ADR-0110
+status: Accepted
+---
+| Surface | Notes |
+| --- | --- |
+| Validator crate | Exposed via `oya check active-artifact-contract` while integration is pending. |
+| CI lane | Enforces the contract at PR time. |
+",
+        )
+        .expect("write adjacent table rows ADR");
+        fs::write(
+            decisions.join("ADR-0111-adjacent-list-items.md"),
+            "---
+id: ADR-0111
+status: Accepted
+---
+1. **Enforcement** — CI lane that BLOCKS PRs on violation.
+2. **Verification** — Rust checker crate exposing `oya check <name>` for local verification.
+",
+        )
+        .expect("write adjacent list items ADR");
+
+        let inputs = collect_enforcement_inputs(
+            &root,
+            &cfg,
+            &ScmFacts {
+                tracked_paths: Vec::new(),
+            },
+        );
+
+        assert!(
+            inputs.rows.iter().any(|row| {
+                row.source_artifact
+                    .ends_with("ADR-0100-live-cli-authority.md")
+                    && row.maps_to_oya_cli
+            }),
+            "a live CLI-as-merge-authority claim must be inventoried as an oya CLI surface: {:?}",
+            inputs.rows
+        );
+        assert!(
+            !inputs
+                .rows
+                .iter()
+                .any(|row| row.source_artifact.ends_with("ADR-0101-bridge-history.md")),
+            "historical bridge/local-feedback CLI references must not become new blocking authority rows: {:?}",
+            inputs.rows
+        );
+        for adr in [
+            "ADR-0102-split-line-live-cli-authority.md",
+            "ADR-0103-retired-contrast-live-cli-authority.md",
+            "ADR-0104-active-enforced-by-cli.md",
+            "ADR-0105-future-blocking-enforced-by-cli.md",
+            "ADR-0106-ci-lane-refuses-merge.md",
+            "ADR-0108-bridge-adjacent-live-authority.md",
+        ] {
+            assert!(
+                inputs
+                    .rows
+                    .iter()
+                    .any(|row| row.source_artifact.ends_with(adr) && row.maps_to_oya_cli),
+                "{adr} must be inventoried as a live retired-CLI authority surface: {:?}",
+                inputs.rows
+            );
+        }
+        for adr in [
+            "ADR-0107-superseded-history-cli.md",
+            "ADR-0109-block-superseded-history-cli.md",
+            "ADR-0110-adjacent-table-rows.md",
+            "ADR-0111-adjacent-list-items.md",
+        ] {
+            assert!(
+                !inputs
+                    .rows
+                    .iter()
+                    .any(|row| row.source_artifact.ends_with(adr)),
+                "superseded ADR history must not become a live retired-CLI authority row: {:?}",
+                inputs.rows
+            );
+        }
+
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
     /// RED fixture for FRIC-1781320000: a duplicate-numbered ADR pair (the parallel-lane
     /// collision shape) must surface in `duplicate_ids`; a filename/front-matter id
     /// mismatch (the re-keying vector that can MASK such a collision) must surface in
@@ -2485,10 +2634,232 @@ fn json_number_at(repo_root: &Path, rel: &str, path: &[&str]) -> Option<i64> {
     cursor.as_i64()
 }
 
+fn oya_cli_authority_row_kind(
+    trimmed: &str,
+    previous: &str,
+    next: &str,
+    enforcement_status_is_blocking: bool,
+) -> Option<&'static str> {
+    let line_lower = trimmed.to_ascii_lowercase();
+    let previous_lower = previous.to_ascii_lowercase();
+    let next_lower = next.to_ascii_lowercase();
+    let previous_shares_record = shares_markdown_logical_record(previous, trimmed);
+    let next_shares_record = shares_markdown_logical_record(trimmed, next);
+    let context_lower = format!(
+        "{} {line_lower} {}",
+        if previous_shares_record {
+            previous_lower.as_str()
+        } else {
+            ""
+        },
+        if next_shares_record {
+            next_lower.as_str()
+        } else {
+            ""
+        }
+    );
+    let line_mentions_cli = mentions_oya_cli(&line_lower);
+    let context_mentions_cli = mentions_oya_cli(&context_lower);
+    if !context_mentions_cli {
+        return None;
+    }
+
+    let line_is_explicit_non_authority = cli_reference_is_explicit_non_authority(&line_lower);
+    let adjacent_is_explicit_non_authority = [
+        (previous_shares_record, previous_lower.as_str()),
+        (next_shares_record, next_lower.as_str()),
+    ]
+    .iter()
+    .any(|(shares_record, line)| *shares_record && cli_reference_is_explicit_non_authority(line));
+    if line_is_explicit_non_authority
+        || (line_mentions_cli
+            && adjacent_is_explicit_non_authority
+            && (line_lower.contains("legacy") || line_lower.starts_with("until ")))
+    {
+        return None;
+    }
+
+    let current_is_yaml_list_item = trimmed.starts_with("- ");
+    let verified_by_context = line_lower.contains("verified_by:")
+        || (line_mentions_cli && current_is_yaml_list_item && previous_lower == "verified_by:");
+    let enforced_by_context = line_lower.contains("enforced_by:")
+        || (line_mentions_cli && current_is_yaml_list_item && previous_lower == "enforced_by:");
+    if line_mentions_cli && verified_by_context {
+        return Some("verified_by");
+    }
+    if line_mentions_cli && enforcement_status_is_blocking && enforced_by_context {
+        return Some("enforced_by");
+    }
+
+    let line_claims_authority = cli_reference_claims_live_authority(&line_lower);
+    let adjacent_live_cli = [
+        (previous_shares_record, previous_lower.as_str()),
+        (next_shares_record, next_lower.as_str()),
+    ]
+    .iter()
+    .any(|(shares_record, line)| {
+        *shares_record && mentions_oya_cli(line) && !cli_reference_is_explicit_non_authority(line)
+    });
+    if !line_mentions_cli && !(line_claims_authority && adjacent_live_cli) {
+        return None;
+    }
+    if cli_reference_claims_live_authority(&context_lower) {
+        return Some("cli-authority");
+    }
+    None
+}
+
+fn shares_markdown_logical_record(left: &str, right: &str) -> bool {
+    let left = left.trim();
+    let right = right.trim();
+    if left.is_empty() || right.is_empty() {
+        return false;
+    }
+    if is_markdown_table_row(left) || is_markdown_table_row(right) {
+        return false;
+    }
+    if is_markdown_heading(left) || is_markdown_heading(right) {
+        return false;
+    }
+    if is_markdown_thematic_break(left) || is_markdown_thematic_break(right) {
+        return false;
+    }
+    if is_fenced_code_marker(left) || is_fenced_code_marker(right) {
+        return false;
+    }
+    if starts_markdown_list_item(left) && starts_markdown_list_item(right) {
+        return false;
+    }
+    if looks_like_front_matter_key(left) || looks_like_front_matter_key(right) {
+        return false;
+    }
+    true
+}
+
+fn is_markdown_table_row(line: &str) -> bool {
+    line.starts_with('|')
+}
+
+fn is_markdown_heading(line: &str) -> bool {
+    line.starts_with('#')
+}
+
+fn is_fenced_code_marker(line: &str) -> bool {
+    line.starts_with("```") || line.starts_with("~~~")
+}
+
+fn is_markdown_thematic_break(line: &str) -> bool {
+    matches!(line, "---" | "***" | "___")
+}
+
+fn starts_markdown_list_item(line: &str) -> bool {
+    line.starts_with("- ")
+        || line.starts_with("* ")
+        || line.split_once('.').is_some_and(|(prefix, suffix)| {
+            !prefix.is_empty()
+                && prefix.chars().all(|ch| ch.is_ascii_digit())
+                && suffix.starts_with(' ')
+        })
+}
+
+fn looks_like_front_matter_key(line: &str) -> bool {
+    let Some((key, _)) = line.split_once(':') else {
+        return false;
+    };
+    !key.is_empty()
+        && key
+            .chars()
+            .all(|ch| ch.is_ascii_lowercase() || ch.is_ascii_digit() || ch == '_')
+}
+
+fn mentions_oya_cli(lower: &str) -> bool {
+    [
+        "oya gate",
+        "oya gen",
+        "oya verify",
+        "oya check",
+        "oya-dev-cli",
+        "./bin/oya",
+        "bin/oya",
+        "cargo run -p oya-dev-cli",
+        "cargo run -q -p oya-dev-cli",
+    ]
+    .iter()
+    .any(|needle| lower.contains(needle))
+}
+
+fn cli_reference_is_explicit_non_authority(lower: &str) -> bool {
+    [
+        "bridge evidence only",
+        "bridge-only",
+        "bridge/local",
+        "legacy/local",
+        "local feedback",
+        "local/bridge",
+        "migration evidence",
+        "migration evidence only",
+        "migration wrapper",
+        "migration wrappers",
+        "never merge authority",
+        "not merge authority",
+        "cannot be merge",
+        "cannot be the merge",
+        "cannot be promotion",
+        "cannot be the promotion",
+        "never promotion authority",
+        "not promotion authority",
+        "provenance only",
+        "only as legacy",
+    ]
+    .iter()
+    .any(|needle| lower.contains(needle))
+}
+
+fn cli_reference_claims_live_authority(lower: &str) -> bool {
+    [
+        "merge authority",
+        "promotion authority",
+        "exit authority",
+        "protected-branch authority",
+        "required context",
+        "required status",
+        "require it before promotion",
+        "required before promotion",
+        "blocks merge",
+        "blocking invariant",
+        "gate of record",
+        "refuses merge",
+        "refuse merge",
+        "rejects merge",
+        "enforces",
+        "ci gate",
+        "ci lane",
+    ]
+    .iter()
+    .any(|needle| lower.contains(needle))
+}
+
+fn adr_is_live_for_cli_authority_scan(body: &str) -> bool {
+    let status = front_matter_field(body, "status")
+        .unwrap_or_default()
+        .to_ascii_lowercase();
+    !status.contains("superseded")
+        && !status.contains("retired")
+        && !status.contains("withdrawn")
+        && !front_matter_has_inline_or_block_list(body, "superseded_by")
+}
+
+fn adr_enforcement_status_is_blocking(body: &str) -> bool {
+    let status = front_matter_field(body, "enforcement_status")
+        .unwrap_or_default()
+        .to_ascii_lowercase();
+    status.contains("active") || status.contains("blocker") || status.contains("blocking")
+}
+
 /// Collect the GATE-4 enforcement surfaces from the live corpus: the governance kernel
 /// crates (claim "enforce" by name; wired only if a BUCK gate target exists), the
-/// governance lanes (diataxis-doc-class / prd-axis-coverage), and the ADR `verified_by`
-/// lines that route a blocking invariant through an `oya gate`/`oya gen` CLI call.
+/// governance lanes (diataxis-doc-class / prd-axis-coverage), and ADR lines that route a
+/// blocking invariant through an `oya gate`/`oya gen`/`oya verify`/`oya-dev-cli` CLI call.
 fn collect_enforcement_inputs(
     repo_root: &Path,
     cfg: &oya_ci_config_kernel::OyaCiConfig,
@@ -2536,8 +2907,9 @@ fn collect_enforcement_inputs(
 
     collect_review_authority_row(repo_root, &mut rows);
 
-    // (3) ADR `verified_by:` lines that name an `oya gate`/`oya gen` CLI invocation
-    // (ADR-0365's retired CLI authority). Each is a blocking invariant mapped to oya CLI.
+    // (3) ADR `verified_by:` lines and live-authority prose that name an `oya` CLI invocation
+    // (ADR-0365's retired CLI authority). Bridge/history/local-feedback mentions are evidence,
+    // not authority; live CLI-as-merge-authority claims remain blocking inventory rows.
     let decisions_dir = repo_root.join(&cfg.justification.adr_dir);
     if let Ok(entries) = std::fs::read_dir(&decisions_dir) {
         let mut files: Vec<PathBuf> = entries
@@ -2562,15 +2934,27 @@ fn collect_enforcement_inputs(
                 .map(|p| p.to_string_lossy().to_string())
                 .unwrap_or_else(|_| path.to_string_lossy().to_string());
             let body = read_text(&path);
-            let mut line_no = 0u64;
-            for line in body.lines() {
-                line_no += 1;
+            if !adr_is_live_for_cli_authority_scan(&body) {
+                continue;
+            }
+            let enforcement_status_is_blocking = adr_enforcement_status_is_blocking(&body);
+            let lines: Vec<&str> = body.lines().collect();
+            for (index, line) in lines.iter().enumerate() {
+                let line_no = index as u64 + 1;
                 let trimmed = line.trim();
-                if trimmed.starts_with("verified_by")
-                    && (trimmed.contains("oya gate") || trimmed.contains("oya gen"))
-                {
+                let previous = index
+                    .checked_sub(1)
+                    .and_then(|previous| lines.get(previous))
+                    .map_or("", |line| line.trim());
+                let next = lines.get(index + 1).map_or("", |line| line.trim());
+                if let Some(row_kind) = oya_cli_authority_row_kind(
+                    trimmed,
+                    previous,
+                    next,
+                    enforcement_status_is_blocking,
+                ) {
                     rows.push(EnforcementRow {
-                        id: format!("{adr}-verified_by-L{line_no}"),
+                        id: format!("{adr}-{row_kind}-L{line_no}"),
                         source_artifact: rel.clone(),
                         claims_enforced: true,
                         has_wired_buck2_target: false,
@@ -2637,6 +3021,36 @@ fn front_matter_id_array(body: &str, key: &str) -> Vec<String> {
         }
     }
     Vec::new()
+}
+
+fn front_matter_has_inline_or_block_list(body: &str, key: &str) -> bool {
+    let lines = front_matter_lines(body);
+    let key_prefix = format!("{key}:");
+    for (index, line) in lines.iter().enumerate() {
+        if let Some(rest) = line.strip_prefix(&key_prefix) {
+            let trimmed = rest.trim();
+            if let Some(inner) = trimmed.strip_prefix('[').and_then(|s| s.strip_suffix(']')) {
+                return inner
+                    .split(',')
+                    .any(|x| !x.trim().trim_matches('"').is_empty());
+            }
+            if trimmed.is_empty() {
+                return lines[index + 1..]
+                    .iter()
+                    .map(|line| line.trim())
+                    .take_while(|line| line.starts_with("- "))
+                    .any(|line| {
+                        !line
+                            .trim_start_matches("- ")
+                            .trim()
+                            .trim_matches('"')
+                            .is_empty()
+                    });
+            }
+            return true;
+        }
+    }
+    false
 }
 
 /// The lines inside the leading `---` front-matter block.

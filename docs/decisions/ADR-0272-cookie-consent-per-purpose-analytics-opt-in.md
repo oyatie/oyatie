@@ -82,18 +82,18 @@ purpose: >
   policy overlays so B2B tenants set their workforce policy.
 enforcement_status: blocker-on-keystone-merge
 enforced_by:
-  - oya gate validate cookie-consent-schema
-  - oya gate validate consent-purpose-taxonomy
-  - oya gate validate cmp-wcag-2-2-aa
-  - oya gate validate gpc-signal-honored
-  - oya gate validate no-pre-checked-opt-ins
-  - oya gate validate cookie-less-analytics-default
-  - oya gate validate first-party-cookie-only
-  - oya gate validate per-jurisdiction-overlay-strictest-wins
-  - oya gate validate consent-revocation-one-click
-  - oya gate validate consent-audit-chain-coverage
-  - oya gate validate tenant-policy-override-surface
-  - oya gate validate dark-pattern-lint
+  - cloud-ci/Rust gate packet cookie-consent-schema
+  - cloud-ci/Rust gate packet consent-purpose-taxonomy
+  - cloud-ci/Rust gate packet cmp-wcag-2-2-aa
+  - cloud-ci/Rust gate packet gpc-signal-honored
+  - cloud-ci/Rust gate packet no-pre-checked-opt-ins
+  - cloud-ci/Rust gate packet cookie-less-analytics-default
+  - cloud-ci/Rust gate packet first-party-cookie-only
+  - cloud-ci/Rust gate packet per-jurisdiction-overlay-strictest-wins
+  - cloud-ci/Rust gate packet consent-revocation-one-click
+  - cloud-ci/Rust gate packet consent-audit-chain-coverage
+  - cloud-ci/Rust gate packet tenant-policy-override-surface
+  - cloud-ci/Rust gate packet dark-pattern-lint
 ---
 
 # ADR-0272: Cookie Consent + Per-Purpose Analytics Opt-In
@@ -103,7 +103,7 @@ enforced_by:
 Proposed — 2026-05-20.
 
 Tier-1 privacy lockdown. This ADR is a BLOCKER class change: until the
-CMP substrate ships and the twelve enumerated `oya gate validate` lanes
+CMP substrate ships and the twelve enumerated `cloud-ci/Rust gate packet` lanes
 turn green, no oyatie web or mobile property may serve traffic to an
 end-user from a jurisdiction in scope (EU/EEA, UK, KR, KSA, US-CA,
 US-CO, US-CT, US-VA, US-UT, US-TX, US-IA, US-MT, US-IN, US-OR, US-DE,
@@ -596,7 +596,7 @@ include:
   shows it in others (consistent presentation, varying outcomes
   via D-7 overlay).
 
-This lint is enforced by `oya gate validate dark-pattern-lint` and
+This lint is enforced by `cloud-ci/Rust gate packet dark-pattern-lint` and
 is BLOCKER class.
 
 ### D-10: Global Privacy Control (GPC) signal honored per CCPA
@@ -977,7 +977,7 @@ implementation plans (IPs) cited in downstream PRs.
 7. `pack/uk-gdpr/cedar/consent.cedar` — UK GDPR + PECR rules.
 8. `pack/ch-revfadp/cedar/consent.cedar` — Swiss revFADP rules.
 
-### CI lanes (per `oya gate validate`)
+### CI lanes (per `cloud-ci/Rust gate packet`)
 
 The twelve enforcement gates enumerated in the frontmatter become
 twelve concrete CI lanes:
@@ -1833,7 +1833,7 @@ This ADR proceeds under the standard oyatie authority chain:
 - **Approvers**: council-architecture + council-privacy +
   council-legal (joint sign-off required per
   feedback_self_merge_via_contract_path).
-- **CI lanes**: the twelve enumerated `oya gate validate`
+- **CI lanes**: the twelve enumerated `cloud-ci/Rust gate packet`
   lanes must turn green before promotion past `dev`.
 - **Foundry pipeline**: this ADR enters via the
   Foundry pipeline per docs/AGENTS.md operating contract and
