@@ -96,6 +96,7 @@ rust_test(
         "//intelligence/core/kernel:intelligence-kernel",
         "third-party//:axum",
         "third-party//:bytes",
+        "third-party//:httpmock",
         "third-party//:reqwest",
         "third-party//:tokio",
         "third-party//:tower",
@@ -188,18 +189,3 @@ rust_test(
     ],
 )
 
-rust_test(
-    name = "intelligence-rest-d7-cross-tenant-ingress-forbid-test",
-    srcs = glob(["tests/d7_cross_tenant_ingress_forbid.rs"]),
-    crate = "intelligence_rest_d7_cross_tenant_ingress_forbid_test",
-    crate_root = "tests/d7_cross_tenant_ingress_forbid.rs",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":intelligence-rest",
-        "//intelligence/core/kernel:intelligence-kernel",
-        "third-party//:axum",
-        "third-party//:httpmock",
-        "third-party//:tokio",
-        "third-party//:tower",
-    ],
-)
