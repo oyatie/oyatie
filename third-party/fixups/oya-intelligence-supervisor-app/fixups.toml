@@ -1,4 +1,0 @@
-[buildscript]
-# Placeholder build script that only emits cargo:rerun-if-changed directives.
-# No codegen or native compilation yet (Wave 2 work).
-run = true

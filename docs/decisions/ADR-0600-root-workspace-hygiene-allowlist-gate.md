@@ -56,7 +56,7 @@ default-DENY posture and the legitimate root surface expressed as DATA.
 DATA, so it runs on ANY repo; oyatie's allowlist is just the pack. Oyatie's `allowed_root_files`
 admits exactly the legitimate root surface (`Cargo.toml`, `Cargo.lock`, `.buckconfig*`,
 `.buckroot`, `rust-toolchain.toml`, `rustfmt.toml`, `reindeer.toml`, `deny.toml`, `README*`,
-`LICENSE*`, `CLAUDE.md`, `AGENTS.md`, `HANDOFF.md`, `ADR-INVENTORY.tsv`, `goal.json`,
+`LICENSE*`, `CLAUDE.md`, `AGENTS.md`, `HANDOFF.md`,
 `oya-ci.toml`, `Makefile`, `Dockerfile.distroless`, `.gitignore`, `.gitattributes`,
 `.editorconfig`); `allowed_root_dirs` enumerates the ~47 real top-level directories.
 The removed scratch shapes are NOT allowlisted.

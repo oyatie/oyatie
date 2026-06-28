@@ -439,7 +439,7 @@ pub const LANE_INPUT_GLOBS: &[(&str, LaneInputs)] = &[
     ),
     (
         "masterplan-drift",
-        LaneInputs::Globs(&["docs/decisions/**", "specs/**", "goal.json"]),
+        LaneInputs::Globs(&["docs/decisions/**", "specs/**"]),
     ),
     // ── Supply-chain / licensing ─────────────────────────────────────────────
     ("supply-chain", LaneInputs::Global),
@@ -541,7 +541,7 @@ pub const LANE_INPUT_GLOBS: &[(&str, LaneInputs)] = &[
     ("pre-push-contract", LaneInputs::Global),
     ("codeowners-mirror", LaneInputs::Globs(&["CODEOWNERS", ".github/**", "crates/**", "microservices/**"])),
     ("stage0-prereqs", LaneInputs::Global),
-    ("master-plan-completion", LaneInputs::Globs(&["docs/decisions/**", "specs/**", "goal.json"])),
+    ("master-plan-completion", LaneInputs::Globs(&["docs/decisions/**", "specs/**"])),
     ("product-index", LaneInputs::Globs(&["docs/**", "specs/**", "registry/**"])),
     ("product-prd-json", LaneInputs::Globs(&["docs/**", "specs/**"])),
     ("raci-team-coverage", LaneInputs::Globs(&["docs/**", "registry/**"])),
