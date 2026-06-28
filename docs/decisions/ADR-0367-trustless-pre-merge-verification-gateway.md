@@ -40,6 +40,16 @@ purpose: Replace the traditional human-PR-review ceremony with a trustless pre-m
 ## Status
 Accepted — 2026-05-26.
 
+2026-06-28 amendment note: under ADR-0515 / ADR-0548, the live substrate for this
+gateway is cloud-ci / oya-ci merge admission, not a local CLI assertion. The
+automation-ratchet RED/GREEN corpus pins that review authority with
+specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-pre-merge-review-authority.json
+and
+specs/fixtures/phase0-automation-ratchet/tc-0.16-good-pre-merge-review-authority.json:
+green CI alone is insufficient; merge requires live durable review evidence or
+a machine-verifiable blocking review status with reviewer identity distinct from
+the author.
+
 ## Context
 The pull request was always a *proxy* for "someone independent verified this." For an agent fleet that
 goal is direct: **trustless verification.** The failure mode to design against is precise — *the
