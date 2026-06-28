@@ -1585,6 +1585,18 @@ mod tests {
             "---\nid: ADR-0108\nstatus: Accepted\n---\nLegacy `oya verify` output is bridge evidence only.\n`oya gate run-all` is now the required context.\n",
         )
         .expect("write bridge-adjacent live cli authority ADR");
+        fs::write(
+            decisions.join("ADR-0109-block-superseded-history-cli.md"),
+            "---
+id: ADR-0109
+status: Accepted
+superseded_by:
+  - ADR-0110
+---
+A migration period used local `oya verify` as the gate of record during transition.
+",
+        )
+        .expect("write block-superseded history cli ADR");
 
         let inputs = collect_enforcement_inputs(
             &root,
@@ -1628,20 +1640,19 @@ mod tests {
                 inputs.rows
             );
         }
-        assert!(
-            !inputs.rows.iter().any(|row| row
-                .source_artifact
-                .ends_with("ADR-0107-superseded-history-cli.md")),
-            "superseded ADR history must not become a live retired-CLI authority row: {:?}",
-            inputs.rows
-        );
-        assert!(
-            !inputs.rows.iter().any(|row| row
-                .source_artifact
-                .ends_with("ADR-0107-superseded-history-cli.md")),
-            "superseded ADR history must not become a new live CLI authority row: {:?}",
-            inputs.rows
-        );
+        for adr in [
+            "ADR-0107-superseded-history-cli.md",
+            "ADR-0109-block-superseded-history-cli.md",
+        ] {
+            assert!(
+                !inputs
+                    .rows
+                    .iter()
+                    .any(|row| row.source_artifact.ends_with(adr)),
+                "superseded ADR history must not become a live retired-CLI authority row: {:?}",
+                inputs.rows
+            );
+        }
 
         fs::remove_dir_all(root).expect("remove temp repo");
     }
@@ -2877,15 +2888,32 @@ fn tracked_paths_matching(scm_facts: &ScmFacts, pred: impl Fn(&str) -> bool) -> 
         .collect()
 }
 
-/// Parse a `key: [A, B, C]` front-matter array of ADR ids.
+/// Parse an ADR-id front-matter array in either inline (`key: [A, B]`) or
+/// block-list YAML form (`key:` followed by `- A` entries).
 fn front_matter_id_array(body: &str, key: &str) -> Vec<String> {
-    for line in front_matter_lines(body) {
-        if let Some(rest) = line.strip_prefix(&format!("{key}:")) {
+    let lines = front_matter_lines(body);
+    let key_prefix = format!("{key}:");
+    for (index, line) in lines.iter().enumerate() {
+        if let Some(rest) = line.strip_prefix(&key_prefix) {
             let trimmed = rest.trim();
             if let Some(inner) = trimmed.strip_prefix('[').and_then(|s| s.strip_suffix(']')) {
                 return inner
                     .split(',')
                     .map(|x| x.trim().trim_matches('"').to_owned())
+                    .filter(|x| !x.is_empty())
+                    .collect();
+            }
+            if trimmed.is_empty() {
+                return lines[index + 1..]
+                    .iter()
+                    .map(|line| line.trim())
+                    .take_while(|line| line.starts_with("- "))
+                    .map(|line| {
+                        line.trim_start_matches("- ")
+                            .trim()
+                            .trim_matches('"')
+                            .to_owned()
+                    })
                     .filter(|x| !x.is_empty())
                     .collect();
             }
