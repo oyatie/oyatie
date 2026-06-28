@@ -48,7 +48,7 @@ fn refresh_failed_transitions_seat_to_cooldown() {
     // After RefreshFailed, the seat should be in cooldown and not selectable.
     let gate = AllowAll;
     let agent = AgentId::new("agent-rf").unwrap();
-    let result = pool.select(&agent, &gate, now);
+    let result = pool.select(&TenantId::new("t-rf").unwrap(), &agent, &gate, now);
     assert!(
         result.is_err(),
         "seat should be in cooldown after RefreshFailed"
@@ -79,7 +79,7 @@ fn refresh_failed_increments_failure_count() {
     let agent = AgentId::new("agent-rf2").unwrap();
     // At `now + 120s * 3`, seat cooldown should have elapsed.
     let far_future = now + Duration::from_secs(600);
-    let result = pool.select(&agent, &gate, far_future);
+    let result = pool.select(&TenantId::new("t-rf2").unwrap(), &agent, &gate, far_future);
     assert!(result.is_ok(), "seat should recover after cooldown expires");
 }
 
@@ -105,7 +105,7 @@ fn refresh_failed_above_threshold_blacklists_seat() {
     let gate = AllowAll;
     let agent = AgentId::new("agent-rf3").unwrap();
     let far = now + Duration::from_secs(99999);
-    let result = pool.select(&agent, &gate, far);
+    let result = pool.select(&TenantId::new("t-rf3").unwrap(), &agent, &gate, far);
     assert!(
         result.is_err(),
         "seat should be permanently blacklisted after exceeding threshold"
@@ -132,12 +132,12 @@ fn refresh_failed_cooldown_reason_is_transient_failure() {
     // Immediately after: not eligible.
     let gate = AllowAll;
     let agent = AgentId::new("agent-rf4").unwrap();
-    assert!(pool.select(&agent, &gate, now).is_err());
+    assert!(pool.select(&TenantId::new("t-rf4").unwrap(), &agent, &gate, now).is_err());
 
     // After cooldown (61s): eligible again.
     let after = now + Duration::from_secs(61);
     assert!(
-        pool.select(&agent, &gate, after).is_ok(),
+        pool.select(&TenantId::new("t-rf4").unwrap(), &agent, &gate, after).is_ok(),
         "seat should recover after cooldown elapses"
     );
 }

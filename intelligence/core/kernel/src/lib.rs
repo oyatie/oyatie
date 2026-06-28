@@ -772,16 +772,18 @@ impl SubscriptionPool {
     /// lease can release itself. Pass the same `Arc` as `pool_ref`.
     pub fn lease(
         pool_ref: &Arc<Mutex<SubscriptionPool>>,
+        principal_tenant: &TenantId,
         agent_id: &AgentId,
         gate: &dyn AuthzGate,
         now: Instant,
     ) -> Result<SeatLease, SubscriptionPoolError> {
-        Self::lease_with_estimate(pool_ref, agent_id, gate, now, 1)
+        Self::lease_with_estimate(pool_ref, principal_tenant, agent_id, gate, now, 1)
     }
 
     /// Acquire a [`SeatLease`] and reserve the estimated provider quota units.
     pub fn lease_with_estimate(
         pool_ref: &Arc<Mutex<SubscriptionPool>>,
+        principal_tenant: &TenantId,
         agent_id: &AgentId,
         gate: &dyn AuthzGate,
         now: Instant,
@@ -791,7 +793,7 @@ impl SubscriptionPool {
             let mut pool = pool_ref
                 .lock()
                 .map_err(|_| SubscriptionPoolError::NoEligibleSeat)?;
-            let sid = pool.select_excluding_leased(agent_id, gate, now, estimated_units)?;
+            let sid = pool.select_excluding_leased(principal_tenant, agent_id, gate, now, estimated_units)?;
             pool.reserve_lease(&sid, estimated_units)?;
             sid
         };
@@ -805,6 +807,7 @@ impl SubscriptionPool {
 
     pub fn lease_sticky_with_estimate(
         pool_ref: &Arc<Mutex<SubscriptionPool>>,
+        principal_tenant: &TenantId,
         agent_id: &AgentId,
         gate: &dyn AuthzGate,
         now: Instant,
@@ -825,12 +828,12 @@ impl SubscriptionPool {
                 .map(|binding| binding.seat_id.clone())
                 .filter(|seat_id| {
                     pool.is_selectable(seat_id, now, estimated_units, true)
-                        && pool.authz_allows(agent_id, gate).is_ok()
+                        && pool.authz_allows(principal_tenant, agent_id, gate).is_ok()
                 });
 
             let sid = match sticky_seat {
                 Some(seat_id) => seat_id,
-                None => pool.select_excluding_leased(agent_id, gate, now, estimated_units)?,
+                None => pool.select_excluding_leased(principal_tenant, agent_id, gate, now, estimated_units)?,
             };
             pool.reserve_lease(&sid, estimated_units)?;
             pool.sticky_bindings.insert(
@@ -893,32 +896,35 @@ impl SubscriptionPool {
     /// before any seat is returned. Forbid wins regardless of pool capacity.
     pub fn select(
         &mut self,
+        principal_tenant: &TenantId,
         agent_id: &AgentId,
         gate: &dyn AuthzGate,
         now: Instant,
     ) -> Result<SeatId, SubscriptionPoolError> {
-        self.select_with_estimate(agent_id, gate, now, 1)
+        self.select_with_estimate(principal_tenant, agent_id, gate, now, 1)
     }
 
     pub fn select_with_estimate(
         &mut self,
+        principal_tenant: &TenantId,
         agent_id: &AgentId,
         gate: &dyn AuthzGate,
         now: Instant,
         estimated_units: u64,
     ) -> Result<SeatId, SubscriptionPoolError> {
-        self.select_candidate(agent_id, gate, now, estimated_units, false)
+        self.select_candidate(principal_tenant, agent_id, gate, now, estimated_units, false)
     }
 
     fn select_candidate(
         &mut self,
+        principal_tenant: &TenantId,
         agent_id: &AgentId,
         gate: &dyn AuthzGate,
         now: Instant,
         estimated_units: u64,
         exclude_leased: bool,
     ) -> Result<SeatId, SubscriptionPoolError> {
-        self.authz_allows(agent_id, gate)?;
+        self.authz_allows(principal_tenant, agent_id, gate)?;
 
         if self.seats.is_empty() {
             return Err(SubscriptionPoolError::NoEligibleSeat);
@@ -1127,12 +1133,13 @@ impl SubscriptionPool {
     /// Like [`select`] but also excludes currently-leased seats.
     fn select_excluding_leased(
         &mut self,
+        principal_tenant: &TenantId,
         agent_id: &AgentId,
         gate: &dyn AuthzGate,
         now: Instant,
         estimated_units: u64,
     ) -> Result<SeatId, SubscriptionPoolError> {
-        self.select_candidate(agent_id, gate, now, estimated_units, true)
+        self.select_candidate(principal_tenant, agent_id, gate, now, estimated_units, true)
     }
 
     fn is_selectable(
@@ -1154,18 +1161,19 @@ impl SubscriptionPool {
 
     fn authz_allows(
         &self,
+        principal_tenant: &TenantId,
         agent_id: &AgentId,
         gate: &dyn AuthzGate,
     ) -> Result<(), SubscriptionPoolError> {
-        // ponytail: this kernel-level check stays self-referential
-        // (principal_tenant == resource_tenant == pool tenant) as redundant
-        // defense-in-depth. The cross-tenant decision now happens at the REST
-        // boundary (AUTH-005 / ADR-0573), which feeds the VERIFIED ingress
-        // principal tenant to the gate before leasing. Upgrade path: increment-2
-        // threads the verified principal into select/lease so this gate sees the
-        // real caller tenant instead of the pool's own tenant.
+        // ponytail: defense-in-depth backstop. `resource_tenant` stays the pool's
+        // own tenant; `principal_tenant` is now the server-VERIFIED caller tenant
+        // threaded down from the REST boundary (AUTH-005 / ADR-0573). When a
+        // tenant-B caller is mis-routed to a tenant-A pool, the gate sees
+        // principal=B vs resource=A and forbids — so a cross-tenant leak is
+        // caught here even if the pool keying above it is wrong. The PRIMARY
+        // barrier remains keying the pool by the verified principal tenant.
         let request = AuthzRequest {
-            principal_tenant: &self.tenant_id,
+            principal_tenant,
             principal_agent: agent_id,
             action: AuthzAction::SelectSeat,
             resource_tenant: &self.tenant_id,
@@ -1440,7 +1448,7 @@ mod tests {
         pool.add_seat(about_to_reset).expect("seat accepted");
 
         assert_eq!(
-            pool.select(&agent("agent-a"), &AllowGate, now)
+            pool.select(&tenant("tenant-a"), &agent("agent-a"), &AllowGate, now)
                 .expect("seat selected"),
             seat("seat-z-about-to-reset")
         );
@@ -1473,7 +1481,7 @@ mod tests {
 
         assert!(!pool.has_eligible_seat(now));
         assert_eq!(
-            pool.select(&agent("agent-a"), &AllowGate, now),
+            pool.select(&tenant("tenant-a"), &agent("agent-a"), &AllowGate, now),
             Err(SubscriptionPoolError::NoEligibleSeat)
         );
         assert!(pool.has_eligible_seat(now + Duration::from_secs(60 * 60 + 1)));
@@ -1509,8 +1517,15 @@ mod tests {
         }
 
         let first =
-            SubscriptionPool::lease_with_estimate(&pool, &agent("agent-a"), &AllowGate, now, 90)
-                .expect("first lease");
+            SubscriptionPool::lease_with_estimate(
+                &pool,
+                &tenant("tenant-a"),
+                &agent("agent-a"),
+                &AllowGate,
+                now,
+                90,
+            )
+            .expect("first lease");
         assert_eq!(first.seat_id(), &seat("seat-a"));
         assert_eq!(
             pool.lock()
@@ -1520,8 +1535,15 @@ mod tests {
         );
 
         let second =
-            SubscriptionPool::lease_with_estimate(&pool, &agent("agent-b"), &AllowGate, now, 90)
-                .expect("second lease");
+            SubscriptionPool::lease_with_estimate(
+                &pool,
+                &tenant("tenant-a"),
+                &agent("agent-b"),
+                &AllowGate,
+                now,
+                90,
+            )
+            .expect("second lease");
         assert_eq!(second.seat_id(), &seat("seat-b"));
 
         first
@@ -1574,8 +1596,15 @@ mod tests {
 
         assert!(pool.lock().expect("pool lock").has_eligible_seat(now));
         let lease =
-            SubscriptionPool::lease_with_estimate(&pool, &agent("agent-a"), &AllowGate, now, 10)
-                .expect("lease after reset");
+            SubscriptionPool::lease_with_estimate(
+                &pool,
+                &tenant("tenant-a"),
+                &agent("agent-a"),
+                &AllowGate,
+                now,
+                10,
+            )
+            .expect("lease after reset");
         lease
             .complete_with_usage(SeatOutcome::Ok, now, 10)
             .expect("complete after reset");
@@ -1586,7 +1615,7 @@ mod tests {
             Some(10)
         );
         assert_eq!(
-            locked.select_with_estimate(&agent("agent-a"), &AllowGate, now, 91),
+            locked.select_with_estimate(&tenant("tenant-a"), &agent("agent-a"), &AllowGate, now, 91),
             Err(SubscriptionPoolError::NoEligibleSeat)
         );
     }
@@ -1614,8 +1643,13 @@ mod tests {
         assert!(!pool.has_eligible_seat(now + Duration::from_secs(30)));
         assert!(pool.has_eligible_seat(now + Duration::from_secs(61)));
         assert_eq!(
-            pool.select(&agent("agent-a"), &AllowGate, now + Duration::from_secs(61))
-                .expect("seat selected after cooldown"),
+            pool.select(
+                &tenant("tenant-a"),
+                &agent("agent-a"),
+                &AllowGate,
+                now + Duration::from_secs(61),
+            )
+            .expect("seat selected after cooldown"),
             sid
         );
     }

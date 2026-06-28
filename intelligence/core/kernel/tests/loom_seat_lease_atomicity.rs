@@ -281,8 +281,14 @@ fn deterministic_3_task_lease_complete_loop() {
     for _ in 0..n_cycles {
         // Each "task" acquires and immediately releases, in sequence.
         for task_idx in 0..3usize {
-            let lease = SubscriptionPool::lease(&pool_ref, &agent, &gate, now)
-                .unwrap_or_else(|e| panic!("task {task_idx}: lease failed: {e:?}"));
+            let lease = SubscriptionPool::lease(
+                &pool_ref,
+                &TenantId::new("t-loom").unwrap(),
+                &agent,
+                &gate,
+                now,
+            )
+            .unwrap_or_else(|e| panic!("task {task_idx}: lease failed: {e:?}"));
             // Verify seat_count is unchanged (seats never removed from map).
             assert_eq!(pool_ref.lock().unwrap().seat_count(), 3);
             lease

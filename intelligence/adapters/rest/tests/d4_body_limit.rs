@@ -233,9 +233,15 @@ fn messages_request(bearer: Option<&str>) -> Request<Body> {
     b.body(Body::from(BODY)).unwrap()
 }
 
-/// Cross-tenant: bearer bound to tenant-b on the tenant-a service => 403.
+/// Cross-tenant: a bearer bound to tenant-b on a tenant-a-only instance mints
+/// the VERIFIED tenant-b principal. AUTH-005 increment-3 keys the data-plane
+/// pool by the verified principal tenant, so the request resolves to tenant-b's
+/// pool — which is absent here => 503. It can never reach tenant-a's seats.
+/// Cross-tenant isolation now lives in pool-keying + the kernel backstop (the
+/// 403 deny-wins path is covered by the mis-keyed-pool fixture in d2 / d7); the
+/// edge no longer 403s on the tenant axis (principal == resource == tenant-b).
 #[tokio::test]
-async fn cross_tenant_ingress_principal_is_forbidden() {
+async fn cross_tenant_ingress_principal_gets_no_seat() {
     let server = MockServer::start();
     let state =
         make_cross_tenant_state(server.base_url(), "tenant-a").with_ingress_authenticator(Arc::new(
@@ -243,7 +249,11 @@ async fn cross_tenant_ingress_principal_is_forbidden() {
         ));
     let app = build_router(Arc::new(state));
     let resp = app.oneshot(messages_request(Some("ingress-b"))).await.unwrap();
-    assert_eq!(resp.status(), StatusCode::FORBIDDEN, "cross-tenant must be 403");
+    assert_eq!(
+        resp.status(),
+        StatusCode::SERVICE_UNAVAILABLE,
+        "cross-tenant principal has no pool on this instance => 503, never a tenant-a seat"
+    );
 }
 
 /// Same-tenant: bearer bound to tenant-a on the tenant-a service => 200.

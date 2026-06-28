@@ -203,13 +203,16 @@ async fn upstream_429_maps_to_rate_limited_outcome() {
     let pool_ref = make_pool("t-429", "seat-429");
     let gate = struct_allow_gate();
     let agent = AgentId::new("agent-429").unwrap();
-    let lease = SubscriptionPool::lease(&pool_ref, &agent, &gate, Instant::now()).unwrap();
+    let lease =
+        SubscriptionPool::lease(&pool_ref, &TenantId::new("t-429").unwrap(), &agent, &gate, Instant::now())
+            .unwrap();
     let sid = lease.seat_id().clone();
     lease
         .complete(SeatOutcome::RateLimited429, Instant::now())
         .unwrap();
 
-    let result2 = SubscriptionPool::lease(&pool_ref, &agent, &gate, Instant::now());
+    let result2 =
+        SubscriptionPool::lease(&pool_ref, &TenantId::new("t-429").unwrap(), &agent, &gate, Instant::now());
     assert!(
         result2.is_err(),
         "seat {sid:?} should be in cooldown after RateLimited429"
@@ -254,12 +257,15 @@ async fn upstream_401_invalid_grant_causes_refresh_error() {
     let pool_ref = make_pool("t-401", "seat-401");
     let gate = struct_allow_gate();
     let agent = AgentId::new("agent-401").unwrap();
-    let lease = SubscriptionPool::lease(&pool_ref, &agent, &gate, Instant::now()).unwrap();
+    let lease =
+        SubscriptionPool::lease(&pool_ref, &TenantId::new("t-401").unwrap(), &agent, &gate, Instant::now())
+            .unwrap();
     lease
         .complete(SeatOutcome::RefreshFailed, Instant::now())
         .unwrap();
 
-    let result2 = SubscriptionPool::lease(&pool_ref, &agent, &gate, Instant::now());
+    let result2 =
+        SubscriptionPool::lease(&pool_ref, &TenantId::new("t-401").unwrap(), &agent, &gate, Instant::now());
     assert!(
         result2.is_err(),
         "seat should be in cooldown after RefreshFailed"

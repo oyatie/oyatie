@@ -86,8 +86,35 @@ fn same_tenant_select_consults_gate_and_succeeds() {
     let gate = PolicyEngineLikeGate::new();
     let now = Instant::now();
 
-    let picked = pool.select(&agent("agent-acme-1"), &gate, now).unwrap();
+    let picked = pool
+        .select(&tenant("t-acme"), &agent("agent-acme-1"), &gate, now)
+        .unwrap();
     assert_eq!(picked, seat("seat-a"));
+    assert!(gate.calls() >= 1, "kernel MUST consult the AuthzGate");
+}
+
+#[test]
+fn select_with_foreign_principal_tenant_is_forbidden_by_gate() {
+    // AUTH-005 increment-3 seam: the pool belongs to t-acme, but the caller's
+    // SERVER-VERIFIED principal tenant is t-evil. The kernel must forward that
+    // principal tenant to the gate (principal=t-evil vs resource=t-acme), and
+    // the deny-wins gate forbids. This is the defense-in-depth backstop that
+    // catches a cross-tenant pool mis-route. Un-writable before the
+    // `principal_tenant` arg existed — its compilation + Forbid prove the seam.
+    let mut pool = SubscriptionPool::new(
+        tenant("t-acme"),
+        Provider::Anthropic,
+        SelectionStrategy::RoundRobin,
+    );
+    pool.add_seat(make_sub("t-acme", "seat-a")).unwrap();
+
+    let gate = PolicyEngineLikeGate::new();
+    let now = Instant::now();
+
+    assert_eq!(
+        pool.select(&tenant("t-evil"), &agent("agent-evil-1"), &gate, now),
+        Err(SubscriptionPoolError::ForbiddenByPolicy)
+    );
     assert!(gate.calls() >= 1, "kernel MUST consult the AuthzGate");
 }
 
@@ -113,7 +140,7 @@ fn cross_tenant_pool_rejects_select_for_foreign_tenant_principal() {
 
     let now = Instant::now();
     assert_eq!(
-        pool.select(&agent("agent-evil-1"), &AlwaysForbid, now),
+        pool.select(&tenant("t-acme"), &agent("agent-evil-1"), &AlwaysForbid, now),
         Err(SubscriptionPoolError::ForbiddenByPolicy)
     );
 }
@@ -139,7 +166,7 @@ fn deny_wins_even_when_pool_has_capacity() {
     let now = Instant::now();
     // Even though 5 seats are Active, a Forbid decision wins.
     assert_eq!(
-        pool.select(&agent("agent-1"), &AlwaysForbid, now),
+        pool.select(&tenant("t-acme"), &agent("agent-1"), &AlwaysForbid, now),
         Err(SubscriptionPoolError::ForbiddenByPolicy)
     );
 }
