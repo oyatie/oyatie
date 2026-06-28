@@ -25,29 +25,32 @@ fn repo_root() -> PathBuf {
     panic!("failed to locate repo root from test current_dir");
 }
 
+fn producer_binary(root: &Path, producer_bin: Option<&str>) -> Result<PathBuf, String> {
+    let Some(bin) = producer_bin else {
+        return Err(
+            "FAIL-CLOSED: missing OYA_CI_PRODUCER_BIN; Cargo fallback is forbidden".to_owned(),
+        );
+    };
+    Ok(if Path::new(bin).is_absolute() {
+        PathBuf::from(bin)
+    } else {
+        root.join(bin)
+    })
+}
+
+#[test]
+fn producer_binary_env_is_required_for_hermetic_gate() {
+    let err = producer_binary(Path::new("/repo"), None)
+        .expect_err("missing OYA_CI_PRODUCER_BIN must fail closed");
+    assert!(err.contains("OYA_CI_PRODUCER_BIN"));
+}
+
 fn run_producer_face(root: &Path, face: &str) -> Value {
     let scm_facts = root
         .join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json");
-    let (mut command, run_description) = if let Ok(bin) = std::env::var("OYA_CI_PRODUCER_BIN") {
-        let bin = if Path::new(&bin).is_absolute() {
-            PathBuf::from(bin)
-        } else {
-            root.join(bin)
-        };
-        (Command::new(bin), "run producer binary")
-    } else {
-        let mut command =
-            Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_owned()));
-        command
-            .arg("run")
-            .arg("--quiet")
-            .arg("-p")
-            .arg("oya-cloud-ci-accounting-registry-app")
-            .arg("--");
-        (command, "cargo run oya-cloud-ci-accounting-registry-app")
-    };
-
-    let output = command
+    let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
+    let bin = producer_binary(root, producer_bin.as_deref()).unwrap_or_else(|e| panic!("{e}"));
+    let output = Command::new(bin)
         .arg("--repo-root")
         .arg(root)
         .arg("--scm-facts")
@@ -57,8 +60,7 @@ fn run_producer_face(root: &Path, face: &str) -> Value {
         .arg(face)
         .current_dir(root)
         .output()
-        .expect(run_description);
-
+        .expect("run producer binary");
     assert!(
         output.status.success(),
         "producer failed: {}",
@@ -116,7 +118,9 @@ fn synthetic_dead_unmarked_record_makes_the_gate_red() {
     let root = repo_root();
     let mut face = run_producer_face(&root, "catalog-liveness");
 
-    let rows = face["rows"].as_array_mut().expect("catalog-liveness face rows");
+    let rows = face["rows"]
+        .as_array_mut()
+        .expect("catalog-liveness face rows");
     rows.push(json!({
         "crate_id": "synthetic-dead-unmarked-cap",
         "source_path": "registry/catalog/synthetic-dead-unmarked-cap.yaml",
@@ -131,7 +135,11 @@ fn synthetic_dead_unmarked_record_makes_the_gate_red() {
         findings, verdict
     );
 
-    assert_eq!(verdict, Verdict::Red, "a synthetic dead-unmarked record must make the gate RED");
+    assert_eq!(
+        verdict,
+        Verdict::Red,
+        "a synthetic dead-unmarked record must make the gate RED"
+    );
     assert!(
         findings.iter().any(|f| {
             f.code == "catalog_record_no_live_crate_unmarked"
@@ -148,7 +156,9 @@ fn synthetic_dead_marked_record_keeps_the_gate_green() {
     let root = repo_root();
     let mut face = run_producer_face(&root, "catalog-liveness");
 
-    let rows = face["rows"].as_array_mut().expect("catalog-liveness face rows");
+    let rows = face["rows"]
+        .as_array_mut()
+        .expect("catalog-liveness face rows");
     rows.push(json!({
         "crate_id": "synthetic-dead-marked-cap",
         "source_path": "registry/catalog/synthetic-dead-marked-cap.yaml",

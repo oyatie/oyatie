@@ -26,6 +26,26 @@ fn repo_root() -> PathBuf {
     panic!("failed to locate repo root from test current_dir");
 }
 
+fn producer_binary(root: &Path, producer_bin: Option<&str>) -> Result<PathBuf, String> {
+    let Some(bin) = producer_bin else {
+        return Err(
+            "FAIL-CLOSED: missing OYA_CI_PRODUCER_BIN; Cargo fallback is forbidden".to_owned(),
+        );
+    };
+    Ok(if Path::new(bin).is_absolute() {
+        PathBuf::from(bin)
+    } else {
+        root.join(bin)
+    })
+}
+
+#[test]
+fn producer_binary_env_is_required_for_hermetic_gate() {
+    let err = producer_binary(Path::new("/repo"), None)
+        .expect_err("missing OYA_CI_PRODUCER_BIN must fail closed");
+    assert!(err.contains("OYA_CI_PRODUCER_BIN"));
+}
+
 fn fixture_dir() -> PathBuf {
     repo_root().join("specs/fixtures/cross-artifact-agreement")
 }
@@ -404,49 +424,25 @@ fn read_governed_citation_corpus(root: &Path) -> String {
     corpus
 }
 
-/// Run the producer to emit a single face to stdout, HERMETICALLY (no `env!("CARGO")`, the
-/// compile-time cargo-only macro that breaks the buck2 build). The producer binary is resolved
-/// at RUNTIME: under buck2 from `OYA_CI_PRODUCER_BIN` (the `$(exe ...)`-substituted built
-/// binary), else under cargo via the runtime `CARGO` env var. The producer reads the committed
-/// scm-facts face (a declared input); it never calls git.
+/// Run the producer to emit a single face to stdout, HERMETICALLY. The producer binary must be
+/// provided by `OYA_CI_PRODUCER_BIN`; missing env fails closed so tests cannot silently fall back to
+/// Cargo. The producer reads the materialized scm-facts face (a declared input); it never calls git.
 fn run_producer_face(root: &Path, face: &str) -> Value {
     let scm_facts = root
         .join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json");
-    let output = if let Ok(bin) = std::env::var("OYA_CI_PRODUCER_BIN") {
-        let bin = if Path::new(&bin).is_absolute() {
-            PathBuf::from(bin)
-        } else {
-            root.join(bin)
-        };
-        Command::new(bin)
-            .arg("--repo-root")
-            .arg(root)
-            .arg("--scm-facts")
-            .arg(&scm_facts)
-            .arg("--stdout")
-            .arg("--face")
-            .arg(face)
-            .current_dir(root)
-            .output()
-            .expect("run producer binary")
-    } else {
-        Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_owned()))
-            .arg("run")
-            .arg("--quiet")
-            .arg("-p")
-            .arg("oya-cloud-ci-accounting-registry-app")
-            .arg("--")
-            .arg("--repo-root")
-            .arg(root)
-            .arg("--scm-facts")
-            .arg(&scm_facts)
-            .arg("--stdout")
-            .arg("--face")
-            .arg(face)
-            .current_dir(root)
-            .output()
-            .expect("cargo run oya-cloud-ci-accounting-registry-app")
-    };
+    let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
+    let bin = producer_binary(root, producer_bin.as_deref()).unwrap_or_else(|e| panic!("{e}"));
+    let output = Command::new(bin)
+        .arg("--repo-root")
+        .arg(root)
+        .arg("--scm-facts")
+        .arg(&scm_facts)
+        .arg("--stdout")
+        .arg("--face")
+        .arg(face)
+        .current_dir(root)
+        .output()
+        .expect("run producer binary");
     assert!(
         output.status.success(),
         "producer failed: {}",
