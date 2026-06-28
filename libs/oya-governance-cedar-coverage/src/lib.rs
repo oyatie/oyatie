@@ -84,12 +84,12 @@ pub fn enforce_cedar_coverage(
     }
 
     let cedar_policy_files = cedar_policy_files(&repo_root)?;
-    let cedar_haystack = policy_haystack(&cedar_policy_files)?;
+    let cedar_actions = cedar_policy_actions(&cedar_policy_files)?;
     let mut endpoint_identifiers = BTreeSet::new();
 
     for endpoint in endpoints {
         endpoint_identifiers.insert(endpoint.identifier.clone());
-        if !identifier_has_policy_evidence(&cedar_haystack, &endpoint.identifier) {
+        if !identifier_has_policy_evidence(&cedar_actions, &endpoint.identifier) {
             findings.push(CoverageFinding {
                 kind: FindingKind::MissingCedarPolicy,
                 source_file: endpoint.source_file,
@@ -182,6 +182,96 @@ fn extract_proto_endpoints(path: &Path, raw: &str) -> ParsedEndpoints {
 }
 
 fn extract_openapi_like_endpoints(path: &Path, raw: &str) -> ParsedEndpoints {
+    match extract_openapi_value_endpoints(path, raw) {
+        Some(parsed) => parsed,
+        None if is_structured_openapi_file(path) => ParsedEndpoints {
+            endpoints: Vec::new(),
+            missing_identifier_findings: vec![missing_identifier(
+                path,
+                "parseable OpenAPI document with `paths`",
+            )],
+        },
+        None => extract_openapi_line_endpoints(path, raw),
+    }
+}
+
+fn extract_openapi_value_endpoints(path: &Path, raw: &str) -> Option<ParsedEndpoints> {
+    let value = serde_yaml::from_str::<serde_yaml::Value>(raw).ok()?;
+    let paths = mapping_field(&value, "paths")?;
+    let serde_yaml::Value::Mapping(paths) = paths else {
+        return Some(ParsedEndpoints {
+            endpoints: Vec::new(),
+            missing_identifier_findings: Vec::new(),
+        });
+    };
+
+    let mut endpoints = Vec::new();
+    let mut missing_identifier_findings = Vec::new();
+
+    for (api_path, methods) in paths {
+        let Some(api_path) = api_path.as_str().filter(|value| value.starts_with('/')) else {
+            continue;
+        };
+        let serde_yaml::Value::Mapping(methods) = methods else {
+            continue;
+        };
+        for (method, operation) in methods {
+            let Some(method) = method.as_str().filter(|value| is_http_method(value)) else {
+                continue;
+            };
+            if let Some(identifier) = mapping_string_field(operation, "operationId") {
+                endpoints.push(Endpoint {
+                    source_file: path.to_path_buf(),
+                    identifier,
+                });
+            } else {
+                missing_identifier_findings.push(missing_identifier(
+                    path,
+                    &format!("{} {}", method.to_uppercase(), api_path),
+                ));
+            }
+        }
+    }
+
+    Some(ParsedEndpoints {
+        endpoints,
+        missing_identifier_findings,
+    })
+}
+
+fn mapping_field<'a>(value: &'a serde_yaml::Value, field: &str) -> Option<&'a serde_yaml::Value> {
+    let serde_yaml::Value::Mapping(map) = value else {
+        return None;
+    };
+    map.get(&serde_yaml::Value::String(field.to_string()))
+}
+
+fn mapping_string_field(value: &serde_yaml::Value, field: &str) -> Option<String> {
+    mapping_field(value, field)
+        .and_then(serde_yaml::Value::as_str)
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(str::to_string)
+}
+
+fn is_http_method(value: &str) -> bool {
+    matches!(
+        value,
+        "get" | "put" | "post" | "delete" | "patch" | "head" | "options" | "trace"
+    )
+}
+
+fn is_structured_openapi_file(path: &Path) -> bool {
+    let file = path
+        .file_name()
+        .map(|value| value.to_string_lossy().to_ascii_lowercase())
+        .unwrap_or_default();
+    file.ends_with(".openapi.yaml")
+        || file.ends_with(".openapi.yml")
+        || file.ends_with(".openapi.json")
+}
+
+fn extract_openapi_line_endpoints(path: &Path, raw: &str) -> ParsedEndpoints {
     let mut endpoints = Vec::new();
     let mut missing_identifier_findings = Vec::new();
     let mut current_path: Option<String> = None;
@@ -298,12 +388,22 @@ fn cedar_policy_files(repo_root: &Path) -> anyhow::Result<Vec<PathBuf>> {
         }
         let path = entry.path();
 
-        if path.extension().and_then(|s| s.to_str()) == Some("cedar") {
+        if path.extension().and_then(|s| s.to_str()) == Some("cedar") && is_cedar_policy_file(path)
+        {
             out.push(path.to_path_buf());
         }
     }
     out.sort();
     Ok(out)
+}
+
+fn is_cedar_policy_file(path: &Path) -> bool {
+    path.components().any(|component| {
+        component
+            .as_os_str()
+            .to_string_lossy()
+            .eq_ignore_ascii_case("policies")
+    })
 }
 
 fn keeps_entry(entry: &DirEntry) -> bool {
@@ -329,19 +429,68 @@ fn is_public_api_file(path: &Path) -> bool {
         || file.ends_with(".proto")
 }
 
-fn policy_haystack(policy_files: &[PathBuf]) -> anyhow::Result<String> {
-    let mut haystack = String::new();
+fn cedar_policy_actions(policy_files: &[PathBuf]) -> anyhow::Result<BTreeSet<String>> {
+    let mut actions = BTreeSet::new();
     for path in policy_files {
-        haystack.push_str(&fs::read_to_string(path)?);
-        haystack.push('\n');
+        actions.extend(extract_cedar_action_literals(&fs::read_to_string(path)?));
     }
-    Ok(haystack)
+    Ok(actions)
 }
 
-fn identifier_has_policy_evidence(haystack: &str, identifier: &str) -> bool {
-    if haystack.contains(identifier) {
-        return true;
+fn extract_cedar_action_literals(raw: &str) -> BTreeSet<String> {
+    let mut actions = BTreeSet::new();
+    let code = strip_cedar_comments(raw);
+    let mut rest = code.as_str();
+    while let Some(start) = rest.find("Action::\"") {
+        rest = &rest[start + "Action::\"".len()..];
+        let Some(end) = rest.find('"') else {
+            break;
+        };
+        let action = &rest[..end];
+        if !action.is_empty() {
+            actions.insert(action.to_string());
+        }
+        rest = &rest[end + 1..];
     }
-    haystack.contains(&identifier.replace('-', "_"))
-        || haystack.contains(&identifier.replace('_', "-"))
+    actions
+}
+
+fn strip_cedar_comments(raw: &str) -> String {
+    let mut out = String::new();
+    let mut chars = raw.chars().peekable();
+    let mut in_block_comment = false;
+
+    while let Some(ch) = chars.next() {
+        if in_block_comment {
+            if ch == '*' && chars.peek() == Some(&'/') {
+                chars.next();
+                in_block_comment = false;
+            }
+            continue;
+        }
+
+        if ch == '/' && chars.peek() == Some(&'/') {
+            for next in chars.by_ref() {
+                if next == '\n' {
+                    out.push('\n');
+                    break;
+                }
+            }
+            continue;
+        }
+
+        if ch == '/' && chars.peek() == Some(&'*') {
+            chars.next();
+            in_block_comment = true;
+            continue;
+        }
+
+        out.push(ch);
+    }
+
+    out
+}
+
+fn identifier_has_policy_evidence(actions: &BTreeSet<String>, identifier: &str) -> bool {
+    actions.contains(identifier)
 }

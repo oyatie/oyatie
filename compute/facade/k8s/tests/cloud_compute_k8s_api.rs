@@ -25,6 +25,7 @@ use compute_k8s_api::{
 };
 
 const CLUSTER_ID: &str = "oya:cloud:region-home:ten_alpha:k8s:prod";
+const K8S_AUTHZ_EVALUATION_EPOCH_SECONDS: u64 = 1_700_099_500;
 
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudComputeK8sApiBoundaryContext {
     CloudComputeK8sApiBoundaryContext {
@@ -169,13 +170,12 @@ fn request(request_id: &str, idempotency_key: &str) -> CloudComputeK8sClusterCre
 fn trusted_create_verifier_for(
     request: &CloudComputeK8sClusterCreateApiRequest,
 ) -> CloudComputeK8sTrustedAuthorizationVerifier {
-    CloudComputeK8sTrustedAuthorizationVerifier::new().with_authorization_proof(
-        authorization_proof_for(
+    CloudComputeK8sTrustedAuthorizationVerifier::new(K8S_AUTHZ_EVALUATION_EPOCH_SECONDS)
+        .with_authorization_proof(authorization_proof_for(
             &request.principal.principal_id,
             CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE,
             &request.authorization.decision_id,
-        ),
-    )
+        ))
 }
 
 fn create_cloud_compute_k8s_cluster_from_api(
@@ -341,6 +341,7 @@ fn k8s_create_api_rejects_trusted_verifier_mismatches_before_ledger() {
         "surface",
         "decision",
         "expired",
+        "stale",
     ] {
         let mut catalog = CloudComputeCatalog::default();
         let mut ledger = CloudComputeK8sCreateIdempotencyLedger::default();
@@ -378,9 +379,14 @@ fn k8s_create_api_rejects_trusted_verifier_mismatches_before_ledger() {
                 proof.expires_at_epoch_seconds = proof.issued_at_epoch_seconds;
                 None
             }
+            "stale" => {
+                proof.expires_at_epoch_seconds = K8S_AUTHZ_EVALUATION_EPOCH_SECONDS;
+                None
+            }
             _ => unreachable!("test case is exhaustive"),
         };
-        let mut verifier = CloudComputeK8sTrustedAuthorizationVerifier::new();
+        let mut verifier =
+            CloudComputeK8sTrustedAuthorizationVerifier::new(K8S_AUTHZ_EVALUATION_EPOCH_SECONDS);
         if let Some(decision_id) = verifier_key {
             verifier.trust_authorization_proof_for_decision(decision_id, proof);
         } else {
@@ -415,6 +421,8 @@ fn k8s_create_api_ignores_caller_supplied_authorization_proof() {
         "req-compute-k8s-ignore-proof",
         "idem-compute-k8s-ignore-proof",
     );
+    request.authorization.tenant_id = "ten_forged".to_string();
+    request.authorization.principal_id = "sp_forged_compute".to_string();
     request.authorization.allowed_surfaces.clear();
     request.authorization.proof = Some(CloudComputeK8sApiAuthorizationProof {
         tenant_id: "ten_other".to_string(),
@@ -632,13 +640,12 @@ fn delete_request(
 fn trusted_delete_verifier_for(
     request: &CloudComputeK8sClusterDeleteApiRequest,
 ) -> CloudComputeK8sTrustedAuthorizationVerifier {
-    CloudComputeK8sTrustedAuthorizationVerifier::new().with_authorization_proof(
-        authorization_proof_for(
+    CloudComputeK8sTrustedAuthorizationVerifier::new(K8S_AUTHZ_EVALUATION_EPOCH_SECONDS)
+        .with_authorization_proof(authorization_proof_for(
             &request.principal.principal_id,
             CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE,
             &request.authorization.decision_id,
-        ),
-    )
+        ))
 }
 
 fn delete_cloud_compute_k8s_cluster_from_api(
@@ -864,6 +871,7 @@ fn k8s_delete_api_rejects_trusted_verifier_mismatches_before_ledger() {
         "surface",
         "decision",
         "expired",
+        "stale",
     ] {
         let (catalog, _) = catalog_with_cluster();
         let mut delete_ledger = CloudComputeK8sDeleteIdempotencyLedger::default();
@@ -901,9 +909,14 @@ fn k8s_delete_api_rejects_trusted_verifier_mismatches_before_ledger() {
                 proof.expires_at_epoch_seconds = proof.issued_at_epoch_seconds;
                 None
             }
+            "stale" => {
+                proof.expires_at_epoch_seconds = K8S_AUTHZ_EVALUATION_EPOCH_SECONDS;
+                None
+            }
             _ => unreachable!("test case is exhaustive"),
         };
-        let mut verifier = CloudComputeK8sTrustedAuthorizationVerifier::new();
+        let mut verifier =
+            CloudComputeK8sTrustedAuthorizationVerifier::new(K8S_AUTHZ_EVALUATION_EPOCH_SECONDS);
         if let Some(decision_id) = verifier_key {
             verifier.trust_authorization_proof_for_decision(decision_id, proof);
         } else {
@@ -934,6 +947,8 @@ fn k8s_delete_api_ignores_caller_supplied_authorization_proof() {
     let (catalog, _) = catalog_with_cluster();
     let mut delete_ledger = CloudComputeK8sDeleteIdempotencyLedger::default();
     let mut req = delete_request("req-del-ignore-proof", "idem-del-ignore-proof");
+    req.authorization.tenant_id = "ten_forged".to_string();
+    req.authorization.principal_id = "sp_forged_compute".to_string();
     req.authorization.allowed_surfaces.clear();
     req.authorization.proof = None;
     let verifier = trusted_delete_verifier_for(&req);

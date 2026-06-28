@@ -85,12 +85,12 @@ pub fn enforce_audit_event_emission(
     }
 
     let audit_evidence_files = audit_evidence_files(&repo_root, &endpoint_files)?;
-    let audit_haystack = audit_haystack(&audit_evidence_files)?;
+    let registered_audit_emitters = registered_audit_emitters(&audit_evidence_files)?;
     let mut mutating_endpoint_identifiers = BTreeSet::new();
 
     for endpoint in endpoints {
         mutating_endpoint_identifiers.insert(endpoint.identifier.clone());
-        if !identifier_has_audit_evidence(&audit_haystack, &endpoint.identifier) {
+        if !identifier_has_audit_evidence(&registered_audit_emitters, &endpoint.identifier) {
             findings.push(AuditFinding {
                 kind: FindingKind::MissingAuditEvent,
                 source_file: endpoint.source_file,
@@ -186,6 +186,64 @@ fn extract_proto_mutations(path: &Path, raw: &str) -> ParsedEndpoints {
 }
 
 fn extract_openapi_like_mutations(path: &Path, raw: &str) -> ParsedEndpoints {
+    match extract_openapi_value_mutations(path, raw) {
+        Some(parsed) => parsed,
+        None if is_structured_openapi_file(path) => ParsedEndpoints {
+            endpoints: Vec::new(),
+            missing_identifier_findings: vec![missing_identifier(
+                path,
+                "parseable OpenAPI document with `paths`",
+            )],
+        },
+        None => extract_openapi_line_mutations(path, raw),
+    }
+}
+
+fn extract_openapi_value_mutations(path: &Path, raw: &str) -> Option<ParsedEndpoints> {
+    let value = serde_yaml::from_str::<serde_yaml::Value>(raw).ok()?;
+    let paths = mapping_field(&value, "paths")?;
+    let serde_yaml::Value::Mapping(paths) = paths else {
+        return Some(ParsedEndpoints {
+            endpoints: Vec::new(),
+            missing_identifier_findings: Vec::new(),
+        });
+    };
+
+    let mut endpoints = Vec::new();
+    let mut missing_identifier_findings = Vec::new();
+
+    for (api_path, methods) in paths {
+        let Some(api_path) = api_path.as_str().filter(|value| value.starts_with('/')) else {
+            continue;
+        };
+        let serde_yaml::Value::Mapping(methods) = methods else {
+            continue;
+        };
+        for (method, operation) in methods {
+            let Some(method) = method.as_str().filter(|value| is_mutating_method(value)) else {
+                continue;
+            };
+            if let Some(identifier) = mapping_string_field(operation, "operationId") {
+                endpoints.push(Endpoint {
+                    source_file: path.to_path_buf(),
+                    identifier,
+                });
+            } else {
+                missing_identifier_findings.push(missing_identifier(
+                    path,
+                    &format!("{} {}", method.to_uppercase(), api_path),
+                ));
+            }
+        }
+    }
+
+    Some(ParsedEndpoints {
+        endpoints,
+        missing_identifier_findings,
+    })
+}
+
+fn extract_openapi_line_mutations(path: &Path, raw: &str) -> ParsedEndpoints {
     let mut endpoints = Vec::new();
     let mut missing_identifier_findings = Vec::new();
     let mut current_path: Option<String> = None;
@@ -272,9 +330,33 @@ fn scalar_value(trimmed: &str, key: &str) -> Option<String> {
     let value = rest.trim_matches('"').trim_matches('\'').trim();
     (!value.is_empty()).then(|| value.to_string())
 }
+fn mapping_field<'a>(value: &'a serde_yaml::Value, field: &str) -> Option<&'a serde_yaml::Value> {
+    let serde_yaml::Value::Mapping(map) = value else {
+        return None;
+    };
+    map.get(&serde_yaml::Value::String(field.to_string()))
+}
+
+fn mapping_string_field(value: &serde_yaml::Value, field: &str) -> Option<String> {
+    mapping_field(value, field)
+        .and_then(serde_yaml::Value::as_str)
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(str::to_string)
+}
 
 fn is_mutating_method(method: &str) -> bool {
     matches!(method, "post" | "put" | "patch" | "delete")
+}
+
+fn is_structured_openapi_file(path: &Path) -> bool {
+    let file = path
+        .file_name()
+        .map(|value| value.to_string_lossy().to_ascii_lowercase())
+        .unwrap_or_default();
+    file.ends_with(".openapi.yaml")
+        || file.ends_with(".openapi.yml")
+        || file.ends_with(".openapi.json")
 }
 
 fn is_mutating_identifier(identifier: &str) -> bool {
@@ -364,19 +446,58 @@ fn is_audit_evidence_candidate(path: &Path) -> bool {
         || file == "audit-chain.jsonl"
 }
 
-fn audit_haystack(evidence_files: &[PathBuf]) -> anyhow::Result<String> {
-    let mut haystack = String::new();
+fn registered_audit_emitters(evidence_files: &[PathBuf]) -> anyhow::Result<BTreeSet<String>> {
+    let mut emitters = BTreeSet::new();
     for path in evidence_files {
-        haystack.push_str(&fs::read_to_string(path)?);
-        haystack.push('\n');
+        let raw = fs::read_to_string(path)?;
+        if path.file_name().and_then(|name| name.to_str()) == Some("audit-chain.jsonl") {
+            for line in raw.lines().map(str::trim).filter(|line| !line.is_empty()) {
+                if let Ok(value) = serde_yaml::from_str::<serde_yaml::Value>(line) {
+                    collect_audit_emitters(&value, &mut emitters);
+                }
+            }
+        } else if let Ok(value) = serde_yaml::from_str::<serde_yaml::Value>(&raw) {
+            collect_audit_emitters(&value, &mut emitters);
+        }
     }
-    Ok(haystack)
+    Ok(emitters)
 }
 
-fn identifier_has_audit_evidence(haystack: &str, identifier: &str) -> bool {
-    if haystack.contains(identifier) {
-        return true;
+fn collect_audit_emitters(value: &serde_yaml::Value, emitters: &mut BTreeSet<String>) {
+    match value {
+        serde_yaml::Value::Mapping(map) => {
+            for (key, value) in map {
+                if let Some(key) = key.as_str()
+                    && is_audit_emitter_key(key)
+                    && let Some(emitter) = value.as_str().map(str::trim)
+                    && !emitter.is_empty()
+                {
+                    emitters.insert(emitter.to_string());
+                }
+                collect_audit_emitters(value, emitters);
+            }
+        }
+        serde_yaml::Value::Sequence(items) => {
+            for item in items {
+                collect_audit_emitters(item, emitters);
+            }
+        }
+        _ => {}
     }
-    haystack.contains(&identifier.replace('-', "_"))
-        || haystack.contains(&identifier.replace('_', "-"))
+}
+
+fn is_audit_emitter_key(key: &str) -> bool {
+    matches!(
+        key,
+        "emitted_by"
+            | "operationId"
+            | "operation_id"
+            | "endpoint_identifier"
+            | "mutating_endpoint"
+            | "registered_for"
+    )
+}
+
+fn identifier_has_audit_evidence(emitters: &BTreeSet<String>, identifier: &str) -> bool {
+    emitters.contains(identifier)
 }

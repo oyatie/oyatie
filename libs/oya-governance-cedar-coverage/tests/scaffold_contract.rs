@@ -96,6 +96,89 @@ paths:
     assert_eq!(outcome.cedar_policy_files.len(), 1);
     assert!(outcome.findings.is_empty(), "{outcome:?}");
 }
+#[test]
+fn accepts_openapi_json_endpoint_with_matching_cedar_policy() {
+    let root = temp_repo("openapi-json-policy");
+    write(
+        &root,
+        "contracts/openapi/widgets.openapi.json",
+        r#"{
+  "openapi": "3.0.0",
+  "paths": {
+    "/widgets": {
+      "post": {
+        "operationId": "CreateWidget"
+      }
+    }
+  }
+}"#,
+    );
+    write(
+        &root,
+        "policies/widgets.cedar",
+        r#"permit(principal, action == Action::"CreateWidget", resource);"#,
+    );
+
+    let outcome = enforce_cedar_coverage(&root).expect("check should run");
+
+    assert_eq!(outcome.status, EnforcementStatus::Passed);
+    assert_eq!(outcome.endpoint_identifiers, vec!["CreateWidget"]);
+    assert!(outcome.findings.is_empty(), "{outcome:?}");
+}
+#[test]
+fn rejects_malformed_openapi_json_instead_of_falling_back_to_empty_success() {
+    let root = temp_repo("malformed-openapi-json");
+    write(
+        &root,
+        "contracts/openapi/widgets.openapi.json",
+        r#"{"openapi":"3.0.0","paths":{"#,
+    );
+
+    let outcome = enforce_cedar_coverage(&root).expect("check should run");
+
+    assert_eq!(outcome.status, EnforcementStatus::Failed);
+    assert_eq!(
+        outcome.findings[0].kind,
+        FindingKind::MissingEndpointIdentifier
+    );
+}
+
+#[test]
+fn rejects_comment_or_superstring_cedar_policy_evidence() {
+    let root = temp_repo("cedar-comment-superstring");
+    write(
+        &root,
+        "contracts/openapi/widgets.openapi.yaml",
+        r#"openapi: 3.0.0
+paths:
+  /widgets:
+    post:
+      operationId: CreateWidget
+"#,
+    );
+    write(
+        &root,
+        "policies/widgets.cedar",
+        r#"// permit(principal, action == Action::"CreateWidget", resource);
+/* permit(principal, action == Action::"CreateWidget", resource); */
+permit(principal, action == Action::"CreateWidgetPreview", resource);"#,
+    );
+    write(
+        &root,
+        "scratch/not-policy.cedar",
+        r#"permit(principal, action == Action::"CreateWidget", resource);"#,
+    );
+
+    let outcome = enforce_cedar_coverage(&root).expect("check should run");
+
+    assert_eq!(outcome.status, EnforcementStatus::Failed);
+    assert_eq!(outcome.findings.len(), 1);
+    assert_eq!(outcome.findings[0].kind, FindingKind::MissingCedarPolicy);
+    assert_eq!(
+        outcome.findings[0].identifier.as_deref(),
+        Some("CreateWidget")
+    );
+}
 
 #[test]
 fn reports_uncovered_public_endpoint_identifiers() {

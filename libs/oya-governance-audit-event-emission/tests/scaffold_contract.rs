@@ -100,6 +100,96 @@ paths:
     assert_eq!(outcome.audit_evidence_files.len(), 1);
     assert!(outcome.findings.is_empty(), "{outcome:?}");
 }
+#[test]
+fn accepts_openapi_json_mutation_with_registered_audit_event() {
+    let root = temp_repo("openapi-json-registered");
+    write(
+        &root,
+        "contracts/openapi/widgets.openapi.json",
+        r#"{
+  "openapi": "3.0.0",
+  "paths": {
+    "/widgets": {
+      "post": {
+        "operationId": "CreateWidget"
+      }
+    }
+  }
+}"#,
+    );
+    write(
+        &root,
+        "registry/audit-events/widgets.yaml",
+        r#"events:
+  - class: widget.created
+    emitted_by: CreateWidget
+    adr: ADR-0263
+"#,
+    );
+
+    let outcome = enforce_audit_event_emission(&root).expect("check should run");
+
+    assert_eq!(outcome.status, EnforcementStatus::Passed);
+    assert_eq!(outcome.mutating_endpoint_identifiers, vec!["CreateWidget"]);
+    assert!(outcome.findings.is_empty(), "{outcome:?}");
+}
+#[test]
+fn rejects_malformed_openapi_json_instead_of_falling_back_to_empty_success() {
+    let root = temp_repo("malformed-openapi-json");
+    write(
+        &root,
+        "contracts/openapi/widgets.openapi.json",
+        r#"{"openapi":"3.0.0","paths":{"#,
+    );
+
+    let outcome = enforce_audit_event_emission(&root).expect("check should run");
+
+    assert_eq!(outcome.status, EnforcementStatus::Failed);
+    assert_eq!(
+        outcome.findings[0].kind,
+        FindingKind::MissingEndpointIdentifier
+    );
+}
+
+#[test]
+fn rejects_comment_or_superstring_audit_event_evidence() {
+    let root = temp_repo("comment-superstring-audit-event");
+    write(
+        &root,
+        "contracts/openapi/widgets.openapi.yaml",
+        r#"openapi: 3.0.0
+paths:
+  /widgets:
+    post:
+      operationId: CreateWidget
+"#,
+    );
+    write(
+        &root,
+        "registry/audit-events/widgets.yaml",
+        r#"events:
+  # emitted_by: CreateWidget
+  - class: widget.previewed
+    emitted_by: CreateWidgetPreview
+    adr: ADR-0263
+"#,
+    );
+    write(
+        &root,
+        "evidence/audit/prose.md",
+        "CreateWidget appears in prose but not as a structured registered emitter.",
+    );
+
+    let outcome = enforce_audit_event_emission(&root).expect("check should run");
+
+    assert_eq!(outcome.status, EnforcementStatus::Failed);
+    assert_eq!(outcome.findings.len(), 1);
+    assert_eq!(outcome.findings[0].kind, FindingKind::MissingAuditEvent);
+    assert_eq!(
+        outcome.findings[0].identifier.as_deref(),
+        Some("CreateWidget")
+    );
+}
 
 #[test]
 fn ignores_incidental_audit_named_files_without_registry_evidence() {

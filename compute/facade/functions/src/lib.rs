@@ -139,14 +139,27 @@ pub struct CloudComputeFunctionsTrustedAuthorizationDecision {
     pub valid_until_epoch_seconds: u64, // data_class: INTERNAL_ONLY
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudComputeFunctionsAuthorizationVerifier {
+    evaluation_epoch_seconds: u64, // data_class: INTERNAL_ONLY
     decisions: BTreeMap<String, CloudComputeFunctionsTrustedAuthorizationDecision>, // data_class: INTERNAL_ONLY
 }
 
+impl Default for CloudComputeFunctionsAuthorizationVerifier {
+    fn default() -> Self {
+        Self {
+            evaluation_epoch_seconds: u64::MAX,
+            decisions: BTreeMap::new(),
+        }
+    }
+}
+
 impl CloudComputeFunctionsAuthorizationVerifier {
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(evaluation_epoch_seconds: u64) -> Self {
+        Self {
+            evaluation_epoch_seconds,
+            decisions: BTreeMap::new(),
+        }
     }
 
     pub fn trust_decision(&mut self, decision: CloudComputeFunctionsTrustedAuthorizationDecision) {
@@ -167,7 +180,6 @@ impl CloudComputeFunctionsAuthorizationVerifier {
         principal: &CloudComputeFunctionsApiPrincipal,
         decision_id: &str,
         surface: &str,
-        requested_at_epoch_seconds: u64,
     ) -> Result<(), CloudComputeFunctionsApiError> {
         if decision_id.trim().is_empty() {
             return Err(CloudComputeFunctionsApiError::EmptyAuthorizationDecisionId);
@@ -193,7 +205,7 @@ impl CloudComputeFunctionsAuthorizationVerifier {
         }
         if decision.surface != surface
             || decision.decision != CloudComputeFunctionsAuthorizationDecision::Allow
-            || decision.valid_until_epoch_seconds <= requested_at_epoch_seconds
+            || decision.valid_until_epoch_seconds <= self.evaluation_epoch_seconds
         {
             return Err(CloudComputeFunctionsApiError::AuthorizationDenied {
                 surface: surface.to_string(),
@@ -654,7 +666,6 @@ fn validate_cloud_compute_functions_invoke_request_with_optional_authorization_v
         &request.principal,
         &request.authorization.decision_id,
         CLOUD_COMPUTE_FUNCTIONS_INVOKE_SURFACE,
-        request.body.requested_at_epoch_seconds,
     )?;
     Ok(resource_id)
 }
@@ -834,14 +845,13 @@ fn validate_authorization(
     principal: &CloudComputeFunctionsApiPrincipal,
     decision_id: &str,
     surface: &str,
-    requested_at_epoch_seconds: u64,
 ) -> Result<(), CloudComputeFunctionsApiError> {
     if decision_id.trim().is_empty() {
         return Err(CloudComputeFunctionsApiError::EmptyAuthorizationDecisionId);
     }
     let verifier = authorization_verifier
         .ok_or(CloudComputeFunctionsApiError::AuthorizationVerifierMissing)?;
-    verifier.verify(principal, decision_id, surface, requested_at_epoch_seconds)
+    verifier.verify(principal, decision_id, surface)
 }
 
 fn function_invoke_input(

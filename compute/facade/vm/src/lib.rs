@@ -855,18 +855,6 @@ fn validate_authorization(
     if authorization.decision_id.trim().is_empty() {
         return Err(CloudComputeVmApiError::EmptyAuthorizationDecisionId);
     }
-    if authorization.tenant_id != principal.tenant_id {
-        return Err(CloudComputeVmApiError::AuthorizationTenantMismatch {
-            authorization_tenant_id: authorization.tenant_id.clone(),
-            principal_tenant_id: principal.tenant_id.clone(),
-        });
-    }
-    if authorization.principal_id != principal.principal_id {
-        return Err(CloudComputeVmApiError::AuthorizationPrincipalMismatch {
-            authorization_principal_id: authorization.principal_id.clone(),
-            principal_id: principal.principal_id.clone(),
-        });
-    }
     validate_authorization_proof(
         principal,
         &authorization.decision_id,
