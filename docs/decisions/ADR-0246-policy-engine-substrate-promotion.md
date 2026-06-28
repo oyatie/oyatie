@@ -80,11 +80,11 @@ purpose: >
   products can compose them without coupling to upstream BC churn.
 enforcement_status: advisory-until-policy-engine-substrate-lands
 enforced_by:
-  - oya gate validate policy-engine-substrate-promoted
-  - oya gate validate cedar-coverage
-  - oya gate validate no-policy-in-code
-  - oya gate validate cedar-fragment-signature
-  - oya gate validate cedar-default-deny-coverage
+  - cloud-ci/Rust gate packet policy-engine-substrate-promoted
+  - cloud-ci/Rust gate packet cedar-coverage
+  - cloud-ci/Rust gate packet no-policy-in-code
+  - cloud-ci/Rust gate packet cedar-fragment-signature
+  - cloud-ci/Rust gate packet cedar-default-deny-coverage
 ---
 
 # ADR-0246: Policy-Engine Substrate Promotion
@@ -1152,10 +1152,10 @@ paths for one minor version per ADR-0211 no-silent-regression
 doctrine; sweep PR removes them after sunset.
 
 **Amendment 6 — CI lane references.** PRD-ontology line 215 currently
-lists `oya gate validate cedar-coverage --microservice ontology`.
+lists `cloud-ci/Rust gate packet cedar-coverage --microservice ontology`.
 Post-amendment, this lane is removed from Ontology's required-green
 set; it moves to the policy-engine µservice's required-green set as
-`oya gate validate cedar-coverage` (no `--microservice` argument; the
+`cloud-ci/Rust gate packet cedar-coverage` (no `--microservice` argument; the
 lane scans the entire portfolio).
 
 **Amendment 7 — Related ADRs table.** PRD-ontology line ~370 currently
@@ -1665,12 +1665,12 @@ under the `policy-engine` µservice:
 - [ ] Hot-reload propagation p99 < 5s measured under load in `tests/load/hot_reload_propagation.rs`.
 - [ ] Hot-path evaluate p99 < 1ms at 10k QPS per cell in `tests/load/evaluate_p99.rs`.
 - [ ] Cold-path evaluate p99 < 50ms.
-- [ ] `oya gate validate cedar-coverage` reports ≥ 95% coverage portfolio-wide (bootstrap target; goal 100% by post-keystone +90 days).
-- [ ] `oya gate validate cedar-fragment-signature` succeeds for all published fragments.
-- [ ] `oya gate validate cedar-default-deny-coverage` reports every permit has a corresponding default-deny.
-- [ ] `oya gate validate cedar-tenant-fragment-restriction` succeeds for all tenant-scoped fragments.
-- [ ] `oya gate validate policy-engine-substrate-coherence` exits 0 (verifies flat layout + crate redistribution + bootstrap-genesis schema).
-- [ ] `oya gate validate no-policy-in-code` reports zero in-code policy decisions in pilot µservice `microservices/tenancy/`.
+- [ ] `cloud-ci/Rust gate packet cedar-coverage` reports ≥ 95% coverage portfolio-wide (bootstrap target; goal 100% by post-keystone +90 days).
+- [ ] `cloud-ci/Rust gate packet cedar-fragment-signature` succeeds for all published fragments.
+- [ ] `cloud-ci/Rust gate packet cedar-default-deny-coverage` reports every permit has a corresponding default-deny.
+- [ ] `cloud-ci/Rust gate packet cedar-tenant-fragment-restriction` succeeds for all tenant-scoped fragments.
+- [ ] `cloud-ci/Rust gate packet policy-engine-substrate-coherence` exits 0 (verifies flat layout + crate redistribution + bootstrap-genesis schema).
+- [ ] `cloud-ci/Rust gate packet no-policy-in-code` reports zero in-code policy decisions in pilot µservice `microservices/tenancy/`.
 - [ ] Ontology PRD amendment per §D-9 is merged and `cedar-fragment-coverage` BC tombstone marker is in place.
 - [ ] `oya-ontology-agent-gateway-*` → `oya-ontology-tool-call-ingress-*` rename ChangeSet landed.
 - [ ] CI lane rename ChangeSet (`oya-governance-fitness-cedar-*` → `oya-governance-cedar-*`) landed.

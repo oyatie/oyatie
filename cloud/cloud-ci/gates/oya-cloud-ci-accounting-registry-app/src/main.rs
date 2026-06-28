@@ -1597,6 +1597,30 @@ A migration period used local `oya verify` as the gate of record during transiti
 ",
         )
         .expect("write block-superseded history cli ADR");
+        fs::write(
+            decisions.join("ADR-0110-adjacent-table-rows.md"),
+            "---
+id: ADR-0110
+status: Accepted
+---
+| Surface | Notes |
+| --- | --- |
+| Validator crate | Exposed via `oya check active-artifact-contract` while integration is pending. |
+| CI lane | Enforces the contract at PR time. |
+",
+        )
+        .expect("write adjacent table rows ADR");
+        fs::write(
+            decisions.join("ADR-0111-adjacent-list-items.md"),
+            "---
+id: ADR-0111
+status: Accepted
+---
+1. **Enforcement** — CI lane that BLOCKS PRs on violation.
+2. **Verification** — Rust checker crate exposing `oya check <name>` for local verification.
+",
+        )
+        .expect("write adjacent list items ADR");
 
         let inputs = collect_enforcement_inputs(
             &root,
@@ -1643,6 +1667,8 @@ A migration period used local `oya verify` as the gate of record during transiti
         for adr in [
             "ADR-0107-superseded-history-cli.md",
             "ADR-0109-block-superseded-history-cli.md",
+            "ADR-0110-adjacent-table-rows.md",
+            "ADR-0111-adjacent-list-items.md",
         ] {
             assert!(
                 !inputs
@@ -2617,24 +2643,34 @@ fn oya_cli_authority_row_kind(
     let line_lower = trimmed.to_ascii_lowercase();
     let previous_lower = previous.to_ascii_lowercase();
     let next_lower = next.to_ascii_lowercase();
-    let context_lower = format!("{previous_lower} {line_lower} {next_lower}");
-    if !mentions_oya_cli(&context_lower) {
-        return None;
-    }
+    let previous_shares_record = shares_markdown_logical_record(previous, trimmed);
+    let next_shares_record = shares_markdown_logical_record(trimmed, next);
+    let context_lower = format!(
+        "{} {line_lower} {}",
+        if previous_shares_record {
+            previous_lower.as_str()
+        } else {
+            ""
+        },
+        if next_shares_record {
+            next_lower.as_str()
+        } else {
+            ""
+        }
+    );
     let line_mentions_cli = mentions_oya_cli(&line_lower);
-    let line_claims_authority = cli_reference_claims_live_authority(&line_lower);
-    let adjacent_live_cli = [previous_lower.as_str(), next_lower.as_str()]
-        .iter()
-        .any(|line| mentions_oya_cli(line) && !cli_reference_is_explicit_non_authority(line));
-    if !line_mentions_cli && !(line_claims_authority && adjacent_live_cli) {
+    let context_mentions_cli = mentions_oya_cli(&context_lower);
+    if !context_mentions_cli {
         return None;
     }
-    let verified_by_context = context_lower.contains("verified_by:");
-    let enforced_by_context = context_lower.contains("enforced_by:");
+
     let line_is_explicit_non_authority = cli_reference_is_explicit_non_authority(&line_lower);
-    let adjacent_is_explicit_non_authority = [previous_lower.as_str(), next_lower.as_str()]
-        .iter()
-        .any(|line| cli_reference_is_explicit_non_authority(line));
+    let adjacent_is_explicit_non_authority = [
+        (previous_shares_record, previous_lower.as_str()),
+        (next_shares_record, next_lower.as_str()),
+    ]
+    .iter()
+    .any(|(shares_record, line)| *shares_record && cli_reference_is_explicit_non_authority(line));
     if line_is_explicit_non_authority
         || (line_mentions_cli
             && adjacent_is_explicit_non_authority
@@ -2642,16 +2678,98 @@ fn oya_cli_authority_row_kind(
     {
         return None;
     }
-    if verified_by_context {
+
+    let current_is_yaml_list_item = trimmed.starts_with("- ");
+    let verified_by_context = line_lower.contains("verified_by:")
+        || (line_mentions_cli && current_is_yaml_list_item && previous_lower == "verified_by:");
+    let enforced_by_context = line_lower.contains("enforced_by:")
+        || (line_mentions_cli && current_is_yaml_list_item && previous_lower == "enforced_by:");
+    if line_mentions_cli && verified_by_context {
         return Some("verified_by");
     }
-    if enforcement_status_is_blocking && enforced_by_context {
+    if line_mentions_cli && enforcement_status_is_blocking && enforced_by_context {
         return Some("enforced_by");
+    }
+
+    let line_claims_authority = cli_reference_claims_live_authority(&line_lower);
+    let adjacent_live_cli = [
+        (previous_shares_record, previous_lower.as_str()),
+        (next_shares_record, next_lower.as_str()),
+    ]
+    .iter()
+    .any(|(shares_record, line)| {
+        *shares_record && mentions_oya_cli(line) && !cli_reference_is_explicit_non_authority(line)
+    });
+    if !line_mentions_cli && !(line_claims_authority && adjacent_live_cli) {
+        return None;
     }
     if cli_reference_claims_live_authority(&context_lower) {
         return Some("cli-authority");
     }
     None
+}
+
+fn shares_markdown_logical_record(left: &str, right: &str) -> bool {
+    let left = left.trim();
+    let right = right.trim();
+    if left.is_empty() || right.is_empty() {
+        return false;
+    }
+    if is_markdown_table_row(left) || is_markdown_table_row(right) {
+        return false;
+    }
+    if is_markdown_heading(left) || is_markdown_heading(right) {
+        return false;
+    }
+    if is_markdown_thematic_break(left) || is_markdown_thematic_break(right) {
+        return false;
+    }
+    if is_fenced_code_marker(left) || is_fenced_code_marker(right) {
+        return false;
+    }
+    if starts_markdown_list_item(left) && starts_markdown_list_item(right) {
+        return false;
+    }
+    if looks_like_front_matter_key(left) || looks_like_front_matter_key(right) {
+        return false;
+    }
+    true
+}
+
+fn is_markdown_table_row(line: &str) -> bool {
+    line.starts_with('|')
+}
+
+fn is_markdown_heading(line: &str) -> bool {
+    line.starts_with('#')
+}
+
+fn is_fenced_code_marker(line: &str) -> bool {
+    line.starts_with("```") || line.starts_with("~~~")
+}
+
+fn is_markdown_thematic_break(line: &str) -> bool {
+    matches!(line, "---" | "***" | "___")
+}
+
+fn starts_markdown_list_item(line: &str) -> bool {
+    line.starts_with("- ")
+        || line.starts_with("* ")
+        || line.split_once('.').is_some_and(|(prefix, suffix)| {
+            !prefix.is_empty()
+                && prefix.chars().all(|ch| ch.is_ascii_digit())
+                && suffix.starts_with(' ')
+        })
+}
+
+fn looks_like_front_matter_key(line: &str) -> bool {
+    let Some((key, _)) = line.split_once(':') else {
+        return false;
+    };
+    !key.is_empty()
+        && key
+            .chars()
+            .all(|ch| ch.is_ascii_lowercase() || ch.is_ascii_digit() || ch == '_')
 }
 
 fn mentions_oya_cli(lower: &str) -> bool {

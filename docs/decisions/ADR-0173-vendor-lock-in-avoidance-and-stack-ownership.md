@@ -85,7 +85,7 @@ satisfies all four of:
 
 A vendor cannot be adopted by accident: any PR that introduces a
 Tier II dependency without satisfying (1)..(4) is blocked by the
-`oya gate validate vendor-lockin-discipline` lane.
+`cloud-ci/Rust gate packet vendor-lockin-discipline` lane.
 
 ### Three-tier vendor classification
 
@@ -254,7 +254,7 @@ header for the authoritative version):
 
 ### CI lane enforcement
 
-The new lane `oya gate validate vendor-lockin-discipline` (crate
+The new lane `cloud-ci/Rust gate packet vendor-lockin-discipline` (crate
 `oya-check-vendor-lockin-discipline`) enforces:
 
 - Every entry in `registry/vendor-lockin-phaseout/index.json` parses
@@ -268,7 +268,7 @@ The new lane `oya gate validate vendor-lockin-discipline` (crate
 - Every Tier III entry has an explicit refusal rationale.
 - Every Tier I entry has a steward / license declared.
 
-The lane is wired into `oya gate run-all` and pre-push so vendor
+The lane is wired into `oya-ci-required` and pre-push so vendor
 discipline cannot regress silently.
 
 ## Alternatives considered
@@ -316,7 +316,7 @@ future vendor adoption to follow the same structural pattern.
 1. Every Tier II vendor adoption is surfaced under audit via the
    phase-out registry — no silent capture.
 2. The seam-and-multi-impl rule is mechanically enforced by the new
-   `oya gate validate vendor-lockin-discipline` lane.
+   `cloud-ci/Rust gate packet vendor-lockin-discipline` lane.
 3. Phase-out readiness is a first-class artifact, so the platform
    knows which seam to retire first when in-house substrate matures.
 4. Compliance with the platform's stack-ownership goal is auditable
@@ -367,7 +367,7 @@ future vendor adoption to follow the same structural pattern.
 | --- | --- | --- | --- |
 | W0 | Author this ADR + populate `registry/vendor-lockin-phaseout/index.json` with current vendor inventory (30+ entries) | axis-governance | 2026-05-18 |
 | W0 | Stand up `oya-check-vendor-lockin-discipline` crate + tests + dev-cli gate dispatch | axis-foundry | 2026-05-18 |
-| W0 | Wire gate into `oya gate run-all` aggregator | axis-foundry | 2026-05-18 |
+| W0 | Wire gate into `oya-ci-required` aggregator | axis-foundry | 2026-05-18 |
 | W1 | Add `External Dependencies` section to each µservice PRD that depends on a Tier II vendor (foundry, observability, cloud-secrets, etc.) | per-µservice owner | 2026-05-25 |
 | W2 | First quarterly phase-out review — confirm readiness gates have not stalled | axis-governance | 2026-08-18 |
 | W3 | Anthropic API phase-out begins when foundry-runtime achieves the readiness gate | axis-foundry | signal-driven readiness gate |

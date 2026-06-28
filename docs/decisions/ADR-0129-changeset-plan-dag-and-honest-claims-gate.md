@@ -18,7 +18,7 @@ related_specs:
 version: 1.0.0
 purpose: Bind existing ImplementationPlan IDs as canonical ChangeSet identities and require a repository scanner that blocks deferred active claims plus invalid plan graph edges.
 enforcement_status: active
-enforced_by: oya gate validate honest-claims
+enforced_by: cloud-ci/Rust gate packet honest-claims
 ---
 
 # ADR-0129: ChangeSet Plan DAG and Honest Claims Gate
@@ -28,7 +28,7 @@ enforced_by: oya gate validate honest-claims
 Accepted - 2026-05-17.
 
 This ADR is accepted because the enforcement slice lands together: an I/O-free
-validator crate, a real `oya gate validate honest-claims` CLI entrypoint, fixture
+validator crate, a real `cloud-ci/Rust gate packet honest-claims`, fixture
 integration tests, a pull-request workflow, branch-protection registration, and
 quality-lane catalog wiring.
 
@@ -65,7 +65,7 @@ The validator treats these fields as the exact ChangeSet graph contract:
 | `serializes_with_changesets` | optional | Peer IDs that must not merge independently. Edges must be symmetric. |
 | `writes_global_artifacts` | optional | Append-only or shared artifacts that need an ordering or serialization edge when multiple ChangeSets write them. |
 
-`oya gate validate honest-claims` now checks:
+`cloud-ci/Rust gate packet honest-claims` now checks:
 
 - authoritative docs/specs/ADRs for lines that combine active or required claims
   with deferred-delivery wording without an explicit advisory boundary;
@@ -120,8 +120,8 @@ detect drift.
 
 ```
 cargo test -p oya-check-honest-claims
-cargo test -p oya-dev-cli honest_claims_gate --test gate_cli
-cargo run -p oya-dev-cli -- gate validate honest-claims
-cargo run -p oya-dev-cli -- gate validate quality-lanes
-cargo run -p oya-dev-cli -- gate validate protection-context-match
+cloud-ci/Rust regression packet honest_claims_gate
+cloud-ci/Rust gate packet honest-claims
+cloud-ci/Rust gate packet quality-lanes
+cloud-ci/Rust gate packet protection-context-match
 ```

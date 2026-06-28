@@ -99,13 +99,13 @@ purpose: >
   is honored per the active compliance pack overlay.
 enforcement_status: advisory-until-2026-08-15-blocker-thereafter
 enforced_by:
-  - oya gate validate whistleblower-channel-sealed-sender-envelope
-  - oya gate validate whistleblower-channel-tor-friendly-ingress
-  - oya gate validate whistleblower-channel-metadata-minimization
-  - oya gate validate whistleblower-channel-pseudonymity-scope
-  - oya gate validate whistleblower-channel-cedar-fragment-present
-  - oya gate validate whistleblower-channel-audit-event-class
-  - oya gate validate whistleblower-channel-per-pack-reporter-privilege
+  - cloud-ci/Rust gate packet whistleblower-channel-sealed-sender-envelope
+  - cloud-ci/Rust gate packet whistleblower-channel-tor-friendly-ingress
+  - cloud-ci/Rust gate packet whistleblower-channel-metadata-minimization
+  - cloud-ci/Rust gate packet whistleblower-channel-pseudonymity-scope
+  - cloud-ci/Rust gate packet whistleblower-channel-cedar-fragment-present
+  - cloud-ci/Rust gate packet whistleblower-channel-audit-event-class
+  - cloud-ci/Rust gate packet whistleblower-channel-per-pack-reporter-privilege
 naming_justifications:
   - name: oya-shared-whistleblower-channel
     layer: layer_5_shared_substrate

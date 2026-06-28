@@ -151,7 +151,7 @@ Each sovereign pack declares `air_gap: true|false` in its pack manifest. When tr
 ### Operational
 
 1. Per-pack overlay declared in `microservices/cloud-k8s/iac/kustomize/components/air-gap-{ksa,kr-fsc,...}/`.
-2. CI lane `oya gate validate air-gap-overlay` enforces (a) air-gap packs reference no external host in any `ServiceEntry` / `NetworkPolicy egress`, (b) image references are rewritten to in-cell Harbor, (c) `foundry-providers` external LLM clients are absent from air-gap pack image build.
+2. CI lane `cloud-ci/Rust gate packet air-gap-overlay` enforces (a) air-gap packs reference no external host in any `ServiceEntry` / `NetworkPolicy egress`, (b) image references are rewritten to in-cell Harbor, (c) `foundry-providers` external LLM clients are absent from air-gap pack image build.
 3. `microservices/cloud-k8s/PRD.md` and `microservices/cloud-secrets/PRD.md` updated with air-gap variant section (Companion).
 4. Per-pack compliance attestation document at `microservices/governance/catalog/pack-{name}-air-gap-attestation.md`.
 5. Pre-flight image mirror job templated at `microservices/cloud-iac/iac/helm/harbor-mirror/`.

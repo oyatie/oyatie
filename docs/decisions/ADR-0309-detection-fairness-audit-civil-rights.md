@@ -100,14 +100,14 @@ purpose: >
   serves production traffic.
 enforcement_status: advisory-until-2026-09-15-blocker-thereafter
 enforced_by:
-  - oya gate validate detection-fairness-proxy-feature-prohibition
-  - oya gate validate detection-fairness-per-class-tpr-fpr-equity
-  - oya gate validate detection-fairness-disparate-impact-4-5ths-rule
-  - oya gate validate detection-fairness-explainability-floor
-  - oya gate validate detection-fairness-per-jurisdiction-variant-coverage
-  - oya gate validate detection-fairness-eu-ai-act-art-5-social-scoring-forbidden
-  - oya gate validate detection-fairness-kr-fcpa-art-30-financial-protected-class-forbidden
-  - oya gate validate detection-fairness-quarterly-cadence-public-notice
+  - cloud-ci/Rust gate packet detection-fairness-proxy-feature-prohibition
+  - cloud-ci/Rust gate packet detection-fairness-per-class-tpr-fpr-equity
+  - cloud-ci/Rust gate packet detection-fairness-disparate-impact-4-5ths-rule
+  - cloud-ci/Rust gate packet detection-fairness-explainability-floor
+  - cloud-ci/Rust gate packet detection-fairness-per-jurisdiction-variant-coverage
+  - cloud-ci/Rust gate packet detection-fairness-eu-ai-act-art-5-social-scoring-forbidden
+  - cloud-ci/Rust gate packet detection-fairness-kr-fcpa-art-30-financial-protected-class-forbidden
+  - cloud-ci/Rust gate packet detection-fairness-quarterly-cadence-public-notice
 naming_justifications:
   - name: oya-shared-fairness-audit
     layer: layer_5_shared_substrate

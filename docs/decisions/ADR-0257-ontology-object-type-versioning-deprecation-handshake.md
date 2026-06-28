@@ -82,14 +82,14 @@ purpose: >
   Hyperscaler-grade.
 enforcement_status: advisory-until-schema-revision-lands
 enforced_by:
-  - oya gate validate schema-revision-present
-  - oya gate validate schema-revision-semver
-  - oya gate validate consumer-pin-declared
-  - oya gate validate deprecation-handshake-shape
-  - oya gate validate tombstone-grace-period
-  - oya gate validate schema-evolution-event-emitted
-  - oya gate validate schema-revision-cedar-gate
-  - oya gate validate dual-write-window-respected
+  - cloud-ci/Rust gate packet schema-revision-present
+  - cloud-ci/Rust gate packet schema-revision-semver
+  - cloud-ci/Rust gate packet consumer-pin-declared
+  - cloud-ci/Rust gate packet deprecation-handshake-shape
+  - cloud-ci/Rust gate packet tombstone-grace-period
+  - cloud-ci/Rust gate packet schema-evolution-event-emitted
+  - cloud-ci/Rust gate packet schema-revision-cedar-gate
+  - cloud-ci/Rust gate packet dual-write-window-respected
 ---
 
 # ADR-0257: Ontology Object-Type Versioning + Deprecation Handshake
@@ -117,7 +117,7 @@ accepted in text now; the CI lanes promoting to BLOCKER require:
 2. At least one consumer microservice (initially `microservices/iam/`
    per its `User` Object Type consumption) declares
    `requires_schema_revision` in its manifest and the
-   `oya gate validate consumer-pin-declared` lane reports green for
+   `cloud-ci/Rust gate packet consumer-pin-declared` lane reports green for
    that consumer.
 3. The `ObjectTypeSchemaEvolved` event is emitted via the Workflow
    Engine outbox (per ADR-0050) and consumed by at least one
@@ -467,7 +467,7 @@ fall into three classes:
    - Changing a Link Type's cardinality or traversal direction.
 
 **Mechanical enforcement.** The CI lane
-`oya gate validate schema-revision-semver` runs a buf-style breaking-
+`cloud-ci/Rust gate packet schema-revision-semver` runs a buf-style breaking-
 change checker over the diff between the previous and proposed
 schema. The checker is implemented in
 `crates/oya-ontology-object-type-registry-domain` and inherits the
@@ -628,7 +628,7 @@ consumer's manifest at request time (cached in Valkey, 5s TTL) and:
 
 **Default pin.** If a consumer omits `requires_schema_revision` for
 an Object Type it reads, the CI lane
-`oya gate validate consumer-pin-declared` blocks the consumer's PR.
+`cloud-ci/Rust gate packet consumer-pin-declared` blocks the consumer's PR.
 There is no implicit default; pinning is mandatory.
 
 **Range tightness recommendation.** Consumers SHOULD pin to a major-
@@ -909,7 +909,7 @@ This ratchets the HIPAA-pack-active tenants forward to `>=3.0.0` for
 the `User` Object Type even before the rest of the platform tombstones
 2.x.
 
-**Coverage CI lane.** `oya gate validate cedar-coverage` (per
+**Coverage CI lane.** `cloud-ci/Rust gate packet cedar-coverage` (per
 ADR-0243) verifies that every Object Type has the baseline fragment
 above and, if any compliance pack applies, the per-pack overlay
 fragment.
@@ -1312,7 +1312,7 @@ sidecar.
    consumers.
 4. **CI lane count grows.** Eight new validators (per the
    `enforced_by` list in frontmatter). Mitigated by piggy-backing on
-   the existing `oya gate validate` infrastructure.
+   the existing `cloud-ci/Rust gate packet` infrastructure.
 5. **Pre-release identifiers complicate range matching.** Consumers
    forget that `>=2.0.0` does not match `2.0.0-rc.1`. Mitigated by
    documentation + IDE warning when a range looks suspicious.
@@ -1444,14 +1444,14 @@ If the section is empty (no Ontology reads), the manifest declares
 
 | Lane | Check |
 |---|---|
-| `oya gate validate schema-revision-present` | Every `ObjectTypeSchema` registered carries `schema_revision` (non-NULL) |
-| `oya gate validate schema-revision-semver` | `schema_revision` parses as strict SemVer 2.0.0; MAJOR bumps carry deprecation handshake; MINOR bumps pass the buf-style additive-only diff checker |
-| `oya gate validate consumer-pin-declared` | Every consumer microservice manifest declares `ontology_dependencies` (possibly `[]`); every Ontology read in code corresponds to a manifest pin |
-| `oya gate validate deprecation-handshake-shape` | Every DEPRECATED revision has: `replacement_revision` set, `grace_period_ends_at_hlc` set, `breaking_changes_json` non-empty, `migration_notes_url` reachable, signed by producer microservice key |
-| `oya gate validate tombstone-grace-period` | TOMBSTONED transitions only after >= 12 months elapsed AND all pinned consumers acknowledged AND ops-compliance signoff present |
-| `oya gate validate schema-evolution-event-emitted` | Every state transition in `schema_revision_registry` has a corresponding `ObjectTypeSchemaEvolved` event in the outbox |
-| `oya gate validate schema-revision-cedar-gate` | Every Object Type has a baseline Cedar fragment in `microservices/policy-engine/fragments/baseline/ontology-schema-revision-<object-type>.cedar`; every active compliance pack has an overlay fragment if the pack declares restrictions |
-| `oya gate validate dual-write-window-respected` | During DEPRECATED phase, every entity-store write produces both new-schema and old-schema rows; the back-projection function is registered and idempotent |
+| `cloud-ci/Rust gate packet schema-revision-present` | Every `ObjectTypeSchema` registered carries `schema_revision` (non-NULL) |
+| `cloud-ci/Rust gate packet schema-revision-semver` | `schema_revision` parses as strict SemVer 2.0.0; MAJOR bumps carry deprecation handshake; MINOR bumps pass the buf-style additive-only diff checker |
+| `cloud-ci/Rust gate packet consumer-pin-declared` | Every consumer microservice manifest declares `ontology_dependencies` (possibly `[]`); every Ontology read in code corresponds to a manifest pin |
+| `cloud-ci/Rust gate packet deprecation-handshake-shape` | Every DEPRECATED revision has: `replacement_revision` set, `grace_period_ends_at_hlc` set, `breaking_changes_json` non-empty, `migration_notes_url` reachable, signed by producer microservice key |
+| `cloud-ci/Rust gate packet tombstone-grace-period` | TOMBSTONED transitions only after >= 12 months elapsed AND all pinned consumers acknowledged AND ops-compliance signoff present |
+| `cloud-ci/Rust gate packet schema-evolution-event-emitted` | Every state transition in `schema_revision_registry` has a corresponding `ObjectTypeSchemaEvolved` event in the outbox |
+| `cloud-ci/Rust gate packet schema-revision-cedar-gate` | Every Object Type has a baseline Cedar fragment in `microservices/policy-engine/fragments/baseline/ontology-schema-revision-<object-type>.cedar`; every active compliance pack has an overlay fragment if the pack declares restrictions |
+| `cloud-ci/Rust gate packet dual-write-window-respected` | During DEPRECATED phase, every entity-store write produces both new-schema and old-schema rows; the back-projection function is registered and idempotent |
 
 ### Integration test matrix
 
@@ -1706,19 +1706,19 @@ shape.
 
 The PR triggers the validation lanes per §Verification:
 
-- `oya gate validate schema-revision-present` -- green
+- `cloud-ci/Rust gate packet schema-revision-present` -- green
   (`schema_revision: 2.5.0` declared).
-- `oya gate validate schema-revision-semver` -- green
+- `cloud-ci/Rust gate packet schema-revision-semver` -- green
   (`2.5.0` is a valid SemVer; diff vs `2.4.1` shows only one
   additive optional property; the buf-style breaking-change checker
   classifies this as MINOR; no handshake required).
-- `oya gate validate consumer-pin-declared` -- green
+- `cloud-ci/Rust gate packet consumer-pin-declared` -- green
   (all consumer manifests have explicit pins).
-- `oya gate validate schema-revision-cedar-gate` -- green
+- `cloud-ci/Rust gate packet schema-revision-cedar-gate` -- green
   (the baseline fragment `microservices/policy-engine/fragments/baseline/ontology-schema-revision-User.cedar`
   exists; new property carries the same `data_class` as siblings, no
   pack overlay update required).
-- `oya gate validate schema-evolution-event-emitted` -- green
+- `cloud-ci/Rust gate packet schema-evolution-event-emitted` -- green
   (the migration runner will emit `MinorBumped` on deploy; PR-time
   check is that the emission code path exists).
 
@@ -1805,7 +1805,7 @@ propagation + audit + Cedar enforcement automatically.
 If the same PR had instead changed `User.email: String -> Email`
 (narrowing), the buf-style diff checker would classify it as MAJOR,
 the PR would be blocked at the
-`oya gate validate schema-revision-semver` lane, and the engineer
+`cloud-ci/Rust gate packet schema-revision-semver` lane, and the engineer
 (or autonomous agent) would need to submit a deprecation handshake
 PR instead, which:
 

@@ -98,13 +98,13 @@ purpose: >
   controls their audit visibility; tenant admin cannot stalk."
 enforcement_status: advisory-until-2026-08-15-blocker-thereafter
 enforced_by:
-  - oya gate validate survivor-safety-shelter-mode-cedar-fragment-present
-  - oya gate validate survivor-safety-audit-visibility-survivor-only
-  - oya gate validate survivor-safety-no-sms-mfa-fallback
-  - oya gate validate survivor-safety-shared-device-detection
-  - oya gate validate survivor-safety-escape-plan-template-present
-  - oya gate validate survivor-safety-unilateral-lockout-power
-  - oya gate validate survivor-safety-stalkerware-pattern-detection
+  - cloud-ci/Rust gate packet survivor-safety-shelter-mode-cedar-fragment-present
+  - cloud-ci/Rust gate packet survivor-safety-audit-visibility-survivor-only
+  - cloud-ci/Rust gate packet survivor-safety-no-sms-mfa-fallback
+  - cloud-ci/Rust gate packet survivor-safety-shared-device-detection
+  - cloud-ci/Rust gate packet survivor-safety-escape-plan-template-present
+  - cloud-ci/Rust gate packet survivor-safety-unilateral-lockout-power
+  - cloud-ci/Rust gate packet survivor-safety-stalkerware-pattern-detection
 naming_justifications:
   - name: oya-shared-survivor-safety
     layer: layer_5_shared_substrate

@@ -84,11 +84,11 @@ purpose: >
   documentation-rigor.md §3.2.5 row 23.
 enforcement_status: advisory-until-2026-10-15-blocker-thereafter
 enforced_by:
-  - oya gate validate cross-jurisdiction-data-residency-hardstop
-  - oya gate validate cross-jurisdiction-pack-precedence-graph
-  - oya gate validate cross-jurisdiction-multi-pack-alignment
-  - oya gate validate cross-jurisdiction-transparency-report-coverage
-  - oya gate validate cross-jurisdiction-conflict-audit-emission
+  - cloud-ci/Rust gate packet cross-jurisdiction-data-residency-hardstop
+  - cloud-ci/Rust gate packet cross-jurisdiction-pack-precedence-graph
+  - cloud-ci/Rust gate packet cross-jurisdiction-multi-pack-alignment
+  - cloud-ci/Rust gate packet cross-jurisdiction-transparency-report-coverage
+  - cloud-ci/Rust gate packet cross-jurisdiction-conflict-audit-emission
 naming_justifications:
   - name: oya-shared-jurisdiction-conflict
     layer: layer_5_shared_substrate

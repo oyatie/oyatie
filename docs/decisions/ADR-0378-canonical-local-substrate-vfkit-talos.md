@@ -20,7 +20,7 @@ deliverables:
   - id: ADR-0378-D1
     description: "Standardize the local developer/CI substrate on vfkit + Talos Linux (immutable, API-driven, no-SSH; upstream Kubernetes v1.36.1 + Cilium CNI) and RETIRE colima (Lima VM running k3s/docker). One substrate, production-fidelity, dogfood-correct per oyatie-dogfood-tenancy. Records the founder decision; no product code in this lane."
     exit_criteria: "docs/decisions/ADR-0378-*.md names vfkit+Talos as the single canonical local substrate, names colima as retired, and states the upstream-k8s-parity rationale; the ADR index lists ADR-0378 as Accepted."
-    verified_by: "cargo run -p oya-dev-cli -- gate validate adr-index"
+    verified_by: "cloud-ci/Rust gate packet adr-index"
   - id: ADR-0378-D2
     description: "Canonicalize cluster access: config home ~/.oya/talos-local/ (talosconfig/kubeconfig/controlplane.yaml); kube context admin@oya-local merged into ~/.kube/config as the DEFAULT so kubectl targets the Talos cluster (not the near-empty colima context that previously caused wrong-cluster checks). Manage the single node directly via talosctl."
     exit_criteria: "kubectl config current-context resolves to admin@oya-local and `kubectl get pods -n oya-ci-jenkins` shows the running Jenkins pod; ~/.oya/talos-local/ holds the canonical configs."
@@ -32,7 +32,7 @@ deliverables:
   - id: ADR-0378-D4
     description: "Future-work leg (named, not built here): close the CI loop on this substrate — GitHub push -> cloud-ci pipeline -> commit-status back -> gated merge — which retires the temporary GitHub admin-merge seam (ADR-0363). Tracked as the CI-webhook + ed25519 lane."
     exit_criteria: "the ADR names CI-loop closure (GitHub->cloud-ci commit-status) as the deliverable that retires the admin-merge seam, with a follow-on lane reference."
-    verified_by: "cargo run -p oya-dev-cli -- gate validate adr-index"
+    verified_by: "cloud-ci/Rust gate packet adr-index"
 purpose: >
   Standardize the LOCAL developer/CI substrate on vfkit + Talos Linux — the same
   immutable, API-driven, upstream-Kubernetes OS Oyatie operates and ships per
