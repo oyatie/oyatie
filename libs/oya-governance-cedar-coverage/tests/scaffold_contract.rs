@@ -53,7 +53,10 @@ paths:
     assert_eq!(outcome.endpoint_identifiers, vec!["ListWidgets"]);
     assert_eq!(outcome.findings.len(), 1);
     assert_eq!(outcome.findings[0].kind, FindingKind::MissingCedarPolicy);
-    assert_eq!(outcome.findings[0].identifier.as_deref(), Some("ListWidgets"));
+    assert_eq!(
+        outcome.findings[0].identifier.as_deref(),
+        Some("ListWidgets")
+    );
 }
 
 #[test]

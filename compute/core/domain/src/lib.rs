@@ -11,14 +11,14 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use iam_cloud_domain::IamRoleId;
-use network_domain::SecurityGroupId;
 use cell_region::{AzCode, CellId, RegionCode};
 use compute_resource::{
     CloudResourceError, FunctionRuntime, InstanceFlavor, K8sFlavor, ResourceId, ResourceKind,
 };
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use iam_cloud_domain::IamRoleId;
+use network_domain::SecurityGroupId;
 use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const COMPUTE_SCHEMA_VERSION: u32 = 1;
 pub const MAX_FUNCTION_COLD_START_BUDGET_MS: u32 = 1_000;
@@ -286,14 +286,14 @@ pub struct FunctionDeployment {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct FunctionInvocationRequest {
-    pub invocation_id: String,           // data_class: INTERNAL_ONLY
-    pub tenant_id: String,               // data_class: INTERNAL_ONLY
-    pub function_id: String,             // data_class: INTERNAL_ONLY
-    pub region: String,                  // data_class: PUBLIC
-    pub payload_data_class: DataClass,   // data_class: INTERNAL_ONLY
-    pub idempotency_key: String,         // data_class: INTERNAL_ONLY
+    pub invocation_id: String,               // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                   // data_class: INTERNAL_ONLY
+    pub function_id: String,                 // data_class: INTERNAL_ONLY
+    pub region: String,                      // data_class: PUBLIC
+    pub payload_data_class: DataClass,       // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,             // data_class: INTERNAL_ONLY
     pub current_concurrent_invocations: u32, // data_class: INTERNAL_ONLY
-    pub requested_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+    pub requested_at_epoch_seconds: u64,     // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

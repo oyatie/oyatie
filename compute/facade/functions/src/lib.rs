@@ -120,13 +120,13 @@ pub struct CloudComputeFunctionsApiAuthorization {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudComputeFunctionsInvokeRequest {
-    pub invocation_id: String,           // data_class: INTERNAL_ONLY
-    pub tenant_id: String,               // data_class: INTERNAL_ONLY
-    pub function_id: String,             // data_class: INTERNAL_ONLY
-    pub region: String,                  // data_class: PUBLIC
-    pub payload_data_class: String,      // data_class: INTERNAL_ONLY
+    pub invocation_id: String,               // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                   // data_class: INTERNAL_ONLY
+    pub function_id: String,                 // data_class: INTERNAL_ONLY
+    pub region: String,                      // data_class: PUBLIC
+    pub payload_data_class: String,          // data_class: INTERNAL_ONLY
     pub current_concurrent_invocations: u32, // data_class: INTERNAL_ONLY
-    pub requested_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+    pub requested_at_epoch_seconds: u64,     // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

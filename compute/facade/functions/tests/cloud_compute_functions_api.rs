@@ -14,8 +14,8 @@ use compute_functions_api::{
     CloudComputeFunctionsInvokeRequest, invoke, invoke_cloud_compute_function_from_api,
 };
 use compute_resource::FunctionRuntime;
-use oya_data_boundary_kernel::DataClass;
 use network_residency::ResidencyClass;
+use oya_data_boundary_kernel::DataClass;
 
 const FUNCTION_ID: &str = "oya:cloud:region-home:ten_alpha:function:image-resize";
 const DIGEST: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -456,7 +456,6 @@ fn functions_invoke_api_maps_payload_data_class_policy_without_masking() {
     assert_eq!(ledger.len(), 1);
     assert_eq!(catalog.invocations().count(), 0);
 }
-
 
 #[test]
 fn functions_invoke_api_rejects_invocation_at_declared_max_concurrency() {

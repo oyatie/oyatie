@@ -53,7 +53,10 @@ paths:
     assert_eq!(outcome.mutating_endpoint_identifiers, vec!["CreateWidget"]);
     assert_eq!(outcome.findings.len(), 1);
     assert_eq!(outcome.findings[0].kind, FindingKind::MissingAuditEvent);
-    assert_eq!(outcome.findings[0].identifier.as_deref(), Some("CreateWidget"));
+    assert_eq!(
+        outcome.findings[0].identifier.as_deref(),
+        Some("CreateWidget")
+    );
 }
 
 #[test]

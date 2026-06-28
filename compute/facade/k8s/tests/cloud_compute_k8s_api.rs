@@ -317,8 +317,9 @@ fn k8s_create_api_rejects_expired_or_unbound_compute_local_proof_before_ledger()
         .expect("fixture has proof");
     proof.expires_at_epoch_seconds = proof.issued_at_epoch_seconds;
 
-    let expired_error = create_cloud_compute_k8s_cluster_from_api(&mut catalog, &mut ledger, expired)
-        .expect_err("expired compute-local proof is rejected");
+    let expired_error =
+        create_cloud_compute_k8s_cluster_from_api(&mut catalog, &mut ledger, expired)
+            .expect_err("expired compute-local proof is rejected");
     assert_eq!(
         expired_error,
         CloudComputeK8sApiError::AuthorizationDenied {
@@ -337,8 +338,9 @@ fn k8s_create_api_rejects_expired_or_unbound_compute_local_proof_before_ledger()
         .expect("fixture has proof")
         .decision_id = "authz_decision_other".to_string();
 
-    let unbound_error = create_cloud_compute_k8s_cluster_from_api(&mut catalog, &mut ledger, unbound)
-        .expect_err("proof bound to another decision is rejected");
+    let unbound_error =
+        create_cloud_compute_k8s_cluster_from_api(&mut catalog, &mut ledger, unbound)
+            .expect_err("proof bound to another decision is rejected");
     assert_eq!(
         unbound_error,
         CloudComputeK8sApiError::AuthorizationDenied {
