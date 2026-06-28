@@ -1580,6 +1580,11 @@ mod tests {
             "---\nid: ADR-0107\nstatus: Superseded\nsuperseded_by: [ADR-0110]\n---\nA migration period used local `oya verify` as the gate of record during transition.\n",
         )
         .expect("write superseded history cli ADR");
+        fs::write(
+            decisions.join("ADR-0108-bridge-adjacent-live-authority.md"),
+            "---\nid: ADR-0108\nstatus: Accepted\n---\nLegacy `oya verify` output is bridge evidence only.\n`oya gate run-all` is now the required context.\n",
+        )
+        .expect("write bridge-adjacent live cli authority ADR");
 
         let inputs = collect_enforcement_inputs(
             &root,
@@ -1612,6 +1617,7 @@ mod tests {
             "ADR-0104-active-enforced-by-cli.md",
             "ADR-0105-future-blocking-enforced-by-cli.md",
             "ADR-0106-ci-lane-refuses-merge.md",
+            "ADR-0108-bridge-adjacent-live-authority.md",
         ] {
             assert!(
                 inputs
@@ -2586,22 +2592,36 @@ fn json_number_at(repo_root: &Path, rel: &str, path: &[&str]) -> Option<i64> {
 
 fn oya_cli_authority_row_kind(
     trimmed: &str,
-    context: &str,
+    previous: &str,
+    next: &str,
     enforcement_status_is_blocking: bool,
 ) -> Option<&'static str> {
     let line_lower = trimmed.to_ascii_lowercase();
-    let context_lower = context.to_ascii_lowercase();
+    let previous_lower = previous.to_ascii_lowercase();
+    let next_lower = next.to_ascii_lowercase();
+    let context_lower = format!("{previous_lower} {line_lower} {next_lower}");
     if !mentions_oya_cli(&context_lower) {
         return None;
     }
     let line_mentions_cli = mentions_oya_cli(&line_lower);
     let line_claims_authority = cli_reference_claims_live_authority(&line_lower);
-    if !line_mentions_cli && !line_claims_authority {
+    let adjacent_live_cli = [previous_lower.as_str(), next_lower.as_str()]
+        .iter()
+        .any(|line| mentions_oya_cli(line) && !cli_reference_is_explicit_non_authority(line));
+    if !line_mentions_cli && !(line_claims_authority && adjacent_live_cli) {
         return None;
     }
     let verified_by_context = context_lower.contains("verified_by:");
     let enforced_by_context = context_lower.contains("enforced_by:");
-    if cli_reference_is_explicit_non_authority(&context_lower) {
+    let line_is_explicit_non_authority = cli_reference_is_explicit_non_authority(&line_lower);
+    let adjacent_is_explicit_non_authority = [previous_lower.as_str(), next_lower.as_str()]
+        .iter()
+        .any(|line| cli_reference_is_explicit_non_authority(line));
+    if line_is_explicit_non_authority
+        || (line_mentions_cli
+            && adjacent_is_explicit_non_authority
+            && (line_lower.contains("legacy") || line_lower.starts_with("until ")))
+    {
         return None;
     }
     if verified_by_context {
@@ -2791,10 +2811,12 @@ fn collect_enforcement_inputs(
                     .and_then(|previous| lines.get(previous))
                     .map_or("", |line| line.trim());
                 let next = lines.get(index + 1).map_or("", |line| line.trim());
-                let context = format!("{previous} {trimmed} {next}");
-                if let Some(row_kind) =
-                    oya_cli_authority_row_kind(trimmed, &context, enforcement_status_is_blocking)
-                {
+                if let Some(row_kind) = oya_cli_authority_row_kind(
+                    trimmed,
+                    previous,
+                    next,
+                    enforcement_status_is_blocking,
+                ) {
                     rows.push(EnforcementRow {
                         id: format!("{adr}-{row_kind}-L{line_no}"),
                         source_artifact: rel.clone(),
