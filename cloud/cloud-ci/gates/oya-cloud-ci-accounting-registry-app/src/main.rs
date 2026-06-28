@@ -95,15 +95,19 @@ fn load_scm_facts(path: &Path) -> Result<ScmFacts, CliError> {
     let value: Value = serde_json::from_str(&text)
         .map_err(|e| CliError::Io(format!("{}: parse scm-facts: {e}", path.display())))?;
 
-    let tracked_paths: Vec<String> = value["tracked_paths"]
+    let tracked_path_values = value["tracked_paths"]
         .as_array()
-        .map(|a| {
-            a.iter()
-                .filter_map(Value::as_str)
-                .map(str::to_owned)
-                .collect()
-        })
         .ok_or_else(|| CliError::Io(format!("{}: missing tracked_paths", path.display())))?;
+    let mut tracked_paths = Vec::with_capacity(tracked_path_values.len());
+    for (index, tracked_path) in tracked_path_values.iter().enumerate() {
+        let Some(tracked_path) = tracked_path.as_str() else {
+            return Err(CliError::Io(format!(
+                "{}: malformed tracked_paths[{index}]: expected string",
+                path.display()
+            )));
+        };
+        tracked_paths.push(tracked_path.to_owned());
+    }
 
     Ok(ScmFacts { tracked_paths })
 }
@@ -1330,6 +1334,25 @@ mod tests {
         tracked_paths.sort();
         tracked_paths.dedup();
         ScmFacts { tracked_paths }
+    }
+
+    #[test]
+    fn scm_facts_rejects_non_string_tracked_paths_entries() {
+        let root = unique_temp_repo();
+        let face = write_test_file(
+            &root,
+            "scm-facts.generated.json",
+            r#"{"tracked_paths":["README.md",42,"docs/AGENTS.md"]}"#,
+        );
+
+        let Err(err) = load_scm_facts(&face) else {
+            panic!("non-string tracked_paths entry should be rejected");
+        };
+
+        assert!(
+            err.to_string().contains("tracked_paths[1]"),
+            "error should identify malformed entry index, got: {err}"
+        );
     }
 
     #[test]
