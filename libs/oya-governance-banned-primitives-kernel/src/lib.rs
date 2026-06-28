@@ -64,6 +64,7 @@ pub enum PrimitiveKind {
     ManualRebase,
     ManualMerge,
     ManualPush,
+    ManualMutation,
 }
 
 impl PrimitiveKind {
@@ -83,6 +84,7 @@ impl PrimitiveKind {
             Self::ManualRebase => "manual-rebase",
             Self::ManualMerge => "manual-merge",
             Self::ManualPush => "manual-push",
+            Self::ManualMutation => "manual-mutation",
         }
     }
 
@@ -99,6 +101,7 @@ impl PrimitiveKind {
                 | Self::ManualRebase
                 | Self::ManualMerge
                 | Self::ManualPush
+                | Self::ManualMutation
         )
     }
 
@@ -308,7 +311,7 @@ pub fn check_documented_genuine_need(
 fn detect_usages(path: &str, line: u32, contents: &str, usages: &mut Vec<PrimitiveUsage>) {
     let lower = contents.to_ascii_lowercase();
     let rationale = extract_rationale(contents);
-    let tokens = shellish_tokens(&lower);
+    let token_segments = shellish_token_segments(&lower);
 
     for (needle, primitive) in [
         ("--no-verify", PrimitiveKind::HookBypass),
@@ -328,46 +331,51 @@ fn detect_usages(path: &str, line: u32, contents: &str, usages: &mut Vec<Primiti
         }
     }
 
-    for (index, token) in tokens.iter().enumerate() {
-        if token == "git" {
-            if is_sanctioned_git_token(&tokens, index) {
-                continue;
-            }
-            if is_token_filtered(&tokens, index, "rtk") {
-                usages.push(primitive_usage(
-                    path,
-                    line,
-                    PrimitiveKind::TokenFilteredVcs,
-                    rationale.clone(),
-                    contents,
-                ));
-                continue;
-            }
-            if let Some((subcommand_index, subcommand)) = git_subcommand(&tokens, index + 1) {
-                if !is_known_git_subcommand(subcommand) {
+    for tokens in &token_segments {
+        for (index, token) in tokens.iter().enumerate() {
+            if token == "git" {
+                if is_sanctioned_git_token(tokens, index) {
                     continue;
                 }
-                if let Some(primitive) =
-                    git_subcommand_primitive(&tokens, subcommand_index, subcommand)
-                {
+                if is_token_filtered(tokens, index, "rtk") {
                     usages.push(primitive_usage(
                         path,
                         line,
-                        primitive,
+                        PrimitiveKind::TokenFilteredVcs,
                         rationale.clone(),
                         contents,
                     ));
+                    continue;
                 }
-            } else {
-                continue;
+                if let Some((subcommand_index, subcommand)) = git_subcommand(tokens, index + 1) {
+                    if let Some(primitive) =
+                        git_subcommand_primitive(tokens, subcommand_index, subcommand)
+                    {
+                        usages.push(primitive_usage(
+                            path,
+                            line,
+                            primitive,
+                            rationale.clone(),
+                            contents,
+                        ));
+                    } else if !is_known_git_subcommand(subcommand) {
+                        usages.push(primitive_usage(
+                            path,
+                            line,
+                            PrimitiveKind::ManualMutation,
+                            rationale.clone(),
+                            contents,
+                        ));
+                    }
+                }
+                usages.push(primitive_usage(
+                    path,
+                    line,
+                    PrimitiveKind::DirectVcs,
+                    rationale.clone(),
+                    contents,
+                ));
             }
-            usages.push(primitive_usage(
-                path,
-                line,
-                PrimitiveKind::DirectVcs,
-                rationale.clone(),
-                contents,
-            ));
         }
     }
 
@@ -392,36 +400,76 @@ fn detect_usages(path: &str, line: u32, contents: &str, usages: &mut Vec<Primiti
         ));
     }
 
-    for (index, token) in tokens.iter().enumerate() {
-        if token == "gh" {
-            if is_token_filtered(&tokens, index, "rtk") {
+    for tokens in &token_segments {
+        for (index, token) in tokens.iter().enumerate() {
+            if token == "gh" {
+                if is_token_filtered(tokens, index, "rtk") {
+                    usages.push(primitive_usage(
+                        path,
+                        line,
+                        PrimitiveKind::TokenFilteredForge,
+                        rationale.clone(),
+                        contents,
+                    ));
+                    continue;
+                }
+                if is_gh_pr_merge(tokens, index) {
+                    usages.push(primitive_usage(
+                        path,
+                        line,
+                        PrimitiveKind::ForgeMerge,
+                        rationale.clone(),
+                        contents,
+                    ));
+                }
                 usages.push(primitive_usage(
                     path,
                     line,
-                    PrimitiveKind::TokenFilteredForge,
-                    rationale.clone(),
-                    contents,
-                ));
-                continue;
-            }
-            if is_gh_pr_merge(&tokens, index) {
-                usages.push(primitive_usage(
-                    path,
-                    line,
-                    PrimitiveKind::ForgeMerge,
+                    PrimitiveKind::DirectForge,
                     rationale.clone(),
                     contents,
                 ));
             }
-            usages.push(primitive_usage(
-                path,
-                line,
-                PrimitiveKind::DirectForge,
-                rationale.clone(),
-                contents,
-            ));
         }
     }
+}
+
+fn shellish_token_segments(line: &str) -> Vec<Vec<String>> {
+    let mut segments = Vec::new();
+    let mut segment = String::new();
+    let mut chars = line.chars().peekable();
+
+    while let Some(ch) = chars.next() {
+        let boundary = match ch {
+            ';' | '\n' | '`' => true,
+            '&' if chars.peek() == Some(&'&') => {
+                chars.next();
+                true
+            }
+            '|' if chars.peek() == Some(&'|') => {
+                chars.next();
+                true
+            }
+            _ => false,
+        };
+
+        if boundary {
+            let tokens = shellish_tokens(&segment);
+            if !tokens.is_empty() {
+                segments.push(tokens);
+            }
+            segment.clear();
+        } else {
+            segment.push(ch);
+        }
+    }
+
+    let tokens = shellish_tokens(&segment);
+    if !tokens.is_empty() {
+        segments.push(tokens);
+    }
+
+    segments
 }
 
 fn shellish_tokens(line: &str) -> Vec<String> {
@@ -436,8 +484,14 @@ fn shellish_tokens(line: &str) -> Vec<String> {
 fn is_sanctioned_git_token(tokens: &[String], index: usize) -> bool {
     index
         .checked_sub(1)
-        .and_then(|previous_index| tokens.get(previous_index))
-        .map(|token| token == "oya" || token.ends_with("/oya"))
+        .and_then(|previous_index| {
+            tokens
+                .get(previous_index)
+                .map(|token| (previous_index, token.as_str()))
+        })
+        .map(|(previous_index, token)| {
+            previous_index == 0 && (token == "oya" || token.ends_with("/oya"))
+        })
         .unwrap_or(false)
 }
 
@@ -513,6 +567,7 @@ fn git_subcommand_primitive(
             .then_some(PrimitiveKind::ManualBranch),
         "worktree" => worktree_add_creates_branch(&tokens[subcommand_index + 1..])
             .then_some(PrimitiveKind::ManualBranch),
+        "update-ref" => Some(PrimitiveKind::ManualMutation),
         _ => None,
     }
 }
@@ -648,7 +703,7 @@ mod tests {
     fn scan_ignores_sanctioned_oya_git_surface() {
         let scan = scan_agent_instruction_file(
             "AGENTS.md",
-            "<!-- agent-instructions:start -->\n- oya-git\nretirement_note: `oya git <git-subcommand>` is the git drop-in surface\n<!-- agent-instructions:end -->",
+            "<!-- agent-instructions:start -->\noya git status --short\n<!-- agent-instructions:end -->",
         )
         .expect("scan succeeds");
 
@@ -664,6 +719,52 @@ mod tests {
         });
 
         assert!(scan.usages.is_empty());
+    }
+    #[test]
+    fn scan_command_invocation_allows_sanctioned_oya_git_surface() {
+        let scan = scan_command_invocation(CommandInvocation {
+            source: "registry/governance-corpora/banned-primitives/command-log.v1.jsonl".into(),
+            line: 1,
+            command: "oya git status --short".into(),
+        });
+
+        assert!(scan.usages.is_empty());
+    }
+
+    #[test]
+    fn scan_command_invocation_rejects_previous_segment_oya_before_git_push() {
+        let scan = scan_command_invocation(CommandInvocation {
+            source: "registry/governance-corpora/banned-primitives/reject-laundered-push.jsonl"
+                .into(),
+            line: 1,
+            command: "echo oya; git push origin dev".into(),
+        });
+
+        assert_eq!(scan.usages[0].primitive, PrimitiveKind::ManualPush);
+    }
+
+    #[test]
+    fn scan_command_invocation_rejects_non_command_head_oya_before_git_push() {
+        let scan = scan_command_invocation(CommandInvocation {
+            source: "registry/governance-corpora/banned-primitives/reject-laundered-push.jsonl"
+                .into(),
+            line: 1,
+            command: "echo oya git push origin dev".into(),
+        });
+
+        assert_eq!(scan.usages[0].primitive, PrimitiveKind::ManualPush);
+    }
+
+    #[test]
+    fn scan_command_invocation_rejects_update_ref_as_manual_mutation() {
+        let scan = scan_command_invocation(CommandInvocation {
+            source: "registry/governance-corpora/banned-primitives/reject-update-ref.jsonl".into(),
+            line: 1,
+            command: "git update-ref refs/heads/dev HEAD".into(),
+        });
+
+        assert_eq!(scan.usages[0].primitive, PrimitiveKind::ManualMutation);
+        assert_eq!(scan.usages[1].primitive, PrimitiveKind::DirectVcs);
     }
 
     #[test]
