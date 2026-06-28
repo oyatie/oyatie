@@ -11,12 +11,9 @@
 // integration tests use unwrap/expect.
 //
 // HERMETIC: no `env!("CARGO")` (a compile-time cargo-only macro that breaks the buck2 build).
-// The producer + emitter binaries are resolved at RUNTIME:
-//   - under buck2: from the `OYA_CI_PRODUCER_BIN` / `OYA_CI_EMITTER_BIN` env vars that the
-//     `$(exe ...)` macro on the rust_test target populates with the buck2-built binary path;
-//   - under cargo (local dev): the producer/emitter are invoked via the runtime `CARGO` env
-//     var (`cargo run -p <crate>`), which cargo sets for integration tests — a RUNTIME read,
-//     never a compile-time `env!`, so there is no cargo-specific compile-time coupling.
+// The producer binary is resolved only from `OYA_CI_PRODUCER_BIN`; missing env fails closed so
+// registry-drift cannot silently run `cargo run` inside a hermetic gate. Git-boundary emitter and
+// codemod validation keep their documented local/CI boundary Cargo fallbacks below.
 // The scm-facts face the producer consumes is materialized on demand (ADR-0604 de-commit class:
 // it is no longer tracked in git; CI/local materialize writes it to the faces dir before the
 // producer reads it); the producer never calls git.
@@ -83,50 +80,47 @@ const ENFORCEMENT_LIVENESS_HOOKS_DIR: &str = "tools/hooks";
 /// rename-aware path-keyed baseline relabel).
 const MOVE_MANIFEST_FACE: &str = "specs/reorg/move-manifest.generated.json";
 
-/// Run the producer to regenerate a single face to stdout. Prefers the buck2-provided binary
-/// (`OYA_CI_PRODUCER_BIN`), else falls back to `cargo run -p` via the RUNTIME `CARGO` env var.
+/// Run the producer to regenerate a single face to stdout. The producer binary must be
+/// provided by `OYA_CI_PRODUCER_BIN`; missing env fails closed so hermetic gates cannot silently
+/// fall back to Cargo.
 fn regenerate_face(root: &Path, face: &str) -> String {
     let scm_facts = faces_dir(root).join(SCM_FACTS_FACE);
-    let output = if let Ok(bin) = std::env::var("OYA_CI_PRODUCER_BIN") {
-        let mut command = Command::new(resolve_bin(root, &bin));
-        command
-            .args(["--repo-root"])
-            .arg(root)
-            .args(["--scm-facts"])
-            .arg(&scm_facts);
-        append_declared_enforcement_liveness_corpus_args(&mut command, root);
-        command
-            .args(["--stdout", "--face", face])
-            .current_dir(root)
-            .output()
-            .expect("run producer binary")
-    } else {
-        let mut command = Command::new(cargo());
-        command
-            .args([
-                "run",
-                "--quiet",
-                "-p",
-                "oya-cloud-ci-accounting-registry-app",
-                "--",
-                "--repo-root",
-            ])
-            .arg(root)
-            .args(["--scm-facts"])
-            .arg(&scm_facts);
-        append_declared_enforcement_liveness_corpus_args(&mut command, root);
-        command
-            .args(["--stdout", "--face", face])
-            .current_dir(root)
-            .output()
-            .expect("cargo run producer")
-    };
+    let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
+    let bin = producer_binary(root, producer_bin.as_deref()).unwrap_or_else(|e| panic!("{e}"));
+    let mut command = Command::new(bin);
+    command
+        .args(["--repo-root"])
+        .arg(root)
+        .args(["--scm-facts"])
+        .arg(&scm_facts);
+    append_declared_enforcement_liveness_corpus_args(&mut command, root);
+    let output = command
+        .args(["--stdout", "--face", face])
+        .current_dir(root)
+        .output()
+        .expect("run producer binary");
     assert!(
         output.status.success(),
         "producer failed for face {face}: {}",
         String::from_utf8_lossy(&output.stderr)
     );
     String::from_utf8(output.stdout).expect("producer stdout utf8")
+}
+
+fn producer_binary(root: &Path, producer_bin: Option<&str>) -> Result<PathBuf, String> {
+    let Some(bin) = producer_bin else {
+        return Err(
+            "FAIL-CLOSED: missing OYA_CI_PRODUCER_BIN; Cargo fallback is forbidden".to_owned(),
+        );
+    };
+    Ok(resolve_bin(root, bin))
+}
+
+#[test]
+fn producer_binary_env_is_required_for_hermetic_gate() {
+    let err = producer_binary(Path::new("/repo"), None)
+        .expect_err("missing OYA_CI_PRODUCER_BIN must fail closed");
+    assert!(err.contains("OYA_CI_PRODUCER_BIN"));
 }
 
 fn append_declared_enforcement_liveness_corpus_args(command: &mut Command, root: &Path) {
