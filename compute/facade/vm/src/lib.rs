@@ -706,7 +706,7 @@ pub fn validate_cloud_compute_vm_create_request_with_verifier(
     )?;
     validate_authorization(
         &request.principal,
-        &request.authorization,
+        &request.authorization.decision_id,
         CLOUD_COMPUTE_VM_CREATE_SURFACE,
         authorization_verifier,
     )?;
@@ -848,19 +848,14 @@ fn validate_tenant_binding(
 
 fn validate_authorization(
     principal: &CloudComputeVmApiPrincipal,
-    authorization: &CloudComputeVmApiAuthorization,
+    decision_id: &str,
     surface: &str,
     authorization_verifier: &impl CloudComputeVmApiAuthorizationVerifier,
 ) -> Result<(), CloudComputeVmApiError> {
-    if authorization.decision_id.trim().is_empty() {
+    if decision_id.trim().is_empty() {
         return Err(CloudComputeVmApiError::EmptyAuthorizationDecisionId);
     }
-    validate_authorization_proof(
-        principal,
-        &authorization.decision_id,
-        surface,
-        authorization_verifier,
-    )
+    validate_authorization_proof(principal, decision_id, surface, authorization_verifier)
 }
 
 fn validate_authorization_proof(

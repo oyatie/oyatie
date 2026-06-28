@@ -96,9 +96,6 @@
   "frozen_dto_authz_trust_instances": [
     "cell/ports/region/src/lib.rs#validate_authorization:98c8ad92",
     "cell/ports/regional-pack/src/lib.rs#validate_authorization:a1ce084c",
-    "compute/facade/functions/src/lib.rs#validate_authorization:bd8a0f4a",
-    "compute/facade/k8s/src/lib.rs#validate_authorization:1c208b10",
-    "compute/facade/vm/src/lib.rs#validate_authorization:81e9ec0a",
     "data/core/ontology-kernel/src/lib.rs#authorize_action_invocation:5abbfde5",
     "data/ports/ontology-api/src/lib.rs#validate_authorization:5c577dbc",
     "iac/adapters/infrastructure/src/lib.rs#new:220828b9",
