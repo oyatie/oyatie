@@ -76,14 +76,14 @@ pub fn enforce_cedar_coverage(
     let mut endpoints = Vec::new();
     let mut findings = Vec::new();
 
-    for path in candidate_endpoint_files(&repo_root) {
+    for path in candidate_endpoint_files(&repo_root)? {
         let raw = fs::read_to_string(&path)?;
         let parsed = extract_endpoint_identifiers(&path, &raw);
         endpoints.extend(parsed.endpoints);
         findings.extend(parsed.missing_identifier_findings);
     }
 
-    let cedar_policy_files = cedar_policy_files(&repo_root);
+    let cedar_policy_files = cedar_policy_files(&repo_root)?;
     let cedar_haystack = policy_haystack(&cedar_policy_files)?;
     let mut endpoint_identifiers = BTreeSet::new();
 
@@ -267,13 +267,13 @@ fn scalar_value(trimmed: &str, key: &str) -> Option<String> {
     (!value.is_empty()).then(|| value.to_string())
 }
 
-fn candidate_endpoint_files(repo_root: &Path) -> Vec<PathBuf> {
+fn candidate_endpoint_files(repo_root: &Path) -> anyhow::Result<Vec<PathBuf>> {
     let mut out = Vec::new();
     for entry in WalkDir::new(repo_root)
         .into_iter()
         .filter_entry(keeps_entry)
-        .flatten()
     {
+        let entry = entry?;
         if !entry.file_type().is_file() {
             continue;
         }
@@ -283,26 +283,27 @@ fn candidate_endpoint_files(repo_root: &Path) -> Vec<PathBuf> {
         }
     }
     out.sort();
-    out
+    Ok(out)
 }
 
-fn cedar_policy_files(repo_root: &Path) -> Vec<PathBuf> {
+fn cedar_policy_files(repo_root: &Path) -> anyhow::Result<Vec<PathBuf>> {
     let mut out = Vec::new();
     for entry in WalkDir::new(repo_root)
         .into_iter()
         .filter_entry(keeps_entry)
-        .flatten()
     {
+        let entry = entry?;
         if !entry.file_type().is_file() {
             continue;
         }
         let path = entry.path();
+
         if path.extension().and_then(|s| s.to_str()) == Some("cedar") {
             out.push(path.to_path_buf());
         }
     }
     out.sort();
-    out
+    Ok(out)
 }
 
 fn keeps_entry(entry: &DirEntry) -> bool {
