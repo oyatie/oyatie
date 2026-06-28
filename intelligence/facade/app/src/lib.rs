@@ -34,7 +34,8 @@ use intelligence_kernel::{
 };
 use intelligence_openbao_adapter::OpenBaoTransitStore;
 use intelligence_rest::{
-    AppState, EventSinkFanout, PoolRegistry, RestAdapterError, SecretProviderStore,
+    AppState, ConfiguredBearerIngressAuthenticator, EventSinkFanout, PoolRegistry, RestAdapterError,
+    SecretProviderStore,
 };
 use oya_shared_olap_clickhouse_adapter::ClickHouseConfig;
 use tracing::info;
@@ -696,6 +697,25 @@ pub fn build_app(config: AppConfig) -> Result<Arc<AppState>, AppBuildError> {
     let pool_configs = effective_tenant_provider_pools(&config)?;
     let (pool_registry, pool_arc) = build_pool_registry(tenant_id.clone(), &pool_configs)?;
 
+    // AUTH-005 / ADR-0573 data-plane ingress authn/authz: the verified principal
+    // tenant binding defaults to this service's own tenant.
+    // OYA_CLOUD_INTEL_INGRESS_PRINCIPAL_TENANT overrides it so a cross-tenant
+    // authz test is expressible. An empty/unset bearer => every data-plane
+    // request 401 (fail-closed; the authenticator mints nothing).
+    let ingress_principal_tenant = std::env::var("OYA_CLOUD_INTEL_INGRESS_PRINCIPAL_TENANT")
+        .ok()
+        .filter(|tenant| !tenant.trim().is_empty())
+        .unwrap_or_else(|| config.tenant_id.clone());
+    let ingress_principal_tenant = TenantId::new(&ingress_principal_tenant).map_err(|_| {
+        AppBuildError::Config(format!(
+            "invalid ingress principal tenant: {ingress_principal_tenant:?}"
+        ))
+    })?;
+    let ingress_authenticator = Arc::new(ConfiguredBearerIngressAuthenticator::new(
+        config.ingress_bearer_token.clone().unwrap_or_default(),
+        ingress_principal_tenant,
+    ));
+
     // Build AppState (uses the shared reqwest::Client for upstream proxy calls).
     let state = AppState::new_with_pool_registry(
         pool_arc,
@@ -710,7 +730,8 @@ pub fn build_app(config: AppConfig) -> Result<Arc<AppState>, AppBuildError> {
         config.environment.clone(),
         oauth_approved_providers(&config.provider_compliance),
     )
-    .map_err(AppBuildError::HttpClient)?;
+    .map_err(AppBuildError::HttpClient)?
+    .with_ingress_authenticator(ingress_authenticator);
 
     Ok(Arc::new(state))
 }

@@ -96,6 +96,7 @@ rust_test(
         "//intelligence/core/kernel:intelligence-kernel",
         "third-party//:axum",
         "third-party//:bytes",
+        "third-party//:httpmock",
         "third-party//:reqwest",
         "third-party//:tokio",
         "third-party//:tower",
@@ -187,3 +188,4 @@ rust_test(
         "third-party//:tokio",
     ],
 )
+
