@@ -7,7 +7,9 @@ doc_status: published
 
 > **Status:** Draft v0.1 — 2026-05-09.
 > **Owner:** `council-architecture`.
-> **Companion:** CLAUDE.md (Code Review rules), [`scripts/hooks/guard-pr-merge-review.mjs``scripts/hooks/guard-pr-merge-review.mjs` (in repo root).
+> **Companion:** CLAUDE.md / docs/AGENTS.md Code Review rules. The historical
+> `scripts/hooks/guard-pr-merge-review.mjs` reference is advisory only; it is not
+> live cloud admission authority. `F-PR5-06` tracks the trusted server-side/cloud-ci review producer gap for `oya-pr-review`.
 
 ## 1. Per-change-class reviewer agent
 
@@ -35,7 +37,11 @@ Per CLAUDE.md (5 H2s):
 - `## Traceability` — flat-crates targets touched + cross-axis contract impact
 - `## Evidence` — links to CI runs, eval-set output, audit-chain emission
 
-Required for merge-ready PRs: `## Code Review` — supplied by the automated reviewer-agent verdict. Author-only drafts may omit it only when running the traceability gate with the explicit author policy.
+Target requirement for merge-ready PRs: `## Code Review` — supplied by the
+automated reviewer-agent verdict. Author-only drafts may omit it only when
+running the traceability gate with the explicit author policy. Today this is
+target/advisory evidence; it becomes merge authority only when a trusted
+server-side/cloud-ci review producer is live and required (`F-PR5-06`).
 
 ## 3. Per-class review requirements
 
@@ -51,7 +57,7 @@ Required for merge-ready PRs: `## Code Review` — supplied by the automated rev
 
 ## 4. Verdict format
 
-`## Code Review` H2 (added by reviewer agent at merge time):
+`## Code Review` H2 (target: added by reviewer agent at merge time):
 
 ```
 ## Code Review
@@ -67,10 +73,13 @@ Multiple reviewers: one block per reviewer agent.
 
 ## 5. Bypass
 
-To skip the gate intentionally: `gh pr merge ... # review-bypass: <reason>`.
+When the server-side reviewer gate is live, any intentional skip must be a
+cloud-recorded bypass packet, not a shell-only or local-hook convention.
+Historical examples such as `# review-bypass: <reason>` are local/advisory
+prose until `F-PR5-06` closes.
 
 Every bypass:
-- Logged in hook output
+- Recorded by the trusted review-admission producer once live
 - Emitted as `EVT-CODE-REVIEW-BYPASS` audit event
 - Quarterly review by council
 - Excessive bypass per-team triggers escalation
