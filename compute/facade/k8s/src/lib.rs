@@ -143,6 +143,73 @@ pub struct CloudComputeK8sApiAuthorizationProof {
     pub issued_at_epoch_seconds: u64,  // data_class: INTERNAL_ONLY
     pub expires_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
 }
+pub trait CloudComputeK8sAuthorizationVerifier {
+    fn verified_authorization_proof(
+        &self,
+        decision_id: &str,
+    ) -> Option<&CloudComputeK8sApiAuthorizationProof>;
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct CloudComputeK8sTrustedAuthorizationVerifier {
+    proofs_by_decision_id: BTreeMap<String, CloudComputeK8sApiAuthorizationProof>, // data_class: INTERNAL_ONLY
+}
+
+impl CloudComputeK8sTrustedAuthorizationVerifier {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn trust_authorization_proof(
+        &mut self,
+        proof: CloudComputeK8sApiAuthorizationProof,
+    ) -> Option<CloudComputeK8sApiAuthorizationProof> {
+        self.proofs_by_decision_id
+            .insert(proof.decision_id.clone(), proof)
+    }
+
+    pub fn trust_authorization_proof_for_decision(
+        &mut self,
+        decision_id: impl Into<String>,
+        proof: CloudComputeK8sApiAuthorizationProof,
+    ) -> Option<CloudComputeK8sApiAuthorizationProof> {
+        self.proofs_by_decision_id.insert(decision_id.into(), proof)
+    }
+
+    pub fn with_authorization_proof(mut self, proof: CloudComputeK8sApiAuthorizationProof) -> Self {
+        self.trust_authorization_proof(proof);
+        self
+    }
+
+    pub fn len(&self) -> usize {
+        self.proofs_by_decision_id.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.proofs_by_decision_id.is_empty()
+    }
+}
+
+impl CloudComputeK8sAuthorizationVerifier for CloudComputeK8sTrustedAuthorizationVerifier {
+    fn verified_authorization_proof(
+        &self,
+        decision_id: &str,
+    ) -> Option<&CloudComputeK8sApiAuthorizationProof> {
+        self.proofs_by_decision_id.get(decision_id)
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+struct CloudComputeK8sFailClosedAuthorizationVerifier;
+
+impl CloudComputeK8sAuthorizationVerifier for CloudComputeK8sFailClosedAuthorizationVerifier {
+    fn verified_authorization_proof(
+        &self,
+        _decision_id: &str,
+    ) -> Option<&CloudComputeK8sApiAuthorizationProof> {
+        None
+    }
+}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudComputeK8sClusterCreateRequest {
@@ -598,8 +665,8 @@ impl CloudComputeK8sApiError {
                 "must match the authenticated principal id",
             )],
             Self::AuthorizationDenied { .. } => vec![detail(
-                "authorization.allowed_surfaces",
-                "must include the requested Cloud Compute Kubernetes surface",
+                "authorization.decision_id",
+                "must resolve to a trusted compute-owned authorization verifier decision for the requested surface",
             )],
             Self::IdempotencyKeyReused { .. } => vec![detail(
                 "header.Idempotency-Key",
@@ -646,6 +713,16 @@ enum CloudComputeK8sApiStatusKind {
 pub fn validate_cloud_compute_k8s_cluster_create_request(
     request: &CloudComputeK8sClusterCreateApiRequest,
 ) -> Result<ResourceId, CloudComputeK8sApiError> {
+    validate_cloud_compute_k8s_cluster_create_request_with_authorization_verifier(
+        request,
+        &CloudComputeK8sFailClosedAuthorizationVerifier,
+    )
+}
+
+pub fn validate_cloud_compute_k8s_cluster_create_request_with_authorization_verifier(
+    request: &CloudComputeK8sClusterCreateApiRequest,
+    authorization_verifier: &impl CloudComputeK8sAuthorizationVerifier,
+) -> Result<ResourceId, CloudComputeK8sApiError> {
     validate_boundary(&request.boundary)?;
     validate_path_cluster_id(&request.path_cluster_id, &request.body.resource_id)?;
     let resource_id = validate_cluster_resource_id(&request.path_cluster_id)?;
@@ -659,6 +736,7 @@ pub fn validate_cloud_compute_k8s_cluster_create_request(
         &request.principal,
         &request.authorization,
         CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE,
+        authorization_verifier,
     )?;
     Ok(resource_id)
 }
@@ -705,6 +783,52 @@ pub fn create_cloud_compute_k8s_cluster_from_api(
     result
 }
 
+pub fn create_cloud_compute_k8s_cluster_from_api_with_authorization_verifier(
+    catalog: &mut CloudComputeCatalog,
+    idempotency_ledger: &mut CloudComputeK8sCreateIdempotencyLedger,
+    request: CloudComputeK8sClusterCreateApiRequest,
+    authorization_verifier: &impl CloudComputeK8sAuthorizationVerifier,
+) -> Result<CloudComputeK8sClusterCreateSuccessResponse, CloudComputeK8sApiError> {
+    validate_cloud_compute_k8s_cluster_create_request_with_authorization_verifier(
+        &request,
+        authorization_verifier,
+    )?;
+    let input = cluster_create_input(&request.body)?;
+    let key = idempotency_key_for(
+        &request.boundary,
+        &request.principal,
+        CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE,
+    );
+    let fingerprint = cluster_create_fingerprint_for(&request.path_cluster_id, &input);
+    if let Some(entry) = idempotency_ledger.entries.get(&key) {
+        if entry.fingerprint == fingerprint {
+            return entry.result.clone();
+        }
+        return Err(CloudComputeK8sApiError::IdempotencyKeyReused {
+            idempotency_key: request.boundary.idempotency_key,
+        });
+    }
+
+    let request_id = request.boundary.request_id.clone();
+    let result = catalog
+        .create_kubernetes_cluster(input)
+        .map_err(CloudComputeK8sApiError::Compute)
+        .map(|cluster| {
+            CloudComputeK8sClusterCreateSuccessResponse::created(
+                cluster_record(cluster),
+                request_id,
+            )
+        });
+    idempotency_ledger.remember(
+        key,
+        CloudComputeK8sCreateLedgerEntry {
+            fingerprint,
+            result: result.clone(),
+        },
+    );
+    result
+}
+
 /// Stable planned entrypoint for `cloud.compute.k8s.cluster.create`.
 ///
 /// The implementation delegates to the explicit API-boundary function so the
@@ -715,6 +839,20 @@ pub fn create_cluster(
     request: CloudComputeK8sClusterCreateApiRequest,
 ) -> Result<CloudComputeK8sClusterCreateSuccessResponse, CloudComputeK8sApiError> {
     create_cloud_compute_k8s_cluster_from_api(catalog, idempotency_ledger, request)
+}
+
+pub fn create_cluster_with_authorization_verifier(
+    catalog: &mut CloudComputeCatalog,
+    idempotency_ledger: &mut CloudComputeK8sCreateIdempotencyLedger,
+    request: CloudComputeK8sClusterCreateApiRequest,
+    authorization_verifier: &impl CloudComputeK8sAuthorizationVerifier,
+) -> Result<CloudComputeK8sClusterCreateSuccessResponse, CloudComputeK8sApiError> {
+    create_cloud_compute_k8s_cluster_from_api_with_authorization_verifier(
+        catalog,
+        idempotency_ledger,
+        request,
+        authorization_verifier,
+    )
 }
 
 fn validate_boundary(
@@ -801,6 +939,7 @@ fn validate_authorization(
     principal: &CloudComputeK8sApiPrincipal,
     authorization: &CloudComputeK8sApiAuthorization,
     surface: &str,
+    authorization_verifier: &impl CloudComputeK8sAuthorizationVerifier,
 ) -> Result<(), CloudComputeK8sApiError> {
     if authorization.decision_id.trim().is_empty() {
         return Err(CloudComputeK8sApiError::EmptyAuthorizationDecisionId);
@@ -817,25 +956,18 @@ fn validate_authorization(
             principal_id: principal.principal_id.clone(),
         });
     }
-    validate_authorization_proof(principal, authorization, surface)?;
-    if !authorization
-        .allowed_surfaces
-        .iter()
-        .any(|allowed_surface| allowed_surface == surface)
-    {
-        return Err(CloudComputeK8sApiError::AuthorizationDenied {
-            surface: surface.to_string(),
-        });
-    }
-    Ok(())
+    validate_authorization_proof(principal, authorization, surface, authorization_verifier)
 }
 
 fn validate_authorization_proof(
     principal: &CloudComputeK8sApiPrincipal,
     authorization: &CloudComputeK8sApiAuthorization,
     surface: &str,
+    authorization_verifier: &impl CloudComputeK8sAuthorizationVerifier,
 ) -> Result<(), CloudComputeK8sApiError> {
-    let Some(proof) = authorization.proof.as_ref() else {
+    let Some(proof) =
+        authorization_verifier.verified_authorization_proof(&authorization.decision_id)
+    else {
         return Err(CloudComputeK8sApiError::AuthorizationDenied {
             surface: surface.to_string(),
         });
@@ -1430,6 +1562,16 @@ impl CloudComputeK8sApiError {
 pub fn validate_cloud_compute_k8s_cluster_delete_request(
     request: &CloudComputeK8sClusterDeleteApiRequest,
 ) -> Result<ResourceId, CloudComputeK8sApiError> {
+    validate_cloud_compute_k8s_cluster_delete_request_with_authorization_verifier(
+        request,
+        &CloudComputeK8sFailClosedAuthorizationVerifier,
+    )
+}
+
+pub fn validate_cloud_compute_k8s_cluster_delete_request_with_authorization_verifier(
+    request: &CloudComputeK8sClusterDeleteApiRequest,
+    authorization_verifier: &impl CloudComputeK8sAuthorizationVerifier,
+) -> Result<ResourceId, CloudComputeK8sApiError> {
     validate_boundary(&request.boundary)?;
     validate_path_cluster_id_only(&request.path_cluster_id)?;
     let resource_id = validate_cluster_resource_id(&request.path_cluster_id)?;
@@ -1438,6 +1580,7 @@ pub fn validate_cloud_compute_k8s_cluster_delete_request(
         &request.principal,
         &request.authorization,
         CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE,
+        authorization_verifier,
     )?;
     Ok(resource_id)
 }
@@ -1493,6 +1636,56 @@ pub fn delete_cloud_compute_k8s_cluster_from_api(
     result
 }
 
+pub fn delete_cloud_compute_k8s_cluster_from_api_with_authorization_verifier(
+    catalog: &CloudComputeCatalog,
+    idempotency_ledger: &mut CloudComputeK8sDeleteIdempotencyLedger,
+    request: CloudComputeK8sClusterDeleteApiRequest,
+    authorization_verifier: &impl CloudComputeK8sAuthorizationVerifier,
+) -> Result<CloudComputeK8sClusterDeleteSuccessResponse, CloudComputeK8sApiError> {
+    let resource_id =
+        validate_cloud_compute_k8s_cluster_delete_request_with_authorization_verifier(
+            &request,
+            authorization_verifier,
+        )?;
+    let key = idempotency_key_for(
+        &request.boundary,
+        &request.principal,
+        CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE,
+    );
+    if let Some(entry) = idempotency_ledger.entries.get(&key) {
+        if entry.path_cluster_id == request.path_cluster_id {
+            return entry.result.clone();
+        }
+        return Err(CloudComputeK8sApiError::IdempotencyKeyReused {
+            idempotency_key: request.boundary.idempotency_key,
+        });
+    }
+
+    let cluster = catalog
+        .kubernetes_clusters()
+        .find(|c| c.resource_id.value == resource_id)
+        .ok_or_else(|| CloudComputeK8sApiError::ClusterNotFound {
+            cluster_id: request.path_cluster_id.clone(),
+        })?;
+
+    let mut record = cluster_record(cluster.clone());
+    record.state = cluster_state_label(KubernetesClusterState::Draining).to_string();
+
+    let request_id = request.boundary.request_id.clone();
+    let result: CloudComputeK8sDeleteApiResult = Ok(
+        CloudComputeK8sClusterDeleteSuccessResponse::accepted(record, request_id),
+    );
+
+    idempotency_ledger.remember(
+        key,
+        CloudComputeK8sDeleteLedgerEntry {
+            path_cluster_id: request.path_cluster_id,
+            result: result.clone(),
+        },
+    );
+    result
+}
+
 /// Stable planned entrypoint for `cloud.compute.k8s.cluster.delete`.
 ///
 /// Delegates to [`delete_cloud_compute_k8s_cluster_from_api`] so the plan
@@ -1503,6 +1696,20 @@ pub fn delete_cluster(
     request: CloudComputeK8sClusterDeleteApiRequest,
 ) -> Result<CloudComputeK8sClusterDeleteSuccessResponse, CloudComputeK8sApiError> {
     delete_cloud_compute_k8s_cluster_from_api(catalog, idempotency_ledger, request)
+}
+
+pub fn delete_cluster_with_authorization_verifier(
+    catalog: &CloudComputeCatalog,
+    idempotency_ledger: &mut CloudComputeK8sDeleteIdempotencyLedger,
+    request: CloudComputeK8sClusterDeleteApiRequest,
+    authorization_verifier: &impl CloudComputeK8sAuthorizationVerifier,
+) -> Result<CloudComputeK8sClusterDeleteSuccessResponse, CloudComputeK8sApiError> {
+    delete_cloud_compute_k8s_cluster_from_api_with_authorization_verifier(
+        catalog,
+        idempotency_ledger,
+        request,
+        authorization_verifier,
+    )
 }
 
 /// Validates that `path_cluster_id` is non-empty (delete has no body to match

@@ -53,6 +53,7 @@ pub enum CloudComputeFunctionsApiErrorCode {
     FunctionIdMismatch,
     TenantMismatch,
     AuthorizationDecisionIdEmpty,
+    AuthorizationVerifierMissing,
     AuthorizationTenantMismatch,
     AuthorizationPrincipalMismatch,
     AuthorizationDenied,
@@ -78,6 +79,9 @@ impl CloudComputeFunctionsApiErrorCode {
             Self::TenantMismatch => "CLOUD_COMPUTE_FUNCTIONS_TENANT_MISMATCH",
             Self::AuthorizationDecisionIdEmpty => {
                 "CLOUD_COMPUTE_FUNCTIONS_AUTHORIZATION_DECISION_ID_EMPTY"
+            }
+            Self::AuthorizationVerifierMissing => {
+                "CLOUD_COMPUTE_FUNCTIONS_AUTHORIZATION_VERIFIER_MISSING"
             }
             Self::AuthorizationTenantMismatch => {
                 "CLOUD_COMPUTE_FUNCTIONS_AUTHORIZATION_TENANT_MISMATCH"
@@ -117,6 +121,86 @@ pub struct CloudComputeFunctionsApiAuthorization {
     pub requested_surface: String,      // data_class: INTERNAL_ONLY
     pub valid_until_epoch_seconds: u64, // data_class: INTERNAL_ONLY
     pub allowed_surfaces: Vec<String>,  // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum CloudComputeFunctionsAuthorizationDecision {
+    Allow,
+    Deny,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudComputeFunctionsTrustedAuthorizationDecision {
+    pub tenant_id: String,    // data_class: INTERNAL_ONLY
+    pub principal_id: String, // data_class: INTERNAL_ONLY
+    pub decision_id: String,  // data_class: INTERNAL_ONLY
+    pub surface: String,      // data_class: INTERNAL_ONLY
+    pub decision: CloudComputeFunctionsAuthorizationDecision, // data_class: INTERNAL_ONLY
+    pub valid_until_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct CloudComputeFunctionsAuthorizationVerifier {
+    decisions: BTreeMap<String, CloudComputeFunctionsTrustedAuthorizationDecision>, // data_class: INTERNAL_ONLY
+}
+
+impl CloudComputeFunctionsAuthorizationVerifier {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn trust_decision(&mut self, decision: CloudComputeFunctionsTrustedAuthorizationDecision) {
+        self.decisions
+            .insert(decision.decision_id.clone(), decision);
+    }
+
+    pub fn with_trusted_decision(
+        mut self,
+        decision: CloudComputeFunctionsTrustedAuthorizationDecision,
+    ) -> Self {
+        self.trust_decision(decision);
+        self
+    }
+
+    fn verify(
+        &self,
+        principal: &CloudComputeFunctionsApiPrincipal,
+        decision_id: &str,
+        surface: &str,
+        requested_at_epoch_seconds: u64,
+    ) -> Result<(), CloudComputeFunctionsApiError> {
+        if decision_id.trim().is_empty() {
+            return Err(CloudComputeFunctionsApiError::EmptyAuthorizationDecisionId);
+        }
+        let Some(decision) = self.decisions.get(decision_id) else {
+            return Err(CloudComputeFunctionsApiError::AuthorizationDenied {
+                surface: surface.to_string(),
+            });
+        };
+        if decision.tenant_id != principal.tenant_id {
+            return Err(CloudComputeFunctionsApiError::AuthorizationTenantMismatch {
+                authorization_tenant_id: decision.tenant_id.clone(),
+                principal_tenant_id: principal.tenant_id.clone(),
+            });
+        }
+        if decision.principal_id != principal.principal_id {
+            return Err(
+                CloudComputeFunctionsApiError::AuthorizationPrincipalMismatch {
+                    authorization_principal_id: decision.principal_id.clone(),
+                    principal_id: principal.principal_id.clone(),
+                },
+            );
+        }
+        if decision.surface != surface
+            || decision.decision != CloudComputeFunctionsAuthorizationDecision::Allow
+            || decision.valid_until_epoch_seconds <= requested_at_epoch_seconds
+        {
+            return Err(CloudComputeFunctionsApiError::AuthorizationDenied {
+                surface: surface.to_string(),
+            });
+        }
+        Ok(())
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -287,6 +371,7 @@ pub enum CloudComputeFunctionsApiError {
         body_tenant_id: String,
     },
     EmptyAuthorizationDecisionId,
+    AuthorizationVerifierMissing,
     AuthorizationTenantMismatch {
         authorization_tenant_id: String,
         principal_tenant_id: String,
@@ -353,6 +438,9 @@ impl CloudComputeFunctionsApiError {
             Self::EmptyAuthorizationDecisionId => {
                 CloudComputeFunctionsApiErrorCode::AuthorizationDecisionIdEmpty
             }
+            Self::AuthorizationVerifierMissing => {
+                CloudComputeFunctionsApiErrorCode::AuthorizationVerifierMissing
+            }
             Self::AuthorizationTenantMismatch { .. } => {
                 CloudComputeFunctionsApiErrorCode::AuthorizationTenantMismatch
             }
@@ -408,6 +496,7 @@ impl CloudComputeFunctionsApiError {
             Self::EmptyPrincipalId => CloudComputeFunctionsApiStatusKind::Unauthorized,
             Self::TenantMismatch { .. }
             | Self::EmptyAuthorizationDecisionId
+            | Self::AuthorizationVerifierMissing
             | Self::AuthorizationTenantMismatch { .. }
             | Self::AuthorizationPrincipalMismatch { .. }
             | Self::AuthorizationDenied { .. } => CloudComputeFunctionsApiStatusKind::Forbidden,
@@ -442,6 +531,7 @@ impl CloudComputeFunctionsApiError {
                 "Tenant header must match authenticated principal, function id, and request body"
             }
             Self::EmptyAuthorizationDecisionId => "Authorization decision id is required",
+            Self::AuthorizationVerifierMissing => "Compute authorization verifier is required",
             Self::AuthorizationTenantMismatch { .. } => {
                 "Authorization decision tenant must match the authenticated principal"
             }
@@ -489,6 +579,10 @@ impl CloudComputeFunctionsApiError {
                 "authorization.decision_id",
                 "must be non-empty authorization evidence",
             )],
+            Self::AuthorizationVerifierMissing => vec![detail(
+                "authorization.verifier",
+                "compute boundary must verify decision_id against trusted local authorization state",
+            )],
             Self::AuthorizationTenantMismatch { .. } => vec![detail(
                 "authorization.tenant_id",
                 "must match the authenticated principal tenant",
@@ -527,6 +621,25 @@ enum CloudComputeFunctionsApiStatusKind {
 pub fn validate_cloud_compute_functions_invoke_request(
     request: &CloudComputeFunctionsInvokeApiRequest,
 ) -> Result<ResourceId, CloudComputeFunctionsApiError> {
+    validate_cloud_compute_functions_invoke_request_with_optional_authorization_verifier(
+        request, None,
+    )
+}
+
+pub fn validate_cloud_compute_functions_invoke_request_with_authorization_verifier(
+    request: &CloudComputeFunctionsInvokeApiRequest,
+    authorization_verifier: &CloudComputeFunctionsAuthorizationVerifier,
+) -> Result<ResourceId, CloudComputeFunctionsApiError> {
+    validate_cloud_compute_functions_invoke_request_with_optional_authorization_verifier(
+        request,
+        Some(authorization_verifier),
+    )
+}
+
+fn validate_cloud_compute_functions_invoke_request_with_optional_authorization_verifier(
+    request: &CloudComputeFunctionsInvokeApiRequest,
+    authorization_verifier: Option<&CloudComputeFunctionsAuthorizationVerifier>,
+) -> Result<ResourceId, CloudComputeFunctionsApiError> {
     validate_boundary(&request.boundary)?;
     validate_path_function_id(&request.path_function_id, &request.body.function_id)?;
     let resource_id = validate_function_resource_id(&request.path_function_id)?;
@@ -537,8 +650,9 @@ pub fn validate_cloud_compute_functions_invoke_request(
         &request.body.tenant_id,
     )?;
     validate_authorization(
+        authorization_verifier,
         &request.principal,
-        &request.authorization,
+        &request.authorization.decision_id,
         CLOUD_COMPUTE_FUNCTIONS_INVOKE_SURFACE,
         request.body.requested_at_epoch_seconds,
     )?;
@@ -551,6 +665,27 @@ pub fn invoke_cloud_compute_function_from_api(
     request: CloudComputeFunctionsInvokeApiRequest,
 ) -> Result<CloudComputeFunctionsInvokeSuccessResponse, CloudComputeFunctionsApiError> {
     validate_cloud_compute_functions_invoke_request(&request)?;
+    invoke_validated_cloud_compute_function_from_api(catalog, idempotency_ledger, request)
+}
+
+pub fn invoke_cloud_compute_function_from_api_with_authorization_verifier(
+    catalog: &mut CloudComputeCatalog,
+    idempotency_ledger: &mut CloudComputeFunctionsInvokeIdempotencyLedger,
+    authorization_verifier: &CloudComputeFunctionsAuthorizationVerifier,
+    request: CloudComputeFunctionsInvokeApiRequest,
+) -> Result<CloudComputeFunctionsInvokeSuccessResponse, CloudComputeFunctionsApiError> {
+    validate_cloud_compute_functions_invoke_request_with_authorization_verifier(
+        &request,
+        authorization_verifier,
+    )?;
+    invoke_validated_cloud_compute_function_from_api(catalog, idempotency_ledger, request)
+}
+
+fn invoke_validated_cloud_compute_function_from_api(
+    catalog: &mut CloudComputeCatalog,
+    idempotency_ledger: &mut CloudComputeFunctionsInvokeIdempotencyLedger,
+    request: CloudComputeFunctionsInvokeApiRequest,
+) -> Result<CloudComputeFunctionsInvokeSuccessResponse, CloudComputeFunctionsApiError> {
     let input = function_invoke_input(&request.boundary, &request.body)?;
     let key = idempotency_key_for(
         &request.boundary,
@@ -587,16 +722,31 @@ pub fn invoke_cloud_compute_function_from_api(
     result
 }
 
-/// Stable planned entrypoint for `cloud.compute.functions.invoke`.
+/// Stable legacy entrypoint for `cloud.compute.functions.invoke`.
 ///
-/// The implementation delegates to the explicit API-boundary function so the
-/// plan symbol remains stable without adding a second validation path.
+/// This entrypoint intentionally fails closed because it has no compute-owned
+/// authorization verifier. Use `invoke_with_authorization_verifier` for live
+/// API-boundary invocation.
 pub fn invoke(
     catalog: &mut CloudComputeCatalog,
     idempotency_ledger: &mut CloudComputeFunctionsInvokeIdempotencyLedger,
     request: CloudComputeFunctionsInvokeApiRequest,
 ) -> Result<CloudComputeFunctionsInvokeSuccessResponse, CloudComputeFunctionsApiError> {
     invoke_cloud_compute_function_from_api(catalog, idempotency_ledger, request)
+}
+
+pub fn invoke_with_authorization_verifier(
+    catalog: &mut CloudComputeCatalog,
+    idempotency_ledger: &mut CloudComputeFunctionsInvokeIdempotencyLedger,
+    authorization_verifier: &CloudComputeFunctionsAuthorizationVerifier,
+    request: CloudComputeFunctionsInvokeApiRequest,
+) -> Result<CloudComputeFunctionsInvokeSuccessResponse, CloudComputeFunctionsApiError> {
+    invoke_cloud_compute_function_from_api_with_authorization_verifier(
+        catalog,
+        idempotency_ledger,
+        authorization_verifier,
+        request,
+    )
 }
 
 fn validate_boundary(
@@ -680,40 +830,18 @@ fn validate_tenant_binding(
 }
 
 fn validate_authorization(
+    authorization_verifier: Option<&CloudComputeFunctionsAuthorizationVerifier>,
     principal: &CloudComputeFunctionsApiPrincipal,
-    authorization: &CloudComputeFunctionsApiAuthorization,
+    decision_id: &str,
     surface: &str,
     requested_at_epoch_seconds: u64,
 ) -> Result<(), CloudComputeFunctionsApiError> {
-    if authorization.decision_id.trim().is_empty() {
+    if decision_id.trim().is_empty() {
         return Err(CloudComputeFunctionsApiError::EmptyAuthorizationDecisionId);
     }
-    if authorization.tenant_id != principal.tenant_id {
-        return Err(CloudComputeFunctionsApiError::AuthorizationTenantMismatch {
-            authorization_tenant_id: authorization.tenant_id.clone(),
-            principal_tenant_id: principal.tenant_id.clone(),
-        });
-    }
-    if authorization.principal_id != principal.principal_id {
-        return Err(
-            CloudComputeFunctionsApiError::AuthorizationPrincipalMismatch {
-                authorization_principal_id: authorization.principal_id.clone(),
-                principal_id: principal.principal_id.clone(),
-            },
-        );
-    }
-    if authorization.requested_surface != surface
-        || authorization.valid_until_epoch_seconds <= requested_at_epoch_seconds
-        || !authorization
-            .allowed_surfaces
-            .iter()
-            .any(|allowed_surface| allowed_surface == surface)
-    {
-        return Err(CloudComputeFunctionsApiError::AuthorizationDenied {
-            surface: surface.to_string(),
-        });
-    }
-    Ok(())
+    let verifier = authorization_verifier
+        .ok_or(CloudComputeFunctionsApiError::AuthorizationVerifierMissing)?;
+    verifier.verify(principal, decision_id, surface, requested_at_epoch_seconds)
 }
 
 fn function_invoke_input(
