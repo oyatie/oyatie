@@ -228,7 +228,7 @@
   },
   "promotion_eligibility_ledger": {
     "storage_model": "Mimir-native (Prometheus recording rules)",
-    "rationale": "Ledger storage in Mimir time-series (not git-tracked JSONL) per 2026-05-17 user decision. At hyperscaler scale (10k+ µservices × 60s evaluator cadence × per-environment) a single JSONL file would grow ~14M records/day; Mimir is purpose-built for this cardinality and the burn-rate evaluator is already querying Mimir for SLI signal. Queries are PromQL. The audit trail is the Mimir block-storage history (object-storage-backed retention) plus the per-changeset multispectrum evidence at microservices/<ms>/evidence/multispectrum/<change_id>-*.json.",
+    "rationale": "Ledger storage in Mimir time-series (not git-tracked JSONL) per 2026-05-17 user decision. At hyperscaler scale (10k+ µservices × 60s evaluator cadence × per-environment) a single JSONL file would grow ~14M records/day; Mimir is purpose-built for this cardinality and the burn-rate evaluator is already querying Mimir for SLI signal. Queries are PromQL. The audit trail is the Mimir block-storage history (object-storage-backed retention) plus active typed quality-gate / cloud-ci evidence artifacts for the change; standalone multispectrum evidence-file emission is retired.",
     "metric_emissions": [
       {
         "name": "oya_promotion_eligibility_verdict",
@@ -317,7 +317,7 @@
     ],
     "query_api": "PromQL via Mimir HTTP /prometheus/api/v1/query and /api/v1/query_range endpoints; auth via Mimir multi-tenant API key for the CI tenant.",
     "retention": "Mimir long-term storage backed by object storage (S3-compatible); default 90 days hot + 2 years cold-tier (configurable per /specs/observability-retention.json future spec).",
-    "audit_evidence": "Per-changeset evidence at microservices/<ms>/evidence/multispectrum/<change_id>-<unix_ts>.json (per docs/AGENTS.md §changeset) carries the burn-rate snapshot at promotion time, providing the immutable git-tracked audit row. Mimir holds the live operational view; multispectrum evidence holds the change-archived view."
+    "audit_evidence": "Promotion-time burn-rate snapshots are archived through active typed quality-gate / cloud-ci evidence artifacts and referenced audit-chain rows when required. The former per-changeset multispectrum evidence-file convention is retired with the bespoke admission-adapter path and is historical provenance only."
   },
   "release_pointer_convention": {
     "ref_pattern": "release/<microservice>/<environment>",

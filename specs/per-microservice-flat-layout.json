@@ -183,9 +183,9 @@
       "purpose": "k6 / vegeta load tests per PRD §Performance Targets"
     },
     {
-      "path": "evidence/multispectrum/",
-      "purpose": "per-changeset multispectrum evidence per /specs/multispectrum-review.json v2.4.0",
-      "file_pattern": "<change_id>-<unix_ts>.json"
+      "path": "evidence/review/",
+      "purpose": "per-changeset typed review / quality-gate evidence; retired multispectrum evidence-file convention is historical provenance only",
+      "file_pattern": "<change_id>-<artifact_kind>-<unix_ts>.json"
     }
   ],
   "central_locations_reserved_for_cross_cutting": [
@@ -302,8 +302,8 @@
       "to": "microservices/<ms>/runbooks/<scenario>.md"
     },
     {
-      "from": "/evidence/multispectrum/<change_id>-*.json (per-microservice changesets)",
-      "to": "microservices/<ms>/evidence/multispectrum/<change_id>-*.json"
+      "from": "/evidence/multispectrum/<change_id>-*.json (historical per-microservice changesets only)",
+      "to": "microservices/<ms>/evidence/review/<change_id>-<artifact_kind>-<unix_ts>.json"
     }
   ],
   "validator_rules": {

@@ -331,8 +331,8 @@
         "rule": "AST/parser-backed symbols are available for all supported language surfaces or the artifact kind declares an intentional file/pointer scope."
       },
       {
-        "id": "multispectrum-evidence",
-        "rule": "Every promoted ChangeBundle must attach a multispectrum evidence file covering required F-family, A-family, and M-family facets for the changeset scope; missing or incomplete evidence rejects promotion."
+        "id": "retired-multispectrum-evidence",
+        "rule": "RETIRED: standalone multispectrum evidence-file attachment belonged to the retired bespoke admission-adapter path and MUST NOT be required for current plain-git protected PR promotion. Preserve multi-lens review through PR Code Review evidence, independent reviewer-agent passes, typed quality-gate artifacts, and cloud-ci/oya-ci gate packets."
       },
       {
         "id": "cli-command-surface",
@@ -344,7 +344,7 @@
       },
       {
         "id": "audit-chain-coverage",
-        "rule": "Every attached multispectrum evidence file must have an audit-chain row keyed by the same change_id before promotion."
+        "rule": "Every active promotion evidence artifact that declares an audit-chain event id must resolve to a matching audit-chain row before promotion; retired multispectrum evidence files are historical provenance only."
       }
     ],
     "terminal_states": [
