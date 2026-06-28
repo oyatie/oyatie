@@ -264,7 +264,7 @@
               "string",
               "null"
             ],
-            "description": "Optional reference to evidence artifact (evidence/multispectrum/<change_id>-<unix_ts>.json)."
+            "description": "Optional reference to an active review or quality-gate evidence artifact; retired evidence/multispectrum files are historical provenance only."
           }
         }
       },

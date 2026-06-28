@@ -169,7 +169,7 @@ Related sections: [§1 Architecture](#section-1-architecture), [§2 Decisions](#
 35. [merge-queue-parked-pr.json](../specs/merge-queue-parked-pr.json) - Merge Queue Parked Pr: machine-readable authority or registry contract consumed by gates and agents.
 36. [microservice-migration-tooling.json](../specs/microservice-migration-tooling.json) - Microservice Migration Tooling: machine-readable authority or registry contract consumed by gates and agents.
 37. [multi-region-disposition-canonical.json](../specs/multi-region-disposition-canonical.json) - Multi Region Disposition Canonical: machine-readable authority or registry contract consumed by gates and agents.
-38. [multispectrum-review.json](../specs/multispectrum-review.json) - Multispectrum Review: machine-readable authority or registry contract consumed by gates and agents.
+38. `multispectrum-review.json` — Retired with the external coordination / bespoke-admission adapter path; preserve multi-lens review through independent reviewer-agent passes, PR Code Review evidence, typed quality-gate artifacts, and cloud-ci/oya-ci gate packets.
 39. [oyatie-doctrine.json](../specs/oyatie-doctrine.json) - Oyatie Doctrine: machine-readable authority or registry contract consumed by gates and agents.
 40. [per-microservice-flat-layout.json](../specs/per-microservice-flat-layout.json) - Per Microservice Flat Layout: machine-readable authority or registry contract consumed by gates and agents.
 41. [per-tenant-audit-log-slicing-canonical.json](../specs/per-tenant-audit-log-slicing-canonical.json) - Per Tenant Audit Log Slicing Canonical: machine-readable authority or registry contract consumed by gates and agents.
