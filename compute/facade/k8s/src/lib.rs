@@ -17,8 +17,8 @@ use compute_domain::{
     KubernetesCluster, KubernetesClusterCreate, KubernetesClusterState, KubernetesNodePoolCreate,
 };
 use compute_resource::{InstanceFlavor, K8sFlavor, ResourceId};
-use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
 use network_residency::{ResidencyClass, parse_residency_class_label};
+use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
 
 pub const CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE: &str = "cloud.compute.k8s.cluster.create";
 
@@ -133,13 +133,13 @@ pub struct CloudComputeK8sApiAuthorization {
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudComputeK8sApiAuthorizationProof {
-    pub tenant_id: String,                // data_class: INTERNAL_ONLY
-    pub principal_id: String,             // data_class: INTERNAL_ONLY
-    pub surface: String,                  // data_class: INTERNAL_ONLY
-    pub decision_id: String,              // data_class: INTERNAL_ONLY
-    pub verified: bool,                   // data_class: INTERNAL_ONLY
-    pub issued_at_epoch_seconds: u64,     // data_class: INTERNAL_ONLY
-    pub expires_at_epoch_seconds: u64,    // data_class: INTERNAL_ONLY
+    pub tenant_id: String,             // data_class: INTERNAL_ONLY
+    pub principal_id: String,          // data_class: INTERNAL_ONLY
+    pub surface: String,               // data_class: INTERNAL_ONLY
+    pub decision_id: String,           // data_class: INTERNAL_ONLY
+    pub verified: bool,                // data_class: INTERNAL_ONLY
+    pub issued_at_epoch_seconds: u64,  // data_class: INTERNAL_ONLY
+    pub expires_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

@@ -173,7 +173,9 @@ fn extract_proto_mutations(path: &Path, raw: &str) -> ParsedEndpoints {
             kind: FindingKind::MissingEndpointIdentifier,
             source_file: path.to_path_buf(),
             identifier: None,
-            hint: "proto service contains HTTP annotations but no mutating rpc identifier was found".into(),
+            hint:
+                "proto service contains HTTP annotations but no mutating rpc identifier was found"
+                    .into(),
         });
     }
 
@@ -236,7 +238,9 @@ fn missing_identifier(path: &Path, operation: &str) -> AuditFinding {
         kind: FindingKind::MissingEndpointIdentifier,
         source_file: path.to_path_buf(),
         identifier: None,
-        hint: format!("mutating endpoint `{operation}` is missing a stable operationId/rpc identifier"),
+        hint: format!(
+            "mutating endpoint `{operation}` is missing a stable operationId/rpc identifier"
+        ),
     }
 }
 
@@ -252,7 +256,9 @@ fn yaml_path_key(trimmed: &str) -> Option<&str> {
 }
 
 fn http_method_key(trimmed: &str) -> Option<&'static str> {
-    const METHODS: &[&str] = &["get", "put", "post", "delete", "patch", "head", "options", "trace"];
+    const METHODS: &[&str] = &[
+        "get", "put", "post", "delete", "patch", "head", "options", "trace",
+    ];
     METHODS.iter().copied().find(|method| {
         trimmed
             .strip_prefix(*method)
@@ -323,7 +329,10 @@ fn audit_evidence_files(repo_root: &Path, endpoint_files: &[PathBuf]) -> Vec<Pat
 
 fn keeps_entry(entry: &DirEntry) -> bool {
     let name = entry.file_name().to_string_lossy();
-    !matches!(name.as_ref(), ".git" | "target" | "third-party" | "node_modules")
+    !matches!(
+        name.as_ref(),
+        ".git" | "target" | "third-party" | "node_modules"
+    )
 }
 
 fn is_public_api_file(path: &Path) -> bool {
@@ -359,5 +368,6 @@ fn identifier_has_audit_evidence(haystack: &str, identifier: &str) -> bool {
     if haystack.contains(identifier) {
         return true;
     }
-    haystack.contains(&identifier.replace('-', "_")) || haystack.contains(&identifier.replace('_', "-"))
+    haystack.contains(&identifier.replace('-', "_"))
+        || haystack.contains(&identifier.replace('_', "-"))
 }

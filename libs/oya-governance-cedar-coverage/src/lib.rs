@@ -69,7 +69,9 @@ struct Endpoint {
 }
 
 /// Enforces Cedar policy coverage for public API endpoints.
-pub fn enforce_cedar_coverage(repo_root: impl AsRef<Path>) -> anyhow::Result<GovernanceCheckOutcome> {
+pub fn enforce_cedar_coverage(
+    repo_root: impl AsRef<Path>,
+) -> anyhow::Result<GovernanceCheckOutcome> {
     let repo_root = repo_root.as_ref().to_path_buf();
     let mut endpoints = Vec::new();
     let mut findings = Vec::new();
@@ -230,7 +232,9 @@ fn missing_identifier(path: &Path, operation: &str) -> CoverageFinding {
         kind: FindingKind::MissingEndpointIdentifier,
         source_file: path.to_path_buf(),
         identifier: None,
-        hint: format!("public endpoint `{operation}` is missing a stable operationId/rpc identifier"),
+        hint: format!(
+            "public endpoint `{operation}` is missing a stable operationId/rpc identifier"
+        ),
     }
 }
 
@@ -246,7 +250,9 @@ fn yaml_path_key(trimmed: &str) -> Option<&str> {
 }
 
 fn http_method_key(trimmed: &str) -> Option<&'static str> {
-    const METHODS: &[&str] = &["get", "put", "post", "delete", "patch", "head", "options", "trace"];
+    const METHODS: &[&str] = &[
+        "get", "put", "post", "delete", "patch", "head", "options", "trace",
+    ];
     METHODS.iter().copied().find(|method| {
         trimmed
             .strip_prefix(*method)
@@ -301,7 +307,10 @@ fn cedar_policy_files(repo_root: &Path) -> Vec<PathBuf> {
 
 fn keeps_entry(entry: &DirEntry) -> bool {
     let name = entry.file_name().to_string_lossy();
-    !matches!(name.as_ref(), ".git" | "target" | "third-party" | "node_modules")
+    !matches!(
+        name.as_ref(),
+        ".git" | "target" | "third-party" | "node_modules"
+    )
 }
 
 fn is_public_api_file(path: &Path) -> bool {
@@ -332,5 +341,6 @@ fn identifier_has_policy_evidence(haystack: &str, identifier: &str) -> bool {
     if haystack.contains(identifier) {
         return true;
     }
-    haystack.contains(&identifier.replace('-', "_")) || haystack.contains(&identifier.replace('_', "-"))
+    haystack.contains(&identifier.replace('-', "_"))
+        || haystack.contains(&identifier.replace('_', "-"))
 }

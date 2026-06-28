@@ -1902,7 +1902,8 @@ impl CloudDcopsCatalog {
             .cloned()
             .ok_or(CloudDcopsError::UnknownEquipment)?;
         let next = current.transition_lifecycle(next_lifecycle, updated_at_epoch_seconds)?;
-        if equipment_counts_against_capacity(&current) && !equipment_counts_against_capacity(&next) {
+        if equipment_counts_against_capacity(&current) && !equipment_counts_against_capacity(&next)
+        {
             self.release_capacity_accounting(equipment_id, &current)?;
         } else if !equipment_counts_against_capacity(&current)
             && equipment_counts_against_capacity(&next)
@@ -2300,18 +2301,16 @@ impl CloudDcopsCatalog {
         let Some(installation) = equipment.installation.value.as_ref() else {
             return Ok(());
         };
-        let remove_rack = if let Some(capacity) = self
-            .rack_capacity_by_id
-            .get_mut(&installation.rack_id)
-        {
-            subtract_installation_capacity(capacity, installation);
-            capacity.used_u == 0
-                && capacity.used_power_watts == 0
-                && capacity.used_heat_watts == 0
-                && capacity.used_weight_kg == 0
-        } else {
-            false
-        };
+        let remove_rack =
+            if let Some(capacity) = self.rack_capacity_by_id.get_mut(&installation.rack_id) {
+                subtract_installation_capacity(capacity, installation);
+                capacity.used_u == 0
+                    && capacity.used_power_watts == 0
+                    && capacity.used_heat_watts == 0
+                    && capacity.used_weight_kg == 0
+            } else {
+                false
+            };
         if remove_rack {
             self.rack_capacity_by_id.remove(&installation.rack_id);
         }

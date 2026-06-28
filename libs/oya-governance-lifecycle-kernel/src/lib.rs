@@ -1315,10 +1315,9 @@ pub mod cli {
                     "--trusted-now" => {
                         i += 1;
                         let v = args.get(i).ok_or("--trusted-now needs YYYY-MM-DD")?;
-                        trusted_now = Some(
-                            discovery::parse_date(v)
-                                .ok_or_else(|| format!("--trusted-now expects YYYY-MM-DD, got `{v}`"))?,
-                        );
+                        trusted_now = Some(discovery::parse_date(v).ok_or_else(|| {
+                            format!("--trusted-now expects YYYY-MM-DD, got `{v}`")
+                        })?);
                     }
                     "--changed-range" => {
                         i += 1;
@@ -1327,11 +1326,13 @@ pub mod cli {
                     }
                     "--changed-base" => {
                         i += 1;
-                        changed_base = Some(args.get(i).ok_or("--changed-base needs a ref")?.to_string());
+                        changed_base =
+                            Some(args.get(i).ok_or("--changed-base needs a ref")?.to_string());
                     }
                     "--changed-head" => {
                         i += 1;
-                        changed_head = Some(args.get(i).ok_or("--changed-head needs a ref")?.to_string());
+                        changed_head =
+                            Some(args.get(i).ok_or("--changed-head needs a ref")?.to_string());
                     }
                     "--block" => legacy_wave_override = Some(Wave::C),
                     "--warn-only" => legacy_wave_override = Some(Wave::A),
@@ -1365,7 +1366,9 @@ pub mod cli {
         let base = split.0.trim();
         let head = split.1.trim();
         if base.is_empty() || head.is_empty() {
-            return Err(format!("--changed-range expects non-empty BASE and HEAD, got `{value}`"));
+            return Err(format!(
+                "--changed-range expects non-empty BASE and HEAD, got `{value}`"
+            ));
         }
         Ok((base.to_string(), head.to_string()))
     }

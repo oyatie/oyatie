@@ -102,8 +102,11 @@ mod tests {
     fn violations_fail_closed_without_strict() {
         let root = temp_root("naming-cli-fail-closed");
         fs::create_dir_all(root.join("microservices/mail")).expect("create manifest dir");
-        fs::write(root.join("microservices/mail/manifest.yaml"), "service: mail\n")
-            .expect("write manifest without naming proof");
+        fs::write(
+            root.join("microservices/mail/manifest.yaml"),
+            "service: mail\n",
+        )
+        .expect("write manifest without naming proof");
 
         let exit = run([
             "--root".to_string(),

@@ -130,7 +130,6 @@ impl OciComputeAdapter {
             })
         }
     }
-
 }
 
 impl ComputeProviderVmPort for OciComputeAdapter {
@@ -292,8 +291,8 @@ mod tests {
         ComputeQuotaEnvelope, InstanceCreate, InstanceState,
     };
     use compute_resource::InstanceFlavor;
-    use oya_data_boundary_kernel::DataClass;
     use network_residency::ResidencyClass;
+    use oya_data_boundary_kernel::DataClass;
 
     const DIGEST: &str = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 
