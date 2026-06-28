@@ -14,8 +14,11 @@ Manual Wave-B bootstrap note (prose only): agents enter the governance pipeline 
 
 ## Engineering principles & review lenses
 
-Apply before any non-trivial decision, design, or merge. Authoring and review are
-separate passes — never self-approve; hold ideas loosely (cognitive defusion).
+Apply before any non-trivial decision, design, deployment, operation, or merge. Authoring and
+review are separate passes — never self-approve; hold ideas loosely (cognitive defusion). **Review
+discipline (Torvalds-style, battle-tested on complex projects):** hostile inspection, verify intent
+AND execution separately, never approve on narration, inspect the riskiest surface by hand, run
+multiple independent lenses. Refine ideas (divergent → convergent) before committing.
 Detail: `docs/standards/anti-patterns.md`, `docs/standards/hyperscaler-best-practices.md`,
 `specs/decision-principles.json`; bars: ADR-0516…0535 (delivery fabric), ADR-0548 (pipeline-as-product).
 
