@@ -295,6 +295,23 @@ impl KnowledgeGraphQueryEngine {
                 }
                 validate_link_endpoints(graph, link)?;
 
+                // Determine the neighbor node (the side we haven't visited yet).
+                let neighbor_id = if link.from_entity_id == entity_id {
+                    &link.to_entity_id
+                } else {
+                    &link.from_entity_id
+                };
+
+                // Node cap: stop before emitting an edge to a node that cannot
+                // be included in the response. Returning an edge without both
+                // endpoints would create a dangling/orphaned graph slice.
+                if !nodes.contains_key(neighbor_id.as_str())
+                    && nodes.len() >= MAX_QUERY_RESULT_NODES
+                {
+                    result_truncated = true;
+                    break 'bfs;
+                }
+
                 // Edge cap: stop before inserting when at limit.
                 if edges.len() >= MAX_QUERY_RESULT_EDGES {
                     result_truncated = true;
@@ -303,19 +320,9 @@ impl KnowledgeGraphQueryEngine {
                 // Emit edge in canonical from→to orientation regardless of traversal direction.
                 edges.insert(link.as_contract_edge());
 
-                // Determine the neighbor node (the side we haven't visited yet).
-                let neighbor_id = if link.from_entity_id == entity_id {
-                    &link.to_entity_id
-                } else {
-                    &link.from_entity_id
-                };
-
-                // Node cap: stop before inserting when at limit.
-                if nodes.len() >= MAX_QUERY_RESULT_NODES {
-                    result_truncated = true;
-                    break 'bfs;
+                if !nodes.contains_key(neighbor_id.as_str()) {
+                    insert_node(graph, &request.tenant_id, neighbor_id, &mut nodes)?;
                 }
-                insert_node(graph, &request.tenant_id, neighbor_id, &mut nodes)?;
 
                 if seen_nodes.insert(neighbor_id.clone()) {
                     queue.push_back((neighbor_id.clone(), depth + 1));
@@ -549,6 +556,26 @@ mod tests {
             TraversalDirection::Outbound,
         )
         .unwrap()
+    }
+
+    fn assert_every_edge_endpoint_is_returned(response: &KnowledgeGraphQueryResponse) {
+        let node_ids: BTreeSet<&str> = response
+            .nodes
+            .iter()
+            .map(|node| node.entity_id.as_str())
+            .collect();
+        for edge in &response.edges {
+            assert!(
+                node_ids.contains(edge.from_entity_id.as_str()),
+                "edge source {} must be present in response nodes",
+                edge.from_entity_id
+            );
+            assert!(
+                node_ids.contains(edge.to_entity_id.as_str()),
+                "edge target {} must be present in response nodes",
+                edge.to_entity_id
+            );
+        }
     }
 
     #[test]
@@ -891,6 +918,7 @@ mod tests {
         assert_eq!(r1.edges.len(), r2.edges.len(), "edge count must be deterministic");
         // returned node set must not exceed cap + root
         assert!(r1.nodes.len() <= cap + 1, "nodes must not exceed cap + root");
+        assert_every_edge_endpoint_is_returned(&r1);
     }
 
     /// ST1-b: A star graph with leaf_count > MAX_QUERY_RESULT_EDGES triggers
@@ -1738,6 +1766,7 @@ mod tests {
             resp.nodes.len() <= cap + 1,
             "Inbound nodes must not exceed cap + root"
         );
+        assert_every_edge_endpoint_is_returned(&resp);
     }
 
     /// Tenant isolation: inbound links from a different tenant are never returned.
