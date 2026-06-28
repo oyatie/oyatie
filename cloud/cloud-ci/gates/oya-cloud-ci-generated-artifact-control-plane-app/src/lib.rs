@@ -564,7 +564,7 @@ fn diff_candidate_paths<'a>(status: &str, paths: &'a [&'a str]) -> Result<Vec<&'
                 Err(())
             }
         }
-        'A' | 'M' | 'T' | 'U' | 'X' | 'B' => single_path(),
+        'A' | 'M' | 'T' => single_path(),
         _ => Err(()),
     }
 }
@@ -1689,6 +1689,32 @@ mod tests {
         assert!(
             violations.is_empty(),
             "malformed diff input should fail before reporting partial policy violations"
+        );
+    }
+
+    #[test]
+    fn diff_policy_fails_closed_on_unmerged_unknown_or_broken_pair_status() {
+        let manifest = manifest(vec![artifact("example-face", "out/example.generated.json")]);
+        let diff = concat!(
+            "U\tout/example.generated.json\n",
+            "X\tout/example.generated.json\n",
+            "B\tout/example.generated.json\n",
+        );
+
+        let (findings, violations) = generated_output_diff_policy_violations(&manifest, diff);
+
+        for line in 1..=3 {
+            assert!(
+                findings.iter().any(|finding| {
+                    finding.code == "generated_artifact_diff_name_status_malformed"
+                        && finding.key == format!("line {line}")
+                }),
+                "U/X/B diff rows must fail closed on line {line}: {findings:#?}"
+            );
+        }
+        assert!(
+            violations.is_empty(),
+            "malformed U/X/B rows should fail before reporting policy violations"
         );
     }
 
