@@ -23,10 +23,9 @@ pub enum AwsComputeAdapterConfigError {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AwsComputeAdapter {
-    endpoint_origin: String,  // data_class: INTERNAL_ONLY
-    account_ref: String,      // data_class: INTERNAL_ONLY
-    region: String,           // data_class: PUBLIC
-    clock_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+    endpoint_origin: String, // data_class: INTERNAL_ONLY
+    account_ref: String,     // data_class: INTERNAL_ONLY
+    region: String,          // data_class: PUBLIC
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -58,13 +57,7 @@ impl AwsComputeAdapter {
             endpoint_origin,
             account_ref,
             region,
-            clock_epoch_seconds: 0,
         })
-    }
-
-    pub fn with_clock(mut self, clock_epoch_seconds: u64) -> Self {
-        self.clock_epoch_seconds = clock_epoch_seconds;
-        self
     }
 
     pub fn provider_instance_ref(&self, instance_resource_id: &str) -> String {
@@ -128,7 +121,6 @@ impl ComputeProviderVmPort for AwsComputeAdapter {
         input: ComputeProviderVmCreateRequest,
     ) -> Result<ComputeProviderVmReceipt, ComputeProviderVmError> {
         let _command = self.create_instance_command(&input)?;
-        let _preview_clock_epoch_seconds = self.clock_epoch_seconds;
         Err(ComputeProviderVmError::ProviderRejected {
             provider: self.provider_kind(),
             reason: "AWS EC2 adapter is command-projection preview only; create_vm does not perform production provisioning"
@@ -326,7 +318,6 @@ mod tests {
             "us-east-1",
         )
         .unwrap()
-        .with_clock(1_700_200_010)
     }
 
     fn request(adapter: &AwsComputeAdapter) -> ComputeProviderVmCreateRequest {
