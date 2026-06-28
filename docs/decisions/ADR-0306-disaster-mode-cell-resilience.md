@@ -97,12 +97,12 @@ purpose: >
   exception. Per documentation-rigor.md §3.2.5 rows 14 + 22 + 30.
 enforcement_status: advisory-until-2026-10-31-blocker-thereafter
 enforced_by:
-  - oya gate validate disaster-mode-surge-capacity-declaration
-  - oya gate validate disaster-mode-offline-first-coverage
-  - oya gate validate disaster-mode-dr-pair-failover-config
-  - oya gate validate disaster-mode-per-pack-overlay
-  - oya gate validate disaster-mode-cell-isolation-preservation
-  - oya gate validate disaster-mode-emergency-services-non-throttle
+  - cloud-ci/Rust gate packet disaster-mode-surge-capacity-declaration
+  - cloud-ci/Rust gate packet disaster-mode-offline-first-coverage
+  - cloud-ci/Rust gate packet disaster-mode-dr-pair-failover-config
+  - cloud-ci/Rust gate packet disaster-mode-per-pack-overlay
+  - cloud-ci/Rust gate packet disaster-mode-cell-isolation-preservation
+  - cloud-ci/Rust gate packet disaster-mode-emergency-services-non-throttle
 naming_justifications:
   - name: oya-shared-disaster-mode
     layer: layer_5_shared_substrate

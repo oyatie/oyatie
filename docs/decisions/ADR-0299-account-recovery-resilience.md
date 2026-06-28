@@ -91,13 +91,13 @@ purpose: >
   row 2 (account-recovery) + row 24 (account-hijack-victim-recovery).
 enforcement_status: advisory-until-2026-08-15-blocker-thereafter
 enforced_by:
-  - oya gate validate account-recovery-multi-factor-required
-  - oya gate validate account-recovery-cooling-period-enforced
-  - oya gate validate account-recovery-cedar-fragment-present
-  - oya gate validate account-recovery-audit-event-class
-  - oya gate validate account-recovery-no-permanent-lockout-without-ombudsman
-  - oya gate validate account-recovery-72h-cooldown-post-recovery
-  - oya gate validate account-recovery-sim-swap-detection-wired
+  - cloud-ci/Rust gate packet account-recovery-multi-factor-required
+  - cloud-ci/Rust gate packet account-recovery-cooling-period-enforced
+  - cloud-ci/Rust gate packet account-recovery-cedar-fragment-present
+  - cloud-ci/Rust gate packet account-recovery-audit-event-class
+  - cloud-ci/Rust gate packet account-recovery-no-permanent-lockout-without-ombudsman
+  - cloud-ci/Rust gate packet account-recovery-72h-cooldown-post-recovery
+  - cloud-ci/Rust gate packet account-recovery-sim-swap-detection-wired
 naming_justifications:
   - name: oya-shared-account-recovery
     layer: layer_5_shared_substrate

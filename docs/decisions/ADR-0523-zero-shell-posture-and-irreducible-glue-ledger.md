@@ -105,7 +105,7 @@ Claude and Codex project hook wiring files, the root Makefile and BUCK, and all 
 A script was deleted ONLY when its sole remaining references were the script itself, the generated
 born-accounting faces (accounting-registry, scm-facts, gate-baseline), the shrink-only
 rust-first-automation hygiene baseline, debt-inventory/audit docs, the retirement-marked
-oya-dev-cli gate-list surfaces (the quality-lanes registry, the marketplace dev-cli facade, the
+retired dev-cli gate-list surfaces (the quality-lanes registry, the marketplace dev-cli facade, the
 governance gate-catalog domain lib — local bridge feedback, never merge authority per
 `cli_surface_policy`), or other dead scripts in the same delete set.
 

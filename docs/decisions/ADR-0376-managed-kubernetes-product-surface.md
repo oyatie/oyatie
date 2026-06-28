@@ -20,23 +20,23 @@ deliverables:
   - id: ADR-0376-D1
     description: "Two-tier managed-Kubernetes product doctrine: hosted control plane (Kamaji, control planes as pods in Oyatie's management cluster) is the DEFAULT tier; a dedicated/sovereign full Talos spoke cluster per tenant (ADR-0375) is the PREMIUM tier. Tenant picks the tier; default is hosted. This ADR records the decision; no product code lands in this lane."
     exit_criteria: "docs/decisions/ADR-0376-managed-kubernetes-product-surface.md states both tiers, names hosted-as-default + dedicated-as-premium, and the tier-selection rule; the ADR index lists ADR-0376 as Accepted."
-    verified_by: "cargo run -p oya-dev-cli -- gate validate adr-index"
+    verified_by: "cloud-ci/Rust gate packet adr-index"
   - id: ADR-0376-D2
     description: "Adopt Kamaji (github.com/clastix/kamaji) as a SECOND, ADDITIVE clusterctl-compliant Cluster API control-plane provider alongside the existing Talos control plane from ADR-0375. The management cluster runs both control-plane providers; hosted-tier tenant control planes are Kamaji-managed pods, dedicated-tier tenant control planes stay Talos CABPT/CACPPT spokes. Provider integration is BUILT in a later lane."
     exit_criteria: "the ADR cites Kamaji as a clusterctl-compliant CAPI control-plane provider (verified against the upstream CAPI provider list) and frames it as additive to ADR-0375's Talos control-plane provider, version-agnostic (no invented version pin)."
-    verified_by: "cargo run -p oya-dev-cli -- gate validate adr-index"
+    verified_by: "cloud-ci/Rust gate packet adr-index"
   - id: ADR-0376-D3
     description: "Dogfood-first scope: the build target is the milestone where Oyatie provisions its OWN clusters via the cluster-CRUD API as tenant-zero (oyatie-dogfood-tenancy), with NO internal bypass of the tenant model. Billing, public SLA, DPIA, and external multi-tenant GA are explicitly DEFERRED to a follow-on ADR named as future work here, not designed in this ADR."
     exit_criteria: "the ADR states the dogfood-first build target + tenant-zero/no-bypass invariant and lists billing/SLA/DPIA/external-GA as deferred future-work legs with a named follow-on ADR placeholder."
-    verified_by: "cargo run -p oya-dev-cli -- gate validate adr-index"
+    verified_by: "cloud-ci/Rust gate packet adr-index"
   - id: ADR-0376-D4
     description: "Name the four flat, single-concern microservices the product layer decomposes into (BUILT in later lanes, NOT now): oya-managed-k8s-cluster-lifecycle, oya-managed-k8s-tenant-quota, oya-managed-k8s-control-plane-host, oya-managed-k8s-sla-observability. Flat layout per ADR-0131/0132 (src/ canonical root, single-concern, no platform/bundle)."
     exit_criteria: "the ADR names all four microservices, asserts flat single-concern layout per ADR-0131/0132, and explicitly marks them as future-lane work."
-    verified_by: "cargo run -p oya-dev-cli -- gate validate adr-index"
+    verified_by: "cloud-ci/Rust gate packet adr-index"
   - id: ADR-0376-D5
     description: "Resolve the placeholder-debt token `adr-0375-managed-k8s-product-surface`: repoint the registry/placeholder-debt/adr-follow-ups.yaml entry and the ADR-0375 back-reference at ADR-0376, since the product surface now has its own ADR."
     exit_criteria: "grep -rn \"adr-0375-managed-k8s-product-surface\" resolves to the repointed entry only; the follow-up entry's adr_when_landed cites ADR-0376; ADR-0375's Product-framing back-reference points at ADR-0376."
-    verified_by: "cargo run -p oya-dev-cli -- gate run-all"
+    verified_by: "oya-ci-required"
 purpose: >
   Establish Oyatie's managed-Kubernetes offering — its own GKE/OKE/EKS
   equivalent — as a TWO-TIER product on top of the ADR-0375 substrate: a

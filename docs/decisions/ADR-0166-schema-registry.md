@@ -79,7 +79,7 @@ The registry holds:
 
 ### Schema-registry CI lane
 
-`oya gate validate schema-registry-backward-compat`:
+`cloud-ci/Rust gate packet schema-registry-backward-compat`:
 
 - Reads every µservice's `contracts/asyncapi-v*.yaml` + `contracts/proto3/*.proto` + `contracts/openapi-v*.yaml`.
 - For each schema, compares against the previously-published version in the registry.
@@ -162,9 +162,9 @@ Publication is a step in the ChangeSet promotion pipeline (ADR-0110) — staging
 ### Operational
 
 1. New µservice scaffolded at `microservices/governance/iac/helm/apicurio-registry/Chart.yaml` (Companion).
-2. CI lane `oya gate validate schema-registry-backward-compat` enforces.
+2. CI lane `cloud-ci/Rust gate packet schema-registry-backward-compat` enforces.
 3. Per-µservice `contracts/asyncapi-v1.yaml` + `contracts/proto3/*.proto` + `contracts/openapi-v1.yaml` shipped by every µservice.
-4. Subject naming validated by `oya gate validate schema-registry-naming-convention`.
+4. Subject naming validated by `cloud-ci/Rust gate packet schema-registry-naming-convention`.
 5. Per-pack overlay for sovereign packs at `microservices/governance/iac/kustomize/components/pack-{ksa,kr-fsc,...}/apicurio-registry/`.
 6. Companion spec `specs/schema-registry-canonical.json` declares the subject naming, compatibility-level defaults, and major-version sunset policy.
 

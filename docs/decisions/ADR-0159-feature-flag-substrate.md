@@ -87,7 +87,7 @@ Every feature flag declared MUST also declare:
 - `intent` — `release_toggle` (kill-switch for a feature being rolled out) / `experiment` (A/B test) / `permission_toggle` (per-tenant feature gate that is durable) / `kill_switch` (emergency disable).
 - `sunset_at` — timestamp; for `release_toggle` and `experiment`, this is mandatory; for `permission_toggle` it is null (durable).
 
-A CI lane `oya gate validate feature-flag-lifecycle` refuses merge if (a) a flag has been `release_toggle` for > 90 days past its `sunset_at`, (b) a flag has been `experiment` for > 180 days, (c) any code references a flag whose definition no longer exists in `feature-flags` µservice's catalog.
+A CI lane `cloud-ci/Rust gate packet feature-flag-lifecycle` refuses merge if (a) a flag has been `release_toggle` for > 90 days past its `sunset_at`, (b) a flag has been `experiment` for > 180 days, (c) any code references a flag whose definition no longer exists in `feature-flags` µservice's catalog.
 
 ### Cedar integration
 
@@ -146,7 +146,7 @@ Flag predicates are Cedar fragments. Same Cedar evaluator that the governance µ
 ### Operational
 
 1. New µservice scaffolded at `microservices/feature-flags/` per ADR-0131 flat layout. PRD skeleton ships with this ADR (see Companion).
-2. New CI lane `oya gate validate feature-flag-lifecycle` enforces flag-cleanup discipline.
+2. New CI lane `cloud-ci/Rust gate packet feature-flag-lifecycle` enforces flag-cleanup discipline.
 3. Per-pack Helm overlay `iac/kustomize/components/feature-flags-overlay-{kr,eu,us,jp,ksa}/`.
 4. Rust SDK `crates/oya-feature-flag-client/` wraps OpenFeature Rust SDK.
 5. Companion spec `specs/feature-flag-substrate-canonical.json` declares the OpenFeature-spec mapping + Cedar-predicate shape + lifecycle policy.

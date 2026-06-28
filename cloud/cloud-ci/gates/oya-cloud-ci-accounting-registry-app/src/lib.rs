@@ -1649,6 +1649,20 @@ mod tests {
         );
         // a stem with zero live residue freezes an empty (but present) key set.
         assert_eq!(br["forbidden_forgejo"]["keys"].as_array().unwrap().len(), 0);
+
+        let ar = &baseline["gates"]["cloud-ci-automation-ratchet"];
+        assert!(
+            ar["advisory_claiming_enforced"]["remediation"]
+                .as_str()
+                .is_some_and(|t| t.contains("hermetic cloud-ci/Buck2 gate target")),
+            "advisory enforcement claims must stamp an actionable cloud-ci remediation"
+        );
+        assert!(
+            ar["blocking_invariant_mapped_to_oya_cli"]["remediation"]
+                .as_str()
+                .is_some_and(|t| t.contains("replace retired oya CLI authority")),
+            "retired CLI authority findings must stamp the cloud-native replacement remediation"
+        );
     }
 
     #[test]

@@ -84,14 +84,14 @@ purpose: >
   is per ADR-0312 (scope-bounded by judicial review).
 enforcement_status: advisory-until-2026-09-15-blocker-thereafter
 enforced_by:
-  - oya gate validate dual-tenant-boundary-enforced
-  - oya gate validate personal-tenant-cedar-deny
-  - oya gate validate work-tenant-audit-scope-coherent
-  - oya gate validate ui-tenant-context-indicator-present
-  - oya gate validate per-jurisdiction-labor-law-overlay
-  - oya gate validate onboarding-consent-captured
-  - oya gate validate offboarding-portable-export-honored
-  - oya gate validate audience-type-enum-coherence
+  - cloud-ci/Rust gate packet dual-tenant-boundary-enforced
+  - cloud-ci/Rust gate packet personal-tenant-cedar-deny
+  - cloud-ci/Rust gate packet work-tenant-audit-scope-coherent
+  - cloud-ci/Rust gate packet ui-tenant-context-indicator-present
+  - cloud-ci/Rust gate packet per-jurisdiction-labor-law-overlay
+  - cloud-ci/Rust gate packet onboarding-consent-captured
+  - cloud-ci/Rust gate packet offboarding-portable-export-honored
+  - cloud-ci/Rust gate packet audience-type-enum-coherence
 naming_justifications:
   - name: oya-shared-dual-tenant-boundary
     layer: layer_5_shared_substrate

@@ -105,16 +105,16 @@ purpose: >
   detection substrate goes GA.
 enforcement_status: advisory-until-2026-09-15-blocker-thereafter
 enforced_by:
-  - oya gate validate ml-model-card-present-per-model
-  - oya gate validate ml-validation-bias-audit-present
-  - oya gate validate ml-ab-test-champion-challenger-coherence
-  - oya gate validate ml-drift-detection-daily-cadence
-  - oya gate validate ml-fairness-quarterly-cadence
-  - oya gate validate ml-model-semver-conformance
-  - oya gate validate ml-rollback-runbook-present
-  - oya gate validate ml-appeal-mechanism-coverage
-  - oya gate validate ml-eu-ai-act-art73-24h-incident-reporting
-  - oya gate validate ml-ny-aedt-bias-audit-public-notice
+  - cloud-ci/Rust gate packet ml-model-card-present-per-model
+  - cloud-ci/Rust gate packet ml-validation-bias-audit-present
+  - cloud-ci/Rust gate packet ml-ab-test-champion-challenger-coherence
+  - cloud-ci/Rust gate packet ml-drift-detection-daily-cadence
+  - cloud-ci/Rust gate packet ml-fairness-quarterly-cadence
+  - cloud-ci/Rust gate packet ml-model-semver-conformance
+  - cloud-ci/Rust gate packet ml-rollback-runbook-present
+  - cloud-ci/Rust gate packet ml-appeal-mechanism-coverage
+  - cloud-ci/Rust gate packet ml-eu-ai-act-art73-24h-incident-reporting
+  - cloud-ci/Rust gate packet ml-ny-aedt-bias-audit-public-notice
 naming_justifications:
   - name: oya-shared-ml-lifecycle
     layer: layer_5_shared_substrate
