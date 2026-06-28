@@ -251,6 +251,7 @@ mod tests {
                 secret_present: true,
                 dispatcher_kind: crate::config::DispatcherKind::Jenkins,
                 controller_url: None,
+                controller_bearer: None,
             }),
             secret: Arc::new(WebhookSecret::new(SECRET.as_bytes().to_vec())),
             ed25519_key: None,
