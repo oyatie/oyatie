@@ -17,7 +17,7 @@ related_specs:
 version: 1.0.0
 purpose: Activate a narrow detector that blocks active enforcement claims when the named check crate, workflow, or branch-protection context is absent.
 enforcement_status: active
-enforced_by: oya gate validate aspirational-enforcement
+enforced_by: cloud-ci/Rust gate packet aspirational-enforcement
 ---
 
 # ADR-0135: Aspirational Enforcement Gate
@@ -27,8 +27,8 @@ enforced_by: oya gate validate aspirational-enforcement
 Accepted - 2026-05-17.
 
 This ADR is accepted because the enforcement slice lands together: an I/O-free
-validator crate, a real `oya gate validate aspirational-enforcement` CLI
-entrypoint, fixture integration tests, a pull-request workflow, branch-protection
+validator crate, a real `cloud-ci/Rust gate packet aspirational-enforcement`,
+fixture integration tests, a pull-request workflow, branch-protection
 registration, and quality-lane catalog wiring.
 
 ## Context
@@ -44,7 +44,7 @@ keeps future active claims honest.
 
 ## Decision
 
-`oya gate validate aspirational-enforcement` scans the normative docs, specs,
+`cloud-ci/Rust gate packet aspirational-enforcement` scans the normative docs, specs,
 and registry corpus for binding enforcement claims that name repository
 enforcement surfaces.
 
@@ -122,8 +122,8 @@ registry entry, and CI-lanes documentation row use that same value so
 
 ```
 cargo test -p oya-check-aspirational-enforcement
-cargo test -p oya-dev-cli aspirational_enforcement_gate --test gate_cli
-cargo run -p oya-dev-cli -- gate validate aspirational-enforcement
-cargo run -p oya-dev-cli -- gate validate quality-lanes
-cargo run -p oya-dev-cli -- gate validate protection-context-match
+cloud-ci/Rust regression packet aspirational_enforcement_gate
+cloud-ci/Rust gate packet aspirational-enforcement
+cloud-ci/Rust gate packet quality-lanes
+cloud-ci/Rust gate packet protection-context-match
 ```

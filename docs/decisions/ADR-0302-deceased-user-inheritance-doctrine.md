@@ -101,13 +101,13 @@ purpose: >
   unilaterally lock out heirs.
 enforcement_status: advisory-until-2026-08-15-blocker-thereafter
 enforced_by:
-  - oya gate validate deceased-user-legacy-contact-attestation-chain
-  - oya gate validate deceased-user-inactive-account-manager-fired
-  - oya gate validate deceased-user-legal-rep-court-order-required
-  - oya gate validate deceased-user-pre-mortem-wish-honored
-  - oya gate validate deceased-user-dsar-cascade-per-adr-0276
-  - oya gate validate deceased-user-per-pack-inheritance-overlay
-  - oya gate validate deceased-user-cedar-fragment-present
+  - cloud-ci/Rust gate packet deceased-user-legacy-contact-attestation-chain
+  - cloud-ci/Rust gate packet deceased-user-inactive-account-manager-fired
+  - cloud-ci/Rust gate packet deceased-user-legal-rep-court-order-required
+  - cloud-ci/Rust gate packet deceased-user-pre-mortem-wish-honored
+  - cloud-ci/Rust gate packet deceased-user-dsar-cascade-per-adr-0276
+  - cloud-ci/Rust gate packet deceased-user-per-pack-inheritance-overlay
+  - cloud-ci/Rust gate packet deceased-user-cedar-fragment-present
 naming_justifications:
   - name: oya-shared-deceased-user-inheritance
     layer: layer_5_shared_substrate

@@ -102,15 +102,15 @@ purpose: >
   sanctions reporting, FBI IC3 reporting.
 enforcement_status: advisory-until-2026-10-15-blocker-thereafter
 enforced_by:
-  - oya gate validate investigation-case-substrate-emission-coherence
-  - oya gate validate investigation-cedar-pii-gating-coherence
-  - oya gate validate investigation-chain-of-custody-merkle-sealed
-  - oya gate validate investigation-per-tenant-case-ownership
-  - oya gate validate investigation-per-pack-regulator-surface
-  - oya gate validate investigation-appeal-mechanism-sla
-  - oya gate validate investigation-analyst-label-feedback-loop
-  - oya gate validate investigation-triage-priority-cadence
-  - oya gate validate investigation-escalation-routing-coherence
+  - cloud-ci/Rust gate packet investigation-case-substrate-emission-coherence
+  - cloud-ci/Rust gate packet investigation-cedar-pii-gating-coherence
+  - cloud-ci/Rust gate packet investigation-chain-of-custody-merkle-sealed
+  - cloud-ci/Rust gate packet investigation-per-tenant-case-ownership
+  - cloud-ci/Rust gate packet investigation-per-pack-regulator-surface
+  - cloud-ci/Rust gate packet investigation-appeal-mechanism-sla
+  - cloud-ci/Rust gate packet investigation-analyst-label-feedback-loop
+  - cloud-ci/Rust gate packet investigation-triage-priority-cadence
+  - cloud-ci/Rust gate packet investigation-escalation-routing-coherence
 naming_justifications:
   - name: oya-shared-investigation-case
     layer: layer_5_shared_substrate

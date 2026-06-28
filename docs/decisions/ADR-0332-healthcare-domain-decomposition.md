@@ -52,12 +52,12 @@ phase_assignment: Phase 4 (B2B / Industry-Leader Long Tail)
 big_8_priority: Healthcare cluster (post-HR, post-CRM, post-ITSM)
 enforcement_status: advisory-until-eight-microservices-scaffold-lands
 enforced_by:
-  - oya gate validate per-microservice-layout
-  - oya gate validate no-grouping
-  - oya gate validate microservice-coherence-audit
-  - oya gate validate healthcare-domain-decomposition (NEW lane added by this ADR)
-  - oya gate validate hipaa-pack-coverage-per-healthcare-microservice
-  - oya gate validate cross-microservice-handoff-coherence
+  - cloud-ci/Rust gate packet per-microservice-layout
+  - cloud-ci/Rust gate packet no-grouping
+  - cloud-ci/Rust gate packet microservice-coherence-audit
+  - cloud-ci/Rust gate packet healthcare-domain-decomposition (NEW lane added by this ADR)
+  - cloud-ci/Rust gate packet hipaa-pack-coverage-per-healthcare-microservice
+  - cloud-ci/Rust gate packet cross-microservice-handoff-coherence
 purpose: >
   Decompose the existing healthcare-integration microservice (215 features
   across 14 domains) into eight new domain-scoped single-concern microservices
@@ -1431,14 +1431,14 @@ RETIRED-marker stubs happens only in a successor cleanup wave (Wave
 
 The decomposition is verified through:
 
-1. `oya gate validate per-microservice-layout` exits 0 against each new
+1. `cloud-ci/Rust gate packet per-microservice-layout` exits 0 against each new
    µservice folder.
-2. `oya gate validate no-grouping` exits 0 — the new µservices
+2. `cloud-ci/Rust gate packet no-grouping` exits 0 — the new µservices
    are not bundle/grouping shapes.
-3. `oya gate validate microservice-coherence-audit` exits 0 against
+3. `cloud-ci/Rust gate packet microservice-coherence-audit` exits 0 against
    each new µservice (the same five-dimension protocol used in the
    existing healthcare-integration audit).
-4. The new BLOCKER lane `oya gate validate healthcare-domain-
+4. The new BLOCKER lane `cloud-ci/Rust gate packet healthcare-domain-
    decomposition` (this ADR adds) enforces:
    - Each healthcare-domain µservice declares HIPAA-2024 pack in
      `manifest.compliance_packs[]`.
@@ -1447,11 +1447,11 @@ The decomposition is verified through:
    - Each healthcare-domain µservice declares a cell-certification-
      level expectation of `hipaa-certified` for paid tenant class.
    - Cross-µservice handoff Workflow event names match the §D matrix.
-5. `oya gate validate hipaa-pack-coverage-per-healthcare-microservice`
+5. `cloud-ci/Rust gate packet hipaa-pack-coverage-per-healthcare-microservice`
    exits 0 — every healthcare-domain µservice has BAA template,
    breach-notification workflow ref, PHI data class registration, and
    audit-event class binding.
-6. `oya gate validate cross-microservice-handoff-coherence` exits 0 —
+6. `cloud-ci/Rust gate packet cross-microservice-handoff-coherence` exits 0 —
    handoff event names match the §D matrix; no orphan Workflow event
    names; no missing consumer.
 7. `cargo build --workspace` exits 0 once µservice scaffolds land.

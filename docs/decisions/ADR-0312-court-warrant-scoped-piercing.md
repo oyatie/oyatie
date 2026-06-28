@@ -93,14 +93,14 @@ purpose: >
   publishable.
 enforcement_status: advisory-until-2026-09-15-blocker-thereafter
 enforced_by:
-  - oya gate validate warrant-scope-enforced
-  - oya gate validate warrant-judicial-review-recorded
-  - oya gate validate warrant-jurisdiction-cited
-  - oya gate validate warrant-cedar-grant-shape
-  - oya gate validate warrant-audit-chain-merkle-seal
-  - oya gate validate warrant-ombudsman-attestation
-  - oya gate validate warrant-canary-transparency-report
-  - oya gate validate warrant-reporter-privilege-exception
+  - cloud-ci/Rust gate packet warrant-scope-enforced
+  - cloud-ci/Rust gate packet warrant-judicial-review-recorded
+  - cloud-ci/Rust gate packet warrant-jurisdiction-cited
+  - cloud-ci/Rust gate packet warrant-cedar-grant-shape
+  - cloud-ci/Rust gate packet warrant-audit-chain-merkle-seal
+  - cloud-ci/Rust gate packet warrant-ombudsman-attestation
+  - cloud-ci/Rust gate packet warrant-canary-transparency-report
+  - cloud-ci/Rust gate packet warrant-reporter-privilege-exception
 naming_justifications:
   - name: oya-shared-warrant-handler
     layer: layer_5_shared_substrate

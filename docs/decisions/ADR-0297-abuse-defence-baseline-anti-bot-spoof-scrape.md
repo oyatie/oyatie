@@ -98,13 +98,13 @@ purpose: >
   minor tier).
 enforcement_status: advisory-until-2026-08-15-blocker-thereafter
 enforced_by:
-  - oya gate validate abuse-defence-anti-bot-coverage
-  - oya gate validate abuse-defence-anti-spoof-coverage
-  - oya gate validate abuse-defence-anti-scrape-coverage
-  - oya gate validate abuse-defence-cedar-fragment-present
-  - oya gate validate abuse-defence-cell-tier-variant-coherence
-  - oya gate validate abuse-defence-audience-type-tuning
-  - oya gate validate abuse-defence-compliance-surface-present
+  - cloud-ci/Rust gate packet abuse-defence-anti-bot-coverage
+  - cloud-ci/Rust gate packet abuse-defence-anti-spoof-coverage
+  - cloud-ci/Rust gate packet abuse-defence-anti-scrape-coverage
+  - cloud-ci/Rust gate packet abuse-defence-cedar-fragment-present
+  - cloud-ci/Rust gate packet abuse-defence-cell-tier-variant-coherence
+  - cloud-ci/Rust gate packet abuse-defence-audience-type-tuning
+  - cloud-ci/Rust gate packet abuse-defence-compliance-surface-present
 naming_justifications:
   - name: oya-shared-abuse-defence
     layer: layer_5_shared_substrate
@@ -1323,7 +1323,7 @@ level per ADR-0294 ≥60s soak (DNS TTL bounded).
 - No MITM-bypass headers (no `strict-transport-security: max-age=0`
   emergency disable in production).
 - No `insecure_skip_verify` anywhere in code; per ADR-0253
-  amendment `oya gate validate tls13-only` enforces.
+  amendment `cloud-ci/Rust gate packet tls13-only` enforces.
 - ECH (Encrypted Client Hello) advertised per ADR-0253; configured
   via `iac/<env>-ech-config.yaml`.
 - PQC hybrid `X25519MLKEM768` offered in ClientHello per ADR-0253.

@@ -53,11 +53,11 @@ purpose: >
 enforcement_status: advisory-until-ux-profile-registry-ships-blocker-thereafter
 planned_enforcement_ref: oya-governance-workspace-universality
 enforced_by:
-  - oya gate validate ux-device-profile-matrix
-  - oya gate validate ux-workspace-matrix
-  - oya gate validate collar-color-shell-coverage
-  - oya gate validate accessibility-accommodation-coverage
-  - oya gate validate role-projection-transfer-invariant
+  - cloud-ci/Rust gate packet ux-device-profile-matrix
+  - cloud-ci/Rust gate packet ux-workspace-matrix
+  - cloud-ci/Rust gate packet collar-color-shell-coverage
+  - cloud-ci/Rust gate packet accessibility-accommodation-coverage
+  - cloud-ci/Rust gate packet role-projection-transfer-invariant
 naming_justifications:
   - name: oya-ux-universality-kernel
     justification: >

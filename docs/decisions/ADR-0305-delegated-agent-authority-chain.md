@@ -95,12 +95,12 @@ purpose: >
   back to that human. Per documentation-rigor.md §3.2.5 row 28.
 enforcement_status: advisory-until-2026-09-30-blocker-thereafter
 enforced_by:
-  - oya gate validate delegated-agent-token-issuance-coverage
-  - oya gate validate delegated-agent-attestation-chain
-  - oya gate validate delegated-agent-cross-tenant-block
-  - oya gate validate delegated-agent-scope-inheritance
-  - oya gate validate delegated-agent-audit-linkage
-  - oya gate validate delegated-agent-bot-defence-allow-path
+  - cloud-ci/Rust gate packet delegated-agent-token-issuance-coverage
+  - cloud-ci/Rust gate packet delegated-agent-attestation-chain
+  - cloud-ci/Rust gate packet delegated-agent-cross-tenant-block
+  - cloud-ci/Rust gate packet delegated-agent-scope-inheritance
+  - cloud-ci/Rust gate packet delegated-agent-audit-linkage
+  - cloud-ci/Rust gate packet delegated-agent-bot-defence-allow-path
 naming_justifications:
   - name: oya-shared-agent-authority
     layer: layer_5_shared_substrate

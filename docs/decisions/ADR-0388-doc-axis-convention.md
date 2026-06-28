@@ -94,7 +94,7 @@ is a gate violation.
 
 ## Consequences
 
-- The `oya-check-doc-axis` gate (registered as `oya gate validate doc-axis`)
+- The `oya-check-doc-axis` gate (registered as `cloud-ci/Rust gate packet doc-axis`)
   enforces all four rules on every PR.
 - Idea-pagers that age past 14 days without promotion automatically block the
   gate, creating intentional self-pressure toward decision closure.

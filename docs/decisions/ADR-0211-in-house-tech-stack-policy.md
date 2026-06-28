@@ -90,7 +90,7 @@ Each Class B vendor MUST register in `registry/vendor-lockin-phaseout/index.json
 - `replacement_path`: workspace path where the in-house Phase-2 will live.
 - `replacement_readiness_gate`: the value-anchored trigger (above table column).
 
-The `oya gate validate vendor-lockin-discipline` gate (BLOCKER per ADR-0173) enforces this registry shape.
+The `cloud-ci/Rust gate packet vendor-lockin-discipline` gate (BLOCKER per ADR-0173) enforces this registry shape.
 
 ### Class C — In-house mandatory differentiation
 
@@ -116,9 +116,9 @@ The capability IS our differentiation. It must be 100% in-house from day one. No
 
 Three gates enforce this policy:
 
-1. **`oya gate validate vendor-lockin-discipline`** (ADR-0173, BLOCKER) — verifies the `registry/vendor-lockin-phaseout/index.json` shape (tier classification, seam_adapter_trait + impl present for Tier II, refusal rationale + replacement path for Tier III).
+1. **`cloud-ci/Rust gate packet vendor-lockin-discipline`** (ADR-0173, BLOCKER) — verifies the `registry/vendor-lockin-phaseout/index.json` shape (tier classification, seam_adapter_trait + impl present for Tier II, refusal rationale + replacement path for Tier III).
 
-2. **`oya gate validate vendor-classification-coverage`** (queued; PR-144) — verifies every workspace dependency declared in `Cargo.toml` AND every µservice manifest dependency declares its class.
+2. **`cloud-ci/Rust gate packet vendor-classification-coverage`** (queued; PR-144) — verifies every workspace dependency declared in `Cargo.toml` AND every µservice manifest dependency declares its class.
 
 3. **`oya-check-version-pin-source-cited`** (queued; PR-144 per ADR-0221 §M-01) — every version pin in ADRs/PRDs/specs must cite a WebSearch / Context7 / upstream source URL adjacent to the pin (date-anchored Phase-2 triggers are explicitly forbidden by the regex).
 
@@ -160,7 +160,7 @@ Doctrine evolution is governed by the standard ADR amendment process (a new ADR-
 ### Positive
 
 - **Hyperscaler-pattern alignment.** AWS, Google, Microsoft, Oracle do exactly this — adopt the open standard where it's the standard, build the differentiation where it's the moat. We get to leverage every CNCF graduation while owning the layers where we have to.
-- **CI-enforceable.** `oya gate validate vendor-lockin-discipline` already enforces the registry shape (BLOCKER per ADR-0173). The classification is checkable at PR time, not at architecture-review time.
+- **CI-enforceable.** `cloud-ci/Rust gate packet vendor-lockin-discipline` already enforces the registry shape (BLOCKER per ADR-0173). The classification is checkable at PR time, not at architecture-review time.
 - **Phase-2 readiness.** Every Class B vendor has a documented seam, an in-house replacement path, and a value-anchored trigger. When the trigger fires, we already know what to build and where.
 - **Cost discipline.** Phase-2 work is not started speculatively — only when the value trigger fires. Engineering capacity stays focused on Class C moat work.
 - **Open-integration alignment with ADR-0216.** Trust via openness is the moat. Class A adoption signals that we use open standards; Class B documents the exit path; Class C is where we differentiate. Customers know they CAN leave if our Class C value declines.
@@ -168,7 +168,7 @@ Doctrine evolution is governed by the standard ADR amendment process (a new ADR-
 ### Negative
 
 - **Classification overhead at scaffold time.** Adding a new dependency requires classifying it (A / B / C) and, for Class B, authoring the seam + Phase-2 path + trigger. This is real friction on minor utility additions.
-  - **Mitigation:** ship a `cargo run -p oya-dev-cli -- vendor classify <crate>` helper (queued for PR-145) that proposes the classification from CNCF / Linux Foundation / SPDX metadata and prompts only on ambiguous cases.
+  - **Mitigation:** ship a cloud-ci/API vendor-classification assistant (queued for PR-145) that proposes the classification from CNCF / Linux Foundation / SPDX metadata and prompts only on ambiguous cases.
 - **Tension with rapid prototyping.** A speculative µservice may not be ready to commit to Class A / B / C. Marking as Class B (vendor-replaceable) is the default escape hatch but adds the trait + registry entry overhead.
   - **Mitigation:** prototype µservices may declare a transient `tier: II-pre` (pre-classified) entry in `registry/vendor-lockin-phaseout/index.json` that the validator accepts without seam_adapter_impls; the entry must classify into II or III before GA.
 - **Class B Phase-2 work may compound.** If multiple Class B triggers fire simultaneously (e.g. Zitadel + Milvus + ClickHouse all cross scale thresholds in the same quarter), engineering capacity is overwhelmed.

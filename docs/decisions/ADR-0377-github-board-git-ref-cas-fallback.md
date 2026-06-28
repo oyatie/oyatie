@@ -24,15 +24,15 @@ deliverables:
   - id: ADR-0377-D2
     description: "Thin oya plan claim/next client: discover the next unclaimed masterplan deliverable, acquire refs/heads/claims/<deliverable-id> with git compare-and-swap semantics, and project exactly one exclusive GitHub board label for the claim state."
     exit_criteria: "Unit/integration tests prove two contenders cannot both acquire the same deliverable; stale claim recovery is explicit; no oya git / oya vcs wrapper exists on the path."
-    verified_by: "cargo test -p oya-dev-cli plan_claim"
+    verified_by: "Buck2/cloud-ci Rust test packet plan_claim"
   - id: ADR-0377-D3
     description: "oya gen board-sync projection: idempotently diff /specs/masterplan.json deliverables into GitHub issues plus exclusive scoped labels, without a bespoke long-running board service."
     exit_criteria: "Snapshot tests prove create/update/no-op diffs are stable and idempotent; exclusive labels produce one visible lane per deliverable; no GitHub Projects dependency exists."
-    verified_by: "cargo test -p oya-dev-cli board_sync"
+    verified_by: "Buck2/cloud-ci Rust test packet board_sync"
   - id: ADR-0377-D4
-    description: "Targeted verification/reconciliation lane for shared generated docs and affected oya-dev-cli gates only; no cross-gating and no concurrent oya gate run-all."
+    description: "Targeted verification/reconciliation lane for shared generated docs and affected oya-dev-cli gates only; no cross-gating and no concurrent oya-ci-required."
     exit_criteria: "Affected checks cover ADR index/masterplan projection plus the changed oya-dev-cli tests; leader-owned audit records any shared-file reconciliation."
-    verified_by: "cargo test -p oya-dev-cli <affected tests> && oya doc adr-index && oya gen masterplan --check"
+    verified_by: "Buck2/cloud-ci affected Rust test packets && oya doc adr-index && oya gen masterplan --check"
 purpose: >
   Select GitHub Issues plus exclusive scoped labels as the board projection for
   autonomous masterplan deliverables, while preserving a git-native CAS fallback
@@ -151,7 +151,7 @@ passing tests for D2 and D3. Documentation alone cannot lift the condition.
   refs are the CAS authority.
 - **Run all gates after every board sync** — rejected: board sync is a generated
   projection. Use affected tests/gates and leader-owned reconciliation; do not
-  run concurrent `oya gate run-all`.
+  run concurrent `oya-ci-required`.
 
 ## Consequences
 
@@ -186,9 +186,9 @@ passing tests for D2 and D3. Documentation alone cannot lift the condition.
 
 Before this ADR can become Accepted:
 
-1. `cargo test -p oya-dev-cli plan_claim` proves the CAS race, stale-claim, and
+1. `Buck2/cloud-ci Rust test packet plan_claim` proves the CAS race, stale-claim, and
    no-`oya git`/no-`oya vcs` invariants.
-2. `cargo test -p oya-dev-cli board_sync` proves issue/label diff idempotency,
+2. `Buck2/cloud-ci Rust test packet board_sync` proves issue/label diff idempotency,
    exclusive-label projection, and no GitHub Projects dependency.
 3. `oya doc adr-index` and `oya gen masterplan --check` prove the generated
    ADR/masterplan projections are fresh.

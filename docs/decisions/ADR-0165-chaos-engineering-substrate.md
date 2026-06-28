@@ -71,7 +71,7 @@ Every µservice with production SLOs MUST declare at minimum:
 
 ### CI gate
 
-`oya gate validate chaos-engineering-catalog`:
+`cloud-ci/Rust gate packet chaos-engineering-catalog`:
 
 - Refuses merge if a µservice with production SLOs lacks the minimum scenario set.
 - Refuses merge if a scenario references a target that doesn't exist (no orphan scenarios).
@@ -139,7 +139,7 @@ A scenario failing its SLO gate against staging:
 
 1. Chaos Mesh 2.x Helm chart shipped at `microservices/cloud-iac/iac/helm/chaos-mesh/`.
 2. Per-µservice chaos catalog at `microservices/<ms>/chaos/scenarios/`.
-3. New CI lane `oya gate validate chaos-engineering-catalog` enforces minimum scenarios + SLO-gate wiring.
+3. New CI lane `cloud-ci/Rust gate packet chaos-engineering-catalog` enforces minimum scenarios + SLO-gate wiring.
 4. New GitHub workflow `.github/workflows/chaos-nightly.yml` runs the fleet drill nightly.
 5. New IP at `microservices/governance/IP-NEW-chaos-engineering-substrate.md` (Companion) wires `oya-check-chaos-engineering-catalog` into the gate.
 6. Per-cell quarterly GameDay runbook in `microservices/cloud-k8s/runbooks/gameday-{quarter}.md`.

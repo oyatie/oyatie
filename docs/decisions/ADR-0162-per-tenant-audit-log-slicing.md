@@ -138,7 +138,7 @@ The `audit-chain` µservice runs `active_passive` per cell (ADR-0158 disposition
 ### Operational
 
 1. `audit-chain` µservice PRD updated with per-tenant slicing contract (Companion).
-2. CI lane `oya gate validate audit-chain-per-tenant-slicing` enforces (a) every retrieval API call is Cedar-gated and tenant-scoped, (b) every sovereign pack overlay declares dedicated shards, (c) every per-tenant subtree's leaves contain only that tenant's events.
+2. CI lane `cloud-ci/Rust gate packet audit-chain-per-tenant-slicing` enforces (a) every retrieval API call is Cedar-gated and tenant-scoped, (b) every sovereign pack overlay declares dedicated shards, (c) every per-tenant subtree's leaves contain only that tenant's events.
 3. Per-tenant retrieval surface exposed via the api-gateway tier (ADR-0157) under `/v1/audit-chain/tenant/{tenant_id}/`.
 4. Trust portal (ADR-0038) consumes the retrieval API to display tenant-self-service audit views.
 5. Per-pack overlay declares `dedicated_audit_shard: true|false` in `microservices/audit-chain/iac/kustomize/components/pack-{name}/values.yaml`.

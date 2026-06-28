@@ -144,7 +144,7 @@ Each pack overlay (`microservices/audit-chain/iac/kustomize/components/pack-{kr-
 ### Operational
 
 1. Per-pack StorageClass manifests at `microservices/cloud-k8s/iac/kustomize/components/storage-classes/` (Companion).
-2. CI lane `oya gate validate storage-class-canonical` enforces: (a) every µservice chart references only canonical `oya-*` StorageClass names; (b) every active pack populates the full matrix.
+2. CI lane `cloud-ci/Rust gate packet storage-class-canonical` enforces: (a) every µservice chart references only canonical `oya-*` StorageClass names; (b) every active pack populates the full matrix.
 3. Per-µservice `capacity-model.md` declares its storage tier consumption.
 4. VolumeSnapshot schedules declared in `microservices/<ms>/iac/helm/<ms>/templates/snapshot-policy.yaml`.
 
