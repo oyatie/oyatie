@@ -18,6 +18,8 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use serde_json::Value;
+
 /// The crates under `cloud/cloud-ci/gates/` that are NOT gate lanes — they are the rust_binaries
 /// that EMIT the faces (registered in the workflow via a `run` step, not a `cargo test -p ...`
 /// gate lane) or the on-demand born-accounting orchestrator. These are the intentional exclusions
@@ -60,6 +62,30 @@ fn workflow_path(root: &Path) -> PathBuf {
     root.join(".github/workflows/oya-ci-required.yml")
 }
 
+fn phase0_automation_matrix_path(root: &Path) -> PathBuf {
+    root.join("specs/phase0-automation-matrix.json")
+}
+
+fn branch_protection_path(root: &Path) -> PathBuf {
+    root.join(".github/branch-protection.yaml")
+}
+
+fn agent_contract_path(root: &Path) -> PathBuf {
+    root.join("docs/AGENTS.md")
+}
+
+fn pr_template_path(root: &Path) -> PathBuf {
+    root.join("docs/templates/pull-request-template.md")
+}
+
+fn code_review_standard_path(root: &Path) -> PathBuf {
+    root.join("docs/standards/code-review.md")
+}
+
+fn fixuptasks_path(root: &Path) -> PathBuf {
+    root.join("registry/fixuptasks.jsonl")
+}
+
 /// Every directory directly under `cloud/cloud-ci/gates/` that is a crate (has a Cargo.toml).
 fn gate_crate_dirs(gates: &Path) -> Vec<String> {
     let mut names: Vec<String> = fs::read_dir(gates)
@@ -99,6 +125,47 @@ fn is_matrix_gate(workflow: &str, crate_dir: &str) -> bool {
 
 fn is_buck_gate(workflow: &str, crate_dir: &str) -> bool {
     workflow.contains(&format!("//cloud/cloud-ci/gates/{crate_dir}:"))
+}
+
+fn fixuptask_by_id(fixuptasks_jsonl: &str, id: &str) -> Option<Value> {
+    fixuptasks_jsonl.lines().find_map(|line| {
+        let value: Value = serde_json::from_str(line).ok()?;
+        (value.get("id").and_then(Value::as_str) == Some(id)).then_some(value)
+    })
+}
+
+fn bool_field(row: &Value, key: &str) -> bool {
+    row.get(key).and_then(Value::as_bool) == Some(true)
+}
+
+fn row_claims_live_pre_merge_review_authority(row: &Value) -> bool {
+    bool_field(row, "review_authority_live")
+        && (bool_field(row, "has_durable_review_evidence")
+            || bool_field(row, "has_machine_verifiable_review_status"))
+        && bool_field(row, "review_blocks_merge")
+        && bool_field(row, "reviewer_identity_distinct_from_author")
+}
+
+fn phase0_pre_merge_review_rows(root: &Path) -> Vec<Value> {
+    let path = phase0_automation_matrix_path(root);
+    let text = fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+    let value: Value =
+        serde_json::from_str(&text).unwrap_or_else(|e| panic!("parse {}: {e}", path.display()));
+    let rows = value
+        .get("seed_rows")
+        .and_then(Value::as_array)
+        .unwrap_or_else(|| panic!("{} must contain a seed_rows array", path.display()));
+    let review_rows: Vec<Value> = rows
+        .iter()
+        .filter(|row| bool_field(row, "requires_pre_merge_review_authority"))
+        .cloned()
+        .collect();
+    assert!(
+        !review_rows.is_empty(),
+        "{} must contain the pre-merge review-authority row; removing it would hide F-PR5-06",
+        path.display()
+    );
+    review_rows
 }
 
 #[test]
@@ -153,6 +220,93 @@ fn every_gate_crate_is_registered_in_oya_ci_required_workflow() {
         wf.display(),
         missing
     );
+}
+
+/// The review-admission gap must never be hidden behind aspirational docs or repo-local target
+/// matrices. Until a trusted server-side/cloud-ci review producer exists and this test is replaced
+/// with live producer evidence, the gap must stay explicitly bounded in the docs and the backlog
+/// SSOT with concrete evidence from the most recent admission incident.
+#[test]
+fn review_admission_gap_is_bounded_by_open_ssot_debt_until_trusted_producer() {
+    let root = repo_root();
+    let branch_path = branch_protection_path(&root);
+    let branch_protection = fs::read_to_string(&branch_path)
+        .unwrap_or_else(|e| panic!("read {}: {e}", branch_path.display()));
+
+    let review_rows = phase0_pre_merge_review_rows(&root);
+
+    let docs_path = agent_contract_path(&root);
+    let docs = fs::read_to_string(&docs_path)
+        .unwrap_or_else(|e| panic!("read {}: {e}", docs_path.display()));
+    assert!(
+        docs.contains("REVIEW-ADMISSION-GAP-LIVE-BOUNDARY")
+            && docs.contains("F-PR5-06")
+            && docs.contains("PR #964")
+            && docs.contains("not a cloud-enforced review admission gate"),
+        "{} still describes review admission as live cloud enforcement while the producer is not \
+         wired. Add an explicit REVIEW-ADMISSION-GAP-LIVE-BOUNDARY note with F-PR5-06 and PR #964 \
+         evidence.",
+        docs_path.display()
+    );
+
+    let template_path = pr_template_path(&root);
+    let template = fs::read_to_string(&template_path)
+        .unwrap_or_else(|e| panic!("read {}: {e}", template_path.display()));
+    assert!(
+        template.contains("F-PR5-06")
+            && template.contains("not live cloud admission enforcement")
+            && template.contains("trusted server-side/cloud-ci producer"),
+        "{} must mark `oya-pr-review` as target-only while F-PR5-06 is open.",
+        template_path.display()
+    );
+
+    let standard_path = code_review_standard_path(&root);
+    let standard = fs::read_to_string(&standard_path)
+        .unwrap_or_else(|e| panic!("read {}: {e}", standard_path.display()));
+    assert!(
+        standard.contains("F-PR5-06")
+            && standard.contains("advisory only")
+            && standard.contains("trusted server-side/cloud-ci review producer"),
+        "{} must not present local hooks as live cloud review authority while F-PR5-06 is open.",
+        standard_path.display()
+    );
+
+    assert!(
+        branch_protection.contains("F-PR5-06") && branch_protection.contains("PR #964"),
+        "{} must name the bounded review-admission debt while required_approving_reviews is 0 and \
+         oya-pr-review is absent.",
+        branch_path.display()
+    );
+
+    let fixuptasks = fs::read_to_string(fixuptasks_path(&root)).expect("read fixuptasks.jsonl");
+    let task =
+        fixuptask_by_id(&fixuptasks, "F-PR5-06").expect("registry/fixuptasks.jsonl has F-PR5-06");
+    assert_eq!(task.get("status").and_then(Value::as_str), Some("open"));
+
+    for row in review_rows {
+        assert!(
+            !row_claims_live_pre_merge_review_authority(&row),
+            "F-PR5-06 is still open, so repo-local phase0 matrix rows must not be allowed to \
+             false-clear the review-admission gap as live authority. Close F-PR5-06 only in the \
+             same change that adds trusted server-side/cloud-ci producer evidence. Row was: {row}"
+        );
+    }
+
+    let task_text = task.to_string();
+    for required in [
+        "PR #964",
+        "reviewDecision",
+        "COMMENTED",
+        "required_approving_reviews: 0",
+        "single oya-ci-required",
+        "oya-pr-review",
+        "not live",
+    ] {
+        assert!(
+            task_text.contains(required),
+            "F-PR5-06 must carry fresh bounded-debt evidence term `{required}`; row was: {task_text}"
+        );
+    }
 }
 
 /// Defense-in-depth: every registered gate must ALSO be wired into the fan-in job's `needs:`
