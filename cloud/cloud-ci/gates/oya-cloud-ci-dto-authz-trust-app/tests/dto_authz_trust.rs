@@ -107,7 +107,12 @@ fn baseline_is_nonempty_and_covers_a_known_instance() {
     let baseline: Vec<String> = policy
         .get("frozen_dto_authz_trust_instances")
         .and_then(Value::as_array)
-        .map(|a| a.iter().filter_map(Value::as_str).map(str::to_owned).collect())
+        .map(|a| {
+            a.iter()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect()
+        })
         .unwrap_or_default();
 
     assert!(
@@ -118,12 +123,12 @@ fn baseline_is_nonempty_and_covers_a_known_instance() {
     // v2 keys have the format `<file>#<fn>:<body_hash>` — match by `<file>#<fn>:` prefix so the
     // check is stable across body edits that change the hash but not the identity. These are
     // confirmed caller-supplied-authz-trust instances that REMAIN un-remediated on the dev tip the
-    // gate was re-baselined against (the secrets/kms-api, tenancy/api, network/lb, audit, observability
-    // and finops `validate_authorization` instances were remediated by the AUTH-005 W2/W2b PRs — they
-    // legitimately dropped from the shrink-only baseline and are no longer expected here).
+    // gate was re-baselined against (the compute VM/K8s/Functions instances plus the secrets/kms-api,
+    // tenancy/api, network/lb, audit, observability and finops `validate_authorization` instances were
+    // remediated by the AUTH-005 and G2 PRs — they legitimately dropped from the shrink-only baseline
+    // and are no longer expected here).
     for expected_prefix in [
         "cell/ports/region/src/lib.rs#validate_authorization:",
-        "compute/facade/vm/src/lib.rs#validate_authorization:",
         "iam/ports/cloud-api/src/lib.rs#validate_authorization:",
         "storage/ports/object-api/src/lib.rs#validate_authorization:",
         "data/ports/ontology-api/src/lib.rs#validate_authorization:",
@@ -150,8 +155,7 @@ fn fixed_iam_authz_module_is_not_flagged() {
         .cloned()
         .unwrap_or_default();
     let flagged_authz_rs = instances.iter().any(|i| {
-        i.get("file").and_then(Value::as_str)
-            == Some("iam/ports/policy-cedar-api/src/authz.rs")
+        i.get("file").and_then(Value::as_str) == Some("iam/ports/policy-cedar-api/src/authz.rs")
     });
     assert!(
         !flagged_authz_rs,
@@ -167,10 +171,7 @@ fn fixed_iam_authz_module_is_not_flagged() {
 /// Write a `src/<name>.rs` fixture under a unique temp dir and return the temp root path. The temp
 /// dir name embeds the test name + pid so concurrent test runs do not collide.
 fn write_fixture(test: &str, name: &str, src: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "dto-authz-trust-{test}-{}",
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("dto-authz-trust-{test}-{}", std::process::id()));
     let src_dir = dir.join("src");
     std::fs::create_dir_all(&src_dir).expect("create fixture dir");
     std::fs::write(src_dir.join(format!("{name}.rs")), src).expect("write fixture");
@@ -232,7 +233,11 @@ fn red_fixture_new_forged_dto_is_blocked() {
         Verdict::Red,
         "a NEW forged-DTO self-validating handler must be RED; observed={observed:#}"
     );
-    assert!(report.violations.contains("DAT-CALLER-SUPPLIED-AUTHZ-TRUST"));
+    assert!(
+        report
+            .violations
+            .contains("DAT-CALLER-SUPPLIED-AUTHZ-TRUST")
+    );
     let _ = std::fs::remove_dir_all(&dir);
 }
 
@@ -261,7 +266,10 @@ fn baselined_instance_is_tolerated_but_a_sibling_new_one_is_not() {
     let actual_key = observed_initial
         .get("instances")
         .and_then(Value::as_array)
-        .and_then(|arr| arr.iter().find(|i| i.get("fn").and_then(Value::as_str) == Some("validate_authorization")))
+        .and_then(|arr| {
+            arr.iter()
+                .find(|i| i.get("fn").and_then(Value::as_str) == Some("validate_authorization"))
+        })
         .and_then(|i| i.get("key").and_then(Value::as_str))
         .expect("expected validate_authorization instance with key")
         .to_owned();
