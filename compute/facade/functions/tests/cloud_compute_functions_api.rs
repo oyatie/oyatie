@@ -506,3 +506,51 @@ fn functions_invoke_api_rejects_unknown_payload_data_class_before_ledger() {
     assert!(ledger.is_empty());
     assert_eq!(catalog.invocations().count(), 0);
 }
+
+#[test]
+fn functions_invoke_idempotency_ledger_enforces_bounded_retention() {
+    let mut catalog = CloudComputeCatalog::default();
+    seed_active_function(&mut catalog);
+    let mut ledger = CloudComputeFunctionsInvokeIdempotencyLedger::with_max_entries(1);
+
+    invoke_cloud_compute_function_from_api(
+        &mut catalog,
+        &mut ledger,
+        request(
+            "req-functions-bound-1",
+            "idem-functions-bound-1",
+            "fninv_bound_1",
+        ),
+    )
+    .expect("first invocation succeeds");
+    invoke_cloud_compute_function_from_api(
+        &mut catalog,
+        &mut ledger,
+        request(
+            "req-functions-bound-2",
+            "idem-functions-bound-2",
+            "fninv_bound_2",
+        ),
+    )
+    .expect("second invocation succeeds");
+
+    assert_eq!(ledger.len(), 1);
+
+    let replay_error = invoke_cloud_compute_function_from_api(
+        &mut catalog,
+        &mut ledger,
+        request(
+            "req-functions-bound-replay",
+            "idem-functions-bound-1",
+            "fninv_bound_1",
+        ),
+    )
+    .expect_err(
+        "evicted idempotency key is no longer replayable and reaches duplicate invocation guard",
+    );
+
+    assert_eq!(
+        replay_error,
+        CloudComputeFunctionsApiError::Compute(CloudComputeError::DuplicateInvocation)
+    );
+}

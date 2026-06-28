@@ -806,3 +806,58 @@ fn k8s_delete_error_response_request_id_roundtrips_and_matches_create_shape() {
     assert!(!response.error.details.is_empty());
     assert_eq!(response.error.message_localized, None);
 }
+
+#[test]
+fn k8s_create_idempotency_ledger_enforces_bounded_retention() {
+    let mut catalog = CloudComputeCatalog::default();
+    let mut ledger = CloudComputeK8sCreateIdempotencyLedger::with_max_entries(1);
+
+    create_cloud_compute_k8s_cluster_from_api(
+        &mut catalog,
+        &mut ledger,
+        request("req-k8s-bound-1", "idem-k8s-bound-1"),
+    )
+    .expect("first create succeeds");
+    let mut second = request("req-k8s-bound-2", "idem-k8s-bound-2");
+    second.path_cluster_id = "oya:cloud:region-home:ten_alpha:k8s:prod-bound-2".to_string();
+    second.body.resource_id = second.path_cluster_id.clone();
+    create_cloud_compute_k8s_cluster_from_api(&mut catalog, &mut ledger, second)
+        .expect("second create succeeds");
+
+    assert_eq!(ledger.len(), 1);
+
+    let replay_error = create_cloud_compute_k8s_cluster_from_api(
+        &mut catalog,
+        &mut ledger,
+        request("req-k8s-bound-replay", "idem-k8s-bound-1"),
+    )
+    .expect_err(
+        "evicted idempotency key is no longer replayable and reaches duplicate resource guard",
+    );
+
+    assert_eq!(
+        replay_error,
+        CloudComputeK8sApiError::Compute(CloudComputeError::DuplicateKubernetesCluster)
+    );
+}
+
+#[test]
+fn k8s_delete_idempotency_ledger_enforces_bounded_retention() {
+    let (catalog, _) = catalog_with_cluster();
+    let mut ledger = CloudComputeK8sDeleteIdempotencyLedger::with_max_entries(1);
+
+    delete_cloud_compute_k8s_cluster_from_api(
+        &catalog,
+        &mut ledger,
+        delete_request("req-del-bound-1", "idem-del-bound-1"),
+    )
+    .expect("first delete succeeds");
+    delete_cloud_compute_k8s_cluster_from_api(
+        &catalog,
+        &mut ledger,
+        delete_request("req-del-bound-2", "idem-del-bound-2"),
+    )
+    .expect("second delete succeeds");
+
+    assert_eq!(ledger.len(), 1);
+}

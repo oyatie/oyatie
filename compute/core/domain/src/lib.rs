@@ -22,6 +22,7 @@ use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const COMPUTE_SCHEMA_VERSION: u32 = 1;
 pub const MAX_FUNCTION_COLD_START_BUDGET_MS: u32 = 1_000;
+const DEFAULT_FUNCTION_INVOCATION_RETENTION_LIMIT: usize = 1024;
 const TENANT_ID_PREFIX: &str = "ten_";
 const KEY_PAIR_ID_PREFIX: &str = "key_";
 const NODE_POOL_ID_PREFIX: &str = "np_";
@@ -409,12 +410,19 @@ pub enum CloudComputeError {
     UnknownFunction,
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudComputeCatalog {
     instances: BTreeMap<ResourceId, Instance>,
     kubernetes_clusters: BTreeMap<ResourceId, KubernetesCluster>,
     functions: BTreeMap<ResourceId, FunctionDeployment>,
     invocations: BTreeMap<InvocationId, FunctionInvocationReceipt>,
+    invocation_retention_limit: usize,
+}
+
+impl Default for CloudComputeCatalog {
+    fn default() -> Self {
+        Self::with_invocation_retention_limit(DEFAULT_FUNCTION_INVOCATION_RETENTION_LIMIT)
+    }
 }
 
 pub trait ComputeRepo {
@@ -1170,12 +1178,35 @@ impl ComputeRepo for CloudComputeCatalog {
             .get(&function_id)
             .ok_or(CloudComputeError::UnknownFunction)?;
         let receipt = function.invoke(input)?;
-        self.invocations.insert(invocation_id, receipt.clone());
+        self.remember_invocation(invocation_id, receipt.clone());
         Ok(receipt)
     }
 }
 
 impl CloudComputeCatalog {
+    pub fn with_invocation_retention_limit(invocation_retention_limit: usize) -> Self {
+        Self {
+            instances: BTreeMap::new(),
+            kubernetes_clusters: BTreeMap::new(),
+            functions: BTreeMap::new(),
+            invocations: BTreeMap::new(),
+            invocation_retention_limit: invocation_retention_limit.max(1),
+        }
+    }
+
+    fn remember_invocation(
+        &mut self,
+        invocation_id: InvocationId,
+        receipt: FunctionInvocationReceipt,
+    ) {
+        if self.invocations.len() >= self.invocation_retention_limit {
+            if let Some(evicted) = self.invocations.keys().next().cloned() {
+                self.invocations.remove(&evicted);
+            }
+        }
+        self.invocations.insert(invocation_id, receipt);
+    }
+
     pub fn instances(&self) -> impl Iterator<Item = &Instance> {
         self.instances.values()
     }
@@ -1980,6 +2011,26 @@ mod tests {
             .invoke_function(invocation("fninv_003", DataClass::Public))
             .expect_err("invocation ids are immutable evidence keys");
         assert_eq!(duplicate, CloudComputeError::DuplicateInvocation);
+    }
+
+    #[test]
+    fn function_invocation_store_enforces_bounded_retention() {
+        let mut catalog = CloudComputeCatalog::with_invocation_retention_limit(1);
+        let function = catalog
+            .register_function(function_create())
+            .expect("function registers");
+        catalog
+            .activate_function(&function.resource_id.value)
+            .expect("function activates");
+
+        catalog
+            .invoke_function(invocation("fninv_bound_1", DataClass::Public))
+            .expect("first invocation records");
+        catalog
+            .invoke_function(invocation("fninv_bound_2", DataClass::Public))
+            .expect("second invocation records");
+
+        assert_eq!(catalog.invocations().count(), 1);
     }
 
     #[test]
