@@ -11,6 +11,10 @@ canonical entry-point pointers; [`HANDOFF.md`](HANDOFF.md) carries current cross
 the active backlog. Architecture decisions live in [`docs/decisions/`](docs/decisions/) (ADRs); the
 apex vision is the **Agentic Delivery Fabric** (ADR-0516…0535).
 
+How we build and review — the review lenses (Cartesian doubt, Red Team, blast-radius, opportunity
+cost…), the hyperscale architecture lenses, and the bars every change clears — is in
+[`AGENTS.md`](AGENTS.md#engineering-principles--review-lenses).
+
 ## Build & verify
 
 The build is moving to a fully hermetic, lifecycle-wide [buck2](https://buck2.build) graph — a clean

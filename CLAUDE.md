@@ -18,6 +18,10 @@ Lifecycle skills, role prompts, and intent→skill mapping are provided by the i
 
 Oyatie governance (`docs/AGENTS.md` operating contract + authority chain + governance pipeline + ADRs 0145+) remains the repository authority and overlays runtime skill guidance on conflict per `feedback_bominal_inheritance_precedence`. This file (root `CLAUDE.md`) remains the authoritative project-rules source.
 
+## Engineering principles & review lenses
+
+Apply the review lenses, hyperscale architecture lenses, and engineering bars in [`AGENTS.md`](AGENTS.md#engineering-principles--review-lenses) before any non-trivial decision, design, or merge (single source — not duplicated here).
+
 <!-- agent-instructions:start -->
 coordination_surface: governance_pipeline
 retirement_adr: docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
@@ -33,11 +37,11 @@ required_workflow:
   - layer_0_isolation: one isolated worktree per agent lane
   - layer_2_entry: pull request against dev enters the governance pipeline
   - admission_gate: validate policy, evidence, and required Prow/cloud-ci status checks
-  - merge_queue: order and admit via ADR-0111 projected merge state owned by ADR-0515 cloud-ci/oya-ci-tide
+  - merge_queue: order and admit via ADR-0111 projected merge state, implemented by ADR-0515 cloud-ci/oya-ci-tide
   - completion_gate: reviewer-agent APPROVE plus cloud-ci green before auto-merge
 
 current_substrate_adrs:
-  - docs/decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md # folded into ADR-0515 cloud-ci/oya-ci Tide
+  - docs/decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md # projected-merge-state decision (status Proposed); mechanism implemented by ADR-0515 Tide; ADR-0111 not formally superseded
   - docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
   - docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md
   - docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md
