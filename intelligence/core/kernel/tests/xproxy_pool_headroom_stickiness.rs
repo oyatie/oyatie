@@ -96,6 +96,7 @@ fn sticky_key_does_not_store_raw_prompt_and_rebinds_after_429() {
     let gate = AllowAll;
     let first = SubscriptionPool::lease_sticky_with_estimate(
         &pool_ref,
+        &tenant(),
         &agent(),
         &gate,
         now,
@@ -109,6 +110,7 @@ fn sticky_key_does_not_store_raw_prompt_and_rebinds_after_429() {
 
     let second = SubscriptionPool::lease_sticky_with_estimate(
         &pool_ref,
+        &tenant(),
         &agent(),
         &gate,
         now + Duration::from_secs(1),
@@ -124,6 +126,7 @@ fn sticky_key_does_not_store_raw_prompt_and_rebinds_after_429() {
 
     let rebound = SubscriptionPool::lease_sticky_with_estimate(
         &pool_ref,
+        &tenant(),
         &agent(),
         &gate,
         now + Duration::from_secs(2),
