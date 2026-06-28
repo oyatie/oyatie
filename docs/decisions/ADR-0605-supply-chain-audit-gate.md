@@ -122,6 +122,26 @@ makes the gate hermetic and buck2-cacheable. The follow-on also retires
 `libs/oya-check-dependency-seam`'s `Command`-spawned `cargo-audit` and demotes the `deny.toml`
 `[advisories]` section from blocking.
 
+Implementation guardrail (2026-06-28): the supply-chain-audit gate and its advisory-mirror kernel
+are born with the following tracked surfaces —
+`cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/BUCK`,
+`cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/Cargo.toml`,
+`cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/OWNERS`,
+`cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/src/lib.rs`,
+`cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/src/main.rs`,
+`cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/supply-chain-audit-policy.json`,
+`cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/tests/supply_chain_audit.rs`,
+`cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/advisory-mirror/advisories.json`,
+`cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/advisory-mirror/mirror-manifest.json`,
+`libs/oya-advisory-mirror-kernel/BUCK`,
+`libs/oya-advisory-mirror-kernel/Cargo.toml`,
+`libs/oya-advisory-mirror-kernel/OWNERS`,
+`libs/oya-advisory-mirror-kernel/src/lib.rs`,
+`libs/oya-advisory-mirror-kernel/src/main.rs`, and
+`libs/oya-advisory-mirror-kernel/tests/distill_red_fixture.rs`.
+All are owned by `cloud-ci-platform` (OWNERS files in each crate root) and reachable via
+`cargo-members` (workspace globs `cloud/cloud-ci/gates/*` and `libs/oya-*`).
+
 ## Consequences
 
 - A NEW locked crate affected by a security advisory fails the `cloud-ci-supply-chain-audit` lane as
