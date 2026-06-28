@@ -1,0 +1,31 @@
+{
+  "description": "A merge-admission row that requires pre-merge review authority must not be represented by green CI or target-only branch-protection text; it needs live durable review evidence or a machine-verifiable review status that blocks merge and proves reviewer != author.",
+  "expected_verdict": "RED",
+  "expected_violations": [
+    "missing_pre_merge_review_authority"
+  ],
+  "fixture_id": "TC-0.16-BAD-missing-pre-merge-review-authority",
+  "rows": [
+    {
+      "blocking_fixture": "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-pre-merge-review-authority.json",
+      "classification": "automated_blocking_now",
+      "enforceable_or_automatable": true,
+      "evidence_path": "infra/branch-protection/dev.json (target-only shadow; not live review authority)",
+      "has_durable_review_evidence": false,
+      "has_machine_verifiable_review_status": false,
+      "id": "BAD-green-ci-without-review-authority",
+      "no_new_oya_cli_surface": true,
+      "owner": "platform-toolchain + platform-governance",
+      "requirement": "Protected branch merge admission requires a pre-merge review authority, not only the oya-ci-required context.",
+      "requires_pre_merge_review_authority": true,
+      "retirement_phase": "P0.0/P1 review-admission producer",
+      "review_blocks_merge": false,
+      "reviewer_identity_distinct_from_author": false,
+      "source_artifact": "docs/AGENTS.md#PR-shape + docs/decisions/ADR-0367-trustless-pre-merge-verification-gateway.md",
+      "target_gate_or_controller": "oya-pr-review trusted review-status producer (missing/not live)",
+      "review_authority_live": false,
+      "review_authority_source": "target_branch_protection_shadow_only"
+    }
+  ],
+  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/tests/automation_ratchet.rs"
+}

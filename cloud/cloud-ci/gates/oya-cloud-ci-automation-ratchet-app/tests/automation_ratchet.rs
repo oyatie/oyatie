@@ -174,7 +174,14 @@ fn gate4_is_born_blocking_on_the_live_corpus() {
             "evidence_path": src,
             "no_new_oya_cli_surface": !maps_oya,
             "claims_enforced": claims,
-            "has_wired_buck2_target": wired
+            "has_wired_buck2_target": wired,
+            "requires_pre_merge_review_authority": surface["requires_pre_merge_review_authority"].as_bool() == Some(true),
+            "review_authority_live": surface["review_authority_live"].as_bool() == Some(true),
+            "review_authority_source": surface["review_authority_source"].as_str().unwrap_or(""),
+            "has_durable_review_evidence": surface["has_durable_review_evidence"].as_bool() == Some(true),
+            "has_machine_verifiable_review_status": surface["has_machine_verifiable_review_status"].as_bool() == Some(true),
+            "review_blocks_merge": surface["review_blocks_merge"].as_bool() == Some(true),
+            "reviewer_identity_distinct_from_author": surface["reviewer_identity_distinct_from_author"].as_bool() == Some(true)
         }));
     }
 
@@ -202,6 +209,12 @@ fn gate4_is_born_blocking_on_the_live_corpus() {
             .violations
             .contains("blocking_invariant_mapped_to_oya_cli"),
         "ADR-0365 oya gate/oya gen verified_by lines -> blocking_invariant_mapped_to_oya_cli must fire"
+    );
+    assert!(
+        report
+            .violations
+            .contains("missing_pre_merge_review_authority"),
+        "dev branch protection lacks a blocking machine-verifiable review authority -> missing_pre_merge_review_authority must fire"
     );
     assert!(advisory_count > 0, "expected unwired enforcement claims");
     assert!(oya_cli_count > 0, "expected oya-cli-mapped invariants");

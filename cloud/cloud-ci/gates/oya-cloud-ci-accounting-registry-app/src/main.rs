@@ -513,7 +513,14 @@ fn build_automation_matrix(enforcement: &Value) -> Value {
             "evidence_path": src,
             "no_new_oya_cli_surface": !maps_oya,
             "claims_enforced": claims,
-            "has_wired_buck2_target": wired
+            "has_wired_buck2_target": wired,
+            "requires_pre_merge_review_authority": surface["requires_pre_merge_review_authority"].as_bool() == Some(true),
+            "review_authority_live": surface["review_authority_live"].as_bool() == Some(true),
+            "review_authority_source": surface["review_authority_source"].as_str().unwrap_or(""),
+            "has_durable_review_evidence": surface["has_durable_review_evidence"].as_bool() == Some(true),
+            "has_machine_verifiable_review_status": surface["has_machine_verifiable_review_status"].as_bool() == Some(true),
+            "review_blocks_merge": surface["review_blocks_merge"].as_bool() == Some(true),
+            "reviewer_identity_distinct_from_author": surface["reviewer_identity_distinct_from_author"].as_bool() == Some(true)
         }));
     }
     json!({ "rows": matrix_rows })
@@ -2503,6 +2510,7 @@ fn collect_enforcement_inputs(
             claims_enforced: true,
             has_wired_buck2_target: false,
             maps_to_oya_cli: false,
+            ..EnforcementRow::default()
         });
     }
 
@@ -2521,9 +2529,12 @@ fn collect_enforcement_inputs(
                 claims_enforced: true,
                 has_wired_buck2_target: false,
                 maps_to_oya_cli: false,
+                ..EnforcementRow::default()
             });
         }
     }
+
+    collect_review_authority_row(repo_root, &mut rows);
 
     // (3) ADR `verified_by:` lines that name an `oya gate`/`oya gen` CLI invocation
     // (ADR-0365's retired CLI authority). Each is a blocking invariant mapped to oya CLI.
@@ -2564,6 +2575,7 @@ fn collect_enforcement_inputs(
                         claims_enforced: true,
                         has_wired_buck2_target: false,
                         maps_to_oya_cli: true,
+                        ..EnforcementRow::default()
                     });
                 }
             }
@@ -2571,6 +2583,33 @@ fn collect_enforcement_inputs(
     }
 
     EnforcementInputs { rows }
+}
+
+/// Surface the checked-in branch-protection target as a GATE-4 review-authority gap row. The
+/// current file is target/shadow state, not live authority, so it can identify the requirement but
+/// must not satisfy the requirement. This row is deliberately born-blocking until a live
+/// review-status/PR-review evidence producer supplies durable, distinct-reviewer authority.
+fn collect_review_authority_row(repo_root: &Path, rows: &mut Vec<EnforcementRow>) {
+    let rel = "infra/branch-protection/dev.json";
+    let path = repo_root.join(rel);
+    if !path.is_file() {
+        return;
+    }
+
+    rows.push(EnforcementRow {
+        id: "branch-protection:dev-pre-merge-review-authority".to_owned(),
+        source_artifact: rel.to_owned(),
+        claims_enforced: true,
+        has_wired_buck2_target: true,
+        maps_to_oya_cli: false,
+        requires_pre_merge_review_authority: true,
+        review_authority_live: false,
+        review_authority_source: "target_branch_protection_shadow_only".to_owned(),
+        has_durable_review_evidence: false,
+        has_machine_verifiable_review_status: false,
+        review_blocks_merge: false,
+        reviewer_identity_distinct_from_author: false,
+    });
 }
 
 /// Tracked paths matching a predicate (filtered from the declared scm-facts tracked-paths).

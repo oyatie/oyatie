@@ -23,6 +23,10 @@
 //! - `advisory_claiming_enforced`  (NET-NEW)             — a row CLAIMS to enforce/gate
 //!   (its requirement/target uses enforcement vocabulary) yet has no wired buck2 gate
 //!   target backing it (`has_wired_buck2_target:false`).
+//! - `missing_pre_merge_review_authority` (NET-NEW)       — a row requires pre-merge
+//!   review authority, but merge admission has no live review-authority source with durable
+//!   review evidence or a machine-verifiable review status that blocks merge and proves
+//!   reviewer != author.
 //! - `ratchet_regression`          (NET-NEW)             — a row regresses the ratchet: a
 //!   previously `automated_blocking_now` requirement downgraded to a weaker class
 //!   (`was_blocking:true` while the current classification is no longer blocking).
@@ -40,14 +44,15 @@ use serde_json::Value;
 /// The gate id, matching the buck2 target + the §5.2 contract.
 pub const GATE_ID: &str = "cloud-ci-automation-ratchet";
 
-/// The seven blocking codes, in canonical order. The fixtures pin exact subsets.
-pub const VIOLATION_CODES: [&str; 7] = [
+/// The eight blocking codes, in canonical order. The fixtures pin exact subsets.
+pub const VIOLATION_CODES: [&str; 8] = [
     "enforceable_or_automatable_marked_human_judgment",
     "blocking_invariant_mapped_to_oya_cli",
     "duplicate_row_id",
     "unknown_classification",
     "missing_or_empty_required_field",
     "advisory_claiming_enforced",
+    "missing_pre_merge_review_authority",
     "ratchet_regression",
 ];
 
@@ -236,6 +241,20 @@ fn evaluate_row(row: &Value, findings: &mut BTreeSet<Finding>) {
     }
     let _ = claims_enforced;
 
+    // missing_pre_merge_review_authority: green CI alone is not a review gate. A row that
+    // requires review authority is satisfied only when the review path is live, durable or
+    // machine-verifiable, blocks merge, and proves the reviewer identity is distinct from
+    // the author (ADR-0367's non-self-review invariant). Target/shadow branch-protection
+    // config is useful input for gap detection, but cannot satisfy this authority by itself.
+    if row
+        .get("requires_pre_merge_review_authority")
+        .and_then(Value::as_bool)
+        == Some(true)
+        && !has_pre_merge_review_authority(row)
+    {
+        findings.insert(Finding::new("missing_pre_merge_review_authority", id));
+    }
+
     // ratchet_regression (NET-NEW): a previously-blocking requirement downgraded.
     let was_blocking = row.get("was_blocking").and_then(Value::as_bool) == Some(true);
     if was_blocking && !is_blocking {
@@ -254,6 +273,24 @@ fn mentions_oya_cli(target: &str) -> bool {
 fn mentions_enforcement(text: &str) -> bool {
     let t = text.to_ascii_lowercase();
     t.contains("enforce") || t.contains("gate") || t.contains("verified") || t.contains("blocks")
+}
+
+fn has_pre_merge_review_authority(row: &Value) -> bool {
+    let live_authority = row.get("review_authority_live").and_then(Value::as_bool) == Some(true);
+    let durable_evidence = row
+        .get("has_durable_review_evidence")
+        .and_then(Value::as_bool)
+        == Some(true);
+    let machine_status = row
+        .get("has_machine_verifiable_review_status")
+        .and_then(Value::as_bool)
+        == Some(true);
+    let blocks_merge = row.get("review_blocks_merge").and_then(Value::as_bool) == Some(true);
+    let reviewer_distinct = row
+        .get("reviewer_identity_distinct_from_author")
+        .and_then(Value::as_bool)
+        == Some(true);
+    live_authority && (durable_evidence || machine_status) && blocks_merge && reviewer_distinct
 }
 
 /// A required field is present + non-empty (non-empty string, non-empty array, or a bool).
@@ -356,6 +393,61 @@ mod tests {
         row["has_wired_buck2_target"] = json!(false);
         let report = evaluate(&json!({"rows": [row]}));
         assert!(report.violations.contains("advisory_claiming_enforced"));
+    }
+
+    #[test]
+    fn missing_pre_merge_review_authority_fires_for_green_ci_without_review_gate() {
+        let mut row = good_row();
+        row["id"] = json!("BAD-review-authority");
+        row["classification"] = json!("automated_blocking_now");
+        row["requires_pre_merge_review_authority"] = json!(true);
+        row["review_authority_live"] = json!(false);
+        row["review_authority_source"] = json!("target_branch_protection_shadow_only");
+        row["has_durable_review_evidence"] = json!(false);
+        row["has_machine_verifiable_review_status"] = json!(false);
+        row["review_blocks_merge"] = json!(false);
+        row["reviewer_identity_distinct_from_author"] = json!(false);
+        let report = evaluate(&json!({"rows": [row]}));
+        assert!(
+            report
+                .violations
+                .contains("missing_pre_merge_review_authority")
+        );
+    }
+
+    #[test]
+    fn missing_pre_merge_review_authority_fires_when_evidence_is_target_only() {
+        let mut row = good_row();
+        row["id"] = json!("BAD-target-only-review-authority");
+        row["classification"] = json!("automated_blocking_now");
+        row["requires_pre_merge_review_authority"] = json!(true);
+        row["review_authority_live"] = json!(false);
+        row["review_authority_source"] = json!("target_branch_protection_shadow_only");
+        row["has_durable_review_evidence"] = json!(false);
+        row["has_machine_verifiable_review_status"] = json!(true);
+        row["review_blocks_merge"] = json!(true);
+        row["reviewer_identity_distinct_from_author"] = json!(true);
+        let report = evaluate(&json!({"rows": [row]}));
+        assert!(
+            report
+                .violations
+                .contains("missing_pre_merge_review_authority")
+        );
+    }
+
+    #[test]
+    fn pre_merge_review_authority_green_when_live_review_status_blocks_merge() {
+        let mut row = good_row();
+        row["classification"] = json!("automated_blocking_now");
+        row["requires_pre_merge_review_authority"] = json!(true);
+        row["review_authority_live"] = json!(true);
+        row["review_authority_source"] = json!("trusted_runner_signed_oya_pr_review_status");
+        row["has_durable_review_evidence"] = json!(false);
+        row["has_machine_verifiable_review_status"] = json!(true);
+        row["review_blocks_merge"] = json!(true);
+        row["reviewer_identity_distinct_from_author"] = json!(true);
+        let report = evaluate(&json!({"rows": [row]}));
+        assert_eq!(report.verdict, Verdict::Green, "{:?}", report.violations);
     }
 
     #[test]

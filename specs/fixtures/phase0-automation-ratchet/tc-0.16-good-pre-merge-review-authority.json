@@ -1,0 +1,29 @@
+{
+  "description": "A review-authority row is green when merge admission has a blocking machine-verifiable review status or durable evidence and proves reviewer identity is distinct from the author.",
+  "expected_verdict": "GREEN",
+  "expected_violations": [],
+  "fixture_id": "TC-0.16-GOOD-pre-merge-review-authority",
+  "rows": [
+    {
+      "blocking_fixture": "specs/fixtures/phase0-automation-ratchet/tc-0.16-good-pre-merge-review-authority.json",
+      "classification": "automated_blocking_now",
+      "enforceable_or_automatable": true,
+      "evidence_path": "trusted-runner-signed oya-pr-review status packet + PR reviews API readback",
+      "has_durable_review_evidence": false,
+      "has_machine_verifiable_review_status": true,
+      "id": "GOOD-review-status-blocks-merge",
+      "no_new_oya_cli_surface": true,
+      "owner": "platform-toolchain + platform-governance",
+      "requirement": "Protected branch merge admission requires a pre-merge review authority, not only the oya-ci-required context.",
+      "requires_pre_merge_review_authority": true,
+      "retirement_phase": "P0.0/P1 review-admission producer",
+      "review_blocks_merge": true,
+      "reviewer_identity_distinct_from_author": true,
+      "source_artifact": "docs/AGENTS.md#PR-shape + docs/decisions/ADR-0367-trustless-pre-merge-verification-gateway.md",
+      "target_gate_or_controller": "oya-pr-review trusted review-status producer",
+      "review_authority_live": true,
+      "review_authority_source": "trusted_runner_signed_oya_pr_review_status"
+    }
+  ],
+  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/tests/automation_ratchet.rs"
+}

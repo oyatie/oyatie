@@ -527,6 +527,14 @@ pub fn build_decision_crosswalk(inputs: &CrosswalkInputs) -> Result<Value, Produ
     Ok(Value::Object(root))
 }
 
+fn is_false(value: &bool) -> bool {
+    !*value
+}
+
+fn is_empty(value: &str) -> bool {
+    value.is_empty()
+}
+
 /// One enforcement surface's facts (GATE-4 `enforcement-inventory.generated.json`).
 /// The binary fills these from the gate crates + governance lanes + ADR `verified_by` lines.
 #[derive(Debug, Clone, Default, Serialize, PartialEq, Eq)]
@@ -539,6 +547,28 @@ pub struct EnforcementRow {
     pub has_wired_buck2_target: bool,
     /// Whether the surface routes a blocking invariant through an `oya` CLI invocation.
     pub maps_to_oya_cli: bool,
+    /// Whether merge admission requires a distinct pre-merge review authority.
+    #[serde(skip_serializing_if = "is_false")]
+    pub requires_pre_merge_review_authority: bool,
+    /// Whether the review-authority evidence is from live merge-admission state, not target-only
+    /// shadow config or aspirational docs.
+    #[serde(skip_serializing_if = "is_false")]
+    pub review_authority_live: bool,
+    /// Provenance of the review-authority evidence source.
+    #[serde(skip_serializing_if = "is_empty")]
+    pub review_authority_source: String,
+    /// Whether durable review evidence is present in the admission packet.
+    #[serde(skip_serializing_if = "is_false")]
+    pub has_durable_review_evidence: bool,
+    /// Whether a machine-verifiable review status is a required merge context.
+    #[serde(skip_serializing_if = "is_false")]
+    pub has_machine_verifiable_review_status: bool,
+    /// Whether the review authority blocks merge admission.
+    #[serde(skip_serializing_if = "is_false")]
+    pub review_blocks_merge: bool,
+    /// Whether the review authority proves reviewer identity is distinct from author.
+    #[serde(skip_serializing_if = "is_false")]
+    pub reviewer_identity_distinct_from_author: bool,
 }
 
 /// The repo facts the GATE-4 face needs, supplied by the binary or by tests.

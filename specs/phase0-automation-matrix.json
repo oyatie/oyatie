@@ -29,7 +29,9 @@
       "specs/fixtures/phase0-automation-ratchet/tc-0.16-good-human-judgment-with-retirement-path.json",
       "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-operator-checklist-for-automatable-rule.json",
       "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-field-unknown-classifier-duplicate.json",
-      "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-oya-cli-authority.json"
+      "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-oya-cli-authority.json",
+      "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-pre-merge-review-authority.json",
+      "specs/fixtures/phase0-automation-ratchet/tc-0.16-good-pre-merge-review-authority.json"
     ],
     "fixture_directory": "specs/fixtures/phase0-automation-ratchet",
     "required_red_green_pairs": [
@@ -47,6 +49,11 @@
         "green": "tc-0.16-good-human-judgment-with-retirement-path.json",
         "red": "tc-0.16-bad-oya-cli-authority.json",
         "tc_id": "TC-0.16.3"
+      },
+      {
+        "green": "tc-0.16-good-pre-merge-review-authority.json",
+        "red": "tc-0.16-bad-missing-pre-merge-review-authority.json",
+        "tc_id": "G004-review-authority"
       }
     ]
   },
@@ -59,13 +66,14 @@
       "an automatable item is classified as not_automatable_human_judgment",
       "a row lacks owner/target/fixture/retirement/evidence fields",
       "a row maps a blocking invariant to an oya CLI invocation",
-      "a transitory bridge lacks deletion or cutover criteria"
+      "a transitory bridge lacks deletion or cutover criteria",
+      "a merge-admission row requires pre-merge review authority but has no live review-authority source with durable review evidence or a machine-verifiable review status that blocks merge and proves reviewer != author"
     ]
   },
   "known_gaps_before_green": [
     "Seed rows are not exhaustive; AC-0.12 remains RED until generated coverage proves every Phase-0 rule has a row.",
     "Checked-in branch-protection target now names oya-ci-required, but live GitHub branch protection still lacks cloud-ci-required/oya-ci-required and live producer evidence; P0.0 must replace live authority with cloud-ci/oya-ci required context before any green/enforcement claim.",
-    "Manual reviewer approval as a phase-exit criterion is RETIRED per D-MULTISPECTRUM-RETIRED (critique and multispectrum review doctrine dropped); the automation ratchet no longer tracks a multispectrum/reviewer-status row requirement."
+    "Manual human approval alone is not cloud-ci merge authority; pre-merge review must be productized as live durable review evidence or a machine-verifiable blocking review status, and the current dev branch target is target-only shadow state with no live review-authority source."
   ],
   "non_negotiables": [
     "No new oya CLI commands or protected-branch authority are introduced by this matrix.",
@@ -193,6 +201,25 @@
       "retirement_phase": "AC-0.16/P0 exit",
       "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.16",
       "target_gate_or_controller": "cloud-ci-automation-ratchet"
+    },
+    {
+      "blocking_fixture": "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-pre-merge-review-authority.json",
+      "classification": "automated_blocking_now",
+      "evidence_path": "infra/branch-protection/dev.json (target-only shadow; not live review authority)",
+      "has_durable_review_evidence": false,
+      "has_machine_verifiable_review_status": false,
+      "id": "G004-pre-merge-review-authority",
+      "no_new_oya_cli_surface": true,
+      "owner": "platform-toolchain + platform-governance",
+      "requirement": "PR merge admission must include live durable review evidence or a machine-verifiable review status before merge; green CI and target-only branch-protection text are not review authority.",
+      "requires_pre_merge_review_authority": true,
+      "retirement_phase": "P0.0/P1 review-admission producer",
+      "review_blocks_merge": false,
+      "reviewer_identity_distinct_from_author": false,
+      "source_artifact": "docs/AGENTS.md#PR-shape + docs/decisions/ADR-0367-trustless-pre-merge-verification-gateway.md",
+      "target_gate_or_controller": "oya-pr-review trusted review-status producer (missing/not live)",
+      "review_authority_live": false,
+      "review_authority_source": "target_branch_protection_shadow_only"
     }
   ],
   "title": "Phase0AutomationMatrix"
