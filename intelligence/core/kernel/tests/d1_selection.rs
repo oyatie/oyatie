@@ -60,7 +60,7 @@ fn round_robin_cycles_through_three_active_seats() {
     let agent_a = agent("agent-1");
 
     let picks: Vec<SeatId> = (0..6)
-        .map(|_| pool.select(&agent_a, &gate, now).unwrap())
+        .map(|_| pool.select(&tenant("t-1"), &agent_a, &gate, now).unwrap())
         .collect();
 
     assert_eq!(picks[0], seat("seat-a"));
@@ -91,7 +91,7 @@ fn round_robin_skips_seat_in_cooldown() {
         .unwrap();
 
     let picks: Vec<SeatId> = (0..4)
-        .map(|_| pool.select(&agent_a, &gate, now).unwrap())
+        .map(|_| pool.select(&tenant("t-1"), &agent_a, &gate, now).unwrap())
         .collect();
 
     // Expect: a, c, a, c — seat-b skipped because cooldown.
@@ -118,7 +118,7 @@ fn fill_first_sticks_to_seat_a_until_unavailable() {
 
     // Five picks with no failures — all should be seat-a (FillFirst).
     for _ in 0..5 {
-        assert_eq!(pool.select(&agent_a, &gate, now).unwrap(), seat("seat-a"));
+        assert_eq!(pool.select(&tenant("t-1"), &agent_a, &gate, now).unwrap(), seat("seat-a"));
     }
 
     // Knock seat-a into cooldown. FillFirst should now pick seat-b until it
@@ -127,7 +127,7 @@ fn fill_first_sticks_to_seat_a_until_unavailable() {
         .unwrap();
 
     for _ in 0..3 {
-        assert_eq!(pool.select(&agent_a, &gate, now).unwrap(), seat("seat-b"));
+        assert_eq!(pool.select(&tenant("t-1"), &agent_a, &gate, now).unwrap(), seat("seat-b"));
     }
 }
 
@@ -152,7 +152,7 @@ fn pool_exhausted_returns_no_eligible_seat() {
     }
 
     assert_eq!(
-        pool.select(&agent_a, &gate, now),
+        pool.select(&tenant("t-1"), &agent_a, &gate, now),
         Err(SubscriptionPoolError::NoEligibleSeat)
     );
 }
@@ -169,7 +169,7 @@ fn empty_pool_returns_no_eligible_seat() {
     let agent_a = agent("agent-1");
 
     assert_eq!(
-        pool.select(&agent_a, &gate, now),
+        pool.select(&tenant("t-1"), &agent_a, &gate, now),
         Err(SubscriptionPoolError::NoEligibleSeat)
     );
 }
