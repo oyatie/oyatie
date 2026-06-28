@@ -56,6 +56,7 @@ rust_test(
         "third-party//:axum",
         "third-party//:reqwest",
         "third-party//:tokio",
+        "third-party//:tower",
     ],
 )
 

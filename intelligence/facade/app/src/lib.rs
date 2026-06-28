@@ -34,8 +34,9 @@ use intelligence_kernel::{
 };
 use intelligence_openbao_adapter::OpenBaoTransitStore;
 use intelligence_rest::{
-    AppState, ConfiguredBearerIngressAuthenticator, EventSinkFanout, PoolRegistry, RestAdapterError,
-    SecretProviderStore,
+    AppState, BearerBinding, ConfiguredBearerIngressAuthenticator,
+    ConfiguredBearerMapIngressAuthenticator, EventSinkFanout, IngressPrincipalAuthenticator,
+    PoolRegistry, RestAdapterError, SecretProviderStore,
 };
 use oya_shared_olap_clickhouse_adapter::ClickHouseConfig;
 use tracing::info;
@@ -236,6 +237,12 @@ pub struct AppConfig {
     /// Optional data-plane ingress bearer token for `/v1/*` routes. If unset,
     /// the REST adapter fails all data-plane routes closed with 401.
     pub ingress_bearer_token: Option<String>, // data_class: SECRET
+    /// Optional multi-tenant ingress bearer map (AUTH-005 increment-3): each
+    /// `(tenant, token)` binds one bearer credential to one VERIFIED principal
+    /// tenant. When non-empty, the gateway authenticates with a multi-tenant
+    /// authenticator instead of the single `ingress_bearer_token` binding. Empty
+    /// => single-tenant behavior is unchanged.
+    pub ingress_bearer_map: Vec<(TenantId, String)>, // data_class: SECRET
     /// Runtime environment. Production enforces provider-compliance gates.
     pub environment: String, // data_class: INTERNAL_ONLY
     /// Provider/mode compliance statuses used to fail-close OAuth subscription
@@ -262,6 +269,7 @@ impl AppConfig {
     /// | `OYA_CLOUD_INTEL_VALKEY_URL`         | `redis://valkey.infra.svc:6379`  |
     /// | `OYA_CLOUD_INTEL_ADMIN_BEARER_TOKEN` | *(unset: admin routes 401)*      |
     /// | `OYA_CLOUD_INTEL_INGRESS_BEARER_TOKEN` | *(unset: data-plane routes 401)* |
+    /// | `OYA_CLOUD_INTEL_INGRESS_BEARER_MAP` | *(empty; `tenant\|token;...` multi-tenant)* |
     /// | `OYA_CLOUD_INTEL_ENVIRONMENT`        | `development`                    |
     /// | `OYA_CLOUD_INTEL_ANTHROPIC_AUTH_MODE`| `oauth_subscription`             |
     /// | `OYA_CLOUD_INTEL_ANTHROPIC_OAUTH_STATUS`| `PENDING`                     |
@@ -312,6 +320,9 @@ impl AppConfig {
         let ingress_bearer_token = std::env::var("OYA_CLOUD_INTEL_INGRESS_BEARER_TOKEN")
             .ok()
             .filter(|token| !token.trim().is_empty());
+        let ingress_bearer_map = parse_ingress_bearer_map(
+            &std::env::var("OYA_CLOUD_INTEL_INGRESS_BEARER_MAP").unwrap_or_default(),
+        )?;
         let config = Self {
             listen_addr,
             tenant_id,
@@ -327,6 +338,7 @@ impl AppConfig {
             valkey_url,
             admin_bearer_token,
             ingress_bearer_token,
+            ingress_bearer_map,
             environment,
             provider_compliance,
         };
@@ -411,6 +423,52 @@ fn parse_initial_seats(raw: &str) -> Result<Vec<(String, String)>, AppBuildError
             Ok((seat_id, handle))
         })
         .collect()
+}
+
+/// Parse `OYA_CLOUD_INTEL_INGRESS_BEARER_MAP` (AUTH-005 increment-3): ';'-separated
+/// entries, each `tenant|token`. Mirrors [`parse_tenant_provider_pools`]. An empty
+/// input yields an empty map (single-tenant behavior unchanged). Each tenant is
+/// validated into a [`TenantId`]; an empty token is rejected (a token that can
+/// never authenticate is a config error, not a fail-open).
+fn parse_ingress_bearer_map(raw: &str) -> Result<Vec<(TenantId, String)>, AppBuildError> {
+    if raw.trim().is_empty() {
+        return Ok(Vec::new());
+    }
+    let mut bindings: Vec<(TenantId, String)> = Vec::new();
+    for entry in raw
+        .split(';')
+        .map(str::trim)
+        .filter(|entry| !entry.is_empty())
+    {
+        let parts = entry.split('|').map(str::trim).collect::<Vec<_>>();
+        if parts.len() != 2 {
+            return Err(AppBuildError::Config(format!(
+                "OYA_CLOUD_INTEL_INGRESS_BEARER_MAP entry must have 2 fields (tenant|token): {entry}"
+            )));
+        }
+        let tenant = TenantId::new(parts[0]).map_err(|_| {
+            AppBuildError::Config(format!("ingress bearer map tenant is invalid: {entry}"))
+        })?;
+        let token = parts[1].to_string();
+        if token.is_empty() {
+            return Err(AppBuildError::Config(
+                "ingress bearer map token is required".to_string(),
+            ));
+        }
+        // Fail closed at boot on a duplicate token: a token shared across entries would silently
+        // authenticate as whichever binding the verify loop matched last -> wrong-tenant attribution
+        // and a cross-tenant lease. (Duplicate tenants are allowed: multiple tokens per tenant is
+        // legitimate credential rotation.) ponytail: O(n^2) over a tiny tenant-count binding set.
+        if bindings.iter().any(|(_, existing)| existing == &token) {
+            return Err(AppBuildError::Config(
+                "OYA_CLOUD_INTEL_INGRESS_BEARER_MAP has a duplicate token shared across entries \
+                 (would silently bind to the wrong tenant)"
+                    .to_string(),
+            ));
+        }
+        bindings.push((tenant, token));
+    }
+    Ok(bindings)
 }
 
 fn parse_tenant_provider_pools(raw: &str) -> Result<Vec<TenantProviderPoolConfig>, AppBuildError> {
@@ -711,10 +769,32 @@ pub fn build_app(config: AppConfig) -> Result<Arc<AppState>, AppBuildError> {
             "invalid ingress principal tenant: {ingress_principal_tenant:?}"
         ))
     })?;
-    let ingress_authenticator = Arc::new(ConfiguredBearerIngressAuthenticator::new(
-        config.ingress_bearer_token.clone().unwrap_or_default(),
-        ingress_principal_tenant,
-    ));
+    let ingress_authenticator: Arc<dyn IngressPrincipalAuthenticator> = if config
+        .ingress_bearer_map
+        .is_empty()
+    {
+        // Single-tenant (unchanged): the configured bearer bound to this
+        // service's own (or override) tenant. Empty token => every request 401.
+        Arc::new(ConfiguredBearerIngressAuthenticator::new(
+            config.ingress_bearer_token.clone().unwrap_or_default(),
+            ingress_principal_tenant,
+        ))
+    } else {
+        // Multi-tenant (AUTH-005 increment-3): each (tenant, token) binds a
+        // bearer to a VERIFIED principal tenant. x-agent-id stays caller-supplied
+        // (intra-tenant label), so the verified agent is None here.
+        Arc::new(ConfiguredBearerMapIngressAuthenticator::new(
+            config
+                .ingress_bearer_map
+                .iter()
+                .map(|(tenant, token)| BearerBinding {
+                    token: token.clone(),
+                    tenant: tenant.clone(),
+                    agent: None,
+                })
+                .collect(),
+        ))
+    };
 
     // Build AppState (uses the shared reqwest::Client for upstream proxy calls).
     let state = AppState::new_with_pool_registry(
@@ -977,6 +1057,7 @@ mod tests {
             valkey_url: "redis://127.0.0.1:1".to_string(),
             admin_bearer_token: Some("admin-token".to_string()),
             ingress_bearer_token: Some("ingress-token".to_string()),
+            ingress_bearer_map: vec![],
             environment: "test".to_string(),
             provider_compliance: ProviderComplianceConfig::default(),
             tenant_provider_pools: vec![],
@@ -1041,6 +1122,7 @@ mod tests {
             valkey_url: "redis://127.0.0.1:1".to_string(),
             admin_bearer_token: None,
             ingress_bearer_token: None,
+            ingress_bearer_map: vec![],
             environment: "test".to_string(),
             provider_compliance: ProviderComplianceConfig::default(),
             tenant_provider_pools: vec![],
@@ -1133,6 +1215,40 @@ mod tests {
             err.to_string().contains("secret handle"),
             "unexpected error: {err}"
         );
+    }
+
+    #[test]
+    fn parse_ingress_bearer_map_parses_multi_tenant_bindings() {
+        let bindings = parse_ingress_bearer_map("tenant-a|tok-a; tenant-b|tok-b").unwrap();
+        assert_eq!(bindings.len(), 2);
+        assert_eq!(bindings[0].0.as_str(), "tenant-a");
+        assert_eq!(bindings[0].1, "tok-a");
+        assert_eq!(bindings[1].0.as_str(), "tenant-b");
+        assert_eq!(bindings[1].1, "tok-b");
+
+        // Empty input => empty map (single-tenant behavior preserved).
+        assert!(parse_ingress_bearer_map("").unwrap().is_empty());
+        assert!(parse_ingress_bearer_map("   ").unwrap().is_empty());
+    }
+
+    #[test]
+    fn parse_ingress_bearer_map_rejects_malformed_entries() {
+        // Missing token field.
+        assert!(parse_ingress_bearer_map("tenant-a").is_err());
+        // Empty token.
+        assert!(parse_ingress_bearer_map("tenant-a|").is_err());
+        // Empty tenant.
+        assert!(parse_ingress_bearer_map("|tok-a").is_err());
+    }
+
+    #[test]
+    fn parse_ingress_bearer_map_rejects_duplicate_token() {
+        // A token shared across two tenants would silently authenticate as the wrong tenant
+        // (last-wins in the verify loop) => fail closed at boot.
+        assert!(parse_ingress_bearer_map("tenant-a|shared; tenant-b|shared").is_err());
+        // Distinct tokens for the same tenant ARE allowed (credential rotation).
+        let rotated = parse_ingress_bearer_map("tenant-a|tok-old; tenant-a|tok-new").unwrap();
+        assert_eq!(rotated.len(), 2);
     }
 
     #[test]
