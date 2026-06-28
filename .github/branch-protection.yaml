@@ -38,9 +38,12 @@ branches:
     disallow_force_push: true
     require_signed_commits: true
     require_signed_tags: true
-    # Reviews are agent-run and fully automated. GitHub human approving
-    # reviews are not merge authority; `oya-pr-review` is future reviewer
+    # Target reviews are agent-run and fully automated. GitHub human approving
+    # reviews are not final merge authority; `oya-pr-review` is future reviewer
     # evidence only until its producer is live and explicitly required.
+    # REVIEW-ADMISSION-GAP-LIVE-BOUNDARY: F-PR5-06 remains open. PR #964
+    # merged with green `oya-ci-required`, empty reviewDecision, and only an
+    # owner COMMENTED review, proving review admission is target-only here.
     required_approving_reviews: 0
     # P0.0 local target: one required context posted by trusted
     # cloud-ci/oya-ci control state. This file is not a live-enforcement

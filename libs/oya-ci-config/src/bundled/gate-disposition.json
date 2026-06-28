@@ -26,6 +26,7 @@
     },
     "cloud-ci-automation-ratchet": {
       "advisory_claiming_enforced": {"mode": "baseline-block-on-new", "remediation": "replace the advisory/unwired enforcement claim with a hermetic cloud-ci/Buck2 gate target, or downgrade/remove the claim if it is only planned/speculative; do not route merge authority through local CLI bridges."},
+      "missing_pre_merge_review_authority": {"mode": "baseline-block-on-new", "frozen_empty": true, "remediation": "wire a trusted server-side review admission producer (for example the future `oya-pr-review` status from a cloud-ci/GitHub App controller) and require it in the protected merge path, with durable evidence that the reviewer is distinct from the author. Until that producer is live, docs and backlog must name F-PR5-06 and must not claim local hooks or green `oya-ci-required` alone are review authority."},
       "blocking_invariant_mapped_to_oya_cli": {"mode": "baseline-block-on-new", "remediation": "replace retired oya CLI authority (`oya gate`/`oya gen`/`oya verify`/oya-dev-cli/bin/oya) with the cloud-native API/Buck2/cloud-ci gate/controller of record, or mark the reference explicitly as bridge/history/local feedback; do not sign off new CLI authority without founder-approved retirement-debt admission."},
       "ratchet_regression": {"mode": "baseline-block-on-new", "frozen_empty": true},
       "enforceable_or_automatable_marked_human_judgment": {"mode": "baseline-block-on-new"},
