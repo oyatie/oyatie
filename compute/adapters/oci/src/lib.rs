@@ -131,9 +131,6 @@ impl OciComputeAdapter {
         }
     }
 
-    fn provider_request_id(&self, request_id: &str) -> String {
-        format!("oci-compute-{}-{request_id}", self.clock_epoch_seconds)
-    }
 }
 
 impl ComputeProviderVmPort for OciComputeAdapter {
@@ -145,14 +142,13 @@ impl ComputeProviderVmPort for OciComputeAdapter {
         &self,
         input: ComputeProviderVmCreateRequest,
     ) -> Result<ComputeProviderVmReceipt, ComputeProviderVmError> {
-        let command = self.launch_instance_command(&input)?;
-        let provider_request_id = self.provider_request_id(&input.request_id);
-        ComputeProviderVmReceipt::from_request(
-            self.provider_kind(),
-            input,
-            provider_request_id,
-            command.provider_evidence_ref,
-        )
+        let _command = self.launch_instance_command(&input)?;
+        let _preview_clock_epoch_seconds = self.clock_epoch_seconds;
+        Err(ComputeProviderVmError::ProviderRejected {
+            provider: self.provider_kind(),
+            reason: "OCI Compute adapter is command-projection preview only; create_vm does not perform production provisioning"
+                .to_string(),
+        })
     }
 }
 
@@ -401,20 +397,21 @@ mod tests {
     }
 
     #[test]
-    fn oci_compute_adapter_receipt_preserves_provider_neutral_vm_identity() {
+    fn oci_compute_adapter_preview_create_vm_does_not_report_provisioning_success() {
         let adapter = adapter();
         let request = request(&adapter);
-        let receipt = adapter.create_vm(request).expect("receipt emitted");
+        let error = adapter
+            .create_vm(request)
+            .expect_err("preview adapter must not emit production provisioning receipt");
 
-        assert_eq!(receipt.provider_kind, ComputeProviderKind::OciCompute);
         assert_eq!(
-            receipt.provider_request_id,
-            "oci-compute-1700200010-compute-vm-oci-001"
+            error,
+            ComputeProviderVmError::ProviderRejected {
+                provider: ComputeProviderKind::OciCompute,
+                reason: "OCI Compute adapter is command-projection preview only; create_vm does not perform production provisioning"
+                    .to_string(),
+            }
         );
-        assert_eq!(receipt.region, "ap-chuncheon-1");
-        assert_eq!(receipt.az, "ap-chuncheon-1-a");
-        assert_eq!(receipt.cell_id, "cell-ap-chuncheon-1-a-001");
-        assert_eq!(receipt.schema_version, 1);
     }
 
     #[test]
