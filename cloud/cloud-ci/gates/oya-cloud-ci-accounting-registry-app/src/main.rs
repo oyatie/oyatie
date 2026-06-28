@@ -507,7 +507,7 @@ fn build_automation_matrix(enforcement: &Value) -> Value {
             "requirement": "Live enforcement surface inventoried by the producer.",
             "classification": if maps_oya { "automated_blocking_now" } else { "automated_advisory_until_p0_0" },
             "owner": "platform-governance",
-            "target_gate_or_controller": if maps_oya { "oya gate / oya gen verified_by authority" } else { src },
+            "target_gate_or_controller": if maps_oya { "retired oya CLI authority claim" } else { src },
             "blocking_fixture": "specs/fixtures/phase0-automation-ratchet/",
             "retirement_phase": "P0.0",
             "evidence_path": src,
@@ -1534,6 +1534,52 @@ mod tests {
         fs::remove_dir_all(root).expect("remove temp repo");
     }
 
+    #[test]
+    fn enforcement_inventory_flags_live_cli_authority_but_not_bridge_history() {
+        let root = unique_temp_repo();
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let decisions = root.join(&cfg.justification.adr_dir);
+        fs::create_dir_all(&decisions).expect("create decisions dir");
+        fs::write(
+            decisions.join("ADR-0100-live-cli-authority.md"),
+            "---\nid: ADR-0100\nstatus: Proposed\n---\nMerge authority is `oya gate run-all`; the pipeline must require it before promotion.\n",
+        )
+        .expect("write live cli authority ADR");
+        fs::write(
+            decisions.join("ADR-0101-bridge-history.md"),
+            "---\nid: ADR-0101\nstatus: Accepted\n---\nHistorical note: legacy `oya gate run-all` output is bridge evidence only, never merge authority.\n`oya gate` and `oya verify` may remain only as legacy/local migration wrappers until cloud-ci is live.\nUntil the cloud-ci required context is live, legacy `oya gate`/`oya verify`\noutput is migration evidence only and cannot be the merge/exit authority.\n",
+        )
+        .expect("write historical bridge ADR");
+
+        let inputs = collect_enforcement_inputs(
+            &root,
+            &cfg,
+            &ScmFacts {
+                tracked_paths: Vec::new(),
+            },
+        );
+
+        assert!(
+            inputs.rows.iter().any(|row| {
+                row.source_artifact
+                    .ends_with("ADR-0100-live-cli-authority.md")
+                    && row.maps_to_oya_cli
+            }),
+            "a live CLI-as-merge-authority claim must be inventoried as an oya CLI surface: {:?}",
+            inputs.rows
+        );
+        assert!(
+            !inputs
+                .rows
+                .iter()
+                .any(|row| row.source_artifact.ends_with("ADR-0101-bridge-history.md")),
+            "historical bridge/local-feedback CLI references must not become new blocking authority rows: {:?}",
+            inputs.rows
+        );
+
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
     /// RED fixture for FRIC-1781320000: a duplicate-numbered ADR pair (the parallel-lane
     /// collision shape) must surface in `duplicate_ids`; a filename/front-matter id
     /// mismatch (the re-keying vector that can MASK such a collision) must surface in
@@ -2485,10 +2531,93 @@ fn json_number_at(repo_root: &Path, rel: &str, path: &[&str]) -> Option<i64> {
     cursor.as_i64()
 }
 
+fn oya_cli_authority_row_kind(trimmed: &str, context: &str) -> Option<&'static str> {
+    let lower = trimmed.to_ascii_lowercase();
+    if !mentions_oya_cli(&lower) {
+        return None;
+    }
+    if trimmed.starts_with("verified_by") {
+        return Some("verified_by");
+    }
+    let context_lower = context.to_ascii_lowercase();
+    if cli_reference_is_bridge_history(&context_lower) {
+        return None;
+    }
+    if cli_reference_claims_live_authority(&context_lower) {
+        return Some("cli-authority");
+    }
+    None
+}
+
+fn mentions_oya_cli(lower: &str) -> bool {
+    [
+        "oya gate",
+        "oya gen",
+        "oya verify",
+        "oya check",
+        "oya-dev-cli",
+        "./bin/oya",
+        "bin/oya",
+        "cargo run -p oya-dev-cli",
+        "cargo run -q -p oya-dev-cli",
+    ]
+    .iter()
+    .any(|needle| lower.contains(needle))
+}
+
+fn cli_reference_is_bridge_history(lower: &str) -> bool {
+    [
+        "bridge evidence only",
+        "bridge-only",
+        "bridge/local",
+        "legacy/local",
+        "local feedback",
+        "local/bridge",
+        "migration evidence",
+        "migration evidence only",
+        "migration wrapper",
+        "migration wrappers",
+        "never merge authority",
+        "not merge authority",
+        "cannot be merge",
+        "cannot be the merge",
+        "cannot be promotion",
+        "cannot be the promotion",
+        "never promotion authority",
+        "not promotion authority",
+        "provenance only",
+        "only as legacy",
+        "historical",
+        "history only",
+        "retired",
+        "compatibility",
+    ]
+    .iter()
+    .any(|needle| lower.contains(needle))
+}
+
+fn cli_reference_claims_live_authority(lower: &str) -> bool {
+    [
+        "merge authority",
+        "promotion authority",
+        "exit authority",
+        "protected-branch authority",
+        "required context",
+        "required status",
+        "require it before promotion",
+        "required before promotion",
+        "blocks merge",
+        "blocking invariant",
+        "gate of record",
+    ]
+    .iter()
+    .any(|needle| lower.contains(needle))
+}
+
 /// Collect the GATE-4 enforcement surfaces from the live corpus: the governance kernel
 /// crates (claim "enforce" by name; wired only if a BUCK gate target exists), the
-/// governance lanes (diataxis-doc-class / prd-axis-coverage), and the ADR `verified_by`
-/// lines that route a blocking invariant through an `oya gate`/`oya gen` CLI call.
+/// governance lanes (diataxis-doc-class / prd-axis-coverage), and ADR lines that route a
+/// blocking invariant through an `oya gate`/`oya gen`/`oya verify`/`oya-dev-cli` CLI call.
 fn collect_enforcement_inputs(
     repo_root: &Path,
     cfg: &oya_ci_config_kernel::OyaCiConfig,
@@ -2536,8 +2665,9 @@ fn collect_enforcement_inputs(
 
     collect_review_authority_row(repo_root, &mut rows);
 
-    // (3) ADR `verified_by:` lines that name an `oya gate`/`oya gen` CLI invocation
-    // (ADR-0365's retired CLI authority). Each is a blocking invariant mapped to oya CLI.
+    // (3) ADR `verified_by:` lines and live-authority prose that name an `oya` CLI invocation
+    // (ADR-0365's retired CLI authority). Bridge/history/local-feedback mentions are evidence,
+    // not authority; live CLI-as-merge-authority claims remain blocking inventory rows.
     let decisions_dir = repo_root.join(&cfg.justification.adr_dir);
     if let Ok(entries) = std::fs::read_dir(&decisions_dir) {
         let mut files: Vec<PathBuf> = entries
@@ -2562,15 +2692,19 @@ fn collect_enforcement_inputs(
                 .map(|p| p.to_string_lossy().to_string())
                 .unwrap_or_else(|_| path.to_string_lossy().to_string());
             let body = read_text(&path);
-            let mut line_no = 0u64;
-            for line in body.lines() {
-                line_no += 1;
+            let lines: Vec<&str> = body.lines().collect();
+            for (index, line) in lines.iter().enumerate() {
+                let line_no = index as u64 + 1;
                 let trimmed = line.trim();
-                if trimmed.starts_with("verified_by")
-                    && (trimmed.contains("oya gate") || trimmed.contains("oya gen"))
-                {
+                let previous = index
+                    .checked_sub(1)
+                    .and_then(|previous| lines.get(previous))
+                    .map_or("", |line| line.trim());
+                let next = lines.get(index + 1).map_or("", |line| line.trim());
+                let context = format!("{previous} {trimmed} {next}");
+                if let Some(row_kind) = oya_cli_authority_row_kind(trimmed, &context) {
                     rows.push(EnforcementRow {
-                        id: format!("{adr}-verified_by-L{line_no}"),
+                        id: format!("{adr}-{row_kind}-L{line_no}"),
                         source_artifact: rel.clone(),
                         claims_enforced: true,
                         has_wired_buck2_target: false,
