@@ -299,11 +299,10 @@
         ".github/workflows/cache-integrity-canary.yml": 12,
         ".github/workflows/check-substrates.yml": 5,
         ".github/workflows/docs-graph-drift.yml": 3,
-        ".github/workflows/oya-ci-required.yml": 41
+        ".github/workflows/oya-ci-required.yml": 36
       },
-      "keys_total": 61,
-      "buck2_required_ci_note": "2026-06-25 #839: the required CI bridge is Buck2-only. The gate matrix adds one reviewed inline-shell key for the repo-owned official-Buck2 installer plus the Buck2 test step (gate::step-2..4). The live-Postgres lane replaces Swatinem rust-cache and cargo test with repo-owned install-buck2, actions/cache toolchain warmup, and buck2 test --local-only against the job's Postgres service; current live-Postgres keys are step-1 and step-3..7. This remains transitional runner glue until the owned cloud-ci runner models the disposable database as a managed local_resource.",
-      "vuln_audit_note": "2026-06-28 #974: gate-vuln-audit adds 5 reviewed inline-shell keys (gate-vuln-audit::step-2,4,5,6,7) — pinned cargo-audit + cargo-deny RUSTSEC supply-chain checks, born-blocking. Irreducible transitional CI glue (ADR-0523), same class as gate-freshness/gate-live-postgres: cargo-audit/cargo-deny require a fresh network RustSec DB and cannot run as hermetic buck2 targets. De-shell endgame: an owned Rust RustSec scanner modeled by the cloud-ci runner."
+      "keys_total": 56,
+      "buck2_required_ci_note": "2026-06-25 #839: the required CI bridge is Buck2-only. The gate matrix adds one reviewed inline-shell key for the repo-owned official-Buck2 installer plus the Buck2 test step (gate::step-2..4). The live-Postgres lane replaces Swatinem rust-cache and cargo test with repo-owned install-buck2, actions/cache toolchain warmup, and buck2 test --local-only against the job's Postgres service; current live-Postgres keys are step-1 and step-3..7. This remains transitional runner glue until the owned cloud-ci runner models the disposable database as a managed local_resource."
     },
     "codes": {
       "rust_first_automation_unbaselined_workflow_inline_shell": [
@@ -355,11 +354,6 @@
         ".github/workflows/oya-ci-required.yml::gate-registry-drift::step-1",
         ".github/workflows/oya-ci-required.yml::gate-registry-drift::step-2",
         ".github/workflows/oya-ci-required.yml::gate::step-2",
-        ".github/workflows/oya-ci-required.yml::gate-vuln-audit::step-2",
-        ".github/workflows/oya-ci-required.yml::gate-vuln-audit::step-4",
-        ".github/workflows/oya-ci-required.yml::gate-vuln-audit::step-5",
-        ".github/workflows/oya-ci-required.yml::gate-vuln-audit::step-6",
-        ".github/workflows/oya-ci-required.yml::gate-vuln-audit::step-7",
         ".github/workflows/oya-ci-required.yml::gate::step-3",
         ".github/workflows/oya-ci-required.yml::gate::step-4",
         ".github/workflows/oya-ci-required.yml::generated-output-diff-policy::step-1",

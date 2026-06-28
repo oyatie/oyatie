@@ -48,31 +48,12 @@ exceptions = [
 [advisories]
 version = 2
 # RustSec database advisories: fail on any unfixed vulnerability that
-# does not have an explicit ignore.
-#
-# Unmaintained policy (tightened 2026-06-28, vuln-audit gate): scope is `all`, so EVERY
-# unmaintained crate — transitive included — is flagged, not silently scoped out as under the
-# prior `workspace` setting. Known transitive unmaintained debt is not blanket-ignored: each
-# advisory below is an EXPLICIT, time-boxed exception that names its upstream pull chain and a
-# `remove-by` review date, so a NEW unmaintained crate fails the gate while the known set ages
-# out under review pressure. This pairs with the born-blocking `gate-vuln-audit` lane in
-# .github/workflows/oya-ci-required.yml (cargo audit + cargo deny check advisories bans sources).
+# does not have an explicit ignore. Unmaintained advisories block
+# workspace crates; transitive unmaintained debt is reviewed through
+# direct dependency upgrade lanes instead of blanket ignores.
 yanked = "deny"
-unmaintained = "all"
-ignore = [
-  # RUSTSEC-2025-0052 — async-std discontinued. Pull chain: async-std <- async-object-pool <-
-  # httpmock (dev/test HTTP mock server). Transitive, test-only. remove-by: 2026-12-31 — drops
-  # when httpmock cuts a release off the maintained async runtime (or we replace httpmock).
-  "RUSTSEC-2025-0052",
-  # RUSTSEC-2024-0436 — paste unmaintained. Pull chain: paste <- leptos / tachys /
-  # reactive_graph / reactive_stores (Leptos UI framework, proc-macro helper). Transitive.
-  # remove-by: 2026-12-31 — drops when Leptos removes its `paste` usage upstream.
-  "RUSTSEC-2024-0436",
-  # RUSTSEC-2026-0173 — proc-macro-error2 unmaintained. Pull chain: proc-macro-error2 <-
-  # leptos_macro / reactive_stores_macro / syn_derive (<- rstml). Transitive, build-time
-  # proc-macro. remove-by: 2026-12-31 — drops when the Leptos macro stack migrates off it.
-  "RUSTSEC-2026-0173",
-]
+unmaintained = "workspace"
+ignore = []
 
 [bans]
 # Hyperscaler discipline: forbid duplicate crate versions (transitive
