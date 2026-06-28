@@ -58,7 +58,7 @@
         "Find `registry/catalog/<crate>.yaml` rows for each owned crate",
         "Find `contracts/openapi/<surface>/`, `contracts/asyncapi/<surface>/`, `contracts/<surface>.proto` where surface matches µservice ownership",
         "Find `.omc/plans/milestones/M0X-*/phases/P0Y-*/IP-NNN-<ms>-*.md`",
-        "Find `evidence/multispectrum/<change_id>-*.json` belonging to changesets that touched this µservice"
+        "Find historical `evidence/multispectrum/<change_id>-*.json` only when needed for provenance; do not create or require new multispectrum evidence files"
       ],
       "output": "discovery manifest at `.omc/state/migration/<ms>/discovery.json`"
     },

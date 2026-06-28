@@ -63,18 +63,11 @@ Every agent MUST treat [ADR-0346](decisions/ADR-0346-oya-verify-must-run-full-ci
 | ADR-0348 | Cellular topology MUST support autosharding, auto-rebalance, and dynamic sharding through manifest-declared `sharding_automation` blocks, honoring residency, reversibility, and audit-chain emission. | `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, `oya-governance-tenant-migration-reversibility`. |
 | ADR-0349 (amended by ADR-0359/ADR-0361/ADR-0513) | Jenkins (LTS) is the current bridge substrate, not the destination CI authority. ADR-0513 makes Prow-shaped cloud-ci/oya-ci the canonical CI orchestrator/merge-admission service; ArgoCD/Argo Rollouts remain CD bridge/reference adapters where separately authorized. GitHub Actions is retired. | Preserve existing Jenkins bridge lanes until P0.0/P1 cutover, but do not add new Jenkins/Groovy or `oya` CLI CI authority. Destination lanes are cloud-ci/oya-ci Rust gate contexts plus ArgoCD tenant-isolation/deploy audit lanes. |
 
-## Multispectrum review bar — required on every change
+## Independent review discipline — active; multispectrum file convention retired
 
-Every changeset (agentic OR human-authored) MUST emit a multispectrum evidence file at `/evidence/multispectrum/<change_id>-<unix_ts>.json` conforming to [`/specs/multispectrum-review.json`](..//specs/multispectrum-review.json) v2.4.0 (`evidence_schema`). The governance checks (currently still available through legacy `oya gate`/Jenkins bridge, but destination = cloud-ci/oya-ci Rust gate contexts per ADR-0513) plus the seam-discipline lane `oya-check-dependency-seam` REFUSE the changeset when:
+The deleted `/specs/multispectrum-review.json` evidence-file convention is retired with the external coordination / Oya VCS / Jenkins-adapter admission path (ADR-0116, ADR-0363, ADR-0515; see commit `fd06b0ad2`). Agents MUST NOT emit new `evidence/multispectrum/*.json` files or treat that deleted spec as a live gate.
 
-- evidence file absent OR
-- declared `change_class_id` not in {CC-1..CC-7} OR
-- required facets (F1..F13 except F12-reserved when applicable; A-family policy-adherence facets for policy-touching changes; plus `M1`/`M2` when `meta_review_triggered`) missing OR
-- mandatory artifacts per the rigor matrix missing.
-
-This applies to **agentic flow** AND **dev flow**. Agentic flow is the primary consumer; the spec is read at PR-open / gate-run time. Plain `git` + protected PR against `dev` remains the coordination path; the merge/exit CI destination is Prow-shaped cloud-ci/oya-ci, with Jenkins/`oya gate` only as legacy bridge evidence until the P0.0 cutover proves required contexts. ADR-0363 records the retired bespoke ratchet. It is re-evaluated each iterative-fix-loop cycle. See [`docs/standards/multispectrum-review.md`](standards/multispectrum-review.md) for the human gateway and [`/registry/fixuptasks.jsonl`](..//registry/fixuptasks.jsonl) for the bounded-deferral registry.
-
-This is the single contract every agent (Claude Code, Codex, Gemini, OMC subagents, Foundry capabilities) and every human contributor honors before changing the repository. It is dual-audience: every directive is simultaneously a human-readable instruction and a machine-extractable typed artifact (RFC-2119 keyword + named path / lane / validator).
+The review practice survives: run independent reviewer-agent passes and preserve concrete review evidence in the PR's `## Code Review` / quality-gate artifacts. Multi-lens review remains encouraged for high-risk work, but it is expressed through reviewer agents, cloud-ci/oya-ci gate packets, and typed quality-gate evidence — not through standalone multispectrum evidence files.
 
 Before changing this repo, read `/specs/root-hub-pointers.json` first, then this contract. The retired Constitution concept is redistributed through the root hub, master-plan specs, RACI ownership, and sanctioned-primitive specs.
 

@@ -393,6 +393,13 @@ a known-good it passes + proof it runs in the pipeline and BLOCKS):
   non-authoritative Wave A team readiness evidence for the G015/G012 closeout. They are justified only as
   audit/readiness records for the `oya-ci-required` governed path; they do not create merge authority,
   bypass `oya-ci-required`, or mutate generated artifacts.
+- **GJC governance-integrity Dispatch checkpoint evidence registration (2026-06-28):** the repo-relative evidence artifacts
+  `evidence/goals/governance-integrity-dispatch-command-evidence-20260628.json`,
+  `evidence/goals/governance-integrity-dispatch-ledger-20260628.json`,
+  `evidence/goals/governance-integrity-dispatch-quality-gate-20260628.json`, and
+  `evidence/goals/governance-integrity-dispatch-validation-20260628.json` are Dispatch-control evidence for the
+  approval-gated G1/G2 lane claim checkpoint. They are justified only as audit/quality-gate records under this
+  `oya-ci-required` governed path; they do not create merge authority, bypass CI, or authorize implementation.
 
 ## Amendment (2026-06-08, WAVE-1 Agentic Delivery Fabric convergence — refined, NOT superseded)
 
