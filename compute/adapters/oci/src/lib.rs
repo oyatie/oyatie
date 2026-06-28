@@ -28,7 +28,6 @@ pub struct OciComputeAdapter {
     compartment_ref: String,     // data_class: INTERNAL_ONLY
     availability_domain: String, // data_class: INTERNAL_ONLY
     region: String,              // data_class: PUBLIC
-    clock_epoch_seconds: u64,    // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -67,13 +66,7 @@ impl OciComputeAdapter {
             compartment_ref,
             availability_domain,
             region,
-            clock_epoch_seconds: 0,
         })
-    }
-
-    pub fn with_clock(mut self, clock_epoch_seconds: u64) -> Self {
-        self.clock_epoch_seconds = clock_epoch_seconds;
-        self
     }
 
     pub fn provider_instance_ref(&self, instance_resource_id: &str) -> String {
@@ -142,7 +135,6 @@ impl ComputeProviderVmPort for OciComputeAdapter {
         input: ComputeProviderVmCreateRequest,
     ) -> Result<ComputeProviderVmReceipt, ComputeProviderVmError> {
         let _command = self.launch_instance_command(&input)?;
-        let _preview_clock_epoch_seconds = self.clock_epoch_seconds;
         Err(ComputeProviderVmError::ProviderRejected {
             provider: self.provider_kind(),
             reason: "OCI Compute adapter is command-projection preview only; create_vm does not perform production provisioning"
@@ -343,7 +335,6 @@ mod tests {
             "ap-chuncheon-1",
         )
         .unwrap()
-        .with_clock(1_700_200_010)
     }
 
     fn request(adapter: &OciComputeAdapter) -> ComputeProviderVmCreateRequest {
