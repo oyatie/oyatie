@@ -32,6 +32,7 @@ fn run(args: impl IntoIterator<Item = String>) -> Result<ExitCode> {
         return Ok(ExitCode::SUCCESS);
     };
     let outcome = enforce_naming_justifications(&args.root)?;
+    let _strict_compat = args.strict;
 
     match args.format {
         OutputFormat::Json => {
@@ -42,10 +43,10 @@ fn run(args: impl IntoIterator<Item = String>) -> Result<ExitCode> {
         }
     }
 
-    if args.strict && !outcome.is_success() {
-        Ok(ExitCode::from(1))
-    } else {
+    if outcome.is_success() {
         Ok(ExitCode::SUCCESS)
+    } else {
+        Ok(ExitCode::from(1))
     }
 }
 
@@ -76,7 +77,7 @@ fn parse_args(args: impl IntoIterator<Item = String>) -> Result<Option<CliArgs>>
             "--strict" => strict = true,
             "--help" | "-h" => {
                 println!(
-                    "usage: oya-governance-naming-justifications [--root PATH] [--format json|text] [--strict]"
+                    "usage: oya-governance-naming-justifications [--root PATH] [--format json|text] [--strict]\n       violations fail closed by default; --strict is accepted for compatibility"
                 );
                 return Ok(None);
             }
@@ -89,4 +90,38 @@ fn parse_args(args: impl IntoIterator<Item = String>) -> Result<Option<CliArgs>>
         format,
         strict,
     }))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    #[test]
+    fn violations_fail_closed_without_strict() {
+        let root = temp_root("naming-cli-fail-closed");
+        fs::create_dir_all(root.join("microservices/mail")).expect("create manifest dir");
+        fs::write(root.join("microservices/mail/manifest.yaml"), "service: mail\n")
+            .expect("write manifest without naming proof");
+
+        let exit = run([
+            "--root".to_string(),
+            root.display().to_string(),
+            "--format".to_string(),
+            "json".to_string(),
+        ])
+        .expect("run succeeds");
+
+        assert_eq!(exit, ExitCode::from(1));
+        fs::remove_dir_all(root).expect("cleanup temp root");
+    }
+
+    fn temp_root(label: &str) -> PathBuf {
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system clock is after epoch")
+            .as_nanos();
+        std::env::temp_dir().join(format!("{label}-{}-{nanos}", std::process::id()))
+    }
 }
