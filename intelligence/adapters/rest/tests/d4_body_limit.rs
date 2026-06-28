@@ -11,8 +11,8 @@ use intelligence_kernel::{
     SubscriptionId, SubscriptionPool, SubscriptionState, TenantId,
 };
 use intelligence_rest::{
-    AppState, EventSink, LlmGatewayEvent, PoolRegistry, RestAdapterError, SecretProviderStore,
-    TokenRefreshSingleflight, build_router,
+    AppState, ConfiguredBearerIngressAuthenticator, EventSink, LlmGatewayEvent, PoolRegistry,
+    RestAdapterError, SecretProviderStore, TokenRefreshSingleflight, build_router,
 };
 use tower::ServiceExt; // for `oneshot`
 
@@ -69,8 +69,11 @@ fn make_state() -> Arc<AppState> {
         openai_compatible_base_url: "http://127.0.0.1:1".to_string(),
         codex_oauth_base_url: "http://127.0.0.1:1".to_string(),
         gemini_base_url: "http://127.0.0.1:1".to_string(),
-        tenant_id: tenant,
-        ingress_bearer_token: Some("ingress-token".to_string()),
+        tenant_id: tenant.clone(),
+        ingress_authenticator: Arc::new(ConfiguredBearerIngressAuthenticator::new(
+            "ingress-token",
+            tenant,
+        )),
         admin_bearer_token: None,
         environment: "test".to_string(),
         oauth_approved_providers: std::collections::HashSet::new(),
