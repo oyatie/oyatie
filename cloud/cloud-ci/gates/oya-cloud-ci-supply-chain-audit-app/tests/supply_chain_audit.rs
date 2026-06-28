@@ -1,0 +1,168 @@
+//! cloud-ci-supply-chain-audit live-corpus self-test (owned RustSec advisory scan).
+//!
+//! Legs:
+//!   1. LIVE: parse the real Cargo.lock + the committed advisory mirror under the committed policy
+//!      and assert the gate is born-blocking GREEN (quinn-proto on the patched 0.11.15; the only
+//!      other live affected advisories are the three unmaintained ids in policy.ignore). This is the
+//!      load-bearing "lands green" acceptance.
+//!   2. RED self-test: a synthetic locked quinn-proto 0.11.14 + a fixture advisory => SCA-VULN keyed
+//!      to RUSTSEC-2026-0185; 0.11.15 => clean.
+//!   3. UNMAINTAINED: an unmaintained fixture absent from ignore => SCA-UNMAINTAINED; present => clean.
+//!   4. MIRROR INTEGRITY: a tampered manifest content_hash => SCA-MIRROR-MALFORMED.
+//!
+//! Pure filesystem; no network, no clock. ADR-0083 Tier-3: integration tests use unwrap/expect/panic.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
+use std::path::{Path, PathBuf};
+
+use oya_advisory_mirror_kernel::{Advisory, canonical_hash};
+use oya_cloud_ci_supply_chain_audit_app::{
+    GATE_ID, collect, evaluate_keyed, render_findings,
+};
+use serde_json::{Value, json};
+
+/// Walk up from the test's working directory to the repo root (the dir holding the canonical
+/// `specs/root-hub-pointers.json`). Mirrors the helper the firewall meta-gates use.
+fn repo_root() -> PathBuf {
+    let mut dir = std::env::current_dir().expect("current_dir");
+    for _ in 0..16 {
+        if dir.join("specs/root-hub-pointers.json").is_file() {
+            return dir;
+        }
+        if !dir.pop() {
+            break;
+        }
+    }
+    panic!("failed to locate repo root from test current_dir");
+}
+
+fn policy_path(root: &Path) -> PathBuf {
+    root.join("cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/supply-chain-audit-policy.json")
+}
+
+fn load_policy(root: &Path) -> Value {
+    let text = std::fs::read_to_string(policy_path(root)).expect("read committed policy");
+    serde_json::from_str(&text).expect("parse committed policy")
+}
+
+#[test]
+fn live_corpus_is_born_blocking_green() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    assert_eq!(
+        policy.get("gate_id").and_then(Value::as_str),
+        Some(GATE_ID),
+        "committed policy gate_id must be {GATE_ID}"
+    );
+
+    let observed = collect(&root, &policy).expect("collect live lock + mirror");
+    let findings = evaluate_keyed(&policy, &observed);
+    assert!(
+        findings.is_empty(),
+        "the supply-chain-audit gate must be born-blocking GREEN on the live corpus (quinn fixed; \
+         the 3 unmaintained ids in policy.ignore). Live findings:\n{}",
+        render_findings(&findings)
+    );
+}
+
+/// The committed policy with the live-corpus DATA neutralized: empty ignore (so a synthetic 1-record
+/// observation does not go stale), and a zero floor (so synthetic observations do not trip underflow).
+/// The gate_id + unmaintained_policy are the REAL committed ones.
+fn synthetic_policy(root: &Path) -> Value {
+    let mut p = load_policy(root);
+    p["ignore"] = json!([]);
+    p["min_advisories"] = json!(0);
+    p
+}
+
+fn observed(locked: &[(&str, &str)], advisories: Vec<Advisory>) -> Value {
+    let hash = canonical_hash(&advisories);
+    let count = advisories.len();
+    json!({
+        "locked": locked.iter().map(|(n, v)| json!({"name": n, "version": v})).collect::<Vec<_>>(),
+        "advisories": serde_json::to_value(&advisories).unwrap(),
+        "manifest": { "content_hash": hash, "advisory_count": count },
+    })
+}
+
+fn quinn_fixture() -> Advisory {
+    Advisory {
+        id: "RUSTSEC-2026-0185".to_owned(),
+        package: "quinn-proto".to_owned(),
+        patched: vec![">= 0.11.15".to_owned()],
+        unaffected: vec![],
+        informational: None,
+    }
+}
+
+#[test]
+fn synthetic_quinn_0_11_14_is_vuln_keyed_to_exact_id() {
+    let root = repo_root();
+    let p = synthetic_policy(&root);
+    let obs = observed(&[("quinn-proto", "0.11.14")], vec![quinn_fixture()]);
+    let findings = evaluate_keyed(&p, &obs);
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.code == "SCA-VULN" && f.key == "RUSTSEC-2026-0185"),
+        "quinn-proto 0.11.14 must be SCA-VULN keyed to RUSTSEC-2026-0185; got {}",
+        render_findings(&findings)
+    );
+}
+
+#[test]
+fn synthetic_quinn_0_11_15_is_clean() {
+    let root = repo_root();
+    let p = synthetic_policy(&root);
+    let obs = observed(&[("quinn-proto", "0.11.15")], vec![quinn_fixture()]);
+    assert!(
+        evaluate_keyed(&p, &obs).is_empty(),
+        "quinn-proto 0.11.15 satisfies the patched range and must be clean"
+    );
+}
+
+#[test]
+fn synthetic_unmaintained_absent_then_present_in_ignore() {
+    let root = repo_root();
+    let adv = Advisory {
+        id: "RUSTSEC-2024-0436".to_owned(),
+        package: "paste".to_owned(),
+        patched: vec![],
+        unaffected: vec![],
+        informational: Some("unmaintained".to_owned()),
+    };
+    let obs = observed(&[("paste", "1.0.15")], vec![adv]);
+
+    // Absent from ignore → SCA-UNMAINTAINED (unmaintained_policy=all is the committed posture).
+    let p = synthetic_policy(&root);
+    let findings = evaluate_keyed(&p, &obs);
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.code == "SCA-UNMAINTAINED" && f.key == "RUSTSEC-2024-0436"),
+        "unmaintained paste absent from ignore must be SCA-UNMAINTAINED; got {}",
+        render_findings(&findings)
+    );
+
+    // Present in ignore → clean.
+    let mut p2 = synthetic_policy(&root);
+    p2["ignore"] = json!([{ "id": "RUSTSEC-2024-0436", "reason": "no drop-in", "remove_by": "2026-12-31" }]);
+    assert!(
+        evaluate_keyed(&p2, &obs).is_empty(),
+        "an ignored, live-affected unmaintained crate must be clean"
+    );
+}
+
+#[test]
+fn synthetic_tampered_manifest_is_mirror_malformed() {
+    let root = repo_root();
+    let p = synthetic_policy(&root);
+    let mut obs = observed(&[("quinn-proto", "0.11.15")], vec![quinn_fixture()]);
+    obs["manifest"]["content_hash"] = json!("deadbeefdeadbeef");
+    let findings = evaluate_keyed(&p, &obs);
+    assert!(
+        findings.iter().any(|f| f.code == "SCA-MIRROR-MALFORMED"),
+        "a tampered manifest content_hash must be SCA-MIRROR-MALFORMED; got {}",
+        render_findings(&findings)
+    );
+}

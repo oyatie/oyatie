@@ -5566,6 +5566,15 @@ name = "oya-adapter-substitution-test-app"
 version = "0.1.0"
 
 [[package]]
+name = "oya-advisory-mirror-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "toml 0.8.23",
+]
+
+[[package]]
 name = "oya-application-app"
 version = "0.1.0"
 dependencies = [
@@ -6404,6 +6413,16 @@ name = "oya-cloud-ci-substrate-dependency-dag-acyclicity-app"
 version = "0.1.0"
 dependencies = [
  "serde_json",
+]
+
+[[package]]
+name = "oya-cloud-ci-supply-chain-audit-app"
+version = "0.1.0"
+dependencies = [
+ "oya-advisory-mirror-kernel",
+ "semver",
+ "serde_json",
+ "toml 0.8.23",
 ]
 
 [[package]]

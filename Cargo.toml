@@ -739,6 +739,14 @@ syn = { version = "2.0", features = ["full", "extra-traits", "parsing", "visit",
 # pre-image). Promoted to a DIRECT workspace dep so reindeer emits a PUBLIC `third-party//:quote`
 # alias; the locked version (1.0.45) is unchanged by this flip.
 quote = "1.0"
+# Owned supply-chain advisory gate (cloud-ci-supply-chain-audit; replaces the reverted #974 shell
+# cargo-audit/deny). Promoted from a transitive-only dep (already locked at 1.0.28 via
+# cedar-policy/rustc_version/wasmparser) to a DIRECT workspace dep so reindeer emits a PUBLIC
+# `third-party//:semver` alias (the buck dep label the gate matches locked Cargo.lock versions
+# against advisory VersionReqs with). The locked version is UNCHANGED by this flip — ZERO new crate
+# enters Cargo.lock. Deliberately NOT the rustsec/cargo-lock crates: those pull libgit2-C + a
+# network index, defeating rust-purity + hermeticity.
+semver = "1.0"
 libc = "0.2"
 prost = "0.14.3"
 protoc-bin-vendored = "3.2.0"
