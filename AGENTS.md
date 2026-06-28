@@ -42,7 +42,7 @@ fail-closed authz via cloud-iam PDP, least privilege, secret rotation).
 hermetic · automated (ships its own fix) · cloud-native (CRD/operator, not CLI) · owned-stack-first
 (transient deps only if MIT/Apache + cloud-native + "would AWS/Google adopt as a temp dependency",
 behind a port modeling the owned destination) · durable = an *enforced* property, not another doc ·
-more-is-not-better (net-reduce) · full-target design, staged delivery (no big-bang, no crippled v1).
+more-is-not-better (net-reduce) · full-target design, staged delivery (no big-bang, no crippled v1) · **defines what SUCCESS and what FAILURE look like** for every capability/change — explicit acceptance criteria + SLO objective + named failure modes + a failure-injection test — as the minimum engineering bar, set hyperscaler-high.
 
 **Enforcement model** — every rule ships in three layers, in priority order: (1) **instruction** here in
 AGENTS.md so authors comply *before* a gate fires (enforcement without instruction forces broad retroactive
