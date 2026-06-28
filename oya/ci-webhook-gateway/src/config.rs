@@ -22,6 +22,12 @@ pub const ENV_CI_DISPATCHER: &str = "OYA_CI_DISPATCHER";
 /// `http://oya-ci-controller.oya-ci.svc:8080`). Only consulted when
 /// `OYA_CI_DISPATCHER=controller`.
 pub const ENV_CONTROLLER_URL: &str = "OYA_CI_CONTROLLER_URL";
+/// Env var carrying the bearer token sent as `Authorization: Bearer <token>` on
+/// the controller `/gate-run` POST (keystone-1). Must match the controller's
+/// `OYA_CI_GATE_RUN_BEARER`. The deploy substrate injects it from the same
+/// `sref` both sides reference. The gateway must deploy with this set BEFORE the
+/// controller starts enforcing, else in-flight PR dispatches 401.
+pub const ENV_CONTROLLER_BEARER: &str = "OYA_CI_CONTROLLER_BEARER";
 /// Env var carrying the branch the gateway gates PRs against (default `dev`).
 pub const ENV_TARGET_BRANCH: &str = "OYA_GATEWAY_TARGET_BRANCH";
 /// Env var carrying the bind address (default `0.0.0.0:8099`).
@@ -72,6 +78,9 @@ pub struct GatewayConfig {
     /// `None` when `OYA_CI_CONTROLLER_URL` is unset. Only consulted when
     /// `dispatcher_kind == Controller`.
     pub controller_url: Option<String>,
+    /// `None` when `OYA_CI_CONTROLLER_BEARER` is unset/blank. When present, the
+    /// controller `/gate-run` POST carries `Authorization: Bearer <token>`.
+    pub controller_bearer: Option<String>,
 }
 
 impl GatewayConfig {
@@ -89,6 +98,7 @@ impl GatewayConfig {
             .map(DispatcherKind::from_str)
             .unwrap_or(DispatcherKind::Jenkins);
         let controller_url = get(ENV_CONTROLLER_URL).filter(|v| !v.trim().is_empty());
+        let controller_bearer = get(ENV_CONTROLLER_BEARER).filter(|v| !v.trim().is_empty());
         GatewayConfig {
             bind_addr,
             target_branch,
@@ -96,6 +106,7 @@ impl GatewayConfig {
             secret_present,
             dispatcher_kind,
             controller_url,
+            controller_bearer,
         }
     }
 

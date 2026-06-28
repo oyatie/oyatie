@@ -9,6 +9,7 @@
 //! | `OYA_CI_CONTROLLER_REPO_OWNER`         | `jason931225`                                                            | GitHub repo owner (forge of record)            |
 //! | `OYA_CI_CONTROLLER_REPO_NAME`          | `oyatie`                                                                 | GitHub repo name (forge of record)             |
 //! | `GITHUB_CI_TOKEN`                      | (required)                                                               | GitHub token for status posting (controller-only) |
+//! | `OYA_CI_GATE_RUN_BEARER`               | (required)                                                               | Fail-closed bearer for POST /gate-run (keystone-1) |
 //! | `OYA_CI_CONTROLLER_GRACE_CYCLES`       | `12`                                                                     | Waiting-pod-reason grace threshold             |
 //! | `OYA_CI_GATE_IMAGE`                    | `registry.oya-registry.svc.cluster.local:5000/rust-ci:dev`               | Rust-CI image for gate runner Pods             |
 //! | `OYA_CI_GATE_FORGE_CLONE_URL`          | `https://github.com/jason931225/oyatie.git`                              | Git clone URL for gate Job init container      |
@@ -17,6 +18,7 @@
 //! | `OYA_CI_GATE_RUNNER_SA`                | `oya-ci-gate-runner`                                                     | Low-privilege SA for gate runner Pods          |
 
 use oya_ci_controller_app::{
+    AllowVerifiedTriggerAuthz, CiTriggerAuthenticator, CiTriggerAuthz, ConfiguredBearerCiTriggerAuthenticator,
     ControllerState, GateSpecConfig, ServerState, StreamExt, build_router, run_controller,
 };
 use oya_ci_controller_github_adapter::GitHubCommitStatusPoster;
@@ -84,6 +86,14 @@ async fn main() {
         grace_cycles,
     };
 
+    // Fail-closed bearer for POST /gate-run (keystone-1). Required at startup,
+    // exactly like GITHUB_CI_TOKEN: the controller refuses to start without it,
+    // so it can never serve an unauthenticated Job-spawn endpoint.
+    let gate_run_bearer = env_required("OYA_CI_GATE_RUN_BEARER");
+    let authenticator: Arc<dyn CiTriggerAuthenticator> =
+        Arc::new(ConfiguredBearerCiTriggerAuthenticator::new(gate_run_bearer));
+    let authz: Arc<dyn CiTriggerAuthz> = Arc::new(AllowVerifiedTriggerAuthz);
+
     // K8sJobSpawner — used by POST /gate-run to create gate Jobs.
     let job_spawner = Arc::new(K8sJobSpawner::new(kube_client));
 
@@ -101,6 +111,8 @@ async fn main() {
         controller_namespace: namespace.clone(),
         job_spawner,
         gate_spec_config,
+        authenticator,
+        authz,
     };
 
     info!(listen_addr = %listen_addr, namespace = %namespace, "oya-ci-controller starting");
@@ -125,10 +137,13 @@ async fn main() {
 }
 
 fn env_required(key: &str) -> String {
-    std::env::var(key).unwrap_or_else(|_| {
-        eprintln!("required env var {key} is not set");
-        std::process::exit(1);
-    })
+    match std::env::var(key) {
+        Ok(value) if !value.trim().is_empty() => value,
+        _ => {
+            eprintln!("required env var {key} is not set or is empty");
+            std::process::exit(1);
+        }
+    }
 }
 
 fn env_or(key: &str, default: &str) -> String {
