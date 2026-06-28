@@ -461,3 +461,87 @@ fn second_pass_discovery_bypasses_fail_closed_end_to_end() {
     let _ = fs::remove_dir_all(&base);
 }
 
+/// SCAN-ROOTS WIDENING (this change): `scan_roots` was widened from 10 dirs to the 20-root superset
+/// the sibling `cloud-ci-dto-authz-trust` gate already scans, closing a FAIL-OPEN where a NEW
+/// unauthenticated HTTP control plane in one of the 10 previously-unscanned roots (audit, cell,
+/// compliance, compute, data, network, observability, secrets, storage, workflow) passed the gate.
+/// This end-to-end proof writes an unauthenticated mutating axum router into a `secrets/` fixture (a
+/// NEWLY-added root) and asserts: (a) under the COMMITTED (widened) scan_roots it is RED — the
+/// widening BITES; (b) under the PRIOR 10 roots the IDENTICAL surface is invisible and the gate is
+/// GREEN — the exact fail-open this change closes.
+#[test]
+fn widened_scan_root_bites_new_unauth_surface_end_to_end() {
+    use std::fs;
+
+    let base = std::env::temp_dir().join(format!(
+        "authz-coverage-widen-fixtures-{}-{}",
+        std::process::id(),
+        line!()
+    ));
+    // A NEW unauthenticated mutating control plane under `secrets/` (one of the widened roots): a
+    // POST to a per-resource path with no auth layer and no per-handler guard.
+    let secrets_src = base.join("secrets/rotation-preview/src");
+    fs::create_dir_all(&secrets_src).expect("create temp secrets fixture dir");
+    fs::write(
+        secrets_src.join("lib.rs"),
+        r#"async fn rotate() -> StatusCode { StatusCode::OK }
+           pub fn r() -> Router { Router::new().route("/v1/secrets/{id}/rotate", post(rotate)).with_state(()) }"#,
+    )
+    .unwrap();
+
+    let root = repo_root();
+    let mut policy = load_policy(&root);
+    policy["frozen_unauthenticated_surfaces"] = json!([]);
+    policy["min_expected_surfaces"] = json!(0);
+
+    // Guard the widening from regression: the committed policy must scan every one of the 10
+    // newly-added roots (sibling dto-authz-trust 20-root parity).
+    let widened: Vec<String> = policy["scan_roots"]
+        .as_array()
+        .expect("scan_roots array")
+        .iter()
+        .filter_map(Value::as_str)
+        .map(str::to_owned)
+        .collect();
+    for added in [
+        "audit", "cell", "compliance", "compute", "data", "network", "observability", "secrets",
+        "storage", "workflow",
+    ] {
+        assert!(
+            widened.iter().any(|r| r == added),
+            "scan_roots must include the widened root `{added}` (dto-authz-trust parity)"
+        );
+    }
+
+    // (a) POST-WIDEN: the committed scan_roots include `secrets/`, so the new unauthenticated
+    // control plane is caught → RED.
+    let observed = collect_surfaces(&base, &policy).expect("collect widened fixtures");
+    let findings = evaluate_keyed(&policy, &observed);
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.code == "AC-UNAUTHENTICATED-CONTROL-PLANE" && f.key.contains("secrets/")),
+        "the widened scan must FLAG the unauthenticated secrets/ control plane: {}",
+        render_findings(&findings)
+    );
+    assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
+
+    // (b) PRE-WIDEN: the prior 10 roots did NOT include `secrets/`, so the IDENTICAL surface was
+    // unscanned — the gate was GREEN. This is the fail-open the widening closes.
+    let mut prewiden = policy.clone();
+    prewiden["scan_roots"] = json!([
+        "billing", "cloud", "console", "iac", "iam", "intelligence", "k8s", "libs", "oya",
+        "tenancy"
+    ]);
+    let observed_pre = collect_surfaces(&base, &prewiden).expect("collect pre-widen fixtures");
+    let findings_pre = evaluate_keyed(&prewiden, &observed_pre);
+    assert!(
+        findings_pre.is_empty(),
+        "pre-widen the secrets/ control plane was UNSCANNED (fail-open) — it must produce no \
+         finding under the prior 10 roots: {}",
+        render_findings(&findings_pre)
+    );
+
+    let _ = fs::remove_dir_all(&base);
+}
+
