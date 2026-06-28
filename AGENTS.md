@@ -41,6 +41,12 @@ hermetic · automated (ships its own fix) · cloud-native (CRD/operator, not CLI
 behind a port modeling the owned destination) · durable = an *enforced* property, not another doc ·
 more-is-not-better (net-reduce) · full-target design, staged delivery (no big-bang, no crippled v1).
 
+**Enforcement model** — every rule ships in three layers, in priority order: (1) **instruction** here in
+AGENTS.md so authors comply *before* a gate fires (enforcement without instruction forces broad retroactive
+fixes); (2) **automation** — the gate ships its own auto-fix wherever it makes sense (the key to low-friction
+progression); (3) **CI enforcement** — a blocking backstop in `oya-ci-required`. Each ships as a neutral
+engine + policy-as-data so any repo/team can adopt it (pipeline-as-product): our pain is everyone's pain.
+
 <!-- agent-instructions:start -->
 sanctioned_primitives:
   - git
