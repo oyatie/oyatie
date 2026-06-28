@@ -5,8 +5,8 @@
 use compute_domain::{CloudComputeCatalog, CloudComputeError};
 use compute_vm_api::{
     CLOUD_COMPUTE_VM_CREATE_SURFACE, CloudComputeVmApiAuthorization,
-    CloudComputeVmApiBoundaryContext, CloudComputeVmApiError, CloudComputeVmApiPrincipal,
-    CloudComputeVmCreateApiRequest, CloudComputeVmCreateApiStatus,
+    CloudComputeVmApiAuthorizationProof, CloudComputeVmApiBoundaryContext, CloudComputeVmApiError,
+    CloudComputeVmApiPrincipal, CloudComputeVmCreateApiRequest, CloudComputeVmCreateApiStatus,
     CloudComputeVmCreateIdempotencyLedger, CloudComputeVmCreateRequest, CloudComputeVmFlavorSpec,
     CloudComputeVmIamRoleRef, CloudComputeVmQuotaEnvelope, CloudComputeVmSecurityGroupRef,
     create_cloud_compute_vm_from_api,
@@ -31,14 +31,35 @@ fn principal_for(principal_id: &str) -> CloudComputeVmApiPrincipal {
 }
 
 fn authorization_for(principal_id: &str, surfaces: &[&str]) -> CloudComputeVmApiAuthorization {
+    let decision_id = format!("authz_decision_{principal_id}");
     CloudComputeVmApiAuthorization {
         tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
-        decision_id: format!("authz_decision_{principal_id}"),
+        decision_id: decision_id.clone(),
         allowed_surfaces: surfaces
             .iter()
             .map(|surface| (*surface).to_string())
             .collect(),
+        proof: Some(authorization_proof_for(
+            principal_id,
+            CLOUD_COMPUTE_VM_CREATE_SURFACE,
+            &decision_id,
+        )),
+    }
+}
+fn authorization_proof_for(
+    principal_id: &str,
+    surface: &str,
+    decision_id: &str,
+) -> CloudComputeVmApiAuthorizationProof {
+    CloudComputeVmApiAuthorizationProof {
+        tenant_id: "ten_alpha".to_string(),
+        principal_id: principal_id.to_string(),
+        surface: surface.to_string(),
+        decision_id: decision_id.to_string(),
+        verified: true,
+        issued_at_epoch_seconds: 1_700_099_000,
+        expires_at_epoch_seconds: 1_700_100_000,
     }
 }
 
@@ -224,6 +245,77 @@ fn vm_create_api_rejects_unauthorized_same_tenant_principal_before_ledger() {
     assert!(ledger.is_empty());
     assert_eq!(catalog.instances().count(), 0);
 }
+#[test]
+fn vm_create_api_rejects_forged_allowed_surface_without_compute_local_proof_before_ledger() {
+    let mut catalog = CloudComputeCatalog::default();
+    let mut ledger = CloudComputeVmCreateIdempotencyLedger::default();
+    let mut request = request(
+        "req-compute-vm-forged-authz",
+        "idem-compute-vm-forged-authz",
+    );
+    request.authorization.proof = None;
+
+    let error = create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, request)
+        .expect_err("forged allowed_surfaces without compute-local proof is rejected");
+
+    assert_eq!(
+        error,
+        CloudComputeVmApiError::AuthorizationDenied {
+            surface: CLOUD_COMPUTE_VM_CREATE_SURFACE.to_string(),
+        }
+    );
+    assert_eq!(error.vm_create_status_code(), 403);
+    assert!(ledger.is_empty());
+    assert_eq!(catalog.instances().count(), 0);
+}
+
+#[test]
+fn vm_create_api_rejects_expired_or_unbound_compute_local_proof_before_ledger() {
+    let mut catalog = CloudComputeCatalog::default();
+    let mut ledger = CloudComputeVmCreateIdempotencyLedger::default();
+
+    let mut expired = request(
+        "req-compute-vm-expired-authz",
+        "idem-compute-vm-expired-authz",
+    );
+    let proof = expired
+        .authorization
+        .proof
+        .as_mut()
+        .expect("fixture has proof");
+    proof.expires_at_epoch_seconds = proof.issued_at_epoch_seconds;
+
+    let expired_error = create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, expired)
+        .expect_err("expired compute-local proof is rejected");
+    assert_eq!(
+        expired_error,
+        CloudComputeVmApiError::AuthorizationDenied {
+            surface: CLOUD_COMPUTE_VM_CREATE_SURFACE.to_string(),
+        }
+    );
+
+    let mut unbound = request(
+        "req-compute-vm-unbound-authz",
+        "idem-compute-vm-unbound-authz",
+    );
+    unbound
+        .authorization
+        .proof
+        .as_mut()
+        .expect("fixture has proof")
+        .surface = "cloud.compute.k8s.cluster.create".to_string();
+
+    let unbound_error = create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, unbound)
+        .expect_err("proof bound to another surface is rejected");
+    assert_eq!(
+        unbound_error,
+        CloudComputeVmApiError::AuthorizationDenied {
+            surface: CLOUD_COMPUTE_VM_CREATE_SURFACE.to_string(),
+        }
+    );
+    assert!(ledger.is_empty());
+    assert_eq!(catalog.instances().count(), 0);
+}
 
 #[test]
 fn vm_create_api_separates_missing_authentication_from_denied_authorization() {
@@ -255,6 +347,11 @@ fn vm_create_api_replays_with_refreshed_authz_and_reordered_security_groups() {
     let mut retry = request;
     retry.boundary.request_id = "req-compute-vm-authz-refresh-2".to_string();
     retry.authorization.decision_id = "authz_decision_sp_compute_refreshed".to_string();
+    retry.authorization.proof = Some(authorization_proof_for(
+        "sp_compute",
+        CLOUD_COMPUTE_VM_CREATE_SURFACE,
+        &retry.authorization.decision_id,
+    ));
     retry.authorization.allowed_surfaces = vec![
         "cloud.compute.k8s.cluster.create".to_string(),
         CLOUD_COMPUTE_VM_CREATE_SURFACE.to_string(),

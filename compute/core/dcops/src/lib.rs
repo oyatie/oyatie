@@ -684,6 +684,14 @@ pub struct RackCapacitySnapshot {
     pub remaining_weight_kg: u64,   // data_class: INTERNAL_ONLY
 }
 
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Ord, PartialOrd)]
+struct InstallationAccounting {
+    rack_capacity: RackCapacitySnapshot,
+    power_zone_used_watts: u64,
+    cooling_zone_used_watts: u64,
+    rack_unit_overlap: bool,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CloudDcopsError {
     InvalidDatacenterSiteId,
@@ -762,6 +770,10 @@ pub struct CloudDcopsCatalog {
     bms_readings: BTreeSet<(BmsPointId, u64)>,
     work_orders: BTreeMap<WorkOrderId, WorkOrder>,
     sustainability_snapshots: BTreeMap<SustainabilitySnapshotId, SustainabilitySnapshot>,
+    rack_capacity_by_id: BTreeMap<RackId, RackCapacitySnapshot>,
+    power_zone_used_watts_by_id: BTreeMap<PowerZoneId, u64>,
+    cooling_zone_used_watts_by_id: BTreeMap<CoolingZoneId, u64>,
+    rack_unit_allocations_by_id: BTreeMap<RackId, BTreeMap<EquipmentId, (u16, u16)>>,
 }
 
 impl DatacenterSiteId {
@@ -1865,10 +1877,15 @@ impl CloudDcopsCatalog {
         let current = self
             .equipment
             .get(equipment_id)
+            .cloned()
             .ok_or(CloudDcopsError::UnknownEquipment)?;
+        if current.lifecycle.value != EquipmentLifecycle::Received {
+            return Err(CloudDcopsError::InvalidStateTransition);
+        }
         let installation = input.typed(current.kind.value)?;
         self.validate_installation(equipment_id, &current.site_id.value, &installation)?;
         let next = current.install(installation)?;
+        self.apply_capacity_accounting(equipment_id, &next)?;
         self.equipment.insert(equipment_id.clone(), next.clone());
         Ok(next)
     }
@@ -1882,8 +1899,16 @@ impl CloudDcopsCatalog {
         let current = self
             .equipment
             .get(equipment_id)
+            .cloned()
             .ok_or(CloudDcopsError::UnknownEquipment)?;
         let next = current.transition_lifecycle(next_lifecycle, updated_at_epoch_seconds)?;
+        if equipment_counts_against_capacity(&current) && !equipment_counts_against_capacity(&next) {
+            self.release_capacity_accounting(equipment_id, &current)?;
+        } else if !equipment_counts_against_capacity(&current)
+            && equipment_counts_against_capacity(&next)
+        {
+            self.apply_capacity_accounting(equipment_id, &next)?;
+        }
         self.equipment.insert(equipment_id.clone(), next.clone());
         Ok(next)
     }
@@ -1893,34 +1918,13 @@ impl CloudDcopsCatalog {
             .racks
             .get(rack_id)
             .ok_or(CloudDcopsError::UnknownRack)?;
-        let mut used_u = 0u16;
-        let mut used_power_watts = 0u64;
-        let mut used_heat_watts = 0u64;
-        let mut used_weight_kg = 0u64;
-        for equipment in self.equipment.values() {
-            if let Some(installation) = equipment.installation.value.as_ref()
-                && installation.rack_id == *rack_id
-                && equipment.lifecycle.value != EquipmentLifecycle::EwasteTransferred
-            {
-                used_u = used_u.saturating_add(installation.height_u);
-                used_power_watts = used_power_watts.saturating_add(installation.power_watts);
-                used_heat_watts = used_heat_watts.saturating_add(installation.heat_watts);
-                used_weight_kg = used_weight_kg.saturating_add(installation.weight_kg);
-            }
-        }
-        Ok(RackCapacitySnapshot {
-            used_u,
-            free_u: rack.u_height.value.saturating_sub(used_u),
-            used_power_watts,
-            remaining_power_watts: rack
-                .rated_power_watts
-                .value
-                .saturating_sub(used_power_watts),
-            used_heat_watts,
-            remaining_heat_watts: rack.max_heat_watts.value.saturating_sub(used_heat_watts),
-            used_weight_kg,
-            remaining_weight_kg: rack.max_weight_kg.value.saturating_sub(used_weight_kg),
-        })
+        let mut capacity = self
+            .rack_capacity_by_id
+            .get(rack_id)
+            .copied()
+            .unwrap_or_default();
+        finalize_rack_capacity(rack, &mut capacity);
+        Ok(capacity)
     }
 
     pub fn add_cable_run(&mut self, input: CableRunCreate) -> Result<CableRun, CloudDcopsError> {
@@ -2159,111 +2163,252 @@ impl CloudDcopsCatalog {
         if end_u > rack.u_height.value {
             return Err(CloudDcopsError::InvalidRackUnits);
         }
-        for (other_id, other) in &self.equipment {
-            if other_id == equipment_id {
-                continue;
-            }
-            if let Some(other_installation) = other.installation.value.as_ref()
-                && other_installation.rack_id == installation.rack_id
-                && u_ranges_overlap(
-                    installation.start_u,
-                    end_u,
-                    other_installation.start_u,
-                    installation_end_u(other_installation)?,
-                )
-            {
-                return Err(CloudDcopsError::RackUnitOverlap);
-            }
+        let accounting = self.installation_accounting(
+            rack,
+            &installation.power_zone_id,
+            &installation.cooling_zone_id,
+            equipment_id,
+            Some(installation),
+        )?;
+        if accounting.rack_unit_overlap {
+            return Err(CloudDcopsError::RackUnitOverlap);
         }
-        let rack_capacity = self.rack_capacity_with(rack, equipment_id, Some(installation))?;
-        if rack_capacity.used_u > rack.u_height.value
-            || rack_capacity.used_power_watts > rack.rated_power_watts.value
-            || rack_capacity.used_heat_watts > rack.max_heat_watts.value
-            || rack_capacity.used_weight_kg > rack.max_weight_kg.value
+        if accounting.rack_capacity.used_u > rack.u_height.value
+            || accounting.rack_capacity.used_power_watts > rack.rated_power_watts.value
+            || accounting.rack_capacity.used_heat_watts > rack.max_heat_watts.value
+            || accounting.rack_capacity.used_weight_kg > rack.max_weight_kg.value
         {
             return Err(CloudDcopsError::RackCapacityExceeded);
         }
-        let power_zone_used = self.power_zone_used_watts(&installation.power_zone_id, equipment_id)
-            + installation.power_watts;
-        if power_zone_used > power_zone.capacity_watts.value {
+        if accounting.power_zone_used_watts > power_zone.capacity_watts.value {
             return Err(CloudDcopsError::PowerZoneCapacityExceeded);
         }
-        let cooling_zone_used = self
-            .cooling_zone_used_watts(&installation.cooling_zone_id, equipment_id)
-            + installation.heat_watts;
-        if cooling_zone_used > cooling_zone.heat_capacity_watts.value {
+        if accounting.cooling_zone_used_watts > cooling_zone.heat_capacity_watts.value {
             return Err(CloudDcopsError::CoolingZoneCapacityExceeded);
         }
         Ok(())
     }
 
-    fn rack_capacity_with(
+    fn installation_accounting(
         &self,
         rack: &Rack,
+        power_zone_id: &PowerZoneId,
+        cooling_zone_id: &CoolingZoneId,
         equipment_id: &EquipmentId,
         proposed: Option<&EquipmentInstallation>,
-    ) -> Result<RackCapacitySnapshot, CloudDcopsError> {
-        let mut used_u = 0u16;
-        let mut used_power_watts = 0u64;
-        let mut used_heat_watts = 0u64;
-        let mut used_weight_kg = 0u64;
-        for (current_id, equipment) in &self.equipment {
-            if current_id == equipment_id {
-                continue;
-            }
-            if let Some(installation) = equipment.installation.value.as_ref()
-                && installation.rack_id == rack.id.value
-            {
-                used_u = used_u.saturating_add(installation.height_u);
-                used_power_watts = used_power_watts.saturating_add(installation.power_watts);
-                used_heat_watts = used_heat_watts.saturating_add(installation.heat_watts);
-                used_weight_kg = used_weight_kg.saturating_add(installation.weight_kg);
+    ) -> Result<InstallationAccounting, CloudDcopsError> {
+        let mut accounting = InstallationAccounting {
+            rack_capacity: self
+                .rack_capacity_by_id
+                .get(&rack.id.value)
+                .copied()
+                .unwrap_or_default(),
+            power_zone_used_watts: self
+                .power_zone_used_watts_by_id
+                .get(power_zone_id)
+                .copied()
+                .unwrap_or_default(),
+            cooling_zone_used_watts: self
+                .cooling_zone_used_watts_by_id
+                .get(cooling_zone_id)
+                .copied()
+                .unwrap_or_default(),
+            rack_unit_overlap: false,
+        };
+        let proposed_end_u = proposed.map(installation_end_u).transpose()?;
+        if let (Some(proposed), Some(proposed_end_u), Some(allocations)) = (
+            proposed,
+            proposed_end_u,
+            self.rack_unit_allocations_by_id.get(&rack.id.value),
+        ) {
+            for (allocated_id, (allocated_start_u, allocated_end_u)) in allocations {
+                if allocated_id != equipment_id
+                    && u_ranges_overlap(
+                        proposed.start_u,
+                        proposed_end_u,
+                        *allocated_start_u,
+                        *allocated_end_u,
+                    )
+                {
+                    accounting.rack_unit_overlap = true;
+                    break;
+                }
             }
         }
         if let Some(installation) = proposed {
-            used_u = used_u.saturating_add(installation.height_u);
-            used_power_watts = used_power_watts.saturating_add(installation.power_watts);
-            used_heat_watts = used_heat_watts.saturating_add(installation.heat_watts);
-            used_weight_kg = used_weight_kg.saturating_add(installation.weight_kg);
+            if installation.rack_id == rack.id.value {
+                add_installation_capacity(&mut accounting.rack_capacity, installation);
+            }
+            if installation.power_zone_id == *power_zone_id {
+                accounting.power_zone_used_watts = accounting
+                    .power_zone_used_watts
+                    .saturating_add(installation.power_watts);
+            }
+            if installation.cooling_zone_id == *cooling_zone_id {
+                accounting.cooling_zone_used_watts = accounting
+                    .cooling_zone_used_watts
+                    .saturating_add(installation.heat_watts);
+            }
         }
-        Ok(RackCapacitySnapshot {
-            used_u,
-            free_u: rack.u_height.value.saturating_sub(used_u),
-            used_power_watts,
-            remaining_power_watts: rack
-                .rated_power_watts
-                .value
-                .saturating_sub(used_power_watts),
-            used_heat_watts,
-            remaining_heat_watts: rack.max_heat_watts.value.saturating_sub(used_heat_watts),
-            used_weight_kg,
-            remaining_weight_kg: rack.max_weight_kg.value.saturating_sub(used_weight_kg),
-        })
+        finalize_rack_capacity(rack, &mut accounting.rack_capacity);
+        Ok(accounting)
     }
 
-    fn power_zone_used_watts(&self, power_zone_id: &PowerZoneId, excluded: &EquipmentId) -> u64 {
-        self.equipment
-            .iter()
-            .filter(|(equipment_id, _)| *equipment_id != excluded)
-            .filter_map(|(_, equipment)| equipment.installation.value.as_ref())
-            .filter(|installation| installation.power_zone_id == *power_zone_id)
-            .map(|installation| installation.power_watts)
-            .sum()
+    fn apply_capacity_accounting(
+        &mut self,
+        equipment_id: &EquipmentId,
+        equipment: &Equipment,
+    ) -> Result<(), CloudDcopsError> {
+        if !equipment_counts_against_capacity(equipment) {
+            return Ok(());
+        }
+        let Some(installation) = equipment.installation.value.as_ref() else {
+            return Ok(());
+        };
+        let end_u = installation_end_u(installation)?;
+        add_installation_capacity(
+            self.rack_capacity_by_id
+                .entry(installation.rack_id.clone())
+                .or_default(),
+            installation,
+        );
+        let power_used = self
+            .power_zone_used_watts_by_id
+            .entry(installation.power_zone_id.clone())
+            .or_default();
+        *power_used = (*power_used).saturating_add(installation.power_watts);
+        let cooling_used = self
+            .cooling_zone_used_watts_by_id
+            .entry(installation.cooling_zone_id.clone())
+            .or_default();
+        *cooling_used = (*cooling_used).saturating_add(installation.heat_watts);
+        self.rack_unit_allocations_by_id
+            .entry(installation.rack_id.clone())
+            .or_default()
+            .insert(equipment_id.clone(), (installation.start_u, end_u));
+        Ok(())
     }
 
-    fn cooling_zone_used_watts(
-        &self,
-        cooling_zone_id: &CoolingZoneId,
-        excluded: &EquipmentId,
-    ) -> u64 {
-        self.equipment
-            .iter()
-            .filter(|(equipment_id, _)| *equipment_id != excluded)
-            .filter_map(|(_, equipment)| equipment.installation.value.as_ref())
-            .filter(|installation| installation.cooling_zone_id == *cooling_zone_id)
-            .map(|installation| installation.heat_watts)
-            .sum()
+    fn release_capacity_accounting(
+        &mut self,
+        equipment_id: &EquipmentId,
+        equipment: &Equipment,
+    ) -> Result<(), CloudDcopsError> {
+        if !equipment_counts_against_capacity(equipment) {
+            return Ok(());
+        }
+        let Some(installation) = equipment.installation.value.as_ref() else {
+            return Ok(());
+        };
+        let remove_rack = if let Some(capacity) = self
+            .rack_capacity_by_id
+            .get_mut(&installation.rack_id)
+        {
+            subtract_installation_capacity(capacity, installation);
+            capacity.used_u == 0
+                && capacity.used_power_watts == 0
+                && capacity.used_heat_watts == 0
+                && capacity.used_weight_kg == 0
+        } else {
+            false
+        };
+        if remove_rack {
+            self.rack_capacity_by_id.remove(&installation.rack_id);
+        }
+        let remove_power = if let Some(used) = self
+            .power_zone_used_watts_by_id
+            .get_mut(&installation.power_zone_id)
+        {
+            *used = used.saturating_sub(installation.power_watts);
+            *used == 0
+        } else {
+            false
+        };
+        if remove_power {
+            self.power_zone_used_watts_by_id
+                .remove(&installation.power_zone_id);
+        }
+        let remove_cooling = if let Some(used) = self
+            .cooling_zone_used_watts_by_id
+            .get_mut(&installation.cooling_zone_id)
+        {
+            *used = used.saturating_sub(installation.heat_watts);
+            *used == 0
+        } else {
+            false
+        };
+        if remove_cooling {
+            self.cooling_zone_used_watts_by_id
+                .remove(&installation.cooling_zone_id);
+        }
+        let remove_allocations = if let Some(allocations) = self
+            .rack_unit_allocations_by_id
+            .get_mut(&installation.rack_id)
+        {
+            allocations.remove(equipment_id);
+            allocations.is_empty()
+        } else {
+            false
+        };
+        if remove_allocations {
+            self.rack_unit_allocations_by_id
+                .remove(&installation.rack_id);
+        }
+        Ok(())
     }
+}
+
+fn equipment_counts_against_capacity(equipment: &Equipment) -> bool {
+    equipment.lifecycle.value != EquipmentLifecycle::EwasteTransferred
+        && equipment.installation.value.is_some()
+}
+
+fn add_installation_capacity(
+    capacity: &mut RackCapacitySnapshot,
+    installation: &EquipmentInstallation,
+) {
+    capacity.used_u = capacity.used_u.saturating_add(installation.height_u);
+    capacity.used_power_watts = capacity
+        .used_power_watts
+        .saturating_add(installation.power_watts);
+    capacity.used_heat_watts = capacity
+        .used_heat_watts
+        .saturating_add(installation.heat_watts);
+    capacity.used_weight_kg = capacity
+        .used_weight_kg
+        .saturating_add(installation.weight_kg);
+}
+
+fn subtract_installation_capacity(
+    capacity: &mut RackCapacitySnapshot,
+    installation: &EquipmentInstallation,
+) {
+    capacity.used_u = capacity.used_u.saturating_sub(installation.height_u);
+    capacity.used_power_watts = capacity
+        .used_power_watts
+        .saturating_sub(installation.power_watts);
+    capacity.used_heat_watts = capacity
+        .used_heat_watts
+        .saturating_sub(installation.heat_watts);
+    capacity.used_weight_kg = capacity
+        .used_weight_kg
+        .saturating_sub(installation.weight_kg);
+}
+
+fn finalize_rack_capacity(rack: &Rack, capacity: &mut RackCapacitySnapshot) {
+    capacity.free_u = rack.u_height.value.saturating_sub(capacity.used_u);
+    capacity.remaining_power_watts = rack
+        .rated_power_watts
+        .value
+        .saturating_sub(capacity.used_power_watts);
+    capacity.remaining_heat_watts = rack
+        .max_heat_watts
+        .value
+        .saturating_sub(capacity.used_heat_watts);
+    capacity.remaining_weight_kg = rack
+        .max_weight_kg
+        .value
+        .saturating_sub(capacity.used_weight_kg);
 }
 
 fn datacenter_transition_allowed(current: DatacenterState, next: DatacenterState) -> bool {
@@ -2897,6 +3042,41 @@ mod tests {
                 .expect_err("rack power budget exceeded"),
             CloudDcopsError::RackCapacityExceeded
         );
+    }
+
+    #[test]
+    fn ewaste_transferred_equipment_releases_installation_capacity() {
+        let mut catalog = active_catalog();
+        let retired_id = received_equipment(&mut catalog, EQUIP_ID);
+        catalog
+            .install_equipment(&retired_id, install_plan(1, 10_000))
+            .expect("install retired server");
+        catalog
+            .transition_equipment(&retired_id, EquipmentLifecycle::InService, 40)
+            .expect("retired in service");
+        catalog
+            .transition_equipment(&retired_id, EquipmentLifecycle::Decommissioning, 41)
+            .expect("retired decommissioning");
+        catalog
+            .transition_equipment(&retired_id, EquipmentLifecycle::Sanitized, 42)
+            .expect("retired sanitized");
+        catalog
+            .transition_equipment(&retired_id, EquipmentLifecycle::EwasteTransferred, 43)
+            .expect("retired transferred");
+
+        let replacement_id = received_equipment(&mut catalog, EQUIP_ID_B);
+        let mut replacement_plan = install_plan(1, 12_000);
+        replacement_plan.installed_at_epoch_seconds = 44;
+        catalog
+            .install_equipment(&replacement_id, replacement_plan)
+            .expect("ewaste-transferred equipment releases rack, power, and cooling budgets");
+
+        let capacity = catalog
+            .rack_capacity(&RackId::new(RACK_ID_VALUE).expect("rack id"))
+            .expect("capacity");
+        assert_eq!(capacity.used_u, 2);
+        assert_eq!(capacity.remaining_power_watts, 0);
+        assert_eq!(capacity.remaining_heat_watts, 0);
     }
 
     #[test]

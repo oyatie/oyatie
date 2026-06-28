@@ -292,6 +292,7 @@ pub struct FunctionInvocationRequest {
     pub region: String,                  // data_class: PUBLIC
     pub payload_data_class: DataClass,   // data_class: INTERNAL_ONLY
     pub idempotency_key: String,         // data_class: INTERNAL_ONLY
+    pub current_concurrent_invocations: u32, // data_class: INTERNAL_ONLY
     pub requested_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
 }
 
@@ -965,7 +966,12 @@ impl KubernetesCluster {
         let requested = node_pools
             .iter()
             .try_fold(ComputeUnits::default(), |sum, pool| {
-                sum.checked_add(pool.flavor.units().checked_mul(pool.min_nodes)?)
+                let admitted_nodes = if pool.autoscaling_enabled {
+                    pool.max_nodes
+                } else {
+                    pool.min_nodes
+                };
+                sum.checked_add(pool.flavor.units().checked_mul(admitted_nodes)?)
             })?;
         input.quota.admit(requested)?;
         Ok(Self {
@@ -1077,6 +1083,9 @@ impl FunctionDeployment {
             .contains(&payload_data_class)
         {
             return Err(CloudComputeError::PayloadDataClassNotAllowed);
+        }
+        if input.current_concurrent_invocations >= self.max_concurrency.value {
+            return Err(CloudComputeError::QuotaExceeded);
         }
         Ok(FunctionInvocationReceipt {
             invocation_id: internal(InvocationId::new(input.invocation_id)?),
@@ -1735,6 +1744,7 @@ mod tests {
             region: "region-alpha".to_string(),
             payload_data_class: data_class,
             idempotency_key: format!("idem-{id}-0123456789"),
+            current_concurrent_invocations: 0,
             requested_at_epoch_seconds: 1_700_100_030,
         }
     }
@@ -1847,7 +1857,7 @@ mod tests {
     }
 
     #[test]
-    fn rejects_kubernetes_without_ha_spread_or_node_pool_quota() {
+    fn rejects_kubernetes_without_ha_spread_or_autoscale_max_node_quota() {
         let ha_error = KubernetesCluster::new(KubernetesClusterCreate {
             node_pools: vec![node_pool(
                 "np_a",
@@ -1868,6 +1878,15 @@ mod tests {
         })
         .expect_err("node pool minimum capacity must fit quota");
         assert_eq!(quota_error, CloudComputeError::QuotaExceeded);
+        let max_quota_error = KubernetesCluster::new(KubernetesClusterCreate {
+            quota: ComputeQuotaEnvelope {
+                vcpu_limit: 32,
+                ..quota()
+            },
+            ..k8s_create()
+        })
+        .expect_err("autoscale maximum capacity must fit quota even when min nodes fit");
+        assert_eq!(max_quota_error, CloudComputeError::QuotaExceeded);
     }
 
     #[test]
@@ -1920,7 +1939,7 @@ mod tests {
     }
 
     #[test]
-    fn rejects_function_budget_payload_class_duplicate_invocation_and_inactive() {
+    fn rejects_function_budget_payload_class_max_concurrency_duplicate_invocation_and_inactive() {
         let budget_error = FunctionDeployment::new(FunctionDeploymentCreate {
             cold_start_budget_ms: MAX_FUNCTION_COLD_START_BUDGET_MS + 1,
             ..function_create()
@@ -1945,6 +1964,14 @@ mod tests {
             .invoke_function(invocation("fninv_002", DataClass::Phi))
             .expect_err("payload data class must be allowlisted");
         assert_eq!(class_error, CloudComputeError::PayloadDataClassNotAllowed);
+
+        let concurrency_error = catalog
+            .invoke_function(FunctionInvocationRequest {
+                current_concurrent_invocations: 250,
+                ..invocation("fninv_concurrency", DataClass::Public)
+            })
+            .expect_err("function invocation cannot exceed declared max concurrency");
+        assert_eq!(concurrency_error, CloudComputeError::QuotaExceeded);
 
         catalog
             .invoke_function(invocation("fninv_003", DataClass::Public))

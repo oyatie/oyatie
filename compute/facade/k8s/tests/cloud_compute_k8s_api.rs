@@ -5,14 +5,14 @@
 use compute_domain::{CloudComputeCatalog, CloudComputeError};
 use compute_k8s_api::{
     CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE, CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE,
-    CloudComputeK8sApiAuthorization, CloudComputeK8sApiBoundaryContext, CloudComputeK8sApiError,
-    CloudComputeK8sApiPrincipal, CloudComputeK8sClusterCreateApiRequest,
-    CloudComputeK8sClusterCreateApiStatus, CloudComputeK8sClusterCreateRequest,
-    CloudComputeK8sClusterDeleteApiRequest, CloudComputeK8sClusterDeleteApiStatus,
-    CloudComputeK8sCreateIdempotencyLedger, CloudComputeK8sDeleteIdempotencyLedger,
-    CloudComputeK8sNodePoolCreateRequest, CloudComputeK8sNodePoolFlavorSpec,
-    CloudComputeK8sQuotaEnvelope, CloudComputeK8sSecurityGroupRef,
-    create_cloud_compute_k8s_cluster_from_api, create_cluster,
+    CloudComputeK8sApiAuthorization, CloudComputeK8sApiAuthorizationProof,
+    CloudComputeK8sApiBoundaryContext, CloudComputeK8sApiError, CloudComputeK8sApiPrincipal,
+    CloudComputeK8sClusterCreateApiRequest, CloudComputeK8sClusterCreateApiStatus,
+    CloudComputeK8sClusterCreateRequest, CloudComputeK8sClusterDeleteApiRequest,
+    CloudComputeK8sClusterDeleteApiStatus, CloudComputeK8sCreateIdempotencyLedger,
+    CloudComputeK8sDeleteIdempotencyLedger, CloudComputeK8sNodePoolCreateRequest,
+    CloudComputeK8sNodePoolFlavorSpec, CloudComputeK8sQuotaEnvelope,
+    CloudComputeK8sSecurityGroupRef, create_cloud_compute_k8s_cluster_from_api, create_cluster,
     delete_cloud_compute_k8s_cluster_from_api, delete_cluster,
 };
 
@@ -34,14 +34,35 @@ fn principal_for(principal_id: &str) -> CloudComputeK8sApiPrincipal {
 }
 
 fn authorization_for(principal_id: &str, surfaces: &[&str]) -> CloudComputeK8sApiAuthorization {
+    let decision_id = format!("authz_decision_{principal_id}");
     CloudComputeK8sApiAuthorization {
         tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
-        decision_id: format!("authz_decision_{principal_id}"),
+        decision_id: decision_id.clone(),
         allowed_surfaces: surfaces
             .iter()
             .map(|surface| (*surface).to_string())
             .collect(),
+        proof: Some(authorization_proof_for(
+            principal_id,
+            CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE,
+            &decision_id,
+        )),
+    }
+}
+fn authorization_proof_for(
+    principal_id: &str,
+    surface: &str,
+    decision_id: &str,
+) -> CloudComputeK8sApiAuthorizationProof {
+    CloudComputeK8sApiAuthorizationProof {
+        tenant_id: "ten_alpha".to_string(),
+        principal_id: principal_id.to_string(),
+        surface: surface.to_string(),
+        decision_id: decision_id.to_string(),
+        verified: true,
+        issued_at_epoch_seconds: 1_700_099_000,
+        expires_at_epoch_seconds: 1_700_100_000,
     }
 }
 
@@ -251,6 +272,82 @@ fn k8s_create_api_rejects_unauthorized_same_tenant_principal_before_ledger() {
     assert!(ledger.is_empty());
     assert_eq!(catalog.kubernetes_clusters().count(), 0);
 }
+#[test]
+fn k8s_create_api_rejects_forged_allowed_surface_without_valid_compute_local_proof_before_ledger() {
+    let mut catalog = CloudComputeCatalog::default();
+    let mut ledger = CloudComputeK8sCreateIdempotencyLedger::default();
+    let mut request = request(
+        "req-compute-k8s-forged-authz",
+        "idem-compute-k8s-forged-authz",
+    );
+    request
+        .authorization
+        .proof
+        .as_mut()
+        .expect("fixture has proof")
+        .verified = false;
+
+    let error = create_cloud_compute_k8s_cluster_from_api(&mut catalog, &mut ledger, request)
+        .expect_err("forged allowed_surfaces with invalid proof is rejected");
+
+    assert_eq!(
+        error,
+        CloudComputeK8sApiError::AuthorizationDenied {
+            surface: CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE.to_string(),
+        }
+    );
+    assert_eq!(error.cluster_create_status_code(), 403);
+    assert!(ledger.is_empty());
+    assert_eq!(catalog.kubernetes_clusters().count(), 0);
+}
+
+#[test]
+fn k8s_create_api_rejects_expired_or_unbound_compute_local_proof_before_ledger() {
+    let mut catalog = CloudComputeCatalog::default();
+    let mut ledger = CloudComputeK8sCreateIdempotencyLedger::default();
+
+    let mut expired = request(
+        "req-compute-k8s-expired-authz",
+        "idem-compute-k8s-expired-authz",
+    );
+    let proof = expired
+        .authorization
+        .proof
+        .as_mut()
+        .expect("fixture has proof");
+    proof.expires_at_epoch_seconds = proof.issued_at_epoch_seconds;
+
+    let expired_error = create_cloud_compute_k8s_cluster_from_api(&mut catalog, &mut ledger, expired)
+        .expect_err("expired compute-local proof is rejected");
+    assert_eq!(
+        expired_error,
+        CloudComputeK8sApiError::AuthorizationDenied {
+            surface: CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE.to_string(),
+        }
+    );
+
+    let mut unbound = request(
+        "req-compute-k8s-unbound-authz",
+        "idem-compute-k8s-unbound-authz",
+    );
+    unbound
+        .authorization
+        .proof
+        .as_mut()
+        .expect("fixture has proof")
+        .decision_id = "authz_decision_other".to_string();
+
+    let unbound_error = create_cloud_compute_k8s_cluster_from_api(&mut catalog, &mut ledger, unbound)
+        .expect_err("proof bound to another decision is rejected");
+    assert_eq!(
+        unbound_error,
+        CloudComputeK8sApiError::AuthorizationDenied {
+            surface: CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE.to_string(),
+        }
+    );
+    assert!(ledger.is_empty());
+    assert_eq!(catalog.kubernetes_clusters().count(), 0);
+}
 
 #[test]
 fn k8s_create_api_separates_missing_authentication_from_denied_authorization() {
@@ -283,6 +380,11 @@ fn k8s_create_api_replays_with_refreshed_authz_and_reordered_pools() {
     let mut retry = request;
     retry.boundary.request_id = "req-compute-k8s-authz-refresh-2".to_string();
     retry.authorization.decision_id = "authz_decision_sp_compute_refreshed".to_string();
+    retry.authorization.proof = Some(authorization_proof_for(
+        "sp_compute",
+        CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE,
+        &retry.authorization.decision_id,
+    ));
     retry.authorization.allowed_surfaces = vec![
         "cloud.compute.vm.create".to_string(),
         CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE.to_string(),
@@ -407,11 +509,17 @@ fn delete_authorization_for(
     principal_id: &str,
     surfaces: &[&str],
 ) -> CloudComputeK8sApiAuthorization {
+    let decision_id = format!("authz_del_{principal_id}");
     CloudComputeK8sApiAuthorization {
         tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
-        decision_id: format!("authz_del_{principal_id}"),
+        decision_id: decision_id.clone(),
         allowed_surfaces: surfaces.iter().map(|s| (*s).to_string()).collect(),
+        proof: Some(authorization_proof_for(
+            principal_id,
+            CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE,
+            &decision_id,
+        )),
     }
 }
 
@@ -499,6 +607,11 @@ fn k8s_delete_api_replay_returns_same_response_without_double_teardown() {
 
     let mut retry = delete_request("req-del-idem-2", "idem-del-replay");
     retry.authorization.decision_id = "authz_del_sp_compute_refreshed".to_string();
+    retry.authorization.proof = Some(authorization_proof_for(
+        "sp_compute",
+        CLOUD_COMPUTE_K8S_CLUSTER_DELETE_SURFACE,
+        &retry.authorization.decision_id,
+    ));
     let second = delete_cloud_compute_k8s_cluster_from_api(&catalog, &mut delete_ledger, retry)
         .expect("same idempotency key replays");
 
