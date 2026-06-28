@@ -6,7 +6,10 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use oya_http_runtime_hyper_adapter::ServerConfig;
-use console_workspace_shell_app::{build_chain, build_dev_catalog, build_router};
+use console_workspace_shell_app::{
+    build_chain, build_dev_catalog, build_router, ConfiguredBearerAuthenticator,
+    PrincipalAuthenticator,
+};
 
 #[tokio::main(flavor = "multi_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -19,7 +22,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let catalog = build_dev_catalog();
     let router =
         Arc::new(build_router(catalog).map_err(|error| format!("router build failed: {error:?}"))?);
-    let chain = Arc::new(build_chain());
+
+    // AUTH-005 increment-1: default-deny authn gate. The admin bearer is read
+    // from a mounted-Secret env var (transitional until cloud-iam SVID/PDP).
+    // Fail-closed: an unset/empty token verifies nothing, so every PROTECTED
+    // route answers 401 (public health stays reachable).
+    let admin_token = std::env::var("OYATIE_OPS_WORKSPACE_ADMIN_TOKEN").unwrap_or_default();
+    if admin_token.trim().is_empty() {
+        eprintln!(
+            "console-workspace-shell: OYATIE_OPS_WORKSPACE_ADMIN_TOKEN unset/empty — \
+             all protected routes will answer 401 (fail-closed)"
+        );
+    }
+    let authenticator: Arc<dyn PrincipalAuthenticator> =
+        Arc::new(ConfiguredBearerAuthenticator::new(admin_token, "ops-workspace-admin"));
+    let chain = Arc::new(build_chain(authenticator));
 
     eprintln!(
         "console-workspace-shell listening on http://{addr} ({} routes)",
