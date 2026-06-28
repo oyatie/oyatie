@@ -2728,7 +2728,7 @@ fn adr_is_live_for_cli_authority_scan(body: &str) -> bool {
     !status.contains("superseded")
         && !status.contains("retired")
         && !status.contains("withdrawn")
-        && front_matter_id_array(body, "superseded_by").is_empty()
+        && !front_matter_has_inline_or_block_list(body, "superseded_by")
 }
 
 fn adr_enforcement_status_is_blocking(body: &str) -> bool {
@@ -2888,13 +2888,10 @@ fn tracked_paths_matching(scm_facts: &ScmFacts, pred: impl Fn(&str) -> bool) -> 
         .collect()
 }
 
-/// Parse an ADR-id front-matter array in either inline (`key: [A, B]`) or
-/// block-list YAML form (`key:` followed by `- A` entries).
+/// Parse a `key: [A, B, C]` front-matter array of ADR ids.
 fn front_matter_id_array(body: &str, key: &str) -> Vec<String> {
-    let lines = front_matter_lines(body);
-    let key_prefix = format!("{key}:");
-    for (index, line) in lines.iter().enumerate() {
-        if let Some(rest) = line.strip_prefix(&key_prefix) {
+    for line in front_matter_lines(body) {
+        if let Some(rest) = line.strip_prefix(&format!("{key}:")) {
             let trimmed = rest.trim();
             if let Some(inner) = trimmed.strip_prefix('[').and_then(|s| s.strip_suffix(']')) {
                 return inner
@@ -2903,23 +2900,39 @@ fn front_matter_id_array(body: &str, key: &str) -> Vec<String> {
                     .filter(|x| !x.is_empty())
                     .collect();
             }
+        }
+    }
+    Vec::new()
+}
+
+fn front_matter_has_inline_or_block_list(body: &str, key: &str) -> bool {
+    let lines = front_matter_lines(body);
+    let key_prefix = format!("{key}:");
+    for (index, line) in lines.iter().enumerate() {
+        if let Some(rest) = line.strip_prefix(&key_prefix) {
+            let trimmed = rest.trim();
+            if let Some(inner) = trimmed.strip_prefix('[').and_then(|s| s.strip_suffix(']')) {
+                return inner
+                    .split(',')
+                    .any(|x| !x.trim().trim_matches('"').is_empty());
+            }
             if trimmed.is_empty() {
                 return lines[index + 1..]
                     .iter()
                     .map(|line| line.trim())
                     .take_while(|line| line.starts_with("- "))
-                    .map(|line| {
-                        line.trim_start_matches("- ")
+                    .any(|line| {
+                        !line
+                            .trim_start_matches("- ")
                             .trim()
                             .trim_matches('"')
-                            .to_owned()
-                    })
-                    .filter(|x| !x.is_empty())
-                    .collect();
+                            .is_empty()
+                    });
             }
+            return true;
         }
     }
-    Vec::new()
+    false
 }
 
 /// The lines inside the leading `---` front-matter block.

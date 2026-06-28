@@ -25,8 +25,8 @@
       "status_disagreement": {"mode": "baseline-block-on-new"}
     },
     "cloud-ci-automation-ratchet": {
-      "advisory_claiming_enforced": {"mode": "baseline-block-on-new"},
-      "blocking_invariant_mapped_to_oya_cli": {"mode": "baseline-block-on-new"},
+      "advisory_claiming_enforced": {"mode": "baseline-block-on-new", "remediation": "replace the advisory/unwired enforcement claim with a hermetic cloud-ci/Buck2 gate target, or downgrade/remove the claim if it is only planned/speculative; do not route merge authority through local CLI bridges."},
+      "blocking_invariant_mapped_to_oya_cli": {"mode": "baseline-block-on-new", "remediation": "replace retired oya CLI authority (`oya gate`/`oya gen`/`oya verify`/oya-dev-cli/bin/oya) with the cloud-native API/Buck2/cloud-ci gate/controller of record, or mark the reference explicitly as bridge/history/local feedback; do not sign off new CLI authority without founder-approved retirement-debt admission."},
       "ratchet_regression": {"mode": "baseline-block-on-new", "frozen_empty": true},
       "enforceable_or_automatable_marked_human_judgment": {"mode": "baseline-block-on-new"},
       "duplicate_row_id": {"mode": "baseline-block-on-new", "frozen_empty": true},
