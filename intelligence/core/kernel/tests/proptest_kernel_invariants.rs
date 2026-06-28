@@ -127,7 +127,7 @@ proptest! {
         let now = Instant::now();
 
         for outcome in ops {
-            match SubscriptionPool::lease(&pool_ref, &agent, &gate, now) {
+            match SubscriptionPool::lease(&pool_ref, &tid("t-prop"), &agent, &gate, now) {
                 Ok(lease) => {
                     lease.complete(outcome, now).unwrap();
                 }
@@ -177,13 +177,13 @@ proptest! {
         let agent = aid("prop2-agent");
 
         // Immediately not eligible.
-        prop_assert!(pool.select(&agent, &gate, t0).is_err());
+        prop_assert!(pool.select(&tid("t-prop2"), &agent, &gate, t0).is_err());
 
         // After cooldown_duration_429 (default 60s) + 1s — eligible again.
         // The kernel hardcodes 60s for RateLimited429; we advance past 61s.
         let after = t0 + Duration::from_secs(61);
         prop_assert!(
-            pool.select(&agent, &gate, after).is_ok(),
+            pool.select(&tid("t-prop2"), &agent, &gate, after).is_ok(),
             "seat should recover after cooldown expires"
         );
     }
@@ -234,7 +234,7 @@ proptest! {
         let agent = aid("prop3-agent");
         let far = t0 + Duration::from_secs(999_999);
         prop_assert!(
-            pool.select(&agent, &gate, far).is_err(),
+            pool.select(&tid("t-prop3"), &agent, &gate, far).is_err(),
             "seat must be blacklisted after {n} RefreshFailed outcomes"
         );
     }
@@ -311,13 +311,13 @@ proptest! {
         if last_ok {
             // failure_count was reset to 0; seat must be Active and selectable.
             prop_assert!(
-                pool.select(&agent, &gate, far).is_ok(),
+                pool.select(&tid("t-prop4"), &agent, &gate, far).is_ok(),
                 "after Ok outcome seat must be Active (failure_count==0)"
             );
         } else if expected_failures > 5 {
             // Blacklisted — not selectable.
             prop_assert!(
-                pool.select(&agent, &gate, far).is_err(),
+                pool.select(&tid("t-prop4"), &agent, &gate, far).is_err(),
                 "after {expected_failures} failures seat must be blacklisted"
             );
         }
@@ -325,7 +325,7 @@ proptest! {
         // since cooldown = 60s and we advance by 999_999s — assert selectable.
         else if expected_failures > 0 {
             prop_assert!(
-                pool.select(&agent, &gate, far).is_ok(),
+                pool.select(&tid("t-prop4"), &agent, &gate, far).is_ok(),
                 "seat should recover from cooldown far in the future"
             );
         }
@@ -372,7 +372,7 @@ proptest! {
         // Select N times (one full cycle) — all seats must appear.
         let mut seen: HashSet<SeatId> = HashSet::new();
         for _ in 0..n_seats {
-            let s = pool.select(&agent, &gate, now).unwrap();
+            let s = pool.select(&tid("t-prop5"), &agent, &gate, now).unwrap();
             seen.insert(s);
         }
 
@@ -435,7 +435,7 @@ proptest! {
                 .unwrap();
         }
 
-        let selected = pool.select(&agent, &gate, now).unwrap();
+        let selected = pool.select(&tid("t-prop6"), &agent, &gate, now).unwrap();
 
         // First eligible seat in BTreeMap (sorted) order must be seat_ids[knock].
         prop_assert_eq!(
