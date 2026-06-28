@@ -929,6 +929,97 @@ jobs:
           buck2 test --local-only --num-threads 1 //tenancy/facade/tenant-lifecycle-app:tenancy-tenant-lifecycle-app-unittest -- "${FACADE_ENV[@]}"
           buck2 test --local-only --num-threads 1 //tenancy/facade/tenant-lifecycle-app:tenancy-tenant-lifecycle-app-acceptance -- "${FACADE_ENV[@]}"
 
+  # ── gate-vuln-audit: born-blocking RustSec supply-chain gate (cargo audit + cargo deny).
+  #    Productizes the fix-the-class for RUSTSEC-2026-0185 (quinn-proto unauth remote DoS,
+  #    fixed in this lane): any NEW vulnerability, yanked crate, or unmaintained crate beyond
+  #    the time-boxed deny.toml `[advisories].ignore` list makes the single required context RED.
+  #    cargo-audit (RustSec) + cargo-deny (Embark) are best-in-class MIT/Apache supply-chain
+  #    tools (transient-stack bar). They read the workspace Cargo.lock + the live RustSec
+  #    advisory DB (fetched per run, so a brand-new advisory is caught WITHOUT a tool bump). The
+  #    tool VERSIONS are pinned for reproducibility; the DB is fresh. Scoped to
+  #    `advisories bans sources` — the supply-chain security checks; `licenses` is a separate
+  #    concern carrying its own lane debt and is intentionally not coupled here.
+  gate-vuln-audit:
+    name: gate-vuln-audit (cargo audit + cargo deny, RUSTSEC supply-chain, born-blocking)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+      # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4); rustup still resolves/validates it.
+      - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
+        # actions/cache@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        with:
+          path: |
+            ~/.rustup/toolchains
+            ~/.rustup/update-hashes
+          key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
+      - name: Pre-provision pinned Rust toolchain
+        run: |
+          set -euo pipefail
+          rustup toolchain install
+          rustc --version
+      # Cache the two tools (keyed on pinned versions) so the gate compiles them at most once per
+      # version. ponytail: cargo install from source; swap to a digest-pinned prebuilt download
+      # (like infra/ci/install-buck2.sh) if the cold compile ever dominates the lane.
+      - name: Cache cargo-audit + cargo-deny binaries
+        # actions/cache@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        with:
+          path: |
+            ~/.cargo/bin/cargo-audit
+            ~/.cargo/bin/cargo-deny
+          key: vuln-audit-tools-${{ runner.os }}-audit-0.22.2-deny-0.19.9
+      - name: Install cargo-audit + cargo-deny (pinned; skip if cached)
+        run: |
+          set -euo pipefail
+          command -v cargo-audit >/dev/null 2>&1 || cargo install --locked cargo-audit@0.22.2
+          command -v cargo-deny  >/dev/null 2>&1 || cargo install --locked cargo-deny@0.19.9
+          cargo audit --version
+          cargo deny --version
+      # BORN-BLOCKING self-test (RED fixture): inject a known-vulnerable dep into a throwaway
+      # lockfile (quinn-proto 0.11.14 / RUSTSEC-2026-0185, a permanently-published advisory) and
+      # confirm cargo-audit FLAGS it. If the scanner returns clean here it is a no-op and the gate
+      # is dead — fail closed. Independent of the live tree's advisory state.
+      - name: Born-blocking self-test — scanner must flag a known-vulnerable lock
+        run: |
+          set -euo pipefail
+          printf '%s\n' \
+            'version = 4' \
+            '[[package]]' \
+            'name = "quinn-proto"' \
+            'version = "0.11.14"' \
+            'source = "registry+https://github.com/rust-lang/crates.io-index"' \
+            'checksum = "434b42fec591c96ef50e21e886936e66d3cc3f737104fdb9b737c40ffb94c098"' \
+            > "${RUNNER_TEMP}/vuln-fixture.lock"
+          audit_out="$(mktemp)"
+          if cargo audit --file "${RUNNER_TEMP}/vuln-fixture.lock" >"$audit_out" 2>&1; then
+            echo "::error::born-blocking FAILED — cargo-audit found no advisory in a known-vulnerable lock; the gate is a no-op"
+            cat "$audit_out"; exit 1
+          fi
+          # Non-zero alone is not proof: a parse/DB-fetch error also exits non-zero. Assert the
+          # SPECIFIC advisory is flagged, so the self-test cannot pass vacuously on an unrelated error.
+          if ! grep -q "RUSTSEC-2026-0185" "$audit_out"; then
+            echo "::error::born-blocking FAILED — cargo-audit errored but did NOT flag RUSTSEC-2026-0185; scanner integrity unproven"
+            cat "$audit_out"; exit 1
+          fi
+          echo "born-blocking OK — cargo-audit flagged the injected RUSTSEC-2026-0185 exhibit"
+      # THE GATE. cargo audit fails on any vulnerability in the workspace Cargo.lock. cargo deny
+      # check advisories|bans|sources fails on any vulnerability / yanked / unmaintained crate not
+      # in the time-boxed deny.toml ignore list, plus banned crates / unknown registries. Together
+      # any non-ignored advisory makes this lane (and the required context) RED.
+      - name: cargo audit (workspace Cargo.lock)
+        run: |
+          set -euo pipefail
+          cargo audit
+      - name: cargo deny check advisories bans sources
+        run: |
+          set -euo pipefail
+          cargo deny check advisories bans sources
+
   # ── THE FAN-IN. This is the single required context branch protection keys on. It has NO
   #    command of its own (Principle 1 — it NEVER re-runs a narrower subset): it is green IFF
   #    every gate lane above is green. `needs:` lists EVERY gate job; the gate-registration
@@ -946,6 +1037,7 @@ jobs:
       - buck2                   # hermetic buck2 build + affected gate tests
       - gate-affected-set       # binding workspace coverage: affected cone or fail-closed full run (ADR-0554)
       - gate-live-postgres      # #101: durable cross-tenant-deny / RLS / CDC / SCIM tests run + gate against live Postgres
+      - gate-vuln-audit         # RustSec supply-chain: cargo audit + cargo deny (any non-ignored advisory → RED)
     steps:
       - name: Fan-in verdict (green IFF every gate lane is green)
         run: |
@@ -958,6 +1050,7 @@ jobs:
           echo "  buck2             = ${{ needs.buck2.result }}"
           echo "  affected-set      = ${{ needs.gate-affected-set.result }}"
           echo "  live-postgres     = ${{ needs.gate-live-postgres.result }}"
+          echo "  vuln-audit        = ${{ needs.gate-vuln-audit.result }}"
           # A matrix job's aggregate `.result` is success IFF ALL legs succeeded, failure if any
           # leg failed, skipped if it never ran — so one check covers every gate in the matrix.
           if [ "${{ needs.gate.result }}" = "success" ] \
@@ -967,7 +1060,8 @@ jobs:
             && [ "${{ needs.generated-output-diff-policy.result }}" = "success" ] \
             && [ "${{ needs.buck2.result }}" = "success" ] \
             && [ "${{ needs.gate-affected-set.result }}" = "success" ] \
-            && [ "${{ needs.gate-live-postgres.result }}" = "success" ]; then
+            && [ "${{ needs.gate-live-postgres.result }}" = "success" ] \
+            && [ "${{ needs.gate-vuln-audit.result }}" = "success" ]; then
             echo "oya-ci-required: GREEN — every constituent gate lane passed."
             exit 0
           fi
