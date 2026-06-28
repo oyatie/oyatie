@@ -34,6 +34,17 @@ fn reports_rule_metadata_for_clean_repo() {
 }
 
 #[test]
+fn rejects_missing_scan_root_instead_of_passing_empty() {
+    let root = std::env::temp_dir().join(format!(
+        "oya-governance-audit-event-emission-missing-{}",
+        std::process::id()
+    ));
+    let _ = fs::remove_dir_all(&root);
+
+    assert!(enforce_audit_event_emission(&root).is_err());
+}
+
+#[test]
 fn rejects_mutating_endpoint_without_audit_event() {
     let root = temp_repo("missing-audit-event");
     write(
@@ -88,6 +99,32 @@ paths:
     assert_eq!(outcome.mutating_endpoint_identifiers, vec!["CreateWidget"]);
     assert_eq!(outcome.audit_evidence_files.len(), 1);
     assert!(outcome.findings.is_empty(), "{outcome:?}");
+}
+
+#[test]
+fn ignores_incidental_audit_named_files_without_registry_evidence() {
+    let root = temp_repo("incidental-audit-file");
+    write(
+        &root,
+        "contracts/openapi/widgets.openapi.yaml",
+        r#"openapi: 3.0.0
+paths:
+  /widgets:
+    post:
+      operationId: CreateWidget
+"#,
+    );
+    write(
+        &root,
+        "notes/audit-event-comment.md",
+        "CreateWidget appears in prose but is not registered audit-event evidence.",
+    );
+
+    let outcome = enforce_audit_event_emission(&root).expect("check should run");
+
+    assert_eq!(outcome.status, EnforcementStatus::Failed);
+    assert!(outcome.audit_evidence_files.is_empty());
+    assert_eq!(outcome.findings[0].kind, FindingKind::MissingAuditEvent);
 }
 
 #[test]

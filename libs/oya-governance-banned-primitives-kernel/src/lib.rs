@@ -446,8 +446,10 @@ fn shellish_token_segments(line: &str) -> Vec<Vec<String>> {
                 chars.next();
                 true
             }
-            '|' if chars.peek() == Some(&'|') => {
-                chars.next();
+            '|' => {
+                if chars.peek() == Some(&'|') {
+                    chars.next();
+                }
                 true
             }
             _ => false,
@@ -738,6 +740,19 @@ mod tests {
                 .into(),
             line: 1,
             command: "echo oya; git push origin dev".into(),
+        });
+
+        assert_eq!(scan.usages[0].primitive, PrimitiveKind::ManualPush);
+    }
+
+    #[test]
+    fn scan_command_invocation_rejects_pipe_laundered_git_push() {
+        let scan = scan_command_invocation(CommandInvocation {
+            source:
+                "registry/governance-corpora/banned-primitives/reject-pipe-laundered-push.jsonl"
+                    .into(),
+            line: 1,
+            command: "oya | git push origin dev".into(),
         });
 
         assert_eq!(scan.usages[0].primitive, PrimitiveKind::ManualPush);

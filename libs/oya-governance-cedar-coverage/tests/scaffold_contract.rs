@@ -34,6 +34,17 @@ fn reports_rule_metadata_for_clean_repo() {
 }
 
 #[test]
+fn rejects_missing_scan_root_instead_of_passing_empty() {
+    let root = std::env::temp_dir().join(format!(
+        "oya-governance-cedar-coverage-missing-{}",
+        std::process::id()
+    ));
+    let _ = fs::remove_dir_all(&root);
+
+    assert!(enforce_cedar_coverage(&root).is_err());
+}
+
+#[test]
 fn rejects_public_endpoint_without_cedar_policy() {
     let root = temp_repo("missing-policy");
     write(

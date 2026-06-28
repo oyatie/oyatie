@@ -73,7 +73,7 @@ pub fn enforce_audit_event_emission(
     repo_root: impl AsRef<Path>,
 ) -> anyhow::Result<GovernanceCheckOutcome> {
     let repo_root = repo_root.as_ref().to_path_buf();
-    let endpoint_files = candidate_endpoint_files(&repo_root);
+    let endpoint_files = candidate_endpoint_files(&repo_root)?;
     let mut endpoints = Vec::new();
     let mut findings = Vec::new();
 
@@ -84,7 +84,7 @@ pub fn enforce_audit_event_emission(
         findings.extend(parsed.missing_identifier_findings);
     }
 
-    let audit_evidence_files = audit_evidence_files(&repo_root, &endpoint_files);
+    let audit_evidence_files = audit_evidence_files(&repo_root, &endpoint_files)?;
     let audit_haystack = audit_haystack(&audit_evidence_files)?;
     let mut mutating_endpoint_identifiers = BTreeSet::new();
 
@@ -285,13 +285,13 @@ fn is_mutating_identifier(identifier: &str) -> bool {
     PREFIXES.iter().any(|prefix| identifier.starts_with(prefix))
 }
 
-fn candidate_endpoint_files(repo_root: &Path) -> Vec<PathBuf> {
+fn candidate_endpoint_files(repo_root: &Path) -> anyhow::Result<Vec<PathBuf>> {
     let mut out = Vec::new();
     for entry in WalkDir::new(repo_root)
         .into_iter()
         .filter_entry(keeps_entry)
-        .flatten()
     {
+        let entry = entry?;
         if !entry.file_type().is_file() {
             continue;
         }
@@ -301,17 +301,20 @@ fn candidate_endpoint_files(repo_root: &Path) -> Vec<PathBuf> {
         }
     }
     out.sort();
-    out
+    Ok(out)
 }
 
-fn audit_evidence_files(repo_root: &Path, endpoint_files: &[PathBuf]) -> Vec<PathBuf> {
+fn audit_evidence_files(
+    repo_root: &Path,
+    endpoint_files: &[PathBuf],
+) -> anyhow::Result<Vec<PathBuf>> {
     let endpoint_files: BTreeSet<PathBuf> = endpoint_files.iter().cloned().collect();
     let mut out = Vec::new();
     for entry in WalkDir::new(repo_root)
         .into_iter()
         .filter_entry(keeps_entry)
-        .flatten()
     {
+        let entry = entry?;
         if !entry.file_type().is_file() {
             continue;
         }
@@ -324,7 +327,7 @@ fn audit_evidence_files(repo_root: &Path, endpoint_files: &[PathBuf]) -> Vec<Pat
         }
     }
     out.sort();
-    out
+    Ok(out)
 }
 
 fn keeps_entry(entry: &DirEntry) -> bool {
@@ -352,7 +355,13 @@ fn is_public_api_file(path: &Path) -> bool {
 
 fn is_audit_evidence_candidate(path: &Path) -> bool {
     let lower = path.to_string_lossy().to_ascii_lowercase();
-    lower.contains("audit") || lower.contains("event")
+    let file = path
+        .file_name()
+        .map(|value| value.to_string_lossy().to_ascii_lowercase())
+        .unwrap_or_default();
+    lower.contains("/registry/audit-events/")
+        || lower.contains("/evidence/audit/")
+        || file == "audit-chain.jsonl"
 }
 
 fn audit_haystack(evidence_files: &[PathBuf]) -> anyhow::Result<String> {
