@@ -7,9 +7,9 @@
 //   * the gate genuinely DETECTS the blanket: with the baseline emptied, the SAME live scan goes RED
 //     with CDP-UNCONSTRAINED-PERMIT — proving the grandfather is the only thing keeping it green
 //     (not an always-pass stub) and that the blanket-disarm follow-up has real work to shrink.
-//   * a RED fixture (a fresh, non-baselined deployed ConfigMap carrying the blanket permit) fails on
-//     CHECK-A, and a GREEN fixture (a constrained permit present in the capability's authored set)
-//     passes — the real collector + pure evaluator end to end.
+//   * RED/GREEN fixtures cover a fresh non-baselined blanket, a constrained permit present in authored
+//     policy, and an authored forbid missing from deployed policy — the real collector + pure evaluator
+//     end to end.
 // ADR-0083 Tier-3: integration tests use unwrap/expect/panic to assert invariants.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
@@ -182,6 +182,40 @@ fn green_fixture_constrained_permit_in_authored_set_passes() {
     let observed = collect(&dir, &policy).unwrap_or_else(|e| panic!("collect green fixture: {e}"));
     let report = evaluate(&policy, &observed);
     assert_eq!(report.verdict, Verdict::Green, "{:?}", report.violations);
+
+    fs::remove_dir_all(&dir).ok();
+}
+
+#[test]
+fn red_fixture_missing_deployed_forbid_is_red() {
+    let dir = unique_tmp("forbid");
+    let permit =
+        "permit ( principal, action == Action::\"doc.Read\", resource is Doc )\nwhen { principal.tenant_id == resource.tenant_id };";
+    let forbid =
+        "forbid ( principal, action == Action::\"doc.Read\", resource is Doc )\nwhen { resource.blocked };";
+
+    let cm = dir.join("oya/fixture/iac/k8s/helm/templates/cedar.yaml");
+    fs::create_dir_all(cm.parent().unwrap()).unwrap();
+    fs::write(
+        &cm,
+        format!("apiVersion: v1\nkind: ConfigMap\ndata:\n  policies.cedar: |\n    {}\n", permit.replace('\n', "\n    ")),
+    )
+    .unwrap();
+
+    let authored = dir.join("oya/fixture/policy/doc.cedar");
+    fs::create_dir_all(authored.parent().unwrap()).unwrap();
+    fs::write(&authored, format!("// authored\n{permit}\n{forbid}\n")).unwrap();
+
+    let policy = serde_json::json!({
+        "gate_id": GATE_ID,
+        "deployed_suffix": "iac/k8s/helm/templates/cedar.yaml",
+        "authored_subdirs": ["policy", "cedar"],
+        "baseline": { "paths": [] }
+    });
+    let observed = collect(&dir, &policy).unwrap_or_else(|e| panic!("collect forbid fixture: {e}"));
+    let found = codes(evaluate_keyed(&policy, &observed));
+    assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red, "{found:?}");
+    assert!(found.contains("CDP-DEPLOYED-NOT-SUBSET"), "{found:?}");
 
     fs::remove_dir_all(&dir).ok();
 }

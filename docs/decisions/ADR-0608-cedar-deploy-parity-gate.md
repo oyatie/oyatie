@@ -72,11 +72,15 @@ with `deployed_suffix`), `evaluate_keyed` asserts:
   unconstrained (a bare `action`, not `action == Action::"…"` or `action in [ … ]`) is over-broad by
   construction → `CDP-UNCONSTRAINED-PERMIT`. The `when` conditions never narrow the action set, so
   they do not redeem an unconstrained action head.
-- **CHECK-B — deployed ⊆ authored.** Every deployed `permit`, after comment/annotation/whitespace
-  normalization, must be present in the capability's AUTHORED permit set
-  (`<cap>/<authored_subdir>/*.cedar`) → otherwise `CDP-DEPLOYED-NOT-SUBSET`. A deployed ConfigMap
-  with NO resolvable authored policy fails closed → `CDP-NO-AUTHORED-BASELINE` (parity cannot be
-  proven against nothing).
+- **CHECK-B — deployed allows ⊆ authored allows.** Cedar returns allow only when at least one
+  `permit` applies, no `forbid` applies, and otherwise defaults to deny. The gate therefore checks a
+  conservative text-level sufficient condition: every deployed `permit`, after
+  comment/annotation/whitespace normalization, must be present in the capability's AUTHORED permit set
+  (`<cap>/<authored_subdir>/*.cedar`) → otherwise `CDP-DEPLOYED-NOT-SUBSET`; and when deployed permits
+  are present, every authored `forbid` must also be present in the deployed policy → otherwise
+  `CDP-DEPLOYED-NOT-SUBSET`. A deployed policy with no permits grants nothing under Cedar default-deny.
+  A deployed ConfigMap with NO resolvable authored policy still fails closed →
+  `CDP-NO-AUTHORED-BASELINE` (parity cannot be proven against nothing).
 
 The gate is **fail-closed**: an un-extractable/un-parseable deployed Cedar policy
 (`CDP-CEDAR-EXTRACT-FAILED`), an unknown `gate_id` (`CDP-POLICY-GATE-ID-MISMATCH`), a structurally
@@ -86,14 +90,16 @@ guard against a vacuously-green run) all return RED.
 ### D3 — Born-blocking baseline, shrink-only (mirrors ADR-0605 `ignore[]`)
 
 The GH #16 byte-identical blanket ConfigMaps predate this gate and their disarm is a sequenced
-follow-up. Their paths are recorded in `policy.baseline.paths`: each is GRANDFATHERED (skipped by
-CHECK-A/CHECK-B) but DOCUMENTED, time-boxed (`remove_by`), and SHRINK-ONLY —
-`CDP-STALE-BASELINE` flags a baseline path that is no longer blanket or no longer present, so it must
-be dropped, after which it is fully checked. The baseline NEVER grows by automation: a NEW or CHANGED
-deployed ConfigMap is checked in full. So the gate is born-blocking against regressions from the
-first commit, the live tree is GREEN against the documented baseline (mergeable now), and the
-blanket-disarm follow-up shrinks the baseline toward empty. This is the standard known-issue ratchet
-(no rule is weakened — no new over-broad grant is ever admitted); it is NOT a content-blanket
+follow-up. Their repo-relative paths are recorded in `policy.baseline.paths` and the exact known
+blanket Cedar authorization signature is recorded in `policy.baseline.policy_signatures`: an exception
+is GRANDFATHERED (skipped by CHECK-A/CHECK-B) only when both the path and signature match. A
+grandfathered entry remains DOCUMENTED, time-boxed (`remove_by`), and SHRINK-ONLY —
+`CDP-STALE-BASELINE` flags a baseline path that is no longer present or whose signature changed, so it
+must be dropped, after which the ConfigMap is fully checked. The baseline NEVER grows by automation: a
+NEW or CHANGED deployed ConfigMap is checked in full. So the gate is born-blocking against regressions
+from the first commit, the live tree is GREEN against the documented exact baseline (mergeable now),
+and the blanket-disarm follow-up shrinks the baseline toward empty. This is the standard known-issue
+ratchet (no rule is weakened — no new over-broad grant is ever admitted); it is NOT a path-only
 exemption.
 
 ### D4 — Policy-as-data, nothing oyatie-specific in Rust
@@ -122,13 +128,14 @@ cloud/cloud-ci/gates/oya-cloud-ci-cedar-deploy-parity-app/tests/cedar_deploy_par
 ## Consequences
 
 - **Born-blocking against regressions**: a new or changed deployed Cedar ConfigMap that carries an
-  action-agnostic permit (`CDP-UNCONSTRAINED-PERMIT`) or grants more than its capability authored
-  (`CDP-DEPLOYED-NOT-SUBSET` / `CDP-NO-AUTHORED-BASELINE`) fails the `cloud-ci-cedar-deploy-parity`
-  lane from the first commit.
-- **Sequenced disarm**: the 82 known-blanket ConfigMaps are grandfathered in the documented baseline
-  and remain RUNTIME over-broad until the follow-up disarm IP re-points each live service at its real
-  authored policy and shrinks the baseline. The gate makes that work visible and bounded
-  (`remove_by`), and `CDP-STALE-BASELINE` keeps the baseline honest as it shrinks.
+  action-agnostic permit (`CDP-UNCONSTRAINED-PERMIT`), grants more than its capability authored after
+  Cedar forbid/default-deny semantics are accounted for (`CDP-DEPLOYED-NOT-SUBSET` /
+  `CDP-NO-AUTHORED-BASELINE`), or no longer matches the exact grandfathered authorization signature
+  (`CDP-STALE-BASELINE`) fails the `cloud-ci-cedar-deploy-parity` lane from the first commit.
+- **Sequenced disarm**: the 82 known-blanket ConfigMaps are grandfathered by path + signature in the
+  documented baseline and remain RUNTIME over-broad until the follow-up disarm IP re-points each live
+  service at its real authored policy and shrinks the baseline. The gate makes that work visible and
+  bounded (`remove_by`), and `CDP-STALE-BASELINE` keeps the baseline honest as it shrinks.
 - **Owned + hermetic**: `serde_json` only, no shell/network/clock/VCS, no `cedar-policy` engine in the
   gate — clears the AWS/Google "would they ship this as their gate" bar (consistent with ADR-0605/0606).
 - **Accounting**: the new crate is owned by
