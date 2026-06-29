@@ -1,0 +1,187 @@
+// GH #16 / ADR-0608 cloud-ci-cedar-deploy-parity: self-test over TODAY's real tree plus hermetic
+// RED/GREEN fixtures. It asserts:
+//   * the committed policy gate_id matches the crate contract.
+//   * the LIVE worktree is GREEN against the documented baseline — the real collector walks the tree,
+//     finds every deployed Cedar ConfigMap, and the known-blanket set is grandfathered + accurate (no
+//     CDP-STALE-BASELINE), so the gate is born-blocking-against-regressions and mergeable.
+//   * the gate genuinely DETECTS the blanket: with the baseline emptied, the SAME live scan goes RED
+//     with CDP-UNCONSTRAINED-PERMIT — proving the grandfather is the only thing keeping it green
+//     (not an always-pass stub) and that the blanket-disarm follow-up has real work to shrink.
+//   * a RED fixture (a fresh, non-baselined deployed ConfigMap carrying the blanket permit) fails on
+//     CHECK-A, and a GREEN fixture (a constrained permit present in the capability's authored set)
+//     passes — the real collector + pure evaluator end to end.
+// ADR-0083 Tier-3: integration tests use unwrap/expect/panic to assert invariants.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
+use std::collections::BTreeSet;
+use std::fs;
+use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::time::{SystemTime, UNIX_EPOCH};
+
+use oya_cloud_ci_cedar_deploy_parity_app::{GATE_ID, Verdict, collect, evaluate, evaluate_keyed};
+use serde_json::Value;
+
+/// Walk up to the repo root (the dir holding `specs/root-hub-pointers.json`). Verbatim from the
+/// sibling gates.
+fn repo_root() -> PathBuf {
+    let mut dir = std::env::current_dir().expect("current_dir");
+    for _ in 0..16 {
+        if dir.join("specs/root-hub-pointers.json").is_file() {
+            return dir;
+        }
+        if !dir.pop() {
+            break;
+        }
+    }
+    panic!("failed to locate repo root from test current_dir");
+}
+
+fn gate_dir(root: &Path) -> PathBuf {
+    root.join("cloud/cloud-ci/gates/oya-cloud-ci-cedar-deploy-parity-app")
+}
+
+fn load_policy(root: &Path) -> Value {
+    let path = gate_dir(root).join("cedar-deploy-parity-policy.json");
+    let text = fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+    serde_json::from_str(&text).unwrap_or_else(|e| panic!("parse {}: {e}", path.display()))
+}
+
+fn unique_tmp(tag: &str) -> PathBuf {
+    static COUNTER: AtomicU64 = AtomicU64::new(0);
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or(0);
+    let n = COUNTER.fetch_add(1, Ordering::Relaxed);
+    let dir = std::env::temp_dir().join(format!("cdp-{tag}-{nanos}-{n}"));
+    fs::create_dir_all(&dir).expect("create temp dir");
+    dir
+}
+
+fn codes(findings: BTreeSet<oya_cloud_ci_cedar_deploy_parity_app::Finding>) -> BTreeSet<String> {
+    findings.into_iter().map(|f| f.code).collect()
+}
+
+const BLANKET_CONFIGMAP: &str = r#"{{- if .Values.cedar.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.cedar.policyConfigMapName | quote }}
+data:
+  policies.cedar: |
+    permit(
+      principal,
+      action,
+      resource
+    ) when {
+      resource.microservice == "{{ .Values.microservice.id }}" &&
+      principal.tenant_class == "{{ .Values.microservice.tenantClass }}"
+    };
+{{- end }}
+"#;
+
+#[test]
+fn committed_policy_gate_id_matches_contract() {
+    let policy = load_policy(&repo_root());
+    assert_eq!(
+        policy.get("gate_id").and_then(Value::as_str),
+        Some(GATE_ID),
+        "policy gate_id must match the crate GATE_ID"
+    );
+}
+
+#[test]
+fn live_tree_is_green_against_documented_baseline() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let observed = collect(&root, &policy).unwrap_or_else(|e| panic!("collect on live tree: {e}"));
+    let count = observed
+        .get("configmaps")
+        .and_then(Value::as_array)
+        .map(Vec::len)
+        .unwrap_or(0);
+    assert!(count > 0, "the scan must find deployed Cedar ConfigMaps");
+
+    let report = evaluate(&policy, &observed);
+    assert_eq!(
+        report.verdict,
+        Verdict::Green,
+        "live tree must be GREEN against the documented baseline (no NEW over-broad permit, no stale baseline): {:?}",
+        report.violations
+    );
+}
+
+#[test]
+fn gate_detects_the_blanket_when_baseline_is_emptied() {
+    // Proves the green above is held ONLY by the documented grandfather, not by a stubbed evaluator:
+    // emptying the baseline must turn the SAME live scan RED on the action-agnostic blanket.
+    let root = repo_root();
+    let mut policy = load_policy(&root);
+    policy["baseline"] = serde_json::json!({ "paths": [] });
+    let observed = collect(&root, &policy).unwrap_or_else(|e| panic!("collect on live tree: {e}"));
+
+    let found = codes(evaluate_keyed(&policy, &observed));
+    assert!(
+        found.contains("CDP-UNCONSTRAINED-PERMIT"),
+        "with no baseline the live blanket ConfigMaps must be detected: {found:?}"
+    );
+    assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
+}
+
+#[test]
+fn red_fixture_fresh_blanket_configmap_is_red() {
+    let dir = unique_tmp("red");
+    let cm = dir.join("oya/fixture/iac/k8s/helm/templates/cedar.yaml");
+    fs::create_dir_all(cm.parent().unwrap()).unwrap();
+    fs::write(&cm, BLANKET_CONFIGMAP).unwrap();
+    // Make repo-root discovery succeed for the collector's relative-path logic.
+    fs::create_dir_all(dir.join("specs")).unwrap();
+    fs::write(dir.join("specs/root-hub-pointers.json"), "{}").unwrap();
+
+    let policy = serde_json::json!({
+        "gate_id": GATE_ID,
+        "deployed_suffix": "iac/k8s/helm/templates/cedar.yaml",
+        "authored_subdirs": ["policy", "cedar"],
+        "baseline": { "paths": [] }
+    });
+    let observed = collect(&dir, &policy).unwrap_or_else(|e| panic!("collect red fixture: {e}"));
+    let found = codes(evaluate_keyed(&policy, &observed));
+    assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red, "{found:?}");
+    assert!(found.contains("CDP-UNCONSTRAINED-PERMIT"), "{found:?}");
+
+    fs::remove_dir_all(&dir).ok();
+}
+
+#[test]
+fn green_fixture_constrained_permit_in_authored_set_passes() {
+    let dir = unique_tmp("green");
+    // A deployed ConfigMap whose permit is action-constrained AND byte-equal (after normalization) to
+    // the capability's authored policy — the parity target state.
+    let permit =
+        "permit ( principal, action == Action::\"doc.Read\", resource is Doc )\nwhen { principal.tenant_id == resource.tenant_id };";
+
+    let cm = dir.join("oya/fixture/iac/k8s/helm/templates/cedar.yaml");
+    fs::create_dir_all(cm.parent().unwrap()).unwrap();
+    fs::write(
+        &cm,
+        format!("apiVersion: v1\nkind: ConfigMap\ndata:\n  policies.cedar: |\n    {}\n", permit.replace('\n', "\n    ")),
+    )
+    .unwrap();
+
+    let authored = dir.join("oya/fixture/policy/doc.cedar");
+    fs::create_dir_all(authored.parent().unwrap()).unwrap();
+    fs::write(&authored, format!("// authored\n{permit}\n")).unwrap();
+
+    let policy = serde_json::json!({
+        "gate_id": GATE_ID,
+        "deployed_suffix": "iac/k8s/helm/templates/cedar.yaml",
+        "authored_subdirs": ["policy", "cedar"],
+        "baseline": { "paths": [] }
+    });
+    let observed = collect(&dir, &policy).unwrap_or_else(|e| panic!("collect green fixture: {e}"));
+    let report = evaluate(&policy, &observed);
+    assert_eq!(report.verdict, Verdict::Green, "{:?}", report.violations);
+
+    fs::remove_dir_all(&dir).ok();
+}

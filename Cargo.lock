@@ -6253,6 +6253,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-ci-cedar-deploy-parity-app"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "oya-cloud-ci-cross-artifact-agreement-app"
 version = "0.1.0"
 dependencies = [
