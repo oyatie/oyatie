@@ -27,6 +27,8 @@ contracts, specs, runbooks, SLOs, IaC, catalog records, and code travel with the
 root is legacy only and must be removed after migration evidence proves every service has landed under `oya/` or
 `cloud/` (or shared code under `libs/`).
 
+**Amended — 2026-06-29 (review evidence retirement):** ADR-0515 and `docs/AGENTS.md` retire the standalone multispectrum evidence-file convention. The colocated `evidence/` slot remains available for typed quality-gate artifacts and audit bundles only; existing multispectrum paths are historical provenance and are not a current coverage or review-evidence requirement.
+
 ## Context
 
 oyatie's artifacts for a single µservice are currently scattered across seven type-based locations:
@@ -110,7 +112,8 @@ For a service named `<service>` (kebab-case, per BNF v4.1 ADR-0056), choose `{tr
     e2e/                                              # end-to-end scenarios
     load/                                             # k6/vegeta load tests per PRD §"Performance Targets"
   evidence/
-    multispectrum/                                    # per-changeset multispectrum evidence (per docs/AGENTS.md §changeset)
+    quality-gates/                                  # typed cloud-ci/oya-ci gate artifacts; no new multispectrum evidence files
+    audit/                                          # service-local audit bundles when the service owns them
 ```
 
 The colocated service root is what lets the layout CI lane perform path-based change-ownership: a commit modifying `{oya,cloud}/<a>/**` is owned by `<a>` and may not be bundled with unrelated structural/service-root edits without an explicit packet. Co-located docs (PRD, PHASE, IP, runbooks) sit beside source so doc-only PRs can be classified without triggering unnecessary build pipelines.
@@ -147,7 +150,7 @@ Every artifact currently scattered across the type-based folders **moves** into 
 | `docs/runbooks/<service>-*.md` | `{oya,cloud}/<service>/runbooks/<scenario>.md` |
 | Threat models, DPIAs, OpenSLO manifests, IaC charts (where currently exist outside service roots) | `{oya,cloud}/<service>/threat-model.md`, `{oya,cloud}/<service>/dpia.md`, `{oya,cloud}/<service>/slos/`, `{oya,cloud}/<service>/iac/` |
 | Service-scoped ADRs currently at `docs/decisions/` (rare) | `{oya,cloud}/<service>/decisions/ADR-####-*.md`, with a redirect stub at the old path (RETIRED.md row) |
-| Per-service multispectrum evidence currently at `/evidence/multispectrum/<change_id>-*.json` | `{oya,cloud}/<service>/evidence/multispectrum/<change_id>-*.json` |
+| Historical multispectrum evidence formerly under `/evidence/multispectrum/<change_id>-*.json` | Historical provenance only; no migration creates `{oya,cloud}/<service>/evidence/multispectrum/**` as current coverage. New review/coverage evidence uses typed quality-gate artifacts, PR Code Review, and cloud-ci/oya-ci gate packets. |
 
 The aggregation indices that previously lived as primary sources (`registry/catalog/`, `docs/prds/INDEX.md`, `/specs/microservices/`) become **generated views** sourced from the per-µservice folders. The generation lane is `oya-governance-aggregation-index-generation` (added by this ADR).
 
@@ -193,7 +196,7 @@ Per the historical `/specs/microservice-migration-tooling.json` `cost_estimate` 
 
 Sum across all 30 migration IPs at the M01 launch tier: ≈ 1500 files moved + 3500 cross-refs updated + ≈ 3h cumulative wall time. Migrations run in parallel per the DAG below; end-to-end M01 migration window ≈ 1 working day with parallel execution.
 
-Migration DAG (concurrency tiers; all IPs within one tier run in parallel). Per ADR-0132 (product-platform-dissolution), prior grouping bundles `foundry`, `workflow`, `cloud`, Tenant/RBAC packaging, workspace productivity composition, Tenant RBAC are dissolved into 36 flat µservices below — matching AWS / Google / Microsoft / Stripe ship-as-separate-service precedent.
+Migration DAG (concurrency tiers; all IPs within one tier run in parallel). Per ADR-0132 (product-platform-dissolution), prior grouping bundles `foundry`, `workflow`, `cloud`, Tenant/PBAC packaging (RBAC + ABAC), workspace productivity composition, and Tenant PBAC are dissolved into 36 flat µservices below — matching AWS / Google / Microsoft / Stripe ship-as-separate-service precedent.
 
 ```text
 Tier 0 (substrate; no inter-µservice deps):
