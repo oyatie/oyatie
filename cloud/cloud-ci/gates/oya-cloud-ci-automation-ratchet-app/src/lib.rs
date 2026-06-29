@@ -281,6 +281,20 @@ fn mentions_enforcement(text: &str) -> bool {
     t.contains("enforce") || t.contains("gate") || t.contains("verified") || t.contains("blocks")
 }
 
+fn trusted_review_authority_source(row: &Value) -> bool {
+    let source = row
+        .get("review_authority_source")
+        .and_then(Value::as_str)
+        .map(str::trim)
+        .unwrap_or("");
+    matches!(
+        source,
+        "trusted_runner_signed_oya_pr_review_status"
+            | "trusted_cloud_ci_review_admission_packet"
+            | "trusted_server_side_oya_pr_review_status"
+    )
+}
+
 fn has_pre_merge_review_authority(row: &Value) -> bool {
     let live_authority = row.get("review_authority_live").and_then(Value::as_bool) == Some(true);
     let durable_evidence = row
@@ -296,12 +310,14 @@ fn has_pre_merge_review_authority(row: &Value) -> bool {
         .and_then(Value::as_bool)
         == Some(true);
     let body_evidence = row.get("has_review_body_evidence").and_then(Value::as_bool) == Some(true);
+    let trusted_source = trusted_review_authority_source(row);
     let blocks_merge = row.get("review_blocks_merge").and_then(Value::as_bool) == Some(true);
     let reviewer_distinct = row
         .get("reviewer_identity_distinct_from_author")
         .and_then(Value::as_bool)
         == Some(true);
     live_authority
+        && trusted_source
         && (durable_evidence || machine_status)
         && title_evidence
         && body_evidence
@@ -507,6 +523,31 @@ mod tests {
                 .violations
                 .contains("missing_pre_merge_review_authority")
         );
+    }
+
+    #[test]
+    fn missing_pre_merge_review_authority_fires_for_missing_or_untrusted_provenance() {
+        for source in ["", "target_branch_protection_shadow_only"] {
+            let mut row = good_row();
+            row["id"] = json!(format!("BAD-review-source-{source}"));
+            row["classification"] = json!("automated_blocking_now");
+            row["requires_pre_merge_review_authority"] = json!(true);
+            row["review_authority_live"] = json!(true);
+            row["review_authority_source"] = json!(source);
+            row["has_durable_review_evidence"] = json!(false);
+            row["has_machine_verifiable_review_status"] = json!(true);
+            row["has_review_title_evidence"] = json!(true);
+            row["has_review_body_evidence"] = json!(true);
+            row["review_blocks_merge"] = json!(true);
+            row["reviewer_identity_distinct_from_author"] = json!(true);
+            let report = evaluate(&json!({"rows": [row]}));
+            assert!(
+                report
+                    .violations
+                    .contains("missing_pre_merge_review_authority"),
+                "source {source:?} must not satisfy review authority provenance"
+            );
+        }
     }
 
     #[test]
