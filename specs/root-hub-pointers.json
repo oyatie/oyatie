@@ -466,6 +466,13 @@
       "purpose": "Machine-readable claim ceiling for production-ready, hyperscaler-grade, mechanically-enforced, secure, isolated, tenant-facing, retired, done, parity, full, complete, automatic, and equivalent language. Defines target/spec/enforced/production/hyperscaler tiers and evidence domains; blocks empty promises through cloud-ci/Rust gate evidence rather than new oya CLI surfaces.",
       "target_path_after_md_retirement": "same (machine-readable claim/evidence contract)"
     },
+    "delivery_readiness_reconciliation": {
+      "current_path": "/specs/delivery-readiness-reconciliation.json",
+      "kind": "spec",
+      "migration_phase": "ouroboros-materialized-current-state-2026-06-29",
+      "purpose": "Shape-neutral reconciliation contract for full Oyatie Cloud, product, and toolchain completion: universe rows, clearance matrix, promotion packets, fixuptask links, audit artifacts, freshness, and lifecycle states. Current oya-* and cloud-* path shapes are observations only, not readiness predicates.",
+      "target_path_after_md_retirement": "same"
+    },
     "iterative_fix_loop": {
       "current_path": "/specs/iterative-fix-loop.json",
       "kind": "spec",

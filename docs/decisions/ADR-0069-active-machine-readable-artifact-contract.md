@@ -80,6 +80,8 @@ Existing canonical specs (`/specs/master-plan-sequencing.json`, `hyperscaler-gat
 
 Grace period for retroactive conformance: 30 days from 2026-05-13 (i.e., 2026-06-12). After that, the lane (once `active`) blocks PRs that add new artifacts under `applicable_paths_glob` without a capability-registry row.
 
+**Amendment — 2026-06-29 delivery-readiness reconciliation.** The shape-neutral delivery-readiness contract is an ADR-0069 active machine-readable artifact pair, not a service/topology naming decision: `specs/delivery-readiness-reconciliation.json` defines the schema and `evidence/ralplan/delivery-readiness-current-state-20260629.json` records the honest current-state instance generated from the Ouroboros closure. Readiness predicates must remain shape-neutral; current `oya-*` / `cloud-*` names are migration observations only, never proof of Product-ready or Hyperscaler-ready status.
+
 ### Forbidden-primitive remediation
 
 The current commit landing this ADR will use `rtk git commit` as documented historical violation per the same protocol gap that was logged for commit `5880ce0`. Subsequent state transitions on the new validator crate use `grit claim --agent <id> --intent <slice>` → work → `grit done`. Scaffold-locks-oyatie ICM fallback for symbol-less doc-only edits.
