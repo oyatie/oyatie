@@ -37,8 +37,9 @@ use std::fmt;
 use std::sync::Arc;
 
 use axum::Router;
-use axum::extract::State;
+use axum::extract::{FromRequestParts, State};
 use axum::http::StatusCode;
+use axum::http::request::Parts;
 use axum::response::IntoResponse;
 use axum::routing::{get, post};
 use serde::{Deserialize, Serialize};
@@ -51,27 +52,109 @@ use k8s_control_plane_host_kernel::{ControlPlaneTier, DatastoreClass};
 
 pub use k8s_control_plane_host_adapter_capi::CapiControlPlaneHost;
 
+pub mod authz;
+
+pub use authz::{
+    AuthzProviderConfigError, CallerCredential, ConfiguredBearerPrincipalVerifier,
+    ConfiguredPlatformAdminAuthorizer, ControlPlaneAction, ControlPlaneAuthorizationError,
+    ControlPlaneAuthzProvider, PlatformAdminAuthorizer, PrincipalVerificationError,
+    PrincipalVerifier, VerifiedPrincipal, PLATFORM_OPERATOR_SCOPE,
+};
+
 // =====================================================================
 // App state
 // =====================================================================
 
-/// Shared application state: the provisioning port the router dispatches to.
+/// Shared application state: the provisioning port the router dispatches to,
+/// plus the REQUIRED fail-closed [`ControlPlaneAuthzProvider`]. There is no
+/// authz-less constructor, so the admin control plane can NEVER be mounted
+/// without a configured verifier + PDP seam (fail-closed; GitHub #979).
 #[derive(Clone)]
 pub struct AppState {
     provisioning: Arc<dyn ControlPlaneProvisioning>,
+    authz: ControlPlaneAuthzProvider,
 }
 
 impl AppState {
-    /// Build app state from any [`ControlPlaneProvisioning`] implementation.
+    /// Build app state from any [`ControlPlaneProvisioning`] implementation and
+    /// the REQUIRED authz provider.
     #[must_use]
-    pub fn new(provisioning: Arc<dyn ControlPlaneProvisioning>) -> Self {
-        Self { provisioning }
+    pub fn new(
+        provisioning: Arc<dyn ControlPlaneProvisioning>,
+        authz: ControlPlaneAuthzProvider,
+    ) -> Self {
+        Self {
+            provisioning,
+            authz,
+        }
     }
 
     /// Borrow the provisioning port (useful for tests + the acceptance suite).
     #[must_use]
     pub fn provisioning(&self) -> &Arc<dyn ControlPlaneProvisioning> {
         &self.provisioning
+    }
+}
+
+/// Env var carrying the break-glass platform-operator bearer secret. Fail-closed:
+/// boot is REFUSED if this is empty (no provable credential root, no service).
+pub const ENV_BEARER_TOKEN: &str = "K8S_CONTROL_PLANE_HOST_BEARER_TOKEN";
+/// The break-glass operator identity bound to the configured bearer.
+const BREAK_GLASS_PRINCIPAL_ID: &str = "k8s-control-plane-host-operator";
+const BREAK_GLASS_TENANT_ID: &str = "ten_platform";
+
+/// Build the fail-closed authz provider from the environment, REFUSING to boot
+/// on an empty bearer secret.
+///
+/// # Errors
+/// [`BootError::Authz`] when the bearer secret or bound identity is empty.
+pub fn authz_from_env() -> Result<ControlPlaneAuthzProvider, BootError> {
+    let bearer = std::env::var(ENV_BEARER_TOKEN).unwrap_or_default();
+    let authz = ControlPlaneAuthzProvider::from_bearer_secret(
+        bearer,
+        BREAK_GLASS_PRINCIPAL_ID,
+        BREAK_GLASS_TENANT_ID,
+    )?;
+    Ok(authz)
+}
+
+// =====================================================================
+// VerifiedCaller — authn-BEFORE-body extractor
+// =====================================================================
+
+/// A request extractor that authenticates the caller from the verified bearer
+/// credential over the request PARTS — i.e. BEFORE the body is read. Placed
+/// ahead of `Json(body)` in a handler signature it GUARANTEES authn precedes
+/// body deserialization (401 on no/bad bearer without the body ever parsed).
+pub struct VerifiedCaller(pub VerifiedPrincipal);
+
+impl FromRequestParts<AppState> for VerifiedCaller {
+    type Rejection = axum::response::Response;
+
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &AppState,
+    ) -> Result<Self, Self::Rejection> {
+        let credential = CallerCredential {
+            authorization: parts
+                .headers
+                .get("authorization")
+                .and_then(|v| v.to_str().ok())
+                .map(|s| s.to_owned()),
+        };
+        match state.authz.verify_principal(&credential) {
+            Ok(principal) => Ok(Self(principal)),
+            Err(_) => Err((
+                StatusCode::UNAUTHORIZED,
+                axum::Json(serde_json::json!({
+                    "error": {
+                        "kind": "missing_caller_principal",
+                        "detail": "a verified caller credential is required"
+                    }
+                })),
+            )
+                .into_response()),
+        }
     }
 }
 
@@ -97,6 +180,10 @@ pub enum BootError {
     },
     /// The axum serve loop exited with an error.
     Serve(String),
+    /// The authorization provider could not be composed (empty bearer secret /
+    /// bound identity). Fail-closed: the service REFUSES to serve — there is no
+    /// default-allow fallback when authz is unavailable.
+    Authz(String),
 }
 
 impl fmt::Display for BootError {
@@ -108,11 +195,18 @@ impl fmt::Display for BootError {
             ),
             Self::Bind { address, error } => write!(f, "bind {address}: {error}"),
             Self::Serve(error) => write!(f, "serve error: {error}"),
+            Self::Authz(error) => write!(f, "authz provider boot refused: {error}"),
         }
     }
 }
 
 impl std::error::Error for BootError {}
+
+impl From<AuthzProviderConfigError> for BootError {
+    fn from(error: AuthzProviderConfigError) -> Self {
+        Self::Authz(error.to_string())
+    }
+}
 
 /// The env var carrying the management-cluster kubeconfig path.
 pub const MGMT_KUBECONFIG_ENV: &str = "OYA_MGMT_KUBECONFIG";
@@ -232,10 +326,35 @@ fn error_response(error: &ProvisioningError) -> (StatusCode, axum::Json<serde_js
     )
 }
 
+/// Build a fail-closed HTTP 403 response for an authorization denial/fault. The
+/// admin surface is platform-level; a non-platform principal is forbidden.
+fn forbidden_response() -> axum::response::Response {
+    (
+        StatusCode::FORBIDDEN,
+        axum::Json(serde_json::json!({
+            "error": {
+                "kind": "platform_admin_forbidden",
+                "detail": "caller is not authorized to operate the control-plane-host admin surface"
+            }
+        })),
+    )
+        .into_response()
+}
+
 async fn provision_handler(
     State(state): State<AppState>,
+    VerifiedCaller(principal): VerifiedCaller,
     axum::Json(body): axum::Json<ProvisionBody>,
 ) -> axum::response::Response {
+    // Authn ran in the `VerifiedCaller` extractor before this body was parsed;
+    // the platform-admin PDP decision runs before any provisioning — fail-closed.
+    if state
+        .authz
+        .ensure_authorized(&principal, ControlPlaneAction::Provision)
+        .is_err()
+    {
+        return forbidden_response();
+    }
     let tier = match body.tier.as_deref() {
         None => ControlPlaneTier::default_tier(),
         Some(slug) => match ControlPlaneTier::parse(slug) {
@@ -292,8 +411,16 @@ fn control_plane_ref_from_body(
 
 async fn status_handler(
     State(state): State<AppState>,
+    VerifiedCaller(principal): VerifiedCaller,
     axum::Json(body): axum::Json<ControlPlaneRefBody>,
 ) -> axum::response::Response {
+    if state
+        .authz
+        .ensure_authorized(&principal, ControlPlaneAction::Status)
+        .is_err()
+    {
+        return forbidden_response();
+    }
     let control_plane_ref = match control_plane_ref_from_body(body) {
         Ok(reference) => reference,
         Err(error) => return error_response(&error).into_response(),
@@ -314,8 +441,16 @@ async fn status_handler(
 
 async fn teardown_handler(
     State(state): State<AppState>,
+    VerifiedCaller(principal): VerifiedCaller,
     axum::Json(body): axum::Json<ControlPlaneRefBody>,
 ) -> axum::response::Response {
+    if state
+        .authz
+        .ensure_authorized(&principal, ControlPlaneAction::Teardown)
+        .is_err()
+    {
+        return forbidden_response();
+    }
     let control_plane_ref = match control_plane_ref_from_body(body) {
         Ok(reference) => reference,
         Err(error) => return error_response(&error).into_response(),
@@ -330,18 +465,20 @@ async fn teardown_handler(
 // Lifecycle
 // =====================================================================
 
-/// Build [`AppState`] backed by the deterministic in-memory adapter. The
-/// dev/test/bring-up composition; production uses [`build_state_capi`].
+/// Build [`AppState`] backed by the deterministic in-memory adapter and the
+/// REQUIRED authz provider. The dev/test/bring-up composition; production uses
+/// [`build_state_capi`].
 #[must_use]
-pub fn build_state_in_memory() -> AppState {
-    AppState::new(Arc::new(InMemoryControlPlaneHost::new()))
+pub fn build_state_in_memory(authz: ControlPlaneAuthzProvider) -> AppState {
+    AppState::new(Arc::new(InMemoryControlPlaneHost::new()), authz)
 }
 
 /// Build [`AppState`] backed by the kube-rs CAPI adapter against the management
-/// cluster. The live reconcile is honest-deferred inside the adapter.
+/// cluster, plus the REQUIRED authz provider. The live reconcile is
+/// honest-deferred inside the adapter.
 #[must_use]
-pub fn build_state_capi(host: CapiControlPlaneHost) -> AppState {
-    AppState::new(Arc::new(host))
+pub fn build_state_capi(host: CapiControlPlaneHost, authz: ControlPlaneAuthzProvider) -> AppState {
+    AppState::new(Arc::new(host), authz)
 }
 
 /// Bind a listener on `listen_addr` and serve `router`. Returns when the serve
@@ -408,9 +545,18 @@ mod tests {
         assert_eq!(MGMT_KUBECONFIG_ENV, "OYA_MGMT_KUBECONFIG");
     }
 
+    fn test_authz() -> ControlPlaneAuthzProvider {
+        ControlPlaneAuthzProvider::from_bearer_secret(
+            "test-break-glass-secret",
+            "op",
+            "ten_platform",
+        )
+        .unwrap()
+    }
+
     #[tokio::test]
     async fn in_memory_state_provisions_through_the_router_port() {
-        let state = build_state_in_memory();
+        let state = build_state_in_memory(test_authz());
         let req = ProvisionRequest::new(
             ClusterRef::new("ten_zero", "dogfood-a"),
             ControlPlaneTier::HostedKamaji,
