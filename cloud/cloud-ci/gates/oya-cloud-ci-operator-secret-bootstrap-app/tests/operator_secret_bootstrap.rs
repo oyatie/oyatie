@@ -76,8 +76,8 @@ fn committed_policy_gate_id_matches_contract() {
 fn live_chart_is_green_after_the_fix() {
     let root = repo_root();
     let policy = load_policy(&root);
-    let observed = collect_operators(&root, &policy)
-        .unwrap_or_else(|e| panic!("collect on live tree: {e}"));
+    let observed =
+        collect_operators(&root, &policy).unwrap_or_else(|e| panic!("collect on live tree: {e}"));
     let ops = observed
         .get("operators")
         .and_then(Value::as_array)
@@ -169,10 +169,97 @@ fn green_fixture_scoped_and_provisioned_passes() {
         }]
     });
 
-    let observed =
-        collect_operators(&dir, &policy).unwrap_or_else(|e| panic!("collect on green fixture: {e}"));
+    let observed = collect_operators(&dir, &policy)
+        .unwrap_or_else(|e| panic!("collect on green fixture: {e}"));
     let report = evaluate(&policy, &observed);
     assert_eq!(report.verdict, Verdict::Green, "{:?}", report.violations);
+
+    fs::remove_dir_all(&dir).ok();
+}
+
+#[test]
+fn red_fixture_external_secret_scope_and_openbao_transport_fail() {
+    let dir = unique_tmp("eso-red");
+    let templates = dir.join("templates");
+    fs::create_dir_all(&templates).unwrap();
+    let scan = dir.join("scan");
+    fs::create_dir_all(&scan).unwrap();
+
+    fs::write(
+        templates.join("rbac.yaml"),
+        "apiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  name: fixture\nrules:\n  - apiGroups: [\"\"]\n    resources: [\"secrets\"]\n    resourceNames: [\"the-produced-secret\"]\n    verbs: [\"get\", \"update\", \"patch\"]\n  - apiGroups: [\"\"]\n    resources: [\"secrets\"]\n    verbs: [\"list\", \"watch\", \"create\"]",
+    )
+    .unwrap();
+    fs::write(
+        templates.join("join-token-externalsecret.yaml"),
+        "apiVersion: external-secrets.io/v1\nkind: ExternalSecret\nmetadata:\n  name: join-token\nspec:\n  target:\n    name: {{ .Values.svidOperator.joinToken.secretName }}",
+    )
+    .unwrap();
+    fs::write(
+        scan.join("bad-externalsecret.yaml"),
+        "apiVersion: external-secrets.io/v1\nkind: ExternalSecret\nmetadata:\n  name: csi-creds\n  namespace: cloud-k8s-system\nspec:\n  secretStoreRef:\n    name: openbao-oya\n    kind: ClusterSecretStore\n  data:\n    - secretKey: endpoint\n      remoteRef:\n        key: cloud-k8s/csi/block-volume\n        property: endpoint\n",
+    )
+    .unwrap();
+    fs::write(
+        scan.join("listed-externalsecret.yaml"),
+        "apiVersion: external-secrets.io/v1\nkind: ExternalSecret\nmetadata:\n  name: github-ci-token\n  namespace: oya-ci\nspec:\n  secretStoreRef:\n    name: openbao-oya\n    kind: ClusterSecretStore\n  data:\n    - secretKey: token\n      remoteRef:\n        key: oya/ci/github-ci-token\n        property: token\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("clustersecretstore.yaml"),
+        "apiVersion: external-secrets.io/v1\nkind: ClusterSecretStore\nmetadata:\n  name: openbao-oya\nspec:\n  provider:\n    vault:\n      auth:\n        kubernetes:\n          role: eso-oya-ci\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("openbao.yaml"),
+        "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: openbao-config\n  namespace: oya-kms\ndata:\n  openbao.hcl: |\n    listener \"tcp\" {\n      tls_disable = true\n    }\n",
+    )
+    .unwrap();
+
+    let policy = json!({
+        "gate_id": GATE_ID,
+        "scoped_secret_verbs": ["get", "update", "patch", "delete"],
+        "operators": [{
+            "name": "fixture-op",
+            "rbac_template": "templates/rbac.yaml",
+            "chart_templates_dir": "templates",
+            "produced_secret_name": "the-produced-secret",
+            "join_token_values_ref": "svidOperator.joinToken.secretName"
+        }],
+        "external_secret_scan_roots": ["scan"],
+        "external_secret_scopes": [{
+            "store_name": "openbao-oya",
+            "store_kind": "ClusterSecretStore",
+            "allowed_namespaces": ["oya-ci"],
+            "allowed_remote_key_prefixes": ["oya/ci/"],
+            "manifest_paths": ["scan/listed-externalsecret.yaml"],
+            "store_manifest_paths": ["clustersecretstore.yaml"],
+            "openbao_role": "eso-oya-ci"
+        }],
+        "openbao_transport": {
+            "manifest_path": "openbao.yaml",
+            "workload_namespace": "oya-kms",
+            "workload_selector": {"app.kubernetes.io/name": "openbao"},
+            "allowed_ingress_ports": [8200, 8201]
+        }
+    });
+
+    let observed = collect_operators(&dir, &policy)
+        .unwrap_or_else(|e| panic!("collect red #988 fixture: {e}"));
+    let codes: std::collections::BTreeSet<String> = evaluate_keyed(&policy, &observed)
+        .into_iter()
+        .map(|f| f.code)
+        .collect();
+
+    assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
+    assert!(
+        codes.contains("OSB-ESO-REMOTE-KEY-OUT-OF-SCOPE"),
+        "{codes:?}"
+    );
+    assert!(
+        codes.contains("OSB-OPENBAO-TRANSPORT-UNISOLATED"),
+        "{codes:?}"
+    );
 
     fs::remove_dir_all(&dir).ok();
 }

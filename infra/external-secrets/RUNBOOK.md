@@ -16,7 +16,7 @@ directory, then run the OpenBao steps below.
 
 | File | Kind | Purpose |
 |------|------|---------|
-| `clustersecretstore-openbao-oya.yaml` | `ClusterSecretStore openbao-oya` | ESO `vault` provider pointed at OpenBao, kubernetes auth |
+| `clustersecretstore-openbao-oya.yaml` | `ClusterSecretStore openbao-oya`, `ClusterSecretStore openbao-cloud-k8s-csi`, `ClusterSecretStore openbao-cloud-iam-svid-operator` | ESO `vault` providers pointed at OpenBao with separate OpenBao roles for CI, cloud-k8s CSI, and cloud-iam SVID-operator prefixes |
 | `clusterrolebinding-external-secrets-auth-delegator.yaml` | `ClusterRoleBinding` | grants the ESO SA `system:auth-delegator` for TokenReview |
 | `externalsecret-github-ci-token.yaml` | `ExternalSecret github-ci-token` | projects the GitHub CI token into `oya-ci` |
 
@@ -77,10 +77,11 @@ bao write auth/kubernetes/config \
 - The cluster CA can also be supplied inline:
   `kubernetes_ca_cert="$(kubectl -n kube-system get cm kube-root-ca.crt -o jsonpath='{.data.ca\.crt}')"`.
 
-### 3. Create the read policy `oya-ci-read`
+### 3. Create the read policies
 
-Grants read on every CI secret under `secret/data/oya/ci/*` (KV v2 prefixes
-reads with `data/`).
+Grants read on CI secrets under `secret/data/oya/ci/*`, CSI substrate secrets
+under `secret/data/cloud-k8s/csi/*`, and the cloud-iam SVID-operator join token
+under `secret/data/cloud-iam/pdp-svid-operator/*` (KV v2 prefixes reads with `data/`).
 
 ```sh
 bao policy write oya-ci-read - <<'EOF'
@@ -88,12 +89,24 @@ path "secret/data/oya/ci/*" {
   capabilities = ["read"]
 }
 EOF
+
+bao policy write cloud-k8s-csi-read - <<'EOF'
+path "secret/data/cloud-k8s/csi/*" {
+  capabilities = ["read"]
+}
+EOF
+
+bao policy write cloud-iam-svid-operator-read - <<'EOF'
+path "secret/data/cloud-iam/pdp-svid-operator/*" {
+  capabilities = ["read"]
+}
+EOF
 ```
 
-### 4. Create the role `eso-oya-ci`
+### 4. Create the roles
 
-Binds the role to the ESO ServiceAccount and attaches the read policy. This is
-the `role` the ClusterSecretStore references.
+Binds each role to the ESO ServiceAccount and attaches only the matching read
+policy. These are the `role` values the ClusterSecretStores reference.
 
 ```sh
 bao write auth/kubernetes/role/eso-oya-ci \
@@ -101,9 +114,21 @@ bao write auth/kubernetes/role/eso-oya-ci \
     bound_service_account_namespaces=external-secrets \
     policies=oya-ci-read \
     ttl=1h
+
+bao write auth/kubernetes/role/eso-cloud-k8s-csi \
+    bound_service_account_names=external-secrets \
+    bound_service_account_namespaces=external-secrets \
+    policies=cloud-k8s-csi-read \
+    ttl=1h
+
+bao write auth/kubernetes/role/eso-cloud-iam-svid-operator \
+    bound_service_account_names=external-secrets \
+    bound_service_account_namespaces=external-secrets \
+    policies=cloud-iam-svid-operator-read \
+    ttl=1h
 ```
 
-### 5. Seed the GitHub CI token
+### 5. Seed the governed secrets
 
 Store the actual GitHub CI commit-status token (mint via
 `github admin user generate-access-token --username oya-admin --token-name jenkins-ci --scopes write:repository --raw`).
@@ -111,20 +136,51 @@ This is the source of truth the `github-ci-token` ExternalSecret pulls from.
 
 ```sh
 bao kv put secret/oya/ci/github-ci-token token="<GITHUB_CI_TOKEN>"
+
+# CSI substrate credentials consumed by cloud/cloud-k8s/iac/kustomize/base/openbao-secret-references.yaml
+bao kv put secret/cloud-k8s/csi/block-volume \
+    endpoint="<BLOCK_VOLUME_ENDPOINT>" \
+    tenant_id="<BLOCK_VOLUME_TENANT_ID>" \
+    key_id="<BLOCK_VOLUME_KEY_ID>"
+
+bao kv put secret/cloud-k8s/csi/object \
+    s3_endpoint="<OBJECT_S3_ENDPOINT>" \
+    access_key_id="<OBJECT_ACCESS_KEY_ID>" \
+    secret_access_key="<OBJECT_SECRET_ACCESS_KEY>"
+
+bao kv put secret/cloud-k8s/csi/file \
+    endpoint="<FILE_ENDPOINT>" \
+    export_root="<FILE_EXPORT_ROOT>" \
+    key_id="<FILE_KEY_ID>"
+
+# cloud-iam SVID operator join token consumed by cloud/cloud-iam/iac/k8s/helm/templates/svid-operator-join-token-externalsecret.yaml
+bao kv put secret/cloud-iam/pdp-svid-operator/join-token \
+    join-token="<SVID_OPERATOR_JOIN_TOKEN>"
 ```
 
-> Never commit the real token. It lives only in OpenBao (barrier-encrypted at
-> rest per `infra/kms/openbao.k8s.yaml`) and is projected into `oya-ci` by ESO.
+> Never commit real token or credential values. They live only in OpenBao
+> (barrier-encrypted at rest per `infra/kms/openbao.k8s.yaml`) and are projected
+> into their target namespaces by ESO.
 
 ## Verify
 
 ```sh
 # ClusterSecretStore should report Valid / Ready
 kubectl get clustersecretstore openbao-oya -o jsonpath='{.status.conditions}'
+kubectl get clustersecretstore openbao-cloud-k8s-csi -o jsonpath='{.status.conditions}'
+kubectl get clustersecretstore openbao-cloud-iam-svid-operator -o jsonpath='{.status.conditions}'
 
 # ExternalSecret should report SecretSynced, and the target Secret should exist
 kubectl -n oya-ci get externalsecret github-ci-token
 kubectl -n oya-ci get secret github-ci-token
+
+# cloud-k8s CSI ExternalSecrets should sync through the dedicated store/role
+kubectl -n cloud-k8s-system get externalsecret cloud-k8s-csi-block-volume-credentials
+kubectl -n cloud-k8s-system get externalsecret cloud-k8s-csi-object-credentials
+kubectl -n cloud-k8s-system get externalsecret cloud-k8s-csi-file-credentials
+
+# cloud-iam SVID operator join-token ExternalSecret should sync through its dedicated store/role
+kubectl -n cloud-iam get externalsecret oya-cloud-iam-pdp-svid-operator-join-token
 ```
 
 If the ClusterSecretStore is not Ready with a `permission denied` / `403` on

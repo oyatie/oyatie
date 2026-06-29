@@ -22,11 +22,12 @@ rust_test(
     ],
 )
 
-# GH #980 cloud-ci-operator-secret-bootstrap: live-tree self-test plus hermetic RED/GREEN fixtures.
-# The live leg runs the real read-only collector over the committed cloud-iam SVID-operator chart and
-# asserts it is GREEN post-fix (secrets RBAC name-scoped + join token provisioned); the RED fixture
-# proves the gate genuinely FAILS on the #980 defect (namespace-wide secrets get/update/patch + no
-# join-token provisioning). No build-graph dep on the chart — the collector reads the tree directly.
+# GH #980 + GH #988 cloud-ci-operator-secret-bootstrap: live-tree self-test plus hermetic RED/GREEN
+# fixtures. The live leg runs the real read-only collector over the committed SVID operator chart,
+# static and values-backed ExternalSecret contracts, and OpenBao manifest; it asserts least-privilege
+# RBAC, provisioned join token, store/role/remote-key scope, and plaintext-listener NetworkPolicy
+# isolation. RED fixtures prove
+# the gate catches both the #980 and #988 defect classes.
 rust_test(
     name = "oya-cloud-ci-operator-secret-bootstrap-app-gate",
     srcs = glob(["tests/**/*.rs", "**/*.json"]),

@@ -38,6 +38,12 @@ posture and a non-declarative join-token bootstrap. Two defect classes:
    no declarative provisioning contract (ExternalSecret / SealedSecret / Secret) and no
    fail-closed chart preflight, so a missing or plaintext-in-git token could pass silently.
 
+GH #988 extends the recurrence class to OpenBao/External Secrets wiring: a CI-scoped
+ClusterSecretStore role was reused for cloud-k8s CSI secrets outside the documented `oya/ci/*`
+OpenBao policy, and the OpenBao listener remained plaintext without a committed transport-isolation
+artifact. That is the same failure mode at the substrate boundary: secret access relies on human
+memory rather than an enforced policy tuple.
+
 The RBAC and bootstrap fixes themselves land in the cloud-iam Helm chart (GH #980). But a
 one-time fix does not prevent recurrence: a future operator chart can re-introduce the same
 over-grant or a plaintext token. Per the pipeline-as-product / friction-is-a-process-failure
@@ -57,13 +63,13 @@ own policy JSON, one appended matrix line in `.github/workflows/oya-ci-required.
 The gate is owned pure-Rust (`#![forbid(unsafe_code)]`, no `Command::new`, no shell-out, no
 network, no clock). Dependencies are the workspace-inherited `serde_json` + `serde_yaml` only —
 zero new crate enters `Cargo.lock`. The only I/O is a hermetic, read-only filesystem scan of the
-governed Helm charts (the RBAC template + the chart `templates/` dir); the verdict is a pure
+policy-declared Helm charts, ExternalSecret manifests, values-backed ExternalSecret projections, and OpenBao manifest; the verdict is a pure
 `evaluate_keyed(policy, observed)`. This satisfies the hermetic-gate bar (ADR-0548: every gate is
 a deterministic, buck2-cacheable predicate) and rust-purity (ADR-0547).
 
-### D2 — The two invariants (the verdict)
+### D2 — The four invariants (the verdict)
 
-For each governed operator declared in the policy DATA, `evaluate_keyed` asserts:
+For each governed surface declared in the policy DATA, `evaluate_keyed` asserts:
 
 - **(a) Least-privilege secrets.** No `Role` rule over `secrets` grants a scoped verb
   (`get`/`update`/`patch`/`delete`) unless its `resourceNames` is bound to exactly the operator's
@@ -73,9 +79,18 @@ For each governed operator declared in the policy DATA, `evaluate_keyed` asserts
 - **(b) Declarative join-token bootstrap.** Any operator-internal bootstrap Secret the operator
   consumes must have a declarative provisioning path (ExternalSecret / SealedSecret / Secret) OR
   a fail-closed chart preflight that refuses to render without one.
+- **(c) ESO store/key-prefix scoping.** Every committed ExternalSecret using a governed
+  ClusterSecretStore must match a declared `(store kind, store name, bound OpenBao role,
+  consumer namespace, remoteRef.key prefix)` tuple. A CI role/policy cannot project cloud-k8s CSI
+  secrets by accident.
+- **(d) OpenBao transport isolation.** If OpenBao is configured with a plaintext listener
+  (`tls_disable = true`), the manifest must include a NetworkPolicy selecting the OpenBao workload
+  and restricting ingress for the declared listener ports.
 
 The gate is **fail-closed**: an empty governed-operators list, an unknown `gate_id`, a malformed
-policy, or a declared operator with no observed chart view all return RED — it is not an
+policy, a declared operator with no observed chart view, an ExternalSecret outside its declared
+scope, a ClusterSecretStore role mismatch, or a plaintext OpenBao listener without NetworkPolicy
+coverage all return RED — it is not an
 always-pass stub. RED/GREEN fixtures in `tests/` drive the real collector.
 
 ### D3 — Policy-as-data, nothing oyatie-specific in Rust
@@ -98,6 +113,13 @@ cloud/cloud-ci/gates/oya-cloud-ci-operator-secret-bootstrap-app/operator-secret-
 cloud/cloud-ci/gates/oya-cloud-ci-operator-secret-bootstrap-app/src/lib.rs
 cloud/cloud-ci/gates/oya-cloud-ci-operator-secret-bootstrap-app/tests/operator_secret_bootstrap.rs
 cloud/cloud-iam/iac/k8s/helm/templates/svid-operator-join-token-externalsecret.yaml
+cloud/cloud-iam/iac/k8s/helm/values.yaml
+infra/external-secrets/clustersecretstore-openbao-oya.yaml
+infra/external-secrets/externalsecret-github-ci-token.yaml
+infra/external-secrets/RUNBOOK.md
+infra/kms/openbao.k8s.yaml
+infra/nativelink/nativelink-cas.k8s.yaml
+cloud/cloud-k8s/iac/kustomize/base/openbao-secret-references.yaml
 ```
 
 ## Consequences

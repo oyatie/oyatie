@@ -94,12 +94,12 @@ svidOperator:
     # this false AND externalSecret.enabled false fail-closes the render.
     preProvisioned: false
     # Preferred path: provision the join token from OpenBao via the External
-    # Secrets Operator, mirroring infra/external-secrets/clustersecretstore-openbao-oya.yaml.
+    # Secrets Operator, using a dedicated OpenBao role/store for the cloud-iam join-token prefix.
     externalSecret:
       enabled: true
       refreshInterval: 1h
       secretStoreRef:
-        name: openbao-oya
+        name: openbao-cloud-iam-svid-operator
         kind: ClusterSecretStore
       # OpenBao KV path + property the join token is read from (KV v2 under the
       # `secret` mount; path convention mirrors cloud-k8s/.../openbao-secret-references.yaml).
