@@ -3,6 +3,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
+use oya_data_boundary_kernel::parse_data_class_label;
 use oya_intelligence_api_semver_domain::validate_api_semver;
 use oya_intelligence_openapi_domain::{
     OpenApiContractMirrorLocation, OpenApiContractMirrorReport, OpenApiDocument,
@@ -162,8 +163,14 @@ fn run_doc_openapi(args: DocOpenApiArgs) -> ExitCode {
 
 fn run_doc_openapi_result(args: &DocOpenApiArgs) -> Result<DocOpenApiReport, String> {
     let documents = read_openapi_documents(&args.contracts_dir)?;
-    let source = validate_openapi_documents(documents.clone())
+    let mut source = validate_openapi_documents(documents.clone())
         .map_err(|error| format!("OpenAPI source invalid: {error:?}"))?;
+    let boundary_documents = read_openapi_boundary_documents(&args.contracts_dir)?;
+    let boundary_data_class_annotations =
+        validate_openapi_boundary_data_classes(&boundary_documents)
+            .map_err(|error| format!("OpenAPI boundary data-class invalid: {error}"))?;
+    source.documents_checked += boundary_documents.len();
+    source.data_class_annotations_checked += boundary_data_class_annotations;
     let spec_contents = fs::read_to_string(&args.spec_path).map_err(|error| {
         format!(
             "SPEC mirror unreadable {}: {error}",
@@ -479,6 +486,282 @@ fn collect_openapi_documents(
         });
     }
     Ok(())
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct BoundaryOpenApiDocument {
+    path: String,
+    contents: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct BoundaryLogicalLine {
+    indent: usize,
+    text: String,
+}
+
+fn read_openapi_boundary_documents(
+    contracts_dir: &Path,
+) -> Result<Vec<BoundaryOpenApiDocument>, String> {
+    if !contracts_dir.exists() {
+        return Ok(Vec::new());
+    }
+    let mut documents = Vec::new();
+    let mut entries = fs::read_dir(contracts_dir)
+        .map_err(|error| {
+            format!(
+                "OpenAPI boundary contracts directory unreadable {}: {error}",
+                contracts_dir.display()
+            )
+        })?
+        .map(|entry| {
+            entry.map(|entry| entry.path()).map_err(|error| {
+                format!("OpenAPI boundary contracts directory entry unreadable: {error}")
+            })
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    entries.sort();
+    for path in entries {
+        if !path.is_file() || !is_boundary_openapi_source_artifact(&path) {
+            continue;
+        }
+        let relative = path.strip_prefix(contracts_dir).map_err(|error| {
+            format!("OpenAPI boundary source path outside contracts dir: {error}")
+        })?;
+        let contents = fs::read_to_string(&path).map_err(|error| {
+            format!(
+                "OpenAPI boundary source unreadable {}: {error}",
+                path.display()
+            )
+        })?;
+        documents.push(BoundaryOpenApiDocument {
+            path: format!("contracts/{}", slash_path(relative)),
+            contents,
+        });
+    }
+    Ok(documents)
+}
+
+fn is_boundary_openapi_source_artifact(path: &Path) -> bool {
+    let Some(file_name) = path.file_name().and_then(|name| name.to_str()) else {
+        return false;
+    };
+    (file_name.ends_with(".openapi.yaml") || file_name.ends_with(".openapi.yml"))
+        && !is_api_contract_metadata_path(path)
+}
+
+fn validate_openapi_boundary_data_classes(
+    documents: &[BoundaryOpenApiDocument],
+) -> Result<usize, String> {
+    let mut annotations_checked = 0usize;
+    for document in documents {
+        annotations_checked += validate_boundary_document_data_classes(document)?;
+    }
+    Ok(annotations_checked)
+}
+
+fn validate_boundary_document_data_classes(
+    document: &BoundaryOpenApiDocument,
+) -> Result<usize, String> {
+    let lines = boundary_logical_lines(&document.contents);
+    let mut annotations_checked = 0usize;
+    for (index, line) in lines.iter().enumerate() {
+        if boundary_yaml_key(&line.text).is_some_and(|key| key == "properties") {
+            annotations_checked +=
+                validate_boundary_schema_properties_data_class(document, &lines, index)?;
+        }
+        if boundary_yaml_key(&line.text).is_some_and(|key| key == "parameters") {
+            annotations_checked +=
+                validate_boundary_parameters_data_class(document, &lines, index)?;
+        }
+    }
+    Ok(annotations_checked)
+}
+
+fn validate_boundary_schema_properties_data_class(
+    document: &BoundaryOpenApiDocument,
+    lines: &[BoundaryLogicalLine],
+    properties_index: usize,
+) -> Result<usize, String> {
+    let properties_indent = lines[properties_index].indent;
+    let property_indent = properties_indent + 2;
+    let end = boundary_find_next_at_or_above_indent(
+        lines,
+        properties_index + 1,
+        lines.len(),
+        properties_indent,
+    );
+    let schema_name = boundary_parent_schema_name(lines, properties_index, properties_indent);
+    let mut annotations_checked = 0usize;
+    let mut index = properties_index + 1;
+    while index < end {
+        let line = &lines[index];
+        if line.indent != property_indent {
+            index += 1;
+            continue;
+        }
+        let Some(property_name) = boundary_yaml_key(&line.text).map(str::to_string) else {
+            index += 1;
+            continue;
+        };
+        let property_end =
+            boundary_find_next_at_or_above_indent(lines, index + 1, end, property_indent);
+        let location = match &schema_name {
+            Some(schema_name) => format!("schema {schema_name}.{property_name}"),
+            None => format!("schema property {property_name}"),
+        };
+        annotations_checked += validate_boundary_data_class_annotation(
+            document,
+            &location,
+            lines,
+            index + 1..property_end,
+        )?;
+        index = property_end;
+    }
+    Ok(annotations_checked)
+}
+
+fn validate_boundary_parameters_data_class(
+    document: &BoundaryOpenApiDocument,
+    lines: &[BoundaryLogicalLine],
+    parameters_index: usize,
+) -> Result<usize, String> {
+    let parameters_indent = lines[parameters_index].indent;
+    let end = boundary_find_next_at_or_above_indent(
+        lines,
+        parameters_index + 1,
+        lines.len(),
+        parameters_indent,
+    );
+    let mut annotations_checked = 0usize;
+    let mut index = parameters_index + 1;
+    while index < end {
+        let line = &lines[index];
+        if !line.text.starts_with("- ") {
+            index += 1;
+            continue;
+        }
+        let parameter_end =
+            boundary_find_next_at_or_above_indent(lines, index + 1, end, line.indent);
+        if let Some(parameter_name) = boundary_parameter_name(lines, index, parameter_end) {
+            annotations_checked += validate_boundary_data_class_annotation(
+                document,
+                &format!("parameter {parameter_name}"),
+                lines,
+                index..parameter_end,
+            )?;
+        }
+        index = parameter_end;
+    }
+    Ok(annotations_checked)
+}
+
+fn validate_boundary_data_class_annotation(
+    document: &BoundaryOpenApiDocument,
+    location: &str,
+    lines: &[BoundaryLogicalLine],
+    range: std::ops::Range<usize>,
+) -> Result<usize, String> {
+    let data_class = lines[range].iter().find_map(|line| {
+        if boundary_yaml_key(&line.text).is_some_and(|key| key == "x-oyatie-data-class") {
+            boundary_yaml_value(&line.text).map(boundary_clean_yaml_scalar)
+        } else {
+            None
+        }
+    });
+    let Some(data_class) = data_class else {
+        return Err(format!(
+            "{} missing data class at {location}",
+            document.path
+        ));
+    };
+    if parse_data_class_label(&data_class).is_none() {
+        return Err(format!(
+            "{} invalid data class at {location}: {data_class}",
+            document.path
+        ));
+    }
+    Ok(1)
+}
+
+fn boundary_logical_lines(contents: &str) -> Vec<BoundaryLogicalLine> {
+    contents
+        .lines()
+        .filter_map(|line| {
+            let text = line.trim_end_matches('\r');
+            let trimmed = text.trim();
+            if trimmed.is_empty() || trimmed.starts_with('#') {
+                return None;
+            }
+            Some(BoundaryLogicalLine {
+                indent: text.len() - text.trim_start().len(),
+                text: trimmed.to_string(),
+            })
+        })
+        .collect()
+}
+
+fn boundary_parent_schema_name(
+    lines: &[BoundaryLogicalLine],
+    properties_index: usize,
+    properties_indent: usize,
+) -> Option<String> {
+    let schema_indent = properties_indent.checked_sub(2)?;
+    lines[..properties_index]
+        .iter()
+        .rev()
+        .find(|line| line.indent == schema_indent)
+        .and_then(|line| boundary_yaml_key(&line.text))
+        .map(str::to_string)
+}
+
+fn boundary_parameter_name(
+    lines: &[BoundaryLogicalLine],
+    item_index: usize,
+    item_end: usize,
+) -> Option<String> {
+    lines[item_index..item_end].iter().find_map(|line| {
+        if boundary_yaml_key(&line.text).is_some_and(|key| key == "name") {
+            boundary_yaml_value(&line.text).map(boundary_clean_yaml_scalar)
+        } else {
+            None
+        }
+    })
+}
+
+fn boundary_find_next_at_or_above_indent(
+    lines: &[BoundaryLogicalLine],
+    start: usize,
+    end: usize,
+    indent: usize,
+) -> usize {
+    let mut index = start;
+    while index < end {
+        if lines[index].indent <= indent {
+            return index;
+        }
+        index += 1;
+    }
+    end
+}
+
+fn boundary_yaml_key(line: &str) -> Option<&str> {
+    let (key, _) = line.split_once(':')?;
+    Some(boundary_clean_yaml_key(key.trim().trim_start_matches("- ")))
+}
+
+fn boundary_yaml_value(line: &str) -> Option<&str> {
+    let (_, value) = line.split_once(':')?;
+    let value = value.trim();
+    if value.is_empty() { None } else { Some(value) }
+}
+
+fn boundary_clean_yaml_key(value: &str) -> &str {
+    value.trim().trim_matches('"').trim_matches('\'').trim()
+}
+
+fn boundary_clean_yaml_scalar(value: &str) -> String {
+    boundary_clean_yaml_key(value.trim()).to_string()
 }
 
 fn is_openapi_source_artifact(path: &Path) -> bool {

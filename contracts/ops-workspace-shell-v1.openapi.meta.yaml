@@ -1,0 +1,7 @@
+tier: preview
+owner_team: council-foundry
+version: 1.0.0
+sunset: none
+related_adrs:
+  - ADR-0067
+  - ADR-0069
