@@ -1,22 +1,22 @@
 ---
 doc_class: Template
 template_id: TPL-PR
-status: pending approval
+status: Accepted
 purpose: |
-  Canonical PR body for every change. 5 author-owned H2 sections plus a lead-owned `## Code Review` added at merge time. Dual-audience: identical content readable by both reviewer agents and human reviewers. Enforces RFC-2119 normative form where requirements are stated.
-lift_target: oyatie/docs/templates/pull-request-template.md
-supersedes: docs/templates/pull-request-template.md
+  Canonical PR body for every change. Root projection of `docs/templates/pull-request-template.md`: 5 author-owned traceability H2 sections plus reviewer evidence in `## Code Review`.
+canonical_authority: docs/templates/pull-request-template.md
+lift_target: docs/templates/pull-request-template.md
 enforcing_fitness_lane: oya-governance-pr-shape (delegates to `traceability-validator`)
-owner_team: axis-foundry + council-architecture
+owner_team: platform-governance + council-architecture
 related:
   - docs/AGENTS.md  # §PR shape + §Done-Definition
   - docs/STANDARDS-AND-TEMPLATES.md  # §2
-  - /templates/checklists/done-definition-checklist.md
-  - /templates/checklists/pr-review-checklist.md
+  - docs/checklists/done-definition-checklist.md
+  - docs/checklists/pr-review-checklist.md
 rfc_2119_active: true
 ---
 
-<!-- author-owned: fill 5 sections below before requesting review. lead-owned: `## Code Review` at merge. -->
+<!-- Author-owned: fill the 5 sections below before review. Reviewer evidence is captured in `## Code Review`; it is target contract until F-PR5-06 closes. -->
 
 ## Issue
 
@@ -25,38 +25,27 @@ rfc_2119_active: true
 ## Summary
 
 - 1-3 bullets on **what + why**. The diff already shows the *what*; this section adds the *why*.
-- Cite the canonical authority you read first per `docs/AGENTS.md §Pre-flight checklist` item 2.
-
-<!-- agent-instructions:start -->
-**Agent path** (read this fork if you are a Claude/Codex/Gemini/Foundry agent):
-- Authoring a PR **MUST** use only sanctioned primitives `{grit, icm, oya-tooling-agent-read}` per `.omc/scratch/adr-draft-grit-icm-sanctioned-primitives.md`. Direct VCS/forge invocation requires the documented carve-out **AND** `icm store -t direct-tool-invocations -c "<rationale>" -i high -k "direct-tool,<context>"` BEFORE execution.
-- The `## Verification` block **MUST** paste actual tool output, not a hand-wave. Use `oya-tooling-agent-read run-evidence <cmd>` and paste the captured stdout/stderr.
-- The `## Code Review` H2 **MUST NOT** be added by the worker agent; only the lead reviewer agent (per change-class table in `docs/AGENTS.md §Per-change-class reviewer agents`) signs it at merge time. Adding it as a worker is a `guard-pr-merge-review.mjs` violation.
-<!-- agent-instructions:end -->
-
-**Human path:** PR body uses 5 H2 sections; CI `traceability-validator` fails the gate if any section is missing or empty. Reviewer-agent verdict is pasted into `## Code Review` at merge.
+- Cite the canonical authority read first per `docs/AGENTS.md §Pre-flight checklist` item 2.
 
 ## Verification
 
-Each line below **MUST** be present with a pass/fail token (`PASS` / `FAIL`) and the actual command output excerpt.
+Each applicable line **MUST** be present with a pass/fail token (`PASS` / `FAIL` / `N/A`) and actual evidence excerpt or link.
 
-- `cargo nextest run --workspace --all-features --no-fail-fast` — `<PASS|FAIL>` — `<excerpt>`
-- `cargo clippy --workspace --all-features --all-targets -- -D warnings` — `<PASS|FAIL>` — `<excerpt>`
-- `cargo deny check` — `<PASS|FAIL>` — `<excerpt>`
-- `oya verify` — `<PASS|FAIL>` — `<excerpt>`
-- `oya gate validate` — `<PASS|FAIL>` — `<excerpt>` (claim-ceiling, foundation-bypass, plane-class)
-- Per-change-class fitness lanes: `<list lanes + PASS|FAIL each>`
-- Per-change-class reviewer agent: `<agent-name>` — verdict `<APPROVE|REQUEST CHANGES>`
+- `buck2 test <targeted test targets>` — `<PASS|FAIL|N/A>` — `<excerpt>`
+- `buck2 build <targeted build targets>` — `<PASS|FAIL|N/A>` — `<excerpt>`
+- `oya-ci-required` PR context — `<PASS|FAIL|PENDING>` — `<excerpt or check URL>`
+- Per-change-class Buck2/cloud-ci lanes — `<list lanes + PASS|FAIL each>`
+- Reviewer evidence — `<agent-name>` — verdict `<APPROVE|REQUEST CHANGES|PENDING>`
 
 ## Traceability
 
 - Catalog records touched: `<list under registry/catalog/>`
 - Cross-axis contracts touched: `<list under contracts/>` (per `docs/DESIGN.md §10`)
-- ADRs cited: `<ADR-NNNN list>` (legacy ADR-NNNN forbidden in active text per `docs/ADR-CONSOLIDATION-PLAN.md`)
+- ADRs cited: `<ADR-#### list>`
 - `MISTAKES-LEDGER` row referenced (if regression-class): `MFL-NNNN`
-- Cross-axis review label applied (if cross-axis contract change): `<label>` (see `/templates/checklists/cross-axis-contract-change-checklist.md`)
-- Implementation Plan ID (if executing an IP): `IP-NNN-<slug>` from `.omc/plans/milestones/M*/phases/P*/`
-- Grit-claim symbols (agent path): `<file::Identifier list>`
+- Cross-axis review label applied (if cross-axis contract change): `<label>` (see `docs/checklists/cross-axis-contract-change-checklist.md`)
+- Implementation Plan ID (if executing an IP): `IP-NNN-<slug>`
+- Inventory ledger row (if migration-class): `INV-NNNN` (per ADR-0052)
 
 ## Evidence
 
@@ -67,12 +56,10 @@ Each line below **MUST** be present with a pass/fail token (`PASS` / `FAIL`) and
 - SBOM artifact: `<path|registry-ref>` (Syft/CycloneDX)
 - SLSA provenance level achieved: `L1 | L2 | L3`
 
-<!-- merge-gate: lead reviewer adds `## Code Review` below at merge; `guard-pr-merge-review.mjs` refuses without it. -->
+## Code Review
 
-## Code Review _(lead-only — never as worker)_
-
+- Target reviewer evidence producer: `oya-pr-review` (not live cloud admission enforcement until `F-PR5-06` closes; requires a trusted server-side/cloud-ci producer)
 - Reviewer agent: `<rust-reviewer | typescript-reviewer | python-reviewer | database-reviewer | security-reviewer | privacy-reviewer | tdd-guide | silent-failure-hunter | doc-updater | doc-style-reviewer | capability-reviewer | perf-reviewer>`
-- Verdict: `<APPROVE | REQUEST CHANGES>`
+- Verdict: `<APPROVE | REQUEST CHANGES | PENDING>`
 - Resolved items: `<list>`
 - Deferred items: `<list with owners + follow-up issue refs>`
-- Linus good-taste audit row: `<special cases eliminated | "none — no candidates">`

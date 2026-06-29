@@ -8,7 +8,7 @@
 # lanes fan OUT (fail-fast:false, surface-all) and fan IN to ONE zero-build job named
 # `oya-ci-required` that has NO command set of its own — it is green IFF every constituent
 # gate lane is green. Branch protection keys on that one context name. Do NOT register the
-# 6 gates individually (rejected by the oya-pr-review HTTP-501 multi-producer-deadlock lesson).
+# constituent gates individually (the review-admission producer is target-only until F-PR5-06).
 #
 # ░░ LIVE ░░
 # Go-live executed 2026-06-08 (founder-authorized "fully autonomous through both"): the blocking
@@ -83,10 +83,10 @@ jobs:
 
   # ── GATE LANES (reusable matrix). Every homogeneous gate is the SAME step — one
   #    `buck2 test //cloud/cloud-ci/gates/<crate>:{<crate>-unittest,<crate>-gate}` — so instead of copy-pasting a job per gate, a single
-  #    matrixed `gate` job fans out over the crate list. Adding a gate is ONE line in the matrix
+  #    matrixed `gate` job fans out over the crate list. Adding a homogeneous gate is ONE line in the matrix
   #    below; the `gate_registration` meta-test (in the cloud-ci-firewall lane) ENFORCES that
-  #    every in-tree gate crate is listed here AND that this job is a fan-in dependency, so a
-  #    gate can never be silently dropped. Each matrix leg is its own check-run
+  #    every in-tree gate crate is listed here, every oya-ci.toml accounting/firewall gate has
+  #    bundled disposition DATA, and every gate lane is a fan-in dependency. Each matrix leg is its own check-run
   #    `gate (oya-cloud-ci-<x>-app)`, preserving per-gate attribution; legs with a live-corpus
   #    self-test are born-blocking. `fail-fast: false` = surface-all (every leg runs to
   #    completion even if a sibling fails).
