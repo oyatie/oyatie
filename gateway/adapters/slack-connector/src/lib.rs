@@ -35,14 +35,17 @@
 use oya_shared_connector_kernel::{
     AuthScheme, Connector, ConnectorCapabilities, ConnectorCtx, ConnectorError, Cursor, EntityDoc,
     EntityValue, Event, EventStream, HealthReport, IdempotencyKey, OntologyProjection, Page,
-    PatchOp, RateLimitDescriptor,
+    PatchOp, RateLimitDescriptor, canonical_audit_payload_digest, entity_doc_payload_digest,
+    is_canonical_sha256_hex, patch_op_payload_digest, windowed_page,
 };
 
 type Result<T> = std::result::Result<T, ConnectorError>;
 /// Tenant → entity_kind → id → doc.
 type Store = HashMap<String, HashMap<String, BTreeMap<String, EntityDoc>>>;
-/// Tenant → entity_kind → idempotency_key → (doc id, submitted payload).
-type IdemMap = HashMap<String, HashMap<String, HashMap<String, (String, EntityDoc)>>>;
+/// Tenant → idempotency scope → idempotency_key → prior result.
+type IdemRecord = (String, String, EntityDoc);
+type IdemMap = HashMap<String, HashMap<String, HashMap<String, IdemRecord>>>;
+type EventQueues = HashMap<String, VecDeque<Event>>;
 use std::collections::{BTreeMap, HashMap, VecDeque};
 use std::sync::Mutex;
 
@@ -57,8 +60,8 @@ pub struct SlackConnector {
     store: Mutex<Store>,
     /// Idempotency-key cache.
     idem: Mutex<IdemMap>,
-    /// Pending events (FIFO).
-    events: Mutex<VecDeque<Event>>,
+    /// Pending events partitioned by tenant (FIFO per tenant).
+    events: Mutex<EventQueues>,
     /// Monotonic id sequence (per-tenant per-kind would be safer; this
     /// is sufficient for sandbox).
     next_id: Mutex<u64>,
@@ -76,7 +79,7 @@ impl SlackConnector {
         let s = Self {
             store: Mutex::new(HashMap::new()),
             idem: Mutex::new(HashMap::new()),
-            events: Mutex::new(VecDeque::new()),
+            events: Mutex::new(HashMap::new()),
             next_id: Mutex::new(1),
         };
         s.seed_sandbox();
@@ -99,7 +102,7 @@ impl SlackConnector {
             Err(p) => p.into_inner(),
         }
     }
-    fn lock_events(&self) -> std::sync::MutexGuard<'_, VecDeque<Event>> {
+    fn lock_events(&self) -> std::sync::MutexGuard<'_, EventQueues> {
         match self.events.lock() {
             Ok(g) => g,
             Err(p) => p.into_inner(),
@@ -153,14 +156,79 @@ impl SlackConnector {
         }
     }
 
-    fn seal(&self, ctx: &ConnectorCtx, op: &str, payload: &str) -> Result<()> {
-        let receipt = ctx.audit_handle().seal(op, payload);
-        if receipt.chain_id.is_empty() || receipt.kind != op || receipt.payload_digest != payload {
+    fn seal(&self, ctx: &ConnectorCtx, op: &str, payload_digest: &str) -> Result<()> {
+        if !is_canonical_sha256_hex(payload_digest) {
+            return Err(ConnectorError::AuditSealFailed(format!(
+                "{op} payload digest must be canonical sha256"
+            )));
+        }
+        let receipt = ctx.audit_handle().seal(op, payload_digest);
+        if receipt.chain_id.is_empty()
+            || receipt.kind != op
+            || receipt.payload_digest != payload_digest
+        {
             return Err(ConnectorError::AuditSealFailed(format!(
                 "{op} seal receipt mismatch"
             )));
         }
         Ok(())
+    }
+
+    fn operation_digest<I, K, V>(&self, ctx: &ConnectorCtx, fields: I) -> String
+    where
+        I: IntoIterator<Item = (K, V)>,
+        K: AsRef<str>,
+        V: AsRef<str>,
+    {
+        let mut parts = vec![
+            ("provider".to_owned(), PROVIDER_ID.to_owned()),
+            ("tenant".to_owned(), ctx.tenant_id().as_str().to_owned()),
+        ];
+        for (key, value) in fields {
+            parts.push((key.as_ref().to_owned(), value.as_ref().to_owned()));
+        }
+        canonical_audit_payload_digest(parts)
+    }
+
+    fn redacted(label: &str, value: &str) -> String {
+        format!("{label}=[REDACTED:{} chars]", value.len())
+    }
+
+    fn push_event(&self, ctx: &ConnectorCtx, event: Event) {
+        self.lock_events()
+            .entry(ctx.tenant_id().as_str().to_owned())
+            .or_default()
+            .push_back(event);
+    }
+
+    fn matching_events_for_tenant(
+        &self,
+        ctx: &ConnectorCtx,
+        entity_kinds: &[String],
+    ) -> VecDeque<Event> {
+        let mut queues = self.lock_events();
+        let queue = queues
+            .entry(ctx.tenant_id().as_str().to_owned())
+            .or_default();
+        if entity_kinds.is_empty() {
+            return queue.drain(..).collect();
+        }
+
+        let mut matched = VecDeque::new();
+        let mut unmatched = VecDeque::new();
+        while let Some(event) = queue.pop_front() {
+            if entity_kinds.iter().any(|kind| kind == &event.entity_kind) {
+                matched.push_back(event);
+            } else {
+                unmatched.push_back(event);
+            }
+        }
+        *queue = unmatched;
+        matched
+    }
+
+    fn update_idempotency_scope(entity_kind: &str, id: &str) -> String {
+        format!("update:{entity_kind}:{id}")
     }
 }
 
@@ -182,40 +250,27 @@ impl Connector for SlackConnector {
 
     fn list(&self, ctx: &ConnectorCtx, entity_kind: &str, cursor: Option<Cursor>) -> Result<Page> {
         self.check_kind(entity_kind)?;
-        self.seal(ctx, "connector.list", entity_kind)?;
+        let cursor_value = cursor.as_ref().map(Cursor::as_str).unwrap_or("");
+        let audit_digest = self.operation_digest(
+            ctx,
+            [("entity_kind", entity_kind), ("cursor", cursor_value)],
+        );
+        self.seal(ctx, "connector.list", &audit_digest)?;
+
         let store = self.lock_store();
-        let by_kind = store
+        let items = store
             .get(ctx.tenant_id().as_str())
-            .and_then(|m| m.get(entity_kind));
-        let mut items: Vec<EntityDoc> = by_kind
-            .map(|m| m.values().cloned().collect())
-            .unwrap_or_default();
-        // 100-per-page cursor; cursor is the next start index as a string.
-        let start: usize = cursor
-            .as_ref()
-            .map(|c| c.as_str().parse::<usize>().unwrap_or(0))
-            .unwrap_or(0);
+            .and_then(|m| m.get(entity_kind))
+            .into_iter()
+            .flat_map(|m| m.values().cloned());
         const PAGE: usize = 100;
-        let end = std::cmp::min(start.saturating_add(PAGE), items.len());
-        let page: Vec<EntityDoc> = if start <= items.len() {
-            items.drain(start..end).collect()
-        } else {
-            Vec::new()
-        };
-        let next = if page.len() == PAGE {
-            Cursor::new(end.to_string()).ok()
-        } else {
-            None
-        };
-        Ok(Page {
-            items: page,
-            next_cursor: next,
-        })
+        windowed_page(items, cursor.as_ref(), PAGE)
     }
 
     fn get(&self, ctx: &ConnectorCtx, entity_kind: &str, id: &str) -> Result<EntityDoc> {
         self.check_kind(entity_kind)?;
-        self.seal(ctx, "connector.get", id)?;
+        let audit_digest = self.operation_digest(ctx, [("entity_kind", entity_kind), ("id", id)]);
+        self.seal(ctx, "connector.get", &audit_digest)?;
         self.lock_store()
             .get(ctx.tenant_id().as_str())
             .and_then(|m| m.get(entity_kind))
@@ -233,23 +288,24 @@ impl Connector for SlackConnector {
     ) -> Result<EntityDoc> {
         self.check_kind(entity_kind)?;
         let submitted_payload = payload.clone();
-        // Idempotency-replay: if the key was already seen, return the stored id.
+        let submitted_digest = entity_doc_payload_digest(&submitted_payload);
         let prev_id_opt = self
             .lock_idem()
             .get(ctx.tenant_id().as_str())
             .and_then(|m| m.get(entity_kind))
             .and_then(|m| m.get(idempotency_key.as_str()))
             .cloned();
-        if let Some((prev_id, previous_payload)) = prev_id_opt {
-            if previous_payload != submitted_payload {
+        if let Some((prev_id, previous_digest, previous_result)) = prev_id_opt {
+            if previous_digest != submitted_digest {
                 return Err(ConnectorError::IdempotencyConflict(format!(
-                    "{PROVIDER_ID} tenant={} entity_kind={} idempotency_key={}",
-                    ctx.tenant_id().as_str(),
+                    "{PROVIDER_ID} {} entity_kind={} {}",
+                    Self::redacted("tenant", ctx.tenant_id().as_str()),
                     entity_kind,
-                    idempotency_key.as_str()
+                    Self::redacted("idempotency_key", idempotency_key.as_str())
                 )));
             }
-            return self.get(ctx, entity_kind, &prev_id);
+            let _ = prev_id;
+            return Ok(previous_result);
         }
         let v = self.next_seq();
         let id = match entity_kind {
@@ -268,14 +324,26 @@ impl Connector for SlackConnector {
             .or_default()
             .insert(
                 idempotency_key.as_str().to_owned(),
-                (id.clone(), submitted_payload),
+                (id.clone(), submitted_digest, doc.clone()),
             );
-        self.lock_events().push_back(Event {
-            entity_kind: entity_kind.to_owned(),
-            kind: "created".to_owned(),
-            doc: doc.clone(),
-        });
-        self.seal(ctx, "connector.create", &id)?;
+        self.push_event(
+            ctx,
+            Event {
+                entity_kind: entity_kind.to_owned(),
+                kind: "created".to_owned(),
+                doc: doc.clone(),
+            },
+        );
+        let doc_digest = entity_doc_payload_digest(&doc);
+        let audit_digest = self.operation_digest(
+            ctx,
+            [
+                ("entity_kind", entity_kind),
+                ("id", id.as_str()),
+                ("doc_digest", doc_digest.as_str()),
+            ],
+        );
+        self.seal(ctx, "connector.create", &audit_digest)?;
         Ok(doc)
     }
 
@@ -285,9 +353,31 @@ impl Connector for SlackConnector {
         entity_kind: &str,
         id: &str,
         patch: PatchOp,
-        _idempotency_key: IdempotencyKey,
+        idempotency_key: IdempotencyKey,
     ) -> Result<EntityDoc> {
         self.check_kind(entity_kind)?;
+        let patch_digest = patch_op_payload_digest(&patch);
+        let idem_scope = Self::update_idempotency_scope(entity_kind, id);
+        let prev = self
+            .lock_idem()
+            .get(ctx.tenant_id().as_str())
+            .and_then(|m| m.get(&idem_scope))
+            .and_then(|m| m.get(idempotency_key.as_str()))
+            .cloned();
+        if let Some((prev_id, previous_digest, previous_result)) = prev {
+            if previous_digest != patch_digest {
+                return Err(ConnectorError::IdempotencyConflict(format!(
+                    "{PROVIDER_ID} {} entity_kind={} {} {}",
+                    Self::redacted("tenant", ctx.tenant_id().as_str()),
+                    entity_kind,
+                    Self::redacted("entity_id", id),
+                    Self::redacted("idempotency_key", idempotency_key.as_str())
+                )));
+            }
+            let _ = prev_id;
+            return Ok(previous_result);
+        }
+
         let mut doc = self.get(ctx, entity_kind, id)?;
         match patch.value {
             Some(v) => doc.insert(patch.field.clone(), v),
@@ -300,12 +390,33 @@ impl Connector for SlackConnector {
             }
         }
         self.put(ctx.tenant_id().as_str(), entity_kind, id, doc.clone());
-        self.lock_events().push_back(Event {
-            entity_kind: entity_kind.to_owned(),
-            kind: "updated".to_owned(),
-            doc: doc.clone(),
-        });
-        self.seal(ctx, "connector.update", id)?;
+        self.lock_idem()
+            .entry(ctx.tenant_id().as_str().to_owned())
+            .or_default()
+            .entry(idem_scope)
+            .or_default()
+            .insert(
+                idempotency_key.as_str().to_owned(),
+                (id.to_owned(), patch_digest, doc.clone()),
+            );
+        self.push_event(
+            ctx,
+            Event {
+                entity_kind: entity_kind.to_owned(),
+                kind: "updated".to_owned(),
+                doc: doc.clone(),
+            },
+        );
+        let doc_digest = entity_doc_payload_digest(&doc);
+        let audit_digest = self.operation_digest(
+            ctx,
+            [
+                ("entity_kind", entity_kind),
+                ("id", id),
+                ("doc_digest", doc_digest.as_str()),
+            ],
+        );
+        self.seal(ctx, "connector.update", &audit_digest)?;
         Ok(doc)
     }
 
@@ -322,12 +433,16 @@ impl Connector for SlackConnector {
                 "slack {entity_kind}/{id}"
             )));
         }
-        self.lock_events().push_back(Event {
-            entity_kind: entity_kind.to_owned(),
-            kind: "deleted".to_owned(),
-            doc: EntityDoc::new(),
-        });
-        self.seal(ctx, "connector.delete", id)?;
+        self.push_event(
+            ctx,
+            Event {
+                entity_kind: entity_kind.to_owned(),
+                kind: "deleted".to_owned(),
+                doc: EntityDoc::new(),
+            },
+        );
+        let audit_digest = self.operation_digest(ctx, [("entity_kind", entity_kind), ("id", id)]);
+        self.seal(ctx, "connector.delete", &audit_digest)?;
         Ok(())
     }
 
@@ -339,12 +454,10 @@ impl Connector for SlackConnector {
         for k in entity_kinds {
             self.check_kind(k)?;
         }
-        self.seal(ctx, "connector.subscribe", &entity_kinds.join(","))?;
-        // Drain current queue, filtered by entity_kinds.
-        let mut q: VecDeque<Event> = self.lock_events().drain(..).collect();
-        if !entity_kinds.is_empty() {
-            q.retain(|e| entity_kinds.iter().any(|k| k == &e.entity_kind));
-        }
+        let joined = entity_kinds.join(",");
+        let audit_digest = self.operation_digest(ctx, [("entity_kinds", joined.as_str())]);
+        self.seal(ctx, "connector.subscribe", &audit_digest)?;
+        let q = self.matching_events_for_tenant(ctx, entity_kinds);
         Ok(Box::new(VecStream { q }))
     }
 
@@ -402,10 +515,14 @@ mod tests {
     };
 
     fn ctx() -> ConnectorCtx {
+        ctx_for("t-1")
+    }
+
+    fn ctx_for(tenant: &str) -> ConnectorCtx {
         ConnectorCtx::new(
-            TenantId::new("t-1").unwrap(),
+            TenantId::new(tenant).unwrap(),
             PrincipalId::new("svc-slack").unwrap(),
-            SecretReference::new("sref://t-1/slack/bot-token").unwrap(),
+            SecretReference::new(format!("sref://{tenant}/slack/bot-token")).unwrap(),
             TraceContext::new("00-trace").unwrap(),
             AuditSealHandle::new("chain-1").unwrap(),
         )
@@ -509,10 +626,15 @@ mod tests {
         second.insert("channel", EntityValue::Str("C0001".into()));
         second.insert("text", EntityValue::Str("goodbye".into()));
 
-        assert!(matches!(
-            s.create(&ctx(), "message", second, key),
-            Err(ConnectorError::IdempotencyConflict(_))
-        ));
+        let err = s.create(&ctx(), "message", second, key).unwrap_err();
+        match err {
+            ConnectorError::IdempotencyConflict(message) => {
+                assert!(message.contains("[REDACTED"));
+                assert!(!message.contains("t-1"));
+                assert!(!message.contains("conflict"));
+            }
+            other => panic!("expected idempotency conflict, got {other:?}"),
+        }
     }
 
     #[test]
@@ -529,6 +651,75 @@ mod tests {
             .unwrap();
         let got = s.get(&ctx(), "conversation", "C0001").unwrap();
         assert_eq!(got.get("name"), Some(&EntityValue::Str("renamed".into())));
+    }
+
+    #[test]
+    fn update_idempotency_replays_prior_result_and_conflicts_on_mismatch() {
+        let s = SlackConnector::new();
+        let replay_key = ik("updreplay");
+        let replay_patch = PatchOp::set("name", EntityValue::Str("first-idempotent".into()));
+
+        let first = s
+            .update(
+                &ctx(),
+                "conversation",
+                "C0001",
+                replay_patch.clone(),
+                replay_key.clone(),
+            )
+            .unwrap();
+        let _ = s
+            .update(
+                &ctx(),
+                "conversation",
+                "C0001",
+                PatchOp::set("name", EntityValue::Str("later-change".into())),
+                ik("updother"),
+            )
+            .unwrap();
+        let replay = s
+            .update(&ctx(), "conversation", "C0001", replay_patch, replay_key)
+            .unwrap();
+
+        assert_eq!(first, replay);
+        assert_eq!(
+            replay.get("name"),
+            Some(&EntityValue::Str("first-idempotent".into()))
+        );
+        assert_eq!(
+            s.get(&ctx(), "conversation", "C0001").unwrap().get("name"),
+            Some(&EntityValue::Str("later-change".into()))
+        );
+
+        let conflict_key = ik("updconflict");
+        let _ = s
+            .update(
+                &ctx(),
+                "conversation",
+                "C0002",
+                PatchOp::set("name", EntityValue::Str("conflict-a".into())),
+                conflict_key.clone(),
+            )
+            .unwrap();
+        let err = s
+            .update(
+                &ctx(),
+                "conversation",
+                "C0002",
+                PatchOp::set("name", EntityValue::Str("conflict-b".into())),
+                conflict_key,
+            )
+            .unwrap_err();
+
+        match err {
+            ConnectorError::IdempotencyConflict(message) => {
+                assert!(message.contains("[REDACTED"));
+                assert!(!message.contains("t-1"));
+                assert!(!message.contains("C0002"));
+                assert!(!message.contains("updconflict"));
+            }
+            other => panic!("expected idempotency conflict, got {other:?}"),
+        }
     }
 
     #[test]
@@ -550,6 +741,89 @@ mod tests {
         let mut stream = s.subscribe(&ctx(), &["message".to_owned()]).unwrap();
         let e = stream.next().expect("event present");
         assert_eq!(e.kind, "created");
+    }
+
+    #[test]
+    fn subscribe_preserves_unmatched_entity_kind_events() {
+        let s = SlackConnector::new();
+
+        let mut message = EntityDoc::new();
+        message.insert("text", EntityValue::Str("mixed-message".into()));
+        let _ = s
+            .create(&ctx(), "message", message, ik("mixmessage"))
+            .unwrap();
+
+        let mut conversation = EntityDoc::new();
+        conversation.insert("name", EntityValue::Str("mixed-channel".into()));
+        let _ = s
+            .create(&ctx(), "conversation", conversation, ik("mixconversation"))
+            .unwrap();
+
+        let mut messages = s.subscribe(&ctx(), &["message".to_owned()]).unwrap();
+        assert_eq!(
+            messages.next().map(|event| event.entity_kind),
+            Some("message".to_owned())
+        );
+        assert!(messages.next().is_none());
+
+        let mut conversations = s.subscribe(&ctx(), &["conversation".to_owned()]).unwrap();
+        assert_eq!(
+            conversations.next().map(|event| event.entity_kind),
+            Some("conversation".to_owned())
+        );
+    }
+
+    #[test]
+    fn subscribe_is_tenant_bound() {
+        let s = SlackConnector::new();
+        let mut d = EntityDoc::new();
+        d.insert("text", EntityValue::Str("tenant-two-only".into()));
+
+        let _ = s
+            .create(&ctx_for("t-2"), "message", d, ik("tenant2event"))
+            .unwrap();
+
+        let mut t1_stream = s.subscribe(&ctx(), &["message".to_owned()]).unwrap();
+        assert!(t1_stream.next().is_none());
+
+        let mut t2_stream = s
+            .subscribe(&ctx_for("t-2"), &["message".to_owned()])
+            .unwrap();
+        assert_eq!(t2_stream.next().map(|e| e.kind), Some("created".to_owned()));
+    }
+
+    #[test]
+    fn audit_seal_rejects_raw_payload_inputs() {
+        let s = SlackConnector::new();
+        assert!(matches!(
+            s.seal(&ctx(), "connector.get", "message"),
+            Err(ConnectorError::AuditSealFailed(_))
+        ));
+
+        let digest = s.operation_digest(&ctx(), [("entity_kind", "message"), ("id", "m-1")]);
+        assert!(s.seal(&ctx(), "connector.get", &digest).is_ok());
+    }
+
+    #[test]
+    fn list_uses_windowed_page_boundaries() {
+        let s = SlackConnector::new();
+        for i in 0..101 {
+            let mut d = EntityDoc::new();
+            d.insert("text", EntityValue::Str(format!("bulk-{i}")));
+            let _ = s
+                .create(&ctx(), "message", d, ik(&format!("bulk{i}")))
+                .unwrap();
+        }
+
+        let first = s.list(&ctx(), "message", None).unwrap();
+        assert_eq!(first.items.len(), 100);
+        assert_eq!(first.next_cursor.as_ref().map(Cursor::as_str), Some("100"));
+
+        let second = s
+            .list(&ctx(), "message", first.next_cursor.clone())
+            .unwrap();
+        assert_eq!(second.items.len(), 3);
+        assert!(second.next_cursor.is_none());
     }
 
     #[test]

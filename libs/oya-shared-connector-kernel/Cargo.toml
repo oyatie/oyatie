@@ -13,7 +13,8 @@ doctest = false
 
 [dependencies]
 # Kernel is pure — no I/O, no network, no codegen deps.
-# Layer 1 (kernel) per ADR-0148 layered architecture discipline.
+# RustCrypto SHA-2 is used only for deterministic audit payload digests.
+sha2 = { workspace = true }
 
 [lints]
 workspace = true
