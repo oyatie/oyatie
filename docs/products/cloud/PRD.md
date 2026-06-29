@@ -31,12 +31,14 @@ related_microservices:
   - cloud-finops
   - cloud-observability
 tenant_class: ["demo_trial", "paid"]
+live_readiness_claim: target_non_claim_until_changeset_gate_evidence
 doc_status: published
 ---
 
 # Oyatie — Product PRD: Cloud Provider (AWS-class)
 
 > **Status:** draft → preview *(industry-standard labels per [GLOSSARY.md §11](../../GLOSSARY.md))*
+> **Readiness claim boundary:** target/non-claim until fresh CI, SLO, security, SBOM, rollback/DR, owner/RACI, and product-pain evidence are attached to a promotion packet.
 > **Owning team:** [`teams/axis-cloud/CHARTER.md`](../../teams/axis-cloud/CHARTER.md)
 > **Owning axis:** cloud
 > **Catalog reference:** `registry/catalog/oya-cloud-*.yaml`
@@ -2515,10 +2517,10 @@ Pass: imported credentials are secret references only.
 
 This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automation, and self-hostable delivery:
 
-- ADR-0346 binds Cloud Provider acceptance to `./bin/oya verify --ci-required` as the canonical local pre-push verifier that MUST locally mirror the full CI matrix and block on exit-0 of EACH mandatory step. Enforced-by cross-reference: `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0346 full-mirror semantics are migration input only: Cloud Provider acceptance must be evidenced by current cloud-ci/oya-ci Rust gate packets and promotion artifacts. The retired `./bin/oya verify --ci-required` path is historical/provenance-only and must not be invoked, recreated, or treated as merge/exit authority.
 - ADR-0347 binds Cloud governance and CI-lane authoring to the `oya-governance-*` lane vocabulary after the `oya-governance-*` bulk rename. Enforced-by cross-reference: `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, `oya-governance-rename-inventory-presence`.
 - ADR-0348 binds Region, AZ, Cell, tenant placement, capacity rebalance, and shard-count automation to cellular topology that MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING as control-plane-driven automation modes. Enforced-by cross-reference: `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 binds Cloud deployment surfaces to Jenkins (LTS) and ArgoCD as the canonical self-hostable CI/CD substrates; GitHub Actions remains the hosted PR review surface, Jenkins augments it for self-hostable contexts, and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys. Enforced-by cross-reference: `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, `oya-governance-deploy-audit-chain-emit`.
+- ADR-0349 is amended by ADR-0513/platform-readiness: Jenkins is bridge evidence only until cutover, ArgoCD/Rollouts remain authorized bridge/reference CD adapters where separately governed, and canonical readiness/promotion evidence comes from cloud-ci/oya-ci gate packets plus deployment/audit artifacts rather than Jenkins as destination CI authority.
 
 ## References
 
@@ -2546,3 +2548,19 @@ This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automat
 - contracts/openapi/cloud/cloud-compute-vm-v1.yaml
 - contracts/openapi/cloud/cloud-storage-object-v1.yaml
 - contracts/openapi/cloud/cloud-iam-v1.yaml
+
+## 2a. Acceptance criteria traceability (required)
+
+This section is a planning-maturity contract only. It does **not** claim runtime, product-ready, or hyperscaler-ready status; promotion still requires fresh CI, SLO, security, SBOM, rollback/DR, owner/RACI, and product-pain evidence.
+
+| AC-ID | Given | When | Then | Test ID | Test path |
+|---|---|---|---|---|---|
+| CLOUD-PRD-AC-001 | The Cloud PRD is used as a planning contract and region, cell, resource, IAM/KMS, audit, billing, and observability contracts are referenced by a promotion packet | The planned-maturity gate scans product PRDs | Cloud region/cell/resource acceptance is linked to test and evidence paths instead of generic prose | CLOUD-PRD-GATE-001 | `cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
+| CLOUD-PRD-AC-002 | cloud-provider preview, stable, or GA readiness is evaluated | Readiness evidence is evaluated | fresh CI, SLO, security, SBOM, rollback/DR, cost, audit, billing, and product-pain evidence is required outside this PRD | CLOUD-PRD-GATE-002 | `cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
+
+## 9b. Verification commands (required) — one runnable check per metric
+
+| Metric | Verification command | Pass criterion | CI lane |
+|---|---|---|---|
+| Cloud region/cell/resource/audit/billing planning maturity | `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app:oya-cloud-ci-planned-maturity-app-gate` | At least one Cloud row names region, cell, resource, audit, billing, and SLO/security obligations | `oya-ci-required` |
+| Cloud product-ready and hyperscaler-ready non-claim boundary | `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app:oya-cloud-ci-planned-maturity-app-gate` | A Cloud promotion packet cannot treat this PRD as hyperscaler-ready evidence without fresh CI/SLO/security/SBOM/DR proof | `oya-ci-required` |
