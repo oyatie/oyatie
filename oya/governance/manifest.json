@@ -91,37 +91,37 @@
       "name": "oya-governance-aspirational-enforcement-correctness",
       "target": "1.0",
       "sli": "sum(rate(oya_governance_aspirational_honesty_test_total{outcome=\"honest\"}[5m]))",
-      "file": "microservices/governance/slos/aspirational-enforcement-correctness.openslo.yaml"
+      "file": "oya/governance/slos/aspirational-enforcement-correctness.openslo.yaml"
     },
     {
       "name": "oya-governance-check-crate-availability",
       "target": "0.999",
       "sli": "sum(rate(oya_governance_check_crate_invocation_total{outcome=~\"pass|fail\"}[5m]))",
-      "file": "microservices/governance/slos/check-crate-availability.openslo.yaml"
+      "file": "oya/governance/slos/check-crate-availability.openslo.yaml"
     },
     {
       "name": "oya-governance-conformance-evidence-freshness",
       "target": "0.99",
       "sli": "sum(rate(oya_governance_evidence_age_seconds_bucket{le=\"86400\"}[5m]))",
-      "file": "microservices/governance/slos/conformance-evidence-freshness.openslo.yaml"
+      "file": "oya/governance/slos/conformance-evidence-freshness.openslo.yaml"
     },
     {
       "name": "oya-governance-gate-validate-latency",
       "target": "0.95",
       "sli": "sum(rate(oya_governance_gate_validate_duration_seconds_bucket{le=\"5\"}[5m]))",
-      "file": "microservices/governance/slos/gate-validate-latency.openslo.yaml"
+      "file": "oya/governance/slos/gate-validate-latency.openslo.yaml"
     },
     {
       "name": "oya-governance-per-lane-runtime-budget",
       "target": "0.95",
       "sli": "sum(rate(oya_governance_lane_runtime_duration_seconds_bucket{le=\"30\"}[5m]))",
-      "file": "microservices/governance/slos/per-lane-runtime-budget.openslo.yaml"
+      "file": "oya/governance/slos/per-lane-runtime-budget.openslo.yaml"
     },
     {
       "name": "oya-governance-placeholder-debt-coverage-correctness",
       "target": "1.0",
       "sli": "sum(rate(oya_governance_placeholder_total{covered=\"true\"}[5m]))",
-      "file": "microservices/governance/slos/placeholder-debt-coverage-correctness.openslo.yaml"
+      "file": "oya/governance/slos/placeholder-debt-coverage-correctness.openslo.yaml"
     }
   ],
   "ips": [

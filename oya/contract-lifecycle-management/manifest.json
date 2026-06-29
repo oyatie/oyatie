@@ -356,5 +356,11 @@
       "version_pin": "v1",
       "tenant_class_scope": "both"
     }
-  ]
+  ],
+  "slo_exemption": {
+    "status": "live_exempted_no_runtime_sli",
+    "owner": "axis-contract-lifecycle-management + council-product",
+    "reason": "No current measured runtime SLI is declared for this foundation or planning-only service; the manifest must not claim production or hyperscaler-ready SLO coverage until an OpenSLO file lands.",
+    "cutover": "Replace this exemption with non-empty resolvable OpenSLO references before production or hyperscaler-ready promotion."
+  }
 }

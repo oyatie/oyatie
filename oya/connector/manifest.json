@@ -253,5 +253,13 @@
     "ambient_ztunnel": true,
     "ambient_waypoint": false,
     "north_south_only": false
-  }
+  },
+  "slo_exemptions": [
+    {
+      "name": "connect-retirement-evidence-lag",
+      "owner": "council-architecture",
+      "reason": "No current OpenSLO artifact resolves for this planned SLO entry; keep it non-claiming until the artifact exists.",
+      "cutover": "Author a current OpenSLO file under the service-local slos/ or capability observability/slos home before production or hyperscaler-ready promotion."
+    }
+  ]
 }

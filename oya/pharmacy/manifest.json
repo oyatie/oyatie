@@ -199,73 +199,73 @@
       "name": "oya-pharmacy-eprescribe-roundtrip-latency",
       "target": "0.95",
       "sli": "sum(rate(oya_pharmacy_eprescribe_duration_seconds_bucket{direction=\"outbound\",le=\"5.0\"}[5m]))",
-      "file": "microservices/pharmacy/slos/eprescribe-roundtrip-latency.openslo.yaml"
+      "file": "oya/pharmacy/slos/eprescribe-roundtrip-latency.openslo.yaml"
     },
     {
       "name": "oya-pharmacy-ddi-check-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_pharmacy_ddi_check_duration_seconds_bucket{le=\"0.2\"}[5m]))",
-      "file": "microservices/pharmacy/slos/ddi-check-latency.openslo.yaml"
+      "file": "oya/pharmacy/slos/ddi-check-latency.openslo.yaml"
     },
     {
       "name": "oya-pharmacy-dispense-cycle-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_pharmacy_dispense_duration_seconds_bucket{le=\"2.0\"}[5m]))",
-      "file": "microservices/pharmacy/slos/dispense-cycle-latency.openslo.yaml"
+      "file": "oya/pharmacy/slos/dispense-cycle-latency.openslo.yaml"
     },
     {
       "name": "oya-pharmacy-bcma-scan-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_pharmacy_bcma_duration_seconds_bucket{le=\"0.1\"}[5m]))",
-      "file": "microservices/pharmacy/slos/bcma-scan-latency.openslo.yaml"
+      "file": "oya/pharmacy/slos/bcma-scan-latency.openslo.yaml"
     },
     {
       "name": "oya-pharmacy-dispense-availability",
       "target": "0.9999",
       "sli": "1 - (sum(rate(oya_pharmacy_dispense_total{outcome=\"error\"}[5m])) / sum(rate(oya_pharmacy_dispense_total[5m])))",
-      "file": "microservices/pharmacy/slos/dispense-availability.openslo.yaml"
+      "file": "oya/pharmacy/slos/dispense-availability.openslo.yaml"
     },
     {
       "name": "oya-pharmacy-bcma-availability",
       "target": "0.9999",
       "sli": "1 - (sum(rate(oya_pharmacy_bcma_total{outcome=\"error\"}[5m])) / sum(rate(oya_pharmacy_bcma_total[5m])))",
-      "file": "microservices/pharmacy/slos/bcma-availability.openslo.yaml"
+      "file": "oya/pharmacy/slos/bcma-availability.openslo.yaml"
     },
     {
       "name": "oya-pharmacy-eprescribe-availability",
       "target": "0.999",
       "sli": "1 - (sum(rate(oya_pharmacy_eprescribe_total{outcome=\"error\"}[5m])) / sum(rate(oya_pharmacy_eprescribe_total[5m])))",
-      "file": "microservices/pharmacy/slos/eprescribe-availability.openslo.yaml"
+      "file": "oya/pharmacy/slos/eprescribe-availability.openslo.yaml"
     },
     {
       "name": "oya-pharmacy-catalog-read-availability",
       "target": "0.9995",
       "sli": "1 - (sum(rate(oya_pharmacy_catalog_read_total{outcome=\"error\"}[5m])) / sum(rate(oya_pharmacy_catalog_read_total[5m])))",
-      "file": "microservices/pharmacy/slos/catalog-read-availability.openslo.yaml"
+      "file": "oya/pharmacy/slos/catalog-read-availability.openslo.yaml"
     },
     {
       "name": "oya-pharmacy-audit-chain-coverage-completeness",
       "target": "1.0",
       "sli": "sum(rate(oya_pharmacy_audit_emit_total{outcome=\"sealed\"}[5m])) / sum(rate(oya_pharmacy_audit_emit_total[5m]))",
-      "file": "microservices/pharmacy/slos/audit-chain-coverage-completeness.openslo.yaml"
+      "file": "oya/pharmacy/slos/audit-chain-coverage-completeness.openslo.yaml"
     },
     {
       "name": "oya-pharmacy-controlled-substance-witness-integrity",
       "target": "1.0",
       "sli": "sum(rate(oya_pharmacy_controlled_witness_total{outcome=\"signed\"}[5m])) / sum(rate(oya_pharmacy_controlled_witness_total[5m]))",
-      "file": "microservices/pharmacy/slos/controlled-substance-witness-integrity.openslo.yaml"
+      "file": "oya/pharmacy/slos/controlled-substance-witness-integrity.openslo.yaml"
     },
     {
       "name": "oya-pharmacy-340b-classification-accuracy",
       "target": "0.9999",
       "sli": "1 - (sum(rate(oya_pharmacy_b340_classification_total{outcome=\"incorrect\"}[1h])) / sum(rate(oya_pharmacy_b340_classification_total[1h])))",
-      "file": "microservices/pharmacy/slos/340b-classification-accuracy.openslo.yaml"
+      "file": "oya/pharmacy/slos/340b-classification-accuracy.openslo.yaml"
     },
     {
       "name": "oya-pharmacy-dscsa-saleable-return-verification-rate",
       "target": "0.999",
       "sli": "sum(rate(oya_pharmacy_dscsa_saleable_return_total{outcome=\"verified\"}[5m])) / sum(rate(oya_pharmacy_dscsa_saleable_return_total[5m]))",
-      "file": "microservices/pharmacy/slos/dscsa-saleable-return-verification-rate.openslo.yaml"
+      "file": "oya/pharmacy/slos/dscsa-saleable-return-verification-rate.openslo.yaml"
     }
   ],
   "ips": [

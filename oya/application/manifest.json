@@ -92,31 +92,31 @@
       "name": "oya-application-audit-seal",
       "target": "0.999 (1.0)",
       "sli": "histogram_quantile(0.99,",
-      "file": "microservices/application/slos/audit-seal.openslo.yaml"
+      "file": "oya/application/slos/audit-seal.openslo.yaml"
     },
     {
       "name": "oya-application-module-load",
       "target": "0.999",
       "sli": "sum by (pack, module) (",
-      "file": "microservices/application/slos/module-load.openslo.yaml"
+      "file": "oya/application/slos/module-load.openslo.yaml"
     },
     {
       "name": "oya-application-oidc-signin",
       "target": "0.999 (0.2)",
       "sli": "histogram_quantile(0.99,",
-      "file": "microservices/application/slos/oidc-signin.openslo.yaml"
+      "file": "oya/application/slos/oidc-signin.openslo.yaml"
     },
     {
       "name": "oya-application-route-resolve",
       "target": "0.999 (0.1)",
       "sli": "histogram_quantile(0.99,",
-      "file": "microservices/application/slos/route-resolve.openslo.yaml"
+      "file": "oya/application/slos/route-resolve.openslo.yaml"
     },
     {
       "name": "oya-application-tti",
       "target": "0.999 (2.0)",
       "sli": "histogram_quantile(0.99,",
-      "file": "microservices/application/slos/tti.openslo.yaml"
+      "file": "oya/application/slos/tti.openslo.yaml"
     }
   ],
   "ips": [
