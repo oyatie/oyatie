@@ -66,7 +66,7 @@
       "current_path": "docs/decisions/ADR-0217-vertical-slice-rollout-order.md",
       "kind": "decision",
       "migration_phase": "fd001-planning-closure",
-      "purpose": "Accepted decision record for FD-001 vertical rollout order. Direct authority for Tenant/RBAC-packaged core microservices (FD-001) first, full-depth/no-MVP posture, Ops Dashboard / Control Center scope, canonical base plus Korea localization pack, clean architecture, API-first contracts, independent horizontal scaling, hyperscaler patterns, and false-green/silent-regression rejection.",
+      "purpose": "Accepted decision record for FD-001 vertical rollout order. Direct authority for Tenant/PBAC-packaged core microservices (PBAC = RBAC + ABAC) (FD-001) first, full-depth/no-MVP posture, Ops Dashboard / Control Center scope, canonical base plus Korea localization pack, clean architecture, API-first contracts, independent horizontal scaling, hyperscaler patterns, and false-green/silent-regression rejection.",
       "target_path_after_md_retirement": "same until ADR projection retirement"
     },
     "adr_0346_oya_verify_ci_mirror": {
@@ -376,7 +376,7 @@
       "current_path": "/specs/design-system/tenant-context-switcher.json",
       "kind": "design-system-component",
       "migration_phase": "complete",
-      "purpose": "Tenant context switcher design-system component row: personal/work/admin-audit switching with tenant/RBAC scope, cache isolation, and policy re-evaluation invariants.",
+      "purpose": "Tenant context switcher design-system component row: personal/work/admin-audit switching with tenant/PBAC scope (RBAC + ABAC), cache isolation, and policy re-evaluation invariants.",
       "target_path_after_md_retirement": "same"
     },
     "design_workflow_canvas": {
@@ -561,7 +561,7 @@
       "human_compatibility_projection": "docs/MASTERPLAN.md",
       "kind": "spec",
       "migration_phase": "accelerated-machine-readable-authority-for-planning-closure",
-      "purpose": "Machine-readable master plan authority for implementation sequencing, vertical delivery order, first-deliverable scope, planning closure, and readiness claims. The first deliverable is Tenant/RBAC-packaged core microservices (FD-001) with core, messenger, mail, community, infra, Ops Dashboard / Control Center, intelligence (replaces Foundry per ADR-0335 Wave 15I), Workflow, Ontology, canonical base, and Korea localization pack. Canonical service split is {oya,cloud}/<service> with libs/ and ADR-0010/0064 pack roots governed by closed-world inventory; microservices/<ms>/ is legacy and removed only after P0.6 verifies all migration packets. Clean architecture, API-first contracts, independent horizontal scaling, and hyperscaler pattern mapping are required before implementation packets begin.",
+      "purpose": "Machine-readable master plan authority for implementation sequencing, vertical delivery order, first-deliverable scope, planning closure, and readiness claims. The first deliverable is Tenant/PBAC-packaged core microservices (PBAC = RBAC + ABAC) (FD-001) with core, messenger, mail, community, infra, Ops Dashboard / Control Center, intelligence (replaces Foundry per ADR-0335 Wave 15I), Workflow, Ontology, canonical base, and Korea localization pack. Canonical service split is {oya,cloud}/<service> with libs/ and ADR-0010/0064 pack roots governed by closed-world inventory; microservices/<ms>/ is legacy and removed only after P0.6 verifies all migration packets. Clean architecture, API-first contracts, independent horizontal scaling, and hyperscaler pattern mapping are required before implementation packets begin.",
       "target_path_after_md_retirement": "same (machine-readable authority; docs/MASTERPLAN.md is compatibility projection only)"
     },
     "merge_queue_parked_pr": {
@@ -581,20 +581,24 @@
       "purpose": "Historical provenance only. Keep the multi-lens review practice through independent reviewer-agent passes, cloud-ci/oya-ci gate packets, and typed quality-gate artifacts; do not create new evidence/multispectrum files."
     },
     "multispectrum_evidence_g011_wiring": {
-      "current_path": "evidence/multispectrum/g011-rust-test-wiring-generator-20260610-1781107105.json",
-      "owners_path": "evidence/multispectrum/OWNERS",
-      "kind": "evidence",
-      "migration_phase": "complete",
-      "retired_usage": "Historical evidence only; do not use this entry as precedent for new evidence/multispectrum files.",
-      "purpose": "Historical multispectrum evidence bundle for G011 rust-test-wiring-generator batch (ADR-0540 local bridge generator); retained as provenance after the evidence-file convention retirement."
+      "current_path": null,
+      "historical_path": "evidence/multispectrum/g011-rust-test-wiring-generator-20260610-1781107105.json",
+      "historical_owners_path": "evidence/multispectrum/OWNERS",
+      "kind": "retired-evidence",
+      "migration_phase": "retired-historical-provenance",
+      "current_coverage_claim": false,
+      "retired_usage": "Historical evidence only; do not use this entry as precedent for new evidence/multispectrum files or as current coverage proof.",
+      "purpose": "Historical multispectrum evidence bundle for G011 rust-test-wiring-generator batch (ADR-0540 local bridge generator); retained as immutable provenance only after the evidence-file convention retirement."
     },
     "multispectrum_evidence_cloud_intelligence_xproxy": {
-      "current_path": "evidence/multispectrum/cloud-intelligence-xproxy-20260610-1781062794.json",
-      "owners_path": "evidence/multispectrum/OWNERS",
-      "kind": "evidence",
-      "migration_phase": "complete",
-      "retired_usage": "Historical evidence only; do not use this entry as precedent for new evidence/multispectrum files.",
-      "purpose": "Historical multispectrum evidence bundle for cloud-intelligence XPROXY external-proxy parity commissioning lane (PR #644, ADR-0542); retained as provenance after the evidence-file convention retirement."
+      "current_path": null,
+      "historical_path": "evidence/multispectrum/cloud-intelligence-xproxy-20260610-1781062794.json",
+      "historical_owners_path": "evidence/multispectrum/OWNERS",
+      "kind": "retired-evidence",
+      "migration_phase": "retired-historical-provenance",
+      "current_coverage_claim": false,
+      "retired_usage": "Historical evidence only; do not use this entry as precedent for new evidence/multispectrum files or as current coverage proof.",
+      "purpose": "Historical multispectrum evidence bundle for cloud-intelligence XPROXY external-proxy parity commissioning lane (PR #644, ADR-0542); retained as immutable provenance only after the evidence-file convention retirement."
     },
     "oyatie_doctrine": {
       "current_path": "/specs/oyatie-doctrine.json",
@@ -635,7 +639,7 @@
       "current_path": "/specs/planning-closure-contract.json",
       "kind": "spec",
       "migration_phase": "fd001-planning-closure",
-      "purpose": "Machine-readable closure contract for FD-001 planning: Tenant/RBAC-packaged core microservices (FD-001) full-depth delivery, canonical base, Korea localization pack, clean architecture, API-first contracts, hyperscaler patterns, portable deployment, and no false planning-green claims. Its older CI-governance wording is amended by platform-readiness/cloud-ci authority.",
+      "purpose": "Machine-readable closure contract for FD-001 planning: Tenant/PBAC-packaged core microservices (PBAC = RBAC + ABAC) (FD-001) full-depth delivery, canonical base, Korea localization pack, clean architecture, API-first contracts, hyperscaler patterns, portable deployment, and no false planning-green claims. Its older CI-governance wording is amended by platform-readiness/cloud-ci authority.",
       "status_ledger": "/specs/planning-closure-status-closure-ledger.json",
       "target_path_after_md_retirement": "same"
     },
@@ -770,7 +774,7 @@
       "current_path": "/specs/microservices/mail.json",
       "kind": "prd",
       "migration_phase": "complete",
-      "purpose": "Mail microservice PRD — personal and professional mail with strict tenant/RBAC separation, retention, legal hold, eDiscovery, migration/coexistence, encrypted search, and Workflow handoff boundaries.",
+      "purpose": "Mail microservice PRD — personal and professional mail with strict tenant/PBAC separation (RBAC + ABAC), retention, legal hold, eDiscovery, migration/coexistence, encrypted search, and Workflow handoff boundaries.",
       "target_path_after_md_retirement": "same"
     },
     "prd_manifest-schema": {
@@ -791,7 +795,7 @@
       "current_path": "/specs/microservices/messenger.json",
       "kind": "prd",
       "migration_phase": "complete",
-      "purpose": "Messenger microservice PRD — personal E2E messaging plus professional tenant-DEK/auditable messaging with realtime delivery and strict personal/professional tenant/RBAC boundaries.",
+      "purpose": "Messenger microservice PRD — personal E2E messaging plus professional tenant-DEK/auditable messaging with realtime delivery and strict personal/professional tenant/PBAC boundaries (RBAC + ABAC).",
       "target_path_after_md_retirement": "same"
     },
     "prd_network": {
@@ -879,7 +883,7 @@
       "current_path": "/specs/microservices/tenant-rbac.json",
       "kind": "prd",
       "migration_phase": "deprecated",
-      "purpose": "Tenant/RBAC microservice PRD and packaging-control authority. It replaces former grouping wrappers; HR, payroll, accounting, messenger, community, and mail remain concrete flat services packaged later by tenant entitlements and RBAC scopes.",
+      "purpose": "Tenant/PBAC microservice PRD and packaging-control authority (PBAC = RBAC + ABAC). It replaces former grouping wrappers; HR, payroll, accounting, messenger, community, and mail remain concrete flat services packaged later by tenant entitlements and PBAC policy scopes.",
       "retirement_ref": "ADR-0362",
       "target_path_after_md_retirement": "same (machine-readable from inception)"
     },
@@ -887,7 +891,7 @@
       "current_path": "/specs/tenant-rbac-packaging.json",
       "kind": "prd",
       "migration_phase": "deprecated",
-      "purpose": "Tenant/RBAC packaging policy for flat microservices. No former product-grouping wrapper, suite, platform, module, bundle, or vertical product grouping is active; packaging is computed from tenant entitlements, RBAC scopes, regulatory packs, residency, and feature flags over concrete services such as messenger, community, and mail.",
+      "purpose": "Tenant/PBAC packaging policy for flat microservices (PBAC = RBAC + ABAC). No former product-grouping wrapper, suite, platform, module, bundle, or vertical product grouping is active; packaging is computed from tenant entitlements, PBAC policy scopes, regulatory packs, residency, and feature flags over concrete services such as messenger, community, and mail.",
       "retirement_ref": "ADR-0362",
       "target_path_after_md_retirement": "same (machine-readable from inception)"
     },
@@ -1060,7 +1064,7 @@
       "current_path": "/specs/ontology-projection-schema.json",
       "kind": "spec",
       "migration_phase": "root-hub-covered-2026-05-20",
-      "purpose": "Canonical JSON Schema 2020-12 contract for ontology projection manifests. Binds ADR-0316 capability-tier ontology projection requirements and ADR-0317 role-based projection unified UX shell requirements into a machine-readable surface for object and relation refs, actions, functions, schema pins, field visibility, computed properties, jurisdiction filters, pack filters, audit redaction, export policy, search indexing, lineage, service ownership guards, role projections, cache partitioning, observability, and promotion gates."
+      "purpose": "Canonical JSON Schema 2020-12 contract for ontology projection manifests. Binds ADR-0316 capability-tier ontology projection requirements and ADR-0317 PBAC-aware projection unified UX shell requirements (RBAC + ABAC) into a machine-readable surface for object and relation refs, actions, functions, schema pins, field visibility, computed properties, jurisdiction filters, pack filters, audit redaction, export policy, search indexing, lineage, service ownership guards, policy projections, cache partitioning, observability, and promotion gates."
     },
     "spec_pack_overlay_schema": {
       "current_path": "/specs/pack-overlay-schema.json",
@@ -1190,9 +1194,10 @@
     }
   },
   "specs_directory_audit_2026_05_20": {
-    "audit_note": "Historical 2026-05-20 gardening snapshot. Counts below are not a current-tree coverage claim; use entry_points for current pointer lookup and regenerate this audit before making coverage claims.",
-    "covered_top_level_specs_count": 63,
-    "missing_top_level_specs_after_gardening": [],
+    "audit_note": "Historical 2026-05-20 gardening snapshot. Current top-level specs coverage is UNKNOWN until regenerated; do not treat these counts or gap fields as a current clean-coverage claim.",
+    "current_coverage_status": "UNKNOWN",
+    "covered_top_level_specs_count": null,
+    "missing_top_level_specs_after_gardening": "UNKNOWN",
     "root_hub_path_corrections": [
       "knowledge_graph_semantic",
       "prd_community_anonymous",
@@ -1205,7 +1210,7 @@
       "/specs/design-spec-maturity-claims.json",
       "/specs/root-hub-pointers.json"
     ],
-    "top_level_specs_count": 63,
+    "top_level_specs_count": null,
     "snapshot_scope": "historical_2026_05_20_not_current_tree_count"
   },
   "title": "RootHubPointers"
