@@ -39,7 +39,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use serde_json::Value;
+use serde_json::{Value, json};
 
 /// The lane id, matching the buck2 target + the policy `gate_id`.
 pub const GATE_ID: &str = "cloud-ci-affected-set";
@@ -464,6 +464,90 @@ pub fn resolve(
     Decision::NoGraphTargets
 }
 
+/// Machine-readable operator artifact for the affected-set tier decision.
+///
+/// The artifact is redaction-safe: it contains refs, target labels, path classifications already
+/// printed by the gate, and policy state; it never embeds secrets, DSNs, or raw environment values.
+pub fn affected_set_operator_artifact(
+    mode: &str,
+    base_ref: &str,
+    head_ref: &str,
+    baseline_report_present: bool,
+    decision: &Decision,
+) -> Value {
+    let decision_value = match decision {
+        Decision::RefuseUnowned { paths } => json!({
+            "tier": "REFUSE_UNOWNED",
+            "will_run": false,
+            "paths": paths,
+        }),
+        Decision::Full { reasons } => json!({
+            "tier": "FULL",
+            "will_run": true,
+            "reasons": reasons,
+        }),
+        Decision::Affected { seeds } => json!({
+            "tier": "AFFECTED",
+            "will_run": true,
+            "seed_count": seeds.len(),
+            "seeds": seeds,
+        }),
+        Decision::NoGraphTargets => json!({
+            "tier": "NO_GRAPH_TARGETS",
+            "will_run": false,
+            "reasons": ["every changed file is unowned and not owner-required"],
+        }),
+    };
+
+    json!({
+        "schema_version": 1,
+        "artifact_type": "cloud_ci_operator_artifact",
+        "artifact_id": "affected-set-tier-decision",
+        "gate_id": GATE_ID,
+        "mode": mode,
+        "refs": {
+            "base": base_ref,
+            "head": head_ref,
+        },
+        "decision": decision_value,
+        "merge_base_build_health_baseline": {
+            "required": matches!(decision, Decision::Full { .. }) && mode == "auto",
+            "report_present": baseline_report_present,
+            "anti_laundering": "baseline report must be produced from the merge-base committed tree, never the candidate tree"
+        },
+        "long_running_gate_phases": [
+            {
+                "phase": "derive-affected-set-tier",
+                "status": "completed",
+                "operator_signal": "decision.tier"
+            },
+            {
+                "phase": "materialize-merge-base-build-health-baseline",
+                "status": if matches!(decision, Decision::Full { .. }) && mode == "auto" {
+                    "required"
+                } else {
+                    "not-required"
+                },
+                "operator_signal": "merge_base_build_health_baseline"
+            },
+            {
+                "phase": "binding-build-test",
+                "status": if matches!(decision, Decision::NoGraphTargets | Decision::RefuseUnowned { .. }) {
+                    "not-run"
+                } else {
+                    "pending-after-decision"
+                },
+                "operator_signal": "gate exit code and build-health verdict"
+            }
+        ],
+        "retention_and_pii": {
+            "retention_days": 30,
+            "pii": "none; refs, repo paths, and target labels only",
+            "secret_redaction": "no tenant, idempotency, DSN, token, or password material is emitted"
+        }
+    })
+}
+
 // ── BUILD-HEALTH RATCHET (ADR-0554 round-3; reuses the ADR-0551/#698 merge-base frozen-baseline
 //    pattern). The FULL tier hard-failing on ANY `//...` build failure is a flag-day requirement
 //    (the whole workspace must compile before any BUCK-touching PR can merge) — it violates the
@@ -804,6 +888,58 @@ mod tests {
         assert!(
             !failures.is_empty(),
             "a non-empty admission failure set must hard-fail (no grandfathering at admission)"
+        );
+    }
+
+    #[test]
+    fn affected_set_operator_artifact_records_full_tier_and_phases() {
+        let decision = Decision::Full {
+            reasons: vec!["buildfile `BUCK` changed".to_owned()],
+        };
+
+        let artifact =
+            affected_set_operator_artifact("auto", "origin/dev", "HEAD", false, &decision);
+
+        assert_eq!(artifact["artifact_type"], "cloud_ci_operator_artifact");
+        assert_eq!(artifact["artifact_id"], "affected-set-tier-decision");
+        assert_eq!(artifact["decision"]["tier"], "FULL");
+        assert_eq!(artifact["decision"]["will_run"], true);
+        assert_eq!(
+            artifact["merge_base_build_health_baseline"]["required"],
+            true
+        );
+        assert_eq!(
+            artifact["long_running_gate_phases"][1]["phase"],
+            "materialize-merge-base-build-health-baseline"
+        );
+        assert_eq!(
+            artifact["long_running_gate_phases"][1]["status"],
+            "required"
+        );
+        let rendered = artifact.to_string();
+        assert!(
+            !rendered.contains("postgres://") && !rendered.contains("postgres:postgres"),
+            "affected-set artifact must not leak DSNs or credentials: {rendered}"
+        );
+    }
+
+    #[test]
+    fn affected_set_operator_artifact_records_affected_seed_count() {
+        let decision = Decision::Affected {
+            seeds: vec![
+                "root//tenancy/core/domain:tenancy-domain".to_owned(),
+                "root//iam/facade/identity-service:iam-identity-service".to_owned(),
+            ],
+        };
+
+        let artifact =
+            affected_set_operator_artifact("auto", "origin/dev", "HEAD", false, &decision);
+
+        assert_eq!(artifact["decision"]["tier"], "AFFECTED");
+        assert_eq!(artifact["decision"]["seed_count"], 2);
+        assert_eq!(
+            artifact["long_running_gate_phases"][2]["status"],
+            "pending-after-decision"
         );
     }
 }
