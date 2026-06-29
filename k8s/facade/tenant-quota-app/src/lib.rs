@@ -33,10 +33,19 @@ use std::sync::Arc;
 
 use axum::Json;
 use axum::Router;
-use axum::extract::{Path, State};
+use axum::extract::{FromRequestParts, Path, State};
 use axum::http::StatusCode;
+use axum::http::request::Parts;
 use axum::routing::{get, post, put};
 use serde::{Deserialize, Serialize};
+
+pub mod authz;
+
+pub use authz::{
+    AuthzProviderConfigError, CallerCredential, CedarQuotaAuthorizer, ConfiguredBearerPrincipalVerifier,
+    PrincipalVerificationError, PrincipalVerifier, QuotaAction, QuotaAuthorizationError,
+    QuotaAuthorizer, QuotaAuthzProvider, VerifiedPrincipal,
+};
 
 pub use k8s_tenant_quota_api::{
     QuotaAdminPort, QuotaCheckResponse, QuotaDecisionPort, QuotaDto, QuotaPortError, UsageDto,
@@ -81,13 +90,75 @@ impl fmt::Display for Unimplemented {
 // ============================================================
 
 /// Shared application state injected into every axum handler.
+///
+/// The [`QuotaAuthzProvider`] is REQUIRED and non-optional: there is no
+/// constructor that yields state without it, so the router can NEVER be built
+/// without a configured principal-verification + PDP authorization seam (no
+/// default-allow fallback — AUTH-005 fail-closed boot doctrine; GitHub #979).
 pub struct AppState<S> {
     /// The quota store implementing both `QuotaDecisionPort` and `QuotaAdminPort`.
     pub store: S,
+    /// The fail-closed authorization provider (verifier port + PDP port).
+    pub authz: QuotaAuthzProvider,
 }
 
 /// Type alias for the arc-wrapped state used by handlers.
 pub type SharedState<S> = Arc<AppState<S>>;
+
+// ============================================================
+// VerifiedCaller — authn-BEFORE-body extractor
+// ============================================================
+
+/// A request extractor that authenticates the caller from the verified bearer
+/// credential over the request PARTS — i.e. BEFORE the request body is read.
+///
+/// `FromRequestParts` extractors run BEFORE the body `FromRequest` extractor, so
+/// placing `VerifiedCaller` ahead of `Json(body)` in a handler signature
+/// GUARANTEES authentication runs before the body is buffered or deserialized:
+/// an unauthenticated caller is short-circuited 401 WITHOUT the body ever being
+/// parsed. It carries the verified [`VerifiedPrincipal`]; the handler then runs
+/// the PDP decision via [`QuotaAuthzProvider::ensure_authorized`].
+pub struct VerifiedCaller(pub VerifiedPrincipal);
+
+impl<S> FromRequestParts<SharedState<S>> for VerifiedCaller
+where
+    S: Send + Sync,
+{
+    type Rejection = (StatusCode, Json<ErrorBody>);
+
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &SharedState<S>,
+    ) -> Result<Self, Self::Rejection> {
+        let credential = CallerCredential {
+            authorization: parts
+                .headers
+                .get("authorization")
+                .and_then(|v| v.to_str().ok())
+                .map(|s| s.to_owned()),
+        };
+        match state.authz.verify_principal(&credential) {
+            Ok(principal) => Ok(Self(principal)),
+            Err(_) => Err((
+                StatusCode::UNAUTHORIZED,
+                Json(ErrorBody {
+                    error: "a verified caller credential is required".to_owned(),
+                }),
+            )),
+        }
+    }
+}
+
+/// Map a [`QuotaAuthorizationError`] to a fail-closed HTTP 403 response. A PDP
+/// deny AND a PDP fault both surface as 403 (never a 5xx) — fail-closed.
+fn forbidden() -> (StatusCode, Json<ErrorBody>) {
+    (
+        StatusCode::FORBIDDEN,
+        Json(ErrorBody {
+            error: "caller is not authorized for this quota operation".to_owned(),
+        }),
+    )
+}
 
 // ============================================================
 // Request / response bodies
@@ -113,14 +184,32 @@ pub struct ErrorBody {
 // ============================================================
 
 /// `PUT /tenants/{id}/quota` — set or replace tenant quota.
+///
+/// `VerifiedCaller` (a `FromRequestParts` extractor) precedes `Json(body)` so
+/// authn runs BEFORE the body is parsed (401 on no/bad bearer), then
+/// `ensure_authorized` runs the PDP decision (403 on deny/fault) BEFORE any
+/// mutation — fail-closed.
 pub async fn put_quota<S>(
     State(state): State<SharedState<S>>,
+    VerifiedCaller(principal): VerifiedCaller,
     Path(tenant_id): Path<String>,
     Json(body): Json<QuotaDto>,
 ) -> Result<StatusCode, (StatusCode, Json<ErrorBody>)>
 where
     S: QuotaAdminPort + Send + Sync,
 {
+    let target = TenantId::new(&tenant_id).map_err(|e| {
+        (
+            StatusCode::BAD_REQUEST,
+            Json(ErrorBody {
+                error: e.to_string(),
+            }),
+        )
+    })?;
+    state
+        .authz
+        .ensure_authorized(&principal, QuotaAction::Write, &target)
+        .map_err(|_| forbidden())?;
     // Enforce path-body tenant_id consistency.
     if body.tenant_id != tenant_id {
         return Err((
@@ -159,9 +248,11 @@ where
     Ok(StatusCode::NO_CONTENT)
 }
 
-/// `GET /tenants/{id}/quota` — read tenant quota.
+/// `GET /tenants/{id}/quota` — read tenant quota. Authorized for `Read` against
+/// the target tenant (cross-tenant reads are denied by the PDP — isolation).
 pub async fn get_quota<S>(
     State(state): State<SharedState<S>>,
+    VerifiedCaller(principal): VerifiedCaller,
     Path(tenant_id): Path<String>,
 ) -> Result<Json<QuotaDto>, (StatusCode, Json<ErrorBody>)>
 where
@@ -175,6 +266,10 @@ where
             }),
         )
     })?;
+    state
+        .authz
+        .ensure_authorized(&principal, QuotaAction::Read, &tid)
+        .map_err(|_| forbidden())?;
     let quota = state.store.get_quota(&tid).map_err(|e| match e {
         QuotaPortError::NotFound(_) => (
             StatusCode::NOT_FOUND,
@@ -192,9 +287,11 @@ where
     Ok(Json(QuotaDto::from(quota)))
 }
 
-/// `GET /tenants/{id}/usage` — read tenant cluster usage.
+/// `GET /tenants/{id}/usage` — read tenant cluster usage. Authorized for `Read`
+/// against the target tenant (cross-tenant reads denied by the PDP — isolation).
 pub async fn get_usage<S>(
     State(state): State<SharedState<S>>,
+    VerifiedCaller(principal): VerifiedCaller,
     Path(tenant_id): Path<String>,
 ) -> Result<Json<UsageDto>, (StatusCode, Json<ErrorBody>)>
 where
@@ -208,6 +305,10 @@ where
             }),
         )
     })?;
+    state
+        .authz
+        .ensure_authorized(&principal, QuotaAction::Read, &tid)
+        .map_err(|_| forbidden())?;
     let usage = state.store.get_usage(&tid).map_err(|e| match e {
         QuotaPortError::NotFound(_) => (
             StatusCode::NOT_FOUND,
@@ -226,14 +327,31 @@ where
 }
 
 /// `POST /tenants/{id}/quota/check` — check a provisioning request against quota.
+///
+/// A read-class decision (it reads the tenant's quota + usage), authorized for
+/// `Read` against the target tenant. `VerifiedCaller` runs authn before the body
+/// is parsed; the PDP decision runs before the check — fail-closed.
 pub async fn check_quota<S>(
     State(state): State<SharedState<S>>,
+    VerifiedCaller(principal): VerifiedCaller,
     Path(tenant_id): Path<String>,
     Json(body): Json<CheckRequestBody>,
 ) -> Result<Json<QuotaCheckResponse>, (StatusCode, Json<ErrorBody>)>
 where
     S: QuotaDecisionPort + Send + Sync,
 {
+    let target = TenantId::new(&tenant_id).map_err(|e| {
+        (
+            StatusCode::BAD_REQUEST,
+            Json(ErrorBody {
+                error: e.to_string(),
+            }),
+        )
+    })?;
+    state
+        .authz
+        .ensure_authorized(&principal, QuotaAction::Read, &target)
+        .map_err(|_| forbidden())?;
     let request = ProvisionRequest::new(
         &tenant_id,
         body.requested_clusters,
@@ -285,12 +403,14 @@ pub async fn healthz() -> StatusCode {
 
 /// Build the axum router for the quota service.
 ///
-/// `store` must implement both `QuotaDecisionPort` and `QuotaAdminPort`.
-pub fn build_router<S>(store: S) -> Router
+/// `store` must implement both `QuotaDecisionPort` and `QuotaAdminPort`. The
+/// REQUIRED [`QuotaAuthzProvider`] makes the surface fail-closed by construction:
+/// there is no authz-less overload (no default-allow control plane).
+pub fn build_router<S>(store: S, authz: QuotaAuthzProvider) -> Router
 where
     S: QuotaDecisionPort + QuotaAdminPort + Clone + Send + Sync + 'static,
 {
-    let state: SharedState<S> = Arc::new(AppState { store });
+    let state: SharedState<S> = Arc::new(AppState { store, authz });
     Router::new()
         .route("/tenants/{id}/quota", put(put_quota::<S>))
         .route("/tenants/{id}/quota", get(get_quota::<S>))
@@ -307,6 +427,10 @@ pub enum BootError {
     Bind { address: String, error: String },
     /// Axum serve loop exited with an error.
     Serve(String),
+    /// The authorization provider could not be composed (empty bearer secret /
+    /// bound identity, or a Cedar policy compile failure). The service REFUSES
+    /// to serve — there is no default-allow fallback when authz is unavailable.
+    Authz(String),
 }
 
 impl fmt::Display for BootError {
@@ -314,21 +438,32 @@ impl fmt::Display for BootError {
         match self {
             Self::Bind { address, error } => write!(f, "bind {address}: {error}"),
             Self::Serve(e) => write!(f, "serve error: {e}"),
+            Self::Authz(e) => write!(f, "authz provider boot refused: {e}"),
         }
     }
 }
 
 impl std::error::Error for BootError {}
 
-/// Bind and serve the quota service.
+impl From<AuthzProviderConfigError> for BootError {
+    fn from(error: AuthzProviderConfigError) -> Self {
+        Self::Authz(error.to_string())
+    }
+}
+
+/// Bind and serve the quota service with the REQUIRED authz provider.
 ///
 /// # Errors
 /// Returns [`BootError`] if the listener cannot bind or the serve loop exits.
-pub async fn serve<S>(listen_addr: &str, store: S) -> Result<(), BootError>
+pub async fn serve<S>(
+    listen_addr: &str,
+    store: S,
+    authz: QuotaAuthzProvider,
+) -> Result<(), BootError>
 where
     S: QuotaDecisionPort + QuotaAdminPort + Clone + Send + Sync + 'static,
 {
-    let app = build_router(store);
+    let app = build_router(store, authz);
     let listener = tokio::net::TcpListener::bind(listen_addr)
         .await
         .map_err(|e| BootError::Bind {
