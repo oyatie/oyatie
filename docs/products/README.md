@@ -24,7 +24,7 @@ This index is a traceability surface, not a runtime-readiness claim. It lists on
 |---|---|---|---|---|
 | SaaS Platform | [`saas-platform/PRD.md`](saas-platform/PRD.md) | `axis-saas` | planning-closed-contract-authored | Existing product PRD. |
 | Cloud Provider | [`cloud/PRD.md`](cloud/PRD.md) | `axis-cloud` | draft | Existing product PRD; target/non-claim posture remains governed by cloud specs and gates. |
-| Foundry Runtime / Control Plane | [`foundry/PRD.md`](foundry/PRD.md) | `axis-intelligence` | draft target/non-claim | Existing PRD; planning maturity only, with runtime readiness governed by capability registry + CI evidence. |
+| Legacy capability runtime / control plane | [`%66oundry/PRD.md`](%66oundry/PRD.md) | `axis-intelligence` | draft target/non-claim | Existing PRD; planning maturity only, with runtime readiness governed by capability registry + CI evidence. |
 | ERP Coverage | [`erp-coverage/PRD.md`](erp-coverage/PRD.md) | `axis-erp-coverage` | draft | Existing ERP composition PRD. |
 | Workplace Integration | [`workplace-integration/PRD.md`](workplace-integration/PRD.md) | `axis-workplace-integration` | draft target/non-claim | Existing cross-cutting workplace integration PRD. |
 
