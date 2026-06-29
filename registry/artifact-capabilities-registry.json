@@ -2056,6 +2056,44 @@
           "last_modified_at": "2026-06-09T00:00:00Z"
         }
       }
+    },
+    {
+      "artifact_id": "delivery-readiness-reconciliation",
+      "artifact_path": "/specs/delivery-readiness-reconciliation.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture + platform-governance + platform-sre + product-leads",
+      "purpose_short": "Shape-neutral schema bundle for universe rows, clearance matrix, promotion packets, fixuptask links, and audit artifacts.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "verification": {
+          "command": "python3 -m json.tool specs/delivery-readiness-reconciliation.json && focused delivery-readiness structural validation"
+        },
+        "provenance": {
+          "current_author": "GJC + Ouroboros seed_f2f2be6d7c0f",
+          "current_reviewed_by": "pending",
+          "last_modified_at": "2026-06-29T12:44:53Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "delivery-readiness-current-state-20260629",
+      "artifact_path": "/evidence/ralplan/delivery-readiness-current-state-20260629.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture + platform-governance + platform-sre + product-leads",
+      "purpose_short": "Honest current-state delivery readiness rows generated from Ouroboros interview closure; denies unsupported Product-ready/Hyperscaler-ready promotions.",
+      "artifact_profile": "evidence-bundle",
+      "capability_overrides": {
+        "verification": {
+          "command": "focused delivery-readiness structural validation"
+        },
+        "provenance": {
+          "current_author": "GJC + Ouroboros seed_f2f2be6d7c0f",
+          "current_reviewed_by": "pending",
+          "last_modified_at": "2026-06-29T12:44:53Z"
+        }
+      }
     }
   ],
   "purpose": "Auto-backfilled purpose for artifact-capabilities-registry.json"
