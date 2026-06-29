@@ -214,6 +214,10 @@
       "prefix": "contracts/OWNERS"
     },
     {
+      "anchor": "ADR-0123 authority-cohesion gate ownership seed; exact-path registration for the non-code OWNERS artifact that owns the root-hub fixture corpus.",
+      "prefix": "libs/oya-check-authority-cohesion/OWNERS"
+    },
+    {
       "anchor": "ADR-0555 D3: reindeer-vendored third-party tree — a DERIVED class regenerated from Cargo.lock (drift impossible by regeneration); its accounting is the lockfile + buckification, not per-file mentions",
       "prefix": "third-party/"
     },

@@ -31,6 +31,7 @@
     "ledger": "Append-only timeline of state-change events.",
     "localization-pack": "Jurisdiction-specific pack overview and lifecycle authority.",
     "localization-pack-manifest": "Canonical jurisdiction-pack manifest consumed by gates and agents.",
+    "manifest": "Service manifest that redirects retired PRD pointers to the accepted {oya,cloud}/<service> topology.",
     "policy": "Decision rule (e.g., migration policy, retention policy).",
     "regional-pack": "Regional policy, regulatory, operational, and market-specific pack authority.",
     "registry": "Data plane with rows. Validators check row conformance to schema.",
@@ -153,11 +154,14 @@
       "purpose": "Append-only JSONL stream of changeset evidence emissions, lane runs, spec-version bumps, ADR acceptances, IP status flips, seam audit baselines. Schema: {event_type, change_id?, session_id, timestamp_unix, payload}."
     },
     "audit_kg_robustness": {
-      "current_path": "/registry/kg-audit/index.json",
-      "kind": "audit",
-      "migration_phase": "complete",
-      "purpose": "Read-only robustness audit of the 3-layer KG against dev + governance use cases. Findings filed as F-KG-01..06 in registry/fixuptasks.jsonl. Refreshed quarterly OR after any knowledge-graph schema change.",
-      "target_path_after_md_retirement": "same"
+      "current_path": "/registry/milestone-audit/index.json",
+      "current_path_status": "historical-audit-index-only",
+      "do_not_treat_as_live_audit_authority": true,
+      "kind": "ledger",
+      "migration_phase": "kg-audit-registry-not-promoted",
+      "purpose": "Historical KG audit hook. The formerly referenced /registry/kg-audit/index.json is not present in the live checkout; use /specs/knowledge-graph-schema.json plus /specs/microservices/ontology.json for current KG authority, and treat milestone-audit F-KG rows as historical planning evidence only.",
+      "retired_registry_path": "/registry/kg-audit/index.json",
+      "target_path_after_md_retirement": "no standalone KG audit registry is promoted until a schema/owner/gate-backed artifact exists"
     },
     "bespoke_cloud_toolchain_services": {
       "current_path": "/specs/bespoke-cloud-toolchain-services.json",
@@ -493,12 +497,13 @@
       "current_path": "/specs/microservices/ontology.json#type_system",
       "deprecated_path": "/registry/knowledge-graph-semantic.json (deleted 2026-05-17 per ADR-0139)",
       "kind": "registry",
-      "migration_phase": "complete (content migrated to specs/products/ontology.json#type_system per ADR-0139 compulsory deprecation 2026-05-17)",
+      "migration_phase": "complete (content migrated to specs/microservices/ontology.json#type_system per ADR-0139 compulsory deprecation 2026-05-17)",
       "path_correction_2026_05_20": {
         "previous_path": "/specs/products/ontology.json#type_system",
+        "previous_path_status": "retired-non-authoritative",
         "reason": "specs/products is retired in this checkout; live machine-readable surface is under specs/microservices."
       },
-      "purpose": "SEMANTIC layer: 36 node types + 27 edge types + 19 invariants + 11 read-side queries. Static structure of the knowledge graph. Now canonical home is specs/products/ontology.json#type_system.",
+      "purpose": "SEMANTIC layer: 36 node types + 27 edge types + 19 invariants + 11 read-side queries. Static structure of the knowledge graph. Now canonical home is specs/microservices/ontology.json#type_system.",
       "target_path_after_md_retirement": "same (already in ontology.json)"
     },
     "korea_localization_pack_manifest": {
@@ -684,34 +689,36 @@
       "target_path_after_md_retirement": "same"
     },
     "prd_community_network_retired": {
-      "current_path": "/microservices/community/PRD.md",
-      "kind": "prd",
+      "current_path": "/oya/community/manifest.json",
+      "current_path_status": "retired-prd-redirect-to-successor-manifest",
+      "kind": "manifest",
       "migration_phase": "retired-by-wave-15k-network-into-community-merge",
       "path_correction_2026_05_20": {
         "previous_path": "legacy network JSON projection",
         "reason": "Wave 15K retires network as standalone product and redirects its professional content into community."
       },
-      "purpose": "Retired network PRD pointer. Professional profile, connections, InMail, endorsements, recommendations, jobs, recruiter, skill assessments, pages, and events are now community scope.",
+      "purpose": "Retired network PRD pointer. Professional profile, connections, InMail, endorsements, recommendations, jobs, recruiter, skill assessments, pages, and events are now community scope. The live successor authority is the accepted-topology oya/community manifest.",
       "retired_on": "2026-05-21",
-      "successor_path": "/microservices/community/PRD.md",
-      "target_path_after_md_retirement": "/microservices/community/PRD.md until a community machine-readable successor projection is authored"
+      "successor_path": "/oya/community/manifest.json",
+      "target_path_after_md_retirement": "/oya/community/manifest.json until a community machine-readable PRD successor projection is authored"
     },
     "prd_community_shorts_retired": {
-      "current_path": "/microservices/social/PRD.md",
-      "kind": "prd",
+      "current_path": "/oya/social/manifest.json",
+      "current_path_status": "retired-prd-redirect-to-successor-manifest",
+      "kind": "manifest",
       "migration_phase": "retired-by-wave-15o-shorts-into-social-merge",
       "path_correction_2026_05_20": {
         "previous_path": "retired specs/products communications/shorts JSON",
         "reason": "specs/products is retired in this checkout; live machine-readable surface is under specs/microservices."
       },
-      "purpose": "Retired shorts PRD pointer. Short-form video is absorbed into community/social media flavor scope rather than a product-group wrapper.",
+      "purpose": "Retired shorts PRD pointer. Short-form video is absorbed into community/social media flavor scope rather than a product-group wrapper. The live successor authority is the accepted-topology oya/social manifest.",
       "retired_on": "2026-05-21",
       "retirement_correction_2026_05_21": {
         "previous_path": "/specs/microservices/shorts.json",
         "reason": "Wave 15O retires shorts as a standalone µservice and absorbs its short-form video capabilities into social per ADR-0334."
       },
-      "successor_path": "/microservices/social/PRD.md",
-      "target_path_after_md_retirement": "/microservices/social/PRD.md (short-video flavor section)"
+      "successor_path": "/oya/social/manifest.json",
+      "target_path_after_md_retirement": "/oya/social/manifest.json (short-video flavor section)"
     },
     "prd_community_social": {
       "current_path": "/specs/microservices/social.json",
@@ -733,20 +740,20 @@
     },
     "prd_foundry": {
       "absorbed_by": "intelligence",
-      "absorbing_manifest": "/microservices/intelligence/manifest.json",
+      "absorbing_manifest": "/oya/intelligence/manifest.json",
       "absorbing_prd_pointer": "prd_intelligence",
       "current_path": "/specs/microservices/intelligence.json",
       "current_path_status": "retirement_marker_only",
       "do_not_treat_as_live_authority": true,
       "kind": "prd",
       "migration_phase": "retired",
-      "purpose": "RETIRED — foundry µservice was absorbed into the intelligence µservice per ADR-0335 (Wave 15I) executing ADR-0255 KS#14 two-layer intelligence substrate. AI substrate concerns now live under intelligence; self-modification runs as oyatie.foundry.* Cedar principals per ADR-0247. Cite microservices/intelligence/manifest.json for live AI substrate authority; cite ADR-0335 for the retirement decision; cite microservices/intelligence/RETIRED.md for the redirect marker.",
+      "purpose": "RETIRED — foundry µservice was absorbed into the intelligence µservice per ADR-0335 (Wave 15I) executing ADR-0255 KS#14 two-layer intelligence substrate. AI substrate concerns now live under intelligence; self-modification runs as oyatie.foundry.* Cedar principals per ADR-0247. Cite oya/intelligence/manifest.json for live AI substrate authority; cite ADR-0335 for the retirement decision; cite oya/intelligence/README.md for the redirect marker.",
       "retired_at": "2026-05-21",
       "retired_by_adr": "ADR-0335",
       "retired_by_wave": "15I",
-      "retirement_marker": "/microservices/intelligence/RETIRED.md",
+      "retirement_marker": "/oya/intelligence/README.md",
       "status": "retired",
-      "target_path_after_md_retirement": "/microservices/intelligence/RETIRED.md"
+      "target_path_after_md_retirement": "/oya/intelligence/README.md"
     },
     "prd_global_trade": {
       "current_path": "/specs/microservices/global-trade.json",
@@ -763,7 +770,7 @@
       "target_path_after_md_retirement": "same"
     },
     "prd_intelligence": {
-      "absorbing_manifest": "/microservices/intelligence/manifest.json",
+      "absorbing_manifest": "/oya/intelligence/manifest.json",
       "current_path": "/specs/microservices/intelligence.json",
       "kind": "prd",
       "migration_phase": "foundry-absorbed-wave-15I",
@@ -799,13 +806,14 @@
       "target_path_after_md_retirement": "same"
     },
     "prd_network": {
-      "current_path": "/microservices/community/PRD.md",
-      "kind": "prd",
+      "current_path": "/oya/community/manifest.json",
+      "current_path_status": "retired-prd-redirect-to-successor-manifest",
+      "kind": "manifest",
       "migration_phase": "retired-by-wave-15k-network-into-community-merge",
-      "purpose": "Retired network PRD pointer. LinkedIn-class jobs/profile/recruiter content is absorbed into community; LinkedIn-style engagement feed remains forbidden.",
+      "purpose": "Retired network PRD pointer. LinkedIn-class jobs/profile/recruiter content is absorbed into community; LinkedIn-style engagement feed remains forbidden. The live successor authority is the accepted-topology oya/community manifest.",
       "retired_on": "2026-05-21",
-      "successor_path": "/microservices/community/PRD.md",
-      "target_path_after_md_retirement": "/microservices/community/PRD.md until a community machine-readable successor projection is authored"
+      "successor_path": "/oya/community/manifest.json",
+      "target_path_after_md_retirement": "/oya/community/manifest.json until a community machine-readable PRD successor projection is authored"
     },
     "prd_ontology": {
       "current_path": "/specs/microservices/ontology.json",
@@ -857,13 +865,14 @@
       "target_path_after_md_retirement": "same (machine-readable from inception)"
     },
     "prd_shorts": {
-      "current_path": "/microservices/social/PRD.md",
-      "kind": "prd",
+      "current_path": "/oya/social/manifest.json",
+      "current_path_status": "retired-prd-redirect-to-successor-manifest",
+      "kind": "manifest",
       "migration_phase": "retired-by-wave-15o-shorts-into-social-merge",
-      "purpose": "Retired shorts µservice PRD pointer. TikTok-/Reels-/YouTube-Shorts-class short-form video is absorbed into social as the TikTok-style media flavor per ADR-0334 (Wave 15O). Industry precedent (Instagram Reels in Instagram; YouTube Shorts in YouTube; X video in X) places short-video inside the social product, not in a sibling service.",
+      "purpose": "Retired shorts µservice PRD pointer. TikTok-/Reels-/YouTube-Shorts-class short-form video is absorbed into social as the TikTok-style media flavor per ADR-0334 (Wave 15O). Industry precedent (Instagram Reels in Instagram; YouTube Shorts in YouTube; X video in X) places short-video inside the social product, not in a sibling service. The live successor authority is the accepted-topology oya/social manifest.",
       "retired_on": "2026-05-21",
-      "successor_path": "/microservices/social/PRD.md",
-      "target_path_after_md_retirement": "/microservices/social/PRD.md (short-video flavor section)"
+      "successor_path": "/oya/social/manifest.json",
+      "target_path_after_md_retirement": "/oya/social/manifest.json (short-video flavor section)"
     },
     "prd_social": {
       "current_path": "/specs/microservices/social.json",
@@ -931,12 +940,24 @@
       "migration_phase": "retired",
       "purpose": "Historical pre-PR multispectrum evidence checklist pointer. The standalone evidence-file/spec convention is retired; use PR Code Review, independent reviewer-agent passes, typed quality-gate artifacts, and cloud-ci/oya-ci gate packets for current review evidence."
     },
+    "reachability_audit": {
+      "current_path": "docs/architecture/six-hops-reachability-audit-2026-05-20.md",
+      "do_not_promote_reachability_registry": true,
+      "kind": "audit",
+      "migration_phase": "audit-only-not-registry-authority",
+      "purpose": "Audit-only six-hop reachability snapshot. Track A does not promote /specs/reachability-registry.json because no schema/owner/gate-backed registry exists in this checkout; resolver authority is root-hub pointer validation plus this audit artifact.",
+      "session_worktree_state_authority": "none; .gjc session/worktree copies are non-authoritative for reachability classification",
+      "target_path_after_md_retirement": "same audit artifact until a schema/owner/gate-backed reachability registry is explicitly promoted"
+    },
     "reusable_building_blocks_registry": {
-      "current_path": "/registry/reusable-building-blocks-registry.json",
-      "kind": "registry",
-      "migration_phase": "complete (15 baseline blocks)",
-      "purpose": "DRY enforcement. Single canonical home per block + consumer_refs + consumer_selectors.",
-      "target_path_after_md_retirement": "same"
+      "current_path": "docs/decisions/ADR-0069-active-machine-readable-artifact-contract.md",
+      "current_path_status": "decision-authority-only",
+      "do_not_treat_as_live_registry_authority": true,
+      "kind": "decision",
+      "migration_phase": "registry-not-promoted-in-current-tree",
+      "planned_registry_path": "/registry/reusable-building-blocks-registry.json",
+      "purpose": "ADR-0069 defines the reusable building-blocks registry concept, but /registry/reusable-building-blocks-registry.json is not present in the live checkout and is not promoted as a live registry authority until a backed artifact exists.",
+      "target_path_after_md_retirement": "no standalone reusable-block registry is promoted until a schema/owner/gate-backed artifact exists"
     },
     "root_hub_pointers": {
       "current_path": "/specs/root-hub-pointers.json",
@@ -1203,7 +1224,12 @@
       "prd_community_anonymous",
       "prd_community_network_retired",
       "prd_community_shorts_retired",
-      "prd_community_social"
+      "prd_community_social",
+      "prd_network",
+      "prd_shorts",
+      "audit_kg_robustness",
+      "reusable_building_blocks_registry",
+      "reachability_audit"
     ],
     "thin_specs_deepened": [
       "/specs/agent-operating-contract.json",

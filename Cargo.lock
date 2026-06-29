@@ -5700,6 +5700,9 @@ version = "0.1.0"
 [[package]]
 name = "oya-check-authority-cohesion"
 version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
 
 [[package]]
 name = "oya-check-authz-tier-discipline"
