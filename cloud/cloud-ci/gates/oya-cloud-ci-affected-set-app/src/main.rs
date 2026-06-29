@@ -22,8 +22,9 @@ use std::path::PathBuf;
 use std::process::{Command, ExitCode, Stdio};
 
 use oya_cloud_ci_affected_set_app::{
-    Change, Decision, GATE_ID, PathClass, Plan, Policy, affected_set_operator_artifact,
-    build_health_verdict, failing_targets, parse_build_report, plan_changes, resolve,
+    Change, Decision, GATE_ID, GatePhaseOutcome, PathClass, Plan, Policy,
+    affected_set_operator_artifact, build_health_verdict, failing_targets, parse_build_report,
+    plan_changes, resolve,
 };
 
 const LOG: &str = "affected-set";
@@ -44,6 +45,14 @@ struct Args {
     /// Optional path for the durable machine-readable operator artifact that records the selected
     /// affected-set tier, refs, baseline requirement, and long-running phase signals.
     decision_artifact_out: Option<String>,
+}
+
+struct ArtifactContext {
+    path: String,
+    mode: &'static str,
+    resolved_base_ref: String,
+    resolved_head_ref: String,
+    baseline_report_present: bool,
 }
 
 #[derive(PartialEq, Eq, Clone, Copy)]
@@ -130,6 +139,13 @@ fn main() -> ExitCode {
         .base
         .clone()
         .unwrap_or_else(|| policy.default_base_ref.clone());
+    let artifact_context = match build_artifact_context(&args, &base) {
+        Ok(context) => context,
+        Err(e) => {
+            eprintln!("{LOG}: FAIL — cannot resolve refs for affected-set operator artifact: {e}");
+            return ExitCode::from(2);
+        }
+    };
 
     let decision = match args.mode {
         Mode::Full => Decision::Full {
@@ -138,16 +154,24 @@ fn main() -> ExitCode {
         Mode::Auto => derive(&args, &base, &policy, &buck2),
     };
 
-    if let Some(path) = &args.decision_artifact_out {
-        if let Err(e) = write_decision_artifact(path, &args, &base, &decision) {
-            eprintln!("{LOG}: FAIL — cannot write affected-set operator artifact `{path}`: {e}");
-            return ExitCode::from(2);
-        }
-        println!("{LOG}: operator-artifact: {path}");
-    }
-
     match decision {
         Decision::RefuseUnowned { paths } => {
+            let final_decision = Decision::RefuseUnowned {
+                paths: paths.clone(),
+            };
+            let phases = vec![
+                phase("derive-affected-set-tier", "completed", "decision.tier"),
+                phase(
+                    "binding-build-test",
+                    "not-run",
+                    "owner-required file refused before build",
+                ),
+            ];
+            if let Err(e) =
+                maybe_write_decision_artifact(&artifact_context, &final_decision, &phases)
+            {
+                return artifact_failure(e);
+            }
             eprintln!("{LOG}: FAIL — owner-required file(s) with NO owning buck2 target:");
             for p in &paths {
                 eprintln!("{LOG}:   {p}");
@@ -160,6 +184,16 @@ fn main() -> ExitCode {
             ExitCode::from(2)
         }
         Decision::NoGraphTargets => {
+            let final_decision = Decision::NoGraphTargets;
+            let phases = vec![
+                phase("derive-affected-set-tier", "completed", "decision.tier"),
+                phase("binding-build-test", "not-run", "no graph targets"),
+            ];
+            if let Err(e) =
+                maybe_write_decision_artifact(&artifact_context, &final_decision, &phases)
+            {
+                return artifact_failure(e);
+            }
             println!(
                 "{LOG}: decision=NO-GRAPH-TARGETS — every changed file is unowned and not in any \
                  owner-required class (docs/config-text outside the buildfile/escape classes) -> PASS"
@@ -167,18 +201,74 @@ fn main() -> ExitCode {
             ExitCode::SUCCESS
         }
         Decision::Full { reasons } => {
+            let final_decision = Decision::Full {
+                reasons: reasons.clone(),
+            };
             println!("{LOG}: decision=FULL — running the complete workspace, because:");
             for r in &reasons {
                 println!("{LOG}:   - {r}");
             }
             if args.derive_only {
+                let phases = vec![
+                    phase("derive-affected-set-tier", "completed", "decision.tier"),
+                    phase(
+                        "materialize-merge-base-build-health-baseline",
+                        if args.baseline_report.is_some() {
+                            "present"
+                        } else if args.mode == Mode::Auto {
+                            "absent"
+                        } else {
+                            "not-required"
+                        },
+                        "merge_base_build_health_baseline.report_present",
+                    ),
+                    phase("binding-build-test", "not-run", "--derive-only"),
+                ];
+                if let Err(e) =
+                    maybe_write_decision_artifact(&artifact_context, &final_decision, &phases)
+                {
+                    return artifact_failure(e);
+                }
                 println!(
                     "{LOG}: --derive-only: would run `{buck2} build` + `{buck2} test` on: {}",
                     policy.full_run_targets.join(" ")
                 );
                 return ExitCode::SUCCESS;
             }
-            run_full(&buck2, &policy, args.baseline_report.as_deref())
+            let code = run_full(&buck2, &policy, args.baseline_report.as_deref());
+            let phases = vec![
+                phase(
+                    "derive-affected-set-tier",
+                    if args.mode == Mode::Full {
+                        "bypassed-mode-full"
+                    } else {
+                        "completed"
+                    },
+                    "decision.tier",
+                ),
+                phase(
+                    "materialize-merge-base-build-health-baseline",
+                    if args.baseline_report.is_some() {
+                        "present"
+                    } else if args.mode == Mode::Auto {
+                        "absent"
+                    } else {
+                        "not-required"
+                    },
+                    "merge_base_build_health_baseline.report_present",
+                ),
+                phase(
+                    "binding-build-test",
+                    "completed-check-exit-code",
+                    "FULL workspace run completed; verdict is process exit code",
+                ),
+            ];
+            if let Err(e) =
+                maybe_write_decision_artifact(&artifact_context, &final_decision, &phases)
+            {
+                return artifact_failure(e);
+            }
+            code
         }
         Decision::Affected { seeds } => {
             println!(
@@ -194,29 +284,135 @@ fn main() -> ExitCode {
                     for t in &targets {
                         println!("{LOG}:   {t}");
                     }
+                    let final_decision = Decision::Affected {
+                        seeds: seeds.clone(),
+                    };
                     if args.derive_only {
+                        let phases = vec![
+                            phase("derive-affected-set-tier", "completed", "decision.tier"),
+                            phase(
+                                "rdeps-closure",
+                                "completed",
+                                format!("{} affected target(s)", targets.len()),
+                            ),
+                            phase("binding-build-test", "not-run", "--derive-only"),
+                        ];
+                        if let Err(e) = maybe_write_decision_artifact(
+                            &artifact_context,
+                            &final_decision,
+                            &phases,
+                        ) {
+                            return artifact_failure(e);
+                        }
                         println!("{LOG}: --derive-only: stopping before build/test.");
                         return ExitCode::SUCCESS;
                     }
                     match write_argfile("targets", &targets) {
-                        Ok(path) => run_buck(&buck2, &[], Some(&path)),
+                        Ok(path) => {
+                            let code = run_buck(&buck2, &[], Some(&path));
+                            let phases = vec![
+                                phase("derive-affected-set-tier", "completed", "decision.tier"),
+                                phase(
+                                    "rdeps-closure",
+                                    "completed",
+                                    format!("{} affected target(s)", targets.len()),
+                                ),
+                                phase(
+                                    "target-argfile",
+                                    "completed",
+                                    format!("target list preserved at {}", path.display()),
+                                ),
+                                phase(
+                                    "binding-build-test",
+                                    "completed-check-exit-code",
+                                    "affected target build/test completed; verdict is process exit code",
+                                ),
+                            ];
+                            if let Err(e) = maybe_write_decision_artifact(
+                                &artifact_context,
+                                &final_decision,
+                                &phases,
+                            ) {
+                                return artifact_failure(e);
+                            }
+                            code
+                        }
                         Err(e) => {
                             // Cannot even materialize the argfile: escalate, never skip.
                             println!("{LOG}: ESCALATE to FULL — argfile write failed: {e}");
-                            run_full(&buck2, &policy, args.baseline_report.as_deref())
+                            let final_decision = Decision::Full {
+                                reasons: vec![format!(
+                                    "argfile write failed after AFFECTED decision: {e}"
+                                )],
+                            };
+                            let code = run_full(&buck2, &policy, args.baseline_report.as_deref());
+                            let phases = vec![
+                                phase("derive-affected-set-tier", "completed", "decision.tier"),
+                                phase(
+                                    "rdeps-closure",
+                                    "completed",
+                                    format!("{} affected target(s)", targets.len()),
+                                ),
+                                phase("target-argfile", "failed-escalated", e.to_string()),
+                                phase(
+                                    "binding-build-test",
+                                    "completed-check-exit-code",
+                                    "FULL escalation executed after argfile failure",
+                                ),
+                            ];
+                            if let Err(e) = maybe_write_decision_artifact(
+                                &artifact_context,
+                                &final_decision,
+                                &phases,
+                            ) {
+                                return artifact_failure(e);
+                            }
+                            code
                         }
                     }
                 }
                 Err(reason) => {
                     println!("{LOG}: ESCALATE to FULL — {reason}");
+                    let final_decision = Decision::Full {
+                        reasons: vec![format!(
+                            "rdeps closure failed after AFFECTED decision: {reason}"
+                        )],
+                    };
                     if args.derive_only {
+                        let phases = vec![
+                            phase("derive-affected-set-tier", "completed", "decision.tier"),
+                            phase("rdeps-closure", "failed-escalated", reason.clone()),
+                            phase("binding-build-test", "not-run", "--derive-only"),
+                        ];
+                        if let Err(e) = maybe_write_decision_artifact(
+                            &artifact_context,
+                            &final_decision,
+                            &phases,
+                        ) {
+                            return artifact_failure(e);
+                        }
                         println!(
                             "{LOG}: --derive-only: would run the full workspace: {}",
                             policy.full_run_targets.join(" ")
                         );
                         return ExitCode::SUCCESS;
                     }
-                    run_full(&buck2, &policy, args.baseline_report.as_deref())
+                    let code = run_full(&buck2, &policy, args.baseline_report.as_deref());
+                    let phases = vec![
+                        phase("derive-affected-set-tier", "completed", "decision.tier"),
+                        phase("rdeps-closure", "failed-escalated", reason),
+                        phase(
+                            "binding-build-test",
+                            "completed-check-exit-code",
+                            "FULL escalation executed after rdeps failure",
+                        ),
+                    ];
+                    if let Err(e) =
+                        maybe_write_decision_artifact(&artifact_context, &final_decision, &phases)
+                    {
+                        return artifact_failure(e);
+                    }
+                    code
                 }
             }
         }
@@ -230,22 +426,64 @@ fn mode_name(mode: Mode) -> &'static str {
     }
 }
 
-fn write_decision_artifact(
-    path: &str,
-    args: &Args,
-    base: &str,
+fn build_artifact_context(args: &Args, base: &str) -> Result<Option<ArtifactContext>, String> {
+    let Some(path) = &args.decision_artifact_out else {
+        return Ok(None);
+    };
+    Ok(Some(ArtifactContext {
+        path: path.clone(),
+        mode: mode_name(args.mode),
+        resolved_base_ref: resolve_git_ref(base)?,
+        resolved_head_ref: resolve_git_ref(&args.head)?,
+        baseline_report_present: args.baseline_report.is_some(),
+    }))
+}
+
+fn resolve_git_ref(reference: &str) -> Result<String, String> {
+    let resolved = capture("git", &["rev-parse", "--verify", reference])?;
+    let resolved = resolved.trim();
+    if resolved.is_empty() {
+        return Err(format!(
+            "git rev-parse --verify {reference} produced an empty ref"
+        ));
+    }
+    Ok(resolved.to_owned())
+}
+
+fn maybe_write_decision_artifact(
+    context: &Option<ArtifactContext>,
     decision: &Decision,
+    phases: &[GatePhaseOutcome],
 ) -> Result<(), String> {
+    let Some(context) = context else {
+        return Ok(());
+    };
     let artifact = affected_set_operator_artifact(
-        mode_name(args.mode),
-        base,
-        &args.head,
-        args.baseline_report.is_some(),
+        context.mode,
+        &context.resolved_base_ref,
+        &context.resolved_head_ref,
+        context.baseline_report_present,
         decision,
+        phases,
     );
     let bytes = serde_json::to_vec_pretty(&artifact)
         .map_err(|e| format!("serialize affected-set operator artifact: {e}"))?;
-    fs::write(path, bytes).map_err(|e| e.to_string())
+    fs::write(&context.path, bytes).map_err(|e| e.to_string())?;
+    println!("{LOG}: operator-artifact: {}", context.path);
+    Ok(())
+}
+
+fn artifact_failure(error: String) -> ExitCode {
+    eprintln!("{LOG}: FAIL — cannot write affected-set operator artifact: {error}");
+    ExitCode::from(2)
+}
+
+fn phase(
+    phase: impl Into<String>,
+    status: impl Into<String>,
+    operator_signal: impl Into<String>,
+) -> GatePhaseOutcome {
+    GatePhaseOutcome::new(phase, status, operator_signal)
 }
 
 /// Auto-mode derivation. Any uncertainty returns `Decision::Full` with the reason (fail-closed

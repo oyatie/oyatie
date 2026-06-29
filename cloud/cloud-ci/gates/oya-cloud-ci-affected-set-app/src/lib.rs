@@ -464,16 +464,42 @@ pub fn resolve(
     Decision::NoGraphTargets
 }
 
+/// One actual phase outcome recorded by the affected-set composition root.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct GatePhaseOutcome {
+    /// Stable phase id.
+    pub phase: String,
+    /// Observed outcome (`completed`, `failed-escalated`, `not-run`, `completed-check-exit-code`, ...).
+    pub status: String,
+    /// Operator-facing pointer to the relevant artifact field, command, or reason.
+    pub operator_signal: String,
+}
+
+impl GatePhaseOutcome {
+    pub fn new(
+        phase: impl Into<String>,
+        status: impl Into<String>,
+        operator_signal: impl Into<String>,
+    ) -> Self {
+        Self {
+            phase: phase.into(),
+            status: status.into(),
+            operator_signal: operator_signal.into(),
+        }
+    }
+}
+
 /// Machine-readable operator artifact for the affected-set tier decision.
 ///
 /// The artifact is redaction-safe: it contains refs, target labels, path classifications already
 /// printed by the gate, and policy state; it never embeds secrets, DSNs, or raw environment values.
 pub fn affected_set_operator_artifact(
     mode: &str,
-    base_ref: &str,
-    head_ref: &str,
+    resolved_base_ref: &str,
+    resolved_head_ref: &str,
     baseline_report_present: bool,
     decision: &Decision,
+    phases: &[GatePhaseOutcome],
 ) -> Value {
     let decision_value = match decision {
         Decision::RefuseUnowned { paths } => json!({
@@ -505,9 +531,9 @@ pub fn affected_set_operator_artifact(
         "artifact_id": "affected-set-tier-decision",
         "gate_id": GATE_ID,
         "mode": mode,
-        "refs": {
-            "base": base_ref,
-            "head": head_ref,
+        "resolved_refs": {
+            "base": resolved_base_ref,
+            "head": resolved_head_ref,
         },
         "decision": decision_value,
         "merge_base_build_health_baseline": {
@@ -515,31 +541,14 @@ pub fn affected_set_operator_artifact(
             "report_present": baseline_report_present,
             "anti_laundering": "baseline report must be produced from the merge-base committed tree, never the candidate tree"
         },
-        "long_running_gate_phases": [
-            {
-                "phase": "derive-affected-set-tier",
-                "status": "completed",
-                "operator_signal": "decision.tier"
-            },
-            {
-                "phase": "materialize-merge-base-build-health-baseline",
-                "status": if matches!(decision, Decision::Full { .. }) && mode == "auto" {
-                    "required"
-                } else {
-                    "not-required"
-                },
-                "operator_signal": "merge_base_build_health_baseline"
-            },
-            {
-                "phase": "binding-build-test",
-                "status": if matches!(decision, Decision::NoGraphTargets | Decision::RefuseUnowned { .. }) {
-                    "not-run"
-                } else {
-                    "pending-after-decision"
-                },
-                "operator_signal": "gate exit code and build-health verdict"
-            }
-        ],
+        "long_running_gate_phases": phases
+            .iter()
+            .map(|phase| json!({
+                "phase": phase.phase.as_str(),
+                "status": phase.status.as_str(),
+                "operator_signal": phase.operator_signal.as_str(),
+            }))
+            .collect::<Vec<_>>(),
         "retention_and_pii": {
             "retention_days": 30,
             "pii": "none; refs, repo paths, and target labels only",
@@ -897,9 +906,36 @@ mod tests {
             reasons: vec!["buildfile `BUCK` changed".to_owned()],
         };
 
-        let artifact =
-            affected_set_operator_artifact("auto", "origin/dev", "HEAD", false, &decision);
+        let phases = vec![
+            GatePhaseOutcome::new("derive-affected-set-tier", "completed", "decision.tier"),
+            GatePhaseOutcome::new(
+                "rdeps-closure",
+                "failed-escalated",
+                "rdeps returned an empty closure for non-empty seeds",
+            ),
+            GatePhaseOutcome::new(
+                "binding-build-test",
+                "completed-check-exit-code",
+                "FULL escalation executed after rdeps failure",
+            ),
+        ];
+        let artifact = affected_set_operator_artifact(
+            "auto",
+            "0123456789abcdef0123456789abcdef01234567",
+            "89abcdef0123456789abcdef0123456789abcdef",
+            false,
+            &decision,
+            &phases,
+        );
 
+        assert_eq!(
+            artifact["resolved_refs"]["base"],
+            "0123456789abcdef0123456789abcdef01234567"
+        );
+        assert_eq!(
+            artifact["resolved_refs"]["head"],
+            "89abcdef0123456789abcdef0123456789abcdef"
+        );
         assert_eq!(artifact["artifact_type"], "cloud_ci_operator_artifact");
         assert_eq!(artifact["artifact_id"], "affected-set-tier-decision");
         assert_eq!(artifact["decision"]["tier"], "FULL");
@@ -910,11 +946,11 @@ mod tests {
         );
         assert_eq!(
             artifact["long_running_gate_phases"][1]["phase"],
-            "materialize-merge-base-build-health-baseline"
+            "rdeps-closure"
         );
         assert_eq!(
             artifact["long_running_gate_phases"][1]["status"],
-            "required"
+            "failed-escalated"
         );
         let rendered = artifact.to_string();
         assert!(
@@ -932,8 +968,23 @@ mod tests {
             ],
         };
 
-        let artifact =
-            affected_set_operator_artifact("auto", "origin/dev", "HEAD", false, &decision);
+        let phases = vec![
+            GatePhaseOutcome::new("derive-affected-set-tier", "completed", "decision.tier"),
+            GatePhaseOutcome::new("rdeps-closure", "completed", "2 affected targets"),
+            GatePhaseOutcome::new(
+                "binding-build-test",
+                "pending-after-decision",
+                "gate exit code and build-health verdict",
+            ),
+        ];
+        let artifact = affected_set_operator_artifact(
+            "auto",
+            "0123456789abcdef0123456789abcdef01234567",
+            "89abcdef0123456789abcdef0123456789abcdef",
+            false,
+            &decision,
+            &phases,
+        );
 
         assert_eq!(artifact["decision"]["tier"], "AFFECTED");
         assert_eq!(artifact["decision"]["seed_count"], 2);
