@@ -31,7 +31,9 @@
       "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-field-unknown-classifier-duplicate.json",
       "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-oya-cli-authority.json",
       "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-pre-merge-review-authority.json",
-      "specs/fixtures/phase0-automation-ratchet/tc-0.16-good-pre-merge-review-authority.json"
+      "specs/fixtures/phase0-automation-ratchet/tc-0.16-good-pre-merge-review-authority.json",
+      "specs/fixtures/phase0-automation-ratchet/tc-pipeline-bar-bad-unbaselined-orchestrator-exception.json",
+      "specs/fixtures/phase0-automation-ratchet/tc-pipeline-bar-good-explicit-orchestrator-exception.json"
     ],
     "fixture_directory": "specs/fixtures/phase0-automation-ratchet",
     "required_red_green_pairs": [
@@ -54,6 +56,11 @@
         "green": "tc-0.16-good-pre-merge-review-authority.json",
         "red": "tc-0.16-bad-missing-pre-merge-review-authority.json",
         "tc_id": "G004-review-authority"
+      },
+      {
+        "green": "tc-pipeline-bar-good-explicit-orchestrator-exception.json",
+        "red": "tc-pipeline-bar-bad-unbaselined-orchestrator-exception.json",
+        "tc_id": "ADR-0548-pipeline-bar-orchestrator-exception"
       }
     ]
   },
@@ -67,7 +74,25 @@
       "a row lacks owner/target/fixture/retirement/evidence fields",
       "a row maps a blocking invariant to an oya CLI invocation",
       "a transitory bridge lacks deletion or cutover criteria",
-      "a merge-admission row requires pre-merge review authority but has no live review-authority source with durable review evidence or a machine-verifiable review status that blocks merge and proves reviewer != author"
+      "a merge-admission row requires pre-merge review authority but has no live review-authority source with durable review evidence or a machine-verifiable review status that blocks merge and proves reviewer != author",
+      "a pipeline-bar row lacks hermeticity, automation/autofix-or-no-autofix disposition, policy-as-data, cloud-native path, API-driven path, Buck2 production path, or owner/reason/expiry-or-cutover baseline for orchestrator exceptions"
+    ]
+  },
+  "pipeline_bar_contract": {
+    "authority": "docs/decisions/ADR-0548-pipeline-as-product-paved-road.md#D8",
+    "exception_baseline_required_fields": [
+      "owner",
+      "reason",
+      "expires_at_or_cutover"
+    ],
+    "required_properties": [
+      "hermetic",
+      "autofix_command_or_no_autofix_reason",
+      "policy_as_data",
+      "cloud_native",
+      "api_driven",
+      "buck2_prod_path",
+      "orchestrator_exception_baseline_when_exception_present"
     ]
   },
   "known_gaps_before_green": [

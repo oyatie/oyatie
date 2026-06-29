@@ -1,0 +1,34 @@
+{
+  "description": "A pipeline-bar row with an orchestrator exception must carry owner, reason, and expiry or cutover baseline data.",
+  "expected_verdict": "RED",
+  "expected_violations": [
+    "pipeline_bar_unbaselined_orchestrator_exception"
+  ],
+  "fixture_id": "TC-PIPELINE-BAR-BAD-unbaselined-orchestrator-exception",
+  "rows": [
+    {
+      "blocking_fixture": "specs/fixtures/phase0-automation-ratchet/tc-pipeline-bar-bad-unbaselined-orchestrator-exception.json",
+      "classification": "automated_blocking_now",
+      "enforceable_or_automatable": true,
+      "evidence_path": "specs/phase0-automation-matrix.json#pipeline_bar_contract",
+      "id": "PIPELINE-BAR-unbaselined-orchestrator-exception",
+      "no_new_oya_cli_surface": true,
+      "owner": "platform-toolchain",
+      "pipeline_bar": {
+        "api_driven": true,
+        "buck2_prod_path": "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app:oya-cloud-ci-automation-ratchet-app-gate",
+        "cloud_native": true,
+        "hermetic": true,
+        "no_autofix_reason": "This fixture models an orchestrator exception, not a mechanically rewritable source change.",
+        "orchestrator_exception": "Temporary human/orchestrator bridge without a baseline.",
+        "policy_as_data": true
+      },
+      "pipeline_bar_required": true,
+      "requirement": "Pipeline gates must satisfy the ADR-0548 seven-property bar, and any orchestrator exception must be baselined.",
+      "retirement_phase": "P0.0",
+      "source_artifact": "docs/decisions/ADR-0548-pipeline-as-product-paved-road.md#D8",
+      "target_gate_or_controller": "cloud-ci-automation-ratchet pipeline-bar meta-gate"
+    }
+  ],
+  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/tests/automation_ratchet.rs"
+}
