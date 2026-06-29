@@ -16,9 +16,7 @@
 use std::path::{Path, PathBuf};
 
 use oya_advisory_mirror_kernel::{Advisory, canonical_hash};
-use oya_cloud_ci_supply_chain_audit_app::{
-    GATE_ID, collect, evaluate_keyed, render_findings,
-};
+use oya_cloud_ci_supply_chain_audit_app::{GATE_ID, collect, evaluate_keyed, render_findings};
 use serde_json::{Value, json};
 
 /// Walk up from the test's working directory to the repo root (the dir holding the canonical
@@ -37,7 +35,9 @@ fn repo_root() -> PathBuf {
 }
 
 fn policy_path(root: &Path) -> PathBuf {
-    root.join("cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/supply-chain-audit-policy.json")
+    root.join(
+        "cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/supply-chain-audit-policy.json",
+    )
 }
 
 fn load_policy(root: &Path) -> Value {
@@ -62,6 +62,59 @@ fn live_corpus_is_born_blocking_green() {
         "the supply-chain-audit gate must be born-blocking GREEN on the live corpus (quinn fixed; \
          the 3 unmaintained ids in policy.ignore). Live findings:\n{}",
         render_findings(&findings)
+    );
+}
+
+#[test]
+fn active_admission_wires_signature_provenance_sbom_and_vet_posture() {
+    let root = repo_root();
+
+    let workflow = std::fs::read_to_string(root.join(".github/workflows/oya-ci-required.yml"))
+        .expect("read oya-ci-required workflow");
+    assert!(
+        workflow.contains("oya-cloud-ci-supply-chain-audit-app")
+            && workflow.contains("gate · supply-chain-audit"),
+        "the supply-chain audit gate must be part of the active oya-ci-required admission matrix"
+    );
+
+    let kyverno =
+        std::fs::read_to_string(root.join("infra/kyverno/policies/verify-image-signed.yaml"))
+            .expect("read keyless image policy");
+    for required in [
+        "keyless:",
+        "rekor:",
+        "https://slsa.dev/provenance/v1",
+        "https://cyclonedx.org/bom",
+        "https://token.actions.githubusercontent.com",
+    ] {
+        assert!(
+            kyverno.contains(required),
+            "keyless supply-chain admission policy must contain {required:?}"
+        );
+    }
+    for forbidden in ["ExternalSecret", "cosign-key", "cosign-pub", "publicKeys:"] {
+        assert!(
+            !kyverno.contains(forbidden),
+            "static-key-only Cosign admission is not readiness authority; found {forbidden:?}"
+        );
+    }
+
+    let checklist =
+        std::fs::read_to_string(root.join("docs/checklists/release-readiness-checklist.md"))
+            .expect("read release readiness checklist");
+    assert!(
+        checklist.contains("cloud-ci-supply-chain-audit")
+            && !checklist.contains("Command:* `cargo vet`")
+            && !checklist.contains("Command: `cargo vet`"),
+        "release readiness must point at active cloud-ci supply-chain admission, not a missing cargo-vet command"
+    );
+
+    let cargo_vet_doc = std::fs::read_to_string(root.join("docs/governance-lanes/cargo-vet.md"))
+        .expect("read cargo-vet governance lane");
+    assert!(
+        cargo_vet_doc.contains("Retired from live admission")
+            && cargo_vet_doc.contains("ci_invocation: none while retired"),
+        "cargo-vet must be explicitly retired from live readiness authority until maintained inputs exist"
     );
 }
 
@@ -146,7 +199,8 @@ fn synthetic_unmaintained_absent_then_present_in_ignore() {
 
     // Present in ignore → clean.
     let mut p2 = synthetic_policy(&root);
-    p2["ignore"] = json!([{ "id": "RUSTSEC-2024-0436", "reason": "no drop-in", "remove_by": "2026-12-31" }]);
+    p2["ignore"] =
+        json!([{ "id": "RUSTSEC-2024-0436", "reason": "no drop-in", "remove_by": "2026-12-31" }]);
     assert!(
         evaluate_keyed(&p2, &obs).is_empty(),
         "an ignored, live-affected unmaintained crate must be clean"

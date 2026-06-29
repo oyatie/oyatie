@@ -3,6 +3,11 @@ purpose: Oyatie — Canonical Docs Changelog
 doc_status: published
 ---
 
+## 2026-06-29 — Supply-chain admission proof wired into active gate
+
+- Replaced the in-cluster registry static-key Cosign admission policy with keyless Sigstore/Rekor plus SLSA provenance and CycloneDX SBOM attestation checks.
+- Retired `cargo-vet` from live readiness authority until maintained inputs exist, and added a `cloud-ci-supply-chain-audit` self-test proving the active `oya-ci-required` path covers signature/provenance/SBOM/dependency posture.
+
 ## 2026-06-10 — ADR-0544 friction-ledger closed-loop accounting gate authored
 
 - Added ADR-0544 and the `cloud-ci-friction-accounting` meta-gate: every friction-ledger row must
