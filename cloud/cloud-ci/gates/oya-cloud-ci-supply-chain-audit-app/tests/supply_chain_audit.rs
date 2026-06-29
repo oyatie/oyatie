@@ -80,6 +80,7 @@ fn active_admission_wires_signature_provenance_sbom_and_vet_posture() {
     let kyverno =
         std::fs::read_to_string(root.join("infra/kyverno/policies/verify-image-signed.yaml"))
             .expect("read keyless image policy");
+    let broad_github_workflow = ["https://github.com/", ".+/.+", "/.github/workflows"].concat();
     for required in [
         "keyless:",
         "rekor:",
@@ -98,7 +99,7 @@ fn active_admission_wires_signature_provenance_sbom_and_vet_posture() {
         "cosign-key",
         "cosign-pub",
         "publicKeys:",
-        "https://github.com/.+/.+/.github/workflows",
+        broad_github_workflow.as_str(),
     ] {
         assert!(
             !kyverno.contains(forbidden),
@@ -112,9 +113,21 @@ fn active_admission_wires_signature_provenance_sbom_and_vet_posture() {
     assert!(
         legacy_keyless_policy
             .contains("https://github.com/jason931225/oyatie/.github/workflows/.+@refs/(heads/dev|tags/v.+)")
-            && !legacy_keyless_policy.contains("https://github.com/.+/.+/.github/workflows"),
+            && !legacy_keyless_policy.contains(&broad_github_workflow),
         "secondary keyless policy must not keep the any-GitHub-repository wildcard"
     );
+
+    for rel in [
+        "marketplace/facade/dev-cli/src/commands/supply_chain.rs",
+        "marketplace/facade/dev-cli/src/cloud_iac_kubewarden_admission_gate.rs",
+    ] {
+        let source = std::fs::read_to_string(root.join(rel)).expect("read supply-chain source");
+        assert!(
+            source.contains("https://github.com/jason931225/oyatie/.github/workflows/.+@refs/(heads/dev|tags/v.+)")
+                && !source.contains(&broad_github_workflow),
+            "{rel} must not preserve the any-GitHub-repository Cosign identity wildcard"
+        );
+    }
 
     let checklist =
         std::fs::read_to_string(root.join("docs/checklists/release-readiness-checklist.md"))

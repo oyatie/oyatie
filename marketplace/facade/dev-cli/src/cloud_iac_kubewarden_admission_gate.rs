@@ -737,7 +737,7 @@ spec:
             - entries:
                 - keyless:
                     issuer: "https://token.actions.githubusercontent.com"
-                    subjectRegExp: "https://github.com/.+/.+/.github/workflows/.+@refs/tags/v.+"
+                    subjectRegExp: "https://github.com/jason931225/oyatie/.github/workflows/.+@refs/(heads/dev|tags/v.+)"
                     rekor:
                       url: "https://rekor.sigstore.dev"
 "#

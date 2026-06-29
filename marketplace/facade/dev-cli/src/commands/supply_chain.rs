@@ -17,7 +17,8 @@ use crate::command_process::process_status_label;
 const DEFAULT_ARTIFACTS_DIR: &str = "artifacts/supply-chain";
 const DEFAULT_REKOR_URL: &str = "https://rekor.sigstore.dev";
 const DEFAULT_ISSUER: &str = "https://token.actions.githubusercontent.com";
-const DEFAULT_IDENTITY_REGEXP: &str = "https://github.com/.+/.+/.github/workflows/.+@refs/tags/v.+";
+const DEFAULT_IDENTITY_REGEXP: &str =
+    "https://github.com/jason931225/oyatie/.github/workflows/.+@refs/(heads/dev|tags/v.+)";
 const DEFAULT_TRIVY_VERSION: &str = "0.70.0";
 const DEFAULT_TRIVY_INSTALL_DIR: &str = "/usr/local/bin";
 
@@ -833,6 +834,9 @@ mod tests {
         assert!(rendered.contains("cosign sign --yes"));
         assert!(rendered.contains("cosign verify --rekor-url"));
         assert!(rendered.contains("cosign attest --yes"));
+        assert!(rendered.contains(DEFAULT_IDENTITY_REGEXP));
+        let broad_github_workflow = ["https://github.com/", ".+/.+", "/.github/workflows"].concat();
+        assert!(!rendered.contains(&broad_github_workflow));
         let _ = fs::remove_dir_all(dir);
     }
 
