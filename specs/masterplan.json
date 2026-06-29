@@ -28,6 +28,22 @@
       ".omx/plans/prd-platform-readiness.md",
       ".omx/plans/test-spec-phase0.md"
     ],
+    "retired_plan_reference_policy": {
+      "status": "historical_provenance_only",
+      "purpose": "Retired .omc/.omx references in this masterplan are provenance/history breadcrumbs only. Live readiness, promotion, and gate evaluation must use the machine-readable specs, registries, task plans, and CI gate inputs listed here; gates must not follow retired plan paths as executable authority.",
+      "retired_prefixes": [
+        ".omc/",
+        ".omx/"
+      ],
+      "live_gate_input_refs": [
+        "/specs/masterplan.json",
+        "/specs/master-plan-sequencing.json",
+        "/specs/planning-closure-status-closure-ledger.json",
+        "/registry/capabilities/foundry-internal.json",
+        "/docs/products/README.md",
+        "/tasks/plan.md"
+      ]
+    },
     "icm_scaffold_lock_id": "01KRJM0QGGKVCMVS2FFVAHZBYS",
     "gitops_vcs_directive_2026_05_14": "Historical/future-target/provenance-only directive: move the Oya VCS replacement earlier and upgrade it for polyglot AST/semantic claims, enforced unit/integration/e2e standards, CI/CD review-fix loops, controller-owned rebase/merge queue, and GitOps promotion. Current live planning closure uses plain git protected PRs plus oya-ci-required/cloud-ci; ADR-0116 retires grit/icm/rtk/vox as transition authorities.",
     "scaffold_lock_ids": [
@@ -1230,8 +1246,14 @@
     }
   },
   "implementation_plan_contract": {
-    "applies_to_globs": [
+    "legacy_applies_to_globs": [
       ".omc/plans/milestones/*/phases/*/IP-*.md"
+    ],
+    "legacy_applies_to_globs_status": "historical_provenance_only",
+    "live_applies_to_artifacts": [
+      "/tasks/*-plan.md",
+      "/specs/masterplan.json#milestones",
+      "/specs/master-plan-sequencing.json"
     ],
     "definition": "Every ImplementationPlan is a ChangeSet-sized execution unit. It must be claimable, independently verifiable, bundleable, promotable, and small enough to avoid locking an entire tree without graph-proven rationale.",
     "must_have": [
@@ -1327,9 +1349,16 @@
         }
       ]
     },
-    "current_runtime_index_source": "implementation_plan_contract.current_tree_count plus cloud-ci/Rust honest-claims gate packet (legacy local oya scan is provenance only)",
+    "current_runtime_index_source": "Live selection uses /specs/master-plan-sequencing.json, task plans, and cloud-ci/Rust honest-claims gate packets; the legacy local scan is provenance only.",
     "current_runtime_implementation_plan_count": 172,
-    "source_root": ".omc/plans/milestones",
+    "retired_source_root": ".omc/plans/milestones",
+    "retired_source_root_status": "historical_provenance_only",
+    "live_source_roots": [
+      "tasks",
+      "specs",
+      "registry",
+      "evidence"
+    ],
     "milestone_count": 9,
     "phase_count": 78,
     "implementation_plan_count": 150,
@@ -5795,7 +5824,7 @@
     ]
   },
   "planning_authority": {
-    "_doc": "Single source of truth for planning. masterplan.json is THE planning authority; ADRs with planning_impact:true and canonical specs bind here; tasks/plan.md + tasks/todo.md are subordinate projections; .omx/plans/* is scratch. Enforced by the planning-ssot-coverage gate (Direction A: frontmatter-bound, bidirectional, supersession-aware). See docs/ideas/planning-ssot-drift-prevention.md.",
+    "_doc": "Single source of truth for planning. masterplan.json is THE planning authority; ADRs with planning_impact:true and canonical specs bind here; tasks/plan.md + tasks/todo.md are subordinate projections; retired OMX plan paths are scratch/provenance only. Enforced by the planning-ssot-coverage gate (Direction A: frontmatter-bound, bidirectional, supersession-aware). See docs/ideas/planning-ssot-drift-prevention.md.",
     "authority": "specs/masterplan.json",
     "decision_record_authority": "docs/decisions/ADR-*.md (immutable; superseded-by links per ADR-0xxx; later ADR wins per specs/decision-principles.json)",
     "bound_adrs": [
@@ -5889,9 +5918,10 @@
       "tasks/todo.md",
       "docs/MASTERPLAN.md"
     ],
-    "scratch": [
+    "retired_scratch_globs": [
       ".omx/plans/"
     ],
+    "retired_scratch_globs_status": "historical_provenance_only",
     "drift_gate": {
       "name": "planning-ssot-coverage",
       "rules": [
@@ -6075,7 +6105,7 @@
         ]
       }
     ],
-    "parallel_lane_model": "Lanes = vertical slices (one per microservice); decoupled by the flat-microservice-catalog + workflow-ontology-adapter-layer invariants. Concurrency bounded by the CI farm (Karpenter-elastic agents), not a single host. See .omx/plans/parallel-lane-scoping.md.",
+    "parallel_lane_model": "Lanes = vertical slices (one per microservice); decoupled by the flat-microservice-catalog + workflow-ontology-adapter-layer invariants. Concurrency bounded by the CI farm (Karpenter-elastic agents), not a single host. Live lane scoping resolves through /specs/master-plan-sequencing.json plus task plans; the retired OMX parallel-lane plan is provenance only.",
     "reconsidered_choices": [
       {
         "choice": "flat crates/ layout",
@@ -6109,8 +6139,8 @@
       },
       {
         "choice": "GitHub Actions as primary CI (ADR-0349 augment stance)",
-        "verdict": "CHANGE -> Jenkins completely replaces GitHub Actions (ADR-0359)",
-        "rationale": "Actions-budget single point of failure (PR #180 block); air-gap/on-prem/colo have no GH runners; retires GH/Jenkins parity-drift tax; self-hostable"
+        "verdict": "CHANGE -> cloud-ci/oya-ci Rust gate authority with GitHub/Jenkins bridge evidence only until cutover (ADR-0513/ADR-0515)",
+        "rationale": "Actions-budget and bridge-runner fragility cannot become destination authority; bespoke cloud-ci/oya-ci status producers own merge evidence while bridge CI remains provenance/reference during cutover"
       }
     ],
     "non_claims": [
@@ -6134,7 +6164,7 @@
         "standards-hygiene re-check cadence before production commitments",
         "16-service initial catalog anchor (cross-ref specs/cloud-resource-catalog-target.json)"
       ],
-      "reconciliation": "greenfield plan assumes build-from-scratch; we apply greenfield to the SUBSTRATE and strangler-fig to existing product-microservice migration. Build/CI vendor: the plan abstracts CI/CD to a contract (its CS-0104); we bind Bazel rules_rust + Jenkins (ADR-0358/0359) as the implementation of that contract. Pulsar/Kubewarden are our refinements of the plan's unspecified messaging/admission."
+      "reconciliation": "greenfield plan assumes build-from-scratch; we apply greenfield to the SUBSTRATE and strangler-fig to existing product-microservice migration. Build/CI vendor: the plan abstracts CI/CD to a contract (its CS-0104); current authority binds Buck2 plus cloud-ci/oya-ci Rust gate packets, with GitHub/Jenkins/Argo surfaces bridge/reference only until cutover. Pulsar/Kubewarden are our refinements of the plan's unspecified messaging/admission."
     },
     "standards_hygiene_cadence": "Re-check pinned standard versions (OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, OpenTelemetry, SLSA, NIST CSF/Privacy, FOCUS, Kubernetes PSS, Cedar, Pulsar, Kubewarden, Argo) against official/upstream before each production commitment; quarterly otherwise.",
     "toolchain_target_current_reconciliation_2026_06_02": {
@@ -6152,7 +6182,7 @@
     "placement": {
       "roadmap_phase": "ideal_production_roadmap.phases[P-TOOLCHAIN]",
       "evolves_from": "gitops_vcs_replacement",
-      "phase0_bridge": "/specs/bespoke-cloud-toolchain-services.json#sequence.T0 and .omx/plans/prd-platform-readiness.md#P0.0",
+      "phase0_bridge": "/specs/bespoke-cloud-toolchain-services.json#sequence.T0; retired OMX platform-readiness plan is historical provenance only",
       "phase1_to_phase3_cutover": "cloud-scm, cloud-ci, and cloud-cd Rust control planes progressively replace GitHub/Jenkins/Argo bridge authority."
     },
     "services": {

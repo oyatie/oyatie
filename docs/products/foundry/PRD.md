@@ -30,11 +30,13 @@ related_microservices:
   - audit-chain
   - metering
 tenant_class: ["demo_trial", "paid"]
+live_readiness_claim: target_non_claim_until_changeset_gate_evidence
 doc_status: published
 ---
 # Oyatie — Product PRD: Foundry — AI Agent Runtime + Foundry engineering platform (UNIFIED)
 
 > **Status:** draft → preview *(industry-standard labels per [GLOSSARY.md §11](../../GLOSSARY.md))*
+> **Readiness claim boundary:** target/non-claim until fresh CI, autonomy/authorization, audit-chain, SLO, security, SBOM, rollback/DR, owner/RACI, and product-pain evidence are attached to a promotion packet.
 > **Owning team:** [`teams/axis-foundry/CHARTER.md`](../../teams/axis-foundry/CHARTER.md)
 > **Owning axis:** agent-runtime (Foundry) — *unified with Foundry engineering platform as of 2026-05-09 scope decision: Foundry engineering platform is no longer a separate axis; it is the engineering surface of Foundry*
 > **Catalog reference:** `registry/catalog/oya-foundry-*.yaml`, `registry/catalog/oya-tooling-cli-dev-runtime.yaml`
@@ -2605,10 +2607,10 @@ Pass: export hash verifies.
 
 This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automation, and self-hostable delivery:
 
-- ADR-0346 binds Foundry acceptance to `./bin/oya verify --ci-required` as the canonical local pre-push verifier that MUST locally mirror the full CI matrix and block on exit-0 of EACH mandatory step. Enforced-by cross-reference: `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0346 full-mirror semantics are migration input only: Foundry acceptance must be evidenced by current cloud-ci/oya-ci Rust gate packets and promotion artifacts. The retired `./bin/oya verify --ci-required` path is historical/provenance-only and must not be invoked, recreated, or treated as merge/exit authority.
 - ADR-0347 binds Foundry engineering-platform lane authoring to the `oya-governance-*` lane vocabulary after the `oya-governance-*` bulk rename. Enforced-by cross-reference: `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, `oya-governance-rename-inventory-presence`.
 - ADR-0348 binds Foundry capability execution locality, tenant-scoped agent runs, and cross-product write placement to cellular topology that MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING as control-plane-driven automation modes. Enforced-by cross-reference: `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 binds Foundry engineering-platform delivery to Jenkins (LTS) and ArgoCD as the canonical self-hostable CI/CD substrates; GitHub Actions remains the hosted PR review surface, Jenkins augments it for self-hostable contexts, and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys. Enforced-by cross-reference: `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, `oya-governance-deploy-audit-chain-emit`.
+- ADR-0349 is amended by ADR-0513/platform-readiness: Jenkins is bridge evidence only until cutover, ArgoCD/Rollouts remain authorized bridge/reference CD adapters where separately governed, and canonical readiness/promotion evidence comes from cloud-ci/oya-ci gate packets plus deployment/audit artifacts rather than Jenkins as destination CI authority.
 
 ## References
 
@@ -2636,3 +2638,19 @@ This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automat
 - specs/microservices/intelligence.json
 - specs/microservices/workflow-engine.json
 - specs/microservices/intelligence.json
+
+## 2a. Acceptance criteria traceability (required)
+
+This section is a planning-maturity contract only. It does **not** claim runtime, product-ready, or hyperscaler-ready status; promotion still requires fresh CI, SLO, security, SBOM, rollback/DR, owner/RACI, and product-pain evidence.
+
+| AC-ID | Given | When | Then | Test ID | Test path |
+|---|---|---|---|---|---|
+| FOUNDRY-PRD-AC-001 | The Foundry PRD is used as a planning contract and capability, autonomy ceiling, provider, audit-chain, and evidence contracts are referenced by a promotion packet | The planned-maturity gate scans product PRDs | Foundry capability/autonomy acceptance is linked to test and evidence paths instead of generic prose | FOUNDRY-PRD-GATE-001 | `cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
+| FOUNDRY-PRD-AC-002 | Foundry managed-service or internal-runtime readiness is evaluated | Readiness evidence is evaluated | fresh capability registry, autonomy/authorization, provider-residency, audit-chain, and product-pain evidence is required outside this PRD | FOUNDRY-PRD-GATE-002 | `cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
+
+## 9b. Verification commands (required) — one runnable check per metric
+
+| Metric | Verification command | Pass criterion | CI lane |
+|---|---|---|---|
+| Foundry capability/autonomy/evidence planning maturity | `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app:oya-cloud-ci-planned-maturity-app-gate` | At least one Foundry row names capability, autonomy, provider, audit-chain, and evidence obligations | `oya-ci-required` |
+| Foundry product-ready non-claim boundary | `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app:oya-cloud-ci-planned-maturity-app-gate` | A Foundry promotion packet cannot treat this PRD as product-ready evidence without fresh CI and product-pain proof | `oya-ci-required` |

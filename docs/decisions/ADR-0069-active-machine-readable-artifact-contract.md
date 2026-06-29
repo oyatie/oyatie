@@ -81,6 +81,7 @@ Existing canonical specs (`/specs/master-plan-sequencing.json`, `hyperscaler-gat
 Grace period for retroactive conformance: 30 days from 2026-05-13 (i.e., 2026-06-12). After that, the lane (once `active`) blocks PRs that add new artifacts under `applicable_paths_glob` without a capability-registry row.
 
 **Amendment — 2026-06-29 delivery-readiness reconciliation.** The shape-neutral delivery-readiness contract is an ADR-0069 active machine-readable artifact pair, not a service/topology naming decision: `specs/delivery-readiness-reconciliation.json` defines the schema and `evidence/ralplan/delivery-readiness-current-state-20260629.json` records the honest current-state instance generated from the Ouroboros closure. Readiness predicates must remain shape-neutral; current `oya-*` / `cloud-*` names are migration observations only, never proof of Product-ready or Hyperscaler-ready status.
+The current implementation artifact for that reconciliation is the planned-maturity gate at `cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app/BUCK`, `cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app/Cargo.toml`, `cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app/src/lib.rs`, and `cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app/tests/planned_maturity.rs`. These paths are current transition inventory only; the gate predicates remain shape-neutral and must not turn `oya-*` or `cloud-*` names into readiness evidence.
 
 ### Forbidden-primitive remediation
 

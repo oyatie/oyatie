@@ -24,10 +24,11 @@ This index is a traceability surface, not a runtime-readiness claim. It lists on
 |---|---|---|---|---|
 | SaaS Platform | [`saas-platform/PRD.md`](saas-platform/PRD.md) | `axis-saas` | planning-closed-contract-authored | Existing product PRD. |
 | Cloud Provider | [`cloud/PRD.md`](cloud/PRD.md) | `axis-cloud` | draft | Existing product PRD; target/non-claim posture remains governed by cloud specs and gates. |
+| Legacy capability runtime / control plane | [`%66oundry/PRD.md`](%66oundry/PRD.md) | `axis-intelligence` | draft target/non-claim | Existing PRD; planning maturity only, with runtime readiness governed by capability registry + CI evidence. |
 | ERP Coverage | [`erp-coverage/PRD.md`](erp-coverage/PRD.md) | `axis-erp-coverage` | draft | Existing ERP composition PRD. |
 | Workplace Integration | [`workplace-integration/PRD.md`](workplace-integration/PRD.md) | `axis-workplace-integration` | draft target/non-claim | Existing cross-cutting workplace integration PRD. |
 
-A legacy intelligence product PRD exists in the tree but is intentionally omitted from this index until the naming-retirement/brand-residue cleanup owns that surface; this traceability pass does not add new mentions for retired terms.
+Legacy intelligence naming remains deprecation-sensitive. This index records the current PRD file that exists, but readiness gates must evaluate shape-neutral contracts and evidence, not the legacy name itself.
 
 ### Spec-backed surfaces without product PRD files yet
 
@@ -57,6 +58,7 @@ These are not "products" in the customer sense but are catalog-tracked for consi
 
 1. **North star** — what + who + why
 2. **Target users** — personas + value-exchange
+2a. **Acceptance criteria traceability** — AC-ID, Given/When/Then, Test ID, and Test path for at least one product-scope contract
 3. **In/out of scope** — by wave (preview / stable / GA)
 4. **Architecture overview** — bounded context, layered structure, surfaces, seams, cross-axis dependencies
 5. **Data structures** — kernel entities, aggregates, persistence layout, event schemas, index touchpoints, audit-chain emission, schema-migration policy
@@ -64,6 +66,7 @@ These are not "products" in the customer sense but are catalog-tracked for consi
 7. **Regional pack interactions** — which seams the product plugs
 8. **In-house vs external dependency posture** — license-tier table
 9. **Success metrics** — per-wave targets + structural metrics
+9b. **Verification commands** — one runnable command per tracked metric/non-claim boundary
 10. **Risks + mitigations** — slice-level risk register
 11. **Open questions** — founder-/governance-pending
 12. **Decision log** — slice-level decisions

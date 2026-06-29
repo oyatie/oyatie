@@ -276,7 +276,7 @@
     {
       "primitive": "oya vcs",
       "enforcement_lane_id": "oya-governance-banned-primitives",
-      "lane_status": "retired by ADR-0363; ChangeSet claim/done/promote ratchet is replaced by plain git + cloud-ci + GitHub (interim) branch protection + oya gate evidence"
+      "lane_status": "retired by ADR-0363; ChangeSet claim/done/promote ratchet is replaced by plain git + cloud-ci/oya-ci required contexts + GitHub (interim) branch protection; legacy oya gate output is advisory bridge feedback only, never merge readiness authority"
     },
     {
       "primitive": "gh",
@@ -286,7 +286,7 @@
     {
       "primitive": "manual-merge-bypassing-required-checks",
       "enforcement_lane_id": "oya-governance-banned-primitives",
-      "lane_status": "forbidden; branch protection, cloud-ci required checks, reviewer approval, and oya gate evidence own merge readiness"
+      "lane_status": "forbidden; branch protection, cloud-ci/oya-ci required checks, and reviewer approval own merge readiness; legacy oya gate evidence is advisory bridge feedback only"
     },
     {
       "primitive": "manual-push-to-protected-branch",
@@ -1768,8 +1768,14 @@
     }
   ],
   "implementation_plan_changeset_contract": {
-    "applies_to_globs": [
+    "legacy_applies_to_globs": [
       ".omc/plans/milestones/*/phases/*/IP-*.md"
+    ],
+    "legacy_applies_to_globs_status": "historical_provenance_only",
+    "live_applies_to_artifacts": [
+      "/tasks/*-plan.md",
+      "/specs/masterplan.json#milestones",
+      "/specs/master-plan-sequencing.json"
     ],
     "definition": "Every ImplementationPlan is a ChangeSet-sized execution unit. It must be claimable, independently verifiable, bundleable, promotable, and small enough to avoid locking an entire tree without graph-proven rationale.",
     "must_have": [
