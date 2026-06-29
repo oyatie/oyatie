@@ -178,6 +178,10 @@
       "prefix": "specs/OWNERS"
     },
     {
+      "anchor": "ADR-0515 run-observability packet amendment: the canonical cloud-ci/oya-ci required-context status packet schema is the reviewed machine-readable contract consumed by the firewall run-observability validator and its fixture corpus.",
+      "prefix": "specs/cloud-ci-run-observability-packet.schema.json"
+    },
+    {
       "anchor": "ADR-0556 D1: the cache-warmth classification policy-as-data — reached by its named consumers (interim CI quick-wins, the W3 NativeLink CAS vertical, the future cache-policy-conformance gate) and by ADR-0556 related_specs",
       "prefix": "specs/cache-warmth-policy.json"
     },

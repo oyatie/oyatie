@@ -287,7 +287,8 @@ jobs:
             //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-unittest \
             //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-signoff-fixer-unittest \
             //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-gate \
-            //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-gate-registration
+            //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-gate-registration \
+            //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-run-observability-packet
 
   # ── GENERATED OUTPUT DIFF POLICY. Generated files may be deleted to retire a tracked output,
   #    but PRs must not add/modify generated outputs as merge surfaces. Classification comes from
@@ -431,17 +432,20 @@ jobs:
         # Rust-first, data-driven preflight (ADR-0548 pipeline-as-product): retires the two
         # duplicated inline `sudo rm -rf` blocks. The policy (reclaim_dirs + min_free_gib_after)
         # lives in runner-disk-reclaim-policy.json; the bin best-effort removes the profile's
-        # vendor preinstall dirs and logs structured disk-before/after. Default mode: threshold-
-        # miss logs an INFRA-RED signal line but exits 0 (mirrors old `|| true`; prevents the
-        # preflight from becoming its own false-RED while preserving the signal for future
-        # required-context labeling). Built as the runner user (buck2 on user PATH; daemon must
+        # vendor preinstall dirs and logs structured disk-before/after plus a JSON operator
+        # artifact. Policy is explicit fail-closed: threshold-miss exits INFRA-RED unless a future
+        # caller supplies a typed fail-open waiver, so the required context cannot silently green on
+        # insufficient runner capacity. Built as the runner user (buck2 on user PATH; daemon must
         # not run as root); only the prebuilt binary is sudo'd (needs root for root-owned dirs).
         run: |
           # Build as the runner user (buck2 on user PATH; never run buck2 daemon as root —
           # that corrupts cache/daemon ownership). Then sudo ONLY the prebuilt binary (needs
           # root solely to remove the root-owned vendor preinstall dirs).
           BIN="$(buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app:oya-cloud-ci-runner-disk-reclaim-bin --show-output 2>/dev/null | awk '{print $2}')"
-          sudo -E "$BIN" --profile github-hosted-ubuntu-latest
+          sudo -E "$BIN" \
+            --profile github-hosted-ubuntu-latest \
+            --infra-red-policy fail-closed \
+            --artifact-out "${RUNNER_TEMP}/runner-disk-reclaim-buck2.json"
       - name: Restore buck-out (read-only; dev-push is the sole writer)
         # actions/cache/restore@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae
@@ -499,6 +503,15 @@ jobs:
         with:
           name: cache-hit-report-buck2-lane
           path: /tmp/cache-hit-report.json
+          if-no-files-found: warn
+      - name: Upload runner disk reclaim operator artifact (buck2 lane)
+        if: always()
+        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: runner-disk-reclaim-buck2
+          path: ${{ runner.temp }}/runner-disk-reclaim-buck2.json
+          retention-days: 30
           if-no-files-found: warn
   # ── BINDING WORKSPACE COVERAGE (ADR-0554, FRIC-1781310000). Closes the largest false-green
   #    channel: the buck2 lane above is scoped to //cloud/cloud-ci/..., so code anywhere else
@@ -566,17 +579,20 @@ jobs:
         # Rust-first, data-driven preflight (ADR-0548 pipeline-as-product): retires the two
         # duplicated inline `sudo rm -rf` blocks. The policy (reclaim_dirs + min_free_gib_after)
         # lives in runner-disk-reclaim-policy.json; the bin best-effort removes the profile's
-        # vendor preinstall dirs and logs structured disk-before/after. Default mode: threshold-
-        # miss logs an INFRA-RED signal line but exits 0 (mirrors old `|| true`; prevents the
-        # preflight from becoming its own false-RED while preserving the signal for future
-        # required-context labeling). Built as the runner user (buck2 on user PATH; daemon must
+        # vendor preinstall dirs and logs structured disk-before/after plus a JSON operator
+        # artifact. Policy is explicit fail-closed: threshold-miss exits INFRA-RED unless a future
+        # caller supplies a typed fail-open waiver, so the required context cannot silently green on
+        # insufficient runner capacity. Built as the runner user (buck2 on user PATH; daemon must
         # not run as root); only the prebuilt binary is sudo'd (needs root for root-owned dirs).
         run: |
           # Build as the runner user (buck2 on user PATH; never run buck2 daemon as root —
           # that corrupts cache/daemon ownership). Then sudo ONLY the prebuilt binary (needs
           # root solely to remove the root-owned vendor preinstall dirs).
           BIN="$(buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app:oya-cloud-ci-runner-disk-reclaim-bin --show-output 2>/dev/null | awk '{print $2}')"
-          sudo -E "$BIN" --profile github-hosted-ubuntu-latest
+          sudo -E "$BIN" \
+            --profile github-hosted-ubuntu-latest \
+            --infra-red-policy fail-closed \
+            --artifact-out "${RUNNER_TEMP}/runner-disk-reclaim-affected-set.json"
       - name: Restore buck-out (read-only; dev-push is the sole writer)
         # actions/cache/restore@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae
@@ -635,6 +651,7 @@ jobs:
           "${gate_bin}" \
             --policy cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/affected-set-policy.json \
             --base "origin/${BASE_REF}" --mode auto --derive-only \
+            --decision-artifact-out "${RUNNER_TEMP}/affected-set-derive-decision.json" \
             | tee "${decision_log}"
           if grep -Eq '^affected-set: (decision=FULL|ESCALATE to FULL)' "${decision_log}"; then
             echo "true" > "${full_required_marker}"
@@ -699,6 +716,7 @@ jobs:
             "${gate_bin}" \
               --policy cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/affected-set-policy.json \
               --base "origin/${BASE_REF}" --mode auto \
+              --decision-artifact-out "${RUNNER_TEMP}/affected-set-binding-decision.json" \
               "${baseline_args[@]}"
           else
             # Admission/integration tier (merge_group/push/dispatch): hard full build+test — the
@@ -709,7 +727,8 @@ jobs:
             # trusted push-to-dev.
             "${gate_bin}" \
               --policy cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/affected-set-policy.json \
-              --base "origin/${BASE_REF}" --mode full
+              --base "origin/${BASE_REF}" --mode full \
+              --decision-artifact-out "${RUNNER_TEMP}/affected-set-binding-decision.json"
           fi
       # ── FULL-GRAPH CACHE SAVE (ADR-0554 D9; sole canonical writer). On dev-push this job runs
       #    --mode full (buck2 build + test //...), so buck-out is populated with the FULL workspace
@@ -746,6 +765,18 @@ jobs:
           path: ${{ runner.temp }}/build-health-admission-report.json
           retention-days: 90
           if-no-files-found: error
+      - name: Upload affected-set operator artifacts
+        if: always()
+        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: affected-set-operator-artifacts
+          path: |
+            ${{ runner.temp }}/runner-disk-reclaim-affected-set.json
+            ${{ runner.temp }}/affected-set-derive-decision.json
+            ${{ runner.temp }}/affected-set-binding-decision.json
+          retention-days: 30
+          if-no-files-found: warn
 
   # ── LIVE-POSTGRES DURABLE-SUBSTRATE LANE (#101). Runs the env-gated cross-tenant-deny / RLS /
   #    CDC / SCIM durability integration tests against a CONTAINERIZED Postgres and GATES merge —
@@ -873,6 +904,45 @@ jobs:
           "${ADMIN_PSQL[@]}" -c "GRANT identity_scim_runtime TO oya_app;"
           # Confirm the app role is genuinely non-bypass (fail the lane LOUDLY if it ever is).
           "${ADMIN_PSQL[@]}" -c "SELECT rolname, rolsuper, rolbypassrls FROM pg_roles WHERE rolname IN ('postgres','oya_app','tenancy_lifecycle_runtime','identity_scim_runtime') ORDER BY rolname;"
+          server_version="$("${ADMIN_PSQL[@]}" -Atqc "SHOW server_version;")"
+          cat > "${RUNNER_TEMP}/live-postgres-bootstrap-provenance.json" <<JSON
+          {
+            "schema_version": 1,
+            "artifact_type": "cloud_ci_operator_artifact",
+            "artifact_id": "live-postgres-bootstrap-provenance",
+            "gate_id": "gate-live-postgres",
+            "postgres": {
+              "image": "postgres:16",
+              "server_version": "${server_version}",
+              "database": "oyatie",
+              "host": "127.0.0.1",
+              "port": 5432
+            },
+            "roles": [
+              {"name": "postgres", "purpose": "admin bootstrap superuser; DSN/password redacted"},
+              {"name": "oya_app", "purpose": "non-superuser NOBYPASSRLS app login; DSN/password redacted"},
+              {"name": "tenancy_lifecycle_runtime", "purpose": "tenancy runtime role granted to oya_app"},
+              {"name": "identity_scim_runtime", "purpose": "SCIM runtime role granted to oya_app"}
+            ],
+            "migrations": [
+              "tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql",
+              "tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0001_tenant_lifecycle_store.sql",
+              "iam/adapters/identity-scim-store-postgres/migrations/0000_runtime_role.sql",
+              "iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql"
+            ],
+            "source_revision": "${GITHUB_SHA}",
+            "reproducibility": {
+              "bootstrap_command": "psql -v ON_ERROR_STOP=1 with committed migrations in listed order",
+              "service_health_gate": "pg_isready -U postgres -d oyatie",
+              "test_runner": "buck2 test --local-only --num-threads 1 with explicit live-postgres env passthrough"
+            },
+            "retention_and_pii": {
+              "retention_days": 30,
+              "pii": "none; local CI database metadata and repo paths only",
+              "secret_redaction": "admin/app DSNs, passwords, tenant secrets, idempotency keys, and tokens are not emitted"
+            }
+          }
+          JSON
       # ADAPTER tier: admin = SUPERUSER (DDL + the bypass-rejection assertion), app = app role.
       # Each Buck2 invocation runs one test target locally with RUST_TEST_THREADS=1 because the
       # harnesses share a single database/schema and assert on row counts (parallel writers race).
@@ -931,6 +1001,15 @@ jobs:
           buck2 test --local-only --num-threads 1 //iam/facade/identity-service:iam-identity-service-e2e -- "${FACADE_ENV[@]}"
           buck2 test --local-only --num-threads 1 //tenancy/facade/tenant-lifecycle-app:tenancy-tenant-lifecycle-app-unittest -- "${FACADE_ENV[@]}"
           buck2 test --local-only --num-threads 1 //tenancy/facade/tenant-lifecycle-app:tenancy-tenant-lifecycle-app-acceptance -- "${FACADE_ENV[@]}"
+      - name: Upload live-postgres bootstrap provenance
+        if: always()
+        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: live-postgres-bootstrap-provenance
+          path: ${{ runner.temp }}/live-postgres-bootstrap-provenance.json
+          retention-days: 30
+          if-no-files-found: warn
 
   # ── THE FAN-IN. This is the single required context branch protection keys on. It has NO
   #    command of its own (Principle 1 — it NEVER re-runs a narrower subset): it is green IFF

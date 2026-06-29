@@ -204,9 +204,9 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         (Some("validate"), Some("foundry-capability-schema")) => {
             match crate::parse_foundry_capability_schema_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_foundry_capability_schema_gate(args) {
-                    Ok((capabilities, mcp_contracts, schemas)) => {
+                    Ok((capabilities, mcp_contracts, schemas, internal_records)) => {
                         println!(
-                            "foundry capability schema validation passed: {capabilities} capabilities, {mcp_contracts} mcp contracts, {schemas} schemas"
+                            "foundry capability schema validation passed: {capabilities} capabilities, {mcp_contracts} mcp contracts, {schemas} schemas, {internal_records} internal registry records"
                         );
                         ExitCode::SUCCESS
                     }
@@ -1523,10 +1523,13 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 Ok(parsed) => match product_prd_json::validate_product_prd_json_gate(parsed) {
                     Ok(report) => {
                         println!(
-                            "product-prd-json validation passed: {} products, {} acceptance criteria, {} metrics, {} root-hub links, {} ms",
+                            "product-prd-json validation passed: {} products, {} acceptance criteria, {} test refs, {} metrics, {} verification refs, {} planned-feature refs, {} root-hub links, {} ms",
                             report.products_checked,
                             report.acceptance_criteria_checked,
+                            report.test_refs_checked,
                             report.metrics_checked,
+                            report.verification_refs_checked,
+                            report.planned_feature_refs_checked,
                             report.root_hub_links_checked,
                             report.validation_duration_ms
                         );

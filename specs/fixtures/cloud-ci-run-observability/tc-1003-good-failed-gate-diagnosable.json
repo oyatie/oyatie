@@ -1,0 +1,149 @@
+{
+  "schema_version": "cloud-ci-run-observability-packet/v1",
+  "packet_id": "cloud-ci-run-packet:github-actions:303030303:attempt-1",
+  "producer": {
+    "required_context": "oya-ci-required",
+    "merge_authority_context": "oya-ci-required",
+    "control_plane": "github-actions-bridge",
+    "workflow": ".github/workflows/oya-ci-required.yml",
+    "retired_evidence_authority": false
+  },
+  "run": {
+    "run_id": "303030303",
+    "attempt": 1,
+    "provider": "github-actions",
+    "status_context": "oya-ci-required",
+    "started_at": "2026-06-29T10:00:00Z",
+    "completed_at": "2026-06-29T10:08:42Z",
+    "conclusion": "failed"
+  },
+  "subject": {
+    "repository": "jason931225/oyatie",
+    "pr_number": 1003,
+    "head_ref": "worker-2/lane-b-cloud-ci-observability",
+    "head_sha": "1111111111111111111111111111111111111111",
+    "base_ref": "dev",
+    "base_sha": "2222222222222222222222222222222222222222",
+    "merge_base_sha": "3333333333333333333333333333333333333333"
+  },
+  "transitions": [
+    {
+      "transition_id": "run:303030303:queued",
+      "transition_type": "run",
+      "state": "queued",
+      "at": "2026-06-29T10:00:00Z",
+      "duration_ms": 0
+    },
+    {
+      "transition_id": "gate:cloud-ci-authz-coverage:running",
+      "transition_type": "gate",
+      "gate_id": "cloud-ci-authz-coverage",
+      "state": "running",
+      "at": "2026-06-29T10:04:00Z",
+      "duration_ms": 180000
+    },
+    {
+      "transition_id": "step:cloud-ci-authz-coverage:evaluate-policy:failed",
+      "transition_type": "step",
+      "gate_id": "cloud-ci-authz-coverage",
+      "step_id": "evaluate-policy",
+      "state": "failed",
+      "at": "2026-06-29T10:07:00Z",
+      "duration_ms": 42000,
+      "failure": {
+        "taxonomy": "policy_violation",
+        "code": "authz_coverage_missing_pbac_gate",
+        "summary": "A new REST control-plane route is missing policy-based access control evidence with RBAC and ABAC present.",
+        "remediation": "Add the server-side PBAC decision call and rerun the cloud-ci authz coverage gate.",
+        "artifact_refs": [
+          "artifact:gate-report:cloud-ci-authz-coverage"
+        ],
+        "diagnostic_refs": [
+          "diag:cloud-ci-authz-coverage:missing-pbac"
+        ]
+      }
+    },
+    {
+      "transition_id": "gate:cloud-ci-authz-coverage:failed",
+      "transition_type": "gate",
+      "gate_id": "cloud-ci-authz-coverage",
+      "state": "failed",
+      "at": "2026-06-29T10:08:42Z",
+      "duration_ms": 282000,
+      "failure": {
+        "taxonomy": "policy_violation",
+        "code": "authz_coverage_missing_pbac_gate",
+        "summary": "The authz coverage gate failed with one born-blocking PBAC coverage finding.",
+        "remediation": "Use the typed gate report and diagnostic entry; no GitHub Actions log scraping is required.",
+        "artifact_refs": [
+          "artifact:gate-report:cloud-ci-authz-coverage"
+        ],
+        "diagnostic_refs": [
+          "diag:cloud-ci-authz-coverage:missing-pbac"
+        ]
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "artifact_id": "artifact:gate-report:cloud-ci-authz-coverage",
+      "kind": "gate-report",
+      "uri": "gh-artifact://jason931225/oyatie/oya-ci-required/303030303/gate-reports/cloud-ci-authz-coverage.json",
+      "digest_sha256": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "retention": {
+        "policy": "ci-operational-metadata-30d",
+        "expires_at": "2026-07-29T10:08:42Z",
+        "contains_pii": false,
+        "pii_classes": []
+      }
+    },
+    {
+      "artifact_id": "artifact:status-packet:303030303",
+      "kind": "status-packet",
+      "uri": "gh-artifact://jason931225/oyatie/oya-ci-required/303030303/status/cloud-ci-run-observability-packet.json",
+      "digest_sha256": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "retention": {
+        "policy": "ci-operational-metadata-30d",
+        "expires_at": "2026-07-29T10:08:42Z",
+        "contains_pii": false,
+        "pii_classes": []
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "diagnostic_id": "diag:cloud-ci-authz-coverage:missing-pbac",
+      "gate_id": "cloud-ci-authz-coverage",
+      "severity": "error",
+      "code": "authz_coverage_missing_pbac_gate",
+      "message_redacted": "Route POST /v1/example requires a server-side PBAC decision; tenant, subject, and correlation values are [REDACTED].",
+      "redaction": {
+        "applied": true,
+        "redacted_fields": [
+          "tenant_id",
+          "subject_id",
+          "correlation_id"
+        ]
+      }
+    }
+  ],
+  "retention": {
+    "packet_ttl_days": 30,
+    "expires_at": "2026-07-29T10:08:42Z",
+    "pii_policy": {
+      "redaction_required": true,
+      "diagnostics_pii": "redacted-or-none",
+      "raw_log_storage": "not-a-status-api-dependency"
+    }
+  },
+  "diagnosability": {
+    "actions_log_scrape_required": false,
+    "primary_failed_gate_id": "cloud-ci-authz-coverage",
+    "artifact_refs": [
+      "artifact:gate-report:cloud-ci-authz-coverage"
+    ],
+    "diagnostic_refs": [
+      "diag:cloud-ci-authz-coverage:missing-pbac"
+    ]
+  }
+}

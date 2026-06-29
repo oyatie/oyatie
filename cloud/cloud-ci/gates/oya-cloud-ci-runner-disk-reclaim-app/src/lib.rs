@@ -12,7 +12,7 @@
 //! a runner preflight step BEFORE the buck-out warm restore (so it must build/run with ZERO
 //! dependency on the buck-out cache).
 
-use serde_json::Value;
+use serde_json::{Value, json};
 use std::path::Path;
 
 /// Bytes in one GiB.
@@ -49,7 +49,10 @@ impl std::fmt::Display for PolicyError {
                 write!(f, "policy is missing the `profiles` object")
             }
             PolicyError::UnknownProfile(id) => {
-                write!(f, "unknown runner profile `{id}` (not declared in policy `profiles`)")
+                write!(
+                    f,
+                    "unknown runner profile `{id}` (not declared in policy `profiles`)"
+                )
             }
             PolicyError::MalformedProfile(why) => write!(f, "malformed profile: {why}"),
         }
@@ -193,6 +196,136 @@ impl ReclaimReport {
     }
 }
 
+/// Required-context handling for an INFRA-RED disk-capacity result.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InfraRedPolicy {
+    /// Capacity miss is an infrastructure failure and exits non-zero.
+    FailClosed,
+    /// Capacity miss may exit zero only with a typed waiver and a durable operator artifact.
+    FailOpenWithWaiver,
+}
+
+impl InfraRedPolicy {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            InfraRedPolicy::FailClosed => "fail-closed",
+            InfraRedPolicy::FailOpenWithWaiver => "fail-open-with-waiver",
+        }
+    }
+}
+
+/// Typed justification required before an INFRA-RED result can fail open.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct InfraRedWaiver {
+    /// data_class: INTERNAL_ONLY — stable policy/ADR/task identifier authorizing fail-open.
+    pub waiver_id: String,
+    /// data_class: INTERNAL_ONLY — operator-readable justification; must not contain secrets.
+    pub reason: String,
+}
+
+impl InfraRedWaiver {
+    pub fn new(waiver_id: String, reason: String) -> Result<Self, String> {
+        if waiver_id.trim().is_empty() {
+            return Err("INFRA-RED fail-open waiver requires a non-empty waiver id".to_owned());
+        }
+        if reason.trim().is_empty() {
+            return Err("INFRA-RED fail-open waiver requires a non-empty reason".to_owned());
+        }
+        Ok(Self { waiver_id, reason })
+    }
+}
+
+/// Validate the required-context contract for an INFRA-RED result.
+///
+/// A fail-open INFRA-RED can exit 0 only when it has both a typed waiver and a durable operator
+/// artifact output path. Without the artifact, the waiver would exist only in logs and the required
+/// context could silently green without machine-readable evidence.
+pub fn validate_infra_red_exit_contract(
+    report: &ReclaimReport,
+    policy: InfraRedPolicy,
+    waiver: Option<&InfraRedWaiver>,
+    artifact_output_requested: bool,
+) -> Result<(), String> {
+    if !report.is_infra_red() || policy != InfraRedPolicy::FailOpenWithWaiver {
+        return Ok(());
+    }
+    if waiver.is_none() {
+        return Err(
+            "INFRA-RED fail-open requires a typed waiver before the required context may stay green"
+                .to_owned(),
+        );
+    }
+    if !artifact_output_requested {
+        return Err(
+            "INFRA-RED fail-open requires --artifact-out so the typed waiver is durable".to_owned(),
+        );
+    }
+    Ok(())
+}
+
+/// Machine-readable operator artifact for the runner disk-reclaim preflight.
+///
+/// This is intentionally deterministic (no wall-clock field) so fixtures can compare it directly.
+/// The workflow uploads the file with GitHub artifact retention metadata.
+pub fn runner_disk_reclaim_operator_artifact(
+    profile_id: &str,
+    report: &ReclaimReport,
+    policy: InfraRedPolicy,
+    waiver: Option<&InfraRedWaiver>,
+) -> Result<Value, String> {
+    if report.is_infra_red() && policy == InfraRedPolicy::FailOpenWithWaiver && waiver.is_none() {
+        return Err(
+            "INFRA-RED fail-open requires a typed waiver before the required context may stay green"
+                .to_owned(),
+        );
+    }
+
+    let outcomes = report
+        .outcomes
+        .iter()
+        .map(|(dir, outcome)| {
+            let (status, detail) = match outcome {
+                DirOutcome::Removed => ("removed", None),
+                DirOutcome::Absent => ("absent", None),
+                DirOutcome::Failed(error) => ("failed", Some(error.as_str())),
+                DirOutcome::Rejected(reason) => ("rejected", Some(reason.as_str())),
+            };
+            json!({
+                "path": dir,
+                "status": status,
+                "detail": detail,
+            })
+        })
+        .collect::<Vec<_>>();
+
+    Ok(json!({
+        "schema_version": 1,
+        "artifact_type": "cloud_ci_operator_artifact",
+        "artifact_id": "runner-disk-reclaim",
+        "gate_id": "cloud-ci-runner-disk-reclaim",
+        "runner_profile": profile_id,
+        "infra_red": report.is_infra_red(),
+        "infra_red_policy": policy.as_str(),
+        "typed_waiver": waiver.map(|w| json!({
+            "waiver_id": w.waiver_id.as_str(),
+            "reason": w.reason.as_str(),
+        })),
+        "disk": {
+            "free_before_bytes": report.free_before,
+            "free_after_bytes": report.free_after,
+            "freed_bytes": report.freed_bytes(),
+            "free_after_gib": report.free_gib_after(),
+            "min_free_gib_after": report.min_free_gib_after,
+        },
+        "reclaim_outcomes": outcomes,
+        "retention_and_pii": {
+            "retention_days": 30,
+            "pii": "none; runner profile, filesystem paths, byte counts, and typed waiver only",
+            "secret_redaction": "no tenant, idempotency, DSN, token, or password material is emitted"
+        }
+    }))
+}
+
 /// Run the reclaim plan for `profile` using the injected `DiskOps`. Pure orchestration: it
 /// snapshots free-before, best-effort removes each dir in declared order, snapshots free-after,
 /// and returns the structured report (the caller decides exit code / logging). Errors only on a
@@ -284,19 +417,28 @@ mod tests {
 
     #[test]
     fn malformed_json_is_fail_loud() {
-        assert!(matches!(parse_profile("{not json", "x"), Err(PolicyError::Json(_))));
+        assert!(matches!(
+            parse_profile("{not json", "x"),
+            Err(PolicyError::Json(_))
+        ));
     }
 
     #[test]
     fn missing_min_free_is_malformed() {
         let text = r#"{"profiles":{"p":{"reclaim_dirs":[]}}}"#;
-        assert!(matches!(parse_profile(text, "p"), Err(PolicyError::MalformedProfile(_))));
+        assert!(matches!(
+            parse_profile(text, "p"),
+            Err(PolicyError::MalformedProfile(_))
+        ));
     }
 
     #[test]
     fn non_string_reclaim_dir_is_malformed() {
         let text = r#"{"profiles":{"p":{"reclaim_dirs":[1],"min_free_gib_after":1}}}"#;
-        assert!(matches!(parse_profile(text, "p"), Err(PolicyError::MalformedProfile(_))));
+        assert!(matches!(
+            parse_profile(text, "p"),
+            Err(PolicyError::MalformedProfile(_))
+        ));
     }
 
     /// A fake fs: a configurable free-bytes sequence (before, after) + a set of dirs that
@@ -338,10 +480,7 @@ mod tests {
         let present = tmp.join("present");
         let absent = tmp.join("absent");
         std::fs::create_dir_all(&present).expect("mkdir");
-        let prof = profile(
-            &[present.to_str().unwrap(), absent.to_str().unwrap()],
-            20,
-        );
+        let prof = profile(&[present.to_str().unwrap(), absent.to_str().unwrap()], 20);
         let ops = FakeOps {
             free: RefCell::new(vec![10 * GIB, 25 * GIB]),
             removed: RefCell::new(Vec::new()),
@@ -351,7 +490,10 @@ mod tests {
         assert_eq!(report.outcomes[0].1, DirOutcome::Removed);
         assert_eq!(report.outcomes[1].1, DirOutcome::Absent);
         // Only the present dir reached the (faked) remover; the absent dir was skipped pre-remove.
-        assert_eq!(ops.removed.into_inner(), vec![present.to_string_lossy().into_owned()]);
+        assert_eq!(
+            ops.removed.into_inner(),
+            vec![present.to_string_lossy().into_owned()]
+        );
         std::fs::remove_dir_all(&tmp).ok();
     }
 
@@ -399,6 +541,117 @@ mod tests {
         };
         assert!(!report.is_infra_red());
         assert_eq!(report.free_gib_after(), 20);
+    }
+
+    #[test]
+    fn operator_artifact_records_fail_closed_infra_red_without_secrets() {
+        let report = ReclaimReport {
+            free_before: 5 * GIB,
+            free_after: 18 * GIB,
+            outcomes: vec![
+                ("/usr/share/dotnet".to_owned(), DirOutcome::Removed),
+                ("/opt/ghc".to_owned(), DirOutcome::Absent),
+            ],
+            min_free_gib_after: 20,
+        };
+
+        let artifact = runner_disk_reclaim_operator_artifact(
+            "github-hosted-ubuntu-latest",
+            &report,
+            InfraRedPolicy::FailClosed,
+            None,
+        )
+        .expect("fail-closed artifact should not need a waiver");
+
+        assert_eq!(artifact["artifact_type"], "cloud_ci_operator_artifact");
+        assert_eq!(artifact["artifact_id"], "runner-disk-reclaim");
+        assert_eq!(artifact["infra_red"], true);
+        assert_eq!(artifact["infra_red_policy"], "fail-closed");
+        assert!(artifact["typed_waiver"].is_null());
+        assert_eq!(artifact["disk"]["free_after_gib"], 18);
+        assert_eq!(artifact["reclaim_outcomes"].as_array().unwrap().len(), 2);
+        let rendered = artifact.to_string();
+        assert!(
+            !rendered.contains("postgres://")
+                && !rendered.contains("postgres:postgres")
+                && !rendered.contains("oya_app:app"),
+            "operator artifact must not leak DSNs or credentials: {rendered}"
+        );
+    }
+
+    #[test]
+    fn fail_open_infra_red_requires_typed_waiver() {
+        let report = ReclaimReport {
+            free_before: 5 * GIB,
+            free_after: 18 * GIB,
+            outcomes: vec![],
+            min_free_gib_after: 20,
+        };
+
+        let err = runner_disk_reclaim_operator_artifact(
+            "github-hosted-ubuntu-latest",
+            &report,
+            InfraRedPolicy::FailOpenWithWaiver,
+            None,
+        )
+        .unwrap_err();
+        assert!(
+            err.contains("typed waiver"),
+            "missing fail-open waiver must fail closed: {err}"
+        );
+
+        let waiver = InfraRedWaiver::new(
+            "INFRA-RED-WAIVER-001".to_owned(),
+            "temporary GitHub hosted runner capacity incident".to_owned(),
+        )
+        .expect("valid waiver");
+        let artifact = runner_disk_reclaim_operator_artifact(
+            "github-hosted-ubuntu-latest",
+            &report,
+            InfraRedPolicy::FailOpenWithWaiver,
+            Some(&waiver),
+        )
+        .expect("typed waiver allows artifact generation");
+        assert_eq!(artifact["infra_red_policy"], "fail-open-with-waiver");
+        assert_eq!(
+            artifact["typed_waiver"]["waiver_id"],
+            "INFRA-RED-WAIVER-001"
+        );
+    }
+
+    #[test]
+    fn fail_open_infra_red_requires_durable_artifact_output() {
+        let report = ReclaimReport {
+            free_before: 5 * GIB,
+            free_after: 18 * GIB,
+            outcomes: vec![],
+            min_free_gib_after: 20,
+        };
+        let waiver = InfraRedWaiver::new(
+            "INFRA-RED-WAIVER-001".to_owned(),
+            "temporary GitHub hosted runner capacity incident".to_owned(),
+        )
+        .expect("valid waiver");
+
+        let err = validate_infra_red_exit_contract(
+            &report,
+            InfraRedPolicy::FailOpenWithWaiver,
+            Some(&waiver),
+            false,
+        )
+        .unwrap_err();
+        assert!(
+            err.contains("--artifact-out"),
+            "fail-open without artifact output must fail closed: {err}"
+        );
+
+        validate_infra_red_exit_contract(
+            &report,
+            InfraRedPolicy::FailOpenWithWaiver,
+            Some(&waiver),
+            true,
+        )
+        .expect("typed waiver plus artifact output is acceptable");
     }
 
     #[test]
