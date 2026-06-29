@@ -67,15 +67,16 @@ use oya_intelligence_provider_pool_kernel::DurationMs;
 
 mod authz {
     //! AUTH-005: data-plane + control-plane fail-closed authn/authz.
-    //! Mirrors the gold standard at intelligence/adapters/rest/src/lib.rs:
-    //! unforgeable VerifiedPrincipal newtype + constant-time bearer compare +
-    //! intra-tenant isolation gate. Body is NOT read before authn.
     //!
-    //! Folded here (no new file) per born-accounting policy.
+    //! The edge PEP verifies an unforgeable bearer-bound principal first, then
+    //! asks a small in-process PDP-style policy decision for every protected
+    //! surface. The policy combines explicit RBAC (role -> action) with ABAC
+    //! (verified tenant + server-resolved resource tenant + method/path surface).
+    //! Caller-supplied authz headers are never trusted.
 
-    use std::collections::BTreeMap;
+    use std::collections::{BTreeMap, BTreeSet};
 
-    use super::{AppState, HttpRequest, HttpResponse, TenantId};
+    use super::{AppState, HttpMethod, HttpRequest, HttpResponse, TenantId};
 
     // -- Unforgeable principal newtype --
 
@@ -86,17 +87,53 @@ mod authz {
     #[derive(Clone, Debug, Eq, PartialEq)]
     pub struct VerifiedPrincipal {
         tenant: TenantId, // data_class: INTERNAL_ONLY
+        roles: BTreeSet<ProviderPoolRole>, // data_class: INTERNAL_ONLY
     }
 
     impl VerifiedPrincipal {
         /// Mint a principal. Private to this module: no handler can forge one.
-        fn new(tenant: TenantId) -> Self {
-            Self { tenant }
+        fn new(tenant: TenantId, roles: BTreeSet<ProviderPoolRole>) -> Self {
+            Self { tenant, roles }
         }
 
         pub fn tenant(&self) -> &TenantId {
             &self.tenant
         }
+
+        fn has_role(&self, role: ProviderPoolRole) -> bool {
+            self.roles.contains(&role)
+        }
+    }
+
+    /// PBAC RBAC role bound to a verified credential, never a caller header.
+    #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+    pub enum ProviderPoolRole {
+        DataPlaneCaller,
+        ControlPlaneOperator,
+    }
+
+    /// Provider-pool actions evaluated by the policy decision point.
+    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+    pub enum ProviderPoolAction {
+        DispatchMessages,
+        CountTokens,
+        ChatCompletions,
+        RequestEmbeddings,
+        ListModels,
+        ReadSeats,
+        ReloadSeats,
+    }
+
+    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+    enum PolicyDecision {
+        Allow,
+        Forbid,
+    }
+
+    struct PolicyContext<'a> {
+        resource_tenant: &'a TenantId,
+        method: &'a HttpMethod,
+        path: &'a str,
     }
 
     // -- Constant-time byte comparison (mirrors reference impl) --
@@ -117,17 +154,27 @@ mod authz {
 
     // -- Single-bearer authenticator --
 
-    /// Single-bearer authenticator bound to one tenant. Empty configured token
-    /// verifies NOTHING (every request 401) — no allow-all path. The minted
-    /// principal carries the CONFIGURED tenant, NEVER a caller-supplied header.
+    /// Single-bearer authenticator bound to one tenant + role set. Empty
+    /// configured token verifies NOTHING (every request 401) — no allow-all path.
+    /// The minted principal carries the CONFIGURED tenant/roles, NEVER a
+    /// caller-supplied header.
     pub struct BearerAuthenticator {
-        token: String,    // data_class: SECRET
+        token: String, // data_class: SECRET
         tenant: TenantId, // data_class: INTERNAL_ONLY
+        roles: BTreeSet<ProviderPoolRole>, // data_class: INTERNAL_ONLY
     }
 
     impl BearerAuthenticator {
-        pub fn new(token: impl Into<String>, tenant: TenantId) -> Self {
-            Self { token: token.into(), tenant }
+        pub fn new(
+            token: impl Into<String>,
+            tenant: TenantId,
+            roles: impl IntoIterator<Item = ProviderPoolRole>,
+        ) -> Self {
+            Self {
+                token: token.into(),
+                tenant,
+                roles: roles.into_iter().collect(),
+            }
         }
 
         /// Verify `Authorization: Bearer <token>` in constant time. Header
@@ -137,7 +184,7 @@ mod authz {
             headers: &BTreeMap<String, String>,
         ) -> Option<VerifiedPrincipal> {
             let configured = self.token.trim();
-            // ponytail: empty configured token = fail-closed, no allow-all path
+            // Empty configured token = fail-closed, no allow-all path.
             if configured.is_empty() {
                 return None;
             }
@@ -146,7 +193,10 @@ mod authz {
                 .find(|(k, _)| k.eq_ignore_ascii_case("authorization"))
                 .and_then(|(_, v)| v.strip_prefix("Bearer "))?;
             if constant_time_eq(presented.as_bytes(), configured.as_bytes()) {
-                Some(VerifiedPrincipal::new(self.tenant.clone()))
+                Some(VerifiedPrincipal::new(
+                    self.tenant.clone(),
+                    self.roles.clone(),
+                ))
             } else {
                 None
             }
@@ -171,42 +221,116 @@ mod authz {
             )
     }
 
+    // -- PDP-style policy decision (explicit RBAC + ABAC) --
+
+    fn decide(
+        principal: &VerifiedPrincipal,
+        action: ProviderPoolAction,
+        context: &PolicyContext<'_>,
+    ) -> PolicyDecision {
+        if !rbac_allows(principal, action) {
+            return PolicyDecision::Forbid;
+        }
+        if principal.tenant() != context.resource_tenant {
+            return PolicyDecision::Forbid;
+        }
+        if !surface_abac_allows(action, context.method, context.path) {
+            return PolicyDecision::Forbid;
+        }
+        PolicyDecision::Allow
+    }
+
+    fn rbac_allows(principal: &VerifiedPrincipal, action: ProviderPoolAction) -> bool {
+        let required = match action {
+            ProviderPoolAction::DispatchMessages
+            | ProviderPoolAction::CountTokens
+            | ProviderPoolAction::ChatCompletions
+            | ProviderPoolAction::RequestEmbeddings
+            | ProviderPoolAction::ListModels => ProviderPoolRole::DataPlaneCaller,
+            ProviderPoolAction::ReadSeats | ProviderPoolAction::ReloadSeats => {
+                ProviderPoolRole::ControlPlaneOperator
+            }
+        };
+        principal.has_role(required)
+    }
+
+    fn surface_abac_allows(
+        action: ProviderPoolAction,
+        method: &HttpMethod,
+        path: &str,
+    ) -> bool {
+        matches!(
+            (action, method, path),
+            (ProviderPoolAction::DispatchMessages, HttpMethod::Post, "/v1/messages")
+                | (ProviderPoolAction::CountTokens, HttpMethod::Get, "/v1/messages/count_tokens")
+                | (
+                    ProviderPoolAction::ChatCompletions,
+                    HttpMethod::Post,
+                    "/v1/chat/completions"
+                )
+                | (ProviderPoolAction::RequestEmbeddings, HttpMethod::Post, "/v1/embeddings")
+                | (ProviderPoolAction::ListModels, HttpMethod::Get, "/v1/models")
+                | (ProviderPoolAction::ReadSeats, HttpMethod::Get, "/internal/seats")
+                | (
+                    ProviderPoolAction::ReloadSeats,
+                    HttpMethod::Post,
+                    "/internal/seats/reload"
+                )
+        )
+    }
+
     // -- Decision functions (names match authz_guard_idents in the CI gate policy) --
 
-    /// Data-plane authn + intra-tenant authz gate (AUTH-005).
+    /// Data-plane authn + PBAC authorization gate (AUTH-005).
     ///
     /// (1) AUTHN: verify the ingress bearer in constant time. Missing or
     ///     wrong bearer → 401. Body is NOT read before this check.
-    /// (2) AUTHZ: the verified principal's tenant must equal the pool's
-    ///     configured tenant. Cross-tenant or gate fault → 403.
+    /// (2) AUTHZ: evaluate the verified principal through the local PDP-style
+    ///     PBAC policy. RBAC role, verified tenant, resource tenant, method,
+    ///     and path must all match. Any mismatch → 403.
     pub fn require_data_plane_bearer(
         state: &AppState,
         req: &HttpRequest,
+        action: ProviderPoolAction,
     ) -> Result<VerifiedPrincipal, HttpResponse> {
         let principal = state
             .ingress_auth
             .verify_headers(&req.headers)
             .ok_or_else(|| unauth_401("missing or invalid ingress bearer"))?;
-        if principal.tenant() != &state.tenant_id {
-            return Err(forbid_403("cross-tenant access denied"));
+        let context = PolicyContext {
+            resource_tenant: &state.tenant_id,
+            method: &req.method,
+            path: &req.path,
+        };
+        if decide(&principal, action, &context) == PolicyDecision::Forbid {
+            return Err(forbid_403("data-plane policy denied"));
         }
         Ok(principal)
     }
 
-    /// Control-plane bearer gate (AUTH-005, /internal/* endpoints).
+    /// Control-plane bearer + PBAC authorization gate (AUTH-005, /internal/*).
     ///
     /// Bearer is the CRYPTOGRAPHIC gate; the caller's localhost check is
     /// defense-in-depth only and is enforced AFTER this succeeds. Missing
-    /// or wrong bearer → 401.
+    /// or wrong bearer → 401; policy deny → 403.
     pub fn require_bearer(
         state: &AppState,
         req: &HttpRequest,
+        action: ProviderPoolAction,
     ) -> Result<(), HttpResponse> {
-        state
+        let principal = state
             .control_auth
             .verify_headers(&req.headers)
-            .map(|_| ())
-            .ok_or_else(|| unauth_401("missing or invalid internal bearer"))
+            .ok_or_else(|| unauth_401("missing or invalid internal bearer"))?;
+        let context = PolicyContext {
+            resource_tenant: &state.tenant_id,
+            method: &req.method,
+            path: &req.path,
+        };
+        if decide(&principal, action, &context) == PolicyDecision::Forbid {
+            return Err(forbid_403("control-plane policy denied"));
+        }
+        Ok(())
     }
 }
 
@@ -543,17 +667,18 @@ fn build_app(config: &AppConfig) -> Result<ComposedApp, BuildError> {
         })
     });
 
-    // AUTH-005: authenticators are bound to the service's own tenant.
-    // Empty bearer → fail-closed (operator must set OYA_POOL_INGRESS_BEARER /
-    // OYA_POOL_CONTROL_BEARER in production; empty is deliberate for local
-    // bring-up where auth is not yet configured).
+    // AUTH-005: authenticators are bound to the service's own tenant with
+    // explicit RBAC roles. Empty bearer → fail-closed (operator must set
+    // OYA_POOL_INGRESS_BEARER / OYA_POOL_CONTROL_BEARER in production).
     let ingress_auth = authz::BearerAuthenticator::new(
         config.ingress_bearer.clone(),
         tenant_id.clone(),
+        [authz::ProviderPoolRole::DataPlaneCaller],
     );
     let control_auth = authz::BearerAuthenticator::new(
         config.control_bearer.clone(),
         tenant_id.clone(),
+        [authz::ProviderPoolRole::ControlPlaneOperator],
     );
 
     let state = Arc::new(AppState {
@@ -574,143 +699,70 @@ fn build_app(config: &AppConfig) -> Result<ComposedApp, BuildError> {
 
     // GET /healthz — liveness, no pool touch.
     router
-        .route(
-            HttpMethod::Get,
-            "/healthz",
-            Arc::new(|_req: HttpRequest| {
-                HttpResponse::new(200)
-                    .with_header("content-type", "application/json")
-                    .with_body(br#"{"status":"ok"}"#.to_vec())
-            }),
-        )
+        .route(HttpMethod::Get, "/healthz", healthz_handler())
         .map_err(|e| BuildError::Route(format!("{e:?}")))?;
 
-    // GET /metrics — Prometheus text-format metrics scraped from the OTel sink.
-    // No localhost restriction: this is the standard Prometheus scrape endpoint.
-    let metrics_state = state.clone();
+    // GET /metrics — Prometheus scrape endpoint; intentionally unauthenticated.
     router
-        .route(
-            HttpMethod::Get,
-            "/metrics",
-            Arc::new(move |_req: HttpRequest| {
-                let text = metrics_state.metrics.render_prometheus_text();
-                HttpResponse::new(200)
-                    .with_header("content-type", "text/plain; version=0.0.4; charset=utf-8")
-                    .with_body(text.into_bytes())
-            }),
-        )
+        .route(HttpMethod::Get, "/metrics", metrics_handler(state.clone()))
         .map_err(|e| BuildError::Route(format!("{e:?}")))?;
 
-    // GET /internal/seats — bearer-gated (cryptographic); localhost is defense-in-depth.
-    let seats_state = state.clone();
+    // GET /internal/seats — bearer + PBAC gated; localhost is defense-in-depth.
     router
         .route(
             HttpMethod::Get,
             "/internal/seats",
-            Arc::new(move |req: HttpRequest| {
-                // AUTH-005: bearer is the primary cryptographic gate.
-                if let Err(resp) = authz::require_bearer(&seats_state, &req) {
-                    return resp;
-                }
-                // Defense-in-depth: localhost constraint retained after bearer check.
-                if !is_localhost_request(&req) {
-                    return localhost_only_response();
-                }
-                let json = seats_state.seat_snapshot_json();
-                HttpResponse::new(200)
-                    .with_header("content-type", "application/json")
-                    .with_body(json.into_bytes())
-            }),
+            internal_seats_handler(state.clone()),
         )
         .map_err(|e| BuildError::Route(format!("{e:?}")))?;
 
-    // POST /internal/seats/reload — bearer-gated (cryptographic); localhost is defense-in-depth.
-    let reload_state = state.clone();
+    // POST /internal/seats/reload — bearer + PBAC gated; localhost is defense-in-depth.
     router
         .route(
             HttpMethod::Post,
             "/internal/seats/reload",
-            Arc::new(move |req: HttpRequest| {
-                // AUTH-005: bearer is the primary cryptographic gate.
-                if let Err(resp) = authz::require_bearer(&reload_state, &req) {
-                    return resp;
-                }
-                // Defense-in-depth: localhost constraint retained after bearer check.
-                if !is_localhost_request(&req) {
-                    return localhost_only_response();
-                }
-                let result = reload_state.reload_seats();
-                let json = serde_json::to_string(&result).unwrap_or_else(|_| {
-                    r#"{"added":0,"updated":0,"total":0}"#.to_string()
-                });
-                HttpResponse::new(200)
-                    .with_header("content-type", "application/json")
-                    .with_body(json.into_bytes())
-            }),
+            internal_seats_reload_handler(state.clone()),
         )
         .map_err(|e| BuildError::Route(format!("{e:?}")))?;
 
-    // Anthropic-compat ingress: POST /v1/messages + GET /v1/messages/count_tokens.
-    let messages_state = state.clone();
-    let messages_handler: SyncHandler = Arc::new(move |req: HttpRequest| {
-        // AUTH-005: authn before body parse; cross-tenant → 403.
-        if let Err(resp) = authz::require_data_plane_bearer(&messages_state, &req) {
-            return resp;
-        }
-        dispatch_handler(&messages_state, &req)
-    });
-    let count_tokens_handler: SyncHandler = Arc::new(|req: HttpRequest| {
-        // count_tokens is a pure local estimate; no pool dispatch.
-        let estimate =
-            oya_intelligence_adapter_anthropic_compat_api::count_tokens_handler(&utf8_lossy(
-                &req.body,
-            ));
-        HttpResponse::new(200)
-            .with_header("content-type", "application/json")
-            .with_body(format!(r#"{{"input_tokens":{estimate}}}"#).into_bytes())
-    });
-    mount(
-        &mut router,
-        oya_intelligence_adapter_anthropic_compat_api::build_routes(
-            messages_handler,
-            count_tokens_handler,
+    // Anthropic-compat ingress: every /v1/* surface is data-plane PBAC gated.
+    router
+        .route(
+            HttpMethod::Post,
+            "/v1/messages",
+            messages_handler(state.clone()),
         )
-        .map_err(|e| BuildError::Route(format!("{e:?}")))?,
-    )?;
+        .map_err(|e| BuildError::Route(format!("{e:?}")))?;
+    router
+        .route(
+            HttpMethod::Get,
+            "/v1/messages/count_tokens",
+            count_tokens_route_handler(state.clone()),
+        )
+        .map_err(|e| BuildError::Route(format!("{e:?}")))?;
 
-    // OpenAI-compat ingress: POST /v1/chat/completions + /v1/embeddings + GET /v1/models.
-    let chat_state = state.clone();
-    let chat_handler: SyncHandler = Arc::new(move |req: HttpRequest| {
-        // AUTH-005: authn before body parse; cross-tenant → 403.
-        if let Err(resp) = authz::require_data_plane_bearer(&chat_state, &req) {
-            return resp;
-        }
-        dispatch_handler(&chat_state, &req)
-    });
-    let embeddings_handler: SyncHandler = Arc::new(|_req: HttpRequest| {
-        // Embeddings dispatch is out of scope for slice 1 (the mock transport
-        // models a chat/messages completion). Surface an honest 501 rather than
-        // a fake success.
-        HttpResponse::new(501)
-            .with_header("content-type", "application/json")
-            .with_body(
-                br#"{"error":"embeddings not wired in pooling-convergence slice 1"}"#.to_vec(),
-            )
-    });
-    let models_handler: SyncHandler = Arc::new(|_req: HttpRequest| {
-        HttpResponse::new(200)
-            .with_header("content-type", "application/json")
-            .with_body(br#"{"object":"list","data":[]}"#.to_vec())
-    });
-    mount(
-        &mut router,
-        oya_intelligence_adapter_openai_compat_api::build_routes(
-            chat_handler,
-            embeddings_handler,
-            models_handler,
+    // OpenAI-compat ingress: every /v1/* surface is data-plane PBAC gated.
+    router
+        .route(
+            HttpMethod::Post,
+            "/v1/chat/completions",
+            chat_completions_handler(state.clone()),
         )
-        .map_err(|e| BuildError::Route(format!("{e:?}")))?,
-    )?;
+        .map_err(|e| BuildError::Route(format!("{e:?}")))?;
+    router
+        .route(
+            HttpMethod::Post,
+            "/v1/embeddings",
+            embeddings_route_handler(state.clone()),
+        )
+        .map_err(|e| BuildError::Route(format!("{e:?}")))?;
+    router
+        .route(
+            HttpMethod::Get,
+            "/v1/models",
+            models_route_handler(state.clone()),
+        )
+        .map_err(|e| BuildError::Route(format!("{e:?}")))?;
 
     let chain: MiddlewareChain<HttpRequest, HttpResponse> = MiddlewareChain::new();
     let server_config = ServerConfig::default().with_max_body_bytes(config.max_body_bytes);
@@ -719,6 +771,140 @@ fn build_app(config: &AppConfig) -> Result<ComposedApp, BuildError> {
         router,
         chain,
         server_config,
+    })
+}
+
+fn healthz_handler() -> SyncHandler {
+    Arc::new(|_req: HttpRequest| {
+        HttpResponse::new(200)
+            .with_header("content-type", "application/json")
+            .with_body(br#"{"status":"ok"}"#.to_vec())
+    })
+}
+
+fn metrics_handler(state: Arc<AppState>) -> SyncHandler {
+    Arc::new(move |_req: HttpRequest| {
+        let text = state.metrics.render_prometheus_text();
+        HttpResponse::new(200)
+            .with_header("content-type", "text/plain; version=0.0.4; charset=utf-8")
+            .with_body(text.into_bytes())
+    })
+}
+
+fn internal_seats_handler(state: Arc<AppState>) -> SyncHandler {
+    Arc::new(move |req: HttpRequest| {
+        if let Err(resp) = authz::require_bearer(
+            &state,
+            &req,
+            authz::ProviderPoolAction::ReadSeats,
+        ) {
+            return resp;
+        }
+        if !is_localhost_request(&req) {
+            return localhost_only_response();
+        }
+        let json = state.seat_snapshot_json();
+        HttpResponse::new(200)
+            .with_header("content-type", "application/json")
+            .with_body(json.into_bytes())
+    })
+}
+
+fn internal_seats_reload_handler(state: Arc<AppState>) -> SyncHandler {
+    Arc::new(move |req: HttpRequest| {
+        if let Err(resp) = authz::require_bearer(
+            &state,
+            &req,
+            authz::ProviderPoolAction::ReloadSeats,
+        ) {
+            return resp;
+        }
+        if !is_localhost_request(&req) {
+            return localhost_only_response();
+        }
+        let result = state.reload_seats();
+        let json = serde_json::to_string(&result)
+            .unwrap_or_else(|_| r#"{"added":0,"updated":0,"total":0}"#.to_string());
+        HttpResponse::new(200)
+            .with_header("content-type", "application/json")
+            .with_body(json.into_bytes())
+    })
+}
+
+fn messages_handler(state: Arc<AppState>) -> SyncHandler {
+    Arc::new(move |req: HttpRequest| {
+        if let Err(resp) = authz::require_data_plane_bearer(
+            &state,
+            &req,
+            authz::ProviderPoolAction::DispatchMessages,
+        ) {
+            return resp;
+        }
+        dispatch_handler(&state, &req)
+    })
+}
+
+fn count_tokens_route_handler(state: Arc<AppState>) -> SyncHandler {
+    Arc::new(move |req: HttpRequest| {
+        if let Err(resp) = authz::require_data_plane_bearer(
+            &state,
+            &req,
+            authz::ProviderPoolAction::CountTokens,
+        ) {
+            return resp;
+        }
+        let estimate =
+            oya_intelligence_adapter_anthropic_compat_api::count_tokens_handler(&utf8_lossy(
+                &req.body,
+            ));
+        HttpResponse::new(200)
+            .with_header("content-type", "application/json")
+            .with_body(format!(r#"{{"input_tokens":{estimate}}}"#).into_bytes())
+    })
+}
+
+fn chat_completions_handler(state: Arc<AppState>) -> SyncHandler {
+    Arc::new(move |req: HttpRequest| {
+        if let Err(resp) = authz::require_data_plane_bearer(
+            &state,
+            &req,
+            authz::ProviderPoolAction::ChatCompletions,
+        ) {
+            return resp;
+        }
+        dispatch_handler(&state, &req)
+    })
+}
+
+fn embeddings_route_handler(state: Arc<AppState>) -> SyncHandler {
+    Arc::new(move |req: HttpRequest| {
+        if let Err(resp) = authz::require_data_plane_bearer(
+            &state,
+            &req,
+            authz::ProviderPoolAction::RequestEmbeddings,
+        ) {
+            return resp;
+        }
+        HttpResponse::new(501)
+            .with_header("content-type", "application/json")
+            .with_body(
+                br#"{"error":"embeddings not wired in pooling-convergence slice 1"}"#.to_vec(),
+            )
+    })
+}
+
+fn models_route_handler(state: Arc<AppState>) -> SyncHandler {
+    Arc::new(move |req: HttpRequest| {
+        if let Err(resp) = authz::require_data_plane_bearer(
+            &state,
+            &req,
+            authz::ProviderPoolAction::ListModels,
+        ) {
+            return resp;
+        }
+        HttpResponse::new(200)
+            .with_header("content-type", "application/json")
+            .with_body(br#"{"object":"list","data":[]}"#.to_vec())
     })
 }
 
@@ -799,28 +985,6 @@ fn localhost_only_response() -> HttpResponse {
         .with_body(br#"{"error":"forbidden","detail":"internal endpoint is localhost-only"}"#.to_vec())
 }
 
-/// Add every route of `source` into `target`. Surfaces a duplicate/parse error
-/// as a fail-closed [`BuildError`].
-fn mount(
-    target: &mut Router<SyncHandler>,
-    source: Router<SyncHandler>,
-) -> Result<(), BuildError> {
-    for (method, template) in source.routes() {
-        // Re-resolve the handler from the source for this (method, template).
-        let Some((handler, _captures, _t)) = source.match_route(method, template) else {
-            // Unreachable: every (method, template) yielded by `routes()` is
-            // registered. Fail closed instead of panicking if the invariant
-            // is ever violated.
-            return Err(BuildError::Route(format!(
-                "route {method:?} {template} vanished during mount"
-            )));
-        };
-        target
-            .route(method, template, handler.clone())
-            .map_err(|e| BuildError::Route(format!("{e:?}")))?;
-    }
-    Ok(())
-}
 
 /// Failure assembling the composed app. Fail-closed at start-up.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -1166,6 +1330,88 @@ mod tests {
     }
 
     #[test]
+    fn auth_no_bearer_on_all_other_v1_routes_returns_401() {
+        let cfg = base_config();
+        let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
+        for (method, path, body) in [
+            (
+                HttpMethod::Get,
+                "/v1/messages/count_tokens",
+                br#"{"messages":[{"role":"user","content":"hi"}]}"#.to_vec(),
+            ),
+            (
+                HttpMethod::Post,
+                "/v1/embeddings",
+                br#"{"model":"text-embedding-3-small","input":["hi"]}"#.to_vec(),
+            ),
+            (HttpMethod::Get, "/v1/models", Vec::new()),
+        ] {
+            let resp = oya_http_runtime_hyper_adapter::dispatch(
+                HttpRequest {
+                    method,
+                    path: path.into(),
+                    headers: Default::default(),
+                    body,
+                    path_captures: Default::default(),
+                    matched_template: None,
+                },
+                &router,
+                &chain,
+            );
+            assert_eq!(resp.status, 401, "no bearer on {path} → 401");
+        }
+    }
+
+    #[test]
+    fn auth_valid_bearer_allows_count_tokens_models_and_embeddings_policy() {
+        let cfg = base_config();
+        let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
+
+        let count_tokens = oya_http_runtime_hyper_adapter::dispatch(
+            HttpRequest {
+                method: HttpMethod::Get,
+                path: "/v1/messages/count_tokens".into(),
+                headers: ingress_auth_header(),
+                body: b"12345678".to_vec(),
+                path_captures: Default::default(),
+                matched_template: None,
+            },
+            &router,
+            &chain,
+        );
+        assert_eq!(count_tokens.status, 200);
+        assert_eq!(count_tokens.body, br#"{"input_tokens":2}"#.to_vec());
+
+        let models = oya_http_runtime_hyper_adapter::dispatch(
+            HttpRequest {
+                method: HttpMethod::Get,
+                path: "/v1/models".into(),
+                headers: ingress_auth_header(),
+                body: Vec::new(),
+                path_captures: Default::default(),
+                matched_template: None,
+            },
+            &router,
+            &chain,
+        );
+        assert_eq!(models.status, 200);
+
+        let embeddings = oya_http_runtime_hyper_adapter::dispatch(
+            HttpRequest {
+                method: HttpMethod::Post,
+                path: "/v1/embeddings".into(),
+                headers: ingress_auth_header(),
+                body: br#"{"model":"text-embedding-3-small","input":["hi"]}"#.to_vec(),
+                path_captures: Default::default(),
+                matched_template: None,
+            },
+            &router,
+            &chain,
+        );
+        assert_eq!(embeddings.status, 501, "authorized but not wired yet");
+    }
+
+    #[test]
     fn auth_forged_bearer_on_messages_returns_401() {
         let cfg = base_config();
         let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
@@ -1234,10 +1480,16 @@ mod tests {
         let pool_tenant = TenantId("ten_pool".into());
         let other_tenant = TenantId("ten_other".into());
         // Authenticator bound to "ten_other", but pool is "ten_pool".
-        let control_auth =
-            authz::BearerAuthenticator::new("ctrl", pool_tenant.clone());
-        let ingress_auth =
-            authz::BearerAuthenticator::new("secret", other_tenant);
+        let control_auth = authz::BearerAuthenticator::new(
+            "ctrl",
+            pool_tenant.clone(),
+            [authz::ProviderPoolRole::ControlPlaneOperator],
+        );
+        let ingress_auth = authz::BearerAuthenticator::new(
+            "secret",
+            other_tenant,
+            [authz::ProviderPoolRole::DataPlaneCaller],
+        );
         // Construct a minimal AppState with mismatched tenant binding.
         let script: TransportScript = Arc::new(|_, _, _| {
             Err(TransportError::NonRetryable { detail: "test stub".into() })
@@ -1265,7 +1517,11 @@ mod tests {
             path_captures: Default::default(),
             matched_template: None,
         };
-        let result = authz::require_data_plane_bearer(&state, &req);
+        let result = authz::require_data_plane_bearer(
+            &state,
+            &req,
+            authz::ProviderPoolAction::DispatchMessages,
+        );
         assert!(result.is_err(), "cross-tenant principal must be denied");
         assert_eq!(
             result.unwrap_err().status,
