@@ -2486,3 +2486,19 @@ This product consumes current SSOT doctrine for the intelligence substrate, cell
 - specs/oya/workflow-engine.json
 - specs/oya/workflow-studio.json
 - specs/oya/intelligence.json
+
+## 2a. Acceptance criteria traceability (required)
+
+This section is a planning-maturity contract only. It does **not** claim runtime, product-ready, or hyperscaler-ready status; promotion still requires fresh CI, SLO, security, SBOM, rollback/DR, owner/RACI, and product-pain evidence.
+
+| AC-ID | Given | When | Then | Test ID | Test path |
+|---|---|---|---|---|---|
+| WORKPLACE-PRD-AC-001 | The Workplace Integration PRD is used as a planning contract and cross-service HR, payroll, calendar, messenger, and workflow saga readiness is evaluated | The planned-maturity gate scans product PRDs | workplace saga acceptance is linked to test and evidence paths instead of generic prose | WORKPLACE-PRD-GATE-001 | `cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
+| WORKPLACE-PRD-AC-002 | a workplace-flow promotion packet references this PRD | Readiness evidence is evaluated | fresh saga, HR/payroll/calendar/messenger integration, audit, and user-pain evidence is required outside this PRD | WORKPLACE-PRD-GATE-002 | `cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
+
+## 9b. Verification commands (required) — one runnable check per metric
+
+| Metric | Verification command | Pass criterion | CI lane |
+|---|---|---|---|
+| Workplace saga/workflow integration planning maturity | `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app:oya-cloud-ci-planned-maturity-app-gate` | At least one Workplace row names saga, workflow, HR/payroll, calendar/messenger, and audit obligations | `oya-ci-required` |
+| Workplace product-ready non-claim boundary | `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app:oya-cloud-ci-planned-maturity-app-gate` | A workplace promotion packet cannot treat this PRD as product-ready evidence without fresh CI and product-pain proof | `oya-ci-required` |

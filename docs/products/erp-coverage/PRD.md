@@ -2512,3 +2512,19 @@ This product consumes current SSOT doctrine for the intelligence substrate, cell
 - specs/microservices/hr.json
 - specs/microservices/payroll.json
 - docs/products/workplace-integration/PRD.md
+
+## 2a. Acceptance criteria traceability (required)
+
+This section is a planning-maturity contract only. It does **not** claim runtime, product-ready, or hyperscaler-ready status; promotion still requires fresh CI, SLO, security, SBOM, rollback/DR, owner/RACI, and product-pain evidence.
+
+| AC-ID | Given | When | Then | Test ID | Test path |
+|---|---|---|---|---|---|
+| ERP-PRD-AC-001 | The ERP Coverage PRD is used as a planning contract and finance ledger, procurement, payroll, supply-chain, and SAP-displacement module contracts are referenced by a promotion packet | The planned-maturity gate scans product PRDs | ERP module acceptance is linked to test and evidence paths instead of generic prose | ERP-PRD-GATE-001 | `cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
+| ERP-PRD-AC-002 | ERP module-pack readiness is evaluated | Readiness evidence is evaluated | fresh ledger/procurement/payroll/workflow/audit evidence and user-pain validation is required outside this PRD | ERP-PRD-GATE-002 | `cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
+
+## 9b. Verification commands (required) — one runnable check per metric
+
+| Metric | Verification command | Pass criterion | CI lane |
+|---|---|---|---|
+| ERP ledger/module/workflow planning maturity | `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app:oya-cloud-ci-planned-maturity-app-gate` | At least one ERP row names ledger, procurement/payroll, workflow, SAP-parity, and audit obligations | `oya-ci-required` |
+| ERP product-ready non-claim boundary | `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app:oya-cloud-ci-planned-maturity-app-gate` | An ERP promotion packet cannot treat this PRD as product-ready evidence without fresh CI and product-pain proof | `oya-ci-required` |
