@@ -153,6 +153,7 @@ jobs:
           - { crate: oya-cloud-ci-dependency-automation-app, label: "gate · dependency-automation (ADR-0535, owned oya-deps.toml Rust bump-bot contract; external bot configs remain absent)" }
           - { crate: oya-cloud-ci-supply-chain-audit-app,    label: "gate · supply-chain-audit (owned RustSec advisory scan over vendored mirror, born-blocking)" }
           - { crate: oya-cloud-ci-operator-secret-bootstrap-app, label: "gate · operator-secret-bootstrap (GH #980 / ADR-0606, least-privilege secret RBAC: get/update/patch/delete on secrets MUST be resourceNames-scoped to the operator's produced Secret + the join-token bootstrap Secret MUST be declaratively provisioned or fail-closed-preflighted)" }
+          - { crate: oya-cloud-ci-cedar-deploy-parity-app, label: "gate · cedar-deploy-parity (GH #16 / ADR-0608, deployed-vs-authored Cedar parity: no deployed ConfigMap permit may leave the action unconstrained (action-agnostic blanket grant) and every deployed permit MUST be ⊆ the capability's authored <cap>/{policy,cedar}/*.cedar set; fail-closed on missing-authored/un-extractable/empty-scan; GH #16 byte-identical blanket ConfigMaps grandfathered in a documented shrink-only baseline pending the blanket-disarm follow-up)" }
     steps:
       # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
