@@ -49,7 +49,7 @@
     {
       "name": "connect-retirement-evidence-lag",
       "target": "0.99",
-      "file": "microservices/connector/slos/connect-retirement.openslo.yaml"
+      "sli": "connector retirement evidence lag remains within the published audit-readiness window"
     }
   ],
   "ips": [
@@ -257,9 +257,11 @@
   "slo_exemptions": [
     {
       "name": "connect-retirement-evidence-lag",
+      "status": "live_exempted_retiring_service",
       "owner": "council-architecture",
-      "reason": "No current OpenSLO artifact resolves for this planned SLO entry; keep it non-claiming until the artifact exists.",
-      "cutover": "Author a current OpenSLO file under the service-local slos/ or capability observability/slos home before production or hyperscaler-ready promotion."
+      "rationale": "Connector retirement evidence is still an audit-readiness workflow while live connector traffic migrates to successor service-local OpenSLO coverage.",
+      "cutover_on": "2026-09-30",
+      "ticket": "LANE-D-CONNECTOR-OPENSLO-CUTOVER"
     }
   ]
 }

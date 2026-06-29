@@ -210,9 +210,11 @@ fn green_repo_fixture_passes_from_disk() {
   },
   "slos": [],
   "slo_exemption": {
+    "status": "live_exempted_fixture",
     "owner": "axis-identity",
-    "reason": "fixture has no live OpenSLO artifact",
-    "cutover": "fixture-only"
+    "rationale": "The fixture intentionally models a non-runtime service whose OpenSLO coverage lands through a later cloud-ci admitted artifact.",
+    "cutover_on": "2026-12-31",
+    "evidence": "cloud-ci-tier-field-coverage fixture"
   }
 }
 "#,
@@ -232,9 +234,11 @@ fn green_repo_fixture_passes_from_disk() {
   },
   "slos": [],
   "slo_exemption": {
+    "status": "live_exempted_fixture",
     "owner": "axis-crm",
-    "reason": "fixture has no live OpenSLO artifact",
-    "cutover": "fixture-only"
+    "rationale": "The fixture intentionally models a non-runtime service whose OpenSLO coverage lands through a later cloud-ci admitted artifact.",
+    "cutover_on": "2026-12-31",
+    "evidence": "cloud-ci-tier-field-coverage fixture"
   }
 }
 "#,
