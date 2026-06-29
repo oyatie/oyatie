@@ -19,6 +19,10 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+use comms_mail_mailbox_api::{DmarcApiAction, MailApiEnvelope};
+use comms_mail_mailbox_rest as mail_rest;
+use comms_messenger_stream_api::MessengerApiEnvelope;
+use comms_messenger_stream_rest as messenger_rest;
 use oya_community_post_store_api::{
     CastVoteRequest, CommunityApiMode, CreatePostRequest, ModeratePostRequest, ModerationVerb,
     VoteDirection,
@@ -30,10 +34,6 @@ use oya_community_social_post_composition_rest as social_rest;
 use oya_http_middleware_kernel::{HttpRequest, HttpResponse, Middleware, MiddlewareChain, Next};
 use oya_http_router_kernel::{HttpMethod, Router, RouterError};
 use oya_http_runtime_hyper_adapter::{HyperRuntimeError, ServerConfig, serve_listener};
-use comms_mail_mailbox_api::{DmarcApiAction, MailApiEnvelope};
-use comms_mail_mailbox_rest as mail_rest;
-use comms_messenger_stream_api::MessengerApiEnvelope;
-use comms_messenger_stream_rest as messenger_rest;
 use oya_shared_postgres_command_kernel::{
     RecordingSqlBatchExecutor, SqlBatchExecutor, SqlExecutionPlan, SqlExecutionReport,
     TenantSqlContext,
@@ -405,6 +405,41 @@ impl From<HyperRuntimeError> for BackboneRestRuntimeError {
 // Authz port — fail-closed verified-principal layer (AUTH-005)
 // ---------------------------------------------------------------------------
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BackboneVerifiedPrincipal {
+    pub principal_ref: String,
+    pub policy_decision_ref: String,
+}
+
+impl BackboneVerifiedPrincipal {
+    pub fn new(principal_ref: impl Into<String>, policy_decision_ref: impl Into<String>) -> Self {
+        Self {
+            principal_ref: principal_ref.into(),
+            policy_decision_ref: policy_decision_ref.into(),
+        }
+    }
+
+    fn is_complete(&self) -> bool {
+        !self.principal_ref.trim().is_empty() && !self.policy_decision_ref.trim().is_empty()
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BackboneAuthzRequest {
+    pub bearer: String,
+    pub microservice: Option<BackboneRestMicroservice>,
+    pub method: String,
+    pub path: String,
+    pub matched_template: String,
+    pub action: String,
+    pub resource: String,
+    pub tenant_ref: Option<String>,
+    pub context_kind: Option<String>,
+    pub caller_principal_ref: Option<String>,
+    pub caller_policy_decision_ref: Option<String>,
+    pub path_captures: BTreeMap<String, String>,
+}
+
 /// Authz port that callers MUST supply to build a fail-closed middleware chain.
 ///
 /// Implement this to perform constant-time bearer comparison and PDP resolution.
@@ -413,12 +448,20 @@ impl From<HyperRuntimeError> for BackboneRestRuntimeError {
 /// Reference doctrine: tenancy/facade/tenant-lifecycle-app/src/lib.rs
 /// (authenticate_caller + constant-time bearer + authorize() per route).
 pub trait BackboneAuthzProvider: Send + Sync {
-    /// Verify the bearer token and authorize the request.
+    /// Verify the bearer token and authorize the concrete route request.
     ///
-    /// Returns `Ok(principal_ref)` on success.
+    /// The request carries PBAC inputs while preserving RBAC/ABAC facts: route
+    /// action/resource, tenant/context attributes, and untrusted caller-supplied
+    /// authorization hints. Implementations must authenticate the bearer with a
+    /// constant-time comparison and perform a PDP decision over this full request.
+    ///
+    /// Returns a verified principal + policy decision on success.
     /// Returns `Err(401)` for a missing or invalid credential.
     /// Returns `Err(403)` for an authenticated but unauthorized caller.
-    fn verify_and_authorize(&self, bearer: &str) -> Result<String, u16>;
+    fn verify_and_authorize(
+        &self,
+        request: &BackboneAuthzRequest,
+    ) -> Result<BackboneVerifiedPrincipal, u16>;
 }
 
 /// Fail-closed verified-principal middleware. Probe paths (/health, /ready) are exempt.
@@ -426,6 +469,7 @@ pub trait BackboneAuthzProvider: Send + Sync {
 /// authn-before-body-parse: body bytes are never accessed if the bearer check fails.
 struct BackboneAuthzMiddleware {
     provider: Arc<dyn BackboneAuthzProvider>,
+    microservice: Option<BackboneRestMicroservice>,
 }
 
 impl Middleware<HttpRequest, HttpResponse> for BackboneAuthzMiddleware {
@@ -446,12 +490,22 @@ impl Middleware<HttpRequest, HttpResponse> for BackboneAuthzMiddleware {
                     401,
                     "missing_bearer",
                     "Authorization: Bearer header is required",
-                )
+                );
             }
         };
+        let authz_request = backbone_authz_request(self.microservice, &bearer, &request);
         // Constant-time comparison and PDP decision are the provider's responsibility.
-        match self.provider.verify_and_authorize(&bearer) {
-            Ok(_principal) => next.run(request),
+        match self.provider.verify_and_authorize(&authz_request) {
+            Ok(principal) if principal.is_complete() => {
+                let mut verified_request = request;
+                backbone_install_verified_authz_headers(&mut verified_request, &principal);
+                next.run(verified_request)
+            }
+            Ok(_) => backbone_authn_response(
+                403,
+                "authz_denied",
+                "verified principal and policy decision are required",
+            ),
             Err(status) => {
                 backbone_authn_response(status, "authz_denied", "request is not authorized")
             }
@@ -465,7 +519,21 @@ impl Middleware<HttpRequest, HttpResponse> for BackboneAuthzMiddleware {
 pub fn backbone_authz_chain(
     provider: Arc<dyn BackboneAuthzProvider>,
 ) -> MiddlewareChain<HttpRequest, HttpResponse> {
-    MiddlewareChain::new().push(Box::new(BackboneAuthzMiddleware { provider }))
+    MiddlewareChain::new().push(Box::new(BackboneAuthzMiddleware {
+        provider,
+        microservice: None,
+    }))
+}
+
+/// Build a fail-closed authz chain with the serving microservice bound into the PBAC request.
+pub fn backbone_authz_chain_for_microservice(
+    microservice: BackboneRestMicroservice,
+    provider: Arc<dyn BackboneAuthzProvider>,
+) -> MiddlewareChain<HttpRequest, HttpResponse> {
+    MiddlewareChain::new().push(Box::new(BackboneAuthzMiddleware {
+        provider,
+        microservice: Some(microservice),
+    }))
 }
 
 /// Return the runtime binding catalog for one backbone REST service.
@@ -635,7 +703,10 @@ pub async fn serve_backbone_rest_microservice_listener(
     serve_listener(
         listener,
         Arc::new(built.router),
-        Arc::new(backbone_authz_chain(authz_provider)),
+        Arc::new(backbone_authz_chain_for_microservice(
+            microservice,
+            authz_provider,
+        )),
         config,
     )
     .await
@@ -2130,6 +2201,65 @@ fn backbone_extract_bearer(request: &HttpRequest) -> Option<&str> {
         .map(str::trim)
 }
 
+fn backbone_authz_request(
+    microservice: Option<BackboneRestMicroservice>,
+    bearer: &str,
+    request: &HttpRequest,
+) -> BackboneAuthzRequest {
+    let matched_template = request
+        .matched_template
+        .clone()
+        .unwrap_or_else(|| request.path.clone());
+    let method = request.method.name().to_string();
+    let service_slug = microservice
+        .map(BackboneRestMicroservice::slug)
+        .unwrap_or("backbone");
+    let action = format!("backbone.{service_slug}.{}", method.to_ascii_lowercase());
+
+    BackboneAuthzRequest {
+        bearer: bearer.to_string(),
+        microservice,
+        method: method.clone(),
+        path: request.path.clone(),
+        matched_template: matched_template.clone(),
+        action,
+        resource: format!("{method} {matched_template}"),
+        tenant_ref: header_value(request, "x-oya-scope-ref").map(str::to_string),
+        context_kind: header_value(request, "x-oya-context-kind").map(str::to_string),
+        caller_principal_ref: header_value(request, "x-oya-principal-ref").map(str::to_string),
+        caller_policy_decision_ref: header_value(request, "x-oya-policy-decision-ref")
+            .map(str::to_string),
+        path_captures: request.path_captures.clone(),
+    }
+}
+
+fn backbone_install_verified_authz_headers(
+    request: &mut HttpRequest,
+    principal: &BackboneVerifiedPrincipal,
+) {
+    remove_header_case_insensitive(&mut request.headers, "x-oya-principal-ref");
+    remove_header_case_insensitive(&mut request.headers, "x-oya-policy-decision-ref");
+    request.headers.insert(
+        "x-oya-principal-ref".to_string(),
+        principal.principal_ref.clone(),
+    );
+    request.headers.insert(
+        "x-oya-policy-decision-ref".to_string(),
+        principal.policy_decision_ref.clone(),
+    );
+}
+
+fn remove_header_case_insensitive(headers: &mut BTreeMap<String, String>, name: &str) {
+    let keys = headers
+        .keys()
+        .filter(|key| key.eq_ignore_ascii_case(name))
+        .cloned()
+        .collect::<Vec<_>>();
+    for key in keys {
+        headers.remove(&key);
+    }
+}
+
 fn backbone_authn_response(status: u16, code: &str, reason: &str) -> HttpResponse {
     let body = format!(
         "{{\"status\":{},\"error_code\":\"{}\",\"reason\":\"{}\"}}",
@@ -2288,15 +2418,21 @@ mod tests {
     /// not testing authz behaviour — they just need the bearer-presence check to pass.
     struct AlwaysPermitAuthzProvider;
     impl BackboneAuthzProvider for AlwaysPermitAuthzProvider {
-        fn verify_and_authorize(&self, _bearer: &str) -> Result<String, u16> {
-            Ok("test-principal".to_string())
+        fn verify_and_authorize(
+            &self,
+            _request: &BackboneAuthzRequest,
+        ) -> Result<BackboneVerifiedPrincipal, u16> {
+            Ok(BackboneVerifiedPrincipal::new("user:u", "cedar:test-allow"))
         }
     }
 
     /// Denies every request at the PDP level (403). Use to test authz denial paths.
     struct DenyAllAuthzProvider;
     impl BackboneAuthzProvider for DenyAllAuthzProvider {
-        fn verify_and_authorize(&self, _bearer: &str) -> Result<String, u16> {
+        fn verify_and_authorize(
+            &self,
+            _request: &BackboneAuthzRequest,
+        ) -> Result<BackboneVerifiedPrincipal, u16> {
             Err(403)
         }
     }
@@ -2306,12 +2442,47 @@ mod tests {
         token: &'static str,
     }
     impl BackboneAuthzProvider for FixedTokenAuthzProvider {
-        fn verify_and_authorize(&self, bearer: &str) -> Result<String, u16> {
-            if bearer == self.token {
-                Ok("test-principal".to_string())
+        fn verify_and_authorize(
+            &self,
+            request: &BackboneAuthzRequest,
+        ) -> Result<BackboneVerifiedPrincipal, u16> {
+            if request.bearer == self.token {
+                Ok(BackboneVerifiedPrincipal::new("user:u", "cedar:test-allow"))
             } else {
                 Err(401)
             }
+        }
+    }
+
+    struct RecordingAuthzProvider {
+        seen: Mutex<Option<BackboneAuthzRequest>>,
+        principal: BackboneVerifiedPrincipal,
+    }
+
+    impl RecordingAuthzProvider {
+        fn new(principal: BackboneVerifiedPrincipal) -> Self {
+            Self {
+                seen: Mutex::new(None),
+                principal,
+            }
+        }
+
+        fn seen(&self) -> BackboneAuthzRequest {
+            self.seen
+                .lock()
+                .unwrap()
+                .clone()
+                .expect("authz provider should receive one request")
+        }
+    }
+
+    impl BackboneAuthzProvider for RecordingAuthzProvider {
+        fn verify_and_authorize(
+            &self,
+            request: &BackboneAuthzRequest,
+        ) -> Result<BackboneVerifiedPrincipal, u16> {
+            *self.seen.lock().unwrap() = Some(request.clone());
+            Ok(self.principal.clone())
         }
     }
 
@@ -2353,7 +2524,10 @@ mod tests {
             ),
             ("x-request-id".to_string(), request_id.to_string()),
             // bearer required by verify_principal in all non-probe handlers
-            ("authorization".to_string(), "Bearer test-bearer".to_string()),
+            (
+                "authorization".to_string(),
+                "Bearer test-bearer".to_string(),
+            ),
         ])
     }
 
@@ -2458,8 +2632,10 @@ mod tests {
         let chain = empty_middleware_chain();
         // GET /channels is ContractOnly (not Probe), so verify_principal requires a bearer.
         let mut req = request(HttpMethod::Get, "/channels");
-        req.headers
-            .insert("authorization".to_string(), "Bearer test-bearer".to_string());
+        req.headers.insert(
+            "authorization".to_string(),
+            "Bearer test-bearer".to_string(),
+        );
         let response = dispatch_backbone_rest_request(req, &built.router, &chain);
         let body = String::from_utf8(response.body).unwrap();
 
@@ -3126,8 +3302,7 @@ mod tests {
     #[test]
     fn authz_middleware_exempts_probe_paths_no_bearer_required() {
         // /health and /ready must reach the probe handler without a bearer token.
-        let built =
-            build_backbone_rest_router(BackboneRestMicroservice::Mail, Vec::new()).unwrap();
+        let built = build_backbone_rest_router(BackboneRestMicroservice::Mail, Vec::new()).unwrap();
         let chain = backbone_authz_chain(Arc::new(DenyAllAuthzProvider));
 
         for path in ["/health", "/ready"] {
@@ -3171,8 +3346,10 @@ mod tests {
         let chain = backbone_authz_chain(Arc::new(FixedTokenAuthzProvider { token: "correct" }));
 
         let mut req = request(HttpMethod::Get, "/channels");
-        req.headers
-            .insert("authorization".to_string(), "Bearer forged-token".to_string());
+        req.headers.insert(
+            "authorization".to_string(),
+            "Bearer forged-token".to_string(),
+        );
         let response = dispatch_backbone_rest_request(req, &built.router, &chain);
 
         assert_eq!(response.status, 401);
@@ -3216,6 +3393,64 @@ mod tests {
         let body = String::from_utf8(response.body).unwrap();
         assert!(body.contains("\"runtime_handler\":\"json_write\""));
         assert!(body.contains("\"event_type\":\"messenger.message.sent\""));
+    }
+
+    #[test]
+    fn authz_middleware_passes_pbac_context_and_replaces_caller_authz_headers() {
+        let built =
+            build_backbone_rest_router(BackboneRestMicroservice::Messenger, Vec::new()).unwrap();
+        let provider = Arc::new(RecordingAuthzProvider::new(BackboneVerifiedPrincipal::new(
+            "user:u",
+            "cedar:decision:verified",
+        )));
+        let chain = backbone_authz_chain_for_microservice(
+            BackboneRestMicroservice::Messenger,
+            provider.clone(),
+        );
+
+        let mut req = json_request(
+            HttpMethod::Post,
+            "/channels/channel-a/messages",
+            r#"{"message_id":"msg-1","author_ref":"user:u","envelope":{"kind":"tenant_dek","dek_ref":"dek:1","four_eyes":true},"retention_policy_id":"retention:default"}"#,
+        );
+        req.headers
+            .insert("authorization".to_string(), "Bearer secret".to_string());
+        req.headers
+            .insert("x-oya-principal-ref".to_string(), "forged:user".to_string());
+        req.headers.insert(
+            "x-oya-policy-decision-ref".to_string(),
+            "cedar:forged".to_string(),
+        );
+
+        let response = dispatch_backbone_rest_request(req, &built.router, &chain);
+
+        assert_eq!(response.status, 201);
+        let seen = provider.seen();
+        assert_eq!(seen.bearer, "secret");
+        assert_eq!(seen.microservice, Some(BackboneRestMicroservice::Messenger));
+        assert_eq!(seen.method, "POST");
+        assert_eq!(seen.path, "/channels/channel-a/messages");
+        assert_eq!(seen.matched_template, messenger_rest::POST_MESSAGE_ROUTE);
+        assert_eq!(seen.action, "backbone.messenger.post");
+        assert_eq!(
+            seen.resource,
+            format!("POST {}", messenger_rest::POST_MESSAGE_ROUTE)
+        );
+        assert_eq!(seen.tenant_ref.as_deref(), Some("tenant:t"));
+        assert_eq!(seen.context_kind.as_deref(), Some("professional"));
+        assert_eq!(seen.caller_principal_ref.as_deref(), Some("forged:user"));
+        assert_eq!(
+            seen.caller_policy_decision_ref.as_deref(),
+            Some("cedar:forged")
+        );
+        assert_eq!(
+            seen.path_captures.get("channel_id").map(String::as_str),
+            Some("channel-a")
+        );
+
+        let body = String::from_utf8(response.body).unwrap();
+        assert!(body.contains("\"policy_decision_ref\":\"cedar:decision:verified\""));
+        assert!(!body.contains("cedar:forged"));
     }
 
     #[test]
@@ -3276,11 +3511,19 @@ mod tests {
         ];
 
         for (method, path, service) in write_consts {
-            assert!(!path.is_empty(), "{service:?} write route path must not be empty");
-            assert!(!method.is_empty(), "{service:?} write route method must not be empty");
+            assert!(
+                !path.is_empty(),
+                "{service:?} write route path must not be empty"
+            );
+            assert!(
+                !method.is_empty(),
+                "{service:?} write route method must not be empty"
+            );
             let catalog = route_runtime_catalog(*service);
             assert!(
-                catalog.iter().any(|r| r.path == *path && r.method == *method),
+                catalog
+                    .iter()
+                    .any(|r| r.path == *path && r.method == *method),
                 "write const ({method} {path}) not found in {service:?} route catalog"
             );
         }
