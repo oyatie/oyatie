@@ -108,6 +108,7 @@
     "oya-cloud-ci-hyperscaler-parity-taxonomy-app": "Hyperscaler taxonomy gaps are product-readiness classification decisions and must be resolved in the taxonomy source.",
     "oya-cloud-ci-kernel-purity-app": "Kernel-purity ships a fixer for dependency declarations, but topology and semantic validation failures still require reviewed source changes.",
     "oya-cloud-ci-manifest-hygiene-app": "Manifest hygiene findings require package metadata and ownership decisions; the gate reports exact missing fields for reviewed repair.",
+    "oya-cloud-ci-planned-maturity-app": "Planned-maturity findings require authored PRD traceability, rich capability records, or explicit retired-plan provenance/live-ref decisions; the gate must not invent readiness evidence.",
     "oya-cloud-ci-no-graphql-without-adr-app": "GraphQL reintroduction requires an explicit reversing ADR or removal; the gate cannot author that decision automatically.",
     "oya-cloud-ci-operator-secret-bootstrap-app": "Operator secret bootstrap findings are security/RBAC design changes and must be repaired explicitly.",
     "oya-cloud-ci-port-placement-app": "Port-placement findings require moving traits across clean-architecture boundaries, not a safe local text rewrite.",
