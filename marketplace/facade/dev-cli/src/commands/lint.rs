@@ -231,13 +231,38 @@ fn lint_asyncapi(contract_path: &Path) -> Result<String, String> {
             "defaultContentType: application/cloudevents+protobuf",
             "defaultContentType: application/cloudevents+protobuf",
         ),
-        ("address: oya.platform.audit", "address: oya.platform.audit"),
-        ("action: send", "action: send"),
-        ("name: audit.event.emit.v1", "name: audit.event.emit.v1"),
         (
             "contentType: application/cloudevents+protobuf",
             "contentType: application/cloudevents+protobuf",
         ),
+        (
+            "schemaFormat: application/vnd.google.protobuf;version=3",
+            "schemaFormat: application/vnd.google.protobuf;version=3",
+        ),
+    ] {
+        require_includes("asyncapi-lint", &source, needle, label)?;
+    }
+
+    let proto_refs = find_proto_refs(&source);
+    if proto_refs.is_empty() {
+        return Err("asyncapi-lint: missing local protobuf payload $ref".to_string());
+    }
+    for proto_ref in &proto_refs {
+        validate_local_proto_ref(contract_path, proto_ref)?;
+    }
+
+    if is_platform_audit_asyncapi(contract_path, &source) {
+        lint_platform_audit_asyncapi(&source, &proto_refs)?;
+    }
+
+    Ok(format!("asyncapi-lint: ok {}", contract_path.display()))
+}
+
+fn lint_platform_audit_asyncapi(source: &str, proto_refs: &[String]) -> Result<(), String> {
+    for (needle, label) in [
+        ("address: oya.platform.audit", "address: oya.platform.audit"),
+        ("action: send", "action: send"),
+        ("name: audit.event.emit.v1", "name: audit.event.emit.v1"),
         ("additionalProperties: false", "additionalProperties: false"),
         (
             "required: [specversion, id, source, type, subject, time, datacontenttype]",
@@ -250,12 +275,8 @@ fn lint_asyncapi(contract_path: &Path) -> Result<String, String> {
         ),
         ("const: audit.event.emit.v1", "const: audit.event.emit.v1"),
         ("const: application/protobuf", "const: application/protobuf"),
-        (
-            "schemaFormat: application/vnd.google.protobuf;version=3",
-            "schemaFormat: application/vnd.google.protobuf;version=3",
-        ),
     ] {
-        require_includes("asyncapi-lint", &source, needle, label)?;
+        require_includes("asyncapi-lint", source, needle, label)?;
     }
     for header in [
         "specversion",
@@ -268,15 +289,17 @@ fn lint_asyncapi(contract_path: &Path) -> Result<String, String> {
     ] {
         require_includes(
             "asyncapi-lint",
-            &source,
+            source,
             &format!("          {header}:"),
             &format!("CloudEvents header property {header}"),
         )?;
     }
 
-    let payload_ref = find_audit_proto_ref(&source)
+    let payload_ref = proto_refs
+        .iter()
+        .find(|proto_ref| proto_ref.contains("audit-event-v1.proto#"))
         .ok_or_else(|| "asyncapi-lint: missing audit-event-v1.proto payload $ref".to_string())?;
-    let (proto_rel_path, message_ref) = payload_ref
+    let (_, message_ref) = payload_ref
         .split_once('#')
         .ok_or_else(|| "asyncapi-lint: missing audit-event-v1.proto payload $ref".to_string())?;
     if message_ref != "/platform.audit.v1.AuditEvent" {
@@ -284,25 +307,8 @@ fn lint_asyncapi(contract_path: &Path) -> Result<String, String> {
             "asyncapi-lint: payload $ref must target /platform.audit.v1.AuditEvent, got {message_ref}"
         ));
     }
-    let proto_path = contract_path
-        .parent()
-        .unwrap_or_else(|| Path::new("."))
-        .join(proto_rel_path);
-    if !proto_path.exists() {
-        return Err(format!(
-            "asyncapi-lint: payload $ref target does not exist: {}",
-            proto_path.display()
-        ));
-    }
-    let proto = read_to_string(&proto_path)?;
-    if !has_package(&proto, "platform.audit.v1") {
-        return Err("asyncapi-lint: payload proto package platform.audit.v1 not found".to_string());
-    }
-    if find_message_body(&proto, "AuditEvent").is_err() {
-        return Err("asyncapi-lint: payload proto message AuditEvent not found".to_string());
-    }
 
-    Ok(format!("asyncapi-lint: ok {}", contract_path.display()))
+    Ok(())
 }
 
 fn lint_adr_shape(file: &Path) -> Result<String, String> {
@@ -601,20 +607,87 @@ fn require_includes(prefix: &str, source: &str, needle: &str, label: &str) -> Re
     }
 }
 
-fn find_audit_proto_ref(source: &str) -> Option<String> {
-    source.lines().find_map(|line| {
-        let (_, value) = line.split_once("$ref:")?;
-        let cleaned = value
-            .trim()
-            .trim_matches('\'')
-            .trim_matches('"')
-            .to_string();
-        if cleaned.contains("audit-event-v1.proto#") {
-            Some(cleaned)
-        } else {
-            None
-        }
-    })
+fn find_proto_refs(source: &str) -> Vec<String> {
+    source
+        .lines()
+        .filter_map(|line| {
+            let (_, value) = line.split_once("$ref:")?;
+            let cleaned = yaml_inline_scalar(value);
+            if cleaned.contains(".proto#") {
+                Some(cleaned)
+            } else {
+                None
+            }
+        })
+        .collect()
+}
+
+fn yaml_inline_scalar(value: &str) -> String {
+    let trimmed = value.trim();
+    if let Some(quote) = trimmed.as_bytes().first().copied()
+        && (quote == b'\'' || quote == b'"')
+        && let Some(end) = trimmed[1..].find(quote as char)
+    {
+        return trimmed[1..1 + end].to_string();
+    }
+    trimmed
+        .split_whitespace()
+        .next()
+        .unwrap_or_default()
+        .to_string()
+}
+
+fn validate_local_proto_ref(contract_path: &Path, proto_ref: &str) -> Result<(), String> {
+    let (proto_rel_path, message_ref) = proto_ref.split_once('#').ok_or_else(|| {
+        format!("asyncapi-lint: protobuf payload $ref missing fragment: {proto_ref}")
+    })?;
+    if proto_rel_path.is_empty()
+        || proto_rel_path.starts_with('/')
+        || proto_rel_path.contains('\\')
+        || proto_rel_path.contains('\0')
+        || proto_rel_path.starts_with("http://")
+        || proto_rel_path.starts_with("https://")
+    {
+        return Err(format!(
+            "asyncapi-lint: protobuf payload $ref must be a local relative path: {proto_ref}"
+        ));
+    }
+    let proto_path = contract_path
+        .parent()
+        .unwrap_or_else(|| Path::new("."))
+        .join(proto_rel_path);
+    if !proto_path.exists() {
+        return Err(format!(
+            "asyncapi-lint: payload $ref target does not exist: {}",
+            proto_path.display()
+        ));
+    }
+    let proto = read_to_string(&proto_path)?;
+    let message_path = message_ref.strip_prefix('/').ok_or_else(|| {
+        format!("asyncapi-lint: protobuf payload $ref fragment must start with '/': {proto_ref}")
+    })?;
+    let (package, message) = message_path.rsplit_once('.').ok_or_else(|| {
+        format!("asyncapi-lint: protobuf payload $ref fragment must include package and message: {proto_ref}")
+    })?;
+    if !has_package(&proto, package) {
+        return Err(format!(
+            "asyncapi-lint: payload proto package {package} not found"
+        ));
+    }
+    if find_message_body(&proto, message).is_err() {
+        return Err(format!(
+            "asyncapi-lint: payload proto message {message_path} not found"
+        ));
+    }
+    Ok(())
+}
+
+fn is_platform_audit_asyncapi(contract_path: &Path, source: &str) -> bool {
+    contract_path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .is_some_and(|name| name == "audit-events-v1.yaml")
+        || source.contains("audit.event.emit.v1")
 }
 
 fn is_adr_file_name(base: &str) -> bool {

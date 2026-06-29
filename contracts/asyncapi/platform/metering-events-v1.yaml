@@ -47,4 +47,4 @@ components:
       payload:
         schemaFormat: application/vnd.google.protobuf;version=3
         schema:
-          $ref: '../proto/platform/metering/v1/metering-event-v1.proto#/platform.metering.v1.MeteringEventIngest'
+          $ref: '../../proto/platform/metering/v1/metering-event-v1.proto#/platform.metering.v1.MeteringEventIngest'

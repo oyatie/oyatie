@@ -47,15 +47,18 @@ paths:
           required: false
           schema: { type: string }
           description: Tenant id hash (SHA-256). Cedar enforces principal.tenant_id == tenant.
+          x-oyatie-data-class: INTERNAL_ONLY
         - in: query
           name: class
           required: false
           schema:
             $ref: "#/components/schemas/ExtractorClass"
+          x-oyatie-data-class: INTERNAL_ONLY
         - in: query
           name: include_stale
           required: false
           schema: { type: boolean, default: false }
+          x-oyatie-data-class: INTERNAL_ONLY
       responses:
         "200":
           description: Manifest snapshot
@@ -76,6 +79,7 @@ paths:
           name: tenant
           required: false
           schema: { type: string }
+          x-oyatie-data-class: INTERNAL_ONLY
         - in: query
           name: since
           required: false
@@ -83,6 +87,7 @@ paths:
             type: integer
             format: int64
             description: Unix timestamp ms; replay events emitted after this point
+          x-oyatie-data-class: INTERNAL_ONLY
       responses:
         "200":
           description: text/event-stream of LiveFeedEvent records
@@ -104,6 +109,7 @@ paths:
           required: true
           schema:
             $ref: "#/components/schemas/ExtractorId"
+          x-oyatie-data-class: INTERNAL_ONLY
       requestBody:
         required: true
         content:
@@ -137,21 +143,27 @@ components:
       properties:
         id:
           $ref: "#/components/schemas/ExtractorId"
+          x-oyatie-data-class: INTERNAL_ONLY
         class:
           $ref: "#/components/schemas/ExtractorClass"
+          x-oyatie-data-class: INTERNAL_ONLY
         source_path:
           type: string
+          x-oyatie-data-class: INTERNAL_ONLY
         last_refreshed_unix_ms:
           type: integer
           format: int64
           minimum: 0
+          x-oyatie-data-class: INTERNAL_ONLY
         manifest_record_count:
           type: integer
           format: int64
           minimum: 0
+          x-oyatie-data-class: INTERNAL_ONLY
         is_stale:
           type: boolean
           description: Computed; true if (now - last_refreshed) > class.sla_budget_ms
+          x-oyatie-data-class: INTERNAL_ONLY
     ManifestSnapshot:
       type: object
       additionalProperties: false
@@ -161,12 +173,15 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ExtractorRecord"
+          x-oyatie-data-class: INTERNAL_ONLY
         freshness_unix_ms:
           type: integer
           format: int64
+          x-oyatie-data-class: INTERNAL_ONLY
         stale_record_count:
           type: integer
           minimum: 0
+          x-oyatie-data-class: INTERNAL_ONLY
     LiveFeedEventKind:
       type: string
       enum: [extractor-refreshed, manifest-row-changed, dead-code-detected, link-broken]
@@ -177,20 +192,25 @@ components:
       properties:
         kind:
           $ref: "#/components/schemas/LiveFeedEventKind"
+          x-oyatie-data-class: INTERNAL_ONLY
         extractor_id:
           oneOf:
             - $ref: "#/components/schemas/ExtractorId"
             - type: "null"
+          x-oyatie-data-class: INTERNAL_ONLY
         tenant_scope:
           type: [string, "null"]
           description: SHA-256 hash of tenant id; never raw
+          x-oyatie-data-class: INTERNAL_ONLY
         emitted_at_unix_ms:
           type: integer
           format: int64
           minimum: 0
+          x-oyatie-data-class: INTERNAL_ONLY
         payload_hash:
           type: string
           description: SHA-256 of normalized event payload
+          x-oyatie-data-class: INTERNAL_ONLY
     RefreshExtractorRequest:
       type: object
       additionalProperties: false
@@ -200,9 +220,11 @@ components:
           type: integer
           format: int64
           minimum: 0
+          x-oyatie-data-class: INTERNAL_ONLY
         force:
           type: boolean
           default: false
+          x-oyatie-data-class: INTERNAL_ONLY
     RefreshExtractorResponse:
       type: object
       additionalProperties: false
@@ -210,15 +232,19 @@ components:
       properties:
         extractor_id:
           $ref: "#/components/schemas/ExtractorId"
+          x-oyatie-data-class: INTERNAL_ONLY
         refreshed:
           type: boolean
+          x-oyatie-data-class: INTERNAL_ONLY
         last_refreshed_unix_ms:
           type: integer
           format: int64
+          x-oyatie-data-class: INTERNAL_ONLY
         record_count:
           type: integer
           format: int64
           minimum: 0
+          x-oyatie-data-class: INTERNAL_ONLY
     CedarDenyResponse:
       type: object
       additionalProperties: false
@@ -226,12 +252,16 @@ components:
       properties:
         error:
           type: string
+          x-oyatie-data-class: INTERNAL_ONLY
         principal_role:
           type: string
+          x-oyatie-data-class: INTERNAL_ONLY
         resource:
           type: string
+          x-oyatie-data-class: INTERNAL_ONLY
         cedar_fragment_denied_by:
           type: string
+          x-oyatie-data-class: INTERNAL_ONLY
   responses:
     Unauthorized:
       description: Cedar denied (no principal context)
