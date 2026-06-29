@@ -11,7 +11,7 @@ supply_chain: source-only
 source_adrs: [ADR-0105, ADR-0112, ADR-0131, ADR-0387]
 traceability:
   changeset: CS-CI-WEBHOOK-GATEWAY-STAGE5-001
-  source_crate: microservices/ci-webhook-gateway/crates/oya-ci-webhook-gateway-app/Cargo.toml
+  source_crate: oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-app/Cargo.toml
 non_claims:
   - POST /webhook/github wires the full pipeline: ed25519 verify → Cedar authz → cloud-ci dispatch → GitHub status post
   - GET /healthz and GET /metrics stubs provided; OTel metrics exporter deferred to Stage-8

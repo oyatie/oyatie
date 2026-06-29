@@ -11,7 +11,7 @@ security_review: unreviewed
 supply_chain: source-only
 artifact_id: oya-check-client-stack-discipline
 kind: rust-crate
-path: crates/oya-check-client-stack-discipline
+path: libs/oya-check-client-stack-discipline
 layer: domain
 status: active
 owner: axis-workflow-studio
