@@ -1,0 +1,37 @@
+[package]
+name = "oya-cloud-ci-operator-secret-bootstrap-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "cloud-ci"
+kind = "shared"
+layer = "app"
+purpose = "Cloud CI gate ENFORCING least-privilege secret RBAC + a declarative join-token bootstrap contract for in-cluster operators that PRODUCE a single Secret (GH #980; ADR-0606). Per the policy DATA, each governed operator's Helm Role must scope get/update/patch/delete on secrets by resourceNames to exactly its produced Secret, and any operator-internal bootstrap Secret it consumes must be provisioned declaratively (ExternalSecret/SealedSecret/Secret) OR guarded by a fail-closed chart preflight."
+
+# cloud-ci-operator-secret-bootstrap (GH #980): a pure, policy-driven gate. The collector is the
+# only I/O — a hermetic, read-only fs scan of the governed Helm charts (the RBAC template + the
+# templates dir). The pure evaluate_keyed(policy, observed) asserts (a) no secrets Role rule grants a
+# scoped verb (get/update/patch/delete) without resourceNames bound to the produced Secret, and (b)
+# the join-token Secret has a declarative provisioning path or a fail-closed preflight. Pack-shaped:
+# the governed operators + paths live in operator-secret-bootstrap-policy.json, nothing oyatie-specific
+# is hardcoded in Rust.
+
+[lib]
+name = "oya_cloud_ci_operator_secret_bootstrap_app"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde_json = { workspace = true }
+serde_yaml = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+serde_yaml = { workspace = true }
+
+[lints]
+workspace = true

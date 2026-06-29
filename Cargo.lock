@@ -6359,6 +6359,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-ci-operator-secret-bootstrap-app"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "serde_yaml",
+]
+
+[[package]]
 name = "oya-cloud-ci-port-placement-app"
 version = "0.1.0"
 dependencies = [

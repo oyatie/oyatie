@@ -79,11 +79,32 @@ svidOperator:
     name: oya-cloud-iam-pdp-svid-operator
     automountToken: true
     nonClaim: "operator writes only the oya-cloud-iam-pdp-svid Secret in its namespace and emits reconcile events"
-  # The cluster join token gating SVID issuance (operator-internal). Mounted from a
-  # pre-provisioned Secret; the binary fail-closes if it is empty.
+  # The cluster join token gating SVID issuance (operator-internal). The binary
+  # fail-closes if it is empty. GH #980: the chart now ships a declarative
+  # provisioning contract instead of silently assuming a hand-provisioned Secret.
+  # The deployment preflight (svid-operator-deployment.yaml) FAILS the render
+  # unless exactly one provisioning path is selected: either externalSecret
+  # (ESO->OpenBao, default below) or preProvisioned=true (explicit, audited
+  # acknowledgement that the Secret is supplied out-of-band).
   joinToken:
     secretName: oya-cloud-iam-pdp-svid-operator-join-token
     secretKey: join-token
+    # Set true ONLY to acknowledge the join-token Secret is provisioned by another
+    # owned mechanism; this opts OUT of the ESO ExternalSecret below. Leaving both
+    # this false AND externalSecret.enabled false fail-closes the render.
+    preProvisioned: false
+    # Preferred path: provision the join token from OpenBao via the External
+    # Secrets Operator, mirroring infra/external-secrets/clustersecretstore-openbao-oya.yaml.
+    externalSecret:
+      enabled: true
+      refreshInterval: 1h
+      secretStoreRef:
+        name: openbao-oya
+        kind: ClusterSecretStore
+      # OpenBao KV path + property the join token is read from (KV v2 under the
+      # `secret` mount; path convention mirrors cloud-k8s/.../openbao-secret-references.yaml).
+      openbaoPath: cloud-iam/pdp-svid-operator/join-token
+      openbaoProperty: join-token
   pdb:
     # Single-replica operator: maxUnavailable lets node drains proceed (the pod
     # reschedules) instead of wedging on minAvailable==replicaCount.
