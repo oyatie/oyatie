@@ -38,6 +38,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
+use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 use std::fmt;
 
@@ -233,6 +234,66 @@ pub struct AuditSealReceipt {
     pub payload_digest: String, // data_class: INTERNAL_ONLY
 }
 
+/// Return `true` when `value` is a canonical lower-case SHA-256 hex digest.
+pub fn is_canonical_sha256_hex(value: &str) -> bool {
+    value.len() == 64
+        && value
+            .bytes()
+            .all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'))
+}
+
+/// Build the canonical SHA-256 payload digest adapters pass to audit seals.
+///
+/// The input is normalized by field name before hashing, and every field is
+/// length-delimited to prevent ambiguous concatenation. Values may already be
+/// digests (for example [`entity_doc_payload_digest`]); this function still
+/// hashes the canonical payload envelope so audit-chain inputs never receive
+/// raw tenant ids, entity ids, or entity kinds.
+pub fn canonical_audit_payload_digest<I, K, V>(parts: I) -> String
+where
+    I: IntoIterator<Item = (K, V)>,
+    K: AsRef<str>,
+    V: AsRef<str>,
+{
+    let mut normalized = BTreeMap::new();
+    for (key, value) in parts {
+        normalized.insert(key.as_ref().to_owned(), value.as_ref().to_owned());
+    }
+
+    let mut hasher = Sha256::new();
+    for (key, value) in normalized {
+        update_hash_field(&mut hasher, &key, value.as_bytes());
+    }
+    hex_lower(hasher.finalize().as_ref())
+}
+
+/// Build a canonical SHA-256 digest for an [`EntityDoc`].
+pub fn entity_doc_payload_digest(doc: &EntityDoc) -> String {
+    let mut hasher = Sha256::new();
+    for (key, value) in doc.iter() {
+        let rendered = value.canonical_audit_value();
+        update_hash_field(&mut hasher, key, rendered.as_bytes());
+    }
+    hex_lower(hasher.finalize().as_ref())
+}
+
+fn update_hash_field(hasher: &mut Sha256, key: &str, value: &[u8]) {
+    hasher.update((key.len() as u64).to_be_bytes());
+    hasher.update(key.as_bytes());
+    hasher.update((value.len() as u64).to_be_bytes());
+    hasher.update(value);
+}
+
+fn hex_lower(bytes: &[u8]) -> String {
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    let mut out = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        out.push(HEX[(byte >> 4) as usize] as char);
+        out.push(HEX[(byte & 0x0f) as usize] as char);
+    }
+    out
+}
+
 // =====================================================================
 // ConnectorCtx
 // =====================================================================
@@ -344,6 +405,17 @@ pub enum EntityValue {
     Null,
 }
 
+impl EntityValue {
+    fn canonical_audit_value(&self) -> String {
+        match self {
+            Self::Str(value) => format!("str:{value}"),
+            Self::Int(value) => format!("int:{value}"),
+            Self::Bool(value) => format!("bool:{value}"),
+            Self::Null => "null:".to_owned(),
+        }
+    }
+}
+
 /// A single patch operation applied to an entity.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PatchOp {
@@ -377,6 +449,50 @@ pub struct Page {
     pub items: Vec<EntityDoc>, // data_class: INTERNAL_ONLY
     /// Cursor to the next page, or `None` if this is the last page.
     pub next_cursor: Option<Cursor>, // data_class: INTERNAL_ONLY
+}
+
+/// Build a cursor page from an iterator without materializing the whole result set.
+///
+/// The iterator is advanced to `cursor` and then consumed for at most
+/// `page_size + 1` records. The extra record is used only to determine whether
+/// a next cursor exists.
+pub fn windowed_page<I>(
+    items: I,
+    cursor: Option<&Cursor>,
+    page_size: usize,
+) -> Result<Page, ConnectorError>
+where
+    I: IntoIterator<Item = EntityDoc>,
+{
+    if page_size == 0 {
+        return Err(ConnectorError::InvalidArgument(
+            "page_size must be greater than zero".into(),
+        ));
+    }
+
+    let start = cursor
+        .and_then(|c| c.as_str().parse::<usize>().ok())
+        .unwrap_or(0);
+    let mut iter = items.into_iter().skip(start);
+    let mut page_items = Vec::with_capacity(page_size);
+
+    for _ in 0..page_size {
+        match iter.next() {
+            Some(item) => page_items.push(item),
+            None => break,
+        }
+    }
+
+    let next_cursor = if iter.next().is_some() {
+        Cursor::new(start.saturating_add(page_size).to_string()).ok()
+    } else {
+        None
+    };
+
+    Ok(Page {
+        items: page_items,
+        next_cursor,
+    })
 }
 
 // =====================================================================
@@ -733,6 +849,83 @@ mod tests {
         assert_eq!(r.chain_id, "chain-1");
         assert_eq!(r.kind, "connector.list");
         assert_eq!(r.payload_digest, "deadbeef");
+    }
+
+    #[test]
+    fn canonical_audit_payload_digest_is_sha256_hex_not_raw() {
+        let digest = canonical_audit_payload_digest([
+            ("entity_kind", "message"),
+            ("id", "1700000001.000100"),
+        ]);
+        let reordered = canonical_audit_payload_digest([
+            ("id", "1700000001.000100"),
+            ("entity_kind", "message"),
+        ]);
+
+        assert!(is_canonical_sha256_hex(&digest));
+        assert_eq!(digest, reordered);
+        assert_ne!(digest, "message");
+        assert_ne!(digest, "1700000001.000100");
+    }
+
+    #[test]
+    fn entity_doc_payload_digest_is_canonical() {
+        let mut first = EntityDoc::new();
+        first.insert("b", EntityValue::Int(2));
+        first.insert("a", EntityValue::Str("1".into()));
+
+        let mut second = EntityDoc::new();
+        second.insert("a", EntityValue::Str("1".into()));
+        second.insert("b", EntityValue::Int(2));
+
+        let mut type_changed = EntityDoc::new();
+        type_changed.insert("a", EntityValue::Int(1));
+        type_changed.insert("b", EntityValue::Int(2));
+
+        assert_eq!(
+            entity_doc_payload_digest(&first),
+            entity_doc_payload_digest(&second)
+        );
+        assert_ne!(
+            entity_doc_payload_digest(&first),
+            entity_doc_payload_digest(&type_changed)
+        );
+    }
+
+    #[test]
+    fn windowed_page_consumes_only_page_plus_one() {
+        struct CountingDocs {
+            emitted: std::rc::Rc<std::cell::Cell<usize>>,
+            remaining: usize,
+        }
+
+        impl Iterator for CountingDocs {
+            type Item = EntityDoc;
+
+            fn next(&mut self) -> Option<Self::Item> {
+                if self.remaining == 0 {
+                    return None;
+                }
+                self.remaining -= 1;
+                self.emitted.set(self.emitted.get() + 1);
+                Some(EntityDoc::new())
+            }
+        }
+
+        let emitted = std::rc::Rc::new(std::cell::Cell::new(0));
+        let page = windowed_page(
+            CountingDocs {
+                emitted: emitted.clone(),
+                remaining: 1_000,
+            },
+            None,
+            100,
+        )
+        .unwrap();
+
+        assert_eq!(page.items.len(), 100);
+        assert_eq!(page.next_cursor.as_ref().map(Cursor::as_str), Some("100"));
+        assert_eq!(emitted.get(), 101);
     }
 
     #[test]
