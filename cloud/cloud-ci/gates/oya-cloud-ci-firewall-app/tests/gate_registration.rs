@@ -15,6 +15,7 @@
 // ADR-0083 Tier-3: integration tests use unwrap/expect/panic to assert invariants.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -77,6 +78,21 @@ fn agent_contract_path(root: &Path) -> PathBuf {
 fn pr_template_path(root: &Path) -> PathBuf {
     root.join("docs/templates/pull-request-template.md")
 }
+fn root_pr_template_path(root: &Path) -> PathBuf {
+    root.join("templates/pull-request-template.md")
+}
+
+fn pr_template_v2_path(root: &Path) -> PathBuf {
+    root.join("docs/templates/pull-request-template-v2.md")
+}
+
+fn oya_ci_config_path(root: &Path) -> PathBuf {
+    root.join("oya-ci.toml")
+}
+
+fn bundled_gate_disposition_path(root: &Path) -> PathBuf {
+    root.join("libs/oya-ci-config/src/bundled/gate-disposition.json")
+}
 
 fn code_review_standard_path(root: &Path) -> PathBuf {
     root.join("docs/standards/code-review.md")
@@ -127,6 +143,10 @@ fn is_buck_gate(workflow: &str, crate_dir: &str) -> bool {
     workflow.contains(&format!("//cloud/cloud-ci/gates/{crate_dir}:"))
 }
 
+fn read_to_string(path: &Path) -> String {
+    fs::read_to_string(path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+}
+
 fn fixuptask_by_id(fixuptasks_jsonl: &str, id: &str) -> Option<Value> {
     fixuptasks_jsonl.lines().find_map(|line| {
         let value: Value = serde_json::from_str(line).ok()?;
@@ -136,6 +156,104 @@ fn fixuptask_by_id(fixuptasks_jsonl: &str, id: &str) -> Option<Value> {
 
 fn bool_field(row: &Value, key: &str) -> bool {
     row.get(key).and_then(Value::as_bool) == Some(true)
+}
+
+fn quoted_value(raw: &str) -> String {
+    raw.trim()
+        .trim_matches('"')
+        .trim_matches('\'')
+        .trim()
+        .to_owned()
+}
+
+fn oya_ci_enabled_gate_specs(config: &str) -> Vec<(String, String)> {
+    let mut specs = Vec::new();
+    let mut in_gate = false;
+    let mut id: Option<String> = None;
+    let mut input_kind: Option<String> = None;
+
+    for line in config.lines() {
+        let trimmed = line.split('#').next().unwrap_or("").trim();
+        if trimmed == "[[gates.enabled]]" {
+            if let Some(gate_id) = id.take() {
+                specs.push((gate_id, input_kind.take().unwrap_or_default()));
+            }
+            input_kind = None;
+            in_gate = true;
+            continue;
+        }
+        if in_gate && trimmed.starts_with('[') {
+            if let Some(gate_id) = id.take() {
+                specs.push((gate_id, input_kind.take().unwrap_or_default()));
+            }
+            input_kind = None;
+            in_gate = false;
+            continue;
+        }
+        if !in_gate {
+            continue;
+        }
+        if let Some(value) = trimmed.strip_prefix("id = ") {
+            id = Some(quoted_value(value));
+        } else if let Some(value) = trimmed.strip_prefix("input_kind = ") {
+            input_kind = Some(quoted_value(value));
+        }
+    }
+
+    if let Some(gate_id) = id {
+        specs.push((gate_id, input_kind.unwrap_or_default()));
+    }
+
+    specs
+}
+
+fn assert_pr_template_authority(root: &Path, path: &Path) {
+    let text = read_to_string(path);
+    for required in [
+        "oya-ci-required",
+        "F-PR5-06",
+        "trusted server-side/cloud-ci",
+        "not live cloud admission enforcement",
+        "## Code Review",
+    ] {
+        assert!(
+            text.contains(required),
+            "{} must align PR authority on `{required}`.",
+            path.display()
+        );
+    }
+
+    for forbidden in [
+        "grit",
+        "icm",
+        "oya-tooling-agent-read",
+        "cargo nextest",
+        "cargo clippy",
+        "cargo deny",
+        "oya verify",
+        "oya gate validate",
+        "guard-pr-merge-review.mjs",
+        ".omc/plans",
+        ".omc/scratch",
+        "Grit-claim",
+    ] {
+        assert!(
+            !text.contains(forbidden),
+            "{} still carries retired local/CLI review instruction `{forbidden}`; \
+             use Buck2/cloud-ci, `oya-ci-required`, and reviewer evidence instead.",
+            path.display()
+        );
+    }
+
+    let canonical = root.join("docs/templates/pull-request-template.md");
+    if path != canonical {
+        assert!(
+            text.contains("docs/templates/pull-request-template.md")
+                || text.contains("Canonical PR body"),
+            "{} must identify the canonical docs PR-template authority.",
+            path.display()
+        );
+    }
 }
 
 fn row_claims_live_pre_merge_review_authority(row: &Value) -> bool {
@@ -249,16 +367,13 @@ fn review_admission_gap_is_bounded_by_open_ssot_debt_until_trusted_producer() {
         docs_path.display()
     );
 
-    let template_path = pr_template_path(&root);
-    let template = fs::read_to_string(&template_path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", template_path.display()));
-    assert!(
-        template.contains("F-PR5-06")
-            && template.contains("not live cloud admission enforcement")
-            && template.contains("trusted server-side/cloud-ci producer"),
-        "{} must mark `oya-pr-review` as target-only while F-PR5-06 is open.",
-        template_path.display()
-    );
+    for template_path in [
+        pr_template_path(&root),
+        pr_template_v2_path(&root),
+        root_pr_template_path(&root),
+    ] {
+        assert_pr_template_authority(&root, &template_path);
+    }
 
     let standard_path = code_review_standard_path(&root);
     let standard = fs::read_to_string(&standard_path)
@@ -307,6 +422,71 @@ fn review_admission_gap_is_bounded_by_open_ssot_debt_until_trusted_producer() {
             "F-PR5-06 must carry fresh bounded-debt evidence term `{required}`; row was: {task_text}"
         );
     }
+}
+
+#[test]
+fn oya_ci_configured_gates_have_disposition_and_required_workflow_authority() {
+    let root = repo_root();
+    let workflow = read_to_string(&workflow_path(&root));
+    let config = read_to_string(&oya_ci_config_path(&root));
+    let configured = oya_ci_enabled_gate_specs(&config);
+    assert!(
+        !configured.is_empty(),
+        "oya-ci.toml must declare the accounting/firewall gate set under [[gates.enabled]]"
+    );
+
+    let disposition_path = bundled_gate_disposition_path(&root);
+    let disposition: Value = serde_json::from_str(&read_to_string(&disposition_path))
+        .unwrap_or_else(|e| panic!("parse {}: {e}", disposition_path.display()));
+    let disposition_gates = disposition
+        .get("gates")
+        .and_then(Value::as_object)
+        .unwrap_or_else(|| panic!("{} must contain gates object", disposition_path.display()));
+
+    let configured_ids: BTreeSet<String> = configured
+        .iter()
+        .map(|(gate_id, _)| gate_id.clone())
+        .collect();
+    let disposition_ids: BTreeSet<String> = disposition_gates.keys().cloned().collect();
+
+    let missing_disposition: Vec<String> = configured_ids
+        .difference(&disposition_ids)
+        .cloned()
+        .collect();
+    let extra_disposition: Vec<String> = disposition_ids
+        .difference(&configured_ids)
+        .cloned()
+        .collect();
+    assert!(
+        missing_disposition.is_empty() && extra_disposition.is_empty(),
+        "oya-ci.toml [[gates.enabled]] and bundled gate-disposition.json must converge exactly; \
+         missing disposition for {:?}, extra disposition rows {:?}",
+        missing_disposition,
+        extra_disposition
+    );
+
+    let mut missing_workflow_authority = Vec::new();
+    for (gate_id, input_kind) in configured {
+        let has_required_lane = match input_kind.as_str() {
+            "producer-face" => workflow.contains(&format!("crate: oya-{gate_id}-app")),
+            "raw-corpus-collector" => {
+                workflow.contains("producer-regen") && workflow.contains("gate-cloud-ci-firewall")
+            }
+            "frozen-empty-meta" => {
+                gate_id == "cloud-ci-freshness" && workflow.contains("gate-freshness")
+            }
+            other => panic!("unknown gate input_kind `{other}` for {gate_id} in oya-ci.toml"),
+        };
+        if !has_required_lane {
+            missing_workflow_authority.push(format!("{gate_id} ({input_kind})"));
+        }
+    }
+
+    assert!(
+        missing_workflow_authority.is_empty(),
+        "oya-ci.toml enabled gate(s) lack required workflow authority in .github/workflows/oya-ci-required.yml: {:?}",
+        missing_workflow_authority
+    );
 }
 
 /// Defense-in-depth: every registered gate must ALSO be wired into the fan-in job's `needs:`
