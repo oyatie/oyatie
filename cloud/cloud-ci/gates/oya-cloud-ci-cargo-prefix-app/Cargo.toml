@@ -10,8 +10,8 @@ license = "Apache-2.0"
 # that REUSES the existing cargo-prefix fitness policy in
 # oya-intelligence-cargo-prefix-domain::validate_cargo_prefix
 # (CLI-GOVERNANCE-TO-FIREWALL-MIGRATION-PLAN Principle 1, shape b — reuse, not re-derive). The
-# producer (oya-cloud-ci-accounting-registry-app) enumerates the first-party oya-* workspace
-# members + their package names (the I/O) and feeds them as rows; this gate runs
+# producer (oya-cloud-ci-accounting-registry-app) enumerates every tracked first-party workspace
+# member candidate + package name (the I/O) and feeds them as rows; this gate runs
 # validate_cargo_prefix per crate (surface-all) and emits a Finding per crate whose member-path
 # crate-id or package name does not begin with the required prefix (or disagree). The required
 # prefix is sourced from the oya-ci config `[naming].required_prefix` (default `oya-`) — never

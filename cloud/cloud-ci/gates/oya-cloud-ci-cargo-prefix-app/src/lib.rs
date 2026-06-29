@@ -8,9 +8,9 @@
 //! The policy lives in the PURE, I/O-free `oya_intelligence_cargo_prefix_domain::validate_cargo_prefix`
 //! — the SAME predicate the `oya gate validate cargo-prefix` dev-cli call uses (the firewall gate
 //! and the dev-cli call coexist for now). The producer
-//! (`oya-cloud-ci-accounting-registry-app`) does the I/O — it enumerates the first-party `oya-*`
-//! workspace members from the tracked Cargo.toml manifests and feeds each as a row of
-//! `{"member_path", "package_name"}`. This gate runs `validate_cargo_prefix` over each row
+//! (`oya-cloud-ci-accounting-registry-app`) does the I/O — it enumerates every tracked first-party
+//! workspace member candidate and feeds each as a row of `{"member_path", "package_name"}`. This
+//! gate runs `validate_cargo_prefix` over each row
 //! INDEPENDENTLY (a single-member iterator) so the verdict is per-crate and surface-all (the
 //! upstream `validate_cargo_prefix` is fail-fast over a whole member set; running it per crate
 //! turns the first-error contract into one Finding per non-conforming crate without re-deriving
