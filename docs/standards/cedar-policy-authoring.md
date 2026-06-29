@@ -256,6 +256,11 @@ permit (principal, action, resource);
 
 This fails because it grants every action on every resource.
 
+A permit that constrains the action but leaves bare `resource` with no resource/scope predicate also fails for deployed production policy because it grants that action across every resource:
+```cedar
+permit (principal, action == Action::"ReadDocument", resource);
+```
+
 ## Verification
 
 Primary command:

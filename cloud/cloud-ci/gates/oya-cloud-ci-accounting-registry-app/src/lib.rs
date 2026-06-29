@@ -563,6 +563,12 @@ pub struct EnforcementRow {
     /// Whether a machine-verifiable review status is a required merge context.
     #[serde(skip_serializing_if = "is_false")]
     pub has_machine_verifiable_review_status: bool,
+    /// Whether the admission evidence includes the PR title that reviewers approved.
+    #[serde(skip_serializing_if = "is_false")]
+    pub has_review_title_evidence: bool,
+    /// Whether the admission evidence includes the PR body / traceability sections that reviewers approved.
+    #[serde(skip_serializing_if = "is_false")]
+    pub has_review_body_evidence: bool,
     /// Whether the review authority blocks merge admission.
     #[serde(skip_serializing_if = "is_false")]
     pub review_blocks_merge: bool,

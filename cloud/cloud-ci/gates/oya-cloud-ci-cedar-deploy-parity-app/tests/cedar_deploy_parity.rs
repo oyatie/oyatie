@@ -147,7 +147,11 @@ fn red_fixture_fresh_blanket_configmap_is_red() {
     });
     let observed = collect(&dir, &policy).unwrap_or_else(|e| panic!("collect red fixture: {e}"));
     let found = codes(evaluate_keyed(&policy, &observed));
-    assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red, "{found:?}");
+    assert_eq!(
+        evaluate(&policy, &observed).verdict,
+        Verdict::Red,
+        "{found:?}"
+    );
     assert!(found.contains("CDP-UNCONSTRAINED-PERMIT"), "{found:?}");
 
     fs::remove_dir_all(&dir).ok();
@@ -158,14 +162,16 @@ fn green_fixture_constrained_permit_in_authored_set_passes() {
     let dir = unique_tmp("green");
     // A deployed ConfigMap whose permit is action-constrained AND byte-equal (after normalization) to
     // the capability's authored policy — the parity target state.
-    let permit =
-        "permit ( principal, action == Action::\"doc.Read\", resource is Doc )\nwhen { principal.tenant_id == resource.tenant_id };";
+    let permit = "permit ( principal, action == Action::\"doc.Read\", resource is Doc )\nwhen { principal.tenant_id == resource.tenant_id };";
 
     let cm = dir.join("oya/fixture/iac/k8s/helm/templates/cedar.yaml");
     fs::create_dir_all(cm.parent().unwrap()).unwrap();
     fs::write(
         &cm,
-        format!("apiVersion: v1\nkind: ConfigMap\ndata:\n  policies.cedar: |\n    {}\n", permit.replace('\n', "\n    ")),
+        format!(
+            "apiVersion: v1\nkind: ConfigMap\ndata:\n  policies.cedar: |\n    {}\n",
+            permit.replace('\n', "\n    ")
+        ),
     )
     .unwrap();
 
@@ -187,18 +193,61 @@ fn green_fixture_constrained_permit_in_authored_set_passes() {
 }
 
 #[test]
-fn red_fixture_missing_deployed_forbid_is_red() {
-    let dir = unique_tmp("forbid");
-    let permit =
-        "permit ( principal, action == Action::\"doc.Read\", resource is Doc )\nwhen { principal.tenant_id == resource.tenant_id };";
-    let forbid =
-        "forbid ( principal, action == Action::\"doc.Read\", resource is Doc )\nwhen { resource.blocked };";
+fn red_fixture_bare_resource_without_scope_predicate_is_red() {
+    let dir = unique_tmp("resource");
+    // Action is constrained and the permit is present in authored policy, but bare `resource` plus no
+    // resource/scope predicate is still a production blanket over every resource of that action.
+    let permit = "permit ( principal, action == Action::\"doc.Read\", resource );";
 
     let cm = dir.join("oya/fixture/iac/k8s/helm/templates/cedar.yaml");
     fs::create_dir_all(cm.parent().unwrap()).unwrap();
     fs::write(
         &cm,
-        format!("apiVersion: v1\nkind: ConfigMap\ndata:\n  policies.cedar: |\n    {}\n", permit.replace('\n', "\n    ")),
+        format!("apiVersion: v1\nkind: ConfigMap\ndata:\n  policies.cedar: |\n    {permit}\n"),
+    )
+    .unwrap();
+
+    let authored = dir.join("oya/fixture/policy/doc.cedar");
+    fs::create_dir_all(authored.parent().unwrap()).unwrap();
+    fs::write(&authored, format!("// authored\n{permit}\n")).unwrap();
+
+    let policy = serde_json::json!({
+        "gate_id": GATE_ID,
+        "deployed_suffix": "iac/k8s/helm/templates/cedar.yaml",
+        "authored_subdirs": ["policy", "cedar"],
+        "baseline": { "paths": [] }
+    });
+    let observed =
+        collect(&dir, &policy).unwrap_or_else(|e| panic!("collect resource fixture: {e}"));
+    let found = codes(evaluate_keyed(&policy, &observed));
+    assert_eq!(
+        evaluate(&policy, &observed).verdict,
+        Verdict::Red,
+        "{found:?}"
+    );
+    assert!(found.contains("CDP-UNCONSTRAINED-RESOURCE"), "{found:?}");
+    assert!(
+        !found.contains("CDP-UNCONSTRAINED-PERMIT"),
+        "the resource/scope check must be independent from action broadness: {found:?}"
+    );
+
+    fs::remove_dir_all(&dir).ok();
+}
+
+#[test]
+fn red_fixture_missing_deployed_forbid_is_red() {
+    let dir = unique_tmp("forbid");
+    let permit = "permit ( principal, action == Action::\"doc.Read\", resource is Doc )\nwhen { principal.tenant_id == resource.tenant_id };";
+    let forbid = "forbid ( principal, action == Action::\"doc.Read\", resource is Doc )\nwhen { resource.blocked };";
+
+    let cm = dir.join("oya/fixture/iac/k8s/helm/templates/cedar.yaml");
+    fs::create_dir_all(cm.parent().unwrap()).unwrap();
+    fs::write(
+        &cm,
+        format!(
+            "apiVersion: v1\nkind: ConfigMap\ndata:\n  policies.cedar: |\n    {}\n",
+            permit.replace('\n', "\n    ")
+        ),
     )
     .unwrap();
 
@@ -214,7 +263,11 @@ fn red_fixture_missing_deployed_forbid_is_red() {
     });
     let observed = collect(&dir, &policy).unwrap_or_else(|e| panic!("collect forbid fixture: {e}"));
     let found = codes(evaluate_keyed(&policy, &observed));
-    assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red, "{found:?}");
+    assert_eq!(
+        evaluate(&policy, &observed).verdict,
+        Verdict::Red,
+        "{found:?}"
+    );
     assert!(found.contains("CDP-DEPLOYED-NOT-SUBSET"), "{found:?}");
 
     fs::remove_dir_all(&dir).ok();

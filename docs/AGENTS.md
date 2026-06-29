@@ -220,7 +220,7 @@ Every PR uses [`templates/pull-request-template.md`](templates/pull-request-temp
 4. `## Traceability` — catalog records touched, cross-axis contracts touched, ADRs cited.
 5. `## Evidence` — audit-chain emission ID; foundation-bypass (if any); per-pack regulator-watch impact (if any).
 
-The automated reviewer pipeline target supplies `## Code Review` with the reviewer-agent name, verdict, and resolved + deferred items. Until the trusted `oya-pr-review` producer is live and required, this is target contract plus local/advisory bridge evidence, not live GitHub admission enforcement.
+The automated reviewer pipeline target supplies `## Code Review` with the reviewer-agent name, verdict, and resolved + deferred items, and its admission packet must bind the PR title plus the reviewed PR body/traceability sections. Until the trusted `oya-pr-review` producer is live and required, this is target contract plus local/advisory bridge evidence, not live GitHub admission enforcement.
 
 ## Done-Definition checklist
 
