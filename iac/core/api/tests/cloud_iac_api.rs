@@ -2,17 +2,104 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use std::sync::Arc;
+
 use iac_api::{
     CLOUD_IAC_MODULE_REGISTRY_API_BOUNDARY_NON_CLAIM, CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE,
     CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE, CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE,
-    CloudIacModuleDownloadApiRequest, CloudIacModuleRegistryApiAuthorization,
-    CloudIacModuleRegistryApiBoundaryContext, CloudIacModuleRegistryApiError,
+    CallerCredential, CloudIacModuleDownloadApiRequest, CloudIacModuleRegistryApiBoundaryContext,
+    CloudIacModuleRegistryApiError, CloudIacModuleRegistryAuthzProvider,
     CloudIacModuleRegistryRouteRequest, CloudIacModuleRegistryRouteResponse,
-    CloudIacModuleVersionsApiRequest, OPENTOFU_MODULES_V1_BASE_PATH,
-    OPENTOFU_SERVICE_DISCOVERY_PATH, discover_module_registry_from_api,
-    get_module_download_from_api, list_module_versions_from_api, route_module_registry_request,
+    CloudIacModuleVersionsApiRequest, ConfiguredBearerPrincipalVerifier,
+    ConfiguredSurfaceAuthorizer, ModuleRegistryAuthorizationError, ModuleRegistryAuthorizer,
+    OPENTOFU_MODULES_V1_BASE_PATH, OPENTOFU_SERVICE_DISCOVERY_PATH, VerifiedPrincipal,
+    constant_time_eq, discover_module_registry_from_api, get_module_download_from_api,
+    list_module_versions_from_api, route_module_registry_request,
 };
 use iac_domain::{CloudIacError, ModuleRegistry, OpenTofuModuleRelease};
+
+const BEARER_SECRET: &str = "break-glass-iac-registry-secret";
+const PRINCIPAL_ID: &str = "sp_cloud_iac_registry_reader";
+
+/// A test PDP that allows every surface — used to PROVE the credential gate
+/// fails closed even when the PDP would otherwise allow.
+struct AllowAllAuthorizer;
+impl ModuleRegistryAuthorizer for AllowAllAuthorizer {
+    fn ensure_authorized(
+        &self,
+        _principal: &VerifiedPrincipal,
+        _surface: &str,
+    ) -> Result<(), ModuleRegistryAuthorizationError> {
+        Ok(())
+    }
+}
+
+/// A test PDP that denies every surface (proves PDP-deny → Forbidden).
+struct DenyAllAuthorizer;
+impl ModuleRegistryAuthorizer for DenyAllAuthorizer {
+    fn ensure_authorized(
+        &self,
+        _principal: &VerifiedPrincipal,
+        _surface: &str,
+    ) -> Result<(), ModuleRegistryAuthorizationError> {
+        Err(ModuleRegistryAuthorizationError::Denied)
+    }
+}
+
+/// A test PDP that refuses (fault) — proves a PDP fault is fail-closed to
+/// Forbidden, never a 5xx / panic.
+struct RefuseAuthorizer;
+impl ModuleRegistryAuthorizer for RefuseAuthorizer {
+    fn ensure_authorized(
+        &self,
+        _principal: &VerifiedPrincipal,
+        _surface: &str,
+    ) -> Result<(), ModuleRegistryAuthorizationError> {
+        Err(ModuleRegistryAuthorizationError::Refused)
+    }
+}
+
+fn provider_with(
+    authorizer: Arc<dyn ModuleRegistryAuthorizer>,
+) -> CloudIacModuleRegistryAuthzProvider {
+    let verifier = Arc::new(
+        ConfiguredBearerPrincipalVerifier::new(BEARER_SECRET, PRINCIPAL_ID)
+            .expect("valid break-glass verifier config"),
+    );
+    CloudIacModuleRegistryAuthzProvider::new(verifier, authorizer)
+}
+
+fn allow_all_provider() -> CloudIacModuleRegistryAuthzProvider {
+    provider_with(Arc::new(AllowAllAuthorizer))
+}
+
+/// A provider whose real `ConfiguredSurfaceAuthorizer` permits ONLY `surfaces`
+/// (deny-by-default for anything else) — proves the break-glass authorizer
+/// enforces surface scope.
+fn reader_provider(surfaces: &[&str]) -> CloudIacModuleRegistryAuthzProvider {
+    let verifier = Arc::new(
+        ConfiguredBearerPrincipalVerifier::new(BEARER_SECRET, PRINCIPAL_ID)
+            .expect("valid break-glass verifier config"),
+    );
+    let authorizer = Arc::new(ConfiguredSurfaceAuthorizer::new(
+        surfaces.iter().map(|surface| (*surface).to_string()),
+    ));
+    CloudIacModuleRegistryAuthzProvider::new(verifier, authorizer)
+}
+
+fn all_reader_provider() -> CloudIacModuleRegistryAuthzProvider {
+    reader_provider(&[
+        CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE,
+        CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE,
+        CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE,
+    ])
+}
+
+fn valid_credential() -> CallerCredential {
+    CallerCredential {
+        authorization: Some(format!("Bearer {BEARER_SECRET}")),
+    }
+}
 
 fn release(name: &str, version: &str, digest_hex: char) -> OpenTofuModuleRelease {
     OpenTofuModuleRelease::new(
@@ -52,37 +139,41 @@ fn boundary() -> CloudIacModuleRegistryApiBoundaryContext {
     }
 }
 
-fn authorization(surfaces: &[&str]) -> CloudIacModuleRegistryApiAuthorization {
-    CloudIacModuleRegistryApiAuthorization {
-        principal_id: "sp_cloud_iac_registry_reader".to_string(),
-        decision_id: "authz_cloud_iac_registry_001".to_string(),
-        allowed_surfaces: surfaces
-            .iter()
-            .map(|surface| (*surface).to_string())
-            .collect(),
-    }
-}
-
 fn route_request(method: &str, path: &str) -> CloudIacModuleRegistryRouteRequest {
     CloudIacModuleRegistryRouteRequest {
         boundary: boundary(),
-        authorization: authorization(&[
-            CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE,
-            CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE,
-            CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE,
-        ]),
+        credential: valid_credential(),
         method: method.to_string(),
         path: path.to_string(),
     }
 }
 
+fn versions_request() -> CloudIacModuleVersionsApiRequest {
+    CloudIacModuleVersionsApiRequest {
+        boundary: boundary(),
+        credential: valid_credential(),
+        namespace: "oyatie".to_string(),
+        name: "vpc".to_string(),
+        system: "opentofu".to_string(),
+    }
+}
+
+fn download_request(version: &str) -> CloudIacModuleDownloadApiRequest {
+    CloudIacModuleDownloadApiRequest {
+        boundary: boundary(),
+        credential: valid_credential(),
+        namespace: "oyatie".to_string(),
+        name: "vpc".to_string(),
+        system: "opentofu".to_string(),
+        version: version.to_string(),
+    }
+}
+
 #[test]
 fn discovery_response_is_opentofu_modules_v1_shape_without_runtime_claim() {
-    let response = discover_module_registry_from_api(
-        &boundary(),
-        &authorization(&[CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE]),
-    )
-    .expect("discovery response is authorized");
+    let provider = all_reader_provider();
+    let response = discover_module_registry_from_api(&boundary(), &provider, &valid_credential())
+        .expect("discovery response is authorized");
 
     assert_eq!(response.path, OPENTOFU_SERVICE_DISCOVERY_PATH);
     assert_eq!(response.modules_v1, OPENTOFU_MODULES_V1_BASE_PATH);
@@ -94,17 +185,9 @@ fn discovery_response_is_opentofu_modules_v1_shape_without_runtime_claim() {
 
 #[test]
 fn versions_response_uses_single_module_array_and_semver_order() {
-    let response = list_module_versions_from_api(
-        &registry(),
-        CloudIacModuleVersionsApiRequest {
-            boundary: boundary(),
-            authorization: authorization(&[CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE]),
-            namespace: "oyatie".to_string(),
-            name: "vpc".to_string(),
-            system: "opentofu".to_string(),
-        },
-    )
-    .expect("versions response is authorized");
+    let provider = all_reader_provider();
+    let response = list_module_versions_from_api(&registry(), &provider, versions_request())
+        .expect("versions response is authorized");
 
     assert_eq!(response.modules.len(), 1);
     assert_eq!(
@@ -119,18 +202,9 @@ fn versions_response_uses_single_module_array_and_semver_order() {
 
 #[test]
 fn download_response_returns_pinned_source_location_for_exact_version() {
-    let response = get_module_download_from_api(
-        &registry(),
-        CloudIacModuleDownloadApiRequest {
-            boundary: boundary(),
-            authorization: authorization(&[CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE]),
-            namespace: "oyatie".to_string(),
-            name: "vpc".to_string(),
-            system: "opentofu".to_string(),
-            version: "1.2.0".to_string(),
-        },
-    )
-    .expect("download response is authorized");
+    let provider = all_reader_provider();
+    let response = get_module_download_from_api(&registry(), &provider, download_request("1.2.0"))
+        .expect("download response is authorized");
 
     assert_eq!(
         response.location,
@@ -138,39 +212,115 @@ fn download_response_returns_pinned_source_location_for_exact_version() {
     );
 }
 
-#[test]
-fn api_boundary_rejects_missing_auth_and_invalid_path_segments_before_runtime() {
-    let unauthorized = list_module_versions_from_api(
-        &registry(),
-        CloudIacModuleVersionsApiRequest {
-            boundary: boundary(),
-            authorization: authorization(&[]),
-            namespace: "oyatie".to_string(),
-            name: "vpc".to_string(),
-            system: "opentofu".to_string(),
-        },
-    )
-    .expect_err("missing surface is rejected");
+// ===========================================================================
+// FAIL-CLOSED AUTHZ SEAM (AUTH-005 / ADR-0587) — RED/GREEN tests that MUST fail
+// if the verified-principal + PDP gate is removed.
+// ===========================================================================
 
+#[test]
+fn discovery_rejects_absent_credential_as_unauthenticated() {
+    let provider = allow_all_provider(); // PDP would allow — the credential gate must still block.
+    let credential = CallerCredential {
+        authorization: None,
+    };
+    let error = discover_module_registry_from_api(&boundary(), &provider, &credential)
+        .expect_err("absent credential must be rejected");
+    assert_eq!(error, CloudIacModuleRegistryApiError::Unauthenticated);
+}
+
+#[test]
+fn versions_rejects_forged_bearer_as_unauthenticated() {
+    let provider = allow_all_provider();
+    let mut request = versions_request();
+    request.credential.authorization = Some("Bearer not-the-real-secret".to_string());
+    let error = list_module_versions_from_api(&registry(), &provider, request)
+        .expect_err("forged bearer must be rejected");
+    assert_eq!(error, CloudIacModuleRegistryApiError::Unauthenticated);
+}
+
+#[test]
+fn download_denies_when_pdp_denies_as_forbidden() {
+    let provider = provider_with(Arc::new(DenyAllAuthorizer));
+    let error = get_module_download_from_api(&registry(), &provider, download_request("1.2.0"))
+        .expect_err("PDP deny must be Forbidden");
     assert_eq!(
-        unauthorized,
-        CloudIacModuleRegistryApiError::ForbiddenSurface {
+        error,
+        CloudIacModuleRegistryApiError::Forbidden {
+            surface: CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE.to_string(),
+        }
+    );
+}
+
+#[test]
+fn download_fails_closed_when_pdp_faults_as_forbidden_not_error() {
+    let provider = provider_with(Arc::new(RefuseAuthorizer));
+    let error = get_module_download_from_api(&registry(), &provider, download_request("1.2.0"))
+        .expect_err("PDP fault must fail closed to Forbidden");
+    // Deny and Refuse are reported IDENTICALLY so probing cannot distinguish them.
+    assert_eq!(
+        error,
+        CloudIacModuleRegistryApiError::Forbidden {
+            surface: CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE.to_string(),
+        }
+    );
+}
+
+#[test]
+fn configured_reader_serves_all_three_surfaces_with_valid_credential() {
+    let provider = all_reader_provider();
+    discover_module_registry_from_api(&boundary(), &provider, &valid_credential())
+        .expect("discovery served");
+    list_module_versions_from_api(&registry(), &provider, versions_request())
+        .expect("versions served");
+    get_module_download_from_api(&registry(), &provider, download_request("1.2.0"))
+        .expect("download served");
+}
+
+#[test]
+fn configured_authorizer_denies_surface_outside_its_permit_set() {
+    // Permit ONLY versions; a download request must be Forbidden (deny-by-default).
+    let provider = reader_provider(&[CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE]);
+    let error = get_module_download_from_api(&registry(), &provider, download_request("1.2.0"))
+        .expect_err("download surface is not in the permit set");
+    assert_eq!(
+        error,
+        CloudIacModuleRegistryApiError::Forbidden {
+            surface: CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE.to_string(),
+        }
+    );
+}
+
+#[test]
+fn constant_time_eq_matches_only_identical_byte_strings() {
+    assert!(constant_time_eq(b"break-glass", b"break-glass"));
+    // Differing length must NOT match.
+    assert!(!constant_time_eq(b"break-glass", b"break-glas"));
+    assert!(!constant_time_eq(b"break-glass", b"break-glass-extra"));
+    // A single-byte difference at equal length must NOT match.
+    assert!(!constant_time_eq(b"break-glass", b"Break-glass"));
+    assert!(constant_time_eq(b"", b""));
+}
+
+#[test]
+fn api_boundary_authorizes_before_runtime_and_rejects_invalid_path_segments() {
+    // PDP deny is Forbidden even with a valid credential.
+    let denied = list_module_versions_from_api(
+        &registry(),
+        &provider_with(Arc::new(DenyAllAuthorizer)),
+        versions_request(),
+    )
+    .expect_err("PDP deny is rejected");
+    assert_eq!(
+        denied,
+        CloudIacModuleRegistryApiError::Forbidden {
             surface: CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE.to_string()
         }
     );
 
-    let invalid_path = list_module_versions_from_api(
-        &registry(),
-        CloudIacModuleVersionsApiRequest {
-            boundary: boundary(),
-            authorization: authorization(&[CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE]),
-            namespace: "oyatie".to_string(),
-            name: "../vpc".to_string(),
-            system: "opentofu".to_string(),
-        },
-    )
-    .expect_err("invalid path segment is rejected");
-
+    let mut invalid = versions_request();
+    invalid.name = "../vpc".to_string();
+    let invalid_path = list_module_versions_from_api(&registry(), &all_reader_provider(), invalid)
+        .expect_err("invalid path segment is rejected");
     assert_eq!(
         invalid_path,
         CloudIacModuleRegistryApiError::Domain(CloudIacError::InvalidModuleName)
@@ -179,39 +329,21 @@ fn api_boundary_rejects_missing_auth_and_invalid_path_segments_before_runtime() 
 
 #[test]
 fn api_boundary_rejects_empty_request_id_and_missing_versions() {
-    let empty_request_id = get_module_download_from_api(
-        &registry(),
-        CloudIacModuleDownloadApiRequest {
-            boundary: CloudIacModuleRegistryApiBoundaryContext {
-                request_id: " ".to_string(),
-            },
-            authorization: authorization(&[CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE]),
-            namespace: "oyatie".to_string(),
-            name: "vpc".to_string(),
-            system: "opentofu".to_string(),
-            version: "1.2.0".to_string(),
-        },
-    )
-    .expect_err("empty request ID is rejected");
-
+    let provider = all_reader_provider();
+    let mut empty_request_id = download_request("1.2.0");
+    empty_request_id.boundary = CloudIacModuleRegistryApiBoundaryContext {
+        request_id: " ".to_string(),
+    };
+    let empty_request_id_error =
+        get_module_download_from_api(&registry(), &provider, empty_request_id)
+            .expect_err("empty request ID is rejected");
     assert_eq!(
-        empty_request_id,
+        empty_request_id_error,
         CloudIacModuleRegistryApiError::EmptyRequestId
     );
 
-    let missing = get_module_download_from_api(
-        &registry(),
-        CloudIacModuleDownloadApiRequest {
-            boundary: boundary(),
-            authorization: authorization(&[CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE]),
-            namespace: "oyatie".to_string(),
-            name: "vpc".to_string(),
-            system: "opentofu".to_string(),
-            version: "9.9.9".to_string(),
-        },
-    )
-    .expect_err("missing version is rejected");
-
+    let missing = get_module_download_from_api(&registry(), &provider, download_request("9.9.9"))
+        .expect_err("missing version is rejected");
     assert_eq!(
         missing,
         CloudIacModuleRegistryApiError::Domain(CloudIacError::ModuleVersionNotFound)
@@ -219,74 +351,44 @@ fn api_boundary_rejects_empty_request_id_and_missing_versions() {
 }
 
 #[test]
-fn api_boundary_rejects_empty_authorization_identifiers() {
-    let mut empty_principal = authorization(&[CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE]);
-    empty_principal.principal_id = " ".to_string();
-
-    let principal_error = discover_module_registry_from_api(&boundary(), &empty_principal)
-        .expect_err("empty principal id is rejected");
-
-    assert_eq!(
-        principal_error,
-        CloudIacModuleRegistryApiError::EmptyPrincipalId
-    );
-
-    let mut empty_decision = authorization(&[CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE]);
-    empty_decision.decision_id = " ".to_string();
-
-    let decision_error = discover_module_registry_from_api(&boundary(), &empty_decision)
-        .expect_err("empty authorization decision id is rejected");
-
-    assert_eq!(
-        decision_error,
-        CloudIacModuleRegistryApiError::EmptyAuthorizationDecisionId
-    );
-}
-
-#[test]
 fn debug_output_does_not_contain_secret_like_material() {
-    let response = get_module_download_from_api(
-        &registry(),
-        CloudIacModuleDownloadApiRequest {
-            boundary: boundary(),
-            authorization: authorization(&[CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE]),
-            namespace: "oyatie".to_string(),
-            name: "dns".to_string(),
-            system: "opentofu".to_string(),
-            version: "1.0.0".to_string(),
-        },
-    )
-    .expect("download response is available");
+    let provider = all_reader_provider();
+    let mut request = download_request("1.0.0");
+    request.name = "dns".to_string();
+    let response = get_module_download_from_api(&registry(), &provider, request)
+        .expect("download response is available");
 
     let debug = format!("{response:?}").to_ascii_lowercase();
     assert!(!debug.contains("token="));
     assert!(!debug.contains("password="));
     assert!(!debug.contains("-----begin"));
     assert!(!debug.contains("kubeconfig"));
+    // The served response must not leak the bearer credential.
+    assert!(!debug.contains(BEARER_SECRET));
 }
 
 #[test]
 fn route_boundary_dispatches_official_get_paths_into_dtos() {
     let registry = registry();
+    let provider = all_reader_provider();
 
     let discovery = route_module_registry_request(
         &registry,
+        &provider,
         route_request("GET", OPENTOFU_SERVICE_DISCOVERY_PATH),
     )
     .expect("discovery route dispatches");
     assert_eq!(
         discovery,
         CloudIacModuleRegistryRouteResponse::Discovery(
-            discover_module_registry_from_api(
-                &boundary(),
-                &authorization(&[CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE])
-            )
-            .expect("discovery response")
+            discover_module_registry_from_api(&boundary(), &provider, &valid_credential())
+                .expect("discovery response")
         )
     );
 
     let versions = route_module_registry_request(
         &registry,
+        &provider,
         route_request("GET", "/v1/modules/oyatie/vpc/opentofu/versions"),
     )
     .expect("versions route dispatches");
@@ -299,6 +401,7 @@ fn route_boundary_dispatches_official_get_paths_into_dtos() {
 
     let download = route_module_registry_request(
         &registry,
+        &provider,
         route_request("GET", "/v1/modules/oyatie/vpc/opentofu/1.2.0/download"),
     )
     .expect("download route dispatches");
@@ -310,11 +413,13 @@ fn route_boundary_dispatches_official_get_paths_into_dtos() {
 }
 
 #[test]
-fn route_boundary_rejects_wrong_methods_unknown_paths_and_missing_surfaces() {
+fn route_boundary_rejects_wrong_methods_unknown_paths_and_denied_surfaces() {
     let registry = registry();
+    let provider = all_reader_provider();
 
     let wrong_method = route_module_registry_request(
         &registry,
+        &provider,
         route_request("POST", OPENTOFU_SERVICE_DISCOVERY_PATH),
     )
     .expect_err("non-GET requests are rejected before runtime");
@@ -325,9 +430,12 @@ fn route_boundary_rejects_wrong_methods_unknown_paths_and_missing_surfaces() {
         }
     );
 
-    let unknown_path =
-        route_module_registry_request(&registry, route_request("GET", "/v1/modules/oyatie/vpc"))
-            .expect_err("incomplete module route is rejected");
+    let unknown_path = route_module_registry_request(
+        &registry,
+        &provider,
+        route_request("GET", "/v1/modules/oyatie/vpc"),
+    )
+    .expect_err("incomplete module route is rejected");
     assert_eq!(
         unknown_path,
         CloudIacModuleRegistryApiError::RouteNotFound {
@@ -335,19 +443,17 @@ fn route_boundary_rejects_wrong_methods_unknown_paths_and_missing_surfaces() {
         }
     );
 
-    let missing_download_surface = route_module_registry_request(
+    // A provider that permits only versions must Forbid a download route.
+    let versions_only = reader_provider(&[CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE]);
+    let denied_download = route_module_registry_request(
         &registry,
-        CloudIacModuleRegistryRouteRequest {
-            boundary: boundary(),
-            authorization: authorization(&[CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE]),
-            method: "GET".to_string(),
-            path: "/v1/modules/oyatie/vpc/opentofu/1.2.0/download".to_string(),
-        },
+        &versions_only,
+        route_request("GET", "/v1/modules/oyatie/vpc/opentofu/1.2.0/download"),
     )
     .expect_err("download surface is required");
     assert_eq!(
-        missing_download_surface,
-        CloudIacModuleRegistryApiError::ForbiddenSurface {
+        denied_download,
+        CloudIacModuleRegistryApiError::Forbidden {
             surface: CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE.to_string()
         }
     );
@@ -356,9 +462,11 @@ fn route_boundary_rejects_wrong_methods_unknown_paths_and_missing_surfaces() {
 #[test]
 fn route_boundary_rejects_whitespace_mutated_method_and_path() {
     let registry = registry();
+    let provider = all_reader_provider();
 
     let padded_method = route_module_registry_request(
         &registry,
+        &provider,
         route_request(" GET ", OPENTOFU_SERVICE_DISCOVERY_PATH),
     )
     .expect_err("method matching is exact");
@@ -371,6 +479,7 @@ fn route_boundary_rejects_whitespace_mutated_method_and_path() {
 
     let padded_path = route_module_registry_request(
         &registry,
+        &provider,
         route_request("GET", " /.well-known/terraform.json "),
     )
     .expect_err("path matching is exact");

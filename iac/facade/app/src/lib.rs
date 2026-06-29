@@ -21,16 +21,16 @@ use std::sync::Arc;
 
 use iac_api::{
     CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE, CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE,
-    CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE, CloudIacModuleRegistryApiAuthorization,
-    CloudIacModuleRegistryApiBoundaryContext, OPENTOFU_MODULES_V1_BASE_PATH,
-    OPENTOFU_SERVICE_DISCOVERY_PATH,
+    CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE, CallerCredential,
+    CloudIacModuleRegistryApiBoundaryContext, CloudIacModuleRegistryAuthzProvider,
+    ConfiguredBearerPrincipalVerifier, ConfiguredSurfaceAuthorizer,
 };
 use iac_domain::{CloudIacError, ModuleRegistry, OpenTofuModuleRelease};
 use iac_infrastructure::{
     CloudIacModuleRegistryHttpHandler, CloudIacModuleRegistryServiceAssemblyError,
     assemble_module_registry_http_service,
 };
-use oya_http_middleware_kernel::{HttpRequest, HttpResponse, Middleware, MiddlewareChain, Next};
+use oya_http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
 use oya_http_router_kernel::{HttpMethod, Router, RouterError};
 use oya_http_runtime_hyper_adapter::{
     HyperRuntimeError, ServerConfig, SyncHandler, dispatch as dispatch_hyper_adapter_request,
@@ -58,6 +58,8 @@ pub const CLOUD_IAC_APP_BIND_ADDR_ENV: &str = "OYA_CLOUD_IAC_BIND_ADDR";
 pub const CLOUD_IAC_APP_DEFAULT_BIND_ADDR: &str = "0.0.0.0:8080";
 pub const CLOUD_IAC_APP_RELEASE_INDEX_PATH_ENV: &str = "OYA_CLOUD_IAC_RELEASE_INDEX_PATH";
 pub const CLOUD_IAC_APP_MODULE_REGISTRY_BEARER_ENV: &str = "OYA_CLOUD_IAC_MODULE_REGISTRY_BEARER";
+pub const CLOUD_IAC_APP_MODULE_REGISTRY_PRINCIPAL_ENV: &str =
+    "OYA_CLOUD_IAC_MODULE_REGISTRY_PRINCIPAL";
 pub const CLOUD_IAC_APP_DEFAULT_RELEASE_INDEX_PATH: &str =
     "microservices/cloud-iac/tofu/modules/release-index.json";
 pub const CLOUD_IAC_APP_ARTIFACTS_BASE_PATH: &str = "/artifacts/modules/";
@@ -71,9 +73,10 @@ const CLOUD_IAC_APP_ARCHIVE_MEDIA_TYPE: &str = "archive/zip";
 
 #[derive(Clone, Eq, PartialEq)]
 pub struct CloudIacAppConfig {
-    pub bind_addr: SocketAddr,                  // data_class: INTERNAL_ONLY
-    pub release_index_path: PathBuf,            // data_class: INTERNAL_ONLY
-    pub module_registry_bearer: Option<String>, // data_class: SECRET
+    pub bind_addr: SocketAddr,                        // data_class: INTERNAL_ONLY
+    pub release_index_path: PathBuf,                  // data_class: INTERNAL_ONLY
+    pub module_registry_bearer: Option<String>,       // data_class: SECRET
+    pub module_registry_principal_id: Option<String>, // data_class: INTERNAL_ONLY
 }
 
 impl std::fmt::Debug for CloudIacAppConfig {
@@ -85,6 +88,7 @@ impl std::fmt::Debug for CloudIacAppConfig {
                 "module_registry_bearer",
                 &self.module_registry_bearer.as_ref().map(|_| "<redacted>"),
             )
+            .field("module_registry_principal_id", &self.module_registry_principal_id)
             .finish()
     }
 }
@@ -97,6 +101,7 @@ impl Default for CloudIacAppConfig {
                 .expect("static default bind address parses"),
             release_index_path: PathBuf::from(CLOUD_IAC_APP_DEFAULT_RELEASE_INDEX_PATH),
             module_registry_bearer: None,
+            module_registry_principal_id: None,
         }
     }
 }
@@ -111,6 +116,7 @@ impl CloudIacAppConfig {
         let mut bind_addr = CLOUD_IAC_APP_DEFAULT_BIND_ADDR.to_string();
         let mut release_index_path = CLOUD_IAC_APP_DEFAULT_RELEASE_INDEX_PATH.to_string();
         let mut module_registry_bearer = None;
+        let mut module_registry_principal_id = None;
 
         for (key, value) in pairs {
             match key.as_ref() {
@@ -121,6 +127,9 @@ impl CloudIacAppConfig {
                 CLOUD_IAC_APP_MODULE_REGISTRY_BEARER_ENV => {
                     module_registry_bearer = Some(value.as_ref().to_string());
                 }
+                CLOUD_IAC_APP_MODULE_REGISTRY_PRINCIPAL_ENV => {
+                    module_registry_principal_id = Some(value.as_ref().to_string());
+                }
                 _ => {}
             }
         }
@@ -129,16 +138,28 @@ impl CloudIacAppConfig {
             bind_addr: parse_bind_addr(&bind_addr)?,
             release_index_path: parse_release_index_path(&release_index_path)?,
             module_registry_bearer,
+            module_registry_principal_id,
         })
     }
 
-    pub fn module_registry_request_auth_policy(
+    /// Build the fail-closed module-registry authz provider from config. BOOT-FATAL
+    /// when the bearer SECRET or the bound principal id is unset — a process that
+    /// cannot prove a credential root and a bound identity must NEVER serve the
+    /// supply-chain surface (AUTH-005 / no default-allow).
+    ///
+    /// # Errors
+    /// [`CloudIacAppConfigError`] when the bearer or principal is unset, or the
+    /// bearer is malformed.
+    pub fn module_registry_authz_provider(
         &self,
-    ) -> Result<CloudIacAppRequestAuthPolicy, CloudIacAppConfigError> {
+    ) -> Result<Arc<CloudIacModuleRegistryAuthzProvider>, CloudIacAppConfigError> {
         let Some(bearer) = &self.module_registry_bearer else {
             return Err(CloudIacAppConfigError::MissingModuleRegistryBearer);
         };
-        CloudIacAppRequestAuthPolicy::new(bearer)
+        let Some(principal_id) = &self.module_registry_principal_id else {
+            return Err(CloudIacAppConfigError::MissingModuleRegistryPrincipal);
+        };
+        build_module_registry_authz_provider(bearer, principal_id)
     }
 }
 
@@ -148,6 +169,7 @@ pub enum CloudIacAppConfigError {
     InvalidBindAddr { value: String, reason: String },
     EmptyReleaseIndexPath,
     MissingModuleRegistryBearer,
+    MissingModuleRegistryPrincipal,
     InvalidModuleRegistryBearer { reason: String },
 }
 
@@ -170,42 +192,48 @@ fn parse_release_index_path(value: &str) -> Result<PathBuf, CloudIacAppConfigErr
     Ok(PathBuf::from(value))
 }
 
-#[derive(Clone, Eq, PartialEq)]
-pub struct CloudIacAppRequestAuthPolicy {
-    bearer: String, // data_class: SECRET
-}
+/// The permitted module-registry surfaces for the break-glass reader principal:
+/// the three read surfaces. Deny-by-default — anything not listed is refused by
+/// the [`ConfiguredSurfaceAuthorizer`].
+const CLOUD_IAC_MODULE_REGISTRY_READER_SURFACES: [&str; 3] = [
+    CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE,
+    CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE,
+    CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE,
+];
 
-impl std::fmt::Debug for CloudIacAppRequestAuthPolicy {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("CloudIacAppRequestAuthPolicy")
-            .field("bearer", &"<redacted>")
-            .finish()
+/// Assemble the fail-closed module-registry authz provider from a bearer SECRET
+/// and a bound principal id: a constant-time bearer [`ConfiguredBearerPrincipalVerifier`]
+/// (AUTHN) plus a deny-by-default [`ConfiguredSurfaceAuthorizer`] (the PDP port).
+///
+/// The bearer must be free of whitespace/control characters so the `Bearer
+/// <token>` header round-trips byte-for-byte; the verifier additionally refuses an
+/// empty secret/identity at construction.
+fn build_module_registry_authz_provider(
+    bearer: &str,
+    principal_id: &str,
+) -> Result<Arc<CloudIacModuleRegistryAuthzProvider>, CloudIacAppConfigError> {
+    if bearer.trim().is_empty()
+        || bearer.chars().any(|ch| ch.is_ascii_whitespace())
+        || bearer.chars().any(|ch| ch.is_control())
+    {
+        return Err(CloudIacAppConfigError::InvalidModuleRegistryBearer {
+            reason: "bearer must not contain whitespace or control characters".to_string(),
+        });
     }
-}
-
-impl CloudIacAppRequestAuthPolicy {
-    pub fn new(bearer: impl AsRef<str>) -> Result<Self, CloudIacAppConfigError> {
-        let bearer = bearer.as_ref();
-        if bearer.trim().is_empty()
-            || bearer.chars().any(|ch| ch.is_ascii_whitespace())
-            || bearer.chars().any(|ch| ch.is_control())
-        {
-            return Err(CloudIacAppConfigError::InvalidModuleRegistryBearer {
-                reason: "bearer must not contain whitespace or control characters".to_string(),
-            });
+    let verifier = ConfiguredBearerPrincipalVerifier::new(bearer, principal_id).map_err(|error| {
+        CloudIacAppConfigError::InvalidModuleRegistryBearer {
+            reason: error.to_string(),
         }
-        Ok(Self {
-            bearer: bearer.to_string(),
-        })
-    }
-
-    pub fn allows_authorization_header(&self, value: &str) -> bool {
-        value == self.expected_authorization_header()
-    }
-
-    fn expected_authorization_header(&self) -> String {
-        format!("Bearer {}", self.bearer)
-    }
+    })?;
+    let authorizer = ConfiguredSurfaceAuthorizer::new(
+        CLOUD_IAC_MODULE_REGISTRY_READER_SURFACES
+            .iter()
+            .map(|surface| (*surface).to_string()),
+    );
+    Ok(Arc::new(CloudIacModuleRegistryAuthzProvider::new(
+        Arc::new(verifier),
+        Arc::new(authorizer),
+    )))
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -1127,68 +1155,33 @@ impl From<HyperRuntimeError> for CloudIacAppError {
     }
 }
 
-pub fn build_default_cloud_iac_app_service() -> Result<CloudIacAppService, CloudIacAppError> {
-    build_cloud_iac_app_service_from_release_index_path(CLOUD_IAC_APP_DEFAULT_RELEASE_INDEX_PATH)
-}
-
 pub fn build_cloud_iac_app_service_from_release_index_path(
     path: impl AsRef<Path>,
+    authz_provider: Arc<CloudIacModuleRegistryAuthzProvider>,
 ) -> Result<CloudIacAppService, CloudIacAppError> {
     let seed = load_release_index_seed_from_path(path)?;
-    build_cloud_iac_app_service_from_release_index_seed(&seed)
-}
-
-pub fn build_cloud_iac_app_service_from_release_index_path_with_request_auth(
-    path: impl AsRef<Path>,
-    request_auth: CloudIacAppRequestAuthPolicy,
-) -> Result<CloudIacAppService, CloudIacAppError> {
-    let seed = load_release_index_seed_from_path(path)?;
-    build_cloud_iac_app_service_from_release_index_seed_with_request_auth(&seed, request_auth)
+    build_cloud_iac_app_service_from_release_index_seed(&seed, authz_provider)
 }
 
 pub fn build_cloud_iac_app_service_from_release_index_str(
     input: &str,
+    authz_provider: Arc<CloudIacModuleRegistryAuthzProvider>,
 ) -> Result<CloudIacAppService, CloudIacAppError> {
     let seed = load_release_index_seed_from_str(input)?;
-    build_cloud_iac_app_service_from_release_index_seed(&seed)
-}
-
-pub fn build_cloud_iac_app_service_from_release_index_str_with_request_auth(
-    input: &str,
-    request_auth: CloudIacAppRequestAuthPolicy,
-) -> Result<CloudIacAppService, CloudIacAppError> {
-    let seed = load_release_index_seed_from_str(input)?;
-    build_cloud_iac_app_service_from_release_index_seed_with_request_auth(&seed, request_auth)
+    build_cloud_iac_app_service_from_release_index_seed(&seed, authz_provider)
 }
 
 pub fn build_cloud_iac_app_service_from_release_index_seed(
     seed: &CloudIacReleaseIndexSeed,
-) -> Result<CloudIacAppService, CloudIacAppError> {
-    build_cloud_iac_app_service_from_release_index_seed_with_optional_request_auth(seed, None)
-}
-
-pub fn build_cloud_iac_app_service_from_release_index_seed_with_request_auth(
-    seed: &CloudIacReleaseIndexSeed,
-    request_auth: CloudIacAppRequestAuthPolicy,
-) -> Result<CloudIacAppService, CloudIacAppError> {
-    build_cloud_iac_app_service_from_release_index_seed_with_optional_request_auth(
-        seed,
-        Some(request_auth),
-    )
-}
-
-fn build_cloud_iac_app_service_from_release_index_seed_with_optional_request_auth(
-    seed: &CloudIacReleaseIndexSeed,
-    request_auth: Option<CloudIacAppRequestAuthPolicy>,
+    authz_provider: Arc<CloudIacModuleRegistryAuthzProvider>,
 ) -> Result<CloudIacAppService, CloudIacAppError> {
     let registry = build_module_registry_from_release_index_seed(seed)?;
     let artifacts = archive_artifacts_from_seed(seed)?;
     build_cloud_iac_app_service_with_artifacts(
         registry,
         cloud_iac_app_bootstrap_boundary(),
-        cloud_iac_app_bootstrap_authorization(),
+        authz_provider,
         artifacts,
-        request_auth,
     )
 }
 
@@ -1198,48 +1191,28 @@ fn cloud_iac_app_bootstrap_boundary() -> CloudIacModuleRegistryApiBoundaryContex
     }
 }
 
-fn cloud_iac_app_bootstrap_authorization() -> CloudIacModuleRegistryApiAuthorization {
-    CloudIacModuleRegistryApiAuthorization {
-        principal_id: "sp_cloud_iac_app_static_bootstrap_reader".to_string(),
-        decision_id: "authz_cloud_iac_app_static_bootstrap_001".to_string(),
-        allowed_surfaces: vec![
-            CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE.to_string(),
-            CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE.to_string(),
-            CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE.to_string(),
-        ],
-    }
-}
-
 pub fn build_cloud_iac_app_service(
     registry: ModuleRegistry,
     boundary: CloudIacModuleRegistryApiBoundaryContext,
-    authorization: CloudIacModuleRegistryApiAuthorization,
+    authz_provider: Arc<CloudIacModuleRegistryAuthzProvider>,
 ) -> Result<CloudIacAppService, CloudIacAppError> {
-    build_cloud_iac_app_service_with_artifacts(
-        registry,
-        boundary,
-        authorization,
-        BTreeMap::new(),
-        None,
-    )
+    build_cloud_iac_app_service_with_artifacts(registry, boundary, authz_provider, BTreeMap::new())
 }
 
 fn build_cloud_iac_app_service_with_artifacts(
     registry: ModuleRegistry,
     boundary: CloudIacModuleRegistryApiBoundaryContext,
-    authorization: CloudIacModuleRegistryApiAuthorization,
+    authz_provider: Arc<CloudIacModuleRegistryAuthzProvider>,
     artifacts: BTreeMap<String, CloudIacAppArchiveArtifact>,
-    request_auth: Option<CloudIacAppRequestAuthPolicy>,
 ) -> Result<CloudIacAppService, CloudIacAppError> {
+    // The infra handler holds the provider and does the module-registry PEP
+    // (discovery/versions/download). The artifact route is the SECOND PEP and
+    // shares the SAME provider — both gate on a verified principal + PDP decision.
     let registry_service = assemble_module_registry_http_service(
-        CloudIacModuleRegistryHttpHandler::new(registry, boundary, authorization),
+        CloudIacModuleRegistryHttpHandler::new(registry, boundary, authz_provider.clone()),
     )?;
     let (mut router, middleware, server_config) = registry_service.into_serve_parts();
-    let mut middleware = middleware;
-    if let Some(policy) = request_auth {
-        middleware = middleware.push(Box::new(CloudIacAppRequestAuthMiddleware { policy }));
-    }
-    register_artifact_routes(&mut router, artifacts)?;
+    register_artifact_routes(&mut router, artifacts, authz_provider)?;
     register_health_routes(&mut router)?;
     Ok(CloudIacAppService {
         router,
@@ -1248,43 +1221,10 @@ fn build_cloud_iac_app_service_with_artifacts(
     })
 }
 
-struct CloudIacAppRequestAuthMiddleware {
-    policy: CloudIacAppRequestAuthPolicy, // data_class: SECRET
-}
-
-impl Middleware<HttpRequest, HttpResponse> for CloudIacAppRequestAuthMiddleware {
-    fn handle(
-        &self,
-        request: HttpRequest,
-        next: Next<'_, HttpRequest, HttpResponse>,
-    ) -> HttpResponse {
-        if !cloud_iac_app_path_requires_request_auth(&request.path) {
-            return next.run(request);
-        }
-
-        match request.headers.get("authorization") {
-            Some(value) if self.policy.allows_authorization_header(value) => next.run(request),
-            _ => unauthorized_request_auth_response(),
-        }
-    }
-}
-
-fn cloud_iac_app_path_requires_request_auth(path: &str) -> bool {
-    path == OPENTOFU_SERVICE_DISCOVERY_PATH
-        || path.starts_with(OPENTOFU_MODULES_V1_BASE_PATH)
-        || path.starts_with(CLOUD_IAC_APP_ARTIFACTS_BASE_PATH)
-}
-
-fn unauthorized_request_auth_response() -> HttpResponse {
-    HttpResponse::new(401)
-        .with_header("content-type", "application/json")
-        .with_header("www-authenticate", "Bearer")
-        .with_body(br#"{"error":"unauthorized"}"#.to_vec())
-}
-
 fn register_artifact_routes(
     router: &mut Router<SyncHandler>,
     artifacts: BTreeMap<String, CloudIacAppArchiveArtifact>,
+    authz_provider: Arc<CloudIacModuleRegistryAuthzProvider>,
 ) -> Result<(), RouterError> {
     if artifacts.is_empty() {
         return Ok(());
@@ -1292,15 +1232,33 @@ fn register_artifact_routes(
     router.route(
         HttpMethod::Get,
         CLOUD_IAC_APP_ARTIFACT_ROUTE_TEMPLATE,
-        archive_artifact_handler(Arc::new(artifacts)),
+        archive_artifact_handler(Arc::new(artifacts), authz_provider),
     )?;
     Ok(())
 }
 
 fn archive_artifact_handler(
     artifacts: Arc<BTreeMap<String, CloudIacAppArchiveArtifact>>,
+    authz_provider: Arc<CloudIacModuleRegistryAuthzProvider>,
 ) -> SyncHandler {
     Arc::new(move |request: HttpRequest| {
+        // SECOND PEP (supply-chain): the artifact route serves module ZIP bytes,
+        // so VERIFY the caller credential and PDP-authorize the DOWNLOAD surface
+        // BEFORE reading any bytes. Fail-closed: missing/invalid → 401, deny/fault
+        // → 403. The transport headers are never trusted as an authz decision.
+        let credential = CallerCredential {
+            authorization: request.headers.get("authorization").cloned(),
+        };
+        let verified = match authz_provider.verify_principal(&credential) {
+            Ok(verified) => verified,
+            Err(_) => return unauthorized_artifact_response(),
+        };
+        if authz_provider
+            .ensure_authorized(&verified, CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE)
+            .is_err()
+        {
+            return forbidden_artifact_response();
+        }
         let Some(file_name) = request.path_captures.get("archive_file") else {
             return fixed_error_response(404, "artifact_not_found");
         };
@@ -1372,6 +1330,17 @@ fn fixed_error_response(status: u16, code: &'static str) -> HttpResponse {
         .with_body(format!(r#"{{"error":"{code}"}}"#).into_bytes())
 }
 
+fn unauthorized_artifact_response() -> HttpResponse {
+    HttpResponse::new(401)
+        .with_header("content-type", "application/json")
+        .with_header("www-authenticate", "Bearer")
+        .with_body(br#"{"error":"unauthorized"}"#.to_vec())
+}
+
+fn forbidden_artifact_response() -> HttpResponse {
+    fixed_error_response(403, "forbidden")
+}
+
 fn fixed_json_handler(body: &'static str) -> SyncHandler {
     Arc::new(move |_request: HttpRequest| {
         HttpResponse::new(200)
@@ -1418,10 +1387,12 @@ pub fn serve_bounded_cloud_iac_app_on_listener(
 }
 
 pub fn run_cloud_iac_app(config: CloudIacAppConfig) -> Result<(), CloudIacAppError> {
-    let request_auth = config.module_registry_request_auth_policy()?;
-    let service = build_cloud_iac_app_service_from_release_index_path_with_request_auth(
+    // BOOT-FATAL: refuse to serve the supply-chain surface without a verifiable
+    // bearer SECRET and a bound principal id (no default-allow; AUTH-005).
+    let authz_provider = config.module_registry_authz_provider()?;
+    let service = build_cloud_iac_app_service_from_release_index_path(
         &config.release_index_path,
-        request_auth,
+        authz_provider,
     )?;
     let listener = StdTcpListener::bind(config.bind_addr)
         .map_err(|error| CloudIacAppError::Bind(error.to_string()))?;

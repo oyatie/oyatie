@@ -8,12 +8,14 @@
 
 #![forbid(unsafe_code)]
 
+use std::sync::Arc;
+
 use iac_api::{
     CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE as API_DISCOVERY_SURFACE,
     CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE as API_DOWNLOAD_SURFACE,
-    CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE as API_VERSIONS_SURFACE,
-    CloudIacModuleRegistryApiAuthorization, CloudIacModuleRegistryApiBoundaryContext,
-    CloudIacModuleRegistryApiError, CloudIacModuleRegistryRouteRequest,
+    CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE as API_VERSIONS_SURFACE, CallerCredential,
+    CloudIacModuleRegistryApiBoundaryContext, CloudIacModuleRegistryApiError,
+    CloudIacModuleRegistryAuthzProvider, CloudIacModuleRegistryRouteRequest,
     CloudIacModuleRegistryRouteResponse, route_module_registry_request,
 };
 use iac_domain::{CloudIacError, ModuleRegistry};
@@ -42,9 +44,9 @@ const JSON_CONTENT_TYPE: &str = "application/json";
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudIacModuleRegistryRuntimeRequest {
     pub boundary: CloudIacModuleRegistryApiBoundaryContext, // data_class: INTERNAL_ONLY
-    pub authorization: CloudIacModuleRegistryApiAuthorization, // data_class: INTERNAL_ONLY
-    pub method: HttpMethod,                                 // data_class: PUBLIC
-    pub path: String,                                       // data_class: PUBLIC
+    pub credential: CallerCredential,                      // data_class: SECRET
+    pub method: HttpMethod,                                // data_class: PUBLIC
+    pub path: String,                                      // data_class: PUBLIC
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -66,6 +68,7 @@ pub enum CloudIacModuleRegistryRuntimeError {
 
 pub fn dispatch_module_registry_runtime_request(
     registry: &ModuleRegistry,
+    authz_provider: &CloudIacModuleRegistryAuthzProvider,
     request: CloudIacModuleRegistryRuntimeRequest,
 ) -> Result<CloudIacModuleRegistryRuntimeResponse, CloudIacModuleRegistryRuntimeError> {
     let rest_match = match_module_registry_rest_route(request.method, &request.path)?;
@@ -73,9 +76,10 @@ pub fn dispatch_module_registry_runtime_request(
 
     let api_response = route_module_registry_request(
         registry,
+        authz_provider,
         CloudIacModuleRegistryRouteRequest {
             boundary: request.boundary,
-            authorization: request.authorization,
+            credential: request.credential,
             method: request.method.name().to_string(),
             path: request.path,
         },
@@ -121,23 +125,23 @@ impl From<CloudIacModuleRegistryApiError> for CloudIacModuleRegistryRuntimeError
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone)]
 pub struct CloudIacModuleRegistryHttpHandler {
     registry: ModuleRegistry, // data_class: INTERNAL_ONLY
     boundary: CloudIacModuleRegistryApiBoundaryContext, // data_class: INTERNAL_ONLY
-    authorization: CloudIacModuleRegistryApiAuthorization, // data_class: INTERNAL_ONLY
+    authz_provider: Arc<CloudIacModuleRegistryAuthzProvider>, // data_class: INTERNAL_ONLY
 }
 
 impl CloudIacModuleRegistryHttpHandler {
     pub fn new(
         registry: ModuleRegistry,
         boundary: CloudIacModuleRegistryApiBoundaryContext,
-        authorization: CloudIacModuleRegistryApiAuthorization,
+        authz_provider: Arc<CloudIacModuleRegistryAuthzProvider>,
     ) -> Self {
         Self {
             registry,
             boundary,
-            authorization,
+            authz_provider,
         }
     }
 }
@@ -172,11 +176,18 @@ impl Handler for CloudIacModuleRegistryHttpHandler {
             return Err(CloudIacModuleRegistryHttpError::UnexpectedBody { path: request.path });
         }
 
+        // Build the caller credential from the transport headers. The injected
+        // authz provider VERIFIES it and PDP-authorizes the surface; the headers
+        // are never trusted as an authorization decision (C-class / AUTH-005).
+        let credential = CallerCredential {
+            authorization: request.headers.get("authorization").cloned(),
+        };
         let response = dispatch_module_registry_runtime_request(
             &self.registry,
+            &self.authz_provider,
             CloudIacModuleRegistryRuntimeRequest {
                 boundary: self.boundary.clone(),
-                authorization: self.authorization.clone(),
+                credential,
                 method: request.method,
                 path: request.path,
             },
@@ -207,10 +218,14 @@ impl CloudIacModuleRegistryHttpError {
 
 impl From<CloudIacModuleRegistryHttpError> for HttpResponse {
     fn from(value: CloudIacModuleRegistryHttpError) -> Self {
-        json_response(
-            value.status_code(),
-            format!(r#"{{"error":"{}"}}"#, value.code()),
-        )
+        let status = value.status_code();
+        let response = json_response(status, format!(r#"{{"error":"{}"}}"#, value.code()));
+        // A 401 MUST advertise the accepted auth scheme (RFC 7235).
+        if status == 401 {
+            response.with_header("www-authenticate", "Bearer")
+        } else {
+            response
+        }
     }
 }
 
@@ -288,12 +303,11 @@ fn runtime_error_code(error: &CloudIacModuleRegistryRuntimeError) -> &'static st
 
 fn api_error_status(error: &CloudIacModuleRegistryApiError) -> u16 {
     match error {
-        CloudIacModuleRegistryApiError::EmptyRequestId
-        | CloudIacModuleRegistryApiError::EmptyPrincipalId
-        | CloudIacModuleRegistryApiError::EmptyAuthorizationDecisionId => 400,
+        CloudIacModuleRegistryApiError::EmptyRequestId => 400,
+        CloudIacModuleRegistryApiError::Unauthenticated => 401,
         CloudIacModuleRegistryApiError::MethodNotAllowed { .. } => 405,
         CloudIacModuleRegistryApiError::RouteNotFound { .. } => 404,
-        CloudIacModuleRegistryApiError::ForbiddenSurface { .. } => 403,
+        CloudIacModuleRegistryApiError::Forbidden { .. } => 403,
         CloudIacModuleRegistryApiError::Domain(domain_error) => domain_error_status(domain_error),
     }
 }
@@ -301,13 +315,10 @@ fn api_error_status(error: &CloudIacModuleRegistryApiError) -> u16 {
 fn api_error_code(error: &CloudIacModuleRegistryApiError) -> &'static str {
     match error {
         CloudIacModuleRegistryApiError::EmptyRequestId => "empty_request_id",
-        CloudIacModuleRegistryApiError::EmptyPrincipalId => "empty_principal_id",
-        CloudIacModuleRegistryApiError::EmptyAuthorizationDecisionId => {
-            "empty_authorization_decision_id"
-        }
+        CloudIacModuleRegistryApiError::Unauthenticated => "unauthorized",
         CloudIacModuleRegistryApiError::MethodNotAllowed { .. } => "method_not_allowed",
         CloudIacModuleRegistryApiError::RouteNotFound { .. } => "not_found",
-        CloudIacModuleRegistryApiError::ForbiddenSurface { .. } => "forbidden",
+        CloudIacModuleRegistryApiError::Forbidden { .. } => "forbidden",
         CloudIacModuleRegistryApiError::Domain(domain_error) => domain_error_code(domain_error),
     }
 }
