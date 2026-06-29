@@ -23,7 +23,7 @@ use std::sync::Mutex;
 
 type Result<T> = std::result::Result<T, ConnectorError>;
 type Store = HashMap<String, HashMap<String, BTreeMap<String, EntityDoc>>>;
-type IdemMap = HashMap<String, HashMap<String, String>>;
+type IdemMap = HashMap<String, HashMap<String, HashMap<String, (String, EntityDoc)>>>;
 const PROVIDER_ID: &str = "gusto";
 
 pub struct GustoConnector {
@@ -105,8 +105,14 @@ impl GustoConnector {
             ))),
         }
     }
-    fn seal(&self, ctx: &ConnectorCtx, op: &str, payload: &str) {
-        let _ = ctx.audit_handle().seal(op, payload);
+    fn seal(&self, ctx: &ConnectorCtx, op: &str, payload: &str) -> Result<()> {
+        let receipt = ctx.audit_handle().seal(op, payload);
+        if receipt.chain_id.is_empty() || receipt.kind != op || receipt.payload_digest != payload {
+            return Err(ConnectorError::AuditSealFailed(format!(
+                "{op} seal receipt mismatch"
+            )));
+        }
+        Ok(())
     }
 }
 
@@ -126,7 +132,7 @@ impl Connector for GustoConnector {
     }
     fn list(&self, ctx: &ConnectorCtx, entity_kind: &str, cursor: Option<Cursor>) -> Result<Page> {
         self.check_kind(entity_kind)?;
-        self.seal(ctx, "connector.list", entity_kind);
+        self.seal(ctx, "connector.list", entity_kind)?;
         let store = self.lock_store();
         let mut items: Vec<EntityDoc> = store
             .get(ctx.tenant_id().as_str())
@@ -156,7 +162,7 @@ impl Connector for GustoConnector {
     }
     fn get(&self, ctx: &ConnectorCtx, entity_kind: &str, id: &str) -> Result<EntityDoc> {
         self.check_kind(entity_kind)?;
-        self.seal(ctx, "connector.get", id);
+        self.seal(ctx, "connector.get", id)?;
         self.lock_store()
             .get(ctx.tenant_id().as_str())
             .and_then(|m| m.get(entity_kind))
@@ -172,12 +178,22 @@ impl Connector for GustoConnector {
         idempotency_key: IdempotencyKey,
     ) -> Result<EntityDoc> {
         self.check_kind(entity_kind)?;
+        let submitted_payload = payload.clone();
         let prev = self
             .lock_idem()
             .get(ctx.tenant_id().as_str())
+            .and_then(|m| m.get(entity_kind))
             .and_then(|m| m.get(idempotency_key.as_str()))
             .cloned();
-        if let Some(p) = prev {
+        if let Some((p, previous_payload)) = prev {
+            if previous_payload != submitted_payload {
+                return Err(ConnectorError::IdempotencyConflict(format!(
+                    "{PROVIDER_ID} tenant={} entity_kind={} idempotency_key={}",
+                    ctx.tenant_id().as_str(),
+                    entity_kind,
+                    idempotency_key.as_str()
+                )));
+            }
             return self.get(ctx, entity_kind, &p);
         }
         let v = self.next_seq();
@@ -193,8 +209,13 @@ impl Connector for GustoConnector {
         self.lock_idem()
             .entry(ctx.tenant_id().as_str().to_owned())
             .or_default()
-            .insert(idempotency_key.as_str().to_owned(), id.clone());
-        self.seal(ctx, "connector.create", &id);
+            .entry(entity_kind.to_owned())
+            .or_default()
+            .insert(
+                idempotency_key.as_str().to_owned(),
+                (id.clone(), submitted_payload),
+            );
+        self.seal(ctx, "connector.create", &id)?;
         Ok(doc)
     }
     fn update(
@@ -212,7 +233,7 @@ impl Connector for GustoConnector {
             patch.value.unwrap_or(EntityValue::Null),
         );
         self.put(ctx.tenant_id().as_str(), entity_kind, id, doc.clone());
-        self.seal(ctx, "connector.update", id);
+        self.seal(ctx, "connector.update", id)?;
         Ok(doc)
     }
     fn delete(&self, _ctx: &ConnectorCtx, _entity_kind: &str, _id: &str) -> Result<()> {
