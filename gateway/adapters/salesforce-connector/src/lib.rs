@@ -13,14 +13,15 @@ use oya_shared_connector_kernel::{
     AuthScheme, Connector, ConnectorCapabilities, ConnectorCtx, ConnectorError, Cursor, EntityDoc,
     EntityValue, Event, EventStream, HealthReport, IdempotencyKey, OntologyProjection, Page,
     PatchOp, RateLimitDescriptor, canonical_audit_payload_digest, entity_doc_payload_digest,
-    is_canonical_sha256_hex, windowed_page,
+    is_canonical_sha256_hex, patch_op_payload_digest, windowed_page,
 };
 use std::collections::{BTreeMap, HashMap, VecDeque};
 use std::sync::Mutex;
 
 type Result<T> = std::result::Result<T, ConnectorError>;
 type Store = HashMap<String, HashMap<String, BTreeMap<String, EntityDoc>>>;
-type IdemMap = HashMap<String, HashMap<String, HashMap<String, (String, EntityDoc)>>>;
+type IdemRecord = (String, String, EntityDoc);
+type IdemMap = HashMap<String, HashMap<String, HashMap<String, IdemRecord>>>;
 type EventQueues = HashMap<String, VecDeque<Event>>;
 const PROVIDER_ID: &str = "salesforce";
 
@@ -164,12 +165,34 @@ impl SalesforceConnector {
             .push_back(event);
     }
 
-    fn drain_events_for_tenant(&self, ctx: &ConnectorCtx) -> VecDeque<Event> {
-        self.lock_events()
+    fn matching_events_for_tenant(
+        &self,
+        ctx: &ConnectorCtx,
+        entity_kinds: &[String],
+    ) -> VecDeque<Event> {
+        let mut queues = self.lock_events();
+        let queue = queues
             .entry(ctx.tenant_id().as_str().to_owned())
-            .or_default()
-            .drain(..)
-            .collect()
+            .or_default();
+        if entity_kinds.is_empty() {
+            return queue.drain(..).collect();
+        }
+
+        let mut matched = VecDeque::new();
+        let mut unmatched = VecDeque::new();
+        while let Some(event) = queue.pop_front() {
+            if entity_kinds.iter().any(|kind| kind == &event.entity_kind) {
+                matched.push_back(event);
+            } else {
+                unmatched.push_back(event);
+            }
+        }
+        *queue = unmatched;
+        matched
+    }
+
+    fn update_idempotency_scope(entity_kind: &str, id: &str) -> String {
+        format!("update:{entity_kind}:{id}")
     }
 }
 
@@ -218,14 +241,15 @@ impl Connector for SalesforceConnector {
     ) -> Result<EntityDoc> {
         self.check_kind(entity_kind)?;
         let submitted_payload = payload.clone();
+        let submitted_digest = entity_doc_payload_digest(&submitted_payload);
         let prev = self
             .lock_idem()
             .get(ctx.tenant_id().as_str())
             .and_then(|m| m.get(entity_kind))
             .and_then(|m| m.get(idempotency_key.as_str()))
             .cloned();
-        if let Some((p, previous_payload)) = prev {
-            if previous_payload != submitted_payload {
+        if let Some((p, previous_digest, previous_result)) = prev {
+            if previous_digest != submitted_digest {
                 return Err(ConnectorError::IdempotencyConflict(format!(
                     "{PROVIDER_ID} {} entity_kind={} {}",
                     Self::redacted("tenant", ctx.tenant_id().as_str()),
@@ -233,7 +257,8 @@ impl Connector for SalesforceConnector {
                     Self::redacted("idempotency_key", idempotency_key.as_str())
                 )));
             }
-            return self.get(ctx, entity_kind, &p);
+            let _ = p;
+            return Ok(previous_result);
         }
         let v = self.next_seq();
         let prefix = match entity_kind {
@@ -253,7 +278,7 @@ impl Connector for SalesforceConnector {
             .or_default()
             .insert(
                 idempotency_key.as_str().to_owned(),
-                (id.clone(), submitted_payload),
+                (id.clone(), submitted_digest, doc.clone()),
             );
         self.push_event(
             ctx,
@@ -281,15 +306,46 @@ impl Connector for SalesforceConnector {
         entity_kind: &str,
         id: &str,
         patch: PatchOp,
-        _idempotency_key: IdempotencyKey,
+        idempotency_key: IdempotencyKey,
     ) -> Result<EntityDoc> {
         self.check_kind(entity_kind)?;
+        let patch_digest = patch_op_payload_digest(&patch);
+        let idem_scope = Self::update_idempotency_scope(entity_kind, id);
+        let prev = self
+            .lock_idem()
+            .get(ctx.tenant_id().as_str())
+            .and_then(|m| m.get(&idem_scope))
+            .and_then(|m| m.get(idempotency_key.as_str()))
+            .cloned();
+        if let Some((prev_id, previous_digest, previous_result)) = prev {
+            if previous_digest != patch_digest {
+                return Err(ConnectorError::IdempotencyConflict(format!(
+                    "{PROVIDER_ID} {} entity_kind={} {} {}",
+                    Self::redacted("tenant", ctx.tenant_id().as_str()),
+                    entity_kind,
+                    Self::redacted("entity_id", id),
+                    Self::redacted("idempotency_key", idempotency_key.as_str())
+                )));
+            }
+            let _ = prev_id;
+            return Ok(previous_result);
+        }
+
         let mut doc = self.get(ctx, entity_kind, id)?;
         doc.insert(
             patch.field.clone(),
             patch.value.unwrap_or(EntityValue::Null),
         );
         self.put(ctx.tenant_id().as_str(), entity_kind, id, doc.clone());
+        self.lock_idem()
+            .entry(ctx.tenant_id().as_str().to_owned())
+            .or_default()
+            .entry(idem_scope)
+            .or_default()
+            .insert(
+                idempotency_key.as_str().to_owned(),
+                (id.to_owned(), patch_digest, doc.clone()),
+            );
         self.push_event(
             ctx,
             Event {
@@ -346,10 +402,7 @@ impl Connector for SalesforceConnector {
         let joined = entity_kinds.join(",");
         let audit_digest = self.operation_digest(ctx, [("entity_kinds", joined.as_str())]);
         self.seal(ctx, "connector.subscribe", &audit_digest)?;
-        let mut q = self.drain_events_for_tenant(ctx);
-        if !entity_kinds.is_empty() {
-            q.retain(|e| entity_kinds.iter().any(|k| k == &e.entity_kind));
-        }
+        let q = self.matching_events_for_tenant(ctx, entity_kinds);
         Ok(Box::new(VecStream { q }))
     }
     fn health(&self) -> Result<HealthReport> {
@@ -494,6 +547,83 @@ mod tests {
             Some(&EntityValue::Str("Renamed".into()))
         );
     }
+
+    #[test]
+    fn update_idempotency_replays_prior_result_and_conflicts_on_mismatch() {
+        let s = SalesforceConnector::new();
+        let replay_key = ik("updreplay");
+        let replay_patch = PatchOp::set("Name", EntityValue::Str("first-idempotent".into()));
+
+        let first = s
+            .update(
+                &ctx(),
+                "Account",
+                "001000000000000001",
+                replay_patch.clone(),
+                replay_key.clone(),
+            )
+            .unwrap();
+        let _ = s
+            .update(
+                &ctx(),
+                "Account",
+                "001000000000000001",
+                PatchOp::set("Name", EntityValue::Str("later-change".into())),
+                ik("updother"),
+            )
+            .unwrap();
+        let replay = s
+            .update(
+                &ctx(),
+                "Account",
+                "001000000000000001",
+                replay_patch,
+                replay_key,
+            )
+            .unwrap();
+
+        assert_eq!(first, replay);
+        assert_eq!(
+            replay.get("Name"),
+            Some(&EntityValue::Str("first-idempotent".into()))
+        );
+        assert_eq!(
+            s.get(&ctx(), "Account", "001000000000000001")
+                .unwrap()
+                .get("Name"),
+            Some(&EntityValue::Str("later-change".into()))
+        );
+
+        let conflict_key = ik("updconflict");
+        let _ = s
+            .update(
+                &ctx(),
+                "Account",
+                "001000000000000002",
+                PatchOp::set("Name", EntityValue::Str("conflict-a".into())),
+                conflict_key.clone(),
+            )
+            .unwrap();
+        let err = s
+            .update(
+                &ctx(),
+                "Account",
+                "001000000000000002",
+                PatchOp::set("Name", EntityValue::Str("conflict-b".into())),
+                conflict_key,
+            )
+            .unwrap_err();
+
+        match err {
+            ConnectorError::IdempotencyConflict(message) => {
+                assert!(message.contains("[REDACTED"));
+                assert!(!message.contains("t-1"));
+                assert!(!message.contains("001000000000000002"));
+                assert!(!message.contains("updconflict"));
+            }
+            other => panic!("expected idempotency conflict, got {other:?}"),
+        }
+    }
     #[test]
     fn delete_then_get_not_found() {
         let s = SalesforceConnector::new();
@@ -508,6 +638,37 @@ mod tests {
         s.create(&ctx(), "Account", d, ik("ev")).unwrap();
         let mut st = s.subscribe(&ctx(), &["Account".into()]).unwrap();
         assert!(st.next().is_some());
+    }
+
+    #[test]
+    fn subscribe_preserves_unmatched_entity_kind_events() {
+        let s = SalesforceConnector::new();
+
+        let mut account = EntityDoc::new();
+        account.insert("Name", EntityValue::Str("mixed-account".into()));
+        let _ = s
+            .create(&ctx(), "Account", account, ik("mixaccount"))
+            .unwrap();
+
+        let mut contact = EntityDoc::new();
+        contact.insert("FirstName", EntityValue::Str("Mixed".into()));
+        contact.insert("LastName", EntityValue::Str("Contact".into()));
+        let _ = s
+            .create(&ctx(), "Contact", contact, ik("mixcontact"))
+            .unwrap();
+
+        let mut accounts = s.subscribe(&ctx(), &["Account".to_owned()]).unwrap();
+        assert_eq!(
+            accounts.next().map(|event| event.entity_kind),
+            Some("Account".to_owned())
+        );
+        assert!(accounts.next().is_none());
+
+        let mut contacts = s.subscribe(&ctx(), &["Contact".to_owned()]).unwrap();
+        assert_eq!(
+            contacts.next().map(|event| event.entity_kind),
+            Some("Contact".to_owned())
+        );
     }
 
     #[test]
