@@ -27,6 +27,7 @@ use oya_shared_scim_server_kernel::{InMemoryGroupStore, InMemoryUserStore};
 
 use crate::AppState;
 use crate::config::Config;
+use crate::decision_authz::TenantScopedDecisionAuthorizer;
 use crate::lifecycle_authz::TenantScopedLifecycleAuthorizer;
 use crate::observability::TracingAuditSink;
 use crate::oidc::issuer::{Es256FileSigner, IssuerState, build_issuer_router};
@@ -229,6 +230,11 @@ pub fn build_state(config: &Config) -> Result<Arc<AppState>, StartError> {
         config.lifecycle_caller_id.clone(),
     ));
     let lifecycle_authorizer = Arc::new(TenantScopedLifecycleAuthorizer::new());
+    // AUTH-005 read decision surfaces (`/authorize`, `/authorize-with-token`,
+    // `/authorize:batch`, `/tokens/validate`): the SAME verified-caller port (the
+    // bearer above — NO new config) plus a fail-closed same-tenant decision port,
+    // so a forged body / cross-tenant token cannot obtain an arbitrary decision.
+    let decision_authorizer = Arc::new(TenantScopedDecisionAuthorizer::new());
     Ok(Arc::new(WorkloadAuthzState::new(
         repository,
         denylist,
@@ -238,6 +244,7 @@ pub fn build_state(config: &Config) -> Result<Arc<AppState>, StartError> {
         TracingAuditSink::new(),
         caller_verifier,
         lifecycle_authorizer,
+        decision_authorizer,
     )))
 }
 

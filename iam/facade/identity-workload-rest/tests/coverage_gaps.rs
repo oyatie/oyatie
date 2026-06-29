@@ -56,9 +56,25 @@ use iam_identity_workload_rest::{
 };
 
 use common::{
-    AUDIENCE, FailingRepository, ISSUER, LIFECYCLE_BEARER, NOW, SameTenantLifecycleAuthorizer,
-    lifecycle_verifier, mint_token, permit_authorizer, provisioned_state,
+    AUDIENCE, FailingRepository, ISSUER, LIFECYCLE_BEARER, NOW, SameTenantDecisionAuthorizer,
+    SameTenantLifecycleAuthorizer, lifecycle_verifier, mint_token, permit_authorizer,
+    provisioned_state,
 };
+
+/// Wrap a message in a tonic [`TonicRequest`] carrying the verified-caller bearer
+/// in the `authorization` metadatum (gRPC analogue of the REST bearer header).
+/// The caller is bound to `ten_acme`, so the same-tenant decision gate permits the
+/// `ten_acme` fixtures below.
+fn authed_request<T>(message: T) -> TonicRequest<T> {
+    let mut request = TonicRequest::new(message);
+    request.metadata_mut().insert(
+        "authorization",
+        format!("Bearer {LIFECYCLE_BEARER}")
+            .parse()
+            .expect("ascii bearer"),
+    );
+    request
+}
 
 // =====================================================================
 // Shared REST helper (mirrors rest_endpoints.rs)
@@ -194,11 +210,12 @@ async fn authorize_already_verified_principal_default_deny_is_403() {
         InMemoryAuditSink::new(),
         lifecycle_verifier(),
         Arc::new(SameTenantLifecycleAuthorizer),
+        Arc::new(SameTenantDecisionAuthorizer),
         || NOW,
     ));
     let router = build_router(state);
 
-    let (status, body) = post_json(
+    let (status, body) = post_json_bearer(
         router,
         "/authorize",
         json!({
@@ -210,6 +227,7 @@ async fn authorize_already_verified_principal_default_deny_is_403() {
             "action": "cloud.kms.Decrypt",
             "resource": { "resourceType": "Secret", "resourceId": "db-password" }
         }),
+        LIFECYCLE_BEARER,
     )
     .await;
 
@@ -236,12 +254,13 @@ async fn authorize_batch_with_store_unavailable_returns_200_with_deny_per_item()
         InMemoryAuditSink::new(),
         lifecycle_verifier(),
         Arc::new(SameTenantLifecycleAuthorizer),
+        Arc::new(SameTenantDecisionAuthorizer),
         || NOW,
     ));
     let audit = state.audit().clone();
     let router = build_router(state);
 
-    let (status, body) = post_json(
+    let (status, body) = post_json_bearer(
         router,
         "/authorize:batch",
         json!({
@@ -253,6 +272,7 @@ async fn authorize_batch_with_store_unavailable_returns_200_with_deny_per_item()
                 }
             ]
         }),
+        LIFECYCLE_BEARER,
     )
     .await;
 
@@ -319,7 +339,7 @@ async fn retire_then_authorize_is_403_fail_closed() {
     assert_eq!(retire_status, StatusCode::OK);
 
     // The now-retired principal must be denied (fail-closed), never 404.
-    let (status, _body) = post_json(
+    let (status, _body) = post_json_bearer(
         router,
         "/authorize-with-token",
         json!({
@@ -327,6 +347,7 @@ async fn retire_then_authorize_is_403_fail_closed() {
             "action": "cloud.kms.Decrypt",
             "resource": { "resourceType": "Secret", "resourceId": "db-password" }
         }),
+        LIFECYCLE_BEARER,
     )
     .await;
     assert_eq!(status, StatusCode::FORBIDDEN);
@@ -401,9 +422,12 @@ async fn grpc_authorize_invalid_principal_fields_returns_deny_not_error() {
 
     // tenant_id without the required "ten_" prefix -> build_active_principal fails.
     let result = server
-        .authorize(TonicRequest::new(AuthorizeRequest {
-            tenant_id: "acme".to_owned(), // invalid: missing "ten_" prefix
-            workload_id: "wl_secrets_sync".to_owned(),
+        .authorize(authed_request(AuthorizeRequest {
+            // Same-tenant as the verified caller (so the AUTH-005 decision gate
+            // permits), but an invalid workload_id (no `wl_` prefix) so
+            // build_active_principal fails -> fail-closed DENY (not a tonic Err).
+            tenant_id: "ten_acme".to_owned(),
+            workload_id: "secrets_sync".to_owned(), // invalid: missing "wl_" prefix
             owning_capability: "cap.cloud.kms".to_owned(),
             scopes: vec!["cloud.kms.decrypt".to_owned()],
             claims: Default::default(),
@@ -453,13 +477,14 @@ async fn grpc_authorize_batch_store_unavailable_returns_per_item_deny_not_error(
         InMemoryAuditSink::new(),
         lifecycle_verifier(),
         Arc::new(SameTenantLifecycleAuthorizer),
+        Arc::new(SameTenantDecisionAuthorizer),
         || NOW,
     ));
     let audit = state.audit().clone();
     let server = WorkloadGrpcServer::new(state);
 
     let result = server
-        .authorize_batch(TonicRequest::new(BatchAuthorizeRequest {
+        .authorize_batch(authed_request(BatchAuthorizeRequest {
             requests: vec![AuthorizeWithTokenRequest {
                 token: minted.token.clone(),
                 action: "cloud.kms.Decrypt".to_owned(),
@@ -515,6 +540,7 @@ async fn grpc_validate_token_expired_returns_typed_expired_error() {
         InMemoryAuditSink::new(),
         lifecycle_verifier(),
         Arc::new(SameTenantLifecycleAuthorizer),
+        Arc::new(SameTenantDecisionAuthorizer),
         // clock is NOW + 1000, well past exp = NOW + 300
         || NOW + 1000,
     ));
@@ -522,7 +548,7 @@ async fn grpc_validate_token_expired_returns_typed_expired_error() {
     let server2 = WorkloadGrpcServer::new(state2);
 
     let result = server2
-        .validate_token(TonicRequest::new(ValidateTokenRequest {
+        .validate_token(authed_request(ValidateTokenRequest {
             token: minted2.token.clone(),
         }))
         .await
@@ -583,13 +609,14 @@ async fn grpc_authorize_with_token_revoked_principal_returns_deny() {
         InMemoryAuditSink::new(),
         lifecycle_verifier(),
         Arc::new(SameTenantLifecycleAuthorizer),
+        Arc::new(SameTenantDecisionAuthorizer),
         || NOW,
     ));
     let audit = state.audit().clone();
     let server = WorkloadGrpcServer::new(state);
 
     let result = server
-        .authorize_with_token(TonicRequest::new(AuthorizeWithTokenRequest {
+        .authorize_with_token(authed_request(AuthorizeWithTokenRequest {
             token: minted.token.clone(),
             action: "cloud.kms.Decrypt".to_owned(),
             resource: Some(iam_identity_workload_rest::grpc::proto::Resource {

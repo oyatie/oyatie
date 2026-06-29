@@ -52,6 +52,7 @@ use std::sync::{Arc, Mutex};
 
 use axum::Json;
 use axum::Router;
+use axum::body::Bytes;
 use axum::extract::{Path, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
@@ -244,6 +245,54 @@ pub trait LifecycleAuthorizer: Send + Sync {
     /// # Errors
     /// Returns [`AuthzFault`] on any PDP adapter failure; the caller denies.
     fn decide(&self, request: &LifecycleAuthzRequest<'_>) -> Result<bool, AuthzFault>;
+}
+
+/// A fully-bound DECISION authorization request handed to the [`DecisionAuthorizer`].
+/// This is the read-decision sibling of [`LifecycleAuthzRequest`]: it gates the
+/// authorize / token-validation surfaces (`/authorize`, `/authorize-with-token`,
+/// `/authorize:batch`, `/tokens/validate`) so a VERIFIED caller can only obtain a
+/// decision scoped to its OWN tenant. The `subject_tenant` is the tenant the
+/// decision is ABOUT — derived from the request body for `/authorize`, or from the
+/// VALIDATED token for the token-bearing surfaces — never the caller's own tenant
+/// and never an unverified header. A caller in tenant A asking for a decision over
+/// tenant B's subject (forged body / stolen cross-tenant token) is therefore
+/// deniable at the boundary (cross-tenant entitlement / IDOR; AUTH-005).
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct DecisionAuthzRequest<'a> {
+    /// Verified caller's tenant (trusted; from the credential, never a header).
+    pub caller_tenant: &'a str,
+    /// Verified caller's identity label (trusted).
+    pub caller_id: &'a str,
+    /// The SUBJECT's tenant the decision concerns (body field for `/authorize`,
+    /// validated-token tenant for the token-bearing surfaces). NEVER the caller's.
+    pub subject_tenant: &'a str,
+    /// The SUBJECT's workload id.
+    pub subject_workload_id: &'a str,
+    /// The requested action (PARC).
+    pub action: &'a str,
+    /// The target resource type.
+    pub resource_type: &'a str,
+    /// The target resource id.
+    pub resource_id: &'a str,
+}
+
+/// Decision-authorization PORT (the caller-authz seam for the READ decision
+/// surfaces). Returns `Ok(true)` to PERMIT, `Ok(false)` to DENY, and
+/// `Err(AuthzFault)` for any adapter fault — the caller maps both `Ok(false)` and
+/// `Err(_)` to `403` (fail-closed; a PDP outage never allows and never 5xx).
+/// Cross-tenant requests MUST be denied regardless of how many allow rules match
+/// (deny is authoritative at the boundary). The reference adapter is a
+/// same-tenant check in the composition root; a richer cloud-iam Cedar PDP swaps
+/// in behind this port without touching the delivery surfaces.
+///
+/// The trait-level adapter contract of [`LifecycleAuthorizer`] (fault mapping, no
+/// locks held, no panics) applies identically here.
+pub trait DecisionAuthorizer: Send + Sync {
+    /// Decide whether the verified caller may obtain the decision over the subject.
+    ///
+    /// # Errors
+    /// Returns [`AuthzFault`] on any PDP adapter failure; the caller denies.
+    fn decide(&self, request: &DecisionAuthzRequest<'_>) -> Result<bool, AuthzFault>;
 }
 
 /// Constant-time byte comparison — NEVER `==` for a credential (timing-safe).
@@ -558,6 +607,12 @@ where
     /// Lifecycle authorization (PDP) port for the mutating control plane.
     /// REQUIRED (non-optional): a missing/erroring decision is fail-closed deny.
     lifecycle_authorizer: Arc<dyn LifecycleAuthorizer>,
+    /// Decision authorization (PDP) port for the READ decision surfaces
+    /// (`/authorize`, `/authorize-with-token`, `/authorize:batch`,
+    /// `/tokens/validate`). REQUIRED (non-optional): a caller can obtain a
+    /// decision only within its own tenant; a missing/erroring decision is
+    /// fail-closed deny (AUTH-005 default-deny).
+    decision_authorizer: Arc<dyn DecisionAuthorizer>,
 }
 
 impl<R, D, A, S> WorkloadAuthzState<R, D, A, S>
@@ -581,6 +636,7 @@ where
         audit: S,
         caller_verifier: Arc<dyn CallerVerifier>,
         lifecycle_authorizer: Arc<dyn LifecycleAuthorizer>,
+        decision_authorizer: Arc<dyn DecisionAuthorizer>,
     ) -> Self {
         Self::with_clock(
             repository,
@@ -591,6 +647,7 @@ where
             audit,
             caller_verifier,
             lifecycle_authorizer,
+            decision_authorizer,
             default_now,
         )
     }
@@ -608,6 +665,7 @@ where
         audit: S,
         caller_verifier: Arc<dyn CallerVerifier>,
         lifecycle_authorizer: Arc<dyn LifecycleAuthorizer>,
+        decision_authorizer: Arc<dyn DecisionAuthorizer>,
         now_provider: fn() -> i64,
     ) -> Self {
         Self {
@@ -620,6 +678,7 @@ where
             now_provider,
             caller_verifier,
             lifecycle_authorizer,
+            decision_authorizer,
         }
     }
 
@@ -656,6 +715,20 @@ where
     #[must_use]
     pub(crate) fn now_provider_ref(&self) -> fn() -> i64 {
         self.now_provider
+    }
+
+    /// Borrow the caller-verifier port (used by the gRPC paths to authenticate the
+    /// caller from request metadata; mirrors the REST header authn).
+    #[must_use]
+    pub(crate) fn caller_verifier_ref(&self) -> &dyn CallerVerifier {
+        self.caller_verifier.as_ref()
+    }
+
+    /// Borrow the decision-authorizer port (used by the gRPC paths for the
+    /// per-decision same-tenant caller-authz gate; mirrors the REST gate).
+    #[must_use]
+    pub(crate) fn decision_authorizer_ref(&self) -> &dyn DecisionAuthorizer {
+        self.decision_authorizer.as_ref()
     }
 
     /// Lock the repository for reading (gRPC delegate; mirrors REST helper).
@@ -874,7 +947,10 @@ fn decision_detail(decision: &AuthorizationDecision) -> Option<String> {
 /// principal, then authorize — the full fail-closed hot path.
 async fn authorize_with_token_handler<R, D, A, S>(
     State(state): State<SharedState<R, D, A, S>>,
-    Json(request): Json<AuthorizeWithTokenRequest>,
+    // `HeaderMap` + raw `Bytes` (not `Json`) so the caller is VERIFIED before any
+    // body is deserialized (AUTH-005 authn-before-body-parse).
+    headers: HeaderMap,
+    body: Bytes,
 ) -> Response
 where
     R: WorkloadPrincipalRepository + Send + 'static,
@@ -882,6 +958,30 @@ where
     A: WorkloadAuthorizer + Send + Sync + 'static,
     S: AuditSink + 'static,
 {
+    let Some(caller) = state.caller_verifier.verify_principal(&headers) else {
+        return unverified_caller_response(state.audit(), AuditEvent::Authorize);
+    };
+    let request: AuthorizeWithTokenRequest = match serde_json::from_slice(&body) {
+        Ok(request) => request,
+        Err(error) => return bad_request_response(error.to_string()),
+    };
+    // Same-tenant gate: subject tenant comes from the VALIDATED token (never a
+    // header). A token that does not validate has no trustworthy subject — the
+    // gate is skipped and the existing flow fail-closes it to a 422.
+    if let Some((subject_tenant, subject_workload_id)) = validated_subject(&state, &request.token)
+        && let Some(response) = decision_gate(
+            &state,
+            AuditEvent::Authorize,
+            &caller,
+            &subject_tenant,
+            &subject_workload_id,
+            &request.action,
+            &request.resource.resource_type,
+            &request.resource.resource_id,
+        )
+    {
+        return response;
+    }
     let outcome = run_authorize_with_token(&state, &request);
     let workload_id = workload_id_from_token(&state, &request.token);
     respond_to_outcome(state.audit(), workload_id, &outcome)
@@ -893,7 +993,9 @@ where
 /// decisions (each fail-closed item is a DENY decision).
 async fn authorize_batch_handler<R, D, A, S>(
     State(state): State<SharedState<R, D, A, S>>,
-    Json(request): Json<BatchAuthorizeRequest>,
+    // Authn-before-body-parse: verify the caller before deserializing the batch.
+    headers: HeaderMap,
+    body: Bytes,
 ) -> Response
 where
     R: WorkloadPrincipalRepository + Send + 'static,
@@ -901,8 +1003,35 @@ where
     A: WorkloadAuthorizer + Send + Sync + 'static,
     S: AuditSink + 'static,
 {
+    let Some(caller) = state.caller_verifier.verify_principal(&headers) else {
+        return unverified_caller_response(state.audit(), AuditEvent::Authorize);
+    };
+    let request: BatchAuthorizeRequest = match serde_json::from_slice(&body) {
+        Ok(request) => request,
+        Err(error) => return bad_request_response(error.to_string()),
+    };
     let mut decisions = Vec::with_capacity(request.requests.len());
     for item in &request.requests {
+        // Per-item same-tenant gate: a cross-tenant (or PDP-faulted) item collapses
+        // to a DENY decision in the body (fail-closed), never leaking an allow. The
+        // gate emits the item's deny audit record; a permitted item falls through to
+        // the normal per-item flow which emits its own record.
+        if let Some((subject_tenant, subject_workload_id)) = validated_subject(&state, &item.token)
+            && decision_gate(
+                &state,
+                AuditEvent::Authorize,
+                &caller,
+                &subject_tenant,
+                &subject_workload_id,
+                &item.action,
+                &item.resource.resource_type,
+                &item.resource.resource_id,
+            )
+            .is_some()
+        {
+            decisions.push(AuthorizeResponse::from(&AuthorizationDecision::default_deny()));
+            continue;
+        }
         let outcome = run_authorize_with_token(&state, item);
         let workload_id = workload_id_from_token(&state, &item.token);
         // Each item emits its own audit record (one per authorize).
@@ -925,7 +1054,16 @@ where
 /// Active with the supplied scopes/claims; the Cedar engine decides.
 async fn authorize_handler<R, D, A, S>(
     State(state): State<SharedState<R, D, A, S>>,
-    Json(request): Json<AuthorizeRequest>,
+    // AUTH-005 keystone: `HeaderMap` + raw `Bytes` (NOT `Json`) so the caller is
+    // VERIFIED before the body is deserialized. Before this guard the authorized
+    // principal was built ENTIRELY from caller-supplied body fields over plain
+    // TCP — a forged body authorized arbitrary cross-tenant ALLOWs. Now: (1) an
+    // unforgeable caller credential is required (401 on miss), then (2) the body
+    // is parsed, then (3) a fail-closed same-tenant decision gate denies a caller
+    // asking for a decision over another tenant's subject (403), and only then is
+    // the principal built and the Cedar engine consulted.
+    headers: HeaderMap,
+    body: Bytes,
 ) -> Response
 where
     R: WorkloadPrincipalRepository + Send + 'static,
@@ -933,6 +1071,30 @@ where
     A: WorkloadAuthorizer + Send + Sync + 'static,
     S: AuditSink + 'static,
 {
+    // (1) AUTHN — unforgeable verified caller, BEFORE any body deserialize.
+    let Some(caller) = state.caller_verifier.verify_principal(&headers) else {
+        return unverified_caller_response(state.audit(), AuditEvent::Authorize);
+    };
+    // (2) Parse the body AFTER authn.
+    let request: AuthorizeRequest = match serde_json::from_slice(&body) {
+        Ok(request) => request,
+        Err(error) => return bad_request_response(error.to_string()),
+    };
+    // (3) Same-tenant decision gate: the subject tenant is the BODY's tenant_id;
+    // a caller may only obtain a decision within its own tenant (fail-closed).
+    if let Some(response) = decision_gate(
+        &state,
+        AuditEvent::Authorize,
+        &caller,
+        &request.tenant_id,
+        &request.workload_id,
+        &request.action,
+        &request.resource.resource_type,
+        &request.resource.resource_id,
+    ) {
+        return response;
+    }
+    // (4) Build the asserted principal and let the Cedar engine decide.
     let principal = match build_active_principal(&request) {
         Ok(principal) => principal,
         Err(envelope) => {
@@ -962,7 +1124,9 @@ where
 /// principal identity. A validation failure is a 422 (PRD §3.4).
 async fn tokens_validate_handler<R, D, A, S>(
     State(state): State<SharedState<R, D, A, S>>,
-    Json(request): Json<ValidateTokenRequest>,
+    // Authn-before-body-parse: verify the caller before deserializing the body.
+    headers: HeaderMap,
+    body: Bytes,
 ) -> Response
 where
     R: WorkloadPrincipalRepository + Send + 'static,
@@ -970,9 +1134,30 @@ where
     A: WorkloadAuthorizer + Send + Sync + 'static,
     S: AuditSink + 'static,
 {
+    let Some(caller) = state.caller_verifier.verify_principal(&headers) else {
+        return unverified_caller_response(state.audit(), AuditEvent::TokenValidation);
+    };
+    let request: ValidateTokenRequest = match serde_json::from_slice(&body) {
+        Ok(request) => request,
+        Err(error) => return bad_request_response(error.to_string()),
+    };
     let now = (state.now_provider)();
     match validate_workload_token(&request.token, &state.jwks, &state.config, now) {
         Ok(principal) => {
+            // Same-tenant gate: a caller may only introspect a token within its own
+            // tenant (cross-tenant introspection is a 403, fail-closed).
+            if let Some(response) = decision_gate(
+                &state,
+                AuditEvent::TokenValidation,
+                &caller,
+                principal.tenant_id().as_str(),
+                principal.workload_id().as_str(),
+                "identity.workload.ValidateToken",
+                "Workload",
+                principal.workload_id().as_str(),
+            ) {
+                return response;
+            }
             state.audit().record(AuditRecord::new(
                 AuditEvent::TokenValidation,
                 Some(principal.workload_id().as_str().to_owned()),
@@ -1105,6 +1290,126 @@ where
     validate_workload_token(token, &state.jwks, &state.config, now)
         .ok()
         .map(|principal| principal.workload_id().as_str().to_owned())
+}
+
+/// The `401` response for a request with no verified caller, emitting the single
+/// fail-closed audit record (a denied authorize/validation call is on the audit
+/// chain regardless of outcome). A self-attested header can never reach a `Some`
+/// caller — [`CallerVerifier`] ignores caller-supplied identity headers.
+fn unverified_caller_response<S: AuditSink>(audit: &S, event: AuditEvent) -> Response {
+    audit.record(AuditRecord::new(
+        event,
+        None,
+        "deny",
+        Some("unverified-caller".to_owned()),
+    ));
+    (
+        StatusCode::UNAUTHORIZED,
+        Json(ApiErrorEnvelope::unauthorized(None)),
+    )
+        .into_response()
+}
+
+/// The `400` response for a body that authenticated but did not deserialize. A
+/// malformed body is a `400` (the request itself is unparseable), NOT a deny
+/// decision — and it is reached only AFTER caller authn (authn-before-body-parse).
+fn bad_request_response(detail: impl Into<String>) -> Response {
+    (
+        StatusCode::BAD_REQUEST,
+        Json(ApiErrorEnvelope::validation(
+            "invalid request body",
+            Some(detail.into()),
+        )),
+    )
+        .into_response()
+}
+
+/// Best-effort `(subject_tenant, subject_workload_id)` of the principal a token
+/// attests, for the per-decision same-tenant gate. `None` for a token that does
+/// not validate — a forged token has no trustworthy subject, and the downstream
+/// flow fail-closes such a request on its own (a `422`/deny), so the gate is
+/// simply skipped rather than allowed.
+fn validated_subject<R, D, A, S>(
+    state: &WorkloadAuthzState<R, D, A, S>,
+    token: &str,
+) -> Option<(String, String)>
+where
+    R: WorkloadPrincipalRepository + Send + 'static,
+    D: RevocationDenylist + Send + 'static,
+    A: WorkloadAuthorizer + Send + Sync + 'static,
+    S: AuditSink + 'static,
+{
+    let now = (state.now_provider)();
+    validate_workload_token(token, &state.jwks, &state.config, now)
+        .ok()
+        .map(|principal| {
+            (
+                principal.tenant_id().as_str().to_owned(),
+                principal.workload_id().as_str().to_owned(),
+            )
+        })
+}
+
+/// Per-decision caller-authz gate (AUTH-005). A VERIFIED `caller` may obtain a
+/// decision ONLY within its own tenant: the [`DecisionAuthorizer`] is consulted
+/// with the SUBJECT's tenant (the body's `tenant_id` for `/authorize`, the
+/// VALIDATED token's tenant for the token-bearing surfaces) so a caller in tenant
+/// A cannot obtain a decision scoped to tenant B (cross-tenant entitlement /
+/// IDOR). Returns `Some(403)` on an `Ok(false)` policy deny (`decision-forbidden`)
+/// or an `Err` PDP fault (`decision-pdp-fault`) — BOTH fail-closed, never `5xx` —
+/// and `None` on permit. A deny emits exactly one audit record with caller
+/// attribution; the permit path emits NOTHING so the downstream decision handler
+/// keeps the one-record-per-decision invariant.
+#[allow(clippy::too_many_arguments)]
+fn decision_gate<R, D, A, S>(
+    state: &WorkloadAuthzState<R, D, A, S>,
+    event: AuditEvent,
+    caller: &VerifiedCaller,
+    subject_tenant: &str,
+    subject_workload_id: &str,
+    action: &str,
+    resource_type: &str,
+    resource_id: &str,
+) -> Option<Response>
+where
+    R: WorkloadPrincipalRepository + Send + 'static,
+    D: RevocationDenylist + Send + 'static,
+    A: WorkloadAuthorizer + Send + Sync + 'static,
+    S: AuditSink + 'static,
+{
+    let request = DecisionAuthzRequest {
+        caller_tenant: caller.caller_tenant(),
+        caller_id: caller.caller_id(),
+        subject_tenant,
+        subject_workload_id,
+        action,
+        resource_type,
+        resource_id,
+    };
+    // Both Ok(false) and Err(_) deny (fail-closed) but emit DISTINCT details so a
+    // PDP outage is distinguishable from an intentional cross-tenant deny.
+    let detail = match state.decision_authorizer.decide(&request) {
+        Ok(true) => return None,
+        Ok(false) => "decision-forbidden",
+        Err(_fault) => "decision-pdp-fault",
+    };
+    state.audit.record(
+        AuditRecord::new(
+            event,
+            Some(subject_workload_id.to_owned()),
+            "deny",
+            Some(detail.to_owned()),
+        )
+        .with_authorization_target(action, resource_type, resource_id)
+        .with_caller(caller.caller_id(), caller.caller_tenant()),
+    );
+    Some(
+        (
+            StatusCode::FORBIDDEN,
+            Json(ApiErrorEnvelope::forbidden(None)),
+        )
+            .into_response(),
+    )
 }
 
 /// Build an Active principal from an `/authorize` request's explicit fields.
