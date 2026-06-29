@@ -8,6 +8,7 @@ registry keyless signing, provenance, and SBOM attestation chain.
 1. Build and attest images from GitHub Actions or the successor owned CI runner
    with Sigstore keyless OIDC identity:
    - issuer: `https://token.actions.githubusercontent.com`
+   - subject: `https://github.com/jason931225/oyatie/.github/workflows/.+@refs/(heads/dev|tags/v.+)`
    - Rekor transparency log: `https://rekor.sigstore.dev`
    - SLSA predicate type: `https://slsa.dev/provenance/v1`
    - SBOM predicate type: `https://cyclonedx.org/bom`

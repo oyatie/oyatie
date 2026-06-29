@@ -86,13 +86,20 @@ fn active_admission_wires_signature_provenance_sbom_and_vet_posture() {
         "https://slsa.dev/provenance/v1",
         "https://cyclonedx.org/bom",
         "https://token.actions.githubusercontent.com",
+        "https://github.com/jason931225/oyatie/.github/workflows/.+@refs/(heads/dev|tags/v.+)",
     ] {
         assert!(
             kyverno.contains(required),
             "keyless supply-chain admission policy must contain {required:?}"
         );
     }
-    for forbidden in ["ExternalSecret", "cosign-key", "cosign-pub", "publicKeys:"] {
+    for forbidden in [
+        "ExternalSecret",
+        "cosign-key",
+        "cosign-pub",
+        "publicKeys:",
+        "https://github.com/.+/.+/.github/workflows",
+    ] {
         assert!(
             !kyverno.contains(forbidden),
             "static-key-only Cosign admission is not readiness authority; found {forbidden:?}"
