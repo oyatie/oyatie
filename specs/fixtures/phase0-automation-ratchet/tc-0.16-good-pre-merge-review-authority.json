@@ -1,5 +1,5 @@
 {
-  "description": "A review-authority row is green when merge admission has a blocking machine-verifiable review status or durable evidence and proves reviewer identity is distinct from the author.",
+  "description": "A review-authority row is green when merge admission has a blocking machine-verifiable review status or durable evidence from PR Code Review plus a trusted cloud-ci/oya-ci gate packet, proves reviewer identity is distinct from the author, and binds the reviewed PR title/body evidence.",
   "expected_verdict": "GREEN",
   "expected_violations": [],
   "fixture_id": "TC-0.16-GOOD-pre-merge-review-authority",
@@ -8,7 +8,7 @@
       "blocking_fixture": "specs/fixtures/phase0-automation-ratchet/tc-0.16-good-pre-merge-review-authority.json",
       "classification": "automated_blocking_now",
       "enforceable_or_automatable": true,
-      "evidence_path": "trusted-runner-signed oya-pr-review status packet + PR reviews API readback",
+      "evidence_path": "PR ## Code Review section + trusted cloud-ci/oya-ci review-admission gate packet + PR reviews API readback",
       "has_durable_review_evidence": false,
       "has_machine_verifiable_review_status": true,
       "has_review_title_evidence": true,
@@ -21,10 +21,10 @@
       "retirement_phase": "P0.0/P1 review-admission producer",
       "review_blocks_merge": true,
       "reviewer_identity_distinct_from_author": true,
-      "source_artifact": "docs/AGENTS.md#PR-shape + docs/decisions/ADR-0367-trustless-pre-merge-verification-gateway.md",
-      "target_gate_or_controller": "oya-pr-review trusted review-status producer",
+      "source_artifact": "docs/AGENTS.md#PR-shape + docs/standards/code-review.md#mandatory-pr-sections + docs/decisions/ADR-0367-trustless-pre-merge-verification-gateway.md",
+      "target_gate_or_controller": "cloud-ci/oya-ci review-admission packet producer",
       "review_authority_live": true,
-      "review_authority_source": "trusted_runner_signed_oya_pr_review_status"
+      "review_authority_source": "trusted_cloud_ci_review_admission_packet"
     }
   ],
   "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/tests/automation_ratchet.rs"
