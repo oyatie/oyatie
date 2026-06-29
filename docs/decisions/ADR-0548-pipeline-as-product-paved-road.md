@@ -308,6 +308,25 @@ runner-bootstrap glue) while the inline-shell LINE footprint shrinks 6→1. Resi
 `oya-ci-required` required context is a broader observability item; this preflight emits the signal,
 the required-context labeling is out of scope.
 
+## Amendment — Gate self-conformance meta-gate for the seven-property gate bar (2026-06-29, GH-777)
+
+The pipeline-as-product doctrine now has its own born-blocking meta-gate: every gate must expose
+workflow registration, Buck2 unittest/gate wiring, policy-as-data boundaries, a declared fix/no-fix
+contract, and scoped hermeticity exceptions with cutover metadata. This prevents the pipeline from
+adding one-off detector debt while enforcing D1/D2/D6/D7 against the gate fleet itself.
+
+The meta-gate is intentionally a shape-neutral Rust engine with repo-local facts in policy JSON:
+`cloud/cloud-ci/gates/oya-cloud-ci-gate-self-conformance-app/gate-self-conformance-policy.json`
+carries the current gate root, workflow path, non-gate producers, no-autofix reasons, literal-shape
+rules, and scoped temporary exceptions for existing orchestrator boundaries such as freshness.
+The crate files born-accounted here (verbatim path mention = justification; reachable from
+`cargo-members`; OWNERS-covered by the gate tree) are:
+`cloud/cloud-ci/gates/oya-cloud-ci-gate-self-conformance-app/Cargo.toml`,
+`cloud/cloud-ci/gates/oya-cloud-ci-gate-self-conformance-app/BUCK`,
+`cloud/cloud-ci/gates/oya-cloud-ci-gate-self-conformance-app/gate-self-conformance-policy.json`,
+`cloud/cloud-ci/gates/oya-cloud-ci-gate-self-conformance-app/src/lib.rs`, and
+`cloud/cloud-ci/gates/oya-cloud-ci-gate-self-conformance-app/tests/gate_self_conformance.rs`.
+
 ## References
 
 - `.omc/ultragoal/PRODUCT-pipeline-paved-road.md` (gitignored session one-pager, 2026-06-10 — the
