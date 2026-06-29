@@ -76,37 +76,37 @@
       "name": "oya-observability-alerting-fanout-latency",
       "target": "0.99",
       "sli": "sum(rate(alertmanager_notification_latency_seconds_bucket{le=\"30\"}[5m]))",
-      "file": "microservices/observability/slos/alerting-fanout-latency.openslo.yaml"
+      "file": "observability/observability/slos/alerting-fanout-latency.openslo.yaml"
     },
     {
       "name": "oya-observability-log-ingest-availability",
       "target": "0.9995",
       "sli": "sum(rate(loki_distributor_requests_total{status_code=~\"2..\"}[5m]))",
-      "file": "microservices/observability/slos/log-ingest-availability.openslo.yaml"
+      "file": "observability/observability/slos/log-ingest-availability.openslo.yaml"
     },
     {
       "name": "oya-observability-metric-ingest-availability",
       "target": "0.9995",
       "sli": "sum(rate(cortex_distributor_requests_total{status_code=~\"2..\"}[5m]))",
-      "file": "microservices/observability/slos/metric-ingest-availability.openslo.yaml"
+      "file": "observability/observability/slos/metric-ingest-availability.openslo.yaml"
     },
     {
       "name": "oya-observability-query-latency-logs",
       "target": "0.95",
       "sli": "sum(rate(loki_request_duration_seconds_bucket{route=~\"/loki/api/v1/query.*\",le=\"0.5\"}[5m]))",
-      "file": "microservices/observability/slos/query-latency-logs.openslo.yaml"
+      "file": "observability/observability/slos/query-latency-logs.openslo.yaml"
     },
     {
       "name": "oya-observability-query-latency-prom",
       "target": "0.95",
       "sli": "sum(rate(cortex_querier_request_duration_seconds_bucket{le=\"0.2\"}[5m]))",
-      "file": "microservices/observability/slos/query-latency-prom.openslo.yaml"
+      "file": "observability/observability/slos/query-latency-prom.openslo.yaml"
     },
     {
       "name": "oya-observability-trace-ingest-availability",
       "target": "0.999",
       "sli": "sum(rate(tempo_distributor_spans_received_total[5m])) - sum(rate(tempo_distributor_spans_refused_total[5m]))",
-      "file": "microservices/observability/slos/trace-ingest-availability.openslo.yaml"
+      "file": "observability/observability/slos/trace-ingest-availability.openslo.yaml"
     }
   ],
   "ips": [

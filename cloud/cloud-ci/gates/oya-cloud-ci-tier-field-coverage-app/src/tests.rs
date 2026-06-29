@@ -42,7 +42,10 @@ fn green_substrate_manifest_passes() {
     });
     let obs = observed(vec![("cloud/cloud-iam/manifest.json", m)]);
     let findings = evaluate_keyed(&policy(), &obs);
-    assert!(findings.is_empty(), "green substrate must pass: {findings:?}");
+    assert!(
+        findings.is_empty(),
+        "green substrate must pass: {findings:?}"
+    );
     assert_eq!(evaluate(&policy(), &obs).verdict, Verdict::Green);
 }
 
@@ -83,27 +86,39 @@ fn tier_overloaded_with_dr_value_fails() {
     let c = codes(&evaluate_keyed(&policy(), &obs));
     assert!(c.contains("TFC-TIER-TYPE-OVERLOAD"), "{c:?}");
     // It must NOT be reported as merely not-in-enum — the overload class is the precise diagnosis.
-    assert!(!c.contains("TFC-TIER-NOT-IN-ENUM"), "overload should pre-empt not-in-enum: {c:?}");
+    assert!(
+        !c.contains("TFC-TIER-NOT-IN-ENUM"),
+        "overload should pre-empt not-in-enum: {c:?}"
+    );
 }
 
 #[test]
 fn tier_overloaded_with_deployment_mode_fails() {
     let m = json!({ "microservice": "x", "tier": "saas", "tier_subtype": "product-consumer", "dr_tier": "T2" });
-    let c = codes(&evaluate_keyed(&policy(), &observed(vec![("oya/x/manifest.json", m)])));
+    let c = codes(&evaluate_keyed(
+        &policy(),
+        &observed(vec![("oya/x/manifest.json", m)]),
+    ));
     assert!(c.contains("TFC-TIER-TYPE-OVERLOAD"), "{c:?}");
 }
 
 #[test]
 fn legacy_external_facing_tier_fails() {
     let m = json!({ "microservice": "developer-sdk", "tier": "external-facing", "tier_subtype": "product-developer-sdk", "dr_tier": "T1" });
-    let c = codes(&evaluate_keyed(&policy(), &observed(vec![("oya/developer-sdk/manifest.json", m)])));
+    let c = codes(&evaluate_keyed(
+        &policy(),
+        &observed(vec![("oya/developer-sdk/manifest.json", m)]),
+    ));
     assert!(c.contains("TFC-TIER-TYPE-OVERLOAD"), "{c:?}");
 }
 
 #[test]
 fn tier_not_in_enum_fails() {
     let m = json!({ "microservice": "x", "tier": "gizmo", "tier_subtype": "product-consumer", "dr_tier": "T2" });
-    let c = codes(&evaluate_keyed(&policy(), &observed(vec![("oya/x/manifest.json", m)])));
+    let c = codes(&evaluate_keyed(
+        &policy(),
+        &observed(vec![("oya/x/manifest.json", m)]),
+    ));
     assert!(c.contains("TFC-TIER-NOT-IN-ENUM"), "{c:?}");
 }
 
@@ -111,21 +126,30 @@ fn tier_not_in_enum_fails() {
 fn tier_subtype_not_in_enum_fails() {
     // erp-parity-single-concern is NOT in the canonical platform-architecture enum.
     let m = json!({ "microservice": "x", "tier": "product", "tier_subtype": "erp-parity-single-concern", "dr_tier": "T2" });
-    let c = codes(&evaluate_keyed(&policy(), &observed(vec![("oya/x/manifest.json", m)])));
+    let c = codes(&evaluate_keyed(
+        &policy(),
+        &observed(vec![("oya/x/manifest.json", m)]),
+    ));
     assert!(c.contains("TFC-TIER-SUBTYPE-NOT-IN-ENUM"), "{c:?}");
 }
 
 #[test]
 fn dr_tier_not_in_enum_fails() {
     let m = json!({ "microservice": "x", "tier": "product", "tier_subtype": "product-consumer", "dr_tier": "T9" });
-    let c = codes(&evaluate_keyed(&policy(), &observed(vec![("oya/x/manifest.json", m)])));
+    let c = codes(&evaluate_keyed(
+        &policy(),
+        &observed(vec![("oya/x/manifest.json", m)]),
+    ));
     assert!(c.contains("TFC-DR-TIER-NOT-IN-ENUM"), "{c:?}");
 }
 
 #[test]
 fn substrate_missing_dag_position_fails() {
     let m = json!({ "microservice": "x", "tier": "substrate", "tier_subtype": "substrate-infra", "dr_tier": "T1" });
-    let c = codes(&evaluate_keyed(&policy(), &observed(vec![("cloud/x/manifest.json", m)])));
+    let c = codes(&evaluate_keyed(
+        &policy(),
+        &observed(vec![("cloud/x/manifest.json", m)]),
+    ));
     assert!(c.contains("TFC-SUBSTRATE-MISSING-DAG-POSITION"), "{c:?}");
 }
 
@@ -135,7 +159,10 @@ fn substrate_invalid_stratum_fails() {
         "microservice": "x", "tier": "substrate", "tier_subtype": "substrate-infra", "dr_tier": "T1",
         "substrate_dag_position": { "stratum": "S9", "depends_on": [], "consumed_by_substrates": [] }
     });
-    let c = codes(&evaluate_keyed(&policy(), &observed(vec![("cloud/x/manifest.json", m)])));
+    let c = codes(&evaluate_keyed(
+        &policy(),
+        &observed(vec![("cloud/x/manifest.json", m)]),
+    ));
     assert!(c.contains("TFC-SUBSTRATE-DAG-STRATUM-INVALID"), "{c:?}");
 }
 
@@ -157,7 +184,10 @@ fn wrong_gate_id_fails_closed() {
     let mut p = policy();
     p["gate_id"] = json!("not-the-gate");
     let m = json!({ "microservice": "x", "tier": "product", "tier_subtype": "product-consumer", "dr_tier": "T2" });
-    let c = codes(&evaluate_keyed(&p, &observed(vec![("oya/x/manifest.json", m)])));
+    let c = codes(&evaluate_keyed(
+        &p,
+        &observed(vec![("oya/x/manifest.json", m)]),
+    ));
     assert!(c.contains("TFC-POLICY-GATE-ID-MISMATCH"), "{c:?}");
 }
 
@@ -167,4 +197,179 @@ fn malformed_policy_fails_closed() {
     p["tier_enum"] = json!("not-an-array");
     let c = codes(&evaluate_keyed(&p, &observed(vec![])));
     assert!(c.contains("TFC-POLICY-MALFORMED"), "{c:?}");
+}
+
+fn strict_policy() -> Value {
+    let mut p = policy();
+    p["require_sharding_automation"] = json!(true);
+    p["require_openslo_manifest_refs"] = json!(true);
+    p["canonical_autosharding_mode"] = json!("control_plane_driven");
+    p["allowed_disabled_autosharding_modes"] = json!(["not_claimed_runtime"]);
+    p
+}
+
+fn observed_with_openslo(manifests: Vec<(&str, Value)>, openslo_paths: &[&str]) -> Value {
+    let mut obs = observed(manifests);
+    obs["available_openslo_paths"] = json!(openslo_paths);
+    obs
+}
+
+fn green_sharding() -> Value {
+    json!({
+        "autosharding": { "enabled": false, "mode": "not_claimed_runtime", "intended_control_plane": "control_plane_driven" },
+        "auto_rebalance": { "enabled": false },
+        "dynamic_sharding": { "enabled": false }
+    })
+}
+
+fn slo_exemption() -> Value {
+    json!({
+        "owner": "axis-test",
+        "reason": "test fixture has no live OpenSLO",
+        "cutover": "test-only"
+    })
+}
+
+#[test]
+fn strict_sharding_block_is_required_for_top_level_service_manifest() {
+    let m = json!({
+        "microservice": "x",
+        "tier": "product",
+        "tier_subtype": "product-consumer",
+        "dr_tier": "T2",
+        "slos": [],
+        "slo_exemption": slo_exemption()
+    });
+    let c = codes(&evaluate_keyed(
+        &strict_policy(),
+        &observed(vec![("oya/x/manifest.json", m)]),
+    ));
+    assert!(c.contains("TFC-SHARDING-MISSING-BLOCK"), "{c:?}");
+}
+
+#[test]
+fn strict_manual_autosharding_mode_fails() {
+    let m = json!({
+        "microservice": "x",
+        "tier": "product",
+        "tier_subtype": "product-consumer",
+        "dr_tier": "T2",
+        "sharding_automation": {
+            "autosharding": "manual",
+            "auto_rebalance": { "enabled": false },
+            "dynamic_sharding": { "enabled": false }
+        },
+        "slos": [],
+        "slo_exemption": slo_exemption()
+    });
+    let c = codes(&evaluate_keyed(
+        &strict_policy(),
+        &observed(vec![("oya/x/manifest.json", m)]),
+    ));
+    assert!(c.contains("TFC-AUTOSHARDING-MANUAL-MODE"), "{c:?}");
+}
+
+#[test]
+fn strict_enabled_rebalance_requires_residency_and_audit_emit() {
+    let m = json!({
+        "microservice": "x",
+        "tier": "product",
+        "tier_subtype": "product-consumer",
+        "dr_tier": "T2",
+        "sharding_automation": {
+            "autosharding": "control_plane_driven",
+            "auto_rebalance": { "enabled": true, "trigger_load_skew_threshold_percent": 30 },
+            "dynamic_sharding": { "enabled": false }
+        },
+        "slos": [],
+        "slo_exemption": slo_exemption()
+    });
+    let c = codes(&evaluate_keyed(
+        &strict_policy(),
+        &observed(vec![("oya/x/manifest.json", m)]),
+    ));
+    assert!(c.contains("TFC-AUTOREBALANCE-RESIDENCY-MISSING"), "{c:?}");
+    assert!(
+        c.contains("TFC-AUTOMATION-AUDIT-CHAIN-EMIT-MISSING"),
+        "{c:?}"
+    );
+}
+
+#[test]
+fn strict_enabled_dynamic_sharding_requires_thresholds() {
+    let m = json!({
+        "microservice": "x",
+        "tier": "product",
+        "tier_subtype": "product-consumer",
+        "dr_tier": "T2",
+        "sharding_automation": {
+            "autosharding": "control_plane_driven",
+            "auto_rebalance": { "enabled": false },
+            "dynamic_sharding": { "enabled": true, "audit_chain_emit": true }
+        },
+        "slos": [],
+        "slo_exemption": slo_exemption()
+    });
+    let c = codes(&evaluate_keyed(
+        &strict_policy(),
+        &observed(vec![("oya/x/manifest.json", m)]),
+    ));
+    assert!(
+        c.contains("TFC-DYNAMIC-SHARDING-THRESHOLD-MISSING"),
+        "{c:?}"
+    );
+}
+
+#[test]
+fn strict_slo_file_must_resolve_or_be_exempted() {
+    let m = json!({
+        "microservice": "x",
+        "tier": "product",
+        "tier_subtype": "product-consumer",
+        "dr_tier": "T2",
+        "sharding_automation": green_sharding(),
+        "slos": [{ "name": "availability", "file": "microservices/x/slos/availability.openslo.yaml" }]
+    });
+    let c = codes(&evaluate_keyed(
+        &strict_policy(),
+        &observed_with_openslo(vec![("oya/x/manifest.json", m)], &[]),
+    ));
+    assert!(c.contains("TFC-SLO-REFERENCE-UNRESOLVED"), "{c:?}");
+}
+
+#[test]
+fn strict_existing_openslo_file_passes() {
+    let m = json!({
+        "microservice": "x",
+        "tier": "product",
+        "tier_subtype": "product-consumer",
+        "dr_tier": "T2",
+        "sharding_automation": green_sharding(),
+        "slos": [{ "name": "availability", "file": "oya/x/slos/availability.openslo.yaml" }]
+    });
+    let findings = evaluate_keyed(
+        &strict_policy(),
+        &observed_with_openslo(
+            vec![("oya/x/manifest.json", m)],
+            &["oya/x/slos/availability.openslo.yaml"],
+        ),
+    );
+    assert!(findings.is_empty(), "{findings:?}");
+}
+
+#[test]
+fn strict_empty_slos_require_explicit_exemption() {
+    let m = json!({
+        "microservice": "x",
+        "tier": "product",
+        "tier_subtype": "product-consumer",
+        "dr_tier": "T2",
+        "sharding_automation": green_sharding(),
+        "slos": []
+    });
+    let c = codes(&evaluate_keyed(
+        &strict_policy(),
+        &observed(vec![("oya/x/manifest.json", m)]),
+    ));
+    assert!(c.contains("TFC-SLO-MISSING-OR-UNEXEMPT"), "{c:?}");
 }

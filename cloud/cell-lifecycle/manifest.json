@@ -64,6 +64,12 @@
     }
   ],
   "slos": [],
+  "slo_exemption": {
+    "status": "live_exempted_no_runtime_sli",
+    "owner": "axis-cellular",
+    "reason": "No current measured runtime SLI exists for this foundation, retired, or local-scaffold service; the manifest must not claim production or hyperscaler-ready SLO coverage until an OpenSLO file lands.",
+    "cutover": "Replace this exemption with non-empty resolvable OpenSLO references before production or hyperscaler-ready promotion."
+  },
   "hyperscaler_inv_coverage": {
     "circuit_breaker": "not_claimed_cs_cloud_ops_foundation_001_no_runtime_request_path",
     "tenant_rate_limit": "not_claimed_cs_cloud_ops_foundation_001_no_live_api_or_quota_runtime",
@@ -90,14 +96,25 @@
     "non_claim": "No service runtime dependency graph is claimed for this local foundation."
   },
   "sharding_automation": {
-    "autosharding": false,
+    "autosharding": {
+      "enabled": false,
+      "mode": "not_claimed_runtime",
+      "intended_control_plane": "control_plane_driven"
+    },
     "auto_rebalance": {
       "enabled": false,
-      "audit_chain_emit": false
+      "audit_chain_emit": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true
     },
     "dynamic_sharding": {
       "enabled": false,
-      "audit_chain_emit": false
+      "audit_chain_emit": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24
     }
   },
   "dr": {

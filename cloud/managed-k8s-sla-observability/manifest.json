@@ -54,13 +54,13 @@
       "name": "managed-cluster-availability",
       "target": "0.999",
       "sli": "healthy_status_samples / total_status_samples from managed-k8s SLA observation snapshots",
-      "file": "microservices/managed-k8s-sla-observability/slos/managed-cluster-availability.openslo.yaml"
+      "file": "k8s/observability/slos/sla-observability/managed-cluster-availability.openslo.yaml"
     },
     {
       "name": "managed-cluster-provisioning-latency",
       "target": "<= 600000ms",
       "sli": "provisioning_latency_millis from managed-k8s SLA observation snapshots",
-      "file": "microservices/managed-k8s-sla-observability/slos/provisioning-latency.openslo.yaml"
+      "file": "k8s/observability/slos/sla-observability/provisioning-latency.openslo.yaml"
     }
   ],
   "ips": [
@@ -121,6 +121,28 @@
   "audit_chain": {
     "enabled": false,
     "seal_events": []
+  },
+  "sharding_automation": {
+    "autosharding": {
+      "enabled": false,
+      "mode": "not_claimed_runtime",
+      "intended_control_plane": "control_plane_driven"
+    },
+    "auto_rebalance": {
+      "enabled": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": false
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": false
+    }
   },
   "secrets_substrate": {
     "provider": "openbao",

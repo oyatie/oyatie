@@ -93,49 +93,49 @@
       "name": "social-content-policy-enforcement-correctness",
       "target": "1.0",
       "sli": "# Number of 5-minute windows with zero violations across all invariants",
-      "file": "microservices/social/slos/content-policy-enforcement-correctness.openslo.yaml"
+      "file": "oya/social/slos/content-policy-enforcement-correctness.openslo.yaml"
     },
     {
       "name": "social-feed-render-latency",
       "target": "0.95",
       "sli": "sum(rate(oya_social_feed_render_duration_seconds_bucket{le=\"0.2\"}[5m]))",
-      "file": "microservices/social/slos/feed-render-latency.openslo.yaml"
+      "file": "oya/social/slos/feed-render-latency.openslo.yaml"
     },
     {
       "name": "social-follow-action-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_social_follow_action_duration_seconds_bucket{le=\"0.05\"}[5m]))",
-      "file": "microservices/social/slos/follow-action-latency.openslo.yaml"
+      "file": "oya/social/slos/follow-action-latency.openslo.yaml"
     },
     {
       "name": "social-moderation-classifier-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_social_moderation_classifier_duration_seconds_bucket{le=\"2\"}[5m]))",
-      "file": "microservices/social/slos/moderation-classifier-latency.openslo.yaml"
+      "file": "oya/social/slos/moderation-classifier-latency.openslo.yaml"
     },
     {
       "name": "social-notification-fanout-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_social_notification_fanout_duration_seconds_bucket{le=\"2\",follower_tier=\"le_10k\"}[5m]))",
-      "file": "microservices/social/slos/notification-fanout-latency.openslo.yaml"
+      "file": "oya/social/slos/notification-fanout-latency.openslo.yaml"
     },
     {
       "name": "social-post-create-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_social_post_create_duration_seconds_bucket{le=\"0.1\"}[5m]))",
-      "file": "microservices/social/slos/post-create-latency.openslo.yaml"
+      "file": "oya/social/slos/post-create-latency.openslo.yaml"
     },
     {
       "name": "social-profile-render-availability",
       "target": "0.9995",
       "sli": "sum(rate(oya_social_profile_render_total{result=\"success\"}[5m]))",
-      "file": "microservices/social/slos/profile-render-availability.openslo.yaml"
+      "file": "oya/social/slos/profile-render-availability.openslo.yaml"
     },
     {
       "name": "social-search-people-latency",
       "target": "0.95",
       "sli": "sum(rate(oya_social_search_people_duration_seconds_bucket{le=\"0.3\"}[5m]))",
-      "file": "microservices/social/slos/search-people-latency.openslo.yaml"
+      "file": "oya/social/slos/search-people-latency.openslo.yaml"
     },
     {
       "name": "social-short-video-feed-load-latency",
@@ -574,6 +574,50 @@
       "context": "oyatie-as-cloud-provider",
       "primitive": "dns",
       "version_pin": "v1"
+    }
+  ],
+  "slo_exemptions": [
+    {
+      "name": "social-short-video-feed-load-latency",
+      "owner": "axis-social",
+      "reason": "No current OpenSLO artifact resolves for this planned SLO entry; keep it non-claiming until the artifact exists.",
+      "cutover": "Author a current OpenSLO file under the service-local slos/ or capability observability/slos home before production or hyperscaler-ready promotion."
+    },
+    {
+      "name": "social-short-video-start-latency",
+      "owner": "axis-social",
+      "reason": "No current OpenSLO artifact resolves for this planned SLO entry; keep it non-claiming until the artifact exists.",
+      "cutover": "Author a current OpenSLO file under the service-local slos/ or capability observability/slos home before production or hyperscaler-ready promotion."
+    },
+    {
+      "name": "social-short-video-transcode-throughput",
+      "owner": "axis-social",
+      "reason": "No current OpenSLO artifact resolves for this planned SLO entry; keep it non-claiming until the artifact exists.",
+      "cutover": "Author a current OpenSLO file under the service-local slos/ or capability observability/slos home before production or hyperscaler-ready promotion."
+    },
+    {
+      "name": "social-short-video-auto-caption-latency",
+      "owner": "axis-social",
+      "reason": "No current OpenSLO artifact resolves for this planned SLO entry; keep it non-claiming until the artifact exists.",
+      "cutover": "Author a current OpenSLO file under the service-local slos/ or capability observability/slos home before production or hyperscaler-ready promotion."
+    },
+    {
+      "name": "social-short-video-copyright-claim-match-latency",
+      "owner": "axis-social",
+      "reason": "No current OpenSLO artifact resolves for this planned SLO entry; keep it non-claiming until the artifact exists.",
+      "cutover": "Author a current OpenSLO file under the service-local slos/ or capability observability/slos home before production or hyperscaler-ready promotion."
+    },
+    {
+      "name": "social-short-video-drm-license-issuance-latency",
+      "owner": "axis-social",
+      "reason": "No current OpenSLO artifact resolves for this planned SLO entry; keep it non-claiming until the artifact exists.",
+      "cutover": "Author a current OpenSLO file under the service-local slos/ or capability observability/slos home before production or hyperscaler-ready promotion."
+    },
+    {
+      "name": "social-short-video-like-action-latency",
+      "owner": "axis-social",
+      "reason": "No current OpenSLO artifact resolves for this planned SLO entry; keep it non-claiming until the artifact exists.",
+      "cutover": "Author a current OpenSLO file under the service-local slos/ or capability observability/slos home before production or hyperscaler-ready promotion."
     }
   ]
 }

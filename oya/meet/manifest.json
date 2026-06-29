@@ -62,67 +62,67 @@
       "name": "meet-availability",
       "target": "0.9995",
       "sli": "sum(rate(oya_meet_room_create_total{result=\"success\"}[5m]))",
-      "file": "microservices/meet/slos/availability.openslo.yaml"
+      "file": "comms/observability/slos/meet/availability.openslo.yaml"
     },
     {
       "name": "meet-e2e-mls-handshake-latency",
       "target": "0.95",
       "sli": "sum(rate(oya_meet_mls_handshake_seconds_bucket{le=\"1.0\",group_size_bucket=\"le12\"}[5m]))",
-      "file": "microservices/meet/slos/e2e-mls-handshake-latency.openslo.yaml"
+      "file": "comms/observability/slos/meet/e2e-mls-handshake-latency.openslo.yaml"
     },
     {
       "name": "meet-live-caption-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_meet_live_caption_lag_seconds_bucket{le=\"0.5\"}[5m]))",
-      "file": "microservices/meet/slos/live-caption-latency.openslo.yaml"
+      "file": "comms/observability/slos/meet/live-caption-latency.openslo.yaml"
     },
     {
       "name": "meet-media-glass-to-glass-latency",
       "target": "0.95",
       "sli": "sum(rate(oya_meet_media_glass_to_glass_seconds_bucket{le=\"0.15\",region_pair=\"intra\"}[5m]))",
-      "file": "microservices/meet/slos/media-glass-to-glass-latency.openslo.yaml"
+      "file": "comms/observability/slos/meet/media-glass-to-glass-latency.openslo.yaml"
     },
     {
       "name": "meet-meeting-summary-post-end-latency",
       "target": "0.95",
       "sli": "sum(rate(oya_meet_summary_produce_seconds_bucket{le=\"60\",meeting_duration_bucket=\"60min\"}[1h]))",
-      "file": "microservices/meet/slos/meeting-summary-post-end-latency.openslo.yaml"
+      "file": "comms/observability/slos/meet/meeting-summary-post-end-latency.openslo.yaml"
     },
     {
       "name": "meet-participant-join-latency",
       "target": "0.95",
       "sli": "sum(rate(oya_meet_participant_join_seconds_bucket{le=\"1.5\"}[5m]))",
-      "file": "microservices/meet/slos/participant-join-latency.openslo.yaml"
+      "file": "comms/observability/slos/meet/participant-join-latency.openslo.yaml"
     },
     {
       "name": "meet-recording-start-latency",
       "target": "0.95",
       "sli": "sum(rate(oya_meet_recording_start_seconds_bucket{le=\"0.8\"}[5m]))",
-      "file": "microservices/meet/slos/recording-start-latency.openslo.yaml"
+      "file": "comms/observability/slos/meet/recording-start-latency.openslo.yaml"
     },
     {
       "name": "meet-room-create-latency",
       "target": "0.95",
       "sli": "sum(rate(oya_meet_room_create_seconds_bucket{le=\"0.1\"}[5m]))",
-      "file": "microservices/meet/slos/room-create-latency.openslo.yaml"
+      "file": "comms/observability/slos/meet/room-create-latency.openslo.yaml"
     },
     {
       "name": "meet-screen-share-start-latency",
       "target": "0.95",
       "sli": "sum(rate(oya_meet_screen_share_start_seconds_bucket{le=\"0.8\"}[5m]))",
-      "file": "microservices/meet/slos/screen-share-start-latency.openslo.yaml"
+      "file": "comms/observability/slos/meet/screen-share-start-latency.openslo.yaml"
     },
     {
       "name": "meet-transcription-correctness-bound",
       "target": "0.95",
       "sli": "sum(rate(oya_meet_transcription_quality_good_total[1h]))",
-      "file": "microservices/meet/slos/transcription-correctness-bound.openslo.yaml"
+      "file": "comms/observability/slos/meet/transcription-correctness-bound.openslo.yaml"
     },
     {
       "name": "meet-webinar-fanout-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_meet_webinar_fanout_seconds_bucket{le=\"5\",broadcast_tier=\"Broadcast\"}[5m]))",
-      "file": "microservices/meet/slos/webinar-fanout-latency.openslo.yaml"
+      "file": "comms/observability/slos/meet/webinar-fanout-latency.openslo.yaml"
     }
   ],
   "ips": [
