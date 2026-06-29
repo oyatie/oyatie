@@ -38,7 +38,8 @@ Per CLAUDE.md (5 H2s):
 - `## Evidence` — links to CI runs, eval-set output, audit-chain emission
 
 Target requirement for merge-ready PRs: `## Code Review` — supplied by the
-automated reviewer-agent verdict. Author-only drafts may omit it only when
+automated reviewer-agent verdict and bound to the reviewed PR title plus the
+reviewed PR body/traceability sections. Author-only drafts may omit it only when
 running the traceability gate with the explicit author policy. Today this is
 target/advisory evidence; it becomes merge authority only when a trusted
 server-side/cloud-ci review producer is live and required (`F-PR5-06`).
