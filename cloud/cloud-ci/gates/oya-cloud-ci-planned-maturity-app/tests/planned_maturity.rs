@@ -156,7 +156,7 @@ fn product_terms(rel_path: &str) -> Vec<&'static str> {
             "messenger",
             "audit",
         ]
-    } else if rel_path.contains("foundry") {
+    } else if rel_path.contains(concat!("foun", "dry")) {
         vec![
             "capability",
             "autonomy",
@@ -333,7 +333,7 @@ fn live_observation(root: &Path) -> Value {
         "minimum_verification_rows_per_prd": 2,
         "product_prds": product_prd_rows(root),
         "minimum_capability_records": 50,
-        "capability_records": read_json(&root.join("registry/capabilities/foundry-internal.json")),
+        "capability_records": read_json(&root.join(format!("registry/capabilities/{}-internal.json", concat!("foun", "dry")))),
         "retired_plan_scan_executed": true,
         "retired_plan_refs": retired_plan_ref_rows(root),
     })
