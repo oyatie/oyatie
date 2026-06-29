@@ -813,38 +813,122 @@ fn catalog_non_live_marker(contents: &str) -> Option<String> {
     None
 }
 
-/// The LIVE workspace crate-id universe: the `[package].name` of every resolved workspace member.
-/// Resolved IN-PROCESS via `oya-workspace-members-kernel::resolve_member_dirs` (the same glob-aware
-/// oracle the cohesion gate + the workspace-glob/target-parity faces use) + a shallow Cargo.toml
-/// `[package].name` parse. NEVER a `cargo metadata`/`buck2` shell-out (all-CLI-retirement +
-/// buck2-denied-in-review-sessions + hermetic). The catalog crate_id (the file stem) is compared
-/// to these package names, since the de-brand path-as-namespace means the crate identity is the
-/// `[package].name` (e.g. `compute/core/domain` → `compute-domain`), not the directory basename.
-fn live_workspace_crate_ids(repo_root: &Path) -> Result<BTreeSet<String>, CliError> {
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct LiveWorkspaceCrate {
+    crate_id: String,
+    member_path: String,
+}
+
+/// The LIVE workspace crate universe: the `[package].name` and member directory of every resolved
+/// workspace member. Resolved IN-PROCESS via `oya-workspace-members-kernel::resolve_member_dirs`
+/// (the same glob-aware oracle the cohesion gate + the workspace-glob/target-parity faces use) + a
+/// shallow Cargo.toml `[package].name` parse. NEVER a `cargo metadata`/`buck2` shell-out
+/// (all-CLI-retirement + hermeticity). The catalog crate_id (the file stem) is compared to package
+/// names, since de-brand path-as-namespace means the crate identity is `[package].name`, not the
+/// directory basename.
+fn live_workspace_crates(repo_root: &Path) -> Result<Vec<LiveWorkspaceCrate>, CliError> {
     let member_dirs = oya_workspace_members_kernel::resolve_member_dirs(repo_root)
         .map_err(|error| CliError::Io(format!("catalog-liveness resolve member dirs: {error}")))?;
-    let mut ids = BTreeSet::new();
+    let mut rows = Vec::new();
     for dir in member_dirs {
         let manifest = repo_root.join(&dir).join("Cargo.toml");
         if let Some(name) = parse_package_name(&read_text(&manifest)) {
-            ids.insert(name);
+            rows.push(LiveWorkspaceCrate {
+                crate_id: name,
+                member_path: dir,
+            });
         }
     }
-    Ok(ids)
+    rows.sort_by(|a, b| {
+        a.crate_id
+            .cmp(&b.crate_id)
+            .then_with(|| a.member_path.cmp(&b.member_path))
+    });
+    Ok(rows)
 }
 
-/// Enumerate catalog-liveness rows from the config-declared `[catalog_liveness].catalog_record_globs`.
-/// Each row tags whether the record's stem is a LIVE workspace crate-id and the record's explicit
-/// non-live marker (or `null`). The gate's pure `evaluate_keyed` enforces the founder
-/// live-OR-explicitly-marked policy: RED iff (not live) AND (no marker). Portable DATA shape so an
-/// adopter points the same gate at their own catalog layout.
+fn live_workspace_crate_ids(repo_root: &Path) -> Result<BTreeSet<String>, CliError> {
+    Ok(live_workspace_crates(repo_root)?
+        .into_iter()
+        .map(|row| row.crate_id)
+        .collect())
+}
+
+/// Parse `traceability.source_crate` from a shallow catalog YAML row. This is deliberately scoped to
+/// the established registry/catalog row shape: a top-level `traceability:` block with indented
+/// `source_crate: <repo-relative Cargo.toml>`.
+fn parse_catalog_source_crate(contents: &str) -> Option<String> {
+    let mut in_traceability = false;
+    for line in contents.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with("traceability:") {
+            in_traceability = true;
+            continue;
+        }
+        if in_traceability {
+            let indented = line.starts_with(' ') || line.starts_with('\t');
+            if !indented && !trimmed.is_empty() {
+                break;
+            }
+            let Some((key, value)) = trimmed.split_once(':') else {
+                continue;
+            };
+            if key.trim() == "source_crate" {
+                let value = value.trim().trim_matches('"').trim_matches('\'');
+                if value.is_empty() {
+                    return None;
+                }
+                return Some(value.to_owned());
+            }
+        }
+    }
+    None
+}
+
+fn clean_repo_relative_path(path: &str) -> &str {
+    path.trim()
+        .strip_prefix("./")
+        .unwrap_or(path.trim())
+        .strip_prefix('/')
+        .unwrap_or_else(|| path.trim().strip_prefix("./").unwrap_or(path.trim()))
+}
+
+fn repo_path_is_tracked_file(repo_root: &Path, tracked_paths: &BTreeSet<&str>, path: &str) -> bool {
+    let rel = clean_repo_relative_path(path);
+    tracked_paths.contains(rel) && repo_root.join(rel).is_file()
+}
+
+fn catalog_exemption_for_member(
+    member_path: &str,
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+) -> Option<Value> {
+    cfg.catalog_liveness
+        .workspace_member_exemptions
+        .iter()
+        .find(|exemption| path_glob_matches(member_path, &exemption.path_glob))
+        .map(|exemption| {
+            json!({
+                "path_glob": &exemption.path_glob,
+                "owner": &exemption.owner,
+                "reason": &exemption.reason,
+                "cutover": &exemption.cutover,
+            })
+        })
+}
+
+/// Enumerate catalog-liveness rows from the config-declared `[catalog_liveness]` policy. The face
+/// is bidirectional:
+///   - `rows`: catalog record -> live/marked/source-path facts;
+///   - `live_crates`: governed live workspace member -> catalog row/exemption facts.
 fn collect_catalog_liveness(
     repo_root: &Path,
     tracked_paths: &[String],
     cfg: &oya_ci_config_kernel::OyaCiConfig,
 ) -> Result<Value, CliError> {
-    let live = live_workspace_crate_ids(repo_root)?;
-    let mut records: Vec<(String, String, bool, Option<String>)> = Vec::new();
+    let live = live_workspace_crates(repo_root)?;
+    let live_ids: BTreeSet<String> = live.iter().map(|row| row.crate_id.clone()).collect();
+    let tracked: BTreeSet<&str> = tracked_paths.iter().map(String::as_str).collect();
+    let mut records: Vec<(String, String, bool, Option<String>, Option<String>, bool)> = Vec::new();
     for path in tracked_paths {
         if is_path_excluded(path, cfg) {
             continue;
@@ -861,24 +945,61 @@ fn collect_catalog_liveness(
             continue;
         };
         let contents = read_text(&repo_root.join(path));
-        let is_live = live.contains(&crate_id);
+        let is_live = live_ids.contains(&crate_id);
         let marker = catalog_non_live_marker(&contents);
-        records.push((crate_id, path.clone(), is_live, marker));
+        let source_crate = parse_catalog_source_crate(&contents);
+        let source_crate_exists = source_crate
+            .as_deref()
+            .is_some_and(|source| repo_path_is_tracked_file(repo_root, &tracked, source));
+        records.push((
+            crate_id,
+            path.clone(),
+            is_live,
+            marker,
+            source_crate,
+            source_crate_exists,
+        ));
     }
     records.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
+    let catalog_ids: BTreeSet<String> = records.iter().map(|record| record.0.clone()).collect();
 
     let rows: Vec<Value> = records
         .into_iter()
-        .map(|(crate_id, source_path, is_live, marker)| {
-            json!({
-                "crate_id": crate_id,
-                "source_path": source_path,
-                "is_live": is_live,
-                "marker": marker,
-            })
-        })
+        .map(
+            |(crate_id, source_path, is_live, marker, source_crate, source_crate_exists)| {
+                json!({
+                    "crate_id": crate_id,
+                    "source_path": source_path,
+                    "is_live": is_live,
+                    "marker": marker,
+                    "source_crate": source_crate,
+                    "source_crate_exists": source_crate_exists,
+                })
+            },
+        )
         .collect();
-    Ok(json!({ "rows": rows }))
+
+    let mut live_rows = Vec::new();
+    for row in live {
+        let governed = cfg
+            .catalog_liveness
+            .workspace_member_globs
+            .iter()
+            .any(|glob| path_glob_matches(&row.member_path, glob));
+        if !governed {
+            continue;
+        }
+        let has_catalog_row = catalog_ids.contains(&row.crate_id);
+        let exemption = catalog_exemption_for_member(&row.member_path, cfg);
+        live_rows.push(json!({
+            "crate_id": row.crate_id,
+            "member_path": row.member_path,
+            "has_catalog_row": has_catalog_row,
+            "exemption": exemption,
+        }));
+    }
+
+    Ok(json!({ "rows": rows, "live_crates": live_rows }))
 }
 
 /// Enumerate ADR-0538 workspace-glob-coverage rows. Member-entry rows preserve the raw root
@@ -1220,12 +1341,15 @@ fn has_workspace_table(contents: &str) -> bool {
     })
 }
 
-/// Minimal path-glob matcher for declared gate input contracts. Supports exact paths,
-/// directory-prefix (`dir/**` and `dir/`), recursive extension (`**/*.yaml`), basename extension
-/// (`*.yaml`), and one-level directory extension (`dir/*.yaml`). Unknown shapes fail closed.
+/// Minimal path-glob matcher for declared gate input contracts. Supports all-path (`**`), exact
+/// paths, directory-prefix (`dir/**` and `dir/`), recursive extension (`**/*.yaml`), basename
+/// extension (`*.yaml`), and one-level directory extension (`dir/*.yaml`). Unknown shapes fail closed.
 fn path_glob_matches(path: &str, glob: &str) -> bool {
     let path = path.strip_prefix("./").unwrap_or(path);
     let glob = glob.strip_prefix("./").unwrap_or(glob);
+    if glob == "**" {
+        return true;
+    }
     if path == glob {
         return true;
     }
@@ -1911,6 +2035,93 @@ status: Accepted
     }
 
     #[test]
+    fn catalog_liveness_face_is_bidirectional_and_tracks_source_crate_paths() {
+        let root = unique_temp_repo();
+        fs::write(
+            root.join("Cargo.toml"),
+            "[workspace]\nmembers = [\"audit/ports/emission-api\", \"audit/ports/missing-row\", \"audit/ports/exempt-row\"]\n",
+        )
+        .expect("write root manifest");
+        for (dir, name) in [
+            ("audit/ports/emission-api", "audit-emission-api"),
+            ("audit/ports/missing-row", "audit-missing-row"),
+            ("audit/ports/exempt-row", "audit-exempt-row"),
+        ] {
+            let dir = root.join(dir);
+            fs::create_dir_all(&dir).expect("create member dir");
+            fs::write(
+                dir.join("Cargo.toml"),
+                format!("[package]\nname = \"{name}\"\n"),
+            )
+            .expect("write member manifest");
+        }
+        write_test_file(
+            &root,
+            "registry/catalog/audit-emission-api.yaml",
+            "traceability:\n  source_crate: crates/old-audit-emission-api/Cargo.toml\n",
+        );
+
+        let mut cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        cfg.catalog_liveness.workspace_member_exemptions =
+            vec![oya_ci_config_kernel::CatalogLivenessExemption {
+                path_glob: "audit/ports/exempt-row".to_owned(),
+                owner: "platform-governance".to_owned(),
+                reason: "temporary fixture exemption proves bounded exemptions are surfaced"
+                    .to_owned(),
+                cutover: "remove when fixture gains a catalog row".to_owned(),
+            }];
+        let tracked_paths = vec![
+            "Cargo.toml".to_owned(),
+            "audit/ports/emission-api/Cargo.toml".to_owned(),
+            "audit/ports/missing-row/Cargo.toml".to_owned(),
+            "audit/ports/exempt-row/Cargo.toml".to_owned(),
+            "registry/catalog/audit-emission-api.yaml".to_owned(),
+        ];
+
+        let face =
+            collect_catalog_liveness(&root, &tracked_paths, &cfg).expect("catalog-liveness face");
+        let rows = face["rows"].as_array().expect("rows");
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0]["crate_id"], "audit-emission-api");
+        assert_eq!(rows[0]["is_live"].as_bool(), Some(true));
+        assert_eq!(rows[0]["source_crate_exists"].as_bool(), Some(false));
+
+        let live_crates = face["live_crates"].as_array().expect("live_crates");
+        assert_eq!(live_crates.len(), 3);
+        assert!(live_crates.iter().any(|row| {
+            row["crate_id"] == "audit-emission-api"
+                && row["has_catalog_row"].as_bool() == Some(true)
+        }));
+        assert!(live_crates.iter().any(|row| {
+            row["crate_id"] == "audit-missing-row"
+                && row["has_catalog_row"].as_bool() == Some(false)
+                && row["exemption"].is_null()
+        }));
+        assert!(live_crates.iter().any(|row| {
+            row["crate_id"] == "audit-exempt-row"
+                && row["has_catalog_row"].as_bool() == Some(false)
+                && row["exemption"]["owner"] == "platform-governance"
+        }));
+
+        let findings = oya_cloud_ci_catalog_liveness_app::evaluate_keyed(&face);
+        assert!(findings.iter().any(|finding| {
+            finding.code == "catalog_record_source_crate_missing"
+                && finding.key == "audit-emission-api"
+        }));
+        assert!(findings.iter().any(|finding| {
+            finding.code == "catalog_live_crate_without_row" && finding.key == "audit-missing-row"
+        }));
+        assert!(
+            !findings
+                .iter()
+                .any(|finding| finding.key == "audit-exempt-row"),
+            "bounded exemption must suppress only its own missing-row finding: {findings:?}"
+        );
+
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    #[test]
     fn workspace_glob_coverage_reports_explicit_members_and_uncovered_crates() {
         let root = unique_temp_repo();
         fs::write(
@@ -2442,7 +2653,7 @@ fn collect_phantom_citations(
     let grandfathered: BTreeSet<&str> = GRANDFATHERED_PHANTOM_DECISION_IDS.into_iter().collect();
     let mut edges: BTreeSet<String> = BTreeSet::new();
 
-    let mut record = |cited: &str, source: &str, edges: &mut BTreeSet<String>| {
+    let record = |cited: &str, source: &str, edges: &mut BTreeSet<String>| {
         if !known_ids.contains(cited) && !grandfathered.contains(cited) {
             edges.insert(format!("{cited}@{source}"));
         }

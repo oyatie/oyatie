@@ -10,7 +10,7 @@ security_review: unreviewed
 supply_chain: source-only
 traceability:
   changeset: CS-CATALOG-ARCH-BOUNDARY-001
-  source_crate: crates/oya-audit-chain-sealing-domain/Cargo.toml
+  source_crate: audit/core/sealing-domain/Cargo.toml
 non_claims:
   - catalog row added to close repo-wide catalog and architecture-boundary coverage only
   - no new runtime capability implementation or production readiness claim is made by this row

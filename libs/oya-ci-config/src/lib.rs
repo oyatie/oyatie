@@ -930,44 +930,89 @@ impl SloCoverageConfig {
 // [catalog_liveness]  (portable input contract for cloud-ci-catalog-liveness)
 // ---------------------------------------------------------------------------
 
-/// `[catalog_liveness]` — declared catalog input globs for the catalog-liveness gate (the
-/// founder live-OR-explicitly-marked policy). Same portable contract shape as `[slo_coverage]`:
-/// the producer expands these globs over the declared tracked-path universe, derives the catalog
-/// identity from each file stem, resolves the LIVE workspace crate-id universe in-process, and
-/// parses the explicit non-live marker. The default mirrors oyatie's catalog source; adopters
-/// point the same pure gate at their own catalog layout without forking the producer or evaluator.
+/// `[catalog_liveness]` — declared catalog input globs for the catalog-liveness gate.
+///
+/// The producer expands catalog record globs over the declared tracked-path universe, derives each
+/// row identity from the file stem, resolves the LIVE workspace crate-id universe in-process, and
+/// emits both directions of the contract:
+///   1. every catalog row is live OR explicitly marked non-live;
+///   2. every config-governed live workspace member has a catalog row OR an explicit exemption.
+///
+/// `workspace_member_globs` is intentionally policy data: Oyatie can phase roots into the catalog
+/// contract without hard-coding repository names in the evaluator, and adopters can point the same
+/// pure gate at their own catalog-governed member set.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct CatalogLivenessConfig {
     #[serde(default = "default_catalog_liveness_record_globs")]
     pub catalog_record_globs: Vec<String>,
+    #[serde(default = "default_catalog_liveness_workspace_member_globs")]
+    pub workspace_member_globs: Vec<String>,
+    #[serde(default)]
+    pub workspace_member_exemptions: Vec<CatalogLivenessExemption>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CatalogLivenessExemption {
+    /// Repo-relative member directory glob (exact, `dir/`, `dir/**`, or `**`).
+    pub path_glob: String,
+    /// Accountable owner for the exemption. Empty owners are invalid at evaluation time.
+    pub owner: String,
+    /// Why this live workspace package is outside the catalog-governed set today.
+    pub reason: String,
+    /// Expiry date or concrete cutover condition; exemptions must not be timeless.
+    pub cutover: String,
 }
 
 fn default_catalog_liveness_record_globs() -> Vec<String> {
     vec!["registry/catalog/*.yaml".to_owned()]
 }
 
+fn default_catalog_liveness_workspace_member_globs() -> Vec<String> {
+    vec![
+        "audit/**".to_owned(),
+        "billing/**".to_owned(),
+        "cell/**".to_owned(),
+        "compliance/**".to_owned(),
+        "console/**".to_owned(),
+        "data/**".to_owned(),
+        "gateway/**".to_owned(),
+        "iac/**".to_owned(),
+        "k8s/**".to_owned(),
+        "marketplace/**".to_owned(),
+        "messaging/**".to_owned(),
+        "network/**".to_owned(),
+        "observability/**".to_owned(),
+        "storage/**".to_owned(),
+        "workflow/**".to_owned(),
+    ]
+}
+
 impl Default for CatalogLivenessConfig {
     fn default() -> Self {
         Self {
             catalog_record_globs: default_catalog_liveness_record_globs(),
+            workspace_member_globs: default_catalog_liveness_workspace_member_globs(),
+            workspace_member_exemptions: Vec::new(),
         }
     }
 }
 
 impl CatalogLivenessConfig {
-    /// The neutral profile's `[catalog_liveness]`: NO catalog globs (the default
-    /// `registry/catalog/*.yaml` is an oyatie path literal; ADR-0533 item 1). An adopter points
-    /// the gate at their own catalog source; absent ⇒ the gate is present-but-quiet.
+    /// The neutral profile's `[catalog_liveness]`: NO catalog globs and NO governed member globs
+    /// (the defaults are Oyatie path literals; ADR-0533 item 1). An adopter points the gate at
+    /// their own catalog source and member set; absent ⇒ the gate is present-but-quiet.
     fn neutral() -> Self {
         Self {
             catalog_record_globs: Vec::new(),
+            workspace_member_globs: Vec::new(),
+            workspace_member_exemptions: Vec::new(),
         }
     }
 
     /// True iff this is the default `[catalog_liveness]` — used to SKIP serialization so
-    /// first-party canonical TOML (and `digest()`) is byte-identical to before this section
-    /// existed (same rationale as `[output]`).
+    /// first-party canonical TOML (and `digest()`) stays byte-identical unless policy changes.
     fn is_default(&self) -> bool {
         *self == Self::default()
     }
@@ -1325,11 +1370,12 @@ mod tests {
         // 9 carve-out rules, including the line-level palantir exemption + the oya-ci-config
         // deny-list SSOT path carve-out + the repo-root oya-ci.toml deny-list carve-out.
         assert_eq!(cfg.vocab.carve_outs.len(), 9);
-        assert!(cfg
-            .vocab
-            .carve_outs
-            .iter()
-            .any(|c| c.kind == VocabCarveOutKind::LineContainsCi && c.value == "palantir"));
+        assert!(
+            cfg.vocab
+                .carve_outs
+                .iter()
+                .any(|c| c.kind == VocabCarveOutKind::LineContainsCi && c.value == "palantir")
+        );
     }
 
     #[test]
@@ -1339,8 +1385,7 @@ mod tests {
         let uc: serde_json::Value =
             serde_json::from_str(cfg.unit_class_policy_json()).expect("unit-class json");
         assert!(uc.get("rules").and_then(|r| r.as_array()).is_some());
-        let ttl: serde_json::Value =
-            serde_json::from_str(cfg.ttl_policy_json()).expect("ttl json");
+        let ttl: serde_json::Value = serde_json::from_str(cfg.ttl_policy_json()).expect("ttl json");
         assert!(ttl.get("by_unit_class").is_some());
         let disp: serde_json::Value =
             serde_json::from_str(cfg.gates.disposition_json()).expect("disposition json");
@@ -1349,6 +1394,16 @@ mod tests {
             cfg.slo_coverage.catalog_record_globs,
             vec!["registry/catalog/*.yaml".to_owned()]
         );
+        assert_eq!(
+            cfg.catalog_liveness.catalog_record_globs,
+            vec!["registry/catalog/*.yaml".to_owned()]
+        );
+        assert!(
+            cfg.catalog_liveness
+                .workspace_member_globs
+                .contains(&"audit/**".to_owned())
+        );
+        assert!(cfg.catalog_liveness.workspace_member_exemptions.is_empty());
     }
 
     #[test]
@@ -1423,10 +1478,7 @@ mod tests {
             .iter()
             .find(|g| g.id == "cloud-ci-enforcement-liveness")
             .expect("enforcement-liveness gate enabled");
-        assert_eq!(
-            enforcement_liveness.input_kind,
-            GateInputKind::ProducerFace
-        );
+        assert_eq!(enforcement_liveness.input_kind, GateInputKind::ProducerFace);
         assert_eq!(
             enforcement_liveness.face,
             Some(GateFace::EnforcementLiveness)
@@ -1576,8 +1628,8 @@ doctrinal_carve_outs = []
             2000
         );
 
-        let err = OyaCiConfig::from_toml_str("[owners]\nmax_paths_per_owners_file = 0\n")
-            .unwrap_err();
+        let err =
+            OyaCiConfig::from_toml_str("[owners]\nmax_paths_per_owners_file = 0\n").unwrap_err();
         assert!(matches!(err, ConfigError::Parse(_)), "got {err:?}");
     }
 
@@ -1608,11 +1660,12 @@ code = "forbidden_oya-vcs"
         assert_eq!(cfg.vocab.forbidden_stems[0].code, "forbidden_oya-vcs");
         // And it is present in the bundled default verbatim.
         let cfg2 = OyaCiConfig::bundled_default();
-        assert!(cfg2
-            .vocab
-            .forbidden_stems
-            .iter()
-            .any(|s| s.code == "forbidden_oya-vcs"));
+        assert!(
+            cfg2.vocab
+                .forbidden_stems
+                .iter()
+                .any(|s| s.code == "forbidden_oya-vcs")
+        );
     }
 
     #[test]
@@ -1633,10 +1686,7 @@ face = "total_accounting"
             cfg.gates.enabled[0].input_kind,
             GateInputKind::RawCorpusCollector
         );
-        assert_eq!(
-            cfg.gates.enabled[1].input_kind,
-            GateInputKind::ProducerFace
-        );
+        assert_eq!(cfg.gates.enabled[1].input_kind, GateInputKind::ProducerFace);
         assert_eq!(cfg.gates.enabled[1].face, Some(GateFace::TotalAccounting));
     }
 
@@ -1689,22 +1739,33 @@ face = "total_accounting"
     fn neutral_profile_is_policy_free() {
         let n = OyaCiConfig::neutral();
         assert_eq!(n.profile, Profile::Neutral);
-        assert!(n.vocab.forbidden_stems.is_empty(), "neutral has no deny-list");
+        assert!(
+            n.vocab.forbidden_stems.is_empty(),
+            "neutral has no deny-list"
+        );
         assert!(n.vocab.carve_outs.is_empty());
-        assert_eq!(n.naming.required_prefix, "", "neutral has no required prefix");
+        assert_eq!(
+            n.naming.required_prefix, "",
+            "neutral has no required prefix"
+        );
         assert!(n.naming.allowed_roles.is_empty());
         assert_eq!(n.repo.root_markers, vec![".git".to_owned()]);
         assert!(n.repo.path_excludes.is_empty());
         assert!(n.enforcement.governance_lanes.is_empty());
         assert_eq!(n.enforcement.governance_crate_substr, "");
         assert!(n.slo_coverage.catalog_record_globs.is_empty());
+        assert!(n.catalog_liveness.catalog_record_globs.is_empty());
+        assert!(n.catalog_liveness.workspace_member_globs.is_empty());
+        assert!(n.catalog_liveness.workspace_member_exemptions.is_empty());
         assert!(n.cross_artifact.sources.is_empty());
         // gates present (engine still dispatches) but disposition is empty (quiet).
         assert_eq!(n.gates.enabled.len(), 14, "gates present");
         let disp: serde_json::Value =
             serde_json::from_str(n.gates.disposition_json()).expect("neutral disposition json");
         assert_eq!(
-            disp.get("gates").and_then(serde_json::Value::as_object).map(|m| m.len()),
+            disp.get("gates")
+                .and_then(serde_json::Value::as_object)
+                .map(|m| m.len()),
             Some(0),
             "neutral disposition is quiet (empty)"
         );
@@ -1712,7 +1773,9 @@ face = "total_accounting"
         let uc: serde_json::Value =
             serde_json::from_str(n.unit_class_policy_json()).expect("neutral unit-class json");
         assert_eq!(
-            uc.get("rules").and_then(serde_json::Value::as_array).map(Vec::len),
+            uc.get("rules")
+                .and_then(serde_json::Value::as_array)
+                .map(Vec::len),
             Some(0)
         );
     }
@@ -1806,9 +1869,14 @@ face = "total_accounting"
             cfg.output.faces_dir,
             "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app"
         );
-        assert!(cfg.cross_artifact.sources.contains(&"specs/masterplan.json".to_owned()));
+        assert!(
+            cfg.cross_artifact
+                .sources
+                .contains(&"specs/masterplan.json".to_owned())
+        );
         // explicitly authoring them overlays.
-        let toml = "[output]\nfaces_dir = \".oya-ci/faces\"\n[cross_artifact]\nsources = [\"x.json\"]\n";
+        let toml =
+            "[output]\nfaces_dir = \".oya-ci/faces\"\n[cross_artifact]\nsources = [\"x.json\"]\n";
         let cfg = OyaCiConfig::from_toml_str(toml).expect("parses");
         assert_eq!(cfg.output.faces_dir, ".oya-ci/faces");
         assert_eq!(cfg.cross_artifact.sources, vec!["x.json".to_owned()]);

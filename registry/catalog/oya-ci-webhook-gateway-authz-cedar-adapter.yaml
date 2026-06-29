@@ -11,7 +11,7 @@ supply_chain: source-only
 source_adrs: [ADR-0105, ADR-0112, ADR-0131, ADR-0183, ADR-0387]
 traceability:
   changeset: CS-CI-WEBHOOK-GATEWAY-STAGE5-001
-  source_crate: microservices/ci-webhook-gateway/crates/oya-ci-webhook-gateway-authz-cedar-adapter/Cargo.toml
+  source_crate: oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-authz-cedar-adapter/Cargo.toml
 non_claims:
   - Implements WebhookAuthzGate via Cedar engine + bundled ci-webhook-gateway.cedar policy
   - Deny-by-default + forbid-wins semantics per ADR-0183
