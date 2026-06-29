@@ -27,6 +27,8 @@
 //!   review authority, but merge admission has no live review-authority source with durable
 //!   review evidence or a machine-verifiable review status that blocks merge, proves
 //!   reviewer != author, and binds the reviewed PR title/body evidence.
+//! - `retired_multispectrum_evidence` (NET-NEW)       — a row still treats the retired
+//!   standalone `evidence/multispectrum/*.json` artifact convention as live admission evidence.
 //! - `ratchet_regression`          (NET-NEW)             — a row regresses the ratchet: a
 //!   previously `automated_blocking_now` requirement downgraded to a weaker class
 //!   (`was_blocking:true` while the current classification is no longer blocking).
@@ -44,8 +46,8 @@ use serde_json::Value;
 /// The gate id, matching the buck2 target + the §5.2 contract.
 pub const GATE_ID: &str = "cloud-ci-automation-ratchet";
 
-/// The eight blocking codes, in canonical order. The fixtures pin exact subsets.
-pub const VIOLATION_CODES: [&str; 8] = [
+/// The nine blocking codes, in canonical order. The fixtures pin exact subsets.
+pub const VIOLATION_CODES: [&str; 9] = [
     "enforceable_or_automatable_marked_human_judgment",
     "blocking_invariant_mapped_to_oya_cli",
     "duplicate_row_id",
@@ -53,6 +55,7 @@ pub const VIOLATION_CODES: [&str; 8] = [
     "missing_or_empty_required_field",
     "advisory_claiming_enforced",
     "missing_pre_merge_review_authority",
+    "retired_multispectrum_evidence",
     "ratchet_regression",
 ];
 
@@ -255,6 +258,14 @@ fn evaluate_row(row: &Value, findings: &mut BTreeSet<Finding>) {
         findings.insert(Finding::new("missing_pre_merge_review_authority", id));
     }
 
+    let evidence_path = row
+        .get("evidence_path")
+        .and_then(Value::as_str)
+        .unwrap_or("");
+    if mentions_retired_multispectrum_evidence(evidence_path) {
+        findings.insert(Finding::new("retired_multispectrum_evidence", id));
+    }
+
     // ratchet_regression (NET-NEW): a previously-blocking requirement downgraded.
     let was_blocking = row.get("was_blocking").and_then(Value::as_bool) == Some(true);
     if was_blocking && !is_blocking {
@@ -293,6 +304,12 @@ fn trusted_review_authority_source(row: &Value) -> bool {
             | "trusted_cloud_ci_review_admission_packet"
             | "trusted_server_side_oya_pr_review_status"
     )
+}
+
+fn mentions_retired_multispectrum_evidence(value: &str) -> bool {
+    value
+        .split([' ', '+', ',', ';', '\n', '\t'])
+        .any(|part| part.trim().starts_with("evidence/multispectrum/"))
 }
 
 fn has_pre_merge_review_authority(row: &Value) -> bool {

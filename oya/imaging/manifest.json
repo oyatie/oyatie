@@ -8,7 +8,7 @@
     "stratum": "forward-declared",
     "depends_on": [],
     "consumed_by_substrates": [],
-    "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+    "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
   },
   "title": "Imaging (Medical Imaging / PACS / VNA / Radiology Workflow)",
   "status": "wave-15m-g-authored-2026-05-21",
@@ -316,14 +316,14 @@
   "naming_justifications": "imaging is a BNF v4.1 kebab-case microservice slug; crates follow oya-imaging-<bounded-context>-<layer> mapping to ADR-0105's 13-layer enum; per-modality acquisition workers follow oya-imaging-acquisition-<modality>-worker pattern.",
   "owner_team": "axis-imaging + council-clinical",
   "tier_classification": "product / b2b-leader-operational-concern / medical-device-software",
-  "data_classification": "PHI (Protected Health Information) \u2014 DICOM pixel data + structured report + audit evidence",
+  "data_classification": "PHI (Protected Health Information) — DICOM pixel data + structured report + audit evidence",
   "failure_domain": "cell-aware service eligible for tier-0, tier-1, tier-2 with sovereign-cell mandatory for paid PHI",
   "criticality_tier": "Tier 0",
   "layer": "rest",
   "doc_class": "Machine-Readable-Spec",
   "wave_15m_g_state": {
     "authored_artifacts_floor": 100,
-    "substance_bar_source": "ADR-0212 + ADR-0328 \u00a7D-15..D-20",
+    "substance_bar_source": "ADR-0212 + ADR-0328 §D-15..D-20",
     "supersedes_diagnostics_imaging_portions": true,
     "reconciliation_pending": true
   },
@@ -462,7 +462,8 @@
   "slo_exemption": {
     "status": "live_exempted_no_runtime_sli",
     "owner": "axis-imaging + council-clinical",
-    "reason": "No current measured runtime SLI is declared for this foundation or planning-only service; the manifest must not claim production or hyperscaler-ready SLO coverage until an OpenSLO file lands.",
-    "cutover": "Replace this exemption with non-empty resolvable OpenSLO references before production or hyperscaler-ready promotion."
+    "rationale": "No current measured runtime SLI is declared for this foundation or planning-only service; the manifest must not claim production or hyperscaler-ready SLO coverage until an OpenSLO file lands.",
+    "cutover_on": "2026-12-31",
+    "evidence": "specs/master-plan-sequencing.json#realignment_wave_sequence"
   }
 }

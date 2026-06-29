@@ -164,29 +164,47 @@
       }
     },
     "slos": {
+      "description": "OpenSLO coverage references. Entries may be a scalar local SLO name, a scalar .openslo.yaml/.openslo.yml path, an object with {name} for service-local inference, or an object with {file}. Referenced files must be non-empty; the tier-field-coverage gate enforces content proof.",
       "type": "array",
       "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "name",
-          "target",
-          "sli"
-        ],
-        "properties": {
-          "name": {
-            "type": "string"
+        "oneOf": [
+          {
+            "type": "string",
+            "minLength": 1
           },
-          "target": {
-            "type": "string"
-          },
-          "sli": {
-            "type": "string"
-          },
-          "file": {
-            "type": "string"
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "target": {
+                "type": "string"
+              },
+              "sli": {
+                "type": "string"
+              },
+              "file": {
+                "type": "string",
+                "pattern": "\\.openslo\\.ya?ml$"
+              }
+            },
+            "anyOf": [
+              {
+                "required": [
+                  "name"
+                ]
+              },
+              {
+                "required": [
+                  "file"
+                ]
+              }
+            ]
           }
-        }
+        ]
       }
     },
     "sharding_automation": {
@@ -356,85 +374,152 @@
       }
     },
     "slo_exemption": {
-      "description": "Explicit live exemption used only when a service has no current measured OpenSLO artifact. It must be replaced before production or hyperscaler-ready promotion.",
+      "description": "Explicit live exemption used only when a service has no current measured OpenSLO artifact. It must carry structured ownership, rationale, time-bound cutover/expiry, and evidence or ticket metadata; generic placeholders are refused by the tier-field-coverage gate.",
       "type": "object",
       "additionalProperties": false,
       "required": [
+        "status",
         "owner",
-        "reason"
+        "rationale"
       ],
       "properties": {
         "status": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^live_exempted_[a-z0-9_]+$"
         },
         "owner": {
           "type": "string",
           "minLength": 1
         },
-        "reason": {
+        "rationale": {
+          "type": "string",
+          "minLength": 20
+        },
+        "expires_on": {
+          "type": "string",
+          "format": "date",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "cutover_on": {
+          "type": "string",
+          "format": "date",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "evidence": {
           "type": "string",
           "minLength": 1
         },
-        "expires_on": {
-          "type": "string"
-        },
-        "cutover": {
-          "type": "string"
+        "ticket": {
+          "type": "string",
+          "minLength": 1
         }
       },
-      "anyOf": [
+      "allOf": [
         {
-          "required": [
-            "expires_on"
+          "anyOf": [
+            {
+              "required": [
+                "expires_on"
+              ]
+            },
+            {
+              "required": [
+                "cutover_on"
+              ]
+            }
           ]
         },
         {
-          "required": [
-            "cutover"
+          "anyOf": [
+            {
+              "required": [
+                "evidence"
+              ]
+            },
+            {
+              "required": [
+                "ticket"
+              ]
+            }
           ]
         }
       ]
     },
     "slo_exemptions": {
-      "description": "Per-SLO exemptions for planned entries whose OpenSLO artifact has not landed yet. Each row is non-claiming and must be cut over before production or hyperscaler-ready promotion.",
+      "description": "Per-SLO exemptions for planned entries whose OpenSLO artifact has not landed yet. Each row is non-claiming and must carry structured live metadata matching slo_exemption.",
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
         "required": [
           "name",
+          "status",
           "owner",
-          "reason"
+          "rationale"
         ],
         "properties": {
           "name": {
             "type": "string",
             "minLength": 1
           },
+          "status": {
+            "type": "string",
+            "pattern": "^live_exempted_[a-z0-9_]+$"
+          },
           "owner": {
             "type": "string",
             "minLength": 1
           },
-          "reason": {
+          "rationale": {
+            "type": "string",
+            "minLength": 20
+          },
+          "expires_on": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+          },
+          "cutover_on": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+          },
+          "evidence": {
             "type": "string",
             "minLength": 1
           },
-          "expires_on": {
-            "type": "string"
-          },
-          "cutover": {
-            "type": "string"
+          "ticket": {
+            "type": "string",
+            "minLength": 1
           }
         },
-        "anyOf": [
+        "allOf": [
           {
-            "required": [
-              "expires_on"
+            "anyOf": [
+              {
+                "required": [
+                  "expires_on"
+                ]
+              },
+              {
+                "required": [
+                  "cutover_on"
+                ]
+              }
             ]
           },
           {
-            "required": [
-              "cutover"
+            "anyOf": [
+              {
+                "required": [
+                  "evidence"
+                ]
+              },
+              {
+                "required": [
+                  "ticket"
+                ]
+              }
             ]
           }
         ]

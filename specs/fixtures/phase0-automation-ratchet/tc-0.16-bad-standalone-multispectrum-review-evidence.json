@@ -2,7 +2,8 @@
   "description": "Standalone evidence/multispectrum review files are retired and cannot satisfy pre-merge review admission, even when a row claims durable review evidence.",
   "expected_verdict": "RED",
   "expected_violations": [
-    "missing_pre_merge_review_authority"
+    "missing_pre_merge_review_authority",
+    "retired_multispectrum_evidence"
   ],
   "fixture_id": "TC-0.16-BAD-standalone-multispectrum-review-evidence",
   "rows": [

@@ -302,14 +302,18 @@
     {
       "name": "critical-result-notify-latency",
       "owner": "axis-diagnostics + council-product",
-      "reason": "No current OpenSLO artifact resolves for this planned SLO entry; keep it non-claiming until the artifact exists.",
-      "cutover": "Author a current OpenSLO file under the service-local slos/ or capability observability/slos home before production or hyperscaler-ready promotion."
+      "rationale": "This planned SLO entry remains intentionally non-claiming during the northstar reorg until a service-local OpenSLO file is authored and admitted by cloud-ci.",
+      "status": "live_exempted_pending_openslo_file",
+      "cutover_on": "2026-12-31",
+      "evidence": "specs/master-plan-sequencing.json#realignment_wave_sequence"
     },
     {
       "name": "policy-decision-latency",
       "owner": "axis-diagnostics + council-product",
-      "reason": "No current OpenSLO artifact resolves for this planned SLO entry; keep it non-claiming until the artifact exists.",
-      "cutover": "Author a current OpenSLO file under the service-local slos/ or capability observability/slos home before production or hyperscaler-ready promotion."
+      "rationale": "This planned SLO entry remains intentionally non-claiming during the northstar reorg until a service-local OpenSLO file is authored and admitted by cloud-ci.",
+      "status": "live_exempted_pending_openslo_file",
+      "cutover_on": "2026-12-31",
+      "evidence": "specs/master-plan-sequencing.json#realignment_wave_sequence"
     }
   ]
 }
