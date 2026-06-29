@@ -152,6 +152,7 @@ jobs:
           - { crate: oya-cloud-ci-root-workspace-hygiene-app,  label: "gate · root-workspace-hygiene (ADR-0600, allowlist-as-DATA default-DENY: every TRACKED repo-root file must match the allowlist + every top-level dir must be a permitted capability/meta home — makes committed root scratch structurally impossible; complements the scratch DENYLIST)" }
           - { crate: oya-cloud-ci-dependency-automation-app, label: "gate · dependency-automation (ADR-0535, owned oya-deps.toml Rust bump-bot contract; external bot configs remain absent)" }
           - { crate: oya-cloud-ci-supply-chain-audit-app,    label: "gate · supply-chain-audit (owned RustSec advisory scan over vendored mirror, born-blocking)" }
+          - { crate: oya-cloud-ci-operator-secret-bootstrap-app, label: "gate · operator-secret-bootstrap (GH #980 / ADR-0606, least-privilege secret RBAC: get/update/patch/delete on secrets MUST be resourceNames-scoped to the operator's produced Secret + the join-token bootstrap Secret MUST be declaratively provisioned or fail-closed-preflighted)" }
     steps:
       # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
