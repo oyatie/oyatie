@@ -105,9 +105,9 @@ rust_test(
 )
 
 # GH #1003 required-context status API contract: prove failed gate diagnosis comes from the
-# canonical run-observability packet + typed artifacts, not raw GitHub Actions log scraping.
-# Legacy path note: this target stays under cloud/cloud-ci/gates only while oya-ci-required
-# is the live bridge; the stable contract is specs/cloud-ci-run-observability-packet.schema.json.
+# canonical run-observability packet, serialized status projection, and typed artifacts — not raw
+# GitHub Actions log scraping. Legacy path note: this target stays under cloud/cloud-ci/gates only
+# while oya-ci-required is the live bridge; the stable contracts live under top-level specs/.
 rust_test(
     name = "oya-cloud-ci-firewall-app-run-observability-packet",
     srcs = glob(["tests/**/*.rs"]),

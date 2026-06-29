@@ -1,0 +1,463 @@
+{
+  "$id": "https://docs.oyatie.com/specs/cloud-ci-run-observability-status.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "_meta": {
+    "created_at": "2026-06-29T00:00:00Z",
+    "doc_class": "Machine-Readable-Spec",
+    "owner_team": "platform-toolchain + platform-governance",
+    "purpose": "Canonical serialized status/query projection for cloud-ci run observability. It is a typed consumer-facing projection of the run packet, not a new readiness API, status context, or merge authority.",
+    "related_issue": "GH-1003",
+    "status": "Accepted",
+    "version": "1.0.0"
+  },
+  "additionalProperties": false,
+  "description": "A status projection is the API/console-friendly shape for querying one cloud-ci/oya-ci required-context run. It carries phase timing, gate counts, typed artifact and diagnostic references, retention/PII rules, and correlation back to the canonical run packet without requiring raw GitHub Actions log scraping.",
+  "properties": {
+    "schema_version": {
+      "const": "cloud-ci-run-observability-status/v1"
+    },
+    "status_id": {
+      "description": "Stable status id tied to run.provider, run.run_id, and run.attempt: cloud-ci-run-status:<provider>:<run-id>:attempt-<n>.",
+      "minLength": 1,
+      "pattern": "^cloud-ci-run-status:[A-Za-z0-9._-]+:[A-Za-z0-9._-]+:attempt-[0-9]+$",
+      "type": "string"
+    },
+    "producer": {
+      "additionalProperties": false,
+      "properties": {
+        "required_context": {
+          "enum": [
+            "cloud-ci-required",
+            "oya-ci-required"
+          ]
+        },
+        "merge_authority_context": {
+          "enum": [
+            "cloud-ci-required",
+            "oya-ci-required"
+          ]
+        },
+        "control_plane": {
+          "enum": [
+            "trusted-cloud-ci-controller",
+            "github-actions-bridge"
+          ]
+        },
+        "status_api": {
+          "description": "The typed status projection surface. This is serialized data emitted by the pipeline, not a new branch-protection context or CLI authority.",
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "required_context",
+        "merge_authority_context",
+        "control_plane",
+        "status_api"
+      ],
+      "type": "object"
+    },
+    "run": {
+      "additionalProperties": false,
+      "properties": {
+        "run_id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "attempt": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "provider": {
+          "enum": [
+            "github-actions",
+            "owned-cloud-ci"
+          ]
+        },
+        "status_context": {
+          "enum": [
+            "cloud-ci-required",
+            "oya-ci-required"
+          ]
+        },
+        "correlation_id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "started_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "attempt",
+        "provider",
+        "status_context",
+        "correlation_id",
+        "started_at",
+        "updated_at"
+      ],
+      "type": "object"
+    },
+    "subject": {
+      "additionalProperties": false,
+      "properties": {
+        "repository": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "pr_number": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "head_ref": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "head_sha": {
+          "$ref": "#/$defs/git_sha"
+        },
+        "base_ref": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "base_sha": {
+          "$ref": "#/$defs/git_sha"
+        },
+        "merge_base_sha": {
+          "$ref": "#/$defs/git_sha"
+        }
+      },
+      "required": [
+        "repository",
+        "pr_number",
+        "head_ref",
+        "head_sha",
+        "base_ref",
+        "base_sha",
+        "merge_base_sha"
+      ],
+      "type": "object"
+    },
+    "status": {
+      "enum": [
+        "queued",
+        "running",
+        "passed",
+        "failed",
+        "cancelled",
+        "timed_out"
+      ]
+    },
+    "phase": {
+      "additionalProperties": false,
+      "properties": {
+        "phase_id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "queued",
+            "running",
+            "passed",
+            "failed",
+            "cancelled",
+            "timed_out"
+          ]
+        },
+        "started_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "phase_id",
+        "name",
+        "state",
+        "started_at",
+        "updated_at"
+      ],
+      "type": "object"
+    },
+    "gate_summary": {
+      "additionalProperties": false,
+      "properties": {
+        "total": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "queued": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "running": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "passed": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "failed": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "cancelled": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "timed_out": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "primary_failed_gate_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "failure_taxonomy": {
+          "anyOf": [
+            {
+              "enum": [
+                "code_regression",
+                "policy_violation",
+                "infra_red",
+                "operator_waiver_required",
+                "cancelled",
+                "flake_suspected",
+                "timeout"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "total",
+        "queued",
+        "running",
+        "passed",
+        "failed",
+        "cancelled",
+        "timed_out",
+        "primary_failed_gate_id",
+        "failure_taxonomy"
+      ],
+      "type": "object"
+    },
+    "artifact_refs": {
+      "items": {
+        "description": "Typed artifact id reference from the correlated run packet; never a raw GitHub Actions log URL.",
+        "pattern": "^artifact:(gate-report|step-report|redacted-diagnostics|status-packet):[A-Za-z0-9._:-]+$",
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "diagnostic_refs": {
+      "items": {
+        "description": "Typed redacted diagnostic id reference from the correlated run packet.",
+        "pattern": "^diag:[A-Za-z0-9._-]+:[A-Za-z0-9._-]+$",
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "correlation": {
+      "additionalProperties": false,
+      "properties": {
+        "packet_id": {
+          "pattern": "^cloud-ci-run-packet:[A-Za-z0-9._-]+:[A-Za-z0-9._-]+:attempt-[0-9]+$",
+          "type": "string"
+        },
+        "status_artifact_uri": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "packet_id",
+        "status_artifact_uri"
+      ],
+      "type": "object"
+    },
+    "retention": {
+      "additionalProperties": false,
+      "properties": {
+        "status_ttl_days": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "expires_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "pii_policy": {
+          "additionalProperties": false,
+          "properties": {
+            "redaction_required": {
+              "const": true
+            },
+            "diagnostics_pii": {
+              "enum": [
+                "redacted-or-none"
+              ]
+            }
+          },
+          "required": [
+            "redaction_required",
+            "diagnostics_pii"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "status_ttl_days",
+        "expires_at",
+        "pii_policy"
+      ],
+      "type": "object"
+    },
+    "diagnosability": {
+      "additionalProperties": false,
+      "properties": {
+        "actions_log_scrape_required": {
+          "const": false,
+          "description": "False means the status projection and typed packet artifacts are sufficient for first diagnosis."
+        },
+        "first_diagnosis_from_status_api": {
+          "const": true
+        }
+      },
+      "required": [
+        "actions_log_scrape_required",
+        "first_diagnosis_from_status_api"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "status_id",
+    "producer",
+    "run",
+    "subject",
+    "status",
+    "phase",
+    "gate_summary",
+    "artifact_refs",
+    "diagnostic_refs",
+    "correlation",
+    "retention",
+    "diagnosability"
+  ],
+  "title": "CloudCiRunObservabilityStatus",
+  "type": "object",
+  "$defs": {
+    "git_sha": {
+      "pattern": "^[0-9a-f]{40}$",
+      "type": "string"
+    }
+  },
+  "allOf": [
+    {
+      "oneOf": [
+        {
+          "properties": {
+            "producer": {
+              "properties": {
+                "required_context": {
+                  "const": "cloud-ci-required"
+                },
+                "merge_authority_context": {
+                  "const": "cloud-ci-required"
+                }
+              }
+            },
+            "run": {
+              "properties": {
+                "status_context": {
+                  "const": "cloud-ci-required"
+                }
+              }
+            }
+          }
+        },
+        {
+          "properties": {
+            "producer": {
+              "properties": {
+                "required_context": {
+                  "const": "oya-ci-required"
+                },
+                "merge_authority_context": {
+                  "const": "oya-ci-required"
+                }
+              }
+            },
+            "run": {
+              "properties": {
+                "status_context": {
+                  "const": "oya-ci-required"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "failed",
+              "timed_out"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "artifact_refs": {
+            "minItems": 1
+          },
+          "diagnostic_refs": {
+            "minItems": 1
+          },
+          "gate_summary": {
+            "properties": {
+              "primary_failed_gate_id": {
+                "minLength": 1,
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
