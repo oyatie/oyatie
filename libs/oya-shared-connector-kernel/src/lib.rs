@@ -442,6 +442,16 @@ impl PatchOp {
     }
 }
 
+/// Build a canonical SHA-256 digest for a [`PatchOp`].
+pub fn patch_op_payload_digest(patch: &PatchOp) -> String {
+    let value = patch
+        .value
+        .as_ref()
+        .map(EntityValue::canonical_audit_value)
+        .unwrap_or_else(|| "remove:".to_owned());
+    canonical_audit_payload_digest([("field", patch.field.as_str()), ("value", value.as_str())])
+}
+
 /// Page of entities returned by [`Connector::list`].
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Page {
@@ -889,6 +899,25 @@ mod tests {
         assert_ne!(
             entity_doc_payload_digest(&first),
             entity_doc_payload_digest(&type_changed)
+        );
+    }
+
+    #[test]
+    fn patch_op_payload_digest_distinguishes_set_remove_and_type() {
+        let set_string = PatchOp::set("name", EntityValue::Str("1".into()));
+        let set_int = PatchOp::set("name", EntityValue::Int(1));
+        let remove = PatchOp::remove("name");
+
+        assert!(is_canonical_sha256_hex(&patch_op_payload_digest(
+            &set_string
+        )));
+        assert_ne!(
+            patch_op_payload_digest(&set_string),
+            patch_op_payload_digest(&set_int)
+        );
+        assert_ne!(
+            patch_op_payload_digest(&set_string),
+            patch_op_payload_digest(&remove)
         );
     }
 
