@@ -62,17 +62,18 @@ pub(crate) fn validate_product_prd_json_gate(
 ) -> Result<ProductPrdJsonReport, String> {
     let started = Instant::now();
     let repo_root = args.repo_root;
-    let product_paths = if args.product_paths.is_empty() {
+    let explicit_product_paths = !args.product_paths.is_empty();
+    let product_paths = if explicit_product_paths {
+        args.product_paths
+            .iter()
+            .map(|path| absolutize(&repo_root, path))
+            .collect::<Vec<_>>()
+    } else {
         // Per ADR-0131 specs/products → specs/microservices flatten (2026-05-18).
         // We retain a fallback scan of specs/products/ for the transition window
         // (the legacy directory now holds only RETIREMENT.md and will be removed
         // in a follow-up cleanup IP); the new canonical home is specs/microservices/.
         collect_product_json_paths(&repo_root.join("specs/microservices"))?
-    } else {
-        args.product_paths
-            .iter()
-            .map(|path| absolutize(&repo_root, path))
-            .collect::<Vec<_>>()
     };
 
     if product_paths.is_empty() {
@@ -93,8 +94,21 @@ pub(crate) fn validate_product_prd_json_gate(
         // Skip non-PRD machine-readable specs that happen to live under
         // specs/microservices/ — e.g., Microservice-Consolidation-Spec
         // (spec_id starts with MSC-) per ADR-0136 foundry consolidation.
-        if !is_prd_spec_file(path) {
-            continue;
+        match classify_prd_spec_file(path) {
+            Ok(ProductPrdFileKind::ActivePrd) => {}
+            Ok(ProductPrdFileKind::NonPrd) if explicit_product_paths => {
+                errors.push(format!(
+                    "{}: explicit product path must be an active product PRD JSON with _meta.spec_id starting PRD-",
+                    path.display()
+                ));
+                continue;
+            }
+            Ok(ProductPrdFileKind::NonPrd) => continue,
+            Err(error) if explicit_product_paths => {
+                errors.push(error);
+                continue;
+            }
+            Err(_) => continue,
         }
         match validate_one_product(path, &repo_root, &root_hub_paths) {
             Ok(report) => {
@@ -113,6 +127,12 @@ pub(crate) fn validate_product_prd_json_gate(
         }
     }
 
+    if products_checked == 0 {
+        errors.push(
+            "product-prd-json: zero active product PRD JSON specs checked; provide active PRD specs under specs/microservices or explicit --product paths".to_string(),
+        );
+    }
+
     if errors.is_empty() {
         Ok(ProductPrdJsonReport {
             products_checked,
@@ -129,13 +149,22 @@ pub(crate) fn validate_product_prd_json_gate(
     }
 }
 
-fn is_prd_spec_file(path: &Path) -> bool {
-    let Ok(content) = std::fs::read_to_string(path) else {
-        return false;
-    };
-    let Ok(json) = serde_json::from_str::<Value>(&content) else {
-        return false;
-    };
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum ProductPrdFileKind {
+    ActivePrd,
+    NonPrd,
+}
+
+fn classify_prd_spec_file(path: &Path) -> Result<ProductPrdFileKind, String> {
+    let content = std::fs::read_to_string(path).map_err(|error| {
+        format!(
+            "{}: unable to read product PRD JSON: {error}",
+            path.display()
+        )
+    })?;
+    let json: Value = serde_json::from_str(&content)
+        .map_err(|error| format!("{}: invalid product PRD JSON: {error}", path.display()))?;
+
     let meta = json.get("_meta");
     // Skip retired specs (e.g., shorts.json absorbed into social per ADR-0334;
     // network.json merged into community per Wave 15K). They carry status=Retired
@@ -146,12 +175,18 @@ fn is_prd_spec_file(path: &Path) -> bool {
         == Some("RetiredMicroserviceMarker")
         || meta.and_then(|m| m.get("status")).and_then(Value::as_str) == Some("Retired")
     {
-        return false;
+        return Ok(ProductPrdFileKind::NonPrd);
     }
-    meta.and_then(|m| m.get("spec_id"))
+
+    if meta
+        .and_then(|m| m.get("spec_id"))
         .and_then(Value::as_str)
-        .map(|sid| sid.starts_with("PRD-"))
-        .unwrap_or(false)
+        .is_some_and(|sid| sid.starts_with("PRD-"))
+    {
+        Ok(ProductPrdFileKind::ActivePrd)
+    } else {
+        Ok(ProductPrdFileKind::NonPrd)
+    }
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -382,7 +417,7 @@ fn validate_acceptance_criteria(
             errors,
         ) {
             report.test_refs_checked += 1;
-            validate_non_retired_prd_reference(
+            validate_current_prd_reference(
                 display,
                 "acceptance_criteria.test_ref",
                 test_ref,
@@ -426,7 +461,7 @@ fn validate_metrics(
                 errors,
             ) {
                 report.verification_refs_checked += 1;
-                validate_non_retired_prd_reference(
+                validate_current_prd_reference(
                     display,
                     "metrics.verification_ref",
                     verification_ref,
@@ -436,7 +471,7 @@ fn validate_metrics(
             if let Some(lane_ref) =
                 require_string(metric, "lane_ref", &format!("{display}#metrics"), errors)
             {
-                validate_non_retired_prd_reference(display, "metrics.lane_ref", lane_ref, errors);
+                validate_lane_reference(display, "metrics.lane_ref", lane_ref, errors);
             }
         } else {
             let verification_ref = metric.get("verification_ref").and_then(Value::as_str);
@@ -453,7 +488,7 @@ fn validate_metrics(
                 verification_ref.filter(|value| !value.trim().is_empty())
             {
                 report.verification_refs_checked += 1;
-                validate_non_retired_prd_reference(
+                validate_current_prd_reference(
                     display,
                     "metrics.verification_ref",
                     verification_ref,
@@ -461,7 +496,7 @@ fn validate_metrics(
                 );
             }
             if let Some(lane_ref) = lane_ref.filter(|value| !value.trim().is_empty()) {
-                validate_non_retired_prd_reference(display, "metrics.lane_ref", lane_ref, errors);
+                validate_lane_reference(display, "metrics.lane_ref", lane_ref, errors);
             }
         }
     }
@@ -490,7 +525,7 @@ fn walk_planned_feature_refs(
                     match raw_ref.as_str().map(str::trim) {
                         Some(reference) if !reference.is_empty() => {
                             *refs_checked += 1;
-                            validate_non_retired_prd_reference(display, field, reference, errors);
+                            validate_planned_reference(display, field, reference, errors);
                         }
                         _ => errors.push(format!(
                             "{display}#{location}: {field} must be a non-empty string"
@@ -518,7 +553,50 @@ fn walk_planned_feature_refs(
     }
 }
 
-fn validate_non_retired_prd_reference(
+fn validate_current_prd_reference(
+    display: &str,
+    field: &str,
+    reference: &str,
+    errors: &mut Vec<String>,
+) {
+    validate_not_retired_reference(display, field, reference, errors);
+    if !is_current_prd_reference_shape(reference) {
+        errors.push(format!(
+            "{display}: {field} must cite a current test/task/spec artifact or cargo/cloud-ci gate command, got {reference:?}"
+        ));
+    }
+}
+
+fn validate_planned_reference(
+    display: &str,
+    field: &str,
+    reference: &str,
+    errors: &mut Vec<String>,
+) {
+    validate_not_retired_reference(display, field, reference, errors);
+    if field == "planned_enforcement_ref" {
+        if !is_slug_reference(reference) || !reference.starts_with("oya-governance-") {
+            errors.push(format!(
+                "{display}: {field} must cite a planned oya-governance-* enforcement id, got {reference:?}"
+            ));
+        }
+    } else if !is_current_prd_reference_shape(reference) {
+        errors.push(format!(
+            "{display}: {field} must cite a current test/task/spec artifact or cargo/cloud-ci gate command, got {reference:?}"
+        ));
+    }
+}
+
+fn validate_lane_reference(display: &str, field: &str, reference: &str, errors: &mut Vec<String>) {
+    validate_not_retired_reference(display, field, reference, errors);
+    if !is_slug_reference(reference) && !is_current_prd_reference_shape(reference) {
+        errors.push(format!(
+            "{display}: {field} must be a lowercase lane id or current command/artifact reference, got {reference:?}"
+        ));
+    }
+}
+
+fn validate_not_retired_reference(
     display: &str,
     field: &str,
     reference: &str,
@@ -536,6 +614,45 @@ fn validate_non_retired_prd_reference(
             "{display}: {field} must cite product PRD/task/spec/cloud-ci evidence, not retired .omc/.omx implementation-plan inputs: {reference:?}"
         ));
     }
+}
+
+fn is_current_prd_reference_shape(reference: &str) -> bool {
+    let trimmed = reference.trim();
+    let lower = trimmed.to_ascii_lowercase();
+    lower.starts_with("cargo ")
+        || lower.contains(" cargo ")
+        || lower.starts_with("buck2 ")
+        || lower.starts_with("bazel ")
+        || lower.starts_with("jq ")
+        || lower.starts_with("oya gate validate ")
+        || lower.contains("cloud-ci")
+        || lower.contains("oya-ci-required")
+        || lower.contains("load-test")
+        || lower.contains("future oya-")
+        || lower.contains("$ref:docs/decisions/")
+        || [
+            "crates/",
+            "microservices/",
+            "marketplace/",
+            "tasks/",
+            "specs/",
+            "registry/",
+            "docs/decisions/",
+        ]
+        .iter()
+        .any(|prefix| trimmed.starts_with(prefix))
+}
+
+fn is_slug_reference(reference: &str) -> bool {
+    let trimmed = reference.trim();
+    !trimmed.is_empty()
+        && trimmed.chars().all(|character| {
+            character.is_ascii_lowercase() || character.is_ascii_digit() || character == '-'
+        })
+        && trimmed
+            .chars()
+            .next()
+            .is_some_and(|character| character.is_ascii_lowercase() || character.is_ascii_digit())
 }
 
 fn validate_goals(
@@ -902,6 +1019,77 @@ mod tests {
         );
     }
 
+    #[test]
+    fn explicit_product_paths_reject_unreadable_invalid_and_non_prd_inputs() {
+        let repo_root = temp_prd_repo("explicit-inputs");
+        let microservices = repo_root.join("specs/microservices");
+        std::fs::create_dir_all(&microservices).expect("microservices dir");
+        std::fs::write(
+            microservices.join("not-prd.json"),
+            r#"{"_meta":{"spec_id":"MSC-OTHER"}}"#,
+        )
+        .expect("non-prd fixture");
+        std::fs::write(microservices.join("invalid.json"), "{not json").expect("invalid fixture");
+
+        let missing_error = validate_product_prd_json_gate(ProductPrdJsonArgs {
+            repo_root: repo_root.clone(),
+            product_paths: vec![PathBuf::from("specs/microservices/missing.json")],
+        })
+        .expect_err("missing explicit input rejected");
+        assert!(missing_error.contains("unable to read product PRD JSON"));
+        assert!(missing_error.contains("zero active product PRD JSON specs checked"));
+
+        let invalid_error = validate_product_prd_json_gate(ProductPrdJsonArgs {
+            repo_root: repo_root.clone(),
+            product_paths: vec![PathBuf::from("specs/microservices/invalid.json")],
+        })
+        .expect_err("invalid explicit input rejected");
+        assert!(invalid_error.contains("invalid product PRD JSON"));
+
+        let non_prd_error = validate_product_prd_json_gate(ProductPrdJsonArgs {
+            repo_root,
+            product_paths: vec![PathBuf::from("specs/microservices/not-prd.json")],
+        })
+        .expect_err("non-PRD explicit input rejected");
+        assert!(non_prd_error.contains("explicit product path must be an active product PRD JSON"));
+    }
+
+    #[test]
+    fn prd_references_reject_unstructured_text() {
+        let mut errors = Vec::new();
+
+        validate_current_prd_reference(
+            "test-product",
+            "acceptance_criteria.test_ref",
+            "trust me bro",
+            &mut errors,
+        );
+
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("current test/task/spec artifact")),
+            "errors={errors:?}"
+        );
+    }
+
+    fn temp_prd_repo(name: &str) -> PathBuf {
+        let root = std::env::temp_dir().join(format!(
+            "oya-product-prd-json-{name}-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .expect("clock")
+                .as_nanos()
+        ));
+        std::fs::create_dir_all(root.join("specs/microservices")).expect("temp specs dir");
+        std::fs::write(
+            root.join("specs/root-hub-pointers.json"),
+            r#"{"entry_points":{}}"#,
+        )
+        .expect("root hub fixture");
+        root
+    }
     #[test]
     fn parse_rejects_unknown_flag() {
         let error = parse_product_prd_json_validate_args(vec!["--bogus".into()])
