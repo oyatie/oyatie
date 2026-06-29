@@ -10,7 +10,7 @@ security_review: unreviewed
 supply_chain: source-only
 traceability:
   changeset: CS-CATALOG-ARCH-BOUNDARY-001
-  source_crate: crates/oya-audit-chain-retention-cascade-api/Cargo.toml
+  source_crate: audit/ports/retention-cascade-api/Cargo.toml
 non_claims:
   - catalog role reflects current dependency direction for architecture-boundary validation; crate naming cleanup or dependency inversion remains future work
   - catalog row added to close repo-wide catalog and architecture-boundary coverage only

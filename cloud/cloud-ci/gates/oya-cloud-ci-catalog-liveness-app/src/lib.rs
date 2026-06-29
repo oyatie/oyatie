@@ -1,23 +1,22 @@
 //! # cloud-ci-catalog-liveness
 //!
-//! Portable conformance gate enforcing the founder **live-OR-explicitly-marked** catalog policy:
+//! Portable conformance gate enforcing the founder bidirectional catalog policy:
 //! every catalog record must either name a LIVE workspace crate or carry an EXPLICIT non-live
-//! marker. This closes the catalog-liveness false-green permanently — a record whose crate has
-//! been retired/moved (or never existed) cannot sit silently in the registry pretending to be a
-//! live capability.
+//! marker, and every config-governed LIVE workspace crate must either have a catalog row or carry
+//! an EXPLICIT exemption with owner, reason, and cutover.
 //!
 //! The producer (`oya-cloud-ci-accounting-registry-app`) owns all repository I/O: it enumerates
 //! `registry/catalog/*.yaml` via the config-declared `[catalog_liveness].catalog_record_globs`,
-//! maps each file stem to `crate_id`, resolves the LIVE workspace crate-id universe IN-PROCESS via
+//! maps each file stem to `crate_id`, resolves the LIVE workspace member universe IN-PROCESS via
 //! `oya-workspace-members-kernel` (NEVER a `cargo metadata` / `buck2` shell-out, for
-//! all-CLI-retirement and hermeticity), and parses the explicit non-live marker. Rows are shaped
-//! as `{"crate_id", "source_path", "is_live", "marker"}` and this crate stays pure: `evaluate_keyed`
-//! applies only the boolean policy over the face.
+//! all-CLI-retirement and hermeticity), parses `traceability.source_crate`, and classifies explicit
+//! non-live markers/exemptions. This crate stays pure: `evaluate_keyed` applies only boolean policy
+//! over the face.
 //!
-//! `evaluate_keyed` returns one `Finding{code,key}` per silently-stale catalog row (a record that
-//! is neither live nor marked). Post-PR-C1/PR-C2 the oyatie corpus carries ZERO such records, so
-//! the disposition table marks the violation code `frozen_empty`: a future silently-stale record
-//! cannot be laundered into the accepted baseline by regeneration (born-blocking, EMPTY baseline).
+//! `evaluate_keyed` returns one `Finding{code,key}` per catalog drift. The Oyatie corpus is
+//! expected to carry ZERO findings, so the disposition table marks violation codes `frozen_empty`:
+//! future stale rows, stale source paths, and missing reverse catalog edges cannot be laundered into
+//! the accepted baseline by regeneration.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
@@ -29,8 +28,12 @@ use serde_json::Value;
 pub const GATE_ID: &str = "cloud-ci-catalog-liveness";
 
 /// Stable blocking violation codes emitted by this gate.
-pub const VIOLATION_CODES: [&str; 3] = [
+pub const VIOLATION_CODES: [&str; 7] = [
     "catalog_record_no_live_crate_unmarked",
+    "catalog_record_source_crate_missing",
+    "catalog_live_crate_without_row",
+    "catalog_live_crate_empty_id",
+    "catalog_live_crates_missing",
     "catalog_record_empty_crate_id",
     "catalog_no_records",
 ];
@@ -95,14 +98,44 @@ fn is_live(row: &Value) -> bool {
 }
 
 fn crate_id_of(row: &Value) -> &str {
-    row.get("crate_id").and_then(Value::as_str).unwrap_or_default()
+    row.get("crate_id")
+        .and_then(Value::as_str)
+        .unwrap_or_default()
 }
 
-/// Pure evaluator: takes `{"rows":[{"crate_id","source_path","is_live","marker"}, ...]}` and
-/// emits one finding per silently-stale catalog row — a record that names NO live workspace crate
-/// AND carries NO explicit non-live marker. An empty corpus is RED (born-blocking; an empty face
-/// must not be laundered into a passing verdict). An empty `crate_id` is its own code (a malformed
-/// record could otherwise pass by being neither live nor checkable).
+fn has_declared_source_crate(row: &Value) -> bool {
+    row.get("source_crate")
+        .and_then(Value::as_str)
+        .is_some_and(|p| !p.trim().is_empty())
+}
+
+fn source_crate_exists(row: &Value) -> bool {
+    row.get("source_crate_exists").and_then(Value::as_bool) == Some(true)
+}
+
+fn has_catalog_row(row: &Value) -> bool {
+    row.get("has_catalog_row").and_then(Value::as_bool) == Some(true)
+}
+
+fn has_valid_exemption(row: &Value) -> bool {
+    let Some(exemption) = row.get("exemption").and_then(Value::as_object) else {
+        return false;
+    };
+    ["owner", "reason", "cutover"].into_iter().all(|field| {
+        exemption
+            .get(field)
+            .and_then(Value::as_str)
+            .is_some_and(|v| !v.trim().is_empty())
+    })
+}
+
+/// Pure evaluator. Input shape:
+/// `{"rows":[{"crate_id","source_path","is_live","marker","source_crate","source_crate_exists"}],
+///   "live_crates":[{"crate_id","member_path","has_catalog_row","exemption"}]}`.
+///
+/// It emits one finding per stale catalog row, stale non-historical source path, or governed live
+/// crate missing a row/exemption. An empty catalog row corpus is RED. A missing `live_crates`
+/// collection is also RED: row-only faces cannot prove reverse coverage.
 pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
     let mut findings = BTreeSet::new();
     let rows = match input.get("rows").and_then(Value::as_array) {
@@ -130,7 +163,38 @@ pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
                 crate_id,
             ));
         }
+        // If a live/unmarked row declares traceability.source_crate, that path must be live too.
+        // Historical/non-live rows may keep old paths as provenance because the marker is explicit.
+        if has_declared_source_crate(row) && !source_crate_exists(row) && !is_marked_non_live(row) {
+            findings.insert(Finding::new(
+                "catalog_record_source_crate_missing",
+                crate_id,
+            ));
+        }
     }
+
+    let Some(live_crates) = input.get("live_crates").and_then(Value::as_array) else {
+        findings.insert(Finding::new(
+            "catalog_live_crates_missing",
+            "<missing-live-crates>",
+        ));
+        return findings;
+    };
+
+    for row in live_crates {
+        let crate_id = crate_id_of(row);
+        if crate_id.trim().is_empty() {
+            findings.insert(Finding::new(
+                "catalog_live_crate_empty_id",
+                "<empty-crate-id>",
+            ));
+            continue;
+        }
+        if !has_catalog_row(row) && !has_valid_exemption(row) {
+            findings.insert(Finding::new("catalog_live_crate_without_row", crate_id));
+        }
+    }
+
     findings
 }
 
@@ -154,6 +218,22 @@ mod tests {
                     "source_path": format!("registry/catalog/{crate_id}.yaml"),
                     "is_live": is_live,
                     "marker": marker,
+                    "source_crate": if *is_live {
+                        json!(format!("{crate_id}/Cargo.toml"))
+                    } else {
+                        Value::Null
+                    },
+                    "source_crate_exists": *is_live,
+                }))
+                .collect::<Vec<_>>(),
+            "live_crates": records
+                .iter()
+                .filter(|(_, is_live, _)| *is_live)
+                .map(|(crate_id, _, _)| json!({
+                    "crate_id": crate_id,
+                    "member_path": crate_id,
+                    "has_catalog_row": true,
+                    "exemption": Value::Null,
                 }))
                 .collect::<Vec<_>>()
         })
@@ -161,10 +241,7 @@ mod tests {
 
     #[test]
     fn live_record_is_green() {
-        let input = rows(&[
-            ("cell-region", true, None),
-            ("compute-domain", true, None),
-        ]);
+        let input = rows(&[("cell-region", true, None), ("compute-domain", true, None)]);
         assert_eq!(evaluate(&input).verdict, Verdict::Green);
         assert!(evaluate_keyed(&input).is_empty());
     }
@@ -173,13 +250,26 @@ mod tests {
     fn dead_but_marked_record_is_green() {
         // The 53 marker records PR-C1/PR-C2 used must pass: not live, but explicitly marked.
         let input = rows(&[
-            ("oya-cloud-billing-adapter-fake", false, Some("retired-compatibility-row-no-crate")),
-            ("oya-cloud-dcops-kernel", false, Some("designed-ahead-row-no-crate")),
+            (
+                "oya-cloud-billing-adapter-fake",
+                false,
+                Some("retired-compatibility-row-no-crate"),
+            ),
+            (
+                "oya-cloud-dcops-kernel",
+                false,
+                Some("designed-ahead-row-no-crate"),
+            ),
             ("some-planned-cap", false, Some("planned")),
             ("some-aspirational-cap", false, Some("aspirational")),
             ("some-no-claims-cap", false, Some("non-claims-no-crate")),
         ]);
-        assert_eq!(evaluate(&input).verdict, Verdict::Green, "got {:?}", evaluate_keyed(&input));
+        assert_eq!(
+            evaluate(&input).verdict,
+            Verdict::Green,
+            "got {:?}",
+            evaluate_keyed(&input)
+        );
         assert!(evaluate_keyed(&input).is_empty());
     }
 
@@ -220,7 +310,11 @@ mod tests {
         let input = rows(&[
             ("live-one", true, None),
             ("dead-unmarked-a", false, None),
-            ("dead-marked", false, Some("retired-compatibility-row-no-crate")),
+            (
+                "dead-marked",
+                false,
+                Some("retired-compatibility-row-no-crate"),
+            ),
             ("dead-unmarked-b", false, None),
         ]);
         let findings = evaluate_keyed(&input);
@@ -242,6 +336,144 @@ mod tests {
             .map(|finding| finding.code)
             .collect();
         assert_eq!(evaluate(&input).violations, projected);
+    }
+
+    #[test]
+    fn stale_source_crate_on_live_row_is_red() {
+        let input = json!({
+            "rows": [{
+                "crate_id": "audit-emission-api",
+                "source_path": "registry/catalog/audit-emission-api.yaml",
+                "is_live": true,
+                "marker": Value::Null,
+                "source_crate": "crates/oya-audit-chain-emission-api/Cargo.toml",
+                "source_crate_exists": false,
+            }],
+            "live_crates": [{
+                "crate_id": "audit-emission-api",
+                "member_path": "audit/ports/emission-api",
+                "has_catalog_row": true,
+                "exemption": Value::Null,
+            }]
+        });
+        let findings = evaluate_keyed(&input);
+        assert!(findings.iter().any(|finding| {
+            finding.code == "catalog_record_source_crate_missing"
+                && finding.key == "audit-emission-api"
+        }));
+        assert_eq!(evaluate(&input).verdict, Verdict::Red);
+    }
+
+    #[test]
+    fn marked_historical_row_may_keep_stale_source_crate() {
+        let input = json!({
+            "rows": [{
+                "crate_id": "retired-cap",
+                "source_path": "registry/catalog/retired-cap.yaml",
+                "is_live": false,
+                "marker": "retired-compatibility-row-no-crate",
+                "source_crate": "crates/retired-cap/Cargo.toml",
+                "source_crate_exists": false,
+            }],
+            "live_crates": []
+        });
+        assert!(evaluate_keyed(&input).is_empty());
+        assert_eq!(evaluate(&input).verdict, Verdict::Green);
+    }
+
+    #[test]
+    fn live_crate_without_row_or_exemption_is_red() {
+        let input = json!({
+            "rows": [{
+                "crate_id": "cataloged-live",
+                "source_path": "registry/catalog/cataloged-live.yaml",
+                "is_live": true,
+                "marker": Value::Null,
+                "source_crate": "cataloged-live/Cargo.toml",
+                "source_crate_exists": true,
+            }],
+            "live_crates": [
+                {
+                    "crate_id": "cataloged-live",
+                    "member_path": "cataloged-live",
+                    "has_catalog_row": true,
+                    "exemption": Value::Null,
+                },
+                {
+                    "crate_id": "missing-live",
+                    "member_path": "missing-live",
+                    "has_catalog_row": false,
+                    "exemption": Value::Null,
+                }
+            ]
+        });
+        let findings = evaluate_keyed(&input);
+        assert!(findings.iter().any(|finding| {
+            finding.code == "catalog_live_crate_without_row" && finding.key == "missing-live"
+        }));
+        assert_eq!(evaluate(&input).verdict, Verdict::Red);
+    }
+
+    #[test]
+    fn explicit_live_crate_exemption_is_green_only_when_bounded() {
+        let good = json!({
+            "rows": [{
+                "crate_id": "cataloged-live",
+                "source_path": "registry/catalog/cataloged-live.yaml",
+                "is_live": true,
+                "marker": Value::Null,
+                "source_crate": "cataloged-live/Cargo.toml",
+                "source_crate_exists": true,
+            }],
+            "live_crates": [{
+                "crate_id": "temporarily-exempt",
+                "member_path": "temporarily-exempt",
+                "has_catalog_row": false,
+                "exemption": {
+                    "owner": "platform-governance",
+                    "reason": "covered by a separate generated-face registry until catalog backfill",
+                    "cutover": "remove before Track-A structural migration"
+                },
+            }]
+        });
+        assert!(evaluate_keyed(&good).is_empty());
+
+        let unbounded = json!({
+            "rows": good["rows"].clone(),
+            "live_crates": [{
+                "crate_id": "temporarily-exempt",
+                "member_path": "temporarily-exempt",
+                "has_catalog_row": false,
+                "exemption": {
+                    "owner": "platform-governance",
+                    "reason": "missing cutover is not a bounded exemption",
+                    "cutover": ""
+                },
+            }]
+        });
+        let findings = evaluate_keyed(&unbounded);
+        assert!(findings.iter().any(|finding| {
+            finding.code == "catalog_live_crate_without_row" && finding.key == "temporarily-exempt"
+        }));
+    }
+
+    #[test]
+    fn missing_live_crates_collection_is_red() {
+        let input = json!({
+            "rows": [{
+                "crate_id": "cataloged-live",
+                "source_path": "registry/catalog/cataloged-live.yaml",
+                "is_live": true,
+                "marker": Value::Null,
+                "source_crate": "cataloged-live/Cargo.toml",
+                "source_crate_exists": true,
+            }]
+        });
+        let findings = evaluate_keyed(&input);
+        assert!(findings.iter().any(|finding| {
+            finding.code == "catalog_live_crates_missing" && finding.key == "<missing-live-crates>"
+        }));
+        assert_eq!(evaluate(&input).verdict, Verdict::Red);
     }
 
     #[test]
