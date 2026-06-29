@@ -18,14 +18,57 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::net::SocketAddr;
+use std::sync::Arc;
 
-use k8s_control_plane_host_app::{build_router, build_state_in_memory};
+use k8s_control_plane_host_app::{
+    ConfiguredBearerPrincipalVerifier, ConfiguredPlatformAdminAuthorizer, ControlPlaneAction,
+    ControlPlaneAuthorizationError, ControlPlaneAuthzProvider, PlatformAdminAuthorizer,
+    VerifiedPrincipal, build_router, build_state_in_memory,
+};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
 
+const TEST_TOKEN: &str = "test-break-glass-secret";
+
+/// Break-glass platform-operator authz provider (the production composition).
+fn platform_authz() -> ControlPlaneAuthzProvider {
+    ControlPlaneAuthzProvider::from_bearer_secret(TEST_TOKEN, "op", "ten_platform").unwrap()
+}
+
+/// A verifier that binds a NON-platform principal (no platform scope): the
+/// bearer authenticates but the PDP denies the admin action (403).
+fn non_admin_authz() -> ControlPlaneAuthzProvider {
+    let verifier =
+        Arc::new(ConfiguredBearerPrincipalVerifier::new(TEST_TOKEN, "op", "ten_acme", vec![]).unwrap());
+    ControlPlaneAuthzProvider::new(verifier, Arc::new(ConfiguredPlatformAdminAuthorizer::new()))
+}
+
+/// A faulting authorizer: every decision is a fail-closed PDP refusal (=> 403).
+struct FaultAuthorizer;
+impl PlatformAdminAuthorizer for FaultAuthorizer {
+    fn ensure_authorized(
+        &self,
+        _p: &VerifiedPrincipal,
+        _a: ControlPlaneAction,
+    ) -> Result<(), ControlPlaneAuthorizationError> {
+        Err(ControlPlaneAuthorizationError::Refused)
+    }
+}
+
+fn fault_authz() -> ControlPlaneAuthzProvider {
+    let verifier = Arc::new(
+        ConfiguredBearerPrincipalVerifier::new(TEST_TOKEN, "op", "ten_platform", vec![]).unwrap(),
+    );
+    ControlPlaneAuthzProvider::new(verifier, Arc::new(FaultAuthorizer))
+}
+
 /// Spawn the in-memory-backed router on a localhost port; return its address.
 async fn spawn_app() -> SocketAddr {
-    let state = build_state_in_memory();
+    spawn_app_with(platform_authz()).await
+}
+
+async fn spawn_app_with(authz: ControlPlaneAuthzProvider) -> SocketAddr {
+    let state = build_state_in_memory(authz);
     let router = build_router(state);
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap();
@@ -36,12 +79,26 @@ async fn spawn_app() -> SocketAddr {
 }
 
 /// Minimal HTTP/1.1 client over a raw TCP socket (no extra dev-dep). Sends one
-/// request and returns `(status_code, body)`. Sufficient for the JSON
-/// admin/status surface on loopback.
+/// request WITH the valid break-glass bearer and returns `(status_code, body)`.
 async fn http(addr: SocketAddr, method: &str, path: &str, body: &str) -> (u16, String) {
+    http_auth(addr, method, path, body, Some(TEST_TOKEN)).await
+}
+
+/// Like [`http`], but with an explicit (optional) bearer token.
+async fn http_auth(
+    addr: SocketAddr,
+    method: &str,
+    path: &str,
+    body: &str,
+    bearer: Option<&str>,
+) -> (u16, String) {
     let mut stream = TcpStream::connect(addr).await.unwrap();
+    let auth_header = match bearer {
+        Some(token) => format!("Authorization: Bearer {token}\r\n"),
+        None => String::new(),
+    };
     let request = format!(
-        "{method} {path} HTTP/1.1\r\nHost: localhost\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+        "{method} {path} HTTP/1.1\r\nHost: localhost\r\nContent-Type: application/json\r\n{auth_header}Content-Length: {}\r\nConnection: close\r\n\r\n{body}",
         body.len()
     );
     stream.write_all(request.as_bytes()).await.unwrap();
@@ -181,4 +238,86 @@ async fn malformed_cluster_ref_is_rejected_fail_closed() {
     )
     .await;
     assert_eq!(status, 400, "body: {body}");
+}
+
+// ============================================================
+// AUTH-005 fail-closed fixtures (RED before this fix; GREEN after)
+// ============================================================
+
+#[tokio::test]
+async fn provision_without_bearer_returns_401() {
+    let addr = spawn_app().await;
+    let (status, _body) = http_auth(
+        addr,
+        "POST",
+        "/admin/control-planes",
+        r#"{"tenant_id":"ten_zero","cluster_name":"dogfood-a"}"#,
+        None,
+    )
+    .await;
+    assert_eq!(status, 401);
+}
+
+#[tokio::test]
+async fn provision_non_platform_principal_returns_403() {
+    // A valid bearer whose principal lacks the platform scope is authenticated
+    // but NOT authorized for the platform-level admin surface => 403.
+    let addr = spawn_app_with(non_admin_authz()).await;
+    let (status, _body) = http(
+        addr,
+        "POST",
+        "/admin/control-planes",
+        r#"{"tenant_id":"ten_zero","cluster_name":"dogfood-a"}"#,
+    )
+    .await;
+    assert_eq!(status, 403);
+}
+
+#[tokio::test]
+async fn provision_platform_operator_returns_201() {
+    // The platform-operator break-glass bearer is authorized.
+    let addr = spawn_app().await;
+    let (status, body) = http(
+        addr,
+        "POST",
+        "/admin/control-planes",
+        r#"{"tenant_id":"ten_zero","cluster_name":"dogfood-a"}"#,
+    )
+    .await;
+    assert_eq!(status, 201, "body: {body}");
+}
+
+#[tokio::test]
+async fn provision_pdp_fault_returns_403_not_5xx() {
+    let addr = spawn_app_with(fault_authz()).await;
+    let (status, _body) = http(
+        addr,
+        "POST",
+        "/admin/control-planes",
+        r#"{"tenant_id":"ten_zero","cluster_name":"dogfood-a"}"#,
+    )
+    .await;
+    assert_eq!(status, 403);
+}
+
+#[tokio::test]
+async fn teardown_without_bearer_returns_401() {
+    let addr = spawn_app().await;
+    let (status, _body) = http_auth(
+        addr,
+        "POST",
+        "/admin/control-planes/teardown",
+        r#"{"tenant_id":"ten_zero","cluster_name":"dogfood-a","tier":"hosted_kamaji","handle":"h"}"#,
+        None,
+    )
+    .await;
+    assert_eq!(status, 401);
+}
+
+#[test]
+fn boot_refuses_empty_bearer_secret() {
+    assert!(
+        ControlPlaneAuthzProvider::from_bearer_secret("", "op", "ten_platform").is_err(),
+        "an empty bearer secret must refuse provider construction"
+    );
 }
