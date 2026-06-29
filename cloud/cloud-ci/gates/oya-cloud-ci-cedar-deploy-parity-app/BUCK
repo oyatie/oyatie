@@ -24,8 +24,8 @@ rust_test(
 # The live leg runs the real read-only collector over the worktree and asserts GREEN against the
 # documented shrink-only baseline (the known-blanket ConfigMaps are grandfathered + accurate); a
 # baseline-emptied leg proves the SAME scan goes RED on the action-agnostic blanket (not a stub); the
-# RED fixture proves a fresh non-baselined blanket ConfigMap fails CHECK-A, the GREEN fixture proves a
-# constrained permit present in the capability's authored set passes. No build-graph dep on the charts —
+# RED fixtures prove a fresh non-baselined blanket ConfigMap and a bare-resource/no-scope permit fail
+# CHECK-A, and the GREEN fixture proves a constrained permit present in the capability's authored set passes.
 # the collector reads the tree directly.
 rust_test(
     name = "oya-cloud-ci-cedar-deploy-parity-app-gate",

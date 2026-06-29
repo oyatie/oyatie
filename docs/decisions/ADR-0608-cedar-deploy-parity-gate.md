@@ -70,8 +70,10 @@ with `deployed_suffix`), `evaluate_keyed` asserts:
 
 - **CHECK-A — no unconstrained-head permit.** A deployed `permit` whose HEAD leaves the action
   unconstrained (a bare `action`, not `action == Action::"…"` or `action in [ … ]`) is over-broad by
-  construction → `CDP-UNCONSTRAINED-PERMIT`. The `when` conditions never narrow the action set, so
-  they do not redeem an unconstrained action head.
+  construction → `CDP-UNCONSTRAINED-PERMIT`. A deployed `permit` whose HEAD leaves bare `resource`
+  and whose `when` clause has no resource/scope predicate is also over-broad for production policy →
+  `CDP-UNCONSTRAINED-RESOURCE`. Authored PBAC (RBAC + ABAC) policy must name the action and constrain
+  resource/scope; a predicate cannot redeem an unconstrained action head.
 - **CHECK-B — deployed allows ⊆ authored allows.** Cedar returns allow only when at least one
   `permit` applies, no `forbid` applies, and otherwise defaults to deny. The gate therefore checks a
   conservative text-level sufficient condition: every deployed `permit`, after
@@ -128,8 +130,9 @@ cloud/cloud-ci/gates/oya-cloud-ci-cedar-deploy-parity-app/tests/cedar_deploy_par
 ## Consequences
 
 - **Born-blocking against regressions**: a new or changed deployed Cedar ConfigMap that carries an
-  action-agnostic permit (`CDP-UNCONSTRAINED-PERMIT`), grants more than its capability authored after
-  Cedar forbid/default-deny semantics are accounted for (`CDP-DEPLOYED-NOT-SUBSET` /
+  action-agnostic permit (`CDP-UNCONSTRAINED-PERMIT`), carries a bare-resource permit without a
+  resource/scope predicate (`CDP-UNCONSTRAINED-RESOURCE`), grants more than its capability authored
+  after Cedar forbid/default-deny semantics are accounted for (`CDP-DEPLOYED-NOT-SUBSET` /
   `CDP-NO-AUTHORED-BASELINE`), or no longer matches the exact grandfathered authorization signature
   (`CDP-STALE-BASELINE`) fails the `cloud-ci-cedar-deploy-parity` lane from the first commit.
 - **Sequenced disarm**: the 82 known-blanket ConfigMaps are grandfathered by path + signature in the
