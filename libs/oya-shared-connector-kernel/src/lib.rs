@@ -461,11 +461,13 @@ pub struct Page {
     pub next_cursor: Option<Cursor>, // data_class: INTERNAL_ONLY
 }
 
-/// Build a cursor page from an iterator without materializing the whole result set.
+/// Build an offset-cursor page from an iterator without materializing the whole result set.
 ///
-/// The iterator is advanced to `cursor` and then consumed for at most
-/// `page_size + 1` records. The extra record is used only to determine whether
-/// a next cursor exists.
+/// The iterator is advanced to the numeric `cursor` offset, then consumed for
+/// at most `page_size + 1` records after that offset. The extra record is used
+/// only to determine whether a next cursor exists. Use [`btree_keyset_page`]
+/// when ordered map keys are available and non-initial pages must avoid
+/// walking skipped records.
 pub fn windowed_page<I>(
     items: I,
     cursor: Option<&Cursor>,
@@ -495,6 +497,61 @@ where
 
     let next_cursor = if iter.next().is_some() {
         Cursor::new(start.saturating_add(page_size).to_string()).ok()
+    } else {
+        None
+    };
+
+    Ok(Page {
+        items: page_items,
+        next_cursor,
+    })
+}
+
+/// Build a keyset-cursor page from a [`BTreeMap`] without materializing the whole result set.
+///
+/// The cursor is the last key returned by the previous page. The map range is
+/// pre-positioned after that key, so every page consumes at most `page_size + 1`
+/// records regardless of cursor depth. The extra record is used only to
+/// determine whether a next cursor exists.
+pub fn btree_keyset_page(
+    items: Option<&BTreeMap<String, EntityDoc>>,
+    cursor: Option<&Cursor>,
+    page_size: usize,
+) -> Result<Page, ConnectorError> {
+    use std::ops::Bound::{Excluded, Unbounded};
+
+    if page_size == 0 {
+        return Err(ConnectorError::InvalidArgument(
+            "page_size must be greater than zero".into(),
+        ));
+    }
+
+    let Some(items) = items else {
+        return Ok(Page {
+            items: Vec::new(),
+            next_cursor: None,
+        });
+    };
+
+    let mut iter = match cursor {
+        Some(cursor) => items.range::<str, _>((Excluded(cursor.as_str()), Unbounded)),
+        None => items.range::<str, _>((Unbounded, Unbounded)),
+    };
+    let mut page_items = Vec::with_capacity(page_size);
+    let mut last_key = None;
+
+    for _ in 0..page_size {
+        match iter.next() {
+            Some((key, item)) => {
+                last_key = Some(key.clone());
+                page_items.push(item.clone());
+            }
+            None => break,
+        }
+    }
+
+    let next_cursor = if iter.next().is_some() {
+        last_key.and_then(|key| Cursor::new(key).ok())
     } else {
         None
     };
@@ -955,6 +1012,34 @@ mod tests {
         assert_eq!(page.items.len(), 100);
         assert_eq!(page.next_cursor.as_ref().map(Cursor::as_str), Some("100"));
         assert_eq!(emitted.get(), 101);
+    }
+
+    #[test]
+    fn btree_keyset_page_uses_last_key_cursor() {
+        let docs: BTreeMap<String, EntityDoc> = (1..=201)
+            .map(|i| (format!("doc-{i:08}"), EntityDoc::new()))
+            .collect();
+
+        let first = btree_keyset_page(Some(&docs), None, 100).unwrap();
+        assert_eq!(first.items.len(), 100);
+        assert_eq!(
+            first.next_cursor.as_ref().map(Cursor::as_str),
+            Some("doc-00000100")
+        );
+
+        let second = btree_keyset_page(Some(&docs), first.next_cursor.as_ref(), 100).unwrap();
+        assert_eq!(second.items.len(), 100);
+        assert_eq!(
+            second.next_cursor.as_ref().map(Cursor::as_str),
+            Some("doc-00000200")
+        );
+
+        let exact: BTreeMap<String, EntityDoc> = (1..=100)
+            .map(|i| (format!("doc-{i:08}"), EntityDoc::new()))
+            .collect();
+        let exact_page = btree_keyset_page(Some(&exact), None, 100).unwrap();
+        assert_eq!(exact_page.items.len(), 100);
+        assert!(exact_page.next_cursor.is_none());
     }
 
     #[test]
