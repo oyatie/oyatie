@@ -18,6 +18,7 @@
 use oya_cloud_ci_runner_disk_reclaim_app::{
     DirOutcome, DiskOps, GIB, InfraRedPolicy, InfraRedWaiver, POLICY_REL_PATH, ReclaimReport,
     parse_profile, run_reclaim, runner_disk_reclaim_operator_artifact,
+    validate_infra_red_exit_contract,
 };
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
@@ -148,6 +149,13 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
             );
         }
     };
+
+    validate_infra_red_exit_contract(
+        &report,
+        infra_red_policy,
+        waiver.as_ref(),
+        artifact_out.is_some(),
+    )?;
 
     let artifact = runner_disk_reclaim_operator_artifact(
         &profile_id,
