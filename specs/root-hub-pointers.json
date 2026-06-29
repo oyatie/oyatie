@@ -581,20 +581,24 @@
       "purpose": "Historical provenance only. Keep the multi-lens review practice through independent reviewer-agent passes, cloud-ci/oya-ci gate packets, and typed quality-gate artifacts; do not create new evidence/multispectrum files."
     },
     "multispectrum_evidence_g011_wiring": {
-      "current_path": "evidence/multispectrum/g011-rust-test-wiring-generator-20260610-1781107105.json",
-      "owners_path": "evidence/multispectrum/OWNERS",
-      "kind": "evidence",
-      "migration_phase": "complete",
-      "retired_usage": "Historical evidence only; do not use this entry as precedent for new evidence/multispectrum files.",
-      "purpose": "Historical multispectrum evidence bundle for G011 rust-test-wiring-generator batch (ADR-0540 local bridge generator); retained as provenance after the evidence-file convention retirement."
+      "current_path": null,
+      "historical_path": "evidence/multispectrum/g011-rust-test-wiring-generator-20260610-1781107105.json",
+      "historical_owners_path": "evidence/multispectrum/OWNERS",
+      "kind": "retired-evidence",
+      "migration_phase": "retired-historical-provenance",
+      "current_coverage_claim": false,
+      "retired_usage": "Historical evidence only; do not use this entry as precedent for new evidence/multispectrum files or as current coverage proof.",
+      "purpose": "Historical multispectrum evidence bundle for G011 rust-test-wiring-generator batch (ADR-0540 local bridge generator); retained as immutable provenance only after the evidence-file convention retirement."
     },
     "multispectrum_evidence_cloud_intelligence_xproxy": {
-      "current_path": "evidence/multispectrum/cloud-intelligence-xproxy-20260610-1781062794.json",
-      "owners_path": "evidence/multispectrum/OWNERS",
-      "kind": "evidence",
-      "migration_phase": "complete",
-      "retired_usage": "Historical evidence only; do not use this entry as precedent for new evidence/multispectrum files.",
-      "purpose": "Historical multispectrum evidence bundle for cloud-intelligence XPROXY external-proxy parity commissioning lane (PR #644, ADR-0542); retained as provenance after the evidence-file convention retirement."
+      "current_path": null,
+      "historical_path": "evidence/multispectrum/cloud-intelligence-xproxy-20260610-1781062794.json",
+      "historical_owners_path": "evidence/multispectrum/OWNERS",
+      "kind": "retired-evidence",
+      "migration_phase": "retired-historical-provenance",
+      "current_coverage_claim": false,
+      "retired_usage": "Historical evidence only; do not use this entry as precedent for new evidence/multispectrum files or as current coverage proof.",
+      "purpose": "Historical multispectrum evidence bundle for cloud-intelligence XPROXY external-proxy parity commissioning lane (PR #644, ADR-0542); retained as immutable provenance only after the evidence-file convention retirement."
     },
     "oyatie_doctrine": {
       "current_path": "/specs/oyatie-doctrine.json",
@@ -1190,9 +1194,10 @@
     }
   },
   "specs_directory_audit_2026_05_20": {
-    "audit_note": "Historical 2026-05-20 gardening snapshot. Counts below are not a current-tree coverage claim; use entry_points for current pointer lookup and regenerate this audit before making coverage claims.",
-    "covered_top_level_specs_count": 63,
-    "missing_top_level_specs_after_gardening": [],
+    "audit_note": "Historical 2026-05-20 gardening snapshot. Current top-level specs coverage is UNKNOWN until regenerated; do not treat these counts or gap fields as a current clean-coverage claim.",
+    "current_coverage_status": "UNKNOWN",
+    "covered_top_level_specs_count": null,
+    "missing_top_level_specs_after_gardening": "UNKNOWN",
     "root_hub_path_corrections": [
       "knowledge_graph_semantic",
       "prd_community_anonymous",
@@ -1205,7 +1210,7 @@
       "/specs/design-spec-maturity-claims.json",
       "/specs/root-hub-pointers.json"
     ],
-    "top_level_specs_count": 63,
+    "top_level_specs_count": null,
     "snapshot_scope": "historical_2026_05_20_not_current_tree_count"
   },
   "title": "RootHubPointers"
