@@ -770,7 +770,7 @@
       "target_path_after_md_retirement": "same"
     },
     "prd_intelligence": {
-      "absorbing_manifest": "/microservices/intelligence/manifest.json",
+      "absorbing_manifest": "/oya/intelligence/manifest.json",
       "current_path": "/specs/microservices/intelligence.json",
       "kind": "prd",
       "migration_phase": "foundry-absorbed-wave-15I",
