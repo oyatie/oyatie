@@ -5,31 +5,35 @@
 use std::collections::BTreeMap;
 use std::fs;
 use std::io::{Read, Write};
+use std::sync::Arc;
 use std::thread;
 
 use iac_api::{
     CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE, CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE,
-    CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE, CloudIacModuleRegistryApiAuthorization,
-    CloudIacModuleRegistryApiBoundaryContext, OPENTOFU_SERVICE_DISCOVERY_PATH,
+    CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE, CloudIacModuleRegistryApiBoundaryContext,
+    CloudIacModuleRegistryAuthzProvider, ConfiguredBearerPrincipalVerifier,
+    ConfiguredSurfaceAuthorizer, OPENTOFU_SERVICE_DISCOVERY_PATH,
 };
 use iac_app::{
     CLOUD_IAC_APP_ARCHIVE_DIGEST_NON_CLAIM, CLOUD_IAC_APP_ARTIFACT_DOWNLOAD_NON_CLAIM,
     CLOUD_IAC_APP_ARTIFACT_ROUTE_TEMPLATE, CLOUD_IAC_APP_ARTIFACTS_BASE_PATH,
     CLOUD_IAC_APP_BINARY_NAME, CLOUD_IAC_APP_BIND_ADDR_ENV, CLOUD_IAC_APP_DEFAULT_BIND_ADDR,
     CLOUD_IAC_APP_DEFAULT_RELEASE_INDEX_PATH, CLOUD_IAC_APP_ENTRYPOINT_NON_CLAIM,
-    CLOUD_IAC_APP_MODULE_REGISTRY_BEARER_ENV, CLOUD_IAC_APP_OBJECT_PINNING_NON_CLAIM,
-    CLOUD_IAC_APP_OBJECT_SOURCE_NON_CLAIM, CLOUD_IAC_APP_PACKAGE_NAME,
-    CLOUD_IAC_APP_RELEASE_INDEX_NON_CLAIM, CLOUD_IAC_APP_RELEASE_INDEX_PATH_ENV,
-    CLOUD_IAC_APP_REQUEST_AUTH_NON_CLAIM, CLOUD_IAC_HEALTH_PATH, CLOUD_IAC_LIVENESS_PATH,
-    CloudIacAppConfig, CloudIacAppConfigError, CloudIacAppRequestAuthPolicy,
+    CLOUD_IAC_APP_MODULE_REGISTRY_BEARER_ENV, CLOUD_IAC_APP_MODULE_REGISTRY_PRINCIPAL_ENV,
+    CLOUD_IAC_APP_OBJECT_PINNING_NON_CLAIM, CLOUD_IAC_APP_OBJECT_SOURCE_NON_CLAIM,
+    CLOUD_IAC_APP_PACKAGE_NAME, CLOUD_IAC_APP_RELEASE_INDEX_NON_CLAIM,
+    CLOUD_IAC_APP_RELEASE_INDEX_PATH_ENV, CLOUD_IAC_APP_REQUEST_AUTH_NON_CLAIM,
+    CLOUD_IAC_HEALTH_PATH, CLOUD_IAC_LIVENESS_PATH, CloudIacAppConfig, CloudIacAppConfigError,
     build_cloud_iac_app_service, build_cloud_iac_app_service_from_release_index_str,
-    build_cloud_iac_app_service_from_release_index_str_with_request_auth,
     dispatch_cloud_iac_app_request, load_release_index_seed_from_str,
     serve_bounded_cloud_iac_app_on_listener,
 };
 use iac_domain::{ModuleRegistry, OpenTofuModuleRelease};
 use oya_http_middleware_kernel::HttpRequest;
 use oya_http_router_kernel::HttpMethod;
+
+const TEST_BEARER: &str = "local-registry-bearer-fixture";
+const TEST_PRINCIPAL: &str = "sp_cloud_iac_app_test_reader";
 
 fn http_request(method: HttpMethod, path: &str) -> HttpRequest {
     HttpRequest {
@@ -54,8 +58,26 @@ fn body_text(response: &oya_http_middleware_kernel::HttpResponse) -> String {
     String::from_utf8(response.body.clone()).expect("response body is UTF-8")
 }
 
-const RELEASE_INDEX_JSON: &str =
-    include_str!("../../../tofu/modules/release-index.json");
+/// A fail-closed provider for tests: constant-time bearer verifier bound to a
+/// test principal, permitting all three read surfaces (deny-by-default).
+fn test_provider() -> Arc<CloudIacModuleRegistryAuthzProvider> {
+    let verifier = Arc::new(
+        ConfiguredBearerPrincipalVerifier::new(TEST_BEARER, TEST_PRINCIPAL)
+            .expect("valid test verifier config"),
+    );
+    let authorizer = Arc::new(ConfiguredSurfaceAuthorizer::new(
+        [
+            CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE,
+            CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE,
+            CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE,
+        ]
+        .iter()
+        .map(|surface| (*surface).to_string()),
+    ));
+    Arc::new(CloudIacModuleRegistryAuthzProvider::new(verifier, authorizer))
+}
+
+const RELEASE_INDEX_JSON: &str = include_str!("../../../tofu/modules/release-index.json");
 const TEST_ARTIFACT_ARCHIVE: &str = "oyatie-unit-artifact-opentofu-0.1.0.zip";
 const TEST_ARTIFACT_PATH: &str =
     "target/oya-cloud-iac/module-archives/oyatie-unit-artifact-opentofu-0.1.0.zip";
@@ -63,7 +85,6 @@ const TEST_ARTIFACT_SHA256: &str =
     "c3c49717514288b70d1efe74929f5531a4b3a7610cb2fdf821c6b62f08683014";
 const TEST_MISMATCH_ARTIFACT_PATH: &str =
     "target/oya-cloud-iac/module-archives/oyatie-digest-mismatch-opentofu-0.1.0.zip";
-const TEST_REQUEST_AUTH_BEARER: &str = "local-registry-bearer-fixture";
 
 fn registry() -> ModuleRegistry {
     let mut registry = ModuleRegistry::default();
@@ -90,18 +111,6 @@ fn boundary() -> CloudIacModuleRegistryApiBoundaryContext {
     }
 }
 
-fn authorization() -> CloudIacModuleRegistryApiAuthorization {
-    CloudIacModuleRegistryApiAuthorization {
-        principal_id: "sp_cloud_iac_app_entrypoint_test".to_string(),
-        decision_id: "authz_cloud_iac_app_entrypoint_test_001".to_string(),
-        allowed_surfaces: vec![
-            CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE.to_string(),
-            CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE.to_string(),
-            CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE.to_string(),
-        ],
-    }
-}
-
 #[test]
 fn app_config_defaults_to_helm_port_and_accepts_env_override() {
     let default_config = CloudIacAppConfig::from_env_pairs(std::iter::empty::<(&str, &str)>())
@@ -115,6 +124,7 @@ fn app_config_defaults_to_helm_port_and_accepts_env_override() {
         CLOUD_IAC_APP_DEFAULT_RELEASE_INDEX_PATH
     );
     assert_eq!(default_config.module_registry_bearer, None);
+    assert_eq!(default_config.module_registry_principal_id, None);
 
     let override_config = CloudIacAppConfig::from_env_pairs([
         (CLOUD_IAC_APP_BIND_ADDR_ENV, "127.0.0.1:0"),
@@ -122,10 +132,8 @@ fn app_config_defaults_to_helm_port_and_accepts_env_override() {
             CLOUD_IAC_APP_RELEASE_INDEX_PATH_ENV,
             "/tmp/oyatie-cloud-iac-release-index.json",
         ),
-        (
-            CLOUD_IAC_APP_MODULE_REGISTRY_BEARER_ENV,
-            TEST_REQUEST_AUTH_BEARER,
-        ),
+        (CLOUD_IAC_APP_MODULE_REGISTRY_BEARER_ENV, TEST_BEARER),
+        (CLOUD_IAC_APP_MODULE_REGISTRY_PRINCIPAL_ENV, TEST_PRINCIPAL),
     ])
     .expect("override config parses");
     assert_eq!(override_config.bind_addr.to_string(), "127.0.0.1:0");
@@ -135,29 +143,58 @@ fn app_config_defaults_to_helm_port_and_accepts_env_override() {
     );
     assert_eq!(
         override_config.module_registry_bearer.as_deref(),
-        Some(TEST_REQUEST_AUTH_BEARER)
-    );
-    assert!(
-        override_config
-            .module_registry_request_auth_policy()
-            .expect("bearer env becomes request-auth policy")
-            .allows_authorization_header("Bearer local-registry-bearer-fixture")
+        Some(TEST_BEARER)
     );
     assert_eq!(
-        CloudIacAppConfig::default().module_registry_request_auth_policy(),
-        Err(CloudIacAppConfigError::MissingModuleRegistryBearer)
+        override_config.module_registry_principal_id.as_deref(),
+        Some(TEST_PRINCIPAL)
     );
-    assert_eq!(
-        CloudIacAppRequestAuthPolicy::new("line\nbreak"),
-        Err(CloudIacAppConfigError::InvalidModuleRegistryBearer {
-            reason: "bearer must not contain whitespace or control characters".to_string()
-        })
-    );
+    assert!(override_config.module_registry_authz_provider().is_ok());
 }
 
 #[test]
-fn request_auth_policy_blocks_module_registry_and_artifact_paths_without_bearer_while_leaving_health_public()
- {
+fn serve_refuses_without_bearer_and_principal() {
+    // No bearer, no principal → boot-fatal (no default-allow on a supply-chain
+    // surface; AUTH-005).
+    assert_eq!(
+        CloudIacAppConfig::default()
+            .module_registry_authz_provider()
+            .err(),
+        Some(CloudIacAppConfigError::MissingModuleRegistryBearer)
+    );
+
+    // Bearer set, principal unset → still boot-fatal.
+    let bearer_only = CloudIacAppConfig {
+        module_registry_bearer: Some(TEST_BEARER.to_string()),
+        ..CloudIacAppConfig::default()
+    };
+    assert_eq!(
+        bearer_only.module_registry_authz_provider().err(),
+        Some(CloudIacAppConfigError::MissingModuleRegistryPrincipal)
+    );
+
+    // Both set but the bearer carries whitespace/control → rejected.
+    let malformed = CloudIacAppConfig {
+        module_registry_bearer: Some("line\nbreak".to_string()),
+        module_registry_principal_id: Some(TEST_PRINCIPAL.to_string()),
+        ..CloudIacAppConfig::default()
+    };
+    assert!(matches!(
+        malformed.module_registry_authz_provider(),
+        Err(CloudIacAppConfigError::InvalidModuleRegistryBearer { .. })
+    ));
+
+    // Both valid → a provider is assembled.
+    let ready = CloudIacAppConfig {
+        module_registry_bearer: Some(TEST_BEARER.to_string()),
+        module_registry_principal_id: Some(TEST_PRINCIPAL.to_string()),
+        ..CloudIacAppConfig::default()
+    };
+    assert!(ready.module_registry_authz_provider().is_ok());
+}
+
+#[test]
+fn module_registry_and_artifact_paths_require_verified_bearer_while_health_is_public() {
     fs::create_dir_all("target/oya-cloud-iac/module-archives")
         .expect("create local artifact fixture directory");
     fs::write(TEST_ARTIFACT_PATH, b"deterministic-local-archive-fixture")
@@ -180,14 +217,11 @@ fn request_auth_policy_blocks_module_registry_and_artifact_paths_without_bearer_
           ]
         }}"#
     );
-    let service = build_cloud_iac_app_service_from_release_index_str_with_request_auth(
-        &release_index,
-        CloudIacAppRequestAuthPolicy::new(TEST_REQUEST_AUTH_BEARER)
-            .expect("valid local bearer fixture"),
-    )
-    .expect("request-auth app service assembles");
+    let service = build_cloud_iac_app_service_from_release_index_str(&release_index, test_provider())
+        .expect("app service assembles");
     assert_eq!(service.route_count(), 6);
-    assert_eq!(service.middleware_count(), 1);
+    // The auth is per-handler (PEP), not a middleware layer.
+    assert_eq!(service.middleware_count(), 0);
 
     let health = dispatch_cloud_iac_app_request(
         &service,
@@ -202,7 +236,7 @@ fn request_auth_policy_blocks_module_registry_and_artifact_paths_without_bearer_
         "/artifacts/modules/oyatie-unit-artifact-opentofu-0.1.0.zip",
     ] {
         let missing = dispatch_cloud_iac_app_request(&service, http_request(HttpMethod::Get, path));
-        assert_eq!(missing.status, 401, "{path} should require bearer");
+        assert_eq!(missing.status, 401, "{path} should require a verified bearer");
         assert_eq!(body_text(&missing), r#"{"error":"unauthorized"}"#);
         assert_eq!(
             missing.headers.get("www-authenticate").map(String::as_str),
@@ -213,15 +247,15 @@ fn request_auth_policy_blocks_module_registry_and_artifact_paths_without_bearer_
             &service,
             http_request_with_auth(HttpMethod::Get, path, "wrong-local-bearer"),
         );
-        assert_eq!(wrong.status, 401, "{path} should reject wrong bearer");
+        assert_eq!(wrong.status, 401, "{path} should reject a forged bearer");
 
         let authorized = dispatch_cloud_iac_app_request(
             &service,
-            http_request_with_auth(HttpMethod::Get, path, TEST_REQUEST_AUTH_BEARER),
+            http_request_with_auth(HttpMethod::Get, path, TEST_BEARER),
         );
         assert_eq!(
             authorized.status, 200,
-            "{path} should accept matching bearer"
+            "{path} should accept a verified bearer"
         );
     }
 
@@ -230,7 +264,7 @@ fn request_auth_policy_blocks_module_registry_and_artifact_paths_without_bearer_
         http_request_with_auth(
             HttpMethod::Get,
             "/artifacts/modules/oyatie-unit-artifact-opentofu-0.1.0.zip",
-            TEST_REQUEST_AUTH_BEARER,
+            TEST_BEARER,
         ),
     );
     assert_eq!(artifact.body, b"deterministic-local-archive-fixture");
@@ -241,8 +275,65 @@ fn request_auth_policy_blocks_module_registry_and_artifact_paths_without_bearer_
 }
 
 #[test]
+fn artifact_route_denies_when_pdp_denies_download_surface() {
+    fs::create_dir_all("target/oya-cloud-iac/module-archives")
+        .expect("create local artifact fixture directory");
+    fs::write(TEST_ARTIFACT_PATH, b"deterministic-local-archive-fixture")
+        .expect("write local artifact fixture bytes");
+
+    let release_index = format!(
+        r#"{{
+          "modules": [
+            {{
+              "namespace": "oyatie",
+              "name": "unit-artifact",
+              "system": "opentofu",
+              "version": "0.1.0",
+              "source_path": "microservices/cloud-iac/tofu/modules/vpc",
+              "archive_file": "{TEST_ARTIFACT_PATH}",
+              "archive_sha256": "{TEST_ARTIFACT_SHA256}",
+              "archive_media_type": "archive/zip",
+              "evidence_ref": "evidence://cloud-iac/modules/unit-artifact/0.1.0/local-deny"
+            }}
+          ]
+        }}"#
+    );
+    // A provider that permits only discovery+versions (NOT download): a verified
+    // caller is still Forbidden from the artifact bytes (deny-by-default).
+    let verifier = Arc::new(
+        ConfiguredBearerPrincipalVerifier::new(TEST_BEARER, TEST_PRINCIPAL)
+            .expect("valid test verifier config"),
+    );
+    let authorizer = Arc::new(ConfiguredSurfaceAuthorizer::new(
+        [
+            CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE,
+            CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE,
+        ]
+        .iter()
+        .map(|surface| (*surface).to_string()),
+    ));
+    let download_denied_provider =
+        Arc::new(CloudIacModuleRegistryAuthzProvider::new(verifier, authorizer));
+
+    let service =
+        build_cloud_iac_app_service_from_release_index_str(&release_index, download_denied_provider)
+            .expect("app service assembles");
+
+    let denied = dispatch_cloud_iac_app_request(
+        &service,
+        http_request_with_auth(
+            HttpMethod::Get,
+            "/artifacts/modules/oyatie-unit-artifact-opentofu-0.1.0.zip",
+            TEST_BEARER,
+        ),
+    );
+    assert_eq!(denied.status, 403);
+    assert_eq!(body_text(&denied), r#"{"error":"forbidden"}"#);
+}
+
+#[test]
 fn app_service_registers_health_liveness_and_module_registry_routes() {
-    let service = build_cloud_iac_app_service(registry(), boundary(), authorization())
+    let service = build_cloud_iac_app_service(registry(), boundary(), test_provider())
         .expect("app service assembles");
 
     assert_eq!(service.route_count(), 5);
@@ -268,9 +359,16 @@ fn app_service_registers_health_liveness_and_module_registry_routes() {
         r#"{"status":"ok","service":"cloud-iac","check":"livez"}"#
     );
 
-    let discovery = dispatch_cloud_iac_app_request(
+    // Discovery now requires a verified bearer.
+    let unauthenticated = dispatch_cloud_iac_app_request(
         &service,
         http_request(HttpMethod::Get, OPENTOFU_SERVICE_DISCOVERY_PATH),
+    );
+    assert_eq!(unauthenticated.status, 401);
+
+    let discovery = dispatch_cloud_iac_app_request(
+        &service,
+        http_request_with_auth(HttpMethod::Get, OPENTOFU_SERVICE_DISCOVERY_PATH, TEST_BEARER),
     );
     assert_eq!(discovery.status, 200);
     assert_eq!(body_text(&discovery), r#"{"modules.v1":"/v1/modules/"}"#);
@@ -278,7 +376,7 @@ fn app_service_registers_health_liveness_and_module_registry_routes() {
 
 #[test]
 fn bounded_loopback_entrypoint_serves_health_and_discovery_without_deploy_claim() {
-    let service = build_cloud_iac_app_service(registry(), boundary(), authorization())
+    let service = build_cloud_iac_app_service(registry(), boundary(), test_provider())
         .expect("app service assembles");
     let listener = std::net::TcpListener::bind("127.0.0.1:0")
         .expect("bind local loopback listener for deterministic app harness");
@@ -289,12 +387,23 @@ fn bounded_loopback_entrypoint_serves_health_and_discovery_without_deploy_claim(
     let server =
         thread::spawn(move || serve_bounded_cloud_iac_app_on_listener(listener, service, 2));
 
-    let responses = [CLOUD_IAC_HEALTH_PATH, OPENTOFU_SERVICE_DISCOVERY_PATH].map(|path| {
+    // Health is public; discovery requires a verified bearer.
+    let requests = [
+        (CLOUD_IAC_HEALTH_PATH, None),
+        (OPENTOFU_SERVICE_DISCOVERY_PATH, Some(TEST_BEARER)),
+    ];
+    let responses = requests.map(|(path, bearer)| {
         let mut stream = std::net::TcpStream::connect(addr).expect("connect local app harness");
+        let auth_header = match bearer {
+            Some(token) => format!("Authorization: Bearer {token}\r\n"),
+            None => String::new(),
+        };
         stream
             .write_all(
-                format!("GET {path} HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n")
-                    .as_bytes(),
+                format!(
+                    "GET {path} HTTP/1.1\r\nHost: 127.0.0.1\r\n{auth_header}Connection: close\r\n\r\n"
+                )
+                .as_bytes(),
             )
             .expect("write request bytes");
         let mut response = String::new();
@@ -326,13 +435,18 @@ fn release_index_loader_builds_registry_for_gate_validated_local_modules() {
         .expect("repo-local gate-validated release index parses");
     assert_eq!(seed.modules().len(), 6);
 
-    let service = build_cloud_iac_app_service_from_release_index_str(RELEASE_INDEX_JSON)
-        .expect("release-index-backed app service assembles");
+    let service =
+        build_cloud_iac_app_service_from_release_index_str(RELEASE_INDEX_JSON, test_provider())
+            .expect("release-index-backed app service assembles");
     assert_eq!(service.route_count(), 6);
 
     let versions = dispatch_cloud_iac_app_request(
         &service,
-        http_request(HttpMethod::Get, "/v1/modules/oyatie/vpc/opentofu/versions"),
+        http_request_with_auth(
+            HttpMethod::Get,
+            "/v1/modules/oyatie/vpc/opentofu/versions",
+            TEST_BEARER,
+        ),
     );
     assert_eq!(versions.status, 200);
     assert_eq!(
@@ -342,9 +456,10 @@ fn release_index_loader_builds_registry_for_gate_validated_local_modules() {
 
     let download = dispatch_cloud_iac_app_request(
         &service,
-        http_request(
+        http_request_with_auth(
             HttpMethod::Get,
             "/v1/modules/oyatie/vpc/opentofu/0.1.0/download",
+            TEST_BEARER,
         ),
     );
     assert_eq!(download.status, 200);
@@ -381,15 +496,16 @@ fn release_index_backed_app_serves_local_archive_artifact_without_object_store_c
         }}"#
     );
 
-    let service = build_cloud_iac_app_service_from_release_index_str(&release_index)
+    let service = build_cloud_iac_app_service_from_release_index_str(&release_index, test_provider())
         .expect("release-index-backed app with artifact route assembles");
     assert_eq!(service.route_count(), 6);
 
     let download = dispatch_cloud_iac_app_request(
         &service,
-        http_request(
+        http_request_with_auth(
             HttpMethod::Get,
             "/v1/modules/oyatie/unit-artifact/opentofu/0.1.0/download",
+            TEST_BEARER,
         ),
     );
     assert_eq!(download.status, 200);
@@ -400,9 +516,10 @@ fn release_index_backed_app_serves_local_archive_artifact_without_object_store_c
 
     let artifact = dispatch_cloud_iac_app_request(
         &service,
-        http_request(
+        http_request_with_auth(
             HttpMethod::Get,
             "/artifacts/modules/oyatie-unit-artifact-opentofu-0.1.0.zip",
+            TEST_BEARER,
         ),
     );
     assert_eq!(artifact.status, 200);
@@ -449,15 +566,16 @@ fn release_index_backed_app_returns_s3_or_gcs_object_source_locations_without_li
         }}"#
     );
 
-    let service = build_cloud_iac_app_service_from_release_index_str(&release_index)
+    let service = build_cloud_iac_app_service_from_release_index_str(&release_index, test_provider())
         .expect("object-source-backed app service assembles without local object-store runtime");
     assert_eq!(service.route_count(), 5);
 
     let download = dispatch_cloud_iac_app_request(
         &service,
-        http_request(
+        http_request_with_auth(
             HttpMethod::Get,
             "/v1/modules/oyatie/unit-artifact/opentofu/0.1.0/download",
+            TEST_BEARER,
         ),
     );
     assert_eq!(download.status, 200);
@@ -468,9 +586,10 @@ fn release_index_backed_app_returns_s3_or_gcs_object_source_locations_without_li
 
     let local_artifact_route = dispatch_cloud_iac_app_request(
         &service,
-        http_request(
+        http_request_with_auth(
             HttpMethod::Get,
             "/artifacts/modules/oyatie-unit-artifact-opentofu-0.1.0.zip",
+            TEST_BEARER,
         ),
     );
     assert_eq!(local_artifact_route.status, 404);
@@ -640,14 +759,15 @@ fn artifact_route_rejects_local_archive_digest_drift_before_serving_bytes() {
           ]
         }}"#
     );
-    let service = build_cloud_iac_app_service_from_release_index_str(&release_index)
+    let service = build_cloud_iac_app_service_from_release_index_str(&release_index, test_provider())
         .expect("release-index-backed app with digest-check route assembles");
 
     let artifact = dispatch_cloud_iac_app_request(
         &service,
-        http_request(
+        http_request_with_auth(
             HttpMethod::Get,
             "/artifacts/modules/oyatie-digest-mismatch-opentofu-0.1.0.zip",
+            TEST_BEARER,
         ),
     );
     assert_eq!(artifact.status, 409);
@@ -683,21 +803,22 @@ fn artifact_route_rejects_invalid_unknown_and_missing_local_archive_requests() {
           ]
         }}"#
     );
-    let service = build_cloud_iac_app_service_from_release_index_str(&release_index)
+    let service = build_cloud_iac_app_service_from_release_index_str(&release_index, test_provider())
         .expect("missing local archive is a request-time 404, not startup failure");
 
     let invalid = dispatch_cloud_iac_app_request(
         &service,
-        http_request(HttpMethod::Get, "/artifacts/modules/UPPER.zip"),
+        http_request_with_auth(HttpMethod::Get, "/artifacts/modules/UPPER.zip", TEST_BEARER),
     );
     assert_eq!(invalid.status, 400);
     assert_eq!(body_text(&invalid), r#"{"error":"invalid_artifact_name"}"#);
 
     let unknown = dispatch_cloud_iac_app_request(
         &service,
-        http_request(
+        http_request_with_auth(
             HttpMethod::Get,
             "/artifacts/modules/oyatie-other-opentofu-0.1.0.zip",
+            TEST_BEARER,
         ),
     );
     assert_eq!(unknown.status, 404);
@@ -705,9 +826,10 @@ fn artifact_route_rejects_invalid_unknown_and_missing_local_archive_requests() {
 
     let missing = dispatch_cloud_iac_app_request(
         &service,
-        http_request(
+        http_request_with_auth(
             HttpMethod::Get,
             "/artifacts/modules/oyatie-missing-artifact-opentofu-0.1.0.zip",
+            TEST_BEARER,
         ),
     );
     assert_eq!(missing.status, 404);
