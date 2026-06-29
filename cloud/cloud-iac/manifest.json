@@ -816,10 +816,10 @@
   },
   "helm_chart_signed_image_wiring_scope": {
     "changeset": "CS-CLOUD-IAC-HELM-CHART-SIGNED-IMAGE-WIRING-GATE-001",
-    "crate": "cloud-ci/oya-ci controller path",
+    "crate": "marketplace/facade/dev-cli",
     "gate": "cloud-iac-helm-chart-signed-image-wiring",
-    "gate_file": "crates/cloud-ci/oya-ci controller path/src/cloud_iac_helm_chart_gate.rs",
-    "chart_root": "microservices/cloud-iac/iac/k8s/helm",
+    "gate_file": "marketplace/facade/dev-cli/src/cloud_iac_helm_chart_gate.rs",
+    "chart_root": "cloud/cloud-iac/iac/k8s/helm",
     "runtime_mode": "local-filesystem-helm-chart-wiring-gate-no-helm-render",
     "chart_files_checked": [
       "Chart.yaml",

@@ -142,6 +142,15 @@ fn active_admission_wires_signature_provenance_sbom_and_vet_posture() {
         );
     }
 
+    let cli_usage = std::fs::read_to_string(root.join("marketplace/facade/dev-cli/src/lib.rs"))
+        .expect("read dev-cli usage");
+    assert!(
+        cli_usage.contains("--manifest <cloud/cloud-iac/manifest.json>")
+            && cli_usage.contains("--chart-root <cloud/cloud-iac/iac/k8s/helm>")
+            && cli_usage.contains("--kubewarden-root <cloud/cloud-iac/iac/k8s/kubewarden>"),
+        "dev-cli help must advertise live cloud/cloud-iac supply-chain admission paths"
+    );
+
     let checklist =
         std::fs::read_to_string(root.join("docs/checklists/release-readiness-checklist.md"))
             .expect("read release readiness checklist");
