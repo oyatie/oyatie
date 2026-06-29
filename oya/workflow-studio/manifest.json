@@ -76,37 +76,37 @@
       "name": "oya-workflow-studio-collab-crdt-merge-latency",
       "target": "99%",
       "sli": "total:",
-      "file": "microservices/workflow-studio/slos/collab-crdt-merge-latency.openslo.yaml"
+      "file": "workflow/observability/slos/workflow-studio/collab-crdt-merge-latency.openslo.yaml"
     },
     {
       "name": "oya-workflow-studio-collab-crdt-no-silent-loss",
       "target": "1.0 (1)",
       "sli": "total:",
-      "file": "microservices/workflow-studio/slos/collab-crdt-no-silent-loss.openslo.yaml"
+      "file": "workflow/observability/slos/workflow-studio/collab-crdt-no-silent-loss.openslo.yaml"
     },
     {
       "name": "oya-workflow-studio-editor-rest-availability",
       "target": "0.9995 (14.4)",
       "sli": "total:",
-      "file": "microservices/workflow-studio/slos/editor-rest-availability.openslo.yaml"
+      "file": "workflow/observability/slos/workflow-studio/editor-rest-availability.openslo.yaml"
     },
     {
       "name": "oya-workflow-studio-editor-rest-latency",
       "target": "99%",
       "sli": "total:",
-      "file": "microservices/workflow-studio/slos/editor-rest-latency.openslo.yaml"
+      "file": "workflow/observability/slos/workflow-studio/editor-rest-latency.openslo.yaml"
     },
     {
       "name": "oya-workflow-studio-editor-tti-cdn-availability",
       "target": "0.99",
       "sli": "total:",
-      "file": "microservices/workflow-studio/slos/editor-tti-cdn-availability.openslo.yaml"
+      "file": "workflow/observability/slos/workflow-studio/editor-tti-cdn-availability.openslo.yaml"
     },
     {
       "name": "oya-workflow-studio-license-gate-cedar-availability",
       "target": "0.9999",
       "sli": "total:",
-      "file": "microservices/workflow-studio/slos/license-gate-cedar-availability.openslo.yaml"
+      "file": "workflow/observability/slos/workflow-studio/license-gate-cedar-availability.openslo.yaml"
     }
   ],
   "ips": [

@@ -14,7 +14,9 @@
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use oya_cloud_ci_tier_field_coverage_app::{Verdict, collect_manifests, evaluate, evaluate_keyed, render_findings};
+use oya_cloud_ci_tier_field_coverage_app::{
+    Verdict, collect_manifests, evaluate, evaluate_keyed, render_findings,
+};
 use serde_json::Value;
 
 const DEFAULT_POLICY: &str =

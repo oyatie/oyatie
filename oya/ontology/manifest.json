@@ -80,31 +80,31 @@
       "name": "ontology-action-invocation-availability",
       "target": "0.9995",
       "sli": "sum(rate(oya_ontology_action_invocations_total{outcome=~\"success|denied\"}[1m]))",
-      "file": "microservices/ontology/slos/action-invocation-availability.openslo.yaml"
+      "file": "data/observability/slos/ontology/action-invocation-availability.openslo.yaml"
     },
     {
       "name": "ontology-audit-chain-emission-completeness",
       "target": "1.0",
       "sli": "sum(rate(oya_ontology_audit_chain_seal_total[1m]))",
-      "file": "microservices/ontology/slos/audit-chain-emission-completeness.openslo.yaml"
+      "file": "data/observability/slos/ontology/audit-chain-emission-completeness.openslo.yaml"
     },
     {
       "name": "ontology-dynamic-layer-freshness",
       "target": "0.99",
       "sli": "sum(rate(oya_ontology_dynamic_layer_freshness_lag_seconds_bucket{le=\"2\"}[1m]))",
-      "file": "microservices/ontology/slos/dynamic-layer-freshness.openslo.yaml"
+      "file": "data/observability/slos/ontology/dynamic-layer-freshness.openslo.yaml"
     },
     {
       "name": "ontology-function-read-availability",
       "target": "0.9999",
       "sli": "sum(rate(oya_ontology_function_evaluations_total{outcome=\"success\"}[1m]))",
-      "file": "microservices/ontology/slos/function-read-availability.openslo.yaml"
+      "file": "data/observability/slos/ontology/function-read-availability.openslo.yaml"
     },
     {
       "name": "ontology-function-read-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_ontology_function_evaluation_duration_seconds_bucket{le=\"0.050\"}[1m]))",
-      "file": "microservices/ontology/slos/function-read-latency.openslo.yaml"
+      "file": "data/observability/slos/ontology/function-read-latency.openslo.yaml"
     }
   ],
   "ips": [

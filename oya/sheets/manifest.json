@@ -55,55 +55,55 @@
       "name": "oya-sheets-cell-edit-render-latency",
       "target": "99%",
       "sli": "total:",
-      "file": "microservices/sheets/slos/cell-edit-render-latency.openslo.yaml"
+      "file": "oya/sheets/slos/cell-edit-render-latency.openslo.yaml"
     },
     {
       "name": "oya-sheets-chart-render-latency",
       "target": "95%",
       "sli": "total:",
-      "file": "microservices/sheets/slos/chart-render-latency.openslo.yaml"
+      "file": "oya/sheets/slos/chart-render-latency.openslo.yaml"
     },
     {
       "name": "oya-sheets-collab-cursor-sync-latency",
       "target": "99%",
       "sli": "total:",
-      "file": "microservices/sheets/slos/collab-cursor-sync-latency.openslo.yaml"
+      "file": "oya/sheets/slos/collab-cursor-sync-latency.openslo.yaml"
     },
     {
       "name": "oya-sheets-crdt-merge-no-silent-loss",
       "target": "1.0 (1)",
       "sli": "total:",
-      "file": "microservices/sheets/slos/crdt-merge-no-silent-loss.openslo.yaml"
+      "file": "oya/sheets/slos/crdt-merge-no-silent-loss.openslo.yaml"
     },
     {
       "name": "oya-sheets-export-xlsx-latency",
       "target": "95%",
       "sli": "total:",
-      "file": "microservices/sheets/slos/export-xlsx-latency.openslo.yaml"
+      "file": "oya/sheets/slos/export-xlsx-latency.openslo.yaml"
     },
     {
       "name": "oya-sheets-formula-engine-correctness",
       "target": "1.0 (1)",
       "sli": "total:",
-      "file": "microservices/sheets/slos/formula-engine-correctness.openslo.yaml"
+      "file": "oya/sheets/slos/formula-engine-correctness.openslo.yaml"
     },
     {
       "name": "oya-sheets-recalc-100k-cells-latency",
       "target": "95%",
       "sli": "total:",
-      "file": "microservices/sheets/slos/recalc-100k-cells-latency.openslo.yaml"
+      "file": "oya/sheets/slos/recalc-100k-cells-latency.openslo.yaml"
     },
     {
       "name": "oya-sheets-recalc-1m-cells-latency",
       "target": "95%",
       "sli": "total:",
-      "file": "microservices/sheets/slos/recalc-1m-cells-latency.openslo.yaml"
+      "file": "oya/sheets/slos/recalc-1m-cells-latency.openslo.yaml"
     },
     {
       "name": "oya-sheets-sheet-open-latency",
       "target": "95% (1)",
       "sli": "total:",
-      "file": "microservices/sheets/slos/sheet-open-latency.openslo.yaml"
+      "file": "oya/sheets/slos/sheet-open-latency.openslo.yaml"
     }
   ],
   "ips": [

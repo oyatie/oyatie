@@ -95,12 +95,30 @@
     "oya/workplace-integration/capabilities/dlp-trace-seal.yaml"
   ],
   "slos": [
-    "oya/workplace-integration/slos/esign-initiate-availability.openslo.yaml",
-    "oya/workplace-integration/slos/signature-capture-latency.openslo.yaml",
-    "oya/workplace-integration/slos/offer-generation-latency.openslo.yaml",
-    "oya/workplace-integration/slos/roster-binding-accuracy.openslo.yaml",
-    "oya/workplace-integration/slos/clock-attestation-availability.openslo.yaml",
-    "oya/workplace-integration/slos/dlp-trace-seal-fidelity.openslo.yaml"
+    {
+      "name": "esign-initiate-availability",
+      "file": "oya/workplace-integration/slos/esign-initiate-availability.openslo.yaml"
+    },
+    {
+      "name": "signature-capture-latency",
+      "file": "oya/workplace-integration/slos/signature-capture-latency.openslo.yaml"
+    },
+    {
+      "name": "offer-generation-latency",
+      "file": "oya/workplace-integration/slos/offer-generation-latency.openslo.yaml"
+    },
+    {
+      "name": "roster-binding-accuracy",
+      "file": "oya/workplace-integration/slos/roster-binding-accuracy.openslo.yaml"
+    },
+    {
+      "name": "clock-attestation-availability",
+      "file": "oya/workplace-integration/slos/clock-attestation-availability.openslo.yaml"
+    },
+    {
+      "name": "dlp-trace-seal-fidelity",
+      "file": "oya/workplace-integration/slos/dlp-trace-seal-fidelity.openslo.yaml"
+    }
   ],
   "policies": [
     "oya/workplace-integration/policies/esign-initiate.cedar",

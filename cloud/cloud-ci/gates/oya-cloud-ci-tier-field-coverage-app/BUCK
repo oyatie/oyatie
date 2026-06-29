@@ -31,12 +31,12 @@ rust_test(
     ],
 )
 
-# Phase-0 capability-first reorg (ADR-0562/0536/0245/0280): the born-blocking self-test over the
+# Phase-0 capability-first reorg (ADR-0562/0536/0245/0280/0348): the born-blocking self-test over the
 # real service manifests under cloud/ + oya/ plus on-disk RED/GREEN fixtures. It collects every
-# governed service manifest from the live tree and asserts the corpus is born-blocking green (every
-# service carries a valid tier/tier_subtype/dr_tier triple with no `tier` type-overload, every
-# substrate carries a valid substrate_dag_position) while every violation class fails closed from
-# disk. Also asserts the gate policy enums match specs/platform-architecture.json verbatim.
+# governed service manifest from the live tree and asserts the corpus is born-blocking green: valid
+# tier/tier_subtype/dr_tier metadata, no `tier` type-overload, valid substrate_dag_position,
+# ADR-0348 sharding_automation, and OpenSLO references or explicit live exemptions. Also asserts the
+# gate policy enums match specs/platform-architecture.json verbatim.
 rust_test(
     name = "oya-cloud-ci-tier-field-coverage-app-gate",
     srcs = glob(["tests/**/*.rs", "**/*.json"]),

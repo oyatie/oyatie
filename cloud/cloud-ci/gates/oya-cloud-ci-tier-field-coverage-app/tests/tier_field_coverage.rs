@@ -1,9 +1,10 @@
 // cloud-ci-tier-field-coverage: born-blocking self-test over TODAY's real service manifests
-// (Phase-0 capability-first reorg; ADR-0562/0536/0245/0280). The test collects every governed
+// (Phase-0 capability-first reorg; ADR-0562/0536/0245/0280/0348). The test collects every governed
 // service manifest from the live tree and asserts:
 //   * the live corpus is born-blocking GREEN — every service manifest under cloud/ + oya/ carries a
-//     valid tier/tier_subtype/dr_tier triple with no `tier` type-overload, and every substrate
-//     carries a valid substrate_dag_position; so any NEW non-conformant service fails closed;
+//     valid tier/tier_subtype/dr_tier triple with no `tier` type-overload, every substrate carries a
+//     valid substrate_dag_position, every top-level service declares ADR-0348 sharding automation,
+//     and every SLO entry resolves to OpenSLO or carries a live exemption;
 //   * the scan actually found the manifest census (TFC-EMPTY-SCAN floor is met), so a broken
 //     glob/CWD/collect cannot pass as a silent false-green;
 //   * the committed policy gate_id matches the crate contract, and the policy enums match the
@@ -196,17 +197,59 @@ fn green_repo_fixture_passes_from_disk() {
     write_file(
         root,
         "cloud/cloud-iam/manifest.json",
-        "{\n  \"microservice\": \"cloud-iam\",\n  \"tier\": \"substrate\",\n  \"tier_subtype\": \"substrate-identity\",\n  \"dr_tier\": \"T1\",\n  \"substrate_dag_position\": { \"stratum\": \"S1\", \"depends_on\": [\"cell\"], \"consumed_by_substrates\": [] }\n}\n",
+        r#"{
+  "microservice": "cloud-iam",
+  "tier": "substrate",
+  "tier_subtype": "substrate-identity",
+  "dr_tier": "T1",
+  "substrate_dag_position": { "stratum": "S1", "depends_on": ["cell"], "consumed_by_substrates": [] },
+  "sharding_automation": {
+    "autosharding": { "enabled": false, "mode": "not_claimed_runtime", "intended_control_plane": "control_plane_driven" },
+    "auto_rebalance": { "enabled": false },
+    "dynamic_sharding": { "enabled": false }
+  },
+  "slos": [],
+  "slo_exemption": {
+    "status": "live_exempted_fixture",
+    "owner": "axis-identity",
+    "rationale": "The fixture intentionally models a non-runtime service whose OpenSLO coverage lands through a later cloud-ci admitted artifact.",
+    "cutover_on": "2026-12-31",
+    "evidence": "cloud-ci-tier-field-coverage fixture"
+  }
+}
+"#,
     );
     write_file(
         root,
         "oya/crm/manifest.json",
-        "{\n  \"microservice\": \"crm\",\n  \"tier\": \"product\",\n  \"tier_subtype\": \"product-consumer\",\n  \"dr_tier\": \"T3\"\n}\n",
+        r#"{
+  "microservice": "crm",
+  "tier": "product",
+  "tier_subtype": "product-consumer",
+  "dr_tier": "T3",
+  "sharding_automation": {
+    "autosharding": "control_plane_driven",
+    "auto_rebalance": { "enabled": false },
+    "dynamic_sharding": { "enabled": false }
+  },
+  "slos": [],
+  "slo_exemption": {
+    "status": "live_exempted_fixture",
+    "owner": "axis-crm",
+    "rationale": "The fixture intentionally models a non-runtime service whose OpenSLO coverage lands through a later cloud-ci admitted artifact.",
+    "cutover_on": "2026-12-31",
+    "evidence": "cloud-ci-tier-field-coverage fixture"
+  }
+}
+"#,
     );
     let policy = fixture_policy();
     let observed = collect_manifests(root, &policy).expect("collect green fixture");
     let findings = evaluate_keyed(&policy, &observed);
-    assert!(findings.is_empty(), "green fixture must pass: {findings:#?}");
+    assert!(
+        findings.is_empty(),
+        "green fixture must pass: {findings:#?}"
+    );
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Green);
     assert_eq!(evaluate(&policy, &observed).manifests_checked, 2);
 }
@@ -225,8 +268,9 @@ fn red_repo_fixture_missing_tier_fails_from_disk() {
     let observed = collect_manifests(root, &policy).expect("collect red fixture");
     let findings = evaluate_keyed(&policy, &observed);
     assert!(
-        findings.iter().any(|f| f.code == "TFC-MISSING-TIER"
-            && f.key == "oya/widget/manifest.json"),
+        findings
+            .iter()
+            .any(|f| f.code == "TFC-MISSING-TIER" && f.key == "oya/widget/manifest.json"),
         "a manifest missing tier must fail from disk: {findings:#?}"
     );
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
@@ -246,8 +290,9 @@ fn red_repo_fixture_overloaded_tier_fails_from_disk() {
     let observed = collect_manifests(root, &policy).expect("collect red fixture");
     let findings = evaluate_keyed(&policy, &observed);
     assert!(
-        findings.iter().any(|f| f.code == "TFC-TIER-TYPE-OVERLOAD"
-            && f.key == "cloud/legacy-svc/manifest.json"),
+        findings.iter().any(
+            |f| f.code == "TFC-TIER-TYPE-OVERLOAD" && f.key == "cloud/legacy-svc/manifest.json"
+        ),
         "an overloaded tier (DR value) must fail from disk: {findings:#?}"
     );
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
@@ -286,7 +331,9 @@ fn red_repo_fixture_substrate_without_dag_position_fails_from_disk() {
     let observed = collect_manifests(root, &policy).expect("collect red fixture");
     let findings = evaluate_keyed(&policy, &observed);
     assert!(
-        findings.iter().any(|f| f.code == "TFC-SUBSTRATE-MISSING-DAG-POSITION"),
+        findings
+            .iter()
+            .any(|f| f.code == "TFC-SUBSTRATE-MISSING-DAG-POSITION"),
         "a substrate without substrate_dag_position must fail: {findings:#?}"
     );
 }

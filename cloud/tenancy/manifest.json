@@ -77,25 +77,25 @@
       "name": "tenancy-availability",
       "target": "0.9999",
       "sli": "sum(rate(http_requests_total{job=\"oya-tenancy-tenant-lifecycle-rest\",route=\"/api/v1/tenants/.+\",status!~\"5..\"}[5m]))",
-      "file": "microservices/tenancy/slos/availability.openslo.yaml"
+      "file": "tenancy/observability/slos/availability.openslo.yaml"
     },
     {
       "name": "tenancy-correctness-rls-probe",
       "target": "1.0",
       "sli": "sum(rate(oya_tenancy_synthetic_cross_tenant_probe_success_total[5m]))",
-      "file": "microservices/tenancy/slos/correctness.openslo.yaml"
+      "file": "tenancy/observability/slos/correctness.openslo.yaml"
     },
     {
       "name": "tenancy-freshness-rls-drift",
       "target": "0.995",
       "sli": "sum(rate(oya_tenancy_rls_state_validator_runs_total{success=\"true\"}[5m]))",
-      "file": "microservices/tenancy/slos/freshness.openslo.yaml"
+      "file": "tenancy/observability/slos/freshness.openslo.yaml"
     },
     {
       "name": "tenancy-latency",
       "target": "\u2264",
       "sli": "sum(rate(http_request_duration_seconds_bucket{job=\"oya-tenancy-tenant-lifecycle-rest\",route=\"/api/v1/tenants/.+\",le=\"0.005\"}[5m]))",
-      "file": "microservices/tenancy/slos/latency.openslo.yaml"
+      "file": "tenancy/observability/slos/latency.openslo.yaml"
     }
   ],
   "ips": [

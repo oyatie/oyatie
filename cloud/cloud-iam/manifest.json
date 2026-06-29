@@ -110,6 +110,13 @@
     }
   ],
   "slos": [],
+  "slo_exemption": {
+    "status": "live_exempted_no_runtime_sli",
+    "owner": "axis-cloud-iam",
+    "rationale": "No current measured runtime SLI exists for this foundation, retired, or local-scaffold service; the manifest must not claim production or hyperscaler-ready SLO coverage until an OpenSLO file lands.",
+    "cutover_on": "2026-12-31",
+    "evidence": "specs/master-plan-sequencing.json#realignment_wave_sequence"
+  },
   "ips": [
     {
       "id": "IP-001-wave-d-iam-baseline",
@@ -221,6 +228,28 @@
     "tenant_rate_limit": "not_claimed_cs_cloud_iam_005: no implemented Cloud IAM per-tenant/per-cell rate-limit or quota-enforcement evidence in the current crates",
     "golden_signals": "not_claimed_cs_cloud_iam_005: no implemented Cloud IAM metrics/OpenSLO/golden-signal emission evidence in the current crates",
     "error_budget_burn": "not_claimed_cs_cloud_iam_005: SLO list is empty because no measured Cloud IAM SLI or burn-rate rule is implemented yet"
+  },
+  "sharding_automation": {
+    "autosharding": {
+      "enabled": false,
+      "mode": "not_claimed_runtime",
+      "intended_control_plane": "control_plane_driven"
+    },
+    "auto_rebalance": {
+      "enabled": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": false
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": false
+    }
   },
   "audit_chain": {
     "enabled": true,

@@ -89,55 +89,55 @@
       "name": "docs-collab-cursor-sync-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.99, sum(rate(oya_docs_collab_cursor_sync_seconds_bucket[5m])) by (le))",
-      "file": "microservices/docs/slos/collab-cursor-sync-latency.openslo.yaml"
+      "file": "oya/docs/slos/collab-cursor-sync-latency.openslo.yaml"
     },
     {
       "name": "docs-crdt-merge-no-silent-loss",
       "target": "1.0 (1)",
       "sli": "total:",
-      "file": "microservices/docs/slos/crdt-merge-no-silent-loss.openslo.yaml"
+      "file": "oya/docs/slos/crdt-merge-no-silent-loss.openslo.yaml"
     },
     {
       "name": "docs-doc-list-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.99, sum(rate(oya_docs_document_list_seconds_bucket{page_size=\"1000\"}[5m])) by (le))",
-      "file": "microservices/docs/slos/doc-list-latency.openslo.yaml"
+      "file": "oya/docs/slos/doc-list-latency.openslo.yaml"
     },
     {
       "name": "docs-doc-open-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.99, sum(rate(oya_docs_document_open_seconds_bucket{cache_kind=\"cold\"}[5m])) by (le))",
-      "file": "microservices/docs/slos/doc-open-latency.openslo.yaml"
+      "file": "oya/docs/slos/doc-open-latency.openslo.yaml"
     },
     {
       "name": "docs-export-pdf-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.99, sum(rate(oya_docs_export_pdf_seconds_bucket{doc_size_bucket=\"50-page\"}[5m])) by (le))",
-      "file": "microservices/docs/slos/export-pdf-latency.openslo.yaml"
+      "file": "oya/docs/slos/export-pdf-latency.openslo.yaml"
     },
     {
       "name": "docs-pandoc-export-pipeline-availability",
       "target": "0.999",
       "sli": "sum(rate(oya_docs_export_job_total{status=~\"succeeded|failed_unsupported_feature\"}[5m]))",
-      "file": "microservices/docs/slos/pandoc-export-pipeline-availability.openslo.yaml"
+      "file": "oya/docs/slos/pandoc-export-pipeline-availability.openslo.yaml"
     },
     {
       "name": "docs-save-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.99, sum(rate(oya_docs_save_seconds_bucket[5m])) by (le))",
-      "file": "microservices/docs/slos/save-latency.openslo.yaml"
+      "file": "oya/docs/slos/save-latency.openslo.yaml"
     },
     {
       "name": "docs-search-within-doc-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.99, sum(rate(oya_docs_search_within_doc_seconds_bucket[5m])) by (le))",
-      "file": "microservices/docs/slos/search-within-doc-latency.openslo.yaml"
+      "file": "oya/docs/slos/search-within-doc-latency.openslo.yaml"
     },
     {
       "name": "docs-share-acl-enforcement-correctness",
       "target": "1.0 (1)",
       "sli": "total:",
-      "file": "microservices/docs/slos/share-acl-enforcement-correctness.openslo.yaml"
+      "file": "oya/docs/slos/share-acl-enforcement-correctness.openslo.yaml"
     }
   ],
   "ips": [
