@@ -35,10 +35,10 @@ use iam_identity_workload_rest::{
 };
 
 use common::{
-    AUDIENCE, AllowAllLifecycleAuthorizer, FailingRepository, FaultingLifecycleAuthorizer, ISSUER,
-    LIFECYCLE_BEARER, LIFECYCLE_CALLER_ID, LIFECYCLE_CALLER_TENANT, NOW,
-    SameTenantLifecycleAuthorizer, lifecycle_verifier, mint_token, permit_authorizer,
-    provisioned_state,
+    AUDIENCE, AllowAllLifecycleAuthorizer, FailingRepository, FaultingDecisionAuthorizer,
+    FaultingLifecycleAuthorizer, ISSUER, LIFECYCLE_BEARER, LIFECYCLE_CALLER_ID,
+    LIFECYCLE_CALLER_TENANT, NOW, SameTenantDecisionAuthorizer, SameTenantLifecycleAuthorizer,
+    lifecycle_verifier, mint_token, permit_authorizer, provisioned_state,
 };
 use iam_identity_workload_rest::BearerCallerVerifier;
 
@@ -94,7 +94,7 @@ async fn authorize_with_token_permit_is_200_allow_and_audits() {
     let audit = state.audit().clone();
     let router = build_router(state);
 
-    let (status, body) = post_json(
+    let (status, body) = post_json_bearer(
         router,
         "/authorize-with-token",
         json!({
@@ -102,6 +102,7 @@ async fn authorize_with_token_permit_is_200_allow_and_audits() {
             "action": "cloud.kms.Decrypt",
             "resource": { "resourceType": "Secret", "resourceId": "db-password" }
         }),
+        LIFECYCLE_BEARER,
     )
     .await;
 
@@ -131,11 +132,12 @@ async fn authorize_with_token_policy_deny_is_403_forbidden() {
         InMemoryAuditSink::new(),
         lifecycle_verifier(),
         Arc::new(SameTenantLifecycleAuthorizer),
+        Arc::new(SameTenantDecisionAuthorizer),
         || NOW,
     ));
     let router = build_router(state);
 
-    let (status, body) = post_json(
+    let (status, body) = post_json_bearer(
         router,
         "/authorize-with-token",
         json!({
@@ -143,6 +145,7 @@ async fn authorize_with_token_policy_deny_is_403_forbidden() {
             "action": "cloud.kms.Decrypt",
             "resource": { "resourceType": "Secret", "resourceId": "db-password" }
         }),
+        LIFECYCLE_BEARER,
     )
     .await;
 
@@ -159,7 +162,7 @@ async fn invalid_token_on_authorize_is_422() {
     let audit = state.audit().clone();
     let router = build_router(state);
 
-    let (status, body) = post_json(
+    let (status, body) = post_json_bearer(
         router,
         "/authorize-with-token",
         json!({
@@ -167,6 +170,7 @@ async fn invalid_token_on_authorize_is_422() {
             "action": "cloud.kms.Decrypt",
             "resource": { "resourceType": "Secret", "resourceId": "db-password" }
         }),
+        LIFECYCLE_BEARER,
     )
     .await;
 
@@ -190,11 +194,12 @@ async fn unknown_subject_is_403_not_404() {
         InMemoryAuditSink::new(),
         lifecycle_verifier(),
         Arc::new(SameTenantLifecycleAuthorizer),
+        Arc::new(SameTenantDecisionAuthorizer),
         || NOW,
     ));
     let router = build_router(state);
 
-    let (status, _body) = post_json(
+    let (status, _body) = post_json_bearer(
         router,
         "/authorize-with-token",
         json!({
@@ -202,6 +207,7 @@ async fn unknown_subject_is_403_not_404() {
             "action": "cloud.kms.Decrypt",
             "resource": { "resourceType": "Secret", "resourceId": "db-password" }
         }),
+        LIFECYCLE_BEARER,
     )
     .await;
 
@@ -221,11 +227,12 @@ async fn store_unavailable_is_503_fail_closed() {
         InMemoryAuditSink::new(),
         lifecycle_verifier(),
         Arc::new(SameTenantLifecycleAuthorizer),
+        Arc::new(SameTenantDecisionAuthorizer),
         || NOW,
     ));
     let router = build_router(state);
 
-    let (status, body) = post_json(
+    let (status, body) = post_json_bearer(
         router,
         "/authorize-with-token",
         json!({
@@ -233,6 +240,7 @@ async fn store_unavailable_is_503_fail_closed() {
             "action": "cloud.kms.Decrypt",
             "resource": { "resourceType": "Secret", "resourceId": "db-password" }
         }),
+        LIFECYCLE_BEARER,
     )
     .await;
 
@@ -247,8 +255,13 @@ async fn tokens_validate_returns_principal_and_audits() {
     let audit = state.audit().clone();
     let router = build_router(state);
 
-    let (status, body) =
-        post_json(router, "/tokens/validate", json!({ "token": minted.token })).await;
+    let (status, body) = post_json_bearer(
+        router,
+        "/tokens/validate",
+        json!({ "token": minted.token }),
+        LIFECYCLE_BEARER,
+    )
+    .await;
 
     assert_eq!(status, StatusCode::OK);
     assert_eq!(body["tenantId"], "ten_acme");
@@ -267,7 +280,13 @@ async fn tokens_validate_failure_is_422_and_audits() {
     let audit = state.audit().clone();
     let router = build_router(state);
 
-    let (status, body) = post_json(router, "/tokens/validate", json!({ "token": "garbage" })).await;
+    let (status, body) = post_json_bearer(
+        router,
+        "/tokens/validate",
+        json!({ "token": "garbage" }),
+        LIFECYCLE_BEARER,
+    )
+    .await;
 
     assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
     assert_eq!(body["error"]["code"], "TOKEN_INVALID");
@@ -280,7 +299,7 @@ async fn authorize_already_verified_principal_permit() {
     let state = provisioned_state(minted.jwk.clone());
     let router = build_router(state);
 
-    let (status, body) = post_json(
+    let (status, body) = post_json_bearer(
         router,
         "/authorize",
         json!({
@@ -292,6 +311,7 @@ async fn authorize_already_verified_principal_permit() {
             "action": "cloud.kms.Decrypt",
             "resource": { "resourceType": "Secret", "resourceId": "db-password" }
         }),
+        LIFECYCLE_BEARER,
     )
     .await;
 
@@ -306,7 +326,7 @@ async fn authorize_batch_returns_per_item_decisions() {
     let audit = state.audit().clone();
     let router = build_router(state);
 
-    let (status, body) = post_json(
+    let (status, body) = post_json_bearer(
         router,
         "/authorize:batch",
         json!({
@@ -323,6 +343,7 @@ async fn authorize_batch_returns_per_item_decisions() {
                 }
             ]
         }),
+        LIFECYCLE_BEARER,
     )
     .await;
 
@@ -352,7 +373,7 @@ async fn suspend_then_authorize_is_403() {
     assert_eq!(suspend_body["state"], "suspended");
 
     // The now-revoked principal is denied on the hot path (403, not 404).
-    let (status, _body) = post_json(
+    let (status, _body) = post_json_bearer(
         router,
         "/authorize-with-token",
         json!({
@@ -360,6 +381,7 @@ async fn suspend_then_authorize_is_403() {
             "action": "cloud.kms.Decrypt",
             "resource": { "resourceType": "Secret", "resourceId": "db-password" }
         }),
+        LIFECYCLE_BEARER,
     )
     .await;
     assert_eq!(status, StatusCode::FORBIDDEN);
@@ -484,6 +506,7 @@ async fn lifecycle_cross_tenant_caller_is_403() {
         InMemoryAuditSink::new(),
         cross_tenant_verifier,
         Arc::new(SameTenantLifecycleAuthorizer),
+        Arc::new(SameTenantDecisionAuthorizer),
         || NOW,
     ));
     let router = build_router(state);
@@ -523,6 +546,7 @@ async fn lifecycle_allow_all_permits_same_tenant() {
         InMemoryAuditSink::new(),
         lifecycle_verifier(),
         Arc::new(AllowAllLifecycleAuthorizer),
+        Arc::new(SameTenantDecisionAuthorizer),
         || NOW,
     ));
     let router = build_router(state);
@@ -561,6 +585,7 @@ async fn lifecycle_pdp_deny_is_403() {
         InMemoryAuditSink::new(),
         deny_verifier,
         Arc::new(SameTenantLifecycleAuthorizer),
+        Arc::new(SameTenantDecisionAuthorizer),
         || NOW,
     ));
     let router = build_router(state);
@@ -591,6 +616,7 @@ async fn lifecycle_pdp_fault_is_403_not_500() {
         InMemoryAuditSink::new(),
         lifecycle_verifier(),
         Arc::new(FaultingLifecycleAuthorizer),
+        Arc::new(SameTenantDecisionAuthorizer),
         || NOW,
     ));
     let router = build_router(state);
@@ -631,6 +657,7 @@ async fn lifecycle_pdp_fault_audit_detail_is_distinct_from_policy_deny() {
         audit_fault.clone(),
         lifecycle_verifier(),
         Arc::new(FaultingLifecycleAuthorizer),
+        Arc::new(SameTenantDecisionAuthorizer),
         || NOW,
     ));
     let (status_fault, _) = post_json_bearer(
@@ -673,6 +700,7 @@ async fn lifecycle_pdp_fault_audit_detail_is_distinct_from_policy_deny() {
         audit_deny.clone(),
         deny_verifier,
         Arc::new(SameTenantLifecycleAuthorizer),
+        Arc::new(SameTenantDecisionAuthorizer),
         || NOW,
     ));
     let (status_deny, _) = post_json_bearer(
@@ -715,6 +743,7 @@ async fn lifecycle_audit_records_caller_attribution() {
         audit.clone(),
         lifecycle_verifier(), // bound to LIFECYCLE_CALLER_ID / LIFECYCLE_CALLER_TENANT
         Arc::new(AllowAllLifecycleAuthorizer),
+        Arc::new(SameTenantDecisionAuthorizer),
         || NOW,
     ));
 
@@ -742,5 +771,247 @@ async fn lifecycle_audit_records_caller_attribution() {
         allow_records[0].caller_tenant(),
         Some(LIFECYCLE_CALLER_TENANT),
         "audit record must carry the verified caller_tenant"
+    );
+}
+
+// =====================================================================
+// AUTH-005 keystone: the READ decision surfaces (/authorize,
+// /authorize-with-token, /authorize:batch, /tokens/validate) require a
+// VERIFIED caller and a fail-closed same-tenant decision gate. These RED/GREEN
+// proofs fail on origin/dev today (where /authorize was unauthenticated and the
+// authorized principal was built entirely from the caller-supplied body).
+// =====================================================================
+
+/// /authorize with NO bearer is 401 (the keystone: before the fix a forged body
+/// over plain TCP authorized an arbitrary principal; now authn is required first).
+#[tokio::test]
+async fn authorize_no_bearer_is_401() {
+    let minted = mint_token();
+    let state = provisioned_state(minted.jwk.clone());
+    let router = build_router(state);
+
+    let (status, body) = post_json(
+        router,
+        "/authorize",
+        json!({
+            "tenantId": "ten_acme",
+            "workloadId": "wl_secrets_sync",
+            "owningCapability": "cap.cloud.kms",
+            "scopes": ["cloud.kms.decrypt"],
+            "claims": {},
+            "action": "cloud.kms.Decrypt",
+            "resource": { "resourceType": "Secret", "resourceId": "db-password" }
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+    assert_eq!(body["error"]["code"], "UNAUTHENTICATED");
+}
+
+/// /authorize with a FORGED (wrong) bearer is 401 (constant-time compare rejects).
+#[tokio::test]
+async fn authorize_forged_bearer_is_401() {
+    let minted = mint_token();
+    let state = provisioned_state(minted.jwk.clone());
+    let router = build_router(state);
+
+    let (status, _body) = post_json_bearer(
+        router,
+        "/authorize",
+        json!({
+            "tenantId": "ten_acme",
+            "workloadId": "wl_secrets_sync",
+            "owningCapability": "cap.cloud.kms",
+            "scopes": ["cloud.kms.decrypt"],
+            "claims": {},
+            "action": "cloud.kms.Decrypt",
+            "resource": { "resourceType": "Secret", "resourceId": "db-password" }
+        }),
+        "forged-not-the-bearer",
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+}
+
+/// CROSS-TENANT ENTITLEMENT: a VERIFIED caller in `ten_acme` asserting a body
+/// `tenantId: ten_evil` is 403 — the same-tenant decision gate denies a caller
+/// asking for a decision over another tenant's subject (no forged-body ALLOW).
+#[tokio::test]
+async fn authorize_cross_tenant_body_is_403() {
+    let minted = mint_token();
+    let state = provisioned_state(minted.jwk.clone());
+    let audit = state.audit().clone();
+    let router = build_router(state);
+
+    let (status, body) = post_json_bearer(
+        router,
+        "/authorize",
+        json!({
+            "tenantId": "ten_evil",
+            "workloadId": "wl_secrets_sync",
+            "owningCapability": "cap.cloud.kms",
+            "scopes": ["cloud.kms.decrypt"],
+            "claims": {},
+            "action": "cloud.kms.Decrypt",
+            "resource": { "resourceType": "Secret", "resourceId": "db-password" }
+        }),
+        LIFECYCLE_BEARER,
+    )
+    .await;
+    assert_eq!(
+        status,
+        StatusCode::FORBIDDEN,
+        "a verified caller must not obtain a cross-tenant decision"
+    );
+    assert_eq!(body["error"]["code"], "FORBIDDEN");
+    // Exactly one deny record, carrying the distinct cross-tenant detail + caller.
+    let deny: Vec<_> = audit
+        .records()
+        .into_iter()
+        .filter(|r| r.outcome() == "deny")
+        .collect();
+    assert_eq!(deny.len(), 1);
+    assert_eq!(deny[0].detail(), Some("decision-forbidden"));
+    assert_eq!(deny[0].caller_tenant(), Some(LIFECYCLE_CALLER_TENANT));
+}
+
+/// PDP-FAULT on /authorize is a fail-closed 403, never a 5xx (a decision-PDP
+/// outage never allows and never 500s).
+#[tokio::test]
+async fn authorize_decision_pdp_fault_is_403_not_500() {
+    let minted = mint_token();
+    let mut repo = InMemoryWorkloadPrincipalRepository::new();
+    provision(&mut repo, "ten_acme", "wl_secrets_sync", "cap.cloud.kms").expect("provision");
+    activate(&mut repo, &WorkloadId::new("wl_secrets_sync").unwrap()).expect("activate");
+    let audit = InMemoryAuditSink::new();
+    let state: SharedState<_, _, _, _> = Arc::new(WorkloadAuthzState::with_clock(
+        repo,
+        InMemoryRevocationDenylist::new(),
+        permit_authorizer(),
+        Jwks::new().add_key(minted.jwk.clone()),
+        ValidationConfig::new(ISSUER, AUDIENCE),
+        audit.clone(),
+        lifecycle_verifier(),
+        Arc::new(SameTenantLifecycleAuthorizer),
+        Arc::new(FaultingDecisionAuthorizer),
+        || NOW,
+    ));
+    let router = build_router(state);
+
+    let (status, _body) = post_json_bearer(
+        router,
+        "/authorize",
+        json!({
+            "tenantId": "ten_acme",
+            "workloadId": "wl_secrets_sync",
+            "owningCapability": "cap.cloud.kms",
+            "scopes": ["cloud.kms.decrypt"],
+            "claims": {},
+            "action": "cloud.kms.Decrypt",
+            "resource": { "resourceType": "Secret", "resourceId": "db-password" }
+        }),
+        LIFECYCLE_BEARER,
+    )
+    .await;
+    assert_eq!(
+        status,
+        StatusCode::FORBIDDEN,
+        "a decision-PDP fault must fail closed to 403, never 500 or allow"
+    );
+    let deny: Vec<_> = audit
+        .records()
+        .into_iter()
+        .filter(|r| r.outcome() == "deny")
+        .collect();
+    assert_eq!(deny.len(), 1);
+    assert_eq!(
+        deny[0].detail(),
+        Some("decision-pdp-fault"),
+        "a PDP fault must be distinguishable from a policy deny in the audit chain"
+    );
+}
+
+/// The token-bearing decision surfaces also require a verified caller: no bearer
+/// is 401 on /authorize-with-token, /authorize:batch and /tokens/validate.
+#[tokio::test]
+async fn token_decision_surfaces_no_bearer_are_401() {
+    let minted = mint_token();
+
+    let state = provisioned_state(minted.jwk.clone());
+    let (status, _) = post_json(
+        build_router(state),
+        "/authorize-with-token",
+        json!({
+            "token": minted.token,
+            "action": "cloud.kms.Decrypt",
+            "resource": { "resourceType": "Secret", "resourceId": "db-password" }
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNAUTHORIZED, "with-token requires a caller");
+
+    let state = provisioned_state(minted.jwk.clone());
+    let (status, _) = post_json(
+        build_router(state),
+        "/authorize:batch",
+        json!({ "requests": [
+            { "token": minted.token, "action": "cloud.kms.Decrypt",
+              "resource": { "resourceType": "Secret", "resourceId": "db-password" } }
+        ] }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNAUTHORIZED, "batch requires a caller");
+
+    let state = provisioned_state(minted.jwk.clone());
+    let (status, _) =
+        post_json(build_router(state), "/tokens/validate", json!({ "token": minted.token })).await;
+    assert_eq!(status, StatusCode::UNAUTHORIZED, "validate requires a caller");
+}
+
+/// CROSS-TENANT on /authorize-with-token: a verified `ten_acme` caller presenting
+/// a (validly-signed) token whose subject is in a DIFFERENT tenant is 403 — the
+/// subject tenant comes from the VALIDATED token, not the caller, so a stolen
+/// cross-tenant token cannot be replayed by another tenant's control plane.
+#[tokio::test]
+async fn authorize_with_token_cross_tenant_caller_is_403() {
+    let minted = mint_token(); // token subject is ten_acme
+    let mut repo = InMemoryWorkloadPrincipalRepository::new();
+    provision(&mut repo, "ten_acme", "wl_secrets_sync", "cap.cloud.kms").expect("provision");
+    activate(&mut repo, &WorkloadId::new("wl_secrets_sync").unwrap()).expect("activate");
+    // Verified caller is bound to a DIFFERENT tenant than the token's subject.
+    let cross_tenant_verifier = Arc::new(BearerCallerVerifier::new(
+        LIFECYCLE_BEARER,
+        "ten_other",
+        "other-control-plane",
+    ));
+    let state: SharedState<_, _, _, _> = Arc::new(WorkloadAuthzState::with_clock(
+        repo,
+        InMemoryRevocationDenylist::new(),
+        permit_authorizer(),
+        Jwks::new().add_key(minted.jwk.clone()),
+        ValidationConfig::new(ISSUER, AUDIENCE),
+        InMemoryAuditSink::new(),
+        cross_tenant_verifier,
+        Arc::new(SameTenantLifecycleAuthorizer),
+        Arc::new(SameTenantDecisionAuthorizer),
+        || NOW,
+    ));
+    let router = build_router(state);
+
+    let (status, _body) = post_json_bearer(
+        router,
+        "/authorize-with-token",
+        json!({
+            "token": minted.token,
+            "action": "cloud.kms.Decrypt",
+            "resource": { "resourceType": "Secret", "resourceId": "db-password" }
+        }),
+        LIFECYCLE_BEARER,
+    )
+    .await;
+    assert_eq!(
+        status,
+        StatusCode::FORBIDDEN,
+        "a cross-tenant token must not be authorized by another tenant's caller"
     );
 }

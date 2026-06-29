@@ -23,6 +23,7 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
+use axum::http::{HeaderMap, HeaderValue, header::AUTHORIZATION};
 use tonic::{Request, Response, Status};
 
 use iam_identity_workload_api::ClaimValueDto;
@@ -30,12 +31,13 @@ use iam_identity_workload_app::{
     AuthorizeOutcome, RevocationDenylist, WorkloadPrincipalRepository, authorize_with_token,
 };
 use iam_identity_workload_authz_cedar::WorkloadAuthorizer;
-use iam_identity_workload_domain::{
-    Action, AuthorizationDecision, AuthorizationRequest, ClaimValue, Resource,
-};
+use iam_identity_workload_domain::{Action, AuthorizationRequest, ClaimValue, Resource};
 use iam_identity_workload_oidc::{OidcValidationError, validate_workload_token};
 
-use crate::{AuditEvent, AuditRecord, AuditSink, WorkloadAuthzState, build_active_principal};
+use crate::{
+    AuditEvent, AuditRecord, AuditSink, DecisionAuthzRequest, VerifiedCaller, WorkloadAuthzState,
+    build_active_principal,
+};
 
 // Include tonic-generated stubs for oya.identity.workload.v1.
 pub mod proto {
@@ -116,6 +118,111 @@ fn authorize_outcome_label(outcome: &AuthorizeOutcome) -> &'static str {
         AuthorizeOutcome::Revoked => "deny",
         AuthorizeOutcome::StoreUnavailable => "store-unavailable",
     }
+}
+
+/// Copy the `authorization` request metadatum into an http [`HeaderMap`] so the
+/// shared header-based [`crate::CallerVerifier`] authenticates a gRPC caller
+/// EXACTLY as it does a REST caller — one authn seam, both surfaces, no second
+/// credential format to drift (AUTH-005). Only `authorization` is copied; no
+/// caller-supplied identity metadatum can authorize.
+fn headers_from_metadata(metadata: &tonic::metadata::MetadataMap) -> HeaderMap {
+    let mut headers = HeaderMap::new();
+    if let Some(value) = metadata.get("authorization").and_then(|v| v.to_str().ok())
+        && let Ok(header_value) = HeaderValue::from_str(value)
+    {
+        headers.insert(AUTHORIZATION, header_value);
+    }
+    headers
+}
+
+/// Authenticate the gRPC caller from request metadata. `Err(unauthenticated)`
+/// when no verified credential is present (default-deny; mirrors the REST `401`).
+fn verify_grpc_caller<R, D, A, S>(
+    state: &WorkloadAuthzState<R, D, A, S>,
+    metadata: &tonic::metadata::MetadataMap,
+) -> Result<VerifiedCaller, Status>
+where
+    R: WorkloadPrincipalRepository + Send + 'static,
+    D: RevocationDenylist + Send + 'static,
+    A: WorkloadAuthorizer + Send + Sync + 'static,
+    S: AuditSink + 'static,
+{
+    let headers = headers_from_metadata(metadata);
+    state
+        .caller_verifier_ref()
+        .verify_principal(&headers)
+        .ok_or_else(|| Status::unauthenticated("verified caller credential required"))
+}
+
+/// Per-decision same-tenant caller-authz gate for the gRPC decision RPCs. `Ok(())`
+/// permits; a policy deny (`Ok(false)`) or a PDP fault (`Err`) BOTH map to
+/// `permission_denied` (fail-closed, never `internal`/5xx) and emit one deny audit
+/// record with caller attribution. Mirrors the REST `decision_gate`.
+#[allow(clippy::too_many_arguments)]
+fn decide_grpc<R, D, A, S>(
+    state: &WorkloadAuthzState<R, D, A, S>,
+    caller: &VerifiedCaller,
+    subject_tenant: &str,
+    subject_workload_id: &str,
+    action: &str,
+    resource_type: &str,
+    resource_id: &str,
+) -> Result<(), Status>
+where
+    R: WorkloadPrincipalRepository + Send + 'static,
+    D: RevocationDenylist + Send + 'static,
+    A: WorkloadAuthorizer + Send + Sync + 'static,
+    S: AuditSink + 'static,
+{
+    let request = DecisionAuthzRequest {
+        caller_tenant: caller.caller_tenant(),
+        caller_id: caller.caller_id(),
+        subject_tenant,
+        subject_workload_id,
+        action,
+        resource_type,
+        resource_id,
+    };
+    let detail = match state.decision_authorizer_ref().decide(&request) {
+        Ok(true) => return Ok(()),
+        Ok(false) => "decision-forbidden",
+        Err(_fault) => "decision-pdp-fault",
+    };
+    state.audit().record(
+        AuditRecord::new(
+            AuditEvent::Authorize,
+            Some(subject_workload_id.to_owned()),
+            "deny",
+            Some(detail.to_owned()),
+        )
+        .with_authorization_target(action, resource_type, resource_id)
+        .with_caller(caller.caller_id(), caller.caller_tenant()),
+    );
+    Err(Status::permission_denied("cross-tenant decision denied"))
+}
+
+/// Best-effort `(subject_tenant, subject_workload_id)` from a token, for the gRPC
+/// same-tenant gate. `None` for a token that does not validate (forged/expired):
+/// the gate is then skipped and the existing flow fail-closes the request.
+fn best_effort_subject<R, D, A, S>(
+    state: &WorkloadAuthzState<R, D, A, S>,
+    token: &str,
+) -> Option<(String, String)>
+where
+    R: WorkloadPrincipalRepository + Send + 'static,
+    D: RevocationDenylist + Send + 'static,
+    A: WorkloadAuthorizer + Send + Sync + 'static,
+    S: AuditSink + 'static,
+{
+    let now = (state.now_provider_ref())();
+    validate_workload_token(token, state.jwks_ref(), state.config_ref(), now)
+        .ok()
+        .map(|p| {
+            (
+                p.tenant_id().as_str().to_owned(),
+                p.workload_id().as_str().to_owned(),
+            )
+        })
 }
 
 /// Run authorize_with_token using the (mutex-guarded) state. Always returns
@@ -246,7 +353,24 @@ where
         &self,
         request: Request<ProtoAuthorizeWithTokenRequest>,
     ) -> Result<Response<ProtoAuthorizeResponse>, Status> {
+        let caller = verify_grpc_caller(&self.state, request.metadata())?;
         let req = request.into_inner();
+        // Same-tenant gate: subject tenant from the VALIDATED token. A token that
+        // does not validate is left to the existing token-rejected DENY path.
+        if let Some((subject_tenant, subject_workload_id)) =
+            best_effort_subject(&self.state, &req.token)
+        {
+            let resource = req.resource.as_ref();
+            decide_grpc(
+                &self.state,
+                &caller,
+                &subject_tenant,
+                &subject_workload_id,
+                &req.action,
+                resource.map(|r| r.resource_type.as_str()).unwrap_or_default(),
+                resource.map(|r| r.resource_id.as_str()).unwrap_or_default(),
+            )?;
+        }
         let (action, resource, context) = decode_authorize_with_token_request(&req);
         let outcome =
             run_authorize_with_token_grpc(&self.state, &req.token, action, resource, context)?;
@@ -275,7 +399,22 @@ where
         &self,
         request: Request<ProtoAuthorizeRequest>,
     ) -> Result<Response<ProtoAuthorizeResponse>, Status> {
+        // AUTH-005: authenticate the caller from metadata, then a fail-closed
+        // same-tenant gate (subject tenant = the body's tenant_id) BEFORE the
+        // caller-asserted principal is built — a forged body can no longer obtain
+        // an arbitrary cross-tenant decision over the unauthenticated socket.
+        let caller = verify_grpc_caller(&self.state, request.metadata())?;
         let req = request.into_inner();
+        let resource = req.resource.as_ref();
+        decide_grpc(
+            &self.state,
+            &caller,
+            &req.tenant_id,
+            &req.workload_id,
+            &req.action,
+            resource.map(|r| r.resource_type.as_str()).unwrap_or_default(),
+            resource.map(|r| r.resource_id.as_str()).unwrap_or_default(),
+        )?;
 
         // Reuse the crate-level `build_active_principal` — same logic as REST /authorize.
         // We need to build an api AuthorizeRequest to reuse the helper.
@@ -350,10 +489,36 @@ where
         &self,
         request: Request<ProtoBatchAuthorizeRequest>,
     ) -> Result<Response<ProtoBatchAuthorizeResponse>, Status> {
+        let caller = verify_grpc_caller(&self.state, request.metadata())?;
         let req = request.into_inner();
         let mut decisions = Vec::with_capacity(req.requests.len());
 
         for item in &req.requests {
+            // Per-item same-tenant gate: a cross-tenant (or PDP-faulted) item
+            // collapses to a DENY decision in the batch (fail-closed), never an
+            // Err and never a leaked allow. The gate emits the item's deny record.
+            if let Some((subject_tenant, subject_workload_id)) =
+                best_effort_subject(&self.state, &item.token)
+            {
+                let resource = item.resource.as_ref();
+                if decide_grpc(
+                    &self.state,
+                    &caller,
+                    &subject_tenant,
+                    &subject_workload_id,
+                    &item.action,
+                    resource.map(|r| r.resource_type.as_str()).unwrap_or_default(),
+                    resource.map(|r| r.resource_id.as_str()).unwrap_or_default(),
+                )
+                .is_err()
+                {
+                    decisions.push(ProtoAuthorizeResponse {
+                        effect: DecisionEffect::Deny as i32,
+                        reason: None,
+                    });
+                    continue;
+                }
+            }
             let (action, resource, context) = decode_authorize_with_token_request(item);
             let outcome =
                 run_authorize_with_token_grpc(&self.state, &item.token, action, resource, context)?;
@@ -392,6 +557,7 @@ where
         &self,
         request: Request<ProtoValidateTokenRequest>,
     ) -> Result<Response<ProtoValidateTokenResponse>, Status> {
+        let caller = verify_grpc_caller(&self.state, request.metadata())?;
         let req = request.into_inner();
         let now = (self.state.now_provider_ref())();
 
@@ -402,6 +568,17 @@ where
             now,
         ) {
             Ok(principal) => {
+                // Same-tenant gate: a caller may only introspect a token within its
+                // own tenant (cross-tenant introspection -> permission_denied).
+                decide_grpc(
+                    &self.state,
+                    &caller,
+                    principal.tenant_id().as_str(),
+                    principal.workload_id().as_str(),
+                    "identity.workload.ValidateToken",
+                    "Workload",
+                    principal.workload_id().as_str(),
+                )?;
                 self.state.audit().record(AuditRecord::new(
                     AuditEvent::TokenValidation,
                     Some(principal.workload_id().as_str().to_owned()),

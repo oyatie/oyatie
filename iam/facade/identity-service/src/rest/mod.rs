@@ -6,11 +6,19 @@
 
 use axum::Json;
 use axum::Router;
+use axum::extract::DefaultBodyLimit;
 use axum::routing::get;
 
 use iam_identity_workload_app::{RevocationDenylist, WorkloadPrincipalRepository};
 use iam_identity_workload_authz_cedar::WorkloadAuthorizer;
 use iam_identity_workload_rest::{AuditSink, SharedState, build_router};
+
+/// Global request-body cap for the service entry (ADR-0581 §"Body-limit"): the
+/// decision handlers now read the raw body (`Bytes`) so the caller is verified
+/// before deserialization; a bounded limit keeps an unauthenticated caller from
+/// streaming an unbounded body at the socket. 256 KiB comfortably covers the
+/// largest legitimate `/authorize:batch` payload.
+const REQUEST_BODY_LIMIT_BYTES: usize = 256 * 1024;
 
 /// `GET` — health probe (the Helm chart's readiness target).
 pub const HEALTHZ_ROUTE: &str = "/healthz";
@@ -41,4 +49,6 @@ where
         .route(HEALTHZ_ROUTE, get(healthz))
         .route(LIVEZ_ROUTE, get(healthz))
         .route(READYZ_ROUTE, get(readyz))
+        // Global body cap at the service entry (authn runs before the body is read).
+        .layer(DefaultBodyLimit::max(REQUEST_BODY_LIMIT_BYTES))
 }

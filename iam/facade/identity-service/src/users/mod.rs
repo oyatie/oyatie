@@ -649,6 +649,7 @@ mod tests {
     use iam_identity_workload_oidc::Jwk;
     use iam_identity_workload_rest::{BearerCallerVerifier, InMemoryAuditSink, WorkloadAuthzState};
 
+    use crate::decision_authz::TenantScopedDecisionAuthorizer;
     use crate::lifecycle_authz::TenantScopedLifecycleAuthorizer;
 
     const ISSUER: &str = "https://idp.oyatie.com";
@@ -740,6 +741,7 @@ mod tests {
                 "scim-test-control-plane",
             )),
             Arc::new(TenantScopedLifecycleAuthorizer::new()),
+            Arc::new(TenantScopedDecisionAuthorizer::new()),
             || NOW,
         ));
         let state = Arc::new(ScimSurfaceState::new(

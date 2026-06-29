@@ -31,7 +31,7 @@ use iam_identity_workload_app::{InMemoryRevocationDenylist, WorkloadPrincipalRep
 use iam_identity_workload_authz_cedar::CedarWorkloadAuthorizer;
 use iam_identity_workload_oidc::{Jwks, ValidationConfig};
 use iam_identity_workload_rest::{
-    AuditEvent, InMemoryAuditSink, SharedState, WorkloadAuthzState,
+    AuditEvent, BearerCallerVerifier, InMemoryAuditSink, SharedState, WorkloadAuthzState,
     grpc::{
         WorkloadGrpcServer,
         proto::{
@@ -46,9 +46,26 @@ use iam_identity_workload_rest::{
 use iam_identity_workload_rest::grpc::proto::claim_value::Value as ProtoClaimValue;
 
 use common::{
-    AUDIENCE, FailingRepository, ISSUER, NOW, SameTenantLifecycleAuthorizer, lifecycle_verifier,
-    mint_token, permit_authorizer, provisioned_state,
+    AUDIENCE, FailingRepository, FaultingDecisionAuthorizer, ISSUER, LIFECYCLE_BEARER, NOW,
+    SameTenantDecisionAuthorizer, SameTenantLifecycleAuthorizer, lifecycle_verifier, mint_token,
+    permit_authorizer, provisioned_state,
 };
+
+/// Wrap a message in a tonic [`Request`] carrying the verified-caller bearer in
+/// the `authorization` metadatum (the gRPC analogue of the REST
+/// `Authorization: Bearer` header). The caller is bound to `ten_acme` (the minted
+/// token's tenant) so the same-tenant decision gate permits; the unauthenticated
+/// and cross-tenant proofs below construct their requests/state explicitly.
+fn authed_request<T>(message: T) -> Request<T> {
+    let mut request = Request::new(message);
+    request.metadata_mut().insert(
+        "authorization",
+        format!("Bearer {LIFECYCLE_BEARER}")
+            .parse()
+            .expect("ascii bearer"),
+    );
+    request
+}
 
 // =====================================================================
 // Helper: build a proto Resource message
@@ -74,7 +91,7 @@ async fn authorize_with_token_permit_returns_allow() {
     let server = WorkloadGrpcServer::new(state);
 
     let response = server
-        .authorize_with_token(Request::new(AuthorizeWithTokenRequest {
+        .authorize_with_token(authed_request(AuthorizeWithTokenRequest {
             token: minted.token.clone(),
             action: "cloud.kms.Decrypt".to_owned(),
             resource: Some(secret_resource()),
@@ -121,13 +138,14 @@ async fn authorize_with_token_deny_is_response_not_error() {
         InMemoryAuditSink::new(),
         lifecycle_verifier(),
         Arc::new(SameTenantLifecycleAuthorizer),
+        Arc::new(SameTenantDecisionAuthorizer),
         || NOW,
     ));
     let server = WorkloadGrpcServer::new(state.clone());
 
     // Must return Ok(Response) with DENY effect — NOT Err(Status).
     let result = server
-        .authorize_with_token(Request::new(AuthorizeWithTokenRequest {
+        .authorize_with_token(authed_request(AuthorizeWithTokenRequest {
             token: minted.token.clone(),
             action: "cloud.kms.Decrypt".to_owned(),
             resource: Some(secret_resource()),
@@ -162,7 +180,7 @@ async fn validate_token_invalid_returns_typed_error_not_rpc_error() {
 
     // ValidateToken with garbage token.
     let result = server
-        .validate_token(Request::new(ValidateTokenRequest {
+        .validate_token(authed_request(ValidateTokenRequest {
             token: "not-a-valid-jwt".to_owned(),
         }))
         .await;
@@ -226,11 +244,12 @@ async fn authorize_with_invalid_token_engine_not_consulted() {
             InMemoryAuditSink::new(),
             lifecycle_verifier(),
             Arc::new(SameTenantLifecycleAuthorizer),
+            Arc::new(SameTenantDecisionAuthorizer),
             || NOW,
         ));
         let audit = state.audit().clone();
         let resp = WorkloadGrpcServer::new(state)
-            .authorize_with_token(Request::new(AuthorizeWithTokenRequest {
+            .authorize_with_token(authed_request(AuthorizeWithTokenRequest {
                 token,
                 action: "cloud.kms.Decrypt".to_owned(),
                 resource: Some(iam_identity_workload_rest::grpc::proto::Resource {
@@ -290,12 +309,13 @@ async fn store_unavailable_is_grpc_unavailable() {
         InMemoryAuditSink::new(),
         lifecycle_verifier(),
         Arc::new(SameTenantLifecycleAuthorizer),
+        Arc::new(SameTenantDecisionAuthorizer),
         || NOW,
     ));
     let server = WorkloadGrpcServer::new(state.clone());
 
     let result = server
-        .authorize_with_token(Request::new(AuthorizeWithTokenRequest {
+        .authorize_with_token(authed_request(AuthorizeWithTokenRequest {
             token: minted.token.clone(),
             action: "cloud.kms.Decrypt".to_owned(),
             resource: Some(secret_resource()),
@@ -328,7 +348,7 @@ async fn authorize_batch_returns_per_item_decisions_and_audits() {
     let server = WorkloadGrpcServer::new(state);
 
     let response = server
-        .authorize_batch(Request::new(BatchAuthorizeRequest {
+        .authorize_batch(authed_request(BatchAuthorizeRequest {
             requests: vec![
                 // First: valid token + permitted action -> ALLOW.
                 AuthorizeWithTokenRequest {
@@ -381,7 +401,7 @@ async fn authorize_already_verified_principal_permit() {
     let server = WorkloadGrpcServer::new(state);
 
     let result = server
-        .authorize(Request::new(AuthorizeRequest {
+        .authorize(authed_request(AuthorizeRequest {
             tenant_id: "ten_acme".to_owned(),
             workload_id: "wl_secrets_sync".to_owned(),
             owning_capability: "cap.cloud.kms".to_owned(),
@@ -430,12 +450,13 @@ async fn authorize_already_verified_principal_default_deny() {
         InMemoryAuditSink::new(),
         lifecycle_verifier(),
         Arc::new(SameTenantLifecycleAuthorizer),
+        Arc::new(SameTenantDecisionAuthorizer),
         || NOW,
     ));
     let server = WorkloadGrpcServer::new(state.clone());
 
     let result = server
-        .authorize(Request::new(AuthorizeRequest {
+        .authorize(authed_request(AuthorizeRequest {
             tenant_id: "ten_acme".to_owned(),
             workload_id: "wl_secrets_sync".to_owned(),
             owning_capability: "cap.cloud.kms".to_owned(),
@@ -511,6 +532,7 @@ async fn authorize_claims_gated_permit_returns_allow_when_claim_present() {
         InMemoryAuditSink::new(),
         lifecycle_verifier(),
         Arc::new(SameTenantLifecycleAuthorizer),
+        Arc::new(SameTenantDecisionAuthorizer),
         || NOW,
     ));
     let server = WorkloadGrpcServer::new(state.clone());
@@ -522,7 +544,7 @@ async fn authorize_claims_gated_permit_returns_allow_when_claim_present() {
 
     // With the matching claim -> ALLOW.
     let result_with_claim = server
-        .authorize(Request::new(AuthorizeRequest {
+        .authorize(authed_request(AuthorizeRequest {
             tenant_id: "ten_acme".to_owned(),
             workload_id: "wl_secrets_sync".to_owned(),
             owning_capability: "cap.cloud.kms".to_owned(),
@@ -543,7 +565,7 @@ async fn authorize_claims_gated_permit_returns_allow_when_claim_present() {
 
     // Without the claim -> DENY (claim-gated policy does not fire).
     let result_without_claim = server
-        .authorize(Request::new(AuthorizeRequest {
+        .authorize(authed_request(AuthorizeRequest {
             tenant_id: "ten_acme".to_owned(),
             workload_id: "wl_secrets_sync".to_owned(),
             owning_capability: "cap.cloud.kms".to_owned(),
@@ -605,6 +627,7 @@ async fn authorize_resource_attributes_drive_same_tenant_pdp_condition() {
         InMemoryAuditSink::new(),
         lifecycle_verifier(),
         Arc::new(SameTenantLifecycleAuthorizer),
+        Arc::new(SameTenantDecisionAuthorizer),
         || NOW,
     ));
     let server = WorkloadGrpcServer::new(state.clone());
@@ -625,7 +648,7 @@ async fn authorize_resource_attributes_drive_same_tenant_pdp_condition() {
     }
 
     let allow = server
-        .authorize(Request::new(AuthorizeRequest {
+        .authorize(authed_request(AuthorizeRequest {
             tenant_id: "ten_acme".to_owned(),
             workload_id: "wl_secrets_sync".to_owned(),
             owning_capability: "cap.cloud.kms".to_owned(),
@@ -645,7 +668,7 @@ async fn authorize_resource_attributes_drive_same_tenant_pdp_condition() {
     );
 
     let deny = server
-        .authorize(Request::new(AuthorizeRequest {
+        .authorize(authed_request(AuthorizeRequest {
             tenant_id: "ten_acme".to_owned(),
             workload_id: "wl_secrets_sync".to_owned(),
             owning_capability: "cap.cloud.kms".to_owned(),
@@ -680,7 +703,7 @@ async fn validate_token_success_returns_principal_fields() {
     let server = WorkloadGrpcServer::new(state);
 
     let result = server
-        .validate_token(Request::new(ValidateTokenRequest {
+        .validate_token(authed_request(ValidateTokenRequest {
             token: minted.token.clone(),
         }))
         .await
@@ -701,4 +724,178 @@ async fn validate_token_success_returns_principal_fields() {
     assert_eq!(audit.len(), 1);
     assert_eq!(audit.records()[0].event(), AuditEvent::TokenValidation);
     assert_eq!(audit.records()[0].outcome(), "validated");
+}
+
+// =====================================================================
+// AUTH-005: the gRPC decision RPCs require a verified caller (metadata bearer)
+// and enforce the same fail-closed same-tenant gate as REST. RED/GREEN proofs.
+// =====================================================================
+
+/// gRPC `Authorize` with NO `authorization` metadatum is `unauthenticated` — the
+/// gRPC analogue of the REST 401 keystone (a forged message can no longer obtain
+/// an arbitrary decision over the plain socket).
+#[tokio::test]
+async fn grpc_authorize_no_metadata_is_unauthenticated() {
+    let minted = mint_token();
+    let state = provisioned_state(minted.jwk.clone());
+    let server = WorkloadGrpcServer::new(state);
+
+    // Plain `Request::new` (no bearer metadata).
+    let result = server
+        .authorize(Request::new(AuthorizeRequest {
+            tenant_id: "ten_acme".to_owned(),
+            workload_id: "wl_secrets_sync".to_owned(),
+            owning_capability: "cap.cloud.kms".to_owned(),
+            scopes: vec!["cloud.kms.decrypt".to_owned()],
+            claims: Default::default(),
+            action: "cloud.kms.Decrypt".to_owned(),
+            resource: Some(secret_resource()),
+            context: Default::default(),
+        }))
+        .await;
+
+    let status = result.expect_err("an unauthenticated caller must be a tonic Err");
+    assert_eq!(status.code(), tonic::Code::Unauthenticated);
+}
+
+/// gRPC `AuthorizeWithToken` and `ValidateToken` also require a verified caller.
+#[tokio::test]
+async fn grpc_token_rpcs_no_metadata_are_unauthenticated() {
+    let minted = mint_token();
+
+    let state = provisioned_state(minted.jwk.clone());
+    let server = WorkloadGrpcServer::new(state);
+    let err = server
+        .authorize_with_token(Request::new(AuthorizeWithTokenRequest {
+            token: minted.token.clone(),
+            action: "cloud.kms.Decrypt".to_owned(),
+            resource: Some(secret_resource()),
+            context: Default::default(),
+        }))
+        .await
+        .expect_err("with-token requires a caller");
+    assert_eq!(err.code(), tonic::Code::Unauthenticated);
+
+    let state = provisioned_state(minted.jwk.clone());
+    let server = WorkloadGrpcServer::new(state);
+    let err = server
+        .validate_token(Request::new(ValidateTokenRequest {
+            token: minted.token.clone(),
+        }))
+        .await
+        .expect_err("validate requires a caller");
+    assert_eq!(err.code(), tonic::Code::Unauthenticated);
+}
+
+/// gRPC `Authorize` CROSS-TENANT: a verified `ten_acme` caller asserting a message
+/// `tenant_id: ten_evil` is `permission_denied` (the same-tenant gate denies a
+/// cross-tenant decision — no forged-message ALLOW).
+#[tokio::test]
+async fn grpc_authorize_cross_tenant_message_is_permission_denied() {
+    let minted = mint_token();
+    let state = provisioned_state(minted.jwk.clone());
+    let server = WorkloadGrpcServer::new(state);
+
+    let result = server
+        .authorize(authed_request(AuthorizeRequest {
+            tenant_id: "ten_evil".to_owned(),
+            workload_id: "wl_secrets_sync".to_owned(),
+            owning_capability: "cap.cloud.kms".to_owned(),
+            scopes: vec!["cloud.kms.decrypt".to_owned()],
+            claims: Default::default(),
+            action: "cloud.kms.Decrypt".to_owned(),
+            resource: Some(secret_resource()),
+            context: Default::default(),
+        }))
+        .await;
+
+    let status = result.expect_err("a cross-tenant decision must be a tonic Err");
+    assert_eq!(status.code(), tonic::Code::PermissionDenied);
+}
+
+/// gRPC `AuthorizeWithToken` CROSS-TENANT: a verified `ten_other` caller presenting
+/// a (validly-signed) `ten_acme` token is `permission_denied` — the subject tenant
+/// comes from the validated token, not the caller's metadata.
+#[tokio::test]
+async fn grpc_authorize_with_token_cross_tenant_caller_is_permission_denied() {
+    let minted = mint_token(); // subject ten_acme
+    let mut repo = iam_identity_workload_app::InMemoryWorkloadPrincipalRepository::new();
+    iam_identity_workload_app::provision(&mut repo, "ten_acme", "wl_secrets_sync", "cap.cloud.kms")
+        .unwrap();
+    iam_identity_workload_app::activate(
+        &mut repo,
+        &iam_identity_workload_domain::WorkloadId::new("wl_secrets_sync").unwrap(),
+    )
+    .unwrap();
+    let cross_tenant_verifier = Arc::new(BearerCallerVerifier::new(
+        LIFECYCLE_BEARER,
+        "ten_other",
+        "other-control-plane",
+    ));
+    let state: SharedState<_, _, _, _> = Arc::new(WorkloadAuthzState::with_clock(
+        repo,
+        InMemoryRevocationDenylist::new(),
+        permit_authorizer(),
+        Jwks::new().add_key(minted.jwk.clone()),
+        ValidationConfig::new(ISSUER, AUDIENCE),
+        InMemoryAuditSink::new(),
+        cross_tenant_verifier,
+        Arc::new(SameTenantLifecycleAuthorizer),
+        Arc::new(SameTenantDecisionAuthorizer),
+        || NOW,
+    ));
+    let server = WorkloadGrpcServer::new(state);
+
+    let err = server
+        .authorize_with_token(authed_request(AuthorizeWithTokenRequest {
+            token: minted.token.clone(),
+            action: "cloud.kms.Decrypt".to_owned(),
+            resource: Some(secret_resource()),
+            context: Default::default(),
+        }))
+        .await
+        .expect_err("cross-tenant token replay must be denied");
+    assert_eq!(err.code(), tonic::Code::PermissionDenied);
+}
+
+/// gRPC decision PDP fault is `permission_denied` (fail-closed), never `internal`.
+#[tokio::test]
+async fn grpc_authorize_decision_pdp_fault_is_permission_denied_not_internal() {
+    let minted = mint_token();
+    let mut repo = iam_identity_workload_app::InMemoryWorkloadPrincipalRepository::new();
+    iam_identity_workload_app::provision(&mut repo, "ten_acme", "wl_secrets_sync", "cap.cloud.kms")
+        .unwrap();
+    iam_identity_workload_app::activate(
+        &mut repo,
+        &iam_identity_workload_domain::WorkloadId::new("wl_secrets_sync").unwrap(),
+    )
+    .unwrap();
+    let state: SharedState<_, _, _, _> = Arc::new(WorkloadAuthzState::with_clock(
+        repo,
+        InMemoryRevocationDenylist::new(),
+        permit_authorizer(),
+        Jwks::new().add_key(minted.jwk.clone()),
+        ValidationConfig::new(ISSUER, AUDIENCE),
+        InMemoryAuditSink::new(),
+        lifecycle_verifier(),
+        Arc::new(SameTenantLifecycleAuthorizer),
+        Arc::new(FaultingDecisionAuthorizer),
+        || NOW,
+    ));
+    let server = WorkloadGrpcServer::new(state);
+
+    let err = server
+        .authorize(authed_request(AuthorizeRequest {
+            tenant_id: "ten_acme".to_owned(),
+            workload_id: "wl_secrets_sync".to_owned(),
+            owning_capability: "cap.cloud.kms".to_owned(),
+            scopes: vec!["cloud.kms.decrypt".to_owned()],
+            claims: Default::default(),
+            action: "cloud.kms.Decrypt".to_owned(),
+            resource: Some(secret_resource()),
+            context: Default::default(),
+        }))
+        .await
+        .expect_err("a decision PDP fault must fail closed");
+    assert_eq!(err.code(), tonic::Code::PermissionDenied);
 }

@@ -23,6 +23,11 @@ use iam_identity_workload_rest::grpc::proto;
 const ISSUER: &str = "https://idp.oyatie.com";
 const AUDIENCE: &str = "oya-cloud-kms";
 const KID: &str = "kid-e2e-1";
+/// AUTH-005: the decision surfaces (`/authorize-with-token`, `/tokens/validate`,
+/// gRPC `Authorize`/`ValidateToken`) require a verified caller. The boot config
+/// binds this bearer to `ten_acme`, matching the minted tokens' tenant, so the
+/// same-tenant decision gate permits.
+const LIFECYCLE_BEARER: &str = "e2e-lifecycle-bearer";
 
 const CEDAR_POLICIES: &str = r#"
 @id("permit-acme-kms-decrypt")
@@ -149,7 +154,7 @@ async fn boot(fixture: &SigningFixture) -> server::ServiceHandle {
         principals_path: Some(seed_path.to_string_lossy().into_owned()),
         signing_key_path: Some(signing_key_path.to_string_lossy().into_owned()),
         signing_kid: "oya-identity-e2e-k1".into(),
-        lifecycle_bearer: "e2e-lifecycle-bearer".into(),
+        lifecycle_bearer: LIFECYCLE_BEARER.into(),
         lifecycle_caller_tenant: "ten_acme".into(),
         lifecycle_caller_id: "e2e-control-plane".into(),
     };
@@ -186,6 +191,7 @@ async fn rest_validate_authorize_and_fail_closed_contract() {
     let token = fixture.mint("wl_secrets_sync", "cloud.kms.decrypt");
     let response = client
         .post(format!("{base}/tokens/validate"))
+        .bearer_auth(LIFECYCLE_BEARER)
         .json(&serde_json::json!({"token": token}))
         .send()
         .await
@@ -198,6 +204,7 @@ async fn rest_validate_authorize_and_fail_closed_contract() {
     // Permitted principal authorizes: 200 ALLOW.
     let response = client
         .post(format!("{base}/authorize-with-token"))
+        .bearer_auth(LIFECYCLE_BEARER)
         .json(&authorize_body(&token))
         .send()
         .await
@@ -220,6 +227,7 @@ async fn rest_validate_authorize_and_fail_closed_contract() {
     ] {
         let status = client
             .post(format!("{base}/authorize-with-token"))
+            .bearer_auth(LIFECYCLE_BEARER)
             .json(&authorize_body(token))
             .send()
             .await
@@ -234,6 +242,7 @@ async fn rest_validate_authorize_and_fail_closed_contract() {
     // never an allow.
     let status = client
         .post(format!("{base}/tokens/validate"))
+        .bearer_auth(LIFECYCLE_BEARER)
         .json(&serde_json::json!({"token": "not-a-jwt"}))
         .send()
         .await
@@ -349,10 +358,17 @@ async fn grpc_surface_returns_identical_decisions() {
     let token = fixture.mint("wl_secrets_sync", "cloud.kms.decrypt");
     let mut validator =
         proto::workload_token_validator_client::WorkloadTokenValidatorClient::new(channel.clone());
+    let mut validate_req = tonic::Request::new(proto::ValidateTokenRequest {
+        token: token.clone(),
+    });
+    validate_req.metadata_mut().insert(
+        "authorization",
+        format!("Bearer {LIFECYCLE_BEARER}")
+            .parse()
+            .expect("ascii bearer"),
+    );
     let response = validator
-        .validate_token(proto::ValidateTokenRequest {
-            token: token.clone(),
-        })
+        .validate_token(validate_req)
         .await
         .expect("validate rpc")
         .into_inner();
@@ -361,15 +377,24 @@ async fn grpc_surface_returns_identical_decisions() {
     // AuthorizeWithToken: ALLOW for the permitted principal, DENY (as a
     // response value, not an RPC error) for the scope-denied principal.
     let mut authorizer = proto::workload_authorizer_client::WorkloadAuthorizerClient::new(channel);
-    let request = |token: String| proto::AuthorizeWithTokenRequest {
-        token,
-        action: "cloud.kms.Decrypt".into(),
-        resource: Some(proto::Resource {
-            resource_type: "Secret".into(),
-            resource_id: "sec_db_creds".into(),
-            attributes: Default::default(),
-        }),
-        context: Default::default(),
+    let request = |token: String| {
+        let mut req = tonic::Request::new(proto::AuthorizeWithTokenRequest {
+            token,
+            action: "cloud.kms.Decrypt".into(),
+            resource: Some(proto::Resource {
+                resource_type: "Secret".into(),
+                resource_id: "sec_db_creds".into(),
+                attributes: Default::default(),
+            }),
+            context: Default::default(),
+        });
+        req.metadata_mut().insert(
+            "authorization",
+            format!("Bearer {LIFECYCLE_BEARER}")
+                .parse()
+                .expect("ascii bearer"),
+        );
+        req
     };
     let allow = authorizer
         .authorize_with_token(request(token))
@@ -455,7 +480,7 @@ async fn boot_with_url(
         principals_path: Some(seed_path.to_string_lossy().into_owned()),
         signing_key_path: Some(signing_key_path.to_string_lossy().into_owned()),
         signing_kid: "oya-identity-e2e-k1".into(),
-        lifecycle_bearer: "e2e-lifecycle-bearer".into(),
+        lifecycle_bearer: LIFECYCLE_BEARER.into(),
         lifecycle_caller_tenant: "ten_acme".into(),
         lifecycle_caller_id: "e2e-control-plane".into(),
     };
