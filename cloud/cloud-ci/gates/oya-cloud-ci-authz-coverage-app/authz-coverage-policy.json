@@ -90,7 +90,6 @@
     "oya/hr/crates/oya-hr-employment-infrastructure/src/lib.rs#hr_runtime_router::router[HttpMethod::Get /hr/v1/healthz; HttpMethod::Post /hr/v1/employees; HttpMethod::Post /hr/v1/labor-compliance-workflow-plans; HttpMethod::Post /hr/v1/leave-payroll-impact-plans; HttpMethod::Post /hr/v1/sensitive-read-policy-decisions]",
     "oya/intelligence/crates/oya-intelligence-adapter-anthropic-compat-api/src/lib.rs#build_routes::router[HttpMethod::Get /v1/messages/count_tokens; HttpMethod::Post /v1/messages]",
     "oya/intelligence/crates/oya-intelligence-adapter-openai-compat-api/src/lib.rs#build_routes::router[HttpMethod::Get /v1/models; HttpMethod::Post /v1/chat/completions; HttpMethod::Post /v1/embeddings]",
-    "oya/intelligence/crates/oya-intelligence-provider-pool-app/src/main.rs#build_app::router[HttpMethod::Get /healthz; HttpMethod::Get /internal/seats; HttpMethod::Get /metrics; HttpMethod::Post /internal/seats/reload]",
     "oya/intelligence/crates/oya-intelligence-provider-pool-app/src/main.rs#mount::router[unclassified:method-ident:method <unresolved:template>]",
     "oya/payroll/crates/oya-payroll-run-infrastructure/src/lib.rs#payroll_runtime_router::router[HttpMethod::Get /payroll/v1/healthz; HttpMethod::Post /payroll/v1/accounting-journal-drafts; HttpMethod::Post /payroll/v1/hr-leave-impact-intakes; HttpMethod::Post /payroll/v1/trial-closes]",
     "libs/oya-shared-backbone-rest-runtime-adapter/src/lib.rs#build_backbone_rest_router_with_state::router[surface:<unresolved:<unclassified-field-path:route.path>>]"
