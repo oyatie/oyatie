@@ -22,8 +22,8 @@ use iam_identity_workload_authz_cedar::CedarWorkloadAuthorizer;
 use iam_identity_workload_domain::{WorkloadId, WorkloadPrincipal};
 use iam_identity_workload_oidc::{Jwk, Jwks, ValidationConfig};
 use iam_identity_workload_rest::{
-    AuthzFault, BearerCallerVerifier, CallerVerifier, InMemoryAuditSink, LifecycleAuthorizer,
-    LifecycleAuthzRequest, SharedState, WorkloadAuthzState,
+    AuthzFault, BearerCallerVerifier, CallerVerifier, DecisionAuthorizer, DecisionAuthzRequest,
+    InMemoryAuditSink, LifecycleAuthorizer, LifecycleAuthzRequest, SharedState, WorkloadAuthzState,
 };
 
 pub const ISSUER: &str = "https://idp.oyatie.com";
@@ -89,6 +89,33 @@ pub struct FaultingLifecycleAuthorizer;
 impl LifecycleAuthorizer for FaultingLifecycleAuthorizer {
     fn decide(&self, _request: &LifecycleAuthzRequest<'_>) -> Result<bool, AuthzFault> {
         Err(AuthzFault::new("induced PDP fault"))
+    }
+}
+
+/// A tenant-scoped [`DecisionAuthorizer`] reference for the READ decision surfaces:
+/// PERMIT iff caller_tenant == subject_tenant (mirrors the production
+/// `TenantScopedDecisionAuthorizer`). Used to prove a verified caller cannot obtain
+/// a cross-tenant decision (forged body / cross-tenant token -> 403).
+#[derive(Clone, Copy, Debug, Default)]
+pub struct SameTenantDecisionAuthorizer;
+
+impl DecisionAuthorizer for SameTenantDecisionAuthorizer {
+    fn decide(&self, request: &DecisionAuthzRequest<'_>) -> Result<bool, AuthzFault> {
+        if request.caller_tenant.is_empty() || request.subject_tenant.is_empty() {
+            return Err(AuthzFault::new("empty tenant"));
+        }
+        Ok(request.caller_tenant == request.subject_tenant)
+    }
+}
+
+/// A [`DecisionAuthorizer`] that always FAULTS (PDP outage surfaced as `Err`).
+/// Proves a decision-PDP fault maps to a fail-closed 403, never a 500/allow.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct FaultingDecisionAuthorizer;
+
+impl DecisionAuthorizer for FaultingDecisionAuthorizer {
+    fn decide(&self, _request: &DecisionAuthzRequest<'_>) -> Result<bool, AuthzFault> {
+        Err(AuthzFault::new("induced decision PDP fault"))
     }
 }
 
@@ -172,6 +199,7 @@ pub fn provisioned_state(jwk: Jwk) -> TestState {
         InMemoryAuditSink::new(),
         lifecycle_verifier(),
         Arc::new(SameTenantLifecycleAuthorizer),
+        Arc::new(SameTenantDecisionAuthorizer),
         now,
     ))
 }
