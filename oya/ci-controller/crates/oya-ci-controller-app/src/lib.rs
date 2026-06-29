@@ -41,27 +41,36 @@
 use axum::{
     Json, Router,
     body::Bytes,
-    extract::State,
+    extract::{Path, State},
     http::{HeaderMap, StatusCode},
     response::{IntoResponse, Response},
     routing::{get, post},
 };
 use k8s_openapi::api::{batch::v1::Job, core::v1::Pod};
 use kube::{
-    Api, Client,
+    Api, Client, Error as KubeError,
     api::{ListParams, Patch, PatchParams},
     runtime::{Controller, controller::Action, watcher},
 };
 use oya_ci_controller_k8s_adapter::{
-    ANNOT_CI_STATUS_POSTED, LABEL_CI_HEAD_SHA, LABEL_CI_PR_NUMBER, observe_job,
+    ANNOT_CI_BASE_REF, ANNOT_CI_STATUS_POSTED, LABEL_CI_DELIVERY_ID, LABEL_CI_HEAD_SHA,
+    LABEL_CI_PR_NUMBER, observe_job,
 };
 use oya_ci_controller_kernel::{
-    CommitState, CommitStatusPoster, GATE_CONTEXT, GateRun, GateRunSpec, JobSpawner,
-    ReconcileDecision, map_job_to_status,
+    CommitState, CommitStatusPoster, GATE_CONTEXT, GateRun, GateRunObservabilityPacket,
+    GateRunObservabilityPhase, GateRunSpec, JobHandle, JobSpawner, ReconcileDecision,
+    build_gate_run_k8s_projection, build_gate_run_observability_packet, gate_run_status_url,
+    map_job_to_status, observability_phase_for_decision,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use std::{sync::Arc, time::Duration};
+use std::{
+    sync::{
+        Arc,
+        atomic::{AtomicU64, Ordering},
+    },
+    time::Duration,
+};
 use tracing::{error, info, warn};
 
 // ---------------------------------------------------------------------------
@@ -74,6 +83,12 @@ const DEFAULT_GRACE_CYCLES: u32 = 12;
 
 /// Requeue interval for active (non-terminal) Jobs.
 const ACTIVE_REQUEUE_SECS: u64 = 10;
+
+static GATE_RUN_REQUESTS_TOTAL: AtomicU64 = AtomicU64::new(0);
+static GATE_RUN_STATUS_API_REQUESTS_TOTAL: AtomicU64 = AtomicU64::new(0);
+static GATE_JOB_SPAWN_TOTAL: AtomicU64 = AtomicU64::new(0);
+static GATE_RECONCILE_TOTAL: AtomicU64 = AtomicU64::new(0);
+static GATE_STATUS_POST_TOTAL: AtomicU64 = AtomicU64::new(0);
 
 // ---------------------------------------------------------------------------
 // ControllerState
@@ -91,6 +106,8 @@ pub struct ControllerState {
     pub namespace: String,
     /// Waiting-pod-reason grace threshold.
     pub grace_cycles: u32,
+    /// Optional base URL for the productized run-status API linked from commit statuses.
+    pub status_api_base_url: Option<String>,
 }
 
 // ---------------------------------------------------------------------------
@@ -121,6 +138,7 @@ pub async fn reconcile(
 ) -> std::result::Result<Action, ReconcileError> {
     let job_name = job.metadata.name.as_deref().unwrap_or("<unnamed>");
     let namespace = job.metadata.namespace.as_deref().unwrap_or(&ctx.namespace);
+    GATE_RECONCILE_TOTAL.fetch_add(1, Ordering::Relaxed);
 
     let labels = job.metadata.labels.as_ref();
     let head_sha = labels
@@ -132,7 +150,7 @@ pub async fn reconcile(
         .cloned()
         .unwrap_or_default();
 
-    info!(job = job_name, sha = %head_sha, pr = %pr_number_str, "reconciling gate job");
+    info!(run_id = job_name, job = job_name, namespace = namespace, sha = %head_sha, pr = %pr_number_str, "reconciling gate job");
 
     // ---- Step 1: fetch owned Pods -----------------------------------------
     let pod_api: Api<Pod> = Api::namespaced(ctx.client.clone(), namespace);
@@ -172,12 +190,13 @@ pub async fn reconcile(
     // ---- Step 3: pure kernel decision ---------------------------------------
     let decision = map_job_to_status(&observation, ctx.grace_cycles);
 
-    info!(job = job_name, decision = ?decision, "kernel decision");
+    info!(run_id = job_name, job = job_name, namespace = namespace, pr = %pr_number_str, sha = %head_sha, decision = ?decision, "kernel decision");
+    let status_target_url = gate_run_status_url(job_name, ctx.status_api_base_url.as_deref());
 
     // ---- Step 4: act --------------------------------------------------------
     match decision {
         ReconcileDecision::AlreadyTerminal => {
-            info!(job = job_name, "terminal status already posted — no-op");
+            info!(run_id = job_name, job = job_name, namespace = namespace, pr = %pr_number_str, sha = %head_sha, decision = "already_terminal", "terminal status already posted — no-op");
             Ok(Action::await_change())
         }
 
@@ -192,8 +211,15 @@ pub async fn reconcile(
             let poster = Arc::clone(&ctx.status_poster);
             let sha = head_sha.clone();
             let desc = description.clone();
+            let target_url = status_target_url.clone();
             let post_result = tokio::task::spawn_blocking(move || {
-                poster.post(&sha, CommitState::Pending, GATE_CONTEXT, &desc, None)
+                poster.post(
+                    &sha,
+                    CommitState::Pending,
+                    GATE_CONTEXT,
+                    &desc,
+                    target_url.as_deref(),
+                )
             })
             .await
             .unwrap_or_else(|e| {
@@ -205,14 +231,18 @@ pub async fn reconcile(
             match post_result {
                 Ok(()) => {
                     // Patch annotation to record pending posted.
-                    patch_status_annotation(
-                        &ctx.client,
-                        namespace,
-                        job_name,
-                        CommitState::Pending,
-                    )
-                    .await;
-                    info!(job = job_name, "pending status posted");
+                    patch_status_annotation(&ctx.client, namespace, job_name, CommitState::Pending)
+                        .await;
+                    GATE_STATUS_POST_TOTAL.fetch_add(1, Ordering::Relaxed);
+                    info!(
+                        run_id = job_name,
+                        job = job_name,
+                        namespace = namespace,
+                        pr = %pr_number_str,
+                        sha = %head_sha,
+                        decision = "post_pending",
+                        "pending status posted"
+                    );
                 }
                 Err(e) => {
                     warn!(job = job_name, error = %e, "failed to post pending status — will retry");
@@ -234,22 +264,30 @@ pub async fn reconcile(
             let poster = Arc::clone(&ctx.status_poster);
             let sha = head_sha.clone();
             let desc = description.clone();
-            let post_result =
-                tokio::task::spawn_blocking(move || poster.post(&sha, state, context, &desc, None))
-                    .await
-                    .unwrap_or_else(|e| {
-                        Err(oya_ci_controller_kernel::KernelError::DownstreamTransport(
-                            format!("spawn_blocking join: {e}"),
-                        ))
-                    });
+            let target_url = status_target_url.clone();
+            let post_result = tokio::task::spawn_blocking(move || {
+                poster.post(&sha, state, context, &desc, target_url.as_deref())
+            })
+            .await
+            .unwrap_or_else(|e| {
+                Err(oya_ci_controller_kernel::KernelError::DownstreamTransport(
+                    format!("spawn_blocking join: {e}"),
+                ))
+            });
 
             match post_result {
                 Ok(()) => {
                     // Write-once terminal guard: patch annotation.
                     patch_status_annotation(&ctx.client, namespace, job_name, state).await;
+                    GATE_STATUS_POST_TOTAL.fetch_add(1, Ordering::Relaxed);
                     info!(
+                        run_id = job_name,
                         job = job_name,
+                        namespace = namespace,
                         state = %state,
+                        pr = %pr_number_str,
+                        sha = %head_sha,
+                        decision = "post_terminal",
                         "terminal status posted"
                     );
                     Ok(Action::await_change())
@@ -497,9 +535,10 @@ pub enum CiTriggerDecision {
     Deny,
 }
 
-/// Gate-run authorization PORT (default-deny seam, parity with the sibling
-/// services' authz gates). Maps a VERIFIED trigger principal to a decision; a
-/// `Deny` (or any future fault mapped to `Deny`) ⇒ `403`.
+/// Gate-run policy authorization PORT (PBAC-ready: RBAC roles plus ABAC
+/// attributes can both live behind this default-deny seam). Maps a VERIFIED
+/// trigger principal to a decision; a `Deny` (or any future fault mapped to
+/// `Deny`) ⇒ `403`.
 pub trait CiTriggerAuthz: Send + Sync {
     /// Authorize a verified trigger. Non-`Allow` ⇒ `403`.
     fn decide(&self, principal: &VerifiedCiTrigger) -> CiTriggerDecision;
@@ -507,8 +546,8 @@ pub trait CiTriggerAuthz: Send + Sync {
 
 /// v1 in-crate authz adapter: permits any VERIFIED trigger principal (the
 /// gateway is the only intended caller and is authenticated upstream by the
-/// bearer). A richer policy adapter can replace this behind the port without
-/// touching the handler.
+/// bearer). A richer PBAC adapter can replace this port without touching the
+/// handler.
 #[derive(Clone, Debug, Default)]
 pub struct AllowVerifiedTriggerAuthz;
 
@@ -533,6 +572,14 @@ pub struct ServerState {
     /// Default-deny authorization seam for POST /gate-run (parity with the
     /// sibling services). A `Deny` ⇒ `403`.
     pub authz: Arc<dyn CiTriggerAuthz>,
+    /// Optional live K8s client for GET /gate-runs/<run_id> status reads.
+    ///
+    /// Tests may leave this unset because the status packet is covered by pure
+    /// kernel and POST /gate-run response tests; production sets it to the
+    /// controller client.
+    pub status_client: Option<Client>,
+    /// Waiting-pod-reason grace threshold used by the status API projection.
+    pub status_grace_cycles: u32,
 }
 
 /// Static configuration for building gate Job specs.
@@ -553,6 +600,8 @@ pub struct GateSpecConfig {
     pub runner_service_account: String,
     /// GitHub repo full name (e.g. "jason931225/oyatie").
     pub repo: String,
+    /// Optional base URL for the productized run-status API.
+    pub status_api_base_url: Option<String>,
 }
 
 /// Request body for `POST /gate-run`.
@@ -575,14 +624,19 @@ pub struct GateRunResponse {
     pub job_name: String,
     pub namespace: String,
     pub already_exists: bool,
+    pub run_id: String,
+    pub status_api_path: String,
+    pub status_url: Option<String>,
+    pub observability: GateRunObservabilityPacket,
 }
 
-/// Build the axum Router with health, metrics, and gate-run endpoints.
+/// Build the axum Router with health, metrics, gate-run trigger, and run-status endpoints.
 pub fn build_router(state: ServerState) -> Router {
     Router::new()
         .route("/healthz", get(handle_healthz))
         .route("/metrics", get(handle_metrics))
         .route("/gate-run", post(handle_gate_run))
+        .route("/gate-runs/{run_id}", get(handle_gate_run_status))
         .with_state(state)
 }
 
@@ -591,12 +645,37 @@ async fn handle_healthz(_state: State<ServerState>) -> impl IntoResponse {
 }
 
 async fn handle_metrics(_state: State<ServerState>) -> impl IntoResponse {
-    (
-        StatusCode::OK,
+    let body = format!(
         "# HELP ci_controller_up Controller liveness\n\
          # TYPE ci_controller_up gauge\n\
-         ci_controller_up 1\n",
-    )
+         ci_controller_up 1\n\
+         # HELP oya_ci_gate_run_requests_total Authenticated gate-run trigger requests\n\
+         # TYPE oya_ci_gate_run_requests_total counter\n\
+         oya_ci_gate_run_requests_total {}\n\
+         # HELP oya_ci_gate_status_api_requests_total Authenticated gate-run status API requests\n\
+         # TYPE oya_ci_gate_status_api_requests_total counter\n\
+         oya_ci_gate_status_api_requests_total {}\n\
+         # HELP oya_ci_gate_job_spawn_total Gate jobs newly created by the controller API\n\
+         # TYPE oya_ci_gate_job_spawn_total counter\n\
+         oya_ci_gate_job_spawn_total {}\n\
+         # HELP oya_ci_gate_reconcile_total Gate job reconcile attempts\n\
+         # TYPE oya_ci_gate_reconcile_total counter\n\
+         oya_ci_gate_reconcile_total {}\n\
+         # HELP oya_ci_gate_status_post_total Commit-status posts completed by the controller\n\
+         # TYPE oya_ci_gate_status_post_total counter\n\
+         oya_ci_gate_status_post_total {}\n\
+         # HELP oya_ci_gate_observability_surface_info Productized oya-ci debugging surface availability\n\
+         # TYPE oya_ci_gate_observability_surface_info gauge\n\
+         oya_ci_gate_observability_surface_info{{surface=\"metrics\"}} 1\n\
+         oya_ci_gate_observability_surface_info{{surface=\"logs\"}} 1\n\
+         oya_ci_gate_observability_surface_info{{surface=\"status_api\"}} 1\n",
+        GATE_RUN_REQUESTS_TOTAL.load(Ordering::Relaxed),
+        GATE_RUN_STATUS_API_REQUESTS_TOTAL.load(Ordering::Relaxed),
+        GATE_JOB_SPAWN_TOTAL.load(Ordering::Relaxed),
+        GATE_RECONCILE_TOTAL.load(Ordering::Relaxed),
+        GATE_STATUS_POST_TOTAL.load(Ordering::Relaxed),
+    );
+    (StatusCode::OK, body)
 }
 
 /// POST /gate-run — spawn a K8s gate Job for the given PR (plank role).
@@ -612,32 +691,249 @@ fn is_full_hex_commit_sha(value: &str) -> bool {
     value.len() == 40 && value.chars().all(|c| c.is_ascii_hexdigit())
 }
 
+fn is_gate_run_id(value: &str) -> bool {
+    let Some(rest) = value.strip_prefix("oya-ci-gate-pr") else {
+        return false;
+    };
+    let Some((pr_number, sha_short)) = rest.split_once('-') else {
+        return false;
+    };
+    !pr_number.is_empty()
+        && pr_number.chars().all(|c| c.is_ascii_digit())
+        && sha_short.len() == 8
+        && sha_short.chars().all(|c| c.is_ascii_hexdigit())
+}
+
+fn status_projection_is_complete(
+    observation: &oya_ci_controller_kernel::JobObservation,
+    pod_count: usize,
+) -> bool {
+    if observation.active > 0 && pod_count == 0 {
+        return false;
+    }
+    observation.succeeded > 0
+        || observation.failed > 0
+        || !observation.conditions.is_empty()
+        || !observation.pod_reasons.is_empty()
+        || pod_count > 0
+        || observation.pending_status_already_posted
+        || observation.terminal_status_already_posted.is_some()
+}
+
 /// Authenticate the gate-run caller against the configured bearer and authorize
 /// the verified trigger, fail-closed. No verified principal ⇒ `401`; a non-Allow
 /// authz decision ⇒ `403`. Mirrors the gold-standard ordering at
 /// intelligence/adapters/rest: authn first, then decide — both BEFORE the
 /// untrusted request body is parsed.
-fn require_gate_run_authz(state: &ServerState, headers: &HeaderMap) -> Result<VerifiedCiTrigger, Response> {
+fn require_gate_run_authz(
+    state: &ServerState,
+    headers: &HeaderMap,
+) -> Result<VerifiedCiTrigger, Box<Response>> {
     // (1) AUTHN — unforgeable verified principal. A self-attested header cannot
     // reach the `Some` branch (the authenticator ignores them).
     let Some(principal) = state.authenticator.verify(headers) else {
         warn!("gate-run: missing or invalid bearer — refusing to spawn");
-        return Err((
-            StatusCode::UNAUTHORIZED,
-            Json(json!({"error": "gate-run requires a valid bearer token"})),
-        )
-            .into_response());
+        return Err(Box::new(
+            (
+                StatusCode::UNAUTHORIZED,
+                Json(json!({"error": "gate-run requires a valid bearer token"})),
+            )
+                .into_response(),
+        ));
     };
     // (2) AUTHZ — default-deny seam; any non-Allow is fail-closed 403.
     if state.authz.decide(&principal) != CiTriggerDecision::Allow {
         warn!(principal = %principal.principal(), "gate-run: authz denied — refusing to spawn");
-        return Err((
-            StatusCode::FORBIDDEN,
-            Json(json!({"error": "gate-run trigger is not authorized"})),
-        )
-            .into_response());
+        return Err(Box::new(
+            (
+                StatusCode::FORBIDDEN,
+                Json(json!({"error": "gate-run trigger is not authorized"})),
+            )
+                .into_response(),
+        ));
     }
     Ok(principal)
+}
+
+/// GET /gate-runs/{run_id} — API-native status/debug projection for one gate run.
+///
+/// The route is authenticated with the same controller bearer as `/gate-run`
+/// because run status contains internal PR, SHA, namespace, and operational
+/// debug details. It reads live K8s Job/Pod state, projects it through the same
+/// pure kernel state machine, and returns a joinable observability packet.
+async fn handle_gate_run_status(
+    State(state): State<ServerState>,
+    headers: HeaderMap,
+    Path(run_id): Path<String>,
+) -> impl IntoResponse {
+    if let Err(response) = require_gate_run_authz(&state, &headers) {
+        return *response;
+    }
+
+    if !is_gate_run_id(&run_id) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(json!({"error": "run_id must be a deterministic oya-ci gate run id"})),
+        )
+            .into_response();
+    }
+    GATE_RUN_STATUS_API_REQUESTS_TOTAL.fetch_add(1, Ordering::Relaxed);
+
+    let Some(client) = state.status_client.clone() else {
+        return (
+            StatusCode::SERVICE_UNAVAILABLE,
+            Json(json!({"error": "gate-run status API is not configured"})),
+        )
+            .into_response();
+    };
+
+    let namespace = state.gate_spec_config.namespace.as_str();
+    let job_api: Api<Job> = Api::namespaced(client.clone(), namespace);
+    let job = match job_api.get(&run_id).await {
+        Ok(job) => job,
+        Err(KubeError::Api(error)) if error.code == StatusCode::NOT_FOUND.as_u16() => {
+            warn!(run_id = %run_id, "gate-run status: job not found");
+            return (
+                StatusCode::NOT_FOUND,
+                Json(json!({"error": "gate-run not found", "run_id": run_id})),
+            )
+                .into_response();
+        }
+        Err(error) => {
+            warn!(run_id = %run_id, error = %error, "gate-run status: job lookup failed");
+            return (
+                StatusCode::BAD_GATEWAY,
+                Json(json!({"error": "gate-run status backend unavailable", "run_id": run_id})),
+            )
+                .into_response();
+        }
+    };
+
+    let pod_api: Api<Pod> = Api::namespaced(client, namespace);
+    let pod_lp = ListParams::default().labels(&format!("job-name={run_id}"));
+    let pods = match pod_api.list(&pod_lp).await {
+        Ok(list) => list.items,
+        Err(error) => {
+            warn!(run_id = %run_id, error = %error, "gate-run status: pod lookup failed");
+            return (
+                StatusCode::BAD_GATEWAY,
+                Json(json!({"error": "gate-run pod status backend unavailable", "run_id": run_id})),
+            )
+                .into_response();
+        }
+    };
+
+    let annotations = job.metadata.annotations.as_ref();
+    let waiting_cycles = annotations
+        .and_then(|values| values.get("oya.io/ci-waiting-cycles"))
+        .and_then(|value| value.parse().ok())
+        .unwrap_or(0);
+    let labels = job.metadata.labels.as_ref();
+    let pr_number = labels
+        .and_then(|values| values.get(LABEL_CI_PR_NUMBER))
+        .and_then(|value| value.parse().ok());
+    let head_sha = labels
+        .and_then(|values| values.get(LABEL_CI_HEAD_SHA))
+        .cloned();
+    let delivery_id = labels
+        .and_then(|values| values.get(LABEL_CI_DELIVERY_ID))
+        .cloned()
+        .unwrap_or_else(|| run_id.clone());
+    let base_ref = annotations
+        .and_then(|values| values.get(ANNOT_CI_BASE_REF))
+        .cloned()
+        .unwrap_or_else(default_base_ref);
+
+    let (Some(pr_number), Some(head_sha)) = (pr_number, head_sha) else {
+        return (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            Json(json!({"error": "gate-run lacks required identity labels", "run_id": run_id})),
+        )
+            .into_response();
+    };
+
+    if !is_full_hex_commit_sha(&head_sha) {
+        return (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            Json(json!({"error": "gate-run has malformed head_sha label", "run_id": run_id})),
+        )
+            .into_response();
+    }
+
+    let observation = observe_job(&job, &pods, waiting_cycles);
+    let projection_complete = status_projection_is_complete(&observation, pods.len());
+    let k8s_projection = build_gate_run_k8s_projection(&observation, projection_complete);
+    if !projection_complete {
+        return (
+            StatusCode::CONFLICT,
+            Json(json!({
+                "error": "gate-run K8s projection is incomplete",
+                "run_id": run_id,
+                "k8s_projection": k8s_projection
+            })),
+        )
+            .into_response();
+    }
+    let decision = map_job_to_status(&observation, state.status_grace_cycles);
+    let phase = observability_phase_for_decision(&decision);
+    let spec = GateRunSpec {
+        run: GateRun {
+            pr_number,
+            head_sha,
+            delivery_id,
+            base_ref,
+            repo: state.gate_spec_config.repo.clone(),
+        },
+        image: state.gate_spec_config.image.clone(),
+        forge_clone_url: state.gate_spec_config.forge_clone_url.clone(),
+        active_deadline_seconds: state.gate_spec_config.active_deadline_seconds,
+        ttl_seconds_after_finished: state.gate_spec_config.ttl_seconds_after_finished,
+        namespace: state.gate_spec_config.namespace.clone(),
+        runner_service_account: state.gate_spec_config.runner_service_account.clone(),
+    };
+
+    let label_run_id = spec.run.run_id();
+    if label_run_id != run_id {
+        warn!(route_run_id = %run_id, label_run_id = %label_run_id, "gate-run status: run identity mismatch");
+        return (
+            StatusCode::CONFLICT,
+            Json(json!({
+                "error": "gate-run identity mismatch",
+                "route_run_id": run_id,
+                "label_run_id": label_run_id
+            })),
+        )
+            .into_response();
+    }
+    let handle = JobHandle {
+        job_name: run_id.clone(),
+        namespace: namespace.to_owned(),
+        already_exists: true,
+    };
+    let job_uid = job.metadata.uid.clone();
+    let job_resource_version = job.metadata.resource_version.clone();
+    let observability = build_gate_run_observability_packet(
+        &spec,
+        &handle,
+        phase,
+        state.gate_spec_config.status_api_base_url.as_deref(),
+    );
+
+    (
+        StatusCode::OK,
+        Json(json!({
+            "run_id": run_id,
+            "phase": phase.as_str(),
+            "decision": format!("{decision:?}"),
+            "k8s_projection": k8s_projection,
+            "k8s_metadata": {
+                "job_uid": job_uid,
+                "job_resource_version": job_resource_version
+            },
+            "observability": observability,
+        })),
+    )
+        .into_response()
 }
 
 async fn handle_gate_run(
@@ -648,8 +944,9 @@ async fn handle_gate_run(
     // Authn + authz BEFORE parsing the untrusted body (authn-before-body-parse).
     let principal = match require_gate_run_authz(&state, &headers) {
         Ok(principal) => principal,
-        Err(response) => return response,
+        Err(response) => return *response,
     };
+    GATE_RUN_REQUESTS_TOTAL.fetch_add(1, Ordering::Relaxed);
 
     // Parse the body only after the caller is verified + authorized.
     let req: GateRunRequest = match serde_json::from_slice(&body) {
@@ -709,6 +1006,8 @@ async fn handle_gate_run(
         namespace: cfg.namespace.clone(),
         runner_service_account: cfg.runner_service_account.clone(),
     };
+    let spec_for_observability = spec.clone();
+    let run_id = spec_for_observability.run.run_id();
 
     let spawner = Arc::clone(&state.job_spawner);
     // K8sJobSpawner::spawn drives a one-shot tokio runtime internally;
@@ -725,33 +1024,48 @@ async fn handle_gate_run(
         Ok(handle) => {
             let status = if handle.already_exists {
                 info!(
+                    run_id = %run_id,
                     job = %handle.job_name,
+                    namespace = %handle.namespace,
                     pr = req.pr_number,
                     sha = %req.head_sha,
                     "gate-run: job already exists (idempotent)"
                 );
                 StatusCode::OK
             } else {
+                GATE_JOB_SPAWN_TOTAL.fetch_add(1, Ordering::Relaxed);
                 info!(
+                    run_id = %run_id,
                     job = %handle.job_name,
+                    namespace = %handle.namespace,
                     pr = req.pr_number,
                     sha = %req.head_sha,
                     "gate-run: job created"
                 );
                 StatusCode::CREATED
             };
+            let observability = build_gate_run_observability_packet(
+                &spec_for_observability,
+                &handle,
+                GateRunObservabilityPhase::Accepted,
+                cfg.status_api_base_url.as_deref(),
+            );
             (
                 status,
-                Json(json!({
-                    "job_name": handle.job_name,
-                    "namespace": handle.namespace,
-                    "already_exists": handle.already_exists,
-                })),
+                Json(GateRunResponse {
+                    job_name: handle.job_name,
+                    namespace: handle.namespace,
+                    already_exists: handle.already_exists,
+                    run_id: observability.run_id.clone(),
+                    status_api_path: observability.status_api_path.clone(),
+                    status_url: observability.status_url.clone(),
+                    observability,
+                }),
             )
                 .into_response()
         }
         Err(e) => {
-            error!(pr = req.pr_number, sha = %req.head_sha, error = %e, "gate-run: spawn failed");
+            error!(run_id = %run_id, pr = req.pr_number, sha = %req.head_sha, error = %e, "gate-run: spawn failed");
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(json!({"error": e.to_string()})),
@@ -775,7 +1089,7 @@ pub use futures::StreamExt;
 mod tests {
     use super::*;
     use axum::{
-        body::Body,
+        body::{Body, to_bytes},
         http::{Request, StatusCode},
     };
     use oya_ci_controller_kernel::{GateRunSpec, JobHandle, KernelError, Result as KernelResult};
@@ -817,9 +1131,12 @@ mod tests {
                 namespace: "oya-ci".to_owned(),
                 runner_service_account: "oya-ci-gate-runner".to_owned(),
                 repo: "oya-admin/oyatie".to_owned(),
+                status_api_base_url: Some("https://ci.example.test/".to_owned()),
             },
             authenticator: Arc::new(ConfiguredBearerCiTriggerAuthenticator::new(TEST_BEARER)),
             authz: Arc::new(AllowVerifiedTriggerAuthz),
+            status_client: None,
+            status_grace_cycles: DEFAULT_GRACE_CYCLES,
         }
     }
 
@@ -866,6 +1183,71 @@ mod tests {
         .expect("route call succeeds")
     }
 
+    async fn route_status_request_with_bearer(
+        router: &mut Router,
+        run_id: &str,
+        bearer: Option<&str>,
+    ) -> axum::response::Response {
+        futures::future::poll_fn(|cx: &mut Context<'_>| {
+            match <Router as Service<Request<Body>>>::poll_ready(router, cx) {
+                Poll::Ready(Ok(())) => Poll::Ready(()),
+                Poll::Ready(Err(err)) => panic!("router not ready: {err}"),
+                Poll::Pending => Poll::Pending,
+            }
+        })
+        .await;
+
+        let mut builder = Request::builder()
+            .method("GET")
+            .uri(format!("/gate-runs/{run_id}"));
+        if let Some(token) = bearer {
+            builder = builder.header("authorization", format!("Bearer {token}"));
+        }
+
+        <Router as Service<Request<Body>>>::call(
+            router,
+            builder.body(Body::empty()).expect("request builds"),
+        )
+        .await
+        .expect("route call succeeds")
+    }
+
+    async fn route_metrics(router: &mut Router) -> axum::response::Response {
+        futures::future::poll_fn(|cx: &mut Context<'_>| {
+            match <Router as Service<Request<Body>>>::poll_ready(router, cx) {
+                Poll::Ready(Ok(())) => Poll::Ready(()),
+                Poll::Ready(Err(err)) => panic!("router not ready: {err}"),
+                Poll::Pending => Poll::Pending,
+            }
+        })
+        .await;
+
+        <Router as Service<Request<Body>>>::call(
+            router,
+            Request::builder()
+                .method("GET")
+                .uri("/metrics")
+                .body(Body::empty())
+                .expect("request builds"),
+        )
+        .await
+        .expect("route call succeeds")
+    }
+
+    async fn json_body(response: axum::response::Response) -> serde_json::Value {
+        let bytes = to_bytes(response.into_body(), usize::MAX)
+            .await
+            .expect("body bytes");
+        serde_json::from_slice(&bytes).expect("json response")
+    }
+
+    async fn text_body(response: axum::response::Response) -> String {
+        let bytes = to_bytes(response.into_body(), usize::MAX)
+            .await
+            .expect("body bytes");
+        String::from_utf8(bytes.to_vec()).expect("utf8 body")
+    }
+
     #[tokio::test]
     async fn gate_run_defaults_to_dev_and_spawns_deterministic_job() {
         let spawner = Arc::new(RecordingSpawner::default());
@@ -877,7 +1259,30 @@ mod tests {
         )
         .await;
 
-        assert_eq!(response.status(), StatusCode::CREATED);
+        let status = response.status();
+        let body = json_body(response).await;
+
+        assert_eq!(status, StatusCode::CREATED);
+        assert_eq!(body["run_id"], "oya-ci-gate-pr42-abcdef12");
+        assert_eq!(
+            body["status_api_path"],
+            "/gate-runs/oya-ci-gate-pr42-abcdef12"
+        );
+        assert_eq!(
+            body["status_url"],
+            "https://ci.example.test/gate-runs/oya-ci-gate-pr42-abcdef12"
+        );
+        assert_eq!(
+            body["observability"]["schema"],
+            "oya-ci/run-observability-packet/v1"
+        );
+        assert_eq!(body["observability"]["phase"], "accepted");
+        assert!(body["observability"]["traces"].is_null());
+        assert!(body["observability"]["events"].is_null());
+        assert_eq!(
+            body["observability"]["metrics"][0],
+            "oya_ci_gate_run_requests_total"
+        );
         let calls = spawner.calls.lock().expect("calls lock");
         assert_eq!(calls.len(), 1);
         assert_eq!(calls[0].run.base_ref, "dev");
@@ -990,5 +1395,78 @@ mod tests {
         assert_eq!(response.status(), StatusCode::CREATED);
         let calls = spawner.calls.lock().expect("calls lock");
         assert_eq!(calls.len(), 1, "valid bearer must spawn exactly one Job");
+    }
+
+    #[tokio::test]
+    async fn gate_run_status_without_bearer_is_unauthorized() {
+        let spawner = Arc::new(RecordingSpawner::default());
+        let mut router = build_router(test_state(Arc::clone(&spawner)));
+
+        let response =
+            route_status_request_with_bearer(&mut router, "oya-ci-gate-pr42-abcdef12", None).await;
+
+        assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+    }
+
+    #[tokio::test]
+    async fn gate_run_status_with_valid_bearer_requires_status_client() {
+        let spawner = Arc::new(RecordingSpawner::default());
+        let mut router = build_router(test_state(Arc::clone(&spawner)));
+
+        let response = route_status_request_with_bearer(
+            &mut router,
+            "oya-ci-gate-pr42-abcdef12",
+            Some(TEST_BEARER),
+        )
+        .await;
+
+        assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
+        let body = json_body(response).await;
+        assert_eq!(body["error"], "gate-run status API is not configured");
+    }
+
+    #[tokio::test]
+    async fn gate_run_status_rejects_malformed_run_id_before_status_backend() {
+        let spawner = Arc::new(RecordingSpawner::default());
+        let mut router = build_router(test_state(Arc::clone(&spawner)));
+
+        let response = route_status_request_with_bearer(
+            &mut router,
+            "not,a-label-selector",
+            Some(TEST_BEARER),
+        )
+        .await;
+
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+        let body = json_body(response).await;
+        assert_eq!(
+            body["error"],
+            "run_id must be a deterministic oya-ci gate run id"
+        );
+    }
+
+    #[tokio::test]
+    async fn metrics_exposes_truthful_run_joined_observability_counters() {
+        let spawner = Arc::new(RecordingSpawner::default());
+        let mut router = build_router(test_state(Arc::clone(&spawner)));
+
+        let response = route_metrics(&mut router).await;
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = text_body(response).await;
+        assert!(body.contains("oya_ci_gate_run_requests_total"));
+        assert!(body.contains("oya_ci_gate_status_api_requests_total"));
+        assert!(body.contains("oya_ci_gate_job_spawn_total"));
+        assert!(body.contains("oya_ci_gate_reconcile_total"));
+        assert!(body.contains("oya_ci_gate_status_post_total"));
+        assert!(body.contains("surface=\"status_api\""));
+        assert!(
+            !body.contains("surface=\"events\""),
+            "do not advertise unavailable event surface"
+        );
+        assert!(
+            !body.contains("surface=\"traces\""),
+            "do not advertise unavailable trace surface"
+        );
     }
 }
