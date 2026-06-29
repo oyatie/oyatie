@@ -123,6 +123,43 @@ fn workflow_inline_shell_dimension_covers_dot_github_workflows() {
     );
 }
 
+#[test]
+fn live_postgres_lane_emits_redacted_bootstrap_provenance_artifact() {
+    let root = repo_root();
+    let workflow_path = root.join(".github/workflows/oya-ci-required.yml");
+    let workflow = fs::read_to_string(&workflow_path)
+        .unwrap_or_else(|e| panic!("read {}: {e}", workflow_path.display()));
+
+    let artifact_id = "\"artifact_id\": \"live-postgres-bootstrap-provenance\"";
+    let start = workflow
+        .find(artifact_id)
+        .expect("live-postgres bootstrap provenance artifact must be emitted");
+    let rest = &workflow[start..];
+    let end = rest
+        .find("\n          JSON")
+        .expect("bootstrap provenance heredoc must terminate");
+    let provenance_block = &rest[..end];
+
+    assert!(
+        provenance_block.contains("\"image\": \"postgres:16\"")
+            && provenance_block.contains("0000_runtime_role.sql")
+            && provenance_block.contains("0001_identity_scim_store.sql")
+            && provenance_block.contains("\"source_revision\": \"${GITHUB_SHA}\""),
+        "bootstrap provenance must include image, ordered migrations, and source revision: {provenance_block}"
+    );
+    assert!(
+        !provenance_block.contains("postgres://")
+            && !provenance_block.contains("postgres:postgres")
+            && !provenance_block.contains("oya_app:app"),
+        "bootstrap provenance must not emit DSNs or credentials: {provenance_block}"
+    );
+    assert!(
+        workflow.contains("name: live-postgres-bootstrap-provenance")
+            && workflow.contains("retention-days: 30"),
+        "bootstrap provenance must be uploaded as a durable retained operator artifact"
+    );
+}
+
 /// The live workflow corpus inline-shell key set must equal the committed frozen baseline EXACTLY
 /// (set equality, mirroring the embedded-asset hermeticity gate's shrink-only contract): a NEW
 /// inline `run:` step beyond baseline is born-blocking, a RETIRED step must shrink the baseline in

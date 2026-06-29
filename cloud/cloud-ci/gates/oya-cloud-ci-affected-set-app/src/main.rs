@@ -22,8 +22,8 @@ use std::path::PathBuf;
 use std::process::{Command, ExitCode, Stdio};
 
 use oya_cloud_ci_affected_set_app::{
-    Change, Decision, GATE_ID, PathClass, Plan, Policy, build_health_verdict, failing_targets,
-    parse_build_report, plan_changes, resolve,
+    Change, Decision, GATE_ID, PathClass, Plan, Policy, affected_set_operator_artifact,
+    build_health_verdict, failing_targets, parse_build_report, plan_changes, resolve,
 };
 
 const LOG: &str = "affected-set";
@@ -41,6 +41,9 @@ struct Args {
     /// The baseline MUST be produced from the merge-base checkout out-of-band (never the
     /// candidate tree); see the build-health binary's soundness note.
     baseline_report: Option<String>,
+    /// Optional path for the durable machine-readable operator artifact that records the selected
+    /// affected-set tier, refs, baseline requirement, and long-running phase signals.
+    decision_artifact_out: Option<String>,
 }
 
 #[derive(PartialEq, Eq, Clone, Copy)]
@@ -57,6 +60,7 @@ fn parse_args(mut argv: std::env::Args) -> Result<Args, String> {
     let mut mode = Mode::Auto;
     let mut derive_only = false;
     let mut baseline_report = None;
+    let mut decision_artifact_out = None;
     while let Some(arg) = argv.next() {
         match arg.as_str() {
             "--policy" => policy_path = Some(argv.next().ok_or("--policy needs a value")?),
@@ -73,6 +77,10 @@ fn parse_args(mut argv: std::env::Args) -> Result<Args, String> {
             "--baseline-report" => {
                 baseline_report = Some(argv.next().ok_or("--baseline-report needs a value")?)
             }
+            "--decision-artifact-out" => {
+                decision_artifact_out =
+                    Some(argv.next().ok_or("--decision-artifact-out needs a value")?)
+            }
             other => return Err(format!("unknown argument `{other}`")),
         }
     }
@@ -83,6 +91,7 @@ fn parse_args(mut argv: std::env::Args) -> Result<Args, String> {
         mode,
         derive_only,
         baseline_report,
+        decision_artifact_out,
     })
 }
 
@@ -92,7 +101,7 @@ fn main() -> ExitCode {
         Err(e) => {
             eprintln!("{LOG}: ARGS ERROR: {e}");
             eprintln!(
-                "{LOG}: usage: oya-cloud-ci-affected-set --policy <pack.json> [--base <ref>] [--head <ref>] [--mode auto|full] [--derive-only] [--baseline-report <merge-base-build-report.json>]"
+                "{LOG}: usage: oya-cloud-ci-affected-set --policy <pack.json> [--base <ref>] [--head <ref>] [--mode auto|full] [--derive-only] [--baseline-report <merge-base-build-report.json>] [--decision-artifact-out <path>]"
             );
             return ExitCode::from(2);
         }
@@ -128,6 +137,14 @@ fn main() -> ExitCode {
         },
         Mode::Auto => derive(&args, &base, &policy, &buck2),
     };
+
+    if let Some(path) = &args.decision_artifact_out {
+        if let Err(e) = write_decision_artifact(path, &args, &base, &decision) {
+            eprintln!("{LOG}: FAIL — cannot write affected-set operator artifact `{path}`: {e}");
+            return ExitCode::from(2);
+        }
+        println!("{LOG}: operator-artifact: {path}");
+    }
 
     match decision {
         Decision::RefuseUnowned { paths } => {
@@ -204,6 +221,31 @@ fn main() -> ExitCode {
             }
         }
     }
+}
+
+fn mode_name(mode: Mode) -> &'static str {
+    match mode {
+        Mode::Auto => "auto",
+        Mode::Full => "full",
+    }
+}
+
+fn write_decision_artifact(
+    path: &str,
+    args: &Args,
+    base: &str,
+    decision: &Decision,
+) -> Result<(), String> {
+    let artifact = affected_set_operator_artifact(
+        mode_name(args.mode),
+        base,
+        &args.head,
+        args.baseline_report.is_some(),
+        decision,
+    );
+    let bytes = serde_json::to_vec_pretty(&artifact)
+        .map_err(|e| format!("serialize affected-set operator artifact: {e}"))?;
+    fs::write(path, bytes).map_err(|e| e.to_string())
 }
 
 /// Auto-mode derivation. Any uncertainty returns `Decision::Full` with the reason (fail-closed
