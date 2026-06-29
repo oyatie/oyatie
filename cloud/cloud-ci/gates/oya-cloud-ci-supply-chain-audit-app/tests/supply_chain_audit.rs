@@ -106,6 +106,16 @@ fn active_admission_wires_signature_provenance_sbom_and_vet_posture() {
         );
     }
 
+    let legacy_keyless_policy =
+        std::fs::read_to_string(root.join("infra/kyverno/policies/require-signed-images.yaml"))
+            .expect("read legacy keyless image policy");
+    assert!(
+        legacy_keyless_policy
+            .contains("https://github.com/jason931225/oyatie/.github/workflows/.+@refs/(heads/dev|tags/v.+)")
+            && !legacy_keyless_policy.contains("https://github.com/.+/.+/.github/workflows"),
+        "secondary keyless policy must not keep the any-GitHub-repository wildcard"
+    );
+
     let checklist =
         std::fs::read_to_string(root.join("docs/checklists/release-readiness-checklist.md"))
             .expect("read release readiness checklist");
@@ -122,6 +132,15 @@ fn active_admission_wires_signature_provenance_sbom_and_vet_posture() {
         cargo_vet_doc.contains("Retired from live admission")
             && cargo_vet_doc.contains("ci_invocation: none while retired"),
         "cargo-vet must be explicitly retired from live readiness authority until maintained inputs exist"
+    );
+
+    let lane_index = std::fs::read_to_string(root.join("docs/governance-lanes/INDEX.md"))
+        .expect("read governance lane index");
+    assert!(
+        lane_index.contains("cargo-vet | retired-until-inputs")
+            && lane_index.contains("current dependency/advisory authority is `cloud-ci-supply-chain-audit`")
+            && !lane_index.contains("cargo run -p oya-governance-cargo-vet"),
+        "the canonical lane index must not present cargo-vet as live CI authority"
     );
 }
 
