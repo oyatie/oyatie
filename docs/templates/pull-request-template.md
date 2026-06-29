@@ -31,7 +31,7 @@ Closes #<n> (or Refs #<n> if not closing). One line.
 - Per-pack regulator-watch impact (if any): `<list>`
 
 ## Code Review
-- Target required check: `oya-pr-review` (not live until `F-PR5-06` closes)
+- Target reviewer evidence producer: `oya-pr-review` (not live cloud admission enforcement until `F-PR5-06` closes; requires a trusted server-side/cloud-ci producer)
 - Reviewer runtime: `subagent_runtime_pending=false`
-- Verdict: `<APPROVE|REQUEST_CHANGES>`
+- Verdict: `<APPROVE|REQUEST_CHANGES|PENDING>`
 - Fix-loop events: `<none|pr-review-fix-requested>`

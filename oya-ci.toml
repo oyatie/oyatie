@@ -148,6 +148,11 @@ catalog_record_globs = ["registry/catalog/*.yaml"]
 
 [unit_class]
 
+# This list is the accounting-registry/firewall baseline gate set, not the full
+# `.github/workflows/oya-ci-required.yml` job matrix. Standalone workflow gates
+# keep their own policy files. The gate-registration meta-test asserts convergence:
+# every ID here has bundled disposition DATA, and every configured gate has required
+# workflow authority via the homogeneous matrix, freshness job, or firewall producer path.
 [[gates.enabled]]
 id = "cloud-ci-total-accounting"
 input_kind = "producer-face"

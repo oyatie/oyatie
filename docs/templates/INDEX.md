@@ -29,7 +29,7 @@ doc_status: published
 
 | ID | File | Purpose (1-line) | Owner (per `docs/RACI-OWNERSHIP.md`) | Enforcing fitness lane |
 |---|---|---|---|---|
-| TPL-PR | `pull-request-template-v2.md` | 5-section PR body + agent/human fork + RFC-2119 normative form. | `axis-foundry` + `council-architecture` | `oya-governance-pr-shape` (`traceability-validator`) |
+| TPL-PR | `pull-request-template.md` | 5-section PR body + `oya-ci-required` verification + reviewer evidence (`F-PR5-06` bounded until trusted producer is live). | `platform-governance` + `council-architecture` | `oya-governance-pr-shape` (`traceability-validator`) |
 | TPL-ADR | `adr-template-v2.md` | Architecture Decision Record with autogen-friendly frontmatter. | `crew-adr-promotion` | `oya-governance-adr-shape` |
 | TPL-IP | `implementation-plan-template.md` | Per-IP plan under `milestones/M*/phases/P*/`. | `council-architecture` (cross-axis) | `oya-governance-plan-hierarchy` |
 | TPL-PHASE | `phase-index-template.md` | Phase INDEX (≤50 lines). | `council-architecture` | `oya-governance-plan-hierarchy` |
@@ -46,12 +46,12 @@ doc_status: published
 
 | ID | File | Purpose | Owner | Verification path |
 |---|---|---|---|---|
-| CHK-DONE | `done-definition-checklist.md` | Extends `docs/AGENTS.md` D1-D18 with per-change-class variants. | `axis-foundry` + `council-architecture` | `guard-pr-merge-review.mjs` + per-lane CI status |
+| CHK-DONE | `done-definition-checklist.md` | Extends `docs/AGENTS.md` D1-D18 with per-change-class variants. | `platform-governance` + `council-architecture` | `oya-ci-required` + per-lane CI status |
 | CHK-PRE | `pre-flight-checklist.md` | Per-change-class preconditions. | `council-architecture` | `oya-governance-pr-shape` |
 | CHK-PHASE | `per-phase-completion-checklist.md` | Phase-internal verification. | `council-architecture` | `oya-governance-plan-hierarchy` |
 | CHK-IP | `per-implementation-plan-checklist.md` | IP-internal verification. | `council-architecture` | `oya-governance-plan-hierarchy` |
 | CHK-DOCFRESH | `doc-freshness-checklist.md` | Per-doc-class staleness budget + auto-update path. | `council-architecture` | `oya-governance-doc-freshness` |
-| CHK-PRREV | `pr-review-checklist.md` | Reviewer agent's per-change-class verification. | `axis-foundry` + per change-class team | `guard-pr-merge-review.mjs` |
+| CHK-PRREV | `pr-review-checklist.md` | Reviewer agent's per-change-class verification. | `platform-governance` + per change-class team | trusted reviewer evidence producer (target; bounded by `F-PR5-06`) |
 | CHK-REL | `release-readiness-checklist.md` | Milestone-level release gate (wave-gate alignment). | `ops-sre-reliability` + `council-architecture` | `oya-governance-release-readiness` |
 | CHK-INV | `inventory-update-checklist.md` | Every cutover/migration phase inventory ledger update (ADR-0052). | `axis-foundry` | `oya-governance-inventory-tracker` |
 | CHK-XAXIS | `cross-axis-contract-change-checklist.md` | Cross-axis contract change cascade. | `council-architecture` | `oya-governance-cross-axis-notify` |
@@ -81,7 +81,7 @@ Glossary enforced in all 7 templates:
 
 ## Conflicts resolved with existing oyatie docs
 
-- `pull-request-template.md`, `adr-template.md`, `capability-record-template.yaml`, `runbook-template.md` already existed at `docs/templates/`. Lifted variants are saved as `*-v2` files and supersede the prior files once reviewed.
+- `pull-request-template.md` is the canonical PR template. The older `pull-request-template-v2.md` remains a compatibility copy that points back to it.
 - `docs/templates/migration-runbook-template.md`, `docs/templates/dpia-template.md`, and `docs/templates/team-charter-template.md` are out of scope of this delivery; preserved as-is.
 - No checklist conflicts: all 12 checklists are new additions to `docs/checklists/`.
 
