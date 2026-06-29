@@ -267,47 +267,47 @@
     {
       "name": "oya-intelligence-dispatch-api-availability",
       "target": "0.9995",
-      "file": "microservices/intelligence/slos/dispatch-api-availability.openslo.yaml"
+      "file": "oya/intelligence/slos/dispatch-api-availability.openslo.yaml"
     },
     {
       "name": "oya-intelligence-dispatch-api-latency",
       "target": "0.99",
-      "file": "microservices/intelligence/slos/dispatch-api-latency.openslo.yaml"
+      "file": "oya/intelligence/slos/dispatch-api-latency.openslo.yaml"
     },
     {
       "name": "oya-intelligence-first-token-latency",
       "target": "0.99",
-      "file": "microservices/intelligence/slos/first-token-latency.openslo.yaml"
+      "file": "oya/intelligence/slos/first-token-latency.openslo.yaml"
     },
     {
       "name": "oya-intelligence-streaming-throughput",
       "target": "0.99",
-      "file": "microservices/intelligence/slos/streaming-throughput.openslo.yaml"
+      "file": "oya/intelligence/slos/streaming-throughput.openslo.yaml"
     },
     {
       "name": "oya-intelligence-audit-emission-success",
       "target": "0.9999",
-      "file": "microservices/intelligence/slos/audit-emission-success.openslo.yaml"
+      "file": "oya/intelligence/slos/audit-emission-success.openslo.yaml"
     },
     {
       "name": "oya-intelligence-refusal-false-positive-rate",
       "target": "0.98",
-      "file": "microservices/intelligence/slos/refusal-false-positive-rate.openslo.yaml"
+      "file": "oya/intelligence/slos/refusal-false-positive-rate.openslo.yaml"
     },
     {
       "name": "oya-intelligence-refusal-false-negative-rate",
       "target": "0.999",
-      "file": "microservices/intelligence/slos/refusal-false-negative-rate.openslo.yaml"
+      "file": "oya/intelligence/slos/refusal-false-negative-rate.openslo.yaml"
     },
     {
       "name": "oya-intelligence-policy-refusal-correctness",
       "target": "0.99",
-      "file": "microservices/intelligence/slos/policy-refusal-correctness.openslo.yaml"
+      "file": "oya/intelligence/slos/policy-refusal-correctness.openslo.yaml"
     },
     {
       "name": "oya-intelligence-assist-draft-latency",
       "target": "0.95",
-      "file": "microservices/intelligence/slos/assist-draft-latency.openslo.yaml"
+      "file": "oya/intelligence/slos/assist-draft-latency.openslo.yaml"
     }
   ],
   "ips": [

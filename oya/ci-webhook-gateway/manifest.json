@@ -70,6 +70,28 @@
     ],
     "emission_contract": "ADR-0263 observability emission contract; every dispatch decision and every signature rejection emits one audit-chain row keyed by delivery_id."
   },
+  "sharding_automation": {
+    "autosharding": {
+      "enabled": false,
+      "mode": "not_claimed_runtime",
+      "intended_control_plane": "control_plane_driven"
+    },
+    "auto_rebalance": {
+      "enabled": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": false
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": false
+    }
+  },
   "secrets_substrate": {
     "provider": "openbao",
     "format": "sref",
@@ -91,7 +113,10 @@
     "non_claim": "No Istio/Cilium/Envoy runtime configuration is implemented by this scaffold; the declaration records the ADR-0148 Tier-1 + Tier-2 layering intent that the deploy substrate provisions."
   },
   "slos": [
-    "slos/ci-webhook-gateway.openslo.yaml"
+    {
+      "name": "ci-webhook-gateway",
+      "file": "oya/ci-webhook-gateway/slos/ci-webhook-gateway.openslo.yaml"
+    }
   ],
   "capabilities": [
     "capabilities/capability-catalog.md"

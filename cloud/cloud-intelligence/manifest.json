@@ -93,31 +93,31 @@
       "name": "cloud-intelligence-availability",
       "target": "99.9%",
       "sli": "availability",
-      "file": "microservices/cloud-intelligence/slos/availability.openslo.yaml"
+      "file": "intelligence/observability/slos/availability.openslo.yaml"
     },
     {
       "name": "cloud-intelligence-ttft",
       "target": "p95 < 2s",
       "sli": "time-to-first-token",
-      "file": "microservices/cloud-intelligence/slos/ttft.openslo.yaml"
+      "file": "intelligence/observability/slos/ttft.openslo.yaml"
     },
     {
       "name": "cloud-intelligence-end-to-end-latency",
       "target": "p95 < 10s",
       "sli": "end-to-end-latency-non-stream",
-      "file": "microservices/cloud-intelligence/slos/end-to-end-latency.openslo.yaml"
+      "file": "intelligence/observability/slos/end-to-end-latency.openslo.yaml"
     },
     {
       "name": "cloud-intelligence-error-rate",
       "target": "< 1%",
       "sli": "error-rate",
-      "file": "microservices/cloud-intelligence/slos/error-rate.openslo.yaml"
+      "file": "intelligence/observability/slos/error-rate.openslo.yaml"
     },
     {
       "name": "cloud-intelligence-completeness",
       "target": "99.5%",
       "sli": "stream-completeness",
-      "file": "microservices/cloud-intelligence/slos/completeness.openslo.yaml"
+      "file": "intelligence/observability/slos/completeness.openslo.yaml"
     }
   ],
   "ips": [
@@ -168,6 +168,28 @@
     "tenant_rate_limit": "The gateway authenticates ingress proxy-keys and implements per-key failure isolation. Per-tenant token-bucket rate limiting is tracked as a deferred item at registry/placeholder-debt/adr-follow-ups.yaml#adr-0373-cloud-intelligence-per-tenant-rate-limit and surfaced as Unimplemented::PerTenantRateLimit (501) when invoked.",
     "golden_signals": "OTel-aligned metrics via structured tracing events expose request outcomes, per-key success/failure, retries, upstream latency, and active-key gauge (oya_cloud_intelligence_*) with Prometheus text exposition at /metrics. Scrape wiring to Alloy/VictoriaMetrics is deployment-time.",
     "error_budget_burn": "OpenSLO error-rate and availability SLO files authored at microservices/cloud-intelligence/slos/. Burn-rate alert wiring to VictoriaMetrics is deployment-time; no live SLO burn is claimed for the local-foundation phase."
+  },
+  "sharding_automation": {
+    "autosharding": {
+      "enabled": false,
+      "mode": "not_claimed_runtime",
+      "intended_control_plane": "control_plane_driven"
+    },
+    "auto_rebalance": {
+      "enabled": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": false
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": false
+    }
   },
   "audit_chain": {
     "enabled": true,

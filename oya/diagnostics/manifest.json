@@ -120,13 +120,31 @@
     "FHIR R5 ServiceRequest"
   ],
   "slos": [
-    "hl7v2-ingest-success",
-    "diagnostic-report-issuance-latency",
+    {
+      "name": "hl7v2-ingest-success",
+      "file": "observability/observability/slos/hl7v2-ingest-success.openslo.yaml"
+    },
+    {
+      "name": "diagnostic-report-issuance-latency",
+      "file": "observability/observability/slos/diagnostic-report-issuance-latency.openslo.yaml"
+    },
     "critical-result-notify-latency",
-    "pathology-sign-out-to-delivery",
-    "reflex-evaluation-latency",
-    "reference-range-lookup-latency",
-    "tat-dashboard-refresh",
+    {
+      "name": "pathology-sign-out-to-delivery",
+      "file": "observability/observability/slos/pathology-sign-out-to-delivery.openslo.yaml"
+    },
+    {
+      "name": "reflex-evaluation-latency",
+      "file": "observability/observability/slos/reflex-evaluation-latency.openslo.yaml"
+    },
+    {
+      "name": "reference-range-lookup-latency",
+      "file": "observability/observability/slos/reference-range-lookup-latency.openslo.yaml"
+    },
+    {
+      "name": "tat-dashboard-refresh",
+      "file": "observability/observability/slos/tat-dashboard-refresh.openslo.yaml"
+    },
     "policy-decision-latency"
   ],
   "policies": [
@@ -279,5 +297,19 @@
     "ambient_ztunnel": true,
     "ambient_waypoint": false,
     "north_south_only": false
-  }
+  },
+  "slo_exemptions": [
+    {
+      "name": "critical-result-notify-latency",
+      "owner": "axis-diagnostics + council-product",
+      "reason": "No current OpenSLO artifact resolves for this planned SLO entry; keep it non-claiming until the artifact exists.",
+      "cutover": "Author a current OpenSLO file under the service-local slos/ or capability observability/slos home before production or hyperscaler-ready promotion."
+    },
+    {
+      "name": "policy-decision-latency",
+      "owner": "axis-diagnostics + council-product",
+      "reason": "No current OpenSLO artifact resolves for this planned SLO entry; keep it non-claiming until the artifact exists.",
+      "cutover": "Author a current OpenSLO file under the service-local slos/ or capability observability/slos home before production or hyperscaler-ready promotion."
+    }
+  ]
 }

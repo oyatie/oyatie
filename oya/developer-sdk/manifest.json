@@ -122,55 +122,55 @@
       "name": "oya-developer-sdk-onboarding-completion-availability",
       "target": "0.995",
       "sli": "sum(rate(oya_developer_sdk_onboarding_total{outcome=\"completed\"}[1h])) / sum(rate(oya_developer_sdk_onboarding_total{outcome=~\"completed|failed|abandoned\"}[1h]))",
-      "file": "microservices/developer-sdk/slos/onboarding-completion-availability.openslo.yaml"
+      "file": "marketplace/observability/slos/onboarding-completion-availability.openslo.yaml"
     },
     {
       "name": "oya-developer-sdk-signing-key-issuance-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.99, rate(oya_developer_sdk_signing_key_issuance_seconds_bucket[5m]))",
-      "file": "microservices/developer-sdk/slos/signing-key-issuance-latency.openslo.yaml"
+      "file": "marketplace/observability/slos/signing-key-issuance-latency.openslo.yaml"
     },
     {
       "name": "oya-developer-sdk-codegen-availability",
       "target": "0.999",
       "sli": "sum(rate(oya_developer_sdk_codegen_outcome_total{outcome=\"emitted\"}[1h])) / sum(rate(oya_developer_sdk_codegen_outcome_total[1h]))",
-      "file": "microservices/developer-sdk/slos/codegen-availability.openslo.yaml"
+      "file": "marketplace/observability/slos/codegen-availability.openslo.yaml"
     },
     {
       "name": "oya-developer-sdk-sandbox-provision-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.99, rate(oya_developer_sdk_sandbox_provision_seconds_bucket[5m]))",
-      "file": "microservices/developer-sdk/slos/sandbox-provision-latency.openslo.yaml"
+      "file": "marketplace/observability/slos/sandbox-provision-latency.openslo.yaml"
     },
     {
       "name": "oya-developer-sdk-sandbox-reset-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.99, rate(oya_developer_sdk_sandbox_reset_seconds_bucket[5m]))",
-      "file": "microservices/developer-sdk/slos/sandbox-reset-latency.openslo.yaml"
+      "file": "marketplace/observability/slos/sandbox-reset-latency.openslo.yaml"
     },
     {
       "name": "oya-developer-sdk-portal-availability",
       "target": "0.999",
       "sli": "sum(rate(oya_developer_sdk_portal_request_total{status!~\"5..\"}[5m])) / sum(rate(oya_developer_sdk_portal_request_total[5m]))",
-      "file": "microservices/developer-sdk/slos/portal-availability.openslo.yaml"
+      "file": "marketplace/observability/slos/portal-availability.openslo.yaml"
     },
     {
       "name": "oya-developer-sdk-payout-settlement-correctness",
       "target": "1.0",
       "sli": "1 - (sum(rate(oya_developer_sdk_payout_settlement_mismatch_total[24h])) / sum(rate(oya_developer_sdk_payout_settlement_total[24h])))",
-      "file": "microservices/developer-sdk/slos/payout-settlement-correctness.openslo.yaml"
+      "file": "marketplace/observability/slos/payout-settlement-correctness.openslo.yaml"
     },
     {
       "name": "oya-developer-sdk-payout-settlement-availability",
       "target": "0.9995",
       "sli": "sum(rate(oya_developer_sdk_payout_settlement_total{outcome=\"settled\"}[24h])) / sum(rate(oya_developer_sdk_payout_settlement_total{outcome=~\"settled|deferred|failed\"}[24h]))",
-      "file": "microservices/developer-sdk/slos/payout-settlement-availability.openslo.yaml"
+      "file": "marketplace/observability/slos/payout-settlement-availability.openslo.yaml"
     },
     {
       "name": "oya-developer-sdk-tax-form-emission-correctness",
       "target": "1.0",
       "sli": "1 - (sum(rate(oya_developer_sdk_tax_form_emission_mismatch_total[7d])) / sum(rate(oya_developer_sdk_tax_form_emission_total[7d])))",
-      "file": "microservices/developer-sdk/slos/tax-form-emission-correctness.openslo.yaml"
+      "file": "marketplace/observability/slos/tax-form-emission-correctness.openslo.yaml"
     }
   ],
   "ips": [

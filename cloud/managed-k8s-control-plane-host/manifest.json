@@ -68,13 +68,13 @@
       "name": "control-plane-provisioning-latency",
       "target": "0.95",
       "sli": "histogram_quantile(0.95, sum(rate(oya_managed_k8s_control_plane_provision_duration_seconds_bucket[5m])) by (le))",
-      "file": "microservices/oya-managed-k8s-control-plane-host/slos/provisioning-latency.openslo.yaml"
+      "file": "k8s/observability/slos/control-plane-host/provisioning-latency.openslo.yaml"
     },
     {
       "name": "control-plane-availability",
       "target": "0.999",
       "sli": "sum(rate(oya_managed_k8s_control_plane_status_requests_total{status!~\"5..\"}[5m]))",
-      "file": "microservices/oya-managed-k8s-control-plane-host/slos/availability.openslo.yaml"
+      "file": "k8s/observability/slos/control-plane-host/availability.openslo.yaml"
     }
   ],
   "ips": [
@@ -145,6 +145,28 @@
     "tenant_rate_limit": "INV-SHUFFLE-SHARDING → per-tenant control-plane provisioning is admission-gated by Cedar (only platform/control-plane-operator may provision; tenants default-deny) before any management-cluster write.",
     "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → provisioning latency + status availability SLIs declared in slos/; saturation surfaced via management-cluster capacity model.",
     "error_budget_burn": "INV-SLO-ERROR-BUDGET → provisioning-latency + availability error budgets per slos/*.openslo.yaml."
+  },
+  "sharding_automation": {
+    "autosharding": {
+      "enabled": false,
+      "mode": "not_claimed_runtime",
+      "intended_control_plane": "control_plane_driven"
+    },
+    "auto_rebalance": {
+      "enabled": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": false
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": false
+    }
   },
   "audit_chain": {
     "enabled": true,

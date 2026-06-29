@@ -52,7 +52,7 @@
       "name": "cluster-lifecycle-create-admission-latency",
       "target": "0.95",
       "sli": "histogram_quantile(0.95, sum(rate(oya_managed_k8s_cluster_lifecycle_admission_duration_seconds_bucket[5m])) by (le)) < 0.05",
-      "file": "microservices/managed-k8s-cluster-lifecycle/slos/create-admission-latency.openslo.yaml"
+      "file": "k8s/observability/slos/cluster-lifecycle/create-admission-latency.openslo.yaml"
     }
   ],
   "ips": [
@@ -113,6 +113,28 @@
   "audit_chain": {
     "enabled": false,
     "seal_events": []
+  },
+  "sharding_automation": {
+    "autosharding": {
+      "enabled": false,
+      "mode": "not_claimed_runtime",
+      "intended_control_plane": "control_plane_driven"
+    },
+    "auto_rebalance": {
+      "enabled": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": false
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": false
+    }
   },
   "secrets_substrate": {
     "provider": "openbao",
