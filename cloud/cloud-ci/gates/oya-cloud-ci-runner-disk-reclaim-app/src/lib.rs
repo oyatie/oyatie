@@ -235,6 +235,34 @@ impl InfraRedWaiver {
     }
 }
 
+/// Validate the required-context contract for an INFRA-RED result.
+///
+/// A fail-open INFRA-RED can exit 0 only when it has both a typed waiver and a durable operator
+/// artifact output path. Without the artifact, the waiver would exist only in logs and the required
+/// context could silently green without machine-readable evidence.
+pub fn validate_infra_red_exit_contract(
+    report: &ReclaimReport,
+    policy: InfraRedPolicy,
+    waiver: Option<&InfraRedWaiver>,
+    artifact_output_requested: bool,
+) -> Result<(), String> {
+    if !report.is_infra_red() || policy != InfraRedPolicy::FailOpenWithWaiver {
+        return Ok(());
+    }
+    if waiver.is_none() {
+        return Err(
+            "INFRA-RED fail-open requires a typed waiver before the required context may stay green"
+                .to_owned(),
+        );
+    }
+    if !artifact_output_requested {
+        return Err(
+            "INFRA-RED fail-open requires --artifact-out so the typed waiver is durable".to_owned(),
+        );
+    }
+    Ok(())
+}
+
 /// Machine-readable operator artifact for the runner disk-reclaim preflight.
 ///
 /// This is intentionally deterministic (no wall-clock field) so fixtures can compare it directly.
@@ -589,6 +617,41 @@ mod tests {
             artifact["typed_waiver"]["waiver_id"],
             "INFRA-RED-WAIVER-001"
         );
+    }
+
+    #[test]
+    fn fail_open_infra_red_requires_durable_artifact_output() {
+        let report = ReclaimReport {
+            free_before: 5 * GIB,
+            free_after: 18 * GIB,
+            outcomes: vec![],
+            min_free_gib_after: 20,
+        };
+        let waiver = InfraRedWaiver::new(
+            "INFRA-RED-WAIVER-001".to_owned(),
+            "temporary GitHub hosted runner capacity incident".to_owned(),
+        )
+        .expect("valid waiver");
+
+        let err = validate_infra_red_exit_contract(
+            &report,
+            InfraRedPolicy::FailOpenWithWaiver,
+            Some(&waiver),
+            false,
+        )
+        .unwrap_err();
+        assert!(
+            err.contains("--artifact-out"),
+            "fail-open without artifact output must fail closed: {err}"
+        );
+
+        validate_infra_red_exit_contract(
+            &report,
+            InfraRedPolicy::FailOpenWithWaiver,
+            Some(&waiver),
+            true,
+        )
+        .expect("typed waiver plus artifact output is acceptable");
     }
 
     #[test]
