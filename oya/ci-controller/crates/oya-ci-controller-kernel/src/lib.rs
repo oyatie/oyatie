@@ -108,8 +108,15 @@ impl GateRun {
     /// Deterministic K8s Job name: `oya-ci-gate-pr<N>-<sha[..8]>`.
     /// Deterministic = idempotent create-conflict dedup on re-delivery.
     pub fn job_name(&self) -> String {
-        let sha_short = &self.head_sha[..self.head_sha.len().min(8)];
-        format!("oya-ci-gate-pr{}-{}", self.pr_number, sha_short)
+        let sha_short: String = self.head_sha.chars().take(8).collect();
+        format!("oya-ci-gate-pr{}-{sha_short}", self.pr_number)
+    }
+    /// Stable cloud-native run id used by status APIs, metrics, logs, traces, and events.
+    ///
+    /// It intentionally matches the deterministic Job name so every debugging
+    /// surface can join without a side table.
+    pub fn run_id(&self) -> String {
+        self.job_name()
     }
 }
 
@@ -472,6 +479,226 @@ pub enum ReconcileDecision {
 // `oya-ci-gate` can remain bridge feedback only; it is not merge or Phase-0
 // exit authority.
 pub const GATE_CONTEXT: &str = "oya-ci-required";
+
+// ---------------------------------------------------------------------------
+// Gate-run observability contract — API-native debug packet
+// ---------------------------------------------------------------------------
+
+/// Stable schema label for the productized oya-ci run observability envelope.
+pub const GATE_RUN_OBSERVABILITY_SCHEMA: &str = "oya-ci/run-observability-packet/v1";
+
+/// Status API path prefix. Runtime routers expose run status by deterministic run id.
+pub const GATE_RUN_STATUS_API_PREFIX: &str = "/gate-runs";
+
+// Run-joined events and traces are reserved for the next telemetry adapter
+// stage; this packet advertises only surfaces emitted by the controller today.
+
+/// Metric names exposed by the controller and backing telemetry adapter.
+pub const GATE_RUN_OBSERVABILITY_METRICS: [&str; 5] = [
+    "oya_ci_gate_run_requests_total",
+    "oya_ci_gate_status_api_requests_total",
+    "oya_ci_gate_job_spawn_total",
+    "oya_ci_gate_reconcile_total",
+    "oya_ci_gate_status_post_total",
+];
+
+/// Log fields required on structured controller logs for API/debug correlation.
+pub const GATE_RUN_OBSERVABILITY_LOG_FIELDS: [&str; 6] =
+    ["run_id", "job", "namespace", "pr", "sha", "decision"];
+
+/// Productized lifecycle phase projected onto the status API and telemetry packet.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum GateRunObservabilityPhase {
+    Accepted,
+    Running,
+    AwaitingChange,
+    Passed,
+    Failed,
+    Errored,
+    AlreadyTerminal,
+}
+
+impl GateRunObservabilityPhase {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Accepted => "accepted",
+            Self::Running => "running",
+            Self::AwaitingChange => "awaiting_change",
+            Self::Passed => "passed",
+            Self::Failed => "failed",
+            Self::Errored => "errored",
+            Self::AlreadyTerminal => "already_terminal",
+        }
+    }
+}
+
+/// Machine-readable status/API/telemetry join packet for one oya-ci gate run.
+///
+/// This is not a loose evidence file. It is the API-native envelope that lets
+/// cloud-native debuggers join status APIs, controller logs, metrics, and K8s
+/// Job state by a single deterministic `run_id`.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct GateRunObservabilityPacket {
+    pub schema: &'static str,
+    pub run_id: String,
+    pub job_name: String,
+    pub namespace: String,
+    pub required_context: &'static str,
+    pub pr_number: u64,
+    pub head_sha: String,
+    pub base_ref: String,
+    pub status_api_path: String,
+    pub status_url: Option<String>,
+    pub phase: GateRunObservabilityPhase,
+    pub metrics: Vec<&'static str>,
+    pub logs: Vec<&'static str>,
+}
+
+/// Structured Job condition projection exposed by the status API.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct GateRunK8sConditionProjection {
+    pub condition_type: &'static str,
+    pub reason: Option<String>,
+    pub status: bool,
+}
+
+/// Structured Pod reason projection exposed by the status API.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct GateRunK8sPodReasonProjection {
+    pub reason: String,
+}
+
+/// Productized K8s status projection for one gate run.
+///
+/// This carries the raw state-machine inputs that drove the public phase so API
+/// callers can debug without reverse-engineering controller logs.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct GateRunK8sProjection {
+    pub complete: bool,
+    pub active: i32,
+    pub succeeded: i32,
+    pub failed: i32,
+    pub waiting_cycles: u32,
+    pub job_not_found: bool,
+    pub terminal_status_already_posted: Option<CommitState>,
+    pub pending_status_already_posted: bool,
+    pub conditions: Vec<GateRunK8sConditionProjection>,
+    pub pod_reasons: Vec<GateRunK8sPodReasonProjection>,
+}
+
+fn condition_type_name(condition_type: &JobConditionType) -> &'static str {
+    match condition_type {
+        JobConditionType::Complete => "Complete",
+        JobConditionType::Failed => "Failed",
+    }
+}
+
+fn pod_reason_name(reason: &PodReason) -> String {
+    match reason {
+        PodReason::ImagePullBackOff => "ImagePullBackOff".to_owned(),
+        PodReason::ErrImagePull => "ErrImagePull".to_owned(),
+        PodReason::InvalidImageName => "InvalidImageName".to_owned(),
+        PodReason::CreateContainerError => "CreateContainerError".to_owned(),
+        PodReason::CreateContainerConfigError => "CreateContainerConfigError".to_owned(),
+        PodReason::RunContainerError => "RunContainerError".to_owned(),
+        PodReason::CrashLoopBackOff => "CrashLoopBackOff".to_owned(),
+        PodReason::OOMKilled => "OOMKilled".to_owned(),
+        PodReason::Evicted => "Evicted".to_owned(),
+        PodReason::Other(value) => value.clone(),
+    }
+}
+
+/// Build a stable status API path for a deterministic oya-ci run id.
+pub fn gate_run_status_api_path(run_id: &str) -> String {
+    format!("{GATE_RUN_STATUS_API_PREFIX}/{run_id}")
+}
+
+/// Build an absolute status URL when the controller is configured with a public/internal base URL.
+pub fn gate_run_status_url(run_id: &str, status_api_base_url: Option<&str>) -> Option<String> {
+    let base = status_api_base_url?.trim();
+    if base.is_empty() {
+        return None;
+    }
+    Some(format!(
+        "{}/{}",
+        base.trim_end_matches('/'),
+        gate_run_status_api_path(run_id).trim_start_matches('/')
+    ))
+}
+
+/// Classify a reconcile decision into the public run-observability lifecycle.
+pub fn observability_phase_for_decision(decision: &ReconcileDecision) -> GateRunObservabilityPhase {
+    match decision {
+        ReconcileDecision::PostPending { .. } => GateRunObservabilityPhase::Running,
+        ReconcileDecision::AwaitChange => GateRunObservabilityPhase::AwaitingChange,
+        ReconcileDecision::AlreadyTerminal => GateRunObservabilityPhase::AlreadyTerminal,
+        ReconcileDecision::PostTerminal { state, .. } => match state {
+            CommitState::Success => GateRunObservabilityPhase::Passed,
+            CommitState::Failure => GateRunObservabilityPhase::Failed,
+            CommitState::Error => GateRunObservabilityPhase::Errored,
+            CommitState::Pending => GateRunObservabilityPhase::Running,
+        },
+    }
+}
+
+/// Build the productized observability packet returned from the gate-run API.
+pub fn build_gate_run_observability_packet(
+    spec: &GateRunSpec,
+    handle: &JobHandle,
+    phase: GateRunObservabilityPhase,
+    status_api_base_url: Option<&str>,
+) -> GateRunObservabilityPacket {
+    let run_id = spec.run.run_id();
+    GateRunObservabilityPacket {
+        schema: GATE_RUN_OBSERVABILITY_SCHEMA,
+        status_api_path: gate_run_status_api_path(&run_id),
+        status_url: gate_run_status_url(&run_id, status_api_base_url),
+        run_id,
+        job_name: handle.job_name.clone(),
+        namespace: handle.namespace.clone(),
+        required_context: GATE_CONTEXT,
+        pr_number: spec.run.pr_number,
+        head_sha: spec.run.head_sha.clone(),
+        base_ref: spec.run.base_ref.clone(),
+        phase,
+        metrics: GATE_RUN_OBSERVABILITY_METRICS.to_vec(),
+        logs: GATE_RUN_OBSERVABILITY_LOG_FIELDS.to_vec(),
+    }
+}
+
+/// Build the structured K8s status projection returned from the run-status API.
+pub fn build_gate_run_k8s_projection(
+    observation: &JobObservation,
+    complete: bool,
+) -> GateRunK8sProjection {
+    GateRunK8sProjection {
+        complete,
+        active: observation.active,
+        succeeded: observation.succeeded,
+        failed: observation.failed,
+        waiting_cycles: observation.waiting_cycles,
+        job_not_found: observation.job_not_found,
+        terminal_status_already_posted: observation.terminal_status_already_posted,
+        pending_status_already_posted: observation.pending_status_already_posted,
+        conditions: observation
+            .conditions
+            .iter()
+            .map(|condition| GateRunK8sConditionProjection {
+                condition_type: condition_type_name(&condition.condition_type),
+                reason: condition.reason.clone(),
+                status: condition.status,
+            })
+            .collect(),
+        pod_reasons: observation
+            .pod_reasons
+            .iter()
+            .map(|reason| GateRunK8sPodReasonProjection {
+                reason: pod_reason_name(reason),
+            })
+            .collect(),
+    }
+}
 
 /// The TOTAL pure function: K8s Job observation → reconcile decision.
 ///
@@ -983,6 +1210,102 @@ mod tests {
         assert_eq!(GATE_CONTEXT, "oya-ci-required");
         assert!(phase0_context_is_required_authority(GATE_CONTEXT));
     }
+
+    #[test]
+    fn gate_run_observability_packet_is_api_native_and_joinable() {
+        let spec = GateRunSpec {
+            run: GateRun {
+                pr_number: 42,
+                head_sha: "abcdef1234567890abcdef1234567890abcdef12".to_owned(),
+                delivery_id: "d1".to_owned(),
+                base_ref: "dev".to_owned(),
+                repo: "jason931225/oyatie".to_owned(),
+            },
+            image: "registry.local/rust-ci:dev".to_owned(),
+            forge_clone_url: "https://github.com/jason931225/oyatie.git".to_owned(),
+            active_deadline_seconds: 3600,
+            ttl_seconds_after_finished: 86400,
+            namespace: "oya-ci".to_owned(),
+            runner_service_account: "oya-ci-gate-runner".to_owned(),
+        };
+        let handle = JobHandle {
+            job_name: spec.run.job_name(),
+            namespace: "oya-ci".to_owned(),
+            already_exists: false,
+        };
+
+        let packet = build_gate_run_observability_packet(
+            &spec,
+            &handle,
+            GateRunObservabilityPhase::Accepted,
+            Some("https://ci.example.test/"),
+        );
+
+        assert_eq!(packet.schema, GATE_RUN_OBSERVABILITY_SCHEMA);
+        assert_eq!(packet.run_id, "oya-ci-gate-pr42-abcdef12");
+        assert_eq!(
+            packet.status_api_path,
+            "/gate-runs/oya-ci-gate-pr42-abcdef12"
+        );
+        assert_eq!(
+            packet.status_url.as_deref(),
+            Some("https://ci.example.test/gate-runs/oya-ci-gate-pr42-abcdef12")
+        );
+        assert!(packet.metrics.contains(&"oya_ci_gate_reconcile_total"));
+        assert!(packet.logs.contains(&"decision"));
+
+        let json = serde_json::to_value(&packet).expect("packet serializes");
+        assert_eq!(json["run_id"], "oya-ci-gate-pr42-abcdef12");
+        assert_eq!(json["phase"], "accepted");
+        assert!(
+            !json.to_string().contains("multispectrum"),
+            "retired loose evidence convention must not leak into run observability"
+        );
+    }
+
+    #[test]
+    fn gate_run_k8s_projection_carries_state_machine_inputs() {
+        let projection = build_gate_run_k8s_projection(
+            &JobObservation {
+                active: 1,
+                succeeded: 0,
+                failed: 0,
+                conditions: vec![JobCondition {
+                    condition_type: JobConditionType::Complete,
+                    reason: Some("Manual".to_owned()),
+                    status: false,
+                }],
+                pod_reasons: vec![PodReason::ImagePullBackOff],
+                waiting_cycles: 3,
+                job_not_found: false,
+                terminal_status_already_posted: None,
+                pending_status_already_posted: true,
+            },
+            true,
+        );
+        assert!(projection.complete);
+        assert_eq!(projection.active, 1);
+        assert_eq!(projection.conditions[0].condition_type, "Complete");
+        assert_eq!(projection.pod_reasons[0].reason, "ImagePullBackOff");
+    }
+
+    #[test]
+    fn reconcile_decision_maps_to_observability_phase() {
+        assert_eq!(
+            observability_phase_for_decision(&ReconcileDecision::PostPending {
+                description: "running".to_owned()
+            }),
+            GateRunObservabilityPhase::Running
+        );
+        assert_eq!(
+            observability_phase_for_decision(&ReconcileDecision::PostTerminal {
+                state: CommitState::Failure,
+                context: GATE_CONTEXT,
+                description: "failed".to_owned(),
+            }),
+            GateRunObservabilityPhase::Failed
+        );
+    }
 }
 
 #[cfg(test)]
@@ -1117,6 +1440,16 @@ mod phase0_ci_enforcement_baseline_tests {
             || lower.contains("legacy oya cli invocation")
     }
 
+    fn has_pre_merge_review_authority(row: &Value) -> bool {
+        let live_authority = row["review_authority_live"].as_bool() == Some(true);
+        let durable_evidence = row["has_durable_review_evidence"].as_bool() == Some(true);
+        let machine_status = row["has_machine_verifiable_review_status"].as_bool() == Some(true);
+        let blocks_merge = row["review_blocks_merge"].as_bool() == Some(true);
+        let reviewer_distinct =
+            row["reviewer_identity_distinct_from_author"].as_bool() == Some(true);
+        live_authority && (durable_evidence || machine_status) && blocks_merge && reviewer_distinct
+    }
+
     fn is_full_hex_sha(value: &str) -> bool {
         value.len() == 40 && value.chars().all(|c| c.is_ascii_hexdigit())
     }
@@ -1166,6 +1499,7 @@ mod phase0_ci_enforcement_baseline_tests {
         rows: &[&Value],
         required_fields: &[&str],
         allowed_classifications: &BTreeSet<String>,
+        enforce_review_authority: bool,
     ) -> BTreeSet<String> {
         let mut violations = BTreeSet::new();
         let mut ids = BTreeSet::new();
@@ -1202,6 +1536,12 @@ mod phase0_ci_enforcement_baseline_tests {
                 && row["enforceable_or_automatable"].as_bool() == Some(true)
             {
                 violations.insert("enforceable_or_automatable_marked_human_judgment".to_owned());
+            }
+            if enforce_review_authority
+                && row["requires_pre_merge_review_authority"].as_bool() == Some(true)
+                && !has_pre_merge_review_authority(row)
+            {
+                violations.insert("missing_pre_merge_review_authority".to_owned());
             }
         }
 
@@ -1781,7 +2121,7 @@ mod phase0_ci_enforcement_baseline_tests {
         let rows = object_array_at(&automation_matrix, &["seed_rows"]);
 
         let row_violations =
-            evaluate_automation_rows(&rows, &required_fields, &allowed_classifications);
+            evaluate_automation_rows(&rows, &required_fields, &allowed_classifications, false);
         assert!(
             row_violations.is_empty(),
             "automation matrix seed rows should satisfy the executable row contract, got {row_violations:?}"
@@ -1836,7 +2176,7 @@ mod phase0_ci_enforcement_baseline_tests {
             let fixture = load_json(fixture_path);
             let rows = object_array_at(&fixture, &["rows"]);
             let observed_violations =
-                evaluate_automation_rows(&rows, &required_fields, &allowed_classifications);
+                evaluate_automation_rows(&rows, &required_fields, &allowed_classifications, true);
             let expected_violations = expected_violation_set(&fixture);
 
             match fixture["expected_verdict"].as_str() {

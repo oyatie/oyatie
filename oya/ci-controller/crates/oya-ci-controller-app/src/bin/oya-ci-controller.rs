@@ -16,10 +16,12 @@
 //! | `OYA_CI_GATE_ACTIVE_DEADLINE_SECS`     | `3600`                                                                   | Gate Job active deadline (seconds)             |
 //! | `OYA_CI_GATE_TTL_AFTER_FINISHED_SECS`  | `86400`                                                                  | Gate Job TTL after finished for GC (seconds)   |
 //! | `OYA_CI_GATE_RUNNER_SA`                | `oya-ci-gate-runner`                                                     | Low-privilege SA for gate runner Pods          |
+//! | `OYA_CI_STATUS_API_BASE_URL`             | unset                                                                    | Optional base URL for `/gate-runs/<run_id>` debug links |
 
 use oya_ci_controller_app::{
-    AllowVerifiedTriggerAuthz, CiTriggerAuthenticator, CiTriggerAuthz, ConfiguredBearerCiTriggerAuthenticator,
-    ControllerState, GateSpecConfig, ServerState, StreamExt, build_router, run_controller,
+    AllowVerifiedTriggerAuthz, CiTriggerAuthenticator, CiTriggerAuthz,
+    ConfiguredBearerCiTriggerAuthenticator, ControllerState, GateSpecConfig, ServerState,
+    StreamExt, build_router, run_controller,
 };
 use oya_ci_controller_github_adapter::GitHubCommitStatusPoster;
 use oya_ci_controller_k8s_adapter::K8sJobSpawner;
@@ -56,11 +58,11 @@ async fn main() {
     let gate_active_deadline_secs: i64 = env_or("OYA_CI_GATE_ACTIVE_DEADLINE_SECS", "3600")
         .parse()
         .unwrap_or(3600);
-    let gate_ttl_after_finished_secs: i32 =
-        env_or("OYA_CI_GATE_TTL_AFTER_FINISHED_SECS", "86400")
-            .parse()
-            .unwrap_or(86400);
+    let gate_ttl_after_finished_secs: i32 = env_or("OYA_CI_GATE_TTL_AFTER_FINISHED_SECS", "86400")
+        .parse()
+        .unwrap_or(86400);
     let gate_runner_sa = env_or("OYA_CI_GATE_RUNNER_SA", "oya-ci-gate-runner");
+    let status_api_base_url = env_optional("OYA_CI_STATUS_API_BASE_URL");
 
     // Build kube client (uses in-cluster SA token when deployed; falls back to
     // kubeconfig for local dev).
@@ -74,16 +76,22 @@ async fn main() {
     // GITHUB_CI_TOKEN is read here and stays controller-only — it is never
     // threaded into the gate Job / runner environment.
     let github_token = env_required("GITHUB_CI_TOKEN");
-    info!(forge = "github", "using GitHub commit-status producer (oya-ci-required)");
-    let status_poster: Arc<dyn CommitStatusPoster> = Arc::new(
-        GitHubCommitStatusPoster::new(&repo_owner, &repo_name, &github_token),
+    info!(
+        forge = "github",
+        "using GitHub commit-status producer (oya-ci-required)"
     );
+    let status_poster: Arc<dyn CommitStatusPoster> = Arc::new(GitHubCommitStatusPoster::new(
+        &repo_owner,
+        &repo_name,
+        &github_token,
+    ));
 
     let controller_state = ControllerState {
         client: kube_client.clone(),
         status_poster,
         namespace: namespace.clone(),
         grace_cycles,
+        status_api_base_url: status_api_base_url.clone(),
     };
 
     // Fail-closed bearer for POST /gate-run (keystone-1). Required at startup,
@@ -95,7 +103,7 @@ async fn main() {
     let authz: Arc<dyn CiTriggerAuthz> = Arc::new(AllowVerifiedTriggerAuthz);
 
     // K8sJobSpawner — used by POST /gate-run to create gate Jobs.
-    let job_spawner = Arc::new(K8sJobSpawner::new(kube_client));
+    let job_spawner = Arc::new(K8sJobSpawner::new(kube_client.clone()));
 
     let gate_spec_config = GateSpecConfig {
         image: gate_image,
@@ -105,6 +113,7 @@ async fn main() {
         namespace: namespace.clone(),
         runner_service_account: gate_runner_sa,
         repo: format!("{repo_owner}/{repo_name}"),
+        status_api_base_url,
     };
 
     let server_state = ServerState {
@@ -113,6 +122,8 @@ async fn main() {
         gate_spec_config,
         authenticator,
         authz,
+        status_client: Some(kube_client.clone()),
+        status_grace_cycles: grace_cycles,
     };
 
     info!(listen_addr = %listen_addr, namespace = %namespace, "oya-ci-controller starting");
@@ -148,4 +159,11 @@ fn env_required(key: &str) -> String {
 
 fn env_or(key: &str, default: &str) -> String {
     std::env::var(key).unwrap_or_else(|_| default.to_owned())
+}
+
+fn env_optional(key: &str) -> Option<String> {
+    std::env::var(key)
+        .ok()
+        .map(|value| value.trim().to_owned())
+        .filter(|value| !value.is_empty())
 }
