@@ -8,11 +8,13 @@ use std::sync::Arc;
 use std::thread;
 
 use iac_api::{
-    CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE, CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE,
-    CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE, CloudIacModuleRegistryApiAuthorization,
+    CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE, CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE,
+    CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE, CallerCredential,
     CloudIacModuleRegistryApiBoundaryContext, CloudIacModuleRegistryApiError,
-    CloudIacModuleRegistryRouteResponse, OPENTOFU_MODULES_V1_BASE_PATH,
-    OPENTOFU_SERVICE_DISCOVERY_PATH,
+    CloudIacModuleRegistryAuthzProvider, CloudIacModuleRegistryRouteResponse,
+    ConfiguredBearerPrincipalVerifier, ConfiguredSurfaceAuthorizer, ModuleRegistryAuthorizationError,
+    ModuleRegistryAuthorizer, OPENTOFU_MODULES_V1_BASE_PATH, OPENTOFU_SERVICE_DISCOVERY_PATH,
+    VerifiedPrincipal,
 };
 use iac_domain::{ModuleRegistry, OpenTofuModuleRelease};
 use iac_rest::{
@@ -33,6 +35,83 @@ use iac_infrastructure::{
 use oya_http_middleware_kernel::HttpRequest;
 use oya_http_router_kernel::HttpMethod;
 use oya_http_runtime_hyper_adapter::serve_one_connection_on_std_listener;
+
+const BEARER_SECRET: &str = "break-glass-iac-registry-secret";
+const PRINCIPAL_ID: &str = "sp_cloud_iac_registry_reader";
+
+struct AllowAllAuthorizer;
+impl ModuleRegistryAuthorizer for AllowAllAuthorizer {
+    fn ensure_authorized(
+        &self,
+        _principal: &VerifiedPrincipal,
+        _surface: &str,
+    ) -> Result<(), ModuleRegistryAuthorizationError> {
+        Ok(())
+    }
+}
+
+struct DenyAllAuthorizer;
+impl ModuleRegistryAuthorizer for DenyAllAuthorizer {
+    fn ensure_authorized(
+        &self,
+        _principal: &VerifiedPrincipal,
+        _surface: &str,
+    ) -> Result<(), ModuleRegistryAuthorizationError> {
+        Err(ModuleRegistryAuthorizationError::Denied)
+    }
+}
+
+struct RefuseAuthorizer;
+impl ModuleRegistryAuthorizer for RefuseAuthorizer {
+    fn ensure_authorized(
+        &self,
+        _principal: &VerifiedPrincipal,
+        _surface: &str,
+    ) -> Result<(), ModuleRegistryAuthorizationError> {
+        Err(ModuleRegistryAuthorizationError::Refused)
+    }
+}
+
+fn provider_with(authorizer: Arc<dyn ModuleRegistryAuthorizer>) -> CloudIacModuleRegistryAuthzProvider {
+    let verifier = Arc::new(
+        ConfiguredBearerPrincipalVerifier::new(BEARER_SECRET, PRINCIPAL_ID)
+            .expect("valid break-glass verifier config"),
+    );
+    CloudIacModuleRegistryAuthzProvider::new(verifier, authorizer)
+}
+
+fn reader_provider(surfaces: &[&str]) -> CloudIacModuleRegistryAuthzProvider {
+    let verifier = Arc::new(
+        ConfiguredBearerPrincipalVerifier::new(BEARER_SECRET, PRINCIPAL_ID)
+            .expect("valid break-glass verifier config"),
+    );
+    let authorizer = Arc::new(ConfiguredSurfaceAuthorizer::new(
+        surfaces.iter().map(|surface| (*surface).to_string()),
+    ));
+    CloudIacModuleRegistryAuthzProvider::new(verifier, authorizer)
+}
+
+fn all_reader_provider() -> CloudIacModuleRegistryAuthzProvider {
+    reader_provider(&[
+        CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE,
+        CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE,
+        CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE,
+    ])
+}
+
+fn allow_all_handler() -> CloudIacModuleRegistryHttpHandler {
+    CloudIacModuleRegistryHttpHandler::new(
+        registry(),
+        boundary(),
+        Arc::new(provider_with(Arc::new(AllowAllAuthorizer))),
+    )
+}
+
+fn valid_credential() -> CallerCredential {
+    CallerCredential {
+        authorization: Some(format!("Bearer {BEARER_SECRET}")),
+    }
+}
 
 fn release(name: &str, version: &str, digest_hex: char) -> OpenTofuModuleRelease {
     OpenTofuModuleRelease::new(
@@ -72,33 +151,14 @@ fn boundary() -> CloudIacModuleRegistryApiBoundaryContext {
     }
 }
 
-fn authorization(surfaces: &[&str]) -> CloudIacModuleRegistryApiAuthorization {
-    CloudIacModuleRegistryApiAuthorization {
-        principal_id: "sp_cloud_iac_registry_runtime_reader".to_string(),
-        decision_id: "authz_cloud_iac_registry_runtime_001".to_string(),
-        allowed_surfaces: surfaces
-            .iter()
-            .map(|surface| (*surface).to_string())
-            .collect(),
-    }
-}
-
-fn all_surfaces() -> CloudIacModuleRegistryApiAuthorization {
-    authorization(&[
-        CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE,
-        CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE,
-        CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE,
-    ])
-}
-
 fn runtime_request(
     method: HttpMethod,
     path: &str,
-    authorization: CloudIacModuleRegistryApiAuthorization,
+    credential: CallerCredential,
 ) -> CloudIacModuleRegistryRuntimeRequest {
     CloudIacModuleRegistryRuntimeRequest {
         boundary: boundary(),
-        authorization,
+        credential,
         method,
         path: path.to_string(),
     }
@@ -115,6 +175,14 @@ fn http_request(method: HttpMethod, path: &str) -> HttpRequest {
     }
 }
 
+fn http_request_with_bearer(method: HttpMethod, path: &str, bearer: &str) -> HttpRequest {
+    let mut request = http_request(method, path);
+    request
+        .headers
+        .insert("authorization".to_string(), format!("Bearer {bearer}"));
+    request
+}
+
 fn body_text(response: &oya_http_middleware_kernel::HttpResponse) -> String {
     String::from_utf8(response.body.clone()).expect("response body is UTF-8 JSON")
 }
@@ -122,13 +190,15 @@ fn body_text(response: &oya_http_middleware_kernel::HttpResponse) -> String {
 #[test]
 fn runtime_dispatches_discovery_versions_and_download_through_rest_router_and_api_boundary() {
     let registry = registry();
+    let provider = all_reader_provider();
 
     let discovery = dispatch_module_registry_runtime_request(
         &registry,
+        &provider,
         runtime_request(
             HttpMethod::Get,
             OPENTOFU_SERVICE_DISCOVERY_PATH,
-            all_surfaces(),
+            valid_credential(),
         ),
     )
     .expect("discovery dispatches");
@@ -152,10 +222,11 @@ fn runtime_dispatches_discovery_versions_and_download_through_rest_router_and_ap
 
     let versions = dispatch_module_registry_runtime_request(
         &registry,
+        &provider,
         runtime_request(
             HttpMethod::Get,
             "/v1/modules/oyatie/vpc/opentofu/versions",
-            all_surfaces(),
+            valid_credential(),
         ),
     )
     .expect("versions dispatches");
@@ -184,10 +255,11 @@ fn runtime_dispatches_discovery_versions_and_download_through_rest_router_and_ap
 
     let download = dispatch_module_registry_runtime_request(
         &registry,
+        &provider,
         runtime_request(
             HttpMethod::Get,
             "/v1/modules/oyatie/vpc/opentofu/1.2.0/download",
-            all_surfaces(),
+            valid_credential(),
         ),
     )
     .expect("download dispatches");
@@ -210,6 +282,7 @@ fn runtime_dispatches_discovery_versions_and_download_through_rest_router_and_ap
 #[test]
 fn runtime_rejects_wrong_method_unknown_path_dot_segment_and_whitespace_before_api_dispatch() {
     let registry = registry();
+    let provider = all_reader_provider();
 
     for (method, path) in [
         (HttpMethod::Post, OPENTOFU_SERVICE_DISCOVERY_PATH),
@@ -219,7 +292,8 @@ fn runtime_rejects_wrong_method_unknown_path_dot_segment_and_whitespace_before_a
     ] {
         let error = dispatch_module_registry_runtime_request(
             &registry,
-            runtime_request(method, path, all_surfaces()),
+            &provider,
+            runtime_request(method, path, valid_credential()),
         )
         .expect_err("invalid route is rejected by REST router composition before API dispatch");
         assert!(matches!(
@@ -232,22 +306,77 @@ fn runtime_rejects_wrong_method_unknown_path_dot_segment_and_whitespace_before_a
 }
 
 #[test]
-fn runtime_preserves_route_specific_surface_authorization_at_api_boundary() {
-    let error = dispatch_module_registry_runtime_request(
-        &registry(),
+fn runtime_verifies_credential_and_pdp_authorizes_surface_at_api_boundary() {
+    let registry = registry();
+
+    // Missing credential → Unauthenticated even though the PDP would allow.
+    let missing = dispatch_module_registry_runtime_request(
+        &registry,
+        &provider_with(Arc::new(AllowAllAuthorizer)),
         runtime_request(
             HttpMethod::Get,
             "/v1/modules/oyatie/vpc/opentofu/1.2.0/download",
-            authorization(&[CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE]),
+            CallerCredential { authorization: None },
+        ),
+    )
+    .expect_err("absent credential is rejected at the API boundary");
+    assert_eq!(
+        missing,
+        CloudIacModuleRegistryRuntimeError::Api(CloudIacModuleRegistryApiError::Unauthenticated)
+    );
+
+    // Forged bearer → Unauthenticated.
+    let forged = dispatch_module_registry_runtime_request(
+        &registry,
+        &provider_with(Arc::new(AllowAllAuthorizer)),
+        runtime_request(
+            HttpMethod::Get,
+            "/v1/modules/oyatie/vpc/opentofu/1.2.0/download",
+            CallerCredential {
+                authorization: Some("Bearer not-the-real-secret".to_string()),
+            },
+        ),
+    )
+    .expect_err("forged bearer is rejected at the API boundary");
+    assert_eq!(
+        forged,
+        CloudIacModuleRegistryRuntimeError::Api(CloudIacModuleRegistryApiError::Unauthenticated)
+    );
+
+    // A provider permitting only versions must Forbid a download (deny-by-default).
+    let denied = dispatch_module_registry_runtime_request(
+        &registry,
+        &reader_provider(&[CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE]),
+        runtime_request(
+            HttpMethod::Get,
+            "/v1/modules/oyatie/vpc/opentofu/1.2.0/download",
+            valid_credential(),
         ),
     )
     .expect_err("download dispatch requires download surface, not versions surface");
-
     assert_eq!(
-        error,
-        CloudIacModuleRegistryRuntimeError::Api(CloudIacModuleRegistryApiError::ForbiddenSurface {
+        denied,
+        CloudIacModuleRegistryRuntimeError::Api(CloudIacModuleRegistryApiError::Forbidden {
             surface: CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE.to_string(),
-        },)
+        })
+    );
+
+    // A PDP fault must fail closed to Forbidden, never a runtime/5xx surprise.
+    let faulted = dispatch_module_registry_runtime_request(
+        &registry,
+        &provider_with(Arc::new(RefuseAuthorizer)),
+        runtime_request(
+            HttpMethod::Get,
+            "/v1/modules/oyatie/vpc/opentofu/1.2.0/download",
+            valid_credential(),
+        ),
+    )
+    .expect_err("PDP fault fails closed");
+    assert_eq!(
+        faulted,
+        CloudIacModuleRegistryRuntimeError::Api(CloudIacModuleRegistryApiError::Forbidden {
+            surface: CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE.to_string(),
+        })
     );
 }
 
@@ -255,11 +384,12 @@ fn runtime_preserves_route_specific_surface_authorization_at_api_boundary() {
 fn runtime_still_validates_api_boundary_context_and_makes_no_live_runtime_claim() {
     let error = dispatch_module_registry_runtime_request(
         &registry(),
+        &all_reader_provider(),
         CloudIacModuleRegistryRuntimeRequest {
             boundary: CloudIacModuleRegistryApiBoundaryContext {
                 request_id: " ".to_string(),
             },
-            authorization: all_surfaces(),
+            credential: valid_credential(),
             method: HttpMethod::Get,
             path: OPENTOFU_SERVICE_DISCOVERY_PATH.to_string(),
         },
@@ -278,11 +408,11 @@ fn runtime_still_validates_api_boundary_context_and_makes_no_live_runtime_claim(
 
 #[test]
 fn http_handler_renders_opentofu_discovery_versions_and_download_responses() {
-    let handler = CloudIacModuleRegistryHttpHandler::new(registry(), boundary(), all_surfaces());
+    let handler = allow_all_handler();
 
     let discovery = handle_module_registry_http_request(
         &handler,
-        http_request(HttpMethod::Get, OPENTOFU_SERVICE_DISCOVERY_PATH),
+        http_request_with_bearer(HttpMethod::Get, OPENTOFU_SERVICE_DISCOVERY_PATH, BEARER_SECRET),
     );
     assert_eq!(discovery.status, 200);
     assert_eq!(
@@ -293,7 +423,11 @@ fn http_handler_renders_opentofu_discovery_versions_and_download_responses() {
 
     let versions = handle_module_registry_http_request(
         &handler,
-        http_request(HttpMethod::Get, "/v1/modules/oyatie/vpc/opentofu/versions"),
+        http_request_with_bearer(
+            HttpMethod::Get,
+            "/v1/modules/oyatie/vpc/opentofu/versions",
+            BEARER_SECRET,
+        ),
     );
     assert_eq!(versions.status, 200);
     assert_eq!(
@@ -303,9 +437,10 @@ fn http_handler_renders_opentofu_discovery_versions_and_download_responses() {
 
     let download = handle_module_registry_http_request(
         &handler,
-        http_request(
+        http_request_with_bearer(
             HttpMethod::Get,
             "/v1/modules/oyatie/vpc/opentofu/1.2.0/download",
+            BEARER_SECRET,
         ),
     );
     assert_eq!(download.status, 200);
@@ -320,45 +455,79 @@ fn http_handler_renders_opentofu_discovery_versions_and_download_responses() {
 }
 
 #[test]
+fn http_handler_rejects_absent_and_forged_credentials_with_401() {
+    let handler = allow_all_handler();
+
+    let missing = handle_module_registry_http_request(
+        &handler,
+        http_request(HttpMethod::Get, "/v1/modules/oyatie/vpc/opentofu/versions"),
+    );
+    assert_eq!(missing.status, 401);
+    assert_eq!(body_text(&missing), r#"{"error":"unauthorized"}"#);
+    assert_eq!(
+        missing.headers.get("www-authenticate").map(String::as_str),
+        Some("Bearer")
+    );
+
+    let forged = handle_module_registry_http_request(
+        &handler,
+        http_request_with_bearer(
+            HttpMethod::Get,
+            "/v1/modules/oyatie/vpc/opentofu/versions",
+            "not-the-real-secret",
+        ),
+    );
+    assert_eq!(forged.status, 401);
+    assert_eq!(
+        forged.headers.get("www-authenticate").map(String::as_str),
+        Some("Bearer")
+    );
+}
+
+#[test]
 fn http_handler_maps_route_auth_domain_and_body_errors_to_http_statuses() {
-    let handler = CloudIacModuleRegistryHttpHandler::new(registry(), boundary(), all_surfaces());
+    let handler = allow_all_handler();
 
     let wrong_method = handle_module_registry_http_request(
         &handler,
-        http_request(HttpMethod::Post, OPENTOFU_SERVICE_DISCOVERY_PATH),
+        http_request_with_bearer(HttpMethod::Post, OPENTOFU_SERVICE_DISCOVERY_PATH, BEARER_SECRET),
     );
     assert_eq!(wrong_method.status, 405);
 
     let unknown = handle_module_registry_http_request(
         &handler,
-        http_request(HttpMethod::Get, "/v1/modules/oyatie/vpc"),
+        http_request_with_bearer(HttpMethod::Get, "/v1/modules/oyatie/vpc", BEARER_SECRET),
     );
     assert_eq!(unknown.status, 404);
 
     let missing_version = handle_module_registry_http_request(
         &handler,
-        http_request(
+        http_request_with_bearer(
             HttpMethod::Get,
             "/v1/modules/oyatie/vpc/opentofu/9.9.9/download",
+            BEARER_SECRET,
         ),
     );
     assert_eq!(missing_version.status, 404);
 
+    // A provider permitting only versions must answer a download with 403.
     let forbidden_handler = CloudIacModuleRegistryHttpHandler::new(
         registry(),
         boundary(),
-        authorization(&[CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE]),
+        Arc::new(reader_provider(&[CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE])),
     );
     let forbidden = handle_module_registry_http_request(
         &forbidden_handler,
-        http_request(
+        http_request_with_bearer(
             HttpMethod::Get,
             "/v1/modules/oyatie/vpc/opentofu/1.2.0/download",
+            BEARER_SECRET,
         ),
     );
     assert_eq!(forbidden.status, 403);
 
-    let mut get_with_body = http_request(HttpMethod::Get, OPENTOFU_SERVICE_DISCOVERY_PATH);
+    let mut get_with_body =
+        http_request_with_bearer(HttpMethod::Get, OPENTOFU_SERVICE_DISCOVERY_PATH, BEARER_SECRET);
     get_with_body.body = b"unexpected".to_vec();
     let unexpected_body = handle_module_registry_http_request(&handler, get_with_body);
     assert_eq!(unexpected_body.status, 400);
@@ -366,12 +535,8 @@ fn http_handler_maps_route_auth_domain_and_body_errors_to_http_statuses() {
 
 #[test]
 fn service_assembly_registers_opentofu_routes_with_safe_config_without_listener_claim() {
-    let service = assemble_module_registry_http_service(CloudIacModuleRegistryHttpHandler::new(
-        registry(),
-        boundary(),
-        all_surfaces(),
-    ))
-    .expect("service assembly registers routes");
+    let service = assemble_module_registry_http_service(allow_all_handler())
+        .expect("service assembly registers routes");
 
     assert_eq!(service.route_count(), 3);
     assert_eq!(service.middleware_count(), 0);
@@ -384,16 +549,16 @@ fn service_assembly_registers_opentofu_routes_with_safe_config_without_listener_
 
 #[test]
 fn service_assembly_dispatches_through_canonical_hyper_adapter_path() {
-    let service = assemble_module_registry_http_service(CloudIacModuleRegistryHttpHandler::new(
-        registry(),
-        boundary(),
-        all_surfaces(),
-    ))
-    .expect("service assembly registers routes");
+    let service =
+        assemble_module_registry_http_service(allow_all_handler()).expect("service assembly registers routes");
 
     let versions = dispatch_module_registry_http_service_request(
         &service,
-        http_request(HttpMethod::Get, "/v1/modules/oyatie/vpc/opentofu/versions"),
+        http_request_with_bearer(
+            HttpMethod::Get,
+            "/v1/modules/oyatie/vpc/opentofu/versions",
+            BEARER_SECRET,
+        ),
     );
     assert_eq!(versions.status, 200);
     assert_eq!(
@@ -401,9 +566,15 @@ fn service_assembly_dispatches_through_canonical_hyper_adapter_path() {
         r#"{"modules":[{"versions":[{"version":"1.0.0"},{"version":"1.2.0"},{"version":"1.10.0"}]}]}"#
     );
 
+    let unauthorized = dispatch_module_registry_http_service_request(
+        &service,
+        http_request(HttpMethod::Get, "/v1/modules/oyatie/vpc/opentofu/versions"),
+    );
+    assert_eq!(unauthorized.status, 401);
+
     let unknown = dispatch_module_registry_http_service_request(
         &service,
-        http_request(HttpMethod::Get, "/v1/modules/oyatie/vpc"),
+        http_request_with_bearer(HttpMethod::Get, "/v1/modules/oyatie/vpc", BEARER_SECRET),
     );
     assert_eq!(unknown.status, 404);
     assert_eq!(body_text(&unknown), "not found");
@@ -411,16 +582,12 @@ fn service_assembly_dispatches_through_canonical_hyper_adapter_path() {
 
 #[test]
 fn service_assembly_preserves_method_not_allowed_through_canonical_adapter_path() {
-    let service = assemble_module_registry_http_service(CloudIacModuleRegistryHttpHandler::new(
-        registry(),
-        boundary(),
-        all_surfaces(),
-    ))
-    .expect("service assembly registers routes");
+    let service =
+        assemble_module_registry_http_service(allow_all_handler()).expect("service assembly registers routes");
 
     let wrong_method = dispatch_module_registry_http_service_request(
         &service,
-        http_request(HttpMethod::Post, OPENTOFU_SERVICE_DISCOVERY_PATH),
+        http_request_with_bearer(HttpMethod::Post, OPENTOFU_SERVICE_DISCOVERY_PATH, BEARER_SECRET),
     );
 
     assert_eq!(wrong_method.status, 405);
@@ -429,12 +596,8 @@ fn service_assembly_preserves_method_not_allowed_through_canonical_adapter_path(
 
 #[test]
 fn loopback_listener_serves_discovery_through_hyper_boundary_without_deploy_claim() {
-    let service = assemble_module_registry_http_service(CloudIacModuleRegistryHttpHandler::new(
-        registry(),
-        boundary(),
-        all_surfaces(),
-    ))
-    .expect("service assembly registers routes");
+    let service =
+        assemble_module_registry_http_service(allow_all_handler()).expect("service assembly registers routes");
     let (router, middleware, server_config) = service.into_serve_parts();
     let listener = std::net::TcpListener::bind("127.0.0.1:0")
         .expect("bind local loopback listener for deterministic test harness");
@@ -456,7 +619,10 @@ fn loopback_listener_serves_discovery_through_hyper_boundary_without_deploy_clai
             std::net::TcpStream::connect(addr).expect("connect to local loopback harness");
         stream
             .write_all(
-                b"GET /.well-known/terraform.json HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n",
+                format!(
+                    "GET /.well-known/terraform.json HTTP/1.1\r\nHost: 127.0.0.1\r\nAuthorization: Bearer {BEARER_SECRET}\r\nConnection: close\r\n\r\n"
+                )
+                .as_bytes(),
             )
             .expect("write request bytes");
         let mut response = String::new();
