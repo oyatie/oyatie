@@ -180,6 +180,8 @@ fn gate4_is_born_blocking_on_the_live_corpus() {
             "review_authority_source": surface["review_authority_source"].as_str().unwrap_or(""),
             "has_durable_review_evidence": surface["has_durable_review_evidence"].as_bool() == Some(true),
             "has_machine_verifiable_review_status": surface["has_machine_verifiable_review_status"].as_bool() == Some(true),
+            "has_review_title_evidence": surface["has_review_title_evidence"].as_bool() == Some(true),
+            "has_review_body_evidence": surface["has_review_body_evidence"].as_bool() == Some(true),
             "review_blocks_merge": surface["review_blocks_merge"].as_bool() == Some(true),
             "reviewer_identity_distinct_from_author": surface["reviewer_identity_distinct_from_author"].as_bool() == Some(true)
         }));

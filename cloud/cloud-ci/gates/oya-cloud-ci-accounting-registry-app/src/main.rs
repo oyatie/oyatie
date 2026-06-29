@@ -519,6 +519,8 @@ fn build_automation_matrix(enforcement: &Value) -> Value {
             "review_authority_source": surface["review_authority_source"].as_str().unwrap_or(""),
             "has_durable_review_evidence": surface["has_durable_review_evidence"].as_bool() == Some(true),
             "has_machine_verifiable_review_status": surface["has_machine_verifiable_review_status"].as_bool() == Some(true),
+            "has_review_title_evidence": surface["has_review_title_evidence"].as_bool() == Some(true),
+            "has_review_body_evidence": surface["has_review_body_evidence"].as_bool() == Some(true),
             "review_blocks_merge": surface["review_blocks_merge"].as_bool() == Some(true),
             "reviewer_identity_distinct_from_author": surface["reviewer_identity_distinct_from_author"].as_bool() == Some(true)
         }));
@@ -1674,6 +1676,11 @@ mod tests {
         )
         .expect("write historical bridge ADR");
         fs::write(
+            decisions.join("ADR-0112-oya-dev-cli-local-feedback.md"),
+            "---\nid: ADR-0112\nstatus: Accepted\n---\nRetired `cargo run -p oya-dev-cli -- gate validate quality-lane` commands are transitional/local feedback only; cloud-ci/Rust gate authority owns merge admission.\n",
+        )
+        .expect("write oya-dev-cli local-feedback ADR");
+        fs::write(
             decisions.join("ADR-0102-split-line-live-cli-authority.md"),
             "---\nid: ADR-0102\nstatus: Accepted\n---\nMerge authority is the required gate of record.\n`oya gate run-all`\n",
         )
@@ -1792,6 +1799,7 @@ status: Accepted
             "ADR-0109-block-superseded-history-cli.md",
             "ADR-0110-adjacent-table-rows.md",
             "ADR-0111-adjacent-list-items.md",
+            "ADR-0112-oya-dev-cli-local-feedback.md",
         ] {
             assert!(
                 !inputs
@@ -3047,6 +3055,8 @@ fn cli_reference_is_explicit_non_authority(lower: &str) -> bool {
         "bridge/local",
         "legacy/local",
         "local feedback",
+        "transitional/local feedback",
+        "transitional local feedback",
         "local/bridge",
         "migration evidence",
         "migration evidence only",
@@ -3060,6 +3070,8 @@ fn cli_reference_is_explicit_non_authority(lower: &str) -> bool {
         "cannot be the promotion",
         "never promotion authority",
         "not promotion authority",
+        "cloud-ci/rust gate authority",
+        "cloud-ci rust gate authority",
         "provenance only",
         "only as legacy",
     ]
@@ -3243,6 +3255,8 @@ fn collect_review_authority_row(repo_root: &Path, rows: &mut Vec<EnforcementRow>
         review_authority_source: "target_branch_protection_shadow_only".to_owned(),
         has_durable_review_evidence: false,
         has_machine_verifiable_review_status: false,
+        has_review_title_evidence: false,
+        has_review_body_evidence: false,
         review_blocks_merge: false,
         reviewer_identity_distinct_from_author: false,
     });

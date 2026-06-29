@@ -31,6 +31,9 @@
       "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-field-unknown-classifier-duplicate.json",
       "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-oya-cli-authority.json",
       "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-pre-merge-review-authority.json",
+      "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-untrusted-review-authority-source.json",
+      "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-standalone-multispectrum-review-evidence.json",
+      "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-review-title-body-evidence.json",
       "specs/fixtures/phase0-automation-ratchet/tc-0.16-good-pre-merge-review-authority.json"
     ],
     "fixture_directory": "specs/fixtures/phase0-automation-ratchet",
@@ -53,7 +56,22 @@
       {
         "green": "tc-0.16-good-pre-merge-review-authority.json",
         "red": "tc-0.16-bad-missing-pre-merge-review-authority.json",
-        "tc_id": "G004-review-authority"
+        "tc_id": "G004-review-authority-live-source"
+      },
+      {
+        "green": "tc-0.16-good-pre-merge-review-authority.json",
+        "red": "tc-0.16-bad-untrusted-review-authority-source.json",
+        "tc_id": "G004-review-authority-trusted-source"
+      },
+      {
+        "green": "tc-0.16-good-pre-merge-review-authority.json",
+        "red": "tc-0.16-bad-standalone-multispectrum-review-evidence.json",
+        "tc_id": "G004-review-authority-no-standalone-multispectrum"
+      },
+      {
+        "green": "tc-0.16-good-pre-merge-review-authority.json",
+        "red": "tc-0.16-bad-missing-review-title-body-evidence.json",
+        "tc_id": "G004-review-authority-title-body-binding"
       }
     ]
   },
@@ -67,7 +85,7 @@
       "a row lacks owner/target/fixture/retirement/evidence fields",
       "a row maps a blocking invariant to an oya CLI invocation",
       "a transitory bridge lacks deletion or cutover criteria",
-      "a merge-admission row requires pre-merge review authority but has no live review-authority source with durable review evidence or a machine-verifiable review status that blocks merge and proves reviewer != author"
+      "a merge-admission row requires pre-merge review authority but has no live trusted review-authority source with durable review evidence or a machine-verifiable review status that blocks merge, proves reviewer != author, and binds the reviewed PR title/body evidence"
     ]
   },
   "known_gaps_before_green": [
@@ -208,16 +226,18 @@
       "evidence_path": "infra/branch-protection/dev.json (target-only shadow; not live review authority)",
       "has_durable_review_evidence": false,
       "has_machine_verifiable_review_status": false,
+      "has_review_title_evidence": false,
+      "has_review_body_evidence": false,
       "id": "G004-pre-merge-review-authority",
       "no_new_oya_cli_surface": true,
       "owner": "platform-toolchain + platform-governance",
-      "requirement": "PR merge admission must include live durable review evidence or a machine-verifiable review status before merge; green CI and target-only branch-protection text are not review authority.",
+      "requirement": "PR merge admission must include live durable review evidence or a machine-verifiable review status before merge, with reviewed PR title/body evidence bound to that status; green CI and target-only branch-protection text are not review authority.",
       "requires_pre_merge_review_authority": true,
       "retirement_phase": "P0.0/P1 review-admission producer",
       "review_blocks_merge": false,
       "reviewer_identity_distinct_from_author": false,
-      "source_artifact": "docs/AGENTS.md#PR-shape + docs/decisions/ADR-0367-trustless-pre-merge-verification-gateway.md",
-      "target_gate_or_controller": "oya-pr-review trusted review-status producer (missing/not live)",
+      "source_artifact": "docs/AGENTS.md#PR-shape + docs/standards/code-review.md#mandatory-pr-sections + docs/decisions/ADR-0367-trustless-pre-merge-verification-gateway.md",
+      "target_gate_or_controller": "cloud-ci/oya-ci review-admission packet producer (missing/not live)",
       "review_authority_live": false,
       "review_authority_source": "target_branch_protection_shadow_only"
     }
