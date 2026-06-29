@@ -395,7 +395,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya vcs [--format <text|json>] [--policy <observe|warn|enforce>] [--evidence-command <shell-command>] <claim|work|verify|done|status|symbols|queue|watch|promote> [vcs-specific args]"
         + "\n       oya gate validate foundation-bypass [--ledger <registry/foundation-bypasses>] [--now-epoch-days <days>]"
         + "\n       oya gate validate audit-chain-replay [--shards-dir <registry/audit-chain/shards>]"
-        + "\n       oya gate validate foundry-capability-schema [--capabilities-dir <registry/capability-templates>]"
+        + "\n       oya gate validate foundry-capability-schema [--capabilities-dir <registry/capability-templates>] [--internal-registry <registry/capabilities/foundry-internal.json>]"
         + "\n       oya gate validate foundry-eval [--capabilities-dir <registry/capability-templates>]"
         + "\n       oya gate validate cross-tenant-access-fuzz"
         + "\n       oya gate validate adr-citation [--docs-dir <docs>] [--decisions-dir <docs/decisions>] [--inheritance-registry <registry/adr/inherited-bominal-adrs.yaml>]"

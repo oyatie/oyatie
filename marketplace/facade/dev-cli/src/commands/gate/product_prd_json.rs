@@ -14,7 +14,10 @@ pub(crate) struct ProductPrdJsonArgs {
 pub(crate) struct ProductPrdJsonReport {
     pub(crate) products_checked: usize,
     pub(crate) acceptance_criteria_checked: usize,
+    pub(crate) test_refs_checked: usize,
     pub(crate) metrics_checked: usize,
+    pub(crate) verification_refs_checked: usize,
+    pub(crate) planned_feature_refs_checked: usize,
     pub(crate) root_hub_links_checked: usize,
     pub(crate) validation_duration_ms: u128,
 }
@@ -79,7 +82,10 @@ pub(crate) fn validate_product_prd_json_gate(
     let root_hub_paths = load_root_hub_product_paths(&repo_root)?;
     let mut errors = Vec::new();
     let mut acceptance_criteria_checked = 0usize;
+    let mut test_refs_checked = 0usize;
     let mut metrics_checked = 0usize;
+    let mut verification_refs_checked = 0usize;
+    let mut planned_feature_refs_checked = 0usize;
     let mut root_hub_links_checked = 0usize;
     let mut products_checked = 0usize;
 
@@ -94,7 +100,10 @@ pub(crate) fn validate_product_prd_json_gate(
             Ok(report) => {
                 products_checked += 1;
                 acceptance_criteria_checked += report.acceptance_criteria_checked;
+                test_refs_checked += report.test_refs_checked;
                 metrics_checked += report.metrics_checked;
+                verification_refs_checked += report.verification_refs_checked;
+                planned_feature_refs_checked += report.planned_feature_refs_checked;
                 root_hub_links_checked += 1;
             }
             Err(mut product_errors) => {
@@ -108,7 +117,10 @@ pub(crate) fn validate_product_prd_json_gate(
         Ok(ProductPrdJsonReport {
             products_checked,
             acceptance_criteria_checked,
+            test_refs_checked,
             metrics_checked,
+            verification_refs_checked,
+            planned_feature_refs_checked,
             root_hub_links_checked,
             validation_duration_ms: started.elapsed().as_millis(),
         })
@@ -142,10 +154,25 @@ fn is_prd_spec_file(path: &Path) -> bool {
         .unwrap_or(false)
 }
 
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+struct AcceptanceShapeReport {
+    criteria_checked: usize,
+    test_refs_checked: usize,
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+struct MetricShapeReport {
+    metrics_checked: usize,
+    verification_refs_checked: usize,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct ProductShapeReport {
     acceptance_criteria_checked: usize,
+    test_refs_checked: usize,
     metrics_checked: usize,
+    verification_refs_checked: usize,
+    planned_feature_refs_checked: usize,
 }
 
 fn validate_one_product(
@@ -243,12 +270,13 @@ fn validate_one_product(
         errors.push(format!("{display}: missing identity object"));
     }
 
-    let acceptance_criteria_checked = validate_acceptance_criteria(object, &display, &mut errors);
+    let acceptance_report = validate_acceptance_criteria(object, &display, &mut errors);
     let strict_user_facing = identity
         .and_then(|identity| identity.get("user_facing_surface"))
         .and_then(Value::as_bool)
         .unwrap_or(false);
-    let metrics_checked = validate_metrics(object, &display, strict_user_facing, &mut errors);
+    let metric_report = validate_metrics(object, &display, strict_user_facing, &mut errors);
+    let planned_feature_refs_checked = validate_planned_feature_refs(&json, &display, &mut errors);
     validate_goals(object, &display, &mut errors);
 
     require_non_empty_array(object, "target_users", &display, &mut errors);
@@ -273,8 +301,11 @@ fn validate_one_product(
 
     if errors.is_empty() {
         Ok(ProductShapeReport {
-            acceptance_criteria_checked,
-            metrics_checked,
+            acceptance_criteria_checked: acceptance_report.criteria_checked,
+            test_refs_checked: acceptance_report.test_refs_checked,
+            metrics_checked: metric_report.metrics_checked,
+            verification_refs_checked: metric_report.verification_refs_checked,
+            planned_feature_refs_checked,
         })
     } else {
         Err(errors)
@@ -285,18 +316,22 @@ fn validate_acceptance_criteria(
     object: &serde_json::Map<String, Value>,
     display: &str,
     errors: &mut Vec<String>,
-) -> usize {
+) -> AcceptanceShapeReport {
     let Some(criteria) = object.get("acceptance_criteria").and_then(Value::as_array) else {
         errors.push(format!(
             "{display}: acceptance_criteria must be a non-empty array"
         ));
-        return 0;
+        return AcceptanceShapeReport::default();
     };
     if criteria.is_empty() {
         errors.push(format!("{display}: acceptance_criteria must be non-empty"));
-        return 0;
+        return AcceptanceShapeReport::default();
     }
     let mut ids = BTreeSet::new();
+    let mut report = AcceptanceShapeReport {
+        criteria_checked: criteria.len(),
+        test_refs_checked: 0,
+    };
     for criterion in criteria {
         let Some(criterion) = criterion.as_object() else {
             errors.push(format!(
@@ -340,14 +375,22 @@ fn validate_acceptance_criteria(
             &format!("{display}#acceptance_criteria"),
             errors,
         );
-        require_string(
+        if let Some(test_ref) = require_string(
             criterion,
             "test_ref",
             &format!("{display}#acceptance_criteria"),
             errors,
-        );
+        ) {
+            report.test_refs_checked += 1;
+            validate_non_retired_prd_reference(
+                display,
+                "acceptance_criteria.test_ref",
+                test_ref,
+                errors,
+            );
+        }
     }
-    criteria.len()
+    report
 }
 
 fn validate_metrics(
@@ -355,15 +398,19 @@ fn validate_metrics(
     display: &str,
     strict_metric_verification: bool,
     errors: &mut Vec<String>,
-) -> usize {
+) -> MetricShapeReport {
     let Some(metrics) = object.get("metrics").and_then(Value::as_array) else {
         errors.push(format!("{display}: metrics must be a non-empty array"));
-        return 0;
+        return MetricShapeReport::default();
     };
     if metrics.is_empty() {
         errors.push(format!("{display}: metrics must be non-empty"));
-        return 0;
+        return MetricShapeReport::default();
     }
+    let mut report = MetricShapeReport {
+        metrics_checked: metrics.len(),
+        verification_refs_checked: 0,
+    };
     for metric in metrics {
         let Some(metric) = metric.as_object() else {
             errors.push(format!("{display}: each metric must be an object"));
@@ -372,22 +419,123 @@ fn validate_metrics(
         require_string(metric, "name", &format!("{display}#metrics"), errors);
         require_object(metric, "targets", &format!("{display}#metrics"), errors);
         if strict_metric_verification {
-            require_string(
+            if let Some(verification_ref) = require_string(
                 metric,
                 "verification_ref",
                 &format!("{display}#metrics"),
                 errors,
-            );
-            require_string(metric, "lane_ref", &format!("{display}#metrics"), errors);
-        } else if !has_non_empty_string(metric, "verification_ref")
-            && !has_non_empty_string(metric, "lane_ref")
-        {
-            errors.push(format!(
-                "{display}: non-strict metric must still declare verification_ref or lane_ref"
-            ));
+            ) {
+                report.verification_refs_checked += 1;
+                validate_non_retired_prd_reference(
+                    display,
+                    "metrics.verification_ref",
+                    verification_ref,
+                    errors,
+                );
+            }
+            if let Some(lane_ref) =
+                require_string(metric, "lane_ref", &format!("{display}#metrics"), errors)
+            {
+                validate_non_retired_prd_reference(display, "metrics.lane_ref", lane_ref, errors);
+            }
+        } else {
+            let verification_ref = metric.get("verification_ref").and_then(Value::as_str);
+            let lane_ref = metric.get("lane_ref").and_then(Value::as_str);
+            let has_verification_ref =
+                verification_ref.is_some_and(|value| !value.trim().is_empty());
+            let has_lane_ref = lane_ref.is_some_and(|value| !value.trim().is_empty());
+            if !has_verification_ref && !has_lane_ref {
+                errors.push(format!(
+                    "{display}: non-strict metric must still declare verification_ref or lane_ref"
+                ));
+            }
+            if let Some(verification_ref) =
+                verification_ref.filter(|value| !value.trim().is_empty())
+            {
+                report.verification_refs_checked += 1;
+                validate_non_retired_prd_reference(
+                    display,
+                    "metrics.verification_ref",
+                    verification_ref,
+                    errors,
+                );
+            }
+            if let Some(lane_ref) = lane_ref.filter(|value| !value.trim().is_empty()) {
+                validate_non_retired_prd_reference(display, "metrics.lane_ref", lane_ref, errors);
+            }
         }
     }
-    metrics.len()
+    report
+}
+
+fn validate_planned_feature_refs(value: &Value, display: &str, errors: &mut Vec<String>) -> usize {
+    let mut refs_checked = 0usize;
+    walk_planned_feature_refs(value, "$", display, errors, &mut refs_checked);
+    refs_checked
+}
+
+fn walk_planned_feature_refs(
+    value: &Value,
+    location: &str,
+    display: &str,
+    errors: &mut Vec<String>,
+    refs_checked: &mut usize,
+) {
+    match value {
+        Value::Object(object) => {
+            let mut has_planned_verification_ref = false;
+            for field in ["planned_verification_ref", "planned_enforcement_ref"] {
+                if let Some(raw_ref) = object.get(field) {
+                    has_planned_verification_ref |= field == "planned_verification_ref";
+                    match raw_ref.as_str().map(str::trim) {
+                        Some(reference) if !reference.is_empty() => {
+                            *refs_checked += 1;
+                            validate_non_retired_prd_reference(display, field, reference, errors);
+                        }
+                        _ => errors.push(format!(
+                            "{display}#{location}: {field} must be a non-empty string"
+                        )),
+                    }
+                }
+            }
+            if has_planned_verification_ref && !has_non_empty_string(object, "claim_boundary") {
+                errors.push(format!(
+                    "{display}#{location}: planned feature verification rows must declare a non-empty claim_boundary"
+                ));
+            }
+            for (key, child) in object {
+                let child_location = format!("{location}.{key}");
+                walk_planned_feature_refs(child, &child_location, display, errors, refs_checked);
+            }
+        }
+        Value::Array(items) => {
+            for (index, child) in items.iter().enumerate() {
+                let child_location = format!("{location}[{index}]");
+                walk_planned_feature_refs(child, &child_location, display, errors, refs_checked);
+            }
+        }
+        _ => {}
+    }
+}
+
+fn validate_non_retired_prd_reference(
+    display: &str,
+    field: &str,
+    reference: &str,
+    errors: &mut Vec<String>,
+) {
+    let lower = reference.to_ascii_lowercase();
+    if lower.contains(".omc/")
+        || lower.contains(".omx/")
+        || lower.contains(".omc\\")
+        || lower.contains(".omx\\")
+        || lower.contains("implementation-plan")
+        || lower.contains("implementation plan")
+    {
+        errors.push(format!(
+            "{display}: {field} must cite product PRD/task/spec/cloud-ci evidence, not retired .omc/.omx implementation-plan inputs: {reference:?}"
+        ));
+    }
 }
 
 fn validate_goals(
@@ -683,12 +831,74 @@ mod tests {
         let object = object.as_object().expect("test object");
         let mut errors = Vec::new();
 
-        let count = validate_metrics(object, "test-product", false, &mut errors);
+        let report = validate_metrics(object, "test-product", false, &mut errors);
 
-        assert_eq!(count, 1);
+        assert_eq!(
+            report,
+            MetricShapeReport {
+                metrics_checked: 1,
+                verification_refs_checked: 0
+            }
+        );
         assert_eq!(
             errors,
             vec!["test-product: non-strict metric must still declare verification_ref or lane_ref"]
+        );
+    }
+
+    #[test]
+    fn acceptance_test_refs_reject_retired_plan_inputs() {
+        let object = serde_json::json!({
+            "acceptance_criteria": [
+                {
+                    "id": "AC-01",
+                    "given": "a planned feature",
+                    "when": "the product PRD is reviewed",
+                    "then": "the test points at a live task/spec/cloud-ci artifact",
+                    "test_ref": ".omc/plans/milestones/M02/impl-plan.md"
+                }
+            ]
+        });
+        let object = object.as_object().expect("test object");
+        let mut errors = Vec::new();
+
+        let report = validate_acceptance_criteria(object, "test-product", &mut errors);
+
+        assert_eq!(
+            report,
+            AcceptanceShapeReport {
+                criteria_checked: 1,
+                test_refs_checked: 1
+            }
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("retired .omc/.omx implementation-plan inputs")),
+            "errors={errors:?}"
+        );
+    }
+
+    #[test]
+    fn planned_feature_refs_require_claim_boundary() {
+        let product = serde_json::json!({
+            "competitive": [
+                {
+                    "planned_verification_ref": "tasks/social-feed-ranking-score-plan.md",
+                    "enforcement_status": "advisory_until_community_expansion_gates"
+                }
+            ]
+        });
+        let mut errors = Vec::new();
+
+        let refs_checked = validate_planned_feature_refs(&product, "test-product", &mut errors);
+
+        assert_eq!(refs_checked, 1);
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("planned feature verification rows must declare")),
+            "errors={errors:?}"
         );
     }
 
