@@ -281,7 +281,7 @@
     {
       "tier": "T1",
       "name": "cloud-iac-kubewarden-admission-policy-gate",
-      "file": "cloud/cloud-ci/gates/cloud-iac-kubewarden-admission-policy-gate/src/main.rs",
+      "file": "marketplace/facade/dev-cli/src/cloud_iac_kubewarden_admission_gate.rs",
       "risk_class": "high"
     }
   ],
@@ -2014,10 +2014,10 @@
   },
   "kubewarden_admission_policy_scope": {
     "changeset": "CS-CLOUD-IAC-KUBEWARDEN-ADMISSION-POLICY-GATE-001",
-    "crate": "cloud-ci/oya-ci controller path",
+    "crate": "marketplace/facade/dev-cli",
     "gate": "cloud-iac-kubewarden-admission-policy",
-    "gate_file": "crates/cloud-ci/oya-ci controller path/src/cloud_iac_kubewarden_admission_gate.rs",
-    "kubewarden_root": "microservices/cloud-iac/iac/k8s/kubewarden",
+    "gate_file": "marketplace/facade/dev-cli/src/cloud_iac_kubewarden_admission_gate.rs",
+    "kubewarden_root": "cloud/cloud-iac/iac/k8s/kubewarden",
     "kyverno_policy": "infra/kyverno/policies/require-signed-images.yaml",
     "runtime_mode": "local-filesystem-admission-policy-source-gate-no-controller-execution",
     "default_admission_substrate": "Kubewarden",

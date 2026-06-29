@@ -129,6 +129,19 @@ fn active_admission_wires_signature_provenance_sbom_and_vet_posture() {
         );
     }
 
+    for rel in [
+        "cloud/cloud-iac/iac/k8s/kubewarden/verify-image-signatures-policy.yaml",
+        "cloud/cloud-iac/iac/k8s/kubewarden/verification-config.yaml",
+    ] {
+        let policy = std::fs::read_to_string(root.join(rel)).expect("read kubewarden policy");
+        assert!(
+            policy.contains("owner: jason931225")
+                && policy.contains("repo: oyatie")
+                && !policy.contains("owner: oyatie"),
+            "{rel} must bind GitHub Actions identity to the owned repository, not the owner wildcard"
+        );
+    }
+
     let checklist =
         std::fs::read_to_string(root.join("docs/checklists/release-readiness-checklist.md"))
             .expect("read release readiness checklist");
