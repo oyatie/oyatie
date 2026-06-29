@@ -30,6 +30,17 @@
 //! - `ratchet_regression`          (NET-NEW)             — a row regresses the ratchet: a
 //!   previously `automated_blocking_now` requirement downgraded to a weaker class
 //!   (`was_blocking:true` while the current classification is no longer blocking).
+//! - `pipeline_bar_missing_hermeticity`                  — a pipeline-bar row lacks a
+//!   hermetic, read-only, deterministic gate contract.
+//! - `pipeline_bar_missing_automation_disposition`       — a row lacks either an autofix
+//!   command or an explicit no-autofix reason.
+//! - `pipeline_bar_missing_policy_as_data`               — a row's repo-specific facts are
+//!   not declared as policy data.
+//! - `pipeline_bar_missing_cloud_native_path`            — a row lacks a cloud-native path.
+//! - `pipeline_bar_missing_api_driven_path`              — a row lacks an API/controller path.
+//! - `pipeline_bar_missing_buck2_prod_path`              — a row lacks a Buck2 production path.
+//! - `pipeline_bar_unbaselined_orchestrator_exception`   — an orchestrator exception lacks
+//!   owner + reason + expiry/cutover baseline data.
 //!
 //! The 4-enum + the required-field set are DATA (the matrix contract), surfaced as
 //! constants here so a fixture can pin them without an evaluator special-case.
@@ -44,8 +55,8 @@ use serde_json::Value;
 /// The gate id, matching the buck2 target + the §5.2 contract.
 pub const GATE_ID: &str = "cloud-ci-automation-ratchet";
 
-/// The eight blocking codes, in canonical order. The fixtures pin exact subsets.
-pub const VIOLATION_CODES: [&str; 8] = [
+/// The blocking codes, in canonical order. The fixtures pin exact subsets.
+pub const VIOLATION_CODES: [&str; 15] = [
     "enforceable_or_automatable_marked_human_judgment",
     "blocking_invariant_mapped_to_oya_cli",
     "duplicate_row_id",
@@ -54,6 +65,13 @@ pub const VIOLATION_CODES: [&str; 8] = [
     "advisory_claiming_enforced",
     "missing_pre_merge_review_authority",
     "ratchet_regression",
+    "pipeline_bar_missing_hermeticity",
+    "pipeline_bar_missing_automation_disposition",
+    "pipeline_bar_missing_policy_as_data",
+    "pipeline_bar_missing_cloud_native_path",
+    "pipeline_bar_missing_api_driven_path",
+    "pipeline_bar_missing_buck2_prod_path",
+    "pipeline_bar_unbaselined_orchestrator_exception",
 ];
 
 /// The 4-enum classification set (matrix `classifications`). DATA, surfaced as a constant.
@@ -260,6 +278,165 @@ fn evaluate_row(row: &Value, findings: &mut BTreeSet<Finding>) {
     if was_blocking && !is_blocking {
         findings.insert(Finding::new("ratchet_regression", id));
     }
+    if pipeline_bar_required(row) {
+        evaluate_pipeline_bar(row, id, findings);
+    }
+}
+
+fn pipeline_bar_required(row: &Value) -> bool {
+    row.get("pipeline_bar_required").and_then(Value::as_bool) == Some(true)
+        || row.get("pipeline_bar").is_some()
+}
+
+fn evaluate_pipeline_bar(row: &Value, id: &str, findings: &mut BTreeSet<Finding>) {
+    let Some(bar) = row.get("pipeline_bar").filter(|value| value.is_object()) else {
+        insert_pipeline_finding(
+            findings,
+            "pipeline_bar_missing_hermeticity",
+            id,
+            "hermeticity",
+        );
+        insert_pipeline_finding(
+            findings,
+            "pipeline_bar_missing_automation_disposition",
+            id,
+            "automation_disposition",
+        );
+        insert_pipeline_finding(
+            findings,
+            "pipeline_bar_missing_policy_as_data",
+            id,
+            "policy_as_data",
+        );
+        insert_pipeline_finding(
+            findings,
+            "pipeline_bar_missing_cloud_native_path",
+            id,
+            "cloud_native_path",
+        );
+        insert_pipeline_finding(
+            findings,
+            "pipeline_bar_missing_api_driven_path",
+            id,
+            "api_driven_path",
+        );
+        insert_pipeline_finding(
+            findings,
+            "pipeline_bar_missing_buck2_prod_path",
+            id,
+            "buck2_prod_path",
+        );
+        return;
+    };
+
+    if !bool_field_true(bar, "hermetic") {
+        insert_pipeline_finding(
+            findings,
+            "pipeline_bar_missing_hermeticity",
+            id,
+            "hermeticity",
+        );
+    }
+
+    if non_blank_field(bar, "autofix_command").is_none()
+        && non_blank_field(bar, "no_autofix_reason").is_none()
+    {
+        insert_pipeline_finding(
+            findings,
+            "pipeline_bar_missing_automation_disposition",
+            id,
+            "automation_disposition",
+        );
+    }
+
+    if !bool_field_true(bar, "policy_as_data") {
+        insert_pipeline_finding(
+            findings,
+            "pipeline_bar_missing_policy_as_data",
+            id,
+            "policy_as_data",
+        );
+    }
+
+    if !bool_field_true(bar, "cloud_native") {
+        insert_pipeline_finding(
+            findings,
+            "pipeline_bar_missing_cloud_native_path",
+            id,
+            "cloud_native_path",
+        );
+    }
+
+    if !bool_field_true(bar, "api_driven") {
+        insert_pipeline_finding(
+            findings,
+            "pipeline_bar_missing_api_driven_path",
+            id,
+            "api_driven_path",
+        );
+    }
+
+    let buck2_prod_path = non_blank_field(bar, "buck2_prod_path").unwrap_or("");
+    if buck2_prod_path.is_empty()
+        || !(buck2_prod_path.starts_with("//")
+            || buck2_prod_path.to_ascii_lowercase().contains("buck2"))
+    {
+        insert_pipeline_finding(
+            findings,
+            "pipeline_bar_missing_buck2_prod_path",
+            id,
+            "buck2_prod_path",
+        );
+    }
+
+    if has_orchestrator_exception(bar) && !orchestrator_exception_is_baselined(bar) {
+        insert_pipeline_finding(
+            findings,
+            "pipeline_bar_unbaselined_orchestrator_exception",
+            id,
+            "orchestrator_exception",
+        );
+    }
+}
+
+fn bool_field_true(value: &Value, field: &str) -> bool {
+    value.get(field).and_then(Value::as_bool) == Some(true)
+}
+
+fn non_blank_field<'a>(value: &'a Value, field: &str) -> Option<&'a str> {
+    value
+        .get(field)
+        .and_then(Value::as_str)
+        .map(str::trim)
+        .filter(|text| !text.is_empty())
+}
+
+fn has_orchestrator_exception(bar: &Value) -> bool {
+    match bar.get("orchestrator_exception") {
+        Some(Value::Bool(value)) => *value,
+        Some(Value::String(value)) => !value.trim().is_empty(),
+        Some(Value::Array(values)) => !values.is_empty(),
+        Some(Value::Object(values)) => !values.is_empty(),
+        _ => false,
+    }
+}
+
+fn orchestrator_exception_is_baselined(bar: &Value) -> bool {
+    let Some(baseline) = bar
+        .get("orchestrator_exception_baseline")
+        .filter(|value| value.is_object())
+    else {
+        return false;
+    };
+    non_blank_field(baseline, "owner").is_some()
+        && non_blank_field(baseline, "reason").is_some()
+        && (non_blank_field(baseline, "expires_at").is_some()
+            || non_blank_field(baseline, "cutover").is_some())
+}
+
+fn insert_pipeline_finding(findings: &mut BTreeSet<Finding>, code: &str, id: &str, field: &str) {
+    let key = format!("{id}#pipeline_bar.{field}");
+    findings.insert(Finding::new(code, &key));
 }
 
 /// Whether a `target_gate_or_controller` value names an `oya` CLI invocation.
@@ -457,6 +634,88 @@ mod tests {
         row["classification"] = json!("automated_advisory_until_p0_0");
         let report = evaluate(&json!({"rows": [row]}));
         assert!(report.violations.contains("ratchet_regression"));
+    }
+    #[test]
+    fn pipeline_bar_green_with_explicit_orchestrator_exception_baseline() {
+        let mut row = good_row();
+        row["id"] = json!("PIPELINE-BAR-green");
+        row["pipeline_bar_required"] = json!(true);
+        row["pipeline_bar"] = json!({
+            "hermetic": true,
+            "autofix_command": "buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app:oya-cloud-ci-automation-ratchet-app-bin -- --fix",
+            "policy_as_data": true,
+            "cloud_native": true,
+            "api_driven": true,
+            "buck2_prod_path": "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app:oya-cloud-ci-automation-ratchet-app-gate",
+            "orchestrator_exception": "GitHub required-check adapter remains the live bridge until oya-ci emits native GateRun statuses.",
+            "orchestrator_exception_baseline": {
+                "owner": "platform-toolchain",
+                "reason": "GitHub Actions required-check bridge is live merge admission while the cloud-ci/oya-ci controller surface reaches P0.0.",
+                "cutover": "P0.0 oya-ci native GateRun required-status cutover"
+            }
+        });
+        let report = evaluate(&json!({"rows": [row]}));
+        assert_eq!(report.verdict, Verdict::Green, "{:?}", report.violations);
+    }
+
+    #[test]
+    fn pipeline_bar_unbaselined_orchestrator_exception_fires() {
+        let mut row = good_row();
+        row["id"] = json!("PIPELINE-BAR-unbaselined");
+        row["pipeline_bar_required"] = json!(true);
+        row["pipeline_bar"] = json!({
+            "hermetic": true,
+            "no_autofix_reason": "Reviewer judgment has no mechanically sound rewrite.",
+            "policy_as_data": true,
+            "cloud_native": true,
+            "api_driven": true,
+            "buck2_prod_path": "//cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app:oya-cloud-ci-automation-ratchet-app-gate",
+            "orchestrator_exception": "Temporary human/orchestrator bridge"
+        });
+        let findings = evaluate_keyed(&json!({"rows": [row]}));
+        assert!(findings.contains(&Finding::new(
+            "pipeline_bar_unbaselined_orchestrator_exception",
+            "PIPELINE-BAR-unbaselined#pipeline_bar.orchestrator_exception"
+        )));
+    }
+
+    #[test]
+    fn pipeline_bar_missing_properties_fire() {
+        let mut row = good_row();
+        row["id"] = json!("PIPELINE-BAR-missing");
+        row["pipeline_bar_required"] = json!(true);
+        row["pipeline_bar"] = json!({});
+        let report = evaluate(&json!({"rows": [row]}));
+        assert!(
+            report
+                .violations
+                .contains("pipeline_bar_missing_hermeticity")
+        );
+        assert!(
+            report
+                .violations
+                .contains("pipeline_bar_missing_automation_disposition")
+        );
+        assert!(
+            report
+                .violations
+                .contains("pipeline_bar_missing_policy_as_data")
+        );
+        assert!(
+            report
+                .violations
+                .contains("pipeline_bar_missing_cloud_native_path")
+        );
+        assert!(
+            report
+                .violations
+                .contains("pipeline_bar_missing_api_driven_path")
+        );
+        assert!(
+            report
+                .violations
+                .contains("pipeline_bar_missing_buck2_prod_path")
+        );
     }
 
     #[test]

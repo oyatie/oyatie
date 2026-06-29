@@ -1,0 +1,37 @@
+{
+  "description": "A pipeline-bar row is green when all seven properties are present and an orchestrator bridge is explicitly baselined.",
+  "expected_verdict": "GREEN",
+  "expected_violations": [],
+  "fixture_id": "TC-PIPELINE-BAR-GOOD-explicit-orchestrator-exception",
+  "rows": [
+    {
+      "blocking_fixture": "specs/fixtures/phase0-automation-ratchet/tc-pipeline-bar-good-explicit-orchestrator-exception.json",
+      "classification": "automated_blocking_now",
+      "enforceable_or_automatable": true,
+      "evidence_path": "specs/phase0-automation-matrix.json#pipeline_bar_contract",
+      "id": "PIPELINE-BAR-explicit-orchestrator-exception",
+      "no_new_oya_cli_surface": true,
+      "owner": "platform-toolchain",
+      "pipeline_bar": {
+        "api_driven": true,
+        "buck2_prod_path": "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app:oya-cloud-ci-automation-ratchet-app-gate",
+        "cloud_native": true,
+        "hermetic": true,
+        "orchestrator_exception": "GitHub required-check adapter remains the live bridge until oya-ci emits native GateRun statuses.",
+        "orchestrator_exception_baseline": {
+          "cutover": "P0.0 oya-ci native GateRun required-status cutover",
+          "owner": "platform-toolchain",
+          "reason": "GitHub Actions required-check bridge is live merge admission while the cloud-ci/oya-ci controller surface reaches P0.0."
+        },
+        "policy_as_data": true,
+        "autofix_command": "buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app:oya-cloud-ci-automation-ratchet-app-bin -- --fix"
+      },
+      "pipeline_bar_required": true,
+      "requirement": "Pipeline gates must satisfy the ADR-0548 seven-property bar, and any orchestrator exception must be baselined.",
+      "retirement_phase": "P0.0",
+      "source_artifact": "docs/decisions/ADR-0548-pipeline-as-product-paved-road.md#D8",
+      "target_gate_or_controller": "cloud-ci-automation-ratchet pipeline-bar meta-gate"
+    }
+  ],
+  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/tests/automation_ratchet.rs"
+}
