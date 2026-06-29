@@ -58,6 +58,90 @@ fn lint_asyncapi_accepts_audit_event_contract() {
     );
     assert!(String::from_utf8_lossy(&output.stdout).contains("asyncapi-lint: ok"));
 }
+#[test]
+fn lint_asyncapi_accepts_non_audit_local_protobuf_ref() {
+    let fixture = asyncapi_fixture_root(
+        "../../proto/cloud/billing/v1/cloud-billing-event-v1.proto#/cloud.billing.v1.CloudBillingEventIngest",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "lint",
+            "asyncapi",
+            fixture
+                .join("contracts/asyncapi/cloud/cloud-billing-events-v1.yaml")
+                .to_str()
+                .expect("fixture path is utf8"),
+        ])
+        .output()
+        .expect("asyncapi lint runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout).contains("asyncapi-lint: ok"));
+    let _ = fs::remove_dir_all(fixture);
+}
+
+#[test]
+fn lint_asyncapi_fails_closed_on_missing_local_protobuf_path() {
+    let fixture = asyncapi_fixture_root(
+        "../../proto/cloud/billing/v1/missing.proto#/cloud.billing.v1.CloudBillingEventIngest",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "lint",
+            "asyncapi",
+            fixture
+                .join("contracts/asyncapi/cloud/cloud-billing-events-v1.yaml")
+                .to_str()
+                .expect("fixture path is utf8"),
+        ])
+        .output()
+        .expect("asyncapi lint runs");
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("asyncapi-lint: payload $ref target does not exist")
+            && stderr.contains("missing.proto"),
+        "stderr={stderr}"
+    );
+    let _ = fs::remove_dir_all(fixture);
+}
+
+#[test]
+fn lint_asyncapi_fails_closed_on_missing_local_protobuf_fragment() {
+    let fixture = asyncapi_fixture_root(
+        "../../proto/cloud/billing/v1/cloud-billing-event-v1.proto#/cloud.billing.v1.MissingMessage",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "lint",
+            "asyncapi",
+            fixture
+                .join("contracts/asyncapi/cloud/cloud-billing-events-v1.yaml")
+                .to_str()
+                .expect("fixture path is utf8"),
+        ])
+        .output()
+        .expect("asyncapi lint runs");
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains(
+            "asyncapi-lint: payload proto message cloud.billing.v1.MissingMessage not found"
+        ),
+        "stderr={stderr}"
+    );
+    let _ = fs::remove_dir_all(fixture);
+}
 
 #[test]
 fn lint_adr_shape_accepts_valid_adr() {
@@ -103,6 +187,65 @@ fn lint_foundry_phase00_evidence_accepts_minimal_fixture() {
     let _ = fs::remove_dir_all(fixture);
 }
 
+fn asyncapi_fixture_root(proto_ref: &str) -> PathBuf {
+    let root = std::env::temp_dir().join(format!(
+        "oya-lint-asyncapi-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("system time after epoch")
+            .as_nanos()
+    ));
+    let asyncapi_dir = root.join("contracts").join("asyncapi").join("cloud");
+    let proto_dir = root
+        .join("contracts")
+        .join("proto")
+        .join("cloud")
+        .join("billing")
+        .join("v1");
+    fs::create_dir_all(&asyncapi_dir).expect("asyncapi fixture dir created");
+    fs::create_dir_all(&proto_dir).expect("proto fixture dir created");
+    fs::write(
+        proto_dir.join("cloud-billing-event-v1.proto"),
+        r#"syntax = "proto3";
+
+package cloud.billing.v1;
+
+message CloudBillingEventIngest {
+  string id = 1;
+}
+"#,
+    )
+    .expect("proto fixture written");
+    fs::write(
+        asyncapi_dir.join("cloud-billing-events-v1.yaml"),
+        format!(
+            r#"asyncapi: 3.1.0
+info:
+  title: Billing Fixture
+  version: 1.0.0
+defaultContentType: application/cloudevents+protobuf
+channels:
+  billing:
+    address: oya.cloud.billing
+    messages:
+      BillingEvent:
+        contentType: application/cloudevents+protobuf
+        payload:
+          schemaFormat: application/vnd.google.protobuf;version=3
+          schema:
+            $ref: '{proto_ref}'
+operations:
+  ingestBillingEvent:
+    action: send
+    channel:
+      $ref: '#/channels/billing'
+"#
+        ),
+    )
+    .expect("asyncapi fixture written");
+    root
+}
 fn phase00_fixture_root() -> PathBuf {
     let root = std::env::temp_dir().join(format!(
         "oya-lint-phase00-{}-{}",
