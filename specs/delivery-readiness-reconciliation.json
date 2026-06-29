@@ -367,6 +367,33 @@
         "verdict_basis"
       ],
       "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "target_claim_tier": {
+                "const": "hyperscaler_ready"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "required_domains": {
+                "required": [
+                  "audit",
+                  "ci",
+                  "cost",
+                  "rollback_dr",
+                  "sbom",
+                  "security",
+                  "slo",
+                  "tenant_isolation"
+                ]
+              }
+            }
+          }
+        }
+      ],
       "properties": {
         "packet_id": {
           "type": "string",
@@ -386,6 +413,28 @@
         },
         "required_domains": {
           "type": "object",
+          "description": "Shape-neutral evidence-domain status map. Hyperscaler-ready packets MUST carry ci, tenant_isolation, audit, cost, slo, security, sbom, and rollback_dr keys; product and migration packets MAY carry the same map plus their tier-specific domains.",
+          "propertyNames": {
+            "enum": [
+              "audit",
+              "boundary_contract",
+              "ci",
+              "ci_no_regression",
+              "cost",
+              "dependency_direction",
+              "gate_self_conformance",
+              "owner_raci",
+              "platform_contract_consumption",
+              "rollback",
+              "rollback_dr",
+              "sbom",
+              "security",
+              "slo",
+              "target_classification",
+              "tenant_isolation",
+              "user_pain_validation"
+            ]
+          },
           "additionalProperties": {
             "type": "string",
             "enum": [

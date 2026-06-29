@@ -657,13 +657,15 @@
       "promotion_state": "denied_with_fixuptask",
       "state_ref": "F-PIPELINE-GATE-SELF-CONFORMANCE-777",
       "required_domains": {
+        "audit": "missing",
         "ci": "present",
+        "cost": "missing",
         "gate_self_conformance": "missing",
-        "slo": "missing",
-        "sbom": "missing",
         "rollback_dr": "missing",
-        "tenant_isolation": "missing",
-        "cost": "missing"
+        "sbom": "missing",
+        "security": "missing",
+        "slo": "missing",
+        "tenant_isolation": "missing"
       },
       "evidence_refs": [
         {
