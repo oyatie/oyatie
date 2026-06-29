@@ -1,5 +1,5 @@
 tier: preview
-owner_team: council-foundry
+owner_team: council-architecture
 version: 1.0.0
 sunset: none
 related_adrs:
