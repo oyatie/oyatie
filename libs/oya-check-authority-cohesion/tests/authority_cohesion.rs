@@ -3,7 +3,8 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_check_authority_cohesion::{
-    AuthorityCohesionError, AuthorityDocument, validate_authority_cohesion,
+    AuthorityCohesionError, AuthorityDocument, RootHubPointerError, RootHubPointerTarget,
+    validate_authority_cohesion, validate_root_hub_pointer_reachability,
 };
 
 #[test]
@@ -67,12 +68,69 @@ fn authority_cohesion_rejects_retired_prescribed_authority() {
         Err(AuthorityCohesionError::RetiredPrescribedAuthority)
     );
 }
+#[test]
+fn root_hub_pointer_reachability_accepts_green_fixture() {
+    let targets = [
+        target("specs/root-hub-pointers.json", "{}"),
+        target(
+            "specs/master-plan-sequencing.json",
+            include_str!("fixtures/master-plan-green.json"),
+        ),
+    ];
+
+    let report = validate_root_hub_pointer_reachability(
+        include_str!("fixtures/root-hub-green.json"),
+        &targets,
+    )
+    .expect("green root-hub fixture resolves");
+
+    assert_eq!(report.pointer_count, 3);
+    assert_eq!(report.target_count, 2);
+}
+
+#[test]
+fn root_hub_pointer_reachability_rejects_red_missing_path_fixture() {
+    let targets = [target("specs/root-hub-pointers.json", "{}")];
+
+    assert_eq!(
+        validate_root_hub_pointer_reachability(
+            include_str!("fixtures/root-hub-red-missing-path.json"),
+            &targets,
+        ),
+        Err(RootHubPointerError::MissingPointerPath)
+    );
+}
+
+#[test]
+fn root_hub_pointer_reachability_rejects_red_missing_fragment_fixture() {
+    let targets = [
+        target("specs/root-hub-pointers.json", "{}"),
+        target(
+            "specs/master-plan-sequencing.json",
+            include_str!("fixtures/master-plan-missing-fragment.json"),
+        ),
+    ];
+
+    assert_eq!(
+        validate_root_hub_pointer_reachability(
+            include_str!("fixtures/root-hub-red-missing-fragment.json"),
+            &targets,
+        ),
+        Err(RootHubPointerError::MissingPointerFragment)
+    );
+}
 
 const CHAIN: &str = "---\nauthority_chain_declaration: |\n  first\n  second\n---\n";
 const DRIFTED_CHAIN: &str = "---\nauthority_chain_declaration: |\n  first\n  changed\n---\n";
 
 fn doc(path: &str, contents: &str) -> AuthorityDocument {
     AuthorityDocument {
+        path: path.into(),
+        contents: contents.into(),
+    }
+}
+fn target(path: &str, contents: &str) -> RootHubPointerTarget {
+    RootHubPointerTarget {
         path: path.into(),
         contents: contents.into(),
     }
