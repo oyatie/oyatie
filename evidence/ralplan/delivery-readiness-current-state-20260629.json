@@ -269,7 +269,7 @@
           "freshness_expires_at": "2026-07-29",
           "trust_level": "repository_tracked",
           "current_for_claim": true,
-          "notes": "Verified-principal authz on tenant-rbac control plane merged."
+          "notes": "Verified-principal PBAC (policy-based authz: RBAC + ABAC) enforcement on the current tenant-rbac control-plane observation merged; the tenant-rbac name is migration evidence only, not readiness proof."
         },
         {
           "id": "PR-1009",
@@ -293,9 +293,9 @@
         }
       ],
       "blockers": [
-        "Migration-safe is nonterminal; product/hyperscaler approval still requires fresh tenant negative tests, audit, SLO, SBOM, rollback/DR, and cost evidence."
+        "Migration-safe is nonterminal; product/hyperscaler approval still requires fresh tenant negative tests, PBAC coverage proving both RBAC role constraints and ABAC policy attributes, audit, SLO, SBOM, rollback/DR, and cost evidence."
       ],
-      "next_action": "Bind authz evidence to promotion packets and expire on source/auth policy changes."
+      "next_action": "Bind PBAC authz evidence to promotion packets and expire on source/auth policy changes."
     },
     {
       "row_id": "DRU-PRODUCT-DOGFOOD-JOURNEYS",
