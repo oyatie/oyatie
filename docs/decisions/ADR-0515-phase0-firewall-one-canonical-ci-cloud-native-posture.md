@@ -206,6 +206,7 @@ substrate; the implementation surface is intentionally limited to:
 - `cloud/cloud-ci/gates/oya-cloud-ci-hyperscaler-parity-taxonomy-app/src/lib.rs`
 - `cloud/cloud-ci/gates/oya-cloud-ci-hyperscaler-parity-taxonomy-app/tests/hyperscaler_parity_taxonomy.rs`
 
+GATE-4's review-admission fixture extension is likewise governed by this ADR: `specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-untrusted-review-authority-source.json`, `specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-standalone-multispectrum-review-evidence.json`, and `specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-review-title-body-evidence.json` prove that review authority comes from trusted cloud-ci/oya-ci review packets, not target-only branch-protection shadows, retired standalone multispectrum files, or packets missing PR title/body binding.
 ### D3. Gates are Rust binaries run automatically — no CLI, no shell, declarative gitops
 - **Pipeline, not CLI** (D-CLOUD-NATIVE / D-GOVERNANCE-CENTRAL). All CI / governance / automation are
   **Rust gate binaries run by GitHub Actions** (live) and oya-ci (shadow readiness); evidence is
