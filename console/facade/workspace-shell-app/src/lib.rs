@@ -17,6 +17,303 @@
 
 use std::sync::{Arc, RwLock};
 
+/// Ingress authentication middleware for the workspace-shell cell (AUTH-005 increment-1).
+///
+/// The composition root previously seeded an EMPTY middleware chain, so every
+/// internal-tier ops route (`GET /workspace`, `GET /workspace/api/v1/surfaces`)
+/// served to any unauthenticated caller even though the contract
+/// (`contracts/ops-workspace-shell-v1.openapi.yaml`) declares `401`/`403` for
+/// both. This module restores a DEFAULT-DENY authn gate.
+///
+/// Trust boundary (OWASP LLM01 / forgeable-authz): a caller cannot fabricate a
+/// verified identity from `x-*` headers — only a verifier that proved an
+/// unforgeable credential can mint a [`VerifiedPrincipal`]. The gate keys on the
+/// router-set `matched_template`, never the raw request path, so a public-path
+/// string cannot spoof the public bypass.
+///
+/// Scope note: this is authn only. PDP/Cedar RBAC so `/surfaces` requires an
+/// *admin* (not merely any verified principal) is AUTH-005 increment-2, a
+/// required follow-on tracked separately.
+mod authz {
+    use std::collections::BTreeMap;
+    use std::sync::Arc;
+
+    use oya_http_middleware_kernel::{HttpRequest, HttpResponse, Middleware, Next};
+
+    /// A caller whose bearer credential a [`PrincipalAuthenticator`] has VERIFIED.
+    ///
+    /// The `subject` field is private with only a `pub(crate)` constructor, so a
+    /// handler cannot fabricate one from caller-supplied headers — only a verifier
+    /// that proved an unforgeable credential mints it.
+    #[derive(Clone, Debug, Eq, PartialEq)]
+    pub struct VerifiedPrincipal {
+        subject: String, // data_class: INTERNAL_ONLY
+    }
+
+    impl VerifiedPrincipal {
+        /// Mint a verified principal. Crate-private: only an authenticator in this
+        /// crate can construct one (no public constructor → unforgeable).
+        pub(crate) fn new(subject: impl Into<String>) -> Self {
+            Self {
+                subject: subject.into(),
+            }
+        }
+
+        /// The verified caller's subject (trusted; derived from the credential,
+        /// never a caller-supplied header).
+        #[must_use]
+        pub fn subject(&self) -> &str {
+            &self.subject
+        }
+    }
+
+    /// Ingress authentication PORT: derive a [`VerifiedPrincipal`] from the request
+    /// headers by checking an UNFORGEABLE credential. `None` ⇒ no verified
+    /// principal ⇒ `401` (default-deny).
+    pub trait PrincipalAuthenticator: Send + Sync {
+        /// Verify the caller's credential against `headers` (lowercased at boundary).
+        /// `None` ⇒ `401`.
+        fn verify(&self, headers: &BTreeMap<String, String>) -> Option<VerifiedPrincipal>;
+    }
+
+    /// Reference [`PrincipalAuthenticator`]: a single configured bearer token bound
+    /// to one subject, compared in constant time. An empty/unset token verifies
+    /// NOTHING — there is no allow-all path.
+    #[derive(Clone, Debug)]
+    pub struct ConfiguredBearerAuthenticator {
+        token: String,   // data_class: SECRET
+        subject: String, // data_class: INTERNAL_ONLY
+    }
+
+    impl ConfiguredBearerAuthenticator {
+        #[must_use]
+        pub fn new(token: impl Into<String>, subject: impl Into<String>) -> Self {
+            Self {
+                token: token.into(),
+                subject: subject.into(),
+            }
+        }
+    }
+
+    impl PrincipalAuthenticator for ConfiguredBearerAuthenticator {
+        fn verify(&self, headers: &BTreeMap<String, String>) -> Option<VerifiedPrincipal> {
+            let configured = self.token.trim();
+            if configured.is_empty() {
+                return None;
+            }
+            let presented = headers
+                .get("authorization")
+                .and_then(|value| value.strip_prefix("Bearer "))?;
+            if constant_time_eq(presented.as_bytes(), configured.as_bytes()) {
+                Some(VerifiedPrincipal::new(self.subject.clone()))
+            } else {
+                None
+            }
+        }
+    }
+
+    /// Constant-time byte comparison: length-independent so neither a length nor a
+    /// first-differing-byte position leaks via timing. Mirrors
+    /// `intelligence/adapters/rest::constant_time_eq`.
+    pub(super) fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
+        let max_len = a.len().max(b.len());
+        let mut diff = a.len() ^ b.len();
+        for index in 0..max_len {
+            let left = a.get(index).copied().unwrap_or(0);
+            let right = b.get(index).copied().unwrap_or(0);
+            diff |= (left ^ right) as usize;
+        }
+        diff == 0
+    }
+
+    /// Default-deny ingress authn middleware.
+    ///
+    /// A route is PROTECTED unless its router-set `matched_template` is in `public`.
+    /// `matched_template = None` ⇒ fail-closed (protected).
+    pub struct AuthzMiddleware {
+        pub(super) authenticator: Arc<dyn PrincipalAuthenticator>,
+        pub(super) public: Vec<String>,
+    }
+
+    impl AuthzMiddleware {
+        #[must_use]
+        pub fn new(
+            authenticator: Arc<dyn PrincipalAuthenticator>,
+            public: Vec<String>,
+        ) -> Self {
+            Self {
+                authenticator,
+                public,
+            }
+        }
+
+        fn is_public(&self, template: Option<&str>) -> bool {
+            match template {
+                Some(t) => self.public.iter().any(|p| p == t),
+                None => false,
+            }
+        }
+    }
+
+    impl Middleware<HttpRequest, HttpResponse> for AuthzMiddleware {
+        fn handle(
+            &self,
+            request: HttpRequest,
+            next: Next<'_, HttpRequest, HttpResponse>,
+        ) -> HttpResponse {
+            if self.is_public(request.matched_template.as_deref()) {
+                return next.run(request);
+            }
+            match self.authenticator.verify(&request.headers) {
+                // increment-2 (PDP/Cedar RBAC) will gate on the principal here.
+                Some(_principal) => next.run(request),
+                None => unauthorized(),
+            }
+        }
+    }
+
+    /// Generic `401` with `WWW-Authenticate: Bearer` and a non-leaky JSON body.
+    pub(super) fn unauthorized() -> HttpResponse {
+        HttpResponse::new(401)
+            .with_header("www-authenticate", "Bearer")
+            .with_header("content-type", "application/json")
+            .with_body(b"{\"error\":\"unauthorized\"}".to_vec())
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+        use crate::{build_chain, build_dev_catalog, build_router};
+        use console_workspace_shell_rest::SHELL_HEALTH_ROUTE;
+        use oya_http_middleware_kernel::MiddlewareChain;
+        use oya_http_router_kernel::HttpMethod;
+        use oya_http_runtime_hyper_adapter::dispatch;
+
+        const TOKEN: &str = "test-admin-token";
+
+        fn protected_chain() -> MiddlewareChain<HttpRequest, HttpResponse> {
+            let auth: Arc<dyn PrincipalAuthenticator> =
+                Arc::new(ConfiguredBearerAuthenticator::new(TOKEN, "ops-admin"));
+            build_chain(auth)
+        }
+
+        fn request(method: HttpMethod, path: &str, bearer: Option<&str>) -> HttpRequest {
+            let mut headers = BTreeMap::new();
+            if let Some(token) = bearer {
+                headers.insert("authorization".to_string(), format!("Bearer {token}"));
+            }
+            HttpRequest {
+                method,
+                path: path.to_string(),
+                headers,
+                body: Vec::new(),
+                path_captures: BTreeMap::new(),
+                matched_template: None,
+            }
+        }
+
+        #[test]
+        fn unauthenticated_protected_route_is_401() {
+            let router = build_router(build_dev_catalog()).unwrap();
+            let resp = dispatch(
+                request(HttpMethod::Get, "/workspace", None),
+                &router,
+                &protected_chain(),
+            );
+            assert_eq!(resp.status, 401);
+            assert_eq!(
+                resp.headers.get("www-authenticate").map(String::as_str),
+                Some("Bearer")
+            );
+        }
+
+        #[test]
+        fn forged_bearer_is_401() {
+            let router = build_router(build_dev_catalog()).unwrap();
+            let resp = dispatch(
+                request(
+                    HttpMethod::Get,
+                    "/workspace/api/v1/surfaces",
+                    Some("not-the-token"),
+                ),
+                &router,
+                &protected_chain(),
+            );
+            assert_eq!(resp.status, 401);
+        }
+
+        #[test]
+        fn valid_bearer_reaches_handler_200() {
+            let router = build_router(build_dev_catalog()).unwrap();
+            let resp = dispatch(
+                request(HttpMethod::Get, "/workspace/api/v1/surfaces", Some(TOKEN)),
+                &router,
+                &protected_chain(),
+            );
+            assert_eq!(resp.status, 200);
+        }
+
+        #[test]
+        fn public_health_route_needs_no_auth() {
+            let router = build_router(build_dev_catalog()).unwrap();
+            let resp = dispatch(
+                request(HttpMethod::Get, SHELL_HEALTH_ROUTE, None),
+                &router,
+                &protected_chain(),
+            );
+            assert_eq!(resp.status, 200);
+        }
+
+        #[test]
+        fn empty_configured_token_denies_every_protected_route() {
+            let auth: Arc<dyn PrincipalAuthenticator> =
+                Arc::new(ConfiguredBearerAuthenticator::new("", "ops-admin"));
+            let chain = build_chain(auth);
+            let router = build_router(build_dev_catalog()).unwrap();
+            let denied = dispatch(
+                request(HttpMethod::Get, "/workspace", Some("anything")),
+                &router,
+                &chain,
+            );
+            assert_eq!(denied.status, 401);
+            let health = dispatch(
+                request(HttpMethod::Get, SHELL_HEALTH_ROUTE, None),
+                &router,
+                &chain,
+            );
+            assert_eq!(health.status, 200);
+        }
+
+        #[test]
+        fn none_matched_template_fails_closed_even_for_public_path() {
+            let chain = protected_chain();
+            let req = request(HttpMethod::Get, SHELL_HEALTH_ROUTE, None);
+            assert!(req.matched_template.is_none());
+            let resp = chain.execute(req, |_| HttpResponse::new(200));
+            assert_eq!(resp.status, 401);
+        }
+
+        #[test]
+        fn constant_time_eq_equal() {
+            assert!(constant_time_eq(b"correct-horse", b"correct-horse"));
+        }
+
+        #[test]
+        fn constant_time_eq_diff_len() {
+            assert!(!constant_time_eq(b"abc", b"abcd"));
+        }
+
+        #[test]
+        fn constant_time_eq_one_byte_diff() {
+            assert!(!constant_time_eq(b"abc", b"abd"));
+        }
+    }
+}
+
+pub use authz::{
+    AuthzMiddleware, ConfiguredBearerAuthenticator, PrincipalAuthenticator, VerifiedPrincipal,
+};
+
 use oya_http_middleware_kernel::MiddlewareChain;
 use oya_http_router_kernel::{HttpMethod, Router, RouterError};
 use oya_http_runtime_hyper_adapter::{HttpRequest, HttpResponse, SyncHandler};
@@ -116,10 +413,18 @@ pub fn build_router(catalog: SharedCatalog) -> Result<Router<SyncHandler>, Route
     Ok(router)
 }
 
-/// Empty middleware chain seed. Cedar / tenant / telemetry / deadline middlewares
-/// land in slice K'' and are pushed here before the binary calls serve().
-pub fn build_chain() -> MiddlewareChain<HttpRequest, HttpResponse> {
-    MiddlewareChain::new()
+/// Build the middleware chain with a DEFAULT-DENY authn gate (AUTH-005
+/// increment-1). Every route is protected except [`SHELL_HEALTH_ROUTE`]; the
+/// gate verifies an unforgeable bearer via `authenticator` and short-circuits
+/// unauthenticated callers with `401` before the handler runs. Cedar/tenant/
+/// telemetry/deadline middlewares are pushed alongside this one as they land.
+pub fn build_chain(
+    authenticator: Arc<dyn PrincipalAuthenticator>,
+) -> MiddlewareChain<HttpRequest, HttpResponse> {
+    MiddlewareChain::new().push(Box::new(AuthzMiddleware::new(
+        authenticator,
+        vec![SHELL_HEALTH_ROUTE.to_string()],
+    )))
 }
 
 /// Pre-seed a dev catalog with one example surface so the cell can answer
@@ -184,6 +489,8 @@ mod tests {
     use oya_http_runtime_hyper_adapter::dispatch;
     use std::collections::BTreeMap;
 
+    const TEST_TOKEN: &str = "test-admin-token";
+
     fn mock_request(method: HttpMethod, path: &str) -> HttpRequest {
         HttpRequest {
             method,
@@ -193,6 +500,23 @@ mod tests {
             path_captures: BTreeMap::new(),
             matched_template: None,
         }
+    }
+
+    /// A request carrying a valid `Authorization: Bearer <TEST_TOKEN>` header so
+    /// the authn gate in [`test_chain`] lets it through to the handler.
+    fn mock_request_with_bearer(method: HttpMethod, path: &str) -> HttpRequest {
+        let mut req = mock_request(method, path);
+        req.headers
+            .insert("authorization".to_string(), format!("Bearer {TEST_TOKEN}"));
+        req
+    }
+
+    /// Middleware chain seeded with a single configured-bearer authn gate that
+    /// accepts [`TEST_TOKEN`]. Public routes still pass without a bearer.
+    fn test_chain() -> MiddlewareChain<HttpRequest, HttpResponse> {
+        let auth: Arc<dyn PrincipalAuthenticator> =
+            Arc::new(ConfiguredBearerAuthenticator::new(TEST_TOKEN, "ops-admin"));
+        build_chain(auth)
     }
 
     #[test]
@@ -206,8 +530,12 @@ mod tests {
     fn list_live_surfaces_returns_200_json() {
         let catalog = build_dev_catalog();
         let router = build_router(catalog).unwrap();
-        let chain = build_chain();
-        let response = dispatch(mock_request(HttpMethod::Get, "/workspace"), &router, &chain);
+        let chain = test_chain();
+        let response = dispatch(
+            mock_request_with_bearer(HttpMethod::Get, "/workspace"),
+            &router,
+            &chain,
+        );
         assert_eq!(response.status, 200);
         assert_eq!(
             response.headers.get("content-type").map(String::as_str),
@@ -222,9 +550,9 @@ mod tests {
     fn list_all_surfaces_includes_seeded_surface() {
         let catalog = build_dev_catalog();
         let router = build_router(catalog).unwrap();
-        let chain = build_chain();
+        let chain = test_chain();
         let response = dispatch(
-            mock_request(HttpMethod::Get, "/workspace/api/v1/surfaces"),
+            mock_request_with_bearer(HttpMethod::Get, "/workspace/api/v1/surfaces"),
             &router,
             &chain,
         );
@@ -238,7 +566,7 @@ mod tests {
     fn shell_health_returns_status_healthy() {
         let catalog = build_dev_catalog();
         let router = build_router(catalog).unwrap();
-        let chain = build_chain();
+        let chain = test_chain();
         let response = dispatch(
             mock_request(HttpMethod::Get, "/workspace/api/v1/health"),
             &router,
@@ -254,7 +582,7 @@ mod tests {
     fn unknown_route_returns_404() {
         let catalog = build_dev_catalog();
         let router = build_router(catalog).unwrap();
-        let chain = build_chain();
+        let chain = test_chain();
         let response = dispatch(mock_request(HttpMethod::Get, "/nope"), &router, &chain);
         assert_eq!(response.status, 404);
     }
@@ -278,9 +606,9 @@ mod tests {
             })
             .unwrap();
         let router = build_router(catalog).unwrap();
-        let chain = build_chain();
+        let chain = test_chain();
         let response = dispatch(
-            mock_request(HttpMethod::Get, "/workspace/api/v1/surfaces"),
+            mock_request_with_bearer(HttpMethod::Get, "/workspace/api/v1/surfaces"),
             &router,
             &chain,
         );
