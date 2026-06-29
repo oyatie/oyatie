@@ -1,0 +1,8 @@
+{
+  "entry_points": {
+    "missing_authority": {
+      "current_path": "/specs/does-not-exist.json",
+      "kind": "spec"
+    }
+  }
+}

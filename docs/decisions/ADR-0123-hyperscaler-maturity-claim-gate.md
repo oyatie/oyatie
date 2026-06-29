@@ -72,6 +72,19 @@ The current claim status remains blocked until implementation and operational ev
 - Future agents must close guardrails, safety, UX, ease-of-use, integration, and pipeline evidence before claiming hyperscaler maturity.
 - The gate distinguishes claim governance from actual maturity: green governance can still report `claim_status=blocked_until_required_evidence_is_green`.
 
+## Governed surfaces
+
+The authority-cohesion gate's root-hub fixture corpus is governed by this ADR. The
+fixtures prove the claim-governance authority chain remains reachable through the
+root hub and master-plan sequencing surfaces:
+
+`libs/oya-check-authority-cohesion/OWNERS`
+`libs/oya-check-authority-cohesion/tests/fixtures/master-plan-green.json`
+`libs/oya-check-authority-cohesion/tests/fixtures/master-plan-missing-fragment.json`
+`libs/oya-check-authority-cohesion/tests/fixtures/root-hub-green.json`
+`libs/oya-check-authority-cohesion/tests/fixtures/root-hub-red-missing-fragment.json`
+`libs/oya-check-authority-cohesion/tests/fixtures/root-hub-red-missing-path.json`
+
 ## Verification
 
 - `cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims`

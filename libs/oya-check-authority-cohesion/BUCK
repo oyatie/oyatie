@@ -4,11 +4,21 @@ rust_library(
     crate = "oya_check_authority_cohesion",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
 )
 
 rust_test(
     name = "oya-check-authority-cohesion-authority-cohesion",
-    srcs = ["tests/authority_cohesion.rs"],
+    srcs = [
+        "tests/authority_cohesion.rs",
+        "tests/fixtures/master-plan-green.json",
+        "tests/fixtures/master-plan-missing-fragment.json",
+        "tests/fixtures/root-hub-green.json",
+        "tests/fixtures/root-hub-red-missing-fragment.json",
+        "tests/fixtures/root-hub-red-missing-path.json",
+    ],
     crate = "oya_check_authority_cohesion_authority_cohesion",
     crate_root = "tests/authority_cohesion.rs",
     visibility = ["PUBLIC"],
