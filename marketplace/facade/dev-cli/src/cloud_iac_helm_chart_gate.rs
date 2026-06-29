@@ -11,9 +11,9 @@ use std::path::{Path, PathBuf};
 use serde_json::Value;
 
 const GATE_NAME: &str = "cloud-iac-helm-chart-signed-image-wiring";
-const GATE_FILE: &str = "crates/oya-dev-cli/src/cloud_iac_helm_chart_gate.rs";
-const DEFAULT_MANIFEST: &str = "microservices/cloud-iac/manifest.json";
-const DEFAULT_CHART_ROOT: &str = "microservices/cloud-iac/iac/k8s/helm";
+const GATE_FILE: &str = "marketplace/facade/dev-cli/src/cloud_iac_helm_chart_gate.rs";
+const DEFAULT_MANIFEST: &str = "cloud/cloud-iac/manifest.json";
+const DEFAULT_CHART_ROOT: &str = "cloud/cloud-iac/iac/k8s/helm";
 const RUNTIME_MODE: &str = "local-filesystem-helm-chart-wiring-gate-no-helm-render";
 
 const CHART_FILES: &[&str] = &[
@@ -510,7 +510,7 @@ mod tests {
     fn cloud_iac_helm_chart_gate_rejects_missing_digest_wiring() {
         let temp = valid_temp_repo("cloud-iac-helm-chart-digest-drift");
         temp.write(
-            "microservices/cloud-iac/iac/k8s/helm/templates/deployment.yaml",
+            "cloud/cloud-iac/iac/k8s/helm/templates/deployment.yaml",
             &valid_deployment().replace(
                 "{{- if $imageDigest }}@{{ $imageDigest }}{{- else }}:",
                 "{{- if $imageDigest }}:{{ .Values.image.tag }}{{- else }}:",
@@ -526,7 +526,7 @@ mod tests {
         let temp = valid_temp_repo("cloud-iac-helm-chart-zero-digest");
         let zero_digest = format!("sha256:{}", "0".repeat(64));
         temp.write(
-            "microservices/cloud-iac/iac/k8s/helm/values.yaml",
+            "cloud/cloud-iac/iac/k8s/helm/values.yaml",
             &valid_values().replace("digest: \"\"", &format!("digest: \"{zero_digest}\"")),
         );
 
@@ -539,7 +539,7 @@ mod tests {
         let temp = valid_temp_repo("cloud-iac-helm-chart-manifest-drift");
         temp.write(
             DEFAULT_MANIFEST,
-            r#"{"capabilities":[{"name":"cloud-iac-helm-chart-signed-image-wiring-gate","file":"crates/oya-dev-cli/src/cloud_iac_helm_chart_gate.rs"}]}"#,
+            r#"{"capabilities":[{"name":"cloud-iac-helm-chart-signed-image-wiring-gate","file":"marketplace/facade/dev-cli/src/cloud_iac_helm_chart_gate.rs"}]}"#,
         );
 
         let error = validate_cloud_iac_helm_chart_gate(temp.args()).expect_err("scope rejected");
@@ -550,19 +550,19 @@ mod tests {
         let temp = TempRepo::new(name);
         temp.write(DEFAULT_MANIFEST, &valid_manifest());
         temp.write(
-            "microservices/cloud-iac/iac/k8s/helm/Chart.yaml",
+            "cloud/cloud-iac/iac/k8s/helm/Chart.yaml",
             valid_chart(),
         );
         temp.write(
-            "microservices/cloud-iac/iac/k8s/helm/values.yaml",
+            "cloud/cloud-iac/iac/k8s/helm/values.yaml",
             valid_values(),
         );
         temp.write(
-            "microservices/cloud-iac/iac/k8s/helm/templates/deployment.yaml",
+            "cloud/cloud-iac/iac/k8s/helm/templates/deployment.yaml",
             &valid_deployment(),
         );
         temp.write(
-            "microservices/cloud-iac/iac/k8s/helm/templates/configmap.yaml",
+            "cloud/cloud-iac/iac/k8s/helm/templates/configmap.yaml",
             valid_configmap(),
         );
         temp
@@ -574,12 +574,12 @@ mod tests {
     {
       "tier": "T1",
       "name": "cloud-iac-helm-chart-signed-image-wiring-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_helm_chart_gate.rs",
+      "file": "marketplace/facade/dev-cli/src/cloud_iac_helm_chart_gate.rs",
       "risk_class": "high"
     }
   ],
   "helm_chart_signed_image_wiring_scope": {
-    "chart_root": "microservices/cloud-iac/iac/k8s/helm",
+    "chart_root": "cloud/cloud-iac/iac/k8s/helm",
     "runtime_mode": "local-filesystem-helm-chart-wiring-gate-no-helm-render",
     "chart_files_checked": [
       "Chart.yaml",

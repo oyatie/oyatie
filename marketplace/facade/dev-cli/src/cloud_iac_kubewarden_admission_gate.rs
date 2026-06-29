@@ -14,9 +14,9 @@ use std::path::{Path, PathBuf};
 use serde_json::Value;
 
 const GATE_NAME: &str = "cloud-iac-kubewarden-admission-policy";
-const GATE_FILE: &str = "crates/oya-dev-cli/src/cloud_iac_kubewarden_admission_gate.rs";
-const DEFAULT_MANIFEST: &str = "microservices/cloud-iac/manifest.json";
-const DEFAULT_KUBEWARDEN_ROOT: &str = "microservices/cloud-iac/iac/k8s/kubewarden";
+const GATE_FILE: &str = "marketplace/facade/dev-cli/src/cloud_iac_kubewarden_admission_gate.rs";
+const DEFAULT_MANIFEST: &str = "cloud/cloud-iac/manifest.json";
+const DEFAULT_KUBEWARDEN_ROOT: &str = "cloud/cloud-iac/iac/k8s/kubewarden";
 const DEFAULT_KYVERNO_POLICY: &str = "infra/kyverno/policies/require-signed-images.yaml";
 const RUNTIME_MODE: &str = "local-filesystem-admission-policy-source-gate-no-controller-execution";
 
@@ -87,6 +87,11 @@ const CLUSTER_POLICY_REQUIRED_LINES: &[(&str, &str)] = &[
     ("verify-image-signatures-policy.yaml", "ghcr.io/oyatie/*"),
     (
         "verify-image-signatures-policy.yaml",
+        "owner: jason931225",
+    ),
+    ("verify-image-signatures-policy.yaml", "repo: oyatie"),
+    (
+        "verify-image-signatures-policy.yaml",
         "issuer: https://token.actions.githubusercontent.com",
     ),
     (
@@ -112,7 +117,8 @@ const VERIFICATION_CONFIG_REQUIRED_LINES: &[(&str, &str)] = &[
     ),
     ("verification-config.yaml", "verification-config.yaml: |"),
     ("verification-config.yaml", "githubAction"),
-    ("verification-config.yaml", "owner: oyatie"),
+    ("verification-config.yaml", "owner: jason931225"),
+    ("verification-config.yaml", "repo: oyatie"),
     (
         "verification-config.yaml",
         "issuer: https://token.actions.githubusercontent.com",
@@ -600,15 +606,15 @@ mod tests {
         let temp = TempRepo::new(name);
         temp.write(DEFAULT_MANIFEST, valid_manifest());
         temp.write(
-            "microservices/cloud-iac/iac/k8s/kubewarden/policy-server.yaml",
+            "cloud/cloud-iac/iac/k8s/kubewarden/policy-server.yaml",
             valid_policy_server(),
         );
         temp.write(
-            "microservices/cloud-iac/iac/k8s/kubewarden/verify-image-signatures-policy.yaml",
+            "cloud/cloud-iac/iac/k8s/kubewarden/verify-image-signatures-policy.yaml",
             valid_cluster_policy(),
         );
         temp.write(
-            "microservices/cloud-iac/iac/k8s/kubewarden/verification-config.yaml",
+            "cloud/cloud-iac/iac/k8s/kubewarden/verification-config.yaml",
             valid_verification_config(),
         );
         temp.write(DEFAULT_KYVERNO_POLICY, valid_kyverno_policy());
@@ -621,12 +627,12 @@ mod tests {
     {
       "tier": "T1",
       "name": "cloud-iac-kubewarden-admission-policy-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_kubewarden_admission_gate.rs",
+      "file": "marketplace/facade/dev-cli/src/cloud_iac_kubewarden_admission_gate.rs",
       "risk_class": "high"
     }
   ],
   "kubewarden_admission_policy_scope": {
-    "kubewarden_root": "microservices/cloud-iac/iac/k8s/kubewarden",
+    "kubewarden_root": "cloud/cloud-iac/iac/k8s/kubewarden",
     "kyverno_policy": "infra/kyverno/policies/require-signed-images.yaml",
     "runtime_mode": "local-filesystem-admission-policy-source-gate-no-controller-execution",
     "default_admission_substrate": "Kubewarden",
@@ -689,7 +695,8 @@ spec:
     signatures:
       - image: ghcr.io/oyatie/*
         githubActions:
-          owner: oyatie
+          owner: jason931225
+          repo: oyatie
           issuer: https://token.actions.githubusercontent.com
           rekor: https://rekor.sigstore.dev
 "#
@@ -706,7 +713,8 @@ data:
   verification-config.yaml: |
     allOf:
       - kind: githubAction
-        owner: oyatie
+        owner: jason931225
+        repo: oyatie
         issuer: https://token.actions.githubusercontent.com
         rekor: https://rekor.sigstore.dev
 "#
@@ -737,7 +745,7 @@ spec:
             - entries:
                 - keyless:
                     issuer: "https://token.actions.githubusercontent.com"
-                    subjectRegExp: "https://github.com/.+/.+/.github/workflows/.+@refs/tags/v.+"
+                    subjectRegExp: "https://github.com/jason931225/oyatie/.github/workflows/.+@refs/(heads/dev|tags/v.+)"
                     rekor:
                       url: "https://rekor.sigstore.dev"
 "#

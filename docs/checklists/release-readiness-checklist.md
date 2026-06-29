@@ -41,10 +41,10 @@ doc_status: published
 
 ## Supply-chain (SLSA L2+)
 
-- [ ] **RR11** Every shipped binary has Cosign keyless OIDC signature. *Lane:* `oya-governance-supply-chain`.
-- [ ] **RR12** Every shipped binary has Syft / CycloneDX SBOM artifact. *Lane:* `oya-governance-supply-chain`.
-- [ ] **RR13** SLSA L2+ provenance attestation present + Rekor log index recorded. *Lane:* `oya-governance-supply-chain`.
-- [ ] **RR14** `cargo-vet` clean for sensitive crates. *Command:* `cargo vet`.
+- [ ] **RR11** Every shipped binary has Cosign keyless OIDC signature with Rekor transparency. *Lane:* `cloud-ci-supply-chain-audit`; *policy:* `infra/kyverno/policies/verify-image-signed.yaml`.
+- [ ] **RR12** Every shipped binary has a CycloneDX SBOM attestation. *Lane:* `cloud-ci-supply-chain-audit`; *policy:* `infra/kyverno/policies/verify-image-signed.yaml`.
+- [ ] **RR13** SLSA L2+ provenance attestation present and admitted by keyless Sigstore policy. *Lane:* `cloud-ci-supply-chain-audit`; *policy:* `infra/kyverno/policies/verify-image-signed.yaml`.
+- [ ] **RR14** Dependency/advisory review is enforced by the owned RustSec mirror gate; `cargo-vet` is not live readiness authority until maintained inputs are restored. *Lane:* `cloud-ci-supply-chain-audit`.
 
 ## SRE / observability
 

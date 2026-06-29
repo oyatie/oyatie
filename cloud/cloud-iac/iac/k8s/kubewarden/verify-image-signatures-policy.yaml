@@ -24,6 +24,7 @@ spec:
     signatures:
       - image: ghcr.io/oyatie/*
         githubActions:
-          owner: oyatie
+          owner: jason931225
+          repo: oyatie
           issuer: https://token.actions.githubusercontent.com
           rekor: https://rekor.sigstore.dev

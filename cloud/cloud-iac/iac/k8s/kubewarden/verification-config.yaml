@@ -14,6 +14,7 @@ data:
   verification-config.yaml: |
     allOf:
       - kind: githubAction
-        owner: oyatie
+        owner: jason931225
+        repo: oyatie
         issuer: https://token.actions.githubusercontent.com
         rekor: https://rekor.sigstore.dev
