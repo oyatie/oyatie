@@ -47,8 +47,10 @@ pub(crate) fn parse_foundry_capability_schema_validate_args(
 pub(crate) fn validate_foundry_capability_schema_gate(
     args: FoundryCapabilitySchemaValidateArgs,
 ) -> Result<(usize, usize, usize, usize), String> {
+    let repo_root = infer_repo_root(&args.internal_registry_path, &args.capabilities_dir);
     let records = read_foundry_capability_schema_records(&args.capabilities_dir)?;
-    let internal_records = read_foundry_internal_registry_records(&args.internal_registry_path)?;
+    let internal_records =
+        read_foundry_internal_registry_records(&args.internal_registry_path, &repo_root)?;
     let mut seen = BTreeSet::new();
     for record in &records {
         if !seen.insert(record.capability.id.clone()) {
@@ -102,7 +104,10 @@ fn read_foundry_capability_schema_records(
     }
 }
 
-fn read_foundry_internal_registry_records(path: &Path) -> Result<Vec<String>, String> {
+fn read_foundry_internal_registry_records(
+    path: &Path,
+    repo_root: &Path,
+) -> Result<Vec<String>, String> {
     let contents = fs::read_to_string(path).map_err(|error| {
         format!(
             "internal capability registry unreadable {}: {error}",
@@ -115,12 +120,13 @@ fn read_foundry_internal_registry_records(path: &Path) -> Result<Vec<String>, St
             path.display()
         )
     })?;
-    validate_foundry_internal_registry_value(path, &value)
+    validate_foundry_internal_registry_value(path, &value, repo_root)
 }
 
 fn validate_foundry_internal_registry_value(
     path: &Path,
     value: &Value,
+    repo_root: &Path,
 ) -> Result<Vec<String>, String> {
     let Some(records) = value.as_array() else {
         return Err(format!(
@@ -218,10 +224,20 @@ fn validate_foundry_internal_registry_value(
             ));
         }
 
-        for field in ["prd_ref", "task_ref", "test_ref", "verification_ref"] {
-            let reference = required_json_string(path, index, object, field)?;
-            validate_current_capability_reference(path, index, field, &reference)?;
-        }
+        let prd_ref = required_json_string(path, index, object, "prd_ref")?;
+        validate_current_capability_reference(repo_root, path, index, "prd_ref", &prd_ref)?;
+        let task_ref = required_json_string(path, index, object, "task_ref")?;
+        validate_current_capability_reference(repo_root, path, index, "task_ref", &task_ref)?;
+        let test_ref = required_json_string(path, index, object, "test_ref")?;
+        validate_current_capability_reference(repo_root, path, index, "test_ref", &test_ref)?;
+        let verification_ref = required_json_string(path, index, object, "verification_ref")?;
+        validate_current_capability_reference(
+            repo_root,
+            path,
+            index,
+            "verification_ref",
+            &verification_ref,
+        )?;
 
         let cost_profile = required_json_object(path, index, object, "cost_profile")?;
         require_json_scalar(
@@ -240,13 +256,12 @@ fn validate_foundry_internal_registry_value(
         )?;
 
         let mcp_contract = required_json_object(path, index, object, "mcp_contract")?;
-        for field in [
-            "agent_readable",
-            "human_readable",
-            "input_schema_ref",
-            "output_schema_ref",
-        ] {
+        for field in ["agent_readable", "human_readable"] {
             required_json_string(path, index, mcp_contract, field)?;
+        }
+        for field in ["input_schema_ref", "output_schema_ref"] {
+            let reference = required_json_string(path, index, mcp_contract, field)?;
+            validate_current_capability_reference(repo_root, path, index, field, &reference)?;
         }
 
         required_json_string_array(path, index, object, "failure_modes")?;
@@ -254,6 +269,7 @@ fn validate_foundry_internal_registry_value(
         required_json_string(path, index, maturity, "claim_boundary")?;
         let admission_ref = required_json_string(path, index, maturity, "admission_ref")?;
         validate_current_capability_reference(
+            repo_root,
             path,
             index,
             "maturity.admission_ref",
@@ -351,7 +367,35 @@ fn require_json_scalar(
     }
 }
 
+fn infer_repo_root(internal_registry_path: &Path, capabilities_dir: &Path) -> PathBuf {
+    let current_dir = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    for path in [internal_registry_path, capabilities_dir] {
+        let candidate = if path.is_absolute() {
+            path.to_path_buf()
+        } else {
+            current_dir.join(path)
+        };
+        if let Some(repo_root) = repo_root_ancestor(&candidate) {
+            return repo_root;
+        }
+    }
+    current_dir
+}
+
+fn repo_root_ancestor(path: &Path) -> Option<PathBuf> {
+    let start = if path.is_file() {
+        path.parent().unwrap_or(path)
+    } else {
+        path
+    };
+    start
+        .ancestors()
+        .find(|ancestor| ancestor.join("specs/root-hub-pointers.json").is_file())
+        .map(Path::to_path_buf)
+}
+
 fn validate_current_capability_reference(
+    repo_root: &Path,
     path: &Path,
     index: usize,
     field: &str,
@@ -370,7 +414,160 @@ fn validate_current_capability_reference(
             path.display()
         ));
     }
+    if lower.starts_with("oya-ci-required/cloud-ci evidence:")
+        || lower == "oya-ci-required/cloud-ci gate packet"
+    {
+        return Err(format!(
+            "{}[{index}]: {field} must cite a resolvable artifact path or evidence-required:* id, not a branded pseudo-evidence string: {reference:?}",
+            path.display()
+        ));
+    }
+    if is_valid_evidence_id(reference) {
+        return Ok(());
+    }
+
+    let artifact = parse_artifact_reference(reference).ok_or_else(|| {
+        format!(
+            "{}[{index}]: {field} must be a resolvable repo artifact reference or evidence-required:* id, got {reference:?}",
+            path.display()
+        )
+    })?;
+    validate_artifact_reference(repo_root, path, index, field, reference, &artifact)
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+struct ArtifactReference<'a> {
+    path: &'a str,
+    fragment: Option<&'a str>,
+    symbol: Option<&'a str>,
+}
+
+fn parse_artifact_reference(reference: &str) -> Option<ArtifactReference<'_>> {
+    let reference = reference.trim();
+    if reference.is_empty() || reference.contains(char::is_whitespace) {
+        return None;
+    }
+    let reference = reference
+        .strip_prefix("$ref:")
+        .unwrap_or(reference)
+        .strip_prefix('/')
+        .unwrap_or(reference);
+    let (path_and_symbol, fragment) = reference
+        .split_once('#')
+        .map_or((reference, None), |(path, fragment)| (path, Some(fragment)));
+    let (artifact_path, symbol) = split_rust_symbol_reference(path_and_symbol);
+    if artifact_path.is_empty()
+        || artifact_path.starts_with('.')
+        || artifact_path.contains('\\')
+        || artifact_path.split('/').any(|part| part == "..")
+    {
+        return None;
+    }
+    Some(ArtifactReference {
+        path: artifact_path,
+        fragment,
+        symbol,
+    })
+}
+
+fn split_rust_symbol_reference(reference: &str) -> (&str, Option<&str>) {
+    if let Some(index) = reference.find(".rs::") {
+        (&reference[..index + 3], Some(&reference[index + 5..]))
+    } else {
+        (reference, None)
+    }
+}
+
+fn validate_artifact_reference(
+    repo_root: &Path,
+    registry_path: &Path,
+    index: usize,
+    field: &str,
+    original_reference: &str,
+    artifact: &ArtifactReference<'_>,
+) -> Result<(), String> {
+    let artifact_path = repo_root.join(artifact.path);
+    if !artifact_path.is_file() {
+        return Err(format!(
+            "{}[{index}]: {field} cites stale or invented artifact {original_reference:?}; {} does not exist",
+            registry_path.display(),
+            artifact_path.display()
+        ));
+    }
+
+    if let Some(fragment) = artifact.fragment
+        && artifact_path
+            .extension()
+            .and_then(|extension| extension.to_str())
+            == Some("json")
+    {
+        validate_json_fragment(&artifact_path, fragment).map_err(|error| {
+            format!(
+                "{}[{index}]: {field} cites stale or invented JSON fragment {original_reference:?}: {error}",
+                registry_path.display()
+            )
+        })?;
+    }
+
+    if let Some(symbol) = artifact.symbol {
+        validate_rust_symbol_fragment(&artifact_path, symbol).map_err(|error| {
+            format!(
+                "{}[{index}]: {field} cites stale or invented Rust symbol {original_reference:?}: {error}",
+                registry_path.display()
+            )
+        })?;
+    }
+
     Ok(())
+}
+
+fn validate_json_fragment(path: &Path, fragment: &str) -> Result<(), String> {
+    if fragment.trim().is_empty() {
+        return Ok(());
+    }
+    let content = fs::read_to_string(path)
+        .map_err(|error| format!("unable to read {}: {error}", path.display()))?;
+    let value: Value = serde_json::from_str(&content)
+        .map_err(|error| format!("invalid JSON {}: {error}", path.display()))?;
+    let exists = if fragment.starts_with('/') {
+        value.pointer(fragment).is_some()
+    } else {
+        fragment
+            .split('/')
+            .next()
+            .and_then(|key| value.as_object().map(|object| object.contains_key(key)))
+            .unwrap_or(false)
+    };
+    if exists {
+        Ok(())
+    } else {
+        Err(format!("{} missing fragment #{fragment}", path.display()))
+    }
+}
+
+fn validate_rust_symbol_fragment(path: &Path, symbol: &str) -> Result<(), String> {
+    let terminal_symbol = symbol.rsplit("::").next().unwrap_or(symbol);
+    let content = fs::read_to_string(path)
+        .map_err(|error| format!("unable to read {}: {error}", path.display()))?;
+    if !terminal_symbol.is_empty() && content.contains(terminal_symbol) {
+        Ok(())
+    } else {
+        Err(format!("{} missing symbol {symbol}", path.display()))
+    }
+}
+
+fn is_valid_evidence_id(reference: &str) -> bool {
+    let Some(suffix) = reference.trim().strip_prefix("evidence-required:") else {
+        return false;
+    };
+    (3..=80).contains(&suffix.len())
+        && suffix.chars().all(|character| {
+            character.is_ascii_lowercase() || character.is_ascii_digit() || character == '-'
+        })
+        && suffix
+            .chars()
+            .next()
+            .is_some_and(|character| character.is_ascii_lowercase() || character.is_ascii_digit())
 }
 
 fn parse_foundry_capability_schema_record(
@@ -834,9 +1031,11 @@ mod tests {
             }
         ]);
 
+        let repo_root = temp_capability_repo("shallow");
         let error = validate_foundry_internal_registry_value(
-            Path::new("registry/capabilities/foundry-internal.json"),
+            &repo_root.join("registry/capabilities/foundry-internal.json"),
             &registry,
+            &repo_root,
         )
         .expect_err("shallow row is rejected");
 
@@ -853,9 +1052,11 @@ mod tests {
             "foundry.account"
         )]);
 
+        let repo_root = temp_capability_repo("rich");
         let ids = validate_foundry_internal_registry_value(
-            Path::new("registry/capabilities/foundry-internal.json"),
+            &repo_root.join("registry/capabilities/foundry-internal.json"),
             &registry,
+            &repo_root,
         )
         .expect("rich row accepted");
 
@@ -868,14 +1069,58 @@ mod tests {
         record["test_ref"] = json!(".omx/plans/retired-implementation-plan.md");
         let registry = json!([record]);
 
+        let repo_root = temp_capability_repo("retired-plan");
         let error = validate_foundry_internal_registry_value(
-            Path::new("registry/capabilities/foundry-internal.json"),
+            &repo_root.join("registry/capabilities/foundry-internal.json"),
             &registry,
+            &repo_root,
         )
         .expect_err("retired plan reference is rejected");
 
         assert!(
             error.contains("retired .omc/.omx implementation-plan inputs"),
+            "error={error}"
+        );
+    }
+
+    #[test]
+    fn internal_registry_rejects_branded_pseudo_evidence_refs() {
+        let mut record = rich_internal_record("foundry.account.list", "foundry.account");
+        record["verification_ref"] =
+            json!("oya-ci-required/cloud-ci evidence: foundry-capability-schema");
+        let registry = json!([record]);
+        let repo_root = temp_capability_repo("pseudo-evidence");
+
+        let error = validate_foundry_internal_registry_value(
+            &repo_root.join("registry/capabilities/foundry-internal.json"),
+            &registry,
+            &repo_root,
+        )
+        .expect_err("branded pseudo-evidence reference is rejected");
+
+        assert!(
+            error.contains("branded pseudo-evidence string"),
+            "error={error}"
+        );
+    }
+
+    #[test]
+    fn internal_registry_rejects_stale_schema_refs() {
+        let mut record = rich_internal_record("foundry.account.list", "foundry.account");
+        record["mcp_contract"]["input_schema_ref"] =
+            json!("specs/microservices/intelligence.json#missing-foundry-schema");
+        let registry = json!([record]);
+        let repo_root = temp_capability_repo("stale-schema");
+
+        let error = validate_foundry_internal_registry_value(
+            &repo_root.join("registry/capabilities/foundry-internal.json"),
+            &registry,
+            &repo_root,
+        )
+        .expect_err("stale schema reference is rejected");
+
+        assert!(
+            error.contains("stale or invented JSON fragment"),
             "error={error}"
         );
     }
@@ -894,8 +1139,8 @@ mod tests {
             "evidence_emission_topic": format!("foundry.capability.invoke:{id}"),
             "prd_ref": "specs/microservices/intelligence.json#acceptance_criteria",
             "task_ref": "tasks/intel-capability-registry-affected-target-index-plan.md",
-            "test_ref": "marketplace/facade/dev-cli/tests/gate_cli.rs::foundry_capability_schema_gate_accepts_internal_registry_fixture",
-            "verification_ref": "oya-ci-required/cloud-ci evidence: foundry-capability-schema --internal-registry registry/capabilities/foundry-internal.json",
+            "test_ref": "marketplace/facade/dev-cli/src/foundry_capability_schema_gates.rs::tests::internal_registry_accepts_rich_rows",
+            "verification_ref": "marketplace/facade/dev-cli/src/foundry_capability_schema_gates.rs::tests::internal_registry_accepts_rich_rows",
             "cost_profile": {
                 "per_invocation_budget_usd": "0.01",
                 "monthly_budget_usd": "10"
@@ -903,8 +1148,8 @@ mod tests {
             "mcp_contract": {
                 "agent_readable": "Read Foundry account metadata for an authorized internal operator.",
                 "human_readable": "Read Foundry account metadata.",
-                "input_schema_ref": "specs/microservices/intelligence.json#foundry-capability-input",
-                "output_schema_ref": "specs/microservices/intelligence.json#foundry-capability-output"
+                "input_schema_ref": "specs/microservices/intelligence.json#contracts",
+                "output_schema_ref": "specs/microservices/intelligence.json#contracts"
             },
             "failure_modes": [
                 "tenant_scope_missing",
@@ -912,8 +1157,51 @@ mod tests {
             ],
             "maturity": {
                 "claim_boundary": "Registry metadata only; no runtime maturity claim is made without cloud-ci/oya-ci evidence.",
-                "admission_ref": "oya-ci-required/cloud-ci gate packet"
+                "admission_ref": "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
             }
         })
+    }
+    fn temp_capability_repo(name: &str) -> PathBuf {
+        let root = std::env::temp_dir().join(format!(
+            "oya-foundry-capability-schema-{name}-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .expect("clock")
+                .as_nanos()
+        ));
+        std::fs::create_dir_all(root.join("registry/capabilities")).expect("registry dir");
+        std::fs::create_dir_all(root.join("specs/microservices")).expect("specs dir");
+        std::fs::create_dir_all(root.join("tasks")).expect("tasks dir");
+        std::fs::create_dir_all(root.join("marketplace/facade/dev-cli/src")).expect("source dir");
+        std::fs::create_dir_all(root.join("docs/decisions")).expect("decisions dir");
+        std::fs::write(
+            root.join("specs/root-hub-pointers.json"),
+            r#"{"entry_points":{}}"#,
+        )
+        .expect("root hub fixture");
+        std::fs::write(
+            root.join("specs/microservices/intelligence.json"),
+            r#"{"_meta":{"spec_id":"PRD-INTELLIGENCE"},"acceptance_criteria":[],"contracts":{}}"#,
+        )
+        .expect("intelligence PRD fixture");
+        std::fs::write(
+            root.join("tasks/intel-capability-registry-affected-target-index-plan.md"),
+            "Current task artifact.\n",
+        )
+        .expect("task fixture");
+        std::fs::write(
+            root.join("marketplace/facade/dev-cli/src/foundry_capability_schema_gates.rs"),
+            "fn internal_registry_accepts_rich_rows() {}\n",
+        )
+        .expect("test symbol fixture");
+        std::fs::write(
+            root.join(
+                "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
+            ),
+            "# ADR-0515\n",
+        )
+        .expect("admission fixture");
+        root
     }
 }
