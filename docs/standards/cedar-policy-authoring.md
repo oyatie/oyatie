@@ -263,19 +263,16 @@ permit (principal, action == Action::"ReadDocument", resource);
 
 ## Verification
 
-Primary command:
+Merge/promotion authority is the cloud-ci/oya-ci Rust gate packet for Cedar policy authoring,
+Cedar structural validation, capability-tier Cedar coverage, and autonomy-ceiling coverage.
+Legacy `oya gate` invocations are transitional/local feedback only; they are not merge
+authority, promotion authority, or a required context.
 
-```bash
-oya gate validate cedar-policy-authoring --scope microservices
-```
-
-Companion commands:
-
-```bash
-oya gate validate cedar-structural-validator --scope microservices
-oya gate validate capability-tier-cedar-coverage --scope microservices
-oya gate validate autonomy-ceiling --scope capabilities
-```
+Local feedback commands while the cloud-ci/Rust gates are being cut over:
+- `oya gate validate cedar-policy-authoring --scope microservices`
+- `oya gate validate cedar-structural-validator --scope microservices`
+- `oya gate validate capability-tier-cedar-coverage --scope microservices`
+- `oya gate validate autonomy-ceiling --scope capabilities`
 
 The checker MUST parse every Cedar file.
 
