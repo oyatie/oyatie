@@ -36,9 +36,10 @@
 //! - its builder chain carries a recognized router-level auth `.layer(...)` (a verified-principal
 //!   extractor / auth middleware named in policy `auth_layer_idents`), OR
 //! - every MUTATING handler bound in the chain invokes a recognized authz decision in its function
-//!   body — an `admin_tenant_allowed`-style guard, the tenancy `authorize(...)` pattern, a PDP
-//!   `decide(...)` port call, or a bearer/peer authentication guard, all named in policy
-//!   `authz_guard_idents`.
+//!   body — including the repo-owned `handler_to_sync(HandlerStruct)` typed-handler bridge, which is
+//!   resolved to the `impl Handler for HandlerStruct { fn call(...) { ... } }` body — an
+//!   `admin_tenant_allowed`-style guard, the tenancy `authorize(...)` pattern, a PDP `decide(...)`
+//!   port call, or a bearer/peer authentication guard, all named in policy `authz_guard_idents`.
 //! A mutating handler that derives no caller identity → the surface is UNAUTHENTICATED.
 //!
 //! ## Conservative in the SAFE direction
@@ -999,10 +1000,28 @@ fn classify_http_method_verb(verb: &str) -> MethodClass {
 }
 
 /// Read the handler ident from an owned-kernel `.route(method, path, HANDLER)` third arg. The handler
-/// may be a bare ident, a `"string"` handler name (the kernel's H=&str test shape), or an expression;
-/// take the leading path-ident (empty for an expression with no leading ident).
+/// may be a bare ident, a `"string"` handler name (the kernel's H=&str test shape), or the repo-owned
+/// `handler_to_sync(HandlerStruct)` typed-handler bridge; unwrap the bridge to the typed handler so
+/// the guard probe can inspect `impl Handler for HandlerStruct { fn call(...) { ... } }`.
 fn handler_ident_of(arg: &str) -> String {
-    read_path_ident(arg.trim().trim_start_matches('"'))
+    let trimmed = arg.trim().trim_start_matches('"');
+    let wrapper = "handler_to_sync";
+    if let Some(at) = trimmed.find(wrapper) {
+        let before_ok = at == 0 || !is_ident_byte(trimmed.as_bytes()[at - 1]);
+        let after_name = at + wrapper.len();
+        let after = &trimmed[after_name..];
+        if before_ok {
+            if let Some(open_rel) = after.find('(') {
+                let inner = &after[open_rel + 1..];
+                let (first_arg, _) = split_top_level_comma(inner);
+                let inner_ident = read_path_ident(first_arg);
+                if !inner_ident.is_empty() {
+                    return inner_ident;
+                }
+            }
+        }
+    }
+    read_path_ident(trimmed)
 }
 
 /// Resolve a `.route(` PATH argument to a concrete string. Structure (literal vs ident) is read from
@@ -1612,18 +1631,22 @@ const MAX_DELEGATE_DEPTH: usize = 2;
 /// following up to [`MAX_DELEGATE_DEPTH`] thin-wrapper delegations.
 ///
 /// Locates each `fn <handler>` definition (token-bounded), spans its body by brace matching, and
-/// tests whether any `authz_guard_idents` token appears in that body. A guard ident may be a plain
-/// ident (`authorize`, `admin_tenant_allowed`) or a method tail (`.decide(`) — both are simple
-/// substring probes, sound for the over-approximation this gate intends (a guard token in the body
-/// ⇒ the handler derives caller identity). Async handlers are covered because we anchor on
+/// tests whether any `authz_guard_idents` token appears in that body. For the repo-owned
+/// `handler_to_sync(HandlerStruct)` bridge, also locates
+/// `impl Handler for HandlerStruct { fn call(...) { ... } }` and probes that impl body. A guard ident
+/// may be a plain ident (`authorize`, `admin_tenant_allowed`) or a method tail (`.decide(`) — both are
+/// simple substring probes, sound for the over-approximation this gate intends (a guard token in the
+/// body ⇒ the handler derives caller identity). Async handlers are covered because we anchor on
 /// `fn <handler>` regardless of the `async`/`pub` prefix.
 ///
 /// If the body names no guard directly, it is probed for a SINGLE local-function delegate it calls
 /// (a thin wrapper like `handle_openai_compatible_proxy(state, headers, body, ..).await`); the gate
 /// recurses one hop into that delegate's body. This recognizes the real intelligence/adapters/rest
-/// data-plane wrappers as COVERED without a full call graph.
+/// data-plane wrappers and typed Handler impls without a full call graph.
 fn handler_body_has_guard(text: &str, handler: &str, guard_idents: &[String]) -> bool {
-    has_guard_rec(text, handler, guard_idents, MAX_DELEGATE_DEPTH, &mut BTreeSet::new())
+    let mut seen = BTreeSet::new();
+    has_guard_rec(text, handler, guard_idents, MAX_DELEGATE_DEPTH, &mut seen)
+        || handler_impl_has_guard_rec(text, handler, guard_idents, MAX_DELEGATE_DEPTH, &mut seen)
 }
 
 fn has_guard_rec(
@@ -1664,6 +1687,58 @@ fn has_guard_rec(
                 if depth > 0 {
                     for delegate in delegate_calls_in(&code, handler) {
                         if has_guard_rec(text, &delegate, guard_idents, depth - 1, seen) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        from = at + needle.len();
+    }
+    false
+}
+
+fn handler_impl_has_guard_rec(
+    text: &str,
+    handler: &str,
+    guard_idents: &[String],
+    depth: usize,
+    seen: &mut BTreeSet<String>,
+) -> bool {
+    if handler.is_empty()
+        || guard_idents.is_empty()
+        || !seen.insert(format!("impl:{handler}"))
+    {
+        return false;
+    }
+
+    let needle = format!(" for {handler}");
+    let bytes = text.as_bytes();
+    let mut from = 0usize;
+    while let Some(rel) = text[from..].find(&needle) {
+        let at = from + rel;
+        let prefix_start = at.saturating_sub(200);
+        let prefix = &text[prefix_start..at];
+        let before_ok = !is_ident_byte(bytes[at]);
+        let after_name = at + needle.len();
+        let after_ok = after_name >= bytes.len() || !is_ident_byte(bytes[after_name]);
+        if before_ok && after_ok && prefix.contains("impl") && prefix.contains("Handler") {
+            if let Some(body) = brace_body(text, after_name) {
+                let code = code_only(body);
+                if guard_idents.iter().any(|g| body_invokes_guard(&code, g.as_str())) {
+                    return true;
+                }
+                if depth > 0 {
+                    for delegate in delegate_calls_in(&code, handler) {
+                        if has_guard_rec(text, &delegate, guard_idents, depth - 1, seen)
+                            || handler_impl_has_guard_rec(
+                                text,
+                                &delegate,
+                                guard_idents,
+                                depth - 1,
+                                seen,
+                            )
+                        {
                             return true;
                         }
                     }
@@ -2359,7 +2434,7 @@ mod tests {
             "authz_guard_idents": [
                 "authorize", "admin_tenant_allowed", "authenticate_caller",
                 ".decide(", "require_data_plane_bearer", "authorize_token_for",
-                "authorize_with_token"
+                "authorize_with_token", "constant_time_eq"
             ],
             "exempt_path_substrings": ["/healthz", "/livez", "/readyz", "/metrics"],
             "frozen_unauthenticated_surfaces": []
@@ -3174,6 +3249,88 @@ mod tests {
             is_green(GREEN_OWNED_KERNEL_GET).is_empty(),
             "an owned-kernel GET-only health router is not a control plane: {:?}",
             is_green(GREEN_OWNED_KERNEL_GET)
+        );
+    }
+
+    // GREEN: an owned-kernel POST using the repo-owned typed Handler bridge. The route stores
+    // `handler_to_sync(PolicyAdmissionHandler)`, so the detector must unwrap the bridge and inspect
+    // the typed `impl Handler for PolicyAdmissionHandler { fn call(...) { ... } }` body. The handler
+    // delegates to a real fail-closed tenant/body guard that performs a constant-time comparison.
+    const GREEN_OWNED_KERNEL_HANDLER_TO_SYNC_TYPED_HANDLER: &str = r#"
+        fn build(router: &mut Router<SyncHandler>) -> Result<(), RouterError> {
+            router.route(
+                HttpMethod::Post,
+                "/tenant-rbac/v1/policy-admissions",
+                handler_to_sync(PolicyAdmissionHandler),
+            )?;
+            Ok(())
+        }
+
+        struct PolicyAdmissionHandler;
+
+        impl oya_http_middleware_kernel::Handler for PolicyAdmissionHandler {
+            type Error = HttpResponse;
+
+            fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
+                let request: ServiceWriteAdmissionRequest = parse_json(&req.body)?;
+                enforce_body_tenant_matches_verified(&req, &request.tenant_id)?;
+                Ok(HttpResponse::new(202))
+            }
+        }
+
+        fn enforce_body_tenant_matches_verified(
+            req: &HttpRequest,
+            body_tenant_id: &str,
+        ) -> Result<(), HttpResponse> {
+            if constant_time_eq(req.path.as_bytes(), body_tenant_id.as_bytes()) {
+                Ok(())
+            } else {
+                Err(HttpResponse::new(403))
+            }
+        }
+    "#;
+
+    #[test]
+    fn owned_kernel_handler_to_sync_typed_handler_impl_is_green_when_impl_calls_guard() {
+        let observed = observe(GREEN_OWNED_KERNEL_HANDLER_TO_SYNC_TYPED_HANDLER);
+        assert_eq!(
+            observed["surfaces"][0]["routes"][0]["handler"],
+            "PolicyAdmissionHandler",
+            "handler_to_sync(HandlerStruct) must resolve to the typed handler struct"
+        );
+        assert!(
+            is_green(GREEN_OWNED_KERNEL_HANDLER_TO_SYNC_TYPED_HANDLER).is_empty(),
+            "a typed Handler impl with a real guard must cover an owned-kernel POST: {:?}",
+            is_green(GREEN_OWNED_KERNEL_HANDLER_TO_SYNC_TYPED_HANDLER)
+        );
+    }
+
+    // RED control: unwrapping handler_to_sync must not itself count as authz.
+    const RED_OWNED_KERNEL_HANDLER_TO_SYNC_TYPED_HANDLER_WITHOUT_GUARD: &str = r#"
+        fn build(router: &mut Router<SyncHandler>) -> Result<(), RouterError> {
+            router.route(HttpMethod::Post, "/tenant-rbac/v1/policy-admissions", handler_to_sync(PolicyAdmissionHandler))?;
+            Ok(())
+        }
+
+        struct PolicyAdmissionHandler;
+
+        impl oya_http_middleware_kernel::Handler for PolicyAdmissionHandler {
+            type Error = HttpResponse;
+
+            fn call(&self, _req: HttpRequest) -> Result<HttpResponse, Self::Error> {
+                Ok(HttpResponse::new(202))
+            }
+        }
+    "#;
+
+    #[test]
+    fn owned_kernel_handler_to_sync_typed_handler_without_guard_remains_red() {
+        assert!(
+            has_code(
+                RED_OWNED_KERNEL_HANDLER_TO_SYNC_TYPED_HANDLER_WITHOUT_GUARD,
+                "AC-UNAUTHENTICATED-CONTROL-PLANE"
+            ),
+            "handler_to_sync is only a typed-handler bridge, not an authz marker"
         );
     }
 
