@@ -13,6 +13,8 @@ k8s-cluster-lifecycle-api = { path = "../../ports/cluster-lifecycle-api" }
 k8s-tenant-quota-kernel = { path = "../../core/tenant-quota-kernel" }
 k8s-tenant-quota-adapter-inmemory = { path = "../../adapters/tenant-quota-adapter-inmemory" }
 k8s-control-plane-host-adapter-inmemory = { path = "../../adapters/control-plane-host-adapter-inmemory" }
+k8s-cluster-lifecycle-adapter-cedar = { path = "../../adapters/cluster-lifecycle-adapter-cedar" }
+iam-identity-workload-domain = { path = "../../../iam/core/identity-workload-domain" }
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
 serde = { workspace = true }
 serde_json = { workspace = true }

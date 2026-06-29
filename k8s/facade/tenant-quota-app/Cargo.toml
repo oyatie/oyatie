@@ -11,6 +11,8 @@ description = "Composition root: quota admin REST API (PUT/GET /tenants/{id}/quo
 k8s-tenant-quota-kernel = { path = "../../core/tenant-quota-kernel" }
 k8s-tenant-quota-api = { path = "../../ports/tenant-quota-api" }
 k8s-tenant-quota-adapter-inmemory = { path = "../../adapters/tenant-quota-adapter-inmemory" }
+k8s-tenant-quota-adapter-cedar = { path = "../../adapters/tenant-quota-adapter-cedar" }
+iam-identity-workload-domain = { path = "../../../iam/core/identity-workload-domain" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tokio = { workspace = true }
