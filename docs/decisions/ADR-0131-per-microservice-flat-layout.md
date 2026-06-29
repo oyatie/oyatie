@@ -196,7 +196,7 @@ Per the historical `/specs/microservice-migration-tooling.json` `cost_estimate` 
 
 Sum across all 30 migration IPs at the M01 launch tier: ≈ 1500 files moved + 3500 cross-refs updated + ≈ 3h cumulative wall time. Migrations run in parallel per the DAG below; end-to-end M01 migration window ≈ 1 working day with parallel execution.
 
-Migration DAG (concurrency tiers; all IPs within one tier run in parallel). Per ADR-0132 (product-platform-dissolution), prior grouping bundles `foundry`, `workflow`, `cloud`, Tenant/RBAC packaging, workspace productivity composition, Tenant RBAC are dissolved into 36 flat µservices below — matching AWS / Google / Microsoft / Stripe ship-as-separate-service precedent.
+Migration DAG (concurrency tiers; all IPs within one tier run in parallel). Per ADR-0132 (product-platform-dissolution), prior grouping bundles `foundry`, `workflow`, `cloud`, Tenant/PBAC packaging (RBAC + ABAC), workspace productivity composition, and Tenant PBAC are dissolved into 36 flat µservices below — matching AWS / Google / Microsoft / Stripe ship-as-separate-service precedent.
 
 ```text
 Tier 0 (substrate; no inter-µservice deps):
