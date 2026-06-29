@@ -9,11 +9,11 @@
 //! or that grants more than the capability authored.
 //!
 //! ## Two invariants (DATA in `cedar-deploy-parity-policy.json`)
-//! 1. **CHECK-A — no unconstrained-head permit (action-agnostic).** A deployed ConfigMap permit whose
-//!    HEAD leaves the action unconstrained (a bare `action`, not `action == Action::"…"` or
-//!    `action in [ … ]`) is over-broad: it authorizes every action for whatever the `when` clause
-//!    admits. This is the GH #16 blanket shape. The `when` conditions never narrow the action set, so
-//!    they do not redeem an unconstrained action head.
+//! 1. **CHECK-A — no unconstrained-head permit.** A deployed ConfigMap permit whose HEAD leaves the
+//!    action unconstrained (a bare `action`, not `action == Action::"…"` or `action in [ … ]`) is
+//!    action-agnostic. A permit whose HEAD leaves bare `resource` and whose `when` clause carries no
+//!    resource/scope predicate is resource-agnostic. Both shapes are over-broad for production Helm
+//!    policy; authored PBAC (RBAC + ABAC) policy must name the action and constrain resource/scope.
 //! 2. **CHECK-B — deployed allows ⊆ authored allows.** Cedar authorizes only when at least one
 //!    `permit` applies, no `forbid` applies, and otherwise defaults to deny. Therefore a deployed
 //!    permit must be authored, and any authored forbid that can restrict a deployed permit must also be
@@ -39,6 +39,7 @@
 //!
 //! ## Violation codes (the contract — literal strings the gate emits)
 //! - `CDP-UNCONSTRAINED-PERMIT`     — a non-baselined deployed ConfigMap carries an action-agnostic permit (CHECK-A).
+//! - `CDP-UNCONSTRAINED-RESOURCE`   — a non-baselined deployed ConfigMap carries a permit with bare `resource` and no resource/scope predicate (CHECK-A).
 //! - `CDP-DEPLOYED-NOT-SUBSET`      — a deployed permit is absent from the capability's authored policy set (CHECK-B).
 //! - `CDP-NO-AUTHORED-BASELINE`     — a non-baselined deployed ConfigMap has no resolvable authored policy (CHECK-B, fail-closed).
 //! - `CDP-CEDAR-EXTRACT-FAILED`     — the Cedar policy could not be extracted/parsed from a deployed ConfigMap (fail-closed).
@@ -63,8 +64,9 @@ pub const GATE_ID: &str = "cloud-ci-cedar-deploy-parity";
 pub const DEFAULT_DEPLOYED_SUFFIX: &str = "iac/k8s/helm/templates/cedar.yaml";
 
 /// The blocking + structural violation codes, in canonical order.
-pub const VIOLATION_CODES: [&str; 7] = [
+pub const VIOLATION_CODES: [&str; 8] = [
     "CDP-UNCONSTRAINED-PERMIT",
+    "CDP-UNCONSTRAINED-RESOURCE",
     "CDP-DEPLOYED-NOT-SUBSET",
     "CDP-NO-AUTHORED-BASELINE",
     "CDP-CEDAR-EXTRACT-FAILED",
@@ -123,6 +125,8 @@ pub fn collect(root: &Path, policy: &Value) -> Result<Value, CollectError> {
     } else {
         authored_subdirs.iter().map(String::as_str).collect()
     };
+    let baseline_adr_exists =
+        baseline_adr(policy).is_some_and(|adr| baseline_adr_file_exists(root, adr));
 
     let mut rel_paths: Vec<String> = Vec::new();
     walk_for_suffix(root, root, suffix, &mut rel_paths)?;
@@ -142,18 +146,20 @@ pub fn collect(root: &Path, policy: &Value) -> Result<Value, CollectError> {
 
         let blocks = extract_cedar_blocks(&text);
         if blocks.is_empty() {
-            extract_error = Some("no `*.cedar` block-scalar key found under the ConfigMap".to_owned());
+            extract_error =
+                Some("no `*.cedar` block-scalar key found under the ConfigMap".to_owned());
         }
         for block in &blocks {
             for stmt in split_statements(block) {
                 match statement_effect(&stmt) {
-                    Some(PolicyEffect::Permit) => match permit_action_unconstrained(&stmt) {
-                        Ok(Some(unconstrained)) => {
+                    Some(PolicyEffect::Permit) => match permit_head_constraints(&stmt) {
+                        Ok(Some(constraints)) => {
                             let normalized = normalize_statement(&stmt);
                             permit_set.insert(normalized.clone());
                             permits.push(json!({
                                 "normalized": normalized,
-                                "action_unconstrained": unconstrained,
+                                "action_unconstrained": constraints.action_unconstrained,
+                                "resource_scope_unconstrained": constraints.resource_scope_unconstrained,
                             }));
                         }
                         Ok(None) => {}
@@ -194,7 +200,7 @@ pub fn collect(root: &Path, policy: &Value) -> Result<Value, CollectError> {
         }));
     }
 
-    Ok(json!({ "configmaps": configmaps }))
+    Ok(json!({ "configmaps": configmaps, "baseline_adr_exists": baseline_adr_exists }))
 }
 
 /// Recursive read-only walk collecting repo-relative paths ending with `suffix`.
@@ -528,21 +534,30 @@ fn matching_paren(s: &str) -> Option<usize> {
     None
 }
 
-/// For a Cedar statement: `Ok(None)` if it is not a `permit`; `Ok(Some(true))` if it is a permit whose
-/// HEAD leaves the action unconstrained; `Ok(Some(false))` if it is a permit with a constrained action
-/// head; `Err` if it is a `permit` whose head cannot be parsed (fail-closed).
-pub fn permit_action_unconstrained(stmt: &str) -> Result<Option<bool>, String> {
+/// Parsed broadness facts for the Cedar permit head plus its resource/scope predicate.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PermitHeadConstraints {
+    pub action_unconstrained: bool,
+    pub resource_scope_unconstrained: bool,
+}
+
+/// For a Cedar statement: `Ok(None)` if it is not a `permit`; otherwise returns the permit's
+/// broadness facts. `Err` if it is a `permit` whose head cannot be parsed (fail-closed).
+pub fn permit_head_constraints(stmt: &str) -> Result<Option<PermitHeadConstraints>, String> {
     let body = strip_annotations(stmt);
     let body = body.trim_start();
     if !starts_with_keyword(body, "permit") {
         return Ok(None);
     }
     let after = body["permit".len()..].trim_start();
-    let head = match after.strip_prefix('(') {
+    let (head, after_head) = match after.strip_prefix('(') {
         Some(_) => {
             let close = matching_paren(after)
                 .ok_or_else(|| format!("permit head has no closing paren: {stmt}"))?;
-            after.get(1..close).unwrap_or("")
+            (
+                after.get(1..close).unwrap_or(""),
+                after.get(close + 1..).unwrap_or(""),
+            )
         }
         None => return Err(format!("permit not followed by a head paren: {stmt}")),
     };
@@ -550,9 +565,38 @@ pub fn permit_action_unconstrained(stmt: &str) -> Result<Option<bool>, String> {
     let action = slots
         .get(1)
         .ok_or_else(|| format!("permit head has fewer than 3 scope slots: {stmt}"))?;
+    let resource = slots
+        .get(2)
+        .ok_or_else(|| format!("permit head has fewer than 3 scope slots: {stmt}"))?;
     let action = collapse_ws(action);
-    let constrained = action.contains("==") || action.contains(" in ") || action.contains(" in[");
-    Ok(Some(!constrained))
+    let resource = collapse_ws(resource);
+    Ok(Some(PermitHeadConstraints {
+        action_unconstrained: !head_slot_is_constrained(&action),
+        resource_scope_unconstrained: !head_slot_is_constrained(&resource)
+            && !has_resource_scope_predicate(after_head),
+    }))
+}
+
+/// Back-compat helper for tests and callers that only need the action-axis result.
+pub fn permit_action_unconstrained(stmt: &str) -> Result<Option<bool>, String> {
+    Ok(permit_head_constraints(stmt)?.map(|facts| facts.action_unconstrained))
+}
+
+fn head_slot_is_constrained(slot: &str) -> bool {
+    slot.contains("==")
+        || slot.contains(" in ")
+        || slot.contains(" in[")
+        || slot.contains(" is ")
+        || slot.contains(" is(")
+}
+
+fn has_resource_scope_predicate(after_head: &str) -> bool {
+    let lower = after_head.to_ascii_lowercase();
+    lower.contains("resource.")
+        || lower.contains("resource[")
+        || lower.contains("context.scope")
+        || lower.contains("context.tenant")
+        || lower.contains("scope_id")
 }
 
 /// Split a Cedar policy-head on top-level commas (respecting `[]`, `()`, and string literals).
@@ -717,6 +761,87 @@ fn baseline_policy_signatures(policy: &Value) -> BTreeSet<String> {
         .unwrap_or_default()
 }
 
+fn baseline_text_field(policy: &Value, key: &str) -> Option<String> {
+    policy
+        .get("baseline")
+        .and_then(|b| b.get(key))
+        .and_then(Value::as_str)
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(str::to_owned)
+}
+
+fn baseline_adr(policy: &Value) -> Option<&str> {
+    policy
+        .get("baseline")
+        .and_then(|b| b.get("adr"))
+        .and_then(Value::as_str)
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+}
+
+fn baseline_adr_file_exists(root: &Path, adr: &str) -> bool {
+    let Ok(entries) = fs::read_dir(root.join("docs/decisions")) else {
+        return false;
+    };
+    let prefix = format!("{adr}-");
+    entries.flatten().any(|entry| {
+        entry
+            .file_name()
+            .to_str()
+            .is_some_and(|name| name.starts_with(&prefix) && name.ends_with(".md"))
+    })
+}
+
+fn strict_adr_ref(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    bytes.len() == 8 && bytes.starts_with(b"ADR-") && bytes[4..].iter().all(u8::is_ascii_digit)
+}
+
+fn strict_iso_date(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    if bytes.len() != 10
+        || bytes[4] != b'-'
+        || bytes[7] != b'-'
+        || !bytes[..4].iter().all(u8::is_ascii_digit)
+        || !bytes[5..7].iter().all(u8::is_ascii_digit)
+        || !bytes[8..].iter().all(u8::is_ascii_digit)
+    {
+        return false;
+    }
+    let Ok(year) = value[..4].parse::<u32>() else {
+        return false;
+    };
+    let Ok(month) = value[5..7].parse::<u32>() else {
+        return false;
+    };
+    let Ok(day) = value[8..].parse::<u32>() else {
+        return false;
+    };
+    if month == 0 || month > 12 || day == 0 {
+        return false;
+    }
+    let max_day = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if is_leap_year(year) => 29,
+        2 => 28,
+        _ => return false,
+    };
+    day <= max_day
+}
+
+fn is_leap_year(year: u32) -> bool {
+    year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
+}
+fn baseline_text_field_present(policy: &Value, key: &str) -> bool {
+    policy
+        .get("baseline")
+        .and_then(|b| b.get(key))
+        .and_then(Value::as_str)
+        .is_some_and(|s| !s.trim().is_empty())
+}
+
 fn baseline_signature_matches(cm: &Value, signatures: &BTreeSet<String>) -> bool {
     cm.get("policy_signature")
         .and_then(Value::as_str)
@@ -749,9 +874,9 @@ fn has_unconstrained_permit(cm: &Value) -> bool {
 }
 
 /// Pure evaluator. `policy` is DATA (`cedar-deploy-parity-policy.json`); `observed` is the view shaped
-/// by [`collect`]. RED iff a non-baselined deployed ConfigMap carries an action-agnostic permit
-/// (CHECK-A), grants more than the capability authored (CHECK-B), or fails closed (extract failure /
-/// missing authored baseline / stale baseline / structural).
+/// by [`collect`]. RED iff a non-baselined deployed ConfigMap carries an action-agnostic permit or
+/// bare-resource permit with no resource/scope predicate (CHECK-A), grants more than the capability
+/// authored (CHECK-B), or fails closed (extract failure / missing authored baseline / stale baseline / structural).
 pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
     let mut findings = BTreeSet::new();
 
@@ -788,6 +913,43 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
             POLICY_KEY,
             "baseline paths require baseline.policy_signatures; path-only grandfathering is not allowed",
         ));
+    }
+    if !baseline.is_empty() {
+        for key in ["reason", "remove_by", "adr"] {
+            if !baseline_text_field_present(policy, key) {
+                findings.insert(Finding::new(
+                    "CDP-POLICY-MALFORMED",
+                    POLICY_KEY,
+                    format!("baseline paths require non-empty baseline.{key}; broad-policy exceptions must be audited, time-boxed, and decision-linked"),
+                ));
+            }
+        }
+        let remove_by = baseline_text_field(policy, "remove_by");
+        if remove_by
+            .as_deref()
+            .is_none_or(|date| !strict_iso_date(date))
+        {
+            findings.insert(Finding::new(
+                "CDP-POLICY-MALFORMED",
+                POLICY_KEY,
+                "baseline.remove_by must be a strict valid YYYY-MM-DD date",
+            ));
+        }
+
+        let adr = baseline_text_field(policy, "adr");
+        if adr.as_deref().is_none_or(|value| !strict_adr_ref(value)) {
+            findings.insert(Finding::new(
+                "CDP-POLICY-MALFORMED",
+                POLICY_KEY,
+                "baseline.adr must be a strict ADR-NNNN reference",
+            ));
+        } else if observed.get("baseline_adr_exists").and_then(Value::as_bool) != Some(true) {
+            findings.insert(Finding::new(
+                "CDP-POLICY-MALFORMED",
+                POLICY_KEY,
+                "baseline.adr must resolve to an existing docs/decisions/ADR-NNNN-*.md record",
+            ));
+        }
     }
     let observed_paths: BTreeSet<&str> = configmaps
         .iter()
@@ -852,9 +1014,13 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
             continue;
         }
 
-        let permits = cm.get("permits").and_then(Value::as_array).cloned().unwrap_or_default();
+        let permits = cm
+            .get("permits")
+            .and_then(Value::as_array)
+            .cloned()
+            .unwrap_or_default();
 
-        // CHECK-A: no action-agnostic permit.
+        // CHECK-A: no action-agnostic permit and no bare-resource permit without a resource/scope predicate.
         for permit in &permits {
             if permit
                 .get("action_unconstrained")
@@ -867,13 +1033,27 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
                     "deployed permit leaves the action unconstrained (action-agnostic blanket grant); constrain it with `action == Action::\"…\"` or `action in [ … ]`",
                 ));
             }
+            if permit
+                .get("resource_scope_unconstrained")
+                .and_then(Value::as_bool)
+                .unwrap_or(false)
+            {
+                findings.insert(Finding::new(
+                    "CDP-UNCONSTRAINED-RESOURCE",
+                    path,
+                    "deployed permit leaves `resource` unconstrained and has no resource/scope predicate; constrain it with `resource is …`, `resource in …`, or an explicit resource/scope `when` clause",
+                ));
+            }
         }
 
         // CHECK-B: Cedar semantics require deployed allows ⊆ authored allows. A deployed permit must
         // be authored, and authored forbids must be present whenever deployed permits could otherwise
         // allow a request that authored policy would deny. No deployed permits means Cedar default-deny,
         // so missing forbids cannot widen authorization in that case.
-        let authored_found = cm.get("authored_found").and_then(Value::as_bool).unwrap_or(false);
+        let authored_found = cm
+            .get("authored_found")
+            .and_then(Value::as_bool)
+            .unwrap_or(false);
         if !authored_found {
             findings.insert(Finding::new(
                 "CDP-NO-AUTHORED-BASELINE",
@@ -888,7 +1068,10 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
             .map(|a| a.iter().filter_map(Value::as_str).collect())
             .unwrap_or_default();
         for permit in &permits {
-            let normalized = permit.get("normalized").and_then(Value::as_str).unwrap_or("");
+            let normalized = permit
+                .get("normalized")
+                .and_then(Value::as_str)
+                .unwrap_or("");
             if !authored.contains(normalized) {
                 findings.insert(Finding::new(
                     "CDP-DEPLOYED-NOT-SUBSET",
@@ -976,13 +1159,19 @@ forbid(
         let blocks = extract_cedar_blocks(&yaml);
         assert_eq!(blocks.len(), 1, "one .cedar block expected");
         assert!(blocks[0].contains("permit("));
-        assert!(!blocks[0].contains("{{- end }}"), "wrapper must not leak in");
+        assert!(
+            !blocks[0].contains("{{- end }}"),
+            "wrapper must not leak in"
+        );
     }
 
     #[test]
     fn blanket_permit_is_action_unconstrained() {
         let stmts = split_statements(BLANKET);
-        let permit = stmts.iter().find(|s| s.trim_start().starts_with("permit")).unwrap();
+        let permit = stmts
+            .iter()
+            .find(|s| s.trim_start().starts_with("permit"))
+            .unwrap();
         assert_eq!(permit_action_unconstrained(permit), Ok(Some(true)));
     }
 
@@ -1002,6 +1191,30 @@ forbid(
     fn action_in_list_is_constrained_even_with_commas() {
         let p = r#"permit ( principal, action in [Action::"a", Action::"b"], resource )"#;
         assert_eq!(permit_action_unconstrained(p), Ok(Some(false)));
+    }
+
+    #[test]
+    fn bare_resource_with_resource_scope_predicate_is_constrained() {
+        let p = r#"permit ( principal, action == Action::"doc.Read", resource ) when { principal.tenant_id == resource.tenant_id }"#;
+        assert_eq!(
+            permit_head_constraints(p),
+            Ok(Some(PermitHeadConstraints {
+                action_unconstrained: false,
+                resource_scope_unconstrained: false,
+            }))
+        );
+    }
+
+    #[test]
+    fn bare_resource_without_scope_predicate_is_unconstrained() {
+        let p = r#"permit ( principal, action == Action::"doc.Read", resource );"#;
+        assert_eq!(
+            permit_head_constraints(p),
+            Ok(Some(PermitHeadConstraints {
+                action_unconstrained: false,
+                resource_scope_unconstrained: true,
+            }))
+        );
     }
 
     #[test]
@@ -1025,7 +1238,10 @@ forbid(
                 None => {}
             }
         }
-        assert_eq!(authorization_signature(&permits, &forbids), BLANKET_SIGNATURE);
+        assert_eq!(
+            authorization_signature(&permits, &forbids),
+            BLANKET_SIGNATURE
+        );
     }
 
     fn policy(baseline: &[&str]) -> Value {
@@ -1033,7 +1249,13 @@ forbid(
             "gate_id": GATE_ID,
             "deployed_suffix": DEFAULT_DEPLOYED_SUFFIX,
             "authored_subdirs": ["policy", "cedar"],
-            "baseline": { "paths": baseline, "policy_signatures": [BLANKET_SIGNATURE] }
+            "baseline": {
+                "reason": "unit-test audited blanket exception",
+                "remove_by": "2026-12-31",
+                "adr": "ADR-0608",
+                "paths": baseline,
+                "policy_signatures": [BLANKET_SIGNATURE]
+            }
         })
     }
 
@@ -1041,7 +1263,7 @@ forbid(
         let normalized = if action_unconstrained {
             "permit ( principal, action, resource )".to_owned()
         } else {
-            "permit ( principal, action == Action::\"a\", resource )".to_owned()
+            "permit ( principal, action == Action::\"a\", resource is Doc )".to_owned()
         };
         let signature = if action_unconstrained {
             BLANKET_SIGNATURE
@@ -1052,18 +1274,23 @@ forbid(
             "path": path,
             "capability": "oya/x",
             "extract_error": Value::Null,
-            "permits": [ { "normalized": normalized, "action_unconstrained": action_unconstrained } ],
+            "permits": [ {
+                "normalized": normalized,
+                "action_unconstrained": action_unconstrained,
+                "resource_scope_unconstrained": action_unconstrained
+            } ],
             "forbids": [],
             "policy_signature": signature,
             "authored_found": authored_found,
-            "authored_permits": ["permit ( principal, action == Action::\"a\", resource )"],
+            "authored_permits": ["permit ( principal, action == Action::\"a\", resource is Doc )"],
             "authored_forbids": [],
         })
     }
 
     #[test]
     fn unconstrained_permit_outside_baseline_is_red() {
-        let observed = json!({ "configmaps": [ cm("oya/x/iac/k8s/helm/templates/cedar.yaml", true, true) ] });
+        let observed =
+            json!({ "configmaps": [ cm("oya/x/iac/k8s/helm/templates/cedar.yaml", true, true) ] });
         let codes: BTreeSet<String> = evaluate_keyed(&policy(&[]), &observed)
             .into_iter()
             .map(|f| f.code)
@@ -1074,16 +1301,71 @@ forbid(
     #[test]
     fn baselined_blanket_is_grandfathered_green() {
         let path = "oya/x/iac/k8s/helm/templates/cedar.yaml";
-        let observed = json!({ "configmaps": [ cm(path, true, true) ] });
+        let observed =
+            json!({ "configmaps": [ cm(path, true, true) ], "baseline_adr_exists": true });
         let report = evaluate(&policy(&[path]), &observed);
         assert_eq!(report.verdict, Verdict::Green, "{:?}", report.violations);
+    }
+
+    #[test]
+    fn baseline_paths_require_audited_exception_metadata() {
+        let path = "oya/x/iac/k8s/helm/templates/cedar.yaml";
+        let observed = json!({ "configmaps": [ cm(path, true, true) ] });
+        let malformed_policy = json!({
+            "gate_id": GATE_ID,
+            "deployed_suffix": DEFAULT_DEPLOYED_SUFFIX,
+            "authored_subdirs": ["policy", "cedar"],
+            "baseline": { "paths": [path], "policy_signatures": [BLANKET_SIGNATURE] }
+        });
+        let codes: BTreeSet<String> = evaluate_keyed(&malformed_policy, &observed)
+            .into_iter()
+            .map(|f| f.code)
+            .collect();
+        assert!(codes.contains("CDP-POLICY-MALFORMED"), "{codes:?}");
+    }
+
+    #[test]
+    fn baseline_remove_by_requires_strict_valid_date() {
+        let path = "oya/x/iac/k8s/helm/templates/cedar.yaml";
+        let mut malformed_policy = policy(&[path]);
+        malformed_policy["baseline"]["remove_by"] = json!("2026-02-31");
+        let observed =
+            json!({ "configmaps": [ cm(path, true, true) ], "baseline_adr_exists": true });
+        let codes: BTreeSet<String> = evaluate_keyed(&malformed_policy, &observed)
+            .into_iter()
+            .map(|f| f.code)
+            .collect();
+        assert!(codes.contains("CDP-POLICY-MALFORMED"), "{codes:?}");
+    }
+
+    #[test]
+    fn baseline_adr_requires_strict_existing_reference() {
+        let path = "oya/x/iac/k8s/helm/templates/cedar.yaml";
+        let mut malformed_policy = policy(&[path]);
+        malformed_policy["baseline"]["adr"] = json!("ADR-608");
+        let observed =
+            json!({ "configmaps": [ cm(path, true, true) ], "baseline_adr_exists": true });
+        let codes: BTreeSet<String> = evaluate_keyed(&malformed_policy, &observed)
+            .into_iter()
+            .map(|f| f.code)
+            .collect();
+        assert!(codes.contains("CDP-POLICY-MALFORMED"), "{codes:?}");
+
+        let observed_without_adr =
+            json!({ "configmaps": [ cm(path, true, true) ], "baseline_adr_exists": false });
+        let codes: BTreeSet<String> = evaluate_keyed(&policy(&[path]), &observed_without_adr)
+            .into_iter()
+            .map(|f| f.code)
+            .collect();
+        assert!(codes.contains("CDP-POLICY-MALFORMED"), "{codes:?}");
     }
 
     #[test]
     fn baseline_for_now_clean_configmap_is_stale() {
         let path = "oya/x/iac/k8s/helm/templates/cedar.yaml";
         // Constrained permit that IS in authored -> no CHECK-A/B finding, so the baseline is stale.
-        let observed = json!({ "configmaps": [ cm(path, false, true) ] });
+        let observed =
+            json!({ "configmaps": [ cm(path, false, true) ], "baseline_adr_exists": true });
         let codes: BTreeSet<String> = evaluate_keyed(&policy(&[path]), &observed)
             .into_iter()
             .map(|f| f.code)
@@ -1096,7 +1378,7 @@ forbid(
         let path = "oya/x/iac/k8s/helm/templates/cedar.yaml";
         let mut changed = cm(path, true, true);
         changed["policy_signature"] = json!("cedar-authz-fnv1a64:changed");
-        let observed = json!({ "configmaps": [ changed ] });
+        let observed = json!({ "configmaps": [ changed ], "baseline_adr_exists": true });
         let codes: BTreeSet<String> = evaluate_keyed(&policy(&[path]), &observed)
             .into_iter()
             .map(|f| f.code)
@@ -1129,7 +1411,8 @@ forbid(
     fn missing_authored_forbid_is_deployed_not_subset() {
         let path = "oya/x/iac/k8s/helm/templates/cedar.yaml";
         let permit = "permit ( principal, action == Action::\"a\", resource )";
-        let forbid = "forbid ( principal, action == Action::\"a\", resource ) when { resource.blocked }";
+        let forbid =
+            "forbid ( principal, action == Action::\"a\", resource ) when { resource.blocked }";
         let observed = json!({ "configmaps": [ {
             "path": path,
             "capability": "oya/x",
@@ -1204,7 +1487,8 @@ forbid(
 
     #[test]
     fn wrong_gate_id_fails_closed() {
-        let observed = json!({ "configmaps": [ cm("oya/x/iac/k8s/helm/templates/cedar.yaml", false, true) ] });
+        let observed =
+            json!({ "configmaps": [ cm("oya/x/iac/k8s/helm/templates/cedar.yaml", false, true) ] });
         let mut p = policy(&[]);
         p["gate_id"] = json!("wrong");
         let codes: BTreeSet<String> = evaluate_keyed(&p, &observed)

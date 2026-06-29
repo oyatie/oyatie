@@ -1,22 +1,24 @@
 {
-  "description": "A review-authority row is green when merge admission has a blocking machine-verifiable review status or durable evidence from PR Code Review plus a trusted cloud-ci/oya-ci gate packet, proves reviewer identity is distinct from the author, and binds the reviewed PR title/body evidence.",
-  "expected_verdict": "GREEN",
-  "expected_violations": [],
-  "fixture_id": "TC-0.16-GOOD-pre-merge-review-authority",
+  "description": "A live review-authority row with title/body evidence still fails when review_authority_source is missing or target-only; provenance must identify a trusted review-admission producer.",
+  "expected_verdict": "RED",
+  "expected_violations": [
+    "missing_pre_merge_review_authority"
+  ],
+  "fixture_id": "TC-0.16-BAD-untrusted-review-authority-source",
   "rows": [
     {
-      "blocking_fixture": "specs/fixtures/phase0-automation-ratchet/tc-0.16-good-pre-merge-review-authority.json",
+      "blocking_fixture": "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-untrusted-review-authority-source.json",
       "classification": "automated_blocking_now",
       "enforceable_or_automatable": true,
-      "evidence_path": "PR ## Code Review section + trusted cloud-ci/oya-ci review-admission gate packet + PR reviews API readback",
+      "evidence_path": "target-only branch-protection shadow; not trusted review-admission provenance",
       "has_durable_review_evidence": false,
       "has_machine_verifiable_review_status": true,
       "has_review_title_evidence": true,
       "has_review_body_evidence": true,
-      "id": "GOOD-review-status-blocks-merge",
+      "id": "BAD-live-review-authority-untrusted-source",
       "no_new_oya_cli_surface": true,
       "owner": "platform-toolchain + platform-governance",
-      "requirement": "Protected branch merge admission requires a pre-merge review authority, not only the oya-ci-required context, and that authority must bind the reviewed PR title/body evidence.",
+      "requirement": "Protected branch merge admission review authority must name a trusted provenance source for the title/body-bound review status.",
       "requires_pre_merge_review_authority": true,
       "retirement_phase": "P0.0/P1 review-admission producer",
       "review_blocks_merge": true,
@@ -24,7 +26,7 @@
       "source_artifact": "docs/AGENTS.md#PR-shape + docs/standards/code-review.md#mandatory-pr-sections + docs/decisions/ADR-0367-trustless-pre-merge-verification-gateway.md",
       "target_gate_or_controller": "cloud-ci/oya-ci review-admission packet producer",
       "review_authority_live": true,
-      "review_authority_source": "trusted_cloud_ci_review_admission_packet"
+      "review_authority_source": "target_branch_protection_shadow_only"
     }
   ],
   "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/tests/automation_ratchet.rs"
