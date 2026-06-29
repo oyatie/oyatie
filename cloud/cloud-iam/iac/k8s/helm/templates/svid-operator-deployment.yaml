@@ -6,6 +6,17 @@
 {{- if not .Values.svidOperator.cellId -}}
 {{- fail "svidOperator.cellId must be set to the real cell id (forms the platform SVID authority); the operator binary fail-closes otherwise" -}}
 {{- end -}}
+{{- /* GH #980 join-token bootstrap contract: the operator reads OYA_SVID_OPERATOR_JOIN_TOKEN
+       from svidOperator.joinToken.secretName and fail-closes if it is empty, so the chart MUST
+       NOT enable the operator without a provisioning path for that Secret. Fail the render unless
+       exactly one is selected: the ESO ExternalSecret (default) OR an explicit preProvisioned
+       acknowledgement that an owned out-of-band mechanism supplies it. */ -}}
+{{- if and (not .Values.svidOperator.joinToken.externalSecret.enabled) (not .Values.svidOperator.joinToken.preProvisioned) -}}
+{{- fail "svidOperator.joinToken has no provisioning contract: set joinToken.externalSecret.enabled=true (ESO->OpenBao, preferred) OR joinToken.preProvisioned=true to acknowledge an owned out-of-band Secret. The operator fail-closes without OYA_SVID_OPERATOR_JOIN_TOKEN." -}}
+{{- end -}}
+{{- if and .Values.svidOperator.joinToken.externalSecret.enabled .Values.svidOperator.joinToken.preProvisioned -}}
+{{- fail "svidOperator.joinToken: choose exactly ONE provisioning path — joinToken.externalSecret.enabled and joinToken.preProvisioned are mutually exclusive (preProvisioned opts OUT of the ESO ExternalSecret)." -}}
+{{- end -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
