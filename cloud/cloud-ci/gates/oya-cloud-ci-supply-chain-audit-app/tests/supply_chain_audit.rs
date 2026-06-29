@@ -16,9 +16,7 @@
 use std::path::{Path, PathBuf};
 
 use oya_advisory_mirror_kernel::{Advisory, canonical_hash};
-use oya_cloud_ci_supply_chain_audit_app::{
-    GATE_ID, collect, evaluate_keyed, render_findings,
-};
+use oya_cloud_ci_supply_chain_audit_app::{GATE_ID, collect, evaluate_keyed, render_findings};
 use serde_json::{Value, json};
 
 /// Walk up from the test's working directory to the repo root (the dir holding the canonical
@@ -37,7 +35,9 @@ fn repo_root() -> PathBuf {
 }
 
 fn policy_path(root: &Path) -> PathBuf {
-    root.join("cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/supply-chain-audit-policy.json")
+    root.join(
+        "cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/supply-chain-audit-policy.json",
+    )
 }
 
 fn load_policy(root: &Path) -> Value {
@@ -62,6 +62,120 @@ fn live_corpus_is_born_blocking_green() {
         "the supply-chain-audit gate must be born-blocking GREEN on the live corpus (quinn fixed; \
          the 3 unmaintained ids in policy.ignore). Live findings:\n{}",
         render_findings(&findings)
+    );
+}
+
+#[test]
+fn active_admission_wires_signature_provenance_sbom_and_vet_posture() {
+    let root = repo_root();
+
+    let workflow = std::fs::read_to_string(root.join(".github/workflows/oya-ci-required.yml"))
+        .expect("read oya-ci-required workflow");
+    assert!(
+        workflow.contains("oya-cloud-ci-supply-chain-audit-app")
+            && workflow.contains("gate · supply-chain-audit"),
+        "the supply-chain audit gate must be part of the active oya-ci-required admission matrix"
+    );
+
+    let kyverno =
+        std::fs::read_to_string(root.join("infra/kyverno/policies/verify-image-signed.yaml"))
+            .expect("read keyless image policy");
+    let broad_github_workflow = ["https://github.com/", ".+/.+", "/.github/workflows"].concat();
+    for required in [
+        "keyless:",
+        "rekor:",
+        "https://slsa.dev/provenance/v1",
+        "https://cyclonedx.org/bom",
+        "https://token.actions.githubusercontent.com",
+        "https://github.com/jason931225/oyatie/.github/workflows/.+@refs/(heads/dev|tags/v.+)",
+    ] {
+        assert!(
+            kyverno.contains(required),
+            "keyless supply-chain admission policy must contain {required:?}"
+        );
+    }
+    for forbidden in [
+        "ExternalSecret",
+        "cosign-key",
+        "cosign-pub",
+        "publicKeys:",
+        broad_github_workflow.as_str(),
+    ] {
+        assert!(
+            !kyverno.contains(forbidden),
+            "static-key-only Cosign admission is not readiness authority; found {forbidden:?}"
+        );
+    }
+
+    let legacy_keyless_policy =
+        std::fs::read_to_string(root.join("infra/kyverno/policies/require-signed-images.yaml"))
+            .expect("read legacy keyless image policy");
+    assert!(
+        legacy_keyless_policy
+            .contains("https://github.com/jason931225/oyatie/.github/workflows/.+@refs/(heads/dev|tags/v.+)")
+            && !legacy_keyless_policy.contains(&broad_github_workflow),
+        "secondary keyless policy must not keep the any-GitHub-repository wildcard"
+    );
+
+    for rel in [
+        "marketplace/facade/dev-cli/src/commands/supply_chain.rs",
+        "marketplace/facade/dev-cli/src/cloud_iac_kubewarden_admission_gate.rs",
+    ] {
+        let source = std::fs::read_to_string(root.join(rel)).expect("read supply-chain source");
+        assert!(
+            source.contains("https://github.com/jason931225/oyatie/.github/workflows/.+@refs/(heads/dev|tags/v.+)")
+                && !source.contains(&broad_github_workflow),
+            "{rel} must not preserve the any-GitHub-repository Cosign identity wildcard"
+        );
+    }
+
+    for rel in [
+        "cloud/cloud-iac/iac/k8s/kubewarden/verify-image-signatures-policy.yaml",
+        "cloud/cloud-iac/iac/k8s/kubewarden/verification-config.yaml",
+    ] {
+        let policy = std::fs::read_to_string(root.join(rel)).expect("read kubewarden policy");
+        assert!(
+            policy.contains("owner: jason931225")
+                && policy.contains("repo: oyatie")
+                && !policy.contains("owner: oyatie"),
+            "{rel} must bind GitHub Actions identity to the owned repository, not the owner wildcard"
+        );
+    }
+
+    let cli_usage = std::fs::read_to_string(root.join("marketplace/facade/dev-cli/src/lib.rs"))
+        .expect("read dev-cli usage");
+    assert!(
+        cli_usage.contains("--manifest <cloud/cloud-iac/manifest.json>")
+            && cli_usage.contains("--chart-root <cloud/cloud-iac/iac/k8s/helm>")
+            && cli_usage.contains("--kubewarden-root <cloud/cloud-iac/iac/k8s/kubewarden>"),
+        "dev-cli help must advertise live cloud/cloud-iac supply-chain admission paths"
+    );
+
+    let checklist =
+        std::fs::read_to_string(root.join("docs/checklists/release-readiness-checklist.md"))
+            .expect("read release readiness checklist");
+    assert!(
+        checklist.contains("cloud-ci-supply-chain-audit")
+            && !checklist.contains("Command:* `cargo vet`")
+            && !checklist.contains("Command: `cargo vet`"),
+        "release readiness must point at active cloud-ci supply-chain admission, not a missing cargo-vet command"
+    );
+
+    let cargo_vet_doc = std::fs::read_to_string(root.join("docs/governance-lanes/cargo-vet.md"))
+        .expect("read cargo-vet governance lane");
+    assert!(
+        cargo_vet_doc.contains("Retired from live admission")
+            && cargo_vet_doc.contains("ci_invocation: none while retired"),
+        "cargo-vet must be explicitly retired from live readiness authority until maintained inputs exist"
+    );
+
+    let lane_index = std::fs::read_to_string(root.join("docs/governance-lanes/INDEX.md"))
+        .expect("read governance lane index");
+    assert!(
+        lane_index.contains("cargo-vet | retired-until-inputs")
+            && lane_index.contains("current dependency/advisory authority is `cloud-ci-supply-chain-audit`")
+            && !lane_index.contains("cargo run -p oya-governance-cargo-vet"),
+        "the canonical lane index must not present cargo-vet as live CI authority"
     );
 }
 
@@ -146,7 +260,8 @@ fn synthetic_unmaintained_absent_then_present_in_ignore() {
 
     // Present in ignore → clean.
     let mut p2 = synthetic_policy(&root);
-    p2["ignore"] = json!([{ "id": "RUSTSEC-2024-0436", "reason": "no drop-in", "remove_by": "2026-12-31" }]);
+    p2["ignore"] =
+        json!([{ "id": "RUSTSEC-2024-0436", "reason": "no drop-in", "remove_by": "2026-12-31" }]);
     assert!(
         evaluate_keyed(&p2, &obs).is_empty(),
         "an ignored, live-affected unmaintained crate must be clean"

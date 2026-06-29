@@ -4,21 +4,19 @@ doc_status: published
 
 # Fitness Lane: cargo-vet
 
-- status: Accepted
-- date: 2026-05-12
-- purpose: Verify every transitive dep is vetted (cargo-vet audit trail present and current).
-- enforces: hyperscaler-best-practices spec — supply-chain review trail via cargo-vet.
-- kernel_crate: `oya-governance-cargo-vet-kernel` — `VetRecord { crate_id, version, audited_by, exemption }`, verdict `CargoVetFitnessReport { deps_checked }`.
-- runner_path: `tools/oya-governance-cargo-vet`
-- inputs: `supply-chain/audits.toml`, `supply-chain/imports.lock`, `cargo vet check` JSON.
-- failure_modes:
+- status: Retired from live admission until maintained inputs exist
+- date: 2026-06-29
+- purpose: Historical dependency-review lane. Do not count raw `cargo vet` output as Product-ready or Hyperscaler-ready evidence while `supply-chain/audits.toml` and `supply-chain/imports.lock` are absent.
+- current_authority: `cloud-ci-supply-chain-audit` — owned RustSec advisory scan over vendored mirror, wired into `oya-ci-required`.
+- retired_inputs: `supply-chain/audits.toml`, `supply-chain/imports.lock`, `cargo vet check` JSON.
+- failure_modes_when_reintroduced:
   - new dep with no audit row
   - exemption used without expiry date
   - cargo-vet reports `unaudited`
-- ci_invocation: `cargo run -p oya-governance-cargo-vet`
+- ci_invocation: none while retired; reintroduction requires maintained input files plus a cloud-ci gate wired into `oya-ci-required`.
 - runtime_budget: 1500 ms
 - severity: HIGH
-- kernel_sketch:
+- reintroduction_kernel_sketch:
 ```rust
 pub struct VetRecord {
     pub crate_id: String,            // data_class: INTERNAL_ONLY
