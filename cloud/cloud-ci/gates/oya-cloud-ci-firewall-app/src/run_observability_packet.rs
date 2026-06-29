@@ -1,9 +1,9 @@
 //! Canonical cloud-ci run observability packet validation (GH-1003).
 //!
 //! This lives in the legacy `cloud/cloud-ci/gates` firewall crate only because that is the
-//! current required-context enforcement path; the stable contract is the top-level
-//! `specs/cloud-ci-run-observability-packet.schema.json` spec and the eventual de-branded
-//! destination is an `observability/core` status-packet kernel.
+//! current required-context enforcement path; the stable contracts are the top-level
+//! `specs/cloud-ci-run-observability-{packet,status}.schema.json` specs and the eventual
+//! de-branded destination is an `observability/core` run-observability kernel.
 
 use std::collections::BTreeSet;
 
@@ -11,6 +11,16 @@ use serde_json::Value;
 
 pub const PACKET_SCHEMA_VERSION: &str = "cloud-ci-run-observability-packet/v1";
 pub const PACKET_SCHEMA_PATH: &str = "specs/cloud-ci-run-observability-packet.schema.json";
+pub const STATUS_SCHEMA_VERSION: &str = "cloud-ci-run-observability-status/v1";
+pub const STATUS_SCHEMA_PATH: &str = "specs/cloud-ci-run-observability-status.schema.json";
+pub const STATUS_VALUES: [&str; 6] = [
+    "queued",
+    "running",
+    "passed",
+    "failed",
+    "cancelled",
+    "timed_out",
+];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PacketVerdict {
@@ -26,11 +36,11 @@ pub struct PacketFinding {
 }
 
 impl PacketFinding {
-    fn new(code: &str, key: impl Into<String>, remediation: &str) -> Self {
+    fn new(code: &str, key: impl Into<String>, remediation: impl Into<String>) -> Self {
         Self {
             code: code.to_owned(),
             key: key.into(),
-            remediation: remediation.to_owned(),
+            remediation: remediation.into(),
         }
     }
 }
@@ -132,6 +142,544 @@ pub fn validate_packet(packet: &Value) -> PacketReport {
     );
 
     PacketReport::from_findings(findings)
+}
+
+pub fn validate_status(status: &Value) -> PacketReport {
+    let mut findings = BTreeSet::new();
+    let Some(obj) = status.as_object() else {
+        findings.insert(PacketFinding::new(
+            "status_not_object",
+            "$",
+            "Emit the cloud-ci run observability status API payload as a JSON object.",
+        ));
+        return PacketReport::from_findings(findings);
+    };
+
+    require_exact_str(
+        obj.get("schema_version"),
+        STATUS_SCHEMA_VERSION,
+        "schema_version",
+        "status_schema_version_invalid",
+        &mut findings,
+    );
+
+    let run = obj.get("run");
+    let run_provider = str_at(run.and_then(|run| run.get("provider")));
+    let run_id = str_at(run.and_then(|run| run.get("run_id")));
+    let attempt = run
+        .and_then(|run| run.get("attempt"))
+        .and_then(Value::as_u64);
+    let status_value = str_at(obj.get("status"));
+    let failure_required = matches!(status_value, Some("failed" | "timed_out"));
+
+    validate_status_id(
+        obj.get("status_id"),
+        run_provider,
+        run_id,
+        attempt,
+        &mut findings,
+    );
+    validate_status_producer(obj.get("producer"), &mut findings);
+    validate_status_run(run, &mut findings);
+    validate_context_binding(obj.get("producer"), run, &mut findings);
+    validate_subject(obj.get("subject"), &mut findings);
+    validate_status_value(obj.get("status"), &mut findings);
+    validate_status_phase(obj.get("phase"), status_value, &mut findings);
+    validate_gate_summary(obj.get("gate_summary"), status_value, &mut findings);
+    let artifact_refs = validate_status_refs(
+        obj.get("artifact_refs"),
+        "artifact_refs",
+        StatusRefKind::Artifact,
+        &mut findings,
+    );
+    let diagnostic_refs = validate_status_refs(
+        obj.get("diagnostic_refs"),
+        "diagnostic_refs",
+        StatusRefKind::Diagnostic,
+        &mut findings,
+    );
+    validate_status_correlation(obj.get("correlation"), run_id, &mut findings);
+    validate_status_retention(obj.get("retention"), &mut findings);
+    validate_status_diagnosability(
+        obj.get("diagnosability"),
+        failure_required,
+        artifact_refs,
+        diagnostic_refs,
+        &mut findings,
+    );
+
+    PacketReport::from_findings(findings)
+}
+
+fn validate_status_id(
+    value: Option<&Value>,
+    provider: Option<&str>,
+    run_id: Option<&str>,
+    attempt: Option<u64>,
+    findings: &mut BTreeSet<PacketFinding>,
+) {
+    require_non_empty_str(value, "status_id", "status_id_missing", findings);
+    let Some(status_id) = str_at(value) else {
+        return;
+    };
+    if !is_canonical_status_id_shape(status_id) {
+        findings.insert(PacketFinding::new(
+            "status_id_unstable",
+            "status_id",
+            "Use a stable status id of the form cloud-ci-run-status:<provider>:<run-id>:attempt-<n>.",
+        ));
+        return;
+    }
+    if let (Some(provider), Some(run_id), Some(attempt)) = (provider, run_id, attempt) {
+        let expected = canonical_status_id(provider, run_id, attempt);
+        if status_id != expected {
+            findings.insert(PacketFinding::new(
+                "status_id_run_mismatch",
+                "status_id",
+                "Tie status_id to the status run fields exactly: cloud-ci-run-status:<provider>:<run_id>:attempt-<attempt>.",
+            ));
+        }
+    }
+}
+
+fn canonical_status_id(provider: &str, run_id: &str, attempt: u64) -> String {
+    format!("cloud-ci-run-status:{provider}:{run_id}:attempt-{attempt}")
+}
+
+fn is_canonical_status_id_shape(status_id: &str) -> bool {
+    let mut parts = status_id.split(':');
+    matches!(parts.next(), Some("cloud-ci-run-status"))
+        && parts
+            .next()
+            .is_some_and(|provider| !provider.is_empty() && provider.bytes().all(is_stable_id_byte))
+        && parts
+            .next()
+            .is_some_and(|run_id| !run_id.is_empty() && run_id.bytes().all(is_stable_id_byte))
+        && parts.next().is_some_and(|attempt| {
+            attempt
+                .strip_prefix("attempt-")
+                .is_some_and(|value| !value.is_empty() && value.bytes().all(|b| b.is_ascii_digit()))
+        })
+        && parts.next().is_none()
+}
+
+fn validate_status_producer(value: Option<&Value>, findings: &mut BTreeSet<PacketFinding>) {
+    let Some(obj) = object_at(value, "producer", findings) else {
+        return;
+    };
+    require_allowed_str(
+        obj.get("required_context"),
+        &["cloud-ci-required", "oya-ci-required"],
+        "producer.required_context",
+        "producer_required_context_invalid",
+        findings,
+    );
+    require_allowed_str(
+        obj.get("merge_authority_context"),
+        &["cloud-ci-required", "oya-ci-required"],
+        "producer.merge_authority_context",
+        "producer_merge_authority_invalid",
+        findings,
+    );
+    require_allowed_str(
+        obj.get("control_plane"),
+        &["trusted-cloud-ci-controller", "github-actions-bridge"],
+        "producer.control_plane",
+        "producer_control_plane_invalid",
+        findings,
+    );
+    require_non_empty_str(
+        obj.get("status_api"),
+        "producer.status_api",
+        "status_api_missing",
+        findings,
+    );
+}
+
+fn validate_status_run(value: Option<&Value>, findings: &mut BTreeSet<PacketFinding>) {
+    let Some(obj) = object_at(value, "run", findings) else {
+        return;
+    };
+    require_non_empty_str(obj.get("run_id"), "run.run_id", "run_id_missing", findings);
+    require_positive_u64(
+        obj.get("attempt"),
+        "run.attempt",
+        "run_attempt_invalid",
+        findings,
+    );
+    require_allowed_str(
+        obj.get("provider"),
+        &["github-actions", "owned-cloud-ci"],
+        "run.provider",
+        "run_provider_invalid",
+        findings,
+    );
+    require_allowed_str(
+        obj.get("status_context"),
+        &["cloud-ci-required", "oya-ci-required"],
+        "run.status_context",
+        "run_status_context_invalid",
+        findings,
+    );
+    require_non_empty_str(
+        obj.get("correlation_id"),
+        "run.correlation_id",
+        "run_correlation_id_missing",
+        findings,
+    );
+    require_non_empty_str(
+        obj.get("started_at"),
+        "run.started_at",
+        "run_started_at_missing",
+        findings,
+    );
+    require_non_empty_str(
+        obj.get("updated_at"),
+        "run.updated_at",
+        "run_updated_at_missing",
+        findings,
+    );
+}
+
+fn validate_status_value(value: Option<&Value>, findings: &mut BTreeSet<PacketFinding>) {
+    match str_at(value) {
+        Some(text) if STATUS_VALUES.contains(&text) => {}
+        Some(text) => {
+            findings.insert(PacketFinding::new(
+                "status_value_invalid",
+                "status",
+                format!(
+                    "invalid cloud-ci run observability status: {text}; expected {}",
+                    STATUS_VALUES.join("|")
+                ),
+            ));
+        }
+        None => {
+            findings.insert(PacketFinding::new(
+                "status_value_missing",
+                "status",
+                format!(
+                    "Emit one of the canonical status values: {}.",
+                    STATUS_VALUES.join("|")
+                ),
+            ));
+        }
+    }
+}
+
+fn validate_status_phase(
+    value: Option<&Value>,
+    status_value: Option<&str>,
+    findings: &mut BTreeSet<PacketFinding>,
+) {
+    let Some(obj) = object_at(value, "phase", findings) else {
+        return;
+    };
+    require_non_empty_str(
+        obj.get("phase_id"),
+        "phase.phase_id",
+        "phase_id_missing",
+        findings,
+    );
+    require_non_empty_str(
+        obj.get("name"),
+        "phase.name",
+        "phase_name_missing",
+        findings,
+    );
+    require_allowed_str(
+        obj.get("state"),
+        &STATUS_VALUES,
+        "phase.state",
+        "phase_state_invalid",
+        findings,
+    );
+    require_non_empty_str(
+        obj.get("started_at"),
+        "phase.started_at",
+        "phase_started_at_missing",
+        findings,
+    );
+    require_non_empty_str(
+        obj.get("updated_at"),
+        "phase.updated_at",
+        "phase_updated_at_missing",
+        findings,
+    );
+    if let (Some(status), Some(phase_state)) = (status_value, str_at(obj.get("state"))) {
+        if matches!(status, "passed" | "failed" | "cancelled" | "timed_out")
+            && phase_state != status
+        {
+            findings.insert(PacketFinding::new(
+                "terminal_phase_status_mismatch",
+                "phase.state",
+                "A terminal run status must carry the same terminal state on the current phase projection.",
+            ));
+        }
+    }
+}
+
+fn validate_gate_summary(
+    value: Option<&Value>,
+    status_value: Option<&str>,
+    findings: &mut BTreeSet<PacketFinding>,
+) {
+    let Some(obj) = object_at(value, "gate_summary", findings) else {
+        return;
+    };
+    let mut total_parts = 0_u64;
+    for key in [
+        "queued",
+        "running",
+        "passed",
+        "failed",
+        "cancelled",
+        "timed_out",
+    ] {
+        require_u64(
+            obj.get(key),
+            format!("gate_summary.{key}"),
+            "gate_summary_count_missing",
+            findings,
+        );
+        total_parts += obj.get(key).and_then(Value::as_u64).unwrap_or(0);
+    }
+    require_u64(
+        obj.get("total"),
+        "gate_summary.total",
+        "gate_summary_total_missing",
+        findings,
+    );
+    if let Some(total) = obj.get("total").and_then(Value::as_u64) {
+        if total != total_parts {
+            findings.insert(PacketFinding::new(
+                "gate_summary_total_mismatch",
+                "gate_summary.total",
+                "Make gate_summary.total equal the sum of queued/running/passed/failed/cancelled/timed_out.",
+            ));
+        }
+    }
+    if matches!(status_value, Some("failed" | "timed_out")) {
+        require_non_empty_str(
+            obj.get("primary_failed_gate_id"),
+            "gate_summary.primary_failed_gate_id",
+            "primary_failed_gate_missing",
+            findings,
+        );
+        require_allowed_str(
+            obj.get("failure_taxonomy"),
+            &[
+                "code_regression",
+                "policy_violation",
+                "infra_red",
+                "operator_waiver_required",
+                "cancelled",
+                "flake_suspected",
+                "timeout",
+            ],
+            "gate_summary.failure_taxonomy",
+            "failure_taxonomy_invalid",
+            findings,
+        );
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+enum StatusRefKind {
+    Artifact,
+    Diagnostic,
+}
+
+fn validate_status_refs(
+    value: Option<&Value>,
+    key: &str,
+    kind: StatusRefKind,
+    findings: &mut BTreeSet<PacketFinding>,
+) -> usize {
+    let Some(items) = array_at(value, key, findings) else {
+        return 0;
+    };
+    let mut valid_count = 0_usize;
+    for (index, item) in items.iter().enumerate() {
+        let Some(text) = str_at(Some(item)).filter(|text| !text.is_empty()) else {
+            findings.insert(PacketFinding::new(
+                "status_ref_invalid",
+                format!("{key}[{index}]"),
+                "Emit every status reference as a non-empty stable typed artifact or diagnostic id.",
+            ));
+            continue;
+        };
+        match kind {
+            StatusRefKind::Artifact => {
+                if text.contains("/actions/runs/") {
+                    findings.insert(PacketFinding::new(
+                        "status_artifact_ref_raw_actions_log",
+                        format!("{key}[{index}]"),
+                        "Reference typed gate/status artifacts; do not use raw GitHub Actions run logs as status API refs.",
+                    ));
+                }
+                if is_status_artifact_ref(text) {
+                    valid_count += 1;
+                } else {
+                    findings.insert(PacketFinding::new(
+                        "status_artifact_ref_invalid",
+                        format!("{key}[{index}]"),
+                        "Use canonical status artifact refs: artifact:<gate-report|step-report|redacted-diagnostics|status-packet>:<stable-key>.",
+                    ));
+                }
+            }
+            StatusRefKind::Diagnostic => {
+                if is_status_diagnostic_ref(text) {
+                    valid_count += 1;
+                } else {
+                    findings.insert(PacketFinding::new(
+                        "status_diagnostic_ref_invalid",
+                        format!("{key}[{index}]"),
+                        "Use canonical status diagnostic refs: diag:<gate_id>:<stable-diagnostic-key>.",
+                    ));
+                }
+            }
+        }
+    }
+    valid_count
+}
+
+fn is_status_artifact_ref(value: &str) -> bool {
+    let Some(rest) = value.strip_prefix("artifact:") else {
+        return false;
+    };
+    let Some((kind, tail)) = rest.split_once(':') else {
+        return false;
+    };
+    matches!(
+        kind,
+        "gate-report" | "step-report" | "redacted-diagnostics" | "status-packet"
+    ) && !tail.is_empty()
+        && tail.bytes().all(is_status_artifact_ref_byte)
+}
+
+fn is_status_diagnostic_ref(value: &str) -> bool {
+    let mut parts = value.split(':');
+    matches!(parts.next(), Some("diag"))
+        && parts
+            .next()
+            .is_some_and(|gate_id| !gate_id.is_empty() && gate_id.bytes().all(is_stable_id_byte))
+        && parts.next().is_some_and(|diagnostic_key| {
+            !diagnostic_key.is_empty() && diagnostic_key.bytes().all(is_stable_id_byte)
+        })
+        && parts.next().is_none()
+}
+
+fn is_status_artifact_ref_byte(byte: u8) -> bool {
+    is_stable_id_byte(byte) || byte == b':'
+}
+
+fn validate_status_correlation(
+    value: Option<&Value>,
+    run_id: Option<&str>,
+    findings: &mut BTreeSet<PacketFinding>,
+) {
+    let Some(obj) = object_at(value, "correlation", findings) else {
+        return;
+    };
+    require_non_empty_str(
+        obj.get("packet_id"),
+        "correlation.packet_id",
+        "correlation_packet_id_missing",
+        findings,
+    );
+    if let (Some(run_id), Some(packet_id)) = (run_id, str_at(obj.get("packet_id"))) {
+        if !packet_id.contains(run_id) {
+            findings.insert(PacketFinding::new(
+                "correlation_packet_run_mismatch",
+                "correlation.packet_id",
+                "Tie correlation.packet_id to the same stable run id as the status run projection.",
+            ));
+        }
+    }
+    require_non_empty_str(
+        obj.get("status_artifact_uri"),
+        "correlation.status_artifact_uri",
+        "status_artifact_uri_missing",
+        findings,
+    );
+}
+
+fn validate_status_retention(value: Option<&Value>, findings: &mut BTreeSet<PacketFinding>) {
+    let Some(obj) = object_at(value, "retention", findings) else {
+        return;
+    };
+    require_positive_u64(
+        obj.get("status_ttl_days"),
+        "retention.status_ttl_days",
+        "status_ttl_days_invalid",
+        findings,
+    );
+    require_non_empty_str(
+        obj.get("expires_at"),
+        "retention.expires_at",
+        "retention_expires_at_missing",
+        findings,
+    );
+    let Some(pii) = object_at(obj.get("pii_policy"), "retention.pii_policy", findings) else {
+        return;
+    };
+    require_exact_bool(
+        pii.get("redaction_required"),
+        true,
+        "retention.pii_policy.redaction_required",
+        "status_redaction_required_missing",
+        findings,
+    );
+    require_allowed_str(
+        pii.get("diagnostics_pii"),
+        &["redacted-or-none"],
+        "retention.pii_policy.diagnostics_pii",
+        "status_diagnostics_pii_invalid",
+        findings,
+    );
+}
+
+fn validate_status_diagnosability(
+    value: Option<&Value>,
+    failure_required: bool,
+    artifact_ref_count: usize,
+    diagnostic_ref_count: usize,
+    findings: &mut BTreeSet<PacketFinding>,
+) {
+    let Some(obj) = object_at(value, "diagnosability", findings) else {
+        return;
+    };
+    require_exact_bool(
+        obj.get("actions_log_scrape_required"),
+        false,
+        "diagnosability.actions_log_scrape_required",
+        "actions_log_scrape_required",
+        findings,
+    );
+    require_exact_bool(
+        obj.get("first_diagnosis_from_status_api"),
+        true,
+        "diagnosability.first_diagnosis_from_status_api",
+        "status_api_diagnosis_not_declared",
+        findings,
+    );
+    if failure_required {
+        if artifact_ref_count == 0 {
+            findings.insert(PacketFinding::new(
+                "status_failure_artifact_refs_missing",
+                "artifact_refs",
+                "Failed/timed-out status projections must include typed artifact refs for first diagnosis.",
+            ));
+        }
+        if diagnostic_ref_count == 0 {
+            findings.insert(PacketFinding::new(
+                "status_failure_diagnostic_refs_missing",
+                "diagnostic_refs",
+                "Failed/timed-out status projections must include redacted diagnostic refs for first diagnosis.",
+            ));
+        }
+    }
 }
 
 fn canonical_packet_id(provider: &str, run_id: &str, attempt: u64) -> String {

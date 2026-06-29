@@ -1,0 +1,65 @@
+{
+  "schema_version": "cloud-ci-run-observability-status/v1",
+  "status_id": "cloud-ci-run-status:github-actions:303030311:attempt-1",
+  "producer": {
+    "required_context": "oya-ci-required",
+    "merge_authority_context": "oya-ci-required",
+    "control_plane": "github-actions-bridge",
+    "status_api": "serialized-status-artifact"
+  },
+  "run": {
+    "run_id": "303030311",
+    "attempt": 1,
+    "provider": "github-actions",
+    "status_context": "oya-ci-required",
+    "correlation_id": "corr:oya-ci-required:303030311:attempt-1",
+    "started_at": "2026-06-29T12:00:00Z",
+    "updated_at": "2026-06-29T12:07:45Z"
+  },
+  "subject": {
+    "repository": "jason931225/oyatie",
+    "pr_number": 1003,
+    "head_ref": "gjc/run-observability-20260629",
+    "head_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "base_ref": "dev",
+    "base_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "merge_base_sha": "cccccccccccccccccccccccccccccccccccccccc"
+  },
+  "status": "failed",
+  "phase": {
+    "phase_id": "gate-fanout",
+    "name": "Gate fan-out",
+    "state": "failed",
+    "started_at": "2026-06-29T12:01:00Z",
+    "updated_at": "2026-06-29T12:07:45Z"
+  },
+  "gate_summary": {
+    "total": 37,
+    "queued": 0,
+    "running": 0,
+    "passed": 36,
+    "failed": 1,
+    "cancelled": 0,
+    "timed_out": 0,
+    "primary_failed_gate_id": "cloud-ci-authz-coverage",
+    "failure_taxonomy": "policy_violation"
+  },
+  "artifact_refs": [],
+  "diagnostic_refs": [],
+  "correlation": {
+    "packet_id": "cloud-ci-run-packet:github-actions:303030311:attempt-1",
+    "status_artifact_uri": "gh-artifact://jason931225/oyatie/oya-ci-required/303030311/status/cloud-ci-run-observability-status.json"
+  },
+  "retention": {
+    "status_ttl_days": 30,
+    "expires_at": "2026-07-29T12:07:45Z",
+    "pii_policy": {
+      "redaction_required": true,
+      "diagnostics_pii": "redacted-or-none"
+    }
+  },
+  "diagnosability": {
+    "actions_log_scrape_required": true,
+    "first_diagnosis_from_status_api": false
+  }
+}
