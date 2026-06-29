@@ -287,7 +287,8 @@ jobs:
             //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-unittest \
             //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-signoff-fixer-unittest \
             //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-gate \
-            //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-gate-registration
+            //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-gate-registration \
+            //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-run-observability-packet
 
   # ── GENERATED OUTPUT DIFF POLICY. Generated files may be deleted to retire a tracked output,
   #    but PRs must not add/modify generated outputs as merge surfaces. Classification comes from
