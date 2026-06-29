@@ -73,6 +73,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use serde_json::Value;
 
+pub mod run_observability_packet;
+
 /// The verdict-name reused for a backwards ratchet (both the GATE-4 row-level downgrade and
 /// a baseline-growth at regen mean "the ratchet went backwards").
 pub const RATCHET_REGRESSION: &str = "ratchet_regression";
