@@ -10,7 +10,7 @@ security_review: unreviewed
 supply_chain: source-only
 traceability:
   changeset: CS-CATALOG-ARCH-BOUNDARY-001
-  source_crate: crates/oya-payments-charge-kernel/Cargo.toml
+  source_crate: oya/payments/crates/oya-payments-charge-kernel/Cargo.toml
 non_claims:
   - catalog row added to close repo-wide catalog and architecture-boundary coverage only
   - no new runtime capability implementation or production readiness claim is made by this row

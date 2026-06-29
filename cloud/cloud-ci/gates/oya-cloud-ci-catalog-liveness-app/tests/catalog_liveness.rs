@@ -74,10 +74,18 @@ fn catalog_liveness_verdict_matches_the_live_catalog() {
     let root = repo_root();
     let face = run_producer_face(&root, "catalog-liveness");
     let rows = face["rows"].as_array().expect("catalog-liveness face rows");
+    let live_crates = face["live_crates"]
+        .as_array()
+        .expect("catalog-liveness face live_crates");
     assert!(
         rows.len() > 500,
         "the catalog-liveness face should enumerate the catalog, got {}",
         rows.len()
+    );
+    assert!(
+        live_crates.len() > 100,
+        "the catalog-liveness face should enumerate governed live crates, got {}",
+        live_crates.len()
     );
 
     let findings = evaluate_keyed(&face);
@@ -95,10 +103,11 @@ fn catalog_liveness_verdict_matches_the_live_catalog() {
         .count();
     eprintln!(
         "BORN-BLOCKING catalog-liveness: catalog_records={} live={} dead_but_marked={} \
-         total_findings={} verdict={:?}",
+         governed_live_crates={} total_findings={} verdict={:?}",
         rows.len(),
         live,
         marked,
+        live_crates.len(),
         findings.len(),
         verdict
     );
@@ -149,6 +158,68 @@ fn synthetic_dead_unmarked_record_makes_the_gate_red() {
     );
 }
 
+#[test]
+fn synthetic_stale_source_crate_makes_the_gate_red() {
+    let root = repo_root();
+    let mut face = run_producer_face(&root, "catalog-liveness");
+
+    let rows = face["rows"]
+        .as_array_mut()
+        .expect("catalog-liveness face rows");
+    rows.push(json!({
+        "crate_id": "synthetic-live-stale-source",
+        "source_path": "registry/catalog/synthetic-live-stale-source.yaml",
+        "is_live": true,
+        "marker": Value::Null,
+        "source_crate": "crates/old-synthetic-live-stale-source/Cargo.toml",
+        "source_crate_exists": false,
+    }));
+    let live_crates = face["live_crates"]
+        .as_array_mut()
+        .expect("catalog-liveness face live_crates");
+    live_crates.push(json!({
+        "crate_id": "synthetic-live-stale-source",
+        "member_path": "synthetic/live-stale-source",
+        "has_catalog_row": true,
+        "exemption": Value::Null,
+    }));
+
+    let findings = evaluate_keyed(&face);
+    assert!(
+        findings.iter().any(|f| {
+            f.code == "catalog_record_source_crate_missing"
+                && f.key == "synthetic-live-stale-source"
+        }),
+        "the synthetic stale source_crate must be surfaced as a finding: {findings:?}"
+    );
+    assert_eq!(evaluate(&face).verdict, Verdict::Red);
+}
+
+#[test]
+fn synthetic_live_crate_without_row_makes_the_gate_red() {
+    let root = repo_root();
+    let mut face = run_producer_face(&root, "catalog-liveness");
+
+    let live_crates = face["live_crates"]
+        .as_array_mut()
+        .expect("catalog-liveness face live_crates");
+    live_crates.push(json!({
+        "crate_id": "synthetic-live-without-row",
+        "member_path": "synthetic/live-without-row",
+        "has_catalog_row": false,
+        "exemption": Value::Null,
+    }));
+
+    let findings = evaluate_keyed(&face);
+    assert!(
+        findings.iter().any(|f| {
+            f.code == "catalog_live_crate_without_row" && f.key == "synthetic-live-without-row"
+        }),
+        "the synthetic live crate without row must be surfaced as a finding: {findings:?}"
+    );
+    assert_eq!(evaluate(&face).verdict, Verdict::Red);
+}
+
 /// A dead BUT explicitly-marked synthetic record stays GREEN — the gate enforces
 /// live-OR-MARKED, not live-only (it must not false-RED the legitimately-marked records).
 #[test]
@@ -164,6 +235,8 @@ fn synthetic_dead_marked_record_keeps_the_gate_green() {
         "source_path": "registry/catalog/synthetic-dead-marked-cap.yaml",
         "is_live": false,
         "marker": "retired-compatibility-row-no-crate",
+        "source_crate": "crates/synthetic-dead-marked-cap/Cargo.toml",
+        "source_crate_exists": false,
     }));
 
     let findings = evaluate_keyed(&face);

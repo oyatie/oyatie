@@ -11,7 +11,7 @@ security_review: unreviewed
 supply_chain: source-only
 artifact_id: oya-check-layered-architecture-discipline
 kind: rust-crate
-path: crates/oya-check-layered-architecture-discipline
+path: libs/oya-check-layered-architecture-discipline
 layer: domain
 status: active
 owner: council-architecture
