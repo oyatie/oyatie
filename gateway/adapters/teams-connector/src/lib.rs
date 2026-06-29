@@ -20,7 +20,7 @@
 use oya_shared_connector_kernel::{
     AuthScheme, Connector, ConnectorCapabilities, ConnectorCtx, ConnectorError, Cursor, EntityDoc,
     EntityValue, Event, EventStream, HealthReport, IdempotencyKey, OntologyProjection, Page,
-    PatchOp, RateLimitDescriptor, btree_keyset_page, canonical_audit_payload_digest,
+    PatchOp, RateLimitDescriptor, btree_keyset_page, connector_operation_audit_digest,
     entity_doc_payload_digest, is_canonical_sha256_hex, patch_op_payload_digest,
 };
 use std::collections::{BTreeMap, HashMap, VecDeque};
@@ -105,14 +105,19 @@ impl TeamsConnector {
             Err(p) => p.into_inner(),
         }
     }
-    fn next_seq(&self) -> u64 {
+    fn next_seq_candidate(&self) -> u64 {
+        let g = match self.next_id.lock() {
+            Ok(g) => g,
+            Err(p) => p.into_inner(),
+        };
+        *g
+    }
+    fn commit_seq(&self) {
         let mut g = match self.next_id.lock() {
             Ok(g) => g,
             Err(p) => p.into_inner(),
         };
-        let v = *g;
         *g += 1;
-        v
     }
     fn check_kind(&self, kind: &str) -> Result<()> {
         match kind {
@@ -128,7 +133,7 @@ impl TeamsConnector {
                 "{op} payload digest must be canonical sha256"
             )));
         }
-        let receipt = ctx.audit_handle().seal(op, payload_digest);
+        let receipt = ctx.audit_handle().seal(op, payload_digest)?;
         if receipt.chain_id.is_empty()
             || receipt.kind != op
             || receipt.payload_digest != payload_digest
@@ -140,20 +145,19 @@ impl TeamsConnector {
         Ok(())
     }
 
-    fn operation_digest<I, K, V>(&self, ctx: &ConnectorCtx, fields: I) -> String
+    fn operation_digest<I, K, V>(&self, ctx: &ConnectorCtx, op: &str, fields: I) -> String
     where
         I: IntoIterator<Item = (K, V)>,
         K: AsRef<str>,
         V: AsRef<str>,
     {
-        let mut parts = vec![
-            ("provider".to_owned(), PROVIDER_ID.to_owned()),
-            ("tenant".to_owned(), ctx.tenant_id().as_str().to_owned()),
-        ];
-        for (key, value) in fields {
-            parts.push((key.as_ref().to_owned(), value.as_ref().to_owned()));
-        }
-        canonical_audit_payload_digest(parts)
+        connector_operation_audit_digest(
+            PROVIDER_ID,
+            ctx.tenant_id().as_str(),
+            ctx.principal_id().as_str(),
+            op,
+            fields,
+        )
     }
 
     fn redacted(label: &str, value: &str) -> String {
@@ -211,6 +215,7 @@ impl Connector for TeamsConnector {
         let cursor_value = cursor.as_ref().map(Cursor::as_str).unwrap_or("");
         let audit_digest = self.operation_digest(
             ctx,
+            "connector.list",
             [("entity_kind", entity_kind), ("cursor", cursor_value)],
         );
         self.seal(ctx, "connector.list", &audit_digest)?;
@@ -225,7 +230,11 @@ impl Connector for TeamsConnector {
 
     fn get(&self, ctx: &ConnectorCtx, entity_kind: &str, id: &str) -> Result<EntityDoc> {
         self.check_kind(entity_kind)?;
-        let audit_digest = self.operation_digest(ctx, [("entity_kind", entity_kind), ("id", id)]);
+        let audit_digest = self.operation_digest(
+            ctx,
+            "connector.get",
+            [("entity_kind", entity_kind), ("id", id)],
+        );
         self.seal(ctx, "connector.get", &audit_digest)?;
         self.lock_store()
             .get(ctx.tenant_id().as_str())
@@ -253,6 +262,19 @@ impl Connector for TeamsConnector {
             .cloned();
         if let Some((p, previous_digest, previous_result)) = prev {
             if previous_digest != submitted_digest {
+                let conflict_digest = self.operation_digest(
+                    ctx,
+                    "connector.create",
+                    [
+                        ("entity_kind", entity_kind),
+                        ("id", p.as_str()),
+                        ("idempotency_key", idempotency_key.as_str()),
+                        ("outcome", "idempotency_conflict"),
+                        ("submitted_digest", submitted_digest.as_str()),
+                        ("stored_digest", previous_digest.as_str()),
+                    ],
+                );
+                self.seal(ctx, "connector.create", &conflict_digest)?;
                 return Err(ConnectorError::IdempotencyConflict(format!(
                     "{PROVIDER_ID} {} entity_kind={} {}",
                     Self::redacted("tenant", ctx.tenant_id().as_str()),
@@ -260,10 +282,23 @@ impl Connector for TeamsConnector {
                     Self::redacted("idempotency_key", idempotency_key.as_str())
                 )));
             }
-            let _ = p;
+            let doc_digest = entity_doc_payload_digest(&previous_result);
+            let replay_digest = self.operation_digest(
+                ctx,
+                "connector.create",
+                [
+                    ("entity_kind", entity_kind),
+                    ("id", p.as_str()),
+                    ("idempotency_key", idempotency_key.as_str()),
+                    ("outcome", "idempotent_replay"),
+                    ("submitted_digest", submitted_digest.as_str()),
+                    ("doc_digest", doc_digest.as_str()),
+                ],
+            );
+            self.seal(ctx, "connector.create", &replay_digest)?;
             return Ok(previous_result);
         }
-        let v = self.next_seq();
+        let v = self.next_seq_candidate();
         let id = match entity_kind {
             "channel" => format!("19:gen{v:04}@thread.tacv2"),
             "message" => format!("1700001{v:04}"),
@@ -272,6 +307,20 @@ impl Connector for TeamsConnector {
         };
         let mut doc = payload;
         doc.insert("id", EntityValue::Str(id.clone()));
+        let doc_digest = entity_doc_payload_digest(&doc);
+        let audit_digest = self.operation_digest(
+            ctx,
+            "connector.create",
+            [
+                ("entity_kind", entity_kind),
+                ("id", id.as_str()),
+                ("idempotency_key", idempotency_key.as_str()),
+                ("submitted_digest", submitted_digest.as_str()),
+                ("doc_digest", doc_digest.as_str()),
+            ],
+        );
+        self.seal(ctx, "connector.create", &audit_digest)?;
+        self.commit_seq();
         self.put(ctx.tenant_id().as_str(), entity_kind, &id, doc.clone());
         self.lock_idem()
             .entry(ctx.tenant_id().as_str().to_owned())
@@ -280,7 +329,7 @@ impl Connector for TeamsConnector {
             .or_default()
             .insert(
                 idempotency_key.as_str().to_owned(),
-                (id.clone(), submitted_digest, doc.clone()),
+                (id.clone(), submitted_digest.clone(), doc.clone()),
             );
         self.push_event(
             ctx,
@@ -290,16 +339,6 @@ impl Connector for TeamsConnector {
                 doc: doc.clone(),
             },
         );
-        let doc_digest = entity_doc_payload_digest(&doc);
-        let audit_digest = self.operation_digest(
-            ctx,
-            [
-                ("entity_kind", entity_kind),
-                ("id", id.as_str()),
-                ("doc_digest", doc_digest.as_str()),
-            ],
-        );
-        self.seal(ctx, "connector.create", &audit_digest)?;
         Ok(doc)
     }
 
@@ -322,6 +361,19 @@ impl Connector for TeamsConnector {
             .cloned();
         if let Some((prev_id, previous_digest, previous_result)) = prev {
             if previous_digest != patch_digest {
+                let conflict_digest = self.operation_digest(
+                    ctx,
+                    "connector.update",
+                    [
+                        ("entity_kind", entity_kind),
+                        ("id", id),
+                        ("idempotency_key", idempotency_key.as_str()),
+                        ("outcome", "idempotency_conflict"),
+                        ("patch_digest", patch_digest.as_str()),
+                        ("stored_patch_digest", previous_digest.as_str()),
+                    ],
+                );
+                self.seal(ctx, "connector.update", &conflict_digest)?;
                 return Err(ConnectorError::IdempotencyConflict(format!(
                     "{PROVIDER_ID} {} entity_kind={} {} {}",
                     Self::redacted("tenant", ctx.tenant_id().as_str()),
@@ -330,13 +382,39 @@ impl Connector for TeamsConnector {
                     Self::redacted("idempotency_key", idempotency_key.as_str())
                 )));
             }
-            let _ = prev_id;
+            let doc_digest = entity_doc_payload_digest(&previous_result);
+            let replay_digest = self.operation_digest(
+                ctx,
+                "connector.update",
+                [
+                    ("entity_kind", entity_kind),
+                    ("id", prev_id.as_str()),
+                    ("idempotency_key", idempotency_key.as_str()),
+                    ("outcome", "idempotent_replay"),
+                    ("patch_digest", patch_digest.as_str()),
+                    ("doc_digest", doc_digest.as_str()),
+                ],
+            );
+            self.seal(ctx, "connector.update", &replay_digest)?;
             return Ok(previous_result);
         }
 
         let mut doc = self.get(ctx, entity_kind, id)?;
         let v = patch.value.unwrap_or(EntityValue::Null);
         doc.insert(patch.field.clone(), v);
+        let doc_digest = entity_doc_payload_digest(&doc);
+        let audit_digest = self.operation_digest(
+            ctx,
+            "connector.update",
+            [
+                ("entity_kind", entity_kind),
+                ("id", id),
+                ("idempotency_key", idempotency_key.as_str()),
+                ("patch_digest", patch_digest.as_str()),
+                ("doc_digest", doc_digest.as_str()),
+            ],
+        );
+        self.seal(ctx, "connector.update", &audit_digest)?;
         self.put(ctx.tenant_id().as_str(), entity_kind, id, doc.clone());
         self.lock_idem()
             .entry(ctx.tenant_id().as_str().to_owned())
@@ -345,7 +423,7 @@ impl Connector for TeamsConnector {
             .or_default()
             .insert(
                 idempotency_key.as_str().to_owned(),
-                (id.to_owned(), patch_digest, doc.clone()),
+                (id.to_owned(), patch_digest.clone(), doc.clone()),
             );
         self.push_event(
             ctx,
@@ -355,32 +433,34 @@ impl Connector for TeamsConnector {
                 doc: doc.clone(),
             },
         );
-        let doc_digest = entity_doc_payload_digest(&doc);
+        Ok(doc)
+    }
+
+    fn delete(&self, ctx: &ConnectorCtx, entity_kind: &str, id: &str) -> Result<()> {
+        self.check_kind(entity_kind)?;
+        let deleted_doc = self
+            .lock_store()
+            .get(ctx.tenant_id().as_str())
+            .and_then(|m| m.get(entity_kind))
+            .and_then(|m| m.get(id))
+            .cloned()
+            .ok_or_else(|| ConnectorError::NotFound(format!("{PROVIDER_ID} {entity_kind}/{id}")))?;
+        let doc_digest = entity_doc_payload_digest(&deleted_doc);
         let audit_digest = self.operation_digest(
             ctx,
+            "connector.delete",
             [
                 ("entity_kind", entity_kind),
                 ("id", id),
                 ("doc_digest", doc_digest.as_str()),
             ],
         );
-        self.seal(ctx, "connector.update", &audit_digest)?;
-        Ok(doc)
-    }
-
-    fn delete(&self, ctx: &ConnectorCtx, entity_kind: &str, id: &str) -> Result<()> {
-        self.check_kind(entity_kind)?;
-        let removed = self
+        self.seal(ctx, "connector.delete", &audit_digest)?;
+        let _ = self
             .lock_store()
             .get_mut(ctx.tenant_id().as_str())
             .and_then(|m| m.get_mut(entity_kind))
-            .and_then(|m| m.remove(id))
-            .is_some();
-        if !removed {
-            return Err(ConnectorError::NotFound(format!(
-                "teams {entity_kind}/{id}"
-            )));
-        }
+            .and_then(|m| m.remove(id));
         self.push_event(
             ctx,
             Event {
@@ -389,8 +469,6 @@ impl Connector for TeamsConnector {
                 doc: EntityDoc::new(),
             },
         );
-        let audit_digest = self.operation_digest(ctx, [("entity_kind", entity_kind), ("id", id)]);
-        self.seal(ctx, "connector.delete", &audit_digest)?;
         Ok(())
     }
 
@@ -403,7 +481,11 @@ impl Connector for TeamsConnector {
             self.check_kind(k)?;
         }
         let joined = entity_kinds.join(",");
-        let audit_digest = self.operation_digest(ctx, [("entity_kinds", joined.as_str())]);
+        let audit_digest = self.operation_digest(
+            ctx,
+            "connector.subscribe",
+            [("entity_kinds", joined.as_str())],
+        );
         self.seal(ctx, "connector.subscribe", &audit_digest)?;
         let q = self.matching_events_for_tenant(ctx, entity_kinds);
         Ok(Box::new(VecStream { q }))
@@ -700,7 +782,11 @@ mod tests {
             Err(ConnectorError::AuditSealFailed(_))
         ));
 
-        let digest = s.operation_digest(&ctx(), [("entity_kind", "message"), ("id", "m-1")]);
+        let digest = s.operation_digest(
+            &ctx(),
+            "connector.get",
+            [("entity_kind", "message"), ("id", "m-1")],
+        );
         assert!(s.seal(&ctx(), "connector.get", &digest).is_ok());
     }
 
