@@ -1,0 +1,33 @@
+{
+  "description": "A trusted review-admission packet must bind the reviewed PR title and body/traceability sections; live status without those bindings is insufficient.",
+  "expected_verdict": "RED",
+  "expected_violations": [
+    "missing_pre_merge_review_authority"
+  ],
+  "fixture_id": "TC-0.16-BAD-missing-review-title-body-evidence",
+  "rows": [
+    {
+      "blocking_fixture": "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-review-title-body-evidence.json",
+      "classification": "automated_blocking_now",
+      "enforceable_or_automatable": true,
+      "evidence_path": "trusted cloud-ci/oya-ci review-admission packet without PR title/body binding",
+      "has_durable_review_evidence": false,
+      "has_machine_verifiable_review_status": true,
+      "has_review_title_evidence": false,
+      "has_review_body_evidence": false,
+      "id": "BAD-review-status-missing-title-body-evidence",
+      "no_new_oya_cli_surface": true,
+      "owner": "platform-toolchain + platform-governance",
+      "requirement": "Protected branch merge admission review status must bind the exact reviewed PR title and body/traceability sections before it can block merge.",
+      "requires_pre_merge_review_authority": true,
+      "retirement_phase": "P0.0/P1 review-admission producer",
+      "review_blocks_merge": true,
+      "reviewer_identity_distinct_from_author": true,
+      "source_artifact": "docs/AGENTS.md#PR-shape + docs/standards/code-review.md#mandatory-pr-sections",
+      "target_gate_or_controller": "cloud-ci/oya-ci review-admission packet producer",
+      "review_authority_live": true,
+      "review_authority_source": "trusted_cloud_ci_review_admission_packet"
+    }
+  ],
+  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/tests/automation_ratchet.rs"
+}
