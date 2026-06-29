@@ -71,55 +71,55 @@
       "name": "oya-forms-accessibility-wcag-correctness",
       "target": "1.0",
       "sli": "total:",
-      "file": "microservices/forms/slos/accessibility-wcag-correctness.openslo.yaml"
+      "file": "workflow/observability/slos/forms/accessibility-wcag-correctness.openslo.yaml"
     },
     {
       "name": "oya-forms-ai-form-build-latency",
       "target": "95%",
       "sli": "total:",
-      "file": "microservices/forms/slos/ai-form-build-latency.openslo.yaml"
+      "file": "workflow/observability/slos/forms/ai-form-build-latency.openslo.yaml"
     },
     {
       "name": "oya-forms-analytics-render-latency",
       "target": "95%",
       "sli": "total:",
-      "file": "microservices/forms/slos/analytics-render-latency.openslo.yaml"
+      "file": "workflow/observability/slos/forms/analytics-render-latency.openslo.yaml"
     },
     {
       "name": "oya-forms-bulk-distribute-latency",
       "target": "95%",
       "sli": "total:",
-      "file": "microservices/forms/slos/bulk-distribute-latency.openslo.yaml"
+      "file": "workflow/observability/slos/forms/bulk-distribute-latency.openslo.yaml"
     },
     {
       "name": "oya-forms-export-csv-latency",
       "target": "95%",
       "sli": "total:",
-      "file": "microservices/forms/slos/export-csv-latency.openslo.yaml"
+      "file": "workflow/observability/slos/forms/export-csv-latency.openslo.yaml"
     },
     {
       "name": "oya-forms-field-validate-latency",
       "target": "99%",
       "sli": "total:",
-      "file": "microservices/forms/slos/field-validate-latency.openslo.yaml"
+      "file": "workflow/observability/slos/forms/field-validate-latency.openslo.yaml"
     },
     {
       "name": "oya-forms-form-render-latency",
       "target": "95%",
       "sli": "total:",
-      "file": "microservices/forms/slos/form-render-latency.openslo.yaml"
+      "file": "workflow/observability/slos/forms/form-render-latency.openslo.yaml"
     },
     {
       "name": "oya-forms-pii-encryption-correctness",
       "target": "100%.",
       "sli": "total:",
-      "file": "microservices/forms/slos/pii-encryption-correctness.openslo.yaml"
+      "file": "workflow/observability/slos/forms/pii-encryption-correctness.openslo.yaml"
     },
     {
       "name": "oya-forms-submission-latency",
       "target": "95%",
       "sli": "total:",
-      "file": "microservices/forms/slos/submission-latency.openslo.yaml"
+      "file": "workflow/observability/slos/forms/submission-latency.openslo.yaml"
     }
   ],
   "ips": [

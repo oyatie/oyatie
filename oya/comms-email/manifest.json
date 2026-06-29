@@ -110,15 +110,42 @@
     }
   ],
   "slos": [
-    "send-latency-p99",
-    "send-success-rate",
-    "deliverability-rate",
-    "dkim-signing-rate",
-    "dmarc-alignment-rate",
-    "webhook-success-rate",
-    "audit-chain-emit-lag-p99",
-    "suppression-lookup-latency-p99",
-    "from-domain-onboarding-time"
+    {
+      "name": "send-latency-p99",
+      "file": "oya/comms-email/slos/send-latency-p99.openslo.yaml"
+    },
+    {
+      "name": "send-success-rate",
+      "file": "oya/comms-email/slos/send-success-rate.openslo.yaml"
+    },
+    {
+      "name": "deliverability-rate",
+      "file": "oya/comms-email/slos/deliverability-rate.openslo.yaml"
+    },
+    {
+      "name": "dkim-signing-rate",
+      "file": "oya/comms-email/slos/dkim-signing-rate.openslo.yaml"
+    },
+    {
+      "name": "dmarc-alignment-rate",
+      "file": "oya/comms-email/slos/dmarc-alignment-rate.openslo.yaml"
+    },
+    {
+      "name": "webhook-success-rate",
+      "file": "oya/comms-email/slos/webhook-success-rate.openslo.yaml"
+    },
+    {
+      "name": "audit-chain-emit-lag-p99",
+      "file": "oya/comms-email/slos/audit-chain-emit-lag-p99.openslo.yaml"
+    },
+    {
+      "name": "suppression-lookup-latency-p99",
+      "file": "oya/comms-email/slos/suppression-lookup-latency-p99.openslo.yaml"
+    },
+    {
+      "name": "from-domain-onboarding-time",
+      "file": "oya/comms-email/slos/from-domain-onboarding-time.openslo.yaml"
+    }
   ],
   "providers": [
     {

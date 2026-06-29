@@ -109,55 +109,55 @@
       "name": "drive-dlp-scan-correctness",
       "target": "1.0",
       "sli": "1.0 - (",
-      "file": "microservices/drive/slos/dlp-scan-correctness.openslo.yaml"
+      "file": "storage/observability/slos/dlp-scan-correctness.openslo.yaml"
     },
     {
       "name": "drive-download-first-byte-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.99, sum(rate(oya_drive_download_first_byte_seconds_bucket{cache_state=\"warm\"}[5m])) by (le))",
-      "file": "microservices/drive/slos/download-first-byte-latency.openslo.yaml"
+      "file": "storage/observability/slos/download-first-byte-latency.openslo.yaml"
     },
     {
       "name": "drive-file-list-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.99, sum(rate(oya_drive_file_list_seconds_bucket{entry_count_bucket=\"1k\"}[5m])) by (le))",
-      "file": "microservices/drive/slos/file-list-latency.openslo.yaml"
+      "file": "storage/observability/slos/file-list-latency.openslo.yaml"
     },
     {
       "name": "drive-immutability-tier-correctness",
       "target": "1.0",
       "sli": "1.0 - (",
-      "file": "microservices/drive/slos/immutability-tier-correctness.openslo.yaml"
+      "file": "storage/observability/slos/immutability-tier-correctness.openslo.yaml"
     },
     {
       "name": "drive-preview-render-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.99, sum(rate(oya_drive_preview_render_seconds_bucket{kind=~\"image|pdf|office\"}[5m])) by (le))",
-      "file": "microservices/drive/slos/preview-render-latency.openslo.yaml"
+      "file": "storage/observability/slos/preview-render-latency.openslo.yaml"
     },
     {
       "name": "drive-search-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.99, sum(rate(oya_drive_search_query_seconds_bucket{corpus_size_bucket=\"1m\"}[5m])) by (le))",
-      "file": "microservices/drive/slos/search-latency.openslo.yaml"
+      "file": "storage/observability/slos/search-latency.openslo.yaml"
     },
     {
       "name": "drive-share-link-generation-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.99, sum(rate(oya_drive_share_link_mint_seconds_bucket[5m])) by (le))",
-      "file": "microservices/drive/slos/share-link-generation-latency.openslo.yaml"
+      "file": "storage/observability/slos/share-link-generation-latency.openslo.yaml"
     },
     {
       "name": "drive-sync-delta-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.99, sum(rate(oya_drive_sync_delta_seconds_bucket{changed_file_count_bucket=\"100\"}[5m])) by (le))",
-      "file": "microservices/drive/slos/sync-delta-latency.openslo.yaml"
+      "file": "storage/observability/slos/sync-delta-latency.openslo.yaml"
     },
     {
       "name": "drive-upload-multipart-throughput",
       "target": "0.99",
       "sli": "histogram_quantile(0.99, sum(rate(oya_drive_upload_multipart_seconds_bucket{size_bucket=\"1gb\"}[5m])) by (le))",
-      "file": "microservices/drive/slos/upload-multipart-throughput.openslo.yaml"
+      "file": "storage/observability/slos/upload-multipart-throughput.openslo.yaml"
     }
   ],
   "ips": [

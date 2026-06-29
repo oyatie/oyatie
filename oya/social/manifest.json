@@ -93,49 +93,49 @@
       "name": "social-content-policy-enforcement-correctness",
       "target": "1.0",
       "sli": "# Number of 5-minute windows with zero violations across all invariants",
-      "file": "microservices/social/slos/content-policy-enforcement-correctness.openslo.yaml"
+      "file": "oya/social/slos/content-policy-enforcement-correctness.openslo.yaml"
     },
     {
       "name": "social-feed-render-latency",
       "target": "0.95",
       "sli": "sum(rate(oya_social_feed_render_duration_seconds_bucket{le=\"0.2\"}[5m]))",
-      "file": "microservices/social/slos/feed-render-latency.openslo.yaml"
+      "file": "oya/social/slos/feed-render-latency.openslo.yaml"
     },
     {
       "name": "social-follow-action-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_social_follow_action_duration_seconds_bucket{le=\"0.05\"}[5m]))",
-      "file": "microservices/social/slos/follow-action-latency.openslo.yaml"
+      "file": "oya/social/slos/follow-action-latency.openslo.yaml"
     },
     {
       "name": "social-moderation-classifier-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_social_moderation_classifier_duration_seconds_bucket{le=\"2\"}[5m]))",
-      "file": "microservices/social/slos/moderation-classifier-latency.openslo.yaml"
+      "file": "oya/social/slos/moderation-classifier-latency.openslo.yaml"
     },
     {
       "name": "social-notification-fanout-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_social_notification_fanout_duration_seconds_bucket{le=\"2\",follower_tier=\"le_10k\"}[5m]))",
-      "file": "microservices/social/slos/notification-fanout-latency.openslo.yaml"
+      "file": "oya/social/slos/notification-fanout-latency.openslo.yaml"
     },
     {
       "name": "social-post-create-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_social_post_create_duration_seconds_bucket{le=\"0.1\"}[5m]))",
-      "file": "microservices/social/slos/post-create-latency.openslo.yaml"
+      "file": "oya/social/slos/post-create-latency.openslo.yaml"
     },
     {
       "name": "social-profile-render-availability",
       "target": "0.9995",
       "sli": "sum(rate(oya_social_profile_render_total{result=\"success\"}[5m]))",
-      "file": "microservices/social/slos/profile-render-availability.openslo.yaml"
+      "file": "oya/social/slos/profile-render-availability.openslo.yaml"
     },
     {
       "name": "social-search-people-latency",
       "target": "0.95",
       "sli": "sum(rate(oya_social_search_people_duration_seconds_bucket{le=\"0.3\"}[5m]))",
-      "file": "microservices/social/slos/search-people-latency.openslo.yaml"
+      "file": "oya/social/slos/search-people-latency.openslo.yaml"
     },
     {
       "name": "social-short-video-feed-load-latency",
@@ -196,67 +196,67 @@
     },
     {
       "id": "IP-002-cargo-workspace-bootstrap",
-      "title": "IP-002: Cargo workspace bootstrap (per-\u00b5service flat layout)",
+      "title": "IP-002: Cargo workspace bootstrap (per-µservice flat layout)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-002-cargo-workspace-bootstrap.md"
     },
     {
       "id": "IP-003-user-profile-bc",
-      "title": "IP-003: user-profile BC end-to-end (kernel \u2192 domain \u2192 usecase \u2192 api \u2192 adapter-postgres \u2192 rest \u2192 sdk \u2192 app)",
+      "title": "IP-003: user-profile BC end-to-end (kernel → domain → usecase → api → adapter-postgres → rest → sdk → app)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-003-user-profile-bc.md"
     },
     {
       "id": "IP-004-follow-graph-bc",
-      "title": "IP-004: follow-graph BC (kernel \u2192 domain \u2192 usecase \u2192 adapter-postgres + worker + sdk)",
+      "title": "IP-004: follow-graph BC (kernel → domain → usecase → adapter-postgres + worker + sdk)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-004-follow-graph-bc.md"
     },
     {
       "id": "IP-005-post-composition-bc",
-      "title": "IP-005: post-composition BC (kernel \u2192 domain \u2192 usecase \u2192 adapter-postgres + adapter-s3 + adapter-imagemagick + adapter-ffmpeg + rest + worker + sdk + app)",
+      "title": "IP-005: post-composition BC (kernel → domain → usecase → adapter-postgres + adapter-s3 + adapter-imagemagick + adapter-ffmpeg + rest + worker + sdk + app)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-005-post-composition-bc.md"
     },
     {
       "id": "IP-006-feed-timeline-bc",
-      "title": "IP-006: feed-timeline BC (kernel \u2192 domain \u2192 usecase \u2192 adapter-postgres + adapter-valkey + worker + rest + sdk + app)",
+      "title": "IP-006: feed-timeline BC (kernel → domain → usecase → adapter-postgres + adapter-valkey + worker + rest + sdk + app)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-006-feed-timeline-bc.md"
     },
     {
       "id": "IP-007-reactions-bc",
-      "title": "IP-007: reactions BC (kernel \u2192 domain \u2192 usecase \u2192 adapter-postgres + adapter-valkey + worker + sdk)",
+      "title": "IP-007: reactions BC (kernel → domain → usecase → adapter-postgres + adapter-valkey + worker + sdk)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-007-reactions-bc.md"
     },
     {
       "id": "IP-008-mentions-and-hashtags-bc",
-      "title": "IP-008: mentions + hashtags BCs (kernel \u2192 domain \u2192 usecase \u2192 adapter + worker + sdk)",
+      "title": "IP-008: mentions + hashtags BCs (kernel → domain → usecase → adapter + worker + sdk)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-008-mentions-and-hashtags-bc.md"
     },
     {
       "id": "IP-009-trending-topics-bc",
-      "title": "IP-009: trending-topics BC (kernel \u2192 domain \u2192 usecase \u2192 adapter-postgres + adapter-valkey + worker + sdk)",
+      "title": "IP-009: trending-topics BC (kernel → domain → usecase → adapter-postgres + adapter-valkey + worker + sdk)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-009-trending-topics-bc.md"
     },
     {
       "id": "IP-010-notifications-bc",
-      "title": "IP-010: notifications BC (kernel \u2192 domain \u2192 usecase \u2192 adapter-postgres + adapter-valkey + worker + websocket + sdk + app)",
+      "title": "IP-010: notifications BC (kernel → domain → usecase → adapter-postgres + adapter-valkey + worker + websocket + sdk + app)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-010-notifications-bc.md"
     },
     {
       "id": "IP-011-content-moderation-bc",
-      "title": "IP-011: content-moderation BC (kernel \u2192 domain \u2192 usecase \u2192 adapter-clamav + adapter-opswat + worker + sdk)",
+      "title": "IP-011: content-moderation BC (kernel → domain → usecase → adapter-clamav + adapter-opswat + worker + sdk)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-011-content-moderation-bc.md"
     },
     {
       "id": "IP-012-search-and-cedar-filter",
-      "title": "IP-012: search BC + Cedar-scoped filter (kernel \u2192 domain \u2192 usecase \u2192 adapter-meilisearch + worker + sdk)",
+      "title": "IP-012: search BC + Cedar-scoped filter (kernel → domain → usecase → adapter-meilisearch + worker + sdk)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-012-search-and-cedar-filter.md"
     },
@@ -381,10 +381,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "primary_sre_signals": "INV-FOUR-PRIMARY-SRE-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "primary_sre_signals": "INV-FOUR-PRIMARY-SRE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -435,7 +435,7 @@
     "fedramp",
     "il5"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; primary_sre_signals: INV-FOUR-PRIMARY-SRE-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles anchors the external control pattern for principals; 2: Google Cloud service agents provides a second independent hyperscaler pattern for principals",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; primary_sre_signals: INV-FOUR-PRIMARY-SRE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles anchors the external control pattern for principals; 2: Google Cloud service agents provides a second independent hyperscaler pattern for principals",
   "owner_team": "axis-social",
   "service_classification": "hero-product",
   "data_classification": "PII_IDENTIFYING, AUTHENTICATION, AUDIT",
@@ -574,6 +574,64 @@
       "context": "oyatie-as-cloud-provider",
       "primitive": "dns",
       "version_pin": "v1"
+    }
+  ],
+  "slo_exemptions": [
+    {
+      "name": "social-short-video-feed-load-latency",
+      "owner": "axis-social",
+      "rationale": "This planned SLO entry remains intentionally non-claiming during the northstar reorg until a service-local OpenSLO file is authored and admitted by cloud-ci.",
+      "status": "live_exempted_pending_openslo_file",
+      "cutover_on": "2026-12-31",
+      "evidence": "specs/master-plan-sequencing.json#realignment_wave_sequence"
+    },
+    {
+      "name": "social-short-video-start-latency",
+      "owner": "axis-social",
+      "rationale": "This planned SLO entry remains intentionally non-claiming during the northstar reorg until a service-local OpenSLO file is authored and admitted by cloud-ci.",
+      "status": "live_exempted_pending_openslo_file",
+      "cutover_on": "2026-12-31",
+      "evidence": "specs/master-plan-sequencing.json#realignment_wave_sequence"
+    },
+    {
+      "name": "social-short-video-transcode-throughput",
+      "owner": "axis-social",
+      "rationale": "This planned SLO entry remains intentionally non-claiming during the northstar reorg until a service-local OpenSLO file is authored and admitted by cloud-ci.",
+      "status": "live_exempted_pending_openslo_file",
+      "cutover_on": "2026-12-31",
+      "evidence": "specs/master-plan-sequencing.json#realignment_wave_sequence"
+    },
+    {
+      "name": "social-short-video-auto-caption-latency",
+      "owner": "axis-social",
+      "rationale": "This planned SLO entry remains intentionally non-claiming during the northstar reorg until a service-local OpenSLO file is authored and admitted by cloud-ci.",
+      "status": "live_exempted_pending_openslo_file",
+      "cutover_on": "2026-12-31",
+      "evidence": "specs/master-plan-sequencing.json#realignment_wave_sequence"
+    },
+    {
+      "name": "social-short-video-copyright-claim-match-latency",
+      "owner": "axis-social",
+      "rationale": "This planned SLO entry remains intentionally non-claiming during the northstar reorg until a service-local OpenSLO file is authored and admitted by cloud-ci.",
+      "status": "live_exempted_pending_openslo_file",
+      "cutover_on": "2026-12-31",
+      "evidence": "specs/master-plan-sequencing.json#realignment_wave_sequence"
+    },
+    {
+      "name": "social-short-video-drm-license-issuance-latency",
+      "owner": "axis-social",
+      "rationale": "This planned SLO entry remains intentionally non-claiming during the northstar reorg until a service-local OpenSLO file is authored and admitted by cloud-ci.",
+      "status": "live_exempted_pending_openslo_file",
+      "cutover_on": "2026-12-31",
+      "evidence": "specs/master-plan-sequencing.json#realignment_wave_sequence"
+    },
+    {
+      "name": "social-short-video-like-action-latency",
+      "owner": "axis-social",
+      "rationale": "This planned SLO entry remains intentionally non-claiming during the northstar reorg until a service-local OpenSLO file is authored and admitted by cloud-ci.",
+      "status": "live_exempted_pending_openslo_file",
+      "cutover_on": "2026-12-31",
+      "evidence": "specs/master-plan-sequencing.json#realignment_wave_sequence"
     }
   ]
 }

@@ -70,61 +70,61 @@
       "name": "messenger-attachment-scan-freshness",
       "target": "0.99",
       "sli": "sum(rate(oya_messenger_attachment_scan_duration_seconds_bucket{le=\"60\"}[5m]))",
-      "file": "microservices/messenger/slos/attachment-scan-freshness.openslo.yaml"
+      "file": "comms/observability/slos/messenger/attachment-scan-freshness.openslo.yaml"
     },
     {
       "name": "messenger-mention-fanout",
       "target": "0.99",
       "sli": "sum(rate(oya_messenger_mention_fanout_duration_seconds_bucket{le=\"0.25\"}[5m]))",
-      "file": "microservices/messenger/slos/mention-fanout.openslo.yaml"
+      "file": "comms/observability/slos/messenger/mention-fanout.openslo.yaml"
     },
     {
       "name": "messenger-message-send-availability",
       "target": "0.9995",
       "sli": "sum(rate(oya_messenger_message_send_total{result=\"success\",pack=~\".+\"}[5m]))",
-      "file": "microservices/messenger/slos/message-send-availability.openslo.yaml"
+      "file": "comms/observability/slos/messenger/message-send-availability.openslo.yaml"
     },
     {
       "name": "messenger-message-send-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_messenger_message_send_duration_seconds_bucket{le=\"0.1\"}[5m]))",
-      "file": "microservices/messenger/slos/message-send-latency.openslo.yaml"
+      "file": "comms/observability/slos/messenger/message-send-latency.openslo.yaml"
     },
     {
       "name": "messenger-presence-propagation",
       "target": "0.99",
       "sli": "sum(rate(oya_messenger_presence_propagation_seconds_bucket{le=\"0.2\"}[5m]))",
-      "file": "microservices/messenger/slos/presence-propagation.openslo.yaml"
+      "file": "comms/observability/slos/messenger/presence-propagation.openslo.yaml"
     },
     {
       "name": "messenger-read-receipt-fanout",
       "target": "0.99",
       "sli": "sum(rate(oya_messenger_read_receipt_fanout_duration_seconds_bucket{le=\"0.15\"}[5m]))",
-      "file": "microservices/messenger/slos/read-receipt-fanout.openslo.yaml"
+      "file": "comms/observability/slos/messenger/read-receipt-fanout.openslo.yaml"
     },
     {
       "name": "messenger-search-latency",
       "target": "0.95",
       "sli": "sum(rate(oya_messenger_search_duration_seconds_bucket{le=\"0.4\"}[5m]))",
-      "file": "microservices/messenger/slos/search-latency.openslo.yaml"
+      "file": "comms/observability/slos/messenger/search-latency.openslo.yaml"
     },
     {
       "name": "messenger-voice-video-quality",
       "target": "0.97",
       "sli": "sum(rate(oya_messenger_media_minute_good_total[5m]))",
-      "file": "microservices/messenger/slos/voice-video-call-quality.openslo.yaml"
+      "file": "comms/observability/slos/messenger/voice-video-call-quality.openslo.yaml"
     },
     {
       "name": "messenger-voice-video-setup",
       "target": "0.95",
       "sli": "sum(rate(oya_messenger_huddle_setup_seconds_bucket{le=\"1.5\"}[5m]))",
-      "file": "microservices/messenger/slos/voice-video-call-setup.openslo.yaml"
+      "file": "comms/observability/slos/messenger/voice-video-call-setup.openslo.yaml"
     },
     {
       "name": "messenger-websocket-fanout-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_messenger_ws_fanout_duration_seconds_bucket{le=\"0.1\"}[5m]))",
-      "file": "microservices/messenger/slos/websocket-fanout-latency.openslo.yaml"
+      "file": "comms/observability/slos/messenger/websocket-fanout-latency.openslo.yaml"
     }
   ],
   "ips": [

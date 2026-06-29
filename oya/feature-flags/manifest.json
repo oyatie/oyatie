@@ -343,32 +343,32 @@
     {
       "name": "feature-flag-evaluation-latency",
       "target": "0.99",
-      "file": "microservices/feature-flags/slos/feature-flags.openslo.yaml"
+      "file": "flags/observability/slos/feature-flags.openslo.yaml"
     },
     {
       "name": "flag-eval-latency",
       "target": "0.99",
       "slo_p99_ms": 1,
-      "file": "microservices/feature-flags/slos/flag-eval-latency.openslo.yaml"
+      "file": "flags/observability/slos/flag-eval-latency.openslo.yaml"
     },
     {
       "name": "flag-state-propagation",
       "target": "0.99",
       "slo_p99_s": 5,
-      "file": "microservices/feature-flags/slos/flag-state-propagation.openslo.yaml"
+      "file": "flags/observability/slos/flag-state-propagation.openslo.yaml"
     },
     {
       "name": "experiment-result-freshness",
       "target": "0.95",
       "slo_p95_s": 60,
-      "file": "microservices/feature-flags/slos/experiment-result-freshness.openslo.yaml"
+      "file": "flags/observability/slos/experiment-result-freshness.openslo.yaml"
     },
     {
       "name": "killswitch-fire-latency",
       "target": "0.999",
       "slo_p99_ms": 1000,
       "life_safety": true,
-      "file": "microservices/feature-flags/slos/killswitch-fire-latency.openslo.yaml"
+      "file": "flags/observability/slos/killswitch-fire-latency.openslo.yaml"
     }
   ],
   "ips": [

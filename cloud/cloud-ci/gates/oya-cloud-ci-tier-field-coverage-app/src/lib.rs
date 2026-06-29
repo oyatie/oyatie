@@ -20,10 +20,15 @@
 //! 3. NO TYPE-OVERLOAD: `tier` is the dependency class ONLY — it must never carry a DR/reliability
 //!    value (T0..T3) nor a deployment-mode value (saas/surface/sse/hot/fallback/self-hosted), nor the
 //!    historical loose `external-facing`. This is the V3 de-overload guard.
-//! 4. `tier`/`dr_tier` SEPARATION: the two are DISTINCT fields and must not be conflated (a manifest
-//!    declaring `dr_tier` whose `tier` ALSO holds a DR value is the overload class #3 catches).
+//! 4. `tier`/`dr_tier` SEPARATION: the two are DISTINCT fields and must not be conflated.
 //! 5. SUBSTRATE DAG POSITION: a `tier == "substrate"` manifest carries `substrate_dag_position` with a
 //!    `stratum` ∈ `substrate_dag_stratum_enum`.
+//! 6. ADR-0348 SHARDING AUTOMATION: top-level service manifests under the
+//!    policy-governed roots carry a non-manual `sharding_automation` block with
+//!    control-plane autosharding, residency-aware auto-rebalance, dynamic-sharding
+//!    thresholds, and audit-chain emit declarations.
+//! 7. OPENSLO MANIFEST COVERAGE: top-level service manifests either reference existing non-empty
+//!    OpenSLO files or carry explicit live exemptions for non-runtime / not-yet-measured services.
 //!
 //! ## Born pack-shaped
 //! The enums, governed roots, the overload denylist, and the scan floor are DATA in
@@ -46,6 +51,18 @@
 //! - `TFC-TIER-TYPE-OVERLOAD`      — `tier` carries a denied DR/deployment-mode value (V3 guard).
 //! - `TFC-SUBSTRATE-MISSING-DAG-POSITION` — a substrate lacks `substrate_dag_position`.
 //! - `TFC-SUBSTRATE-DAG-STRATUM-INVALID`  — `substrate_dag_position.stratum` ∉ stratum enum.
+//! - `TFC-SHARDING-MISSING-BLOCK`  — top-level service lacks an ADR-0348 `sharding_automation` block.
+//! - `TFC-AUTOSHARDING-MALFORMED`  — autosharding is absent, wrong-typed, or not control-plane-shaped.
+//! - `TFC-AUTOSHARDING-MANUAL-MODE`— autosharding declares a manual mode refused by ADR-0348.
+//! - `TFC-AUTOREBALANCE-MALFORMED` — auto-rebalance is absent, wrong-typed, or missing thresholds.
+//! - `TFC-AUTOREBALANCE-RESIDENCY-MISSING` — enabled auto-rebalance omits residency/compliance honors.
+//! - `TFC-DYNAMIC-SHARDING-MALFORMED` — dynamic-sharding is absent or wrong-typed.
+//! - `TFC-DYNAMIC-SHARDING-THRESHOLD-MISSING` — enabled dynamic-sharding lacks numeric thresholds.
+//! - `TFC-AUTOMATION-AUDIT-CHAIN-EMIT-MISSING` — enabled automation omits audit-chain emission.
+//! - `TFC-SLO-MISSING-OR-UNEXEMPT` — no non-empty/resolved SLO coverage and no explicit live exemption.
+//! - `TFC-SLO-REFERENCE-UNRESOLVED` — SLO entry references no existing non-empty OpenSLO file.
+//! - `TFC-SLO-ENTRY-MALFORMED`     — SLO entry shape is not a resolvable reference/exemption key.
+//! - `TFC-SLO-EXEMPTION-MALFORMED` — SLO exemption lacks live structured metadata or uses placeholders.
 //! - `TFC-EMPTY-SCAN`              — fewer service manifests than the policy floor (false-green guard).
 //! - `TFC-POLICY-GATE-ID-MISMATCH` — the policy `gate_id` is not [`GATE_ID`] (fail-closed).
 //! - `TFC-POLICY-MALFORMED`        — the policy is missing/wrong-typed a required field (fail-closed).
@@ -54,7 +71,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-use std::collections::{BTreeSet, BTreeMap};
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
 
@@ -64,7 +81,7 @@ use serde_json::{Value, json};
 pub const GATE_ID: &str = "cloud-ci-tier-field-coverage";
 
 /// The violation codes, in canonical order.
-pub const VIOLATION_CODES: [&str; 12] = [
+pub const VIOLATION_CODES: [&str; 24] = [
     "TFC-MISSING-TIER",
     "TFC-MISSING-TIER-SUBTYPE",
     "TFC-MISSING-DR-TIER",
@@ -74,6 +91,18 @@ pub const VIOLATION_CODES: [&str; 12] = [
     "TFC-TIER-TYPE-OVERLOAD",
     "TFC-SUBSTRATE-MISSING-DAG-POSITION",
     "TFC-SUBSTRATE-DAG-STRATUM-INVALID",
+    "TFC-SHARDING-MISSING-BLOCK",
+    "TFC-AUTOSHARDING-MALFORMED",
+    "TFC-AUTOSHARDING-MANUAL-MODE",
+    "TFC-AUTOREBALANCE-MALFORMED",
+    "TFC-AUTOREBALANCE-RESIDENCY-MISSING",
+    "TFC-DYNAMIC-SHARDING-MALFORMED",
+    "TFC-DYNAMIC-SHARDING-THRESHOLD-MISSING",
+    "TFC-AUTOMATION-AUDIT-CHAIN-EMIT-MISSING",
+    "TFC-SLO-MISSING-OR-UNEXEMPT",
+    "TFC-SLO-REFERENCE-UNRESOLVED",
+    "TFC-SLO-ENTRY-MALFORMED",
+    "TFC-SLO-EXEMPTION-MALFORMED",
     "TFC-EMPTY-SCAN",
     "TFC-POLICY-GATE-ID-MISMATCH",
     "TFC-POLICY-MALFORMED",
@@ -149,7 +178,12 @@ pub fn collect_manifests(root: &Path, policy: &Value) -> Result<Value, CollectEr
     let mut roots: Vec<String> = policy
         .get("governed_service_roots")
         .and_then(Value::as_array)
-        .map(|arr| arr.iter().filter_map(Value::as_str).map(str::to_owned).collect())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect()
+        })
         .unwrap_or_default();
     roots.sort();
 
@@ -163,8 +197,8 @@ pub fn collect_manifests(root: &Path, policy: &Value) -> Result<Value, CollectEr
     let mut manifests = Vec::with_capacity(paths.len());
     for rel in &paths {
         let abs = root.join(rel);
-        let text = fs::read_to_string(&abs)
-            .map_err(|e| CollectError::Io(format!("read {rel}: {e}")))?;
+        let text =
+            fs::read_to_string(&abs).map_err(|e| CollectError::Io(format!("read {rel}: {e}")))?;
         let value: Value = serde_json::from_str(&text).map_err(|e| CollectError::Parse {
             path: rel.clone(),
             message: e.to_string(),
@@ -172,9 +206,17 @@ pub fn collect_manifests(root: &Path, policy: &Value) -> Result<Value, CollectEr
         manifests.push(json!({ "path": rel, "manifest": value }));
     }
 
+    let mut openslo_files: BTreeMap<String, bool> = BTreeMap::new();
+    collect_openslo_files(root, root, &mut openslo_files)?;
+    let available_openslo_files: Vec<Value> = openslo_files
+        .iter()
+        .map(|(path, non_empty)| json!({ "path": path, "non_empty": non_empty }))
+        .collect();
+
     Ok(json!({
         "manifest_count": manifests.len(),
         "manifests": manifests,
+        "available_openslo_files": available_openslo_files,
     }))
 }
 
@@ -191,7 +233,8 @@ fn collect_manifest_paths(
         Err(e) => return Err(CollectError::Io(format!("read dir {}: {e}", dir.display()))),
     };
     for entry in entries {
-        let entry = entry.map_err(|e| CollectError::Io(format!("entry in {}: {e}", dir.display())))?;
+        let entry =
+            entry.map_err(|e| CollectError::Io(format!("entry in {}: {e}", dir.display())))?;
         let path = entry.path();
         let file_type = entry
             .file_type()
@@ -209,6 +252,47 @@ fn collect_manifest_paths(
     Ok(())
 }
 
+/// Recursively collect repo-relative OpenSLO files and whether they contain non-whitespace content.
+/// This is read-only collector work, not policy: the evaluator receives the resulting proof and stays
+/// deterministic over its input value.
+fn collect_openslo_files(
+    dir: &Path,
+    repo_root: &Path,
+    out: &mut BTreeMap<String, bool>,
+) -> Result<(), CollectError> {
+    let entries = match fs::read_dir(dir) {
+        Ok(entries) => entries,
+        Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(e) => return Err(CollectError::Io(format!("read dir {}: {e}", dir.display()))),
+    };
+    for entry in entries {
+        let entry =
+            entry.map_err(|e| CollectError::Io(format!("entry in {}: {e}", dir.display())))?;
+        let path = entry.path();
+        let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
+            continue;
+        };
+        if name == ".git" || name == ".gjc" || name == "target" || name == "buck-out" {
+            continue;
+        }
+        let file_type = entry
+            .file_type()
+            .map_err(|e| CollectError::Io(format!("file_type {}: {e}", path.display())))?;
+        if file_type.is_dir() {
+            collect_openslo_files(&path, repo_root, out)?;
+        } else if name.ends_with(".openslo.yaml") || name.ends_with(".openslo.yml") {
+            let rel = path
+                .strip_prefix(repo_root)
+                .map(|p| p.to_string_lossy().replace('\\', "/"))
+                .unwrap_or_else(|_| path.to_string_lossy().into_owned());
+            let text = fs::read_to_string(&path)
+                .map_err(|e| CollectError::Io(format!("read {rel}: {e}")))?;
+            out.insert(rel, !text.trim().is_empty());
+        }
+    }
+    Ok(())
+}
+
 // ---------------------------------------------------------------------------
 // Pure evaluation
 // ---------------------------------------------------------------------------
@@ -216,12 +300,17 @@ fn collect_manifest_paths(
 /// Parsed policy DATA. Returns an Err string on any malformed required field so the evaluator emits
 /// `TFC-POLICY-MALFORMED` and fails CLOSED rather than silently dropping a check.
 struct ParsedPolicy {
+    governed_service_roots: BTreeSet<String>,
     tier_enum: BTreeSet<String>,
     tier_subtype_enum: BTreeSet<String>,
     dr_tier_enum: BTreeSet<String>,
     stratum_enum: BTreeSet<String>,
     denied_overload: BTreeSet<String>,
     substrate_requires_dag_position: bool,
+    require_sharding_automation: bool,
+    require_openslo_manifest_refs: bool,
+    canonical_autosharding_mode: String,
+    allowed_disabled_autosharding_modes: BTreeSet<String>,
 }
 
 fn string_set(policy: &Value, key: &str) -> Result<BTreeSet<String>, String> {
@@ -242,6 +331,35 @@ fn string_set(policy: &Value, key: &str) -> Result<BTreeSet<String>, String> {
     Ok(out)
 }
 
+fn optional_string_set(policy: &Value, key: &str) -> BTreeSet<String> {
+    policy
+        .get(key)
+        .and_then(Value::as_array)
+        .map(|arr| {
+            arr.iter()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+fn required_bool(policy: &Value, key: &str) -> Result<bool, String> {
+    policy
+        .get(key)
+        .and_then(Value::as_bool)
+        .ok_or_else(|| format!("policy `{key}` must be a boolean"))
+}
+
+fn optional_string(policy: &Value, key: &str, default: &str) -> String {
+    policy
+        .get(key)
+        .and_then(Value::as_str)
+        .filter(|s| !s.trim().is_empty())
+        .unwrap_or(default)
+        .to_owned()
+}
+
 fn parse_policy(policy: &Value) -> Result<ParsedPolicy, String> {
     Ok(ParsedPolicy {
         tier_enum: string_set(policy, "tier_enum")?,
@@ -249,10 +367,22 @@ fn parse_policy(policy: &Value) -> Result<ParsedPolicy, String> {
         dr_tier_enum: string_set(policy, "dr_tier_enum")?,
         stratum_enum: string_set(policy, "substrate_dag_stratum_enum")?,
         denied_overload: string_set(policy, "de_overload_denied_tier_values")?,
+        governed_service_roots: string_set(policy, "governed_service_roots")?,
         substrate_requires_dag_position: policy
             .get("substrate_requires_dag_position")
             .and_then(Value::as_bool)
             .unwrap_or(true),
+        require_sharding_automation: required_bool(policy, "require_sharding_automation")?,
+        require_openslo_manifest_refs: required_bool(policy, "require_openslo_manifest_refs")?,
+        canonical_autosharding_mode: optional_string(
+            policy,
+            "canonical_autosharding_mode",
+            "control_plane_driven",
+        ),
+        allowed_disabled_autosharding_modes: optional_string_set(
+            policy,
+            "allowed_disabled_autosharding_modes",
+        ),
     })
 }
 
@@ -308,10 +438,31 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
         ));
     }
 
+    let available_openslo_paths: BTreeSet<String> = observed
+        .get("available_openslo_files")
+        .and_then(Value::as_array)
+        .map(|files| {
+            files
+                .iter()
+                .filter(|file| bool_field(file, "non_empty") == Some(true))
+                .filter_map(|file| string_field(file, "path").map(str::to_owned))
+                .collect()
+        })
+        .unwrap_or_default();
+
     for entry in &manifests {
-        let path = entry.get("path").and_then(Value::as_str).unwrap_or("<unknown>");
+        let path = entry
+            .get("path")
+            .and_then(Value::as_str)
+            .unwrap_or("<unknown>");
         let manifest = entry.get("manifest").cloned().unwrap_or(Value::Null);
-        evaluate_one(&parsed, path, &manifest, &mut findings);
+        evaluate_one(
+            &parsed,
+            path,
+            &manifest,
+            &available_openslo_paths,
+            &mut findings,
+        );
     }
 
     findings
@@ -322,6 +473,7 @@ fn evaluate_one(
     parsed: &ParsedPolicy,
     path: &str,
     manifest: &Value,
+    available_openslo_paths: &BTreeSet<String>,
     findings: &mut BTreeSet<Finding>,
 ) {
     let tier = manifest.get("tier").and_then(Value::as_str);
@@ -420,18 +572,531 @@ fn evaluate_one(
             }
         }
     }
+
+    if is_top_level_service_manifest(path, &parsed.governed_service_roots) {
+        if parsed.require_sharding_automation {
+            evaluate_sharding_automation(parsed, path, manifest, findings);
+        }
+        if parsed.require_openslo_manifest_refs {
+            evaluate_openslo_manifest_refs(
+                parsed,
+                path,
+                manifest,
+                available_openslo_paths,
+                findings,
+            );
+        }
+    }
+}
+
+fn is_top_level_service_manifest(path: &str, governed_roots: &BTreeSet<String>) -> bool {
+    governed_roots.iter().any(|root| {
+        let root = root.trim_matches('/');
+        if root.is_empty() {
+            return false;
+        }
+        let Some(rest) = path.strip_prefix(root) else {
+            return false;
+        };
+        let Some(rest) = rest.strip_prefix('/') else {
+            return false;
+        };
+        let mut parts = rest.split('/');
+        parts.next().is_some_and(|service| !service.is_empty())
+            && parts.next() == Some("manifest.json")
+            && parts.next().is_none()
+    })
+}
+
+fn bool_field(value: &Value, key: &str) -> Option<bool> {
+    value.get(key).and_then(Value::as_bool)
+}
+
+fn string_field<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
+    value
+        .get(key)
+        .and_then(Value::as_str)
+        .filter(|s| !s.trim().is_empty())
+}
+
+fn is_manual_mode(mode: &str) -> bool {
+    mode.trim().eq_ignore_ascii_case("manual")
+}
+
+fn evaluate_sharding_automation(
+    parsed: &ParsedPolicy,
+    path: &str,
+    manifest: &Value,
+    findings: &mut BTreeSet<Finding>,
+) {
+    let Some(sharding) = manifest.get("sharding_automation") else {
+        findings.insert(Finding::new(
+            "TFC-SHARDING-MISSING-BLOCK",
+            path,
+            "top-level service manifest lacks `sharding_automation` (ADR-0348)",
+        ));
+        return;
+    };
+    let Some(sharding) = sharding.as_object() else {
+        findings.insert(Finding::new(
+            "TFC-SHARDING-MISSING-BLOCK",
+            path,
+            "`sharding_automation` must be an object with autosharding, auto_rebalance, and dynamic_sharding declarations",
+        ));
+        return;
+    };
+
+    match sharding.get("autosharding") {
+        Some(Value::String(mode)) => {
+            if is_manual_mode(mode) {
+                findings.insert(Finding::new(
+                    "TFC-AUTOSHARDING-MANUAL-MODE",
+                    path,
+                    "ADR-0348 refuses manual autosharding mode; use control_plane_driven or an explicit disabled-runtime object",
+                ));
+            } else if mode.trim() != parsed.canonical_autosharding_mode {
+                findings.insert(Finding::new(
+                    "TFC-AUTOSHARDING-MALFORMED",
+                    path,
+                    format!(
+                        "`sharding_automation.autosharding` string must be {:?}, got {mode:?}",
+                        parsed.canonical_autosharding_mode
+                    ),
+                ));
+            }
+        }
+        Some(Value::Object(_)) => {
+            let autosharding = sharding.get("autosharding").unwrap_or(&Value::Null);
+            let enabled = bool_field(autosharding, "enabled");
+            let mode = string_field(autosharding, "mode");
+            let intended = string_field(autosharding, "intended_control_plane");
+            if mode.is_some_and(is_manual_mode) || intended.is_some_and(is_manual_mode) {
+                findings.insert(Finding::new(
+                    "TFC-AUTOSHARDING-MANUAL-MODE",
+                    path,
+                    "ADR-0348 refuses manual autosharding mode; disabled foundations must still name the control-plane destination",
+                ));
+            }
+            match enabled {
+                Some(true) => {
+                    let control_plane_declared = mode
+                        == Some(parsed.canonical_autosharding_mode.as_str())
+                        || intended == Some(parsed.canonical_autosharding_mode.as_str());
+                    if !control_plane_declared {
+                        findings.insert(Finding::new(
+                            "TFC-AUTOSHARDING-MALFORMED",
+                            path,
+                            format!(
+                                "enabled autosharding must declare {:?} as mode or intended_control_plane",
+                                parsed.canonical_autosharding_mode
+                            ),
+                        ));
+                    }
+                }
+                Some(false) => {
+                    let disabled_mode = mode.is_some_and(|m| {
+                        m == parsed.canonical_autosharding_mode
+                            || parsed.allowed_disabled_autosharding_modes.contains(m)
+                    });
+                    let intended_control_plane = intended
+                        .map(|m| m == parsed.canonical_autosharding_mode)
+                        .unwrap_or(true);
+                    if !disabled_mode || !intended_control_plane {
+                        findings.insert(Finding::new(
+                            "TFC-AUTOSHARDING-MALFORMED",
+                            path,
+                            "disabled autosharding must carry a recognized disabled mode and may only point at control_plane_driven as the intended destination",
+                        ));
+                    }
+                }
+                None => {
+                    findings.insert(Finding::new(
+                        "TFC-AUTOSHARDING-MALFORMED",
+                        path,
+                        "`sharding_automation.autosharding.enabled` must be a boolean",
+                    ));
+                }
+            };
+        }
+        _ => {
+            findings.insert(Finding::new(
+                "TFC-AUTOSHARDING-MALFORMED",
+                path,
+                "`sharding_automation.autosharding` must be a control_plane_driven string or an object declaration",
+            ));
+        }
+    }
+
+    let Some(auto_rebalance) = sharding.get("auto_rebalance") else {
+        findings.insert(Finding::new(
+            "TFC-AUTOREBALANCE-MALFORMED",
+            path,
+            "`sharding_automation.auto_rebalance` sub-block is required (ADR-0348)",
+        ));
+        return;
+    };
+    let Some(enabled) = bool_field(auto_rebalance, "enabled") else {
+        findings.insert(Finding::new(
+            "TFC-AUTOREBALANCE-MALFORMED",
+            path,
+            "`sharding_automation.auto_rebalance.enabled` must be a boolean",
+        ));
+        return;
+    };
+    if enabled {
+        if auto_rebalance
+            .get("trigger_load_skew_threshold_percent")
+            .and_then(Value::as_u64)
+            .is_none()
+        {
+            findings.insert(Finding::new(
+                "TFC-AUTOREBALANCE-MALFORMED",
+                path,
+                "enabled auto_rebalance must declare trigger_load_skew_threshold_percent",
+            ));
+        }
+        if bool_field(auto_rebalance, "honors_residency") != Some(true)
+            || bool_field(auto_rebalance, "honors_compliance_packs") != Some(true)
+        {
+            findings.insert(Finding::new(
+                "TFC-AUTOREBALANCE-RESIDENCY-MISSING",
+                path,
+                "enabled auto_rebalance must explicitly honor residency and compliance packs",
+            ));
+        }
+        if bool_field(auto_rebalance, "audit_chain_emit") != Some(true) {
+            findings.insert(Finding::new(
+                "TFC-AUTOMATION-AUDIT-CHAIN-EMIT-MISSING",
+                path,
+                "enabled auto_rebalance must emit audit-chain events",
+            ));
+        }
+    }
+
+    let Some(dynamic_sharding) = sharding.get("dynamic_sharding") else {
+        findings.insert(Finding::new(
+            "TFC-DYNAMIC-SHARDING-MALFORMED",
+            path,
+            "`sharding_automation.dynamic_sharding` sub-block is required (ADR-0348)",
+        ));
+        return;
+    };
+    let Some(enabled) = bool_field(dynamic_sharding, "enabled") else {
+        findings.insert(Finding::new(
+            "TFC-DYNAMIC-SHARDING-MALFORMED",
+            path,
+            "`sharding_automation.dynamic_sharding.enabled` must be a boolean",
+        ));
+        return;
+    };
+    if enabled {
+        for key in [
+            "hot_split_threshold_p99_ms",
+            "hot_split_utilization_threshold_percent",
+            "cold_merge_utilization_threshold_percent",
+            "cold_merge_minimum_quiet_hours",
+        ] {
+            if dynamic_sharding.get(key).and_then(Value::as_u64).is_none() {
+                findings.insert(Finding::new(
+                    "TFC-DYNAMIC-SHARDING-THRESHOLD-MISSING",
+                    path,
+                    format!("enabled dynamic_sharding must declare numeric `{key}`"),
+                ));
+            }
+        }
+        if bool_field(dynamic_sharding, "audit_chain_emit") != Some(true) {
+            findings.insert(Finding::new(
+                "TFC-AUTOMATION-AUDIT-CHAIN-EMIT-MISSING",
+                path,
+                "enabled dynamic_sharding must emit audit-chain events",
+            ));
+        }
+    }
+}
+
+const GENERIC_SLO_EXEMPTION_MARKERS: [&str; 9] = [
+    "todo",
+    "tbd",
+    "fixme",
+    "placeholder",
+    "test fixture",
+    "fixture-only",
+    "replace this exemption",
+    "before production or hyperscaler-ready promotion",
+    "no current openslo artifact resolves",
+];
+
+fn is_generic_placeholder(value: &str) -> bool {
+    let lower = value.trim().to_ascii_lowercase();
+    lower.is_empty()
+        || GENERIC_SLO_EXEMPTION_MARKERS
+            .iter()
+            .any(|marker| lower.contains(marker))
+}
+
+fn live_string_field(value: &Value, key: &str, min_len: usize) -> bool {
+    string_field(value, key)
+        .map(str::trim)
+        .is_some_and(|s| s.len() >= min_len && !is_generic_placeholder(s))
+}
+
+fn is_iso_date(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    bytes.len() == 10
+        && bytes[4] == b'-'
+        && bytes[7] == b'-'
+        && bytes
+            .iter()
+            .enumerate()
+            .all(|(idx, b)| idx == 4 || idx == 7 || b.is_ascii_digit())
+}
+
+fn live_date_field(value: &Value, key: &str) -> bool {
+    string_field(value, key)
+        .map(str::trim)
+        .is_some_and(|s| is_iso_date(s) && !is_generic_placeholder(s))
+}
+
+fn slo_exemption_is_live(
+    path: &str,
+    scope: &str,
+    exemption: &Value,
+    findings: &mut BTreeSet<Finding>,
+) -> bool {
+    let is_live = exemption.as_object().is_some()
+        && live_string_field(exemption, "status", 3)
+        && live_string_field(exemption, "owner", 3)
+        && live_string_field(exemption, "rationale", 20)
+        && (live_date_field(exemption, "expires_on") || live_date_field(exemption, "cutover_on"))
+        && (live_string_field(exemption, "evidence", 3)
+            || live_string_field(exemption, "ticket", 3));
+
+    if !is_live {
+        findings.insert(Finding::new(
+            "TFC-SLO-EXEMPTION-MALFORMED",
+            path,
+            format!("{scope} must carry live structured metadata: status, owner, rationale, expires_on or cutover_on ISO date, and evidence or ticket; generic placeholders are refused"),
+        ));
+    }
+
+    is_live
+}
+
+fn manifest_has_slo_exemption(
+    path: &str,
+    manifest: &Value,
+    findings: &mut BTreeSet<Finding>,
+) -> bool {
+    let Some(exemption) = manifest.get("slo_exemption") else {
+        return false;
+    };
+    slo_exemption_is_live(path, "`slo_exemption`", exemption, findings)
+}
+
+fn exempt_slo_names(
+    path: &str,
+    manifest: &Value,
+    findings: &mut BTreeSet<Finding>,
+) -> BTreeSet<String> {
+    manifest
+        .get("slo_exemptions")
+        .and_then(Value::as_array)
+        .map(|rows| {
+            rows.iter()
+                .enumerate()
+                .filter_map(|(index, row)| {
+                    let Some(name) = string_field(row, "name") else {
+                        findings.insert(Finding::new(
+                            "TFC-SLO-EXEMPTION-MALFORMED",
+                            path,
+                            format!("`slo_exemptions` row {index} must carry a non-empty name"),
+                        ));
+                        return None;
+                    };
+                    if is_generic_placeholder(name) {
+                        findings.insert(Finding::new(
+                            "TFC-SLO-EXEMPTION-MALFORMED",
+                            path,
+                            format!("`slo_exemptions` row {index} has a generic or empty name"),
+                        ));
+                        return None;
+                    }
+                    if slo_exemption_is_live(
+                        path,
+                        &format!("`slo_exemptions` row {index}"),
+                        row,
+                        findings,
+                    ) {
+                        Some(name.to_owned())
+                    } else {
+                        None
+                    }
+                })
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+fn entry_name(entry: &Value) -> Option<&str> {
+    entry
+        .as_str()
+        .filter(|s| !s.trim().is_empty())
+        .or_else(|| string_field(entry, "name"))
+}
+
+fn inferred_local_slo_path(manifest_path: &str, name: &str) -> Option<String> {
+    let service_dir = manifest_path.strip_suffix("/manifest.json")?;
+    Some(format!("{service_dir}/slos/{name}.openslo.yaml"))
+}
+
+fn declared_slo_path_resolves(
+    manifest_path: &str,
+    declared: &str,
+    available_openslo_paths: &BTreeSet<String>,
+) -> bool {
+    let declared = declared.trim();
+    if available_openslo_paths.contains(declared) {
+        return true;
+    }
+    let Some(service_dir) = manifest_path.strip_suffix("/manifest.json") else {
+        return false;
+    };
+    let service_relative = format!("{service_dir}/{declared}");
+    available_openslo_paths.contains(&service_relative)
+}
+
+fn evaluate_openslo_manifest_refs(
+    _parsed: &ParsedPolicy,
+    path: &str,
+    manifest: &Value,
+    available_openslo_paths: &BTreeSet<String>,
+    findings: &mut BTreeSet<Finding>,
+) {
+    let Some(slos_value) = manifest.get("slos") else {
+        if !manifest_has_slo_exemption(path, manifest, findings) {
+            findings.insert(Finding::new(
+                "TFC-SLO-MISSING-OR-UNEXEMPT",
+                path,
+                "top-level service manifest lacks `slos` and has no explicit `slo_exemption`",
+            ));
+        }
+        return;
+    };
+    let Some(slos) = slos_value.as_array() else {
+        findings.insert(Finding::new(
+            "TFC-SLO-ENTRY-MALFORMED",
+            path,
+            "`slos` must be an array of OpenSLO references or explicitly exempted entries",
+        ));
+        return;
+    };
+    if slos.is_empty() {
+        if !manifest_has_slo_exemption(path, manifest, findings) {
+            findings.insert(Finding::new(
+                "TFC-SLO-MISSING-OR-UNEXEMPT",
+                path,
+                "top-level service manifest has an empty `slos` array and no explicit `slo_exemption`",
+            ));
+        }
+        return;
+    }
+
+    let exemptions = exempt_slo_names(path, manifest, findings);
+    let mut covered = false;
+    for (index, entry) in slos.iter().enumerate() {
+        let name = entry_name(entry);
+        if name.is_some_and(|name| exemptions.contains(name)) {
+            covered = true;
+            continue;
+        }
+
+        if let Some(file) = string_field(entry, "file") {
+            if !(file.ends_with(".openslo.yaml") || file.ends_with(".openslo.yml"))
+                || !declared_slo_path_resolves(path, file, available_openslo_paths)
+            {
+                findings.insert(Finding::new(
+                    "TFC-SLO-REFERENCE-UNRESOLVED",
+                    path,
+                    format!(
+                        "SLO entry {index} references a missing or empty OpenSLO file {file:?}"
+                    ),
+                ));
+            } else {
+                covered = true;
+            }
+            continue;
+        }
+
+        if let Some(raw) = entry.as_str().filter(|s| {
+            let s = s.trim();
+            s.ends_with(".openslo.yaml") || s.ends_with(".openslo.yml")
+        }) {
+            if declared_slo_path_resolves(path, raw, available_openslo_paths) {
+                covered = true;
+            } else {
+                findings.insert(Finding::new(
+                    "TFC-SLO-REFERENCE-UNRESOLVED",
+                    path,
+                    format!("SLO entry {index} references a missing or empty OpenSLO file {raw:?}"),
+                ));
+            }
+            continue;
+        }
+
+        let Some(name) = name else {
+            findings.insert(Finding::new(
+                "TFC-SLO-ENTRY-MALFORMED",
+                path,
+                format!("SLO entry {index} must carry a non-empty `name`, scalar id, or `file`"),
+            ));
+            continue;
+        };
+        let Some(inferred) = inferred_local_slo_path(path, name) else {
+            findings.insert(Finding::new(
+                "TFC-SLO-ENTRY-MALFORMED",
+                path,
+                format!("SLO entry {index} cannot infer a local OpenSLO path from manifest path"),
+            ));
+            continue;
+        };
+        if available_openslo_paths.contains(&inferred) {
+            covered = true;
+        } else {
+            findings.insert(Finding::new(
+                "TFC-SLO-REFERENCE-UNRESOLVED",
+                path,
+                format!("SLO entry {index} lacks a non-empty resolvable OpenSLO file; expected {inferred:?} or an explicit per-entry exemption"),
+            ));
+        }
+    }
+
+    if !covered && !manifest_has_slo_exemption(path, manifest, findings) {
+        findings.insert(Finding::new(
+            "TFC-SLO-MISSING-OR-UNEXEMPT",
+            path,
+            "no SLO entry resolves to an existing OpenSLO file and the manifest has no explicit `slo_exemption`",
+        ));
+    }
 }
 
 /// The bare-code projection of [`evaluate_keyed`]: the single source of the verdict + counts.
 #[must_use]
 pub fn evaluate(policy: &Value, observed: &Value) -> Report {
     let findings = evaluate_keyed(policy, observed);
-    let violations = findings.iter().map(|f| f.code.clone()).collect::<BTreeSet<_>>();
+    let violations = findings
+        .iter()
+        .map(|f| f.code.clone())
+        .collect::<BTreeSet<_>>();
     let manifests_checked = observed
         .get("manifest_count")
         .and_then(Value::as_u64)
         .map(|n| n as usize)
-        .or_else(|| observed.get("manifests").and_then(Value::as_array).map(Vec::len))
+        .or_else(|| {
+            observed
+                .get("manifests")
+                .and_then(Value::as_array)
+                .map(Vec::len)
+        })
         .unwrap_or(0);
     Report {
         verdict: if violations.is_empty() {
@@ -448,8 +1113,9 @@ pub fn evaluate(policy: &Value, observed: &Value) -> Report {
 #[must_use]
 pub fn render_findings(findings: &BTreeSet<Finding>) -> String {
     if findings.is_empty() {
-        return "tier-field-coverage: GREEN — every governed service manifest carries a valid \
-                tier/tier_subtype/dr_tier triple with no type-overload"
+        return "tier-field-coverage: GREEN — every governed service manifest carries valid \
+                tier/tier_subtype/dr_tier metadata, substrate DAG position, ADR-0348 sharding \
+                automation, and resolvable or explicitly exempted OpenSLO coverage"
             .to_owned();
     }
     // Group counts per code for a stable summary, then list each finding.

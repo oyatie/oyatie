@@ -111,37 +111,37 @@
       "name": "oya-workflow-engine-payload-bytes-budget-correctness",
       "target": "1.0",
       "sli": "sum(rate(oya_workflow_engine_workflow_event_total{payload_budget=\"within_limit\"}[5m]))",
-      "file": "microservices/workflow-engine/slos/payload-bytes-budget-correctness.openslo.yaml"
+      "file": "workflow/observability/slos/workflow-engine/payload-bytes-budget-correctness.openslo.yaml"
     },
     {
       "name": "oya-workflow-engine-replay-determinism-correctness",
       "target": "1.0",
       "sli": "sum(rate(oya_workflow_engine_replay_total{result=\"deterministic\"}[5m]))",
-      "file": "microservices/workflow-engine/slos/replay-determinism-correctness.openslo.yaml"
+      "file": "workflow/observability/slos/workflow-engine/replay-determinism-correctness.openslo.yaml"
     },
     {
       "name": "oya-workflow-engine-worker-poll-availability",
       "target": "0.999",
       "sli": "sum(rate(oya_workflow_engine_worker_poll_total{outcome=~\"task|empty_ack\"}[5m]))",
-      "file": "microservices/workflow-engine/slos/worker-poll-availability.openslo.yaml"
+      "file": "workflow/observability/slos/workflow-engine/worker-poll-availability.openslo.yaml"
     },
     {
       "name": "oya-workflow-engine-workflow-completion-availability",
       "target": "0.9995",
       "sli": "sum(rate(oya_workflow_engine_workflow_terminal_total{outcome=~\"completed|user_failed|cancelled\"}[5m]))",
-      "file": "microservices/workflow-engine/slos/workflow-completion-availability.openslo.yaml"
+      "file": "workflow/observability/slos/workflow-engine/workflow-completion-availability.openslo.yaml"
     },
     {
       "name": "oya-workflow-engine-workflow-start-latency",
       "target": "0.95",
       "sli": "sum(rate(oya_workflow_engine_workflow_start_duration_seconds_bucket{le=\"0.1\"}[5m]))",
-      "file": "microservices/workflow-engine/slos/workflow-start-latency.openslo.yaml"
+      "file": "workflow/observability/slos/workflow-engine/workflow-start-latency.openslo.yaml"
     },
     {
       "name": "oya-workflow-engine-workflow-step-execute-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_workflow_engine_step_execute_duration_seconds_bucket{le=\"0.5\"}[5m]))",
-      "file": "microservices/workflow-engine/slos/workflow-step-execute-latency.openslo.yaml"
+      "file": "workflow/observability/slos/workflow-engine/workflow-step-execute-latency.openslo.yaml"
     }
   ],
   "ips": [

@@ -106,55 +106,55 @@
       "name": "mail-dual-context-correctness",
       "target": "1.0",
       "sli": "sum(rate(oya_mail_cross_context_routing_refused_total[5m]))",
-      "file": "microservices/mail/slos/dual-context-correctness.openslo.yaml"
+      "file": "comms/observability/slos/mail/dual-context-correctness.openslo.yaml"
     },
     {
       "name": "mail-ediscovery-export-freshness",
       "target": "0.995",
       "sli": "histogram_quantile(0.99, sum(rate(oya_mail_ediscovery_export_duration_seconds_bucket[30d])) by (le))",
-      "file": "microservices/mail/slos/ediscovery-export-freshness.openslo.yaml"
+      "file": "comms/observability/slos/mail/ediscovery-export-freshness.openslo.yaml"
     },
     {
       "name": "mail-inbound-receive-availability",
       "target": "0.9995",
       "sli": "sum(rate(oya_mail_inbound_smtp_data_accepted_total{pack=~\".+\"}[5m]))",
-      "file": "microservices/mail/slos/inbound-receive-availability.openslo.yaml"
+      "file": "comms/observability/slos/mail/inbound-receive-availability.openslo.yaml"
     },
     {
       "name": "mail-inbox-open-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.95, sum(rate(oya_mail_inbox_open_seconds_bucket[5m])) by (le))",
-      "file": "microservices/mail/slos/inbox-open-latency.openslo.yaml"
+      "file": "comms/observability/slos/mail/inbox-open-latency.openslo.yaml"
     },
     {
       "name": "mail-legal-hold-engage-latency",
       "target": "0.999",
       "sli": "histogram_quantile(0.99, sum(rate(oya_mail_legal_hold_engage_seconds_bucket[5m])) by (le))",
-      "file": "microservices/mail/slos/legal-hold-engage-latency.openslo.yaml"
+      "file": "comms/observability/slos/mail/legal-hold-engage-latency.openslo.yaml"
     },
     {
       "name": "mail-outbound-delivery-latency",
       "target": "0.999",
       "sli": "histogram_quantile(0.99, sum(rate(oya_mail_outbound_delivery_seconds_bucket[5m])) by (le))",
-      "file": "microservices/mail/slos/outbound-delivery-latency.openslo.yaml"
+      "file": "comms/observability/slos/mail/outbound-delivery-latency.openslo.yaml"
     },
     {
       "name": "mail-search-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.95, sum(rate(oya_mail_search_seconds_bucket[5m])) by (le))",
-      "file": "microservices/mail/slos/search-latency.openslo.yaml"
+      "file": "comms/observability/slos/mail/search-latency.openslo.yaml"
     },
     {
       "name": "mail-spam-classification-latency",
       "target": "0.999",
       "sli": "histogram_quantile(0.99, sum(rate(oya_mail_inbound_spam_classify_seconds_bucket[5m])) by (le))",
-      "file": "microservices/mail/slos/spam-classification-latency.openslo.yaml"
+      "file": "comms/observability/slos/mail/spam-classification-latency.openslo.yaml"
     },
     {
       "name": "mail-thread-render-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.95, sum(rate(oya_mail_thread_render_seconds_bucket[5m])) by (le))",
-      "file": "microservices/mail/slos/thread-render-latency.openslo.yaml"
+      "file": "comms/observability/slos/mail/thread-render-latency.openslo.yaml"
     }
   ],
   "ips": [
