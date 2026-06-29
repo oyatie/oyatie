@@ -3,6 +3,7 @@
 // assert with unwrap/expect.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -61,6 +62,190 @@ fn run_producer_face(root: &Path, face: &str) -> Value {
     serde_json::from_slice(&output.stdout).expect("producer face stdout is valid JSON")
 }
 
+fn cloud_manifest_paths(root: &Path) -> Vec<PathBuf> {
+    let mut paths = Vec::new();
+    for entry in fs::read_dir(root.join("cloud")).expect("read cloud directory") {
+        let entry = entry.expect("read cloud child");
+        let manifest = entry.path().join("manifest.json");
+        if manifest.is_file() {
+            paths.push(manifest);
+        }
+    }
+    paths.sort();
+    paths
+}
+
+fn required_string<'a>(object: &'a Value, field: &str) -> Option<&'a str> {
+    object
+        .get(field)
+        .and_then(Value::as_str)
+        .filter(|value| !value.trim().is_empty())
+}
+
+fn validate_manifest_slo_contract(
+    root: &Path,
+    manifest_path: &Path,
+    manifest: &Value,
+) -> Vec<String> {
+    let rel_manifest = manifest_path
+        .strip_prefix(root)
+        .expect("manifest under root")
+        .display()
+        .to_string();
+    let mut findings = Vec::new();
+
+    let Some(slos) = manifest.get("slos").and_then(Value::as_array) else {
+        findings.push(format!("{rel_manifest}: missing array field `slos`"));
+        return findings;
+    };
+
+    if slos.is_empty() {
+        let Some(exemption) = manifest.get("slo_exemption").and_then(Value::as_object) else {
+            findings.push(format!(
+                "{rel_manifest}: empty `slos` must carry explicit `slo_exemption`"
+            ));
+            return findings;
+        };
+
+        for field in ["status", "owner", "rationale", "cutover_on", "evidence"] {
+            if !exemption
+                .get(field)
+                .and_then(Value::as_str)
+                .is_some_and(|value| !value.trim().is_empty())
+            {
+                findings.push(format!(
+                    "{rel_manifest}: `slo_exemption.{field}` must be non-empty"
+                ));
+            }
+        }
+
+        if !exemption
+            .get("status")
+            .and_then(Value::as_str)
+            .is_some_and(|status| status == "live_exempted_no_runtime_sli")
+        {
+            findings.push(format!(
+                "{rel_manifest}: `slo_exemption.status` must be live_exempted_no_runtime_sli"
+            ));
+        }
+
+        if !exemption
+            .get("rationale")
+            .and_then(Value::as_str)
+            .is_some_and(|rationale| {
+                rationale.contains("must not claim production or hyperscaler-ready SLO coverage")
+            })
+        {
+            findings.push(format!(
+                "{rel_manifest}: `slo_exemption.rationale` must explicitly block production/hyperscaler SLO claims"
+            ));
+        }
+
+        return findings;
+    }
+
+    if manifest.get("slo_exemption").is_some() {
+        findings.push(format!(
+            "{rel_manifest}: non-empty `slos` must not also carry `slo_exemption`"
+        ));
+    }
+
+    for (index, slo) in slos.iter().enumerate() {
+        let Some(slo_object) = slo.as_object() else {
+            findings.push(format!("{rel_manifest}: slos[{index}] must be an object"));
+            continue;
+        };
+
+        for field in ["name", "target", "sli", "file"] {
+            if required_string(slo, field).is_none() {
+                findings.push(format!(
+                    "{rel_manifest}: slos[{index}].{field} must be non-empty"
+                ));
+            }
+        }
+
+        let Some(file) = slo_object
+            .get("file")
+            .and_then(Value::as_str)
+            .filter(|value| !value.trim().is_empty())
+        else {
+            continue;
+        };
+
+        if file.starts_with("microservices/") {
+            findings.push(format!(
+                "{rel_manifest}: slos[{index}].file uses retired path `{file}`"
+            ));
+        }
+
+        if !file.ends_with(".openslo.yaml") {
+            findings.push(format!(
+                "{rel_manifest}: slos[{index}].file must point at an OpenSLO yaml file, got `{file}`"
+            ));
+        }
+
+        if !(file.contains("/observability/slos/")
+            || (file.starts_with("cloud/") && file.contains("/slos/")))
+        {
+            findings.push(format!(
+                "{rel_manifest}: slos[{index}].file must use a current observability/slos or cloud/*/slos path, got `{file}`"
+            ));
+        }
+
+        if !root.join(file).is_file() {
+            findings.push(format!(
+                "{rel_manifest}: slos[{index}].file does not exist: `{file}`"
+            ));
+        }
+    }
+
+    findings
+}
+
+#[test]
+fn manifest_slo_contract_rejects_missing_refs_and_retired_paths() {
+    let root = repo_root();
+    let manifest_path = root.join("cloud/example/manifest.json");
+    let manifest = serde_json::json!({
+        "slos": [{
+            "name": "example-availability",
+            "target": "99.9%",
+            "sli": "availability",
+            "file": "microservices/example/slos/availability.openslo.yaml"
+        }]
+    });
+
+    let findings = validate_manifest_slo_contract(&root, &manifest_path, &manifest);
+    assert!(
+        findings
+            .iter()
+            .any(|finding| finding.contains("uses retired path")),
+        "expected retired path finding, got {findings:#?}"
+    );
+    assert!(
+        findings
+            .iter()
+            .any(|finding| finding.contains("does not exist")),
+        "expected missing file finding, got {findings:#?}"
+    );
+}
+
+#[test]
+fn manifest_slo_contract_rejects_empty_slos_without_explicit_exemption() {
+    let root = repo_root();
+    let manifest_path = root.join("cloud/example/manifest.json");
+    let manifest = serde_json::json!({ "slos": [] });
+
+    let findings = validate_manifest_slo_contract(&root, &manifest_path, &manifest);
+    assert_eq!(
+        findings,
+        vec![
+            "cloud/example/manifest.json: empty `slos` must carry explicit `slo_exemption`"
+                .to_owned()
+        ]
+    );
+}
+
 #[test]
 fn producer_binary_env_is_required_for_hermetic_gate() {
     let err = producer_command(Path::new("/repo"), None)
@@ -96,4 +281,52 @@ fn slo_coverage_verdict_matches_the_live_catalog() {
         "current catalog must carry explicit SLO rows for every record: {findings:?}"
     );
     assert_eq!(verdict, Verdict::Green);
+}
+
+#[test]
+fn cloud_manifests_have_existing_slo_refs_or_explicit_non_claims() {
+    let root = repo_root();
+    let manifest_paths = cloud_manifest_paths(&root);
+    let manifest_count = manifest_paths.len();
+    assert!(
+        manifest_count >= 21,
+        "issue #993 coverage expects every current cloud/*/manifest.json; got {manifest_count}"
+    );
+
+    let mut findings = Vec::new();
+    let mut non_empty_slo_manifests = 0usize;
+    let mut exempted_manifests = 0usize;
+
+    for manifest_path in manifest_paths {
+        let manifest_text = fs::read_to_string(&manifest_path).expect("read cloud manifest");
+        let manifest: Value = serde_json::from_str(&manifest_text).expect("manifest JSON");
+        let slos = manifest
+            .get("slos")
+            .and_then(Value::as_array)
+            .expect("slos array checked by validator");
+        if slos.is_empty() {
+            exempted_manifests += 1;
+        } else {
+            non_empty_slo_manifests += 1;
+        }
+        findings.extend(validate_manifest_slo_contract(
+            &root,
+            &manifest_path,
+            &manifest,
+        ));
+    }
+
+    assert!(
+        non_empty_slo_manifests >= 6,
+        "current cloud manifest corpus should keep at least the six existing services linked to OpenSLO files"
+    );
+    assert_eq!(
+        non_empty_slo_manifests + exempted_manifests,
+        manifest_count,
+        "each cloud manifest must be either SLO-linked or explicitly exempted"
+    );
+    assert!(
+        findings.is_empty(),
+        "manifest SLO contract findings: {findings:#?}"
+    );
 }
