@@ -1,3 +1,4 @@
+use serde_json::Value;
 use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -14,6 +15,7 @@ use crate::{
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct FoundryCapabilitySchemaValidateArgs {
     capabilities_dir: PathBuf,
+    internal_registry_path: PathBuf,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -26,6 +28,7 @@ pub(crate) fn parse_foundry_capability_schema_validate_args(
 ) -> Result<FoundryCapabilitySchemaValidateArgs, String> {
     let mut parsed = FoundryCapabilitySchemaValidateArgs {
         capabilities_dir: PathBuf::from("registry/capability-templates"),
+        internal_registry_path: PathBuf::from("registry/capabilities/foundry-internal.json"),
     };
     let mut iter = args.into_iter();
     while let Some(flag) = iter.next() {
@@ -34,6 +37,7 @@ pub(crate) fn parse_foundry_capability_schema_validate_args(
         };
         match flag.as_str() {
             "--capabilities-dir" => parsed.capabilities_dir = PathBuf::from(value),
+            "--internal-registry" => parsed.internal_registry_path = PathBuf::from(value),
             _ => return Err(usage()),
         }
     }
@@ -42,8 +46,9 @@ pub(crate) fn parse_foundry_capability_schema_validate_args(
 
 pub(crate) fn validate_foundry_capability_schema_gate(
     args: FoundryCapabilitySchemaValidateArgs,
-) -> Result<(usize, usize, usize), String> {
+) -> Result<(usize, usize, usize, usize), String> {
     let records = read_foundry_capability_schema_records(&args.capabilities_dir)?;
+    let internal_records = read_foundry_internal_registry_records(&args.internal_registry_path)?;
     let mut seen = BTreeSet::new();
     for record in &records {
         if !seen.insert(record.capability.id.clone()) {
@@ -53,7 +58,19 @@ pub(crate) fn validate_foundry_capability_schema_gate(
             ));
         }
     }
-    Ok((records.len(), records.len(), records.len() * 2))
+    for capability_id in &internal_records {
+        if !seen.insert(capability_id.clone()) {
+            return Err(format!(
+                "duplicate capability id {capability_id} across capability templates and internal registry"
+            ));
+        }
+    }
+    Ok((
+        records.len() + internal_records.len(),
+        records.len(),
+        records.len() * 2,
+        internal_records.len(),
+    ))
 }
 
 fn read_foundry_capability_schema_records(
@@ -83,6 +100,277 @@ fn read_foundry_capability_schema_records(
     } else {
         Ok(records)
     }
+}
+
+fn read_foundry_internal_registry_records(path: &Path) -> Result<Vec<String>, String> {
+    let contents = fs::read_to_string(path).map_err(|error| {
+        format!(
+            "internal capability registry unreadable {}: {error}",
+            path.display()
+        )
+    })?;
+    let value: Value = serde_json::from_str(&contents).map_err(|error| {
+        format!(
+            "internal capability registry invalid JSON {}: {error}",
+            path.display()
+        )
+    })?;
+    validate_foundry_internal_registry_value(path, &value)
+}
+
+fn validate_foundry_internal_registry_value(
+    path: &Path,
+    value: &Value,
+) -> Result<Vec<String>, String> {
+    let Some(records) = value.as_array() else {
+        return Err(format!(
+            "{}: internal capability registry must be a JSON array",
+            path.display()
+        ));
+    };
+    if records.is_empty() {
+        return Err(format!(
+            "{}: internal capability registry must contain at least one capability record",
+            path.display()
+        ));
+    }
+
+    let mut ids = BTreeSet::new();
+    let mut capability_ids = Vec::new();
+    for (index, record) in records.iter().enumerate() {
+        let object = record.as_object().ok_or_else(|| {
+            format!(
+                "{}[{index}]: internal capability registry row must be an object",
+                path.display()
+            )
+        })?;
+        let id = required_json_string(path, index, object, "id")?;
+        if !id.starts_with("foundry.") {
+            return Err(format!(
+                "{}[{index}]: capability id {id:?} must stay in the foundry.* namespace",
+                path.display()
+            ));
+        }
+        if !ids.insert(id.clone()) {
+            return Err(format!(
+                "{}[{index}]: duplicate internal capability id {id}",
+                path.display()
+            ));
+        }
+
+        let namespace = required_json_string(path, index, object, "namespace")?;
+        if !namespace.starts_with("foundry.") || !id.starts_with(&format!("{namespace}.")) {
+            return Err(format!(
+                "{}[{index}]: namespace {namespace:?} must be a foundry.* prefix of id {id:?}",
+                path.display()
+            ));
+        }
+
+        required_json_string(path, index, object, "name")?;
+        required_json_string(path, index, object, "owner_team")?;
+        let status = required_json_string(path, index, object, "status")?;
+        if !matches!(
+            status.as_str(),
+            "planned" | "published" | "operational" | "deprecated"
+        ) {
+            return Err(format!(
+                "{}[{index}]: status {status:?} must be planned, published, operational, or deprecated",
+                path.display()
+            ));
+        }
+
+        let required_tier = required_json_string(path, index, object, "autonomy_tier_required")?;
+        if !matches!(required_tier.as_str(), "T1" | "T2" | "T3" | "T4") {
+            return Err(format!(
+                "{}[{index}]: autonomy_tier_required {required_tier:?} must be canonical T1/T2/T3/T4",
+                path.display()
+            ));
+        }
+
+        let data_classes = required_json_string_array(path, index, object, "data_classes_touched")?;
+        for data_class in data_classes {
+            parse_capability_data_class(path, &data_class)?;
+        }
+
+        let evidence_topic = required_json_string(path, index, object, "evidence_emission_topic")?;
+        match object
+            .get("evidence_emit_required")
+            .and_then(Value::as_bool)
+        {
+            Some(true) => {}
+            Some(false) => {
+                return Err(format!(
+                    "{}[{index}]: evidence_emit_required must remain true for internal Foundry capabilities",
+                    path.display()
+                ));
+            }
+            None => {
+                return Err(format!(
+                    "{}[{index}]: missing boolean evidence_emit_required",
+                    path.display()
+                ));
+            }
+        }
+        if !evidence_topic.contains(&id) {
+            return Err(format!(
+                "{}[{index}]: evidence_emission_topic {evidence_topic:?} must include capability id {id:?}",
+                path.display()
+            ));
+        }
+
+        for field in ["prd_ref", "task_ref", "test_ref", "verification_ref"] {
+            let reference = required_json_string(path, index, object, field)?;
+            validate_current_capability_reference(path, index, field, &reference)?;
+        }
+
+        let cost_profile = required_json_object(path, index, object, "cost_profile")?;
+        require_json_scalar(
+            cost_profile,
+            path,
+            index,
+            "cost_profile",
+            "per_invocation_budget_usd",
+        )?;
+        require_json_scalar(
+            cost_profile,
+            path,
+            index,
+            "cost_profile",
+            "monthly_budget_usd",
+        )?;
+
+        let mcp_contract = required_json_object(path, index, object, "mcp_contract")?;
+        for field in [
+            "agent_readable",
+            "human_readable",
+            "input_schema_ref",
+            "output_schema_ref",
+        ] {
+            required_json_string(path, index, mcp_contract, field)?;
+        }
+
+        required_json_string_array(path, index, object, "failure_modes")?;
+        let maturity = required_json_object(path, index, object, "maturity")?;
+        required_json_string(path, index, maturity, "claim_boundary")?;
+        let admission_ref = required_json_string(path, index, maturity, "admission_ref")?;
+        validate_current_capability_reference(
+            path,
+            index,
+            "maturity.admission_ref",
+            &admission_ref,
+        )?;
+
+        capability_ids.push(id);
+    }
+
+    Ok(capability_ids)
+}
+
+fn required_json_object<'a>(
+    path: &Path,
+    index: usize,
+    object: &'a serde_json::Map<String, Value>,
+    field: &str,
+) -> Result<&'a serde_json::Map<String, Value>, String> {
+    object
+        .get(field)
+        .and_then(Value::as_object)
+        .ok_or_else(|| format!("{}[{index}]: missing object {field}", path.display()))
+}
+
+fn required_json_string(
+    path: &Path,
+    index: usize,
+    object: &serde_json::Map<String, Value>,
+    field: &str,
+) -> Result<String, String> {
+    object
+        .get(field)
+        .and_then(Value::as_str)
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(ToOwned::to_owned)
+        .ok_or_else(|| {
+            format!(
+                "{}[{index}]: missing non-empty string {field}",
+                path.display()
+            )
+        })
+}
+
+fn required_json_string_array(
+    path: &Path,
+    index: usize,
+    object: &serde_json::Map<String, Value>,
+    field: &str,
+) -> Result<Vec<String>, String> {
+    let Some(values) = object.get(field).and_then(Value::as_array) else {
+        return Err(format!(
+            "{}[{index}]: missing non-empty string array {field}",
+            path.display()
+        ));
+    };
+    if values.is_empty() {
+        return Err(format!(
+            "{}[{index}]: {field} must contain at least one string",
+            path.display()
+        ));
+    }
+    values
+        .iter()
+        .map(|value| {
+            value
+                .as_str()
+                .map(str::trim)
+                .filter(|text| !text.is_empty())
+                .map(ToOwned::to_owned)
+                .ok_or_else(|| {
+                    format!(
+                        "{}[{index}]: {field} entries must be non-empty strings",
+                        path.display()
+                    )
+                })
+        })
+        .collect()
+}
+
+fn require_json_scalar(
+    object: &serde_json::Map<String, Value>,
+    path: &Path,
+    index: usize,
+    section: &str,
+    field: &str,
+) -> Result<(), String> {
+    match object.get(field) {
+        Some(Value::String(value)) if !value.trim().is_empty() => Ok(()),
+        Some(Value::Number(_)) => Ok(()),
+        _ => Err(format!(
+            "{}[{index}]: {section}.{field} must be a non-empty string or number",
+            path.display()
+        )),
+    }
+}
+
+fn validate_current_capability_reference(
+    path: &Path,
+    index: usize,
+    field: &str,
+    reference: &str,
+) -> Result<(), String> {
+    let lower = reference.to_ascii_lowercase();
+    if lower.contains(".omc/")
+        || lower.contains(".omx/")
+        || lower.contains(".omc\\")
+        || lower.contains(".omx\\")
+        || lower.contains("implementation-plan")
+        || lower.contains("implementation plan")
+    {
+        return Err(format!(
+            "{}[{index}]: {field} must cite product PRD/task/spec/cloud-ci evidence, not retired .omc/.omx implementation-plan inputs: {reference:?}",
+            path.display()
+        ));
+    }
+    Ok(())
 }
 
 fn parse_foundry_capability_schema_record(
@@ -529,4 +817,103 @@ fn indentation(line: &str) -> usize {
 
 fn json_escape(value: &str) -> String {
     value.replace('\\', "\\\\").replace('"', "\\\"")
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn internal_registry_rejects_shallow_rows() {
+        let registry = json!([
+            {
+                "id": "foundry.account.list",
+                "name": "List provider accounts",
+                "autonomy_tier": "T1Read",
+                "evidence_emit_required": true
+            }
+        ]);
+
+        let error = validate_foundry_internal_registry_value(
+            Path::new("registry/capabilities/foundry-internal.json"),
+            &registry,
+        )
+        .expect_err("shallow row is rejected");
+
+        assert!(
+            error.contains("missing non-empty string namespace"),
+            "error={error}"
+        );
+    }
+
+    #[test]
+    fn internal_registry_accepts_rich_rows() {
+        let registry = json!([rich_internal_record(
+            "foundry.account.list",
+            "foundry.account"
+        )]);
+
+        let ids = validate_foundry_internal_registry_value(
+            Path::new("registry/capabilities/foundry-internal.json"),
+            &registry,
+        )
+        .expect("rich row accepted");
+
+        assert_eq!(ids, vec!["foundry.account.list"]);
+    }
+
+    #[test]
+    fn internal_registry_rejects_retired_plan_references() {
+        let mut record = rich_internal_record("foundry.account.list", "foundry.account");
+        record["test_ref"] = json!(".omx/plans/retired-implementation-plan.md");
+        let registry = json!([record]);
+
+        let error = validate_foundry_internal_registry_value(
+            Path::new("registry/capabilities/foundry-internal.json"),
+            &registry,
+        )
+        .expect_err("retired plan reference is rejected");
+
+        assert!(
+            error.contains("retired .omc/.omx implementation-plan inputs"),
+            "error={error}"
+        );
+    }
+
+    fn rich_internal_record(id: &str, namespace: &str) -> Value {
+        json!({
+            "id": id,
+            "namespace": namespace,
+            "name": "List provider accounts",
+            "status": "published",
+            "owner_team": "axis-intelligence",
+            "autonomy_tier": "T1Read",
+            "autonomy_tier_required": "T1",
+            "data_classes_touched": ["INTERNAL_ONLY"],
+            "evidence_emit_required": true,
+            "evidence_emission_topic": format!("foundry.capability.invoke:{id}"),
+            "prd_ref": "specs/microservices/intelligence.json#acceptance_criteria",
+            "task_ref": "tasks/intel-capability-registry-affected-target-index-plan.md",
+            "test_ref": "marketplace/facade/dev-cli/tests/gate_cli.rs::foundry_capability_schema_gate_accepts_internal_registry_fixture",
+            "verification_ref": "oya-ci-required/cloud-ci evidence: foundry-capability-schema --internal-registry registry/capabilities/foundry-internal.json",
+            "cost_profile": {
+                "per_invocation_budget_usd": "0.01",
+                "monthly_budget_usd": "10"
+            },
+            "mcp_contract": {
+                "agent_readable": "Read Foundry account metadata for an authorized internal operator.",
+                "human_readable": "Read Foundry account metadata.",
+                "input_schema_ref": "specs/microservices/intelligence.json#foundry-capability-input",
+                "output_schema_ref": "specs/microservices/intelligence.json#foundry-capability-output"
+            },
+            "failure_modes": [
+                "tenant_scope_missing",
+                "evidence_emission_failed"
+            ],
+            "maturity": {
+                "claim_boundary": "Registry metadata only; no runtime maturity claim is made without cloud-ci/oya-ci evidence.",
+                "admission_ref": "oya-ci-required/cloud-ci gate packet"
+            }
+        })
+    }
 }
