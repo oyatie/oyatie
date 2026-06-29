@@ -17,7 +17,7 @@
 use oya_shared_connector_kernel::{
     AuthScheme, Connector, ConnectorCapabilities, ConnectorCtx, ConnectorError, Cursor, EntityDoc,
     EntityValue, EventStream, HealthReport, IdempotencyKey, OntologyProjection, Page, PatchOp,
-    RateLimitDescriptor,
+    RateLimitDescriptor, btree_keyset_page,
 };
 use std::collections::{BTreeMap, HashMap};
 use std::sync::Mutex;
@@ -139,31 +139,11 @@ impl Connector for QuickbooksConnector {
         self.check_kind(entity_kind)?;
         self.seal(ctx, "connector.list", entity_kind)?;
         let store = self.lock_store();
-        let mut items: Vec<EntityDoc> = store
+        let items = store
             .get(ctx.tenant_id().as_str())
-            .and_then(|m| m.get(entity_kind))
-            .map(|m| m.values().cloned().collect())
-            .unwrap_or_default();
-        let start: usize = cursor
-            .as_ref()
-            .map(|c| c.as_str().parse::<usize>().unwrap_or(0))
-            .unwrap_or(0);
+            .and_then(|m| m.get(entity_kind));
         const PAGE: usize = 100;
-        let end = std::cmp::min(start + PAGE, items.len());
-        let page: Vec<EntityDoc> = if start <= items.len() {
-            items.drain(start..end).collect()
-        } else {
-            Vec::new()
-        };
-        let next = if page.len() == PAGE {
-            Cursor::new(end.to_string()).ok()
-        } else {
-            None
-        };
-        Ok(Page {
-            items: page,
-            next_cursor: next,
-        })
+        btree_keyset_page(items, cursor.as_ref(), PAGE)
     }
     fn get(&self, ctx: &ConnectorCtx, entity_kind: &str, id: &str) -> Result<EntityDoc> {
         self.check_kind(entity_kind)?;
@@ -319,6 +299,38 @@ mod tests {
                 .len(),
             4
         );
+    }
+    #[test]
+    fn list_uses_keyset_page_boundaries() {
+        let s = QuickbooksConnector::new();
+        for i in 1..=101 {
+            let mut d = EntityDoc::new();
+            let id = format!("bill-{i:08}");
+            d.insert("Id", EntityValue::Str(id.clone()));
+            s.put("t-1", "Bill", &id, d);
+        }
+
+        let first = s.list(&ctx(), "Bill", None).unwrap();
+        assert_eq!(first.items.len(), 100);
+        assert_eq!(
+            first.next_cursor.as_ref().map(Cursor::as_str),
+            Some("bill-00000100")
+        );
+
+        let second = s.list(&ctx(), "Bill", first.next_cursor).unwrap();
+        assert_eq!(second.items.len(), 1);
+        assert!(second.next_cursor.is_none());
+
+        let exact = QuickbooksConnector::new();
+        for i in 1..=100 {
+            let mut d = EntityDoc::new();
+            let id = format!("bill-{i:08}");
+            d.insert("Id", EntityValue::Str(id.clone()));
+            exact.put("t-1", "Bill", &id, d);
+        }
+        let exact_page = exact.list(&ctx(), "Bill", None).unwrap();
+        assert_eq!(exact_page.items.len(), 100);
+        assert!(exact_page.next_cursor.is_none());
     }
     #[test]
     fn get_customer_ok() {

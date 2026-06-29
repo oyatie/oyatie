@@ -20,8 +20,8 @@
 use oya_shared_connector_kernel::{
     AuthScheme, Connector, ConnectorCapabilities, ConnectorCtx, ConnectorError, Cursor, EntityDoc,
     EntityValue, Event, EventStream, HealthReport, IdempotencyKey, OntologyProjection, Page,
-    PatchOp, RateLimitDescriptor, canonical_audit_payload_digest, entity_doc_payload_digest,
-    is_canonical_sha256_hex, patch_op_payload_digest, windowed_page,
+    PatchOp, RateLimitDescriptor, btree_keyset_page, canonical_audit_payload_digest,
+    entity_doc_payload_digest, is_canonical_sha256_hex, patch_op_payload_digest,
 };
 use std::collections::{BTreeMap, HashMap, VecDeque};
 use std::sync::Mutex;
@@ -218,11 +218,9 @@ impl Connector for TeamsConnector {
         let store = self.lock_store();
         let items = store
             .get(ctx.tenant_id().as_str())
-            .and_then(|m| m.get(entity_kind))
-            .into_iter()
-            .flat_map(|m| m.values().cloned());
+            .and_then(|m| m.get(entity_kind));
         const PAGE: usize = 100;
-        windowed_page(items, cursor.as_ref(), PAGE)
+        btree_keyset_page(items, cursor.as_ref(), PAGE)
     }
 
     fn get(&self, ctx: &ConnectorCtx, entity_kind: &str, id: &str) -> Result<EntityDoc> {
@@ -707,25 +705,36 @@ mod tests {
     }
 
     #[test]
-    fn list_uses_windowed_page_boundaries() {
+    fn list_uses_keyset_page_boundaries() {
         let s = TeamsConnector::new();
-        for i in 0..100 {
+        for i in 1..=101 {
             let mut d = EntityDoc::new();
-            d.insert("body", EntityValue::Str(format!("bulk-{i}")));
-            let _ = s
-                .create(&ctx(), "message", d, ik(&format!("bulk{i}")))
-                .unwrap();
+            let id = format!("card-{i:08}");
+            d.insert("id", EntityValue::Str(id.clone()));
+            s.put("t-1", "adaptive-card", &id, d);
         }
 
-        let first = s.list(&ctx(), "message", None).unwrap();
+        let first = s.list(&ctx(), "adaptive-card", None).unwrap();
         assert_eq!(first.items.len(), 100);
-        assert_eq!(first.next_cursor.as_ref().map(Cursor::as_str), Some("100"));
+        assert_eq!(
+            first.next_cursor.as_ref().map(Cursor::as_str),
+            Some("card-00000100")
+        );
 
-        let second = s
-            .list(&ctx(), "message", first.next_cursor.clone())
-            .unwrap();
+        let second = s.list(&ctx(), "adaptive-card", first.next_cursor).unwrap();
         assert_eq!(second.items.len(), 1);
         assert!(second.next_cursor.is_none());
+
+        let exact = TeamsConnector::new();
+        for i in 1..=100 {
+            let mut d = EntityDoc::new();
+            let id = format!("card-{i:08}");
+            d.insert("id", EntityValue::Str(id.clone()));
+            exact.put("t-1", "adaptive-card", &id, d);
+        }
+        let exact_page = exact.list(&ctx(), "adaptive-card", None).unwrap();
+        assert_eq!(exact_page.items.len(), 100);
+        assert!(exact_page.next_cursor.is_none());
     }
     #[test]
     fn auth_scheme_oauth2() {
