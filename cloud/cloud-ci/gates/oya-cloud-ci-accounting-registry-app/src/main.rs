@@ -327,10 +327,10 @@ fn run() -> Result<(), CliError> {
     let bnf_layer_suffix = collect_bnf_layer_suffix(&repo_root, &inputs.tracked_paths, &cfg);
     // The §2.5#7 manifest-hygiene gate input: per-crate Cargo.toml hygiene flags.
     let manifest_hygiene = collect_manifest_hygiene(&repo_root, &inputs.tracked_paths, &cfg);
-    // The ADR-0017 cargo-prefix gate input: the first-party oya-* workspace members + their
-    // package names. The gate's evaluate_keyed reuses
-    // oya_intelligence_cargo_prefix_domain::validate_cargo_prefix per crate.
-    let cargo_prefix = collect_cargo_prefix(&repo_root, &inputs.tracked_paths, &cfg);
+    // The ADR-0017 cargo-prefix gate input: every tracked first-party workspace member
+    // candidate + package name. The producer intentionally does NOT pre-filter by prefix;
+    // the evaluator owns pass/fail so non-prefixed candidates cannot disappear upstream.
+    let cargo_prefix = collect_cargo_prefix(&repo_root, &inputs.tracked_paths, &cfg)?;
     // The SLO coverage gate input: the config-declared catalog record globs expanded over the
     // tracked-path universe. This makes the lane input contract portable DATA instead of an
     // Oyatie-only hardcoded directory walk.
@@ -628,45 +628,44 @@ fn collect_bnf_layer_suffix(
     json!({ "rows": rows })
 }
 
-/// Enumerate the first-party `oya-*` workspace members + their package names (the ADR-0017
-/// cargo-prefix gate's I/O). For each tracked `<dir>/Cargo.toml` with an `oya-*` `[package].name`
-/// it emits a row of `{"member_path": "<dir>", "package_name": "<name>"}` — the same
-/// member_path + package_name pair the dev-cli's cargo-prefix validator builds (the gate reuses
-/// `validate_cargo_prefix` per crate). Skips vendored `third-party/` manifests + the virtual
-/// workspace root (no `[package]`). Deterministic: rows go through a BTreeMap keyed by member_path
-/// (sorted+deduped) so committed==regenerated holds byte-for-byte. Scoped to `oya-*` (the rule's
-/// domain) so the intentional bare `registry-drift` rust_test is not flagged.
+/// Enumerate every tracked first-party workspace member candidate + package name (the ADR-0017
+/// cargo-prefix gate's I/O). For each resolved workspace member whose manifest is present in the
+/// tracked-path universe, emit `{"member_path": "<dir>", "package_name": "<name>"}`. This producer
+/// intentionally does NOT filter by the configured prefix: the gate evaluator must see
+/// non-prefixed candidates and decide pass/fail. Deterministic: rows go through a BTreeMap keyed by
+/// member_path (sorted+deduped) so committed==regenerated holds byte-for-byte.
 fn collect_cargo_prefix(
     repo_root: &Path,
     tracked_paths: &[String],
     cfg: &oya_ci_config_kernel::OyaCiConfig,
-) -> Value {
-    let prefix = cfg.naming.required_prefix.as_str();
+) -> Result<Value, CliError> {
+    let tracked: BTreeSet<&str> = tracked_paths
+        .iter()
+        .filter(|path| !is_path_excluded(path, cfg))
+        .map(String::as_str)
+        .collect();
+    let member_dirs = oya_workspace_members_kernel::resolve_member_dirs(repo_root)
+        .map_err(|error| CliError::Io(format!("cargo-prefix resolve member dirs: {error}")))?;
+
     let mut by_member: BTreeMap<String, String> = BTreeMap::new();
-    for path in tracked_paths {
-        if !path.ends_with("Cargo.toml") {
+    for member_path in member_dirs {
+        let manifest_path = format!("{member_path}/Cargo.toml");
+        if !tracked.contains(manifest_path.as_str()) {
             continue;
         }
-        if is_path_excluded(path, cfg) {
-            continue;
-        }
-        let Some(name) = parse_package_name(&read_text(&repo_root.join(path))) else {
+        let Some(name) = parse_package_name(&read_text(&repo_root.join(&manifest_path))) else {
             continue;
         };
-        if !name.starts_with(prefix) {
-            continue;
-        }
-        // member_path = the directory holding the Cargo.toml (the workspace member path).
-        let member_path = path.strip_suffix("/Cargo.toml").unwrap_or(path).to_owned();
         by_member.insert(member_path, name);
     }
+
     let rows: Vec<Value> = by_member
         .into_iter()
         .map(|(member_path, package_name)| {
             json!({ "member_path": member_path, "package_name": package_name })
         })
         .collect();
-    json!({ "rows": rows })
+    Ok(json!({ "rows": rows }))
 }
 
 /// Enumerate SLO catalog rows from the config-declared `[slo_coverage].catalog_record_globs`.
@@ -1905,6 +1904,49 @@ status: Accepted
                 finding.code == "slo_missing_or_blank_slo" && finding.key == "service"
             }),
             "one duplicate row with a valid SLO must not hide the missing-SLO duplicate: {findings:?}"
+        );
+
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+    #[test]
+    fn cargo_prefix_emits_non_prefixed_in_scope_package_for_evaluator() {
+        let root = unique_temp_repo();
+        fs::write(
+            root.join("Cargo.toml"),
+            "[workspace]\nmembers = [\"tools/*\"]\nresolver = \"2\"\n",
+        )
+        .expect("write root manifest");
+
+        let crate_dir = root.join("tools/unprefixed-app");
+        fs::create_dir_all(&crate_dir).expect("create crate dir");
+        fs::write(
+            crate_dir.join("Cargo.toml"),
+            "[package]\nname = \"unprefixed-app\"\n",
+        )
+        .expect("write crate manifest");
+
+        let tracked_paths = vec![
+            "Cargo.toml".to_owned(),
+            "tools/unprefixed-app/Cargo.toml".to_owned(),
+        ];
+        let face = collect_cargo_prefix(
+            &root,
+            &tracked_paths,
+            &oya_ci_config_kernel::OyaCiConfig::bundled_default(),
+        )
+        .expect("collect cargo-prefix");
+
+        let rows = face["rows"].as_array().expect("rows");
+        assert_eq!(rows.len(), 1, "producer must not hide violating candidates");
+        assert_eq!(rows[0]["member_path"], "tools/unprefixed-app");
+        assert_eq!(rows[0]["package_name"], "unprefixed-app");
+
+        let findings = oya_cloud_ci_cargo_prefix_app::evaluate_keyed(&face);
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "cargo_prefix_violation" && finding.key == "unprefixed-app"
+            }),
+            "full producer→evaluator path must turn the emitted candidate RED: {findings:?}"
         );
 
         fs::remove_dir_all(root).expect("remove temp repo");

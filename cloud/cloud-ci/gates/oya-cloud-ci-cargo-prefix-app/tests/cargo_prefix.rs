@@ -1,9 +1,9 @@
 // ADR-0017 cloud-ci-cargo-prefix: born-blocking self-test over TODAY's real corpus. Runs the
-// producer `--face cargo-prefix` to resolve the first-party oya-* workspace members + package
-// names, then asserts the gate's verdict MATCHES the live corpus: if any member's crate-id or
-// package name fails the required prefix (or they disagree) the gate is RED and freezes the
-// debt; if every first-party crate already conforms the gate is cleanly GREEN. The count is
-// MEASURED + reported, not hardcoded. ADR-0083 Tier-3: integration tests assert via
+// producer `--face cargo-prefix` to resolve every in-scope first-party workspace member candidate
+// + package name, then asserts the gate's verdict MATCHES the live corpus: if any member's
+// crate-id or package name fails the required prefix (or they disagree) the gate is RED and
+// freezes the debt; if every first-party crate already conforms the gate is cleanly GREEN. The
+// count is MEASURED + reported, not hardcoded. ADR-0083 Tier-3: integration tests assert via
 // unwrap/expect.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
@@ -27,11 +27,11 @@ fn repo_root() -> PathBuf {
     panic!("failed to locate repo root from test current_dir");
 }
 
-fn producer_binary(root: &Path, producer_bin: Option<&str>) -> Result<PathBuf, String> {
-    let Some(bin) = producer_bin else {
-        return Err(
-            "FAIL-CLOSED: missing OYA_CI_PRODUCER_BIN; Cargo fallback is forbidden".to_owned(),
-        );
+fn hermetic_binary(root: &Path, env_name: &str, value: Option<&str>) -> Result<PathBuf, String> {
+    let Some(bin) = value else {
+        return Err(format!(
+            "FAIL-CLOSED: missing {env_name}; Cargo fallback is forbidden"
+        ));
     };
     Ok(if Path::new(bin).is_absolute() {
         PathBuf::from(bin)
@@ -41,20 +41,51 @@ fn producer_binary(root: &Path, producer_bin: Option<&str>) -> Result<PathBuf, S
 }
 
 #[test]
-fn producer_binary_env_is_required_for_hermetic_gate() {
-    let err = producer_binary(Path::new("/repo"), None)
-        .expect_err("missing OYA_CI_PRODUCER_BIN must fail closed");
-    assert!(err.contains("OYA_CI_PRODUCER_BIN"));
+fn hermetic_binary_envs_are_required_for_gate() {
+    let root = Path::new("/repo");
+    let producer = hermetic_binary(root, "OYA_CI_PRODUCER_BIN", None)
+        .expect_err("missing producer env must fail closed");
+    let emitter = hermetic_binary(root, "OYA_CI_SCM_FACTS_EMITTER_BIN", None)
+        .expect_err("missing emitter env must fail closed");
+    assert!(producer.contains("OYA_CI_PRODUCER_BIN"));
+    assert!(emitter.contains("OYA_CI_SCM_FACTS_EMITTER_BIN"));
 }
 
-/// Run the producer to emit a single face to stdout, HERMETICALLY. The producer binary must be
-/// provided by `OYA_CI_PRODUCER_BIN`; missing env fails closed so tests cannot silently fall back to
-/// Cargo. The producer reads the materialized scm-facts face (a declared input); it never calls git.
+/// Run the scm-facts emitter, then run the producer to emit a single face to stdout,
+/// HERMETICALLY. The binaries must be provided by `OYA_CI_SCM_FACTS_EMITTER_BIN` and
+/// `OYA_CI_PRODUCER_BIN`; missing env fails closed so tests cannot silently fall back to Cargo or
+/// stale committed generated faces.
+fn run_scm_facts_emitter(root: &Path) -> PathBuf {
+    let scm_facts = std::env::temp_dir().join(format!(
+        "oya-cargo-prefix-scm-facts-{}.generated.json",
+        std::process::id()
+    ));
+    let _ = std::fs::remove_file(&scm_facts);
+
+    let emitter_bin = std::env::var("OYA_CI_SCM_FACTS_EMITTER_BIN").ok();
+    let bin = hermetic_binary(root, "OYA_CI_SCM_FACTS_EMITTER_BIN", emitter_bin.as_deref())
+        .unwrap_or_else(|e| panic!("{e}"));
+    let output = Command::new(bin)
+        .arg("--repo-root")
+        .arg(root)
+        .arg("--out")
+        .arg(&scm_facts)
+        .current_dir(root)
+        .output()
+        .expect("run scm-facts emitter binary");
+    assert!(
+        output.status.success(),
+        "scm-facts emitter failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    scm_facts
+}
+
 fn run_producer_face(root: &Path, face: &str) -> Value {
-    let scm_facts = root
-        .join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json");
+    let scm_facts = run_scm_facts_emitter(root);
     let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
-    let bin = producer_binary(root, producer_bin.as_deref()).unwrap_or_else(|e| panic!("{e}"));
+    let bin = hermetic_binary(root, "OYA_CI_PRODUCER_BIN", producer_bin.as_deref())
+        .unwrap_or_else(|e| panic!("{e}"));
     let output = Command::new(bin)
         .arg("--repo-root")
         .arg(root)
@@ -66,6 +97,7 @@ fn run_producer_face(root: &Path, face: &str) -> Value {
         .current_dir(root)
         .output()
         .expect("run producer binary");
+    let _ = std::fs::remove_file(&scm_facts);
     assert!(
         output.status.success(),
         "producer failed: {}",
@@ -81,14 +113,14 @@ fn cargo_prefix_verdict_matches_the_live_corpus() {
     let rows = face["rows"].as_array().expect("cargo-prefix face rows");
     assert!(
         rows.len() > 500,
-        "the cargo-prefix face should enumerate the workspace's oya-* members, got {}",
+        "the cargo-prefix face should enumerate the workspace member candidates, got {}",
         rows.len()
     );
 
     let findings = evaluate_keyed(&face);
     let verdict = evaluate(&face).verdict;
     eprintln!(
-        "BORN-BLOCKING cargo-prefix: oya-* members={} total_findings={} verdict={:?}",
+        "BORN-BLOCKING cargo-prefix: member_candidates={} total_findings={} verdict={:?}",
         rows.len(),
         findings.len(),
         verdict

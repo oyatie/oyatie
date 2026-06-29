@@ -43,8 +43,8 @@ oya-cloud-ci-bnf-layer-suffix-app = { path = "../oya-cloud-ci-bnf-layer-suffix-a
 # cloud-ci-manifest-hygiene (§2.5#7 floor gate S2): the producer parses each oya-* Cargo.toml
 # into per-crate hygiene flags (the I/O); the gate's pure evaluate_keyed is a flag→Finding policy.
 oya-cloud-ci-manifest-hygiene-app = { path = "../oya-cloud-ci-manifest-hygiene-app" }
-# cloud-ci-cargo-prefix (ADR-0017 floor gate S3): the producer enumerates the oya-* workspace
-# members + package names (the I/O); the gate's pure evaluate_keyed reuses validate_cargo_prefix.
+# cloud-ci-cargo-prefix (ADR-0017 floor gate S3): the producer enumerates every tracked
+# first-party workspace member candidate + package name; evaluate_keyed decides pass/fail.
 oya-cloud-ci-cargo-prefix-app = { path = "../oya-cloud-ci-cargo-prefix-app" }
 # cloud-ci-slo-coverage: the producer expands the config-declared catalog globs into
 # {crate_id,slo} rows; the gate reuses the existing oya-check-slo-coverage kernel.
