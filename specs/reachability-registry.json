@@ -202,6 +202,18 @@
       "prefix": "specs/reachability-registry.json"
     },
     {
+      "anchor": "ADR-0067 governed-surface metadata for the docs portal boundary contract; exact-path registration for the non-crate OpenAPI metadata artifact.",
+      "prefix": "contracts/ops-docs-v1.openapi.meta.yaml"
+    },
+    {
+      "anchor": "ADR-0067 governed-surface metadata for the workspace shell boundary contract; exact-path registration for the non-crate OpenAPI metadata artifact.",
+      "prefix": "contracts/ops-workspace-shell-v1.openapi.meta.yaml"
+    },
+    {
+      "anchor": "ADR-0067 born-accounting ownership marker for the ops contract metadata surface; exact-path registration keeps the non-crate OWNERS artifact reachable without broadening the contracts tree.",
+      "prefix": "contracts/OWNERS"
+    },
+    {
       "anchor": "ADR-0555 D3: reindeer-vendored third-party tree — a DERIVED class regenerated from Cargo.lock (drift impossible by regeneration); its accounting is the lockfile + buckification, not per-file mentions",
       "prefix": "third-party/"
     },

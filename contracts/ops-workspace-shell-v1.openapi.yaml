@@ -65,11 +65,13 @@ paths:
           required: false
           schema:
             $ref: "#/components/schemas/SurfaceState"
+          x-oyatie-data-class: INTERNAL_ONLY
         - in: query
           name: visibility_tier
           required: false
           schema:
             $ref: "#/components/schemas/VisibilityTier"
+          x-oyatie-data-class: INTERNAL_ONLY
       responses:
         "200":
           description: All surfaces matching the filter
@@ -115,26 +117,34 @@ components:
       properties:
         id:
           $ref: "#/components/schemas/SurfaceId"
+          x-oyatie-data-class: INTERNAL_ONLY
         canonical_route:
           type: string
           pattern: "^/workspace(/.+)?$"
+          x-oyatie-data-class: INTERNAL_ONLY
         visibility_tier:
           $ref: "#/components/schemas/VisibilityTier"
+          x-oyatie-data-class: INTERNAL_ONLY
         state:
           $ref: "#/components/schemas/SurfaceState"
+          x-oyatie-data-class: INTERNAL_ONLY
         owning_bc_id:
           type: string
           description: Bounded-context id from /registry/bounded-contexts.json (e.g., "ops/docs-portal")
           pattern: "^[a-z][a-z0-9-]*/[a-z][a-z0-9-]*$"
+          x-oyatie-data-class: INTERNAL_ONLY
         cedar_fragments:
           type: array
           items: { type: string }
+          x-oyatie-data-class: INTERNAL_ONLY
         openapi_contract:
           type: [string, "null"]
+          x-oyatie-data-class: INTERNAL_ONLY
         retired_redirects_to:
           oneOf:
             - $ref: "#/components/schemas/SurfaceId"
             - type: "null"
+          x-oyatie-data-class: INTERNAL_ONLY
     SurfaceListResponse:
       type: object
       additionalProperties: false
@@ -144,9 +154,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Surface"
+          x-oyatie-data-class: INTERNAL_ONLY
         count:
           type: integer
           minimum: 0
+          x-oyatie-data-class: INTERNAL_ONLY
     HealthResponse:
       type: object
       additionalProperties: false
@@ -155,13 +167,17 @@ components:
         status:
           type: string
           enum: [healthy, degraded, unhealthy]
+          x-oyatie-data-class: INTERNAL_ONLY
         surface_count:
           type: integer
           minimum: 0
+          x-oyatie-data-class: INTERNAL_ONLY
         version:
           type: string
+          x-oyatie-data-class: INTERNAL_ONLY
         cell_id:
           type: string
+          x-oyatie-data-class: INTERNAL_ONLY
     CedarDenyResponse:
       type: object
       additionalProperties: false
@@ -170,12 +186,15 @@ components:
         error:
           type: string
           description: Human-readable Cedar deny reason
+          x-oyatie-data-class: INTERNAL_ONLY
         policy_id:
           type: string
           description: Cedar policy identifier that denied the request
+          x-oyatie-data-class: INTERNAL_ONLY
         principal:
           type: [string, "null"]
           description: Principal that was denied (may be omitted for unauthenticated requests)
+          x-oyatie-data-class: INTERNAL_ONLY
   responses:
     Unauthorized:
       description: Cedar denied (no principal context)

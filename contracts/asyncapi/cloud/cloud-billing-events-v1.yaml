@@ -47,4 +47,4 @@ components:
       payload:
         schemaFormat: application/vnd.google.protobuf;version=3
         schema:
-          $ref: '../proto/cloud/billing/v1/cloud-billing-event-v1.proto#/cloud.billing.v1.CloudBillingEventIngest'
+          $ref: '../../proto/cloud/billing/v1/cloud-billing-event-v1.proto#/cloud.billing.v1.CloudBillingEventIngest'

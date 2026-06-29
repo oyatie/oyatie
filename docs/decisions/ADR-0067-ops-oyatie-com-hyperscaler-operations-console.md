@@ -176,6 +176,14 @@ The four primary protected contracts on `ops.oyatie.com` itself:
 | **Per-µservice admin UIs** (e.g., each µservice ships its own admin surface) | Hidden ops state per-µservice; no cross-µservice view; agents can't query a single manifest endpoint. Rejected per ADR-0066 single-pane requirement. |
 | **External tools (Datadog, Grafana, PagerDuty)** | oyatie quality bar is industry-leader parity, not "pay the industry leaders for the surface" (per `feedback_quality_performance_scalability_bar`). External tools also can't enforce Cedar policy on oyatie's per-tenant scope, can't surface Oyatie-specific audit-chain or ICM/grit state. Rejected for primary ops; may integrate as data sources via adapters. |
 
+## Governed surfaces
+
+The following repo paths are governed by this ADR. The accounting gate validates that each is
+justified (this ADR is the justification reference):
+
+`contracts/ops-docs-v1.openapi.meta.yaml`
+`contracts/ops-workspace-shell-v1.openapi.meta.yaml`
+`contracts/OWNERS`
 ---
 
 ## Compliance

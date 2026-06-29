@@ -338,6 +338,56 @@ fn doc_openapi_validates_source_and_semver_metadata() {
 
     fs::remove_dir_all(temp).ok();
 }
+#[test]
+fn doc_openapi_validates_root_boundary_data_class_annotations() {
+    let temp = temp_dir("doc-openapi-boundary-data-class-success");
+    write_openapi_contract(&temp, true, true);
+    write_boundary_openapi_contract(&temp, true);
+    let (spec, mirror) = write_openapi_mirrors(&temp, true);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(openapi_args(&temp, &spec, &mirror))
+        .output()
+        .expect("doc openapi command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("OpenAPI documentation validation passed: 2 documents"),
+        "stdout={stdout}"
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn doc_openapi_fails_closed_on_boundary_property_without_data_class() {
+    let temp = temp_dir("doc-openapi-boundary-data-class-missing");
+    write_openapi_contract(&temp, true, true);
+    write_boundary_openapi_contract(&temp, false);
+    let (spec, mirror) = write_openapi_mirrors(&temp, true);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(openapi_args(&temp, &spec, &mirror))
+        .output()
+        .expect("doc openapi command runs");
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("OpenAPI boundary data-class invalid")
+            && stderr.contains("contracts/ops-fixture-v1.openapi.yaml missing data class")
+            && stderr.contains("schema FixtureBoundaryResponse.id"),
+        "stderr={stderr}"
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
 
 #[test]
 fn doc_openapi_accepts_openapi_32_query_operations_through_cli() {
@@ -1041,6 +1091,60 @@ fn repo_root() -> PathBuf {
         .to_path_buf()
 }
 
+fn write_boundary_openapi_contract(root: &Path, include_property_data_class: bool) {
+    let property_data_class = if include_property_data_class {
+        "          x-oyatie-data-class: INTERNAL_ONLY\n"
+    } else {
+        ""
+    };
+    fs::write(
+        root.join("ops-fixture-v1.openapi.yaml"),
+        format!(
+            r##"openapi: 3.2.0
+info:
+  title: Ops Fixture
+  version: 1.0.0
+paths:
+  /ops/fixture:
+    get:
+      operationId: getOpsFixture
+      parameters:
+        - in: query
+          name: tenant
+          required: false
+          schema:
+            type: string
+          x-oyatie-data-class: INTERNAL_ONLY
+      responses:
+        "200":
+          description: Fixture response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FixtureBoundaryResponse"
+components:
+  schemas:
+    FixtureBoundaryResponse:
+      type: object
+      additionalProperties: false
+      required: [id, emitted_at_unix_ms]
+      properties:
+        id:
+          type: string
+{property_data_class}        emitted_at_unix_ms:
+          type: integer
+          format: int64
+          x-oyatie-data-class: INTERNAL_ONLY
+"##
+        ),
+    )
+    .expect("boundary openapi contract written");
+    fs::write(
+        root.join("ops-fixture-v1.openapi.meta.yaml"),
+        "tier: preview\nowner_team: axis-ops\nversion: 1.0.0\nsunset: none\nrelated_adrs:\n  - ADR-0067\n",
+    )
+    .expect("boundary openapi metadata written");
+}
 fn write_openapi_contract(root: &Path, include_operation_id: bool, include_metadata: bool) {
     let openapi_dir = root.join("openapi").join("foundry");
     fs::create_dir_all(&openapi_dir).expect("openapi dirs created");
