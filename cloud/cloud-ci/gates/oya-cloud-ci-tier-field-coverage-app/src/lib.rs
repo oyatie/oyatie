@@ -23,9 +23,10 @@
 //! 4. `tier`/`dr_tier` SEPARATION: the two are DISTINCT fields and must not be conflated.
 //! 5. SUBSTRATE DAG POSITION: a `tier == "substrate"` manifest carries `substrate_dag_position` with a
 //!    `stratum` ∈ `substrate_dag_stratum_enum`.
-//! 6. ADR-0348 SHARDING AUTOMATION: top-level `cloud/*/manifest.json` and `oya/*/manifest.json`
-//!    carry a non-manual `sharding_automation` block with control-plane autosharding, residency-aware
-//!    auto-rebalance, dynamic-sharding thresholds, and audit-chain emit declarations.
+//! 6. ADR-0348 SHARDING AUTOMATION: top-level service manifests under the
+//!    policy-governed roots carry a non-manual `sharding_automation` block with
+//!    control-plane autosharding, residency-aware auto-rebalance, dynamic-sharding
+//!    thresholds, and audit-chain emit declarations.
 //! 7. OPENSLO MANIFEST COVERAGE: top-level service manifests either reference existing non-empty
 //!    OpenSLO files or carry explicit live exemptions for non-runtime / not-yet-measured services.
 //!
@@ -59,8 +60,9 @@
 //! - `TFC-DYNAMIC-SHARDING-THRESHOLD-MISSING` — enabled dynamic-sharding lacks numeric thresholds.
 //! - `TFC-AUTOMATION-AUDIT-CHAIN-EMIT-MISSING` — enabled automation omits audit-chain emission.
 //! - `TFC-SLO-MISSING-OR-UNEXEMPT` — no non-empty/resolved SLO coverage and no explicit live exemption.
-//! - `TFC-SLO-REFERENCE-UNRESOLVED` — SLO entry references no existing OpenSLO file.
+//! - `TFC-SLO-REFERENCE-UNRESOLVED` — SLO entry references no existing non-empty OpenSLO file.
 //! - `TFC-SLO-ENTRY-MALFORMED`     — SLO entry shape is not a resolvable reference/exemption key.
+//! - `TFC-SLO-EXEMPTION-MALFORMED` — SLO exemption lacks live structured metadata or uses placeholders.
 //! - `TFC-EMPTY-SCAN`              — fewer service manifests than the policy floor (false-green guard).
 //! - `TFC-POLICY-GATE-ID-MISMATCH` — the policy `gate_id` is not [`GATE_ID`] (fail-closed).
 //! - `TFC-POLICY-MALFORMED`        — the policy is missing/wrong-typed a required field (fail-closed).
@@ -79,7 +81,7 @@ use serde_json::{Value, json};
 pub const GATE_ID: &str = "cloud-ci-tier-field-coverage";
 
 /// The violation codes, in canonical order.
-pub const VIOLATION_CODES: [&str; 23] = [
+pub const VIOLATION_CODES: [&str; 24] = [
     "TFC-MISSING-TIER",
     "TFC-MISSING-TIER-SUBTYPE",
     "TFC-MISSING-DR-TIER",
@@ -100,6 +102,7 @@ pub const VIOLATION_CODES: [&str; 23] = [
     "TFC-SLO-MISSING-OR-UNEXEMPT",
     "TFC-SLO-REFERENCE-UNRESOLVED",
     "TFC-SLO-ENTRY-MALFORMED",
+    "TFC-SLO-EXEMPTION-MALFORMED",
     "TFC-EMPTY-SCAN",
     "TFC-POLICY-GATE-ID-MISMATCH",
     "TFC-POLICY-MALFORMED",
@@ -203,15 +206,17 @@ pub fn collect_manifests(root: &Path, policy: &Value) -> Result<Value, CollectEr
         manifests.push(json!({ "path": rel, "manifest": value }));
     }
 
-    let mut openslo_paths: Vec<String> = Vec::new();
-    collect_openslo_paths(root, root, &mut openslo_paths)?;
-    openslo_paths.sort();
-    openslo_paths.dedup();
+    let mut openslo_files: BTreeMap<String, bool> = BTreeMap::new();
+    collect_openslo_files(root, root, &mut openslo_files)?;
+    let available_openslo_files: Vec<Value> = openslo_files
+        .iter()
+        .map(|(path, non_empty)| json!({ "path": path, "non_empty": non_empty }))
+        .collect();
 
     Ok(json!({
         "manifest_count": manifests.len(),
         "manifests": manifests,
-        "available_openslo_paths": openslo_paths,
+        "available_openslo_files": available_openslo_files,
     }))
 }
 
@@ -247,12 +252,13 @@ fn collect_manifest_paths(
     Ok(())
 }
 
-/// Recursively collect repo-relative OpenSLO files. This is read-only collector work, not policy:
-/// the evaluator receives the resulting set and stays deterministic over its input value.
-fn collect_openslo_paths(
+/// Recursively collect repo-relative OpenSLO files and whether they contain non-whitespace content.
+/// This is read-only collector work, not policy: the evaluator receives the resulting proof and stays
+/// deterministic over its input value.
+fn collect_openslo_files(
     dir: &Path,
     repo_root: &Path,
-    out: &mut Vec<String>,
+    out: &mut BTreeMap<String, bool>,
 ) -> Result<(), CollectError> {
     let entries = match fs::read_dir(dir) {
         Ok(entries) => entries,
@@ -273,13 +279,15 @@ fn collect_openslo_paths(
             .file_type()
             .map_err(|e| CollectError::Io(format!("file_type {}: {e}", path.display())))?;
         if file_type.is_dir() {
-            collect_openslo_paths(&path, repo_root, out)?;
+            collect_openslo_files(&path, repo_root, out)?;
         } else if name.ends_with(".openslo.yaml") || name.ends_with(".openslo.yml") {
             let rel = path
                 .strip_prefix(repo_root)
                 .map(|p| p.to_string_lossy().replace('\\', "/"))
                 .unwrap_or_else(|_| path.to_string_lossy().into_owned());
-            out.push(rel);
+            let text = fs::read_to_string(&path)
+                .map_err(|e| CollectError::Io(format!("read {rel}: {e}")))?;
+            out.insert(rel, !text.trim().is_empty());
         }
     }
     Ok(())
@@ -292,6 +300,7 @@ fn collect_openslo_paths(
 /// Parsed policy DATA. Returns an Err string on any malformed required field so the evaluator emits
 /// `TFC-POLICY-MALFORMED` and fails CLOSED rather than silently dropping a check.
 struct ParsedPolicy {
+    governed_service_roots: BTreeSet<String>,
     tier_enum: BTreeSet<String>,
     tier_subtype_enum: BTreeSet<String>,
     dr_tier_enum: BTreeSet<String>,
@@ -335,6 +344,13 @@ fn optional_string_set(policy: &Value, key: &str) -> BTreeSet<String> {
         .unwrap_or_default()
 }
 
+fn required_bool(policy: &Value, key: &str) -> Result<bool, String> {
+    policy
+        .get(key)
+        .and_then(Value::as_bool)
+        .ok_or_else(|| format!("policy `{key}` must be a boolean"))
+}
+
 fn optional_string(policy: &Value, key: &str, default: &str) -> String {
     policy
         .get(key)
@@ -351,18 +367,13 @@ fn parse_policy(policy: &Value) -> Result<ParsedPolicy, String> {
         dr_tier_enum: string_set(policy, "dr_tier_enum")?,
         stratum_enum: string_set(policy, "substrate_dag_stratum_enum")?,
         denied_overload: string_set(policy, "de_overload_denied_tier_values")?,
+        governed_service_roots: string_set(policy, "governed_service_roots")?,
         substrate_requires_dag_position: policy
             .get("substrate_requires_dag_position")
             .and_then(Value::as_bool)
             .unwrap_or(true),
-        require_sharding_automation: policy
-            .get("require_sharding_automation")
-            .and_then(Value::as_bool)
-            .unwrap_or(false),
-        require_openslo_manifest_refs: policy
-            .get("require_openslo_manifest_refs")
-            .and_then(Value::as_bool)
-            .unwrap_or(false),
+        require_sharding_automation: required_bool(policy, "require_sharding_automation")?,
+        require_openslo_manifest_refs: required_bool(policy, "require_openslo_manifest_refs")?,
         canonical_autosharding_mode: optional_string(
             policy,
             "canonical_autosharding_mode",
@@ -428,13 +439,13 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
     }
 
     let available_openslo_paths: BTreeSet<String> = observed
-        .get("available_openslo_paths")
+        .get("available_openslo_files")
         .and_then(Value::as_array)
-        .map(|paths| {
-            paths
+        .map(|files| {
+            files
                 .iter()
-                .filter_map(Value::as_str)
-                .map(str::to_owned)
+                .filter(|file| bool_field(file, "non_empty") == Some(true))
+                .filter_map(|file| string_field(file, "path").map(str::to_owned))
                 .collect()
         })
         .unwrap_or_default();
@@ -562,22 +573,39 @@ fn evaluate_one(
         }
     }
 
-    if is_top_level_service_manifest(path) {
+    if is_top_level_service_manifest(path, &parsed.governed_service_roots) {
         if parsed.require_sharding_automation {
             evaluate_sharding_automation(parsed, path, manifest, findings);
         }
         if parsed.require_openslo_manifest_refs {
-            evaluate_openslo_manifest_refs(path, manifest, available_openslo_paths, findings);
+            evaluate_openslo_manifest_refs(
+                parsed,
+                path,
+                manifest,
+                available_openslo_paths,
+                findings,
+            );
         }
     }
 }
 
-fn is_top_level_service_manifest(path: &str) -> bool {
-    let mut parts = path.split('/');
-    matches!(parts.next(), Some("cloud" | "oya"))
-        && parts.next().is_some()
-        && parts.next() == Some("manifest.json")
-        && parts.next().is_none()
+fn is_top_level_service_manifest(path: &str, governed_roots: &BTreeSet<String>) -> bool {
+    governed_roots.iter().any(|root| {
+        let root = root.trim_matches('/');
+        if root.is_empty() {
+            return false;
+        }
+        let Some(rest) = path.strip_prefix(root) else {
+            return false;
+        };
+        let Some(rest) = rest.strip_prefix('/') else {
+            return false;
+        };
+        let mut parts = rest.split('/');
+        parts.next().is_some_and(|service| !service.is_empty())
+            && parts.next() == Some("manifest.json")
+            && parts.next().is_none()
+    })
 }
 
 fn bool_field(value: &Value, key: &str) -> Option<bool> {
@@ -786,30 +814,124 @@ fn evaluate_sharding_automation(
     }
 }
 
-fn manifest_has_slo_exemption(manifest: &Value) -> bool {
+const GENERIC_SLO_EXEMPTION_MARKERS: [&str; 9] = [
+    "todo",
+    "tbd",
+    "fixme",
+    "placeholder",
+    "test fixture",
+    "fixture-only",
+    "replace this exemption",
+    "before production or hyperscaler-ready promotion",
+    "no current openslo artifact resolves",
+];
+
+fn is_generic_placeholder(value: &str) -> bool {
+    let lower = value.trim().to_ascii_lowercase();
+    lower.is_empty()
+        || GENERIC_SLO_EXEMPTION_MARKERS
+            .iter()
+            .any(|marker| lower.contains(marker))
+}
+
+fn live_string_field(value: &Value, key: &str, min_len: usize) -> bool {
+    string_field(value, key)
+        .map(str::trim)
+        .is_some_and(|s| s.len() >= min_len && !is_generic_placeholder(s))
+}
+
+fn is_iso_date(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    bytes.len() == 10
+        && bytes[4] == b'-'
+        && bytes[7] == b'-'
+        && bytes
+            .iter()
+            .enumerate()
+            .all(|(idx, b)| idx == 4 || idx == 7 || b.is_ascii_digit())
+}
+
+fn live_date_field(value: &Value, key: &str) -> bool {
+    string_field(value, key)
+        .map(str::trim)
+        .is_some_and(|s| is_iso_date(s) && !is_generic_placeholder(s))
+}
+
+fn slo_exemption_is_live(
+    path: &str,
+    scope: &str,
+    exemption: &Value,
+    findings: &mut BTreeSet<Finding>,
+) -> bool {
+    let is_live = exemption.as_object().is_some()
+        && live_string_field(exemption, "status", 3)
+        && live_string_field(exemption, "owner", 3)
+        && live_string_field(exemption, "rationale", 20)
+        && (live_date_field(exemption, "expires_on") || live_date_field(exemption, "cutover_on"))
+        && (live_string_field(exemption, "evidence", 3)
+            || live_string_field(exemption, "ticket", 3));
+
+    if !is_live {
+        findings.insert(Finding::new(
+            "TFC-SLO-EXEMPTION-MALFORMED",
+            path,
+            format!("{scope} must carry live structured metadata: status, owner, rationale, expires_on or cutover_on ISO date, and evidence or ticket; generic placeholders are refused"),
+        ));
+    }
+
+    is_live
+}
+
+fn manifest_has_slo_exemption(
+    path: &str,
+    manifest: &Value,
+    findings: &mut BTreeSet<Finding>,
+) -> bool {
     let Some(exemption) = manifest.get("slo_exemption") else {
         return false;
     };
-    string_field(exemption, "reason").is_some()
-        && string_field(exemption, "owner").is_some()
-        && (string_field(exemption, "expires_on").is_some()
-            || string_field(exemption, "cutover").is_some())
+    slo_exemption_is_live(path, "`slo_exemption`", exemption, findings)
 }
 
-fn exempt_slo_names(manifest: &Value) -> BTreeSet<String> {
+fn exempt_slo_names(
+    path: &str,
+    manifest: &Value,
+    findings: &mut BTreeSet<Finding>,
+) -> BTreeSet<String> {
     manifest
         .get("slo_exemptions")
         .and_then(Value::as_array)
         .map(|rows| {
             rows.iter()
-                .filter(|row| {
-                    string_field(row, "name").is_some()
-                        && string_field(row, "reason").is_some()
-                        && string_field(row, "owner").is_some()
-                        && (string_field(row, "expires_on").is_some()
-                            || string_field(row, "cutover").is_some())
+                .enumerate()
+                .filter_map(|(index, row)| {
+                    let Some(name) = string_field(row, "name") else {
+                        findings.insert(Finding::new(
+                            "TFC-SLO-EXEMPTION-MALFORMED",
+                            path,
+                            format!("`slo_exemptions` row {index} must carry a non-empty name"),
+                        ));
+                        return None;
+                    };
+                    if is_generic_placeholder(name) {
+                        findings.insert(Finding::new(
+                            "TFC-SLO-EXEMPTION-MALFORMED",
+                            path,
+                            format!("`slo_exemptions` row {index} has a generic or empty name"),
+                        ));
+                        return None;
+                    }
+                    if slo_exemption_is_live(
+                        path,
+                        &format!("`slo_exemptions` row {index}"),
+                        row,
+                        findings,
+                    ) {
+                        Some(name.to_owned())
+                    } else {
+                        None
+                    }
                 })
-                .filter_map(|row| string_field(row, "name").map(str::to_owned))
                 .collect()
         })
         .unwrap_or_default()
@@ -844,13 +966,14 @@ fn declared_slo_path_resolves(
 }
 
 fn evaluate_openslo_manifest_refs(
+    _parsed: &ParsedPolicy,
     path: &str,
     manifest: &Value,
     available_openslo_paths: &BTreeSet<String>,
     findings: &mut BTreeSet<Finding>,
 ) {
     let Some(slos_value) = manifest.get("slos") else {
-        if !manifest_has_slo_exemption(manifest) {
+        if !manifest_has_slo_exemption(path, manifest, findings) {
             findings.insert(Finding::new(
                 "TFC-SLO-MISSING-OR-UNEXEMPT",
                 path,
@@ -868,7 +991,7 @@ fn evaluate_openslo_manifest_refs(
         return;
     };
     if slos.is_empty() {
-        if !manifest_has_slo_exemption(manifest) {
+        if !manifest_has_slo_exemption(path, manifest, findings) {
             findings.insert(Finding::new(
                 "TFC-SLO-MISSING-OR-UNEXEMPT",
                 path,
@@ -878,7 +1001,7 @@ fn evaluate_openslo_manifest_refs(
         return;
     }
 
-    let exemptions = exempt_slo_names(manifest);
+    let exemptions = exempt_slo_names(path, manifest, findings);
     let mut covered = false;
     for (index, entry) in slos.iter().enumerate() {
         let name = entry_name(entry);
@@ -894,7 +1017,9 @@ fn evaluate_openslo_manifest_refs(
                 findings.insert(Finding::new(
                     "TFC-SLO-REFERENCE-UNRESOLVED",
                     path,
-                    format!("SLO entry {index} references non-existing OpenSLO file {file:?}"),
+                    format!(
+                        "SLO entry {index} references a missing or empty OpenSLO file {file:?}"
+                    ),
                 ));
             } else {
                 covered = true;
@@ -912,7 +1037,7 @@ fn evaluate_openslo_manifest_refs(
                 findings.insert(Finding::new(
                     "TFC-SLO-REFERENCE-UNRESOLVED",
                     path,
-                    format!("SLO entry {index} references non-existing OpenSLO file {raw:?}"),
+                    format!("SLO entry {index} references a missing or empty OpenSLO file {raw:?}"),
                 ));
             }
             continue;
@@ -940,12 +1065,12 @@ fn evaluate_openslo_manifest_refs(
             findings.insert(Finding::new(
                 "TFC-SLO-REFERENCE-UNRESOLVED",
                 path,
-                format!("SLO entry {index} lacks a resolvable OpenSLO file; expected {inferred:?} or an explicit per-entry exemption"),
+                format!("SLO entry {index} lacks a non-empty resolvable OpenSLO file; expected {inferred:?} or an explicit per-entry exemption"),
             ));
         }
     }
 
-    if !covered && !manifest_has_slo_exemption(manifest) {
+    if !covered && !manifest_has_slo_exemption(path, manifest, findings) {
         findings.insert(Finding::new(
             "TFC-SLO-MISSING-OR-UNEXEMPT",
             path,
