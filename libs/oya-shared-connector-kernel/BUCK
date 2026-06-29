@@ -4,6 +4,9 @@ rust_library(
     crate = "oya_shared_connector_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:sha2",
+    ],
 )
 
 rust_test(
@@ -12,5 +15,7 @@ rust_test(
     crate = "oya_shared_connector_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
-    deps = [],
+    deps = [
+        "third-party//:sha2",
+    ],
 )
