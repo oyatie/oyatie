@@ -214,12 +214,21 @@ impl AuditSealHandle {
     /// Live impls (`oya-shared-audit-chain-client-kernel`) emit a network
     /// call; tests rely on the deterministic stub here so the kernel
     /// stays I/O-free and adapter unit tests can run hermetically.
-    pub fn seal(&self, kind: &str, payload_digest: &str) -> AuditSealReceipt {
-        AuditSealReceipt {
+    pub fn seal(
+        &self,
+        kind: &str,
+        payload_digest: &str,
+    ) -> Result<AuditSealReceipt, ConnectorError> {
+        if !is_canonical_sha256_hex(payload_digest) {
+            return Err(ConnectorError::AuditSealFailed(format!(
+                "{kind} payload digest must be canonical sha256"
+            )));
+        }
+        Ok(AuditSealReceipt {
             chain_id: self.chain_id.clone(),
             kind: kind.to_owned(),
             payload_digest: payload_digest.to_owned(),
-        }
+        })
     }
 }
 
@@ -265,6 +274,35 @@ where
         update_hash_field(&mut hasher, &key, value.as_bytes());
     }
     hex_lower(hasher.finalize().as_ref())
+}
+/// Build the canonical SHA-256 payload digest for a connector audit operation.
+///
+/// The envelope always binds provider, tenant, principal, and operation before
+/// adding operation-specific fields. Callers pass document or patch content as
+/// already-canonical digests so raw tenant ids, entity ids, idempotency keys,
+/// or payload bodies never enter the audit seal as the seal payload itself.
+pub fn connector_operation_audit_digest<I, K, V>(
+    provider: &str,
+    tenant: &str,
+    principal: &str,
+    operation: &str,
+    fields: I,
+) -> String
+where
+    I: IntoIterator<Item = (K, V)>,
+    K: AsRef<str>,
+    V: AsRef<str>,
+{
+    let mut parts = vec![
+        ("provider".to_owned(), provider.to_owned()),
+        ("tenant".to_owned(), tenant.to_owned()),
+        ("principal".to_owned(), principal.to_owned()),
+        ("operation".to_owned(), operation.to_owned()),
+    ];
+    for (key, value) in fields {
+        parts.push((key.as_ref().to_owned(), value.as_ref().to_owned()));
+    }
+    canonical_audit_payload_digest(parts)
 }
 
 /// Build a canonical SHA-256 digest for an [`EntityDoc`].
@@ -912,10 +950,19 @@ mod tests {
     #[test]
     fn audit_seal_emits_receipt() {
         let h = AuditSealHandle::new("chain-1").unwrap();
-        let r = h.seal("connector.list", "deadbeef");
+        let digest = canonical_audit_payload_digest([
+            ("entity_kind", "message"),
+            ("id", "1700000001.000100"),
+        ]);
+        let r = h.seal("connector.list", &digest).unwrap();
         assert_eq!(r.chain_id, "chain-1");
         assert_eq!(r.kind, "connector.list");
-        assert_eq!(r.payload_digest, "deadbeef");
+        assert_eq!(r.payload_digest, digest);
+
+        assert!(matches!(
+            h.seal("connector.list", "deadbeef"),
+            Err(ConnectorError::AuditSealFailed(_))
+        ));
     }
 
     #[test]
@@ -933,6 +980,63 @@ mod tests {
         assert_eq!(digest, reordered);
         assert_ne!(digest, "message");
         assert_ne!(digest, "1700000001.000100");
+    }
+
+    #[test]
+    fn connector_operation_audit_digest_binds_operation_and_redacts_inputs() {
+        let digest = connector_operation_audit_digest(
+            "slack",
+            "tenant-secret",
+            "principal-secret",
+            "connector.create",
+            [
+                ("entity_kind", "message"),
+                ("id", "raw-id"),
+                ("idempotency_key", "raw-idempotency-key"),
+                (
+                    "doc_digest",
+                    "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+                ),
+            ],
+        );
+        let different_operation = connector_operation_audit_digest(
+            "slack",
+            "tenant-secret",
+            "principal-secret",
+            "connector.update",
+            [
+                ("entity_kind", "message"),
+                ("id", "raw-id"),
+                ("idempotency_key", "raw-idempotency-key"),
+                (
+                    "doc_digest",
+                    "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+                ),
+            ],
+        );
+        let different_principal = connector_operation_audit_digest(
+            "slack",
+            "tenant-secret",
+            "other-principal",
+            "connector.create",
+            [
+                ("entity_kind", "message"),
+                ("id", "raw-id"),
+                ("idempotency_key", "raw-idempotency-key"),
+                (
+                    "doc_digest",
+                    "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+                ),
+            ],
+        );
+
+        assert!(is_canonical_sha256_hex(&digest));
+        assert_ne!(digest, different_operation);
+        assert_ne!(digest, different_principal);
+        assert_ne!(digest, "tenant-secret");
+        assert_ne!(digest, "principal-secret");
+        assert_ne!(digest, "raw-id");
+        assert_ne!(digest, "raw-idempotency-key");
     }
 
     #[test]

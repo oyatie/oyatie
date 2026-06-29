@@ -21,14 +21,15 @@
 use oya_shared_connector_kernel::{
     AuthScheme, Connector, ConnectorCapabilities, ConnectorCtx, ConnectorError, Cursor, EntityDoc,
     EntityValue, EventStream, HealthReport, IdempotencyKey, OntologyProjection, Page, PatchOp,
-    RateLimitDescriptor, btree_keyset_page,
+    RateLimitDescriptor, btree_keyset_page, connector_operation_audit_digest,
+    entity_doc_payload_digest, is_canonical_sha256_hex, patch_op_payload_digest,
 };
 use std::collections::{BTreeMap, HashMap};
 use std::sync::Mutex;
 
 type Result<T> = std::result::Result<T, ConnectorError>;
 type Store = HashMap<String, HashMap<String, BTreeMap<String, EntityDoc>>>;
-type IdemMap = HashMap<String, HashMap<String, HashMap<String, (String, EntityDoc)>>>;
+type IdemMap = HashMap<String, HashMap<String, HashMap<String, (String, String)>>>;
 const PROVIDER_ID: &str = "epic-fhir";
 
 pub struct EpicFhirConnector {
@@ -104,14 +105,19 @@ impl EpicFhirConnector {
             Err(p) => p.into_inner(),
         }
     }
-    fn next_seq(&self) -> u64 {
+    fn next_seq_candidate(&self) -> u64 {
+        let g = match self.next_id.lock() {
+            Ok(g) => g,
+            Err(p) => p.into_inner(),
+        };
+        *g + 7000
+    }
+    fn commit_seq(&self) {
         let mut g = match self.next_id.lock() {
             Ok(g) => g,
             Err(p) => p.into_inner(),
         };
-        let v = *g + 7000;
         *g += 1;
-        v
     }
     fn check_kind(&self, kind: &str) -> Result<()> {
         match kind {
@@ -121,14 +127,41 @@ impl EpicFhirConnector {
             ))),
         }
     }
-    fn seal(&self, ctx: &ConnectorCtx, op: &str, payload: &str) -> Result<()> {
-        let receipt = ctx.audit_handle().seal(op, payload);
-        if receipt.chain_id.is_empty() || receipt.kind != op || receipt.payload_digest != payload {
+    fn seal(&self, ctx: &ConnectorCtx, op: &str, payload_digest: &str) -> Result<()> {
+        if !is_canonical_sha256_hex(payload_digest) {
+            return Err(ConnectorError::AuditSealFailed(format!(
+                "{op} payload digest must be canonical sha256"
+            )));
+        }
+        let receipt = ctx.audit_handle().seal(op, payload_digest)?;
+        if receipt.chain_id.is_empty()
+            || receipt.kind != op
+            || receipt.payload_digest != payload_digest
+        {
             return Err(ConnectorError::AuditSealFailed(format!(
                 "{op} seal receipt mismatch"
             )));
         }
         Ok(())
+    }
+
+    fn operation_digest<I, K, V>(&self, ctx: &ConnectorCtx, op: &str, fields: I) -> String
+    where
+        I: IntoIterator<Item = (K, V)>,
+        K: AsRef<str>,
+        V: AsRef<str>,
+    {
+        connector_operation_audit_digest(
+            PROVIDER_ID,
+            ctx.tenant_id().as_str(),
+            ctx.principal_id().as_str(),
+            op,
+            fields,
+        )
+    }
+
+    fn redacted(label: &str, value: &str) -> String {
+        format!("{label}=[REDACTED:{} chars]", value.len())
     }
 }
 
@@ -149,7 +182,13 @@ impl Connector for EpicFhirConnector {
     }
     fn list(&self, ctx: &ConnectorCtx, entity_kind: &str, cursor: Option<Cursor>) -> Result<Page> {
         self.check_kind(entity_kind)?;
-        self.seal(ctx, "connector.list", entity_kind)?;
+        let cursor_value = cursor.as_ref().map(Cursor::as_str).unwrap_or("");
+        let audit_digest = self.operation_digest(
+            ctx,
+            "connector.list",
+            [("entity_kind", entity_kind), ("cursor", cursor_value)],
+        );
+        self.seal(ctx, "connector.list", &audit_digest)?;
         let store = self.lock_store();
         let items = store
             .get(ctx.tenant_id().as_str())
@@ -159,7 +198,12 @@ impl Connector for EpicFhirConnector {
     }
     fn get(&self, ctx: &ConnectorCtx, entity_kind: &str, id: &str) -> Result<EntityDoc> {
         self.check_kind(entity_kind)?;
-        self.seal(ctx, "connector.get", id)?;
+        let audit_digest = self.operation_digest(
+            ctx,
+            "connector.get",
+            [("entity_kind", entity_kind), ("id", id)],
+        );
+        self.seal(ctx, "connector.get", &audit_digest)?;
         self.lock_store()
             .get(ctx.tenant_id().as_str())
             .and_then(|m| m.get(entity_kind))
@@ -176,28 +220,79 @@ impl Connector for EpicFhirConnector {
     ) -> Result<EntityDoc> {
         self.check_kind(entity_kind)?;
         let submitted_payload = payload.clone();
+        let submitted_digest = entity_doc_payload_digest(&submitted_payload);
         let prev = self
             .lock_idem()
             .get(ctx.tenant_id().as_str())
             .and_then(|m| m.get(entity_kind))
             .and_then(|m| m.get(idempotency_key.as_str()))
             .cloned();
-        if let Some((p, previous_payload)) = prev {
-            if previous_payload != submitted_payload {
+        if let Some((p, previous_digest)) = prev {
+            if previous_digest != submitted_digest {
+                let conflict_digest = self.operation_digest(
+                    ctx,
+                    "connector.create",
+                    [
+                        ("entity_kind", entity_kind),
+                        ("id", p.as_str()),
+                        ("idempotency_key", idempotency_key.as_str()),
+                        ("outcome", "idempotency_conflict"),
+                        ("submitted_digest", submitted_digest.as_str()),
+                        ("stored_digest", previous_digest.as_str()),
+                    ],
+                );
+                self.seal(ctx, "connector.create", &conflict_digest)?;
                 return Err(ConnectorError::IdempotencyConflict(format!(
-                    "{PROVIDER_ID} tenant={} entity_kind={} idempotency_key={}",
-                    ctx.tenant_id().as_str(),
+                    "{PROVIDER_ID} {} entity_kind={} {}",
+                    Self::redacted("tenant", ctx.tenant_id().as_str()),
                     entity_kind,
-                    idempotency_key.as_str()
+                    Self::redacted("idempotency_key", idempotency_key.as_str())
                 )));
             }
-            return self.get(ctx, entity_kind, &p);
+            let previous_result = self
+                .lock_store()
+                .get(ctx.tenant_id().as_str())
+                .and_then(|m| m.get(entity_kind))
+                .and_then(|m| m.get(&p))
+                .cloned()
+                .ok_or_else(|| {
+                    ConnectorError::NotFound(format!("{PROVIDER_ID} {entity_kind}/{p}"))
+                })?;
+            let doc_digest = entity_doc_payload_digest(&previous_result);
+            let replay_digest = self.operation_digest(
+                ctx,
+                "connector.create",
+                [
+                    ("entity_kind", entity_kind),
+                    ("id", p.as_str()),
+                    ("idempotency_key", idempotency_key.as_str()),
+                    ("outcome", "idempotent_replay"),
+                    ("submitted_digest", submitted_digest.as_str()),
+                    ("doc_digest", doc_digest.as_str()),
+                ],
+            );
+            self.seal(ctx, "connector.create", &replay_digest)?;
+            return Ok(previous_result);
         }
-        let v = self.next_seq();
+        let v = self.next_seq_candidate();
         let id = format!("{entity_kind}-{v:08}");
         let mut doc = payload;
         doc.insert("id", EntityValue::Str(id.clone()));
         doc.insert("resourceType", EntityValue::Str(entity_kind.to_owned()));
+        let doc_digest = entity_doc_payload_digest(&doc);
+        let audit_digest = self.operation_digest(
+            ctx,
+            "connector.create",
+            [
+                ("entity_kind", entity_kind),
+                ("id", id.as_str()),
+                ("idempotency_key", idempotency_key.as_str()),
+                ("submitted_digest", submitted_digest.as_str()),
+                ("doc_digest", doc_digest.as_str()),
+            ],
+        );
+        self.seal(ctx, "connector.create", &audit_digest)?;
+        self.commit_seq();
         self.put(ctx.tenant_id().as_str(), entity_kind, &id, doc.clone());
         self.lock_idem()
             .entry(ctx.tenant_id().as_str().to_owned())
@@ -206,9 +301,8 @@ impl Connector for EpicFhirConnector {
             .or_default()
             .insert(
                 idempotency_key.as_str().to_owned(),
-                (id.clone(), submitted_payload),
+                (id.clone(), submitted_digest.clone()),
             );
-        self.seal(ctx, "connector.create", &id)?;
         Ok(doc)
     }
     fn update(
@@ -217,16 +311,29 @@ impl Connector for EpicFhirConnector {
         entity_kind: &str,
         id: &str,
         patch: PatchOp,
-        _idempotency_key: IdempotencyKey,
+        idempotency_key: IdempotencyKey,
     ) -> Result<EntityDoc> {
         self.check_kind(entity_kind)?;
+        let patch_digest = patch_op_payload_digest(&patch);
         let mut doc = self.get(ctx, entity_kind, id)?;
         doc.insert(
             patch.field.clone(),
             patch.value.unwrap_or(EntityValue::Null),
         );
+        let doc_digest = entity_doc_payload_digest(&doc);
+        let audit_digest = self.operation_digest(
+            ctx,
+            "connector.update",
+            [
+                ("entity_kind", entity_kind),
+                ("id", id),
+                ("idempotency_key", idempotency_key.as_str()),
+                ("patch_digest", patch_digest.as_str()),
+                ("doc_digest", doc_digest.as_str()),
+            ],
+        );
+        self.seal(ctx, "connector.update", &audit_digest)?;
         self.put(ctx.tenant_id().as_str(), entity_kind, id, doc.clone());
-        self.seal(ctx, "connector.update", id)?;
         Ok(doc)
     }
     fn delete(&self, _ctx: &ConnectorCtx, _entity_kind: &str, _id: &str) -> Result<()> {
@@ -425,5 +532,42 @@ mod tests {
         assert!(p.iter().any(|x| x.object_type == "Patient"));
         assert!(p.iter().any(|x| x.object_type == "Encounter"));
         assert!(p.iter().any(|x| x.object_type == "Observation"));
+    }
+    #[test]
+    fn audit_seal_rejects_raw_payload_inputs() {
+        let s = EpicFhirConnector::new();
+        assert!(matches!(
+            s.seal(&ctx(), "connector.get", "Patient"),
+            Err(ConnectorError::AuditSealFailed(_))
+        ));
+
+        let digest = s.operation_digest(
+            &ctx(),
+            "connector.get",
+            [("entity_kind", "Patient"), ("id", "Patient-00000001")],
+        );
+        assert!(s.seal(&ctx(), "connector.get", &digest).is_ok());
+    }
+
+    #[test]
+    fn idempotency_conflict_redacts_tenant_and_key() {
+        let s = EpicFhirConnector::new();
+        let key = ik("conflict");
+        let mut first = EntityDoc::new();
+        first.insert("family", EntityValue::Str("Y".into()));
+        let _ = s.create(&ctx(), "Patient", first, key.clone()).unwrap();
+
+        let mut second = EntityDoc::new();
+        second.insert("family", EntityValue::Str("Z".into()));
+        let err = s.create(&ctx(), "Patient", second, key).unwrap_err();
+
+        match err {
+            ConnectorError::IdempotencyConflict(message) => {
+                assert!(message.contains("[REDACTED"));
+                assert!(!message.contains("t-1"));
+                assert!(!message.contains("conflict"));
+            }
+            other => panic!("expected idempotency conflict, got {other:?}"),
+        }
     }
 }
