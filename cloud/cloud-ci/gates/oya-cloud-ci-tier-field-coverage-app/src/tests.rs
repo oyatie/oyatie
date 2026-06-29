@@ -10,12 +10,14 @@ fn policy() -> Value {
         "gate_id": GATE_ID,
         "governed_service_roots": ["cloud", "oya"],
         "tier_enum": ["substrate", "product", "service-cell", "reserved"],
-        "tier_subtype_enum": ["substrate-identity", "substrate-infra", "product-consumer", "product-developer-sdk"],
+        "tier_subtype_enum": ["substrate-identity", "substrate-infra", "substrate-api-gateway", "product-consumer", "product-developer-sdk"],
         "dr_tier_enum": ["T0", "T1", "T2", "T3"],
         "substrate_dag_stratum_enum": ["S0", "S1", "S2", "S3", "S4", "S5", "forward-declared"],
         "de_overload_denied_tier_values": ["T0", "T1", "T2", "T3", "saas", "surface", "external-facing"],
         "substrate_requires_dag_position": true,
-        "min_expected_service_manifests": 1
+        "min_expected_service_manifests": 1,
+        "require_sharding_automation": false,
+        "require_openslo_manifest_refs": false
     })
 }
 
@@ -208,9 +210,14 @@ fn strict_policy() -> Value {
     p
 }
 
-fn observed_with_openslo(manifests: Vec<(&str, Value)>, openslo_paths: &[&str]) -> Value {
+fn observed_with_openslo(manifests: Vec<(&str, Value)>, openslo_files: &[(&str, bool)]) -> Value {
     let mut obs = observed(manifests);
-    obs["available_openslo_paths"] = json!(openslo_paths);
+    obs["available_openslo_files"] = json!(
+        openslo_files
+            .iter()
+            .map(|(path, non_empty)| json!({ "path": path, "non_empty": non_empty }))
+            .collect::<Vec<Value>>()
+    );
     obs
 }
 
@@ -224,9 +231,11 @@ fn green_sharding() -> Value {
 
 fn slo_exemption() -> Value {
     json!({
+        "status": "live_exempted_no_runtime_sli",
         "owner": "axis-test",
-        "reason": "test fixture has no live OpenSLO",
-        "cutover": "test-only"
+        "rationale": "Unit fixture service has no measured runtime SLI until the gate fixture service exists.",
+        "cutover_on": "2026-09-30",
+        "ticket": "LANE-D-TEST-SLO-CUTOVER"
     })
 }
 
@@ -351,7 +360,7 @@ fn strict_existing_openslo_file_passes() {
         &strict_policy(),
         &observed_with_openslo(
             vec![("oya/x/manifest.json", m)],
-            &["oya/x/slos/availability.openslo.yaml"],
+            &[("oya/x/slos/availability.openslo.yaml", true)],
         ),
     );
     assert!(findings.is_empty(), "{findings:?}");
@@ -372,4 +381,137 @@ fn strict_empty_slos_require_explicit_exemption() {
         &observed(vec![("oya/x/manifest.json", m)]),
     ));
     assert!(c.contains("TFC-SLO-MISSING-OR-UNEXEMPT"), "{c:?}");
+}
+
+#[test]
+fn strict_empty_openslo_file_does_not_count_as_coverage() {
+    let m = json!({
+        "microservice": "x",
+        "tier": "product",
+        "tier_subtype": "product-consumer",
+        "dr_tier": "T2",
+        "sharding_automation": green_sharding(),
+        "slos": [{ "name": "availability", "file": "oya/x/slos/availability.openslo.yaml" }]
+    });
+    let c = codes(&evaluate_keyed(
+        &strict_policy(),
+        &observed_with_openslo(
+            vec![("oya/x/manifest.json", m)],
+            &[("oya/x/slos/availability.openslo.yaml", false)],
+        ),
+    ));
+    assert!(c.contains("TFC-SLO-REFERENCE-UNRESOLVED"), "{c:?}");
+}
+
+#[test]
+fn strict_policy_roots_drive_top_level_service_checks() {
+    let mut p = strict_policy();
+    p["governed_service_roots"] = json!(["services"]);
+
+    let governed = json!({
+        "microservice": "x",
+        "tier": "product",
+        "tier_subtype": "product-consumer",
+        "dr_tier": "T2",
+        "slos": [],
+        "slo_exemption": slo_exemption()
+    });
+    let c = codes(&evaluate_keyed(
+        &p,
+        &observed(vec![("services/x/manifest.json", governed)]),
+    ));
+    assert!(c.contains("TFC-SHARDING-MISSING-BLOCK"), "{c:?}");
+
+    let legacy_root = json!({
+        "microservice": "x",
+        "tier": "product",
+        "tier_subtype": "product-consumer",
+        "dr_tier": "T2"
+    });
+    let findings = evaluate_keyed(&p, &observed(vec![("oya/x/manifest.json", legacy_root)]));
+    assert!(findings.is_empty(), "{findings:?}");
+}
+
+#[test]
+fn malformed_required_policy_booleans_fail_closed() {
+    let mut p = policy();
+    p["require_sharding_automation"] = json!("true");
+    let c = codes(&evaluate_keyed(&p, &observed(vec![])));
+    assert!(c.contains("TFC-POLICY-MALFORMED"), "{c:?}");
+
+    let mut p = policy();
+    p["require_openslo_manifest_refs"] = json!(null);
+    let c = codes(&evaluate_keyed(&p, &observed(vec![])));
+    assert!(c.contains("TFC-POLICY-MALFORMED"), "{c:?}");
+}
+
+#[test]
+fn malformed_or_placeholder_slo_exemption_fails() {
+    let m = json!({
+        "microservice": "x",
+        "tier": "product",
+        "tier_subtype": "product-consumer",
+        "dr_tier": "T2",
+        "sharding_automation": green_sharding(),
+        "slos": [],
+        "slo_exemption": {
+            "status": "todo",
+            "owner": "axis-test",
+            "rationale": "Replace this exemption before production or hyperscaler-ready promotion.",
+            "cutover_on": "2026-09-30",
+            "ticket": "TODO"
+        }
+    });
+    let c = codes(&evaluate_keyed(
+        &strict_policy(),
+        &observed(vec![("oya/x/manifest.json", m)]),
+    ));
+    assert!(c.contains("TFC-SLO-EXEMPTION-MALFORMED"), "{c:?}");
+    assert!(c.contains("TFC-SLO-MISSING-OR-UNEXEMPT"), "{c:?}");
+}
+
+#[test]
+fn scalar_slo_name_resolves_to_non_empty_local_openslo_file() {
+    let m = json!({
+        "microservice": "x",
+        "tier": "product",
+        "tier_subtype": "product-consumer",
+        "dr_tier": "T2",
+        "sharding_automation": green_sharding(),
+        "slos": ["availability"]
+    });
+    let findings = evaluate_keyed(
+        &strict_policy(),
+        &observed_with_openslo(
+            vec![("oya/x/manifest.json", m)],
+            &[("oya/x/slos/availability.openslo.yaml", true)],
+        ),
+    );
+    assert!(findings.is_empty(), "{findings:?}");
+}
+
+#[test]
+fn structured_named_slo_exemption_covers_planned_entry_without_stale_file() {
+    let m = json!({
+        "microservice": "connector",
+        "tier": "substrate",
+        "tier_subtype": "substrate-api-gateway",
+        "dr_tier": "T2",
+        "substrate_dag_position": { "stratum": "S0" },
+        "sharding_automation": green_sharding(),
+        "slos": [{ "name": "connect-retirement-evidence-lag", "target": "0.99", "sli": "retirement evidence lag" }],
+        "slo_exemptions": [{
+            "name": "connect-retirement-evidence-lag",
+            "status": "live_exempted_retiring_service",
+            "owner": "council-architecture",
+            "rationale": "Connector retirement remains an audit-readiness workflow while runtime traffic migrates to replacement service surfaces.",
+            "cutover_on": "2026-09-30",
+            "ticket": "LANE-D-CONNECTOR-OPENSLO-CUTOVER"
+        }]
+    });
+    let findings = evaluate_keyed(
+        &strict_policy(),
+        &observed(vec![("oya/connector/manifest.json", m)]),
+    );
+    assert!(findings.is_empty(), "{findings:?}");
 }

@@ -67,8 +67,9 @@
   "slo_exemption": {
     "status": "live_exempted_no_runtime_sli",
     "owner": "ops-sre-reliability",
-    "reason": "No current measured runtime SLI exists for this foundation, retired, or local-scaffold service; the manifest must not claim production or hyperscaler-ready SLO coverage until an OpenSLO file lands.",
-    "cutover": "Replace this exemption with non-empty resolvable OpenSLO references before production or hyperscaler-ready promotion."
+    "rationale": "No current measured runtime SLI exists for this foundation, retired, or local-scaffold service; the manifest must not claim production or hyperscaler-ready SLO coverage until an OpenSLO file lands.",
+    "cutover_on": "2026-12-31",
+    "evidence": "specs/master-plan-sequencing.json#realignment_wave_sequence"
   },
   "hyperscaler_inv_coverage": {
     "circuit_breaker": "not_claimed_cs_cloud_ops_foundation_001_no_runtime_request_path",
