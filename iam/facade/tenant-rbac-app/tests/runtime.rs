@@ -15,11 +15,12 @@ use iam_tenant_rbac_api::{
     TenantRbacWriteKindDto, WorkflowRoutingOwnerDto,
 };
 use iam_tenant_rbac_app::{
-    ConfiguredBearerPrincipalVerifier, TenantRbacAuthzProvider, TenantRbacMutationAuthorizationError,
-    TenantRbacMutationAuthorizer, TenantRbacMutationResource, VerifiedPrincipal,
-    TENANT_RBAC_CROSS_SERVICE_WORKFLOW_PLANS_PATH, TENANT_RBAC_GROUP_CLOSE_ROLLUPS_PATH,
-    TENANT_RBAC_HEALTH_PATH, TENANT_RBAC_INCIDENT_ROLLBACK_PLANS_PATH,
-    TENANT_RBAC_OPS_COMMANDS_PATH, TENANT_RBAC_POLICY_ADMISSIONS_PATH,
+    ConfiguredBearerPrincipalVerifier, TenantRbacAuthzProvider, TenantRbacMutationAction,
+    TenantRbacMutationAuthorizationError, TenantRbacMutationAuthorizer,
+    TenantRbacMutationResource, VerifiedPrincipal, TENANT_RBAC_CROSS_SERVICE_WORKFLOW_PLANS_PATH,
+    TENANT_RBAC_GROUP_CLOSE_ROLLUPS_PATH, TENANT_RBAC_HEALTH_PATH,
+    TENANT_RBAC_INCIDENT_ROLLBACK_PLANS_PATH, TENANT_RBAC_OPS_COMMANDS_PATH,
+    TENANT_RBAC_POLICY_ADMISSIONS_PATH,
     dispatch_tenant_rbac_request, tenant_rbac_runtime_routes, tenant_rbac_server_config,
 };
 
@@ -37,11 +38,43 @@ impl TenantRbacMutationAuthorizer for AllowAll {
     }
 }
 
+struct DenyAll;
+impl TenantRbacMutationAuthorizer for DenyAll {
+    fn ensure_authorized(
+        &self,
+        _principal: &VerifiedPrincipal,
+        _resource: &TenantRbacMutationResource,
+    ) -> Result<(), TenantRbacMutationAuthorizationError> {
+        Err(TenantRbacMutationAuthorizationError::Denied)
+    }
+}
+
+struct AssertPolicyFacts;
+impl TenantRbacMutationAuthorizer for AssertPolicyFacts {
+    fn ensure_authorized(
+        &self,
+        principal: &VerifiedPrincipal,
+        resource: &TenantRbacMutationResource,
+    ) -> Result<(), TenantRbacMutationAuthorizationError> {
+        assert_eq!(principal.principal_id(), "sp_tenant_rbac");
+        assert_eq!(principal.tenant_id(), BOUND_TENANT);
+        assert_eq!(resource.tenant_id, BOUND_TENANT);
+        assert_eq!(resource.action, TenantRbacMutationAction::PolicyAdmission);
+        assert_eq!(resource.route_template, TENANT_RBAC_POLICY_ADMISSIONS_PATH);
+        Ok(())
+    }
+}
 fn test_provider() -> TenantRbacAuthzProvider {
+    test_provider_with_authorizer(AllowAll)
+}
+
+fn test_provider_with_authorizer(
+    authorizer: impl TenantRbacMutationAuthorizer + 'static,
+) -> TenantRbacAuthzProvider {
     let verifier =
         ConfiguredBearerPrincipalVerifier::new(BEARER_SECRET, "sp_tenant_rbac", BOUND_TENANT)
             .expect("verifier construction failed");
-    TenantRbacAuthzProvider::new(Arc::new(verifier), Arc::new(AllowAll))
+    TenantRbacAuthzProvider::new(Arc::new(verifier), Arc::new(authorizer))
 }
 
 #[test]
@@ -172,6 +205,61 @@ fn tenant_rbac_runtime_rejects_invalid_json_and_gate_bypass_errors() {
             .unwrap()
             .contains("ManualSshRefused")
     );
+}
+
+#[test]
+fn tenant_rbac_runtime_fails_closed_on_authn_authz_and_tenant_mismatch() {
+    let allowed_response = dispatch_tenant_rbac_request(
+        mock_json_request(
+            HttpMethod::Post,
+            TENANT_RBAC_POLICY_ADMISSIONS_PATH,
+            &service_write_request(),
+        ),
+        test_provider_with_authorizer(AssertPolicyFacts),
+    );
+    assert_eq!(allowed_response.status, 202);
+    let mut missing_bearer = mock_json_request(
+        HttpMethod::Post,
+        TENANT_RBAC_POLICY_ADMISSIONS_PATH,
+        &service_write_request(),
+    );
+    missing_bearer.headers.remove("authorization");
+    let missing_response = dispatch_tenant_rbac_request(missing_bearer, test_provider());
+    assert_eq!(missing_response.status, 401);
+
+    let mut wrong_bearer = mock_json_request(
+        HttpMethod::Post,
+        TENANT_RBAC_POLICY_ADMISSIONS_PATH,
+        &service_write_request(),
+    );
+    wrong_bearer
+        .headers
+        .insert("authorization".to_owned(), "Bearer wrong".to_owned());
+    let wrong_response = dispatch_tenant_rbac_request(wrong_bearer, test_provider());
+    assert_eq!(wrong_response.status, 401);
+
+    let denied_response = dispatch_tenant_rbac_request(
+        mock_json_request(
+            HttpMethod::Post,
+            TENANT_RBAC_POLICY_ADMISSIONS_PATH,
+            &service_write_request(),
+        ),
+        test_provider_with_authorizer(DenyAll),
+    );
+    assert_eq!(denied_response.status, 403);
+
+    let tenant_mismatch_response = dispatch_tenant_rbac_request(
+        mock_json_request(
+            HttpMethod::Post,
+            TENANT_RBAC_POLICY_ADMISSIONS_PATH,
+            &ServiceWriteAdmissionRequest {
+                tenant_id: "ten_other".to_owned(),
+                ..service_write_request()
+            },
+        ),
+        test_provider(),
+    );
+    assert_eq!(tenant_mismatch_response.status, 403);
 }
 
 #[test]
