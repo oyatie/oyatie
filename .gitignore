@@ -10,6 +10,10 @@
 !/.omc/ultragoal/friction-ledger.jsonl
 !/.omc/ultragoal/premise.txt
 /.omx/
+# Local GJC runtime/session state is never committed.
+# Specs/plans promoted to product authority belong in tracked specs/docs/registry files.
+/.gjc/_session-*/
+/.gjc/state/notifications/
 .DS_Store
 **/.DS_Store
 
