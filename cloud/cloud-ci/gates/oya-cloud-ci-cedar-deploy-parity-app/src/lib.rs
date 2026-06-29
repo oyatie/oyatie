@@ -125,6 +125,8 @@ pub fn collect(root: &Path, policy: &Value) -> Result<Value, CollectError> {
     } else {
         authored_subdirs.iter().map(String::as_str).collect()
     };
+    let baseline_adr_exists =
+        baseline_adr(policy).is_some_and(|adr| baseline_adr_file_exists(root, adr));
 
     let mut rel_paths: Vec<String> = Vec::new();
     walk_for_suffix(root, root, suffix, &mut rel_paths)?;
@@ -198,7 +200,7 @@ pub fn collect(root: &Path, policy: &Value) -> Result<Value, CollectError> {
         }));
     }
 
-    Ok(json!({ "configmaps": configmaps }))
+    Ok(json!({ "configmaps": configmaps, "baseline_adr_exists": baseline_adr_exists }))
 }
 
 /// Recursive read-only walk collecting repo-relative paths ending with `suffix`.
@@ -758,6 +760,80 @@ fn baseline_policy_signatures(policy: &Value) -> BTreeSet<String> {
         .map(|v| str_array(Some(v)).into_iter().collect())
         .unwrap_or_default()
 }
+
+fn baseline_text_field(policy: &Value, key: &str) -> Option<String> {
+    policy
+        .get("baseline")
+        .and_then(|b| b.get(key))
+        .and_then(Value::as_str)
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(str::to_owned)
+}
+
+fn baseline_adr(policy: &Value) -> Option<&str> {
+    policy
+        .get("baseline")
+        .and_then(|b| b.get("adr"))
+        .and_then(Value::as_str)
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+}
+
+fn baseline_adr_file_exists(root: &Path, adr: &str) -> bool {
+    let Ok(entries) = fs::read_dir(root.join("docs/decisions")) else {
+        return false;
+    };
+    let prefix = format!("{adr}-");
+    entries.flatten().any(|entry| {
+        entry
+            .file_name()
+            .to_str()
+            .is_some_and(|name| name.starts_with(&prefix) && name.ends_with(".md"))
+    })
+}
+
+fn strict_adr_ref(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    bytes.len() == 8 && bytes.starts_with(b"ADR-") && bytes[4..].iter().all(u8::is_ascii_digit)
+}
+
+fn strict_iso_date(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    if bytes.len() != 10
+        || bytes[4] != b'-'
+        || bytes[7] != b'-'
+        || !bytes[..4].iter().all(u8::is_ascii_digit)
+        || !bytes[5..7].iter().all(u8::is_ascii_digit)
+        || !bytes[8..].iter().all(u8::is_ascii_digit)
+    {
+        return false;
+    }
+    let Ok(year) = value[..4].parse::<u32>() else {
+        return false;
+    };
+    let Ok(month) = value[5..7].parse::<u32>() else {
+        return false;
+    };
+    let Ok(day) = value[8..].parse::<u32>() else {
+        return false;
+    };
+    if month == 0 || month > 12 || day == 0 {
+        return false;
+    }
+    let max_day = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if is_leap_year(year) => 29,
+        2 => 28,
+        _ => return false,
+    };
+    day <= max_day
+}
+
+fn is_leap_year(year: u32) -> bool {
+    year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
+}
 fn baseline_text_field_present(policy: &Value, key: &str) -> bool {
     policy
         .get("baseline")
@@ -847,6 +923,32 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
                     format!("baseline paths require non-empty baseline.{key}; broad-policy exceptions must be audited, time-boxed, and decision-linked"),
                 ));
             }
+        }
+        let remove_by = baseline_text_field(policy, "remove_by");
+        if remove_by
+            .as_deref()
+            .is_none_or(|date| !strict_iso_date(date))
+        {
+            findings.insert(Finding::new(
+                "CDP-POLICY-MALFORMED",
+                POLICY_KEY,
+                "baseline.remove_by must be a strict valid YYYY-MM-DD date",
+            ));
+        }
+
+        let adr = baseline_text_field(policy, "adr");
+        if adr.as_deref().is_none_or(|value| !strict_adr_ref(value)) {
+            findings.insert(Finding::new(
+                "CDP-POLICY-MALFORMED",
+                POLICY_KEY,
+                "baseline.adr must be a strict ADR-NNNN reference",
+            ));
+        } else if observed.get("baseline_adr_exists").and_then(Value::as_bool) != Some(true) {
+            findings.insert(Finding::new(
+                "CDP-POLICY-MALFORMED",
+                POLICY_KEY,
+                "baseline.adr must resolve to an existing docs/decisions/ADR-NNNN-*.md record",
+            ));
         }
     }
     let observed_paths: BTreeSet<&str> = configmaps
@@ -1199,7 +1301,8 @@ forbid(
     #[test]
     fn baselined_blanket_is_grandfathered_green() {
         let path = "oya/x/iac/k8s/helm/templates/cedar.yaml";
-        let observed = json!({ "configmaps": [ cm(path, true, true) ] });
+        let observed =
+            json!({ "configmaps": [ cm(path, true, true) ], "baseline_adr_exists": true });
         let report = evaluate(&policy(&[path]), &observed);
         assert_eq!(report.verdict, Verdict::Green, "{:?}", report.violations);
     }
@@ -1222,10 +1325,47 @@ forbid(
     }
 
     #[test]
+    fn baseline_remove_by_requires_strict_valid_date() {
+        let path = "oya/x/iac/k8s/helm/templates/cedar.yaml";
+        let mut malformed_policy = policy(&[path]);
+        malformed_policy["baseline"]["remove_by"] = json!("2026-02-31");
+        let observed =
+            json!({ "configmaps": [ cm(path, true, true) ], "baseline_adr_exists": true });
+        let codes: BTreeSet<String> = evaluate_keyed(&malformed_policy, &observed)
+            .into_iter()
+            .map(|f| f.code)
+            .collect();
+        assert!(codes.contains("CDP-POLICY-MALFORMED"), "{codes:?}");
+    }
+
+    #[test]
+    fn baseline_adr_requires_strict_existing_reference() {
+        let path = "oya/x/iac/k8s/helm/templates/cedar.yaml";
+        let mut malformed_policy = policy(&[path]);
+        malformed_policy["baseline"]["adr"] = json!("ADR-608");
+        let observed =
+            json!({ "configmaps": [ cm(path, true, true) ], "baseline_adr_exists": true });
+        let codes: BTreeSet<String> = evaluate_keyed(&malformed_policy, &observed)
+            .into_iter()
+            .map(|f| f.code)
+            .collect();
+        assert!(codes.contains("CDP-POLICY-MALFORMED"), "{codes:?}");
+
+        let observed_without_adr =
+            json!({ "configmaps": [ cm(path, true, true) ], "baseline_adr_exists": false });
+        let codes: BTreeSet<String> = evaluate_keyed(&policy(&[path]), &observed_without_adr)
+            .into_iter()
+            .map(|f| f.code)
+            .collect();
+        assert!(codes.contains("CDP-POLICY-MALFORMED"), "{codes:?}");
+    }
+
+    #[test]
     fn baseline_for_now_clean_configmap_is_stale() {
         let path = "oya/x/iac/k8s/helm/templates/cedar.yaml";
         // Constrained permit that IS in authored -> no CHECK-A/B finding, so the baseline is stale.
-        let observed = json!({ "configmaps": [ cm(path, false, true) ] });
+        let observed =
+            json!({ "configmaps": [ cm(path, false, true) ], "baseline_adr_exists": true });
         let codes: BTreeSet<String> = evaluate_keyed(&policy(&[path]), &observed)
             .into_iter()
             .map(|f| f.code)
@@ -1238,7 +1378,7 @@ forbid(
         let path = "oya/x/iac/k8s/helm/templates/cedar.yaml";
         let mut changed = cm(path, true, true);
         changed["policy_signature"] = json!("cedar-authz-fnv1a64:changed");
-        let observed = json!({ "configmaps": [ changed ] });
+        let observed = json!({ "configmaps": [ changed ], "baseline_adr_exists": true });
         let codes: BTreeSet<String> = evaluate_keyed(&policy(&[path]), &observed)
             .into_iter()
             .map(|f| f.code)
