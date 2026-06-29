@@ -95,55 +95,55 @@
       "name": "translate-batch-translate-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.95,",
-      "file": "microservices/translate/slos/batch-translate-latency.openslo.yaml"
+      "file": "oya/translate/slos/batch-translate-latency.openslo.yaml"
     },
     {
       "name": "translate-data-residency-correctness",
       "target": "1.0",
       "sli": "sum(rate(oya_translate_engine_routed_total{residency_compliant=\"true\"}[5m]))",
-      "file": "microservices/translate/slos/data-residency-correctness.openslo.yaml"
+      "file": "oya/translate/slos/data-residency-correctness.openslo.yaml"
     },
     {
       "name": "translate-document-translate-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.95,",
-      "file": "microservices/translate/slos/document-translate-latency.openslo.yaml"
+      "file": "oya/translate/slos/document-translate-latency.openslo.yaml"
     },
     {
       "name": "translate-language-detection-latency",
       "target": "0.999",
       "sli": "histogram_quantile(0.99,",
-      "file": "microservices/translate/slos/language-detection-latency.openslo.yaml"
+      "file": "oya/translate/slos/language-detection-latency.openslo.yaml"
     },
     {
       "name": "translate-mt-engine-availability",
       "target": "0.9995",
       "sli": "sum by (vendor) (rate(oya_translate_engine_invocation_total{result=\"success\"}[5m]))",
-      "file": "microservices/translate/slos/mt-engine-availability.openslo.yaml"
+      "file": "oya/translate/slos/mt-engine-availability.openslo.yaml"
     },
     {
       "name": "translate-qe-score-latency",
       "target": "0.999",
       "sli": "histogram_quantile(0.99,",
-      "file": "microservices/translate/slos/qe-score-latency.openslo.yaml"
+      "file": "oya/translate/slos/qe-score-latency.openslo.yaml"
     },
     {
       "name": "translate-real-time-caption-latency",
       "target": "0.999",
       "sli": "histogram_quantile(0.99,",
-      "file": "microservices/translate/slos/real-time-caption-latency.openslo.yaml"
+      "file": "oya/translate/slos/real-time-caption-latency.openslo.yaml"
     },
     {
       "name": "translate-tm-leverage-latency",
       "target": "0.999",
       "sli": "histogram_quantile(0.99,",
-      "file": "microservices/translate/slos/tm-leverage-latency.openslo.yaml"
+      "file": "oya/translate/slos/tm-leverage-latency.openslo.yaml"
     },
     {
       "name": "translate-translation-request-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.95,",
-      "file": "microservices/translate/slos/translation-request-latency.openslo.yaml"
+      "file": "oya/translate/slos/translation-request-latency.openslo.yaml"
     }
   ],
   "ips": [

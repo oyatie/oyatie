@@ -15,6 +15,7 @@
     "contracts",
     "capabilities",
     "slos",
+    "sharding_automation",
     "ips",
     "regulatory_packs",
     "lts_pins",
@@ -186,6 +187,257 @@
             "type": "string"
           }
         }
+      }
+    },
+    "sharding_automation": {
+      "description": "ADR-0348 — Per-microservice sharding automation declaration. Autosharding must be control-plane-driven when enabled; disabled foundations may use not_claimed_runtime while naming the intended control-plane destination. Auto-rebalance and dynamic sharding must declare residency, threshold, and audit-chain posture when enabled.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "autosharding",
+        "auto_rebalance",
+        "dynamic_sharding"
+      ],
+      "properties": {
+        "autosharding": {
+          "oneOf": [
+            {
+              "type": "string",
+              "const": "control_plane_driven"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "enabled",
+                "mode"
+              ],
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "mode": {
+                  "enum": [
+                    "control_plane_driven",
+                    "not_claimed_runtime"
+                  ]
+                },
+                "intended_control_plane": {
+                  "type": "string",
+                  "const": "control_plane_driven"
+                }
+              }
+            }
+          ]
+        },
+        "auto_rebalance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "enabled"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "trigger_load_skew_threshold_percent": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "honors_residency": {
+              "type": "boolean"
+            },
+            "honors_compliance_packs": {
+              "type": "boolean"
+            },
+            "audit_chain_emit": {
+              "type": "boolean"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "enabled": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "enabled"
+                ]
+              },
+              "then": {
+                "required": [
+                  "trigger_load_skew_threshold_percent",
+                  "honors_residency",
+                  "honors_compliance_packs",
+                  "audit_chain_emit"
+                ],
+                "properties": {
+                  "honors_residency": {
+                    "const": true
+                  },
+                  "honors_compliance_packs": {
+                    "const": true
+                  },
+                  "audit_chain_emit": {
+                    "const": true
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "dynamic_sharding": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "enabled"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "hot_split_threshold_p99_ms": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "hot_split_utilization_threshold_percent": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "cold_merge_utilization_threshold_percent": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99
+            },
+            "cold_merge_minimum_quiet_hours": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "audit_chain_emit": {
+              "type": "boolean"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "enabled": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "enabled"
+                ]
+              },
+              "then": {
+                "required": [
+                  "hot_split_threshold_p99_ms",
+                  "hot_split_utilization_threshold_percent",
+                  "cold_merge_utilization_threshold_percent",
+                  "cold_merge_minimum_quiet_hours",
+                  "audit_chain_emit"
+                ],
+                "properties": {
+                  "audit_chain_emit": {
+                    "const": true
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "non_claim": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "slo_exemption": {
+      "description": "Explicit live exemption used only when a service has no current measured OpenSLO artifact. It must be replaced before production or hyperscaler-ready promotion.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "reason"
+      ],
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expires_on": {
+          "type": "string"
+        },
+        "cutover": {
+          "type": "string"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "expires_on"
+          ]
+        },
+        {
+          "required": [
+            "cutover"
+          ]
+        }
+      ]
+    },
+    "slo_exemptions": {
+      "description": "Per-SLO exemptions for planned entries whose OpenSLO artifact has not landed yet. Each row is non-claiming and must be cut over before production or hyperscaler-ready promotion.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "owner",
+          "reason"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "owner": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expires_on": {
+            "type": "string"
+          },
+          "cutover": {
+            "type": "string"
+          }
+        },
+        "anyOf": [
+          {
+            "required": [
+              "expires_on"
+            ]
+          },
+          {
+            "required": [
+              "cutover"
+            ]
+          }
+        ]
       }
     },
     "ips": {

@@ -124,55 +124,55 @@
       "name": "oya-plugin-app-store-catalog-browse-latency",
       "target": "0.95",
       "sli": "histogram_quantile(0.95, rate(oya_plugin_app_store_catalog_request_seconds_bucket[5m]))",
-      "file": "microservices/plugin-app-store/slos/catalog-browse-latency.openslo.yaml"
+      "file": "marketplace/observability/slos/catalog-browse-latency.openslo.yaml"
     },
     {
       "name": "oya-plugin-app-store-catalog-browse-availability",
       "target": "0.999",
       "sli": "sum(rate(oya_plugin_app_store_catalog_request_total{status!~\"5..\"}[5m]))",
-      "file": "microservices/plugin-app-store/slos/catalog-browse-availability.openslo.yaml"
+      "file": "marketplace/observability/slos/catalog-browse-availability.openslo.yaml"
     },
     {
       "name": "oya-plugin-app-store-plugin-install-availability",
       "target": "0.9995",
       "sli": "sum(rate(oya_plugin_app_store_install_outcome_total{outcome=\"installed\"}[5m]))",
-      "file": "microservices/plugin-app-store/slos/plugin-install-availability.openslo.yaml"
+      "file": "marketplace/observability/slos/plugin-install-availability.openslo.yaml"
     },
     {
       "name": "oya-plugin-app-store-plugin-install-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.99, rate(oya_plugin_app_store_install_duration_seconds_bucket[5m]))",
-      "file": "microservices/plugin-app-store/slos/plugin-install-latency.openslo.yaml"
+      "file": "marketplace/observability/slos/plugin-install-latency.openslo.yaml"
     },
     {
       "name": "oya-plugin-app-store-plugin-revoke-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.99, rate(oya_plugin_app_store_revoke_duration_seconds_bucket[5m]))",
-      "file": "microservices/plugin-app-store/slos/plugin-revoke-latency.openslo.yaml"
+      "file": "marketplace/observability/slos/plugin-revoke-latency.openslo.yaml"
     },
     {
       "name": "oya-plugin-app-store-vetting-pipeline-throughput",
       "target": "0.95",
       "sli": "sum(rate(oya_plugin_app_store_vetting_decision_total{outcome=~\"approved|rejected\"}[1h])) / sum(rate(oya_plugin_app_store_vetting_submitted_total[1h]))",
-      "file": "microservices/plugin-app-store/slos/vetting-pipeline-throughput.openslo.yaml"
+      "file": "marketplace/observability/slos/vetting-pipeline-throughput.openslo.yaml"
     },
     {
       "name": "oya-plugin-app-store-vetting-pipeline-correctness",
       "target": "1.0",
       "sli": "1 - (sum(rate(oya_plugin_app_store_vetting_false_approve_total[24h])) / sum(rate(oya_plugin_app_store_vetting_decision_total[24h])))",
-      "file": "microservices/plugin-app-store/slos/vetting-pipeline-correctness.openslo.yaml"
+      "file": "marketplace/observability/slos/vetting-pipeline-correctness.openslo.yaml"
     },
     {
       "name": "oya-plugin-app-store-per-plugin-rate-limit-correctness",
       "target": "1.0",
       "sli": "1 - (sum(rate(oya_plugin_app_store_rate_limit_bypass_total[5m])) / sum(rate(oya_plugin_app_store_plugin_request_total[5m])))",
-      "file": "microservices/plugin-app-store/slos/per-plugin-rate-limit-correctness.openslo.yaml"
+      "file": "marketplace/observability/slos/per-plugin-rate-limit-correctness.openslo.yaml"
     },
     {
       "name": "oya-plugin-app-store-subscription-billing-correctness",
       "target": "1.0",
       "sli": "1 - (sum(rate(oya_plugin_app_store_billing_aggregation_mismatch_total[24h])) / sum(rate(oya_plugin_app_store_billing_aggregation_total[24h])))",
-      "file": "microservices/plugin-app-store/slos/subscription-billing-correctness.openslo.yaml"
+      "file": "marketplace/observability/slos/subscription-billing-correctness.openslo.yaml"
     }
   ],
   "ips": [

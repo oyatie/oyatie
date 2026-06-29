@@ -104,55 +104,55 @@
       "name": "tasks-auto-assign-fairness-correctness",
       "target": "1.0",
       "sli": "min(oya_tasks_auto_assign_fairness_score by (protected_class))",
-      "file": "microservices/tasks/slos/auto-assign-fairness-correctness.openslo.yaml"
+      "file": "workflow/observability/slos/tasks/auto-assign-fairness-correctness.openslo.yaml"
     },
     {
       "name": "tasks-bulk-update-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.95, sum(rate(oya_tasks_bulk_update_seconds_bucket{batch_size=\"100\"}[5m])) by (le))",
-      "file": "microservices/tasks/slos/bulk-update-latency.openslo.yaml"
+      "file": "workflow/observability/slos/tasks/bulk-update-latency.openslo.yaml"
     },
     {
       "name": "tasks-dependency-cycle-detection-correctness",
       "target": "1.0",
       "sli": "sum(rate(oya_tasks_dependency_cycle_refused_total[5m]))",
-      "file": "microservices/tasks/slos/dependency-cycle-detection-correctness.openslo.yaml"
+      "file": "workflow/observability/slos/tasks/dependency-cycle-detection-correctness.openslo.yaml"
     },
     {
       "name": "tasks-recurring-materialise-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.99, sum(rate(oya_tasks_recurrence_materialise_seconds_bucket[5m])) by (le))",
-      "file": "microservices/tasks/slos/recurring-materialise-latency.openslo.yaml"
+      "file": "workflow/observability/slos/tasks/recurring-materialise-latency.openslo.yaml"
     },
     {
       "name": "tasks-search-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.95, sum(rate(oya_tasks_search_query_seconds_bucket[5m])) by (le))",
-      "file": "microservices/tasks/slos/search-latency.openslo.yaml"
+      "file": "workflow/observability/slos/tasks/search-latency.openslo.yaml"
     },
     {
       "name": "tasks-task-create-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.95, sum(rate(oya_tasks_task_create_seconds_bucket[5m])) by (le))",
-      "file": "microservices/tasks/slos/task-create-latency.openslo.yaml"
+      "file": "workflow/observability/slos/tasks/task-create-latency.openslo.yaml"
     },
     {
       "name": "tasks-task-list-render-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.95, sum(rate(oya_tasks_task_list_render_seconds_bucket{tasks_in_list=\"200\"}[5m])) by (le))",
-      "file": "microservices/tasks/slos/task-list-render-latency.openslo.yaml"
+      "file": "workflow/observability/slos/tasks/task-list-render-latency.openslo.yaml"
     },
     {
       "name": "tasks-task-update-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.99, sum(rate(oya_tasks_task_update_seconds_bucket[5m])) by (le))",
-      "file": "microservices/tasks/slos/task-update-latency.openslo.yaml"
+      "file": "workflow/observability/slos/tasks/task-update-latency.openslo.yaml"
     },
     {
       "name": "tasks-webhook-fire-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.95, sum(rate(oya_tasks_webhook_fire_seconds_bucket[5m])) by (le))",
-      "file": "microservices/tasks/slos/webhook-fire-latency.openslo.yaml"
+      "file": "workflow/observability/slos/tasks/webhook-fire-latency.openslo.yaml"
     }
   ],
   "ips": [

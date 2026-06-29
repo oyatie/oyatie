@@ -60,61 +60,61 @@
       "name": "recordings-export-mp4-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_recordings_export_mp4_duration_ratio_bucket{le=\"0.3\"}[5m]))",
-      "file": "microservices/recordings/slos/export-mp4-latency.openslo.yaml"
+      "file": "storage/observability/slos/export-mp4-latency.openslo.yaml"
     },
     {
       "name": "recordings-export-transcript-pdf-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_recordings_export_pdf_duration_seconds_bucket{le=\"3.0\"}[5m]))",
-      "file": "microservices/recordings/slos/export-transcript-pdf-latency.openslo.yaml"
+      "file": "storage/observability/slos/export-transcript-pdf-latency.openslo.yaml"
     },
     {
       "name": "recordings-legal-hold-chain-of-custody-correctness",
       "target": "1.0",
       "sli": "sum(rate(oya_recordings_legal_hold_chain_of_custody_event_total{result=\"correct\"}[30d]))",
-      "file": "microservices/recordings/slos/legal-hold-chain-of-custody-correctness.openslo.yaml"
+      "file": "storage/observability/slos/legal-hold-chain-of-custody-correctness.openslo.yaml"
     },
     {
       "name": "recordings-legal-hold-engagement-latency",
       "target": "0.9999",
       "sli": "sum(rate(oya_recordings_legal_hold_engagement_duration_seconds_bucket{le=\"1.0\"}[5m]))",
-      "file": "microservices/recordings/slos/legal-hold-engagement-latency.openslo.yaml"
+      "file": "storage/observability/slos/legal-hold-engagement-latency.openslo.yaml"
     },
     {
       "name": "recordings-playback-start-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_recordings_playback_start_duration_seconds_bucket{cdn_state=\"warm\",le=\"0.4\"}[5m]))",
-      "file": "microservices/recordings/slos/playback-start-latency.openslo.yaml"
+      "file": "storage/observability/slos/playback-start-latency.openslo.yaml"
     },
     {
       "name": "recordings-recording-list-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_recordings_list_duration_seconds_bucket{le=\"0.2\"}[5m]))",
-      "file": "microservices/recordings/slos/recording-list-latency.openslo.yaml"
+      "file": "storage/observability/slos/recording-list-latency.openslo.yaml"
     },
     {
       "name": "recordings-redaction-render-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_recordings_redaction_render_duration_seconds_bucket{le=\"1.0\"}[5m]))",
-      "file": "microservices/recordings/slos/redaction-render-latency.openslo.yaml"
+      "file": "storage/observability/slos/redaction-render-latency.openslo.yaml"
     },
     {
       "name": "recordings-retention-policy-correctness",
       "target": "1.0",
       "sli": "sum(rate(oya_recordings_retention_applied_total{result=\"correct\"}[30d]))",
-      "file": "microservices/recordings/slos/retention-policy-correctness.openslo.yaml"
+      "file": "storage/observability/slos/retention-policy-correctness.openslo.yaml"
     },
     {
       "name": "recordings-transcript-render-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_recordings_transcript_render_duration_seconds_bucket{recording_duration_bucket=\"10min\",le=\"0.5\"}[5m]))",
-      "file": "microservices/recordings/slos/transcript-render-latency.openslo.yaml"
+      "file": "storage/observability/slos/transcript-render-latency.openslo.yaml"
     },
     {
       "name": "recordings-transcript-search-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_recordings_search_duration_seconds_bucket{le=\"0.3\"}[5m]))",
-      "file": "microservices/recordings/slos/transcript-search-latency.openslo.yaml"
+      "file": "storage/observability/slos/transcript-search-latency.openslo.yaml"
     }
   ],
   "ips": [
