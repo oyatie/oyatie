@@ -12,8 +12,8 @@
 use oya_shared_connector_kernel::{
     AuthScheme, Connector, ConnectorCapabilities, ConnectorCtx, ConnectorError, Cursor, EntityDoc,
     EntityValue, Event, EventStream, HealthReport, IdempotencyKey, OntologyProjection, Page,
-    PatchOp, RateLimitDescriptor, canonical_audit_payload_digest, entity_doc_payload_digest,
-    is_canonical_sha256_hex, patch_op_payload_digest, windowed_page,
+    PatchOp, RateLimitDescriptor, btree_keyset_page, canonical_audit_payload_digest,
+    entity_doc_payload_digest, is_canonical_sha256_hex, patch_op_payload_digest,
 };
 use std::collections::{BTreeMap, HashMap, VecDeque};
 use std::sync::Mutex;
@@ -215,11 +215,9 @@ impl Connector for SalesforceConnector {
         let store = self.lock_store();
         let items = store
             .get(ctx.tenant_id().as_str())
-            .and_then(|m| m.get(entity_kind))
-            .into_iter()
-            .flat_map(|m| m.values().cloned());
+            .and_then(|m| m.get(entity_kind));
         const PAGE: usize = 200; // Salesforce default batch
-        windowed_page(items, cursor.as_ref(), PAGE)
+        btree_keyset_page(items, cursor.as_ref(), PAGE)
     }
     fn get(&self, ctx: &ConnectorCtx, entity_kind: &str, id: &str) -> Result<EntityDoc> {
         self.check_kind(entity_kind)?;
@@ -703,26 +701,45 @@ mod tests {
     }
 
     #[test]
-    fn list_uses_windowed_page_boundaries() {
+    fn list_uses_keyset_page_boundaries() {
         let s = SalesforceConnector::new();
-        for i in 0..191 {
+        for i in 4..=201 {
             let mut d = EntityDoc::new();
-            d.insert("FirstName", EntityValue::Str(format!("bulk-{i}")));
-            d.insert("LastName", EntityValue::Str("Contact".into()));
-            let _ = s
-                .create(&ctx(), "Contact", d, ik(&format!("bulk{i}")))
-                .unwrap();
+            let id = format!("006{i:015}");
+            d.insert("Id", EntityValue::Str(id.clone()));
+            s.put("t-1", "Opportunity", &id, d);
         }
 
-        let first = s.list(&ctx(), "Contact", None).unwrap();
+        let first = s.list(&ctx(), "Opportunity", None).unwrap();
         assert_eq!(first.items.len(), 200);
-        assert_eq!(first.next_cursor.as_ref().map(Cursor::as_str), Some("200"));
+        let expected_cursor =
+            first
+                .items
+                .last()
+                .and_then(|item| item.get("Id"))
+                .and_then(|value| match value {
+                    EntityValue::Str(id) => Some(id.as_str()),
+                    _ => None,
+                });
+        assert_eq!(
+            first.next_cursor.as_ref().map(Cursor::as_str),
+            expected_cursor
+        );
 
-        let second = s
-            .list(&ctx(), "Contact", first.next_cursor.clone())
-            .unwrap();
+        let second = s.list(&ctx(), "Opportunity", first.next_cursor).unwrap();
         assert_eq!(second.items.len(), 1);
         assert!(second.next_cursor.is_none());
+
+        let exact = SalesforceConnector::new();
+        for i in 4..=200 {
+            let mut d = EntityDoc::new();
+            let id = format!("006{i:015}");
+            d.insert("Id", EntityValue::Str(id.clone()));
+            exact.put("t-1", "Opportunity", &id, d);
+        }
+        let exact_page = exact.list(&ctx(), "Opportunity", None).unwrap();
+        assert_eq!(exact_page.items.len(), 200);
+        assert!(exact_page.next_cursor.is_none());
     }
     #[test]
     fn ontology_projections_cover_three() {
