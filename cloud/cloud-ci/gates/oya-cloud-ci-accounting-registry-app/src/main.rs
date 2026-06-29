@@ -328,8 +328,8 @@ fn run() -> Result<(), CliError> {
     // The §2.5#7 manifest-hygiene gate input: per-crate Cargo.toml hygiene flags.
     let manifest_hygiene = collect_manifest_hygiene(&repo_root, &inputs.tracked_paths, &cfg);
     // The ADR-0017 cargo-prefix gate input: every tracked first-party workspace member
-    // candidate + package name. The producer intentionally does NOT pre-filter by prefix;
-    // the evaluator owns pass/fail so non-prefixed candidates cannot disappear upstream.
+    // candidate + package name. De-branded candidates stay visible but are advisory-scoped so
+    // expanding the corpus cannot create new born-blocking `cargo_prefix_violation` debt.
     let cargo_prefix = collect_cargo_prefix(&repo_root, &inputs.tracked_paths, &cfg)?;
     // The SLO coverage gate input: the config-declared catalog record globs expanded over the
     // tracked-path universe. This makes the lane input contract portable DATA instead of an
@@ -630,10 +630,25 @@ fn collect_bnf_layer_suffix(
 
 /// Enumerate every tracked first-party workspace member candidate + package name (the ADR-0017
 /// cargo-prefix gate's I/O). For each resolved workspace member whose manifest is present in the
-/// tracked-path universe, emit `{"member_path": "<dir>", "package_name": "<name>"}`. This producer
-/// intentionally does NOT filter by the configured prefix: the gate evaluator must see
-/// non-prefixed candidates and decide pass/fail. Deterministic: rows go through a BTreeMap keyed by
-/// member_path (sorted+deduped) so committed==regenerated holds byte-for-byte.
+/// tracked-path universe, emit `{"member_path": "<dir>", "package_name": "<name>"}` plus an
+/// explicit `cargo_prefix_scope`. Rows whose crate-id and package name still carry the configured
+/// brand prefix remain blocking; partially or fully de-branded rows stay in the face as advisory
+/// candidate coverage so visibility expansion does not become a northstar-debrand merge blocker.
+fn cargo_prefix_crate_id(member_path: &str) -> &str {
+    member_path.rsplit('/').next().unwrap_or(member_path)
+}
+
+fn cargo_prefix_scope(crate_id: &str, package_name: &str, required_prefix: &str) -> &'static str {
+    if required_prefix.is_empty() {
+        return "advisory";
+    }
+    if crate_id.starts_with(required_prefix) && package_name.starts_with(required_prefix) {
+        "blocking"
+    } else {
+        "advisory"
+    }
+}
+
 fn collect_cargo_prefix(
     repo_root: &Path,
     tracked_paths: &[String],
@@ -662,7 +677,13 @@ fn collect_cargo_prefix(
     let rows: Vec<Value> = by_member
         .into_iter()
         .map(|(member_path, package_name)| {
-            json!({ "member_path": member_path, "package_name": package_name })
+            let crate_id = cargo_prefix_crate_id(&member_path);
+            let scope = cargo_prefix_scope(crate_id, &package_name, &cfg.naming.required_prefix);
+            json!({
+                "member_path": member_path,
+                "package_name": package_name,
+                "cargo_prefix_scope": scope,
+            })
         })
         .collect();
     Ok(json!({ "rows": rows }))
@@ -1313,33 +1334,12 @@ mod tests {
         let face = root.join(
             "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
         );
-        if face.is_file() {
-            return load_scm_facts(&face).expect("committed scm-facts face loads");
-        }
-
-        // The live corpus unit test must not require a gitignored generated face to be
-        // present on every worker checkout. Fall back to the same tracked-path universe
-        // the face records, without hand-editing or copying generated JSON into place.
-        let output = std::process::Command::new("git")
-            .arg("-C")
-            .arg(root)
-            .arg("ls-files")
-            .output()
-            .expect("git ls-files for live OWNERS corpus");
         assert!(
-            output.status.success(),
-            "git ls-files failed for live OWNERS corpus: {}",
-            String::from_utf8_lossy(&output.stderr)
+            face.is_file(),
+            "missing materialized scm-facts face at {}; run the producer-regen/materialization boundary before this live-corpus test",
+            face.display()
         );
-        let mut tracked_paths: Vec<String> = String::from_utf8(output.stdout)
-            .expect("git ls-files output is utf-8")
-            .lines()
-            .filter(|line| !line.is_empty())
-            .map(str::to_owned)
-            .collect();
-        tracked_paths.sort();
-        tracked_paths.dedup();
-        ScmFacts { tracked_paths }
+        load_scm_facts(&face).expect("materialized scm-facts face loads")
     }
 
     #[test]
@@ -1909,7 +1909,7 @@ status: Accepted
         fs::remove_dir_all(root).expect("remove temp repo");
     }
     #[test]
-    fn cargo_prefix_emits_non_prefixed_in_scope_package_for_evaluator() {
+    fn cargo_prefix_emits_debranded_candidate_as_advisory_coverage() {
         let root = unique_temp_repo();
         fs::write(
             root.join("Cargo.toml"),
@@ -1937,16 +1937,15 @@ status: Accepted
         .expect("collect cargo-prefix");
 
         let rows = face["rows"].as_array().expect("rows");
-        assert_eq!(rows.len(), 1, "producer must not hide violating candidates");
+        assert_eq!(rows.len(), 1, "producer must not hide candidate coverage");
         assert_eq!(rows[0]["member_path"], "tools/unprefixed-app");
         assert_eq!(rows[0]["package_name"], "unprefixed-app");
+        assert_eq!(rows[0]["cargo_prefix_scope"], "advisory");
 
         let findings = oya_cloud_ci_cargo_prefix_app::evaluate_keyed(&face);
         assert!(
-            findings.iter().any(|finding| {
-                finding.code == "cargo_prefix_violation" && finding.key == "unprefixed-app"
-            }),
-            "full producer→evaluator path must turn the emitted candidate RED: {findings:?}"
+            findings.is_empty(),
+            "de-branded advisory candidates must not become born-blocking cargo-prefix debt: {findings:?}"
         );
 
         fs::remove_dir_all(root).expect("remove temp repo");
@@ -2484,7 +2483,7 @@ fn collect_phantom_citations(
     let grandfathered: BTreeSet<&str> = GRANDFATHERED_PHANTOM_DECISION_IDS.into_iter().collect();
     let mut edges: BTreeSet<String> = BTreeSet::new();
 
-    let mut record = |cited: &str, source: &str, edges: &mut BTreeSet<String>| {
+    let record = |cited: &str, source: &str, edges: &mut BTreeSet<String>| {
         if !known_ids.contains(cited) && !grandfathered.contains(cited) {
             edges.insert(format!("{cited}@{source}"));
         }

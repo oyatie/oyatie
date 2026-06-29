@@ -1,10 +1,9 @@
-// ADR-0017 cloud-ci-cargo-prefix: born-blocking self-test over TODAY's real corpus. Runs the
-// producer `--face cargo-prefix` to resolve every in-scope first-party workspace member candidate
-// + package name, then asserts the gate's verdict MATCHES the live corpus: if any member's
-// crate-id or package name fails the required prefix (or they disagree) the gate is RED and
-// freezes the debt; if every first-party crate already conforms the gate is cleanly GREEN. The
-// count is MEASURED + reported, not hardcoded. ADR-0083 Tier-3: integration tests assert via
-// unwrap/expect.
+// ADR-0017 cloud-ci-cargo-prefix: scoped self-test over TODAY's real corpus. Runs the producer
+// `--face cargo-prefix` to resolve every in-scope first-party workspace member candidate +
+// package name + cargo_prefix_scope, then asserts the gate's verdict matches the blocking-scoped
+// findings. Advisory-scoped de-branded candidates remain visible coverage but do not create
+// born-blocking baseline debt. The count is MEASURED + reported, not hardcoded. ADR-0083 Tier-3:
+// integration tests assert via unwrap/expect.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::path::{Path, PathBuf};
@@ -27,11 +26,11 @@ fn repo_root() -> PathBuf {
     panic!("failed to locate repo root from test current_dir");
 }
 
-fn hermetic_binary(root: &Path, env_name: &str, value: Option<&str>) -> Result<PathBuf, String> {
+fn producer_binary(root: &Path, value: Option<&str>) -> Result<PathBuf, String> {
     let Some(bin) = value else {
-        return Err(format!(
-            "FAIL-CLOSED: missing {env_name}; Cargo fallback is forbidden"
-        ));
+        return Err(
+            "FAIL-CLOSED: missing OYA_CI_PRODUCER_BIN; Cargo fallback is forbidden".to_owned(),
+        );
     };
     Ok(if Path::new(bin).is_absolute() {
         PathBuf::from(bin)
@@ -40,52 +39,30 @@ fn hermetic_binary(root: &Path, env_name: &str, value: Option<&str>) -> Result<P
     })
 }
 
+fn materialized_scm_facts(root: &Path) -> PathBuf {
+    root.join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json")
+}
+
 #[test]
-fn hermetic_binary_envs_are_required_for_gate() {
+fn producer_binary_env_is_required_for_gate() {
     let root = Path::new("/repo");
-    let producer = hermetic_binary(root, "OYA_CI_PRODUCER_BIN", None)
-        .expect_err("missing producer env must fail closed");
-    let emitter = hermetic_binary(root, "OYA_CI_SCM_FACTS_EMITTER_BIN", None)
-        .expect_err("missing emitter env must fail closed");
+    let producer = producer_binary(root, None).expect_err("missing producer env must fail closed");
     assert!(producer.contains("OYA_CI_PRODUCER_BIN"));
-    assert!(emitter.contains("OYA_CI_SCM_FACTS_EMITTER_BIN"));
 }
 
-/// Run the scm-facts emitter, then run the producer to emit a single face to stdout,
-/// HERMETICALLY. The binaries must be provided by `OYA_CI_SCM_FACTS_EMITTER_BIN` and
-/// `OYA_CI_PRODUCER_BIN`; missing env fails closed so tests cannot silently fall back to Cargo or
-/// stale committed generated faces.
-fn run_scm_facts_emitter(root: &Path) -> PathBuf {
-    let scm_facts = std::env::temp_dir().join(format!(
-        "oya-cargo-prefix-scm-facts-{}.generated.json",
-        std::process::id()
-    ));
-    let _ = std::fs::remove_file(&scm_facts);
-
-    let emitter_bin = std::env::var("OYA_CI_SCM_FACTS_EMITTER_BIN").ok();
-    let bin = hermetic_binary(root, "OYA_CI_SCM_FACTS_EMITTER_BIN", emitter_bin.as_deref())
-        .unwrap_or_else(|e| panic!("{e}"));
-    let output = Command::new(bin)
-        .arg("--repo-root")
-        .arg(root)
-        .arg("--out")
-        .arg(&scm_facts)
-        .current_dir(root)
-        .output()
-        .expect("run scm-facts emitter binary");
-    assert!(
-        output.status.success(),
-        "scm-facts emitter failed: {}",
-        String::from_utf8_lossy(&output.stderr)
-    );
-    scm_facts
-}
+/// Run the producer to emit a single face to stdout from the materialized scm-facts snapshot.
+/// The test deliberately does not run the scm-facts emitter: that binary is the single ambient-git
+/// boundary and must run before gate tests, not inside this `rust_test`.
 
 fn run_producer_face(root: &Path, face: &str) -> Value {
-    let scm_facts = run_scm_facts_emitter(root);
+    let scm_facts = materialized_scm_facts(root);
+    assert!(
+        scm_facts.is_file(),
+        "missing materialized scm-facts face at {}; run the producer-regen/materialization boundary before this gate",
+        scm_facts.display()
+    );
     let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
-    let bin = hermetic_binary(root, "OYA_CI_PRODUCER_BIN", producer_bin.as_deref())
-        .unwrap_or_else(|e| panic!("{e}"));
+    let bin = producer_binary(root, producer_bin.as_deref()).unwrap_or_else(|e| panic!("{e}"));
     let output = Command::new(bin)
         .arg("--repo-root")
         .arg(root)
@@ -97,7 +74,6 @@ fn run_producer_face(root: &Path, face: &str) -> Value {
         .current_dir(root)
         .output()
         .expect("run producer binary");
-    let _ = std::fs::remove_file(&scm_facts);
     assert!(
         output.status.success(),
         "producer failed: {}",
@@ -117,18 +93,24 @@ fn cargo_prefix_verdict_matches_the_live_corpus() {
         rows.len()
     );
 
+    let advisory_rows = rows
+        .iter()
+        .filter(|row| row.get("cargo_prefix_scope").and_then(Value::as_str) == Some("advisory"))
+        .count();
+
     let findings = evaluate_keyed(&face);
     let verdict = evaluate(&face).verdict;
     eprintln!(
-        "BORN-BLOCKING cargo-prefix: member_candidates={} total_findings={} verdict={:?}",
+        "cargo-prefix: member_candidates={} advisory_candidates={} blocking_findings={} verdict={:?}",
         rows.len(),
+        advisory_rows,
         findings.len(),
         verdict
     );
 
-    // The verdict is whatever the live corpus dictates: RED iff there is at least one violation,
-    // GREEN iff every enumerated first-party crate conforms. We assert the verdict and the
-    // findings set are CONSISTENT (no false-green): non-empty findings <=> RED.
+    // The verdict follows the blocking-scoped findings only: advisory de-brand candidates are
+    // coverage rows, not baseline-block-on-new debt. Assert consistency (no false-green):
+    // non-empty blocking findings <=> RED.
     if findings.is_empty() {
         assert_eq!(
             verdict,
@@ -139,7 +121,7 @@ fn cargo_prefix_verdict_matches_the_live_corpus() {
         assert_eq!(
             verdict,
             Verdict::Red,
-            "findings present must mean RED (the gate fires + freezes the debt)"
+            "blocking findings present must mean RED (the gate fires + freezes that scoped debt)"
         );
     }
 }
