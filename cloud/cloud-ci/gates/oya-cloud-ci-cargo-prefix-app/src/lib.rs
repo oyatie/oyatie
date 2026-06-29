@@ -1,31 +1,30 @@
 //! # cloud-ci-cargo-prefix (ADR-0017 — §2.5-adjacent, MIG-PREREQ floor gate S3)
 //!
-//! Enforces the ADR-0017 cargo-prefix fitness rule that every first-party workspace member's
-//! crate-id (its member-path leaf) AND its declared `[package].name` begin with the required
-//! prefix, and that the two agree.
+//! Enforces the ADR-0017 cargo-prefix fitness rule for blocking-scoped workspace members: the
+//! crate-id (its member-path leaf) AND its declared `[package].name` must begin with the required
+//! prefix, and the two must agree.
 //!
 //! ## Reuse, not re-derive (CLI-GOVERNANCE-TO-FIREWALL-MIGRATION-PLAN Principle 1, shape b)
 //! The policy lives in the PURE, I/O-free `oya_intelligence_cargo_prefix_domain::validate_cargo_prefix`
 //! — the SAME predicate the `oya gate validate cargo-prefix` dev-cli call uses (the firewall gate
 //! and the dev-cli call coexist for now). The producer
-//! (`oya-cloud-ci-accounting-registry-app`) does the I/O — it enumerates the first-party `oya-*`
-//! workspace members from the tracked Cargo.toml manifests and feeds each as a row of
-//! `{"member_path", "package_name"}`. This gate runs `validate_cargo_prefix` over each row
-//! INDEPENDENTLY (a single-member iterator) so the verdict is per-crate and surface-all (the
-//! upstream `validate_cargo_prefix` is fail-fast over a whole member set; running it per crate
-//! turns the first-error contract into one Finding per non-conforming crate without re-deriving
-//! the policy).
+//! (`oya-cloud-ci-accounting-registry-app`) does the I/O — it enumerates every tracked first-party
+//! workspace member candidate and feeds each as a row of
+//! `{"member_path", "package_name", "cargo_prefix_scope"}`. This gate runs
+//! `validate_cargo_prefix` over each blocking-scoped row INDEPENDENTLY (a single-member iterator)
+//! so the verdict is per-crate and surface-all, while advisory-scoped de-branded rows remain
+//! visible in the face without becoming born-blocking baseline debt.
 //!
 //! ## Required prefix is CONFIG, not a hardcoded literal
 //! The expected prefix comes from the oya-ci config `[naming].required_prefix` (default `oya-`,
-//! OYA-CI-CONFORMANCE-FLOOR-PLAN §3.3). The bundled default reproduces today's `oya-`, so the
-//! gate's findings are byte-for-byte unchanged.
+//! OYA-CI-CONFORMANCE-FLOOR-PLAN §3.3). The bundled default keeps the prefix rule for rows whose
+//! crate-id and package name still carry the configured brand prefix; de-branded rows are advisory.
 //!
 //! ## Contract
-//! `evaluate_keyed` returns one `Finding{code,key}` per violation (`key` = crate name — the
-//! member-path crate-id when resolvable, else the package name, else the member path);
-//! `evaluate` is the bare-code projection. The producer's `build_gate_baseline` freezes today's
-//! keys (`mode: baseline-block-on-new`) so only NEW non-conforming crates block.
+//! `evaluate_keyed` returns one `Finding{code,key}` per blocking-scoped violation (`key` = crate
+//! name — the member-path crate-id when resolvable, else the package name, else the member path);
+//! `evaluate` is the bare-code projection. Advisory-scoped rows are candidate coverage only and
+//! cannot create new `baseline-block-on-new` cargo-prefix regressions.
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
@@ -41,10 +40,10 @@ use serde_json::Value;
 /// The gate id, matching the buck2 target + the firewall baseline gate-id.
 pub const GATE_ID: &str = "cloud-ci-cargo-prefix";
 
-/// The blocking violation codes (stable slugs the gate emits). Today's corpus only trips
-/// `cargo_prefix_violation` (a member-path crate-id or package name that does not start with the
-/// required prefix); `cargo_prefix_name_path_mismatch` defends the case where both carry the
-/// prefix but disagree, and `cargo_prefix_unresolvable` the malformed-member-path case.
+/// The blocking violation codes (stable slugs the gate emits). `cargo_prefix_violation` covers a
+/// blocking-scoped member-path crate-id or package name that does not start with the required
+/// prefix; `cargo_prefix_name_path_mismatch` defends the case where both carry the prefix but
+/// disagree, and `cargo_prefix_unresolvable` the malformed-member-path case.
 pub const VIOLATION_CODES: [&str; 3] = [
     "cargo_prefix_violation",
     "cargo_prefix_name_path_mismatch",
@@ -132,16 +131,20 @@ fn member_from_row(row: &Value) -> Option<CargoPrefixMember> {
         package_name: package_name.to_owned(),
     })
 }
+/// Candidate rows scoped as advisory are visible producer coverage, not blocking cargo-prefix debt.
+fn is_advisory_row(row: &Value) -> bool {
+    row.get("cargo_prefix_scope").and_then(Value::as_str) == Some("advisory")
+}
 
 /// Pure evaluator over an INJECTED [`NamingConfig`] (ADR-0533 §Decision item 3: the required
 /// prefix is the PROFILE-RESOLVED config loaded from `oya-ci.toml`, NOT a hardcoded literal).
-/// Takes `{"rows": [{"member_path": "...", "package_name": "..."}, ...]}` and returns one
-/// `Finding` per cargo-prefix violation. Reuses
+/// Takes `{"rows": [{"member_path": "...", "package_name": "...", "cargo_prefix_scope": "..."},
+/// ...]}` and returns one `Finding` per blocking-scoped cargo-prefix violation. Reuses
 /// `oya_intelligence_cargo_prefix_domain::validate_cargo_prefix` per crate (surface-all).
 ///
-/// Under `profile='neutral'` the resolved `required_prefix` is empty, so EVERY member "starts
-/// with" it and no `cargo_prefix_violation` is raised — the de-brand. Under `profile='oyatie'`
-/// the resolved prefix is `oya-`, so findings are byte-identical to today.
+/// Under `profile='neutral'` the resolved `required_prefix` is empty, so no
+/// `cargo_prefix_violation` is raised — the de-brand. Under `profile='oyatie'`, rows explicitly
+/// scoped advisory by the producer are visible candidate coverage but do not block.
 pub fn evaluate_keyed_with(input: &Value, naming: &NamingConfig) -> BTreeSet<Finding> {
     let prefix = naming.required_prefix.clone();
     let mut findings = BTreeSet::new();
@@ -167,10 +170,13 @@ pub fn evaluate_keyed_with(input: &Value, naming: &NamingConfig) -> BTreeSet<Fin
             findings.insert(Finding::new("cargo_prefix_unresolvable", "<malformed-row>"));
             continue;
         };
-        // Run the policy over a SINGLE member so the first-error contract yields a per-crate
-        // verdict (surface-all): a conforming member is `Ok`, a non-conforming one is the `Err`
-        // describing its single violation. An empty configured prefix (neutral profile) makes
-        // `validate_cargo_prefix` treat every member as conformant — the de-brand path.
+        if is_advisory_row(row) {
+            continue;
+        }
+        // Run the policy over a SINGLE blocking-scoped member so the first-error contract yields
+        // a per-crate verdict (surface-all): a conforming member is `Ok`, a non-conforming one is
+        // the `Err` describing its single violation. An empty configured prefix (neutral profile)
+        // makes every member advisory-equivalent — the de-brand path.
         if prefix.is_empty() {
             continue;
         }
@@ -341,6 +347,30 @@ mod tests {
         assert_eq!(evaluate(&input).verdict, Verdict::Red);
     }
 
+    #[test]
+    fn advisory_scoped_unprefixed_candidates_are_not_blocking_debt() {
+        let input = json!({
+            "rows": [
+                {
+                    "member_path": "crates/acme-capability-kernel",
+                    "package_name": "acme-capability-kernel",
+                    "cargo_prefix_scope": "advisory"
+                },
+                {
+                    "member_path": "crates/oya-policy-kernel",
+                    "package_name": "acme-policy-kernel",
+                    "cargo_prefix_scope": "blocking"
+                }
+            ]
+        });
+
+        let findings = evaluate_keyed(&input);
+        assert_eq!(findings.len(), 1, "got {findings:?}");
+        let f = findings.iter().next().unwrap();
+        assert_eq!(f.code, "cargo_prefix_violation");
+        assert_eq!(f.key, "acme-policy-kernel");
+        assert_eq!(evaluate(&input).verdict, Verdict::Red);
+    }
     /// ADR-0533 de-brand: under the NEUTRAL profile the resolved `required_prefix` is empty, so a
     /// member that would trip `cargo_prefix_violation` under oyatie is GREEN — the prefix rule is
     /// de-branded. Proves the gate is profile-sourced, not hardcoded to `oya-`.
