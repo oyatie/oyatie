@@ -21,7 +21,9 @@
       "ADR-0510",
       "ADR-0511",
       "ADR-0513",
-      "ADR-0514"
+      "ADR-0514",
+      "ADR-0517",
+      "ADR-0520"
     ],
     "primary_external_references": [
       {
@@ -107,7 +109,8 @@
     "related_specs": [
       "/specs/hyperscaler-production-readiness-claim-contract.json",
       "/specs/phase0-automation-matrix.json",
-      "/specs/phase0-claim-evidence-map.json"
+      "/specs/phase0-claim-evidence-map.json",
+      "/specs/work-area-content-hash-contract.json"
     ]
   },
   "product_posture": {
@@ -116,6 +119,18 @@
     "bespoke_definition": "The control plane, policy engine, admission engine, queue/reconciler state machine, tenant isolation model, APIs, billing/metering, audit chain, and user-visible UX are first-party Rust services. OSS tools may be used as bridge adapters, execution substrate, or reference shape, but cannot be the permanent product control plane.",
     "language_requirement": "Rust for first-party control planes, CLIs, gate crates, reconcilers, webhooks, policy evaluators, state machines, and adapters; no new shell/python except explicit bootstrap/host-prelude allowlist with deletion criteria.",
     "cloud_fit": "Runs as Oyatie Cloud services on the Talos/Kubernetes substrate with OpenBao/OpenTelemetry/Cedar/audit-chain integration, tenant quotas, metering, SLOs, DR, and regional/compliance-pack controls."
+  },
+  "shared_work_area_hash_contract": {
+    "source_spec": "/specs/work-area-content-hash-contract.json",
+    "status": "w1-interface-lock",
+    "rule": "Owned SCM, CI, and CD services must use one content-addressed work-area hash as the byte-identical SCM change id, buck2/RBE key, and CD artifact hash. Consumer-specific namespaces and secondary artifact/action digests may wrap or cite this hash, but must not replace it as the primary join key.",
+    "primary_outputs": [
+      "work_area_hash",
+      "scm_change_id",
+      "buck2_rbe_key",
+      "cd_artifact_hash"
+    ],
+    "claim_boundary": "Metadata-only contract reference; this spec still makes no bespoke SCM, RBE runtime, or CD runtime claim."
   },
   "services": [
     {
