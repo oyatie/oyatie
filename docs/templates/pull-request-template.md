@@ -40,9 +40,14 @@ Closes #<n> (or Refs #<n> if not closing). One line.
   - Local CLI merge authority: `none`; local commands/hooks are advisory shift-left evidence only and are not protected-branch authority
   - Generated faces: `<none touched | producer-materialized only>`; no hand edits to `*.generated.json`
   - SEC-001 threat-model addendum: `<artifact/link | N/A with scope rationale>`
+- Post-merge product-completion packet (after squash merge):
+  - promoted SHA + `oya-ci-required` status URL
+  - rollout verification + rollback note
+  - observability check + browser UX/user-story evidence
+  - Release Please / release-note impact
 
 ## Code Review
 - Reviewer agent: `<reviewer-agent>`
-- Verdict: APPROVE
+- Verdict: <APPROVE | REQUEST CHANGES | PENDING — reviewer/evidence producer must replace before merge>
 - Resolved items: `<items-or-none>`
 - Deferred items: `<items-or-none>`

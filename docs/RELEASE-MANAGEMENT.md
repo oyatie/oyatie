@@ -69,6 +69,17 @@ Per surface:
 - Trust-portal updated on regulator-impact releases
 - Post-release: per-region SLO baseline check before next release
 
+### 4.1 Post-merge product-completion gate
+
+A squash merge only enters post-merge verification. A change is not product-complete until a closeout packet records:
+
+1. promoted commit SHA plus post-merge `oya-ci-required` status URL in the green state;
+2. rollout verification for the deployed artifact, canary/flag state, or explicit `no deployable artifact` rationale;
+3. rollback note naming the command, runbook, digest, or no-op rationale;
+4. observability check naming the golden-signal/SLO dashboard and time window;
+5. browser UX/user-story evidence for user-visible surfaces, or explicit `not user-visible` rationale;
+6. Release Please / release-note impact: release PR/link, generated notes, or `no user-facing release-note impact`.
+
 ## 5. Hotfix path
 
 - `hotfix/x.y.z+1` branch from latest release tag
