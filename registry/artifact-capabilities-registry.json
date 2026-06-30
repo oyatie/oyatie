@@ -2109,16 +2109,16 @@
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "council-architecture + platform-governance + platform-sre + product-leads",
-      "purpose_short": "Shape-neutral schema bundle for universe rows, clearance matrix, promotion packets, fixuptask links, and audit artifacts.",
+      "purpose_short": "Shape-neutral schema bundle for universe rows, manual-curation handoff extracts, clearance matrix, promotion packets, fixuptask links, and audit artifacts.",
       "artifact_profile": "schema",
       "capability_overrides": {
         "verification": {
           "command": "python3 -m json.tool specs/delivery-readiness-reconciliation.json && focused delivery-readiness structural validation"
         },
         "provenance": {
-          "current_author": "GJC + Ouroboros seed_f2f2be6d7c0f",
+          "current_author": "GJC + Ouroboros seed_f2f2be6d7c0f + Hermes t_8b27fa72",
           "current_reviewed_by": "pending",
-          "last_modified_at": "2026-06-29T12:44:53Z"
+          "last_modified_at": "2026-06-30T11:51:11Z"
         }
       }
     },
