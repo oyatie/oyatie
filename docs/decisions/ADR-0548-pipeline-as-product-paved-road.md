@@ -327,6 +327,26 @@ The crate files born-accounted here (verbatim path mention = justification; reac
 `cloud/cloud-ci/gates/oya-cloud-ci-gate-self-conformance-app/src/lib.rs`, and
 `cloud/cloud-ci/gates/oya-cloud-ci-gate-self-conformance-app/tests/gate_self_conformance.rs`.
 
+## Amendment — Shape-neutral platform delivery fabric planning packet (2026-06-29)
+
+The owned pipeline product scope now includes a shape-neutral platform delivery fabric planning
+packet for cloud-native, API-driven, Rust-first admission, scanner, drift, rollout, observability,
+and promotion evidence surfaces. The packet is planning/evidence authority only; it does not promote
+GitHub-hosted workflow execution, local shell, or repo-specific bridge names into destination
+product authority.
+
+The productization packet files born-accounted here (verbatim path mention = justification; root-hub
+pointer/reachability-covered where non-crate) are:
+`specs/platform-delivery-fabric-productization.json`,
+`evidence/pipeline-productization/current-state-20260629.json`,
+`evidence/pipeline-productization/metadata-ref-pattern-fixtures.json`,
+`contracts/openapi/platform/platform-delivery-fabric-observability-v1.yaml`, and
+`contracts/openapi/platform/platform-delivery-fabric-observability-v1.meta.yaml`.
+
+These artifacts extend D1/D2/D3/D4/D5 without relaxing the existing guardrails: repo-local facts stay
+policy-as-data, adapters stay subordinate to first-party control-plane authority, fresh evidence
+expires on cadence, and contradictions create fixuptasks rather than taste-based resolutions.
+
 ## References
 
 - `.omc/ultragoal/PRODUCT-pipeline-paved-road.md` (gitignored session one-pager, 2026-06-10 — the

@@ -618,6 +618,7 @@ fn step_with_domain_status(
 fn kernel_error_ref(error: ExecutionEngineKernelError) -> &'static str {
     match error {
         ExecutionEngineKernelError::InvalidAttempt => "kernel:invalid-attempt",
+        ExecutionEngineKernelError::InvalidObservationWindow => "kernel:invalid-observation-window",
         ExecutionEngineKernelError::InvalidStepIndex => "kernel:invalid-step-index",
         ExecutionEngineKernelError::InvalidTimerDeadline => "kernel:invalid-timer-deadline",
         ExecutionEngineKernelError::UnsafeMetadata => "kernel:unsafe-metadata",

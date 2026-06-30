@@ -31,7 +31,7 @@
     "ledger": "Append-only timeline of state-change events.",
     "localization-pack": "Jurisdiction-specific pack overview and lifecycle authority.",
     "localization-pack-manifest": "Canonical jurisdiction-pack manifest consumed by gates and agents.",
-    "manifest": "Service manifest that redirects retired PRD pointers to the accepted {oya,cloud}/<service> topology.",
+    "manifest": "Service manifest that redirects retired PRD pointers to the accepted current-state topology; oya-/cloud-prefixed paths are migration inventory for reorg-sensitive surfaces, not automatic destination names for new platform delivery-fabric work.",
     "policy": "Decision rule (e.g., migration policy, retention policy).",
     "regional-pack": "Regional policy, regulatory, operational, and market-specific pack authority.",
     "registry": "Data plane with rows. Validators check row conformance to schema.",
@@ -251,7 +251,14 @@
       "current_path": "/specs/cloud-toolchain-target.json",
       "kind": "spec",
       "migration_phase": "p-toolchain",
-      "purpose": "Superseded bridge target for P-TOOLCHAIN. Current authority is /specs/bespoke-cloud-toolchain-services.json: Rust cloud-scm/cloud-ci/cloud-cd services with GitHub/cloud-scm/Argo as adapters, full bespoke CI enforcement, tenant-isolated pipelines, affected-target feedback plus full required backstop, merge-queue speculative validation, and progressive delivery.",
+      "purpose": "Superseded bridge target for P-TOOLCHAIN. Current shape-neutral successor is /specs/platform-delivery-fabric-productization.json. /specs/bespoke-cloud-toolchain-services.json remains valuable as tenant-isolation and first-party Rust-control-plane source evidence, but its oya-/cloud-prefixed examples are migration aliases, not destination names.",
+      "target_path_after_md_retirement": "same"
+    },
+    "platform_delivery_fabric_productization": {
+      "current_path": "/specs/platform-delivery-fabric-productization.json",
+      "kind": "spec",
+      "migration_phase": "p-toolchain-shape-neutral-productization",
+      "purpose": "Shape-neutral universal productized pipeline/control-plane target: Rust first-party API services, adapter-only GitHub/GitLab/legacy-controller/Argo/Snyk/Trivy/driftctl/Kubernetes/Linux references, no CLI/shell authority, no new oya-/cloud-prefixed destination debt, parity harnesses, current-state rows, serialized promotion gates, and observability contract artifacts /contracts/openapi/platform/platform-delivery-fabric-observability-v1.yaml plus /contracts/openapi/platform/platform-delivery-fabric-observability-v1.meta.yaml.",
       "target_path_after_md_retirement": "same"
     },
     "codeview_read_surface": {
@@ -573,7 +580,7 @@
       "human_compatibility_projection": "docs/MASTERPLAN.md",
       "kind": "spec",
       "migration_phase": "accelerated-machine-readable-authority-for-planning-closure",
-      "purpose": "Machine-readable master plan authority for implementation sequencing, vertical delivery order, first-deliverable scope, planning closure, and readiness claims. The first deliverable is Tenant/PBAC-packaged core microservices (PBAC = RBAC + ABAC) (FD-001) with core, messenger, mail, community, infra, Ops Dashboard / Control Center, intelligence (replaces Foundry per ADR-0335 Wave 15I), Workflow, Ontology, canonical base, and Korea localization pack. Canonical service split is {oya,cloud}/<service> with libs/ and ADR-0010/0064 pack roots governed by closed-world inventory; microservices/<ms>/ is legacy and removed only after P0.6 verifies all migration packets. Clean architecture, API-first contracts, independent horizontal scaling, and hyperscaler pattern mapping are required before implementation packets begin.",
+      "purpose": "Machine-readable master plan authority for implementation sequencing, vertical delivery order, first-deliverable scope, planning closure, and readiness claims. The first deliverable is Tenant/PBAC-packaged core microservices (PBAC = RBAC + ABAC) (FD-001) with core, messenger, mail, community, infra, Ops Dashboard / Control Center, intelligence (replaces Foundry per ADR-0335 Wave 15I), Workflow, Ontology, canonical base, and Korea localization pack. Canonical service split remains current-state migration inventory in {oya,cloud}/<service> with libs/ and ADR-0010/0064 pack roots governed by closed-world inventory; new platform delivery-fabric work is narrowed by /specs/platform-delivery-fabric-productization.json and must avoid treating oya-/cloud-prefixed paths as destination names. microservices/<ms>/ is legacy and removed only after P0.6 verifies all migration packets. Clean architecture, API-first contracts, independent horizontal scaling, and hyperscaler pattern mapping are required before implementation packets begin.",
       "target_path_after_md_retirement": "same (machine-readable authority; docs/MASTERPLAN.md is compatibility projection only)"
     },
     "merge_queue_parked_pr": {
