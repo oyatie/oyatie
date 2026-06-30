@@ -3,6 +3,11 @@ purpose: Oyatie — Canonical Docs Changelog
 doc_status: published
 ---
 
+## 2026-06-29 — OpenBao ESO scope and transport gate hardened
+
+- Extended the existing operator-secret-bootstrap gate instead of adding a new cloud-ci surface: static and values-backed ExternalSecret use of OpenBao stores is now policy-scoped by store, bound role, namespace, and remote key prefix, and plaintext OpenBao listeners require restrictive NetworkPolicy coverage.
+- Split the cloud-k8s CSI and cloud-iam SVID-operator ExternalSecrets onto dedicated OpenBao role/store contracts, documented the matching OpenBao policy/role bootstrap, and fenced the OpenBao listener with a committed NetworkPolicy.
+
 ## 2026-06-29 — Supply-chain admission proof wired into active gate
 
 - Replaced the in-cluster registry static-key Cosign admission policy with keyless Sigstore/Rekor plus SLSA provenance and CycloneDX SBOM attestation checks; secondary Kyverno/Kubewarden policy fixtures, signed-image dev CLI defaults, and the dev CLI supply-chain verifier now use owned `jason931225/oyatie` subject/repo scope plus live `cloud/cloud-iac` paths.
