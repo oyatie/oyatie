@@ -84,7 +84,7 @@ scale-up path so we never get stuck mid-migration.
   file under one substrate.
 - **Trigger:** cluster cap of 800 TB or 8·10⁸ objects (20 % below the
   empirical ceiling, leaves migration headroom).
-- **Migration shape (already designed):** the `oya-shared-object-store-kernel`
+- **Migration shape (already designed):** the `storage-object-store-kernel`
   trait abstracts the backend; the Ceph RGW adapter is a parallel
   implementation behind the same trait. Migration is a per-bucket
   dual-write + cutover; no application code change required.
@@ -181,7 +181,7 @@ scale-up path so we never get stuck mid-migration.
 - Permissive licensing (Apache 2.0) with no AGPL contagion.
 - Simple ops at current scale; clean upgrade path to Ceph for hyperscale.
 - Single S3 API across the fleet; one Repository trait via
-  `oya-shared-object-store-kernel`.
+  `storage-object-store-kernel`.
 - Pre-signed URLs are uniform across all bucket consumers.
 
 ### Negative
@@ -293,9 +293,14 @@ operational task, not an application rewrite.
 ## Verification
 
 - Helm chart at `microservices/cloud-iac/iac/helm/seaweedfs/` renders.
-- `crates/oya-shared-object-store-kernel/` `ObjectStore` trait + the
+- `storage/core/object-store-kernel/` `ObjectStore` trait + the
   SeaweedFS adapter compile and test green via `cargo test -p
-  oya-shared-object-store-kernel`.
+  storage-object-store-kernel`.
+- Tracked W1 storage-kernel files under this decision:
+  `storage/core/object-store-kernel/Cargo.toml`,
+  `storage/core/object-store-kernel/BUCK`,
+  `storage/core/object-store-kernel/src/lib.rs`, and
+  `registry/catalog/storage-object-store-kernel.yaml`.
 - Bucket naming convention enforced by `oya-check-tenant-cost-labels-
   coverage` (advisory) and the IaC-side bucket preallocator.
 

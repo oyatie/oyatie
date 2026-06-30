@@ -140,7 +140,7 @@
         "oya-shared-backup-kernel",
         "oya-shared-connector-kernel",
         "oya-shared-idempotency-key-kernel",
-        "oya-shared-object-store-kernel",
+        "storage-object-store-kernel",
         "oya-shared-oidc-client-kernel",
         "oya-shared-olap-client-kernel",
         "oya-shared-outbox-broker-http-adapter",

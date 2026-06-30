@@ -16,8 +16,8 @@
 //!
 //! # Current placement
 //!
-//! This existing `oya-shared-*` crate is the W1 bridge home for the stable port;
-//! it is not destination naming authority for the capability-first storage tree.
+//! This crate is the capability-first storage home for the stable W1 CAS port;
+//! compatibility shims in legacy `oya-shared-*` homes are not destination authority.
 
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
