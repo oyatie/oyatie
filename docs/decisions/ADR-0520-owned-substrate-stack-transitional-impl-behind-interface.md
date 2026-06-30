@@ -49,10 +49,12 @@ event-gated by cutover triggers, not hard deadlines.
 
 The **W1 interfaces to lock**: `WorkAreaTree`, `scm-facts`, `object-store-kernel`, the DB trait, the
 gate contract, and the content-address. The concrete W1 `WorkAreaTree` trait/vocabulary seam is
-accounted by `libs/oya-work-area-tree-kernel/OWNERS`, `libs/oya-work-area-tree-kernel/BUCK`,
-`libs/oya-work-area-tree-kernel/Cargo.toml`, `libs/oya-work-area-tree-kernel/src/lib.rs`,
-`libs/oya-work-area-tree-kernel/tests/work_area_tree_contract.rs`, and
-`registry/catalog/oya-work-area-tree-kernel.yaml`; it remains a seam only and does not implement the
+accounted by `governance/corpus/work-area-tree-kernel/OWNERS`,
+`governance/corpus/work-area-tree-kernel/BUCK`,
+`governance/corpus/work-area-tree-kernel/Cargo.toml`,
+`governance/corpus/work-area-tree-kernel/src/lib.rs`,
+`governance/corpus/work-area-tree-kernel/tests/work_area_tree_contract.rs`, and
+`registry/catalog/work-area-tree-kernel.yaml`; it remains a seam only and does not implement the
 W2 parser or W4 SCM pipeline.
 
 ## Drivers

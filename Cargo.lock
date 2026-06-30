@@ -9619,10 +9619,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-work-area-tree-kernel"
-version = "0.1.0"
-
-[[package]]
 name = "oya-workplace-integration-doc-set-scaffold"
 version = "0.1.0"
 
@@ -13309,6 +13305,10 @@ dependencies = [
  "unicode-xid",
  "wasmparser",
 ]
+
+[[package]]
+name = "work-area-tree-kernel"
+version = "0.1.0"
 
 [[package]]
 name = "workflow-event-bus-adapter"
