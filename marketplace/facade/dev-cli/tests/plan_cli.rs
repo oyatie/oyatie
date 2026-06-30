@@ -322,6 +322,100 @@ fn plan_next_skips_existing_claim_without_mutating_next_ref() {
     fs::remove_dir_all(temp).ok();
 }
 
+#[test]
+fn plan_reserve_id_rejects_adr_seen_on_inflight_branch() {
+    let temp = temp_repo("plan-reserve-id-inflight-adr");
+    write_inflight_adr_branch(&temp, "agent/adr0700", "ADR-0700");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "plan",
+            "reserve-id",
+            "--repo-root",
+            temp.to_str().expect("utf8 repo"),
+            "--id",
+            "ADR-0700",
+            "--claimant",
+            "worker-b",
+        ])
+        .output()
+        .expect("plan reserve-id command runs");
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("already in-flight"),
+        "stderr should explain in-flight reservation collision: {stderr}"
+    );
+    assert!(
+        stderr.contains("refs/heads/agent/adr0700"),
+        "stderr should name the conflicting branch: {stderr}"
+    );
+    assert!(
+        !git(
+            &temp,
+            [
+                "ls-remote",
+                "--exit-code",
+                "origin",
+                "refs/heads/id-reservations/ADR-0700"
+            ]
+        )
+        .status
+        .success(),
+        "rejected reservation must not publish an id-reservation ref"
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn plan_reserve_id_rejects_prd_seen_on_inflight_branch() {
+    let temp = temp_repo("plan-reserve-id-inflight-prd");
+    write_inflight_prd_branch(&temp, "agent/prd-collision", "PRD-COLLISION");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "plan",
+            "reserve-id",
+            "--repo-root",
+            temp.to_str().expect("utf8 repo"),
+            "--id",
+            "PRD-COLLISION",
+            "--claimant",
+            "worker-b",
+        ])
+        .output()
+        .expect("plan reserve-id command runs");
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("already in-flight"),
+        "stderr should explain in-flight PRD reservation collision: {stderr}"
+    );
+    assert!(
+        stderr.contains("refs/heads/agent/prd-collision"),
+        "stderr should name the conflicting branch: {stderr}"
+    );
+    assert!(
+        !git(
+            &temp,
+            [
+                "ls-remote",
+                "--exit-code",
+                "origin",
+                "refs/heads/id-reservations/PRD-COLLISION"
+            ]
+        )
+        .status
+        .success(),
+        "rejected reservation must not publish a PRD id-reservation ref"
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
 fn temp_repo(label: &str) -> PathBuf {
     let path = temp_dir(label);
     let remote = temp_dir(&format!("{label}-remote"));
@@ -357,6 +451,76 @@ fn temp_repo(label: &str) -> PathBuf {
             .success()
     );
     path
+}
+
+fn write_inflight_adr_branch(repo: &Path, branch: &str, adr_id: &str) {
+    assert!(git(repo, ["checkout", "-b", branch]).status.success());
+    let file_name = format!("docs/decisions/{adr_id}-in-flight.md");
+    let file_path = repo.join(&file_name);
+    fs::create_dir_all(file_path.parent().expect("adr parent")).expect("adr dir created");
+    fs::write(
+        &file_path,
+        format!(
+            "---
+id: {adr_id}
+status: Proposed
+---
+# {adr_id}: In-flight reservation fixture
+"
+        ),
+    )
+    .expect("adr fixture written");
+    assert!(git(repo, ["add", &file_name]).status.success());
+    assert!(
+        git_with_env(repo, ["commit", "-m", "add in-flight adr fixture"])
+            .status
+            .success()
+    );
+    assert!(
+        git(
+            repo,
+            ["push", "origin", &format!("HEAD:refs/heads/{branch}")]
+        )
+        .status
+        .success()
+    );
+    assert!(git(repo, ["checkout", "-"]).status.success());
+}
+
+fn write_inflight_prd_branch(repo: &Path, branch: &str, prd_id: &str) {
+    assert!(git(repo, ["checkout", "-b", branch]).status.success());
+    let file_name = "specs/products/collision.json";
+    let file_path = repo.join(file_name);
+    fs::create_dir_all(file_path.parent().expect("prd parent")).expect("prd dir created");
+    fs::write(
+        &file_path,
+        format!(
+            r#"{{
+  "_meta": {{
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "{prd_id}",
+    "status": "Proposed"
+  }}
+}}
+"#
+        ),
+    )
+    .expect("prd fixture written");
+    assert!(git(repo, ["add", file_name]).status.success());
+    assert!(
+        git_with_env(repo, ["commit", "-m", "add in-flight prd fixture"])
+            .status
+            .success()
+    );
+    assert!(
+        git(
+            repo,
+            ["push", "origin", &format!("HEAD:refs/heads/{branch}")]
+        )
+        .status
+        .success()
+    );
+    assert!(git(repo, ["checkout", "-"]).status.success());
 }
 
 fn write_master_plan(root: &Path) -> PathBuf {
