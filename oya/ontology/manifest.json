@@ -215,6 +215,7 @@
   "lts_pins": {
     "clickhouse": "24.10",
     "postgres": "16.6",
+    "valkey": "8.1",
     "rust": "1.96.0"
   },
   "adrs": [
@@ -307,6 +308,12 @@
       "title": "Cqrs Read Replicas",
       "scope": "repo",
       "file": "docs/decisions/ADR-0172-cqrs-read-replicas.md"
+    },
+    {
+      "id": "ADR-0336",
+      "title": "Valkey is the canonical in-memory KV / cache / pubsub substrate",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0336-valkey-not-redis-substrate.md"
     }
   ],
   "hyperscaler_inv_coverage": {
@@ -442,7 +449,7 @@
     },
     "scaling_dimension": "per_query",
     "cell_placement_class": "Tier-1",
-    "notes": "Entity graph reads, projection queries, and history mirrors scale primarily with query and projection load."
+    "notes": "Entity graph reads, projection queries, and history mirrors scale primarily with query and projection load; Valkey is a per-cell hot-cache topology for rebuildable type/function reads, not the authoritative ontology store."
   },
   "sharding_automation": {
     "autosharding": "control_plane_driven",
@@ -525,6 +532,7 @@
   "consumes_upstream_oss": [
     "postgresql",
     "clickhouse",
+    "valkey",
     "cedar",
     "openbao",
     "opentelemetry",
