@@ -2109,16 +2109,16 @@
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "council-architecture + platform-governance + platform-sre + product-leads",
-      "purpose_short": "Shape-neutral schema bundle for universe rows, manual-curation handoff extracts, clearance matrix, promotion packets, fixuptask links, and audit artifacts.",
+      "purpose_short": "Shape-neutral schema bundle for full-delivery universe row lifecycle/source precedence, manual-curation handoff extracts, clearance matrix, promotion packets, fixuptask links, and audit artifacts.",
       "artifact_profile": "schema",
       "capability_overrides": {
         "verification": {
           "command": "python3 -m json.tool specs/delivery-readiness-reconciliation.json && focused delivery-readiness structural validation"
         },
         "provenance": {
-          "current_author": "GJC + Ouroboros seed_f2f2be6d7c0f + Hermes t_8b27fa72",
+          "current_author": "GJC + Ouroboros seed_f2f2be6d7c0f + Hermes t_8b27fa72 + Hermes t_dda96067",
           "current_reviewed_by": "pending",
-          "last_modified_at": "2026-06-30T11:51:11Z"
+          "last_modified_at": "2026-06-30T13:27:56Z"
         }
       }
     },
@@ -2128,16 +2128,16 @@
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "council-architecture + platform-governance + platform-sre + product-leads",
-      "purpose_short": "Honest current-state delivery readiness rows generated from Ouroboros interview closure; denies unsupported Product-ready/Hyperscaler-ready promotions.",
+      "purpose_short": "Honest current-state delivery readiness rows generated from Ouroboros interview closure; carries full-delivery universe stable IDs, source precedence, lifecycle, dependencies, and promotion roles while denying unsupported Product-ready/Hyperscaler-ready promotions.",
       "artifact_profile": "evidence-bundle",
       "capability_overrides": {
         "verification": {
           "command": "focused delivery-readiness structural validation"
         },
         "provenance": {
-          "current_author": "GJC + Ouroboros seed_f2f2be6d7c0f",
+          "current_author": "GJC + Ouroboros seed_f2f2be6d7c0f + Hermes t_dda96067",
           "current_reviewed_by": "pending",
-          "last_modified_at": "2026-06-29T12:44:53Z"
+          "last_modified_at": "2026-06-30T13:27:56Z"
         }
       }
     }
