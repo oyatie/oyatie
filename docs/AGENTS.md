@@ -194,6 +194,10 @@ required_sequence:
   - commit and push on that lane
   - open a PR against dev               # enters the governance pipeline
   - Prow/cloud-ci required context + reviewer APPROVE target; PR title/body hygiene flows through `oya-ci-required`, while F-PR5-06 still owns live review-admission closure and Jenkins/oya bridge evidence remains transitional until P0.0 cutover
+  - squash merge after review threads resolve
+  - post-merge product-completion packet: promoted SHA `oya-ci-required` green,
+    rollout verification, rollback note, observability check, browser UX/user-story evidence,
+    and Release Please/release-note impact
 scaffold_protocol:
   mechanism: per-agent isolated worktree plus admission-gate concurrent-safe-paths
   adr: docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md
@@ -235,6 +239,12 @@ Before declaring any change complete, every agent and every human MUST re-walk t
 - [ ] **D16** Audit-chain emission `EVT-*` ID referenced in `## Evidence`. *Test:* `oya-governance-audit-emission` lane.
 - [ ] **D17** [`MISTAKES-LEDGER.md`](MISTAKES-LEDGER.md) <!-- forward-reference: wave-1 --> row added if this change is a mechanical prevention shipped for a prior failure. *Test:* `oya-governance-mistakes-ledger-cite` lane.
 - [ ] **D18** [`CHANGELOG.md`](CHANGELOG.md) <!-- forward-reference: wave-1 --> row added if this change touches a canonical doc. *Test:* `oya-governance-changelog-row` lane.
+- [ ] **D19** Post-merge product-completion packet recorded after squash merge:
+  promoted commit `oya-ci-required` status URL, rollout verification, rollback note,
+  observability/golden-signal check, browser UX/user-story evidence, and Release
+  Please/release-note impact. *Test:* PR comment or release evidence bundle linked
+  from `## Evidence`; see [`checklists/pre-merge.md`](checklists/pre-merge.md)
+  §"After merge".
 
 If any box is unchecked, the change is not complete. Loop back; do not declare success.
 

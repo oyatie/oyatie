@@ -38,10 +38,19 @@ doc_status: published
 
 ## After merge
 
-17. ☐ Post-merge cloud-ci/oya-ci required status remains green on the promoted commit within 5 min
-18. ☐ Audit-chain emits `EVT-PR-MERGED` with PR # + commit SHA
-19. ☐ Per-affected-team Slack ping (auto)
-20. ☐ Per-changelog auto-emit (governed capability `pr.changelog.row`)
+17. ☐ Promoted commit SHA recorded; post-merge `oya-ci-required` remains green on
+    the promoted commit within 5 min, with status URL
+18. ☐ Rollout verification recorded: deployment/canary/flag state, tenant/customer surface, and operator
+19. ☐ Rollback note recorded: exact rollback command/runbook/digest, or `no deployable artifact` with rationale
+20. ☐ Observability check recorded: golden-signal/SLO dashboard, time window, and no active burn-rate block
+21. ☐ Browser UX/user-story evidence recorded for user-visible surfaces:
+    browser/session, story path, and screenshot/video/artifact; if not user-visible,
+    record `not user-visible` with rationale
+22. ☐ Release Please / release-note impact recorded: release PR/link, generated
+    notes, or `no user-facing release-note impact`
+23. ☐ Audit-chain emits `EVT-PR-MERGED` with PR # + commit SHA
+24. ☐ Per-affected-team Slack ping (auto)
+25. ☐ Per-changelog auto-emit (governed capability `pr.changelog.row`)
 
 ## Anti-patterns
 

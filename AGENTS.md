@@ -59,6 +59,9 @@ required_sequence:
   - open a PR against dev               # enters the governance pipeline
   - single required status context oya-ci-required green (produced by the cloud-ci gate apps per ADR-0515)
   - review threads resolved, then squash merge
+  - post-merge product-completion packet recorded: promoted commit oya-ci-required green,
+    rollout verification, rollback note, observability check, browser/user-story evidence,
+    and Release Please/release-note impact
 generated_faces_policy: never add or modify any *.generated.json by hand; buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin materializes them and the diff-policy gate fails closed on hand edits
 scaffold_protocol:
   mechanism: per-agent isolated worktree plus admission-gate concurrent-safe-paths

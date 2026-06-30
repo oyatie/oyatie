@@ -95,7 +95,7 @@ $ oya-tooling-agent-read run-evidence <demo-cmd>              # expect: <capture
 ## Done criteria
 
 - [ ] All `grit_claim_symbols` claimed → work → `grit done` (no orphan claims).
-- [ ] `docs/AGENTS.md §Done-Definition checklist` D1-D18 walked (see `/templates/checklists/done-definition-checklist.md`).
+- [ ] `docs/AGENTS.md §Done-Definition checklist` D1-D18 walked for merge readiness; D19 post-merge closeout owner/packet slot identified (see `/templates/checklists/done-definition-checklist.md`).
 - [ ] All acceptance commands PASS; outputs captured in PR `## Verification`.
 - [ ] Dependency additions cleared `cargo deny check` and named in PR `## Traceability`.
 - [ ] `icm store -t context-<project> -c "<icm-store-payload>" -i high` emitted (see §Icm-store-payload).
