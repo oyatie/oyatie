@@ -66,7 +66,10 @@ fn unique_root(tag: &str) -> PathBuf {
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
         .as_nanos();
-    std::env::temp_dir().join(format!("register-crate-{tag}-{nonce}-{:?}", std::thread::current().id()))
+    std::env::temp_dir().join(format!(
+        "register-crate-{tag}-{nonce}-{:?}",
+        std::thread::current().id()
+    ))
 }
 
 /// The new crate dir under test: a cloud-ci gate-tool crate (absorbed by the `cloud/cloud-ci` dir).
@@ -154,18 +157,26 @@ fn reachability_registry() -> &'static str {
 /// born-accounting SSOTs seeded yet. The `tag` namespaces the tmp dir so concurrent tests never
 /// clash. Returns the repo handle (removed on drop).
 fn fixture_tagged(tag: &str) -> TmpRepo {
-    let repo = TmpRepo { root: unique_root(tag) };
+    let repo = TmpRepo {
+        root: unique_root(tag),
+    };
     repo.write("specs/capability-registry.json", capability_registry());
     repo.write("Cargo.toml", root_cargo_toml());
     repo.write("docs/decisions/ADR-0568-born-accounting.md", stub_adr());
     repo.write("specs/reachability-registry.json", reachability_registry());
 
     // The new crate's intrinsic source (Cargo.toml + lib.rs) so it is a real dir + git-tracked.
-    repo.write(&format!("{NEW_DIR}/Cargo.toml"), "[package]\nname = \"oya-cloud-ci-example-app\"\n");
+    repo.write(
+        &format!("{NEW_DIR}/Cargo.toml"),
+        "[package]\nname = \"oya-cloud-ci-example-app\"\n",
+    );
     repo.write(&format!("{NEW_DIR}/src/lib.rs"), "//! example\n");
 
     // An existing sibling so the gate tree is non-trivial.
-    repo.write("cloud/cloud-ci/gates/oya-cloud-ci-some-app/Cargo.toml", "[package]\nname=\"x\"\n");
+    repo.write(
+        "cloud/cloud-ci/gates/oya-cloud-ci-some-app/Cargo.toml",
+        "[package]\nname=\"x\"\n",
+    );
 
     repo.git_add_all();
     repo
@@ -195,7 +206,10 @@ fn happy_path_applies_all_edits_and_requires_settle() {
     let outcome = register_crate(&repo.root, &req).unwrap();
 
     // FacesSettle obligation recorded (something changed).
-    assert!(outcome.requires_faces_settle, "faces must need a settle after a real registration");
+    assert!(
+        outcome.requires_faces_settle,
+        "faces must need a settle after a real registration"
+    );
 
     let kinds: Vec<_> = outcome.applied.iter().map(|a| a.kind).collect();
     // The kernel's plan is the DIFF vs the live snapshot: it emits an edit ONLY for an SSOT not
@@ -206,7 +220,10 @@ fn happy_path_applies_all_edits_and_requires_settle() {
     //   - the dir is absorbed by the `cloud/cloud-ci` capability → NO CapabilityMapping edit.
     //   - no catalog requested      → NO CatalogYaml edit.
     assert!(kinds.contains(&AppliedEditKind::OwnersWrite), "{kinds:?}");
-    assert!(kinds.contains(&AppliedEditKind::AdrGovernedPathAppend), "{kinds:?}");
+    assert!(
+        kinds.contains(&AppliedEditKind::AdrGovernedPathAppend),
+        "{kinds:?}"
+    );
     assert!(
         !kinds.contains(&AppliedEditKind::WorkspaceMemberGlob),
         "members glob already covers the dir — no WorkspaceMemberGlob edit expected: {kinds:?}"
@@ -222,7 +239,10 @@ fn happy_path_applies_all_edits_and_requires_settle() {
 
     // OWNERS file now exists with the owner.
     assert!(repo.exists(&format!("{NEW_DIR}/OWNERS")));
-    assert_eq!(repo.read(&format!("{NEW_DIR}/OWNERS")), "cloud-ci-platform\n");
+    assert_eq!(
+        repo.read(&format!("{NEW_DIR}/OWNERS")),
+        "cloud-ci-platform\n"
+    );
 
     // The ADR now enumerates the crate's conventional governed paths verbatim.
     let adr = repo.read("docs/decisions/ADR-0568-born-accounting.md");
@@ -238,7 +258,10 @@ fn happy_path_applies_all_edits_and_requires_settle() {
 fn libs_crate_maps_capability_via_writer() {
     let repo = fixture_tagged("cap-map");
     let libs_dir = "libs/oya-new-thing-kernel";
-    repo.write(&format!("{libs_dir}/Cargo.toml"), "[package]\nname=\"oya-new-thing-kernel\"\n");
+    repo.write(
+        &format!("{libs_dir}/Cargo.toml"),
+        "[package]\nname=\"oya-new-thing-kernel\"\n",
+    );
     repo.write(&format!("{libs_dir}/src/lib.rs"), "//! new thing\n");
     run_git(&repo.root, &["add", "-A"]);
 
@@ -260,12 +283,18 @@ fn libs_crate_maps_capability_via_writer() {
         .iter()
         .find(|a| a.kind == AppliedEditKind::CapabilityMapping)
         .expect("a libs/ crate not absorbed by a capability dir must get a CapabilityMapping edit");
-    assert!(cap.changed, "the registry must be rewritten with the new mapping");
+    assert!(
+        cap.changed,
+        "the registry must be rewritten with the new mapping"
+    );
     assert_eq!(cap.path, "specs/capability-registry.json");
 
     // The dir is now in the `build/` group's globs.
     let registry = repo.read("specs/capability-registry.json");
-    assert!(registry.contains(libs_dir), "registry must list the new dir: {registry}");
+    assert!(
+        registry.contains(libs_dir),
+        "registry must list the new dir: {registry}"
+    );
 }
 
 // CatalogYaml + ReachabilityEntry dispatch: a catalog-bearing crate with a non-crate extra
@@ -274,7 +303,10 @@ fn libs_crate_maps_capability_via_writer() {
 fn catalog_and_reachability_dispatch() {
     let repo = fixture_tagged("cat-reach");
     let mut req = base_request();
-    req.catalog = Some(CatalogSpec { plane: "run".to_owned(), slo: "ga-control-plane".to_owned() });
+    req.catalog = Some(CatalogSpec {
+        plane: "run".to_owned(),
+        slo: "ga-control-plane".to_owned(),
+    });
     // A non-crate governed path (outside the crate dir) → a ReachabilityEntry edit.
     let extra = "specs/fixtures/register-crate/example-case.json";
     repo.write(extra, "{}\n");
@@ -284,7 +316,10 @@ fn catalog_and_reachability_dispatch() {
     let outcome = register_crate(&repo.root, &req).unwrap();
     let kinds: Vec<_> = outcome.applied.iter().map(|a| a.kind).collect();
     assert!(kinds.contains(&AppliedEditKind::CatalogYaml), "{kinds:?}");
-    assert!(kinds.contains(&AppliedEditKind::ReachabilityEntry), "{kinds:?}");
+    assert!(
+        kinds.contains(&AppliedEditKind::ReachabilityEntry),
+        "{kinds:?}"
+    );
 
     // The catalog file was rendered with the human-supplied plane + slo.
     let leaf = NEW_DIR.rsplit('/').next().unwrap();
@@ -359,7 +394,10 @@ fn uncovered_member_glob_fails_closed() {
     let err = register_crate(&repo.root, &req).unwrap_err();
     match err {
         RegisterError::MemberGlobUncovered { dir } => {
-            assert_eq!(dir, NEW_DIR, "the uncovered dir must be named so the human can add a glob");
+            assert_eq!(
+                dir, NEW_DIR,
+                "the uncovered dir must be named so the human can add a glob"
+            );
         }
         other => panic!("expected MemberGlobUncovered, got {other:?}"),
     }
@@ -398,11 +436,17 @@ fn detailed_reports_partial_application_on_dispatch_failure() {
     let req = base_request();
     match register_crate_detailed(&repo.root, &req) {
         RegisterOutcome::Failed { error, applied } => {
-            assert!(matches!(error, RegisterError::AdrFileNotFound { .. }), "{error}");
+            assert!(
+                matches!(error, RegisterError::AdrFileNotFound { .. }),
+                "{error}"
+            );
             // OWNERS was applied before the ADR step aborted (the recovery-aid record).
             let kinds: Vec<_> = applied.iter().map(|a| a.kind).collect();
             assert!(kinds.contains(&AppliedEditKind::OwnersWrite), "{kinds:?}");
-            assert!(!kinds.contains(&AppliedEditKind::AdrGovernedPathAppend), "{kinds:?}");
+            assert!(
+                !kinds.contains(&AppliedEditKind::AdrGovernedPathAppend),
+                "{kinds:?}"
+            );
         }
         RegisterOutcome::Done(_) => panic!("expected a dispatch failure"),
     }
@@ -458,12 +502,27 @@ fn capability_set_includes_expressible_meta_homes() {
     let repo = fixture_tagged("cap-set");
     let set = load_capability_set(&repo.root).unwrap();
     // Writer-appliable crate-glob slugs.
-    assert!(set.contains("build/"), "build/ (crate-glob group) must be a valid capability: {set:?}");
-    assert!(set.contains("data"), "data (crate-glob group) must be a valid capability: {set:?}");
+    assert!(
+        set.contains("build/"),
+        "build/ (crate-glob group) must be a valid capability: {set:?}"
+    );
+    assert!(
+        set.contains("data"),
+        "data (crate-glob group) must be a valid capability: {set:?}"
+    );
     // Expressible meta homes.
-    assert!(set.contains("app/"), "app/ (app_products meta) must be expressible: {set:?}");
-    assert!(set.contains("kernel/"), "kernel/ (meta_directory_absorbs) must be expressible: {set:?}");
-    assert!(set.contains("os/"), "os/ (meta_directory_absorbs) must be expressible: {set:?}");
+    assert!(
+        set.contains("app/"),
+        "app/ (app_products meta) must be expressible: {set:?}"
+    );
+    assert!(
+        set.contains("kernel/"),
+        "kernel/ (meta_directory_absorbs) must be expressible: {set:?}"
+    );
+    assert!(
+        set.contains("os/"),
+        "os/ (meta_directory_absorbs) must be expressible: {set:?}"
+    );
 }
 
 // Integration: registering a crate ALREADY home'd by a meta dir (oya/application → meta:app/) must
@@ -473,7 +532,10 @@ fn capability_set_includes_expressible_meta_homes() {
 fn meta_homed_crate_emits_no_capability_mapping_edit() {
     let repo = fixture_tagged("meta-no-edit");
     let app_dir = "oya/application/widget-app";
-    repo.write(&format!("{app_dir}/Cargo.toml"), "[package]\nname=\"widget-app\"\n");
+    repo.write(
+        &format!("{app_dir}/Cargo.toml"),
+        "[package]\nname=\"widget-app\"\n",
+    );
     repo.write(&format!("{app_dir}/src/lib.rs"), "//! widget\n");
     // The members glob must cover the new dir so no WorkspaceMemberGlob edit/abort interferes.
     repo.write(
@@ -510,7 +572,9 @@ fn meta_homed_crate_emits_no_capability_mapping_edit() {
 // has its loaders + bridges honour those custom paths, proving universality.
 #[test]
 fn honours_non_oyatie_oya_ci_toml() {
-    let repo = TmpRepo { root: unique_root("neutral-cfg") };
+    let repo = TmpRepo {
+        root: unique_root("neutral-cfg"),
+    };
     // A non-oyatie config: neutral profile, with custom non-oyatie SSOT paths.
     repo.write(
         "oya-ci.toml",
@@ -524,11 +588,17 @@ fn honours_non_oyatie_oya_ci_toml() {
     repo.write("specs/capability-registry.json", capability_registry());
     repo.write("Cargo.toml", root_cargo_toml());
     // The ADR corpus + reachability registry live at the CUSTOM config paths, NOT the oyatie ones.
-    repo.write("governance/decisions/ADR-0568-born-accounting.md", stub_adr());
+    repo.write(
+        "governance/decisions/ADR-0568-born-accounting.md",
+        stub_adr(),
+    );
     repo.write("governance/reach.json", reachability_registry());
 
     let new_dir = "cloud/cloud-ci/gates/oya-cloud-ci-neutral-app";
-    repo.write(&format!("{new_dir}/Cargo.toml"), "[package]\nname=\"oya-cloud-ci-neutral-app\"\n");
+    repo.write(
+        &format!("{new_dir}/Cargo.toml"),
+        "[package]\nname=\"oya-cloud-ci-neutral-app\"\n",
+    );
     repo.write(&format!("{new_dir}/src/lib.rs"), "//! neutral\n");
     repo.git_add_all();
 
@@ -553,15 +623,24 @@ fn honours_non_oyatie_oya_ci_toml() {
 
     // The ADR append resolved the owning ADR at the CUSTOM adr_dir (governance/decisions), proving
     // justification.adr_dir was honoured (else AdrFileNotFound would have aborted).
-    assert!(kinds.contains(&AppliedEditKind::AdrGovernedPathAppend), "{kinds:?}");
+    assert!(
+        kinds.contains(&AppliedEditKind::AdrGovernedPathAppend),
+        "{kinds:?}"
+    );
     let adr = repo.read("governance/decisions/ADR-0568-born-accounting.md");
     assert!(adr.contains(&format!("{new_dir}/Cargo.toml")), "{adr}");
 
     // The reachability entry was written to the CUSTOM registry path, proving reachability.registry
     // was honoured (the oyatie default specs/reachability-registry.json was never created).
-    assert!(kinds.contains(&AppliedEditKind::ReachabilityEntry), "{kinds:?}");
+    assert!(
+        kinds.contains(&AppliedEditKind::ReachabilityEntry),
+        "{kinds:?}"
+    );
     let reach = repo.read("governance/reach.json");
-    assert!(reach.contains(extra), "custom reachability registry must carry the path: {reach}");
+    assert!(
+        reach.contains(extra),
+        "custom reachability registry must carry the path: {reach}"
+    );
     assert!(
         !repo.exists("specs/reachability-registry.json"),
         "the oyatie-default reachability registry must NOT be touched on a neutral-profile repo"
@@ -604,26 +683,112 @@ fn settle_runs_regen_and_marks_faces_settled() {
         register_crate_and_settle(&repo.root, &req, &regen, ValidationMode::Skip).unwrap();
 
     // The plan recorded a settle obligation AND the settle ran.
-    assert!(outcome.requires_faces_settle, "a real registration records a FacesSettle obligation");
-    let settled = outcome.faces_settled.expect("faces_settled must be Some after a settle run");
+    assert!(
+        outcome.requires_faces_settle,
+        "a real registration records a FacesSettle obligation"
+    );
+    let settled = outcome
+        .faces_settled
+        .expect("faces_settled must be Some after a settle run");
     assert!(settled.drift_clean, "the fake reported no drift");
     // The 6 producer faces + the scm-facts snapshot were recorded as written (sorted).
     assert!(
-        settled.faces_written.contains(&"accounting-registry.generated.json".to_owned()),
+        settled
+            .faces_written
+            .contains(&"accounting-registry.generated.json".to_owned()),
         "{:?}",
         settled.faces_written
     );
     assert!(
-        settled.faces_written.contains(&"scm-facts.generated.json".to_owned()),
+        settled
+            .faces_written
+            .contains(&"scm-facts.generated.json".to_owned()),
         "{:?}",
         settled.faces_written
     );
-    assert_eq!(settled.faces_written.len(), 7, "{:?}", settled.faces_written);
+    assert_eq!(
+        settled.faces_written.len(),
+        7,
+        "{:?}",
+        settled.faces_written
+    );
 
     // The RegenPort was actually driven: regenerate + verify_drift each ran exactly once, with the
     // repo root.
-    assert_eq!(regen.regen_calls.borrow().as_slice(), std::slice::from_ref(&repo.root));
-    assert_eq!(regen.verify_calls.borrow().as_slice(), std::slice::from_ref(&repo.root));
+    assert_eq!(
+        regen.regen_calls.borrow().as_slice(),
+        std::slice::from_ref(&repo.root)
+    );
+    assert_eq!(
+        regen.verify_calls.borrow().as_slice(),
+        std::slice::from_ref(&repo.root)
+    );
+}
+
+// (3c-1b) Auto-on-birth means Cargo.lock registration is part of the same birth primitive: refresh
+//         Cargo.lock BEFORE settling faces so the scm-facts snapshot/producer see the lockfile that
+//         `cargo metadata` would commit. This prevents the #833-class skip where a new crate is
+//         otherwise born-accounted in SSOTs but still absent from Cargo.lock.
+#[test]
+fn auto_on_birth_refreshes_cargo_lock_before_settling_faces() {
+    let repo = fixture_tagged("settle-lock");
+    let req = base_request();
+    let regen = FakeRegenPort::default();
+
+    let outcome =
+        register_crate_and_settle(&repo.root, &req, &regen, ValidationMode::Skip).unwrap();
+
+    assert!(
+        outcome.cargo_lock_refreshed,
+        "birth registration must refresh Cargo.lock as part of the same primitive"
+    );
+    assert_eq!(
+        regen.lock_refresh_calls.borrow().as_slice(),
+        std::slice::from_ref(&repo.root),
+        "cargo metadata must run once for the birth"
+    );
+    let events = regen.events.borrow().clone();
+    assert_eq!(
+        events,
+        vec![
+            "cargo-lock-refresh".to_owned(),
+            "faces-regenerate".to_owned(),
+            "faces-verify".to_owned(),
+        ],
+        "Cargo.lock must be refreshed before scm-facts/face regeneration"
+    );
+}
+
+#[test]
+fn cargo_lock_refresh_failure_aborts_before_face_regen() {
+    let repo = fixture_tagged("settle-lock-fail");
+    let req = base_request();
+    let regen = FakeRegenPort {
+        fail_lock_refresh: true,
+        ..FakeRegenPort::default()
+    };
+
+    let err =
+        register_crate_and_settle(&repo.root, &req, &regen, ValidationMode::Skip).unwrap_err();
+    match err {
+        RegisterError::CargoLockRefreshFailed(msg) => {
+            assert!(msg.contains("fake cargo metadata failure"), "{msg}");
+        }
+        other => panic!("expected CargoLockRefreshFailed, got {other:?}"),
+    }
+    assert_eq!(
+        regen.events.borrow().as_slice(),
+        &["cargo-lock-refresh".to_owned()],
+        "a failed Cargo.lock refresh must stop before any generated face is rewritten"
+    );
+    assert!(
+        regen.regen_calls.borrow().is_empty(),
+        "face regeneration must not run after Cargo.lock refresh fails"
+    );
+    assert!(
+        regen.verify_calls.borrow().is_empty(),
+        "byte-rediff must not run after Cargo.lock refresh fails"
+    );
 }
 
 // (3c-2) A RegenPort failure → RegenFailed (fail LOUD); verify_drift is NEVER reached.
@@ -631,7 +796,10 @@ fn settle_runs_regen_and_marks_faces_settled() {
 fn settle_propagates_regen_failure() {
     let repo = fixture_tagged("settle-fail");
     let req = base_request();
-    let regen = FakeRegenPort { fail: true, ..FakeRegenPort::default() };
+    let regen = FakeRegenPort {
+        fail: true,
+        ..FakeRegenPort::default()
+    };
 
     let err =
         register_crate_and_settle(&repo.root, &req, &regen, ValidationMode::Skip).unwrap_err();
@@ -643,7 +811,10 @@ fn settle_propagates_regen_failure() {
     }
     // regenerate ran (and failed); verify_drift was never reached (fail-closed short-circuit).
     assert_eq!(regen.regen_calls.borrow().len(), 1);
-    assert!(regen.verify_calls.borrow().is_empty(), "verify_drift must not run after a regen failure");
+    assert!(
+        regen.verify_calls.borrow().is_empty(),
+        "verify_drift must not run after a regen failure"
+    );
 }
 
 // (3c-3) A drift mismatch → DriftDetected naming the drifting face (fail closed before recording a
@@ -681,7 +852,10 @@ fn settle_skips_regen_when_no_obligation() {
     let first_regen = FakeRegenPort::default();
     let first =
         register_crate_and_settle(&repo.root, &req, &first_regen, ValidationMode::Skip).unwrap();
-    assert!(first.faces_settled.is_some(), "the first registration settles the faces");
+    assert!(
+        first.faces_settled.is_some(),
+        "the first registration settles the faces"
+    );
     assert_eq!(first_regen.regen_calls.borrow().len(), 1);
 
     // Re-stage the just-written SSOTs so the re-run reads them as already-registered.
@@ -695,7 +869,18 @@ fn settle_skips_regen_when_no_obligation() {
         !second.requires_faces_settle,
         "a no-op re-run records no FacesSettle obligation"
     );
-    assert!(second.faces_settled.is_none(), "no obligation ⇒ faces_settled stays None");
+    assert!(
+        !second.cargo_lock_refreshed,
+        "a no-op re-run must not refresh Cargo.lock"
+    );
+    assert!(
+        second.faces_settled.is_none(),
+        "no obligation ⇒ faces_settled stays None"
+    );
+    assert!(
+        second_regen.lock_refresh_calls.borrow().is_empty(),
+        "Cargo.lock refresh must NOT run when there is no settle obligation"
+    );
     assert!(
         second_regen.regen_calls.borrow().is_empty(),
         "the RegenPort must NOT be called when there is no settle obligation"
@@ -759,8 +944,13 @@ fn self_validation_clean_crate_succeeds_with_empty_findings() {
     let outcome =
         register_crate_and_settle(&repo.root, &req, &regen, ValidationMode::MinimalSubset).unwrap();
 
-    assert!(outcome.faces_settled.is_some(), "MinimalSubset still settles the faces");
-    let validation = outcome.validation.expect("MinimalSubset records a SelfValidation");
+    assert!(
+        outcome.faces_settled.is_some(),
+        "MinimalSubset still settles the faces"
+    );
+    let validation = outcome
+        .validation
+        .expect("MinimalSubset records a SelfValidation");
     assert!(
         validation.new_findings.is_empty(),
         "a clean crate must produce NO crate-scoped findings: {:?}",
@@ -785,18 +975,15 @@ fn self_validation_crate_keyed_finding_fails_closed() {
     let repo = fixture_tagged("sv-fail");
     // A tracked path under the crate dir with NO accounting row ⇒ the REAL total-accounting
     // evaluate_keyed emits `unaccounted` keyed to `<NEW_DIR>/orphan.rs` (a path under the crate).
-    let ta_face = format!(
-        "{{\"rows\":[],\"unaccounted_paths\":[\"{NEW_DIR}/orphan.rs\"]}}\n"
-    );
+    let ta_face = format!("{{\"rows\":[],\"unaccounted_paths\":[\"{NEW_DIR}/orphan.rs\"]}}\n");
     seed_self_validation_faces(&repo, &ta_face);
     run_git(&repo.root, &["add", "-A"]);
 
     let req = base_request();
     let regen = FakeRegenPort::default();
 
-    let err =
-        register_crate_and_settle(&repo.root, &req, &regen, ValidationMode::MinimalSubset)
-            .unwrap_err();
+    let err = register_crate_and_settle(&repo.root, &req, &regen, ValidationMode::MinimalSubset)
+        .unwrap_err();
     match err {
         RegisterError::SelfValidationFailed { findings } => {
             assert!(
@@ -819,8 +1006,7 @@ fn self_validation_ignores_pre_existing_debt_keyed_elsewhere() {
     let repo = fixture_tagged("sv-foreign");
     // An `unaccounted` finding keyed to a path OUTSIDE the crate dir (pre-existing frozen corpus
     // debt). The real total-accounting evaluate_keyed emits it, but the crate-scope filter drops it.
-    let ta_face =
-        "{\"rows\":[],\"unaccounted_paths\":[\"some/other/unrelated/path.rs\"]}\n";
+    let ta_face = "{\"rows\":[],\"unaccounted_paths\":[\"some/other/unrelated/path.rs\"]}\n";
     seed_self_validation_faces(&repo, ta_face);
     run_git(&repo.root, &["add", "-A"]);
 
@@ -829,7 +1015,9 @@ fn self_validation_ignores_pre_existing_debt_keyed_elsewhere() {
 
     let outcome =
         register_crate_and_settle(&repo.root, &req, &regen, ValidationMode::MinimalSubset).unwrap();
-    let validation = outcome.validation.expect("MinimalSubset records a SelfValidation");
+    let validation = outcome
+        .validation
+        .expect("MinimalSubset records a SelfValidation");
     assert!(
         validation.new_findings.is_empty(),
         "pre-existing debt keyed to OTHER paths must NOT be flagged for this crate: {:?}",
@@ -848,7 +1036,10 @@ fn self_validation_runs_slo_catalog_only_on_catalog_edit_and_scopes_them() {
 
     // A catalog-bearing request ⇒ a CatalogYaml edit IS applied ⇒ slo/catalog gates run.
     let mut req = base_request();
-    req.catalog = Some(CatalogSpec { plane: "run".to_owned(), slo: "ga-control-plane".to_owned() });
+    req.catalog = Some(CatalogSpec {
+        plane: "run".to_owned(),
+        slo: "ga-control-plane".to_owned(),
+    });
 
     let catalog_id = NEW_DIR.rsplit('/').next().unwrap();
     // Inject crafted slo + catalog stdout-only faces. The slo face carries a row for the crate's
@@ -871,11 +1062,13 @@ fn self_validation_runs_slo_catalog_only_on_catalog_edit_and_scopes_them() {
             "rows": [ { "crate_id": catalog_id, "is_live": true, "marker": serde_json::Value::Null } ]
         }),
     );
-    let regen = FakeRegenPort { gate_faces, ..FakeRegenPort::default() };
+    let regen = FakeRegenPort {
+        gate_faces,
+        ..FakeRegenPort::default()
+    };
 
-    let err =
-        register_crate_and_settle(&repo.root, &req, &regen, ValidationMode::MinimalSubset)
-            .unwrap_err();
+    let err = register_crate_and_settle(&repo.root, &req, &regen, ValidationMode::MinimalSubset)
+        .unwrap_err();
     match err {
         RegisterError::SelfValidationFailed { findings } => {
             // The crate-keyed slo finding is reported.
@@ -888,7 +1081,9 @@ fn self_validation_runs_slo_catalog_only_on_catalog_edit_and_scopes_them() {
             );
             // The foreign-keyed slo row was filtered out.
             assert!(
-                !findings.iter().any(|finding| finding.key == "some-other-crate"),
+                !findings
+                    .iter()
+                    .any(|finding| finding.key == "some-other-crate"),
                 "a slo finding keyed to another crate must NOT be reported: {findings:?}"
             );
         }
@@ -897,8 +1092,14 @@ fn self_validation_runs_slo_catalog_only_on_catalog_edit_and_scopes_them() {
     // Both stdout-only gate-input faces were rendered (slo + catalog), proving the CatalogYaml gate.
     let calls = regen.gate_face_calls.borrow();
     let faces: Vec<&str> = calls.iter().map(|(_, f)| f.as_str()).collect();
-    assert!(faces.contains(&"slo-coverage"), "slo-coverage face must be rendered: {faces:?}");
-    assert!(faces.contains(&"catalog-liveness"), "catalog-liveness face must be rendered: {faces:?}");
+    assert!(
+        faces.contains(&"slo-coverage"),
+        "slo-coverage face must be rendered: {faces:?}"
+    );
+    assert!(
+        faces.contains(&"catalog-liveness"),
+        "catalog-liveness face must be rendered: {faces:?}"
+    );
 }
 
 // (3d-5) ValidationMode::Skip continues to skip self-validation entirely (slice-3c backward compat):
@@ -917,7 +1118,10 @@ fn self_validation_skip_mode_records_none_and_makes_no_gate_calls() {
 
     let outcome =
         register_crate_and_settle(&repo.root, &req, &regen, ValidationMode::Skip).unwrap();
-    assert!(outcome.faces_settled.is_some(), "Skip still settles the faces (3c behavior)");
+    assert!(
+        outcome.faces_settled.is_some(),
+        "Skip still settles the faces (3c behavior)"
+    );
     assert!(
         outcome.validation.is_none(),
         "Skip records NO SelfValidation (backward compat): {:?}",
@@ -944,11 +1148,21 @@ fn self_validation_runs_after_faces_settle() {
     let outcome =
         register_crate_and_settle(&repo.root, &req, &regen, ValidationMode::MinimalSubset).unwrap();
     // The settle ran (regen + verify_drift each once) AND self-validation recorded a clean result.
-    assert_eq!(regen.regen_calls.borrow().len(), 1, "regen must run before self-validation");
-    assert_eq!(regen.verify_calls.borrow().len(), 1, "verify_drift must run before self-validation");
-    assert!(outcome.validation.is_some(), "self-validation ran after the settle");
+    assert_eq!(
+        regen.regen_calls.borrow().len(),
+        1,
+        "regen must run before self-validation"
+    );
+    assert_eq!(
+        regen.verify_calls.borrow().len(),
+        1,
+        "verify_drift must run before self-validation"
+    );
+    assert!(
+        outcome.validation.is_some(),
+        "self-validation ran after the settle"
+    );
 }
-
 
 #[test]
 fn buck2_regen_adapter_parses_declared_enforcement_liveness_corpus_targets() {
