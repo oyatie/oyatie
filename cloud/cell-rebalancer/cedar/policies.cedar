@@ -15,7 +15,7 @@ when {
 };
 
 permit(
-  principal == ServicePrincipal::"oyatie.foundry.cell-rebalancer",
+  principal == ServicePrincipal::"oyatie.control-plane.cell-rebalancer",
   action == Action::"cellRebalancerCreateJob",
   resource is RebalanceJob
 )

@@ -14,7 +14,7 @@ data:
 
     // Source: cedar/policies.cedar
     permit(
-      principal == Principal::"oyatie.foundry.cell-lifecycle",
+      principal == Principal::"oyatie.control-plane.cell-lifecycle",
       action in [Action::"RegisterCell", Action::"ActivateCell", Action::"ReadLifecycle"],
       resource is Cell
     ) when {
@@ -29,7 +29,7 @@ data:
       resource is Cell
     ) when {
       principal has role &&
-      principal.role in ["ops-cellular", "cellular-sre", "foundry-cell-orchestrator"] &&
+      principal.role in ["ops-cellular", "cellular-sre", "cell-orchestrator"] &&
       context.evidence_pack_id != "" &&
       context.evidence_pack_sha256.matches("^[a-f0-9]{64}$") &&
       context.cedar_permit_id != "" &&
@@ -54,7 +54,7 @@ data:
       resource is Cell
     ) when {
       principal has role &&
-      principal.role in ["ops-cellular", "cellular-sre", "foundry-cell-orchestrator"] &&
+      principal.role in ["ops-cellular", "cellular-sre", "cell-orchestrator"] &&
       context.target_tier == "T4" &&
       context.evidence_pack_id != "" &&
       context.gate_snapshot_sha256.matches("^[a-f0-9]{64}$") &&
@@ -74,7 +74,7 @@ data:
       resource is Cell
     ) when {
       principal has role &&
-      principal.role in ["ops-cellular", "cellular-sre", "foundry-cell-orchestrator"] &&
+      principal.role in ["ops-cellular", "cellular-sre", "cell-orchestrator"] &&
       context.target_tier == "T3" &&
       context.evidence_pack_id != "" &&
       context.gate_snapshot_sha256.matches("^[a-f0-9]{64}$") &&
@@ -94,7 +94,7 @@ data:
       resource is Cell
     ) when {
       principal has role &&
-      principal.role in ["ops-cellular", "cellular-sre", "foundry-cell-orchestrator"] &&
+      principal.role in ["ops-cellular", "cellular-sre", "cell-orchestrator"] &&
       context.target_tier == "T2" &&
       context.evidence_pack_id != "" &&
       context.gate_snapshot_sha256.matches("^[a-f0-9]{64}$") &&
@@ -114,7 +114,7 @@ data:
       resource is Cell
     ) when {
       principal has role &&
-      principal.role in ["ops-cellular", "cellular-sre", "foundry-cell-orchestrator"] &&
+      principal.role in ["ops-cellular", "cellular-sre", "cell-orchestrator"] &&
       context.target_tier == "T1" &&
       context.evidence_pack_id != "" &&
       context.gate_snapshot_sha256.matches("^[a-f0-9]{64}$") &&
@@ -134,7 +134,7 @@ data:
       resource is Cell
     ) when {
       principal has role &&
-      principal.role in ["ops-cellular", "cellular-sre", "foundry-cell-orchestrator"] &&
+      principal.role in ["ops-cellular", "cellular-sre", "cell-orchestrator"] &&
       context.target_tier == "T0" &&
       context.evidence_pack_id != "" &&
       context.gate_snapshot_sha256.matches("^[a-f0-9]{64}$") &&

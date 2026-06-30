@@ -4,7 +4,7 @@
 // Purpose: scope the iac-applier-worker, iac-rollback-worker, iac-validator-worker,
 //          iac-renderer-worker, iac-registry-worker SPIFFE identities to their
 //          respective mutation paths; forbid cross-µservice mutation.
-// Owner:   axis-foundry + axis-cloud-iac + ops-security
+// Owner:   axis-platform + axis-cloud-iac + ops-security
 // References: iac-isolation.md §"Invariants ISO-01..ISO-06", §"Reserved scopes"
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
