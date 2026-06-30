@@ -30,10 +30,11 @@
 //! | `AdrGovernedPathAppend` | writer `adr_governed_paths::apply` (resolve ADR path) |
 //! | `CatalogYaml`           | writer `catalog_yaml::apply`                          |
 //! | `ReachabilityEntry`     | producer `fix_reachability` (`<path>=<anchor>`)       |
-//! | `FacesSettle`           | NOT applied here — set `requires_faces_settle = true` |
+//! | `FacesSettle`           | `cargo metadata` lock refresh, then face settle via `RegenPort` |
 //!
-//! `FacesSettle` deliberately does NOT run materialize: materialize needs buck2/shell (the
-//! RegenPort is slice 3c). The orchestrator records the obligation; the caller (or 3c) settles.
+//! `FacesSettle` deliberately does NOT run materialize in [`register_crate`]: materialize needs
+//! buck2/shell (the RegenPort is slice 3c). [`register_crate_and_settle`] is the auto-on-birth
+//! entrypoint: refresh Cargo.lock with `cargo metadata`, then settle faces from that candidate tree.
 //!
 //! ## Fail-closed + idempotent
 //! Any edit error ABORTS the dispatch and returns [`RegisterError`], reporting what was applied
@@ -188,6 +189,10 @@ pub struct Outcome {
     /// (i.e. `requires_faces_settle` was `true`). `None` for the subprocess-free [`register_crate`]
     /// / [`register_crate_detailed`] path, and for a settle run whose plan recorded no obligation.
     pub faces_settled: Option<FacesSettled>,
+    /// `true` iff [`register_crate_and_settle`] refreshed Cargo.lock (`cargo metadata`) before
+    /// settling faces. This is part of the auto-on-birth contract: a new workspace crate must enter
+    /// Cargo.lock before scm-facts / accounting faces are regenerated from the candidate tree.
+    pub cargo_lock_refreshed: bool,
     /// `Some` iff [`register_crate_and_settle`] ran [`ValidationMode::MinimalSubset`] self-validation
     /// (the slice-3d fail-closed subset gate check). On a returned [`Outcome`] the
     /// [`SelfValidation::new_findings`] set is ALWAYS empty (a non-empty set fails closed with
@@ -271,6 +276,9 @@ pub enum RegisterError {
     },
     /// A filesystem / git read the orchestrator's loaders need failed.
     Io(String),
+    /// Cargo.lock registration failed during auto-on-birth (`cargo metadata`). The subprocess
+    /// output is included so a caller can diagnose manifest/lock resolution failures directly.
+    CargoLockRefreshFailed(String),
     /// The [`RegenPort`] failed to settle the generated faces (a buck2 build, the codemod manifest,
     /// the scm-facts emitter, or the producer step). Carries the failing step's context plus the
     /// subprocess stdout/stderr so the failure is diagnosable, not opaque (fail LOUD).
@@ -313,6 +321,9 @@ impl std::fmt::Display for RegisterError {
                  exist before its governed surfaces can be appended"
             ),
             RegisterError::Io(m) => write!(f, "register-crate io: {m}"),
+            RegisterError::CargoLockRefreshFailed(m) => {
+                write!(f, "register-crate Cargo.lock refresh failed: {m}")
+            }
             RegisterError::RegenFailed(m) => {
                 write!(f, "register-crate faces-settle regen failed: {m}")
             }
@@ -490,6 +501,7 @@ pub fn register_crate_detailed(repo_root: &Path, req: &RegisterCrateRequest) -> 
         applied,
         requires_faces_settle,
         faces_settled: None,
+        cargo_lock_refreshed: false,
         validation: None,
     })
 }
@@ -536,6 +548,12 @@ pub enum ValidationMode {
 /// the failing step's context + subprocess output. Never swallow a failure (fail LOUD).
 /// [`RegisterError::DriftDetected`] from `verify_drift` on a byte mismatch.
 pub trait RegenPort {
+    /// Refresh Cargo.lock for the candidate tree (`cargo metadata >/dev/null`) before generated
+    /// faces are settled. Auto-on-birth must not let a new workspace crate reach face generation
+    /// while absent from Cargo.lock; the refreshed lock becomes part of the same candidate tree the
+    /// scm-facts emitter and accounting producer consume.
+    fn refresh_cargo_lock(&self, repo_root: &Path) -> Result<(), RegisterError>;
+
     /// Regenerate the committed generated faces from the candidate tree at `repo_root`. Returns the
     /// sorted generated-face file names written.
     fn regenerate(&self, repo_root: &Path) -> Result<Vec<String>, RegisterError>;
@@ -575,6 +593,12 @@ pub trait RegenPort {
 pub struct Buck2RegenAdapter;
 
 impl RegenPort for Buck2RegenAdapter {
+    fn refresh_cargo_lock(&self, repo_root: &Path) -> Result<(), RegisterError> {
+        let mut command = Command::new("cargo");
+        command.arg("metadata").current_dir(repo_root);
+        run_cargo_lock_status(&mut command, "cargo metadata")
+    }
+
     fn regenerate(&self, repo_root: &Path) -> Result<Vec<String>, RegisterError> {
         let tools = build_face_tools(repo_root)?;
 
@@ -833,6 +857,29 @@ fn first_move_plan(repo_root: &Path) -> Result<Option<std::path::PathBuf>, Regis
     Ok(plans.into_iter().next())
 }
 
+/// Run the Cargo.lock refresh subprocess (`cargo metadata`) for its exit status. This is the
+/// auto-on-birth Cargo.lock registration edge: it intentionally captures stdout (like shell
+/// `>/dev/null`) and returns a lock-refresh-specific failure rather than a face-regeneration error.
+fn run_cargo_lock_status(command: &mut Command, step: &str) -> Result<(), RegisterError> {
+    let output = command
+        .output()
+        .map_err(|e| RegisterError::CargoLockRefreshFailed(format!("{step}: {e}")))?;
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err(cargo_lock_command_failed(step, &output))
+    }
+}
+
+fn cargo_lock_command_failed(step: &str, output: &std::process::Output) -> RegisterError {
+    RegisterError::CargoLockRefreshFailed(format!(
+        "{step} failed with status {}:\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    ))
+}
+
 /// Run a settle subprocess for its exit status, folding a non-zero exit (with stdout+stderr) into
 /// [`RegisterError::RegenFailed`]. Mirrors freshness `run_status`:1011.
 fn run_settle_status(command: &mut Command, step: &str) -> Result<(), RegisterError> {
@@ -913,6 +960,13 @@ pub fn register_crate_and_settle(
     if !outcome.requires_faces_settle {
         return Ok(outcome);
     }
+
+    // Auto-on-birth Cargo.lock registration: refresh the lockfile BEFORE regenerating scm-facts and
+    // producer faces, so the generated accounting surfaces observe the same candidate tree the
+    // contributor will commit. This is the mechanical `cargo metadata >/dev/null` remediation folded
+    // into the crate-birth primitive instead of left as a later freshness-gate surprise.
+    regen.refresh_cargo_lock(repo_root)?;
+    outcome.cargo_lock_refreshed = true;
 
     // EXECUTE the recorded FacesSettle obligation: regen the committed faces from the candidate tree.
     let faces_written = regen.regenerate(repo_root)?;
@@ -1103,10 +1157,15 @@ fn load_committed_face(repo_root: &Path, rel: &str) -> Result<Value, RegisterErr
 pub struct FakeRegenPort {
     /// If `true`, `regenerate` returns [`RegisterError::RegenFailed`] without touching the tree.
     pub fail: bool,
+    /// If `true`, `refresh_cargo_lock` returns [`RegisterError::CargoLockRefreshFailed`] before any
+    /// face regeneration can run.
+    pub fail_lock_refresh: bool,
     /// The face file names `regenerate` claims to have written (returned on success).
     pub faces_written: Vec<String>,
     /// If `Some(face)`, `verify_drift` returns [`RegisterError::DriftDetected`] for that face.
     pub drift_face: Option<String>,
+    /// `repo_root`s `refresh_cargo_lock` was called with, in order.
+    pub lock_refresh_calls: std::cell::RefCell<Vec<std::path::PathBuf>>,
     /// `repo_root`s `regenerate` was called with, in order (so a test can assert it ran / did not).
     pub regen_calls: std::cell::RefCell<Vec<std::path::PathBuf>>,
     /// `repo_root`s `verify_drift` was called with, in order.
@@ -1119,6 +1178,8 @@ pub struct FakeRegenPort {
     /// The `(repo_root, face)` pairs `gate_input_face` was called with, in order (so a test can
     /// assert WHICH stdout-only faces were rendered — e.g. that slo/catalog ran only on a catalog edit).
     pub gate_face_calls: std::cell::RefCell<Vec<(std::path::PathBuf, String)>>,
+    /// Coarse ordered event log across lock refresh + face settle steps.
+    pub events: std::cell::RefCell<Vec<String>>,
 }
 
 #[cfg(test)]
@@ -1126,24 +1187,43 @@ impl Default for FakeRegenPort {
     fn default() -> Self {
         Self {
             fail: false,
+            fail_lock_refresh: false,
             faces_written: PRODUCER_FACES
                 .iter()
                 .map(|(file_name, _)| (*file_name).to_owned())
                 .chain(std::iter::once(SCM_FACTS_FACE.to_owned()))
                 .collect(),
             drift_face: None,
+            lock_refresh_calls: std::cell::RefCell::new(Vec::new()),
             regen_calls: std::cell::RefCell::new(Vec::new()),
             verify_calls: std::cell::RefCell::new(Vec::new()),
             gate_faces: std::collections::BTreeMap::new(),
             gate_face_calls: std::cell::RefCell::new(Vec::new()),
+            events: std::cell::RefCell::new(Vec::new()),
         }
     }
 }
 
 #[cfg(test)]
 impl RegenPort for FakeRegenPort {
+    fn refresh_cargo_lock(&self, repo_root: &Path) -> Result<(), RegisterError> {
+        self.lock_refresh_calls
+            .borrow_mut()
+            .push(repo_root.to_path_buf());
+        self.events
+            .borrow_mut()
+            .push("cargo-lock-refresh".to_owned());
+        if self.fail_lock_refresh {
+            return Err(RegisterError::CargoLockRefreshFailed(
+                "fake cargo metadata failure".to_owned(),
+            ));
+        }
+        Ok(())
+    }
+
     fn regenerate(&self, repo_root: &Path) -> Result<Vec<String>, RegisterError> {
         self.regen_calls.borrow_mut().push(repo_root.to_path_buf());
+        self.events.borrow_mut().push("faces-regenerate".to_owned());
         if self.fail {
             return Err(RegisterError::RegenFailed("fake regen failure".to_owned()));
         }
@@ -1154,6 +1234,7 @@ impl RegenPort for FakeRegenPort {
 
     fn verify_drift(&self, repo_root: &Path) -> Result<(), RegisterError> {
         self.verify_calls.borrow_mut().push(repo_root.to_path_buf());
+        self.events.borrow_mut().push("faces-verify".to_owned());
         match &self.drift_face {
             Some(face) => Err(RegisterError::DriftDetected { face: face.clone() }),
             None => Ok(()),

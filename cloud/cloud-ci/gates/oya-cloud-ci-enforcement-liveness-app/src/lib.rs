@@ -162,7 +162,7 @@ pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
                 else {
                     continue;
                 };
-                if !stub_marked && !(wired_in_claude && wired_in_codex) {
+                if !(stub_marked || wired_in_claude && wired_in_codex) {
                     findings.insert(Finding::new(
                         "hook_unwired_without_stub_marker",
                         hook_path,
