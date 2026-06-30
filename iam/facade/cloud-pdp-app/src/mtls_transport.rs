@@ -18,8 +18,9 @@
 //!   [`Extension`](axum::Extension)`<PeerCertInfo>` onto the router per
 //!   connection (axum 0.8 has no built-in rustls serve helper).
 //!
-//! This keeps ONE crypto provider (aws-lc-rs, NO ring), ONE verifier, and ONE
-//! capture pattern across both protocols — no tonic TLS feature is enabled.
+//! This keeps ONE crypto policy (aws-lc-rs, TLS 1.3, X25519MLKEM768 first,
+//! X25519 fallback, NO ring), ONE verifier, and ONE capture pattern across
+//! both protocols — no tonic TLS feature is enabled.
 //!
 //! ## Fidelity boundary (ADR-0561 slice-1b-ii)
 //!
@@ -35,21 +36,21 @@ use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
 
+use oya_http_runtime_hyper_adapter::pqc_hybrid_tls13_server_config_builder;
 use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer};
-use rustls::ServerConfig;
 use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
 use tokio::net::{TcpListener, TcpStream};
-use tokio_rustls::server::TlsStream;
 use tokio_rustls::TlsAcceptor;
+use tokio_rustls::server::TlsStream;
 use tonic::transport::server::{Connected, TcpConnectInfo};
 use x509_parser::certificate::X509Certificate;
 use x509_parser::pem::Pem;
 use x509_parser::prelude::FromDer;
 
+use oya_cloud_os_trustd_domain::TrustBundle;
 use oya_cloud_os_trustd_domain::certificate::{CertUsage, Certificate};
 use oya_cloud_os_trustd_domain::signer::EcdsaP256Signer;
 use oya_cloud_os_trustd_domain::x509::{DistinguishedName, SubjectAltNames, Validity};
-use oya_cloud_os_trustd_domain::TrustBundle;
 
 use iam_identity_workload_svid_kernel::SpiffeId;
 use iam_identity_workload_svid_trustd::leaf_der;
@@ -217,7 +218,10 @@ impl MtlsContext {
             ))
         })?;
         let expected_cell_authority = server_spiffe_id.trust_domain_authority().to_string();
-        let server_chain = server_chain_der.into_iter().map(CertificateDer::from).collect();
+        let server_chain = server_chain_der
+            .into_iter()
+            .map(CertificateDer::from)
+            .collect();
         Ok(Self {
             bundle: Arc::new(bundle),
             server_chain,
@@ -276,25 +280,19 @@ impl MtlsContext {
         &self.expected_cell_authority
     }
 
-    /// Build the rustls [`TlsAcceptor`] (aws-lc-rs provider, NO ring) requiring a
-    /// verified client SVID.
+    /// Build the rustls [`TlsAcceptor`] (aws-lc-rs provider, TLS 1.3, PQC-hybrid
+    /// first, NO ring) requiring a verified client SVID.
     ///
     /// # Errors
     /// [`MtlsBootError::ServerConfig`] when the server leaf/key are rejected by
     /// rustls (malformed DER, key/cert mismatch) — boot-fatal.
     pub fn build_acceptor(&self) -> Result<TlsAcceptor, MtlsBootError> {
         let verifier = SvidClientCertVerifier::new(Arc::clone(&self.bundle));
-        let key = PrivateKeyDer::Pkcs8(PrivatePkcs8KeyDer::from(
-            self.server_key_pkcs8_der.clone(),
-        ));
-        let config = ServerConfig::builder_with_provider(Arc::new(
-            rustls::crypto::aws_lc_rs::default_provider(),
-        ))
-        .with_safe_default_protocol_versions()
-        .map_err(|err| MtlsBootError::ServerConfig(err.to_string()))?
-        .with_client_cert_verifier(Arc::new(verifier))
-        .with_single_cert(self.server_chain.clone(), key)
-        .map_err(|err| MtlsBootError::ServerConfig(err.to_string()))?;
+        let key = PrivateKeyDer::Pkcs8(PrivatePkcs8KeyDer::from(self.server_key_pkcs8_der.clone()));
+        let config = pqc_hybrid_tls13_server_config_builder()
+            .with_client_cert_verifier(Arc::new(verifier))
+            .with_single_cert(self.server_chain.clone(), key)
+            .map_err(|err| MtlsBootError::ServerConfig(err.to_string()))?;
         Ok(TlsAcceptor::from(Arc::new(config)))
     }
 }
@@ -562,10 +560,7 @@ impl AsyncWrite for PeerCertTlsStream {
 /// # Errors
 /// The TLS handshake error (untrusted/absent client cert ⇒ aborted handshake) —
 /// the caller drops the connection (fail-closed, the rogue/no-cert path).
-pub async fn accept_grpc(
-    acceptor: &TlsAcceptor,
-    tcp: TcpStream,
-) -> io::Result<PeerCertTlsStream> {
+pub async fn accept_grpc(acceptor: &TlsAcceptor, tcp: TcpStream) -> io::Result<PeerCertTlsStream> {
     let tcp_info = TcpConnectInfo {
         local_addr: tcp.local_addr().ok(),
         remote_addr: tcp.peer_addr().ok(),

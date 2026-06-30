@@ -16,11 +16,12 @@ oya-intelligence-account-domain = { path = "../oya-intelligence-account-domain" 
 oya-intelligence-adapter-anthropic-subscription-kernel = { path = "../oya-intelligence-adapter-anthropic-subscription-kernel" }
 oya-intelligence-oauth-subscription-kernel = { path = "../oya-intelligence-oauth-subscription-kernel" }
 
-# Async runtime + HTTP stack (ADR-0090: hyper preferred; ADR-0506: aws-lc-rs).
+oya-http-runtime-hyper-adapter = { path = "../../../../libs/oya-http-runtime-hyper-adapter" }
+# Async runtime + HTTP stack (ADR-0090: hyper preferred; ADR-0506/PQC: TLS policy
+# is centralized in oya-http-runtime-hyper-adapter).
 tokio = { workspace = true, features = ["sync", "time", "net"] }
 hyper = { workspace = true }
 hyper-util = { workspace = true }
-hyper-rustls = { workspace = true }
 http-body-util = { workspace = true }
 bytes = { workspace = true }
 

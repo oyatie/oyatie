@@ -52,8 +52,8 @@ use oya_http_runtime_hyper_adapter::{ServerConfig, SyncHandler, serve};
 
 use oya_intelligence_provider_pool_app::{
     AccountHealthMap, AccountHealthStore, DispatchError, InMemoryAccountHealthStore,
-    InMemoryPoolRepository, InMemoryProviderInvocationTransport, InMemorySecretResolver,
-    InMemorySeatRegistry, InMemoryUsageSnapshotSource, OtelMetricsSink, PoolId, PoolRepository,
+    InMemoryPoolRepository, InMemoryProviderInvocationTransport, InMemorySeatRegistry,
+    InMemorySecretResolver, InMemoryUsageSnapshotSource, OtelMetricsSink, PoolId, PoolRepository,
     PoolRoutingStrategy, ProviderAccountId, ProviderAccountPool, ProviderFamily, ProviderResponse,
     ProviderTier, ReloadResult, RequestMetadata, SeatRegistry, TenantId, TransportError,
     TransportScript, UnixMillis, UsageSnapshotMap, UsageSnapshotSource, build_seat_snapshots,
@@ -86,7 +86,7 @@ mod authz {
     /// unforgeable credential (AUTH-005).
     #[derive(Clone, Debug, Eq, PartialEq)]
     pub struct VerifiedPrincipal {
-        tenant: TenantId, // data_class: INTERNAL_ONLY
+        tenant: TenantId,                  // data_class: INTERNAL_ONLY
         roles: BTreeSet<ProviderPoolRole>, // data_class: INTERNAL_ONLY
     }
 
@@ -159,8 +159,8 @@ mod authz {
     /// The minted principal carries the CONFIGURED tenant/roles, NEVER a
     /// caller-supplied header.
     pub struct BearerAuthenticator {
-        token: String, // data_class: SECRET
-        tenant: TenantId, // data_class: INTERNAL_ONLY
+        token: String,                     // data_class: SECRET
+        tenant: TenantId,                  // data_class: INTERNAL_ONLY
         roles: BTreeSet<ProviderPoolRole>, // data_class: INTERNAL_ONLY
     }
 
@@ -216,9 +216,7 @@ mod authz {
     fn forbid_403(detail: &'static str) -> HttpResponse {
         HttpResponse::new(403)
             .with_header("content-type", "application/json")
-            .with_body(
-                format!(r#"{{"error":"forbidden","detail":"{detail}"}}"#).into_bytes(),
-            )
+            .with_body(format!(r#"{{"error":"forbidden","detail":"{detail}"}}"#).into_bytes())
     }
 
     // -- PDP-style policy decision (explicit RBAC + ABAC) --
@@ -254,28 +252,38 @@ mod authz {
         principal.has_role(required)
     }
 
-    fn surface_abac_allows(
-        action: ProviderPoolAction,
-        method: &HttpMethod,
-        path: &str,
-    ) -> bool {
+    fn surface_abac_allows(action: ProviderPoolAction, method: &HttpMethod, path: &str) -> bool {
         matches!(
             (action, method, path),
-            (ProviderPoolAction::DispatchMessages, HttpMethod::Post, "/v1/messages")
-                | (ProviderPoolAction::CountTokens, HttpMethod::Get, "/v1/messages/count_tokens")
-                | (
-                    ProviderPoolAction::ChatCompletions,
-                    HttpMethod::Post,
-                    "/v1/chat/completions"
-                )
-                | (ProviderPoolAction::RequestEmbeddings, HttpMethod::Post, "/v1/embeddings")
-                | (ProviderPoolAction::ListModels, HttpMethod::Get, "/v1/models")
-                | (ProviderPoolAction::ReadSeats, HttpMethod::Get, "/internal/seats")
-                | (
-                    ProviderPoolAction::ReloadSeats,
-                    HttpMethod::Post,
-                    "/internal/seats/reload"
-                )
+            (
+                ProviderPoolAction::DispatchMessages,
+                HttpMethod::Post,
+                "/v1/messages"
+            ) | (
+                ProviderPoolAction::CountTokens,
+                HttpMethod::Get,
+                "/v1/messages/count_tokens"
+            ) | (
+                ProviderPoolAction::ChatCompletions,
+                HttpMethod::Post,
+                "/v1/chat/completions"
+            ) | (
+                ProviderPoolAction::RequestEmbeddings,
+                HttpMethod::Post,
+                "/v1/embeddings"
+            ) | (
+                ProviderPoolAction::ListModels,
+                HttpMethod::Get,
+                "/v1/models"
+            ) | (
+                ProviderPoolAction::ReadSeats,
+                HttpMethod::Get,
+                "/internal/seats"
+            ) | (
+                ProviderPoolAction::ReloadSeats,
+                HttpMethod::Post,
+                "/internal/seats/reload"
+            )
         )
     }
 
@@ -382,7 +390,10 @@ impl fmt::Display for ConfigError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidListenAddr { value } => {
-                write!(f, "OYA_POOL_LISTEN_ADDR is not a valid socket address: {value}")
+                write!(
+                    f,
+                    "OYA_POOL_LISTEN_ADDR is not a valid socket address: {value}"
+                )
             }
             Self::InvalidProvider { value } => write!(
                 f,
@@ -419,11 +430,12 @@ impl AppConfig {
     pub fn from_env() -> Result<Self, ConfigError> {
         let listen_addr_raw = std::env::var("OYA_POOL_LISTEN_ADDR")
             .unwrap_or_else(|_| Self::DEFAULT_LISTEN_ADDR.to_string());
-        let listen_addr = listen_addr_raw
-            .parse::<SocketAddr>()
-            .map_err(|_| ConfigError::InvalidListenAddr {
-                value: listen_addr_raw.clone(),
-            })?;
+        let listen_addr =
+            listen_addr_raw
+                .parse::<SocketAddr>()
+                .map_err(|_| ConfigError::InvalidListenAddr {
+                    value: listen_addr_raw.clone(),
+                })?;
 
         let tenant_id = std::env::var("OYA_POOL_TENANT_ID").unwrap_or_else(|_| "ten_local".into());
         let pool_id = std::env::var("OYA_POOL_POOL_ID").unwrap_or_else(|_| "pool_local".into());
@@ -522,12 +534,11 @@ impl AppState {
         let now = UnixMillis(now_unix_millis());
         // The health store is the single mutable port. A poisoned lock is
         // surfaced as a default-deny dispatch error rather than a panic.
-        let mut health = self
-            .health_store
-            .lock()
-            .map_err(|_| DispatchError::NonRetryableTransport(TransportError::NonRetryable {
+        let mut health = self.health_store.lock().map_err(|_| {
+            DispatchError::NonRetryableTransport(TransportError::NonRetryable {
                 detail: "health store lock poisoned".into(),
-            }))?;
+            })
+        })?;
         let fut = dispatch_to_pool(
             &self.pool_repo,
             &self.usage_source,
@@ -590,7 +601,11 @@ impl AppState {
         let pool = match self.pool_repo.load(&self.tenant_id, &self.pool_id) {
             Ok(Some(p)) => p,
             _ => {
-                return ReloadResult { added: 0, updated: 0, total: 0 };
+                return ReloadResult {
+                    added: 0,
+                    updated: 0,
+                    total: 0,
+                };
             }
         };
         let health: AccountHealthMap = match self.health_store.lock() {
@@ -606,7 +621,11 @@ impl AppState {
         let snapshots = build_seat_snapshots(&pool, &health, &usage, now);
         match self.seat_registry.lock() {
             Ok(mut guard) => guard.upsert(snapshots),
-            Err(_) => ReloadResult { added: 0, updated: 0, total: 0 },
+            Err(_) => ReloadResult {
+                added: 0,
+                updated: 0,
+                total: 0,
+            },
         }
     }
 }
@@ -793,11 +812,8 @@ fn metrics_handler(state: Arc<AppState>) -> SyncHandler {
 
 fn internal_seats_handler(state: Arc<AppState>) -> SyncHandler {
     Arc::new(move |req: HttpRequest| {
-        if let Err(resp) = authz::require_bearer(
-            &state,
-            &req,
-            authz::ProviderPoolAction::ReadSeats,
-        ) {
+        if let Err(resp) = authz::require_bearer(&state, &req, authz::ProviderPoolAction::ReadSeats)
+        {
             return resp;
         }
         if !is_localhost_request(&req) {
@@ -812,11 +828,9 @@ fn internal_seats_handler(state: Arc<AppState>) -> SyncHandler {
 
 fn internal_seats_reload_handler(state: Arc<AppState>) -> SyncHandler {
     Arc::new(move |req: HttpRequest| {
-        if let Err(resp) = authz::require_bearer(
-            &state,
-            &req,
-            authz::ProviderPoolAction::ReloadSeats,
-        ) {
+        if let Err(resp) =
+            authz::require_bearer(&state, &req, authz::ProviderPoolAction::ReloadSeats)
+        {
             return resp;
         }
         if !is_localhost_request(&req) {
@@ -846,17 +860,14 @@ fn messages_handler(state: Arc<AppState>) -> SyncHandler {
 
 fn count_tokens_route_handler(state: Arc<AppState>) -> SyncHandler {
     Arc::new(move |req: HttpRequest| {
-        if let Err(resp) = authz::require_data_plane_bearer(
-            &state,
-            &req,
-            authz::ProviderPoolAction::CountTokens,
-        ) {
+        if let Err(resp) =
+            authz::require_data_plane_bearer(&state, &req, authz::ProviderPoolAction::CountTokens)
+        {
             return resp;
         }
-        let estimate =
-            oya_intelligence_adapter_anthropic_compat_api::count_tokens_handler(&utf8_lossy(
-                &req.body,
-            ));
+        let estimate = oya_intelligence_adapter_anthropic_compat_api::count_tokens_handler(
+            &utf8_lossy(&req.body),
+        );
         HttpResponse::new(200)
             .with_header("content-type", "application/json")
             .with_body(format!(r#"{{"input_tokens":{estimate}}}"#).into_bytes())
@@ -895,11 +906,9 @@ fn embeddings_route_handler(state: Arc<AppState>) -> SyncHandler {
 
 fn models_route_handler(state: Arc<AppState>) -> SyncHandler {
     Arc::new(move |req: HttpRequest| {
-        if let Err(resp) = authz::require_data_plane_bearer(
-            &state,
-            &req,
-            authz::ProviderPoolAction::ListModels,
-        ) {
+        if let Err(resp) =
+            authz::require_data_plane_bearer(&state, &req, authz::ProviderPoolAction::ListModels)
+        {
             return resp;
         }
         HttpResponse::new(200)
@@ -982,9 +991,10 @@ fn is_localhost_request(req: &HttpRequest) -> bool {
 fn localhost_only_response() -> HttpResponse {
     HttpResponse::new(403)
         .with_header("content-type", "application/json")
-        .with_body(br#"{"error":"forbidden","detail":"internal endpoint is localhost-only"}"#.to_vec())
+        .with_body(
+            br#"{"error":"forbidden","detail":"internal endpoint is localhost-only"}"#.to_vec(),
+        )
 }
-
 
 /// Failure assembling the composed app. Fail-closed at start-up.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -1123,7 +1133,14 @@ async fn main() {
         "oya-intelligence-provider-pool listening (in-memory mock transport; real hyper-client transport is a later slice)"
     );
 
-    if let Err(e) = serve(listen_addr, Arc::new(router), Arc::new(chain), server_config).await {
+    if let Err(e) = serve(
+        listen_addr,
+        Arc::new(router),
+        Arc::new(chain),
+        server_config,
+    )
+    .await
+    {
         tracing::error!(error = %e, "hyper serve error");
         std::process::exit(1);
     }
@@ -1164,18 +1181,17 @@ mod tests {
     fn default_listen_addr_parses() {
         // The fail-closed default must be a valid SocketAddr (else from_env
         // with an unset OYA_POOL_LISTEN_ADDR would error spuriously).
-        assert!(
-            AppConfig::DEFAULT_LISTEN_ADDR
-                .parse::<SocketAddr>()
-                .is_ok()
-        );
+        assert!(AppConfig::DEFAULT_LISTEN_ADDR.parse::<SocketAddr>().is_ok());
     }
 
     #[test]
     fn parse_provider_aliases() {
         assert_eq!(parse_provider("claude"), Some(ProviderFamily::Claude));
         assert_eq!(parse_provider("anthropic"), Some(ProviderFamily::Claude));
-        assert_eq!(parse_provider("openai"), Some(ProviderFamily::OpenAiOrCodex));
+        assert_eq!(
+            parse_provider("openai"),
+            Some(ProviderFamily::OpenAiOrCodex)
+        );
         assert_eq!(parse_provider("codex"), Some(ProviderFamily::OpenAiOrCodex));
         assert_eq!(parse_provider("Gemini"), Some(ProviderFamily::Gemini));
         assert_eq!(parse_provider("nope"), None);
@@ -1192,7 +1208,11 @@ mod tests {
         // healthz + metrics + internal/seats + internal/seats/reload + 2 anthropic + 3 openai = 9 routes.
         assert_eq!(router.count(), 9);
         assert!(router.match_route(HttpMethod::Get, "/healthz").is_some());
-        assert!(router.match_route(HttpMethod::Post, "/v1/messages").is_some());
+        assert!(
+            router
+                .match_route(HttpMethod::Post, "/v1/messages")
+                .is_some()
+        );
         assert!(
             router
                 .match_route(HttpMethod::Post, "/v1/chat/completions")
@@ -1244,7 +1264,10 @@ mod tests {
         );
         assert_eq!(resp.status, 200, "mock transport returns 200");
         let text = String::from_utf8_lossy(&resp.body);
-        assert!(text.contains("pool.mock"), "served by mock transport: {text}");
+        assert!(
+            text.contains("pool.mock"),
+            "served by mock transport: {text}"
+        );
         assert!(text.contains("seat-local-1"), "routed to a seat: {text}");
     }
 
@@ -1253,8 +1276,7 @@ mod tests {
         let mut cfg = base_config();
         cfg.provider = ProviderFamily::OpenAiOrCodex;
         let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
-        let body =
-            br#"{"model":"gpt-4o","messages":[{"role":"user","content":"hi"}]}"#.to_vec();
+        let body = br#"{"model":"gpt-4o","messages":[{"role":"user","content":"hi"}]}"#.to_vec();
         let resp = oya_http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Post,
@@ -1492,7 +1514,9 @@ mod tests {
         );
         // Construct a minimal AppState with mismatched tenant binding.
         let script: TransportScript = Arc::new(|_, _, _| {
-            Err(TransportError::NonRetryable { detail: "test stub".into() })
+            Err(TransportError::NonRetryable {
+                detail: "test stub".into(),
+            })
         });
         let state = AppState {
             pool_repo: InMemoryPoolRepository::new(),

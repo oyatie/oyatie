@@ -1393,7 +1393,10 @@ async fn metrics_quarantine_transition_recorded_on_threshold_crossing() {
 
 /// Build a ProviderResponse with status 429 and the supplied extra headers,
 /// plus the mandatory provider_account_id echo.
-fn rate_limited_response(account: &ProviderAccountId, extra_headers: Vec<(&str, &str)>) -> ProviderResponse {
+fn rate_limited_response(
+    account: &ProviderAccountId,
+    extra_headers: Vec<(&str, &str)>,
+) -> ProviderResponse {
     let mut headers = vec![("content-type".to_string(), "application/json".to_string())];
     for (name, value) in extra_headers {
         headers.push((name.to_string(), value.to_string()));
@@ -1463,7 +1466,9 @@ async fn dispatch_429_rotates_to_next_seat_and_records_cooldown() {
 
     // seat_a must have a failure recorded in the health store.
     let map = health.read(&tenant, &pool_id).expect("read health");
-    let seat_a_health = map.get(&pid("seat_a")).expect("seat_a must have health entry");
+    let seat_a_health = map
+        .get(&pid("seat_a"))
+        .expect("seat_a must have health entry");
     assert!(
         seat_a_health.consecutive_failures >= 1,
         "seat_a must have at least one failure recorded after 429, got: {seat_a_health:?}"
@@ -1506,7 +1511,10 @@ async fn dispatch_429_parses_retry_after_ms_header() {
     // seat_a returns 429 with Retry-After-Ms: 30000; seat_b returns 200.
     let script: TransportScript = Arc::new(|account, _provider, _body| {
         if account == &pid("seat_a") {
-            Ok(rate_limited_response(account, vec![("retry-after-ms", "30000")]))
+            Ok(rate_limited_response(
+                account,
+                vec![("retry-after-ms", "30000")],
+            ))
         } else {
             Ok(ok_response(account))
         }
@@ -1537,7 +1545,9 @@ async fn dispatch_429_parses_retry_after_ms_header() {
 
     // seat_a must have a failure recorded.
     let map = health.read(&tenant, &pool_id).expect("read health");
-    let seat_a_health = map.get(&pid("seat_a")).expect("seat_a must have health entry");
+    let seat_a_health = map
+        .get(&pid("seat_a"))
+        .expect("seat_a must have health entry");
     assert!(
         seat_a_health.consecutive_failures >= 1,
         "seat_a must have a failure after 429+Retry-After-Ms, got: {seat_a_health:?}"
@@ -1595,7 +1605,9 @@ async fn dispatch_429_falls_back_to_kernel_cooldown_when_no_header() {
 
     // seat_a must have a failure recorded (kernel fallback still triggers rotation).
     let map = health.read(&tenant, &pool_id).expect("read health");
-    let seat_a_health = map.get(&pid("seat_a")).expect("seat_a must have health entry");
+    let seat_a_health = map
+        .get(&pid("seat_a"))
+        .expect("seat_a must have health entry");
     assert!(
         seat_a_health.consecutive_failures >= 1,
         "seat_a must have a failure even with no Retry-After header, got: {seat_a_health:?}"
@@ -1643,7 +1655,10 @@ async fn dispatch_429_chain_exhaustion_all_seats_rate_limited() {
     .expect_err("all-429 pool must return AllProvidersExhausted");
 
     match err {
-        DispatchError::AllProvidersExhausted { attempts, last_error } => {
+        DispatchError::AllProvidersExhausted {
+            attempts,
+            last_error,
+        } => {
             assert_eq!(attempts, vec![pid("seat_a"), pid("seat_b")]);
             match last_error {
                 TransportError::Retryable { detail } => {
@@ -1687,9 +1702,7 @@ fn parse_retry_after_seconds_header_takes_priority() {
 /// retry-after-ms is used when retry-after is absent.
 #[test]
 fn parse_retry_after_ms_header_used_when_no_retry_after() {
-    let headers = vec![
-        ("retry-after-ms".to_string(), "45000".to_string()),
-    ];
+    let headers = vec![("retry-after-ms".to_string(), "45000".to_string())];
     let ms = parse_retry_after_ms_pub(&headers, 1);
     assert_eq!(ms, 45_000);
 }
@@ -1697,9 +1710,10 @@ fn parse_retry_after_ms_header_used_when_no_retry_after() {
 /// anthropic-ratelimit-requests-reset (integer seconds) is the third priority.
 #[test]
 fn parse_anthropic_ratelimit_requests_reset_header() {
-    let headers = vec![
-        ("anthropic-ratelimit-requests-reset".to_string(), "30".to_string()),
-    ];
+    let headers = vec![(
+        "anthropic-ratelimit-requests-reset".to_string(),
+        "30".to_string(),
+    )];
     let ms = parse_retry_after_ms_pub(&headers, 1);
     assert_eq!(ms, 30_000);
 }
@@ -1707,9 +1721,7 @@ fn parse_anthropic_ratelimit_requests_reset_header() {
 /// x-ratelimit-reset-requests (integer seconds) is priority 5.
 #[test]
 fn parse_x_ratelimit_reset_requests_header() {
-    let headers = vec![
-        ("x-ratelimit-reset-requests".to_string(), "15".to_string()),
-    ];
+    let headers = vec![("x-ratelimit-reset-requests".to_string(), "15".to_string())];
     let ms = parse_retry_after_ms_pub(&headers, 1);
     assert_eq!(ms, 15_000);
 }
@@ -1721,16 +1733,23 @@ fn parse_fallback_to_kernel_cooldown_policy() {
     let headers: Vec<(String, String)> = vec![];
     let ms = parse_retry_after_ms_pub(&headers, 1);
     // CooldownPolicy::window_for(UpstreamRateLimit429, 1) = 30_000 ms.
-    assert_eq!(ms, 30_000, "fallback must use kernel table: 30_000 ms for f=1");
+    assert_eq!(
+        ms, 30_000,
+        "fallback must use kernel table: 30_000 ms for f=1"
+    );
 }
 
 /// HTTP-date values in retry-after are ignored (fall through to fallback).
 #[test]
 fn parse_retry_after_http_date_is_ignored_falls_back_to_kernel() {
-    let headers = vec![
-        ("retry-after".to_string(), "Wed, 21 Oct 2025 07:28:00 GMT".to_string()),
-    ];
+    let headers = vec![(
+        "retry-after".to_string(),
+        "Wed, 21 Oct 2025 07:28:00 GMT".to_string(),
+    )];
     let ms = parse_retry_after_ms_pub(&headers, 1);
     // Non-integer retry-after → skip, no other headers → kernel fallback.
-    assert_eq!(ms, 30_000, "HTTP-date retry-after must be ignored; got {ms}");
+    assert_eq!(
+        ms, 30_000,
+        "HTTP-date retry-after must be ignored; got {ms}"
+    );
 }

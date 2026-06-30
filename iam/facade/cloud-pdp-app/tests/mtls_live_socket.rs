@@ -6,7 +6,7 @@
 //! real X.509 leaves (rcgen/aws-lc-rs, NO ring), then drives REAL rustls client
 //! handshakes against the live REST socket. These are not in-process PEP unit
 //! tests (those live in `src/mtls.rs`) — every assertion here rides a genuine
-//! TLS 1.2/1.3 handshake terminated by the production `SvidClientCertVerifier`.
+//! TLS 1.3 handshake terminated by the production `SvidClientCertVerifier`.
 //!
 //! RED fixtures (fail-closed):
 //! 1. trusted client SVID            -> ALLOW, decision bound to the SVID tenant
@@ -22,6 +22,7 @@ mod common;
 
 use std::sync::Arc;
 
+use oya_http_runtime_hyper_adapter::pqc_hybrid_tls13_client_config_builder;
 use rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier};
 use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer, ServerName, UnixTime};
 use rustls::{ClientConfig, DigitallySignedStruct, Error, SignatureScheme};
@@ -60,14 +61,17 @@ fn ca(name: &str) -> (CertificateAuthority<EcdsaP256Signer>, EcdsaP256Signer) {
     let signer = EcdsaP256Signer::generate().unwrap();
     let key = KeyPair::new(signer.private_key_der(), signer.public_key_spki_der());
     let now = now_secs();
-    let ca = CertificateAuthority::bootstrap(name, key, signer.clone(), now, now + 10_000_000)
-        .unwrap();
+    let ca =
+        CertificateAuthority::bootstrap(name, key, signer.clone(), now, now + 10_000_000).unwrap();
     (ca, signer)
 }
 
 fn service() -> (SecurityService<EcdsaP256Signer>, EcdsaP256Signer) {
     let (ca, signer) = ca("oyatie-cell-7-ca");
-    (SecurityService::new(JoinToken::new(JOIN_TOKEN).unwrap(), ca), signer)
+    (
+        SecurityService::new(JoinToken::new(JOIN_TOKEN).unwrap(), ca),
+        signer,
+    )
 }
 
 fn trusted_bundle(
@@ -98,8 +102,13 @@ fn issue_svid(
         csr,
     };
     let resp = svc.handle_certificate(&req, &key, iat).unwrap();
-    let leaf = der::encode_leaf_der(&resp.identity.certificate, &wl, svc.ca_certificate(), ca_signer)
-        .unwrap();
+    let leaf = der::encode_leaf_der(
+        &resp.identity.certificate,
+        &wl,
+        svc.ca_certificate(),
+        ca_signer,
+    )
+    .unwrap();
     (leaf, wl.private_key_der())
 }
 
@@ -128,8 +137,13 @@ fn issue_server_leaf(
         csr,
     };
     let resp = svc.handle_certificate(&req, &key, iat).unwrap();
-    let leaf = der::encode_leaf_der(&resp.identity.certificate, &srv, svc.ca_certificate(), ca_signer)
-        .unwrap();
+    let leaf = der::encode_leaf_der(
+        &resp.identity.certificate,
+        &srv,
+        svc.ca_certificate(),
+        ca_signer,
+    )
+    .unwrap();
     (leaf, srv.private_key_der())
 }
 
@@ -156,8 +170,13 @@ fn issue_server_leaf_with_uris(
         csr,
     };
     let resp = svc.handle_certificate(&req, &key, iat).unwrap();
-    let leaf = der::encode_leaf_der(&resp.identity.certificate, &srv, svc.ca_certificate(), ca_signer)
-        .unwrap();
+    let leaf = der::encode_leaf_der(
+        &resp.identity.certificate,
+        &srv,
+        svc.ca_certificate(),
+        ca_signer,
+    )
+    .unwrap();
     (leaf, srv.private_key_der())
 }
 
@@ -220,22 +239,20 @@ impl ServerCertVerifier for AcceptTrustdServer {
     }
 
     fn supported_verify_schemes(&self) -> Vec<SignatureScheme> {
-        self.provider.signature_verification_algorithms.supported_schemes()
+        self.provider
+            .signature_verification_algorithms
+            .supported_schemes()
     }
 }
 
 /// Build a rustls client presenting `client_leaf`/`client_key` (or anonymous
 /// when `None`), trusting the trustd PDP server leaf.
-fn client_config(
-    client: Option<(Vec<u8>, Vec<u8>)>,
-) -> ClientConfig {
+fn client_config(client: Option<(Vec<u8>, Vec<u8>)>) -> ClientConfig {
     let provider = Arc::new(rustls::crypto::aws_lc_rs::default_provider());
     let verifier = Arc::new(AcceptTrustdServer {
         provider: Arc::clone(&provider),
     });
-    let builder = ClientConfig::builder_with_provider(provider)
-        .with_safe_default_protocol_versions()
-        .unwrap()
+    let builder = pqc_hybrid_tls13_client_config_builder()
         .dangerous()
         .with_custom_certificate_verifier(verifier);
     match client {
@@ -247,6 +264,20 @@ fn client_config(
             .unwrap(),
         None => builder.with_no_client_auth(),
     }
+}
+fn assert_pqc_hybrid_tls13(connection: &rustls::ClientConnection) {
+    assert_eq!(
+        connection.protocol_version(),
+        Some(rustls::ProtocolVersion::TLSv1_3),
+        "mTLS clients must negotiate TLS 1.3 through the shared PQC-hybrid policy"
+    );
+    assert_eq!(
+        connection
+            .negotiated_key_exchange_group()
+            .map(|group| group.name()),
+        Some(rustls::NamedGroup::X25519MLKEM768),
+        "mTLS clients must negotiate the X25519MLKEM768 hybrid key-share first"
+    );
 }
 
 /// Drive one real mTLS HTTP/1.1 POST /v1/authorize and return (status, body).
@@ -261,6 +292,7 @@ async fn post_authorize(
     let tcp = TcpStream::connect(addr).await?;
     let domain = ServerName::try_from("localhost").unwrap();
     let mut tls = connector.connect(domain, tcp).await?;
+    assert_pqc_hybrid_tls13(tls.get_ref().1);
     let req = format!(
         "POST /v1/authorize HTTP/1.1\r\nHost: localhost\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
         json_body.len(),
@@ -312,7 +344,10 @@ async fn boot_mtls() -> (
     // Unique per call: parallel tests must not share one bundle file path (a
     // concurrent read of a mid-write file is an EOF parse error at boot).
     static SEQ: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
-    let tag = format!("mtls-{}", SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
+    let tag = format!(
+        "mtls-{}",
+        SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+    );
     let inner = serde_json::to_string(&seed).unwrap();
     let path = common::temp_bundle_file(&tag, &common::signed_bundle_doc(&inner));
     let handle = server::start_with_mtls(&config_for(&path), Some(ctx))
@@ -357,7 +392,10 @@ async fn trusted_svid_allows_and_binds_tenant() {
     )
     .await
     .expect("handshake + request");
-    assert_eq!(status, 403, "cross-tenant spoof must be 403, never 404/200: {body}");
+    assert_eq!(
+        status, 403,
+        "cross-tenant spoof must be 403, never 404/200: {body}"
+    );
     assert!(
         body.contains("caller_unauthenticated"),
         "403 must carry the coarse caller-auth code, got {body}"
@@ -522,6 +560,7 @@ async fn trusted_svid_reaches_grpc_decision_over_mtls() {
             let tcp = TcpStream::connect(grpc_addr).await?;
             let domain = ServerName::try_from("localhost").unwrap();
             let tls = connector.connect(domain, tcp).await?;
+            assert_pqc_hybrid_tls13(tls.get_ref().1);
             Ok::<_, std::io::Error>(TokioIo::new(tls))
         }
     });
@@ -575,7 +614,10 @@ async fn trusted_svid_reaches_grpc_decision_over_mtls() {
         entities: grpc_entities(),
         min_policy_version: String::new(),
     };
-    let err = client.authorize(spoof).await.expect_err("cross-tenant denies");
+    let err = client
+        .authorize(spoof)
+        .await
+        .expect_err("cross-tenant denies");
     assert_eq!(
         err.code(),
         tonic::Code::PermissionDenied,
@@ -667,7 +709,10 @@ fn pdp_server_leaf_identity_is_correct_and_impersonator_does_not_chain() {
     // (a) Genuine PDP: identity is the expected platform SVID + chains to the CA.
     let uri = leaf_der::extract_single_uri_san(&server_leaf)
         .expect("PDP server leaf carries its SPIFFE URI SAN");
-    assert_eq!(uri, PDP_SERVER_SPIFFE, "PDP server identity must be the expected platform SVID");
+    assert_eq!(
+        uri, PDP_SERVER_SPIFFE,
+        "PDP server identity must be the expected platform SVID"
+    );
     let id = SpiffeId::parse(&uri).expect("PDP server SPIFFE id parses");
     assert_eq!(id.trust_domain_authority(), "oyatie.cell-7");
     assert!(
@@ -837,13 +882,8 @@ async fn reproduced_no_san_bypass_is_closed_no_unpinned_mtls_serve() {
     // Non-regression: a PROPER cell-rooted server leaf (the operator's shape)
     // still builds and boots mTLS (cell pin present, with-SAN happy path intact).
     let (mut svc2, ca2) = service();
-    let (good_leaf, good_key) = issue_server_leaf_with_uris(
-        &mut svc2,
-        &ca2,
-        iat,
-        10_000_000,
-        &[PDP_SERVER_SPIFFE],
-    );
+    let (good_leaf, good_key) =
+        issue_server_leaf_with_uris(&mut svc2, &ca2, iat, 10_000_000, &[PDP_SERVER_SPIFFE]);
     let bundle2 = trusted_bundle(&svc2, &ca2);
     let ctx = MtlsContext::new(bundle2, vec![good_leaf], good_key)
         .expect("the proper cell-rooted operator server leaf must still build");

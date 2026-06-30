@@ -11,7 +11,8 @@
 //!   * Outbound: kernel `Vec<u8>` body → hyper `Full<Bytes>` via `Bytes::from`.
 //!
 //! The kernel types stay std-only; every hyper-family dep (`hyper`,
-//!     `hyper-util`, `http-body-util`, `bytes`) is concentrated in THIS crate.
+//! `hyper-util`, `hyper-rustls`, `http-body-util`, `bytes`) is concentrated in
+//! THIS crate.
 //!
 //! Request / response structs are re-exported from the middleware kernel so
 //! middleware crates depend inward while consumers still avoid importing hyper.
@@ -31,7 +32,10 @@ use http_body_util::{BodyExt, Full, Limited};
 use hyper::body::{Body, Incoming};
 use hyper::service::service_fn;
 use hyper::{Request, Response};
-use hyper_util::rt::{TokioIo, TokioTimer};
+use hyper_rustls::ConfigBuilderExt;
+use hyper_util::client::legacy::Client;
+use hyper_util::client::legacy::connect::HttpConnector;
+use hyper_util::rt::{TokioExecutor, TokioIo, TokioTimer};
 use hyper_util::server::conn::auto::Builder as ConnBuilder;
 use tokio::net::{TcpListener, TcpStream};
 
@@ -47,6 +51,103 @@ use oya_http_router_kernel::{HttpMethod, Router};
 /// on a typed service struct and wrap with `handler_to_sync(...)` at
 /// registration. The closure alias remains for ergonomics on trivial routes.
 pub type SyncHandler = Arc<dyn Fn(HttpRequest) -> HttpResponse + Send + Sync>;
+
+/// Canonical outbound HTTPS connector type for hyper clients.
+pub type HyperHttpsConnector = hyper_rustls::HttpsConnector<HttpConnector>;
+
+/// Canonical outbound HTTPS client type used by app-layer transports.
+pub type HyperHttpsClient = Client<HyperHttpsConnector, Full<Bytes>>;
+
+/// Build the aws-lc-rs provider used by the workspace TLS policy.
+///
+/// X25519MLKEM768 is explicitly first so Buck2 and Cargo cannot diverge on
+/// feature unification; X25519 remains present as the classical fallback.
+#[must_use]
+pub fn pqc_hybrid_aws_lc_provider() -> rustls::crypto::CryptoProvider {
+    let mut provider = rustls::crypto::aws_lc_rs::default_provider();
+    provider.kx_groups = vec![
+        rustls::crypto::aws_lc_rs::kx_group::X25519MLKEM768,
+        rustls::crypto::aws_lc_rs::kx_group::X25519,
+        rustls::crypto::aws_lc_rs::kx_group::SECP256R1,
+        rustls::crypto::aws_lc_rs::kx_group::SECP384R1,
+    ];
+    provider
+}
+
+/// Return the aws-lc-rs key-exchange group order used by this workspace TLS policy.
+#[must_use]
+pub fn pqc_hybrid_kx_group_names() -> Vec<rustls::NamedGroup> {
+    pqc_hybrid_aws_lc_provider()
+        .kx_groups
+        .iter()
+        .map(|group| group.name())
+        .collect()
+}
+
+/// TLS 1.3-only client config builder using the workspace aws-lc-rs provider.
+#[must_use]
+pub fn pqc_hybrid_tls13_client_config_builder()
+-> rustls::ConfigBuilder<rustls::ClientConfig, rustls::WantsVerifier> {
+    rustls::ClientConfig::builder_with_provider(Arc::new(pqc_hybrid_aws_lc_provider()))
+        .with_protocol_versions(&[&rustls::version::TLS13])
+        .expect("static aws-lc-rs TLS 1.3 PQC-hybrid client provider must be valid")
+}
+
+/// TLS 1.3-only server config builder using the workspace aws-lc-rs provider.
+#[must_use]
+pub fn pqc_hybrid_tls13_server_config_builder()
+-> rustls::ConfigBuilder<rustls::ServerConfig, rustls::WantsVerifier> {
+    rustls::ServerConfig::builder_with_provider(Arc::new(pqc_hybrid_aws_lc_provider()))
+        .with_protocol_versions(&[&rustls::version::TLS13])
+        .expect("static aws-lc-rs TLS 1.3 PQC-hybrid server provider must be valid")
+}
+
+/// Build a webpki-rooted client TLS config for external HTTPS calls.
+#[must_use]
+pub fn pqc_hybrid_tls13_client_config() -> rustls::ClientConfig {
+    pqc_hybrid_tls13_client_config_builder()
+        .with_webpki_roots()
+        .with_no_client_auth()
+}
+
+/// Build the canonical HTTPS-only connector: TLS 1.3, X25519MLKEM768 first, X25519 fallback.
+#[must_use]
+pub fn build_pqc_hybrid_https_connector() -> HyperHttpsConnector {
+    hyper_rustls::HttpsConnectorBuilder::new()
+        .with_tls_config(pqc_hybrid_tls13_client_config())
+        .https_only()
+        .enable_http1()
+        .enable_http2()
+        .build()
+}
+
+/// Build the canonical pooled hyper HTTPS client.
+#[must_use]
+pub fn build_pqc_hybrid_https_client() -> HyperHttpsClient {
+    Client::builder(TokioExecutor::new()).build(build_pqc_hybrid_https_connector())
+}
+
+/// Build a deliberately named loopback-test connector that can speak plaintext
+/// HTTP to in-process mock servers. HTTP traffic through this connector is not
+/// PQC protected and must never be used as production external-endpoint evidence.
+#[doc(hidden)]
+#[must_use]
+pub fn build_loopback_http_or_pqc_hybrid_https_connector_for_tests() -> HyperHttpsConnector {
+    hyper_rustls::HttpsConnectorBuilder::new()
+        .with_tls_config(pqc_hybrid_tls13_client_config())
+        .https_or_http()
+        .enable_http1()
+        .enable_http2()
+        .build()
+}
+
+/// Build a pooled client for loopback plaintext test servers plus normal PQC HTTPS.
+#[doc(hidden)]
+#[must_use]
+pub fn build_loopback_http_or_pqc_hybrid_https_client_for_tests() -> HyperHttpsClient {
+    Client::builder(TokioExecutor::new())
+        .build(build_loopback_http_or_pqc_hybrid_https_connector_for_tests())
+}
 
 /// Wrap a typed `Handler` (with associated `Error`) into the closure-shaped
 /// `SyncHandler` the router holds. Renders errors via the handler's
@@ -517,6 +618,150 @@ mod tests {
             path_captures: BTreeMap::new(),
             matched_template: None,
         }
+    }
+
+    #[test]
+    fn pqc_hybrid_policy_prioritizes_hybrid_group_and_classical_fallback() {
+        let groups = pqc_hybrid_kx_group_names();
+        assert_eq!(
+            groups.first().copied(),
+            Some(rustls::NamedGroup::X25519MLKEM768),
+            "X25519MLKEM768 must be the first offered TLS 1.3 key-share group"
+        );
+        assert!(
+            groups.contains(&rustls::NamedGroup::X25519),
+            "classical X25519 fallback must remain enabled"
+        );
+
+        let _connector = build_pqc_hybrid_https_connector();
+    }
+
+    #[tokio::test]
+    async fn pqc_hybrid_https_client_rejects_plain_http_uri() {
+        use std::sync::atomic::{AtomicBool, Ordering};
+
+        let client = build_pqc_hybrid_https_client();
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+            .await
+            .expect("loopback listener binds");
+        let addr = listener.local_addr().expect("listener addr");
+        let plaintext_server_reached = Arc::new(AtomicBool::new(false));
+        let reached = Arc::clone(&plaintext_server_reached);
+        let server = tokio::spawn(async move {
+            if let Ok(Ok((stream, _))) =
+                tokio::time::timeout(Duration::from_millis(200), listener.accept()).await
+            {
+                reached.store(true, Ordering::SeqCst);
+                let io = TokioIo::new(stream);
+                let _ = hyper::server::conn::http1::Builder::new()
+                    .serve_connection(
+                        io,
+                        service_fn(|_req| async {
+                            Ok::<_, Infallible>(Response::new(Full::new(Bytes::from_static(
+                                b"not-pqc",
+                            ))))
+                        }),
+                    )
+                    .await;
+            }
+        });
+        let request = Request::builder()
+            .method("GET")
+            .uri(format!("http://{addr}/plaintext-is-not-pqc"))
+            .body(Full::new(Bytes::new()))
+            .expect("request builds");
+
+        client
+            .request(request)
+            .await
+            .expect_err("canonical PQC client must reject plaintext HTTP URIs");
+        tokio::time::sleep(Duration::from_millis(50)).await;
+        assert!(
+            !plaintext_server_reached.load(Ordering::SeqCst),
+            "canonical PQC client must reject plaintext HTTP before reaching a loopback HTTP server"
+        );
+        server.abort();
+    }
+
+    #[test]
+    fn pqc_hybrid_tls13_handshake_selects_hybrid_group() {
+        let rcgen::CertifiedKey { cert, signing_key } =
+            rcgen::generate_simple_self_signed(vec!["localhost".to_string()])
+                .expect("test cert generation");
+        let mut roots = rustls::RootCertStore::empty();
+        roots.add(cert.der().clone()).expect("self cert trusted");
+
+        let client_config = pqc_hybrid_tls13_client_config_builder()
+            .with_root_certificates(roots)
+            .with_no_client_auth();
+        let server_key = rustls::pki_types::PrivateKeyDer::Pkcs8(
+            rustls::pki_types::PrivatePkcs8KeyDer::from(signing_key.serialize_der()),
+        );
+        let server_config = pqc_hybrid_tls13_server_config_builder()
+            .with_no_client_auth()
+            .with_single_cert(vec![cert.der().clone()], server_key)
+            .expect("server cert and key match");
+
+        let mut client = rustls::ClientConnection::new(
+            Arc::new(client_config),
+            rustls::pki_types::ServerName::try_from("localhost").expect("valid DNS name"),
+        )
+        .expect("client connection");
+        let mut server =
+            rustls::ServerConnection::new(Arc::new(server_config)).expect("server connection");
+
+        for _ in 0..16 {
+            let mut client_to_server = Vec::new();
+            client
+                .write_tls(&mut client_to_server)
+                .expect("client writes tls");
+            if !client_to_server.is_empty() {
+                let mut cursor = std::io::Cursor::new(client_to_server);
+                server.read_tls(&mut cursor).expect("server reads tls");
+                server
+                    .process_new_packets()
+                    .expect("server processes packets");
+            }
+
+            let mut server_to_client = Vec::new();
+            server
+                .write_tls(&mut server_to_client)
+                .expect("server writes tls");
+            if !server_to_client.is_empty() {
+                let mut cursor = std::io::Cursor::new(server_to_client);
+                client.read_tls(&mut cursor).expect("client reads tls");
+                client
+                    .process_new_packets()
+                    .expect("client processes packets");
+            }
+
+            if !client.is_handshaking() && !server.is_handshaking() {
+                break;
+            }
+        }
+
+        assert!(!client.is_handshaking(), "client handshake must finish");
+        assert!(!server.is_handshaking(), "server handshake must finish");
+        assert_eq!(
+            client.protocol_version(),
+            Some(rustls::ProtocolVersion::TLSv1_3)
+        );
+        assert_eq!(
+            server.protocol_version(),
+            Some(rustls::ProtocolVersion::TLSv1_3)
+        );
+        assert_eq!(
+            client
+                .negotiated_key_exchange_group()
+                .map(|group| group.name()),
+            Some(rustls::NamedGroup::X25519MLKEM768)
+        );
+        assert_eq!(
+            server
+                .negotiated_key_exchange_group()
+                .map(|group| group.name()),
+            Some(rustls::NamedGroup::X25519MLKEM768)
+        );
     }
 
     #[test]

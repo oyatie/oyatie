@@ -75,10 +75,7 @@ impl InMemoryAlertPort {
 
 impl OperatorAlertPort for InMemoryAlertPort {
     fn alert(&self, seat_id: &SeatId, kind: AlertKind) {
-        self.alerts
-            .lock()
-            .unwrap()
-            .push((seat_id.clone(), kind));
+        self.alerts.lock().unwrap().push((seat_id.clone(), kind));
     }
 }
 
