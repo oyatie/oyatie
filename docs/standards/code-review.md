@@ -44,6 +44,32 @@ running the traceability gate with the explicit author policy. Today this is
 target/advisory evidence; it becomes merge authority only when a trusted
 server-side/cloud-ci review producer is live and required (`F-PR5-06`).
 
+## 2.1 Merge-hold preflight packet (GH #902)
+
+The merge-hold source of truth is `oya-governance-pr-merge-gate-kernel`'s
+`evaluate_merge_hold` packet contract. Adapters normalize SCM/API observations
+into that pure kernel; no adapter may decide readiness from prose, branch names,
+or eventual CI completion.
+
+Merge is blocked unless the same unchanged PR head has all of these facts:
+
+- every PR-linked blocker, follow-up, or review task is terminal (`completed`,
+  `closed_out_of_scope`, or `closed_handed_to_fixuptask:<id>`);
+- native review is terminal: non-empty approved decision, latest approved review
+  on the PR head, no unresolved requested-changes thread, and no newer BLOCK
+  comment;
+- every required check context is completed successfully on that exact head,
+  including the single required fan-in context.
+
+Failure packets name the PR number, observed head SHA, non-terminal task IDs,
+native review blockers, and non-green or stale check contexts. Success packets
+name the PR number, unchanged head SHA, terminal task IDs, native review
+evidence, green contexts, required fan-in success, and verification timestamp.
+
+If a PR merged too early, workers preserve WIP and create a fresh branch from
+current `dev` for the follow-up instead of pushing to the already-merged PR
+branch.
+
 ## 3. Per-class review requirements
 
 | Change class | Required reviewers | Mandatory checks |
