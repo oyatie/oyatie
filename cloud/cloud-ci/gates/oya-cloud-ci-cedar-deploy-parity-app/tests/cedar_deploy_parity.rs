@@ -97,6 +97,9 @@ const GH_987_CLOUD_PATHS: [&str; 14] = [
     "cloud/tenancy/iac/k8s/helm/templates/cedar.yaml",
 ];
 
+const AUTHZ_004_DEAD_CONFIGMAP_PATHS: [&str; 1] =
+    ["oya/analytics/iac/k8s/helm/templates/cedar.yaml"];
+
 #[test]
 fn committed_policy_gate_id_matches_contract() {
     let policy = load_policy(&repo_root());
@@ -196,6 +199,40 @@ fn gh_987_cloud_templates_are_disarmed_from_blanket_baseline() {
                 "{path} deploys an executable unconditional default-deny forbid instead of relying on Cedar implicit deny: {forbid:?}"
             );
         }
+    }
+}
+
+#[test]
+fn authz_004_dead_configmaps_are_deleted_from_blanket_baseline() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let baseline_paths = policy
+        .get("baseline")
+        .and_then(|baseline| baseline.get("paths"))
+        .and_then(Value::as_array)
+        .expect("baseline.paths array")
+        .iter()
+        .map(|path| path.as_str().expect("baseline path string"))
+        .collect::<BTreeSet<_>>();
+
+    let observed = collect(&root, &policy).unwrap_or_else(|e| panic!("collect on live tree: {e}"));
+    let collected_paths = observed
+        .get("configmaps")
+        .and_then(Value::as_array)
+        .expect("collected configmaps array")
+        .iter()
+        .filter_map(|configmap| configmap.get("path").and_then(Value::as_str))
+        .collect::<BTreeSet<_>>();
+
+    for path in AUTHZ_004_DEAD_CONFIGMAP_PATHS {
+        assert!(
+            !baseline_paths.contains(path),
+            "{path} must not remain in the blanket baseline after AUTHZ-004 deletion"
+        );
+        assert!(
+            !collected_paths.contains(path),
+            "{path} must be deleted rather than deployed as an unused blanket ConfigMap"
+        );
     }
 }
 

@@ -33,10 +33,6 @@ config:
   auditChainEnabled: true
   imagePromotionPolicy: cosign-required
 
-cedar:
-  enabled: true
-  policyConfigMapName: oya-analytics-cedar
-
 otel:
   enabled: true
   endpoint: http://otel-collector.observability.svc.cluster.local:4317
