@@ -28,7 +28,7 @@ doc_status: published
 - [ ] **R3** `## Summary` states *why*, not only *what*.
 - [ ] **R4** `## Verification` pastes actual command output (not hand-waves). Every required check has a `PASS` token, and the `oya-ci-required` status names the observed PR head plus check/status URL.
 - [ ] **R5** `## Traceability` cites canonical docs read, ADRs cited (ADR-0052/ADR-0053/ADR-0054 where applicable), cross-axis contracts touched, IP ID (if applicable). Legacy ADR-#### forbidden in active text.
-- [ ] **R6** `## Evidence` lists audit-chain emission ID + (if binary) Cosign signature + SBOM + SLSA level, and includes a review/fix evidence packet naming `oya-ci-required` status, exact failing/fixed checks, review-thread resolution, reviewer approval state, local-CLI non-authority, and generated-face no-hand-edit status.
+- [ ] **R6** `## Evidence` lists audit-chain emission ID + (if binary) Cosign signature + SBOM + SLSA level, and includes a review/fix evidence packet naming `oya-ci-required` status, exact failing/fixed checks, review-thread resolution, reviewer approval state bound to the current PR head, local-CLI non-authority, generated-face no-hand-edit status, worker-completion PR URL, and SEC-001 threat-model artifact or `N/A` scope rationale.
 - [ ] **R7** Done-definition rows D1-D18 walked (see `docs/checklists/done-definition-checklist.md`).
 - [ ] **R8** No `--no-verify`, no hook bypass, no signing skip in the commits. *Lane:* `oya-governance-bypass` (ADR-0053).
 - [ ] **R9** No untyped values at API boundaries (per `docs/standards/error-handling.md`). *(advisory; per-language reviewer enforces)*

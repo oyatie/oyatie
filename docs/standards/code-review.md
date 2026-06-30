@@ -77,6 +77,12 @@ The packet is a durable record, not a new local gate: protected-branch merge
 authority remains the single `oya-ci-required` status plus the trusted review
 producer boundary tracked by `F-PR5-06`.
 
+Worker-completed implementation cards are not complete from a local diff, local
+test output, or pushed branch alone. Completion evidence MUST name a protected
+PR against `dev`, current-head `oya-ci-required` evidence, independent reviewer
+approval evidence, and zero unresolved review threads before downstream cards
+unblock.
+
 The packet records all facts below on the same PR head SHA:
 
 - isolated worktree/branch, pushed commit SHA, and PR target `dev`;
@@ -85,11 +91,17 @@ The packet records all facts below on the same PR head SHA:
   commits;
 - review-thread resolution, including resolved/unresolved counts and thread IDs
   or links; unresolved threads MUST be `0` before merge;
-- reviewer approval state, reviewer identity, verdict, review URL, and timestamp;
+- reviewer approval state, reviewer identity, verdict, review URL, approved head
+  SHA, and timestamp; the approved head SHA MUST match the packet head SHA;
 - local CLI merge authority: `none`; local commands/hooks are advisory
   shift-left evidence only and do not supersede `oya-ci-required`;
 - generated-face status: either none touched or producer-materialized only; hand
-  edits to `*.generated.json` remain forbidden.
+  edits to `*.generated.json` remain forbidden;
+- SEC-001 threat-model addendum: for public-input, agentic/runtime, plugin,
+  docs-ingestion, marketplace, identity/authz, privacy, or data-boundary changes,
+  cite the threat-model artifact covering prompt injection, credential/data
+  exfiltration, tenant isolation, audit evidence, and fail-closed behavior; for
+  out-of-scope docs-only workflow changes, record `N/A` with the scope rationale.
 
 ## 3. Per-class review requirements
 

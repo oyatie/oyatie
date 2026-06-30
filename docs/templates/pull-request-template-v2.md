@@ -39,6 +39,7 @@ Each applicable line **MUST** be present with a pass/fail token (`PASS` / `FAIL`
 - `buck2 build <targeted build targets>` — `<PASS|FAIL|N/A>` — `<excerpt>`
 - `oya-ci-required` PR context — `<PASS|FAIL|PENDING>` — `<excerpt or check URL>`
 - Review/fix evidence packet — `<COMPLETE|INCOMPLETE>` — `<evidence section anchor or note>`
+- Worker completion gate — `<COMPLETE|INCOMPLETE>` — `<protected PR URL against dev; local diff/branch alone is insufficient>`
 - Per-change-class Buck2/cloud-ci lanes — `<list lanes + PASS|FAIL each>`
 - Reviewer evidence — `<agent-name>` — verdict `<APPROVE|REQUEST CHANGES|PENDING>`
 
@@ -65,9 +66,10 @@ Each applicable line **MUST** be present with a pass/fail token (`PASS` / `FAIL`
   - Exact failing checks before fix: `<check names + failure URLs/log excerpts | none>`
   - Exact fixed checks after fix: `<check names + fix commit(s) | none>`
   - Review threads: `<resolved/unresolved counts + thread IDs or links>`; unresolved threads MUST be `0` before merge
-  - Reviewer approval state: `<APPROVE|REQUEST CHANGES|PENDING>` by `<reviewer>` on head `<sha>` — `<review URL>`
+  - Reviewer approval state: `<APPROVE|REQUEST CHANGES|PENDING>` by `<reviewer>` on approved head `<sha>` (MUST match PR head) — `<review URL>`
   - Local CLI merge authority: `none`; local commands/hooks are advisory shift-left evidence only and are not protected-branch authority
   - Generated faces: `<none touched | producer-materialized only>`; no hand edits to `*.generated.json`
+  - SEC-001 threat-model addendum: `<artifact/link | N/A with scope rationale>`
 
 ## Code Review
 

@@ -7,6 +7,7 @@ doc_status: published
 
 - Updated the PR templates, PR review checklist, done-definition checklist, pre-merge checklist, and code-review standard so merge-ready PR evidence records `oya-ci-required` status, exact failing/fixed checks, review-thread resolution, and reviewer approval state on the current PR head.
 - Clarified that local CLI or hook output is shift-left evidence only, never merge authority, and that generated faces must be producer-materialized rather than hand-edited.
+- Added REVIEW-001 review-lens closure language: worker-completed implementation cards need a protected PR URL plus independent reviewer evidence, reviewer approvals must match the current head SHA, and SEC-001 threat-model coverage must be linked or marked `N/A` with rationale.
 
 ## 2026-06-29 — Live Postgres sublanes for GH #901
 
