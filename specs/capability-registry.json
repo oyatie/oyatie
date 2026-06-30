@@ -520,6 +520,13 @@
         ]
       },
       {
+        "_comment": "W1 Agentic Delivery Fabric interface seams (ADR-0517/ADR-0520/ADR-0521) dissolve into the ci capability home: ci owns the delivery fabric, and this crate is the stable WorkAreaTree trait/vocabulary seam only, not the W2 parser or W4 SCM implementation.",
+        "capability": "ci",
+        "globs": [
+          "libs/oya-work-area-tree-kernel"
+        ]
+      },
+      {
         "_comment": "The owned data plane primitives (ADR-0562 'data→data'): the data boundary/outbox/SQL kernels + adapters dissolve into the data capability home.",
         "capability": "data",
         "globs": [
