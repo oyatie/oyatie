@@ -10,16 +10,6 @@
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
-// Default deny
-// =============================================================================
-
-forbid (
-  principal,
-  action,
-  resource
-);
-
-// =============================================================================
 // PERMIT 1 — anonymous read of platform status (oya-self tenant, public-class)
 // =============================================================================
 //

@@ -229,12 +229,12 @@ fn walk_for_suffix(
                 continue;
             }
             walk_for_suffix(root, &path, suffix, out)?;
-        } else if file_type.is_file() {
-            if let Ok(rel) = path.strip_prefix(root) {
-                let rel = rel.to_string_lossy().replace('\\', "/");
-                if rel == suffix || rel.ends_with(&format!("/{suffix}")) {
-                    out.push(rel);
-                }
+        } else if file_type.is_file()
+            && let Ok(rel) = path.strip_prefix(root)
+        {
+            let rel = rel.to_string_lossy().replace('\\', "/");
+            if rel == suffix || rel.ends_with(&format!("/{suffix}")) {
+                out.push(rel);
             }
         }
     }
@@ -832,7 +832,7 @@ fn strict_iso_date(value: &str) -> bool {
 }
 
 fn is_leap_year(year: u32) -> bool {
-    year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
+    year.is_multiple_of(4) && (!year.is_multiple_of(100) || year.is_multiple_of(400))
 }
 fn baseline_text_field_present(policy: &Value, key: &str) -> bool {
     policy

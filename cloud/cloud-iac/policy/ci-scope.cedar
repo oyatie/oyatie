@@ -4,19 +4,9 @@
 // Purpose: scope the iac-applier-worker, iac-rollback-worker, iac-validator-worker,
 //          iac-renderer-worker, iac-registry-worker SPIFFE identities to their
 //          respective mutation paths; forbid cross-µservice mutation.
-// Owner:   axis-foundry + axis-cloud-iac + ops-security
+// Owner:   axis-platform + axis-cloud-iac + ops-security
 // References: iac-isolation.md §"Invariants ISO-01..ISO-06", §"Reserved scopes"
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
-
-// =============================================================================
-// Default deny
-// =============================================================================
-
-forbid (
-  principal,
-  action,
-  resource
-);
 
 // =============================================================================
 // PERMIT 1 — iac-renderer-worker writes RenderCompleted events
@@ -29,7 +19,7 @@ permit (
     Action::"emit_render_failed",
     Action::"write_render_artifact_digest"
   ],
-  resource
+  resource is RenderEvent
 );
 
 // =============================================================================
@@ -43,7 +33,7 @@ permit (
     Action::"emit_drift_detected",
     Action::"write_drift_report"
   ],
-  resource
+  resource is ValidationEvent
 );
 
 // =============================================================================
@@ -101,7 +91,7 @@ permit (
     Action::"write_overlay_record",
     Action::"emit_microservice_registered"
   ],
-  resource
+  resource is IacRegistryRecord
 );
 
 // =============================================================================
@@ -169,8 +159,20 @@ forbid (
 // other lines of defence (defence-in-depth).
 
 forbid (
-  principal == Service::"iac-applier-worker",
-  action == Action::"apply_iac",
+  principal in [
+    Service::"iac-applier-worker",
+    Service::"iac-rollback-worker"
+  ],
+  action in [
+    Action::"apply_iac",
+    Action::"rollback_iac",
+    Action::"emit_apply_started",
+    Action::"emit_apply_completed",
+    Action::"emit_apply_failed",
+    Action::"emit_apply_rolled_back",
+    Action::"write_apply_state",
+    Action::"mutate_argo_application"
+  ],
   resource is ApplyJob
 )
 when {
@@ -191,7 +193,16 @@ when {
 
 forbid (
   principal,
-  action == Action::"apply_iac",
+  action in [
+    Action::"apply_iac",
+    Action::"rollback_iac",
+    Action::"emit_apply_started",
+    Action::"emit_apply_completed",
+    Action::"emit_apply_failed",
+    Action::"emit_apply_rolled_back",
+    Action::"write_apply_state",
+    Action::"mutate_argo_application"
+  ],
   resource is ApplyJob
 )
 when {
@@ -199,6 +210,7 @@ when {
   resource.apply_scope.microservice like "system:*" &&
   !(
     (principal == Service::"iac-applier-worker" && resource.apply_scope.microservice == "system:cloud-iac")
+    || (principal == Service::"iac-rollback-worker" && resource.apply_scope.microservice == "system:cloud-iac")
     || (principal == Service::"cloud-k8s-applier" && resource.apply_scope.microservice == "system:cloud-k8s")
     || (principal == Service::"cloud-secrets-applier" && resource.apply_scope.microservice == "system:cloud-secrets")
     || (principal == Service::"observability-applier" && resource.apply_scope.microservice == "system:observability")
