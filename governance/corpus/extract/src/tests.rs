@@ -47,8 +47,7 @@ fn determinism_independent_of_file_order() {
         &SourceSet::new([f1.clone(), f2.clone()]),
     )
     .unwrap();
-    let reverse =
-        extract_corpus(&SynAstSource::new(), &SourceSet::new([f2, f1])).unwrap();
+    let reverse = extract_corpus(&SynAstSource::new(), &SourceSet::new([f2, f1])).unwrap();
     assert_eq!(
         forward.facts.canonical_json().unwrap(),
         reverse.facts.canonical_json().unwrap()
@@ -129,7 +128,11 @@ fn impl_anchor_invariant_under_reformatting() {
     // Two distinct impl facts in each.
     assert_eq!(sig_set(&a).len(), 2);
     // Identical impl signature-hash set across reformatting (no line-number churn).
-    assert_eq!(sig_set(&a), sig_set(&b), "impl anchors must not churn on reformat");
+    assert_eq!(
+        sig_set(&a),
+        sig_set(&b),
+        "impl anchors must not churn on reformat"
+    );
 }
 
 #[test]
@@ -180,7 +183,10 @@ fn opaque_macro_generated_counted() {
     let e = extract(src);
     assert_eq!(e.facts.len(), 0);
     assert_eq!(e.report.opaque.len(), 1);
-    assert_eq!(e.report.by_category.get("macro_generated").copied(), Some(1));
+    assert_eq!(
+        e.report.by_category.get("macro_generated").copied(),
+        Some(1)
+    );
 }
 
 #[test]
@@ -225,7 +231,7 @@ fn nested_module_path_in_fqpath() {
     "#;
     let e = extract(src);
     let fq: Vec<&str> = e.facts.facts().iter().map(|f| f.fqpath.as_str()).collect();
-    assert!(fq.iter().any(|p| *p == "inner::deep"), "got {fq:?}");
+    assert!(fq.contains(&"inner::deep"), "got {fq:?}");
 }
 
 #[test]
@@ -251,11 +257,26 @@ fn visibility_normalized() {
 
 #[test]
 fn module_path_for_conventional_files() {
-    assert_eq!(module_path_for("flags/core/x", "flags/core/x/src/lib.rs"), "");
-    assert_eq!(module_path_for("flags/core/x", "flags/core/x/src/main.rs"), "");
-    assert_eq!(module_path_for("flags/core/x", "flags/core/x/src/engine.rs"), "engine");
-    assert_eq!(module_path_for("flags/core/x", "flags/core/x/src/a/mod.rs"), "a");
-    assert_eq!(module_path_for("flags/core/x", "flags/core/x/src/a/b.rs"), "a::b");
+    assert_eq!(
+        module_path_for("flags/core/x", "flags/core/x/src/lib.rs"),
+        ""
+    );
+    assert_eq!(
+        module_path_for("flags/core/x", "flags/core/x/src/main.rs"),
+        ""
+    );
+    assert_eq!(
+        module_path_for("flags/core/x", "flags/core/x/src/engine.rs"),
+        "engine"
+    );
+    assert_eq!(
+        module_path_for("flags/core/x", "flags/core/x/src/a/mod.rs"),
+        "a"
+    );
+    assert_eq!(
+        module_path_for("flags/core/x", "flags/core/x/src/a/b.rs"),
+        "a::b"
+    );
 }
 
 // MEDIUM-1 TEST: the impl fact's signature_hash must vary with the impl body (disambiguator is
@@ -277,10 +298,13 @@ fn impl_signature_hash_varies_with_body_content() {
         .iter()
         .filter(|f| f.item_kind == corpus_core::ItemKind::Impl)
         .collect();
-    assert_eq!(impl_facts.len(), 2, "two impl blocks must produce two impl facts");
+    assert_eq!(
+        impl_facts.len(),
+        2,
+        "two impl blocks must produce two impl facts"
+    );
     assert_ne!(
-        impl_facts[0].signature_hash,
-        impl_facts[1].signature_hash,
+        impl_facts[0].signature_hash, impl_facts[1].signature_hash,
         "impls with different bodies MUST have different signature_hashes (disambig in sig pre-image)"
     );
 }
@@ -340,8 +364,14 @@ fn cross_file_impls_same_type_produce_distinct_facts() {
         .filter(|f| f.item_kind == corpus_core::ItemKind::Function)
         .map(|f| f.fqpath.as_str())
         .collect();
-    assert!(method_fqpaths.contains(&"Foo::a"), "method `a` from lib.rs impl must be present");
-    assert!(method_fqpaths.contains(&"Foo::b"), "method `b` from main.rs impl must be present");
+    assert!(
+        method_fqpaths.contains(&"Foo::a"),
+        "method `a` from lib.rs impl must be present"
+    );
+    assert!(
+        method_fqpaths.contains(&"Foo::b"),
+        "method `b` from main.rs impl must be present"
+    );
 }
 
 // MEDIUM-a TEST: `extern "C" { … }` (ForeignMod) must be counted as opaque (Unhandled),
@@ -365,10 +395,83 @@ fn foreign_mod_and_trait_alias_are_unhandled_opaque() {
     // TraitAlias: `trait Foo = Bar;` — must be Unhandled.
     let alias_src = "trait MyAlias = Clone + Send;";
     let e2 = extract(alias_src);
-    assert_eq!(e2.facts.len(), 0, "TraitAlias must not produce a clean fact");
+    assert_eq!(
+        e2.facts.len(),
+        0,
+        "TraitAlias must not produce a clean fact"
+    );
     assert_eq!(
         e2.report.by_category.get("unhandled").copied(),
         Some(1),
         "TraitAlias must be counted as unhandled opaque"
     );
+}
+
+#[test]
+fn idl_extractor_family_plan_names_proto_openapi_cedar_sql() {
+    let ids: Vec<&str> = IDL_EXTRACTOR_FAMILY_PLAN
+        .iter()
+        .map(|entry| entry.extractor_id)
+        .collect();
+    assert_eq!(ids, ["proto", "openapi", "cedar", "sql"]);
+    assert_eq!(
+        IDL_EXTRACTOR_FAMILY_PLAN[0].status,
+        "first-slice-fixture-landed"
+    );
+    assert!(
+        IDL_EXTRACTOR_FAMILY_PLAN[0]
+            .measured_blind_spot
+            .contains("45% aggregate true-miss")
+    );
+}
+
+#[test]
+fn proto_idl_fixture_closes_include_proto_true_miss() {
+    // ADR-0580 A6 measured a 45% aggregate true-miss on proto-heavy crates: `syn` sees only the
+    // `tonic::include_proto!` macro invocation, not the generated message/service/RPC surface.
+    let rust = extract("tonic::include_proto!(\"oya.messenger.v1\");");
+    assert_eq!(rust.facts.len(), 0);
+    assert_eq!(
+        rust.report.by_category.get("macro_generated").copied(),
+        Some(1)
+    );
+
+    let proto = r#"
+        syntax = "proto3";
+        package oya.messenger.v1;
+
+        message SendRequest {
+          string body = 1;
+        }
+
+        message SendResponse {
+          string id = 1;
+        }
+
+        service MessengerService {
+          rpc SendMessage (SendRequest) returns (SendResponse);
+        }
+    "#;
+
+    let set = SourceSet::new([SourceFile {
+        crate_id: "messenger-proto-contracts".to_owned(),
+        module_path: "oya.messenger.v1".to_owned(),
+        source: proto.to_owned(),
+    }]);
+    let extracted = extract_corpus(&ProtoIdlAstSource::new(), &set).unwrap();
+    assert_eq!(extracted.report.opaque.len(), 0);
+
+    let facts: Vec<_> = extracted
+        .facts
+        .facts()
+        .iter()
+        .map(|fact| (fact.fqpath.as_str(), fact.item_kind))
+        .collect();
+    assert!(facts.contains(&("oya.messenger.v1::SendRequest", ItemKind::Type)));
+    assert!(facts.contains(&("oya.messenger.v1::SendResponse", ItemKind::Type)));
+    assert!(facts.contains(&("oya.messenger.v1::MessengerService", ItemKind::Type)));
+    assert!(facts.contains(&(
+        "oya.messenger.v1::MessengerService::SendMessage",
+        ItemKind::Function
+    )));
 }
