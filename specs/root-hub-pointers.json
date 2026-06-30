@@ -477,7 +477,7 @@
       "current_path": "/specs/delivery-readiness-reconciliation.json",
       "kind": "spec",
       "migration_phase": "ouroboros-materialized-current-state-2026-06-29",
-      "purpose": "Shape-neutral reconciliation contract for full Oyatie Cloud, product, and toolchain completion: universe rows, manual-curation handoff extracts, clearance matrix, promotion packets, fixuptask links, audit artifacts, freshness, and lifecycle states. Current oya-* and cloud-* path shapes are observations only, not readiness predicates.",
+      "purpose": "Shape-neutral reconciliation contract for full Oyatie Cloud, product, and toolchain completion: full-delivery universe row lifecycle/source precedence, manual-curation handoff extracts, clearance matrix, promotion packets, fixuptask links, audit artifacts, freshness, and lifecycle states. Current oya-* and cloud-* path shapes are observations only, not readiness predicates.",
       "target_path_after_md_retirement": "same"
     },
     "iterative_fix_loop": {
