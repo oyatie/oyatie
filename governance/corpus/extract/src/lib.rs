@@ -27,6 +27,9 @@
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic; `#![forbid(unsafe_code)]`.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
+// Stable toolchains classify `non_exhaustive_omitted_patterns` as an unknown unstable lint. Keep
+// `-D warnings` verification green on stable while preserving the nightly signal when available.
+#![allow(unknown_lints)]
 // Warn when a future `syn` version adds a new `Item` variant not yet named in `walk_item`. Without
 // this lint, the terminal `_ => {}` arm silently swallows new variants (syn::Item is
 // `#[non_exhaustive]`). With it, the compiler surfaces the omission as a warning, forcing an
@@ -37,9 +40,7 @@ use std::collections::BTreeMap;
 use std::fmt;
 use std::path::Path;
 
-use corpus_core::{
-    AstSource, Extraction, FactSet, Function, ItemKind, OpaqueReason, Visibility,
-};
+use corpus_core::{AstSource, Extraction, FactSet, Function, ItemKind, OpaqueReason, Visibility};
 use oya_workspace_members_kernel::{ResolveError, resolve_member_dirs};
 use quote::ToTokens;
 
@@ -320,6 +321,263 @@ impl AstSource for SynAstSource {
     }
 }
 
+/// One row in the contract-IDL extractor-family rollout plan.
+///
+/// ADR-0580 A6 found that proto-heavy crates have a measured `include_proto!` true-miss. The
+/// founder decision is a family of IDL sub-extractors behind the same [`AstSource`] seam, not a
+/// Rust-only semantic fallback. This row keeps the family order and status machine-readable in the
+/// extractor crate while the first concrete slice stays limited to `.proto`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct IdlExtractorPlanEntry {
+    /// Stable extractor family id.
+    pub extractor_id: &'static str,
+    /// Input contract family handled by the extractor.
+    pub input_family: &'static str,
+    /// Current rollout status for this family member.
+    pub status: &'static str,
+    /// Measured blind spot or gating reason that justifies the row.
+    pub measured_blind_spot: &'static str,
+    /// Next planned implementation step.
+    pub next_step: &'static str,
+}
+
+/// Rollout plan for the contract-IDL extractor family required by ADR-0580 A6.
+pub const IDL_EXTRACTOR_FAMILY_PLAN: [IdlExtractorPlanEntry; 4] = [
+    IdlExtractorPlanEntry {
+        extractor_id: "proto",
+        input_family: ".proto / protobuf service contracts",
+        status: "first-slice-fixture-landed",
+        measured_blind_spot: "ADR-0580 A6: 45% aggregate true-miss on include_proto! crates",
+        next_step: "measure proto OPAQUE-RATE on a proto-heavy capability and wire tracked .proto inputs",
+    },
+    IdlExtractorPlanEntry {
+        extractor_id: "openapi",
+        input_family: "OpenAPI REST contracts",
+        status: "planned-after-proto",
+        measured_blind_spot: "same contract-IDL seam; REST surface lives in schema files, not Rust source alone",
+        next_step: "emit route/operation facts from OpenAPI paths and operationIds",
+    },
+    IdlExtractorPlanEntry {
+        extractor_id: "cedar",
+        input_family: "Cedar policy contracts",
+        status: "planned-after-proto",
+        measured_blind_spot: "same contract-IDL seam; authorization surface lives in policy files",
+        next_step: "emit policy/action/resource facts from Cedar policy files",
+    },
+    IdlExtractorPlanEntry {
+        extractor_id: "sql",
+        input_family: "SQL schema/migration contracts",
+        status: "planned-after-proto",
+        measured_blind_spot: "same contract-IDL seam; storage surface lives in schema/migration files",
+        next_step: "emit table/view/procedure facts from SQL contracts",
+    },
+];
+
+/// First concrete contract-IDL sub-extractor: protobuf service/message facts.
+///
+/// This deliberately does NOT parse generated Rust from `tonic::include_proto!`; it reads the IDL
+/// source that generated Rust hides from `syn`. The first slice is intentionally conservative:
+/// package, top-level `message`, top-level `service`, and one-line `rpc ... returns ...` method
+/// declarations. It is enough to close the measured true-miss fixture without broadening the crate's
+/// dependency surface or claiming full protobuf grammar coverage.
+#[derive(Debug, Clone, Default)]
+pub struct ProtoIdlAstSource;
+
+impl ProtoIdlAstSource {
+    /// A new protobuf IDL source extractor.
+    #[must_use]
+    pub fn new() -> Self {
+        ProtoIdlAstSource
+    }
+}
+
+impl AstSource for ProtoIdlAstSource {
+    type Error = ExtractError;
+
+    fn extract_file(
+        &self,
+        crate_id: &str,
+        module_path: &str,
+        source: &str,
+    ) -> Result<Extraction, Self::Error> {
+        let package = proto_package(source).unwrap_or_else(|| module_path.to_owned());
+        Ok(extract_proto_idl(crate_id, &package, source))
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct ProtoRpcSignature {
+    name: String,
+    request: String,
+    response: String,
+}
+
+fn extract_proto_idl(crate_id: &str, package: &str, source: &str) -> Extraction {
+    let lines: Vec<String> = source
+        .lines()
+        .map(|line| strip_proto_line_comment(line).trim().to_owned())
+        .collect();
+    let package_path = package.trim();
+    let mut extraction = Extraction::default();
+    let mut current_service: Option<String> = None;
+
+    for (idx, line) in lines.iter().enumerate() {
+        if line.is_empty() || line.starts_with("syntax ") || line.starts_with("package ") {
+            continue;
+        }
+
+        if let Some(message_name) = parse_proto_decl(line, "message") {
+            let signature = format!("proto message {}", join_path(package_path, &message_name));
+            let body = proto_block_from(&lines, idx);
+            extraction.facts.push(Function::new(
+                crate_id,
+                join_path(package_path, &message_name),
+                ItemKind::Type,
+                Visibility::Public,
+                &signature,
+                &body,
+            ));
+            continue;
+        }
+
+        if let Some(service_name) = parse_proto_decl(line, "service") {
+            let signature = format!("proto service {}", join_path(package_path, &service_name));
+            let body = proto_block_from(&lines, idx);
+            extraction.facts.push(Function::new(
+                crate_id,
+                join_path(package_path, &service_name),
+                ItemKind::Type,
+                Visibility::Public,
+                &signature,
+                &body,
+            ));
+            current_service = Some(service_name);
+            continue;
+        }
+
+        if let Some(service_name) = current_service.as_deref() {
+            if let Some(rpc) = parse_proto_rpc(line) {
+                let service_path = join_path(package_path, service_name);
+                let fqpath = join_path(&service_path, &rpc.name);
+                let signature = format!(
+                    "proto rpc {service_path}.{} ({}) returns ({})",
+                    rpc.name, rpc.request, rpc.response
+                );
+                extraction.facts.push(Function::new(
+                    crate_id,
+                    fqpath,
+                    ItemKind::Function,
+                    Visibility::Public,
+                    &signature,
+                    "",
+                ));
+            }
+            if line.contains('}') {
+                current_service = None;
+            }
+        }
+    }
+
+    extraction
+}
+
+fn strip_proto_line_comment(line: &str) -> &str {
+    line.split_once("//")
+        .map(|(before, _)| before)
+        .unwrap_or(line)
+}
+
+fn proto_package(source: &str) -> Option<String> {
+    source.lines().find_map(|line| {
+        let trimmed = strip_proto_line_comment(line).trim();
+        let rest = trimmed.strip_prefix("package ")?;
+        take_proto_name(rest).map(str::to_owned)
+    })
+}
+
+fn parse_proto_decl(line: &str, keyword: &str) -> Option<String> {
+    let rest = line.strip_prefix(keyword)?.trim_start();
+    take_proto_name(rest).map(str::to_owned)
+}
+
+fn parse_proto_rpc(line: &str) -> Option<ProtoRpcSignature> {
+    let rest = line.strip_prefix("rpc ")?.trim_start();
+    let name = take_proto_name(rest)?.to_owned();
+    let after_name = rest.get(name.len()..)?.trim_start();
+    let (request, after_request) = proto_paren_value(after_name)?;
+    let after_returns = after_request
+        .trim_start()
+        .strip_prefix("returns")?
+        .trim_start();
+    let (response, _) = proto_paren_value(after_returns)?;
+    Some(ProtoRpcSignature {
+        name,
+        request,
+        response,
+    })
+}
+
+fn take_proto_name(input: &str) -> Option<&str> {
+    let trimmed = input.trim_start();
+    let end = trimmed
+        .char_indices()
+        .find_map(|(idx, ch)| {
+            if ch.is_ascii_alphanumeric() || ch == '_' || ch == '.' {
+                None
+            } else {
+                Some(idx)
+            }
+        })
+        .unwrap_or(trimmed.len());
+    if end == 0 {
+        None
+    } else {
+        Some(&trimmed[..end])
+    }
+}
+
+fn proto_paren_value(input: &str) -> Option<(String, &str)> {
+    let start = input.find('(')?;
+    let after_start = input.get(start + 1..)?;
+    let end = after_start.find(')')?;
+    let value = after_start.get(..end)?.trim().to_owned();
+    let rest = after_start.get(end + 1..)?;
+    Some((value, rest))
+}
+
+fn proto_block_from(lines: &[String], start_idx: usize) -> String {
+    let mut block = Vec::new();
+    let mut depth: usize = 0;
+    let mut saw_open = false;
+
+    for line in lines.iter().skip(start_idx) {
+        if line.is_empty() {
+            continue;
+        }
+        block.push(line.as_str());
+        for ch in line.chars() {
+            match ch {
+                '{' => {
+                    saw_open = true;
+                    depth += 1;
+                }
+                '}' => {
+                    depth = depth.saturating_sub(1);
+                }
+                _ => {}
+            }
+        }
+        if saw_open && depth == 0 {
+            break;
+        }
+        if !saw_open {
+            break;
+        }
+    }
+
+    block.join(" ")
+}
+
 /// Per-file walk state: the accumulating [`Extraction`].
 ///
 /// The former `impl_ordinals` field (a document-order counter for disambiguating multiple `impl`
@@ -416,12 +674,7 @@ fn normalize_signature(sig: &syn::Signature) -> String {
     out.push_str(&sig.ident.to_string());
 
     // Generics (`<...>`), element-joined so a trailing comma in `<T,>` does not churn.
-    let generic_params: Vec<String> = sig
-        .generics
-        .params
-        .iter()
-        .map(normalize_tokens)
-        .collect();
+    let generic_params: Vec<String> = sig.generics.params.iter().map(normalize_tokens).collect();
     if !generic_params.is_empty() {
         out.push('<');
         out.push_str(&generic_params.join(" , "));
@@ -442,7 +695,11 @@ fn normalize_signature(sig: &syn::Signature) -> String {
 
     // Where-clause predicates, element-joined → trailing-comma invariant.
     if let Some(where_clause) = &sig.generics.where_clause {
-        let predicates: Vec<String> = where_clause.predicates.iter().map(normalize_tokens).collect();
+        let predicates: Vec<String> = where_clause
+            .predicates
+            .iter()
+            .map(normalize_tokens)
+            .collect();
         if !predicates.is_empty() {
             out.push_str(" where ");
             out.push_str(&predicates.join(" , "));
@@ -479,10 +736,13 @@ fn walk_item(crate_id: &str, module_path: &str, item: &syn::Item, state: &mut Wa
     match item {
         syn::Item::Fn(item_fn) => {
             if has_cfg_attr(&item_fn.attrs) {
-                state.extraction.opaque.push(OpaqueReason::CfgGated(join_path(
-                    module_path,
-                    &item_fn.sig.ident.to_string(),
-                )));
+                state
+                    .extraction
+                    .opaque
+                    .push(OpaqueReason::CfgGated(join_path(
+                        module_path,
+                        &item_fn.sig.ident.to_string(),
+                    )));
                 return;
             }
             let kind = if has_route_attr(&item_fn.attrs) {
@@ -503,19 +763,59 @@ fn walk_item(crate_id: &str, module_path: &str, item: &syn::Item, state: &mut Wa
             ));
         }
         syn::Item::Struct(s) => {
-            push_type(crate_id, module_path, &s.attrs, &s.vis, &s.ident, item, &mut state.extraction);
+            push_type(
+                crate_id,
+                module_path,
+                &s.attrs,
+                &s.vis,
+                &s.ident,
+                item,
+                &mut state.extraction,
+            );
         }
         syn::Item::Enum(e) => {
-            push_type(crate_id, module_path, &e.attrs, &e.vis, &e.ident, item, &mut state.extraction);
+            push_type(
+                crate_id,
+                module_path,
+                &e.attrs,
+                &e.vis,
+                &e.ident,
+                item,
+                &mut state.extraction,
+            );
         }
         syn::Item::Union(u) => {
-            push_type(crate_id, module_path, &u.attrs, &u.vis, &u.ident, item, &mut state.extraction);
+            push_type(
+                crate_id,
+                module_path,
+                &u.attrs,
+                &u.vis,
+                &u.ident,
+                item,
+                &mut state.extraction,
+            );
         }
         syn::Item::Trait(t) => {
-            push_type(crate_id, module_path, &t.attrs, &t.vis, &t.ident, item, &mut state.extraction);
+            push_type(
+                crate_id,
+                module_path,
+                &t.attrs,
+                &t.vis,
+                &t.ident,
+                item,
+                &mut state.extraction,
+            );
         }
         syn::Item::Type(t) => {
-            push_type(crate_id, module_path, &t.attrs, &t.vis, &t.ident, item, &mut state.extraction);
+            push_type(
+                crate_id,
+                module_path,
+                &t.attrs,
+                &t.vis,
+                &t.ident,
+                item,
+                &mut state.extraction,
+            );
         }
         syn::Item::Impl(item_impl) => walk_impl(crate_id, module_path, item_impl, state),
         syn::Item::Mod(item_mod) => walk_mod(crate_id, module_path, item_mod, state),
@@ -529,16 +829,35 @@ fn walk_item(crate_id: &str, module_path: &str, item: &syn::Item, state: &mut Wa
                 .last()
                 .map(|seg| seg.ident.to_string())
                 .unwrap_or_else(|| "<macro>".to_owned());
-            state.extraction.opaque.push(OpaqueReason::MacroGenerated(join_path(
-                module_path,
-                &format!("{name}!"),
-            )));
+            state
+                .extraction
+                .opaque
+                .push(OpaqueReason::MacroGenerated(join_path(
+                    module_path,
+                    &format!("{name}!"),
+                )));
         }
         syn::Item::Const(c) => {
-            push_pub_item(crate_id, module_path, &c.attrs, &c.vis, &c.ident.to_string(), item, &mut state.extraction);
+            push_pub_item(
+                crate_id,
+                module_path,
+                &c.attrs,
+                &c.vis,
+                &c.ident.to_string(),
+                item,
+                &mut state.extraction,
+            );
         }
         syn::Item::Static(s) => {
-            push_pub_item(crate_id, module_path, &s.attrs, &s.vis, &s.ident.to_string(), item, &mut state.extraction);
+            push_pub_item(
+                crate_id,
+                module_path,
+                &s.attrs,
+                &s.vis,
+                &s.ident.to_string(),
+                item,
+                &mut state.extraction,
+            );
         }
         // `use` re-exports and `extern crate` declarations carry no standalone liveness surface in
         // v1 (the re-exported item is pinned at its definition site). Silently dropped — not opaque.
@@ -565,10 +884,13 @@ fn walk_item(crate_id: &str, module_path: &str, item: &syn::Item, state: &mut Wa
                 .push(OpaqueReason::Unhandled(detail));
         }
         syn::Item::TraitAlias(ta) => {
-            state.extraction.opaque.push(OpaqueReason::Unhandled(join_path(
-                module_path,
-                &ta.ident.to_string(),
-            )));
+            state
+                .extraction
+                .opaque
+                .push(OpaqueReason::Unhandled(join_path(
+                    module_path,
+                    &ta.ident.to_string(),
+                )));
         }
         // Catch-all for any syn::Item variant not yet named above. syn::Item is #[non_exhaustive],
         // so new variants added in future syn releases land here. The crate-level
@@ -698,10 +1020,13 @@ fn walk_impl(crate_id: &str, module_path: &str, item_impl: &syn::ItemImpl, state
     for impl_item in &item_impl.items {
         if let syn::ImplItem::Fn(method) = impl_item {
             if has_cfg_attr(&method.attrs) {
-                state.extraction.opaque.push(OpaqueReason::CfgGated(join_path(
-                    &method_base,
-                    &method.sig.ident.to_string(),
-                )));
+                state
+                    .extraction
+                    .opaque
+                    .push(OpaqueReason::CfgGated(join_path(
+                        &method_base,
+                        &method.sig.ident.to_string(),
+                    )));
                 continue;
             }
             let kind = if has_route_attr(&method.attrs) {
@@ -734,10 +1059,13 @@ fn walk_mod(crate_id: &str, module_path: &str, item_mod: &syn::ItemMod, state: &
     if has_cfg_attr(&item_mod.attrs) {
         // A cfg-gated module's entire item subtree is conditionally present → opaque at the module
         // granularity (one opaque unit for the gated module, not per descendant).
-        state.extraction.opaque.push(OpaqueReason::CfgGated(join_path(
-            module_path,
-            &item_mod.ident.to_string(),
-        )));
+        state
+            .extraction
+            .opaque
+            .push(OpaqueReason::CfgGated(join_path(
+                module_path,
+                &item_mod.ident.to_string(),
+            )));
         return;
     }
     let inner = join_path(module_path, &item_mod.ident.to_string());
