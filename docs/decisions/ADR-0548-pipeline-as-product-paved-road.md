@@ -342,8 +342,9 @@ pointer/reachability-covered where non-crate) are:
 `specs/fixtures/platform-delivery-fabric/parity-target-source-tracking-bad-authority.json`,
 `evidence/pipeline-productization/current-state-20260629.json`,
 `evidence/pipeline-productization/metadata-ref-pattern-fixtures.json`,
-`contracts/openapi/platform/platform-delivery-fabric-observability-v1.yaml`, and
-`contracts/openapi/platform/platform-delivery-fabric-observability-v1.meta.yaml`.
+`contracts/openapi/platform/platform-delivery-fabric-observability-v1.yaml`,
+`contracts/openapi/platform/platform-delivery-fabric-observability-v1.meta.yaml`, and
+`specs/work-area-content-hash-contract.json`.
 
 These artifacts extend D1/D2/D3/D4/D5 without relaxing the existing guardrails: repo-local facts stay
 policy-as-data, adapters stay subordinate to first-party control-plane authority, fresh evidence
