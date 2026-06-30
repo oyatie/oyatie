@@ -4,7 +4,7 @@ doc_status: published
 
 # PR template
 
-> Per [`docs/STANDARDS-AND-TEMPLATES.md`](../STANDARDS-AND-TEMPLATES.md) §2, every PR uses this template. The traceability H2 sections plus automated reviewer-agent verdict are the target contract. `oya-pr-review` is not live cloud admission enforcement until `F-PR5-06` closes; only a trusted server-side/cloud-ci producer can make review evidence merge authority.
+> Per [`docs/STANDARDS-AND-TEMPLATES.md`](../STANDARDS-AND-TEMPLATES.md) §2, every PR uses this template. The traceability H2 sections plus automated reviewer-agent verdict are validated by the `oya-ci-required` PR metadata preflight; F-PR5-06 still owns trusted server-side/cloud-ci live review-producer closure, so this is not live cloud admission enforcement.
 
 ## Issue
 Closes #<n> (or Refs #<n> if not closing). One line.
@@ -31,7 +31,7 @@ Closes #<n> (or Refs #<n> if not closing). One line.
 - Per-pack regulator-watch impact (if any): `<list>`
 
 ## Code Review
-- Target reviewer evidence producer: `oya-pr-review` (not live cloud admission enforcement until `F-PR5-06` closes; requires a trusted server-side/cloud-ci producer)
-- Reviewer runtime: `subagent_runtime_pending=false`
-- Verdict: `<APPROVE|REQUEST_CHANGES|PENDING>`
-- Fix-loop events: `<none|pr-review-fix-requested>`
+- Reviewer agent: `<reviewer-agent>`
+- Verdict: APPROVE
+- Resolved items: `<items-or-none>`
+- Deferred items: `<items-or-none>`

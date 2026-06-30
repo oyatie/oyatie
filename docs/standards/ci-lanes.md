@@ -11,7 +11,8 @@ doc_status: published
 ## 1. Lane catalog
 
 Every CI gate is a named lane. Lanes are catalog-driven: `registry/quality/lanes.yaml` is the source of truth; this doc is the human-readable mirror.
-The registry carries each lane's owner team and `runtime_budget_seconds`; the `quality-lanes` gate rejects unknown owners, missing budgets, markdown drift, and active commands absent from the canonical wired-command catalog (`oya-governance-gate-catalog-domain`).
+The registry carries each lane's owner team and `runtime_budget_seconds`; `check_command` values are local/transitional bridge feedback and wired-command catalog data only, not protected-branch merge authority. The `quality-lanes` gate rejects unknown owners, missing budgets, markdown drift, and active commands absent from the canonical wired-command catalog (`oya-governance-gate-catalog-domain`).
+Protected-branch authority is the single `oya-ci-required` fan-in plus constituent cloud-ci/Rust gate packets.
 
 ### 1.1 Foundation gate catalog (W-Foundation; active lanes block any merge; planned lanes preserve roadmap contract)
 
@@ -35,7 +36,7 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `oya-governance-glossary-cross-doc-coverage` | every glossary term appears outside GLOSSARY when active | GLOSSARY.md §11 / ADR-0018 |
 | `oya-governance-glossary-vocabulary` | retired-vocab hard-fail plus casing/acronym warning baseline ratchet | GLOSSARY.md §11 / ADR-0018 |
 | `oya-governance-placeholder-debt` | fail-closed `TODO` / `TBD` registry so placeholder cleanup is tracked outside glossary acronym warnings | AGENTS.md Done-Definition / MISTAKES doctrine |
-| `oya-governance-dependency-seam` | fail-closed ADR-0092 dependency rationale coverage, adapter-only imports, fixture-pair coverage, multispectrum evidence, change_class declarations, and online cargo-audit vulnerability checks | ADR-0092 / registry/dependency-rationales.json / evidence/multispectrum/cs-p13-dependency-seam-1779166052.json |
+| `oya-governance-dependency-seam` | fail-closed ADR-0092 dependency rationale coverage, adapter-only imports, fixture-pair coverage, change_class declarations, and online cargo-audit vulnerability checks | ADR-0092 / registry/dependency-rationales.json |
 | `oya-governance-plane-class` | catalog plane-class changes require explicit review | ADR-0004 |
 | `oya-governance-raci-team-coverage` | every team charter has RACI and CODEOWNERS coverage | RACI-OWNERSHIP.md |
 | `oya-governance-readme-doc-coverage` | every root doc has catalog and README discoverability | README.md / DOC-CATALOG.md |
@@ -62,7 +63,7 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `pnpm-test` | TS unit + integration |
 | `oya-governance-supply-chain` | Trivy 4-layer + Cosign per ADR-0039 |
 | `oya-governance-supply-chain-bootstrap` | source-only supply-chain guard plus RustSec and deny wiring |
-| `traceability-validator` | PR template carries the 5 mandatory traceability H2 sections |
+| `traceability-validator` | PR title/body are review-ready and template carries the 5 mandatory traceability H2 sections plus merge-time Code Review evidence |
 | `oya-governance-api-semver` | public-API stability tier per ADR-0037 |
 | `oya-governance-cargo-prefix` | every workspace member starts with `oya-` |
 | `oya-governance-pre-push` | oya verify command contract maps to the checked local verification bundle (canonical local pre-push entry; retired entry points are recorded in registry/vocabulary/retired.yaml) |
@@ -146,8 +147,8 @@ Per ADR-0050:
 
 1. Add or update the lane record in `registry/quality/lanes.yaml`.
 2. Mirror the lane row in this document under the matching stage table.
-3. If `status: active`, wire `check_command` into the `oya gate run-all` aggregator (`crates/oya-dev-cli/src/commands/gate/run_all.rs::AGGREGATED_VALIDATE_LANES`) — the canonical pre-merge gate runner that replaced the legacy bash check orchestrator (audit row B-1).
-4. Run `oya gate validate quality-lanes`.
+3. If `status: active`, wire `check_command` into the local/transitional `oya gate run-all` bridge catalog (`marketplace/facade/dev-cli/src/commands/gate/run_all.rs::AGGREGATED_VALIDATE_LANES`) so local feedback and wired-command catalog validation stay synchronized; protected-branch merge authority remains `oya-ci-required` plus cloud-ci/Rust gate packets.
+4. Run `oya gate validate quality-lanes` as local bridge feedback; do not treat it as protected-branch authority.
 5. Open a PR; cite the source ADR in the PR body Verification section.
 6. After merge, `oya-governance-cohesion` validates the lane is wired into the per-PR + nightly + release shapes appropriately.
 
