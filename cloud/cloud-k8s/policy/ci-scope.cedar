@@ -3,7 +3,7 @@
 //
 // Purpose: scope the oya-ci principal's Kubernetes API access to cluster-readonly
 //          observations + writes confined to the `oya-ci` namespace.
-// Owner:   axis-foundry + axis-cloud + ops-security
+// Owner:   axis-platform + axis-cloud + ops-security
 // References: policy/cluster-isolation.md §"Reserved namespaces"; ADR-0123 HG-CLOUD-K8S
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 

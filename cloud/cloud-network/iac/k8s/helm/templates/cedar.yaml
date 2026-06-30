@@ -14,7 +14,7 @@ data:
 
     // Source: cedar/policies.cedar
     permit(
-      principal == ServicePrincipal::"oyatie.foundry.cell-orchestrator",
+      principal == ServicePrincipal::"oyatie.control-plane.cell-orchestrator",
       action in [Action::"ComputeAutoshardingPlacement", Action::"ExecuteAutoRebalance", Action::"ExecuteDynamicSharding"],
       resource is ShardingAutomation
     ) when {
@@ -28,7 +28,7 @@ data:
     };
 
     forbid(
-      principal == ServicePrincipal::"oyatie.foundry.cell-orchestrator",
+      principal == ServicePrincipal::"oyatie.control-plane.cell-orchestrator",
       action in [Action::"ExecuteAutoRebalance", Action::"ExecuteDynamicSharding"],
       resource is ShardingAutomation
     ) when {
@@ -42,7 +42,7 @@ data:
     };
 
     forbid(
-      principal == ServicePrincipal::"oyatie.foundry.cell-orchestrator",
+      principal == ServicePrincipal::"oyatie.control-plane.cell-orchestrator",
       action == Action::"MigrateTenantCrossJurisdiction",
       resource is TenantMigration
     ) unless {
@@ -53,7 +53,7 @@ data:
     };
 
     permit(
-      principal == ServicePrincipal::"oyatie.jenkins.ci",
+      principal == ServicePrincipal::"oyatie.pipeline.ci",
       action == Action::"RunCiMirror",
       resource is ServiceCiSurface
     ) when {
@@ -70,7 +70,7 @@ data:
     };
 
     permit(
-      principal == ServicePrincipal::"oyatie.jenkins.ci",
+      principal == ServicePrincipal::"oyatie.pipeline.ci",
       action == Action::"RunSelfHostedCi",
       resource is ServiceCiSurface
     ) when {
@@ -83,7 +83,7 @@ data:
     };
 
     forbid(
-      principal == ServicePrincipal::"oyatie.jenkins.ci",
+      principal == ServicePrincipal::"oyatie.pipeline.ci",
       action in [Action::"RunCiMirror", Action::"RunSelfHostedCi"],
       resource is ServiceCiSurface
     ) when {
