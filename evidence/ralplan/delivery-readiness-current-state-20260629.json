@@ -1354,7 +1354,7 @@
     "terminal_rows": 0,
     "nonterminal_rows": 7,
     "approved_packets": 0,
-    "denied_packets": 2,
+    "denied_packets": 3,
     "freshness_expiring_rows": 3,
     "notes": [
       "Approved packets would be terminal for reconciliation but still freshness-expiring; this snapshot approves none.",
