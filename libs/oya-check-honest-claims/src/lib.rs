@@ -542,13 +542,27 @@ fn non_empty_array(value: &Value, key: &str) -> bool {
 
 fn contains_authority_claim(target_text: &str) -> bool {
     [
-        "\"approved_product_ready\"",
-        "\"approved_hyperscaler_ready\"",
-        "\"merge_authority\"",
-        "\"promotion_authority\"",
-        "\"permanent_product_authority\"",
-        "\"product_ready\"",
-        "\"hyperscaler_ready\"",
+        "approved_product_ready",
+        "approved-product-ready",
+        "approved product ready",
+        "approved_hyperscaler_ready",
+        "approved-hyperscaler-ready",
+        "approved hyperscaler ready",
+        "merge_authority",
+        "merge-authority",
+        "merge authority",
+        "promotion_authority",
+        "promotion-authority",
+        "promotion authority",
+        "permanent_product_authority",
+        "permanent-product-authority",
+        "permanent product authority",
+        "product_ready",
+        "product-ready",
+        "product ready",
+        "hyperscaler_ready",
+        "hyperscaler-ready",
+        "hyperscaler ready",
     ]
     .iter()
     .any(|marker| target_text.contains(marker))
@@ -1381,6 +1395,22 @@ mod tests {
                 .iter()
                 .any(|violation| violation.kind
                     == ParityTargetSourceTrackingKind::MissingPinnedSource)
+        );
+    }
+
+    #[test]
+    fn parity_target_source_tracking_rejects_embedded_authority_claim() {
+        let mut fixture = good_parity_target_fixture();
+        fixture["parity_targets"][0]["authority_boundary"] =
+            serde_json::json!("external source is merge_authority for promotion decisions");
+
+        let violations =
+            validate_parity_target_source_tracking("embedded-authority.json", &fixture)
+                .unwrap_err();
+
+        assert!(
+            violations.iter().any(|violation| violation.kind
+                == ParityTargetSourceTrackingKind::PromotionAuthorityClaim)
         );
     }
 
