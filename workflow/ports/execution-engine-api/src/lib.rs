@@ -963,6 +963,9 @@ fn command_shape_error() -> ExecutionEngineApiError {
 fn kernel_error_to_api(error: ExecutionEngineKernelError) -> ExecutionEngineApiError {
     let evidence_ref = match error {
         ExecutionEngineKernelError::InvalidAttempt => "workflow-execution-api:invalid-attempt",
+        ExecutionEngineKernelError::InvalidObservationWindow => {
+            "workflow-execution-api:invalid-observation-window"
+        }
         ExecutionEngineKernelError::InvalidStepIndex => "workflow-execution-api:invalid-step-index",
         ExecutionEngineKernelError::InvalidTimerDeadline => {
             "workflow-execution-api:invalid-timer-deadline"
