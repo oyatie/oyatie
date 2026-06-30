@@ -9,6 +9,16 @@ repository.workspace = true
 publish = false
 description = "aarch64 Frame backend: boot, MMU, traps, console. The only place unsafe lives for ARM."
 
+[package.metadata.oya]
+microservice = "cloud-kernel"
+bounded_context = "cloud-kernel"
+kind = "shared"
+layer = "adapter"
+owner_team = "axis-cloud-platform"
+purpose = "aarch64 kuberos Frame backend adapter: boot, MMU, traps, console, and Talos-compatibility verification images."
+adr_anchors = ["ADR-0512", "ADR-0520", "ADR-0536", "ADR-0562", "ADR-0378", "ADR-0382"]
+design_non_claim = "scaffold_only_no_module_build_boot_artifact_or_runtime_readiness_claim"
+
 [features]
 # Verification-only: switch the embedded USER_ELF (include_bytes!) to the
 # signal-demo program (out/user-signal.elf) instead of the default user-spawn
