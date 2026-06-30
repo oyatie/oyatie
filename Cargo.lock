@@ -3384,6 +3384,7 @@ dependencies = [
  "axum",
  "base64 0.22.1",
  "http-body-util",
+ "iam-identity-oidc-issuer-kernel",
  "iam-identity-workload-api",
  "iam-identity-workload-app",
  "iam-identity-workload-authz-cedar",

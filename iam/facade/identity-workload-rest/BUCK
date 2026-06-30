@@ -70,6 +70,7 @@ _TEST_DEPS = [
     "//iam/ports/identity-workload-api:iam-identity-workload-api",
     "//iam/facade/identity-workload-app:iam-identity-workload-app",
     "//iam/adapters/identity-workload-authz-cedar:iam-identity-workload-authz-cedar",
+    "//iam/core/identity-oidc-issuer-kernel:iam-identity-oidc-issuer-kernel",
     "//iam/core/identity-workload-domain:iam-identity-workload-domain",
     "//iam/adapters/identity-workload-oidc:iam-identity-workload-oidc",
     "third-party//:aws-lc-rs",
