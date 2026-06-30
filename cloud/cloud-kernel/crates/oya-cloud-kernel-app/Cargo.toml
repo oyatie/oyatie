@@ -9,6 +9,16 @@ repository.workspace = true
 publish = false
 description = "kernel: the safe kernel binary. Links exactly one arch Frame backend."
 
+[package.metadata.oya]
+microservice = "cloud-kernel"
+bounded_context = "cloud-kernel"
+kind = "shared"
+layer = "app"
+owner_team = "axis-cloud-platform"
+purpose = "Bare-metal kuberos kernel composition binary: links the safe Frame with exactly one architecture backend without claiming runtime promotion."
+adr_anchors = ["ADR-0512", "ADR-0520", "ADR-0536", "ADR-0562", "ADR-0378", "ADR-0382"]
+design_non_claim = "scaffold_only_no_module_build_boot_artifact_or_runtime_readiness_claim"
+
 [[bin]]
 name = "kernel"
 path = "src/main.rs"
