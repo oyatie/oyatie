@@ -346,20 +346,23 @@
         "https://github.com/torvalds/linux",
         "https://github.com/firecracker-microvm/firecracker",
         "https://github.com/opencontainers/runc",
-        "https://github.com/containerd/containerd"
+        "https://github.com/containerd/containerd",
+        "https://github.com/sunfishcode/c-ward"
       ],
       "strengths_to_adopt": [
         "stable userspace syscall ABI discipline",
         "namespaces, cgroups, capabilities, seccomp, LSM, eBPF, procfs/sysfs/netlink compatibility",
         "OCI/CRI interoperability and conformance",
-        "Firecracker-style Rust API, jailer/seccomp/cgroup hardening, minimal device model"
+        "Firecracker-style Rust API, jailer/seccomp/cgroup hardening, minimal device model",
+        "c-ward-style split between a small libc ABI wrapper and Rust-idiomatic implementation crates, including explicit no_std/std layering and coexist-vs-take-charge modes"
       ],
       "weaknesses_to_improve": [
         "Linux internal kernel APIs are intentionally not stable and cannot be product contracts",
         "runtime ecosystems often lean on shell/bootstrap glue",
-        "node/worker isolation is frequently configured out-of-band"
+        "node/worker isolation is frequently configured out-of-band",
+        "c-ward is experimental, incomplete, nightly-dependent, Linux GNU ABI-only today, and shells out to getent for user/DNS resolution, so it is a cautionary parity input rather than a production authority"
       ],
-      "native_shape": "Rust runtime and sandbox control plane that preserves Linux userspace ABI, tests OCI/CRI/Kubernetes node compatibility, and treats kernel-internal APIs as implementation details."
+      "native_shape": "Rust runtime and sandbox control plane that preserves Linux userspace ABI, tests OCI/CRI/Kubernetes node compatibility, keeps libc/ABI compatibility behind explicit parity harnesses, and treats kernel-internal APIs plus experimental libc-replacement projects as implementation details until fresh conformance evidence exists."
     }
   ],
   "owned_api_resource_model": {
@@ -740,7 +743,7 @@
     {
       "id": "PDF-S3",
       "issue_candidate": "new parity registry slice",
-      "description": "ParityTarget schema and initial rows for Kubernetes, Argo, GitHub Actions, GitLab/legacy-controller, Snyk/Trivy/driftctl, Linux ABI, OCI/CRI.",
+      "description": "ParityTarget schema and initial rows for Kubernetes, Argo, GitHub Actions, GitLab/legacy-controller, Snyk/Trivy/driftctl, Linux ABI, OCI/CRI, and c-ward-style Rust libc ABI experiments.",
       "verification": [
         "schema parse",
         "duplicate target ID rejection",
