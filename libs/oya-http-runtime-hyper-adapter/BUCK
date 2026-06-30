@@ -10,7 +10,9 @@ rust_library(
         "third-party//:bytes",
         "third-party//:http-body-util",
         "third-party//:hyper",
+        "third-party//:hyper-rustls",
         "third-party//:hyper-util",
+        "third-party//:rustls",
         "third-party//:tokio",
     ],
 )
@@ -29,5 +31,8 @@ rust_test(
         "third-party//:hyper",
         "third-party//:hyper-util",
         "third-party//:tokio",
+        "third-party//:hyper-rustls",
+        "third-party//:rcgen",
+        "third-party//:rustls",
     ],
 )

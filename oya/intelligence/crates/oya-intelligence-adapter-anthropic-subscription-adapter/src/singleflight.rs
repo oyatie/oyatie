@@ -15,12 +15,12 @@ use std::future::Future;
 use std::pin::Pin;
 use std::sync::{Arc, Mutex};
 
-use futures_util::future::{BoxFuture, Shared};
 use futures_util::FutureExt;
+use futures_util::future::{BoxFuture, Shared};
 
+use crate::oauth_client::OAuthClientError;
 use crate::ports::SeatId;
 use crate::token_state::SeatTokenState;
-use crate::oauth_client::OAuthClientError;
 
 /// Result type shared across concurrent waiters.
 pub type RefreshResult = Result<SeatTokenState, OAuthClientError>;
@@ -83,8 +83,8 @@ impl RefreshSingleflight {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::atomic::{AtomicU32, Ordering};
     use std::sync::Arc;
+    use std::sync::atomic::{AtomicU32, Ordering};
 
     #[tokio::test]
     async fn single_http_call_for_concurrent_refreshes() {
@@ -121,7 +121,11 @@ mod tests {
         tokio::task::yield_now().await;
 
         let results: Vec<_> = futures_util::future::join_all(handles).await;
-        assert_eq!(call_count.load(Ordering::SeqCst), 1, "only one HTTP call expected");
+        assert_eq!(
+            call_count.load(Ordering::SeqCst),
+            1,
+            "only one HTTP call expected"
+        );
         for r in results {
             let state = r.unwrap().unwrap();
             assert_eq!(state.access_token, "access");
@@ -147,6 +151,10 @@ mod tests {
             .unwrap();
         }
 
-        assert_eq!(call_count.load(Ordering::SeqCst), 3, "each sequential call triggers refresh");
+        assert_eq!(
+            call_count.load(Ordering::SeqCst),
+            3,
+            "each sequential call triggers refresh"
+        );
     }
 }

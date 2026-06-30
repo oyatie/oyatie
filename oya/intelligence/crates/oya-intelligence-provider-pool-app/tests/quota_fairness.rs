@@ -23,14 +23,13 @@ use std::sync::Arc;
 use bytes::Bytes;
 
 use oya_intelligence_provider_pool_app::{
-    AgentQuotaStore, AgentQuotaBudget, AgentQuotaSnapshot, AgentToken,
-    DeniedSecretResolver, DispatchError, InMemoryAgentQuotaStore, InMemoryAccountHealthStore,
-    InMemoryPoolRepository, InMemoryProviderInvocationTransport, InMemoryUsageSnapshotSource,
-    NoOpMetricsSink, PoolId, PoolRoutingStrategy, ProviderAccountId, ProviderAccountPool,
-    ProviderFamily, ProviderResponse, ProviderTier, QuotaError, RequestMetadata, TenantId,
-    TransportError, TransportScript, UnixMillis,
-    dispatch_to_pool, dispatch_to_pool_with_quota,
-    should_skip_reserve, QUOTA_AMPLE_THRESHOLD_PCT,
+    AgentQuotaBudget, AgentQuotaSnapshot, AgentQuotaStore, AgentToken, DeniedSecretResolver,
+    DispatchError, InMemoryAccountHealthStore, InMemoryAgentQuotaStore, InMemoryPoolRepository,
+    InMemoryProviderInvocationTransport, InMemoryUsageSnapshotSource, NoOpMetricsSink, PoolId,
+    PoolRoutingStrategy, ProviderAccountId, ProviderAccountPool, ProviderFamily, ProviderResponse,
+    ProviderTier, QUOTA_AMPLE_THRESHOLD_PCT, QuotaError, RequestMetadata, TenantId, TransportError,
+    TransportScript, UnixMillis, dispatch_to_pool, dispatch_to_pool_with_quota,
+    should_skip_reserve,
 };
 use oya_intelligence_provider_pool_kernel::DurationMs;
 use std::collections::BTreeSet;
@@ -50,11 +49,7 @@ fn agent(s: &str) -> AgentToken {
     AgentToken(s.to_owned())
 }
 
-fn simple_pool(
-    tenant: &TenantId,
-    pid_str: &PoolId,
-    members: &[&str],
-) -> ProviderAccountPool {
+fn simple_pool(tenant: &TenantId, pid_str: &PoolId, members: &[&str]) -> ProviderAccountPool {
     let mut set: BTreeSet<ProviderAccountId> = BTreeSet::new();
     for m in members {
         set.insert(ProviderAccountId(m.to_string()));
@@ -87,12 +82,17 @@ fn ok_response(account: &ProviderAccountId) -> ProviderResponse {
 fn reserve_reduces_remaining_budget() {
     let tenant = ten("t1");
     let ag = agent("agent_a");
-    let budget = AgentQuotaBudget { budget_tokens: 1_000, window_reset_unix_ms: 0 };
+    let budget = AgentQuotaBudget {
+        budget_tokens: 1_000,
+        window_reset_unix_ms: 0,
+    };
 
     let mut store = InMemoryAgentQuotaStore::new();
     store.set_budget(tenant.clone(), ag.clone(), budget);
 
-    store.reserve(&tenant, &ag, 300).expect("reserve must succeed when sufficient budget");
+    store
+        .reserve(&tenant, &ag, 300)
+        .expect("reserve must succeed when sufficient budget");
 
     let snap = store.snapshot(&tenant, &ag).expect("snapshot");
     assert_eq!(snap.budget_tokens, 1_000);
@@ -104,7 +104,10 @@ fn reserve_reduces_remaining_budget() {
 fn reserve_rejects_when_over_budget() {
     let tenant = ten("t1");
     let ag = agent("agent_a");
-    let budget = AgentQuotaBudget { budget_tokens: 100, window_reset_unix_ms: 0 };
+    let budget = AgentQuotaBudget {
+        budget_tokens: 100,
+        window_reset_unix_ms: 0,
+    };
 
     let mut store = InMemoryAgentQuotaStore::new();
     store.set_budget(tenant.clone(), ag.clone(), budget);
@@ -113,11 +116,20 @@ fn reserve_rejects_when_over_budget() {
     store.reserve(&tenant, &ag, 90).expect("first reserve");
 
     // Now try to reserve more than remains (10 left, want 50).
-    let err = store.reserve(&tenant, &ag, 50).expect_err("must reject over-budget reserve");
+    let err = store
+        .reserve(&tenant, &ag, 50)
+        .expect_err("must reject over-budget reserve");
     match err {
-        QuotaError::BudgetExceeded { requested, remaining, .. } => {
+        QuotaError::BudgetExceeded {
+            requested,
+            remaining,
+            ..
+        } => {
             assert_eq!(requested, 50, "requested tokens must match");
-            assert_eq!(remaining, 10, "remaining tokens must be reported accurately");
+            assert_eq!(
+                remaining, 10,
+                "remaining tokens must be reported accurately"
+            );
         }
         other => panic!("expected BudgetExceeded, got {other:?}"),
     }
@@ -128,7 +140,10 @@ fn reserve_rejects_when_over_budget() {
 fn reconcile_credits_back_over_reserve() {
     let tenant = ten("t1");
     let ag = agent("agent_a");
-    let budget = AgentQuotaBudget { budget_tokens: 1_000, window_reset_unix_ms: 0 };
+    let budget = AgentQuotaBudget {
+        budget_tokens: 1_000,
+        window_reset_unix_ms: 0,
+    };
 
     let mut store = InMemoryAgentQuotaStore::new();
     store.set_budget(tenant.clone(), ag.clone(), budget);
@@ -139,7 +154,10 @@ fn reconcile_credits_back_over_reserve() {
 
     let snap = store.snapshot(&tenant, &ag).expect("snapshot");
     // Started with 1000; reserved 100 → 900; reconcile credits back 40 → 940.
-    assert_eq!(snap.remaining_tokens, 940, "over-reserve of 40 must be credited back");
+    assert_eq!(
+        snap.remaining_tokens, 940,
+        "over-reserve of 40 must be credited back"
+    );
 }
 
 /// reconcile_debits_extra_consumption
@@ -147,7 +165,10 @@ fn reconcile_credits_back_over_reserve() {
 fn reconcile_debits_extra_consumption() {
     let tenant = ten("t1");
     let ag = agent("agent_a");
-    let budget = AgentQuotaBudget { budget_tokens: 1_000, window_reset_unix_ms: 0 };
+    let budget = AgentQuotaBudget {
+        budget_tokens: 1_000,
+        window_reset_unix_ms: 0,
+    };
 
     let mut store = InMemoryAgentQuotaStore::new();
     store.set_budget(tenant.clone(), ag.clone(), budget);
@@ -158,7 +179,10 @@ fn reconcile_debits_extra_consumption() {
 
     let snap = store.snapshot(&tenant, &ag).expect("snapshot");
     // Started 1000; reserved 100 → 900; reconcile debits extra 50 → 850.
-    assert_eq!(snap.remaining_tokens, 850, "extra 50 tokens must be debited");
+    assert_eq!(
+        snap.remaining_tokens, 850,
+        "extra 50 tokens must be debited"
+    );
 }
 
 /// reconcile_floors_remaining_at_zero
@@ -167,7 +191,10 @@ fn reconcile_floors_remaining_at_zero() {
     let tenant = ten("t1");
     let ag = agent("agent_a");
     // Tiny budget.
-    let budget = AgentQuotaBudget { budget_tokens: 10, window_reset_unix_ms: 0 };
+    let budget = AgentQuotaBudget {
+        budget_tokens: 10,
+        window_reset_unix_ms: 0,
+    };
 
     let mut store = InMemoryAgentQuotaStore::new();
     store.set_budget(tenant.clone(), ag.clone(), budget);
@@ -177,7 +204,10 @@ fn reconcile_floors_remaining_at_zero() {
     store.reconcile(&tenant, &ag, 10, 9_999).expect("reconcile");
 
     let snap = store.snapshot(&tenant, &ag).expect("snapshot");
-    assert_eq!(snap.remaining_tokens, 0, "remaining must floor at 0, not underflow");
+    assert_eq!(
+        snap.remaining_tokens, 0,
+        "remaining must floor at 0, not underflow"
+    );
 }
 
 // ── should_skip_reserve tests ─────────────────────────────────────────────────
@@ -246,18 +276,24 @@ fn agent_isolation_separate_budgets() {
     let tenant = ten("t1");
     let a = agent("agent_a");
     let b = agent("agent_b");
-    let budget = AgentQuotaBudget { budget_tokens: 500, window_reset_unix_ms: 0 };
+    let budget = AgentQuotaBudget {
+        budget_tokens: 500,
+        window_reset_unix_ms: 0,
+    };
 
     let mut store = InMemoryAgentQuotaStore::new();
-    store.set_budget(tenant.clone(), a.clone(), budget.clone());
-    store.set_budget(tenant.clone(), b.clone(), budget.clone());
+    store.set_budget(tenant.clone(), a.clone(), budget);
+    store.set_budget(tenant.clone(), b.clone(), budget);
 
     // Exhaust agent_a's budget entirely.
     store.reserve(&tenant, &a, 500).expect("exhaust agent_a");
 
     // agent_b must still have full budget.
     let snap_b = store.snapshot(&tenant, &b).expect("snap_b");
-    assert_eq!(snap_b.remaining_tokens, 500, "agent_b budget must be unaffected by agent_a consumption");
+    assert_eq!(
+        snap_b.remaining_tokens, 500,
+        "agent_b budget must be unaffected by agent_a consumption"
+    );
 
     // agent_a must be exhausted.
     let snap_a = store.snapshot(&tenant, &a).expect("snap_a");
@@ -270,18 +306,26 @@ fn tenant_isolation_separate_budgets() {
     let tenant_x = ten("tenant_x");
     let tenant_y = ten("tenant_y");
     let ag = agent("shared_agent_name");
-    let budget = AgentQuotaBudget { budget_tokens: 200, window_reset_unix_ms: 0 };
+    let budget = AgentQuotaBudget {
+        budget_tokens: 200,
+        window_reset_unix_ms: 0,
+    };
 
     let mut store = InMemoryAgentQuotaStore::new();
-    store.set_budget(tenant_x.clone(), ag.clone(), budget.clone());
-    store.set_budget(tenant_y.clone(), ag.clone(), budget.clone());
+    store.set_budget(tenant_x.clone(), ag.clone(), budget);
+    store.set_budget(tenant_y.clone(), ag.clone(), budget);
 
     // Exhaust tenant_x's budget.
-    store.reserve(&tenant_x, &ag, 200).expect("exhaust tenant_x");
+    store
+        .reserve(&tenant_x, &ag, 200)
+        .expect("exhaust tenant_x");
 
     // tenant_y's same-named agent must still have full budget.
     let snap_y = store.snapshot(&tenant_y, &ag).expect("snap_y");
-    assert_eq!(snap_y.remaining_tokens, 200, "tenant_y budget must be isolated from tenant_x");
+    assert_eq!(
+        snap_y.remaining_tokens, 200,
+        "tenant_y budget must be isolated from tenant_x"
+    );
 }
 
 // ── dispatch_to_pool_with_quota integration tests ────────────────────────────
@@ -298,9 +342,8 @@ async fn dispatch_rejects_over_budget_request() {
     let mut health = InMemoryAccountHealthStore::new();
 
     // Transport must NOT be called — quota check must short-circuit.
-    let script: TransportScript = Arc::new(|_, _, _| {
-        panic!("transport must not be called when quota is exhausted")
-    });
+    let script: TransportScript =
+        Arc::new(|_, _, _| panic!("transport must not be called when quota is exhausted"));
     let transport = InMemoryProviderInvocationTransport::new(script);
     let secret = DeniedSecretResolver;
     let metrics = NoOpMetricsSink;
@@ -310,7 +353,10 @@ async fn dispatch_rejects_over_budget_request() {
     quota_store.set_budget(
         tenant.clone(),
         ag.clone(),
-        AgentQuotaBudget { budget_tokens: 50, window_reset_unix_ms: 0 },
+        AgentQuotaBudget {
+            budget_tokens: 50,
+            window_reset_unix_ms: 0,
+        },
     );
 
     let err = dispatch_to_pool_with_quota(
@@ -334,7 +380,11 @@ async fn dispatch_rejects_over_budget_request() {
     .expect_err("over-budget dispatch must be rejected");
 
     match err {
-        DispatchError::QuotaBudgetExceeded { agent: err_agent, requested, remaining } => {
+        DispatchError::QuotaBudgetExceeded {
+            agent: err_agent,
+            requested,
+            remaining,
+        } => {
             assert_eq!(err_agent, ag);
             assert_eq!(requested, 200);
             assert_eq!(remaining, 50);
@@ -368,7 +418,10 @@ async fn dispatch_reconciles_actual_after_success() {
     quota_store.set_budget(
         tenant.clone(),
         ag.clone(),
-        AgentQuotaBudget { budget_tokens: 1_000, window_reset_unix_ms: 0 },
+        AgentQuotaBudget {
+            budget_tokens: 1_000,
+            window_reset_unix_ms: 0,
+        },
     );
 
     let outcome = dispatch_to_pool_with_quota(
@@ -468,7 +521,10 @@ async fn dispatch_skip_when_ample_no_reserve_write() {
     quota_store.set_budget(
         tenant.clone(),
         ag.clone(),
-        AgentQuotaBudget { budget_tokens: 1_000, window_reset_unix_ms: 0 },
+        AgentQuotaBudget {
+            budget_tokens: 1_000,
+            window_reset_unix_ms: 0,
+        },
     );
 
     let outcome = dispatch_to_pool_with_quota(

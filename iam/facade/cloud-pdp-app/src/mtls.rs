@@ -47,13 +47,13 @@
 //! the explicitly DEFERRED slice-1b. This PEP is the in-process
 //! verify→bind→deny logic, fully testable without K8s or a TLS terminator.
 
-use oya_cloud_os_trustd_domain::signer::SigningBackend;
-use oya_cloud_os_trustd_domain::TrustBundle;
 use iam_identity_workload_domain::TenantId;
 use iam_identity_workload_svid_kernel::{
-    bind_caller_tenant, SvidVerifier, TenantBindingError, VerifyError,
+    SvidVerifier, TenantBindingError, VerifyError, bind_caller_tenant,
 };
 use iam_identity_workload_svid_trustd::TrustdSvidVerifier;
+use oya_cloud_os_trustd_domain::TrustBundle;
+use oya_cloud_os_trustd_domain::signer::SigningBackend;
 use tonic::{Code, Status};
 
 /// Why the mTLS PEP refused to come up. Boot-fatal: the caller (composition
@@ -157,9 +157,7 @@ impl CallerAuthRejection {
     pub fn public_message(&self) -> &'static str {
         match self {
             Self::NoClientCert => "client certificate required",
-            Self::UntrustedSvid { .. } | Self::MalformedSvid { .. } => {
-                "caller SVID is not trusted"
-            }
+            Self::UntrustedSvid { .. } | Self::MalformedSvid { .. } => "caller SVID is not trusted",
             Self::ExpiredSvid => "caller SVID is expired",
             Self::TenantMismatch { .. }
             | Self::PlatformSvidCannotActAsTenant
@@ -271,20 +269,23 @@ impl<'a, S: SigningBackend> SpiffeCallerAuth<'a, S> {
         let leaf = peer_leaf.ok_or(CallerAuthRejection::NoClientCert)?;
 
         // Reject paths 2/3/(malformed): verify the chain + extract the SPIFFE id.
-        let svid = self.verifier.verify_peer(leaf, now).map_err(|err| match err {
-            VerifyError::Expired => CallerAuthRejection::ExpiredSvid,
-            VerifyError::NoSpiffeUriSan | VerifyError::AmbiguousUriSan => {
-                CallerAuthRejection::MalformedSvid {
-                    detail: err.to_string(),
+        let svid = self
+            .verifier
+            .verify_peer(leaf, now)
+            .map_err(|err| match err {
+                VerifyError::Expired => CallerAuthRejection::ExpiredSvid,
+                VerifyError::NoSpiffeUriSan | VerifyError::AmbiguousUriSan => {
+                    CallerAuthRejection::MalformedSvid {
+                        detail: err.to_string(),
+                    }
                 }
-            }
-            VerifyError::MalformedSpiffeId(_) => CallerAuthRejection::MalformedSvid {
-                detail: err.to_string(),
-            },
-            VerifyError::UntrustedIssuer { detail } => {
-                CallerAuthRejection::UntrustedSvid { detail }
-            }
-        })?;
+                VerifyError::MalformedSpiffeId(_) => CallerAuthRejection::MalformedSvid {
+                    detail: err.to_string(),
+                },
+                VerifyError::UntrustedIssuer { detail } => {
+                    CallerAuthRejection::UntrustedSvid { detail }
+                }
+            })?;
 
         // Reject path 7 (cell-authority pinning): even a structurally-valid,
         // correctly-signed SVID must be rooted in the cell the PDP serves. A
@@ -325,13 +326,13 @@ impl<'a, S: SigningBackend> SpiffeCallerAuth<'a, S> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use oya_cloud_os_trustd_domain::JoinToken;
     use oya_cloud_os_trustd_domain::ca::{CertificateAuthority, CertificateSigningRequest};
     use oya_cloud_os_trustd_domain::certificate::{CertUsage, Certificate};
     use oya_cloud_os_trustd_domain::der;
     use oya_cloud_os_trustd_domain::service::{CertificateRequest, SecurityService};
     use oya_cloud_os_trustd_domain::signer::EcdsaP256Signer;
     use oya_cloud_os_trustd_domain::x509::KeyPair;
-    use oya_cloud_os_trustd_domain::JoinToken;
 
     const JOIN_TOKEN: &str = "clusterid.clustersecret";
 
@@ -341,15 +342,18 @@ mod tests {
     fn ca(name: &str) -> (CertificateAuthority<EcdsaP256Signer>, EcdsaP256Signer) {
         let signer = EcdsaP256Signer::generate().unwrap();
         let key = KeyPair::new(signer.private_key_der(), signer.public_key_spki_der());
-        let ca = CertificateAuthority::bootstrap(name, key, signer.clone(), 1_000, 10_000_000)
-            .unwrap();
+        let ca =
+            CertificateAuthority::bootstrap(name, key, signer.clone(), 1_000, 10_000_000).unwrap();
         (ca, signer)
     }
 
     /// A trustd service backed by the real CA, plus the CA signer for minting.
     fn service() -> (SecurityService<EcdsaP256Signer>, EcdsaP256Signer) {
         let (ca, signer) = ca("oyatie-cell-7-ca");
-        (SecurityService::new(JoinToken::new(JOIN_TOKEN).unwrap(), ca), signer)
+        (
+            SecurityService::new(JoinToken::new(JOIN_TOKEN).unwrap(), ca),
+            signer,
+        )
     }
 
     fn trusted_bundle(
@@ -377,8 +381,13 @@ mod tests {
             csr,
         };
         let resp = svc.handle_certificate(&req, &key, 2_000).unwrap();
-        der::encode_leaf_der(&resp.identity.certificate, &wl, svc.ca_certificate(), ca_signer)
-            .unwrap()
+        der::encode_leaf_der(
+            &resp.identity.certificate,
+            &wl,
+            svc.ca_certificate(),
+            ca_signer,
+        )
+        .unwrap()
     }
 
     // RED-fixture: boot_refuses_without_trust_bundle.
@@ -397,7 +406,9 @@ mod tests {
         let (svc, ca_signer) = service();
         let bundle = trusted_bundle(&svc, &ca_signer);
         let pep = SpiffeCallerAuth::new(&bundle).unwrap();
-        let rej = pep.authenticate_caller(None, "ten_acme", 2_500).unwrap_err();
+        let rej = pep
+            .authenticate_caller(None, "ten_acme", 2_500)
+            .unwrap_err();
         assert_eq!(rej, CallerAuthRejection::NoClientCert);
         assert_eq!(rej.to_grpc_status().code(), Code::PermissionDenied);
         assert_eq!(rej.rest_status_code(), 403);
@@ -421,8 +432,7 @@ mod tests {
             3_600,
         );
         let leaf = rogue.sign_csr(&csr, 2_000).unwrap();
-        let forged =
-            der::encode_leaf_der(&leaf, &wl, rogue.certificate(), &rogue_signer).unwrap();
+        let forged = der::encode_leaf_der(&leaf, &wl, rogue.certificate(), &rogue_signer).unwrap();
         let rej = pep
             .authenticate_caller(Some(&forged), "ten_acme", 2_500)
             .unwrap_err();
@@ -434,7 +444,11 @@ mod tests {
     #[test]
     fn expired_svid_denied() {
         let (mut svc, ca_signer) = service();
-        let leaf = issue_leaf(&mut svc, &ca_signer, "spiffe://oyatie.cell-7/tenant/ten_acme/wl"); // [2000,5600)
+        let leaf = issue_leaf(
+            &mut svc,
+            &ca_signer,
+            "spiffe://oyatie.cell-7/tenant/ten_acme/wl",
+        ); // [2000,5600)
         let bundle = trusted_bundle(&svc, &ca_signer);
         let pep = SpiffeCallerAuth::new(&bundle).unwrap();
         let rej = pep
@@ -566,7 +580,10 @@ mod tests {
                 serial: 1,
                 subject: DistinguishedName::common("oya-cloud-iam-pdp"),
                 issuer: DistinguishedName::common("oyatie-cell-7-ca"),
-                validity: Validity { not_before: 1_000, not_after: 9_000 },
+                validity: Validity {
+                    not_before: 1_000,
+                    not_after: 9_000,
+                },
                 usage: CertUsage::ServerAuth,
                 sans: SubjectAltNames::default(), // NO URI SAN
                 public_key_der: srv.public_key_spki_der(),
@@ -601,7 +618,9 @@ mod tests {
             csr,
         };
         assert_eq!(
-            svc.handle_certificate(&req, &key, 2_000).unwrap_err().kind(),
+            svc.handle_certificate(&req, &key, 2_000)
+                .unwrap_err()
+                .kind(),
             "csr_rejected"
         );
     }
@@ -610,7 +629,11 @@ mod tests {
     #[test]
     fn platform_svid_cannot_act_as_tenant() {
         let (mut svc, ca_signer) = service();
-        let leaf = issue_leaf(&mut svc, &ca_signer, "spiffe://oyatie.cell-7/platform/cloud-iam-pdp");
+        let leaf = issue_leaf(
+            &mut svc,
+            &ca_signer,
+            "spiffe://oyatie.cell-7/platform/cloud-iam-pdp",
+        );
         let bundle = trusted_bundle(&svc, &ca_signer);
         let pep = SpiffeCallerAuth::new(&bundle).unwrap();
         let rej = pep
@@ -624,7 +647,11 @@ mod tests {
     #[test]
     fn malformed_request_tenant_denied() {
         let (mut svc, ca_signer) = service();
-        let leaf = issue_leaf(&mut svc, &ca_signer, "spiffe://oyatie.cell-7/tenant/ten_acme/wl");
+        let leaf = issue_leaf(
+            &mut svc,
+            &ca_signer,
+            "spiffe://oyatie.cell-7/tenant/ten_acme/wl",
+        );
         let bundle = trusted_bundle(&svc, &ca_signer);
         let pep = SpiffeCallerAuth::new(&bundle).unwrap();
         let rej = pep
@@ -659,9 +686,13 @@ mod tests {
             csr,
         };
         let resp = svc.handle_certificate(&req, &key, 2_000).unwrap();
-        let leaf =
-            der::encode_leaf_der(&resp.identity.certificate, &node, svc.ca_certificate(), &ca_signer)
-                .unwrap();
+        let leaf = der::encode_leaf_der(
+            &resp.identity.certificate,
+            &node,
+            svc.ca_certificate(),
+            &ca_signer,
+        )
+        .unwrap();
         let bundle = trusted_bundle(&svc, &ca_signer);
         let pep = SpiffeCallerAuth::new(&bundle).unwrap();
         let rej = pep
