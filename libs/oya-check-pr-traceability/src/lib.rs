@@ -1,4 +1,4 @@
-//! Foundry PR traceability fitness kernel.
+//! Governance PR traceability fitness kernel.
 //!
 //! Oyatie's PR contract requires five traceability H2 sections: Issue, Summary,
 //! Verification, Traceability, and Evidence. `## Code Review` is supplied by
@@ -8,6 +8,7 @@
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PrTraceabilityDocument {
     pub document_id: String, // data_class: INTERNAL_ONLY
+    pub title: String,       // data_class: INTERNAL_ONLY
     pub body: String,        // data_class: INTERNAL_ONLY
 }
 
@@ -46,6 +47,15 @@ pub enum PrTraceabilityError {
     },
     CodeReviewRequired,
     CodeReviewForbidden,
+    BlockedReviewMarker {
+        location: &'static str,
+        marker: &'static str,
+    },
+    MissingCodeReviewReviewer,
+    MissingCodeReviewApproval,
+    MissingCodeReviewResolvedItems,
+    MissingCodeReviewDeferredItems,
+    CodeReviewRequestsChanges,
 }
 
 const REQUIRED_SECTIONS: [&str; 5] = [
@@ -62,6 +72,19 @@ pub fn validate_pr_traceability(
 ) -> Result<PrTraceabilityReport, PrTraceabilityError> {
     if policy.require_code_review && policy.forbid_code_review {
         return Err(PrTraceabilityError::ConflictingCodeReviewPolicy);
+    }
+
+    if let Some(marker) = blocked_review_marker_in_title(&document.title) {
+        return Err(PrTraceabilityError::BlockedReviewMarker {
+            location: "title",
+            marker,
+        });
+    }
+    if let Some(marker) = blocked_review_marker_in_body(&document.body) {
+        return Err(PrTraceabilityError::BlockedReviewMarker {
+            location: "body",
+            marker,
+        });
     }
 
     let sections = h2_sections(&document.body);
@@ -125,9 +148,13 @@ pub fn validate_pr_traceability(
         }
     }
 
+    let code_review = section_body(&document.body, &sections, "Code Review");
     let code_review_present = section_index(&sections, "Code Review").is_some();
     if policy.require_code_review && !code_review_present {
         return Err(PrTraceabilityError::CodeReviewRequired);
+    }
+    if policy.require_code_review {
+        validate_code_review_section(code_review)?;
     }
     if policy.forbid_code_review && code_review_present {
         return Err(PrTraceabilityError::CodeReviewForbidden);
@@ -197,6 +224,218 @@ fn contains_issue_reference(issue: &str) -> bool {
     issue.contains("Closes #") || issue.contains("Refs #") || issue.contains("Blocks #")
 }
 
+fn validate_code_review_section(code_review: &str) -> Result<(), PrTraceabilityError> {
+    if code_review_requests_changes(code_review) {
+        return Err(PrTraceabilityError::CodeReviewRequestsChanges);
+    }
+    if !code_review_has_reviewer(code_review) {
+        return Err(PrTraceabilityError::MissingCodeReviewReviewer);
+    }
+    if !code_review_has_approval(code_review) {
+        return Err(PrTraceabilityError::MissingCodeReviewApproval);
+    }
+    if !code_review_has_resolved_items(code_review) {
+        return Err(PrTraceabilityError::MissingCodeReviewResolvedItems);
+    }
+    if !code_review_has_deferred_items(code_review) {
+        return Err(PrTraceabilityError::MissingCodeReviewDeferredItems);
+    }
+
+    Ok(())
+}
+
+fn code_review_requests_changes(code_review: &str) -> bool {
+    code_review_has_field_value(
+        code_review,
+        &["verdict", "reviewer-agent", "reviewer agent"],
+        |value| {
+            value.contains("request changes")
+                || value.contains("request_changes")
+                || value.contains("changes requested")
+                || value.contains("changes_requested")
+        },
+    )
+}
+
+fn code_review_has_reviewer(code_review: &str) -> bool {
+    code_review_has_field_value(
+        code_review,
+        &["reviewer-agent", "reviewer agent", "reviewer"],
+        |value| !value.is_empty(),
+    )
+}
+
+fn code_review_has_approval(code_review: &str) -> bool {
+    code_review_has_field_value(code_review, &["verdict"], verdict_value_is_approval)
+}
+
+fn code_review_has_resolved_items(code_review: &str) -> bool {
+    code_review_has_field_value(code_review, &["resolved items", "resolved"], |value| {
+        !value.is_empty()
+    })
+}
+
+fn code_review_has_deferred_items(code_review: &str) -> bool {
+    code_review_has_field_value(code_review, &["deferred items", "deferred"], |value| {
+        !value.is_empty()
+    })
+}
+
+fn code_review_has_field_value(
+    code_review: &str,
+    field_names: &[&str],
+    predicate: impl Fn(&str) -> bool,
+) -> bool {
+    code_review.lines().any(|line| {
+        let normalized = review_marker_line(line);
+        let Some((field, value)) = normalized.split_once(':') else {
+            return false;
+        };
+        let field = review_field_name(field);
+        field_names.iter().any(|name| *name == field) && predicate(value.trim())
+    })
+}
+
+fn verdict_value_is_approval(value: &str) -> bool {
+    matches!(
+        verdict_value_normalized(value).as_deref(),
+        Some("approve" | "approved")
+    )
+}
+
+fn verdict_value_normalized(value: &str) -> Option<String> {
+    let normalized = value
+        .trim()
+        .trim_matches(|character| matches!(character, '*' | '_' | '`'))
+        .trim()
+        .to_ascii_lowercase();
+    if normalized.is_empty() {
+        None
+    } else {
+        Some(normalized)
+    }
+}
+
+fn blocked_review_marker_in_title(title: &str) -> Option<&'static str> {
+    let normalized = title.trim().to_ascii_lowercase();
+    if normalized.is_empty() {
+        return None;
+    }
+    if normalized.contains("pending review") {
+        return Some("pending review");
+    }
+    if normalized.contains("review pending") {
+        return Some("review pending");
+    }
+    if normalized.contains("awaiting review") {
+        return Some("awaiting review");
+    }
+    if normalized.contains("needs review") {
+        return Some("needs review");
+    }
+    if normalized.starts_with("blocked")
+        || normalized.contains("[blocked")
+        || normalized.contains("(blocked")
+        || normalized.contains(": blocked")
+        || normalized.contains(" blocked:")
+    {
+        return Some("blocked");
+    }
+    None
+}
+
+fn blocked_review_marker_in_body(body: &str) -> Option<&'static str> {
+    body.lines().find_map(blocked_review_marker_in_body_line)
+}
+
+fn blocked_review_marker_in_body_line(line: &str) -> Option<&'static str> {
+    let normalized = review_marker_line(line);
+    if normalized.is_empty() {
+        return None;
+    }
+    if let Some((field, value)) = normalized.split_once(':') {
+        let field = review_field_name(field);
+        if matches!(
+            field.as_str(),
+            "verdict" | "review" | "review status" | "status"
+        ) && let Some(marker) = blocked_review_marker_in_text(value.trim())
+        {
+            return Some(marker);
+        }
+    }
+    if normalized.starts_with("blocked")
+        || normalized.starts_with("status: blocked")
+        || normalized.starts_with("review: blocked")
+        || normalized.starts_with("review status: blocked")
+    {
+        return Some("blocked");
+    }
+    if normalized.starts_with("pending review")
+        || normalized.starts_with("status: pending review")
+        || normalized.starts_with("review: pending review")
+        || normalized.starts_with("review status: pending review")
+    {
+        return Some("pending review");
+    }
+    if normalized.starts_with("review pending") || normalized.starts_with("status: review pending")
+    {
+        return Some("review pending");
+    }
+    if normalized.starts_with("awaiting review")
+        || normalized.starts_with("status: awaiting review")
+    {
+        return Some("awaiting review");
+    }
+    if normalized.starts_with("needs review") || normalized.starts_with("status: needs review") {
+        return Some("needs review");
+    }
+    None
+}
+
+fn review_marker_line(line: &str) -> String {
+    let mut normalized = line.trim().to_ascii_lowercase();
+    loop {
+        let stripped = normalized
+            .strip_prefix("- ")
+            .or_else(|| normalized.strip_prefix("* "))
+            .or_else(|| normalized.strip_prefix("> "))
+            .or_else(|| normalized.strip_prefix("[ ] "))
+            .or_else(|| normalized.strip_prefix("[x] "))
+            .map(str::trim_start);
+        let Some(stripped) = stripped else {
+            return normalized;
+        };
+        normalized = stripped.to_string();
+    }
+}
+
+fn review_field_name(field: &str) -> String {
+    field
+        .trim()
+        .trim_matches(|character| matches!(character, '*' | '_' | '`'))
+        .trim()
+        .to_owned()
+}
+
+fn blocked_review_marker_in_text(text: &str) -> Option<&'static str> {
+    if text.contains("pending review") {
+        return Some("pending review");
+    }
+    if text.contains("review pending") {
+        return Some("review pending");
+    }
+    if text.contains("awaiting review") {
+        return Some("awaiting review");
+    }
+    if text.contains("needs review") {
+        return Some("needs review");
+    }
+    if text.contains("blocked") {
+        return Some("blocked");
+    }
+    None
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -214,19 +453,20 @@ mod tests {
 
     #[test]
     fn accepts_merge_ready_body_when_code_review_required() {
-        let body = format!(
-            "{}\n## Code Review\nreviewer-agent: APPROVE\n",
-            valid_body()
+        assert_eq!(
+            validate_pr_traceability(&document(merge_ready_body()), merge_policy()),
+            Ok(PrTraceabilityReport {
+                required_sections_checked: 5,
+                code_review_present: true,
+            })
         );
 
+        let markdown_field_body = format!(
+            "{}\n## Code Review\n**Reviewer agent:** rust-reviewer\n**Verdict:** APPROVE\n**Resolved items:** none\n**Deferred items:** none\n",
+            valid_body()
+        );
         assert_eq!(
-            validate_pr_traceability(
-                &document(&body),
-                PrTraceabilityPolicy {
-                    require_code_review: true,
-                    forbid_code_review: false,
-                },
-            ),
+            validate_pr_traceability(&document(&markdown_field_body), merge_policy()),
             Ok(PrTraceabilityReport {
                 required_sections_checked: 5,
                 code_review_present: true,
@@ -268,15 +508,87 @@ mod tests {
     }
 
     #[test]
-    fn enforces_code_review_policy() {
+    fn rejects_blocked_or_pending_review_markers() {
         assert_eq!(
             validate_pr_traceability(
-                &document(valid_body()),
-                PrTraceabilityPolicy {
-                    require_code_review: true,
-                    forbid_code_review: false,
-                },
+                &document_with_title("BLOCKED: pending review", merge_ready_body()),
+                merge_policy(),
             ),
+            Err(PrTraceabilityError::BlockedReviewMarker {
+                location: "title",
+                marker: "pending review",
+            })
+        );
+
+        let blocked_body = format!("{}\nStatus: awaiting review\n", merge_ready_body());
+        assert_eq!(
+            validate_pr_traceability(&document(&blocked_body), merge_policy()),
+            Err(PrTraceabilityError::BlockedReviewMarker {
+                location: "body",
+                marker: "awaiting review",
+            })
+        );
+
+        let checkbox_blocked_body = format!("{}\n- [ ] Pending review\n", merge_ready_body());
+        assert_eq!(
+            validate_pr_traceability(&document(&checkbox_blocked_body), merge_policy()),
+            Err(PrTraceabilityError::BlockedReviewMarker {
+                location: "body",
+                marker: "pending review",
+            })
+        );
+
+        let review_status_blocked_body =
+            format!("{}\nReview status: blocked\n", merge_ready_body());
+        assert_eq!(
+            validate_pr_traceability(&document(&review_status_blocked_body), merge_policy()),
+            Err(PrTraceabilityError::BlockedReviewMarker {
+                location: "body",
+                marker: "blocked",
+            })
+        );
+
+        let pending_verdict_body = format!(
+            "{}\n## Code Review\nreviewer-agent: rust-reviewer\nverdict: APPROVE (pending review)\nResolved items: none\nDeferred items: none\n",
+            valid_body()
+        );
+        assert_eq!(
+            validate_pr_traceability(&document(&pending_verdict_body), merge_policy()),
+            Err(PrTraceabilityError::BlockedReviewMarker {
+                location: "body",
+                marker: "pending review",
+            })
+        );
+
+        let blocked_verdict_body = format!(
+            "{}\n## Code Review\nreviewer-agent: rust-reviewer\nverdict: APPROVE / BLOCKED\nResolved items: none\nDeferred items: none\n",
+            valid_body()
+        );
+        assert_eq!(
+            validate_pr_traceability(&document(&blocked_verdict_body), merge_policy()),
+            Err(PrTraceabilityError::BlockedReviewMarker {
+                location: "body",
+                marker: "blocked",
+            })
+        );
+
+        let pending_review_status_body = format!(
+            "{}\n## Code Review\nreviewer-agent: rust-reviewer\nreview status: APPROVE pending review\nverdict: APPROVE\nResolved items: none\nDeferred items: none\n",
+            valid_body()
+        );
+        assert_eq!(
+            validate_pr_traceability(&document(&pending_review_status_body), merge_policy()),
+            Err(PrTraceabilityError::BlockedReviewMarker {
+                location: "body",
+                marker: "pending review",
+            })
+        );
+    }
+
+    #[test]
+    fn enforces_code_review_policy() {
+        assert_eq!(
+            validate_pr_traceability(&document(valid_body()), merge_policy()),
             Err(PrTraceabilityError::CodeReviewRequired)
         );
 
@@ -285,6 +597,67 @@ mod tests {
             validate_pr_traceability(&document(&body), author_policy()),
             Err(PrTraceabilityError::CodeReviewForbidden)
         );
+    }
+
+    #[test]
+    fn rejects_incomplete_or_negative_code_review_evidence() {
+        let missing_reviewer = format!(
+            "{}\n## Code Review\nverdict: APPROVE\nResolved items: none\nDeferred items: none\n",
+            valid_body()
+        );
+        assert_eq!(
+            validate_pr_traceability(&document(&missing_reviewer), merge_policy()),
+            Err(PrTraceabilityError::MissingCodeReviewReviewer)
+        );
+
+        let missing_deferred = format!(
+            "{}\n## Code Review\nreviewer-agent: rust-reviewer\nverdict: APPROVE\nResolved items: none\n",
+            valid_body()
+        );
+        assert_eq!(
+            validate_pr_traceability(&document(&missing_deferred), merge_policy()),
+            Err(PrTraceabilityError::MissingCodeReviewDeferredItems)
+        );
+
+        let rejected = format!(
+            "{}\n## Code Review\nreviewer-agent: rust-reviewer\nverdict: REQUEST CHANGES\nResolved items: none\nDeferred items: none\n",
+            valid_body()
+        );
+        assert_eq!(
+            validate_pr_traceability(&document(&rejected), merge_policy()),
+            Err(PrTraceabilityError::CodeReviewRequestsChanges)
+        );
+
+        let missing_verdict = format!(
+            "{}\n## Code Review\nreviewer-agent: rust-reviewer\nResolved items: approved stale thread text\nDeferred items: none\n",
+            valid_body()
+        );
+        assert_eq!(
+            validate_pr_traceability(&document(&missing_verdict), merge_policy()),
+            Err(PrTraceabilityError::MissingCodeReviewApproval)
+        );
+
+        for negative_verdict in ["not approved", "unapproved", "disapproved"] {
+            let body = format!(
+                "{}\n## Code Review\nreviewer-agent: rust-reviewer\nverdict: {negative_verdict}\nResolved items: none\nDeferred items: none\n",
+                valid_body()
+            );
+            assert_eq!(
+                validate_pr_traceability(&document(&body), merge_policy()),
+                Err(PrTraceabilityError::MissingCodeReviewApproval)
+            );
+        }
+
+        for qualified_approval in ["approve with nits", "approved after follow-up"] {
+            let body = format!(
+                "{}\n## Code Review\nreviewer-agent: rust-reviewer\nverdict: {qualified_approval}\nResolved items: none\nDeferred items: none\n",
+                valid_body()
+            );
+            assert_eq!(
+                validate_pr_traceability(&document(&body), merge_policy()),
+                Err(PrTraceabilityError::MissingCodeReviewApproval)
+            );
+        }
     }
 
     #[test]
@@ -310,9 +683,18 @@ mod tests {
         "## Issue\nCloses #123\n\n## Summary\n- Implemented the thing.\n\n## Verification\n- pass: oya dev check\n\n## Traceability\n- Catalog records touched: oya-intelligence-capability-kernel\n- Cross-axis contracts touched: none\n- ADRs cited: ADR-0001\n\n## Evidence\n- Audit-chain emission: EVT-1\n- Foundation-bypass referenced (if any): none\n- Per-pack regulator-watch impact (if any): none\n"
     }
 
+    fn merge_ready_body() -> &'static str {
+        "## Issue\nCloses #123\n\n## Summary\n- Implemented the thing.\n\n## Verification\n- pass: oya dev check\n\n## Traceability\n- Catalog records touched: oya-intelligence-capability-kernel\n- Cross-axis contracts touched: none\n- ADRs cited: ADR-0001\n\n## Evidence\n- Audit-chain emission: EVT-1\n- Foundation-bypass referenced (if any): none\n- Per-pack regulator-watch impact (if any): none\n\n## Code Review\nreviewer-agent: rust-reviewer\nverdict: APPROVE\nResolved items: none\nDeferred items: none\n"
+    }
+
     fn document(body: &str) -> PrTraceabilityDocument {
+        document_with_title("Ready for review", body)
+    }
+
+    fn document_with_title(title: &str, body: &str) -> PrTraceabilityDocument {
         PrTraceabilityDocument {
             document_id: "pr-body".into(),
+            title: title.into(),
             body: body.into(),
         }
     }
@@ -321,6 +703,13 @@ mod tests {
         PrTraceabilityPolicy {
             require_code_review: false,
             forbid_code_review: true,
+        }
+    }
+
+    fn merge_policy() -> PrTraceabilityPolicy {
+        PrTraceabilityPolicy {
+            require_code_review: true,
+            forbid_code_review: false,
         }
     }
 }
