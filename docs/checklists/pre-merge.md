@@ -16,11 +16,11 @@ doc_status: published
    - Trivy / Cosign / SBOM
    - oya-governance-{license, data-class, cohesion, doc-catalog, slo-coverage, blast-radius}
 2. ☐ PR has 5 mandatory H2s: `## Issue / Summary / Verification / Traceability / Evidence`
-3. ☐ `## Verification` lists every check from CI + outcome (no hand-wave)
+3. ☐ `## Verification` lists every check from CI + outcome (no hand-wave), including the `oya-ci-required` head SHA and check/status URL
 4. ☐ `## Traceability` lists flat-crates targets touched + cross-axis contract impact
-5. ☐ `## Evidence` links to CI runs + eval-set output (if governed capability) + audit-chain emission record
+5. ☐ `## Evidence` links to CI runs + eval-set output (if governed capability) + audit-chain emission record, and includes the review/fix evidence packet: exact failing/fixed checks, review-thread resolution, reviewer approval state, local-CLI non-authority, and generated-face no-hand-edit status
 6. ☐ Dogfood tenant invariant evidence is present when a cloud/product boundary changes: tenant identity, tenancy boundary, policy/RBAC, residency/isolation, audit/evidence, and lifecycle remain first-class contract surfaces consumed through APIs/controllers/GitOps/admission/policy/frontends, with no privileged product shortcut into cloud internals.
-7. ☐ Reviewer-agent verdict added as `## Code Review` H2 (lead-only — never as worker)
+7. ☐ Reviewer-agent verdict added as `## Code Review` H2 (lead-only — never as worker), with APPROVE bound to the current PR head and all review threads resolved
 8. ☐ Per-blast-radius reviewers approved per [DESIGN §3.0.5.3](../DESIGN.md):
    - cross-axis-contract → all affected axis teams
    - flat-crates-move → merge-queue serialization on root Cargo.toml

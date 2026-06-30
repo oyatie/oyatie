@@ -3,6 +3,11 @@ purpose: Oyatie — Canonical Docs Changelog
 doc_status: published
 ---
 
+## 2026-06-30 — Review/fix evidence packet for oya-ci-required
+
+- Updated the PR templates, PR review checklist, done-definition checklist, pre-merge checklist, and code-review standard so merge-ready PR evidence records `oya-ci-required` status, exact failing/fixed checks, review-thread resolution, and reviewer approval state on the current PR head.
+- Clarified that local CLI or hook output is shift-left evidence only, never merge authority, and that generated faces must be producer-materialized rather than hand-edited.
+
 ## 2026-06-29 — Live Postgres sublanes for GH #901
 
 - Split the required live-Postgres bridge into independent adapter and facade jobs, each with its own Postgres service/bootstrap, so safe groups can run in parallel without sharing database state.

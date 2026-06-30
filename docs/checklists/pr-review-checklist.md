@@ -26,9 +26,9 @@ doc_status: published
 - [ ] **R1** PR body has all 5 canonical H2s: `## Issue / Summary / Verification / Traceability / Evidence`. *Lane:* `traceability-validator`.
 - [ ] **R2** `## Issue` names the change class on a single line.
 - [ ] **R3** `## Summary` states *why*, not only *what*.
-- [ ] **R4** `## Verification` pastes actual command output (not hand-waves). Every required check has a `PASS` token.
+- [ ] **R4** `## Verification` pastes actual command output (not hand-waves). Every required check has a `PASS` token, and the `oya-ci-required` status names the observed PR head plus check/status URL.
 - [ ] **R5** `## Traceability` cites canonical docs read, ADRs cited (ADR-0052/ADR-0053/ADR-0054 where applicable), cross-axis contracts touched, IP ID (if applicable). Legacy ADR-#### forbidden in active text.
-- [ ] **R6** `## Evidence` lists audit-chain emission ID + (if binary) Cosign signature + SBOM + SLSA level.
+- [ ] **R6** `## Evidence` lists audit-chain emission ID + (if binary) Cosign signature + SBOM + SLSA level, and includes a review/fix evidence packet naming `oya-ci-required` status, exact failing/fixed checks, review-thread resolution, reviewer approval state, local-CLI non-authority, and generated-face no-hand-edit status.
 - [ ] **R7** Done-definition rows D1-D18 walked (see `docs/checklists/done-definition-checklist.md`).
 - [ ] **R8** No `--no-verify`, no hook bypass, no signing skip in the commits. *Lane:* `oya-governance-bypass` (ADR-0053).
 - [ ] **R9** No untyped values at API boundaries (per `docs/standards/error-handling.md`). *(advisory; per-language reviewer enforces)*
