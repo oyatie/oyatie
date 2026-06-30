@@ -25,6 +25,7 @@ use oya_cloud_ci_cache_wiring_app as app;
 use serde_json::{Value, json};
 
 const CANARY_WORKFLOW_PATH: &str = ".github/workflows/cache-integrity-canary.yml";
+const REQUIRED_WORKFLOW_PATH: &str = ".github/workflows/oya-ci-required.yml";
 const COLD_REQUIRED_FLOOR: [&str; 4] = [
     "release-production-image",
     "integrity-canary",
@@ -39,6 +40,25 @@ fn repo_root() -> PathBuf {
 
 fn licensed_fixture() -> Value {
     json!({ "warm_reads_licensed": true, "reason": "conformance fixture", "licensed_by_canary_run": "fixture" })
+}
+
+fn invocation_record_fixture(
+    cache_hit_rate: f64,
+    action_hits: u64,
+    local: u64,
+    remote: u64,
+) -> Value {
+    json!({
+        "cache_hit_rate": cache_hit_rate,
+        "run_action_cache_count": action_hits,
+        "run_local_count": local,
+        "run_remote_count": remote,
+        "run_skipped_count": 0,
+        "cache_upload_attempt_count": 0,
+        "cache_upload_count": 0,
+        "exit_result_name": "SUCCESS",
+        "last_snapshot": { "re_action_cache_started": action_hits },
+    })
 }
 
 #[test]
@@ -140,10 +160,17 @@ fn kill_switch_flips_warm_classes_and_only_warm_classes() {
             };
             assert_eq!(on, expected, "licensed warm class `{class}`");
         } else {
-            assert_eq!(on, app::CacheMode::Bypass, "cold class `{class}` must stay bypass");
+            assert_eq!(
+                on,
+                app::CacheMode::Bypass,
+                "cold class `{class}` must stay bypass"
+            );
         }
     }
-    assert!(saw_warm, "policy carries no warm-eligible class — fixture rot?");
+    assert!(
+        saw_warm,
+        "policy carries no warm-eligible class — fixture rot?"
+    );
 }
 
 #[test]
@@ -153,17 +180,21 @@ fn overlays_parse_select_the_cache_platform_and_carry_no_identity() {
         (app::OVERLAY_RW_PATH, "true", "nativelink-cas-writer"),
         (app::OVERLAY_RO_PATH, "false", "nativelink-cas-reader"),
     ] {
-        let text = std::fs::read_to_string(root.join(path))
-            .unwrap_or_else(|e| panic!("read {path}: {e}"));
+        let text =
+            std::fs::read_to_string(root.join(path)).unwrap_or_else(|e| panic!("read {path}: {e}"));
         let cfg = app::parse_buckconfig(&text);
 
-        let build = cfg.get("build").unwrap_or_else(|| panic!("{path}: no [build]"));
+        let build = cfg
+            .get("build")
+            .unwrap_or_else(|| panic!("{path}: no [build]"));
         assert_eq!(
             build["execution_platforms"], "toolchains//cache:cache-platform",
             "{path} must select the cache execution platform"
         );
 
-        let oya = cfg.get("oya_cache").unwrap_or_else(|| panic!("{path}: no [oya_cache]"));
+        let oya = cfg
+            .get("oya_cache")
+            .unwrap_or_else(|| panic!("{path}: no [oya_cache]"));
         assert_eq!(oya["remote_cache_enabled"], "true", "{path}");
         assert_eq!(oya["allow_cache_uploads"], uploads, "{path}");
 
@@ -213,10 +244,16 @@ fn root_buckconfig_stays_dark() {
 #[test]
 fn canary_workflow_is_scheduled_cold_and_wires_the_proof() {
     let root = repo_root();
-    let text = std::fs::read_to_string(root.join(CANARY_WORKFLOW_PATH))
-        .unwrap_or_else(|e| panic!("read {CANARY_WORKFLOW_PATH}: {e} — the canary MUST ship \
-                                    with the CAS wiring (ADR-0556 D2: no canary, no warm)"));
-    assert!(text.contains("schedule:"), "canary must be cron-scheduled (ADR-0556 D4.3)");
+    let text = std::fs::read_to_string(root.join(CANARY_WORKFLOW_PATH)).unwrap_or_else(|e| {
+        panic!(
+            "read {CANARY_WORKFLOW_PATH}: {e} — the canary MUST ship \
+                                    with the CAS wiring (ADR-0556 D2: no canary, no warm)"
+        )
+    });
+    assert!(
+        text.contains("schedule:"),
+        "canary must be cron-scheduled (ADR-0556 D4.3)"
+    );
     assert!(
         !text.contains("actions/cache@"),
         "FROM-EMPTY VIOLATION: the canary workflow restores a cache — the proof is circular \
@@ -241,12 +278,116 @@ fn canary_workflow_is_scheduled_cold_and_wires_the_proof() {
 }
 
 #[test]
+fn required_workflow_cache_hit_report_is_binding() {
+    let root = repo_root();
+    let text = std::fs::read_to_string(root.join(REQUIRED_WORKFLOW_PATH)).unwrap_or_else(|e| {
+        panic!(
+            "read {REQUIRED_WORKFLOW_PATH}: {e} — the required CI workflow must ship the \
+             cache-hit report guard"
+        )
+    });
+    let telemetry_step = text
+        .split("- name: Cache-hit telemetry + warm-mode guard (ADR-0560)")
+        .nth(1)
+        .and_then(|tail| {
+            tail.split("- name: Upload cache-hit telemetry artifact")
+                .next()
+        })
+        .expect("required workflow must contain the cache-hit telemetry guard step");
+    assert!(
+        telemetry_step.contains("--unstable-write-invocation-record")
+            || text.contains(
+                "--unstable-write-invocation-record /tmp/buck2-lane-invocation-record.json"
+            ),
+        "the buck2 lane must capture a structured invocation record before reporting cache health"
+    );
+    assert!(
+        telemetry_step.contains(" report --record /tmp/buck2-lane-invocation-record.json")
+            && telemetry_step.contains("--out /tmp/cache-hit-report.json"),
+        "the cache-hit report must be generated from the structured invocation record"
+    );
+    assert!(
+        telemetry_step.contains(" assert-warm --record /tmp/buck2-lane-invocation-record.json"),
+        "warm/bypass cache participation must be asserted in the binding telemetry step"
+    );
+    assert!(
+        !telemetry_step.contains("continue-on-error"),
+        "the cache-hit telemetry guard must be binding; missing counters or 0% warm hits cannot pass"
+    );
+
+    let upload_step = text
+        .split("- name: Upload cache-hit telemetry artifact")
+        .nth(1)
+        .and_then(|tail| {
+            tail.split("- name: Upload runner disk reclaim operator artifact")
+                .next()
+        })
+        .expect("required workflow must contain the cache-hit artifact upload step");
+    assert!(
+        upload_step.contains("name: cache-hit-report-buck2-lane")
+            && upload_step.contains("path: /tmp/cache-hit-report.json"),
+        "the cache-hit report artifact must be uploaded under the stable diagnostic name/path"
+    );
+    assert!(
+        upload_step.contains("if-no-files-found: error"),
+        "a missing cache-hit report must be RED, not a warning, once the required lane ran"
+    );
+    assert!(
+        !upload_step.contains("continue-on-error"),
+        "uploading the cache-hit report must stay binding so diagnostics cannot silently disappear"
+    );
+}
+
+#[test]
+fn cache_hit_guard_behavior_covers_bypass_warm_and_malformed_records() {
+    let bypass_zero = invocation_record_fixture(0.0, 0, 12, 0);
+    assert!(
+        app::assert_warm_cache_participation(&bypass_zero, "gate-fleet-shared-graph", "bypass")
+            .is_ok(),
+        "current bypass/cold posture must stay allowed even with zero cache hits"
+    );
+
+    let warm_hit = invocation_record_fixture(0.25, 3, 9, 0);
+    assert!(
+        app::assert_warm_cache_participation(&warm_hit, "gate-fleet-shared-graph", "warm-rw")
+            .is_ok(),
+        "warm mode with a positive hit rate and positive action-cache count must pass"
+    );
+
+    let warm_zero = invocation_record_fixture(0.0, 0, 12, 0);
+    let findings =
+        app::assert_warm_cache_participation(&warm_zero, "gate-fleet-shared-graph", "warm-rw")
+            .unwrap_err();
+    assert!(
+        findings.iter().any(|f| f.contains("0% hit rate"))
+            && findings
+                .iter()
+                .any(|f| f.contains("run_action_cache_count=0")),
+        "warm mode with 0% hits must be RED: {findings:?}"
+    );
+
+    let malformed = json!({ "exit_result_name": "SUCCESS" });
+    let findings =
+        app::assert_warm_cache_participation(&malformed, "gate-fleet-shared-graph", "warm-rw")
+            .unwrap_err();
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.contains("record-shape violation")),
+        "missing or renamed cache counters must be RED: {findings:?}"
+    );
+}
+
+#[test]
 fn bundled_canary_targets_stay_inside_the_binding_gate_cone() {
     let policy = app::canary_policy().expect("bundled canary policy");
     let targets = policy["pinned_targets"].as_array().unwrap();
     assert!(!targets.is_empty());
     for target in targets {
         let t = target.as_str().unwrap();
-        assert!(t.starts_with("//"), "pinned target `{t}` must be a repo-anchored pattern");
+        assert!(
+            t.starts_with("//"),
+            "pinned target `{t}` must be a repo-anchored pattern"
+        );
     }
 }
