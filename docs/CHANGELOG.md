@@ -3,6 +3,11 @@ purpose: Oyatie — Canonical Docs Changelog
 doc_status: published
 ---
 
+## 2026-06-29 — Merge-hold preflight packet for GH #902
+
+- Added the adapter-neutral merge-hold packet contract to the existing PR merge-gate kernel so team task state, native review state, and required check state must agree on the same PR head before merge readiness.
+- Documented the failure/success packet contents and explicit premature-merge conflict-avoidance rule without adding a new workflow or reorg-sensitive service surface.
+
 ## 2026-06-29 — Cloud Cedar blanket disarm for GH #987
 
 - Replaced the fourteen Cloud control-plane Helm Cedar ConfigMaps named in GH #987 with their authored action/resource-specific PBAC policies and removed those paths from the `cloud-ci-cedar-deploy-parity` shrink-only blanket baseline.
