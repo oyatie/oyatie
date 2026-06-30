@@ -2057,6 +2057,219 @@
         "directive_source": "user-directive-2026-05-25",
         "summary": "Citus, OpenSearch, Milvus, ClickHouse, and Iceberg are workload-specific selections, not universal defaults for every microservice or cell."
       },
+      "substrate_decision_matrix": {
+        "matrix_id": "DATAPLATFORM-001",
+        "status": "contract_slice_not_runtime_claim",
+        "source_adrs": [
+          "ADR-0172",
+          "ADR-0179",
+          "ADR-0184",
+          "ADR-0192",
+          "ADR-0193",
+          "ADR-0194",
+          "ADR-0195",
+          "ADR-0196",
+          "ADR-0197"
+        ],
+        "non_claims": [
+          "This matrix records substrate choices and manifest binding names only; it does not claim a deployed data platform, live adapters, migrations, backups, or SLO evidence.",
+          "Workload-specific substrates remain opt-in; no row makes Milvus, ClickHouse, TimescaleDB, Flink, CQRS, or object buckets universal defaults for every service."
+        ],
+        "rows": [
+          {
+            "id": "postgres_pooling_pgcat",
+            "source_adr": "ADR-0179",
+            "substrate_choice": "pgcat",
+            "owns_access_pattern": "Postgres connection pooling and tenant/shard-aware routing for services with Postgres dependencies.",
+            "manifest_binding": "postgres.pool_max, postgres.pool_mode, postgres.shard_aware, postgres.pool_topology",
+            "default_posture": "required for Postgres-dependent services; transaction pool mode unless a service declares a session-mode rationale",
+            "forbidden_drift": "direct unpooled Postgres connections as a production default; provider-specific managed poolers as the canonical pooler"
+          },
+          {
+            "id": "cqrs_read_replicas",
+            "source_adr": "ADR-0172",
+            "substrate_choice": "Postgres primary plus per-bounded-context read replicas",
+            "owns_access_pattern": "High-read query-side traffic for explicitly approved bounded contexts only.",
+            "manifest_binding": "data.cqrs.enabled, data.cqrs.bounded_context, data.cqrs.read_staleness_budget_seconds, data.cqrs.read_your_writes_lsn_header",
+            "default_posture": "disabled; opt-in only for approved high-read bounded contexts such as social.feed, messenger.search, and ontology.entity-query",
+            "reconciliation_note": "ADR-0172 cites pgpool-II/RDS Proxy as reference shapes; ADR-0179 selects pgcat as the platform routing/pooling substrate when this matrix is applied."
+          },
+          {
+            "id": "object_storage_seaweedfs",
+            "source_adr": "ADR-0196",
+            "substrate_choice": "SeaweedFS 4.22 primary with Ceph RGW scale-up path",
+            "owns_access_pattern": "S3-compatible blob, artifact, evidence, warehouse cold tier, Milvus object backend, and backup target storage.",
+            "manifest_binding": "storage.object_store.enabled, storage.object_store.buckets[]",
+            "default_posture": "bucket preallocation via infrastructure, not runtime application bucket creation",
+            "forbidden_drift": "MinIO/managed-S3-only default, plaintext object credentials, or bucket names outside the platform-<purpose>-<tenant-or-shared>-<env> convention"
+          },
+          {
+            "id": "backup_velero_pgbackrest_restic",
+            "source_adr": "ADR-0197",
+            "substrate_choice": "Velero plus pgBackRest plus Restic on SeaweedFS, age-encrypted before write",
+            "owns_access_pattern": "Kubernetes state, Postgres PITR, and non-Kubernetes filesystem backup respectively.",
+            "manifest_binding": "storage.backup.tier, storage.backup.retention_days, dr.backup_substrate[]",
+            "default_posture": "three prongs; one concern per prong; restore-drill evidence required before runtime readiness claims",
+            "forbidden_drift": "Velero-only Postgres backup, pg_dump cron as PITR, native-cloud snapshot-only, or unencrypted backup payloads"
+          },
+          {
+            "id": "vector_milvus",
+            "source_adr": "ADR-0192",
+            "substrate_choice": "Milvus 2.6.x disaggregated cluster; pgvector allowed only below the ADR ceiling",
+            "owns_access_pattern": "High-scale vector retrieval, RAG, embedding similarity, and agent memory ANN search.",
+            "manifest_binding": "data.vector_store.enabled, data.vector_store.collections[]",
+            "default_posture": "disabled unless a service declares vector collections and dimensions; collection/index choice is workload-specific",
+            "forbidden_drift": "Pinecone/managed vector DB as canonical, pgvector above the per-tenant ceiling, or raw Milvus client calls outside the shared vector-store port"
+          },
+          {
+            "id": "olap_clickhouse",
+            "source_adr": "ADR-0193",
+            "substrate_choice": "ClickHouse 26.3 LTS with ClickHouse Keeper for production cells",
+            "owns_access_pattern": "Tenant-facing dashboards, ops rollups, audit-log query, billing rollups, and wide aggregate OLAP serving.",
+            "manifest_binding": "data.olap_client.enabled, data.olap_client.databases[]",
+            "default_posture": "disabled unless a service publishes or queries OLAP datasets; single-binary is dev/preview only",
+            "forbidden_drift": "Postgres OLTP wide-aggregate serving, per-service OLAP engine drift, or managed SaaS warehouse as canonical"
+          },
+          {
+            "id": "tenant_timeseries_timescaledb",
+            "source_adr": "ADR-0194",
+            "substrate_choice": "TimescaleDB 2.26 Community Edition as a Postgres 18 extension",
+            "owns_access_pattern": "Tenant-facing sparse time-series with row updates and transactional consistency with adjacent OLTP rows.",
+            "manifest_binding": "data.timeseries.enabled, data.timeseries.hypertables[], data.timeseries.continuous_aggregates[]",
+            "default_posture": "disabled unless a service declares hypertables; Apache-2.0 community surface only",
+            "forbidden_drift": "TSL-only TimescaleDB functions, ClickHouse-only for row-update/transactional time-series, or unmanaged native partition reinvention"
+          },
+          {
+            "id": "stream_processing_clickhouse_mv_flink_escalation",
+            "source_adr": "ADR-0195",
+            "substrate_choice": "ClickHouse Materialized Views plus Kafka Engine by default; Apache Flink 2.2.x only by ADR-amended escalation",
+            "owns_access_pattern": "Rolling aggregates, percentile/top-K/anomaly materialization, and Flink-class stateful stream workloads when explicitly justified.",
+            "manifest_binding": "data.stream_processing.tier",
+            "default_posture": "clickhouse_mv for Class-A workloads; flink requires workload proof, ADR amendment, capacity model, and runbook",
+            "forbidden_drift": "Flink as a universal default, Kafka Streams/ksqlDB as canonical, or per-service stream-processing engine choice without ADR amendment"
+          }
+        ]
+      },
+      "service_manifest_fixture": {
+        "fixture_id": "DATAPLATFORM-001-good-data-substrate-reference-service",
+        "fixture_kind": "service_manifest_data_substrate_slice",
+        "microservice": "data-substrate-reference",
+        "fixture_status": "example_only_not_an_active_microservice",
+        "purpose": "One compact manifest slice showing how a service would bind the DATAPLATFORM-001 substrate matrix without claiming runtime deployment.",
+        "non_claim": "This is a fixture embedded in platform architecture, not an added service, generated manifest, deployed workload, or schema-migration claim.",
+        "schema_alignment": "The manifest_patch is an illustrative binding slice: it uses current manifest data/storage field names where they already exist and explicitly names ADR-0172/0179 pgcat/CQRS bindings without claiming the manifest-schema extension has landed.",
+        "manifest_patch": {
+          "postgres": {
+            "pool_max": 25,
+            "pool_mode": "transaction",
+            "shard_aware": false,
+            "pool_topology": "per-cell",
+            "pooler": "pgcat"
+          },
+          "data": {
+            "cqrs": {
+              "enabled": true,
+              "bounded_context": "reference-read-model",
+              "read_staleness_budget_seconds": 2,
+              "read_your_writes_lsn_header": "platform-read-after-write-lsn",
+              "pooler": "pgcat"
+            },
+            "vector_store": {
+              "enabled": true,
+              "backend": "milvus",
+              "collections": [
+                {
+                  "domain": "reference-rag-corpus",
+                  "dimension": "D1024",
+                  "index_type": "hnsw",
+                  "metric": "cosine",
+                  "data_classes": [
+                    "TenantPrivate"
+                  ]
+                }
+              ]
+            },
+            "olap_client": {
+              "enabled": true,
+              "backend": "clickhouse",
+              "databases": [
+                {
+                  "name": "tenant_{tenant_id}",
+                  "tables": [
+                    "reference_events"
+                  ],
+                  "materialized_views": [
+                    "reference_events_hourly_mv"
+                  ]
+                }
+              ]
+            },
+            "timeseries": {
+              "enabled": true,
+              "backend": "timescaledb_community",
+              "hypertables": [
+                {
+                  "name": "reference_metric_samples",
+                  "time_column": "observed_at",
+                  "space_column": "tenant_id",
+                  "cardinality_class": "medium",
+                  "retention_days": 365
+                }
+              ],
+              "continuous_aggregates": [
+                {
+                  "view_name": "reference_metric_samples_5m",
+                  "source": "reference_metric_samples",
+                  "select_expr": "time_bucket('5 minutes', observed_at), tenant_id, avg(value)",
+                  "refresh_interval_seconds": 300
+                }
+              ]
+            },
+            "stream_processing": {
+              "tier": "clickhouse_mv",
+              "flink_escalation_allowed": true,
+              "flink_requires_adr_amendment": true
+            }
+          },
+          "storage": {
+            "object_store": {
+              "enabled": true,
+              "backend": "seaweedfs",
+              "buckets": [
+                {
+                  "name": "platform-clickhouse-cold-shared-dev",
+                  "purpose": "clickhouse-cold",
+                  "quota": "100Gi",
+                  "ttl": "P365D"
+                },
+                {
+                  "name": "platform-milvus-object-shared-dev",
+                  "purpose": "milvus-object",
+                  "quota": "100Gi",
+                  "ttl": "P365D"
+                },
+                {
+                  "name": "platform-velero-backup-shared-dev",
+                  "purpose": "velero-backup",
+                  "quota": "250Gi",
+                  "ttl": "P2555D"
+                }
+              ]
+            },
+            "backup": {
+              "tier": "app",
+              "prongs": [
+                "velero",
+                "pgbackrest",
+                "restic"
+              ],
+              "target": "seaweedfs",
+              "payload_encryption": "age",
+              "retention_days": 2555
+            }
+          }
+        }
+      },
       "primary_oltp_store": "workload-selected relational store; Postgres baseline, Citus only when tenant-sharded horizontal OLTP requires it",
       "primary_oltp_store_per_cell": true,
       "search_substrate": "workload-selected search substrate; OpenSearch only when search or log-index workloads require it",
