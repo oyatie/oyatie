@@ -8,16 +8,6 @@
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
-// Default deny — every action is refused unless an explicit permit matches.
-// =============================================================================
-
-forbid (
-  principal,
-  action,
-  resource
-);
-
-// =============================================================================
 // PERMIT 1 — tenant operator reads own tenant's metadata (NOT raw secrets)
 // =============================================================================
 //

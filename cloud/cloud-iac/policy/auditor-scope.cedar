@@ -9,17 +9,7 @@
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
-// Default deny
-// =============================================================================
-
-forbid (
-  principal,
-  action,
-  resource
-);
-
-// =============================================================================
-// PERMIT 1 — auditor reads µservice-scoped data within engagement window
+// PERMIT 1a — auditor reads µservice-scoped apply state within engagement window
 // =============================================================================
 //
 // Auditor principals are issued JIT tokens by OpenBao at engagement start.
@@ -34,17 +24,143 @@ permit (
   principal in Auditor::?a,
   action in [
     Action::"read_apply_state",
-    Action::"read_drift_report",
+    Action::"read_argo_application_status"
+  ],
+  resource is ApplyStateRecord
+)
+when {
+  principal has valid_from &&
+  principal has valid_to &&
+  context has now &&
+  principal.valid_from <= context.now &&
+  context.now <= principal.valid_to &&
+  resource has microservice &&
+  principal has scoped_microservices &&
+  resource.microservice in principal.scoped_microservices &&
+  resource has pack &&
+  principal has scoped_packs &&
+  resource.pack in principal.scoped_packs
+};
+
+// =============================================================================
+// PERMIT 1b — auditor reads µservice-scoped drift reports within engagement window
+// =============================================================================
+
+permit (
+  principal in Auditor::?a,
+  action == Action::"read_drift_report",
+  resource is DriftReport
+)
+when {
+  principal has valid_from &&
+  principal has valid_to &&
+  context has now &&
+  principal.valid_from <= context.now &&
+  context.now <= principal.valid_to &&
+  resource has microservice &&
+  principal has scoped_microservices &&
+  resource.microservice in principal.scoped_microservices &&
+  resource has pack &&
+  principal has scoped_packs &&
+  resource.pack in principal.scoped_packs
+};
+
+// =============================================================================
+// PERMIT 1c — auditor reads provenance and attestation evidence within engagement window
+// =============================================================================
+
+permit (
+  principal in Auditor::?a,
+  action in [
     Action::"read_provenance",
-    Action::"read_render_history",
-    Action::"read_rollback_history",
-    Action::"read_iac_manifests",
-    Action::"read_audit_chain",
-    Action::"read_argo_application_status",
     Action::"read_slsa_attestation",
     Action::"read_cosign_verification_log"
   ],
-  resource
+  resource is ProvenanceRecord
+)
+when {
+  principal has valid_from &&
+  principal has valid_to &&
+  context has now &&
+  principal.valid_from <= context.now &&
+  context.now <= principal.valid_to &&
+  resource has microservice &&
+  principal has scoped_microservices &&
+  resource.microservice in principal.scoped_microservices &&
+  resource has pack &&
+  principal has scoped_packs &&
+  resource.pack in principal.scoped_packs
+};
+
+// =============================================================================
+// PERMIT 1d — auditor reads render and rollback histories within engagement window
+// =============================================================================
+
+permit (
+  principal in Auditor::?a,
+  action == Action::"read_render_history",
+  resource is RenderHistory
+)
+when {
+  principal has valid_from &&
+  principal has valid_to &&
+  context has now &&
+  principal.valid_from <= context.now &&
+  context.now <= principal.valid_to &&
+  resource has microservice &&
+  principal has scoped_microservices &&
+  resource.microservice in principal.scoped_microservices &&
+  resource has pack &&
+  principal has scoped_packs &&
+  resource.pack in principal.scoped_packs
+};
+
+permit (
+  principal in Auditor::?a,
+  action == Action::"read_rollback_history",
+  resource is RollbackHistory
+)
+when {
+  principal has valid_from &&
+  principal has valid_to &&
+  context has now &&
+  principal.valid_from <= context.now &&
+  context.now <= principal.valid_to &&
+  resource has microservice &&
+  principal has scoped_microservices &&
+  resource.microservice in principal.scoped_microservices &&
+  resource has pack &&
+  principal has scoped_packs &&
+  resource.pack in principal.scoped_packs
+};
+
+// =============================================================================
+// PERMIT 1e — auditor reads IaC manifests and audit-chain records within engagement window
+// =============================================================================
+
+permit (
+  principal in Auditor::?a,
+  action == Action::"read_iac_manifests",
+  resource is IacManifest
+)
+when {
+  principal has valid_from &&
+  principal has valid_to &&
+  context has now &&
+  principal.valid_from <= context.now &&
+  context.now <= principal.valid_to &&
+  resource has microservice &&
+  principal has scoped_microservices &&
+  resource.microservice in principal.scoped_microservices &&
+  resource has pack &&
+  principal has scoped_packs &&
+  resource.pack in principal.scoped_packs
+};
+
+permit (
+  principal in Auditor::?a,
+  action == Action::"read_audit_chain",
+  resource is AuditChainRecord
 )
 when {
   principal has valid_from &&

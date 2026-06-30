@@ -8,16 +8,6 @@
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
-// Default deny
-// =============================================================================
-
-forbid (
-  principal,
-  action,
-  resource
-);
-
-// =============================================================================
 // PERMIT 1 — CI principal reads cluster state (read-only, cluster-wide)
 // =============================================================================
 //
