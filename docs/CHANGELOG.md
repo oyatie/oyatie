@@ -9,6 +9,11 @@ doc_status: published
 - Clarified that local CLI or hook output is shift-left evidence only, never merge authority, and that generated faces must be producer-materialized rather than hand-edited.
 - Added REVIEW-001 review-lens closure language: worker-completed implementation cards need a protected PR URL plus independent reviewer evidence, reviewer approvals must match the current head SHA, and SEC-001 threat-model coverage must be linked or marked `N/A` with rationale.
 
+## 2026-06-30 — AUTHZ-004 dead Cedar ConfigMap deletion
+
+- Deleted the unused `oya/analytics` Helm Cedar ConfigMap template, which still carried the legacy action-agnostic blanket Cedar permit but was not mounted by the chart Deployment.
+- Removed that path from the `cloud-ci-cedar-deploy-parity` shrink-only baseline and added a regression proving AUTHZ-004-deleted dead ConfigMaps are neither baseline-grandfathered nor collected as deployed ConfigMaps.
+
 ## 2026-06-29 — Live Postgres sublanes for GH #901
 
 - Split the required live-Postgres bridge into independent adapter and facade jobs, each with its own Postgres service/bootstrap, so safe groups can run in parallel without sharing database state.
