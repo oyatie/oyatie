@@ -155,9 +155,10 @@ The `oya-ci-required` buck2 lane now writes buck2's structured invocation record
 publishes a per-lane cache-hit artifact (`oya-ci/cache-hit-report/v1`: `cache_hit_rate`,
 `run_action_cache_count`, `run_local_count`, `run_remote_count`, upload counters), labeled
 with the lane's ADR-0556 build class — parsed from the record JSON, never grepped from
-logs, and non-blocking by construction (`continue-on-error`; telemetry must never affect
-merge authority). Today it baselines the 0%-hit cold state; after bring-up it is the
-warm-substrate's primary SLO feed.
+logs. The report and upload path are binding for the required lane: missing reports,
+missing/renamed counters, malformed records, and 0%-hit warm runs are CI RED rather than
+advisory noise. Today the lane remains `bypass` under the dark-license posture; after
+bring-up it is the warm-substrate's primary SLO feed.
 
 ### D6 — Zero impact on current CI green-ness (the dark-wiring guarantee, mechanically held)
 
