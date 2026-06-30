@@ -63,17 +63,153 @@
     },
     {
       "id": "ADR-0254",
-      "title": "Deployment Model",
+      "title": "Deployment model spectrum",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0254-deployment-model.md"
+      "file": "docs/decisions/ADR-0254-deployment-model-spectrum.md"
     },
     {
       "id": "ADR-0363",
       "title": "Retire Agentic VCS Platform To Intelligence On GitHub Substrate",
       "scope": "repo",
       "file": "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+    },
+    {
+      "id": "ADR-0378",
+      "title": "Canonical local substrate: vfkit + Talos Linux",
+      "scope": "talos-compatibility-context",
+      "file": "docs/decisions/ADR-0378-canonical-local-substrate-vfkit-talos.md"
+    },
+    {
+      "id": "ADR-0382",
+      "title": "Bare-metal Talos zero-day bring-up via Sidero Metal",
+      "scope": "talos-compatibility-context",
+      "file": "docs/decisions/ADR-0382-bare-metal-talos-zero-day-sidero.md"
+    },
+    {
+      "id": "ADR-0512",
+      "title": "Canonical monorepo pattern",
+      "scope": "cloud-kernel-nested-workspace-carve-out",
+      "file": "docs/decisions/ADR-0512-canonical-monorepo-pattern.md"
+    },
+    {
+      "id": "ADR-0520",
+      "title": "Owned substrate stack",
+      "scope": "kuberos-kernel-stack-rung",
+      "file": "docs/decisions/ADR-0520-owned-substrate-stack-transitional-impl-behind-interface.md"
+    },
+    {
+      "id": "ADR-0536",
+      "title": "Hyperscaler-grounded substrate decision matrix",
+      "scope": "kuberos-cloud-os-owned-stack-context",
+      "file": "docs/decisions/ADR-0536-hyperscaler-grounded-substrate-decision-matrix.md"
+    },
+    {
+      "id": "ADR-0547",
+      "title": "Kernel-purity dependency gate",
+      "scope": "kernel-crate-purity-coverage-note",
+      "file": "docs/decisions/ADR-0547-kernel-purity-dependency-gate.md"
+    },
+    {
+      "id": "ADR-0562",
+      "title": "Capability-first repo organization + closed capability registry",
+      "scope": "future-kernel-directory-and-nested-workspace-authority",
+      "file": "docs/decisions/ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md"
     }
   ],
+  "crate_adr_coverage": {
+    "status": "explicit_existing_adr_bindings",
+    "source_task": "CRATEADR-005",
+    "audit_inputs": [
+      "cloud/cloud-kernel/Cargo.toml metadata",
+      "/tmp/oyatie-cloud-kernel-cargo-metadata.json",
+      "ADR-0370/0376/0378/0382/0536 candidate review"
+    ],
+    "no_new_adr_required": true,
+    "common_design_anchors": [
+      "ADR-0512",
+      "ADR-0520",
+      "ADR-0536",
+      "ADR-0562"
+    ],
+    "candidate_disposition": [
+      {
+        "adr": "ADR-0370",
+        "disposition": "context_only",
+        "rationale": "Local production-fidelity Talos substrate context; it does not own the per-crate kuberos nested-workspace split."
+      },
+      {
+        "adr": "ADR-0376",
+        "disposition": "context_only",
+        "rationale": "Managed-Kubernetes product surface context; it does not own kernel crate boundaries."
+      },
+      {
+        "adr": "ADR-0378",
+        "disposition": "compatibility_anchor_for_app_and_arch_adapters",
+        "rationale": "Canonical local Talos substrate; relevant where the kernel app and architecture adapters host Talos compatibility verification images."
+      },
+      {
+        "adr": "ADR-0382",
+        "disposition": "compatibility_anchor_for_app_and_arch_adapters",
+        "rationale": "Bare-metal Talos/Sidero bring-up context; relevant to future Talos-compatible boot/provisioning verification but not to pure kernel seams."
+      },
+      {
+        "adr": "ADR-0536",
+        "disposition": "common_design_anchor",
+        "rationale": "Ratifies the owned Rust stack from kuberos kernel through cloud-os/cloud-k8s/cloud services and keeps upstream Talos/k8s as transitional context."
+      }
+    ],
+    "crate_bindings": [
+      {
+        "crate": "oya-cloud-kernel-app",
+        "metadata_file": "cloud/cloud-kernel/crates/oya-cloud-kernel-app/Cargo.toml#package.metadata.oya",
+        "layer": "app",
+        "adr_anchors": ["ADR-0512", "ADR-0520", "ADR-0536", "ADR-0562", "ADR-0378", "ADR-0382"],
+        "coverage_rationale": "Composition binary for the nested kuberos workspace; additionally carries Talos compatibility verification images through the selected arch backend."
+      },
+      {
+        "crate": "oya-cloud-kernel-hal-kernel",
+        "metadata_file": "cloud/cloud-kernel/crates/oya-cloud-kernel-hal-kernel/Cargo.toml#package.metadata.oya",
+        "layer": "kernel",
+        "adr_anchors": ["ADR-0512", "ADR-0520", "ADR-0536", "ADR-0562", "ADR-0547"],
+        "coverage_rationale": "Cutover-stable architecture HAL seam inside the sanctioned nested/excluded kuberos workspace."
+      },
+      {
+        "crate": "oya-cloud-kernel-frame-kernel",
+        "metadata_file": "cloud/cloud-kernel/crates/oya-cloud-kernel-frame-kernel/Cargo.toml#package.metadata.oya",
+        "layer": "kernel",
+        "adr_anchors": ["ADR-0512", "ADR-0520", "ADR-0536", "ADR-0562", "ADR-0547"],
+        "coverage_rationale": "Safe Frame kernel seam over the HAL; explicitly non-runtime-promoting until module build and boot artifacts are separately reviewed."
+      },
+      {
+        "crate": "oya-cloud-kernel-ksync-kernel",
+        "metadata_file": "cloud/cloud-kernel/crates/oya-cloud-kernel-ksync-kernel/Cargo.toml#package.metadata.oya",
+        "layer": "kernel",
+        "adr_anchors": ["ADR-0512", "ADR-0520", "ADR-0536", "ADR-0562", "ADR-0547"],
+        "coverage_rationale": "no_std kernel concurrency primitives bound to the kuberos kernel rung and kernel-purity doctrine."
+      },
+      {
+        "crate": "oya-cloud-kernel-user-layout-kernel",
+        "metadata_file": "cloud/cloud-kernel/crates/oya-cloud-kernel-user-layout-kernel/Cargo.toml#package.metadata.oya",
+        "layer": "kernel",
+        "adr_anchors": ["ADR-0512", "ADR-0520", "ADR-0536", "ADR-0562", "ADR-0547"],
+        "coverage_rationale": "Arch-neutral EL0 layout math shared by Frame backends; pure kernel coverage, not a runtime readiness claim."
+      },
+      {
+        "crate": "oya-cloud-kernel-arch-aarch64-adapter",
+        "metadata_file": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/Cargo.toml#package.metadata.oya",
+        "layer": "adapter",
+        "adr_anchors": ["ADR-0512", "ADR-0520", "ADR-0536", "ADR-0562", "ADR-0378", "ADR-0382"],
+        "coverage_rationale": "aarch64 architecture backend adapter; Talos compatibility anchors are limited to verification-image context."
+      },
+      {
+        "crate": "oya-cloud-kernel-arch-x86-64-adapter",
+        "metadata_file": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/Cargo.toml#package.metadata.oya",
+        "layer": "adapter",
+        "adr_anchors": ["ADR-0512", "ADR-0520", "ADR-0536", "ADR-0562", "ADR-0378", "ADR-0382"],
+        "coverage_rationale": "x86_64 architecture backend adapter; Talos compatibility anchors are limited to verification-image context."
+      }
+    ]
+  },
   "hyperscaler_inv_coverage": {
     "circuit_breaker": "not_claimed_scaffold_only",
     "tenant_rate_limit": "not_claimed_scaffold_only",

@@ -9,6 +9,16 @@ repository.workspace = true
 publish = false
 description = "x86_64 Frame backend: PVH boot, long-mode trampoline, GDT/IDT, 16550 UART, PIC/PIT timer. The only place unsafe lives for x86."
 
+[package.metadata.oya]
+microservice = "cloud-kernel"
+bounded_context = "cloud-kernel"
+kind = "shared"
+layer = "adapter"
+owner_team = "axis-cloud-platform"
+purpose = "x86_64 kuberos Frame backend adapter: PVH boot, long-mode trampoline, GDT/IDT, UART/PIC/PIT, and Talos-compatibility verification images."
+adr_anchors = ["ADR-0512", "ADR-0520", "ADR-0536", "ADR-0562", "ADR-0378", "ADR-0382"]
+design_non_claim = "scaffold_only_no_module_build_boot_artifact_or_runtime_readiness_claim"
+
 [features]
 # Verification-only: switch the embedded USER_ELF (include_bytes!) to the
 # signal-demo program (out/user-signal-x86_64.elf) instead of the default
