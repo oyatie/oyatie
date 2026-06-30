@@ -285,7 +285,7 @@ The Phase 2 portal builds on top of these in-house surfaces.
 ### Cross-substrate dependency
 
 - Phase 2 `oya-finops-portal` consumes:
-  - `oya-shared-object-store-kernel` (FOCUS exports land in object
+  - `storage-object-store-kernel` (FOCUS exports land in object
     store).
   - `oya-shared-backup-kernel` retention metadata (backup cost
     component).

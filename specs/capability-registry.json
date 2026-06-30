@@ -576,7 +576,6 @@
         "libs/oya-shared-hyperscaler-metrics-kernel",
         "libs/oya-shared-i18n-kernel",
         "libs/oya-shared-idempotency-key-kernel",
-        "libs/oya-shared-object-store-kernel",
         "libs/oya-shared-oidc-client-kernel",
         "libs/oya-shared-olap-clickhouse-adapter",
         "libs/oya-shared-olap-client-kernel",

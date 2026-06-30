@@ -52,16 +52,16 @@ members = [
   "compute/*/*",
   # Capability-first home (ADR-0562 strangler move 5): the `storage` capability absorbs the former
   # cloud/cloud-storage + oya/drive + oya/recordings crates at storage/<face>/<leaf> across four
-  # faces (core, ports, adapters, facade). storage is the CAS/blob substrate: cloud-storage's
-  # domain is the engine (core) that DEFINES the provider port traits, object-api/block-api are the
-  # inbound capability surfaces (ports), the s3/oci impls are transient provider infra (adapters),
-  # and the Drive/Recordings products consuming the substrate are facades. The leaf is de-branded
-  # (cargo names storage-domain / storage-object-api / storage-block-api / storage-s3-adapter /
-  # storage-oci-adapter / storage-drive-domain / storage-recordings-domain), so the leaf segment
-  # stays a bare `*`. `storage/*/*` covers every face/leaf (storage/core/domain,
-  # storage/ports/{object-api,block-api}, storage/adapters/{s3,oci}, storage/facade/{drive,
-  # recordings}) with one glob, satisfying ADR-0538's glob-only members contract (no explicit-path
-  # members).
+  # faces (core, ports, adapters, facade). storage is the CAS/blob substrate: the object-store-kernel
+  # port and storage-domain engine live under core, object-api/block-api are the inbound capability
+  # surfaces (ports), the s3/oci impls are transient provider infra (adapters), and the
+  # Drive/Recordings products consuming the substrate are facades. The leaf is de-branded
+  # (cargo names storage-object-store-kernel / storage-domain / storage-object-api /
+  # storage-block-api / storage-s3-adapter / storage-oci-adapter / storage-drive-domain /
+  # storage-recordings-domain), so the leaf segment stays a bare `*`. `storage/*/*` covers every
+  # face/leaf (storage/core/{object-store-kernel,domain}, storage/ports/{object-api,block-api},
+  # storage/adapters/{s3,oci}, storage/facade/{drive,recordings}) with one glob, satisfying ADR-0538's
+  # glob-only members contract (no explicit-path members).
   "storage/*/*",
   # Capability-first home (ADR-0562 strangler move 6): the `cell` capability absorbs the former
   # cloud/cloud-cell + cloud/cloud-capacity crates at cell/<face>/<leaf> across two faces (core,
