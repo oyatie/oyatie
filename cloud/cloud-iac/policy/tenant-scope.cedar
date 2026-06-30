@@ -10,16 +10,6 @@
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
-// Default deny — every read is refused unless an explicit permit matches.
-// =============================================================================
-
-forbid (
-  principal,
-  action,
-  resource
-);
-
-// =============================================================================
 // PERMIT 1 — µservice owner reads own µservice's apply state + drift + provenance
 // =============================================================================
 //
