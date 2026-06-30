@@ -8,11 +8,13 @@ use std::sync::Arc;
 use bytes::Bytes;
 use http_body_util::{BodyExt, Full};
 use hyper::Request;
-use hyper_util::client::legacy::Client;
-use hyper_util::rt::TokioExecutor;
+pub use oya_http_runtime_hyper_adapter::HyperHttpsClient;
+use oya_http_runtime_hyper_adapter::{
+    build_loopback_http_or_pqc_hybrid_https_client_for_tests, build_pqc_hybrid_https_client,
+};
 use tracing::{debug, warn};
 
-use crate::token_state::{SeatTokenState, classify_oauth_error, RefreshFailureKind};
+use crate::token_state::{RefreshFailureKind, SeatTokenState, classify_oauth_error};
 
 /// Default Anthropic token endpoint (per oauth-subscription-kernel constant).
 pub const ANTHROPIC_TOKEN_ENDPOINT: &str = "https://console.anthropic.com/v1/oauth/token";
@@ -44,7 +46,13 @@ pub enum OAuthClientError {
 
 impl OAuthClientError {
     pub fn is_terminal(&self) -> bool {
-        matches!(self, Self::OAuthError { kind: RefreshFailureKind::Terminal(_), .. })
+        matches!(
+            self,
+            Self::OAuthError {
+                kind: RefreshFailureKind::Terminal(_),
+                ..
+            }
+        )
     }
 }
 
@@ -52,9 +60,9 @@ impl OAuthClientError {
 // data_class: INTERNAL_ONLY
 #[derive(serde::Deserialize)]
 struct TokenResponse {
-    access_token: String,           // data_class: INTERNAL_ONLY
-    refresh_token: Option<String>,  // data_class: INTERNAL_ONLY
-    expires_in: Option<u64>,        // seconds until expiry
+    access_token: String,          // data_class: INTERNAL_ONLY
+    refresh_token: Option<String>, // data_class: INTERNAL_ONLY
+    expires_in: Option<u64>,       // seconds until expiry
 }
 
 /// Wire shape for error response.
@@ -64,19 +72,15 @@ struct ErrorResponse {
     error: String, // data_class: INTERNAL_ONLY
 }
 
-/// Shared hyper HTTPS client (TLS via hyper-rustls + aws-lc-rs).
-pub type HyperHttpsClient =
-    Client<hyper_rustls::HttpsConnector<hyper_util::client::legacy::connect::HttpConnector>, Full<Bytes>>;
-
-/// Build the shared HTTPS client. Call once at startup; share via Arc.
+/// Shared hyper HTTPS client (TLS via the canonical PQC-hybrid aws-lc-rs policy).
 pub fn build_https_client() -> HyperHttpsClient {
-    let https = hyper_rustls::HttpsConnectorBuilder::new()
-        .with_webpki_roots()
-        .https_or_http()
-        .enable_http1()
-        .enable_http2()
-        .build();
-    Client::builder(TokioExecutor::new()).build(https)
+    build_pqc_hybrid_https_client()
+}
+
+/// Explicit test/mock client: allows plaintext HTTP only for loopback mock servers.
+#[doc(hidden)]
+pub fn build_loopback_http_or_https_test_client() -> HyperHttpsClient {
+    build_loopback_http_or_pqc_hybrid_https_client_for_tests()
 }
 
 /// OAuth token client. Holds an Arc to the shared hyper client.
@@ -224,10 +228,7 @@ fn url_encode(s: &str) -> String {
 /// Returns a `Vec<(name, value)>` to inject on proxy calls.
 pub fn outbound_auth_headers(access_token: &str) -> Vec<(String, String)> {
     vec![
-        (
-            "authorization".to_owned(),
-            format!("Bearer {access_token}"),
-        ),
+        ("authorization".to_owned(), format!("Bearer {access_token}")),
         ("anthropic-version".to_owned(), ANTHROPIC_VERSION.to_owned()),
         ("anthropic-beta".to_owned(), ANTHROPIC_BETA.to_owned()),
     ]

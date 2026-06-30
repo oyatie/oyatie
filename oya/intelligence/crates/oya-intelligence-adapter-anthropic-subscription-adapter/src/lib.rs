@@ -40,13 +40,13 @@ pub use enrollment::{EnrollmentError, build_enrollment_flow, complete_enrollment
 pub use inmemory_store::{InMemoryAlertPort, InMemoryCredentialStore};
 pub use oauth_client::{
     ANTHROPIC_BETA, ANTHROPIC_VERSION, OAuthClientError, OAuthTokenClient, build_https_client,
-    outbound_auth_headers,
+    build_loopback_http_or_https_test_client, outbound_auth_headers,
 };
 pub use ports::{AlertKind, CredentialStorePort, OperatorAlertPort, SeatId, TokenBytes};
 pub use refresh_policy::{RefreshEntry, RefreshScheduler};
 pub use singleflight::RefreshSingleflight;
 pub use token_state::{
-    EXPIRES_LEAD_SECS, TERMINAL_BACKOFF_SECS, RefreshFailureKind, SeatTokenState,
+    EXPIRES_LEAD_SECS, RefreshFailureKind, SeatTokenState, TERMINAL_BACKOFF_SECS,
     classify_oauth_error,
 };
 
@@ -79,6 +79,22 @@ pub struct AnthropicOAuthAdapter {
     /// Injected clock for tests (None = use system time).
     clock_fn: Option<Arc<dyn Fn() -> u64 + Send + Sync>>,
 }
+struct RefreshExecution {
+    seat_id: SeatId,
+    current_refresh_token: String,
+    now_secs: u64,
+    seats: Arc<Mutex<HashMap<String, SeatTokenState>>>,
+    oauth_client: Arc<OAuthTokenClient>,
+    singleflight: Arc<RefreshSingleflight>,
+    store: Arc<dyn CredentialStorePort>,
+    alert: Arc<dyn OperatorAlertPort>,
+}
+
+fn is_loopback_http_endpoint(endpoint: &str) -> bool {
+    endpoint.starts_with("http://127.0.0.1:")
+        || endpoint.starts_with("http://localhost:")
+        || endpoint.starts_with("http://[::1]:")
+}
 
 impl AnthropicOAuthAdapter {
     /// Construct with production HTTPS client.
@@ -102,10 +118,14 @@ impl AnthropicOAuthAdapter {
         alert: Arc<dyn OperatorAlertPort>,
         token_endpoint: impl Into<String>,
     ) -> Self {
-        let http_client = Arc::new(build_https_client());
+        let token_endpoint = token_endpoint.into();
+        let http_client = Arc::new(if is_loopback_http_endpoint(&token_endpoint) {
+            build_loopback_http_or_https_test_client()
+        } else {
+            build_https_client()
+        });
         let oauth_client = Arc::new(
-            OAuthTokenClient::new(Arc::clone(&http_client))
-                .with_token_endpoint(token_endpoint),
+            OAuthTokenClient::new(Arc::clone(&http_client)).with_token_endpoint(token_endpoint),
         );
         Self {
             seats: Arc::new(Mutex::new(HashMap::new())),
@@ -234,10 +254,11 @@ impl AnthropicOAuthAdapter {
         // Fast path: valid cached token.
         {
             let map = self.seats.lock().unwrap();
-            if let Some(state) = map.get(&key) {
-                if state.is_valid_at(now) && !state.needs_refresh_at(now) {
-                    return make_auth_token(state, now);
-                }
+            if let Some(state) = map.get(&key)
+                && state.is_valid_at(now)
+                && !state.needs_refresh_at(now)
+            {
+                return make_auth_token(state, now);
             }
         }
 
@@ -265,16 +286,16 @@ impl AnthropicOAuthAdapter {
         match tokio::runtime::Handle::try_current() {
             Ok(handle) => {
                 let result = tokio::task::block_in_place(|| {
-                    handle.block_on(Self::do_refresh(
+                    handle.block_on(Self::do_refresh(RefreshExecution {
                         seat_id,
                         current_refresh_token,
-                        now,
-                        adapter_seats,
-                        adapter_oauth,
-                        adapter_sf,
-                        adapter_store,
-                        adapter_alert,
-                    ))
+                        now_secs: now,
+                        seats: adapter_seats,
+                        oauth_client: adapter_oauth,
+                        singleflight: adapter_sf,
+                        store: adapter_store,
+                        alert: adapter_alert,
+                    }))
                 });
                 match result {
                     Ok(_) => {
@@ -291,16 +312,17 @@ impl AnthropicOAuthAdapter {
         }
     }
 
-    async fn do_refresh(
-        seat_id: SeatId,
-        current_refresh_token: String,
-        now_secs: u64,
-        seats: Arc<Mutex<HashMap<String, SeatTokenState>>>,
-        oauth_client: Arc<OAuthTokenClient>,
-        singleflight: Arc<RefreshSingleflight>,
-        store: Arc<dyn CredentialStorePort>,
-        alert: Arc<dyn OperatorAlertPort>,
-    ) -> Result<SeatTokenState, AuthError> {
+    async fn do_refresh(execution: RefreshExecution) -> Result<SeatTokenState, AuthError> {
+        let RefreshExecution {
+            seat_id,
+            current_refresh_token,
+            now_secs,
+            seats,
+            oauth_client,
+            singleflight,
+            store,
+            alert,
+        } = execution;
         let client = Arc::clone(&oauth_client);
         let store2 = Arc::clone(&store);
         let alert2 = Arc::clone(&alert);
@@ -523,8 +545,7 @@ mod tests {
         let alert = Arc::new(InMemoryAlertPort::new());
         let now_secs = 1_000_000u64;
 
-        let adapter = AnthropicOAuthAdapter::new(store, alert)
-            .with_clock(move || now_secs);
+        let adapter = AnthropicOAuthAdapter::new(store, alert).with_clock(move || now_secs);
 
         // Seed a valid token (expires far in future).
         let state = SeatTokenState::new(
@@ -562,15 +583,9 @@ mod tests {
         let store = Arc::new(InMemoryCredentialStore::new());
         let alert = Arc::new(InMemoryAlertPort::new());
         let now_secs = 1_000_000u64;
-        let adapter = AnthropicOAuthAdapter::new(store, alert)
-            .with_clock(move || now_secs);
+        let adapter = AnthropicOAuthAdapter::new(store, alert).with_clock(move || now_secs);
 
-        let state = SeatTokenState::new(
-            "acc".into(),
-            "ref".into(),
-            now_secs + 3600,
-            now_secs,
-        );
+        let state = SeatTokenState::new("acc".into(), "ref".into(), now_secs + 3600, now_secs);
         let sref_val = sref("sref://revoke-test");
         let key = format!("{sref_val:?}");
         adapter.seed_seat(&key, state);

@@ -38,10 +38,10 @@ use rustls::pki_types::{CertificateDer, UnixTime};
 use rustls::server::danger::{ClientCertVerified, ClientCertVerifier};
 use rustls::{DigitallySignedStruct, DistinguishedName, Error, SignatureScheme};
 
-use oya_cloud_os_trustd_domain::signer::SigningBackend;
-use oya_cloud_os_trustd_domain::TrustBundle;
 use iam_identity_workload_svid_kernel::SvidVerifier;
 use iam_identity_workload_svid_trustd::TrustdSvidVerifier;
+use oya_cloud_os_trustd_domain::TrustBundle;
+use oya_cloud_os_trustd_domain::signer::SigningBackend;
 
 /// A rustls client-certificate verifier over a trustd [`TrustBundle`].
 ///
@@ -70,8 +70,8 @@ impl<S: SigningBackend> SvidClientCertVerifier<S> {
     /// provider's signature-verification algorithms (NO ring).
     #[must_use]
     pub fn new(bundle: Arc<TrustBundle<S>>) -> Self {
-        let supported_algs = rustls::crypto::aws_lc_rs::default_provider()
-            .signature_verification_algorithms;
+        let supported_algs =
+            rustls::crypto::aws_lc_rs::default_provider().signature_verification_algorithms;
         Self {
             bundle,
             supported_algs,

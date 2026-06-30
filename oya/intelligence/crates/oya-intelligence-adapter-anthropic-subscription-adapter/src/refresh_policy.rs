@@ -34,16 +34,9 @@ impl PartialOrd for SeatId {
 }
 
 /// Min-heap scheduler for proactive token refreshes.
+#[derive(Default)]
 pub struct RefreshScheduler {
     heap: BinaryHeap<Reverse<RefreshEntry>>,
-}
-
-impl Default for RefreshScheduler {
-    fn default() -> Self {
-        Self {
-            heap: BinaryHeap::new(),
-        }
-    }
 }
 
 impl RefreshScheduler {

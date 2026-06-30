@@ -39,8 +39,8 @@
 //! [`InMemoryAccountHealthStore`], [`InMemoryProviderInvocationTransport`])
 //! keep the service runnable in tests / single-node bring-up without a network.
 //! The production [`HyperProviderInvocationTransport`] is a `hyper-util`
-//! legacy-client + `hyper-rustls` (ring crypto, webpki trust roots) adapter
-//! sharing one connection pool across requests for the process lifetime.
+//! legacy-client + `hyper-rustls` adapter using aws-lc-rs, TLS 1.3,
+//! X25519MLKEM768 first, X25519 fallback, and webpki trust roots.
 //!
 //! ## Hot-path posture (ADR-0083 Tier 3 — panic-free)
 //!
@@ -70,7 +70,7 @@
 pub mod quota;
 pub use quota::{
     AgentQuotaBudget, AgentQuotaSnapshot, AgentQuotaStore, AgentToken, InMemoryAgentQuotaStore,
-    QuotaError, QUOTA_AMPLE_THRESHOLD_PCT, should_skip_reserve,
+    QUOTA_AMPLE_THRESHOLD_PCT, QuotaError, should_skip_reserve,
 };
 
 use std::collections::BTreeMap;
@@ -81,6 +81,10 @@ use std::sync::{Arc, Mutex};
 
 use bytes::Bytes;
 use futures_util::stream::Stream;
+use oya_http_runtime_hyper_adapter::{
+    HyperHttpsClient, build_loopback_http_or_pqc_hybrid_https_client_for_tests,
+    build_pqc_hybrid_https_client,
+};
 use std::collections::HashSet;
 use std::sync::OnceLock;
 
@@ -1073,45 +1077,45 @@ pub(crate) fn parse_retry_after_ms(headers: &[(String, String)], consecutive_fai
     };
 
     // 1. retry-after: integer seconds.
-    if let Some(val) = find("retry-after") {
-        if let Ok(secs) = val.trim().parse::<u64>() {
-            return secs.saturating_mul(1_000);
-        }
+    if let Some(val) = find("retry-after")
+        && let Ok(secs) = val.trim().parse::<u64>()
+    {
+        return secs.saturating_mul(1_000);
     }
 
     // 2. retry-after-ms: integer milliseconds.
-    if let Some(val) = find("retry-after-ms") {
-        if let Ok(ms) = val.trim().parse::<u64>() {
-            return ms;
-        }
+    if let Some(val) = find("retry-after-ms")
+        && let Ok(ms) = val.trim().parse::<u64>()
+    {
+        return ms;
     }
 
     // 3. anthropic-ratelimit-requests-reset: integer seconds.
-    if let Some(val) = find("anthropic-ratelimit-requests-reset") {
-        if let Ok(secs) = val.trim().parse::<u64>() {
-            return secs.saturating_mul(1_000);
-        }
+    if let Some(val) = find("anthropic-ratelimit-requests-reset")
+        && let Ok(secs) = val.trim().parse::<u64>()
+    {
+        return secs.saturating_mul(1_000);
     }
 
     // 4. anthropic-ratelimit-tokens-reset: integer seconds.
-    if let Some(val) = find("anthropic-ratelimit-tokens-reset") {
-        if let Ok(secs) = val.trim().parse::<u64>() {
-            return secs.saturating_mul(1_000);
-        }
+    if let Some(val) = find("anthropic-ratelimit-tokens-reset")
+        && let Ok(secs) = val.trim().parse::<u64>()
+    {
+        return secs.saturating_mul(1_000);
     }
 
     // 5. x-ratelimit-reset-requests: integer seconds.
-    if let Some(val) = find("x-ratelimit-reset-requests") {
-        if let Ok(secs) = val.trim().parse::<u64>() {
-            return secs.saturating_mul(1_000);
-        }
+    if let Some(val) = find("x-ratelimit-reset-requests")
+        && let Ok(secs) = val.trim().parse::<u64>()
+    {
+        return secs.saturating_mul(1_000);
     }
 
     // 6. x-ratelimit-reset-tokens: integer seconds.
-    if let Some(val) = find("x-ratelimit-reset-tokens") {
-        if let Ok(secs) = val.trim().parse::<u64>() {
-            return secs.saturating_mul(1_000);
-        }
+    if let Some(val) = find("x-ratelimit-reset-tokens")
+        && let Ok(secs) = val.trim().parse::<u64>()
+    {
+        return secs.saturating_mul(1_000);
     }
 
     // 7. Kernel fallback: CooldownPolicy::window_for table.
@@ -1130,8 +1134,7 @@ pub(crate) fn filter_hop_by_hop(
         .iter()
         .filter(|(name, _)| {
             let lower = name.to_ascii_lowercase();
-            !HOP_BY_HOP_HEADERS.contains(&lower.as_str())
-                && !connection_nominated.contains(&lower)
+            !HOP_BY_HOP_HEADERS.contains(&lower.as_str()) && !connection_nominated.contains(&lower)
         })
         .cloned()
         .collect()
@@ -1152,33 +1155,22 @@ fn connection_nominated_tokens(headers: &[(String, String)]) -> HashSet<String> 
 }
 
 // Lazy process-wide hyper HTTPS client (one per process; shared across all
-// dispatch calls via OnceLock). Uses hyper-util legacy Client + hyper-rustls
-// on aws-lc-rs backend + webpki-tokio trust roots. No native-certs.
-static HYPER_CLIENT: OnceLock<
-    hyper_util::client::legacy::Client<
-        hyper_rustls::HttpsConnector<hyper_util::client::legacy::connect::HttpConnector>,
-        http_body_util::Full<Bytes>,
-    >,
-> = OnceLock::new();
+// dispatch calls via OnceLock). Uses the canonical HTTP adapter TLS policy:
+// aws-lc-rs, TLS 1.3, X25519MLKEM768 first, X25519 fallback, webpki roots.
+static HYPER_CLIENT: OnceLock<HyperHttpsClient> = OnceLock::new();
 
-fn get_or_init_client() -> &'static hyper_util::client::legacy::Client<
-    hyper_rustls::HttpsConnector<hyper_util::client::legacy::connect::HttpConnector>,
-    http_body_util::Full<Bytes>,
-> {
-    HYPER_CLIENT.get_or_init(|| {
-        let tls = hyper_rustls::HttpsConnectorBuilder::new()
-            .with_webpki_roots()
-            .https_or_http()
-            .enable_http1()
-            .enable_http2()
-            .build();
-        hyper_util::client::legacy::Client::builder(hyper_util::rt::TokioExecutor::new())
-            .build(tls)
-    })
+fn get_or_init_client() -> &'static HyperHttpsClient {
+    HYPER_CLIENT.get_or_init(build_pqc_hybrid_https_client)
 }
 
-/// Production [`ProviderInvocationTransport`] backed by `hyper-util` legacy
-/// Client + `hyper-rustls` (aws-lc-rs crypto, webpki trust roots).
+fn is_loopback_http_url(url: &str) -> bool {
+    url.starts_with("http://127.0.0.1:")
+        || url.starts_with("http://localhost:")
+        || url.starts_with("http://[::1]:")
+}
+
+/// Production [`ProviderInvocationTransport`] backed by the canonical
+/// `oya-http-runtime-hyper-adapter` PQC-hybrid HTTPS client.
 ///
 /// Credential resolution is delegated to the injected [`SecretResolution`]
 /// adapter (default: [`OpenBaoSecretResolver`], which surfaces the honest-claims
@@ -1267,18 +1259,20 @@ impl HyperProviderInvocationTransport {
         credential: &ProviderCredential,
     ) -> Result<Vec<(String, String)>, TransportError> {
         // Credentials are raw bytes; they must be valid UTF-8 to insert as header values.
-        let token =
-            std::str::from_utf8(credential.as_bytes().as_ref()).map_err(|_| {
-                TransportError::NonRetryable {
-                    // NEVER include the raw credential bytes in the detail string.
-                    detail: "credential encoding: not valid UTF-8".into(),
-                }
-            })?;
+        let token = std::str::from_utf8(credential.as_bytes().as_ref()).map_err(|_| {
+            TransportError::NonRetryable {
+                // NEVER include the raw credential bytes in the detail string.
+                detail: "credential encoding: not valid UTF-8".into(),
+            }
+        })?;
         let token = token.trim();
         match provider {
             ProviderFamily::Claude => Ok(vec![
                 ("x-api-key".to_string(), token.to_string()),
-                ("anthropic-version".to_string(), ANTHROPIC_VERSION.to_string()),
+                (
+                    "anthropic-version".to_string(),
+                    ANTHROPIC_VERSION.to_string(),
+                ),
             ]),
             ProviderFamily::OpenAiOrCodex => Ok(vec![(
                 "authorization".to_string(),
@@ -1331,8 +1325,14 @@ impl HyperProviderInvocationTransport {
             }
         };
 
-        let client = get_or_init_client();
-        let response = match client.request(hyper_request).await {
+        let response = if is_loopback_http_url(&upstream_url) {
+            build_loopback_http_or_pqc_hybrid_https_client_for_tests()
+                .request(hyper_request)
+                .await
+        } else {
+            get_or_init_client().request(hyper_request).await
+        };
+        let response = match response {
             Ok(r) => r,
             Err(e) => {
                 let _ = tx
@@ -1424,11 +1424,13 @@ impl HyperProviderInvocationTransport {
         //    placeholder — surface the same Unimplemented error as OpenBaoSecretResolver
         //    would return, because any non-sref account ID means credential resolution
         //    is not yet plumbed through.
-        let unimplemented_detail = || format!(
-            "{} — see registry/placeholder-debt/adr-follow-ups.yaml#{}",
-            Unimplemented::OpenBaoSecretResolution.as_str(),
-            Unimplemented::OpenBaoSecretResolution.placeholder_debt_id()
-        );
+        let unimplemented_detail = || {
+            format!(
+                "{} — see registry/placeholder-debt/adr-follow-ups.yaml#{}",
+                Unimplemented::OpenBaoSecretResolution.as_str(),
+                Unimplemented::OpenBaoSecretResolution.placeholder_debt_id()
+            )
+        };
         let secret_ref = match SecretReference::new(account_id.0.clone()) {
             Ok(r) => r,
             Err(_) => {
@@ -1466,10 +1468,7 @@ impl HyperProviderInvocationTransport {
         let mut req_builder = hyper::Request::builder()
             .method(hyper::Method::POST)
             .uri(&url)
-            .header(
-                hyper::header::CONTENT_TYPE,
-                "application/json",
-            );
+            .header(hyper::header::CONTENT_TYPE, "application/json");
 
         // Inject auth headers.
         for (name, value) in &auth_headers {
@@ -1482,12 +1481,17 @@ impl HyperProviderInvocationTransport {
                 detail: format!("request build error: {e}"),
             })?;
 
-        // 5. Send via process-wide client.
-        let client = get_or_init_client();
-        let response = client.request(hyper_request).await.map_err(|e| {
-            TransportError::Retryable {
-                detail: format!("upstream network error: {e}"),
-            }
+        // 5. Send via process-wide client. Loopback HTTP is restricted to
+        // in-process tests; external endpoints use the HTTPS-only PQC client.
+        let response = if is_loopback_http_url(&url) {
+            build_loopback_http_or_pqc_hybrid_https_client_for_tests()
+                .request(hyper_request)
+                .await
+        } else {
+            get_or_init_client().request(hyper_request).await
+        };
+        let response = response.map_err(|e| TransportError::Retryable {
+            detail: format!("upstream network error: {e}"),
         })?;
 
         let status = response.status().as_u16();
@@ -1694,11 +1698,11 @@ pub enum DispatchError {
     /// data_class: INTERNAL_ONLY (token counts) + TENANT_SCOPED (agent identity)
     QuotaBudgetExceeded {
         /// The agent whose budget was exceeded.
-        agent: AgentToken,     // data_class: TENANT_SCOPED
+        agent: AgentToken, // data_class: TENANT_SCOPED
         /// The estimated token cost of the rejected request.
-        requested: u64,        // data_class: INTERNAL_ONLY
+        requested: u64, // data_class: INTERNAL_ONLY
         /// The agent's remaining budget at the time of rejection.
-        remaining: u64,        // data_class: INTERNAL_ONLY
+        remaining: u64, // data_class: INTERNAL_ONLY
     },
 }
 
@@ -1722,7 +1726,11 @@ impl fmt::Display for DispatchError {
             // NOTE: detail fields of SecretResolutionError are INTERNAL_ONLY;
             // the Display surfaces only the classification, never the raw detail.
             Self::SecretResolutionFailed(error) => write!(f, "secret resolution failed: {error}"),
-            Self::QuotaBudgetExceeded { agent, requested, remaining } => write!(
+            Self::QuotaBudgetExceeded {
+                agent,
+                requested,
+                remaining,
+            } => write!(
                 f,
                 "quota budget exceeded for agent {}: requested {requested}, remaining {remaining}",
                 agent.0
@@ -2240,9 +2248,15 @@ where
         quota_store
             .reserve(tenant_id, agent_token, estimated_tokens)
             .map_err(|e| match e {
-                QuotaError::BudgetExceeded { agent, requested, remaining } => {
-                    DispatchError::QuotaBudgetExceeded { agent, requested, remaining }
-                }
+                QuotaError::BudgetExceeded {
+                    agent,
+                    requested,
+                    remaining,
+                } => DispatchError::QuotaBudgetExceeded {
+                    agent,
+                    requested,
+                    remaining,
+                },
                 QuotaError::Repository(r) => DispatchError::Repository(r),
             })?;
         estimated_tokens
@@ -2273,7 +2287,7 @@ where
     //    When budget_tokens == 0, quota is unconfigured → skip reconcile.
     if snap.budget_tokens > 0 {
         let actual_used: u64 = match &result {
-            Ok(_) => 0, // in-memory adapter has no token usage metadata; production plumbs this
+            Ok(_) => 0,  // in-memory adapter has no token usage metadata; production plumbs this
             Err(_) => 0, // failed dispatch: credit back the full reservation
         };
         // Ignore reconcile errors: a reconcile failure must never mask a
@@ -2322,7 +2336,9 @@ impl MetricsCounters {
         let mut out = String::with_capacity(1024);
 
         // --- provider_pool_dispatch_attempts_total ---
-        out.push_str("# HELP provider_pool_dispatch_attempts_total Dispatch attempt counter per account\n");
+        out.push_str(
+            "# HELP provider_pool_dispatch_attempts_total Dispatch attempt counter per account\n",
+        );
         out.push_str("# TYPE provider_pool_dispatch_attempts_total counter\n");
         for ((account_id, provider), count) in &self.attempts {
             out.push_str(&format!(
@@ -2334,7 +2350,9 @@ impl MetricsCounters {
         }
 
         // --- provider_pool_dispatch_successes_total ---
-        out.push_str("# HELP provider_pool_dispatch_successes_total Dispatch success counter per account\n");
+        out.push_str(
+            "# HELP provider_pool_dispatch_successes_total Dispatch success counter per account\n",
+        );
         out.push_str("# TYPE provider_pool_dispatch_successes_total counter\n");
         for (account_id, count) in &self.successes {
             out.push_str(&format!(
@@ -2345,7 +2363,9 @@ impl MetricsCounters {
         }
 
         // --- provider_pool_dispatch_failures_total ---
-        out.push_str("# HELP provider_pool_dispatch_failures_total Dispatch failure counter per account\n");
+        out.push_str(
+            "# HELP provider_pool_dispatch_failures_total Dispatch failure counter per account\n",
+        );
         out.push_str("# TYPE provider_pool_dispatch_failures_total counter\n");
         for ((account_id, retryable), count) in &self.failures {
             out.push_str(&format!(
@@ -2369,7 +2389,9 @@ impl MetricsCounters {
         }
 
         // --- provider_pool_quarantine_transitions_total ---
-        out.push_str("# HELP provider_pool_quarantine_transitions_total Quarantine state-change counter\n");
+        out.push_str(
+            "# HELP provider_pool_quarantine_transitions_total Quarantine state-change counter\n",
+        );
         out.push_str("# TYPE provider_pool_quarantine_transitions_total counter\n");
         for ((account_id, state), count) in &self.quarantine_transitions {
             out.push_str(&format!(
@@ -2386,7 +2408,9 @@ impl MetricsCounters {
 
 /// Escape a string for use as a Prometheus label value (double-quote safe).
 fn prom_escape(s: &str) -> String {
-    s.replace('\\', "\\\\").replace('"', "\\\"").replace('\n', "\\n")
+    s.replace('\\', "\\\\")
+        .replace('"', "\\\"")
+        .replace('\n', "\\n")
 }
 
 /// OTel-bridge [`MetricsSink`] that accumulates dispatch events into a
@@ -2455,11 +2479,7 @@ impl MetricsSink for OtelMetricsSink {
         }
     }
 
-    fn record_quarantine_transition(
-        &self,
-        account_id: &ProviderAccountId,
-        new_state: HealthState,
-    ) {
+    fn record_quarantine_transition(&self, account_id: &ProviderAccountId, new_state: HealthState) {
         if let Ok(mut guard) = self.counters.lock() {
             let state_str = format!("{new_state:?}").to_ascii_lowercase();
             let key = (account_id.0.clone(), state_str);
@@ -2617,9 +2637,11 @@ pub fn build_seat_snapshots(
             });
             let cooldown_until = account_health.cooldown_until.map(|u| u.0);
             let in_cooldown = cooldown_until.map(|t| t > now.0).unwrap_or(false);
-            let available =
-                account_health.state != HealthState::Unhealthy && !in_cooldown;
-            let usage_snap = usage.get(account_id).copied().unwrap_or(UsageSnapshot::zero());
+            let available = account_health.state != HealthState::Unhealthy && !in_cooldown;
+            let usage_snap = usage
+                .get(account_id)
+                .copied()
+                .unwrap_or(UsageSnapshot::zero());
             SeatSnapshot {
                 provider_account_id: account_id.0.clone(),
                 provider: provider_name.clone(),
@@ -2957,7 +2979,10 @@ mod tests {
             );
         }
         // Safe headers must survive.
-        assert!(names.contains(&"content-type"), "content-type must pass through");
+        assert!(
+            names.contains(&"content-type"),
+            "content-type must pass through"
+        );
         assert!(names.contains(&"x-custom"), "x-custom must pass through");
     }
 
@@ -2978,7 +3003,10 @@ mod tests {
             !names.contains(&"x-nominated"),
             "connection-nominated header must be stripped"
         );
-        assert!(!names.contains(&"keep-alive"), "keep-alive must be stripped");
+        assert!(
+            !names.contains(&"keep-alive"),
+            "keep-alive must be stripped"
+        );
         assert!(
             names.contains(&"content-type"),
             "content-type must pass through"
@@ -3119,13 +3147,7 @@ mod tests {
                 let pairs: Vec<String> = req
                     .headers()
                     .iter()
-                    .map(|(k, v)| {
-                        format!(
-                            r#""{}":"{}""#,
-                            k.as_str(),
-                            v.to_str().unwrap_or("")
-                        )
-                    })
+                    .map(|(k, v)| format!(r#""{}":"{}""#, k.as_str(), v.to_str().unwrap_or("")))
                     .collect();
                 let json = format!("{{{}}}", pairs.join(","));
                 let resp = hyper::Response::builder()
@@ -3159,22 +3181,27 @@ mod tests {
     fn in_memory_resolver(key: &str, token: &str) -> Arc<dyn SecretResolution + Send + Sync> {
         let sr = sref(key);
         Arc::new(
-            InMemorySecretResolver::new()
-                .with_secret(sr, Bytes::copy_from_slice(token.as_bytes())),
+            InMemorySecretResolver::new().with_secret(sr, Bytes::copy_from_slice(token.as_bytes())),
         )
     }
 
     #[tokio::test]
     async fn hyper_transport_forwards_post_and_returns_200() {
-        let port = spawn_test_server(200, vec![("content-type", "application/json")], b"{\"ok\":true}").await;
+        let port = spawn_test_server(
+            200,
+            vec![("content-type", "application/json")],
+            b"{\"ok\":true}",
+        )
+        .await;
         let resolver = in_memory_resolver("my-key", "tok_test_abc");
-        let transport = transport_with_resolver(
-            format!("http://127.0.0.1:{port}"),
-            resolver,
-        );
+        let transport = transport_with_resolver(format!("http://127.0.0.1:{port}"), resolver);
         let account_id = ProviderAccountId("sref://my-key".into());
         let result = transport
-            .dispatch(account_id.clone(), ProviderFamily::Claude, Bytes::from_static(b"{}"))
+            .dispatch(
+                account_id.clone(),
+                ProviderFamily::Claude,
+                Bytes::from_static(b"{}"),
+            )
             .await;
         let resp = result.expect("200 must return Ok(ProviderResponse)");
         assert_eq!(resp.status, 200);
@@ -3186,13 +3213,14 @@ mod tests {
     async fn hyper_transport_maps_5xx_to_retryable() {
         let port = spawn_test_server(500, vec![], b"internal server error").await;
         let resolver = in_memory_resolver("key-500", "tok_500");
-        let transport = transport_with_resolver(
-            format!("http://127.0.0.1:{port}"),
-            resolver,
-        );
+        let transport = transport_with_resolver(format!("http://127.0.0.1:{port}"), resolver);
         let account_id = ProviderAccountId("sref://key-500".into());
         let err = transport
-            .dispatch(account_id, ProviderFamily::Claude, Bytes::from_static(b"{}"))
+            .dispatch(
+                account_id,
+                ProviderFamily::Claude,
+                Bytes::from_static(b"{}"),
+            )
             .await
             .expect_err("500 must return Err(Retryable)");
         assert!(
@@ -3207,20 +3235,22 @@ mod tests {
     async fn hyper_transport_maps_429_to_ok_with_rate_limited_status() {
         let port = spawn_test_server(429, vec![("retry-after", "60")], b"rate limited").await;
         let resolver = in_memory_resolver("key-429", "tok_429");
-        let transport = transport_with_resolver(
-            format!("http://127.0.0.1:{port}"),
-            resolver,
-        );
+        let transport = transport_with_resolver(format!("http://127.0.0.1:{port}"), resolver);
         let account_id = ProviderAccountId("sref://key-429".into());
         let resp = transport
-            .dispatch(account_id, ProviderFamily::OpenAiOrCodex, Bytes::from_static(b"{}"))
+            .dispatch(
+                account_id,
+                ProviderFamily::OpenAiOrCodex,
+                Bytes::from_static(b"{}"),
+            )
             .await
             .expect("429 must return Ok(ProviderResponse) so dispatch loop sees headers");
         assert_eq!(resp.status, 429, "status must be 429");
         // The Retry-After header must be present in the response headers.
         assert!(
             resp.headers.iter().any(|(n, _)| n == "retry-after"),
-            "retry-after header must pass through; headers: {:?}", resp.headers
+            "retry-after header must pass through; headers: {:?}",
+            resp.headers
         );
     }
 
@@ -3228,13 +3258,14 @@ mod tests {
     async fn hyper_transport_injects_anthropic_auth_headers() {
         let port = spawn_echo_headers_server().await;
         let resolver = in_memory_resolver("anthropic-key", "sk-ant-my-token");
-        let transport = transport_with_resolver(
-            format!("http://127.0.0.1:{port}"),
-            resolver,
-        );
+        let transport = transport_with_resolver(format!("http://127.0.0.1:{port}"), resolver);
         let account_id = ProviderAccountId("sref://anthropic-key".into());
         let resp = transport
-            .dispatch(account_id, ProviderFamily::Claude, Bytes::from_static(b"{}"))
+            .dispatch(
+                account_id,
+                ProviderFamily::Claude,
+                Bytes::from_static(b"{}"),
+            )
             .await
             .expect("echo server returns 200");
         let body_str = std::str::from_utf8(&resp.body).expect("body is UTF-8");
@@ -3260,13 +3291,14 @@ mod tests {
     async fn hyper_transport_injects_openai_bearer_header() {
         let port = spawn_echo_headers_server().await;
         let resolver = in_memory_resolver("openai-key", "sk-openai-my-token");
-        let transport = transport_with_resolver(
-            format!("http://127.0.0.1:{port}"),
-            resolver,
-        );
+        let transport = transport_with_resolver(format!("http://127.0.0.1:{port}"), resolver);
         let account_id = ProviderAccountId("sref://openai-key".into());
         let resp = transport
-            .dispatch(account_id, ProviderFamily::OpenAiOrCodex, Bytes::from_static(b"{}"))
+            .dispatch(
+                account_id,
+                ProviderFamily::OpenAiOrCodex,
+                Bytes::from_static(b"{}"),
+            )
             .await
             .expect("echo server returns 200");
         let body_str = std::str::from_utf8(&resp.body).expect("body is UTF-8");
@@ -3294,13 +3326,14 @@ mod tests {
         )
         .await;
         let resolver = in_memory_resolver("hop-key", "tok_hop");
-        let transport = transport_with_resolver(
-            format!("http://127.0.0.1:{port}"),
-            resolver,
-        );
+        let transport = transport_with_resolver(format!("http://127.0.0.1:{port}"), resolver);
         let account_id = ProviderAccountId("sref://hop-key".into());
         let resp = transport
-            .dispatch(account_id, ProviderFamily::Claude, Bytes::from_static(b"{}"))
+            .dispatch(
+                account_id,
+                ProviderFamily::Claude,
+                Bytes::from_static(b"{}"),
+            )
             .await
             .expect("200 must succeed");
         let header_names: Vec<&str> = resp.headers.iter().map(|(n, _)| n.as_str()).collect();
@@ -3329,13 +3362,14 @@ mod tests {
         drop(listener);
 
         let resolver = in_memory_resolver("net-err-key", "tok_net");
-        let transport = transport_with_resolver(
-            format!("http://127.0.0.1:{port}"),
-            resolver,
-        );
+        let transport = transport_with_resolver(format!("http://127.0.0.1:{port}"), resolver);
         let account_id = ProviderAccountId("sref://net-err-key".into());
         let err = transport
-            .dispatch(account_id, ProviderFamily::Claude, Bytes::from_static(b"{}"))
+            .dispatch(
+                account_id,
+                ProviderFamily::Claude,
+                Bytes::from_static(b"{}"),
+            )
             .await
             .expect_err("connection refused must return Err");
         assert!(
@@ -3464,7 +3498,10 @@ mod tests {
         )
         .await;
 
-        assert!(err.is_none(), "200 stream must not yield an error; got {err:?}");
+        assert!(
+            err.is_none(),
+            "200 stream must not yield an error; got {err:?}"
+        );
         // All chunks must arrive; concatenation must be byte-exact.
         let expected: Bytes = CHUNKS.iter().flat_map(|c| c.iter().copied()).collect();
         let got: Bytes = chunks.into_iter().flatten().collect();
@@ -3582,7 +3619,10 @@ mod tests {
         )
         .await;
 
-        assert!(err.is_none(), "empty body must not yield an error; got {err:?}");
+        assert!(
+            err.is_none(),
+            "empty body must not yield an error; got {err:?}"
+        );
         // Empty body: no data frames arrive; stream ends cleanly.
         assert!(
             chunks.is_empty(),

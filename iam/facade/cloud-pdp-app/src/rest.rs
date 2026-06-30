@@ -29,14 +29,14 @@ use axum::routing::{get, post};
 use axum::{Json, Router};
 use serde::Deserialize;
 
-use oya_cloud_os_trustd_domain::signer::EcdsaP256Signer;
 use oya_cloud_os_trustd_domain::TrustBundle;
+use oya_cloud_os_trustd_domain::signer::EcdsaP256Signer;
 use oya_shared_pdp_kernel::{EntityRecord, EntitySlice, PdpError};
 use oya_shared_platform_contracts_kernel::pdp::AuthorizationRequest;
 
+use crate::PdpState;
 use crate::mtls::SpiffeCallerAuth;
 use crate::mtls_transport::PeerCertInfo;
-use crate::PdpState;
 
 /// `POST /v1/authorize` body: the locked-contract request plus the
 /// PEP-assembled entity slice. Closed schema — unknown fields are rejected

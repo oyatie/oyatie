@@ -225,7 +225,7 @@ pub struct AuditCloudEvent {
     /// The acted-on resource (mirrors `data.resource_name`).
     pub subject: String, // data_class: TENANT_SCOPED
     pub datacontenttype: String, // data_class: INTERNAL_ONLY
-    pub data: AuditLogPayload,   // data_class: TENANT_SCOPED
+    pub data: AuditLogPayload, // data_class: TENANT_SCOPED
 }
 
 impl AuditCloudEvent {
@@ -304,10 +304,10 @@ impl AuditCloudEvent {
         if p.authentication_info.principal.trim().is_empty() {
             return Err(AuditEventError::EmptyField("authentication_info.principal"));
         }
-        if let Some(tenant) = &p.tenant_id {
-            if !tenant.starts_with(TENANT_ID_PREFIX) {
-                return Err(AuditEventError::MalformedTenantId(tenant.clone()));
-            }
+        if let Some(tenant) = &p.tenant_id
+            && !tenant.starts_with(TENANT_ID_PREFIX)
+        {
+            return Err(AuditEventError::MalformedTenantId(tenant.clone()));
         }
         if self.subject != p.resource_name {
             return Err(AuditEventError::SubjectResourceMismatch);
@@ -581,10 +581,16 @@ impl fmt::Display for DigestChainError {
                 write!(f, "digest-chain signature invalid at sequence {sequence}")
             }
             Self::SequenceGap { expected, found } => {
-                write!(f, "digest-chain sequence gap: expected {expected}, found {found}")
+                write!(
+                    f,
+                    "digest-chain sequence gap: expected {expected}, found {found}"
+                )
             }
             Self::PrevDigestMismatch { sequence } => {
-                write!(f, "digest-chain prev-link digest mismatch at sequence {sequence}")
+                write!(
+                    f,
+                    "digest-chain prev-link digest mismatch at sequence {sequence}"
+                )
             }
             Self::MalformedSignatureHex => write!(f, "digest-chain signature is not valid hex"),
         }
@@ -609,7 +615,7 @@ pub fn encode_hex(bytes: &[u8]) -> String {
 /// # Errors
 /// [`DigestChainError::MalformedSignatureHex`] on odd length or non-hex.
 pub fn decode_hex(hex: &str) -> Result<Vec<u8>, DigestChainError> {
-    if hex.len() % 2 != 0 {
+    if !hex.len().is_multiple_of(2) {
         return Err(DigestChainError::MalformedSignatureHex);
     }
     (0..hex.len())
@@ -860,7 +866,14 @@ mod tests {
 
     #[test]
     fn empty_chain_is_valid() {
-        verify_chain(&FnvDigester, &FakeVerifier, GENESIS_PREV_LINK_DIGEST, 0, &[]).unwrap();
+        verify_chain(
+            &FnvDigester,
+            &FakeVerifier,
+            GENESIS_PREV_LINK_DIGEST,
+            0,
+            &[],
+        )
+        .unwrap();
     }
 
     #[test]

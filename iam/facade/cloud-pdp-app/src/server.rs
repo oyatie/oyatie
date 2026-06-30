@@ -215,8 +215,7 @@ pub async fn start_with_mtls(
 
     let rest_task = match (acceptor.clone(), bundle.clone()) {
         (Some(acc), Some(bundle)) => {
-            let router =
-                rest::build_router_mtls(Arc::clone(&state), bundle, expected_cell.clone());
+            let router = rest::build_router_mtls(Arc::clone(&state), bundle, expected_cell.clone());
             let mut rest_shutdown = shutdown_rx.clone();
             tokio::spawn(async move {
                 let shutdown = async move {
@@ -347,8 +346,7 @@ pub async fn boot_from_config(config: &PdpConfig) -> Result<ServiceHandle, BootE
 fn grpc_tls_incoming(
     listener: TcpListener,
     acceptor: tokio_rustls::TlsAcceptor,
-) -> impl futures_core::Stream<Item = Result<mtls_transport::PeerCertTlsStream, std::io::Error>>
-{
+) -> impl futures_core::Stream<Item = Result<mtls_transport::PeerCertTlsStream, std::io::Error>> {
     async_stream::stream! {
         loop {
             let tcp = match mtls_transport::accept_tcp(&listener).await {

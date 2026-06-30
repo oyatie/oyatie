@@ -202,8 +202,12 @@ async fn pbac_link_decides_through_the_same_core() {
 async fn missing_principal_fails_closed_invalid_argument() {
     let (state, sink) = seeded_state(vec![]);
     let service = CloudIamPdpService::new(state);
-    let mut request =
-        authorize_request("req-grpc-no-principal", "alice", "resource.read", "acme-doc-1");
+    let mut request = authorize_request(
+        "req-grpc-no-principal",
+        "alice",
+        "resource.read",
+        "acme-doc-1",
+    );
     request.principal = None;
     let status = service
         .authorize(Request::new(request))
@@ -217,8 +221,12 @@ async fn missing_principal_fails_closed_invalid_argument() {
 async fn unset_attribute_oneof_fails_closed() {
     let (state, _sink) = seeded_state(vec![]);
     let service = CloudIamPdpService::new(state);
-    let mut request =
-        authorize_request("req-grpc-unset-attr", "alice", "resource.read", "acme-doc-1");
+    let mut request = authorize_request(
+        "req-grpc-unset-attr",
+        "alice",
+        "resource.read",
+        "acme-doc-1",
+    );
     request
         .context
         .insert("channel".to_owned(), proto::AttributeValue { value: None });
@@ -249,8 +257,7 @@ async fn unknown_action_is_invalid_argument() {
 async fn stale_zookie_pin_is_failed_precondition() {
     let (state, _sink) = seeded_state(vec![]);
     let service = CloudIamPdpService::new(state);
-    let mut request =
-        authorize_request("req-grpc-stale", "alice", "resource.read", "acme-doc-1");
+    let mut request = authorize_request("req-grpc-stale", "alice", "resource.read", "acme-doc-1");
     request.min_policy_version = "psv-000099".to_owned();
     let status = service
         .authorize(Request::new(request))

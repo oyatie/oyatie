@@ -127,8 +127,7 @@ impl SeatTokenState {
 
     /// Decode from storage bytes.
     pub fn from_storage_bytes(bytes: &[u8]) -> Result<Self, String> {
-        let env: StoredTokenEnvelope =
-            serde_json::from_slice(bytes).map_err(|e| e.to_string())?;
+        let env: StoredTokenEnvelope = serde_json::from_slice(bytes).map_err(|e| e.to_string())?;
         Ok(Self::new(
             env.access_token,
             env.refresh_token,
@@ -179,7 +178,12 @@ mod tests {
 
     #[test]
     fn debug_output_is_redacted() {
-        let s = SeatTokenState::new("super-secret-access".into(), "super-secret-refresh".into(), 1000, 0);
+        let s = SeatTokenState::new(
+            "super-secret-access".into(),
+            "super-secret-refresh".into(),
+            1000,
+            0,
+        );
         let dbg = format!("{s:?}");
         assert!(dbg.contains("[REDACTED]"));
         assert!(!dbg.contains("super-secret"));

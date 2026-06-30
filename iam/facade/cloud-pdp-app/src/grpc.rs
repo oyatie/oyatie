@@ -28,16 +28,16 @@ use tonic::transport::Server;
 use tonic::transport::server::TcpIncoming;
 use tonic::{Request, Response, Status};
 
-use oya_cloud_os_trustd_domain::signer::EcdsaP256Signer;
 use oya_cloud_os_trustd_domain::TrustBundle;
+use oya_cloud_os_trustd_domain::signer::EcdsaP256Signer;
 use oya_shared_pdp_kernel::{EntityRecord, EntitySlice, PdpError};
 use oya_shared_platform_contracts_kernel::pdp::{
     AuthorizationRequest, AuthorizationResponse, Decision, EntityRef, PolicyVersion,
 };
 
+use crate::PdpState;
 use crate::mtls::SpiffeCallerAuth;
 use crate::mtls_transport::PeerCertInfo;
-use crate::PdpState;
 
 /// Generated protobuf/tonic bindings for `oya.cloud.iam.pdp.v1`.
 pub mod proto {
@@ -258,8 +258,7 @@ impl proto::cloud_iam_pdp_server::CloudIamPdp for CloudIamPdpService {
             None
         };
 
-        let (mut contract_request, entities) =
-            contract_request_from_proto(request.into_inner())?;
+        let (mut contract_request, entities) = contract_request_from_proto(request.into_inner())?;
         // Replace the verbatim body tenant with the SVID-derived tenant.
         if let Some(tenant) = svid_tenant {
             contract_request.tenant_id = tenant;
@@ -334,11 +333,9 @@ where
         + 'static,
 {
     Server::builder()
-        .add_service(CloudIamPdpServer::new(CloudIamPdpService::with_caller_auth(
-            state,
-            bundle,
-            expected_cell_authority,
-        )))
+        .add_service(CloudIamPdpServer::new(
+            CloudIamPdpService::with_caller_auth(state, bundle, expected_cell_authority),
+        ))
         .serve_with_incoming_shutdown(incoming, shutdown)
         .await
 }
