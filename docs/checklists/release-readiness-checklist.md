@@ -68,7 +68,7 @@ doc_status: published
 
 ## Communications
 
-- [ ] **RR27** Release notes drafted (customer-facing).
+- [ ] **RR27** Release notes drafted (customer-facing), or Release Please / no-user-facing-change no-op recorded.
 - [ ] **RR28** Trust-portal page prepared (for surfaces with regulatory disclosure).
 - [ ] **RR29** Internal Slack `#oya-masterplan-status` notified.
 - [ ] **RR30** Founder + Council-Architecture sign-off recorded.
@@ -78,5 +78,9 @@ doc_status: published
 - [ ] **RR31** `EVT-WAVE-GATE-PASSED` emitted with milestone ID + gate name + sign-off list. *Lane:* `oya-governance-audit-emission`. Inventory entry per ADR-0052.
 - [ ] **RR32** `docs/CHANGELOG.md` "wave-gate-passed" row appended.
 - [ ] **RR33** Next milestone phases unblocked: their `gates_on:` rows mark this milestone `merged`.
+- [ ] **RR34** Every release-bound merged PR has a post-merge product-completion
+  packet: promoted SHA `oya-ci-required`, rollout verification, rollback note,
+  observability check, browser UX/user-story evidence, and Release Please /
+  release-note impact.
 
 If any row is unchecked, the wave-gate is not passed. Loop back; do not declare release readiness.

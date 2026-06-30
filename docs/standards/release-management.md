@@ -125,6 +125,15 @@ Per [`on-call.md`](on-call.md) §2:
   data backfills, region failover); requires a runbook entry per
   [`on-call.md`](on-call.md) §3 and a dry-run on staging.
 
+### 3.5 Post-merge product-completion gate
+
+A squash merge proves merge admission, not product completion. Product-complete
+requires a post-merge packet with promoted SHA + `oya-ci-required` status URL,
+rollout verification, rollback note, observability/golden-signal check,
+browser UX/user-story evidence, and Release Please / release-note impact.
+Docs-only or no-deploy changes record explicit `no deployable artifact` / `not
+user-visible` rationales; blank evidence means incomplete.
+
 Sources: [Flagsmith — Progressive Delivery](https://www.flagsmith.com/blog/progressive-delivery),
 [Unleash — Canary vs Progressive Delivery](https://www.getunleash.io/blog/canary-release-vs-progressive-delivery),
 [Visualpath — Progressive Delivery SRE 2025](https://visualpathblogs.com/site-reliability-engineering/what-is-the-best-way-to-implement-progressive-delivery-sre-in-2025/).

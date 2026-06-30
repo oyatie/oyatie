@@ -24,8 +24,9 @@ related:
 - [ ] **R3** `## Summary` states *why*, not only *what*.
 - [ ] **R4** `## Verification` pastes actual command output (not hand-waves). Every required check has a `PASS` token.
 - [ ] **R5** `## Traceability` cites canonical docs read, ADRs cited, cross-axis contracts touched, IP ID (if applicable). Legacy ADR-NNNN forbidden in active text.
-- [ ] **R6** `## Evidence` lists audit-chain emission ID + (if binary) Cosign signature + SBOM + SLSA level.
-- [ ] **R7** Done-definition rows D1-D18 walked (see `/templates/checklists/done-definition-checklist.md`).
+- [ ] **R6** `## Evidence` lists audit-chain emission ID + (if binary) Cosign
+  signature + SBOM + SLSA level + post-merge product-completion packet slot.
+- [ ] **R7** Done-definition rows D1-D18 walked for merge readiness; D19 has a post-merge closeout owner/packet slot and MUST be walked after squash merge before product-complete (see `/templates/checklists/done-definition-checklist.md`).
 - [ ] **R8** No `--no-verify`, no hook bypass, no signing skip in the commits. *Lane:* `oya-governance-bypass`.
 - [ ] **R9** No untyped values at API boundaries (per `docs/standards/error-handling.md`). *(advisory; per-language reviewer enforces)*
 - [ ] **R10** Linus good-taste audit row present in `## Code Review`. Empty = `REQUEST CHANGES`.
@@ -108,3 +109,4 @@ Linus good-taste audit row: <special cases eliminated | "none — no candidates"
 - Citing legacy ADR-NNNN in active text.
 - Worker agent attempting to add `## Code Review` itself (lead-only).
 - Force-pushing over reviewer-agent-resolved threads.
+- Calling a squash-merged PR product-complete without the post-merge product-completion packet.
