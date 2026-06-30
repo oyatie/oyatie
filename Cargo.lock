@@ -4025,6 +4025,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-ci-gate-contract"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "oya-ci-tide-app"
 version = "0.1.0"
 dependencies = [
@@ -8574,6 +8582,9 @@ version = "0.1.0"
 [[package]]
 name = "oya-shared-object-store-kernel"
 version = "0.1.0"
+dependencies = [
+ "blake3",
+]
 
 [[package]]
 name = "oya-shared-oidc-client-kernel"
@@ -9351,6 +9362,10 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
 ]
+
+[[package]]
+name = "oya-work-area-tree-kernel"
+version = "0.1.0"
 
 [[package]]
 name = "oya-workflow-engine-event-bus-adapter"
