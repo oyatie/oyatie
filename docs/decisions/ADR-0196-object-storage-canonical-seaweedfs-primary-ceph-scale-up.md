@@ -296,6 +296,11 @@ operational task, not an application rewrite.
 - `storage/core/object-store-kernel/` `ObjectStore` trait + the
   SeaweedFS adapter compile and test green via `cargo test -p
   storage-object-store-kernel`.
+- Tracked W1 storage-kernel files under this decision:
+  `storage/core/object-store-kernel/Cargo.toml`,
+  `storage/core/object-store-kernel/BUCK`,
+  `storage/core/object-store-kernel/src/lib.rs`, and
+  `registry/catalog/storage-object-store-kernel.yaml`.
 - Bucket naming convention enforced by `oya-check-tenant-cost-labels-
   coverage` (advisory) and the IaC-side bucket preallocator.
 
