@@ -1905,6 +1905,27 @@
             },
             "domain_status": {
               "type": "object",
+              "propertyNames": {
+                "enum": [
+                  "audit",
+                  "boundary_contract",
+                  "ci",
+                  "ci_no_regression",
+                  "cost",
+                  "dependency_direction",
+                  "gate_self_conformance",
+                  "owner_raci",
+                  "platform_contract_consumption",
+                  "rollback",
+                  "rollback_dr",
+                  "sbom",
+                  "security",
+                  "slo",
+                  "target_classification",
+                  "tenant_isolation",
+                  "user_pain_validation"
+                ]
+              },
               "additionalProperties": {
                 "type": "string",
                 "enum": [
