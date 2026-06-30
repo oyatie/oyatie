@@ -11,6 +11,8 @@ rust_library(
         "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
         "//libs/oya-shared-ulid-id-kernel:oya-shared-ulid-id-kernel",
         "third-party//:aws-lc-rs",
+        "third-party//:reqwest",
+        "third-party//:serde",
         "third-party//:serde_json",
     ],
 )
@@ -28,6 +30,8 @@ rust_test(
         "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
         "//libs/oya-shared-ulid-id-kernel:oya-shared-ulid-id-kernel",
         "third-party//:aws-lc-rs",
+        "third-party//:reqwest",
+        "third-party//:serde",
         "third-party//:serde_json",
     ],
 )

@@ -11834,6 +11834,8 @@ dependencies = [
  "oya-shared-pdp-kernel",
  "oya-shared-platform-contracts-kernel",
  "oya-shared-ulid-id-kernel",
+ "reqwest 0.13.4",
+ "serde",
  "serde_json",
  "tenancy-tenant-lifecycle-authz-port",
 ]
