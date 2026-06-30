@@ -500,13 +500,12 @@ jobs:
           buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app:oya-cloud-ci-cache-wiring-bin -- assert-warm --record /tmp/buck2-lane-invocation-record.json --build-class gate-fleet-shared-graph --mode "${CACHE_MODE}"
       - name: Upload cache-hit telemetry artifact
         if: always()
-        continue-on-error: true
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: cache-hit-report-buck2-lane
           path: /tmp/cache-hit-report.json
-          if-no-files-found: warn
+          if-no-files-found: error
       - name: Upload runner disk reclaim operator artifact (buck2 lane)
         if: always()
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.

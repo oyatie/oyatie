@@ -3,6 +3,11 @@ purpose: Oyatie — Canonical Docs Changelog
 doc_status: published
 ---
 
+## 2026-06-29 — Cache-hit report fail-closed guard for GH #900
+
+- Made the required buck2 lane's cache-hit report upload binding: a missing report is now RED instead of an upload warning, while current bypass/cold posture remains allowed.
+- Added conformance coverage proving the required workflow captures the invocation record, generates the stable cache-hit report artifact, runs the warm/bypass guard, and cannot hide missing report diagnostics behind `continue-on-error`.
+
 ## 2026-06-29 — Merge-hold preflight packet for GH #902
 
 - Added the adapter-neutral merge-hold packet contract to the existing PR merge-gate kernel so team task state, native review state, and required check state must agree on the same PR head before merge readiness.
