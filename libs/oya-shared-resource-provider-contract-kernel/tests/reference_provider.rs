@@ -9,11 +9,14 @@ use std::collections::BTreeMap;
 
 use oya_shared_resource_provider_contract_kernel::conformance::{
     ConformanceFixture, check_async_delete_operation, check_create_idempotency,
-    check_idempotent_put, check_read_after_write, check_stable_pagination, run_all_checks,
+    check_idempotent_put, check_operation_ledger_semantics, check_read_after_write,
+    check_stable_pagination, run_all_checks,
 };
 use oya_shared_resource_provider_contract_kernel::{
-    CreateOutcome, IdempotencyKey, ListEntry, Operation, Page, PageRequest, ProviderError,
-    PutOutcome, ResourceName, ResourceProvider, WriteDisposition,
+    CancellationMetadata, CompensationMetadata, CreateOutcome, IdempotencyKey, ListEntry,
+    Operation, OperationLedgerEntry, OperationPhase, OperationState as LedgerState, Page,
+    PageRequest, ProviderError, PutOutcome, ResourceName, ResourceProvider, RetryPolicy,
+    WriteDisposition,
 };
 use serde::{Deserialize, Serialize};
 
@@ -44,10 +47,11 @@ enum AppliedWrite {
 /// Operation lifecycle inside the reference provider: pending operations
 /// complete after one poll so the harness exercises the pending->done path.
 #[derive(Debug, Clone)]
-enum OperationState {
+enum ReferenceOperationState {
     Pending {
         remaining_polls: u32,
-        target: String,
+        target: ResourceName,
+        ledger: OperationLedgerEntry,
     },
     Terminal(Operation),
 }
@@ -56,8 +60,57 @@ enum OperationState {
 struct ReferenceProvider {
     items: BTreeMap<String, Document>,
     applied: BTreeMap<String, AppliedWrite>,
-    operations: BTreeMap<String, OperationState>,
+    operations: BTreeMap<String, ReferenceOperationState>,
     operation_seq: u64,
+}
+
+impl ReferenceProvider {
+    fn resource_orn(name: &ResourceName) -> String {
+        format!(
+            "orn:oya:local-test:account-test:{}:{}/{}",
+            name.collection(),
+            name.collection(),
+            name.resource_id()
+        )
+    }
+
+    fn delete_ledger_entry(
+        operation_id: &str,
+        idempotency_key: &IdempotencyKey,
+        name: &ResourceName,
+        state: LedgerState,
+        observed_generation: u64,
+        transition_sequence: u64,
+    ) -> OperationLedgerEntry {
+        OperationLedgerEntry {
+            operation_id: operation_id.to_owned(),
+            idempotency_key: idempotency_key.as_str().to_owned(),
+            request_hash: format!("fixture-hash:delete:{name}"),
+            resource_orn: Self::resource_orn(name),
+            desired_generation: 2,
+            observed_generation,
+            state,
+            phase: OperationPhase::OperationLedger,
+            tenant_account_project: "tenant-test/account-test/project-test".to_owned(),
+            region_cell: "local-test/cell-0001".to_owned(),
+            principal: "principal:test-harness".to_owned(),
+            audit_chain_id: format!("audit-chain/{operation_id}"),
+            retry_policy: RetryPolicy {
+                backoff: "bounded-exponential-jitter".to_owned(),
+                max_attempts: 3,
+                retry_classification: "transient".to_owned(),
+            },
+            cancellation: CancellationMetadata {
+                cancel_safe: true,
+                audit_required: true,
+            },
+            compensation: CompensationMetadata {
+                required: false,
+                strategy: "none".to_owned(),
+            },
+            transition_sequence,
+        }
+    }
 }
 
 impl ResourceProvider for ReferenceProvider {
@@ -216,12 +269,22 @@ impl ResourceProvider for ReferenceProvider {
             });
         }
         self.operation_seq += 1;
-        let operation_name = format!("operations/delete-{:06}", self.operation_seq);
+        let operation_id = format!("delete-{:06}", self.operation_seq);
+        let operation_name = format!("operations/{operation_id}");
+        let ledger = Self::delete_ledger_entry(
+            &operation_id,
+            idempotency_key,
+            name,
+            LedgerState::Running,
+            1,
+            1,
+        );
         self.operations.insert(
             operation_name.clone(),
-            OperationState::Pending {
+            ReferenceOperationState::Pending {
                 remaining_polls: 1,
-                target: name.to_string(),
+                target: name.clone(),
+                ledger: ledger.clone(),
             },
         );
         self.applied.insert(
@@ -231,7 +294,7 @@ impl ResourceProvider for ReferenceProvider {
                 operation_name: operation_name.clone(),
             },
         );
-        Operation::pending(operation_name).map_err(|e| ProviderError::Internal {
+        Operation::pending(operation_name, ledger).map_err(|e| ProviderError::Internal {
             message: e.to_string(),
         })
     }
@@ -245,39 +308,61 @@ impl ResourceProvider for ReferenceProvider {
                 name: operation_name.to_owned(),
             })?;
         match state {
-            OperationState::Pending {
+            ReferenceOperationState::Pending {
                 remaining_polls,
                 target,
+                ledger,
             } => {
                 if remaining_polls > 1 {
                     self.operations.insert(
                         operation_name.to_owned(),
-                        OperationState::Pending {
+                        ReferenceOperationState::Pending {
                             remaining_polls: remaining_polls - 1,
                             target,
+                            ledger: ledger.clone(),
                         },
                     );
-                    return Operation::pending(operation_name.to_owned()).map_err(|e| {
+                    return Operation::pending(operation_name.to_owned(), ledger).map_err(|e| {
                         ProviderError::Internal {
                             message: e.to_string(),
                         }
                     });
                 }
-                self.items.remove(&target);
+                self.items.remove(&target.to_string());
+                let terminal_ledger = OperationLedgerEntry {
+                    observed_generation: ledger.desired_generation,
+                    state: LedgerState::Succeeded,
+                    transition_sequence: ledger.transition_sequence + 1,
+                    ..ledger
+                };
                 let terminal = Operation::succeeded(
                     operation_name.to_owned(),
-                    serde_json::json!({ "deleted": target }),
+                    terminal_ledger,
+                    serde_json::json!({ "deleted": target.to_string() }),
                 )
                 .map_err(|e| ProviderError::Internal {
                     message: e.to_string(),
                 })?;
                 self.operations.insert(
                     operation_name.to_owned(),
-                    OperationState::Terminal(terminal.clone()),
+                    ReferenceOperationState::Terminal(terminal.clone()),
                 );
                 Ok(terminal)
             }
-            OperationState::Terminal(operation) => Ok(operation),
+            ReferenceOperationState::Terminal(operation) => Ok(operation),
+        }
+    }
+
+    fn operation_ledger_entry(
+        &self,
+        operation_name: &str,
+    ) -> Result<OperationLedgerEntry, ProviderError> {
+        match self.operations.get(operation_name) {
+            Some(ReferenceOperationState::Terminal(operation)) => Ok(operation.metadata.clone()),
+            Some(ReferenceOperationState::Pending { ledger, .. }) => Ok(ledger.clone()),
+            None => Err(ProviderError::NotFound {
+                name: operation_name.to_owned(),
+            }),
         }
     }
 }
@@ -285,11 +370,14 @@ impl ResourceProvider for ReferenceProvider {
 impl ReferenceProvider {
     fn snapshot_operation(&self, operation_name: &str) -> Result<Operation, ProviderError> {
         match self.operations.get(operation_name) {
-            Some(OperationState::Terminal(operation)) => Ok(operation.clone()),
-            Some(OperationState::Pending { .. }) => Operation::pending(operation_name.to_owned())
-                .map_err(|e| ProviderError::Internal {
-                    message: e.to_string(),
-                }),
+            Some(ReferenceOperationState::Terminal(operation)) => Ok(operation.clone()),
+            Some(ReferenceOperationState::Pending { ledger, .. }) => {
+                Operation::pending(operation_name.to_owned(), ledger.clone()).map_err(|e| {
+                    ProviderError::Internal {
+                        message: e.to_string(),
+                    }
+                })
+            }
             None => Err(ProviderError::NotFound {
                 name: operation_name.to_owned(),
             }),
@@ -341,6 +429,11 @@ fn reference_provider_passes_stable_pagination() {
 #[test]
 fn reference_provider_passes_async_delete_operation() {
     check_async_delete_operation(&ReferenceFixture).unwrap();
+}
+
+#[test]
+fn reference_provider_passes_operation_ledger_semantics() {
+    check_operation_ledger_semantics(&ReferenceFixture).unwrap();
 }
 
 #[test]
@@ -410,6 +503,13 @@ impl ResourceProvider for NonReplayingCreateProvider {
 
     fn poll_operation(&mut self, operation_name: &str) -> Result<Operation, ProviderError> {
         self.0.poll_operation(operation_name)
+    }
+
+    fn operation_ledger_entry(
+        &self,
+        operation_name: &str,
+    ) -> Result<OperationLedgerEntry, ProviderError> {
+        self.0.operation_ledger_entry(operation_name)
     }
 }
 
@@ -494,6 +594,13 @@ impl ResourceProvider for MisreportingPutProvider {
 
     fn poll_operation(&mut self, operation_name: &str) -> Result<Operation, ProviderError> {
         self.0.poll_operation(operation_name)
+    }
+
+    fn operation_ledger_entry(
+        &self,
+        operation_name: &str,
+    ) -> Result<OperationLedgerEntry, ProviderError> {
+        self.0.operation_ledger_entry(operation_name)
     }
 }
 

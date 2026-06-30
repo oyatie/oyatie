@@ -32,6 +32,8 @@ use oya_cloud_ci_accounting_registry_app::{
 };
 use serde_json::{Value, json};
 
+const SCM_FACTS_SCHEMA: &str = "oya-ci/scm-facts/v1";
+
 fn main() {
     if let Err(error) = run() {
         eprintln!("oya-cloud-ci-accounting-registry-app: {error}");
@@ -59,11 +61,11 @@ impl std::fmt::Display for CliError {
 struct ScmFacts {
     /// Deterministic aging timestamp in epoch seconds (max last-touch timestamp, no wall-clock).
     head_time_secs: u64,
-    /// The tracked-paths universe (sorted+deduped), exactly as `git ls-files` produced it.
+    /// The tracked-paths universe (sorted+deduped), as supplied by the ScmFactsSource.
     tracked_paths: Vec<String>,
-    /// path -> last-touch commit sha.
+    /// path -> last-touch revision id (schema-v1 JSON key remains `last_touch_commit`).
     last_touch: BTreeMap<String, String>,
-    /// commit sha -> author-timestamp (epoch secs), for staleness aging.
+    /// revision id -> author-timestamp (epoch secs), for staleness aging.
     commit_author_ts_secs: BTreeMap<String, u64>,
 }
 
@@ -79,6 +81,16 @@ fn load_scm_facts(path: &Path) -> Result<ScmFacts, CliError> {
     })?;
     let value: Value = serde_json::from_str(&text)
         .map_err(|e| CliError::Io(format!("{}: parse scm-facts: {e}", path.display())))?;
+
+    let schema = value["schema"]
+        .as_str()
+        .ok_or_else(|| CliError::Io(format!("{}: missing schema", path.display())))?;
+    if schema != SCM_FACTS_SCHEMA {
+        return Err(CliError::Io(format!(
+            "{}: unsupported scm-facts schema {schema:?} (expected {SCM_FACTS_SCHEMA})",
+            path.display()
+        )));
+    }
 
     let head_time_secs = value["head_time_secs"]
         .as_u64()
@@ -910,6 +922,41 @@ mod tests {
         ));
         fs::create_dir_all(&root).expect("create temp repo");
         root
+    }
+
+    fn write_scm_facts_fixture(root: &Path, schema: &str) -> PathBuf {
+        let path = root.join("scm-facts.generated.json");
+        fs::write(
+            &path,
+            to_canonical_json(&json!({
+                "schema": schema,
+                "head_time_secs": 20,
+                "tracked_paths": ["a.txt"],
+                "last_touch_commit": {"a.txt": "rev-a"},
+                "commit_author_ts_secs": {"rev-a": 20},
+            }))
+            .expect("serialize scm-facts fixture"),
+        )
+        .expect("write scm-facts fixture");
+        path
+    }
+
+    #[test]
+    fn load_scm_facts_rejects_legacy_git_facts_schema() {
+        let root = unique_temp_repo();
+        let path = write_scm_facts_fixture(&root, "oya-ci/git-facts/v1");
+
+        let error = match load_scm_facts(&path) {
+            Ok(_) => panic!("legacy git-facts schema must be rejected"),
+            Err(error) => error,
+        };
+
+        assert!(
+            error.to_string().contains("unsupported scm-facts schema"),
+            "unexpected error: {error}"
+        );
+
+        fs::remove_dir_all(root).expect("remove temp repo");
     }
 
     #[test]

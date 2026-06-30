@@ -1950,9 +1950,11 @@
   "purpose": "Machine-readable execution sequence for autonomous master-plan completion. This sidecar references canonical Oyatie plan/checklist primitives instead of duplicating them.",
   "bespoke_cloud_toolchain_sequence": {
     "source_spec": "/specs/bespoke-cloud-toolchain-services.json",
+    "shared_work_area_hash_contract": "/specs/work-area-content-hash-contract.json",
     "placement": "P-TOOLCHAIN plus Phase-0 P0.0 enforcement baseline",
     "ordering": [
       "spec/root pointer/masterplan placement",
+      "W1 work-area content hash contract locks byte-identical SCM id + buck2/RBE key + CD artifact hash before downstream SCM/CI/CD contract expansion",
       "Phase-0 P0.0 required-context + tenant isolation fixtures",
       "cloud-ci full required context before mechanical enforcement claims",
       "cloud-scm bridge/native cutover after queue/status semantics are fixture-backed",

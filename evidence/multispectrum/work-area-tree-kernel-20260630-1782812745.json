@@ -1,0 +1,63 @@
+{
+  "schema_version": "2.4.0",
+  "change_id": "work-area-tree-kernel-20260630",
+  "change_class_id": "CC-4_interface_lock",
+  "created_at": "2026-06-30T09:45:45Z",
+  "agent_id": "hermes-default-kanban",
+  "task_id": "t_1dd6260b",
+  "branch": "dev",
+  "scope": {
+    "summary": "Lock the ADR-0517/ADR-0520/ADR-0521 WorkAreaTree W1 consumer seam with content-addressed work-area and node identity vocabulary, leaving parser implementation to W2.",
+    "files_touched": [
+      "libs/oya-work-area-tree-kernel/Cargo.toml",
+      "libs/oya-work-area-tree-kernel/src/lib.rs",
+      "libs/oya-work-area-tree-kernel/tests/work_area_tree_contract.rs",
+      "registry/catalog/oya-work-area-tree-kernel.yaml",
+      "evidence/multispectrum/work-area-tree-kernel-20260630-1782812745.json"
+    ],
+    "explicit_non_claims": [
+      "No Rust, Markdown, or other language parser implementation is introduced.",
+      "No AST rewrite, doc-tracking, affected-set computation, SCM implementation, or buck2/RBE integration is introduced.",
+      "The crate is dependency-free; it only publishes stable trait and value vocabulary."
+    ]
+  },
+  "hyperscaler_lens": {
+    "north_star": "One owned AST substrate feeds work-area locking, gates, remediation, documentation tracking, affected-set computation, SCM identity, build cache identity, and CD artifact identity.",
+    "scale_property": "Consumers bind to WorkAreaTree and content-addressed WorkAreaNodeId rather than parser internals, allowing the W2 parser and W4 bespoke SCM to swap in behind a stable no-single-leader-friendly interface.",
+    "canonical_names": [
+      "WorkAreaTree",
+      "WorkAreaHash",
+      "NodeContentHash",
+      "WorkAreaNodeId",
+      "NodeLocator",
+      "SourceSpan",
+      "oya-work-area-tree-kernel"
+    ]
+  },
+  "facets": {
+    "F1_correctness": "WorkAreaHash and NodeContentHash are fixed-size SHA-256 content addresses; WorkAreaNodeId combines whole-work-area hash, node content hash, and source locator so consumers can distinguish duplicate node content by location.",
+    "F2_tests": "RED observed before implementation: cargo test -p oya-work-area-tree-kernel --test work_area_tree_contract failed because src/lib.rs was absent. GREEN: cargo test -p oya-work-area-tree-kernel passed 6 tests.",
+    "F3_maintainability": "The crate is pure Rust/std with private fields, constructors, accessors, data_class annotations, and no parser-specific coupling.",
+    "F4_compatibility": "No existing call-sites are changed; the root Cargo workspace picks up the crate through the existing libs/oya-* glob.",
+    "F5_security": "unsafe_code is forbidden; no IO, shell, credentials, network, or external dependencies are introduced.",
+    "F6_privacy": "All fields are INTERNAL_ONLY structural metadata; no tenant or personal data processing is introduced.",
+    "F7_operability": "The registry catalog row marks the crate preview/unreviewed and names explicit non-claims for future W2/W4 implementers.",
+    "F8_performance": "The interface is clone/value based for a skeleton contract; no runtime parser or traversal engine is introduced.",
+    "F9_compliance": "Traceability cites ADR-0517, ADR-0520, and ADR-0521; MISTAKES-LEDGER search found no prior WorkAreaTree/work-area/content-address node identity row.",
+    "F10_reversibility": "The change is isolated to one new kernel crate, its contract tests, a catalog row, and this evidence packet.",
+    "F11_observability": "Evidence records commands and non-claims; future implementation work can reference this interface-lock packet.",
+    "F13_migration": "Supports W2 parser landing behind WorkAreaTree and W4 bespoke SCM work-area identity without reworking consumer-facing vocabulary."
+  },
+  "verification_plan": [
+    "cargo test -p oya-work-area-tree-kernel --test work_area_tree_contract (RED: failed before src/lib.rs existed)",
+    "cargo fmt -p oya-work-area-tree-kernel -- --check",
+    "cargo test -p oya-work-area-tree-kernel",
+    "cargo clippy -p oya-work-area-tree-kernel --all-targets -- -D warnings",
+    "ruby -e 'require \"yaml\"; p YAML.load_file(\"registry/catalog/oya-work-area-tree-kernel.yaml\")'",
+    "python3 -m json.tool evidence/multispectrum/work-area-tree-kernel-20260630-1782812745.json"
+  ],
+  "known_gaps": [
+    "Reviewer approval remains pending; this kanban run should block as review-required rather than auto-complete.",
+    "Cargo.lock also reflects other dirty workspace members present during local cargo resolution; review should separate or reconcile unrelated lock entries before merge."
+  ]
+}
