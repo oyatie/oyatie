@@ -97,10 +97,87 @@ impl StepExecutionStatus {
         matches!(self, Self::Failed | Self::TimedOut | Self::Cancelled)
     }
 }
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum StepObservationKind {
+    LeaseGranted,
+    Started,
+    Heartbeat,
+    AwaitingExternalSignal,
+    LongRunning,
+    Completed,
+    Failed,
+    TimedOut,
+    Cancelled,
+}
+
+impl StepObservationKind {
+    pub fn as_wire(self) -> &'static str {
+        match self {
+            Self::LeaseGranted => "lease-granted",
+            Self::Started => "started",
+            Self::Heartbeat => "heartbeat",
+            Self::AwaitingExternalSignal => "awaiting-external-signal",
+            Self::LongRunning => "long-running",
+            Self::Completed => "completed",
+            Self::Failed => "failed",
+            Self::TimedOut => "timed-out",
+            Self::Cancelled => "cancelled",
+        }
+    }
+
+    pub fn from_wire(value: &str) -> Option<Self> {
+        match value {
+            "lease-granted" => Some(Self::LeaseGranted),
+            "started" => Some(Self::Started),
+            "heartbeat" => Some(Self::Heartbeat),
+            "awaiting-external-signal" => Some(Self::AwaitingExternalSignal),
+            "long-running" => Some(Self::LongRunning),
+            "completed" => Some(Self::Completed),
+            "failed" => Some(Self::Failed),
+            "timed-out" => Some(Self::TimedOut),
+            "cancelled" => Some(Self::Cancelled),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum StepObservationSeverity {
+    Info,
+    Warning,
+    Degraded,
+    Critical,
+}
+
+impl StepObservationSeverity {
+    pub fn as_wire(self) -> &'static str {
+        match self {
+            Self::Info => "info",
+            Self::Warning => "warning",
+            Self::Degraded => "degraded",
+            Self::Critical => "critical",
+        }
+    }
+
+    pub fn from_wire(value: &str) -> Option<Self> {
+        match value {
+            "info" => Some(Self::Info),
+            "warning" => Some(Self::Warning),
+            "degraded" => Some(Self::Degraded),
+            "critical" => Some(Self::Critical),
+            _ => None,
+        }
+    }
+
+    pub fn blocks_promotion(self) -> bool {
+        matches!(self, Self::Degraded | Self::Critical)
+    }
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum ExecutionEngineKernelError {
     InvalidAttempt,
+    InvalidObservationWindow,
     InvalidStepIndex,
     InvalidTimerDeadline,
     UnsafeMetadata,
@@ -308,6 +385,148 @@ impl SlaTimer {
         })
     }
 }
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct StepObservationEnvelope {
+    pub resource_id: String,                // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                  // data_class: INTERNAL_ONLY
+    pub cell_id: String,                    // data_class: INTERNAL_ONLY
+    pub region: String,                     // data_class: INTERNAL_ONLY
+    pub data_class: String,                 // data_class: INTERNAL_ONLY
+    pub policy_domain: String,              // data_class: INTERNAL_ONLY
+    pub owner_ref: String,                  // data_class: INTERNAL_ONLY
+    pub generation: u64,                    // data_class: INTERNAL_ONLY
+    pub observed_generation: u64,           // data_class: INTERNAL_ONLY
+    pub status_condition_refs: Vec<String>, // data_class: INTERNAL_ONLY
+    pub audit_chain_ref: String,            // data_class: INTERNAL_ONLY
+    pub created_at_epoch_seconds: u64,      // data_class: INTERNAL_ONLY
+    pub updated_at_epoch_seconds: u64,      // data_class: INTERNAL_ONLY
+}
+
+impl StepObservationEnvelope {
+    pub fn new(
+        resource_id: &str,
+        tenant_id: &str,
+        cell_id: &str,
+        region: &str,
+        data_class: &str,
+        policy_domain: &str,
+        owner_ref: &str,
+        generation: u64,
+        observed_generation: u64,
+        status_condition_refs: Vec<String>,
+        audit_chain_ref: &str,
+        created_at_epoch_seconds: u64,
+        updated_at_epoch_seconds: u64,
+    ) -> Result<Self, ExecutionEngineKernelError> {
+        if generation == 0
+            || observed_generation > generation
+            || updated_at_epoch_seconds < created_at_epoch_seconds
+        {
+            return Err(ExecutionEngineKernelError::InvalidObservationWindow);
+        }
+        if !is_safe_ref(resource_id)
+            || !is_safe_tenant(tenant_id)
+            || !is_safe_ref(cell_id)
+            || !is_safe_metadata(region)
+            || !is_safe_metadata(data_class)
+            || !is_safe_metadata(policy_domain)
+            || !is_safe_ref(owner_ref)
+            || !is_safe_ref(audit_chain_ref)
+            || status_condition_refs.is_empty()
+            || !status_condition_refs.iter().all(|value| is_safe_ref(value))
+        {
+            return Err(ExecutionEngineKernelError::UnsafeMetadata);
+        }
+        Ok(Self {
+            resource_id: resource_id.to_owned(),
+            tenant_id: tenant_id.to_owned(),
+            cell_id: cell_id.to_owned(),
+            region: region.to_owned(),
+            data_class: data_class.to_owned(),
+            policy_domain: policy_domain.to_owned(),
+            owner_ref: owner_ref.to_owned(),
+            generation,
+            observed_generation,
+            status_condition_refs: sorted_unique(status_condition_refs),
+            audit_chain_ref: audit_chain_ref.to_owned(),
+            created_at_epoch_seconds,
+            updated_at_epoch_seconds,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct StepObservation {
+    pub envelope: StepObservationEnvelope,
+    pub run_id: String,                     // data_class: INTERNAL_ONLY
+    pub step_id: String,                    // data_class: INTERNAL_ONLY
+    pub step_index: u32,                    // data_class: INTERNAL_ONLY
+    pub attempt: u32,                       // data_class: INTERNAL_ONLY
+    pub observed_at_epoch_seconds: u64,     // data_class: INTERNAL_ONLY
+    pub stale_after_epoch_seconds: u64,     // data_class: INTERNAL_ONLY
+    pub status: StepExecutionStatus,        // data_class: PUBLIC
+    pub kind: StepObservationKind,          // data_class: PUBLIC
+    pub severity: StepObservationSeverity,  // data_class: PUBLIC
+    pub condition_ref: String,              // data_class: INTERNAL_ONLY
+    pub adapter_status_ref: Option<String>, // data_class: INTERNAL_ONLY
+    pub evidence_refs: Vec<String>,         // data_class: INTERNAL_ONLY
+}
+
+impl StepObservation {
+    pub fn new(
+        envelope: StepObservationEnvelope,
+        run_id: &str,
+        step_id: &str,
+        step_index: u32,
+        attempt: u32,
+        observed_at_epoch_seconds: u64,
+        stale_after_epoch_seconds: u64,
+        status: StepExecutionStatus,
+        kind: StepObservationKind,
+        severity: StepObservationSeverity,
+        condition_ref: &str,
+        adapter_status_ref: Option<&str>,
+        evidence_refs: Vec<String>,
+    ) -> Result<Self, ExecutionEngineKernelError> {
+        if attempt == 0 {
+            return Err(ExecutionEngineKernelError::InvalidAttempt);
+        }
+        if stale_after_epoch_seconds <= observed_at_epoch_seconds {
+            return Err(ExecutionEngineKernelError::InvalidObservationWindow);
+        }
+        if !is_safe_ref(run_id)
+            || !is_safe_ref(step_id)
+            || !is_safe_ref(condition_ref)
+            || adapter_status_ref.is_some_and(|value| !is_safe_ref(value))
+            || !evidence_refs.iter().all(|value| is_safe_ref(value))
+        {
+            return Err(ExecutionEngineKernelError::UnsafeMetadata);
+        }
+        Ok(Self {
+            envelope,
+            run_id: run_id.to_owned(),
+            step_id: step_id.to_owned(),
+            step_index,
+            attempt,
+            observed_at_epoch_seconds,
+            stale_after_epoch_seconds,
+            status,
+            kind,
+            severity,
+            condition_ref: condition_ref.to_owned(),
+            adapter_status_ref: adapter_status_ref.map(str::to_owned),
+            evidence_refs: sorted_unique(evidence_refs),
+        })
+    }
+
+    pub fn is_stale_at(&self, now_epoch_seconds: u64) -> bool {
+        now_epoch_seconds >= self.stale_after_epoch_seconds && !self.status.is_terminal()
+    }
+
+    pub fn blocks_promotion_at(&self, now_epoch_seconds: u64) -> bool {
+        self.severity.blocks_promotion() || self.is_stale_at(now_epoch_seconds)
+    }
+}
 
 pub trait WorkflowRunStore {
     fn create_run(&mut self, run: WorkflowRun) -> Result<(), ExecutionStoreError>;
@@ -357,6 +576,19 @@ pub trait SlaTimerStore {
         tenant_id: &str,
         now_epoch_seconds: u64,
     ) -> Result<Vec<SlaTimer>, ExecutionStoreError>;
+}
+pub trait StepObservationStore {
+    fn record_observation(
+        &mut self,
+        observation: StepObservation,
+    ) -> Result<(), ExecutionStoreError>;
+
+    fn observations_for_step(
+        &self,
+        tenant_id: &str,
+        run_id: &str,
+        step_index: u32,
+    ) -> Result<Vec<StepObservation>, ExecutionStoreError>;
 }
 
 pub trait EphemeralStateStore {
@@ -444,6 +676,27 @@ mod tests {
         )
         .unwrap()
     }
+    fn observation_envelope() -> StepObservationEnvelope {
+        StepObservationEnvelope::new(
+            "observation:deploy-ring:1",
+            "ten_a",
+            "cell:use1:a",
+            "use1",
+            "INTERNAL_ONLY",
+            "delivery-fabric",
+            "owner:platform-delivery-fabric",
+            2,
+            2,
+            vec![
+                "condition:accepted".to_owned(),
+                "condition:waiting-for-slo-window".to_owned(),
+            ],
+            "audit-chain:entry-1",
+            100,
+            101,
+        )
+        .unwrap()
+    }
 
     #[test]
     fn workflow_run_validates_identity_and_sorts_evidence_refs() {
@@ -475,6 +728,13 @@ mod tests {
         let rendered = format!("{err:?}").to_ascii_lowercase();
         assert!(!rendered.contains("sk-test"));
         assert!(!rendered.contains("raw prompt"));
+    }
+    #[test]
+    fn metadata_ref_validation_allows_letter_s_and_rejects_whitespace() {
+        assert!(is_safe_ref("condition:status-ok"));
+        assert!(is_safe_ref("evidence:slo-window-open"));
+        assert!(!is_safe_ref("condition:has space"));
+        assert!(!is_safe_ref("condition"));
     }
 
     #[test]
@@ -520,6 +780,154 @@ mod tests {
             .unwrap_err(),
             ExecutionEngineKernelError::InvalidTimerDeadline
         );
+    }
+    #[test]
+    fn step_observation_models_long_steps_without_adapter_authority() {
+        let observation = StepObservation::new(
+            observation_envelope(),
+            "run:execution:1",
+            "step:deploy-ring",
+            3,
+            1,
+            100,
+            160,
+            StepExecutionStatus::Running,
+            StepObservationKind::LongRunning,
+            StepObservationSeverity::Warning,
+            "condition:waiting-for-slo-window",
+            Some("adapter-status:github-check-123"),
+            vec![
+                "evidence:step-heartbeat".to_owned(),
+                "evidence:step-heartbeat".to_owned(),
+                "evidence:slo-window-open".to_owned(),
+            ],
+        )
+        .unwrap();
+
+        assert_eq!(observation.kind.as_wire(), "long-running");
+        assert_eq!(
+            StepObservationKind::from_wire("awaiting-external-signal"),
+            Some(StepObservationKind::AwaitingExternalSignal)
+        );
+        assert_eq!(observation.severity.as_wire(), "warning");
+        assert!(!observation.blocks_promotion_at(120));
+        assert!(observation.blocks_promotion_at(160));
+        assert_eq!(
+            observation.evidence_refs,
+            vec![
+                "evidence:slo-window-open".to_owned(),
+                "evidence:step-heartbeat".to_owned()
+            ]
+        );
+    }
+
+    #[test]
+    fn step_observation_rejects_stale_windows_and_raw_adapter_payloads() {
+        assert_eq!(
+            StepObservation::new(
+                observation_envelope(),
+                "run:execution:1",
+                "step:deploy-ring",
+                3,
+                1,
+                100,
+                100,
+                StepExecutionStatus::Running,
+                StepObservationKind::Heartbeat,
+                StepObservationSeverity::Info,
+                "condition:heartbeat",
+                None,
+                vec!["evidence:heartbeat".to_owned()],
+            )
+            .unwrap_err(),
+            ExecutionEngineKernelError::InvalidObservationWindow
+        );
+
+        let err = StepObservation::new(
+            observation_envelope(),
+            "run:execution:1",
+            "step:deploy-ring",
+            3,
+            1,
+            100,
+            160,
+            StepExecutionStatus::Running,
+            StepObservationKind::Heartbeat,
+            StepObservationSeverity::Info,
+            "condition:raw output Authorization: Bearer sk-test",
+            Some("adapter-status:github"),
+            vec!["evidence:heartbeat".to_owned()],
+        )
+        .unwrap_err();
+
+        assert_eq!(err, ExecutionEngineKernelError::UnsafeMetadata);
+        let rendered = format!("{err:?}").to_ascii_lowercase();
+        assert!(!rendered.contains("sk-test"));
+        assert!(!rendered.contains("raw output"));
+    }
+
+    #[test]
+    fn observation_store_trait_is_adapter_neutral_control_plane_contract() {
+        #[derive(Default)]
+        struct RecordingObservationStore {
+            observations: Vec<StepObservation>,
+        }
+
+        impl StepObservationStore for RecordingObservationStore {
+            fn record_observation(
+                &mut self,
+                observation: StepObservation,
+            ) -> Result<(), ExecutionStoreError> {
+                self.observations.push(observation);
+                Ok(())
+            }
+
+            fn observations_for_step(
+                &self,
+                tenant_id: &str,
+                run_id: &str,
+                step_index: u32,
+            ) -> Result<Vec<StepObservation>, ExecutionStoreError> {
+                Ok(self
+                    .observations
+                    .iter()
+                    .filter(|observation| {
+                        observation.envelope.tenant_id == tenant_id
+                            && observation.run_id == run_id
+                            && observation.step_index == step_index
+                    })
+                    .cloned()
+                    .collect())
+            }
+        }
+
+        let mut store = RecordingObservationStore::default();
+        store
+            .record_observation(
+                StepObservation::new(
+                    observation_envelope(),
+                    "run:execution:1",
+                    "step:deploy-ring",
+                    3,
+                    1,
+                    100,
+                    160,
+                    StepExecutionStatus::Running,
+                    StepObservationKind::LongRunning,
+                    StepObservationSeverity::Degraded,
+                    "condition:slo-window-missed",
+                    Some("adapter-status:github-check-123"),
+                    vec!["evidence:slo-window-missed".to_owned()],
+                )
+                .unwrap(),
+            )
+            .unwrap();
+
+        let observations = store
+            .observations_for_step("ten_a", "run:execution:1", 3)
+            .unwrap();
+        assert_eq!(observations.len(), 1);
+        assert!(observations[0].blocks_promotion_at(120));
     }
 
     #[test]
