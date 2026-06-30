@@ -10,14 +10,14 @@
 //! compliance for audit anchors, and a clear adapter boundary for transitional
 //! backends.
 //!
-//! Application code MUST call this owned CAS port, not S3-style bucket/key
-//! clients. Adapter crates may translate this port to SeaweedFS/Ceph/AWS/GCS
+//! Application code MUST call this owned CAS port, not vendor bucket/key
+//! clients. Adapter crates may translate this port to bridge implementations
 //! while preserving the tenant-scoped BLAKE3 address and WORM/audit contract.
 //!
-//! # Naming justification
+//! # Current placement
 //!
-//! `oya-shared-object-store-kernel` follows BNF v4.1:
-//! `oya-<axis:shared>-<topic:object-store>-<layer:kernel>`.
+//! This existing `oya-shared-*` crate is the W1 bridge home for the stable port;
+//! it is not destination naming authority for the capability-first storage tree.
 
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
@@ -30,6 +30,7 @@ const BLAKE3_HEX_LEN: usize = 64;
 const TENANT_ID_PREFIX: &str = "ten_";
 const MAX_TENANT_ID_LEN: usize = 128;
 const MAX_REFERENCE_LEN: usize = 512;
+const MAX_PAYLOAD_CHUNK_BYTES: usize = 16 * 1024 * 1024;
 
 // =====================================================================
 // Addressing and policy types
@@ -120,10 +121,12 @@ pub struct TenantScopedBlake3Address {
 impl TenantScopedBlake3Address {
     #[must_use]
     pub fn for_payload(tenant_id: TenantId, bytes: &[u8]) -> Self {
-        Self {
-            tenant_id,
-            digest: Blake3Digest::for_payload(bytes),
-        }
+        Self::for_digest(tenant_id, Blake3Digest::for_payload(bytes))
+    }
+
+    #[must_use]
+    pub const fn for_digest(tenant_id: TenantId, digest: Blake3Digest) -> Self {
+        Self { tenant_id, digest }
     }
 
     /// Build an address from already-computed parts.
@@ -244,6 +247,11 @@ impl CasWormPolicy {
     }
 
     #[must_use]
+    pub const fn write_protected_after(&self, epoch_seconds: u64) -> bool {
+        self.legal_hold || self.retain_until_epoch_seconds > epoch_seconds
+    }
+
+    #[must_use]
     pub const fn deletion_protected_at(&self, epoch_seconds: u64) -> bool {
         self.legal_hold || epoch_seconds < self.retain_until_epoch_seconds
     }
@@ -314,17 +322,14 @@ impl Default for CasDurabilityPolicy {
     }
 }
 
-/// Storage backend kind. Transitional kinds are adapters behind this owned CAS
-/// contract; they are not destination API shapes.
+/// Storage backend kind exposed to diagnostics. Transitional bridge details
+/// collapse to a destination-neutral adapter class so the stable interface does
+/// not freeze today’s bridge implementations into the owned CAS contract.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum ObjectStoreBackendKind {
     InMemoryReference,
     OwnedCas,
-    SeaweedFsS3,
-    CephRgw,
-    AwsS3,
-    GoogleCloudStorage,
-    AzureBlob,
+    TransitionalAdapter,
 }
 
 impl ObjectStoreBackendKind {
@@ -333,24 +338,34 @@ impl ObjectStoreBackendKind {
         match self {
             Self::InMemoryReference => "in_memory_reference",
             Self::OwnedCas => "owned_cas",
-            Self::SeaweedFsS3 => "seaweedfs_s3_transitional",
-            Self::CephRgw => "ceph_rgw_transitional",
-            Self::AwsS3 => "aws_s3_transitional",
-            Self::GoogleCloudStorage => "gcs_transitional",
-            Self::AzureBlob => "azure_blob_transitional",
+            Self::TransitionalAdapter => "transitional_adapter",
         }
     }
 
     #[must_use]
     pub const fn is_transitional(self) -> bool {
-        matches!(
-            self,
-            Self::SeaweedFsS3
-                | Self::CephRgw
-                | Self::AwsS3
-                | Self::GoogleCloudStorage
-                | Self::AzureBlob
-        )
+        matches!(self, Self::TransitionalAdapter)
+    }
+}
+
+/// Destination-neutral class for a transitional object-store adapter. Concrete
+/// vendor or bridge names live in adapter-local config and evidence records, not
+/// in the stable `ObjectStore` trait shape.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum TransitionalAdapterClass {
+    ProtocolCompatible,
+    ObjectGateway,
+    BlobCompatible,
+}
+
+impl TransitionalAdapterClass {
+    #[must_use]
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::ProtocolCompatible => "protocol_compatible",
+            Self::ObjectGateway => "object_gateway",
+            Self::BlobCompatible => "blob_compatible",
+        }
     }
 }
 
@@ -358,42 +373,250 @@ impl ObjectStoreBackendKind {
 /// transitional object-store backend.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct TransitionalAdapterBoundary {
-    pub adapter_kind: ObjectStoreBackendKind, // data_class: PUBLIC
-    pub provider_namespace: String,           // data_class: INTERNAL_ONLY
-    pub provider_object_ref: String,          // data_class: INTERNAL_ONLY
-    pub provider_evidence_ref: String,        // data_class: INTERNAL_ONLY
+    pub adapter_class: TransitionalAdapterClass, // data_class: PUBLIC
+    pub adapter_id: String,                      // data_class: INTERNAL_ONLY
+    pub adapter_namespace: String,               // data_class: INTERNAL_ONLY
+    pub adapter_object_ref: String,              // data_class: INTERNAL_ONLY
+    pub adapter_evidence_ref: String,            // data_class: INTERNAL_ONLY
 }
 
 impl TransitionalAdapterBoundary {
     /// Build a transitional adapter boundary.
     ///
     /// # Errors
-    /// Returns `ObjectStoreError::InvalidTransitionalBoundary` when the backend
-    /// kind is not transitional or any provider reference is malformed.
+    /// Returns `ObjectStoreError::InvalidTransitionalBoundary` when adapter
+    /// identity or adapter references are malformed.
     pub fn new(
-        adapter_kind: ObjectStoreBackendKind,
-        provider_namespace: impl Into<String>,
-        provider_object_ref: impl Into<String>,
-        provider_evidence_ref: impl Into<String>,
+        adapter_class: TransitionalAdapterClass,
+        adapter_id: impl Into<String>,
+        adapter_namespace: impl Into<String>,
+        adapter_object_ref: impl Into<String>,
+        adapter_evidence_ref: impl Into<String>,
     ) -> Result<Self, ObjectStoreError> {
         let boundary = Self {
-            adapter_kind,
-            provider_namespace: provider_namespace.into(),
-            provider_object_ref: provider_object_ref.into(),
-            provider_evidence_ref: provider_evidence_ref.into(),
+            adapter_class,
+            adapter_id: adapter_id.into(),
+            adapter_namespace: adapter_namespace.into(),
+            adapter_object_ref: adapter_object_ref.into(),
+            adapter_evidence_ref: adapter_evidence_ref.into(),
         };
         boundary.validate()?;
         Ok(boundary)
     }
 
     fn validate(&self) -> Result<(), ObjectStoreError> {
-        if !self.adapter_kind.is_transitional()
-            || !is_valid_reference(&self.provider_namespace)
-            || !is_valid_reference(&self.provider_object_ref)
-            || !is_valid_reference(&self.provider_evidence_ref)
+        if !is_valid_reference(&self.adapter_id)
+            || !is_valid_reference(&self.adapter_namespace)
+            || !is_valid_reference(&self.adapter_object_ref)
+            || !is_valid_reference(&self.adapter_evidence_ref)
         {
             return Err(ObjectStoreError::InvalidTransitionalBoundary);
         }
+        Ok(())
+    }
+}
+
+/// One payload chunk in the destination CAS write/read contract. The trait is
+/// chunk-aware so real adapters do not have to expose a vendor bucket/key API or
+/// pretend infinite-scale objects are whole-buffer values.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CasPayloadChunk {
+    pub ordinal: u32,         // data_class: INTERNAL_ONLY
+    pub size_bytes: u64,      // data_class: INTERNAL_ONLY
+    pub digest: Blake3Digest, // data_class: INTERNAL_ONLY
+}
+
+/// Chunked CAS payload manifest with a root BLAKE3 digest over the ordered
+/// bytes. It deliberately carries digests and sizes, not object bytes; bytes
+/// flow through `CasPayloadReader` / `CasPayloadSink`.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CasPayload {
+    pub total_size_bytes: u64,        // data_class: INTERNAL_ONLY
+    pub root_digest: Blake3Digest,    // data_class: INTERNAL_ONLY
+    pub chunks: Vec<CasPayloadChunk>, // data_class: INTERNAL_ONLY
+}
+
+impl CasPayload {
+    /// Build a payload manifest from a single in-memory buffer. This helper is
+    /// for tests and small callers; the stable `ObjectStore` trait remains
+    /// reader/sink based.
+    ///
+    /// # Errors
+    /// Returns `ObjectStoreError::InvalidPayload` when payload accounting fails.
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, ObjectStoreError> {
+        Self::from_chunks(&[bytes.to_vec()])
+    }
+
+    /// Build a payload manifest from ordered chunks.
+    ///
+    /// # Errors
+    /// Returns `ObjectStoreError::InvalidPayload` when chunks are empty, contain
+    /// non-terminal empty chunks, exceed `MAX_PAYLOAD_CHUNK_BYTES`, or overflow
+    /// size accounting.
+    pub fn from_chunks(chunks: &[Vec<u8>]) -> Result<Self, ObjectStoreError> {
+        if chunks.is_empty() {
+            return Err(ObjectStoreError::InvalidPayload);
+        }
+        if chunks.len() > 1 && chunks.iter().any(Vec::is_empty) {
+            return Err(ObjectStoreError::InvalidPayload);
+        }
+        if chunks
+            .iter()
+            .any(|chunk| chunk.len() > MAX_PAYLOAD_CHUNK_BYTES)
+        {
+            return Err(ObjectStoreError::InvalidPayload);
+        }
+
+        let mut hasher = blake3::Hasher::new();
+        let mut total_size_bytes = 0_u64;
+        let mut payload_chunks = Vec::with_capacity(chunks.len());
+        for (ordinal, bytes) in chunks.iter().enumerate() {
+            let ordinal = u32::try_from(ordinal).map_err(|_| ObjectStoreError::InvalidPayload)?;
+            total_size_bytes = total_size_bytes
+                .checked_add(bytes.len() as u64)
+                .ok_or(ObjectStoreError::InvalidPayload)?;
+            hasher.update(bytes);
+            payload_chunks.push(CasPayloadChunk {
+                ordinal,
+                size_bytes: bytes.len() as u64,
+                digest: Blake3Digest::for_payload(bytes),
+            });
+        }
+
+        Ok(Self {
+            total_size_bytes,
+            root_digest: Blake3Digest(hasher.finalize().to_hex().to_string()),
+            chunks: payload_chunks,
+        })
+    }
+
+    fn validate(&self) -> Result<(), ObjectStoreError> {
+        if self.chunks.is_empty() {
+            return Err(ObjectStoreError::InvalidPayload);
+        }
+        if self.chunks.len() > 1 && self.chunks.iter().any(|chunk| chunk.size_bytes == 0) {
+            return Err(ObjectStoreError::InvalidPayload);
+        }
+        if self
+            .chunks
+            .iter()
+            .any(|chunk| chunk.size_bytes > MAX_PAYLOAD_CHUNK_BYTES as u64)
+        {
+            return Err(ObjectStoreError::InvalidPayload);
+        }
+
+        let mut total_size_bytes = 0_u64;
+        for (expected_ordinal, chunk) in self.chunks.iter().enumerate() {
+            let expected_ordinal =
+                u32::try_from(expected_ordinal).map_err(|_| ObjectStoreError::InvalidPayload)?;
+            if chunk.ordinal != expected_ordinal {
+                return Err(ObjectStoreError::InvalidPayload);
+            }
+            total_size_bytes = total_size_bytes
+                .checked_add(chunk.size_bytes)
+                .ok_or(ObjectStoreError::InvalidPayload)?;
+        }
+        if total_size_bytes != self.total_size_bytes {
+            return Err(ObjectStoreError::InvalidPayload);
+        }
+        Ok(())
+    }
+}
+
+/// Streaming reader for CAS payload bytes. Adapters pull bounded chunks from
+/// this port instead of receiving a whole object buffer. Each returned chunk
+/// MUST be no larger than `MAX_PAYLOAD_CHUNK_BYTES`; resumable/network backpressure
+/// belongs in adapter-local transport, not the stable CAS manifest.
+pub trait CasPayloadReader {
+    fn read_next_chunk(&mut self) -> Result<Option<Vec<u8>>, ObjectStoreError>;
+}
+
+/// Streaming sink for CAS payload bytes. Adapters push bounded chunks into this
+/// port instead of returning a whole object buffer.
+pub trait CasPayloadSink {
+    fn write_chunk(&mut self, chunk: &[u8]) -> Result<(), ObjectStoreError>;
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct InMemoryPayloadReader {
+    chunks: Vec<Vec<u8>>,
+    next_chunk_index: usize,
+}
+
+impl InMemoryPayloadReader {
+    #[must_use]
+    pub fn from_bytes(bytes: Vec<u8>) -> Self {
+        Self {
+            chunks: vec![bytes],
+            next_chunk_index: 0,
+        }
+    }
+
+    /// Build a reference reader from chunks.
+    ///
+    /// # Errors
+    /// Returns `ObjectStoreError::InvalidPayload` when the chunks do not form a
+    /// valid CAS payload manifest.
+    pub fn from_chunks(chunks: Vec<Vec<u8>>) -> Result<Self, ObjectStoreError> {
+        CasPayload::from_chunks(&chunks)?;
+        Ok(Self {
+            chunks,
+            next_chunk_index: 0,
+        })
+    }
+
+    /// Return the manifest represented by this reader.
+    ///
+    /// # Errors
+    /// Returns `ObjectStoreError::InvalidPayload` when the chunks do not form a
+    /// valid CAS payload manifest.
+    pub fn payload(&self) -> Result<CasPayload, ObjectStoreError> {
+        CasPayload::from_chunks(&self.chunks)
+    }
+}
+
+impl CasPayloadReader for InMemoryPayloadReader {
+    fn read_next_chunk(&mut self) -> Result<Option<Vec<u8>>, ObjectStoreError> {
+        let Some(chunk) = self.chunks.get(self.next_chunk_index) else {
+            return Ok(None);
+        };
+        self.next_chunk_index += 1;
+        Ok(Some(chunk.clone()))
+    }
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct InMemoryPayloadSink {
+    chunks: Vec<Vec<u8>>,
+}
+
+impl InMemoryPayloadSink {
+    /// Return the payload manifest written to the sink.
+    ///
+    /// # Errors
+    /// Returns `ObjectStoreError::InvalidPayload` when the chunks do not form a
+    /// valid CAS payload manifest.
+    pub fn payload(&self) -> Result<CasPayload, ObjectStoreError> {
+        CasPayload::from_chunks(&self.chunks)
+    }
+
+    #[must_use]
+    pub fn to_bytes_for_reference(&self) -> Vec<u8> {
+        let total_size = self.chunks.iter().map(Vec::len).sum();
+        let mut bytes = Vec::with_capacity(total_size);
+        for chunk in &self.chunks {
+            bytes.extend_from_slice(chunk);
+        }
+        bytes
+    }
+}
+
+impl CasPayloadSink for InMemoryPayloadSink {
+    fn write_chunk(&mut self, chunk: &[u8]) -> Result<(), ObjectStoreError> {
+        if chunk.len() > MAX_PAYLOAD_CHUNK_BYTES {
+            return Err(ObjectStoreError::InvalidPayload);
+        }
+        self.chunks.push(chunk.to_vec());
         Ok(())
     }
 }
@@ -402,12 +625,13 @@ impl TransitionalAdapterBoundary {
 // Request/response types
 // =====================================================================
 
-/// CAS write request. The caller supplies bytes and the kernel verifies that
-/// the supplied tenant-scoped address is the BLAKE3 address of those bytes.
+/// CAS write request. The caller supplies a chunked payload and the kernel
+/// verifies that the supplied tenant-scoped address is the BLAKE3 root digest of
+/// those bytes.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CasPutRequest {
     pub address: TenantScopedBlake3Address, // data_class: INTERNAL_ONLY
-    pub bytes: Vec<u8>,                     // data_class: INTERNAL_ONLY
+    pub payload: CasPayload,                // data_class: INTERNAL_ONLY
     pub kms_boundary: TenantKekBoundary,    // data_class: INTERNAL_ONLY
     pub worm_policy: CasWormPolicy,         // data_class: INTERNAL_ONLY
     pub audit_anchor: CasAuditAnchor,       // data_class: INTERNAL_ONLY
@@ -417,11 +641,12 @@ pub struct CasPutRequest {
 }
 
 impl CasPutRequest {
-    /// Build a write request and compute the tenant-scoped BLAKE3 address from
-    /// the payload.
+    /// Build a write request from a single in-memory buffer and compute the
+    /// tenant-scoped BLAKE3 address.
     ///
     /// # Errors
-    /// Returns validation errors from nested WORM/audit/KEK policy objects.
+    /// Returns validation errors from payload, WORM, audit, or KEK policy
+    /// objects.
     pub fn new(
         tenant_id: TenantId,
         bytes: Vec<u8>,
@@ -430,10 +655,34 @@ impl CasPutRequest {
         audit_anchor: CasAuditAnchor,
         requested_at_epoch_seconds: u64,
     ) -> Result<Self, ObjectStoreError> {
-        let address = TenantScopedBlake3Address::for_payload(tenant_id, &bytes);
+        let payload = CasPayload::from_bytes(&bytes)?;
+        Self::new_with_payload(
+            tenant_id,
+            payload,
+            kms_boundary,
+            worm_policy,
+            audit_anchor,
+            requested_at_epoch_seconds,
+        )
+    }
+
+    /// Build a write request from a chunked payload.
+    ///
+    /// # Errors
+    /// Returns validation errors from payload, WORM, audit, or KEK policy
+    /// objects.
+    pub fn new_with_payload(
+        tenant_id: TenantId,
+        payload: CasPayload,
+        kms_boundary: TenantKekBoundary,
+        worm_policy: CasWormPolicy,
+        audit_anchor: CasAuditAnchor,
+        requested_at_epoch_seconds: u64,
+    ) -> Result<Self, ObjectStoreError> {
+        let address = TenantScopedBlake3Address::for_digest(tenant_id, payload.root_digest.clone());
         let request = Self {
             address,
-            bytes,
+            payload,
             kms_boundary,
             worm_policy,
             audit_anchor,
@@ -449,17 +698,26 @@ impl CasPutRequest {
         if self.requested_at_epoch_seconds == 0 {
             return Err(ObjectStoreError::InvalidRequestTimestamp);
         }
+        self.payload.validate()?;
         self.kms_boundary.validate()?;
         if self.kms_boundary.tenant_id != self.address.tenant_id {
             return Err(ObjectStoreError::CrossTenantAccessDenied);
         }
         self.worm_policy.validate()?;
+        if !self
+            .worm_policy
+            .write_protected_after(self.requested_at_epoch_seconds)
+        {
+            return Err(ObjectStoreError::ExpiredWormPolicy {
+                retain_until_epoch_seconds: self.worm_policy.retain_until_epoch_seconds,
+                requested_at_epoch_seconds: self.requested_at_epoch_seconds,
+            });
+        }
         self.audit_anchor.validate()?;
-        let actual_digest = Blake3Digest::for_payload(&self.bytes);
-        if actual_digest != self.address.digest {
+        if self.payload.root_digest != self.address.digest {
             return Err(ObjectStoreError::AddressDigestMismatch {
                 expected: self.address.digest.as_str().to_string(),
-                actual: actual_digest.as_str().to_string(),
+                actual: self.payload.root_digest.as_str().to_string(),
             });
         }
         if self.user_metadata.iter().any(|(key, value)| {
@@ -540,15 +798,6 @@ pub struct CasObjectRecord {
     pub durability: CasDurabilityPolicy,    // data_class: PUBLIC
     pub user_metadata: BTreeMap<String, String>, // data_class: INTERNAL_ONLY
     pub stored_at_epoch_seconds: u64,       // data_class: INTERNAL_ONLY
-    pub backend_kind: ObjectStoreBackendKind, // data_class: PUBLIC
-    pub adapter_boundary: Option<TransitionalAdapterBoundary>, // data_class: INTERNAL_ONLY
-}
-
-/// CAS object bytes plus metadata.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct CasObjectBytes {
-    pub record: CasObjectRecord, // data_class: INTERNAL_ONLY
-    pub bytes: Vec<u8>,          // data_class: INTERNAL_ONLY
 }
 
 /// Errors emitted by the object-store kernel.
@@ -556,6 +805,7 @@ pub struct CasObjectBytes {
 pub enum ObjectStoreError {
     InvalidTenantId,
     InvalidBlake3Digest,
+    InvalidPayload,
     AddressDigestMismatch {
         expected: String,
         actual: String,
@@ -563,6 +813,10 @@ pub enum ObjectStoreError {
     CrossTenantAccessDenied,
     InvalidKekBoundary,
     InvalidWormPolicy,
+    ExpiredWormPolicy {
+        retain_until_epoch_seconds: u64,
+        requested_at_epoch_seconds: u64,
+    },
     InvalidAuditAnchor,
     InvalidTransitionalBoundary,
     InvalidRequestTimestamp,
@@ -592,6 +846,7 @@ impl fmt::Display for ObjectStoreError {
             Self::InvalidBlake3Digest => {
                 write!(f, "invalid BLAKE3 digest; expected 64 lowercase hex chars")
             }
+            Self::InvalidPayload => write!(f, "invalid CAS payload"),
             Self::AddressDigestMismatch { expected, actual } => write!(
                 f,
                 "CAS address digest mismatch: expected {expected}, computed {actual}"
@@ -599,6 +854,13 @@ impl fmt::Display for ObjectStoreError {
             Self::CrossTenantAccessDenied => write!(f, "cross-tenant CAS access denied"),
             Self::InvalidKekBoundary => write!(f, "invalid tenant KEK boundary"),
             Self::InvalidWormPolicy => write!(f, "invalid WORM policy"),
+            Self::ExpiredWormPolicy {
+                retain_until_epoch_seconds,
+                requested_at_epoch_seconds,
+            } => write!(
+                f,
+                "expired WORM policy: retain_until={retain_until_epoch_seconds} requested_at={requested_at_epoch_seconds}"
+            ),
             Self::InvalidAuditAnchor => write!(f, "invalid audit anchor"),
             Self::InvalidTransitionalBoundary => write!(f, "invalid transitional adapter boundary"),
             Self::InvalidRequestTimestamp => write!(f, "request timestamp must be non-zero"),
@@ -636,38 +898,176 @@ impl std::error::Error for ObjectStoreError {}
 
 /// Owned object-store/CAS seam per ADR-0520 and ADR-0536 D-11.
 ///
-/// Every implementation — transitional SeaweedFS/Ceph/AWS/GCS/Azure adapters
-/// and the future owned object store — implements this trait. The trait shape
-/// is the destination CAS contract, not a vendor S3 API mirror.
+/// Every implementation — transitional adapters and the future owned object
+/// store — implements this trait. The trait shape is the destination CAS
+/// contract, not a vendor bucket/key API mirror. A successful `put_cas` MUST
+/// make the address immediately visible to `head_cas` and `get_cas`; adapters
+/// prove that invariant through `run_object_store_conformance_suite`.
 pub trait ObjectStore: Send + Sync {
-    fn put_cas(&self, request: CasPutRequest) -> Result<CasObjectRecord, ObjectStoreError>;
+    fn put_cas(
+        &self,
+        request: CasPutRequest,
+        payload: &mut dyn CasPayloadReader,
+    ) -> Result<CasObjectRecord, ObjectStoreError>;
 
     fn head_cas(&self, request: CasReadRequest) -> Result<CasObjectRecord, ObjectStoreError>;
 
-    fn get_cas(&self, request: CasReadRequest) -> Result<CasObjectBytes, ObjectStoreError>;
+    fn get_cas(
+        &self,
+        request: CasReadRequest,
+        sink: &mut dyn CasPayloadSink,
+    ) -> Result<CasObjectRecord, ObjectStoreError>;
 
     fn delete_cas(&self, request: CasDeleteRequest) -> Result<(), ObjectStoreError>;
+}
+
+/// Optional diagnostics for adapter evidence. Application code depends on
+/// `ObjectStore`; transitional adapter receipts stay on this separate plane.
+pub trait ObjectStoreDiagnostics {
+    fn backend_kind(&self) -> ObjectStoreBackendKind;
 
     fn adapter_boundary(
         &self,
         request: CasReadRequest,
     ) -> Result<Option<TransitionalAdapterBoundary>, ObjectStoreError>;
+}
 
-    fn backend_kind(&self) -> ObjectStoreBackendKind;
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ObjectStoreConformanceReport {
+    pub checks: Vec<&'static str>, // data_class: PUBLIC
+}
+
+/// Reusable conformance suite for adapter crates. It intentionally exercises
+/// only the stable CAS contract: tenant-scoped addressing, immediate
+/// read-after-write visibility, cross-tenant denial, WORM delete refusal, and
+/// same-payload cross-tenant isolation.
+///
+/// # Errors
+/// Returns the first failed object-store operation or a `BackendUnavailable`
+/// detail when an adapter violates a post-condition.
+pub fn run_object_store_conformance_suite(
+    store: &dyn ObjectStore,
+) -> Result<ObjectStoreConformanceReport, ObjectStoreError> {
+    let tenant_id = TenantId::parse("ten_conformance")?;
+    let chunks = vec![b"object-store ".to_vec(), b"conformance payload".to_vec()];
+    let payload = CasPayload::from_chunks(&chunks)?;
+    let request = CasPutRequest::new_with_payload(
+        tenant_id.clone(),
+        payload.clone(),
+        TenantKekBoundary::new(
+            tenant_id.clone(),
+            "kms/ten_conformance/object-store",
+            1,
+            "ct/ten_conformance/object-store",
+            Some("shred/ten_conformance/object-store".to_string()),
+        )?,
+        CasWormPolicy::compliance_until(1_800_000_000, false),
+        CasAuditAnchor::new(
+            "audit_evt_object_store_conformance",
+            Blake3Digest::for_payload(b"object-store-conformance-chain"),
+            1_700_000_001,
+        )?,
+        1_700_000_010,
+    )?;
+    let address = request.address.clone();
+    let mut reader = InMemoryPayloadReader::from_chunks(chunks.clone())?;
+    let record = store.put_cas(request, &mut reader)?;
+    let read_request = CasReadRequest::new(tenant_id.clone(), address.clone());
+
+    let head = store.head_cas(read_request.clone())?;
+    if head != record {
+        return Err(ObjectStoreError::BackendUnavailable {
+            detail: "head_cas did not immediately observe put_cas record".to_string(),
+        });
+    }
+
+    let mut sink = InMemoryPayloadSink::default();
+    let get_record = store.get_cas(read_request.clone(), &mut sink)?;
+    if get_record != record || sink.payload()? != payload {
+        return Err(ObjectStoreError::BackendUnavailable {
+            detail: "get_cas did not immediately observe put_cas payload".to_string(),
+        });
+    }
+
+    let mut cross_tenant_sink = InMemoryPayloadSink::default();
+    match store.get_cas(
+        CasReadRequest::new(TenantId::parse("ten_conformance_other")?, address.clone()),
+        &mut cross_tenant_sink,
+    ) {
+        Err(ObjectStoreError::CrossTenantAccessDenied) => {}
+        Ok(_) => {
+            return Err(ObjectStoreError::BackendUnavailable {
+                detail: "cross-tenant read was not denied".to_string(),
+            });
+        }
+        Err(error) => return Err(error),
+    }
+
+    match store.delete_cas(CasDeleteRequest::new(
+        tenant_id.clone(),
+        address.clone(),
+        1_799_999_999,
+        "audit_evt_object_store_conformance_delete",
+    )) {
+        Err(ObjectStoreError::WormRetentionActive { .. }) => {}
+        Ok(()) => {
+            return Err(ObjectStoreError::BackendUnavailable {
+                detail: "WORM-protected delete was not refused".to_string(),
+            });
+        }
+        Err(error) => return Err(error),
+    }
+
+    let other_tenant = TenantId::parse("ten_conformance_other")?;
+    let other_request = CasPutRequest::new_with_payload(
+        other_tenant.clone(),
+        payload.clone(),
+        TenantKekBoundary::new(
+            other_tenant.clone(),
+            "kms/ten_conformance_other/object-store",
+            1,
+            "ct/ten_conformance_other/object-store",
+            Some("shred/ten_conformance_other/object-store".to_string()),
+        )?,
+        CasWormPolicy::compliance_until(1_800_000_000, false),
+        CasAuditAnchor::new(
+            "audit_evt_object_store_conformance_other",
+            Blake3Digest::for_payload(b"object-store-conformance-chain-other"),
+            1_700_000_002,
+        )?,
+        1_700_000_011,
+    )?;
+    let other_address = other_request.address.clone();
+    let mut other_reader = InMemoryPayloadReader::from_chunks(chunks)?;
+    let other_record = store.put_cas(other_request, &mut other_reader)?;
+    if other_record.address == record.address || other_address.tenant_id == address.tenant_id {
+        return Err(ObjectStoreError::BackendUnavailable {
+            detail: "same payload across tenants was not isolated".to_string(),
+        });
+    }
+
+    Ok(ObjectStoreConformanceReport {
+        checks: vec![
+            "put_immediate_head_visibility",
+            "put_immediate_get_visibility",
+            "tenant_isolation",
+            "worm_delete_refusal",
+            "same_payload_cross_tenant_isolation",
+        ],
+    })
 }
 
 // =====================================================================
 // Reference in-memory adapter
 // =====================================================================
 //
-// The in-memory adapter is the kernel-shipped reference implementation. It lets
-// tests exercise the owned CAS port without standing up SeaweedFS/Ceph. It also
-// has an explicit transitional-adapter mode so adapter receipts can be tested
-// without leaking S3 bucket/key APIs into the trait.
+// tests exercise the owned CAS port without standing up a transitional bridge.
+// It also has an explicit transitional-adapter mode so adapter receipts can be
+// tested without leaking vendor bucket/key APIs into the trait.
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct StoredCasObject {
-    bytes: Vec<u8>,
+    chunks: Vec<Vec<u8>>,
     record: CasObjectRecord,
 }
 
@@ -681,6 +1081,7 @@ struct InMemoryStorage {
 pub struct InMemoryObjectStore {
     inner: Mutex<InMemoryStorage>,
     backend_kind: ObjectStoreBackendKind,
+    transitional_adapter: Option<(TransitionalAdapterClass, String)>,
 }
 
 impl Default for InMemoryObjectStore {
@@ -695,6 +1096,7 @@ impl InMemoryObjectStore {
         Self {
             inner: Mutex::new(InMemoryStorage::default()),
             backend_kind: ObjectStoreBackendKind::InMemoryReference,
+            transitional_adapter: None,
         }
     }
 
@@ -702,17 +1104,20 @@ impl InMemoryObjectStore {
     /// tests. This does not change the owned CAS trait surface.
     ///
     /// # Errors
-    /// Returns `ObjectStoreError::InvalidTransitionalBoundary` when the backend
-    /// kind is not a transitional adapter kind.
+    /// Returns `ObjectStoreError::InvalidTransitionalBoundary` when the adapter
+    /// identity is malformed.
     pub fn with_transitional_adapter(
-        backend_kind: ObjectStoreBackendKind,
+        adapter_class: TransitionalAdapterClass,
+        adapter_id: impl Into<String>,
     ) -> Result<Self, ObjectStoreError> {
-        if !backend_kind.is_transitional() {
+        let adapter_id = adapter_id.into();
+        if !is_valid_reference(&adapter_id) {
             return Err(ObjectStoreError::InvalidTransitionalBoundary);
         }
         Ok(Self {
             inner: Mutex::new(InMemoryStorage::default()),
-            backend_kind,
+            backend_kind: ObjectStoreBackendKind::TransitionalAdapter,
+            transitional_adapter: Some((adapter_class, adapter_id)),
         })
     }
 
@@ -743,14 +1148,16 @@ impl InMemoryObjectStore {
         &self,
         address: &TenantScopedBlake3Address,
     ) -> Result<Option<TransitionalAdapterBoundary>, ObjectStoreError> {
-        if !self.backend_kind.is_transitional() {
+        let Some((adapter_class, adapter_id)) = &self.transitional_adapter else {
             return Ok(None);
-        }
+        };
         TransitionalAdapterBoundary::new(
-            self.backend_kind,
+            *adapter_class,
+            adapter_id.clone(),
             format!(
-                "adapter/{}/{}",
-                self.backend_kind.label(),
+                "adapter/{}/{}/{}",
+                adapter_class.label(),
+                adapter_id,
                 address.tenant_id
             ),
             format!("cas/{}/{}", address.tenant_id, address.digest),
@@ -764,11 +1171,24 @@ impl InMemoryObjectStore {
 }
 
 impl ObjectStore for InMemoryObjectStore {
-    fn put_cas(&self, request: CasPutRequest) -> Result<CasObjectRecord, ObjectStoreError> {
+    fn put_cas(
+        &self,
+        request: CasPutRequest,
+        payload_reader: &mut dyn CasPayloadReader,
+    ) -> Result<CasObjectRecord, ObjectStoreError> {
         request.validate()?;
+        let chunks = read_payload_chunks(payload_reader)?;
+        let observed_payload = CasPayload::from_chunks(&chunks)?;
+        if observed_payload != request.payload {
+            return Err(ObjectStoreError::AddressDigestMismatch {
+                expected: request.payload.root_digest.as_str().to_string(),
+                actual: observed_payload.root_digest.as_str().to_string(),
+            });
+        }
+
         let mut store = self.lock();
         if let Some(existing) = store.objects.get(&request.address) {
-            if existing.bytes == request.bytes {
+            if CasPayload::from_chunks(&existing.chunks)? == request.payload {
                 if stored_record_matches_put(&existing.record, &request) {
                     return Ok(existing.record.clone());
                 }
@@ -777,30 +1197,27 @@ impl ObjectStore for InMemoryObjectStore {
                     digest: request.address.digest.as_str().to_string(),
                 });
             }
-            let actual = Blake3Digest::for_payload(&request.bytes);
-            return Err(ObjectStoreError::AddressDigestMismatch {
-                expected: request.address.digest.as_str().to_string(),
-                actual: actual.as_str().to_string(),
+            return Err(ObjectStoreError::DuplicateCasWriteConflict {
+                tenant_id: request.address.tenant_id.as_str().to_string(),
+                digest: request.address.digest.as_str().to_string(),
             });
         }
 
         let record = CasObjectRecord {
             address: request.address.clone(),
-            size_bytes: request.bytes.len() as u64,
+            size_bytes: request.payload.total_size_bytes,
             kms_boundary: request.kms_boundary,
             worm_policy: request.worm_policy,
             audit_anchor: request.audit_anchor,
             durability: request.durability,
             user_metadata: request.user_metadata,
             stored_at_epoch_seconds: request.requested_at_epoch_seconds,
-            backend_kind: self.backend_kind,
-            adapter_boundary: self.transitional_boundary_for(&request.address)?,
         };
 
         store.objects.insert(
             record.address.clone(),
             StoredCasObject {
-                bytes: request.bytes,
+                chunks,
                 record: record.clone(),
             },
         );
@@ -817,17 +1234,23 @@ impl ObjectStore for InMemoryObjectStore {
             .ok_or_else(|| Self::not_found(&request.address))
     }
 
-    fn get_cas(&self, request: CasReadRequest) -> Result<CasObjectBytes, ObjectStoreError> {
+    fn get_cas(
+        &self,
+        request: CasReadRequest,
+        sink: &mut dyn CasPayloadSink,
+    ) -> Result<CasObjectRecord, ObjectStoreError> {
         request.validate()?;
         let store = self.lock();
         let stored = store
             .objects
             .get(&request.address)
-            .ok_or_else(|| Self::not_found(&request.address))?;
-        Ok(CasObjectBytes {
-            record: stored.record.clone(),
-            bytes: stored.bytes.clone(),
-        })
+            .ok_or_else(|| Self::not_found(&request.address))?
+            .clone();
+        drop(store);
+        for chunk in &stored.chunks {
+            sink.write_chunk(chunk)?;
+        }
+        Ok(stored.record)
     }
 
     fn delete_cas(&self, request: CasDeleteRequest) -> Result<(), ObjectStoreError> {
@@ -850,6 +1273,12 @@ impl ObjectStore for InMemoryObjectStore {
         store.objects.remove(&request.address);
         Ok(())
     }
+}
+
+impl ObjectStoreDiagnostics for InMemoryObjectStore {
+    fn backend_kind(&self) -> ObjectStoreBackendKind {
+        self.backend_kind
+    }
 
     fn adapter_boundary(
         &self,
@@ -861,11 +1290,7 @@ impl ObjectStore for InMemoryObjectStore {
             .objects
             .get(&request.address)
             .ok_or_else(|| Self::not_found(&request.address))?;
-        Ok(stored.record.adapter_boundary.clone())
-    }
-
-    fn backend_kind(&self) -> ObjectStoreBackendKind {
-        self.backend_kind
+        self.transitional_boundary_for(&stored.record.address)
     }
 }
 
@@ -880,9 +1305,23 @@ fn is_lower_hex(value: &str, expected_len: usize) -> bool {
             .all(|byte| byte.is_ascii_digit() || matches!(byte, b'a'..=b'f'))
 }
 
+fn read_payload_chunks(
+    payload_reader: &mut dyn CasPayloadReader,
+) -> Result<Vec<Vec<u8>>, ObjectStoreError> {
+    let mut chunks = Vec::new();
+    while let Some(chunk) = payload_reader.read_next_chunk()? {
+        if chunk.len() > MAX_PAYLOAD_CHUNK_BYTES {
+            return Err(ObjectStoreError::InvalidPayload);
+        }
+        chunks.push(chunk);
+    }
+    CasPayload::from_chunks(&chunks)?;
+    Ok(chunks)
+}
+
 fn stored_record_matches_put(record: &CasObjectRecord, request: &CasPutRequest) -> bool {
     record.address == request.address
-        && record.size_bytes == request.bytes.len() as u64
+        && record.size_bytes == request.payload.total_size_bytes
         && record.kms_boundary == request.kms_boundary
         && record.worm_policy == request.worm_policy
         && record.audit_anchor == request.audit_anchor
@@ -934,16 +1373,22 @@ mod tests {
         .unwrap()
     }
 
-    fn put_request(tenant_id: &TenantId, bytes: &[u8], retain_until: u64) -> CasPutRequest {
-        CasPutRequest::new(
+    fn put_request(
+        tenant_id: &TenantId,
+        bytes: &[u8],
+        retain_until: u64,
+    ) -> (CasPutRequest, InMemoryPayloadReader) {
+        let bytes = bytes.to_vec();
+        let request = CasPutRequest::new(
             tenant_id.clone(),
-            bytes.to_vec(),
+            bytes.clone(),
             kek_boundary(tenant_id),
             CasWormPolicy::compliance_until(retain_until, false),
             audit_anchor(),
             1_700_000_010,
         )
-        .unwrap()
+        .unwrap();
+        (request, InMemoryPayloadReader::from_bytes(bytes))
     }
 
     #[test]
@@ -977,11 +1422,11 @@ mod tests {
     fn put_head_get_records_cas_worm_audit_contract() {
         let tenant_id = tenant("ten_alpha");
         let bytes = b"audit payload";
-        let request = put_request(&tenant_id, bytes, 1_800_000_000);
+        let (request, mut reader) = put_request(&tenant_id, bytes, 1_800_000_000);
         let address = request.address.clone();
         let store = InMemoryObjectStore::new();
 
-        let put_record = store.put_cas(request).unwrap();
+        let put_record = store.put_cas(request, &mut reader).unwrap();
         assert_eq!(put_record.address, address);
         assert_eq!(put_record.size_bytes, bytes.len() as u64);
         assert_eq!(put_record.worm_policy.mode, CasWormMode::Compliance);
@@ -990,28 +1435,24 @@ mod tests {
             "audit_evt_object_store_001"
         );
         assert_eq!(put_record.durability, CasDurabilityPolicy::default());
-        assert_eq!(
-            put_record.backend_kind,
-            ObjectStoreBackendKind::InMemoryReference
-        );
-        assert!(put_record.adapter_boundary.is_none());
-
         let read = CasReadRequest::new(tenant_id.clone(), address.clone());
         assert_eq!(store.head_cas(read.clone()).unwrap(), put_record);
-        let object = store.get_cas(read).unwrap();
-        assert_eq!(object.bytes, bytes);
-        assert_eq!(object.record.address, address);
+        let mut sink = InMemoryPayloadSink::default();
+        let get_record = store.get_cas(read, &mut sink).unwrap();
+        assert_eq!(get_record.address, address);
+        assert_eq!(sink.to_bytes_for_reference(), bytes);
     }
 
     #[test]
     fn duplicate_identical_cas_put_is_idempotent() {
         let tenant_id = tenant("ten_alpha");
-        let request = put_request(&tenant_id, b"idempotent payload", 1_800_000_000);
+        let (request, mut reader) = put_request(&tenant_id, b"idempotent payload", 1_800_000_000);
         let replay = request.clone();
+        let mut replay_reader = reader.clone();
         let store = InMemoryObjectStore::new();
 
-        let first = store.put_cas(request).unwrap();
-        let second = store.put_cas(replay).unwrap();
+        let first = store.put_cas(request, &mut reader).unwrap();
+        let second = store.put_cas(replay, &mut replay_reader).unwrap();
 
         assert_eq!(second, first);
         assert_eq!(store.len(), 1);
@@ -1021,13 +1462,13 @@ mod tests {
     fn duplicate_same_bytes_with_different_worm_policy_is_conflict() {
         let tenant_id = tenant("ten_alpha");
         let bytes = b"same bytes stronger retention";
-        let first = put_request(&tenant_id, bytes, 1_800_000_000);
+        let (first, mut first_reader) = put_request(&tenant_id, bytes, 1_800_000_000);
         let address = first.address.clone();
-        let stronger = put_request(&tenant_id, bytes, 1_900_000_000);
+        let (stronger, mut stronger_reader) = put_request(&tenant_id, bytes, 1_900_000_000);
         let store = InMemoryObjectStore::new();
 
-        store.put_cas(first).unwrap();
-        let error = store.put_cas(stronger).unwrap_err();
+        store.put_cas(first, &mut first_reader).unwrap();
+        let error = store.put_cas(stronger, &mut stronger_reader).unwrap_err();
 
         assert_eq!(
             error,
@@ -1050,13 +1491,14 @@ mod tests {
     fn cross_tenant_reads_are_denied_even_when_digest_is_known() {
         let tenant_alpha = tenant("ten_alpha");
         let tenant_beta = tenant("ten_beta");
-        let request = put_request(&tenant_alpha, b"same bytes", 1_800_000_000);
+        let (request, mut reader) = put_request(&tenant_alpha, b"same bytes", 1_800_000_000);
         let address = request.address.clone();
         let store = InMemoryObjectStore::new();
-        store.put_cas(request).unwrap();
+        store.put_cas(request, &mut reader).unwrap();
 
+        let mut sink = InMemoryPayloadSink::default();
         let error = store
-            .get_cas(CasReadRequest::new(tenant_beta, address))
+            .get_cas(CasReadRequest::new(tenant_beta, address), &mut sink)
             .unwrap_err();
         assert_eq!(error, ObjectStoreError::CrossTenantAccessDenied);
     }
@@ -1066,14 +1508,14 @@ mod tests {
         let payload = b"identical object payload";
         let alpha = tenant("ten_alpha");
         let beta = tenant("ten_beta");
-        let alpha_request = put_request(&alpha, payload, 1_800_000_000);
-        let beta_request = put_request(&beta, payload, 1_800_000_000);
+        let (alpha_request, mut alpha_reader) = put_request(&alpha, payload, 1_800_000_000);
+        let (beta_request, mut beta_reader) = put_request(&beta, payload, 1_800_000_000);
         assert_eq!(alpha_request.address.digest, beta_request.address.digest);
         assert_ne!(alpha_request.address, beta_request.address);
 
         let store = InMemoryObjectStore::new();
-        let alpha_record = store.put_cas(alpha_request).unwrap();
-        let beta_record = store.put_cas(beta_request).unwrap();
+        let alpha_record = store.put_cas(alpha_request, &mut alpha_reader).unwrap();
+        let beta_record = store.put_cas(beta_request, &mut beta_reader).unwrap();
 
         assert_eq!(store.len(), 2);
         assert_eq!(alpha_record.address.tenant_id.as_str(), "ten_alpha");
@@ -1091,7 +1533,7 @@ mod tests {
                 tenant_id: tenant_id.clone(),
                 digest: wrong_digest,
             },
-            bytes: b"payload with different digest".to_vec(),
+            payload: CasPayload::from_bytes(b"payload with different digest").unwrap(),
             kms_boundary: kek_boundary(&tenant_id),
             worm_policy: CasWormPolicy::compliance_until(1_800_000_000, false),
             audit_anchor: audit_anchor(),
@@ -1099,11 +1541,37 @@ mod tests {
             user_metadata: BTreeMap::new(),
             requested_at_epoch_seconds: 1_700_000_010,
         };
-        let error = InMemoryObjectStore::new().put_cas(request).unwrap_err();
+        let mut reader =
+            InMemoryPayloadReader::from_bytes(b"payload with different digest".to_vec());
+        let error = InMemoryObjectStore::new()
+            .put_cas(request, &mut reader)
+            .unwrap_err();
         assert!(matches!(
             error,
             ObjectStoreError::AddressDigestMismatch { .. }
         ));
+    }
+
+    #[test]
+    fn chunked_payload_preserves_root_digest_without_trait_buffer_requirement() {
+        let tenant_id = tenant("ten_alpha");
+        let chunks = vec![b"chunk-a".to_vec(), b"chunk-b".to_vec()];
+        let payload = CasPayload::from_chunks(&chunks).unwrap();
+        let request = CasPutRequest::new_with_payload(
+            tenant_id.clone(),
+            payload.clone(),
+            kek_boundary(&tenant_id),
+            CasWormPolicy::compliance_until(1_800_000_000, false),
+            audit_anchor(),
+            1_700_000_010,
+        )
+        .unwrap();
+
+        assert_eq!(
+            request.address.digest,
+            Blake3Digest::for_payload(b"chunk-achunk-b")
+        );
+        assert_eq!(request.payload, payload);
     }
 
     #[test]
@@ -1121,7 +1589,7 @@ mod tests {
             ObjectStoreError::InvalidKekBoundary
         );
 
-        let mut request = put_request(&tenant_id, b"metadata payload", 1_800_000_000);
+        let (mut request, _) = put_request(&tenant_id, b"metadata payload", 1_800_000_000);
         request
             .user_metadata
             .insert(" object-store-key".to_string(), "ok".to_string());
@@ -1143,12 +1611,34 @@ mod tests {
     }
 
     #[test]
+    fn put_rejects_worm_policy_already_expired_at_write_time() {
+        let tenant_id = tenant("ten_alpha");
+        let error = CasPutRequest::new(
+            tenant_id.clone(),
+            b"expired worm".to_vec(),
+            kek_boundary(&tenant_id),
+            CasWormPolicy::compliance_until(1_700_000_009, false),
+            audit_anchor(),
+            1_700_000_010,
+        )
+        .unwrap_err();
+
+        assert_eq!(
+            error,
+            ObjectStoreError::ExpiredWormPolicy {
+                retain_until_epoch_seconds: 1_700_000_009,
+                requested_at_epoch_seconds: 1_700_000_010,
+            }
+        );
+    }
+
+    #[test]
     fn worm_retention_blocks_delete_until_retention_expires() {
         let tenant_id = tenant("ten_alpha");
-        let request = put_request(&tenant_id, b"worm payload", 1_800_000_000);
+        let (request, mut reader) = put_request(&tenant_id, b"worm payload", 1_800_000_000);
         let address = request.address.clone();
         let store = InMemoryObjectStore::new();
-        store.put_cas(request).unwrap();
+        store.put_cas(request, &mut reader).unwrap();
 
         let protected = store
             .delete_cas(CasDeleteRequest::new(
@@ -1183,30 +1673,60 @@ mod tests {
     }
 
     #[test]
-    fn transitional_adapter_boundary_is_explicit_and_not_s3_shaped() {
-        let tenant_id = tenant("ten_alpha");
-        let request = put_request(&tenant_id, b"transitional payload", 1_800_000_000);
-        let address = request.address.clone();
-        let store =
-            InMemoryObjectStore::with_transitional_adapter(ObjectStoreBackendKind::SeaweedFsS3)
-                .unwrap();
+    fn conformance_suite_proves_reference_adapter_contract() {
+        let store = InMemoryObjectStore::new();
 
-        let record = store.put_cas(request).unwrap();
-        assert_eq!(record.backend_kind, ObjectStoreBackendKind::SeaweedFsS3);
-        let boundary = store
-            .adapter_boundary(CasReadRequest::new(tenant_id, address))
-            .unwrap()
-            .expect("transitional boundary is present");
-        assert_eq!(boundary.adapter_kind, ObjectStoreBackendKind::SeaweedFsS3);
-        assert!(
-            boundary
-                .provider_namespace
-                .starts_with("adapter/seaweedfs_s3_transitional/")
+        let report = run_object_store_conformance_suite(&store).unwrap();
+
+        assert_eq!(
+            report.checks,
+            vec![
+                "put_immediate_head_visibility",
+                "put_immediate_get_visibility",
+                "tenant_isolation",
+                "worm_delete_refusal",
+                "same_payload_cross_tenant_isolation",
+            ]
         );
-        assert!(boundary.provider_object_ref.starts_with("cas/ten_alpha/"));
+    }
+
+    #[test]
+    fn transitional_adapter_boundary_is_diagnostic_not_bridge_shaped() {
+        let tenant_id = tenant("ten_alpha");
+        let (request, mut reader) = put_request(&tenant_id, b"transitional payload", 1_800_000_000);
+        let address = request.address.clone();
+        let store = InMemoryObjectStore::with_transitional_adapter(
+            TransitionalAdapterClass::ProtocolCompatible,
+            "object-protocol-bridge",
+        )
+        .unwrap();
+
+        let record = store.put_cas(request, &mut reader).unwrap();
+        assert_eq!(record.address, address);
+        assert_eq!(
+            ObjectStoreDiagnostics::backend_kind(&store),
+            ObjectStoreBackendKind::TransitionalAdapter
+        );
+        let boundary = ObjectStoreDiagnostics::adapter_boundary(
+            &store,
+            CasReadRequest::new(tenant_id, address),
+        )
+        .unwrap()
+        .expect("transitional boundary is present");
+        assert_eq!(
+            boundary.adapter_class,
+            TransitionalAdapterClass::ProtocolCompatible
+        );
+        assert_eq!(boundary.adapter_id, "object-protocol-bridge");
         assert!(
             boundary
-                .provider_evidence_ref
+                .adapter_namespace
+                .starts_with("adapter/protocol_compatible/object-protocol-bridge/")
+        );
+        assert!(boundary.adapter_object_ref.starts_with("cas/ten_alpha/"));
+        assert!(
+            boundary
+                .adapter_evidence_ref
                 .starts_with("evidence/object-store/ten_alpha/")
         );
     }
