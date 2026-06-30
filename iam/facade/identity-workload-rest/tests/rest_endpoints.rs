@@ -23,13 +23,16 @@ use http_body_util::BodyExt as _;
 use serde_json::{Value, json};
 use tower::ServiceExt as _;
 
+use iam_identity_oidc_issuer_kernel::{
+    Algorithm as IssuerAlgorithm, SigningKey, build_jwks as build_issuer_jwks,
+};
 use iam_identity_workload_app::{
     InMemoryRevocationDenylist, InMemoryWorkloadPrincipalRepository, RepositoryError,
     RevocationDenylist, WorkloadPrincipalRepository, activate, provision,
 };
 use iam_identity_workload_authz_cedar::CedarWorkloadAuthorizer;
 use iam_identity_workload_domain::{WorkloadId, WorkloadPrincipal};
-use iam_identity_workload_oidc::{Jwk, Jwks, ValidationConfig};
+use iam_identity_workload_oidc::{Jwk, JwkMaterial, Jwks, ValidationConfig};
 use iam_identity_workload_rest::{
     AuditEvent, AuditRecord, InMemoryAuditSink, SharedState, WorkloadAuthzState, build_router,
 };
@@ -39,6 +42,7 @@ use common::{
     FaultingLifecycleAuthorizer, ISSUER, LIFECYCLE_BEARER, LIFECYCLE_CALLER_ID,
     LIFECYCLE_CALLER_TENANT, NOW, SameTenantDecisionAuthorizer, SameTenantLifecycleAuthorizer,
     lifecycle_verifier, mint_token, permit_authorizer, provisioned_state,
+    provisioned_state_with_jwks,
 };
 use iam_identity_workload_rest::BearerCallerVerifier;
 
@@ -85,6 +89,74 @@ async fn post_json_inner(
         serde_json::from_slice(&bytes).unwrap_or(Value::Null)
     };
     (status, json)
+}
+
+fn verifier_jwks_from_issuer_publication(jwk: &Jwk) -> Jwks {
+    let JwkMaterial::EcP256 { x, y } = &jwk.material else {
+        panic!("fixture mints ES256/P-256 only");
+    };
+    let mut components = BTreeMap::new();
+    components.insert("crv".to_owned(), "P-256".to_owned());
+    components.insert("x".to_owned(), x.clone());
+    components.insert("y".to_owned(), y.clone());
+
+    let mut signing_key =
+        SigningKey::provision(&jwk.kid, IssuerAlgorithm::Es256, components).expect("signing key");
+    signing_key.activate(NOW).expect("activate signing key");
+    let issuer_jwks = build_issuer_jwks(&[signing_key]);
+    let keys: Vec<Value> = issuer_jwks
+        .keys()
+        .iter()
+        .map(|key| {
+            let mut value = serde_json::Map::new();
+            value.insert("kid".to_owned(), json!(key.kid));
+            value.insert("kty".to_owned(), json!(key.kty));
+            value.insert("alg".to_owned(), json!(key.alg));
+            value.insert("use".to_owned(), json!(key.key_use));
+            for (name, component) in &key.public_components {
+                value.insert(name.clone(), json!(component));
+            }
+            Value::Object(value)
+        })
+        .collect();
+    let issuer_jwks_json = json!({ "keys": keys }).to_string();
+    Jwks::from_jwks_json(&issuer_jwks_json).expect("issuer JWKS parses for verifier")
+}
+
+#[tokio::test]
+async fn issuer_published_es256_jwks_validates_offline_and_policy_deny_is_403() {
+    let minted = mint_token();
+    // The verifier receives only the issuer-published JWKS document. No
+    // introspection/token-status callback is configured or needed on the hot path.
+    let verifier_jwks = verifier_jwks_from_issuer_publication(&minted.jwk);
+    let state = provisioned_state_with_jwks(verifier_jwks);
+    let router = build_router(state);
+
+    let (validate_status, validate_body) = post_json_bearer(
+        router.clone(),
+        "/tokens/validate",
+        json!({ "token": minted.token }),
+        LIFECYCLE_BEARER,
+    )
+    .await;
+    assert_eq!(validate_status, StatusCode::OK);
+    assert_eq!(validate_body["tenantId"], "ten_acme");
+    assert_eq!(validate_body["workloadId"], "wl_secrets_sync");
+
+    let (authorize_status, authorize_body) = post_json_bearer(
+        router,
+        "/authorize-with-token",
+        json!({
+            "token": minted.token,
+            "action": "cloud.kms.Encrypt",
+            "resource": { "resourceType": "Secret", "resourceId": "db-password" }
+        }),
+        LIFECYCLE_BEARER,
+    )
+    .await;
+    assert_eq!(authorize_status, StatusCode::FORBIDDEN);
+    assert_eq!(authorize_body["effect"], "DENY");
+    assert_eq!(authorize_body["reason"]["kind"], "defaultDeny");
 }
 
 #[tokio::test]
