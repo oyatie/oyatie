@@ -57,6 +57,11 @@ pub const SCIM_BASE: &str = "/scim/v2";
 /// identity API. This is a thin API-native wrapper over the same SCIM create
 /// path; SCIM remains the canonical provisioning contract underneath.
 pub const ACCOUNT_REGISTRATION_BASE: &str = "/identity/v1";
+const SCIM_USERS_ROUTE: &str = "/scim/v2/{tenant}/Users";
+const SCIM_USER_ROUTE: &str = "/scim/v2/{tenant}/Users/{id}";
+const SCIM_GROUPS_ROUTE: &str = "/scim/v2/{tenant}/Groups";
+const SCIM_GROUP_ROUTE: &str = "/scim/v2/{tenant}/Groups/{id}";
+const ACCOUNT_REGISTRATION_ROUTE: &str = "/identity/v1/{tenant}/account-registrations";
 
 /// The composed SCIM surface state: the kernel reference server over the
 /// [`UserStore`]/[`GroupStore`] PORTS + the offline token-validation material.
@@ -611,54 +616,21 @@ where
     G: GroupStore + Send + Sync + 'static,
 {
     Router::new()
+        .route(SCIM_USERS_ROUTE, get(list_users::<R, D, A, S, U, G>))
+        .route(SCIM_USERS_ROUTE, post(create_user::<R, D, A, S, U, G>))
         .route(
-            &format!("{SCIM_BASE}/{{tenant}}/Users"),
-            get(list_users::<R, D, A, S, U, G>),
-        )
-        .route(
-            &format!("{SCIM_BASE}/{{tenant}}/Users"),
-            post(create_user::<R, D, A, S, U, G>),
-        )
-        .route(
-            &format!("{ACCOUNT_REGISTRATION_BASE}/{{tenant}}/account-registrations"),
+            ACCOUNT_REGISTRATION_ROUTE,
             post(register_account::<R, D, A, S, U, G>),
         )
-        .route(
-            &format!("{SCIM_BASE}/{{tenant}}/Users/{{id}}"),
-            get(get_user::<R, D, A, S, U, G>),
-        )
-        .route(
-            &format!("{SCIM_BASE}/{{tenant}}/Users/{{id}}"),
-            put(replace_user::<R, D, A, S, U, G>),
-        )
-        .route(
-            &format!("{SCIM_BASE}/{{tenant}}/Users/{{id}}"),
-            patch(patch_user::<R, D, A, S, U, G>),
-        )
-        .route(
-            &format!("{SCIM_BASE}/{{tenant}}/Users/{{id}}"),
-            delete(delete_user::<R, D, A, S, U, G>),
-        )
-        .route(
-            &format!("{SCIM_BASE}/{{tenant}}/Groups"),
-            get(list_groups::<R, D, A, S, U, G>),
-        )
-        .route(
-            &format!("{SCIM_BASE}/{{tenant}}/Groups"),
-            post(create_group::<R, D, A, S, U, G>),
-        )
-        .route(
-            &format!("{SCIM_BASE}/{{tenant}}/Groups/{{id}}"),
-            get(get_group::<R, D, A, S, U, G>),
-        )
-        .route(
-            &format!("{SCIM_BASE}/{{tenant}}/Groups/{{id}}"),
-            patch(patch_group::<R, D, A, S, U, G>),
-        )
-        .route(
-            &format!("{SCIM_BASE}/{{tenant}}/Groups/{{id}}"),
-            delete(delete_group::<R, D, A, S, U, G>),
-        )
+        .route(SCIM_USER_ROUTE, get(get_user::<R, D, A, S, U, G>))
+        .route(SCIM_USER_ROUTE, put(replace_user::<R, D, A, S, U, G>))
+        .route(SCIM_USER_ROUTE, patch(patch_user::<R, D, A, S, U, G>))
+        .route(SCIM_USER_ROUTE, delete(delete_user::<R, D, A, S, U, G>))
+        .route(SCIM_GROUPS_ROUTE, get(list_groups::<R, D, A, S, U, G>))
+        .route(SCIM_GROUPS_ROUTE, post(create_group::<R, D, A, S, U, G>))
+        .route(SCIM_GROUP_ROUTE, get(get_group::<R, D, A, S, U, G>))
+        .route(SCIM_GROUP_ROUTE, patch(patch_group::<R, D, A, S, U, G>))
+        .route(SCIM_GROUP_ROUTE, delete(delete_group::<R, D, A, S, U, G>))
         .with_state(state)
 }
 
