@@ -893,50 +893,20 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
 
-  # ── LIVE-POSTGRES DURABLE-SUBSTRATE LANE (#101). Runs the env-gated cross-tenant-deny / RLS /
-  #    CDC / SCIM durability integration tests against a CONTAINERIZED Postgres and GATES merge —
-  #    converting the G03/G05/G06 false-green into real evidence. Before this lane those tests
-  #    were DARK twice over: (1) each one early-returns to a no-op unless its enable env is truthy,
-  #    and (2) no CI job ever set that env or ran them, so they "passed" having never touched a
-  #    database. This lane sets the env, points it at a live Postgres, and makes the result block
+  # ── LIVE-POSTGRES DURABLE-SUBSTRATE LANES (#101/#901). Runs the env-gated
+  #    cross-tenant-deny / RLS / CDC / SCIM durability integration tests against
+  #    CONTAINERIZED Postgres and GATES merge. Both adapter and facade groups block
   #    the single required `oya-ci-required` context.
   #
-  #    RED-PROOF (verified locally against postgres:16 before this lane shipped): pointing the app
-  #    URL at a BYPASSRLS role makes the cross-tenant isolation assertions FAIL HARD (tenant A
-  #    reads tenant B's rows; the unset-GUC deny-all leaks) — proving the tests are real probes,
-  #    not early-returns. The non-bypass app role (below) makes them pass.
-  #
-  #    RUNNER = `buck2 test --local-only` (transitional live-resource bridge). These tests are
-  #    intentionally outside remote execution today because they require the job's Postgres
-  #    service container over localhost. The env is passed explicitly through Buck2's test
-  #    executor (`-- --env ...`) so the live probes cannot silently early-return on missing vars.
-  #    CLOUD-NATIVE DESTINATION: a buck2 `rust_test` action that declares the disposable database
-  #    as a managed `local_resource` (testcontainers-style ephemeral env), so the live tier becomes
-  #    hermetic and runner-portable; this bridge retires when that action exists.
-  #
-  #    ENV CONTRACT (verified against each harness's source — names are load-bearing):
-  #      - libs/oya-data-sql-adapter-sqlx        OYA_DATA_LIVE_POSTGRES + ADMIN/APP URLs
-  #      - libs/oya-data-outbox-adapter-postgres OYA_OUTBOX_LIVE_POSTGRES + ADMIN/APP URLs
-  #      - tenancy + SCIM store adapters         OYA_BACKBONE_LIVE_POSTGRES + URL(admin)/APP_URL
-  #      - identity-service + tenant-lifecycle-app facades   OYA_BACKBONE_* (APP_URL only consumed)
-  #    The ADMIN url is the superuser DSN (DDL, CREATE ROLE, RLS-bypass for fixture seeding, and
-  #    the adapter's bypass-rejection assertion); the APP url is the NON-superuser, NOBYPASSRLS
-  #    login role that is a USAGE-member of each runtime role — if it could bypass RLS the shared
-  #    enforceability guard correctly refuses to serve, which is the whole point.
-  #
-  #    TWO ENV CONTEXTS (a real constraint discovered turning the tests on, NOT an arbitrary
-  #    split): the ADAPTER tests need OYA_BACKBONE_POSTGRES_URL = the SUPERUSER (their
-  #    `assert_rls_enforceable_rejects_bypass_capable_role` test asserts the setup role is
-  #    bypass-capable). The identity-service FACADE composes its SERVING store from
-  #    OYA_BACKBONE_POSTGRES_URL (server::start reads ENV_SCIM_DATABASE_URL = that same name), and
-  #    the boot guard refuses a bypass-capable serving role — so for the facade lane that name must
-  #    be the APP role. Same database, two env framings, run as separate steps.
-  gate-live-postgres:
-    name: gate-live-postgres (durable cross-tenant-deny / RLS / CDC / SCIM, #101)
+  #    SPLIT SAFETY (#901): adapter and facade groups run in parallel only because
+  #    each job owns an independent Postgres service container and repeats the
+  #    deterministic bootstrap. Inside each group, `--num-threads 1` and sequential
+  #    target invocations remain because the harnesses in that group still share a
+  #    local database.
+  gate-live-postgres-adapters:
+    name: "gate-live-postgres-adapters (durable adapters: RLS / CDC / SCIM, #901)"
     runs-on: ubuntu-latest
-    timeout-minutes: 40
-    # postgres:16 (NOT Citus initially; LIVE_POSTGRES_REQUIRE_CITUS_ENV deliberately UNSET). The
-    # service is reachable on localhost:5432; the health-check gates the test steps until it is up.
+    timeout-minutes: 25
     services:
       postgres:
         image: postgres:16
@@ -946,14 +916,12 @@ jobs:
           POSTGRES_DB: oyatie
         ports:
           - 5432:5432
-        # pg_isready health gate: steps do not run until Postgres accepts connections.
         options: >-
           --health-cmd "pg_isready -U postgres -d oyatie"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
     env:
-      # Admin (superuser) and app (NON-superuser, NOBYPASSRLS) DSNs against the service container.
       OYA_PG_ADMIN_URL: postgres://postgres:postgres@127.0.0.1:5432/oyatie
       OYA_PG_APP_URL: postgres://oya_app:app@127.0.0.1:5432/oyatie
     steps:
@@ -963,8 +931,6 @@ jobs:
           persist-credentials: false
       - name: Install buck2 (digest-pinned prebuilt release)
         run: infra/ci/install-buck2.sh
-      # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4); rustup still resolves and
-      # validates the toolchain on every run.
       - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
         # actions/cache@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
@@ -978,54 +944,34 @@ jobs:
           set -euo pipefail
           rustup toolchain install
           rustc --version
-      # Postgres client for the inline bootstrap (psql applies the committed migrations verbatim;
-      # it handles the runtime-role `DO $$ … $$` dollar-quoted block natively, so no statement
-      # splitter is needed). Transitional like the rest of this bridge lane — the cloud-native
-      # destination provisions schema/role via the managed local_resource, not an apt install.
       - name: Install postgresql-client for the bootstrap
         run: |
           set -euo pipefail
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends postgresql-client
           psql --version
-      # BOOTSTRAP (admin/superuser): the app login role + the durable schemas/roles must PRE-EXIST.
-      #   * the adapter live tests apply their own 0000+0001 and DROP+recreate their schema, BUT
-      #     two of them (assert_rls_enforceable_{passes_for_app_role,rejects_bypass_capable_role})
-      #     do NOT migrate — they probe the role/schema directly, so the role must already exist;
-      #   * the FACADE tests never migrate at all — they compose a serving store over the APP url
-      #     and the boot guard requires the schema + the app login's USAGE-membership in the
-      #     runtime role to already be in place.
-      # Creating the app login + applying tenancy/scim 0000+0001 + GRANTing the runtime roles to
-      # the app login satisfies all of these deterministically, independent of test ordering.
-      - name: Bootstrap app role + durable schemas/roles (admin)
+      - name: Bootstrap app role + durable schemas/roles (admin, adapters)
         env:
           PGPASSWORD: postgres
         run: |
           set -euo pipefail
           ADMIN_PSQL=(psql -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 5432 -U postgres -d oyatie)
-          # 1) NON-superuser, NOBYPASSRLS app login role (idempotent). This is the role the APP
-          #    url connects as; it MUST NOT be able to bypass RLS or the isolation tests are moot.
           "${ADMIN_PSQL[@]}" -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='oya_app') THEN CREATE ROLE oya_app LOGIN PASSWORD 'app' NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE; END IF; END \$\$;"
-          # 2) Apply the COMMITTED tenancy + SCIM migrations verbatim, IN ORDER (0000 then 0001),
-          #    then GRANT each runtime role to the app login (default INHERIT = the deploy
-          #    contract the boot guard's pg_has_role(USAGE) check expects). The two libs/ adapters
-          #    (data-sqlx, outbox) self-bootstrap entirely via their ADMIN url at runtime, so they
-          #    are deliberately NOT migrated here.
           "${ADMIN_PSQL[@]}" -f tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql
           "${ADMIN_PSQL[@]}" -f tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0001_tenant_lifecycle_store.sql
           "${ADMIN_PSQL[@]}" -c "GRANT tenancy_lifecycle_runtime TO oya_app;"
           "${ADMIN_PSQL[@]}" -f iam/adapters/identity-scim-store-postgres/migrations/0000_runtime_role.sql
           "${ADMIN_PSQL[@]}" -f iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql
           "${ADMIN_PSQL[@]}" -c "GRANT identity_scim_runtime TO oya_app;"
-          # Confirm the app role is genuinely non-bypass (fail the lane LOUDLY if it ever is).
           "${ADMIN_PSQL[@]}" -c "SELECT rolname, rolsuper, rolbypassrls FROM pg_roles WHERE rolname IN ('postgres','oya_app','tenancy_lifecycle_runtime','identity_scim_runtime') ORDER BY rolname;"
           server_version="$("${ADMIN_PSQL[@]}" -Atqc "SHOW server_version;")"
-          cat > "${RUNNER_TEMP}/live-postgres-bootstrap-provenance.json" <<JSON
+          cat > "${RUNNER_TEMP}/live-postgres-adapters-bootstrap-provenance.json" <<JSON
           {
-            "schema_version": 1,
+            "schema_version": 2,
             "artifact_type": "cloud_ci_operator_artifact",
             "artifact_id": "live-postgres-bootstrap-provenance",
-            "gate_id": "gate-live-postgres",
+            "gate_id": "gate-live-postgres-adapters",
+            "lane": "adapters",
             "postgres": {
               "image": "postgres:16",
               "server_version": "${server_version}",
@@ -1046,11 +992,6 @@ jobs:
               "iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql"
             ],
             "source_revision": "${GITHUB_SHA}",
-            "reproducibility": {
-              "bootstrap_command": "psql -v ON_ERROR_STOP=1 with committed migrations in listed order",
-              "service_health_gate": "pg_isready -U postgres -d oyatie",
-              "test_runner": "buck2 test --local-only --num-threads 1 with explicit live-postgres env passthrough"
-            },
             "retention_and_pii": {
               "retention_days": 30,
               "pii": "none; local CI database metadata and repo paths only",
@@ -1058,9 +999,6 @@ jobs:
             }
           }
           JSON
-      # ADAPTER tier: admin = SUPERUSER (DDL + the bypass-rejection assertion), app = app role.
-      # Each Buck2 invocation runs one test target locally with RUST_TEST_THREADS=1 because the
-      # harnesses share a single database/schema and assert on row counts (parallel writers race).
       - name: buck2 test — durable adapters (admin=superuser, app=app-role)
         env:
           OYA_DATA_LIVE_POSTGRES: "1"
@@ -1092,15 +1030,112 @@ jobs:
           buck2 test --local-only --num-threads 1 //tenancy/adapters/tenant-lifecycle-store-postgres:tenancy-tenant-lifecycle-store-postgres-live -- "${LIVE_ENV[@]}"
           buck2 test --local-only --num-threads 1 //iam/adapters/identity-scim-store-postgres:identity-scim-store-postgres-unittest -- "${LIVE_ENV[@]}"
           buck2 test --local-only --num-threads 1 //iam/adapters/identity-scim-store-postgres:identity-scim-store-postgres-live -- "${LIVE_ENV[@]}"
-      # FACADE tier: OYA_BACKBONE_POSTGRES_APP_URL = the APP (non-superuser, NOBYPASSRLS) role.
-      # Both facades read ONLY OYA_BACKBONE_POSTGRES_APP_URL:
-      #   - tenancy-app `LIVE_URL_ENV = "OYA_BACKBONE_POSTGRES_APP_URL"` (acceptance.rs:622)
-      #   - identity-service live test uses `boot_with_url(OYA_BACKBONE_POSTGRES_APP_URL)` directly
-      #     (e2e_service.rs:470); non-live tests call `boot()` → `server::start()` which reads
-      #     `OYA_BACKBONE_POSTGRES_URL` — but when that env is ABSENT, start() gets None → in-memory
-      #     mode, so the non-live tests pass without any DB connection. OYA_BACKBONE_POSTGRES_URL is
-      #     intentionally NOT set here so those in-memory paths stay DB-free.
-      # Both facades depend on the schema/role/grant from the bootstrap step above.
+      - name: Upload live-postgres adapter bootstrap provenance
+        if: always()
+        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: live-postgres-adapters-bootstrap-provenance
+          path: ${{ runner.temp }}/live-postgres-adapters-bootstrap-provenance.json
+          retention-days: 30
+          if-no-files-found: warn
+
+  gate-live-postgres-facades:
+    name: "gate-live-postgres-facades (durable facades: tenant lifecycle / SCIM, #901)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: oyatie
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d oyatie"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      OYA_PG_ADMIN_URL: postgres://postgres:postgres@127.0.0.1:5432/oyatie
+      OYA_PG_APP_URL: postgres://oya_app:app@127.0.0.1:5432/oyatie
+    steps:
+      # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+      - name: Install buck2 (digest-pinned prebuilt release)
+        run: infra/ci/install-buck2.sh
+      - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
+        # actions/cache@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        with:
+          path: |
+            ~/.rustup/toolchains
+            ~/.rustup/update-hashes
+          key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
+      - name: Pre-provision pinned Rust toolchain for Buck2 live tests
+        run: |
+          set -euo pipefail
+          rustup toolchain install
+          rustc --version
+      - name: Install postgresql-client for the bootstrap
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends postgresql-client
+          psql --version
+      - name: Bootstrap app role + durable schemas/roles (admin, facades)
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          ADMIN_PSQL=(psql -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 5432 -U postgres -d oyatie)
+          "${ADMIN_PSQL[@]}" -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='oya_app') THEN CREATE ROLE oya_app LOGIN PASSWORD 'app' NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE; END IF; END \$\$;"
+          "${ADMIN_PSQL[@]}" -f tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql
+          "${ADMIN_PSQL[@]}" -f tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0001_tenant_lifecycle_store.sql
+          "${ADMIN_PSQL[@]}" -c "GRANT tenancy_lifecycle_runtime TO oya_app;"
+          "${ADMIN_PSQL[@]}" -f iam/adapters/identity-scim-store-postgres/migrations/0000_runtime_role.sql
+          "${ADMIN_PSQL[@]}" -f iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql
+          "${ADMIN_PSQL[@]}" -c "GRANT identity_scim_runtime TO oya_app;"
+          "${ADMIN_PSQL[@]}" -c "SELECT rolname, rolsuper, rolbypassrls FROM pg_roles WHERE rolname IN ('postgres','oya_app','tenancy_lifecycle_runtime','identity_scim_runtime') ORDER BY rolname;"
+          server_version="$("${ADMIN_PSQL[@]}" -Atqc "SHOW server_version;")"
+          cat > "${RUNNER_TEMP}/live-postgres-facades-bootstrap-provenance.json" <<JSON
+          {
+            "schema_version": 2,
+            "artifact_type": "cloud_ci_operator_artifact",
+            "artifact_id": "live-postgres-bootstrap-provenance",
+            "gate_id": "gate-live-postgres-facades",
+            "lane": "facades",
+            "postgres": {
+              "image": "postgres:16",
+              "server_version": "${server_version}",
+              "database": "oyatie",
+              "host": "127.0.0.1",
+              "port": 5432
+            },
+            "roles": [
+              {"name": "postgres", "purpose": "admin bootstrap superuser; DSN/password redacted"},
+              {"name": "oya_app", "purpose": "non-superuser NOBYPASSRLS app login; DSN/password redacted"},
+              {"name": "tenancy_lifecycle_runtime", "purpose": "tenancy runtime role granted to oya_app"},
+              {"name": "identity_scim_runtime", "purpose": "SCIM runtime role granted to oya_app"}
+            ],
+            "migrations": [
+              "tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql",
+              "tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0001_tenant_lifecycle_store.sql",
+              "iam/adapters/identity-scim-store-postgres/migrations/0000_runtime_role.sql",
+              "iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql"
+            ],
+            "source_revision": "${GITHUB_SHA}",
+            "retention_and_pii": {
+              "retention_days": 30,
+              "pii": "none; local CI database metadata and repo paths only",
+              "secret_redaction": "admin/app DSNs, passwords, tenant secrets, idempotency keys, and tokens are not emitted"
+            }
+          }
+          JSON
       - name: buck2 test — durable facades (live test = app-role, non-live = in-memory)
         env:
           OYA_BACKBONE_LIVE_POSTGRES: "1"
@@ -1116,13 +1151,13 @@ jobs:
           buck2 test --local-only --num-threads 1 //iam/facade/identity-service:iam-identity-service-e2e -- "${FACADE_ENV[@]}"
           buck2 test --local-only --num-threads 1 //tenancy/facade/tenant-lifecycle-app:tenancy-tenant-lifecycle-app-unittest -- "${FACADE_ENV[@]}"
           buck2 test --local-only --num-threads 1 //tenancy/facade/tenant-lifecycle-app:tenancy-tenant-lifecycle-app-acceptance -- "${FACADE_ENV[@]}"
-      - name: Upload live-postgres bootstrap provenance
+      - name: Upload live-postgres facade bootstrap provenance
         if: always()
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: live-postgres-bootstrap-provenance
-          path: ${{ runner.temp }}/live-postgres-bootstrap-provenance.json
+          name: live-postgres-facades-bootstrap-provenance
+          path: ${{ runner.temp }}/live-postgres-facades-bootstrap-provenance.json
           retention-days: 30
           if-no-files-found: warn
 
@@ -1144,8 +1179,8 @@ jobs:
       - generated-output-diff-policy # generated outputs are never PR merge surfaces
       - buck2                   # hermetic buck2 build + affected gate tests
       - gate-affected-set       # binding workspace coverage: affected cone or fail-closed full run (ADR-0554)
-      - gate-live-postgres      # #101: durable cross-tenant-deny / RLS / CDC / SCIM tests run + gate against live Postgres
-
+      - gate-live-postgres-adapters # #901: durable adapter RLS / CDC / SCIM tests against isolated live Postgres
+      - gate-live-postgres-facades  # #901: durable facade tenant lifecycle / SCIM tests against isolated live Postgres
     steps:
       - name: Fan-in verdict (green IFF every gate lane is green)
         run: |
@@ -1157,8 +1192,8 @@ jobs:
           echo "  generated-diff    = ${{ needs.generated-output-diff-policy.result }}"
           echo "  buck2             = ${{ needs.buck2.result }}"
           echo "  affected-set      = ${{ needs.gate-affected-set.result }}"
-          echo "  live-postgres     = ${{ needs.gate-live-postgres.result }}"
-
+          echo "  live-postgres/adapters = ${{ needs.gate-live-postgres-adapters.result }}"
+          echo "  live-postgres/facades  = ${{ needs.gate-live-postgres-facades.result }}"
           # A matrix job's aggregate `.result` is success IFF ALL legs succeeded, failure if any
           # leg failed, skipped if it never ran — so one check covers every gate in the matrix.
           if [ "${{ needs.gate.result }}" = "success" ] \
@@ -1168,7 +1203,8 @@ jobs:
             && [ "${{ needs.generated-output-diff-policy.result }}" = "success" ] \
             && [ "${{ needs.buck2.result }}" = "success" ] \
             && [ "${{ needs.gate-affected-set.result }}" = "success" ] \
-            && [ "${{ needs.gate-live-postgres.result }}" = "success" ]; then
+            && [ "${{ needs.gate-live-postgres-adapters.result }}" = "success" ] \
+            && [ "${{ needs.gate-live-postgres-facades.result }}" = "success" ]; then
             echo "oya-ci-required: GREEN — every constituent gate lane passed."
             exit 0
           fi

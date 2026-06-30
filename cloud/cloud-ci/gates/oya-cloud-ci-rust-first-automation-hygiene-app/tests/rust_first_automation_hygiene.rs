@@ -154,7 +154,8 @@ fn live_postgres_lane_emits_redacted_bootstrap_provenance_artifact() {
         "bootstrap provenance must not emit DSNs or credentials: {provenance_block}"
     );
     assert!(
-        workflow.contains("name: live-postgres-bootstrap-provenance")
+        workflow.contains("name: live-postgres-adapters-bootstrap-provenance")
+            && workflow.contains("name: live-postgres-facades-bootstrap-provenance")
             && workflow.contains("retention-days: 30"),
         "bootstrap provenance must be uploaded as a durable retained operator artifact"
     );
