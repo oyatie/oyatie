@@ -158,16 +158,9 @@ Each change class has a designated reviewer agent that runs proactively on the P
 | Capability publish | `capability-reviewer` |
 | Performance change | `perf-reviewer` |
 
-The reviewer-agent verdict is `APPROVE` or `REQUEST CHANGES`. The PR body's `## Code Review` section MUST contain the agent name, the verdict, and the resolved + deferred items. In the target contract, the trusted merge gate refuses without this section. Historical local hooks are advisory bridge feedback only, not cloud admission authority.
+The reviewer-agent verdict is `APPROVE` or `REQUEST CHANGES`. The PR body's `## Code Review` section MUST contain the agent name, the verdict, and the resolved + deferred items. GH #983 adds a PR metadata preflight that refuses blocked/pending-review PR title or body markers and refuses merge-ready body validation without this section.
 
-**REVIEW-ADMISSION-GAP-LIVE-BOUNDARY (F-PR5-06):** this paragraph is the target
-contract, not a cloud-enforced review admission gate today. Fresh evidence from
-PR #964 (merged 2026-06-28) shows `reviewDecision` empty with only an owner
-`COMMENTED` review while `dev` branch protection required only `oya-ci-required`;
-`.github/workflows/pr-review.yml` is absent and `oya-pr-review` is not required.
-Local hooks are advisory bridge feedback only and cannot secure GitHub web/API
-merges. Until the trusted server-side reviewer producer is live, the bounded debt
-is tracked in `registry/fixuptasks.jsonl` as `F-PR5-06`.
+**REVIEW-ADMISSION-GAP-LIVE-BOUNDARY (F-PR5-06):** F-PR5-06 remains open. PR #964 merged with green `oya-ci-required`, empty `reviewDecision`, and only an owner `COMMENTED` review, so the GH #983 title/body packet is not a cloud-enforced review admission gate. It narrows PR metadata hygiene only; formal GitHub `reviewDecision`, reviewer-author separation, and branch-protection drift reconciliation remain tracked by `registry/fixuptasks.jsonl#F-PR5-06`.
 
 ## During-change discipline
 
@@ -185,11 +178,7 @@ Agent coordination uses plain `git`. ADR-0363 retires the prior wrapper/ratchet
 substrate; do not reintroduce an agentic VCS wrapper. An agent works on an
 isolated worktree branch and opens a pull request against `dev`, which enters
 the governance pipeline:
-Prow/cloud-ci required context + reviewer APPROVE gate merge readiness is the target. The
-GitHub (interim) protected-branch substrate remains the cloud-scm target (ADR-0247
-post-bootstrap); live review admission is not yet cloud-enforced (see
-`REVIEW-ADMISSION-GAP-LIVE-BOUNDARY` / `F-PR5-06`), `oya gate` is bridge evidence
-only until cloud-ci cutover, and `oya` CLI is on the CI-retirement path.
+Prow/cloud-ci required context + reviewer APPROVE gate merge readiness remains the target. The GitHub (interim) protected-branch substrate remains the cloud-scm target (ADR-0247 post-bootstrap); GH #983 folds PR title/body hygiene into `oya-ci-required`, but live review admission still waits on F-PR5-06. Legacy `oya gate` output is bridge evidence only until cloud-ci cutover, and `oya` CLI is on the CI-retirement path.
 
 The fenced block below is the machine-readable agent surface. Human-facing terminal examples may live outside fences.
 
@@ -204,7 +193,7 @@ required_sequence:
   - isolated worktree branch per agent lane (scaffold-managed; one lane = one worktree)
   - commit and push on that lane
   - open a PR against dev               # enters the governance pipeline
-  - Prow/cloud-ci required context + reviewer APPROVE target; live cloud review admission remains bounded by F-PR5-06 until the trusted reviewer producer is required (Jenkins/oya bridge only until P0.0 cutover)
+  - Prow/cloud-ci required context + reviewer APPROVE target; PR title/body hygiene flows through `oya-ci-required`, while F-PR5-06 still owns live review-admission closure and Jenkins/oya bridge evidence remains transitional until P0.0 cutover
 scaffold_protocol:
   mechanism: per-agent isolated worktree plus admission-gate concurrent-safe-paths
   adr: docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md
@@ -212,7 +201,7 @@ scaffold_protocol:
 
 ## PR shape
 
-Every PR uses [`templates/pull-request-template.md`](templates/pull-request-template.md) <!-- forward-reference: wave-1 -->. The template prescribes 5 traceability H2 sections plus the automated reviewer-agent `## Code Review` section. Target enforcement is `traceability-validator` + `oya-pr-review`, but `oya-pr-review` is not a cloud-enforced review admission gate today; see `REVIEW-ADMISSION-GAP-LIVE-BOUNDARY` / `F-PR5-06`:
+Every PR uses [`templates/pull-request-template.md`](templates/pull-request-template.md) <!-- forward-reference: wave-1 -->. The template prescribes 5 traceability H2 sections plus the automated reviewer-agent `## Code Review` section. Target enforcement is `traceability-validator` plus the `oya-ci-required` PR metadata preflight:
 
 1. `## Issue` — `Closes #<n>` or `Refs #<n>`.
 2. `## Summary` — 1–3 bullets on what + why.
@@ -220,7 +209,7 @@ Every PR uses [`templates/pull-request-template.md`](templates/pull-request-temp
 4. `## Traceability` — catalog records touched, cross-axis contracts touched, ADRs cited.
 5. `## Evidence` — audit-chain emission ID; foundation-bypass (if any); per-pack regulator-watch impact (if any).
 
-The automated reviewer pipeline target supplies `## Code Review` with the reviewer-agent name, verdict, and resolved + deferred items, and its admission packet must bind the PR title plus the reviewed PR body/traceability sections. Until the trusted `oya-pr-review` producer is live and required, this is target contract plus local/advisory bridge evidence, not live GitHub admission enforcement.
+The automated reviewer pipeline supplies `## Code Review` with the reviewer-agent name, verdict, and resolved + deferred items, and the metadata packet binds the PR title plus the reviewed PR body/traceability sections. The preflight rejects blocked/pending-review title/body markers and missing or negative review evidence before `oya-ci-required` can pass, without closing F-PR5-06's live review-producer gap.
 
 ## Done-Definition checklist
 
@@ -233,7 +222,7 @@ Before declaring any change complete, every agent and every human MUST re-walk t
 - [ ] **D5** New capabilities (if any) ship: capability record, eval set (golden + adversarial + linguistic), autonomy tier, audit-chain topic, Cosign signing. *Test:* `oya-governance-capability-publish` lane.
 - [ ] **D6** New schemas (if any) carry `oyatie.data_class = "..."` per field. *Test:* `oya-governance-data-class` lane.
 - [ ] **D7** Per-PR fitness lanes pass: `oya-governance-{license, data-class, cohesion, glossary, adr-citation, brand-residue, bypass, flat-crates, runbook-index-resolves, doc-catalog}`. *Test:* CI status check.
-- [ ] **D8** Per-change-class reviewer agent ran; verdict captured in `## Code Review`. *Test:* target trusted `oya-pr-review` producer once live; local hooks are advisory only until `F-PR5-06` closes.
+- [ ] **D8** Per-change-class reviewer agent ran; verdict captured in `## Code Review`. *Test:* `oya-ci-required` PR metadata preflight plus reviewer audit on PR; live review-admission closure remains F-PR5-06.
 - [ ] **D9** Targeted `buck2 test <target(s)>` passes. *Test:* command output pasted in `## Verification`.
 - [ ] **D10** Targeted `buck2 build <target(s)>` and relevant cloud-ci lint/static-analysis gate packets pass. *Test:* command output.
 - [ ] **D11** Buck2/cloud-ci supply-chain lane passes. *Test:* command output or required context evidence.
@@ -242,7 +231,7 @@ Before declaring any change complete, every agent and every human MUST re-walk t
   completion/merge authority.
 - [ ] **D13** Performance changes carry benchmark + ≥2 stress-scenario evidence. *Test:* `oya-governance-perf-evidence` lane.
 - [ ] **D14** Schema migrations ship up + down + dry-run + per-tenant + per-cell rollback. *Test:* `oya-governance-schema-migration` lane.
-- [ ] **D15** PR body has all 5 canonical traceability H2 sections plus automated `## Code Review`. *Test:* target `traceability-validator` + `oya-pr-review` lanes; `oya-pr-review` is not live cloud admission enforcement until `F-PR5-06` closes.
+- [ ] **D15** PR body has all 5 canonical traceability H2 sections plus automated `## Code Review`. *Test:* `traceability-validator` and the `oya-ci-required` PR metadata preflight.
 - [ ] **D16** Audit-chain emission `EVT-*` ID referenced in `## Evidence`. *Test:* `oya-governance-audit-emission` lane.
 - [ ] **D17** [`MISTAKES-LEDGER.md`](MISTAKES-LEDGER.md) <!-- forward-reference: wave-1 --> row added if this change is a mechanical prevention shipped for a prior failure. *Test:* `oya-governance-mistakes-ledger-cite` lane.
 - [ ] **D18** [`CHANGELOG.md`](CHANGELOG.md) <!-- forward-reference: wave-1 --> row added if this change touches a canonical doc. *Test:* `oya-governance-changelog-row` lane.

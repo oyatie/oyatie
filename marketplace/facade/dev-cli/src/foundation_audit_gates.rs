@@ -15,6 +15,7 @@ use crate::{current_epoch_days, parse_u32_field, parse_u64_field, usage};
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct PrTraceabilityValidateArgs {
     pr_body_path: PathBuf,
+    pr_title: String,
     require_code_review: bool,
     forbid_code_review: bool,
 }
@@ -24,6 +25,7 @@ pub(crate) fn parse_pr_traceability_validate_args(
 ) -> Result<PrTraceabilityValidateArgs, String> {
     let mut parsed = PrTraceabilityValidateArgs {
         pr_body_path: PathBuf::from("docs/templates/pull-request-template.md"),
+        pr_title: String::new(),
         require_code_review: true,
         forbid_code_review: false,
     };
@@ -35,6 +37,12 @@ pub(crate) fn parse_pr_traceability_validate_args(
                     return Err(usage());
                 };
                 parsed.pr_body_path = PathBuf::from(path);
+            }
+            "--pr-title" => {
+                let Some(title) = iter.next() else {
+                    return Err(usage());
+                };
+                parsed.pr_title = title;
             }
             "--require-code-review" => {
                 parsed.require_code_review = true;
@@ -61,6 +69,7 @@ pub(crate) fn validate_pr_traceability_gate(
     })?;
     let document = PrTraceabilityDocument {
         document_id: args.pr_body_path.display().to_string(),
+        title: args.pr_title,
         body,
     };
     let report = validate_pr_traceability(

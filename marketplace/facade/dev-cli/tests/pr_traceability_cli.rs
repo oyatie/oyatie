@@ -93,6 +93,30 @@ fn pr_traceability_gate_enforces_merge_time_code_review_policy() {
     fs::remove_dir_all(temp).ok();
 }
 
+#[test]
+fn pr_traceability_gate_rejects_blocked_review_markers() {
+    let temp = temp_dir("pr-traceability-blocked-review");
+    let body = write_pr_body(&temp, valid_pr_body());
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(pr_traceability_args_with_title(
+            &body,
+            "BLOCKED: pending review",
+            &["--require-code-review"],
+        ))
+        .output()
+        .expect("PR traceability gate runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("BlockedReviewMarker"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
 fn pr_traceability_args(path: &Path, policy_flags: &[&str]) -> Vec<String> {
     let mut args = vec![
         "gate".into(),
@@ -100,8 +124,21 @@ fn pr_traceability_args(path: &Path, policy_flags: &[&str]) -> Vec<String> {
         "pr-traceability".into(),
         "--pr-body".into(),
         path.to_str().expect("utf8 PR body").into(),
+        "--pr-title".into(),
+        "Ready for review".into(),
     ];
     args.extend(policy_flags.iter().map(|flag| (*flag).into()));
+    args
+}
+
+fn pr_traceability_args_with_title(path: &Path, title: &str, policy_flags: &[&str]) -> Vec<String> {
+    let mut args = pr_traceability_args(path, policy_flags);
+    let title_index = args
+        .iter()
+        .position(|arg| arg == "--pr-title")
+        .expect("title flag present")
+        + 1;
+    args[title_index] = title.into();
     args
 }
 
@@ -113,7 +150,7 @@ fn write_pr_body(root: &Path, contents: &str) -> std::path::PathBuf {
 }
 
 fn valid_pr_body() -> &'static str {
-    "## Issue\nCloses #123\n\n## Summary\n- Implemented the thing.\n\n## Verification\n- pass: oya dev check\n\n## Traceability\n- Catalog records touched: oya-intelligence-capability-kernel\n- Cross-axis contracts touched: none\n- ADRs cited: ADR-0001\n\n## Evidence\n- Audit-chain emission: EVT-1\n- Foundation-bypass referenced (if any): none\n- Per-pack regulator-watch impact (if any): none\n\n## Code Review\nreviewer-agent: APPROVE\n"
+    "## Issue\nCloses #123\n\n## Summary\n- Implemented the thing.\n\n## Verification\n- pass: oya dev check\n\n## Traceability\n- Catalog records touched: oya-intelligence-capability-kernel\n- Cross-axis contracts touched: none\n- ADRs cited: ADR-0001\n\n## Evidence\n- Audit-chain emission: EVT-1\n- Foundation-bypass referenced (if any): none\n- Per-pack regulator-watch impact (if any): none\n\n## Code Review\nreviewer-agent: rust-reviewer\nverdict: APPROVE\nResolved items: none\nDeferred items: none\n"
 }
 
 fn temp_dir(label: &str) -> std::path::PathBuf {

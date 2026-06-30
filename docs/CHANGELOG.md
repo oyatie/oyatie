@@ -19,6 +19,11 @@ doc_status: published
 - Added a gate regression proving the Cloud templates are no longer baseline-grandfathered and that every deployed Cloud permit constrains action plus resource/scope before subset parity is evaluated.
 - Tightened the mirrored Cloud IAC and tenancy policy fragments by removing executable default-deny forbids, broadening ApplyJob negative guardrails across all mutating actions, and splitting tenancy/auditor permits by principal, action, and resource type.
 
+## 2026-06-29 — PR metadata admission packet wired into oya-ci
+
+- Added a Rust PR metadata packet to `oya-ci-required` so blocked/pending-review PR title or body markers and missing `## Code Review` evidence fail before merge without claiming the F-PR5-06 live review-producer gap is closed.
+- Marked quality-lane `check_command` rows as local/transitional bridge feedback only; protected-branch authority remains the single `oya-ci-required` fan-in plus cloud-ci/Rust gate packets.
+
 ## 2026-06-29 — OpenBao ESO scope and transport gate hardened
 
 - Extended the existing operator-secret-bootstrap gate instead of adding a new cloud-ci surface: static and values-backed ExternalSecret use of OpenBao stores is now policy-scoped by store, bound role, namespace, and remote key prefix, and plaintext OpenBao listeners require restrictive NetworkPolicy coverage.
