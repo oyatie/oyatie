@@ -189,3 +189,14 @@ this ADR. The tracked surfaces are:
 - `governance/corpus/work-area-rust-parser/src/lib.rs`
 - `registry/catalog/work-area-rust-parser.yaml`
 - `evidence/multispectrum/work-area-rust-parser-20260630-1782840154.json`
+### Addendum 2026-06-30 — Markdown document parser implementation surface
+
+The first Rust-native Markdown document parser slice for the W2 owned corpus graph substrate is
+governed by this ADR. The tracked surfaces are:
+
+- `governance/corpus/doc-parser/BUCK`
+- `governance/corpus/doc-parser/Cargo.toml`
+- `governance/corpus/doc-parser/src/lib.rs`
+- `governance/corpus/doc-parser/tests/doc_parser_contract.rs`
+- `governance/corpus/doc-parser/tests/fixtures/adr-heading-reference.md`
+- `governance/corpus/doc-parser/tests/fixtures/adversarial-exfil.md`
