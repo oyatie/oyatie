@@ -3,6 +3,12 @@ purpose: Oyatie — Canonical Docs Changelog
 doc_status: published
 ---
 
+## 2026-06-29 — Cloud Cedar blanket disarm for GH #987
+
+- Replaced the fourteen Cloud control-plane Helm Cedar ConfigMaps named in GH #987 with their authored action/resource-specific PBAC policies and removed those paths from the `cloud-ci-cedar-deploy-parity` shrink-only blanket baseline.
+- Added a gate regression proving the Cloud templates are no longer baseline-grandfathered and that every deployed Cloud permit constrains action plus resource/scope before subset parity is evaluated.
+- Tightened the mirrored Cloud IAC and tenancy policy fragments by removing executable default-deny forbids, broadening ApplyJob negative guardrails across all mutating actions, and splitting tenancy/auditor permits by principal, action, and resource type.
+
 ## 2026-06-29 — OpenBao ESO scope and transport gate hardened
 
 - Extended the existing operator-secret-bootstrap gate instead of adding a new cloud-ci surface: static and values-backed ExternalSecret use of OpenBao stores is now policy-scoped by store, bound role, namespace, and remote key prefix, and plaintext OpenBao listeners require restrictive NetworkPolicy coverage.

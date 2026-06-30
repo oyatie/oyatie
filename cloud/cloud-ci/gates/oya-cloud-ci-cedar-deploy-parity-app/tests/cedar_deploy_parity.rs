@@ -80,6 +80,22 @@ data:
     };
 {{- end }}
 "#;
+const GH_987_CLOUD_PATHS: [&str; 14] = [
+    "cloud/cell-lifecycle/iac/k8s/helm/templates/cedar.yaml",
+    "cloud/cell-rebalancer/iac/k8s/helm/templates/cedar.yaml",
+    "cloud/cloud-billing-tax/iac/k8s/helm/templates/cedar.yaml",
+    "cloud/cloud-billing/iac/k8s/helm/templates/cedar.yaml",
+    "cloud/cloud-data/iac/k8s/helm/templates/cedar.yaml",
+    "cloud/cloud-iac/iac/k8s/helm/templates/cedar.yaml",
+    "cloud/cloud-iam/iac/k8s/helm/templates/cedar.yaml",
+    "cloud/cloud-k8s/iac/k8s/helm/templates/cedar.yaml",
+    "cloud/cloud-kms/iac/k8s/helm/templates/cedar.yaml",
+    "cloud/cloud-network-dns/iac/k8s/helm/templates/cedar.yaml",
+    "cloud/cloud-network/iac/k8s/helm/templates/cedar.yaml",
+    "cloud/cloud-secrets/iac/k8s/helm/templates/cedar.yaml",
+    "cloud/cloud-storage/iac/k8s/helm/templates/cedar.yaml",
+    "cloud/tenancy/iac/k8s/helm/templates/cedar.yaml",
+];
 
 #[test]
 fn committed_policy_gate_id_matches_contract() {
@@ -103,13 +119,84 @@ fn live_tree_is_green_against_documented_baseline() {
         .unwrap_or(0);
     assert!(count > 0, "the scan must find deployed Cedar ConfigMaps");
 
+    let findings = evaluate_keyed(&policy, &observed);
     let report = evaluate(&policy, &observed);
     assert_eq!(
         report.verdict,
         Verdict::Green,
-        "live tree must be GREEN against the documented baseline (no NEW over-broad permit, no stale baseline): {:?}",
+        "live tree must be GREEN against the documented baseline (no NEW over-broad permit, no stale baseline): {:?}; keyed findings: {findings:#?}",
         report.violations
     );
+}
+#[test]
+fn gh_987_cloud_templates_are_disarmed_from_blanket_baseline() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let baseline_paths = policy
+        .get("baseline")
+        .and_then(|baseline| baseline.get("paths"))
+        .and_then(Value::as_array)
+        .expect("baseline.paths array")
+        .iter()
+        .map(|path| path.as_str().expect("baseline path string"))
+        .collect::<BTreeSet<_>>();
+
+    let observed = collect(&root, &policy).unwrap_or_else(|e| panic!("collect on live tree: {e}"));
+    let configmaps = observed
+        .get("configmaps")
+        .and_then(Value::as_array)
+        .expect("collected configmaps array");
+
+    for path in GH_987_CLOUD_PATHS {
+        assert!(
+            !baseline_paths.contains(path),
+            "{path} must not remain in the blanket baseline after GH #987 disarm"
+        );
+
+        let configmap = configmaps
+            .iter()
+            .find(|configmap| configmap.get("path").and_then(Value::as_str) == Some(path))
+            .unwrap_or_else(|| panic!("missing deployed Cedar ConfigMap for {path}"));
+        assert_eq!(
+            configmap.get("authored_found").and_then(Value::as_bool),
+            Some(true),
+            "{path} must resolve an authored action/resource-specific policy"
+        );
+
+        let permits = configmap
+            .get("permits")
+            .and_then(Value::as_array)
+            .unwrap_or_else(|| panic!("missing permit scan for {path}"));
+        assert!(
+            !permits.is_empty(),
+            "{path} must deploy explicit authored permits, not an empty allow surface"
+        );
+        for permit in permits {
+            assert_eq!(
+                permit.get("action_unconstrained").and_then(Value::as_bool),
+                Some(false),
+                "{path} has an action-agnostic permit after GH #987 disarm: {permit:?}"
+            );
+            assert_eq!(
+                permit
+                    .get("resource_scope_unconstrained")
+                    .and_then(Value::as_bool),
+                Some(false),
+                "{path} has a resource/scope-agnostic permit after GH #987 disarm: {permit:?}"
+            );
+        }
+        let forbids = configmap
+            .get("forbids")
+            .and_then(Value::as_array)
+            .unwrap_or_else(|| panic!("missing forbid scan for {path}"));
+        for forbid in forbids {
+            assert_ne!(
+                forbid.get("normalized").and_then(Value::as_str),
+                Some("forbid ( principal, action, resource )"),
+                "{path} deploys an executable unconditional default-deny forbid instead of relying on Cedar implicit deny: {forbid:?}"
+            );
+        }
+    }
 }
 
 #[test]

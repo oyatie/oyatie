@@ -104,6 +104,11 @@ and the blanket-disarm follow-up shrinks the baseline toward empty. This is the 
 ratchet (no rule is weakened — no new over-broad grant is ever admitted); it is NOT a path-only
 exemption.
 
+2026-06-29 GH #987 shrinks this baseline for the Cloud control-plane subset: the fourteen
+`cloud/*/iac/k8s/helm/templates/cedar.yaml` files named in the audit finding now embed their authored
+action/resource-specific PBAC policies and are no longer grandfathered. The remaining blanket baseline
+is product-surface/deprecation-sensitive and must keep shrinking; it must not grow.
+
 ### D4 — Policy-as-data, nothing oyatie-specific in Rust
 
 The scan suffix (`deployed_suffix`), the authored-policy subdirs (`authored_subdirs`), and the
@@ -135,10 +140,12 @@ cloud/cloud-ci/gates/oya-cloud-ci-cedar-deploy-parity-app/tests/cedar_deploy_par
   after Cedar forbid/default-deny semantics are accounted for (`CDP-DEPLOYED-NOT-SUBSET` /
   `CDP-NO-AUTHORED-BASELINE`), or no longer matches the exact grandfathered authorization signature
   (`CDP-STALE-BASELINE`) fails the `cloud-ci-cedar-deploy-parity` lane from the first commit.
-- **Sequenced disarm**: the 82 known-blanket ConfigMaps are grandfathered by path + signature in the
-  documented baseline and remain RUNTIME over-broad until the follow-up disarm IP re-points each live
-  service at its real authored policy and shrinks the baseline. The gate makes that work visible and
-  bounded (`remove_by`), and `CDP-STALE-BASELINE` keeps the baseline honest as it shrinks.
+- **Sequenced disarm**: the remaining 68 known-blanket product-surface ConfigMaps are grandfathered
+  by path + signature in the documented baseline and remain RUNTIME over-broad until their
+  deprecation/reorg-safe disarm IP re-points each live service at its real authored policy and shrinks
+  the baseline. GH #987 removed the fourteen Cloud control-plane templates from the baseline by
+  deploying their authored action/resource-specific PBAC policies, making the Cloud slice checked by
+  `CDP-UNCONSTRAINED-PERMIT`, `CDP-UNCONSTRAINED-RESOURCE`, and subset parity like any new template.
 - **Owned + hermetic**: `serde_json` only, no shell/network/clock/VCS, no `cedar-policy` engine in the
   gate — clears the AWS/Google "would they ship this as their gate" bar (consistent with ADR-0605/0606).
 - **Accounting**: the new crate is owned by
@@ -153,9 +160,10 @@ cloud/cloud-ci/gates/oya-cloud-ci-cedar-deploy-parity-app/tests/cedar_deploy_par
   Cedar engine in to evaluate untyped template fragments adds weight without buying soundness over a
   string-level over-broad-permit + statement-subset check. The owned text analyser is sufficient and
   fail-closed.
-- **Disarm-then-empty-baseline in this lane**: rejected — determining the correct LIVE, non-deprecated
-  authz target per service (oya/identity is a deprecate target; cloud-iam is the IdP substrate; the
-  PBAC core is `libs/oya-shared-pdp-adapter-cedar`) is a separate decision + IP. Shipping the gate now
-  with a documented shrink-only baseline closes the recurrence class immediately without blocking on it.
+- **Disarm-then-empty-baseline in the original gate lane**: rejected — determining the correct LIVE,
+  non-deprecated authz target per service (oya/identity is a deprecate target; cloud-iam is the IdP
+  substrate; the PBAC core is `libs/oya-shared-pdp-adapter-cedar`) needed a separate decision + IP.
+  GH #987 performs the scoped Cloud control-plane disarm only; remaining product/deprecation-target
+  templates stay in the shrink-only baseline until their own reorg-safe migration lands.
 - **A producer-face binding** (emit findings into the accounting registry): rejected — same R0
   portability rationale as ADR-0605 D-alternatives / ADR-0566.

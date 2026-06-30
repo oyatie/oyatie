@@ -12,16 +12,6 @@
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
-// Default deny
-// =============================================================================
-
-forbid (
-  principal,
-  action,
-  resource
-);
-
-// =============================================================================
 // PERMIT 1 — auditor reads audit-chain export within their authorised window
 // =============================================================================
 

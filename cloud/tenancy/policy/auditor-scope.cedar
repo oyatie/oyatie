@@ -10,17 +10,7 @@
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
-// Default deny
-// =============================================================================
-
-forbid (
-  principal,
-  action,
-  resource
-);
-
-// =============================================================================
-// PERMIT 1 — auditor reads tenant-scoped lifecycle + DSR data within window
+// PERMIT 1a — auditor reads tenant-scoped lifecycle state within window
 // =============================================================================
 //
 // Auditor JIT tokens carry:
@@ -37,13 +27,34 @@ permit (
     Action::"read_tenant_status",
     Action::"read_tenant_lifecycle_history",
     Action::"read_cell_assignment",
+    Action::"read_audit_chain"
+  ],
+  resource is TenantAuditRecord
+)
+when {
+  principal has valid_from &&
+  principal has valid_to &&
+  context has now &&
+  principal.valid_from <= context.now &&
+  context.now <= principal.valid_to &&
+  resource has tenant_id &&
+  principal has scoped_tenants &&
+  resource.tenant_id in principal.scoped_tenants
+};
+
+// =============================================================================
+// PERMIT 1b — auditor reads tenant-scoped DSR and erasure evidence within window
+// =============================================================================
+
+permit (
+  principal in Auditor::?a,
+  action in [
     Action::"read_dsr_request",
     Action::"read_dsr_request_history",
     Action::"read_proof_of_erasure",
-    Action::"read_erasure_receipt",
-    Action::"read_audit_chain"
+    Action::"read_erasure_receipt"
   ],
-  resource
+  resource is DsrEvidence
 )
 when {
   principal has valid_from &&
@@ -74,7 +85,7 @@ permit (
     Action::"read_rls_drift_metrics",
     Action::"read_lean_lane_execution_log"
   ],
-  resource
+  resource is RlsIsolationEvidence
 )
 when {
   principal has valid_from &&
@@ -138,11 +149,41 @@ permit (
   action in [
     Action::"read_dsr_request",
     Action::"read_proof_of_erasure",
-    Action::"read_erasure_receipt",
-    Action::"read_tenant_lifecycle_history",
-    Action::"read_audit_chain"
+    Action::"read_erasure_receipt"
   ],
-  resource
+  resource is DsrEvidence
+)
+when {
+  principal has valid_from &&
+  principal has valid_to &&
+  context has now &&
+  principal.valid_from <= context.now &&
+  context.now <= principal.valid_to &&
+  principal has jurisdiction &&
+  resource has jurisdiction_code &&
+  resource.jurisdiction_code == principal.jurisdiction
+};
+
+permit (
+  principal in Regulator::?r,
+  action == Action::"read_tenant_lifecycle_history",
+  resource is TenantAuditRecord
+)
+when {
+  principal has valid_from &&
+  principal has valid_to &&
+  context has now &&
+  principal.valid_from <= context.now &&
+  context.now <= principal.valid_to &&
+  principal has jurisdiction &&
+  resource has jurisdiction_code &&
+  resource.jurisdiction_code == principal.jurisdiction
+};
+
+permit (
+  principal in Regulator::?r,
+  action == Action::"read_audit_chain",
+  resource is AuditChainRecord
 )
 when {
   principal has valid_from &&

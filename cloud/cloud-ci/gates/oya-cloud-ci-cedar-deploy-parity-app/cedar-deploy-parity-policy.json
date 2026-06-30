@@ -3,27 +3,18 @@
   "_doc": "GH #16 / ADR-0608. Deployed-vs-authored Cedar policy parity. Pack-shaped policy DATA — nothing oyatie-specific is hardcoded in Rust. deployed_suffix selects the deployed ConfigMaps (every file whose repo-relative path ends with it); authored_subdirs are the per-capability subdirs holding the authored .cedar policy set (<cap>/<subdir>/*.cedar). CHECK-A flags any deployed permit whose HEAD leaves the action unconstrained (action-agnostic blanket grant). CHECK-B uses Cedar allow semantics: deployed permits must be authored, authored forbids must be deployed when deployed permits could otherwise allow a request, and default-deny means a deployed policy with no permits grants nothing. It fails closed when a deployed ConfigMap has no resolvable authored policy. baseline.paths plus baseline.policy_signatures grandfather only the GH #16 byte-identical blanket ConfigMaps whose path AND exact Cedar authorization signature match: each is skipped by CHECK-A/CHECK-B but is DOCUMENTED, time-boxed (remove_by), and SHRINK-ONLY — CDP-STALE-BASELINE flags a baseline path that is gone or whose signature changed so it must be dropped, after which it is fully checked. The baseline NEVER grows by automation (a new or changed deployed ConfigMap is checked in full), so the gate blocks regressions from the first commit while the blanket-disarm follow-up (re-point each live service at its real PBAC-core authored policy) shrinks the baseline to empty.",
   "_resource_scope_doc": "CHECK-A also flags a deployed permit whose head leaves bare `resource` and whose `when` clause has no resource/scope predicate. Broad production exceptions must remain in baseline with reason/remove_by/adr and exact policy_signatures; the baseline is audited, time-boxed, and shrink-only.",
   "deployed_suffix": "iac/k8s/helm/templates/cedar.yaml",
-  "authored_subdirs": ["policy", "cedar"],
+  "authored_subdirs": [
+    "policy",
+    "cedar"
+  ],
   "baseline": {
-    "reason": "GH #16: all deployed <cap>/iac/k8s/helm/templates/cedar.yaml ConfigMaps were stamped from a single byte-identical template carrying a BLANKET, action-agnostic permit(principal, action, resource). They are grandfathered here only when both the repo-relative path and Cedar authorization signature match the known blanket, pending the blanket-disarm follow-up IP that re-points each LIVE, non-deprecated service at its real authored (PBAC-core) policy. Shrink-only: as each is disarmed or its signature changes, remove its path so the gate fully checks it.",
+    "reason": "GH #16 / GH #987: remaining legacy product-surface Helm Cedar ConfigMaps still carry the original byte-identical blanket and are grandfathered only by exact path+signature while their deprecation/reorg-safe disarm lands. The Cloud control-plane templates named in GH #987 have been repointed at their authored action/resource-specific PBAC policies and removed from this shrink-only baseline; do not add new baseline paths.",
     "remove_by": "2026-12-31",
     "adr": "ADR-0608",
-    "policy_signatures": ["cedar-authz-fnv1a64:bb36847225f2f7ff"],
+    "policy_signatures": [
+      "cedar-authz-fnv1a64:bb36847225f2f7ff"
+    ],
     "paths": [
-      "cloud/cell-lifecycle/iac/k8s/helm/templates/cedar.yaml",
-      "cloud/cell-rebalancer/iac/k8s/helm/templates/cedar.yaml",
-      "cloud/cloud-billing-tax/iac/k8s/helm/templates/cedar.yaml",
-      "cloud/cloud-billing/iac/k8s/helm/templates/cedar.yaml",
-      "cloud/cloud-data/iac/k8s/helm/templates/cedar.yaml",
-      "cloud/cloud-iac/iac/k8s/helm/templates/cedar.yaml",
-      "cloud/cloud-iam/iac/k8s/helm/templates/cedar.yaml",
-      "cloud/cloud-k8s/iac/k8s/helm/templates/cedar.yaml",
-      "cloud/cloud-kms/iac/k8s/helm/templates/cedar.yaml",
-      "cloud/cloud-network-dns/iac/k8s/helm/templates/cedar.yaml",
-      "cloud/cloud-network/iac/k8s/helm/templates/cedar.yaml",
-      "cloud/cloud-secrets/iac/k8s/helm/templates/cedar.yaml",
-      "cloud/cloud-storage/iac/k8s/helm/templates/cedar.yaml",
-      "cloud/tenancy/iac/k8s/helm/templates/cedar.yaml",
       "oya/analytics/iac/k8s/helm/templates/cedar.yaml",
       "oya/api-gateway/iac/k8s/helm/templates/cedar.yaml",
       "oya/application/iac/k8s/helm/templates/cedar.yaml",
