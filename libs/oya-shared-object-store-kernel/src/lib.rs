@@ -576,6 +576,10 @@ pub enum ObjectStoreError {
         retain_until_epoch_seconds: u64,
         legal_hold: bool,
     },
+    DuplicateCasWriteConflict {
+        tenant_id: String,
+        digest: String,
+    },
     BackendUnavailable {
         detail: String,
     },
@@ -612,6 +616,10 @@ impl fmt::Display for ObjectStoreError {
             } => write!(
                 f,
                 "CAS object is WORM-protected until {retain_until_epoch_seconds} (legal_hold={legal_hold})"
+            ),
+            Self::DuplicateCasWriteConflict { tenant_id, digest } => write!(
+                f,
+                "duplicate CAS write conflicts with existing metadata: tenant={tenant_id} blake3={digest}"
             ),
             Self::BackendUnavailable { detail } => {
                 write!(f, "object-store backend unavailable: {detail}")
@@ -761,7 +769,13 @@ impl ObjectStore for InMemoryObjectStore {
         let mut store = self.lock();
         if let Some(existing) = store.objects.get(&request.address) {
             if existing.bytes == request.bytes {
-                return Ok(existing.record.clone());
+                if stored_record_matches_put(&existing.record, &request) {
+                    return Ok(existing.record.clone());
+                }
+                return Err(ObjectStoreError::DuplicateCasWriteConflict {
+                    tenant_id: request.address.tenant_id.as_str().to_string(),
+                    digest: request.address.digest.as_str().to_string(),
+                });
             }
             let actual = Blake3Digest::for_payload(&request.bytes);
             return Err(ObjectStoreError::AddressDigestMismatch {
@@ -866,10 +880,21 @@ fn is_lower_hex(value: &str, expected_len: usize) -> bool {
             .all(|byte| byte.is_ascii_digit() || matches!(byte, b'a'..=b'f'))
 }
 
+fn stored_record_matches_put(record: &CasObjectRecord, request: &CasPutRequest) -> bool {
+    record.address == request.address
+        && record.size_bytes == request.bytes.len() as u64
+        && record.kms_boundary == request.kms_boundary
+        && record.worm_policy == request.worm_policy
+        && record.audit_anchor == request.audit_anchor
+        && record.durability == request.durability
+        && record.user_metadata == request.user_metadata
+}
+
 fn is_valid_reference(value: &str) -> bool {
     let trimmed = value.trim();
     !trimmed.is_empty()
-        && trimmed.len() <= MAX_REFERENCE_LEN
+        && value == trimmed
+        && value.len() <= MAX_REFERENCE_LEN
         && !trimmed.bytes().any(|byte| byte.is_ascii_control())
 }
 
@@ -979,6 +1004,49 @@ mod tests {
     }
 
     #[test]
+    fn duplicate_identical_cas_put_is_idempotent() {
+        let tenant_id = tenant("ten_alpha");
+        let request = put_request(&tenant_id, b"idempotent payload", 1_800_000_000);
+        let replay = request.clone();
+        let store = InMemoryObjectStore::new();
+
+        let first = store.put_cas(request).unwrap();
+        let second = store.put_cas(replay).unwrap();
+
+        assert_eq!(second, first);
+        assert_eq!(store.len(), 1);
+    }
+
+    #[test]
+    fn duplicate_same_bytes_with_different_worm_policy_is_conflict() {
+        let tenant_id = tenant("ten_alpha");
+        let bytes = b"same bytes stronger retention";
+        let first = put_request(&tenant_id, bytes, 1_800_000_000);
+        let address = first.address.clone();
+        let stronger = put_request(&tenant_id, bytes, 1_900_000_000);
+        let store = InMemoryObjectStore::new();
+
+        store.put_cas(first).unwrap();
+        let error = store.put_cas(stronger).unwrap_err();
+
+        assert_eq!(
+            error,
+            ObjectStoreError::DuplicateCasWriteConflict {
+                tenant_id: "ten_alpha".to_string(),
+                digest: address.digest.as_str().to_string(),
+            }
+        );
+        assert_eq!(
+            store
+                .head_cas(CasReadRequest::new(tenant_id, address))
+                .unwrap()
+                .worm_policy
+                .retain_until_epoch_seconds,
+            1_800_000_000
+        );
+    }
+
+    #[test]
     fn cross_tenant_reads_are_denied_even_when_digest_is_known() {
         let tenant_alpha = tenant("ten_alpha");
         let tenant_beta = tenant("ten_beta");
@@ -1036,6 +1104,42 @@ mod tests {
             error,
             ObjectStoreError::AddressDigestMismatch { .. }
         ));
+    }
+
+    #[test]
+    fn reference_validation_rejects_trim_mismatched_values() {
+        let tenant_id = tenant("ten_alpha");
+        assert_eq!(
+            TenantKekBoundary::new(
+                tenant_id.clone(),
+                " kms/ten_alpha/object-store",
+                1,
+                "ct/ten_alpha/object-store",
+                None,
+            )
+            .unwrap_err(),
+            ObjectStoreError::InvalidKekBoundary
+        );
+
+        let mut request = put_request(&tenant_id, b"metadata payload", 1_800_000_000);
+        request
+            .user_metadata
+            .insert(" object-store-key".to_string(), "ok".to_string());
+        assert_eq!(
+            request.validate().unwrap_err(),
+            ObjectStoreError::InvalidUserMetadata
+        );
+
+        let delete = CasDeleteRequest::new(
+            tenant_id.clone(),
+            TenantScopedBlake3Address::for_payload(tenant_id, b"metadata payload"),
+            1_800_000_001,
+            " audit_evt_delete_with_space",
+        );
+        assert_eq!(
+            delete.validate().unwrap_err(),
+            ObjectStoreError::InvalidDeleteRequest
+        );
     }
 
     #[test]
