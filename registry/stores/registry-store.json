@@ -8759,16 +8759,19 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-object-store-kernel",
-      "context": "shared",
+      "key": "storage-object-store-kernel",
+      "context": "storage",
       "role": "kernel",
-      "capability": "object-store",
+      "capability": "storage-object-store",
       "plane": "data",
       "slo": "preview-data-plane",
       "data_classes_owned": [
+        "PUBLIC",
         "INTERNAL_ONLY"
       ],
-      "operational_classes_owned": [],
+      "operational_classes_owned": [
+        "AUDIT"
+      ],
       "api_stability": "preview",
       "security_review": "unreviewed",
       "supply_chain": "source-only"
