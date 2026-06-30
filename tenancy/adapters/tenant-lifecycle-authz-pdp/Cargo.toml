@@ -13,7 +13,9 @@ oya-shared-pdp-kernel = { path = "../../../libs/oya-shared-pdp-kernel" }
 oya-shared-pdp-adapter-cedar = { path = "../../../libs/oya-shared-pdp-adapter-cedar" }
 oya-shared-platform-contracts-kernel = { path = "../../../libs/oya-shared-platform-contracts-kernel" }
 oya-shared-ulid-id-kernel = { path = "../../../libs/oya-shared-ulid-id-kernel" }
+serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+reqwest = { workspace = true }
 aws-lc-rs = "1.17.0"
 
 [lib]
