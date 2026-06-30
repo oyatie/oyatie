@@ -1983,6 +1983,52 @@
       }
     },
     {
+      "artifact_id": "work-area-content-hash-contract",
+      "artifact_path": "/specs/work-area-content-hash-contract.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "platform-toolchain + platform-scm + platform-cd",
+      "purpose_short": "W1 interface contract for one content-addressed work-area hash shared as SCM change id, buck2/RBE key, and CD artifact hash.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "work-area-content-hash-contract"
+        },
+        "verification": {
+          "checker_crate": "planned: platform work-area hash contract gate",
+          "command": "python3 -m json.tool specs/work-area-content-hash-contract.json >/dev/null"
+        },
+        "validation": {
+          "validator": "JSON syntax validation until the Rust work-area hash contract gate lands"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored W1 contract"
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until WorkAreaTree/scm-facts contract validator lands"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_work_area_hash_alias_violations_total",
+              "kind": "counter",
+              "unit": "1",
+              "labels": [
+                "consumer",
+                "alias"
+              ],
+              "cardinality_budget": 100
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "pending code-review",
+          "last_modified_at": "2026-06-30T09:41:10Z"
+        }
+      }
+    },
+    {
       "artifact_id": "generated-artifact-control-plane-schema",
       "artifact_path": "/specs/generated-artifact-control-plane.schema.json",
       "artifact_format": "json",
