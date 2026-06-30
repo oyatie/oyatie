@@ -29,6 +29,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 # Surface-all: every gate lane runs to completion even if a sibling fails. The fan-in job
 # collects the join. Matrix legs run one Buck2 target each, so a leg failure cannot hide a sibling.
@@ -634,12 +635,14 @@ jobs:
       #    is a content-addressed substrate — a buck2 hit is bit-identical to a cold build (ADR-0556
       #    D1/D2) — so warmth changes only wall-clock, never the baseline SOURCE. Warm-eligible
       #    under ADR-0556 with no policy change (trusted-author, content-addressed; not the
-      #    integrity-canary/release cold floor). This SUPERSEDES the deferred ADR-0554 D8 cross-run
-      #    report-artifact CONSUMER (do not build it) — Option A warms the build directly.
+      #    integrity-canary/release cold floor). GH #899 activates the trusted D8 consumer first:
+      #    use an exact push-to-dev baseline artifact when provenance and schema validate, else
+      #    fail closed to the same in-job merge-base rebuild below.
       - name: Materialize merge-base build-health baseline when affected-set needs FULL
         if: ${{ github.event_name == 'pull_request' }}
         env:
           BASE_REF: ${{ github.base_ref || 'dev' }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           merge_base="$(git merge-base "origin/${BASE_REF}" HEAD)"
@@ -663,6 +666,104 @@ jobs:
             exit 0
           fi
           echo "build-health baseline: merge-base=${merge_base} candidate=${orig_ref}"
+          artifact_name="build-health-baseline-${merge_base}"
+          echo "build-health baseline: attempting trusted dev-push artifact ${artifact_name}"
+          try_trusted_baseline_artifact() {
+            if ! command -v gh >/dev/null 2>&1; then
+              echo "build-health baseline: gh unavailable; falling back to in-job merge-base rebuild"
+              return 1
+            fi
+            local runs_json="${RUNNER_TEMP}/build-health-trusted-runs.json"
+            local artifacts_json="${RUNNER_TEMP}/build-health-trusted-artifacts.json"
+            local trusted_zip="${RUNNER_TEMP}/build-health-trusted.zip"
+            local trusted_dir="${RUNNER_TEMP}/build-health-trusted"
+            local trusted_report="${trusted_dir}/build-health-admission-report.json"
+
+            gh api --method GET -H "Accept: application/vnd.github+json" \
+              "repos/${GITHUB_REPOSITORY}/actions/workflows/oya-ci-required.yml/runs" \
+              -f branch=dev -f event=push -f status=success -F per_page=50 > "${runs_json}" \
+              || { echo "build-health baseline: trusted run lookup failed; falling back to in-job rebuild"; return 1; }
+
+            local run_id
+            run_id="$(python3 - "${runs_json}" "${merge_base}" <<'PY'
+          import json
+          import sys
+
+          path, merge_base = sys.argv[1], sys.argv[2]
+          with open(path, encoding="utf-8") as fh:
+              payload = json.load(fh)
+          for run in payload.get("workflow_runs", []):
+              if (
+                  run.get("head_sha") == merge_base
+                  and run.get("event") == "push"
+                  and run.get("head_branch") == "dev"
+                  and run.get("conclusion") == "success"
+              ):
+                  print(run["id"])
+                  break
+          PY
+            )"
+            if [ -z "${run_id}" ]; then
+              echo "build-health baseline: no successful trusted push-to-dev run for ${merge_base}; falling back to in-job rebuild"
+              return 1
+            fi
+
+            gh api --method GET -H "Accept: application/vnd.github+json" \
+              "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts" \
+              -F per_page=100 > "${artifacts_json}" \
+              || { echo "build-health baseline: trusted artifact lookup failed; falling back to in-job rebuild"; return 1; }
+
+            local artifact_id
+            artifact_id="$(python3 - "${artifacts_json}" "${artifact_name}" <<'PY'
+          import json
+          import sys
+
+          path, expected_name = sys.argv[1], sys.argv[2]
+          with open(path, encoding="utf-8") as fh:
+              payload = json.load(fh)
+          for artifact in payload.get("artifacts", []):
+              if artifact.get("name") == expected_name and not artifact.get("expired", True):
+                  print(artifact["id"])
+                  break
+          PY
+            )"
+            if [ -z "${artifact_id}" ]; then
+              echo "build-health baseline: no unexpired exact artifact ${artifact_name} on trusted run ${run_id}; falling back to in-job rebuild"
+              return 1
+            fi
+
+            gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}/zip" > "${trusted_zip}" \
+              || { echo "build-health baseline: artifact download failed; falling back to in-job rebuild"; return 1; }
+            rm -rf "${trusted_dir}"
+            mkdir -p "${trusted_dir}"
+            python3 -m zipfile -e "${trusted_zip}" "${trusted_dir}" \
+              || { echo "build-health baseline: artifact unzip failed; falling back to in-job rebuild"; return 1; }
+
+            if ! python3 - "${trusted_report}" <<'PY'
+          import json
+          import os
+          import sys
+
+          path = sys.argv[1]
+          if not os.path.getsize(path):
+              raise SystemExit("empty report file")
+          with open(path, encoding="utf-8") as fh:
+              payload = json.load(fh)
+          results = payload.get("results")
+          if not isinstance(results, dict) or not results:
+              raise SystemExit("missing or empty results object")
+          PY
+            then
+              echo "build-health baseline: trusted artifact schema/emptiness invalid; falling back to in-job rebuild"
+              return 1
+            fi
+            cp "${trusted_report}" "${RUNNER_TEMP}/build-health-baseline.json"
+            echo "build-health baseline: trusted artifact hit run_id=${run_id} artifact_id=${artifact_id}"
+            return 0
+          }
+          if try_trusted_baseline_artifact; then
+            exit 0
+          fi
           # ALWAYS restore the candidate tree on EXIT — a failed baseline build can never strand CI
           # on the merge-base tree (the subsequent Binding affected-set step runs on the candidate).
           # NOTE: if the timeout-minutes:45 rail SIGKILLs this build, the bash EXIT trap does NOT
