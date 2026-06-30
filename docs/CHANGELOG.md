@@ -3,6 +3,10 @@ purpose: Oyatie — Canonical Docs Changelog
 doc_status: published
 ---
 
+## 2026-06-30 — ADR-0536 substrate-to-port matrix
+
+- Added a shape-neutral D-1..D-16 substrate-to-port contract matrix to ADR-0536 so downstream product fanout locks owned port/contract seams, treats `oya-*` / `cloud-*` names as migration aliases, and preserves explicit non-claims for runtime readiness.
+
 ## 2026-06-30 — Review/fix evidence packet for oya-ci-required
 
 - Updated the PR templates, PR review checklist, done-definition checklist, pre-merge checklist, and code-review standard so merge-ready PR evidence records `oya-ci-required` status, exact failing/fixed checks, review-thread resolution, and reviewer approval state on the current PR head.
