@@ -1440,14 +1440,36 @@ mod phase0_ci_enforcement_baseline_tests {
             || lower.contains("legacy oya cli invocation")
     }
 
+    fn mentions_retired_multispectrum_evidence(value: &str) -> bool {
+        value
+            .split([' ', '+', ',', ';', '\n', '\t'])
+            .any(|part| part.trim().starts_with("evidence/multispectrum/"))
+    }
+
     fn has_pre_merge_review_authority(row: &Value) -> bool {
         let live_authority = row["review_authority_live"].as_bool() == Some(true);
         let durable_evidence = row["has_durable_review_evidence"].as_bool() == Some(true);
         let machine_status = row["has_machine_verifiable_review_status"].as_bool() == Some(true);
+        let title_evidence = row["has_review_title_evidence"].as_bool() == Some(true);
+        let body_evidence = row["has_review_body_evidence"].as_bool() == Some(true);
+        let trusted_source = matches!(
+            row["review_authority_source"].as_str().map(str::trim),
+            Some(
+                "trusted_runner_signed_oya_pr_review_status"
+                    | "trusted_cloud_ci_review_admission_packet"
+                    | "trusted_server_side_oya_pr_review_status"
+            )
+        );
         let blocks_merge = row["review_blocks_merge"].as_bool() == Some(true);
         let reviewer_distinct =
             row["reviewer_identity_distinct_from_author"].as_bool() == Some(true);
-        live_authority && (durable_evidence || machine_status) && blocks_merge && reviewer_distinct
+        live_authority
+            && trusted_source
+            && (durable_evidence || machine_status)
+            && title_evidence
+            && body_evidence
+            && blocks_merge
+            && reviewer_distinct
     }
 
     fn is_full_hex_sha(value: &str) -> bool {
@@ -1530,6 +1552,13 @@ mod phase0_ci_enforcement_baseline_tests {
                 .is_some_and(contains_oya_cli_authority)
             {
                 violations.insert("blocking_invariant_mapped_to_oya_cli".to_owned());
+            }
+
+            if row["evidence_path"]
+                .as_str()
+                .is_some_and(mentions_retired_multispectrum_evidence)
+            {
+                violations.insert("retired_multispectrum_evidence".to_owned());
             }
 
             if classification == "not_automatable_human_judgment"
