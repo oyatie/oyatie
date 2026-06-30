@@ -140,12 +140,15 @@ cloud/cloud-ci/gates/oya-cloud-ci-cedar-deploy-parity-app/tests/cedar_deploy_par
   after Cedar forbid/default-deny semantics are accounted for (`CDP-DEPLOYED-NOT-SUBSET` /
   `CDP-NO-AUTHORED-BASELINE`), or no longer matches the exact grandfathered authorization signature
   (`CDP-STALE-BASELINE`) fails the `cloud-ci-cedar-deploy-parity` lane from the first commit.
-- **Sequenced disarm**: the remaining 68 known-blanket product-surface ConfigMaps are grandfathered
+- **Sequenced disarm**: the remaining 67 known-blanket product-surface ConfigMaps are grandfathered
   by path + signature in the documented baseline and remain RUNTIME over-broad until their
   deprecation/reorg-safe disarm IP re-points each live service at its real authored policy and shrinks
   the baseline. GH #987 removed the fourteen Cloud control-plane templates from the baseline by
   deploying their authored action/resource-specific PBAC policies, making the Cloud slice checked by
   `CDP-UNCONSTRAINED-PERMIT`, `CDP-UNCONSTRAINED-RESOURCE`, and subset parity like any new template.
+  AUTHZ-004 removed the unused `oya/analytics` Helm Cedar ConfigMap template instead of deploying a
+  replacement: the chart's Deployment did not mount the ConfigMap, so deleting the dead blanket avoids
+  preserving an executable over-broad policy surface while shrinking the baseline by one.
 - **Owned + hermetic**: `serde_json` only, no shell/network/clock/VCS, no `cedar-policy` engine in the
   gate — clears the AWS/Google "would they ship this as their gate" bar (consistent with ADR-0605/0606).
 - **Accounting**: the new crate is owned by

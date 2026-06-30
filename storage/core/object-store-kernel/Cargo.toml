@@ -1,5 +1,5 @@
 [package]
-name = "oya-shared-object-store-kernel"
+name = "storage-object-store-kernel"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -14,7 +14,7 @@ license = "Apache-2.0"
 blake3 = "1.8.5"
 
 [lib]
-name = "oya_shared_object_store_kernel"
+name = "storage_object_store_kernel"
 path = "src/lib.rs"
 doctest = false
 

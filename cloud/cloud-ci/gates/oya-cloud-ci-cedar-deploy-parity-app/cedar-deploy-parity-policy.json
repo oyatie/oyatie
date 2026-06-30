@@ -8,14 +8,13 @@
     "cedar"
   ],
   "baseline": {
-    "reason": "GH #16 / GH #987: remaining legacy product-surface Helm Cedar ConfigMaps still carry the original byte-identical blanket and are grandfathered only by exact path+signature while their deprecation/reorg-safe disarm lands. The Cloud control-plane templates named in GH #987 have been repointed at their authored action/resource-specific PBAC policies and removed from this shrink-only baseline; do not add new baseline paths.",
+    "reason": "GH #16 / GH #987 / AUTHZ-004: remaining legacy product-surface Helm Cedar ConfigMaps still carry the original byte-identical blanket and are grandfathered only by exact path+signature while their deprecation/reorg-safe disarm lands. The Cloud control-plane templates named in GH #987 have been repointed at their authored action/resource-specific PBAC policies and removed from this shrink-only baseline; AUTHZ-004 deleted the unused oya/analytics Helm Cedar ConfigMap because the chart deployment never mounted it. Do not add new baseline paths.",
     "remove_by": "2026-12-31",
     "adr": "ADR-0608",
     "policy_signatures": [
       "cedar-authz-fnv1a64:bb36847225f2f7ff"
     ],
     "paths": [
-      "oya/analytics/iac/k8s/helm/templates/cedar.yaml",
       "oya/api-gateway/iac/k8s/helm/templates/cedar.yaml",
       "oya/application/iac/k8s/helm/templates/cedar.yaml",
       "oya/audit-chain/iac/k8s/helm/templates/cedar.yaml",

@@ -9275,13 +9275,6 @@ name = "oya-shared-idempotency-key-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-shared-object-store-kernel"
-version = "0.1.0"
-dependencies = [
- "blake3",
-]
-
-[[package]]
 name = "oya-shared-oidc-client-kernel"
 version = "0.1.0"
 dependencies = [
@@ -11581,6 +11574,13 @@ dependencies = [
  "oya-data-boundary-kernel",
  "secrets-kms-domain",
  "storage-domain",
+]
+
+[[package]]
+name = "storage-object-store-kernel"
+version = "0.1.0"
+dependencies = [
+ "blake3",
 ]
 
 [[package]]

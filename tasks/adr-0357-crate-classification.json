@@ -2033,9 +2033,9 @@
       "dest": "libs/oya-shared-idempotency-key-kernel",
       "type": "shared"
     },
-    "oya-shared-object-store-kernel": {
-      "source": "crates/oya-shared-object-store-kernel",
-      "dest": "libs/oya-shared-object-store-kernel",
+    "storage-object-store-kernel": {
+      "source": "storage/core/object-store-kernel",
+      "dest": "storage/core/object-store-kernel",
       "type": "shared"
     },
     "oya-shared-oidc-client-kernel": {
