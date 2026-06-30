@@ -13310,6 +13310,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "work-area-rust-parser"
+version = "0.1.0"
+dependencies = [
+ "sha2",
+ "work-area-tree-kernel",
+]
+
+[[package]]
 name = "work-area-tree-kernel"
 version = "0.1.0"
 
