@@ -65,7 +65,9 @@ use oya_shared_resource_provider_contract_kernel::{
     IdempotencyKey, Operation, OperationResult, PageRequest, PageToken, ProviderError,
     ResourceName, ResourceProvider,
 };
-use tenancy_tenant_lifecycle_authz_pdp::PdpTenantLifecycleAuthorizer;
+use tenancy_tenant_lifecycle_authz_pdp::{
+    NetworkPdpTenantLifecycleAuthorizer, PdpTenantLifecycleAuthorizer,
+};
 use tenancy_tenant_lifecycle_authz_port::{
     AuthorizationDecision, AuthorizationOutcome, AuthorizationQuery, CallerIdentity,
     TenantLifecycleAction, TenantLifecycleAuthorizer, TenantMembershipResolver,
@@ -136,6 +138,12 @@ const REFERENCE_OPERATOR_PRINCIPAL_ID: &str = "tenant-operator";
 /// (`OYA_BACKBONE_POSTGRES_URL`, the same one the durable adapter's live tests
 /// point at) so runtime and live-test config share one source of truth.
 const ENV_DATABASE_URL: &str = "OYA_BACKBONE_POSTGRES_URL";
+
+/// Optional network PDP endpoint/base URL for dogfooding the tenant lifecycle
+/// PEP against the shared PDP REST surface. When present, boot composes a
+/// network authorizer and REFUSES to fall back to embedded PDP if that endpoint
+/// is invalid or unavailable.
+const ENV_AUTHZ_PDP_URL: &str = "TENANCY_LIFECYCLE_AUTHZ_PDP_URL";
 
 /// The header asserting which tenant a verified tenant-operator is acting as.
 const HEADER_TENANT_AXIS: &str = "x-oya-tenant";
@@ -1189,17 +1197,36 @@ pub fn build_inmemory_router_with_tenant_bound_operator_tokens(
     tenant_operator_token: Option<String>,
     tenant_bound_operator_tokens: TenantBoundOperatorTokens,
 ) -> Result<Router, BootError> {
+    let authorizer = PdpTenantLifecycleAuthorizer::from_seed_bundle()
+        .map_err(|e| BootError::Authz(e.to_string()))?;
+    build_inmemory_router_with_authorizer_and_tenant_bound_operator_tokens(
+        Arc::new(authorizer),
+        membership,
+        platform_admin_token,
+        tenant_operator_token,
+        tenant_bound_operator_tokens,
+    )
+}
+
+/// Build an in-memory router with an explicit authorizer. This is the network
+/// PDP dogfood seam: callers that configured a network PDP pass that authorizer
+/// here; failures happen before this function, never as fallback to embedded.
+pub fn build_inmemory_router_with_authorizer_and_tenant_bound_operator_tokens(
+    authorizer: SharedAuthorizer,
+    membership: SharedMembershipResolver,
+    platform_admin_token: Option<String>,
+    tenant_operator_token: Option<String>,
+    tenant_bound_operator_tokens: TenantBoundOperatorTokens,
+) -> Result<Router, BootError> {
     let (platform_admin_token, tenant_operator_token, tenant_bound_operator_tokens) =
         normalize_and_validate_credentials(
             platform_admin_token,
             tenant_operator_token,
             tenant_bound_operator_tokens,
         )?;
-    let authorizer = PdpTenantLifecycleAuthorizer::from_seed_bundle()
-        .map_err(|e| BootError::Authz(e.to_string()))?;
     Ok(build_router_with_tenant_bound_operator_tokens(
         TenantLifecycleProvider::new(InMemoryTenantLifecycleStore::new()),
-        Arc::new(authorizer),
+        authorizer,
         membership,
         platform_admin_token,
         tenant_operator_token,
@@ -1253,6 +1280,30 @@ pub async fn build_postgres_router_with_tenant_bound_operator_tokens(
     tenant_operator_token: Option<String>,
     tenant_bound_operator_tokens: TenantBoundOperatorTokens,
 ) -> Result<Router, BootError> {
+    let authorizer = PdpTenantLifecycleAuthorizer::from_seed_bundle()
+        .map_err(|e| BootError::Authz(e.to_string()))?;
+    build_postgres_router_with_authorizer_and_tenant_bound_operator_tokens(
+        database_url,
+        Arc::new(authorizer),
+        membership,
+        platform_admin_token,
+        tenant_operator_token,
+        tenant_bound_operator_tokens,
+    )
+    .await
+}
+
+/// Build a durable Postgres router with an explicit authorizer. A configured
+/// network PDP reaches this only after successful composition; store failures
+/// still refuse boot and never downgrade to in-memory.
+pub async fn build_postgres_router_with_authorizer_and_tenant_bound_operator_tokens(
+    database_url: &str,
+    authorizer: SharedAuthorizer,
+    membership: SharedMembershipResolver,
+    platform_admin_token: Option<String>,
+    tenant_operator_token: Option<String>,
+    tenant_bound_operator_tokens: TenantBoundOperatorTokens,
+) -> Result<Router, BootError> {
     let (platform_admin_token, tenant_operator_token, tenant_bound_operator_tokens) =
         normalize_and_validate_credentials(
             platform_admin_token,
@@ -1275,11 +1326,9 @@ pub async fn build_postgres_router_with_tenant_bound_operator_tokens(
         .assert_rls_enforceable()
         .await
         .map_err(|e| BootError::Store(e.to_string()))?;
-    let authorizer = PdpTenantLifecycleAuthorizer::from_seed_bundle()
-        .map_err(|e| BootError::Authz(e.to_string()))?;
     Ok(build_router_with_tenant_bound_operator_tokens(
         TenantLifecycleProvider::new(store),
-        Arc::new(authorizer),
+        authorizer,
         membership,
         platform_admin_token,
         tenant_operator_token,
@@ -1475,6 +1524,49 @@ pub fn select_store_kind(database_url: Option<String>) -> StoreSelection {
     }
 }
 
+/// The authorization backend selected by [`select_authorizer_kind`] from boot
+/// config.
+///
+/// This is the no-fallback decision socket: only an absent/empty endpoint uses
+/// the embedded PDP. A configured endpoint means network PDP or boot failure.
+#[derive(Debug, PartialEq, Eq)]
+pub enum AuthorizerSelection {
+    /// Embedded in-process Cedar PDP over the seed tenancy bundle.
+    Embedded,
+    /// Network PDP REST endpoint/base URL.
+    Network(String),
+}
+
+/// Pure authorization-backend selection function. `None`, empty, or
+/// whitespace-only strings select the embedded PDP; any non-empty value selects
+/// network PDP and must never silently fall back if composition fails.
+pub fn select_authorizer_kind(pdp_url: Option<String>) -> AuthorizerSelection {
+    match normalize_token(pdp_url) {
+        Some(url) => AuthorizerSelection::Network(url),
+        None => AuthorizerSelection::Embedded,
+    }
+}
+
+fn compose_authorizer(
+    selection: AuthorizerSelection,
+) -> Result<(SharedAuthorizer, &'static str), BootError> {
+    match selection {
+        AuthorizerSelection::Embedded => {
+            let authorizer = PdpTenantLifecycleAuthorizer::from_seed_bundle()
+                .map_err(|e| BootError::Authz(e.to_string()))?;
+            Ok((Arc::new(authorizer), "embedded-pdp"))
+        }
+        AuthorizerSelection::Network(endpoint_or_base_url) => {
+            let authorizer =
+                NetworkPdpTenantLifecycleAuthorizer::from_endpoint_with_readiness_preflight(
+                    &endpoint_or_base_url,
+                )
+                .map_err(|e| BootError::Authz(e.to_string()))?;
+            Ok((Arc::new(authorizer), "network-pdp"))
+        }
+    }
+}
+
 /// Parse tenant-bound operator tokens from boot config. Malformed entries are
 /// boot-fatal rather than silently skipped.
 fn parse_tenant_bound_operator_tokens(
@@ -1612,12 +1704,16 @@ pub async fn serve(listen_addr: &str) -> Result<(), BootError> {
                 .ok()
                 .as_deref(),
         ));
+    let (authorizer, authorizer_kind) = compose_authorizer(select_authorizer_kind(
+        std::env::var(ENV_AUTHZ_PDP_URL).ok(),
+    ))?;
     let (app, store_kind) = match select_store_kind(std::env::var(ENV_DATABASE_URL).ok()) {
         StoreSelection::Postgres(url) => (
             // FAIL-CLOSED: a connect failure or RLS-bypass role propagates;
             // NEVER fall back to in-memory when a durable backend was configured.
-            build_postgres_router_with_tenant_bound_operator_tokens(
+            build_postgres_router_with_authorizer_and_tenant_bound_operator_tokens(
                 &url,
+                Arc::clone(&authorizer),
                 Arc::clone(&membership),
                 platform_admin_token,
                 tenant_operator_token,
@@ -1627,7 +1723,8 @@ pub async fn serve(listen_addr: &str) -> Result<(), BootError> {
             "postgres",
         ),
         StoreSelection::InMemory => (
-            build_inmemory_router_with_tenant_bound_operator_tokens(
+            build_inmemory_router_with_authorizer_and_tenant_bound_operator_tokens(
+                Arc::clone(&authorizer),
                 Arc::clone(&membership),
                 platform_admin_token,
                 tenant_operator_token,
@@ -1645,7 +1742,8 @@ pub async fn serve(listen_addr: &str) -> Result<(), BootError> {
     tracing::info!(
         addr = listen_addr,
         store = store_kind,
-        "tenancy-tenant-lifecycle listening (authz: embedded-pdp, fail-closed)"
+        authz = authorizer_kind,
+        "tenancy-tenant-lifecycle listening (fail-closed)"
     );
     axum::serve(listener, app)
         .await
@@ -1655,6 +1753,26 @@ pub async fn serve(listen_addr: &str) -> Result<(), BootError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn spawn_readyz_server() -> String {
+        use std::io::{Read, Write};
+
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind readyz");
+        let addr = listener.local_addr().expect("readyz addr");
+        std::thread::spawn(move || {
+            let (mut stream, _) = listener.accept().expect("accept readyz");
+            let mut buffer = [0_u8; 1024];
+            let _ = stream.read(&mut buffer);
+            let body = r#"{"status":"ready"}"#;
+            let response = format!(
+                "HTTP/1.1 200 OK\r\ncontent-type: application/json\r\ncontent-length: {}\r\n\r\n{}",
+                body.len(),
+                body
+            );
+            stream.write_all(response.as_bytes()).expect("write readyz");
+        });
+        format!("http://{addr}")
+    }
 
     #[test]
     fn tenant_view_round_trips_from_tenant() {
@@ -1705,6 +1823,39 @@ mod tests {
             select_store_kind(Some("   ".to_owned())),
             StoreSelection::InMemory,
         );
+    }
+
+    // --- select_authorizer_kind unit tests (pure, no socket) ------------------
+
+    #[test]
+    fn select_authorizer_kind_none_picks_embedded() {
+        assert_eq!(select_authorizer_kind(None), AuthorizerSelection::Embedded);
+    }
+
+    #[test]
+    fn select_authorizer_kind_non_empty_url_picks_network() {
+        assert_eq!(
+            select_authorizer_kind(Some("https://pdp.internal".to_owned())),
+            AuthorizerSelection::Network("https://pdp.internal".to_owned()),
+        );
+    }
+
+    #[test]
+    fn compose_network_authorizer_never_falls_back_to_embedded_on_bad_endpoint() {
+        let result = compose_authorizer(AuthorizerSelection::Network(
+            "http://pdp.internal".to_owned(),
+        ));
+
+        assert!(matches!(result, Err(BootError::Authz(_))));
+    }
+
+    #[test]
+    fn compose_loopback_network_authorizer_reports_network_kind() {
+        let endpoint = spawn_readyz_server();
+        let (_authorizer, kind) = compose_authorizer(AuthorizerSelection::Network(endpoint))
+            .expect("loopback network PDP endpoint with readyz preflight is valid for tests");
+
+        assert_eq!(kind, "network-pdp");
     }
 
     // --- DB-free fail-closed wiring proof ------------------------------------

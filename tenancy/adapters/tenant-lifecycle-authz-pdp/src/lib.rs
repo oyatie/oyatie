@@ -32,14 +32,16 @@
 #![forbid(unsafe_code)]
 
 use std::collections::BTreeMap;
+use std::fmt;
 use std::sync::Arc;
+use std::time::Duration;
 
 use oya_shared_pdp_adapter_cedar::CedarPdp;
 use oya_shared_pdp_kernel::{
     EntityRecord, EntitySlice, PdpError, PolicyBundle, PolicyDecisionPoint,
 };
 use oya_shared_platform_contracts_kernel::pdp::{
-    AuthorizationRequest, Decision, EntityRef, PolicyVersion,
+    AuthorizationRequest, AuthorizationResponse, Decision, EntityRef, Obligation, PolicyVersion,
 };
 use oya_shared_ulid_id_kernel::{IdGenerator, IdGeneratorError, Ulid};
 
@@ -76,11 +78,10 @@ const LIST_TENANTS_UID: &str = r#"OyaTenancy::Action::"ListTenants""#;
 /// The action map binds each port action slug to its Cedar action UID; per the
 /// embedded-PDP contract an unmapped slug fails closed (`UnknownAction`).
 fn tenancy_bundle() -> Result<PolicyBundle, PdpError> {
-    let version = PolicyVersion::new(SEED_POLICY_VERSION).map_err(|violations| {
-        PdpError::BundleRejected {
+    let version =
+        PolicyVersion::new(SEED_POLICY_VERSION).map_err(|violations| PdpError::BundleRejected {
             detail: format!("seed policy version rejected: {violations:?}"),
-        }
-    })?;
+        })?;
     let action_map = BTreeMap::from([
         (
             TenantLifecycleAction::Read.slug().to_owned(),
@@ -169,14 +170,312 @@ impl PdpTenantLifecycleAuthorizer {
     }
 }
 
-/// Assemble the PARC request + PEP entity slice for one query, then ask the
-/// embedded PDP. The verified caller's attributes are materialized HERE; the
-/// target tenant id only ever appears as a resource the caller is checked
-/// against — it never authorizes by itself.
-fn decide(
-    pdp: &CedarPdp,
+/// Closed JSON body accepted by the cloud PDP REST decision surface.
+#[derive(Debug, serde::Serialize)]
+struct NetworkAuthorizeBody<'a> {
+    request: &'a AuthorizationRequest,
+    entities: &'a [EntityRecord],
+}
+
+/// A synchronous network PDP transport behind the tenancy authorizer port.
+///
+/// The tenancy facade's [`TenantLifecycleAuthorizer`] port is synchronous today,
+/// so this trait is deliberately synchronous too. Transport failures are
+/// fail-closed [`AuthzError`] values, never fallback triggers.
+pub trait PdpDecisionTransport: Send + Sync {
+    /// Decide one PARC request with its PEP-assembled entity slice.
+    fn authorize(
+        &self,
+        request: &AuthorizationRequest,
+        entities: &EntitySlice,
+    ) -> Result<AuthorizationResponse, AuthzError>;
+}
+
+/// Blocking HTTP transport for the cloud PDP REST `/v1/authorize` contract.
+#[derive(Clone)]
+pub struct ReqwestPdpDecisionTransport {
+    endpoint: String,
+    client: reqwest::blocking::Client,
+}
+
+impl ReqwestPdpDecisionTransport {
+    /// Build a transport from either a service base URL or a full
+    /// `/v1/authorize` endpoint. HTTPS is required except for loopback HTTP
+    /// used by hermetic tests and local developer wiring.
+    ///
+    /// # Errors
+    /// [`NetworkPdpEndpointError`] when the endpoint is empty, malformed, or
+    /// would send PDP decisions over non-loopback plaintext HTTP.
+    pub fn new(endpoint_or_base_url: &str) -> Result<Self, NetworkPdpEndpointError> {
+        let endpoint = normalize_network_pdp_authorize_endpoint(endpoint_or_base_url)?;
+        let client = reqwest::blocking::Client::builder()
+            .timeout(Duration::from_secs(2))
+            .build()
+            .map_err(|error| NetworkPdpEndpointError::Client(error.to_string()))?;
+        Ok(Self { endpoint, client })
+    }
+
+    /// Build a transport and verify the configured PDP is ready before the
+    /// service advertises health.
+    ///
+    /// # Errors
+    /// [`NetworkPdpEndpointError`] when endpoint validation/client construction
+    /// fails or `/readyz` is unavailable/non-2xx.
+    pub fn new_with_readiness_preflight(
+        endpoint_or_base_url: &str,
+    ) -> Result<Self, NetworkPdpEndpointError> {
+        let transport = Self::new(endpoint_or_base_url)?;
+        transport.preflight_ready()?;
+        Ok(transport)
+    }
+
+    /// The normalized authorize endpoint this transport calls.
+    #[must_use]
+    pub fn endpoint(&self) -> &str {
+        &self.endpoint
+    }
+
+    /// The normalized readiness endpoint this transport preflights.
+    ///
+    /// # Errors
+    /// [`NetworkPdpEndpointError`] if the already-normalized authorize endpoint
+    /// cannot be parsed as a URL.
+    pub fn readiness_endpoint(&self) -> Result<String, NetworkPdpEndpointError> {
+        network_pdp_readyz_endpoint_from_authorize_endpoint(&self.endpoint)
+    }
+
+    /// Confirm the configured PDP is reachable and ready. This is intentionally
+    /// a boot-time check: a configured network PDP must fail closed at boot, not
+    /// lazily time out protected requests after the service reports healthy.
+    ///
+    /// # Errors
+    /// [`NetworkPdpEndpointError::Readiness`] on request failure or non-2xx.
+    pub fn preflight_ready(&self) -> Result<(), NetworkPdpEndpointError> {
+        let readyz = self.readiness_endpoint()?;
+        let response = self.client.get(&readyz).send().map_err(|error| {
+            NetworkPdpEndpointError::Readiness(format!("readyz request failed: {error}"))
+        })?;
+        let status = response.status();
+        if !status.is_success() {
+            let detail = response
+                .text()
+                .unwrap_or_else(|error| format!("response body unavailable: {error}"));
+            return Err(NetworkPdpEndpointError::Readiness(format!(
+                "readyz returned status {status}: {detail}"
+            )));
+        }
+        Ok(())
+    }
+}
+
+impl PdpDecisionTransport for ReqwestPdpDecisionTransport {
+    fn authorize(
+        &self,
+        request: &AuthorizationRequest,
+        entities: &EntitySlice,
+    ) -> Result<AuthorizationResponse, AuthzError> {
+        let body = NetworkAuthorizeBody {
+            request,
+            entities: &entities.entities,
+        };
+        let response = self
+            .client
+            .post(&self.endpoint)
+            .json(&body)
+            .send()
+            .map_err(|error| {
+                AuthzError::EngineRefused(format!("network PDP request failed: {error}"))
+            })?;
+        let status = response.status();
+        if !status.is_success() {
+            let detail = response
+                .text()
+                .unwrap_or_else(|error| format!("response body unavailable: {error}"));
+            return Err(AuthzError::EngineRefused(format!(
+                "network PDP refused with status {status}: {detail}"
+            )));
+        }
+        response.json::<AuthorizationResponse>().map_err(|error| {
+            AuthzError::EngineRefused(format!("network PDP response decode failed: {error}"))
+        })
+    }
+}
+
+/// Endpoint validation failure for [`ReqwestPdpDecisionTransport`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum NetworkPdpEndpointError {
+    /// The configured endpoint is empty after trimming whitespace.
+    Empty,
+    /// The endpoint is not an absolute URL.
+    InvalidUrl(String),
+    /// Only HTTPS, plus loopback HTTP for tests/local wiring, is accepted.
+    UnsupportedScheme(String),
+    /// Plain HTTP is allowed only for loopback hosts.
+    PlainHttpNonLoopback(String),
+    /// The blocking HTTP client could not be constructed.
+    Client(String),
+    /// The configured PDP failed its boot-time readiness preflight.
+    Readiness(String),
+}
+
+impl fmt::Display for NetworkPdpEndpointError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Empty => write!(f, "network PDP endpoint is empty"),
+            Self::InvalidUrl(error) => write!(f, "network PDP endpoint is invalid: {error}"),
+            Self::UnsupportedScheme(scheme) => {
+                write!(f, "network PDP endpoint uses unsupported scheme {scheme:?}")
+            }
+            Self::PlainHttpNonLoopback(host) => write!(
+                f,
+                "network PDP endpoint uses plaintext HTTP for non-loopback host {host:?}"
+            ),
+            Self::Client(error) => write!(f, "network PDP HTTP client build failed: {error}"),
+            Self::Readiness(error) => write!(f, "network PDP readiness preflight failed: {error}"),
+        }
+    }
+}
+
+impl std::error::Error for NetworkPdpEndpointError {}
+
+/// Normalize a service base URL or full authorize URL into `/v1/authorize`.
+///
+/// HTTPS is required for non-loopback hosts; `http://127.0.0.1`, `localhost`,
+/// and `::1` are accepted for hermetic tests and local dev only.
+pub fn normalize_network_pdp_authorize_endpoint(
+    endpoint_or_base_url: &str,
+) -> Result<String, NetworkPdpEndpointError> {
+    let trimmed = endpoint_or_base_url.trim();
+    if trimmed.is_empty() {
+        return Err(NetworkPdpEndpointError::Empty);
+    }
+    let endpoint = if trimmed.ends_with("/v1/authorize") {
+        trimmed.to_owned()
+    } else {
+        format!("{}/v1/authorize", trimmed.trim_end_matches('/'))
+    };
+    let parsed = reqwest::Url::parse(&endpoint)
+        .map_err(|error| NetworkPdpEndpointError::InvalidUrl(error.to_string()))?;
+    match parsed.scheme() {
+        "https" => Ok(endpoint),
+        "http" => {
+            let host = parsed.host_str().unwrap_or_default();
+            if is_loopback_host(host) {
+                Ok(endpoint)
+            } else {
+                Err(NetworkPdpEndpointError::PlainHttpNonLoopback(
+                    host.to_owned(),
+                ))
+            }
+        }
+        scheme => Err(NetworkPdpEndpointError::UnsupportedScheme(
+            scheme.to_owned(),
+        )),
+    }
+}
+
+/// Derive the REST readiness endpoint corresponding to an authorize endpoint.
+///
+/// `https://host/v1/authorize` becomes `https://host/readyz`; if the service is
+/// mounted under a prefix, `https://host/prefix/v1/authorize` becomes
+/// `https://host/prefix/readyz`.
+pub fn network_pdp_readyz_endpoint_from_authorize_endpoint(
+    authorize_endpoint: &str,
+) -> Result<String, NetworkPdpEndpointError> {
+    let mut parsed = reqwest::Url::parse(authorize_endpoint)
+        .map_err(|error| NetworkPdpEndpointError::InvalidUrl(error.to_string()))?;
+    let path = parsed.path();
+    let prefix = path.strip_suffix("/v1/authorize").unwrap_or("");
+    let ready_path = if prefix.is_empty() {
+        "/readyz".to_owned()
+    } else {
+        format!("{}/readyz", prefix.trim_end_matches('/'))
+    };
+    parsed.set_path(&ready_path);
+    parsed.set_query(None);
+    parsed.set_fragment(None);
+    Ok(parsed.to_string())
+}
+
+fn is_loopback_host(host: &str) -> bool {
+    matches!(host, "localhost" | "127.0.0.1" | "::1" | "[::1]")
+}
+
+/// Network-backed tenancy authorizer that dogfoods the cloud PDP REST decision
+/// surface while preserving the unchanged [`TenantLifecycleAuthorizer`] port.
+pub struct NetworkPdpTenantLifecycleAuthorizer<T = ReqwestPdpDecisionTransport> {
+    transport: T,
+}
+
+impl NetworkPdpTenantLifecycleAuthorizer<ReqwestPdpDecisionTransport> {
+    /// Build the production network authorizer from a configured cloud-PDP
+    /// endpoint or base URL.
+    ///
+    /// # Errors
+    /// [`NetworkPdpEndpointError`] when endpoint validation/client construction
+    /// fails. Callers MUST refuse to boot rather than falling back to embedded
+    /// PDP when a network PDP endpoint was configured.
+    pub fn from_endpoint(endpoint_or_base_url: &str) -> Result<Self, NetworkPdpEndpointError> {
+        Ok(Self {
+            transport: ReqwestPdpDecisionTransport::new(endpoint_or_base_url)?,
+        })
+    }
+
+    /// Build the production network authorizer and preflight `/readyz`.
+    ///
+    /// # Errors
+    /// [`NetworkPdpEndpointError`] when endpoint validation/client construction
+    /// fails or the configured PDP is not ready. Callers MUST refuse boot rather
+    /// than falling back to embedded PDP.
+    pub fn from_endpoint_with_readiness_preflight(
+        endpoint_or_base_url: &str,
+    ) -> Result<Self, NetworkPdpEndpointError> {
+        Ok(Self {
+            transport: ReqwestPdpDecisionTransport::new_with_readiness_preflight(
+                endpoint_or_base_url,
+            )?,
+        })
+    }
+}
+
+impl<T> NetworkPdpTenantLifecycleAuthorizer<T>
+where
+    T: PdpDecisionTransport,
+{
+    /// Build over an explicit transport (tests and future mTLS transports).
+    #[must_use]
+    pub fn from_transport(transport: T) -> Self {
+        Self { transport }
+    }
+
+    /// The wrapped transport.
+    #[must_use]
+    pub fn transport(&self) -> &T {
+        &self.transport
+    }
+}
+
+impl<T> TenantLifecycleAuthorizer for NetworkPdpTenantLifecycleAuthorizer<T>
+where
+    T: PdpDecisionTransport,
+{
+    fn authorize(
+        &self,
+        query: &AuthorizationQuery<'_>,
+    ) -> Result<AuthorizationOutcome, AuthzError> {
+        let (request, entities) = build_decision_input(query)?;
+        let response = self.transport.authorize(&request, &entities)?;
+        response_to_authorization_outcome(&request, response)
+    }
+}
+
+/// Assemble the PARC request + PEP entity slice for one query. The verified
+/// caller's attributes are materialized HERE; the target tenant id only ever
+/// appears as a resource the caller is checked against — it never authorizes by
+/// itself.
+fn build_decision_input(
     query: &AuthorizationQuery<'_>,
-) -> Result<AuthorizationOutcome, AuthzError> {
+) -> Result<(AuthorizationRequest, EntitySlice), AuthzError> {
     let caller = query.caller;
     let action_slug = query.action.slug();
 
@@ -252,6 +551,57 @@ fn decide(
         context: BTreeMap::new(),
         min_policy_version: None,
     };
+    Ok((request, entities))
+}
+
+fn ensure_no_unenforced_obligations(obligations: &[Obligation]) -> Result<(), AuthzError> {
+    if obligations.is_empty() {
+        return Ok(());
+    }
+    let ids = obligations
+        .iter()
+        .map(|obligation| obligation.obligation_id.as_str())
+        .collect::<Vec<_>>()
+        .join(",");
+    Err(AuthzError::EngineRefused(format!(
+        "PDP returned obligations this PEP cannot enforce: {ids}"
+    )))
+}
+
+fn response_to_authorization_outcome(
+    request: &AuthorizationRequest,
+    response: AuthorizationResponse,
+) -> Result<AuthorizationOutcome, AuthzError> {
+    if response.request_id != request.request_id {
+        return Err(AuthzError::EngineRefused(format!(
+            "network PDP response request_id mismatch: expected {}, got {}",
+            request.request_id, response.request_id
+        )));
+    }
+    response.validate().map_err(|violations| {
+        AuthzError::EngineRefused(format!(
+            "network PDP response violated contract: {violations:?}"
+        ))
+    })?;
+    ensure_no_unenforced_obligations(&response.obligations)?;
+    let decision = match response.decision {
+        Decision::Allow => AuthorizationDecision::Allow,
+        Decision::Deny => AuthorizationDecision::Deny,
+    };
+    Ok(AuthorizationOutcome {
+        decision,
+        decision_id: response.decision_id,
+        determining_policy_ids: response.determining_policy_ids,
+    })
+}
+
+/// Assemble the PARC request + PEP entity slice for one query, then ask the
+/// embedded PDP.
+fn decide(
+    pdp: &CedarPdp,
+    query: &AuthorizationQuery<'_>,
+) -> Result<AuthorizationOutcome, AuthzError> {
+    let (request, entities) = build_decision_input(query)?;
 
     match pdp.authorize(&request, &entities) {
         Ok(outcome) => {
@@ -259,6 +609,7 @@ fn decide(
                 Decision::Allow => AuthorizationDecision::Allow,
                 Decision::Deny => AuthorizationDecision::Deny,
             };
+            ensure_no_unenforced_obligations(&outcome.response.obligations)?;
             // Preserve the full audit record — NEVER discard it. The PEP
             // emits a structured tracing event from these fields (AC-W-13).
             Ok(AuthorizationOutcome {
@@ -569,5 +920,144 @@ mod tests {
         let b = id_gen.new_ulid().expect("b");
         assert_eq!(a.as_str().len(), 26);
         assert_ne!(a, b);
+    }
+    struct EchoAllowTransport;
+
+    impl PdpDecisionTransport for EchoAllowTransport {
+        fn authorize(
+            &self,
+            request: &AuthorizationRequest,
+            entities: &EntitySlice,
+        ) -> Result<AuthorizationResponse, AuthzError> {
+            assert_eq!(request.tenant_id, "acme");
+            assert_eq!(request.action, TenantLifecycleAction::Read.slug());
+            assert_eq!(request.resource.entity_id, "acme");
+            assert_eq!(entities.entities.len(), 2);
+            Ok(AuthorizationResponse {
+                decision_id: "dec-network-allow".to_owned(),
+                request_id: request.request_id.clone(),
+                decision: Decision::Allow,
+                policy_version: PolicyVersion::new("tnpv-network-1").expect("policy version"),
+                determining_policy_ids: vec!["permit-tenant-operator-administer-tenant".to_owned()],
+                obligations: Vec::new(),
+            })
+        }
+    }
+
+    struct MismatchedRequestIdTransport;
+
+    impl PdpDecisionTransport for MismatchedRequestIdTransport {
+        fn authorize(
+            &self,
+            _request: &AuthorizationRequest,
+            _entities: &EntitySlice,
+        ) -> Result<AuthorizationResponse, AuthzError> {
+            Ok(AuthorizationResponse {
+                decision_id: "dec-network-mismatch".to_owned(),
+                request_id: "different-request".to_owned(),
+                decision: Decision::Deny,
+                policy_version: PolicyVersion::new("tnpv-network-1").expect("policy version"),
+                determining_policy_ids: Vec::new(),
+                obligations: Vec::new(),
+            })
+        }
+    }
+
+    struct ObligationTransport;
+
+    impl PdpDecisionTransport for ObligationTransport {
+        fn authorize(
+            &self,
+            request: &AuthorizationRequest,
+            _entities: &EntitySlice,
+        ) -> Result<AuthorizationResponse, AuthzError> {
+            Ok(AuthorizationResponse {
+                decision_id: "dec-network-obligation".to_owned(),
+                request_id: request.request_id.clone(),
+                decision: Decision::Allow,
+                policy_version: PolicyVersion::new("tnpv-network-1").expect("policy version"),
+                determining_policy_ids: vec!["permit-with-obligation".to_owned()],
+                obligations: vec![Obligation {
+                    obligation_id: "emit-audit-event".to_owned(),
+                    parameters: BTreeMap::new(),
+                }],
+            })
+        }
+    }
+
+    #[test]
+    fn network_authorizer_preserves_decision_id_and_policy_ids() {
+        let az = NetworkPdpTenantLifecycleAuthorizer::from_transport(EchoAllowTransport);
+        let caller = tenant_caller("acme-operator", "acme");
+
+        let outcome = az
+            .authorize(&AuthorizationQuery {
+                caller: &caller,
+                action: TenantLifecycleAction::Read,
+                target_tenant_id: Some("acme"),
+            })
+            .expect("network PDP decision");
+
+        assert_eq!(outcome.decision, AuthorizationDecision::Allow);
+        assert_eq!(outcome.decision_id, "dec-network-allow");
+        assert_eq!(
+            outcome.determining_policy_ids,
+            vec!["permit-tenant-operator-administer-tenant"]
+        );
+    }
+
+    #[test]
+    fn network_authorizer_fails_closed_on_protocol_mismatch() {
+        let az = NetworkPdpTenantLifecycleAuthorizer::from_transport(MismatchedRequestIdTransport);
+        let caller = tenant_caller("acme-operator", "acme");
+
+        let err = az
+            .authorize(&AuthorizationQuery {
+                caller: &caller,
+                action: TenantLifecycleAction::Read,
+                target_tenant_id: Some("acme"),
+            })
+            .expect_err("mismatched network response must fail closed");
+
+        assert!(matches!(err, AuthzError::EngineRefused(_)));
+    }
+
+    #[test]
+    fn network_authorizer_fails_closed_on_unenforced_obligation() {
+        let az = NetworkPdpTenantLifecycleAuthorizer::from_transport(ObligationTransport);
+        let caller = tenant_caller("acme-operator", "acme");
+
+        let err = az
+            .authorize(&AuthorizationQuery {
+                caller: &caller,
+                action: TenantLifecycleAction::Read,
+                target_tenant_id: Some("acme"),
+            })
+            .expect_err("unenforced obligations must fail closed");
+
+        assert!(matches!(err, AuthzError::EngineRefused(_)));
+    }
+
+    #[test]
+    fn network_endpoint_normalization_requires_https_except_loopback() {
+        assert_eq!(
+            normalize_network_pdp_authorize_endpoint("https://pdp.internal").unwrap(),
+            "https://pdp.internal/v1/authorize"
+        );
+        assert_eq!(
+            normalize_network_pdp_authorize_endpoint("http://127.0.0.1:8181/v1/authorize").unwrap(),
+            "http://127.0.0.1:8181/v1/authorize"
+        );
+        assert_eq!(
+            network_pdp_readyz_endpoint_from_authorize_endpoint(
+                "https://pdp.internal/prefix/v1/authorize",
+            )
+            .unwrap(),
+            "https://pdp.internal/prefix/readyz"
+        );
+        assert!(matches!(
+            normalize_network_pdp_authorize_endpoint("http://pdp.internal"),
+            Err(NetworkPdpEndpointError::PlainHttpNonLoopback(host)) if host == "pdp.internal"
+        ));
     }
 }
