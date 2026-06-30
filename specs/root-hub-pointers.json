@@ -258,7 +258,7 @@
       "current_path": "/specs/platform-delivery-fabric-productization.json",
       "kind": "spec",
       "migration_phase": "p-toolchain-shape-neutral-productization",
-      "purpose": "Shape-neutral universal productized pipeline/control-plane target: Rust first-party API services, adapter-only GitHub/GitLab/Jenkins/Argo/Snyk/Trivy/driftctl/Kubernetes/Linux references, no CLI/shell authority, no new oya-/cloud-prefixed destination debt, parity harnesses, current-state rows, and serialized promotion gates.",
+      "purpose": "Shape-neutral universal productized pipeline/control-plane target: Rust first-party API services, adapter-only GitHub/GitLab/legacy-controller/Argo/Snyk/Trivy/driftctl/Kubernetes/Linux references, no CLI/shell authority, no new oya-/cloud-prefixed destination debt, parity harnesses, current-state rows, serialized promotion gates, and observability contract artifacts /contracts/openapi/platform/platform-delivery-fabric-observability-v1.yaml plus /contracts/openapi/platform/platform-delivery-fabric-observability-v1.meta.yaml.",
       "target_path_after_md_retirement": "same"
     },
     "codeview_read_surface": {
