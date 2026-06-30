@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use oya_work_area_tree_kernel::{
+use work_area_tree_kernel::{
     NodeContentHash, NodeKind, NodeLocator, SourceSpan, WorkAreaHash, WorkAreaNode, WorkAreaNodeId,
     WorkAreaTree, WorkAreaTreeError,
 };

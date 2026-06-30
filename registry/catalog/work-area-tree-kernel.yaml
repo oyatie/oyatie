@@ -1,4 +1,4 @@
-context: shared
+context: governance
 role: kernel
 capability: work-area-tree-contract
 plane: control
@@ -10,7 +10,7 @@ security_review: unreviewed
 supply_chain: source-only
 traceability:
   source_adrs: [ADR-0517, ADR-0520, ADR-0521]
-  source_crate: libs/oya-work-area-tree-kernel/Cargo.toml
+  source_crate: governance/corpus/work-area-tree-kernel/Cargo.toml
 non_claims:
   - trait and vocabulary seam only; no parser implementation, no AST rewrites, no SCM implementation
   - W2 owned parser and W4 bespoke SCM remain future implementations behind this interface

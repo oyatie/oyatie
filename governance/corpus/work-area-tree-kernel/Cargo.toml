@@ -1,5 +1,5 @@
 [package]
-name = "oya-work-area-tree-kernel"
+name = "work-area-tree-kernel"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -13,7 +13,7 @@ layer = "kernel"
 purpose = "Stable WorkAreaTree trait and content-addressed node identity vocabulary per ADR-0517/ADR-0520/ADR-0521."
 
 [lib]
-name = "oya_work_area_tree_kernel"
+name = "work_area_tree_kernel"
 path = "src/lib.rs"
 doctest = false
 
