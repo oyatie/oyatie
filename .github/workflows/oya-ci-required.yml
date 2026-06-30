@@ -450,6 +450,7 @@ jobs:
             --profile github-hosted-ubuntu-latest \
             --infra-red-policy fail-closed \
             --artifact-out "${RUNNER_TEMP}/runner-disk-reclaim-buck2.json"
+          buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app:oya-cloud-ci-cache-wiring-bin -- long-step-telemetry start buck2-restore || true
       - name: Restore buck-out (read-only; dev-push is the sole writer)
         # actions/cache/restore@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae
@@ -467,7 +468,17 @@ jobs:
       # by design (ADR-0551) and deliberately absent from the producer-regen artifact; this
       # step is the sanctioned boundary that feeds ALL declared generated inputs to the graph.
       - name: Materialize cloud-ci generated faces (out-of-graph boundary)
-        run: buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
+        run: |
+          set -euo pipefail
+          buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app:oya-cloud-ci-cache-wiring-bin -- long-step-telemetry finish buck2-restore || true
+          finish_phase() {
+            status="$?"
+            buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app:oya-cloud-ci-cache-wiring-bin -- long-step-telemetry finish buck2-materialize --exit-code "${status}" || true
+            exit "${status}"
+          }
+          trap finish_phase EXIT
+          buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app:oya-cloud-ci-cache-wiring-bin -- long-step-telemetry start buck2-materialize || true
+          buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
       # The hermetic gate: buck2 BUILDS every cloud-ci target (proves the env!CARGO eradication —
       # these targets could not compile under buck2 before) and TESTS them (the gate rust_tests
       # run green, fully hermetic, with verdicts identical to the targeted gate matrix). This is the
@@ -479,6 +490,13 @@ jobs:
       - name: buck2 build + test (//cloud/cloud-ci/..., hermetic — binding)
         run: |
           set -euo pipefail
+          finish_phase() {
+            status="$?"
+            buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app:oya-cloud-ci-cache-wiring-bin -- long-step-telemetry finish buck2-cloud-ci-build-test --exit-code "${status}" || true
+            exit "${status}"
+          }
+          trap finish_phase EXIT
+          buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app:oya-cloud-ci-cache-wiring-bin -- long-step-telemetry start buck2-cloud-ci-build-test || true
           # buck2 test builds its targets before running them, so a standalone
           # `buck2 build` immediately before is redundant — removed (item 4 quick win).
           # --unstable-write-invocation-record is additive observability only: it
@@ -513,7 +531,9 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: runner-disk-reclaim-buck2
-          path: ${{ runner.temp }}/runner-disk-reclaim-buck2.json
+          path: |
+            ${{ runner.temp }}/runner-disk-reclaim-buck2.json
+            ${{ runner.temp }}/pipeline-long-step-telemetry.jsonl
           retention-days: 30
           if-no-files-found: warn
   # ── BINDING WORKSPACE COVERAGE (ADR-0554, FRIC-1781310000). Closes the largest false-green
@@ -608,6 +628,7 @@ jobs:
             --profile github-hosted-ubuntu-latest \
             --infra-red-policy fail-closed \
             --artifact-out "${RUNNER_TEMP}/runner-disk-reclaim-affected-set.json"
+          buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app:oya-cloud-ci-cache-wiring-bin -- long-step-telemetry start affected-set-restore || true
       - name: Restore buck-out (read-only; dev-push is the sole writer)
         # actions/cache/restore@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae
@@ -621,7 +642,17 @@ jobs:
       # baseline (ADR-0551), and this lane's own build-health baseline below is per-job by
       # design (ADR-0554 round-3).
       - name: Materialize cloud-ci generated faces (out-of-graph boundary)
-        run: buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
+        run: |
+          set -euo pipefail
+          buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app:oya-cloud-ci-cache-wiring-bin -- long-step-telemetry finish affected-set-restore || true
+          finish_phase() {
+            status="$?"
+            buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app:oya-cloud-ci-cache-wiring-bin -- long-step-telemetry finish affected-set-materialize --exit-code "${status}" || true
+            exit "${status}"
+          }
+          trap finish_phase EXIT
+          buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app:oya-cloud-ci-cache-wiring-bin -- long-step-telemetry start affected-set-materialize || true
+          buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
       - name: Fetch base ref for the merge-base anchor
         if: ${{ github.event_name == 'pull_request' }}
         env:
@@ -657,6 +688,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          finish_phase() {
+            status="$?"
+            buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app:oya-cloud-ci-cache-wiring-bin -- long-step-telemetry finish affected-set-baseline --exit-code "${status}" || true
+            exit "${status}"
+          }
+          trap finish_phase EXIT
+          buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app:oya-cloud-ci-cache-wiring-bin -- long-step-telemetry start affected-set-baseline || true
           merge_base="$(git merge-base "origin/${BASE_REF}" HEAD)"
           orig_ref="$(git rev-parse HEAD)"
           candidate_toolchain="$(awk -F'"' '/channel/ {print $2; exit}' rust-toolchain.toml)"
@@ -788,6 +826,7 @@ jobs:
               echo "build-health baseline: cleaning buck-out after restoring candidate toolchain ${candidate_toolchain}"
               buck2 clean
             fi
+            buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app:oya-cloud-ci-cache-wiring-bin -- long-step-telemetry finish affected-set-baseline --exit-code "${exit_status}" || true
             exit "${exit_status}"
           }
           trap restore_candidate_tree EXIT
@@ -816,6 +855,13 @@ jobs:
           BASE_REF: ${{ github.base_ref || 'dev' }}
         run: |
           set -euo pipefail
+          finish_phase() {
+            status="$?"
+            buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app:oya-cloud-ci-cache-wiring-bin -- long-step-telemetry finish affected-set-binding-build-test --exit-code "${status}" || true
+            exit "${status}"
+          }
+          trap finish_phase EXIT
+          buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app:oya-cloud-ci-cache-wiring-bin -- long-step-telemetry start affected-set-binding-build-test || true
           gate_bin="$(buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app:oya-cloud-ci-affected-set-bin --show-output | awk '{print $2}')"
           if [ "${EVENT_NAME}" = "pull_request" ]; then
             # PR tier: auto (cone-binding, hard-fail on a NEW break in the changed cone); a FULL
@@ -890,6 +936,7 @@ jobs:
             ${{ runner.temp }}/runner-disk-reclaim-affected-set.json
             ${{ runner.temp }}/affected-set-derive-decision.json
             ${{ runner.temp }}/affected-set-binding-decision.json
+            ${{ runner.temp }}/pipeline-long-step-telemetry.jsonl
           retention-days: 30
           if-no-files-found: warn
 

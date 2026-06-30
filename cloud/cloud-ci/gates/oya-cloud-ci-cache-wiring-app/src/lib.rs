@@ -16,8 +16,10 @@
 
 use std::collections::BTreeMap;
 use std::fmt;
-use std::fs;
+use std::fs::{self, OpenOptions};
+use std::io::Write;
 use std::path::Path;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -40,6 +42,131 @@ pub const CACHE_HIT_REPORT_SCHEMA: &str = "oya-ci/cache-hit-report/v1";
 pub const DIGEST_MANIFEST_SCHEMA: &str = "oya-ci/canary-digest-manifest/v1";
 /// Schema id of the canary verdict artifact.
 pub const CANARY_VERDICT_SCHEMA: &str = "oya-ci/canary-verdict/v1";
+/// Runner-temp anchored JSONL file for universal pipeline long-step timing.
+pub const LONG_STEP_TELEMETRY_FILE: &str = "pipeline-long-step-telemetry.jsonl";
+/// Schema id of each long-step timing JSONL event.
+pub const LONG_STEP_TELEMETRY_SCHEMA: &str = "pipeline/long-step-telemetry/v1";
+
+/// One long-step timing event appended to [`LONG_STEP_TELEMETRY_FILE`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LongStepTelemetryEvent {
+    pub schema: &'static str,
+    pub phase: String,
+    pub status: String,
+    pub exit_code: i32,
+    pub start_marker_found: bool,
+    pub epoch_seconds: u64,
+    pub elapsed_seconds: u64,
+}
+
+impl LongStepTelemetryEvent {
+    pub fn to_json(&self) -> Value {
+        json!({
+            "schema": self.schema,
+            "phase": self.phase,
+            "status": self.status,
+            "exit_code": self.exit_code,
+            "start_marker_found": self.start_marker_found,
+            "epoch_seconds": self.epoch_seconds,
+            "elapsed_seconds": self.elapsed_seconds,
+        })
+    }
+}
+
+pub fn long_step_notice(event: &LongStepTelemetryEvent) -> String {
+    format!(
+        "::notice title=pipeline-long-step::phase={} status={} elapsed_seconds={}",
+        event.phase, event.status, event.elapsed_seconds
+    )
+}
+
+fn validate_long_step_phase(phase: &str) -> Result<(), String> {
+    if phase.is_empty()
+        || !phase
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '_' | '-'))
+    {
+        return Err(format!(
+            "long-step telemetry phase must be non-empty and contain only [A-Za-z0-9._-]: {phase}"
+        ));
+    }
+    Ok(())
+}
+
+fn epoch_seconds_now() -> Result<u64, String> {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_err(|e| format!("system clock before UNIX_EPOCH: {e}"))
+        .map(|duration| duration.as_secs())
+}
+
+pub fn record_long_step_telemetry(
+    command: &str,
+    phase: &str,
+    exit_code: i32,
+    telemetry_dir: &Path,
+) -> Result<LongStepTelemetryEvent, String> {
+    validate_long_step_phase(phase)?;
+    fs::create_dir_all(telemetry_dir)
+        .map_err(|e| format!("mkdir {}: {e}", telemetry_dir.display()))?;
+    let telemetry_file = telemetry_dir.join(LONG_STEP_TELEMETRY_FILE);
+    let start_file = telemetry_dir.join(format!("pipeline-long-step-{phase}.start"));
+    let now = epoch_seconds_now()?;
+
+    let event = match command {
+        "start" => {
+            fs::write(&start_file, format!("{now}\n"))
+                .map_err(|e| format!("write {}: {e}", start_file.display()))?;
+            LongStepTelemetryEvent {
+                schema: LONG_STEP_TELEMETRY_SCHEMA,
+                phase: phase.to_string(),
+                status: "started".to_string(),
+                exit_code,
+                start_marker_found: true,
+                epoch_seconds: now,
+                elapsed_seconds: 0,
+            }
+        }
+        "finish" => {
+            let start = fs::read_to_string(&start_file)
+                .ok()
+                .and_then(|text| text.trim().parse::<u64>().ok());
+            let start_marker_found = start.is_some();
+            let start = start.unwrap_or(now);
+            if start_marker_found {
+                let _ = fs::remove_file(&start_file);
+            }
+            let status = if exit_code == 0 {
+                "completed"
+            } else {
+                "failed"
+            };
+            LongStepTelemetryEvent {
+                schema: LONG_STEP_TELEMETRY_SCHEMA,
+                phase: phase.to_string(),
+                status: status.to_string(),
+                exit_code,
+                start_marker_found,
+                epoch_seconds: now,
+                elapsed_seconds: now.saturating_sub(start),
+            }
+        }
+        other => {
+            return Err(format!(
+                "unknown long-step telemetry command `{other}` (expected start|finish)"
+            ));
+        }
+    };
+
+    let mut file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&telemetry_file)
+        .map_err(|e| format!("open {}: {e}", telemetry_file.display()))?;
+    writeln!(file, "{}", event.to_json())
+        .map_err(|e| format!("append {}: {e}", telemetry_file.display()))?;
+    Ok(event)
+}
 
 /// The resolved cache posture for one build invocation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -1012,6 +1139,48 @@ mod tests {
                 .iter()
                 .any(|f| f.contains("record-shape violation"))
         );
+    }
+
+    #[test]
+    fn long_step_telemetry_records_jsonl_and_rejects_bad_phase() {
+        let dir = std::env::temp_dir().join(format!(
+            "pipeline-long-step-telemetry-test-{}",
+            std::process::id()
+        ));
+        std::fs::remove_dir_all(&dir).ok();
+
+        let start = record_long_step_telemetry("start", "gate.phase-1", 0, &dir).unwrap();
+        assert_eq!(start.status, "started");
+
+        let finish = record_long_step_telemetry("finish", "gate.phase-1", 2, &dir).unwrap();
+        assert_eq!(finish.status, "failed");
+        assert_eq!(finish.schema, LONG_STEP_TELEMETRY_SCHEMA);
+        assert_eq!(finish.exit_code, 2);
+        assert!(finish.start_marker_found);
+        let repeated_finish =
+            record_long_step_telemetry("finish", "gate.phase-1", 0, &dir).unwrap();
+        assert_eq!(repeated_finish.status, "completed");
+        assert!(!repeated_finish.start_marker_found);
+        assert!(
+            long_step_notice(&finish)
+                .contains("::notice title=pipeline-long-step::phase=gate.phase-1 status=failed")
+        );
+
+        let text = std::fs::read_to_string(dir.join(LONG_STEP_TELEMETRY_FILE)).unwrap();
+        assert!(text.contains(r#""phase":"gate.phase-1""#));
+        assert!(text.contains(r#""status":"started""#));
+        assert!(text.contains(r#""status":"failed""#));
+        assert!(text.contains(r#""schema":"pipeline/long-step-telemetry/v1""#));
+        assert!(text.contains(r#""exit_code":2"#));
+        assert!(text.contains(r#""start_marker_found":true"#));
+        assert!(text.contains(r#""start_marker_found":false"#));
+
+        let missing_start = record_long_step_telemetry("finish", "missing-start", 0, &dir).unwrap();
+        assert_eq!(missing_start.status, "completed");
+        assert!(!missing_start.start_marker_found);
+        assert!(record_long_step_telemetry("start", "../bad", 0, &dir).is_err());
+
+        std::fs::remove_dir_all(&dir).ok();
     }
 
     fn manifest(pairs: &[(&str, &str)]) -> BTreeMap<String, String> {

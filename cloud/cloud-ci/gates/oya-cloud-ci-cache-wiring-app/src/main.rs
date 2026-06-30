@@ -4,12 +4,12 @@
 //! test, never this binary; CI workflows invoke it as a job step (`buck2 run`),
 //! and its successors are reconcilers per ADR-0556 D4 / ADR-0555 D4.
 //!
-//! Subcommands:
 //!   resolve --build-class C [--emit-argfile PATH] [--require-bypass]
 //!   license-state                       (prints `warm_licensed=<bool>` for $GITHUB_OUTPUT)
 //!   report --record PATH --build-class C [--mode M] [--out PATH]
 //!   assert-warm --record PATH --build-class C --mode M
 //!   assert-cold --record PATH
+//!   long-step-telemetry start|finish <phase> [--exit-code N] [--dir PATH]
 //!   hash-outputs --show-output PATH [--out PATH]
 //!   canary-verdict --cold PATH [--warm PATH] [--out PATH]
 //!   canary-targets                      (prints the pinned target set, one per line)
@@ -67,8 +67,8 @@ fn write_out(out: Option<String>, payload: &str) -> Result<(), String> {
 fn run(args: Vec<String>) -> Result<ExitCode, String> {
     let Some(command) = args.first().cloned() else {
         return Err(
-            "missing subcommand (resolve | license-state | report | assert-warm | \
-                    assert-cold | hash-outputs | canary-verdict | canary-targets)"
+            "missing subcommand (resolve | license-state | report | assert-warm | assert-cold | \
+                    long-step-telemetry | hash-outputs | canary-verdict | canary-targets)"
                 .to_string(),
         );
     };
@@ -168,6 +168,35 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
                     Ok(ExitCode::FAILURE)
                 }
             }
+        }
+        "long-step-telemetry" => {
+            let telemetry_command = rest
+                .first()
+                .ok_or_else(|| "long-step-telemetry requires start|finish".to_string())?;
+            let phase = rest
+                .get(1)
+                .ok_or_else(|| "long-step-telemetry requires <phase>".to_string())?;
+            let exit_code = flag_value(rest, "--exit-code")
+                .map(|value| {
+                    value
+                        .parse::<i32>()
+                        .map_err(|e| format!("parse --exit-code `{value}`: {e}"))
+                })
+                .transpose()?
+                .unwrap_or(0);
+            let telemetry_dir = flag_value(rest, "--dir")
+                .map(PathBuf::from)
+                .or_else(|| std::env::var_os("RUNNER_TEMP").map(PathBuf::from))
+                .unwrap_or_else(std::env::temp_dir);
+            let event = app::record_long_step_telemetry(
+                telemetry_command,
+                phase,
+                exit_code,
+                &telemetry_dir,
+            )?;
+            println!("{}", event.to_json());
+            println!("{}", app::long_step_notice(&event));
+            Ok(ExitCode::SUCCESS)
         }
         "hash-outputs" => {
             let show_output = flag_value(rest, "--show-output")

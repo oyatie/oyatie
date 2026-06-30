@@ -6223,6 +6223,7 @@ name = "oya-cloud-ci-cache-wiring-app"
 version = "0.1.0"
 dependencies = [
  "serde_json",
+ "serde_yaml",
  "sha2",
 ]
 

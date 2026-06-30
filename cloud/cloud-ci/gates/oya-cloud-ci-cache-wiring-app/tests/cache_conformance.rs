@@ -339,6 +339,137 @@ fn required_workflow_cache_hit_report_is_binding() {
 }
 
 #[test]
+fn required_workflow_exposes_long_step_timing_telemetry() {
+    let root = repo_root();
+    let text = std::fs::read_to_string(root.join(REQUIRED_WORKFLOW_PATH)).unwrap_or_else(|e| {
+        panic!(
+            "read {REQUIRED_WORKFLOW_PATH}: {e} — the required CI workflow must expose \
+             long-step timing telemetry for operator diagnosis"
+        )
+    });
+
+    for phase in [
+        "buck2-restore",
+        "buck2-materialize",
+        "buck2-cloud-ci-build-test",
+        "affected-set-restore",
+        "affected-set-materialize",
+        "affected-set-baseline",
+        "affected-set-binding-build-test",
+    ] {
+        assert!(
+            text.contains(&format!("long-step-telemetry start {phase}")),
+            "workflow must emit a start event for long phase {phase}"
+        );
+        assert!(
+            text.contains(&format!("long-step-telemetry finish {phase}")),
+            "workflow must emit a finish event with elapsed timing for long phase {phase}"
+        );
+    }
+
+    assert!(
+        text.contains("pipeline-long-step-telemetry.jsonl"),
+        "long-step JSONL telemetry must ride existing operator artifact uploads"
+    );
+    assert!(
+        !text.contains("infra/ci/long-step-telemetry.sh"),
+        "long-step telemetry must stay productized in the Rust CI gate binary, not a new shell helper"
+    );
+
+    let lib_text = std::fs::read_to_string(
+        root.join("cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app/src/lib.rs"),
+    )
+    .expect("read cache-wiring library source");
+    assert!(
+        lib_text.contains("::notice title=pipeline-long-step"),
+        "long-step telemetry must surface live phase notices before job completion"
+    );
+}
+
+#[test]
+fn required_workflow_keeps_long_step_telemetry_inside_existing_steps() {
+    let root = repo_root();
+    let text = std::fs::read_to_string(root.join(REQUIRED_WORKFLOW_PATH))
+        .unwrap_or_else(|e| panic!("read {REQUIRED_WORKFLOW_PATH}: {e}"));
+    let workflow: serde_yaml::Value =
+        serde_yaml::from_str(&text).expect("required workflow must remain valid YAML");
+
+    let buck2_steps = workflow["jobs"]["buck2"]["steps"]
+        .as_sequence()
+        .expect("buck2 steps must be a YAML sequence");
+    let affected_steps = workflow["jobs"]["gate-affected-set"]["steps"]
+        .as_sequence()
+        .expect("affected-set steps must be a YAML sequence");
+
+    assert_eq!(buck2_steps.len(), 11, "telemetry must not add buck2 steps");
+    assert_eq!(
+        buck2_steps
+            .iter()
+            .filter(|step| step.get("run").is_some())
+            .count(),
+        6,
+        "telemetry must not add buck2 inline-shell step keys"
+    );
+    assert_eq!(
+        affected_steps.len(),
+        13,
+        "telemetry must not add affected-set steps"
+    );
+    assert_eq!(
+        affected_steps
+            .iter()
+            .filter(|step| step.get("run").is_some())
+            .count(),
+        7,
+        "telemetry must not add affected-set inline-shell step keys"
+    );
+
+    for step in buck2_steps.iter().chain(affected_steps) {
+        let name = step.get("name").and_then(serde_yaml::Value::as_str);
+        assert!(
+            !name.is_some_and(|value| value.contains("Long-step telemetry")),
+            "long-step telemetry must not exist as a standalone workflow step: {name:?}"
+        );
+    }
+
+    assert!(
+        buck2_steps[4]["run"]
+            .as_str()
+            .unwrap()
+            .contains("long-step-telemetry start buck2-restore")
+    );
+    assert!(
+        buck2_steps[5]["uses"]
+            .as_str()
+            .unwrap()
+            .contains("actions/cache/restore")
+    );
+    assert!(
+        buck2_steps[6]["run"]
+            .as_str()
+            .unwrap()
+            .contains("long-step-telemetry finish buck2-restore")
+    );
+
+    let baseline_run = affected_steps[8]["run"]
+        .as_str()
+        .expect("affected-set baseline step must stay an inline run block");
+    let restore_index = baseline_run
+        .find("git checkout --quiet --detach \"${orig_ref}\"")
+        .expect("baseline cleanup must restore the candidate tree");
+    let clean_index = baseline_run
+        .find("buck2 clean")
+        .expect("baseline cleanup must preserve the pre-existing buck clean");
+    let finish_index = baseline_run
+        .find("long-step-telemetry finish affected-set-baseline --exit-code \"${exit_status}\"")
+        .expect("baseline cleanup must finish long-step telemetry");
+    assert!(
+        restore_index < clean_index && clean_index < finish_index,
+        "baseline cleanup must restore the candidate tree, preserve buck clean ordering, then emit telemetry"
+    );
+}
+
+#[test]
 fn cache_hit_guard_behavior_covers_bypass_warm_and_malformed_records() {
     let bypass_zero = invocation_record_fixture(0.0, 0, 12, 0);
     assert!(
