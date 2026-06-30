@@ -406,7 +406,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate release-supply-chain [--release-images <registry/release/images.yaml>] [--evidence-dir <registry/release/supply-chain>] [--phase <pre-release|release>]"
         + "\n       oya gate validate release-evidence-pack [--manifest <registry/release/evidence-packs.tsv>] [--compliance <docs/machine-readable/compliance.json>] [--require-records]"
         + "\n       oya gate validate typescript-workspace --lane <typecheck|test> [--repo-root <.>]"
-        + "\n       oya gate validate pr-traceability [--pr-body <docs/templates/pull-request-template.md>] [--require-code-review|--forbid-code-review]"
+        + "\n       oya gate validate pr-traceability [--pr-title <title>] [--pr-body <docs/templates/pull-request-template.md>] [--require-code-review|--forbid-code-review]"
         + "\n       oya gate validate authority-cohesion [--docs-dir <docs>]"
         + "\n       oya gate validate cargo-prefix [--workspace <Cargo.toml>] [--prefix <oya->]"
         + "\n       oya gate validate claim-ceiling [--registry <registry/catalog>]"

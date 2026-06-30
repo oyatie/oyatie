@@ -7,8 +7,8 @@
 # Design (per FIREWALL-GO-LIVE-RUNBOOK.md Part 2 + CICD-DESIGN-PLAN Stage 1A/1B): the gate
 # lanes fan OUT (fail-fast:false, surface-all) and fan IN to ONE zero-build job named
 # `oya-ci-required` that has NO command set of its own — it is green IFF every constituent
-# gate lane is green. Branch protection keys on that one context name. Do NOT register the
-# constituent gates individually (the review-admission producer is target-only until F-PR5-06).
+# gate lane is green. Branch protection keys on that one context name. The GH #983 PR
+# metadata preflight is folded into the affected-set lane so it adds no new workflow shell surface.
 #
 # ░░ LIVE ░░
 # Go-live executed 2026-06-08 (founder-authorized "fully autonomous through both"): the blocking
@@ -25,6 +25,7 @@ on:
     branches: [dev]
   pull_request:
     branches: [dev]
+    types: [opened, reopened, synchronize, edited, ready_for_review]
   merge_group:
 
 permissions:
@@ -559,11 +560,23 @@ jobs:
           key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
       # Same rustup serialization rationale as the buck2 lane above: parallel buck2 actions
       # racing a cold rustup install collide on shared download state.
-      - name: Pre-provision pinned rust toolchain (serialize rustup before parallel buck2)
+      - name: Pre-provision pinned rust toolchain and PR metadata preflight
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_TITLE: ${{ github.event.pull_request.title || '' }}
+          PR_BODY: ${{ github.event.pull_request.body || '' }}
         run: |
           set -euo pipefail
           rustup toolchain install
           rustc --version
+          if [ "${EVENT_NAME}" = "pull_request" ]; then
+            body_path="${RUNNER_TEMP}/pull-request-body.md"
+            printf '%s\n' "${PR_BODY}" > "${body_path}"
+            buck2 run //libs/oya-check-pr-traceability:pr-traceability-admission-bin -- \
+              --pr-title "${PR_TITLE}" \
+              --pr-body "${body_path}" \
+              --require-code-review
+          fi
       # Restore buck-out read-only (ADR-0554 D9). Same stable per-dependency/toolchain-set key as the buck2
       # lane: warmth is 100% in buck-out/v2/cache + buck-out/v2/art (path-relocatable); ~/.buck2
       # and ~/.buck are daemon pid/endpoint/log scratch and are deliberately NOT cached. dev-push
@@ -1113,6 +1126,8 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
 
+
+
   # ── THE FAN-IN. This is the single required context branch protection keys on. It has NO
   #    command of its own (Principle 1 — it NEVER re-runs a narrower subset): it is green IFF
   #    every gate lane above is green. `needs:` lists EVERY gate job; the gate-registration
@@ -1130,6 +1145,7 @@ jobs:
       - buck2                   # hermetic buck2 build + affected gate tests
       - gate-affected-set       # binding workspace coverage: affected cone or fail-closed full run (ADR-0554)
       - gate-live-postgres      # #101: durable cross-tenant-deny / RLS / CDC / SCIM tests run + gate against live Postgres
+
     steps:
       - name: Fan-in verdict (green IFF every gate lane is green)
         run: |
@@ -1142,6 +1158,7 @@ jobs:
           echo "  buck2             = ${{ needs.buck2.result }}"
           echo "  affected-set      = ${{ needs.gate-affected-set.result }}"
           echo "  live-postgres     = ${{ needs.gate-live-postgres.result }}"
+
           # A matrix job's aggregate `.result` is success IFF ALL legs succeeded, failure if any
           # leg failed, skipped if it never ran — so one check covers every gate in the matrix.
           if [ "${{ needs.gate.result }}" = "success" ] \

@@ -1,5 +1,8 @@
 # Oyatie quality lane registry. Source of truth mirrored by docs/standards/ci-lanes.md.
 # Fields: id, stage, status, owner_team, purpose, source, runtime_budget_seconds, optional check_command.
+# `check_command` is local/transitional bridge feedback and wired-command catalog data only.
+# Merge authority is the single `oya-ci-required` fan-in plus constituent cloud-ci/Rust gate packets.
+# Do not treat local bridge command rows as protected-branch authority.
 lanes:
   - id: oya-governance-authority-cohesion
     stage: foundation
@@ -325,7 +328,7 @@ lanes:
     stage: per-pr
     status: active
     owner_team: council-architecture
-    purpose: PR template carries the 5 mandatory traceability H2 sections
+    purpose: PR title/body are review-ready and template carries the 5 mandatory traceability H2 sections plus merge-time Code Review evidence
     source: STANDARDS-AND-TEMPLATES.md
     runtime_budget_seconds: 120
     check_command: cargo run -p oya-dev-cli -- gate validate pr-traceability
