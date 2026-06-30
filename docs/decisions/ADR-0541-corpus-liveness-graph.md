@@ -176,3 +176,16 @@ Until the CLG face exists, compliance = the D4 spike IP lands with its exit crit
 decision-crosswalk face registers this ADR mechanically. After D4, CLG invariant promotion
 (report-only → ratchet → born-blocking) requires a per-class evidence note appended to the IP —
 never a silent disposition flip.
+
+### Addendum 2026-06-30 — WorkAreaTree parser implementation surface
+
+The first Rust-native WorkAreaTree parser slice for the W2 owned AST substrate is governed by
+this ADR. The tracked surfaces are:
+
+- `governance/corpus/work-area-rust-parser/BUCK`
+- `governance/corpus/work-area-rust-parser/Cargo.toml`
+- `governance/corpus/work-area-rust-parser/OWNERS`
+- `governance/corpus/work-area-rust-parser/fixtures/minimal_function.rs.txt`
+- `governance/corpus/work-area-rust-parser/src/lib.rs`
+- `registry/catalog/work-area-rust-parser.yaml`
+- `evidence/multispectrum/work-area-rust-parser-20260630-1782840154.json`
