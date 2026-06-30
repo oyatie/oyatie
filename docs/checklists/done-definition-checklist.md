@@ -35,10 +35,10 @@ doc_status: published
 - [ ] **D9** Buck2/cloud-ci test lane passes for the affected Rust targets. *Verification:* output in `## Verification`.
 - [ ] **D10** Buck2/cloud-ci lint lane passes for the affected Rust targets. *Verification:* output.
 - [ ] **D11** `cargo deny check` passes. *Verification:* output.
-- [ ] **D12** protected PR status `oya-ci-required` is green. *Verification:* CI/status URL; local verifier output is shift-left evidence only.
+- [ ] **D12** protected PR status `oya-ci-required` is green on the reviewed PR head. *Verification:* CI/status URL plus the PR evidence packet's exact failing/fixed checks, review-thread resolution, reviewer approval state, and explicit note that local verifier output is shift-left evidence only.
 - [ ] **D13** Performance changes carry benchmark + ≥2 stress scenarios. *Lane:* `oya-governance-perf-evidence`.
 - [ ] **D14** Schema migrations ship up + down + dry-run + per-tenant + per-cell rollback. *Lane:* `oya-governance-schema-migration`.
-- [ ] **D15** PR has 5 canonical H2s; `## Code Review` at merge. *Lane:* `traceability-validator`.
+- [ ] **D15** PR has 5 canonical H2s; `## Evidence` carries the review/fix packet; `## Code Review` is present at merge. *Lane:* `traceability-validator`.
 - [ ] **D16** Audit-chain emission `EVT-*` ID in `## Evidence`. *Lane:* `oya-governance-audit-emission`.
 - [ ] **D17** `docs/MISTAKES-LEDGER.md` row added if mechanical prevention shipped. *Lane:* `oya-governance-mistakes-ledger-cite`.
 - [ ] **D18** `docs/CHANGELOG.md` row added if canonical doc touched. *Lane:* `oya-governance-changelog-row`.
