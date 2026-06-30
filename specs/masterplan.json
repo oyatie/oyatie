@@ -5911,7 +5911,8 @@
       "specs/cloud-resource-catalog-target.json",
       "specs/cloud-production-quality-kits-target.json",
       "specs/cloud-strangler-migration-target.json",
-      "specs/cloud-toolchain-target.json"
+      "specs/cloud-toolchain-target.json",
+      "specs/work-area-content-hash-contract.json"
     ],
     "projections": [
       "tasks/plan.md",
@@ -6080,6 +6081,7 @@
         "artifacts": [
           "specs/cloud-toolchain-target.json",
           "specs/bespoke-cloud-toolchain-services.json",
+          "specs/work-area-content-hash-contract.json",
           "specs/phase0-ci-enforcement-baseline.json",
           "specs/toolchain-tenant-isolation-fixtures.json"
         ]
@@ -6178,6 +6180,7 @@
   },
   "bespoke_cloud_toolchain_services": {
     "source_spec": "/specs/bespoke-cloud-toolchain-services.json",
+    "shared_work_area_hash_contract": "/specs/work-area-content-hash-contract.json",
     "status": "specified-masterplan-placement",
     "placement": {
       "roadmap_phase": "ideal_production_roadmap.phases[P-TOOLCHAIN]",
