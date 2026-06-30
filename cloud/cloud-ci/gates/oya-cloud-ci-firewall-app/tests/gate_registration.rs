@@ -127,6 +127,29 @@ fn yaml_list_item(line: &str) -> Option<String> {
     no_comment.strip_prefix("- ").map(|v| v.trim().to_owned())
 }
 
+fn fan_in_block(workflow: &str) -> &str {
+    let fan_in_anchor = "\n  oya-ci-required:";
+    let idx = workflow
+        .find(fan_in_anchor)
+        .expect("fan-in job `oya-ci-required:` not found in workflow");
+    &workflow[idx..]
+}
+
+fn fan_in_mentions_job(fan_in_block: &str, job: &str) -> bool {
+    fan_in_block
+        .lines()
+        .filter_map(yaml_list_item)
+        .any(|v| v == job)
+        && fan_in_block.contains(&format!("needs.{job}.result"))
+}
+
+fn live_postgres_split_fan_in_is_complete(workflow: &str) -> bool {
+    let block = fan_in_block(workflow);
+    fan_in_mentions_job(block, "gate-live-postgres-adapters")
+        && fan_in_mentions_job(block, "gate-live-postgres-facades")
+        && !block.contains("needs.gate-live-postgres.result")
+}
+
 /// True iff `crate_dir` is an entry in the `gate` job's `strategy.matrix` — i.e. it is a
 /// homogeneous matrix gate run via `cargo test -p ${{ matrix.crate }}`. Recognizes both the
 /// simple list form (`- <crate>`) and the `include`-object form (`{ crate: <crate>, label: … }`).
@@ -501,13 +524,7 @@ fn every_gate_lane_is_a_dependency_of_the_fan_in_job() {
     let workflow =
         fs::read_to_string(&wf).unwrap_or_else(|e| panic!("read workflow {}: {e}", wf.display()));
 
-    // Isolate the text of the fan-in job (from its `oya-ci-required:` header to EOF). The
-    // fan-in is the last job in the file by construction.
-    let fan_in_anchor = "\n  oya-ci-required:";
-    let idx = workflow
-        .find(fan_in_anchor)
-        .expect("fan-in job `oya-ci-required:` not found in workflow");
-    let fan_in_block = &workflow[idx..];
+    let fan_in_block = fan_in_block(&workflow);
     assert!(
         fan_in_block.contains("needs:"),
         "fan-in job `oya-ci-required` has no `needs:` — it must depend on every gate lane"
@@ -553,5 +570,30 @@ fn every_gate_lane_is_a_dependency_of_the_fan_in_job() {
          required context red.",
         wf.display(),
         missing
+    );
+}
+
+#[test]
+fn live_postgres_split_lanes_are_both_required_by_fan_in() {
+    let root = repo_root();
+    let wf = workflow_path(&root);
+    let workflow =
+        fs::read_to_string(&wf).unwrap_or_else(|e| panic!("read workflow {}: {e}", wf.display()));
+    assert!(
+        live_postgres_split_fan_in_is_complete(&workflow),
+        "fan-in must require both split live-postgres jobs and must not keep the retired monolithic needs token"
+    );
+
+    let without_adapters =
+        workflow.replace("      - gate-live-postgres-adapters", "      # removed");
+    assert!(
+        !live_postgres_split_fan_in_is_complete(&without_adapters),
+        "missing adapter sublane must be detected as fan-in incomplete"
+    );
+
+    let without_facades = workflow.replace("      - gate-live-postgres-facades", "      # removed");
+    assert!(
+        !live_postgres_split_fan_in_is_complete(&without_facades),
+        "missing facade sublane must be detected as fan-in incomplete"
     );
 }

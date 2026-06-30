@@ -3,6 +3,11 @@ purpose: Oyatie — Canonical Docs Changelog
 doc_status: published
 ---
 
+## 2026-06-29 — Live Postgres sublanes for GH #901
+
+- Split the required live-Postgres bridge into independent adapter and facade jobs, each with its own Postgres service/bootstrap, so safe groups can run in parallel without sharing database state.
+- Added fan-in self-test coverage proving both split sublanes are required by `oya-ci-required` and the retired monolithic live-postgres dependency cannot silently remain.
+
 ## 2026-06-29 — Cache-hit report fail-closed guard for GH #900
 
 - Made the required buck2 lane's cache-hit report upload binding: a missing report is now RED instead of an upload warning, while current bypass/cold posture remains allowed.
