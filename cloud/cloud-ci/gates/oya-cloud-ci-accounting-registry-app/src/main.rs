@@ -47,6 +47,8 @@ use oya_cloud_ci_accounting_registry_app::{
 };
 use serde_json::{Value, json};
 
+const SCM_FACTS_SCHEMA: &str = "oya-ci/scm-facts/v2";
+
 fn main() {
     if let Err(error) = run() {
         eprintln!("oya-cloud-ci-accounting-registry-app: {error}");
@@ -78,7 +80,7 @@ impl std::fmt::Display for CliError {
 /// untracked scm-volatile-facts snapshot, consumed at evaluation time by the staleness
 /// gate, never by this producer (FRIC-1781234047).
 struct ScmFacts {
-    /// The tracked-paths universe (sorted+deduped), exactly as `git ls-files` produced it.
+    /// The tracked-paths universe (sorted+deduped), as supplied by the ScmFactsSource.
     tracked_paths: Vec<String>,
 }
 
@@ -94,6 +96,16 @@ fn load_scm_facts(path: &Path) -> Result<ScmFacts, CliError> {
     })?;
     let value: Value = serde_json::from_str(&text)
         .map_err(|e| CliError::Io(format!("{}: parse scm-facts: {e}", path.display())))?;
+
+    let schema = value["schema"]
+        .as_str()
+        .ok_or_else(|| CliError::Io(format!("{}: missing schema", path.display())))?;
+    if schema != SCM_FACTS_SCHEMA {
+        return Err(CliError::Io(format!(
+            "{}: unsupported scm-facts schema {schema:?} (expected {SCM_FACTS_SCHEMA})",
+            path.display()
+        )));
+    }
 
     let tracked_path_values = value["tracked_paths"]
         .as_array()
@@ -1469,12 +1481,50 @@ mod tests {
     }
 
     #[test]
+    fn scm_facts_rejects_missing_schema() {
+        let root = unique_temp_repo();
+        let face = write_test_file(
+            &root,
+            "scm-facts.generated.json",
+            r#"{"tracked_paths":["README.md"]}"#,
+        );
+
+        let Err(err) = load_scm_facts(&face) else {
+            panic!("schema-less scm-facts face should be rejected");
+        };
+
+        assert!(
+            err.to_string().contains("missing schema"),
+            "error should identify missing schema, got: {err}"
+        );
+    }
+
+    #[test]
+    fn scm_facts_rejects_legacy_git_facts_schema() {
+        let root = unique_temp_repo();
+        let face = write_test_file(
+            &root,
+            "scm-facts.generated.json",
+            r#"{"schema":"oya-ci/git-facts/v1","tracked_paths":["README.md"]}"#,
+        );
+
+        let Err(err) = load_scm_facts(&face) else {
+            panic!("legacy git-facts face should be rejected");
+        };
+
+        assert!(
+            err.to_string().contains("unsupported scm-facts schema"),
+            "error should identify unsupported schema, got: {err}"
+        );
+    }
+
+    #[test]
     fn scm_facts_rejects_non_string_tracked_paths_entries() {
         let root = unique_temp_repo();
         let face = write_test_file(
             &root,
             "scm-facts.generated.json",
-            r#"{"tracked_paths":["README.md",42,"docs/AGENTS.md"]}"#,
+            r#"{"schema":"oya-ci/scm-facts/v2","tracked_paths":["README.md",42,"docs/AGENTS.md"]}"#,
         );
 
         let Err(err) = load_scm_facts(&face) else {
