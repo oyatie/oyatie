@@ -105,6 +105,35 @@ pub enum ParityTargetSourceTrackingKind {
     MissingCwardPessimism,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ReferenceFamilyDocument {
+    pub path: String,     // data_class: INTERNAL_ONLY
+    pub contents: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ReferenceFamilyParityReport {
+    pub documents_checked: usize,          // data_class: INTERNAL_ONLY
+    pub lines_checked: usize,              // data_class: INTERNAL_ONLY
+    pub reference_families_checked: usize, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ReferenceFamilyParityViolation {
+    pub path: String,                    // data_class: INTERNAL_ONLY
+    pub line: usize,                     // data_class: INTERNAL_ONLY
+    pub kind: ReferenceFamilyParityKind, // data_class: INTERNAL_ONLY
+    pub family: String,                  // data_class: INTERNAL_ONLY
+    pub summary: String,                 // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ReferenceFamilyParityKind {
+    MissingReferenceFamily,
+    GithubOnlyAdapterOverfit,
+    AdapterAsAuthority,
+}
+
 impl fmt::Display for HonestClaimsViolation {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
@@ -131,6 +160,16 @@ impl fmt::Display for ParityTargetSourceTrackingViolation {
             formatter,
             "{}:{} {:?}: {}",
             self.path, self.target_id, self.kind, self.summary
+        )
+    }
+}
+
+impl fmt::Display for ReferenceFamilyParityViolation {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            formatter,
+            "{}:{} {:?}: {} ({})",
+            self.path, self.line, self.kind, self.summary, self.family
         )
     }
 }
@@ -585,6 +624,287 @@ fn is_cward_or_linux_libc_target(target: &Value) -> bool {
     target_id.contains("c-ward")
         || reference_kind == "linux_libc_abi_pessimistic_input"
         || source_text.contains("github.com/sunfishcode/c-ward")
+}
+
+pub fn validate_reference_family_parity<D>(
+    documents: D,
+) -> Result<ReferenceFamilyParityReport, Vec<ReferenceFamilyParityViolation>>
+where
+    D: IntoIterator<Item = ReferenceFamilyDocument>,
+{
+    let mut documents_checked = 0usize;
+    let mut lines_checked = 0usize;
+    let mut reference_families = BTreeSet::new();
+    let mut violations = Vec::new();
+
+    for document in documents {
+        documents_checked += 1;
+        let scan = ReferenceFamilyScan::from_document(&document);
+        lines_checked += scan.lines_checked;
+        reference_families.extend(scan.present_families.iter().copied());
+
+        if scan.family_lines.is_empty() {
+            violations.push(ReferenceFamilyParityViolation {
+                path: document.path.clone(),
+                line: 1,
+                kind: ReferenceFamilyParityKind::MissingReferenceFamily,
+                family: "reference-family-set".to_string(),
+                summary: "parity claim lacks a reference_families/reference family declaration"
+                    .to_string(),
+            });
+        } else {
+            let reference_line = scan.first_reference_line();
+            for rule in REQUIRED_REFERENCE_FAMILIES {
+                if !scan.present_families.contains(rule.id) {
+                    violations.push(ReferenceFamilyParityViolation {
+                        path: document.path.clone(),
+                        line: reference_line,
+                        kind: ReferenceFamilyParityKind::MissingReferenceFamily,
+                        family: rule.display.to_string(),
+                        summary: format!(
+                            "reference family {} is required for directive parity coverage",
+                            rule.display
+                        ),
+                    });
+                }
+            }
+        }
+
+        if let Some(line) = scan.github_family_line
+            && !scan.gitlab_in_family_lines
+        {
+            violations.push(ReferenceFamilyParityViolation {
+                path: document.path.clone(),
+                line,
+                kind: ReferenceFamilyParityKind::GithubOnlyAdapterOverfit,
+                family: "GitHub/GitLab adapters".to_string(),
+                summary:
+                    "GitHub adapter coverage must be paired with GitLab to avoid hosted-SCM overfit"
+                        .to_string(),
+            });
+        }
+
+        for (line, family) in scan.adapter_authority_lines {
+            violations.push(ReferenceFamilyParityViolation {
+                path: document.path.clone(),
+                line,
+                kind: ReferenceFamilyParityKind::AdapterAsAuthority,
+                family: family.to_string(),
+                summary:
+                    "reference adapters may be bridge/evidence families, not product authority"
+                        .to_string(),
+            });
+        }
+    }
+
+    if violations.is_empty() {
+        Ok(ReferenceFamilyParityReport {
+            documents_checked,
+            lines_checked,
+            reference_families_checked: reference_families.len(),
+        })
+    } else {
+        Err(violations)
+    }
+}
+
+#[derive(Clone, Copy)]
+struct ReferenceFamilyRule {
+    id: &'static str,
+    display: &'static str,
+}
+
+const REQUIRED_REFERENCE_FAMILIES: &[ReferenceFamilyRule] = &[
+    ReferenceFamilyRule {
+        id: "c-ward",
+        display: "c-ward",
+    },
+    ReferenceFamilyRule {
+        id: "kubernetes",
+        display: "Kubernetes",
+    },
+    ReferenceFamilyRule {
+        id: "argo",
+        display: "Argo",
+    },
+    ReferenceFamilyRule {
+        id: "github-gitlab-adapters",
+        display: "GitHub/GitLab adapters",
+    },
+    ReferenceFamilyRule {
+        id: "snyk-trivy-drift",
+        display: "Snyk/Trivy/drift",
+    },
+    ReferenceFamilyRule {
+        id: "linux-oci",
+        display: "Linux/OCI",
+    },
+];
+
+struct ReferenceFamilyScan {
+    lines_checked: usize,
+    family_lines: Vec<(usize, String)>,
+    present_families: BTreeSet<&'static str>,
+    github_family_line: Option<usize>,
+    gitlab_in_family_lines: bool,
+    adapter_authority_lines: Vec<(usize, &'static str)>,
+}
+
+impl ReferenceFamilyScan {
+    fn from_document(document: &ReferenceFamilyDocument) -> Self {
+        let mut lines_checked = 0usize;
+        let mut family_lines = Vec::new();
+        let mut adapter_authority_lines = Vec::new();
+        let mut in_code_fence = false;
+        let mut in_reference_family_list = false;
+
+        for (line_index, raw) in document.contents.lines().enumerate() {
+            lines_checked += 1;
+            let line_number = line_index + 1;
+            let trimmed = raw.trim_start();
+            if trimmed.starts_with("```") || trimmed.starts_with("~~~") {
+                in_code_fence = !in_code_fence;
+                continue;
+            }
+            if in_code_fence || is_example_line(trimmed) {
+                continue;
+            }
+
+            let lower = raw.to_ascii_lowercase();
+            if let Some(family) = adapter_as_authority_family(&lower) {
+                adapter_authority_lines.push((line_number, family));
+            }
+
+            if is_reference_family_header(&lower) {
+                in_reference_family_list =
+                    lower.trim_end().ends_with(':') || trimmed.trim_start().starts_with('#');
+                family_lines.push((line_number, lower));
+                continue;
+            }
+
+            if in_reference_family_list && trimmed.trim_start().starts_with("- ") {
+                family_lines.push((line_number, lower));
+                continue;
+            }
+
+            if !trimmed.trim().is_empty() && !trimmed.trim_start().starts_with('#') {
+                in_reference_family_list = false;
+            }
+        }
+
+        let mut present_families = BTreeSet::new();
+        let family_blob = family_lines
+            .iter()
+            .map(|(_, line)| line.as_str())
+            .collect::<Vec<_>>()
+            .join("\n");
+        if has_c_ward_reference(&family_blob) {
+            present_families.insert("c-ward");
+        }
+        if has_any(&family_blob, &["kubernetes", "k8s"]) {
+            present_families.insert("kubernetes");
+        }
+        if has_any(
+            &family_blob,
+            &["argo", "argocd", "argo cd", "argo rollouts"],
+        ) {
+            present_families.insert("argo");
+        }
+        if family_blob.contains("github") && family_blob.contains("gitlab") {
+            present_families.insert("github-gitlab-adapters");
+        }
+        if family_blob.contains("snyk")
+            && family_blob.contains("trivy")
+            && has_any(&family_blob, &["driftctl", "drift"])
+        {
+            present_families.insert("snyk-trivy-drift");
+        }
+        if family_blob.contains("linux") && family_blob.contains("oci") {
+            present_families.insert("linux-oci");
+        }
+
+        let github_family_line = family_lines
+            .iter()
+            .find_map(|(line, text)| text.contains("github").then_some(*line));
+        let gitlab_in_family_lines = family_blob.contains("gitlab");
+
+        Self {
+            lines_checked,
+            family_lines,
+            present_families,
+            github_family_line,
+            gitlab_in_family_lines,
+            adapter_authority_lines,
+        }
+    }
+
+    fn first_reference_line(&self) -> usize {
+        self.family_lines
+            .first()
+            .map(|(line, _)| *line)
+            .unwrap_or(1)
+    }
+}
+
+fn is_reference_family_header(lower: &str) -> bool {
+    lower.contains("reference_families")
+        || lower.contains("reference_family")
+        || lower.contains("reference-famil")
+        || lower.contains("reference family")
+        || lower.contains("reference families")
+}
+
+fn has_c_ward_reference(lower: &str) -> bool {
+    has_any(lower, &["c-ward", "c ward", "c_ward", "cward"])
+}
+
+fn has_any(lower: &str, markers: &[&str]) -> bool {
+    markers.iter().any(|marker| lower.contains(marker))
+}
+
+fn adapter_as_authority_family(lower: &str) -> Option<&'static str> {
+    for (family, aliases) in ADAPTER_AUTHORITY_TERMS {
+        for alias in *aliases {
+            if adapter_alias_is_authority(lower, alias) {
+                return Some(*family);
+            }
+        }
+    }
+    None
+}
+
+const ADAPTER_AUTHORITY_TERMS: &[(&str, &[&str])] = &[
+    ("GitHub", &["github"]),
+    ("GitLab", &["gitlab"]),
+    ("Kubernetes", &["kubernetes", "k8s"]),
+    ("Argo", &["argo", "argocd", "argo cd"]),
+    ("Snyk", &["snyk"]),
+    ("Trivy", &["trivy"]),
+    ("driftctl", &["driftctl"]),
+    ("c-ward", &["c-ward", "c ward", "c_ward", "cward"]),
+    ("Linux", &["linux"]),
+    ("OCI", &["oci"]),
+];
+
+fn adapter_alias_is_authority(lower: &str, alias: &str) -> bool {
+    [
+        format!("{alias} is the authority"),
+        format!("{alias} is authority"),
+        format!("{alias} owns authority"),
+        format!("{alias} owns the authority"),
+        format!("{alias} becomes authority"),
+        format!("{alias} becomes the authority"),
+        format!("{alias} is canonical"),
+        format!("{alias} is the canonical"),
+        format!("{alias} as authority"),
+        format!("{alias} is source of truth"),
+        format!("{alias} is the source of truth"),
+        format!("authority: {alias}"),
+        format!("canonical authority: {alias}"),
+        format!("source of truth: {alias}"),
+    ]
+    .iter()
+    .any(|marker| lower.contains(marker))
 }
 
 fn scan_claim_line(path: &str, line: usize, raw: &str) -> Vec<HonestClaimsViolation> {
@@ -1426,6 +1746,132 @@ mod tests {
         assert!(
             violations.iter().any(|violation| violation.kind
                 == ParityTargetSourceTrackingKind::OptimisticKernelAbiClaim)
+        );
+    }
+    fn reference_doc(contents: &str) -> ReferenceFamilyDocument {
+        ReferenceFamilyDocument {
+            path: "specs/reference-parity.md".to_string(),
+            contents: contents.to_string(),
+        }
+    }
+
+    fn good_reference_family_fixture() -> &'static str {
+        "---\n\
+reference_families:\n\
+  - c-ward\n\
+  - Kubernetes\n\
+  - Argo\n\
+  - GitHub/GitLab adapters\n\
+  - Snyk/Trivy/drift\n\
+  - Linux/OCI\n\
+---\n\
+Authority: Oyatie owns product authority; these are bridge/reference families only.\n\
+GitHub and GitLab are adapter examples, not authority.\n"
+    }
+
+    #[test]
+    fn reference_family_parity_accepts_full_directive_fixture() {
+        let report =
+            validate_reference_family_parity([reference_doc(good_reference_family_fixture())])
+                .unwrap();
+        assert_eq!(report.documents_checked, 1);
+        assert_eq!(report.reference_families_checked, 6);
+    }
+    #[test]
+    fn reference_family_parity_accepts_markdown_heading_fixture() {
+        let report = validate_reference_family_parity([reference_doc(
+            "## Reference families\n\
+- c-ward\n\
+- Kubernetes\n\
+- Argo\n\
+- GitHub/GitLab adapters\n\
+- Snyk/Trivy/drift\n\
+- Linux/OCI\n",
+        )])
+        .unwrap();
+        assert_eq!(report.reference_families_checked, 6);
+    }
+
+
+    #[test]
+    fn reference_family_parity_rejects_missing_reference_family() {
+        let violations = validate_reference_family_parity([reference_doc(
+            "GitHub adapter parity covers the target without declaring the required comparison set.",
+        )])
+        .unwrap_err();
+        assert!(
+            violations.iter().any(
+                |violation| violation.kind == ReferenceFamilyParityKind::MissingReferenceFamily
+            )
+        );
+    }
+
+    #[test]
+    fn reference_family_parity_rejects_github_only_adapter_overfit() {
+        let fixture =
+            good_reference_family_fixture().replace("GitHub/GitLab adapters", "GitHub adapter");
+        let violations = validate_reference_family_parity([reference_doc(&fixture)]).unwrap_err();
+        assert!(
+            violations
+                .iter()
+                .any(|violation| violation.kind
+                    == ReferenceFamilyParityKind::GithubOnlyAdapterOverfit)
+        );
+    }
+
+    #[test]
+    fn reference_family_parity_rejects_adapter_as_authority() {
+        let fixture = format!(
+            "{}\nGitHub is the authority for merge admission.\n",
+            good_reference_family_fixture()
+        );
+        let violations = validate_reference_family_parity([reference_doc(&fixture)]).unwrap_err();
+        assert!(
+            violations
+                .iter()
+                .any(|violation| violation.kind == ReferenceFamilyParityKind::AdapterAsAuthority)
+        );
+    }
+    #[test]
+    fn reference_family_parity_rejects_mixed_authority_and_negation_line() {
+        let fixture = format!(
+            "{}\nGitHub is the authority for merge admission; GitLab is not product authority.\n",
+            good_reference_family_fixture()
+        );
+        let violations = validate_reference_family_parity([reference_doc(&fixture)]).unwrap_err();
+        assert!(
+            violations
+                .iter()
+                .any(|violation| violation.family == "GitHub"
+                    && violation.kind == ReferenceFamilyParityKind::AdapterAsAuthority)
+        );
+    }
+
+    #[test]
+    fn reference_family_parity_rejects_source_of_truth_wording() {
+        let fixture = format!(
+            "{}\nKubernetes is the source of truth for control-plane parity.\n",
+            good_reference_family_fixture()
+        );
+        let violations = validate_reference_family_parity([reference_doc(&fixture)]).unwrap_err();
+        assert!(
+            violations.iter().any(|violation| violation.family == "Kubernetes"
+                && violation.kind == ReferenceFamilyParityKind::AdapterAsAuthority)
+        );
+    }
+
+    #[test]
+    fn reference_family_parity_rejects_same_alias_mixed_authority_and_negation() {
+        let fixture = format!(
+            "{}\nGitHub is the authority for merge admission; GitHub is not product authority.\n",
+            good_reference_family_fixture()
+        );
+        let violations = validate_reference_family_parity([reference_doc(&fixture)]).unwrap_err();
+        assert!(
+            violations
+                .iter()
+                .any(|violation| violation.family == "GitHub"
+                    && violation.kind == ReferenceFamilyParityKind::AdapterAsAuthority)
         );
     }
 }
