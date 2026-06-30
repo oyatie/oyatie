@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-DELIVERY-READINESS-RECONCILIATION",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "status": "accepted-for-ralplan-execution",
     "owner_team": "council-architecture + platform-governance + platform-sre + product-leads",
     "created_at": "2026-06-29T12:44:53Z",
@@ -479,7 +479,8 @@
       "source_precedence selects local .omc/.omx, local oya CLI, or bridge-only evidence as canonical authority",
       "promotion_role requests candidate_fitness/Product-ready/Hyperscaler-ready while source authority is historical_only or owner/RACI is missing",
       "dependency edge or blocking cycle is unresolved without a real fixuptask",
-      "pipeline/admission/gate/runner row lacks toolchain_product classification and product_line mapping when promotion-relevant"
+      "pipeline/admission/gate/runner row lacks toolchain_product classification and product_line mapping when promotion-relevant",
+      "promotion packet omits evidence_bundle, freshness_window, dogfood_signal, approval_authority, rollback_dr_proof, or blockers for its universe row"
     ],
     "advisory_invariants": [
       "inventory-only future product row has owner/accountable TBD",
@@ -1748,13 +1749,20 @@
     },
     "PromotionPacket": {
       "type": "object",
+      "description": "Per-universe-row promotion packet for Product-ready, Hyperscaler-ready, or retirement/supersession decisions. The packet is the only place a row may aggregate freshness-bound evidence, dogfood/user-story signal, approval authority, rollback/DR proof, and blocking reasons for a readiness claim.",
       "required": [
         "packet_id",
         "row_id",
         "target_claim_tier",
         "promotion_state",
         "required_domains",
+        "evidence_bundle",
+        "freshness_window",
+        "dogfood_signal",
+        "approval_authority",
+        "rollback_dr_proof",
         "evidence_refs",
+        "blockers",
         "verdict_basis"
       ],
       "additionalProperties": false,
@@ -1765,7 +1773,10 @@
               "target_claim_tier": {
                 "const": "hyperscaler_ready"
               }
-            }
+            },
+            "required": [
+              "target_claim_tier"
+            ]
           },
           "then": {
             "properties": {
@@ -1780,6 +1791,39 @@
                   "slo",
                   "tenant_isolation"
                 ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "target_claim_tier": {
+                "const": "product_ready"
+              }
+            },
+            "required": [
+              "target_claim_tier"
+            ]
+          },
+          "then": {
+            "properties": {
+              "required_domains": {
+                "required": [
+                  "ci",
+                  "platform_contract_consumption",
+                  "rollback_dr",
+                  "security",
+                  "slo",
+                  "user_pain_validation"
+                ]
+              },
+              "dogfood_signal": {
+                "properties": {
+                  "required_for_product_ready": {
+                    "const": true
+                  }
+                }
               }
             }
           }
@@ -1804,7 +1848,7 @@
         },
         "required_domains": {
           "type": "object",
-          "description": "Shape-neutral evidence-domain status map. Hyperscaler-ready packets MUST carry ci, tenant_isolation, audit, cost, slo, security, sbom, and rollback_dr keys; product and migration packets MAY carry the same map plus their tier-specific domains.",
+          "description": "Shape-neutral evidence-domain status map. Hyperscaler-ready packets MUST carry ci, tenant_isolation, audit, cost, slo, security, sbom, and rollback_dr keys; Product-ready packets MUST carry user_pain_validation, platform_contract_consumption, ci, slo, rollback_dr, and security keys; product and migration packets MAY carry the same map plus their tier-specific domains.",
           "propertyNames": {
             "enum": [
               "audit",
@@ -1836,10 +1880,204 @@
             ]
           }
         },
+        "evidence_bundle": {
+          "type": "object",
+          "required": [
+            "bundle_id",
+            "row_id",
+            "source_packet_id",
+            "domain_status",
+            "evidence_ref_ids",
+            "notes"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "bundle_id": {
+              "type": "string",
+              "pattern": "^DRB-[A-Z0-9-]+$"
+            },
+            "row_id": {
+              "type": "string"
+            },
+            "source_packet_id": {
+              "type": "string",
+              "pattern": "^DRP-[A-Z0-9-]+$"
+            },
+            "domain_status": {
+              "type": "object",
+              "propertyNames": {
+                "enum": [
+                  "audit",
+                  "boundary_contract",
+                  "ci",
+                  "ci_no_regression",
+                  "cost",
+                  "dependency_direction",
+                  "gate_self_conformance",
+                  "owner_raci",
+                  "platform_contract_consumption",
+                  "rollback",
+                  "rollback_dr",
+                  "sbom",
+                  "security",
+                  "slo",
+                  "target_classification",
+                  "tenant_isolation",
+                  "user_pain_validation"
+                ]
+              },
+              "additionalProperties": {
+                "type": "string",
+                "enum": [
+                  "present",
+                  "missing",
+                  "expired",
+                  "not_applicable"
+                ]
+              }
+            },
+            "evidence_ref_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "freshness_window": {
+          "$ref": "#/$defs/Freshness"
+        },
+        "dogfood_signal": {
+          "type": "object",
+          "required": [
+            "status",
+            "required_for_product_ready",
+            "journey_ref",
+            "evidence_ref_ids",
+            "notes"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "present",
+                "missing",
+                "expired",
+                "not_applicable"
+              ]
+            },
+            "required_for_product_ready": {
+              "type": "boolean"
+            },
+            "journey_ref": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "evidence_ref_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "approval_authority": {
+          "type": "object",
+          "required": [
+            "accountable",
+            "required_approvers",
+            "decision_state",
+            "decision_ref",
+            "notes"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "accountable": {
+              "type": "string"
+            },
+            "required_approvers": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string"
+              }
+            },
+            "decision_state": {
+              "$ref": "#/$defs/PromotionState"
+            },
+            "decision_ref": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "rollback_dr_proof": {
+          "type": "object",
+          "required": [
+            "status",
+            "rollback_ref",
+            "dr_ref",
+            "evidence_ref_ids",
+            "notes"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "present",
+                "missing",
+                "expired",
+                "not_applicable"
+              ]
+            },
+            "rollback_ref": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "dr_ref": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "evidence_ref_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
         "evidence_refs": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/EvidenceRef"
+          }
+        },
+        "blockers": {
+          "type": "array",
+          "items": {
+            "type": "string"
           }
         },
         "verdict_basis": {

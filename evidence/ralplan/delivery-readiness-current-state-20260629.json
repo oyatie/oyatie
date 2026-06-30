@@ -1050,6 +1050,56 @@
         "slo": "missing",
         "tenant_isolation": "missing"
       },
+      "evidence_bundle": {
+        "bundle_id": "DRB-PIPELINE-PRODUCTIZATION-HYPERSCALER-20260629",
+        "row_id": "DRU-PIPELINE-PRODUCTIZATION",
+        "source_packet_id": "DRP-PIPELINE-PRODUCTIZATION-HYPERSCALER-20260629",
+        "domain_status": {
+          "audit": "missing",
+          "ci": "present",
+          "cost": "missing",
+          "gate_self_conformance": "missing",
+          "rollback_dr": "missing",
+          "sbom": "missing",
+          "security": "missing",
+          "slo": "missing",
+          "tenant_isolation": "missing"
+        },
+        "evidence_ref_ids": [
+          "ISSUE-777"
+        ],
+        "notes": "Only the current required-context/gate issue evidence is attached; freshness-bound hyperscaler evidence domains remain missing."
+      },
+      "freshness_window": {
+        "as_of": "2026-06-29T12:44:53Z",
+        "expires_at": "2026-07-13",
+        "refresh_cadence": "14d",
+        "source_changed_reopen_required": true
+      },
+      "dogfood_signal": {
+        "status": "missing",
+        "required_for_product_ready": false,
+        "journey_ref": "toolchain.pipeline-orchestration",
+        "evidence_ref_ids": [],
+        "notes": "No current packet-level dogfood signal proves the toolchain product reduces internal user pain through sanctioned contracts."
+      },
+      "approval_authority": {
+        "accountable": "council-architecture",
+        "required_approvers": [
+          "founder",
+          "council-architecture"
+        ],
+        "decision_state": "denied_with_fixuptask",
+        "decision_ref": "F-PIPELINE-GATE-SELF-CONFORMANCE-777",
+        "notes": "Approval remains denied until the gate self-conformance fixuptask closes and freshness domains attach."
+      },
+      "rollback_dr_proof": {
+        "status": "missing",
+        "rollback_ref": null,
+        "dr_ref": null,
+        "evidence_ref_ids": [],
+        "notes": "No rollback or disaster-recovery proof is attached for this hyperscaler-ready packet."
+      },
       "evidence_refs": [
         {
           "id": "ISSUE-777",
@@ -1061,6 +1111,10 @@
           "current_for_claim": true,
           "notes": ""
         }
+      ],
+      "blockers": [
+        "Gate-self-conformance issue #777 / F-PIPELINE-GATE-SELF-CONFORMANCE-777 is still open.",
+        "Fresh audit, cost, rollback/DR, SBOM, security, SLO, and tenant-isolation evidence is missing."
       ],
       "verdict_basis": "Denied, not rejected: issue #777/fixuptask must close and freshness domains must attach before hyperscaler-ready can be claimed."
     },
@@ -1078,6 +1132,55 @@
         "rollback_dr": "missing",
         "security": "missing"
       },
+      "evidence_bundle": {
+        "bundle_id": "DRB-DOGFOOD-PRODUCT-READY-20260629",
+        "row_id": "DRU-PRODUCT-DOGFOOD-JOURNEYS",
+        "source_packet_id": "DRP-DOGFOOD-PRODUCT-READY-20260629",
+        "domain_status": {
+          "user_pain_validation": "missing",
+          "platform_contract_consumption": "missing",
+          "ci": "missing",
+          "slo": "missing",
+          "rollback_dr": "missing",
+          "security": "missing"
+        },
+        "evidence_ref_ids": [
+          "FIXUP-F-READINESS-USER-PAIN-VALIDATION-20260629"
+        ],
+        "notes": "The bundle currently contains only blocker evidence; no positive product-ready evidence is attached."
+      },
+      "freshness_window": {
+        "as_of": "2026-06-29T12:44:53Z",
+        "expires_at": "2026-07-13",
+        "refresh_cadence": "14d",
+        "source_changed_reopen_required": true
+      },
+      "dogfood_signal": {
+        "status": "missing",
+        "required_for_product_ready": true,
+        "journey_ref": "journey.product-dogfood",
+        "evidence_ref_ids": [
+          "FIXUP-F-READINESS-USER-PAIN-VALIDATION-20260629"
+        ],
+        "notes": "Product-ready requires real user pain reduction and sanctioned platform-contract consumption; both are blocked by fixuptasks."
+      },
+      "approval_authority": {
+        "accountable": "product-leads",
+        "required_approvers": [
+          "founder",
+          "council-architecture"
+        ],
+        "decision_state": "denied_with_fixuptask",
+        "decision_ref": "F-READINESS-USER-PAIN-VALIDATION-20260629",
+        "notes": "Product-ready approval is denied until dogfood/user-pain and platform-contract evidence attach."
+      },
+      "rollback_dr_proof": {
+        "status": "missing",
+        "rollback_ref": null,
+        "dr_ref": null,
+        "evidence_ref_ids": [],
+        "notes": "No rollback or disaster-recovery proof is attached for this Product-ready packet."
+      },
       "evidence_refs": [
         {
           "id": "FIXUP-F-READINESS-USER-PAIN-VALIDATION-20260629",
@@ -1089,6 +1192,11 @@
           "current_for_claim": true,
           "notes": ""
         }
+      ],
+      "blockers": [
+        "No current repo evidence proves real user pain reduction for product-ready claims.",
+        "No current repo evidence proves dogfood journeys consume sanctioned platform contracts without direct internal shortcuts.",
+        "Fresh CI, SLO, rollback/DR, and security evidence is missing."
       ],
       "verdict_basis": "Product-ready denied until real user pain reduction and sanctioned platform-contract consumption evidence exists."
     },
@@ -1106,6 +1214,53 @@
         "ci_no_regression": "missing",
         "owner_raci": "present"
       },
+      "evidence_bundle": {
+        "bundle_id": "DRB-SHAPE-NEUTRAL-REORG-20260629",
+        "row_id": "DRU-SHAPE-NEUTRAL-REORG",
+        "source_packet_id": "DRP-SHAPE-NEUTRAL-REORG-20260629",
+        "domain_status": {
+          "target_classification": "missing",
+          "boundary_contract": "missing",
+          "dependency_direction": "missing",
+          "rollback": "missing",
+          "ci_no_regression": "missing",
+          "owner_raci": "present"
+        },
+        "evidence_ref_ids": [
+          "FIXUP-F-SHAPE-NEUTRAL-REORG-CONTRACT-20260629"
+        ],
+        "notes": "The bundle records a retire/supersede blocker packet, not readiness approval."
+      },
+      "freshness_window": {
+        "as_of": "2026-06-29T12:44:53Z",
+        "expires_at": "2026-07-29",
+        "refresh_cadence": "30d",
+        "source_changed_reopen_required": true
+      },
+      "dogfood_signal": {
+        "status": "not_applicable",
+        "required_for_product_ready": false,
+        "journey_ref": null,
+        "evidence_ref_ids": [],
+        "notes": "This retire/supersede packet is a migration eligibility row, not a Product-ready dogfood journey claim."
+      },
+      "approval_authority": {
+        "accountable": "council-architecture",
+        "required_approvers": [
+          "founder",
+          "council-architecture"
+        ],
+        "decision_state": "denied_with_fixuptask",
+        "decision_ref": "F-SHAPE-NEUTRAL-REORG-CONTRACT-20260629",
+        "notes": "Retire/supersede approval remains denied until migration eligibility evidence attaches."
+      },
+      "rollback_dr_proof": {
+        "status": "missing",
+        "rollback_ref": null,
+        "dr_ref": null,
+        "evidence_ref_ids": [],
+        "notes": "No rollback proof is attached for the shape-neutral reorg packet; DR is not separately claimed."
+      },
       "evidence_refs": [
         {
           "id": "FIXUP-F-SHAPE-NEUTRAL-REORG-CONTRACT-20260629",
@@ -1117,6 +1272,10 @@
           "current_for_claim": true,
           "notes": ""
         }
+      ],
+      "blockers": [
+        "Target classification, boundary contract, dependency direction, rollback, and CI no-regression evidence are missing.",
+        "F-SHAPE-NEUTRAL-REORG-CONTRACT-20260629 must close before retire/supersede promotion can advance."
       ],
       "verdict_basis": "Denied with fixuptask: retire/supersede promotion cannot remain pending while target classification, boundary contract, dependency direction, rollback, and CI no-regression evidence are missing."
     }
@@ -1195,7 +1354,7 @@
     "terminal_rows": 0,
     "nonterminal_rows": 7,
     "approved_packets": 0,
-    "denied_packets": 2,
+    "denied_packets": 3,
     "freshness_expiring_rows": 3,
     "notes": [
       "Approved packets would be terminal for reconciliation but still freshness-expiring; this snapshot approves none.",
