@@ -5824,6 +5824,9 @@ version = "0.1.0"
 [[package]]
 name = "oya-check-honest-claims"
 version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
 
 [[package]]
 name = "oya-check-i18n-coverage"

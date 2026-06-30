@@ -5,6 +5,7 @@
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `panic!()`.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::panic))]
 
+use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
@@ -76,6 +77,34 @@ pub enum PlanKind {
     GlobalArtifactConflict,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ParityTargetSourceTrackingReport {
+    pub targets_checked: usize,     // data_class: INTERNAL_ONLY
+    pub source_refs_checked: usize, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ParityTargetSourceTrackingViolation {
+    pub path: String,                         // data_class: INTERNAL_ONLY
+    pub target_id: String,                    // data_class: INTERNAL_ONLY
+    pub kind: ParityTargetSourceTrackingKind, // data_class: INTERNAL_ONLY
+    pub summary: String,                      // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ParityTargetSourceTrackingKind {
+    MissingTargets,
+    MalformedTarget,
+    DuplicateTargetId,
+    MissingPinnedSource,
+    ExternalAuthorityLeak,
+    PromotionAuthorityClaim,
+    MissingValidationRefs,
+    MissingStopConditions,
+    OptimisticKernelAbiClaim,
+    MissingCwardPessimism,
+}
+
 impl fmt::Display for HonestClaimsViolation {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
@@ -92,6 +121,16 @@ impl fmt::Display for ChangeSetPlanViolation {
             formatter,
             "{}:{} {:?}: {}",
             self.path, self.line, self.kind, self.summary
+        )
+    }
+}
+
+impl fmt::Display for ParityTargetSourceTrackingViolation {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            formatter,
+            "{}:{} {:?}: {}",
+            self.path, self.target_id, self.kind, self.summary
         )
     }
 }
@@ -259,6 +298,293 @@ where
     } else {
         Err(violations)
     }
+}
+
+pub fn validate_parity_target_source_tracking(
+    path: impl Into<String>,
+    input: &Value,
+) -> Result<ParityTargetSourceTrackingReport, Vec<ParityTargetSourceTrackingViolation>> {
+    let path = path.into();
+    let mut violations = Vec::new();
+    let Some(targets) = input.get("parity_targets").and_then(Value::as_array) else {
+        violations.push(parity_violation(
+            &path,
+            "<document>",
+            ParityTargetSourceTrackingKind::MissingTargets,
+            "document must contain a parity_targets array",
+        ));
+        return Err(violations);
+    };
+
+    let mut seen_targets = BTreeSet::new();
+    let mut source_refs_checked = 0usize;
+
+    for target in targets {
+        let Some(target_object) = target.as_object() else {
+            violations.push(parity_violation(
+                &path,
+                "<malformed>",
+                ParityTargetSourceTrackingKind::MalformedTarget,
+                "parity target row must be an object",
+            ));
+            continue;
+        };
+
+        let target_id = string_field(target, "target_id").unwrap_or("<missing>");
+        if target_id == "<missing>" {
+            violations.push(parity_violation(
+                &path,
+                target_id,
+                ParityTargetSourceTrackingKind::MalformedTarget,
+                "parity target requires target_id",
+            ));
+        } else if !seen_targets.insert(target_id.to_string()) {
+            violations.push(parity_violation(
+                &path,
+                target_id,
+                ParityTargetSourceTrackingKind::DuplicateTargetId,
+                "target_id must be unique within the source-tracking document",
+            ));
+        }
+
+        for required in [
+            "reference_kind",
+            "source_tracking_state",
+            "freshness_state",
+            "parity_posture",
+            "authority_boundary",
+        ] {
+            if string_field(target, required).is_none() {
+                violations.push(parity_violation(
+                    &path,
+                    target_id,
+                    ParityTargetSourceTrackingKind::MalformedTarget,
+                    format!("parity target requires non-empty {required}"),
+                ));
+            }
+        }
+
+        match target_object.get("source_refs").and_then(Value::as_array) {
+            Some(source_refs) if !source_refs.is_empty() => {
+                source_refs_checked += source_refs.len();
+                for source_ref in source_refs {
+                    if string_field(source_ref, "url").is_none()
+                        || string_field(source_ref, "retrieved_at").is_none()
+                        || string_field(source_ref, "pinned_ref").is_none()
+                    {
+                        violations.push(parity_violation(
+                            &path,
+                            target_id,
+                            ParityTargetSourceTrackingKind::MissingPinnedSource,
+                            "each source_ref requires url, retrieved_at, and pinned_ref",
+                        ));
+                    }
+
+                    if source_ref
+                        .get("external_authority")
+                        .and_then(Value::as_bool)
+                        != Some(false)
+                    {
+                        violations.push(parity_violation(
+                            &path,
+                            target_id,
+                            ParityTargetSourceTrackingKind::ExternalAuthorityLeak,
+                            "source_ref.external_authority must be false",
+                        ));
+                    }
+                }
+            }
+            _ => violations.push(parity_violation(
+                &path,
+                target_id,
+                ParityTargetSourceTrackingKind::MissingPinnedSource,
+                "parity target requires at least one pinned source_ref",
+            )),
+        }
+
+        if !non_empty_array(target, "validation_refs") {
+            violations.push(parity_violation(
+                &path,
+                target_id,
+                ParityTargetSourceTrackingKind::MissingValidationRefs,
+                "parity target requires validation_refs",
+            ));
+        }
+
+        if !non_empty_array(target, "stop_conditions") {
+            violations.push(parity_violation(
+                &path,
+                target_id,
+                ParityTargetSourceTrackingKind::MissingStopConditions,
+                "parity target requires stop_conditions",
+            ));
+        }
+
+        let target_text = target.to_string().to_ascii_lowercase();
+        if contains_authority_claim(&target_text) {
+            violations.push(parity_violation(
+                &path,
+                target_id,
+                ParityTargetSourceTrackingKind::PromotionAuthorityClaim,
+                "parity target cannot claim merge, promotion, product-ready, or hyperscaler-ready authority",
+            ));
+        }
+
+        if is_cward_or_linux_libc_target(target) {
+            validate_cward_pessimism(&path, target_id, target, &target_text, &mut violations);
+        }
+    }
+
+    if violations.is_empty() {
+        Ok(ParityTargetSourceTrackingReport {
+            targets_checked: targets.len(),
+            source_refs_checked,
+        })
+    } else {
+        Err(violations)
+    }
+}
+
+fn validate_cward_pessimism(
+    path: &str,
+    target_id: &str,
+    target: &Value,
+    target_text: &str,
+    violations: &mut Vec<ParityTargetSourceTrackingViolation>,
+) {
+    if string_field(target, "reference_kind") != Some("linux_libc_abi_pessimistic_input")
+        || !string_field(target, "parity_posture")
+            .is_some_and(|posture| posture.contains("pessimistic"))
+        || target
+            .get("userspace_abi_preserved")
+            .and_then(Value::as_bool)
+            != Some(true)
+    {
+        violations.push(parity_violation(
+            path,
+            target_id,
+            ParityTargetSourceTrackingKind::MissingCwardPessimism,
+            "c-ward/Linux libc ABI rows must be pessimistic userspace-ABI inputs only",
+        ));
+    }
+
+    if target
+        .get("internal_kernel_api_stable")
+        .and_then(Value::as_bool)
+        != Some(false)
+        || target_text.contains("kernel api stable")
+        || target_text.contains("kernel-api-stable")
+        || target_text.contains("production ready")
+    {
+        violations.push(parity_violation(
+            path,
+            target_id,
+            ParityTargetSourceTrackingKind::OptimisticKernelAbiClaim,
+            "c-ward/Linux libc ABI rows must not claim stable internal kernel APIs or production readiness",
+        ));
+    }
+
+    let gap_text = target
+        .get("known_gaps")
+        .and_then(Value::as_array)
+        .map(|gaps| {
+            gaps.iter()
+                .filter_map(Value::as_str)
+                .collect::<Vec<_>>()
+                .join(" ")
+                .to_ascii_lowercase()
+        })
+        .unwrap_or_default();
+
+    for required_gap in ["getent", "nightly", "incomplete", "linux-gnu-only"] {
+        if !gap_text.contains(required_gap) {
+            violations.push(parity_violation(
+                path,
+                target_id,
+                ParityTargetSourceTrackingKind::MissingCwardPessimism,
+                format!("c-ward known_gaps must record {required_gap} caveat"),
+            ));
+        }
+    }
+}
+
+fn parity_violation(
+    path: &str,
+    target_id: &str,
+    kind: ParityTargetSourceTrackingKind,
+    summary: impl Into<String>,
+) -> ParityTargetSourceTrackingViolation {
+    ParityTargetSourceTrackingViolation {
+        path: path.to_string(),
+        target_id: target_id.to_string(),
+        kind,
+        summary: summary.into(),
+    }
+}
+
+fn string_field<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
+    value.get(key).and_then(Value::as_str).and_then(|value| {
+        let trimmed = value.trim();
+        if trimmed.is_empty() {
+            None
+        } else {
+            Some(trimmed)
+        }
+    })
+}
+
+fn non_empty_array(value: &Value, key: &str) -> bool {
+    value
+        .get(key)
+        .and_then(Value::as_array)
+        .is_some_and(|values| !values.is_empty())
+}
+
+fn contains_authority_claim(target_text: &str) -> bool {
+    [
+        "approved_product_ready",
+        "approved-product-ready",
+        "approved product ready",
+        "approved_hyperscaler_ready",
+        "approved-hyperscaler-ready",
+        "approved hyperscaler ready",
+        "merge_authority",
+        "merge-authority",
+        "merge authority",
+        "promotion_authority",
+        "promotion-authority",
+        "promotion authority",
+        "permanent_product_authority",
+        "permanent-product-authority",
+        "permanent product authority",
+        "product_ready",
+        "product-ready",
+        "product ready",
+        "hyperscaler_ready",
+        "hyperscaler-ready",
+        "hyperscaler ready",
+    ]
+    .iter()
+    .any(|marker| target_text.contains(marker))
+}
+
+fn is_cward_or_linux_libc_target(target: &Value) -> bool {
+    let target_id = string_field(target, "target_id").unwrap_or_default();
+    let reference_kind = string_field(target, "reference_kind").unwrap_or_default();
+    let source_text = target
+        .get("source_refs")
+        .and_then(Value::as_array)
+        .map(|refs| {
+            refs.iter()
+                .filter_map(|source_ref| string_field(source_ref, "url"))
+                .collect::<Vec<_>>()
+                .join(" ")
+        })
+        .unwrap_or_default();
+
+    target_id.contains("c-ward")
+        || reference_kind == "linux_libc_abi_pessimistic_input"
+        || source_text.contains("github.com/sunfishcode/c-ward")
 }
 
 fn scan_claim_line(path: &str, line: usize, raw: &str) -> Vec<HonestClaimsViolation> {
@@ -975,6 +1301,131 @@ mod tests {
             violations
                 .iter()
                 .any(|violation| violation.kind == PlanKind::GlobalArtifactConflict)
+        );
+    }
+
+    fn good_parity_target_fixture() -> Value {
+        serde_json::json!({
+            "parity_targets": [
+                {
+                    "target_id": "linux-libc-abi-c-ward",
+                    "reference_kind": "linux_libc_abi_pessimistic_input",
+                    "source_refs": [
+                        {
+                            "url": "https://github.com/sunfishcode/c-ward",
+                            "pinned_ref": "main@2026-06-30-readme-inspection",
+                            "retrieved_at": "2026-06-30T00:00:00Z",
+                            "external_authority": false
+                        }
+                    ],
+                    "source_tracking_state": "tracked_inventory",
+                    "freshness_state": "fresh_at_collection",
+                    "parity_posture": "pessimistic_reference_only",
+                    "authority_boundary": "Benchmark and parity input only; first-party policy decides readiness.",
+                    "validation_refs": ["libs/oya-check-honest-claims/src/lib.rs#validate_parity_target_source_tracking"],
+                    "stop_conditions": ["source_changed_reopen_required", "missing_conformance_fixture"],
+                    "userspace_abi_preserved": true,
+                    "internal_kernel_api_stable": false,
+                    "known_gaps": [
+                        "getent runtime dependency",
+                        "nightly dependency",
+                        "incomplete implementation",
+                        "linux-gnu-only ABI coverage"
+                    ]
+                }
+            ]
+        })
+    }
+
+    #[test]
+    fn parity_target_source_tracking_accepts_good_fixture() {
+        let report =
+            validate_parity_target_source_tracking("good.json", &good_parity_target_fixture())
+                .unwrap();
+        assert_eq!(report.targets_checked, 1);
+        assert_eq!(report.source_refs_checked, 1);
+    }
+
+    #[test]
+    fn parity_target_source_tracking_rejects_external_authority() {
+        let mut fixture = good_parity_target_fixture();
+        fixture["parity_targets"][0]["source_refs"][0]["external_authority"] =
+            serde_json::json!(true);
+
+        let violations =
+            validate_parity_target_source_tracking("bad-authority.json", &fixture).unwrap_err();
+
+        assert!(violations.iter().any(
+            |violation| violation.kind == ParityTargetSourceTrackingKind::ExternalAuthorityLeak
+        ));
+    }
+
+    #[test]
+    fn parity_target_source_tracking_rejects_duplicate_target_id() {
+        let mut fixture = good_parity_target_fixture();
+        let duplicate = fixture["parity_targets"][0].clone();
+        fixture["parity_targets"]
+            .as_array_mut()
+            .unwrap()
+            .push(duplicate);
+
+        let violations =
+            validate_parity_target_source_tracking("duplicate.json", &fixture).unwrap_err();
+
+        assert!(
+            violations.iter().any(
+                |violation| violation.kind == ParityTargetSourceTrackingKind::DuplicateTargetId
+            )
+        );
+    }
+
+    #[test]
+    fn parity_target_source_tracking_requires_pinned_sources() {
+        let mut fixture = good_parity_target_fixture();
+        fixture["parity_targets"][0]["source_refs"][0]
+            .as_object_mut()
+            .unwrap()
+            .remove("pinned_ref");
+
+        let violations =
+            validate_parity_target_source_tracking("missing-source.json", &fixture).unwrap_err();
+
+        assert!(
+            violations
+                .iter()
+                .any(|violation| violation.kind
+                    == ParityTargetSourceTrackingKind::MissingPinnedSource)
+        );
+    }
+
+    #[test]
+    fn parity_target_source_tracking_rejects_embedded_authority_claim() {
+        let mut fixture = good_parity_target_fixture();
+        fixture["parity_targets"][0]["authority_boundary"] =
+            serde_json::json!("external source is merge_authority for promotion decisions");
+
+        let violations =
+            validate_parity_target_source_tracking("embedded-authority.json", &fixture)
+                .unwrap_err();
+
+        assert!(
+            violations.iter().any(|violation| violation.kind
+                == ParityTargetSourceTrackingKind::PromotionAuthorityClaim)
+        );
+    }
+
+    #[test]
+    fn c_ward_linux_libc_abi_reference_is_pessimistic_only() {
+        let mut fixture = good_parity_target_fixture();
+        fixture["parity_targets"][0]["internal_kernel_api_stable"] = serde_json::json!(true);
+        fixture["parity_targets"][0]["parity_posture"] = serde_json::json!("production ready");
+
+        let violations =
+            validate_parity_target_source_tracking("cward-optimistic.json", &fixture).unwrap_err();
+
+        assert!(
+            violations.iter().any(|violation| violation.kind
+                == ParityTargetSourceTrackingKind::OptimisticKernelAbiClaim)
         );
     }
 }
