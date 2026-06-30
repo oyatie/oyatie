@@ -215,7 +215,11 @@
   "reference_capability_matrix": [
     {
       "reference": "Kubernetes",
-      "source_repos": ["https://github.com/kubernetes/kubernetes", "https://github.com/kubernetes-sigs/controller-runtime", "https://github.com/kubernetes/test-infra"],
+      "source_repos": [
+        "https://github.com/kubernetes/kubernetes",
+        "https://github.com/kubernetes-sigs/controller-runtime",
+        "https://github.com/kubernetes/test-infra"
+      ],
       "strengths_to_adopt": [
         "declarative versioned API resources with status/conditions",
         "watch/cache/informer reconciliation with idempotent controllers",
@@ -233,7 +237,12 @@
     },
     {
       "reference": "Argo ecosystem",
-      "source_repos": ["https://github.com/argoproj/argo-workflows", "https://github.com/argoproj/argo-cd", "https://github.com/argoproj/argo-rollouts", "https://github.com/argoproj/argo-events"],
+      "source_repos": [
+        "https://github.com/argoproj/argo-workflows",
+        "https://github.com/argoproj/argo-cd",
+        "https://github.com/argoproj/argo-rollouts",
+        "https://github.com/argoproj/argo-events"
+      ],
       "strengths_to_adopt": [
         "workflow DAGs, templates, artifact passing, retries, suspend/resume, archive/offload",
         "desired/live GitOps reconciliation and health/drift status",
@@ -250,7 +259,15 @@
     },
     {
       "reference": "GitHub Actions ecosystem",
-      "source_repos": ["https://github.com/actions/runner", "https://github.com/actions/actions-runner-controller", "https://github.com/actions/cache", "https://github.com/actions/toolkit", "https://github.com/actions/runner-images", "https://github.com/actions/checkout", "https://github.com/actions/starter-workflows"],
+      "source_repos": [
+        "https://github.com/actions/runner",
+        "https://github.com/actions/actions-runner-controller",
+        "https://github.com/actions/cache",
+        "https://github.com/actions/toolkit",
+        "https://github.com/actions/runner-images",
+        "https://github.com/actions/checkout",
+        "https://github.com/actions/starter-workflows"
+      ],
       "strengths_to_adopt": [
         "low-friction event-to-run ergonomics",
         "ephemeral self-hosted runner scale sets via ARC",
@@ -268,7 +285,9 @@
     },
     {
       "reference": "GitLab CI/CD",
-      "source_repos": ["https://github.com/gitlabhq/gitlabhq"],
+      "source_repos": [
+        "https://github.com/gitlabhq/gitlabhq"
+      ],
       "strengths_to_adopt": [
         "integrated merge/pipeline/deployment/security product flow",
         "components/catalog and reusable pipeline abstractions",
@@ -284,7 +303,9 @@
     },
     {
       "reference": "Jenkins",
-      "source_repos": ["https://github.com/jenkinsci/jenkins"],
+      "source_repos": [
+        "https://github.com/jenkinsci/jenkins"
+      ],
       "strengths_to_adopt": [
         "extreme extensibility and ecosystem breadth",
         "durable queue/executor/controller mental model",
@@ -299,7 +320,12 @@
     },
     {
       "reference": "Snyk + Trivy + driftctl",
-      "source_repos": ["https://github.com/snyk/cli", "https://github.com/snyk/agent-scan", "https://github.com/aquasecurity/trivy", "https://github.com/snyk/driftctl"],
+      "source_repos": [
+        "https://github.com/snyk/cli",
+        "https://github.com/snyk/agent-scan",
+        "https://github.com/aquasecurity/trivy",
+        "https://github.com/snyk/driftctl"
+      ],
       "strengths_to_adopt": [
         "broad vulnerability, misconfiguration, secret, license, SBOM, VEX, Kubernetes, filesystem, image, repo, VM, and IaC/drift coverage",
         "private collector/agent patterns for customer environments",
@@ -316,7 +342,12 @@
     },
     {
       "reference": "Linux + OCI/CRI/container runtime stack",
-      "source_repos": ["https://github.com/torvalds/linux", "https://github.com/firecracker-microvm/firecracker", "https://github.com/opencontainers/runc", "https://github.com/containerd/containerd"],
+      "source_repos": [
+        "https://github.com/torvalds/linux",
+        "https://github.com/firecracker-microvm/firecracker",
+        "https://github.com/opencontainers/runc",
+        "https://github.com/containerd/containerd"
+      ],
       "strengths_to_adopt": [
         "stable userspace syscall ABI discipline",
         "namespaces, cgroups, capabilities, seccomp, LSM, eBPF, procfs/sysfs/netlink compatibility",
@@ -549,50 +580,89 @@
       "lane": "A",
       "name": "Reference parity matrices",
       "can_run_parallel": true,
-      "owners": ["planner", "architect"],
-      "outputs": ["ParityTarget rows", "source/ref freshness", "feature/gap matrix"]
+      "owners": [
+        "planner",
+        "architect"
+      ],
+      "outputs": [
+        "ParityTarget rows",
+        "source/ref freshness",
+        "feature/gap matrix"
+      ]
     },
     {
       "lane": "B",
       "name": "Neutral API contracts",
       "can_run_parallel": true,
-      "owners": ["executor"],
-      "outputs": ["OpenAPI/AsyncAPI/proto contracts", "schema fixtures"]
+      "owners": [
+        "executor"
+      ],
+      "outputs": [
+        "OpenAPI/AsyncAPI/proto contracts",
+        "schema fixtures"
+      ]
     },
     {
       "lane": "C",
       "name": "Rust core kernels",
       "can_run_parallel": true,
-      "owners": ["executor"],
-      "outputs": ["domain/usecase crates", "unit/property tests"]
+      "owners": [
+        "executor"
+      ],
+      "outputs": [
+        "domain/usecase crates",
+        "unit/property tests"
+      ]
     },
     {
       "lane": "D",
       "name": "Adapter importers",
       "can_run_parallel": true,
-      "owners": ["executor"],
-      "outputs": ["GitHub/GitLab/Jenkins/Argo/Snyk/Trivy/drift/Kubernetes adapter ports"]
+      "owners": [
+        "executor"
+      ],
+      "outputs": [
+        "GitHub/GitLab/Jenkins/Argo/Snyk/Trivy/drift/Kubernetes adapter ports"
+      ]
     },
     {
       "lane": "E",
       "name": "OS/runtime parity",
       "can_run_parallel": true,
-      "owners": ["executor", "architect"],
-      "outputs": ["Linux ABI/OCI/CRI/K8s node harness", "runtime replacement score"]
+      "owners": [
+        "executor",
+        "architect"
+      ],
+      "outputs": [
+        "Linux ABI/OCI/CRI/K8s node harness",
+        "runtime replacement score"
+      ]
     },
     {
       "lane": "F",
       "name": "Promotion and evidence governance",
       "can_run_parallel": true,
-      "owners": ["executor", "architect"],
-      "outputs": ["PromotionPacket/FixupTask state machine", "freshness reaper", "honest current-state rows"]
+      "owners": [
+        "executor",
+        "architect"
+      ],
+      "outputs": [
+        "PromotionPacket/FixupTask state machine",
+        "freshness reaper",
+        "honest current-state rows"
+      ]
     },
     {
       "lane": "Gate",
       "name": "Serialized promotion gates",
       "can_run_parallel": false,
-      "owners": ["architect", "reviewer"],
-      "outputs": ["approved_product_ready or approved_hyperscaler_ready only when all evidence is current"]
+      "owners": [
+        "architect",
+        "reviewer"
+      ],
+      "outputs": [
+        "approved_product_ready or approved_hyperscaler_ready only when all evidence is current"
+      ]
     }
   ],
   "success_failure_contract": {
@@ -645,20 +715,37 @@
       "id": "PDF-S1",
       "issue_candidate": "#901 replacement",
       "description": "Replace the closed long-step telemetry CLI-shaped attempt with an API/control-plane observability slice: typed RunStep/LongStepObservation/EvidenceBundle resources, status-condition transitions, and adapter-neutral persistence tests.",
-      "must_not_do": ["no new CLI", "no shell workflow step", "no cloud/oya destination path debt", "no product-ready claim"],
-      "verification": ["unit tests for observation classification", "JSON/OpenAPI schema validation", "known-bad stale evidence fixture"]
+      "must_not_do": [
+        "no new CLI",
+        "no shell workflow step",
+        "no cloud/oya destination path debt",
+        "no product-ready claim"
+      ],
+      "verification": [
+        "unit tests for observation classification",
+        "JSON/OpenAPI schema validation",
+        "known-bad stale evidence fixture"
+      ]
     },
     {
       "id": "PDF-S2",
       "issue_candidate": "#777 / gate self-conformance",
       "description": "Shape-neutral meta-gate proving every delivery-fabric gate has an executed runner, bite fixture, trusted source, and non-authority adapter boundary.",
-      "verification": ["known-bad ghost lane fails", "known-bad adapter-only pass fails", "fixuptask rows created for contradictions"]
+      "verification": [
+        "known-bad ghost lane fails",
+        "known-bad adapter-only pass fails",
+        "fixuptask rows created for contradictions"
+      ]
     },
     {
       "id": "PDF-S3",
       "issue_candidate": "new parity registry slice",
       "description": "ParityTarget schema and initial rows for Kubernetes, Argo, GitHub Actions, GitLab/Jenkins, Snyk/Trivy/driftctl, Linux ABI, OCI/CRI.",
-      "verification": ["schema parse", "duplicate target ID rejection", "freshness state transition tests"]
+      "verification": [
+        "schema parse",
+        "duplicate target ID rejection",
+        "freshness state transition tests"
+      ]
     }
   ],
   "open_fixuptasks_to_append": [
