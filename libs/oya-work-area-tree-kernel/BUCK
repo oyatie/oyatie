@@ -1,0 +1,27 @@
+rust_library(
+    name = "oya-work-area-tree-kernel",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_work_area_tree_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_test(
+    name = "oya-work-area-tree-kernel-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_work_area_tree_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+rust_test(
+    name = "oya-work-area-tree-kernel-contract",
+    srcs = ["tests/work_area_tree_contract.rs"],
+    crate = "work_area_tree_contract",
+    crate_root = "tests/work_area_tree_contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-work-area-tree-kernel",
+    ],
+)
