@@ -30,6 +30,7 @@ const BLAKE3_HEX_LEN: usize = 64;
 const TENANT_ID_PREFIX: &str = "ten_";
 const MAX_TENANT_ID_LEN: usize = 128;
 const MAX_REFERENCE_LEN: usize = 512;
+const DEFAULT_TRUSTED_NOW_EPOCH_SECONDS: u64 = 1_700_000_010;
 
 // =====================================================================
 // Addressing and policy types
@@ -177,14 +178,22 @@ impl TenantKekBoundary {
         Ok(boundary)
     }
 
-    fn validate(&self) -> Result<(), ObjectStoreError> {
+    /// Validate KEK reference shape and tenant binding.
+    ///
+    /// # Errors
+    /// Returns `ObjectStoreError::InvalidKekBoundary` when references are
+    /// malformed, the key version is zero, or a provider reference is not
+    /// explicitly scoped to this boundary's tenant id.
+    pub fn validate(&self) -> Result<(), ObjectStoreError> {
         if self.kms_key_version == 0
             || !is_valid_reference(&self.kms_key_ref)
             || !is_valid_reference(&self.ciphertext_ref)
-            || self
-                .crypto_shred_ref
-                .as_ref()
-                .is_some_and(|reference| !is_valid_reference(reference))
+            || !kms_reference_matches_tenant(&self.kms_key_ref, &self.tenant_id)
+            || !tenant_scoped_reference_matches(&self.ciphertext_ref, "ct", &self.tenant_id)
+            || self.crypto_shred_ref.as_ref().is_some_and(|reference| {
+                !is_valid_reference(reference)
+                    || !tenant_scoped_reference_matches(reference, "shred", &self.tenant_id)
+            })
         {
             return Err(ObjectStoreError::InvalidKekBoundary);
         }
@@ -236,8 +245,30 @@ impl CasWormPolicy {
         }
     }
 
-    fn validate(&self) -> Result<(), ObjectStoreError> {
-        if self.retain_until_epoch_seconds == 0 && !self.legal_hold {
+    /// Validate standalone WORM shape before a trusted write-time check.
+    fn validate_shape(&self) -> Result<(), ObjectStoreError> {
+        if self.mode != CasWormMode::Compliance
+            || (self.retain_until_epoch_seconds == 0 && !self.legal_hold)
+        {
+            return Err(ObjectStoreError::InvalidWormPolicy);
+        }
+        Ok(())
+    }
+
+    /// Validate that the WORM policy is active at trusted write time.
+    ///
+    /// # Errors
+    /// Returns `ObjectStoreError` when the trusted backend/server timestamp is
+    /// missing or a non-legal-hold write supplies already-expired retention.
+    pub fn validate_for_trusted_write(
+        &self,
+        trusted_write_at_epoch_seconds: u64,
+    ) -> Result<(), ObjectStoreError> {
+        if trusted_write_at_epoch_seconds == 0 {
+            return Err(ObjectStoreError::InvalidRequestTimestamp);
+        }
+        self.validate_shape()?;
+        if !self.legal_hold && self.retain_until_epoch_seconds <= trusted_write_at_epoch_seconds {
             return Err(ObjectStoreError::InvalidWormPolicy);
         }
         Ok(())
@@ -277,7 +308,12 @@ impl CasAuditAnchor {
         Ok(anchor)
     }
 
-    fn validate(&self) -> Result<(), ObjectStoreError> {
+    /// Validate audit-anchor shape.
+    ///
+    /// # Errors
+    /// Returns `ObjectStoreError::InvalidAuditAnchor` when the event id is
+    /// malformed or the anchor timestamp is zero.
+    pub fn validate(&self) -> Result<(), ObjectStoreError> {
         if !is_valid_reference(&self.audit_event_id) || self.anchored_at_epoch_seconds == 0 {
             return Err(ObjectStoreError::InvalidAuditAnchor);
         }
@@ -386,7 +422,12 @@ impl TransitionalAdapterBoundary {
         Ok(boundary)
     }
 
-    fn validate(&self) -> Result<(), ObjectStoreError> {
+    /// Validate the transitional adapter receipt.
+    ///
+    /// # Errors
+    /// Returns `ObjectStoreError::InvalidTransitionalBoundary` when the backend
+    /// kind is not transitional or any provider reference is malformed.
+    pub fn validate(&self) -> Result<(), ObjectStoreError> {
         if !self.adapter_kind.is_transitional()
             || !is_valid_reference(&self.provider_namespace)
             || !is_valid_reference(&self.provider_object_ref)
@@ -441,11 +482,12 @@ impl CasPutRequest {
             user_metadata: BTreeMap::new(),
             requested_at_epoch_seconds,
         };
-        request.validate()?;
+        request.validate_shape()?;
         Ok(request)
     }
 
-    fn validate(&self) -> Result<(), ObjectStoreError> {
+    /// Validate request shape that is independent of trusted write time.
+    fn validate_shape(&self) -> Result<(), ObjectStoreError> {
         if self.requested_at_epoch_seconds == 0 {
             return Err(ObjectStoreError::InvalidRequestTimestamp);
         }
@@ -453,7 +495,7 @@ impl CasPutRequest {
         if self.kms_boundary.tenant_id != self.address.tenant_id {
             return Err(ObjectStoreError::CrossTenantAccessDenied);
         }
-        self.worm_policy.validate()?;
+        self.worm_policy.validate_shape()?;
         self.audit_anchor.validate()?;
         let actual_digest = Blake3Digest::for_payload(&self.bytes);
         if actual_digest != self.address.digest {
@@ -468,6 +510,25 @@ impl CasPutRequest {
             return Err(ObjectStoreError::InvalidUserMetadata);
         }
         Ok(())
+    }
+
+    /// Validate the complete CAS write request against trusted write time.
+    ///
+    /// External adapters should call this before translating the owned CAS
+    /// contract to a transitional backend. `trusted_write_at_epoch_seconds`
+    /// must come from the object-store implementation's trusted server/backend
+    /// clock, not from caller-supplied request metadata.
+    ///
+    /// # Errors
+    /// Returns `ObjectStoreError` when timestamps, tenant/KEK binding, WORM
+    /// activity, audit anchors, digest integrity, or metadata are invalid.
+    pub fn validate_for_trusted_write(
+        &self,
+        trusted_write_at_epoch_seconds: u64,
+    ) -> Result<(), ObjectStoreError> {
+        self.validate_shape()?;
+        self.worm_policy
+            .validate_for_trusted_write(trusted_write_at_epoch_seconds)
     }
 }
 
@@ -485,7 +546,12 @@ impl CasReadRequest {
         Self { tenant_id, address }
     }
 
-    fn validate(&self) -> Result<(), ObjectStoreError> {
+    /// Validate tenant binding for a CAS read/head request.
+    ///
+    /// # Errors
+    /// Returns `ObjectStoreError::CrossTenantAccessDenied` when caller tenant
+    /// and address tenant differ.
+    pub fn validate(&self) -> Result<(), ObjectStoreError> {
         if self.tenant_id != self.address.tenant_id {
             return Err(ObjectStoreError::CrossTenantAccessDenied);
         }
@@ -518,7 +584,12 @@ impl CasDeleteRequest {
         }
     }
 
-    fn validate(&self) -> Result<(), ObjectStoreError> {
+    /// Validate tenant binding and audit id for a CAS delete request.
+    ///
+    /// # Errors
+    /// Returns `ObjectStoreError` when tenant binding, timestamp, or audit id is
+    /// invalid.
+    pub fn validate(&self) -> Result<(), ObjectStoreError> {
         if self.tenant_id != self.address.tenant_id {
             return Err(ObjectStoreError::CrossTenantAccessDenied);
         }
@@ -671,9 +742,19 @@ struct StoredCasObject {
     record: CasObjectRecord,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct InMemoryStorage {
     objects: BTreeMap<TenantScopedBlake3Address, StoredCasObject>,
+    trusted_now_epoch_seconds: u64,
+}
+
+impl Default for InMemoryStorage {
+    fn default() -> Self {
+        Self {
+            objects: BTreeMap::new(),
+            trusted_now_epoch_seconds: DEFAULT_TRUSTED_NOW_EPOCH_SECONDS,
+        }
+    }
 }
 
 /// Reference in-memory `ObjectStore`. Use in tests.
@@ -696,6 +777,42 @@ impl InMemoryObjectStore {
             inner: Mutex::new(InMemoryStorage::default()),
             backend_kind: ObjectStoreBackendKind::InMemoryReference,
         }
+    }
+
+    /// Build an in-memory store with a deterministic trusted backend clock.
+    ///
+    /// # Errors
+    /// Returns `ObjectStoreError::InvalidRequestTimestamp` when the trusted
+    /// clock is zero.
+    pub fn with_trusted_now_epoch_seconds(
+        trusted_now_epoch_seconds: u64,
+    ) -> Result<Self, ObjectStoreError> {
+        if trusted_now_epoch_seconds == 0 {
+            return Err(ObjectStoreError::InvalidRequestTimestamp);
+        }
+        Ok(Self {
+            inner: Mutex::new(InMemoryStorage {
+                objects: BTreeMap::new(),
+                trusted_now_epoch_seconds,
+            }),
+            backend_kind: ObjectStoreBackendKind::InMemoryReference,
+        })
+    }
+
+    /// Advance or pin the in-memory trusted backend clock for tests.
+    ///
+    /// # Errors
+    /// Returns `ObjectStoreError::InvalidRequestTimestamp` when the trusted
+    /// clock is zero.
+    pub fn set_trusted_now_epoch_seconds(
+        &self,
+        trusted_now_epoch_seconds: u64,
+    ) -> Result<(), ObjectStoreError> {
+        if trusted_now_epoch_seconds == 0 {
+            return Err(ObjectStoreError::InvalidRequestTimestamp);
+        }
+        self.lock().trusted_now_epoch_seconds = trusted_now_epoch_seconds;
+        Ok(())
     }
 
     /// Build an in-memory store that emits transitional adapter boundaries for
@@ -765,8 +882,9 @@ impl InMemoryObjectStore {
 
 impl ObjectStore for InMemoryObjectStore {
     fn put_cas(&self, request: CasPutRequest) -> Result<CasObjectRecord, ObjectStoreError> {
-        request.validate()?;
         let mut store = self.lock();
+        let trusted_write_at_epoch_seconds = store.trusted_now_epoch_seconds;
+        request.validate_for_trusted_write(trusted_write_at_epoch_seconds)?;
         if let Some(existing) = store.objects.get(&request.address) {
             if existing.bytes == request.bytes {
                 if stored_record_matches_put(&existing.record, &request) {
@@ -792,7 +910,7 @@ impl ObjectStore for InMemoryObjectStore {
             audit_anchor: request.audit_anchor,
             durability: request.durability,
             user_metadata: request.user_metadata,
-            stored_at_epoch_seconds: request.requested_at_epoch_seconds,
+            stored_at_epoch_seconds: trusted_write_at_epoch_seconds,
             backend_kind: self.backend_kind,
             adapter_boundary: self.transitional_boundary_for(&request.address)?,
         };
@@ -833,6 +951,7 @@ impl ObjectStore for InMemoryObjectStore {
     fn delete_cas(&self, request: CasDeleteRequest) -> Result<(), ObjectStoreError> {
         request.validate()?;
         let mut store = self.lock();
+        let trusted_delete_at_epoch_seconds = store.trusted_now_epoch_seconds;
         let stored = store
             .objects
             .get(&request.address)
@@ -840,7 +959,7 @@ impl ObjectStore for InMemoryObjectStore {
         if stored
             .record
             .worm_policy
-            .deletion_protected_at(request.requested_at_epoch_seconds)
+            .deletion_protected_at(trusted_delete_at_epoch_seconds)
         {
             return Err(ObjectStoreError::WormRetentionActive {
                 retain_until_epoch_seconds: stored.record.worm_policy.retain_until_epoch_seconds,
@@ -878,6 +997,31 @@ fn is_lower_hex(value: &str, expected_len: usize) -> bool {
         && value
             .bytes()
             .all(|byte| byte.is_ascii_digit() || matches!(byte, b'a'..=b'f'))
+}
+
+fn kms_reference_matches_tenant(value: &str, tenant_id: &TenantId) -> bool {
+    let parts: Vec<&str> = value.split('/').collect();
+    let tenant = tenant_id.as_str();
+    match parts.as_slice() {
+        ["kms", tenant_segment, name] => *tenant_segment == tenant && !name.is_empty(),
+        ["kms", "region", region, "tenant", tenant_segment, name] => {
+            !region.is_empty() && *tenant_segment == tenant && !name.is_empty()
+        }
+        _ => false,
+    }
+}
+
+fn tenant_scoped_reference_matches(
+    value: &str,
+    expected_prefix: &str,
+    tenant_id: &TenantId,
+) -> bool {
+    let parts: Vec<&str> = value.split('/').collect();
+    matches!(
+        parts.as_slice(),
+        [prefix, tenant_segment, name]
+            if *prefix == expected_prefix && *tenant_segment == tenant_id.as_str() && !name.is_empty()
+    )
 }
 
 fn stored_record_matches_put(record: &CasObjectRecord, request: &CasPutRequest) -> bool {
@@ -991,6 +1135,10 @@ mod tests {
         );
         assert_eq!(put_record.durability, CasDurabilityPolicy::default());
         assert_eq!(
+            put_record.stored_at_epoch_seconds,
+            DEFAULT_TRUSTED_NOW_EPOCH_SECONDS
+        );
+        assert_eq!(
             put_record.backend_kind,
             ObjectStoreBackendKind::InMemoryReference
         );
@@ -1062,6 +1210,42 @@ mod tests {
     }
 
     #[test]
+    fn cross_tenant_head_delete_and_adapter_boundary_are_denied() {
+        let tenant_alpha = tenant("ten_alpha");
+        let tenant_beta = tenant("ten_beta");
+        let request = put_request(&tenant_alpha, b"cross tenant operation", 1_800_000_000);
+        let address = request.address.clone();
+        let store =
+            InMemoryObjectStore::with_transitional_adapter(ObjectStoreBackendKind::SeaweedFsS3)
+                .unwrap();
+
+        store.put_cas(request).unwrap();
+        assert_eq!(
+            store
+                .head_cas(CasReadRequest::new(tenant_beta.clone(), address.clone()))
+                .unwrap_err(),
+            ObjectStoreError::CrossTenantAccessDenied
+        );
+        assert_eq!(
+            store
+                .adapter_boundary(CasReadRequest::new(tenant_beta.clone(), address.clone()))
+                .unwrap_err(),
+            ObjectStoreError::CrossTenantAccessDenied
+        );
+        assert_eq!(
+            store
+                .delete_cas(CasDeleteRequest::new(
+                    tenant_beta,
+                    address,
+                    1_700_000_011,
+                    "audit_evt_cross_tenant_delete",
+                ))
+                .unwrap_err(),
+            ObjectStoreError::CrossTenantAccessDenied
+        );
+    }
+
+    #[test]
     fn same_digest_in_different_tenants_is_stored_as_separate_cas_objects() {
         let payload = b"identical object payload";
         let alpha = tenant("ten_alpha");
@@ -1107,6 +1291,266 @@ mod tests {
     }
 
     #[test]
+    fn put_rejects_expired_or_boundary_worm_retention() {
+        let tenant_id = tenant("ten_alpha");
+        for (retain_until, requested_at_epoch_seconds) in [
+            (1_700_000_009, 1_700_000_010),
+            (1_700_000_010, 1_700_000_010),
+            (1_700_000_010, 1_600_000_000),
+        ] {
+            let request = CasPutRequest {
+                address: TenantScopedBlake3Address::for_payload(tenant_id.clone(), b"expired worm"),
+                bytes: b"expired worm".to_vec(),
+                kms_boundary: kek_boundary(&tenant_id),
+                worm_policy: CasWormPolicy::compliance_until(retain_until, false),
+                audit_anchor: audit_anchor(),
+                durability: CasDurabilityPolicy::default(),
+                user_metadata: BTreeMap::new(),
+                requested_at_epoch_seconds,
+            };
+            assert_eq!(
+                request
+                    .validate_for_trusted_write(DEFAULT_TRUSTED_NOW_EPOCH_SECONDS)
+                    .unwrap_err(),
+                ObjectStoreError::InvalidWormPolicy
+            );
+        }
+    }
+
+    #[test]
+    fn put_rejects_governance_mode_audit_anchor_writes() {
+        let tenant_id = tenant("ten_alpha");
+        let request = CasPutRequest {
+            address: TenantScopedBlake3Address::for_payload(tenant_id.clone(), b"governance worm"),
+            bytes: b"governance worm".to_vec(),
+            kms_boundary: kek_boundary(&tenant_id),
+            worm_policy: CasWormPolicy::governance_until(1_800_000_000, false),
+            audit_anchor: audit_anchor(),
+            durability: CasDurabilityPolicy::default(),
+            user_metadata: BTreeMap::new(),
+            requested_at_epoch_seconds: 1_700_000_010,
+        };
+
+        assert_eq!(
+            request
+                .validate_for_trusted_write(DEFAULT_TRUSTED_NOW_EPOCH_SECONDS)
+                .unwrap_err(),
+            ObjectStoreError::InvalidWormPolicy
+        );
+    }
+
+    #[test]
+    fn put_uses_trusted_store_time_instead_of_caller_timestamp() {
+        let tenant_id = tenant("ten_alpha");
+        let request = CasPutRequest::new(
+            tenant_id.clone(),
+            b"backdated caller timestamp".to_vec(),
+            kek_boundary(&tenant_id),
+            CasWormPolicy::compliance_until(1_700_000_010, false),
+            audit_anchor(),
+            1_600_000_000,
+        )
+        .unwrap();
+        let store = InMemoryObjectStore::new();
+
+        assert_eq!(
+            store.put_cas(request).unwrap_err(),
+            ObjectStoreError::InvalidWormPolicy
+        );
+    }
+
+    #[test]
+    fn legal_hold_allows_zero_retain_until_but_still_blocks_delete() {
+        let tenant_id = tenant("ten_alpha");
+        let bytes = b"legal hold payload";
+        let request = CasPutRequest::new(
+            tenant_id.clone(),
+            bytes.to_vec(),
+            kek_boundary(&tenant_id),
+            CasWormPolicy::compliance_until(0, true),
+            audit_anchor(),
+            1_700_000_010,
+        )
+        .unwrap();
+        let address = request.address.clone();
+        let store = InMemoryObjectStore::new();
+        store.put_cas(request).unwrap();
+
+        let error = store
+            .delete_cas(CasDeleteRequest::new(
+                tenant_id,
+                address,
+                1_900_000_000,
+                "audit_evt_delete_legal_hold",
+            ))
+            .unwrap_err();
+        assert_eq!(
+            error,
+            ObjectStoreError::WormRetentionActive {
+                retain_until_epoch_seconds: 0,
+                legal_hold: true,
+            }
+        );
+    }
+
+    #[test]
+    fn kek_boundary_accepts_exact_regional_tenant_kms_shape() {
+        let tenant_id = tenant("ten_alpha");
+        let boundary = TenantKekBoundary::new(
+            tenant_id.clone(),
+            "kms/region/us-east-1/tenant/ten_alpha/object-store",
+            1,
+            "ct/ten_alpha/object-store",
+            Some("shred/ten_alpha/object-store".to_string()),
+        )
+        .unwrap();
+
+        assert_eq!(boundary.tenant_id, tenant_id);
+        assert_eq!(
+            boundary.kms_key_ref,
+            "kms/region/us-east-1/tenant/ten_alpha/object-store"
+        );
+    }
+
+    #[test]
+    fn kek_boundary_rejects_references_scoped_to_another_tenant() {
+        let tenant_id = tenant("ten_alpha");
+
+        assert_eq!(
+            TenantKekBoundary::new(
+                tenant_id.clone(),
+                "kms/ten_beta/object-store",
+                1,
+                "ct/ten_alpha/object-store",
+                Some("shred/ten_alpha/object-store".to_string()),
+            )
+            .unwrap_err(),
+            ObjectStoreError::InvalidKekBoundary
+        );
+        assert_eq!(
+            TenantKekBoundary::new(
+                tenant_id.clone(),
+                "kms/ten_alpha/object-store",
+                1,
+                "ct/ten_beta/object-store",
+                Some("shred/ten_alpha/object-store".to_string()),
+            )
+            .unwrap_err(),
+            ObjectStoreError::InvalidKekBoundary
+        );
+        assert_eq!(
+            TenantKekBoundary::new(
+                tenant_id.clone(),
+                "kms/ten_alpha/object-store",
+                1,
+                "ct/ten_alpha/object-store",
+                Some("shred/ten_beta/object-store".to_string()),
+            )
+            .unwrap_err(),
+            ObjectStoreError::InvalidKekBoundary
+        );
+        assert_eq!(
+            TenantKekBoundary::new(
+                tenant_id.clone(),
+                "kms/ten_beta/object-store/ten_alpha",
+                1,
+                "ct/ten_alpha/object-store",
+                Some("shred/ten_alpha/object-store".to_string()),
+            )
+            .unwrap_err(),
+            ObjectStoreError::InvalidKekBoundary
+        );
+        assert_eq!(
+            TenantKekBoundary::new(
+                tenant_id.clone(),
+                "kms/ten_beta/ten_alpha/object-store",
+                1,
+                "ct/ten_alpha/object-store",
+                Some("shred/ten_alpha/object-store".to_string()),
+            )
+            .unwrap_err(),
+            ObjectStoreError::InvalidKekBoundary
+        );
+        assert_eq!(
+            TenantKekBoundary::new(
+                tenant_id.clone(),
+                "kms/ten_alpha/object-store/ten_beta",
+                1,
+                "ct/ten_alpha/object-store",
+                Some("shred/ten_alpha/object-store".to_string()),
+            )
+            .unwrap_err(),
+            ObjectStoreError::InvalidKekBoundary
+        );
+        assert_eq!(
+            TenantKekBoundary::new(
+                tenant_id.clone(),
+                "byok/ten_alpha/object-store",
+                1,
+                "ct/ten_alpha/object-store",
+                Some("shred/ten_alpha/object-store".to_string()),
+            )
+            .unwrap_err(),
+            ObjectStoreError::InvalidKekBoundary
+        );
+        assert_eq!(
+            TenantKekBoundary::new(
+                tenant_id.clone(),
+                "hyok/ten_alpha/object-store",
+                1,
+                "ct/ten_alpha/object-store",
+                Some("shred/ten_alpha/object-store".to_string()),
+            )
+            .unwrap_err(),
+            ObjectStoreError::InvalidKekBoundary
+        );
+        assert_eq!(
+            TenantKekBoundary::new(
+                tenant_id.clone(),
+                "byok/ten_beta/ten_alpha/object-store",
+                1,
+                "ct/ten_alpha/object-store",
+                Some("shred/ten_alpha/object-store".to_string()),
+            )
+            .unwrap_err(),
+            ObjectStoreError::InvalidKekBoundary
+        );
+        assert_eq!(
+            TenantKekBoundary::new(
+                tenant_id.clone(),
+                "hyok/ten_beta/ten_alpha/object-store",
+                1,
+                "ct/ten_alpha/object-store",
+                Some("shred/ten_alpha/object-store".to_string()),
+            )
+            .unwrap_err(),
+            ObjectStoreError::InvalidKekBoundary
+        );
+        assert_eq!(
+            TenantKekBoundary::new(
+                tenant_id.clone(),
+                "kms/ten_alpha/object-store",
+                1,
+                "ct/ten_beta/object-store/ten_alpha",
+                Some("shred/ten_alpha/object-store".to_string()),
+            )
+            .unwrap_err(),
+            ObjectStoreError::InvalidKekBoundary
+        );
+        assert_eq!(
+            TenantKekBoundary::new(
+                tenant_id,
+                "kms/ten_alpha/object-store",
+                1,
+                "ct/ten_alpha/object-store",
+                Some("shred/ten_beta/object-store/ten_alpha".to_string()),
+            )
+            .unwrap_err(),
+            ObjectStoreError::InvalidKekBoundary
+        );
+    }
+
+    #[test]
     fn reference_validation_rejects_trim_mismatched_values() {
         let tenant_id = tenant("ten_alpha");
         assert_eq!(
@@ -1126,7 +1570,9 @@ mod tests {
             .user_metadata
             .insert(" object-store-key".to_string(), "ok".to_string());
         assert_eq!(
-            request.validate().unwrap_err(),
+            request
+                .validate_for_trusted_write(DEFAULT_TRUSTED_NOW_EPOCH_SECONDS)
+                .unwrap_err(),
             ObjectStoreError::InvalidUserMetadata
         );
 
@@ -1166,6 +1612,7 @@ mod tests {
             }
         );
 
+        store.set_trusted_now_epoch_seconds(1_800_000_001).unwrap();
         store
             .delete_cas(CasDeleteRequest::new(
                 tenant_id.clone(),
