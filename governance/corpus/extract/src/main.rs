@@ -79,8 +79,8 @@ fn run(repo_root: &Path, dir_prefix: &str) -> Result<String, String> {
     }
 
     let set = SourceSet::new(files);
-    let extraction: CorpusExtraction = extract_corpus(&SynAstSource::new(), &set)
-        .map_err(|e| format!("extract corpus: {e}"))?;
+    let extraction: CorpusExtraction =
+        extract_corpus(&SynAstSource::new(), &set).map_err(|e| format!("extract corpus: {e}"))?;
 
     report_to_stderr(dir_prefix, &crate_dirs, &extraction);
 
@@ -105,14 +105,13 @@ fn crate_cargo_name(repo_root: &Path, crate_dir: &str) -> Result<String, String>
             in_package = trimmed == "[package]";
             continue;
         }
-        if in_package {
-            if let Some(rest) = trimmed.strip_prefix("name") {
-                if let Some(value) = rest.trim_start().strip_prefix('=') {
-                    let name = value.trim().trim_matches('"');
-                    if !name.is_empty() {
-                        return Ok(name.to_owned());
-                    }
-                }
+        if in_package
+            && let Some(rest) = trimmed.strip_prefix("name")
+            && let Some(value) = rest.trim_start().strip_prefix('=')
+        {
+            let name = value.trim().trim_matches('"');
+            if !name.is_empty() {
+                return Ok(name.to_owned());
             }
         }
     }
