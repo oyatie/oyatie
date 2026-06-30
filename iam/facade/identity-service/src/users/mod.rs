@@ -53,6 +53,10 @@ pub const SCIM_MANAGE_SCOPE: &str = "scim.manage";
 
 /// Tenant-scoped SCIM base path (RFC 7644 §3.2 endpoints hang off this).
 pub const SCIM_BASE: &str = "/scim/v2";
+/// Tenant-scoped account registration base path for the product-facing
+/// identity API. This is a thin API-native wrapper over the same SCIM create
+/// path; SCIM remains the canonical provisioning contract underneath.
+pub const ACCOUNT_REGISTRATION_BASE: &str = "/identity/v1";
 
 /// The composed SCIM surface state: the kernel reference server over the
 /// [`UserStore`]/[`GroupStore`] PORTS + the offline token-validation material.
@@ -352,6 +356,31 @@ where
     }
 }
 
+async fn register_account<R, D, A, S, U, G>(
+    State(state): State<SharedScimState<R, D, A, S, U, G>>,
+    Path(tenant): Path<String>,
+    headers: HeaderMap,
+    Json(input): Json<NewUser>,
+) -> Response
+where
+    R: WorkloadPrincipalRepository + Send + 'static,
+    D: RevocationDenylist + Send + 'static,
+    A: WorkloadAuthorizer + Send + Sync + 'static,
+    S: AuditSink + 'static,
+    U: UserStore + Send + Sync + 'static,
+    G: GroupStore + Send + Sync + 'static,
+{
+    guard!(state, headers, tenant);
+    match state
+        .server
+        .create_user(&TenantId(tenant), input, (state.now_provider)())
+        .await
+    {
+        Ok(user) => (StatusCode::CREATED, Json(user)).into_response(),
+        Err(error) => scim_error_response(error),
+    }
+}
+
 async fn get_user<R, D, A, S, U, G>(
     State(state): State<SharedScimState<R, D, A, S, U, G>>,
     Path((tenant, id)): Path<(String, String)>,
@@ -589,6 +618,10 @@ where
         .route(
             &format!("{SCIM_BASE}/{{tenant}}/Users"),
             post(create_user::<R, D, A, S, U, G>),
+        )
+        .route(
+            &format!("{ACCOUNT_REGISTRATION_BASE}/{{tenant}}/account-registrations"),
+            post(register_account::<R, D, A, S, U, G>),
         )
         .route(
             &format!("{SCIM_BASE}/{{tenant}}/Users/{{id}}"),
@@ -1075,6 +1108,65 @@ mod tests {
             outcomes,
             ["allow", "allow", "allow", "deny", "allow", "allow"]
         );
+    }
+
+    #[tokio::test]
+    async fn account_registration_wrapper_reuses_scim_create_and_guard() {
+        let fixture = fixture();
+        let payload = new_user_payload("register@acme.example");
+
+        let (status, _) = send(
+            &fixture.router,
+            "POST",
+            "/identity/v1/ten_acme/account-registrations",
+            None,
+            Some(payload.clone()),
+        )
+        .await;
+        assert_eq!(status, StatusCode::UNAUTHORIZED);
+
+        let (status, _) = send(
+            &fixture.router,
+            "POST",
+            "/identity/v1/ten_acme/account-registrations",
+            Some(&fixture.wrong_scope_token),
+            Some(payload.clone()),
+        )
+        .await;
+        assert_eq!(status, StatusCode::FORBIDDEN);
+
+        let (status, created) = send(
+            &fixture.router,
+            "POST",
+            "/identity/v1/ten_acme/account-registrations",
+            Some(&fixture.token),
+            Some(payload),
+        )
+        .await;
+        assert_eq!(status, StatusCode::CREATED);
+        assert_eq!(created["userName"], "register@acme.example");
+        let id = created["id"].as_str().expect("assigned id").to_owned();
+
+        let (status, fetched) = send(
+            &fixture.router,
+            "GET",
+            &format!("/scim/v2/ten_acme/Users/{id}"),
+            Some(&fixture.token),
+            None,
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(fetched["id"], id);
+
+        let (status, _) = send(
+            &fixture.router,
+            "POST",
+            "/identity/v1/ten_other/account-registrations",
+            Some(&fixture.token),
+            Some(new_user_payload("cross-tenant@acme.example")),
+        )
+        .await;
+        assert_eq!(status, StatusCode::FORBIDDEN);
     }
 
     #[tokio::test]
