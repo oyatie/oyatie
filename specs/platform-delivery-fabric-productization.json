@@ -42,9 +42,9 @@
         "covers": "GitHub Actions runner, ARC, toolkit, cache, checkout, runner-images, starter workflows"
       },
       {
-        "agent": "71-GitlabJenkinsMatrix",
+        "agent": "71-GitlabLegacyControllerMatrix",
         "sha256": "5cbd075b2d72e507cb893fa998ef7759c129d023f8ebde23f9e0afa9bb23795f",
-        "covers": "GitLab CI/CD and Jenkins"
+        "covers": "GitLab CI/CD and legacy plugin-controller CI"
       },
       {
         "agent": "72-OyatieFitMatrix",
@@ -88,13 +88,13 @@
     "deprecated_destination_terms": [
       "oya-* component names as product-destination identifiers",
       "cloud-* component names as product-destination identifiers",
-      "Jenkins-sole CI",
+      "legacy plugin-controller CI as sole authority",
       "GitHub Actions as authority",
       "local oya/CLI verification authority",
       "shell workflow as canonical control plane"
     ],
     "allowed_legacy_use": "Legacy oya-/cloud-prefixed paths may be referenced only as current-state inventory, bridge adapters, migration aliases, or evidence sources. New destination contracts, capability matrices, and promotion packets use shape-neutral names.",
-    "adapter_rule": "GitHub Actions, GitLab, Jenkins, Argo, Snyk, Trivy, driftctl, Prow, Kubernetes, OCI/runc/containerd, and Linux are benchmark/parity/adapter targets. None becomes the permanent product authority unless separately promoted by explicit governance."
+    "adapter_rule": "GitHub Actions, GitLab, legacy plugin-controller CI, Argo, Snyk, Trivy, driftctl, Prow, Kubernetes, OCI/runc/containerd, and Linux are benchmark/parity/adapter targets. None becomes the permanent product authority unless separately promoted by explicit governance."
   },
   "capability_home_map": [
     {
@@ -155,7 +155,7 @@
         "conformance tracking against upstream Kubernetes behavior"
       ],
       "does_not_own": [
-        "GitHub/GitLab/Jenkins adapters",
+        "GitHub/GitLab/legacy-controller adapters",
         "tenant-facing pipeline product semantics"
       ]
     },
@@ -302,9 +302,9 @@
       "native_shape": "API-native pipeline components and evidence packs with SCM adapters isolated from authority."
     },
     {
-      "reference": "Jenkins",
+      "reference": "legacy plugin-controller CI",
       "source_repos": [
-        "https://github.com/jenkinsci/jenkins"
+        "legacy-plugin-controller-upstream"
       ],
       "strengths_to_adopt": [
         "extreme extensibility and ecosystem breadth",
@@ -421,7 +421,7 @@
       },
       {
         "kind": "AdapterStatus",
-        "purpose": "Read-only projection of vendor/bridge state from GitHub Actions, GitLab, Jenkins, Argo, Snyk, Trivy, driftctl, Kubernetes, OCI, or Linux harnesses.",
+        "purpose": "Read-only projection of vendor/bridge state from GitHub Actions, GitLab, legacy plugin-controller CI, Argo, Snyk, Trivy, driftctl, Kubernetes, OCI, or Linux harnesses.",
         "authority_boundary": "Adapter status can inform but never replace first-party policy decisions."
       },
       {
@@ -479,7 +479,7 @@
         "goal": "Stop false product claims and stale naming debt from guiding implementation.",
         "deliverables": [
           "Root pointer for this shape-neutral target exists.",
-          "Outdated Jenkins-sole, GitHub-authority, oya-CLI, oya-*, and cloud-* destination assumptions are recorded as fixuptasks or superseded aliases.",
+          "Outdated legacy-plugin-controller-sole, GitHub-authority, oya-CLI, oya-*, and cloud-* destination assumptions are recorded as fixuptasks or superseded aliases.",
           "Current-state rows classify each major productized-pipeline capability as tracked_inventory/fixuptask_required/promotion_pending, never product-ready by assertion."
         ],
         "verification": [
@@ -506,7 +506,7 @@
         "name": "Parity registry and source-tracking harness",
         "goal": "Religiously track reference repos/features without making them authority.",
         "deliverables": [
-          "ParityTarget rows for Kubernetes, Argo, GitHub Actions, GitLab, Jenkins, Snyk, Trivy, driftctl, Linux ABI, OCI/CRI, and Firecracker.",
+          "ParityTarget rows for Kubernetes, Argo, GitHub Actions, GitLab, legacy plugin-controller CI, Snyk, Trivy, driftctl, Linux ABI, OCI/CRI, and Firecracker.",
           "Feature rows include upstream version/ref, adopted behavior, rejected weakness, fixture path, differential test path, gap owner, and replacement score.",
           "Freshness reaper marks source_changed_reopen_required when upstream sources change beyond accepted skew."
         ],
@@ -535,7 +535,7 @@
         "goal": "Connect bridge systems without delegating product authority to them.",
         "deliverables": [
           "GitHub adapter for webhook/status/artifact/cache translation.",
-          "GitLab/Jenkins adapters for migration inventory only.",
+          "GitLab/legacy-controller adapters for migration inventory only.",
           "Argo adapters for workflow/CD/rollout parity where still used.",
           "Snyk/Trivy/driftctl-compatible scanner/drift importers as data-plane collectors.",
           "Kubernetes/OCI/Linux parity adapters for conformance and runtime proof."
@@ -555,7 +555,7 @@
           "Linux userspace ABI, OCI/CRI, and Kubernetes node parity harnesses before replacing runtime components."
         ],
         "verification": [
-          "Conformance tests: Kubernetes API/controller subset, OCI/CRI, Linux ABI smoke/LTP subset, scanner fixtures, and Argo/GitHub/GitLab/Jenkins import fixtures.",
+          "Conformance tests: Kubernetes API/controller subset, OCI/CRI, Linux ABI smoke/LTP subset, scanner fixtures, and Argo/GitHub/GitLab/legacy-controller import fixtures.",
           "SLO/cost metrics: queue latency, run duration, cache hit ratio, scanner DB freshness, worker isolation denial, rollback RTO/RPO."
         ]
       },
@@ -622,7 +622,7 @@
         "executor"
       ],
       "outputs": [
-        "GitHub/GitLab/Jenkins/Argo/Snyk/Trivy/drift/Kubernetes adapter ports"
+        "GitHub/GitLab/legacy-controller/Argo/Snyk/Trivy/drift/Kubernetes adapter ports"
       ]
     },
     {
@@ -675,12 +675,12 @@
       "Promotion packets cannot be approved without current tenant, audit, cost, SLO, security, SBOM, rollback/DR, and CI evidence."
     ],
     "failure_modes": [
-      "Vendor status, GitHub action, Jenkins job, Argo CRD, Snyk/Trivy CLI, driftctl output, or local shell becomes direct promotion authority.",
+      "Vendor status, GitHub action, legacy plugin-controller CI job, Argo CRD, Snyk/Trivy CLI, driftctl output, or local shell becomes direct promotion authority.",
       "Candidate PR bytes can modify their own gate definitions/status producer/runner isolation.",
       "Tenant pipelines share credentials, cache namespace, artifact namespace, logs/evidence, release ledger, or rollback handles.",
       "Scan engines execute untrusted package/build tools without explicit sandbox policy.",
       "Linux internal kernel API is treated as stable product ABI.",
-      "Kubernetes/Argo/GitHub/GitLab/Jenkins feature parity is asserted without source/ref-tracked tests.",
+      "Kubernetes/Argo/GitHub/GitLab/legacy-controller feature parity is asserted without source/ref-tracked tests.",
       "Approved promotion evidence expires but packet remains presented as fresh."
     ],
     "slo_objectives": [
@@ -740,7 +740,7 @@
     {
       "id": "PDF-S3",
       "issue_candidate": "new parity registry slice",
-      "description": "ParityTarget schema and initial rows for Kubernetes, Argo, GitHub Actions, GitLab/Jenkins, Snyk/Trivy/driftctl, Linux ABI, OCI/CRI.",
+      "description": "ParityTarget schema and initial rows for Kubernetes, Argo, GitHub Actions, GitLab/legacy-controller, Snyk/Trivy/driftctl, Linux ABI, OCI/CRI.",
       "verification": [
         "schema parse",
         "duplicate target ID rejection",

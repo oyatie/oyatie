@@ -25,7 +25,7 @@
       "subject": "cloud-toolchain-target contradiction",
       "state": "fixuptask_required",
       "evidence_refs": ["specs/cloud-toolchain-target.json", "specs/root-hub-pointers.json:250-255"],
-      "current_observation": "Existing spec still contains Jenkins-sole, Bazel, oya overlay, and CLI-shaped target assumptions, while root pointers already label it superseded and founder directives require owned API/cloud-native product surfaces.",
+      "current_observation": "Existing spec still contains legacy plugin-controller CI as sole authority, Bazel, oya overlay, and CLI-shaped target assumptions, while root pointers already label it superseded and founder directives require owned API/cloud-native product surfaces.",
       "blockers": ["F-PDF-CLOUD-TOOLCHAIN-SUPERSESSION-20260629"],
       "next_action": "Supersede the file with the platform delivery fabric productization target or explicitly mark it historical-only."
     },
