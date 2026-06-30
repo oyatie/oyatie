@@ -8,6 +8,7 @@ use serde_json::{Value, json};
 
 const DEFAULT_MASTER_PLAN: &str = "docs/machine-readable/masterplan.generated.json";
 const CLAIM_REF_PREFIX: &str = "refs/heads/claims";
+const ID_RESERVATION_REF_PREFIX: &str = "refs/heads/id-reservations";
 const DEFAULT_REMOTE: &str = "origin";
 const DEFAULT_LEASE_SECONDS: u64 = 24 * 60 * 60;
 
@@ -15,6 +16,7 @@ const DEFAULT_LEASE_SECONDS: u64 = 24 * 60 * 60;
 enum Action {
     Next,
     Claim,
+    ReserveId,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -30,6 +32,7 @@ struct PlanArgs {
     repo_root: PathBuf,
     remote: String,
     deliverable: Option<String>,
+    reservation_id: Option<String>,
     claimant: String,
     dry_run: bool,
     format: Format,
@@ -75,11 +78,12 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
 fn parse_args(args: Vec<String>) -> Result<PlanArgs, String> {
     let mut iter = args.into_iter();
     let Some(action_raw) = iter.next() else {
-        return Err("oya plan requires next, claim, or claim/next".into());
+        return Err("oya plan requires next, claim, claim/next, or reserve-id".into());
     };
     let action = match action_raw.as_str() {
         "next" => Action::Next,
         "claim" | "claim/next" => Action::Claim,
+        "reserve-id" => Action::ReserveId,
         other => return Err(format!("oya plan: unknown action {other:?}")),
     };
     let mut parsed = PlanArgs {
@@ -88,6 +92,7 @@ fn parse_args(args: Vec<String>) -> Result<PlanArgs, String> {
         repo_root: PathBuf::from("."),
         remote: DEFAULT_REMOTE.to_owned(),
         deliverable: None,
+        reservation_id: None,
         claimant: default_claimant(),
         dry_run: false,
         format: Format::Text,
@@ -101,6 +106,7 @@ fn parse_args(args: Vec<String>) -> Result<PlanArgs, String> {
             "--repo-root" => parsed.repo_root = next_path(&mut iter, "--repo-root")?,
             "--remote" => parsed.remote = next_value(&mut iter, "--remote")?,
             "--deliverable" => parsed.deliverable = Some(next_value(&mut iter, "--deliverable")?),
+            "--id" => parsed.reservation_id = Some(next_value(&mut iter, "--id")?),
             "--claimant" => parsed.claimant = next_value(&mut iter, "--claimant")?,
             "--dry-run" => parsed.dry_run = true,
             "--lease-seconds" => {
@@ -141,6 +147,10 @@ fn default_claimant() -> String {
 }
 
 fn run_parsed(args: &PlanArgs) -> Result<ClaimProjection, String> {
+    if args.action == Action::ReserveId {
+        return reserve_id(args);
+    }
+
     let deliverables = read_deliverables(&args.master_plan)?;
     let deliverable = if let Some(id) = &args.deliverable {
         deliverables
@@ -158,6 +168,30 @@ fn run_parsed(args: &PlanArgs) -> Result<ClaimProjection, String> {
     };
     if args.action == Action::Claim && !args.dry_run {
         acquire_claim(&args.repo_root, &deliverable, args, &projection.claim_ref)?;
+    }
+    Ok(projection)
+}
+
+fn reserve_id(args: &PlanArgs) -> Result<ClaimProjection, String> {
+    let id = args
+        .reservation_id
+        .as_ref()
+        .ok_or_else(|| "oya plan reserve-id requires --id <ADR-NNNN|PRD-...>".to_string())?;
+    validate_reservation_id(id)?;
+    let claim_ref = id_reservation_ref(id);
+    ensure_id_not_in_flight(&args.repo_root, &args.remote, id, &claim_ref)?;
+    let deliverable = Deliverable {
+        id: id.clone(),
+        description: format!("Canonical id reservation for {id}"),
+    };
+    let projection = ClaimProjection {
+        deliverable_id: id.clone(),
+        claim_ref: claim_ref.clone(),
+        claimant: args.claimant.clone(),
+        labels: id_reservation_labels(id, &args.claimant),
+    };
+    if !args.dry_run {
+        acquire_claim(&args.repo_root, &deliverable, args, &claim_ref)?;
     }
     Ok(projection)
 }
@@ -524,12 +558,178 @@ fn claim_ref(deliverable_id: &str) -> String {
     )
 }
 
+fn id_reservation_ref(id: &str) -> String {
+    format!("{ID_RESERVATION_REF_PREFIX}/{}", sanitize_ref_segment(id))
+}
+
 fn exclusive_labels(deliverable_id: &str, claimant: &str) -> Vec<String> {
     vec![
         "state/claimed".into(),
         format!("owner/{}", sanitize_label_segment(claimant)),
         format!("deliverable/{}", sanitize_label_segment(deliverable_id)),
     ]
+}
+
+fn id_reservation_labels(id: &str, claimant: &str) -> Vec<String> {
+    vec![
+        "state/reserved".into(),
+        format!("owner/{}", sanitize_label_segment(claimant)),
+        format!("canonical-id/{}", sanitize_label_segment(id)),
+    ]
+}
+
+fn validate_reservation_id(id: &str) -> Result<(), String> {
+    let valid_adr = id
+        .strip_prefix("ADR-")
+        .is_some_and(|digits| digits.len() == 4 && digits.bytes().all(|b| b.is_ascii_digit()));
+    let valid_prd = id.strip_prefix("PRD-").is_some_and(|rest| {
+        !rest.is_empty()
+            && rest
+                .bytes()
+                .all(|b| b.is_ascii_uppercase() || b.is_ascii_digit() || b == b'-')
+    });
+    if valid_adr || valid_prd {
+        Ok(())
+    } else {
+        Err(format!(
+            "invalid canonical id {id:?}; expected ADR-NNNN or PRD-<UPPERCASE-SLUG>"
+        ))
+    }
+}
+
+fn ensure_id_not_in_flight(
+    repo_root: &Path,
+    remote: &str,
+    id: &str,
+    claim_ref: &str,
+) -> Result<(), String> {
+    if remote_claim_oid(repo_root, remote, claim_ref)?.is_some() {
+        return Err(format!(
+            "canonical id {id} is already reserved at {claim_ref}"
+        ));
+    }
+    if let Some(source) = remote_inflight_id_source(repo_root, remote, id)? {
+        return Err(format!(
+            "canonical id {id} is already in-flight at {source}"
+        ));
+    }
+    Ok(())
+}
+
+fn remote_inflight_id_source(
+    repo_root: &Path,
+    remote: &str,
+    id: &str,
+) -> Result<Option<String>, String> {
+    let output = git(repo_root)
+        .args(["ls-remote", "--heads", remote])
+        .output()
+        .map_err(|error| format!("git ls-remote --heads failed to spawn: {error}"))?;
+    if !output.status.success() {
+        return Err(format!(
+            "git ls-remote --heads failed for {remote}: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
+    }
+    let stdout = String::from_utf8(output.stdout)
+        .map_err(|error| format!("git ls-remote --heads output not UTF-8: {error}"))?;
+    for line in stdout.lines() {
+        let mut fields = line.split_whitespace();
+        let _oid = fields.next();
+        let Some(ref_name) = fields.next() else {
+            continue;
+        };
+        if ref_name.starts_with(CLAIM_REF_PREFIX) || ref_name.starts_with(ID_RESERVATION_REF_PREFIX)
+        {
+            continue;
+        }
+        fetch_remote_head_for_scan(repo_root, remote, ref_name)?;
+        if tree_mentions_reserved_id(repo_root, "FETCH_HEAD", id)? {
+            return Ok(Some(ref_name.to_owned()));
+        }
+    }
+    Ok(None)
+}
+
+fn fetch_remote_head_for_scan(
+    repo_root: &Path,
+    remote: &str,
+    ref_name: &str,
+) -> Result<(), String> {
+    let output = git(repo_root)
+        .args(["fetch", "--quiet", "--depth=1", remote, ref_name])
+        .output()
+        .map_err(|error| format!("git fetch failed to spawn: {error}"))?;
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err(format!(
+            "git fetch failed for {remote} {ref_name}: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        ))
+    }
+}
+
+fn tree_mentions_reserved_id(repo_root: &Path, treeish: &str, id: &str) -> Result<bool, String> {
+    if id.starts_with("ADR-") && tree_has_adr_filename(repo_root, treeish, id)? {
+        return Ok(true);
+    }
+    if git_grep_fixed(
+        repo_root,
+        treeish,
+        id,
+        &[
+            "docs/decisions",
+            "specs",
+            "docs/products",
+            "docs/prds",
+            "microservices",
+        ],
+    )? {
+        return Ok(true);
+    }
+    Ok(false)
+}
+
+fn tree_has_adr_filename(repo_root: &Path, treeish: &str, id: &str) -> Result<bool, String> {
+    let output = git(repo_root)
+        .args(["ls-tree", "-r", "--name-only", treeish])
+        .output()
+        .map_err(|error| format!("git ls-tree failed to spawn: {error}"))?;
+    if !output.status.success() {
+        return Err(format!(
+            "git ls-tree failed for {treeish}: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
+    }
+    let stdout = String::from_utf8(output.stdout)
+        .map_err(|error| format!("git ls-tree output not UTF-8: {error}"))?;
+    Ok(stdout.lines().any(|path| {
+        path.strip_prefix("docs/decisions/")
+            .is_some_and(|name| name.starts_with(id) && name.ends_with(".md"))
+    }))
+}
+
+fn git_grep_fixed(
+    repo_root: &Path,
+    treeish: &str,
+    pattern: &str,
+    pathspecs: &[&str],
+) -> Result<bool, String> {
+    let mut command = git(repo_root);
+    command.args(["grep", "-F", "-q", pattern, treeish, "--"]);
+    command.args(pathspecs);
+    let output = command
+        .output()
+        .map_err(|error| format!("git grep failed to spawn: {error}"))?;
+    match output.status.code() {
+        Some(0) => Ok(true),
+        Some(1) => Ok(false),
+        _ => Err(format!(
+            "git grep failed for {treeish}: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        )),
+    }
 }
 
 fn sanitize_ref_segment(value: &str) -> String {
@@ -565,6 +765,8 @@ fn print_projection(projection: &ClaimProjection, args: &PlanArgs) {
                 (Action::Next, _) => "next",
                 (Action::Claim, true) => "would claim",
                 (Action::Claim, false) => "claimed",
+                (Action::ReserveId, true) => "would reserve",
+                (Action::ReserveId, false) => "reserved",
             };
             println!(
                 "plan {mode}: {} -> {} labels={}",
