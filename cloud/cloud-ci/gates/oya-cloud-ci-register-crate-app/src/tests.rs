@@ -791,6 +791,88 @@ fn cargo_lock_refresh_failure_aborts_before_face_regen() {
     );
 }
 
+#[test]
+fn cargo_lock_refresh_failure_retry_preserves_settle_obligation() {
+    let repo = fixture_tagged("settle-lock-retry");
+    let req = base_request();
+    let failing_regen = FakeRegenPort {
+        fail_lock_refresh: true,
+        ..FakeRegenPort::default()
+    };
+
+    let err = register_crate_and_settle(&repo.root, &req, &failing_regen, ValidationMode::Skip)
+        .unwrap_err();
+    assert!(
+        matches!(err, RegisterError::CargoLockRefreshFailed(_)),
+        "expected CargoLockRefreshFailed, got {err:?}"
+    );
+
+    // The SSOT edits were applied before the lock refresh failed. Simulate the real recovery hazard:
+    // a caller stages those edits, then retries after fixing the manifest/lock cause. The pure plan
+    // is now empty, so the missing Cargo.lock entry must carry the settle obligation.
+    run_git(&repo.root, &["add", "-A"]);
+
+    let retry_regen = FakeRegenPort::default();
+    let outcome =
+        register_crate_and_settle(&repo.root, &req, &retry_regen, ValidationMode::Skip).unwrap();
+
+    assert!(
+        outcome.requires_faces_settle,
+        "a retry after lock-refresh failure must still settle faces even when SSOT edits are already present"
+    );
+    assert!(
+        outcome.cargo_lock_refreshed,
+        "retry must rerun Cargo.lock refresh instead of reporting no-op success"
+    );
+    assert_eq!(
+        retry_regen.events.borrow().as_slice(),
+        &[
+            "cargo-lock-refresh".to_owned(),
+            "faces-regenerate".to_owned(),
+            "faces-verify".to_owned(),
+        ],
+    );
+}
+
+#[test]
+fn cargo_lock_retry_without_parseable_package_name_fails_closed() {
+    let repo = fixture_tagged("settle-lock-no-name");
+    let req = base_request();
+    let failing_regen = FakeRegenPort {
+        fail_lock_refresh: true,
+        ..FakeRegenPort::default()
+    };
+
+    let err = register_crate_and_settle(&repo.root, &req, &failing_regen, ValidationMode::Skip)
+        .unwrap_err();
+    assert!(
+        matches!(err, RegisterError::CargoLockRefreshFailed(_)),
+        "expected initial lock refresh failure, got {err:?}"
+    );
+
+    repo.write(
+        &format!("{NEW_DIR}/Cargo.toml"),
+        "[package]\nversion = \"0.1.0\"\n",
+    );
+    run_git(&repo.root, &["add", "-A"]);
+
+    let retry_regen = FakeRegenPort::default();
+    let err = register_crate_and_settle(&repo.root, &req, &retry_regen, ValidationMode::Skip)
+        .unwrap_err();
+
+    match err {
+        RegisterError::Io(msg) => assert!(
+            msg.contains("missing parseable [package] name"),
+            "retry must fail closed on unparseable package name, got {msg}"
+        ),
+        other => panic!("expected Io(missing package name), got {other:?}"),
+    }
+    assert!(
+        retry_regen.lock_refresh_calls.borrow().is_empty(),
+        "missing package name must fail before Cargo.lock refresh"
+    );
+}
+
 // (3c-2) A RegenPort failure → RegenFailed (fail LOUD); verify_drift is NEVER reached.
 #[test]
 fn settle_propagates_regen_failure() {
@@ -858,7 +940,16 @@ fn settle_skips_regen_when_no_obligation() {
     );
     assert_eq!(first_regen.regen_calls.borrow().len(), 1);
 
-    // Re-stage the just-written SSOTs so the re-run reads them as already-registered.
+    // Re-stage the just-written SSOTs so the re-run reads them as already-registered. The fake
+    // RegenPort does not execute `cargo metadata`, so mirror the successful production side effect:
+    // the package is now represented in Cargo.lock and there is no remaining settle obligation.
+    repo.write(
+        "Cargo.lock",
+        r#"[[package]]
+name = "oya-cloud-ci-example-app"
+version = "0.1.0"
+"#,
+    );
     run_git(&repo.root, &["add", "-A"]);
 
     // Second settle: the plan is empty (idempotent) → NO obligation → regen never runs.

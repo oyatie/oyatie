@@ -506,6 +506,97 @@ pub fn register_crate_detailed(repo_root: &Path, req: &RegisterCrateRequest) -> 
     })
 }
 
+fn cargo_lock_refresh_required(
+    repo_root: &Path,
+    req: &RegisterCrateRequest,
+) -> Result<bool, RegisterError> {
+    let package_name = request_package_name(repo_root, req)?;
+    Ok(!cargo_lock_contains_package(repo_root, &package_name)?)
+}
+
+fn request_package_name(
+    repo_root: &Path,
+    req: &RegisterCrateRequest,
+) -> Result<String, RegisterError> {
+    let manifest = repo_root
+        .join(req.crate_dir.trim_end_matches('/'))
+        .join("Cargo.toml");
+    let contents = std::fs::read_to_string(&manifest)
+        .map_err(|error| RegisterError::Io(format!("{}: {error}", manifest.display())))?;
+    parse_package_table_string(&contents, "name").ok_or_else(|| {
+        RegisterError::Io(format!(
+            "{}: missing parseable [package] name",
+            manifest.display()
+        ))
+    })
+}
+
+fn cargo_lock_contains_package(
+    repo_root: &Path,
+    package_name: &str,
+) -> Result<bool, RegisterError> {
+    let lockfile = repo_root.join("Cargo.lock");
+    let contents = match std::fs::read_to_string(&lockfile) {
+        Ok(contents) => contents,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(false),
+        Err(error) => {
+            return Err(RegisterError::Io(format!(
+                "{}: {error}",
+                lockfile.display()
+            )));
+        }
+    };
+
+    let mut in_package = false;
+    for raw in contents.lines() {
+        let trimmed = raw.split('#').next().unwrap_or("").trim();
+        if trimmed == "[[package]]" {
+            in_package = true;
+            continue;
+        }
+        if trimmed.starts_with('[') {
+            in_package = false;
+            continue;
+        }
+        if in_package
+            && parse_key_value_string(trimmed, "name")
+                .as_deref()
+                .is_some_and(|name| name == package_name)
+        {
+            return Ok(true);
+        }
+    }
+    Ok(false)
+}
+
+fn parse_package_table_string(contents: &str, key: &str) -> Option<String> {
+    let mut in_package = false;
+    for raw in contents.lines() {
+        let trimmed = raw.split('#').next().unwrap_or("").trim();
+        if trimmed.starts_with('[') {
+            in_package = trimmed == "[package]";
+            continue;
+        }
+        if in_package && let Some(value) = parse_key_value_string(trimmed, key) {
+            return Some(value);
+        }
+    }
+    None
+}
+
+fn parse_key_value_string(line: &str, expected_key: &str) -> Option<String> {
+    let (key, value) = line.split_once('=')?;
+    if key.trim() != expected_key {
+        return None;
+    }
+    let value = value.trim().trim_matches('"').trim_matches('\'');
+    if value.is_empty() {
+        None
+    } else {
+        Some(value.to_owned())
+    }
+}
+
 // ───────────────────────────── faces-settle (slice 3c) ─────────────────────────────
 
 /// How [`register_crate_and_settle`] self-validates the settled tree.
@@ -956,9 +1047,16 @@ pub fn register_crate_and_settle(
         RegisterOutcome::Failed { error, .. } => return Err(error),
     };
 
-    // Nothing changed ⇒ no obligation ⇒ no regen (faces_settled stays None).
-    if !outcome.requires_faces_settle {
+    // Nothing changed AND the crate is already represented in Cargo.lock ⇒ no obligation ⇒ no
+    // regen (faces_settled stays None). If a prior attempt applied the SSOT edits but failed during
+    // Cargo.lock refresh, the pure plan is now empty; the missing lock entry preserves the settle
+    // obligation so a retry cannot falsely report success.
+    let lock_refresh_required = cargo_lock_refresh_required(repo_root, req)?;
+    if !outcome.requires_faces_settle && !lock_refresh_required {
         return Ok(outcome);
+    }
+    if lock_refresh_required {
+        outcome.requires_faces_settle = true;
     }
 
     // Auto-on-birth Cargo.lock registration: refresh the lockfile BEFORE regenerating scm-facts and
