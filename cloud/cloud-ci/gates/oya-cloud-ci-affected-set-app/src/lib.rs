@@ -610,6 +610,105 @@ pub fn failing_targets(report: &BTreeMap<String, TargetBuildStatus>) -> BTreeSet
         .collect()
 }
 
+/// Expected trusted dev-push artifact name for a build-health baseline produced at `merge_base_sha`.
+///
+/// The consumer workflow still validates GitHub Actions provenance (push-to-dev, successful
+/// `oya-ci-required` run, exact `head_sha`) before download. This pure helper pins the artifact name
+/// and SHA shape so stale/wrong artifacts cannot be confused with an exact merge-base baseline.
+pub fn build_health_baseline_artifact_name(merge_base_sha: &str) -> Result<String, String> {
+    let sha = merge_base_sha.trim();
+    if sha.len() != 40 || !sha.as_bytes().iter().all(u8::is_ascii_hexdigit) {
+        return Err(format!(
+            "merge-base SHA must be a 40-character hex object id, got `{merge_base_sha}`"
+        ));
+    }
+    Ok(format!("build-health-baseline-{sha}"))
+}
+
+/// Select the trusted push-to-dev workflow run whose head SHA is the exact merge-base.
+pub fn trusted_dev_push_run_id(
+    runs_json: &str,
+    merge_base_sha: &str,
+) -> Result<Option<u64>, String> {
+    let sha = merge_base_sha.trim();
+    let _ = build_health_baseline_artifact_name(sha)?;
+    let payload: Value = serde_json::from_str(runs_json)
+        .map_err(|e| format!("workflow-runs payload is not valid JSON: {e}"))?;
+    let runs = payload
+        .get("workflow_runs")
+        .and_then(Value::as_array)
+        .ok_or("workflow-runs payload has no `workflow_runs` array")?;
+
+    for run in runs {
+        if run.get("head_sha").and_then(Value::as_str) == Some(sha)
+            && run.get("event").and_then(Value::as_str) == Some("push")
+            && run.get("head_branch").and_then(Value::as_str) == Some("dev")
+            && run.get("conclusion").and_then(Value::as_str) == Some("success")
+        {
+            return run
+                .get("id")
+                .and_then(Value::as_u64)
+                .map(Some)
+                .ok_or("matching trusted workflow run has no numeric `id`".to_owned());
+        }
+    }
+
+    Ok(None)
+}
+
+/// Select the unexpired exact-name build-health baseline artifact from a trusted run.
+pub fn trusted_build_health_baseline_artifact_id(
+    artifacts_json: &str,
+    artifact_name: &str,
+) -> Result<Option<u64>, String> {
+    let payload: Value = serde_json::from_str(artifacts_json)
+        .map_err(|e| format!("workflow-artifacts payload is not valid JSON: {e}"))?;
+    let artifacts = payload
+        .get("artifacts")
+        .and_then(Value::as_array)
+        .ok_or("workflow-artifacts payload has no `artifacts` array")?;
+
+    for artifact in artifacts {
+        if artifact.get("name").and_then(Value::as_str) == Some(artifact_name) {
+            if artifact
+                .get("expired")
+                .and_then(Value::as_bool)
+                .unwrap_or(true)
+            {
+                return Ok(None);
+            }
+            return artifact
+                .get("id")
+                .and_then(Value::as_u64)
+                .map(Some)
+                .ok_or("matching trusted artifact has no numeric `id`".to_owned());
+        }
+    }
+
+    Ok(None)
+}
+
+/// Validate a trusted build-health baseline artifact payload after provenance selection.
+///
+/// Returns the number of build-report results. Empty/invalid reports are refused because an empty
+/// baseline would launder every head failure into "brand-new but unproven" ambiguity.
+pub fn validate_trusted_build_health_baseline_artifact(
+    artifact_name: &str,
+    merge_base_sha: &str,
+    report_json: &str,
+) -> Result<usize, String> {
+    let expected = build_health_baseline_artifact_name(merge_base_sha)?;
+    if artifact_name != expected {
+        return Err(format!(
+            "build-health baseline artifact name `{artifact_name}` does not match expected `{expected}`"
+        ));
+    }
+    let report = parse_build_report(report_json)?;
+    if report.is_empty() {
+        return Err("build-health baseline artifact has an empty `results` object".to_owned());
+    }
+    Ok(report.len())
+}
 /// The build-health verdict: regressions BLOCK, pre-existing failures are GRANDFATHERED.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BuildHealthVerdict {
@@ -785,7 +884,104 @@ mod tests {
         assert_eq!(report.get("root//c:c"), Some(&TargetBuildStatus::Fail));
         assert_eq!(failing_targets(&report), set(&["root//b:b", "root//c:c"]));
     }
+    #[test]
+    fn trusted_build_health_artifact_accepts_exact_non_empty_baseline() {
+        let sha = "0123456789abcdef0123456789abcdef01234567";
+        let name = build_health_baseline_artifact_name(sha).unwrap();
+        let json = r#"{"results":{"root//a:a":{"success":"SUCCESS"}}}"#;
+        assert_eq!(
+            validate_trusted_build_health_baseline_artifact(&name, sha, json),
+            Ok(1)
+        );
+    }
 
+    #[test]
+    fn trusted_build_health_artifact_rejects_stale_name() {
+        let sha = "0123456789abcdef0123456789abcdef01234567";
+        let stale = "build-health-baseline-89abcdef0123456789abcdef0123456789abcdef";
+        let json = r#"{"results":{"root//a:a":{"success":"SUCCESS"}}}"#;
+        let err = validate_trusted_build_health_baseline_artifact(stale, sha, json).unwrap_err();
+        assert!(err.contains("does not match expected"), "{err}");
+    }
+
+    #[test]
+    fn trusted_build_health_artifact_rejects_invalid_or_empty_report() {
+        let sha = "0123456789abcdef0123456789abcdef01234567";
+        let name = build_health_baseline_artifact_name(sha).unwrap();
+
+        let invalid =
+            validate_trusted_build_health_baseline_artifact(&name, sha, "not json").unwrap_err();
+        assert!(invalid.contains("not valid JSON"), "{invalid}");
+
+        let empty =
+            validate_trusted_build_health_baseline_artifact(&name, sha, r#"{"results":{}}"#)
+                .unwrap_err();
+        assert!(empty.contains("empty `results`"), "{empty}");
+    }
+
+    #[test]
+    fn trusted_build_health_artifact_rejects_bad_sha_shape() {
+        let err = build_health_baseline_artifact_name("dev").unwrap_err();
+        assert!(err.contains("40-character hex"), "{err}");
+    }
+
+    #[test]
+    fn trusted_push_run_selection_accepts_exact_successful_dev_push() {
+        let sha = "0123456789abcdef0123456789abcdef01234567";
+        let runs = r#"{
+            "workflow_runs": [
+                {"id": 11, "head_sha": "fedcba9876543210fedcba9876543210fedcba98", "event": "push", "head_branch": "dev", "conclusion": "success"},
+                {"id": 12, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "pull_request", "head_branch": "dev", "conclusion": "success"},
+                {"id": 13, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "push", "head_branch": "dev", "conclusion": "success"}
+            ]
+        }"#;
+        assert_eq!(trusted_dev_push_run_id(runs, sha), Ok(Some(13)));
+    }
+
+    #[test]
+    fn trusted_push_run_selection_falls_back_on_missing_or_untrusted() {
+        let sha = "0123456789abcdef0123456789abcdef01234567";
+        let runs = r#"{
+            "workflow_runs": [
+                {"id": 12, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "push", "head_branch": "feature", "conclusion": "success"},
+                {"id": 13, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "push", "head_branch": "dev", "conclusion": "failure"}
+            ]
+        }"#;
+        assert_eq!(trusted_dev_push_run_id(runs, sha), Ok(None));
+    }
+
+    #[test]
+    fn trusted_baseline_artifact_selection_accepts_unexpired_exact_match() {
+        let artifacts = r#"{
+            "artifacts": [
+                {"id": 21, "name": "build-health-baseline-fedcba9876543210fedcba9876543210fedcba98", "expired": false},
+                {"id": 22, "name": "build-health-baseline-0123456789abcdef0123456789abcdef01234567", "expired": false}
+            ]
+        }"#;
+        assert_eq!(
+            trusted_build_health_baseline_artifact_id(
+                artifacts,
+                "build-health-baseline-0123456789abcdef0123456789abcdef01234567",
+            ),
+            Ok(Some(22))
+        );
+    }
+
+    #[test]
+    fn trusted_baseline_artifact_selection_falls_back_on_missing_or_stale() {
+        let artifact_name = "build-health-baseline-0123456789abcdef0123456789abcdef01234567";
+        assert_eq!(
+            trusted_build_health_baseline_artifact_id(r#"{"artifacts":[]}"#, artifact_name),
+            Ok(None)
+        );
+        assert_eq!(
+            trusted_build_health_baseline_artifact_id(
+                r#"{"artifacts":[{"id":22,"name":"build-health-baseline-0123456789abcdef0123456789abcdef01234567","expired":true}]}"#,
+                artifact_name,
+            ),
+            Ok(None)
+        );
+    }
     #[test]
     fn build_health_regression_blocks_grandfathered_does_not() {
         // baseline (merge-base) red: {blake3, sqlx}. head red: {blake3, sqlx, NEW}.
