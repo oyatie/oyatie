@@ -21,6 +21,7 @@
 //! data_class annotations follow the Oyatie catalog:
 //! - `AgentToken` → TENANT_SCOPED (identifies an agent within a tenant)
 //! - budget/remaining counters → INTERNAL_ONLY
+//!
 //! ADR-0083 Tier 3: panic-free in production code; tests use `unwrap`/`expect`.
 
 use std::collections::BTreeMap;
@@ -101,7 +102,11 @@ pub enum QuotaError {
 impl fmt::Display for QuotaError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::BudgetExceeded { agent, requested, remaining } => write!(
+            Self::BudgetExceeded {
+                agent,
+                requested,
+                remaining,
+            } => write!(
                 f,
                 "quota budget exceeded for agent {}: requested {}, remaining {}",
                 agent.0, requested, remaining
@@ -225,8 +230,8 @@ pub fn should_skip_reserve(snap: &AgentQuotaSnapshot) -> bool {
 /// Internal per-entry state.
 #[derive(Clone, Debug)]
 struct QuotaEntry {
-    budget_tokens: u64,       // data_class: INTERNAL_ONLY
-    remaining_tokens: u64,    // data_class: INTERNAL_ONLY
+    budget_tokens: u64,        // data_class: INTERNAL_ONLY
+    remaining_tokens: u64,     // data_class: INTERNAL_ONLY
     window_reset_unix_ms: u64, // data_class: INTERNAL_ONLY
 }
 
@@ -302,10 +307,9 @@ impl AgentQuotaStore for InMemoryAgentQuotaStore {
         agent: &AgentToken,
         tokens: u64,
     ) -> Result<(), QuotaError> {
-        let mut guard = self
-            .entries
-            .lock()
-            .map_err(|_| QuotaError::Repository(RepositoryError::new("quota store mutex poisoned")))?;
+        let mut guard = self.entries.lock().map_err(|_| {
+            QuotaError::Repository(RepositoryError::new("quota store mutex poisoned"))
+        })?;
         let key = (tenant_id.0.clone(), agent.0.clone());
         let entry = guard
             .get_mut(&key)

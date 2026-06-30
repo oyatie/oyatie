@@ -16,14 +16,38 @@ use std::sync::Arc;
 use bytes::Bytes;
 
 use oya_intelligence_provider_pool_app::{
-    DeniedSecretResolver, HealthState, InMemoryAccountHealthStore, InMemoryPoolRepository,
-    InMemoryProviderInvocationTransport, InMemoryUsageSnapshotSource, MetricsCounters,
-    MetricsSink, OtelMetricsSink, PoolId, PoolRoutingStrategy, ProviderAccountId,
-    ProviderAccountPool, ProviderFamily, ProviderResponse, ProviderTier, RequestMetadata,
-    TenantId, TransportError, TransportScript, UnixMillis, dispatch_to_pool,
     // Seat observability
-    AccountHealth, AccountHealthMap, InMemorySeatRegistry, SeatRegistry, SeatSnapshot,
-    SeatTokenTotals, UsageSnapshot, UsageSnapshotMap, build_seat_snapshots,
+    AccountHealth,
+    AccountHealthMap,
+    DeniedSecretResolver,
+    HealthState,
+    InMemoryAccountHealthStore,
+    InMemoryPoolRepository,
+    InMemoryProviderInvocationTransport,
+    InMemorySeatRegistry,
+    InMemoryUsageSnapshotSource,
+    MetricsCounters,
+    MetricsSink,
+    OtelMetricsSink,
+    PoolId,
+    PoolRoutingStrategy,
+    ProviderAccountId,
+    ProviderAccountPool,
+    ProviderFamily,
+    ProviderResponse,
+    ProviderTier,
+    RequestMetadata,
+    SeatRegistry,
+    SeatSnapshot,
+    SeatTokenTotals,
+    TenantId,
+    TransportError,
+    TransportScript,
+    UnixMillis,
+    UsageSnapshot,
+    UsageSnapshotMap,
+    build_seat_snapshots,
+    dispatch_to_pool,
 };
 use oya_intelligence_provider_pool_kernel::DurationMs;
 
@@ -110,9 +134,18 @@ fn otel_sink_accumulates_all_event_types() {
     sink.record_quarantine_transition(&pid("a"), HealthState::Degraded);
 
     let text = sink.render_prometheus_text();
-    assert!(text.contains("provider_pool_dispatch_successes_total"), "successes metric present");
-    assert!(text.contains("provider_pool_dispatch_failures_total"), "failures metric present");
-    assert!(text.contains("provider_pool_dispatch_failovers_total"), "failovers metric present");
+    assert!(
+        text.contains("provider_pool_dispatch_successes_total"),
+        "successes metric present"
+    );
+    assert!(
+        text.contains("provider_pool_dispatch_failures_total"),
+        "failures metric present"
+    );
+    assert!(
+        text.contains("provider_pool_dispatch_failovers_total"),
+        "failovers metric present"
+    );
     assert!(
         text.contains("provider_pool_quarantine_transitions_total"),
         "quarantine metric present"
@@ -166,8 +199,7 @@ fn otel_sink_empty_renders_valid_prometheus_headers() {
 async fn otel_sink_captures_events_through_dispatch_to_pool() {
     let tenant = ten("ten_obs");
     let pid_pool = pool_id("pool_obs");
-    let repo = InMemoryPoolRepository::new()
-        .with_pool(make_pool(&tenant, &pid_pool, &["seat-1"]));
+    let repo = InMemoryPoolRepository::new().with_pool(make_pool(&tenant, &pid_pool, &["seat-1"]));
     let usage = InMemoryUsageSnapshotSource::new();
     let mut health = InMemoryAccountHealthStore::new();
 
@@ -239,7 +271,10 @@ fn build_seat_snapshots_returns_sorted_snapshots_for_all_members() {
 
     let snaps = build_seat_snapshots(&pool, &health, &usage, now);
     assert_eq!(snaps.len(), 3, "one snapshot per member");
-    let ids: Vec<&str> = snaps.iter().map(|s| s.provider_account_id.as_str()).collect();
+    let ids: Vec<&str> = snaps
+        .iter()
+        .map(|s| s.provider_account_id.as_str())
+        .collect();
     assert_eq!(
         ids,
         vec!["alpha", "beta", "gamma"],
@@ -292,7 +327,10 @@ fn build_seat_snapshots_seat_with_active_cooldown_is_unavailable() {
     let snaps = build_seat_snapshots(&pool, &health, &usage, now);
     assert_eq!(snaps.len(), 1);
     let snap = &snaps[0];
-    assert!(!snap.available, "seat with future cooldown must be unavailable");
+    assert!(
+        !snap.available,
+        "seat with future cooldown must be unavailable"
+    );
     assert_eq!(snap.cooldown_until, Some(1_002_000u64));
 }
 
@@ -316,7 +354,10 @@ fn build_seat_snapshots_expired_cooldown_seat_is_available() {
 
     let snaps = build_seat_snapshots(&pool, &health, &usage, now);
     assert_eq!(snaps.len(), 1);
-    assert!(snaps[0].available, "seat with expired cooldown must be available");
+    assert!(
+        snaps[0].available,
+        "seat with expired cooldown must be available"
+    );
 }
 
 /// AC-SEAT-5: `build_seat_snapshots` populates `requests_in_window` from usage.
@@ -446,7 +487,10 @@ fn seat_registry_snapshot_is_sorted() {
         }]);
     }
     let snaps = registry.snapshot();
-    let ids: Vec<&str> = snaps.iter().map(|s| s.provider_account_id.as_str()).collect();
+    let ids: Vec<&str> = snaps
+        .iter()
+        .map(|s| s.provider_account_id.as_str())
+        .collect();
     assert_eq!(ids, vec!["alpha", "beta", "gamma"]);
 }
 
@@ -461,7 +505,10 @@ fn build_seat_snapshots_empty_pool_yields_empty_vec() {
         &UsageSnapshotMap::default(),
         UnixMillis(1),
     );
-    assert!(snaps.is_empty(), "empty pool must yield empty snapshot list");
+    assert!(
+        snaps.is_empty(),
+        "empty pool must yield empty snapshot list"
+    );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -482,15 +529,20 @@ fn build_seat_snapshots_empty_pool_yields_empty_vec() {
 async fn otel_sink_full_dispatch_cycle_prometheus_text_nonempty() {
     let tenant = ten("ten_route");
     let pid_pool_id = pool_id("pool_route");
-    let repo = InMemoryPoolRepository::new()
-        .with_pool(make_pool(&tenant, &pid_pool_id, &["seat-a", "seat-b"]));
+    let repo = InMemoryPoolRepository::new().with_pool(make_pool(
+        &tenant,
+        &pid_pool_id,
+        &["seat-a", "seat-b"],
+    ));
     let usage = InMemoryUsageSnapshotSource::new();
     let mut health = InMemoryAccountHealthStore::new();
 
     // seat-a fails (retryable); seat-b succeeds.
     let script: TransportScript = Arc::new(|account, _, _| {
         if account == &pid("seat-a") {
-            Err(TransportError::Retryable { detail: "seat-a down".into() })
+            Err(TransportError::Retryable {
+                detail: "seat-a down".into(),
+            })
         } else {
             Ok(ok_response(account))
         }

@@ -10,7 +10,7 @@
 //! - missing bundle file        -> boot REFUSED (`StartError::Bundle`);
 //! - malformed bundle JSON      -> boot REFUSED (`StartError::Bundle`);
 //! - syntactically valid bundle with invalid Cedar policy text
-//!                              -> boot REFUSED (`StartError::PolicyLoad`).
+//!   -> boot REFUSED (`StartError::PolicyLoad`).
 
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 

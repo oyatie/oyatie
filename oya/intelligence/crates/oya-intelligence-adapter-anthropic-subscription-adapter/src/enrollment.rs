@@ -18,14 +18,14 @@
 //! caller — kept here so the pure logic stays hermetically testable.
 // data_class: INTERNAL_ONLY throughout this module.
 
+use oya_intelligence_account_domain::ProviderFamily;
 use oya_intelligence_oauth_subscription_kernel::{
     FlowKind, OAuthLoopbackServer, PkceChallenge, PkceVerifier, SubscriptionOAuthFlow,
     SubscriptionTokenCaptureRequest, build_authorization_url, capture_subscription_token,
 };
-use oya_intelligence_account_domain::ProviderFamily;
 
-use crate::ports::{CredentialStorePort, SeatId, TokenBytes};
 use crate::oauth_client::OAuthTokenClient;
+use crate::ports::{CredentialStorePort, SeatId, TokenBytes};
 use crate::token_state::SeatTokenState;
 
 /// Error types for enrollment.
@@ -56,8 +56,8 @@ impl std::fmt::Display for EnrollmentError {
 // data_class: INTERNAL_ONLY
 #[derive(Debug, Clone)]
 pub struct CallbackParams {
-    pub code: String,    // data_class: INTERNAL_ONLY
-    pub state: String,   // data_class: INTERNAL_ONLY
+    pub code: String,  // data_class: INTERNAL_ONLY
+    pub state: String, // data_class: INTERNAL_ONLY
 }
 
 /// Parse `code` and `state` from a callback redirect URI query string.
@@ -84,8 +84,7 @@ pub fn parse_callback(url_or_query: &str) -> Result<CallbackParams, EnrollmentEr
     }
 
     let code = code.ok_or_else(|| EnrollmentError::CallbackParseError("missing code".into()))?;
-    let state =
-        state.ok_or_else(|| EnrollmentError::CallbackParseError("missing state".into()))?;
+    let state = state.ok_or_else(|| EnrollmentError::CallbackParseError("missing state".into()))?;
 
     if code.is_empty() {
         return Err(EnrollmentError::CallbackParseError("empty code".into()));
@@ -176,12 +175,12 @@ fn percent_decode(s: &str) -> String {
     let mut i = 0;
     while i < bytes.len() {
         if bytes[i] == b'%' && i + 2 < bytes.len() {
-            if let Ok(h) = std::str::from_utf8(&bytes[i + 1..i + 3]) {
-                if let Ok(b) = u8::from_str_radix(h, 16) {
-                    out.push(b as char);
-                    i += 3;
-                    continue;
-                }
+            if let Ok(h) = std::str::from_utf8(&bytes[i + 1..i + 3])
+                && let Ok(b) = u8::from_str_radix(h, 16)
+            {
+                out.push(b as char);
+                i += 3;
+                continue;
             }
             out.push(bytes[i] as char);
             i += 1;
@@ -254,8 +253,7 @@ mod tests {
         let verifier =
             PkceVerifier::new("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk".to_owned()).unwrap();
         let loopback = OAuthLoopbackServer::default_claude();
-        let (flow, _) =
-            build_enrollment_flow(verifier, "correct-nonce".into(), loopback).unwrap();
+        let (flow, _) = build_enrollment_flow(verifier, "correct-nonce".into(), loopback).unwrap();
         // Simulate wrong state in callback.
         let params = parse_callback("code=c&state=wrong-nonce").unwrap();
         assert_ne!(params.state, flow.state_nonce);

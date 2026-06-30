@@ -19,6 +19,7 @@ iam-identity-workload-domain = { path = "../../core/identity-workload-domain" }
 iam-identity-workload-svid-kernel = { path = "../../core/identity-workload-svid-kernel" }
 iam-identity-workload-svid-trustd = { path = "../../adapters/identity-workload-svid-trustd" }
 oya-cloud-os-trustd-domain = { path = "../../../cloud/cloud-os/crates/oya-cloud-os-trustd-domain" }
+oya-http-runtime-hyper-adapter = { path = "../../../libs/oya-http-runtime-hyper-adapter" }
 x509-parser = { workspace = true }
 aws-lc-rs = "1.17.0"
 tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "net", "macros", "sync", "signal"] }
@@ -33,7 +34,7 @@ tracing-subscriber = { workspace = true }
 prost.workspace = true
 tonic = { workspace = true, features = ["router", "transport"] }
 tonic-prost.workspace = true
-rustls = { version = "0.23", default-features = false, features = ["aws-lc-rs", "tls12", "logging"] }
+rustls = { version = "0.23", default-features = false, features = ["aws-lc-rs", "prefer-post-quantum", "tls12", "logging"] }
 tokio-rustls = { version = "0.26", default-features = false, features = ["aws-lc-rs", "tls12"] }
 hyper = { version = "1", default-features = false, features = ["server", "http1", "http2"] }
 hyper-util = { version = "0.1", default-features = false, features = ["server-auto", "server-graceful", "service", "tokio"] }

@@ -28,6 +28,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use base64::Engine as _;
+use oya_http_runtime_hyper_adapter::pqc_hybrid_tls13_client_config_builder;
 use rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier};
 use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer, ServerName, UnixTime};
 use rustls::{ClientConfig, DigitallySignedStruct, Error, SignatureScheme};
@@ -39,13 +40,13 @@ use iam_cloud_pdp_app::mtls_transport::{MtlsContext, MtlsMaterialError};
 use iam_cloud_pdp_app::server::{self, BootError};
 use iam_cloud_pdp_kernel::PdpConfig;
 
+use oya_cloud_os_trustd_domain::JoinToken;
 use oya_cloud_os_trustd_domain::ca::{CertificateAuthority, CertificateSigningRequest};
 use oya_cloud_os_trustd_domain::certificate::CertUsage;
 use oya_cloud_os_trustd_domain::der;
 use oya_cloud_os_trustd_domain::service::{CertificateRequest, SecurityService};
 use oya_cloud_os_trustd_domain::signer::EcdsaP256Signer;
 use oya_cloud_os_trustd_domain::x509::KeyPair;
-use oya_cloud_os_trustd_domain::JoinToken;
 
 const JOIN_TOKEN: &str = "clusterid.clustersecret";
 
@@ -61,8 +62,8 @@ fn ca(name: &str) -> (CertificateAuthority<EcdsaP256Signer>, EcdsaP256Signer) {
     let signer = EcdsaP256Signer::generate().unwrap();
     let key = KeyPair::new(signer.private_key_der(), signer.public_key_spki_der());
     let now = now_secs();
-    let ca = CertificateAuthority::bootstrap(name, key, signer.clone(), now, now + 10_000_000)
-        .unwrap();
+    let ca =
+        CertificateAuthority::bootstrap(name, key, signer.clone(), now, now + 10_000_000).unwrap();
     (ca, signer)
 }
 
@@ -90,9 +91,13 @@ fn issue_svid(
         csr,
     };
     let resp = svc.handle_certificate(&req, &key, iat).unwrap();
-    let leaf =
-        der::encode_leaf_der(&resp.identity.certificate, &wl, svc.ca_certificate(), ca_signer)
-            .unwrap();
+    let leaf = der::encode_leaf_der(
+        &resp.identity.certificate,
+        &wl,
+        svc.ca_certificate(),
+        ca_signer,
+    )
+    .unwrap();
     (leaf, wl.private_key_der())
 }
 
@@ -123,9 +128,13 @@ fn issue_server_leaf(
         csr,
     };
     let resp = svc.handle_certificate(&req, &key, iat).unwrap();
-    let leaf =
-        der::encode_leaf_der(&resp.identity.certificate, &srv, svc.ca_certificate(), ca_signer)
-            .unwrap();
+    let leaf = der::encode_leaf_der(
+        &resp.identity.certificate,
+        &srv,
+        svc.ca_certificate(),
+        ca_signer,
+    )
+    .unwrap();
     (leaf, srv.private_key_der())
 }
 
@@ -233,9 +242,7 @@ fn client_config(client: Option<(Vec<u8>, Vec<u8>)>) -> ClientConfig {
     let verifier = Arc::new(AcceptTrustdServer {
         provider: Arc::clone(&provider),
     });
-    let builder = ClientConfig::builder_with_provider(provider)
-        .with_safe_default_protocol_versions()
-        .unwrap()
+    let builder = pqc_hybrid_tls13_client_config_builder()
         .dangerous()
         .with_custom_certificate_verifier(verifier);
     match client {
@@ -247,6 +254,20 @@ fn client_config(client: Option<(Vec<u8>, Vec<u8>)>) -> ClientConfig {
             .unwrap(),
         None => builder.with_no_client_auth(),
     }
+}
+fn assert_pqc_hybrid_tls13(connection: &rustls::ClientConnection) {
+    assert_eq!(
+        connection.protocol_version(),
+        Some(rustls::ProtocolVersion::TLSv1_3),
+        "production boot mTLS clients must negotiate TLS 1.3 through the shared PQC-hybrid policy"
+    );
+    assert_eq!(
+        connection
+            .negotiated_key_exchange_group()
+            .map(|group| group.name()),
+        Some(rustls::NamedGroup::X25519MLKEM768),
+        "production boot mTLS clients must negotiate the X25519MLKEM768 hybrid key-share first"
+    );
 }
 
 /// Drive one real mTLS HTTP/1.1 POST /v1/authorize and return (status, body).
@@ -260,6 +281,7 @@ async fn post_authorize(
     let tcp = TcpStream::connect(addr).await?;
     let domain = ServerName::try_from("localhost").unwrap();
     let mut tls = connector.connect(domain, tcp).await?;
+    assert_pqc_hybrid_tls13(tls.get_ref().1);
     let req = format!(
         "POST /v1/authorize HTTP/1.1\r\nHost: localhost\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
         json_body.len(),
@@ -525,7 +547,7 @@ fn from_path_garbage_pem_is_malformed() {
 // =====================================================================
 
 use iam_identity_workload_svid_operator_k8s::{
-    run_reconcile_once, SvidSecretMaterial, TrustdEcdsaIssuanceBackend,
+    SvidSecretMaterial, TrustdEcdsaIssuanceBackend, run_reconcile_once,
 };
 use iam_identity_workload_svid_operator_kernel::{
     Action, Clock as OperatorClock, DesiredState, ObservedState,
@@ -602,11 +624,7 @@ async fn operator_produced_secret_boots_pdp_and_yields_real_allow_deny_handshake
     // 3. A caller SVID minted from the SAME operator CA (so it chains to the
     //    delivered ca.crt) for ten_acme -> ALLOW, bound to the SVID tenant.
     let (leaf, key) = backend
-        .issue_caller_svid(
-            "spiffe://oyatie.cell-7/tenant/ten_acme/wl",
-            10_000_000,
-            iat,
-        )
+        .issue_caller_svid("spiffe://oyatie.cell-7/tenant/ten_acme/wl", 10_000_000, iat)
         .expect("operator CA issues the caller SVID");
     let (status, body) = post_authorize(
         handle.rest_addr,

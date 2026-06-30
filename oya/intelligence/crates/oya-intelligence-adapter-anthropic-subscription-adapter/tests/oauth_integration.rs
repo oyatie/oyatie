@@ -22,9 +22,9 @@ use tokio::net::TcpListener;
 
 use oya_intelligence_adapter_anthropic_subscription_adapter::{
     AnthropicOAuthAdapter, CredentialStorePort, InMemoryAlertPort, InMemoryCredentialStore,
-    OAuthTokenClient, OperatorAlertPort, SeatId, SeatTokenState, build_https_client,
-    classify_oauth_error, outbound_auth_headers, ports::AlertKind,
-    token_state::RefreshFailureKind,
+    OAuthTokenClient, OperatorAlertPort, SeatId, SeatTokenState,
+    build_loopback_http_or_https_test_client, classify_oauth_error, outbound_auth_headers,
+    ports::AlertKind, token_state::RefreshFailureKind,
 };
 
 // ── Mock server helpers ──────────────────────────────────────────────────────
@@ -75,19 +75,25 @@ async fn mock_server_token_exchange_success() {
     let token_endpoint = format!("http://{addr}/oauth/token");
     let received_body = Arc::new(tokio::sync::Mutex::new(String::new()));
 
-    let response_json = r#"{"access_token":"new-access","refresh_token":"new-refresh","expires_in":3600}"#;
+    let response_json =
+        r#"{"access_token":"new-access","refresh_token":"new-refresh","expires_in":3600}"#;
     let body_store = Arc::clone(&received_body);
     tokio::spawn(async move {
         serve_one_request(listener, 200, response_json, body_store).await;
     });
 
-    let http_client = Arc::new(build_https_client());
-    let client = OAuthTokenClient::new(Arc::clone(&http_client))
-        .with_token_endpoint(&token_endpoint);
+    let http_client = Arc::new(build_loopback_http_or_https_test_client());
+    let client =
+        OAuthTokenClient::new(Arc::clone(&http_client)).with_token_endpoint(&token_endpoint);
 
     let now_secs = 1_000_000u64;
     let state = client
-        .exchange("auth-code-123", "pkce-verifier-abc", "http://localhost:35593/callback", now_secs)
+        .exchange(
+            "auth-code-123",
+            "pkce-verifier-abc",
+            "http://localhost:35593/callback",
+            now_secs,
+        )
         .await
         .unwrap();
 
@@ -98,7 +104,10 @@ async fn mock_server_token_exchange_success() {
 
     // Verify the request contained grant_type=authorization_code.
     let body = received_body.lock().await;
-    assert!(body.contains("grant_type=authorization_code"), "body: {body}");
+    assert!(
+        body.contains("grant_type=authorization_code"),
+        "body: {body}"
+    );
     assert!(body.contains("code=auth-code-123"), "body: {body}");
 }
 
@@ -114,9 +123,9 @@ async fn mock_server_refresh_success() {
         serve_one_request(listener, 200, response_json, body_store).await;
     });
 
-    let http_client = Arc::new(build_https_client());
-    let client = OAuthTokenClient::new(Arc::clone(&http_client))
-        .with_token_endpoint(&token_endpoint);
+    let http_client = Arc::new(build_loopback_http_or_https_test_client());
+    let client =
+        OAuthTokenClient::new(Arc::clone(&http_client)).with_token_endpoint(&token_endpoint);
 
     let now_secs = 2_000_000u64;
     let current = SeatTokenState::new(
@@ -143,7 +152,8 @@ async fn terminal_error_emits_operator_alert() {
     let token_endpoint = format!("http://{addr}/oauth/token");
     let received_body = Arc::new(tokio::sync::Mutex::new(String::new()));
 
-    let response_json = r#"{"error":"refresh_token_expired","error_description":"The refresh token has expired."}"#;
+    let response_json =
+        r#"{"error":"refresh_token_expired","error_description":"The refresh token has expired."}"#;
     let body_store = Arc::clone(&received_body);
     tokio::spawn(async move {
         serve_one_request(listener, 400, response_json, body_store).await;
@@ -154,8 +164,12 @@ async fn terminal_error_emits_operator_alert() {
     let now_secs = 1_000_000u64;
 
     let adapter = AnthropicOAuthAdapter::with_token_endpoint(
-        Arc::clone(&store) as Arc<dyn oya_intelligence_adapter_anthropic_subscription_adapter::CredentialStorePort>,
-        Arc::clone(&alert) as Arc<dyn oya_intelligence_adapter_anthropic_subscription_adapter::OperatorAlertPort>,
+        Arc::clone(&store)
+            as Arc<
+                dyn oya_intelligence_adapter_anthropic_subscription_adapter::CredentialStorePort,
+            >,
+        Arc::clone(&alert)
+            as Arc<dyn oya_intelligence_adapter_anthropic_subscription_adapter::OperatorAlertPort>,
         &token_endpoint,
     )
     .with_clock(move || now_secs);
@@ -200,8 +214,12 @@ async fn transient_error_no_operator_alert() {
     let now_secs = 1_000_000u64;
 
     let adapter = AnthropicOAuthAdapter::with_token_endpoint(
-        Arc::clone(&store) as Arc<dyn oya_intelligence_adapter_anthropic_subscription_adapter::CredentialStorePort>,
-        Arc::clone(&alert) as Arc<dyn oya_intelligence_adapter_anthropic_subscription_adapter::OperatorAlertPort>,
+        Arc::clone(&store)
+            as Arc<
+                dyn oya_intelligence_adapter_anthropic_subscription_adapter::CredentialStorePort,
+            >,
+        Arc::clone(&alert)
+            as Arc<dyn oya_intelligence_adapter_anthropic_subscription_adapter::OperatorAlertPort>,
         &token_endpoint,
     )
     .with_clock(move || now_secs);
@@ -242,18 +260,18 @@ async fn persist_before_mutate_invariant() {
     let now_secs = 1_000_000u64;
 
     let adapter = AnthropicOAuthAdapter::with_token_endpoint(
-        Arc::clone(&store) as Arc<dyn oya_intelligence_adapter_anthropic_subscription_adapter::CredentialStorePort>,
-        Arc::clone(&alert) as Arc<dyn oya_intelligence_adapter_anthropic_subscription_adapter::OperatorAlertPort>,
+        Arc::clone(&store)
+            as Arc<
+                dyn oya_intelligence_adapter_anthropic_subscription_adapter::CredentialStorePort,
+            >,
+        Arc::clone(&alert)
+            as Arc<dyn oya_intelligence_adapter_anthropic_subscription_adapter::OperatorAlertPort>,
         &token_endpoint,
     )
     .with_clock(move || now_secs);
 
-    let current_state = SeatTokenState::new(
-        "old-tok".into(),
-        "old-ref".into(),
-        now_secs + 10,
-        now_secs,
-    );
+    let current_state =
+        SeatTokenState::new("old-tok".into(), "old-ref".into(), now_secs + 10, now_secs);
     let seat_id = SeatId("persist-test-seat".into());
     adapter.seed_seat(&seat_id.0, current_state);
 
@@ -301,8 +319,7 @@ async fn singleflight_coalesces_concurrent_refreshes() {
                     async move {
                         c.fetch_add(1, Ordering::SeqCst);
                         let body_bytes = req.into_body().collect().await.unwrap().to_bytes();
-                        *body_store.lock().await =
-                            String::from_utf8_lossy(&body_bytes).to_string();
+                        *body_store.lock().await = String::from_utf8_lossy(&body_bytes).to_string();
                         // Simulate network latency so concurrent callers coalesce.
                         tokio::time::sleep(std::time::Duration::from_millis(50)).await;
                         let response = Response::builder()
@@ -331,12 +348,8 @@ async fn singleflight_coalesces_concurrent_refreshes() {
         .with_clock(move || now_secs),
     );
 
-    let current_state = SeatTokenState::new(
-        "old".into(),
-        "old-refresh".into(),
-        now_secs + 10,
-        now_secs,
-    );
+    let current_state =
+        SeatTokenState::new("old".into(), "old-refresh".into(), now_secs + 10, now_secs);
     let seat_id = SeatId("singleflight-seat".into());
     adapter.seed_seat(&seat_id.0, current_state);
 
@@ -366,7 +379,10 @@ async fn singleflight_coalesces_concurrent_refreshes() {
     // open multiple connections, we assert <= 2 (first caller wins; possible
     // one extra if connection setup races). In practice it should be exactly 1.
     let http_calls = call_count.load(Ordering::SeqCst);
-    assert!(http_calls <= 2, "expected at most 2 HTTP calls, got {http_calls}");
+    assert!(
+        http_calls <= 2,
+        "expected at most 2 HTTP calls, got {http_calls}"
+    );
 }
 
 #[tokio::test]
@@ -395,7 +411,11 @@ async fn expires_lead_scheduling_entry_is_due_at_lead_boundary() {
 
 #[test]
 fn terminal_errors_classified_correctly() {
-    for error_str in ["refresh_token_expired", "refresh_token_reused", "refresh_token_invalidated"] {
+    for error_str in [
+        "refresh_token_expired",
+        "refresh_token_reused",
+        "refresh_token_invalidated",
+    ] {
         let kind = classify_oauth_error(error_str);
         assert!(
             matches!(kind, RefreshFailureKind::Terminal(_)),
@@ -406,9 +426,18 @@ fn terminal_errors_classified_correctly() {
 
 #[test]
 fn transient_errors_classified_correctly() {
-    for error_str in ["server_error", "temporarily_unavailable", "network_error", "unknown_error"] {
+    for error_str in [
+        "server_error",
+        "temporarily_unavailable",
+        "network_error",
+        "unknown_error",
+    ] {
         let kind = classify_oauth_error(error_str);
-        assert_eq!(kind, RefreshFailureKind::Transient, "{error_str} should be transient");
+        assert_eq!(
+            kind,
+            RefreshFailureKind::Transient,
+            "{error_str} should be transient"
+        );
     }
 }
 
@@ -418,8 +447,17 @@ fn transient_errors_classified_correctly() {
 fn outbound_headers_are_bearer_not_api_key() {
     let hdrs = outbound_auth_headers("bearer-value-xyz");
     let map: std::collections::BTreeMap<_, _> = hdrs.into_iter().collect();
-    assert!(map["authorization"].starts_with("Bearer "), "must use Bearer scheme");
+    assert!(
+        map["authorization"].starts_with("Bearer "),
+        "must use Bearer scheme"
+    );
     assert!(!map.contains_key("x-api-key"), "must not use x-api-key");
-    assert!(map.contains_key("anthropic-version"), "must have anthropic-version");
-    assert!(map.contains_key("anthropic-beta"), "must have anthropic-beta");
+    assert!(
+        map.contains_key("anthropic-version"),
+        "must have anthropic-version"
+    );
+    assert!(
+        map.contains_key("anthropic-beta"),
+        "must have anthropic-beta"
+    );
 }
