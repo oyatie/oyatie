@@ -1799,6 +1799,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "corpus-doc-parser"
+version = "0.1.0"
+dependencies = [
+ "sha2",
+ "work-area-tree-kernel",
+]
+
+[[package]]
 name = "corpus-extract"
 version = "0.1.0"
 dependencies = [
