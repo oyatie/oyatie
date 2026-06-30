@@ -444,6 +444,48 @@
       }
     ]
   },
+  "parity_target_source_tracking_contract": {
+    "purpose": "Make reference/source tracking executable without making external projects, adapters, or bridge CI systems authoritative.",
+    "validator": "libs/oya-check-honest-claims/src/lib.rs#validate_parity_target_source_tracking",
+    "fixture_refs": [
+      "specs/fixtures/platform-delivery-fabric/parity-target-source-tracking-good.json",
+      "specs/fixtures/platform-delivery-fabric/parity-target-source-tracking-bad-authority.json"
+    ],
+    "required_fields": [
+      "target_id",
+      "reference_kind",
+      "source_refs[].url",
+      "source_refs[].pinned_ref",
+      "source_refs[].retrieved_at",
+      "source_refs[].external_authority=false",
+      "source_tracking_state",
+      "freshness_state",
+      "parity_posture",
+      "authority_boundary",
+      "validation_refs",
+      "stop_conditions"
+    ],
+    "authority_rejections": [
+      "external source marked authoritative",
+      "merge authority claim",
+      "promotion authority claim",
+      "product-ready or hyperscaler-ready claim",
+      "missing pinned source reference",
+      "duplicate target_id"
+    ],
+    "c_ward_linux_libc_abi_rule": {
+      "reference_kind": "linux_libc_abi_pessimistic_input",
+      "userspace_abi_preserved": true,
+      "internal_kernel_api_stable": false,
+      "required_caveats": [
+        "getent runtime dependency",
+        "nightly dependency",
+        "incomplete implementation",
+        "linux-gnu-only ABI coverage"
+      ],
+      "authority_boundary": "c-ward is a pessimistic parity input for libc ABI experiments, never readiness or merge authority."
+    }
+  },
   "state_model": {
     "terminal_inventory_states": [
       "closed_out_of_scope",
@@ -509,12 +551,13 @@
         "name": "Parity registry and source-tracking harness",
         "goal": "Religiously track reference repos/features without making them authority.",
         "deliverables": [
-          "ParityTarget rows for Kubernetes, Argo, GitHub Actions, GitLab, legacy plugin-controller CI, Snyk, Trivy, driftctl, Linux ABI, OCI/CRI, and Firecracker.",
+          "ParityTarget rows for Kubernetes, Argo, GitHub Actions, GitLab, legacy plugin-controller CI, Snyk, Trivy, driftctl, Linux ABI, OCI/CRI, Firecracker, and c-ward-style Rust libc ABI experiments.",
           "Feature rows include upstream version/ref, adopted behavior, rejected weakness, fixture path, differential test path, gap owner, and replacement score.",
           "Freshness reaper marks source_changed_reopen_required when upstream sources change beyond accepted skew."
         ],
         "verification": [
           "Golden fixture parse tests.",
+          "I/O-free honest-claims validator rejects external authority, duplicate target IDs, missing pinned sources, and optimistic c-ward/kernel ABI claims.",
           "Differential test scaffold proves at least one behavior per reference family is executable."
         ]
       },
