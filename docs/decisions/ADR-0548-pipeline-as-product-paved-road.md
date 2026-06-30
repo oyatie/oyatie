@@ -338,6 +338,8 @@ product authority.
 The productization packet files born-accounted here (verbatim path mention = justification; root-hub
 pointer/reachability-covered where non-crate) are:
 `specs/platform-delivery-fabric-productization.json`,
+`specs/fixtures/platform-delivery-fabric/parity-target-source-tracking-good.json`,
+`specs/fixtures/platform-delivery-fabric/parity-target-source-tracking-bad-authority.json`,
 `evidence/pipeline-productization/current-state-20260629.json`,
 `evidence/pipeline-productization/metadata-ref-pattern-fixtures.json`,
 `contracts/openapi/platform/platform-delivery-fabric-observability-v1.yaml`, and
