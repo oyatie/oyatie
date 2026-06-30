@@ -70,11 +70,16 @@ Each applicable line **MUST** be present with a pass/fail token (`PASS` / `FAIL`
   - Local CLI merge authority: `none`; local commands/hooks are advisory shift-left evidence only and are not protected-branch authority
   - Generated faces: `<none touched | producer-materialized only>`; no hand edits to `*.generated.json`
   - SEC-001 threat-model addendum: `<artifact/link | N/A with scope rationale>`
+- Post-merge product-completion packet (after squash merge):
+  - promoted SHA + `oya-ci-required` status URL
+  - rollout verification + rollback note
+  - observability check + browser UX/user-story evidence
+  - Release Please / release-note impact
 
 ## Code Review
 
 - Target reviewer evidence producer: `oya-pr-review` (not live cloud admission enforcement until `F-PR5-06` closes; requires a trusted server-side/cloud-ci producer)
 - Reviewer agent: `<rust-reviewer | typescript-reviewer | python-reviewer | database-reviewer | security-reviewer | privacy-reviewer | tdd-guide | silent-failure-hunter | doc-updater | doc-style-reviewer | capability-reviewer | perf-reviewer>`
-- Verdict: `<APPROVE | REQUEST CHANGES | PENDING>`
+- Verdict: <APPROVE | REQUEST CHANGES | PENDING — reviewer/evidence producer must replace before merge>
 - Resolved items: `<list>`
 - Deferred items: `<list with owners + follow-up issue refs>`

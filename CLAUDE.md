@@ -39,6 +39,9 @@ required_workflow:
   - admission_gate: validate policy, evidence, and required Prow/cloud-ci status checks
   - merge_queue: order and admit via ADR-0111 projected merge state, implemented by ADR-0515 cloud-ci/oya-ci-tide
   - completion_gate: reviewer-agent APPROVE plus cloud-ci green before auto-merge
+  - post_merge_product_gate: after squash merge, record promoted commit oya-ci-required green,
+      rollout verification, rollback note, observability check, browser/user-story evidence,
+      and Release Please/release-note impact before product-complete
 
 current_substrate_adrs:
   - docs/decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md # projected-merge-state decision (status Proposed); mechanism implemented by ADR-0515 Tide; ADR-0111 not formally superseded

@@ -58,6 +58,9 @@ Per `/oya-release-verify` (formerly `/oya-release-verify`):
 
 - Per-merge changelog row auto-emit (Foundry capability `pr.changelog.row`)
 - Per-release notes auto-drafted (Foundry capability `pr.release-note.draft`)
+- Per-merge product-completion packet recorded: promoted SHA `oya-ci-required`,
+  rollout verification, rollback note, observability check, browser UX/user-story
+  evidence, and Release Please / release-note impact
 - Trust-portal updated for regulator-impact releases
 - Per-region SLO baseline check before next release
 

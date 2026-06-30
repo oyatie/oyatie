@@ -4,7 +4,11 @@ checklist_id: CHK-DONE
 status: Accepted
 date: 2026-05-12
 purpose: |
-  Extends `docs/AGENTS.md §Done-Definition checklist` D1-D18 with per-change-class variants. Walked before every PR is declared "ready to merge" and re-walked at the loop-cancellation boundary per `docs/AGENTS.md §Long-running loop rule`.
+  Extends `docs/AGENTS.md §Done-Definition checklist` D1-D19 with
+  per-change-class variants. D1-D18 are walked before every PR is declared
+  "ready to merge"; D19 is walked after squash merge before product-complete.
+  Re-walk at the loop-cancellation boundary per `docs/AGENTS.md §Long-running
+  loop rule`.
 enforcing_fitness_lane: guard-pr-merge-review.mjs + per-lane CI status
 owner_team: cloud-governance + architecture-governance
 related:
@@ -20,7 +24,10 @@ doc_status: published
 
 # Done-Definition Checklist
 
-> Walk **all** core rows D1-D18 (from `docs/AGENTS.md`). Then walk the **per-change-class** rows that apply. Each row carries a typed verification path: lane name, command, or explicit `(advisory)` marker.
+> Walk core rows D1-D18 before declaring a PR ready to merge. After squash
+> merge, walk D19 before declaring the work product-complete. Then walk the
+> **per-change-class** rows that apply. Each row carries a typed verification
+> path: lane name, command, or explicit `(advisory)` marker.
 
 ## Core (apply to every change class)
 
@@ -42,6 +49,11 @@ doc_status: published
 - [ ] **D16** Audit-chain emission `EVT-*` ID in `## Evidence`. *Lane:* `oya-governance-audit-emission`.
 - [ ] **D17** `docs/MISTAKES-LEDGER.md` row added if mechanical prevention shipped. *Lane:* `oya-governance-mistakes-ledger-cite`.
 - [ ] **D18** `docs/CHANGELOG.md` row added if canonical doc touched. *Lane:* `oya-governance-changelog-row`.
+- [ ] **D19** Post-merge product-completion packet recorded after squash merge:
+  promoted commit `oya-ci-required` status URL, rollout verification, rollback note,
+  observability/golden-signal check, browser UX/user-story evidence, and Release
+  Please/release-note impact. *Verification:* PR comment or release evidence bundle
+  linked from `## Evidence`; see `docs/checklists/pre-merge.md §After merge`.
 
 ## Per-change-class additions
 

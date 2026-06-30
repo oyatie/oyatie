@@ -3,6 +3,15 @@ purpose: Oyatie — Canonical Docs Changelog
 doc_status: published
 ---
 
+## 2026-06-30 — DEVFLOW-003 post-merge product-completion gate
+
+- Added post-merge product-completion packet requirements to root agent guidance,
+  the operating contract, done-definition/pre-merge/review checklists, PR templates,
+  and release standards.
+- Product-complete now requires promoted-sha `oya-ci-required`, rollout verification,
+  rollback note, observability check, browser/user-story evidence, and Release Please /
+  release-note impact after squash merge.
+
 ## 2026-06-30 — ADR-0536 substrate-to-port matrix
 
 - Added a shape-neutral D-1..D-16 substrate-to-port contract matrix to ADR-0536 so downstream product fanout locks owned port/contract seams, treats `oya-*` / `cloud-*` names as migration aliases, and preserves explicit non-claims for runtime readiness.
