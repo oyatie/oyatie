@@ -10,8 +10,11 @@ use tenancy_tenant_lifecycle_app::serve;
 async fn main() {
     tracing_subscriber::fmt()
         .with_env_filter(
-            tracing_subscriber::EnvFilter::from_default_env()
-                .add_directive("tenancy_tenant_lifecycle=info".parse().expect("valid directive")),
+            tracing_subscriber::EnvFilter::from_default_env().add_directive(
+                "tenancy_tenant_lifecycle=info"
+                    .parse()
+                    .expect("valid directive"),
+            ),
         )
         .json()
         .init();
