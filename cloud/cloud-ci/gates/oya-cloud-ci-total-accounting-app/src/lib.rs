@@ -130,7 +130,7 @@ pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
     // Corpus-level signals (modeled as DATA in the fixture, not scanner branches).
     let unaccounted_paths = optional_str_array(fixture, "unaccounted_paths");
     for path in &unaccounted_paths {
-        findings.insert(Finding::new("unaccounted", &path));
+        findings.insert(Finding::new("unaccounted", path));
     }
     let registry_hand_edited =
         fixture.get("registry_hand_edited").and_then(Value::as_bool) == Some(true);
