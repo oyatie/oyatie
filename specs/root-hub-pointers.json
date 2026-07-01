@@ -184,6 +184,13 @@
       "purpose": "Planning-only source index, source-blocker register, claim ceiling, and machine-readable control backlog for Korean/global identity, KYC, passkey, compliance, PCI, and PQC source rows. It carries explicit no-readiness/no-certification claims and blocks downstream policy/runtime work when official sources are unresolved.",
       "target_path_after_md_retirement": "same"
     },
+    "regulatory_identity_kyc_policy_evidence_architecture": {
+      "current_path": "/specs/regulatory-identity-kyc-policy-evidence-architecture.json",
+      "kind": "spec",
+      "migration_phase": "regid-002-planning-architecture",
+      "purpose": "Design-only architecture map for passkey-first KYC/CDD/EDD policy decisions, evidence packets, tenant state, compliance packs, retention, consent, residency, and accreditation packets. It preserves no-service/no-CLI constraints and keeps row-level implementation blocked on REGID-001 source extraction.",
+      "target_path_after_md_retirement": "same"
+    },
     "security_validation_pipeline_matrix": {
       "current_path": "/specs/security-validation-pipeline-matrix.json",
       "kind": "spec",
