@@ -2100,6 +2100,12 @@ shared `tests/common/mod.rs` support module). All four test files were wired-liv
 `common/mod.rs` co-listed in each rest target's srcs, the proven sibling pattern); none ignored, skipped, stubbed, or deleted
 — so the FULL-tier affected-set binding-workspace-coverage gate has zero graph-invisible `tests/*.rs` in the affected cone.
 
+Post-move closeout for the retired `oya/policy` dirty subset ports only the still-valid ReBAC tuple vocabulary into the
+current Cedar domain home as `iam/core/policy-cedar-domain/src/rebac.rs`, with the graph-visible regression target
+`iam/core/policy-cedar-domain/tests/rebac_tuple_port.rs` wired through the sibling `iam/core/policy-cedar-domain/BUCK`
+test target. This is a destination-surface registration for the IAM capability move, not a resurrection of retired
+`oya/policy` or `oya-dev-cli` authority.
+
 **External dependents (4, rewritten):** exactly four first-party crates outside the sixty-three depend on the moved tree —
 `compute/core/domain` (→ cloud-iam-domain), `observability/core/aggregate` (→ cloud-iam-domain),
 `k8s/adapters/tenant-quota-adapter-cedar` (→ identity-workload-authz-cedar + identity-workload-domain), and
