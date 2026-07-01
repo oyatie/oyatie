@@ -118,6 +118,14 @@
       "prefix": "iam/OWNERS"
     },
     {
+      "anchor": "ADR-0476 / IP-017 ownership seed: the oya/identity planning and tracker subtree is owned by axis-identity; scope is the identity product planning/docs tree, not broad runtime authority.",
+      "prefix": "oya/identity/OWNERS"
+    },
+    {
+      "anchor": "ADR-0476 + ADR-0506/0507/0508: IP-017 is the reviewed tracking artifact for the bespoke identity/authn/crypto bridge gates; it records non-runtime promotion/cutover gates and no implementation claim.",
+      "prefix": "oya/identity/IP-017-bespoke-identity-authn-crypto-bridge.md"
+    },
+    {
       "anchor": "ADR-0562 §10.22 + ADR-0139 SLO-home: the iam workload-svid-kernel promotion-gating SLO subtree, co-moved OUT of its crate (oya/identity/crates/oya-identity-workload-svid-kernel/slos/) to the capability observability home during move-18 so zero crate-resident SLOs remain (the absolute convention — all homed caps keep SLOs at <cap>/observability/slos/). Unlike the other eighteen iam SLOs (which were already non-crate-resident RED-accepted-debt at merge-base, relabeled old→new by the ADR-0563 rename-aware engine), this one was justified+reachable as a cargo-member crate file at merge-base and lost both on the move OUT of the crate, so it needs an explicit reachability seed; its justification is ADR-0561 (the workload-x509-SVID commissioning ADR, which names the new observability path verbatim). breadth: just this svid SLO subdir",
       "prefix": "iam/observability/slos/identity-workload-svid-kernel/"
     },
