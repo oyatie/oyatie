@@ -610,7 +610,7 @@ fn validate_service_tenant_fixtures(
                 "shared-small",
                 "shared-medium",
                 "shared-large",
-                "foundry-runtime",
+                "agent-runtime",
                 "public-corpus",
             ],
             diagnostics,
