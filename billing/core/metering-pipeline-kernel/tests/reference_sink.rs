@@ -2,9 +2,9 @@
 //! sink (GREEN) and with a deliberately broken sink (RED) — the
 //! masterplan no-false-green rule.
 
-use oya_metering_pipeline_kernel::conformance::{self, SinkFixture};
-use oya_metering_pipeline_kernel::reference::InMemorySink;
-use oya_metering_pipeline_kernel::{
+use billing_metering_pipeline_kernel::conformance::{self, SinkFixture};
+use billing_metering_pipeline_kernel::reference::InMemorySink;
+use billing_metering_pipeline_kernel::{
     DedupKey, IngestOutcome, LatenessPolicy, MeteringPipelineError, MeteringSink, UsageRecord,
 };
 

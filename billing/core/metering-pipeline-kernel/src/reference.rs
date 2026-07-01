@@ -85,8 +85,7 @@ impl MeteringSink for InMemorySink {
                 Ok(IngestOutcome::Recorded)
             }
             Some(existing)
-                if existing.consumed_quantity_microunits
-                    == record.consumed_quantity_microunits =>
+                if existing.consumed_quantity_microunits == record.consumed_quantity_microunits =>
             {
                 Ok(IngestOutcome::Duplicate)
             }

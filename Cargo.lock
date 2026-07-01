@@ -814,6 +814,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "billing-metering-pipeline-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "billing-saas-bench"
 version = "0.1.0"
 dependencies = [
@@ -8668,10 +8672,6 @@ dependencies = [
 
 [[package]]
 name = "oya-messaging-substrate-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-metering-pipeline-kernel"
 version = "0.1.0"
 
 [[package]]

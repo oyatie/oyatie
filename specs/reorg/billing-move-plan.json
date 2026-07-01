@@ -1,0 +1,13 @@
+{
+  "_comment": "REORG-003 billing leaf move-plan: home the sole remaining billing registry-mapped libs straggler into the existing billing capability tree. The source crate is a pure metering pipeline kernel (no Cargo deps, no reverse Cargo deps, no include_str!/include_bytes! sites, no registry/catalog record, no SLO subtree), so it lands in billing/core. The target follows the ADR-0562 billing naming rule: path billing/<face>/<leaf> with de-branded cargo name billing-<leaf>, face dir not included in the cargo name. This plan intentionally carries no artifact co-moves; the generated move-manifest is materialized from this plan plus the candidate tree by oya-reorg-codemod manifest, not hand-edited. When landed on origin/dev, this billing plan replaces the existing calendar move-plan surface so exactly one specs/reorg/*-move-plan.json is committed.",
+  "capability": "billing",
+  "moves": [
+    {
+      "old_path": "libs/oya-metering-pipeline-kernel",
+      "new_path": "billing/core/metering-pipeline-kernel",
+      "old_cargo_name": "oya-metering-pipeline-kernel",
+      "new_cargo_name": "billing-metering-pipeline-kernel"
+    }
+  ],
+  "artifacts": []
+}

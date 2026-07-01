@@ -535,13 +535,6 @@
           "libs/oya-queue-boundary-kernel",
           "libs/oya-stream-boundary-kernel"
         ]
-      },
-      {
-        "_comment": "The metering pipeline kernel is the metering half of the billing sold-ness capability.",
-        "capability": "billing",
-        "globs": [
-          "libs/oya-metering-pipeline-kernel"
-        ]
       }
     ],
     "frozen_unmapped_baseline": {
