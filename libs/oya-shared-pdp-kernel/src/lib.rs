@@ -195,7 +195,10 @@ impl fmt::Display for PdpError {
             ),
             Self::BundleRejected { detail } => write!(f, "policy bundle rejected: {detail}"),
             Self::UnknownAction { action } => {
-                write!(f, "action {action:?} has no engine mapping in the loaded bundle")
+                write!(
+                    f,
+                    "action {action:?} has no engine mapping in the loaded bundle"
+                )
             }
             Self::Evaluation { detail } => write!(f, "evaluation failed: {detail}"),
             Self::DecisionIdUnavailable { detail } => {
@@ -214,14 +217,14 @@ impl std::error::Error for PdpError {}
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct DecisionAuditRecord {
-    pub decision_id: String, // data_class: INTERNAL_ONLY
-    pub request_id: String,  // data_class: INTERNAL_ONLY
-    pub tenant_id: String,   // data_class: TENANT_SCOPED
-    pub principal: EntityRef, // data_class: TENANT_SCOPED
-    pub action: String,      // data_class: INTERNAL_ONLY
-    pub resource: EntityRef, // data_class: TENANT_SCOPED
-    pub decision: Decision,  // data_class: INTERNAL_ONLY
-    pub policy_version: PolicyVersion, // data_class: INTERNAL_ONLY
+    pub decision_id: String,                 // data_class: INTERNAL_ONLY
+    pub request_id: String,                  // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                   // data_class: TENANT_SCOPED
+    pub principal: EntityRef,                // data_class: TENANT_SCOPED
+    pub action: String,                      // data_class: INTERNAL_ONLY
+    pub resource: EntityRef,                 // data_class: TENANT_SCOPED
+    pub decision: Decision,                  // data_class: INTERNAL_ONLY
+    pub policy_version: PolicyVersion,       // data_class: INTERNAL_ONLY
     pub determining_policy_ids: Vec<String>, // data_class: INTERNAL_ONLY
     /// Whether the decision content was served from the decision cache.
     pub cache_hit: bool, // data_class: INTERNAL_ONLY
@@ -251,6 +254,193 @@ pub trait PolicyDecisionPoint: Send + Sync {
 
     /// The version token of the currently loaded bundle.
     fn loaded_policy_version(&self) -> PolicyVersion;
+}
+
+/// Request shape for PEP-side decision authorization before it is projected
+/// into the canonical PDP PARC contract.
+///
+/// This is intentionally narrower than [`AuthorizationRequest`]: tenant-rbac
+/// and later central PBAC/ReBAC integrations name the caller tenant and target
+/// tenant separately, then [`DecisionAuthzRequest::to_authorization_request`]
+/// performs the one stable projection into the shared PDP port. The PDP
+/// evaluates against the TARGET tenant (`tenant_id`) while the caller/target
+/// tenancy axes stay visible in ABAC context for policy conditions.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DecisionAuthzRequest<'a> {
+    /// Tenant bound to the verified caller credential.
+    pub caller_tenant: &'a str, // data_class: TENANT_SCOPED
+    /// Verified caller/principal id.
+    pub caller_id: &'a str, // data_class: TENANT_SCOPED
+    /// Tenant whose policy/resource is being acted on.
+    pub target_tenant: &'a str, // data_class: TENANT_SCOPED
+    /// Target subject for tenant-rbac/PBAC/ReBAC policy admission decisions.
+    pub target_subject_id: &'a str, // data_class: TENANT_SCOPED
+    /// Contract action slug to evaluate.
+    pub action: &'a str, // data_class: INTERNAL_ONLY
+    /// PDP resource entity type (for example `OyaPlatform::TenantResource`).
+    pub resource_type: &'a str, // data_class: INTERNAL_ONLY
+    /// PDP resource entity id.
+    pub resource_id: &'a str, // data_class: TENANT_SCOPED
+}
+
+impl DecisionAuthzRequest<'_> {
+    /// The caller principal entity id projected into the target-tenant PDP.
+    ///
+    /// Principal ids can be tenant-local. Encoding the verified caller tenant
+    /// with the caller id makes the principal uid structurally tenant-qualified
+    /// before the request enters a target-tenant policy graph, so `acme/alice`
+    /// cannot collide with `globex/alice` and accidentally match a target-local
+    /// principal. The JSON tuple is intentionally opaque and unambiguous.
+    #[must_use]
+    pub fn qualified_caller_principal_id(&self) -> String {
+        serde_json::json!([self.caller_tenant, self.caller_id]).to_string()
+    }
+
+    /// Project this decision-authorization request into the canonical PDP
+    /// request shape.
+    ///
+    /// The target tenant becomes `AuthorizationRequest::tenant_id` so embedded
+    /// PDP engines evaluate against the tenant whose resource/policy is being
+    /// mutated. The caller tenant remains in context rather than being
+    /// collapsed into `tenant_id`; that keeps cross-tenant/platform-admin cases
+    /// representable for central PBAC/ReBAC policies without changing this port.
+    pub fn to_authorization_request(
+        &self,
+        request_id: impl Into<String>,
+        min_policy_version: Option<PolicyVersion>,
+    ) -> Result<AuthorizationRequest, DecisionAuthzError> {
+        self.validate_for_decision()?;
+        let request = AuthorizationRequest {
+            request_id: request_id.into(),
+            tenant_id: self.target_tenant.to_owned(),
+            principal: EntityRef {
+                entity_type: "OyaPlatform::Principal".to_owned(),
+                entity_id: self.qualified_caller_principal_id(),
+            },
+            action: self.action.to_owned(),
+            resource: EntityRef {
+                entity_type: self.resource_type.to_owned(),
+                entity_id: self.resource_id.to_owned(),
+            },
+            context: BTreeMap::from([
+                (
+                    "caller_tenant".to_owned(),
+                    serde_json::Value::String(self.caller_tenant.to_owned()),
+                ),
+                (
+                    "caller_id".to_owned(),
+                    serde_json::Value::String(self.caller_id.to_owned()),
+                ),
+                (
+                    "target_tenant".to_owned(),
+                    serde_json::Value::String(self.target_tenant.to_owned()),
+                ),
+                (
+                    "target_subject_id".to_owned(),
+                    serde_json::Value::String(self.target_subject_id.to_owned()),
+                ),
+            ]),
+            min_policy_version,
+        };
+        request
+            .validate()
+            .map_err(DecisionAuthzError::InvalidProjectedRequest)?;
+        Ok(request)
+    }
+
+    fn validate_for_decision(&self) -> Result<(), DecisionAuthzError> {
+        for (field, value) in [
+            ("caller_tenant", self.caller_tenant),
+            ("caller_id", self.caller_id),
+            ("target_tenant", self.target_tenant),
+            ("target_subject_id", self.target_subject_id),
+            ("action", self.action),
+            ("resource_type", self.resource_type),
+            ("resource_id", self.resource_id),
+        ] {
+            if value.trim().is_empty() {
+                return Err(DecisionAuthzError::MissingValue { field });
+            }
+        }
+        Ok(())
+    }
+}
+
+/// Why the decision authorizer refused to decide. Every variant is
+/// fail-closed: callers MUST treat errors as deny/refusal, never as allow.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DecisionAuthzError {
+    /// A required trusted/decision field was empty.
+    MissingValue { field: &'static str },
+    /// Projection into the locked PDP PARC contract failed validation.
+    InvalidProjectedRequest(Vec<ContractViolation>),
+    /// A downstream PDP refused to decide.
+    PdpRefused { detail: String },
+}
+
+impl fmt::Display for DecisionAuthzError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::MissingValue { field } => {
+                write!(f, "decision authorization field {field} is required")
+            }
+            Self::InvalidProjectedRequest(violations) => {
+                write!(f, "invalid projected decision PDP request: ")?;
+                for (i, v) in violations.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, "; ")?;
+                    }
+                    write!(f, "{v}")?;
+                }
+                Ok(())
+            }
+            Self::PdpRefused { detail } => write!(f, "decision PDP refused: {detail}"),
+        }
+    }
+}
+
+impl std::error::Error for DecisionAuthzError {}
+
+/// PORT: decide whether the verified caller may perform a decision-affecting
+/// tenant-rbac/PBAC/ReBAC operation.
+///
+/// Adapters call a central/embedded PDP by projecting [`DecisionAuthzRequest`]
+/// through [`DecisionAuthzRequest::to_authorization_request`]. Default posture
+/// is fail-closed: [`Decision::Deny`] or [`DecisionAuthzError`] both stop the
+/// caller.
+pub trait DecisionAuthorizer: Send + Sync {
+    /// Return the authorization decision for `request`.
+    ///
+    /// # Errors
+    /// [`DecisionAuthzError`] when the authorizer cannot safely decide.
+    fn decide(&self, request: &DecisionAuthzRequest<'_>) -> Result<Decision, DecisionAuthzError>;
+}
+
+/// Fail-closed placeholder used only when a composition root has not injected a
+/// PDP-backed decision authorizer.
+///
+/// It validates the trusted request shape, then refuses every decision. This is
+/// deliberately NOT a same-tenant fallback: same-tenant equality alone does not
+/// prove tenant-rbac route scope, PBAC policy, ReBAC reachability, MFA/step-up,
+/// or zookie freshness. Production composition must inject a real PDP-backed
+/// authorizer to produce an allow.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct FailClosedDecisionAuthorizer;
+
+impl FailClosedDecisionAuthorizer {
+    #[must_use]
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl DecisionAuthorizer for FailClosedDecisionAuthorizer {
+    fn decide(&self, request: &DecisionAuthzRequest<'_>) -> Result<Decision, DecisionAuthzError> {
+        request.validate_for_decision()?;
+        Err(DecisionAuthzError::PdpRefused {
+            detail: "no PDP-backed decision authorizer configured".to_owned(),
+        })
+    }
 }
 
 /// Canonical fingerprint of the decision-relevant request surface: tenant,
@@ -590,5 +780,135 @@ mod tests {
             e.to_string(),
             "policy bundle too stale: caller pinned psv-2 but loaded version is psv-1"
         );
+    }
+
+    fn decision_authz_request<'a>(
+        caller_tenant: &'a str,
+        target_tenant: &'a str,
+    ) -> DecisionAuthzRequest<'a> {
+        DecisionAuthzRequest {
+            caller_tenant,
+            caller_id: "control-plane",
+            target_tenant,
+            target_subject_id: "wl-secrets-sync",
+            action: "tenant-rbac.policy.admission",
+            resource_type: "OyaPlatform::TenantResource",
+            resource_id: "tenant-rbac/policy-admissions/pa-1",
+        }
+    }
+
+    #[test]
+    fn decision_authz_request_projects_target_tenant_into_pdp_request() {
+        let request = decision_authz_request("acme", "globex");
+
+        let pdp_request = request
+            .to_authorization_request("req-pdp-1", Some(PolicyVersion::new("psv-9").unwrap()))
+            .unwrap();
+
+        assert_eq!(pdp_request.tenant_id, "globex");
+        assert_eq!(pdp_request.principal.entity_type, "OyaPlatform::Principal");
+        assert_eq!(
+            pdp_request.principal.entity_id,
+            serde_json::json!(["acme", "control-plane"]).to_string()
+        );
+        assert_eq!(
+            pdp_request.resource.entity_type,
+            "OyaPlatform::TenantResource"
+        );
+        assert_eq!(
+            pdp_request.context.get("caller_tenant"),
+            Some(&serde_json::json!("acme"))
+        );
+        assert_eq!(
+            pdp_request.context.get("caller_id"),
+            Some(&serde_json::json!("control-plane"))
+        );
+        assert_eq!(
+            pdp_request.context.get("target_tenant"),
+            Some(&serde_json::json!("globex"))
+        );
+        assert_eq!(
+            pdp_request.context.get("target_subject_id"),
+            Some(&serde_json::json!("wl-secrets-sync"))
+        );
+    }
+
+    #[test]
+    fn projection_refuses_empty_fields_before_pdp_request() {
+        let fault = decision_authz_request("", "acme")
+            .to_authorization_request("req-pdp-1", None)
+            .unwrap_err();
+        assert_eq!(
+            fault,
+            DecisionAuthzError::MissingValue {
+                field: "caller_tenant"
+            }
+        );
+
+        let fault = DecisionAuthzRequest {
+            action: "",
+            ..decision_authz_request("acme", "acme")
+        }
+        .to_authorization_request("req-pdp-1", None)
+        .unwrap_err();
+        assert_eq!(fault, DecisionAuthzError::MissingValue { field: "action" });
+    }
+
+    #[test]
+    fn projection_refuses_whitespace_only_trusted_fields() {
+        let fault = DecisionAuthzRequest {
+            caller_id: "   ",
+            ..decision_authz_request("acme", "acme")
+        }
+        .to_authorization_request("req-pdp-1", None)
+        .unwrap_err();
+        assert_eq!(
+            fault,
+            DecisionAuthzError::MissingValue { field: "caller_id" }
+        );
+
+        let fault = DecisionAuthzRequest {
+            target_subject_id: "\t",
+            ..decision_authz_request("acme", "acme")
+        }
+        .to_authorization_request("req-pdp-1", None)
+        .unwrap_err();
+        assert_eq!(
+            fault,
+            DecisionAuthzError::MissingValue {
+                field: "target_subject_id"
+            }
+        );
+    }
+
+    #[test]
+    fn fail_closed_authorizer_refuses_even_same_tenant_without_pdp() {
+        let authorizer = FailClosedDecisionAuthorizer::new();
+
+        let fault = authorizer
+            .decide(&decision_authz_request("acme", "acme"))
+            .unwrap_err();
+        assert!(matches!(fault, DecisionAuthzError::PdpRefused { .. }));
+        assert!(fault.to_string().contains("no PDP-backed"));
+
+        let fault = authorizer
+            .decide(&decision_authz_request("acme", "globex"))
+            .unwrap_err();
+        assert!(matches!(fault, DecisionAuthzError::PdpRefused { .. }));
+    }
+
+    #[test]
+    fn fail_closed_authorizer_faults_on_empty_trusted_tenants() {
+        let authorizer = FailClosedDecisionAuthorizer::new();
+
+        let fault = authorizer
+            .decide(&decision_authz_request("", "acme"))
+            .unwrap_err();
+        assert!(fault.to_string().contains("caller_tenant"));
+
+        let fault = authorizer
+            .decide(&decision_authz_request("acme", ""))
+            .unwrap_err();
+        assert!(fault.to_string().contains("target_tenant"));
     }
 }
