@@ -46,15 +46,15 @@ breaches roll back, and how artifacts are signed.
 Per [Trunk Based Development](https://trunkbaseddevelopment.com/continuous-review/)
 and Google / Microsoft consensus:
 
-- Default branch is `main`. All work happens on **short-lived branches**
+- Protected integration branch is `dev` per the current operating contract. All work happens on **short-lived branches**
   (target ≤ 24 h, MUST NOT exceed 7 days without a re-base or an ADR
   exemption).
 - Lane `oya-governance-branch-age` warns ≥ 5 d, blocks ≥ 7 d.
 - Feature flags hide incomplete work behind a runtime gate (§3) so
-  partial merges to `main` do not ship to users.
+  partial merges to `dev` do not ship to users.
 - Branch protection: required reviews per `RACI-OWNERSHIP.md`, merge-gate
   hook (`scripts/hooks/guard-pr-merge-review.mjs`), green CI required.
-- Force-push to `main` is forbidden per
+- Force-push to protected integration/release branches is forbidden per
   [`forbidden-operations.json`](../../specs/forbidden-operations.json) FO-03.
 
 Sources: [DORA — Trunk-Based Development](https://dora.dev/capabilities/trunk-based-development/),
@@ -130,7 +130,8 @@ Per [`on-call.md`](on-call.md) §2:
 A squash merge proves merge admission, not product completion. Product-complete
 requires a post-merge packet with promoted SHA + `oya-ci-required` status URL,
 rollout verification, rollback note, observability/golden-signal check,
-browser UX/user-story evidence, and Release Please / release-note impact.
+browser UX/user-story evidence, and release-governance/release-note impact
+(Release Please only when repo config proves it).
 Docs-only or no-deploy changes record explicit `no deployable artifact` / `not
 user-visible` rationales; blank evidence means incomplete.
 
@@ -228,7 +229,7 @@ Per the hyperscaler-quality CI gate set (per
 3. **`latest` tag in a manifest.** Refused by `image-discipline` lane.
 4. **Skipping SLO burn-rate check.** Canary controller refuses to
    promote.
-5. **Force-push to `main`.** Forbidden.
+5. **Force-push to a protected integration/release branch.** Forbidden.
 
 ## 11. Sources scanned
 
