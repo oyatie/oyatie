@@ -454,6 +454,15 @@ Three forcing functions:
 The platform adopts AWS cell-based architecture as the canonical
 topology. Sixteen decisions follow.
 
+REGCLOUD-001 planning-artifact registration: the non-mutating
+planning/spec artifact `plan/compliance-selective-cell-placement-architecture.md`,
+its ownership seed `plan/OWNERS`, and its multispectrum evidence packet
+`evidence/multispectrum/regcloud-001-compliance-placement-20260701-1782912506.json`
+are registered as review/governance surfaces for compliance-selective
+cell placement. This registration is not product/cloud implementation
+authority and does not promote this ADR beyond Proposed/planning-impact
+status.
+
 ### D-1. Tier 0 — external dependencies (migrable later)
 
 Tier 0 comprises platform dependencies that are external to the

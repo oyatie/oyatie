@@ -108,6 +108,8 @@ fn cmd_manifest(args: &[String]) -> Result<ExitCode, String> {
         Some(path) => {
             let plan = load_plan(&path, false)?;
             plan.validate().map_err(|e: CodemodError| e.to_string())?;
+            plan.validate_debrand_targets()
+                .map_err(|e: CodemodError| e.to_string())?;
             let tracked = git_ls_files(&repo_root)?;
             // MERGE the NON-crate artifact file pairs into the `files` list (sorted + deduped via
             // a BTreeMap keyed by old_path, the same canonical ordering the crate pairs carry) so
