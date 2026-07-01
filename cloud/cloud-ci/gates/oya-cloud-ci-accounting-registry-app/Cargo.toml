@@ -49,6 +49,9 @@ oya-cloud-ci-cargo-prefix-app = { path = "../oya-cloud-ci-cargo-prefix-app" }
 # cloud-ci-slo-coverage: the producer expands the config-declared catalog globs into
 # {crate_id,slo} rows; the gate reuses the existing oya-check-slo-coverage kernel.
 oya-cloud-ci-slo-coverage-app = { path = "../oya-cloud-ci-slo-coverage-app" }
+# cloud-ci-license-policy: the producer resolves workspace members and emits package-license
+# rows; the gate reuses the existing oya-check-license-policy kernel.
+oya-cloud-ci-license-policy-app = { path = "../oya-cloud-ci-license-policy-app" }
 # cloud-ci-catalog-liveness: the producer expands the config-declared catalog globs into
 # {crate_id,is_live,marker} rows (resolving live workspace crate-ids IN-PROCESS via
 # oya-workspace-members-kernel — no shell-out); the gate is pure live-OR-marked policy.

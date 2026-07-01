@@ -1096,6 +1096,7 @@ pub enum GateFace {
     ManifestHygiene,
     CargoPrefix,
     SloCoverage,
+    LicensePolicy,
     CatalogLiveness,
     WorkspaceGlobCoverage,
     TargetParity,
@@ -1182,6 +1183,11 @@ fn default_enabled_gates() -> Vec<GateSpec> {
             id: "cloud-ci-slo-coverage".to_owned(),
             input_kind: GateInputKind::ProducerFace,
             face: Some(GateFace::SloCoverage),
+        },
+        GateSpec {
+            id: "cloud-ci-license-policy".to_owned(),
+            input_kind: GateInputKind::ProducerFace,
+            face: Some(GateFace::LicensePolicy),
         },
         GateSpec {
             id: "cloud-ci-catalog-liveness".to_owned(),
@@ -1407,9 +1413,9 @@ mod tests {
     }
 
     #[test]
-    fn bundled_default_enables_all_fourteen_gates_with_input_kinds() {
+    fn bundled_default_enables_all_fifteen_gates_with_input_kinds() {
         let cfg = OyaCiConfig::bundled_default();
-        assert_eq!(cfg.gates.enabled.len(), 14);
+        assert_eq!(cfg.gates.enabled.len(), 15);
         let brand = cfg
             .gates
             .enabled
@@ -1442,6 +1448,14 @@ mod tests {
             .expect("slo-coverage gate enabled");
         assert_eq!(slo_coverage.input_kind, GateInputKind::ProducerFace);
         assert_eq!(slo_coverage.face, Some(GateFace::SloCoverage));
+        let license_policy = cfg
+            .gates
+            .enabled
+            .iter()
+            .find(|g| g.id == "cloud-ci-license-policy")
+            .expect("license-policy gate enabled");
+        assert_eq!(license_policy.input_kind, GateInputKind::ProducerFace);
+        assert_eq!(license_policy.face, Some(GateFace::LicensePolicy));
         let catalog_liveness = cfg
             .gates
             .enabled
