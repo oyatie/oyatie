@@ -3,6 +3,15 @@ purpose: Oyatie — Canonical Docs Changelog
 doc_status: published
 ---
 
+## 2026-07-01 — Cloud-native infrastructure automation standard
+
+- Added `docs/standards/cloud-native-infrastructure-automation.md` as concise
+  review guidance for API-shaped Rust/config/controller/gate infrastructure
+  automation.
+- The standard explicitly rejects new ad-hoc infrastructure CLIs and new Python
+  or shell scripts for core infra behavior, and requires configuration-driven,
+  idempotent, observable, deployment-compatible automation.
+
 ## 2026-06-30 — DEVFLOW-003 post-merge product-completion gate
 
 - Added post-merge product-completion packet requirements to root agent guidance,
