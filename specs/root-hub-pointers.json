@@ -1261,6 +1261,12 @@
       "migration_phase": "phase0_p0_0_result_schema_not_live_authority",
       "purpose": "Structured result bundle schema for P0.0 cloud-ci/oya-ci fixture runs; evidence input only until a trusted required context is live.",
       "target_path_after_md_retirement": "same (machine-readable T0.0 result schema)"
+    },
+    "spec_pci_dss_level_1_readiness_plan": {
+      "current_path": "/specs/pci-dss-level-1-readiness-plan.json",
+      "kind": "spec",
+      "migration_phase": "regid-003-planning-spec",
+      "purpose": "Planning-only PCI DSS Level 1 readiness and regulated-data control-pack contract for CDE scope, tokenization, PAN/CVV/track-data prohibitions, QSA/ROC/AOC evidence, ASV scans, segmentation, KMS/PDP/audit bindings, retention, incident response, and tenant pack activation gates."
     }
   },
   "specs_directory_audit_2026_05_20": {

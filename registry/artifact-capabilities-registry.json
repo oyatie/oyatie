@@ -2220,6 +2220,52 @@
       }
     },
     {
+      "artifact_id": "pci-dss-level-1-readiness-plan",
+      "artifact_path": "/specs/pci-dss-level-1-readiness-plan.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "ops-compliance + council-security + axis-identity + axis-policy-engine + axis-audit-chain + axis-cloud-kms",
+      "purpose_short": "Planning-only PCI DSS Level 1 readiness and regulated-data control-pack contract for CDE scope, tokenization, card-data prohibitions, QSA/ROC/AOC evidence, ASV scans, segmentation, KMS/PDP/audit bindings, retention, incident response, and tenant activation gates.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "regid-003-pci-dss-l1-readiness"
+        },
+        "verification": {
+          "checker_crate": "planned: cloud-ci PCI DSS Level 1 readiness gate",
+          "command": "python3 -m json.tool specs/pci-dss-level-1-readiness-plan.json >/dev/null"
+        },
+        "validation": {
+          "validator": "JSON syntax validation until PCI readiness schema/gate lands"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored planning/spec control pack"
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until PCI readiness validator lands"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_pci_readiness_control_coverage_total",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "control_id",
+                "evidence_state"
+              ],
+              "cardinality_budget": 200
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "pending code-review",
+          "last_modified_at": "2026-07-01T00:03:40Z"
+        }
+      }
+    },
+    {
       "artifact_id": "regulatory-identity-kyc-policy-evidence-architecture",
       "artifact_path": "/specs/regulatory-identity-kyc-policy-evidence-architecture.json",
       "artifact_format": "json",
