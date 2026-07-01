@@ -2260,8 +2260,8 @@
         },
         "provenance": {
           "current_author": "hermes-agent",
-          "current_reviewed_by": "T3 multispectrum review t_59bf50cb APPROVE",
-          "last_modified_at": "2026-07-01T00:04:19Z"
+          "current_reviewed_by": "REGID-002 PR review evidence at https://github.com/jason931225/oyatie/pull/1098; tracking issue https://github.com/jason931225/oyatie/issues/1097",
+          "last_modified_at": "2026-07-01T06:17:41Z"
         }
       }
     },
