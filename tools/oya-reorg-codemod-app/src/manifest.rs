@@ -67,8 +67,8 @@ pub fn discover_committed_move_plans(repo_root: &Path) -> Result<Vec<PathBuf>, C
 /// Apply the materialization plan-selection policy to a discovered set:
 /// * 0 plans -> `Ok(None)` (a no-move PR emits the canonical EMPTY manifest);
 /// * 1 plan  -> `Ok(Some(path))`;
-/// * >1 plan -> `Err(CodemodError::MultipleMovePlans)` — fail-closed (#65). More than one committed
-///   plan in a single PR is a contributor error the materialization must NOT silently first-win.
+/// * more than one plan -> `Err(CodemodError::MultipleMovePlans)` — fail-closed (#65), because a
+///   single PR with multiple committed plans is ambiguous and must not silently first-win.
 pub fn select_move_plan(plans: &[PathBuf]) -> Result<Option<PathBuf>, CodemodError> {
     match plans {
         [] => Ok(None),
@@ -97,7 +97,7 @@ pub fn resolve_committed_move_plan(repo_root: &Path) -> Result<Option<PathBuf>, 
 /// explicit `--plan` and the committed candidate tree. This is the precedence the materialization
 /// runs verbatim; it lives here (not in `main.rs`) so the fail-closed wiring is unit-testable rather
 /// than reachable only through the binary:
-/// * the >1-committed-plan guard ([`resolve_committed_move_plan`]) runs FIRST and REGARDLESS of
+/// * the multi-committed-plan guard ([`resolve_committed_move_plan`]) runs FIRST and REGARDLESS of
 ///   `--plan` — an ambiguous candidate tree is rejected even when a specific plan is named;
 /// * then `explicit.or(discovered)` — an explicit `--plan` wins over the single committed plan, and
 ///   with no `--plan` the codemod itself SELECTS the single committed plan (the materialization is
