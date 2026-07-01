@@ -27,6 +27,12 @@
         "authorized_by": "founder (explicit directive 2026-06-08: 'HANDOFF.md needs to be at source root as well' + 'on dev branch')",
         "rationale": "Admit HANDOFF.md as an accepted root-doc exception, the SAME RED-but-baselined class as README.md/CLAUDE.md/AGENTS.md (all owner:null/justification:null root markdown). HANDOFF.md is registered in specs/root-hub-pointers.json (root-hub reachable) per the heavy-diet 'everything has a purpose' rule; it remains unowned/unjustified exactly like the other three surviving root docs. Firewall predicates byte-UNCHANGED; founder-signed door admission, not a producer launder.",
         "adr": "root-hub-pointers.json session_handoff entry"
+      },
+      {
+        "date": "2026-07-01",
+        "authorized_by": "pending-founder-ratification (CI-011 closeout evidence, issue #1100; ADR-0523 / ADR-0515 / ADR-0522)",
+        "rationale": "Admit the two point-in-time CI-011 shell/CLI retirement inventory artifacts required by issue #1100. They preserve the 2026-06-30 scan from branch preserve/hermes-w1-dirty-20260630 so downstream CI-012 can retire authority-bearing CLI surfaces without rerunning or mutating historical evidence. The JSON artifact also preserves retired command spellings captured by the scan, so it needs a forbidden-vocabulary shrink-only sign-off. This is a narrow evidence closeout admission only; no production vocabulary, CI context, shell, or CLI authority is created.",
+        "adr": "ADR-0523"
       }
     ]
   },
@@ -36,6 +42,8 @@
         "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/gate_registration.rs",
         "docs/standards/image-discipline.md",
         "docs/standards/security-review.md",
+        "evidence/audits/ci-011-shell-cli-retirement-inventory-2026-06-30.json",
+        "evidence/audits/ci-011-shell-cli-retirement-inventory-2026-06-30.md",
         "registry/stores/canon-id-crosswalk.json",
         "registry/stores/design-store.json",
         "registry/stores/instructions-store.json"
@@ -68,6 +76,7 @@
         "docs/decisions/ADR-0529-auto-advise-gate-governor-operational-at-gate-layer.md",
         "docs/decisions/ADR-0533-config-driven-public-boundary.md",
         "docs/decisions/ADR-0535-cross-product-versioning-release-governance.md",
+        "evidence/audits/ci-011-shell-cli-retirement-inventory-2026-06-30.json",
         "registry/stores/canon-id-crosswalk.json",
         "registry/stores/instructions-store.json",
         "registry/stores/registry-store.json"
