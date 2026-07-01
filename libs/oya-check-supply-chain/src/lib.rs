@@ -79,6 +79,164 @@ pub struct ReleaseSupplyChainReport {
     pub evidence_records_checked: usize, // data_class: INTERNAL_ONLY
 }
 
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum VulnerabilityProductSurface {
+    CloudNativeApi,
+    ScannerCli,
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum VulnerabilityAdvisoryFeed {
+    CveNvd,
+    Osv,
+    RustSec,
+    GitHubAdvisories,
+    VendorAdvisories,
+}
+
+impl VulnerabilityAdvisoryFeed {
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::CveNvd => "cve-nvd",
+            Self::Osv => "osv",
+            Self::RustSec => "rustsec",
+            Self::GitHubAdvisories => "github-advisories",
+            Self::VendorAdvisories => "vendor-advisories",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum SbomFormat {
+    Spdx,
+    CycloneDx,
+}
+
+impl SbomFormat {
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Spdx => "spdx",
+            Self::CycloneDx => "cyclonedx",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum VexStatus {
+    Affected,
+    NotAffected,
+    Fixed,
+    UnderInvestigation,
+}
+
+impl VexStatus {
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Affected => "affected",
+            Self::NotAffected => "not_affected",
+            Self::Fixed => "fixed",
+            Self::UnderInvestigation => "under_investigation",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum VulnerabilityPrioritySignal {
+    CisaKev,
+    Epss,
+    Cvss,
+    Ssvc,
+}
+
+impl VulnerabilityPrioritySignal {
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::CisaKev => "cisa-kev",
+            Self::Epss => "epss",
+            Self::Cvss => "cvss",
+            Self::Ssvc => "ssvc",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum RemediationSlaClass {
+    KevOrActivelyExploited,
+    Critical,
+    High,
+    Medium,
+}
+
+impl RemediationSlaClass {
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::KevOrActivelyExploited => "kev_or_actively_exploited",
+            Self::Critical => "critical",
+            Self::High => "high",
+            Self::Medium => "medium",
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct RemediationSla {
+    pub class: RemediationSlaClass, // data_class: INTERNAL_ONLY
+    pub max_days: u32,              // data_class: INTERNAL_ONLY
+    pub deployment_blocking: bool,  // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct VulnerabilityExceptionPolicy {
+    pub max_ttl_days: u32,                // data_class: INTERNAL_ONLY
+    pub requires_owner: bool,             // data_class: INTERNAL_ONLY
+    pub requires_expiry: bool,            // data_class: INTERNAL_ONLY
+    pub requires_vex_justification: bool, // data_class: INTERNAL_ONLY
+    pub requires_audit_event: bool,       // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct VulnerabilityAuditEvidencePolicy {
+    pub advisory_snapshot_signed: bool, // data_class: INTERNAL_ONLY
+    pub sbom_artifacts_signed: bool,    // data_class: INTERNAL_ONLY
+    pub vex_artifacts_signed: bool,     // data_class: INTERNAL_ONLY
+    pub audit_event_type: String,       // data_class: INTERNAL_ONLY
+    pub retention_days: u32,            // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct VulnerabilityAdmissionPolicy {
+    pub block_missing_or_unsigned_sbom: bool, // data_class: INTERNAL_ONLY
+    pub block_missing_vex: bool,              // data_class: INTERNAL_ONLY
+    pub block_expired_exception: bool,        // data_class: INTERNAL_ONLY
+    pub block_kev_or_exploited: bool,         // data_class: INTERNAL_ONLY
+    pub block_fix_available_past_sla: bool,   // data_class: INTERNAL_ONLY
+    pub block_unknown_component_match: bool,  // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct VulnerabilityIntelligenceContract {
+    pub lane_id: String,                                // data_class: INTERNAL_ONLY
+    pub canonical_surface: VulnerabilityProductSurface, // data_class: INTERNAL_ONLY
+    pub advisory_feeds: Vec<VulnerabilityAdvisoryFeed>, // data_class: INTERNAL_ONLY
+    pub sbom_formats: Vec<SbomFormat>,                  // data_class: INTERNAL_ONLY
+    pub vex_statuses: Vec<VexStatus>,                   // data_class: INTERNAL_ONLY
+    pub priority_signals: Vec<VulnerabilityPrioritySignal>, // data_class: INTERNAL_ONLY
+    pub remediation_slas: Vec<RemediationSla>,          // data_class: INTERNAL_ONLY
+    pub exception_policy: VulnerabilityExceptionPolicy, // data_class: INTERNAL_ONLY
+    pub audit_evidence: VulnerabilityAuditEvidencePolicy, // data_class: INTERNAL_ONLY
+    pub admission_policy: VulnerabilityAdmissionPolicy, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct VulnerabilityIntelligenceReport {
+    pub feeds_checked: usize,            // data_class: INTERNAL_ONLY
+    pub sbom_formats_checked: usize,     // data_class: INTERNAL_ONLY
+    pub vex_statuses_checked: usize,     // data_class: INTERNAL_ONLY
+    pub priority_signals_checked: usize, // data_class: INTERNAL_ONLY
+    pub remediation_slas_checked: usize, // data_class: INTERNAL_ONLY
+    pub admission_blocks_checked: usize, // data_class: INTERNAL_ONLY
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum SupplyChainError {
     NoCatalogRecords,
@@ -164,6 +322,255 @@ pub enum ReleaseSupplyChainError {
         artifact_ref: String,
         field: &'static str,
     },
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum VulnerabilityIntelligenceError {
+    InvalidLaneId {
+        lane_id: String,
+    },
+    ScannerCliDeclaredAsCanonicalSurface,
+    MissingAdvisoryFeed {
+        feed: &'static str,
+    },
+    MissingSbomFormat {
+        format: &'static str,
+    },
+    MissingVexStatus {
+        status: &'static str,
+    },
+    MissingPrioritySignal {
+        signal: &'static str,
+    },
+    MissingRemediationSla {
+        class: &'static str,
+    },
+    RemediationSlaTooLoose {
+        class: &'static str,
+        max_days: u32,
+        allowed_days: u32,
+    },
+    SlaMustBlockDeployment {
+        class: &'static str,
+    },
+    ExceptionPolicyMissingOwner,
+    ExceptionPolicyMissingExpiry,
+    ExceptionPolicyMissingVexJustification,
+    ExceptionPolicyMissingAuditEvent,
+    ExceptionTtlTooLong {
+        max_ttl_days: u32,
+        allowed_days: u32,
+    },
+    MissingSignedAuditEvidence {
+        field: &'static str,
+    },
+    InvalidVulnerabilityAuditEvent {
+        audit_event_type: String,
+    },
+    AuditRetentionTooShort {
+        retention_days: u32,
+        required_days: u32,
+    },
+    MissingAdmissionBlock {
+        block: &'static str,
+    },
+}
+
+pub const VULNERABILITY_INTELLIGENCE_LANE_ID: &str = "security-pipeline/vulnerability-intelligence";
+pub const VULNERABILITY_DECISION_AUDIT_EVENT: &str =
+    "oya.audit.vulnerability_intelligence_decision";
+const VULNERABILITY_MIN_AUDIT_RETENTION_DAYS: u32 = 2_555;
+const VULNERABILITY_EXCEPTION_MAX_TTL_DAYS: u32 = 30;
+
+pub fn validate_vulnerability_intelligence_contract(
+    contract: &VulnerabilityIntelligenceContract,
+) -> Result<VulnerabilityIntelligenceReport, VulnerabilityIntelligenceError> {
+    if contract.lane_id.trim() != VULNERABILITY_INTELLIGENCE_LANE_ID {
+        return Err(VulnerabilityIntelligenceError::InvalidLaneId {
+            lane_id: contract.lane_id.clone(),
+        });
+    }
+    if contract.canonical_surface == VulnerabilityProductSurface::ScannerCli {
+        return Err(VulnerabilityIntelligenceError::ScannerCliDeclaredAsCanonicalSurface);
+    }
+
+    for feed in [
+        VulnerabilityAdvisoryFeed::CveNvd,
+        VulnerabilityAdvisoryFeed::Osv,
+        VulnerabilityAdvisoryFeed::RustSec,
+        VulnerabilityAdvisoryFeed::GitHubAdvisories,
+        VulnerabilityAdvisoryFeed::VendorAdvisories,
+    ] {
+        if !contract.advisory_feeds.contains(&feed) {
+            return Err(VulnerabilityIntelligenceError::MissingAdvisoryFeed { feed: feed.name() });
+        }
+    }
+
+    for format in [SbomFormat::Spdx, SbomFormat::CycloneDx] {
+        if !contract.sbom_formats.contains(&format) {
+            return Err(VulnerabilityIntelligenceError::MissingSbomFormat {
+                format: format.name(),
+            });
+        }
+    }
+
+    for status in [
+        VexStatus::Affected,
+        VexStatus::NotAffected,
+        VexStatus::Fixed,
+        VexStatus::UnderInvestigation,
+    ] {
+        if !contract.vex_statuses.contains(&status) {
+            return Err(VulnerabilityIntelligenceError::MissingVexStatus {
+                status: status.name(),
+            });
+        }
+    }
+
+    for signal in [
+        VulnerabilityPrioritySignal::CisaKev,
+        VulnerabilityPrioritySignal::Epss,
+        VulnerabilityPrioritySignal::Cvss,
+        VulnerabilityPrioritySignal::Ssvc,
+    ] {
+        if !contract.priority_signals.contains(&signal) {
+            return Err(VulnerabilityIntelligenceError::MissingPrioritySignal {
+                signal: signal.name(),
+            });
+        }
+    }
+
+    for (class, allowed_days, must_block) in [
+        (RemediationSlaClass::KevOrActivelyExploited, 7, true),
+        (RemediationSlaClass::Critical, 7, true),
+        (RemediationSlaClass::High, 14, true),
+        (RemediationSlaClass::Medium, 30, false),
+    ] {
+        validate_remediation_sla(&contract.remediation_slas, class, allowed_days, must_block)?;
+    }
+
+    validate_vulnerability_exception_policy(&contract.exception_policy)?;
+    validate_vulnerability_audit_evidence(&contract.audit_evidence)?;
+    let admission_blocks_checked =
+        validate_vulnerability_admission_policy(&contract.admission_policy)?;
+
+    Ok(VulnerabilityIntelligenceReport {
+        feeds_checked: contract.advisory_feeds.len(),
+        sbom_formats_checked: contract.sbom_formats.len(),
+        vex_statuses_checked: contract.vex_statuses.len(),
+        priority_signals_checked: contract.priority_signals.len(),
+        remediation_slas_checked: contract.remediation_slas.len(),
+        admission_blocks_checked,
+    })
+}
+
+fn validate_remediation_sla(
+    slas: &[RemediationSla],
+    class: RemediationSlaClass,
+    allowed_days: u32,
+    must_block: bool,
+) -> Result<(), VulnerabilityIntelligenceError> {
+    let Some(sla) = slas.iter().find(|sla| sla.class == class) else {
+        return Err(VulnerabilityIntelligenceError::MissingRemediationSla {
+            class: class.name(),
+        });
+    };
+    if sla.max_days == 0 || sla.max_days > allowed_days {
+        return Err(VulnerabilityIntelligenceError::RemediationSlaTooLoose {
+            class: class.name(),
+            max_days: sla.max_days,
+            allowed_days,
+        });
+    }
+    if must_block && !sla.deployment_blocking {
+        return Err(VulnerabilityIntelligenceError::SlaMustBlockDeployment {
+            class: class.name(),
+        });
+    }
+    Ok(())
+}
+
+fn validate_vulnerability_exception_policy(
+    policy: &VulnerabilityExceptionPolicy,
+) -> Result<(), VulnerabilityIntelligenceError> {
+    if !policy.requires_owner {
+        return Err(VulnerabilityIntelligenceError::ExceptionPolicyMissingOwner);
+    }
+    if !policy.requires_expiry {
+        return Err(VulnerabilityIntelligenceError::ExceptionPolicyMissingExpiry);
+    }
+    if !policy.requires_vex_justification {
+        return Err(VulnerabilityIntelligenceError::ExceptionPolicyMissingVexJustification);
+    }
+    if !policy.requires_audit_event {
+        return Err(VulnerabilityIntelligenceError::ExceptionPolicyMissingAuditEvent);
+    }
+    if policy.max_ttl_days == 0 || policy.max_ttl_days > VULNERABILITY_EXCEPTION_MAX_TTL_DAYS {
+        return Err(VulnerabilityIntelligenceError::ExceptionTtlTooLong {
+            max_ttl_days: policy.max_ttl_days,
+            allowed_days: VULNERABILITY_EXCEPTION_MAX_TTL_DAYS,
+        });
+    }
+    Ok(())
+}
+
+fn validate_vulnerability_audit_evidence(
+    evidence: &VulnerabilityAuditEvidencePolicy,
+) -> Result<(), VulnerabilityIntelligenceError> {
+    for (present, field) in [
+        (
+            evidence.advisory_snapshot_signed,
+            "advisory_snapshot_signed",
+        ),
+        (evidence.sbom_artifacts_signed, "sbom_artifacts_signed"),
+        (evidence.vex_artifacts_signed, "vex_artifacts_signed"),
+    ] {
+        if !present {
+            return Err(VulnerabilityIntelligenceError::MissingSignedAuditEvidence { field });
+        }
+    }
+    if evidence.audit_event_type != VULNERABILITY_DECISION_AUDIT_EVENT {
+        return Err(
+            VulnerabilityIntelligenceError::InvalidVulnerabilityAuditEvent {
+                audit_event_type: evidence.audit_event_type.clone(),
+            },
+        );
+    }
+    if evidence.retention_days < VULNERABILITY_MIN_AUDIT_RETENTION_DAYS {
+        return Err(VulnerabilityIntelligenceError::AuditRetentionTooShort {
+            retention_days: evidence.retention_days,
+            required_days: VULNERABILITY_MIN_AUDIT_RETENTION_DAYS,
+        });
+    }
+    Ok(())
+}
+
+fn validate_vulnerability_admission_policy(
+    policy: &VulnerabilityAdmissionPolicy,
+) -> Result<usize, VulnerabilityIntelligenceError> {
+    let blocks = [
+        (
+            policy.block_missing_or_unsigned_sbom,
+            "missing_or_unsigned_sbom",
+        ),
+        (policy.block_missing_vex, "missing_vex"),
+        (policy.block_expired_exception, "expired_exception"),
+        (policy.block_kev_or_exploited, "kev_or_exploited"),
+        (
+            policy.block_fix_available_past_sla,
+            "fix_available_past_sla",
+        ),
+        (
+            policy.block_unknown_component_match,
+            "unknown_component_match",
+        ),
+    ];
+    for (present, block) in blocks {
+        if !present {
+            return Err(VulnerabilityIntelligenceError::MissingAdmissionBlock { block });
+        }
+    }
+    Ok(blocks.len())
 }
 
 pub fn validate_supply_chain<R>(
@@ -741,7 +1148,10 @@ mod tests {
         );
         assert_eq!(
             validate_supply_chain(
-                [record("oya-intelligence-capability-kernel", "signed-provenance")],
+                [record(
+                    "oya-intelligence-capability-kernel",
+                    "signed-provenance"
+                )],
                 SupplyChainEvidence {
                     sbom_dual_format_wired: true,
                     ..evidence()
@@ -912,6 +1322,173 @@ mod tests {
                     "sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210".into(),
             })
         );
+    }
+
+    #[test]
+    fn accepts_vulnerability_intelligence_closed_loop_contract() {
+        assert_eq!(
+            validate_vulnerability_intelligence_contract(&vulnerability_contract()),
+            Ok(VulnerabilityIntelligenceReport {
+                feeds_checked: 5,
+                sbom_formats_checked: 2,
+                vex_statuses_checked: 4,
+                priority_signals_checked: 4,
+                remediation_slas_checked: 4,
+                admission_blocks_checked: 6,
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_vulnerability_intelligence_scanner_cli_as_canonical_surface() {
+        let mut contract = vulnerability_contract();
+        contract.canonical_surface = VulnerabilityProductSurface::ScannerCli;
+
+        assert_eq!(
+            validate_vulnerability_intelligence_contract(&contract),
+            Err(VulnerabilityIntelligenceError::ScannerCliDeclaredAsCanonicalSurface)
+        );
+    }
+
+    #[test]
+    fn rejects_vulnerability_intelligence_missing_required_ingestion_feed() {
+        let mut contract = vulnerability_contract();
+        contract
+            .advisory_feeds
+            .retain(|feed| *feed != VulnerabilityAdvisoryFeed::RustSec);
+
+        assert_eq!(
+            validate_vulnerability_intelligence_contract(&contract),
+            Err(VulnerabilityIntelligenceError::MissingAdvisoryFeed { feed: "rustsec" })
+        );
+    }
+
+    #[test]
+    fn rejects_vulnerability_intelligence_without_complete_vex_and_priority_coverage() {
+        let mut contract = vulnerability_contract();
+        contract
+            .vex_statuses
+            .retain(|status| *status != VexStatus::UnderInvestigation);
+        assert_eq!(
+            validate_vulnerability_intelligence_contract(&contract),
+            Err(VulnerabilityIntelligenceError::MissingVexStatus {
+                status: "under_investigation",
+            })
+        );
+
+        let mut contract = vulnerability_contract();
+        contract
+            .priority_signals
+            .retain(|signal| *signal != VulnerabilityPrioritySignal::Ssvc);
+        assert_eq!(
+            validate_vulnerability_intelligence_contract(&contract),
+            Err(VulnerabilityIntelligenceError::MissingPrioritySignal { signal: "ssvc" })
+        );
+    }
+
+    #[test]
+    fn rejects_vulnerability_intelligence_loose_sla_and_open_ended_exceptions() {
+        let mut contract = vulnerability_contract();
+        contract.remediation_slas[0].max_days = 8;
+        assert_eq!(
+            validate_vulnerability_intelligence_contract(&contract),
+            Err(VulnerabilityIntelligenceError::RemediationSlaTooLoose {
+                class: "kev_or_actively_exploited",
+                max_days: 8,
+                allowed_days: 7,
+            })
+        );
+
+        let mut contract = vulnerability_contract();
+        contract.exception_policy.requires_expiry = false;
+        assert_eq!(
+            validate_vulnerability_intelligence_contract(&contract),
+            Err(VulnerabilityIntelligenceError::ExceptionPolicyMissingExpiry)
+        );
+    }
+
+    #[test]
+    fn rejects_vulnerability_intelligence_missing_deployment_block() {
+        let mut contract = vulnerability_contract();
+        contract.admission_policy.block_fix_available_past_sla = false;
+
+        assert_eq!(
+            validate_vulnerability_intelligence_contract(&contract),
+            Err(VulnerabilityIntelligenceError::MissingAdmissionBlock {
+                block: "fix_available_past_sla",
+            })
+        );
+    }
+
+    fn vulnerability_contract() -> VulnerabilityIntelligenceContract {
+        VulnerabilityIntelligenceContract {
+            lane_id: VULNERABILITY_INTELLIGENCE_LANE_ID.into(),
+            canonical_surface: VulnerabilityProductSurface::CloudNativeApi,
+            advisory_feeds: vec![
+                VulnerabilityAdvisoryFeed::CveNvd,
+                VulnerabilityAdvisoryFeed::Osv,
+                VulnerabilityAdvisoryFeed::RustSec,
+                VulnerabilityAdvisoryFeed::GitHubAdvisories,
+                VulnerabilityAdvisoryFeed::VendorAdvisories,
+            ],
+            sbom_formats: vec![SbomFormat::Spdx, SbomFormat::CycloneDx],
+            vex_statuses: vec![
+                VexStatus::Affected,
+                VexStatus::NotAffected,
+                VexStatus::Fixed,
+                VexStatus::UnderInvestigation,
+            ],
+            priority_signals: vec![
+                VulnerabilityPrioritySignal::CisaKev,
+                VulnerabilityPrioritySignal::Epss,
+                VulnerabilityPrioritySignal::Cvss,
+                VulnerabilityPrioritySignal::Ssvc,
+            ],
+            remediation_slas: vec![
+                RemediationSla {
+                    class: RemediationSlaClass::KevOrActivelyExploited,
+                    max_days: 7,
+                    deployment_blocking: true,
+                },
+                RemediationSla {
+                    class: RemediationSlaClass::Critical,
+                    max_days: 7,
+                    deployment_blocking: true,
+                },
+                RemediationSla {
+                    class: RemediationSlaClass::High,
+                    max_days: 14,
+                    deployment_blocking: true,
+                },
+                RemediationSla {
+                    class: RemediationSlaClass::Medium,
+                    max_days: 30,
+                    deployment_blocking: false,
+                },
+            ],
+            exception_policy: VulnerabilityExceptionPolicy {
+                max_ttl_days: 30,
+                requires_owner: true,
+                requires_expiry: true,
+                requires_vex_justification: true,
+                requires_audit_event: true,
+            },
+            audit_evidence: VulnerabilityAuditEvidencePolicy {
+                advisory_snapshot_signed: true,
+                sbom_artifacts_signed: true,
+                vex_artifacts_signed: true,
+                audit_event_type: VULNERABILITY_DECISION_AUDIT_EVENT.into(),
+                retention_days: VULNERABILITY_MIN_AUDIT_RETENTION_DAYS,
+            },
+            admission_policy: VulnerabilityAdmissionPolicy {
+                block_missing_or_unsigned_sbom: true,
+                block_missing_vex: true,
+                block_expired_exception: true,
+                block_kev_or_exploited: true,
+                block_fix_available_past_sla: true,
+                block_unknown_component_match: true,
+            },
+        }
     }
 
     fn record(subject: &str, attestation: &str) -> SupplyChainRecord {
