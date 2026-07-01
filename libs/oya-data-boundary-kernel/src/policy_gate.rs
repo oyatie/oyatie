@@ -4,8 +4,8 @@
 //! types without claiming a full Cedar/runtime integration.
 
 use crate::{
-    ClassificationLevel, ConsentScope, DataClassification, DataUseAttributes, DataUseDenialReason,
-    PrivacyDataClass, Purpose,
+    ClassificationLevel, ConsentScope, DataClass, DataClassification, DataUseAttributes,
+    DataUseDenialReason, PrivacyDataClass, Purpose,
 };
 
 /// DUB purpose/data-class matrix facade.
@@ -40,9 +40,9 @@ pub enum HardDenyScope {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]
 pub struct OverrideDenyRule {
-    classification: DataClassification,
-    purpose: Option<Purpose>,
-    scope: HardDenyScope,
+    classification: DataClassification, // data_class: INTERNAL_ONLY
+    purpose: Option<Purpose>,           // data_class: INTERNAL_ONLY
+    scope: HardDenyScope,               // data_class: INTERNAL_ONLY
 }
 
 impl OverrideDenyRule {
@@ -65,15 +65,17 @@ impl OverrideDenyRule {
     }
 
     fn applies_to(self, purpose: Purpose, classification: DataClassification) -> bool {
-        self.classification == classification && self.purpose.is_none_or(|p| p == purpose)
+        canonical_policy_classification(self.classification)
+            == canonical_policy_classification(classification)
+            && self.purpose.is_none_or(|p| p == purpose)
     }
 }
 
 /// Immutable microservice override pack loaded before tenant policy.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct MicroserviceOverridePack {
-    microservice_id: &'static str,
-    hard_denies: Vec<OverrideDenyRule>,
+    microservice_id: &'static str,      // data_class: INTERNAL_ONLY
+    hard_denies: Vec<OverrideDenyRule>, // data_class: INTERNAL_ONLY
 }
 
 impl MicroserviceOverridePack {
@@ -103,7 +105,7 @@ impl MicroserviceOverridePack {
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct TenantDataUsePolicy {
-    consent_scope: ConsentScope,
+    consent_scope: ConsentScope, // data_class: INTERNAL_ONLY
 }
 
 impl TenantDataUsePolicy {
@@ -123,7 +125,7 @@ impl TenantDataUsePolicy {
 /// the source with the highest retention/classification severity.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct DerivedFeatureLineage {
-    sources: Vec<DataClassification>,
+    sources: Vec<DataClassification>, // data_class: INTERNAL_ONLY
 }
 
 impl DerivedFeatureLineage {
@@ -137,7 +139,18 @@ impl DerivedFeatureLineage {
         self.sources
             .iter()
             .copied()
+            .map(canonical_policy_classification)
             .max_by_key(|classification| classification_level(*classification))
+    }
+
+    fn hard_denied_source(&self, purpose: Purpose) -> Option<DataClassification> {
+        self.sources
+            .iter()
+            .copied()
+            .map(canonical_policy_classification)
+            .find(|classification| {
+                DataUseBoundaryMatrix::default().is_hard_denied(purpose, *classification)
+            })
     }
 }
 
@@ -163,8 +176,8 @@ impl EuAiRiskTier {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]
 pub struct EuAiRiskRegistryEntry {
-    archetype: &'static str,
-    tier: EuAiRiskTier,
+    archetype: &'static str, // data_class: INTERNAL_ONLY
+    tier: EuAiRiskTier,      // data_class: INTERNAL_ONLY
 }
 
 impl EuAiRiskRegistryEntry {
@@ -175,11 +188,11 @@ impl EuAiRiskRegistryEntry {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct DataUseGateRequest<'a> {
-    pub attributes: DataUseAttributes,
-    pub override_pack: Option<&'a MicroserviceOverridePack>,
-    pub tenant_policy: &'a TenantDataUsePolicy,
-    pub derived_lineage: Option<&'a DerivedFeatureLineage>,
-    pub eu_ai_risk: Option<&'a EuAiRiskRegistryEntry>,
+    pub attributes: DataUseAttributes, // data_class: INTERNAL_ONLY
+    pub override_pack: Option<&'a MicroserviceOverridePack>, // data_class: INTERNAL_ONLY
+    pub tenant_policy: &'a TenantDataUsePolicy, // data_class: INTERNAL_ONLY
+    pub derived_lineage: Option<&'a DerivedFeatureLineage>, // data_class: INTERNAL_ONLY
+    pub eu_ai_risk: Option<&'a EuAiRiskRegistryEntry>, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -210,15 +223,11 @@ pub fn evaluate_data_use_gate(
     let effective_classification = request
         .derived_lineage
         .and_then(DerivedFeatureLineage::effective_classification)
-        .unwrap_or(request.attributes.data_classification);
+        .unwrap_or_else(|| canonical_policy_classification(request.attributes.data_classification));
 
     let lineage_denial = request
         .derived_lineage
-        .and_then(DerivedFeatureLineage::effective_classification)
-        .filter(|classification| {
-            DataUseBoundaryMatrix::default()
-                .is_hard_denied(request.attributes.purpose, *classification)
-        });
+        .and_then(|lineage| lineage.hard_denied_source(request.attributes.purpose));
     if let Some(inherited_classification) = lineage_denial {
         return Err(DataUseGateDenialReason::DerivedLineageDenied {
             inherited_classification,
@@ -261,6 +270,20 @@ pub fn evaluate_data_use_gate(
     }
 
     Ok(())
+}
+
+fn canonical_policy_classification(classification: DataClassification) -> DataClassification {
+    match classification {
+        DataClassification::Privacy(data_class) => {
+            DataClassification::from(match data_class.data_class() {
+                DataClass::PiiSensitive => DataClass::PiiQuasiIdentifier,
+                DataClass::Usage => DataClass::BehavioralTenantProduct,
+                DataClass::PipaArticle23 => DataClass::SensitivePipaArticle23,
+                canonical => canonical,
+            })
+        }
+        DataClassification::Operational(_) | DataClassification::SubjectMarker(_) => classification,
+    }
 }
 
 fn requires_eu_ai_risk_tier(purpose: Purpose) -> bool {
@@ -317,6 +340,41 @@ mod tests {
     }
 
     #[test]
+    fn override_pack_deny_normalizes_legacy_privacy_aliases() {
+        for (denied_class, request_class) in [
+            (DataClass::PiiQuasiIdentifier, DataClass::PiiSensitive),
+            (DataClass::BehavioralTenantProduct, DataClass::Usage),
+            (DataClass::SensitivePipaArticle23, DataClass::PipaArticle23),
+        ] {
+            let override_pack = MicroserviceOverridePack::new("privacy-gate").deny(
+                OverrideDenyRule::new(DataClassification::from(denied_class))
+                    .for_purpose(Purpose::CapabilityInvocation),
+            );
+            let tenant_policy = tenant_allows(Purpose::CapabilityInvocation, request_class);
+
+            let decision = evaluate_data_use_gate(DataUseGateRequest {
+                attributes: crate::DataUseAttributes {
+                    purpose: Purpose::CapabilityInvocation,
+                    data_classification: DataClassification::from(request_class),
+                    subject_class: SubjectClass::Adult,
+                },
+                override_pack: Some(&override_pack),
+                tenant_policy: &tenant_policy,
+                derived_lineage: None,
+                eu_ai_risk: None,
+            });
+
+            assert_eq!(
+                decision,
+                Err(DataUseGateDenialReason::OverridePackDenied {
+                    microservice_id: "privacy-gate",
+                    scope: HardDenyScope::All,
+                })
+            );
+        }
+    }
+
+    #[test]
     fn missing_override_pack_fails_closed_before_tenant_allow() {
         let tenant_policy = tenant_allows(Purpose::CapabilityInvocation, DataClass::Public);
 
@@ -361,6 +419,35 @@ mod tests {
             decision,
             Err(DataUseGateDenialReason::DerivedLineageDenied {
                 inherited_classification: DataClassification::from(DataClass::Phi),
+            })
+        );
+    }
+
+    #[test]
+    fn derived_feature_lineage_checks_every_source_before_effective_class() {
+        let override_pack = MicroserviceOverridePack::new("analytics");
+        let tenant_policy = tenant_allows(Purpose::Analytics, DataClass::PiiIdentifying);
+        let lineage = DerivedFeatureLineage::from_sources([
+            DataClassification::from(OperationalDataClass::Secret),
+            DataClassification::from(DataClass::PiiIdentifying),
+        ]);
+
+        let decision = evaluate_data_use_gate(DataUseGateRequest {
+            attributes: crate::DataUseAttributes {
+                purpose: Purpose::Analytics,
+                data_classification: DataClassification::from(DataClass::Public),
+                subject_class: SubjectClass::Adult,
+            },
+            override_pack: Some(&override_pack),
+            tenant_policy: &tenant_policy,
+            derived_lineage: Some(&lineage),
+            eu_ai_risk: None,
+        });
+
+        assert_eq!(
+            decision,
+            Err(DataUseGateDenialReason::DerivedLineageDenied {
+                inherited_classification: DataClassification::from(OperationalDataClass::Secret),
             })
         );
     }
