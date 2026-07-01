@@ -1,4 +1,4 @@
-//! # oya-metering-pipeline-kernel
+//! # billing-metering-pipeline-kernel
 //!
 //! The D-14 metering PIPELINE contract (ADR-0536; G009 lane): usage is a
 //! pipeline, not a query — events flow dedup → rate → aggregate → invoice
@@ -32,8 +32,8 @@
 //! this one specification.
 //!
 //! # Naming justification
-//! `oya-metering-pipeline-kernel` follows BNF v4.1:
-//! `oya-<topic:metering-pipeline>-<layer:kernel>`.
+//! `billing-metering-pipeline-kernel` is the ADR-0562 de-branded
+//! billing capability home for the metering pipeline kernel.
 //!
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -355,10 +355,10 @@ impl LatenessPolicy {
 /// `(tenant, resource, dimension, usage_hour)`.
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]
 pub struct DedupKey {
-    pub tenant: TenantId,       // data_class: INTERNAL_ONLY
-    pub resource: ResourceId,   // data_class: INTERNAL_ONLY
-    pub dimension: Dimension,   // data_class: INTERNAL_ONLY
-    pub usage_hour: UsageHour,  // data_class: INTERNAL_ONLY
+    pub tenant: TenantId,      // data_class: INTERNAL_ONLY
+    pub resource: ResourceId,  // data_class: INTERNAL_ONLY
+    pub dimension: Dimension,  // data_class: INTERNAL_ONLY
+    pub usage_hour: UsageHour, // data_class: INTERNAL_ONLY
 }
 
 impl fmt::Display for DedupKey {
@@ -376,13 +376,13 @@ impl fmt::Display for DedupKey {
 /// rejected anti-pattern (ADR-0536 D-14).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct UsageRecord {
-    pub tenant: TenantId,               // data_class: INTERNAL_ONLY
-    pub cell: CellId,                   // data_class: INTERNAL_ONLY
-    pub resource: ResourceId,           // data_class: INTERNAL_ONLY
-    pub dimension: Dimension,           // data_class: INTERNAL_ONLY
-    pub usage_hour: UsageHour,          // data_class: INTERNAL_ONLY
+    pub tenant: TenantId,                  // data_class: INTERNAL_ONLY
+    pub cell: CellId,                      // data_class: INTERNAL_ONLY
+    pub resource: ResourceId,              // data_class: INTERNAL_ONLY
+    pub dimension: Dimension,              // data_class: INTERNAL_ONLY
+    pub usage_hour: UsageHour,             // data_class: INTERNAL_ONLY
     pub consumed_quantity_microunits: u64, // data_class: INTERNAL_ONLY
-    pub consumed_unit: ConsumedUnit,    // data_class: INTERNAL_ONLY
+    pub consumed_unit: ConsumedUnit,       // data_class: INTERNAL_ONLY
 }
 
 impl UsageRecord {
