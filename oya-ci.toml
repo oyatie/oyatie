@@ -199,6 +199,11 @@ input_kind = "producer-face"
 face = "slo_coverage"
 
 [[gates.enabled]]
+id = "cloud-ci-license-policy"
+input_kind = "producer-face"
+face = "license_policy"
+
+[[gates.enabled]]
 id = "cloud-ci-catalog-liveness"
 input_kind = "producer-face"
 face = "catalog_liveness"

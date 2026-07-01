@@ -1,0 +1,26 @@
+[package]
+name = "oya-cloud-ci-license-policy-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# cloud-ci-license-policy: portable conformance gate for workspace package license declarations.
+# The producer owns workspace-member enumeration and Cargo.toml I/O; this gate reuses the existing
+# oya-check-license-policy kernel and keeps the evaluator pure and hermetic.
+
+[lib]
+name = "oya_cloud_ci_license_policy_app"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde_json = { workspace = true }
+oya-check-license-policy = { path = "../../../../libs/oya-check-license-policy" }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

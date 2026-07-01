@@ -6193,6 +6193,7 @@ dependencies = [
  "oya-cloud-ci-catalog-liveness-app",
  "oya-cloud-ci-cross-artifact-agreement-app",
  "oya-cloud-ci-enforcement-liveness-app",
+ "oya-cloud-ci-license-policy-app",
  "oya-cloud-ci-manifest-hygiene-app",
  "oya-cloud-ci-slo-coverage-app",
  "oya-cloud-ci-staleness-reaper-app",
@@ -6374,6 +6375,14 @@ dependencies = [
  "oya-workspace-members-kernel",
  "serde_json",
  "toml 0.8.23",
+]
+
+[[package]]
+name = "oya-cloud-ci-license-policy-app"
+version = "0.1.0"
+dependencies = [
+ "oya-check-license-policy",
+ "serde_json",
 ]
 
 [[package]]
