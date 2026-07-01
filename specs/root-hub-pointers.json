@@ -170,6 +170,20 @@
       "purpose": "Product and sequencing spec for tenant-facing bespoke Rust Oyatie Cloud SCM, CI, and CD services. Defines bridge-adapter boundaries for GitHub/cloud-scm/Argo, full bespoke CI enforcement baseline, masterplan P-TOOLCHAIN placement, and mandatory secure separation between tenant=oyatie-internal and every customer tenant pipeline.",
       "target_path_after_md_retirement": "same"
     },
+    "regulatory_identity_source_of_truth": {
+      "current_path": "/specs/regulatory-identity-source-of-truth.json",
+      "kind": "spec",
+      "migration_phase": "planning-source-of-truth",
+      "purpose": "Planning-only source index, source-blocker register, claim ceiling, and machine-readable control backlog for Korean/global identity, KYC, passkey, compliance, PCI, and PQC source rows. It carries explicit no-readiness/no-certification claims and blocks downstream policy/runtime work when official sources are unresolved.",
+      "target_path_after_md_retirement": "same"
+    },
+    "security_validation_pipeline_matrix": {
+      "current_path": "/specs/security-validation-pipeline-matrix.json",
+      "kind": "spec",
+      "migration_phase": "planning-gate-matrix",
+      "purpose": "Productized runner-neutral security validation pipeline matrix. Defines SAST, DAST, IAST, SCA, secrets, IaC, container, fuzzing, API fuzzing, BAS/purple-team, security chaos, automated pen-test, and continuous-control evidence lanes with scope, cadence, pass/fail policy, false-positive/VEX handling, API evidence records, and no CLI/scanner-as-authority claim.",
+      "target_path_after_md_retirement": "same"
+    },
     "check_empirical_evidence": {
       "current_path": "/registry/check-empirical-evidence",
       "kind": "registry",
