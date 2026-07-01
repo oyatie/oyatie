@@ -30,6 +30,18 @@
       "prefix": "tools/hooks/OWNERS"
     },
     {
+      "anchor": "ADR-0508 Phase-1 reference metadata: tools/opensk-vendored/OWNERS owns only the OpenSK reference metadata directory for the identity authenticator-side bridge; source vendoring/build/provisioning remain deferred.",
+      "prefix": "tools/opensk-vendored/OWNERS"
+    },
+    {
+      "anchor": "ADR-0508 Phase-1 reference metadata: tools/opensk-vendored/README.md records the OpenSK upstream/license/deferred subtree command and does not claim vendored source or firmware build readiness.",
+      "prefix": "tools/opensk-vendored/README.md"
+    },
+    {
+      "anchor": "ADR-0508 Phase-1 reference metadata: tools/opensk-vendored/UPSTREAM-CONFIG.json is the machine-readable upstream tracking config for the OpenSK reference, with source vendoring deferred to a follow-up IP.",
+      "prefix": "tools/opensk-vendored/UPSTREAM-CONFIG.json"
+    },
+    {
       "anchor": "ADR-0535 §5: root oya-deps.toml is the closed-schema DATA contract for the owned Rust dependency bump-bot and dependency-automation gate.",
       "prefix": "oya-deps.toml"
     },
