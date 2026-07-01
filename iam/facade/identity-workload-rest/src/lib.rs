@@ -1542,7 +1542,7 @@ where
     // locks before calling the PDP. A slow/hung PDP adapter must not hold the
     // repository or denylist lock — it stalls only the current request.
     let target_tenant = {
-        let mut repo_guard = match state.repository.lock() {
+        let repo_guard = match state.repository.lock() {
             Ok(guard) => guard,
             Err(poisoned) => poisoned.into_inner(),
         };
