@@ -1,0 +1,33 @@
+rust_library(
+    name = "oya-cloud-ci-cell-topology-manifest-contract-app",
+    srcs = glob(["src/**/*.rs", "**/*.json", "**/*.toml", "**/*.txt"]),
+    crate = "oya_cloud_ci_cell_topology_manifest_contract_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "oya-cloud-ci-cell-topology-manifest-contract-app-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json", "**/*.toml", "**/*.txt"]),
+    crate = "oya_cloud_ci_cell_topology_manifest_contract_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "oya-cloud-ci-cell-topology-manifest-contract-app-gate",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "oya_cloud_ci_cell_topology_manifest_contract_app_gate",
+    crate_root = "tests/cell_topology_manifest_contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-ci-cell-topology-manifest-contract-app",
+        "third-party//:serde_json",
+    ],
+)
