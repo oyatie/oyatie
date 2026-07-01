@@ -769,7 +769,7 @@ fn validate_release_evidence_record(
             artifact_ref: record.artifact_ref.clone(),
         });
     }
-    if !record.artifact_ref.contains(&record.artifact_digest) {
+    if !artifact_ref_pins_digest(record.artifact_ref.trim(), &record.artifact_digest) {
         return Err(ReleaseSupplyChainError::DigestNotPinnedInArtifactRef {
             artifact_ref: record.artifact_ref.clone(),
             artifact_digest: record.artifact_digest.clone(),
@@ -1298,6 +1298,31 @@ mod tests {
                 artifact_ref: release_artifact().artifact_ref,
                 artifact_digest:
                     "sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210".into(),
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_release_evidence_artifact_ref_with_mismatched_pinned_digest() {
+        let artifact_digest =
+            "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+        let artifact_ref = format!(
+            "ghcr.io/oyatie/tooling:{artifact_digest}@sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        );
+
+        assert_eq!(
+            validate_release_supply_chain(
+                [ReleaseArtifact {
+                    artifact_ref: artifact_ref.clone(),
+                }],
+                [ReleaseSupplyChainEvidence {
+                    artifact_ref: artifact_ref.clone(),
+                    ..release_evidence()
+                }]
+            ),
+            Err(ReleaseSupplyChainError::DigestNotPinnedInArtifactRef {
+                artifact_ref,
+                artifact_digest: artifact_digest.into(),
             })
         );
     }
