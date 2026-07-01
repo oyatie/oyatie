@@ -149,6 +149,7 @@ Cross-cutting standards docs (lives under `docs/standards/`):
 |---|---|---|
 | Code style | [`standards/code-style.md`](standards/code-style.md) | rustfmt + clippy config; per-language style; forbidden patterns |
 | Commit message | [`standards/commit-message.md`](standards/commit-message.md) | conventional commits + Refs / Closes / Blocks; signed commits |
+| Cloud-native infrastructure automation | [`standards/cloud-native-infrastructure-automation.md`](standards/cloud-native-infrastructure-automation.md) | API-shaped Rust/config/controller/gate infrastructure automation; no new ad-hoc CLIs or Python/shell core infra behavior |
 | API design | [`standards/api-design.md`](standards/api-design.md) | REST + gRPC + event-schema conventions; pagination; idempotency; semver |
 | Schema migration | [`standards/schema-migration.md`](standards/schema-migration.md) | versioned, reversible, dry-run; backward-read for ≥ 2 versions |
 | Error handling | [`standards/error-handling.md`](standards/error-handling.md) | Result<T,E> conventions; never panic at API boundaries; retryable vs terminal |

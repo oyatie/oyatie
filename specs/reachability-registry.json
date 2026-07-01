@@ -186,6 +186,14 @@
       "prefix": "docs/decisions/"
     },
     {
+      "anchor": "ADR-0515 cloud-native posture projection: the reviewer-facing standards doc is the accepted no-CLI/no-shell infrastructure automation review surface, linked from the standards index and docs hub; exact path keeps the new prose artifact born-reachable under ADR-0555.",
+      "prefix": "docs/standards/cloud-native-infrastructure-automation.md"
+    },
+    {
+      "anchor": "ADR-0555 D2 ownership seed: the standards corpus OWNERS marker assigns council-architecture ownership for standards documents without making root OWNERS a blanket subtree owner.",
+      "prefix": "docs/standards/OWNERS"
+    },
+    {
       "anchor": "ADR-0555 D3: gate/agent evidence corpus — TTL-accounted decay (staleness-reaper budgets); evidence is reached by the gate runs that produced it",
       "prefix": "evidence/"
     },
