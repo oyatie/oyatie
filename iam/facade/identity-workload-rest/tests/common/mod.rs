@@ -7,6 +7,7 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic, dead_code)]
 
+use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use aws_lc_rs::rand::SystemRandom;
@@ -14,6 +15,10 @@ use aws_lc_rs::signature::{ECDSA_P256_SHA256_FIXED_SIGNING, EcdsaKeyPair, KeyPai
 use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 
+use iam_identity_oidc_issuer_kernel::{
+    AccessTokenSpec, Algorithm as IssuerAlgorithm, Audience, IssuerError, IssuerUrl, JwsSigner,
+    Signature, SigningKey, Subject, build_access_token_claims,
+};
 use iam_identity_workload_app::{
     InMemoryRevocationDenylist, InMemoryWorkloadPrincipalRepository, RepositoryError,
     RevocationDenylist, WorkloadPrincipalRepository, activate, provision,
@@ -130,6 +135,105 @@ pub fn b64url(bytes: &[u8]) -> String {
 pub struct MintedToken {
     pub token: String,
     pub jwk: Jwk,
+}
+
+struct TestIssuerSigner {
+    kid: String,
+    key_pair: EcdsaKeyPair,
+    rng: SystemRandom,
+}
+
+impl JwsSigner for TestIssuerSigner {
+    fn sign(&self, signing_input: &[u8], kid: &str) -> Result<Signature, IssuerError> {
+        if kid != self.kid {
+            return Err(IssuerError::InvalidKid);
+        }
+        let signature = self
+            .key_pair
+            .sign(&self.rng, signing_input)
+            .map_err(|_| IssuerError::MalformedClientAssertion("test issuer signing failed"))?;
+        Signature::new(b64url(signature.as_ref()))
+    }
+}
+
+fn issuer_kernel_signing_material() -> (TestIssuerSigner, SigningKey, Jwk) {
+    let rng = SystemRandom::new();
+    let pkcs8 =
+        EcdsaKeyPair::generate_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, &rng).expect("pkcs8");
+    let key_pair =
+        EcdsaKeyPair::from_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, pkcs8.as_ref()).expect("key");
+    let public = key_pair.public_key().as_ref();
+    let x = b64url(&public[1..33]);
+    let y = b64url(&public[33..65]);
+    let mut components = BTreeMap::new();
+    components.insert("crv".to_owned(), "P-256".to_owned());
+    components.insert("x".to_owned(), x.clone());
+    components.insert("y".to_owned(), y.clone());
+    let mut signing_key =
+        SigningKey::provision(KID, IssuerAlgorithm::Es256, components).expect("signing key");
+    signing_key.activate(NOW).expect("activate signing key");
+    (
+        TestIssuerSigner {
+            kid: KID.to_owned(),
+            key_pair,
+            rng: SystemRandom::new(),
+        },
+        signing_key,
+        Jwk::ec_p256(KID, x, y),
+    )
+}
+
+/// Mint a real ES256 workload JWT through the issuer-kernel claim validation
+/// path, then add the workload-specific `owning_capability` extension that the
+/// workload verifier projects into the principal.
+pub fn mint_issuer_kernel_access_token() -> MintedToken {
+    let (signer, signing_key, jwk) = issuer_kernel_signing_material();
+    let claims = build_access_token_claims(AccessTokenSpec {
+        issuer: IssuerUrl::new(ISSUER).expect("issuer"),
+        audience: Audience::single(AUDIENCE).expect("audience"),
+        subject: Subject::new("wl_secrets_sync").expect("subject"),
+        tenant_id: "ten_acme".to_owned(),
+        scopes: vec!["cloud.kms.decrypt".to_owned()],
+        issued_at_epoch_seconds: NOW,
+        expires_at_epoch_seconds: NOW + 300,
+        purpose: None,
+        data_class: None,
+    })
+    .expect("issuer-kernel access-token claims");
+    let header = serde_json::json!({
+        "alg": signing_key.algorithm().as_str(),
+        "typ": "at+jwt",
+        "kid": signing_key.kid(),
+    });
+    let mut payload = serde_json::json!({
+        "iss": claims.iss,
+        "aud": claims.aud,
+        "sub": claims.sub,
+        "iat": claims.iat,
+        "exp": claims.exp,
+        "nbf": claims.nbf,
+        "scope": claims.scope,
+        "tenant_id": claims.tenant_id,
+        "token_type": claims.token_type,
+    });
+    if let serde_json::Value::Object(map) = &mut payload {
+        map.insert(
+            "owning_capability".to_owned(),
+            serde_json::json!("cap.cloud.kms"),
+        );
+    }
+    let signing_input = format!(
+        "{}.{}",
+        b64url(header.to_string().as_bytes()),
+        b64url(payload.to_string().as_bytes())
+    );
+    let signature = signer
+        .sign(signing_input.as_bytes(), signing_key.kid())
+        .expect("issuer signer");
+    MintedToken {
+        token: format!("{signing_input}.{}", signature.as_str()),
+        jwk,
+    }
 }
 
 /// Mint a real ES256 workload JWT for `wl_secrets_sync` (ten_acme).
