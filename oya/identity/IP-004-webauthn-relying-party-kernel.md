@@ -3,7 +3,7 @@ doc_class: IP
 ip_id: IP-004
 microservice: identity
 status: ga
-related_adrs: [ADR-0188]
+related_adrs: [ADR-0188, ADR-0507, ADR-0508]
 related_crates: [oya-shared-webauthn-server-kernel]
 date: 2026-05-18
 owner_team: axis-identity
@@ -115,6 +115,14 @@ The kernel takes `now_unix` as a parameter on every method that needs time. No h
 - `#![forbid(unsafe_code)]` honoured.
 - No `unwrap()` / `expect()` / `panic!` in src (lints enforce).
 - `WebauthnRpAdapter` documented as the swap point per ADR-0188 §In-house roadmap.
+
+## IDENTITY-003 bridge tracking
+
+ADR-0507 promotes `webauthn-rs` as the Phase-1 WebAuthn relying-party bridge and
+ADR-0508 pairs it with the OpenSK authenticator-side reference. The full
+ADR-0507 parity table, OpenSK reference status, and promotion/cutover gates are
+tracked in `oya/identity/IP-017-bespoke-identity-authn-crypto-bridge.md`; this
+IP remains the kernel-level ceremony state machine and adapter-boundary anchor.
 
 ## Out-of-scope (later IPs)
 

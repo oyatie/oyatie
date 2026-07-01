@@ -37,4 +37,6 @@ nRF52840 dongle (Nordic nRF Connect SDK toolchain). `cargo` cross-compile to
 
 - **ADR-0508** — canonical authority for this vendoring decision
 - **ADR-0507** — webauthn-rs RP (closed-loop server-side partner)
+- **IP-017** — IDENTITY-003 bridge tracker for OpenSK reference status and
+  promotion/cutover gates
 - **[[kubers-canonical-substrate]]** — silicon ambition (Phase-4 destination)
