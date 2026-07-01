@@ -68,8 +68,10 @@ loop: **oya-identity RP + oya-authn-device authenticator = closed-loop oyatie id
    firmware substrate from which `oya-authn-device` will be forked and eventually replaced.
 
 2. **Initial use (Phase-1, NOW–12mo)**:
-   - Vendor OpenSK as `tools/opensk-vendored/` reference (follow-up implementation lane;
-     NOT vendored in this ADR commit — intent declared here only).
+   - Declare OpenSK reference metadata in `tools/opensk-vendored/README.md`,
+     `tools/opensk-vendored/UPSTREAM-CONFIG.json`, and
+     `tools/opensk-vendored/OWNERS` (follow-up implementation lane; OpenSK source
+     is NOT vendored in this ADR commit — intent and ownership are declared here only).
    - Ship an `oya-authn-device-firmware` crate that wraps OpenSK for the nRF52840 reference
      dongle (dev/test use only; not yet productized). Deferred IP.
    - Document dev-key provisioning workflow for oyatie engineers using nRF52840 dongles as
@@ -113,7 +115,7 @@ oya-authn-device must reach minimum parity before migration cutover from OpenSK 
 
 ## Bridge and migration
 
-OpenSK vendored at `tools/opensk-vendored/` is the Phase-1 reference. Cutover to bespoke
+OpenSK reference metadata under `tools/opensk-vendored/README.md` is the Phase-1 reference. Cutover to bespoke
 oya-authn-device firmware is gated on:
 
 - (a) Parity table above: all Tier-3 rows green (feature-complete in bespoke fork).
@@ -153,7 +155,7 @@ the low-cost developer provisioning path.
 
 ## Consequences
 
-- New `tools/opensk-vendored/` reference declared (NOT vendored in this ADR; follow-up IP lane).
+- New `tools/opensk-vendored/README.md`, `tools/opensk-vendored/UPSTREAM-CONFIG.json`, and `tools/opensk-vendored/OWNERS` reference metadata declared (NOT vendored source; follow-up IP lane).
 - Workspace gains optional `oya-authn-device-firmware` reference crate (deferred IP).
 - Hardware budget line item required in Tier-3 timeline planning.
 - Manufacturing/supply-chain ADR family triggered at Tier-3 promotion:

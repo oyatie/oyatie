@@ -28,7 +28,7 @@ nRF52840 dongle (Nordic nRF Connect SDK toolchain). `cargo` cross-compile to
 
 | Phase | Description |
 |-------|-------------|
-| Phase-1 | Vendor reference + dev-hardware bring-up (this commit) |
+| Phase-1 | Declare the vendor reference and plan dev-hardware bring-up (source/build/provisioning deferred) |
 | Phase-2 | Rust fork with oyatie attestation root CA |
 | Phase-3 | Oyatie-branded hardware run |
 | Phase-4 | OpenTitan SoC port (open silicon) |
