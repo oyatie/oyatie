@@ -32,7 +32,7 @@ excludes:
     it.
 authority_chain_declaration: |
   system / developer / user instructions
-    > CLAUDE.md + docs/AGENTS.md (authoritative agent entry + operating contract until /specs/agent-operating-contract.json PHASE-5 promotion)
+    > CLAUDE.md + docs/AGENTS.md (authoritative agent entry + operating contract until explicit /specs/agent-operating-contract.json PHASE-5 promotion evidence)
     > /specs/root-hub-pointers.json (redirect/index hub; pointer cohesion, not an override of CLAUDE/docs/AGENTS)
     > installed agent-runtime skill and role catalog (for Codex: ~/.codex/skills + ~/.codex/agents; project .codex overlays only when intentionally checked in)
     > machine-readable specs and registries under /specs, /registry, /evidence, and /templates
@@ -54,14 +54,14 @@ Workflow Studio product surface inverts P0 (human-ergonomic-first, no-code-first
 
 ## Wave 15-ZF doctrine refs — ADR-0346..ADR-0349
 
-Every agent MUST treat [ADR-0346](decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md), [ADR-0347](decisions/ADR-0347-governance-fitness-bulk-rename.md), [ADR-0348](decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md), and [ADR-0349](decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md) as active operating-contract doctrine until superseded or amended by a newer ADR. ADR-0513/platform-readiness is the current amendment for CI authority: Prow-shaped cloud-ci/oya-ci is the destination, Jenkins is a bridge, and `oya` CLI must not be promoted as protected-branch CI authority.
+Every agent MUST treat [ADR-0346](decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md), [ADR-0347](decisions/ADR-0347-governance-fitness-bulk-rename.md), [ADR-0348](decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md), and [ADR-0349](decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md) as active operating-contract doctrine for their non-CI obligations until superseded or amended by a newer ADR. For CI/CD enforcement, [ADR-0515](decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md) is the current single-truth amendment: GitHub Actions + branch protection are the live runner/authority until explicit owned-runner cutover, the cloud-ci Rust gate apps produce the one protected `oya-ci-required` context, and ADR-0513/Prow/Jenkins/legacy `oya` CLI governance wording is superseded provenance or local-feedback evidence only.
 
 | ADR | Operating-contract binding | Enforced-by lanes agents MUST preserve |
 |---|---|---|
-| ADR-0346 (amended by ADR-0513/platform-readiness) | ADR-0346's retired `./bin/oya verify --ci-required` path is historical/provenance-only; do not invoke or recreate the tracked `bin/oya` shim. The old full-mirror semantics survive only as migration input while porting them into cloud-ci/Rust gate contexts, and must never be extended or treated as protected-branch merge/exit authority. | Transitional mirror lanes may remain until cutover, but destination enforcement is `cloud-ci-required` / `oya-ci-required` plus Rust gate packets; do not add new `oya` CLI CI authority. |
+| ADR-0346 (amended by ADR-0515) | `./bin/oya verify --ci-required` / `oya verify` are optional legacy local-feedback evidence only. They MUST NOT be extended or treated as protected-branch merge/exit authority; preserve old semantics only as provenance/local diagnostics while required semantics live in cloud-ci Rust gate packets. | The only merge authority is the single protected `oya-ci-required` context; do not add new `oya` CLI CI authority. |
 | ADR-0347 | Every `oya-governance-*` CI lane prefix RENAMES to `oya-governance-*` in one Wave 15-ZB bulk-rename pull request; the rename is name-only and lane invariants remain preserved. | `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, `oya-governance-rename-inventory-presence`. |
 | ADR-0348 | Cellular topology MUST support autosharding, auto-rebalance, and dynamic sharding through manifest-declared `sharding_automation` blocks, honoring residency, reversibility, and audit-chain emission. | `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, `oya-governance-tenant-migration-reversibility`. |
-| ADR-0349 (amended by ADR-0359/ADR-0361/ADR-0513) | Jenkins (LTS) is the current bridge substrate, not the destination CI authority. ADR-0513 makes Prow-shaped cloud-ci/oya-ci the canonical CI orchestrator/merge-admission service; ArgoCD/Argo Rollouts remain CD bridge/reference adapters where separately authorized. GitHub Actions is retired. | Preserve existing Jenkins bridge lanes until P0.0/P1 cutover, but do not add new Jenkins/Groovy or `oya` CLI CI authority. Destination lanes are cloud-ci/oya-ci Rust gate contexts plus ArgoCD tenant-isolation/deploy audit lanes. |
+| ADR-0349 (amended/superseded for CI by ADR-0515) | Jenkins and Prow-shaped wording are historical/provenance only. GitHub Actions is the current ADR-0515 live runner for the canonical cloud-ci pipeline until explicit owned-runner cutover, not a parallel authority; ArgoCD/Argo Rollouts remain CD bridge/reference adapters where separately authorized. | Preserve bridge references only as provenance; do not add new Jenkins/Groovy, Prow, or `oya` CLI CI authority. Destination lanes are cloud-ci Rust gate contexts aggregated into `oya-ci-required` plus ArgoCD tenant-isolation/deploy audit lanes. |
 
 ## Independent review discipline — active; multispectrum file convention retired
 
@@ -77,7 +77,7 @@ The higher source wins on conflict.
 
 ```
 system / developer / user instructions
-  > CLAUDE.md + docs/AGENTS.md (authoritative agent entry + operating contract until /specs/agent-operating-contract.json PHASE-5 promotion)
+  > CLAUDE.md + docs/AGENTS.md (authoritative agent entry + operating contract until explicit /specs/agent-operating-contract.json PHASE-5 promotion evidence)
   > /specs/root-hub-pointers.json (redirect/index hub; pointer cohesion, not an override of CLAUDE/docs/AGENTS)
   > installed agent-runtime skill and role catalog (for Codex: ~/.codex/skills + ~/.codex/agents)
   > machine-readable specs and registries under /specs, /registry, /evidence, and /templates
@@ -86,7 +86,7 @@ system / developer / user instructions
   > working drafts (never authoritative)
 ```
 
-The chain is aligned with `/specs/root-hub-pointers.json` discoverability and the markdown-retirement policy while keeping CLAUDE.md + docs/AGENTS.md authoritative until PHASE-5. The `oya-governance-authority-cohesion` lane validates pointer cohesion during PHASE-5 migration.
+The chain is aligned with `/specs/root-hub-pointers.json` discoverability and the markdown-retirement policy while keeping CLAUDE.md + docs/AGENTS.md authoritative until explicit PHASE-5 promotion evidence lands. A missed PHASE-5 deadline does not automatically promote the projection; the `oya-governance-authority-cohesion` lane validates pointer cohesion during reconciliation.
 
 The installed agent-runtime skill and role catalog provides universal intent→skill mapping, anti-rationalization, persona/skill/command orchestration, and role prompts. Oyatie governance (this file) OVERLAYS and WINS on conflict per Bominal-inheritance precedence (`feedback_bominal_inheritance_precedence`). The retired `tools/agent-skills/` vendor tree is intentionally absent; agents should use their installed runtime surfaces instead of repo-local duplicated copies.
 
@@ -172,32 +172,48 @@ While the change is in flight, every agent and every human MUST observe these ru
 - **No quarantining flaky tests without a 14-day fix SLA.** Quarantine assigns the test to the `flaky/` lane; the SLA is tracked.
 - **No editing legacy retired paths.** If a path was retired in a consolidation event, do not recreate it.
 - **Buck2 for evidence.** Local editor loops are advisory; final evidence comes from targeted `buck2 test` / `buck2 build` plus cloud-ci gate packets per [`standards/testing.md`](standards/testing.md) <!-- forward-reference: wave-1 -->.
+- **Kanban coordinator / worker split.** The external Hermes board-steward role is the portfolio/architecture coordinator: it evaluates architecture, system design, completed and upcoming work, maturity gaps, documentation/procedure/process health, regressions, and Kanban decomposition/prioritization. Dispatcher-assigned workers execute scoped implementation, review, verification, and PR evidence lanes in isolated worktrees. The coordinator MUST NOT become the default implementation worker unless explicitly assigned as that lane worker.
+- **Blockers become work.** A coordinator that finds a blocker MUST create/link a dispatcher-ready resolution card with source context, blocker class, acceptance criteria, verification path, suggested owner/profile, and dependency/conflict notes. Do not convert blockers into ad hoc coordinator implementation unless the coordinator is explicitly assigned as worker for that lane.
+- **Autonomous merge boundary.** Autonomous merge authority exists only when the PR is fully reviewed, review threads are resolved, the required `oya-ci-required` context is green, the branch has no merge conflict, and branch protection is satisfied. Green CI alone is insufficient.
+
 ## Sanctioned primitives
 
 Agent coordination uses plain `git`. ADR-0363 retires the prior wrapper/ratchet
-substrate; do not reintroduce an agentic VCS wrapper. An agent works on an
-isolated worktree branch and opens a pull request against `dev`, which enters
-the governance pipeline:
-Prow/cloud-ci required context + reviewer APPROVE gate merge readiness remains the target. The GitHub (interim) protected-branch substrate remains the cloud-scm target (ADR-0247 post-bootstrap); GH #983 folds PR title/body hygiene into `oya-ci-required`, but live review admission still waits on F-PR5-06. Legacy `oya gate` output is bridge evidence only until cloud-ci cutover, and `oya` CLI is on the CI-retirement path.
+substrate; do not reintroduce an agentic VCS wrapper. ADR-0515 retires CLI
+governance and makes GitHub Actions + branch protection the live CI runner until
+explicit owned-runner cutover. An agent works on an isolated worktree branch and
+opens a pull request against `dev`, which enters the governance pipeline:
+the single protected `oya-ci-required` context + reviewer APPROVE gate merge
+readiness. `oya gate` / `oya verify` output is optional local feedback or
+provenance only; it is never protected-branch CI authority.
 
 The fenced block below is the machine-readable agent surface. Human-facing terminal examples may live outside fences.
 
 <!-- agent-instructions:start -->
 sanctioned_primitives:
   - git
-  - cloud-ci-required-status
-transitional_legacy_primitives_until_p0_0_cutover:
+legacy_local_feedback_primitives_not_merge_authority:
   - oya-gate
   - oya-verify
 required_sequence:
   - isolated worktree branch per agent lane (scaffold-managed; one lane = one worktree)
   - commit and push on that lane
   - open a PR against dev               # enters the governance pipeline
-  - Prow/cloud-ci required context + reviewer APPROVE target; PR title/body hygiene flows through `oya-ci-required`, while F-PR5-06 still owns live review-admission closure and Jenkins/oya bridge evidence remains transitional until P0.0 cutover
+  - fully reviewed, review threads resolved, no merge conflict, branch protection satisfied,
+    and single protected `oya-ci-required` context green (legacy CLI evidence optional/local only)
   - squash merge after review threads resolve
   - post-merge product-completion packet: promoted SHA `oya-ci-required` green,
     rollout verification, rollback note, observability check, browser UX/user-story evidence,
-    and Release Please/release-note impact
+    and release-governance/release-note impact (Release Please applies only when a live repo config/workflow exists)
+coordinator_worker_split:
+  coordinator: external Hermes/portfolio steward owns architecture, system design, maturity,
+    regression audit, and Kanban decomposition/prioritization
+  worker: dispatcher-assigned implementation/review worker owns scoped edits, tests,
+    review, and PR evidence
+  boundary: coordinator is not the default implementation worker unless explicitly assigned
+blocker_policy: queue/link dispatcher-ready resolution cards with source context,
+  blocker class, acceptance criteria, verification path, suggested owner/profile,
+  and dependency/conflict notes unless explicitly assigned as that lane worker
 scaffold_protocol:
   mechanism: per-agent isolated worktree plus admission-gate concurrent-safe-paths
   adr: docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md

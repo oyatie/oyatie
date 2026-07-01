@@ -106,7 +106,7 @@
       "current_path": "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
       "kind": "goal_prompt",
       "migration_phase": "fd001-planning-closure-supersedes-2026-05-16-durable-goal",
-      "purpose": "Historical FD-001 durable-goal prompt for planning closure/implementation. Its plain-git protected-PR governance portions are superseded/amended by platform-readiness: Prow/cloud-ci/oya-ci required contexts are destination authority; legacy CI bridge output is evidence only. The former .omc archive manifest is retired from the tracked tree and is not live authority.",
+      "purpose": "Historical FD-001 durable-goal prompt for planning closure/implementation. Its plain-git protected-PR governance portions are superseded/amended by platform-readiness: reviewer approval plus the single protected `oya-ci-required` context is destination authority; legacy CI bridge output is evidence only. The former .omc archive manifest is retired from the tracked tree and is not live authority.",
       "superseded_path": "/specs/agent-durable-goal.json",
       "target_path_after_md_retirement": "same active goal prompt until promoted into /specs/agent-durable-goal.json successor schema",
       "retired_archive_manifest_path": ".omc/archive/stale-documents/2026-05-19-planning-closure/manifest.json",
@@ -116,15 +116,21 @@
       "current_path": "docs/AGENTS.md",
       "kind": "spec",
       "migration_phase": "PHASE-5",
-      "purpose": "Canonical agent operating contract (done-definition checklist, plain-git protected-PR governance, Prow/cloud-ci transition target, independent reviewer-agent discipline, retired legacy-tool notes).",
+      "phase_deadline": "2026-06-30",
+      "phase_status": "overdue-needs-replan",
+      "promotion_boundary": "docs/AGENTS.md remains current authority until explicit PHASE-5 promotion evidence promotes /specs/agent-operating-contract.json; the missed PHASE-5 deadline does not auto-promote the projection.",
+      "purpose": "Canonical agent operating contract (done-definition checklist, plain-git protected-PR governance, single oya-ci-required merge authority, independent reviewer-agent discipline, retired legacy-tool notes).",
       "target_path_after_md_retirement": "/specs/agent-operating-contract.json"
     },
     "agent_operating_contract_machine_projection": {
       "canonical_authority_path": "docs/AGENTS.md",
       "current_path": "/specs/agent-operating-contract.json",
       "kind": "spec",
-      "migration_phase": "projection-until-PHASE-5",
-      "purpose": "Machine-readable projection target for the agent operating contract. It supports root-hub discovery without superseding docs/AGENTS.md before PHASE-5 promotion."
+      "migration_phase": "projection-until-explicit-PHASE-5-promotion",
+      "phase_deadline": "2026-06-30",
+      "phase_status": "overdue-needs-replan",
+      "promotion_condition": "Promotion requires authority-cohesion evidence and reviewer approval; until then this projection is discovery/planning support only.",
+      "purpose": "Machine-readable projection target for the agent operating contract. It supports root-hub discovery without superseding docs/AGENTS.md before explicit PHASE-5 promotion evidence."
     },
     "api_contract_ssot_canonical": {
       "current_path": "/specs/api-contract-ssot-canonical.json",
