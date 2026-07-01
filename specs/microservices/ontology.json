@@ -289,7 +289,7 @@
       "practice": "per-tenant cell pinning + per-jurisdiction overlay at edge"
     },
     {
-      "practice": "type descriptors at CDN edge; instance reads in-memory + Redis"
+      "practice": "type descriptors at CDN edge; instance reads through in-memory + Valkey hot cache"
     },
     {
       "practice": "BulkEntityFetch 1000/call; cursor pagination"
