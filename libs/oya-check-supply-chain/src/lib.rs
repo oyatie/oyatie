@@ -115,8 +115,8 @@ pub enum SbomFormat {
 impl SbomFormat {
     pub fn name(self) -> &'static str {
         match self {
-            Self::Spdx => "spdx",
-            Self::CycloneDx => "cyclonedx",
+            Self::Spdx => "SPDX",
+            Self::CycloneDx => "CycloneDX",
         }
     }
 }
@@ -151,10 +151,10 @@ pub enum VulnerabilityPrioritySignal {
 impl VulnerabilityPrioritySignal {
     pub fn name(self) -> &'static str {
         match self {
-            Self::CisaKev => "cisa-kev",
-            Self::Epss => "epss",
-            Self::Cvss => "cvss",
-            Self::Ssvc => "ssvc",
+            Self::CisaKev => "CISA_KEV",
+            Self::Epss => "EPSS",
+            Self::Cvss => "CVSS",
+            Self::Ssvc => "SSVC",
         }
     }
 }
@@ -196,11 +196,14 @@ pub struct VulnerabilityExceptionPolicy {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct VulnerabilityAuditEvidencePolicy {
-    pub advisory_snapshot_signed: bool, // data_class: INTERNAL_ONLY
-    pub sbom_artifacts_signed: bool,    // data_class: INTERNAL_ONLY
-    pub vex_artifacts_signed: bool,     // data_class: INTERNAL_ONLY
-    pub audit_event_type: String,       // data_class: INTERNAL_ONLY
-    pub retention_days: u32,            // data_class: INTERNAL_ONLY
+    pub advisory_snapshot_signed: bool,  // data_class: INTERNAL_ONLY
+    pub sbom_artifacts_signed: bool,     // data_class: INTERNAL_ONLY
+    pub vex_artifacts_signed: bool,      // data_class: INTERNAL_ONLY
+    pub priority_decision_signed: bool,  // data_class: INTERNAL_ONLY
+    pub exception_decision_signed: bool, // data_class: INTERNAL_ONLY
+    pub admission_verdict_signed: bool,  // data_class: INTERNAL_ONLY
+    pub audit_event_type: String,        // data_class: INTERNAL_ONLY
+    pub retention_days: u32,             // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -524,6 +527,18 @@ fn validate_vulnerability_audit_evidence(
         ),
         (evidence.sbom_artifacts_signed, "sbom_artifacts_signed"),
         (evidence.vex_artifacts_signed, "vex_artifacts_signed"),
+        (
+            evidence.priority_decision_signed,
+            "priority_decision_signed",
+        ),
+        (
+            evidence.exception_decision_signed,
+            "exception_decision_signed",
+        ),
+        (
+            evidence.admission_verdict_signed,
+            "admission_verdict_signed",
+        ),
     ] {
         if !present {
             return Err(VulnerabilityIntelligenceError::MissingSignedAuditEvidence { field });
@@ -1382,7 +1397,20 @@ mod tests {
             .retain(|signal| *signal != VulnerabilityPrioritySignal::Ssvc);
         assert_eq!(
             validate_vulnerability_intelligence_contract(&contract),
-            Err(VulnerabilityIntelligenceError::MissingPrioritySignal { signal: "ssvc" })
+            Err(VulnerabilityIntelligenceError::MissingPrioritySignal { signal: "SSVC" })
+        );
+    }
+
+    #[test]
+    fn rejects_vulnerability_intelligence_missing_signed_decision_evidence() {
+        let mut contract = vulnerability_contract();
+        contract.audit_evidence.admission_verdict_signed = false;
+
+        assert_eq!(
+            validate_vulnerability_intelligence_contract(&contract),
+            Err(VulnerabilityIntelligenceError::MissingSignedAuditEvidence {
+                field: "admission_verdict_signed",
+            })
         );
     }
 
@@ -1477,6 +1505,9 @@ mod tests {
                 advisory_snapshot_signed: true,
                 sbom_artifacts_signed: true,
                 vex_artifacts_signed: true,
+                priority_decision_signed: true,
+                exception_decision_signed: true,
+                admission_verdict_signed: true,
                 audit_event_type: VULNERABILITY_DECISION_AUDIT_EVENT.into(),
                 retention_days: VULNERABILITY_MIN_AUDIT_RETENTION_DAYS,
             },
