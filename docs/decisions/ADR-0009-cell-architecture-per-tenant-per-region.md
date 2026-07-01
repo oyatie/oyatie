@@ -89,6 +89,17 @@ Evidence emits to the trust portal per ADR-0003.
 - Applies to: every tenant data plane, every Foundry agent invocation, every cross-microservice call carrying tenant scope.
 - Does not apply to: control-plane management (region-global by design per ADR-0004); analytics-plane projections (region-global with per-cell-tagged rows); public-corpus search ingestion (its own `Public-corpus` tier).
 
+### CELL-001R spec-only validation registration
+
+CELL-001R registers a spec-only manifest contract and cloud-ci validation surface for this ADR's cell tier and quarterly evidence concepts. These paths are accounting/validation surfaces only and do not authorize runtime cell routing, provider APIs, Kubernetes/Argo calls, tenant migration, autosharding, auto-rebalance, failover, or live evidence collection:
+
+- `specs/cell-topology-manifest-contract.json`
+- `specs/fixtures/cell-topology-manifest/tenancy-kr-strict.json`
+- `cloud/cloud-ci/gates/oya-cloud-ci-cell-topology-manifest-contract-app/BUCK`
+- `cloud/cloud-ci/gates/oya-cloud-ci-cell-topology-manifest-contract-app/Cargo.toml`
+- `cloud/cloud-ci/gates/oya-cloud-ci-cell-topology-manifest-contract-app/src/lib.rs`
+- `cloud/cloud-ci/gates/oya-cloud-ci-cell-topology-manifest-contract-app/tests/cell_topology_manifest_contract.rs`
+
 ---
 
 ## Consequences

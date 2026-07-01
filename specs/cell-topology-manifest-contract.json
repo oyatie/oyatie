@@ -46,7 +46,7 @@
     "shared-small",
     "shared-medium",
     "shared-large",
-    "foundry-runtime",
+    "agent-runtime",
     "public-corpus"
   ],
   "cell_tier_sources": {
@@ -54,7 +54,7 @@
     "shared-small": "ADR-0009 Shared-small: up to approximately 10 tenants",
     "shared-medium": "ADR-0009 Shared-medium: up to approximately 100 tenants",
     "shared-large": "ADR-0009 Shared-large: up to approximately 1000 tenants",
-    "foundry-runtime": "ADR-0009 Foundry-runtime: agent execution cells",
+    "agent-runtime": "ADR-0009 agent invocation cells: agent execution cells with per-run worktree isolation",
     "public-corpus": "ADR-0009 Public-corpus: search public-web ingestion only"
   },
   "residency_class_enum": [
