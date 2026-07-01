@@ -82,6 +82,11 @@ Named retirement set: the cargo CI lanes, the per-program `build.sh` × N, `run-
 `conformance-probe.sh`, `diff-oracle*.sh`, the kernel verify-gate scripts, `build-carriers.sh`-as-
 orchestrator, the tracked `out/*.elf` blobs, `.envrc` + `bin/oya` manual PATH.
 
+CI-011 records the protected closeout inventory for this retirement set at
+`evidence/audits/ci-011-shell-cli-retirement-inventory-2026-06-30.json` and
+`evidence/audits/ci-011-shell-cli-retirement-inventory-2026-06-30.md`. Those artifacts are
+point-in-time evidence for downstream retirement work, not new shell/CLI authority.
+
 **KEY TENSION (Consensus Addendum):** reproducibility OUTRANKS shell-count — "minimal shell" may
 legitimately mean adopting a minimal Nix flake for QEMU/talosctl if `download_file` pinning proves
 non-reproducible across host classes, which the founder must accept as MORE external machinery, not
