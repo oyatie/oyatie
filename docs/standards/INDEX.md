@@ -58,6 +58,7 @@ that informed it where one exists.
 | [`data-class.md`](data-class.md) | Every kernel struct field carries `oyatie.data_class`; cross-pillar flow rules; DSR cascade integration | `oya-governance-data-class`, `-dsr-cascade` | Tier 2 |
 | [`autonomy-ceiling.md`](autonomy-ceiling.md) | T1/T2/T3/T4 binding + Cedar policy + per-capability autonomy record + config-flag uplift forbidden | `oya-governance-autonomy-ceiling` | Tier 2 |
 | [`agent-instructions-discipline.md`](agent-instructions-discipline.md) | `<!-- agent-instructions:start -->` / `<!-- agent-instructions:end -->` fences + banned-token grep scope + documented-rationale flow | `oya-governance-agent-instructions-fence`, `-banned-primitives` | Tier 2 |
+| [`cloud-native-infrastructure-automation.md`](cloud-native-infrastructure-automation.md) | API-shaped Rust/config/controller/gate infrastructure automation; no new ad-hoc CLIs or Python/shell core infra behavior | `planned: oya-ci-required/cloud-native-infra-automation-review` | Tier 2 |
 
 ## Forward-reference resolution map
 
