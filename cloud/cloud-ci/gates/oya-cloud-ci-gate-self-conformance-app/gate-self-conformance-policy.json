@@ -89,6 +89,7 @@
     "oya-cloud-ci-automation-ratchet-app": "Automation-ratchet findings require choosing the durable automation owner and cannot be mechanically rewritten from observation rows.",
     "oya-cloud-ci-bnf-layer-suffix-app": "Crate naming and layer placement are design decisions; an automatic rename would break imports, manifests, and ownership without review.",
     "oya-cloud-ci-cache-wiring-app": "Cache topology violations require runner/cache policy decisions, so the gate reports exact wiring gaps instead of mutating CI configuration.",
+    "oya-cloud-ci-cloud-resource-contracts-app": "Cloud-resource contract findings require source specification changes or reviewed claim-boundary decisions; the gate cannot safely rewrite product readiness or actuation semantics.",
     "oya-cloud-ci-canonical-json-app": "This gate already ships an explicit --fix path; the policy reason remains as documentation for adopters that disable rewriting.",
     "oya-cloud-ci-capability-membership-app": "Capability membership gaps require source-of-truth registry ownership decisions, not a blind generated mapping.",
     "oya-cloud-ci-cargo-prefix-app": "Prefix violations are migration-sensitive naming decisions; remediation is a reviewed rename or neutral-profile policy change.",
