@@ -24,7 +24,9 @@ pub mod obligations;
 pub use obligations::{AnnotationKind, PolicyAnnotation};
 
 pub mod policy_diff;
-pub use policy_diff::{diff_policy_versions, ImpactReport, RuleDelta};
+pub use policy_diff::{ImpactReport, RuleDelta, diff_policy_versions};
+
+pub mod rebac;
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum PolicyScope {
