@@ -127,8 +127,8 @@ the BUCK-fixer refusal precedent). Therefore:
    never invents decisions.
 3. **Seed registrations land with this decision** so the conversion arms with the common
    PR shapes already tractable (and as live burn-down proof): the ownership markers
-   `docs/decisions/OWNERS` + `specs/OWNERS` (council-architecture — the dominant decisions
-   owner in ADR front-matter, incl. this ADR, and a `specs` `owner_team` value) and
+   `docs/decisions/OWNERS` + `docs/standards/OWNERS` + `specs/OWNERS` (council-architecture —
+   the dominant decisions/standards owner in ADR front-matter, incl. this ADR, and a `specs` `owner_team` value) and
    `cloud/cloud-ci/gates/OWNERS` +
    `third-party/OWNERS` + `evidence/OWNERS` (cloud-ci-platform — the owner the existing
    `.omc/ultragoal/OWNERS` precedent names); registry prefixes for `docs/decisions/`

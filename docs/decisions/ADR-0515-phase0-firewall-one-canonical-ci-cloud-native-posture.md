@@ -82,6 +82,10 @@ ADR-0513, ADR-0514, and the 21-facet multispectrum-review enforcement doctrine; 
 (does not absorb) ADR-0408/ADR-0392 (the Buck2 build substrate, a distinct bounded context); it
 **amends** ADR-0092 (strip the multispectrum dependency-seam subchecks).
 
+The concise reviewer-facing projection of this cloud-native/no-CLI/no-shell posture is
+`docs/standards/cloud-native-infrastructure-automation.md`; it is guidance over this ADR's accepted
+decision, not a separate runtime or merge authority.
+
 Under **D-SSOT-CURRENT-TRUTH** the SSOT holds only current truth: the superseded cluster is
 hard-destroyed (git history is the sole archive) and every dangling reference scrubbed once this ADR
 lands — there is no kept `_archive/` tombstone. This ADR is the only CI/CD enforcement document that

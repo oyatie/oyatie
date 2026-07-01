@@ -856,14 +856,15 @@ Standards are the cross-cutting rules for how docs, APIs, code, policy, tests, o
 4. [layer enum](standards/layer-enum-adr-0105.md) - layer enum companion to ADR-0105.
 5. [doc style](standards/doc-style.md) - Diataxis, RFC-2119, and doc-class authoring style.
 6. [clean architecture](standards/clean-architecture.md) - clean architecture standards for code layout.
-7. [API design](standards/api-design.md) - API design discipline and interface expectations.
-8. [OpenAPI authoring](standards/openapi-3-2-authoring.md) - OpenAPI 3.2 authoring standard.
-9. [AsyncAPI authoring](standards/asyncapi-3-1-authoring.md) - AsyncAPI 3.1 authoring standard.
-10. [proto3 authoring](standards/proto3-authoring.md) - proto3 authoring standard.
-11. [Cedar policy discipline](standards/cedar-policy-discipline.md) - Cedar policy discipline and gate posture.
-12. [observability](standards/observability.md) - OpenTelemetry, metrics, logs, traces, and audit event standards.
-13. [testing](standards/testing.md) - test evidence and coverage bar.
-14. [security review](standards/security-review.md) - security review standard.
+7. [cloud-native infrastructure automation](standards/cloud-native-infrastructure-automation.md) - API-shaped Rust/config/controller/gate standard for core infrastructure automation.
+8. [API design](standards/api-design.md) - API design discipline and interface expectations.
+9. [OpenAPI authoring](standards/openapi-3-2-authoring.md) - OpenAPI 3.2 authoring standard.
+10. [AsyncAPI authoring](standards/asyncapi-3-1-authoring.md) - AsyncAPI 3.1 authoring standard.
+11. [proto3 authoring](standards/proto3-authoring.md) - proto3 authoring standard.
+12. [Cedar policy discipline](standards/cedar-policy-discipline.md) - Cedar policy discipline and gate posture.
+13. [observability](standards/observability.md) - OpenTelemetry, metrics, logs, traces, and audit event standards.
+14. [testing](standards/testing.md) - test evidence and coverage bar.
+15. [security review](standards/security-review.md) - security review standard.
 
 ### Related Sections
 
@@ -896,88 +897,89 @@ Related sections: [§0 Operating Map](#section-0-operating-map), [§2 Decisions]
 17. [ci-lanes.md](standards/ci-lanes.md) - Ci Lanes: normative rule shelf for implementation, docs, operations, or governance discipline.
 18. [claude-code-harness.md](standards/claude-code-harness.md) - Claude Code Harness: normative rule shelf for implementation, docs, operations, or governance discipline.
 19. [clean-architecture.md](standards/clean-architecture.md) - Clean Architecture: normative rule shelf for implementation, docs, operations, or governance discipline.
-20. [code-review.md](standards/code-review.md) - Code Review: normative rule shelf for implementation, docs, operations, or governance discipline.
-21. [code-style-rust.md](standards/code-style-rust.md) - Code Style Rust: normative rule shelf for implementation, docs, operations, or governance discipline.
-22. [code-style.md](standards/code-style.md) - Code Style: normative rule shelf for implementation, docs, operations, or governance discipline.
-23. [commit-message.md](standards/commit-message.md) - Commit Message: normative rule shelf for implementation, docs, operations, or governance discipline.
-24. [compliance-evidence-automation.md](standards/compliance-evidence-automation.md) - Compliance Evidence Automation: normative rule shelf for implementation, docs, operations, or governance discipline.
-25. [container-image-convention.md](standards/container-image-convention.md) - Container Image Convention: normative rule shelf for implementation, docs, operations, or governance discipline.
-26. [crate-naming-convention.md](standards/crate-naming-convention.md) - Crate Naming Convention: normative rule shelf for implementation, docs, operations, or governance discipline.
-27. [cross-microservice-latency-budget.md](standards/cross-microservice-latency-budget.md) - Cross Microservice Latency Budget: normative rule shelf for implementation, docs, operations, or governance discipline.
-28. [cursor-pagination-canonical.md](standards/cursor-pagination-canonical.md) - Cursor Pagination Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
-29. [data-class.md](standards/data-class.md) - Data Class: normative rule shelf for implementation, docs, operations, or governance discipline.
-30. [dependency-policy.md](standards/dependency-policy.md) - Dependency Policy: normative rule shelf for implementation, docs, operations, or governance discipline.
-31. [design-doc-template.md](standards/design-doc-template.md) - Design Doc Template: normative rule shelf for implementation, docs, operations, or governance discipline.
-32. [doc-style.md](standards/doc-style.md) - Doc Style: normative rule shelf for implementation, docs, operations, or governance discipline.
-33. [documentation-rigor.md](standards/documentation-rigor.md) - Documentation Rigor: normative rule shelf for implementation, docs, operations, or governance discipline.
-34. [dr-business-continuity.md](standards/dr-business-continuity.md) - Dr Business Continuity: normative rule shelf for implementation, docs, operations, or governance discipline.
-35. [emoji-sticker-reaction-system.md](standards/emoji-sticker-reaction-system.md) - Emoji Sticker Reaction System: normative rule shelf for implementation, docs, operations, or governance discipline.
-36. [error-handling.md](standards/error-handling.md) - Error Handling: normative rule shelf for implementation, docs, operations, or governance discipline.
-37. [event-schema-versioning-canonical.md](standards/event-schema-versioning-canonical.md) - Event Schema Versioning Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
-38. [finops-cost-attribution-canonical.md](standards/finops-cost-attribution-canonical.md) - Finops Cost Attribution Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
-39. [finops-cost-attribution.md](standards/finops-cost-attribution.md) - Finops Cost Attribution: normative rule shelf for implementation, docs, operations, or governance discipline.
-40. [fintech-compliance.md](standards/fintech-compliance.md) - Fintech Compliance: normative rule shelf for implementation, docs, operations, or governance discipline.
-41. [fips-hsm-substrate-root-signing.md](standards/fips-hsm-substrate-root-signing.md) - Fips Hsm Substrate Root Signing: normative rule shelf for implementation, docs, operations, or governance discipline.
-42. [git-workflow.md](standards/git-workflow.md) - Git Workflow: normative rule shelf for implementation, docs, operations, or governance discipline.
-43. [gitops-iac-cluster-tier-boundaries.md](standards/gitops-iac-cluster-tier-boundaries.md) - Gitops Iac Cluster Tier Boundaries: normative rule shelf for implementation, docs, operations, or governance discipline.
-44. [graceful-shutdown-canonical.md](standards/graceful-shutdown-canonical.md) - Graceful Shutdown Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
-45. [helm-chart-convention.md](standards/helm-chart-convention.md) - Helm Chart Convention: normative rule shelf for implementation, docs, operations, or governance discipline.
-46. [hyperscaler-best-practices.md](standards/hyperscaler-best-practices.md) - Hyperscaler Best Practices: normative rule shelf for implementation, docs, operations, or governance discipline.
-47. [hyperscaler-invariant-conformance.md](standards/hyperscaler-invariant-conformance.md) - Hyperscaler Invariant Conformance: normative rule shelf for implementation, docs, operations, or governance discipline.
-48. [i18n-canonical.md](standards/i18n-canonical.md) - I18N Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
-49. [idempotency-keys-canonical.md](standards/idempotency-keys-canonical.md) - Idempotency Keys Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
-50. [identity-vendor-isolation.md](standards/identity-vendor-isolation.md) - Identity Vendor Isolation: normative rule shelf for implementation, docs, operations, or governance discipline.
-51. [image-discipline.md](standards/image-discipline.md) - Image Discipline: normative rule shelf for implementation, docs, operations, or governance discipline.
-52. [image-signing-canonical.md](standards/image-signing-canonical.md) - Image Signing Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
-53. [incident-severity.md](standards/incident-severity.md) - Incident Severity: normative rule shelf for implementation, docs, operations, or governance discipline.
-54. [layer-enum-adr-0105.md](standards/layer-enum-adr-0105.md) - Layer Enum ADR 0105: normative rule shelf for implementation, docs, operations, or governance discipline.
-55. [locale-routing.md](standards/locale-routing.md) - Locale Routing: normative rule shelf for implementation, docs, operations, or governance discipline.
-56. [logging-tracing.md](standards/logging-tracing.md) - Logging Tracing: normative rule shelf for implementation, docs, operations, or governance discipline.
-57. [lts-versions-verified.md](standards/lts-versions-verified.md) - Lts Versions Verified: normative rule shelf for implementation, docs, operations, or governance discipline.
-58. [m02-exit-gate-validators.md](standards/m02-exit-gate-validators.md) - M02 Exit Gate Validators: normative rule shelf for implementation, docs, operations, or governance discipline.
-59. [messenger-e2e-encryption-mls.md](standards/messenger-e2e-encryption-mls.md) - Messenger E2E Encryption Mls: normative rule shelf for implementation, docs, operations, or governance discipline.
-60. [migration-playbook.md](standards/migration-playbook.md) - Migration Playbook: normative rule shelf for implementation, docs, operations, or governance discipline.
-61. [mls-rfc-9420-conformance.md](standards/mls-rfc-9420-conformance.md) - Mls Rfc 9420 Conformance: normative rule shelf for implementation, docs, operations, or governance discipline.
-62. [multi-agent-tool-map.md](standards/multi-agent-tool-map.md) - Multi Agent Tool Map: normative rule shelf for implementation, docs, operations, or governance discipline.
-63. [naming-convention-bnf-v4.md](standards/naming-convention-bnf-v4.md) - Naming Convention Bnf V4: normative rule shelf for implementation, docs, operations, or governance discipline.
-64. [observability-slo.md](standards/observability-slo.md) - Observability SLO: normative rule shelf for implementation, docs, operations, or governance discipline.
-67. [observability.md](standards/observability.md) - Observability: normative rule shelf for implementation, docs, operations, or governance discipline.
-68. [on-call.md](standards/on-call.md) - On Call: normative rule shelf for implementation, docs, operations, or governance discipline.
-69. [ontology-projection-substrate.md](standards/ontology-projection-substrate.md) - Ontology Projection Substrate: normative rule shelf for implementation, docs, operations, or governance discipline.
-70. [openapi-3-2-authoring.md](standards/openapi-3-2-authoring.md) - Openapi 3 2 Authoring: normative rule shelf for implementation, docs, operations, or governance discipline.
-71. [openslo-authoring.md](standards/openslo-authoring.md) - Openslo Authoring: normative rule shelf for implementation, docs, operations, or governance discipline.
-72. [outbox-pattern-canonical.md](standards/outbox-pattern-canonical.md) - Outbox Pattern Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
-73. [per-tenant-resource-quotas-canonical.md](standards/per-tenant-resource-quotas-canonical.md) - Per Tenant Resource Quotas Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
-74. [plugin-authoring.md](standards/plugin-authoring.md) - Plugin Authoring: normative rule shelf for implementation, docs, operations, or governance discipline.
-75. [postmortem-template.md](standards/postmortem-template.md) - Postmortem Template: normative rule shelf for implementation, docs, operations, or governance discipline.
-76. [prevention-doctrine.md](standards/prevention-doctrine.md) - Prevention Doctrine: normative rule shelf for implementation, docs, operations, or governance discipline.
-77. [prfaq-template.md](standards/prfaq-template.md) - Prfaq Template: normative rule shelf for implementation, docs, operations, or governance discipline.
-78. [privacy-review.md](standards/privacy-review.md) - Privacy Review: normative rule shelf for implementation, docs, operations, or governance discipline.
-79. [proto3-authoring.md](standards/proto3-authoring.md) - Proto3 Authoring: normative rule shelf for implementation, docs, operations, or governance discipline.
-80. [realtime-transport-tier.md](standards/realtime-transport-tier.md) - Realtime Transport Tier: normative rule shelf for implementation, docs, operations, or governance discipline.
-81. [regulatory-pack-authzpolicy-overlays.md](standards/regulatory-pack-authzpolicy-overlays.md) - Regulatory Pack Authzpolicy Overlays: normative rule shelf for implementation, docs, operations, or governance discipline.
-82. [release-management.md](standards/release-management.md) - Release Management: normative rule shelf for implementation, docs, operations, or governance discipline.
-83. [release.md](standards/release.md) - Release: normative rule shelf for implementation, docs, operations, or governance discipline.
-84. [request-id-canonical.md](standards/request-id-canonical.md) - Request Id Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
-85. [rtl-rendering.md](standards/rtl-rendering.md) - Rtl Rendering: normative rule shelf for implementation, docs, operations, or governance discipline.
-86. [saga-compensation-policy.md](standards/saga-compensation-policy.md) - Saga Compensation Policy: normative rule shelf for implementation, docs, operations, or governance discipline.
-87. [schema-migration.md](standards/schema-migration.md) - Schema Migration: normative rule shelf for implementation, docs, operations, or governance discipline.
-88. [security-review.md](standards/security-review.md) - Security Review: normative rule shelf for implementation, docs, operations, or governance discipline.
-89. [sovereign-cloud-overlay.md](standards/sovereign-cloud-overlay.md) - Sovereign Cloud Overlay: normative rule shelf for implementation, docs, operations, or governance discipline.
-90. [step-up-auth-classes.md](standards/step-up-auth-classes.md) - Step Up Auth Classes: normative rule shelf for implementation, docs, operations, or governance discipline.
-91. [stream-processing-rubric.md](standards/stream-processing-rubric.md) - Stream Processing Rubric: normative rule shelf for implementation, docs, operations, or governance discipline.
-92. [tenant-lifecycle.md](standards/tenant-lifecycle.md) - Tenant Lifecycle: normative rule shelf for implementation, docs, operations, or governance discipline.
-93. [testing.md](standards/testing.md) - Testing: normative rule shelf for implementation, docs, operations, or governance discipline.
-94. [throttling-tiers.md](standards/throttling-tiers.md) - Throttling Tiers: normative rule shelf for implementation, docs, operations, or governance discipline.
-95. [timescaledb-adoption.md](standards/timescaledb-adoption.md) - Timescaledb Adoption: normative rule shelf for implementation, docs, operations, or governance discipline.
-96. [trace-sampling-tier.md](standards/trace-sampling-tier.md) - Trace Sampling Tier: normative rule shelf for implementation, docs, operations, or governance discipline.
-97. [twelve-factor-adoption.md](standards/twelve-factor-adoption.md) - Twelve Factor Adoption: normative rule shelf for implementation, docs, operations, or governance discipline.
-98. [ux-best-practices.md](standards/ux-best-practices.md) - Ux Best Practices: normative rule shelf for implementation, docs, operations, or governance discipline.
-99. [voice-video-call-architecture.md](standards/voice-video-call-architecture.md) - Voice Video Call Architecture: normative rule shelf for implementation, docs, operations, or governance discipline.
-100. [wasm-runtime-canonical.md](standards/wasm-runtime-canonical.md) - Wasm Runtime Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
-101. [wcag-2-2-aa-checklist.md](standards/wcag-2-2-aa-checklist.md) - Wcag 2 2 Aa Checklist: normative rule shelf for implementation, docs, operations, or governance discipline.
-102. [workflow-substrate-engine.md](standards/workflow-substrate-engine.md) - Workflow Substrate Engine: normative rule shelf for implementation, docs, operations, or governance discipline.
-103. [workflow-vs-direct-grpc-rubric.md](standards/workflow-vs-direct-grpc-rubric.md) - Workflow Vs Direct Grpc Rubric: normative rule shelf for implementation, docs, operations, or governance discipline.
+20. [cloud-native-infrastructure-automation.md](standards/cloud-native-infrastructure-automation.md) - Cloud Native Infrastructure Automation: normative rule shelf for implementation, docs, operations, or governance discipline.
+21. [code-review.md](standards/code-review.md) - Code Review: normative rule shelf for implementation, docs, operations, or governance discipline.
+22. [code-style-rust.md](standards/code-style-rust.md) - Code Style Rust: normative rule shelf for implementation, docs, operations, or governance discipline.
+23. [code-style.md](standards/code-style.md) - Code Style: normative rule shelf for implementation, docs, operations, or governance discipline.
+24. [commit-message.md](standards/commit-message.md) - Commit Message: normative rule shelf for implementation, docs, operations, or governance discipline.
+25. [compliance-evidence-automation.md](standards/compliance-evidence-automation.md) - Compliance Evidence Automation: normative rule shelf for implementation, docs, operations, or governance discipline.
+26. [container-image-convention.md](standards/container-image-convention.md) - Container Image Convention: normative rule shelf for implementation, docs, operations, or governance discipline.
+27. [crate-naming-convention.md](standards/crate-naming-convention.md) - Crate Naming Convention: normative rule shelf for implementation, docs, operations, or governance discipline.
+28. [cross-microservice-latency-budget.md](standards/cross-microservice-latency-budget.md) - Cross Microservice Latency Budget: normative rule shelf for implementation, docs, operations, or governance discipline.
+29. [cursor-pagination-canonical.md](standards/cursor-pagination-canonical.md) - Cursor Pagination Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
+30. [data-class.md](standards/data-class.md) - Data Class: normative rule shelf for implementation, docs, operations, or governance discipline.
+31. [dependency-policy.md](standards/dependency-policy.md) - Dependency Policy: normative rule shelf for implementation, docs, operations, or governance discipline.
+32. [design-doc-template.md](standards/design-doc-template.md) - Design Doc Template: normative rule shelf for implementation, docs, operations, or governance discipline.
+33. [doc-style.md](standards/doc-style.md) - Doc Style: normative rule shelf for implementation, docs, operations, or governance discipline.
+34. [documentation-rigor.md](standards/documentation-rigor.md) - Documentation Rigor: normative rule shelf for implementation, docs, operations, or governance discipline.
+35. [dr-business-continuity.md](standards/dr-business-continuity.md) - Dr Business Continuity: normative rule shelf for implementation, docs, operations, or governance discipline.
+36. [emoji-sticker-reaction-system.md](standards/emoji-sticker-reaction-system.md) - Emoji Sticker Reaction System: normative rule shelf for implementation, docs, operations, or governance discipline.
+37. [error-handling.md](standards/error-handling.md) - Error Handling: normative rule shelf for implementation, docs, operations, or governance discipline.
+38. [event-schema-versioning-canonical.md](standards/event-schema-versioning-canonical.md) - Event Schema Versioning Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
+39. [finops-cost-attribution-canonical.md](standards/finops-cost-attribution-canonical.md) - Finops Cost Attribution Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
+40. [finops-cost-attribution.md](standards/finops-cost-attribution.md) - Finops Cost Attribution: normative rule shelf for implementation, docs, operations, or governance discipline.
+41. [fintech-compliance.md](standards/fintech-compliance.md) - Fintech Compliance: normative rule shelf for implementation, docs, operations, or governance discipline.
+42. [fips-hsm-substrate-root-signing.md](standards/fips-hsm-substrate-root-signing.md) - Fips Hsm Substrate Root Signing: normative rule shelf for implementation, docs, operations, or governance discipline.
+43. [git-workflow.md](standards/git-workflow.md) - Git Workflow: normative rule shelf for implementation, docs, operations, or governance discipline.
+44. [gitops-iac-cluster-tier-boundaries.md](standards/gitops-iac-cluster-tier-boundaries.md) - Gitops Iac Cluster Tier Boundaries: normative rule shelf for implementation, docs, operations, or governance discipline.
+45. [graceful-shutdown-canonical.md](standards/graceful-shutdown-canonical.md) - Graceful Shutdown Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
+46. [helm-chart-convention.md](standards/helm-chart-convention.md) - Helm Chart Convention: normative rule shelf for implementation, docs, operations, or governance discipline.
+47. [hyperscaler-best-practices.md](standards/hyperscaler-best-practices.md) - Hyperscaler Best Practices: normative rule shelf for implementation, docs, operations, or governance discipline.
+48. [hyperscaler-invariant-conformance.md](standards/hyperscaler-invariant-conformance.md) - Hyperscaler Invariant Conformance: normative rule shelf for implementation, docs, operations, or governance discipline.
+49. [i18n-canonical.md](standards/i18n-canonical.md) - I18N Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
+50. [idempotency-keys-canonical.md](standards/idempotency-keys-canonical.md) - Idempotency Keys Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
+51. [identity-vendor-isolation.md](standards/identity-vendor-isolation.md) - Identity Vendor Isolation: normative rule shelf for implementation, docs, operations, or governance discipline.
+52. [image-discipline.md](standards/image-discipline.md) - Image Discipline: normative rule shelf for implementation, docs, operations, or governance discipline.
+53. [image-signing-canonical.md](standards/image-signing-canonical.md) - Image Signing Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
+54. [incident-severity.md](standards/incident-severity.md) - Incident Severity: normative rule shelf for implementation, docs, operations, or governance discipline.
+55. [layer-enum-adr-0105.md](standards/layer-enum-adr-0105.md) - Layer Enum ADR 0105: normative rule shelf for implementation, docs, operations, or governance discipline.
+56. [locale-routing.md](standards/locale-routing.md) - Locale Routing: normative rule shelf for implementation, docs, operations, or governance discipline.
+57. [logging-tracing.md](standards/logging-tracing.md) - Logging Tracing: normative rule shelf for implementation, docs, operations, or governance discipline.
+58. [lts-versions-verified.md](standards/lts-versions-verified.md) - Lts Versions Verified: normative rule shelf for implementation, docs, operations, or governance discipline.
+59. [m02-exit-gate-validators.md](standards/m02-exit-gate-validators.md) - M02 Exit Gate Validators: normative rule shelf for implementation, docs, operations, or governance discipline.
+60. [messenger-e2e-encryption-mls.md](standards/messenger-e2e-encryption-mls.md) - Messenger E2E Encryption Mls: normative rule shelf for implementation, docs, operations, or governance discipline.
+61. [migration-playbook.md](standards/migration-playbook.md) - Migration Playbook: normative rule shelf for implementation, docs, operations, or governance discipline.
+62. [mls-rfc-9420-conformance.md](standards/mls-rfc-9420-conformance.md) - Mls Rfc 9420 Conformance: normative rule shelf for implementation, docs, operations, or governance discipline.
+63. [multi-agent-tool-map.md](standards/multi-agent-tool-map.md) - Multi Agent Tool Map: normative rule shelf for implementation, docs, operations, or governance discipline.
+64. [naming-convention-bnf-v4.md](standards/naming-convention-bnf-v4.md) - Naming Convention Bnf V4: normative rule shelf for implementation, docs, operations, or governance discipline.
+65. [observability-slo.md](standards/observability-slo.md) - Observability SLO: normative rule shelf for implementation, docs, operations, or governance discipline.
+66. [observability.md](standards/observability.md) - Observability: normative rule shelf for implementation, docs, operations, or governance discipline.
+67. [on-call.md](standards/on-call.md) - On Call: normative rule shelf for implementation, docs, operations, or governance discipline.
+68. [ontology-projection-substrate.md](standards/ontology-projection-substrate.md) - Ontology Projection Substrate: normative rule shelf for implementation, docs, operations, or governance discipline.
+69. [openapi-3-2-authoring.md](standards/openapi-3-2-authoring.md) - Openapi 3 2 Authoring: normative rule shelf for implementation, docs, operations, or governance discipline.
+70. [openslo-authoring.md](standards/openslo-authoring.md) - Openslo Authoring: normative rule shelf for implementation, docs, operations, or governance discipline.
+71. [outbox-pattern-canonical.md](standards/outbox-pattern-canonical.md) - Outbox Pattern Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
+72. [per-tenant-resource-quotas-canonical.md](standards/per-tenant-resource-quotas-canonical.md) - Per Tenant Resource Quotas Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
+73. [plugin-authoring.md](standards/plugin-authoring.md) - Plugin Authoring: normative rule shelf for implementation, docs, operations, or governance discipline.
+74. [postmortem-template.md](standards/postmortem-template.md) - Postmortem Template: normative rule shelf for implementation, docs, operations, or governance discipline.
+75. [prevention-doctrine.md](standards/prevention-doctrine.md) - Prevention Doctrine: normative rule shelf for implementation, docs, operations, or governance discipline.
+76. [prfaq-template.md](standards/prfaq-template.md) - Prfaq Template: normative rule shelf for implementation, docs, operations, or governance discipline.
+77. [privacy-review.md](standards/privacy-review.md) - Privacy Review: normative rule shelf for implementation, docs, operations, or governance discipline.
+78. [proto3-authoring.md](standards/proto3-authoring.md) - Proto3 Authoring: normative rule shelf for implementation, docs, operations, or governance discipline.
+79. [realtime-transport-tier.md](standards/realtime-transport-tier.md) - Realtime Transport Tier: normative rule shelf for implementation, docs, operations, or governance discipline.
+80. [regulatory-pack-authzpolicy-overlays.md](standards/regulatory-pack-authzpolicy-overlays.md) - Regulatory Pack Authzpolicy Overlays: normative rule shelf for implementation, docs, operations, or governance discipline.
+81. [release-management.md](standards/release-management.md) - Release Management: normative rule shelf for implementation, docs, operations, or governance discipline.
+82. [release.md](standards/release.md) - Release: normative rule shelf for implementation, docs, operations, or governance discipline.
+83. [request-id-canonical.md](standards/request-id-canonical.md) - Request Id Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
+84. [rtl-rendering.md](standards/rtl-rendering.md) - Rtl Rendering: normative rule shelf for implementation, docs, operations, or governance discipline.
+85. [saga-compensation-policy.md](standards/saga-compensation-policy.md) - Saga Compensation Policy: normative rule shelf for implementation, docs, operations, or governance discipline.
+86. [schema-migration.md](standards/schema-migration.md) - Schema Migration: normative rule shelf for implementation, docs, operations, or governance discipline.
+87. [security-review.md](standards/security-review.md) - Security Review: normative rule shelf for implementation, docs, operations, or governance discipline.
+88. [sovereign-cloud-overlay.md](standards/sovereign-cloud-overlay.md) - Sovereign Cloud Overlay: normative rule shelf for implementation, docs, operations, or governance discipline.
+89. [step-up-auth-classes.md](standards/step-up-auth-classes.md) - Step Up Auth Classes: normative rule shelf for implementation, docs, operations, or governance discipline.
+90. [stream-processing-rubric.md](standards/stream-processing-rubric.md) - Stream Processing Rubric: normative rule shelf for implementation, docs, operations, or governance discipline.
+91. [tenant-lifecycle.md](standards/tenant-lifecycle.md) - Tenant Lifecycle: normative rule shelf for implementation, docs, operations, or governance discipline.
+92. [testing.md](standards/testing.md) - Testing: normative rule shelf for implementation, docs, operations, or governance discipline.
+93. [throttling-tiers.md](standards/throttling-tiers.md) - Throttling Tiers: normative rule shelf for implementation, docs, operations, or governance discipline.
+94. [timescaledb-adoption.md](standards/timescaledb-adoption.md) - Timescaledb Adoption: normative rule shelf for implementation, docs, operations, or governance discipline.
+95. [trace-sampling-tier.md](standards/trace-sampling-tier.md) - Trace Sampling Tier: normative rule shelf for implementation, docs, operations, or governance discipline.
+96. [twelve-factor-adoption.md](standards/twelve-factor-adoption.md) - Twelve Factor Adoption: normative rule shelf for implementation, docs, operations, or governance discipline.
+97. [ux-best-practices.md](standards/ux-best-practices.md) - Ux Best Practices: normative rule shelf for implementation, docs, operations, or governance discipline.
+98. [voice-video-call-architecture.md](standards/voice-video-call-architecture.md) - Voice Video Call Architecture: normative rule shelf for implementation, docs, operations, or governance discipline.
+99. [wasm-runtime-canonical.md](standards/wasm-runtime-canonical.md) - Wasm Runtime Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
+100. [wcag-2-2-aa-checklist.md](standards/wcag-2-2-aa-checklist.md) - Wcag 2 2 Aa Checklist: normative rule shelf for implementation, docs, operations, or governance discipline.
+101. [workflow-substrate-engine.md](standards/workflow-substrate-engine.md) - Workflow Substrate Engine: normative rule shelf for implementation, docs, operations, or governance discipline.
+102. [workflow-vs-direct-grpc-rubric.md](standards/workflow-vs-direct-grpc-rubric.md) - Workflow Vs Direct Grpc Rubric: normative rule shelf for implementation, docs, operations, or governance discipline.
 
 <a id="section-7-onboarding"></a>
 ## §7 Onboarding
