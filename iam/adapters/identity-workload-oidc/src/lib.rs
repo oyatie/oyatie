@@ -766,9 +766,20 @@ fn project_principal(
     }
 
     // Carry the registered + custom claims through as typed domain claims so
-    // the authz layer can reason over them without re-parsing.
+    // the authz layer can reason over them without re-parsing. The temporal
+    // registered claims stay validated above; projecting them preserves the
+    // verified `iat` needed by downstream revocation-cutoff gates.
     if let Some(iss) = &claims.iss {
         principal.set_claim("iss", ClaimValue::Text(iss.clone()))?;
+    }
+    if let Some(exp) = claims.exp {
+        principal.set_claim("exp", ClaimValue::Int(exp))?;
+    }
+    if let Some(nbf) = claims.nbf {
+        principal.set_claim("nbf", ClaimValue::Int(nbf))?;
+    }
+    if let Some(iat) = claims.iat {
+        principal.set_claim("iat", ClaimValue::Int(iat))?;
     }
     for (name, value) in &claims.rest {
         if let Some(claim) = json_to_claim(value) {
@@ -1113,6 +1124,8 @@ mod tests {
             principal.claim("iss").and_then(ClaimValue::as_text),
             Some("https://idp.oyatie.com")
         );
+        assert_eq!(principal.claim("iat"), Some(&ClaimValue::Int(now)));
+        assert_eq!(principal.claim("exp"), Some(&ClaimValue::Int(now + 300)));
     }
 
     #[test]
