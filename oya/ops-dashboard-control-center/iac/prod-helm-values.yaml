@@ -41,7 +41,7 @@ serviceAccount:
   create: true
   name: ops-dashboard-control-center
   annotations:
-    spiffe_svid: "spiffe://oyatie.dev/ns/ops-dashboard/sa/admin-console"
+    spiffe_svid: "spiffe://oyatie.dev/ns/ops-dashboard/sa/ops-dashboard-control-center"
 
 service:
   type: ClusterIP

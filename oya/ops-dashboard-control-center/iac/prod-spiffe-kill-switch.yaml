@@ -11,7 +11,7 @@ metadata:
     kill_switch_enabled: "true"
     rotation_ttl_hours: "24"
 spec:
-  spiffeIDTemplate: "spiffe://oyatie.dev/ns/ops-dashboard/sa/admin-console"
+  spiffeIDTemplate: "spiffe://oyatie.dev/ns/ops-dashboard/sa/ops-dashboard-control-center"
   podSelector:
     matchLabels:
       app: ops-dashboard-control-center
