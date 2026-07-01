@@ -1,7 +1,8 @@
 //! End-to-end tests for the workload-identity REST surface.
 //!
 //! Each test drives the real axum router via `tower::ServiceExt::oneshot` with
-//! a genuinely-signed ES256 workload JWT (minted with `ring`), exercising the
+//! a genuinely-signed ES256 workload JWT (minted with `aws-lc-rs` and, for the
+//! issuer/JWKS E2E, issuer-kernel claim validation), exercising the
 //! full validate -> resolve -> authorize hot path through the REAL adapters and
 //! asserting the fail-closed PEP status mapping + one-audit-record-per-call
 //! invariant (PRD §1.2/§3.4/§3.5/§5, AC-W-13).
@@ -41,8 +42,8 @@ use common::{
     AUDIENCE, AllowAllLifecycleAuthorizer, FailingRepository, FaultingDecisionAuthorizer,
     FaultingLifecycleAuthorizer, ISSUER, LIFECYCLE_BEARER, LIFECYCLE_CALLER_ID,
     LIFECYCLE_CALLER_TENANT, NOW, SameTenantDecisionAuthorizer, SameTenantLifecycleAuthorizer,
-    lifecycle_verifier, mint_token, permit_authorizer, provisioned_state,
-    provisioned_state_with_jwks,
+    lifecycle_verifier, mint_issuer_kernel_access_token, mint_token, permit_authorizer,
+    provisioned_state, provisioned_state_with_jwks,
 };
 use iam_identity_workload_rest::BearerCallerVerifier;
 
@@ -125,7 +126,7 @@ fn verifier_jwks_from_issuer_publication(jwk: &Jwk) -> Jwks {
 
 #[tokio::test]
 async fn issuer_published_es256_jwks_validates_offline_and_policy_deny_is_403() {
-    let minted = mint_token();
+    let minted = mint_issuer_kernel_access_token();
     // The verifier receives only the issuer-published JWKS document. No
     // introspection/token-status callback is configured or needed on the hot path.
     let verifier_jwks = verifier_jwks_from_issuer_publication(&minted.jwk);
