@@ -41,6 +41,12 @@ pub enum TenantKernelError {
     PrimaryRegionDeniedForResidency,
     FailoverRegionDeniedForResidency,
     ResidencyBindingMismatch,
+    UnknownEnvironmentTier,
+    UnknownApiKeyPrefix,
+    LongLivedRuntimeCredentialForbidden,
+    InvalidRuntimeCredentialTtl,
+    TenantMutationReviewLabelRequired,
+    TenantMutationReviewEvidenceRequired,
     CrossTenantAccessDenied {
         context_tenant_id: TenantId,
         record_tenant_id: TenantId,
@@ -459,6 +465,220 @@ impl<T> TenantScopedRecord<T> {
                 record_tenant_id: self.tenant_id.clone(),
             })
         }
+    }
+}
+
+/// Tenant-mutation PRs touching the tenant struct, its derived types, or the
+/// catalog row MUST carry this review label before the governance pipeline may
+/// accept them (ADR-0002 cross-axis change-review class).
+pub const CROSS_MICROSERVICE_TENANT_MUTATION_LABEL: &str = "cross-microservice-tenant-mutation";
+
+/// API-gateway header required for prod-tier destructive operations (ADR-0163).
+pub const PROD_DESTRUCTIVE_ACK_HEADER: &str = "x-oya-prod-destructive-ack";
+
+/// Cedar context key that must be true for prod-tier destructive operations.
+pub const PROD_DESTRUCTIVE_ACK_CEDAR_CONDITION: &str = "prod_destructive_acknowledged";
+
+/// Conservative STS runtime credential lifetime. Product code may choose a
+/// lower cap, but the tenancy/identity kernel refuses long-lived credentials.
+pub const MAX_RUNTIME_CREDENTIAL_TTL_SECONDS: u64 = 3_600;
+
+/// Per-tenant environment tier from ADR-0163. This is tenant lifecycle state,
+/// not code-promotion state.
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum TenantEnvironmentTier {
+    Test,
+    Staging,
+    Prod,
+}
+
+impl TenantEnvironmentTier {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::Test => "test",
+            Self::Staging => "staging",
+            Self::Prod => "prod",
+        }
+    }
+
+    pub fn parse_label(value: &str) -> Option<Self> {
+        match value {
+            "test" => Some(Self::Test),
+            "staging" => Some(Self::Staging),
+            "prod" => Some(Self::Prod),
+            _ => None,
+        }
+    }
+
+    pub const fn audit_chain_tag(self) -> &'static str {
+        match self {
+            Self::Test => "env_tier=test",
+            Self::Staging => "env_tier=staging",
+            Self::Prod => "env_tier=prod",
+        }
+    }
+
+    pub const fn outbound_mode(self) -> OutboundSideEffectMode {
+        match self {
+            Self::Test => OutboundSideEffectMode::Intercept,
+            Self::Staging => OutboundSideEffectMode::TestRecipients,
+            Self::Prod => OutboundSideEffectMode::Live,
+        }
+    }
+
+    pub const fn api_key_prefix(self, kind: TenantApiKeyKind) -> &'static str {
+        match (self, kind) {
+            (Self::Test, TenantApiKeyKind::Server) => "sk_test_",
+            (Self::Test, TenantApiKeyKind::Public) => "pk_test_",
+            (Self::Staging, TenantApiKeyKind::Server) => "sk_stage_",
+            (Self::Staging, TenantApiKeyKind::Public) => "pk_stage_",
+            (Self::Prod, TenantApiKeyKind::Server) => "sk_live_",
+            (Self::Prod, TenantApiKeyKind::Public) => "pk_live_",
+        }
+    }
+
+    pub fn from_api_key_prefix(value: &str) -> Result<(Self, TenantApiKeyKind), TenantKernelError> {
+        for tier in [Self::Test, Self::Staging, Self::Prod] {
+            for kind in [TenantApiKeyKind::Server, TenantApiKeyKind::Public] {
+                if value.starts_with(tier.api_key_prefix(kind)) {
+                    return Ok((tier, kind));
+                }
+            }
+        }
+        Err(TenantKernelError::UnknownApiKeyPrefix)
+    }
+
+    pub const fn requires_destructive_acknowledgment(self) -> bool {
+        matches!(self, Self::Prod)
+    }
+}
+
+impl fmt::Display for TenantEnvironmentTier {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str(self.label())
+    }
+}
+
+impl FromStr for TenantEnvironmentTier {
+    type Err = TenantKernelError;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        Self::parse_label(value).ok_or(TenantKernelError::UnknownEnvironmentTier)
+    }
+}
+
+/// API-key family; server keys are never browser-exposable, public keys are.
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum TenantApiKeyKind {
+    Server,
+    Public,
+}
+
+/// Outbound side-effect posture for email/SMS/webhook/billing dispatch.
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum OutboundSideEffectMode {
+    /// Test tier: record/audit the dispatch, but do not deliver externally.
+    Intercept,
+    /// Staging tier: deliver only to tenant-configured QA recipients.
+    TestRecipients,
+    /// Prod tier: live delivery to real recipients.
+    Live,
+}
+
+impl OutboundSideEffectMode {
+    pub const fn is_intercepted(self) -> bool {
+        matches!(self, Self::Intercept)
+    }
+
+    pub const fn permits_live_delivery(self) -> bool {
+        matches!(self, Self::Live)
+    }
+
+    pub const fn requires_test_recipient_allowlist(self) -> bool {
+        matches!(self, Self::TestRecipients)
+    }
+}
+
+/// Runtime credential classes accepted/refused at the tenancy/identity boundary.
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum RuntimeCredentialKind {
+    StsShortLived {
+        issued_at_epoch_seconds: u64,
+        expires_at_epoch_seconds: u64,
+    },
+    StaticSecret,
+    LongLivedServiceAccount,
+}
+
+impl RuntimeCredentialKind {
+    pub const fn validate(self) -> Result<(), TenantKernelError> {
+        match self {
+            Self::StsShortLived {
+                issued_at_epoch_seconds,
+                expires_at_epoch_seconds,
+            } => {
+                if expires_at_epoch_seconds <= issued_at_epoch_seconds {
+                    return Err(TenantKernelError::InvalidRuntimeCredentialTtl);
+                }
+                if expires_at_epoch_seconds - issued_at_epoch_seconds
+                    > MAX_RUNTIME_CREDENTIAL_TTL_SECONDS
+                {
+                    return Err(TenantKernelError::InvalidRuntimeCredentialTtl);
+                }
+                Ok(())
+            }
+            Self::StaticSecret | Self::LongLivedServiceAccount => {
+                Err(TenantKernelError::LongLivedRuntimeCredentialForbidden)
+            }
+        }
+    }
+}
+
+/// Tenant contract surfaces that trigger all-axis mutation review.
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum TenantMutationKind {
+    TenantStruct,
+    DerivedType,
+    CatalogRecord,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct TenantMutationReview {
+    kind: TenantMutationKind,
+    evidence_ref: String,
+}
+
+impl TenantMutationReview {
+    pub fn new<I, S>(
+        kind: TenantMutationKind,
+        review_labels: I,
+        evidence_ref: impl Into<String>,
+    ) -> Result<Self, TenantKernelError>
+    where
+        I: IntoIterator<Item = S>,
+        S: AsRef<str>,
+    {
+        if !review_labels
+            .into_iter()
+            .any(|label| label.as_ref() == CROSS_MICROSERVICE_TENANT_MUTATION_LABEL)
+        {
+            return Err(TenantKernelError::TenantMutationReviewLabelRequired);
+        }
+
+        let evidence_ref = evidence_ref.into();
+        if evidence_ref.trim().is_empty() {
+            return Err(TenantKernelError::TenantMutationReviewEvidenceRequired);
+        }
+
+        Ok(Self { kind, evidence_ref })
+    }
+
+    pub fn kind(&self) -> TenantMutationKind {
+        self.kind
+    }
+
+    pub fn evidence_ref(&self) -> &str {
+        &self.evidence_ref
     }
 }
 
@@ -893,5 +1113,169 @@ mod tests {
         // Conversely, "ten_alpha" parses as both (internal IDs are slug-shaped).
         assert!(TenantSlug::try_new("ten_alpha").is_ok());
         assert!(TenantId::new("ten_alpha").is_ok());
+    }
+
+    #[test]
+    fn tenant_env_tiers_match_adr0163_key_prefixes_and_outbound_modes() {
+        assert_eq!(TenantEnvironmentTier::Test.label(), "test");
+        assert_eq!(
+            TenantEnvironmentTier::Test.audit_chain_tag(),
+            "env_tier=test"
+        );
+        assert_eq!(
+            TenantEnvironmentTier::Test.api_key_prefix(TenantApiKeyKind::Server),
+            "sk_test_"
+        );
+        assert_eq!(
+            TenantEnvironmentTier::Test.api_key_prefix(TenantApiKeyKind::Public),
+            "pk_test_"
+        );
+        assert_eq!(
+            TenantEnvironmentTier::Test.outbound_mode(),
+            OutboundSideEffectMode::Intercept
+        );
+
+        assert_eq!(TenantEnvironmentTier::Staging.label(), "staging");
+        assert_eq!(
+            TenantEnvironmentTier::Staging.audit_chain_tag(),
+            "env_tier=staging"
+        );
+        assert_eq!(
+            TenantEnvironmentTier::Staging.api_key_prefix(TenantApiKeyKind::Server),
+            "sk_stage_"
+        );
+        assert_eq!(
+            TenantEnvironmentTier::Staging.api_key_prefix(TenantApiKeyKind::Public),
+            "pk_stage_"
+        );
+        assert_eq!(
+            TenantEnvironmentTier::Staging.outbound_mode(),
+            OutboundSideEffectMode::TestRecipients
+        );
+
+        assert_eq!(TenantEnvironmentTier::Prod.label(), "prod");
+        assert_eq!(
+            TenantEnvironmentTier::Prod.audit_chain_tag(),
+            "env_tier=prod"
+        );
+        assert_eq!(
+            TenantEnvironmentTier::Prod.api_key_prefix(TenantApiKeyKind::Server),
+            "sk_live_"
+        );
+        assert_eq!(
+            TenantEnvironmentTier::Prod.api_key_prefix(TenantApiKeyKind::Public),
+            "pk_live_"
+        );
+        assert_eq!(
+            TenantEnvironmentTier::Prod.outbound_mode(),
+            OutboundSideEffectMode::Live
+        );
+    }
+
+    #[test]
+    fn tenant_env_tier_routes_exact_api_key_prefixes() {
+        assert_eq!(
+            TenantEnvironmentTier::from_api_key_prefix("sk_test_abc"),
+            Ok((TenantEnvironmentTier::Test, TenantApiKeyKind::Server))
+        );
+        assert_eq!(
+            TenantEnvironmentTier::from_api_key_prefix("pk_stage_abc"),
+            Ok((TenantEnvironmentTier::Staging, TenantApiKeyKind::Public))
+        );
+        assert_eq!(
+            TenantEnvironmentTier::from_api_key_prefix("sk_live_abc"),
+            Ok((TenantEnvironmentTier::Prod, TenantApiKeyKind::Server))
+        );
+        assert_eq!(
+            TenantEnvironmentTier::from_api_key_prefix("sk_prod_abc"),
+            Err(TenantKernelError::UnknownApiKeyPrefix)
+        );
+    }
+
+    #[test]
+    fn outbound_side_effect_modes_gate_external_delivery() {
+        assert!(OutboundSideEffectMode::Intercept.is_intercepted());
+        assert!(!OutboundSideEffectMode::Intercept.permits_live_delivery());
+        assert!(!OutboundSideEffectMode::Intercept.requires_test_recipient_allowlist());
+        assert!(!OutboundSideEffectMode::TestRecipients.is_intercepted());
+        assert!(!OutboundSideEffectMode::TestRecipients.permits_live_delivery());
+        assert!(OutboundSideEffectMode::TestRecipients.requires_test_recipient_allowlist());
+        assert!(!OutboundSideEffectMode::Live.is_intercepted());
+        assert!(OutboundSideEffectMode::Live.permits_live_delivery());
+        assert!(!OutboundSideEffectMode::Live.requires_test_recipient_allowlist());
+    }
+
+    #[test]
+    fn prod_destructive_operations_require_ack_header_and_cedar_context() {
+        assert!(!TenantEnvironmentTier::Test.requires_destructive_acknowledgment());
+        assert!(!TenantEnvironmentTier::Staging.requires_destructive_acknowledgment());
+        assert!(TenantEnvironmentTier::Prod.requires_destructive_acknowledgment());
+        assert_eq!(PROD_DESTRUCTIVE_ACK_HEADER, "x-oya-prod-destructive-ack");
+        assert_eq!(
+            PROD_DESTRUCTIVE_ACK_CEDAR_CONDITION,
+            "prod_destructive_acknowledged"
+        );
+    }
+
+    #[test]
+    fn runtime_credential_posture_is_sts_short_lived_only() {
+        let sts = RuntimeCredentialKind::StsShortLived {
+            issued_at_epoch_seconds: 100,
+            expires_at_epoch_seconds: 200,
+        };
+        assert_eq!(sts.validate(), Ok(()));
+        assert_eq!(
+            RuntimeCredentialKind::StaticSecret.validate(),
+            Err(TenantKernelError::LongLivedRuntimeCredentialForbidden)
+        );
+        assert_eq!(
+            RuntimeCredentialKind::LongLivedServiceAccount.validate(),
+            Err(TenantKernelError::LongLivedRuntimeCredentialForbidden)
+        );
+        assert_eq!(
+            RuntimeCredentialKind::StsShortLived {
+                issued_at_epoch_seconds: 200,
+                expires_at_epoch_seconds: 200,
+            }
+            .validate(),
+            Err(TenantKernelError::InvalidRuntimeCredentialTtl)
+        );
+        assert_eq!(
+            RuntimeCredentialKind::StsShortLived {
+                issued_at_epoch_seconds: 1,
+                expires_at_epoch_seconds: MAX_RUNTIME_CREDENTIAL_TTL_SECONDS + 2,
+            }
+            .validate(),
+            Err(TenantKernelError::InvalidRuntimeCredentialTtl)
+        );
+    }
+
+    #[test]
+    fn tenant_mutation_review_requires_cross_axis_label_and_evidence() {
+        let review = TenantMutationReview::new(
+            TenantMutationKind::TenantStruct,
+            [CROSS_MICROSERVICE_TENANT_MUTATION_LABEL],
+            "evidence/review/tenant-struct.json",
+        )
+        .expect("mandatory label and evidence should satisfy review gate");
+        assert_eq!(review.kind(), TenantMutationKind::TenantStruct);
+        assert_eq!(review.evidence_ref(), "evidence/review/tenant-struct.json");
+
+        assert_eq!(
+            TenantMutationReview::new(
+                TenantMutationKind::CatalogRecord,
+                ["platform-only"],
+                "evidence/review/catalog.json",
+            ),
+            Err(TenantKernelError::TenantMutationReviewLabelRequired)
+        );
+        assert_eq!(
+            TenantMutationReview::new(
+                TenantMutationKind::DerivedType,
+                [CROSS_MICROSERVICE_TENANT_MUTATION_LABEL],
+                " ",
+            ),
+            Err(TenantKernelError::TenantMutationReviewEvidenceRequired)
+        );
     }
 }
