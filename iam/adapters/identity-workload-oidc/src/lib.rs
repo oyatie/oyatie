@@ -48,6 +48,8 @@
 #[cfg(test)]
 mod eddsa;
 
+use std::collections::HashSet;
+
 use aws_lc_rs::signature::{self, ED25519};
 use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
@@ -152,6 +154,10 @@ pub enum JwksError {
     UnsupportedKeyType(String),
     /// The JWK `crv` member was absent or unsupported for the key type.
     UnsupportedCurve(String),
+    /// The issuer published a JWKS with no verifier keys.
+    EmptyKeySet,
+    /// Two or more keys shared one `kid`, making deterministic resolution ambiguous.
+    DuplicateKid(String),
 }
 
 impl std::fmt::Display for JwksError {
@@ -164,6 +170,8 @@ impl std::fmt::Display for JwksError {
             }
             Self::UnsupportedKeyType(kty) => write!(f, "unsupported JWK kty '{kty}'"),
             Self::UnsupportedCurve(crv) => write!(f, "unsupported JWK curve '{crv}'"),
+            Self::EmptyKeySet => f.write_str("issuer JWKS contained no keys"),
+            Self::DuplicateKid(kid) => write!(f, "issuer JWKS contains duplicate kid '{kid}'"),
         }
     }
 }
@@ -355,9 +363,17 @@ impl Jwks {
     pub fn from_jwks_json(document: &str) -> Result<Self, JwksError> {
         let parsed: JwksDocument =
             serde_json::from_str(document).map_err(|_| JwksError::DecodeError)?;
+        if parsed.keys.is_empty() {
+            return Err(JwksError::EmptyKeySet);
+        }
         let mut keys = Vec::with_capacity(parsed.keys.len());
+        let mut seen_kids = HashSet::with_capacity(parsed.keys.len());
         for key in parsed.keys {
-            keys.push(key.into_jwk()?);
+            let jwk = key.into_jwk()?;
+            if !seen_kids.insert(jwk.kid.clone()) {
+                return Err(JwksError::DuplicateKid(jwk.kid));
+            }
+            keys.push(jwk);
         }
         Ok(Self { keys })
     }
@@ -1003,6 +1019,67 @@ mod tests {
             now + 300,
             now
         )
+    }
+
+    #[test]
+    fn jwks_from_json_normalizes_supported_public_keys() {
+        let document = serde_json::json!({
+            "keys": [
+                {"kid": "rsa-1", "kty": "RSA", "alg": "RS256", "use": "sig", "n": "rsa-mod", "e": "AQAB"},
+                {"kid": "ec-1", "kty": "EC", "alg": "ES256", "use": "sig", "crv": "P-256", "x": "ec-x", "y": "ec-y"},
+                {"kid": "okp-1", "kty": "OKP", "alg": "EdDSA", "use": "sig", "crv": "Ed25519", "x": "okp-x"}
+            ]
+        })
+        .to_string();
+
+        let jwks = Jwks::from_jwks_json(&document).expect("supported issuer JWKS parses");
+
+        assert_eq!(
+            jwks.keys(),
+            [
+                Jwk::rsa("rsa-1", "rsa-mod", "AQAB").with_alg("RS256"),
+                Jwk::ec_p256("ec-1", "ec-x", "ec-y").with_alg("ES256"),
+                Jwk::okp_ed25519("okp-1", "okp-x").with_alg("EdDSA"),
+            ]
+        );
+    }
+
+    #[test]
+    fn jwks_from_json_rejects_malformed_unsupported_empty_and_ambiguous_keysets() {
+        let cases = [
+            ("not-json", JwksError::DecodeError),
+            (
+                r#"{"keys":[{"kid":"missing-kty","n":"rsa-mod","e":"AQAB"}]}"#,
+                JwksError::MissingComponent("kty"),
+            ),
+            (
+                r#"{"keys":[{"kid":"enc-key","kty":"RSA","use":"enc","n":"rsa-mod","e":"AQAB"}]}"#,
+                JwksError::UnsupportedKeyUse("enc".to_owned()),
+            ),
+            (
+                r#"{"keys":[{"kid":"oct-key","kty":"oct","k":"secret"}]}"#,
+                JwksError::UnsupportedKeyType("oct".to_owned()),
+            ),
+            (
+                r#"{"keys":[{"kid":"ec-wrong","kty":"EC","crv":"P-384","x":"x","y":"y"}]}"#,
+                JwksError::UnsupportedCurve("P-384".to_owned()),
+            ),
+        ];
+
+        for (document, expected) in cases {
+            let err = Jwks::from_jwks_json(document).expect_err("issuer JWKS must be rejected");
+            assert_eq!(err, expected);
+        }
+
+        let err = Jwks::from_jwks_json(r#"{"keys":[]}"#)
+            .expect_err("issuer-published JWKS must not silently normalize to empty verifier set");
+        assert_eq!(err, JwksError::EmptyKeySet);
+
+        let err = Jwks::from_jwks_json(
+                r#"{"keys":[{"kid":"dup","kty":"RSA","n":"rsa-a","e":"AQAB"},{"kid":"dup","kty":"RSA","n":"rsa-b","e":"AQAB"}]}"#
+            )
+            .expect_err("issuer-published JWKS must reject ambiguous duplicate kid values");
+        assert_eq!(err, JwksError::DuplicateKid("dup".to_owned()));
     }
 
     #[test]
