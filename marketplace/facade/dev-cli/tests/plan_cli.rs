@@ -415,6 +415,86 @@ fn plan_reserve_id_rejects_prd_seen_on_inflight_branch() {
 
     fs::remove_dir_all(temp).ok();
 }
+#[test]
+fn plan_reserve_id_scans_ordinary_branches_with_claims_prefix() {
+    let temp = temp_repo("plan-reserve-id-claims-prefix");
+    write_inflight_adr_branch(&temp, "claims-fix/adr0702", "ADR-0702");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "plan",
+            "reserve-id",
+            "--repo-root",
+            temp.to_str().expect("utf8 repo"),
+            "--id",
+            "ADR-0702",
+            "--claimant",
+            "worker-d",
+        ])
+        .output()
+        .expect("plan reserve-id command runs");
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("already in-flight"),
+        "stderr should explain in-flight reservation collision: {stderr}"
+    );
+    assert!(
+        stderr.contains("refs/heads/claims-fix/adr0702"),
+        "stderr should name the ordinary conflicting branch: {stderr}"
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+#[test]
+fn plan_reserve_id_publishes_remote_ref_and_local_mirror() {
+    let temp = temp_repo("plan-reserve-id-success");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "plan",
+            "reserve-id",
+            "--repo-root",
+            temp.to_str().expect("utf8 repo"),
+            "--id",
+            "ADR-0701",
+            "--claimant",
+            "worker-c",
+        ])
+        .output()
+        .expect("plan reserve-id command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("plan reserved: ADR-0701"));
+    assert!(stdout.contains("refs/heads/id-reservations/ADR-0701"));
+    assert!(stdout.contains("state/reserved"));
+    assert!(stdout.contains("owner/worker-c"));
+    assert!(stdout.contains("canonical-id/adr-0701"));
+
+    let reservation_ref = "refs/heads/id-reservations/ADR-0701";
+    let remote = remote_oid(&temp, reservation_ref);
+    assert!(
+        git(&temp, ["show-ref", "--verify", "--quiet", reservation_ref])
+            .status
+            .success(),
+        "local reservation ref mirror should be updated after remote CAS wins"
+    );
+    let commit = git(&temp, ["cat-file", "-p", &remote]);
+    let commit_text = String::from_utf8(commit.stdout).expect("commit utf8");
+    assert!(commit_text.contains("Deliverable: ADR-0701"));
+    assert!(commit_text.contains("Claimant: worker-c"));
+    assert!(commit_text.contains("Claim-ref: refs/heads/id-reservations/ADR-0701"));
+    assert!(commit_text.contains("Description: Canonical id reservation for ADR-0701"));
+
+    fs::remove_dir_all(temp).ok();
+}
 
 fn temp_repo(label: &str) -> PathBuf {
     let path = temp_dir(label);

@@ -633,13 +633,16 @@ fn remote_inflight_id_source(
     }
     let stdout = String::from_utf8(output.stdout)
         .map_err(|error| format!("git ls-remote --heads output not UTF-8: {error}"))?;
+    let claim_ref_scan_prefix = format!("{CLAIM_REF_PREFIX}/");
+    let id_reservation_ref_scan_prefix = format!("{ID_RESERVATION_REF_PREFIX}/");
     for line in stdout.lines() {
         let mut fields = line.split_whitespace();
         let _oid = fields.next();
         let Some(ref_name) = fields.next() else {
             continue;
         };
-        if ref_name.starts_with(CLAIM_REF_PREFIX) || ref_name.starts_with(ID_RESERVATION_REF_PREFIX)
+        if ref_name.starts_with(&claim_ref_scan_prefix)
+            || ref_name.starts_with(&id_reservation_ref_scan_prefix)
         {
             continue;
         }
