@@ -2140,6 +2140,106 @@
           "last_modified_at": "2026-06-30T13:27:56Z"
         }
       }
+    },
+    {
+      "artifact_id": "regulatory-identity-source-of-truth",
+      "artifact_path": "/specs/regulatory-identity-source-of-truth.json",
+      "artifact_format": "json",
+      "contract_version": "v0.1.1",
+      "owner_team": "ops-compliance + axis-identity + council-security + council-privacy + legal-review",
+      "purpose_short": "Planning-only regulatory identity/KYC/compliance source index, source-blocker register, claim ceiling, and control backlog for Korean/global floors.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "regulatory-source-index-shape-planning-only"
+        },
+        "verification": {
+          "checker_crate": "planned: regulatory source-index shape gate",
+          "command": "python3 -m json.tool specs/regulatory-identity-source-of-truth.json >/dev/null"
+        },
+        "validation": {
+          "validator": "JSON syntax plus focused source_ref/claim-ceiling/source-blocker invariant checks"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored planning/control-index artifact"
+        },
+        "selfheal": {
+          "healer": "manual-with-review until regulatory source-index gate lands"
+        },
+        "provenance": {
+          "current_author": "hermes-gjc",
+          "current_reviewed_by": "critic-132 + architect-131 planning review",
+          "last_modified_at": "2026-07-01T00:51:42Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "security-validation-pipeline-matrix",
+      "artifact_path": "/specs/security-validation-pipeline-matrix.json",
+      "artifact_format": "json",
+      "contract_version": "v0.1.0",
+      "owner_team": "platform-security + platform-toolchain + ops-sre-reliability + council-architecture",
+      "purpose_short": "Runner-neutral security validation matrix for SAST, DAST, IAST, SCA, secrets, IaC, container, fuzzing, API fuzzing, BAS, security-chaos, automated pen-test, and continuous-control evidence lanes.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "security-validation-matrix-shape-planning-only"
+        },
+        "verification": {
+          "checker_crate": "planned: security-validation matrix-shape gate",
+          "command": "python3 -m json.tool specs/security-validation-pipeline-matrix.json >/dev/null"
+        },
+        "validation": {
+          "validator": "JSON syntax plus required lane-id and evidence API contract checks"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored security validation contract"
+        },
+        "selfheal": {
+          "healer": "manual-with-review until security-validation matrix gate lands"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "security_validation_lane_coverage_total",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "lane_id",
+                "result"
+              ],
+              "cardinality_budget": 100
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "hermes-gjc",
+          "current_reviewed_by": "critic-132 + architect-131 planning review",
+          "last_modified_at": "2026-07-01T00:51:42Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "regulatory-hermes-decomposition-preservation-20260701",
+      "artifact_path": "/evidence/regulatory/regulatory-hermes-decomposition-preservation-20260701.json",
+      "artifact_format": "json",
+      "contract_version": "v0.1.0",
+      "owner_team": "ops-compliance + platform-toolchain",
+      "purpose_short": "Durable preservation packet for regulatory Hermes decomposition, plan/matrix text, QA/review evidence, claim ceilings, and downstream no-go state.",
+      "artifact_profile": "evidence",
+      "capability_overrides": {
+        "verification": {
+          "command": "python3 -m json.tool evidence/regulatory/regulatory-hermes-decomposition-preservation-20260701.json >/dev/null"
+        },
+        "validation": {
+          "validator": "JSON syntax plus review-ledger inspection"
+        },
+        "provenance": {
+          "current_author": "gjc",
+          "current_reviewed_by": "ouroboros-qa-2851cca6 + critic-132 + architect-131",
+          "last_modified_at": "2026-07-01T00:51:42Z"
+        }
+      }
     }
   ],
   "purpose": "Auto-backfilled purpose for artifact-capabilities-registry.json"
