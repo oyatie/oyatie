@@ -2029,6 +2029,52 @@
       }
     },
     {
+      "artifact_id": "bespoke-scm-declare-observe-contract",
+      "artifact_path": "/specs/bespoke-scm-declare-observe-contract.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "platform-scm + platform-toolchain",
+      "purpose_short": "W4 metadata-only contract for typed DECLARE-to-OBSERVE bespoke SCM stage envelopes, handoff invariants, and RED/GREEN acceptance fixtures.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "bespoke-scm-declare-observe-contract"
+        },
+        "verification": {
+          "checker_crate": "planned: platform bespoke SCM stage-contract gate",
+          "command": "python3 -m json.tool specs/bespoke-scm-declare-observe-contract.json >/dev/null"
+        },
+        "validation": {
+          "validator": "JSON syntax plus structural fixture assertions until the Rust bespoke SCM stage-contract gate lands"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored W4 contract"
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until stage-contract remediation rules land"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "platform_bespoke_scm_stage_contract_violations_total",
+              "kind": "counter",
+              "unit": "1",
+              "labels": [
+                "stage",
+                "invariant"
+              ],
+              "cardinality_budget": 100
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "pending code-review",
+          "last_modified_at": "2026-06-30T23:15:00Z"
+        }
+      }
+    },
+    {
       "artifact_id": "generated-artifact-control-plane-schema",
       "artifact_path": "/specs/generated-artifact-control-plane.schema.json",
       "artifact_format": "json",

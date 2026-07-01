@@ -15,6 +15,7 @@ related: [ADR-0510, ADR-0516, ADR-0517, ADR-0521, ADR-0526]
 related_specs:
   - /specs/masterplan.json
   - /specs/gitops-vcs-replacement.json
+  - /specs/bespoke-scm-declare-observe-contract.json
   - /.omc/specs/deep-interview-agentic-delivery-fabric.md
 milestone: W4
 ---
@@ -48,6 +49,9 @@ It is Sapling / Mononoke / EdenFS / CommitCloud-inspired, owned in Rust, and **n
 grit-essence claim/work/done model is re-framed as these native pipeline stages (no git-overlay).
 Concurrency is **leases-not-locks**, sharded, with no single leader. Work-area identity is the
 content-addressed AST hash (ADR-0517).
+
+The current W4 metadata-only contract projection for these stages is
+`specs/bespoke-scm-declare-observe-contract.json`.
 
 ## Drivers
 
