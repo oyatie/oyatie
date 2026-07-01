@@ -81,9 +81,12 @@ pub trait WorkloadPrincipalRepository {
 
 /// Fast revocation denylist consulted on the hot authorize path (PRD §3.5).
 ///
-/// `suspend`/`retire` write the workload id here; [`authorize_with_token`]
-/// reads it before delegating to the policy engine. A denylist read failure is
-/// treated as a hard deny (fail-closed), never an allow.
+/// `suspend`/`retire` write the workload id here; CAEP-style revocation events
+/// may also write an issue-time cutoff so credentials minted at/before that
+/// cutoff are denied while newer credentials can continue after re-attestation.
+/// [`authorize_with_token`] reads this port before delegating to the policy
+/// engine. A denylist read failure is treated as a hard deny (fail-closed),
+/// never an allow.
 pub trait RevocationDenylist {
     /// Whether `workload_id` is currently revoked.
     ///
@@ -98,6 +101,32 @@ pub trait RevocationDenylist {
     /// # Errors
     /// Returns [`RepositoryError`] when the denylist cannot be written.
     fn revoke(&mut self, workload_id: &WorkloadId) -> Result<(), RepositoryError>;
+
+    /// Highest issue-time cutoff for `workload_id`, if a revocation event has
+    /// been received. Tokens with `iat <= cutoff` MUST be denied.
+    ///
+    /// # Errors
+    /// Returns [`RepositoryError`] when the cutoff store cannot be read; callers
+    /// on the authorize path MUST treat this as a deny.
+    fn issue_time_cutoff(&self, _workload_id: &WorkloadId) -> Result<Option<i64>, RepositoryError> {
+        Ok(None)
+    }
+
+    /// Record a revocation event for credentials issued at or before `cutoff`.
+    ///
+    /// The default implementation collapses to a whole-principal revoke, which
+    /// is fail-closed for adapters that have not yet grown cutoff storage. The
+    /// in-memory reference adapter below preserves the narrower cutoff semantics.
+    ///
+    /// # Errors
+    /// Returns [`RepositoryError`] when the denylist cannot be written.
+    fn revoke_issued_at_or_before(
+        &mut self,
+        workload_id: &WorkloadId,
+        _cutoff_epoch_seconds: i64,
+    ) -> Result<(), RepositoryError> {
+        self.revoke(workload_id)
+    }
 }
 
 /// An opaque backing-store failure from a [`WorkloadPrincipalRepository`] or
@@ -176,12 +205,13 @@ impl WorkloadPrincipalRepository for InMemoryWorkloadPrincipalRepository {
     }
 }
 
-/// In-memory [`RevocationDenylist`] backed by a sorted set of [`WorkloadId`]s.
-/// The reference adapter; production swaps in a fast shared store (e.g. Valkey)
-/// behind the same port.
+/// In-memory [`RevocationDenylist`] backed by sorted workload ids plus optional
+/// issue-time cutoffs. The reference adapter; production swaps in a fast shared
+/// store (e.g. Valkey) behind the same port.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct InMemoryRevocationDenylist {
     revoked: std::collections::BTreeSet<WorkloadId>, // data_class: PII_IDENTIFYING
+    issue_time_cutoffs: BTreeMap<WorkloadId, i64>,   // data_class: PII_IDENTIFYING
 }
 
 impl InMemoryRevocationDenylist {
@@ -191,16 +221,18 @@ impl InMemoryRevocationDenylist {
         Self::default()
     }
 
-    /// Number of revoked workload ids.
+    /// Number of workload ids with a whole-principal revoke or issue-time cutoff.
     #[must_use]
     pub fn len(&self) -> usize {
-        self.revoked.len()
+        let mut ids = self.revoked.clone();
+        ids.extend(self.issue_time_cutoffs.keys().cloned());
+        ids.len()
     }
 
     /// Whether the denylist is empty.
     #[must_use]
     pub fn is_empty(&self) -> bool {
-        self.revoked.is_empty()
+        self.revoked.is_empty() && self.issue_time_cutoffs.is_empty()
     }
 }
 
@@ -211,6 +243,22 @@ impl RevocationDenylist for InMemoryRevocationDenylist {
 
     fn revoke(&mut self, workload_id: &WorkloadId) -> Result<(), RepositoryError> {
         self.revoked.insert(workload_id.clone());
+        Ok(())
+    }
+
+    fn issue_time_cutoff(&self, workload_id: &WorkloadId) -> Result<Option<i64>, RepositoryError> {
+        Ok(self.issue_time_cutoffs.get(workload_id).copied())
+    }
+
+    fn revoke_issued_at_or_before(
+        &mut self,
+        workload_id: &WorkloadId,
+        cutoff_epoch_seconds: i64,
+    ) -> Result<(), RepositoryError> {
+        self.issue_time_cutoffs
+            .entry(workload_id.clone())
+            .and_modify(|existing| *existing = (*existing).max(cutoff_epoch_seconds))
+            .or_insert(cutoff_epoch_seconds);
         Ok(())
     }
 }
@@ -358,6 +406,22 @@ pub fn retire<R: WorkloadPrincipalRepository, D: RevocationDenylist>(
     Ok(principal)
 }
 
+/// Record a CAEP-style revocation event for credentials issued at or before the
+/// supplied cutoff. The event path deliberately updates only the hot-path
+/// revocation port; it does not transition the persisted principal lifecycle, so
+/// a workload can re-attest with a newer credential after the cutoff.
+///
+/// # Errors
+/// - [`LifecycleError::Repository`] when the denylist cannot be written.
+pub fn record_revocation_event<D: RevocationDenylist>(
+    denylist: &mut D,
+    workload_id: &WorkloadId,
+    issue_time_cutoff_epoch_seconds: i64,
+) -> Result<(), LifecycleError> {
+    denylist.revoke_issued_at_or_before(workload_id, issue_time_cutoff_epoch_seconds)?;
+    Ok(())
+}
+
 /// Shared load -> domain-transition -> persist sequence for the lifecycle
 /// use-cases. The domain's `transition_to` is the single source of truth for
 /// which moves are legal.
@@ -437,9 +501,9 @@ impl AuthorizeOutcome {
 /// 2. Resolve the persisted [`WorkloadPrincipal`] by the verified token's
 ///    [`WorkloadId`]. Missing -> [`AuthorizeOutcome::PrincipalUnknown`]; store
 ///    read failure -> [`AuthorizeOutcome::StoreUnavailable`].
-/// 3. Denylist check (the revocation gate): revoked ->
-///    [`AuthorizeOutcome::Revoked`]; read failure ->
-///    [`AuthorizeOutcome::StoreUnavailable`].
+/// 3. Denylist check (the revocation gate): whole-principal revoke or an
+///    issue-time cutoff matching the token's `iat` -> [`AuthorizeOutcome::Revoked`];
+///    read failure -> [`AuthorizeOutcome::StoreUnavailable`].
 /// 4. Operational check: a non-`Active` persisted principal ->
 ///    [`AuthorizeOutcome::Revoked`] (the resolved control-plane record, not the
 ///    token, decides operational state).
@@ -488,10 +552,23 @@ where
     };
 
     // 3. Revocation gate (PRD §3.5): the denylist is the fast suspend/retire
-    //    enforcement point on the hot path. A read failure fail-closes.
+    //    enforcement point on the hot path. CAEP-style revocation events add an
+    //    issue-time cutoff; a token whose iat is missing or at/before that
+    //    cutoff is stale and denied. Any read failure fail-closes.
     match denylist.is_revoked(&workload_id) {
         Ok(true) => return AuthorizeOutcome::Revoked,
         Ok(false) => {}
+        Err(_error) => return AuthorizeOutcome::StoreUnavailable,
+    }
+    match denylist.issue_time_cutoff(&workload_id) {
+        Ok(Some(cutoff)) => {
+            let stale = credential_issued_at_epoch_seconds(&verified)
+                .is_none_or(|issued_at| issued_at <= cutoff);
+            if stale {
+                return AuthorizeOutcome::Revoked;
+            }
+        }
+        Ok(None) => {}
         Err(_error) => return AuthorizeOutcome::StoreUnavailable,
     }
 
@@ -518,6 +595,13 @@ where
     let mut request = AuthorizationRequest::new(verified, action, resource);
     request.context = context;
     AuthorizeOutcome::Decided(authorizer.authorize(&request))
+}
+
+fn credential_issued_at_epoch_seconds(principal: &WorkloadPrincipal) -> Option<i64> {
+    match principal.claim("iat") {
+        Some(ClaimValue::Int(issued_at)) => Some(*issued_at),
+        _ => None,
+    }
 }
 
 #[cfg(test)]
