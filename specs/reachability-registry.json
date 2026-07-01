@@ -254,6 +254,10 @@
       "prefix": "libs/oya-check-authority-cohesion/OWNERS"
     },
     {
+      "anchor": "ADR-0008 Data Use Boundary policy-gate ownership seed; exact-path registration keeps the non-code OWNERS artifact reachable without broadening all libs.",
+      "prefix": "libs/oya-data-boundary-kernel/OWNERS"
+    },
+    {
       "anchor": "ADR-0555 D3: reindeer-vendored third-party tree — a DERIVED class regenerated from Cargo.lock (drift impossible by regeneration); its accounting is the lockfile + buckification, not per-file mentions",
       "prefix": "third-party/"
     },

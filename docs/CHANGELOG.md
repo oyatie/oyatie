@@ -3,6 +3,11 @@ purpose: Oyatie — Canonical Docs Changelog
 doc_status: published
 ---
 
+## 2026-07-01 — Data Use Boundary policy-gate ownership
+
+- Recorded the first Data Use Boundary policy-gate implementation surface and
+  council-privacy ownership seed for `libs/oya-data-boundary-kernel`.
+
 ## 2026-07-01 — Cloud-native infrastructure automation standard
 
 - Added `docs/standards/cloud-native-infrastructure-automation.md` as concise
