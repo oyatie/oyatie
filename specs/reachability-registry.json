@@ -294,6 +294,18 @@
       "prefix": "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/OWNERS"
     },
     {
+      "anchor": "ADR-0537 step-0 root ceremony port: ownership marker for the cloud runbook subtree that carries the redacted root-of-trust ceremony draft.",
+      "prefix": "docs/runbooks/cloud/OWNERS"
+    },
+    {
+      "anchor": "ADR-0537 step-0 root ceremony port: draft operator-facing runbook for redacted offline root-of-trust evidence packets and custody posture checks.",
+      "prefix": "docs/runbooks/cloud/root-of-trust-ceremony.md"
+    },
+    {
+      "anchor": "ADR-0537 step-0 root ceremony port: machine-readable ceremony evidence-packet contract with root secret values excluded.",
+      "prefix": "specs/root-of-trust-ceremony-contract.json"
+    },
+    {
       "anchor": "ADR-0563: the rename-aware path-keyed CI baseline relabel move-manifest tree — the committed move bijection face (move-manifest.generated.json) the scm-facts emitter relabel consumes; a per-PR-regenerated review artifact reached by the codemod manifest subcommand + the emitter that reads it",
       "prefix": "specs/reorg/"
     }
