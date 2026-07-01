@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "kind": "api-package-test-report",
+  "changeId": "payroll-stat-source-pack-20260701",
+  "surface": "package/api/algorithm",
+  "createdAt": "2026-07-01T23:24:11Z",
+  "commands": [
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--package",
+        "oya-payroll-run-domain",
+        "--test",
+        "rulepack_manifest"
+      ],
+      "status": "passed",
+      "summary": "7 passed",
+      "artifactRef": "artifact://32"
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--package",
+        "oya-payroll-run-domain"
+      ],
+      "status": "passed",
+      "summary": "44 passed",
+      "artifactRef": "artifact://34"
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--package",
+        "oya-payroll-run-domain",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "status": "passed",
+      "summary": "OK",
+      "artifactRef": "artifact://36"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "oya/payroll/crates/oya-payroll-run-domain/src/lib.rs",
+        "oya/payroll/crates/oya-payroll-run-domain/tests/rulepack_manifest.rs"
+      ],
+      "status": "passed",
+      "summary": "no output"
+    }
+  ],
+  "testedContracts": [
+    "US/KR/EU rulepack manifests preserve source-row provenance",
+    "official source URLs are jurisdiction allowlisted",
+    "capability overclaims are rejected for calculation, filing, disbursement, and cloud deployment",
+    "invalid source-row provenance fields fail closed"
+  ],
+  "nonClaims": [
+    "No official tax-rate correctness claim",
+    "No legal or certification advice",
+    "No filing, disbursement, production close, GA readiness, cloud deployment, secrets, or Release Please"
+  ]
+}
