@@ -11,6 +11,7 @@
 //! - `GET /repos/<owner>/<repo>/commits/<sha>/status?per_page=50&page=N`
 //! - `GET /repos/<owner>/<repo>/pulls/<number>/reviews?per_page=50&page=N`
 //! - `GET /repos/<owner>/<repo>/pulls/<number>`
+//! - `PUT /repos/<owner>/<repo>/pulls/<number>/update-branch`
 //! - `PUT /repos/<owner>/<repo>/pulls/<number>/merge`
 //!
 //! Pagination follows the GitHub `Link: rel="next"` header first and falls back
@@ -31,8 +32,8 @@
 #![forbid(unsafe_code)]
 
 use oya_ci_tide_kernel::{
-    CommitStatusState, ForgeClient, MergeMethod, PullRequest, Result, Review, ReviewState,
-    TideError,
+    CommitStatusState, ForgeClient, MergeMethod, MergeState, PullRequest, Result, Review,
+    ReviewState, TideError,
 };
 use serde::Deserialize;
 use serde::de::DeserializeOwned;
@@ -195,6 +196,10 @@ struct GitHubPr {
     base: GitHubPrRef,
     /// `null` while GitHub is still computing, `true`/`false` otherwise.
     mergeable: Option<bool>,
+    /// GitHub's mergeability state (`clean`, `behind`, `dirty`, etc.). May be
+    /// absent on list responses and is populated on refreshed PR responses.
+    #[serde(default)]
+    mergeable_state: Option<String>,
     #[serde(default)]
     labels: Vec<GitHubLabel>,
 }
@@ -253,6 +258,12 @@ struct GitHubMergeBody {
     merge_method: String,
 }
 
+/// GitHub update-branch request body.
+#[derive(serde::Serialize)]
+struct GitHubUpdateBranchBody<'a> {
+    expected_head_sha: &'a str,
+}
+
 // ---------------------------------------------------------------------------
 // ForgeClient impl
 // ---------------------------------------------------------------------------
@@ -286,9 +297,9 @@ impl ForgeClient for GitHubHttpClient {
             .iter()
             .enumerate()
             .filter(|(_, status)| status.context == required_context)
-            .max_by(|left, right| compare_status_recency(left, right));
+            .max_by(compare_status_recency);
         Ok(match found {
-            Some((_, status)) => CommitStatusState::from_str(&status.state),
+            Some((_, status)) => CommitStatusState::from_forge_state(&status.state),
             None => CommitStatusState::Missing,
         })
     }
@@ -306,7 +317,7 @@ impl ForgeClient for GitHubHttpClient {
             .enumerate()
             .map(|(index, r)| Review {
                 reviewer: r.user.login,
-                state: ReviewState::from_str(&r.state),
+                state: ReviewState::from_forge_state(&r.state),
                 submitted_at: r.submitted_at,
                 id: r.id,
                 api_order: index as u64,
@@ -333,6 +344,27 @@ impl ForgeClient for GitHubHttpClient {
             .map_err(|e| TideError::Downstream(format!("get_pull decode: {e}")))?;
 
         Ok(pr_from_wire(pr))
+    }
+
+    fn update_branch(&self, pr_number: u64, expected_head_sha: &str) -> Result<()> {
+        let url = format!("{}/pulls/{}/update-branch", self.repo_url(), pr_number);
+        let body = GitHubUpdateBranchBody { expected_head_sha };
+        let resp = self
+            .with_github_headers(self.client.put(&url))
+            .header("Content-Type", "application/json")
+            .json(&body)
+            .send()
+            .map_err(|e| TideError::Downstream(format!("update_branch PUT: {e}")))?;
+
+        let status = resp.status();
+        // GitHub returns 202 Accepted when the branch update was queued.
+        if status.is_success() {
+            return Ok(());
+        }
+
+        Err(TideError::Downstream(format!(
+            "update_branch returned HTTP {status}"
+        )))
     }
 
     fn merge_pull(&self, pr_number: u64, method: MergeMethod) -> Result<()> {
@@ -370,6 +402,11 @@ fn pr_from_wire(pr: GitHubPr) -> PullRequest {
         head_sha: pr.head.sha,
         base_ref: pr.base.ref_name,
         mergeable: pr.mergeable,
+        merge_state: pr
+            .mergeable_state
+            .as_deref()
+            .map(MergeState::from_forge_state)
+            .unwrap_or(MergeState::Unknown),
         labels: pr.labels.into_iter().map(|l| l.name).collect(),
     }
 }
@@ -467,7 +504,10 @@ mod tests {
     #[test]
     fn replaces_existing_page_query_parameter() {
         assert_eq!(
-            with_page("https://api.github.com/pulls?state=open&page=1&per_page=50", 2),
+            with_page(
+                "https://api.github.com/pulls?state=open&page=1&per_page=50",
+                2
+            ),
             "https://api.github.com/pulls?state=open&page=2&per_page=50"
         );
     }
@@ -501,8 +541,10 @@ mod tests {
                 .is_some_and(|total_count| all_items.len() < total_count)
                 && fetched > 0
             {
-                next_url =
-                    with_page("https://api.github.com/pulls?per_page=50&page=1", fallback_page);
+                next_url = with_page(
+                    "https://api.github.com/pulls?per_page=50&page=1",
+                    fallback_page,
+                );
                 fallback_page += 1;
                 continue;
             }
