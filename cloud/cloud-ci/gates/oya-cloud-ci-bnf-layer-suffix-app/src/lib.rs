@@ -9,9 +9,9 @@
 //! The producer (`oya-cloud-ci-accounting-registry-app`) does the I/O — it enumerates the
 //! first-party `oya-*` crate package names from the tracked Cargo.toml manifests and feeds them
 //! as `rows`. This gate resolves each crate's `declared_role` CARVE-OUT-AWARE and runs `check()`:
-//! - `oya-check-*` (self-layering check-family) and the doctrinal carve-out
-//!   (`oya-tooling-agent-read`) → `declared_role = None` (exempt: `check()` skips them in the
-//!   undeclared-role branch);
+//! - `oya-check-*` (self-layering check-family) and doctrinal carve-outs
+//!   (`oya-tooling-agent-read`, `oya-ci-gate-contract`) → `declared_role = None` (exempt:
+//!   `check()` skips them in the undeclared-role branch);
 //! - `oya-*-adapter-<backend>` (backend-qualified adapter) → `declared_role = Some("adapter")`
 //!   (effective layer is `adapter`, so `check()` sees a match — no violation);
 //! - every other crate → `declared_role = Some(<trailing dash-segment>)`.

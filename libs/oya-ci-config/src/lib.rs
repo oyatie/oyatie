@@ -473,7 +473,10 @@ fn default_backend_suffixes() -> Vec<String> {
 }
 
 fn default_doctrinal_carve_outs() -> Vec<String> {
-    vec!["oya-tooling-agent-read".to_owned()]
+    vec![
+        "oya-tooling-agent-read".to_owned(),
+        "oya-ci-gate-contract".to_owned(),
+    ]
 }
 
 impl Default for NamingConfig {
@@ -1345,7 +1348,10 @@ mod tests {
         assert_eq!(cfg.naming.backend_suffixes.len(), 9);
         assert_eq!(
             cfg.naming.doctrinal_carve_outs,
-            vec!["oya-tooling-agent-read".to_owned()]
+            vec![
+                "oya-tooling-agent-read".to_owned(),
+                "oya-ci-gate-contract".to_owned()
+            ]
         );
     }
 
