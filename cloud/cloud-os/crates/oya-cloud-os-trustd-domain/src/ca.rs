@@ -201,6 +201,42 @@ impl<S: SigningBackend> CertificateAuthority<S> {
         })
     }
 
+    /// Rehydrate a CA from already-parsed durable state.
+    pub(crate) fn from_persisted_parts(
+        cert: Certificate,
+        keypair: KeyPair,
+        signer: S,
+        policy: IssuancePolicy,
+        next_serial: u64,
+    ) -> Result<Self> {
+        if !cert.is_ca() {
+            return Err(TrustError::invalid("persisted trust anchor is not a CA"));
+        }
+        cert.validate()?;
+        if !keypair.matches_public(&cert.public_key_der) {
+            return Err(TrustError::verification_failed(
+                "persisted CA private key does not match CA certificate public key",
+            ));
+        }
+        if !signer.verify(&cert.tbs_bytes(), &cert.signature) {
+            return Err(TrustError::verification_failed(
+                "persisted CA certificate was not signed by the restored signer",
+            ));
+        }
+        if next_serial <= cert.serial {
+            return Err(TrustError::invalid(
+                "persisted CA serial counter is not ahead of the CA certificate serial",
+            ));
+        }
+        Ok(CertificateAuthority {
+            cert,
+            keypair,
+            signer,
+            policy,
+            next_serial,
+        })
+    }
+
     /// Override the issuance policy.
     pub fn with_policy(mut self, policy: IssuancePolicy) -> Self {
         self.policy = policy;
@@ -295,6 +331,11 @@ impl<S: SigningBackend> CertificateAuthority<S> {
     /// The CA's signing key pair (held only by trustd).
     pub fn keypair(&self) -> &KeyPair {
         &self.keypair
+    }
+
+    /// The signing backend, exposed only to sealed durable persistence code.
+    pub(crate) fn signing_backend(&self) -> &S {
+        &self.signer
     }
 
     /// The currently-configured issuance policy.
