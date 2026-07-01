@@ -37,6 +37,11 @@ Build **oya-identity** — a bespoke, Rust-native human identity substrate — u
 `microservices/oya-identity/`. Keycloak (ADR-0421) is the Phase-1 bridge; oya-identity
 is the canonical long-term target.
 
+The planning and tracking bridge for the ADR-0476 identity surface with the
+ADR-0506, ADR-0507, and ADR-0508 provider bridges is
+`oya/identity/IP-017-bespoke-identity-authn-crypto-bridge.md`; its ownership
+marker is `oya/identity/OWNERS`.
+
 ### D1 — µservice scaffold
 
 Ships as single hyperscaler-pattern crate per ADR-0509; subsystems live as mod under `src/<subsystem>/`. New µservice `microservices/oya-identity/` as a single Rust crate with Axum (ADR-0002) + Connect-RPC (ADR-0416). Key dependencies:
