@@ -2480,6 +2480,14 @@ bind to a live workspace crate-id). The SEPARATE `oya/accounting/catalog/*.yaml`
 by the catalog-liveness gate) are non-crate artifacts of the `oya/accounting` source dir and stay behind for phase-2 (task
 #62), exactly like the absorbed dirs' manifest.json/docs/contracts.
 
+**REORG-003 metering-pipeline straggler addendum:** the later REORG-003 slice homes the previously
+record-less `libs/oya-metering-pipeline-kernel` crate under `billing/core/metering-pipeline-kernel`
+with cargo id `billing-metering-pipeline-kernel`. Because `catalog-liveness` is now born-blocking for
+live workspace crates, the slice adds the minimal live catalog row
+`registry/catalog/billing-metering-pipeline-kernel.yaml` rather than leaving a new live crate
+record-less. That catalog row is a liveness/accounting record only: it carries no runtime-readiness,
+SLO, or production claim beyond the existing metering pipeline kernel contract.
+
 **SLO co-move (12, per-service subdirs — collision-avoiding):** two source dirs carry a promotion-gating SLO with the SAME
 basename `autosharding-events.openslo.yaml` (`cloud/cloud-billing/slos/` + `cloud/cloud-billing-tax/slos/`), a confirmed
 cross-service basename collision (cloud-finops + oya/accounting carry no SLO dir). All twelve SLOs (11 from cloud-billing:

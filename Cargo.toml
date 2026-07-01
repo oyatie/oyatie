@@ -299,23 +299,26 @@ members = [
   # Cargo.toml), and the absorbed dirs' other non-crate artifacts (manifest.json/docs/PRD/IPs/contracts)
   # are homed in phase-2 (task #62).
   "secrets/*/*",
-  # billing capability (MOVE-21, ADR-0562 §10.25): homes cloud/cloud-billing + cloud/cloud-billing-tax
-  # + cloud/cloud-finops + oya/accounting crates → billing/{core,ports,adapters,facade}/<leaf> (16
-  # crates: core 7 / ports 3 / adapters 2 / facade 4). billing is the first-class cross-cutting
-  # sold-ness capability (metering + billing + tax + finops/cost + accounting): the billing/metering/
-  # finops/accounting-journal domains + the billing/finops kernels + the accounting-app usecase
-  # orchestrator (no adapter dep) are core; the finops/accounting capability-trait + DTO seams + the
-  # lib-only tax-api contract surface are ports; the accounting-journal http + inmemory-storage transient
-  # infra impls are adapters; the billing/meter/cost service deployables + the saas-bench harness are
-  # facade. The de-branded cargo name == billing-<leaf> path-tail (the legacy oya-cloud-billing-X /
-  # oya-cloud-finops-X / oya-accounting-journal-X forms drop to the `billing-` capability slug; the face
-  # dir is NOT in the name and the leaves are already distinct), so each leaf segment stays a bare `*`.
-  # `billing/*/*` covers all sixteen faces/leaves with one glob, satisfying ADR-0538's glob-only members
-  # contract (no explicit-path members — the codemod-emitted literals are collapsed to this glob); the
-  # co-moved billing/observability/slos non-crate SLO subtree (per-service subdirs
-  # cloud-billing/cloud-billing-tax, collision-avoiding for the shared autosharding-events.openslo.yaml
-  # basename across the two source dirs) is excluded below (no Cargo.toml), and the absorbed dirs' other
-  # non-crate artifacts (manifest.json/docs/PRD/IPs/contracts/iac/catalog) are homed in phase-2 (task #62).
+  # billing capability (MOVE-21, ADR-0562 §10.25 + REORG-003): homes cloud/cloud-billing
+  # + cloud/cloud-billing-tax + cloud/cloud-finops + oya/accounting crates plus the
+  # former libs/oya-metering-pipeline-kernel straggler → billing/{core,ports,adapters,facade}/<leaf>.
+  # billing is the first-class cross-cutting sold-ness capability (metering + billing + tax
+  # + finops/cost + accounting): the billing/metering/finops/accounting-journal domains +
+  # the billing/finops kernels + the metering pipeline kernel + the accounting-app usecase
+  # orchestrator (no adapter dep) are core; the finops/accounting capability-trait + DTO seams
+  # + the lib-only tax-api contract surface are ports; the accounting-journal http +
+  # inmemory-storage transient infra impls are adapters; the billing/meter/cost service
+  # deployables + the saas-bench harness are facade. The de-branded cargo name ==
+  # billing-<leaf> path-tail (the legacy oya-cloud-billing-X / oya-cloud-finops-X /
+  # oya-accounting-journal-X / oya-metering-X / oya-meter-X forms drop to the `billing-`
+  # capability slug; the face dir is NOT in the name and the leaves are already distinct),
+  # so each leaf segment stays a bare `*`. `billing/*/*` covers every billing face/leaf
+  # with one glob, satisfying ADR-0538's glob-only members contract (no explicit-path members
+  # — the codemod-emitted literals are collapsed to this glob); the co-moved billing/observability/slos
+  # non-crate SLO subtree (per-service subdirs cloud-billing/cloud-billing-tax, collision-avoiding
+  # for the shared autosharding-events.openslo.yaml basename across the two source dirs) is excluded
+  # below (no Cargo.toml), and the absorbed dirs' other non-crate artifacts
+  # (manifest.json/docs/PRD/IPs/contracts/iac/catalog) are homed in phase-2 (task #62).
   "billing/*/*",
   # ADR-0562 §10.26(a) move-22 sub-batch (a): the `intelligence` capability ROOT — established by this
   # sub-batch, which homes the sixteen cloud-intelligence crates into intelligence/{core 4, adapters 10,
