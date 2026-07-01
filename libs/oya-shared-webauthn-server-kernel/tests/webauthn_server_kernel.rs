@@ -10,8 +10,8 @@ use std::collections::BTreeSet;
 use std::sync::atomic::{AtomicU32, Ordering};
 
 use oya_shared_webauthn_server_kernel::{
-    Aaguid, AttestationConveyance, AuthenticationChallenge, AuthenticationResponse, Credential,
-    CredentialId, CoseKeyCbor, InMemoryChallengeStore, InMemoryCredentialStore, Mediation, PackTier,
+    Aaguid, AttestationConveyance, AuthenticationChallenge, AuthenticationResponse, CoseKeyCbor,
+    Credential, CredentialId, InMemoryChallengeStore, InMemoryCredentialStore, Mediation, PackTier,
     ReferenceWebauthnServer, RegistrationChallenge, RegistrationResponse, TenantId, Transport,
     UserId, WebauthnError, WebauthnRpAdapter, WebauthnServer,
 };
@@ -20,9 +20,18 @@ struct StubAdapter {
     rp_id: String,
     rp_name: String,
     fixed_aaguid: Aaguid,
+    challenge_counter: AtomicU32,
+    challenge_mode: ChallengeMode,
     /// Fail registration when client_data starts with "deny:"
     /// Fail authentication when client_data starts with "denyauth:"
     sign_counter: AtomicU32,
+}
+
+#[derive(Clone, Copy)]
+enum ChallengeMode {
+    Stable,
+    Empty,
+    Fail,
 }
 
 impl StubAdapter {
@@ -31,14 +40,32 @@ impl StubAdapter {
             rp_id: "oyatie.dev".into(),
             rp_name: "Oyatie".into(),
             fixed_aaguid: aaguid,
+            challenge_counter: AtomicU32::new(0),
+            challenge_mode: ChallengeMode::Stable,
             sign_counter: AtomicU32::new(0),
         }
+    }
+
+    fn with_challenge_mode(mut self, challenge_mode: ChallengeMode) -> Self {
+        self.challenge_mode = challenge_mode;
+        self
     }
 }
 
 impl WebauthnRpAdapter for StubAdapter {
-    fn generate_challenge(&self) -> Vec<u8> {
-        (0u8..32).collect()
+    fn generate_challenge(&self) -> Result<Vec<u8>, WebauthnError> {
+        match self.challenge_mode {
+            ChallengeMode::Stable => {
+                let mut challenge: Vec<u8> = (0u8..32).collect();
+                let counter = self.challenge_counter.fetch_add(1, Ordering::SeqCst);
+                challenge[0] = counter as u8;
+                Ok(challenge)
+            }
+            ChallengeMode::Empty => Ok(Vec::new()),
+            ChallengeMode::Fail => Err(WebauthnError::ChallengeGenerationFailed(
+                "stub rng unavailable".into(),
+            )),
+        }
     }
     fn rp_id(&self) -> &str {
         &self.rp_id
@@ -55,6 +82,16 @@ impl WebauthnRpAdapter for StubAdapter {
     ) -> Result<Credential, WebauthnError> {
         if response.client_data_json_b64url.starts_with("deny:") {
             return Err(WebauthnError::AttestationInvalid("stub deny".into()));
+        }
+        if let Some(expected) = response
+            .client_data_json_b64url
+            .strip_prefix("expect-challenge:")
+            && expected != challenge.challenge_b64url
+        {
+            return Err(WebauthnError::AttestationInvalid(format!(
+                "stub challenge mismatch: expected {expected}, got {}",
+                challenge.challenge_b64url
+            )));
         }
         if let Some(al) = allowlist
             && !al.contains(&self.fixed_aaguid)
@@ -117,6 +154,78 @@ fn tenant() -> TenantId {
 }
 fn user() -> UserId {
     UserId("user-1".into())
+}
+
+struct PutFailingCredentialStore;
+
+impl oya_shared_webauthn_server_kernel::CredentialStore for PutFailingCredentialStore {
+    fn get(
+        &self,
+        _tenant: &TenantId,
+        _cred: &CredentialId,
+    ) -> Result<Option<Credential>, WebauthnError> {
+        Ok(None)
+    }
+
+    fn put(&self, _cred: &Credential) -> Result<(), WebauthnError> {
+        Err(WebauthnError::StorageUnavailable {
+            operation: "credential.put",
+            detail: "postgres write unavailable".into(),
+        })
+    }
+
+    fn revoke(&self, _tenant: &TenantId, _cred: &CredentialId) -> Result<(), WebauthnError> {
+        Ok(())
+    }
+
+    fn list_for_user(
+        &self,
+        _tenant: &TenantId,
+        _user: &UserId,
+    ) -> Result<Vec<Credential>, WebauthnError> {
+        Ok(Vec::new())
+    }
+}
+
+struct UpdateFailingCredentialStore {
+    credential: Credential,
+}
+
+impl oya_shared_webauthn_server_kernel::CredentialStore for UpdateFailingCredentialStore {
+    fn get(
+        &self,
+        tenant: &TenantId,
+        cred: &CredentialId,
+    ) -> Result<Option<Credential>, WebauthnError> {
+        Ok(
+            (self.credential.tenant_id == *tenant && self.credential.credential_id == *cred)
+                .then_some(self.credential.clone()),
+        )
+    }
+
+    fn put(&self, _cred: &Credential) -> Result<(), WebauthnError> {
+        Err(WebauthnError::StorageUnavailable {
+            operation: "credential.put",
+            detail: "postgres update unavailable".into(),
+        })
+    }
+
+    fn revoke(&self, _tenant: &TenantId, _cred: &CredentialId) -> Result<(), WebauthnError> {
+        Ok(())
+    }
+
+    fn list_for_user(
+        &self,
+        tenant: &TenantId,
+        user: &UserId,
+    ) -> Result<Vec<Credential>, WebauthnError> {
+        Ok(
+            (self.credential.tenant_id == *tenant && self.credential.user_id == *user)
+                .then_some(self.credential.clone())
+                .into_iter()
+                .collect(),
+        )
+    }
 }
 
 #[test]
@@ -198,6 +307,184 @@ fn happy_path_register_then_authenticate() {
         .expect("finish auth");
     assert_eq!(authed.last_used_at_unix, 1_700_000_100);
     assert!(authed.sign_count >= 1);
+}
+
+#[test]
+fn begin_registration_fails_closed_when_key_seam_returns_empty_challenge() {
+    let server = ReferenceWebauthnServer::new(
+        StubAdapter::new(Aaguid([20u8; 16])).with_challenge_mode(ChallengeMode::Empty),
+        InMemoryChallengeStore::default(),
+        InMemoryCredentialStore::default(),
+    );
+    let err = server
+        .begin_registration(
+            &tenant(),
+            &user(),
+            "Grace",
+            PackTier::PackStandard,
+            1_700_000_000,
+        )
+        .unwrap_err();
+    assert!(matches!(err, WebauthnError::ChallengeGenerationFailed(_)));
+}
+
+#[test]
+fn begin_authentication_fails_closed_when_key_seam_errors() {
+    let server = ReferenceWebauthnServer::new(
+        StubAdapter::new(Aaguid([21u8; 16])).with_challenge_mode(ChallengeMode::Fail),
+        InMemoryChallengeStore::default(),
+        InMemoryCredentialStore::default(),
+    );
+    let err = server
+        .begin_authentication(&tenant(), vec![], Mediation::Conditional, 1_700_000_000)
+        .unwrap_err();
+    assert!(matches!(err, WebauthnError::ChallengeGenerationFailed(_)));
+}
+
+#[test]
+fn finish_registration_fails_closed_when_credential_store_write_fails() {
+    let server = ReferenceWebauthnServer::new(
+        StubAdapter::new(Aaguid([22u8; 16])),
+        InMemoryChallengeStore::default(),
+        PutFailingCredentialStore,
+    );
+    let chal = server
+        .begin_registration(
+            &tenant(),
+            &user(),
+            "Heidi",
+            PackTier::PackStandard,
+            1_700_000_000,
+        )
+        .expect("begin");
+    let err = server
+        .finish_registration(
+            &tenant(),
+            &user(),
+            PackTier::PackStandard,
+            &RegistrationResponse {
+                challenge_id: chal.challenge_id,
+                client_data_json_b64url: "ok".into(),
+                attestation_object_b64url: "ok".into(),
+                transports: vec![Transport::Internal],
+            },
+            1_700_000_001,
+        )
+        .unwrap_err();
+    assert!(matches!(
+        err,
+        WebauthnError::StorageUnavailable {
+            operation: "credential.put",
+            ..
+        }
+    ));
+}
+
+#[test]
+fn finish_authentication_fails_closed_when_credential_store_update_fails() {
+    let mut credential = make_credential(Aaguid([23u8; 16]));
+    credential.tenant_id = tenant();
+    credential.user_id = user();
+    credential.credential_id = CredentialId(b"credential-with-production-store".to_vec());
+    let server = ReferenceWebauthnServer::new(
+        StubAdapter::new(Aaguid([23u8; 16])),
+        InMemoryChallengeStore::default(),
+        UpdateFailingCredentialStore {
+            credential: credential.clone(),
+        },
+    );
+
+    let chal = server
+        .begin_authentication(
+            &tenant(),
+            vec![credential.credential_id.clone()],
+            Mediation::Optional,
+            1_700_000_000,
+        )
+        .expect("begin auth");
+    let err = server
+        .finish_authentication(
+            &tenant(),
+            &AuthenticationResponse {
+                challenge_id: chal.challenge_id,
+                credential_id: credential.credential_id,
+                client_data_json_b64url: "count:1:end".into(),
+                authenticator_data_b64url: "x".into(),
+                signature_b64url: "x".into(),
+                user_handle_b64url: None,
+            },
+            1_700_000_050,
+        )
+        .unwrap_err();
+    assert!(matches!(
+        err,
+        WebauthnError::StorageUnavailable {
+            operation: "credential.put",
+            ..
+        }
+    ));
+}
+
+#[test]
+fn registration_challenge_ids_are_distinct_for_same_user_and_second() {
+    let server = srv(Aaguid([10u8; 16]), BTreeSet::new());
+    let first = server
+        .begin_registration(
+            &tenant(),
+            &user(),
+            "Grace",
+            PackTier::PackStandard,
+            1_700_000_000,
+        )
+        .expect("first begin");
+    let second = server
+        .begin_registration(
+            &tenant(),
+            &user(),
+            "Grace",
+            PackTier::PackStandard,
+            1_700_000_000,
+        )
+        .expect("second begin");
+
+    assert_ne!(
+        first.challenge_b64url, second.challenge_b64url,
+        "test adapter must issue distinct ceremony challenges"
+    );
+    assert_ne!(
+        first.challenge_id, second.challenge_id,
+        "registration challenge IDs must not collide for same tenant/user/second"
+    );
+
+    let second_cred = server
+        .finish_registration(
+            &tenant(),
+            &user(),
+            PackTier::PackStandard,
+            &RegistrationResponse {
+                challenge_id: second.challenge_id,
+                client_data_json_b64url: format!("expect-challenge:{}", second.challenge_b64url),
+                attestation_object_b64url: "ok-attest".into(),
+                transports: vec![Transport::Internal],
+            },
+            1_700_000_000,
+        )
+        .expect("finish second registration against second challenge");
+    let first_cred = server
+        .finish_registration(
+            &tenant(),
+            &user(),
+            PackTier::PackStandard,
+            &RegistrationResponse {
+                challenge_id: first.challenge_id,
+                client_data_json_b64url: format!("expect-challenge:{}", first.challenge_b64url),
+                attestation_object_b64url: "ok-attest".into(),
+                transports: vec![Transport::Internal],
+            },
+            1_700_000_000,
+        )
+        .expect("finish first registration against first challenge");
+    assert_ne!(second_cred.credential_id, first_cred.credential_id);
 }
 
 #[test]
@@ -502,21 +789,27 @@ fn make_credential(aaguid: Aaguid) -> Credential {
 #[test]
 fn sandbox_or_dev_always_admits() {
     let cred = make_credential(Aaguid::ZERO); // even zero AAGUID is fine here
-    assert!(PackTier::SandboxOrDev
-        .admit_credential(AttestationConveyance::None, &cred, None)
-        .is_ok());
+    assert!(
+        PackTier::SandboxOrDev
+            .admit_credential(AttestationConveyance::None, &cred, None)
+            .is_ok()
+    );
     // Higher conveyances also pass
-    assert!(PackTier::SandboxOrDev
-        .admit_credential(AttestationConveyance::Direct, &cred, None)
-        .is_ok());
+    assert!(
+        PackTier::SandboxOrDev
+            .admit_credential(AttestationConveyance::Direct, &cred, None)
+            .is_ok()
+    );
 }
 
 #[test]
 fn pack_standard_indirect_admits() {
     let cred = make_credential(Aaguid([1u8; 16]));
-    assert!(PackTier::PackStandard
-        .admit_credential(AttestationConveyance::Indirect, &cred, None)
-        .is_ok());
+    assert!(
+        PackTier::PackStandard
+            .admit_credential(AttestationConveyance::Indirect, &cred, None)
+            .is_ok()
+    );
 }
 
 #[test]
@@ -543,9 +836,11 @@ fn regulated_direct_allowlisted_admits() {
     let mut al = BTreeSet::new();
     al.insert(aaguid);
     let cred = make_credential(aaguid);
-    assert!(PackTier::PackRegulated
-        .admit_credential(AttestationConveyance::Direct, &cred, Some(&al))
-        .is_ok());
+    assert!(
+        PackTier::PackRegulated
+            .admit_credential(AttestationConveyance::Direct, &cred, Some(&al))
+            .is_ok()
+    );
 }
 
 #[test]
@@ -599,9 +894,11 @@ fn critical_enterprise_admits() {
     let mut al = BTreeSet::new();
     al.insert(aaguid);
     let cred = make_credential(aaguid);
-    assert!(PackTier::AcrCritical
-        .admit_credential(AttestationConveyance::Enterprise, &cred, Some(&al))
-        .is_ok());
+    assert!(
+        PackTier::AcrCritical
+            .admit_credential(AttestationConveyance::Enterprise, &cred, Some(&al))
+            .is_ok()
+    );
 }
 
 #[test]
@@ -610,9 +907,11 @@ fn critical_direct_admits() {
     let mut al = BTreeSet::new();
     al.insert(aaguid);
     let cred = make_credential(aaguid);
-    assert!(PackTier::AcrCritical
-        .admit_credential(AttestationConveyance::Direct, &cred, Some(&al))
-        .is_ok());
+    assert!(
+        PackTier::AcrCritical
+            .admit_credential(AttestationConveyance::Direct, &cred, Some(&al))
+            .is_ok()
+    );
 }
 
 #[test]
