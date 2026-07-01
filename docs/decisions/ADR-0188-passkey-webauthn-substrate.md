@@ -9,6 +9,7 @@ superseded_by: []
 related: [ADR-0145, ADR-0187, ADR-0189]
 related_specs:
   - /specs/microservices/manifest-schema.json
+  - /specs/regulatory-identity-kyc-policy-evidence-architecture.json
 microservice: identity
 versions_current_as_of: 2026-05-18
 ---
@@ -26,6 +27,7 @@ OIDC password authentication is broken at scale: 81% of breaches involve weak or
 WebAuthn Level 3 promotes "Passkey" (multi-device synced credentials) and "cross-device sign-in" (caBLE: Cloud-Assisted BLE Endpoint) to first-class status, alongside the original device-bound model. Conditional UI (autofill, no explicit user-click) makes Passkey UX equivalent to password autofill on supported browsers.
 
 This ADR sits inside `identity` µservice and is consumed by Zitadel (ADR-0187) as the relying-party WebAuthn implementation.
+It also governs the REGID-002 planning artifact `specs/regulatory-identity-kyc-policy-evidence-architecture.json`, which maps passkey-first authentication into KYC/CDD/EDD policy-evidence architecture without adding a service, runtime handler, or CLI surface. WebAuthn Level 3 remains the normative implementation floor; the W3C WebAuthn Level 4 "First Published Working Draft" milestone is tracked as a non-blocking horizon for items such as immediate mediation UI, alternative error codes, sign extensions, CTAP2.3 virtual-authenticator versioning, and post-quantum/ML-DSA test-vector work, but no Oyatie policy or readiness claim may depend on Level 4 until the feature is standardized and implemented by supported clients/authenticators.
 
 ## Decision
 

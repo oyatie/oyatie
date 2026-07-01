@@ -2220,6 +2220,52 @@
       }
     },
     {
+      "artifact_id": "regulatory-identity-kyc-policy-evidence-architecture",
+      "artifact_path": "/specs/regulatory-identity-kyc-policy-evidence-architecture.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "axis-identity + ops-compliance + axis-policy-engine + axis-audit-chain + axis-tenancy",
+      "purpose_short": "REGID-002 design-only contract map for passkey-first KYC/CDD/EDD policy decisions, evidence packets, tenant state, compliance packs, retention, consent, and residency.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "regulatory-identity-architecture"
+        },
+        "verification": {
+          "checker_crate": "not-applicable-design-plan",
+          "command": "python3 -m json.tool specs/regulatory-identity-kyc-policy-evidence-architecture.json >/dev/null"
+        },
+        "validation": {
+          "validator": "JSON parse plus independent architecture/compliance review before implementation slices"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored design plan"
+        },
+        "selfheal": {
+          "healer": "manual review; REGID-001 source row extraction must drive future row-level self-healing"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_regulatory_identity_architecture_open_gaps_total",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "gap_id",
+                "blocked_slice"
+              ],
+              "cardinality_budget": 100
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "T3 multispectrum review t_59bf50cb APPROVE",
+          "last_modified_at": "2026-07-01T00:04:19Z"
+        }
+      }
+    },
+    {
       "artifact_id": "security-validation-pipeline-matrix",
       "artifact_path": "/specs/security-validation-pipeline-matrix.json",
       "artifact_format": "json",
