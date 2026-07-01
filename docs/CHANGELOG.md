@@ -19,6 +19,12 @@ doc_status: published
 - Added born-accounting registration for the new standard through standards ownership,
   exact reachability entries, and ADR justification pointers.
 
+## 2026-07-01 — Root-of-trust ceremony and cloud trust drift port
+
+- Ported the root-of-trust ceremony runbook and machine-readable redacted evidence contract from the dirty preservation root, registering the cloud runbook in `docs/RUNBOOKS-INDEX.md`.
+- Ported the still-current cloud trust/IaC safety slices: sealed `trustd` CA persistence over the real ECDSA signer, and Cloud IaC service/tenant fixture evidence with current `cloud/cloud-iac` paths.
+- Discarded old cloud KMS and managed-K8s quota runtime crate resurrection from this lane because those crates are absent from current `origin/dev`; their security intent is recorded on the Kanban handoff for follow-up on current destination surfaces.
+
 ## 2026-06-30 — DEVFLOW-003 post-merge product-completion gate
 
 - Added post-merge product-completion packet requirements to root agent guidance,
