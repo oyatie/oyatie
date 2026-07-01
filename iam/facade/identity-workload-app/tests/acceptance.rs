@@ -18,14 +18,15 @@
 
 use std::collections::BTreeMap;
 
-use base64::Engine as _;
-use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use aws_lc_rs::rand::SystemRandom;
 use aws_lc_rs::signature::{ECDSA_P256_SHA256_FIXED_SIGNING, EcdsaKeyPair, KeyPair};
+use base64::Engine as _;
+use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 
 use iam_identity_workload_app::{
     AuthorizeOutcome, InMemoryRevocationDenylist, InMemoryWorkloadPrincipalRepository,
-    LifecycleError, activate, authorize_with_token, provision, retire, suspend,
+    LifecycleError, activate, authorize_with_token, provision, record_revocation_event, retire,
+    suspend,
 };
 use iam_identity_workload_authz_cedar::CedarWorkloadAuthorizer;
 use iam_identity_workload_domain::{Action, Effect, Resource, WorkloadId, WorkloadState};
@@ -232,6 +233,63 @@ fn suspend_denies_via_denylist_even_with_valid_token() {
     );
     assert!(!outcome.is_allow());
     assert_eq!(outcome.decision().effect(), Effect::Deny);
+}
+
+/// CAEP-style shared-signal event: a revocation event updates an issue-time
+/// cutoff, and a still-unexpired credential issued before that cutoff is denied
+/// within the sub-60s propagation window (without relying on token expiry).
+#[test]
+fn revocation_event_cutoff_denies_stale_credential_within_sixty_seconds() {
+    let minted = mint_workload_token();
+    let jwks = Jwks::new().add_key(minted.jwk.clone());
+    let mut repo = InMemoryWorkloadPrincipalRepository::new();
+    let mut denylist = InMemoryRevocationDenylist::new();
+    let authorizer = permit_only_authorizer();
+    let wl = WorkloadId::new("wl_secrets_sync").unwrap();
+
+    provision(&mut repo, "ten_acme", "wl_secrets_sync", "cap.cloud.kms").expect("provision");
+    activate(&mut repo, &wl).expect("activate");
+
+    let (action, resource) = decrypt_secret();
+    assert!(
+        authorize_with_token(
+            &repo,
+            &denylist,
+            &authorizer,
+            &jwks,
+            &config(),
+            NOW + 58,
+            &minted.token,
+            action,
+            resource,
+            BTreeMap::new(),
+        )
+        .is_allow(),
+        "the credential is still cryptographically valid before the event"
+    );
+
+    record_revocation_event(&mut denylist, &wl, NOW + 59).expect("record revocation event");
+
+    let (action, resource) = decrypt_secret();
+    let outcome = authorize_with_token(
+        &repo,
+        &denylist,
+        &authorizer,
+        &jwks,
+        &config(),
+        NOW + 59,
+        &minted.token,
+        action,
+        resource,
+        BTreeMap::new(),
+    );
+
+    assert_eq!(
+        outcome,
+        AuthorizeOutcome::Revoked,
+        "a CAEP-style revocation event must deny credentials issued at/before the cutoff"
+    );
+    assert!(!outcome.is_allow());
 }
 
 /// AC: retire is TERMINAL — the id is tombstoned, re-activation is rejected,
