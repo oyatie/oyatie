@@ -32,5 +32,5 @@
     "oya/calendar/manifest.json#contracts"
   ],
   "status": "passed_after_build_skeleton_replay",
-  "verification_method": "scripts/tests/calendar_prd_red_fixture_contract_check.py validates this replay fixture plus OpenAPI/AsyncAPI/proto source terms."
+  "verification_method": "specs/fixtures/calendar-prd/calendar_prd_replay_check.py validates this replay fixture plus OpenAPI/AsyncAPI/proto source terms."
 }

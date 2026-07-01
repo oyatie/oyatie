@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 from typing import Any, Callable, NoReturn
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_MANIFEST = REPO_ROOT / "specs" / "fixtures" / "calendar-prd" / "red-fixtures.json"
 DEFAULT_REPLAY_ROOT = REPO_ROOT / "specs" / "fixtures" / "calendar-prd" / "replay"
 PRD_PATH = REPO_ROOT / "specs" / "microservices" / "calendar.json"
