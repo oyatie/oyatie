@@ -243,7 +243,7 @@ pub struct AuthenticationResponse {
 /// Wired to `webauthn-rs` v0.5+ today; ADR-0188 §In-house roadmap permits a
 /// Phase-2 swap if upstream becomes unmaintained.
 pub trait WebauthnRpAdapter: Send + Sync {
-    fn generate_challenge(&self) -> Vec<u8>;
+    fn generate_challenge(&self) -> Result<Vec<u8>, WebauthnError>;
     fn rp_id(&self) -> &str;
     fn rp_name(&self) -> &str;
 
@@ -268,8 +268,13 @@ pub trait WebauthnRpAdapter: Send + Sync {
 /// Failure-mode enum, distinct variants per error class for caller policy.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum WebauthnError {
+    ChallengeGenerationFailed(String),
     ChallengeNotFound(String),
     ChallengeExpired,
+    StorageUnavailable {
+        operation: &'static str,
+        detail: String,
+    },
     AttestationInvalid(String),
     AaguidNotAllowlisted(Aaguid),
     AttestationLevelInsufficient {
@@ -297,8 +302,15 @@ pub enum WebauthnError {
 impl std::fmt::Display for WebauthnError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::ChallengeGenerationFailed(s) => {
+                write!(f, "webauthn: challenge generation failed: {s}")
+            }
             Self::ChallengeNotFound(c) => write!(f, "webauthn: challenge not found '{c}'"),
             Self::ChallengeExpired => write!(f, "webauthn: challenge expired"),
+            Self::StorageUnavailable { operation, detail } => write!(
+                f,
+                "webauthn: storage unavailable during {operation}: {detail}"
+            ),
             Self::AttestationInvalid(s) => write!(f, "webauthn: attestation invalid: {s}"),
             Self::AaguidNotAllowlisted(a) => write!(
                 f,
@@ -368,10 +380,18 @@ pub trait WebauthnServer: Send + Sync {
 
 /// Pluggable store contract (Postgres in production; in-memory in tests).
 pub trait CredentialStore: Send + Sync {
-    fn get(&self, tenant: &TenantId, cred: &CredentialId) -> Option<Credential>;
-    fn put(&self, cred: &Credential);
-    fn revoke(&self, tenant: &TenantId, cred: &CredentialId);
-    fn list_for_user(&self, tenant: &TenantId, user: &UserId) -> Vec<Credential>;
+    fn get(
+        &self,
+        tenant: &TenantId,
+        cred: &CredentialId,
+    ) -> Result<Option<Credential>, WebauthnError>;
+    fn put(&self, cred: &Credential) -> Result<(), WebauthnError>;
+    fn revoke(&self, tenant: &TenantId, cred: &CredentialId) -> Result<(), WebauthnError>;
+    fn list_for_user(
+        &self,
+        tenant: &TenantId,
+        user: &UserId,
+    ) -> Result<Vec<Credential>, WebauthnError>;
 }
 
 /// In-memory store, suitable for tests + reference. Production uses a
@@ -389,15 +409,31 @@ impl Default for InMemoryCredentialStore {
 }
 
 impl CredentialStore for InMemoryCredentialStore {
-    fn get(&self, tenant: &TenantId, cred: &CredentialId) -> Option<Credential> {
-        let g = self.inner.lock().ok()?;
-        g.iter()
+    fn get(
+        &self,
+        tenant: &TenantId,
+        cred: &CredentialId,
+    ) -> Result<Option<Credential>, WebauthnError> {
+        let g = self
+            .inner
+            .lock()
+            .map_err(|e| WebauthnError::StorageUnavailable {
+                operation: "credential.get",
+                detail: e.to_string(),
+            })?;
+        Ok(g.iter()
             .find(|c| c.tenant_id == *tenant && c.credential_id == *cred)
-            .cloned()
+            .cloned())
     }
 
-    fn put(&self, cred: &Credential) {
-        let Ok(mut g) = self.inner.lock() else { return };
+    fn put(&self, cred: &Credential) -> Result<(), WebauthnError> {
+        let mut g = self
+            .inner
+            .lock()
+            .map_err(|e| WebauthnError::StorageUnavailable {
+                operation: "credential.put",
+                detail: e.to_string(),
+            })?;
         if let Some(slot) = g
             .iter_mut()
             .find(|c| c.tenant_id == cred.tenant_id && c.credential_id == cred.credential_id)
@@ -406,34 +442,58 @@ impl CredentialStore for InMemoryCredentialStore {
         } else {
             g.push(cred.clone());
         }
+        Ok(())
     }
 
-    fn revoke(&self, tenant: &TenantId, cred: &CredentialId) {
-        let Ok(mut g) = self.inner.lock() else { return };
+    fn revoke(&self, tenant: &TenantId, cred: &CredentialId) -> Result<(), WebauthnError> {
+        let mut g = self
+            .inner
+            .lock()
+            .map_err(|e| WebauthnError::StorageUnavailable {
+                operation: "credential.revoke",
+                detail: e.to_string(),
+            })?;
         g.retain(|c| !(c.tenant_id == *tenant && c.credential_id == *cred));
+        Ok(())
     }
 
-    fn list_for_user(&self, tenant: &TenantId, user: &UserId) -> Vec<Credential> {
-        let Ok(g) = self.inner.lock() else {
-            return Vec::new();
-        };
-        g.iter()
+    fn list_for_user(
+        &self,
+        tenant: &TenantId,
+        user: &UserId,
+    ) -> Result<Vec<Credential>, WebauthnError> {
+        let g = self
+            .inner
+            .lock()
+            .map_err(|e| WebauthnError::StorageUnavailable {
+                operation: "credential.list_for_user",
+                detail: e.to_string(),
+            })?;
+        Ok(g.iter()
             .filter(|c| c.tenant_id == *tenant && c.user_id == *user)
             .cloned()
-            .collect()
+            .collect())
     }
 }
 
 /// Pluggable challenge store (TTL'd; in-memory in tests, Redis in
 /// production).
 pub trait ChallengeStore: Send + Sync {
-    fn put_registration(&self, c: &RegistrationChallenge, now_unix: i64);
+    fn put_registration(
+        &self,
+        c: &RegistrationChallenge,
+        now_unix: i64,
+    ) -> Result<(), WebauthnError>;
     fn take_registration(
         &self,
         id: &str,
         now_unix: i64,
     ) -> Result<RegistrationChallenge, WebauthnError>;
-    fn put_authentication(&self, c: &AuthenticationChallenge, now_unix: i64);
+    fn put_authentication(
+        &self,
+        c: &AuthenticationChallenge,
+        now_unix: i64,
+    ) -> Result<(), WebauthnError>;
     fn take_authentication(
         &self,
         id: &str,
@@ -450,10 +510,20 @@ pub struct InMemoryChallengeStore {
 const CHALLENGE_TTL_SECONDS: i64 = 300;
 
 impl ChallengeStore for InMemoryChallengeStore {
-    fn put_registration(&self, c: &RegistrationChallenge, now_unix: i64) {
-        if let Ok(mut g) = self.reg.lock() {
-            g.push((c.clone(), now_unix));
-        }
+    fn put_registration(
+        &self,
+        c: &RegistrationChallenge,
+        now_unix: i64,
+    ) -> Result<(), WebauthnError> {
+        let mut g = self
+            .reg
+            .lock()
+            .map_err(|e| WebauthnError::StorageUnavailable {
+                operation: "challenge.put_registration",
+                detail: e.to_string(),
+            })?;
+        g.push((c.clone(), now_unix));
+        Ok(())
     }
     fn take_registration(
         &self,
@@ -463,7 +533,10 @@ impl ChallengeStore for InMemoryChallengeStore {
         let mut g = self
             .reg
             .lock()
-            .map_err(|_| WebauthnError::Internal("lock".into()))?;
+            .map_err(|e| WebauthnError::StorageUnavailable {
+                operation: "challenge.take_registration",
+                detail: e.to_string(),
+            })?;
         let pos = g
             .iter()
             .position(|(c, _)| c.challenge_id == id)
@@ -474,10 +547,20 @@ impl ChallengeStore for InMemoryChallengeStore {
         }
         Ok(c)
     }
-    fn put_authentication(&self, c: &AuthenticationChallenge, now_unix: i64) {
-        if let Ok(mut g) = self.auth.lock() {
-            g.push((c.clone(), now_unix));
-        }
+    fn put_authentication(
+        &self,
+        c: &AuthenticationChallenge,
+        now_unix: i64,
+    ) -> Result<(), WebauthnError> {
+        let mut g = self
+            .auth
+            .lock()
+            .map_err(|e| WebauthnError::StorageUnavailable {
+                operation: "challenge.put_authentication",
+                detail: e.to_string(),
+            })?;
+        g.push((c.clone(), now_unix));
+        Ok(())
     }
     fn take_authentication(
         &self,
@@ -487,7 +570,10 @@ impl ChallengeStore for InMemoryChallengeStore {
         let mut g = self
             .auth
             .lock()
-            .map_err(|_| WebauthnError::Internal("lock".into()))?;
+            .map_err(|e| WebauthnError::StorageUnavailable {
+                operation: "challenge.take_authentication",
+                detail: e.to_string(),
+            })?;
         let pos = g
             .iter()
             .position(|(c, _)| c.challenge_id == id)
@@ -541,20 +627,29 @@ where
         pack_tier: PackTier,
         now_unix: i64,
     ) -> Result<RegistrationChallenge, WebauthnError> {
-        let challenge_bytes = self.adapter.generate_challenge();
+        let challenge_bytes = self.adapter.generate_challenge()?;
+        if challenge_bytes.is_empty() {
+            return Err(WebauthnError::ChallengeGenerationFailed(
+                "empty challenge bytes from key seam".into(),
+            ));
+        }
+        let challenge_b64url = b64url_encode_local(&challenge_bytes);
         let exclude_credentials = self
             .credential_store
-            .list_for_user(tenant, user_id)
+            .list_for_user(tenant, user_id)?
             .into_iter()
             .map(|c| c.credential_id)
             .collect();
         let chal = RegistrationChallenge {
-            // The challenge_id MUST be unique per ceremony. Including
-            // `now_unix` distinguishes serial begin_registration() calls
-            // for the same (tenant, user) so a re-register before the
-            // previous challenge is consumed does not collide.
-            challenge_id: format!("reg:{}:{}:{}", tenant.0, user_id.0, now_unix),
-            challenge_b64url: b64url_encode_local(&challenge_bytes),
+            // The challenge_id MUST be unique per ceremony. Include the
+            // WebAuthn challenge entropy itself so concurrent registration
+            // begins for the same tenant/user in the same second cannot
+            // collide in a challenge store keyed only by challenge_id.
+            challenge_id: format!(
+                "reg:{}:{}:{}:{}",
+                tenant.0, user_id.0, now_unix, challenge_b64url
+            ),
+            challenge_b64url,
             rp_id: self.adapter.rp_id().to_owned(),
             rp_name: self.adapter.rp_name().to_owned(),
             user_id: user_id.clone(),
@@ -563,7 +658,7 @@ where
             timeout_ms: self.challenge_timeout_ms,
             exclude_credentials,
         };
-        self.challenge_store.put_registration(&chal, now_unix);
+        self.challenge_store.put_registration(&chal, now_unix)?;
         Ok(chal)
     }
 
@@ -596,7 +691,7 @@ where
         cred.user_id = user_id.clone();
         cred.created_at_unix = now_unix;
         cred.last_used_at_unix = now_unix;
-        self.credential_store.put(&cred);
+        self.credential_store.put(&cred)?;
         Ok(cred)
     }
 
@@ -607,7 +702,12 @@ where
         mediation: Mediation,
         now_unix: i64,
     ) -> Result<AuthenticationChallenge, WebauthnError> {
-        let challenge_bytes = self.adapter.generate_challenge();
+        let challenge_bytes = self.adapter.generate_challenge()?;
+        if challenge_bytes.is_empty() {
+            return Err(WebauthnError::ChallengeGenerationFailed(
+                "empty challenge bytes from key seam".into(),
+            ));
+        }
         let suffix = b64url_encode_local(&challenge_bytes[..8.min(challenge_bytes.len())]);
         let chal = AuthenticationChallenge {
             challenge_id: format!("auth:{}:{}:{}", tenant.0, now_unix, suffix),
@@ -618,7 +718,7 @@ where
             timeout_ms: self.challenge_timeout_ms,
             user_verification: UserVerification::Required,
         };
-        self.challenge_store.put_authentication(&chal, now_unix);
+        self.challenge_store.put_authentication(&chal, now_unix)?;
         Ok(chal)
     }
 
@@ -633,7 +733,7 @@ where
             .take_authentication(&response.challenge_id, now_unix)?;
         let stored = self
             .credential_store
-            .get(tenant, &response.credential_id)
+            .get(tenant, &response.credential_id)?
             .ok_or_else(|| WebauthnError::CredentialNotFound(response.credential_id.clone()))?;
         if stored.tenant_id != *tenant {
             return Err(WebauthnError::TenantMismatch {
@@ -658,7 +758,7 @@ where
         let mut updated = stored;
         updated.sign_count = new_sign_count;
         updated.last_used_at_unix = now_unix;
-        self.credential_store.put(&updated);
+        self.credential_store.put(&updated)?;
         Ok(updated)
     }
 }
