@@ -170,6 +170,13 @@
       "purpose": "Product and sequencing spec for tenant-facing bespoke Rust Oyatie Cloud SCM, CI, and CD services. Defines bridge-adapter boundaries for GitHub/cloud-scm/Argo, full bespoke CI enforcement baseline, masterplan P-TOOLCHAIN placement, and mandatory secure separation between tenant=oyatie-internal and every customer tenant pipeline.",
       "target_path_after_md_retirement": "same"
     },
+    "bespoke_scm_declare_observe_contract": {
+      "current_path": "/specs/bespoke-scm-declare-observe-contract.json",
+      "kind": "spec",
+      "migration_phase": "w4-contract-lock",
+      "purpose": "Machine-readable W4 contract for the ADR-0518 DECLARE/ADMIT/LEASE/ISOLATE/AUTHOR/GATE/ATTEST/INTEGRATE/PROPAGATE/OBSERVE bespoke SCM pipeline. Metadata-only; locks typed stage envelopes, handoff invariants, and RED/GREEN fixtures without claiming native SCM storage, virtual filesystem runtime, CD runtime, or bridge cutover.",
+      "target_path_after_md_retirement": "same (machine-readable W4 bespoke SCM stage contract)"
+    },
     "regulatory_identity_source_of_truth": {
       "current_path": "/specs/regulatory-identity-source-of-truth.json",
       "kind": "spec",
