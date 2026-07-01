@@ -61,6 +61,15 @@ fn mint_workload_token() -> MintedToken {
 
 /// Mint the same REAL ES256 workload JWT with a caller-selected issued-at time.
 fn mint_workload_token_issued_at(issued_at_epoch_seconds: i64) -> MintedToken {
+    mint_workload_token_with_iat(Some(issued_at_epoch_seconds))
+}
+
+/// Mint the same REAL ES256 workload JWT without an `iat` claim.
+fn mint_workload_token_without_iat() -> MintedToken {
+    mint_workload_token_with_iat(None)
+}
+
+fn mint_workload_token_with_iat(issued_at_epoch_seconds: Option<i64>) -> MintedToken {
     let rng = SystemRandom::new();
     let pkcs8 =
         EcdsaKeyPair::generate_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, &rng).expect("pkcs8");
@@ -72,9 +81,12 @@ fn mint_workload_token_issued_at(issued_at_epoch_seconds: i64) -> MintedToken {
     let x = &public[1..33];
     let y = &public[33..65];
 
+    let expires_at_epoch_seconds = issued_at_epoch_seconds.unwrap_or(NOW) + 300;
+    let iat_claim = issued_at_epoch_seconds
+        .map(|iat| format!(r#", "iat":{iat}"#))
+        .unwrap_or_default();
     let claims = format!(
-        r#"{{"iss":"{ISSUER}","aud":"{AUDIENCE}","exp":{},"iat":{issued_at_epoch_seconds},"tenant_id":"ten_acme","sub":"wl_secrets_sync","owning_capability":"cap.cloud.kms","scope":"cloud.kms.decrypt cloud.kms.describe","env":"prod","mfa":true}}"#,
-        issued_at_epoch_seconds + 300
+        r#"{{"iss":"{ISSUER}","aud":"{AUDIENCE}","exp":{expires_at_epoch_seconds}{iat_claim},"tenant_id":"ten_acme","sub":"wl_secrets_sync","owning_capability":"cap.cloud.kms","scope":"cloud.kms.decrypt cloud.kms.describe","env":"prod","mfa":true}}"#
     );
     let header = format!(r#"{{"alg":"ES256","typ":"JWT","kid":"{KID}"}}"#);
     let signing_input = format!(
@@ -345,6 +357,57 @@ fn revocation_event_cutoff_allows_newer_credential_after_cutoff() {
         fresh_outcome.is_allow(),
         "a post-cutoff re-attested credential should pass the cutoff gate, got {fresh_outcome:?}"
     );
+}
+
+/// A credential missing `iat` is still a valid OIDC token, but once a cutoff
+/// exists it cannot prove it was minted after the event and must fail closed.
+#[test]
+fn revocation_event_cutoff_denies_credential_missing_iat() {
+    let minted = mint_workload_token_without_iat();
+    let jwks = Jwks::new().add_key(minted.jwk.clone());
+    let mut repo = InMemoryWorkloadPrincipalRepository::new();
+    let mut denylist = InMemoryRevocationDenylist::new();
+    let authorizer = permit_only_authorizer();
+    let wl = WorkloadId::new("wl_secrets_sync").unwrap();
+
+    provision(&mut repo, "ten_acme", "wl_secrets_sync", "cap.cloud.kms").expect("provision");
+    activate(&mut repo, &wl).expect("activate");
+
+    let (action, resource) = decrypt_secret();
+    assert!(
+        authorize_with_token(
+            &repo,
+            &denylist,
+            &authorizer,
+            &jwks,
+            &config(),
+            NOW,
+            &minted.token,
+            action,
+            resource,
+            BTreeMap::new(),
+        )
+        .is_allow(),
+        "without a cutoff, an otherwise-valid token with no iat is still policy-eligible"
+    );
+
+    record_revocation_event(&mut denylist, &wl, NOW + 59).expect("record revocation event");
+
+    let (action, resource) = decrypt_secret();
+    let outcome = authorize_with_token(
+        &repo,
+        &denylist,
+        &authorizer,
+        &jwks,
+        &config(),
+        NOW + 59,
+        &minted.token,
+        action,
+        resource,
+        BTreeMap::new(),
+    );
+    assert_eq!(outcome, AuthorizeOutcome::Revoked);
+    assert!(!outcome.is_allow());
 }
 
 /// AC: retire is TERMINAL — the id is tombstoned, re-activation is rejected,

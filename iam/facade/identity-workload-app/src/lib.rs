@@ -113,20 +113,17 @@ pub trait RevocationDenylist {
     }
 
     /// Record a revocation event for credentials issued at or before `cutoff`.
-    ///
-    /// The default implementation collapses to a whole-principal revoke, which
-    /// is fail-closed for adapters that have not yet grown cutoff storage. The
-    /// in-memory reference adapter below preserves the narrower cutoff semantics.
+    /// Implementations that support the event path MUST preserve cutoff
+    /// semantics rather than silently converting the event into a whole-principal
+    /// revoke; whole-principal suspension/retirement uses [`Self::revoke`].
     ///
     /// # Errors
     /// Returns [`RepositoryError`] when the denylist cannot be written.
     fn revoke_issued_at_or_before(
         &mut self,
         workload_id: &WorkloadId,
-        _cutoff_epoch_seconds: i64,
-    ) -> Result<(), RepositoryError> {
-        self.revoke(workload_id)
-    }
+        cutoff_epoch_seconds: i64,
+    ) -> Result<(), RepositoryError>;
 }
 
 /// An opaque backing-store failure from a [`WorkloadPrincipalRepository`] or
@@ -632,6 +629,14 @@ mod tests {
         }
         fn revoke(&mut self, _workload_id: &WorkloadId) -> Result<(), RepositoryError> {
             Err(RepositoryError::new("induced revoke failure"))
+        }
+
+        fn revoke_issued_at_or_before(
+            &mut self,
+            _workload_id: &WorkloadId,
+            _cutoff_epoch_seconds: i64,
+        ) -> Result<(), RepositoryError> {
+            Err(RepositoryError::new("induced cutoff write failure"))
         }
     }
 
