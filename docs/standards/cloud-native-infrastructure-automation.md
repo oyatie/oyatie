@@ -21,7 +21,7 @@ purpose: |
   infrastructure behavior, and to steer work toward Rust, APIs, config,
   idempotency, observability, and deployment-compatible controllers/gates.
 canonical_authority: docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md
-planned_enforcement_ref: oya-ci-required/cloud-native-infra-automation-review
+enforced_by: oya-ci-required/gate-rust-first-automation-hygiene
 companion_docs:
   - docs/AGENTS.md
   - docs/standards/api-design.md
@@ -206,7 +206,24 @@ Approve only when the change names its typed surface, config schema, retry model
 observability evidence, deployment/rollback compatibility, and any legacy debt it
 retires or deliberately leaves untouched.
 
-## 7. Sources scanned
+## 7. Automated enforcement
+
+The blocking CI backstop is the `oya-ci-required` matrix leg
+`gate · rust-first automation hygiene`, backed by the Buck2-native
+`//cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app` gate.
+The gate fails on unregistered non-Rust automation files, new GitHub workflow
+inline shell beyond the frozen baseline, forbidden workflow action bridges,
+Rust code that spawns retired interpreters, and new cloud/infra/tooling Cargo
+packages shaped as `*-cli`.
+
+Exceptions are data, not tribal knowledge: add them only in
+`cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app/rust-first-automation-policy.json`
+with `reason`, `replacement`, and `status`. The replacement MUST point toward a
+Rust Buck2/cloud-ci gate, Kubernetes/GitOps/controller path, or equivalent
+API-shaped cloud-native surface, and stale exceptions must be removed with the
+same change that retires the legacy file or workflow step.
+
+## 8. Sources scanned
 
 - [ADR-0515 — Phase-0 firewall + one-canonical-CI + cloud-native posture](../decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md).
 - [AGENTS.md](../AGENTS.md) agent operating contract and CLI retirement note.

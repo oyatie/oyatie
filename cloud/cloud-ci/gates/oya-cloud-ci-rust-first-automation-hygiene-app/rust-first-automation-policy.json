@@ -202,11 +202,11 @@
   "gate_id": "cloud-ci-rust-first-automation-hygiene",
   "product_contract": {
     "ci_hygiene": "The scanner is read-only, creates no temporary files, and detects stale exceptions so policy debt cleans up after retired files.",
-    "cloud_native": "Exceptions must point toward Rust cloud-ci, Kubernetes, GitOps, controller, or admission-policy replacements.",
+    "cloud_native": "Exceptions must point toward Rust cloud-ci, Kubernetes, GitOps, controller, or admission-policy replacements; new infrastructure packages must be app/gate/controller/API-shaped, not CLI-shaped.",
     "execution": "Buck2-native Rust gate; no Cargo command is required for enforcement.",
     "portability": "Policy is data-driven so another repository can adopt the same gate by changing scan roots and exceptions."
   },
-  "purpose": "Rust-first automation hygiene ratchet. Non-Rust scripts are blocked unless explicitly exceptioned as shrinkable debt with a Rust/Buck2/cloud-native replacement path.",
+  "purpose": "Rust-first automation hygiene ratchet. Non-Rust scripts are blocked unless explicitly exceptioned as shrinkable debt with a Rust/Buck2/cloud-native replacement path; cloud/infra/tooling CLI-first package births are blocked outright.",
   "scan": {
     "exclude_prefixes": [
       ".git/",
@@ -285,9 +285,27 @@
         ".mjs",
         ".py"
       ]
+    },
+    "cli_package_authority": {
+      "_comment": "Cloud-native infrastructure automation must not be born as a new CLI-first package. This dimension scans infrastructure/cloud/tooling Cargo manifests for package names with retired CLI suffixes. Existing product/local legacy CLIs outside these roots remain governed by their own retirement lanes; new cloud/infra/tooling work should be an app, gate, controller, service, API, or declarative config consumer instead.",
+      "enabled": true,
+      "exclude_prefixes": [
+        "cloud/cloud-os/"
+      ],
+      "extensions": [
+        ".toml"
+      ],
+      "roots": [
+        "cloud",
+        "infra",
+        "tools"
+      ],
+      "forbidden_package_name_suffixes": [
+        "-cli"
+      ]
     }
   },
-  "schema_version": "1.2.0",
+  "schema_version": "1.3.0",
   "workflow_inline_shell_baseline": {
     "_comment": "FROZEN keyed baseline of TODAY's accepted legacy-bridge inline shell inside GitHub workflow YAML `run:` steps (pipeline-glue(a)). The file-extension scan (scan.non_rust_extensions over scan.roots) counts non-Rust automation FILES and is structurally blind to shell INSIDE a `.yml` (the file is a `.yml`, not a `.sh`). The scan.workflow_inline_shell dimension closes that blind spot: it parses the declared workflow roots with a real YAML parser and emits one keyed observation per (file, job, step) carrying an inline `run:` block. This baseline freezes that surface SHRINK-ONLY. Each key is `<workflow-relpath>::<job-id>::step-<N>` (N = 0-based step index within the job's `steps` array) -- the finest defensible per-(file,job,step) unit. The live-repo gate test asserts the MEASURED inline-shell key set equals codes.rust_first_automation_unbaselined_workflow_inline_shell EXACTLY (set equality): a NEW inline `run:` step beyond this baseline is born-blocking (rust_first_automation_unbaselined_workflow_inline_shell), a RETIRED step must shrink the baseline in the SAME PR (rust_first_automation_workflow_inline_shell_baseline_stale). Folded INTO this policy (an already-accounted gate face) rather than a new sibling JSON so adding the baseline creates ZERO new tracked accounting rows (no firewall ratchet growth). NOT producer-regenerated -- reviewed, hand-shrunk; anti-laundering is REVIEW-VISIBLE. REMOVING the shell itself (productizing each step as a Rust/Buck2 step) is pipeline-glue(b). FRIC-017 (pipeline-glue(b)): the two duplicated multi-line `sudo rm -rf` disk-reclaim blocks (buck2::step-4, gate-affected-set::step-4) are PRODUCTIZED -- each is now a single irreducible-glue `buck2 run` invocation of the data-driven Rust preflight oya-cloud-ci-runner-disk-reclaim-bin (policy: cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app/runner-disk-reclaim-policy.json). The 1:1 step swap keeps the SAME (file,job,step) keys (the invocation step stays at index 4 in each job), so the keyed baseline is UNCHANGED -- the productization shrinks the inline-shell LINE footprint (6 `run:` lines -> 1) while the residual keys are baselined as accepted irreducible runner-bootstrap glue. The FRIC-017 ledger row is flipped to fixed-in-PR; the terminal claim is contingent on CI green on the real runner (PR pending merge). #101 live-Postgres lane (gate-live-postgres::step-2..6, +5 keys, oya-ci-required 32->37 / total 52->57): the durable cross-tenant-deny / RLS / CDC / SCIM integration tests are inherently NON-hermetic (they require an external containerized Postgres reachable over the network), so they run via `cargo test` as a TRANSITIONAL BRIDGE until a buck2 rust_test action declares the disposable DB as a managed local_resource (testcontainers-style ephemeral env); the toolchain-provision / apt-install-psql / migration-bootstrap / cargo-test steps are baselined as accepted irreducible bridge glue until that cloud-native runner exists. Step indices are 2..6 (not 1..5) because step-1 is the Swatinem/rust-cache `uses:` step (no `run:` block, not keyed), shifting all subsequent run: steps by +1 (review #806 fix-3).",
     "_provenance": {
