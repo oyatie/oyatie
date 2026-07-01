@@ -304,8 +304,9 @@ pub(crate) use scalar_parse::{
     parse_u64_field, required_field, required_scalar, scalar_value,
 };
 pub(crate) use supply_chain_gates::{
-    parse_release_evidence_pack_validate_args, parse_release_supply_chain_validate_args,
-    parse_supply_chain_validate_args, release_supply_chain_phase_name,
+    parse_image_promotion_validate_args, parse_release_evidence_pack_validate_args,
+    parse_release_supply_chain_validate_args, parse_supply_chain_validate_args,
+    release_supply_chain_phase_name, validate_image_promotion_gate,
     validate_release_evidence_pack_gate, validate_release_supply_chain_gate,
     validate_supply_chain_gate,
 };
@@ -404,6 +405,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate api-semver [--contracts-dir <contracts>]"
         + "\n       oya gate validate supply-chain [--registry <registry/catalog>] [--deny <deny.toml>] [--check-script <scripts/check.sh>] [--adr0039-script <scripts/supply-chain-adr0039.sh>] [--adr0039-rust <crates/oya-dev-cli/src/commands/supply_chain.rs>] [--workflows-dir <.github/workflows>] [--release-images <registry/release/images.yaml>] [--branch-protection <.github/branch-protection.yaml>] [--admission-policy <infra/kyverno/policies/require-signed-images.yaml>] [--require-adr0039-evidence]"
         + "\n       oya gate validate release-supply-chain [--release-images <registry/release/images.yaml>] [--evidence-dir <registry/release/supply-chain>] [--phase <pre-release|release>]"
+        + "\n       oya gate validate image-promotion [--promotion-dir <registry/release/image-promotions>]"
         + "\n       oya gate validate release-evidence-pack [--manifest <registry/release/evidence-packs.tsv>] [--compliance <docs/machine-readable/compliance.json>] [--require-records]"
         + "\n       oya gate validate typescript-workspace --lane <typecheck|test> [--repo-root <.>]"
         + "\n       oya gate validate pr-traceability [--pr-title <title>] [--pr-body <docs/templates/pull-request-template.md>] [--require-code-review|--forbid-code-review]"
