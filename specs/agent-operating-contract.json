@@ -3,27 +3,28 @@
   "$id": "https://docs.oyatie.com/specs/agent-operating-contract.json",
   "spec_id": "EXE-AGENT-OPERATING-CONTRACT-PROJECTION",
   "title": "Agent Operating Contract Machine Projection",
-  "status": "ProjectionUntilPhase5Promotion",
-  "date": "2026-05-20",
+  "status": "ProjectionUntilExplicitPhase5Promotion",
+  "date": "2026-07-01",
   "canonical_authority_path": "docs/AGENTS.md",
-  "migration_phase": "PHASE-5-target; docs/AGENTS.md remains operating contract until explicit promotion",
+  "phase_deadline": "2026-06-30",
+  "phase_status": "overdue-needs-replan",
+  "migration_phase": "PHASE-5-target-overdue-needs-replan; docs/AGENTS.md remains operating contract until explicit promotion evidence",
   "purpose": "Machine-readable projection of the agent operating contract so root-hub discovery can point to the future PHASE-5 JSON target without prematurely demoting docs/AGENTS.md authority.",
   "authority_boundary": {
     "current_authority": "docs/AGENTS.md",
     "projection_use": "Discovery, validation planning, and migration readiness only",
-    "not_allowed": "Do not cite this projection as superseding docs/AGENTS.md until PHASE-5 promotion lands with evidence."
+    "not_allowed": "Do not cite this projection as superseding docs/AGENTS.md until PHASE-5 promotion lands with authority-cohesion evidence."
   },
   "required_sequence": [
     "read specs/root-hub-pointers.json first",
     "read docs/AGENTS.md for the live operating contract",
-    "claim with oya vcs before edits where project guidance requires it",
+    "use plain git on an isolated worktree branch for edits",
     "verify with the smallest evidence loop that proves the completion claim",
-    "done and promote through oya vcs when the changeset is ready"
+    "open a protected PR against dev",
+    "merge only after the PR is fully reviewed, review threads are resolved, the single protected oya-ci-required context is green, no merge conflict exists, and branch protection is satisfied"
   ],
   "sanctioned_primitives": [
-    "oya-git",
-    "oya-vcs",
-    "oya-vcs-admission"
+    "git"
   ],
   "agent_completion_contract": {
     "must_continue_until": "requested local branch is implemented or a concrete blocker is documented",
@@ -36,8 +37,15 @@
       "changed-file inventory",
       "coverage counts",
       "JSON validity for specs",
-      "VCS verify/done/promote evidence or explicit blocker"
+      "protected PR verification, reviewer approval, oya-ci-required evidence, or explicit blocker"
     ]
+  },
+  "coordinator_worker_split": {
+    "coordinator_role": "The external Hermes board-steward / portfolio coordinator evaluates architecture, system design, completed and upcoming work, maturity gaps, documentation/procedure/process health, regressions, and Kanban decomposition/prioritization.",
+    "worker_role": "Dispatcher-assigned implementation and review workers execute scoped lane edits, tests, review, and PR evidence in isolated worktrees.",
+    "boundary": "The coordinator is not the default implementation worker unless explicitly assigned as that lane worker.",
+    "blocker_policy": "Coordinator-discovered blockers become dispatcher-ready resolution cards with source context, blocker class, acceptance criteria, verification path, suggested owner/profile, and dependency/conflict notes unless the coordinator is explicitly assigned as worker.",
+    "autonomous_merge_boundary": "Autonomous merge authority requires a fully reviewed PR, resolved review threads, required oya-ci-required context green, no merge conflict, and branch protection satisfied."
   },
   "related_specs": [
     "/specs/root-hub-pointers.json",
@@ -55,7 +63,7 @@
     "failure_modes": [
       {
         "mode": "agent skips root hub",
-        "behavior": "root guidance remains discoverable through README/CLAUDE/AGENTS pointers and VCS gates reject unclaimed edits when policy is enforced"
+        "behavior": "root guidance remains discoverable through README/CLAUDE/AGENTS pointers and protected PR gates reject unverified edits when policy is enforced"
       },
       {
         "mode": "projection drifts from docs/AGENTS.md",
@@ -63,13 +71,13 @@
       },
       {
         "mode": "concurrent agents touch shared docs",
-        "behavior": "oya vcs claim/verify/done/promote records scope and admission evidence before promotion"
+        "behavior": "isolated worktree branches, protected PR review, and oya-ci-required admission evidence record scope before promotion"
       }
     ],
     "observability_hooks": [
-      "registry/vcs/changeset-event-log.json",
-      "oya vcs status",
-      "oya vcs verify evidence strings"
+      "GitHub PR review state",
+      "oya-ci-required status URL",
+      "Kanban closeout/comment evidence"
     ],
     "rollback_path": "Revert this projection or reset root-hub pointer fields while keeping docs/AGENTS.md as current authority.",
     "versioning": "Schema-compatible additive changes until PHASE-5; breaking authority promotion requires ADR/update evidence."
