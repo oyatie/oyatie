@@ -1,11 +1,13 @@
 use iam_policy_cedar_domain::rebac::{
-    RebacObjectRef, RebacReadSnapshot, RebacRelation, RebacSubjectRef, RebacTuple, RebacTuplePage,
-    RebacTupleQuery, RebacTupleStore, RebacTupleStoreError, SnapshotToken, UsersetRewrite, Zookie,
+    RebacObjectRef, RebacReadSnapshot, RebacRelation, RebacSubjectRef, RebacTenantScope,
+    RebacTuple, RebacTuplePage, RebacTupleQuery, RebacTupleStore, RebacTupleStoreError,
+    SnapshotToken, UsersetRewrite, Zookie,
 };
 
 #[test]
 fn tuple_canonical_form_round_trips_object_relation_subject() {
     let tuple = RebacTuple::new(
+        RebacTenantScope::new("tenant-alpha").expect("tenant scope is valid"),
         RebacObjectRef::new("document", "roadmap-q3").expect("object ref is valid"),
         RebacRelation::new("viewer").expect("relation is valid"),
         RebacSubjectRef::object(
@@ -13,20 +15,28 @@ fn tuple_canonical_form_round_trips_object_relation_subject() {
         ),
     );
 
+    assert_eq!(tuple.tenant().as_str(), "tenant-alpha");
     assert_eq!(
         tuple.to_canonical_string(),
         "document:roadmap-q3#viewer@user:alice"
     );
     assert_eq!(
-        RebacTuple::parse("document:roadmap-q3#viewer@user:alice").expect("canonical tuple parses"),
+        RebacTuple::parse(
+            RebacTenantScope::new("tenant-alpha").expect("tenant scope is valid"),
+            "document:roadmap-q3#viewer@user:alice",
+        )
+        .expect("canonical tuple parses"),
         tuple
     );
 }
 
 #[test]
 fn tuple_subject_can_be_a_userset_rewrite_edge() {
-    let tuple = RebacTuple::parse("document:roadmap-q3#viewer@group:platform#member")
-        .expect("userset tuple parses");
+    let tuple = RebacTuple::parse(
+        RebacTenantScope::new("tenant-alpha").expect("tenant scope is valid"),
+        "document:roadmap-q3#viewer@group:platform#member",
+    )
+    .expect("userset tuple parses");
 
     assert_eq!(tuple.object.object_type(), "document");
     assert_eq!(tuple.relation.as_str(), "viewer");
@@ -125,18 +135,93 @@ fn tuple_store_port_exposes_write_zookie_and_read_snapshot_contract() {
         }
     }
 
-    let tuple = RebacTuple::parse("document:roadmap-q3#viewer@user:alice").expect("tuple parses");
+    let tenant = RebacTenantScope::new("tenant-alpha").expect("tenant scope is valid");
+    let tuple = RebacTuple::parse(tenant.clone(), "document:roadmap-q3#viewer@user:alice")
+        .expect("tuple parses");
     let mut store = RecordingStore::default();
     let zookie = store
         .write_tuple(tuple.clone())
         .expect("write returns zookie");
     let page = store
         .read_tuples(
-            &RebacTupleQuery::object_relation(tuple.object.clone(), tuple.relation.clone()),
+            &RebacTupleQuery::object_relation(tenant, tuple.object.clone(), tuple.relation.clone()),
             RebacReadSnapshot::at_zookie(zookie.clone()),
         )
         .expect("read returns page");
 
     assert_eq!(page.tuples, vec![tuple]);
     assert_eq!(page.snapshot.as_str(), zookie.as_str());
+}
+
+#[test]
+fn tuple_store_queries_are_exactly_tenant_scoped() {
+    #[derive(Default)]
+    struct RecordingStore {
+        tuples: Vec<RebacTuple>,
+    }
+
+    impl RebacTupleStore for RecordingStore {
+        fn write_tuple(&mut self, tuple: RebacTuple) -> Result<Zookie, RebacTupleStoreError> {
+            self.tuples.push(tuple);
+            Zookie::new(format!("zk-{}", self.tuples.len()))
+                .map_err(RebacTupleStoreError::InvalidZookie)
+        }
+
+        fn read_tuples(
+            &self,
+            query: &RebacTupleQuery,
+            snapshot: RebacReadSnapshot,
+        ) -> Result<RebacTuplePage, RebacTupleStoreError> {
+            let tuples = self
+                .tuples
+                .iter()
+                .filter(|tuple| query.matches(tuple))
+                .cloned()
+                .collect();
+            Ok(RebacTuplePage {
+                tuples,
+                snapshot: snapshot.into_snapshot_token(),
+                next_page_token: None,
+            })
+        }
+    }
+
+    let tenant_alpha = RebacTenantScope::new("tenant-alpha").expect("tenant is valid");
+    let tenant_beta = RebacTenantScope::new("tenant-beta").expect("tenant is valid");
+    let tuple_alpha = RebacTuple::parse(
+        tenant_alpha.clone(),
+        "document:shared-roadmap#viewer@user:alice",
+    )
+    .expect("alpha tuple parses");
+    let tuple_beta = RebacTuple::parse(
+        tenant_beta.clone(),
+        "document:shared-roadmap#viewer@user:alice",
+    )
+    .expect("beta tuple parses");
+
+    let mut store = RecordingStore::default();
+    store
+        .write_tuple(tuple_alpha.clone())
+        .expect("alpha write succeeds");
+    store
+        .write_tuple(tuple_beta.clone())
+        .expect("beta write succeeds");
+
+    let object = RebacObjectRef::new("document", "shared-roadmap").expect("object ref is valid");
+    let relation = RebacRelation::new("viewer").expect("relation is valid");
+    let alpha_page = store
+        .read_tuples(
+            &RebacTupleQuery::object_relation(tenant_alpha, object.clone(), relation.clone()),
+            RebacReadSnapshot::latest(),
+        )
+        .expect("alpha read succeeds");
+    let beta_page = store
+        .read_tuples(
+            &RebacTupleQuery::object_relation(tenant_beta, object, relation),
+            RebacReadSnapshot::latest(),
+        )
+        .expect("beta read succeeds");
+
+    assert_eq!(alpha_page.tuples, vec![tuple_alpha]);
+    assert_eq!(beta_page.tuples, vec![tuple_beta]);
 }
