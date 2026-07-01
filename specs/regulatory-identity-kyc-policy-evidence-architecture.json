@@ -42,7 +42,8 @@
       "id": "REGID-001",
       "status": "in_progress_at_authoring",
       "source_path": "specs/regulatory-identity-source-of-truth.json",
-      "current_evidence_ref": ".gjc/_session-019f1aef-0840-7000-aa2e-35836dfa25f8/plans/ralplan/019f1aef-0840-7000-aa2e-35836dfa25f8/stage-01-planner.md",
+      "current_evidence_ref": "specs/regulatory-identity-source-of-truth.json",
+      "durable_review_ref": "https://github.com/jason931225/oyatie/pull/1098",
       "usable_findings": [
         "KISA/KMCC/KCC identity-verification designation has 87 review items and requires official PDF table extraction before row-level implementation.",
         "ISMS-P requires at least two months of operated management-system evidence before application, has three-year validity, annual surveillance, renewal lead time, and remediation windows.",
