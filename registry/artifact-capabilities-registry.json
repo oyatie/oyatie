@@ -2358,6 +2358,52 @@
       }
     },
     {
+      "artifact_id": "derived-compliance-cell-placement-contract",
+      "artifact_path": "/specs/derived-compliance-cell-placement-contract.json",
+      "artifact_format": "json",
+      "contract_version": "v0.1.0",
+      "owner_team": "council-architecture + ops-compliance + platform-tenancy + platform-cell",
+      "purpose_short": "REGCELL-002 contract/schema artifact for deriving compliance-cell placement labels and decision evidence from existing tenant, pack, regulatory-pack, workload, and audit inputs without a parallel cell taxonomy.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "derived-compliance-cell-placement-planning-contract"
+        },
+        "verification": {
+          "checker_crate": "planned: derived placement contract-shape gate",
+          "command": "python3 -m json.tool specs/derived-compliance-cell-placement-contract.json >/dev/null"
+        },
+        "validation": {
+          "validator": "JSON syntax plus structural assertions for closed label values, source-of-truth refusal, fixture labels, root-hub pointer, and artifact registry row"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored planning contract"
+        },
+        "selfheal": {
+          "healer": "manual-with-review until derived placement contract gate lands"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "derived_compliance_cell_placement_contract_violations_total",
+              "kind": "counter",
+              "unit": "1",
+              "labels": [
+                "rule_id",
+                "decision_state"
+              ],
+              "cardinality_budget": 100
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "pending code-review",
+          "last_modified_at": "2026-07-01T00:00:00Z"
+        }
+      }
+    },
+    {
       "artifact_id": "regulatory-hermes-decomposition-preservation-20260701",
       "artifact_path": "/evidence/regulatory/regulatory-hermes-decomposition-preservation-20260701.json",
       "artifact_format": "json",

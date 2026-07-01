@@ -197,6 +197,13 @@
       "purpose": "Design-only architecture map for passkey-first KYC/CDD/EDD policy decisions, evidence packets, tenant state, compliance packs, retention, consent, residency, and accreditation packets. It preserves no-service/no-CLI constraints and keeps row-level implementation blocked on REGID-001 source extraction.",
       "target_path_after_md_retirement": "same"
     },
+    "derived_compliance_cell_placement_contract": {
+      "current_path": "/specs/derived-compliance-cell-placement-contract.json",
+      "kind": "spec",
+      "migration_phase": "regcell-002-planning-contract",
+      "purpose": "Contract/schema-only REGCELL-002 artifact for deriving standard/regulated/CDE/identity-assurance/sovereign/airgap placement labels from tenant home/dr cells, jurisdiction/residency, data classes, compliance packs, pack cell_eligibility, workload labels, regulatory-pack bindings, and audit decisions without creating a parallel source-of-truth cell taxonomy or runtime placement claim.",
+      "target_path_after_md_retirement": "same"
+    },
     "security_validation_pipeline_matrix": {
       "current_path": "/specs/security-validation-pipeline-matrix.json",
       "kind": "spec",
