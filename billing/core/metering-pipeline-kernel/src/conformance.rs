@@ -65,9 +65,7 @@ fn record(
 
 /// Replay idempotency: the same record ingested twice records once and
 /// reports the replay as a duplicate; the stored record is unchanged.
-pub fn check_replay_is_duplicate<F: SinkFixture>(
-    fixture: &F,
-) -> Result<(), ConformanceViolation> {
+pub fn check_replay_is_duplicate<F: SinkFixture>(fixture: &F) -> Result<(), ConformanceViolation> {
     const CHECK: &str = "replay_is_duplicate";
     let sink = fixture.fresh_sink();
     let hour = UsageHour::from_epoch_seconds(7200);
@@ -148,8 +146,8 @@ pub fn check_distinct_keys_are_isolated<F: SinkFixture>(
     let arrival = hour.start_epoch_seconds() + 60;
     let base = record(CHECK, 1, hour, 1_000_000)?;
     let mut other_tenant = base.clone();
-    other_tenant.tenant = TenantId::parse("ten_other")
-        .map_err(|e| violation(CHECK, format!("fixture: {e}")))?;
+    other_tenant.tenant =
+        TenantId::parse("ten_other").map_err(|e| violation(CHECK, format!("fixture: {e}")))?;
     let mut other_dimension = base.clone();
     other_dimension.dimension = Dimension::parse("storage-gb-seconds")
         .map_err(|e| violation(CHECK, format!("fixture: {e}")))?;
@@ -158,7 +156,8 @@ pub fn check_distinct_keys_are_isolated<F: SinkFixture>(
     // `arrival` under the sink's lateness window (an hour bucket equal to
     // the base's would collide; a future one would be rejected).
     other_hour.usage_hour = UsageHour::from_epoch_seconds(
-        hour.start_epoch_seconds().saturating_sub(crate::SECONDS_PER_HOUR),
+        hour.start_epoch_seconds()
+            .saturating_sub(crate::SECONDS_PER_HOUR),
     );
     for usage in [&base, &other_tenant, &other_dimension, &other_hour] {
         let outcome = sink
