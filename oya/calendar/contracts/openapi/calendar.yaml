@@ -171,6 +171,39 @@ paths:
               schema:
                 $ref: '#/components/schemas/LegalHold'
 
+  /events/{event_id}/action-cards/{action_card_id}/approve:
+    parameters:
+      - name: event_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: action_card_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Explicitly approve a calendar action card and create a policy-gated Workflow handoff
+      tags: [events]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionCardApprovalRequest'
+      responses:
+        '201':
+          description: Explicit action card approved and Workflow handoff audit log created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowHandoffAuditLog'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
   /recurrence/expand:
     post:
       summary: Expand a recurrence rule into occurrences (bounded ≤ 5y horizon)
@@ -373,7 +406,7 @@ components:
     doctrine_refs:
       ADR-0346:
         purpose: >-
-          Establish that ./bin/oya verify --ci-required is the canonical local pre-push verifier and MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH step before returning success to the caller.
+          Record legacy ./bin/oya verify --ci-required / oya verify as optional local-feedback provenance only; protected merge authority lives in ADR-0515 cloud-ci Rust gate packets aggregated into oya-ci-required.
         enforced_by:
           - oya-governance-oya-verify-ci-mirror-coverage
           - oya-governance-oya-verify-ci-step-exit-semantics
@@ -404,7 +437,7 @@ components:
           manifest_block: sharding_automation declares autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
       ADR-0349:
         purpose: >-
-          Declare Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
+          Preserve Jenkins/Prow-shaped wording as historical provenance while ADR-0515 makes GitHub Actions the live runner until explicit owned-runner cutover; ArgoCD remains a bridge/reference CD adapter where separately authorized.
         enforced_by:
           - oya-governance-jenkins-github-actions-parity
           - oya-governance-argocd-application-cosign-verified
@@ -445,7 +478,7 @@ components:
   schemas:
     Event:
       type: object
-      required: [event_id, tenant_id, context, starts_at, ends_at]
+      required: [event_id, tenant_id, context, ownership_pillar, starts_at, ends_at, retention_policy_id, audit_ref]
       properties:
         event_id:
           type: string
@@ -456,6 +489,10 @@ components:
         context:
           type: string
           enum: [personal, professional]
+        ownership_pillar:
+          type: string
+          enum: [Org, Personal]
+          description: Work events are Org pillar; personal events stay Personal pillar and details never cross pillar.
         title:
           type: string
         description:
@@ -483,9 +520,18 @@ components:
           description: RFC 5545 RRULE string
         retention_policy_id:
           type: string
+        retention_disclosure:
+          $ref: '#/components/schemas/RetentionPolicyDisclosure'
         legal_hold_open:
           type: boolean
           default: false
+        legal_hold_ids:
+          type: array
+          items:
+            type: string
+        audit_ref:
+          type: string
+          description: Immutable audit-chain reference for event create/update, attendee transitions, legal holds, and action-card handoffs.
         version:
           type: integer
         created_at:
@@ -654,9 +700,7 @@ components:
     FreeBusyProjection:
       type: object
       required: [starts_at, ends_at, busy]
-      description: |
-        Minimum-necessary projection for cross-tenant queries. NO title, description,
-        location, or attendee fields are returned across tenant boundaries.
+      description: Minimum-necessary projection for cross-tenant queries. NO title, description, location, or attendee fields are returned across tenant boundaries.
       properties:
         starts_at: { type: string, format: date-time }
         ends_at: { type: string, format: date-time }
@@ -664,6 +708,50 @@ components:
         attendee_count_bucket:
           type: string
           enum: [small, medium, large]
+
+    RetentionPolicyDisclosure:
+      type: object
+      required: [region_pack, selected_retention_days, legal_hold_blocks_purge, policy_basis]
+      properties:
+        region_pack:
+          type: string
+          enum: [KR, EU, US]
+        selected_retention_days: { type: integer }
+        legal_hold_blocks_purge: { type: boolean }
+        policy_basis: { type: string }
+
+    ActionCard:
+      type: object
+      required: [action_card_id, event_id, workflow_capability_ref, recipient_ref, policy_basis, state, audit_ref]
+      properties:
+        action_card_id: { type: string, format: uuid }
+        event_id: { type: string, format: uuid }
+        workflow_capability_ref: { type: string }
+        recipient_ref: { type: string }
+        policy_basis: { type: string }
+        state:
+          type: string
+          enum: [pending, approved, rejected, expired]
+        audit_ref: { type: string }
+
+    ActionCardApprovalRequest:
+      type: object
+      required: [approver_ref, policy_basis, explicit_consent_ref]
+      properties:
+        approver_ref: { type: string }
+        policy_basis: { type: string }
+        explicit_consent_ref: { type: string }
+
+    WorkflowHandoffAuditLog:
+      type: object
+      required: [workflow_handoff_id, event_id, action_card_id, workflow_capability_ref, policy_basis, audit_ref]
+      properties:
+        workflow_handoff_id: { type: string, format: uuid }
+        event_id: { type: string, format: uuid }
+        action_card_id: { type: string, format: uuid }
+        workflow_capability_ref: { type: string }
+        policy_basis: { type: string }
+        audit_ref: { type: string }
 
     CrossTenantGrantRequest:
       type: object
