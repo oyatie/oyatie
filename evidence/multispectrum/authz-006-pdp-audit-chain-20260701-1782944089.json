@@ -1,0 +1,88 @@
+{
+  "agent_id": "hermes-default-t_7e020f50",
+  "branch": "work-hermes-t_7e020f50-authz006",
+  "change_class_id": "CC-7_security",
+  "change_id": "authz-006-pdp-audit-chain-20260701",
+  "created_at": "2026-07-01T22:14:49Z",
+  "domain": "authz / shared PDP / audit-chain durability",
+  "facets": {
+    "F1_correctness": "Adds AuditChainCedarPdp and PdpDecisionAuditChainLogger so each Cedar PDP authorization outcome is signed, hash-chained, durably appended, and replay-verified before the caller receives the decision.",
+    "F2_tests": "Cargo and Buck2 tests cover signed decision lineage persistence, unsigned prior-ledger startup refusal, attacker-signed prior-ledger refusal, serving signer key-material mismatch, and post-startup untrusted ledger replay mapping to PdpError::AuditChainEmission.",
+    "F3_maintainability": "The change is a narrow wrapper around the existing CedarPdp and uses the existing de-branded audit-chain-domain and audit-file-adapter crates on current dev rather than adding a second audit-chain implementation.",
+    "F4_compatibility": "Existing CedarPdp behavior and tenant overlay policy semantics are preserved; the audited wrapper is opt-in via a new type and existing PolicyDecisionPoint callers can continue using CedarPdp directly.",
+    "F5_security": "Authorization fails closed if signer trust, persisted ledger signature replay, append, or persistence verification fails, preventing unaudited allow/deny outcomes from being used as authoritative decisions.",
+    "F6_privacy": "Audit payload records only tenant/resource/action/principal identifiers and internal decision lineage needed for replay; no secrets or credential material are persisted.",
+    "F7_operability": "PdpError::AuditChainEmission gives operators and callers a distinct fail-closed error surface for audit durability failures without broadening the Cedar evaluator path.",
+    "F8_performance": "The audited wrapper adds local file-ledger replay/append verification only to the explicit audit-chain wrapper path; the default in-process CedarPdp remains unchanged for users that have not enabled durable decision logging.",
+    "F9_compliance": "The persisted event uses the audit-chain surface authorization.pdp.decision, Ed25519 signature verification, tenant shard replay, and DataClass::Audit/InternalOnly classification to support audit-chain-compatible evidence.",
+    "F10_reversibility": "Rollback is a normal git revert of the PDP adapter/kernel changes and Cargo/Buck dependency declarations; no data migration or generated-face settlement is introduced.",
+    "F11_observability": "Decision lineage includes decision_id, request_id, tenant_id, principal, resource, action, decision, policy_version, determining policies, and cache-hit state for replay and incident triage.",
+    "F13_migration": "This ports the previously reviewed AUTHZ-006 dirty-workspace slice onto current origin/dev by binding it to the de-branded audit/core and audit/adapters crates rather than the retired oya/audit-chain crate paths.",
+    "M1_challenge_assumption": "Rejected broad audit-chain substrate changes because current dev already provides audit-chain-domain and audit-file-adapter under de-branded capability-first paths.",
+    "M2_zoomed_out_fit": "The change advances the authz/audit north-star while preserving the tenant overlay PDP work already on current dev and avoiding generated JSON, root workflow, or cloud-ci gate edits."
+  },
+  "hyperscaler_lens": {
+    "comparable_surfaces": [
+      "AWS IAM / CloudTrail-style durable authorization decision evidence",
+      "Google Cloud Audit Logs for IAM policy decisions",
+      "Kubernetes admission/audit trails that fail closed on policy decision uncertainty"
+    ],
+    "provider_neutrality": "Uses local Cedar and Oyatie audit-chain domain/file adapter abstractions; no cloud-provider SDK or external audit service is introduced.",
+    "merge_conflict_resistance": "Focused Rust/Cargo/Buck edits under libs/oya-shared-pdp-* plus one append-only evidence record.",
+    "improved_criterion": "PDP decisions now have durable signed replay evidence instead of only ephemeral in-memory DecisionAuditRecord values."
+  },
+  "scope": {
+    "summary": "Durably emit signed audit-chain-compatible records for shared Cedar PDP decisions.",
+    "files_touched": [
+      "Cargo.lock",
+      "libs/oya-shared-pdp-adapter-cedar/BUCK",
+      "libs/oya-shared-pdp-adapter-cedar/Cargo.toml",
+      "libs/oya-shared-pdp-adapter-cedar/src/lib.rs",
+      "libs/oya-shared-pdp-adapter-cedar/tests/cedar_pdp_conformance.rs",
+      "libs/oya-shared-pdp-kernel/src/lib.rs",
+      "evidence/multispectrum/authz-006-pdp-audit-chain-20260701-1782944089.json"
+    ],
+    "explicit_non_claims": [
+      "No generated JSON or generated faces were edited.",
+      "No live production rollout or browser/user-story surface is claimed for this library-level change.",
+      "No broad authz substrate rewrite, policy-store runtime, or external audit service integration is included."
+    ]
+  },
+  "verification": [
+    {
+      "command": "git diff --check -- Cargo.lock libs/oya-shared-pdp-adapter-cedar/BUCK libs/oya-shared-pdp-adapter-cedar/Cargo.toml libs/oya-shared-pdp-adapter-cedar/src/lib.rs libs/oya-shared-pdp-adapter-cedar/tests/cedar_pdp_conformance.rs libs/oya-shared-pdp-kernel/src/lib.rs && cargo fmt --check --package oya-shared-pdp-kernel --package oya-shared-pdp-adapter-cedar",
+      "result": "pass",
+      "evidence": "Exited 0 after rebase onto origin/dev."
+    },
+    {
+      "command": "CARGO_TARGET_DIR=/tmp/oyatie-t_7e020f50-target cargo test -p oya-shared-pdp-kernel --lib",
+      "result": "pass",
+      "evidence": "16 passed; 0 failed."
+    },
+    {
+      "command": "CARGO_TARGET_DIR=/tmp/oyatie-t_7e020f50-target cargo test -p oya-shared-pdp-adapter-cedar --lib --tests",
+      "result": "pass",
+      "evidence": "33 cedar_pdp_conformance tests passed; 0 lib tests; 0 failed."
+    },
+    {
+      "command": "CARGO_TARGET_DIR=/tmp/oyatie-t_7e020f50-target cargo clippy -p oya-shared-pdp-adapter-cedar --lib --tests -- -D warnings && CARGO_TARGET_DIR=/tmp/oyatie-t_7e020f50-target cargo clippy -p oya-shared-pdp-kernel --lib --tests -- -D warnings",
+      "result": "pass",
+      "evidence": "Both clippy invocations exited 0."
+    },
+    {
+      "command": "buck2 --isolation-dir t_7e020f50 test //libs/oya-shared-pdp-adapter-cedar:oya-shared-pdp-adapter-cedar-conformance //libs/oya-shared-pdp-kernel:oya-shared-pdp-kernel-unittest",
+      "result": "pass",
+      "evidence": "Build ID 5f2b62ee-3a14-4cb5-953b-bfedc88f2b74; Pass 2 Fail 0; adapter 33 tests and kernel 16 tests passed."
+    }
+  ],
+  "known_gaps": [
+    "Remote PR oya-ci-required and branch-protection review remain pending until the branch is pushed and the PR is opened.",
+    "Post-merge rollout/browser evidence is N/A for this library-only PDP adapter slice; closeout should state local Cargo/Buck evidence and no production rollout."
+  ],
+  "pre_pr_review": {
+    "reviewer_agent": "t_55c62844 auth-identity-security review/fix",
+    "verdict": "APPROVE",
+    "resolved_items": "Trusted Ed25519 replay, serving signer key-material trust, and fail-closed audit emission mapping were added before this port.",
+    "deferred_items": "PR/oya-ci-required/branch-protection governance only."
+  }
+}
