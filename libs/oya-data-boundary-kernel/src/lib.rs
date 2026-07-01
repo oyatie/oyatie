@@ -5,6 +5,7 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub mod policy_gate;
 pub mod retention_policy;
 
 pub use retention_policy::{ClassificationLevel, DataClassMatcher, PurgeAction, RetentionPolicy};
