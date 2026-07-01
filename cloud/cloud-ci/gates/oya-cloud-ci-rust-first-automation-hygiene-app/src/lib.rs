@@ -14,6 +14,7 @@ use std::path::{Path, PathBuf};
 
 use serde_json::{Value, json};
 use serde_yaml::Value as YamlValue;
+use toml::Value as TomlValue;
 
 pub const GATE_ID: &str = "cloud-ci-rust-first-automation-hygiene";
 
@@ -49,6 +50,7 @@ pub const VIOLATION_CODES: [&str; 12] = [
 pub enum ScanError {
     MissingScanArray(String),
     Io(String),
+    Parse(String),
 }
 
 impl std::fmt::Display for ScanError {
@@ -56,6 +58,7 @@ impl std::fmt::Display for ScanError {
         match self {
             ScanError::MissingScanArray(field) => write!(f, "policy scan.{field} must be an array"),
             ScanError::Io(message) => write!(f, "automation hygiene scan io: {message}"),
+            ScanError::Parse(message) => write!(f, "automation hygiene scan parse: {message}"),
         }
     }
 }
@@ -772,30 +775,23 @@ fn cli_package_authority_block(policy: &Value) -> Option<&Value> {
         .and_then(|scan| scan.get("cli_package_authority"))
 }
 
-fn toml_quoted_value(raw: &str) -> Option<String> {
-    let value = raw.split('#').next()?.trim();
-    let after_eq = value.split_once('=')?.1.trim();
-    let after_quote = after_eq.strip_prefix('"')?;
-    let end = after_quote.find('"')?;
-    Some(after_quote[..end].to_owned())
-}
-
-fn cargo_package_name(text: &str) -> Option<String> {
-    let mut in_package = false;
-    for line in text.lines() {
-        let trimmed = line.split('#').next().unwrap_or("").trim();
-        if trimmed == "[package]" {
-            in_package = true;
-            continue;
+fn cargo_package_name(rel: &str, text: &str) -> Result<Option<String>, ScanError> {
+    let document: TomlValue =
+        toml::from_str(text).map_err(|error| ScanError::Parse(format!("parse {rel}: {error}")))?;
+    let Some(package) = document.get("package").and_then(TomlValue::as_table) else {
+        if document.get("workspace").is_some() {
+            return Ok(None);
         }
-        if in_package && trimmed.starts_with('[') {
-            break;
-        }
-        if in_package && trimmed.starts_with("name") {
-            return toml_quoted_value(trimmed);
-        }
-    }
-    None
+        return Err(ScanError::Parse(format!(
+            "{rel} is a Cargo.toml without [package] or [workspace]"
+        )));
+    };
+    package
+        .get("name")
+        .and_then(TomlValue::as_str)
+        .map(str::to_owned)
+        .map(Some)
+        .ok_or_else(|| ScanError::Parse(format!("{rel} missing string [package].name")))
 }
 
 fn package_name_matches_suffix(package_name: &str, suffixes: &[String]) -> bool {
@@ -845,7 +841,7 @@ pub fn collect_observed_cli_package_authority(
                 path.display()
             ))
         })?;
-        let Some(package_name) = cargo_package_name(&text) else {
+        let Some(package_name) = cargo_package_name(&rel, &text)? else {
             continue;
         };
         if package_name_matches_suffix(&package_name, &forbidden_suffixes) {
@@ -1183,8 +1179,28 @@ mod tests {
 
     #[test]
     fn cargo_package_name_reads_only_package_table() {
-        let text = "[package]\nname = \"infra-fix-cli\"\n\n[[bin]]\nname = \"ignored-bin-cli\"\n";
-        assert_eq!(cargo_package_name(text).as_deref(), Some("infra-fix-cli"));
+        let text = "[package]\nname = 'infra-fix-cli'\n\n[[bin]]\nname = \"ignored-bin-cli\"\n";
+        assert_eq!(
+            cargo_package_name("infra/example/Cargo.toml", text)
+                .unwrap()
+                .as_deref(),
+            Some("infra-fix-cli")
+        );
+    }
+
+    #[test]
+    fn cargo_package_name_skips_workspace_manifests() {
+        let text = "[workspace]\nmembers = [\"crates/example\"]\n";
+        assert_eq!(
+            cargo_package_name("cloud/cloud-kernel/Cargo.toml", text).unwrap(),
+            None
+        );
+    }
+
+    #[test]
+    fn cargo_package_name_fails_closed_on_unparseable_manifest() {
+        let err = cargo_package_name("infra/bad/Cargo.toml", "[package]\nname = ").unwrap_err();
+        assert!(matches!(err, ScanError::Parse(_)));
     }
 
     #[test]
