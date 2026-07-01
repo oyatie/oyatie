@@ -106,6 +106,11 @@ kind = "line_contains_ci"
 value = "palantir"
 reason = "Palantir-Foundry is a competitor proper noun, not brand residue"
 
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = "evidence/audits/ci-011-shell-cli-retirement-inventory-2026-06-30.json"
+reason = "CI-011 faithful point-in-time inventory of retiring CLI subcommands; forbidden stems occur only as quoted legacy command names targeted for retirement, not live product/governance vocabulary."
+
 [manifest]
 required_flags = ["version_workspace", "rust_version_workspace", "publish_false", "license", "lints_workspace", "lib_doctest_false"]
 
