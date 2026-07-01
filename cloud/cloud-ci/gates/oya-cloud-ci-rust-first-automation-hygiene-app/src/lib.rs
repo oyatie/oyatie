@@ -17,7 +17,7 @@ use serde_yaml::Value as YamlValue;
 
 pub const GATE_ID: &str = "cloud-ci-rust-first-automation-hygiene";
 
-pub const VIOLATION_CODES: [&str; 11] = [
+pub const VIOLATION_CODES: [&str; 12] = [
     "rust_first_automation_gate_id_mismatch",
     "rust_first_automation_exception_duplicate",
     "rust_first_automation_exception_missing_field",
@@ -39,6 +39,10 @@ pub const VIOLATION_CODES: [&str; 11] = [
     // spawning interpreter commands directly. This inventory closes the gap where the extension scan
     // is green but a Rust test/helper still shells out to a retired interpreter.
     "rust_first_automation_interpreter_command_authority",
+    // CLI-package dimension: infrastructure/cloud automation must not add a new package whose
+    // canonical role is a CLI. Gate binaries and controllers stay `*-app`; local CLIs are retired
+    // bridge surfaces, not the new cloud-native path.
+    "rust_first_automation_cli_package_authority",
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -753,6 +757,141 @@ pub fn evaluate_interpreter_command_authority(observed: &Value) -> BTreeSet<Find
     findings
 }
 
+// ───────────────────────────── CLI package authority dimension ─────────────────────────────
+//
+// The file-extension and workflow scans block shell/Python-style automation. This dimension closes
+// the neighboring regression where a new infrastructure package is born as a CLI-first workflow
+// even though the cloud-native standard requires API-shaped Rust apps, gates, controllers, or
+// declarative config. The policy is intentionally scoped to infrastructure/cloud/tooling roots and
+// exact package-name suffixes, so normal gate binaries (`*-app`) and non-infra product crates stay out
+// of the blast radius.
+
+fn cli_package_authority_block(policy: &Value) -> Option<&Value> {
+    policy
+        .get("scan")
+        .and_then(|scan| scan.get("cli_package_authority"))
+}
+
+fn toml_quoted_value(raw: &str) -> Option<String> {
+    let value = raw.split('#').next()?.trim();
+    let after_eq = value.split_once('=')?.1.trim();
+    let after_quote = after_eq.strip_prefix('"')?;
+    let end = after_quote.find('"')?;
+    Some(after_quote[..end].to_owned())
+}
+
+fn cargo_package_name(text: &str) -> Option<String> {
+    let mut in_package = false;
+    for line in text.lines() {
+        let trimmed = line.split('#').next().unwrap_or("").trim();
+        if trimmed == "[package]" {
+            in_package = true;
+            continue;
+        }
+        if in_package && trimmed.starts_with('[') {
+            break;
+        }
+        if in_package && trimmed.starts_with("name") {
+            return toml_quoted_value(trimmed);
+        }
+    }
+    None
+}
+
+fn package_name_matches_suffix(package_name: &str, suffixes: &[String]) -> bool {
+    let normalized = package_name.to_ascii_lowercase();
+    suffixes
+        .iter()
+        .any(|suffix| normalized.ends_with(&suffix.to_ascii_lowercase()))
+}
+
+fn cli_package_key(rel: &str, package_name: &str) -> String {
+    format!("{rel}::{package_name}")
+}
+
+pub fn collect_observed_cli_package_authority(
+    repo_root: &Path,
+    policy: &Value,
+) -> Result<Value, ScanError> {
+    let block = cli_package_authority_block(policy);
+    let enabled = block
+        .and_then(|block| block.get("enabled"))
+        .and_then(Value::as_bool)
+        .unwrap_or(false);
+    if !enabled {
+        return Ok(json!({ "packages": [] }));
+    }
+
+    let roots = workflow_block_string_array(block, "cli_package_authority", "roots")?;
+    let exclude_prefixes =
+        workflow_block_string_array(block, "cli_package_authority", "exclude_prefixes")?;
+    let extensions = workflow_block_string_array(block, "cli_package_authority", "extensions")?
+        .into_iter()
+        .collect::<BTreeSet<_>>();
+    let forbidden_suffixes = workflow_block_string_array(
+        block,
+        "cli_package_authority",
+        "forbidden_package_name_suffixes",
+    )?;
+
+    let mut rows = Vec::new();
+    for (path, rel) in collect_files_with_extensions(repo_root, &roots, &extensions)? {
+        if path_is_excluded(&rel, &exclude_prefixes) || !rel.ends_with("/Cargo.toml") {
+            continue;
+        }
+        let text = fs::read_to_string(&path).map_err(|e| {
+            ScanError::Io(format!(
+                "read Cargo manifest {} for CLI package scan: {e}",
+                path.display()
+            ))
+        })?;
+        let Some(package_name) = cargo_package_name(&text) else {
+            continue;
+        };
+        if package_name_matches_suffix(&package_name, &forbidden_suffixes) {
+            rows.push(json!({
+                "key": cli_package_key(&rel, &package_name),
+                "path": rel,
+                "package_name": package_name,
+            }));
+        }
+    }
+    rows.sort_by(|a, b| string_field(a, "key").cmp(&string_field(b, "key")));
+    Ok(json!({ "packages": rows }))
+}
+
+pub fn evaluate_cli_package_authority(observed: &Value) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+    for row in observed
+        .get("packages")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+    {
+        match string_field(row, "key").filter(|k| !k.is_empty()) {
+            Some(key) => {
+                let package_name = string_field(row, "package_name").unwrap_or("<unknown>");
+                findings.insert(Finding::new(
+                    "rust_first_automation_cli_package_authority",
+                    key,
+                    format!(
+                        "infrastructure package `{package_name}` is CLI-shaped; use an API-shaped \
+                         Rust app/gate/controller plus declarative config instead"
+                    ),
+                ));
+            }
+            None => {
+                findings.insert(Finding::new(
+                    "rust_first_automation_observed_path_missing_field",
+                    "<observed-cli-package>",
+                    "observed CLI package row missing non-empty `key`",
+                ));
+            }
+        }
+    }
+    findings
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Verdict {
     Green,
@@ -1029,6 +1168,37 @@ mod tests {
         }));
     }
 
+    #[test]
+    fn cli_package_authority_flags_infra_cli_suffix() {
+        let findings = evaluate_cli_package_authority(&json!({"packages": [{
+            "key": "infra/example/Cargo.toml::infra-fix-cli",
+            "path": "infra/example/Cargo.toml",
+            "package_name": "infra-fix-cli"
+        }]}));
+        assert!(findings.iter().any(|finding| {
+            finding.code == "rust_first_automation_cli_package_authority"
+                && finding.key == "infra/example/Cargo.toml::infra-fix-cli"
+        }));
+    }
+
+    #[test]
+    fn cargo_package_name_reads_only_package_table() {
+        let text = "[package]\nname = \"infra-fix-cli\"\n\n[[bin]]\nname = \"ignored-bin-cli\"\n";
+        assert_eq!(cargo_package_name(text).as_deref(), Some("infra-fix-cli"));
+    }
+
+    #[test]
+    fn package_name_suffix_matching_is_case_insensitive() {
+        assert!(package_name_matches_suffix(
+            "Infra-Fix-CLI",
+            &["-cli".to_owned()]
+        ));
+        assert!(!package_name_matches_suffix(
+            "oya-cloud-ci-firewall-app",
+            &["-cli".to_owned()]
+        ));
+    }
+
     // ───────────────── workflow-inline-shell evaluator unit tests (pipeline-glue(a)) ─────────────
 
     fn shell_observed(keys: &[&str]) -> Value {
@@ -1128,6 +1298,12 @@ mod tests {
         for f in evaluate_interpreter_command_authority(
             &json!({"commands": [{"key": "tools/x/src/main.rs:1::python3", "command": "python3"}]}),
         ) {
+            emitted.insert(f.code);
+        }
+        for f in evaluate_cli_package_authority(&json!({"packages": [{
+            "key": "infra/example/Cargo.toml::infra-fix-cli",
+            "package_name": "infra-fix-cli"
+        }]})) {
             emitted.insert(f.code);
         }
         for code in &emitted {

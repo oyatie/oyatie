@@ -5,9 +5,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use oya_cloud_ci_rust_first_automation_hygiene_app::{
-    Finding, Verdict, collect_observed_forbidden_workflow_uses,
-    collect_observed_interpreter_command_authority, collect_observed_non_rust_automation,
-    collect_observed_workflow_inline_shell, evaluate, evaluate_forbidden_workflow_uses,
+    Finding, Verdict, collect_observed_cli_package_authority,
+    collect_observed_forbidden_workflow_uses, collect_observed_interpreter_command_authority,
+    collect_observed_non_rust_automation, collect_observed_workflow_inline_shell, evaluate,
+    evaluate_cli_package_authority, evaluate_forbidden_workflow_uses,
     evaluate_interpreter_command_authority, evaluate_keyed, evaluate_workflow_inline_shell_keyed,
 };
 use serde_json::{Value, json};
@@ -398,4 +399,58 @@ fn fixture_proves_python_node_and_mjs_command_authority_fail_closed() {
             "retired interpreter command authority key {key} must fail closed; got {findings:#?}"
         );
     }
+}
+
+// ───────────────────────── CLI package authority dimension ─────────────────────────
+
+#[test]
+fn cli_package_authority_dimension_is_enabled_for_infrastructure_roots() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let block = &policy["scan"]["cli_package_authority"];
+    assert_eq!(
+        block["enabled"].as_bool(),
+        Some(true),
+        "cli_package_authority dimension must be enabled in policy DATA"
+    );
+    let roots: Vec<&str> = block["roots"]
+        .as_array()
+        .expect("cli_package_authority.roots")
+        .iter()
+        .filter_map(Value::as_str)
+        .collect();
+    assert!(
+        roots.contains(&"cloud") && roots.contains(&"infra") && roots.contains(&"tools"),
+        "infrastructure/cloud/tooling roots must be scanned for CLI-first package births; got {roots:?}"
+    );
+}
+
+#[test]
+fn live_infrastructure_roots_do_not_add_cli_first_packages() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let observed = collect_observed_cli_package_authority(&root, &policy)
+        .expect("read-only CLI package scan should not need temp files or cleanup");
+    let findings = evaluate_cli_package_authority(&observed);
+    assert!(
+        findings.is_empty(),
+        "infrastructure/cloud/tooling roots contain CLI-first package authority: {findings:#?}"
+    );
+}
+
+#[test]
+fn fixture_proves_infrastructure_cli_package_fails_closed() {
+    let observed = json!({"packages": [{
+        "key": "infra/example/Cargo.toml::infra-fix-cli",
+        "path": "infra/example/Cargo.toml",
+        "package_name": "infra-fix-cli"
+    }]});
+    let findings = evaluate_cli_package_authority(&observed);
+    assert!(
+        findings.iter().any(|finding| {
+            finding.code == "rust_first_automation_cli_package_authority"
+                && finding.key == "infra/example/Cargo.toml::infra-fix-cli"
+        }),
+        "new infrastructure CLI package must fail closed; got {findings:#?}"
+    );
 }

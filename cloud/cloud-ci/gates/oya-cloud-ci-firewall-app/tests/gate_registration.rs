@@ -102,12 +102,14 @@ fn fixuptasks_path(root: &Path) -> PathBuf {
     root.join("registry/fixuptasks.jsonl")
 }
 
-/// Every directory directly under `cloud/cloud-ci/gates/` that is a crate (has a Cargo.toml).
+/// Every directory directly under `cloud/cloud-ci/gates/` that is a gate lane. Most lanes have a
+/// Cargo manifest, but Buck2-only productized gates are equally required workflow authority and must
+/// not be silently skipped by this meta-test.
 fn gate_crate_dirs(gates: &Path) -> Vec<String> {
     let mut names: Vec<String> = fs::read_dir(gates)
         .unwrap_or_else(|e| panic!("read gates dir {}: {e}", gates.display()))
         .map(|entry| entry.expect("dir entry").path())
-        .filter(|p| p.is_dir() && p.join("Cargo.toml").is_file())
+        .filter(|p| p.is_dir() && (p.join("Cargo.toml").is_file() || p.join("BUCK").is_file()))
         .map(|p| {
             p.file_name()
                 .expect("dir file_name")
