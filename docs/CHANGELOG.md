@@ -11,6 +11,8 @@ doc_status: published
 - The standard explicitly rejects new ad-hoc infrastructure CLIs and new Python
   or shell scripts for core infra behavior, and requires configuration-driven,
   idempotent, observable, deployment-compatible automation.
+- Added born-accounting registration for the new standard through standards ownership,
+  exact reachability entries, and ADR justification pointers.
 
 ## 2026-06-30 — DEVFLOW-003 post-merge product-completion gate
 
