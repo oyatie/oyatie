@@ -46,8 +46,10 @@ doc_status: published
 21. ☐ Browser UX/user-story evidence recorded for user-visible surfaces:
     browser/session, story path, and screenshot/video/artifact; if not user-visible,
     record `not user-visible` with rationale
-22. ☐ Release Please / release-note impact recorded: release PR/link, generated
-    notes, or `no user-facing release-note impact`
+22. ☐ Release-governance/release-note impact recorded: release PR/link or
+    generated notes from the configured release system, or `no user-facing
+    release-note impact`; Release Please is only required when a live repo
+    config/workflow exists
 23. ☐ Audit-chain emits `EVT-PR-MERGED` with PR # + commit SHA
 24. ☐ Per-affected-team Slack ping (auto)
 25. ☐ Per-changelog auto-emit (governed capability `pr.changelog.row`)

@@ -54,14 +54,14 @@ Workflow Studio product surface inverts P0 (human-ergonomic-first, no-code-first
 
 ## Wave 15-ZF doctrine refs — ADR-0346..ADR-0349
 
-Every agent MUST treat [ADR-0346](decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md), [ADR-0347](decisions/ADR-0347-governance-fitness-bulk-rename.md), [ADR-0348](decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md), and [ADR-0349](decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md) as active operating-contract doctrine for their non-CI obligations until superseded or amended by a newer ADR. For CI/CD enforcement, [ADR-0515](decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md) is the current single-truth amendment: GitHub Actions + branch protection are the live runner/authority until explicit owned-runner cutover, the cloud-ci Rust gate apps produce the one protected `oya-ci-required` context, and ADR-0513/Prow/Jenkins/legacy `oya` CLI governance wording is superseded provenance or local-feedback evidence only.
+Every agent MUST treat [ADR-0346](decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md), [ADR-0347](decisions/ADR-0347-governance-fitness-bulk-rename.md), [ADR-0348](decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md), and [ADR-0349](decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md) as active operating-contract doctrine for their non-CI obligations until superseded or amended by a newer ADR. For CI/CD enforcement, [ADR-0515](decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md) is the current single-truth amendment: GitHub Actions + branch protection are the live runner/authority until explicit owned-runner cutover, the cloud-ci Rust gate apps produce the one protected `oya-ci-required` context, and ADR-0513/Prow/Jenkins/legacy `oya` CLI governance wording is superseded provenance or local-feedback evidence only. No GitHub Actions status/check outside `oya-ci-required` may be promoted as protected-branch authority.
 
 | ADR | Operating-contract binding | Enforced-by lanes agents MUST preserve |
 |---|---|---|
-| ADR-0346 (amended by ADR-0515) | `./bin/oya verify --ci-required` / `oya verify` are optional legacy local-feedback evidence only. They MUST NOT be extended or treated as protected-branch merge/exit authority; preserve old semantics only as provenance/local diagnostics while required semantics live in cloud-ci Rust gate packets. | The only merge authority is the single protected `oya-ci-required` context; do not add new `oya` CLI CI authority. |
+| ADR-0346 (amended by ADR-0515/platform-readiness) | ADR-0346's retired `./bin/oya verify --ci-required` / `oya verify` paths are historical/provenance-only. Do not invoke or recreate the tracked `bin/oya` shim. The old full-mirror semantics survive only as migration input while porting them into cloud-ci/Rust gate contexts, and must never be extended or treated as protected-branch merge/exit authority. | The only merge authority is the single protected `oya-ci-required` context plus Rust gate packets; do not add new `oya` CLI CI authority. |
 | ADR-0347 | Every `oya-governance-*` CI lane prefix RENAMES to `oya-governance-*` in one Wave 15-ZB bulk-rename pull request; the rename is name-only and lane invariants remain preserved. | `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, `oya-governance-rename-inventory-presence`. |
 | ADR-0348 | Cellular topology MUST support autosharding, auto-rebalance, and dynamic sharding through manifest-declared `sharding_automation` blocks, honoring residency, reversibility, and audit-chain emission. | `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, `oya-governance-tenant-migration-reversibility`. |
-| ADR-0349 (amended/superseded for CI by ADR-0515) | Jenkins and Prow-shaped wording are historical/provenance only. GitHub Actions is the current ADR-0515 live runner for the canonical cloud-ci pipeline until explicit owned-runner cutover, not a parallel authority; ArgoCD/Argo Rollouts remain CD bridge/reference adapters where separately authorized. | Preserve bridge references only as provenance; do not add new Jenkins/Groovy, Prow, or `oya` CLI CI authority. Destination lanes are cloud-ci Rust gate contexts aggregated into `oya-ci-required` plus ArgoCD tenant-isolation/deploy audit lanes. |
+| ADR-0349 (amended by ADR-0359/ADR-0361/ADR-0515) | Jenkins (LTS) and Prow-shaped wording are bridge/historical substrates, not destination CI authority. GitHub Actions is the current ADR-0515 live runner/producer for the canonical cloud-ci pipeline until explicit owned-runner cutover, not a separate parallel authority; ArgoCD/Argo Rollouts remain CD bridge/reference adapters where separately authorized. | Preserve existing bridge lanes only as transition evidence; do not add new Jenkins/Groovy, Prow, legacy `oya` CLI CI authority, or any GitHub Actions status/check outside `oya-ci-required` as protected-branch authority. Destination lanes are cloud-ci Rust gate packets surfaced through `oya-ci-required` plus ArgoCD tenant-isolation/deploy audit lanes. |
 
 ## Independent review discipline — active; multispectrum file convention retired
 
@@ -184,8 +184,10 @@ governance and makes GitHub Actions + branch protection the live CI runner until
 explicit owned-runner cutover. An agent works on an isolated worktree branch and
 opens a pull request against `dev`, which enters the governance pipeline:
 the single protected `oya-ci-required` context + reviewer APPROVE gate merge
-readiness. `oya gate` / `oya verify` output is optional local feedback or
-provenance only; it is never protected-branch CI authority.
+readiness. GH #983 folds PR title/body hygiene into `oya-ci-required`, while
+F-PR5-06 still owns live review-admission closure. `oya gate` / `oya verify`
+output is optional local feedback or provenance only; it is never
+protected-branch CI authority.
 
 The fenced block below is the machine-readable agent surface. Human-facing terminal examples may live outside fences.
 
@@ -200,7 +202,9 @@ required_sequence:
   - commit and push on that lane
   - open a PR against dev               # enters the governance pipeline
   - fully reviewed, review threads resolved, no merge conflict, branch protection satisfied,
-    and single protected `oya-ci-required` context green (legacy CLI evidence optional/local only)
+    and single protected `oya-ci-required` context green; PR title/body hygiene flows
+    through `oya-ci-required`, while F-PR5-06 still owns live review-admission closure
+    and legacy CLI evidence remains optional/local only
   - squash merge after review threads resolve
   - post-merge product-completion packet: promoted SHA `oya-ci-required` green,
     rollout verification, rollback note, observability check, browser UX/user-story evidence,
