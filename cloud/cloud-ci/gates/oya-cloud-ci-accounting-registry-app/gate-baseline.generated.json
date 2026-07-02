@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:5cf4109a3c3939ab",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:d5dcd90d06d41492"
+    "source_inputs_digest": "fnv1a64:d3d0449470cde333"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -4674,8 +4674,7 @@
           "ADR-0510",
           "ADR-0512",
           "ADR-0515",
-          "ADR-0572",
-          "ADR-0609"
+          "ADR-0572"
         ],
         "mode": "baseline-block-on-new"
       }
@@ -35779,11 +35778,6 @@
           "tools/oya-checkout-guard-app/Cargo.toml",
           "tools/oya-checkout-guard-app/src/lib.rs",
           "tools/oya-checkout-guard-app/src/main.rs",
-          "tools/oya-fabric-loop-state-app/BUCK",
-          "tools/oya-fabric-loop-state-app/Cargo.toml",
-          "tools/oya-fabric-loop-state-app/src/lib.rs",
-          "tools/oya-fabric-loop-state-app/src/main.rs",
-          "tools/oya-fabric-loop-state-app/tests/contract.rs",
           "tools/oya-governance-adapter-with-no-importer-app/BUCK",
           "tools/oya-governance-adapter-with-no-importer-app/Cargo.toml",
           "tools/oya-governance-adapter-with-no-importer-app/src/main.rs",
@@ -35835,15 +35829,6 @@
           "tools/oya-governance-sunset-lifecycle-app/BUCK",
           "tools/oya-governance-sunset-lifecycle-app/Cargo.toml",
           "tools/oya-governance-sunset-lifecycle-app/src/main.rs",
-          "tools/oya-masterplan-hermes-forensic-ledger-app/BUCK",
-          "tools/oya-masterplan-hermes-forensic-ledger-app/Cargo.toml",
-          "tools/oya-masterplan-hermes-forensic-ledger-app/src/json.rs",
-          "tools/oya-masterplan-hermes-forensic-ledger-app/src/ledger.rs",
-          "tools/oya-masterplan-hermes-forensic-ledger-app/src/lib.rs",
-          "tools/oya-masterplan-hermes-forensic-ledger-app/src/main.rs",
-          "tools/oya-masterplan-hermes-forensic-ledger-app/src/sha256.rs",
-          "tools/oya-masterplan-hermes-forensic-ledger-app/src/sqlite.rs",
-          "tools/oya-masterplan-hermes-forensic-ledger-app/tests/contract.rs",
           "tools/oya-tooling-agent-read/BUCK",
           "tools/oya-tooling-agent-read/Cargo.toml",
           "tools/oya-tooling-agent-read/src/audit.rs",

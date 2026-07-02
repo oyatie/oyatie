@@ -3,7 +3,7 @@
   "generator": "oya gen masterplan",
   "source": "docs/decisions/*.md",
   "deliverable_status_model": "declared (v1; CI-derived status deferred per ADR-0364 §3)",
-  "adr_count": 65,
+  "adr_count": 64,
   "deliverable_count": 75,
   "milestones": [
     {
@@ -943,18 +943,6 @@
             "ADR-0515",
             "ADR-0392",
             "ADR-0522"
-          ],
-          "deliverables": []
-        },
-        {
-          "id": "ADR-0609",
-          "status": "Accepted",
-          "depends_on": [
-            "ADR-0515",
-            "ADR-0516",
-            "ADR-0548",
-            "ADR-0551",
-            "ADR-0555"
           ],
           "deliverables": []
         }
