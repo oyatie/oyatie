@@ -59,7 +59,7 @@ public spaces.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the repository maintainers (`@teams/council-architecture`, see
-[`.github/CODEOWNERS`](.github/CODEOWNERS)) by opening a private report to the
+[`CODEOWNERS`](CODEOWNERS)) by opening a private report to the
 repository owner via GitHub. All complaints will be reviewed and investigated
 promptly and fairly.
 
