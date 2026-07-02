@@ -165,7 +165,8 @@ impl TenantLifecycleStore for InMemoryTenantLifecycleStore {
         &'a self,
         tenant_id: &'a str,
         operation_name: &'a str,
-    ) -> Pin<Box<dyn Future<Output = Result<Option<OperationRecord>, StoreError>> + Send + 'a>> {
+    ) -> Pin<Box<dyn Future<Output = Result<Option<OperationRecord>, StoreError>> + Send + 'a>>
+    {
         Box::pin(async move {
             Ok(self
                 .operations
@@ -211,7 +212,10 @@ mod tests {
     use oya_shared_platform_contracts_kernel::tenancy::{
         IsolationPosture, TenantLifecycleOperation, TenantLifecycleState,
     };
-    use oya_shared_resource_provider_contract_kernel::Operation;
+    use oya_shared_resource_provider_contract_kernel::{
+        CancellationMetadata, CompensationMetadata, Operation, OperationLedgerEntry,
+        OperationPhase, OperationState, RetryPolicy,
+    };
 
     use super::*;
 
@@ -223,6 +227,37 @@ mod tests {
             isolation_posture: IsolationPosture::Pooled,
             cell_id: "cell-001".to_owned(),
             residency_zone: None,
+        }
+    }
+
+    fn operation_ledger_entry(operation_id: &str) -> OperationLedgerEntry {
+        OperationLedgerEntry {
+            operation_id: operation_id.to_owned(),
+            idempotency_key: "00000000-0000-4000-8000-000000000001".to_owned(),
+            request_hash: format!("fixture-hash:{operation_id}"),
+            resource_orn: "orn:oya:tenancy:acme:tenants/acme".to_owned(),
+            desired_generation: 1,
+            observed_generation: 0,
+            state: OperationState::Accepted,
+            phase: OperationPhase::OperationLedger,
+            tenant_account_project: "tenant/acme".to_owned(),
+            region_cell: "control-plane/default".to_owned(),
+            principal: "principal:test".to_owned(),
+            audit_chain_id: format!("audit-chain/{operation_id}"),
+            retry_policy: RetryPolicy {
+                backoff: "bounded-exponential-jitter".to_owned(),
+                max_attempts: 3,
+                retry_classification: "transient".to_owned(),
+            },
+            cancellation: CancellationMetadata {
+                cancel_safe: true,
+                audit_required: true,
+            },
+            compensation: CompensationMetadata {
+                required: false,
+                strategy: "none".to_owned(),
+            },
+            transition_sequence: 1,
         }
     }
 
@@ -309,7 +344,11 @@ mod tests {
         );
 
         let op = OperationRecord {
-            operation: Operation::pending("operations/lifecycle-000001").unwrap(),
+            operation: Operation::pending(
+                "operations/acme-lifecycle-000001",
+                operation_ledger_entry("acme-lifecycle-000001"),
+            )
+            .unwrap(),
             kind: TenantLifecycleOperation::Activate,
             target: "tenants/acme".to_owned(),
         };
@@ -375,7 +414,11 @@ mod tests {
         // the same operation_name under two tenants is two independent entries.
         let mut store = InMemoryTenantLifecycleStore::new();
         let op_acme = OperationRecord {
-            operation: Operation::pending("operations/acme/lifecycle-000001").unwrap(),
+            operation: Operation::pending(
+                "operations/acme-lifecycle-000001",
+                operation_ledger_entry("acme-lifecycle-000001"),
+            )
+            .unwrap(),
             kind: TenantLifecycleOperation::Activate,
             target: "tenants/acme".to_owned(),
         };

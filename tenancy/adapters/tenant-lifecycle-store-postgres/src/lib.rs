@@ -520,7 +520,8 @@ impl TenantLifecycleStore for PgTenantLifecycleStore {
         &'a self,
         tenant_id: &'a str,
         operation_name: &'a str,
-    ) -> Pin<Box<dyn Future<Output = Result<Option<OperationRecord>, StoreError>> + Send + 'a>> {
+    ) -> Pin<Box<dyn Future<Output = Result<Option<OperationRecord>, StoreError>> + Send + 'a>>
+    {
         Box::pin(async move {
             validate_tenant_id(tenant_id)?;
             let mut tx = self.pool.begin().await.map_err(store_unavailable)?;
@@ -604,7 +605,7 @@ impl TenantLifecycleStore for PgTenantLifecycleStore {
 }
 
 /// Extract the trailing `lifecycle-<seq>` ordinal from a minted operation name
-/// (`operations/<tenant_id>/lifecycle-<seq>`). Returns 0 when the name lacks the
+/// (`operations/<tenant_id>-lifecycle-<seq>`). Returns 0 when the name lacks the
 /// shape — the ordinal is observational; the `(tenant_id, operation_name)` PK is
 /// the uniqueness authority.
 fn operation_seq_from_name(operation_name: &str) -> i64 {
@@ -713,10 +714,10 @@ mod tests {
     #[test]
     fn operation_seq_parses_trailing_ordinal() {
         assert_eq!(
-            operation_seq_from_name("operations/acme/lifecycle-000007"),
+            operation_seq_from_name("operations/acme-lifecycle-000007"),
             7
         );
-        assert_eq!(operation_seq_from_name("operations/acme/weird"), 0);
+        assert_eq!(operation_seq_from_name("operations/acme-weird"), 0);
     }
 
     #[test]
@@ -828,8 +829,7 @@ mod tests {
         let migration = include_str!("../migrations/0001_tenant_lifecycle_store.sql");
         let mut from_migration = force_rls_tables(migration);
         from_migration.sort();
-        let mut governed: Vec<String> =
-            GOVERNED_TABLES.iter().map(|t| (*t).to_owned()).collect();
+        let mut governed: Vec<String> = GOVERNED_TABLES.iter().map(|t| (*t).to_owned()).collect();
         governed.sort();
         assert_eq!(
             governed, from_migration,
