@@ -95,6 +95,15 @@
     "ledger_rule": "Append-only with a strictly monotonic 1-based pass_seq, enforced mechanically at every adapter (validate_pass_record); replays and out-of-order writes fail closed with NonMonotonicPass. Per-card metrics derive mechanically from raw CardFlowTimeline records; inverted timelines fail closed with InvalidMetrics.",
     "mutation_path": "Coordinator-only: the ledger rides the durable coordination plane (PR-governed) and is written once per dispatch pass through FlowMetricsPort via the single-writer FlowMetricsService facade."
   },
+  "lane_disjointness": {
+    "purpose": "Mechanical parallel-safety detector of the ADR-0516 drive loop: a path/ownership-overlap check — NOT judgment — decides what runs concurrently. Each lane declares its work surface (repo-relative file/dir paths for one card); the detector verdicts PRE-FLIGHT over the declared surfaces before dispatch and POST-RUN over the actual touched paths after the lanes ran, and both verdicts are captured as evidence for every parallel dispatch.",
+    "detector": "check_lane_disjointness(phase, surfaces, reviewer_capacity, checked_at_epoch_s) in tools/oya-fabric-loop-state-app (bin command: check-disjoint)",
+    "report_shape": "DisjointnessReport { phase: pre-flight|post-run, verdict: disjoint|overlap-serialize-to-integrator, lane_count, reviewer_capacity, checked_at_epoch_s, surfaces: [LaneWorkSurface { lane_id, card_id, paths }], collisions: [PathCollision { lane_a, path_a, lane_b, path_b }] }",
+    "collision_rule": "Two paths in different lanes collide iff they are equal or one is a component-wise directory prefix of the other (a directory path claims its whole subtree; sibling files never collide). Any collision verdicts overlap-serialize-to-integrator: shared-root touches auto-route to the serialized integrator lane instead of parallel dispatch.",
+    "capacity_rule": "Max concurrent lanes <= available independent reviewer capacity (computed from the lane registry by the caller); a batch above capacity fails closed with LaneCapacityExceeded before any disjointness reasoning.",
+    "fail_closed_inputs": "Lane/card ids pass the filesystem-safe id contract; duplicate lane ids and one card on two lanes are refused; paths must be repo-relative with no traversal/absolute/backslash/trailing-slash shapes; empty surfaces or batches are refused (a surface the detector cannot reason about is never admitted as disjoint).",
+    "gate_semantics": "The check-disjoint bin command prints the JSON report (evidence shape) and exits non-zero unless every lane pair is path-disjoint."
+  },
   "cutover_target": {
     "service_name": "oya-cloud-ci-loop-state-service",
     "owner": "cloud/cloud-ci",
@@ -116,7 +125,8 @@
       "tools/oya-fabric-loop-state-app/tests/contract.rs#execution_plane_enforces_lane_exclusive_claims",
       "tools/oya-fabric-loop-state-app/tests/contract.rs#completion_requires_evidence_and_readiness_derives_from_the_dag",
       "tools/oya-fabric-loop-state-app/tests/contract.rs#flow_metric_recording_routes_through_the_metrics_port",
-      "tools/oya-fabric-loop-state-app/tests/contract.rs#flow_metrics_are_recorded_and_persisted_across_passes"
+      "tools/oya-fabric-loop-state-app/tests/contract.rs#flow_metrics_are_recorded_and_persisted_across_passes",
+      "tools/oya-fabric-loop-state-app/tests/contract.rs#lane_disjointness_detector_verdicts_parallel_dispatch_mechanically"
     ],
     "commands": [
       "cargo test -p oya-fabric-loop-state-app",
