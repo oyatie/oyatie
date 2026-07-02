@@ -1,0 +1,169 @@
+{
+  "_meta": {
+    "artifact_id": "fabric-loop-full-cycle-c005-proof-run-20260702",
+    "doc_class": "Durable-Evidence-Record",
+    "purpose": "Full-cycle end-to-end proof run of the ADR-0516 Agentic Delivery Fabric two-plane drive loop: real backlog work card MPV2-0000.C005 driven claim -> build -> review -> merge -> post-merge product-completion packet, with per-pass flow metrics and harvested observations. Evidence backing masterplan-v2 Sub-AC 3.2 and the e2e_loop_proof exit condition (full-cycle-card half); second full-cycle card after MPV2-0000.C001 (evidence/goals/fabric-loop-e2e-proof-run-20260702.json).",
+    "created_at": "2026-07-02T17:25:00Z",
+    "owner_team": "founder + platform-governance",
+    "doctrine_refs": ["ADR-0515", "ADR-0516"],
+    "read_contract": {
+      "audience": ["humans", "agents", "reviewers"],
+      "read_timing_class": "on-demand",
+      "freshness_rule": "Immutable evidence record of the 2026-07-02 C005 proof run; never edited after the fact. Live loop state lives at plan/fabric-loop (durable plane) and .oya-loop-state (operational plane, gitignored)."
+    }
+  },
+  "card": {
+    "card_id": "MPV2-0000.C005",
+    "card_class": "definition-seed",
+    "title": "Harvested (C003 round-1 review minor): list_json_ids silently skips filenames failing validate_id (unicode digits, spaces, non-UTF-8); strict fail-closed ledger listing should surface them as Corrupt plus regression test",
+    "program_id": "P-FABRIC",
+    "parent_work_item": "MPV2-0000",
+    "id_space_note": "Definition/Seed card class elaboration of masterplan-v2 work item MPV2-0000 inside the single MPV2 work-item ID space; harvested from the C003 review round of the prior proof run (closed-loop improvement layer feeding real work back through the loop). This run does NOT mutate masterplan_v2.work_items / dependency_edges / sequencing - the founder-ratified sequencing digest is untouched and the claim-time ratification gate proved it binds.",
+    "work_product": "Strict fail-closed ledger listing in tools/oya-fabric-loop-state-app: list_json_ids now surfaces every foreign directory entry (non-UTF-8 names, .json names failing the filesystem-safe id contract - unicode digits, spaces, dotfiles - and any other foreign name) as PlaneError::Corrupt instead of silently skipping; single documented carve-out for the atomic writer's own crash artifact <name>.json.tmp.<pid>; regression test foreign_ledger_filenames_fail_listing_closed probing every previously-skipped shape per-shape plus the flow-metrics ledger composition.",
+    "final_status": "done-verified",
+    "durable_record": "plan/fabric-loop/cards/MPV2-0000.C005.json"
+  },
+  "lane": {
+    "lane_id": "lane-fabric-d",
+    "runtime": "Claude coding-agent lane (card contract runtime-agnostic)",
+    "coordinator_only_commits": "All durable-plane writes and both git commits of this run were made by the coordinator on the isolated lane branch ooo/orch_edff8596cfa2; the reviewer subagent wrote no product source and no durable-plane state (only the gitignored .oya-loop-state/reviews/ verdict file, exactly per the review card contract)."
+  },
+  "stage_claim": {
+    "claimed_at_epoch_s": 1783010082,
+    "run_started_at_epoch_s": 1783010086,
+    "claim_record": { "card_id": "MPV2-0000.C005", "lane_id": "lane-fabric-d", "claimed_at_epoch_s": 1783010082 },
+    "heartbeats_epoch_s": [1783010086, 1783010268, 1783010305],
+    "ratification_gate": "The claim command ran the mechanical founder-ratification dispatch gate against specs/masterplan.json before any plane write and granted dispatch (a stale or absent record would have refused with 'execution-wave dispatch refused: ...'; the gate's five refusal paths are covered by tests/ratification_gate.rs).",
+    "preflight_disjointness": {
+      "checked_at_epoch_s": 1783010113,
+      "phase": "pre-flight",
+      "verdict": "disjoint",
+      "lane_count": 1,
+      "reviewer_capacity": 1,
+      "declared_surface": ["tools/oya-fabric-loop-state-app", "evidence/goals/fabric-loop-full-cycle-c005-proof-run-20260702.json", "plan/fabric-loop/cards"]
+    },
+    "mechanism": "oya-fabric-loop-state claim/start/heartbeat/check-disjoint through LoopStateService over CoordinationPlanePort + ExecutionPlanePort (owned Rust; no shell/python state manipulation); claim/heartbeat/run records on the gitignored operational plane .oya-loop-state, snapshotted here for durability."
+  },
+  "stage_build": {
+    "started_at_epoch_s": 1783010086,
+    "finished_at_epoch_s": 1783010256,
+    "change": "tools/oya-fabric-loop-state-app/src/lib.rs (+37/-1: is_atomic_write_tmp helper + strict fail-closed list_json_ids) and tools/oya-fabric-loop-state-app/tests/contract.rs (+96: foreign_ledger_filenames_fail_listing_closed regression test)",
+    "commands": [
+      "cargo build -p oya-fabric-loop-state-app",
+      "cargo test -p oya-fabric-loop-state-app",
+      "cargo clippy -p oya-fabric-loop-state-app --all-targets",
+      "cargo fmt -p oya-fabric-loop-state-app -- --check"
+    ],
+    "result": "green: 41/41 tests (17 lib unit + 8 bin unit + 11 contract + 5 ratification-gate), clippy clean, fmt clean",
+    "build_iteration_note": "First test run failed on macOS APFS refusing non-UTF-8 filename creation (EILSEQ) in the new regression test; fixed by guarding the probe to apply only where the filesystem can hold such a name (the shape is physically excluded where creation fails). All green after."
+  },
+  "stage_review": {
+    "review_requested_at_epoch_s": 1783010268,
+    "review_first_verdict_at_epoch_s": 1783010499,
+    "review_rounds": 1,
+    "block_record": "run state marked blocked(needs-review) at 1783010268 while the independent reviewer ran; resumed running at 1783010572 after APPROVE",
+    "reviewer_independence": "Non-author executor-lane reviewer subagent in a separate session with no shared history, hostile-inspection (Torvalds-style) lens mandated; read-only on all tracked files; verdict delivered as a durable operational-plane file per the MPV2-0000.C002 learning.",
+    "c002_learning_validated": "The reviewer subagent's chat result artifact was lost AGAIN ('output artifact unavailable'), exactly the failure mode harvested as MPV2-0000.C002 in the first proof run - and the durable verdict-file protocol adopted from that learning carried the run without a redispatch. The closed-loop improvement layer demonstrably paid for itself this pass.",
+    "round_1": {
+      "verdict_file": ".oya-loop-state/reviews/MPV2-0000.C005.round1.verdict.txt",
+      "verdict_file_mtime_epoch_s": 1783010499,
+      "verdict": "APPROVE",
+      "reviewed_diff": "git diff of working tree @ c38188537185a3cf5a7ecb94042947b3a24a0dfe",
+      "findings_summary": "0 blocker, 0 major, 3 minor, 3 nit. Minors: (1) dangling-symlink/TOCTOU-deleted <id>.json admitted then silently dropped by cards() (pre-existing tolerance); (2) directory named <id>.json fails as Io not Corrupt (pre-existing, verdict-class inconsistency); (3) tmp carve-out is a data-hiding channel (per-spec, flagged for the record). Nits: .DS_Store operational noise on dev machines (correct per fail-closed contract); non-UTF-8 branch only exercised on filesystems that can hold such names; a.json.tmp.1.json visually masquerades as tmp but is handled consistently.",
+      "rationale_excerpt": "Traced every card-named shape through the new lister by hand; tmp recognizer byte-exact against write_atomic; both callers compose with no dead code and no panic path; live stores contain nothing the strict lister refuses; the regression test would fail against the pre-fix code; 41/41 green confirmed independently."
+    },
+    "rework": {
+      "rework_count": 0,
+      "disposition_of_findings": "APPROVE with no blocker/major: actionable pre-existing minors harvested as durable backlog cards MPV2-0000.C008 and MPV2-0000.C009 (see learning_harvest), not churned as a rework round on an approved diff; per-spec/informational findings recorded here."
+    }
+  },
+  "stage_merge": {
+    "merge_commit": "ebbde9a36c66cf4eed9c4f22176a9151aacffc07",
+    "merged_at_epoch_s": 1783010585,
+    "branch": "ooo/orch_edff8596cfa2 (isolated worktree lane branch; enters the governance pipeline as a protected PR against dev with the single required oya-ci-required context per ADR-0515)",
+    "committer": "coordinator only (reviewer committed nothing; SSH-signed commit)",
+    "pre_merge_verification": [
+      "cargo test -p oya-fabric-loop-state-app: 41/41 green",
+      "cargo clippy -p oya-fabric-loop-state-app --all-targets: clean",
+      "cargo fmt -p oya-fabric-loop-state-app -- --check: clean",
+      "buck2 test //tools/oya-fabric-loop-state-app: : Pass 3 (unittest + contract + ratification-gate)",
+      "OYA_CI_PRODUCER_BIN cargo test -p oya-cloud-ci-cross-artifact-agreement-app: 108/108 green (88 lib + 20 live-corpus) with the C005 working tree present in the live corpus"
+    ],
+    "postrun_disjointness": {
+      "checked_at_epoch_s": 1783010597,
+      "phase": "post-run",
+      "verdict": "disjoint",
+      "lane_count": 1,
+      "reviewer_capacity": 1,
+      "actual_touched_paths": ["tools/oya-fabric-loop-state-app/src/lib.rs", "tools/oya-fabric-loop-state-app/tests/contract.rs", "plan/fabric-loop/cards", "evidence/goals/fabric-loop-full-cycle-c005-proof-run-20260702.json"]
+    }
+  },
+  "stage_completion": {
+    "completed_at_epoch_s": 1783010597,
+    "completion_evidence_refs": [
+      "git:ebbde9a36c66cf4eed9c4f22176a9151aacffc07",
+      "evidence/goals/fabric-loop-full-cycle-c005-proof-run-20260702.json#stage_build",
+      "evidence/goals/fabric-loop-full-cycle-c005-proof-run-20260702.json#stage_review"
+    ],
+    "status_after_complete": "claimed-done-unverified (evidence discipline: completion never lands as done)",
+    "verification_step": "post-merge rerun at the promoted commit ebbde9a36 with a clean crate tree (git status porcelain empty for the crate): cargo test -p oya-fabric-loop-state-app 41/41 green (epochs 1783010601-1783010628), then verify-done attached evidence/goals/fabric-loop-full-cycle-c005-proof-run-20260702.json#stage_post_merge_product_completion_packet",
+    "status_after_verify": "done-verified (4 evidence refs)",
+    "run_record_final": { "card_id": "MPV2-0000.C005", "lane_id": "lane-fabric-d", "state": "completed", "note": "", "updated_at_epoch_s": 1783010597 },
+    "claim_released": true
+  },
+  "stage_post_merge_product_completion_packet": {
+    "promoted_commit": "ebbde9a36c66cf4eed9c4f22176a9151aacffc07",
+    "promoted_commit_gate_status": "All locally runnable oya-ci-required constituents green at the promoted commit (crate suite 41/41, cross-artifact-agreement 108/108 with hermetic producer bin, buck2 crate targets Pass 3, clippy/fmt clean); the single required oya-ci-required context itself binds on the protected PR against dev that carries this lane branch.",
+    "rollout_verification": "No runtime service rollout: the increment hardens the local bridge adapters behind the ports. Rollout check = post-merge live-state snapshot through the ports at the promoted commit: 9 cards listed by the strict lister (nothing in the live stores refused), MPV2-0000.C005 done-verified with 4 evidence refs, flow-metrics pass 3 readable, cutover target reported by every port (oya-cloud-ci-loop-state-service).",
+    "rollback_note": "Single-commit revert of ebbde9a36 restores the tolerant lister; no data migration in either direction (the change is read-path-only; stored bytes are untouched). Blast radius is the two listing callers (FsCoordinationStore::cards, FsFlowMetricsStore::pass_seqs) behind the ports; no consumer outside the crate reads the stores directly.",
+    "observability_check": "Failure modes now observable instead of silent: every foreign ledger filename surfaces as PlaneError::Corrupt naming the offending directory and file; covered by per-shape regression probes so one failure cannot mask another; constant-work flow-metrics recording continued (pass 3 recorded with the same write load as an idle pass).",
+    "user_story_evidence": "Operator story exercised end-to-end via the bridge bin itself in this run (snapshot -> claim -> start -> heartbeat -> check-disjoint pre-flight -> block(needs-review) -> start -> define-card x2 -> check-disjoint post-run -> complete -> verify-done -> record-pass -> snapshot); transcript epochs recorded in this packet. No browser surface exists for this increment (CLI-retirement doctrine: feedback-only bridge).",
+    "release_governance_impact": "No live Release Please repo config/workflow exists for this repo; release-note impact none. No governance surface changes needed: the strict-listing contract was already documented as the fail-closed direction by specs/fabric-drive-loop-state.json's flow-metrics ledger_rule; this run extends the same discipline to both listing callers in code.",
+    "agent_observation_harvest_outcome": "2 observations harvested into durable backlog cards MPV2-0000.C008/C009 on the coordination plane (see learning_harvest); no observation left in chat; no duplicates against the existing C002/C006/C007 backlog. The run also VALIDATED the earlier C002 harvest: the reviewer chat artifact was lost again and the durable verdict file carried the round."
+  },
+  "flow_metrics": {
+    "pass_seq": 3,
+    "recorded_at_epoch_s": 1783010635,
+    "ledger_file": "plan/fabric-loop/flow-metrics/passes/pass-00000000000000000003.json",
+    "cards": [
+      {
+        "card_id": "MPV2-0000.C005",
+        "lane_id": "lane-fabric-d",
+        "cycle_time_s": 515,
+        "review_latency_s": 231,
+        "rework_count": 0
+      }
+    ],
+    "derivation": "Derived mechanically by CardFlowMetrics::derive from the raw timeline (claimed 1783010082, review requested 1783010268, first verdict 1783010499, completed 1783010597, rounds 1) via FlowMetricsService::record_next_pass; recorded through FlowMetricsPort onto the durable coordination plane."
+  },
+  "learning_harvest": {
+    "harvested_observation_cards": [
+      {
+        "card_id": "MPV2-0000.C008",
+        "source": "C005 round-1 review minors (pre-existing, adjacent to the card's theme): dangling-symlink/TOCTOU-deleted <id>.json is admitted by the lister then silently dropped by cards(); a directory named <id>.json fails as PlaneError::Io (EISDIR) instead of Corrupt",
+        "routing": "code+test patch: file_type-aware fail-closed listing; regression guards = planted symlink and directory contract tests"
+      },
+      {
+        "card_id": "MPV2-0000.C009",
+        "source": "C005 round-1 review nit: OS-dropped dotfiles (.DS_Store) in ledger directories now poison every listing as Corrupt on developer machines - correct per the fail-closed contract but an operational-noise channel",
+        "routing": "governance decision + mechanical encoding: tolerate-vs-strict policy for OS artifacts decided through governance, encoded in the lister with a regression test either way"
+      }
+    ],
+    "flow_metric_learnings": "cycle_time_s 515 vs 1862 for the first full-cycle card (C001) and review_latency_s 231 vs 1235: the durable verdict-file protocol harvested from C002 eliminated the lost-artifact redispatch loop that dominated pass 1 - review latency fell 81% pass-over-pass, measured mechanically by the same ledger. rework_count 0 (APPROVE round 1, findings harvested as cards instead of churned)."
+  },
+  "seed_traceability": {
+    "sub_ac": "3.2: drive at least one real work card through the full cycle (claim, build, review, merge, post-merge product-completion packet) using the drive loop, capturing the evidence trail for each stage",
+    "exit_condition": "e2e_loop_proof (full-cycle-card half): this record is the recorded evidence of a full-cycle card, the second after MPV2-0000.C001 - and the first driven on REAL harvested backlog work produced by the loop's own improvement layer",
+    "constraints_honored": [
+      "coordinator-only commits (reviewer committed nothing; both commits SSH-signed on the isolated lane branch)",
+      "owned-Rust drive path (no shell/python loop-state manipulation)",
+      "evidence-gated statuses (claimed-done-unverified before verification; done-verified only with post-merge verification evidence)",
+      "claim-time founder-ratification dispatch gate ran and granted (fail-closed against specs/masterplan.json)",
+      "mechanical disjointness verdicts captured pre-flight and post-run (both disjoint; reviewer-capacity cap respected)",
+      "flow metrics recorded on the dispatch pass via FlowMetricsPort (pass 3, strictly monotonic ledger)",
+      "observations harvested into backlog cards, never left in chat (C008/C009)",
+      "single work-item ID space + founder-ratified sequencing digest untouched",
+      "no new CLI authority surface (bridge bin retirement-marked, no merge/CI/plan authority)"
+    ]
+  }
+}

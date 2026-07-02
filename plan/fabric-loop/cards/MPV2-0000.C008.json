@@ -1,0 +1,8 @@
+{
+  "card_id": "MPV2-0000.C008",
+  "title": "Harvested (C005 round-1 review minors): cards() residual non-strict shapes - dangling-symlink/TOCTOU-deleted <id>.json is admitted then silently dropped, and a directory named <id>.json surfaces as Io instead of Corrupt; add file_type-aware fail-closed listing plus regression tests",
+  "program_id": "P-FABRIC",
+  "depends_on": [],
+  "status": "defined",
+  "evidence_refs": []
+}

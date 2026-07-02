@@ -3,6 +3,11 @@
   "title": "Harvested (C003 round-1 review minor): list_json_ids silently skips filenames failing validate_id (unicode digits, spaces, non-UTF-8); strict fail-closed ledger listing should surface them as Corrupt plus regression test",
   "program_id": "P-FABRIC",
   "depends_on": [],
-  "status": "defined",
-  "evidence_refs": []
+  "status": "done-verified",
+  "evidence_refs": [
+    "git:ebbde9a36c66cf4eed9c4f22176a9151aacffc07",
+    "evidence/goals/fabric-loop-full-cycle-c005-proof-run-20260702.json#stage_build",
+    "evidence/goals/fabric-loop-full-cycle-c005-proof-run-20260702.json#stage_review",
+    "evidence/goals/fabric-loop-full-cycle-c005-proof-run-20260702.json#stage_post_merge_product_completion_packet"
+  ]
 }
