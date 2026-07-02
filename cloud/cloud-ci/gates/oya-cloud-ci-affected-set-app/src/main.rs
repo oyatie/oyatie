@@ -19,12 +19,14 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::io::Write as _;
 use std::path::PathBuf;
-use std::process::{Command, ExitCode, Stdio};
+use std::process::{Command, ExitCode, ExitStatus, Stdio};
+use std::thread;
+use std::time::{Duration, Instant};
 
 use oya_cloud_ci_affected_set_app::{
     Change, Decision, GATE_ID, GatePhaseOutcome, PathClass, Plan, Policy,
-    affected_set_operator_artifact, build_health_verdict, failing_targets, parse_build_report,
-    plan_changes, resolve,
+    affected_set_operator_artifact, build_health_verdict, failing_targets,
+    long_step_telemetry_line, parse_build_report, plan_changes, resolve,
 };
 
 const LOG: &str = "affected-set";
@@ -728,16 +730,21 @@ fn run_full(buck2: &str, policy: &Policy, baseline_report: Option<&str>) -> Exit
     // if ANY target failed, but pre-existing failures must NOT block. The verdict comes from the
     // build-report diff below. (A genuine infra failure surfaces as an unparseable/empty report,
     // which the ratchet then refuses on — fail-closed.)
-    let _ = Command::new(buck2)
-        .args([
-            "build",
-            "//...",
-            "--keep-going",
-            "--build-report",
-            &head_report,
-        ])
-        .stdin(Stdio::null())
-        .status();
+    let mut command = Command::new(buck2);
+    command.args([
+        "build",
+        "//...",
+        "--keep-going",
+        "--build-report",
+        &head_report,
+    ]);
+    if let Err(e) = run_command_with_progress(
+        "build-health-ratchet-head-build",
+        &mut command,
+        &format!("{buck2} build //... --keep-going --build-report {head_report}"),
+    ) {
+        eprintln!("{LOG}: WARN — could not execute head build-health command: {e}");
+    }
 
     let baseline_json = match fs::read_to_string(baseline_path) {
         Ok(s) => s,
@@ -840,6 +847,67 @@ fn admission_report_path() -> PathBuf {
     dir.join("build-health-admission-report.json")
 }
 
+fn long_step_telemetry_interval() -> Duration {
+    std::env::var("OYA_CI_LONG_STEP_TELEMETRY_INTERVAL_SECS")
+        .ok()
+        .and_then(|raw| raw.parse::<u64>().ok())
+        .filter(|seconds| *seconds > 0)
+        .map(Duration::from_secs)
+        .unwrap_or_else(|| Duration::from_secs(30))
+}
+
+fn run_command_with_progress(
+    phase: &str,
+    command: &mut Command,
+    pretty: &str,
+) -> std::io::Result<ExitStatus> {
+    let started = Instant::now();
+    println!(
+        "{}",
+        long_step_telemetry_line(LOG, phase, "started", 0, &format!("command={pretty}"))
+    );
+
+    let mut child = command.stdin(Stdio::null()).spawn()?;
+    let interval = long_step_telemetry_interval();
+    let poll_interval = if interval < Duration::from_millis(250) {
+        interval
+    } else {
+        Duration::from_millis(250)
+    };
+    let mut last_running_emit = started;
+
+    loop {
+        if let Some(status) = child.try_wait()? {
+            println!(
+                "{}",
+                long_step_telemetry_line(
+                    LOG,
+                    phase,
+                    "completed",
+                    started.elapsed().as_secs(),
+                    &format!("exit_status={status}"),
+                )
+            );
+            return Ok(status);
+        }
+
+        if last_running_emit.elapsed() >= interval {
+            println!(
+                "{}",
+                long_step_telemetry_line(
+                    LOG,
+                    phase,
+                    "running",
+                    started.elapsed().as_secs(),
+                    &format!("command={pretty}"),
+                )
+            );
+            last_running_emit = Instant::now();
+        }
+        thread::sleep(poll_interval);
+    }
+}
+
 /// The admission/integration FULL tier (D7 producer). Runs `buck2 build //... --keep-going
 /// --build-report <stable path>` so the WHOLE workspace builds and every target's status is
 /// captured into a report (a pure byproduct the trusted push-to-dev workflow publishes), then
@@ -859,16 +927,21 @@ fn run_full_admission_producer(buck2: &str, policy: &Policy) -> ExitCode {
     // published byproduct) and the pass/fail decision are derived from the SAME source of truth. A
     // genuine infra failure (buck2 could not run, no report) surfaces as an unparseable/empty
     // report, which is refused fail-closed.
-    let _ = Command::new(buck2)
-        .args([
-            "build",
-            "//...",
-            "--keep-going",
-            "--build-report",
-            &report_str,
-        ])
-        .stdin(Stdio::null())
-        .status();
+    let mut command = Command::new(buck2);
+    command.args([
+        "build",
+        "//...",
+        "--keep-going",
+        "--build-report",
+        &report_str,
+    ]);
+    if let Err(e) = run_command_with_progress(
+        "admission-full-build-health-baseline",
+        &mut command,
+        &format!("{buck2} build //... --keep-going --build-report {report_str}"),
+    ) {
+        eprintln!("{LOG}: WARN — could not execute admission build-health command: {e}");
+    }
 
     let report_json = match fs::read_to_string(&report_path) {
         Ok(s) => s,
@@ -935,11 +1008,14 @@ fn run_buck(buck2: &str, patterns: &[String], argfile: Option<&PathBuf>) -> Exit
             pretty.push_str(s);
         }
         println!("{LOG}: === {pretty} ===");
-        let status = Command::new(buck2)
-            .arg(verb)
-            .args(&spec)
-            .stdin(Stdio::null())
-            .status();
+        let phase = match verb {
+            "build" => "binding-build",
+            "test" => "binding-test",
+            _ => "binding-build-test",
+        };
+        let mut command = Command::new(buck2);
+        command.arg(verb).args(&spec);
+        let status = run_command_with_progress(phase, &mut command, &pretty);
         match status {
             Ok(st) if st.success() => {}
             Ok(st) => {

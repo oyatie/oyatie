@@ -28,8 +28,8 @@ use std::fmt;
 use std::num::NonZeroU32;
 
 use oya_messaging_substrate_kernel::{
-    AckToken, Delivery, LossClass, MessageConsumer, MessageEnvelope, MessageId, MessagingAdmin,
-    MessagingError, MessageProducer, MessagingSubstrate, SubscriptionName, TopicName, TopicSpec,
+    AckToken, Delivery, LossClass, MessageConsumer, MessageEnvelope, MessageId, MessageProducer,
+    MessagingAdmin, MessagingError, MessagingSubstrate, SubscriptionName, TopicName, TopicSpec,
 };
 
 /// Queue-surface errors.
@@ -152,7 +152,9 @@ impl<'a, S: MessagingSubstrate> WorkQueue<'a, S> {
     /// # Errors
     /// Propagates substrate receive/publish/settle failures.
     pub fn dequeue(&self, max: NonZeroU32) -> Result<Vec<Delivery>, QueueError> {
-        let deliveries = self.substrate.receive(&self.topic, &self.subscription, max)?;
+        let deliveries = self
+            .substrate
+            .receive(&self.topic, &self.subscription, max)?;
         let mut workable = Vec::with_capacity(deliveries.len());
         for delivery in deliveries {
             if delivery.delivery_count > self.policy.max_delivery_count.get() {
@@ -191,11 +193,9 @@ impl<'a, S: MessagingSubstrate> WorkQueue<'a, S> {
     /// # Errors
     /// Propagates substrate receive failures.
     pub fn dequeue_dead_letters(&self, max: NonZeroU32) -> Result<Vec<Delivery>, QueueError> {
-        Ok(self.substrate.receive(
-            &self.dead_letter_topic,
-            &self.dead_letter_subscription,
-            max,
-        )?)
+        Ok(self
+            .substrate
+            .receive(&self.dead_letter_topic, &self.dead_letter_subscription, max)?)
     }
 }
 
