@@ -513,8 +513,10 @@
           "tools/oya-buck-test-wiring-app",
           "tools/oya-cargo-lock-merge-driver-app",
           "tools/oya-checkout-guard-app",
+          "tools/oya-fabric-loop-state-app",
           "tools/oya-friction-ledger-merge-driver-app",
           "tools/oya-lane-supervisor-app",
+          "tools/oya-masterplan-hermes-forensic-ledger-app",
           "tools/oya-reorg-codemod-app",
           "tools/oya-tooling-agent-read",
           "tools/oya-xtask-metadata-augment-app"

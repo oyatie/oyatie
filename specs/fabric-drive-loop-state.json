@@ -1,0 +1,137 @@
+{
+  "_meta": {
+    "created_at": "2026-07-02T00:00:00Z",
+    "doc_class": "Machine-Readable-Spec",
+    "doctrine_refs": [
+      "ADR-0515",
+      "ADR-0516",
+      "ADR-0521"
+    ],
+    "owner_team": "founder + platform-governance",
+    "purpose": "Port contract for the ADR-0516 Agentic Delivery Fabric two-plane drive-loop state: a durable, in-repo, PR-governed coordination plane and a repo-adjacent, gitignored operational execution plane, both reachable ONLY through port traits that model the owned cloud-ci-native destination service. This spec is the single named record of the owned cloud-ci cutover target for loop state.",
+    "spec_id": "EXE-FABRIC-DRIVE-LOOP-STATE",
+    "status": "Accepted",
+    "version": "1.0.0"
+  },
+  "read_contract": {
+    "audience": [
+      "agents",
+      "cloud-ci-gates",
+      "humans"
+    ],
+    "read_timing_class": "on-demand",
+    "freshness_rule": "Live port contract, single-writer at this path; conflicts between adapters and this contract resolve to this spec plus the port-level tests in tools/oya-fabric-loop-state-app/tests/contract.rs. It is never a mandatory entry surface: entry surfaces are exactly /specs/root-hub-pointers.json#agent_entry_surface_allowlist."
+  },
+  "planes": {
+    "coordination": {
+      "plane_id": "coordination-plane",
+      "role": "Durable plane: loop-card definitions (Definition/Seed card class), dependency references into the masterplan v2 single work-item ID space, durable statuses, and attached evidence references.",
+      "durability": "in-repo-pr-governed",
+      "default_store_root": "plan/fabric-loop",
+      "mutation_path": "Coordinator-only commits on an isolated worktree branch through a protected PR against dev (coordinator-only commit doctrine of the ADR-0516 fabric loop); workers never write this plane directly.",
+      "status_evidence_rule": "A card may reach claimed-done-unverified only with at least one evidence reference attached, and done-verified only through an explicit verification step that attaches verification evidence; unverified done states never surface as done (masterplan v2 evidence_state_policy)."
+    },
+    "execution": {
+      "plane_id": "execution-plane",
+      "role": "Operational plane: claim, heartbeat, block-kind, and run state for in-flight loop cards. High-churn, never merge or plan authority.",
+      "durability": "repo-adjacent-gitignored",
+      "default_store_root": ".oya-loop-state",
+      "gitignore_rule": "/.oya-loop-state/ is gitignored at the repo root; operational claim/heartbeat/run state must never enter the PR-governed tree.",
+      "mutation_path": "Lane runtimes mutate only through ExecutionPlanePort; claims are lane-exclusive and heartbeat/run writes require the claiming lane."
+    }
+  },
+  "ports": {
+    "crate": "tools/oya-fabric-loop-state-app",
+    "rule": "ALL loop-state reads and writes go through the port traits below. The single-writer facades LoopStateService<C: CoordinationPlanePort, E: ExecutionPlanePort> and FlowMetricsService<M: FlowMetricsPort> are generic over the traits and perform no I/O of their own, so no caller can reach a concrete store without crossing a port. The bundled filesystem adapters are retirement-marked local bridges (founder CLI directive 2026-06-09); they carry no merge or plan authority.",
+    "coordination_plane_port": {
+      "trait": "CoordinationPlanePort",
+      "methods": [
+        "put_card",
+        "card",
+        "cards",
+        "descriptor",
+        "cutover_target"
+      ]
+    },
+    "execution_plane_port": {
+      "trait": "ExecutionPlanePort",
+      "methods": [
+        "claim",
+        "active_claim",
+        "heartbeat",
+        "last_heartbeat",
+        "record_run",
+        "run_record",
+        "release",
+        "descriptor",
+        "cutover_target"
+      ]
+    },
+    "flow_metrics_port": {
+      "trait": "FlowMetricsPort",
+      "methods": [
+        "record_pass",
+        "pass",
+        "passes",
+        "latest_pass",
+        "descriptor",
+        "cutover_target"
+      ]
+    },
+    "single_writer_facade": "LoopStateService",
+    "flow_metrics_facade": "FlowMetricsService",
+    "bridge_adapters": [
+      "FsCoordinationStore (durable plane bridge at plan/fabric-loop)",
+      "FsExecutionStore (operational plane bridge at .oya-loop-state)",
+      "FsFlowMetricsStore (durable flow-metrics bridge at plan/fabric-loop/flow-metrics)",
+      "InMemoryCoordinationStore / InMemoryExecutionStore / InMemoryFlowMetricsStore (test doubles)"
+    ]
+  },
+  "flow_metrics": {
+    "purpose": "Closed-loop improvement layer of the ADR-0516 drive loop: per-pass flow metrics — cycle time (claim -> completion), review latency (review request -> first verdict), and rework count (review rounds beyond the first) per measured card — recorded on EVERY dispatch pass, including idle passes (constant-work: the recording load is the same idle or peak).",
+    "record_shape": "PassFlowMetrics { pass_seq, recorded_at_epoch_s, cards: [CardFlowMetrics { card_id, lane_id, cycle_time_s, review_latency_s, rework_count }] }",
+    "default_store_root": "plan/fabric-loop/flow-metrics",
+    "durability": "in-repo-pr-governed",
+    "ledger_rule": "Append-only with a strictly monotonic 1-based pass_seq, enforced mechanically at every adapter (validate_pass_record); replays and out-of-order writes fail closed with NonMonotonicPass. Per-card metrics derive mechanically from raw CardFlowTimeline records; inverted timelines fail closed with InvalidMetrics.",
+    "mutation_path": "Coordinator-only: the ledger rides the durable coordination plane (PR-governed) and is written once per dispatch pass through FlowMetricsPort via the single-writer FlowMetricsService facade."
+  },
+  "lane_disjointness": {
+    "purpose": "Mechanical parallel-safety detector of the ADR-0516 drive loop: a path/ownership-overlap check — NOT judgment — decides what runs concurrently. Each lane declares its work surface (repo-relative file/dir paths for one card); the detector verdicts PRE-FLIGHT over the declared surfaces before dispatch and POST-RUN over the actual touched paths after the lanes ran, and both verdicts are captured as evidence for every parallel dispatch.",
+    "detector": "check_lane_disjointness(phase, surfaces, reviewer_capacity, checked_at_epoch_s) in tools/oya-fabric-loop-state-app (bin command: check-disjoint)",
+    "report_shape": "DisjointnessReport { phase: pre-flight|post-run, verdict: disjoint|overlap-serialize-to-integrator, lane_count, reviewer_capacity, checked_at_epoch_s, surfaces: [LaneWorkSurface { lane_id, card_id, paths }], collisions: [PathCollision { lane_a, path_a, lane_b, path_b }] }",
+    "collision_rule": "Two paths in different lanes collide iff they are equal or one is a component-wise directory prefix of the other (a directory path claims its whole subtree; sibling files never collide). Any collision verdicts overlap-serialize-to-integrator: shared-root touches auto-route to the serialized integrator lane instead of parallel dispatch.",
+    "capacity_rule": "Max concurrent lanes <= available independent reviewer capacity (computed from the lane registry by the caller); a batch above capacity fails closed with LaneCapacityExceeded before any disjointness reasoning.",
+    "fail_closed_inputs": "Lane/card ids pass the filesystem-safe id contract; duplicate lane ids and one card on two lanes are refused; paths must be repo-relative with no traversal/absolute/backslash/trailing-slash shapes; empty surfaces or batches are refused (a surface the detector cannot reason about is never admitted as disjoint).",
+    "gate_semantics": "The check-disjoint bin command prints the JSON report (evidence shape) and exits non-zero unless every lane pair is path-disjoint."
+  },
+  "cutover_target": {
+    "service_name": "oya-cloud-ci-loop-state-service",
+    "owner": "cloud/cloud-ci",
+    "destination_home": "cloud/cloud-ci/crates/oya-cloud-ci-loop-state-app",
+    "statement": "The named owned cloud-ci cutover target for BOTH planes is the cloud/cloud-ci-owned loop-state service oya-cloud-ci-loop-state-service (composition-root crate home cloud/cloud-ci/crates/oya-cloud-ci-loop-state-app, ADR-0056 BNF layer suffix). The port traits in tools/oya-fabric-loop-state-app model this destination; the bundled filesystem stores are transient bridges behind those ports, never the destination.",
+    "cutover_criteria": [
+      "The service passes the same six-gate plan suite (ID uniqueness, DAG acyclicity, orphan detection, projection freshness, plan-vs-evidence drift, read-contract/entry-surface) with fail-closed authz.",
+      "A shadow-parity period drives real cards through the service with zero regressions versus the local bridge stores.",
+      "The local bridge stores are demoted to read-only bridge and then retired."
+    ],
+    "local_store_disposition": "bridge-then-retire: after criteria 1-2 hold, FsCoordinationStore/FsExecutionStore flip to read-only bridge, then retire; the port traits and LoopStateService survive unchanged over the service adapter."
+  },
+  "verification": {
+    "port_level_tests": [
+      "tools/oya-fabric-loop-state-app/tests/contract.rs#all_loop_state_reads_and_writes_route_through_the_ports",
+      "tools/oya-fabric-loop-state-app/tests/contract.rs#cutover_target_is_recorded_in_port_contract_and_this_spec",
+      "tools/oya-fabric-loop-state-app/tests/contract.rs#operational_plane_root_is_gitignored_and_durable_plane_root_is_not",
+      "tools/oya-fabric-loop-state-app/tests/contract.rs#fs_bridge_adapters_round_trip_both_planes_across_reopen",
+      "tools/oya-fabric-loop-state-app/tests/contract.rs#execution_plane_enforces_lane_exclusive_claims",
+      "tools/oya-fabric-loop-state-app/tests/contract.rs#completion_requires_evidence_and_readiness_derives_from_the_dag",
+      "tools/oya-fabric-loop-state-app/tests/contract.rs#flow_metric_recording_routes_through_the_metrics_port",
+      "tools/oya-fabric-loop-state-app/tests/contract.rs#flow_metrics_are_recorded_and_persisted_across_passes",
+      "tools/oya-fabric-loop-state-app/tests/contract.rs#lane_disjointness_detector_verdicts_parallel_dispatch_mechanically"
+    ],
+    "commands": [
+      "cargo test -p oya-fabric-loop-state-app",
+      "buck2 test //tools/oya-fabric-loop-state-app:oya-fabric-loop-state-app-contract"
+    ]
+  },
+  "non_authority_statement": "Neither plane store nor the bundled bin is a CI, merge, or plan authority surface. Plan authority stays at /specs/masterplan.json; merge authority stays the single protected oya-ci-required context (ADR-0515)."
+}

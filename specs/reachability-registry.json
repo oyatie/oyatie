@@ -336,6 +336,14 @@
     {
       "anchor": "ADR-0248 REGCLOUD-001 ownership seed: narrow OWNERS marker for the planning/spec artifact directory, not broad product/cloud authority.",
       "prefix": "plan/OWNERS"
+    },
+    {
+      "anchor": "ADR-0516 Agentic Delivery Fabric drive-loop durable plane (specs/fabric-drive-loop-state.json#storage_planes): plan/fabric-loop/cards/ holds the per-card durable shard files written only through the oya-fabric-loop-state-app coordinator ports; new shard files are created per drive-loop pass, so the subtree is registered by prefix. Byte re-derivation of every file here is enforced by the masterplan projection-rederivation gate (cross-artifact-agreement, masterplan_projection_stale), whose sweep glob covers exactly this subtree; scope deliberately narrowed from plan/fabric-loop/ to the swept subtree per independent-review finding (ADR-0609 review, minor 2).",
+      "prefix": "plan/fabric-loop/cards/"
+    },
+    {
+      "anchor": "ADR-0516 Agentic Delivery Fabric drive-loop durable plane (specs/fabric-drive-loop-state.json#storage_planes): plan/fabric-loop/flow-metrics/passes/ holds the strictly-monotonic per-pass flow-metrics ledger rows written only through the oya-fabric-loop-state-app FlowMetricsPort; one pass-NNN row is appended per dispatch pass, so the subtree is registered by prefix. Byte re-derivation of every row is enforced by the masterplan projection-rederivation gate (cross-artifact-agreement, masterplan_projection_stale), whose sweep glob covers exactly this subtree; scope deliberately narrowed from plan/fabric-loop/ per independent-review finding (ADR-0609 review, minor 2).",
+      "prefix": "plan/fabric-loop/flow-metrics/passes/"
     }
   ]
 }

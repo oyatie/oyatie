@@ -7168,6 +7168,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-fabric-loop-state-app"
+version = "0.1.0"
+
+[[package]]
 name = "oya-financial-planning-forecast-scenario-app"
 version = "0.1.0"
 dependencies = [
@@ -8716,6 +8720,10 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
 ]
+
+[[package]]
+name = "oya-masterplan-hermes-forensic-ledger-app"
+version = "0.1.0"
 
 [[package]]
 name = "oya-messaging-substrate-kernel"

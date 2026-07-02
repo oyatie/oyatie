@@ -5,13 +5,18 @@
     "doc_class": "Machine-Readable-Ledger",
     "spec_id": "PLANNING-CLOSURE-STATUS-CLOSURE-LEDGER",
     "version": "1.0.0",
-    "status": "accepted",
+    "status": "absorbed-evidence-provenance-not-live-plan-authority",
     "created_at": "2026-05-19",
-    "owner_team": "founder"
+    "owner_team": "founder",
+    "purpose": "Absorbed evidence ledger for former planning-closure status claims. After masterplan v2 Sub-AC 1, this ledger is provenance only; live work-item IDs and status claims resolve through /specs/masterplan.json#masterplan_v2.",
+    "absorbed_by": "/specs/masterplan.json#masterplan_v2",
+    "work_item_id_policy": "evidence-only-no-live-work-item-ids"
   },
   "closure_scope": {
     "masterplan_path": "/specs/masterplan.json",
+    "canonical_fragment": "/specs/masterplan.json#masterplan_v2",
     "contract_ref": "/specs/planning-closure-contract.json",
+    "this_ledger_status": "absorbed-evidence-provenance-not-live-plan-authority",
     "gate_command": "oya-ci-required cloud-ci planning-closure Rust gate packet",
     "gate_command_authority_note": "destination authority per the founder all-CLI-retirement directive of 2026-06-09; legacy oya-dev-cli planning-closure validation is provenance-only migration input and is never merge or exit authority",
     "closed_status_field_count": 177,
@@ -24,13 +29,12 @@
     "current_claim_alignment": {
       "change_id": "fd001-control-state-refresh-2026-05-19",
       "authoritative_selection_inputs": [
-        "/specs/master-plan-sequencing.json#select_next_ready_item",
-        "plain git protected PR plus oya-ci-required/cloud-ci admission state",
-        "/specs/masterplan.json#implementation_plan_contract.current_tree_count",
-        "oya gate validate honest-claims runtime scan"
+        "/specs/masterplan.json#masterplan_v2.work_items",
+        "/specs/masterplan.json#masterplan_v2.dependency_edges",
+        "plain git protected PR plus oya-ci-required/cloud-ci admission state"
       ],
       "historical_snapshot_rule": "Historical implementation-index snapshots are provenance-only and cannot by themselves create a current FD-001 ChangeSet claim.",
-      "closed_planning_status_rule": "A planning-closed status is claimable only after current source inspection confirms the ChangeSet still owns unfinished work and the protected PR plus oya-ci-required/cloud-ci boundary is green.",
+      "closed_planning_status_rule": "A planning-closed status is claimable only after /specs/masterplan.json carries the live MPV2 work item with evidence refs and the protected PR plus oya-ci-required/cloud-ci boundary is green.",
       "fanout_guard": "Shared API/data/policy/evidence/path writes remain serialized until their contract claims and chained-enforcement gates are green."
     }
   },
