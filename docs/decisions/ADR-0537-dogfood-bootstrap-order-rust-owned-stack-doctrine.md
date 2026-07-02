@@ -144,6 +144,20 @@ platform its own first customer, so the D-14 billing pipeline accrues production
 external tenant onboards. The §2 lint lands born-advisory; its promotion follows the ADR-0536 D-7
 shadow → warn → enforce ladder, sequenced under ADR-0328.
 
+## Governed surfaces added by trust/root/IaC port
+
+The cloud trust/root/IaC drift port (Hermes Kanban t_3e97188f / t_8360046d) adds the following
+governed surfaces under this ADR's step-0 root ceremony and Rust-owned cloud-os ladder:
+
+- `cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/persistence.rs` — trustd sealed-state
+  persistence with full-payload authenticated state and monotonic anti-replay checkpointing.
+- `docs/runbooks/cloud/OWNERS` — ownership marker for the cloud runbook subtree that carries the
+  step-0 root ceremony operator-facing draft.
+- `docs/runbooks/cloud/root-of-trust-ceremony.md` — draft runbook for redacted offline
+  root-of-trust ceremony evidence and custody posture checks.
+- `specs/root-of-trust-ceremony-contract.json` — machine-readable root-of-trust ceremony evidence
+  packet contract for step-0 metadata, with root secret values explicitly excluded.
+
 ---
 *Proposed 2026-06-09 (authored for founder sign-off; door:one-way). Companion: ADR-0536 (substrate
 decision matrix). Amends ADR-0520 (ladder extended to the kernel). Sequence authority: ADR-0328.

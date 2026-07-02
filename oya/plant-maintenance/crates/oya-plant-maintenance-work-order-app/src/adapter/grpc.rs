@@ -28,25 +28,25 @@ impl GrpcHandler {
     pub fn methods() -> Vec<GrpcMethod> {
         vec![
             GrpcMethod {
-                service: "oyatie.plant_maintenance.v1.PlantMaintenanceService",
+                service: "oya.plant_maintenance.v1.PlantMaintenanceService",
                 method: "SubmitCommand",
                 request: "SubmitCommandRequest",
                 response: "CommandReceipt",
             },
             GrpcMethod {
-                service: "oyatie.plant_maintenance.v1.PlantMaintenanceService",
+                service: "oya.plant_maintenance.v1.PlantMaintenanceService",
                 method: "Reconcile",
                 request: "ReconcileRequest",
                 response: "CommandReceipt",
             },
             GrpcMethod {
-                service: "oyatie.plant_maintenance.v1.PlantMaintenanceService",
+                service: "oya.plant_maintenance.v1.PlantMaintenanceService",
                 method: "ApplyGovernanceHold",
                 request: "ApplyGovernanceHoldRequest",
                 response: "CommandReceipt",
             },
             GrpcMethod {
-                service: "oyatie.plant_maintenance.v1.PlantMaintenanceService",
+                service: "oya.plant_maintenance.v1.PlantMaintenanceService",
                 method: "ExportEvidence",
                 request: "ExportEvidenceRequest",
                 response: "CommandReceipt",

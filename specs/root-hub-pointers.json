@@ -1070,6 +1070,13 @@
       "migration_phase": "root-hub-covered-2026-05-20",
       "purpose": "Canonical JSON Schema 2020-12 contract for Cedar policy schema manifests. Binds ADR-0243 Cedar-as-universal-gate and ADR-0294 Cedar fragment soak/anomaly rollback doctrine into a machine-readable schema for entity types, action types, bounded context, private attributes, permit sets, fragment bindings, fixtures, validation, soak controls, fallback policy, audit mapping, and promotion gates."
     },
+    "spec_cell_topology_manifest_contract": {
+      "current_path": "/specs/cell-topology-manifest-contract.json",
+      "kind": "spec",
+      "migration_phase": "root-hub-covered-2026-07-01-cell-001r",
+      "conflict_class": "repo-governance-specs-docs",
+      "purpose": "CELL-001R manifest contract for cell tier, residency class, region disposition, storage class, and quarterly isolation evidence handles. Validation is owned by a cloud-ci Rust gate; retired local command output is provenance only."
+    },
     "spec_chaos_engineering_substrate_canonical": {
       "current_path": "/specs/chaos-engineering-substrate-canonical.json",
       "kind": "spec",
@@ -1274,6 +1281,12 @@
       "migration_phase": "phase0_p0_0_result_schema_not_live_authority",
       "purpose": "Structured result bundle schema for P0.0 cloud-ci/oya-ci fixture runs; evidence input only until a trusted required context is live.",
       "target_path_after_md_retirement": "same (machine-readable T0.0 result schema)"
+    },
+    "spec_vulnerability_intelligence_sbom_vex_pipeline": {
+      "current_path": "/specs/vulnerability-intelligence-sbom-vex-pipeline.json",
+      "kind": "spec",
+      "migration_phase": "regsec-001-planning-contract",
+      "purpose": "Planning-only cloud-native vulnerability intelligence and SBOM/VEX pipeline contract covering CVE/NVD/OSV/RustSec/GitHub/vendor advisory ingestion, dual-format SBOMs, VEX, KEV/EPSS/CVSS/SSVC prioritization, remediation SLAs, expiring exceptions, audit evidence, and deployment/admission blocking without scanner CLI authority."
     },
     "spec_pci_dss_level_1_readiness_plan": {
       "current_path": "/specs/pci-dss-level-1-readiness-plan.json",

@@ -155,6 +155,10 @@ Target: **SLSA Build L3**.
 
 This ADR does not own the per-cell HSM partition (per ADR-0043). Does not own per-plugin signing (per ADR-0036, but ADR-0036 references this signing chain). Does not own runtime intrusion detection (per ADR-0042 observability stack).
 
+### REGSEC-001 planning-contract governed surface
+
+PR #1136 adds `specs/vulnerability-intelligence-sbom-vex-pipeline.json` as the planning-only vulnerability-intelligence, SBOM, VEX, prioritization, exception, evidence, and admission-decision contract for this ADR's supply-chain security posture. This exact path is governed by ADR-0039 for accounting-registration purposes only; it does not promote scanner CLI output, a production ingestion service, a live admission webhook, or tenant readiness/certification authority.
+
 ---
 
 ## Consequences

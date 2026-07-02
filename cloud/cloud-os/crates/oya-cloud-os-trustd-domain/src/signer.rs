@@ -21,8 +21,8 @@
 
 use std::sync::Arc;
 
-use aws_lc_rs::signature::{UnparsedPublicKey, ECDSA_P256_SHA256_ASN1};
-use rcgen::{KeyPair, PublicKeyData, SigningKey, PKCS_ECDSA_P256_SHA256};
+use aws_lc_rs::signature::{ECDSA_P256_SHA256_ASN1, UnparsedPublicKey};
+use rcgen::{KeyPair, PKCS_ECDSA_P256_SHA256, PublicKeyData, SigningKey};
 
 use crate::error::{Result, TrustError};
 use crate::x509::hex_encode;
