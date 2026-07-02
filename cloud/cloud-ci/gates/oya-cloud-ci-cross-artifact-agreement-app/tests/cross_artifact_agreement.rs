@@ -203,15 +203,16 @@ fn masterplan_v2_live_authority_contract_is_green() {
     );
 }
 
-/// Sub-AC 4.1 masterplan structural gate: the frozen fixture corpus must keep one
-/// ISOLATED fail-closed RED fixture per structural failure class — duplicate
-/// work-item ids, dependency cycles, and dangling (orphan) dependency references.
+/// Sub-AC 4.1 + Sub-AC 1.2 masterplan structural gate: the frozen fixture corpus
+/// must keep one ISOLATED fail-closed RED fixture per structural failure class —
+/// duplicate work-item ids, dependency cycles, dangling (orphan) dependency
+/// references, and undeclared cross-program edge crossings.
 /// The generic runner above only demands "some RED fixture exists"; this test pins
 /// each named failure mode to its exact violation set so none can be silently
 /// dropped or diluted.
 #[test]
 fn masterplan_structural_failure_mode_fixtures_fail_closed() {
-    let cases: [(&str, &[&str]); 3] = [
+    let cases: [(&str, &[&str]); 4] = [
         (
             "tc-XA-bad-masterplan-duplicate-work-item-id.json",
             &["masterplan_work_item_id_collision"],
@@ -225,6 +226,10 @@ fn masterplan_structural_failure_mode_fixtures_fail_closed() {
         ),
         (
             "tc-XA-bad-masterplan-dangling-dependency-ref.json",
+            &["masterplan_dependency_dag_invalid"],
+        ),
+        (
+            "tc-XA-bad-masterplan-cross-program-edge-undeclared.json",
             &["masterplan_dependency_dag_invalid"],
         ),
     ];

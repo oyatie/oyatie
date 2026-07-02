@@ -17055,6 +17055,72 @@
       }
     ],
     "dependency_edge_semantics": "from is prerequisite, to is dependent",
+    "cross_program_edge_policy": {
+      "semantics": "a dependency edge crossing program shards must be backed by a declared program-pair edge",
+      "policy": "Every dependency edge whose endpoints live in different program shards is a program-boundary crossing and must match a declared_program_edges row (prerequisite program -> dependent program, same direction contract as dependency_edge_semantics). Undeclared crossings, unknown program ids, self/duplicate pairs, and declared pairs no live edge instantiates fail closed.",
+      "validator": "cloud-ci-cross-artifact-agreement/masterplan-v2-dependency-dag",
+      "declared_program_edges": [
+        {
+          "from_program": "P-FABRIC",
+          "to_program": "P-REORG",
+          "rationale": "The fabric consolidation root unblocks the reorg shard, and the production-100 bar definition gates reorg roadmap phases.",
+          "instantiating_edges": [
+            "MPV2-0001->MPV2-0003",
+            "MPV2-0028->MPV2-0031"
+          ]
+        },
+        {
+          "from_program": "P-AST-CODE-GRAPH",
+          "to_program": "P-OWNED-STACK-CLOUD",
+          "rationale": "AST code-graph implementation-plan completion is a prerequisite of owned-cloud phase completion.",
+          "instantiating_edges": [
+            "MPV2-0014->MPV2-0008",
+            "MPV2-0017->MPV2-0008"
+          ]
+        },
+        {
+          "from_program": "P-FABRIC",
+          "to_program": "P-OWNED-STACK-CLOUD",
+          "rationale": "The production-100 bar definition gates owned-cloud roadmap phases.",
+          "instantiating_edges": [
+            "MPV2-0028->MPV2-0029",
+            "MPV2-0028->MPV2-0030"
+          ]
+        },
+        {
+          "from_program": "P-FABRIC",
+          "to_program": "P-FD001-PRODUCT-SURFACES",
+          "rationale": "The production-100 bar definition gates product-surface roadmap phases.",
+          "instantiating_edges": [
+            "MPV2-0028->MPV2-0032"
+          ]
+        },
+        {
+          "from_program": "P-OWNED-STACK-CLOUD",
+          "to_program": "P-OWNED-STACK-GOVERNANCE-IAM-CONSOLE",
+          "rationale": "Canonical build-phase ordering: owned-cloud services precede the governance/IAM/console rung.",
+          "instantiating_edges": [
+            "MPV2-0036->MPV2-0037"
+          ]
+        },
+        {
+          "from_program": "P-OWNED-STACK-GOVERNANCE-IAM-CONSOLE",
+          "to_program": "P-INTELLIGENCE",
+          "rationale": "Canonical build-phase ordering: the governance/IAM/console rung precedes the intelligence layer.",
+          "instantiating_edges": [
+            "MPV2-0037->MPV2-0038"
+          ]
+        },
+        {
+          "from_program": "P-INTELLIGENCE",
+          "to_program": "P-FD001-PRODUCT-SURFACES",
+          "rationale": "Canonical build-phase ordering: the intelligence layer precedes FD-001 product surfaces.",
+          "instantiating_edges": [
+            "MPV2-0038->MPV2-0039"
+          ]
+        }
+      ]
+    },
     "dependency_edges": [
       {
         "from": "MPV2-0001",

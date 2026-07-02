@@ -44,7 +44,10 @@
 //!   the canonical MPV2 namespace, or carries an external id marked as live.
 //! - `masterplan_dependency_dag_invalid` — a masterplan v2 dependency edge is
 //!   malformed, points at a missing work item, lacks the prerequisite→dependent
-//!   direction contract, or participates in a cycle.
+//!   direction contract, participates in a cycle, or crosses program shards
+//!   without a declared program-pair edge in `cross_program_edge_policy`
+//!   (including a missing/malformed policy, an unknown/self/duplicate declared
+//!   pair, and a stale declared pair no live edge instantiates).
 //! - `masterplan_program_coverage_incomplete` — masterplan v2 lacks a complete
 //!   program-sharded coverage proof for the microservice manifest index, the
 //!   required ontology/workflow/intelligence/owned-stack/reorg/AST/fabric shards,
@@ -119,6 +122,9 @@ pub use read_surface_resurrection::{
 /// The gate id, matching the buck2 target + the §5.2 contract.
 pub const GATE_ID: &str = "cloud-ci-cross-artifact-agreement";
 const DEPENDENCY_EDGE_SEMANTICS: &str = "from is prerequisite, to is dependent";
+/// Cross-program edge contract pinned by `masterplan_v2.cross_program_edge_policy.semantics`.
+const CROSS_PROGRAM_EDGE_SEMANTICS: &str =
+    "a dependency edge crossing program shards must be backed by a declared program-pair edge";
 const MANIFEST_INDEX_REF: &str = "/specs/microservices/manifests-index.json";
 const SEQUENCING_SOURCE_OF_TRUTH: &str = "/specs/masterplan.json#masterplan_v2.dependency_edges";
 const SEQUENCING_DERIVATION_MODE: &str = "zero-based-rederived-from-masterplan-v2-dependency-dag";
@@ -549,7 +555,10 @@ pub fn evaluate_masterplan_v2_authority(masterplan: &Value) -> BTreeSet<Finding>
     evaluate_masterplan_dependency_dag(
         v2.get("dependency_edges"),
         v2.get("dependency_edge_semantics"),
+        v2.get("cross_program_edge_policy"),
         &work_item_ids,
+        &masterplan_work_item_programs(v2.get("work_items")),
+        &masterplan_program_id_set(v2.get("programs")),
         &mut findings,
     );
 
@@ -3097,7 +3106,10 @@ fn evaluate_masterplan_work_items(
 fn evaluate_masterplan_dependency_dag(
     dependency_edges: Option<&Value>,
     dependency_edge_semantics: Option<&Value>,
+    cross_program_edge_policy: Option<&Value>,
     work_item_ids: &BTreeSet<String>,
+    work_item_programs: &BTreeMap<String, String>,
+    program_ids: &BTreeSet<String>,
     findings: &mut BTreeSet<Finding>,
 ) {
     if dependency_edge_semantics.and_then(Value::as_str) != Some(DEPENDENCY_EDGE_SEMANTICS) {
@@ -3126,6 +3138,10 @@ fn evaluate_masterplan_dependency_dag(
         .iter()
         .map(|id| (id.clone(), BTreeSet::new()))
         .collect();
+    // (from-item, to-item, from-program, to-program) for every well-formed edge
+    // whose endpoints live in DIFFERENT program shards: the program-boundary
+    // crossings the cross-program lane must see declared.
+    let mut cross_program_crossings: Vec<(String, String, String, String)> = Vec::new();
 
     for (index, edge) in dependency_edges.iter().enumerate() {
         let Some(edge) = edge.as_object() else {
@@ -3199,10 +3215,185 @@ fn evaluate_masterplan_dependency_dag(
                 .entry(from.to_owned())
                 .or_default()
                 .insert(to.to_owned());
+            if let (Some(from_program), Some(to_program)) =
+                (work_item_programs.get(from), work_item_programs.get(to))
+                && from_program != to_program
+            {
+                cross_program_crossings.push((
+                    from.to_owned(),
+                    to.to_owned(),
+                    from_program.clone(),
+                    to_program.clone(),
+                ));
+            }
         }
     }
 
+    evaluate_masterplan_cross_program_edges(
+        cross_program_edge_policy,
+        &cross_program_crossings,
+        program_ids,
+        findings,
+    );
+
     evaluate_masterplan_dependency_cycles(&adjacency, findings);
+}
+
+/// Cross-program edge lane of the dependency-DAG gate.
+///
+/// A work-item dependency edge whose endpoints live in different program
+/// shards is a program-boundary crossing and must be backed by an explicitly
+/// declared program-pair row in
+/// `masterplan_v2.cross_program_edge_policy.declared_program_edges`
+/// (`{from_program, to_program, rationale}` in prerequisite→dependent
+/// direction, matching `dependency_edge_semantics`). Fails closed on:
+///
+/// - an undeclared crossing (`{from}->{to}@cross-program-undeclared(..)`);
+/// - a missing policy while crossings exist;
+/// - a wrong/missing `semantics` pin or a non-array `declared_program_edges`;
+/// - a malformed declared row, a same-program (self) pair, a duplicate pair,
+///   or a pair naming a program id absent from `masterplan_v2.programs`;
+/// - a stale declared pair that NO live edge instantiates (anti-staleness:
+///   the allowlist cannot outlive the graph it authorizes).
+fn evaluate_masterplan_cross_program_edges(
+    policy: Option<&Value>,
+    cross_program_crossings: &[(String, String, String, String)],
+    program_ids: &BTreeSet<String>,
+    findings: &mut BTreeSet<Finding>,
+) {
+    // pair -> instantiated-by-a-live-edge
+    let mut declared_pairs: BTreeMap<(String, String), bool> = BTreeMap::new();
+
+    if let Some(policy) = policy {
+        if policy.get("semantics").and_then(Value::as_str) != Some(CROSS_PROGRAM_EDGE_SEMANTICS) {
+            findings.insert(Finding::new(
+                "masterplan_dependency_dag_invalid",
+                "<cross-program-edge-semantics>",
+            ));
+        }
+        match policy
+            .get("declared_program_edges")
+            .and_then(Value::as_array)
+        {
+            None => {
+                findings.insert(Finding::new(
+                    "masterplan_dependency_dag_invalid",
+                    "<malformed-cross-program-declared-edges>",
+                ));
+            }
+            Some(declared) => {
+                for (index, row) in declared.iter().enumerate() {
+                    let from_program = row.get("from_program").and_then(Value::as_str);
+                    let to_program = row.get("to_program").and_then(Value::as_str);
+                    let (Some(from_program), Some(to_program)) = (from_program, to_program) else {
+                        findings.insert(Finding::new(
+                            "masterplan_dependency_dag_invalid",
+                            &format!("<malformed-cross-program-declared-edge-{index}>"),
+                        ));
+                        continue;
+                    };
+                    if from_program == to_program {
+                        findings.insert(Finding::new(
+                            "masterplan_dependency_dag_invalid",
+                            &format!(
+                                "{from_program}->{to_program}@cross_program_edge_policy.declared_program_edges[{index}].self"
+                            ),
+                        ));
+                        continue;
+                    }
+                    if !program_ids.contains(from_program) {
+                        findings.insert(Finding::new(
+                            "masterplan_dependency_dag_invalid",
+                            &format!(
+                                "{from_program}@cross_program_edge_policy.declared_program_edges[{index}].from_program"
+                            ),
+                        ));
+                    }
+                    if !program_ids.contains(to_program) {
+                        findings.insert(Finding::new(
+                            "masterplan_dependency_dag_invalid",
+                            &format!(
+                                "{to_program}@cross_program_edge_policy.declared_program_edges[{index}].to_program"
+                            ),
+                        ));
+                    }
+                    if declared_pairs
+                        .insert((from_program.to_owned(), to_program.to_owned()), false)
+                        .is_some()
+                    {
+                        findings.insert(Finding::new(
+                            "masterplan_dependency_dag_invalid",
+                            &format!(
+                                "{from_program}->{to_program}@cross_program_edge_policy.declared_program_edges[{index}].duplicate"
+                            ),
+                        ));
+                    }
+                }
+            }
+        }
+    } else if !cross_program_crossings.is_empty() {
+        findings.insert(Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "<missing-cross-program-edge-policy>",
+        ));
+    }
+
+    for (from, to, from_program, to_program) in cross_program_crossings {
+        match declared_pairs.get_mut(&(from_program.clone(), to_program.clone())) {
+            Some(instantiated) => *instantiated = true,
+            None => {
+                findings.insert(Finding::new(
+                    "masterplan_dependency_dag_invalid",
+                    &format!("{from}->{to}@cross-program-undeclared({from_program}->{to_program})"),
+                ));
+            }
+        }
+    }
+    for ((from_program, to_program), instantiated) in &declared_pairs {
+        if !instantiated {
+            findings.insert(Finding::new(
+                "masterplan_dependency_dag_invalid",
+                &format!(
+                    "{from_program}->{to_program}@cross_program_edge_policy.declared_program_edges.unused"
+                ),
+            ));
+        }
+    }
+}
+
+/// id -> program shard for every work item declaring both. Lenient by design:
+/// the work-item→program dangling-reference guard lives in the program-coverage
+/// lane; this map only feeds program-boundary crossing detection.
+fn masterplan_work_item_programs(work_items: Option<&Value>) -> BTreeMap<String, String> {
+    let mut programs = BTreeMap::new();
+    let Some(work_items) = work_items.and_then(Value::as_array) else {
+        return programs;
+    };
+    for item in work_items {
+        if let (Some(id), Some(program)) = (
+            item.get("id").and_then(Value::as_str),
+            item.get("program").and_then(Value::as_str),
+        ) {
+            programs.insert(id.to_owned(), program.to_owned());
+        }
+    }
+    programs
+}
+
+/// The declared program-shard id set. Lenient by design: program-shard
+/// structural completeness lives in the program-coverage lane; this set only
+/// anchors declared cross-program pairs to real shards.
+fn masterplan_program_id_set(programs: Option<&Value>) -> BTreeSet<String> {
+    programs
+        .and_then(Value::as_array)
+        .map(|programs| {
+            programs
+                .iter()
+                .filter_map(|program| program.get("id").and_then(Value::as_str))
+                .map(str::to_owned)
+                .collect()
+        })
+        .unwrap_or_default()
 }
 
 fn evaluate_masterplan_dependency_cycles(
@@ -4096,6 +4287,170 @@ mod tests {
         assert!(findings.contains(&Finding::new(
             "masterplan_dependency_dag_invalid",
             "MPV2-0001->MPV2-0001@self"
+        )));
+    }
+    /// A masterplan work-item corpus with a program-boundary crossing:
+    /// MPV2-0000 (P-FABRIC) -> MPV2-0001 (P-REORG) via the minimal fixture's
+    /// single dependency edge.
+    fn cross_program_masterplan_v2() -> Value {
+        let mut masterplan = minimal_masterplan_v2();
+        masterplan["masterplan_v2"]["programs"] = json!([{"id": "P-FABRIC"}, {"id": "P-REORG"}]);
+        masterplan["masterplan_v2"]["work_items"] = json!([
+            {"id": "MPV2-0000", "program": "P-FABRIC"},
+            {"id": "MPV2-0001", "program": "P-REORG"}
+        ]);
+        masterplan
+    }
+    #[test]
+    fn masterplan_v2_dependency_dag_rejects_undeclared_cross_program_edges() {
+        // A crossing with NO policy at all: missing-policy + undeclared both fire.
+        let missing_policy = cross_program_masterplan_v2();
+        let findings = evaluate_masterplan_v2_authority(&missing_policy);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "<missing-cross-program-edge-policy>"
+        )));
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "MPV2-0000->MPV2-0001@cross-program-undeclared(P-FABRIC->P-REORG)"
+        )));
+
+        // A crossing with a well-formed policy that does NOT declare the pair.
+        let mut undeclared = cross_program_masterplan_v2();
+        undeclared["masterplan_v2"]["cross_program_edge_policy"] = json!({
+            "semantics": CROSS_PROGRAM_EDGE_SEMANTICS,
+            "declared_program_edges": []
+        });
+        let findings = evaluate_masterplan_v2_authority(&undeclared);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "MPV2-0000->MPV2-0001@cross-program-undeclared(P-FABRIC->P-REORG)"
+        )));
+        assert!(
+            !findings
+                .iter()
+                .any(|finding| finding.key == "<missing-cross-program-edge-policy>"),
+            "a present policy must not trip the missing-policy guard: {findings:?}"
+        );
+
+        // Same-program edges never require a declaration.
+        let mut same_program = cross_program_masterplan_v2();
+        same_program["masterplan_v2"]["work_items"] = json!([
+            {"id": "MPV2-0000", "program": "P-FABRIC"},
+            {"id": "MPV2-0001", "program": "P-FABRIC"}
+        ]);
+        let findings = evaluate_masterplan_v2_authority(&same_program);
+        assert!(
+            findings.is_empty(),
+            "same-program edges must not require cross-program declarations: {findings:?}"
+        );
+    }
+    #[test]
+    fn masterplan_v2_dependency_dag_rejects_malformed_cross_program_policy() {
+        let mut malformed = cross_program_masterplan_v2();
+        malformed["masterplan_v2"]["cross_program_edge_policy"] = json!({
+            "semantics": "wrong-contract",
+            "declared_program_edges": [
+                "not-an-object",
+                {"from_program": "P-FABRIC"},
+                {"from_program": "P-FABRIC", "to_program": "P-FABRIC"},
+                {"from_program": "P-UNKNOWN", "to_program": "P-REORG"},
+                {"from_program": "P-FABRIC", "to_program": "P-REORG"},
+                {"from_program": "P-FABRIC", "to_program": "P-REORG"}
+            ]
+        });
+        let findings = evaluate_masterplan_v2_authority(&malformed);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "<cross-program-edge-semantics>"
+        )));
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "<malformed-cross-program-declared-edge-0>"
+        )));
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "<malformed-cross-program-declared-edge-1>"
+        )));
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "P-FABRIC->P-FABRIC@cross_program_edge_policy.declared_program_edges[2].self"
+        )));
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "P-UNKNOWN@cross_program_edge_policy.declared_program_edges[3].from_program"
+        )));
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "P-FABRIC->P-REORG@cross_program_edge_policy.declared_program_edges[5].duplicate"
+        )));
+        // The declared-but-never-instantiated P-UNKNOWN pair is stale.
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "P-UNKNOWN->P-REORG@cross_program_edge_policy.declared_program_edges.unused"
+        )));
+        // The live crossing IS declared, so no undeclared finding fires.
+        assert!(
+            !findings
+                .iter()
+                .any(|finding| finding.key.contains("cross-program-undeclared")),
+            "a declared crossing must not fire the undeclared lane: {findings:?}"
+        );
+
+        // A policy whose declared_program_edges is not an array fails closed.
+        let mut non_array = cross_program_masterplan_v2();
+        non_array["masterplan_v2"]["cross_program_edge_policy"] = json!({
+            "semantics": CROSS_PROGRAM_EDGE_SEMANTICS,
+            "declared_program_edges": "not-an-array"
+        });
+        let findings = evaluate_masterplan_v2_authority(&non_array);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "<malformed-cross-program-declared-edges>"
+        )));
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "MPV2-0000->MPV2-0001@cross-program-undeclared(P-FABRIC->P-REORG)"
+        )));
+    }
+    #[test]
+    fn masterplan_v2_dependency_dag_accepts_declared_cross_program_edges() {
+        let mut declared = cross_program_masterplan_v2();
+        declared["masterplan_v2"]["cross_program_edge_policy"] = json!({
+            "semantics": CROSS_PROGRAM_EDGE_SEMANTICS,
+            "declared_program_edges": [{
+                "from_program": "P-FABRIC",
+                "to_program": "P-REORG",
+                "rationale": "test crossing"
+            }]
+        });
+        let findings = evaluate_masterplan_v2_authority(&declared);
+        assert!(
+            findings.is_empty(),
+            "a declared, instantiated cross-program edge must be green: {findings:?}"
+        );
+
+        // Anti-staleness: an extra declared pair no live edge instantiates fails.
+        let mut stale = cross_program_masterplan_v2();
+        stale["masterplan_v2"]["cross_program_edge_policy"] = json!({
+            "semantics": CROSS_PROGRAM_EDGE_SEMANTICS,
+            "declared_program_edges": [
+                {
+                    "from_program": "P-FABRIC",
+                    "to_program": "P-REORG",
+                    "rationale": "test crossing"
+                },
+                {
+                    "from_program": "P-REORG",
+                    "to_program": "P-FABRIC",
+                    "rationale": "declared but never instantiated"
+                }
+            ]
+        });
+        let findings = evaluate_masterplan_v2_authority(&stale);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "P-REORG->P-FABRIC@cross_program_edge_policy.declared_program_edges.unused"
         )));
     }
     /// Fail-closed contract for the masterplan structural gate: a corpus that
