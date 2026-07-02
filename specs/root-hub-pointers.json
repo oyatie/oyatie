@@ -1275,6 +1275,12 @@
       "purpose": "Structured result bundle schema for P0.0 cloud-ci/oya-ci fixture runs; evidence input only until a trusted required context is live.",
       "target_path_after_md_retirement": "same (machine-readable T0.0 result schema)"
     },
+    "spec_vulnerability_intelligence_sbom_vex_pipeline": {
+      "current_path": "/specs/vulnerability-intelligence-sbom-vex-pipeline.json",
+      "kind": "spec",
+      "migration_phase": "regsec-001-planning-contract",
+      "purpose": "Planning-only cloud-native vulnerability intelligence and SBOM/VEX pipeline contract covering CVE/NVD/OSV/RustSec/GitHub/vendor advisory ingestion, dual-format SBOMs, VEX, KEV/EPSS/CVSS/SSVC prioritization, remediation SLAs, expiring exceptions, audit evidence, and deployment/admission blocking without scanner CLI authority."
+    },
     "spec_pci_dss_level_1_readiness_plan": {
       "current_path": "/specs/pci-dss-level-1-readiness-plan.json",
       "kind": "spec",

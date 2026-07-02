@@ -2358,6 +2358,52 @@
       }
     },
     {
+      "artifact_id": "vulnerability-intelligence-sbom-vex-pipeline",
+      "artifact_path": "/specs/vulnerability-intelligence-sbom-vex-pipeline.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-security + ops-supply-chain + platform-toolchain + platform-cd",
+      "purpose_short": "Planning-only vulnerability intelligence, SBOM, VEX, advisory normalization, prioritization, exception, evidence, and admission decision contract; JSON is canonical product/control-plane contract, scanner CLI authority is forbidden, and Rust supply-chain kernel is validator/bridge input only.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "regvuln-002-vulnerability-contract-integration-decision"
+        },
+        "verification": {
+          "checker_crate": "libs/oya-check-supply-chain",
+          "command": "python3 -m json.tool specs/vulnerability-intelligence-sbom-vex-pipeline.json >/dev/null && cargo test -p oya-check-supply-chain --lib vulnerability_intelligence"
+        },
+        "validation": {
+          "validator": "JSON syntax plus Rust vulnerability-intelligence contract fixture until a dedicated cloud-ci gate lands"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored planning/spec contract"
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until vulnerability-intelligence spec/validator drift gate lands"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_vulnerability_decision_contract_coverage_total",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "contract_section",
+                "validation_state"
+              ],
+              "cardinality_budget": 100
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "REGSEC-001 T3 review t_59bf50cb APPROVE; REGVULN-002 review child t_4d5c525f pending",
+          "last_modified_at": "2026-07-01T13:28:43Z"
+        }
+      }
+    },
+    {
       "artifact_id": "regulatory-hermes-decomposition-preservation-20260701",
       "artifact_path": "/evidence/regulatory/regulatory-hermes-decomposition-preservation-20260701.json",
       "artifact_format": "json",
