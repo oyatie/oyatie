@@ -1513,6 +1513,7 @@ pub fn evaluate_masterplan_v2_program_coverage(
         v2.get("program_coverage"),
         &mut findings,
     );
+    evaluate_work_item_program_membership(v2.get("work_items"), &program_ids, &mut findings);
     evaluate_microservice_manifest_coverage(
         v2.get("program_coverage"),
         manifest_index,
@@ -2408,6 +2409,42 @@ fn evaluate_program_shards(
     }
 
     program_ids
+}
+
+/// Dangling-reference guard for the work-item → program-shard edge: every
+/// masterplan v2 work item must name a DECLARED program shard, so no work
+/// item can float outside the program-sharded coverage proof. Missing or
+/// malformed `work_items` is already flagged by the authority evaluator;
+/// this guard only polices the reference edge itself.
+fn evaluate_work_item_program_membership(
+    work_items: Option<&Value>,
+    program_ids: &BTreeMap<String, String>,
+    findings: &mut BTreeSet<Finding>,
+) {
+    let Some(work_items) = work_items.and_then(Value::as_array) else {
+        return;
+    };
+    for item in work_items {
+        let id = item
+            .get("id")
+            .and_then(Value::as_str)
+            .unwrap_or("<missing-id>");
+        match item.get("program").and_then(Value::as_str) {
+            Some(program) if program_ids.contains_key(program) => {}
+            Some(program) => {
+                findings.insert(Finding::new(
+                    "masterplan_program_coverage_incomplete",
+                    &format!("work_item:{id}@unknown-program:{program}"),
+                ));
+            }
+            None => {
+                findings.insert(Finding::new(
+                    "masterplan_program_coverage_incomplete",
+                    &format!("work_item:{id}@missing-program"),
+                ));
+            }
+        }
+    }
 }
 
 fn evaluate_required_program_classes(
@@ -4044,6 +4081,29 @@ mod tests {
             "microservice:workflow-studio"
         )));
     }
+    /// RED: the work-item → program-shard reference edge is a dangling-reference
+    /// class — an undeclared program id or a missing program assignment must both
+    /// fire, so no work item can float outside the program-sharded coverage proof.
+    #[test]
+    fn masterplan_v2_program_coverage_rejects_dangling_work_item_program_refs() {
+        let mut fixture = minimal_program_coverage_masterplan();
+        fixture["masterplan_v2"]["work_items"] = json!([{
+            "id": "MPV2-0000",
+            "program": "agentic-delivery-fabric"
+        }, {
+            "id": "MPV2-0001"
+        }]);
+
+        let findings = evaluate_masterplan_v2_program_coverage(&fixture, &minimal_manifest_index());
+        assert!(findings.contains(&Finding::new(
+            "masterplan_program_coverage_incomplete",
+            "work_item:MPV2-0000@unknown-program:agentic-delivery-fabric"
+        )));
+        assert!(findings.contains(&Finding::new(
+            "masterplan_program_coverage_incomplete",
+            "work_item:MPV2-0001@missing-program"
+        )));
+    }
     #[test]
     fn masterplan_v2_program_coverage_rejects_broken_owned_stack_ladder() {
         // Missing ladder entirely.
@@ -4378,6 +4438,13 @@ mod tests {
             minimal_program("P-AST-CODE-GRAPH", "ast-code-graph"),
             minimal_program("P-FABRIC", "fabric")
         ]);
+        masterplan["masterplan_v2"]["work_items"] = json!([{
+            "id": "MPV2-0000",
+            "program": "P-FABRIC"
+        }, {
+            "id": "MPV2-0001",
+            "program": "P-REORG"
+        }]);
         masterplan["masterplan_v2"]["program_coverage"] = json!({
             "manifest_index_ref": "/specs/microservices/manifests-index.json",
             "required_program_classes": [
