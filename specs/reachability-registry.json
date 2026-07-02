@@ -324,6 +324,10 @@
     {
       "anchor": "ADR-0248 REGCLOUD-001 ownership seed: narrow OWNERS marker for the planning/spec artifact directory, not broad product/cloud authority.",
       "prefix": "plan/OWNERS"
+    },
+    {
+      "anchor": "ADR-0516 Agentic Delivery Fabric drive-loop durable plane (specs/fabric-drive-loop-state.json#storage_planes): plan/fabric-loop/ is the in-repo PR-governed durable card + flow-metrics ledger tree written only through the oya-fabric-loop-state-app coordinator ports; per-card shard files and pass-NNN ledger rows are created per drive-loop pass, so the tree is registered by prefix. Projection freshness/byte re-derivation of every file here is enforced by the masterplan projection-rederivation gate (cross-artifact-agreement, masterplan_projection_stale).",
+      "prefix": "plan/fabric-loop/"
     }
   ]
 }

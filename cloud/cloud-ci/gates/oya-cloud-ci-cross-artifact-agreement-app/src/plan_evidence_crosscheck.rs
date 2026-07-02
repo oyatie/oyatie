@@ -91,7 +91,7 @@ struct RetiredSurface {
 ///
 /// ```jsonc
 /// {
-///   "tracked_paths": ["evidence/goals/….json", "cloud/…/lib.rs", …]
+///   "tracked_paths": ["evidence/goals/….json", "docs/MASTERPLAN.md", …]
 /// }
 /// ```
 ///

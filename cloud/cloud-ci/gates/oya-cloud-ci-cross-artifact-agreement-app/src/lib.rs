@@ -4757,7 +4757,7 @@ mod tests {
                     "coverage_status": "covered"
                 },
                 {
-                    "microservice": "foundry",
+                    "microservice": "retired-legacy-svc",
                     "program_id": "P-INTELLIGENCE",
                     "source_manifest": "microservices/intelligence/manifest.json",
                     "coverage_status": "retired-absorbed"
@@ -4942,7 +4942,7 @@ mod tests {
                     "manifest": "microservices/intelligence/manifest.json"
                 },
                 {
-                    "name": "foundry",
+                    "name": "retired-legacy-svc",
                     "status": "retired",
                     "do_not_treat_as_active": true,
                     "manifest": "microservices/intelligence/manifest.json"
