@@ -2327,6 +2327,10 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         (Some("validate"), Some("ontology-projection-coverage")) => {
             crate::adr_0145_gates::run_ontology_projection_coverage(args.collect())
         }
+        // ADR-0340 / CAPACITY-001 — per-µservice capacity_model manifest contract.
+        (Some("validate"), Some("capacity-model-manifest")) => {
+            crate::capacity_model_manifest_gate::run_capacity_model_manifest(args.collect(), usage)
+        }
         // ADR-0145 Invariant 1 — audit-chain seal coverage (DEFERRED/advisory).
         (Some("validate"), Some("audit-chain-seal-coverage")) => {
             crate::adr_0145_gates::run_audit_chain_seal_coverage(args.collect())
