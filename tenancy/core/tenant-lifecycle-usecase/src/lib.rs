@@ -75,15 +75,17 @@ fn tenant_scope_of(name: &ResourceName) -> &str {
 
 /// Recover the RLS tenant scope from a minted operation name. Operation names
 /// are `operations/<tenant_id>-lifecycle-<seq>` (see [`mint_operation_name`]),
-/// so the tenant is the prefix before `-lifecycle-`. Names without that shape
-/// (e.g. an unknown operation a client polls) yield `None`, which the caller
-/// maps to `NotFound`.
+/// so the tenant is the prefix before the final `-lifecycle-<seq>` marker.
+/// Names without that minted shape (e.g. an unknown operation a client polls)
+/// yield `None`, which the caller maps to `NotFound`.
 fn tenant_scope_of_operation(operation_name: &str) -> Option<&str> {
     operation_name
         .strip_prefix("operations/")
-        .and_then(|operation_id| operation_id.split_once("-lifecycle-"))
-        .map(|(tenant, _)| tenant)
-        .filter(|tenant| !tenant.is_empty())
+        .and_then(|operation_id| operation_id.rsplit_once("-lifecycle-"))
+        .and_then(|(tenant, seq)| {
+            (!tenant.is_empty() && !seq.is_empty() && seq.chars().all(|c| c.is_ascii_digit()))
+                .then_some(tenant)
+        })
 }
 
 /// Mint the operation id for `tenant_id`'s `seq`-th lifecycle operation. The
@@ -691,5 +693,36 @@ impl<S: TenantLifecycleStore + Send + Sync> ResourceProvider for TenantLifecycle
                     name: operation_name.to_owned(),
                 })
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn operation_scope_uses_the_final_lifecycle_marker() {
+        let operation_name = mint_operation_name("acme-lifecycle-team", 1);
+
+        assert_eq!(
+            tenant_scope_of_operation(&operation_name),
+            Some("acme-lifecycle-team")
+        );
+    }
+
+    #[test]
+    fn operation_scope_rejects_non_minted_names() {
+        assert_eq!(
+            tenant_scope_of_operation("operations/acme-lifecycle-"),
+            None
+        );
+        assert_eq!(
+            tenant_scope_of_operation("operations/acme-lifecycle-latest"),
+            None
+        );
+        assert_eq!(
+            tenant_scope_of_operation("tenants/acme-lifecycle-000001"),
+            None
+        );
     }
 }
