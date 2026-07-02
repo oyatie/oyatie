@@ -1,41 +1,33 @@
 {
-  "capability": "billing",
+  "capability": "comms",
   "crate_dirs": [
     {
-      "new_path": "billing/core/metering-pipeline-kernel",
-      "old_path": "libs/oya-metering-pipeline-kernel"
+      "new_path": "comms/core/calendar-domain",
+      "old_path": "oya/calendar/crates/oya-calendar-domain"
     }
   ],
   "crate_idents": [
     {
-      "new": "billing-metering-pipeline-kernel",
-      "old": "oya-metering-pipeline-kernel"
+      "new": "comms-calendar-domain",
+      "old": "oya-calendar-domain"
     }
   ],
   "files": [
     {
-      "new_path": "billing/core/metering-pipeline-kernel/BUCK",
-      "old_path": "libs/oya-metering-pipeline-kernel/BUCK"
+      "new_path": "comms/core/calendar-domain/BUCK",
+      "old_path": "oya/calendar/crates/oya-calendar-domain/BUCK"
     },
     {
-      "new_path": "billing/core/metering-pipeline-kernel/Cargo.toml",
-      "old_path": "libs/oya-metering-pipeline-kernel/Cargo.toml"
+      "new_path": "comms/core/calendar-domain/Cargo.toml",
+      "old_path": "oya/calendar/crates/oya-calendar-domain/Cargo.toml"
     },
     {
-      "new_path": "billing/core/metering-pipeline-kernel/src/conformance.rs",
-      "old_path": "libs/oya-metering-pipeline-kernel/src/conformance.rs"
+      "new_path": "comms/core/calendar-domain/src/lib.rs",
+      "old_path": "oya/calendar/crates/oya-calendar-domain/src/lib.rs"
     },
     {
-      "new_path": "billing/core/metering-pipeline-kernel/src/lib.rs",
-      "old_path": "libs/oya-metering-pipeline-kernel/src/lib.rs"
-    },
-    {
-      "new_path": "billing/core/metering-pipeline-kernel/src/reference.rs",
-      "old_path": "libs/oya-metering-pipeline-kernel/src/reference.rs"
-    },
-    {
-      "new_path": "billing/core/metering-pipeline-kernel/tests/reference_sink.rs",
-      "old_path": "libs/oya-metering-pipeline-kernel/tests/reference_sink.rs"
+      "new_path": "registry/catalog/comms-calendar-domain.yaml",
+      "old_path": "registry/catalog/oya-calendar-domain.yaml"
     }
   ],
   "schema": "oya-ci/reorg-move-manifest/v1"
