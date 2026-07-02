@@ -28,7 +28,7 @@ required_prefix = "oya-"
 allowed_roles = ["kernel", "domain", "usecase", "app", "adapter", "infrastructure", "cli", "rest", "grpc", "worker", "sdk", "api"]
 check_family_prefix = "oya-check-"
 backend_suffixes = ["fake", "inmemory", "aws", "oci", "gcp", "azure", "postgres", "redis", "sqlite"]
-doctrinal_carve_outs = ["oya-tooling-agent-read"]
+doctrinal_carve_outs = ["oya-tooling-agent-read", "oya-ci-gate-contract"]
 
 [[vocab.forbidden_stems]]
 stem = "foundry"

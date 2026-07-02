@@ -1493,6 +1493,53 @@ fn release_supply_chain_gate_accepts_complete_release_attestation_evidence() {
 }
 
 #[test]
+fn image_promotion_gate_accepts_signed_dev_staging_prod_ladder_with_admission_and_kill_switch() {
+    let temp = temp_dir("image-promotion-valid");
+    write_image_promotion_fixture(&temp, None);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(image_promotion_args(&temp))
+        .output()
+        .expect("image promotion gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout).contains(
+            "image promotion validation passed: 1 artifacts, 3 promotion records, 2 kubewarden verifier records, 1 kyverno verifier records"
+        ),
+        "stdout={}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn image_promotion_gate_rejects_missing_staging_promotion_record() {
+    let temp = temp_dir("image-promotion-missing-staging");
+    write_image_promotion_fixture(&temp, Some("staging"));
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(image_promotion_args(&temp))
+        .output()
+        .expect("image promotion gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("MissingTierPromotion"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
 fn release_supply_chain_gate_rejects_missing_rekor_inclusion() {
     let temp = temp_dir("release-supply-chain-missing-rekor");
     write_release_supply_chain_fixture(&temp, "0", "0", "true");
@@ -4558,6 +4605,51 @@ fn release_supply_chain_args_with_phase(root: &Path, phase: &str) -> Vec<String>
     let mut args = release_supply_chain_args(root);
     args.extend(["--phase".into(), phase.into()]);
     args
+}
+
+fn write_image_promotion_fixture(root: &Path, missing_tier: Option<&str>) {
+    let digest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    fs::create_dir_all(root.join("registry/release/image-promotions"))
+        .expect("image promotion dir created");
+    for (tier, verifier) in [
+        ("dev", "kubewarden"),
+        ("staging", "kubewarden"),
+        ("prod", "kyverno"),
+    ] {
+        if missing_tier == Some(tier) {
+            continue;
+        }
+        fs::write(
+            root.join(format!("registry/release/image-promotions/oya-dev-cli-{tier}.yaml")),
+            format!(
+                r#"artifact_ref: ghcr.io/oyatie/oya-dev-cli:0123456789abcdef0123456789abcdef01234567-{tier}@{digest}
+artifact_digest: {digest}
+tier: {tier}
+cosign_identity: https://token.actions.githubusercontent.com/oyatie/image-promotion-{tier}-oidc
+verifier: {verifier}
+verifier_ref: infra/{verifier}/policies/require-signed-images.yaml
+provenance_attestation_ref: artifact://release/0.1.0/oya-dev-cli-provenance.intoto.jsonl
+runner_kill_switch_ref: artifact://fixtures/bootstrap-runner-kill-switch.cedar
+audit_event_type: oya.audit.image_promotion
+signed: true
+"#
+            ),
+        )
+        .expect("image promotion record written");
+    }
+}
+
+fn image_promotion_args(root: &Path) -> Vec<String> {
+    vec![
+        "gate".into(),
+        "validate".into(),
+        "image-promotion".into(),
+        "--promotion-dir".into(),
+        root.join("registry/release/image-promotions")
+            .to_str()
+            .expect("utf8 image promotion dir")
+            .into(),
+    ]
 }
 
 fn write_pre_release_image_manifest(root: &Path) {

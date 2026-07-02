@@ -122,6 +122,14 @@
       "prefix": "data/OWNERS"
     },
     {
+      "anchor": "ADR-0139 + DATA-005/G003: contract-only data-substrate OpenSLO skeleton home; static evidence-required SLO manifest for future operator reconciliation measurement, no measured-window claim.",
+      "prefix": "data/observability/slos/data-substrate/"
+    },
+    {
+      "anchor": "ADR-0139 + DATA-005/G003: contract-only data-substrate ops skeleton; static zero-replica operator and GitOps manifests, no runtime controller or live-sync claim.",
+      "prefix": "data/ops/"
+    },
+    {
       "anchor": "ADR-0562 §10.21 ownership seed: the workflow capability tree's OWNERS marker (axis-cloud-platform), homed by the seventeenth strangler move (oya/workflow-engine/crates + oya/workflow-studio/crates + oya/tasks/crates + oya/forms/crates → workflow/{core,ports,adapters,facade}/ — the orchestration substrate, the workflow-engine dag node, forty-eight crates across four source dirs; the engine's four hexagonal sub-domains event-bus/execution-engine/state-machine/trigger-orchestrator are core/ports/adapters substrate, the studio + saas + tasks + forms surfaces are facade products); breadth-unlimited (ADR-0555) so it covers the whole workflow subtree, including the co-moved workflow/observability/slos/{workflow-engine,workflow-studio,tasks,forms}/ per-service SLO subdirs (ADR-0139 SLO-home convention, per-service subdirs chosen to avoid the confirmed cross-service basename collision autosharding-events.openslo.yaml across all four source dirs) and the forty-eight re-keyed registry/catalog/workflow-*.yaml records (reached by the existing registry/catalog/ prefix; every one of the forty-eight moved crates has a pre-existing catalog record, all re-keyed this move); the committed move-plan at specs/reorg/workflow-move-plan.json is reached by the existing specs/reorg/ ADR-0563 prefix",
       "prefix": "workflow/OWNERS"
     },
@@ -292,6 +300,18 @@
     {
       "anchor": "ADR-0561 ownership seed: the cloud-os trustd-domain crate's OWNERS marker (axis-cloud-platform) — added with slice-1b-i's der.rs so the trustd crate's new real-X.509 source is born owned",
       "prefix": "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/OWNERS"
+    },
+    {
+      "anchor": "ADR-0537 step-0 root ceremony port: ownership marker for the cloud runbook subtree that carries the redacted root-of-trust ceremony draft.",
+      "prefix": "docs/runbooks/cloud/OWNERS"
+    },
+    {
+      "anchor": "ADR-0537 step-0 root ceremony port: draft operator-facing runbook for redacted offline root-of-trust evidence packets and custody posture checks.",
+      "prefix": "docs/runbooks/cloud/root-of-trust-ceremony.md"
+    },
+    {
+      "anchor": "ADR-0537 step-0 root ceremony port: machine-readable ceremony evidence-packet contract with root secret values excluded.",
+      "prefix": "specs/root-of-trust-ceremony-contract.json"
     },
     {
       "anchor": "ADR-0563: the rename-aware path-keyed CI baseline relabel move-manifest tree — the committed move bijection face (move-manifest.generated.json) the scm-facts emitter relabel consumes; a per-PR-regenerated review artifact reached by the codemod manifest subcommand + the emitter that reads it",
