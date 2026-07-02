@@ -150,6 +150,10 @@ a second predicate (blocks only **new** debt). The verdict is **data, not contro
 (`infra/branch-protection/dev.json`: `contexts:[oya-ci-required]`, `enforce_admins:true`,
 `required_signatures:true`, `required_pull_request_reviews:null`).
 
+Issue #901's affected-set progress helper is part of that same enforcement substrate.
+cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/src/bin/oya-cloud-ci-step-telemetry.rs
+reports long Buck2 phase/status/elapsed telemetry for operator visibility; it does not change the required-check verdict model.
+
 ## Decision
 
 ### D1. The Phase-0 firewall is the enforcement substrate
