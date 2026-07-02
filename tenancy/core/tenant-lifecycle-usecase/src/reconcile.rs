@@ -94,21 +94,20 @@ impl<S: TenantLifecycleStore + Send + Sync> TenantLifecycleProvider<S> {
                     // Never existed and meant to be retired: nothing to do.
                     return Ok(ReconcileOutcome::Converged { observed: None });
                 }
-                let key = derive_step_key(ctx.cr_uid, ctx.generation, "create")
-                    .map_err(|e| ProviderError::Internal {
+                let key = derive_step_key(ctx.cr_uid, ctx.generation, "create").map_err(|e| {
+                    ProviderError::Internal {
                         message: e.to_string(),
-                    })?;
-                self.create(name, tenant_from_spec(name, spec), &key).await?;
+                    }
+                })?;
+                self.create(name, tenant_from_spec(name, spec), &key)
+                    .await?;
                 return Ok(ReconcileOutcome::Progressing {
                     detail: "created".to_owned(),
                 });
             }
         };
 
-        match tenancy_tenant_lifecycle_domain::plan_next_operation(
-            observed.state,
-            spec.desired,
-        ) {
+        match tenancy_tenant_lifecycle_domain::plan_next_operation(observed.state, spec.desired) {
             Plan::Unreachable => Ok(ReconcileOutcome::Blocked {
                 reason: format!(
                     "desired {:?} is unreachable from {:?} (retired tenants are terminal)",
@@ -123,10 +122,11 @@ impl<S: TenantLifecycleStore + Send + Sync> TenantLifecycleProvider<S> {
                     ..tenant_from_spec(name, spec)
                 };
                 if declared != observed {
-                    let key = derive_step_key(ctx.cr_uid, ctx.generation, "put-metadata")
-                        .map_err(|e| ProviderError::Internal {
+                    let key = derive_step_key(ctx.cr_uid, ctx.generation, "put-metadata").map_err(
+                        |e| ProviderError::Internal {
                             message: e.to_string(),
-                        })?;
+                        },
+                    )?;
                     self.put(name, declared, &key).await?;
                     return Ok(ReconcileOutcome::Progressing {
                         detail: "metadata-updated".to_owned(),
@@ -157,7 +157,10 @@ impl<S: TenantLifecycleStore + Send + Sync> TenantLifecycleProvider<S> {
                         })
                     }
                     Some(OperationResult::Error(error)) => Ok(ReconcileOutcome::Blocked {
-                        reason: format!("operation {} failed: {} ({})", polled.name, error.message, error.code),
+                        reason: format!(
+                            "operation {} failed: {} ({})",
+                            polled.name, error.message, error.code
+                        ),
                     }),
                 }
             }

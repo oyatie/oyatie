@@ -167,11 +167,43 @@ pub trait TenantLifecycleStore {
 
 #[cfg(test)]
 mod tests {
-    use oya_shared_platform_contracts_kernel::tenancy::{
-        IsolationPosture, TenantLifecycleState,
+    use oya_shared_platform_contracts_kernel::tenancy::{IsolationPosture, TenantLifecycleState};
+    use oya_shared_resource_provider_contract_kernel::{
+        CancellationMetadata, CompensationMetadata, OperationLedgerEntry, OperationPhase,
+        OperationState, RetryPolicy,
     };
 
     use super::*;
+    fn operation_ledger_entry(operation_id: &str) -> OperationLedgerEntry {
+        OperationLedgerEntry {
+            operation_id: operation_id.to_owned(),
+            idempotency_key: "00000000-0000-4000-8000-000000000001".to_owned(),
+            request_hash: format!("fixture-hash:{operation_id}"),
+            resource_orn: "orn:oya:tenancy:acme:tenants/acme".to_owned(),
+            desired_generation: 1,
+            observed_generation: 0,
+            state: OperationState::Accepted,
+            phase: OperationPhase::OperationLedger,
+            tenant_account_project: "tenant/acme".to_owned(),
+            region_cell: "control-plane/default".to_owned(),
+            principal: "principal:test".to_owned(),
+            audit_chain_id: format!("audit-chain/{operation_id}"),
+            retry_policy: RetryPolicy {
+                backoff: "bounded-exponential-jitter".to_owned(),
+                max_attempts: 3,
+                retry_classification: "transient".to_owned(),
+            },
+            cancellation: CancellationMetadata {
+                cancel_safe: true,
+                audit_required: true,
+            },
+            compensation: CompensationMetadata {
+                required: false,
+                strategy: "none".to_owned(),
+            },
+            transition_sequence: 1,
+        }
+    }
 
     #[test]
     fn applied_write_record_round_trips() {
@@ -196,7 +228,11 @@ mod tests {
     #[test]
     fn operation_record_round_trips_and_rejects_unknown_fields() {
         let record = OperationRecord {
-            operation: Operation::pending("operations/lifecycle-000001").unwrap(),
+            operation: Operation::pending(
+                "operations/acme-lifecycle-000001",
+                operation_ledger_entry("acme-lifecycle-000001"),
+            )
+            .unwrap(),
             kind: TenantLifecycleOperation::Activate,
             target: "tenants/acme".to_owned(),
         };

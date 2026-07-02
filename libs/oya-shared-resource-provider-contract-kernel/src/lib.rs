@@ -55,6 +55,10 @@ pub enum ContractShapeError {
     PageSizeOutOfRange { requested: u32 },
     /// The operation name lacks the [`OPERATION_NAME_PREFIX`].
     MalformedOperationName { value: String },
+    /// The operation ledger entry is missing required AIP-151/control-plane metadata.
+    MalformedOperationLedger { message: String },
+    /// The operation's done/result shape disagrees with its ledger state.
+    InvalidOperationState { message: String },
 }
 
 impl fmt::Display for ContractShapeError {
@@ -78,6 +82,12 @@ impl fmt::Display for ContractShapeError {
                     f,
                     "operation name {value:?} lacks the {OPERATION_NAME_PREFIX:?} prefix"
                 )
+            }
+            Self::MalformedOperationLedger { message } => {
+                write!(f, "malformed operation ledger entry: {message}")
+            }
+            Self::InvalidOperationState { message } => {
+                write!(f, "invalid operation state: {message}")
             }
         }
     }
@@ -296,6 +306,213 @@ pub enum OperationResult {
     Error(OperationError),
 }
 
+/// Durable control-plane state for an AIP-151 long-running operation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum OperationState {
+    Accepted,
+    Validating,
+    Queued,
+    Running,
+    WaitingForReconciler,
+    Succeeded,
+    Failed,
+    CancelRequested,
+    Cancelled,
+    Compensating,
+    RolledBack,
+}
+
+impl OperationState {
+    /// Whether this state is terminal per the control-plane operation contract.
+    #[must_use]
+    pub fn is_terminal(self) -> bool {
+        matches!(
+            self,
+            Self::Succeeded | Self::Failed | Self::Cancelled | Self::RolledBack
+        )
+    }
+
+    /// Whether the control-plane operation state machine allows this state to
+    /// transition to `next`.
+    #[must_use]
+    pub fn can_transition_to(self, next: Self) -> bool {
+        matches!(
+            (self, next),
+            (Self::Accepted, Self::Validating)
+                | (Self::Accepted, Self::CancelRequested)
+                | (Self::Validating, Self::Queued)
+                | (Self::Validating, Self::Failed)
+                | (Self::Validating, Self::CancelRequested)
+                | (Self::Queued, Self::Running)
+                | (Self::Queued, Self::CancelRequested)
+                | (Self::Running, Self::WaitingForReconciler)
+                | (Self::Running, Self::Succeeded)
+                | (Self::Running, Self::Failed)
+                | (Self::Running, Self::CancelRequested)
+                | (Self::Running, Self::Compensating)
+                | (Self::WaitingForReconciler, Self::Running)
+                | (Self::WaitingForReconciler, Self::CancelRequested)
+                | (Self::CancelRequested, Self::Cancelled)
+                | (Self::CancelRequested, Self::Failed)
+                | (Self::Compensating, Self::RolledBack)
+                | (Self::Compensating, Self::Failed)
+        )
+    }
+}
+
+/// The control-plane pipeline phase owning the current operation ledger row.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum OperationPhase {
+    ApiGateway,
+    ResourceRegistry,
+    OperationLedger,
+    WorkflowReconciler,
+    BackendActuationBoundary,
+}
+
+/// Retry metadata persisted in the operation ledger.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RetryPolicy {
+    pub backoff: String,              // data_class: INTERNAL_ONLY
+    pub max_attempts: u32,            // data_class: INTERNAL_ONLY
+    pub retry_classification: String, // data_class: INTERNAL_ONLY
+}
+
+/// Retry classifications allowed by
+/// `specs/cloud-control-plane-operation-contract.json#idempotency_retry_cancel_contract`.
+pub const ALLOWED_RETRY_CLASSIFICATIONS: &[&str] = &[
+    "transient",
+    "quota",
+    "policy",
+    "dependency",
+    "operator_required",
+];
+
+/// Cancellation metadata persisted in the operation ledger.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CancellationMetadata {
+    pub cancel_safe: bool,    // data_class: INTERNAL_ONLY
+    pub audit_required: bool, // data_class: INTERNAL_ONLY
+}
+
+/// Compensation metadata persisted in the operation ledger.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CompensationMetadata {
+    pub required: bool,   // data_class: INTERNAL_ONLY
+    pub strategy: String, // data_class: INTERNAL_ONLY
+}
+
+/// Durable operation-ledger row required before acknowledging a mutating
+/// resource-provider request. This mirrors
+/// `specs/cloud-control-plane-operation-contract.json#operation_ledger_entry`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct OperationLedgerEntry {
+    pub operation_id: String,               // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,            // data_class: INTERNAL_ONLY
+    pub request_hash: String,               // data_class: INTERNAL_ONLY
+    pub resource_orn: String,               // data_class: TENANT_SCOPED
+    pub desired_generation: u64,            // data_class: INTERNAL_ONLY
+    pub observed_generation: u64,           // data_class: INTERNAL_ONLY
+    pub state: OperationState,              // data_class: INTERNAL_ONLY
+    pub phase: OperationPhase,              // data_class: INTERNAL_ONLY
+    pub tenant_account_project: String,     // data_class: TENANT_SCOPED
+    pub region_cell: String,                // data_class: TENANT_SCOPED
+    pub principal: String,                  // data_class: INTERNAL_ONLY
+    pub audit_chain_id: String,             // data_class: INTERNAL_ONLY
+    pub retry_policy: RetryPolicy,          // data_class: INTERNAL_ONLY
+    pub cancellation: CancellationMetadata, // data_class: INTERNAL_ONLY
+    pub compensation: CompensationMetadata, // data_class: INTERNAL_ONLY
+    pub transition_sequence: u64,           // data_class: INTERNAL_ONLY
+}
+
+impl OperationLedgerEntry {
+    /// Validate the metadata-only operation-ledger contract: write-before-ack
+    /// idempotency key, request hash, audit-chain linkage, generation bounds,
+    /// retry/cancel/compensation metadata, and monotonic sequence presence.
+    pub fn validate(&self) -> Result<(), ContractShapeError> {
+        if !is_slug(&self.operation_id) {
+            return Err(ContractShapeError::MalformedOperationLedger {
+                message: format!("operation_id {:?} is not slug-shaped", self.operation_id),
+            });
+        }
+        IdempotencyKey::new(self.idempotency_key.clone()).map_err(|error| {
+            ContractShapeError::MalformedOperationLedger {
+                message: error.to_string(),
+            }
+        })?;
+        if self.request_hash.is_empty() {
+            return Err(ContractShapeError::MalformedOperationLedger {
+                message: "request_hash must be non-empty".to_owned(),
+            });
+        }
+        if !self.resource_orn.starts_with("orn:") || !self.resource_orn.contains('/') {
+            return Err(ContractShapeError::MalformedOperationLedger {
+                message: format!("resource_orn {:?} is not ORN-shaped", self.resource_orn),
+            });
+        }
+        if self.desired_generation == 0 || self.observed_generation > self.desired_generation {
+            return Err(ContractShapeError::MalformedOperationLedger {
+                message: format!(
+                    "generation bounds invalid: desired={}, observed={}",
+                    self.desired_generation, self.observed_generation
+                ),
+            });
+        }
+        for (field, value) in [
+            (
+                "tenant_account_project",
+                self.tenant_account_project.as_str(),
+            ),
+            ("region_cell", self.region_cell.as_str()),
+            ("principal", self.principal.as_str()),
+            ("audit_chain_id", self.audit_chain_id.as_str()),
+            ("retry_policy.backoff", self.retry_policy.backoff.as_str()),
+            (
+                "retry_policy.retry_classification",
+                self.retry_policy.retry_classification.as_str(),
+            ),
+            ("compensation.strategy", self.compensation.strategy.as_str()),
+        ] {
+            if value.is_empty() {
+                return Err(ContractShapeError::MalformedOperationLedger {
+                    message: format!("{field} must be non-empty"),
+                });
+            }
+        }
+        if self.retry_policy.max_attempts == 0 {
+            return Err(ContractShapeError::MalformedOperationLedger {
+                message: "retry_policy.max_attempts must be non-zero".to_owned(),
+            });
+        }
+        if !ALLOWED_RETRY_CLASSIFICATIONS.contains(&self.retry_policy.retry_classification.as_str())
+        {
+            return Err(ContractShapeError::MalformedOperationLedger {
+                message: format!(
+                    "retry_policy.retry_classification {:?} is not one of {:?}",
+                    self.retry_policy.retry_classification, ALLOWED_RETRY_CLASSIFICATIONS
+                ),
+            });
+        }
+        if !self.cancellation.audit_required {
+            return Err(ContractShapeError::MalformedOperationLedger {
+                message: "cancellation.audit_required must be true".to_owned(),
+            });
+        }
+        if self.transition_sequence == 0 {
+            return Err(ContractShapeError::MalformedOperationLedger {
+                message: "transition_sequence must be non-zero".to_owned(),
+            });
+        }
+        Ok(())
+    }
+}
+
 /// An AIP-151-shaped operation resource for async mutations. The
 /// constructors enforce the structural invariant `done == result.is_some()`:
 /// a pending operation has no result, a terminal one always has exactly one.
@@ -304,6 +521,7 @@ pub enum OperationResult {
 pub struct Operation {
     pub name: String,                    // data_class: INTERNAL_ONLY
     pub done: bool,                      // data_class: INTERNAL_ONLY
+    pub metadata: OperationLedgerEntry,  // data_class: INTERNAL_ONLY
     pub result: Option<OperationResult>, // data_class: INTERNAL_ONLY
 }
 
@@ -317,11 +535,43 @@ impl Operation {
         }
     }
 
+    fn checked_name_and_ledger(
+        name: impl Into<String>,
+        metadata: &OperationLedgerEntry,
+    ) -> Result<String, ContractShapeError> {
+        let name = Self::checked_name(name)?;
+        metadata.validate()?;
+        let expected = format!("{OPERATION_NAME_PREFIX}{}", metadata.operation_id);
+        if name == expected {
+            Ok(name)
+        } else {
+            Err(ContractShapeError::MalformedOperationLedger {
+                message: format!(
+                    "operation name {name:?} must match ledger operation_id {:?}",
+                    metadata.operation_id
+                ),
+            })
+        }
+    }
+
     /// A still-running operation.
-    pub fn pending(name: impl Into<String>) -> Result<Self, ContractShapeError> {
+    pub fn pending(
+        name: impl Into<String>,
+        metadata: OperationLedgerEntry,
+    ) -> Result<Self, ContractShapeError> {
+        let name = Self::checked_name_and_ledger(name, &metadata)?;
+        if metadata.state.is_terminal() {
+            return Err(ContractShapeError::InvalidOperationState {
+                message: format!(
+                    "pending operation cannot carry terminal state {:?}",
+                    metadata.state
+                ),
+            });
+        }
         Ok(Self {
-            name: Self::checked_name(name)?,
+            name,
             done: false,
+            metadata,
             result: None,
         })
     }
@@ -329,11 +579,22 @@ impl Operation {
     /// A terminal, successful operation.
     pub fn succeeded(
         name: impl Into<String>,
+        metadata: OperationLedgerEntry,
         response: serde_json::Value,
     ) -> Result<Self, ContractShapeError> {
+        let name = Self::checked_name_and_ledger(name, &metadata)?;
+        if metadata.state != OperationState::Succeeded {
+            return Err(ContractShapeError::InvalidOperationState {
+                message: format!(
+                    "successful operation must carry succeeded ledger state, got {:?}",
+                    metadata.state
+                ),
+            });
+        }
         Ok(Self {
-            name: Self::checked_name(name)?,
+            name,
             done: true,
+            metadata,
             result: Some(OperationResult::Response(response)),
         })
     }
@@ -341,11 +602,22 @@ impl Operation {
     /// A terminal, failed operation.
     pub fn failed(
         name: impl Into<String>,
+        metadata: OperationLedgerEntry,
         error: OperationError,
     ) -> Result<Self, ContractShapeError> {
+        let name = Self::checked_name_and_ledger(name, &metadata)?;
+        if !metadata.state.is_terminal() || metadata.state == OperationState::Succeeded {
+            return Err(ContractShapeError::InvalidOperationState {
+                message: format!(
+                    "failed operation must carry failed/cancelled/rolled_back ledger state, got {:?}",
+                    metadata.state
+                ),
+            });
+        }
         Ok(Self {
-            name: Self::checked_name(name)?,
+            name,
             done: true,
+            metadata,
             result: Some(OperationResult::Error(error)),
         })
     }
@@ -353,13 +625,37 @@ impl Operation {
     /// Surface the structural invariant for operations received over the
     /// wire (where constructors were not in control).
     pub fn validate(&self) -> Result<(), ContractShapeError> {
-        Self::checked_name(self.name.clone())?;
-        if self.done == self.result.is_some() {
-            Ok(())
-        } else {
-            Err(ContractShapeError::MalformedOperationName {
-                value: format!("{} (done/result mismatch)", self.name),
-            })
+        Self::checked_name_and_ledger(self.name.clone(), &self.metadata)?;
+        if self.done != self.result.is_some() {
+            return Err(ContractShapeError::InvalidOperationState {
+                message: format!("{} done/result mismatch", self.name),
+            });
+        }
+        if self.done != self.metadata.state.is_terminal() {
+            return Err(ContractShapeError::InvalidOperationState {
+                message: format!(
+                    "{} done flag {:?} disagrees with ledger state {:?}",
+                    self.name, self.done, self.metadata.state
+                ),
+            });
+        }
+        match (&self.result, self.metadata.state) {
+            (Some(OperationResult::Response(_)), OperationState::Succeeded) | (None, _) => Ok(()),
+            (Some(OperationResult::Error(_)), state)
+                if state.is_terminal() && state != OperationState::Succeeded =>
+            {
+                Ok(())
+            }
+            (Some(OperationResult::Response(_)), state) => {
+                Err(ContractShapeError::InvalidOperationState {
+                    message: format!("response result cannot accompany ledger state {state:?}"),
+                })
+            }
+            (Some(OperationResult::Error(_)), state) => {
+                Err(ContractShapeError::InvalidOperationState {
+                    message: format!("error result cannot accompany ledger state {state:?}"),
+                })
+            }
         }
     }
 }
@@ -398,6 +694,12 @@ impl fmt::Display for ProviderError {
 }
 
 impl std::error::Error for ProviderError {}
+
+/// Boxed async result returned by resource-provider ports. The alias keeps the
+/// dependency-free port shape readable while preserving explicit `Future` +
+/// `Pin` semantics at the boundary.
+pub type ProviderFuture<'a, T> =
+    Pin<Box<dyn Future<Output = Result<T, ProviderError>> + Send + 'a>>;
 
 /// How a PUT landed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -450,9 +752,7 @@ pub trait ResourceProvider {
         name: &'a ResourceName,
         resource: Self::Resource,
         idempotency_key: &'a IdempotencyKey,
-    ) -> Pin<
-        Box<dyn Future<Output = Result<CreateOutcome<Self::Resource>, ProviderError>> + Send + 'a>,
-    >;
+    ) -> ProviderFuture<'a, CreateOutcome<Self::Resource>>;
 
     /// Full-replace upsert of `name` (AIP-134). Replays under the same
     /// idempotency key MUST be no-ops returning the original outcome with
@@ -462,24 +762,17 @@ pub trait ResourceProvider {
         name: &'a ResourceName,
         resource: Self::Resource,
         idempotency_key: &'a IdempotencyKey,
-    ) -> Pin<
-        Box<dyn Future<Output = Result<PutOutcome<Self::Resource>, ProviderError>> + Send + 'a>,
-    >;
+    ) -> ProviderFuture<'a, PutOutcome<Self::Resource>>;
 
     /// Read `name`, exactly as last written.
-    fn get<'a>(
-        &'a self,
-        name: &'a ResourceName,
-    ) -> Pin<Box<dyn Future<Output = Result<Self::Resource, ProviderError>> + Send + 'a>>;
+    fn get<'a>(&'a self, name: &'a ResourceName) -> ProviderFuture<'a, Self::Resource>;
 
     /// List a `collection` page in a stable total order.
     fn list<'a>(
         &'a self,
         collection: &'a str,
         request: &'a PageRequest,
-    ) -> Pin<
-        Box<dyn Future<Output = Result<Page<ListEntry<Self::Resource>>, ProviderError>> + Send + 'a>,
-    >;
+    ) -> ProviderFuture<'a, Page<ListEntry<Self::Resource>>>;
 
     /// Async delete of `name`: returns an AIP-151 operation. Replays under
     /// the same idempotency key MUST return the SAME operation resource.
@@ -487,18 +780,52 @@ pub trait ResourceProvider {
         &'a mut self,
         name: &'a ResourceName,
         idempotency_key: &'a IdempotencyKey,
-    ) -> Pin<Box<dyn Future<Output = Result<Operation, ProviderError>> + Send + 'a>>;
+    ) -> ProviderFuture<'a, Operation>;
 
     /// Poll an operation by name. Terminal operations are immutable.
-    fn poll_operation<'a>(
-        &'a mut self,
+    fn poll_operation<'a>(&'a mut self, operation_name: &'a str) -> ProviderFuture<'a, Operation>;
+
+    /// Read the durable operation-ledger row backing an AIP-151 operation.
+    fn operation_ledger_entry<'a>(
+        &'a self,
         operation_name: &'a str,
-    ) -> Pin<Box<dyn Future<Output = Result<Operation, ProviderError>> + Send + 'a>>;
+    ) -> ProviderFuture<'a, OperationLedgerEntry>;
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn operation_ledger(operation_id: &str, state: OperationState) -> OperationLedgerEntry {
+        OperationLedgerEntry {
+            operation_id: operation_id.to_owned(),
+            idempotency_key: "00000000-0000-4000-8000-000000000001".to_owned(),
+            request_hash: format!("fixture-hash:{operation_id}"),
+            resource_orn: "orn:oya:local-test:account-test:documents/documents/doc-1".to_owned(),
+            desired_generation: 2,
+            observed_generation: if state.is_terminal() { 2 } else { 1 },
+            state,
+            phase: OperationPhase::OperationLedger,
+            tenant_account_project: "tenant-test/account-test/project-test".to_owned(),
+            region_cell: "local-test/cell-0001".to_owned(),
+            principal: "principal:test".to_owned(),
+            audit_chain_id: format!("audit-chain/{operation_id}"),
+            retry_policy: RetryPolicy {
+                backoff: "bounded-exponential-jitter".to_owned(),
+                max_attempts: 3,
+                retry_classification: "transient".to_owned(),
+            },
+            cancellation: CancellationMetadata {
+                cancel_safe: true,
+                audit_required: true,
+            },
+            compensation: CompensationMetadata {
+                required: false,
+                strategy: "none".to_owned(),
+            },
+            transition_sequence: 1,
+        }
+    }
 
     #[test]
     fn idempotency_key_accepts_and_normalizes_canonical_uuids() {
@@ -555,17 +882,22 @@ mod tests {
 
     #[test]
     fn operation_constructors_enforce_done_result_coupling() {
-        let pending = Operation::pending("operations/op-1").unwrap();
+        let pending_ledger = operation_ledger("op-1", OperationState::Running);
+        let pending = Operation::pending("operations/op-1", pending_ledger.clone()).unwrap();
         assert!(!pending.done);
         assert!(pending.result.is_none());
+        assert_eq!(pending.metadata, pending_ledger);
         pending.validate().unwrap();
 
-        let ok = Operation::succeeded("operations/op-1", serde_json::json!({})).unwrap();
+        let ok_ledger = operation_ledger("op-1", OperationState::Succeeded);
+        let ok = Operation::succeeded("operations/op-1", ok_ledger, serde_json::json!({})).unwrap();
         assert!(ok.done);
         ok.validate().unwrap();
 
+        let failed_ledger = operation_ledger("op-2", OperationState::Failed);
         let failed = Operation::failed(
             "operations/op-2",
+            failed_ledger,
             OperationError {
                 code: "failed_precondition".to_owned(),
                 message: "resource busy".to_owned(),
@@ -574,14 +906,37 @@ mod tests {
         .unwrap();
         assert!(matches!(failed.result, Some(OperationResult::Error(_))));
 
-        assert!(Operation::pending("op-without-prefix").is_err());
-        assert!(Operation::pending("operations/").is_err());
+        assert!(
+            Operation::pending(
+                "op-without-prefix",
+                operation_ledger("op-without-prefix", OperationState::Running)
+            )
+            .is_err()
+        );
+        assert!(
+            Operation::pending("operations/", operation_ledger("", OperationState::Running))
+                .is_err()
+        );
 
         let forged = Operation {
             name: "operations/op-3".to_owned(),
             done: true,
+            metadata: operation_ledger("op-3", OperationState::Running),
             result: None,
         };
         assert!(forged.validate().is_err());
+    }
+
+    #[test]
+    fn operation_ledger_rejects_unknown_retry_classification() {
+        let mut ledger = operation_ledger("op-1", OperationState::Running);
+        ledger.retry_policy.retry_classification = "eventually".to_owned();
+        let error = ledger.validate().unwrap_err();
+        assert!(
+            error
+                .to_string()
+                .contains("retry_policy.retry_classification"),
+            "{error}"
+        );
     }
 }
