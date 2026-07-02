@@ -5,11 +5,13 @@
 //! functions that call the protocol-neutral API/usecase layer.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use comms_messenger_stream_app::{MessengerAppError, MessengerWritePlan, plan_send_message};
+use std::collections::BTreeMap;
+
 use comms_messenger_stream_api::{
     AuthorizedMessengerContext, MessageReceipt, MessengerApiContext, MessengerApiEnvelope,
     MessengerApiError, SendMessageRequest,
 };
+use comms_messenger_stream_app::{MessengerAppError, MessengerWritePlan, plan_send_message};
 use comms_messenger_stream_usecase::{MessengerUsecaseError, send_message};
 use oya_shared_hyperscaler_metrics_kernel::{
     MetricsContext, MetricsError, RequestTelemetryBinding,
@@ -29,10 +31,275 @@ pub const PROBE_METHOD: &str = "GET";
 
 pub const MESSENGER_REST_MICROSERVICE: &str = "messenger";
 pub const POST_MESSAGE_OPERATION_ID: &str = "messenger.post_message";
+pub const MESSENGER_OTLP_EXPORTER_ENV: &str = "OYA_OTEL_ENDPOINT";
+pub const MESSENGER_DEFAULT_OTLP_ENDPOINT: &str =
+    "http://otel-collector.observability.svc.cluster.local:4317";
+pub const MESSENGER_TRACEPARENT_HEADER: &str = "traceparent";
+pub const MESSENGER_OTLP_PROTOCOL: &str = "otlp/grpc";
+pub const MESSENGER_POST_MESSAGE_TRACE_EVIDENCE_PATH: &str = "runtime://messenger/post-message";
 
 pub fn telemetry_binding() -> Result<RequestTelemetryBinding, MetricsError> {
     let context = MetricsContext::new(MESSENGER_REST_MICROSERVICE)?;
     RequestTelemetryBinding::new(&context, POST_MESSAGE_OPERATION_ID)
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MessengerRuntimeTraceEvidence {
+    pub evidence_path: &'static str,  // data_class: INTERNAL_ONLY
+    pub service_name: &'static str,   // data_class: INTERNAL_ONLY
+    pub method: &'static str,         // data_class: INTERNAL_ONLY
+    pub request_path: String,         // data_class: INTERNAL_ONLY
+    pub route_template: &'static str, // data_class: INTERNAL_ONLY (static template)
+    pub path_captures: BTreeMap<String, String>, // data_class: INTERNAL_ONLY (not labels)
+    pub header_name: &'static str,    // data_class: INTERNAL_ONLY
+    pub traceparent: String,          // data_class: INTERNAL_ONLY
+    pub exporter_env: &'static str,   // data_class: INTERNAL_ONLY
+    pub endpoint: String,             // data_class: INTERNAL_ONLY
+    pub protocol: &'static str,       // data_class: INTERNAL_ONLY
+    pub non_claim: &'static str,      // data_class: INTERNAL_ONLY
+}
+
+impl MessengerRuntimeTraceEvidence {
+    pub fn trace_context_header(&self) -> (&'static str, &str) {
+        (self.header_name, &self.traceparent)
+    }
+
+    pub fn otlp_exporter_env_binding(&self) -> (&'static str, &str) {
+        (self.exporter_env, &self.endpoint)
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum MessengerOtlpTraceExportError {
+    UnsupportedRoute,
+    MissingEndpoint,
+    InvalidOtlpEndpoint,
+    MissingTraceparent,
+    InvalidTraceparent,
+}
+
+pub fn messenger_post_message_runtime_trace_evidence_from_headers(
+    method: &str,
+    request_path: &str,
+    headers: &BTreeMap<String, String>,
+    endpoint: &str,
+) -> Result<MessengerRuntimeTraceEvidence, MessengerOtlpTraceExportError> {
+    let path_captures = post_message_path_captures(method, request_path)?;
+    let traceparent = header_value(headers, MESSENGER_TRACEPARENT_HEADER)
+        .ok_or(MessengerOtlpTraceExportError::MissingTraceparent)?;
+    messenger_post_message_runtime_trace_evidence(
+        request_path,
+        path_captures,
+        traceparent,
+        endpoint,
+    )
+}
+
+pub fn messenger_post_message_runtime_trace_evidence(
+    request_path: &str,
+    path_captures: BTreeMap<String, String>,
+    traceparent: &str,
+    endpoint: &str,
+) -> Result<MessengerRuntimeTraceEvidence, MessengerOtlpTraceExportError> {
+    let endpoint = endpoint.trim();
+    if endpoint.is_empty() {
+        return Err(MessengerOtlpTraceExportError::MissingEndpoint);
+    }
+    if !is_otlp_collector_endpoint(endpoint) {
+        return Err(MessengerOtlpTraceExportError::InvalidOtlpEndpoint);
+    }
+    if traceparent.trim().is_empty() {
+        return Err(MessengerOtlpTraceExportError::MissingTraceparent);
+    }
+    if !is_valid_traceparent(traceparent) {
+        return Err(MessengerOtlpTraceExportError::InvalidTraceparent);
+    }
+    if path_captures != post_message_path_captures(POST_MESSAGE_METHOD, request_path)? {
+        return Err(MessengerOtlpTraceExportError::UnsupportedRoute);
+    }
+
+    Ok(MessengerRuntimeTraceEvidence {
+        evidence_path: MESSENGER_POST_MESSAGE_TRACE_EVIDENCE_PATH,
+        service_name: MESSENGER_REST_MICROSERVICE,
+        method: POST_MESSAGE_METHOD,
+        request_path: request_path.to_string(),
+        route_template: POST_MESSAGE_ROUTE,
+        path_captures,
+        header_name: MESSENGER_TRACEPARENT_HEADER,
+        traceparent: traceparent.to_string(),
+        exporter_env: MESSENGER_OTLP_EXPORTER_ENV,
+        endpoint: endpoint.to_string(),
+        protocol: MESSENGER_OTLP_PROTOCOL,
+        non_claim: "runtime request-path trace/export evidence only; no measured SLO, dashboard, or live collector claim",
+    })
+}
+
+fn post_message_path_captures(
+    method: &str,
+    request_path: &str,
+) -> Result<BTreeMap<String, String>, MessengerOtlpTraceExportError> {
+    if method != POST_MESSAGE_METHOD {
+        return Err(MessengerOtlpTraceExportError::UnsupportedRoute);
+    }
+    let mut parts = request_path.split('/');
+    match (
+        parts.next(),
+        parts.next(),
+        parts.next(),
+        parts.next(),
+        parts.next(),
+    ) {
+        (Some(""), Some("channels"), Some(channel_id), Some("messages"), None)
+            if !channel_id.is_empty() =>
+        {
+            Ok(BTreeMap::from([(
+                "channel_id".to_string(),
+                channel_id.to_string(),
+            )]))
+        }
+        _ => Err(MessengerOtlpTraceExportError::UnsupportedRoute),
+    }
+}
+
+fn header_value<'a>(headers: &'a BTreeMap<String, String>, name: &str) -> Option<&'a str> {
+    headers.get(name).map(String::as_str).or_else(|| {
+        headers
+            .iter()
+            .find(|(candidate, _)| candidate.eq_ignore_ascii_case(name))
+            .map(|(_, value)| value.as_str())
+    })
+}
+
+fn is_otlp_collector_endpoint(endpoint: &str) -> bool {
+    is_allowed_otlp_endpoint_for_protocol(endpoint, MESSENGER_OTLP_PROTOCOL)
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct OtlpEndpointParts<'a> {
+    host: String,
+    port: Option<&'a str>,
+    path: &'a str,
+}
+
+fn is_allowed_otlp_endpoint_for_protocol(endpoint: &str, protocol: &str) -> bool {
+    let Some(parts) = parse_otlp_http_endpoint(endpoint) else {
+        return false;
+    };
+    if !is_allowed_otlp_collector_host(&parts.host) {
+        return false;
+    }
+
+    match protocol {
+        "otlp/grpc" => parts.port == Some("4317") && matches!(parts.path, "" | "/"),
+        "otlp/http" | "otlp/http/protobuf" => {
+            let port_ok = match parts.port {
+                None | Some("4317") | Some("4318") => true,
+                Some(_) => false,
+            };
+            port_ok && parts.path == "/v1/traces"
+        }
+        _ => false,
+    }
+}
+
+fn parse_otlp_http_endpoint(endpoint: &str) -> Option<OtlpEndpointParts<'_>> {
+    let endpoint = endpoint.trim();
+    let endpoint_lower = endpoint.to_ascii_lowercase();
+    let rest = if endpoint_lower.starts_with("http://") {
+        &endpoint["http://".len()..]
+    } else if endpoint_lower.starts_with("https://") {
+        &endpoint["https://".len()..]
+    } else {
+        return None;
+    };
+
+    let authority_end = rest.find(['/', '?', '#']).unwrap_or(rest.len());
+    let authority = &rest[..authority_end];
+    if authority.is_empty()
+        || authority.contains('@')
+        || authority.contains('[')
+        || authority.contains(']')
+    {
+        return None;
+    }
+
+    let suffix = &rest[authority_end..];
+    if suffix.starts_with('?') || suffix.starts_with('#') {
+        return None;
+    }
+    let path_end = suffix.find(['?', '#']).unwrap_or(suffix.len());
+    if path_end != suffix.len() {
+        return None;
+    }
+    let path = &suffix[..path_end];
+
+    let (host, port) = match authority.rsplit_once(':') {
+        Some((host, port))
+            if !host.is_empty()
+                && !port.is_empty()
+                && port.bytes().all(|byte| byte.is_ascii_digit()) =>
+        {
+            (host, Some(port))
+        }
+        Some(_) => return None,
+        None => (authority, None),
+    };
+    let host = host.trim_end_matches('.').to_ascii_lowercase();
+    if host.is_empty() || host.contains(':') {
+        return None;
+    }
+
+    Some(OtlpEndpointParts { host, port, path })
+}
+
+fn is_allowed_otlp_collector_host(host: &str) -> bool {
+    matches!(
+        host,
+        "otel-collector"
+            | "otel-collector.observability"
+            | "otel-collector.observability.svc"
+            | "otel-collector.observability.svc.cluster.local"
+            | "alloy.observability"
+            | "alloy.observability.svc"
+            | "alloy.observability.svc.cluster.local"
+    )
+}
+
+fn is_valid_traceparent(traceparent: &str) -> bool {
+    let mut parts = traceparent.split('-');
+    let Some(version) = parts.next() else {
+        return false;
+    };
+    let Some(trace_id) = parts.next() else {
+        return false;
+    };
+    let Some(parent_id) = parts.next() else {
+        return false;
+    };
+    let Some(flags) = parts.next() else {
+        return false;
+    };
+    if parts.next().is_some() {
+        return false;
+    }
+
+    version == "00"
+        && trace_id.len() == 32
+        && parent_id.len() == 16
+        && flags.len() == 2
+        && is_lowercase_hex(trace_id)
+        && is_lowercase_hex(parent_id)
+        && is_lowercase_hex(flags)
+        && !trace_id.bytes().all(|byte| byte == b'0')
+        && !parent_id.bytes().all(|byte| byte == b'0')
+        && u8::from_str_radix(flags, 16).is_ok()
+}
+
+fn is_lowercase_hex(value: &str) -> bool {
+    !value.is_empty()
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -590,6 +857,13 @@ mod tests {
         }
     }
 
+    fn trace_headers() -> BTreeMap<String, String> {
+        BTreeMap::from([(
+            MESSENGER_TRACEPARENT_HEADER.to_string(),
+            "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01".to_string(),
+        )])
+    }
+
     #[test]
     fn route_matches_openapi_post_message() {
         assert_eq!(POST_MESSAGE_METHOD, "POST");
@@ -613,6 +887,112 @@ mod tests {
             Some(RouteHandlerStatus::Implemented)
         );
         assert!(find_openapi_route("GET", "/ready").is_some());
+    }
+
+    #[test]
+    fn messenger_post_message_runtime_trace_evidence_uses_request_header_and_route_template() {
+        let evidence = messenger_post_message_runtime_trace_evidence_from_headers(
+            POST_MESSAGE_METHOD,
+            "/channels/c/messages",
+            &trace_headers(),
+            MESSENGER_DEFAULT_OTLP_ENDPOINT,
+        )
+        .unwrap();
+
+        assert_eq!(evidence.service_name, MESSENGER_REST_MICROSERVICE);
+        assert_eq!(evidence.method, POST_MESSAGE_METHOD);
+        assert_eq!(evidence.request_path, "/channels/c/messages");
+        assert_eq!(evidence.route_template, POST_MESSAGE_ROUTE);
+        assert_eq!(
+            evidence.path_captures.get("channel_id").map(String::as_str),
+            Some("c")
+        );
+        assert!(!evidence.route_template.contains("/c/"));
+        assert_eq!(
+            evidence.trace_context_header(),
+            (
+                MESSENGER_TRACEPARENT_HEADER,
+                "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+            )
+        );
+        assert_eq!(
+            evidence.otlp_exporter_env_binding(),
+            (MESSENGER_OTLP_EXPORTER_ENV, MESSENGER_DEFAULT_OTLP_ENDPOINT)
+        );
+        assert!(evidence.non_claim.contains("no measured SLO"));
+    }
+
+    #[test]
+    fn messenger_post_message_runtime_trace_evidence_rejects_missing_traceparent() {
+        let result = messenger_post_message_runtime_trace_evidence_from_headers(
+            POST_MESSAGE_METHOD,
+            "/channels/c/messages",
+            &BTreeMap::new(),
+            MESSENGER_DEFAULT_OTLP_ENDPOINT,
+        );
+
+        assert_eq!(
+            result,
+            Err(MessengerOtlpTraceExportError::MissingTraceparent)
+        );
+    }
+
+    #[test]
+    fn messenger_post_message_runtime_trace_evidence_rejects_invalid_traceparent() {
+        let result = messenger_post_message_runtime_trace_evidence_from_headers(
+            POST_MESSAGE_METHOD,
+            "/channels/c/messages",
+            &BTreeMap::from([(
+                MESSENGER_TRACEPARENT_HEADER.to_string(),
+                "00-00000000000000000000000000000000-0000000000000000-00".to_string(),
+            )]),
+            MESSENGER_DEFAULT_OTLP_ENDPOINT,
+        );
+
+        assert_eq!(
+            result,
+            Err(MessengerOtlpTraceExportError::InvalidTraceparent)
+        );
+    }
+
+    #[test]
+    fn messenger_post_message_runtime_trace_evidence_rejects_collector_token_outside_endpoint_host()
+    {
+        let result = messenger_post_message_runtime_trace_evidence_from_headers(
+            POST_MESSAGE_METHOD,
+            "/channels/c/messages",
+            &trace_headers(),
+            "https://telemetry.example.invalid/otel-collector/v1/traces",
+        );
+
+        assert_eq!(
+            result,
+            Err(MessengerOtlpTraceExportError::InvalidOtlpEndpoint)
+        );
+    }
+
+    #[test]
+    fn messenger_post_message_runtime_trace_evidence_rejects_injected_capture_map() {
+        let result = messenger_post_message_runtime_trace_evidence(
+            "/channels/c/messages",
+            BTreeMap::from([("channel_id".into(), "other".into())]),
+            "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+            MESSENGER_DEFAULT_OTLP_ENDPOINT,
+        );
+
+        assert_eq!(result, Err(MessengerOtlpTraceExportError::UnsupportedRoute));
+    }
+
+    #[test]
+    fn messenger_post_message_runtime_trace_evidence_rejects_unmatched_runtime_path() {
+        let result = messenger_post_message_runtime_trace_evidence_from_headers(
+            POST_MESSAGE_METHOD,
+            "/channels/c/messages/m-extra",
+            &trace_headers(),
+            MESSENGER_DEFAULT_OTLP_ENDPOINT,
+        );
+
+        assert_eq!(result, Err(MessengerOtlpTraceExportError::UnsupportedRoute));
     }
 
     #[test]

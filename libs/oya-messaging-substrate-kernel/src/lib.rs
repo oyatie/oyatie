@@ -495,10 +495,7 @@ mod tests {
 
     #[test]
     fn errors_render_diagnostics() {
-        let rendered = MessagingError::TopicSpecMismatch {
-            topic: "t".into(),
-        }
-        .to_string();
+        let rendered = MessagingError::TopicSpecMismatch { topic: "t".into() }.to_string();
         assert!(rendered.contains("conflicting spec"));
     }
 }

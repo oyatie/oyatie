@@ -28,8 +28,8 @@ use std::num::NonZeroU32;
 use std::time::Duration;
 
 use oya_messaging_substrate_kernel::{
-    AckToken, Delivery, LossClass, MessageConsumer, MessageEnvelope, MessageId, MessagingAdmin,
-    MessagingError, MessageProducer, MessagingSubstrate, StreamPosition, SubscriptionName,
+    AckToken, Delivery, LossClass, MessageConsumer, MessageEnvelope, MessageId, MessageProducer,
+    MessagingAdmin, MessagingError, MessagingSubstrate, StreamPosition, SubscriptionName,
     TopicName, TopicSpec,
 };
 
@@ -136,7 +136,8 @@ impl<'a, S: MessagingSubstrate> EventStream<'a, S> {
             SubscriptionName::parse(name).map_err(|_| StreamError::InvalidReaderName {
                 value: name.to_owned(),
             })?;
-        self.substrate.ensure_subscription(&self.topic, &subscription)?;
+        self.substrate
+            .ensure_subscription(&self.topic, &subscription)?;
         Ok(StreamReader {
             substrate: self.substrate,
             topic: self.topic.clone(),
@@ -158,7 +159,9 @@ impl<S: MessagingSubstrate> StreamReader<'_, S> {
     /// # Errors
     /// Propagates substrate receive failures.
     pub fn read(&self, max: NonZeroU32) -> Result<Vec<Delivery>, StreamError> {
-        Ok(self.substrate.receive(&self.topic, &self.subscription, max)?)
+        Ok(self
+            .substrate
+            .receive(&self.topic, &self.subscription, max)?)
     }
 
     /// Commits one record as consumed; the cursor never returns it.
@@ -183,7 +186,9 @@ impl<S: MessagingSubstrate> StreamReader<'_, S> {
     /// # Errors
     /// Propagates substrate seek failures.
     pub fn seek(&self, position: StreamPosition) -> Result<(), StreamError> {
-        Ok(self.substrate.seek(&self.topic, &self.subscription, position)?)
+        Ok(self
+            .substrate
+            .seek(&self.topic, &self.subscription, position)?)
     }
 }
 
@@ -191,8 +196,8 @@ impl<S: MessagingSubstrate> StreamReader<'_, S> {
 mod tests {
     use std::collections::BTreeMap;
 
-    use oya_messaging_substrate_kernel::reference::InMemorySubstrate;
     use oya_messaging_substrate_kernel::MessageKey;
+    use oya_messaging_substrate_kernel::reference::InMemorySubstrate;
 
     use super::*;
 
@@ -215,8 +220,8 @@ mod tests {
     #[test]
     fn append_read_commit_preserves_order() {
         let substrate = InMemorySubstrate::new();
-        let stream = EventStream::bind(&substrate, &StreamName::parse("usage").unwrap(), day())
-            .unwrap();
+        let stream =
+            EventStream::bind(&substrate, &StreamName::parse("usage").unwrap(), day()).unwrap();
         let reader = stream.reader("rater").unwrap();
         for ordinal in 0..3 {
             stream.append(record("tenant-a", ordinal)).unwrap();
@@ -224,7 +229,9 @@ mod tests {
         let mut seen = Vec::new();
         loop {
             let records = reader.read(batch(1)).unwrap();
-            let Some(delivery) = records.first() else { break };
+            let Some(delivery) = records.first() else {
+                break;
+            };
             seen.push(delivery.position);
             reader.commit(&delivery.ack_token).unwrap();
         }
@@ -237,8 +244,8 @@ mod tests {
     #[test]
     fn independent_readers_have_independent_cursors() {
         let substrate = InMemorySubstrate::new();
-        let stream = EventStream::bind(&substrate, &StreamName::parse("usage").unwrap(), day())
-            .unwrap();
+        let stream =
+            EventStream::bind(&substrate, &StreamName::parse("usage").unwrap(), day()).unwrap();
         let rater = stream.reader("rater").unwrap();
         let auditor = stream.reader("auditor").unwrap();
         stream.append(record("tenant-a", 1)).unwrap();
@@ -253,8 +260,8 @@ mod tests {
     #[test]
     fn seek_replays_committed_records() {
         let substrate = InMemorySubstrate::new();
-        let stream = EventStream::bind(&substrate, &StreamName::parse("usage").unwrap(), day())
-            .unwrap();
+        let stream =
+            EventStream::bind(&substrate, &StreamName::parse("usage").unwrap(), day()).unwrap();
         let reader = stream.reader("rater").unwrap();
         for ordinal in 0..2 {
             stream.append(record("tenant-a", ordinal)).unwrap();
