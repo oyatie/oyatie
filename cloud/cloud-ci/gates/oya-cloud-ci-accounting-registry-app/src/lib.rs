@@ -1797,13 +1797,18 @@ mod tests {
                 "neutral gate findings leaked brand literal {needle:?}:\n{neutral_gates_json}"
             );
         }
-        // "Gates present-but-quiet" (ADR-0533 item 1): the gates are PRESENT (the 14 enabled
-        // gates still appear so the engine dispatches every KIND) but QUIET (each gate's code
+        // "Gates present-but-quiet" (ADR-0533 item 1): the gates are PRESENT (every enabled
+        // gate still appears so the engine dispatches every KIND) but QUIET (each gate's code
         // object is empty — the neutral disposition stamps no codes).
         let neutral_gates = neutral_baseline["gates"]
             .as_object()
             .expect("neutral gates object");
-        assert_eq!(neutral_gates.len(), 14, "gates present (all 14 enabled)");
+        let enabled_gate_count = neutral_cfg.gates.enabled.len();
+        assert_eq!(
+            neutral_gates.len(),
+            enabled_gate_count,
+            "gates present (all enabled gates)"
+        );
         for (gate_id, codes) in neutral_gates {
             assert_eq!(
                 codes.as_object().map(|m| m.len()),
