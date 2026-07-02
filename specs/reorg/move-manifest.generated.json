@@ -1,45 +1,33 @@
 {
-  "capability": "iam",
+  "capability": "comms",
   "crate_dirs": [
     {
-      "new_path": "iam/adapters/pdp-cedar",
-      "old_path": "libs/oya-shared-pdp-adapter-cedar"
+      "new_path": "comms/core/calendar-domain",
+      "old_path": "oya/calendar/crates/oya-calendar-domain"
     }
   ],
   "crate_idents": [
     {
-      "new": "iam-pdp-cedar",
-      "old": "oya-shared-pdp-adapter-cedar"
+      "new": "comms-calendar-domain",
+      "old": "oya-calendar-domain"
     }
   ],
   "files": [
     {
-      "new_path": "iam/adapters/pdp-cedar/BUCK",
-      "old_path": "libs/oya-shared-pdp-adapter-cedar/BUCK"
+      "new_path": "comms/core/calendar-domain/BUCK",
+      "old_path": "oya/calendar/crates/oya-calendar-domain/BUCK"
     },
     {
-      "new_path": "iam/adapters/pdp-cedar/Cargo.toml",
-      "old_path": "libs/oya-shared-pdp-adapter-cedar/Cargo.toml"
+      "new_path": "comms/core/calendar-domain/Cargo.toml",
+      "old_path": "oya/calendar/crates/oya-calendar-domain/Cargo.toml"
     },
     {
-      "new_path": "iam/adapters/pdp-cedar/cedar/platform-policies.cedar",
-      "old_path": "libs/oya-shared-pdp-adapter-cedar/cedar/platform-policies.cedar"
+      "new_path": "comms/core/calendar-domain/src/lib.rs",
+      "old_path": "oya/calendar/crates/oya-calendar-domain/src/lib.rs"
     },
     {
-      "new_path": "iam/adapters/pdp-cedar/cedar/platform-templates.cedar",
-      "old_path": "libs/oya-shared-pdp-adapter-cedar/cedar/platform-templates.cedar"
-    },
-    {
-      "new_path": "iam/adapters/pdp-cedar/cedar/platform.cedarschema",
-      "old_path": "libs/oya-shared-pdp-adapter-cedar/cedar/platform.cedarschema"
-    },
-    {
-      "new_path": "iam/adapters/pdp-cedar/src/lib.rs",
-      "old_path": "libs/oya-shared-pdp-adapter-cedar/src/lib.rs"
-    },
-    {
-      "new_path": "iam/adapters/pdp-cedar/tests/cedar_pdp_conformance.rs",
-      "old_path": "libs/oya-shared-pdp-adapter-cedar/tests/cedar_pdp_conformance.rs"
+      "new_path": "registry/catalog/comms-calendar-domain.yaml",
+      "old_path": "registry/catalog/oya-calendar-domain.yaml"
     }
   ],
   "schema": "oya-ci/reorg-move-manifest/v1"
