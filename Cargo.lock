@@ -7152,6 +7152,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-fabric-loop-state-app"
+version = "0.1.0"
+
+[[package]]
 name = "oya-financial-planning-forecast-scenario-app"
 version = "0.1.0"
 dependencies = [
