@@ -210,6 +210,17 @@ substrate; the implementation surface is intentionally limited to:
 - `cloud/cloud-ci/gates/oya-cloud-ci-hyperscaler-parity-taxonomy-app/src/lib.rs`
 - `cloud/cloud-ci/gates/oya-cloud-ci-hyperscaler-parity-taxonomy-app/tests/hyperscaler_parity_taxonomy.rs`
 
+The cloud-resource contracts Rust gate is admitted under the same one-canonical-CI substrate as the
+API/config-shaped replacement for the P0 Python cloud-resource validators. Its intentionally bounded
+surface is:
+
+- `cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app/BUCK`
+- `cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app/Cargo.toml`
+- `cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app/README.md`
+- `cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app/cloud-resource-contracts-policy.json`
+- `cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app/src/lib.rs`
+- `cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app/tests/cloud_resource_contracts.rs`
+
 The run-observability packet/status contract is part of the same single-required-context substrate:
 `specs/cloud-ci-run-observability-packet.schema.json` defines the machine-readable packet,
 `specs/cloud-ci-run-observability-status.schema.json` defines the separately serialized status/query
