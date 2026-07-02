@@ -1135,6 +1135,13 @@
       "migration_phase": "root-hub-covered-2026-05-20",
       "purpose": "DR + business-continuity canonical schema"
     },
+    "spec_fabric_drive_loop_state": {
+      "current_path": "/specs/fabric-drive-loop-state.json",
+      "kind": "spec",
+      "migration_phase": "root-hub-covered-2026-07-02-fabric-loop",
+      "conflict_class": "repo-governance-specs-docs",
+      "purpose": "ADR-0516 fabric two-plane drive-loop state port contract: durable in-repo coordination plane + gitignored repo-adjacent execution plane behind CoordinationPlanePort/ExecutionPlanePort, with the named owned cloud-ci cutover target oya-cloud-ci-loop-state-service and its bridge-then-retire criteria. Verified by port-level tests in tools/oya-fabric-loop-state-app; on-demand read, never a mandatory entry surface."
+    },
     "spec_feature_flag_substrate_canonical": {
       "current_path": "/specs/feature-flag-substrate-canonical.json",
       "kind": "spec",

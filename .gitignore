@@ -54,6 +54,13 @@ evidence/oci-readiness/a1-capacity-retry.log
 # Transient test output
 test-results/
 
+# ADR-0516 fabric drive-loop OPERATIONAL (execution) plane — repo-adjacent
+# claim/heartbeat/run state per specs/fabric-drive-loop-state.json. Never
+# committed: the durable coordination plane (plan/fabric-loop/) is the only
+# PR-governed loop-state surface; this root is a local bridge store behind
+# ExecutionPlanePort until the oya-cloud-ci-loop-state-service cutover.
+/.oya-loop-state/
+
 # Generated outputs default to untracked. Public/productized generated
 # artifacts that must be committed are force-added intentionally and declared in
 # registry/generated-artifact-control-plane.json, where cloud-ci enforces owner,
