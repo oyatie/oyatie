@@ -171,10 +171,98 @@ fn header_value<'a>(headers: &'a BTreeMap<String, String>, name: &str) -> Option
 }
 
 fn is_otlp_collector_endpoint(endpoint: &str) -> bool {
-    let lower = endpoint.to_ascii_lowercase();
-    (lower.starts_with("http://") || lower.starts_with("https://"))
-        && (lower.contains("otel-collector") || lower.contains("alloy.observability"))
-        && (lower.ends_with(":4317") || lower.contains(":4317/") || lower.contains("/v1/traces"))
+    is_allowed_otlp_endpoint_for_protocol(endpoint, MESSENGER_OTLP_PROTOCOL)
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct OtlpEndpointParts<'a> {
+    host: String,
+    port: Option<&'a str>,
+    path: &'a str,
+}
+
+fn is_allowed_otlp_endpoint_for_protocol(endpoint: &str, protocol: &str) -> bool {
+    let Some(parts) = parse_otlp_http_endpoint(endpoint) else {
+        return false;
+    };
+    if !is_allowed_otlp_collector_host(&parts.host) {
+        return false;
+    }
+
+    match protocol {
+        "otlp/grpc" => parts.port == Some("4317") && matches!(parts.path, "" | "/"),
+        "otlp/http" | "otlp/http/protobuf" => {
+            let port_ok = match parts.port {
+                None | Some("4317") | Some("4318") => true,
+                Some(_) => false,
+            };
+            port_ok && parts.path == "/v1/traces"
+        }
+        _ => false,
+    }
+}
+
+fn parse_otlp_http_endpoint(endpoint: &str) -> Option<OtlpEndpointParts<'_>> {
+    let endpoint = endpoint.trim();
+    let endpoint_lower = endpoint.to_ascii_lowercase();
+    let rest = if endpoint_lower.starts_with("http://") {
+        &endpoint["http://".len()..]
+    } else if endpoint_lower.starts_with("https://") {
+        &endpoint["https://".len()..]
+    } else {
+        return None;
+    };
+
+    let authority_end = rest.find(['/', '?', '#']).unwrap_or(rest.len());
+    let authority = &rest[..authority_end];
+    if authority.is_empty()
+        || authority.contains('@')
+        || authority.contains('[')
+        || authority.contains(']')
+    {
+        return None;
+    }
+
+    let suffix = &rest[authority_end..];
+    if suffix.starts_with('?') || suffix.starts_with('#') {
+        return None;
+    }
+    let path_end = suffix.find(['?', '#']).unwrap_or(suffix.len());
+    if path_end != suffix.len() {
+        return None;
+    }
+    let path = &suffix[..path_end];
+
+    let (host, port) = match authority.rsplit_once(':') {
+        Some((host, port))
+            if !host.is_empty()
+                && !port.is_empty()
+                && port.bytes().all(|byte| byte.is_ascii_digit()) =>
+        {
+            (host, Some(port))
+        }
+        Some(_) => return None,
+        None => (authority, None),
+    };
+    let host = host.trim_end_matches('.').to_ascii_lowercase();
+    if host.is_empty() || host.contains(':') {
+        return None;
+    }
+
+    Some(OtlpEndpointParts { host, port, path })
+}
+
+fn is_allowed_otlp_collector_host(host: &str) -> bool {
+    matches!(
+        host,
+        "otel-collector"
+            | "otel-collector.observability"
+            | "otel-collector.observability.svc"
+            | "otel-collector.observability.svc.cluster.local"
+            | "alloy.observability"
+            | "alloy.observability.svc"
+            | "alloy.observability.svc.cluster.local"
+    )
 }
 
 fn is_valid_traceparent(traceparent: &str) -> bool {
@@ -864,6 +952,22 @@ mod tests {
         assert_eq!(
             result,
             Err(MessengerOtlpTraceExportError::InvalidTraceparent)
+        );
+    }
+
+    #[test]
+    fn messenger_post_message_runtime_trace_evidence_rejects_collector_token_outside_endpoint_host()
+    {
+        let result = messenger_post_message_runtime_trace_evidence_from_headers(
+            POST_MESSAGE_METHOD,
+            "/channels/c/messages",
+            &trace_headers(),
+            "https://telemetry.example.invalid/otel-collector/v1/traces",
+        );
+
+        assert_eq!(
+            result,
+            Err(MessengerOtlpTraceExportError::InvalidOtlpEndpoint)
         );
     }
 
