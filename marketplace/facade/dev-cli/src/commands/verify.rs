@@ -21,6 +21,8 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode, ExitStatus, Stdio};
 use std::time::Instant;
 
+use crate::terminal_verifier_harness::{parse_terminal_evidence_args, run_terminal_evidence};
+
 use super::gate;
 
 const MANDATORY_TOTAL: usize = 5;
@@ -106,6 +108,9 @@ struct VerifyInvalid {
 }
 
 pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
+    if args.iter().any(|arg| arg == "--terminal-evidence") {
+        return run_terminal_evidence_entry(args, usage);
+    }
     if let Some(pos) = args.iter().position(|arg| arg == "--from-results") {
         return run_from_results(args.get(pos + 1).map(String::as_str), usage);
     }
@@ -131,6 +136,26 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
 
     match run_ci_required_mirror(args) {
         Ok(exit) => exit,
+        Err(error) => {
+            eprintln!("{}", error.message);
+            ExitCode::from(2)
+        }
+    }
+}
+
+fn run_terminal_evidence_entry(args: Vec<String>, usage: &str) -> ExitCode {
+    let args = match parse_terminal_evidence_args(args, usage) {
+        Ok(args) => args,
+        Err(error) => {
+            eprintln!("{}", error.message);
+            return ExitCode::from(2);
+        }
+    };
+    match run_terminal_evidence(args) {
+        Ok(run) => {
+            println!("{}", run.stdout_json);
+            run.exit
+        }
         Err(error) => {
             eprintln!("{}", error.message);
             ExitCode::from(2)
