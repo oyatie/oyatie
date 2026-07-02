@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use oya_cloud_ci_cross_artifact_agreement_app::{
-    Verdict, derive_masterplan_md_projection, evaluate,
+    Verdict, compute_masterplan_v2_sequencing_digest, derive_masterplan_md_projection, evaluate,
     evaluate_masterplan_plan_evidence_crosscheck, evaluate_masterplan_projection_rederivation,
     evaluate_masterplan_read_surface_resurrections, evaluate_masterplan_v2_authority,
     evaluate_masterplan_v2_entry_surfaces, evaluate_masterplan_v2_evidence_state,
@@ -998,6 +998,30 @@ fn masterplan_v2_sequencing_is_zero_based_and_founder_ratification_recorded() {
     assert!(
         root.join(decision_ref).is_file(),
         "founder_ratification.decision_ref must resolve to a durable evidence record: {decision_ref}"
+    );
+    // The sequencing identity must be embedded, versioned, and byte-stable: the
+    // digest recomputed from the live DAG + waves + order must equal BOTH the
+    // embedded sequencing_hash and the founder-ratified digest, so ratification
+    // and gates reference one stable content identity.
+    let identity = &masterplan["masterplan_v2"]["sequencing"]["sequencing_identity"];
+    let recomputed = compute_masterplan_v2_sequencing_digest(&masterplan["masterplan_v2"])
+        .expect("live masterplan v2 sequencing content must hash");
+    assert_eq!(
+        identity["sequencing_hash"].as_str(),
+        Some(recomputed.as_str()),
+        "sequencing_identity.sequencing_hash must equal the digest recomputed from live content"
+    );
+    assert!(
+        identity["sequencing_version"]
+            .as_u64()
+            .is_some_and(|version| version >= 1),
+        "sequencing_identity.sequencing_version must be a monotonic integer >= 1"
+    );
+    assert_eq!(
+        ratification["ratified_sequencing_digest"].as_str(),
+        Some(recomputed.as_str()),
+        "founder ratification must bind to the live sequencing digest; a mismatch means the \
+         ratified content mutated and a fresh derivation + ratification are required"
     );
 
     // Fail-closed dispatch contract survives ratification: dispatch without a founder

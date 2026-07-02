@@ -173,6 +173,19 @@
       "index_base": 1,
       "legacy_order_imported": true,
       "derivation_evidence_refs": [],
+      "sequencing_identity": {
+        "sequencing_version": 1,
+        "sequencing_hash": "sha256:d4302a4b3f93011303359154659edb9e628391242a0c43dd55174fb052e2cbe6",
+        "hash_recipe": "sha256 over canonical JSON (sorted keys, separators ',' ':') of {\"dependency_edges\": sorted [from, to] pairs, \"execution_waves\": wave work_item_ids arrays in wave order, \"work_item_order\": work_item_id strings in index order}",
+        "hash_scope": [
+          "masterplan_v2.dependency_edges (sorted [from, to] pairs)",
+          "masterplan_v2.sequencing.execution_waves[].work_item_ids (wave order)",
+          "masterplan_v2.sequencing.work_item_order[].work_item_id (index order)"
+        ],
+        "purpose": "Stable content identity for the zero-based re-derived sequencing. Downstream founder ratification binds via founder_ratification.ratified_sequencing_digest == sequencing_hash, and the cross-artifact gate recomputes this digest from live content on every run; drift fails closed as masterplan_sequencing_invalid.",
+        "validator": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#compute_masterplan_v2_sequencing_digest",
+        "version_rule": "sequencing_version is a monotonic integer starting at 1; every fresh re-derivation that changes sequencing_hash increments it by exactly 1."
+      },
       "work_item_order": [
         {
           "index": 1,

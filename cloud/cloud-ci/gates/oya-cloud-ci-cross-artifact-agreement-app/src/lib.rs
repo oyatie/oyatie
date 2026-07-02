@@ -89,9 +89,14 @@
 //!   superseded entrypoint.
 //!
 //! - `masterplan_sequencing_invalid` — masterplan v2 lacks a fully
-//!   zero-based, DAG-derived sequencing projection over every live work item.
+//!   zero-based, DAG-derived sequencing projection over every live work item,
+//!   or its embedded `sequencing_identity` (stable content hash + monotonic
+//!   version) is missing, unversioned, recipe-drifted, or disagrees with the
+//!   digest recomputed from the live DAG + order + waves.
 //! - `masterplan_execution_wave_dispatch_unratified` — execution-wave dispatch
-//!   is not fail-closed on an explicit founder-ratification decision.
+//!   is not fail-closed on an explicit founder-ratification decision, or a
+//!   recorded ratification no longer binds to the recomputed sequencing
+//!   digest (content mutated after ratification voids the decision).
 //!
 //! The evaluator is pure: the fixture (data-under-test) drives it; there are no scanner
 //! special-cases. Carve-outs/exceptions live as DATA, never as evaluator branches.
@@ -102,6 +107,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use serde_json::Value;
+use sha2::{Digest, Sha256};
 
 mod plan_evidence_crosscheck;
 mod projection_rederivation;
@@ -128,6 +134,10 @@ const CROSS_PROGRAM_EDGE_SEMANTICS: &str =
 const MANIFEST_INDEX_REF: &str = "/specs/microservices/manifests-index.json";
 const SEQUENCING_SOURCE_OF_TRUTH: &str = "/specs/masterplan.json#masterplan_v2.dependency_edges";
 const SEQUENCING_DERIVATION_MODE: &str = "zero-based-rederived-from-masterplan-v2-dependency-dag";
+/// The pinned digest recipe for `masterplan_v2.sequencing.sequencing_identity.sequencing_hash`
+/// and `founder_ratification.ratified_sequencing_digest`. `compute_masterplan_v2_sequencing_digest`
+/// is the executable form of this sentence; the two must never drift.
+const SEQUENCING_HASH_RECIPE: &str = "sha256 over canonical JSON (sorted keys, separators ',' ':') of {\"dependency_edges\": sorted [from, to] pairs, \"execution_waves\": wave work_item_ids arrays in wave order, \"work_item_order\": work_item_id strings in index order}";
 const DISPATCH_BLOCKED_STATE: &str = "blocked";
 const DISPATCH_BLOCKED_REASON: &str = "pending_founder_ratification";
 const CLAIMED_DONE_UNVERIFIED_STATE: &str = "claimed-done-unverified";
@@ -1592,9 +1602,11 @@ pub fn evaluate_masterplan_v2_program_coverage(
 /// Evaluate the masterplan v2 sequencing/dispatch guard.
 ///
 /// This is the Sub-AC 4 guard: sequencing must be re-derived from the MPV2 DAG,
-/// all order and execution-wave indices must be zero-based and contiguous, and
-/// execution-wave dispatch must stay fail-closed until a founder-ratification
-/// decision is recorded.
+/// all order and execution-wave indices must be zero-based and contiguous,
+/// the embedded `sequencing_identity` hash/version must byte-agree with the
+/// digest recomputed from the live content, and execution-wave dispatch must
+/// stay fail-closed until a founder-ratification decision is recorded that
+/// binds to that same digest.
 pub fn evaluate_masterplan_v2_sequencing(masterplan: &Value) -> BTreeSet<Finding> {
     let mut findings = BTreeSet::new();
 
@@ -1674,7 +1686,31 @@ pub fn evaluate_masterplan_v2_sequencing(masterplan: &Value) -> BTreeSet<Finding
         &mut findings,
     );
 
-    let founder_ratified = founder_ratification_recorded(sequencing.get("founder_ratification"));
+    let computed_digest = compute_masterplan_v2_sequencing_digest(
+        masterplan.get("masterplan_v2").unwrap_or(&Value::Null),
+    );
+    evaluate_sequencing_identity(
+        sequencing.get("sequencing_identity"),
+        computed_digest.as_deref(),
+        &mut findings,
+    );
+
+    let ratification = sequencing.get("founder_ratification");
+    let record_ratified = founder_ratification_recorded(ratification);
+    let digest_bound = ratification
+        .and_then(|record| record.get("ratified_sequencing_digest"))
+        .and_then(Value::as_str)
+        .is_some_and(|digest| computed_digest.as_deref() == Some(digest));
+    if record_ratified && !digest_bound {
+        // The invalidation rule, mechanized: a ratification decision binds only
+        // to the exact sequencing content it approved. A missing or stale
+        // ratified_sequencing_digest voids the decision and dispatch stays closed.
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.founder_ratification.ratified_sequencing_digest",
+        ));
+    }
+    let founder_ratified = record_ratified && digest_bound;
     if !founder_ratified {
         findings.insert(Finding::new(
             "masterplan_execution_wave_dispatch_unratified",
@@ -1688,6 +1724,133 @@ pub fn evaluate_masterplan_v2_sequencing(masterplan: &Value) -> BTreeSet<Finding
     );
 
     findings
+}
+
+/// Compute the stable sequencing content digest for `masterplan_v2` — the
+/// executable form of `SEQUENCING_HASH_RECIPE`.
+///
+/// The digest covers exactly the ratifiable sequencing content: the dependency
+/// DAG edges (as sorted `[from, to]` pairs), the execution-wave `work_item_ids`
+/// arrays in wave order, and the `work_item_order` ids in index order. Identity
+/// metadata, ratification records, and dispatch state are deliberately OUTSIDE
+/// the hash scope so recording a ratification never invalidates itself.
+///
+/// Returns `None` when the sequencing content is structurally malformed
+/// (missing/ill-typed edges, waves, or order entries); callers fail closed on
+/// `None`.
+pub fn compute_masterplan_v2_sequencing_digest(masterplan_v2: &Value) -> Option<String> {
+    let edges = masterplan_v2.get("dependency_edges")?.as_array()?;
+    let sequencing = masterplan_v2.get("sequencing")?.as_object()?;
+
+    let mut edge_pairs = Vec::with_capacity(edges.len());
+    for edge in edges {
+        let from = edge.get("from")?.as_str()?;
+        let to = edge.get("to")?.as_str()?;
+        edge_pairs.push((from.to_owned(), to.to_owned()));
+    }
+    edge_pairs.sort();
+
+    let mut waves = Vec::new();
+    for wave in sequencing.get("execution_waves")?.as_array()? {
+        let ids = wave.get("work_item_ids")?.as_array()?;
+        let mut wave_ids = Vec::with_capacity(ids.len());
+        for id in ids {
+            wave_ids.push(id.as_str()?.to_owned());
+        }
+        waves.push(wave_ids);
+    }
+
+    let mut order = Vec::new();
+    for entry in sequencing.get("work_item_order")?.as_array()? {
+        order.push(entry.get("work_item_id")?.as_str()?.to_owned());
+    }
+
+    // Canonical JSON is built by hand so the byte stream is deterministic and
+    // library-feature-independent: object keys in sorted order, compact ','/':'
+    // separators, standard JSON string escaping.
+    let mut canonical = String::from("{\"dependency_edges\":[");
+    for (index, (from, to)) in edge_pairs.iter().enumerate() {
+        if index > 0 {
+            canonical.push(',');
+        }
+        canonical.push('[');
+        canonical.push_str(&canonical_json_string(from));
+        canonical.push(',');
+        canonical.push_str(&canonical_json_string(to));
+        canonical.push(']');
+    }
+    canonical.push_str("],\"execution_waves\":[");
+    for (index, wave_ids) in waves.iter().enumerate() {
+        if index > 0 {
+            canonical.push(',');
+        }
+        canonical.push('[');
+        for (id_index, id) in wave_ids.iter().enumerate() {
+            if id_index > 0 {
+                canonical.push(',');
+            }
+            canonical.push_str(&canonical_json_string(id));
+        }
+        canonical.push(']');
+    }
+    canonical.push_str("],\"work_item_order\":[");
+    for (index, id) in order.iter().enumerate() {
+        if index > 0 {
+            canonical.push(',');
+        }
+        canonical.push_str(&canonical_json_string(id));
+    }
+    canonical.push_str("]}");
+
+    Some(format!("sha256:{:x}", Sha256::digest(canonical.as_bytes())))
+}
+
+/// Serialize one string as a JSON string literal (compact, standard escaping).
+/// `Value::to_string` renders via `Display`, which is infallible for strings.
+fn canonical_json_string(value: &str) -> String {
+    Value::String(value.to_owned()).to_string()
+}
+
+/// Require the embedded `sequencing_identity` block: a monotonic version >= 1,
+/// the pinned hash recipe, and a `sequencing_hash` that byte-agrees with the
+/// digest recomputed from the live sequencing content. A tampered, missing, or
+/// stale identity fails closed — including when the content itself is too
+/// malformed to hash (`computed_digest == None`).
+fn evaluate_sequencing_identity(
+    sequencing_identity: Option<&Value>,
+    computed_digest: Option<&str>,
+    findings: &mut BTreeSet<Finding>,
+) {
+    let Some(identity) = sequencing_identity.and_then(Value::as_object) else {
+        findings.insert(Finding::new(
+            "masterplan_sequencing_invalid",
+            "masterplan_v2.sequencing.sequencing_identity",
+        ));
+        return;
+    };
+    if identity
+        .get("sequencing_version")
+        .and_then(Value::as_u64)
+        .is_none_or(|version| version < 1)
+    {
+        findings.insert(Finding::new(
+            "masterplan_sequencing_invalid",
+            "masterplan_v2.sequencing.sequencing_identity.sequencing_version",
+        ));
+    }
+    if identity.get("hash_recipe").and_then(Value::as_str) != Some(SEQUENCING_HASH_RECIPE) {
+        findings.insert(Finding::new(
+            "masterplan_sequencing_invalid",
+            "masterplan_v2.sequencing.sequencing_identity.hash_recipe",
+        ));
+    }
+    let embedded_hash = identity.get("sequencing_hash").and_then(Value::as_str);
+    if embedded_hash.is_none() || embedded_hash != computed_digest {
+        findings.insert(Finding::new(
+            "masterplan_sequencing_invalid",
+            "masterplan_v2.sequencing.sequencing_identity.sequencing_hash",
+        ));
+    }
 }
 
 fn masterplan_sequence_work_item_ids(work_items: Option<&Value>) -> BTreeSet<String> {
@@ -4893,6 +5056,7 @@ mod tests {
         execution_wave_dispatch: Value,
     ) -> Value {
         let mut masterplan = minimal_masterplan_v2();
+        let mut founder_ratification = founder_ratification;
         masterplan["masterplan_v2"]["sequencing"] = json!({
             "derivation_mode": SEQUENCING_DERIVATION_MODE,
             "source_of_truth": SEQUENCING_SOURCE_OF_TRUTH,
@@ -4909,10 +5073,46 @@ mod tests {
                 {"wave_index": 0, "work_item_ids": ["MPV2-0000"]},
                 {"wave_index": 1, "work_item_ids": ["MPV2-0001"]}
             ],
-            "founder_ratification": founder_ratification,
-            "execution_wave_dispatch": execution_wave_dispatch,
         });
+        let digest = compute_masterplan_v2_sequencing_digest(&masterplan["masterplan_v2"])
+            .expect("minimal fixture sequencing content must hash");
+        masterplan["masterplan_v2"]["sequencing"]["sequencing_identity"] = json!({
+            "sequencing_version": 1,
+            "sequencing_hash": digest,
+            "hash_recipe": SEQUENCING_HASH_RECIPE,
+        });
+        // A genuine ratification decision binds to the digest of the content it
+        // approved; mirror that in the fixture unless the test overrides it.
+        if founder_ratification
+            .get("decision_recorded")
+            .and_then(Value::as_bool)
+            == Some(true)
+            && founder_ratification
+                .get("ratified_sequencing_digest")
+                .is_none()
+        {
+            founder_ratification["ratified_sequencing_digest"] = json!(digest);
+        }
+        masterplan["masterplan_v2"]["sequencing"]["founder_ratification"] = founder_ratification;
+        masterplan["masterplan_v2"]["sequencing"]["execution_wave_dispatch"] =
+            execution_wave_dispatch;
         masterplan
+    }
+    fn minimal_ratified_sequenced_masterplan() -> Value {
+        minimal_sequenced_masterplan(
+            json!({
+                "decision_recorded": true,
+                "decision_status": "ratified",
+                "approved_by": "founder",
+                "recorded_at": "2026-07-02T00:00:00Z",
+                "decision_ref": "evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json"
+            }),
+            json!({
+                "requires_founder_ratification": true,
+                "allowed_without_founder_ratification": false,
+                "state": "ratified-awaiting-dispatch"
+            }),
+        )
     }
     #[test]
     fn masterplan_v2_sequencing_pending_founder_stays_fail_closed() {
@@ -4978,24 +5178,118 @@ mod tests {
     }
     #[test]
     fn masterplan_v2_sequencing_accepts_recorded_founder_ratification() {
-        let ratified = minimal_sequenced_masterplan(
-            json!({
-                "decision_recorded": true,
-                "decision_status": "ratified",
-                "approved_by": "founder",
-                "recorded_at": "2026-07-02T00:00:00Z",
-                "decision_ref": "evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json"
-            }),
-            json!({
-                "requires_founder_ratification": true,
-                "allowed_without_founder_ratification": false,
-                "state": "ratified-awaiting-dispatch"
-            }),
-        );
+        let ratified = minimal_ratified_sequenced_masterplan();
         let findings = evaluate_masterplan_v2_sequencing(&ratified);
         assert!(
             findings.is_empty(),
             "a recorded founder ratification with fail-closed dispatch flags must be green: {findings:?}"
+        );
+    }
+    #[test]
+    fn masterplan_v2_sequencing_identity_is_required_and_tamper_evident() {
+        let good = minimal_ratified_sequenced_masterplan();
+        assert!(
+            evaluate_masterplan_v2_sequencing(&good).is_empty(),
+            "identity-carrying ratified baseline must be green"
+        );
+
+        // Missing identity block fails closed.
+        let mut missing = good.clone();
+        missing["masterplan_v2"]["sequencing"]
+            .as_object_mut()
+            .unwrap()
+            .remove("sequencing_identity");
+        assert!(
+            evaluate_masterplan_v2_sequencing(&missing).contains(&Finding::new(
+                "masterplan_sequencing_invalid",
+                "masterplan_v2.sequencing.sequencing_identity"
+            ))
+        );
+
+        // A tampered hash is a violation even when everything else agrees.
+        let mut tampered = good.clone();
+        tampered["masterplan_v2"]["sequencing"]["sequencing_identity"]["sequencing_hash"] =
+            json!("sha256:0000000000000000000000000000000000000000000000000000000000000000");
+        assert!(
+            evaluate_masterplan_v2_sequencing(&tampered).contains(&Finding::new(
+                "masterplan_sequencing_invalid",
+                "masterplan_v2.sequencing.sequencing_identity.sequencing_hash"
+            ))
+        );
+
+        // Versions start at 1; zero/absent versions are violations.
+        let mut unversioned = good.clone();
+        unversioned["masterplan_v2"]["sequencing"]["sequencing_identity"]["sequencing_version"] =
+            json!(0);
+        assert!(
+            evaluate_masterplan_v2_sequencing(&unversioned).contains(&Finding::new(
+                "masterplan_sequencing_invalid",
+                "masterplan_v2.sequencing.sequencing_identity.sequencing_version"
+            ))
+        );
+
+        // The digest recipe is pinned; drift is a violation.
+        let mut recipe_drift = good.clone();
+        recipe_drift["masterplan_v2"]["sequencing"]["sequencing_identity"]["hash_recipe"] =
+            json!("md5 of whatever");
+        assert!(
+            evaluate_masterplan_v2_sequencing(&recipe_drift).contains(&Finding::new(
+                "masterplan_sequencing_invalid",
+                "masterplan_v2.sequencing.sequencing_identity.hash_recipe"
+            ))
+        );
+    }
+    #[test]
+    fn masterplan_v2_sequencing_content_mutation_voids_founder_ratification() {
+        // The invalidation rule, mechanized: mutating ratified sequencing content
+        // (here: swapping the wave membership) changes the recomputed digest, so
+        // BOTH the embedded identity hash and the ratified digest go stale and
+        // dispatch falls closed again.
+        let mut mutated = minimal_ratified_sequenced_masterplan();
+        mutated["masterplan_v2"]["sequencing"]["execution_waves"] = json!([
+            {"wave_index": 0, "work_item_ids": ["MPV2-0001"]},
+            {"wave_index": 1, "work_item_ids": ["MPV2-0000"]}
+        ]);
+        let findings = evaluate_masterplan_v2_sequencing(&mutated);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_sequencing_invalid",
+            "masterplan_v2.sequencing.sequencing_identity.sequencing_hash"
+        )));
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.founder_ratification.ratified_sequencing_digest"
+        )));
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.founder_ratification"
+        )));
+
+        // A ratification record that never bound to a digest is equally void.
+        let mut unbound = minimal_ratified_sequenced_masterplan();
+        unbound["masterplan_v2"]["sequencing"]["founder_ratification"]
+            .as_object_mut()
+            .unwrap()
+            .remove("ratified_sequencing_digest");
+        let findings = evaluate_masterplan_v2_sequencing(&unbound);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.founder_ratification.ratified_sequencing_digest"
+        )));
+    }
+    #[test]
+    fn masterplan_v2_sequencing_digest_matches_pinned_recipe_vector() {
+        // Frozen cross-implementation vector: the same payload hashed with the
+        // documented recipe (canonical JSON, sorted keys, ',' ':' separators)
+        // must produce this digest in ANY implementation of the recipe.
+        let masterplan = minimal_ratified_sequenced_masterplan();
+        let digest = compute_masterplan_v2_sequencing_digest(&masterplan["masterplan_v2"])
+            .expect("fixture content must hash");
+        // Payload: {"dependency_edges":[["MPV2-0000","MPV2-0001"]],
+        //           "execution_waves":[["MPV2-0000"],["MPV2-0001"]],
+        //           "work_item_order":["MPV2-0000","MPV2-0001"]}
+        assert_eq!(
+            digest, "sha256:b8e44b41bef2dcdea05deec44a22905ac24154494ae229f43aacd2fe078e731d",
+            "sequencing digest must stay byte-stable across implementations"
         );
     }
     fn minimal_program_coverage_masterplan() -> Value {
