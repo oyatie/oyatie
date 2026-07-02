@@ -1741,6 +1741,16 @@ impl FsFlowMetricsStore {
                     "foreign file in flow-metrics ledger: {id}.json"
                 )));
             };
+            // Fail closed: only the canonical zero-padded 20-digit filename
+            // (`pass-{seq:020}.json`, exactly as written by `pass_path`) may
+            // influence the ledger head. A non-canonical numeric name (e.g.
+            // `pass-7.json`) would bump the monotonic head while its content
+            // stays invisible to `pass()` / `passes()`.
+            if format!("pass-{seq:020}") != id {
+                return Err(PlaneError::Corrupt(format!(
+                    "non-canonical pass filename in flow-metrics ledger: {id}.json"
+                )));
+            }
             seqs.push(seq);
         }
         seqs.sort_unstable();

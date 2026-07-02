@@ -688,6 +688,55 @@ fn flow_metrics_are_recorded_and_persisted_across_passes() {
     ));
 }
 
+#[test]
+fn non_canonical_pass_filenames_are_refused_fail_closed() {
+    let root = scratch_dir("flow-metrics-non-canonical");
+
+    // Seed one canonical pass so the ledger head exists, then verify the
+    // canonical file written by record_pass round-trips exactly.
+    let mut store = FsFlowMetricsStore::open(&root);
+    store
+        .record_pass(&PassFlowMetrics {
+            pass_seq: 1,
+            recorded_at_epoch_s: 1_780_000_000,
+            cards: Vec::new(),
+        })
+        .unwrap();
+    assert!(
+        root.join("passes")
+            .join(format!("pass-{:020}.json", 1))
+            .is_file(),
+        "record_pass writes the canonical zero-padded 20-digit path"
+    );
+    assert_eq!(store.pass(1).unwrap().unwrap().pass_seq, 1);
+    assert_eq!(store.passes().unwrap().len(), 1);
+
+    // A non-canonical numeric filename (`pass-7.json`) would bump the
+    // monotonic head in record_pass while pass()/passes() only read the
+    // canonical zero-padded path — so it MUST be refused fail-closed, never
+    // silently admitted into the sequence.
+    std::fs::write(root.join("passes").join("pass-7.json"), "{}").unwrap();
+    assert!(matches!(
+        store.passes(),
+        Err(PlaneError::Corrupt(detail)) if detail.contains("pass-7")
+    ));
+    assert!(matches!(
+        store.record_pass(&PassFlowMetrics {
+            pass_seq: 2,
+            recorded_at_epoch_s: 1_780_000_100,
+            cards: Vec::new(),
+        }),
+        Err(PlaneError::Corrupt(detail)) if detail.contains("pass-7")
+    ));
+
+    // Removing the planted file restores the ledger, and the canonical
+    // record still round-trips with full content.
+    std::fs::remove_file(root.join("passes").join("pass-7.json")).unwrap();
+    let restored = store.pass(1).unwrap().expect("canonical pass survives");
+    assert_eq!(restored.recorded_at_epoch_s, 1_780_000_000);
+    assert!(restored.cards.is_empty());
+}
+
 /// The mechanical lane-disjointness detector (path/ownership-overlap) is the
 /// sole decider of what runs concurrently: disjoint declared surfaces verdict
 /// `disjoint` pre-flight and re-verdict `disjoint` post-run over actual
