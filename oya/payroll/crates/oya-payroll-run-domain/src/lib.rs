@@ -30,6 +30,15 @@ const LEAVE_REQUEST_ID_PREFIX: &str = "leave_";
 const HR_LEAVE_IMPACT_SOURCE_TOPIC: &str = "integration.hr.payroll.leave-impact";
 const HR_LEAVE_IMPACT_SCHEMA_VERSION: u32 = 1;
 const RULEPACK_SOURCE_REF_PREFIX: &str = "rulepack-source/";
+const US_OFFICIAL_SOURCE_URL_PREFIXES: [&str; 2] = ["https://www.irs.gov/", "https://www.dol.gov/"];
+const KOREA_OFFICIAL_SOURCE_URL_PREFIXES: [&str; 4] = [
+    "https://www.moel.go.kr/",
+    "https://law.go.kr/",
+    "https://www.nhis.or.kr/",
+    "https://www.nps.or.kr/",
+];
+const EU_OFFICIAL_SOURCE_URL_PREFIXES: [&str; 2] =
+    ["https://eur-lex.europa.eu/", "https://ec.europa.eu/"];
 const STATUTORY_RULEPACK_SCHEMA_VERSION: u32 = 1;
 const VARIANCE_VERDICT_SCHEMA_VERSION: u32 = 1;
 /// Schema version for `RetroAdjustmentVerdict`.
@@ -151,6 +160,7 @@ pub enum StatutoryExportKind {
 pub enum PayrollRulepackJurisdiction {
     Korea,
     UnitedStatesFederal,
+    EuropeanUnion,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -1136,7 +1146,7 @@ pub fn build_statutory_rulepack_manifest(
     let source_count = input.sources.len();
     let mut sources = Vec::with_capacity(source_count);
     for source in input.sources {
-        sources.push(build_rulepack_source(source)?);
+        sources.push(build_rulepack_source(input.jurisdiction, source)?);
     }
 
     Ok(PayrollStatutoryRulepackManifest {
@@ -1524,6 +1534,7 @@ pub fn evaluate_payroll_variance(
 }
 
 fn build_rulepack_source(
+    jurisdiction: PayrollRulepackJurisdiction,
     source: PayrollRulepackSourceInput,
 ) -> Result<PayrollRulepackSource, PayrollDomainError> {
     validate_ref(
@@ -1531,7 +1542,7 @@ fn build_rulepack_source(
         RULEPACK_SOURCE_REF_PREFIX,
         PayrollDomainError::InvalidRulepackSourceRef,
     )?;
-    validate_official_source_url(&source.official_url)?;
+    validate_official_source_url(jurisdiction, &source.official_url)?;
     validate_source_version(&source.version_label)?;
     validate_iso_date(&source.effective_date)?;
     if source.retrieved_at_epoch_seconds == 0 {
@@ -1824,16 +1835,20 @@ fn validate_source_version(value: &str) -> Result<(), PayrollDomainError> {
     Ok(())
 }
 
-fn validate_official_source_url(value: &str) -> Result<(), PayrollDomainError> {
+fn validate_official_source_url(
+    jurisdiction: PayrollRulepackJurisdiction,
+    value: &str,
+) -> Result<(), PayrollDomainError> {
     if has_unsafe_text(value) || !value.starts_with("https://") {
         return Err(PayrollDomainError::InvalidRulepackSourceUrl);
     }
-    let allowed = [
-        "https://www.irs.gov/",
-        "https://www.dol.gov/",
-        "https://www.moel.go.kr/",
-        "https://law.go.kr/",
-    ];
+    let allowed = match jurisdiction {
+        PayrollRulepackJurisdiction::Korea => KOREA_OFFICIAL_SOURCE_URL_PREFIXES.as_slice(),
+        PayrollRulepackJurisdiction::UnitedStatesFederal => {
+            US_OFFICIAL_SOURCE_URL_PREFIXES.as_slice()
+        }
+        PayrollRulepackJurisdiction::EuropeanUnion => EU_OFFICIAL_SOURCE_URL_PREFIXES.as_slice(),
+    };
     if !allowed.iter().any(|prefix| value.starts_with(prefix)) {
         return Err(PayrollDomainError::InvalidRulepackSourceUrl);
     }

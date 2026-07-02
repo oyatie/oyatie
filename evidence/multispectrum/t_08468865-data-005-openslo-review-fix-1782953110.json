@@ -1,0 +1,70 @@
+{
+  "schema_version": "2.4.0-advisory-local",
+  "change_id": "t_08468865-data-005-openslo-review-fix",
+  "change_class_id": "CC-6_review_fix_pr_admission",
+  "created_at": "2026-07-02T00:45:10Z",
+  "agent_id": "hermes-default-kanban",
+  "task_id": "t_08468865",
+  "target_task_id": "t_f2327289",
+  "branch": "work-hermes-t_f2327289-data-005",
+  "scope": {
+    "summary": "DATA-005 current-head PR admission for the approved static data substrate operator, GitOps, and OpenSLO skeleton slice.",
+    "files_touched": [
+      "data/ops/README.md",
+      "data/ops/operator/kustomization.yaml",
+      "data/ops/operator/namespace.yaml",
+      "data/ops/operator/service-account.yaml",
+      "data/ops/operator/role.yaml",
+      "data/ops/operator/role-binding.yaml",
+      "data/ops/operator/configmap.yaml",
+      "data/ops/operator/deployment.yaml",
+      "data/ops/gitops/kustomization.yaml",
+      "data/ops/gitops/data-substrate-operator.application.yaml",
+      "data/observability/slos/data-substrate/operator-reconciliation-latency.openslo.yaml",
+      "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md",
+      "specs/reachability-registry.json",
+      "evidence/multispectrum/t_08468865-data-005-openslo-review-fix-1782953110.json"
+    ],
+    "explicit_non_claims": [
+      "No controller binary or runtime reconciliation loop is asserted; the Deployment remains replicas=0 with a contract-only image reference.",
+      "No database migration, tenant traffic, live Argo CD sync, production readiness, measured SLO window, or rollout claim is introduced.",
+      "The OpenSLO artifact records an evidence-required skeleton only; ADR-0139 promotion remains blocked until measured evidence and burn-rate receipts exist.",
+      "Pre-existing dirty workspace changes outside the DATA-005 branch/worktree were not reviewed as part of this changeset."
+    ]
+  },
+  "facets": {
+    "F1_traceability": [
+      "t_08468865",
+      "t_f2327289",
+      "t_9f6bfb4e APPROVE review result",
+      "G003-g03-persistence-substrate-oya-data",
+      "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md",
+      "docs/AGENTS.md",
+      "specs/root-hub-pointers.json"
+    ],
+    "F2_correctness": "Adds the DATA-005 static operator/GitOps/OpenSLO skeleton with namespace-scoped RBAC, a zero-replica Deployment, an Argo CD Application without automated sync, and evidence-required OpenSLO metadata.",
+    "F3_security": "RBAC is namespace-scoped, service account token automount is disabled, pod securityContext drops all capabilities and uses RuntimeDefault seccomp, and no secrets or credentials are introduced.",
+    "F4_data_boundary": "The slice is metadata and manifest-only for the data substrate control plane; no tenant data, migrations, query execution, or production traffic path is added.",
+    "F5_testing": "Focused YAML parsing, kustomize renders, kubeconform schema checks, SLO evidence checker, git diff --check, accounting justification/reachability preflight, added-line secret scan, and semantic non-claim assertions are run before closeout and recorded on Kanban.",
+    "F6_rollback": "Revert the DATA-005 branch commit to remove the static data/ops manifests, OpenSLO skeleton, ADR/reachability registration, and this evidence packet; no runtime state rollback is required because no live sync or controller was enabled.",
+    "F7_operability": "Future runtime/operator work must supply controller image, CRDs, measured SLO windows, burn-rate receipts, audit correlation, and progressive-delivery evidence before changing the non-claim posture.",
+    "F8_performance": "No runtime code path is executed; the OpenSLO target is a future measurement contract only.",
+    "F9_compliance": "Maintains ADR-0139 fail-closed SLO-gated promotion language and avoids production-readiness or measured-SLO overclaim.",
+    "F10_reversibility": "All changes are additive static manifests/evidence plus explicit ADR/reachability accounting under DATA-005 scoped paths and can be reverted without schema, migration, or committed generated-face settlement.",
+    "F11_observability": "OpenSLO evidence-required metadata and Kanban closeout capture the required future telemetry proof before any promotion claim.",
+    "F13_migration": "This settles a previously reviewed skeleton into the protected PR lane; runtime/operator implementation remains deferred to a later DATA-005 successor card."
+  },
+  "verification_plan": [
+    "ruby -ryaml -e YAML.safe_load(File.read(...)) over data/ops/**/*.yaml and data/observability/slos/data-substrate/*.openslo.yaml",
+    "kustomize build data/ops/operator",
+    "kustomize build data/ops/gitops",
+    "kubeconform -strict -summary over rendered data/ops/operator YAML",
+    "kubeconform -strict -ignore-missing-schemas -summary over rendered data/ops/gitops YAML",
+    "python3 scripts/tests/cloud_observability_slo_evidence_check.py",
+    "accounting preflight confirms PR-added paths have ADR-0139/ADR-0555 justification and reachability-registry coverage",
+    "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-gate after local generated-face materialization; generated faces restored before commit",
+    "git diff --check",
+    "added-line secret scan on git diff --unified=0",
+    "semantic assertions for zero replicas, no automated sync, and evidence-required OpenSLO posture"
+  ]
+}

@@ -375,6 +375,8 @@ exclude = [
   "tenancy/observability",
   "audit/observability",
   "data/observability",
+  # DATA-005 Kubernetes/GitOps operational manifests are non-crate product artifacts.
+  "data/ops",
   "workflow/observability",
   "iam/observability",
   "network/observability",

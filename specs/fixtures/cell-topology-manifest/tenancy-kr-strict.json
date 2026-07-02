@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "authority": {
+    "spec": "specs/cell-topology-manifest-contract.json",
+    "cloud_ci_gate": "oya-cloud-ci-cell-topology-manifest-contract",
+    "source_adrs": [
+      "ADR-0009",
+      "ADR-0049",
+      "ADR-0158",
+      "ADR-0161"
+    ],
+    "scope": "spec fixture only; no runtime routing, storage provisioning, tenant migration, or live evidence collection"
+  },
+  "fixtures": [
+    {
+      "service_id": "tenancy",
+      "tenant_id": "ten_kr_healthcare_alpha",
+      "cell_topology": {
+        "cell_id": "kr-seoul-1-dedicated-001",
+        "region": "kr-seoul-1",
+        "cell_tier": "dedicated",
+        "residency_class": "strict_kr",
+        "region_disposition": "active_passive",
+        "storage_class": "oya-pg-hot",
+        "quarterly_isolation_evidence": {
+          "quarter": "2026-Q3",
+          "network": "evidence://cell/kr-seoul-1-dedicated-001/2026-Q3/network",
+          "storage": "evidence://cell/kr-seoul-1-dedicated-001/2026-Q3/storage",
+          "crypto": "evidence://cell/kr-seoul-1-dedicated-001/2026-Q3/crypto",
+          "compute": "evidence://cell/kr-seoul-1-dedicated-001/2026-Q3/compute",
+          "audit": "evidence://cell/kr-seoul-1-dedicated-001/2026-Q3/audit"
+        }
+      }
+    }
+  ],
+  "non_claims": [
+    "fixture only; no runtime cell routing, storage provisioning, migration, or isolation drill execution",
+    "evidence:// handles are contract references, not fetched evidence payloads"
+  ]
+}
