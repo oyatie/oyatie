@@ -560,7 +560,7 @@
       "release_status",
       "evidence_ref"
     ],
-    "canonical_adr_0339_path_not_claimed": "ADR-0339's microservices/cloud-iac/modules/<context>/<primitive>/ library has not been materialized in this ChangeSet; current evidence is limited to the pre-existing microservices/cloud-iac/tofu/modules skeleton catalog plus the domain registry invariants.",
+    "canonical_adr_0339_path_not_claimed": "The full ADR-0339 module library has not been materialized; IAC-001 adds only the aws-guest/sg-baseline fixture recorded in adr_0339_module_library_fixture_scope while the pre-existing tofu/modules skeleton catalog remains separate local-foundation evidence.",
     "non_claims": [
       "no live private module registry API",
       "no signed or cosign-attested module release index",
@@ -589,6 +589,24 @@
       ],
       "runtime_non_claim": "First-class Oya local filesystem/JSON catalog gate only; no live registry API, provider lockfile, module signing, provider credentials, tofu test/plan/apply, or Argo CD API integration is implemented by this ChangeSet. OpenTofu init/validate evidence is handled separately by CS-CLOUD-IAC-OPENTOFU-VALIDATION-GATE-001."
     }
+  },
+  "adr_0339_module_library_fixture_scope": {
+    "task_id": "t_be53da65",
+    "status": "implemented-fixture-iac-001",
+    "catalog": "iac/modules/catalog.json",
+    "doc_catalog": "docs/standards/iac-module-catalog.md",
+    "module_count": 1,
+    "module_names": [
+      "aws-guest/sg-baseline"
+    ],
+    "wrapper_fixtures": [
+      "cloud/cloud-billing/iac/aws-guest/main.tofu"
+    ],
+    "version_pins": [
+      "iac/modules/aws-guest/sg-baseline/v0.1.0"
+    ],
+    "thin_wrapper_line_ceiling": 80,
+    "runtime_non_claim": "IAC-001 materializes one ADR-0339 fixture slice only: a metadata-only aws-guest/sg-baseline OpenTofu module, an in-repo relative-source cloud-billing wrapper, and catalog entries. It does not run OpenTofu init/plan/apply, call provider APIs, or provision cloud resources."
   },
   "data_classification": "INTERNAL_ONLY, AUDIT, SECRET",
   "compliance_packs_applicable": [

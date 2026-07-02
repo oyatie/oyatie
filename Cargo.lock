@@ -1089,6 +1089,8 @@ version = "0.1.0"
 dependencies = [
  "network-residency",
  "oya-data-boundary-kernel",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -3231,11 +3233,11 @@ dependencies = [
  "iam-identity-workload-svid-operator-k8s",
  "iam-identity-workload-svid-operator-kernel",
  "iam-identity-workload-svid-trustd",
+ "iam-pdp-cedar",
  "oya-cloud-os-trustd-domain",
  "oya-http-runtime-hyper-adapter",
  "oya-shared-audit-digest-adapter-awslc",
  "oya-shared-audit-event-kernel",
- "oya-shared-pdp-adapter-cedar",
  "oya-shared-pdp-kernel",
  "oya-shared-platform-contracts-kernel",
  "oya-shared-ulid-id-kernel",
@@ -3457,6 +3459,20 @@ dependencies = [
  "iam-identity-workload-svid-kernel",
  "oya-cloud-os-trustd-domain",
  "x509-parser",
+]
+
+[[package]]
+name = "iam-pdp-cedar"
+version = "0.1.0"
+dependencies = [
+ "audit-chain-domain",
+ "audit-file-adapter",
+ "cedar-policy",
+ "oya-data-boundary-kernel",
+ "oya-shared-pdp-kernel",
+ "oya-shared-platform-contracts-kernel",
+ "oya-shared-ulid-id-kernel",
+ "serde_json",
 ]
 
 [[package]]
@@ -9359,20 +9375,6 @@ name = "oya-shared-outbox-pattern-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-shared-pdp-adapter-cedar"
-version = "0.1.0"
-dependencies = [
- "audit-chain-domain",
- "audit-file-adapter",
- "cedar-policy",
- "oya-data-boundary-kernel",
- "oya-shared-pdp-kernel",
- "oya-shared-platform-contracts-kernel",
- "oya-shared-ulid-id-kernel",
- "serde_json",
-]
-
-[[package]]
 name = "oya-shared-pdp-kernel"
 version = "0.1.0"
 dependencies = [
@@ -11889,7 +11891,7 @@ name = "tenancy-tenant-lifecycle-authz-pdp"
 version = "0.1.0"
 dependencies = [
  "aws-lc-rs",
- "oya-shared-pdp-adapter-cedar",
+ "iam-pdp-cedar",
  "oya-shared-pdp-kernel",
  "oya-shared-platform-contracts-kernel",
  "oya-shared-ulid-id-kernel",
