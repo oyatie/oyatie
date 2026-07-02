@@ -104,6 +104,33 @@
     "fail_closed_inputs": "Lane/card ids pass the filesystem-safe id contract; duplicate lane ids and one card on two lanes are refused; paths must be repo-relative with no traversal/absolute/backslash/trailing-slash shapes; empty surfaces or batches are refused (a surface the detector cannot reason about is never admitted as disjoint).",
     "gate_semantics": "The check-disjoint bin command prints the JSON report (evidence shape) and exits non-zero unless every lane pair is path-disjoint."
   },
+  "dispatch_ratification_gate": {
+    "purpose": "Mechanical founder-ratification gate on execution-wave dispatch surfaces (masterplan v2 sequencing): dispatch refuses to run when the founder-ratification record in /specs/masterplan.json is absent, or when its ratified_sequencing_digest / ratified_sequencing_version is stale against the digest and version recomputed from the LIVE sequencing content. Fail-closed with no override flag; a missing or unreadable masterplan equally refuses.",
+    "gate": "check_dispatch_ratification / check_dispatch_ratification_at in tools/oya-fabric-loop-state-app (owned Rust; owned dependency-free SHA-256 pinned byte-for-byte to the cross-artifact-agreement gate's sequencing digest recipe)",
+    "digest_recipe": "sha256 over canonical JSON (sorted keys, separators ',' ':') of {\"dependency_edges\": sorted [from, to] pairs, \"execution_waves\": wave work_item_ids arrays in wave order, \"work_item_order\": work_item_id strings in index order}",
+    "wired_dispatch_surfaces": [
+      "oya-fabric-loop-state claim (card dispatch to a lane): the claim command runs the gate against <repo-root>/specs/masterplan.json before any plane write and exits with 'execution-wave dispatch refused: ...' on refusal",
+      "oya-lane-supervisor dispatch (lane-worker dispatch): the dispatch command runs the gate against --masterplan (default specs/masterplan.json) before any ledger registration, log creation, or worker spawn"
+    ],
+    "refusal_conditions": [
+      "masterplan missing/unreadable/unparseable (MasterplanUnreadable)",
+      "sequencing content structurally malformed or identity-ledger drift (SequencingMalformed)",
+      "founder_ratification record absent, decision_recorded != true, decision_status != ratified, or no ratified_sequencing_digest (RecordAbsent)",
+      "ratified_sequencing_digest != digest recomputed from live content (StaleDigest — content mutated after ratification voids the decision)",
+      "ratified_sequencing_version != live sequencing_identity.sequencing_version (StaleVersion)"
+    ],
+    "failure_injection_tests": [
+      "tools/oya-fabric-loop-state-app/tests/ratification_gate.rs#dispatch_is_refused_when_ratification_record_is_injected_absent",
+      "tools/oya-fabric-loop-state-app/tests/ratification_gate.rs#dispatch_is_refused_when_sequencing_content_mutates_after_ratification",
+      "tools/oya-fabric-loop-state-app/tests/ratification_gate.rs#dispatch_is_refused_when_ratified_version_is_stale",
+      "tools/oya-fabric-loop-state-app/tests/ratification_gate.rs#dispatch_is_refused_when_masterplan_is_missing",
+      "tools/oya-fabric-loop-state-app/tests/ratification_gate.rs#live_masterplan_ratification_binds_and_grants_dispatch",
+      "tools/oya-lane-supervisor-app/src/main.rs#dispatch_refuses_before_any_side_effect_when_ratification_record_is_absent",
+      "tools/oya-lane-supervisor-app/src/main.rs#dispatch_refuses_before_any_side_effect_when_ratified_digest_is_stale",
+      "tools/oya-lane-supervisor-app/src/main.rs#dispatch_refuses_when_masterplan_is_missing"
+    ],
+    "authority_note": "The gate reads the plan authority; it never mutates it. Recording or refreshing a founder-ratification record remains a coordinator-owned PR edit to /specs/masterplan.json, cross-checked by the oya-cloud-ci-cross-artifact-agreement gate (masterplan_execution_wave_dispatch_unratified fails closed in CI)."
+  },
   "cutover_target": {
     "service_name": "oya-cloud-ci-loop-state-service",
     "owner": "cloud/cloud-ci",

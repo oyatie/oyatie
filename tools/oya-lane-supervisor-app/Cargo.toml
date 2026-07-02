@@ -19,6 +19,10 @@ path = "src/main.rs"
 anyhow = { workspace = true }
 chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
 clap = { workspace = true }
+# Founder-ratification dispatch gate (masterplan v2 sequencing): the lane
+# dispatch surface refuses to run when the ratification record is absent or
+# stale against the live sequencing in specs/masterplan.json.
+oya-fabric-loop-state-app = { path = "../oya-fabric-loop-state-app" }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true, features = ["preserve_order"] }
 

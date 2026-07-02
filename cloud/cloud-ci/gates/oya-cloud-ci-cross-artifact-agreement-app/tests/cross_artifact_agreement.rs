@@ -1023,6 +1023,58 @@ fn masterplan_v2_sequencing_is_zero_based_and_founder_ratification_recorded() {
         "founder ratification must bind to the live sequencing digest; a mismatch means the \
          ratified content mutated and a fresh derivation + ratification are required"
     );
+    assert_eq!(
+        ratification["ratified_sequencing_version"].as_u64(),
+        identity["sequencing_version"].as_u64(),
+        "founder ratification must bind to the sequencing version it approved"
+    );
+
+    // The decision record itself is the canonical dispatch-gate artifact: its
+    // content must mechanically agree with the live masterplan — same digest,
+    // same version, same timestamp, ratified by the founder. A drifted record
+    // is a void ratification, not a stale doc.
+    let decision_record = load_json(&root.join(decision_ref));
+    assert_eq!(
+        decision_record["record_class"].as_str(),
+        Some("founder-ratification-decision"),
+        "decision record must self-identify as a founder-ratification decision"
+    );
+    assert_eq!(
+        decision_record["ratified_sequencing_digest"].as_str(),
+        Some(recomputed.as_str()),
+        "decision record digest must equal the digest recomputed from live sequencing content"
+    );
+    assert_eq!(
+        decision_record["ratified_sequencing_version"].as_u64(),
+        identity["sequencing_version"].as_u64(),
+        "decision record version must equal sequencing_identity.sequencing_version"
+    );
+    assert!(
+        decision_record["recorded_at"]
+            .as_str()
+            .is_some_and(|recorded_at| !recorded_at.trim().is_empty()),
+        "decision record must carry a recorded_at timestamp"
+    );
+    assert_eq!(
+        decision_record["recorded_at"].as_str(),
+        ratification["recorded_at"].as_str(),
+        "decision record timestamp must agree with the masterplan ratification record"
+    );
+    assert_eq!(
+        decision_record["decision"]["decision_status"].as_str(),
+        Some("ratified"),
+        "decision record must be a ratified decision"
+    );
+    assert_eq!(
+        decision_record["decision"]["approved_by"].as_str(),
+        Some("founder"),
+        "decision record must be approved by the founder"
+    );
+    assert_eq!(
+        decision_record["decision"]["required_before"].as_str(),
+        Some("execution-wave-dispatch"),
+        "decision record must precede execution-wave dispatch"
+    );
 
     // Fail-closed dispatch contract survives ratification: dispatch without a founder
     // decision stays structurally forbidden even after this decision is recorded.

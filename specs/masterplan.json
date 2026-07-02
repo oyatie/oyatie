@@ -17762,6 +17762,7 @@
         "decision_ref": "evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json",
         "ratification_authority": "Founder-authored masterplan-v2 consolidation directive (Seed contract, 2026-07-02) requiring fully zero-based re-derived sequencing ratified by the founder before any execution wave dispatches; decision binds only to the sequencing content identified by ratified_sequencing_digest.",
         "ratified_sequencing_digest": "sha256:a6ddc2a8f372c71aa31f9a7e84087d8d2de84c283baee0c8746e054d58564c3c",
+        "ratified_sequencing_version": 1,
         "binds_to": "/specs/masterplan.json#masterplan_v2.sequencing.sequencing_identity.sequencing_hash",
         "digest_recipe": "sha256 over canonical JSON (sorted keys, separators ',' ':') of {\"dependency_edges\": sorted [from, to] pairs, \"execution_waves\": wave work_item_ids arrays in wave order, \"work_item_order\": work_item_id strings in index order}",
         "invalidation_rule": "Any mutation of masterplan_v2.dependency_edges, sequencing.work_item_order, or sequencing.execution_waves work_item_ids changes the digest and voids this ratification; a fresh re-derivation and a fresh founder-ratification record are then required before further wave dispatch.",

@@ -26,7 +26,7 @@ use oya_fabric_loop_state_app::{
     DEFAULT_FLOW_METRICS_ROOT, DEFAULT_OPERATIONAL_PLANE_ROOT, DisjointnessPhase,
     DisjointnessVerdict, FlowMetricsService, FsCoordinationStore, FsExecutionStore,
     FsFlowMetricsStore, LaneWorkSurface, LoopCard, LoopStateService, PlaneError,
-    check_lane_disjointness,
+    check_dispatch_ratification_at, check_lane_disjointness,
 };
 
 const USAGE: &str = "oya-fabric-loop-state [--repo-root PATH] <command>
@@ -39,6 +39,8 @@ commands:
   define-card --card-id ID --title T --program P [--depends-on DEP]...
                                              define a Definition/Seed-class card (durable plane)
   claim       --card-id ID --lane L          claim a DAG-ready card for a lane
+                                             (refused unless the founder-ratification record in
+                                             specs/masterplan.json binds to the live sequencing)
   start       --card-id ID --lane L          mark the claimed run as running
   heartbeat   --card-id ID --lane L          record a liveness heartbeat
   block       --card-id ID --lane L --kind K --note N
@@ -74,6 +76,10 @@ enum CliError {
     Usage(String),
     /// A genuine store/plane failure surfaced through the port facades.
     Plane(PlaneError),
+    /// The founder-ratification gate refused execution-wave dispatch: the
+    /// ratification record in `specs/masterplan.json` is absent or its
+    /// ratified hash/version is stale against the live sequencing content.
+    DispatchRefused(String),
 }
 
 impl std::fmt::Display for CliError {
@@ -81,6 +87,9 @@ impl std::fmt::Display for CliError {
         match self {
             Self::Usage(detail) => write!(f, "usage error: {detail}"),
             Self::Plane(err) => write!(f, "{err}"),
+            Self::DispatchRefused(detail) => {
+                write!(f, "execution-wave dispatch refused: {detail}")
+            }
         }
     }
 }
@@ -230,16 +239,18 @@ fn main() -> ExitCode {
             &program,
             depends_on.clone(),
         ),
-        "claim" => runtime
-            .loop_state
-            .claim_ready(&card_id, &lane_id, at)
-            .map(|claim| {
-                println!(
-                    "claimed {} for lane {} at {}",
-                    claim.card_id, claim.lane_id, claim.claimed_at_epoch_s
-                );
-            })
-            .map_err(CliError::from),
+        "claim" => ratification_gate(&repo_root).and_then(|()| {
+            runtime
+                .loop_state
+                .claim_ready(&card_id, &lane_id, at)
+                .map(|claim| {
+                    println!(
+                        "claimed {} for lane {} at {}",
+                        claim.card_id, claim.lane_id, claim.claimed_at_epoch_s
+                    );
+                })
+                .map_err(CliError::from)
+        }),
         "start" => runtime
             .loop_state
             .start_run(&card_id, &lane_id, at)
@@ -299,6 +310,17 @@ fn main() -> ExitCode {
 fn fail(message: &str) -> ExitCode {
     eprintln!("{message}");
     ExitCode::FAILURE
+}
+
+/// The mechanical founder-ratification gate on this dispatch surface: card
+/// claims (execution-wave dispatch of loop work to a lane) refuse to run
+/// when the ratification record in `specs/masterplan.json` is absent or its
+/// ratified hash/version is stale against the live sequencing content. No
+/// override flag exists; the refusal is fail-closed by construction.
+fn ratification_gate(repo_root: &Path) -> Result<(), CliError> {
+    check_dispatch_ratification_at(repo_root)
+        .map(|_grant| ())
+        .map_err(|refusal| CliError::DispatchRefused(refusal.to_string()))
 }
 
 /// Validate the `verify-done` `--evidence` arity: exactly one REF. Arity
@@ -519,6 +541,62 @@ fn snapshot(runtime: &Runtime) -> ExitCode {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn claim_dispatch_gate_refuses_when_no_plan_authority_is_reachable() {
+        // Failure injection: a repo root with NO specs/masterplan.json. The
+        // claim dispatch surface must refuse fail-closed, before touching any
+        // plane store.
+        let missing_root = std::env::temp_dir().join(format!(
+            "oya-fabric-claim-gate-{}-{:?}",
+            std::process::id(),
+            std::thread::current().id()
+        ));
+        let err = ratification_gate(&missing_root).unwrap_err();
+        let CliError::DispatchRefused(detail) = &err else {
+            panic!("expected DispatchRefused, got {err:?}");
+        };
+        assert!(detail.contains("fail-closed"), "detail: {detail}");
+        assert!(
+            err.to_string()
+                .starts_with("execution-wave dispatch refused: "),
+            "message: {err}"
+        );
+    }
+
+    #[test]
+    fn claim_dispatch_gate_refuses_on_stale_ratification_record() {
+        // Failure injection: a masterplan whose founder_ratification digest
+        // does NOT match the digest recomputed from the live sequencing —
+        // the ratified content mutated, so dispatch is refused.
+        let root = std::env::temp_dir().join(format!(
+            "oya-fabric-claim-gate-stale-{}-{:?}",
+            std::process::id(),
+            std::thread::current().id()
+        ));
+        std::fs::create_dir_all(root.join("specs")).unwrap();
+        std::fs::write(
+            root.join("specs/masterplan.json"),
+            concat!(
+                "{\"masterplan_v2\": {\"dependency_edges\": [],",
+                " \"sequencing\": {",
+                "\"sequencing_identity\": {\"sequencing_version\": 1,",
+                " \"sequencing_hash\": \"sha256:0000\"},",
+                " \"execution_waves\": [], \"work_item_order\": [],",
+                " \"founder_ratification\": {\"decision_recorded\": true,",
+                " \"decision_status\": \"ratified\",",
+                " \"ratified_sequencing_digest\": \"sha256:0000\",",
+                " \"ratified_sequencing_version\": 1}}}}"
+            ),
+        )
+        .unwrap();
+        let err = ratification_gate(&root).unwrap_err();
+        let CliError::DispatchRefused(detail) = &err else {
+            panic!("expected DispatchRefused, got {err:?}");
+        };
+        assert!(detail.contains("stale ratification"), "detail: {detail}");
+        std::fs::remove_dir_all(&root).ok();
+    }
 
     #[test]
     fn verify_done_arity_violation_is_usage_error_not_plane() {

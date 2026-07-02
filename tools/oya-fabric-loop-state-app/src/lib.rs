@@ -2465,6 +2465,470 @@ pub fn check_lane_disjointness(
 }
 
 // ---------------------------------------------------------------------------
+// Founder-ratification dispatch gate (masterplan v2 sequencing)
+// ---------------------------------------------------------------------------
+
+/// Repo-relative path of the single live plan authority the dispatch gate
+/// reads. Sequencing ratification binds to the content at this path only.
+pub const MASTERPLAN_REPO_PATH: &str = "specs/masterplan.json";
+
+/// The pinned digest recipe shared with
+/// `masterplan_v2.sequencing.sequencing_identity.hash_recipe` and the
+/// cross-artifact-agreement gate. [`compute_sequencing_digest`] is the
+/// executable form of this sentence; the two must never drift.
+pub const SEQUENCING_DIGEST_RECIPE: &str = "sha256 over canonical JSON (sorted keys, separators ',' ':') of {\"dependency_edges\": sorted [from, to] pairs, \"execution_waves\": wave work_item_ids arrays in wave order, \"work_item_order\": work_item_id strings in index order}";
+
+/// Mechanical refusal of execution-wave dispatch by the founder-ratification
+/// gate. Every variant is fail-closed: dispatch surfaces MUST refuse to run
+/// when this is returned, and there is no override flag.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RatificationRefusal {
+    /// `specs/masterplan.json` is missing, unreadable, or not parseable —
+    /// the gate cannot establish sequencing identity, so dispatch is refused.
+    MasterplanUnreadable(String),
+    /// The sequencing content exists but is structurally malformed (missing
+    /// or ill-typed `dependency_edges`, `execution_waves`,
+    /// `work_item_order`, or `sequencing_identity`), or the embedded
+    /// identity hash disagrees with the recomputed digest.
+    SequencingMalformed(String),
+    /// The founder-ratification record is absent or not a recorded, ratified
+    /// decision (`decision_recorded != true`, `decision_status !=
+    /// "ratified"`, or no `ratified_sequencing_digest`).
+    RecordAbsent(String),
+    /// The ratified digest no longer binds to the digest recomputed from the
+    /// live sequencing content: the content mutated after ratification, which
+    /// voids the decision (masterplan v2 `invalidation_rule`).
+    StaleDigest {
+        /// The digest the founder ratified.
+        ratified_sequencing_digest: String,
+        /// The digest recomputed from the live sequencing content.
+        computed_sequencing_digest: String,
+    },
+    /// The ratified sequencing version does not equal the live
+    /// `sequencing_identity.sequencing_version` (or is missing from the
+    /// record): the record and the identity ledger disagree.
+    StaleVersion {
+        /// The version the record claims was ratified (`None` when absent).
+        ratified_sequencing_version: Option<u64>,
+        /// The live embedded sequencing version.
+        current_sequencing_version: u64,
+    },
+}
+
+impl fmt::Display for RatificationRefusal {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "founder-ratification gate: ")?;
+        match self {
+            Self::MasterplanUnreadable(detail) => {
+                write!(f, "masterplan unreadable: {detail}")?;
+            }
+            Self::SequencingMalformed(detail) => {
+                write!(f, "sequencing content malformed: {detail}")?;
+            }
+            Self::RecordAbsent(detail) => {
+                write!(f, "ratification record absent: {detail}")?;
+            }
+            Self::StaleDigest {
+                ratified_sequencing_digest,
+                computed_sequencing_digest,
+            } => {
+                write!(
+                    f,
+                    "stale ratification: ratified_sequencing_digest {ratified_sequencing_digest} does not match the digest {computed_sequencing_digest} recomputed from the live sequencing content; the ratified content mutated, so a fresh re-derivation and a fresh founder-ratification record are required"
+                )?;
+            }
+            Self::StaleVersion {
+                ratified_sequencing_version,
+                current_sequencing_version,
+            } => {
+                write!(
+                    f,
+                    "stale ratification: ratified_sequencing_version {ratified_sequencing_version:?} does not match live sequencing_identity.sequencing_version {current_sequencing_version}"
+                )?;
+            }
+        }
+        write!(f, "; execution-wave dispatch stays fail-closed")
+    }
+}
+
+impl std::error::Error for RatificationRefusal {}
+
+/// Positive gate verdict: the founder-ratification record binds to the live
+/// sequencing content of `specs/masterplan.json`. Dispatch surfaces may run.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RatificationGrant {
+    /// The digest both ratified and recomputed from live content.
+    pub sequencing_digest: String,
+    /// The bound sequencing version.
+    pub sequencing_version: u64,
+    /// The durable decision-record reference, when the record carries one.
+    pub decision_ref: Option<String>,
+}
+
+/// Compute the stable sequencing content digest for `masterplan_v2` — the
+/// executable form of [`SEQUENCING_DIGEST_RECIPE`], byte-identical to the
+/// cross-artifact-agreement gate's `compute_masterplan_v2_sequencing_digest`.
+///
+/// The digest covers exactly the ratifiable sequencing content: the
+/// dependency DAG edges (as sorted `[from, to]` pairs), the execution-wave
+/// `work_item_ids` arrays in wave order, and the `work_item_order` ids in
+/// index order. Identity metadata, ratification records, and dispatch state
+/// are deliberately OUTSIDE the hash scope so recording a ratification never
+/// invalidates itself.
+///
+/// Returns `None` when the sequencing content is structurally malformed;
+/// callers fail closed on `None`.
+#[must_use]
+pub fn compute_sequencing_digest(masterplan_v2: &JsonValue) -> Option<String> {
+    let edges = masterplan_v2.get("dependency_edges")?.as_arr()?;
+    let sequencing = masterplan_v2.get("sequencing")?;
+
+    let mut edge_pairs = Vec::with_capacity(edges.len());
+    for edge in edges {
+        let from = edge.get("from")?.as_str()?;
+        let to = edge.get("to")?.as_str()?;
+        edge_pairs.push((from.to_owned(), to.to_owned()));
+    }
+    edge_pairs.sort();
+
+    let mut waves = Vec::new();
+    for wave in sequencing.get("execution_waves")?.as_arr()? {
+        let ids = wave.get("work_item_ids")?.as_arr()?;
+        let mut wave_ids = Vec::with_capacity(ids.len());
+        for id in ids {
+            wave_ids.push(id.as_str()?.to_owned());
+        }
+        waves.push(wave_ids);
+    }
+
+    let mut order = Vec::new();
+    for entry in sequencing.get("work_item_order")?.as_arr()? {
+        order.push(entry.get("work_item_id")?.as_str()?.to_owned());
+    }
+
+    // Canonical JSON is built by hand so the byte stream is deterministic:
+    // object keys in sorted order, compact ','/':' separators, standard JSON
+    // string escaping (identical to the cross-artifact gate's byte stream).
+    let mut canonical = String::from("{\"dependency_edges\":[");
+    for (index, (from, to)) in edge_pairs.iter().enumerate() {
+        if index > 0 {
+            canonical.push(',');
+        }
+        canonical.push('[');
+        push_compact_json_string(from, &mut canonical);
+        canonical.push(',');
+        push_compact_json_string(to, &mut canonical);
+        canonical.push(']');
+    }
+    canonical.push_str("],\"execution_waves\":[");
+    for (index, wave_ids) in waves.iter().enumerate() {
+        if index > 0 {
+            canonical.push(',');
+        }
+        canonical.push('[');
+        for (id_index, id) in wave_ids.iter().enumerate() {
+            if id_index > 0 {
+                canonical.push(',');
+            }
+            push_compact_json_string(id, &mut canonical);
+        }
+        canonical.push(']');
+    }
+    canonical.push_str("],\"work_item_order\":[");
+    for (index, id) in order.iter().enumerate() {
+        if index > 0 {
+            canonical.push(',');
+        }
+        push_compact_json_string(id, &mut canonical);
+    }
+    canonical.push_str("]}");
+
+    Some(format!("sha256:{}", sha256_hex(canonical.as_bytes())))
+}
+
+/// Serialize one string as a compact JSON string literal with serde_json's
+/// escaping rules (`\b`/`\f`/`\n`/`\r`/`\t` short escapes, `\u00xx` lowercase
+/// hex for other control characters), so the canonical byte stream is
+/// identical to the sha2-based cross-artifact gate's.
+fn push_compact_json_string(value: &str, out: &mut String) {
+    out.push('"');
+    for c in value.chars() {
+        match c {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\u{0008}' => out.push_str("\\b"),
+            '\u{000C}' => out.push_str("\\f"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            c if (c as u32) < 0x20 => {
+                out.push_str(&format!("\\u{:04x}", c as u32));
+            }
+            c => out.push(c),
+        }
+    }
+    out.push('"');
+}
+
+/// The mechanical founder-ratification gate over a masterplan document.
+///
+/// Fail-closed contract (Sub-AC: execution-wave dispatch surfaces refuse to
+/// run unless every check passes):
+/// 1. the document parses and `masterplan_v2.sequencing` exists;
+/// 2. the sequencing content hashes under the pinned recipe;
+/// 3. a founder-ratification record is present and recorded
+///    (`decision_recorded == true`, `decision_status == "ratified"`,
+///    `ratified_sequencing_digest` present) — else [`RatificationRefusal::RecordAbsent`];
+/// 4. the ratified digest equals the digest recomputed from the LIVE content —
+///    else [`RatificationRefusal::StaleDigest`];
+/// 5. the ratified version equals the live embedded
+///    `sequencing_identity.sequencing_version` — else
+///    [`RatificationRefusal::StaleVersion`];
+/// 6. the embedded `sequencing_identity.sequencing_hash` also equals the
+///    recomputed digest (identity-ledger drift fails closed).
+pub fn check_dispatch_ratification(
+    masterplan_text: &str,
+) -> Result<RatificationGrant, RatificationRefusal> {
+    let doc = JsonValue::parse(masterplan_text)
+        .map_err(|err| RatificationRefusal::MasterplanUnreadable(err.to_string()))?;
+    let Some(masterplan_v2) = doc.get("masterplan_v2") else {
+        return Err(RatificationRefusal::SequencingMalformed(
+            "masterplan_v2 is missing".into(),
+        ));
+    };
+    let Some(sequencing) = masterplan_v2.get("sequencing") else {
+        return Err(RatificationRefusal::SequencingMalformed(
+            "masterplan_v2.sequencing is missing".into(),
+        ));
+    };
+    let computed = compute_sequencing_digest(masterplan_v2).ok_or_else(|| {
+        RatificationRefusal::SequencingMalformed(
+            "sequencing content cannot be hashed (missing or ill-typed dependency_edges, execution_waves, or work_item_order)".into(),
+        )
+    })?;
+    let identity = sequencing.get("sequencing_identity");
+    let Some(current_version) = identity
+        .and_then(|identity| identity.get("sequencing_version"))
+        .and_then(JsonValue::as_num)
+        .filter(|version| *version >= 1)
+    else {
+        return Err(RatificationRefusal::SequencingMalformed(
+            "sequencing_identity.sequencing_version is missing or not a positive integer".into(),
+        ));
+    };
+
+    let Some(record) = sequencing.get("founder_ratification") else {
+        return Err(RatificationRefusal::RecordAbsent(
+            "masterplan_v2.sequencing.founder_ratification is missing".into(),
+        ));
+    };
+    if record.get("decision_recorded") != Some(&JsonValue::Bool(true)) {
+        return Err(RatificationRefusal::RecordAbsent(
+            "founder_ratification.decision_recorded is not true".into(),
+        ));
+    }
+    if record.get("decision_status").and_then(JsonValue::as_str) != Some("ratified") {
+        return Err(RatificationRefusal::RecordAbsent(
+            "founder_ratification.decision_status is not \"ratified\"".into(),
+        ));
+    }
+    let Some(ratified_digest) = record
+        .get("ratified_sequencing_digest")
+        .and_then(JsonValue::as_str)
+    else {
+        return Err(RatificationRefusal::RecordAbsent(
+            "founder_ratification.ratified_sequencing_digest is missing".into(),
+        ));
+    };
+    if ratified_digest != computed {
+        return Err(RatificationRefusal::StaleDigest {
+            ratified_sequencing_digest: ratified_digest.to_owned(),
+            computed_sequencing_digest: computed,
+        });
+    }
+    let ratified_version = record
+        .get("ratified_sequencing_version")
+        .and_then(JsonValue::as_num);
+    if ratified_version != Some(current_version) {
+        return Err(RatificationRefusal::StaleVersion {
+            ratified_sequencing_version: ratified_version,
+            current_sequencing_version: current_version,
+        });
+    }
+    let embedded_hash = identity
+        .and_then(|identity| identity.get("sequencing_hash"))
+        .and_then(JsonValue::as_str);
+    if embedded_hash != Some(computed.as_str()) {
+        return Err(RatificationRefusal::SequencingMalformed(format!(
+            "sequencing_identity.sequencing_hash {embedded_hash:?} does not match the digest {computed} recomputed from live sequencing content"
+        )));
+    }
+    Ok(RatificationGrant {
+        sequencing_digest: computed,
+        sequencing_version: current_version,
+        decision_ref: record
+            .get("decision_ref")
+            .and_then(JsonValue::as_str)
+            .map(str::to_owned),
+    })
+}
+
+/// [`check_dispatch_ratification`] over the masterplan at
+/// `<repo_root>/specs/masterplan.json`. A missing or unreadable file is a
+/// [`RatificationRefusal::MasterplanUnreadable`] refusal — dispatch surfaces
+/// with no reachable plan authority fail closed, never open.
+pub fn check_dispatch_ratification_at(
+    repo_root: &Path,
+) -> Result<RatificationGrant, RatificationRefusal> {
+    let path = repo_root.join(MASTERPLAN_REPO_PATH);
+    let text = fs::read_to_string(&path).map_err(|err| {
+        RatificationRefusal::MasterplanUnreadable(format!("{}: {err}", path.display()))
+    })?;
+    check_dispatch_ratification(&text)
+}
+
+// ---------------------------------------------------------------------------
+// Owned SHA-256 (FIPS 180-4; zero third-party deps)
+// ---------------------------------------------------------------------------
+
+const SHA256_K: [u32; 64] = [
+    0x428a_2f98,
+    0x7137_4491,
+    0xb5c0_fbcf,
+    0xe9b5_dba5,
+    0x3956_c25b,
+    0x59f1_11f1,
+    0x923f_82a4,
+    0xab1c_5ed5,
+    0xd807_aa98,
+    0x1283_5b01,
+    0x2431_85be,
+    0x550c_7dc3,
+    0x72be_5d74,
+    0x80de_b1fe,
+    0x9bdc_06a7,
+    0xc19b_f174,
+    0xe49b_69c1,
+    0xefbe_4786,
+    0x0fc1_9dc6,
+    0x240c_a1cc,
+    0x2de9_2c6f,
+    0x4a74_84aa,
+    0x5cb0_a9dc,
+    0x76f9_88da,
+    0x983e_5152,
+    0xa831_c66d,
+    0xb003_27c8,
+    0xbf59_7fc7,
+    0xc6e0_0bf3,
+    0xd5a7_9147,
+    0x06ca_6351,
+    0x1429_2967,
+    0x27b7_0a85,
+    0x2e1b_2138,
+    0x4d2c_6dfc,
+    0x5338_0d13,
+    0x650a_7354,
+    0x766a_0abb,
+    0x81c2_c92e,
+    0x9272_2c85,
+    0xa2bf_e8a1,
+    0xa81a_664b,
+    0xc24b_8b70,
+    0xc76c_51a3,
+    0xd192_e819,
+    0xd699_0624,
+    0xf40e_3585,
+    0x106a_a070,
+    0x19a4_c116,
+    0x1e37_6c08,
+    0x2748_774c,
+    0x34b0_bcb5,
+    0x391c_0cb3,
+    0x4ed8_aa4a,
+    0x5b9c_ca4f,
+    0x682e_6ff3,
+    0x748f_82ee,
+    0x78a5_636f,
+    0x84c8_7814,
+    0x8cc7_0208,
+    0x90be_fffa,
+    0xa450_6ceb,
+    0xbef9_a3f7,
+    0xc671_78f2,
+];
+
+/// Owned SHA-256 (FIPS 180-4), returned as lowercase hex. Kept dependency-free
+/// on purpose: this crate's bar is zero third-party deps, and the digest is
+/// verified byte-for-byte against the sha2-backed cross-artifact gate through
+/// the live-masterplan binding test in `tests/ratification_gate.rs`.
+#[must_use]
+pub fn sha256_hex(data: &[u8]) -> String {
+    let mut state: [u32; 8] = [
+        0x6a09_e667,
+        0xbb67_ae85,
+        0x3c6e_f372,
+        0xa54f_f53a,
+        0x510e_527f,
+        0x9b05_688c,
+        0x1f83_d9ab,
+        0x5be0_cd19,
+    ];
+    let bit_len = (data.len() as u64).wrapping_mul(8);
+    let mut message = data.to_vec();
+    message.push(0x80);
+    while message.len() % 64 != 56 {
+        message.push(0);
+    }
+    message.extend_from_slice(&bit_len.to_be_bytes());
+
+    for block in message.chunks_exact(64) {
+        let mut w = [0_u32; 64];
+        for (i, word) in block.chunks_exact(4).enumerate() {
+            w[i] = u32::from_be_bytes([word[0], word[1], word[2], word[3]]);
+        }
+        for i in 16..64 {
+            let s0 = w[i - 15].rotate_right(7) ^ w[i - 15].rotate_right(18) ^ (w[i - 15] >> 3);
+            let s1 = w[i - 2].rotate_right(17) ^ w[i - 2].rotate_right(19) ^ (w[i - 2] >> 10);
+            w[i] = w[i - 16]
+                .wrapping_add(s0)
+                .wrapping_add(w[i - 7])
+                .wrapping_add(s1);
+        }
+        let [mut a, mut b, mut c, mut d, mut e, mut f, mut g, mut h] = state;
+        for i in 0..64 {
+            let s1 = e.rotate_right(6) ^ e.rotate_right(11) ^ e.rotate_right(25);
+            let ch = (e & f) ^ ((!e) & g);
+            let temp1 = h
+                .wrapping_add(s1)
+                .wrapping_add(ch)
+                .wrapping_add(SHA256_K[i])
+                .wrapping_add(w[i]);
+            let s0 = a.rotate_right(2) ^ a.rotate_right(13) ^ a.rotate_right(22);
+            let maj = (a & b) ^ (a & c) ^ (b & c);
+            let temp2 = s0.wrapping_add(maj);
+            h = g;
+            g = f;
+            f = e;
+            e = d.wrapping_add(temp1);
+            d = c;
+            c = b;
+            b = a;
+            a = temp1.wrapping_add(temp2);
+        }
+        for (slot, word) in state.iter_mut().zip([a, b, c, d, e, f, g, h]) {
+            *slot = slot.wrapping_add(word);
+        }
+    }
+
+    let mut hex = String::with_capacity(64);
+    for word in state {
+        hex.push_str(&format!("{word:08x}"));
+    }
+    hex
+}
+
+// ---------------------------------------------------------------------------
 // Unit tests
 // ---------------------------------------------------------------------------
 
@@ -2894,5 +3358,171 @@ mod tests {
         assert!(DisjointnessPhase::parse("mid-run").is_err());
         // Two well-formed surfaces still pass under exact capacity.
         assert!(check_lane_disjointness(DisjointnessPhase::PostRun, &[a, b], 2, 1).is_ok());
+    }
+
+    #[test]
+    fn owned_sha256_matches_fips_180_4_vectors() {
+        assert_eq!(
+            sha256_hex(b""),
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        );
+        assert_eq!(
+            sha256_hex(b"abc"),
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+        assert_eq!(
+            sha256_hex(b"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"),
+            "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1"
+        );
+        // Multi-block input (crosses the 64-byte block boundary).
+        assert_eq!(
+            sha256_hex(&[b'a'; 1_000]),
+            "41edece42d63e8d9bf515a9ba6932e1c20cbc9f5a5d134645adb5db1b9737ea3"
+        );
+    }
+
+    /// A minimal ratified masterplan document. The digest is computed with
+    /// the same recipe under test, then embedded, so the fixture is
+    /// self-consistent by construction.
+    fn ratified_fixture() -> JsonValue {
+        let masterplan_v2_content = concat!(
+            "{\"dependency_edges\": [{\"from\": \"MPV2-0000\", \"to\": \"MPV2-0001\"}],",
+            " \"sequencing\": {",
+            "\"execution_waves\": [{\"wave_index\": 0, \"work_item_ids\": [\"MPV2-0000\"]},",
+            " {\"wave_index\": 1, \"work_item_ids\": [\"MPV2-0001\"]}],",
+            " \"work_item_order\": [{\"index\": 0, \"work_item_id\": \"MPV2-0000\"},",
+            " {\"index\": 1, \"work_item_id\": \"MPV2-0001\"}]}}"
+        );
+        let v2 = JsonValue::parse(masterplan_v2_content).unwrap();
+        let digest = compute_sequencing_digest(&v2).unwrap();
+        let doc_text = format!(
+            concat!(
+                "{{\"masterplan_v2\": {{\"dependency_edges\": [{{\"from\": \"MPV2-0000\", \"to\": \"MPV2-0001\"}}],",
+                " \"sequencing\": {{",
+                "\"sequencing_identity\": {{\"sequencing_version\": 1, \"sequencing_hash\": \"{digest}\"}},",
+                " \"execution_waves\": [{{\"wave_index\": 0, \"work_item_ids\": [\"MPV2-0000\"]}},",
+                " {{\"wave_index\": 1, \"work_item_ids\": [\"MPV2-0001\"]}}],",
+                " \"work_item_order\": [{{\"index\": 0, \"work_item_id\": \"MPV2-0000\"}},",
+                " {{\"index\": 1, \"work_item_id\": \"MPV2-0001\"}}],",
+                " \"founder_ratification\": {{\"decision_recorded\": true,",
+                " \"decision_status\": \"ratified\",",
+                " \"decision_ref\": \"evidence/goals/ratification.json\",",
+                " \"ratified_sequencing_digest\": \"{digest}\",",
+                " \"ratified_sequencing_version\": 1}}}}}}}}"
+            ),
+            digest = digest
+        );
+        JsonValue::parse(&doc_text).unwrap()
+    }
+
+    fn obj_fields_mut<'a>(value: &'a mut JsonValue, key: &str) -> &'a mut JsonValue {
+        let JsonValue::Obj(fields) = value else {
+            panic!("expected object");
+        };
+        &mut fields
+            .iter_mut()
+            .find(|(k, _)| k == key)
+            .unwrap_or_else(|| panic!("missing key {key}"))
+            .1
+    }
+
+    fn remove_field(value: &mut JsonValue, key: &str) {
+        let JsonValue::Obj(fields) = value else {
+            panic!("expected object");
+        };
+        fields.retain(|(k, _)| k != key);
+    }
+
+    #[test]
+    fn ratification_gate_grants_dispatch_when_record_binds_to_live_content() {
+        let doc = ratified_fixture();
+        let grant = check_dispatch_ratification(&doc.to_canonical_string()).unwrap();
+        assert_eq!(grant.sequencing_version, 1);
+        assert!(grant.sequencing_digest.starts_with("sha256:"));
+        assert_eq!(
+            grant.decision_ref.as_deref(),
+            Some("evidence/goals/ratification.json")
+        );
+    }
+
+    #[test]
+    fn ratification_gate_refuses_dispatch_when_record_is_absent() {
+        // Failure injection: strip the founder_ratification record entirely.
+        let mut doc = ratified_fixture();
+        let sequencing = obj_fields_mut(obj_fields_mut(&mut doc, "masterplan_v2"), "sequencing");
+        remove_field(sequencing, "founder_ratification");
+        assert!(matches!(
+            check_dispatch_ratification(&doc.to_canonical_string()),
+            Err(RatificationRefusal::RecordAbsent(_))
+        ));
+
+        // Failure injection: a record that exists but is not a recorded
+        // decision is equally absent for dispatch purposes.
+        let mut doc = ratified_fixture();
+        let record = obj_fields_mut(
+            obj_fields_mut(obj_fields_mut(&mut doc, "masterplan_v2"), "sequencing"),
+            "founder_ratification",
+        );
+        *obj_fields_mut(record, "decision_recorded") = JsonValue::Bool(false);
+        assert!(matches!(
+            check_dispatch_ratification(&doc.to_canonical_string()),
+            Err(RatificationRefusal::RecordAbsent(_))
+        ));
+    }
+
+    #[test]
+    fn ratification_gate_refuses_dispatch_when_ratified_digest_is_stale() {
+        // Failure injection: mutate the ratifiable sequencing content (drop a
+        // work item from the order) WITHOUT re-ratifying. The recomputed
+        // digest changes and the recorded ratification is void.
+        let mut doc = ratified_fixture();
+        let sequencing = obj_fields_mut(obj_fields_mut(&mut doc, "masterplan_v2"), "sequencing");
+        let JsonValue::Arr(order) = obj_fields_mut(sequencing, "work_item_order") else {
+            panic!("work_item_order must be an array");
+        };
+        order.pop();
+        assert!(matches!(
+            check_dispatch_ratification(&doc.to_canonical_string()),
+            Err(RatificationRefusal::StaleDigest { .. })
+        ));
+    }
+
+    #[test]
+    fn ratification_gate_refuses_dispatch_when_ratified_version_is_stale() {
+        // Failure injection: a fresh re-derivation bumps the sequencing
+        // version but the old ratification record survives — the version
+        // binding breaks and dispatch stays closed.
+        let mut doc = ratified_fixture();
+        let identity = obj_fields_mut(
+            obj_fields_mut(obj_fields_mut(&mut doc, "masterplan_v2"), "sequencing"),
+            "sequencing_identity",
+        );
+        *obj_fields_mut(identity, "sequencing_version") = JsonValue::Num(2);
+        assert!(matches!(
+            check_dispatch_ratification(&doc.to_canonical_string()),
+            Err(RatificationRefusal::StaleVersion {
+                ratified_sequencing_version: Some(1),
+                current_sequencing_version: 2,
+            })
+        ));
+    }
+
+    #[test]
+    fn ratification_gate_refuses_dispatch_when_masterplan_is_unreadable() {
+        // Missing file fails closed.
+        let missing_root = std::env::temp_dir().join(format!(
+            "oya-ratification-gate-missing-{}-{:?}",
+            std::process::id(),
+            std::thread::current().id()
+        ));
+        assert!(matches!(
+            check_dispatch_ratification_at(&missing_root),
+            Err(RatificationRefusal::MasterplanUnreadable(_))
+        ));
+        // Unparseable content fails closed.
+        assert!(matches!(
+            check_dispatch_ratification("not json"),
+            Err(RatificationRefusal::MasterplanUnreadable(_))
+        ));
     }
 }

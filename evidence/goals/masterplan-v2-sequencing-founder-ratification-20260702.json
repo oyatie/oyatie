@@ -18,6 +18,8 @@
     "scope_limit": "This ratification binds only to the exact sequencing content identified by ratified_sequencing_digest. Any mutation of masterplan_v2.dependency_edges, sequencing.work_item_order, or sequencing.execution_waves work_item_ids invalidates this record and requires a fresh re-derivation and a fresh founder-ratification record before further wave dispatch."
   },
   "ratified_sequencing_digest": "sha256:a6ddc2a8f372c71aa31f9a7e84087d8d2de84c283baee0c8746e054d58564c3c",
+  "ratified_sequencing_version": 1,
+  "version_binding": "/specs/masterplan.json#masterplan_v2.sequencing.sequencing_identity.sequencing_version; sequencing_version is monotonic starting at 1 and increments by exactly 1 on every fresh re-derivation that changes sequencing_hash, so this record binds to (version, hash) as one identity.",
   "digest_recipe": "sha256 over canonical JSON (sorted keys, separators ',' ':') of {\"dependency_edges\": sorted [from, to] pairs from masterplan_v2.dependency_edges, \"execution_waves\": the work_item_ids arrays of masterplan_v2.sequencing.execution_waves in wave order, \"work_item_order\": the work_item_id strings of masterplan_v2.sequencing.work_item_order in index order}",
   "derivation": {
     "derivation_mode": "zero-based-rederived-from-masterplan-v2-dependency-dag",

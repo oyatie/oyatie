@@ -309,6 +309,8 @@ pub fn event_row_for_decision(
     }
 }
 
+// Ledger rows are flat wire records; the argument list mirrors the row shape.
+#[allow(clippy::too_many_arguments)]
 pub fn dispatch_row(
     lane_id: &str,
     brief: &str,
@@ -348,6 +350,8 @@ pub fn dispatch_row(
     LedgerRow::from_fields(fields)
 }
 
+// Ledger rows are flat wire records; the argument list mirrors the row shape.
+#[allow(clippy::too_many_arguments)]
 pub fn dispatch_registration_row(
     lane_id: &str,
     brief: &str,
@@ -380,6 +384,8 @@ pub fn dispatch_registration_row(
     LedgerRow::from_fields(fields)
 }
 
+// Ledger rows are flat wire records; the argument list mirrors the row shape.
+#[allow(clippy::too_many_arguments)]
 fn dispatch_common_fields(
     lane_id: &str,
     brief: &str,
@@ -420,10 +426,10 @@ fn dispatch_common_fields(
 }
 
 pub fn derive_lane_id(branch: &str, brief: &str) -> String {
-    if let Some(branch_stem) = branch.strip_prefix("agent/") {
-        if !branch_stem.is_empty() {
-            return branch_stem.replace('/', "-");
-        }
+    if let Some(branch_stem) = branch.strip_prefix("agent/")
+        && !branch_stem.is_empty()
+    {
+        return branch_stem.replace('/', "-");
     }
     if !branch.is_empty() {
         return branch.replace('/', "-");

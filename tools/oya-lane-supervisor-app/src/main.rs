@@ -3,6 +3,7 @@
 use anyhow::{Context, Result, anyhow, bail};
 use chrono::Utc;
 use clap::{Parser, Subcommand};
+use oya_fabric_loop_state_app::{MASTERPLAN_REPO_PATH, check_dispatch_ratification};
 use oya_lane_supervisor_app::{
     Clock, LaneObservation, PrPresence, ReapOptions, WaitFile, derive_lane_id,
     dispatch_registration_row, dispatch_row, event_row_for_decision, is_unhealthy_reap_decision,
@@ -20,6 +21,7 @@ use std::thread::sleep;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 const DEFAULT_LEDGER: &str = ".omc/ultragoal/dispatch-ledger.jsonl";
+const DEFAULT_MASTERPLAN: &str = MASTERPLAN_REPO_PATH;
 const START_GATE_TIMEOUT_SECONDS: u64 = 300;
 
 #[derive(Debug, Parser)]
@@ -51,6 +53,11 @@ enum Commands {
         log: Option<PathBuf>,
         #[arg(long, default_value = DEFAULT_LEDGER)]
         ledger: PathBuf,
+        /// The live plan authority the founder-ratification dispatch gate
+        /// reads; dispatch refuses to run when the ratification record is
+        /// absent or stale against the sequencing content at this path.
+        #[arg(long, default_value = DEFAULT_MASTERPLAN)]
+        masterplan: PathBuf,
     },
     Reap {
         #[arg(long, default_value = DEFAULT_LEDGER)]
@@ -110,6 +117,7 @@ fn run() -> Result<ExitCode> {
             expected_soft,
             log,
             ledger,
+            masterplan,
         } => dispatch(
             &brief,
             &worktree,
@@ -119,6 +127,7 @@ fn run() -> Result<ExitCode> {
             &expected_soft,
             log.as_deref(),
             &ledger,
+            &masterplan,
         ),
         Commands::Reap {
             ledger,
@@ -136,6 +145,25 @@ fn run() -> Result<ExitCode> {
     }
 }
 
+/// The mechanical founder-ratification gate on this dispatch surface: lane
+/// dispatch (execution-wave dispatch of a Claude-team lane worker) refuses to
+/// run when the ratification record in the masterplan is absent or its
+/// ratified hash/version is stale against the live sequencing content. A
+/// missing or unreadable masterplan equally refuses — fail-closed, no
+/// override flag.
+fn ratification_gate(masterplan: &Path) -> Result<()> {
+    let text = std::fs::read_to_string(masterplan).map_err(|err| {
+        anyhow!(
+            "execution-wave dispatch refused: founder-ratification gate: masterplan unreadable: {}: {err}; execution-wave dispatch stays fail-closed",
+            masterplan.display()
+        )
+    })?;
+    check_dispatch_ratification(&text)
+        .map(|_grant| ())
+        .map_err(|refusal| anyhow!("execution-wave dispatch refused: {refusal}"))
+}
+
+#[allow(clippy::too_many_arguments)]
 fn dispatch(
     brief: &Path,
     worktree: &Path,
@@ -145,7 +173,11 @@ fn dispatch(
     expected_soft: &[String],
     log: Option<&Path>,
     ledger: &Path,
+    masterplan: &Path,
 ) -> Result<ExitCode> {
+    // Ratification gate FIRST: refuse before any ledger registration, log
+    // creation, or worker spawn.
+    ratification_gate(masterplan)?;
     let repo_root = std::env::current_dir().context("failed to resolve current directory")?;
     let brief = resolve_brief_path(brief, &repo_root)?;
     let log_path = match log {
@@ -276,10 +308,7 @@ fn reap(ledger: &Path, stall_minutes: i64) -> Result<ExitCode> {
             iso8601_from_unix_seconds(clock.now_unix_seconds())?,
         ) {
             append_row(ledger, &row)?;
-            let status = match row.status() {
-                Some(status) => status,
-                None => "unknown-status",
-            };
+            let status = row.status().unwrap_or("unknown-status");
             println!("{} -> {}", lane.lane_id, status);
             appended = appended.saturating_add(1);
         }
@@ -319,14 +348,8 @@ fn status(ledger: &Path, output_json: bool) -> Result<ExitCode> {
         );
     } else {
         for lane in summaries.values() {
-            let branch = match lane.branch.as_deref() {
-                Some(branch) => branch,
-                None => "-",
-            };
-            let log = match lane.log.as_deref() {
-                Some(log) => log,
-                None => "-",
-            };
+            let branch = lane.branch.as_deref().unwrap_or("-");
+            let log = lane.log.as_deref().unwrap_or("-");
             println!("{}\t{}\t{}\t{}", lane.lane_id, lane.status, branch, log);
         }
     }
@@ -375,10 +398,7 @@ fn internal_run_worker(
         .status()
         .context("failed to run codex exec lane worker")?;
 
-    let code = match status.code() {
-        Some(code) => code,
-        None => 125,
-    };
+    let code = status.code().unwrap_or(125);
     write_wait_file(wait_file, run_id, i64::from(code))?;
     if code == 0 {
         Ok(ExitCode::SUCCESS)
@@ -496,10 +516,10 @@ fn read_wait_file(path: &Path, expected_run_id: Option<&str>) -> Result<Option<i
         .with_context(|| format!("failed to read wait file {}", path.display()))?;
     let wait: WaitFile = serde_json::from_str(&content)
         .with_context(|| format!("failed to parse wait file {}", path.display()))?;
-    if let Some(expected_run_id) = expected_run_id {
-        if wait.run_id.as_deref() != Some(expected_run_id) {
-            return Ok(None);
-        }
+    if let Some(expected_run_id) = expected_run_id
+        && wait.run_id.as_deref() != Some(expected_run_id)
+    {
+        return Ok(None);
     }
     Ok(Some(wait.exit_status))
 }
@@ -610,11 +630,11 @@ fn detach_command(command: &mut Command) {
 }
 
 fn ensure_parent_dir(path: &Path) -> Result<()> {
-    if let Some(parent) = path.parent() {
-        if !parent.as_os_str().is_empty() {
-            std::fs::create_dir_all(parent)
-                .with_context(|| format!("failed to create {}", parent.display()))?;
-        }
+    if let Some(parent) = path.parent()
+        && !parent.as_os_str().is_empty()
+    {
+        std::fs::create_dir_all(parent)
+            .with_context(|| format!("failed to create {}", parent.display()))?;
     }
     Ok(())
 }
@@ -673,10 +693,10 @@ mod tests {
     use super::*;
     use std::fs;
 
-    #[test]
-    fn dispatch_fails_before_spawn_when_registration_cannot_be_recorded() {
+    /// Unique scratch root for one test.
+    fn scratch_root(label: &str) -> PathBuf {
         let root = std::env::temp_dir().join(format!(
-            "oya-lane-supervisor-registration-fail-{}-{}",
+            "oya-lane-supervisor-{label}-{}-{}",
             std::process::id(),
             SystemTime::now()
                 .duration_since(UNIX_EPOCH)
@@ -684,6 +704,174 @@ mod tests {
                 .as_nanos()
         ));
         fs::create_dir_all(&root).expect("test temp root should be created");
+        root
+    }
+
+    /// Write a self-consistent RATIFIED masterplan fixture under
+    /// `<root>/specs/masterplan.json`: the embedded and ratified digests are
+    /// computed with the same pinned recipe the gate recomputes with.
+    fn write_ratified_masterplan(root: &Path) -> PathBuf {
+        use oya_fabric_loop_state_app::{JsonValue, compute_sequencing_digest};
+        let v2 = JsonValue::parse(concat!(
+            "{\"dependency_edges\": [],",
+            " \"sequencing\": {\"execution_waves\": [], \"work_item_order\": []}}"
+        ))
+        .expect("fixture masterplan_v2 should parse");
+        let digest = compute_sequencing_digest(&v2).expect("fixture digest should compute");
+        let doc = format!(
+            concat!(
+                "{{\"masterplan_v2\": {{\"dependency_edges\": [],",
+                " \"sequencing\": {{",
+                "\"sequencing_identity\": {{\"sequencing_version\": 1,",
+                " \"sequencing_hash\": \"{digest}\"}},",
+                " \"execution_waves\": [], \"work_item_order\": [],",
+                " \"founder_ratification\": {{\"decision_recorded\": true,",
+                " \"decision_status\": \"ratified\",",
+                " \"ratified_sequencing_digest\": \"{digest}\",",
+                " \"ratified_sequencing_version\": 1}}}}}}}}"
+            ),
+            digest = digest
+        );
+        let path = root.join("specs/masterplan.json");
+        fs::create_dir_all(path.parent().expect("masterplan parent"))
+            .expect("specs dir should be created");
+        fs::write(&path, doc).expect("masterplan fixture should be written");
+        path
+    }
+
+    #[test]
+    fn dispatch_refuses_before_any_side_effect_when_ratification_record_is_absent() {
+        // Failure injection — ABSENT: a masterplan whose sequencing carries
+        // NO founder_ratification record. Dispatch must refuse fail-closed
+        // before any ledger registration, log creation, or worker spawn.
+        let root = scratch_root("ratification-absent");
+        let masterplan = root.join("specs/masterplan.json");
+        fs::create_dir_all(masterplan.parent().expect("parent")).expect("specs dir");
+        fs::write(
+            &masterplan,
+            concat!(
+                "{\"masterplan_v2\": {\"dependency_edges\": [],",
+                " \"sequencing\": {",
+                "\"sequencing_identity\": {\"sequencing_version\": 1,",
+                " \"sequencing_hash\": \"sha256:unbound\"},",
+                " \"execution_waves\": [], \"work_item_order\": []}}}"
+            ),
+        )
+        .expect("masterplan fixture should be written");
+        let ledger = root.join("dispatch-ledger.jsonl");
+        let log = root.join("lane.log");
+
+        let err = dispatch(
+            &root.join("BRIEF.md"),
+            &root.join("worktree"),
+            "agent/test-lane",
+            "origin/dev",
+            &[],
+            &[],
+            Some(&log),
+            &ledger,
+            &masterplan,
+        )
+        .expect_err("dispatch must refuse when the ratification record is absent");
+
+        let message = format!("{err:#}");
+        assert!(
+            message.contains("execution-wave dispatch refused")
+                && message.contains("ratification record absent"),
+            "unexpected refusal message: {message}"
+        );
+        assert!(!ledger.exists(), "no ledger row may be written on refusal");
+        assert!(!log.exists(), "no lane log may be created on refusal");
+        fs::remove_dir_all(&root).expect("test temp root should be removed");
+    }
+
+    #[test]
+    fn dispatch_refuses_before_any_side_effect_when_ratified_digest_is_stale() {
+        // Failure injection — STALE: the record exists but its ratified
+        // digest no longer matches the digest recomputed from the live
+        // sequencing content (the content mutated after ratification).
+        let root = scratch_root("ratification-stale");
+        let masterplan = root.join("specs/masterplan.json");
+        fs::create_dir_all(masterplan.parent().expect("parent")).expect("specs dir");
+        fs::write(
+            &masterplan,
+            concat!(
+                "{\"masterplan_v2\": {\"dependency_edges\": [],",
+                " \"sequencing\": {",
+                "\"sequencing_identity\": {\"sequencing_version\": 1,",
+                " \"sequencing_hash\": \"sha256:stale\"},",
+                " \"execution_waves\": [], \"work_item_order\": [],",
+                " \"founder_ratification\": {\"decision_recorded\": true,",
+                " \"decision_status\": \"ratified\",",
+                " \"ratified_sequencing_digest\": \"sha256:stale\",",
+                " \"ratified_sequencing_version\": 1}}}}"
+            ),
+        )
+        .expect("masterplan fixture should be written");
+        let ledger = root.join("dispatch-ledger.jsonl");
+        let log = root.join("lane.log");
+
+        let err = dispatch(
+            &root.join("BRIEF.md"),
+            &root.join("worktree"),
+            "agent/test-lane",
+            "origin/dev",
+            &[],
+            &[],
+            Some(&log),
+            &ledger,
+            &masterplan,
+        )
+        .expect_err("dispatch must refuse when the ratified digest is stale");
+
+        let message = format!("{err:#}");
+        assert!(
+            message.contains("execution-wave dispatch refused")
+                && message.contains("stale ratification"),
+            "unexpected refusal message: {message}"
+        );
+        assert!(!ledger.exists(), "no ledger row may be written on refusal");
+        assert!(!log.exists(), "no lane log may be created on refusal");
+        fs::remove_dir_all(&root).expect("test temp root should be removed");
+    }
+
+    #[test]
+    fn dispatch_refuses_when_masterplan_is_missing() {
+        // No reachable plan authority: the gate fails closed, never open.
+        let root = scratch_root("ratification-missing");
+        let ledger = root.join("dispatch-ledger.jsonl");
+        let log = root.join("lane.log");
+
+        let err = dispatch(
+            &root.join("BRIEF.md"),
+            &root.join("worktree"),
+            "agent/test-lane",
+            "origin/dev",
+            &[],
+            &[],
+            Some(&log),
+            &ledger,
+            &root.join("specs/masterplan.json"),
+        )
+        .expect_err("dispatch must refuse when the masterplan is missing");
+
+        let message = format!("{err:#}");
+        assert!(
+            message.contains("execution-wave dispatch refused")
+                && message.contains("masterplan unreadable"),
+            "unexpected refusal message: {message}"
+        );
+        assert!(!ledger.exists(), "no ledger row may be written on refusal");
+        assert!(!log.exists(), "no lane log may be created on refusal");
+        fs::remove_dir_all(&root).expect("test temp root should be removed");
+    }
+
+    #[test]
+    fn dispatch_fails_before_spawn_when_registration_cannot_be_recorded() {
+        let root = scratch_root("registration-fail");
+        // A valid ratified masterplan lets the dispatch attempt pass the
+        // ratification gate and reach the registration step under test.
+        let masterplan = write_ratified_masterplan(&root);
         let ledger = root.join("dispatch-ledger.jsonl");
         fs::create_dir(&ledger).expect("ledger path should be an unwritable directory");
         let log = root.join("lane.log");
@@ -697,6 +885,7 @@ mod tests {
             &[],
             Some(&log),
             &ledger,
+            &masterplan,
         );
 
         assert!(result.is_err());

@@ -35,3 +35,14 @@ rust_test(
         ":oya-fabric-loop-state-app",
     ],
 )
+
+rust_test(
+    name = "oya-fabric-loop-state-app-ratification-gate",
+    srcs = ["tests/ratification_gate.rs"],
+    crate = "oya_fabric_loop_state_app_ratification_gate",
+    crate_root = "tests/ratification_gate.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-fabric-loop-state-app",
+    ],
+)

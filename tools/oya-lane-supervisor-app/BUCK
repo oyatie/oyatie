@@ -18,6 +18,7 @@ rust_binary(
     visibility = ["PUBLIC"],
     deps = [
         ":oya-lane-supervisor-app",
+        "//tools/oya-fabric-loop-state-app:oya-fabric-loop-state-app",
         "third-party//:anyhow",
         "third-party//:chrono",
         "third-party//:clap",
@@ -45,6 +46,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":oya-lane-supervisor-app",
+        "//tools/oya-fabric-loop-state-app:oya-fabric-loop-state-app",
         "third-party//:anyhow",
         "third-party//:chrono",
         "third-party//:clap",

@@ -1710,7 +1710,26 @@ pub fn evaluate_masterplan_v2_sequencing(masterplan: &Value) -> BTreeSet<Finding
             "masterplan_v2.sequencing.founder_ratification.ratified_sequencing_digest",
         ));
     }
-    let founder_ratified = record_ratified && digest_bound;
+    // Version binding is optional (the digest is the cryptographic binding), but
+    // when the ratification record declares a ratified_sequencing_version it must
+    // equal the embedded sequencing_identity version; a mismatch means the record
+    // and the identity ledger disagree, so the ratification is void.
+    let identity_version = sequencing
+        .get("sequencing_identity")
+        .and_then(|identity| identity.get("sequencing_version"))
+        .and_then(Value::as_u64);
+    let version_bound =
+        match ratification.and_then(|record| record.get("ratified_sequencing_version")) {
+            None => true,
+            Some(declared) => declared.as_u64().is_some() && declared.as_u64() == identity_version,
+        };
+    if record_ratified && !version_bound {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.founder_ratification.ratified_sequencing_version",
+        ));
+    }
+    let founder_ratified = record_ratified && digest_bound && version_bound;
     if !founder_ratified {
         findings.insert(Finding::new(
             "masterplan_execution_wave_dispatch_unratified",
@@ -5275,6 +5294,36 @@ mod tests {
             "masterplan_execution_wave_dispatch_unratified",
             "masterplan_v2.sequencing.founder_ratification.ratified_sequencing_digest"
         )));
+    }
+    #[test]
+    fn masterplan_v2_sequencing_version_binding_mismatch_voids_founder_ratification() {
+        // The (version, hash) pair is one identity: a ratification record that
+        // declares a ratified_sequencing_version disagreeing with the embedded
+        // sequencing_identity version is void even when the digest still binds.
+        let mut mismatched = minimal_ratified_sequenced_masterplan();
+        mismatched["masterplan_v2"]["sequencing"]["founder_ratification"]["ratified_sequencing_version"] =
+            json!(2);
+        let findings = evaluate_masterplan_v2_sequencing(&mismatched);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.founder_ratification.ratified_sequencing_version"
+        )));
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.founder_ratification"
+        )));
+
+        // A matching declared version keeps the ratification live.
+        let mut bound = minimal_ratified_sequenced_masterplan();
+        bound["masterplan_v2"]["sequencing"]["founder_ratification"]["ratified_sequencing_version"] =
+            json!(1);
+        let findings = evaluate_masterplan_v2_sequencing(&bound);
+        assert!(
+            !findings
+                .iter()
+                .any(|finding| finding.code == "masterplan_execution_wave_dispatch_unratified"),
+            "digest+version-bound ratification must not be flagged: {findings:?}"
+        );
     }
     #[test]
     fn masterplan_v2_sequencing_digest_matches_pinned_recipe_vector() {

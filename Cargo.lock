@@ -8679,6 +8679,7 @@ dependencies = [
  "anyhow",
  "chrono",
  "clap",
+ "oya-fabric-loop-state-app",
  "serde",
  "serde_json",
 ]
