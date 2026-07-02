@@ -15328,6 +15328,36 @@
         "provenance": "Repo-local ultragoal friction ledger may seed backlog evidence but cannot mint live plan ids."
       },
       {
+        "path": ".omc/ultragoal/premise.txt",
+        "surface_class": "repo-local-operational-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "observations-only-no-live-id-authority",
+        "staleness_evaluation": "stale: the premise's own recorded invalidator has fired — tools/oya-lane-supervisor-app is now a tracked in-repo lane-state surface, contradicting the premise claim that no tracked supervisor/lane-ledger surface exists (predicate clause: contradicts merged work).",
+        "provenance": "Repo-local ultragoal premise recorded the pre-fabric bridge justification for a local lane supervisor; retained only as archived historical context."
+      },
+      {
+        "path": ".omc/ultragoal/TEAMMATE-PREAMBLE.md",
+        "surface_class": "repo-local-harness-instruction-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "observations-only-no-live-id-authority",
+        "staleness_evaluation": "stale: references retired paths and retired tooling (.omc/ultragoal/BRIEF-*.md lane briefs, .omc/ultragoal/RESUME-PROMPT.md, infra/ci/materialize-cloud-ci-generated-faces.sh, omc orphan-cleanup); agent onboarding authority now lives in AGENTS.md and the fabric drive-loop card contract (predicate clause: references retired paths).",
+        "provenance": "Legacy per-lane teammate onboarding pack for the retired omc ultragoal harness; superseded by AGENTS.md plus /specs/fabric-drive-loop-state.json lane protocol. Carries on-disk archive front-matter enforced by the read-surface resurrection sweep."
+      },
+      {
+        "path": ".omc/ultragoal/OWNERS",
+        "surface_class": "repo-local-harness-metadata-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "no-id-content-no-live-id-authority",
+        "staleness_evaluation": "stale: ownership stub for the retired omc ultragoal harness directory; live ownership resolves through the OWNERS files of the owning tracked surfaces (predicate clause: predates the supersession event of its governing authority).",
+        "provenance": "Harness-store ownership stub retained as archived provenance only."
+      },
+      {
         "path": ".omx/**",
         "surface_class": "absent-or-retired-legacy-provenance",
         "disposition": "archived-with-provenance",
@@ -15371,8 +15401,87 @@
         "absorbed_into": "/specs/masterplan.json#masterplan_v2",
         "work_item_id_policy": "forensic-ingest-only-no-live-id-authority",
         "provenance": "Hermes board data is authorized for read-only forensic ingest only, via the owned-Rust SQLite reader tools/oya-masterplan-hermes-forensic-ledger-app; every imported done-card claim is claimed-done-unverified — attaching evidence refs upgrades only evidence_state to evidence-attached, never masterplan_status."
+      },
+      {
+        "path": "~/.hermes/kanban/boards/oyatie/kanban.db",
+        "surface_class": "global-hermes-board-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "forensic-ingest-only-no-live-id-authority",
+        "staleness_evaluation": "forensically pinned: ingest reads only the snapshot pinned at sha256 51379d8c6d48c0577baf8aa6eac4522f3d01042fec3475f0e56ed6be8b642b38 (mtime 2026-07-02T14:05:44Z); later board mutations are outside the audited ingest and never re-enter plan authority.",
+        "provenance": "Global hermes kanban board for the oyatie project, ingested read-only via the owned-Rust SQLite reader tools/oya-masterplan-hermes-forensic-ledger-app into masterplan_v2.hermes_done_card_imports (summary at masterplan_v2.hermes_done_card_import_summary; per-card detail at evidence/goals/masterplan-v2-hermes-done-card-forensic-ledger-20260702.json). Every imported done claim is claimed-done-unverified; the hermes usage block applies to the hermes runtime, not this data ingest."
       }
     ],
+    "surface_disposition_audit": {
+      "sub_ac_ref": "Seed Sub-AC 2.1",
+      "audited_at": "2026-07-02T00:00:00Z",
+      "auditor": "masterplan-v2 consolidation lane (ADR-0516 fabric drive loop)",
+      "staleness_predicate": "Mechanical: an artifact is stale iff it contradicts a merged PR or accepted ADR, references retired paths, or predates the supersession event of its governing authority; evaluated by the drift detector at ingest time, never by discipline.",
+      "disposition_enum": [
+        "canonical-authority",
+        "absorbed",
+        "archived-with-provenance",
+        "generated-projection"
+      ],
+      "completeness_rule": "Every legacy plan/goal surface and non-Hermes harness store in the Sub-AC 2.1 ingest set (specs/master-plan-sequencing.json, specs/planning-closure-contract.json plus its status ledger, docs/MASTERPLAN.md, docs/ROADMAP.md, .omc/ultragoal/goals.json, and the repo-local/global omc/omx/gjc stores) resolves to exactly one masterplan_v2.surface_dispositions row; the hermes board additionally carries its own forensic-ingest row. REQUIRED_SURFACE_DISPOSITIONS in cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app fails closed with masterplan_surface_disposition_incomplete when any required row is missing, malformed, duplicated, or carries the wrong disposition.",
+      "on_disk_archive_enforcement": "cloud-ci-cross-artifact-agreement/masterplan-v2-read-surface-resurrection: every repo-file ledger row dispositioned absorbed/archived-with-provenance/generated-projection is swept on disk for archive markers (front-matter non-live declaration plus canonical pointer for Markdown, non-live status markers for JSON, provenance/archive surface_class for opaque data); stripping markers fails closed with masterplan_read_contract_invalid.",
+      "single_writer_rule": "surface_dispositions mutates only through the /specs/masterplan.json single-writer path; hermes ledger rows mutate only through tools/oya-masterplan-hermes-forensic-ledger-app.",
+      "worktree_artifact_enumeration": [
+        {
+          "artifact": ".omc/ultragoal/OWNERS",
+          "governing_row": ".omc/ultragoal/OWNERS",
+          "evaluation": "stale-archived (harness-metadata stub)"
+        },
+        {
+          "artifact": ".omc/ultragoal/TEAMMATE-PREAMBLE.md",
+          "governing_row": ".omc/ultragoal/TEAMMATE-PREAMBLE.md",
+          "evaluation": "stale-archived (references retired paths/tooling); carries archive front-matter"
+        },
+        {
+          "artifact": ".omc/ultragoal/friction-ledger.jsonl",
+          "governing_row": ".omc/ultragoal/friction-ledger.jsonl",
+          "evaluation": "non-stale observations route through the learning-harvest lane as backlog/evidence candidates; archived as plan authority"
+        },
+        {
+          "artifact": ".omc/ultragoal/premise.txt",
+          "governing_row": ".omc/ultragoal/premise.txt",
+          "evaluation": "stale-archived (its own recorded invalidator fired: tools/oya-lane-supervisor-app is tracked)"
+        },
+        {
+          "artifact": ".gjc/state/notifications/ (ephemeral per-session records)",
+          "governing_row": ".gjc/**",
+          "evaluation": "ephemeral untracked runtime state; never plan authority, never enumerated per-file"
+        }
+      ],
+      "absent_referenced_artifacts": [
+        {
+          "artifact": ".omc/ultragoal/goals.json",
+          "governing_row": ".omc/ultragoal/goals.json",
+          "evaluation": "absent from the tracked worktree; archived-with-provenance so any resurrection re-enters as a governed archived surface"
+        },
+        {
+          "artifact": ".omc/plans/ralplan-dep-seam-phaseout-round-5.md",
+          "governing_row": ".omc/**",
+          "evaluation": "absent from the worktree; historically absorbed as a masterplan v1 source input, provenance only"
+        },
+        {
+          "artifact": ".omx/plans/ralplan-gitops-vcs-replacement-20260514.md",
+          "governing_row": ".omx/**",
+          "evaluation": "absent from the worktree; historically absorbed as a masterplan v1 source input, provenance only"
+        },
+        {
+          "artifact": ".omx/plans/prd-platform-readiness.md",
+          "governing_row": ".omx/**",
+          "evaluation": "absent from the worktree; historically absorbed as a masterplan v1 source input, provenance only"
+        },
+        {
+          "artifact": ".omx/plans/test-spec-phase0.md",
+          "governing_row": ".omx/**",
+          "evaluation": "absent from the worktree; historically absorbed as a masterplan v1 source input, provenance only"
+        }
+      ]
+    },
     "read_contracts": [
       {
         "path": "/specs/masterplan.json",

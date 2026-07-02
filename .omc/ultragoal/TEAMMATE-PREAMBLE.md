@@ -1,3 +1,19 @@
+---
+doc_class: HarnessInstructionArchive
+purpose: "Archived legacy omc ultragoal teammate onboarding pack; not a live instruction or plan authority."
+doc_status: archived-provenance
+canonical_authority: /specs/masterplan.json
+live_plan_authority: false
+read_contract:
+  audience:
+    - humans
+  read_timing_class: provenance-archive
+  freshness_rule: "Historical harness provenance only; onboarding and lane protocol resolve to AGENTS.md and /specs/fabric-drive-loop-state.json; conflicts resolve to /specs/masterplan.json#masterplan_v2."
+absorbed_by: /specs/masterplan.json#masterplan_v2
+archived_on: 2026-07-02
+staleness_evaluation: "stale: references retired paths and retired tooling (.omc/ultragoal/BRIEF-*.md, .omc/ultragoal/RESUME-PROMPT.md, infra/ci/materialize-cloud-ci-generated-faces.sh, omc orphan-cleanup)."
+---
+
 # Teammate preamble — read FIRST, before any work (standing onboarding pack)
 
 You are a fresh-context teammate dispatched via `codex exec` into an isolated worktree. This file is your onboarding; the lane brief you were pointed at is your contract. Read in this order before touching anything:
