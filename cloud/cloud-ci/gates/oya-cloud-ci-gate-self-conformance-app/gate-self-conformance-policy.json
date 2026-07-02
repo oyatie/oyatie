@@ -26,9 +26,25 @@
       "reason": "The affected-set gate is an orchestrator that invokes the owned Buck2 build/test boundary to compute the admission cone; the predicate result is derived from Buck2 reports, not ad-hoc shell policy.",
       "cutover_note": "Replace the subprocess edge with the typed cloud-ci runner/reconciler API when that API owns Buck2 execution; keep the exception visible until then.",
       "fixuptask_id": "GH-777-CUTOVER-AFFECTED-SET-TYPED-RUNNER",
-      "allowed_paths": ["cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/src/main.rs"],
-      "max_occurrences": 4,
+      "allowed_paths": [
+        "cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/src/main.rs",
+        "cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/src/bin/oya-cloud-ci-step-telemetry.rs"
+      ],
+      "max_occurrences": 5,
       "tokens": ["Command::new"]
+    },
+    {
+      "gate": "oya-cloud-ci-affected-set-app",
+      "class": "operator_phase_elapsed_telemetry_boundary",
+      "reason": "The affected-set gate uses wall-clock instants only to emit live operator phase elapsed-seconds telemetry while Buck2 or the wrapped child command runs; pass/fail verdicts still come from child exit status and Buck2 reports.",
+      "cutover_note": "Replace Instant-based adapter heartbeat timing with typed cloud-ci runner phase events when the runner/reconciler API owns long-step progress telemetry.",
+      "fixuptask_id": "GH-901-CUTOVER-AFFECTED-SET-PHASE-TELEMETRY",
+      "allowed_paths": [
+        "cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/src/main.rs",
+        "cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/src/bin/oya-cloud-ci-step-telemetry.rs"
+      ],
+      "max_occurrences": 4,
+      "tokens": ["Instant::now"]
     },
     {
       "gate": "oya-cloud-ci-firewall-app",
