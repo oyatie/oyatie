@@ -65,13 +65,18 @@ From `docs/AGENTS.md` §Pre-flight checklist — complete all items. Highlights:
 
 ## Verification evidence
 
-Final evidence for the PR `## Verification` section (dev-loop feedback may use
-`bacon`, but evidence uses these exact commands):
+Final evidence for the PR `## Verification` section is buck2-first per
+`templates/pull-request-template.md` (TPL-PR) — buck2 is the primary
+build/test authority; cargo is supplementary local feedback only (dev-loop
+feedback may use `bacon` or cargo, but buck2 lines are the evidence):
 
 ```sh
-cargo nextest run --workspace --all-features --no-fail-fast
-cargo clippy --workspace --all-features --all-targets -- -D warnings
-cargo deny check
+buck2 test <targeted test targets>
+buck2 build <targeted build targets>
+# supplementary local feedback only (not merge evidence):
+#   cargo nextest run --workspace --all-features --no-fail-fast
+#   cargo clippy --workspace --all-features --all-targets -- -D warnings
+#   cargo deny check
 ```
 
 Paste actual output excerpts with `PASS` / `FAIL` tokens — hand-waves fail the
