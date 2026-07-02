@@ -278,17 +278,101 @@ fn has_valid_traceparent_binding(record: &RuntimeTraceEvidence) -> bool {
 
 fn has_valid_otlp_exporter_binding(record: &RuntimeTraceEvidence) -> bool {
     let env = record.otlp_exporter_env.as_str();
-    let endpoint = record.otlp_endpoint.to_ascii_lowercase();
     let protocol = record.otlp_protocol.to_ascii_lowercase();
 
     matches!(env, "OTEL_EXPORTER_OTLP_ENDPOINT" | "OYA_OTEL_ENDPOINT")
-        && (endpoint.starts_with("http://") || endpoint.starts_with("https://"))
-        && (endpoint.contains("otel-collector") || endpoint.contains("alloy.observability"))
-        && (endpoint.contains(":4317") || endpoint.contains("/v1/traces"))
-        && matches!(
-            protocol.as_str(),
-            "otlp/grpc" | "otlp/http" | "otlp/http/protobuf"
-        )
+        && is_allowed_otlp_endpoint_for_protocol(&record.otlp_endpoint, &protocol)
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct OtlpEndpointParts<'a> {
+    host: String,
+    port: Option<&'a str>,
+    path: &'a str,
+}
+
+fn is_allowed_otlp_endpoint_for_protocol(endpoint: &str, protocol: &str) -> bool {
+    let Some(parts) = parse_otlp_http_endpoint(endpoint) else {
+        return false;
+    };
+    if !is_allowed_otlp_collector_host(&parts.host) {
+        return false;
+    }
+
+    match protocol {
+        "otlp/grpc" => parts.port == Some("4317") && matches!(parts.path, "" | "/"),
+        "otlp/http" | "otlp/http/protobuf" => {
+            let port_ok = match parts.port {
+                None | Some("4317") | Some("4318") => true,
+                Some(_) => false,
+            };
+            port_ok && parts.path == "/v1/traces"
+        }
+        _ => false,
+    }
+}
+
+fn parse_otlp_http_endpoint(endpoint: &str) -> Option<OtlpEndpointParts<'_>> {
+    let endpoint = endpoint.trim();
+    let endpoint_lower = endpoint.to_ascii_lowercase();
+    let rest = if endpoint_lower.starts_with("http://") {
+        &endpoint["http://".len()..]
+    } else if endpoint_lower.starts_with("https://") {
+        &endpoint["https://".len()..]
+    } else {
+        return None;
+    };
+
+    let authority_end = rest.find(['/', '?', '#']).unwrap_or(rest.len());
+    let authority = &rest[..authority_end];
+    if authority.is_empty()
+        || authority.contains('@')
+        || authority.contains('[')
+        || authority.contains(']')
+    {
+        return None;
+    }
+
+    let suffix = &rest[authority_end..];
+    if suffix.starts_with('?') || suffix.starts_with('#') {
+        return None;
+    }
+    let path_end = suffix.find(['?', '#']).unwrap_or(suffix.len());
+    if path_end != suffix.len() {
+        return None;
+    }
+    let path = &suffix[..path_end];
+
+    let (host, port) = match authority.rsplit_once(':') {
+        Some((host, port))
+            if !host.is_empty()
+                && !port.is_empty()
+                && port.bytes().all(|byte| byte.is_ascii_digit()) =>
+        {
+            (host, Some(port))
+        }
+        Some(_) => return None,
+        None => (authority, None),
+    };
+    let host = host.trim_end_matches('.').to_ascii_lowercase();
+    if host.is_empty() || host.contains(':') {
+        return None;
+    }
+
+    Some(OtlpEndpointParts { host, port, path })
+}
+
+fn is_allowed_otlp_collector_host(host: &str) -> bool {
+    matches!(
+        host,
+        "otel-collector"
+            | "otel-collector.observability"
+            | "otel-collector.observability.svc"
+            | "otel-collector.observability.svc.cluster.local"
+            | "alloy.observability"
+            | "alloy.observability.svc"
+            | "alloy.observability.svc.cluster.local"
+    )
 }
 
 fn has_low_cardinality_route_template(record: &RuntimeTraceEvidence) -> bool {
@@ -548,6 +632,43 @@ mod tests {
                 .iter()
                 .any(|finding| finding.summary.contains("OTLP exporter binding"))
         );
+    }
+
+    #[test]
+    fn strict_mode_rejects_collector_token_outside_endpoint_host() {
+        let mut evidence = runtime_evidence();
+        evidence.otlp_endpoint =
+            "https://telemetry.example.invalid/otel-collector/v1/traces".into();
+        evidence.otlp_protocol = "otlp/http/protobuf".into();
+
+        let report = validate_strict(vec![evidence]);
+
+        assert!(!report.is_success());
+        assert_eq!(report.adapters_with_valid_traceparent, 1);
+        assert_eq!(report.adapters_with_otlp_exporter_path, 0);
+        assert!(
+            report
+                .strict_findings
+                .iter()
+                .any(|finding| finding.summary.contains("OTLP exporter binding"))
+        );
+    }
+
+    #[test]
+    fn strict_mode_accepts_allowed_alloy_http_trace_endpoint() {
+        let mut evidence = runtime_evidence();
+        evidence.otlp_endpoint = "https://alloy.observability.svc.cluster.local/v1/traces".into();
+        evidence.otlp_protocol = "otlp/http/protobuf".into();
+
+        let report = validate_strict(vec![evidence]);
+
+        assert!(
+            report.is_success(),
+            "unexpected findings: {:?}",
+            report.strict_findings
+        );
+        assert_eq!(report.adapters_with_valid_traceparent, 1);
+        assert_eq!(report.adapters_with_otlp_exporter_path, 1);
     }
 
     #[test]
