@@ -24,7 +24,7 @@ use tracing::{error, info};
 
 use iam_cloud_pdp_bundle_file::FilePolicyBundleStore;
 use iam_cloud_pdp_kernel::{BundleStoreError, PdpConfig, PolicyBundleStore};
-use oya_shared_pdp_adapter_cedar::CedarPdp;
+use iam_pdp_cedar::CedarPdp;
 use oya_shared_pdp_kernel::{PdpError, PolicyDecisionPoint as _};
 
 use std::path::Path;

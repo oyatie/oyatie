@@ -31,7 +31,7 @@
       "specs/compliance-pack-schema.json",
       "libs/oya-shared-platform-contracts-kernel/src/pdp.rs",
       "libs/oya-shared-pdp-kernel/src/lib.rs",
-      "libs/oya-shared-pdp-adapter-cedar/src/lib.rs",
+      "iam/adapters/pdp-cedar/src/lib.rs",
       "cloud/tenancy/IP-018-kyb-kyc-verifier-domain.md",
       "cloud/tenancy/IP-024-kyb-kyc-rest-and-async.md",
       "cloud/tenancy/capabilities/kyb-kyc-complete.yaml"
@@ -87,7 +87,7 @@
       "source_paths": [
         "libs/oya-shared-platform-contracts-kernel/src/pdp.rs",
         "libs/oya-shared-pdp-kernel/src/lib.rs",
-        "libs/oya-shared-pdp-adapter-cedar/src/lib.rs"
+        "iam/adapters/pdp-cedar/src/lib.rs"
       ],
       "usable_findings": [
         "AuthorizationRequest carries request_id, tenant_id, principal, action, resource, context, and min_policy_version.",

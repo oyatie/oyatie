@@ -37,7 +37,7 @@ can only widen authorization, never narrow it — so a deployed ConfigMap is the
 that actually runs, regardless of what was authored.
 
 A one-time disarm of the blanket (re-pointing each LIVE, non-deprecated service at its real authored
-policy — for the platform PBAC core, `libs/oya-shared-pdp-adapter-cedar/cedar/platform-policies.cedar`)
+policy — for the platform PBAC core, `iam/adapters/pdp-cedar/cedar/platform-policies.cedar`)
 does not prevent recurrence: the next chart can re-stamp the blanket. Per the
 pipeline-as-product / friction-is-a-process-failure doctrine (ADR-0548), the recurrence CLASS must be
 closed by a born-blocking, hermetic gate, not a manual review. The disarm itself is a SEPARATE,
@@ -165,7 +165,7 @@ cloud/cloud-ci/gates/oya-cloud-ci-cedar-deploy-parity-app/tests/cedar_deploy_par
   fail-closed.
 - **Disarm-then-empty-baseline in the original gate lane**: rejected — determining the correct LIVE,
   non-deprecated authz target per service (oya/identity is a deprecate target; cloud-iam is the IdP
-  substrate; the PBAC core is `libs/oya-shared-pdp-adapter-cedar`) needed a separate decision + IP.
+  substrate; the PBAC core is `iam/adapters/pdp-cedar`) needed a separate decision + IP.
   GH #987 performs the scoped Cloud control-plane disarm only; remaining product/deprecation-target
   templates stay in the shrink-only baseline until their own reorg-safe migration lands.
 - **A producer-face binding** (emit findings into the accounting registry): rejected — same R0

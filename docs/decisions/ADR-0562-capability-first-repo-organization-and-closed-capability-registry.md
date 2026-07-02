@@ -2106,6 +2106,17 @@ current Cedar domain home as `iam/core/policy-cedar-domain/src/rebac.rs`, with t
 test target. This is a destination-surface registration for the IAM capability move, not a resurrection of retired
 `oya/policy` or `oya-dev-cli` authority.
 
+AUTHZ-008 burns down the shared Cedar PDP adapter straggler left in the frozen `libs/oya-shared-*` baseline:
+`libs/oya-shared-pdp-adapter-cedar` moves to `iam/adapters/pdp-cedar`, with cargo/lib ids
+`iam-pdp-cedar` / `iam_pdp_cedar`. This is a behavior-preserving relocation of the same embedded
+`cedar-policy` engine behind `oya-shared-pdp-kernel::PolicyDecisionPoint` (ADR-0536 D-2; ADR-0243
+single-decision-algorithm rule), not a new authorization implementation. The only live dependents are
+rewired in place: `iam/facade/cloud-pdp-app` and `tenancy/adapters/tenant-lifecycle-authz-pdp` update
+their Cargo path deps, BUCK labels, and Rust imports to the new de-branded IAM adapter home.
+The active one-plan source for this straggler move is `specs/reorg/iam-pdp-cedar-move-plan.json`;
+cloud-ci materializes the generated move manifest from that reviewed source, so the generated face is
+not hand-edited in the contributor PR.
+
 **External dependents (4, rewritten):** exactly four first-party crates outside the sixty-three depend on the moved tree —
 `compute/core/domain` (→ cloud-iam-domain), `observability/core/aggregate` (→ cloud-iam-domain),
 `k8s/adapters/tenant-quota-adapter-cedar` (→ identity-workload-authz-cedar + identity-workload-domain), and
@@ -2492,7 +2503,13 @@ with cargo id `billing-metering-pipeline-kernel`. Because `catalog-liveness` is 
 live workspace crates, the slice adds the minimal live catalog row
 `registry/catalog/billing-metering-pipeline-kernel.yaml` rather than leaving a new live crate
 record-less. That catalog row is a liveness/accounting record only: it carries no runtime-readiness,
-SLO, or production claim beyond the existing metering pipeline kernel contract.
+SLO, or production claim beyond the existing metering pipeline kernel contract. The crate's
+born-accounting file surfaces are `billing/core/metering-pipeline-kernel/BUCK`,
+`billing/core/metering-pipeline-kernel/Cargo.toml`,
+`billing/core/metering-pipeline-kernel/src/conformance.rs`,
+`billing/core/metering-pipeline-kernel/src/lib.rs`,
+`billing/core/metering-pipeline-kernel/src/reference.rs`, and
+`billing/core/metering-pipeline-kernel/tests/reference_sink.rs`.
 
 **SLO co-move (12, per-service subdirs — collision-avoiding):** two source dirs carry a promotion-gating SLO with the SAME
 basename `autosharding-events.openslo.yaml` (`cloud/cloud-billing/slos/` + `cloud/cloud-billing-tax/slos/`), a confirmed
