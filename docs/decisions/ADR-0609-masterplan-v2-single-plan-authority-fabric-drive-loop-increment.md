@@ -214,5 +214,5 @@ by removing duplicate authority instead of adding coordination process.
 - Evidence: `evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json`,
   `evidence/goals/fabric-loop-e2e-proof-run-20260702.json`,
   `evidence/goals/fabric-loop-parallel-lanes-proof-run-20260702.json`,
-  `evidence/goals/masterplan-gates-ci-wiring-20260702.json` (red probe run 28592595372/28594633232
-  blocking PR #1181; green oya-ci-required run admitting PR #1182).
+  `evidence/goals/masterplan-gates-ci-wiring-20260702.json` (red probe runs 28592595372/28594633232
+  blocking PR #1181; green oya-ci-required run 28596752891 admitting PR #1182).

@@ -112,10 +112,13 @@
   "green_run_admitting": {
     "pr": "https://github.com/jason931225/oyatie/pull/1182",
     "branch": "ooo/orch_809bd09d8ad9",
-    "run": "https://github.com/jason931225/oyatie/actions/runs/PENDING-RECORDING",
-    "head_sha": "PENDING-RECORDING",
-    "conclusion": "PENDING-RECORDING",
-    "recording_protocol": "this field is filled by the immediately following commit once the oya-ci-required run on the reconciled head completes green; the run id cannot be known at authoring time because the run executes on the commit that carries this packet",
+    "run": "https://github.com/jason931225/oyatie/actions/runs/28596752891",
+    "head_sha": "63dc272f51bc376f8a42cedea34660936859ceb1",
+    "conclusion": "success",
+    "fan_in_conclusion": "oya-ci-required fan-in job completed success on run 28596752891 (all constituent gate lanes green, including the masterplan leg and the buck2 hermetic lane)",
+    "masterplan_leg_conclusion": "gate \u00b7 cross-artifact-agreement (GATE-1, incl. the 4 masterplan-v2 plan gates: structural ID/DAG/orphans \u00b7 projection-freshness \u00b7 plan-vs-evidence \u00b7 read-contract/entry-surface) completed success; buck2 (hermetic build + affected gate tests) completed success",
+    "admitting_observed": "PR #1182 mergeStateStatus flipped BLOCKED -> CLEAN (queried via gh pr view at 2026-07-02T14:38:30Z) \u2014 the green required context is the only admission signal that changed; the same context that blocked probe PR #1181 admits the reconciled candidate",
+    "recording_protocol": "fulfilled 2026-07-02T14:38:30Z by the immediately following commit per the protocol authored with this packet: the run executes on the commit that carries the packet, so the run id is recorded by its successor commit; the recorded head 63dc272f5 differs from the recording commit by exactly this recording edit plus the matching masterplan/ADR evidence-ref pins",
     "local_mirror": "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app:{-unittest,-gate} on the reconciled tree: 81 lib + 20 gate tests passed, including all four live-tree born-blocking self-tests (masterplan_v2_live_authority_contract_is_green, masterplan_projection_rederivation_gate_is_green_on_live_tree, masterplan_plan_evidence_crosscheck_gate_is_green_on_live_tree, masterplan_read_surface_resurrection_gate_is_green_on_live_tree)"
   }
 }
