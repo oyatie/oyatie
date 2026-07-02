@@ -2220,6 +2220,52 @@
       }
     },
     {
+      "artifact_id": "pci-dss-level-1-readiness-plan",
+      "artifact_path": "/specs/pci-dss-level-1-readiness-plan.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "ops-compliance + council-security + axis-identity + axis-policy-engine + axis-audit-chain + axis-cloud-kms",
+      "purpose_short": "Planning-only PCI DSS Level 1 readiness and regulated-data control-pack contract for CDE scope, tokenization, card-data prohibitions, QSA/ROC/AOC evidence, ASV scans, segmentation, KMS/PDP/audit bindings, retention, incident response, and tenant activation gates.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "regid-003-pci-dss-l1-readiness"
+        },
+        "verification": {
+          "checker_crate": "planned: cloud-ci PCI DSS Level 1 readiness gate",
+          "command": "python3 -m json.tool specs/pci-dss-level-1-readiness-plan.json >/dev/null"
+        },
+        "validation": {
+          "validator": "JSON syntax validation until PCI readiness schema/gate lands"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored planning/spec control pack"
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until PCI readiness validator lands"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_pci_readiness_control_coverage_total",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "control_id",
+                "evidence_state"
+              ],
+              "cardinality_budget": 200
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "pending code-review",
+          "last_modified_at": "2026-07-01T00:03:40Z"
+        }
+      }
+    },
+    {
       "artifact_id": "regulatory-identity-kyc-policy-evidence-architecture",
       "artifact_path": "/specs/regulatory-identity-kyc-policy-evidence-architecture.json",
       "artifact_format": "json",
@@ -2308,6 +2354,52 @@
           "current_author": "hermes-gjc",
           "current_reviewed_by": "critic-132 + architect-131 planning review",
           "last_modified_at": "2026-07-01T00:51:42Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "vulnerability-intelligence-sbom-vex-pipeline",
+      "artifact_path": "/specs/vulnerability-intelligence-sbom-vex-pipeline.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-security + ops-supply-chain + platform-toolchain + platform-cd",
+      "purpose_short": "Planning-only vulnerability intelligence, SBOM, VEX, advisory normalization, prioritization, exception, evidence, and admission decision contract; JSON is canonical product/control-plane contract, scanner CLI authority is forbidden, and Rust supply-chain kernel is validator/bridge input only.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "regvuln-002-vulnerability-contract-integration-decision"
+        },
+        "verification": {
+          "checker_crate": "libs/oya-check-supply-chain",
+          "command": "python3 -m json.tool specs/vulnerability-intelligence-sbom-vex-pipeline.json >/dev/null && cargo test -p oya-check-supply-chain --lib vulnerability_intelligence"
+        },
+        "validation": {
+          "validator": "JSON syntax plus Rust vulnerability-intelligence contract fixture until a dedicated cloud-ci gate lands"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored planning/spec contract"
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until vulnerability-intelligence spec/validator drift gate lands"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_vulnerability_decision_contract_coverage_total",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "contract_section",
+                "validation_state"
+              ],
+              "cardinality_budget": 100
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "REGSEC-001 T3 review t_59bf50cb APPROVE; REGVULN-002 review child t_4d5c525f pending",
+          "last_modified_at": "2026-07-01T13:28:43Z"
         }
       }
     },

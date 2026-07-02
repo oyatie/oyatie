@@ -70,7 +70,7 @@ Each applicable line **MUST** be present with a pass/fail token (`PASS` / `FAIL`
   - promoted SHA + `oya-ci-required` status URL
   - rollout verification + rollback note
   - observability check + browser UX/user-story evidence
-  - Release Please / release-note impact
+  - release-governance/release-note impact (Release Please only when repo config proves it)
 
 ## Code Review
 

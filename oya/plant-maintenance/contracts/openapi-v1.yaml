@@ -3,6 +3,38 @@ info:
   title: Plant Maintenance API
   version: 1.0.0
   summary: SAP PM parity API with marketplace settlement boundaries
+  description: >-
+    Preview metadata-only contract surface aligned to the scaffolded
+    plant-maintenance work-order app adapters. This artifact records route
+    names for fixture conformance only; it does not claim a deployed endpoint
+    or live enterprise asset-management runtime.
+  x-oyatie-contract-status: preview-not-deployed
+  x-oyatie-non-claims:
+    - no deployed HTTP runtime
+    - no durable persistence
+    - no scheduling engine
+    - no technician dispatch runtime
+    - no spare-parts inventory mutation
+    - no procurement requisition creation
+    - no accounting posting
+    - no Workflow execution
+    - no runtime audit-chain emission
+    - no cloud deployment
+  x-oyatie-app-route-metadata:
+    description: >-
+      Fixture-only path names expected by the scaffolded HTTP adapter. These
+      are not deployed OpenAPI operations; canonical wire paths remain below.
+    paths:
+      - path: /v1/plant-maintenance/equipment-masters:register
+        contract_stub_only: true
+      - path: /v1/plant-maintenance/maintenance-plans:schedule
+        contract_stub_only: true
+      - path: /v1/plant-maintenance/work-orders:release
+        contract_stub_only: true
+      - path: /v1/plant-maintenance/spare-parts:reserve
+        contract_stub_only: true
+      - path: /v1/plant-maintenance/downtime-windows:record
+        contract_stub_only: true
 servers:
   - url: https://api.oyatie.example/plant-maintenance
     description: HTTP/3 default, ECH advertised, PQC hybrid offered when supported
@@ -31,7 +63,7 @@ paths:
               $ref: "#/components/schemas/EquipmentMasterCommand"
       responses:
         "202":
-          description: Accepted with signed audit event
+          description: Metadata fixture accepted for contract review only; no deployed handler or runtime audit-chain emission is claimed.
   /v1/plant-maintenance/maintenance-plan:
     post:
       summary: Create or amend Plant Maintenance maintenance-plan
@@ -50,7 +82,7 @@ paths:
               $ref: "#/components/schemas/MaintenancePlanCommand"
       responses:
         "202":
-          description: Accepted with signed audit event
+          description: Metadata fixture accepted for contract review only; no deployed handler or runtime audit-chain emission is claimed.
   /v1/plant-maintenance/work-order:
     post:
       summary: Create or amend Plant Maintenance work-order
@@ -69,7 +101,7 @@ paths:
               $ref: "#/components/schemas/WorkOrderCommand"
       responses:
         "202":
-          description: Accepted with signed audit event
+          description: Metadata fixture accepted for contract review only; no deployed handler or runtime audit-chain emission is claimed.
   /v1/plant-maintenance/spare-part-reservation:
     post:
       summary: Create or amend Plant Maintenance spare-part-reservation
@@ -88,7 +120,7 @@ paths:
               $ref: "#/components/schemas/SparePartReservationCommand"
       responses:
         "202":
-          description: Accepted with signed audit event
+          description: Metadata fixture accepted for contract review only; no deployed handler or runtime audit-chain emission is claimed.
   /v1/plant-maintenance/technician-dispatch:
     post:
       summary: Create or amend Plant Maintenance technician-dispatch
@@ -107,7 +139,7 @@ paths:
               $ref: "#/components/schemas/TechnicianDispatchCommand"
       responses:
         "202":
-          description: Accepted with signed audit event
+          description: Metadata fixture accepted for contract review only; no deployed handler or runtime audit-chain emission is claimed.
   /v1/plant-maintenance/downtime-window:
     post:
       summary: Create or amend Plant Maintenance downtime-window
@@ -126,7 +158,7 @@ paths:
               $ref: "#/components/schemas/DowntimeWindowCommand"
       responses:
         "202":
-          description: Accepted with signed audit event
+          description: Metadata fixture accepted for contract review only; no deployed handler or runtime audit-chain emission is claimed.
 components:
   x-oyatie-sharding-automation-event-surface:
     microservice: plant-maintenance

@@ -110,6 +110,9 @@ impl MovePlan {
     /// * no `new_path` nests inside another move's `new_path` in a way that would shadow it
     ///   (a target-path collision);
     /// * paths are repo-relative + normalized (no `.`/`..`/leading-or-trailing slash);
+    /// * source-branded de-brand moves do not keep deprecated leading `oya` / `cloud`
+    ///   targets (`old_path` / `old_cargo_name` may carry the legacy brand; `new_path` /
+    ///   `new_cargo_name` must not);
     /// * each artifact `old_path`/`new_path` is a normalized repo-relative path AND collides
     ///   with NO other `old_path`/`new_path` ACROSS both `moves` and `artifacts` (no two sources
     ///   map in, no two map out — the cross-service SLO-name collision backstop, fail-closed).
@@ -136,6 +139,22 @@ impl MovePlan {
                         path: p.clone(),
                     });
                 }
+            }
+            if is_deprecated_brand_path_source(&m.old_path)
+                && is_deprecated_brand_path_target(&m.new_path)
+            {
+                return Err(CodemodError::DeprecatedBrandTarget {
+                    which: "new_path".to_string(),
+                    value: m.new_path.clone(),
+                });
+            }
+            if is_deprecated_brand_name(&m.old_cargo_name)
+                && is_deprecated_brand_name(&m.new_cargo_name)
+            {
+                return Err(CodemodError::DeprecatedBrandTarget {
+                    which: "new_cargo_name".to_string(),
+                    value: m.new_cargo_name.clone(),
+                });
             }
             if !old_paths.insert(m.old_path.clone()) {
                 return Err(CodemodError::DuplicateKey {
@@ -176,6 +195,14 @@ impl MovePlan {
                     });
                 }
             }
+            if is_deprecated_brand_artifact_source(&a.old_path)
+                && is_deprecated_brand_artifact_target(&a.new_path)
+            {
+                return Err(CodemodError::DeprecatedBrandTarget {
+                    which: "artifact new_path".to_string(),
+                    value: a.new_path.clone(),
+                });
+            }
             if !old_paths.insert(a.old_path.clone()) {
                 return Err(CodemodError::DuplicateKey {
                     kind: "old_path".to_string(),
@@ -199,6 +226,37 @@ impl MovePlan {
                         outer: b.clone(),
                     });
                 }
+            }
+        }
+        Ok(())
+    }
+
+    /// Forward committed de-brand policy gate: reject any move target that introduces or keeps
+    /// deprecated leading `oya` / `cloud` names. Unlike [`MovePlan::validate`], this is direction-
+    /// strict and intentionally independent of whether the old/source side was branded; the
+    /// reversible `apply --revert` path still uses the structural validator so rollback can move
+    /// back to a legacy source shape.
+    pub fn validate_debrand_targets(&self) -> Result<(), CodemodError> {
+        for m in &self.moves {
+            if is_deprecated_brand_path_target(&m.new_path) {
+                return Err(CodemodError::DeprecatedBrandTarget {
+                    which: "new_path".to_string(),
+                    value: m.new_path.clone(),
+                });
+            }
+            if is_deprecated_brand_name(&m.new_cargo_name) {
+                return Err(CodemodError::DeprecatedBrandTarget {
+                    which: "new_cargo_name".to_string(),
+                    value: m.new_cargo_name.clone(),
+                });
+            }
+        }
+        for a in &self.artifacts {
+            if is_deprecated_brand_artifact_target(&a.new_path) {
+                return Err(CodemodError::DeprecatedBrandTarget {
+                    which: "artifact new_path".to_string(),
+                    value: a.new_path.clone(),
+                });
             }
         }
         Ok(())
@@ -399,6 +457,8 @@ pub enum CodemodError {
     BadPath { which: String, path: String },
     DuplicateKey { kind: String, value: String },
     NestedTarget { inner: String, outer: String },
+    /// A de-brand move target kept or introduced a deprecated leading `oya` / `cloud` brand.
+    DeprecatedBrandTarget { which: String, value: String },
     /// A relative `path=` dep could not be recomputed unambiguously (e.g. it points outside
     /// the repo root, or its target cannot be located post-move).
     AmbiguousPathDep { manifest: String, dep: String, path: String },
@@ -433,6 +493,10 @@ impl fmt::Display for CodemodError {
             CodemodError::NestedTarget { inner, outer } => write!(
                 f,
                 "target path {inner:?} nests inside another moved target {outer:?} (ambiguous destination)"
+            ),
+            CodemodError::DeprecatedBrandTarget { which, value } => write!(
+                f,
+                "{which} remains on deprecated oya/cloud brand target {value:?}; de-brand targets must use capability-first names"
             ),
             CodemodError::AmbiguousPathDep {
                 manifest,
@@ -482,6 +546,42 @@ pub fn is_normalized_rel_path(p: &str) -> bool {
     }
     p.split('/')
         .all(|seg| !seg.is_empty() && seg != "." && seg != "..")
+}
+
+fn is_deprecated_brand_name(value: &str) -> bool {
+    value.starts_with("oya-") || value.starts_with("cloud-")
+}
+
+fn is_deprecated_brand_path_source(path: &str) -> bool {
+    path.starts_with("oya/") || path.starts_with("cloud/") || is_deprecated_brand_path_leaf(path)
+}
+
+fn is_deprecated_brand_path_target(path: &str) -> bool {
+    path.starts_with("oya/") || path.starts_with("cloud/")
+}
+
+fn is_deprecated_brand_artifact_source(path: &str) -> bool {
+    path.starts_with("oya/")
+        || path.starts_with("cloud/")
+        || is_deprecated_brand_path_leaf(path)
+        || is_deprecated_brand_file_stem(path)
+}
+
+fn is_deprecated_brand_artifact_target(path: &str) -> bool {
+    path.starts_with("oya/") || path.starts_with("cloud/") || is_deprecated_brand_file_stem(path)
+}
+
+fn is_deprecated_brand_path_leaf(path: &str) -> bool {
+    path.rsplit('/').next().is_some_and(is_deprecated_brand_name)
+}
+
+fn is_deprecated_brand_file_stem(path: &str) -> bool {
+    path.rsplit('/').next().is_some_and(|leaf| {
+        leaf.strip_suffix(".yaml")
+            .or_else(|| leaf.strip_suffix(".yml"))
+            .or_else(|| leaf.strip_suffix(".json"))
+            .is_some_and(is_deprecated_brand_name)
+    })
 }
 
 /// Recompute a relative `path=` dependency for a manifest that moved from `old_manifest_dir`
@@ -727,6 +827,132 @@ mod tests {
             plan.validate(),
             Err(CodemodError::NestedTarget { .. })
         ));
+    }
+
+    #[test]
+    fn validate_rejects_branded_crate_move_targets() {
+        let oya_path_plan = MovePlan {
+            capability: "iam".to_string(),
+            moves: vec![CrateMove {
+                old_path: "cloud/cloud-iam/crates/oya-cloud-iam-domain".to_string(),
+                new_path: "oya/identity/crates/oya-identity-domain".to_string(),
+                old_cargo_name: "oya-cloud-iam-domain".to_string(),
+                new_cargo_name: "identity-domain".to_string(),
+            }],
+            artifacts: vec![],
+        };
+        assert!(matches!(
+            oya_path_plan.validate(),
+            Err(CodemodError::DeprecatedBrandTarget { which, value })
+                if which == "new_path" && value == "oya/identity/crates/oya-identity-domain"
+        ));
+
+        let cloud_name_plan = MovePlan {
+            capability: "iam".to_string(),
+            moves: vec![CrateMove {
+                old_path: "cloud/cloud-iam/crates/oya-cloud-iam-domain".to_string(),
+                new_path: "iam/core/domain".to_string(),
+                old_cargo_name: "oya-cloud-iam-domain".to_string(),
+                new_cargo_name: "cloud-iam-domain".to_string(),
+            }],
+            artifacts: vec![],
+        };
+        assert!(matches!(
+            cloud_name_plan.validate(),
+            Err(CodemodError::DeprecatedBrandTarget { which, value })
+                if which == "new_cargo_name" && value == "cloud-iam-domain"
+        ));
+
+        let introduced_brand_path_plan = MovePlan {
+            capability: "iam".to_string(),
+            moves: vec![CrateMove {
+                old_path: "iam/core/domain".to_string(),
+                new_path: "cloud/iam/core/domain".to_string(),
+                old_cargo_name: "identity-domain".to_string(),
+                new_cargo_name: "identity-domain".to_string(),
+            }],
+            artifacts: vec![],
+        };
+        assert!(matches!(
+            introduced_brand_path_plan.validate_debrand_targets(),
+            Err(CodemodError::DeprecatedBrandTarget { which, value })
+                if which == "new_path" && value == "cloud/iam/core/domain"
+        ));
+
+        let introduced_brand_name_plan = MovePlan {
+            capability: "iam".to_string(),
+            moves: vec![CrateMove {
+                old_path: "iam/core/domain".to_string(),
+                new_path: "iam/core/domain-v2".to_string(),
+                old_cargo_name: "identity-domain".to_string(),
+                new_cargo_name: "oya-identity-domain".to_string(),
+            }],
+            artifacts: vec![],
+        };
+        assert!(matches!(
+            introduced_brand_name_plan.validate_debrand_targets(),
+            Err(CodemodError::DeprecatedBrandTarget { which, value })
+                if which == "new_cargo_name" && value == "oya-identity-domain"
+        ));
+    }
+
+    #[test]
+    fn validate_rejects_branded_artifact_targets() {
+        let plan = MovePlan {
+            capability: "calendar".to_string(),
+            moves: vec![CrateMove {
+                old_path: "oya/calendar/crates/oya-calendar-domain".to_string(),
+                new_path: "comms/core/calendar-domain".to_string(),
+                old_cargo_name: "oya-calendar-domain".to_string(),
+                new_cargo_name: "comms-calendar-domain".to_string(),
+            }],
+            artifacts: vec![ArtifactMove {
+                old_path: "registry/catalog/oya-calendar-domain.yaml".to_string(),
+                new_path: "registry/catalog/oya-calendar-domain.yaml".to_string(),
+            }],
+        };
+        assert!(matches!(
+            plan.validate(),
+            Err(CodemodError::DeprecatedBrandTarget { which, value })
+                if which == "artifact new_path" && value == "registry/catalog/oya-calendar-domain.yaml"
+        ));
+
+        let introduced_brand_artifact_plan = MovePlan {
+            capability: "calendar".to_string(),
+            moves: vec![CrateMove {
+                old_path: "calendar/core/domain".to_string(),
+                new_path: "calendar/core/domain-v2".to_string(),
+                old_cargo_name: "calendar-domain".to_string(),
+                new_cargo_name: "calendar-domain-v2".to_string(),
+            }],
+            artifacts: vec![ArtifactMove {
+                old_path: "registry/catalog/calendar-domain.yaml".to_string(),
+                new_path: "registry/catalog/cloud-calendar-domain.yaml".to_string(),
+            }],
+        };
+        assert!(matches!(
+            introduced_brand_artifact_plan.validate_debrand_targets(),
+            Err(CodemodError::DeprecatedBrandTarget { which, value })
+                if which == "artifact new_path" && value == "registry/catalog/cloud-calendar-domain.yaml"
+        ));
+    }
+
+    #[test]
+    fn validate_allows_debranded_targets_that_keep_cloud_as_a_non_prefix_descriptor() {
+        let plan = MovePlan {
+            capability: "marketplace".to_string(),
+            moves: vec![CrateMove {
+                old_path: "cloud/cloud-marketplace/crates/oya-cloud-marketplace-domain".to_string(),
+                new_path: "marketplace/core/cloud-domain".to_string(),
+                old_cargo_name: "oya-cloud-marketplace-domain".to_string(),
+                new_cargo_name: "marketplace-cloud-domain".to_string(),
+            }],
+            artifacts: vec![ArtifactMove {
+                old_path: "registry/catalog/oya-cloud-marketplace-domain.yaml".to_string(),
+                new_path: "registry/catalog/marketplace-cloud-domain.yaml".to_string(),
+            }],
+        };
+        assert!(plan.validate().is_ok());
     }
 
     #[test]

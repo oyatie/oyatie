@@ -62,13 +62,14 @@ doc_status: published
 - [ ] **RR23** Regulator notification matrix dry-run executed (per region). *(advisory)*
 - [ ] **RR24** DSR cascade dry-run completed. *Lane:* `oya-governance-dsr`.
 
-## Capability / Foundry
+## Capability / intelligence automation
 
+- [ ] **RR25** Every capability/intelligence automation surface shipping in this wave has: record + eval-set ≥ min-pass-rate + autonomy tier + audit topic + Cosign. *Lane:* `oya-governance-capability-publish`.
 - [ ] **RR26** Capability deprecation announcements (if any) follow `12 months announce + 6 months EOL`. *Lane:* `oya-governance-capability-sunset`.
 
 ## Communications
 
-- [ ] **RR27** Release notes drafted (customer-facing), or Release Please / no-user-facing-change no-op recorded.
+- [ ] **RR27** Release notes drafted (customer-facing), or release-governance / no-user-facing-change no-op recorded. Release Please is required only when a live repo config/workflow exists.
 - [ ] **RR28** Trust-portal page prepared (for surfaces with regulatory disclosure).
 - [ ] **RR29** Internal Slack `#oya-masterplan-status` notified.
 - [ ] **RR30** Founder + Council-Architecture sign-off recorded.
@@ -80,7 +81,7 @@ doc_status: published
 - [ ] **RR33** Next milestone phases unblocked: their `gates_on:` rows mark this milestone `merged`.
 - [ ] **RR34** Every release-bound merged PR has a post-merge product-completion
   packet: promoted SHA `oya-ci-required`, rollout verification, rollback note,
-  observability check, browser UX/user-story evidence, and Release Please /
-  release-note impact.
+  observability check, browser UX/user-story evidence, and release-governance /
+  release-note impact (Release Please only when repo config proves it).
 
 If any row is unchecked, the wave-gate is not passed. Loop back; do not declare release readiness.

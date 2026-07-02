@@ -95,7 +95,7 @@
     {
       "tier": "T1",
       "name": "cloud-iac-cell-topology-gate",
-      "file": "cloud/cloud-ci/gates/cloud-iac-cell-topology-gate/src/main.rs",
+      "file": "marketplace/facade/dev-cli/src/cloud_iac_cell_topology_gate.rs",
       "risk_class": "high"
     },
     {
@@ -322,7 +322,7 @@
       "id": "CS-CLOUD-IAC-CELL-TOPOLOGY-GATE-001",
       "title": "Cloud-ci governance lane for Cloud IaC cell topology evidence",
       "acceptance_status": "implemented-local-gate",
-      "file": "cloud/cloud-ci/gates/cloud-iac-cell-topology-gate/src/main.rs"
+      "file": "marketplace/facade/dev-cli/src/cloud_iac_cell_topology_gate.rs"
     },
     {
       "id": "CS-CLOUD-IAC-MODULE-REGISTRY-PROTOCOL-GATE-001",
@@ -424,7 +424,7 @@
       "id": "CS-CLOUD-IAC-CELL-TOPOLOGY-GITOPS-IDENTITY-GATE-001",
       "title": "Cloud IaC cell topology to GitOps template identity coherence guard",
       "acceptance_status": "implemented-local-cell-topology-gitops-identity-gate",
-      "file": "cloud/cloud-ci/gates/cloud-iac-cell-topology-gate/src/main.rs"
+      "file": "marketplace/facade/dev-cli/src/cloud_iac_cell_topology_gate.rs"
     },
     {
       "id": "CS-CLOUD-IAC-GITOPS-SIGNED-IMAGE-PARAM-GATE-001",
@@ -675,9 +675,9 @@
     "crates/oya-cloud-iac-domain/src/lib.rs",
     "crates/oya-cloud-iac-domain/tests/cloud_iac_foundation.rs",
     "crates/oya-check-iac-tier-discipline/src/lib.rs",
-    "microservices/cloud-iac/tofu/modules/catalog.json",
-    "crates/cloud-ci/oya-ci controller path/src/cloud_iac_cell_topology_gate.rs",
-    "microservices/cloud-iac/cell-topology/foundation.json"
+    "cloud/cloud-iac/tofu/modules/catalog.json",
+    "marketplace/facade/dev-cli/src/cloud_iac_cell_topology_gate.rs",
+    "cloud/cloud-iac/cell-topology/foundation.json"
   ],
   "tenant_version_pinning": {
     "declared_versions": [],
@@ -870,13 +870,14 @@
     "runtime_non_claim": "First-class Oya local Cloud IaC Helm chart signed-image wiring gate only; it checks values/template references without Helm rendering, cosign verification, admission-controller execution, Argo CD/Kubernetes API calls, OpenTofu plan/apply, provider runtime, FD-001 tenant workload hosting, or cloud provisioning."
   },
   "cell_topology_scope": {
-    "topology": "microservices/cloud-iac/cell-topology/foundation.json",
+    "topology": "cloud/cloud-iac/cell-topology/foundation.json",
     "topology_id": "cloud-iac-foundation-cell-topology",
-    "module_catalog": "microservices/cloud-iac/tofu/modules/catalog.json",
-    "gitops_templates_root": "microservices/cloud-iac/iac",
+    "module_catalog": "cloud/cloud-iac/tofu/modules/catalog.json",
+    "gitops_templates_root": "cloud/cloud-iac/iac",
     "runtime_mode": "local-filesystem-json-cell-topology-gate",
     "context_count": 5,
     "cell_count": 5,
+    "service_tenant_fixture_count": 1,
     "contexts": [
       "aws-guest",
       "colo",
@@ -913,6 +914,19 @@
       "cells.module_refs",
       "cells.gitops_template",
       "cells.evidence_ref",
+      "service_tenant_fixtures.microservice",
+      "service_tenant_fixtures.tenant_id",
+      "service_tenant_fixtures.cell_id",
+      "service_tenant_fixtures.cell_tier",
+      "service_tenant_fixtures.residency_class",
+      "service_tenant_fixtures.region_disposition",
+      "service_tenant_fixtures.storage_class",
+      "service_tenant_fixtures.quarterly_isolation_evidence.quarter",
+      "service_tenant_fixtures.quarterly_isolation_evidence.network",
+      "service_tenant_fixtures.quarterly_isolation_evidence.storage",
+      "service_tenant_fixtures.quarterly_isolation_evidence.crypto",
+      "service_tenant_fixtures.quarterly_isolation_evidence.compute",
+      "service_tenant_fixtures.quarterly_isolation_evidence.audit",
       "cells.gitops_template.labels.oyatie.com/region",
       "cells.gitops_template.labels.oyatie.com/cell-id",
       "cells.gitops_template.labels.oyatie.com/tenant-id",
@@ -941,6 +955,7 @@
         "cell contexts and regions must match the manifest summaries",
         "cell gitops_template paths must point at repo-local Argo CD Application templates",
         "cell module_refs must exist in the local OpenTofu module catalog",
+        "one service/tenant fixture must bind a topology cell to ADR-0009 cell_tier, ADR-0049 residency_class, ADR-0158 region_disposition, ADR-0161 storage_class, and ADR-0009 quarterly isolation evidence refs",
         "topology and manifest non-claims must preserve no autosharding, ArgoCD API, OpenTofu CLI, provider API, mesh runtime, or capacity telemetry claims"
       ],
       "runtime_non_claim": "First-class Oya local filesystem/JSON gate only; no autosharding, auto-rebalance, dynamic sharding, tenant migration, ArgoCD/Kubernetes API, OpenTofu CLI, provider API, live mesh, capacity telemetry, SLO, DR, or cloud provisioning runtime is implemented by this ChangeSet."
