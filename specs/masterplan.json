@@ -6279,23 +6279,23 @@
       "source_system": "hermes",
       "source_board": "oyatie",
       "source_path": "~/.hermes/kanban/boards/oyatie/kanban.db",
-      "snapshot_sha256": "f880cda946abe54b72f3e31c1bf86f57e0d33066983718e73dd5ac28fae73945",
-      "snapshot_mtime_utc": "2026-07-02T09:38:20Z",
+      "snapshot_sha256": "51379d8c6d48c0577baf8aa6eac4522f3d01042fec3475f0e56ed6be8b642b38",
+      "snapshot_mtime_utc": "2026-07-02T14:05:44Z",
       "board_status_counts": {
         "archived": 68,
-        "blocked": 3,
-        "done": 914,
+        "blocked": 9,
+        "done": 934,
         "ready": 19,
-        "running": 6,
+        "running": 2,
         "scheduled": 1,
-        "todo": 235
+        "todo": 231
       },
       "seed_declared_done_count": 814,
-      "extracted_done_count": 914,
-      "count_drift_note": "the Seed snapshot declared 814 done cards; the live board advanced to 914 done cards by the forensic snapshot pinned at sha256 f880cda946abe54b72f3e31c1bf86f57e0d33066983718e73dd5ac28fae73945; the extracted count is authoritative for this ledger and the Seed count is retained as ingest provenance",
+      "extracted_done_count": 934,
+      "count_drift_note": "the Seed snapshot declared 814 done cards; the live board advanced to 934 done cards by the forensic snapshot pinned at sha256 51379d8c6d48c0577baf8aa6eac4522f3d01042fec3475f0e56ed6be8b642b38; the extracted count is authoritative for this ledger and the Seed count is retained as ingest provenance",
       "verified_count": 0,
-      "evidence_attached_count": 37,
-      "unverified_pending_evidence_count": 877,
+      "evidence_attached_count": 34,
+      "unverified_pending_evidence_count": 900,
       "invariant": "no hermes done-card claim may carry a verified/done masterplan_status without attached evidence refs; every import is claimed-done-unverified and evidence attachment is a mechanical cross-reference, not verification",
       "invariant_enforcement": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app (masterplan_evidence_state_invalid + masterplan_plan_evidence_drift findings; live-corpus contract tests in tests/cross_artifact_agreement.rs)",
       "evidence_ref_semantics": "an attached evidence_ref is a repo evidence artifact that mentions the card id, or a merged-PR/gate-run/review URL recorded in the card's own result text; attachment upgrades evidence_state to evidence-attached but never upgrades masterplan_status past claimed-done-unverified",
@@ -6317,6 +6317,15 @@
       {
         "source_system": "hermes",
         "source_card_id": "t_00d3cc63",
+        "source_status": "done",
+        "completion_claim": "hermes-done-card",
+        "masterplan_status": "claimed-done-unverified",
+        "evidence_state": "claimed-done-unverified",
+        "evidence_refs": []
+      },
+      {
+        "source_system": "hermes",
+        "source_card_id": "t_00d6209a",
         "source_status": "done",
         "completion_claim": "hermes-done-card",
         "masterplan_status": "claimed-done-unverified",
@@ -6500,10 +6509,8 @@
         "source_status": "done",
         "completion_claim": "hermes-done-card",
         "masterplan_status": "claimed-done-unverified",
-        "evidence_state": "evidence-attached",
-        "evidence_refs": [
-          "evidence/multispectrum/t_08468865-data-005-openslo-review-fix-1782953110.json"
-        ]
+        "evidence_state": "claimed-done-unverified",
+        "evidence_refs": []
       },
       {
         "source_system": "hermes",
@@ -6589,6 +6596,15 @@
       {
         "source_system": "hermes",
         "source_card_id": "t_0b31b98c",
+        "source_status": "done",
+        "completion_claim": "hermes-done-card",
+        "masterplan_status": "claimed-done-unverified",
+        "evidence_state": "claimed-done-unverified",
+        "evidence_refs": []
+      },
+      {
+        "source_system": "hermes",
+        "source_card_id": "t_0b35d1b0",
         "source_status": "done",
         "completion_claim": "hermes-done-card",
         "masterplan_status": "claimed-done-unverified",
@@ -7004,6 +7020,15 @@
       },
       {
         "source_system": "hermes",
+        "source_card_id": "t_1a0c9bde",
+        "source_status": "done",
+        "completion_claim": "hermes-done-card",
+        "masterplan_status": "claimed-done-unverified",
+        "evidence_state": "claimed-done-unverified",
+        "evidence_refs": []
+      },
+      {
+        "source_system": "hermes",
         "source_card_id": "t_1a42300d",
         "source_status": "done",
         "completion_claim": "hermes-done-card",
@@ -7059,6 +7084,15 @@
       {
         "source_system": "hermes",
         "source_card_id": "t_1b9b3e63",
+        "source_status": "done",
+        "completion_claim": "hermes-done-card",
+        "masterplan_status": "claimed-done-unverified",
+        "evidence_state": "claimed-done-unverified",
+        "evidence_refs": []
+      },
+      {
+        "source_system": "hermes",
+        "source_card_id": "t_1bad95e2",
         "source_status": "done",
         "completion_claim": "hermes-done-card",
         "masterplan_status": "claimed-done-unverified",
@@ -7171,6 +7205,15 @@
       {
         "source_system": "hermes",
         "source_card_id": "t_1e604a3f",
+        "source_status": "done",
+        "completion_claim": "hermes-done-card",
+        "masterplan_status": "claimed-done-unverified",
+        "evidence_state": "claimed-done-unverified",
+        "evidence_refs": []
+      },
+      {
+        "source_system": "hermes",
+        "source_card_id": "t_1f08b342",
         "source_status": "done",
         "completion_claim": "hermes-done-card",
         "masterplan_status": "claimed-done-unverified",
@@ -7525,6 +7568,15 @@
       },
       {
         "source_system": "hermes",
+        "source_card_id": "t_2a8d3fa1",
+        "source_status": "done",
+        "completion_claim": "hermes-done-card",
+        "masterplan_status": "claimed-done-unverified",
+        "evidence_state": "claimed-done-unverified",
+        "evidence_refs": []
+      },
+      {
+        "source_system": "hermes",
         "source_card_id": "t_2b194edb",
         "source_status": "done",
         "completion_claim": "hermes-done-card",
@@ -7691,6 +7743,24 @@
       {
         "source_system": "hermes",
         "source_card_id": "t_2f4f5c00",
+        "source_status": "done",
+        "completion_claim": "hermes-done-card",
+        "masterplan_status": "claimed-done-unverified",
+        "evidence_state": "claimed-done-unverified",
+        "evidence_refs": []
+      },
+      {
+        "source_system": "hermes",
+        "source_card_id": "t_2f95916a",
+        "source_status": "done",
+        "completion_claim": "hermes-done-card",
+        "masterplan_status": "claimed-done-unverified",
+        "evidence_state": "claimed-done-unverified",
+        "evidence_refs": []
+      },
+      {
+        "source_system": "hermes",
+        "source_card_id": "t_2fc04777",
         "source_status": "done",
         "completion_claim": "hermes-done-card",
         "masterplan_status": "claimed-done-unverified",
@@ -8750,6 +8820,15 @@
       },
       {
         "source_system": "hermes",
+        "source_card_id": "t_4ee683ec",
+        "source_status": "done",
+        "completion_claim": "hermes-done-card",
+        "masterplan_status": "claimed-done-unverified",
+        "evidence_state": "claimed-done-unverified",
+        "evidence_refs": []
+      },
+      {
+        "source_system": "hermes",
         "source_card_id": "t_4f286a36",
         "source_status": "done",
         "completion_claim": "hermes-done-card",
@@ -8949,6 +9028,15 @@
       {
         "source_system": "hermes",
         "source_card_id": "t_56ef940b",
+        "source_status": "done",
+        "completion_claim": "hermes-done-card",
+        "masterplan_status": "claimed-done-unverified",
+        "evidence_state": "claimed-done-unverified",
+        "evidence_refs": []
+      },
+      {
+        "source_system": "hermes",
+        "source_card_id": "t_57135af8",
         "source_status": "done",
         "completion_claim": "hermes-done-card",
         "masterplan_status": "claimed-done-unverified",
@@ -9855,6 +9943,15 @@
       },
       {
         "source_system": "hermes",
+        "source_card_id": "t_6fec799c",
+        "source_status": "done",
+        "completion_claim": "hermes-done-card",
+        "masterplan_status": "claimed-done-unverified",
+        "evidence_state": "claimed-done-unverified",
+        "evidence_refs": []
+      },
+      {
+        "source_system": "hermes",
         "source_card_id": "t_7023e49b",
         "source_status": "done",
         "completion_claim": "hermes-done-card",
@@ -9956,6 +10053,15 @@
       },
       {
         "source_system": "hermes",
+        "source_card_id": "t_72679765",
+        "source_status": "done",
+        "completion_claim": "hermes-done-card",
+        "masterplan_status": "claimed-done-unverified",
+        "evidence_state": "claimed-done-unverified",
+        "evidence_refs": []
+      },
+      {
+        "source_system": "hermes",
         "source_card_id": "t_7285d5df",
         "source_status": "done",
         "completion_claim": "hermes-done-card",
@@ -9994,6 +10100,15 @@
       },
       {
         "source_system": "hermes",
+        "source_card_id": "t_7339d8a3",
+        "source_status": "done",
+        "completion_claim": "hermes-done-card",
+        "masterplan_status": "claimed-done-unverified",
+        "evidence_state": "claimed-done-unverified",
+        "evidence_refs": []
+      },
+      {
+        "source_system": "hermes",
         "source_card_id": "t_73ab2dd6",
         "source_status": "done",
         "completion_claim": "hermes-done-card",
@@ -10022,6 +10137,15 @@
       {
         "source_system": "hermes",
         "source_card_id": "t_73ba050a",
+        "source_status": "done",
+        "completion_claim": "hermes-done-card",
+        "masterplan_status": "claimed-done-unverified",
+        "evidence_state": "claimed-done-unverified",
+        "evidence_refs": []
+      },
+      {
+        "source_system": "hermes",
+        "source_card_id": "t_74483d9a",
         "source_status": "done",
         "completion_claim": "hermes-done-card",
         "masterplan_status": "claimed-done-unverified",
@@ -11292,7 +11416,25 @@
       },
       {
         "source_system": "hermes",
+        "source_card_id": "t_9969fb74",
+        "source_status": "done",
+        "completion_claim": "hermes-done-card",
+        "masterplan_status": "claimed-done-unverified",
+        "evidence_state": "claimed-done-unverified",
+        "evidence_refs": []
+      },
+      {
+        "source_system": "hermes",
         "source_card_id": "t_997b02c9",
+        "source_status": "done",
+        "completion_claim": "hermes-done-card",
+        "masterplan_status": "claimed-done-unverified",
+        "evidence_state": "claimed-done-unverified",
+        "evidence_refs": []
+      },
+      {
+        "source_system": "hermes",
+        "source_card_id": "t_99f0a5b6",
         "source_status": "done",
         "completion_claim": "hermes-done-card",
         "masterplan_status": "claimed-done-unverified",
@@ -11505,10 +11647,8 @@
         "source_status": "done",
         "completion_claim": "hermes-done-card",
         "masterplan_status": "claimed-done-unverified",
-        "evidence_state": "evidence-attached",
-        "evidence_refs": [
-          "evidence/multispectrum/t_08468865-data-005-openslo-review-fix-1782953110.json"
-        ]
+        "evidence_state": "claimed-done-unverified",
+        "evidence_refs": []
       },
       {
         "source_system": "hermes",
@@ -12128,6 +12268,15 @@
       },
       {
         "source_system": "hermes",
+        "source_card_id": "t_b3c07c41",
+        "source_status": "done",
+        "completion_claim": "hermes-done-card",
+        "masterplan_status": "claimed-done-unverified",
+        "evidence_state": "claimed-done-unverified",
+        "evidence_refs": []
+      },
+      {
+        "source_system": "hermes",
         "source_card_id": "t_b3d28267",
         "source_status": "done",
         "completion_claim": "hermes-done-card",
@@ -12239,6 +12388,15 @@
       {
         "source_system": "hermes",
         "source_card_id": "t_b7b6a4e1",
+        "source_status": "done",
+        "completion_claim": "hermes-done-card",
+        "masterplan_status": "claimed-done-unverified",
+        "evidence_state": "claimed-done-unverified",
+        "evidence_refs": []
+      },
+      {
+        "source_system": "hermes",
+        "source_card_id": "t_b889dfda",
         "source_status": "done",
         "completion_claim": "hermes-done-card",
         "masterplan_status": "claimed-done-unverified",
@@ -12705,6 +12863,15 @@
       {
         "source_system": "hermes",
         "source_card_id": "t_c5534c9c",
+        "source_status": "done",
+        "completion_claim": "hermes-done-card",
+        "masterplan_status": "claimed-done-unverified",
+        "evidence_state": "claimed-done-unverified",
+        "evidence_refs": []
+      },
+      {
+        "source_system": "hermes",
+        "source_card_id": "t_c56c9aba",
         "source_status": "done",
         "completion_claim": "hermes-done-card",
         "masterplan_status": "claimed-done-unverified",
@@ -14215,14 +14382,21 @@
       },
       {
         "source_system": "hermes",
+        "source_card_id": "t_f1e9799e",
+        "source_status": "done",
+        "completion_claim": "hermes-done-card",
+        "masterplan_status": "claimed-done-unverified",
+        "evidence_state": "claimed-done-unverified",
+        "evidence_refs": []
+      },
+      {
+        "source_system": "hermes",
         "source_card_id": "t_f2327289",
         "source_status": "done",
         "completion_claim": "hermes-done-card",
         "masterplan_status": "claimed-done-unverified",
-        "evidence_state": "evidence-attached",
-        "evidence_refs": [
-          "evidence/multispectrum/t_08468865-data-005-openslo-review-fix-1782953110.json"
-        ]
+        "evidence_state": "claimed-done-unverified",
+        "evidence_refs": []
       },
       {
         "source_system": "hermes",
@@ -16116,7 +16290,10 @@
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness",
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green",
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_plan_evidence_drift",
-          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_plan_vs_evidence_drift_contract_is_green"
+          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_plan_vs_evidence_drift_contract_is_green",
+          "evidence/goals/masterplan-gates-ci-wiring-20260702.json",
+          "https://github.com/jason931225/oyatie/actions/runs/28592595372",
+          "https://github.com/jason931225/oyatie/actions/runs/28594633232"
         ]
       },
       {

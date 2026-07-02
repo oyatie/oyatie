@@ -7,23 +7,23 @@
     "source_system": "hermes",
     "source_board": "oyatie",
     "source_path": "~/.hermes/kanban/boards/oyatie/kanban.db",
-    "snapshot_sha256": "f880cda946abe54b72f3e31c1bf86f57e0d33066983718e73dd5ac28fae73945",
-    "snapshot_mtime_utc": "2026-07-02T09:38:20Z",
+    "snapshot_sha256": "51379d8c6d48c0577baf8aa6eac4522f3d01042fec3475f0e56ed6be8b642b38",
+    "snapshot_mtime_utc": "2026-07-02T14:05:44Z",
     "board_status_counts": {
       "archived": 68,
-      "blocked": 3,
-      "done": 914,
+      "blocked": 9,
+      "done": 934,
       "ready": 19,
-      "running": 6,
+      "running": 2,
       "scheduled": 1,
-      "todo": 235
+      "todo": 231
     },
     "seed_declared_done_count": 814,
-    "extracted_done_count": 914,
-    "count_drift_note": "the Seed snapshot declared 814 done cards; the live board advanced to 914 done cards by the forensic snapshot pinned at sha256 f880cda946abe54b72f3e31c1bf86f57e0d33066983718e73dd5ac28fae73945; the extracted count is authoritative for this ledger and the Seed count is retained as ingest provenance",
+    "extracted_done_count": 934,
+    "count_drift_note": "the Seed snapshot declared 814 done cards; the live board advanced to 934 done cards by the forensic snapshot pinned at sha256 51379d8c6d48c0577baf8aa6eac4522f3d01042fec3475f0e56ed6be8b642b38; the extracted count is authoritative for this ledger and the Seed count is retained as ingest provenance",
     "verified_count": 0,
-    "evidence_attached_count": 37,
-    "unverified_pending_evidence_count": 877,
+    "evidence_attached_count": 34,
+    "unverified_pending_evidence_count": 900,
     "invariant": "no hermes done-card claim may carry a verified/done masterplan_status without attached evidence refs; every import is claimed-done-unverified and evidence attachment is a mechanical cross-reference, not verification",
     "invariant_enforcement": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app (masterplan_evidence_state_invalid + masterplan_plan_evidence_drift findings; live-corpus contract tests in tests/cross_artifact_agreement.rs)",
     "evidence_ref_semantics": "an attached evidence_ref is a repo evidence artifact that mentions the card id, or a merged-PR/gate-run/review URL recorded in the card's own result text; attachment upgrades evidence_state to evidence-attached but never upgrades masterplan_status past claimed-done-unverified",
@@ -45,6 +45,14 @@
       "source_card_id": "t_00d3cc63",
       "title": "HR-PAYROLL-LEAVE-IMPACT-HANDOFF-PLAN-RED-001: HR outbound payroll-impact contract",
       "completed_at_utc": "2026-07-02T09:02:29Z",
+      "masterplan_status": "claimed-done-unverified",
+      "evidence_state": "claimed-done-unverified",
+      "evidence_refs": []
+    },
+    {
+      "source_card_id": "t_00d6209a",
+      "title": "Review/fix: REORG-006: de-brand/naming convention gate slice",
+      "completed_at_utc": "2026-07-02T14:03:33Z",
       "masterplan_status": "claimed-done-unverified",
       "evidence_state": "claimed-done-unverified",
       "evidence_refs": []
@@ -206,10 +214,8 @@
       "title": "Review/fix replacement parent: DATA-005 data substrate OpenSLO",
       "completed_at_utc": "2026-07-02T08:06:01Z",
       "masterplan_status": "claimed-done-unverified",
-      "evidence_state": "evidence-attached",
-      "evidence_refs": [
-        "evidence/multispectrum/t_08468865-data-005-openslo-review-fix-1782953110.json"
-      ]
+      "evidence_state": "claimed-done-unverified",
+      "evidence_refs": []
     },
     {
       "source_card_id": "t_08fd0030",
@@ -287,6 +293,14 @@
       "source_card_id": "t_0b31b98c",
       "title": "Review/fix: sheets PRD source map and Plan/Spec lock",
       "completed_at_utc": "2026-07-01T13:54:15Z",
+      "masterplan_status": "claimed-done-unverified",
+      "evidence_state": "claimed-done-unverified",
+      "evidence_refs": []
+    },
+    {
+      "source_card_id": "t_0b35d1b0",
+      "title": "Release hold/integrator successor: shell/messaging remaining after OBS-003 release",
+      "completed_at_utc": "2026-07-02T09:46:16Z",
       "masterplan_status": "claimed-done-unverified",
       "evidence_state": "claimed-done-unverified",
       "evidence_refs": []
@@ -656,6 +670,14 @@
       "evidence_refs": []
     },
     {
+      "source_card_id": "t_1a0c9bde",
+      "title": "Create a safety snapshot of all dirty work",
+      "completed_at_utc": "2026-07-02T13:12:44Z",
+      "masterplan_status": "claimed-done-unverified",
+      "evidence_state": "claimed-done-unverified",
+      "evidence_refs": []
+    },
+    {
       "source_card_id": "t_1a42300d",
       "title": "CELL-001R: salvage cell-topology manifest contract without retired CLI debt",
       "completed_at_utc": "2026-07-01T13:54:03Z",
@@ -707,6 +729,14 @@
       "source_card_id": "t_1b9b3e63",
       "title": "FOUNDER-CALL-OWN-OPS-001: resolve workflow/DCIM/identity ownership exceptions",
       "completed_at_utc": "2026-07-02T01:18:18Z",
+      "masterplan_status": "claimed-done-unverified",
+      "evidence_state": "claimed-done-unverified",
+      "evidence_refs": []
+    },
+    {
+      "source_card_id": "t_1bad95e2",
+      "title": "Review/fix: CRM source-authority PRD/manifest-index reconciliation",
+      "completed_at_utc": "2026-07-02T09:54:06Z",
       "masterplan_status": "claimed-done-unverified",
       "evidence_state": "claimed-done-unverified",
       "evidence_refs": []
@@ -808,6 +838,14 @@
       "source_card_id": "t_1e604a3f",
       "title": "Release hold/integrator successor: shell/messaging/observability remaining after DATA-005 release",
       "completed_at_utc": "2026-07-02T08:12:46Z",
+      "masterplan_status": "claimed-done-unverified",
+      "evidence_state": "claimed-done-unverified",
+      "evidence_refs": []
+    },
+    {
+      "source_card_id": "t_1f08b342",
+      "title": "REORG-006: de-brand/naming convention gate slice",
+      "completed_at_utc": "2026-07-02T14:01:36Z",
       "masterplan_status": "claimed-done-unverified",
       "evidence_state": "claimed-done-unverified",
       "evidence_refs": []
@@ -1122,6 +1160,14 @@
       "evidence_refs": []
     },
     {
+      "source_card_id": "t_2a8d3fa1",
+      "title": "PAYROLL-DURABLE-CLOSE-INTEGRATOR-PLAN-001: serialize shared roots before Build fanout",
+      "completed_at_utc": "2026-07-02T09:56:31Z",
+      "masterplan_status": "claimed-done-unverified",
+      "evidence_state": "claimed-done-unverified",
+      "evidence_refs": []
+    },
+    {
       "source_card_id": "t_2b194edb",
       "title": "Review/fix: TRUSTCENTER-INGEST-001 evidence ingestion adapters and publishability policy",
       "completed_at_utc": "2026-07-01T14:07:08Z",
@@ -1274,6 +1320,22 @@
       "source_card_id": "t_2f4f5c00",
       "title": "Review/fix: RED-SOCIAL-002 social fixture/contract baseline",
       "completed_at_utc": "2026-07-01T14:17:05Z",
+      "masterplan_status": "claimed-done-unverified",
+      "evidence_state": "claimed-done-unverified",
+      "evidence_refs": []
+    },
+    {
+      "source_card_id": "t_2f95916a",
+      "title": "CRM-SOURCE-AUTH-RECON-001: align CRM PRD test refs and manifest-index coverage",
+      "completed_at_utc": "2026-07-02T09:48:54Z",
+      "masterplan_status": "claimed-done-unverified",
+      "evidence_state": "claimed-done-unverified",
+      "evidence_refs": []
+    },
+    {
+      "source_card_id": "t_2fc04777",
+      "title": "PRIVACY-001: Data Use Boundary matrix + override-pack gate slice",
+      "completed_at_utc": "2026-07-02T09:40:24Z",
       "masterplan_status": "claimed-done-unverified",
       "evidence_state": "claimed-done-unverified",
       "evidence_refs": []
@@ -2219,6 +2281,14 @@
       "evidence_refs": []
     },
     {
+      "source_card_id": "t_4ee683ec",
+      "title": "PACK-001: regional-pack manifest + canonical-base neutrality gate",
+      "completed_at_utc": "2026-07-02T10:04:13Z",
+      "masterplan_status": "claimed-done-unverified",
+      "evidence_state": "claimed-done-unverified",
+      "evidence_refs": []
+    },
+    {
       "source_card_id": "t_4f286a36",
       "title": "CLOUD-CI-TARGET-PARITY-BASELINE-SETTLE: reconcile current origin/dev live target-parity corpus with committed baseline",
       "completed_at_utc": "2026-07-01T13:58:22Z",
@@ -2399,6 +2469,14 @@
       "source_card_id": "t_56ef940b",
       "title": "SUPPLY-002-FIX-001: isolate image-promotion slice from G013 contamination",
       "completed_at_utc": "2026-07-01T14:10:00Z",
+      "masterplan_status": "claimed-done-unverified",
+      "evidence_state": "claimed-done-unverified",
+      "evidence_refs": []
+    },
+    {
+      "source_card_id": "t_57135af8",
+      "title": "Review/fix: Review/fix replacement parent: OBS-003 wide-event middleware",
+      "completed_at_utc": "2026-07-02T09:45:02Z",
       "masterplan_status": "claimed-done-unverified",
       "evidence_state": "claimed-done-unverified",
       "evidence_refs": []
@@ -3209,6 +3287,14 @@
       "evidence_refs": []
     },
     {
+      "source_card_id": "t_6fec799c",
+      "title": "Review/fix replacement parent: OBS-003 wide-event middleware",
+      "completed_at_utc": "2026-07-02T09:40:32Z",
+      "masterplan_status": "claimed-done-unverified",
+      "evidence_state": "claimed-done-unverified",
+      "evidence_refs": []
+    },
+    {
       "source_card_id": "t_7023e49b",
       "title": "Review/fix: oya-gen-microservice-manifests manifest-index producer retirement guard",
       "completed_at_utc": "2026-07-02T01:12:38Z",
@@ -3299,6 +3385,14 @@
       "evidence_refs": []
     },
     {
+      "source_card_id": "t_72679765",
+      "title": "COHESION-FIX-001: reconcile PHASE-5 agent contract projection",
+      "completed_at_utc": "2026-07-02T14:02:13Z",
+      "masterplan_status": "claimed-done-unverified",
+      "evidence_state": "claimed-done-unverified",
+      "evidence_refs": []
+    },
+    {
       "source_card_id": "t_7285d5df",
       "title": "CLAIM-PARITY-001: reference-family parity validator in honest-claims kernel",
       "completed_at_utc": "2026-06-30T19:42:10Z",
@@ -3334,6 +3428,14 @@
       "evidence_refs": []
     },
     {
+      "source_card_id": "t_7339d8a3",
+      "title": "Contract/spec reconciliation: HR sensitive-read runtime evidence fields",
+      "completed_at_utc": "2026-07-02T09:44:04Z",
+      "masterplan_status": "claimed-done-unverified",
+      "evidence_state": "claimed-done-unverified",
+      "evidence_refs": []
+    },
+    {
       "source_card_id": "t_73ab2dd6",
       "title": "Trace why Foundry was treated as live authority",
       "completed_at_utc": "2026-07-01T07:43:06Z",
@@ -3361,6 +3463,14 @@
       "source_card_id": "t_73ba050a",
       "title": "BUILD: plant-maintenance metadata-only preview conformance",
       "completed_at_utc": "2026-07-01T09:33:21Z",
+      "masterplan_status": "claimed-done-unverified",
+      "evidence_state": "claimed-done-unverified",
+      "evidence_refs": []
+    },
+    {
+      "source_card_id": "t_74483d9a",
+      "title": "Review/fix: HR sensitive-read runtime evidence contract reconciliation t_7339d8a3",
+      "completed_at_utc": "2026-07-02T09:51:43Z",
       "masterplan_status": "claimed-done-unverified",
       "evidence_state": "claimed-done-unverified",
       "evidence_refs": []
@@ -4495,9 +4605,25 @@
       "evidence_refs": []
     },
     {
+      "source_card_id": "t_9969fb74",
+      "title": "CRM-LEARNING-001: harvest CRM/ERP coverage lessons",
+      "completed_at_utc": "2026-07-02T09:40:03Z",
+      "masterplan_status": "claimed-done-unverified",
+      "evidence_state": "claimed-done-unverified",
+      "evidence_refs": []
+    },
+    {
       "source_card_id": "t_997b02c9",
       "title": "KANBAN-WORKER-PROVIDER-QUOTA-RECURRENCE-20260702: hold retries after post-canary default route failures",
       "completed_at_utc": "2026-07-02T08:14:08Z",
+      "masterplan_status": "claimed-done-unverified",
+      "evidence_state": "claimed-done-unverified",
+      "evidence_refs": []
+    },
+    {
+      "source_card_id": "t_99f0a5b6",
+      "title": "Review/fix: PAYROLL-LOCAL-E2E-API-REPLAY-PLAN-RED-001 local close replay evidence",
+      "completed_at_utc": "2026-07-02T10:03:47Z",
       "masterplan_status": "claimed-done-unverified",
       "evidence_state": "claimed-done-unverified",
       "evidence_refs": []
@@ -4685,10 +4811,8 @@
       "title": "REVIEW-DISPATCH-G6: runtime/product substrate reviews",
       "completed_at_utc": "2026-07-01T01:22:54Z",
       "masterplan_status": "claimed-done-unverified",
-      "evidence_state": "evidence-attached",
-      "evidence_refs": [
-        "evidence/multispectrum/t_08468865-data-005-openslo-review-fix-1782953110.json"
-      ]
+      "evidence_state": "claimed-done-unverified",
+      "evidence_refs": []
     },
     {
       "source_card_id": "t_9f984da2",
@@ -5240,6 +5364,14 @@
       "evidence_refs": []
     },
     {
+      "source_card_id": "t_b3c07c41",
+      "title": "Review/fix: PRIVACY-001: Data Use Boundary matrix + override-pack gate slice",
+      "completed_at_utc": "2026-07-02T10:11:41Z",
+      "masterplan_status": "claimed-done-unverified",
+      "evidence_state": "claimed-done-unverified",
+      "evidence_refs": []
+    },
+    {
       "source_card_id": "t_b3d28267",
       "title": "REGVAL-001: security validation evidence schema fixtures",
       "completed_at_utc": "2026-07-01T13:31:37Z",
@@ -5341,6 +5473,14 @@
       "source_card_id": "t_b7b6a4e1",
       "title": "QUALITY-MGMT-BUILD-001: implement RED-proven contract/policy/repository/non-claim fixes",
       "completed_at_utc": "2026-07-02T01:36:57Z",
+      "masterplan_status": "claimed-done-unverified",
+      "evidence_state": "claimed-done-unverified",
+      "evidence_refs": []
+    },
+    {
+      "source_card_id": "t_b889dfda",
+      "title": "REORG-004: materialize-last freshness verify for moved leaf",
+      "completed_at_utc": "2026-07-02T10:06:19Z",
       "masterplan_status": "claimed-done-unverified",
       "evidence_state": "claimed-done-unverified",
       "evidence_refs": []
@@ -5762,6 +5902,14 @@
       "source_card_id": "t_c5534c9c",
       "title": "TRUST-001: durable CA persistence slice",
       "completed_at_utc": "2026-06-30T12:59:07Z",
+      "masterplan_status": "claimed-done-unverified",
+      "evidence_state": "claimed-done-unverified",
+      "evidence_refs": []
+    },
+    {
+      "source_card_id": "t_c56c9aba",
+      "title": "PAYROLL-LOCAL-E2E-API-REPLAY-PLAN-RED-001: local close user-story/API replay evidence",
+      "completed_at_utc": "2026-07-02T09:48:52Z",
       "masterplan_status": "claimed-done-unverified",
       "evidence_state": "claimed-done-unverified",
       "evidence_refs": []
@@ -7114,14 +7262,20 @@
       "evidence_refs": []
     },
     {
+      "source_card_id": "t_f1e9799e",
+      "title": "Inventory and classify the uncommitted changes",
+      "completed_at_utc": "2026-07-02T13:20:21Z",
+      "masterplan_status": "claimed-done-unverified",
+      "evidence_state": "claimed-done-unverified",
+      "evidence_refs": []
+    },
+    {
       "source_card_id": "t_f2327289",
       "title": "DATA-005: data substrate operator + OpenSLO skeleton slice",
       "completed_at_utc": "2026-07-02T08:12:04Z",
       "masterplan_status": "claimed-done-unverified",
-      "evidence_state": "evidence-attached",
-      "evidence_refs": [
-        "evidence/multispectrum/t_08468865-data-005-openslo-review-fix-1782953110.json"
-      ]
+      "evidence_state": "claimed-done-unverified",
+      "evidence_refs": []
     },
     {
       "source_card_id": "t_f3120bb9",
