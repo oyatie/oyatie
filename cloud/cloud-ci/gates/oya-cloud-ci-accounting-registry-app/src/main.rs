@@ -282,6 +282,15 @@ fn run() -> Result<(), CliError> {
 
     let policy = Policy::from_config(&cfg)?;
     let (inputs, owners_integrity) = collect_repo_inputs(&repo_root, &cfg, &scm_facts)?;
+    // Fast path for the license-policy producer face: this new face only needs the tracked path
+    // universe plus resolved workspace manifests. Avoid forcing callers such as the gate's live
+    // corpus test through the expensive all-face registry/baseline derivation when they requested
+    // exactly `--stdout --face license-policy`.
+    if to_stdout && face == "license-policy" {
+        let license_policy = collect_license_policy(&repo_root, &inputs.tracked_paths, &cfg)?;
+        print!("{}", to_canonical_json(&license_policy)?);
+        return Ok(());
+    }
     // OWNERS integrity remediation (ADR-0555 hardening, FRIC-1781400000): name the exact
     // fix for every OWNERS file that failed the content schema or the breadth bound — the
     // affected paths stay UNOWNED (fail-closed) and the firewall's unowned remediation
@@ -347,6 +356,9 @@ fn run() -> Result<(), CliError> {
     // tracked-path universe. This makes the lane input contract portable DATA instead of an
     // Oyatie-only hardcoded directory walk.
     let slo_coverage = collect_slo_coverage(&repo_root, &inputs.tracked_paths, &cfg)?;
+    // The license-policy gate input: workspace package-license rows from resolved member
+    // manifests. The producer owns all filesystem I/O; the gate remains pure and surface-all.
+    let license_policy = collect_license_policy(&repo_root, &inputs.tracked_paths, &cfg)?;
     // The catalog-liveness gate input: the config-declared catalog globs expanded over the
     // tracked-path universe, each row tagged with whether its stem is a LIVE workspace crate-id
     // (resolved IN-PROCESS via oya-workspace-members-kernel — no shell-out) and its explicit
@@ -375,6 +387,7 @@ fn run() -> Result<(), CliError> {
             manifest_hygiene: &manifest_hygiene,
             cargo_prefix: &cargo_prefix,
             slo_coverage: &slo_coverage,
+            license_policy: &license_policy,
             catalog_liveness: &catalog_liveness,
             workspace_glob_coverage: &workspace_glob_coverage,
             target_parity: &target_parity,
@@ -394,6 +407,7 @@ fn run() -> Result<(), CliError> {
             "manifest-hygiene" => print!("{}", to_canonical_json(&manifest_hygiene)?),
             "cargo-prefix" => print!("{}", to_canonical_json(&cargo_prefix)?),
             "slo-coverage" => print!("{}", to_canonical_json(&slo_coverage)?),
+            "license-policy" => print!("{}", to_canonical_json(&license_policy)?),
             "catalog-liveness" => print!("{}", to_canonical_json(&catalog_liveness)?),
             "workspace-glob-coverage" => print!("{}", to_canonical_json(&workspace_glob_coverage)?),
             "target-parity" => print!("{}", to_canonical_json(&target_parity)?),
@@ -700,6 +714,54 @@ fn collect_cargo_prefix(
             })
         })
         .collect();
+    Ok(json!({ "rows": rows }))
+}
+
+/// Enumerate every tracked workspace member package name + package license for the
+/// cloud-ci-license-policy gate. This is the producer-owned I/O counterpart to the pure
+/// `oya-cloud-ci-license-policy-app` evaluator: workspace membership is resolved in-process via
+/// the canonical glob-aware resolver, and the gate receives only data rows.
+fn collect_license_policy(
+    repo_root: &Path,
+    tracked_paths: &[String],
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+) -> Result<Value, CliError> {
+    let tracked: BTreeSet<&str> = tracked_paths
+        .iter()
+        .filter(|path| !is_path_excluded(path, cfg))
+        .map(String::as_str)
+        .collect();
+    let member_dirs = oya_workspace_members_kernel::resolve_member_dirs(repo_root)
+        .map_err(|error| CliError::Io(format!("license-policy resolve member dirs: {error}")))?;
+
+    let mut rows: Vec<Value> = Vec::new();
+    for member_path in member_dirs {
+        let manifest_path = format!("{member_path}/Cargo.toml");
+        if !tracked.contains(manifest_path.as_str()) {
+            continue;
+        }
+        let contents = read_text(&repo_root.join(&manifest_path));
+        let Some(package_name) = parse_package_name(&contents) else {
+            continue;
+        };
+        rows.push(json!({
+            "package_name": package_name,
+            "manifest_path": manifest_path,
+            "license": parse_package_license(&contents),
+        }));
+    }
+    rows.sort_by(|a, b| {
+        a["package_name"]
+            .as_str()
+            .unwrap_or("")
+            .cmp(b["package_name"].as_str().unwrap_or(""))
+            .then_with(|| {
+                a["manifest_path"]
+                    .as_str()
+                    .unwrap_or("")
+                    .cmp(b["manifest_path"].as_str().unwrap_or(""))
+            })
+    });
     Ok(json!({ "rows": rows }))
 }
 
@@ -2555,6 +2617,31 @@ fn parse_package_name(contents: &str) -> Option<String> {
                 }
             }
         }
+    }
+    None
+}
+
+/// Extract `license = "..."` from the `[package]` table of a Cargo.toml. Missing licenses stay
+/// as `None` so the cloud-ci app can map them to a keyed surface-all finding instead of the
+/// legacy dev-cli's first-error string.
+fn parse_package_license(contents: &str) -> Option<String> {
+    let mut in_package = false;
+    for raw in contents.lines() {
+        let trimmed = raw.split('#').next().unwrap_or("").trim();
+        if trimmed.starts_with('[') {
+            in_package = trimmed == "[package]";
+            continue;
+        }
+        if !in_package {
+            continue;
+        }
+        let Some((key, value)) = trimmed.split_once('=') else {
+            continue;
+        };
+        if key.trim() != "license" {
+            continue;
+        }
+        return Some(value.trim().trim_matches('"').to_owned());
     }
     None
 }

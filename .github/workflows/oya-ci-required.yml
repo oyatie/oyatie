@@ -130,6 +130,7 @@ jobs:
           - { crate: oya-cloud-ci-manifest-hygiene-app,         label: "gate · manifest-hygiene (§2.5#7, born-blocking)" }
           - { crate: oya-cloud-ci-cargo-prefix-app,            label: "gate · cargo-prefix (ADR-0017)" }
           - { crate: oya-cloud-ci-slo-coverage-app,            label: "gate · slo-coverage (catalog SLO input contract, born-blocking)" }
+          - { crate: oya-cloud-ci-license-policy-app,          label: "gate · license-policy (workspace package license policy, shrink-only)" }
           - { crate: oya-cloud-ci-catalog-liveness-app,        label: "gate · catalog-liveness (PR-C3 founder live-OR-explicitly-marked policy, born-blocking, EMPTY frozen baseline)" }
           - { crate: oya-cloud-ci-workspace-glob-coverage-app, label: "gate: workspace-glob-coverage (ADR-0538)" }
           - { crate: oya-cloud-ci-target-parity-app,           label: "gate · target-parity (ADR-0540, test-wiring false-green)" }
