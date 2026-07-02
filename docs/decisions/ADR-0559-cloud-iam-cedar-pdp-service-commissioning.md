@@ -39,7 +39,7 @@ substrate that does not exist as a service:
 
 G006 (tenancy + RBAC) is blocked on G004. The shared shapes already exist and are
 conformance-tested: `libs/oya-shared-pdp-kernel` (the embedded-PDP port, bundle/cache/audit
-value types) and `libs/oya-shared-pdp-adapter-cedar` (the upstream formally-verified
+value types) and `iam/adapters/pdp-cedar` / `iam-pdp-cedar` (the upstream formally-verified
 `cedar-policy` engine behind that port — the single decision algorithm per ADR-0243), over the
 locked PDP contract family in `libs/oya-shared-platform-contracts-kernel::pdp` (PARC request,
 attributable response, zookie policy-version semantics).

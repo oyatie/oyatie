@@ -1,7 +1,7 @@
 //! Seed-parity guard: the crate-local Cedar seeds must stay byte-identical
 //! to the canonical FD-001 seeds in
 //! `libs/oya-shared-platform-contracts-kernel/cedar/` (the
-//! oya-shared-pdp-adapter-cedar conformance-suite pattern). Crate-local
+//! iam-pdp-cedar conformance-suite pattern). Crate-local
 //! copies exist because buck2 targets sandbox their srcs; this test makes
 //! the duplication drift-impossible on the cargo lane.
 

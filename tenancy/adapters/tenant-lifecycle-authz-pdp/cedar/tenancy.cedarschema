@@ -2,7 +2,7 @@
 //
 // Binding ADRs: ADR-0536 D-2 (embedded Cedar PDP), ADR-0243 (Cedar universal
 // gate), ADR-0559 (cloud-iam is the IdP/PDP). This bundle DOGFOODS the shared
-// embedded Cedar engine (libs/oya-shared-pdp-adapter-cedar) — the tenancy
+// embedded Cedar engine (iam/adapters/pdp-cedar) — the tenancy
 // service is a PEP over the same PDP that cloud-iam ships.
 //
 // Two axes, structurally separated:

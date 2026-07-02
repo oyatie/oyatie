@@ -9,7 +9,7 @@
 //! This app is the composition root: it loads ONE declarative policy bundle
 //! through the [`iam_cloud_pdp_kernel::PolicyBundleStore`] port
 //! (file/ConfigMap transport in slice 1), compiles it into the shared
-//! embedded Cedar engine (`libs/oya-shared-pdp-adapter-cedar` — the single
+//! embedded Cedar engine (`iam/adapters/pdp-cedar` — the single
 //! decision algorithm, ADR-0243), and serves authorization decisions over
 //! gRPC + REST with health/readiness and one attributable audit record per
 //! decision.
@@ -36,7 +36,7 @@
 use std::sync::Arc;
 
 use iam_cloud_pdp_kernel::DecisionAuditSink;
-use oya_shared_pdp_adapter_cedar::CedarPdp;
+use iam_pdp_cedar::CedarPdp;
 use oya_shared_pdp_kernel::{EntitySlice, PdpError, PolicyDecisionPoint};
 use oya_shared_platform_contracts_kernel::pdp::{
     AuthorizationRequest, AuthorizationResponse, PolicyVersion,

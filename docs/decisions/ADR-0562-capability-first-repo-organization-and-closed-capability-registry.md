@@ -2106,6 +2106,14 @@ current Cedar domain home as `iam/core/policy-cedar-domain/src/rebac.rs`, with t
 test target. This is a destination-surface registration for the IAM capability move, not a resurrection of retired
 `oya/policy` or `oya-dev-cli` authority.
 
+AUTHZ-008 burns down the shared Cedar PDP adapter straggler left in the frozen `libs/oya-shared-*` baseline:
+`libs/oya-shared-pdp-adapter-cedar` moves to `iam/adapters/pdp-cedar`, with cargo/lib ids
+`iam-pdp-cedar` / `iam_pdp_cedar`. This is a behavior-preserving relocation of the same embedded
+`cedar-policy` engine behind `oya-shared-pdp-kernel::PolicyDecisionPoint` (ADR-0536 D-2; ADR-0243
+single-decision-algorithm rule), not a new authorization implementation. The only live dependents are
+rewired in place: `iam/facade/cloud-pdp-app` and `tenancy/adapters/tenant-lifecycle-authz-pdp` update
+their Cargo path deps, BUCK labels, and Rust imports to the new de-branded IAM adapter home.
+
 **External dependents (4, rewritten):** exactly four first-party crates outside the sixty-three depend on the moved tree —
 `compute/core/domain` (→ cloud-iam-domain), `observability/core/aggregate` (→ cloud-iam-domain),
 `k8s/adapters/tenant-quota-adapter-cedar` (→ identity-workload-authz-cedar + identity-workload-domain), and

@@ -155,7 +155,7 @@ authorization decision is a PORT (`tenancy/ports/tenant-lifecycle-authz`,
 `TenantLifecycleAuthorizer`); the facade (PEP) depends INWARD on the port, never on a concrete
 engine. The decision ADAPTER (`tenancy/adapters/tenant-lifecycle-authz-pdp`) implements the port by
 **dogfooding the repo's own embedded Cedar PDP substrate** — `oya-shared-pdp-kernel`'s
-`PolicyDecisionPoint` realized by `oya-shared-pdp-adapter-cedar`'s `CedarPdp` (ADR-0536 D-2;
+`PolicyDecisionPoint` realized by `iam-pdp-cedar`'s `CedarPdp` (ADR-0536 D-2;
 cloud-iam IS the IdP/PDP per ADR-0559). The tenancy service is therefore a Policy Enforcement Point
 over the SAME formally-verified Cedar engine cloud-iam ships, NOT a parallel authz stack. Face
 direction is enumerated clean: no `core`/`ports` crate path-depends on any `adapter`/`facade`, and
