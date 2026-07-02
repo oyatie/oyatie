@@ -434,6 +434,34 @@
     },
     "scaling_dimension": "per_workflow_run",
     "cell_placement_class": "Tier-0",
+    "tenant_class_deltas": {
+      "demo_trial": {
+        "baseline_cpu_per_tenant": 0.2,
+        "baseline_ram_per_tenant": 256,
+        "storage_per_tenant": 3,
+        "connections_per_tenant": {
+          "valkey": 1,
+          "postgres": 2,
+          "outbound_http": 4
+        },
+        "scaling_dimension": "per_workflow_run",
+        "cell_placement_class": "Tier-0",
+        "notes": "Demo-trial workflow execution is capped to short-lived low-concurrency runs with reduced checkpoint history and upstream fan-out."
+      },
+      "paid": {
+        "baseline_cpu_per_tenant": 0.6,
+        "baseline_ram_per_tenant": 768,
+        "storage_per_tenant": 12,
+        "connections_per_tenant": {
+          "valkey": 4,
+          "postgres": 6,
+          "outbound_http": 12
+        },
+        "scaling_dimension": "per_workflow_run",
+        "cell_placement_class": "Tier-0",
+        "notes": "Paid tenants retain the full durable-execution baseline for concurrent workflow runs, checkpoint storage, and upstream action fan-out."
+      }
+    },
     "notes": "Durable execution and tenant-authored workflow/plugin steps scale by active workflow run, not by editor users or request fan-out."
   },
   "sharding_automation": {

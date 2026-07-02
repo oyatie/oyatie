@@ -17,7 +17,7 @@ companion_docs:
 authority_chain_declaration: |
   system / developer / user instructions
     > /specs/root-hub-pointers.json
-    > docs/AGENTS.md (until /specs/agent-operating-contract.json PHASE-5 promotion)
+    > docs/AGENTS.md (operating contract until explicit /specs/agent-operating-contract.json PHASE-5 promotion evidence)
     > installed agent-runtime skill and role catalog (for Codex: ~/.codex/skills + ~/.codex/agents; project .codex overlays only when intentionally checked in)
     > machine-readable specs and registries under .omc/
     > docs/ authority files during markdown-retirement compatibility

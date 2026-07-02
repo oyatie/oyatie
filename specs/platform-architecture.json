@@ -874,7 +874,9 @@
         },
         {
           "id": "pci-dss-v4",
-          "framework": "PCI DSS v4.0",
+          "framework": "PCI DSS v4.0.1",
+          "standard_version": "4.0.1",
+          "source_revision_status": "source-version planning only; exact control text waits on permitted PCI SSC v4.0.1 PDF acquisition",
           "authority": "PCI Security Standards Council",
           "scope": "Cardholder data environments",
           "applies_to_tenants": [
@@ -1485,7 +1487,9 @@
           "certifications_required": [
             {
               "authority": "PCI Security Standards Council",
-              "framework": "PCI DSS v4.0",
+              "framework": "PCI DSS v4.0.1",
+              "standard_version": "4.0.1",
+              "source_revision_status": "source-version planning only; exact control text waits on permitted PCI SSC v4.0.1 PDF acquisition",
               "scope": "Service Provider, Level 1 (>6M transactions/year)",
               "target_completion": "2027-Q2"
             },

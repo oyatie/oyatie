@@ -429,6 +429,12 @@ a known-good it passes + proof it runs in the pipeline and BLOCKS):
   non-authoritative Wave A team readiness evidence for the G015/G012 closeout. They are justified only as
   audit/readiness records for the `oya-ci-required` governed path; they do not create merge authority,
   bypass `oya-ci-required`, or mutate generated artifacts.
+- **CRATEADR-002A governance-check-gates owner-batch fixture registration (2026-07-01):** the
+  repo-relative fixture artifact
+  `specs/fixtures/crate-adr-design-doc-coverage/tc-CRATEADR-002A-good-governance-check-gates-owner-batch.json`
+  is non-authoritative RED/GREEN corpus evidence for the crate-ADR design-document coverage gate. It is
+  justified only as fixture coverage for the `governance-check-gates` owner-batch scenario; it does not
+  create merge authority, bypass `oya-ci-required`, or mutate generated artifacts.
 - **GJC governance-integrity Dispatch checkpoint evidence registration (2026-06-28):** the repo-relative evidence artifacts
   `evidence/goals/governance-integrity-dispatch-command-evidence-20260628.json`,
   `evidence/goals/governance-integrity-dispatch-ledger-20260628.json`,

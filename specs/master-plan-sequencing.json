@@ -1345,7 +1345,7 @@
           ],
           "pack_floor_anchors": {
             "HIPAA-2024": "RTO <= 3600s, RPO <= 300s, multi-region REQUIRED, drill quarterly (45 CFR 164.308(a)(7); BAA-eligible cloud baseline)",
-            "PCI-DSS-L1-v4": "RTO <= 86400s, RPO <= 3600s, multi-region NOT required, drill annual (PCI DSS v4.0 12.10)",
+            "PCI-DSS-L1-v4": "RTO <= 86400s, RPO <= 3600s, multi-region NOT required, drill annual (PCI DSS v4.0.1 12.10; exact text pending permitted PCI SSC PDF acquisition)",
             "SOC2-T2": "RTO <= 14400s, RPO <= 900s, multi-region NOT required, drill annual (AICPA TSC CC7.5)",
             "EU-AI-ACT-2024-HIGH-RISK": "RTO <= 1800s, RPO <= 300s, multi-region REQUIRED, drill quarterly (EU 2024/1689 Articles 9/14/17/19/26/27)",
             "KR-CSAP-v3.1": "RTO <= 3600s, RPO <= 900s, multi-region REQUIRED within KR sovereign region, drill semi-annual (KISA notice 2024-1)",

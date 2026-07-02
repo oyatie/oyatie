@@ -19,6 +19,9 @@
 //! | `Evaluation`            | 422    | `evaluation_refused`      |
 //! | `BundleRejected`        | 503    | `bundle_rejected`         |
 //! | `DecisionIdUnavailable` | 500    | `decision_id_unavailable` |
+//! | `RuntimeTimeout`        | 504    | `runtime_timeout`         |
+//! | `RuntimePanic`          | 500    | `runtime_panic`           |
+//! | `CircuitOpen`           | 503    | `circuit_open`            |
 
 use std::sync::Arc;
 
@@ -60,6 +63,9 @@ fn refusal_parts(error: &PdpError) -> (StatusCode, &'static str) {
         PdpError::DecisionIdUnavailable { .. } => {
             (StatusCode::INTERNAL_SERVER_ERROR, "decision_id_unavailable")
         }
+        PdpError::RuntimeTimeout { .. } => (StatusCode::GATEWAY_TIMEOUT, "runtime_timeout"),
+        PdpError::RuntimePanic { .. } => (StatusCode::INTERNAL_SERVER_ERROR, "runtime_panic"),
+        PdpError::CircuitOpen { .. } => (StatusCode::SERVICE_UNAVAILABLE, "circuit_open"),
     }
 }
 
@@ -204,4 +210,29 @@ pub fn build_router_mtls(
     build_router(state)
         .layer(Extension(CallerAuthCell(expected_cell_authority)))
         .layer(Extension(bundle))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn runtime_refusals_have_fail_closed_rest_mappings() {
+        assert_eq!(
+            refusal_parts(&PdpError::RuntimeTimeout { deadline_ms: 25 }),
+            (StatusCode::GATEWAY_TIMEOUT, "runtime_timeout")
+        );
+        assert_eq!(
+            refusal_parts(&PdpError::RuntimePanic {
+                detail: "panic".to_owned(),
+            }),
+            (StatusCode::INTERNAL_SERVER_ERROR, "runtime_panic")
+        );
+        assert_eq!(
+            refusal_parts(&PdpError::CircuitOpen {
+                consecutive_failures: 3,
+            }),
+            (StatusCode::SERVICE_UNAVAILABLE, "circuit_open")
+        );
+    }
 }

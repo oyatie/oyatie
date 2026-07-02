@@ -94,6 +94,7 @@
     "oya-cloud-ci-capability-membership-app": "Capability membership gaps require source-of-truth registry ownership decisions, not a blind generated mapping.",
     "oya-cloud-ci-cargo-prefix-app": "Prefix violations are migration-sensitive naming decisions; remediation is a reviewed rename or neutral-profile policy change.",
     "oya-cloud-ci-catalog-liveness-app": "Catalog liveness findings require either restoring a crate or explicitly marking the catalog row non-live; the gate cannot infer intent.",
+    "oya-cloud-ci-cell-topology-manifest-contract-app": "Cell topology manifest contract findings require source-of-truth spec, fixture, root-hub, or ADR-scope decisions; the gate must not synthesize topology or residency evidence.",
     "oya-cloud-ci-cedar-deploy-parity-app": "Cedar deployment parity findings require authored policy changes or deployed ConfigMap fixes, both security-sensitive human decisions.",
     "oya-cloud-ci-cross-artifact-agreement-app": "Cross-artifact contradictions must be resolved at the authoritative artifact, never guessed by an automatic rewrite.",
     "oya-cloud-ci-crypto-backend-purity-app": "Crypto backend activation changes are security-sensitive dependency choices and cannot be rewritten safely by the gate.",

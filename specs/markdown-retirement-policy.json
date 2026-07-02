@@ -94,7 +94,8 @@
       "phase_id": "PHASE-5-CORE-DOCS",
       "scope": "CONSTITUTION + DOC-CATALOG + MASTERPLAN + AGENTS docs/* → JSON",
       "deadline": "2026-06-30",
-      "status": "planned",
+      "status": "overdue-needs-replan",
+      "reconciliation_note": "As of 2026-07-01, /specs/agent-operating-contract.json remains a projection and docs/AGENTS.md remains the live operating contract until an explicit promotion PR supplies authority-cohesion evidence.",
       "files_count_estimated": 4,
       "prerequisite_for_operational": [
         "constitution.json schema",

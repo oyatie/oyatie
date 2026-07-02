@@ -19,14 +19,25 @@ doc_status: published
 - Added born-accounting registration for the new standard through standards ownership,
   exact reachability entries, and ADR justification pointers.
 
+## 2026-07-01 — Root-of-trust ceremony and cloud trust drift port
+
+- Ported the root-of-trust ceremony runbook and machine-readable redacted evidence contract from the dirty preservation root, registering the cloud runbook in `docs/RUNBOOKS-INDEX.md`.
+- Ported the still-current cloud trust/IaC safety slices: sealed `trustd` CA persistence over the real ECDSA signer, and Cloud IaC service/tenant fixture evidence with current `cloud/cloud-iac` paths.
+- Discarded old cloud KMS and managed-K8s quota runtime crate resurrection from this lane because those crates are absent from current `origin/dev`; their security intent is recorded on the Kanban handoff for follow-up on current destination surfaces.
+## 2026-07-01 — WORKSPACE-DRIFT-FOLLOWUP-C docs/procedure reconciliation
+
+- Ported the still-valid docs/procedure subset from the preserved dirty workspace: explicit PHASE-5 promotion evidence wording, ADR-0515 `oya-ci-required` merge authority, and release-governance/release-note impact language.
+- Discarded stale dirty changes that would reintroduce retired multispectrum evidence files, local `oya` or legacy CI merge authority, unreviewed PR-template rewrites, or absent generated-face helper paths.
+
 ## 2026-06-30 — DEVFLOW-003 post-merge product-completion gate
 
 - Added post-merge product-completion packet requirements to root agent guidance,
   the operating contract, done-definition/pre-merge/review checklists, PR templates,
   and release standards.
 - Product-complete now requires promoted-sha `oya-ci-required`, rollout verification,
-  rollback note, observability check, browser/user-story evidence, and Release Please /
-  release-note impact after squash merge.
+  rollback note, observability check, browser/user-story evidence, and
+  release-governance/release-note impact after squash merge; Release Please is
+  only mandatory when a live repo config/workflow exists.
 
 ## 2026-06-30 — ADR-0536 substrate-to-port matrix
 
