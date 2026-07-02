@@ -95,7 +95,7 @@ evidence/goals/fabric-loop-e2e-proof-run-20260702.json
 evidence/goals/fabric-loop-parallel-lanes-proof-run-20260702.json
 evidence/goals/masterplan-v2-hermes-done-card-forensic-ledger-20260702.json
 evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json
-evidence/goals/masterplan-gates-ci-wiring-20260702.json
+evidence/goals/masterplan-gates-ci-wiring-20260702.json   (pre-registered; lands with the CI wiring-evidence commit)
 plan/fabric-loop/cards/MPV2-0000.C001.json
 plan/fabric-loop/cards/MPV2-0000.C002.json
 plan/fabric-loop/cards/MPV2-0000.C003.json
@@ -214,4 +214,5 @@ by removing duplicate authority instead of adding coordination process.
 - Evidence: `evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json`,
   `evidence/goals/fabric-loop-e2e-proof-run-20260702.json`,
   `evidence/goals/fabric-loop-parallel-lanes-proof-run-20260702.json`,
-  `evidence/goals/masterplan-gates-ci-wiring-20260702.json`.
+  `evidence/goals/masterplan-gates-ci-wiring-20260702.json` (pre-registered; lands with the CI
+  wiring-evidence commit).
