@@ -109,6 +109,18 @@
       "status": "temporary_legacy_bridge"
     },
     {
+      "path": "scripts/tests/policy_ir_benchmark_fixture_contract_check.py",
+      "reason": "Owned Policy IR benchmark-phase fixture-suite schema/contract validation bridge (Sub-AC gate) retained as explicit shrinkable debt for the transition-phase benchmark only; not merge authority.",
+      "replacement": "Replace with a Rust Buck2 cloud-ci gate app validating the FixtureSuite contract once the owned Policy IR ADR lands; the benchmark transition phase retires with the differential-oracle retirement predicate.",
+      "status": "temporary_legacy_bridge"
+    },
+    {
+      "path": "scripts/tests/policy_ir_revocation_evidence_check.py",
+      "reason": "Owned Policy IR benchmark-phase Fixture-2 revocation-evidence validation bridge (G4 sub-60s criterion) retained as explicit shrinkable debt for the transition-phase benchmark only; not merge authority.",
+      "replacement": "Replace with a Rust Buck2 cloud-ci gate app validating revocation evidence once the owned Policy IR ADR lands; the benchmark transition phase retires with the differential-oracle retirement predicate.",
+      "status": "temporary_legacy_bridge"
+    },
+    {
       "path": "tools/anchor-sweep/inject_anchors.py",
       "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
       "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",

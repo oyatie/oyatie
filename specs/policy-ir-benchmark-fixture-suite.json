@@ -8,9 +8,9 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "POL-IR-BENCH-FIXTURES",
-    "version": "0.1.0",
-    "status": "Draft-Single-Lane-Stage-1",
-    "stage": "verdict-schema-and-adapter-contracts",
+    "version": "0.2.0",
+    "status": "Draft-Single-Lane-Stage-1.1",
+    "stage": "verdict-schema-adapter-contracts-and-fixture-2-topology",
     "owner_team": "council-architecture + axis-platform",
     "created_at": "2026-07-02T00:00:00Z",
     "updated_at": "2026-07-02T00:00:00Z",
@@ -33,11 +33,13 @@
   "stage_contract": {
     "single_lane_rule": "This FixtureSuite singleton is owned by the blocking single-lane fixture stage. Fixture definitions, the verdict schema, adapter contracts, and conformance vectors are authored and corrected ONLY through this lane — never by per-spike improvisation. Spike lanes and the verifier lane consume this document read-only.",
     "stage_1_scope": "Engine-neutral verdict schema (typed-obligation result shape, reverse-query result shapes, provenance and emulation-disclosure shapes), the engine-neutral Fixture-1 request shape, and per-engine adapter contracts for the full Core-6 slate.",
-    "stage_2_scope": "Fixture 1 (KR + synthetic US federal/state/city statutory workload) and Fixture 2 (>=3-hop cross-company ReBAC) definitions plus engine-neutral conformance vectors, appended under `conformance_vectors` with a new content-hash. Vectors double as the owned-IR conformance-corpus seed and as billing-wedge acceptance tests.",
+    "stage_2_scope": "Fixture 1 (KR + synthetic US federal/state/city statutory workload) definitions plus engine-neutral conformance vectors, appended under `conformance_vectors` with a new document content-hash. Vectors double as the owned-IR conformance-corpus seed and as billing-wedge acceptance tests.",
     "vectors_present": false,
     "pre_vector_invariant": "While `vectors_present` is false, `conformance_vectors` MUST be the empty array. The schema/contract validation test (scripts/tests/policy_ir_benchmark_fixture_contract_check.py) passes against this vector-free state; vector authoring is a later single-lane stage and spike fan-out is blocked until vectors land under a frozen fixture content-hash.",
     "authoring_acknowledgement": "Authoring these shapes and (later) vectors is an owned-IR design act — the verdict schema mirrors the owned decision model (typed obligations, decision_id provenance, policy_version zookies) by intent. It is pre-registered here, engine-neutrally, before any spike runs so it cannot be retro-fitted toward a preferred engine; it is not passed off as neutral measurement.",
-    "grade_pinning": "Every verifier-lane grade pins both the rubric content-hash and this document's fixture content-hash. A correction to this document triggers the rubric's amendment/invalidation/re-queue protocol keyed on fixture content-hash (specs/policy-ir-benchmark-rubric.json#amendment_protocol)."
+    "grade_pinning": "Every verifier-lane grade pins both the rubric content-hash and this document's fixture content-hash. A correction to this document triggers the rubric's amendment/invalidation/re-queue protocol keyed on fixture content-hash (specs/policy-ir-benchmark-rubric.json#amendment_protocol).",
+    "stage_1_1_scope": "Fixture 2 (cross-company delegation ReBAC, 4-hop chain satisfying the >=3-hop bar) topology definition with its own subtree content-hash (fixture_2_workload_contract.content_hash) so revocation-evidence records pin a Fixture-2 hash that is stable across later vector landings. Landed through this same blocking single-lane fixture stage; conformance vectors remain a later stage.",
+    "fixture_2_topology_present": true
   },
   "fixture_1_workload_contract": {
     "fixture_id": "fixture-1",
@@ -56,6 +58,158 @@
       "reverse_resources"
     ],
     "request_shape_ref": "verdict_schema#/$defs/FixtureRequest"
+  },
+  "fixture_2_workload_contract": {
+    "fixture_id": "fixture-2",
+    "name": "cross-company-delegation-rebac",
+    "summary": "Cross-company delegation ReBAC workload: an external audit firm's auditor reaches a statutory billing document inside another company through a 4-hop relation chain (user -member-> audit team -auditor_team-> engagement -delegated_viewer-> folder -parent-> document). The chain crosses the company boundary at the engagement->folder delegation edge. Fixture 2 exercises reverse queries (G3) and the G4 revocation-evidence triple: revoking the cross-company delegation edge must produce a consistent deny within the sub-60s revocation SLO.",
+    "hop_contract": {
+      "minimum_hops": 3,
+      "chain_hops": 4,
+      "chain": [
+        "iam/user:u-jsong -[member]-> iam/team:nimbus-kr-audit",
+        "iam/team:nimbus-kr-audit -[auditor_team]-> iam/engagement:acme-fy2026-audit",
+        "iam/engagement:acme-fy2026-audit -[delegated_viewer]-> billing/folder:folder-statutory-2026 (CROSS-COMPANY EDGE: nimbus-audit -> acme)",
+        "billing/folder:folder-statutory-2026 -[parent]-> billing/document:doc-vat-return-2026-06"
+      ]
+    },
+    "companies": {
+      "acme": "Resource-owning company: owns billing/folder:folder-statutory-2026 and billing/document:doc-vat-return-2026-06.",
+      "nimbus-audit": "External audit firm: owns iam/user:u-jsong and iam/team:nimbus-kr-audit; reaches acme resources only through the engagement delegation edge."
+    },
+    "entity_universe": [
+      {
+        "entity_type": "billing/document",
+        "entity_id": "doc-vat-return-2026-06"
+      },
+      {
+        "entity_type": "billing/folder",
+        "entity_id": "folder-statutory-2026"
+      },
+      {
+        "entity_type": "iam/engagement",
+        "entity_id": "acme-fy2026-audit"
+      },
+      {
+        "entity_type": "iam/team",
+        "entity_id": "nimbus-kr-audit"
+      },
+      {
+        "entity_type": "iam/user",
+        "entity_id": "u-hpotter"
+      },
+      {
+        "entity_type": "iam/user",
+        "entity_id": "u-jsong"
+      }
+    ],
+    "relation_tuples": [
+      {
+        "tuple_id": "t1-member",
+        "subject": {
+          "entity_type": "iam/user",
+          "entity_id": "u-jsong"
+        },
+        "relation": "member",
+        "object": {
+          "entity_type": "iam/team",
+          "entity_id": "nimbus-kr-audit"
+        },
+        "cross_company": false
+      },
+      {
+        "tuple_id": "t2-auditor-team",
+        "subject": {
+          "entity_type": "iam/team",
+          "entity_id": "nimbus-kr-audit"
+        },
+        "relation": "auditor_team",
+        "object": {
+          "entity_type": "iam/engagement",
+          "entity_id": "acme-fy2026-audit"
+        },
+        "cross_company": false
+      },
+      {
+        "tuple_id": "t3-delegated-viewer",
+        "subject": {
+          "entity_type": "iam/engagement",
+          "entity_id": "acme-fy2026-audit"
+        },
+        "relation": "delegated_viewer",
+        "object": {
+          "entity_type": "billing/folder",
+          "entity_id": "folder-statutory-2026"
+        },
+        "cross_company": true
+      },
+      {
+        "tuple_id": "t4-parent",
+        "subject": {
+          "entity_type": "billing/folder",
+          "entity_id": "folder-statutory-2026"
+        },
+        "relation": "parent",
+        "object": {
+          "entity_type": "billing/document",
+          "entity_id": "doc-vat-return-2026-06"
+        },
+        "cross_company": false
+      }
+    ],
+    "permission_model": {
+      "view_statutory_document": "document.view_statutory_document <- parent folder.viewer; folder.viewer <- delegated_viewer engagement; engagement reachable by auditor_team team; team reachable by member user. A principal holds view_statutory_document on a document iff a relation path user -member-> team -auditor_team-> engagement -delegated_viewer-> folder -parent-> document exists in the live tuple set.",
+      "evaluation_rule": "Graph reachability over relation_tuples along the declared chain relations, evaluated per engine via that engine's adapter contract (adapter_contracts.*.request_mapping). No temporal predicate participates (temporal_exclusion_note)."
+    },
+    "revocation_scenario": {
+      "scenario_id": "f2-rev-001",
+      "revoked_tuple_id": "t3-delegated-viewer",
+      "revocation_semantics": "Revoke the cross-company delegation edge (engagement -delegated_viewer-> folder). This is the boundary-crossing grant: after revocation no path from any nimbus-audit principal to any acme resource remains.",
+      "watched_check": {
+        "request_id": "f2-rev-001-watch",
+        "query_kind": "forward_authorization",
+        "principal": {
+          "entity_type": "iam/user",
+          "entity_id": "u-jsong"
+        },
+        "action": "view_statutory_document",
+        "resource": {
+          "entity_type": "billing/document",
+          "entity_id": "doc-vat-return-2026-06"
+        }
+      },
+      "expected_pre_revocation_decision": "allow",
+      "expected_post_revocation_decision": "deny",
+      "sub_60s_bound_ms": 60000,
+      "consistent_deny_rule": "time_to_consistent_deny is the wall-clock interval from revocation submission (t0) to the FIRST deny observation that begins an unbroken run of at least 3 consecutive deny observations under the engine adapter's declared consistency mode; a deny followed by a stale allow does not qualify. The measurement satisfies the SLO iff time_to_consistent_deny_ms < sub_60s_bound_ms.",
+      "measurement_obligations": "Every measurement record MUST pin this fixture's content-hash (content_hash.value below), document the measurement topology (node counts, cache layers, distribution path, parameters, environment class) alongside the numbers, record consistency tokens before/after where the engine surfaces them, and carry the N3 emulation disclosure. Records violating any obligation are invalid revocation evidence.",
+      "scope_bindings": {
+        "measured_engines": [
+          "cedar",
+          "spicedb",
+          "openfga",
+          "opa_rego",
+          "biscuit"
+        ],
+        "analysis_only_engines": [
+          "cel"
+        ],
+        "rule": "fixture_scope=full systems (cedar, spicedb, openfga, opa_rego) owe the full G4 triple including wall-clock measurement. Biscuit's declared delegation_only subset IS this fixture, so its revocation surface (revocation-id set distribution) is exercised and measured. CEL's declared subset is Fixture 1 (statutory_only) and exercises no Fixture-2 propagation surface: per the rubric G4 bounded_scope_rule, CEL owes consistency-semantics analysis from vendor documentation only — no wall-clock measurement, no emulation of out-of-scope fixtures."
+      }
+    },
+    "reverse_query_contract": {
+      "note": "Fixture 2 reverse-query vectors (G3) land with the conformance-vector stage; this topology fixes the entity universe and expected reachability those vectors will assert. Pre-revocation reverse_principals(view_statutory_document, doc-vat-return-2026-06) = [u-jsong]; post-revocation = []."
+    },
+    "temporal_exclusion_note": "Temporal/effective-dating is data-plane and harvest-only per the frozen rubric; no Fixture-2 relation, permission, or revocation semantics depend on temporal evaluation by any engine.",
+    "content_hash": {
+      "id": "policy-ir-benchmark-fixture-2-hash-v1",
+      "wire_format": "fixture2-v1:sha256:<64-lower-hex>",
+      "digest_algorithm": "sha256",
+      "canonicalization": "Subtree canonical form: take this document's fixture_2_workload_contract object, set its content_hash.value to the empty string, then serialize with sorted keys, separators (',', ':'), UTF-8, no ASCII escaping (python3: json.dumps(subtree, sort_keys=True, separators=(',',':'), ensure_ascii=False).encode('utf-8')). The digest is sha256 over those bytes.",
+      "scope": "Hashes the fixture_2_workload_contract subtree ONLY. This is 'the frozen Fixture 2 content-hash': revocation-evidence measurement records pin this value, and it is stable across later single-lane stages that touch other parts of the FixtureSuite (e.g. landing conformance vectors), while any correction to the Fixture-2 topology itself yields a new value and triggers the rubric amendment/invalidation/re-queue protocol.",
+      "pinning_rule": "Every Fixture-2 revocation-evidence measurement record MUST reference this exact value. A measurement pinned to a stale fixture-2 hash after a topology correction is invalid until re-executed.",
+      "value": "fixture2-v1:sha256:9d1ef03f30bb05c2445d057d65e5b21789fc7afedb615d680070eeff371c0882"
+    }
   },
   "verdict_schema": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -1112,11 +1266,13 @@
     "canonicalization": "JSON canonical form: parse this document, set content_hash.value to the empty string, then serialize with sorted keys, separators (',', ':'), UTF-8, no ASCII escaping (python3: json.dumps(doc, sort_keys=True, separators=(',',':'), ensure_ascii=False).encode('utf-8')). The digest is sha256 over those bytes. Identical to the rubric's canonicalization.",
     "scope": "Hashes the entire FixtureSuite document including conformance_vectors; landing vectors or correcting fixtures therefore yields a new content-hash by construction, giving immutable-per-version semantics for grade pinning.",
     "pinning_rule": "Verifier-lane grades and adapter verdict provenance pin this value. A grade pinned to a stale fixture hash after a fixture correction is invalid until re-queued and re-graded per the rubric amendment protocol.",
-    "value": "fixture-suite-v1:sha256:4e7b277a2eb192449be9f2c0ffc4ec7bbf7c9dc6db17d5b4127d432dfd12d99d"
+    "value": "fixture-suite-v1:sha256:691ff47d8ef1b986e933328074afe96b62d16a412d333f934147ee63168986c6"
   },
   "verification_commands": [
     "python3 -m json.tool specs/policy-ir-benchmark-fixture-suite.json >/dev/null",
     "python3 scripts/tests/policy_ir_benchmark_fixture_contract_check.py",
-    "python3 scripts/tests/policy_ir_benchmark_fixture_contract_check.py --self-test"
+    "python3 scripts/tests/policy_ir_benchmark_fixture_contract_check.py --self-test",
+    "python3 benchmarks/policy-ir/revoke_then_check_harness.py",
+    "python3 scripts/tests/policy_ir_revocation_evidence_check.py"
   ]
 }
