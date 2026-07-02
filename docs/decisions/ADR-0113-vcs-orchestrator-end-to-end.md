@@ -10,6 +10,14 @@ related:
   - ADR-0111-merge-queue-projected-state-fix-at-any-stage.md
   - ADR-0112-webhook-driven-intelligence-agent-invocation.md
 purpose: Define the `oya vcs done` orchestrator that drives a changeset through the full agentic pipeline (PR-open → CI → review → merge → promote) and the agentic subscription contract for callers.
+live_plan_authority: false
+canonical_authority: /specs/masterplan.json#masterplan_v2.surface_dispositions
+read_contract:
+  audience:
+    - agents
+    - humans
+  read_timing_class: provenance-archive
+  freshness_rule: "Wholly-superseded decision record archived in place (Seed Sub-AC 5.3.1); provenance ledger row lives at /specs/masterplan.json#masterplan_v2.surface_dispositions; never read as live authority — conflicts resolve to the superseding artifacts recorded in that row."
 ---
 
 # ADR-0113: VCS orchestrator (`oya vcs done`) end-to-end

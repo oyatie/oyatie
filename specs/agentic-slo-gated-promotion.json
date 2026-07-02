@@ -1,4 +1,12 @@
 {
+  "read_contract": {
+    "audience": [
+      "agents",
+      "cloud-ci-gates"
+    ],
+    "read_timing_class": "on-demand",
+    "freshness_rule": "On-demand read; live at this path with single-writer mutations through protected PRs against dev; never a mandatory entry surface (the mandatory agent entry surface is exactly /specs/root-hub-pointers.json#agent_entry_surface_allowlist)."
+  },
   "$schema": "https://docs.oyatie.com/schemas/agentic-slo-gated-promotion.schema.json",
   "$id": "https://docs.oyatie.com/specs/agentic-slo-gated-promotion.json",
   "_meta": {

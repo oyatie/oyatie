@@ -1,0 +1,332 @@
+{
+  "_meta": {
+    "artifact_id": "masterplan-stale-adr-archive-sweep-20260702",
+    "doc_class": "Durable-Evidence-Record",
+    "purpose": "Evidence packet for masterplan-v2 Sub-AC 5.3.1: every wholly-stale/superseded ADR under docs/decisions/ is archived in place with a provenance record (original path, supersession reason, superseding artifacts) ledgered in /specs/masterplan.json#masterplan_v2.surface_dispositions, with the decisions index and machine-readable mirror regenerated through the single-writer generator.",
+    "created_at": "2026-07-02T22:00:00Z",
+    "owner_team": "founder + platform-governance",
+    "doctrine_refs": [
+      "ADR-0515",
+      "ADR-0516",
+      "ADR-0609"
+    ],
+    "read_contract": {
+      "audience": [
+        "agents",
+        "cloud-ci-gates",
+        "humans"
+      ],
+      "read_timing_class": "on-demand",
+      "freshness_rule": "Immutable evidence record of the 2026-07-02 stale-ADR archive sweep; never edited after the fact. The live enforcement is the read-surface resurrection lane of cloud-ci-cross-artifact-agreement over the current tree."
+    }
+  },
+  "packet_id": "masterplan-stale-adr-archive-sweep-20260702",
+  "packet_class": "product-completion-evidence",
+  "sub_ac": "Seed Sub-AC 5.3.1 — identify all wholly-stale/superseded ADRs under docs/decisions/, archive each with a provenance record (original path, supersession reason, superseding artifact), and update the decisions index/machine-readable decisions.json accordingly",
+  "recorded_at": "2026-07-02T22:00:00Z",
+  "identification": {
+    "predicate": "Mechanical: an ADR under docs/decisions/ is wholly stale/superseded iff its decision status resolves to Superseded (the ADR shape-kernel status vocabulary, libs/oya-governance-adr-shape-kernel); evaluated over the full 419-record decision corpus.",
+    "corpus_size": 419,
+    "swept_count": 35,
+    "cross_check": "The sweep set equals the union of the Superseded status counts in the regenerated machine mirror docs/machine-readable/decisions.json (Superseded 34 + superseded 1 = 35)."
+  },
+  "archive_mechanism": {
+    "in_place": true,
+    "rationale": "docs/decisions/ADR-*.md is the immutable decision-record home (masterplan planning_authority.decision_record_authority); moving files would break the generated-index projection, ADR-number citations, and reciprocal supersession edges, so archival is in place behind mechanical markers rather than by relocation.",
+    "on_disk_markers": [
+      "live_plan_authority: false",
+      "canonical_authority: /specs/masterplan.json#masterplan_v2.surface_dispositions",
+      "read_contract with read_timing_class: provenance-archive"
+    ],
+    "provenance_ledger": "/specs/masterplan.json#masterplan_v2.surface_dispositions — one archived-with-provenance row per swept ADR carrying original_path, supersession_reason, superseding_artifacts, staleness_evaluation, and provenance",
+    "audit_record": "/specs/masterplan.json#masterplan_v2.surface_disposition_audit.stale_adr_archive_sweep",
+    "resurrection_gate": "cloud-ci-cross-artifact-agreement/masterplan-v2-read-surface-resurrection fails closed with masterplan_read_contract_invalid when any archived ADR drops its non-live declaration, canonical pointer, or provenance-archive read-timing declaration",
+    "projection_regeneration": [
+      "docs/ADR-INDEX.md and docs/machine-readable/decisions.json regenerated via oya doc adr-index --write (single-writer generator libs/oya-check-adr-index; 419 records, next ADR-0610)",
+      "docs/MASTERPLAN.md re-derived byte-identically from masterplan_v2 (derive_masterplan_md_projection), now enumerating the 35 archived decision surfaces"
+    ]
+  },
+  "archived_adrs": [
+    {
+      "adr": "ADR-0015",
+      "original_path": "docs/decisions/ADR-0015-architectural-flattening-target.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0131-per-microservice-flat-layout.md",
+        "docs/decisions/ADR-0512-canonical-monorepo-pattern.md"
+      ],
+      "supersession_reason": "ADR-0131 supersedes the docs-vs-crates top-level split; ADR-0512 supersedes the flat-crates location + forbidden-vocab context enum (D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-3/FC-1)."
+    },
+    {
+      "adr": "ADR-0042",
+      "original_path": "docs/decisions/ADR-0042-observability-stack-otel-and-in-house-ui.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0383-observability-stack-reconciliation-loki-tempo-mimir-grafana.md"
+      ],
+      "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0383 per the recorded front-matter supersession edge."
+    },
+    {
+      "adr": "ADR-0046",
+      "original_path": "docs/decisions/ADR-0046-vector-store-strategy.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0192-vector-database-canonical-milvus.md"
+      ],
+      "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0192 per the recorded front-matter supersession edge."
+    },
+    {
+      "adr": "ADR-0052",
+      "original_path": "docs/decisions/ADR-0052-inventory-grit-cutover.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0118-retire-archive-orphan-fitness-lane.md"
+      ],
+      "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0118 per the recorded front-matter supersession edge."
+    },
+    {
+      "adr": "ADR-0053",
+      "original_path": "docs/decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md",
+        "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md",
+        "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+      ],
+      "supersession_reason": "Dead grit/icm toolchain mandated live; superseded by ADR-0116 (retire external agent-coordination tooling), ADR-0363 (agentic-VCS retired), ADR-0515 (canonical CI/CD). D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-6."
+    },
+    {
+      "adr": "ADR-0057",
+      "original_path": "docs/decisions/ADR-0057-cutover-mechanics-rename-plan-v4.md",
+      "superseding_artifacts": [],
+      "supersession_reason": "Executed one-shot migration; dangling+colliding supersedes edge to phantom ADR-0055-v3 file. Archived per D-DISPOSITIONS-RATIFIED: ARCHIVE-5, C-4/D11(c)."
+    },
+    {
+      "adr": "ADR-0097",
+      "original_path": "docs/decisions/ADR-0097-intelligence-account-adapter-rename-target-slot-last.md",
+      "superseding_artifacts": [],
+      "supersession_reason": "3-crate cosmetic foundry rename; subsumed by the foundry sweep. Archived per D-DISPOSITIONS-RATIFIED: ARCHIVE-5."
+    },
+    {
+      "adr": "ADR-0101",
+      "original_path": "docs/decisions/ADR-0101-supervisor-mountpoint-direct-hyper.md",
+      "superseding_artifacts": [],
+      "supersession_reason": "Temporary bypass shortcut promoted to architecture; foundry context retired. Archived per D-DISPOSITIONS-RATIFIED: ARCHIVE-5."
+    },
+    {
+      "adr": "ADR-0102",
+      "original_path": "docs/decisions/ADR-0102-intelligence-settings-template-canonical-rendering.md",
+      "superseding_artifacts": [],
+      "supersession_reason": "Foundry settings render; atomic-render+sref pattern salvaged. Archived per D-DISPOSITIONS-RATIFIED: ARCHIVE-5."
+    },
+    {
+      "adr": "ADR-0103",
+      "original_path": "docs/decisions/ADR-0103-grit-cutover-inventory.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md",
+        "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+      ],
+      "supersession_reason": "grit/icm sanctioned-VCS + ban-git context retired; superseded by ADR-0116 (retire external agent-coordination tooling) and ADR-0363 (agentic-VCS retired). D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-6."
+    },
+    {
+      "adr": "ADR-0107",
+      "original_path": "docs/decisions/ADR-0107-tools-implicit-app-convention.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+      ],
+      "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0105 per the recorded front-matter supersession edge."
+    },
+    {
+      "adr": "ADR-0110",
+      "original_path": "docs/decisions/ADR-0110-changeset-state-machine.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+      ],
+      "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0363 per the recorded front-matter supersession edge."
+    },
+    {
+      "adr": "ADR-0112",
+      "original_path": "docs/decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+      ],
+      "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0363 per the recorded front-matter supersession edge."
+    },
+    {
+      "adr": "ADR-0113",
+      "original_path": "docs/decisions/ADR-0113-vcs-orchestrator-end-to-end.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+      ],
+      "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0363 per the recorded front-matter supersession edge."
+    },
+    {
+      "adr": "ADR-0120",
+      "original_path": "docs/decisions/ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0375-talos-capi-argocd-fleet-substrate.md"
+      ],
+      "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0375 per the recorded front-matter supersession edge."
+    },
+    {
+      "adr": "ADR-0121",
+      "original_path": "docs/decisions/ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0375-talos-capi-argocd-fleet-substrate.md"
+      ],
+      "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0375 per the recorded front-matter supersession edge."
+    },
+    {
+      "adr": "ADR-0124",
+      "original_path": "docs/decisions/ADR-0124-own-merge-queue-webhook-driven.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+      ],
+      "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0515 per the recorded front-matter supersession edge."
+    },
+    {
+      "adr": "ADR-0136",
+      "original_path": "docs/decisions/ADR-0136-intelligence-as-single-microservice.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0389-cloud-intelligence-bedrock-pattern-cloud-primitive.md"
+      ],
+      "supersession_reason": "Foundry-as-µservice declared dead context (D-FOUNDRY-CLARIFY); superseded by ADR-0389 cloud-intelligence framework (six-BC reasoning salvaged). D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-11."
+    },
+    {
+      "adr": "ADR-0137",
+      "original_path": "docs/decisions/ADR-0137-intelligence-bounded-contexts.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0389-cloud-intelligence-bedrock-pattern-cloud-primitive.md"
+      ],
+      "supersession_reason": "Foundry bounded-contexts declared dead context (D-FOUNDRY-CLARIFY); superseded by ADR-0389 cloud-intelligence framework successor. D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-11."
+    },
+    {
+      "adr": "ADR-0138",
+      "original_path": "docs/decisions/ADR-0138-intelligence-six-path-deprecation.md",
+      "superseding_artifacts": [],
+      "supersession_reason": "Foundry Strangler to a dead address (microservices/foundry/ no longer exists); Strangler template reusable. Archived per D-DISPOSITIONS-RATIFIED: ARCHIVE-5, C-11."
+    },
+    {
+      "adr": "ADR-0140",
+      "original_path": "docs/decisions/ADR-0140-cross-cutting-carriers-adapter-exemption.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0145-inter-microservice-communication-reform.md"
+      ],
+      "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0145 per the recorded front-matter supersession edge."
+    },
+    {
+      "adr": "ADR-0141",
+      "original_path": "docs/decisions/ADR-0141-workflow-ontology-read-path-direct.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0145-inter-microservice-communication-reform.md"
+      ],
+      "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0145 per the recorded front-matter supersession edge."
+    },
+    {
+      "adr": "ADR-0143",
+      "original_path": "docs/decisions/ADR-0143-intelligence-per-bc-release-pointer.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0389-cloud-intelligence-bedrock-pattern-cloud-primitive.md"
+      ],
+      "supersession_reason": "Foundry per-BC release pointer superseded by ADR-0389 cloud-intelligence framework successor. D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-11."
+    },
+    {
+      "adr": "ADR-0160",
+      "original_path": "docs/decisions/ADR-0160-progressive-delivery-flagger.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+      ],
+      "supersession_reason": "Flagger superseded by Argo Rollouts per D10 ruling; ADR-0515 is the canonical CI/CD + progressive-delivery ADR. D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-12/P1."
+    },
+    {
+      "adr": "ADR-0170",
+      "original_path": "docs/decisions/ADR-0170-developer-portal.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0394-bespoke-rust-idp-central-hub.md"
+      ],
+      "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0394 per the recorded front-matter supersession edge."
+    },
+    {
+      "adr": "ADR-0183",
+      "original_path": "docs/decisions/ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0379-kubewarden-default-admission-substrate.md"
+      ],
+      "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0379 per the recorded front-matter supersession edge."
+    },
+    {
+      "adr": "ADR-0187",
+      "original_path": "docs/decisions/ADR-0187-canonical-oidc-idp-zitadel-primary.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0476-oya-identity-bespoke-human-identity.md"
+      ],
+      "supersession_reason": "Zitadel demoted from canonical IdP to Phase-1 vendored bridge; superseded-as-endpoint by ADR-0476 (oya-identity bespoke Rust, owned endpoint). D5 ruling. D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-13/P2."
+    },
+    {
+      "adr": "ADR-0349",
+      "original_path": "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+      ],
+      "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0515 per the recorded front-matter supersession edge."
+    },
+    {
+      "adr": "ADR-0359",
+      "original_path": "docs/decisions/ADR-0359-jenkins-completely-replaces-github-actions.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+      ],
+      "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0515 per the recorded front-matter supersession edge."
+    },
+    {
+      "adr": "ADR-0361",
+      "original_path": "docs/decisions/ADR-0361-jenkins-native-cicd-revamp-execution.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+      ],
+      "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0515 per the recorded front-matter supersession edge."
+    },
+    {
+      "adr": "ADR-0372",
+      "original_path": "docs/decisions/ADR-0372-frontend-stack-solidjs-ts-with-rust-wasm-compute-modules.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0393-leptos-canonical-app-shell-frontend.md"
+      ],
+      "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0393 per the recorded front-matter supersession edge."
+    },
+    {
+      "adr": "ADR-0509",
+      "original_path": "docs/decisions/ADR-0509-hyperscaler-service-decomposition-pattern.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0512-canonical-monorepo-pattern.md"
+      ],
+      "supersession_reason": "ADR-0512 supersedes this; status was drifted (0512 named it as superseded but 0509 had no edge). D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-3/FC-5."
+    },
+    {
+      "adr": "ADR-0511",
+      "original_path": "docs/decisions/ADR-0511-ci-orchestration-argo-workflows-supersede-jenkins.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+      ],
+      "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0515 per the recorded front-matter supersession edge."
+    },
+    {
+      "adr": "ADR-0513",
+      "original_path": "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+      ],
+      "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0515 per the recorded front-matter supersession edge."
+    },
+    {
+      "adr": "ADR-0514",
+      "original_path": "docs/decisions/ADR-0514-build-ci-cd-pipeline-target-architecture-hyperscaler-remediation.md",
+      "superseding_artifacts": [
+        "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+      ],
+      "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0515 per the recorded front-matter supersession edge."
+    }
+  ],
+  "verification": [
+    "cargo test -p oya-cloud-ci-cross-artifact-agreement-app: 145/145 pass with the live producer (resurrection sweep, surface-disposition completeness, projection re-derivation, read-path contract coverage, plan-evidence crosscheck, ADR crosswalk born-blocking self-test)",
+    "cargo test -p oya-cloud-ci-planned-maturity-app: 5/5 pass",
+    "cargo test -p oya-cloud-ci-staleness-reaper-app -p oya-cloud-ci-total-accounting-app -p oya-cloud-ci-generated-artifact-control-plane-app: 74/74 pass",
+    "cargo test -p oya-cloud-ci-firewall-app --test firewall: 11/11 pass (live corpus stays inside the frozen baseline; no new keyed findings)",
+    "oya doc adr-index --format json: {\"status\":\"passed\",\"records\":419,\"next_adr\":\"ADR-0610\"} (regenerated index/mirror are drift-free against the decision corpus)"
+  ]
+}

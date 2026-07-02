@@ -87,6 +87,15 @@
 //! - `masterplan_entry_surface_invalid` — masterplan v2 entry-surface
 //!   read contracts drift from the bounded root-hub allowlist or revive a
 //!   superseded entrypoint.
+//! - `read_path_read_contract_missing` — a SURVIVING doc/JSON on the repo
+//!   read paths (the mechanical universe: root-markdown surfaces plus every
+//!   live root-hub entrypoint file) carries no machine-checkable read
+//!   contract (front-matter `read_contract:` block for Markdown, a
+//!   `read_contract` object or central masterplan read-contract row for
+//!   JSON), a contract field is invalid (unknown read-timing class, unknown
+//!   or empty audience, empty freshness rule), a contract claims
+//!   `entry-surface` outside the bounded allowlist, or the sweep corpus
+//!   drifts from the universe (uncovered, unexpected, or duplicate rows).
 //!
 //! - `masterplan_sequencing_invalid` — masterplan v2 lacks a fully
 //!   zero-based, DAG-derived sequencing projection over every live work item,
@@ -112,6 +121,7 @@ use sha2::{Digest, Sha256};
 mod plan_evidence_crosscheck;
 mod projection_rederivation;
 mod read_contract_entry_surface;
+mod read_path_contract_coverage;
 mod read_surface_resurrection;
 
 pub use plan_evidence_crosscheck::{
@@ -126,6 +136,10 @@ use read_contract_entry_surface::masterplan_read_contract_gate_present;
 pub use read_contract_entry_surface::{
     ENTRY_SURFACE_ALLOWLIST_REF, ENTRY_SURFACE_CODE, ENTRY_SURFACE_VALIDATOR, READ_CONTRACT_CODE,
     evaluate_masterplan_v2_entry_surfaces, evaluate_masterplan_v2_read_contract_archives,
+};
+pub use read_path_contract_coverage::{
+    READ_PATH_CONTRACT_CODE, READ_PATH_CONTRACT_POLICY_REF, READ_PATH_CONTRACT_VALIDATOR,
+    evaluate_read_path_contract_coverage, read_path_contract_universe,
 };
 pub use read_surface_resurrection::{
     READ_SURFACE_RESURRECTION_VALIDATOR, RESURRECTION_CODE,
@@ -488,6 +502,11 @@ pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
         }
         if let Some(root_hub) = fixture.get("root_hub_pointers") {
             findings.extend(evaluate_masterplan_v2_entry_surfaces(fixture, root_hub));
+            if let Some(corpus) = fixture.get("read_path_contract_corpus") {
+                findings.extend(evaluate_read_path_contract_coverage(
+                    fixture, root_hub, corpus,
+                ));
+            }
         }
     }
     if let Some(manifest_index) = fixture.get("microservices_manifest_index") {

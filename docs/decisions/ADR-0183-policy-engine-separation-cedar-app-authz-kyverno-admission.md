@@ -9,6 +9,14 @@ superseded_by: [ADR-0379]
 related: [ADR-0121, ADR-0145, ADR-0146, ADR-0148, ADR-0182, ADR-0184, ADR-0185, ADR-0186]
 related_specs:
   - /specs/hyperscaler-architecture-invariants.json
+live_plan_authority: false
+canonical_authority: /specs/masterplan.json#masterplan_v2.surface_dispositions
+read_contract:
+  audience:
+    - agents
+    - humans
+  read_timing_class: provenance-archive
+  freshness_rule: "Wholly-superseded decision record archived in place (Seed Sub-AC 5.3.1); provenance ledger row lives at /specs/masterplan.json#masterplan_v2.surface_dispositions; never read as live authority — conflicts resolve to the superseding artifacts recorded in that row."
 ---
 
 # ADR-0183 — Kubernetes policy engine separation: Cedar (app authz) vs Kyverno (admission)

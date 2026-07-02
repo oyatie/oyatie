@@ -1,4 +1,12 @@
 {
+  "read_contract": {
+    "audience": [
+      "agents",
+      "cloud-ci-gates"
+    ],
+    "read_timing_class": "on-demand",
+    "freshness_rule": "On-demand read; live at this path with single-writer mutations through protected PRs against dev; never a mandatory entry surface (the mandatory agent entry surface is exactly /specs/root-hub-pointers.json#agent_entry_surface_allowlist)."
+  },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://oyatie.com/schemas/microservice-manifest.json",
   "title": "Oyatie microservice manifest",
@@ -27,6 +35,40 @@
     "mesh_layering"
   ],
   "properties": {
+    "read_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "audience",
+        "read_timing_class",
+        "freshness_rule"
+      ],
+      "description": "Machine-checkable read contract required on every read-path artifact (masterplan v2 read-path coverage gate: cloud-ci-cross-artifact-agreement/masterplan-v2-read-path-contract-coverage).",
+      "properties": {
+        "audience": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "agents",
+              "cloud-ci-gates",
+              "humans"
+            ]
+          }
+        },
+        "read_timing_class": {
+          "enum": [
+            "entry-surface",
+            "on-demand",
+            "provenance-archive"
+          ]
+        },
+        "freshness_rule": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
     "schema_version": {
       "type": "string",
       "const": "1.0"

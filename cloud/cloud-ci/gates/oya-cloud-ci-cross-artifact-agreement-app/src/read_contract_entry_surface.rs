@@ -347,7 +347,7 @@ fn root_hub_entry_current_path_normalized(entry: &Value) -> Option<String> {
     non_empty_field(entry, "current_path").map(normalize_read_path_for_match)
 }
 
-fn root_hub_entrypoint_is_superseded(entry: &Value) -> bool {
+pub(crate) fn root_hub_entrypoint_is_superseded(entry: &Value) -> bool {
     entry.get("current_path").is_some_and(Value::is_null)
         || root_hub_status_field_has_stale_marker(entry, "authority_status")
         || root_hub_status_field_has_stale_marker(entry, "current_path_status")

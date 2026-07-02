@@ -116,6 +116,11 @@ kind = "path_exact"
 value = "evidence/goals/masterplan-v2-hermes-done-card-forensic-ledger-20260702.json"
 reason = "ADR-0609 masterplan-v2 consolidation: faithful read-only forensic ingest of the external hermes kanban board (per-card done-claim ledger, claimed-done-unverified until evidence attaches); forbidden stems occur only inside quoted historical card titles/notes, never as live product/governance vocabulary."
 
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = "evidence/goals/masterplan-stale-adr-archive-sweep-20260702.json"
+reason = "ADR-0609 masterplan-v2 Sub-AC 5.3.1: faithful provenance record of the stale-ADR archive sweep (35 wholly-superseded decision records archived in place); forbidden stems occur only inside quoted historical ADR titles/supersession notes, never as live product/governance vocabulary."
+
 [manifest]
 required_flags = ["version_workspace", "rust_version_workspace", "publish_false", "license", "lints_workspace", "lib_doctest_false"]
 

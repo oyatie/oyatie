@@ -18,6 +18,14 @@ session_context:
   authored: 2026-05-29
   basis: "Founder decision 2026-05-29: the CI/CD destination stack = Buck2 (build/RBE, ADR-0392/0408 in-flight) + Argo Workflows (k8s-native CI orchestration, REPLACES transitory cloud-ci) + ArgoCD/Argo Rollouts (CD). ADR-0359 (cloud-ci-sole-CI) is only status=Proposed (never Accepted) — supersede it. The oya gate engine stays the bespoke governance overlay Argo Workflows invokes; the cloud-scm Commit Status API remains the gate-result sink until the SCM cutover (ADR-0510). This composes with the Buck2 reversal PR — it does not re-decide it."
 purpose: Name Argo Workflows as the destination CI orchestrator (CNCF, k8s-native, self-hostable — passes the hyperscaler-lens), supersede the Proposed cloud-ci-sole-CI ADR-0359, and frame cloud-ci as the transitory bootstrap orchestrator. Keep the oya gate engine as the bespoke governance overlay and the cloud-scm Commit Status API as the gate-result sink. Compose around the in-flight Buck2 reversal (ADR-0392/0408) without re-deciding it.
+live_plan_authority: false
+canonical_authority: /specs/masterplan.json#masterplan_v2.surface_dispositions
+read_contract:
+  audience:
+    - agents
+    - humans
+  read_timing_class: provenance-archive
+  freshness_rule: "Wholly-superseded decision record archived in place (Seed Sub-AC 5.3.1); provenance ledger row lives at /specs/masterplan.json#masterplan_v2.surface_dispositions; never read as live authority — conflicts resolve to the superseding artifacts recorded in that row."
 ---
 
 # ADR-0511: CI orchestration = Argo Workflows (k8s-native); cloud-ci transitory; supersede Proposed ADR-0359 (superseded by ADR-0515)

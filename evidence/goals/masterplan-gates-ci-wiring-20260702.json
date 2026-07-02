@@ -45,7 +45,8 @@
       "frozen_red_fixtures": [
         "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-read-contract-resurrected-roadmap.json",
         "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-entry-surface-resurrected-superseded.json",
-        "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-entry-surface-unbounded.json"
+        "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-entry-surface-unbounded.json",
+        "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-entry-surface-missing.json"
       ]
     }
   ],

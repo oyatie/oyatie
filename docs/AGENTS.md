@@ -41,6 +41,12 @@ authority_chain_declaration: |
     > working drafts (never authoritative)
 purpose: "Operating-Contract: Oyatie Agent Operating Contract."
 doc_status: published
+read_contract:
+  audience:
+    - agents
+    - humans
+  read_timing_class: on-demand
+  freshness_rule: "On-demand read; live at this path with single-writer mutations through protected PRs against dev; never a mandatory entry surface (the mandatory agent entry surface is exactly /specs/root-hub-pointers.json#agent_entry_surface_allowlist)."
 ---
 # Oyatie Agent Operating Contract
 

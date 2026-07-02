@@ -6,6 +6,14 @@ date: 2026-05-16
 supersedes: []
 superseded_by: [ADR-0375]
 related: [ADR-0083, ADR-0121]
+live_plan_authority: false
+canonical_authority: /specs/masterplan.json#masterplan_v2.surface_dispositions
+read_contract:
+  audience:
+    - agents
+    - humans
+  read_timing_class: provenance-archive
+  freshness_rule: "Wholly-superseded decision record archived in place (Seed Sub-AC 5.3.1); provenance ledger row lives at /specs/masterplan.json#masterplan_v2.surface_dispositions; never read as live authority — conflicts resolve to the superseding artifacts recorded in that row."
 ---
 
 # ADR-0120: Rust-first on-prem tooling; every install paired with uninstall

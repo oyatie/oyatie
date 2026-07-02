@@ -7,6 +7,14 @@ supersedes: []
 superseded_by: [ADR-0375]
 related: [ADR-0009, ADR-0028, ADR-0043, ADR-0044, ADR-0117, ADR-0119, ADR-0120]
 renumber_note: "Originally drafted as ADR-0119 in PR #19 (on-prem KR primary cell + OCI KR secondary cell bring-up, signed replacement of PR #16), merged 2026-05-16T08:57:20Z. Collided with ADR-0119-specs-flat-root-topology from PR #18 (merged 2026-05-16T08:53:49Z — 3m31s earlier). Per merge-order precedence and PRs-12-18 multispectrum review (evidence/debate/pr-18-F4-r1.json, pr-18-M1-r1.json), renumbered to ADR-0121 (ADR-0120 was already taken by rust-first-onprem-tooling)."
+live_plan_authority: false
+canonical_authority: /specs/masterplan.json#masterplan_v2.surface_dispositions
+read_contract:
+  audience:
+    - agents
+    - humans
+  read_timing_class: provenance-archive
+  freshness_rule: "Wholly-superseded decision record archived in place (Seed Sub-AC 5.3.1); provenance ledger row lives at /specs/masterplan.json#masterplan_v2.surface_dispositions; never read as live authority — conflicts resolve to the superseding artifacts recorded in that row."
 ---
 
 # ADR-0121: On-prem Kubernetes stack — vanilla kubeadm + containerd + Istio + Envoy

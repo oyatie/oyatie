@@ -7,6 +7,12 @@ scope: docs-and-microservices-markdown
 start_node: docs/README.md
 agent: codex-six-hops-audit
 doc_status: audit-only
+read_contract:
+  audience:
+    - agents
+    - humans
+  read_timing_class: on-demand
+  freshness_rule: "On-demand read; live at this path with single-writer mutations through protected PRs against dev; never a mandatory entry surface (the mandatory agent entry surface is exactly /specs/root-hub-pointers.json#agent_entry_surface_allowlist)."
 ---
 
 # Six-Hops Reachability Audit - 2026-05-20

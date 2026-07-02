@@ -37,6 +37,14 @@ deliverables:
     exit_criteria: "frontend dependency licenses pass the policy gate; WASM usage is compute-modules + server-sandbox only."
     verified_by: "license/dependency policy gate green on the frontend"
 purpose: Choose the app-shell FRONTEND stack on performance, scalability, resource-efficiency, and hyperscaler norms (not language ideology). Original decision — TypeScript + SolidJS (fine-grained reactivity, SolidStart SSR) for the DOM-heavy shell, with targeted Rust→WASM modules only for compute-bound widgets, and OpenAPI 3.2.0→TS codegen for end-to-end type safety. Backend/services/gateway stay Rust (settled, out of scope). AMENDED 2026-05-27 — the supersede-Leptos stance is REVERSED: Leptos is RETAINED as the canonical app-shell frontend; SolidJS is an evaluation track only, adopted as canonical solely on proven massive-scale superiority.
+live_plan_authority: false
+canonical_authority: /specs/masterplan.json#masterplan_v2.surface_dispositions
+read_contract:
+  audience:
+    - agents
+    - humans
+  read_timing_class: provenance-archive
+  freshness_rule: "Wholly-superseded decision record archived in place (Seed Sub-AC 5.3.1); provenance ledger row lives at /specs/masterplan.json#masterplan_v2.surface_dispositions; never read as live authority — conflicts resolve to the superseding artifacts recorded in that row."
 ---
 
 # ADR-0372: Frontend stack — SolidJS/TS app-shell + Rust→WASM compute modules

@@ -1,4 +1,12 @@
 {
+  "read_contract": {
+    "audience": [
+      "agents",
+      "cloud-ci-gates"
+    ],
+    "read_timing_class": "provenance-archive",
+    "freshness_rule": "Provenance/historical read only; never live authority; conflicts resolve to the live successor authority chain recorded in /specs/root-hub-pointers.json."
+  },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.com/specs/gitops-vcs-replacement.json",
   "title": "GitOpsVcsReplacement",

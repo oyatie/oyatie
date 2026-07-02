@@ -9,6 +9,14 @@ supersedes: []
 superseded_by: [ADR-0515]
 amends:
   - ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md
+live_plan_authority: false
+canonical_authority: /specs/masterplan.json#masterplan_v2.surface_dispositions
+read_contract:
+  audience:
+    - agents
+    - humans
+  read_timing_class: provenance-archive
+  freshness_rule: "Wholly-superseded decision record archived in place (Seed Sub-AC 5.3.1); provenance ledger row lives at /specs/masterplan.json#masterplan_v2.surface_dispositions; never read as live authority — conflicts resolve to the superseding artifacts recorded in that row."
 ---
 # ADR-0359: cloud-ci completely replaces GitHub Actions as the CI orchestrator (superseded by ADR-0515)
 

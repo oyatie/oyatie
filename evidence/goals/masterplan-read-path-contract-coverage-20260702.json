@@ -1,0 +1,75 @@
+{
+  "_meta": {
+    "artifact_id": "masterplan-read-path-contract-coverage-20260702",
+    "doc_class": "Durable-Evidence-Record",
+    "purpose": "Evidence packet for masterplan-v2 Sub-AC 5.1: every surviving doc/JSON on the repo read paths carries a machine-checkable read contract, enforced fail-closed by the read-path contract-coverage lane of the cross-artifact-agreement gate.",
+    "created_at": "2026-07-02T20:00:00Z",
+    "owner_team": "founder + platform-governance",
+    "doctrine_refs": [
+      "ADR-0515",
+      "ADR-0516",
+      "ADR-0609"
+    ],
+    "read_contract": {
+      "audience": [
+        "agents",
+        "cloud-ci-gates",
+        "humans"
+      ],
+      "read_timing_class": "on-demand",
+      "freshness_rule": "Immutable evidence record of the 2026-07-02 read-path contract sweep; never edited after the fact. The live gate is cloud-ci-cross-artifact-agreement/masterplan-v2-read-path-contract-coverage over the current tree."
+    }
+  },
+  "packet_id": "masterplan-read-path-contract-coverage-20260702",
+  "packet_class": "product-completion-evidence",
+  "sub_ac": "Seed Sub-AC 5.1 — every surviving doc/JSON in the repo read paths carries a machine-checkable read contract, with a mechanical gate failing closed on any surviving artifact missing one",
+  "recorded_at": "2026-07-02T20:00:00Z",
+  "scope": {
+    "universe_rule": "/specs/root-hub-pointers.json#read_path_read_contracts (mechanical: root_markdown surfaces plus every live root-hub entrypoint file)",
+    "universe_size": 157,
+    "stamped_markdown_surfaces": 14,
+    "stamped_json_surfaces": 131,
+    "already_contracted_surfaces": 4,
+    "opaque_data_surfaces": 8,
+    "central_declaration_surfaces": "generated projections covered by /specs/masterplan.json#masterplan_v2.read_contracts rows (docs/machine-readable/*.generated.json, /specs/masterplan.json itself)"
+  },
+  "contract_shape": {
+    "markdown": "front-matter read_contract: block with audience, read_timing_class, freshness_rule",
+    "json": "read_contract object at document root or _meta/_metadata with audience array, read_timing_class, freshness_rule",
+    "read_timing_classes": ["entry-surface", "on-demand", "provenance-archive"],
+    "audience_vocabulary": ["agents", "cloud-ci-gates", "humans"],
+    "schema_extension": "specs/microservices/manifest-schema.json gained an optional closed-shape read_contract property (additionalProperties: false manifests stay schema-valid)"
+  },
+  "gate": {
+    "validator": "cloud-ci-cross-artifact-agreement/masterplan-v2-read-path-contract-coverage",
+    "violation_code": "read_path_read_contract_missing",
+    "evaluator": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/read_path_contract_coverage.rs#evaluate_read_path_contract_coverage",
+    "universe_derivation": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/read_path_contract_coverage.rs#read_path_contract_universe",
+    "disposition_registration": "libs/oya-ci-config/src/bundled/gate-disposition.json#cloud-ci-cross-artifact-agreement.read_path_read_contract_missing (baseline-block-on-new)",
+    "failure_classes": [
+      "missing-read-contract",
+      "invalid-read-timing-class",
+      "missing-audience",
+      "invalid-audience",
+      "missing-freshness-rule",
+      "entry-surface-not-allowlisted",
+      "surface-missing",
+      "missing-facts",
+      "corpus-uncovered",
+      "corpus-unexpected",
+      "corpus-duplicate"
+    ]
+  },
+  "verification": {
+    "live_tree_born_blocking_test": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_read_path_contract_coverage_gate_is_green_on_live_tree",
+    "fail_closed_fixture_test": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_read_path_contract_fixtures_fail_closed",
+    "red_fixtures": [
+      "specs/fixtures/cross-artifact-agreement/tc-XA-bad-read-path-contract-missing.json",
+      "specs/fixtures/cross-artifact-agreement/tc-XA-bad-read-path-contract-entry-surface-inflated.json"
+    ],
+    "green_fixture": "specs/fixtures/cross-artifact-agreement/tc-XA-good-read-path-contract-coverage.json",
+    "buck2_gate_run": "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app:oya-cloud-ci-cross-artifact-agreement-app-gate — 22/22 pass including the two read-path lanes and the producer-driven live corpus (2026-07-02)",
+    "unit_tests": "11 module unit tests in read_path_contract_coverage.rs#tests (universe derivation, green corpus, per-field fail-closed, entry-surface inflation, coverage drift, missing surface/facts)"
+  },
+  "ci_wiring": "The lane runs inside the existing gate · cross-artifact-agreement matrix leg of .github/workflows/oya-ci-required.yml via evaluate_keyed (read_path_contract_corpus + root_hub_pointers fixture keys); no new gate crate, no new CLI surface."
+}

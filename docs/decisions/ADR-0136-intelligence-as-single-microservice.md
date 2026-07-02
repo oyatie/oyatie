@@ -27,6 +27,14 @@ purpose: |
   prior 6-way split contradicted this shape and forced cross-µservice
   deployment dances on every change to the platform's operationally
   inseparable hot path.
+live_plan_authority: false
+canonical_authority: /specs/masterplan.json#masterplan_v2.surface_dispositions
+read_contract:
+  audience:
+    - agents
+    - humans
+  read_timing_class: provenance-archive
+  freshness_rule: "Wholly-superseded decision record archived in place (Seed Sub-AC 5.3.1); provenance ledger row lives at /specs/masterplan.json#masterplan_v2.surface_dispositions; never read as live authority — conflicts resolve to the superseding artifacts recorded in that row."
 ---
 
 # ADR-0136: Foundry as a single µservice (with internal bounded contexts)

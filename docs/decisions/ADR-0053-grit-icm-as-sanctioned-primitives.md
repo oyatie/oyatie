@@ -15,6 +15,14 @@ purpose: >
   documented rationale per Directive 12.
 planned_enforcement_ref: oya-governance-banned-primitives
 supersession_note: "Dead grit/icm toolchain mandated live; superseded by ADR-0116 (retire external agent-coordination tooling), ADR-0363 (agentic-VCS retired), ADR-0515 (canonical CI/CD). D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-6."
+live_plan_authority: false
+canonical_authority: /specs/masterplan.json#masterplan_v2.surface_dispositions
+read_contract:
+  audience:
+    - agents
+    - humans
+  read_timing_class: provenance-archive
+  freshness_rule: "Wholly-superseded decision record archived in place (Seed Sub-AC 5.3.1); provenance ledger row lives at /specs/masterplan.json#masterplan_v2.surface_dispositions; never read as live authority — conflicts resolve to the superseding artifacts recorded in that row."
 ---
 
 # ADR-0053: grit + icm + oya-tooling-agent-read as sole sanctioned primitives for agentic work

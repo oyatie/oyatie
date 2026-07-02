@@ -73,12 +73,20 @@ two-plane drive loop that executes ready work through mechanically disjoint para
      dangling/retired/malformed refs fail closed (`masterplan_plan_evidence_unrecorded`;
      `cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/plan_evidence_crosscheck.rs`);
    - **read-contract / entry-surface** — read contracts on surviving artifacts, exact
-     entry-surface equality with `/specs/root-hub-pointers.json`, and the archive-marker
-     resurrection sweep (`masterplan_read_contract_invalid`, `masterplan_entry_surface_invalid`;
-     declared-policy lanes in
+     entry-surface equality with `/specs/root-hub-pointers.json`, the archive-marker
+     resurrection sweep, and the repo-wide read-path contract-coverage sweep (every surviving
+     doc/JSON on the mechanical read-path universe — the root-markdown surfaces plus every live
+     root-hub entrypoint file — must carry a machine-checkable `read_contract` header/field or a
+     central `masterplan_v2.read_contracts` row, with entry-surface inflation refused)
+     (`masterplan_read_contract_invalid`, `masterplan_entry_surface_invalid`,
+     `read_path_read_contract_missing`; declared-policy lanes in
      `cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/read_contract_entry_surface.rs`,
      on-disk sweep in
-     `cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/read_surface_resurrection.rs`).
+     `cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/read_surface_resurrection.rs`,
+     coverage sweep in
+     `cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/read_path_contract_coverage.rs`;
+     scope declared as data in `/specs/root-hub-pointers.json#read_path_read_contracts`;
+     evidence packet `evidence/goals/masterplan-read-path-contract-coverage-20260702.json`).
 
    These lanes run inside the `gate · cross-artifact-agreement` matrix leg of
    `.github/workflows/oya-ci-required.yml` and therefore fan into the SINGLE protected
@@ -94,9 +102,12 @@ This ADR is the justification anchor (ADR-0555 accounting) for the artifacts thi
 cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/plan_evidence_crosscheck.rs
 cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/projection_rederivation.rs
 cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/read_contract_entry_surface.rs
+cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/read_path_contract_coverage.rs
 cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/read_surface_resurrection.rs
 evidence/goals/fabric-loop-closed-loop-improvement-verification-20260702.json
 evidence/goals/fabric-loop-e2e-proof-run-20260702.json
+evidence/goals/masterplan-read-path-contract-coverage-20260702.json
+evidence/goals/masterplan-stale-adr-archive-sweep-20260702.json
 evidence/goals/fabric-loop-full-cycle-c005-proof-run-20260702.json
 evidence/goals/fabric-loop-parallel-lanes-c006-c008-proof-run-20260702.json
 evidence/goals/fabric-loop-parallel-lanes-proof-run-20260702.json
@@ -125,6 +136,7 @@ specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-dependency-cycle.js
 specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-dependency-dag.json
 specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-duplicate-work-item-id.json
 specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-entry-surface-resurrected-superseded.json
+specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-entry-surface-missing.json
 specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-entry-surface-unbounded.json
 specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-evidence-dangling-ref.json
 specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-evidence-retired-surface.json
@@ -134,9 +146,12 @@ specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-program-coverage.js
 specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-projection-hand-edited.json
 specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-projection-stale-ledger.json
 specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-read-contract-resurrected-roadmap.json
+specs/fixtures/cross-artifact-agreement/tc-XA-bad-read-path-contract-entry-surface-inflated.json
+specs/fixtures/cross-artifact-agreement/tc-XA-bad-read-path-contract-missing.json
 specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-sequencing-unratified.json
 specs/fixtures/cross-artifact-agreement/tc-XA-good-masterplan-cross-program-edge-declared.json
 specs/fixtures/cross-artifact-agreement/tc-XA-good-masterplan-read-surface-archive-clean.json
+specs/fixtures/cross-artifact-agreement/tc-XA-good-read-path-contract-coverage.json
 specs/fixtures/cross-artifact-agreement/tc-XA-good-masterplan-sequencing-ratified.json
 tools/oya-fabric-loop-state-app/BUCK
 tools/oya-fabric-loop-state-app/Cargo.toml

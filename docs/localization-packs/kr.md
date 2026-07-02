@@ -11,6 +11,12 @@ owners: ["council-architecture", "gtm-customer-success-kr"]
 authority_chain: docs/MASTERPLAN.md §2.5, §5.5 → ADR-0064 → docs/localization-packs/INDEX.md → pack.yaml (authoritative) → this file
 manifest: docs/localization-packs/kr/pack.yaml
 doc_status: published
+read_contract:
+  audience:
+    - agents
+    - humans
+  read_timing_class: on-demand
+  freshness_rule: "On-demand read; live at this path with single-writer mutations through protected PRs against dev; never a mandatory entry surface (the mandatory agent entry surface is exactly /specs/root-hub-pointers.json#agent_entry_surface_allowlist)."
 ---
 
 # Korea Localization Pack (`kr`) — Pack #1 (planning-closed, foundational)

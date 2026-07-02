@@ -107,6 +107,12 @@ purpose: >
   `/specs/master-plan-sequencing.json`. This ADR authors doctrine
   only; the source-level extension is a separate PR landing under
   Wave 15-ZA after this ADR is Accepted.
+read_contract:
+  audience:
+    - agents
+    - humans
+  read_timing_class: on-demand
+  freshness_rule: "On-demand read; live at this path with single-writer mutations through protected PRs against dev; never a mandatory entry surface (the mandatory agent entry surface is exactly /specs/root-hub-pointers.json#agent_entry_surface_allowlist)."
 ---
 
 # ADR-0346: oya verify --ci-required MUST locally mirror the full CI matrix and block on exit-0 of EACH step before returning success

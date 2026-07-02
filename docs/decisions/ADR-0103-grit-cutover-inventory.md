@@ -17,6 +17,14 @@ relates_to:
 renumbered_from: ADR-0052
 renumbered_on: 2026-05-15
 renumber_reason: "ID-collision with ADR-0052-inventory-grit-cutover.md (Canonical Inventory Ledger for the grit/icm Cutover, dated 2026-05-12). Both ADRs cover the grit cutover but at different abstraction levels — this one is the high-level legacy-primitive replacement matrix; the older ADR-0052 is the operational ledger. Renumbered to ADR-0103 (next free slot) so both surface in the index."
+live_plan_authority: false
+canonical_authority: /specs/masterplan.json#masterplan_v2.surface_dispositions
+read_contract:
+  audience:
+    - agents
+    - humans
+  read_timing_class: provenance-archive
+  freshness_rule: "Wholly-superseded decision record archived in place (Seed Sub-AC 5.3.1); provenance ledger row lives at /specs/masterplan.json#masterplan_v2.surface_dispositions; never read as live authority — conflicts resolve to the superseding artifacts recorded in that row."
 ---
 
 # ADR-0103: Grit cutover inventory of legacy primitives

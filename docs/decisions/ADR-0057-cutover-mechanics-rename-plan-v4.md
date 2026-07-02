@@ -12,7 +12,7 @@ purpose: |
   Supersedes ADR-0055 (v3-era taxonomy, fitness/freeze/expedite primitives).
   Documents lockfile-rename xtask, 4-partition reviewer streams, cross-vertical
   refusal enforcement, rollback/expedite protocol.
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/masterplan.json#masterplan_v2.surface_dispositions
 supersedes: docs/decisions/ADR-0055-rename-plan-v3-cutover.md
 superseded_by: ~
 supersession_note: "Executed one-shot migration; dangling+colliding supersedes edge to phantom ADR-0055-v3 file. Archived per D-DISPOSITIONS-RATIFIED: ARCHIVE-5, C-4/D11(c)."
@@ -23,6 +23,13 @@ related_adrs:
   - ADR-0056
 companion_docs:
   - docs/plans/rename-plan-v4-clean-arch-2026-05-13.md
+live_plan_authority: false
+read_contract:
+  audience:
+    - agents
+    - humans
+  read_timing_class: provenance-archive
+  freshness_rule: "Wholly-superseded decision record archived in place (Seed Sub-AC 5.3.1); provenance ledger row lives at /specs/masterplan.json#masterplan_v2.surface_dispositions; never read as live authority — conflicts resolve to the superseding artifacts recorded in that row."
 ---
 
 # ADR-0057: Cutover Mechanics — Rename Plan v4 (Hybrid C)

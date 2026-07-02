@@ -15,7 +15,8 @@ use oya_cloud_ci_cross_artifact_agreement_app::{
     evaluate_masterplan_v2_entry_surfaces, evaluate_masterplan_v2_evidence_state,
     evaluate_masterplan_v2_plan_evidence_drift, evaluate_masterplan_v2_program_coverage,
     evaluate_masterplan_v2_projection_freshness, evaluate_masterplan_v2_read_contract_archives,
-    evaluate_masterplan_v2_sequencing,
+    evaluate_masterplan_v2_sequencing, evaluate_read_path_contract_coverage,
+    read_path_contract_universe,
 };
 use serde_json::Value;
 
@@ -601,18 +602,22 @@ fn masterplan_v2_entry_surface_allowlist_gate_is_green() {
     );
 }
 
-/// Sub-AC 4.4 fail-closed pins: the frozen fixture corpus must keep one
-/// ISOLATED RED fixture per read-contract/entry-surface failure class — a
-/// superseded plan authority resurrected/re-exposed outside the archive
-/// (docs/ROADMAP.md with its archive markers stripped plus a non-archive
-/// read-path reference), a superseded entrypoint revived into the mandatory
-/// entry surface, and an entry surface unbounded beyond the root-hub
-/// allowlist (docs/MASTERPLAN.md promoted) — each pinned to its exact
-/// violation set so none can be silently dropped or diluted. A GREEN
-/// companion fixture keeps the full lane exercisable end to end.
+/// Sub-AC 4.4 / Sub-AC 5.2 fail-closed pins: the frozen fixture corpus must
+/// keep one ISOLATED RED fixture per read-contract/entry-surface failure
+/// class — a superseded plan authority resurrected/re-exposed outside the
+/// archive (docs/ROADMAP.md with its archive markers stripped plus a
+/// non-archive read-path reference), a superseded entrypoint revived into the
+/// mandatory entry surface, an entry surface unbounded beyond the root-hub
+/// allowlist (docs/MASTERPLAN.md promoted — the EXTRA direction), and an
+/// allowlisted entry-surface artifact whose entry-surface read contract is
+/// missing (/specs/masterplan.json demoted to on-demand — the MISSING
+/// direction) — each pinned to its exact violation set so none can be
+/// silently dropped or diluted. Together the unbounded + missing pins prove
+/// exact set equality is enforced in BOTH directions. A GREEN companion
+/// fixture keeps the full lane exercisable end to end.
 #[test]
 fn masterplan_read_contract_entry_surface_fixtures_fail_closed() {
-    let cases: [(&str, &[&str]); 3] = [
+    let cases: [(&str, &[&str]); 4] = [
         (
             "tc-XA-bad-masterplan-read-contract-resurrected-roadmap.json",
             &["masterplan_read_contract_invalid"],
@@ -623,6 +628,10 @@ fn masterplan_read_contract_entry_surface_fixtures_fail_closed() {
         ),
         (
             "tc-XA-bad-masterplan-entry-surface-unbounded.json",
+            &["masterplan_entry_surface_invalid"],
+        ),
+        (
+            "tc-XA-bad-masterplan-entry-surface-missing.json",
             &["masterplan_entry_surface_invalid"],
         ),
     ];
@@ -768,6 +777,129 @@ fn markdown_front_matter(content: &str) -> String {
         return rest[..end].to_owned();
     }
     content.chars().take(4096).collect()
+}
+
+/// Sub-AC 5.1 read-path contract-coverage lane, born-blocking over the live
+/// tree: every SURVIVING doc/JSON on the repo read paths — the mechanical
+/// universe derived from /specs/root-hub-pointers.json (the policy block's
+/// root_markdown surfaces plus every live entrypoint file) — must carry a
+/// machine-checkable read contract: a front-matter `read_contract:` block for
+/// Markdown, an embedded `read_contract` object (root or `_meta`/`_metadata`)
+/// or central masterplan_v2.read_contracts row for JSON. Stripping the
+/// contract header from any read-path artifact, pointing the root hub at a
+/// contract-less file, or inflating `entry-surface` beyond the bounded
+/// allowlist turns this test RED.
+#[test]
+fn masterplan_read_path_contract_coverage_gate_is_green_on_live_tree() {
+    let root = repo_root();
+    let masterplan = load_json(&root.join("specs/masterplan.json"));
+    let root_hub = load_json(&root.join("specs/root-hub-pointers.json"));
+    let corpus = live_read_path_contract_corpus(&root, &root_hub);
+
+    let findings = evaluate_read_path_contract_coverage(&masterplan, &root_hub, &corpus);
+    assert!(
+        findings.is_empty(),
+        "every surviving read-path doc/JSON must carry a machine-checkable read contract: {findings:?}"
+    );
+
+    // The sweep must actually have a read path to police: the live root hub
+    // carries well over a hundred entrypoint files plus the root markdowns.
+    let swept = corpus["surfaces"].as_array().expect("surfaces").len();
+    assert!(
+        swept >= 100,
+        "live read-path contract sweep must cover the mechanical read-path universe, swept only {swept}"
+    );
+}
+
+/// Assemble the live read-path contract corpus from the repo tree: one row
+/// per mechanical read-path universe member, carrying on-disk existence plus
+/// the contract facts (Markdown front-matter block, parsed JSON document, or
+/// an opaque-data marker for non-document surfaces).
+fn live_read_path_contract_corpus(root: &Path, root_hub: &Value) -> Value {
+    let mut surfaces = Vec::new();
+    for path in read_path_contract_universe(root_hub) {
+        let on_disk = root.join(&path);
+        let exists = on_disk.exists();
+        let mut row = serde_json::json!({ "path": path.clone(), "exists": exists });
+        if exists && on_disk.is_file() {
+            if path.ends_with(".md") {
+                let content = fs::read_to_string(&on_disk).expect("read read-path markdown");
+                row["front_matter"] = Value::String(markdown_front_matter(&content));
+            } else if path.ends_with(".json") {
+                row["document"] = load_json(&on_disk);
+            } else {
+                row["opaque_data"] = Value::Bool(true);
+            }
+        } else if exists {
+            row["opaque_data"] = Value::Bool(true);
+        }
+        surfaces.push(row);
+    }
+    serde_json::json!({ "surfaces": surfaces })
+}
+
+/// Sub-AC 5.1 fail-closed pins: the fixture corpus must keep one ISOLATED RED
+/// fixture per read-path contract-coverage failure class — a surviving
+/// read-path doc/JSON with no machine-checkable read contract at all, and an
+/// artifact header inflating `entry-surface` beyond the bounded root-hub
+/// allowlist — each pinned to its exact violation set so neither can be
+/// silently dropped or diluted. A GREEN companion fixture keeps the full lane
+/// exercisable end to end.
+#[test]
+fn masterplan_read_path_contract_fixtures_fail_closed() {
+    let cases: [(&str, &[&str]); 2] = [
+        (
+            "tc-XA-bad-read-path-contract-missing.json",
+            &["read_path_read_contract_missing"],
+        ),
+        (
+            "tc-XA-bad-read-path-contract-entry-surface-inflated.json",
+            &["read_path_read_contract_missing"],
+        ),
+    ];
+
+    for (fixture_name, expected_codes) in cases {
+        let path = fixture_dir().join(fixture_name);
+        assert!(
+            path.is_file(),
+            "read-path contract-coverage failure-mode fixture must exist: {}",
+            path.display()
+        );
+        let fixture = load_json(&path);
+        let report = evaluate(&fixture);
+        assert_eq!(
+            report.verdict,
+            Verdict::Red,
+            "{fixture_name} must fail closed (RED)"
+        );
+        let expected: BTreeSet<String> = expected_codes
+            .iter()
+            .map(|code| (*code).to_owned())
+            .collect();
+        assert_eq!(
+            report.violations, expected,
+            "{fixture_name} must emit exactly the pinned read-path contract violation set"
+        );
+        assert_eq!(
+            expected_violations(&fixture),
+            expected,
+            "{fixture_name} expected_violations must stay in sync with the pinned set"
+        );
+    }
+
+    let green = fixture_dir().join("tc-XA-good-read-path-contract-coverage.json");
+    assert!(
+        green.is_file(),
+        "read-path contract-coverage GREEN fixture must exist: {}",
+        green.display()
+    );
+    let report = evaluate(&load_json(&green));
+    assert_eq!(
+        report.verdict,
+        Verdict::Green,
+        "the GREEN read-path contract fixture must stay green, got {:?}",
+        report.violations
+    );
 }
 
 /// Sub-AC 4.2 mechanical re-derivation lane, born-blocking over the live tree:

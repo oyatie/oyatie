@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 414
-- **Numbering:** ADR-0001..ADR-0604 (non-contiguous; gaps: 0012, 0033, 0037, 0041, 0050, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0247, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291, 0322..0323, 0327, 0342, 0345, 0385..0386, 0395..0396, 0398..0475, 0477, 0483..0505, 0574..0579, 0583..0585, 0594, 0601..0602)
-- **Next ADR number:** 0605
-- **Status counts:** Accepted 170, Accepted (amendment) 2, Amended 1, Proposed 138, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 34, accepted 34, deprecated 1, proposed 31, superseded 1
+- **Total ADRs:** 419
+- **Numbering:** ADR-0001..ADR-0609 (non-contiguous; gaps: 0012, 0033, 0037, 0041, 0050, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0247, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291, 0322..0323, 0327, 0342, 0345, 0385..0386, 0395..0396, 0398..0475, 0477, 0483..0505, 0574..0579, 0583..0585, 0594, 0601..0602)
+- **Next ADR number:** 0610
+- **Status counts:** Accepted 170, Accepted (amendment) 2, Amended 1, Proposed 143, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 34, accepted 34, deprecated 1, proposed 31, superseded 1
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -435,11 +435,16 @@ doc_status: published
 | ADR-0600 | Proposed | Root-workspace-hygiene allowlist gate | council-architecture | [`ADR-0600-root-workspace-hygiene-allowlist-gate.md`](decisions/ADR-0600-root-workspace-hygiene-allowlist-gate.md) |
 | ADR-0603 | Proposed | Fail-closed authz for the CRM revenue control plane (AUTH-005 remediation) | council-architecture | [`ADR-0603-fail-closed-authz-for-crm-revenue-control-plane.md`](decisions/ADR-0603-fail-closed-authz-for-crm-revenue-control-plane.md) |
 | ADR-0604 | Proposed | De-commit the scm-facts boundary snapshot | council-architecture | [`ADR-0604-de-commit-scm-facts-boundary-snapshot.md`](decisions/ADR-0604-de-commit-scm-facts-boundary-snapshot.md) |
+| ADR-0605 | Proposed | Supply-chain audit gate (owned RustSec advisory scan over a vendored mirror) | council-architecture | [`ADR-0605-supply-chain-audit-gate.md`](decisions/ADR-0605-supply-chain-audit-gate.md) |
+| ADR-0606 | Proposed | Operator secret-bootstrap RBAC gate (least-privilege secrets + declarative join-token provisioning) | council-architecture | [`ADR-0606-operator-secret-bootstrap-rbac-gate.md`](decisions/ADR-0606-operator-secret-bootstrap-rbac-gate.md) |
+| ADR-0607 | Proposed | Fail-closed Cedar authz on the managed-K8s control-plane facades | council-architecture | [`ADR-0607-k8s-control-plane-fail-closed-cedar-authz.md`](decisions/ADR-0607-k8s-control-plane-fail-closed-cedar-authz.md) |
+| ADR-0608 | Proposed | Cedar deploy-parity gate (deployed ConfigMap ⊆ authored policy; no action-agnostic blanket permit) | council-architecture | [`ADR-0608-cedar-deploy-parity-gate.md`](decisions/ADR-0608-cedar-deploy-parity-gate.md) |
+| ADR-0609 | Proposed | Masterplan v2 single plan authority + fabric drive-loop increment (four plan gates wired into oya-ci-required) | council-architecture | [`ADR-0609-masterplan-v2-single-plan-authority-fabric-drive-loop-increment.md`](decisions/ADR-0609-masterplan-v2-single-plan-authority-fabric-drive-loop-increment.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0605), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0610), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -483,6 +488,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 414 ADR files (sorted ascending)
+- `decisions/` directory listing — 419 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks

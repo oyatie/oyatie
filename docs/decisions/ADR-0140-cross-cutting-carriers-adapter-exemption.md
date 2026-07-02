@@ -40,6 +40,14 @@ purpose: |
   (entity reads/writes). Mirrors AWS S3 / Google Cloud Storage / Anthropic
   Files API: the storage / mail / messaging carrier is a substrate every
   product binds to directly because the carrier IS the inter-product seam.
+live_plan_authority: false
+canonical_authority: /specs/masterplan.json#masterplan_v2.surface_dispositions
+read_contract:
+  audience:
+    - agents
+    - humans
+  read_timing_class: provenance-archive
+  freshness_rule: "Wholly-superseded decision record archived in place (Seed Sub-AC 5.3.1); provenance ledger row lives at /specs/masterplan.json#masterplan_v2.surface_dispositions; never read as live authority — conflicts resolve to the superseding artifacts recorded in that row."
 ---
 
 # ADR-0140: Cross-cutting carriers — adapter-rule exemption

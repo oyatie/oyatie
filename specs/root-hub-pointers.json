@@ -1,4 +1,12 @@
 {
+  "read_contract": {
+    "audience": [
+      "agents",
+      "cloud-ci-gates"
+    ],
+    "read_timing_class": "on-demand",
+    "freshness_rule": "On-demand read; live at this path with single-writer mutations through protected PRs against dev; never a mandatory entry surface (the mandatory agent entry surface is exactly /specs/root-hub-pointers.json#agent_entry_surface_allowlist)."
+  },
   "$id": "https://docs.oyatie.com/schemas/root-hub-pointers.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "_meta": {
@@ -47,6 +55,35 @@
       "~/.omx/**"
     ],
     "freshness_rule": "The mandatory agent entry surface is exactly this allowlist; superseded plan, goal, harness, and roadmap entrypoints must be provenance/on-demand reads only and fail the entry-surface gate if reintroduced."
+  },
+  "read_path_read_contracts": {
+    "source_of_truth": "/specs/root-hub-pointers.json#read_path_read_contracts",
+    "validator": "cloud-ci-cross-artifact-agreement/masterplan-v2-read-path-contract-coverage",
+    "violation_code": "read_path_read_contract_missing",
+    "universe_rule": "The repo read-path universe is MECHANICAL: every live (non-superseded) entry_points row whose current_path resolves to a repo file, plus the root_markdown surfaces below. Every .md/.json member must carry a machine-checkable read contract on the artifact itself (Markdown front-matter read_contract: block; JSON read_contract object at the document root or inside _meta/_metadata) or be covered by a central /specs/masterplan.json#masterplan_v2.read_contracts row (the single-writer declaration used for generated projections that must never be hand-edited). Any surviving read-path doc/JSON missing a contract fails closed with read_path_read_contract_missing.",
+    "contract_fields": {
+      "markdown": "front-matter read_contract: block declaring audience:, read_timing_class:, and freshness_rule:",
+      "json": "read_contract object with a non-empty audience array, a read_timing_class, and a non-empty freshness_rule string"
+    },
+    "read_timing_classes": [
+      "entry-surface",
+      "on-demand",
+      "provenance-archive"
+    ],
+    "audience_vocabulary": [
+      "agents",
+      "cloud-ci-gates",
+      "humans"
+    ],
+    "root_markdown": [
+      "AGENTS.md",
+      "CLAUDE.md",
+      "HANDOFF.md",
+      "README.md"
+    ],
+    "opaque_data_rule": "Read-path members that are neither Markdown nor JSON (data ledgers, YAML catalog rows, TSV registers, directories) are opaque data surfaces: they are enumerated by the sweep corpus but carry their contracts through their governing registry/spec rows, not embedded headers.",
+    "entry_surface_rule": "No read-path contract (embedded or central) may claim read_timing_class entry-surface unless its path is in agent_entry_surface_allowlist.paths; inflation fails closed with read_path_read_contract_missing.",
+    "freshness_rule": "This policy block is the single scope declaration for the read-path contract-coverage gate; scope changes mutate here and nowhere else."
   },
   "by_kind": {
     "decision": "Accepted ADR or decision record that constrains implementation and promotion.",

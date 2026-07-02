@@ -134,6 +134,12 @@ purpose: >
   codex-bucket fan-out PR); cross-Bominal corpus rename (Bominal
   authors its sibling rename ADR independently per
   feedback_bominal_inheritance_precedence).
+read_contract:
+  audience:
+    - agents
+    - humans
+  read_timing_class: on-demand
+  freshness_rule: "On-demand read; live at this path with single-writer mutations through protected PRs against dev; never a mandatory entry surface (the mandatory agent entry surface is exactly /specs/root-hub-pointers.json#agent_entry_surface_allowlist)."
 ---
 
 # ADR-0347: Foundry-fitness to governance bulk rename (doctrine-only; all oya-governance-fitness-* CI lanes + crates + catalog + ADR cross-references collapse to oya-governance-* per ADR-0132 + ADR-0335; per-lane migration IPs collapsed into one bulk rename)

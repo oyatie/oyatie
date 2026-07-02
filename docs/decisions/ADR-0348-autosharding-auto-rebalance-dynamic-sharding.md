@@ -136,6 +136,12 @@ purpose: >
   cross-pack tenant migration with PHI (refused by E.3 + the compliance-
   pack constraints per ADR-0251); Bominal sibling ADR (Bominal authors
   independently per feedback_bominal_inheritance_precedence).
+read_contract:
+  audience:
+    - agents
+    - humans
+  read_timing_class: on-demand
+  freshness_rule: "On-demand read; live at this path with single-writer mutations through protected PRs against dev; never a mandatory entry surface (the mandatory agent entry surface is exactly /specs/root-hub-pointers.json#agent_entry_surface_allowlist)."
 ---
 
 # ADR-0348: Autosharding + auto-rebalance + dynamic sharding (cellular topology MUST support three control-plane-driven automation modes for tenant→cell/shard placement, hot-cell rebalancing, and within-cell hot-split + cold-merge shard count adjustment; manifest-declared per-µservice; cell-orchestrator (within tenancy + observability) executes; honors residency + compliance packs; emits audit-chain per ADR-0263; reversible)

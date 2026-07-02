@@ -15301,6 +15301,525 @@
         "provenance": "Legacy roadmap prose is stale against accepted ADRs and masterplan v2; retained only as archived historical context."
       },
       {
+        "path": "docs/decisions/ADR-0015-architectural-flattening-target.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0015-architectural-flattening-target.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0131-per-microservice-flat-layout.md",
+          "docs/decisions/ADR-0512-canonical-monorepo-pattern.md"
+        ],
+        "supersession_reason": "ADR-0131 supersedes the docs-vs-crates top-level split; ADR-0512 supersedes the flat-crates location + forbidden-vocab context enum (D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-3/FC-1).",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0131, ADR-0512 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0015 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0042-observability-stack-otel-and-in-house-ui.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0042-observability-stack-otel-and-in-house-ui.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0383-observability-stack-reconciliation-loki-tempo-mimir-grafana.md"
+        ],
+        "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0383 per the recorded front-matter supersession edge.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0383 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0042 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0046-vector-store-strategy.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0046-vector-store-strategy.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0192-vector-database-canonical-milvus.md"
+        ],
+        "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0192 per the recorded front-matter supersession edge.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0192 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0046 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0052-inventory-grit-cutover.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0052-inventory-grit-cutover.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0118-retire-archive-orphan-fitness-lane.md"
+        ],
+        "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0118 per the recorded front-matter supersession edge.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0118 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0052 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md",
+          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md",
+          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+        ],
+        "supersession_reason": "Dead grit/icm toolchain mandated live; superseded by ADR-0116 (retire external agent-coordination tooling), ADR-0363 (agentic-VCS retired), ADR-0515 (canonical CI/CD). D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-6.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0116, ADR-0363, ADR-0515 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0053 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0057-cutover-mechanics-rename-plan-v4.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0057-cutover-mechanics-rename-plan-v4.md",
+        "superseding_artifacts": [],
+        "supersession_reason": "Executed one-shot migration; dangling+colliding supersedes edge to phantom ADR-0055-v3 file. Archived per D-DISPOSITIONS-RATIFIED: ARCHIVE-5, C-4/D11(c).",
+        "staleness_evaluation": "wholly superseded: decision status Superseded; no successor ADR — the supersession event is the ratified archive decision recorded in the ADR front-matter supersession_note (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0057 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0097-intelligence-account-adapter-rename-target-slot-last.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0097-intelligence-account-adapter-rename-target-slot-last.md",
+        "superseding_artifacts": [],
+        "supersession_reason": "3-crate cosmetic foundry rename; subsumed by the foundry sweep. Archived per D-DISPOSITIONS-RATIFIED: ARCHIVE-5.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded; no successor ADR — the supersession event is the ratified archive decision recorded in the ADR front-matter supersession_note (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0097 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0101-supervisor-mountpoint-direct-hyper.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0101-supervisor-mountpoint-direct-hyper.md",
+        "superseding_artifacts": [],
+        "supersession_reason": "Temporary bypass shortcut promoted to architecture; foundry context retired. Archived per D-DISPOSITIONS-RATIFIED: ARCHIVE-5.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded; no successor ADR — the supersession event is the ratified archive decision recorded in the ADR front-matter supersession_note (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0101 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0102-intelligence-settings-template-canonical-rendering.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0102-intelligence-settings-template-canonical-rendering.md",
+        "superseding_artifacts": [],
+        "supersession_reason": "Foundry settings render; atomic-render+sref pattern salvaged. Archived per D-DISPOSITIONS-RATIFIED: ARCHIVE-5.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded; no successor ADR — the supersession event is the ratified archive decision recorded in the ADR front-matter supersession_note (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0102 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0103-grit-cutover-inventory.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0103-grit-cutover-inventory.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md",
+          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+        ],
+        "supersession_reason": "grit/icm sanctioned-VCS + ban-git context retired; superseded by ADR-0116 (retire external agent-coordination tooling) and ADR-0363 (agentic-VCS retired). D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-6.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0116, ADR-0363 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0103 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0107-tools-implicit-app-convention.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0107-tools-implicit-app-convention.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+        ],
+        "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0105 per the recorded front-matter supersession edge.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0105 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0107 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0110-changeset-state-machine.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0110-changeset-state-machine.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+        ],
+        "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0363 per the recorded front-matter supersession edge.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0363 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0110 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+        ],
+        "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0363 per the recorded front-matter supersession edge.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0363 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0112 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0113-vcs-orchestrator-end-to-end.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0113-vcs-orchestrator-end-to-end.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+        ],
+        "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0363 per the recorded front-matter supersession edge.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0363 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0113 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0375-talos-capi-argocd-fleet-substrate.md"
+        ],
+        "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0375 per the recorded front-matter supersession edge.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0375 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0120 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0375-talos-capi-argocd-fleet-substrate.md"
+        ],
+        "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0375 per the recorded front-matter supersession edge.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0375 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0121 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0124-own-merge-queue-webhook-driven.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0124-own-merge-queue-webhook-driven.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+        ],
+        "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0515 per the recorded front-matter supersession edge.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0515 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0124 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0136-intelligence-as-single-microservice.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0136-intelligence-as-single-microservice.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0389-cloud-intelligence-bedrock-pattern-cloud-primitive.md"
+        ],
+        "supersession_reason": "Foundry-as-µservice declared dead context (D-FOUNDRY-CLARIFY); superseded by ADR-0389 cloud-intelligence framework (six-BC reasoning salvaged). D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-11.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0389 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0136 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0137-intelligence-bounded-contexts.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0137-intelligence-bounded-contexts.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0389-cloud-intelligence-bedrock-pattern-cloud-primitive.md"
+        ],
+        "supersession_reason": "Foundry bounded-contexts declared dead context (D-FOUNDRY-CLARIFY); superseded by ADR-0389 cloud-intelligence framework successor. D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-11.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0389 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0137 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0138-intelligence-six-path-deprecation.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0138-intelligence-six-path-deprecation.md",
+        "superseding_artifacts": [],
+        "supersession_reason": "Foundry Strangler to a dead address (microservices/foundry/ no longer exists); Strangler template reusable. Archived per D-DISPOSITIONS-RATIFIED: ARCHIVE-5, C-11.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded; no successor ADR — the supersession event is the ratified archive decision recorded in the ADR front-matter supersession_note (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0138 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0140-cross-cutting-carriers-adapter-exemption.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0140-cross-cutting-carriers-adapter-exemption.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0145-inter-microservice-communication-reform.md"
+        ],
+        "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0145 per the recorded front-matter supersession edge.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0145 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0140 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0141-workflow-ontology-read-path-direct.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0141-workflow-ontology-read-path-direct.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0145-inter-microservice-communication-reform.md"
+        ],
+        "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0145 per the recorded front-matter supersession edge.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0145 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0141 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0143-intelligence-per-bc-release-pointer.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0143-intelligence-per-bc-release-pointer.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0389-cloud-intelligence-bedrock-pattern-cloud-primitive.md"
+        ],
+        "supersession_reason": "Foundry per-BC release pointer superseded by ADR-0389 cloud-intelligence framework successor. D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-11.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0389 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0143 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0160-progressive-delivery-flagger.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0160-progressive-delivery-flagger.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+        ],
+        "supersession_reason": "Flagger superseded by Argo Rollouts per D10 ruling; ADR-0515 is the canonical CI/CD + progressive-delivery ADR. D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-12/P1.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0515 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0160 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0170-developer-portal.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0170-developer-portal.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0394-bespoke-rust-idp-central-hub.md"
+        ],
+        "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0394 per the recorded front-matter supersession edge.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0394 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0170 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0379-kubewarden-default-admission-substrate.md"
+        ],
+        "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0379 per the recorded front-matter supersession edge.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0379 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0183 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0187-canonical-oidc-idp-zitadel-primary.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0187-canonical-oidc-idp-zitadel-primary.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0476-oya-identity-bespoke-human-identity.md"
+        ],
+        "supersession_reason": "Zitadel demoted from canonical IdP to Phase-1 vendored bridge; superseded-as-endpoint by ADR-0476 (oya-identity bespoke Rust, owned endpoint). D5 ruling. D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-13/P2.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0476 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0187 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+        ],
+        "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0515 per the recorded front-matter supersession edge.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0515 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0349 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0359-jenkins-completely-replaces-github-actions.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0359-jenkins-completely-replaces-github-actions.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+        ],
+        "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0515 per the recorded front-matter supersession edge.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0515 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0359 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0361-jenkins-native-cicd-revamp-execution.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0361-jenkins-native-cicd-revamp-execution.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+        ],
+        "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0515 per the recorded front-matter supersession edge.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0515 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0361 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0372-frontend-stack-solidjs-ts-with-rust-wasm-compute-modules.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0372-frontend-stack-solidjs-ts-with-rust-wasm-compute-modules.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0393-leptos-canonical-app-shell-frontend.md"
+        ],
+        "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0393 per the recorded front-matter supersession edge.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0393 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0372 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0509-hyperscaler-service-decomposition-pattern.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0509-hyperscaler-service-decomposition-pattern.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0512-canonical-monorepo-pattern.md"
+        ],
+        "supersession_reason": "ADR-0512 supersedes this; status was drifted (0512 named it as superseded but 0509 had no edge). D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-3/FC-5.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0512 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0509 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0511-ci-orchestration-argo-workflows-supersede-jenkins.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0511-ci-orchestration-argo-workflows-supersede-jenkins.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+        ],
+        "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0515 per the recorded front-matter supersession edge.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0515 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0511 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+        ],
+        "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0515 per the recorded front-matter supersession edge.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0515 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0513 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
+        "path": "docs/decisions/ADR-0514-build-ci-cd-pipeline-target-architecture-hyperscaler-remediation.md",
+        "surface_class": "superseded-decision-record-provenance",
+        "disposition": "archived-with-provenance",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "decision-record-only-no-live-id-authority",
+        "original_path": "docs/decisions/ADR-0514-build-ci-cd-pipeline-target-architecture-hyperscaler-remediation.md",
+        "superseding_artifacts": [
+          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+        ],
+        "supersession_reason": "Wholly superseded decision record; superseding decision(s): ADR-0515 per the recorded front-matter supersession edge.",
+        "staleness_evaluation": "wholly superseded: decision status Superseded with recorded superseding decision(s) ADR-0515 (predicate clause: predates the supersession event of its governing authority — the recorded supersession edge / ratified archive decision has fired).",
+        "provenance": "Seed Sub-AC 5.3.1 stale-ADR archive sweep: ADR-0514 archived in place at its original path (decision records stay at docs/decisions/ per the decision_record_authority contract); on-disk archive front matter (live_plan_authority: false, canonical_authority pointer, read_contract provenance-archive) is enforced by the read-surface resurrection sweep; the generated index projections docs/ADR-INDEX.md and docs/machine-readable/decisions.json carry its Superseded status."
+      },
+      {
         "path": ".omc/ultragoal/goals.json",
         "surface_class": "missing-legacy-surface",
         "disposition": "archived-with-provenance",
@@ -15427,6 +15946,14 @@
       "completeness_rule": "Every legacy plan/goal surface and non-Hermes harness store in the Sub-AC 2.1 ingest set (specs/master-plan-sequencing.json, specs/planning-closure-contract.json plus its status ledger, docs/MASTERPLAN.md, docs/ROADMAP.md, .omc/ultragoal/goals.json, and the repo-local/global omc/omx/gjc stores) resolves to exactly one masterplan_v2.surface_dispositions row; the hermes board additionally carries its own forensic-ingest row. REQUIRED_SURFACE_DISPOSITIONS in cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app fails closed with masterplan_surface_disposition_incomplete when any required row is missing, malformed, duplicated, or carries the wrong disposition.",
       "on_disk_archive_enforcement": "cloud-ci-cross-artifact-agreement/masterplan-v2-read-surface-resurrection: every repo-file ledger row dispositioned absorbed/archived-with-provenance/generated-projection is swept on disk for archive markers (front-matter non-live declaration plus canonical pointer for Markdown, non-live status markers for JSON, provenance/archive surface_class for opaque data); stripping markers fails closed with masterplan_read_contract_invalid.",
       "single_writer_rule": "surface_dispositions mutates only through the /specs/masterplan.json single-writer path; hermes ledger rows mutate only through tools/oya-masterplan-hermes-forensic-ledger-app.",
+      "stale_adr_archive_sweep": {
+        "sub_ac_ref": "Seed Sub-AC 5.3.1",
+        "swept_at": "2026-07-02T00:00:00Z",
+        "identification_predicate": "Mechanical: an ADR under docs/decisions/ is wholly stale/superseded iff its decision status resolves to Superseded (the ADR shape-kernel status vocabulary, libs/oya-governance-adr-shape-kernel); the sweep set equals the union of the Superseded status counts in the generated machine mirror docs/machine-readable/decisions.json.",
+        "archived_adr_count": 35,
+        "archive_mechanism": "In-place archival: each swept ADR keeps its original path (decision_record_authority contract: docs/decisions/ADR-*.md is the immutable decision-record home), carries on-disk archive front matter (live_plan_authority: false, a canonical_authority pointer at /specs/masterplan.json#masterplan_v2.surface_dispositions, and a read_contract with read_timing_class: provenance-archive), and resolves to exactly one archived-with-provenance surface_dispositions row carrying original_path, supersession_reason, and superseding_artifacts; resurrection is blocked by the read-surface resurrection sweep (masterplan_read_contract_invalid).",
+        "index_projection": "docs/ADR-INDEX.md and docs/machine-readable/decisions.json are regenerated through the oya doc adr-index single-writer generator (libs/oya-check-adr-index); the archived decisions surface there with their Superseded status and superseded_by edges."
+      },
       "worktree_artifact_enumeration": [
         {
           "artifact": ".omc/ultragoal/OWNERS",
@@ -16395,7 +16922,8 @@
           "cloud-ci-cross-artifact-agreement/masterplan-v2-projection-freshness",
           "cloud-ci-cross-artifact-agreement/masterplan-v2-plan-vs-evidence-drift",
           "cloud-ci-cross-artifact-agreement/masterplan-v2-entry-surface",
-          "cloud-ci-cross-artifact-agreement/masterplan-v2-read-surface-resurrection"
+          "cloud-ci-cross-artifact-agreement/masterplan-v2-read-surface-resurrection",
+          "cloud-ci-cross-artifact-agreement/masterplan-v2-read-path-contract-coverage"
         ],
         "evidence_refs": [
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness",
@@ -16406,6 +16934,10 @@
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/read_surface_resurrection.rs#evaluate_masterplan_read_surface_resurrections",
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_entry_surface_allowlist_gate_is_green",
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_read_contract_entry_surface_fixtures_fail_closed",
+          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/read_path_contract_coverage.rs#evaluate_read_path_contract_coverage",
+          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_read_path_contract_coverage_gate_is_green_on_live_tree",
+          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_read_path_contract_fixtures_fail_closed",
+          "evidence/goals/masterplan-read-path-contract-coverage-20260702.json",
           "evidence/goals/masterplan-gates-ci-wiring-20260702.json",
           "https://github.com/jason931225/oyatie/actions/runs/28592595372",
           "https://github.com/jason931225/oyatie/actions/runs/28594633232",

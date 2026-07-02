@@ -173,6 +173,14 @@ purpose: >
   the ArgoCD sync hook. All authoring streams are sequenced as Wave 15-ZE in
   /specs/master-plan-sequencing.json under ADR-0328 batch discipline. This ADR
   is doctrine-only; the executor PRs land separately after Acceptance.
+read_contract:
+  audience:
+    - agents
+    - humans
+  read_timing_class: provenance-archive
+  freshness_rule: "Provenance/historical read only; never live authority; conflicts resolve to the live successor authority chain recorded in /specs/root-hub-pointers.json."
+live_plan_authority: false
+canonical_authority: /specs/masterplan.json#masterplan_v2.surface_dispositions
 ---
 
 # ADR-0349: Self-hostable CI/CD substrate — cloud-ci augments GitHub Actions; ArgoCD replaces manual kubectl/Helm CLI deploys; both OSS Class C approved per ADR-0211 + Contributor stewardship per ADR-0345; provisioned via OpenTofu modules per ADR-0339 in every multi-context deployment per ADR-0215 including air-gap per ADR-0164 (superseded by ADR-0515)

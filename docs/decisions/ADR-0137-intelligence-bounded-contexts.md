@@ -17,6 +17,14 @@ purpose: |
   providers), enumerates each BC's contract surface, owner sub-axis,
   and inter-BC dependency rules. Establishes the BC-boundary invariants
   that ADR-0136's "one product, six BCs" decision depends on.
+live_plan_authority: false
+canonical_authority: /specs/masterplan.json#masterplan_v2.surface_dispositions
+read_contract:
+  audience:
+    - agents
+    - humans
+  read_timing_class: provenance-archive
+  freshness_rule: "Wholly-superseded decision record archived in place (Seed Sub-AC 5.3.1); provenance ledger row lives at /specs/masterplan.json#masterplan_v2.surface_dispositions; never read as live authority — conflicts resolve to the superseding artifacts recorded in that row."
 ---
 
 # ADR-0137: Foundry bounded contexts

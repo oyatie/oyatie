@@ -10,6 +10,14 @@ supersedes: []
 superseded_by: [ADR-0512]
 supersession_note: "ADR-0512 supersedes this; status was drifted (0512 named it as superseded but 0509 had no edge). D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-3/FC-5."
 related: [ADR-0392, ADR-0476, ADR-0478, ADR-0479, ADR-0480, ADR-0481]
+live_plan_authority: false
+canonical_authority: /specs/masterplan.json#masterplan_v2.surface_dispositions
+read_contract:
+  audience:
+    - agents
+    - humans
+  read_timing_class: provenance-archive
+  freshness_rule: "Wholly-superseded decision record archived in place (Seed Sub-AC 5.3.1); provenance ledger row lives at /specs/masterplan.json#masterplan_v2.surface_dispositions; never read as live authority — conflicts resolve to the superseding artifacts recorded in that row."
 ---
 
 # ADR-0509 — Hyperscaler service decomposition pattern (single-crate-per-service + mod-based subsystems)
