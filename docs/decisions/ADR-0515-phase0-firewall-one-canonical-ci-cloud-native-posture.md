@@ -439,6 +439,12 @@ a known-good it passes + proof it runs in the pipeline and BLOCKS):
   is non-authoritative RED/GREEN corpus evidence for the crate-ADR design-document coverage gate. It is
   justified only as fixture coverage for the `governance-check-gates` owner-batch scenario; it does not
   create merge authority, bypass `oya-ci-required`, or mutate generated artifacts.
+- **CRATEADR-002B ci-control-plane owner-batch fixture registration (2026-07-02):** the
+  repo-relative fixture artifact
+  `specs/fixtures/crate-adr-design-doc-coverage/tc-CRATEADR-002B-good-ci-control-plane-owner-batch.json`
+  is non-authoritative RED/GREEN corpus evidence for the crate-ADR design-document coverage gate. It is
+  justified only as fixture coverage for the `ci-control-plane` owner-batch scenario; it does not create
+  merge authority, bypass `oya-ci-required`, or mutate generated artifacts.
 - **GJC governance-integrity Dispatch checkpoint evidence registration (2026-06-28):** the repo-relative evidence artifacts
   `evidence/goals/governance-integrity-dispatch-command-evidence-20260628.json`,
   `evidence/goals/governance-integrity-dispatch-ledger-20260628.json`,
