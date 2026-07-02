@@ -7,8 +7,10 @@ use oya_check_release_pack::{
     ReleaseEvidencePackRecord, validate_release_evidence_packs,
 };
 use oya_check_supply_chain::{
-    ReleaseArtifact, ReleaseSupplyChainEvidence, SupplyChainEvidence, SupplyChainRecord,
-    validate_pre_release_supply_chain, validate_release_supply_chain, validate_supply_chain,
+    ImagePromotionRecord, ImagePromotionTier, ImagePromotionVerifier, ReleaseArtifact,
+    ReleaseSupplyChainEvidence, SupplyChainEvidence, SupplyChainRecord,
+    validate_image_promotion_pipeline, validate_pre_release_supply_chain,
+    validate_release_supply_chain, validate_supply_chain,
 };
 use oya_governance_gate_catalog_domain::all_canonical_commands_rendered;
 
@@ -47,9 +49,7 @@ pub(crate) fn parse_supply_chain_validate_args(
         deny_config_path: PathBuf::from("deny.toml"),
         check_script_path: None,
         adr0039_script_path: PathBuf::from("scripts/supply-chain-adr0039.sh"),
-        adr0039_rust_path: PathBuf::from(
-            "marketplace/facade/dev-cli/src/commands/supply_chain.rs",
-        ),
+        adr0039_rust_path: PathBuf::from("marketplace/facade/dev-cli/src/commands/supply_chain.rs"),
         workflows_dir: PathBuf::from(".github/workflows"),
         release_images_path: PathBuf::from("registry/release/images.yaml"),
         branch_protection_path: PathBuf::from(".github/branch-protection.yaml"),
@@ -160,6 +160,19 @@ pub(crate) struct ReleaseSupplyChainGateReport {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct ImagePromotionValidateArgs {
+    promotion_dir: PathBuf,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct ImagePromotionGateReport {
+    pub(crate) artifacts: usize,
+    pub(crate) promotion_records: usize,
+    pub(crate) kubewarden_verifier_records: usize,
+    pub(crate) kyverno_verifier_records: usize,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 struct ReleaseArtifactManifest {
     artifacts: Vec<ReleaseArtifact>,
     empty_scope_declared: bool,
@@ -208,6 +221,36 @@ pub(crate) fn validate_release_supply_chain_gate(
         artifacts: report.artifacts_checked,
         evidence: report.evidence_records_checked,
         phase: args.phase,
+    })
+}
+
+pub(crate) fn parse_image_promotion_validate_args(
+    args: Vec<String>,
+) -> Result<ImagePromotionValidateArgs, String> {
+    let mut parsed = ImagePromotionValidateArgs {
+        promotion_dir: PathBuf::from("registry/release/image-promotions"),
+    };
+    let mut iter = args.into_iter();
+    while let Some(flag) = iter.next() {
+        match flag.as_str() {
+            "--promotion-dir" => parsed.promotion_dir = PathBuf::from(next_arg(&mut iter)?),
+            _ => return Err(usage()),
+        }
+    }
+    Ok(parsed)
+}
+
+pub(crate) fn validate_image_promotion_gate(
+    args: ImagePromotionValidateArgs,
+) -> Result<ImagePromotionGateReport, String> {
+    let report =
+        validate_image_promotion_pipeline(read_image_promotion_records(&args.promotion_dir)?)
+            .map_err(|error| format!("image promotion invalid: {error:?}"))?;
+    Ok(ImagePromotionGateReport {
+        artifacts: report.artifacts_checked,
+        promotion_records: report.promotion_records_checked,
+        kubewarden_verifier_records: report.kubewarden_verifier_records,
+        kyverno_verifier_records: report.kyverno_verifier_records,
     })
 }
 
@@ -350,6 +393,98 @@ fn parse_release_supply_chain_evidence(
         )?,
         signed: parse_bool_field(path, "signed", &required_field(path, &fields, "signed")?)?,
     })
+}
+
+fn read_image_promotion_records(promotion_dir: &Path) -> Result<Vec<ImagePromotionRecord>, String> {
+    if !promotion_dir.is_dir() {
+        return Err(format!(
+            "image promotion directory missing: {}",
+            promotion_dir.display()
+        ));
+    }
+    let mut records = Vec::new();
+    for entry in fs::read_dir(promotion_dir)
+        .map_err(|error| format!("image promotion directory unreadable: {error}"))?
+    {
+        let entry = entry.map_err(|error| format!("image promotion entry unreadable: {error}"))?;
+        let path = entry.path();
+        if path.is_dir()
+            || !matches!(
+                path.extension().and_then(|extension| extension.to_str()),
+                Some("yaml") | Some("yml")
+            )
+        {
+            continue;
+        }
+        let contents = fs::read_to_string(&path).map_err(|error| {
+            format!(
+                "image promotion record unreadable {}: {error}",
+                path.display()
+            )
+        })?;
+        records.push(parse_image_promotion_record(&path, &contents)?);
+    }
+    records.sort_by(|left, right| {
+        left.artifact_digest
+            .cmp(&right.artifact_digest)
+            .then(left.tier.cmp(&right.tier))
+    });
+    Ok(records)
+}
+
+fn parse_image_promotion_record(
+    path: &Path,
+    contents: &str,
+) -> Result<ImagePromotionRecord, String> {
+    let mut fields = BTreeMap::new();
+    for line in contents.lines() {
+        let trimmed = line.trim();
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
+        }
+        insert_scalar_field(path, &mut fields, trimmed)?;
+    }
+    Ok(ImagePromotionRecord {
+        artifact_ref: required_field(path, &fields, "artifact_ref")?,
+        artifact_digest: required_field(path, &fields, "artifact_digest")?,
+        tier: parse_image_promotion_tier(path, &required_field(path, &fields, "tier")?)?,
+        cosign_identity: required_field(path, &fields, "cosign_identity")?,
+        verifier: parse_image_promotion_verifier(
+            path,
+            &required_field(path, &fields, "verifier")?,
+        )?,
+        verifier_ref: required_field(path, &fields, "verifier_ref")?,
+        provenance_attestation_ref: required_field(path, &fields, "provenance_attestation_ref")?,
+        runner_kill_switch_ref: required_field(path, &fields, "runner_kill_switch_ref")?,
+        audit_event_type: required_field(path, &fields, "audit_event_type")?,
+        signed: parse_bool_field(path, "signed", &required_field(path, &fields, "signed")?)?,
+    })
+}
+
+fn parse_image_promotion_tier(path: &Path, value: &str) -> Result<ImagePromotionTier, String> {
+    match value {
+        "dev" => Ok(ImagePromotionTier::Dev),
+        "staging" => Ok(ImagePromotionTier::Staging),
+        "prod" | "production" => Ok(ImagePromotionTier::Prod),
+        _ => Err(format!(
+            "{}: image promotion tier must be one of dev, staging, prod: {value}",
+            path.display()
+        )),
+    }
+}
+
+fn parse_image_promotion_verifier(
+    path: &Path,
+    value: &str,
+) -> Result<ImagePromotionVerifier, String> {
+    match value {
+        "kubewarden" => Ok(ImagePromotionVerifier::Kubewarden),
+        "kyverno" => Ok(ImagePromotionVerifier::Kyverno),
+        _ => Err(format!(
+            "{}: image promotion verifier must be kubewarden or kyverno: {value}",
+            path.display()
+        )),
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

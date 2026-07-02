@@ -308,6 +308,14 @@
     {
       "anchor": "ADR-0563: the rename-aware path-keyed CI baseline relabel move-manifest tree — the committed move bijection face (move-manifest.generated.json) the scm-facts emitter relabel consumes; a per-PR-regenerated review artifact reached by the codemod manifest subcommand + the emitter that reads it",
       "prefix": "specs/reorg/"
+    },
+    {
+      "anchor": "ADR-0248 REGCLOUD-001 planning-artifact registration: compliance-selective cell placement planning/spec artifact only; no product/cloud implementation authority.",
+      "prefix": "plan/compliance-selective-cell-placement-architecture.md"
+    },
+    {
+      "anchor": "ADR-0248 REGCLOUD-001 ownership seed: narrow OWNERS marker for the planning/spec artifact directory, not broad product/cloud authority.",
+      "prefix": "plan/OWNERS"
     }
   ]
 }

@@ -10,10 +10,10 @@ doc_status: published
 
 ## 1. Branch model (per ADR-0041)
 
-- One main branch (`main`)
+- One protected integration branch (`dev`)
 - Short-lived feature branches per Team worker brief
 - Release branch (`release/x.y.z`) cut at tag time
-- No long-lived develop branch
+- No long-lived unprotected `develop` branch; `dev` is the protected PR target
 - No fast-forward (squash/rebase only)
 
 ## 2. Pre-release verification
@@ -44,11 +44,11 @@ Per `/oya-release-verify` (formerly `/oya-release-verify`):
 - Mandatory: open Sev-1/2 incident
 - Mandatory: rollback path documented
 - Skip: weekly cadence
-- Cherry-pick to `main` post-merge
+- Cherry-pick to the protected integration/release branch post-merge
 
 ## 5. Per-axis release extensions
 
-- **Foundry capabilities**: per-capability semver + sunset per ADR-0037; eval-set pass per release per ADR-0024
+- **Capability/intelligence automation**: per-capability semver + sunset per ADR-0037; eval-set pass per release per ADR-0024
 - **Cloud control plane**: stricter API versioning per ADR-0037; major bumps with 12-month deprecation
 - **Workspace Mail / Doc / Drive**: data-format compatibility ≥ 2 prior versions
 - **Workspace Meet**: WebRTC compatibility tested per browser matrix
@@ -56,11 +56,11 @@ Per `/oya-release-verify` (formerly `/oya-release-verify`):
 
 ## 6. Post-release
 
-- Per-merge changelog row auto-emit (Foundry capability `pr.changelog.row`)
-- Per-release notes auto-drafted (Foundry capability `pr.release-note.draft`)
+- Per-merge changelog row auto-emit through current release-governance automation or author closeout
+- Per-release notes drafted by current release-governance automation or author closeout; Release Please applies only when repo config proves it
 - Per-merge product-completion packet recorded: promoted SHA `oya-ci-required`,
   rollout verification, rollback note, observability check, browser UX/user-story
-  evidence, and Release Please / release-note impact
+  evidence, and release-governance/release-note impact (Release Please only when repo config proves it)
 - Trust-portal updated for regulator-impact releases
 - Per-region SLO baseline check before next release
 

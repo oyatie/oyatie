@@ -498,7 +498,7 @@ fn artifact_effective_source(
     for (crate_old, crate_move) in by_old_path {
         let prefix_with_slash = format!("{}/", crate_old);
         if a.old_path.starts_with(prefix_with_slash.as_str())
-            && best.map_or(true, |(b, _)| crate_old.len() > b.len())
+            && best.is_none_or(|(b, _)| crate_old.len() > b.len())
         {
             best = Some((crate_old, crate_move));
         }

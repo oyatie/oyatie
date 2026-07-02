@@ -44,7 +44,7 @@ Closes #<n> (or Refs #<n> if not closing). One line.
   - promoted SHA + `oya-ci-required` status URL
   - rollout verification + rollback note
   - observability check + browser UX/user-story evidence
-  - Release Please / release-note impact
+  - release-governance/release-note impact (Release Please only when repo config proves it)
 
 ## Code Review
 - Reviewer agent: `<reviewer-agent>`

@@ -68,6 +68,9 @@ message Event {
   int64 version = 15;
   google.protobuf.Timestamp created_at = 16;
   google.protobuf.Timestamp updated_at = 17;
+  string ownership_pillar = 18;  // "Org" for work events, "Personal" for personal events; details never cross pillar.
+  string audit_ref = 19;  // Immutable audit-chain reference for event, attendee, hold, and action-card transitions.
+  repeated string legal_hold_ids = 20;
 }
 
 // ==================== Event Store ====================
@@ -129,6 +132,39 @@ message LegalHold {
   string reason = 5;
 }
 
+// ==================== Explicit Action Card / Workflow Handoff ====================
+
+service CalendarActionWorkflow {
+  rpc CompleteActionCard(CompleteActionCardRequest) returns (WorkflowHandoffAuditLog);
+}
+
+message ActionCard {
+  string action_card_id = 1;
+  string event_id = 2;
+  string workflow_capability_ref = 3;
+  string recipient_ref = 4;
+  string policy_basis = 5;
+  string state = 6;
+  string audit_ref = 7;
+}
+
+message CompleteActionCardRequest {
+  string action_card_id = 1;
+  string event_id = 2;
+  string approver_ref = 3;
+  string policy_basis = 4;
+  string explicit_consent_ref = 5;
+}
+
+message WorkflowHandoffAuditLog {
+  string workflow_handoff_id = 1;
+  string event_id = 2;
+  string action_card_id = 3;
+  string workflow_capability_ref = 4;
+  string policy_basis = 5;
+  string audit_ref = 6;
+}
+
 message OpenLegalHoldRequest {
   string event_id = 1;
   string opened_by_user_id = 2;
@@ -178,9 +214,7 @@ message AttendeeRef {
 }
 
 message FreeBusyProjection {
-  // Minimum-necessary projection. NO event title, description, location, or
-  // attendee fields exposed across tenant boundaries. Compile-time guaranteed by
-  // the message shape; LEAN-check enforces.
+  // Minimum-necessary projection. NO event title, description, location, or attendee fields exposed across tenant boundaries. Compile-time guaranteed by the message shape; LEAN-check enforces.
   google.protobuf.Timestamp starts_at = 1;
   google.protobuf.Timestamp ends_at = 2;
   bool busy = 3;
