@@ -140,8 +140,12 @@ const ALLOWED_SURFACE_DISPOSITIONS: [&str; 4] = [
     DISPOSITION_ARCHIVED_WITH_PROVENANCE,
     DISPOSITION_GENERATED_PROJECTION,
 ];
-const REQUIRED_SURFACE_DISPOSITIONS: [(&str, &str); 12] = [
+const REQUIRED_SURFACE_DISPOSITIONS: [(&str, &str); 13] = [
     ("/specs/masterplan.json", DISPOSITION_CANONICAL_AUTHORITY),
+    (
+        "/specs/masterplan.json#v1-legacy-fragments",
+        DISPOSITION_ABSORBED,
+    ),
     ("/specs/master-plan-sequencing.json", DISPOSITION_ABSORBED),
     (
         "/specs/planning-closure-contract.json",

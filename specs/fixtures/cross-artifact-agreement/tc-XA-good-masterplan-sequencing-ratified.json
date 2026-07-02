@@ -40,6 +40,15 @@
         "provenance": "Fixture canonical authority for masterplan graph-integrity gates."
       },
       {
+        "path": "/specs/masterplan.json#v1-legacy-fragments",
+        "surface_class": "absorbed-legacy-plan-authority",
+        "disposition": "absorbed",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "must-not-mint-live-work-item-ids",
+        "provenance": "Fixture absorbed masterplan v1 legacy plan-authority fragments."
+      },
+      {
         "path": "/specs/master-plan-sequencing.json",
         "surface_class": "absorbed-provenance",
         "disposition": "absorbed",
