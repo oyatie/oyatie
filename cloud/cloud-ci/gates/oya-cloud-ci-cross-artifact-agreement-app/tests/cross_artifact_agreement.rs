@@ -9,10 +9,12 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use oya_cloud_ci_cross_artifact_agreement_app::{
-    Verdict, evaluate, evaluate_masterplan_v2_authority, evaluate_masterplan_v2_entry_surfaces,
-    evaluate_masterplan_v2_evidence_state, evaluate_masterplan_v2_plan_evidence_drift,
-    evaluate_masterplan_v2_program_coverage, evaluate_masterplan_v2_projection_freshness,
-    evaluate_masterplan_v2_read_contract_archives, evaluate_masterplan_v2_sequencing,
+    Verdict, derive_masterplan_md_projection, evaluate,
+    evaluate_masterplan_projection_rederivation, evaluate_masterplan_v2_authority,
+    evaluate_masterplan_v2_entry_surfaces, evaluate_masterplan_v2_evidence_state,
+    evaluate_masterplan_v2_plan_evidence_drift, evaluate_masterplan_v2_program_coverage,
+    evaluate_masterplan_v2_projection_freshness, evaluate_masterplan_v2_read_contract_archives,
+    evaluate_masterplan_v2_sequencing,
 };
 use serde_json::Value;
 
@@ -503,6 +505,139 @@ fn masterplan_v2_entry_surface_allowlist_gate_is_green() {
         findings.is_empty(),
         "entry-surface read contracts must exactly match the bounded root-hub allowlist and exclude superseded entrypoints: {findings:?}"
     );
+}
+
+/// Sub-AC 4.2 mechanical re-derivation lane, born-blocking over the live tree:
+/// every derived/generated masterplan projection that exists on disk must be
+/// mechanically re-derivable from /specs/masterplan.json and byte-identical to
+/// its re-derivation. The corpus is assembled from the ACTUAL tree (the human
+/// projection, the fabric-loop flow-metrics ledger, the loop-card shard views,
+/// and every on-disk generated planning face), so a stale or hand-edited
+/// projection anywhere in the tree turns this test RED.
+#[test]
+fn masterplan_projection_rederivation_gate_is_green_on_live_tree() {
+    let root = repo_root();
+    let masterplan = load_json(&root.join("specs/masterplan.json"));
+    let corpus = live_projection_rederivation_corpus(&root);
+
+    // The lanes must be exercised, not vacuous: the live tree carries the
+    // generated human projection, at least one recorded flow-metrics pass, and
+    // at least one loop-card shard view.
+    assert!(
+        corpus["masterplan_md"].as_str().is_some_and(|md| !md.is_empty()),
+        "docs/MASTERPLAN.md must exist as the generated human projection"
+    );
+    assert!(
+        corpus["flow_metrics_passes"]
+            .as_array()
+            .is_some_and(|passes| !passes.is_empty()),
+        "the flow-metrics ledger must carry at least one recorded pass"
+    );
+    assert!(
+        corpus["loop_cards"]
+            .as_array()
+            .is_some_and(|cards| !cards.is_empty()),
+        "the coordination plane must carry at least one loop-card shard view"
+    );
+
+    let findings = evaluate_masterplan_projection_rederivation(&masterplan, &corpus);
+    assert!(
+        findings.is_empty(),
+        "every derived/generated masterplan projection must re-derive byte-identically from /specs/masterplan.json: {findings:?}"
+    );
+
+    // The derivation itself must reproduce the committed projection exactly.
+    let derived = derive_masterplan_md_projection(&masterplan)
+        .expect("docs/MASTERPLAN.md must be derivable from masterplan v2");
+    let on_disk = fs::read_to_string(root.join("docs/MASTERPLAN.md")).expect("read MASTERPLAN.md");
+    assert_eq!(
+        derived, on_disk,
+        "docs/MASTERPLAN.md must be byte-identical to its mechanical re-derivation"
+    );
+}
+
+/// Assemble the live projection-rederivation corpus from the repo tree.
+fn live_projection_rederivation_corpus(root: &Path) -> Value {
+    let masterplan_md =
+        fs::read_to_string(root.join("docs/MASTERPLAN.md")).unwrap_or_default();
+    let flow_metrics_passes =
+        read_projection_files(&root.join("plan/fabric-loop/flow-metrics/passes"), ".json");
+    let loop_cards = read_projection_files(&root.join("plan/fabric-loop/cards"), ".json");
+    let generated_projections_on_disk: Vec<Value> =
+        list_file_names(&root.join("docs/machine-readable"), ".generated.json")
+            .into_iter()
+            .map(|name| Value::String(format!("docs/machine-readable/{name}")))
+            .collect();
+    let control_plane = load_json(&root.join("registry/generated-artifact-control-plane.json"));
+
+    serde_json::json!({
+        "masterplan_md": masterplan_md,
+        "flow_metrics_passes": flow_metrics_passes,
+        "loop_cards": loop_cards,
+        "generated_projections_on_disk": generated_projections_on_disk,
+        "generated_artifact_control_plane": control_plane,
+    })
+}
+
+fn list_file_names(dir: &Path, suffix: &str) -> Vec<String> {
+    let Ok(entries) = fs::read_dir(dir) else {
+        return Vec::new();
+    };
+    let mut names: Vec<String> = entries
+        .filter_map(Result::ok)
+        .filter(|entry| entry.path().is_file())
+        .filter_map(|entry| entry.file_name().to_str().map(str::to_owned))
+        .filter(|name| name.ends_with(suffix))
+        .collect();
+    names.sort();
+    names
+}
+
+fn read_projection_files(dir: &Path, suffix: &str) -> Vec<Value> {
+    list_file_names(dir, suffix)
+        .into_iter()
+        .map(|name| {
+            let content = fs::read_to_string(dir.join(&name))
+                .unwrap_or_else(|e| panic!("read {}/{name}: {e}", dir.display()));
+            serde_json::json!({"file_name": name, "content": content})
+        })
+        .collect()
+}
+
+/// Sub-AC 4.2 fail-closed pins: the frozen fixture corpus must keep one
+/// ISOLATED RED fixture for a hand-edited generated projection and one for a
+/// stale derived ledger, each emitting exactly `masterplan_projection_stale`.
+#[test]
+fn masterplan_projection_rederivation_fixtures_fail_closed() {
+    for fixture_name in [
+        "tc-XA-bad-masterplan-projection-hand-edited.json",
+        "tc-XA-bad-masterplan-projection-stale-ledger.json",
+    ] {
+        let path = fixture_dir().join(fixture_name);
+        assert!(
+            path.is_file(),
+            "projection-rederivation failure-mode fixture must exist: {}",
+            path.display()
+        );
+        let fixture = load_json(&path);
+        let report = evaluate(&fixture);
+        assert_eq!(
+            report.verdict,
+            Verdict::Red,
+            "{fixture_name} must fail closed (RED)"
+        );
+        let expected: BTreeSet<String> =
+            std::iter::once("masterplan_projection_stale".to_owned()).collect();
+        assert_eq!(
+            report.violations, expected,
+            "{fixture_name} must emit exactly the stale-projection violation"
+        );
+        assert_eq!(
+            expected_violations(&fixture),
+            expected,
+            "{fixture_name} expected_violations must stay in sync with the pinned set"
+        );
+    }
 }
 
 fn expected_masterplan_projection_paths<'a>(

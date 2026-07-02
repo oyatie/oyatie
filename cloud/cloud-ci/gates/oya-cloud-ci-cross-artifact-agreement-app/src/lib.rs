@@ -59,6 +59,12 @@
 //! - `masterplan_projection_freshness_invalid` — generated/read projections
 //!   derived from /specs/masterplan.json lack complete freshness coverage,
 //!   conflict-resolution, single-writer, or no-live-authority metadata.
+//! - `masterplan_projection_stale` — a derived/generated masterplan projection
+//!   on disk is not byte-identical to its mechanical re-derivation from
+//!   /specs/masterplan.json (stale or hand-edited), or a derived ledger/card
+//!   shard breaks its re-derivation invariants (canonical wire bytes,
+//!   contiguous 1-based pass_seq under canonical filenames, plan-DAG
+//!   referential agreement, completion-requires-evidence).
 //! - `masterplan_read_contract_invalid` — archived-with-provenance stale
 //!   read paths are referenced through a non-archive read contract or read
 //!   projection.
@@ -81,6 +87,12 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use serde_json::Value;
 
+mod projection_rederivation;
+
+pub use projection_rederivation::{
+    MASTERPLAN_MD_PATH, PROJECTION_REDERIVATION_VALIDATOR, STALE_PROJECTION_CODE,
+    derive_masterplan_md_projection, evaluate_masterplan_projection_rederivation,
+};
 /// The gate id, matching the buck2 target + the §5.2 contract.
 pub const GATE_ID: &str = "cloud-ci-cross-artifact-agreement";
 const DEPENDENCY_EDGE_SEMANTICS: &str = "from is prerequisite, to is dependent";
@@ -169,7 +181,7 @@ const REQUIRED_SURFACE_DISPOSITIONS: [(&str, &str); 13] = [
 ];
 
 /// The blocking codes, in canonical order. The fixtures pin exact subsets.
-pub const VIOLATION_CODES: [&str; 21] = [
+pub const VIOLATION_CODES: [&str; 22] = [
     "orphan_decision",
     "unpropagated_decision",
     "status_disagreement",
@@ -189,6 +201,7 @@ pub const VIOLATION_CODES: [&str; 21] = [
     "masterplan_evidence_state_invalid",
     "masterplan_plan_evidence_drift",
     "masterplan_projection_freshness_invalid",
+    "masterplan_projection_stale",
     "masterplan_read_contract_invalid",
     "masterplan_entry_surface_invalid",
 ];
@@ -418,6 +431,9 @@ pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
         }
         if masterplan_read_contract_gate_present(fixture) {
             findings.extend(evaluate_masterplan_v2_read_contract_archives(fixture));
+        }
+        if let Some(corpus) = fixture.get("projection_rederivation") {
+            findings.extend(evaluate_masterplan_projection_rederivation(fixture, corpus));
         }
         if let Some(root_hub) = fixture.get("root_hub_pointers") {
             findings.extend(evaluate_masterplan_v2_entry_surfaces(fixture, root_hub));
@@ -4410,6 +4426,7 @@ mod tests {
             "masterplan_evidence_state_invalid",
             "masterplan_plan_evidence_drift",
             "masterplan_projection_freshness_invalid",
+            "masterplan_projection_stale",
             "masterplan_read_contract_invalid",
             "masterplan_entry_surface_invalid",
         ] {
