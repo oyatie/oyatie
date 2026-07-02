@@ -95,6 +95,13 @@ The lane runs on every PR touching `Cargo.lock`, `pnpm-lock.yaml`, `requirements
 5. Validates per-microservice allow-list (some axes may further restrict; e.g. defense pack may forbid even Tier 3 LGPL).
 6. Writes the dep graph + license map into the per-PR build artifact for SBOM generation.
 
+Cloud-ci replacement surface (ADR-0515 migration of this policy into the single `oya-ci-required` context):
+
+- `cloud/cloud-ci/gates/oya-cloud-ci-license-policy-app/BUCK`
+- `cloud/cloud-ci/gates/oya-cloud-ci-license-policy-app/Cargo.toml`
+- `cloud/cloud-ci/gates/oya-cloud-ci-license-policy-app/src/lib.rs`
+- `cloud/cloud-ci/gates/oya-cloud-ci-license-policy-app/tests/license_policy.rs`
+
 ### Per-release SBOM
 
 Per-release tag, the build pipeline:
