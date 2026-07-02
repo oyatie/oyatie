@@ -29,8 +29,8 @@ pub const CONTRACT_SEMVER: &str = match option_env!("CARGO_PKG_VERSION") {
 /// A keyed gate violation: stable `code` plus the offending unit `key`.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct Finding {
-    pub code: String,
-    pub key: String,
+    pub code: String, // data_class: INTERNAL_ONLY
+    pub key: String,  // data_class: INTERNAL_ONLY
 }
 
 impl Finding {
@@ -52,8 +52,8 @@ pub enum Verdict {
 /// Bare-code projection of a gate run.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Report {
-    pub verdict: Verdict,
-    pub violations: BTreeSet<String>,
+    pub verdict: Verdict,             // data_class: INTERNAL_ONLY
+    pub violations: BTreeSet<String>, // data_class: INTERNAL_ONLY
 }
 
 impl Report {
@@ -75,8 +75,8 @@ impl Report {
 /// Half-open byte range `[start, end)` in an existing UTF-8 artifact.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct ByteRange {
-    pub start: usize,
-    pub end: usize,
+    pub start: usize, // data_class: INTERNAL_ONLY
+    pub end: usize,   // data_class: INTERNAL_ONLY
 }
 
 impl ByteRange {
@@ -91,9 +91,9 @@ impl ByteRange {
 /// Described replacement for an existing artifact. This is data, not an applied write.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Edit {
-    pub path: String,
-    pub byte_range: ByteRange,
-    pub replacement: String,
+    pub path: String,          // data_class: INTERNAL_ONLY
+    pub byte_range: ByteRange, // data_class: INTERNAL_ONLY
+    pub replacement: String,   // data_class: INTERNAL_ONLY
 }
 
 impl Edit {
@@ -113,8 +113,8 @@ impl Edit {
 /// Described creation of a new artifact. This is data, not an applied write.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct NewFile {
-    pub path: String,
-    pub body: String,
+    pub path: String, // data_class: INTERNAL_ONLY
+    pub body: String, // data_class: INTERNAL_ONLY
 }
 
 impl NewFile {
@@ -147,8 +147,8 @@ pub enum RemediationTier {
 /// One stable violation code plus its remediation tier.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct GateCode {
-    pub code: String,
-    pub remediation_tier: RemediationTier,
+    pub code: String,                      // data_class: INTERNAL_ONLY
+    pub remediation_tier: RemediationTier, // data_class: INTERNAL_ONLY
 }
 
 impl GateCode {
@@ -163,10 +163,10 @@ impl GateCode {
 /// Published gate manifest carrying the semver/ABI and per-code remediation declarations.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct GateManifest {
-    pub gate_id: String,
-    pub sdk_abi_version: u32,
-    pub contract_semver: String,
-    pub codes: Vec<GateCode>,
+    pub gate_id: String,         // data_class: INTERNAL_ONLY
+    pub sdk_abi_version: u32,    // data_class: INTERNAL_ONLY
+    pub contract_semver: String, // data_class: INTERNAL_ONLY
+    pub codes: Vec<GateCode>,    // data_class: INTERNAL_ONLY
 }
 
 impl GateManifest {
