@@ -328,9 +328,9 @@ impl PdpCircuitState {
 /// timeout workers and forbids late side effects after the denial is returned.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PdpRuntimeConfig {
-    pub deadline: Duration,
-    pub circuit_open_after_failures: u32,
-    pub metrics_window: usize,
+    pub deadline: Duration,               // data_class: INTERNAL_ONLY
+    pub circuit_open_after_failures: u32, // data_class: INTERNAL_ONLY
+    pub metrics_window: usize,            // data_class: INTERNAL_ONLY
 }
 
 impl PdpRuntimeConfig {
@@ -354,16 +354,16 @@ impl PdpRuntimeConfig {
 
 #[derive(Debug)]
 struct PdpRuntimeMetricsInner {
-    authorize_total: u64,
-    allow_total: u64,
-    deny_total: u64,
-    error_total: u64,
-    timeout_total: u64,
-    panic_total: u64,
-    circuit_open_total: u64,
-    latency_ms: VecDeque<u64>,
-    metrics_window: usize,
-    circuit_state: PdpCircuitState,
+    authorize_total: u64,           // data_class: INTERNAL_ONLY
+    allow_total: u64,               // data_class: INTERNAL_ONLY
+    deny_total: u64,                // data_class: INTERNAL_ONLY
+    error_total: u64,               // data_class: INTERNAL_ONLY
+    timeout_total: u64,             // data_class: INTERNAL_ONLY
+    panic_total: u64,               // data_class: INTERNAL_ONLY
+    circuit_open_total: u64,        // data_class: INTERNAL_ONLY
+    latency_ms: VecDeque<u64>,      // data_class: INTERNAL_ONLY
+    metrics_window: usize,          // data_class: INTERNAL_ONLY
+    circuit_state: PdpCircuitState, // data_class: INTERNAL_ONLY
 }
 
 impl PdpRuntimeMetricsInner {
@@ -409,7 +409,7 @@ impl PdpRuntimeMetricsInner {
 /// [`PdpRuntimeMetricsSnapshot::trace_fields`] into their tracing substrate.
 #[derive(Clone, Debug)]
 pub struct PdpRuntimeMetrics {
-    inner: Arc<Mutex<PdpRuntimeMetricsInner>>,
+    inner: Arc<Mutex<PdpRuntimeMetricsInner>>, // data_class: INTERNAL_ONLY
 }
 
 impl PdpRuntimeMetrics {
@@ -464,15 +464,15 @@ impl PdpRuntimeMetrics {
 /// fail-closed by contract.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PdpRuntimeMetricsSnapshot {
-    pub authorize_total: u64,
-    pub allow_total: u64,
-    pub deny_total: u64,
-    pub error_total: u64,
-    pub timeout_total: u64,
-    pub panic_total: u64,
-    pub circuit_open_total: u64,
-    pub p99_latency_ms: u64,
-    pub circuit_state: PdpCircuitState,
+    pub authorize_total: u64,           // data_class: INTERNAL_ONLY
+    pub allow_total: u64,               // data_class: INTERNAL_ONLY
+    pub deny_total: u64,                // data_class: INTERNAL_ONLY
+    pub error_total: u64,               // data_class: INTERNAL_ONLY
+    pub timeout_total: u64,             // data_class: INTERNAL_ONLY
+    pub panic_total: u64,               // data_class: INTERNAL_ONLY
+    pub circuit_open_total: u64,        // data_class: INTERNAL_ONLY
+    pub p99_latency_ms: u64,            // data_class: INTERNAL_ONLY
+    pub circuit_state: PdpCircuitState, // data_class: INTERNAL_ONLY
 }
 
 impl PdpRuntimeMetricsSnapshot {
@@ -538,10 +538,10 @@ impl PdpRuntimeMetricsSnapshot {
 /// streaks open a deny-only circuit, and no worker continues after a denial.
 #[derive(Clone)]
 pub struct PdpRuntimeGuard {
-    inner: Arc<dyn PolicyDecisionPoint>,
-    config: PdpRuntimeConfig,
-    metrics: PdpRuntimeMetrics,
-    consecutive_failures: Arc<AtomicU32>,
+    inner: Arc<dyn PolicyDecisionPoint>,  // data_class: INTERNAL_ONLY
+    config: PdpRuntimeConfig,             // data_class: INTERNAL_ONLY
+    metrics: PdpRuntimeMetrics,           // data_class: INTERNAL_ONLY
+    consecutive_failures: Arc<AtomicU32>, // data_class: INTERNAL_ONLY
 }
 
 impl PdpRuntimeGuard {
