@@ -169,6 +169,27 @@ fn grpc_command_fixture_round_trips() {
         "gRPC proto fixture missing app method metadata: {missing_methods:?}"
     );
 
+    let proto_package = grpc_contract
+        .lines()
+        .find_map(|line| line.trim().strip_prefix("package "))
+        .and_then(|package| package.strip_suffix(';'))
+        .expect("proto package is declared");
+    let missing_service_fqns: Vec<_> = GrpcHandler::methods()
+        .iter()
+        .filter(|method| {
+            let Some((service_package, service_name)) = method.service.rsplit_once('.') else {
+                return true;
+            };
+            proto_package != service_package
+                || !grpc_contract.contains(&format!("service {service_name} "))
+        })
+        .map(|method| method.service)
+        .collect();
+    assert!(
+        missing_service_fqns.is_empty(),
+        "gRPC proto fixture missing app service metadata: {missing_service_fqns:?}"
+    );
+
     for message in [
         "message EquipmentMasterCommand",
         "message MaintenancePlanCommand",
