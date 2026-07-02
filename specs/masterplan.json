@@ -15258,6 +15258,24 @@
       "validator": "cloud-ci-cross-artifact-agreement/masterplan-v2-projection-freshness",
       "single_writer_mutation_path": "/specs/masterplan.json",
       "coverage_scope": "All non-canonical read_contract rows, all generated-projection surface_dispositions, and all generated-artifact-control-plane projections whose source_inputs include specs/masterplan.json.",
+      "rederivation_gate": {
+        "validator": "cloud-ci-cross-artifact-agreement/masterplan-v2-projection-rederivation",
+        "violation_code": "masterplan_projection_stale",
+        "rule": "Every derived/generated masterplan projection on disk must be mechanically re-derivable from /specs/masterplan.json#masterplan_v2 and byte-identical to its re-derivation; stale or hand-edited outputs fail closed. docs/MASTERPLAN.md re-derives in full through derive_masterplan_md_projection; plan/fabric-loop loop-card shard views and the flow-metrics pass ledger must re-serialize byte-for-byte through the pinned canonical wire shape, keep a strictly monotonic contiguous 1-based pass_seq under canonical pass-{seq:020}.json filenames, resolve card/program/depends_on references into the live MPV2 plan DAG, and back completion statuses with evidence refs; any on-disk generated planning face must be declared by a masterplan-sourced generated-artifact-control-plane row and covered by a projection_freshness row before it lands.",
+        "covered_surfaces": [
+          "docs/MASTERPLAN.md",
+          "plan/fabric-loop/cards/",
+          "plan/fabric-loop/flow-metrics/passes/",
+          "docs/machine-readable/*.generated.json"
+        ],
+        "evidence_refs": [
+          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/projection_rederivation.rs#evaluate_masterplan_projection_rederivation",
+          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_projection_rederivation_gate_is_green_on_live_tree",
+          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_projection_rederivation_fixtures_fail_closed",
+          "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-projection-hand-edited.json",
+          "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-projection-stale-ledger.json"
+        ]
+      },
       "projections": [
         {
           "path": "/specs/master-plan-sequencing.json",
@@ -15326,9 +15344,12 @@
           "live_work_item_ids_allowed": false,
           "status_claims_allowed_without_evidence": false,
           "drift_policy": "fail-closed-on-conflict-or-manual-live-plan-content",
+          "rederivation": "mechanical: docs/MASTERPLAN.md must be byte-identical to derive_masterplan_md_projection(/specs/masterplan.json); stale or hand-edited bytes fail closed as masterplan_projection_stale",
           "evidence_refs": [
             "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness",
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green"
+            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green",
+            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/projection_rederivation.rs#derive_masterplan_md_projection",
+            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_projection_rederivation_gate_is_green_on_live_tree"
           ]
         },
         {
