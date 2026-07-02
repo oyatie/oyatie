@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:5eac588315479c90",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:26a8d23f0989d85f"
+    "source_inputs_digest": "fnv1a64:18d7867b0c9228dc"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -21377,7 +21377,12 @@
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-axes-count-drift.json",
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-dup-adr-number.json",
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-half-supersession.json",
+          "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-dependency-dag.json",
+          "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-plan-evidence-drift.json",
+          "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-program-coverage.json",
+          "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-sequencing-unratified.json",
           "specs/fixtures/cross-artifact-agreement/tc-XA-good-decision-all-four-agree.json",
+          "specs/fixtures/cross-artifact-agreement/tc-XA-good-masterplan-sequencing-ratified.json",
           "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-field-unknown-classifier-duplicate.json",
           "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-operator-checklist-for-automatable-rule.json",
           "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-oya-cli-authority.json",
