@@ -14,7 +14,7 @@ use oya_cloud_ci_cross_artifact_agreement_app::{
     evaluate_masterplan_v2_entry_surfaces, evaluate_masterplan_v2_evidence_state,
     evaluate_masterplan_v2_plan_evidence_drift, evaluate_masterplan_v2_program_coverage,
     evaluate_masterplan_v2_projection_freshness, evaluate_masterplan_v2_read_contract_archives,
-    evaluate_masterplan_v2_sequencing,
+    evaluate_masterplan_plan_evidence_crosscheck, evaluate_masterplan_v2_sequencing,
 };
 use serde_json::Value;
 
@@ -376,6 +376,94 @@ fn masterplan_v2_plan_vs_evidence_drift_contract_is_green() {
         Some("cloud-ci-cross-artifact-agreement/masterplan-v2-plan-vs-evidence-drift"),
         "masterplan v2 must name the plan-vs-evidence drift validator as the evidence-state policy writer"
     );
+}
+
+/// Sub-AC 4.3 plan-vs-evidence cross-check lane, born-blocking over the live
+/// tree: every masterplan work-item status claim and evidence-attached Hermes
+/// import must cross-check against RECORDED completion evidence. The
+/// resolution universe is the committed scm-facts face `tracked_paths` (the
+/// same declared input the producer reads), so a dangling evidence pointer, a
+/// ref at a retired (absorbed / archived-with-provenance) surface, or a
+/// verified 'done' claim without a merged commit / merged-PR record /
+/// tracked product-completion packet anywhere in the live masterplan turns
+/// this test RED.
+#[test]
+fn masterplan_plan_evidence_crosscheck_gate_is_green_on_live_tree() {
+    let root = repo_root();
+    let masterplan = load_json(&root.join("specs/masterplan.json"));
+    let scm_facts = load_json(&root.join(
+        "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+    ));
+    let tracked_paths = scm_facts
+        .get("tracked_paths")
+        .cloned()
+        .expect("committed scm-facts face must carry tracked_paths");
+    let corpus = serde_json::json!({ "tracked_paths": tracked_paths });
+
+    let findings = evaluate_masterplan_plan_evidence_crosscheck(&masterplan, &corpus);
+    assert!(
+        findings.is_empty(),
+        "masterplan v2 plan-vs-evidence cross-check must stay green on the live tree: {findings:?}"
+    );
+
+    let crosscheck =
+        &masterplan["masterplan_v2"]["evidence_state_policy"]["plan_evidence_crosscheck"];
+    assert_eq!(
+        crosscheck["validator"].as_str(),
+        Some("cloud-ci-cross-artifact-agreement/masterplan-v2-plan-evidence-crosscheck"),
+        "masterplan v2 must declare the plan-evidence cross-check validator"
+    );
+    assert_eq!(
+        crosscheck["violation_code"].as_str(),
+        Some("masterplan_plan_evidence_unrecorded"),
+        "masterplan v2 must pin the cross-check violation code"
+    );
+    assert_eq!(
+        crosscheck["resolution_universe"].as_str(),
+        Some(
+            "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json#tracked_paths"
+        ),
+        "masterplan v2 must pin the tracked-tree resolution universe this test reads"
+    );
+}
+
+/// Sub-AC 4.3 fail-closed pins: the frozen fixture corpus must keep one
+/// ISOLATED RED fixture per plan-vs-evidence cross-check failure class — an
+/// unevidenced verified-'done' claim, evidence pointing at a retired surface,
+/// and a dangling evidence pointer — each emitting exactly
+/// `masterplan_plan_evidence_unrecorded`.
+#[test]
+fn masterplan_plan_evidence_crosscheck_fixtures_fail_closed() {
+    for fixture_name in [
+        "tc-XA-bad-masterplan-evidence-unrecorded-done-claim.json",
+        "tc-XA-bad-masterplan-evidence-retired-surface.json",
+        "tc-XA-bad-masterplan-evidence-dangling-ref.json",
+    ] {
+        let path = fixture_dir().join(fixture_name);
+        assert!(
+            path.is_file(),
+            "plan-evidence cross-check failure-mode fixture must exist: {}",
+            path.display()
+        );
+        let fixture = load_json(&path);
+        let report = evaluate(&fixture);
+        assert_eq!(
+            report.verdict,
+            Verdict::Red,
+            "{fixture_name} must fail closed (RED)"
+        );
+        let expected: BTreeSet<String> =
+            std::iter::once("masterplan_plan_evidence_unrecorded".to_owned()).collect();
+        assert_eq!(
+            report.violations, expected,
+            "{fixture_name} must emit exactly the unrecorded-evidence violation"
+        );
+        assert_eq!(
+            expected_violations(&fixture),
+            expected,
+            "{fixture_name} expected_violations must stay in sync with the pinned set"
+        );
+    }
 }
 #[test]
 fn masterplan_v2_program_coverage_contract_is_green() {
