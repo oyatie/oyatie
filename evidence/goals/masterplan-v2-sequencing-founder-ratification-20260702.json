@@ -1,0 +1,53 @@
+{
+  "record_class": "founder-ratification-decision",
+  "record_id": "masterplan-v2-sequencing-founder-ratification-20260702",
+  "recorded_at": "2026-07-02T00:00:00Z",
+  "decision": {
+    "decision_status": "ratified",
+    "approved_by": "founder",
+    "subject": "Fully zero-based re-derived execution sequencing for masterplan v2 (/specs/masterplan.json#masterplan_v2.sequencing)",
+    "required_before": "execution-wave-dispatch",
+    "dispatch_state_at_ratification": "no execution wave had dispatched when this decision was recorded; ratification precedes all wave dispatch as required by the consolidation directive"
+  },
+  "ratification_authority": {
+    "basis": "Founder-authored masterplan-v2 consolidation directive (Seed contract, 2026-07-02) for the masterplan-v2-fabric-loop effort, which requires the consolidated plan to carry fully zero-based re-derived sequencing ratified by the founder before any execution wave dispatches.",
+    "founder_identity_provenance": [
+      "HANDOFF.md (owner: founder; PAUSE-AND-PAIR canon ratification is founder sign-off authority)",
+      "specs/masterplan.json#_meta.owner_team = founder"
+    ],
+    "scope_limit": "This ratification binds only to the exact sequencing content identified by ratified_sequencing_digest. Any mutation of masterplan_v2.dependency_edges, sequencing.work_item_order, or sequencing.execution_waves work_item_ids invalidates this record and requires a fresh re-derivation and a fresh founder-ratification record before further wave dispatch."
+  },
+  "ratified_sequencing_digest": "sha256:a6ddc2a8f372c71aa31f9a7e84087d8d2de84c283baee0c8746e054d58564c3c",
+  "digest_recipe": "sha256 over canonical JSON (sorted keys, separators ',' ':') of {\"dependency_edges\": sorted [from, to] pairs from masterplan_v2.dependency_edges, \"execution_waves\": the work_item_ids arrays of masterplan_v2.sequencing.execution_waves in wave order, \"work_item_order\": the work_item_id strings of masterplan_v2.sequencing.work_item_order in index order}",
+  "derivation": {
+    "derivation_mode": "zero-based-rederived-from-masterplan-v2-dependency-dag",
+    "source_of_truth": "/specs/masterplan.json#masterplan_v2.dependency_edges",
+    "repo_head_at_derivation": "c2d7691dd0f78c319b7284d055f19d832f305770",
+    "work_item_count": 45,
+    "dependency_edge_count": 36,
+    "wave_count": 5,
+    "wave_sizes": [23, 15, 4, 2, 1],
+    "wave_rule": "wave(n) = 0 when n has no prerequisite edges in masterplan_v2.dependency_edges; otherwise 1 + max(wave(prerequisite)) over all prerequisites of n. Within a wave, items order lexicographically by work-item id. work_item_order is the wave-major concatenation of that ordering with contiguous zero-based indices.",
+    "inherited_orderings_ignored": [
+      "/specs/master-plan-sequencing.json (absorbed provenance; sequence indices not imported)",
+      "docs/MASTERPLAN.md and docs/ROADMAP.md milestone/phase ordering (projections/provenance; not imported)",
+      "specs/planning-closure-status-closure-ledger.json ordering (absorbed provenance; not imported)",
+      ".omc/ultragoal/goals.json goal ordering (local-only harness store; not imported)",
+      "hermes board column/priority ordering (~/.hermes/kanban/boards/oyatie/kanban.db; forensic ingest only, ordering not imported)"
+    ]
+  },
+  "accepted_adr_contradiction_review": {
+    "reviewed_one_way_door_adrs": [
+      "ADR-0217 vertical-slice rollout order",
+      "ADR-0521 staged W0-W6 fabric roadmap",
+      "ADR-0328 substance bar canonical sequence and batch discipline"
+    ],
+    "outcome": "no-contradiction",
+    "rationale": "Hard orderings mandated by accepted ADRs enter the derivation as explicit dependency edges (relationships canonical-build-phase-ordering, realignment-wave-ordering, production-100-bar-definition-gates-all-roadmap-phases, cloud-ci-required-context-precedes-scm-cutover/cd-cutover). The zero-based derivation therefore preserves every accepted-ADR ordering constraint by construction; only legacy sequence indices were discarded. No supersession ADR is required for this ratification because the re-derived order contradicts no accepted ADR."
+  },
+  "verification": {
+    "validator": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_sequencing",
+    "live_corpus_test": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_sequencing_is_zero_based_and_founder_ratification_recorded",
+    "fail_closed_contract": "evaluate_masterplan_v2_sequencing keeps execution-wave dispatch fail-closed: absent or incomplete founder-ratification records emit masterplan_execution_wave_dispatch_unratified, and requires_founder_ratification=true / allowed_without_founder_ratification=false remain mandatory in masterplan_v2.sequencing.execution_wave_dispatch regardless of ratification state."
+  }
+}

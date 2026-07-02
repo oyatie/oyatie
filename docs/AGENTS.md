@@ -8,8 +8,8 @@ excludes:
   reason: Machine-readable entry-point registry; this contract is discovered through
     it.
 - path: /specs/master-plan-sequencing.json
-  reason: Primitive policy, plain-git sequencing, and ChangeSet promotion; cited and
-    not duplicated fully.
+  reason: Historical sequencing sidecar; after masterplan v2 it is provenance-only and
+    not a live plan authority.
 - path: /specs/markdown-retirement-policy.json
   reason: Markdown lifecycle and root-hub survival policy; cited and not duplicated
     fully.
@@ -105,12 +105,12 @@ For any question, route to its authority. Click the link; do not duplicate inlin
 | Intent→skill mapping, lifecycle phases, anti-rationalization, persona/skill/command orchestration | Installed agent-runtime skill catalog (Codex default: `~/.codex/skills`; project `.codex/skills` only when intentionally checked in) |
 | Universal skill catalog | Installed runtime skills, discovered by the active agent surface; no repo-vendored duplicate |
 | Reusable agent personas / roles | Installed runtime roles (Codex default: `~/.codex/agents`; set `agent_type` explicitly for OMX subagents) |
-| Project mission, decision rights, prohibited primitives, amendments | [`MASTERPLAN.md`](MASTERPLAN.md), [`/specs/master-plan-sequencing.json`](..//specs/master-plan-sequencing.json), [`RACI-OWNERSHIP.md`](RACI-OWNERSHIP.md) |
+| Project mission, decision rights, prohibited primitives, amendments | [`/specs/masterplan.json`](..//specs/masterplan.json), [`RACI-OWNERSHIP.md`](RACI-OWNERSHIP.md) |
 | Bootstrap routing for the canonical tree | [`README.md`](README.md) |
 | Architecture, planes, cross-axis contracts, cohesion thesis | [`DESIGN.md`](DESIGN.md) <!-- forward-reference: wave-1 --> |
 | Surfaces (capabilities, APIs, events, indexes, ad slots, cloud resources) | [`SPEC.md`](SPEC.md) <!-- forward-reference: wave-1 --> |
 | North star, axes, scope, success metrics, decision log | [`PRD.md`](PRD.md) <!-- forward-reference: wave-1 --> |
-| Wave sequence, per-wave gate criteria | [`ROADMAP.md`](ROADMAP.md) <!-- forward-reference: wave-1 --> |
+| Human plan projection / archived roadmap provenance | [`MASTERPLAN.md`](MASTERPLAN.md), [`ROADMAP.md`](ROADMAP.md) |
 | Per-doc lifecycle and update protocol | [`DOC-CATALOG.md`](DOC-CATALOG.md) |
 | Doc-class taxonomy, voice, dual-audience rules | [`standards/doc-style.md`](standards/doc-style.md) <!-- forward-reference: wave-1 --> |
 | Architectural decisions (ADR pack) | [`ADR-INDEX.md`](ADR-INDEX.md) <!-- forward-reference: wave-1 --> |

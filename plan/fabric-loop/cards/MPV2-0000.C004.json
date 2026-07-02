@@ -1,0 +1,13 @@
+{
+  "card_id": "MPV2-0000.C004",
+  "title": "Harvested (round-2 review nit): lane-runtime bridge reports CLI usage errors as PlaneError Corrupt; add a usage-error surface distinct from store-corruption plus regression test",
+  "program_id": "P-FABRIC",
+  "depends_on": [],
+  "status": "done-verified",
+  "evidence_refs": [
+    "git:060eca825f3ea3f8f61cb8f736d82cc210950989",
+    "evidence/goals/fabric-loop-parallel-lanes-proof-run-20260702.json#stage_disjointness",
+    "evidence/goals/fabric-loop-parallel-lanes-proof-run-20260702.json#stage_review",
+    "evidence/goals/fabric-loop-parallel-lanes-proof-run-20260702.json#stage_post_merge_verification"
+  ]
+}

@@ -5,10 +5,12 @@
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-PLANNING-CLOSURE-CONTRACT",
     "version": "1.0.0",
-    "status": "Accepted",
+    "status": "absorbed-provenance-not-live-plan-authority",
     "owner_team": "council-architecture + council-product + axis-foundry",
     "created_at": "2026-05-18T00:00:00Z",
-    "purpose": "Defines the machine-checkable bar for closing the planning phase before implementation begins."
+    "purpose": "Defines absorbed planning-closure evidence requirements. After masterplan v2 Sub-AC 1, this file is provenance only; live plan authority and work-item IDs resolve through /specs/masterplan.json#masterplan_v2.",
+    "absorbed_by": "/specs/masterplan.json#masterplan_v2",
+    "work_item_id_policy": "no-live-work-item-ids"
   },
   "implementation_start_rule": {
     "claim_status": "blocked_until_planning_closure_gate_green",
@@ -24,13 +26,13 @@
   },
   "master_plan_authority": {
     "current_path": "/specs/masterplan.json",
+    "canonical_fragment": "/specs/masterplan.json#masterplan_v2",
+    "this_file_status": "absorbed-provenance-not-live-plan-authority",
     "human_compatibility_projection": "docs/MASTERPLAN.md",
-    "stale_projection_policy": "Markdown master-plan prose is compatibility context only; implementation sequencing and readiness claims resolve through machine-readable specs, registries, ADRs, and gates.",
+    "stale_projection_policy": "Markdown master-plan prose and this closure contract are compatibility/provenance context only; implementation sequencing, live work-item IDs, and readiness claims resolve through /specs/masterplan.json#masterplan_v2.",
     "required_gate_inputs": [
       "/specs/root-hub-pointers.json",
       "/specs/masterplan.json",
-      "/specs/master-plan-sequencing.json",
-      "/specs/planning-closure-contract.json",
       "docs/decisions/ADR-0217-vertical-slice-rollout-order.md"
     ]
   },

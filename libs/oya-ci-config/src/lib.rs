@@ -1779,7 +1779,7 @@ face = "total_accounting"
         assert!(n.catalog_liveness.workspace_member_exemptions.is_empty());
         assert!(n.cross_artifact.sources.is_empty());
         // gates present (engine still dispatches) but disposition is empty (quiet).
-        assert_eq!(n.gates.enabled.len(), 14, "gates present");
+        assert_eq!(n.gates.enabled.len(), 15, "gates present");
         let disp: serde_json::Value =
             serde_json::from_str(n.gates.disposition_json()).expect("neutral disposition json");
         assert_eq!(
