@@ -6089,6 +6089,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-ci-gate-contract"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "oya-ci-materializer-kernel"
 version = "0.1.0"
 dependencies = [
@@ -6275,6 +6283,13 @@ dependencies = [
 
 [[package]]
 name = "oya-cloud-ci-cedar-deploy-parity-app"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "oya-cloud-ci-cell-topology-manifest-contract-app"
 version = "0.1.0"
 dependencies = [
  "serde_json",

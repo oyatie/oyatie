@@ -209,7 +209,8 @@ mod tests {
         let (mut ca, ca_signer) = real_ca();
         let wl_signer = EcdsaP256Signer::generate().unwrap();
         let wl_key = KeyPair::new(wl_signer.private_key_der(), wl_signer.public_key_spki_der());
-        let csr = CertificateSigningRequest::for_workload("secrets-sync", SPIFFE_URI, &wl_key, 3_600);
+        let csr =
+            CertificateSigningRequest::for_workload("secrets-sync", SPIFFE_URI, &wl_key, 3_600);
         let leaf = ca.sign_csr(&csr, 2_000).unwrap();
 
         let der = encode_leaf_der(&leaf, &wl_signer, ca.certificate(), &ca_signer).unwrap();
@@ -234,7 +235,8 @@ mod tests {
         let (mut ca, ca_signer) = real_ca();
         let wl_signer = EcdsaP256Signer::generate().unwrap();
         let wl_key = KeyPair::new(wl_signer.private_key_der(), wl_signer.public_key_spki_der());
-        let csr = CertificateSigningRequest::for_workload("secrets-sync", SPIFFE_URI, &wl_key, 3_600);
+        let csr =
+            CertificateSigningRequest::for_workload("secrets-sync", SPIFFE_URI, &wl_key, 3_600);
         let leaf = ca.sign_csr(&csr, 2_000).unwrap();
 
         let issued = issue_der(&leaf, &wl_signer, ca.certificate(), &ca_signer).unwrap();
@@ -244,9 +246,11 @@ mod tests {
             x509_parser::certificate::X509Certificate::from_der(&issued.ca_der).unwrap();
 
         // The real leaf signature verifies against the real CA public key.
-        assert!(leaf_parsed
-            .verify_signature(Some(ca_parsed.public_key()))
-            .is_ok());
+        assert!(
+            leaf_parsed
+                .verify_signature(Some(ca_parsed.public_key()))
+                .is_ok()
+        );
 
         // Flip a byte in the DER -> real signature no longer verifies (not a MAC).
         let mut tampered = issued.leaf_der.clone();
