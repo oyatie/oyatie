@@ -250,6 +250,75 @@ fn masterplan_v2_program_coverage_contract_is_green() {
         findings.is_empty(),
         "masterplan v2 program coverage must cover every manifest-index microservice: {findings:?}"
     );
+
+    // Machine-checked coverage audit: exact set equality between the manifest
+    // index enumerated at consolidation time and the program-sharded coverage
+    // rows — no enumerated surface may be missing and no phantom row may exist.
+    let coverage = &masterplan["masterplan_v2"]["program_coverage"];
+    let covered: BTreeSet<&str> = coverage["microservices"]
+        .as_array()
+        .expect("program_coverage.microservices must be an array")
+        .iter()
+        .filter_map(|entry| entry["microservice"].as_str())
+        .collect();
+    let indexed: BTreeSet<&str> = manifest_index["microservices"]
+        .as_array()
+        .expect("manifest index microservices must be an array")
+        .iter()
+        .filter_map(|entry| entry["name"].as_str())
+        .collect();
+    assert_eq!(
+        covered, indexed,
+        "program coverage must be exact set coverage over /specs/microservices/manifests-index.json at consolidation time"
+    );
+
+    // The ADR-0537 owned-stack ladder must be covered rung-for-rung in order.
+    let rung_layers: Vec<&str> = coverage["owned_stack_ladder"]["rungs"]
+        .as_array()
+        .expect("program_coverage.owned_stack_ladder.rungs must be an array")
+        .iter()
+        .filter_map(|rung| rung["layer"].as_str())
+        .collect();
+    assert_eq!(
+        rung_layers,
+        [
+            "cloud-kernel",
+            "cloud-os",
+            "cloud-k8s",
+            "cloud-services",
+            "products"
+        ],
+        "owned-stack ladder coverage must enumerate every ADR-0537 rung in ladder order"
+    );
+
+    // Pillar and program shards the consolidation must explicitly carry.
+    let program_ids: BTreeSet<&str> = masterplan["masterplan_v2"]["programs"]
+        .as_array()
+        .expect("masterplan_v2.programs must be an array")
+        .iter()
+        .filter_map(|program| program["id"].as_str())
+        .collect();
+    for required in [
+        "P-FD001-PRODUCT-SURFACES",
+        "P-ONTOLOGY",
+        "P-WORKFLOW-ENGINE",
+        "P-WORKFLOW-STUDIO",
+        "P-INTELLIGENCE",
+        "P-OWNED-STACK-KERNEL",
+        "P-OWNED-STACK-OS",
+        "P-OWNED-STACK-K8S",
+        "P-OWNED-STACK-CLOUD",
+        "P-OWNED-STACK-DURABILITY",
+        "P-OWNED-STACK-GOVERNANCE-IAM-CONSOLE",
+        "P-REORG",
+        "P-AST-CODE-GRAPH",
+        "P-FABRIC",
+    ] {
+        assert!(
+            program_ids.contains(required),
+            "missing required program shard {required}"
+        );
+    }
 }
 
 #[test]

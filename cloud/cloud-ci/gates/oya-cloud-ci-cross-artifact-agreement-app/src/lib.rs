@@ -46,8 +46,10 @@
 //!   malformed, points at a missing work item, lacks the prerequisite→dependent
 //!   direction contract, or participates in a cycle.
 //! - `masterplan_program_coverage_incomplete` — masterplan v2 lacks a complete
-//!   program-sharded coverage proof for the microservice manifest index or the
-//!   required ontology/workflow/intelligence/owned-stack/reorg/AST/fabric shards.
+//!   program-sharded coverage proof for the microservice manifest index, the
+//!   required ontology/workflow/intelligence/owned-stack/reorg/AST/fabric shards,
+//!   or the ADR-0537 owned-stack ladder (cloud-kernel → cloud-os → cloud-k8s →
+//!   cloud-services → products).
 //! - `masterplan_evidence_state_invalid` — a Hermes done-card completion
 //!   claim without attached evidence is not projected as claimed-done-unverified,
 //!   or a masterplan completion status lacks evidence references.
@@ -68,6 +70,7 @@
 //!   zero-based, DAG-derived sequencing projection over every live work item.
 //! - `masterplan_execution_wave_dispatch_unratified` — execution-wave dispatch
 //!   is not fail-closed on an explicit founder-ratification decision.
+//!
 //! The evaluator is pure: the fixture (data-under-test) drives it; there are no scanner
 //! special-cases. Carve-outs/exceptions live as DATA, never as evaluator branches.
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic.
@@ -109,10 +112,22 @@ const REQUIRED_PROGRAM_CLASSES: [&str; 8] = [
     "ast-code-graph",
     "fabric",
 ];
-const REQUIRED_OWNED_STACK_LAYERS: [&str; 3] = [
-    "cloud-substrate",
+const REQUIRED_OWNED_STACK_LAYERS: [&str; 6] = [
+    "cloud-kernel",
+    "cloud-os",
+    "cloud-k8s",
+    "cloud-services",
     "durability-plane",
     "governance-iam-console",
+];
+/// The ADR-0537 §3 owned-stack ladder in fixed rung order: kuberos kernel →
+/// cloud-os → cloud-k8s → cloud services → oyatie products.
+const REQUIRED_OWNED_STACK_LADDER_RUNGS: [&str; 5] = [
+    "cloud-kernel",
+    "cloud-os",
+    "cloud-k8s",
+    "cloud-services",
+    "products",
 ];
 const MASTERPLAN_V2_REF: &str = "/specs/masterplan.json#masterplan_v2";
 const DISPOSITION_CANONICAL_AUTHORITY: &str = "canonical-authority";
@@ -1471,11 +1486,13 @@ fn expect_bool_field(
 /// Evaluate the masterplan v2 program-sharded coverage proof against the
 /// microservice manifest index.
 ///
-/// This is the Sub-AC 3 guard: every microservice named by
+/// This is the Sub-AC 2/3 guard: every microservice named by
 /// `/specs/microservices/manifests-index.json` must be assigned to an existing
-/// masterplan program shard, and the consolidation must explicitly carry the
+/// masterplan program shard, the consolidation must explicitly carry the
 /// ontology, workflow-engine, workflow-studio, intelligence, owned-stack, reorg,
-/// AST code-graph, and fabric program classes.
+/// AST code-graph, and fabric program classes, and the ADR-0537 owned-stack
+/// ladder (cloud-kernel → cloud-os → cloud-k8s → cloud-services → products)
+/// must map every rung to known covering program shards.
 pub fn evaluate_masterplan_v2_program_coverage(
     masterplan: &Value,
     manifest_index: &Value,
@@ -1502,6 +1519,7 @@ pub fn evaluate_masterplan_v2_program_coverage(
         &program_ids,
         &mut findings,
     );
+    evaluate_owned_stack_ladder(v2.get("program_coverage"), &program_ids, &mut findings);
 
     findings
 }
@@ -1849,22 +1867,20 @@ fn evaluate_sequence_respects_dependencies(
             continue;
         };
         if let (Some(from_pos), Some(to_pos)) = (order_positions.get(from), order_positions.get(to))
+            && from_pos >= to_pos
         {
-            if from_pos >= to_pos {
-                findings.insert(Finding::new(
-                    "masterplan_sequencing_invalid",
-                    &format!("{from}->{to}@masterplan_v2.sequencing.work_item_order[{index}]"),
-                ));
-            }
+            findings.insert(Finding::new(
+                "masterplan_sequencing_invalid",
+                &format!("{from}->{to}@masterplan_v2.sequencing.work_item_order[{index}]"),
+            ));
         }
         if let (Some(from_wave), Some(to_wave)) = (wave_positions.get(from), wave_positions.get(to))
+            && from_wave >= to_wave
         {
-            if from_wave >= to_wave {
-                findings.insert(Finding::new(
-                    "masterplan_sequencing_invalid",
-                    &format!("{from}->{to}@masterplan_v2.sequencing.execution_waves[{index}]"),
-                ));
-            }
+            findings.insert(Finding::new(
+                "masterplan_sequencing_invalid",
+                &format!("{from}->{to}@masterplan_v2.sequencing.execution_waves[{index}]"),
+            ));
         }
     }
 }
@@ -2605,6 +2621,117 @@ fn evaluate_microservice_manifest_coverage(
     }
 }
 
+fn evaluate_owned_stack_ladder(
+    program_coverage: Option<&Value>,
+    program_ids: &BTreeMap<String, String>,
+    findings: &mut BTreeSet<Finding>,
+) {
+    let Some(ladder) = program_coverage.and_then(|value| value.get("owned_stack_ladder")) else {
+        findings.insert(Finding::new(
+            "masterplan_program_coverage_incomplete",
+            "<missing-owned-stack-ladder>",
+        ));
+        return;
+    };
+
+    if !non_empty_string_array(ladder.get("doctrine_refs")) {
+        findings.insert(Finding::new(
+            "masterplan_program_coverage_incomplete",
+            "owned_stack_ladder.doctrine_refs",
+        ));
+    }
+
+    let Some(rungs) = ladder.get("rungs").and_then(Value::as_array) else {
+        findings.insert(Finding::new(
+            "masterplan_program_coverage_incomplete",
+            "<missing-owned-stack-ladder-rungs>",
+        ));
+        return;
+    };
+    if rungs.len() != REQUIRED_OWNED_STACK_LADDER_RUNGS.len() {
+        findings.insert(Finding::new(
+            "masterplan_program_coverage_incomplete",
+            "owned_stack_ladder.rungs@count",
+        ));
+    }
+
+    let mut seen_layers: BTreeSet<String> = BTreeSet::new();
+    for (index, rung) in rungs.iter().enumerate() {
+        let Some(layer) = non_empty_field(rung, "layer") else {
+            findings.insert(Finding::new(
+                "masterplan_program_coverage_incomplete",
+                &format!("owned_stack_ladder.rungs[{index}].layer"),
+            ));
+            continue;
+        };
+        let key = format!("owned_stack_ladder:{layer}");
+        if !seen_layers.insert(layer.to_owned()) {
+            findings.insert(Finding::new(
+                "masterplan_program_coverage_incomplete",
+                &format!("{key}@duplicate"),
+            ));
+        }
+        if REQUIRED_OWNED_STACK_LADDER_RUNGS.get(index).copied() != Some(layer) {
+            findings.insert(Finding::new(
+                "masterplan_program_coverage_incomplete",
+                &format!("{key}@ladder-order"),
+            ));
+        }
+        if rung.get("rung").and_then(Value::as_u64) != Some(index as u64) {
+            findings.insert(Finding::new(
+                "masterplan_program_coverage_incomplete",
+                &format!("{key}@rung-index"),
+            ));
+        }
+        if !non_empty_string_array(rung.get("source_anchors")) {
+            findings.insert(Finding::new(
+                "masterplan_program_coverage_incomplete",
+                &format!("{key}.source_anchors"),
+            ));
+        }
+        let Some(covering) = rung.get("program_ids").and_then(Value::as_array) else {
+            findings.insert(Finding::new(
+                "masterplan_program_coverage_incomplete",
+                &format!("{key}.program_ids"),
+            ));
+            continue;
+        };
+        if covering.is_empty() {
+            findings.insert(Finding::new(
+                "masterplan_program_coverage_incomplete",
+                &format!("{key}.program_ids"),
+            ));
+        }
+        for program_id in covering {
+            let Some(program_id) = program_id
+                .as_str()
+                .map(str::trim)
+                .filter(|value| !value.is_empty())
+            else {
+                findings.insert(Finding::new(
+                    "masterplan_program_coverage_incomplete",
+                    &format!("{key}@malformed-program-id"),
+                ));
+                continue;
+            };
+            if !program_ids.contains_key(program_id) {
+                findings.insert(Finding::new(
+                    "masterplan_program_coverage_incomplete",
+                    &format!("{key}@unknown-program:{program_id}"),
+                ));
+            }
+        }
+    }
+
+    for layer in REQUIRED_OWNED_STACK_LADDER_RUNGS {
+        if !seen_layers.contains(layer) {
+            findings.insert(Finding::new(
+                "masterplan_program_coverage_incomplete",
+                &format!("owned_stack_ladder:{layer}"),
+            ));
+        }
+    }
+}
 fn indexed_manifest_microservices(
     manifest_index: &Value,
     findings: &mut BTreeSet<Finding>,
@@ -3917,6 +4044,41 @@ mod tests {
             "microservice:workflow-studio"
         )));
     }
+    #[test]
+    fn masterplan_v2_program_coverage_rejects_broken_owned_stack_ladder() {
+        // Missing ladder entirely.
+        let mut missing = minimal_program_coverage_masterplan();
+        missing["masterplan_v2"]["program_coverage"]
+            .as_object_mut()
+            .unwrap()
+            .remove("owned_stack_ladder");
+        let findings = evaluate_masterplan_v2_program_coverage(&missing, &minimal_manifest_index());
+        assert!(findings.contains(&Finding::new(
+            "masterplan_program_coverage_incomplete",
+            "<missing-owned-stack-ladder>"
+        )));
+
+        // Dropped rung plus an unknown covering program.
+        let mut broken = minimal_program_coverage_masterplan();
+        let rungs = broken["masterplan_v2"]["program_coverage"]["owned_stack_ladder"]["rungs"]
+            .as_array_mut()
+            .unwrap();
+        rungs.retain(|rung| rung.get("layer").and_then(Value::as_str) != Some("cloud-os"));
+        rungs[0]["program_ids"] = json!(["P-UNKNOWN"]);
+        let findings = evaluate_masterplan_v2_program_coverage(&broken, &minimal_manifest_index());
+        assert!(findings.contains(&Finding::new(
+            "masterplan_program_coverage_incomplete",
+            "owned_stack_ladder:cloud-os"
+        )));
+        assert!(findings.contains(&Finding::new(
+            "masterplan_program_coverage_incomplete",
+            "owned_stack_ladder:cloud-kernel@unknown-program:P-UNKNOWN"
+        )));
+        assert!(findings.contains(&Finding::new(
+            "masterplan_program_coverage_incomplete",
+            "owned_stack_ladder.rungs@count"
+        )));
+    }
 
     #[test]
     fn masterplan_v2_projection_freshness_accepts_generated_and_read_projection_coverage() {
@@ -4206,7 +4368,10 @@ mod tests {
             minimal_program("P-WORKFLOW-ENGINE", "workflow-engine"),
             minimal_program("P-WORKFLOW-STUDIO", "workflow-studio"),
             minimal_program("P-INTELLIGENCE", "intelligence"),
-            minimal_owned_stack_program("P-OWNED-STACK-CLOUD", "cloud-substrate"),
+            minimal_owned_stack_program("P-OWNED-STACK-KERNEL", "cloud-kernel"),
+            minimal_owned_stack_program("P-OWNED-STACK-OS", "cloud-os"),
+            minimal_owned_stack_program("P-OWNED-STACK-K8S", "cloud-k8s"),
+            minimal_owned_stack_program("P-OWNED-STACK-CLOUD", "cloud-services"),
             minimal_owned_stack_program("P-OWNED-STACK-DURABILITY", "durability-plane"),
             minimal_owned_stack_program("P-OWNED-STACK-GOVIAM", "governance-iam-console"),
             minimal_program("P-REORG", "reorg"),
@@ -4226,10 +4391,57 @@ mod tests {
                 "fabric"
             ],
             "required_owned_stack_layers": [
-                "cloud-substrate",
+                "cloud-kernel",
+                "cloud-os",
+                "cloud-k8s",
+                "cloud-services",
                 "durability-plane",
                 "governance-iam-console"
             ],
+            "owned_stack_ladder": {
+                "doctrine_refs": ["ADR-0520", "ADR-0536", "ADR-0537"],
+                "rungs": [
+                    {
+                        "rung": 0,
+                        "layer": "cloud-kernel",
+                        "program_ids": ["P-OWNED-STACK-KERNEL"],
+                        "source_anchors": ["cloud/cloud-kernel"]
+                    },
+                    {
+                        "rung": 1,
+                        "layer": "cloud-os",
+                        "program_ids": ["P-OWNED-STACK-OS"],
+                        "source_anchors": ["cloud/cloud-os"]
+                    },
+                    {
+                        "rung": 2,
+                        "layer": "cloud-k8s",
+                        "program_ids": ["P-OWNED-STACK-K8S"],
+                        "source_anchors": ["k8s"]
+                    },
+                    {
+                        "rung": 3,
+                        "layer": "cloud-services",
+                        "program_ids": [
+                            "P-OWNED-STACK-CLOUD",
+                            "P-OWNED-STACK-DURABILITY",
+                            "P-OWNED-STACK-GOVIAM"
+                        ],
+                        "source_anchors": ["cloud"]
+                    },
+                    {
+                        "rung": 4,
+                        "layer": "products",
+                        "program_ids": [
+                            "P-ONTOLOGY",
+                            "P-WORKFLOW-ENGINE",
+                            "P-WORKFLOW-STUDIO",
+                            "P-INTELLIGENCE"
+                        ],
+                        "source_anchors": ["oya"]
+                    }
+                ]
+            },
             "microservices": [
                 {
                     "microservice": "ontology",
