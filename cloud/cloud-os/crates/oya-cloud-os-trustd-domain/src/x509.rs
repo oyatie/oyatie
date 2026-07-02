@@ -313,7 +313,10 @@ pub fn is_valid_uri(uri: &str) -> bool {
         || !scheme
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || c == '+' || c == '-' || c == '.')
-        || !scheme.chars().next().is_some_and(|c| c.is_ascii_alphabetic())
+        || !scheme
+            .chars()
+            .next()
+            .is_some_and(|c| c.is_ascii_alphabetic())
     {
         return false;
     }
