@@ -1,7 +1,7 @@
 rust_library(
-    name = "oya-shared-pdp-adapter-cedar",
+    name = "iam-pdp-cedar",
     srcs = glob(["src/**/*.rs"]),
-    crate = "oya_shared_pdp_adapter_cedar",
+    crate = "iam_pdp_cedar",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -17,13 +17,13 @@ rust_library(
 )
 
 rust_test(
-    name = "oya-shared-pdp-adapter-cedar-conformance",
+    name = "iam-pdp-cedar-conformance",
     srcs = glob(["tests/**/*.rs", "cedar/**"]),
     crate = "cedar_pdp_conformance",
     crate_root = "tests/cedar_pdp_conformance.rs",
     visibility = ["PUBLIC"],
     deps = [
-        ":oya-shared-pdp-adapter-cedar",
+        ":iam-pdp-cedar",
         "//audit/adapters/file:audit-file-adapter",
         "//audit/core/chain-domain:audit-chain-domain",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",

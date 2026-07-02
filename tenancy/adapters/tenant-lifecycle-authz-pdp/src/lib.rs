@@ -3,7 +3,7 @@
 //! PDP-backed adapter for the tenancy authorization port (AUTH-005,
 //! ADR-0564 D7). Implements [`TenantLifecycleAuthorizer`] by DOGFOODING the
 //! repo's own embedded Cedar PDP substrate — `oya-shared-pdp-kernel`'s
-//! [`PolicyDecisionPoint`] port realized by `oya-shared-pdp-adapter-cedar`'s
+//! [`PolicyDecisionPoint`] port realized by `iam-pdp-cedar`'s
 //! `CedarPdp` (ADR-0536 D-2; cloud-iam is the IdP/PDP per ADR-0559). The
 //! tenancy service is therefore a Policy Enforcement Point over the SAME
 //! formally-verified Cedar engine cloud-iam ships, not a parallel authz stack.
@@ -36,7 +36,7 @@ use std::fmt;
 use std::sync::Arc;
 use std::time::Duration;
 
-use oya_shared_pdp_adapter_cedar::CedarPdp;
+use iam_pdp_cedar::CedarPdp;
 use oya_shared_pdp_kernel::{
     EntityRecord, EntitySlice, PdpError, PolicyBundle, PolicyDecisionPoint,
 };

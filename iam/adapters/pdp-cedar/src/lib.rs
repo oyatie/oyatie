@@ -1,4 +1,4 @@
-//! # oya-shared-pdp-adapter-cedar
+//! # iam-pdp-cedar
 //!
 //! Embedded cedar-policy PDP adapter for FD-001 (story G004, ADR-0536 D-2).
 //!
