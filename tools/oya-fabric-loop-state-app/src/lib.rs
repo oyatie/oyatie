@@ -73,6 +73,11 @@ pub const DEFAULT_DURABLE_PLANE_ROOT: &str = "plan/fabric-loop";
 /// Default repo-adjacent, gitignored root of the operational execution plane.
 pub const DEFAULT_OPERATIONAL_PLANE_ROOT: &str = ".oya-loop-state";
 
+/// Default in-repo, PR-governed root of the per-pass flow-metrics ledger
+/// (closed-loop improvement layer of the ADR-0516 drive loop; rides the
+/// durable coordination plane, coordinator-only commits).
+pub const DEFAULT_FLOW_METRICS_ROOT: &str = "plan/fabric-loop/flow-metrics";
+
 /// The named owned cloud-ci cutover target as a typed record. Every port
 /// implementation reports this via the defaulted
 /// [`CoordinationPlanePort::cutover_target`] /
@@ -151,6 +156,21 @@ pub enum PlaneError {
         /// Human-readable refusal detail.
         detail: String,
     },
+    /// A flow-metrics pass was recorded out of order (the ledger is
+    /// append-only with a strictly monotonic pass sequence).
+    NonMonotonicPass {
+        /// The refused pass sequence number.
+        pass_seq: u64,
+        /// The latest recorded pass sequence number (0 when none).
+        latest_recorded: u64,
+    },
+    /// A flow-metrics record failed mechanical validation.
+    InvalidMetrics {
+        /// The pass or card the record belongs to.
+        subject: String,
+        /// Human-readable refusal detail.
+        detail: String,
+    },
 }
 
 impl fmt::Display for PlaneError {
@@ -178,6 +198,16 @@ impl fmt::Display for PlaneError {
             }
             Self::InvalidTransition { card_id, detail } => {
                 write!(f, "card {card_id}: invalid transition: {detail}")
+            }
+            Self::NonMonotonicPass {
+                pass_seq,
+                latest_recorded,
+            } => write!(
+                f,
+                "flow-metrics pass {pass_seq} is not after latest recorded pass {latest_recorded}"
+            ),
+            Self::InvalidMetrics { subject, detail } => {
+                write!(f, "invalid flow metrics for {subject}: {detail}")
             }
         }
     }
@@ -360,6 +390,117 @@ pub struct RunRecord {
     pub updated_at_epoch_s: u64,
 }
 
+/// Raw per-card timeline observed during one dispatch pass, from which the
+/// per-card flow metrics derive mechanically (no judgment).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CardFlowTimeline {
+    /// The measured card (single MPV2 ID space).
+    pub card_id: String,
+    /// The lane that drove the card.
+    pub lane_id: String,
+    /// When the lane claimed the card (unix seconds).
+    pub claimed_at_epoch_s: u64,
+    /// When review was requested (unix seconds).
+    pub review_requested_at_epoch_s: u64,
+    /// When the first review verdict landed (unix seconds).
+    pub review_first_verdict_at_epoch_s: u64,
+    /// When completion was recorded (unix seconds).
+    pub completed_at_epoch_s: u64,
+    /// Total review rounds driven (>= 1; round 1 is not rework).
+    pub review_rounds: u64,
+}
+
+/// Per-card flow metrics measured within one dispatch pass (closed-loop
+/// improvement layer): cycle time, review latency, and rework count.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CardFlowMetrics {
+    /// The measured card.
+    pub card_id: String,
+    /// The lane that drove the card.
+    pub lane_id: String,
+    /// Claim -> completion wall time (seconds).
+    pub cycle_time_s: u64,
+    /// Review request -> first verdict wall time (seconds).
+    pub review_latency_s: u64,
+    /// Review rounds beyond the first (each extra round is one rework).
+    pub rework_count: u64,
+}
+
+impl CardFlowMetrics {
+    /// Derive the metrics from a raw timeline. Fails closed on inverted
+    /// timestamps or a zero review-round count.
+    pub fn derive(timeline: &CardFlowTimeline) -> Result<Self, PlaneError> {
+        validate_id(&timeline.card_id)?;
+        validate_id(&timeline.lane_id)?;
+        let invalid = |detail: &str| PlaneError::InvalidMetrics {
+            subject: timeline.card_id.clone(),
+            detail: detail.to_owned(),
+        };
+        if timeline.review_rounds == 0 {
+            return Err(invalid("review_rounds must be >= 1"));
+        }
+        if timeline.review_requested_at_epoch_s < timeline.claimed_at_epoch_s {
+            return Err(invalid("review requested before claim"));
+        }
+        if timeline.review_first_verdict_at_epoch_s < timeline.review_requested_at_epoch_s {
+            return Err(invalid("review verdict before review request"));
+        }
+        if timeline.completed_at_epoch_s < timeline.claimed_at_epoch_s {
+            return Err(invalid("completion before claim"));
+        }
+        if timeline.completed_at_epoch_s < timeline.review_first_verdict_at_epoch_s {
+            return Err(invalid("completion before first review verdict"));
+        }
+        Ok(Self {
+            card_id: timeline.card_id.clone(),
+            lane_id: timeline.lane_id.clone(),
+            cycle_time_s: timeline.completed_at_epoch_s - timeline.claimed_at_epoch_s,
+            review_latency_s: timeline.review_first_verdict_at_epoch_s
+                - timeline.review_requested_at_epoch_s,
+            rework_count: timeline.review_rounds - 1,
+        })
+    }
+}
+
+/// Flow metrics of one dispatch pass. Recorded on EVERY pass — including idle
+/// passes with zero measured cards (constant-work: the recording load is the
+/// same idle or peak) — as an append-only, strictly monotonic ledger.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PassFlowMetrics {
+    /// 1-based, strictly increasing dispatch-pass sequence number.
+    pub pass_seq: u64,
+    /// Recording time (unix seconds).
+    pub recorded_at_epoch_s: u64,
+    /// Per-card metrics measured in this pass.
+    pub cards: Vec<CardFlowMetrics>,
+}
+
+impl PassFlowMetrics {
+    /// Number of cards measured in this pass.
+    #[must_use]
+    pub fn cards_measured(&self) -> u64 {
+        u64::try_from(self.cards.len()).unwrap_or(u64::MAX)
+    }
+
+    /// Total rework count across the pass.
+    #[must_use]
+    pub fn total_rework_count(&self) -> u64 {
+        self.cards.iter().map(|c| c.rework_count).sum()
+    }
+
+    /// Worst per-card cycle time in the pass (`None` when idle).
+    #[must_use]
+    pub fn max_cycle_time_s(&self) -> Option<u64> {
+        self.cards.iter().map(|c| c.cycle_time_s).max()
+    }
+
+    /// Worst per-card review latency in the pass (`None` when idle).
+    #[must_use]
+    pub fn max_review_latency_s(&self) -> Option<u64> {
+        self.cards.iter().map(|c| c.review_latency_s).max()
+    }
+}
+
 /// Which plane a port serves.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PlaneKind {
@@ -453,6 +594,34 @@ pub trait ExecutionPlanePort {
     }
 }
 
+/// Per-pass flow-metrics port (closed-loop improvement layer). The metrics
+/// ledger rides the durable coordination plane (in-repo, PR-governed,
+/// coordinator-only commits) and models the same owned cloud-ci-native
+/// destination ([`CutoverTarget::canonical`]); the filesystem bridge adapter
+/// is transient behind this trait.
+pub trait FlowMetricsPort {
+    /// Append one dispatch-pass record. The ledger is append-only and
+    /// strictly monotonic: `pass.pass_seq` MUST be greater than the latest
+    /// recorded sequence, or the write fails with
+    /// [`PlaneError::NonMonotonicPass`].
+    fn record_pass(&mut self, pass: &PassFlowMetrics) -> Result<(), PlaneError>;
+    /// Read one pass by sequence number.
+    fn pass(&self, pass_seq: u64) -> Result<Option<PassFlowMetrics>, PlaneError>;
+    /// Read all passes, ordered by `pass_seq`.
+    fn passes(&self) -> Result<Vec<PassFlowMetrics>, PlaneError>;
+    /// The latest recorded pass, if any.
+    fn latest_pass(&self) -> Result<Option<PassFlowMetrics>, PlaneError> {
+        Ok(self.passes()?.into_iter().next_back())
+    }
+    /// Describe the backing store.
+    fn descriptor(&self) -> PlaneDescriptor;
+    /// The named owned cloud-ci cutover target this port models. The default
+    /// is the canonical record; implementations MUST NOT diverge from it.
+    fn cutover_target(&self) -> CutoverTarget {
+        CutoverTarget::canonical()
+    }
+}
+
 /// Filesystem-safe id contract shared by card and lane ids: 1..=128 chars of
 /// `[A-Za-z0-9._-]`, not starting with `.` (defends the bridge adapters
 /// against path traversal and dotfile shadowing).
@@ -482,6 +651,30 @@ fn ensure_owned(
             holder_lane: claim.lane_id.clone(),
         }),
     }
+}
+
+/// Shared fail-closed validation of one pass record against the ledger head.
+/// Every adapter calls this, so no write path can bypass the contract.
+fn validate_pass_record(pass: &PassFlowMetrics, latest_recorded: u64) -> Result<(), PlaneError> {
+    if pass.pass_seq == 0 || pass.pass_seq <= latest_recorded {
+        return Err(PlaneError::NonMonotonicPass {
+            pass_seq: pass.pass_seq,
+            latest_recorded,
+        });
+    }
+    let mut seen: Vec<&str> = Vec::with_capacity(pass.cards.len());
+    for card in &pass.cards {
+        validate_id(&card.card_id)?;
+        validate_id(&card.lane_id)?;
+        if seen.contains(&card.card_id.as_str()) {
+            return Err(PlaneError::InvalidMetrics {
+                subject: format!("pass-{}", pass.pass_seq),
+                detail: format!("duplicate card {} in one pass", card.card_id),
+            });
+        }
+        seen.push(&card.card_id);
+    }
+    Ok(())
 }
 
 // ---------------------------------------------------------------------------
@@ -999,6 +1192,65 @@ impl RunRecord {
     }
 }
 
+impl CardFlowMetrics {
+    fn to_json(&self) -> JsonValue {
+        JsonValue::Obj(vec![
+            ("card_id".into(), JsonValue::Str(self.card_id.clone())),
+            ("lane_id".into(), JsonValue::Str(self.lane_id.clone())),
+            ("cycle_time_s".into(), JsonValue::Num(self.cycle_time_s)),
+            (
+                "review_latency_s".into(),
+                JsonValue::Num(self.review_latency_s),
+            ),
+            ("rework_count".into(), JsonValue::Num(self.rework_count)),
+        ])
+    }
+
+    fn from_json(value: &JsonValue) -> Result<Self, PlaneError> {
+        Ok(Self {
+            card_id: str_field(value, "card_id")?,
+            lane_id: str_field(value, "lane_id")?,
+            cycle_time_s: num_field(value, "cycle_time_s")?,
+            review_latency_s: num_field(value, "review_latency_s")?,
+            rework_count: num_field(value, "rework_count")?,
+        })
+    }
+}
+
+impl PassFlowMetrics {
+    /// Canonical JSON projection.
+    #[must_use]
+    pub fn to_json(&self) -> JsonValue {
+        JsonValue::Obj(vec![
+            ("pass_seq".into(), JsonValue::Num(self.pass_seq)),
+            (
+                "recorded_at_epoch_s".into(),
+                JsonValue::Num(self.recorded_at_epoch_s),
+            ),
+            (
+                "cards".into(),
+                JsonValue::Arr(self.cards.iter().map(CardFlowMetrics::to_json).collect()),
+            ),
+        ])
+    }
+
+    /// Decode the canonical JSON projection.
+    pub fn from_json(value: &JsonValue) -> Result<Self, PlaneError> {
+        let cards = value
+            .get("cards")
+            .and_then(JsonValue::as_arr)
+            .ok_or_else(|| PlaneError::Corrupt("missing array field \"cards\"".into()))?
+            .iter()
+            .map(CardFlowMetrics::from_json)
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(Self {
+            pass_seq: num_field(value, "pass_seq")?,
+            recorded_at_epoch_s: num_field(value, "recorded_at_epoch_s")?,
+            cards,
+        })
+    }
+}
+
 // ---------------------------------------------------------------------------
 // In-memory adapters (test doubles / spy bases)
 // ---------------------------------------------------------------------------
@@ -1139,6 +1391,45 @@ impl ExecutionPlanePort for InMemoryExecutionStore {
         PlaneDescriptor {
             plane: PlaneKind::Execution,
             durability: PlaneDurability::RepoAdjacentGitignored,
+            store_root: "<in-memory>".into(),
+        }
+    }
+}
+
+/// In-memory flow-metrics adapter (test double).
+#[derive(Debug, Default)]
+pub struct InMemoryFlowMetricsStore {
+    passes: BTreeMap<u64, PassFlowMetrics>,
+}
+
+impl InMemoryFlowMetricsStore {
+    /// Empty store.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl FlowMetricsPort for InMemoryFlowMetricsStore {
+    fn record_pass(&mut self, pass: &PassFlowMetrics) -> Result<(), PlaneError> {
+        let latest = self.passes.keys().next_back().copied().unwrap_or(0);
+        validate_pass_record(pass, latest)?;
+        self.passes.insert(pass.pass_seq, pass.clone());
+        Ok(())
+    }
+
+    fn pass(&self, pass_seq: u64) -> Result<Option<PassFlowMetrics>, PlaneError> {
+        Ok(self.passes.get(&pass_seq).cloned())
+    }
+
+    fn passes(&self) -> Result<Vec<PassFlowMetrics>, PlaneError> {
+        Ok(self.passes.values().cloned().collect())
+    }
+
+    fn descriptor(&self) -> PlaneDescriptor {
+        PlaneDescriptor {
+            plane: PlaneKind::Coordination,
+            durability: PlaneDurability::InRepoPrGoverned,
             store_root: "<in-memory>".into(),
         }
     }
@@ -1384,6 +1675,82 @@ impl ExecutionPlanePort for FsExecutionStore {
         PlaneDescriptor {
             plane: PlaneKind::Execution,
             durability: PlaneDurability::RepoAdjacentGitignored,
+            store_root: self.root.display().to_string(),
+        }
+    }
+}
+
+/// Filesystem bridge adapter for the per-pass flow-metrics ledger. LOCAL
+/// BRIDGE ONLY (bridge-then-retire per the port contract spec): the
+/// destination is the owned cloud-ci loop-state service named by
+/// [`CutoverTarget::canonical`]. The store root defaults to the in-repo,
+/// PR-governed [`DEFAULT_FLOW_METRICS_ROOT`] (durable coordination plane).
+#[derive(Debug)]
+pub struct FsFlowMetricsStore {
+    root: PathBuf,
+}
+
+impl FsFlowMetricsStore {
+    /// Open (lazily creating on first write) a flow-metrics store at `root`.
+    #[must_use]
+    pub fn open(root: impl Into<PathBuf>) -> Self {
+        Self { root: root.into() }
+    }
+
+    fn pass_path(&self, pass_seq: u64) -> PathBuf {
+        self.root
+            .join("passes")
+            .join(format!("pass-{pass_seq:020}.json"))
+    }
+
+    fn pass_seqs(&self) -> Result<Vec<u64>, PlaneError> {
+        let mut seqs = Vec::new();
+        for id in list_json_ids(&self.root.join("passes"))? {
+            let Some(seq) = id.strip_prefix("pass-").and_then(|s| s.parse::<u64>().ok()) else {
+                // Fail closed: a foreign or corrupt filename in the ledger
+                // directory is surfaced, never silently ignored.
+                return Err(PlaneError::Corrupt(format!(
+                    "foreign file in flow-metrics ledger: {id}.json"
+                )));
+            };
+            seqs.push(seq);
+        }
+        seqs.sort_unstable();
+        Ok(seqs)
+    }
+}
+
+impl FlowMetricsPort for FsFlowMetricsStore {
+    fn record_pass(&mut self, pass: &PassFlowMetrics) -> Result<(), PlaneError> {
+        let latest = self.pass_seqs()?.last().copied().unwrap_or(0);
+        validate_pass_record(pass, latest)?;
+        write_atomic(
+            &self.pass_path(pass.pass_seq),
+            &pass.to_json().to_canonical_string(),
+        )
+    }
+
+    fn pass(&self, pass_seq: u64) -> Result<Option<PassFlowMetrics>, PlaneError> {
+        match read_record(&self.pass_path(pass_seq))? {
+            Some(value) => Ok(Some(PassFlowMetrics::from_json(&value)?)),
+            None => Ok(None),
+        }
+    }
+
+    fn passes(&self) -> Result<Vec<PassFlowMetrics>, PlaneError> {
+        let mut passes = Vec::new();
+        for seq in self.pass_seqs()? {
+            if let Some(pass) = self.pass(seq)? {
+                passes.push(pass);
+            }
+        }
+        Ok(passes)
+    }
+
+    fn descriptor(&self) -> PlaneDescriptor {
+        PlaneDescriptor {
+            plane: PlaneKind::Coordination,
+            durability: PlaneDurability::InRepoPrGoverned,
             store_root: self.root.display().to_string(),
         }
     }
@@ -1672,6 +2039,83 @@ impl<C: CoordinationPlanePort, E: ExecutionPlanePort> LoopStateService<C, E> {
 }
 
 // ---------------------------------------------------------------------------
+// Flow-metrics facade — closed-loop improvement layer, single writer
+// ---------------------------------------------------------------------------
+
+/// Single-writer facade over the per-pass flow-metrics ledger. Generic over
+/// [`FlowMetricsPort`] and free of any I/O of its own, so every metric read
+/// and write crosses the port by construction. The coordinator records one
+/// [`PassFlowMetrics`] on EVERY dispatch pass (closed-loop improvement layer
+/// of the ADR-0516 fabric drive loop).
+#[derive(Debug)]
+pub struct FlowMetricsService<M: FlowMetricsPort> {
+    metrics: M,
+}
+
+impl<M: FlowMetricsPort> FlowMetricsService<M> {
+    /// Compose the facade over the metrics port.
+    pub fn new(metrics: M) -> Self {
+        Self { metrics }
+    }
+
+    /// The cutover target the port models (MUST equal
+    /// [`CutoverTarget::canonical`]).
+    pub fn cutover_target(&self) -> CutoverTarget {
+        self.metrics.cutover_target()
+    }
+
+    /// Descriptor of the backing store.
+    pub fn descriptor(&self) -> PlaneDescriptor {
+        self.metrics.descriptor()
+    }
+
+    /// Record an explicit pass record (append-only, strictly monotonic).
+    pub fn record_pass(&mut self, pass: &PassFlowMetrics) -> Result<(), PlaneError> {
+        self.metrics.record_pass(pass)
+    }
+
+    /// Record the next pass in sequence: derives per-card metrics from the
+    /// raw timelines mechanically and allocates `latest + 1` as the pass
+    /// sequence. Idle passes (no timelines) are still recorded.
+    pub fn record_next_pass(
+        &mut self,
+        timelines: &[CardFlowTimeline],
+        recorded_at_epoch_s: u64,
+    ) -> Result<PassFlowMetrics, PlaneError> {
+        let cards = timelines
+            .iter()
+            .map(CardFlowMetrics::derive)
+            .collect::<Result<Vec<_>, _>>()?;
+        let pass_seq = self
+            .metrics
+            .latest_pass()?
+            .map_or(1, |latest| latest.pass_seq + 1);
+        let pass = PassFlowMetrics {
+            pass_seq,
+            recorded_at_epoch_s,
+            cards,
+        };
+        self.metrics.record_pass(&pass)?;
+        Ok(pass)
+    }
+
+    /// Read one pass by sequence number.
+    pub fn pass(&self, pass_seq: u64) -> Result<Option<PassFlowMetrics>, PlaneError> {
+        self.metrics.pass(pass_seq)
+    }
+
+    /// Read all passes, ordered by sequence.
+    pub fn passes(&self) -> Result<Vec<PassFlowMetrics>, PlaneError> {
+        self.metrics.passes()
+    }
+
+    /// The latest recorded pass, if any.
+    pub fn latest_pass(&self) -> Result<Option<PassFlowMetrics>, PlaneError> {
+        self.metrics.latest_pass()
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Unit tests
 // ---------------------------------------------------------------------------
 
@@ -1824,5 +2268,114 @@ mod tests {
             "cloud/cloud-ci/crates/oya-cloud-ci-loop-state-app"
         );
         assert_eq!(target.criteria.len(), 3);
+    }
+
+    fn timeline(card_id: &str, base: u64, rounds: u64) -> CardFlowTimeline {
+        CardFlowTimeline {
+            card_id: card_id.into(),
+            lane_id: "lane-a".into(),
+            claimed_at_epoch_s: base,
+            review_requested_at_epoch_s: base + 100,
+            review_first_verdict_at_epoch_s: base + 130,
+            completed_at_epoch_s: base + 200,
+            review_rounds: rounds,
+        }
+    }
+
+    #[test]
+    fn flow_metrics_derive_computes_cycle_review_latency_and_rework() {
+        let metrics = CardFlowMetrics::derive(&timeline("MPV2-0001", 1_000, 3)).unwrap();
+        assert_eq!(metrics.cycle_time_s, 200);
+        assert_eq!(metrics.review_latency_s, 30);
+        assert_eq!(metrics.rework_count, 2);
+
+        // Fail closed: inverted timelines and zero review rounds are refused.
+        let mut inverted = timeline("MPV2-0002", 1_000, 1);
+        inverted.completed_at_epoch_s = 900;
+        assert!(matches!(
+            CardFlowMetrics::derive(&inverted),
+            Err(PlaneError::InvalidMetrics { .. })
+        ));
+        let mut verdict_first = timeline("MPV2-0003", 1_000, 1);
+        verdict_first.review_first_verdict_at_epoch_s = 1_050;
+        assert!(matches!(
+            CardFlowMetrics::derive(&verdict_first),
+            Err(PlaneError::InvalidMetrics { .. })
+        ));
+        assert!(matches!(
+            CardFlowMetrics::derive(&timeline("MPV2-0004", 1_000, 0)),
+            Err(PlaneError::InvalidMetrics { .. })
+        ));
+        let mut completed_before_verdict = timeline("MPV2-0005", 1_000, 1);
+        completed_before_verdict.completed_at_epoch_s = 1_120; // first verdict at 1_130
+        assert!(matches!(
+            CardFlowMetrics::derive(&completed_before_verdict),
+            Err(PlaneError::InvalidMetrics { .. })
+        ));
+    }
+
+    #[test]
+    fn flow_metrics_json_round_trips() {
+        let pass = PassFlowMetrics {
+            pass_seq: 7,
+            recorded_at_epoch_s: 1_780_000_000,
+            cards: vec![
+                CardFlowMetrics::derive(&timeline("MPV2-0001", 1_000, 2)).unwrap(),
+                CardFlowMetrics::derive(&timeline("MPV2-0002", 2_000, 1)).unwrap(),
+            ],
+        };
+        let text = pass.to_json().to_canonical_string();
+        let parsed = PassFlowMetrics::from_json(&JsonValue::parse(&text).unwrap()).unwrap();
+        assert_eq!(parsed, pass);
+        assert_eq!(parsed.cards_measured(), 2);
+        assert_eq!(parsed.total_rework_count(), 1);
+        assert_eq!(parsed.max_cycle_time_s(), Some(200));
+        assert_eq!(parsed.max_review_latency_s(), Some(30));
+    }
+
+    #[test]
+    fn flow_metrics_ledger_is_append_only_and_strictly_monotonic() {
+        let mut service = FlowMetricsService::new(InMemoryFlowMetricsStore::new());
+
+        // Every dispatch pass records — including an idle pass with no cards.
+        let idle = service.record_next_pass(&[], 10).unwrap();
+        assert_eq!(idle.pass_seq, 1);
+        assert_eq!(idle.cards_measured(), 0);
+
+        let busy = service
+            .record_next_pass(&[timeline("MPV2-0001", 1_000, 2)], 20)
+            .unwrap();
+        assert_eq!(busy.pass_seq, 2);
+
+        // Replays and out-of-order sequences are refused mechanically.
+        for bad_seq in [0, 1, 2] {
+            assert!(matches!(
+                service.record_pass(&PassFlowMetrics {
+                    pass_seq: bad_seq,
+                    recorded_at_epoch_s: 30,
+                    cards: Vec::new(),
+                }),
+                Err(PlaneError::NonMonotonicPass { .. })
+            ));
+        }
+        // Duplicate card ids within one pass are refused.
+        let dup = CardFlowMetrics::derive(&timeline("MPV2-0001", 1_000, 1)).unwrap();
+        assert!(matches!(
+            service.record_pass(&PassFlowMetrics {
+                pass_seq: 3,
+                recorded_at_epoch_s: 30,
+                cards: vec![dup.clone(), dup],
+            }),
+            Err(PlaneError::InvalidMetrics { .. })
+        ));
+
+        let seqs: Vec<u64> = service
+            .passes()
+            .unwrap()
+            .iter()
+            .map(|p| p.pass_seq)
+            .collect();
+        assert_eq!(seqs, vec![1, 2]);
+        assert_eq!(service.latest_pass().unwrap().unwrap().pass_seq, 2);
     }
 }
