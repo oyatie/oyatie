@@ -246,11 +246,9 @@ impl PdpError {
     pub fn is_runtime_fault(&self) -> bool {
         matches!(
             self,
-            Self::Evaluation { .. }
-                | Self::DecisionIdUnavailable { .. }
+            Self::DecisionIdUnavailable { .. }
                 | Self::RuntimeTimeout { .. }
                 | Self::RuntimePanic { .. }
-                | Self::CircuitOpen { .. }
         )
     }
 }
@@ -278,10 +276,10 @@ pub struct DecisionAuditRecord {
 /// One authorization outcome: the contract response plus its audit record.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PdpOutcome {
-    pub response: AuthorizationResponse,
-    pub audit: DecisionAuditRecord,
+    pub response: AuthorizationResponse, // data_class: INTERNAL_ONLY
+    pub audit: DecisionAuditRecord,      // data_class: INTERNAL_ONLY
     /// Whether the decision content was served from the decision cache.
-    pub cache_hit: bool,
+    pub cache_hit: bool, // data_class: INTERNAL_ONLY
 }
 
 /// The embedded-PDP port. Implementations evaluate in-process against the
@@ -318,8 +316,9 @@ impl PdpCircuitState {
     }
 }
 
-/// Runtime wrapper configuration: an elapsed-time budget plus the runtime-fault
-/// streak that opens the fail-closed circuit.
+/// Runtime wrapper configuration: an elapsed-time budget, a runtime-fault
+/// streak that opens the fail-closed circuit, and a bounded cooldown after
+/// which the guard permits one caller-owned probe.
 ///
 /// The budget is deliberately not described as a hard cancellation deadline.
 /// [`PdpRuntimeGuard`] invokes the wrapped synchronous PDP on the caller's
@@ -331,10 +330,12 @@ pub struct PdpRuntimeConfig {
     pub deadline: Duration,               // data_class: INTERNAL_ONLY
     pub circuit_open_after_failures: u32, // data_class: INTERNAL_ONLY
     pub metrics_window: usize,            // data_class: INTERNAL_ONLY
+    pub circuit_open_cooldown: Duration,  // data_class: INTERNAL_ONLY
 }
 
 impl PdpRuntimeConfig {
     const DEFAULT_METRICS_WINDOW: usize = 128;
+    const DEFAULT_CIRCUIT_OPEN_COOLDOWN: Duration = Duration::from_secs(30);
 
     #[must_use]
     pub fn new(deadline: Duration, circuit_open_after_failures: u32) -> Self {
@@ -342,6 +343,7 @@ impl PdpRuntimeConfig {
             deadline,
             circuit_open_after_failures: circuit_open_after_failures.max(1),
             metrics_window: Self::DEFAULT_METRICS_WINDOW,
+            circuit_open_cooldown: Self::DEFAULT_CIRCUIT_OPEN_COOLDOWN,
         }
     }
 
@@ -349,6 +351,16 @@ impl PdpRuntimeConfig {
     pub fn with_metrics_window(mut self, metrics_window: usize) -> Self {
         self.metrics_window = metrics_window.max(1);
         self
+    }
+
+    #[must_use]
+    pub fn with_circuit_open_cooldown(mut self, cooldown: Duration) -> Self {
+        self.circuit_open_cooldown = cooldown;
+        self
+    }
+
+    fn circuit_threshold(self) -> u32 {
+        self.circuit_open_after_failures.max(1)
     }
 }
 
@@ -450,6 +462,18 @@ impl PdpRuntimeMetrics {
         }
     }
 
+    fn record_circuit_open(&self, err: &PdpError) {
+        if let Ok(mut inner) = self.inner.lock() {
+            inner.authorize_total += 1;
+            inner.deny_total += 1;
+            inner.error_total += 1;
+            if matches!(err, PdpError::CircuitOpen { .. }) {
+                inner.circuit_open_total += 1;
+            }
+            inner.circuit_state = PdpCircuitState::Open;
+        }
+    }
+
     #[must_use]
     pub fn snapshot(&self) -> PdpRuntimeMetricsSnapshot {
         match self.inner.lock() {
@@ -535,13 +559,15 @@ impl PdpRuntimeMetricsSnapshot {
 /// inject a PDP implementation with its own cooperative cancellation boundary.
 /// The kernel guard's contract is narrower and auditable: elapsed-budget
 /// violations fail closed after completion, panics are caught, runtime-fault
-/// streaks open a deny-only circuit, and no worker continues after a denial.
+/// streaks open a deny-only circuit with a bounded cooldown probe, and no worker
+/// continues after a denial.
 #[derive(Clone)]
 pub struct PdpRuntimeGuard {
     inner: Arc<dyn PolicyDecisionPoint>,  // data_class: INTERNAL_ONLY
     config: PdpRuntimeConfig,             // data_class: INTERNAL_ONLY
     metrics: PdpRuntimeMetrics,           // data_class: INTERNAL_ONLY
     consecutive_failures: Arc<AtomicU32>, // data_class: INTERNAL_ONLY
+    circuit_opened_at: Arc<Mutex<Option<Instant>>>, // data_class: INTERNAL_ONLY
 }
 
 impl PdpRuntimeGuard {
@@ -552,6 +578,7 @@ impl PdpRuntimeGuard {
             config,
             metrics: PdpRuntimeMetrics::new(config.metrics_window),
             consecutive_failures: Arc::new(AtomicU32::new(0)),
+            circuit_opened_at: Arc::new(Mutex::new(None)),
         }
     }
 
@@ -565,16 +592,26 @@ impl PdpRuntimeGuard {
     }
 
     fn circuit_state(&self) -> PdpCircuitState {
-        if self.failure_count() >= self.config.circuit_open_after_failures {
-            PdpCircuitState::Open
-        } else {
-            PdpCircuitState::Closed
+        if self.failure_count() < self.config.circuit_threshold() {
+            return PdpCircuitState::Closed;
+        }
+        match self.circuit_opened_at.lock() {
+            Ok(opened_at) => match *opened_at {
+                Some(opened_at) if opened_at.elapsed() < self.config.circuit_open_cooldown => {
+                    PdpCircuitState::Open
+                }
+                Some(_) | None => PdpCircuitState::Closed,
+            },
+            Err(_) => PdpCircuitState::Open,
         }
     }
 
     fn mark_runtime_failure(&self) -> PdpCircuitState {
         let failures = self.consecutive_failures.fetch_add(1, Ordering::SeqCst) + 1;
-        if failures >= self.config.circuit_open_after_failures {
+        if failures >= self.config.circuit_threshold() {
+            if let Ok(mut opened_at) = self.circuit_opened_at.lock() {
+                *opened_at = Some(Instant::now());
+            }
             PdpCircuitState::Open
         } else {
             PdpCircuitState::Closed
@@ -583,6 +620,9 @@ impl PdpRuntimeGuard {
 
     fn reset_runtime_failures(&self) {
         self.consecutive_failures.store(0, Ordering::SeqCst);
+        if let Ok(mut opened_at) = self.circuit_opened_at.lock() {
+            *opened_at = None;
+        }
     }
 }
 
@@ -596,8 +636,7 @@ impl PolicyDecisionPoint for PdpRuntimeGuard {
             let err = PdpError::CircuitOpen {
                 consecutive_failures: self.failure_count(),
             };
-            self.metrics
-                .record_error(Duration::from_millis(0), &err, PdpCircuitState::Open);
+            self.metrics.record_circuit_open(&err);
             return Err(err);
         }
 
@@ -917,9 +956,9 @@ pub fn request_fingerprint(request: &AuthorizationRequest, entities: &EntitySlic
 /// fresh decision id so the audit chain stays one-record-per-decision.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CachedDecision {
-    pub decision: Decision,
-    pub determining_policy_ids: Vec<String>,
-    pub obligations: Vec<Obligation>,
+    pub decision: Decision,                  // data_class: INTERNAL_ONLY
+    pub determining_policy_ids: Vec<String>, // data_class: INTERNAL_ONLY
+    pub obligations: Vec<Obligation>,        // data_class: INTERNAL_ONLY
 }
 
 /// Cache key per the G004 acceptance shape: `(request-hash, policy-version)`.
@@ -928,17 +967,17 @@ pub struct CachedDecision {
 /// sub-60s revocation SLO reduces to bundle-propagation latency.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct DecisionCacheKey {
-    pub request_fingerprint: String,
-    pub policy_version: String,
+    pub request_fingerprint: String, // data_class: INTERNAL_ONLY
+    pub policy_version: String,      // data_class: INTERNAL_ONLY
 }
 
 /// Bounded in-process decision cache (insertion-order eviction). Embedded
 /// PDPs are per-process; the cache never crosses a service boundary.
 #[derive(Debug)]
 pub struct DecisionCache {
-    capacity: usize,
-    map: HashMap<DecisionCacheKey, CachedDecision>,
-    order: VecDeque<DecisionCacheKey>,
+    capacity: usize,                                // data_class: INTERNAL_ONLY
+    map: HashMap<DecisionCacheKey, CachedDecision>, // data_class: INTERNAL_ONLY
+    order: VecDeque<DecisionCacheKey>,              // data_class: INTERNAL_ONLY
 }
 
 impl DecisionCache {
@@ -1027,6 +1066,34 @@ mod tests {
                     parents: vec![],
                 },
             ],
+        }
+    }
+
+    fn allow_outcome(request: &AuthorizationRequest, version: PolicyVersion) -> PdpOutcome {
+        let response = AuthorizationResponse {
+            decision_id: "dec-runtime-allow".to_owned(),
+            request_id: request.request_id.clone(),
+            decision: Decision::Allow,
+            policy_version: version.clone(),
+            determining_policy_ids: vec!["permit-admin".to_owned()],
+            obligations: vec![],
+        };
+        let audit = DecisionAuditRecord {
+            decision_id: response.decision_id.clone(),
+            request_id: response.request_id.clone(),
+            tenant_id: request.tenant_id.clone(),
+            principal: request.principal.clone(),
+            action: request.action.clone(),
+            resource: request.resource.clone(),
+            decision: response.decision,
+            policy_version: version,
+            determining_policy_ids: response.determining_policy_ids.clone(),
+            cache_hit: false,
+        };
+        PdpOutcome {
+            response,
+            audit,
+            cache_hit: false,
         }
     }
 
@@ -1166,6 +1233,72 @@ mod tests {
         }
     }
 
+    #[derive(Debug)]
+    struct FastEvaluationPdp;
+
+    impl PolicyDecisionPoint for FastEvaluationPdp {
+        fn authorize(
+            &self,
+            _request: &AuthorizationRequest,
+            _entities: &EntitySlice,
+        ) -> Result<PdpOutcome, PdpError> {
+            Err(PdpError::Evaluation {
+                detail: "caller-shaped entity slice refusal".to_owned(),
+            })
+        }
+
+        fn loaded_policy_version(&self) -> PolicyVersion {
+            PolicyVersion::new("psv-runtime").unwrap()
+        }
+    }
+
+    #[derive(Debug)]
+    struct PanicOnceThenAllowPdp {
+        calls: Arc<AtomicU32>,
+    }
+
+    impl PolicyDecisionPoint for PanicOnceThenAllowPdp {
+        fn authorize(
+            &self,
+            request: &AuthorizationRequest,
+            _entities: &EntitySlice,
+        ) -> Result<PdpOutcome, PdpError> {
+            let call = self.calls.fetch_add(1, Ordering::SeqCst);
+            if call == 0 {
+                panic!("transient pdp runtime bug");
+            }
+            Ok(allow_outcome(request, self.loaded_policy_version()))
+        }
+
+        fn loaded_policy_version(&self) -> PolicyVersion {
+            PolicyVersion::new("psv-runtime").unwrap()
+        }
+    }
+
+    #[derive(Debug)]
+    struct SlowFastSlowPdp {
+        calls: Arc<AtomicU32>,
+        slow: Duration,
+    }
+
+    impl PolicyDecisionPoint for SlowFastSlowPdp {
+        fn authorize(
+            &self,
+            request: &AuthorizationRequest,
+            _entities: &EntitySlice,
+        ) -> Result<PdpOutcome, PdpError> {
+            let call = self.calls.fetch_add(1, Ordering::SeqCst);
+            if call == 0 || call == 2 {
+                std::thread::sleep(self.slow);
+            }
+            Ok(allow_outcome(request, self.loaded_policy_version()))
+        }
+
+        fn loaded_policy_version(&self) -> PolicyVersion {
+            PolicyVersion::new("psv-runtime").unwrap()
+        }
+    }
+
     #[test]
     fn runtime_guard_elapsed_budget_does_not_spawn_late_workers_or_late_side_effects() {
         let (inner, calls, active_calls, max_active_calls, side_effects) =
@@ -1246,6 +1379,82 @@ mod tests {
         assert_eq!(snapshot.timeout_total, 1);
         assert_eq!(snapshot.circuit_open_total, 1);
         assert_eq!(snapshot.circuit_state, PdpCircuitState::Open);
+    }
+
+    #[test]
+    fn runtime_guard_caller_shaped_evaluation_refusals_do_not_open_circuit() {
+        let runtime = PdpRuntimeGuard::new(
+            Arc::new(FastEvaluationPdp),
+            PdpRuntimeConfig::new(Duration::from_secs(1), 1),
+        );
+
+        let first = runtime.authorize(&request(), &slice()).unwrap_err();
+        let second = runtime.authorize(&request(), &slice()).unwrap_err();
+
+        assert!(matches!(first, PdpError::Evaluation { .. }));
+        assert!(matches!(second, PdpError::Evaluation { .. }));
+        let snapshot = runtime.metrics().snapshot();
+        assert_eq!(snapshot.circuit_open_total, 0);
+        assert_eq!(snapshot.circuit_state, PdpCircuitState::Closed);
+    }
+
+    #[test]
+    fn runtime_guard_cooldown_allows_half_open_probe_to_recover() {
+        let calls = Arc::new(AtomicU32::new(0));
+        let runtime = PdpRuntimeGuard::new(
+            Arc::new(PanicOnceThenAllowPdp {
+                calls: calls.clone(),
+            }),
+            PdpRuntimeConfig::new(Duration::from_secs(1), 1)
+                .with_circuit_open_cooldown(Duration::from_millis(5)),
+        );
+
+        let first = runtime.authorize(&request(), &slice()).unwrap_err();
+        let second = runtime.authorize(&request(), &slice()).unwrap_err();
+
+        assert!(matches!(first, PdpError::RuntimePanic { .. }));
+        assert!(matches!(second, PdpError::CircuitOpen { .. }));
+        assert_eq!(
+            calls.load(Ordering::SeqCst),
+            1,
+            "open circuit must not call the inner PDP before cooldown"
+        );
+
+        std::thread::sleep(Duration::from_millis(10));
+        let recovered = runtime.authorize(&request(), &slice()).unwrap();
+
+        assert_eq!(recovered.response.decision, Decision::Allow);
+        assert_eq!(calls.load(Ordering::SeqCst), 2);
+        let snapshot = runtime.metrics().snapshot();
+        assert_eq!(snapshot.circuit_open_total, 1);
+        assert_eq!(snapshot.circuit_state, PdpCircuitState::Closed);
+    }
+
+    #[test]
+    fn runtime_guard_success_resets_partial_failure_streak() {
+        let calls = Arc::new(AtomicU32::new(0));
+        let runtime = PdpRuntimeGuard::new(
+            Arc::new(SlowFastSlowPdp {
+                calls: calls.clone(),
+                slow: Duration::from_millis(10),
+            }),
+            PdpRuntimeConfig::new(Duration::from_millis(1), 2),
+        );
+
+        let first = runtime.authorize(&request(), &slice()).unwrap_err();
+        let second = runtime.authorize(&request(), &slice()).unwrap();
+        let third = runtime.authorize(&request(), &slice()).unwrap_err();
+
+        assert!(matches!(first, PdpError::RuntimeTimeout { .. }));
+        assert_eq!(second.response.decision, Decision::Allow);
+        assert!(
+            matches!(third, PdpError::RuntimeTimeout { .. }),
+            "success must reset the partial runtime-fault streak; got {third:?}"
+        );
+        let snapshot = runtime.metrics().snapshot();
+        assert_eq!(snapshot.timeout_total, 2);
+        assert_eq!(snapshot.circuit_open_total, 0);
+        assert_eq!(snapshot.circuit_state, PdpCircuitState::Closed);
     }
 
     #[test]
