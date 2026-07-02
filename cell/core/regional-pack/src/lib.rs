@@ -19,9 +19,16 @@ pub mod pack_onboarding_phase;
 pub use pack_onboarding_phase::{
     PackInstallStatus, PackOnboardingPhase, RegionalRolloutGate, RegionalRolloutGateError,
 };
+pub mod manifest;
+pub use manifest::{
+    GateCheck, GateViolation, REGIONAL_PACK_MANIFEST_SCHEMA_VERSION, RegionalPackManifest,
+    RegionalPackManifestError, RegionalPackManifestGateReport, RegionalPackSource,
+    canonical_base_neutrality_check, cross_pack_refusal_check, evaluate_regional_pack_gates,
+    load_regional_pack_manifest, parse_regional_pack_manifest,
+};
 
-use oya_data_boundary_kernel::{Classified, DataClass};
 use network_residency::{ResidencyClass, parse_residency_class_label};
+use oya_data_boundary_kernel::{Classified, DataClass};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RegionalPack {
@@ -101,5 +108,177 @@ mod tests {
         .expect_err("regional packs use ADR-0049 residency labels");
 
         assert_eq!(error, RegionalPackError::InvalidResidencyClass);
+    }
+
+    // Crate-local fixtures (declared in BUCK srcs) keep these tests hermetic:
+    // `include_str!` embeds the bytes at compile time, so nothing reads the
+    // repo-root filesystem and `buck2 test` passes inside its sandbox.
+    const KR_MANIFEST_JSON: &str = include_str!("../tests/fixtures/kr/manifest.json");
+    const KR_CANONICAL_BASE: &str = include_str!("../tests/fixtures/kr/canonical-base.txt");
+    const KR_PACK_IMPL: &str = include_str!("../tests/fixtures/kr/pack-impl.txt");
+    const CANONICAL_BASE_WITH_MARKERS: &str =
+        include_str!("../tests/fixtures/negative/canonical-base-with-jurisdiction-markers.txt");
+    const PACK_IMPL_CROSS_PACK: &str =
+        include_str!("../tests/fixtures/negative/pack-impl-cross-pack-reference.txt");
+
+    fn kr_manifest() -> RegionalPackManifest {
+        parse_regional_pack_manifest(KR_MANIFEST_JSON).expect("KR fixture manifest should parse")
+    }
+
+    fn source(manifest_path: &str, content: &str) -> RegionalPackSource {
+        RegionalPackSource::new(manifest_path, content)
+    }
+
+    #[test]
+    fn kr_pack_manifest_declares_minimal_regional_compliance_and_localization_shape() {
+        let manifest = kr_manifest();
+
+        assert_eq!(
+            manifest.manifest_schema_version,
+            REGIONAL_PACK_MANIFEST_SCHEMA_VERSION
+        );
+        assert_eq!(manifest.pack.id, "kr-seoul");
+        assert_eq!(manifest.pack.code, "kr");
+        assert_eq!(manifest.source_authority.accepted_adrs, vec!["ADR-0064"]);
+        assert_eq!(
+            manifest.source_authority.planning_context_adrs,
+            vec!["ADR-0010"]
+        );
+        assert_eq!(manifest.regional_pack.jurisdiction, "KR");
+        assert!(
+            manifest
+                .regional_pack
+                .residency_classes
+                .contains(&"strict_home_region".to_string())
+        );
+        assert!(
+            manifest
+                .regional_pack
+                .regulatory_controls
+                .contains(&"PIPA".to_string())
+        );
+        assert_eq!(
+            manifest.canonical_base.neutrality_gate,
+            "canonical-base-neutrality"
+        );
+        assert_eq!(
+            manifest.pack_impl.cross_pack_refusal_gate,
+            "cross-pack-refusal"
+        );
+        assert!(manifest.pack_impl.allowed_pack_dependencies.is_empty());
+    }
+
+    #[test]
+    fn kr_fixture_passes_both_pack_gates() {
+        let manifest = kr_manifest();
+        let canonical_sources = vec![source(
+            &manifest.canonical_base.canonical_base_paths[0],
+            KR_CANONICAL_BASE,
+        )];
+        let pack_sources = vec![source(&manifest.pack_impl.pack_paths[0], KR_PACK_IMPL)];
+
+        let report = evaluate_regional_pack_gates(&manifest, &canonical_sources, &pack_sources);
+
+        assert_eq!(report.pack_id, "kr-seoul");
+        assert_eq!(report.pack_code, "kr");
+        assert!(report.passed(), "fixture should pass every local pack gate");
+        assert_eq!(
+            report
+                .check("canonical-base-neutrality")
+                .expect("neutrality check should be reported")
+                .violations,
+            Vec::<GateViolation>::new()
+        );
+        assert_eq!(
+            report
+                .check("cross-pack-refusal")
+                .expect("cross-pack refusal check should be reported")
+                .violations,
+            Vec::<GateViolation>::new()
+        );
+    }
+
+    #[test]
+    fn canonical_base_with_jurisdiction_markers_trips_neutrality_gate() {
+        let manifest = kr_manifest();
+        let leaking_base = vec![source(
+            "tests/fixtures/negative/canonical-base-with-jurisdiction-markers.txt",
+            CANONICAL_BASE_WITH_MARKERS,
+        )];
+        let clean_pack = vec![source(&manifest.pack_impl.pack_paths[0], KR_PACK_IMPL)];
+
+        let report = evaluate_regional_pack_gates(&manifest, &leaking_base, &clean_pack);
+
+        assert!(!report.passed(), "a leaking canonical base must fail");
+        let neutrality = report
+            .check("canonical-base-neutrality")
+            .expect("neutrality check should be reported");
+        assert!(!neutrality.passed);
+        assert!(
+            neutrality
+                .violations
+                .iter()
+                .any(|violation| violation.reason.contains("jurisdiction marker")),
+            "expected a jurisdiction-marker violation, got {:?}",
+            neutrality.violations
+        );
+        // The cross-pack gate is orthogonal and must stay green here.
+        assert!(
+            report
+                .check("cross-pack-refusal")
+                .expect("cross-pack refusal check should be reported")
+                .passed
+        );
+    }
+
+    #[test]
+    fn pack_impl_referencing_another_pack_trips_cross_pack_refusal_gate() {
+        let manifest = kr_manifest();
+        let clean_base = vec![source(
+            &manifest.canonical_base.canonical_base_paths[0],
+            KR_CANONICAL_BASE,
+        )];
+        let cross_pack = vec![source(
+            "tests/fixtures/negative/pack-impl-cross-pack-reference.txt",
+            PACK_IMPL_CROSS_PACK,
+        )];
+
+        let report = evaluate_regional_pack_gates(&manifest, &clean_base, &cross_pack);
+
+        assert!(!report.passed(), "a cross-pack reference must fail");
+        let refusal = report
+            .check("cross-pack-refusal")
+            .expect("cross-pack refusal check should be reported");
+        assert!(!refusal.passed);
+        assert!(
+            refusal
+                .violations
+                .iter()
+                .any(|violation| violation.reason.contains("packs/jp")),
+            "expected a packs/jp cross-pack violation, got {:?}",
+            refusal.violations
+        );
+        assert!(
+            report
+                .check("canonical-base-neutrality")
+                .expect("neutrality check should be reported")
+                .passed
+        );
+    }
+
+    #[test]
+    fn rejects_branded_pack_id() {
+        let branded = KR_MANIFEST_JSON.replace("\"kr-seoul\"", "\"oya-pack-kr\"");
+
+        let error = parse_regional_pack_manifest(&branded)
+            .expect_err("branded pack ids are de-branded out");
+
+        assert!(matches!(
+            error,
+            RegionalPackManifestError::Shape {
+                field: "pack.id",
+                ..
+            }
+        ));
     }
 }

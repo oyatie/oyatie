@@ -7,6 +7,8 @@ rust_library(
     deps = [
         "//network/core/residency:network-residency",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "third-party//:serde",
+        "third-party//:serde_json",
     ],
 )
 
@@ -19,5 +21,7 @@ rust_test(
     deps = [
         "//network/core/residency:network-residency",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "third-party//:serde",
+        "third-party//:serde_json",
     ],
 )
