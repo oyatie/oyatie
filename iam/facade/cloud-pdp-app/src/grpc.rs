@@ -15,6 +15,10 @@
 //! | `StalePolicyVersion`    | `FAILED_PRECONDITION` |
 //! | `BundleRejected`        | `UNAVAILABLE`         |
 //! | `DecisionIdUnavailable` | `INTERNAL`            |
+//! | `AuditChainEmission`    | `INTERNAL`            |
+//! | `RuntimeTimeout`        | `DEADLINE_EXCEEDED`   |
+//! | `RuntimePanic`          | `INTERNAL`            |
+//! | `CircuitOpen`           | `UNAVAILABLE`         |
 //!
 //! Proto→contract translation itself fails closed: a missing message field
 //! or an unset attribute-value oneof is `INVALID_ARGUMENT`, never a silent
@@ -221,6 +225,10 @@ fn status_from_refusal(error: &PdpError) -> Status {
         PdpError::StalePolicyVersion { .. } => Status::failed_precondition(error.to_string()),
         PdpError::BundleRejected { .. } => Status::unavailable(error.to_string()),
         PdpError::DecisionIdUnavailable { .. } => Status::internal(error.to_string()),
+        PdpError::AuditChainEmission { .. } => Status::internal(error.to_string()),
+        PdpError::RuntimeTimeout { .. } => Status::deadline_exceeded(error.to_string()),
+        PdpError::RuntimePanic { .. } => Status::internal(error.to_string()),
+        PdpError::CircuitOpen { .. } => Status::unavailable(error.to_string()),
     }
 }
 
@@ -338,4 +346,40 @@ where
         ))
         .serve_with_incoming_shutdown(incoming, shutdown)
         .await
+}
+
+#[cfg(test)]
+mod tests {
+    use tonic::Code;
+
+    use super::*;
+
+    #[test]
+    fn runtime_refusals_have_fail_closed_grpc_mappings() {
+        assert_eq!(
+            status_from_refusal(&PdpError::RuntimeTimeout { deadline_ms: 25 }).code(),
+            Code::DeadlineExceeded
+        );
+        assert_eq!(
+            status_from_refusal(&PdpError::RuntimePanic {
+                detail: "panic".to_owned(),
+            })
+            .code(),
+            Code::Internal
+        );
+        assert_eq!(
+            status_from_refusal(&PdpError::AuditChainEmission {
+                detail: "append failed".to_owned(),
+            })
+            .code(),
+            Code::Internal
+        );
+        assert_eq!(
+            status_from_refusal(&PdpError::CircuitOpen {
+                consecutive_failures: 3,
+            })
+            .code(),
+            Code::Unavailable
+        );
+    }
 }
