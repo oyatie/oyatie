@@ -224,6 +224,85 @@ fn masterplan_v2_hermes_done_card_claims_are_unverified_until_evidence_attaches(
         "Hermes done-card imports without evidence must be explicitly marked claimed-done-unverified"
     );
 }
+
+/// Sub-AC 3 verifiability clause, asserted over the live per-card ledger: every
+/// Hermes done-card completion claim is imported as claimed-done-unverified, no
+/// claim carries a verified status without an attached evidence link, evidence
+/// attachment is reflected as evidence_state=evidence-attached (and never
+/// silently hidden), and the import summary's counts agree with the claims.
+#[test]
+fn masterplan_v2_hermes_done_card_ledger_is_per_card_and_never_verified_without_evidence() {
+    let root = repo_root();
+    let masterplan = load_json(&root.join("specs/masterplan.json"));
+    let imports = masterplan["masterplan_v2"]["hermes_done_card_imports"]
+        .as_array()
+        .expect("masterplan_v2.hermes_done_card_imports must be an array");
+    assert!(
+        !imports.is_empty(),
+        "the done-card ledger must carry per-card claims"
+    );
+
+    let mut evidence_attached = 0u64;
+    let mut unverified_pending = 0u64;
+    for claim in imports {
+        let id = claim["source_card_id"].as_str().expect(
+            "every ledger entry must name a concrete source_card_id (per-card, not count-level)",
+        );
+        let refs = claim["evidence_refs"]
+            .as_array()
+            .unwrap_or_else(|| panic!("{id}: evidence_refs must be an array"));
+        let status = claim["masterplan_status"].as_str().unwrap_or_default();
+        let state = claim["evidence_state"].as_str().unwrap_or_default();
+        assert_eq!(
+            status, "claimed-done-unverified",
+            "{id}: every Hermes done-card completion claim stays unverified-pending-evidence; \
+             upgrading one requires a verification pass that attaches evidence AND updates this contract"
+        );
+        if refs.is_empty() {
+            unverified_pending += 1;
+            assert_eq!(
+                state, "claimed-done-unverified",
+                "{id}: a claim without an attached evidence link must stay flagged"
+            );
+        } else {
+            evidence_attached += 1;
+            assert_eq!(
+                state, "evidence-attached",
+                "{id}: attached evidence refs must surface as evidence-attached"
+            );
+        }
+    }
+
+    let summary = &masterplan["masterplan_v2"]["hermes_done_card_import_summary"];
+    assert_eq!(
+        summary["extracted_done_count"].as_u64(),
+        Some(evidence_attached + unverified_pending),
+        "summary extracted_done_count must equal the number of per-card claims"
+    );
+    assert_eq!(
+        summary["evidence_attached_count"].as_u64(),
+        Some(evidence_attached),
+        "summary evidence_attached_count must agree with the claims"
+    );
+    assert_eq!(
+        summary["unverified_pending_evidence_count"].as_u64(),
+        Some(unverified_pending),
+        "summary unverified_pending_evidence_count must agree with the claims"
+    );
+    assert_eq!(
+        summary["verified_count"].as_u64(),
+        Some(0),
+        "no done-card claim is verified in this ledger generation"
+    );
+
+    let ledger_rel = summary["ledger_artifact"]
+        .as_str()
+        .expect("summary must reference the forensic ledger evidence artifact");
+    assert!(
+        root.join(ledger_rel).is_file(),
+        "forensic ledger artifact {ledger_rel} must exist"
+    );
+}
 #[test]
 fn masterplan_v2_plan_vs_evidence_drift_contract_is_green() {
     let root = repo_root();

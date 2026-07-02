@@ -1,0 +1,30 @@
+[package]
+name = "oya-masterplan-hermes-forensic-ledger-app"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Seed-sanctioned owned-Rust SQLite reader for the read-only forensic ingest of the
+# global Hermes board (~/.hermes/kanban/boards/oyatie/kanban.db). Zero third-party
+# dependencies: the SQLite file format, SHA-256, JSON emission, and the masterplan
+# splice are all owned code. This is bridge/data-plane tooling (retirement-marked per
+# the founder CLI directive of 2026-06-09): it carries NO merge or plan authority —
+# it is the single writer of masterplan_v2.hermes_done_card_imports and the forensic
+# ledger evidence artifact, and every claim it emits stays claimed-done-unverified
+# unless in-repo/merged-PR evidence references attach (never a verified status).
+
+[[bin]]
+name = "oya-masterplan-hermes-forensic-ledger"
+path = "src/main.rs"
+
+[lib]
+name = "oya_masterplan_hermes_forensic_ledger_app"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+
+[lints]
+workspace = true
