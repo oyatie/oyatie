@@ -21,10 +21,10 @@
   "agent_quick_start_protocol": {
     "step_1_read_authority": "Read entry_points.decision_principles + .agent_operating_contract + .master_plan_sequencing + .markdown_retirement_policy + .gitops_vcs_replacement.",
     "step_2_context_recall": "Prefer intelligence-native context once available (replaces prior Foundry framing per ADR-0335 Wave 15I); legacy icm recall-context is compatibility/provenance only and is never promotion authority.",
-    "step_3_oya_vcs_state_transition": "Canonical path is plain `git` + protected PR against dev. Merge readiness is Prow/cloud-ci required context + reviewer APPROVE; legacy CI/`oya gate` output is bridge evidence only until P0.0 cloud-ci cutover. The bespoke Oya VCS claim → work → verify → done → promote ratchet is RETIRED (provenance/historical only per ADR-0363); legacy grit/icm/rtk/vox/omx/omc surfaces are likewise read/provenance only.",
+    "step_3_oya_vcs_state_transition": "Canonical path is plain `git` + protected PR against dev. Merge readiness is reviewer APPROVE plus the single protected `oya-ci-required` context produced by the cloud-ci gate apps; legacy CI/`oya gate` output is bridge/local evidence only and never merge authority. The bespoke Oya VCS claim → work → verify → done → promote ratchet is RETIRED (provenance/historical only per ADR-0363); legacy grit/icm/rtk/vox/omx/omc surfaces are likewise read/provenance only.",
     "step_4_active_artifact_contract": "Every new artifact under applicable_paths_glob conforms to active-artifact-contract v3.0.0 + registers a row in artifact-capabilities-registry.",
     "step_5_independent_review": "Preserve multi-lens review discipline through independent reviewer-agent passes, PR Code Review evidence, typed quality-gate artifacts, and cloud-ci/oya-ci gate packets. The standalone multispectrum evidence-file/spec convention is retired with the external coordination / Oya VCS / Jenkins-adapter admission path; do not emit new evidence/multispectrum files.",
-    "step_6_gitops_vcs_replacement": "Before broad multi-agent fan-out, treat /specs/gitops-vcs-replacement.json as provenance/historical input only: the bespoke Oya VCS claim coverage, ChangeBundle closeout, controller rebase, and retired ratchet mechanisms are superseded by ADR-0363/ADR-0513. Live merge readiness is plain git + protected PR against dev + Prow/cloud-ci/oya-ci required context + reviewer APPROVE. Legacy CI/`oya gate` output is bridge evidence only until P0.0. Tide admission is cloud-ci-owned now: Phase 0 places the admission contract; Phase 1 scales projected-state, batching, auto-rebase, and auto-regeneration."
+    "step_6_gitops_vcs_replacement": "Before broad multi-agent fan-out, treat /specs/gitops-vcs-replacement.json as provenance/historical input only: the bespoke Oya VCS claim coverage, ChangeBundle closeout, controller rebase, and retired ratchet mechanisms are superseded by ADR-0363/ADR-0515. Live merge readiness is plain git + protected PR against dev + reviewer APPROVE + the single protected `oya-ci-required` context. Legacy CI/`oya gate` output is bridge evidence only. Tide/prow-shaped admission language is historical unless reintroduced by a new accepted authority; cloud-ci gate apps own the required context."
   },
   "by_kind": {
     "decision": "Accepted ADR or decision record that constrains implementation and promotion.",
@@ -106,7 +106,7 @@
       "current_path": "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
       "kind": "goal_prompt",
       "migration_phase": "fd001-planning-closure-supersedes-2026-05-16-durable-goal",
-      "purpose": "Historical FD-001 durable-goal prompt for planning closure/implementation. Its plain-git protected-PR governance portions are superseded/amended by platform-readiness: Prow/cloud-ci/oya-ci required contexts are destination authority; legacy CI bridge output is evidence only. The former .omc archive manifest is retired from the tracked tree and is not live authority.",
+      "purpose": "Historical FD-001 durable-goal prompt for planning closure/implementation. Its plain-git protected-PR governance portions are superseded/amended by platform-readiness: reviewer approval plus the single protected `oya-ci-required` context is destination authority; legacy CI bridge output is evidence only. The former .omc archive manifest is retired from the tracked tree and is not live authority.",
       "superseded_path": "/specs/agent-durable-goal.json",
       "target_path_after_md_retirement": "same active goal prompt until promoted into /specs/agent-durable-goal.json successor schema",
       "retired_archive_manifest_path": ".omc/archive/stale-documents/2026-05-19-planning-closure/manifest.json",
@@ -116,15 +116,21 @@
       "current_path": "docs/AGENTS.md",
       "kind": "spec",
       "migration_phase": "PHASE-5",
-      "purpose": "Canonical agent operating contract (done-definition checklist, plain-git protected-PR governance, Prow/cloud-ci transition target, independent reviewer-agent discipline, retired legacy-tool notes).",
+      "phase_deadline": "2026-06-30",
+      "phase_status": "overdue-needs-replan",
+      "promotion_boundary": "docs/AGENTS.md remains current authority until explicit PHASE-5 promotion evidence promotes /specs/agent-operating-contract.json; the missed PHASE-5 deadline does not auto-promote the projection.",
+      "purpose": "Canonical agent operating contract (done-definition checklist, plain-git protected-PR governance, single oya-ci-required merge authority, independent reviewer-agent discipline, retired legacy-tool notes).",
       "target_path_after_md_retirement": "/specs/agent-operating-contract.json"
     },
     "agent_operating_contract_machine_projection": {
       "canonical_authority_path": "docs/AGENTS.md",
       "current_path": "/specs/agent-operating-contract.json",
       "kind": "spec",
-      "migration_phase": "projection-until-PHASE-5",
-      "purpose": "Machine-readable projection target for the agent operating contract. It supports root-hub discovery without superseding docs/AGENTS.md before PHASE-5 promotion."
+      "migration_phase": "projection-until-explicit-PHASE-5-promotion",
+      "phase_deadline": "2026-06-30",
+      "phase_status": "overdue-needs-replan",
+      "promotion_condition": "Promotion requires authority-cohesion evidence and reviewer approval; until then this projection is discovery/planning support only.",
+      "purpose": "Machine-readable projection target for the agent operating contract. It supports root-hub discovery without superseding docs/AGENTS.md before explicit PHASE-5 promotion evidence."
     },
     "api_contract_ssot_canonical": {
       "current_path": "/specs/api-contract-ssot-canonical.json",
@@ -600,7 +606,7 @@
       "current_path": "/specs/master-plan-sequencing.json",
       "kind": "spec",
       "migration_phase": "wave-15-zf-master-plan-propagated",
-      "purpose": "Forbidden-primitive list + plain-git protected-PR governance protocol + ledger-required-fields + execution sequence. Platform-readiness amends its older CI-bridge language: Prow/cloud-ci/oya-ci required contexts are destination authority; legacy CI/oya output is bridge/local evidence only.",
+      "purpose": "Forbidden-primitive list + plain-git protected-PR governance protocol + ledger-required-fields + execution sequence. Platform-readiness amends its older CI-bridge language: reviewer approval plus the single protected `oya-ci-required` context is destination authority; legacy CI/oya output is bridge/local evidence only.",
       "target_path_after_md_retirement": "same"
     },
     "masterplan": {
@@ -665,7 +671,7 @@
       "current_path": "/specs/phase0-ci-enforcement-baseline.json",
       "kind": "spec",
       "migration_phase": "phase0_p0_0_gap_packet_not_green",
-      "purpose": "P0.0 Prow/cloud-ci enforcement and tenant-isolation baseline. Records current branch-protection/config/live-status gaps, no-oya-CLI authority boundary, trusted producer/candidate-untrusted contract, TTL reviewer/audit override contract, and T0.0 RED/GREEN fixture paths without claiming Phase-0 completion.",
+      "purpose": "P0.0 cloud-ci/oya-ci enforcement and tenant-isolation baseline (historically Prow-shaped). Records current branch-protection/config/live-status gaps, no-oya-CLI authority boundary, trusted producer/candidate-untrusted contract, TTL reviewer/audit override contract, and T0.0 RED/GREEN fixture paths without claiming Phase-0 completion.",
       "target_path_after_md_retirement": "same (machine-readable P0.0 baseline/gap packet)"
     },
     "phase0_claim_evidence_map": {
@@ -1057,6 +1063,13 @@
       "migration_phase": "root-hub-covered-2026-05-20",
       "purpose": "Canonical JSON Schema 2020-12 contract for Cedar policy schema manifests. Binds ADR-0243 Cedar-as-universal-gate and ADR-0294 Cedar fragment soak/anomaly rollback doctrine into a machine-readable schema for entity types, action types, bounded context, private attributes, permit sets, fragment bindings, fixtures, validation, soak controls, fallback policy, audit mapping, and promotion gates."
     },
+    "spec_cell_topology_manifest_contract": {
+      "current_path": "/specs/cell-topology-manifest-contract.json",
+      "kind": "spec",
+      "migration_phase": "root-hub-covered-2026-07-01-cell-001r",
+      "conflict_class": "repo-governance-specs-docs",
+      "purpose": "CELL-001R manifest contract for cell tier, residency class, region disposition, storage class, and quarterly isolation evidence handles. Validation is owned by a cloud-ci Rust gate; retired local command output is provenance only."
+    },
     "spec_chaos_engineering_substrate_canonical": {
       "current_path": "/specs/chaos-engineering-substrate-canonical.json",
       "kind": "spec",
@@ -1261,6 +1274,12 @@
       "migration_phase": "phase0_p0_0_result_schema_not_live_authority",
       "purpose": "Structured result bundle schema for P0.0 cloud-ci/oya-ci fixture runs; evidence input only until a trusted required context is live.",
       "target_path_after_md_retirement": "same (machine-readable T0.0 result schema)"
+    },
+    "spec_pci_dss_level_1_readiness_plan": {
+      "current_path": "/specs/pci-dss-level-1-readiness-plan.json",
+      "kind": "spec",
+      "migration_phase": "regid-003-planning-spec",
+      "purpose": "Planning-only PCI DSS Level 1 readiness and regulated-data control-pack contract for CDE scope, tokenization, PAN/CVV/track-data prohibitions, QSA/ROC/AOC evidence, ASV scans, segmentation, KMS/PDP/audit bindings, retention, incident response, and tenant pack activation gates."
     }
   },
   "specs_directory_audit_2026_05_20": {
