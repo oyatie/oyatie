@@ -1494,6 +1494,27 @@ fn read_record(path: &Path) -> Result<Option<JsonValue>, PlaneError> {
     }
 }
 
+/// Recognize a leftover of [`write_atomic`]'s own tmp protocol
+/// (`<name>.json.tmp.<pid>`). Such a file is a crash/concurrency artifact of
+/// the atomic writer itself: its content was never acknowledged (the rename
+/// never happened), so tolerating it keeps crash recovery and concurrent
+/// listing working. Everything else foreign fails the listing closed.
+fn is_atomic_write_tmp(name: &str) -> bool {
+    match name.rsplit_once(".json.tmp.") {
+        Some((stem, pid)) => {
+            !stem.is_empty() && !pid.is_empty() && pid.bytes().all(|b| b.is_ascii_digit())
+        }
+        None => false,
+    }
+}
+
+/// Strict fail-closed ledger listing: a directory entry is admitted iff its
+/// name is `<id>.json` with `id` passing [`validate_id`]. A non-UTF-8 name, a
+/// `.json` name whose id fails the contract (unicode digits, spaces,
+/// dotfiles), or any other foreign name surfaces as [`PlaneError::Corrupt`] —
+/// never silently skipped (a ledger the lister cannot fully reason about is
+/// never admitted as clean). The single carve-out is the atomic writer's own
+/// tmp shape (see [`is_atomic_write_tmp`]).
 fn list_json_ids(dir: &Path) -> Result<Vec<String>, PlaneError> {
     let mut ids = Vec::new();
     let entries = match fs::read_dir(dir) {
@@ -1504,12 +1525,26 @@ fn list_json_ids(dir: &Path) -> Result<Vec<String>, PlaneError> {
     for entry in entries {
         let entry = entry.map_err(|e| io_err("read_dir entry", &e))?;
         let name = entry.file_name();
-        let Some(name) = name.to_str() else { continue };
+        let Some(name) = name.to_str() else {
+            return Err(PlaneError::Corrupt(format!(
+                "non-UTF-8 filename in ledger directory {}: {}",
+                dir.display(),
+                name.to_string_lossy()
+            )));
+        };
         if let Some(id) = name.strip_suffix(".json")
             && validate_id(id).is_ok()
         {
             ids.push(id.to_owned());
+            continue;
         }
+        if is_atomic_write_tmp(name) {
+            continue;
+        }
+        return Err(PlaneError::Corrupt(format!(
+            "foreign file in ledger directory {}: {name}",
+            dir.display()
+        )));
     }
     ids.sort();
     Ok(ids)

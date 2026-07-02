@@ -825,3 +825,99 @@ fn lane_disjointness_detector_verdicts_parallel_dispatch_mechanically() {
         })
     ));
 }
+/// Harvested backlog card MPV2-0000.C005: strict fail-closed ledger listing.
+/// A directory entry is admitted iff its name is `<id>.json` with `id`
+/// passing the filesystem-safe id contract. A `.json` name whose id fails the
+/// contract (spaces, unicode digits, dotfiles), any other foreign name, and a
+/// non-UTF-8 filename all surface as `PlaneError::Corrupt` — never silently
+/// skipped, because a ledger directory the lister cannot fully reason about
+/// is never admitted as clean. The single tolerated shape is the atomic
+/// writer's own crash artifact (`<name>.json.tmp.<pid>`), whose content was
+/// never acknowledged.
+#[test]
+fn foreign_ledger_filenames_fail_listing_closed() {
+    let root = scratch_dir("strict-listing");
+    let mut store = FsCoordinationStore::open(&root);
+    store
+        .put_card(&card("MPV2-L1", &[], CardStatus::Defined))
+        .unwrap();
+    assert_eq!(store.cards().unwrap().len(), 1);
+    let cards_dir = root.join("cards");
+
+    // Every silently-skipped shape of the pre-fix lister now fails closed,
+    // and removing the planted file restores the listing (probed per shape so
+    // one failure cannot mask another).
+    let foreign = [
+        "bad card.json",        // space fails the id contract
+        "pass-\u{0667}.json",   // unicode digit (Arabic-Indic seven) fails the id contract
+        ".hidden.json",         // dotfile id fails the id contract
+        "NOTES.txt",            // foreign non-.json file
+        "MPV2-L1.json.tmp.abc", // tmp lookalike with a non-digit pid is NOT the writer's shape
+    ];
+    for name in foreign {
+        std::fs::write(cards_dir.join(name), "{}").unwrap();
+        assert!(
+            matches!(
+                store.cards(),
+                Err(PlaneError::Corrupt(detail)) if detail.contains(name)
+            ),
+            "planted {name} must surface as Corrupt with the offending name"
+        );
+        std::fs::remove_file(cards_dir.join(name)).unwrap();
+        assert_eq!(store.cards().unwrap().len(), 1, "listing restored");
+    }
+
+    // A non-UTF-8 filename is surfaced as Corrupt, not skipped (the pre-fix
+    // lister `continue`d straight past it). Some filesystems (macOS APFS)
+    // refuse to create such a name at all (EILSEQ) — there the shape is
+    // physically excluded and the probe does not apply.
+    #[cfg(unix)]
+    {
+        use std::os::unix::ffi::OsStrExt;
+        let bad = cards_dir.join(std::ffi::OsStr::from_bytes(b"MPV2-\xFF.json"));
+        if std::fs::write(&bad, "{}").is_ok() {
+            assert!(
+                matches!(
+                    store.cards(),
+                    Err(PlaneError::Corrupt(detail)) if detail.contains("non-UTF-8")
+                ),
+                "non-UTF-8 filename must surface as Corrupt"
+            );
+            std::fs::remove_file(&bad).unwrap();
+        }
+    }
+
+    // The atomic writer's own tmp shape is the single tolerated crash
+    // artifact: its rename never happened, so its content was never
+    // acknowledged as ledger data.
+    std::fs::write(cards_dir.join("MPV2-L1.json.tmp.4242"), "{}").unwrap();
+    let listed = store.cards().unwrap();
+    assert_eq!(listed.len(), 1, "writer tmp leftover is tolerated");
+    assert_eq!(listed[0].card_id, "MPV2-L1");
+
+    // The flow-metrics ledger shares the same strict lister: a unicode-digit
+    // pass filename that previously slipped past validate_id fails closed.
+    let mut metrics = FsFlowMetricsStore::open(&root);
+    metrics
+        .record_pass(&PassFlowMetrics {
+            pass_seq: 1,
+            recorded_at_epoch_s: 1_780_000_000,
+            cards: Vec::new(),
+        })
+        .unwrap();
+    std::fs::write(root.join("passes").join("pass-\u{0667}.json"), "{}").unwrap();
+    assert!(matches!(
+        metrics.passes(),
+        Err(PlaneError::Corrupt(detail)) if detail.contains("pass-\u{0667}.json")
+    ));
+    assert!(matches!(
+        metrics.record_pass(&PassFlowMetrics {
+            pass_seq: 2,
+            recorded_at_epoch_s: 1_780_000_100,
+            cards: Vec::new(),
+        }),
+        Err(PlaneError::Corrupt(_))
+    ));
+    std::fs::remove_file(root.join("passes").join("pass-\u{0667}.json")).unwrap();
+    assert_eq!(metrics.passes().unwrap().len(), 1, "ledger restored");
+}
