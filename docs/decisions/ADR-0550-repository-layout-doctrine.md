@@ -136,7 +136,8 @@ its own pack.
 **Belongs in `libs/`:** single-concern code consumed by ≥ 2 services. The seam taxonomy of D1
 applies unchanged: shared **kernels** (pure; e.g. `oya-buck-syntax-kernel` (ADR-0549, std-only),
 `oya-json-kernel`, `oya-shared-pdp-kernel`), shared **adapters** (one transient tech absorbed
-for many consumers; e.g. `oya-shared-pdp-adapter-cedar`, `oya-data-sql-adapter-sqlx`), and
+for many consumers; e.g. `iam-pdp-cedar` at `iam/adapters/pdp-cedar`, and
+`oya-data-sql-adapter-sqlx`), and
 shared **apps** only for genuinely shared runtime binaries (e.g. the transactional-outbox worker
 family).
 

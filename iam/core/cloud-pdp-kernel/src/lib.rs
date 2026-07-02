@@ -12,7 +12,7 @@
 //! kernel for that central decision point: the seams the runnable
 //! cloud-iam PDP composes — it deliberately does NOT re-model decision
 //! evaluation (that port and its Cedar adapter live in
-//! `libs/oya-shared-pdp-kernel` / `libs/oya-shared-pdp-adapter-cedar`;
+//! `libs/oya-shared-pdp-kernel` / `iam/adapters/pdp-cedar`;
 //! reuse, never fork — ADR-0243 two-decision-algorithms prohibition).
 //!
 //! Ports here (cutover litmus per the ports-for-owned-stack doctrine —
