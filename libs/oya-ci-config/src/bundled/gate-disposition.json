@@ -67,6 +67,13 @@
       "slo_no_catalog_records": {"mode": "baseline-block-on-new", "frozen_empty": true},
       "slo_row_no_live_crate_unmarked": {"mode": "baseline-block-on-new", "frozen_empty": true, "remediation": "an SLO catalog row names no live workspace crate and carries no explicit non-live marker (PR-C3 composed live-OR-marked predicate). A valid `slo:` does not excuse a silently-stale record: EITHER restore/rename the crate so its [package].name == the record stem, OR mark the record `status: retired-compatibility-row-no-crate` (or designed-ahead-row-no-crate / planned / aspirational)."}
     },
+    "cloud-ci-license-policy": {
+      "license_policy_missing_license": {"mode": "baseline-block-on-new"},
+      "license_policy_unknown_license": {"mode": "baseline-block-on-new"},
+      "license_policy_forbidden_license": {"mode": "baseline-block-on-new"},
+      "license_policy_review_required": {"mode": "baseline-block-on-new"},
+      "license_policy_no_workspace_members": {"mode": "baseline-block-on-new", "frozen_empty": true}
+    },
     "cloud-ci-catalog-liveness": {
       "catalog_record_no_live_crate_unmarked": {"mode": "baseline-block-on-new", "frozen_empty": true, "remediation": "the catalog record names no live workspace crate and carries no explicit non-live marker. EITHER restore/rename the crate so its [package].name == the record stem (live), OR mark the record explicitly non-live: add `status: retired-compatibility-row-no-crate` (or `designed-ahead-row-no-crate` / `planned` / `aspirational`) per the founder live-OR-explicitly-marked policy. Silently-stale catalog rows are not admissible."},
       "catalog_record_source_crate_missing": {"mode": "baseline-block-on-new", "frozen_empty": true, "remediation": "traceability.source_crate points at a path that is not tracked/live while the catalog row is not explicitly non-live. Repair the path to the live Cargo.toml or mark the catalog row historical/non-live."},

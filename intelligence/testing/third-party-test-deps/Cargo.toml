@@ -2,6 +2,7 @@
 name = "intelligence-third-party-test-deps"
 version = "0.1.0"
 edition = "2021"
+license = "Apache-2.0"
 publish = false
 
 # Reindeer dev-dep forcing crate (ADR-0554 affected-set / move-22a).

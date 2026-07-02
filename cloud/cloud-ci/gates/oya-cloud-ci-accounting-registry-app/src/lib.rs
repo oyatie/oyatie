@@ -632,6 +632,7 @@ pub const FIREWALL_TARGET: &str = "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-
 /// - `cross_artifact`: the decision crosswalk (`decisions`/`duplicate_ids`/`generated_face_axes`)
 /// - `automation_ratchet`: the automation matrix (`rows`) joined with the enforcement face
 /// - `slo_coverage`: the catalog SLO face (`rows` with crate_id/slo)
+/// - `license_policy`: workspace package-license rows (`package_name`/`manifest_path`/`license`)
 /// - `enforcement_liveness`: tracked hook/wiring rows for the FRIC-012 liveness gate
 pub struct GateInputs<'a> {
     pub total_accounting: &'a Value,
@@ -659,6 +660,10 @@ pub struct GateInputs<'a> {
     /// catalog identity from each file stem, and parses the top-level `slo:` value. The gate's
     /// `evaluate_keyed` reuses `oya_check_slo_coverage::validate_slo_coverage` per row.
     pub slo_coverage: &'a Value,
+    /// The license-policy gate input: `{"rows":[{"package_name","manifest_path","license"}]}`.
+    /// The producer resolves workspace members via `oya-workspace-members-kernel`, reads each
+    /// member manifest, and the gate reuses `oya_check_license_policy::LicensePolicy` per row.
+    pub license_policy: &'a Value,
     /// The catalog-liveness gate input: `{"rows":[{"crate_id", "source_path", "is_live",
     /// "marker"}]}`. The producer expands the config-declared `[catalog_liveness]
     /// .catalog_record_globs` against tracked paths, derives the catalog identity from each file
@@ -746,6 +751,11 @@ fn producer_face_keys(
         ),
         GateFace::SloCoverage => group_findings(
             oya_cloud_ci_slo_coverage_app::evaluate_keyed(inputs.slo_coverage)
+                .into_iter()
+                .map(|f| (f.code, f.key)),
+        ),
+        GateFace::LicensePolicy => group_findings(
+            oya_cloud_ci_license_policy_app::evaluate_keyed(inputs.license_policy)
                 .into_iter()
                 .map(|f| (f.code, f.key)),
         ),
@@ -1598,6 +1608,7 @@ mod tests {
             manifest_hygiene: &empty_face,
             cargo_prefix: &empty_face,
             slo_coverage: &empty_face,
+            license_policy: &empty_face,
             catalog_liveness: &empty_face,
             workspace_glob_coverage: &empty_face,
             target_parity: &empty_face,
@@ -1686,6 +1697,7 @@ mod tests {
             manifest_hygiene: &empty_face,
             cargo_prefix: &empty_face,
             slo_coverage: &empty_face,
+            license_policy: &empty_face,
             catalog_liveness: &empty_face,
             workspace_glob_coverage: &empty_face,
             target_parity: &empty_face,
@@ -1754,6 +1766,7 @@ mod tests {
             manifest_hygiene: &empty_face,
             cargo_prefix: &cargo_face,
             slo_coverage: &empty_face,
+            license_policy: &empty_face,
             catalog_liveness: &empty_face,
             workspace_glob_coverage: &empty_face,
             target_parity: &empty_face,
@@ -1784,13 +1797,18 @@ mod tests {
                 "neutral gate findings leaked brand literal {needle:?}:\n{neutral_gates_json}"
             );
         }
-        // "Gates present-but-quiet" (ADR-0533 item 1): the gates are PRESENT (the 14 enabled
-        // gates still appear so the engine dispatches every KIND) but QUIET (each gate's code
+        // "Gates present-but-quiet" (ADR-0533 item 1): the gates are PRESENT (every enabled
+        // gate still appears so the engine dispatches every KIND) but QUIET (each gate's code
         // object is empty — the neutral disposition stamps no codes).
         let neutral_gates = neutral_baseline["gates"]
             .as_object()
             .expect("neutral gates object");
-        assert_eq!(neutral_gates.len(), 14, "gates present (all 14 enabled)");
+        let enabled_gate_count = neutral_cfg.gates.enabled.len();
+        assert_eq!(
+            neutral_gates.len(),
+            enabled_gate_count,
+            "gates present (all enabled gates)"
+        );
         for (gate_id, codes) in neutral_gates {
             assert_eq!(
                 codes.as_object().map(|m| m.len()),
@@ -1809,6 +1827,7 @@ mod tests {
             manifest_hygiene: &empty_face,
             cargo_prefix: &cargo_face,
             slo_coverage: &empty_face,
+            license_policy: &empty_face,
             catalog_liveness: &empty_face,
             workspace_glob_coverage: &empty_face,
             target_parity: &empty_face,
