@@ -4421,6 +4421,116 @@ mod tests {
             }
         })
     }
+    fn minimal_sequenced_masterplan(
+        founder_ratification: Value,
+        execution_wave_dispatch: Value,
+    ) -> Value {
+        let mut masterplan = minimal_masterplan_v2();
+        masterplan["masterplan_v2"]["sequencing"] = json!({
+            "derivation_mode": SEQUENCING_DERIVATION_MODE,
+            "source_of_truth": SEQUENCING_SOURCE_OF_TRUTH,
+            "index_base": 0,
+            "legacy_order_imported": false,
+            "derivation_evidence_refs": [
+                "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_sequencing"
+            ],
+            "work_item_order": [
+                {"index": 0, "work_item_id": "MPV2-0000"},
+                {"index": 1, "work_item_id": "MPV2-0001"}
+            ],
+            "execution_waves": [
+                {"wave_index": 0, "work_item_ids": ["MPV2-0000"]},
+                {"wave_index": 1, "work_item_ids": ["MPV2-0001"]}
+            ],
+            "founder_ratification": founder_ratification,
+            "execution_wave_dispatch": execution_wave_dispatch,
+        });
+        masterplan
+    }
+    #[test]
+    fn masterplan_v2_sequencing_pending_founder_stays_fail_closed() {
+        // Pending + properly blocked: the unratified finding fires, but the
+        // fail-closed not_blocked guard stays quiet.
+        let pending_blocked = minimal_sequenced_masterplan(
+            json!({
+                "decision_recorded": false,
+                "decision_status": "pending_founder_ratification"
+            }),
+            json!({
+                "requires_founder_ratification": true,
+                "allowed_without_founder_ratification": false,
+                "state": DISPATCH_BLOCKED_STATE,
+                "blocked_reason": DISPATCH_BLOCKED_REASON
+            }),
+        );
+        let findings = evaluate_masterplan_v2_sequencing(&pending_blocked);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.founder_ratification"
+        )));
+        assert!(
+            !findings.iter().any(|finding| {
+                finding.key == "masterplan_v2.sequencing.execution_wave_dispatch.not_blocked"
+            }),
+            "properly blocked pending state must not trip the not_blocked guard: {findings:?}"
+        );
+
+        // Pending + NOT blocked: the fail-closed guard must fire.
+        let pending_unblocked = minimal_sequenced_masterplan(
+            json!({"decision_recorded": false}),
+            json!({
+                "requires_founder_ratification": true,
+                "allowed_without_founder_ratification": false,
+                "state": "ratified-awaiting-dispatch"
+            }),
+        );
+        let findings = evaluate_masterplan_v2_sequencing(&pending_unblocked);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.execution_wave_dispatch.not_blocked"
+        )));
+    }
+    #[test]
+    fn masterplan_v2_sequencing_rejects_incomplete_ratification_records() {
+        // A bare decision_recorded=true without approver/ref/timestamp/status is
+        // not a founder ratification.
+        let incomplete = minimal_sequenced_masterplan(
+            json!({"decision_recorded": true}),
+            json!({
+                "requires_founder_ratification": true,
+                "allowed_without_founder_ratification": false,
+                "state": DISPATCH_BLOCKED_STATE,
+                "blocked_reason": DISPATCH_BLOCKED_REASON
+            }),
+        );
+        let findings = evaluate_masterplan_v2_sequencing(&incomplete);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.founder_ratification"
+        )));
+    }
+    #[test]
+    fn masterplan_v2_sequencing_accepts_recorded_founder_ratification() {
+        let ratified = minimal_sequenced_masterplan(
+            json!({
+                "decision_recorded": true,
+                "decision_status": "ratified",
+                "approved_by": "founder",
+                "recorded_at": "2026-07-02T00:00:00Z",
+                "decision_ref": "evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json"
+            }),
+            json!({
+                "requires_founder_ratification": true,
+                "allowed_without_founder_ratification": false,
+                "state": "ratified-awaiting-dispatch"
+            }),
+        );
+        let findings = evaluate_masterplan_v2_sequencing(&ratified);
+        assert!(
+            findings.is_empty(),
+            "a recorded founder ratification with fail-closed dispatch flags must be green: {findings:?}"
+        );
+    }
     fn minimal_program_coverage_masterplan() -> Value {
         let mut masterplan = minimal_masterplan_v2();
         masterplan["masterplan_v2"]["programs"] = json!([

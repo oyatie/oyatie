@@ -6234,8 +6234,8 @@
     "non_reinvention_boundary": "Do not clone OSS UX/implementation wholesale. Reuse proven hyperscaler patterns: monorepo change graph/status fanout, affected targets plus full authoritative backstop, projected-state merge queue, per-tenant runner/cell isolation, progressive rollout/canary/rollback, and evidence-backed promotion."
   },
   "masterplan_v2": {
-    "status": "authority-inventory-consolidated-pending-founder-ratification",
-    "ratification_state": "pending_founder_ratification_before_execution_wave_dispatch",
+    "status": "authority-inventory-consolidated-sequencing-founder-ratified",
+    "ratification_state": "founder_ratification_recorded_2026_07_02_before_any_execution_wave_dispatch",
     "canonical_plan_authority": {
       "path": "/specs/masterplan.json",
       "single_writer_mutation_path": "Coordinator-owned pull-request edits to /specs/masterplan.json. Human-facing docs, sequencing sidecars, closure ledgers, and legacy runtime stores are read-only provenance or generated projections; they never mint live work-item ids.",
@@ -8685,8 +8685,24 @@
       "legacy_order_imported": false,
       "derivation_evidence_refs": [
         "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_sequencing",
-        "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_sequencing_is_zero_based_and_dispatch_blocked_pending_founder"
+        "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_sequencing_is_zero_based_and_founder_ratification_recorded"
       ],
+      "rederivation": {
+        "rederived_at": "2026-07-02T00:00:00Z",
+        "repo_head_at_derivation": "c2d7691dd0f78c319b7284d055f19d832f305770",
+        "work_item_count": 45,
+        "dependency_edge_count": 36,
+        "wave_count": 5,
+        "wave_rule": "wave(n) = 0 when n has no prerequisite edges in masterplan_v2.dependency_edges; otherwise 1 + max(wave(prerequisite)) over all prerequisites of n; ties within a wave order lexicographically by work-item id, and work_item_order is the wave-major concatenation with contiguous zero-based indices",
+        "inherited_orderings_ignored": [
+          "/specs/master-plan-sequencing.json",
+          "docs/MASTERPLAN.md",
+          "docs/ROADMAP.md",
+          "specs/planning-closure-status-closure-ledger.json",
+          ".omc/ultragoal/goals.json",
+          "~/.hermes/kanban/boards/oyatie/kanban.db board ordering"
+        ]
+      },
       "work_item_order": [
         {
           "index": 0,
@@ -8942,8 +8958,7 @@
             "MPV2-0036",
             "MPV2-0041"
           ],
-          "dispatch_state": "blocked",
-          "dispatch_blocker": "pending_founder_ratification"
+          "dispatch_state": "ratified-not-dispatched"
         },
         {
           "wave_index": 1,
@@ -8964,8 +8979,7 @@
             "MPV2-0037",
             "MPV2-0042"
           ],
-          "dispatch_state": "blocked",
-          "dispatch_blocker": "pending_founder_ratification"
+          "dispatch_state": "ratified-not-dispatched"
         },
         {
           "wave_index": 2,
@@ -8975,8 +8989,7 @@
             "MPV2-0038",
             "MPV2-0043"
           ],
-          "dispatch_state": "blocked",
-          "dispatch_blocker": "pending_founder_ratification"
+          "dispatch_state": "ratified-not-dispatched"
         },
         {
           "wave_index": 3,
@@ -8984,35 +8997,39 @@
             "MPV2-0039",
             "MPV2-0044"
           ],
-          "dispatch_state": "blocked",
-          "dispatch_blocker": "pending_founder_ratification"
+          "dispatch_state": "ratified-not-dispatched"
         },
         {
           "wave_index": 4,
           "work_item_ids": [
             "MPV2-0040"
           ],
-          "dispatch_state": "blocked",
-          "dispatch_blocker": "pending_founder_ratification"
+          "dispatch_state": "ratified-not-dispatched"
         }
       ],
       "founder_ratification": {
-        "decision_recorded": false,
-        "decision_ref": null,
-        "recorded_at": null,
-        "approved_by": null,
-        "decision_status": "pending_founder_ratification",
+        "decision_recorded": true,
+        "decision_status": "ratified",
+        "approved_by": "founder",
+        "recorded_at": "2026-07-02T00:00:00Z",
+        "decision_ref": "evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json",
+        "ratification_authority": "Founder-authored masterplan-v2 consolidation directive (Seed contract, 2026-07-02) requiring fully zero-based re-derived sequencing ratified by the founder before any execution wave dispatches; decision binds only to the sequencing content identified by ratified_sequencing_digest.",
+        "ratified_sequencing_digest": "sha256:a6ddc2a8f372c71aa31f9a7e84087d8d2de84c283baee0c8746e054d58564c3c",
+        "digest_recipe": "sha256 over canonical JSON (sorted keys, separators ',' ':') of {\"dependency_edges\": sorted [from, to] pairs, \"execution_waves\": wave work_item_ids arrays in wave order, \"work_item_order\": work_item_id strings in index order}",
+        "invalidation_rule": "Any mutation of masterplan_v2.dependency_edges, sequencing.work_item_order, or sequencing.execution_waves work_item_ids changes the digest and voids this ratification; a fresh re-derivation and a fresh founder-ratification record are then required before further wave dispatch.",
         "required_before": "execution-wave-dispatch"
       },
       "execution_wave_dispatch": {
         "requires_founder_ratification": true,
         "allowed_without_founder_ratification": false,
-        "state": "blocked",
-        "blocked_reason": "pending_founder_ratification"
+        "state": "ratified-awaiting-dispatch",
+        "ratification_ref": "/specs/masterplan.json#masterplan_v2.sequencing.founder_ratification",
+        "dispatched_waves": [],
+        "note": "Founder ratification was recorded 2026-07-02 before any execution-wave dispatch; no wave has dispatched. Ready-work derivation, lane disjointness, and coordinator-only commits remain governed by the ADR-0516 fabric loop contracts."
       }
     },
     "non_claims": [
-      "This Sub-AC 4 increment does not claim founder ratification or E2E loop execution.",
+      "Sub-AC 4 records the founder-ratification decision for the re-derived sequencing (see masterplan_v2.sequencing.founder_ratification and evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json); it does not claim E2E loop execution, and no execution wave has dispatched.",
       "Hermes done-card imports are not surfaced as done; they remain claimed-done-unverified until evidence refs attach.",
       "Legacy completion claims absorbed from the P00 GitOps VCS phase, its implementation plans, and the realignment wave sequence are not surfaced as verified done; they remain claimed-done-unverified until evidence refs attach."
     ]
