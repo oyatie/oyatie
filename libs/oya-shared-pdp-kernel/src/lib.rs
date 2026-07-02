@@ -176,6 +176,10 @@ pub enum PdpError {
     /// A decision id could not be minted; the decision is not emitted
     /// because it would be unattributable in the audit chain.
     DecisionIdUnavailable { detail: String },
+    /// The PDP reached a decision but could not durably append the signed
+    /// audit-chain event. Callers must fail closed rather than use an
+    /// unaudited authorization outcome.
+    AuditChainEmission { detail: String },
     /// The wrapped PDP returned only after its elapsed-time budget.
     ///
     /// This is fail-closed but intentionally NOT a hard cancellation claim: the
@@ -218,6 +222,9 @@ impl fmt::Display for PdpError {
             Self::DecisionIdUnavailable { detail } => {
                 write!(f, "decision id unavailable: {detail}")
             }
+            Self::AuditChainEmission { detail } => {
+                write!(f, "audit-chain emission failed: {detail}")
+            }
             Self::RuntimeTimeout { deadline_ms } => {
                 write!(
                     f,
@@ -247,6 +254,7 @@ impl PdpError {
         matches!(
             self,
             Self::DecisionIdUnavailable { .. }
+                | Self::AuditChainEmission { .. }
                 | Self::RuntimeTimeout { .. }
                 | Self::RuntimePanic { .. }
         )
