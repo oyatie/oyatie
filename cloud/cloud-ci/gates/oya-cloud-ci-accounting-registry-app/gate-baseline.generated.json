@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:5eac588315479c90",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:fcc24e11b5553e48"
+    "source_inputs_digest": "fnv1a64:aaba31b3cf7248eb"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -10490,6 +10490,7 @@
           "evidence/goals/durable-goal-completion-report-1779013500.json",
           "evidence/goals/durable-goal-execution-ledger-2026-05-16.json",
           "evidence/goals/fabric-loop-e2e-proof-run-20260702.json",
+          "evidence/goals/fabric-loop-parallel-lanes-proof-run-20260702.json",
           "evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
           "evidence/goals/masterplan-v2-hermes-done-card-forensic-ledger-20260702.json",
           "evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json",
@@ -20454,7 +20455,10 @@
           "plan/fabric-loop/cards/MPV2-0000.C002.json",
           "plan/fabric-loop/cards/MPV2-0000.C003.json",
           "plan/fabric-loop/cards/MPV2-0000.C004.json",
+          "plan/fabric-loop/cards/MPV2-0000.C005.json",
+          "plan/fabric-loop/cards/MPV2-0000.C006.json",
           "plan/fabric-loop/flow-metrics/passes/pass-00000000000000000001.json",
+          "plan/fabric-loop/flow-metrics/passes/pass-00000000000000000002.json",
           "plan/hyperscaler-grade-cloud-platform-changeset-slices.md",
           "plan/hyperscaler-grade-cloud-platform-greenfield-plan.md",
           "plan/hyperscaler-grade-cloud-platform-main-plan-audit.md",
@@ -47947,7 +47951,10 @@
           "plan/fabric-loop/cards/MPV2-0000.C002.json",
           "plan/fabric-loop/cards/MPV2-0000.C003.json",
           "plan/fabric-loop/cards/MPV2-0000.C004.json",
+          "plan/fabric-loop/cards/MPV2-0000.C005.json",
+          "plan/fabric-loop/cards/MPV2-0000.C006.json",
           "plan/fabric-loop/flow-metrics/passes/pass-00000000000000000001.json",
+          "plan/fabric-loop/flow-metrics/passes/pass-00000000000000000002.json",
           "registry/BUCK",
           "registry/accounts/README.md",
           "registry/accounts/claude.example.toml",
