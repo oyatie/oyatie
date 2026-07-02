@@ -74,7 +74,13 @@
 //!   referential agreement, completion-requires-evidence).
 //! - `masterplan_read_contract_invalid` — archived-with-provenance stale
 //!   read paths are referenced through a non-archive read contract or read
-//!   projection.
+//!   projection, or a superseded/stale plan authority (docs/MASTERPLAN.md,
+//!   docs/ROADMAP.md, the retired planning specs) is RESURRECTED on disk
+//!   outside the archive: a governed absorbed / archived-with-provenance /
+//!   generated-projection surface whose on-disk content no longer declares
+//!   itself non-live, drops its canonical-authority pointer or
+//!   provenance-archive read-timing declaration, or escapes the
+//!   read-surface sweep entirely.
 //! - `masterplan_entry_surface_invalid` — masterplan v2 entry-surface
 //!   read contracts drift from the bounded root-hub allowlist or revive a
 //!   superseded entrypoint.
@@ -96,15 +102,19 @@ use serde_json::Value;
 
 mod plan_evidence_crosscheck;
 mod projection_rederivation;
+mod read_surface_resurrection;
 
-
+pub use plan_evidence_crosscheck::{
+    PLAN_EVIDENCE_CROSSCHECK_VALIDATOR, UNRECORDED_EVIDENCE_CODE,
+    evaluate_masterplan_plan_evidence_crosscheck,
+};
 pub use projection_rederivation::{
     MASTERPLAN_MD_PATH, PROJECTION_REDERIVATION_VALIDATOR, STALE_PROJECTION_CODE,
     derive_masterplan_md_projection, evaluate_masterplan_projection_rederivation,
 };
-pub use plan_evidence_crosscheck::{
-    PLAN_EVIDENCE_CROSSCHECK_VALIDATOR, UNRECORDED_EVIDENCE_CODE,
-    evaluate_masterplan_plan_evidence_crosscheck,
+pub use read_surface_resurrection::{
+    READ_SURFACE_RESURRECTION_VALIDATOR, RESURRECTION_CODE,
+    evaluate_masterplan_read_surface_resurrections,
 };
 /// The gate id, matching the buck2 target + the §5.2 contract.
 pub const GATE_ID: &str = "cloud-ci-cross-artifact-agreement";
@@ -446,11 +456,19 @@ pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
         if masterplan_read_contract_gate_present(fixture) {
             findings.extend(evaluate_masterplan_v2_read_contract_archives(fixture));
         }
+        if let Some(read_surface_corpus) = fixture.get("read_surface_corpus") {
+            findings.extend(evaluate_masterplan_read_surface_resurrections(
+                fixture,
+                read_surface_corpus,
+            ));
+        }
         if let Some(corpus) = fixture.get("projection_rederivation") {
             findings.extend(evaluate_masterplan_projection_rederivation(fixture, corpus));
         }
         if let Some(corpus) = fixture.get("plan_evidence_crosscheck") {
-            findings.extend(evaluate_masterplan_plan_evidence_crosscheck(fixture, corpus));
+            findings.extend(evaluate_masterplan_plan_evidence_crosscheck(
+                fixture, corpus,
+            ));
         }
         if let Some(root_hub) = fixture.get("root_hub_pointers") {
             findings.extend(evaluate_masterplan_v2_entry_surfaces(fixture, root_hub));

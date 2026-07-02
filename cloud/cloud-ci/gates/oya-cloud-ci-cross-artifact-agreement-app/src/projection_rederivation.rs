@@ -146,9 +146,9 @@ pub fn derive_masterplan_md_projection(masterplan: &Value) -> Result<String, Str
         .map(str::trim)
         .filter(|path| !path.is_empty())
         .ok_or_else(|| "masterplan_v2.canonical_plan_authority.path".to_owned())?;
-    let id_space = authority
-        .get("live_work_item_id_space")
-        .ok_or_else(|| "masterplan_v2.canonical_plan_authority.live_work_item_id_space".to_owned())?;
+    let id_space = authority.get("live_work_item_id_space").ok_or_else(|| {
+        "masterplan_v2.canonical_plan_authority.live_work_item_id_space".to_owned()
+    })?;
     let id_prefix = id_space
         .get("id_prefix")
         .and_then(Value::as_str)
@@ -278,7 +278,9 @@ fn evaluate_masterplan_md(masterplan: &Value, corpus: &Value, findings: &mut BTr
             }
         }
         Err(fragment) => {
-            findings.insert(stale(&format!("<underivable-{MASTERPLAN_MD_PATH}>@{fragment}")));
+            findings.insert(stale(&format!(
+                "<underivable-{MASTERPLAN_MD_PATH}>@{fragment}"
+            )));
         }
     }
 }
@@ -327,7 +329,12 @@ fn push_wire_string_array(values: &[String], indent: usize, out: &mut String) {
 }
 
 /// Extract a required string field, or record a stale finding keyed by `key`.
-fn wire_str(value: &Value, field: &str, key: &str, findings: &mut BTreeSet<Finding>) -> Option<String> {
+fn wire_str(
+    value: &Value,
+    field: &str,
+    key: &str,
+    findings: &mut BTreeSet<Finding>,
+) -> Option<String> {
     match value.get(field).and_then(Value::as_str) {
         Some(text) => Some(text.to_owned()),
         None => {
@@ -338,7 +345,12 @@ fn wire_str(value: &Value, field: &str, key: &str, findings: &mut BTreeSet<Findi
 }
 
 /// Extract a required unsigned-integer field, or record a stale finding.
-fn wire_num(value: &Value, field: &str, key: &str, findings: &mut BTreeSet<Finding>) -> Option<u64> {
+fn wire_num(
+    value: &Value,
+    field: &str,
+    key: &str,
+    findings: &mut BTreeSet<Finding>,
+) -> Option<u64> {
     match value.get(field).and_then(Value::as_u64) {
         Some(number) => Some(number),
         None => {
@@ -395,7 +407,12 @@ fn evaluate_loop_cards(
             .get("content")
             .and_then(Value::as_str)
             .and_then(|content| serde_json::from_str::<Value>(content).ok())
-            .and_then(|parsed| parsed.get("card_id").and_then(Value::as_str).map(str::to_owned))
+            .and_then(|parsed| {
+                parsed
+                    .get("card_id")
+                    .and_then(Value::as_str)
+                    .map(str::to_owned)
+            })
         {
             card_ids.insert(id);
         }
@@ -435,7 +452,9 @@ fn evaluate_loop_cards(
 
         // Canonical filename: `{card_id}.json` (the coordination-plane store key).
         if file_name != format!("{card_id}.json") {
-            findings.insert(stale(&format!("{card_id}.non_canonical_card_filename@{file_name}")));
+            findings.insert(stale(&format!(
+                "{card_id}.non_canonical_card_filename@{file_name}"
+            )));
         }
 
         // Byte-canonical re-serialization through the pinned wire shape.
@@ -482,7 +501,9 @@ fn evaluate_loop_cards(
         }
         for dependency in &depends_on {
             if !card_ids.contains(dependency) {
-                findings.insert(stale(&format!("{card_id}.dangling_depends_on@{dependency}")));
+                findings.insert(stale(&format!(
+                    "{card_id}.dangling_depends_on@{dependency}"
+                )));
             }
         }
     }
@@ -583,7 +604,9 @@ fn evaluate_flow_metrics_ledger(
             // A metric row must measure a card that exists on the durable
             // coordination plane — a phantom card id is not re-derivable.
             if !card_ids.contains(&card_id) {
-                findings.insert(stale(&format!("{card_id}.metric_for_unknown_card@{file_name}")));
+                findings.insert(stale(&format!(
+                    "{card_id}.metric_for_unknown_card@{file_name}"
+                )));
             }
             let mut body = String::from("    {\n      \"card_id\": ");
             push_wire_string(&card_id, &mut body);
@@ -753,14 +776,19 @@ mod tests {
         })
     }
 
-    fn finding_keys(findings: &std::collections::BTreeSet<Finding>) -> Vec<String> { findings.iter().map(|f| f.key.clone()).collect() }
+    fn finding_keys(findings: &std::collections::BTreeSet<Finding>) -> Vec<String> {
+        findings.iter().map(|f| f.key.clone()).collect()
+    }
 
     #[test]
     fn green_corpus_rederives_every_projection() {
         let masterplan = green_masterplan();
         let corpus = green_corpus(&masterplan);
         let findings = evaluate_masterplan_projection_rederivation(&masterplan, &corpus);
-        assert!(findings.is_empty(), "green corpus must be green: {findings:?}");
+        assert!(
+            findings.is_empty(),
+            "green corpus must be green: {findings:?}"
+        );
     }
 
     #[test]
@@ -771,7 +799,10 @@ mod tests {
         assert_eq!(first, second, "derivation must be deterministic");
         assert!(first.contains("`MPV2-####`"));
         assert!(first.contains("`/specs/master-plan-sequencing.json`, `/specs/planning-closure-contract.json`, `/specs/planning-closure-status-closure-ledger.json`, `docs/ROADMAP.md`"));
-        assert!(!first.ends_with('\n'), "the on-disk projection carries no trailing newline");
+        assert!(
+            !first.ends_with('\n'),
+            "the on-disk projection carries no trailing newline"
+        );
 
         let underivable = json!({"masterplan_v2": {"canonical_plan_authority": {}}});
         assert!(derive_masterplan_md_projection(&underivable).is_err());
@@ -811,8 +842,8 @@ mod tests {
         let old_masterplan = green_masterplan();
         let corpus = green_corpus(&old_masterplan);
         let mut moved = green_masterplan();
-        moved["masterplan_v2"]["canonical_plan_authority"]["live_work_item_id_space"]
-            ["numeric_width"] = json!(5);
+        moved["masterplan_v2"]["canonical_plan_authority"]["live_work_item_id_space"]["numeric_width"] =
+            json!(5);
         let findings = evaluate_masterplan_projection_rederivation(&moved, &corpus);
         assert_eq!(finding_keys(&findings), vec![MASTERPLAN_MD_PATH.to_owned()]);
     }
@@ -830,8 +861,14 @@ mod tests {
         ]);
         let findings = evaluate_masterplan_projection_rederivation(&masterplan, &corpus);
         let keys = finding_keys(&findings);
-        assert!(keys.contains(&"MPV2-0000.C001.hand_edited_card_bytes".to_owned()), "{keys:?}");
-        assert!(keys.contains(&"MPV2-0000.C001.dangling_program_ref".to_owned()), "{keys:?}");
+        assert!(
+            keys.contains(&"MPV2-0000.C001.hand_edited_card_bytes".to_owned()),
+            "{keys:?}"
+        );
+        assert!(
+            keys.contains(&"MPV2-0000.C001.dangling_program_ref".to_owned()),
+            "{keys:?}"
+        );
         assert!(
             keys.contains(&"MPV2-0000.C001.dangling_depends_on@MPV2-0000.C009".to_owned()),
             "{keys:?}"
@@ -860,7 +897,10 @@ mod tests {
             keys.contains(&"MPV2-0000.C001.completion_without_evidence".to_owned()),
             "{keys:?}"
         );
-        assert!(keys.contains(&"MPV2-0000.C002.unknown_card_status".to_owned()), "{keys:?}");
+        assert!(
+            keys.contains(&"MPV2-0000.C002.unknown_card_status".to_owned()),
+            "{keys:?}"
+        );
     }
 
     #[test]
@@ -906,7 +946,8 @@ mod tests {
         ]);
         let findings = evaluate_masterplan_projection_rederivation(&masterplan, &corpus);
         assert!(
-            finding_keys(&findings).contains(&"<non-canonical-pass-filename>@pass-1.json".to_owned()),
+            finding_keys(&findings)
+                .contains(&"<non-canonical-pass-filename>@pass-1.json".to_owned()),
             "{findings:?}"
         );
     }
@@ -976,7 +1017,10 @@ mod tests {
             ]
         });
         let findings = evaluate_masterplan_projection_rederivation(&masterplan, &corpus);
-        assert!(findings.is_empty(), "declared+covered projection must be green: {findings:?}");
+        assert!(
+            findings.is_empty(),
+            "declared+covered projection must be green: {findings:?}"
+        );
     }
 
     #[test]
@@ -997,13 +1041,19 @@ mod tests {
             "<malformed-flow-metrics-ledger>",
             "<malformed-generated-projection-inventory>",
         ] {
-            assert!(keys.contains(&expected.to_owned()), "missing {expected} in {keys:?}");
+            assert!(
+                keys.contains(&expected.to_owned()),
+                "missing {expected} in {keys:?}"
+            );
         }
 
         let corpus = green_corpus(&masterplan);
         let findings =
             evaluate_masterplan_projection_rederivation(&json!({"decisions": []}), &corpus);
-        assert_eq!(finding_keys(&findings), vec!["<missing-masterplan_v2>".to_owned()]);
+        assert_eq!(
+            finding_keys(&findings),
+            vec!["<missing-masterplan_v2>".to_owned()]
+        );
     }
 
     #[test]
