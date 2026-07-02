@@ -41,7 +41,7 @@
       "gate": "masterplan-read-contract-entry-surface",
       "checks": "read-surface resurrection sweep (archived/absorbed plan surfaces keep their archive markers; superseded authorities cannot be revived) plus exact-set entry-surface equality against /specs/root-hub-pointers.json",
       "violation_codes": ["masterplan_read_contract_invalid", "masterplan_entry_surface_invalid"],
-      "evaluator": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/read_surface_resurrection.rs",
+      "evaluator": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/read_contract_entry_surface.rs (declared-policy half: read-contract archive lane + bounded entry-surface lane) + cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/read_surface_resurrection.rs (on-disk resurrection sweep half)",
       "frozen_red_fixtures": [
         "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-read-contract-resurrected-roadmap.json",
         "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-entry-surface-resurrected-superseded.json",
@@ -120,5 +120,37 @@
     "admitting_observed": "PR #1182 mergeStateStatus flipped BLOCKED -> CLEAN (queried via gh pr view at 2026-07-02T14:38:30Z) \u2014 the green required context is the only admission signal that changed; the same context that blocked probe PR #1181 admits the reconciled candidate",
     "recording_protocol": "fulfilled 2026-07-02T14:38:30Z by the immediately following commit per the protocol authored with this packet: the run executes on the commit that carries the packet, so the run id is recorded by its successor commit; the recorded head 63dc272f5 differs from the recording commit by exactly this recording edit plus the matching masterplan/ADR evidence-ref pins",
     "local_mirror": "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app:{-unittest,-gate} on the reconciled tree: 81 lib + 20 gate tests passed, including all four live-tree born-blocking self-tests (masterplan_v2_live_authority_contract_is_green, masterplan_projection_rederivation_gate_is_green_on_live_tree, masterplan_plan_evidence_crosscheck_gate_is_green_on_live_tree, masterplan_read_surface_resurrection_gate_is_green_on_live_tree)"
+  },
+  "post_refactor_reverification": {
+    "reverified_at": "2026-07-02T19:15:00Z",
+    "branch": "ooo/orch_edff8596cfa2",
+    "trigger": "the read-contract/entry-surface gate's declared-policy lanes were extracted from lib.rs into the dedicated component module src/read_contract_entry_surface.rs (commit 93f68051c); this record proves the wiring and per-gate red/green behavior hold unchanged on the refactored tree",
+    "wiring_reconfirmed": {
+      "matrix_leg": ".github/workflows/oya-ci-required.yml gate matrix include line for oya-cloud-ci-cross-artifact-agreement-app (label names all 4 masterplan-v2 plan gates incl. read-contract/entry-surface)",
+      "fan_in_dependency": "oya-ci-required fan-in job needs: gate; matrix aggregate result is success IFF every leg passed, so a red masterplan leg forces the required context RED",
+      "branch_protection": ".github/branch-protection.yaml dev.required_status_checks = [oya-ci-required] (single required context, ADR-0515)",
+      "gate_registration_meta_test": "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-gate-registration — 6 passed, including every_gate_crate_is_registered_in_oya_ci_required_workflow and every_gate_lane_is_a_dependency_of_the_fan_in_job"
+    },
+    "per_gate_red_green_local_mirror": {
+      "command": "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app:{oya-cloud-ci-cross-artifact-agreement-app-unittest,oya-cloud-ci-cross-artifact-agreement-app-gate} (the exact two targets the blocking CI lane runs)",
+      "result": "111 lib + 20 gate tests passed, 0 failed",
+      "green_passes_clean": [
+        "masterplan_v2_live_authority_contract_is_green (structural ID/DAG/orphans)",
+        "masterplan_v2_projection_freshness_contract_is_green + masterplan_projection_rederivation_gate_is_green_on_live_tree (projection freshness)",
+        "masterplan_v2_plan_vs_evidence_drift_contract_is_green + masterplan_plan_evidence_crosscheck_gate_is_green_on_live_tree (plan-vs-evidence)",
+        "masterplan_v2_entry_surface_allowlist_gate_is_green + masterplan_v2_read_contract_archive_gate_is_green + masterplan_read_surface_resurrection_gate_is_green_on_live_tree (read-contract/entry-surface)"
+      ],
+      "red_blocks_failing": [
+        "masterplan_structural_failure_mode_fixtures_fail_closed (structural ID/DAG/orphans)",
+        "masterplan_projection_rederivation_fixtures_fail_closed (projection freshness)",
+        "masterplan_plan_evidence_crosscheck_fixtures_fail_closed (plan-vs-evidence)",
+        "masterplan_read_contract_entry_surface_fixtures_fail_closed (read-contract/entry-surface)"
+      ]
+    },
+    "live_red_green_demonstration": {
+      "summary": "While pinning the fourth gate's validator refs into MPV2-0004, the plan-vs-evidence gate went RED on this tree in real time: the new evidence ref cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/read_contract_entry_surface.rs#evaluate_masterplan_v2_entry_surfaces was flagged masterplan_plan_evidence_unrecorded @ MPV2-0004@work_items[4].evidence_refs[4].unresolved because the committed generated-face resolution universe predated the module-extraction refactor.",
+      "remediation": "single mechanical remediation path only: buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin rematerialized the generated faces (no hand edits per generated_faces_policy); the same two gate targets then passed 111 lib + 20 gate tests with 0 failures. Verification followed the CI materialize-then-assert protocol: gates asserted against regenerated faces (mirroring the producer-regen lane), then committed generated outputs were restored to branch bytes because generated outputs are never PR merge surfaces (generated-output-diff-policy verified green on the final diff).",
+      "significance": "a second organic proof (after the PR #1167 drift catch) that a failing change is blocked mechanically and a clean change passes — the gate refused a dangling evidence ref introduced by this very wiring edit until the generated resolution universe was re-derived by its single writer"
+    }
   }
 }

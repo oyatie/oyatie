@@ -16393,13 +16393,19 @@
         "source_refs": [
           "cloud-ci-cross-artifact-agreement/masterplan-v2-authority",
           "cloud-ci-cross-artifact-agreement/masterplan-v2-projection-freshness",
-          "cloud-ci-cross-artifact-agreement/masterplan-v2-plan-vs-evidence-drift"
+          "cloud-ci-cross-artifact-agreement/masterplan-v2-plan-vs-evidence-drift",
+          "cloud-ci-cross-artifact-agreement/masterplan-v2-entry-surface",
+          "cloud-ci-cross-artifact-agreement/masterplan-v2-read-surface-resurrection"
         ],
         "evidence_refs": [
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness",
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green",
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_plan_evidence_drift",
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_plan_vs_evidence_drift_contract_is_green",
+          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/read_contract_entry_surface.rs#evaluate_masterplan_v2_entry_surfaces",
+          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/read_surface_resurrection.rs#evaluate_masterplan_read_surface_resurrections",
+          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_entry_surface_allowlist_gate_is_green",
+          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_read_contract_entry_surface_fixtures_fail_closed",
           "evidence/goals/masterplan-gates-ci-wiring-20260702.json",
           "https://github.com/jason931225/oyatie/actions/runs/28592595372",
           "https://github.com/jason931225/oyatie/actions/runs/28594633232",

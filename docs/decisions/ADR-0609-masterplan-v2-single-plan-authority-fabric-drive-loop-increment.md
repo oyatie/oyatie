@@ -75,6 +75,9 @@ two-plane drive loop that executes ready work through mechanically disjoint para
    - **read-contract / entry-surface** — read contracts on surviving artifacts, exact
      entry-surface equality with `/specs/root-hub-pointers.json`, and the archive-marker
      resurrection sweep (`masterplan_read_contract_invalid`, `masterplan_entry_surface_invalid`;
+     declared-policy lanes in
+     `cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/read_contract_entry_surface.rs`,
+     on-disk sweep in
      `cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/read_surface_resurrection.rs`).
 
    These lanes run inside the `gate · cross-artifact-agreement` matrix leg of
@@ -90,6 +93,7 @@ This ADR is the justification anchor (ADR-0555 accounting) for the artifacts thi
 ```
 cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/plan_evidence_crosscheck.rs
 cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/projection_rederivation.rs
+cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/read_contract_entry_surface.rs
 cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/read_surface_resurrection.rs
 evidence/goals/fabric-loop-closed-loop-improvement-verification-20260702.json
 evidence/goals/fabric-loop-e2e-proof-run-20260702.json
