@@ -64,6 +64,33 @@ fn now_epoch_s() -> Result<u64, PlaneError> {
         .map_err(|err| PlaneError::Io(format!("system clock before unix epoch: {err}")))
 }
 
+/// Bin-local error surface separating operator CLI misuse from genuine
+/// store/plane failures. `Usage` covers malformed arguments that never
+/// touched a store and prints with a `usage error: ` prefix; `Plane` wraps a
+/// real `PlaneError` and preserves its Display text unchanged.
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum CliError {
+    /// The operator invoked the bin with malformed arguments.
+    Usage(String),
+    /// A genuine store/plane failure surfaced through the port facades.
+    Plane(PlaneError),
+}
+
+impl std::fmt::Display for CliError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Usage(detail) => write!(f, "usage error: {detail}"),
+            Self::Plane(err) => write!(f, "{err}"),
+        }
+    }
+}
+
+impl From<PlaneError> for CliError {
+    fn from(err: PlaneError) -> Self {
+        Self::Plane(err)
+    }
+}
+
 struct Args {
     args: Vec<String>,
     cursor: usize,
@@ -194,7 +221,7 @@ fn main() -> ExitCode {
         Ok(at) => at,
         Err(err) => return fail(&err.to_string()),
     };
-    let result = match command.as_deref().unwrap_or("snapshot") {
+    let result: Result<(), CliError> = match command.as_deref().unwrap_or("snapshot") {
         "snapshot" => return snapshot(&runtime),
         "define-card" => define_card(
             &mut runtime,
@@ -211,11 +238,13 @@ fn main() -> ExitCode {
                     "claimed {} for lane {} at {}",
                     claim.card_id, claim.lane_id, claim.claimed_at_epoch_s
                 );
-            }),
+            })
+            .map_err(CliError::from),
         "start" => runtime
             .loop_state
             .start_run(&card_id, &lane_id, at)
-            .map(|()| println!("run started for {card_id} on lane {lane_id} at {at}")),
+            .map(|()| println!("run started for {card_id} on lane {lane_id} at {at}"))
+            .map_err(CliError::from),
         "heartbeat" => runtime
             .loop_state
             .heartbeat(&card_id, &lane_id, at)
@@ -224,13 +253,16 @@ fn main() -> ExitCode {
                     "heartbeat for {} on lane {} at {}",
                     beat.card_id, beat.lane_id, beat.beat_at_epoch_s
                 );
-            }),
-        "block" => BlockKind::parse(&kind).and_then(|kind| {
-            runtime
-                .loop_state
-                .mark_blocked(&card_id, &lane_id, kind, &note, at)
-                .map(|()| println!("{card_id} blocked ({}) on lane {lane_id}", kind.as_str()))
-        }),
+            })
+            .map_err(CliError::from),
+        "block" => BlockKind::parse(&kind)
+            .and_then(|kind| {
+                runtime
+                    .loop_state
+                    .mark_blocked(&card_id, &lane_id, kind, &note, at)
+                    .map(|()| println!("{card_id} blocked ({}) on lane {lane_id}", kind.as_str()))
+            })
+            .map_err(CliError::from),
         "complete" => runtime
             .loop_state
             .complete(&card_id, &lane_id, &evidence, at)
@@ -239,17 +271,15 @@ fn main() -> ExitCode {
                     "{card_id} completed on lane {lane_id} at {at} -> claimed-done-unverified ({} evidence refs)",
                     evidence.len()
                 );
-            }),
-        "verify-done" => match &evidence[..] {
-            [reference] => runtime
+            })
+            .map_err(CliError::from),
+        "verify-done" => verify_done_evidence(&evidence).and_then(|reference| {
+            runtime
                 .loop_state
                 .verify_done(&card_id, reference)
-                .map(|()| println!("{card_id} -> done-verified")),
-            _ => Err(PlaneError::Corrupt(format!(
-                "verify-done requires exactly one --evidence REF; got {}",
-                evidence.len()
-            ))),
-        },
+                .map(|()| println!("{card_id} -> done-verified"))
+                .map_err(CliError::from)
+        }),
         "record-pass" => record_pass(&mut runtime, &timelines, at),
         "check-disjoint" => {
             return check_disjoint(&phase, &reviewer_capacity, &surfaces, at);
@@ -271,18 +301,37 @@ fn fail(message: &str) -> ExitCode {
     ExitCode::FAILURE
 }
 
+/// Validate the `verify-done` `--evidence` arity: exactly one REF. Arity
+/// violations are operator usage errors, not store corruption.
+fn verify_done_evidence(evidence: &[String]) -> Result<&str, CliError> {
+    match evidence {
+        [reference] => Ok(reference.as_str()),
+        _ => Err(CliError::Usage(format!(
+            "verify-done requires exactly one --evidence REF; got {}",
+            evidence.len()
+        ))),
+    }
+}
+
+/// Validate the `define-card` required flags. Missing or blank `--title` /
+/// `--program` is an operator usage error, not store corruption.
+fn require_define_card_flags(title: &str, program: &str) -> Result<(), CliError> {
+    if title.trim().is_empty() || program.trim().is_empty() {
+        return Err(CliError::Usage(
+            "define-card requires --title and --program".into(),
+        ));
+    }
+    Ok(())
+}
+
 fn define_card(
     runtime: &mut Runtime,
     card_id: &str,
     title: &str,
     program: &str,
     depends_on: Vec<String>,
-) -> Result<(), PlaneError> {
-    if title.trim().is_empty() || program.trim().is_empty() {
-        return Err(PlaneError::Corrupt(
-            "define-card requires --title and --program".into(),
-        ));
-    }
+) -> Result<(), CliError> {
+    require_define_card_flags(title, program)?;
     runtime.loop_state.define_card(&LoopCard {
         card_id: card_id.to_owned(),
         title: title.to_owned(),
@@ -295,7 +344,7 @@ fn define_card(
     Ok(())
 }
 
-fn parse_timeline(raw: &str) -> Result<CardFlowTimeline, PlaneError> {
+fn parse_timeline(raw: &str) -> Result<CardFlowTimeline, CliError> {
     let parts: Vec<&str> = raw.split(',').collect();
     let [
         card_id,
@@ -307,13 +356,13 @@ fn parse_timeline(raw: &str) -> Result<CardFlowTimeline, PlaneError> {
         rounds,
     ] = parts[..]
     else {
-        return Err(PlaneError::Corrupt(format!(
+        return Err(CliError::Usage(format!(
             "--timeline expects CARD,LANE,CLAIMED,REVIEW_REQ,FIRST_VERDICT,COMPLETED,ROUNDS; got {raw:?}"
         )));
     };
-    let num = |label: &str, text: &str| -> Result<u64, PlaneError> {
+    let num = |label: &str, text: &str| -> Result<u64, CliError> {
         text.parse::<u64>()
-            .map_err(|_| PlaneError::Corrupt(format!("--timeline {label} is not a u64: {text:?}")))
+            .map_err(|_| CliError::Usage(format!("--timeline {label} is not a u64: {text:?}")))
     };
     Ok(CardFlowTimeline {
         card_id: card_id.to_owned(),
@@ -326,7 +375,7 @@ fn parse_timeline(raw: &str) -> Result<CardFlowTimeline, PlaneError> {
     })
 }
 
-fn record_pass(runtime: &mut Runtime, timelines: &[String], at: u64) -> Result<(), PlaneError> {
+fn record_pass(runtime: &mut Runtime, timelines: &[String], at: u64) -> Result<(), CliError> {
     let parsed = timelines
         .iter()
         .map(|raw| parse_timeline(raw))
@@ -343,10 +392,11 @@ fn record_pass(runtime: &mut Runtime, timelines: &[String], at: u64) -> Result<(
 }
 
 /// Parse one `--surface LANE:CARD=PATH[,PATH]...` spec.
-fn parse_surface(raw: &str) -> Result<LaneWorkSurface, PlaneError> {
-    let malformed = || PlaneError::InvalidSurface {
-        lane_id: "<cli>".into(),
-        detail: format!("--surface expects LANE:CARD=PATH[,PATH]...; got {raw:?}"),
+fn parse_surface(raw: &str) -> Result<LaneWorkSurface, CliError> {
+    let malformed = || {
+        CliError::Usage(format!(
+            "--surface expects LANE:CARD=PATH[,PATH]...; got {raw:?}"
+        ))
     };
     let (ids, paths) = raw.split_once('=').ok_or_else(malformed)?;
     let (lane_id, card_id) = ids.split_once(':').ok_or_else(malformed)?;
@@ -370,7 +420,7 @@ fn check_disjoint(
     surface_specs: &[String],
     at: u64,
 ) -> ExitCode {
-    let run = || -> Result<oya_fabric_loop_state_app::DisjointnessReport, PlaneError> {
+    let run = || -> Result<oya_fabric_loop_state_app::DisjointnessReport, CliError> {
         let phase = DisjointnessPhase::parse(phase)?;
         let capacity = reviewer_capacity.parse::<usize>().map_err(|_| {
             PlaneError::InvalidSurface {
@@ -384,7 +434,7 @@ fn check_disjoint(
             .iter()
             .map(|raw| parse_surface(raw))
             .collect::<Result<Vec<_>, _>>()?;
-        check_lane_disjointness(phase, &surfaces, capacity, at)
+        check_lane_disjointness(phase, &surfaces, capacity, at).map_err(CliError::from)
     };
     match run() {
         Ok(report) => {
@@ -464,4 +514,97 @@ fn snapshot(runtime: &Runtime) -> ExitCode {
         target.service_name, target.destination_home, target.owner
     );
     ExitCode::SUCCESS
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn verify_done_arity_violation_is_usage_error_not_plane() {
+        let none: Vec<String> = Vec::new();
+        assert!(matches!(
+            verify_done_evidence(&none),
+            Err(CliError::Usage(_))
+        ));
+        let two = vec!["ref-a".to_owned(), "ref-b".to_owned()];
+        let err = verify_done_evidence(&two).unwrap_err();
+        assert_eq!(
+            err,
+            CliError::Usage("verify-done requires exactly one --evidence REF; got 2".into())
+        );
+        assert_eq!(
+            err.to_string(),
+            "usage error: verify-done requires exactly one --evidence REF; got 2"
+        );
+    }
+
+    #[test]
+    fn verify_done_single_evidence_is_accepted() {
+        let one = vec!["evidence:ref".to_owned()];
+        assert_eq!(verify_done_evidence(&one), Ok("evidence:ref"));
+    }
+
+    #[test]
+    fn define_card_missing_flags_are_usage_errors_not_plane() {
+        let err = require_define_card_flags("", "program").unwrap_err();
+        assert_eq!(
+            err,
+            CliError::Usage("define-card requires --title and --program".into())
+        );
+        assert!(matches!(
+            require_define_card_flags("title", "   "),
+            Err(CliError::Usage(_))
+        ));
+        assert_eq!(require_define_card_flags("title", "program"), Ok(()));
+    }
+
+    #[test]
+    fn malformed_timeline_specs_are_usage_errors() {
+        // Wrong field count.
+        assert!(matches!(
+            parse_timeline("card,lane,1,2,3"),
+            Err(CliError::Usage(_))
+        ));
+        // Non-u64 numeric field.
+        assert!(matches!(
+            parse_timeline("card,lane,nope,2,3,4,5"),
+            Err(CliError::Usage(_))
+        ));
+        // Well-formed spec still parses.
+        let timeline = parse_timeline("card,lane,1,2,3,4,5").expect("well-formed timeline");
+        assert_eq!(timeline.card_id, "card");
+        assert_eq!(timeline.lane_id, "lane");
+        assert_eq!(timeline.review_rounds, 5);
+    }
+
+    #[test]
+    fn malformed_surface_specs_are_usage_errors() {
+        for bad in [
+            "no-equals",
+            ":card=path",
+            "lane:=path",
+            "lane:card=",
+            "lanecard=path",
+        ] {
+            assert!(
+                matches!(parse_surface(bad), Err(CliError::Usage(_))),
+                "surface spec {bad:?} must be a usage error"
+            );
+        }
+        let surface = parse_surface("lane:card=a/b,c/d").expect("well-formed surface");
+        assert_eq!(surface.lane_id, "lane");
+        assert_eq!(surface.card_id, "card");
+        assert_eq!(surface.paths, vec!["a/b".to_owned(), "c/d".to_owned()]);
+    }
+
+    #[test]
+    fn plane_errors_convert_to_plane_and_keep_display_text() {
+        let plane = PlaneError::Io("store read failed".into());
+        let expected = plane.to_string();
+        let err = CliError::from(plane.clone());
+        assert_eq!(err, CliError::Plane(plane));
+        assert_eq!(err.to_string(), expected);
+        assert!(!err.to_string().starts_with("usage error: "));
+    }
 }
