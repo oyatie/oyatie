@@ -10,11 +10,12 @@ use std::process::Command;
 
 use oya_cloud_ci_cross_artifact_agreement_app::{
     Verdict, derive_masterplan_md_projection, evaluate,
-    evaluate_masterplan_projection_rederivation, evaluate_masterplan_v2_authority,
+    evaluate_masterplan_plan_evidence_crosscheck, evaluate_masterplan_projection_rederivation,
+    evaluate_masterplan_read_surface_resurrections, evaluate_masterplan_v2_authority,
     evaluate_masterplan_v2_entry_surfaces, evaluate_masterplan_v2_evidence_state,
     evaluate_masterplan_v2_plan_evidence_drift, evaluate_masterplan_v2_program_coverage,
     evaluate_masterplan_v2_projection_freshness, evaluate_masterplan_v2_read_contract_archives,
-    evaluate_masterplan_plan_evidence_crosscheck, evaluate_masterplan_v2_sequencing,
+    evaluate_masterplan_v2_sequencing,
 };
 use serde_json::Value;
 
@@ -595,6 +596,175 @@ fn masterplan_v2_entry_surface_allowlist_gate_is_green() {
     );
 }
 
+/// Sub-AC 4.4 fail-closed pins: the frozen fixture corpus must keep one
+/// ISOLATED RED fixture per read-contract/entry-surface failure class — a
+/// superseded plan authority resurrected/re-exposed outside the archive
+/// (docs/ROADMAP.md with its archive markers stripped plus a non-archive
+/// read-path reference), a superseded entrypoint revived into the mandatory
+/// entry surface, and an entry surface unbounded beyond the root-hub
+/// allowlist (docs/MASTERPLAN.md promoted) — each pinned to its exact
+/// violation set so none can be silently dropped or diluted. A GREEN
+/// companion fixture keeps the full lane exercisable end to end.
+#[test]
+fn masterplan_read_contract_entry_surface_fixtures_fail_closed() {
+    let cases: [(&str, &[&str]); 3] = [
+        (
+            "tc-XA-bad-masterplan-read-contract-resurrected-roadmap.json",
+            &["masterplan_read_contract_invalid"],
+        ),
+        (
+            "tc-XA-bad-masterplan-entry-surface-resurrected-superseded.json",
+            &["masterplan_entry_surface_invalid"],
+        ),
+        (
+            "tc-XA-bad-masterplan-entry-surface-unbounded.json",
+            &["masterplan_entry_surface_invalid"],
+        ),
+    ];
+
+    for (fixture_name, expected_codes) in cases {
+        let path = fixture_dir().join(fixture_name);
+        assert!(
+            path.is_file(),
+            "read-contract/entry-surface failure-mode fixture must exist: {}",
+            path.display()
+        );
+        let fixture = load_json(&path);
+        let report = evaluate(&fixture);
+        assert_eq!(
+            report.verdict,
+            Verdict::Red,
+            "{fixture_name} must fail closed (RED)"
+        );
+        let expected: BTreeSet<String> = expected_codes
+            .iter()
+            .map(|code| (*code).to_owned())
+            .collect();
+        assert_eq!(
+            report.violations, expected,
+            "{fixture_name} must emit exactly the pinned read-contract/entry-surface violation set"
+        );
+        assert_eq!(
+            expected_violations(&fixture),
+            expected,
+            "{fixture_name} expected_violations must stay in sync with the pinned set"
+        );
+    }
+
+    let green = fixture_dir().join("tc-XA-good-masterplan-read-surface-archive-clean.json");
+    assert!(
+        green.is_file(),
+        "read-contract/entry-surface GREEN fixture must exist: {}",
+        green.display()
+    );
+    let report = evaluate(&load_json(&green));
+    assert_eq!(
+        report.verdict,
+        Verdict::Green,
+        "the GREEN read-surface fixture must stay green, got {:?}",
+        report.violations
+    );
+}
+
+/// Sub-AC 4.4 resurrection sweep, born-blocking over the live tree: every
+/// governed on-disk read surface (each `surface_dispositions` repo-file row
+/// dispositioned absorbed / archived-with-provenance / generated-projection —
+/// docs/MASTERPLAN.md, docs/ROADMAP.md, the retired planning specs, the
+/// repo-local provenance stores) must still carry its archive markers on
+/// disk. Stripping the archive front-matter from docs/ROADMAP.md, deleting
+/// the absorbed status from a retired spec, or re-filling any superseded
+/// authority with live-looking plan content turns this test RED. Tracked-tree
+/// membership comes from the committed scm-facts face, the same declared
+/// input the plan-evidence cross-check lane reads.
+#[test]
+fn masterplan_read_surface_resurrection_gate_is_green_on_live_tree() {
+    let root = repo_root();
+    let masterplan = load_json(&root.join("specs/masterplan.json"));
+    let corpus = live_read_surface_corpus(&root, &masterplan);
+
+    let findings = evaluate_masterplan_read_surface_resurrections(&masterplan, &corpus);
+    assert!(
+        findings.is_empty(),
+        "superseded/stale plan authorities must stay archived on disk (no resurrection outside the archive): {findings:?}"
+    );
+
+    // The sweep must actually have surfaces to police: an empty corpus here
+    // would mean the disposition ledger lost its governed read surfaces.
+    let swept = corpus["surfaces"].as_array().expect("surfaces").len();
+    assert!(
+        swept >= 5,
+        "live resurrection sweep must cover the governed read surfaces, swept only {swept}"
+    );
+}
+
+/// Assemble the live read-surface corpus from the repo tree: one row per
+/// governed `surface_dispositions` repo-file path, carrying tracked-tree
+/// existence plus the on-disk facts (Markdown front-matter block, parsed
+/// JSON document, or an opaque-data marker for non-document provenance
+/// files).
+fn live_read_surface_corpus(root: &Path, masterplan: &Value) -> Value {
+    let scm_facts = load_json(&root.join(
+        "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+    ));
+    let tracked: BTreeSet<&str> = scm_facts["tracked_paths"]
+        .as_array()
+        .expect("committed scm-facts face must carry tracked_paths")
+        .iter()
+        .filter_map(Value::as_str)
+        .collect();
+
+    let mut surfaces = Vec::new();
+    let dispositions = masterplan["masterplan_v2"]["surface_dispositions"]
+        .as_array()
+        .expect("masterplan v2 must carry surface_dispositions");
+    for surface in dispositions {
+        let Some(disposition) = surface.get("disposition").and_then(Value::as_str) else {
+            continue;
+        };
+        if !matches!(
+            disposition,
+            "absorbed" | "archived-with-provenance" | "generated-projection"
+        ) {
+            continue;
+        }
+        let Some(path) = surface.get("path").and_then(Value::as_str) else {
+            continue;
+        };
+        if path.contains('#') || path.contains('*') || path.starts_with('~') {
+            continue;
+        }
+        let rel_path = path.trim_start_matches('/');
+        let on_disk = root.join(rel_path);
+        let exists = tracked.contains(rel_path) && on_disk.is_file();
+        let mut row = serde_json::json!({ "path": path, "exists": exists });
+        if exists {
+            if rel_path.ends_with(".md") {
+                let content = fs::read_to_string(&on_disk).expect("read governed markdown surface");
+                row["front_matter"] = Value::String(markdown_front_matter(&content));
+            } else if rel_path.ends_with(".json") {
+                row["document"] = load_json(&on_disk);
+            } else {
+                row["opaque_data"] = Value::Bool(true);
+            }
+        }
+        surfaces.push(row);
+    }
+
+    serde_json::json!({ "surfaces": surfaces })
+}
+
+/// Extract the leading `---` front-matter block from a Markdown file; when a
+/// file carries no front-matter fence, the (bounded) head of the file is the
+/// scanned surface, so a marker-free live document still fails the sweep.
+fn markdown_front_matter(content: &str) -> String {
+    if let Some(rest) = content.strip_prefix("---\n")
+        && let Some(end) = rest.find("\n---")
+    {
+        return rest[..end].to_owned();
+    }
+    content.chars().take(4096).collect()
+}
+
 /// Sub-AC 4.2 mechanical re-derivation lane, born-blocking over the live tree:
 /// every derived/generated masterplan projection that exists on disk must be
 /// mechanically re-derivable from /specs/masterplan.json and byte-identical to
@@ -612,7 +782,9 @@ fn masterplan_projection_rederivation_gate_is_green_on_live_tree() {
     // generated human projection, at least one recorded flow-metrics pass, and
     // at least one loop-card shard view.
     assert!(
-        corpus["masterplan_md"].as_str().is_some_and(|md| !md.is_empty()),
+        corpus["masterplan_md"]
+            .as_str()
+            .is_some_and(|md| !md.is_empty()),
         "docs/MASTERPLAN.md must exist as the generated human projection"
     );
     assert!(
@@ -646,8 +818,7 @@ fn masterplan_projection_rederivation_gate_is_green_on_live_tree() {
 
 /// Assemble the live projection-rederivation corpus from the repo tree.
 fn live_projection_rederivation_corpus(root: &Path) -> Value {
-    let masterplan_md =
-        fs::read_to_string(root.join("docs/MASTERPLAN.md")).unwrap_or_default();
+    let masterplan_md = fs::read_to_string(root.join("docs/MASTERPLAN.md")).unwrap_or_default();
     let flow_metrics_passes =
         read_projection_files(&root.join("plan/fabric-loop/flow-metrics/passes"), ".json");
     let loop_cards = read_projection_files(&root.join("plan/fabric-loop/cards"), ".json");
