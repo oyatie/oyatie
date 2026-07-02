@@ -80,6 +80,60 @@ pub struct ReleaseSupplyChainReport {
 }
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum ImagePromotionTier {
+    Dev,
+    Staging,
+    Prod,
+}
+
+impl ImagePromotionTier {
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Dev => "dev",
+            Self::Staging => "staging",
+            Self::Prod => "prod",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ImagePromotionVerifier {
+    Kubewarden,
+    Kyverno,
+}
+
+impl ImagePromotionVerifier {
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Kubewarden => "kubewarden",
+            Self::Kyverno => "kyverno",
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ImagePromotionRecord {
+    pub artifact_ref: String,               // data_class: INTERNAL_ONLY
+    pub artifact_digest: String,            // data_class: INTERNAL_ONLY
+    pub tier: ImagePromotionTier,           // data_class: INTERNAL_ONLY
+    pub cosign_identity: String,            // data_class: INTERNAL_ONLY
+    pub verifier: ImagePromotionVerifier,   // data_class: INTERNAL_ONLY
+    pub verifier_ref: String,               // data_class: INTERNAL_ONLY
+    pub provenance_attestation_ref: String, // data_class: INTERNAL_ONLY
+    pub runner_kill_switch_ref: String,     // data_class: INTERNAL_ONLY
+    pub audit_event_type: String,           // data_class: INTERNAL_ONLY
+    pub signed: bool,                       // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct ImagePromotionReport {
+    pub artifacts_checked: usize,           // data_class: INTERNAL_ONLY
+    pub promotion_records_checked: usize,   // data_class: INTERNAL_ONLY
+    pub kubewarden_verifier_records: usize, // data_class: INTERNAL_ONLY
+    pub kyverno_verifier_records: usize,    // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum VulnerabilityProductSurface {
     CloudNativeApi,
     ScannerCli,
@@ -324,6 +378,63 @@ pub enum ReleaseSupplyChainError {
     InvalidTrivyRef {
         artifact_ref: String,
         field: &'static str,
+    },
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ImagePromotionError {
+    NoPromotionRecords,
+    MissingField {
+        artifact_ref: String,
+        field: &'static str,
+    },
+    InvalidArtifactRef {
+        artifact_ref: String,
+    },
+    InvalidDigest {
+        artifact_ref: String,
+    },
+    DigestNotPinnedInArtifactRef {
+        artifact_ref: String,
+        artifact_digest: String,
+    },
+    TierTagMismatch {
+        artifact_ref: String,
+        tier: ImagePromotionTier,
+    },
+    DuplicateTierPromotion {
+        artifact_digest: String,
+        tier: ImagePromotionTier,
+    },
+    MissingTierPromotion {
+        artifact_digest: String,
+        tier: ImagePromotionTier,
+    },
+    MissingDefaultVerifier {
+        artifact_digest: String,
+    },
+    InvalidCosignIdentity {
+        artifact_ref: String,
+        tier: ImagePromotionTier,
+        cosign_identity: String,
+    },
+    InvalidVerifierRef {
+        artifact_ref: String,
+        verifier: ImagePromotionVerifier,
+        verifier_ref: String,
+    },
+    InvalidProvenanceRef {
+        artifact_ref: String,
+    },
+    InvalidRunnerKillSwitchRef {
+        artifact_ref: String,
+    },
+    UnsignedPromotion {
+        artifact_ref: String,
+    },
+    InvalidAuditEventType {
+        artifact_ref: String,
+        audit_event_type: String,
     },
 }
 
@@ -765,6 +876,223 @@ where
     validate_release_supply_chain_maps(artifacts, evidence)
 }
 
+pub fn validate_image_promotion_pipeline<P>(
+    promotion_records: P,
+) -> Result<ImagePromotionReport, ImagePromotionError>
+where
+    P: IntoIterator<Item = ImagePromotionRecord>,
+{
+    let mut records_by_digest =
+        BTreeMap::<String, BTreeMap<ImagePromotionTier, ImagePromotionRecord>>::new();
+    let mut promotion_records_checked = 0usize;
+    let mut kubewarden_verifier_records = 0usize;
+    let mut kyverno_verifier_records = 0usize;
+
+    for record in promotion_records {
+        validate_image_promotion_record(&record)?;
+        promotion_records_checked += 1;
+        match record.verifier {
+            ImagePromotionVerifier::Kubewarden => kubewarden_verifier_records += 1,
+            ImagePromotionVerifier::Kyverno => kyverno_verifier_records += 1,
+        }
+
+        let tier_records = records_by_digest
+            .entry(record.artifact_digest.clone())
+            .or_default();
+        if tier_records.contains_key(&record.tier) {
+            return Err(ImagePromotionError::DuplicateTierPromotion {
+                artifact_digest: record.artifact_digest,
+                tier: record.tier,
+            });
+        }
+        tier_records.insert(record.tier, record);
+    }
+
+    if promotion_records_checked == 0 {
+        return Err(ImagePromotionError::NoPromotionRecords);
+    }
+
+    for (artifact_digest, tier_records) in &records_by_digest {
+        for tier in [
+            ImagePromotionTier::Dev,
+            ImagePromotionTier::Staging,
+            ImagePromotionTier::Prod,
+        ] {
+            if !tier_records.contains_key(&tier) {
+                return Err(ImagePromotionError::MissingTierPromotion {
+                    artifact_digest: artifact_digest.clone(),
+                    tier,
+                });
+            }
+        }
+        if !tier_records
+            .values()
+            .any(|record| record.verifier == ImagePromotionVerifier::Kubewarden)
+        {
+            return Err(ImagePromotionError::MissingDefaultVerifier {
+                artifact_digest: artifact_digest.clone(),
+            });
+        }
+    }
+
+    Ok(ImagePromotionReport {
+        artifacts_checked: records_by_digest.len(),
+        promotion_records_checked,
+        kubewarden_verifier_records,
+        kyverno_verifier_records,
+    })
+}
+
+fn validate_image_promotion_record(
+    record: &ImagePromotionRecord,
+) -> Result<(), ImagePromotionError> {
+    let artifact_ref =
+        required_image_promotion_field(record, &record.artifact_ref, "artifact_ref")?;
+    let artifact_digest =
+        required_image_promotion_field(record, &record.artifact_digest, "artifact_digest")?;
+    if !artifact_ref.contains('@') || !artifact_ref.contains("sha256:") {
+        return Err(ImagePromotionError::InvalidArtifactRef {
+            artifact_ref: record.artifact_ref.clone(),
+        });
+    }
+    if !is_sha256_digest(artifact_digest) {
+        return Err(ImagePromotionError::InvalidDigest {
+            artifact_ref: record.artifact_ref.clone(),
+        });
+    }
+    if !artifact_ref_pins_digest(artifact_ref, artifact_digest) {
+        return Err(ImagePromotionError::DigestNotPinnedInArtifactRef {
+            artifact_ref: record.artifact_ref.clone(),
+            artifact_digest: record.artifact_digest.clone(),
+        });
+    }
+    if !artifact_ref_matches_tier(artifact_ref, record.tier) {
+        return Err(ImagePromotionError::TierTagMismatch {
+            artifact_ref: record.artifact_ref.clone(),
+            tier: record.tier,
+        });
+    }
+
+    let cosign_identity =
+        required_image_promotion_field(record, &record.cosign_identity, "cosign_identity")?;
+    if !cosign_identity_matches_tier(cosign_identity, record.tier) {
+        return Err(ImagePromotionError::InvalidCosignIdentity {
+            artifact_ref: record.artifact_ref.clone(),
+            tier: record.tier,
+            cosign_identity: record.cosign_identity.clone(),
+        });
+    }
+
+    let verifier_ref =
+        required_image_promotion_field(record, &record.verifier_ref, "verifier_ref")?;
+    if !verifier_ref_matches(verifier_ref, record.verifier) {
+        return Err(ImagePromotionError::InvalidVerifierRef {
+            artifact_ref: record.artifact_ref.clone(),
+            verifier: record.verifier,
+            verifier_ref: record.verifier_ref.clone(),
+        });
+    }
+
+    let provenance_attestation_ref = required_image_promotion_field(
+        record,
+        &record.provenance_attestation_ref,
+        "provenance_attestation_ref",
+    )?;
+    if !provenance_ref_valid(provenance_attestation_ref) {
+        return Err(ImagePromotionError::InvalidProvenanceRef {
+            artifact_ref: record.artifact_ref.clone(),
+        });
+    }
+
+    let runner_kill_switch_ref = required_image_promotion_field(
+        record,
+        &record.runner_kill_switch_ref,
+        "runner_kill_switch_ref",
+    )?;
+    if !runner_kill_switch_ref_valid(runner_kill_switch_ref) {
+        return Err(ImagePromotionError::InvalidRunnerKillSwitchRef {
+            artifact_ref: record.artifact_ref.clone(),
+        });
+    }
+
+    if !record.signed {
+        return Err(ImagePromotionError::UnsignedPromotion {
+            artifact_ref: record.artifact_ref.clone(),
+        });
+    }
+    if record.audit_event_type != "oya.audit.image_promotion" {
+        return Err(ImagePromotionError::InvalidAuditEventType {
+            artifact_ref: record.artifact_ref.clone(),
+            audit_event_type: record.audit_event_type.clone(),
+        });
+    }
+    Ok(())
+}
+
+fn required_image_promotion_field<'a>(
+    record: &ImagePromotionRecord,
+    value: &'a str,
+    field: &'static str,
+) -> Result<&'a str, ImagePromotionError> {
+    let trimmed = value.trim();
+    if trimmed.is_empty() {
+        Err(ImagePromotionError::MissingField {
+            artifact_ref: record.artifact_ref.clone(),
+            field,
+        })
+    } else {
+        Ok(trimmed)
+    }
+}
+
+fn artifact_ref_matches_tier(artifact_ref: &str, tier: ImagePromotionTier) -> bool {
+    artifact_ref.contains(&format!("-{}@", tier.name()))
+}
+
+fn artifact_ref_pins_digest(artifact_ref: &str, artifact_digest: &str) -> bool {
+    match artifact_ref.rsplit_once('@') {
+        Some((_, pinned_digest)) => pinned_digest == artifact_digest,
+        None => false,
+    }
+}
+
+fn cosign_identity_matches_tier(identity: &str, tier: ImagePromotionTier) -> bool {
+    let lower = identity.to_ascii_lowercase();
+    let tier_matches = lower.contains(tier.name())
+        || matches!(tier, ImagePromotionTier::Prod) && lower.contains("production");
+    tier_matches
+        && [
+            "oidc",
+            "fulcio",
+            "token.actions.githubusercontent.com",
+            "spiffe://",
+        ]
+        .into_iter()
+        .any(|marker| lower.contains(marker))
+}
+
+fn verifier_ref_matches(verifier_ref: &str, verifier: ImagePromotionVerifier) -> bool {
+    let lower = verifier_ref.to_ascii_lowercase();
+    lower.contains(verifier.name())
+        && (lower.contains("signed-image")
+            || lower.contains("signed-images")
+            || lower.contains("verify-image"))
+}
+
+fn provenance_ref_valid(provenance_ref: &str) -> bool {
+    let lower = provenance_ref.to_ascii_lowercase();
+    lower.contains("provenance") && (lower.contains("intoto") || lower.contains("slsa"))
+}
+
+fn runner_kill_switch_ref_valid(kill_switch_ref: &str) -> bool {
+    let lower = kill_switch_ref.to_ascii_lowercase();
+    lower.contains("kill-switch")
+        && lower.ends_with(".cedar")
+        && (lower.contains("bootstrap-runner")
+            || lower.contains("bootstrap-trust-roots")
+            || lower.contains("stage-1-runner"))
+}
+
 fn release_artifact_map<A>(
     artifacts: A,
 ) -> Result<BTreeMap<String, ReleaseArtifact>, ReleaseSupplyChainError>
@@ -863,7 +1191,7 @@ fn validate_release_evidence_record(
             artifact_ref: record.artifact_ref.clone(),
         });
     }
-    if !record.artifact_ref.contains(&record.artifact_digest) {
+    if !artifact_ref_pins_digest(record.artifact_ref.trim(), &record.artifact_digest) {
         return Err(ReleaseSupplyChainError::DigestNotPinnedInArtifactRef {
             artifact_ref: record.artifact_ref.clone(),
             artifact_digest: record.artifact_digest.clone(),
@@ -1200,6 +1528,63 @@ mod tests {
     }
 
     #[test]
+    fn accepts_signed_image_promotion_ladder() {
+        assert_eq!(
+            validate_image_promotion_pipeline([
+                image_promotion_record(ImagePromotionTier::Dev, ImagePromotionVerifier::Kubewarden),
+                image_promotion_record(
+                    ImagePromotionTier::Staging,
+                    ImagePromotionVerifier::Kubewarden,
+                ),
+                image_promotion_record(ImagePromotionTier::Prod, ImagePromotionVerifier::Kyverno),
+            ]),
+            Ok(ImagePromotionReport {
+                artifacts_checked: 1,
+                promotion_records_checked: 3,
+                kubewarden_verifier_records: 2,
+                kyverno_verifier_records: 1,
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_image_promotion_ladder_without_kubewarden_default_verifier() {
+        assert_eq!(
+            validate_image_promotion_pipeline([
+                image_promotion_record(ImagePromotionTier::Dev, ImagePromotionVerifier::Kyverno),
+                image_promotion_record(
+                    ImagePromotionTier::Staging,
+                    ImagePromotionVerifier::Kyverno,
+                ),
+                image_promotion_record(ImagePromotionTier::Prod, ImagePromotionVerifier::Kyverno),
+            ]),
+            Err(ImagePromotionError::MissingDefaultVerifier {
+                artifact_digest:
+                    "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef".into(),
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_image_promotion_artifact_ref_with_mismatched_pinned_digest() {
+        let mut record =
+            image_promotion_record(ImagePromotionTier::Dev, ImagePromotionVerifier::Kubewarden);
+        record.artifact_ref = format!(
+            "ghcr.io/oyatie/tooling:{}-dev@sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+            record.artifact_digest
+        );
+
+        assert_eq!(
+            validate_image_promotion_pipeline([record]),
+            Err(ImagePromotionError::DigestNotPinnedInArtifactRef {
+                artifact_ref: "ghcr.io/oyatie/tooling:sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef-dev@sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210".into(),
+                artifact_digest:
+                    "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef".into(),
+            })
+        );
+    }
+
+    #[test]
     fn accepts_pre_release_supply_chain_empty_scope_only_when_declared() {
         assert_eq!(
             validate_pre_release_supply_chain(
@@ -1335,6 +1720,31 @@ mod tests {
                 artifact_ref: release_artifact().artifact_ref,
                 artifact_digest:
                     "sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210".into(),
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_release_evidence_artifact_ref_with_mismatched_pinned_digest() {
+        let artifact_digest =
+            "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+        let artifact_ref = format!(
+            "ghcr.io/oyatie/tooling:{artifact_digest}@sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        );
+
+        assert_eq!(
+            validate_release_supply_chain(
+                [ReleaseArtifact {
+                    artifact_ref: artifact_ref.clone(),
+                }],
+                [ReleaseSupplyChainEvidence {
+                    artifact_ref: artifact_ref.clone(),
+                    ..release_evidence()
+                }]
+            ),
+            Err(ReleaseSupplyChainError::DigestNotPinnedInArtifactRef {
+                artifact_ref,
+                artifact_digest: artifact_digest.into(),
             })
         );
     }
@@ -1561,6 +1971,35 @@ mod tests {
             audit_event_type: "oya.audit.builder_supply_attest".into(),
             attestor: "axis-foundry".into(),
             high_critical_findings_open: 0,
+            signed: true,
+        }
+    }
+
+    fn image_promotion_record(
+        tier: ImagePromotionTier,
+        verifier: ImagePromotionVerifier,
+    ) -> ImagePromotionRecord {
+        let digest = "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+        ImagePromotionRecord {
+            artifact_ref: format!(
+                "ghcr.io/oyatie/tooling:0123456789abcdef0123456789abcdef01234567-{}@{digest}",
+                tier.name()
+            ),
+            artifact_digest: digest.into(),
+            tier,
+            cosign_identity: format!(
+                "https://token.actions.githubusercontent.com/oyatie/image-promotion-{}-oidc",
+                tier.name()
+            ),
+            verifier,
+            verifier_ref: format!(
+                "infra/{}/policies/require-signed-images.yaml",
+                verifier.name()
+            ),
+            provenance_attestation_ref: "artifact://release/0.1.0/tooling-provenance.intoto.jsonl"
+                .into(),
+            runner_kill_switch_ref: "artifact://fixtures/bootstrap-runner-kill-switch.cedar".into(),
+            audit_event_type: "oya.audit.image_promotion".into(),
             signed: true,
         }
     }

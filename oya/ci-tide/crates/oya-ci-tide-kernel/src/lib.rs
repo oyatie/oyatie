@@ -5,8 +5,8 @@
 //!
 //! Owns:
 //! - [`TideConfig`] — resolved runtime configuration
-//! - [`PullRequest`] / [`CommitStatusState`] / [`Review`] / [`MergeMethod`] —
-//!   forge API projection types
+//! - [`PullRequest`] / [`CommitStatusState`] / [`Review`] / [`MergeMethod`] /
+//!   [`MergeState`] — forge API projection types
 //! - [`is_mergeable`] — the eligibility predicate (THE core logic)
 //! - [`ForgeClient`] trait seam — I/O boundary for the adapter layer
 //!
@@ -15,8 +15,10 @@
 //! A PR is merge-eligible iff ALL of:
 //! 1. The configured `required_status_context` has state `success` on the HEAD SHA.
 //! 2. The number of approving reviews >= `approval_policy.min_approvals`.
-//! 3. The forge reports the PR as mergeable (no conflicts).
-//! 4. No blocking label (`hold` / `do-not-merge`) is present.
+//! 3. No blocking label (`hold` / `do-not-merge`) is present.
+//! 4. The PR is not stale/behind the protected base. Stale approved PRs are a
+//!    controller-owned branch-refresh action, never a merge.
+//! 5. The forge reports the PR as clean and mergeable (no conflicts).
 //!
 //! ## Forge of record (D-FORGE)
 //!
@@ -110,12 +112,69 @@ impl MergeMethod {
     }
 
     /// Parse from env-var string. Unrecognised / blank → `Rebase`.
-    pub fn from_str(s: &str) -> Self {
+    pub fn from_env_value(s: &str) -> Self {
         match s.trim().to_ascii_lowercase().as_str() {
             "merge" => MergeMethod::Merge,
             "squash" => MergeMethod::Squash,
             _ => MergeMethod::Rebase,
         }
+    }
+}
+
+impl std::str::FromStr for MergeMethod {
+    type Err = std::convert::Infallible;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        Ok(Self::from_env_value(s))
+    }
+}
+
+/// Forge-projected merge-state vocabulary.
+///
+/// GitHub exposes this as the REST `mergeable_state` string. The kernel keeps a
+/// closed subset for the queue decisions it owns and treats unknown/absent
+/// values conservatively.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum MergeState {
+    /// Branch is up to date and mergeable once all other gates pass.
+    Clean,
+    /// Branch is behind the protected base. Tide must refresh the branch and
+    /// let `oya-ci-required` rerun on the new head before any merge action.
+    Behind,
+    /// Textual conflict or otherwise dirty merge state.
+    Dirty,
+    /// Forge reports pending/unstable checks outside the required context.
+    Unstable,
+    /// Forge reports a policy blocker.
+    Blocked,
+    /// Forge has not computed or did not provide a recognized state.
+    Unknown,
+}
+
+impl MergeState {
+    /// Parse the forge's merge-state string. Unrecognised / blank → `Unknown`.
+    pub fn from_forge_state(s: &str) -> Self {
+        match s.trim().to_ascii_lowercase().as_str() {
+            "clean" | "has_hooks" => MergeState::Clean,
+            "behind" => MergeState::Behind,
+            "dirty" | "conflicting" => MergeState::Dirty,
+            "unstable" => MergeState::Unstable,
+            "blocked" | "draft" => MergeState::Blocked,
+            _ => MergeState::Unknown,
+        }
+    }
+
+    /// True when the queue should refresh the PR branch instead of merging it.
+    pub const fn is_stale_base(self) -> bool {
+        matches!(self, MergeState::Behind)
+    }
+}
+
+impl std::str::FromStr for MergeState {
+    type Err = std::convert::Infallible;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        Ok(Self::from_forge_state(s))
     }
 }
 
@@ -185,11 +244,11 @@ impl TideConfig {
             .unwrap_or(DEFAULT_POLL_INTERVAL_SECS);
         let merge_method = get("OYA_TIDE_MERGE_METHOD")
             .as_deref()
-            .map(MergeMethod::from_str)
+            .map(MergeMethod::from_env_value)
             .unwrap_or(MergeMethod::Rebase);
         // dry_run defaults to true; must be explicitly "false" to enable live merging.
         let dry_run = get("OYA_TIDE_DRY_RUN")
-            .map(|v| v.trim().to_ascii_lowercase() != "false")
+            .map(|v| !v.trim().eq_ignore_ascii_case("false"))
             .unwrap_or(true);
 
         TideConfig {
@@ -229,6 +288,8 @@ pub struct PullRequest {
     /// Whether the forge considers the PR mergeable (no conflicts).
     /// `None` means the forge has not computed it yet (still processing).
     pub mergeable: Option<bool>,
+    /// Forge-specific merge-state projection (`mergeable_state` on GitHub).
+    pub merge_state: MergeState,
     /// Labels on the PR.
     pub labels: Vec<String>,
 }
@@ -251,7 +312,7 @@ pub enum CommitStatusState {
 
 impl CommitStatusState {
     /// Parse from the forge's state string.
-    pub fn from_str(s: &str) -> Self {
+    pub fn from_forge_state(s: &str) -> Self {
         match s.trim().to_ascii_lowercase().as_str() {
             "success" => CommitStatusState::Success,
             "pending" => CommitStatusState::Pending,
@@ -259,6 +320,14 @@ impl CommitStatusState {
             "error" => CommitStatusState::Error,
             _ => CommitStatusState::Missing,
         }
+    }
+}
+
+impl std::str::FromStr for CommitStatusState {
+    type Err = std::convert::Infallible;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        Ok(Self::from_forge_state(s))
     }
 }
 
@@ -292,7 +361,7 @@ pub enum ReviewState {
 }
 
 impl ReviewState {
-    pub fn from_str(s: &str) -> Self {
+    pub fn from_forge_state(s: &str) -> Self {
         match s.trim().to_ascii_uppercase().as_str() {
             "APPROVED" => ReviewState::Approved,
             "REQUEST_CHANGES" | "CHANGES_REQUESTED" => ReviewState::RequestChanges,
@@ -300,6 +369,14 @@ impl ReviewState {
             "DISMISSED" => ReviewState::Dismissed,
             _ => ReviewState::Unknown,
         }
+    }
+}
+
+impl std::str::FromStr for ReviewState {
+    type Err = std::convert::Infallible;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        Ok(Self::from_forge_state(s))
     }
 }
 
@@ -327,6 +404,9 @@ pub enum IneligibleReason {
     InsufficientApprovals { actual: u32, required: u32 },
     /// The forge reports the PR is not mergeable (conflicts).
     NotMergeable,
+    /// PR has valid approval/CI but is behind the protected base. The queue must
+    /// refresh the branch and wait for `oya-ci-required` on the new head.
+    StaleBase,
     /// A blocking label is present.
     BlockingLabel { label: String },
 }
@@ -341,6 +421,12 @@ impl std::fmt::Display for IneligibleReason {
                 write!(f, "insufficient approvals ({actual}/{required})")
             }
             IneligibleReason::NotMergeable => write!(f, "PR is not mergeable (conflicts)"),
+            IneligibleReason::StaleBase => {
+                write!(
+                    f,
+                    "PR is behind the protected base; branch refresh required"
+                )
+            }
             IneligibleReason::BlockingLabel { label } => {
                 write!(f, "blocking label present: {label}")
             }
@@ -357,8 +443,10 @@ impl std::fmt::Display for IneligibleReason {
 ///
 /// 1. `status_state == CommitStatusState::Success` for the required context.
 /// 2. Count of `ReviewState::Approved` reviews >= `config.approval_policy.min_approvals`.
-/// 3. `pr.mergeable == Some(true)` (not `None` or `Some(false)`).
-/// 4. No label matches a blocking prefix (`hold`, `do-not-merge`), case-insensitive.
+/// 3. No label matches a blocking prefix (`hold`, `do-not-merge`), case-insensitive.
+/// 4. `pr.merge_state == MergeState::Clean`; stale PRs are branch-refresh
+///    work, while other non-clean states are not merge work.
+/// 5. `pr.mergeable == Some(true)` (not `None` or `Some(false)`).
 pub fn is_mergeable(input: &EligibilityInput<'_>) -> std::result::Result<(), IneligibleReason> {
     // Rule 1 — CI status must be success.
     if input.status_state != CommitStatusState::Success {
@@ -378,12 +466,7 @@ pub fn is_mergeable(input: &EligibilityInput<'_>) -> std::result::Result<(), Ine
         });
     }
 
-    // Rule 3 — PR must be mergeable (no conflicts).
-    if input.pr.mergeable != Some(true) {
-        return Err(IneligibleReason::NotMergeable);
-    }
-
-    // Rule 4 — no blocking labels.
+    // Rule 3 — no blocking labels. A held PR must not be auto-refreshed either.
     for label in &input.pr.labels {
         let lower = label.to_ascii_lowercase();
         for prefix in BLOCKING_LABEL_PREFIXES {
@@ -393,6 +476,21 @@ pub fn is_mergeable(input: &EligibilityInput<'_>) -> std::result::Result<(), Ine
                 });
             }
         }
+    }
+
+    // Rule 4 — only clean merge states can proceed to merge. Stale approved PRs
+    // are updated/requeued; every other non-clean/unknown state fails closed.
+    match input.pr.merge_state {
+        MergeState::Clean => {}
+        MergeState::Behind => return Err(IneligibleReason::StaleBase),
+        MergeState::Dirty | MergeState::Unstable | MergeState::Blocked | MergeState::Unknown => {
+            return Err(IneligibleReason::NotMergeable);
+        }
+    }
+
+    // Rule 5 — PR must be mergeable (no conflicts).
+    if input.pr.mergeable != Some(true) {
+        return Err(IneligibleReason::NotMergeable);
     }
 
     Ok(())
@@ -461,6 +559,12 @@ pub trait ForgeClient: Send + Sync {
     /// Get a single pull request (to refresh `mergeable` field).
     fn get_pull(&self, pr_number: u64) -> Result<PullRequest>;
 
+    /// Refresh a stale pull-request branch against the protected base.
+    ///
+    /// Implementations MUST pass the observed head SHA as a compare-and-swap
+    /// guard so a concurrent author push cannot be overwritten by the queue.
+    fn update_branch(&self, pr_number: u64, expected_head_sha: &str) -> Result<()>;
+
     /// Merge a pull request using the given method.
     ///
     /// Returns `Ok(())` on 200/204, `Err(TideError::Downstream)` otherwise.
@@ -498,6 +602,7 @@ mod tests {
             head_sha: "deadbeef01234567".to_owned(),
             base_ref: "dev".to_owned(),
             mergeable: Some(true),
+            merge_state: MergeState::Clean,
             labels: vec![],
         }
     }
@@ -759,6 +864,51 @@ mod tests {
         assert_eq!(is_mergeable(&input), Err(IneligibleReason::NotMergeable));
     }
 
+    #[test]
+    fn stale_approved_pr_refreshes_before_merge() {
+        let cfg = default_config();
+        let mut pr = approved_pr();
+        pr.merge_state = MergeState::Behind;
+        let reviews = approvals(1);
+        let input = input_all_green(&pr, &reviews, &cfg);
+        assert_eq!(is_mergeable(&input), Err(IneligibleReason::StaleBase));
+    }
+
+    #[test]
+    fn non_clean_non_behind_merge_states_are_ineligible() {
+        for merge_state in [
+            MergeState::Dirty,
+            MergeState::Unstable,
+            MergeState::Blocked,
+            MergeState::Unknown,
+        ] {
+            let cfg = default_config();
+            let mut pr = approved_pr();
+            pr.merge_state = merge_state;
+            let reviews = approvals(1);
+            let input = input_all_green(&pr, &reviews, &cfg);
+            assert_eq!(
+                is_mergeable(&input),
+                Err(IneligibleReason::NotMergeable),
+                "expected {merge_state:?} to fail closed even when mergeable=true"
+            );
+        }
+    }
+
+    #[test]
+    fn blocking_label_prevents_stale_branch_refresh() {
+        let cfg = default_config();
+        let mut pr = approved_pr();
+        pr.merge_state = MergeState::Behind;
+        pr.labels = vec!["hold: security review".to_owned()];
+        let reviews = approvals(1);
+        let input = input_all_green(&pr, &reviews, &cfg);
+        assert!(matches!(
+            is_mergeable(&input),
+            Err(IneligibleReason::BlockingLabel { .. })
+        ));
+    }
+
     // --- Rule 4: blocking labels ---
 
     #[test]
@@ -893,49 +1043,77 @@ mod tests {
 
     #[test]
     fn merge_method_parses_correctly() {
-        assert_eq!(MergeMethod::from_str("merge"), MergeMethod::Merge);
-        assert_eq!(MergeMethod::from_str("squash"), MergeMethod::Squash);
-        assert_eq!(MergeMethod::from_str("rebase"), MergeMethod::Rebase);
-        assert_eq!(MergeMethod::from_str("bogus"), MergeMethod::Rebase);
-        assert_eq!(MergeMethod::from_str(""), MergeMethod::Rebase);
+        assert_eq!(MergeMethod::from_env_value("merge"), MergeMethod::Merge);
+        assert_eq!(MergeMethod::from_env_value("squash"), MergeMethod::Squash);
+        assert_eq!(MergeMethod::from_env_value("rebase"), MergeMethod::Rebase);
+        assert_eq!(MergeMethod::from_env_value("bogus"), MergeMethod::Rebase);
+        assert_eq!(MergeMethod::from_env_value(""), MergeMethod::Rebase);
+    }
+
+    #[test]
+    fn merge_state_parses_github_vocabulary() {
+        assert_eq!(MergeState::from_forge_state("clean"), MergeState::Clean);
+        assert_eq!(MergeState::from_forge_state("behind"), MergeState::Behind);
+        assert_eq!(MergeState::from_forge_state("dirty"), MergeState::Dirty);
+        assert_eq!(
+            MergeState::from_forge_state("unstable"),
+            MergeState::Unstable
+        );
+        assert_eq!(MergeState::from_forge_state("blocked"), MergeState::Blocked);
+        assert_eq!(
+            MergeState::from_forge_state("surprise"),
+            MergeState::Unknown
+        );
     }
 
     #[test]
     fn review_state_parses_correctly() {
-        assert_eq!(ReviewState::from_str("APPROVED"), ReviewState::Approved);
         assert_eq!(
-            ReviewState::from_str("REQUEST_CHANGES"),
+            ReviewState::from_forge_state("APPROVED"),
+            ReviewState::Approved
+        );
+        assert_eq!(
+            ReviewState::from_forge_state("REQUEST_CHANGES"),
             ReviewState::RequestChanges
         );
         assert_eq!(
-            ReviewState::from_str("CHANGES_REQUESTED"),
+            ReviewState::from_forge_state("CHANGES_REQUESTED"),
             ReviewState::RequestChanges
         );
-        assert_eq!(ReviewState::from_str("COMMENT"), ReviewState::Comment);
-        assert_eq!(ReviewState::from_str("DISMISSED"), ReviewState::Dismissed);
-        assert_eq!(ReviewState::from_str("unknown_thing"), ReviewState::Unknown);
+        assert_eq!(
+            ReviewState::from_forge_state("COMMENT"),
+            ReviewState::Comment
+        );
+        assert_eq!(
+            ReviewState::from_forge_state("DISMISSED"),
+            ReviewState::Dismissed
+        );
+        assert_eq!(
+            ReviewState::from_forge_state("unknown_thing"),
+            ReviewState::Unknown
+        );
     }
 
     #[test]
     fn commit_status_state_parses_correctly() {
         assert_eq!(
-            CommitStatusState::from_str("success"),
+            CommitStatusState::from_forge_state("success"),
             CommitStatusState::Success
         );
         assert_eq!(
-            CommitStatusState::from_str("pending"),
+            CommitStatusState::from_forge_state("pending"),
             CommitStatusState::Pending
         );
         assert_eq!(
-            CommitStatusState::from_str("failure"),
+            CommitStatusState::from_forge_state("failure"),
             CommitStatusState::Failure
         );
         assert_eq!(
-            CommitStatusState::from_str("error"),
+            CommitStatusState::from_forge_state("error"),
             CommitStatusState::Error
         );
         assert_eq!(
-            CommitStatusState::from_str("unknown"),
+            CommitStatusState::from_forge_state("unknown"),
             CommitStatusState::Missing
         );
     }
