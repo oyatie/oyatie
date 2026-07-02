@@ -751,6 +751,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":marketplace-dev-cli",
+        "third-party//:serde_json",
     ],
 )
 
