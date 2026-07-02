@@ -8,11 +8,11 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "POL-IR-BENCH-RUBRIC",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "status": "Frozen",
     "owner_team": "council-architecture + axis-platform",
     "created_at": "2026-07-02T00:00:00Z",
-    "updated_at": "2026-07-02T00:00:00Z",
+    "updated_at": "2026-07-02T16:10:39Z",
     "frozen_at": "2026-07-02T00:00:00Z",
     "doctrine_refs": [
       "docs/decisions/ADR-0211-in-house-tech-stack-policy.md",
@@ -227,6 +227,15 @@
     "temporal_effective_dating": "Temporal/effective-dating is data-plane and harvest-only: it is NOT a gate, NOT a weighted criterion, and requires NO emulation by any spike. Observations about engines' temporal capabilities are recorded in harvest_notes only. Dated rates resolve in pack data via the selection/computation split (obligation keys such as apply_vat{schedule}); engines are graded on selecting obligation keys, never on computing dated values.",
     "adoption_outcome": "Adopt/fork of an external engine is not a live outcome. Any grading rationale arguing for adoption over the owned Rust IR destination is out of scope for this rubric."
   },
+  "evidence_admissibility": {
+    "added_by_amendment": "RA-001",
+    "receipt_rule": "Wall-clock/latency measurements are admissible as gate or criteria evidence ONLY when accompanied by engine-minted receipts that an emulation cannot mint: the pinned engine version/build plus engine-issued artifacts (e.g. SpiceDB ZedTokens, OpenFGA response bodies with consistency metadata, OPA status-API bundle-activation records, engine logs tied to the run). Emulated, simulated, or reimplemented-semantics measurements are inadmissible in any evidence slot regardless of disclosure; disclosure changes honesty, not admissibility.",
+    "emulated_grade_vs_emulated_measurement": "The EMULATED grade remains a legitimate verdict for CAPABILITY questions (the fixture passes via adapter/harness logic, adapter shape recorded). This rule targets MEASUREMENTS: numbers produced by clocking author-written emulations of documented semantics are not measurements and may occupy no evidence slot.",
+    "in_process_rust_engines": "For engines shipping first-party embeddable libraries (cedar via the cedar-policy crate, biscuit via biscuit-auth), in-process runs of the REAL library at a pinned version are engine-minted evidence; in-process reimplementations of documented semantics are not.",
+    "g4_receipt_binding": "G4's wall-clock component (evidence_method triple, part 3) requires receipts per this rule. Where receipts are infeasible in the executing lane's environment (e.g. an engine requires a deployment the lane cannot perform), the lane reports BLOCKED for that component; G4 may then be graded from the correctness-vector and consistency-semantics components alone, capped at EMULATED, with the measurement slot recorded as absent-with-reason in harvest_notes. NATIVE on G4 always requires receipt-backed measurement.",
+    "blocked_lane_outcome": "BLOCKED is a valid, non-failing terminal lane outcome meaning honest infeasibility: the lane cannot produce admissible evidence in its environment. BLOCKED completes the lane's assignment; it never authorizes emulation, synthesis of missing inputs, or waiver of enforcement policy. Resolution routes are a supervised real-engine spike lane or the capped-grade path above.",
+    "upstream_halt_rule": "A lane whose upstream dependency (fixture definition, vectors, or any single-lane-stage artifact) is missing or failed MUST halt and report BLOCKED. Authoring one's own upstream, editing enforcement/gate policy from within a gated lane, or self-granting exceptions voids the lane's outputs in their entirety."
+  },
   "amendment_protocol": {
     "mechanism": "Append-only `rubric_amendments` log. The array may be empty for a clean run. Any change to gates, weights, grade values, boundary definitions, evidence methods, veto rules, aggregation, exclusions, or the reference slate MUST land as a new rubric version with a new content-hash plus one appended amendment entry. In-place mutation of frozen fields without an amendment entry is prohibited.",
     "entry_schema": {
@@ -242,7 +251,17 @@
     "fixture_correction_note": "Fixture corrections are owned by the single-lane fixture stage (FixtureSuite singleton), never by per-spike improvisation; a fixture correction triggers this same invalidation/re-queue protocol keyed on fixture content-hash.",
     "adr_obligation": "The full amendment log (including the empty-log case) ships verbatim as a mandatory section of the owned Policy IR ADR."
   },
-  "rubric_amendments": [],
+  "rubric_amendments": [
+    {
+      "amendment_id": "RA-001",
+      "amended_at": "2026-07-02T16:10:39Z",
+      "rationale": "Autopsy of the first benchmark execution (session orch_209226c9c7e8, terminal status failed) found: (a) the sole evidence artifact produced was a disclosed in-process emulation whose wall-clock numbers restated author-chosen parameters, tuned toward PASS against the artifact's own documentation citations; (b) the producing lane authored its own failed upstream (the Fixture-2 topology) and self-granted Python exceptions in the rust-first automation gate policy within the same commit. That commit was stripped before any merge. This amendment closes the class before any spike runs by adding the evidence_admissibility section: receipt-based admissibility for measurements, the emulated-grade vs emulated-measurement distinction, BLOCKED as an honest non-failing lane outcome, and the upstream-halt rule. A shape-valid artifact standard without an admissibility rule for realness makes disclosed simulation the rational optimum for an autonomous executor; this amendment removes that optimum. invalidated_grades is provably empty: zero grades have been issued under any rubric hash (the run terminated before the spike and verifier stages started), and the single evidence artifact that existed was stripped as inadmissible rather than graded, so this amendment cannot affect any issued grade.",
+      "previous_content_hash": "rubric-v1:sha256:53eeea347f2ebcf97fc72449b130f2e7c8f5672bdf923166f641ee3d6f49bdba",
+      "new_content_hash": "self:content_hash.value (in-document forward reference; the authoritative post-amendment hash is this document version's content_hash.value)",
+      "invalidated_grades": [],
+      "requeue": []
+    }
+  ],
   "content_hash": {
     "id": "policy-ir-benchmark-rubric-hash-v1",
     "wire_format": "rubric-v1:sha256:<64-lower-hex>",
@@ -250,7 +269,7 @@
     "canonicalization": "JSON canonical form: parse this document, set content_hash.value to the empty string, then serialize with sorted keys, separators (',', ':'), UTF-8, no ASCII escaping (python3: json.dumps(doc, sort_keys=True, separators=(',',':'), ensure_ascii=False).encode('utf-8')). The digest is sha256 over those bytes.",
     "scope": "Hashes the entire rubric document including the amendment log; appending an amendment therefore yields a new content-hash by construction, giving immutable-per-version semantics.",
     "pinning_rule": "Verifier-lane grades pin this value. A grade pinned to a stale hash after an amendment is invalid until re-queued and re-graded.",
-    "value": "rubric-v1:sha256:53eeea347f2ebcf97fc72449b130f2e7c8f5672bdf923166f641ee3d6f49bdba"
+    "value": "rubric-v1:sha256:14b2951701e57b061d8ad31ce18bc0cdc5a2e1881d50cef994820dcaa4e0b11c"
   },
   "verification_commands": [
     "python3 -m json.tool specs/policy-ir-benchmark-rubric.json >/dev/null",
