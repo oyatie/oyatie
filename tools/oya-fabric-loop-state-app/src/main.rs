@@ -23,9 +23,10 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use oya_fabric_loop_state_app::{
     BlockKind, CardFlowTimeline, CardStatus, CutoverTarget, DEFAULT_DURABLE_PLANE_ROOT,
-    DEFAULT_FLOW_METRICS_ROOT, DEFAULT_OPERATIONAL_PLANE_ROOT, FlowMetricsService,
-    FsCoordinationStore, FsExecutionStore, FsFlowMetricsStore, LoopCard, LoopStateService,
-    PlaneError,
+    DEFAULT_FLOW_METRICS_ROOT, DEFAULT_OPERATIONAL_PLANE_ROOT, DisjointnessPhase,
+    DisjointnessVerdict, FlowMetricsService, FsCoordinationStore, FsExecutionStore,
+    FsFlowMetricsStore, LaneWorkSurface, LoopCard, LoopStateService, PlaneError,
+    check_lane_disjointness,
 };
 
 const USAGE: &str = "oya-fabric-loop-state [--repo-root PATH] <command>
@@ -47,7 +48,12 @@ commands:
   verify-done --card-id ID --evidence REF    promote to done-verified with verification evidence
   record-pass [--timeline CARD,LANE,CLAIMED,REVIEW_REQ,FIRST_VERDICT,COMPLETED,ROUNDS]...
                                              append the next per-pass flow-metrics record
-                                             (idle passes record with zero timelines)";
+                                             (idle passes record with zero timelines)
+  check-disjoint --phase pre-flight|post-run --reviewer-capacity N
+                 [--surface LANE:CARD=PATH[,PATH]...]...
+                                             mechanical lane-disjointness verdict (path/ownership
+                                             overlap): prints the JSON report; exits non-zero
+                                             unless every lane pair is path-disjoint";
 
 /// Wall-clock epoch seconds. Fails closed on clock error: records must never
 /// be stamped with a fabricated epoch-0 time.
@@ -113,6 +119,9 @@ fn main() -> ExitCode {
     let mut depends_on: Vec<String> = Vec::new();
     let mut evidence: Vec<String> = Vec::new();
     let mut timelines: Vec<String> = Vec::new();
+    let mut phase = String::new();
+    let mut reviewer_capacity = String::new();
+    let mut surfaces: Vec<String> = Vec::new();
 
     while let Some(arg) = args.next() {
         let flag_value = |args: &mut Args, flag: &str| args.required_value(flag);
@@ -155,6 +164,18 @@ fn main() -> ExitCode {
             },
             "--timeline" => match flag_value(&mut args, "--timeline") {
                 Ok(value) => timelines.push(value),
+                Err(err) => return fail(&err),
+            },
+            "--phase" => match flag_value(&mut args, "--phase") {
+                Ok(value) => phase = value,
+                Err(err) => return fail(&err),
+            },
+            "--reviewer-capacity" => match flag_value(&mut args, "--reviewer-capacity") {
+                Ok(value) => reviewer_capacity = value,
+                Err(err) => return fail(&err),
+            },
+            "--surface" => match flag_value(&mut args, "--surface") {
+                Ok(value) => surfaces.push(value),
                 Err(err) => return fail(&err),
             },
             "--help" | "-h" => {
@@ -230,6 +251,9 @@ fn main() -> ExitCode {
             ))),
         },
         "record-pass" => record_pass(&mut runtime, &timelines, at),
+        "check-disjoint" => {
+            return check_disjoint(&phase, &reviewer_capacity, &surfaces, at);
+        }
         other => {
             eprintln!("unknown command: {other}\n{USAGE}");
             return ExitCode::FAILURE;
@@ -316,6 +340,67 @@ fn record_pass(runtime: &mut Runtime, timelines: &[String], at: u64) -> Result<(
         pass.total_rework_count()
     );
     Ok(())
+}
+
+/// Parse one `--surface LANE:CARD=PATH[,PATH]...` spec.
+fn parse_surface(raw: &str) -> Result<LaneWorkSurface, PlaneError> {
+    let malformed = || PlaneError::InvalidSurface {
+        lane_id: "<cli>".into(),
+        detail: format!("--surface expects LANE:CARD=PATH[,PATH]...; got {raw:?}"),
+    };
+    let (ids, paths) = raw.split_once('=').ok_or_else(malformed)?;
+    let (lane_id, card_id) = ids.split_once(':').ok_or_else(malformed)?;
+    if lane_id.is_empty() || card_id.is_empty() || paths.is_empty() {
+        return Err(malformed());
+    }
+    Ok(LaneWorkSurface {
+        lane_id: lane_id.to_owned(),
+        card_id: card_id.to_owned(),
+        paths: paths.split(',').map(str::to_owned).collect(),
+    })
+}
+
+/// Run the mechanical lane-disjointness detector and print the JSON report.
+/// Gate semantics: exits zero ONLY on a `disjoint` verdict — an overlap
+/// verdict prints the report (evidence) and fails, routing the colliding
+/// work to the serialized integrator lane instead of parallel dispatch.
+fn check_disjoint(
+    phase: &str,
+    reviewer_capacity: &str,
+    surface_specs: &[String],
+    at: u64,
+) -> ExitCode {
+    let run = || -> Result<oya_fabric_loop_state_app::DisjointnessReport, PlaneError> {
+        let phase = DisjointnessPhase::parse(phase)?;
+        let capacity = reviewer_capacity.parse::<usize>().map_err(|_| {
+            PlaneError::InvalidSurface {
+                lane_id: "<cli>".into(),
+                detail: format!(
+                    "--reviewer-capacity must be a non-negative integer; got {reviewer_capacity:?}"
+                ),
+            }
+        })?;
+        let surfaces = surface_specs
+            .iter()
+            .map(|raw| parse_surface(raw))
+            .collect::<Result<Vec<_>, _>>()?;
+        check_lane_disjointness(phase, &surfaces, capacity, at)
+    };
+    match run() {
+        Ok(report) => {
+            print!("{}", report.to_json().to_canonical_string());
+            match report.verdict {
+                DisjointnessVerdict::Disjoint => ExitCode::SUCCESS,
+                DisjointnessVerdict::OverlapSerializeToIntegrator { .. } => {
+                    eprintln!(
+                        "overlap detected: colliding lanes route to the serialized integrator lane"
+                    );
+                    ExitCode::FAILURE
+                }
+            }
+        }
+        Err(err) => fail(&err.to_string()),
+    }
 }
 
 fn snapshot(runtime: &Runtime) -> ExitCode {

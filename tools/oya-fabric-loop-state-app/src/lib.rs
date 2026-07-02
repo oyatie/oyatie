@@ -171,6 +171,24 @@ pub enum PlaneError {
         /// Human-readable refusal detail.
         detail: String,
     },
+    /// A lane work surface failed mechanical validation (disjointness
+    /// detector input: bad path shape, duplicate lane/card, empty surface).
+    InvalidSurface {
+        /// The lane whose surface was refused (or `<batch>` for batch-level
+        /// violations such as duplicate lane ids).
+        lane_id: String,
+        /// Human-readable refusal detail.
+        detail: String,
+    },
+    /// More concurrent lanes were requested than independent reviewer
+    /// capacity admits (parallel-safety constraint: max concurrent lanes <=
+    /// available independent reviewer capacity).
+    LaneCapacityExceeded {
+        /// Requested concurrent lane count.
+        lanes: usize,
+        /// Available independent reviewer capacity.
+        reviewer_capacity: usize,
+    },
 }
 
 impl fmt::Display for PlaneError {
@@ -209,6 +227,16 @@ impl fmt::Display for PlaneError {
             Self::InvalidMetrics { subject, detail } => {
                 write!(f, "invalid flow metrics for {subject}: {detail}")
             }
+            Self::InvalidSurface { lane_id, detail } => {
+                write!(f, "invalid lane work surface for {lane_id}: {detail}")
+            }
+            Self::LaneCapacityExceeded {
+                lanes,
+                reviewer_capacity,
+            } => write!(
+                f,
+                "lane capacity exceeded: {lanes} concurrent lanes requested, reviewer capacity {reviewer_capacity}"
+            ),
         }
     }
 }
@@ -2116,6 +2144,317 @@ impl<M: FlowMetricsPort> FlowMetricsService<M> {
 }
 
 // ---------------------------------------------------------------------------
+// Mechanical lane-disjointness detector (path/ownership-overlap)
+// ---------------------------------------------------------------------------
+
+/// Detector phase: parallel safety is verdicted MECHANICALLY twice per
+/// dispatch — pre-flight over the DECLARED lane work surfaces (before any
+/// lane runs) and post-run over the ACTUAL touched paths (proving zero
+/// collisions after the fact). Judgment never decides what runs concurrently;
+/// this detector does.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DisjointnessPhase {
+    /// Declared surfaces, before dispatch. An overlap verdict here routes the
+    /// colliding lanes to the serialized integrator lane instead of parallel
+    /// dispatch.
+    PreFlight,
+    /// Actual touched paths, after the lanes ran. An overlap verdict here is
+    /// a collision escape (dispatch bug): the run must not merge as parallel.
+    PostRun,
+}
+
+impl DisjointnessPhase {
+    /// Canonical wire string.
+    #[must_use]
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::PreFlight => "pre-flight",
+            Self::PostRun => "post-run",
+        }
+    }
+
+    /// Parse the canonical wire string.
+    pub fn parse(text: &str) -> Result<Self, PlaneError> {
+        match text {
+            "pre-flight" => Ok(Self::PreFlight),
+            "post-run" => Ok(Self::PostRun),
+            other => Err(PlaneError::Corrupt(format!(
+                "unknown disjointness phase {other:?}"
+            ))),
+        }
+    }
+}
+
+/// One lane's work surface: the repo-relative paths (files or directory
+/// roots) the lane declares it will touch (pre-flight) or actually touched
+/// (post-run) while driving one card.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LaneWorkSurface {
+    /// The lane.
+    pub lane_id: String,
+    /// The card the lane drives (one card per lane per pass).
+    pub card_id: String,
+    /// Repo-relative paths: no leading `/`, no `.`/`..` components, no
+    /// backslashes, no trailing `/`. A directory path claims its whole
+    /// subtree.
+    pub paths: Vec<String>,
+}
+
+/// One mechanical path collision between two lanes: equal paths or one path
+/// inside the other's claimed subtree.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PathCollision {
+    /// First lane (in surface order).
+    pub lane_a: String,
+    /// Colliding path declared/touched by `lane_a`.
+    pub path_a: String,
+    /// Second lane.
+    pub lane_b: String,
+    /// Colliding path declared/touched by `lane_b`.
+    pub path_b: String,
+}
+
+/// The mechanical verdict. There is no judgment outcome: either every pair of
+/// lane surfaces is path-disjoint, or the colliding work is routed to the
+/// serialized integrator lane.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DisjointnessVerdict {
+    /// Zero collisions: the lanes may run (pre-flight) / ran (post-run) in
+    /// parallel.
+    Disjoint,
+    /// Overlap detected: the colliding lanes MUST NOT run in parallel;
+    /// shared-surface work auto-routes to the serialized integrator lane.
+    OverlapSerializeToIntegrator {
+        /// Every colliding path pair, deterministically ordered.
+        collisions: Vec<PathCollision>,
+    },
+}
+
+impl DisjointnessVerdict {
+    /// Canonical wire string.
+    #[must_use]
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Disjoint => "disjoint",
+            Self::OverlapSerializeToIntegrator { .. } => "overlap-serialize-to-integrator",
+        }
+    }
+}
+
+/// One detector run: phase, inputs, and verdict — the evidence-record shape
+/// captured pre-flight and post-run for every parallel dispatch.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DisjointnessReport {
+    /// Which phase produced this report.
+    pub phase: DisjointnessPhase,
+    /// The checked surfaces (embedded so the report is self-contained
+    /// evidence).
+    pub surfaces: Vec<LaneWorkSurface>,
+    /// Available independent reviewer capacity the lane count was checked
+    /// against.
+    pub reviewer_capacity: usize,
+    /// When the detector ran (unix seconds).
+    pub checked_at_epoch_s: u64,
+    /// The mechanical verdict.
+    pub verdict: DisjointnessVerdict,
+}
+
+impl DisjointnessReport {
+    /// Canonical JSON projection (evidence-record shape).
+    #[must_use]
+    pub fn to_json(&self) -> JsonValue {
+        let surfaces = self
+            .surfaces
+            .iter()
+            .map(|surface| {
+                JsonValue::Obj(vec![
+                    ("lane_id".into(), JsonValue::Str(surface.lane_id.clone())),
+                    ("card_id".into(), JsonValue::Str(surface.card_id.clone())),
+                    (
+                        "paths".into(),
+                        JsonValue::Arr(
+                            surface
+                                .paths
+                                .iter()
+                                .map(|p| JsonValue::Str(p.clone()))
+                                .collect(),
+                        ),
+                    ),
+                ])
+            })
+            .collect();
+        let collisions = match &self.verdict {
+            DisjointnessVerdict::Disjoint => Vec::new(),
+            DisjointnessVerdict::OverlapSerializeToIntegrator { collisions } => collisions
+                .iter()
+                .map(|c| {
+                    JsonValue::Obj(vec![
+                        ("lane_a".into(), JsonValue::Str(c.lane_a.clone())),
+                        ("path_a".into(), JsonValue::Str(c.path_a.clone())),
+                        ("lane_b".into(), JsonValue::Str(c.lane_b.clone())),
+                        ("path_b".into(), JsonValue::Str(c.path_b.clone())),
+                    ])
+                })
+                .collect(),
+        };
+        JsonValue::Obj(vec![
+            ("phase".into(), JsonValue::Str(self.phase.as_str().into())),
+            (
+                "verdict".into(),
+                JsonValue::Str(self.verdict.as_str().into()),
+            ),
+            (
+                "lane_count".into(),
+                JsonValue::Num(self.surfaces.len() as u64),
+            ),
+            (
+                "reviewer_capacity".into(),
+                JsonValue::Num(self.reviewer_capacity as u64),
+            ),
+            (
+                "checked_at_epoch_s".into(),
+                JsonValue::Num(self.checked_at_epoch_s),
+            ),
+            ("surfaces".into(), JsonValue::Arr(surfaces)),
+            ("collisions".into(), JsonValue::Arr(collisions)),
+        ])
+    }
+}
+
+/// Validate one repo-relative surface path. Fail closed: absolute paths,
+/// traversal components, backslashes, empty components, and trailing slashes
+/// are refused — a path the detector cannot reason about must never be
+/// admitted as "disjoint".
+fn validate_surface_path(lane_id: &str, path: &str) -> Result<(), PlaneError> {
+    let refuse = |detail: String| PlaneError::InvalidSurface {
+        lane_id: lane_id.to_owned(),
+        detail,
+    };
+    if path.is_empty() {
+        return Err(refuse("empty path".into()));
+    }
+    if path.starts_with('/') {
+        return Err(refuse(format!("absolute path {path:?}")));
+    }
+    if path.contains('\\') {
+        return Err(refuse(format!("backslash in path {path:?}")));
+    }
+    if path.ends_with('/') {
+        return Err(refuse(format!("trailing slash in path {path:?}")));
+    }
+    for component in path.split('/') {
+        if component.is_empty() {
+            return Err(refuse(format!("empty component in path {path:?}")));
+        }
+        if component == "." || component == ".." {
+            return Err(refuse(format!("traversal component in path {path:?}")));
+        }
+    }
+    Ok(())
+}
+
+/// True iff `a` and `b` collide: equal, or one is a directory-prefix of the
+/// other (component-wise, so `src/lib.rs` does NOT collide with
+/// `src/lib.rs.bak` but `src` collides with `src/lib.rs`).
+fn paths_collide(a: &str, b: &str) -> bool {
+    a == b
+        || a.strip_prefix(b).is_some_and(|rest| rest.starts_with('/'))
+        || b.strip_prefix(a).is_some_and(|rest| rest.starts_with('/'))
+}
+
+/// The mechanical path/ownership-overlap detector. Parallel safety is decided
+/// here, not by judgment: ready work may dispatch concurrently ONLY when this
+/// returns a [`DisjointnessVerdict::Disjoint`] report, and the same check
+/// re-verdicts the actual touched paths post-run.
+///
+/// Fail-closed contract:
+/// - every lane/card id passes [`validate_id`]; duplicate lane ids and
+///   duplicate card ids across lanes are refused;
+/// - every path passes the repo-relative shape check; an empty surface, an
+///   empty path list, or zero surfaces is refused (nothing to reason about);
+/// - `surfaces.len()` above `reviewer_capacity` is refused
+///   ([`PlaneError::LaneCapacityExceeded`]): max concurrent lanes <=
+///   available independent reviewer capacity, computed from the lane
+///   registry by the caller.
+pub fn check_lane_disjointness(
+    phase: DisjointnessPhase,
+    surfaces: &[LaneWorkSurface],
+    reviewer_capacity: usize,
+    checked_at_epoch_s: u64,
+) -> Result<DisjointnessReport, PlaneError> {
+    if surfaces.is_empty() {
+        return Err(PlaneError::InvalidSurface {
+            lane_id: "<batch>".into(),
+            detail: "no lane work surfaces to check".into(),
+        });
+    }
+    if surfaces.len() > reviewer_capacity {
+        return Err(PlaneError::LaneCapacityExceeded {
+            lanes: surfaces.len(),
+            reviewer_capacity,
+        });
+    }
+    let mut seen_lanes: Vec<&str> = Vec::new();
+    let mut seen_cards: Vec<&str> = Vec::new();
+    for surface in surfaces {
+        validate_id(&surface.lane_id)?;
+        validate_id(&surface.card_id)?;
+        if seen_lanes.contains(&surface.lane_id.as_str()) {
+            return Err(PlaneError::InvalidSurface {
+                lane_id: "<batch>".into(),
+                detail: format!("duplicate lane id {}", surface.lane_id),
+            });
+        }
+        if seen_cards.contains(&surface.card_id.as_str()) {
+            return Err(PlaneError::InvalidSurface {
+                lane_id: "<batch>".into(),
+                detail: format!("card {} appears in more than one lane", surface.card_id),
+            });
+        }
+        seen_lanes.push(&surface.lane_id);
+        seen_cards.push(&surface.card_id);
+        if surface.paths.is_empty() {
+            return Err(PlaneError::InvalidSurface {
+                lane_id: surface.lane_id.clone(),
+                detail: "empty path set".into(),
+            });
+        }
+        for path in &surface.paths {
+            validate_surface_path(&surface.lane_id, path)?;
+        }
+    }
+    let mut collisions = Vec::new();
+    for (i, a) in surfaces.iter().enumerate() {
+        for b in &surfaces[i + 1..] {
+            for path_a in &a.paths {
+                for path_b in &b.paths {
+                    if paths_collide(path_a, path_b) {
+                        collisions.push(PathCollision {
+                            lane_a: a.lane_id.clone(),
+                            path_a: path_a.clone(),
+                            lane_b: b.lane_id.clone(),
+                            path_b: path_b.clone(),
+                        });
+                    }
+                }
+            }
+        }
+    }
+    let verdict = if collisions.is_empty() {
+        DisjointnessVerdict::Disjoint
+    } else {
+        DisjointnessVerdict::OverlapSerializeToIntegrator { collisions }
+    };
+    Ok(DisjointnessReport {
+        phase,
+        surfaces: surfaces.to_vec(),
+        reviewer_capacity,
+        checked_at_epoch_s,
+        verdict,
+    })
+}
+
+// ---------------------------------------------------------------------------
 // Unit tests
 // ---------------------------------------------------------------------------
 
@@ -2377,5 +2716,173 @@ mod tests {
             .collect();
         assert_eq!(seqs, vec![1, 2]);
         assert_eq!(service.latest_pass().unwrap().unwrap().pass_seq, 2);
+    }
+
+    fn surface(lane: &str, card: &str, paths: &[&str]) -> LaneWorkSurface {
+        LaneWorkSurface {
+            lane_id: lane.into(),
+            card_id: card.into(),
+            paths: paths.iter().map(|p| (*p).to_owned()).collect(),
+        }
+    }
+
+    #[test]
+    fn disjoint_surfaces_get_a_disjoint_verdict_in_both_phases() {
+        let surfaces = [
+            surface(
+                "lane-fabric-b",
+                "MPV2-0000.C003",
+                &[
+                    "tools/oya-fabric-loop-state-app/src/lib.rs",
+                    "tools/oya-fabric-loop-state-app/tests/contract.rs",
+                ],
+            ),
+            surface(
+                "lane-fabric-c",
+                "MPV2-0000.C004",
+                &["tools/oya-fabric-loop-state-app/src/main.rs"],
+            ),
+        ];
+        for phase in [DisjointnessPhase::PreFlight, DisjointnessPhase::PostRun] {
+            let report = check_lane_disjointness(phase, &surfaces, 2, 100).unwrap();
+            assert_eq!(report.verdict, DisjointnessVerdict::Disjoint);
+            assert_eq!(report.phase, phase);
+            assert_eq!(report.surfaces.len(), 2);
+            let json = report.to_json().to_canonical_string();
+            let parsed = JsonValue::parse(&json).unwrap();
+            assert_eq!(
+                parsed.get("verdict").and_then(JsonValue::as_str),
+                Some("disjoint")
+            );
+            assert_eq!(
+                parsed.get("lane_count").and_then(JsonValue::as_num),
+                Some(2)
+            );
+            assert_eq!(
+                parsed.get("phase").and_then(JsonValue::as_str),
+                Some(phase.as_str())
+            );
+        }
+    }
+
+    #[test]
+    fn overlap_routes_to_the_serialized_integrator_lane() {
+        // Sibling files in one directory are NOT a collision; equal paths and
+        // directory-prefix containment ARE.
+        assert!(!paths_collide("crate/src/lib.rs", "crate/src/main.rs"));
+        assert!(!paths_collide("crate/src/lib.rs", "crate/src/lib.rs.bak"));
+        assert!(paths_collide("crate/src", "crate/src/lib.rs"));
+        assert!(paths_collide("crate/src/lib.rs", "crate/src/lib.rs"));
+
+        let surfaces = [
+            surface("lane-a", "MPV2-0000.C003", &["crate/src"]),
+            surface(
+                "lane-b",
+                "MPV2-0000.C004",
+                &["crate/src/main.rs", "crate/other.rs"],
+            ),
+        ];
+        let report =
+            check_lane_disjointness(DisjointnessPhase::PreFlight, &surfaces, 2, 100).unwrap();
+        let DisjointnessVerdict::OverlapSerializeToIntegrator { collisions } = &report.verdict
+        else {
+            panic!("expected overlap verdict");
+        };
+        assert_eq!(
+            collisions,
+            &vec![PathCollision {
+                lane_a: "lane-a".into(),
+                path_a: "crate/src".into(),
+                lane_b: "lane-b".into(),
+                path_b: "crate/src/main.rs".into(),
+            }]
+        );
+        let json = report.to_json().to_canonical_string();
+        let parsed = JsonValue::parse(&json).unwrap();
+        assert_eq!(
+            parsed.get("verdict").and_then(JsonValue::as_str),
+            Some("overlap-serialize-to-integrator")
+        );
+        assert_eq!(
+            parsed
+                .get("collisions")
+                .and_then(JsonValue::as_arr)
+                .map(<[JsonValue]>::len),
+            Some(1)
+        );
+    }
+
+    #[test]
+    fn detector_fails_closed_on_capacity_and_malformed_surfaces() {
+        let a = surface("lane-a", "C-1", &["x/a.rs"]);
+        let b = surface("lane-b", "C-2", &["x/b.rs"]);
+        let c = surface("lane-c", "C-3", &["x/c.rs"]);
+
+        // Max concurrent lanes <= independent reviewer capacity.
+        assert!(matches!(
+            check_lane_disjointness(
+                DisjointnessPhase::PreFlight,
+                &[a.clone(), b.clone(), c],
+                2,
+                1
+            ),
+            Err(PlaneError::LaneCapacityExceeded {
+                lanes: 3,
+                reviewer_capacity: 2
+            })
+        ));
+
+        // Zero surfaces, duplicate lanes, one card on two lanes, empty path
+        // sets, and unreasonable paths are all refused.
+        assert!(matches!(
+            check_lane_disjointness(DisjointnessPhase::PreFlight, &[], 2, 1),
+            Err(PlaneError::InvalidSurface { .. })
+        ));
+        assert!(matches!(
+            check_lane_disjointness(
+                DisjointnessPhase::PreFlight,
+                &[a.clone(), surface("lane-a", "C-9", &["y/z.rs"])],
+                2,
+                1
+            ),
+            Err(PlaneError::InvalidSurface { .. })
+        ));
+        assert!(matches!(
+            check_lane_disjointness(
+                DisjointnessPhase::PreFlight,
+                &[a.clone(), surface("lane-z", "C-1", &["y/z.rs"])],
+                2,
+                1
+            ),
+            Err(PlaneError::InvalidSurface { .. })
+        ));
+        assert!(matches!(
+            check_lane_disjointness(
+                DisjointnessPhase::PreFlight,
+                &[surface("lane-a", "C-1", &[])],
+                2,
+                1
+            ),
+            Err(PlaneError::InvalidSurface { .. })
+        ));
+        for bad in ["/abs/path", "a//b", "a/../b", "./a", "a/b/", "a\\b", ""] {
+            assert!(
+                matches!(
+                    check_lane_disjointness(
+                        DisjointnessPhase::PreFlight,
+                        &[surface("lane-a", "C-1", &[bad])],
+                        2,
+                        1
+                    ),
+                    Err(PlaneError::InvalidSurface { .. })
+                ),
+                "path {bad:?} must be refused"
+            );
+        }
+        assert!(DisjointnessPhase::parse("pre-flight").is_ok());
+        assert!(DisjointnessPhase::parse("post-run").is_ok());
+        assert!(DisjointnessPhase::parse("mid-run").is_err());
+        // Two well-formed surfaces still pass under exact capacity.
+        assert!(check_lane_disjointness(DisjointnessPhase::PostRun, &[a, b], 2, 1).is_ok());
     }
 }

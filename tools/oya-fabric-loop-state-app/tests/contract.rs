@@ -687,3 +687,92 @@ fn flow_metrics_are_recorded_and_persisted_across_passes() {
         Err(PlaneError::Corrupt(detail)) if detail.contains("pass-shadow.json")
     ));
 }
+
+/// The mechanical lane-disjointness detector (path/ownership-overlap) is the
+/// sole decider of what runs concurrently: disjoint declared surfaces verdict
+/// `disjoint` pre-flight and re-verdict `disjoint` post-run over actual
+/// touched paths; any equal-or-nested path pair verdicts
+/// `overlap-serialize-to-integrator`; and the lane count is capped by
+/// independent reviewer capacity fail-closed. The JSON report is the evidence
+/// shape captured for every parallel dispatch.
+#[test]
+fn lane_disjointness_detector_verdicts_parallel_dispatch_mechanically() {
+    use oya_fabric_loop_state_app::{
+        DisjointnessPhase, DisjointnessVerdict, LaneWorkSurface, check_lane_disjointness,
+    };
+
+    let surface = |lane: &str, card_id: &str, paths: &[&str]| LaneWorkSurface {
+        lane_id: lane.into(),
+        card_id: card_id.into(),
+        paths: paths.iter().map(|p| (*p).to_owned()).collect(),
+    };
+    let declared = [
+        surface(
+            "lane-fabric-b",
+            "MPV2-0000.C003",
+            &[
+                "tools/oya-fabric-loop-state-app/src/lib.rs",
+                "tools/oya-fabric-loop-state-app/tests/contract.rs",
+            ],
+        ),
+        surface(
+            "lane-fabric-c",
+            "MPV2-0000.C004",
+            &["tools/oya-fabric-loop-state-app/src/main.rs"],
+        ),
+    ];
+
+    // Pre-flight over declared surfaces and post-run over actual touched
+    // paths use the SAME mechanical check; both verdict disjoint here.
+    for phase in [DisjointnessPhase::PreFlight, DisjointnessPhase::PostRun] {
+        let report = check_lane_disjointness(phase, &declared, 2, 1_783_000_000).unwrap();
+        assert_eq!(report.verdict, DisjointnessVerdict::Disjoint);
+        let json = report.to_json().to_canonical_string();
+        let parsed = JsonValue::parse(&json).unwrap();
+        assert_eq!(
+            parsed.get("phase").and_then(JsonValue::as_str),
+            Some(phase.as_str())
+        );
+        assert_eq!(
+            parsed.get("verdict").and_then(JsonValue::as_str),
+            Some("disjoint")
+        );
+        assert_eq!(
+            parsed
+                .get("collisions")
+                .and_then(JsonValue::as_arr)
+                .map(<[JsonValue]>::len),
+            Some(0)
+        );
+    }
+
+    // A shared root (one lane claims the crate dir, the other a file inside
+    // it) is a mechanical collision: the verdict routes the work to the
+    // serialized integrator lane instead of parallel dispatch.
+    let colliding = [
+        surface(
+            "lane-fabric-b",
+            "MPV2-0000.C003",
+            &["tools/oya-fabric-loop-state-app"],
+        ),
+        surface(
+            "lane-fabric-c",
+            "MPV2-0000.C004",
+            &["tools/oya-fabric-loop-state-app/src/main.rs"],
+        ),
+    ];
+    let report =
+        check_lane_disjointness(DisjointnessPhase::PreFlight, &colliding, 2, 1_783_000_000)
+            .unwrap();
+    assert_eq!(report.verdict.as_str(), "overlap-serialize-to-integrator");
+
+    // Parallel-safety cap: more lanes than independent reviewer capacity is
+    // refused fail-closed before any disjointness reasoning.
+    assert!(matches!(
+        check_lane_disjointness(DisjointnessPhase::PreFlight, &declared, 1, 1_783_000_000),
+        Err(PlaneError::LaneCapacityExceeded {
+            lanes: 2,
+            reviewer_capacity: 1
+        })
+    ));
+}
