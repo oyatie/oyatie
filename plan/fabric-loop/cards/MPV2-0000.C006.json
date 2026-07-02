@@ -3,6 +3,11 @@
   "title": "Harvested (C004 round-1 review minor): remaining CLI usage paths (--kind, --phase, --reviewer-capacity parse failures) still surface as PlaneError text without the usage-error prefix; reroute to CliError Usage for consistency plus regression test",
   "program_id": "P-FABRIC",
   "depends_on": [],
-  "status": "defined",
-  "evidence_refs": []
+  "status": "done-verified",
+  "evidence_refs": [
+    "git:20c5bae10",
+    "evidence/goals/fabric-loop-parallel-lanes-c006-c008-proof-run-20260702.json#stage_disjointness",
+    "evidence/goals/fabric-loop-parallel-lanes-c006-c008-proof-run-20260702.json#stage_review",
+    "evidence/goals/fabric-loop-parallel-lanes-c006-c008-proof-run-20260702.json#stage_post_merge_product_completion_packet"
+  ]
 }

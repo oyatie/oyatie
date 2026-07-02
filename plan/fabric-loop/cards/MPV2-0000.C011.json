@@ -1,0 +1,8 @@
+{
+  "card_id": "MPV2-0000.C011",
+  "title": "Harvested (C008 round-1 review minor+nit): symlink loop (ELOOP) in a ledger dir classifies as Io not Corrupt (shape-violation doctrine wobble), and atomic-tmp-shaped names skip file_type checks so a directory named x.json.tmp.123 is silently tolerated - extend fail-closed file_type doctrine plus regression tests",
+  "program_id": "P-FABRIC",
+  "depends_on": [],
+  "status": "defined",
+  "evidence_refs": []
+}

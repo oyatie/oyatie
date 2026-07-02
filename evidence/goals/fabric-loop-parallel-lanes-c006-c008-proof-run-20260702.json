@@ -1,0 +1,233 @@
+{
+  "_meta": {
+    "artifact_id": "fabric-loop-parallel-lanes-c006-c008-proof-run-20260702",
+    "doc_class": "Durable-Evidence-Record",
+    "purpose": "Parallel-lanes proof run of the ADR-0516 Agentic Delivery Fabric two-plane drive loop on branch ooo/orch_edff8596cfa2: TWO mechanically disjoint Claude-team lanes (harvested backlog cards MPV2-0000.C006 and MPV2-0000.C008) driven to completion with ZERO collisions and coordinator-only commits, with the mechanical lane-disjointness detector's pre-flight and post-run verdicts captured verbatim alongside the improvement-layer flow metrics recorded on the dispatch pass. Evidence backing masterplan-v2 Sub-AC 3.3 and the e2e_loop_proof exit condition (collision-free parallel-lanes half; both cards were REAL backlog work harvested by the loop's own improvement layer in prior passes).",
+    "created_at": "2026-07-02T17:45:00Z",
+    "owner_team": "founder + platform-governance",
+    "doctrine_refs": ["ADR-0515", "ADR-0516"],
+    "read_contract": {
+      "audience": ["humans", "agents", "reviewers"],
+      "read_timing_class": "on-demand",
+      "freshness_rule": "Immutable evidence record of the 2026-07-02 C006+C008 parallel-lanes proof run; never edited after the fact. Live loop state lives at plan/fabric-loop (durable plane) and .oya-loop-state (operational plane, gitignored); the detector contract lives at specs/fabric-drive-loop-state.json#lane_disjointness."
+    }
+  },
+  "detector": {
+    "name": "mechanical lane-disjointness detector (path/ownership-overlap)",
+    "implementation": "check_lane_disjointness in tools/oya-fabric-loop-state-app (owned Rust, zero third-party deps), driven through the retirement-marked bridge bin command check-disjoint; contract at specs/fabric-drive-loop-state.json#lane_disjointness",
+    "decision_rule": "Path overlap (equal or component-wise directory-prefix paths across lanes) verdicts overlap-serialize-to-integrator; zero overlaps verdict disjoint; lane count is capped fail-closed by independent reviewer capacity (2 lanes <= 2 independent reviewers this run); malformed surfaces are refused fail-closed. Not judgment: the detector decided what ran concurrently, pre-flight over the DECLARED surfaces and post-run over the ACTUAL touched paths."
+  },
+  "lanes": [
+    {
+      "lane_id": "lane-fabric-e",
+      "card_id": "MPV2-0000.C006",
+      "card_source": "Harvested by the closed-loop improvement layer from the C004 round-1 review of the prior parallel run (real backlog work, not synthetic)",
+      "runtime": "Claude coding-agent worker lane (card contract runtime-agnostic); detached subagent 0-LaneFabricE, 3m05s",
+      "declared_surface": ["tools/oya-fabric-loop-state-app/src/main.rs"],
+      "work_product": "Rerouted the three remaining operator-usage parse paths (block --kind via parse_block_kind, check-disjoint --phase via parse_disjointness_phase, check-disjoint --reviewer-capacity via parse_reviewer_capacity) from raw PlaneError text to the bin-local CliError::Usage surface ('usage error: ' prefix), eliminating the fabricated PlaneError::InvalidSurface with fake lane_id '<cli>'; PlaneError Display preserved verbatim for genuine plane failures; exit-code behavior, check-disjoint JSON report print, and gate semantics byte-for-byte untouched; 3 bin unit-test regression guards (malformed_block_kind/disjointness_phase/reviewer_capacity_is_usage_error_not_plane)"
+    },
+    {
+      "lane_id": "lane-fabric-f",
+      "card_id": "MPV2-0000.C008",
+      "card_source": "Harvested by the closed-loop improvement layer from the C005 round-1 review of the prior full-cycle run (real backlog work, not synthetic)",
+      "runtime": "Claude coding-agent worker lane (card contract runtime-agnostic); detached subagent 1-LaneFabricF, 3m02s",
+      "declared_surface": ["tools/oya-fabric-loop-state-app/src/lib.rs", "tools/oya-fabric-loop-state-app/tests/contract.rs"],
+      "work_product": "file_type-aware fail-closed ledger listing: new require_regular_file admission check inside list_json_ids — a name-admitted <id>.json entry that is a directory, dangling symlink, symlink-to-non-file, or other non-regular file surfaces as PlaneError::Corrupt naming directory and entry (previously: directory degraded to Io(EISDIR) on later read; dangling symlink was silently dropped via the reader's NotFound->Ok(None) carve-out); a valid symlink to a regular file stays admitted; both listing callers (FsCoordinationStore::cards, FsFlowMetricsStore::pass_seqs) inherit via the single list_json_ids path; 2 contract-test regression guards (directory_named_like_card_fails_listing_corrupt_not_io, ledger_symlink_shapes_fail_closed_or_resolve)"
+    }
+  ],
+  "coordinator_only_commits": "All durable-plane writes and the single product git commit of this run were made by the coordinator on the isolated lane branch ooo/orch_edff8596cfa2 (SSH-signed); worker lanes edited only their declared product-source surfaces and committed nothing; reviewer lanes wrote only gitignored .oya-loop-state/reviews/ verdict files and committed nothing.",
+  "stage_ratification_gate": {
+    "statement": "Both claim commands ran the mechanical founder-ratification dispatch gate against specs/masterplan.json before any plane write and granted dispatch (claims succeeded at 1783010954 and 1783010957); a stale or absent record would have refused with 'execution-wave dispatch refused: ...' per the five fail-closed refusal paths covered by tests/ratification_gate.rs."
+  },
+  "stage_disjointness": {
+    "pre_flight": {
+      "checked_at_epoch_s": 1783010961,
+      "inputs": "DECLARED lane work surfaces, before any lane dispatched",
+      "command": "oya-fabric-loop-state check-disjoint --phase pre-flight --reviewer-capacity 2 --surface lane-fabric-e:MPV2-0000.C006=tools/oya-fabric-loop-state-app/src/main.rs --surface lane-fabric-f:MPV2-0000.C008=tools/oya-fabric-loop-state-app/src/lib.rs,tools/oya-fabric-loop-state-app/tests/contract.rs",
+      "exit_code": 0,
+      "verdict_file": ".oya-loop-state/disjointness/parallel-run-c006-c008-20260702.pre-flight.verdict.json",
+      "report_verbatim": {
+        "phase": "pre-flight",
+        "verdict": "disjoint",
+        "lane_count": 2,
+        "reviewer_capacity": 2,
+        "checked_at_epoch_s": 1783010961,
+        "surfaces": [
+          {
+            "lane_id": "lane-fabric-e",
+            "card_id": "MPV2-0000.C006",
+            "paths": ["tools/oya-fabric-loop-state-app/src/main.rs"]
+          },
+          {
+            "lane_id": "lane-fabric-f",
+            "card_id": "MPV2-0000.C008",
+            "paths": [
+              "tools/oya-fabric-loop-state-app/src/lib.rs",
+              "tools/oya-fabric-loop-state-app/tests/contract.rs"
+            ]
+          }
+        ],
+        "collisions": []
+      }
+    },
+    "post_run": {
+      "checked_at_epoch_s": 1783011628,
+      "inputs": "ACTUAL touched paths, derived mechanically from git diff --name-only after both lanes completed and before the coordinator commit",
+      "actual_whole_tree_touched": [
+        "tools/oya-fabric-loop-state-app/src/lib.rs",
+        "tools/oya-fabric-loop-state-app/src/main.rs",
+        "tools/oya-fabric-loop-state-app/tests/contract.rs"
+      ],
+      "containment_check": "The whole-tree touched set equals EXACTLY the union of the two declared lane surfaces: no lane wrote outside its declaration (per-lane attribution corroborated by each reviewer's standalone-compilability proof: the main.rs diff compiles against HEAD's lib.rs, and the lib.rs/contract.rs diff references none of main.rs's new symbols).",
+      "command": "oya-fabric-loop-state check-disjoint --phase post-run --reviewer-capacity 2 --surface lane-fabric-e:MPV2-0000.C006=tools/oya-fabric-loop-state-app/src/main.rs --surface lane-fabric-f:MPV2-0000.C008=tools/oya-fabric-loop-state-app/src/lib.rs,tools/oya-fabric-loop-state-app/tests/contract.rs",
+      "exit_code": 0,
+      "verdict_file": ".oya-loop-state/disjointness/parallel-run-c006-c008-20260702.post-run.verdict.json",
+      "report_verbatim": {
+        "phase": "post-run",
+        "verdict": "disjoint",
+        "lane_count": 2,
+        "reviewer_capacity": 2,
+        "checked_at_epoch_s": 1783011628,
+        "surfaces": [
+          {
+            "lane_id": "lane-fabric-e",
+            "card_id": "MPV2-0000.C006",
+            "paths": ["tools/oya-fabric-loop-state-app/src/main.rs"]
+          },
+          {
+            "lane_id": "lane-fabric-f",
+            "card_id": "MPV2-0000.C008",
+            "paths": [
+              "tools/oya-fabric-loop-state-app/src/lib.rs",
+              "tools/oya-fabric-loop-state-app/tests/contract.rs"
+            ]
+          }
+        ],
+        "collisions": []
+      }
+    },
+    "zero_collisions_statement": "Both detector phases verdicted disjoint with an empty collisions set (exit 0), and the post-run actual touched set stayed exactly inside the pre-flight declarations — two parallel lanes ran to completion with ZERO collisions, proven mechanically by the path/ownership-overlap detector, not by narration."
+  },
+  "stage_claim": {
+    "claim_records": [
+      { "card_id": "MPV2-0000.C006", "lane_id": "lane-fabric-e", "claimed_at_epoch_s": 1783010954 },
+      { "card_id": "MPV2-0000.C008", "lane_id": "lane-fabric-f", "claimed_at_epoch_s": 1783010957 }
+    ],
+    "runs_started_at_epoch_s": 1783010961,
+    "heartbeats_epoch_s": [1783010961, 1783010962, 1783011026],
+    "mechanism": "oya-fabric-loop-state claim/start/heartbeat/check-disjoint through LoopStateService over CoordinationPlanePort + ExecutionPlanePort (owned Rust; no shell/python state manipulation); lane-exclusive claims held concurrently by two distinct lanes on the gitignored operational plane .oya-loop-state, snapshotted here for durability."
+  },
+  "stage_build": {
+    "parallel_dispatch": "Both worker lanes dispatched simultaneously as detached Claude subagent tasks (0-LaneFabricE 3m05s, 1-LaneFabricF 3m02s, fully overlapping wall-clock) with strict declared-surface scopes and no-git/no-gate worker constraints.",
+    "union_verification_by_coordinator": [
+      "cargo test -p oya-fabric-loop-state-app: 46/46 green (17 lib + 11 bin + 13 contract + 5 ratification-gate)",
+      "cargo clippy -p oya-fabric-loop-state-app --all-targets: clean",
+      "cargo fmt -p oya-fabric-loop-state-app -- --check: clean"
+    ],
+    "result": "green"
+  },
+  "stage_review": {
+    "review_requested_at_epoch_s": 1783011288,
+    "block_records": "Both runs marked blocked(needs-review) at 1783011288 while the two independent reviewers ran; resumed running at 1783011627 after round-1 APPROVE verdicts.",
+    "reviewer_independence": "One independent non-author reviewer lane per worker lane (2 lanes = 2 independent reviewers = the reviewer_capacity the detector enforced), separate detached sessions with no shared history, hostile-inspection (Torvalds-style) lens mandated, read-only on tracked files; verdicts delivered as durable operational-plane files per the MPV2-0000.C002 learning, embedded verbatim below because that plane is gitignored.",
+    "lane_fabric_e_round_1": {
+      "verdict_file": ".oya-loop-state/reviews/MPV2-0000.C006.round1.verdict.txt",
+      "verdict_file_mtime_epoch_s": 1783011584,
+      "review_rounds": 1,
+      "verdict": "APPROVE",
+      "findings_summary": "0 blocker, 0 major, 1 minor, 2 nit",
+      "rationale_highlights": "Reviewer traced all eight mandated points: rerouted paths are pure pre-store parses; every facade call still lands in CliError::Plane with PlaneError Display verbatim (probed END-TO-END against a temp repo-root: unclaimed-card block printed 'card C1 has no active claim' with no usage prefix, '--kind bogus' printed the usage-error message); exit-code plumbing and check-disjoint JSON/gate semantics byte-identical; usage-string enumerations diffed drift-free against HEAD lib.rs (BlockKind exactly {needs-decision, needs-dependency, needs-review, needs-infra, other}, DisjointnessPhase exactly {pre-flight, post-run}); new tests proven non-tautological two ways (graft onto HEAD fails to compile; semantic probe against HEAD shows the old Plane routing); standalone reviewability proven mechanically by compiling HEAD lib.rs + working main.rs in a scratch crate (all 11 bin tests pass — zero dependence on the sibling lane's uncommitted edits); reviewer independently ran cargo test (46/46) and clippy (clean).",
+      "findings": [
+        "[minor] main.rs:488-492 - malformed lane/card ids inside --surface specs still surface as raw PlaneError::InvalidSurface routed to CliError::Plane; same misclassification class, pre-existing, outside the declared three-flag scope - harvest candidate",
+        "[nit] main.rs:438-455 - --kind/--phase usage-string enumerations hand-synced with lib.rs; future variant additions silently drift the message; an enumeration round-trip test would pin it (current state verified drift-free)",
+        "[nit] main.rs:714-726 - substring vs full-equality assertion asymmetry across the three new tests"
+      ]
+    },
+    "lane_fabric_f_round_1": {
+      "verdict_file": ".oya-loop-state/reviews/MPV2-0000.C008.round1.verdict.txt",
+      "verdict_file_mtime_epoch_s": 1783011548,
+      "review_rounds": 1,
+      "verdict": "APPROVE",
+      "findings_summary": "0 blocker, 0 major, 1 minor, 3 nit",
+      "rationale_highlights": "Reviewer traced the require_regular_file admission truth-table by hand (regular file / symlink-to-file / symlink-to-dir / dangling symlink / directory / fifo-socket) and verified the DirEntry::file_type no-follow vs fs::metadata follow split, including TOCTOU reasoning (d_type from the readdir buffer reflects enumeration-time truth; DT_UNKNOWN fallback surfaces as environmental Io; symlink target deleted mid-race IS the dangling case). Placement verified: exactly one fs::read_dir in the crate, both listing callers route through list_json_ids with no bypass; tmp carve-out untouched. Pre-change failure of BOTH regression tests traced and empirically grounded on this darwin host (read_to_string on a directory yields IsADirectory Io -> pre-fix Corrupt match fails; dangling symlink yields NotFound -> pre-fix silent drop returns Ok). No false closure: valid-symlink target planted outside the listed dir. cfg(unix) scope verified compile-portable. Independence verified: the diff references none of main.rs's new symbols. Reviewer independently ran cargo test (46/46) and clippy (clean).",
+      "findings": [
+        "[minor] lib.rs:1594 - symlink loop (ELOOP) falls into the Err(_) arm as Io('resolve symlink target'); arguably a ledger-shape violation (Corrupt); fail-closed either way - follow-up card",
+        "[nit] lib.rs:1588 - symlink entry deleted between readdir and metadata misclassifies as 'dangling symlink' Corrupt; fail-closed, unreachable deterministically",
+        "[nit] lib.rs:1548 - pre-existing: atomic-tmp-shaped names skip file_type checks, so a directory named x.json.tmp.123 is silently tolerated - harvest candidate",
+        "[nit] contract.rs:1005 - valid-symlink leg skips the 'listing restored' teardown; throwaway scratch dirs, cosmetic only"
+      ],
+      "cross_lane_independence_note": "Reviewer explicitly excluded the sibling lane's uncommitted src/main.rs edits and confirmed the reviewed diff has zero dependence on them - review-level corroboration of the mechanical disjointness verdict."
+    },
+    "rework": { "rework_count_per_card": 0, "note": "Both lanes approved round-1; the two minors (plus adjacent nits) were harvested as durable backlog cards MPV2-0000.C010/C011 (see learning_harvest), not churned as extra review rounds on APPROVE verdicts." }
+  },
+  "stage_merge": {
+    "merge_commit": "20c5bae10ce526c9cf256c71271cf2b944a2964e",
+    "parent_commit": "a4d86b0d466fb4b8c27a70f77473c475cc024824",
+    "role": "parallel-lane union (post-run, post-APPROVE): union of both lanes' disjoint diffs in one coordinator commit (3 files, +244/-23)",
+    "branch": "ooo/orch_edff8596cfa2 (isolated worktree lane branch; enters the governance pipeline as a protected PR against dev with the single required oya-ci-required context per ADR-0515)",
+    "committer": "coordinator only (workers/reviewers committed nothing; SSH-signed commit)"
+  },
+  "stage_completion": {
+    "completed_at_epoch_s": 1783011667,
+    "completion_evidence_refs_per_card": [
+      "git:20c5bae10",
+      "evidence/goals/fabric-loop-parallel-lanes-c006-c008-proof-run-20260702.json#stage_disjointness",
+      "evidence/goals/fabric-loop-parallel-lanes-c006-c008-proof-run-20260702.json#stage_review"
+    ],
+    "status_after_complete": "claimed-done-unverified for both cards (evidence discipline: completion never lands as done)",
+    "verification_step": "post-merge rerun at the promoted commit 20c5bae10 with a clean crate tree (git status porcelain empty for the crate): cargo test -p oya-fabric-loop-state-app 46/46 green (epochs 1783011667-1783011691), then verify-done attached evidence/goals/fabric-loop-parallel-lanes-c006-c008-proof-run-20260702.json#stage_post_merge_product_completion_packet to each card",
+    "status_after_verify": "done-verified for both cards (4 evidence refs each)",
+    "claims_released": true
+  },
+  "stage_post_merge_product_completion_packet": {
+    "promoted_commit": "20c5bae10ce526c9cf256c71271cf2b944a2964e",
+    "promoted_commit_gate_status": "All locally runnable oya-ci-required constituents green at the promoted commit (crate suite 46/46, clippy/fmt clean); the single required oya-ci-required context itself binds on the protected PR against dev that carries this lane branch.",
+    "rollout_verification": "No runtime service rollout: both increments harden the local bridge bin/adapters behind the ports. Rollout check = post-merge live-state snapshot through the ports at the promoted commit: 11 cards listed by the file_type-aware strict lister (nothing in the live stores refused), C006 and C008 done-verified with 4 evidence refs each, flow-metrics pass 4 readable, cutover target reported by every port (oya-cloud-ci-loop-state-service).",
+    "rollback_note": "Single-commit revert of 20c5bae10 restores the prior CLI error surface and the file_type-blind lister; no data migration in either direction (both changes are read/parse-path-only; stored bytes untouched). Blast radius: the bridge bin's argument-parse layer and the two listing callers behind the ports; no consumer outside the crate reads the stores directly.",
+    "observability_check": "Failure modes now observable instead of silent or misleading: operator CLI misuse prints a distinct 'usage error: ' prefix (never masquerading as plane corruption, never fabricating a fake lane id); directory/dangling-symlink ledger shapes surface as Corrupt naming directory and entry instead of degrading to EISDIR Io or a silent drop; constant-work flow-metrics recording continued (pass 4 recorded with the same write load as an idle pass).",
+    "user_story_evidence": "Operator story exercised end-to-end via the bridge bin itself in this run (snapshot -> claim x2 -> check-disjoint pre-flight -> start x2 -> heartbeat x2 -> block(needs-review) x2 -> start x2 -> check-disjoint post-run -> complete x2 -> verify-done x2 -> record-pass -> define-card x2 -> snapshot); transcript epochs recorded in this packet. No browser surface exists for this increment (CLI-retirement doctrine: feedback-only bridge).",
+    "release_governance_impact": "No live Release Please repo config/workflow exists for this repo; release-note impact none. No governance surface changes needed: both increments implement directions already recorded as harvested cards on the coordination plane (C006 from the C004 review, C008 from the C005 review).",
+    "agent_observation_harvest_outcome": "2 observation clusters harvested into durable backlog cards MPV2-0000.C010/C011 on the coordination plane (see learning_harvest); no observation left in chat; no duplicates against the existing C002/C007/C009 backlog. The run also re-VALIDATED the C002 harvest: all four detached-subagent chat artifacts were lost again and the durable-file contract (verdict files + git working tree as ground truth) carried the run without redispatch."
+  },
+  "flow_metrics": {
+    "pass_seq": 4,
+    "recorded_at_epoch_s": 1783011703,
+    "ledger_file": "plan/fabric-loop/flow-metrics/passes/pass-00000000000000000004.json",
+    "cards": [
+      { "card_id": "MPV2-0000.C006", "lane_id": "lane-fabric-e", "cycle_time_s": 713, "review_latency_s": 296, "rework_count": 0 },
+      { "card_id": "MPV2-0000.C008", "lane_id": "lane-fabric-f", "cycle_time_s": 710, "review_latency_s": 260, "rework_count": 0 }
+    ],
+    "derivation": "Derived mechanically by CardFlowMetrics::derive from the raw per-lane timelines (claimed 1783010954/1783010957, review requested 1783011288, first verdicts 1783011584/1783011548, completed 1783011667, 1 round each) via FlowMetricsService::record_next_pass through FlowMetricsPort onto the durable coordination plane."
+  },
+  "learning_harvest": {
+    "harvested_observation_cards": [
+      {
+        "card_id": "MPV2-0000.C010",
+        "source": "C006 round-1 review minor+nit (main.rs:488-492, 438-455): malformed lane/card ids inside --surface specs still surface as raw PlaneError::InvalidSurface via CliError::Plane; --kind/--phase usage-string enumerations are hand-synced with lib.rs and can drift silently",
+        "routing": "code+test patch: reroute --surface id-contract violations to the usage class; regression guards = per-shape usage-error tests plus an enumeration round-trip test pinning the usage strings to the lib parsers"
+      },
+      {
+        "card_id": "MPV2-0000.C011",
+        "source": "C008 round-1 review minor+nit (lib.rs:1594, 1548): symlink loop (ELOOP) classifies as Io instead of Corrupt (shape-violation doctrine wobble); atomic-tmp-shaped names skip file_type checks so a directory named x.json.tmp.123 is silently tolerated",
+        "routing": "code+test patch: extend the fail-closed file_type doctrine to the loop and tmp-carve-out shapes; regression guards = planted symlink-loop and tmp-shaped-directory contract tests"
+      }
+    ],
+    "recurrence_observation": "Detached-subagent chat artifacts were lossy for all four lanes of this run (both workers and both reviewers: 'output artifact unavailable') - a further recurrence of the MPV2-0000.C002 failure class. The durable-file contract (verdict files on the operational plane + the git working tree as ground truth) fully absorbed the loss with zero redispatch; no load-bearing information lived in chat. Reinforces C002's routing (mechanical guard that a verdict file exists per review round) rather than opening a duplicate card.",
+    "flow_metric_learnings": "Pass 4 (2 parallel cards) vs pass 3 (1 card): 713/710s cycle for TWO fully-overlapped cards versus 515s for one — ~1.38x wall-clock for 2x throughput, with both claims (1783010954/57) and both completions (1783011667) coinciding. Review latency 296/260s with two CONCURRENT independent reviews versus 231s for one — the second review lane cost ~13-28% latency, not 2x, confirming reviewer parallelism scales. rework_count 0 on both (round-1 APPROVEs; findings harvested as cards C010/C011 instead of churned). The C002 durable-verdict-file learning held for the third consecutive pass under artifact loss."
+  },
+  "seed_traceability": {
+    "sub_ac": "3.3: run at least two mechanically disjoint parallel Claude-team lanes to completion with coordinator-only commits, proving zero collisions under the mechanical disjointness detector and recording the detector's verdicts as evidence",
+    "exit_condition": "e2e_loop_proof (collision-free parallel-lanes half): this record is the recorded evidence of 2 collision-free parallel lanes on branch ooo/orch_edff8596cfa2, driven on REAL harvested backlog work produced by the loop's own improvement layer",
+    "constraints_honored": [
+      "parallel safety mechanical: the path/ownership-overlap detector (not judgment) decided concurrency, pre-flight and post-run, both verdicts recorded verbatim with exit codes",
+      "max concurrent lanes <= independent reviewer capacity (2 <= 2), enforced fail-closed by the detector",
+      "coordinator-only commits (workers/reviewers committed nothing; the single product commit is coordinator-made and SSH-signed)",
+      "claim-time founder-ratification dispatch gate ran and granted for both claims (fail-closed against specs/masterplan.json)",
+      "owned-Rust detector and drive path (no shell/python loop-state manipulation; no new CLI authority surface - check-disjoint rides the retirement-marked bridge bin)",
+      "evidence-gated statuses (claimed-done-unverified before verification; done-verified only with post-merge verification evidence)",
+      "flow metrics recorded on the dispatch pass via FlowMetricsPort (pass 4, strictly monotonic ledger; closed-loop improvement layer)",
+      "observations harvested into durable backlog cards C010/C011, never left in chat",
+      "single work-item ID space + founder-ratified sequencing digest untouched (cards are parent-prefix-scoped Definition/Seed elaborations of MPV2-0000)"
+    ]
+  }
+}

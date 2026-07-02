@@ -1,0 +1,8 @@
+{
+  "card_id": "MPV2-0000.C010",
+  "title": "Harvested (C006 round-1 review minor+nit): malformed lane/card ids inside --surface specs still surface as raw PlaneError::InvalidSurface via CliError::Plane instead of usage class; and the --kind/--phase usage-string enumerations are hand-synced with lib.rs (drift risk) - reroute plus enumeration round-trip regression test",
+  "program_id": "P-FABRIC",
+  "depends_on": [],
+  "status": "defined",
+  "evidence_refs": []
+}
