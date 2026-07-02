@@ -318,7 +318,7 @@ impl PdpCircuitState {
 
 /// Runtime wrapper configuration: an elapsed-time budget, a runtime-fault
 /// streak that opens the fail-closed circuit, and a bounded cooldown after
-/// which the guard permits one caller-owned probe.
+/// which the guard closes again until the next runtime fault re-opens it.
 ///
 /// The budget is deliberately not described as a hard cancellation deadline.
 /// [`PdpRuntimeGuard`] invokes the wrapped synchronous PDP on the caller's
