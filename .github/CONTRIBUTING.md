@@ -47,16 +47,18 @@ From `docs/AGENTS.md` §Pre-flight checklist — complete all items. Highlights:
   doc map in `docs/AGENTS.md`) and cite it in `## Traceability`.
 - **Data Use Boundary**: every new field on a kernel struct carries a
   `data_class` annotation.
-- **License posture**: new dependencies must clear `cargo deny check`.
-  AGPL / GPL / SSPL / BUSL / RSAL are not permitted in product code.
+- **License posture**: license policy is enforced by the Buck2/cloud-ci
+  supply-chain and license-policy lanes; `cargo deny check` is local advisory
+  feedback. AGPL / GPL / SSPL / BUSL / RSAL are not permitted in product code.
 - **Search `MISTAKES-LEDGER`** for the failure-mode class and cite the
   `MFL-NNNN` row (or a "no prior row" note).
 
 ## Hard rules
 
-- **Never hand-edit `*.generated.json`.** They are materialized by
-  `infra/ci/materialize-cloud-ci-generated-faces.sh`; the diff-policy gate
-  fails closed on hand edits.
+- **Never hand-edit `*.generated.json`.** They are materialized by the
+  freshness producer (`buck2 run
+  //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin`);
+  the diff-policy gate fails closed on hand edits.
 - **Never edit legacy retired paths** or reintroduce retired tooling (the
   `oya git` wrapper and `oya vcs` ratchet are retired per ADR-0363; CLI
   governance is retired per ADR-0515).
@@ -79,8 +81,10 @@ buck2 build <targeted build targets>
 #   cargo deny check
 ```
 
-Paste actual output excerpts with `PASS` / `FAIL` tokens — hand-waves fail the
-`traceability-validator` gate.
+Paste actual output excerpts with `PASS` / `FAIL` / `N/A` tokens. The
+admission gate (`pr-traceability-admission`) enforces section and field
+presence; substantive evidence quality is a review obligation — hand-waved
+excerpts are a review offense even when the gate passes.
 
 ## PR shape
 
@@ -96,9 +100,10 @@ five author-owned H2 sections:
 4. `## Traceability` — catalog records, cross-axis contracts, ADRs cited
 5. `## Evidence` — audit-chain emission ID and related evidence
 
-Do **not** add the `## Code Review` section yourself — the lead reviewer agent
-adds it at merge time; adding it as a worker is a
-`guard-pr-merge-review.mjs` violation.
+The `## Code Review` section is reviewer evidence: the prefilled template
+carries a `PENDING` placeholder that the reviewer/evidence producer replaces
+before merge. Never author an `APPROVE` verdict for your own PR
+(`guard-pr-merge-review.mjs` refuses worker-authored verdicts).
 
 ## Reporting issues
 
