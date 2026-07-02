@@ -488,6 +488,20 @@ impl GatePhaseOutcome {
         }
     }
 }
+/// Render a live long-step telemetry line for CI logs.
+///
+/// The line is intentionally plain text instead of JSON so GitHub Actions displays it while the
+/// child command is still running. Machine-readable end-state evidence remains in the uploaded
+/// operator artifact.
+pub fn long_step_telemetry_line(
+    component: &str,
+    phase: &str,
+    status: &str,
+    elapsed_seconds: u64,
+    detail: &str,
+) -> String {
+    format!("{component}: phase={phase} status={status} elapsed_seconds={elapsed_seconds} {detail}")
+}
 
 /// Machine-readable operator artifact for the affected-set tier decision.
 ///
@@ -1188,5 +1202,21 @@ mod tests {
             artifact["long_running_gate_phases"][2]["status"],
             "pending-after-decision"
         );
+    }
+
+    #[test]
+    fn long_step_telemetry_line_records_phase_and_elapsed_seconds() {
+        let line = long_step_telemetry_line(
+            "affected-set",
+            "binding-build-test",
+            "running",
+            42,
+            "command=buck2 test @targets",
+        );
+
+        assert!(line.contains("affected-set: phase=binding-build-test"));
+        assert!(line.contains("status=running"));
+        assert!(line.contains("elapsed_seconds=42"));
+        assert!(line.contains("command=buck2 test @targets"));
     }
 }

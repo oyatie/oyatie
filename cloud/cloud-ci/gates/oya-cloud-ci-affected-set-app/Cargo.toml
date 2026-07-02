@@ -33,6 +33,10 @@ path = "src/main.rs"
 name = "oya-cloud-ci-build-health"
 path = "src/bin/oya-cloud-ci-build-health.rs"
 
+[[bin]]
+name = "oya-cloud-ci-step-telemetry"
+path = "src/bin/oya-cloud-ci-step-telemetry.rs"
+
 [dependencies]
 serde_json = { workspace = true }
 
