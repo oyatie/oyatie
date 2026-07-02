@@ -1089,6 +1089,9 @@ version = "0.1.0"
 dependencies = [
  "network-residency",
  "oya-data-boundary-kernel",
+ "serde",
+ "serde_yaml",
+ "walkdir",
 ]
 
 [[package]]
