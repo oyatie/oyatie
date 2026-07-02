@@ -43,6 +43,7 @@ mod architecture_plane_gates;
 mod aspirational_enforcement_gate;
 mod banned_primitives_gate;
 mod canonical_base_neutrality_gate;
+mod capacity_model_manifest_gate;
 mod catalog_contract_gates;
 mod catalog_registry;
 mod cedar_fragment_coverage_gate;
@@ -304,8 +305,9 @@ pub(crate) use scalar_parse::{
     parse_u64_field, required_field, required_scalar, scalar_value,
 };
 pub(crate) use supply_chain_gates::{
-    parse_release_evidence_pack_validate_args, parse_release_supply_chain_validate_args,
-    parse_supply_chain_validate_args, release_supply_chain_phase_name,
+    parse_image_promotion_validate_args, parse_release_evidence_pack_validate_args,
+    parse_release_supply_chain_validate_args, parse_supply_chain_validate_args,
+    release_supply_chain_phase_name, validate_image_promotion_gate,
     validate_release_evidence_pack_gate, validate_release_supply_chain_gate,
     validate_supply_chain_gate,
 };
@@ -404,6 +406,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate api-semver [--contracts-dir <contracts>]"
         + "\n       oya gate validate supply-chain [--registry <registry/catalog>] [--deny <deny.toml>] [--check-script <scripts/check.sh>] [--adr0039-script <scripts/supply-chain-adr0039.sh>] [--adr0039-rust <crates/oya-dev-cli/src/commands/supply_chain.rs>] [--workflows-dir <.github/workflows>] [--release-images <registry/release/images.yaml>] [--branch-protection <.github/branch-protection.yaml>] [--admission-policy <infra/kyverno/policies/require-signed-images.yaml>] [--require-adr0039-evidence]"
         + "\n       oya gate validate release-supply-chain [--release-images <registry/release/images.yaml>] [--evidence-dir <registry/release/supply-chain>] [--phase <pre-release|release>]"
+        + "\n       oya gate validate image-promotion [--promotion-dir <registry/release/image-promotions>]"
         + "\n       oya gate validate release-evidence-pack [--manifest <registry/release/evidence-packs.tsv>] [--compliance <docs/machine-readable/compliance.json>] [--require-records]"
         + "\n       oya gate validate typescript-workspace --lane <typecheck|test> [--repo-root <.>]"
         + "\n       oya gate validate pr-traceability [--pr-title <title>] [--pr-body <docs/templates/pull-request-template.md>] [--require-code-review|--forbid-code-review]"
@@ -445,7 +448,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate cloud-iac-gitops-evidence [--repo-root <.>] [--manifest <microservices/cloud-iac/manifest.json>] [--templates-root <microservices/cloud-iac/iac>]"
         + "\n       oya gate validate cloud-iac-helm-chart-signed-image-wiring [--repo-root <.>] [--manifest <cloud/cloud-iac/manifest.json>] [--chart-root <cloud/cloud-iac/iac/k8s/helm>]"
         + "\n       oya gate validate cloud-iac-kubewarden-admission-policy [--repo-root <.>] [--manifest <cloud/cloud-iac/manifest.json>] [--kubewarden-root <cloud/cloud-iac/iac/k8s/kubewarden>] [--kyverno-policy <infra/kyverno/policies/require-signed-images.yaml>]"
-        + "\n       oya gate validate cloud-iac-cell-topology [--repo-root <.>] [--manifest <microservices/cloud-iac/manifest.json>] [--topology <microservices/cloud-iac/cell-topology/foundation.json>] [--catalog <microservices/cloud-iac/tofu/modules/catalog.json>]"
+        + "\n       oya gate validate cloud-iac-cell-topology [--repo-root <.>] [--manifest <cloud/cloud-iac/manifest.json>] [--topology <cloud/cloud-iac/cell-topology/foundation.json>] [--catalog <cloud/cloud-iac/tofu/modules/catalog.json>]"
         + "\n       oya gate validate cloud-iac-opentofu-validation [--repo-root <.>] [--manifest <microservices/cloud-iac/manifest.json>] [--catalog <microservices/cloud-iac/tofu/modules/catalog.json>] [--modules-root <microservices/cloud-iac/tofu/modules>] [--tofu-bin <tofu>] [--keep-temp]"
         + "\n       oya gate validate cloud-iac-module-provider-requirements [--repo-root <.>] [--manifest <microservices/cloud-iac/manifest.json>] [--catalog <microservices/cloud-iac/tofu/modules/catalog.json>] [--readiness <microservices/cloud-iac/tofu/modules/provider-readiness.json>]"
         + "\n       oya gate validate cloud-iac-module-provenance [--repo-root <.>] [--manifest <microservices/cloud-iac/manifest.json>] [--catalog <microservices/cloud-iac/tofu/modules/catalog.json>] [--provenance <microservices/cloud-iac/tofu/modules/provenance.json>]"
@@ -469,6 +472,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate runbook-index-resolves [--docs-dir <docs>]"
         + "\n       oya gate validate runbook-freshness [--runbooks-dir <docs/runbooks>] [--today <YYYY-MM-DD>]"
         + "\n       oya gate validate slo-coverage [--registry <registry/catalog>]"
+        + "\n       oya gate validate capacity-model-manifest [--microservices-root <cloud|oya|microservices>]... [--manifest <path>]... [--require-tenant-class-deltas]"
         + "\n       oya gate validate architecture-boundaries [--repo-root <.>] [--registry <registry/catalog>] [--self-test]"
         + "\n       oya gate validate master-plan-completion [--master-plan <specs/masterplan.json>] [--evidence-dir <evidence/foundation>]..."
         + "\n       oya gate validate board-masterplan-consistency [--master-plan <docs/machine-readable/masterplan.generated.json>] [--board-snapshot <docs/machine-readable/board-sync.generated.json>]"

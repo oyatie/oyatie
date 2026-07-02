@@ -397,6 +397,30 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("image-promotion")) => {
+            match crate::parse_image_promotion_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_image_promotion_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "image promotion validation passed: {} artifacts, {} promotion records, {} kubewarden verifier records, {} kyverno verifier records",
+                            report.artifacts,
+                            report.promotion_records,
+                            report.kubewarden_verifier_records,
+                            report.kyverno_verifier_records
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("image promotion validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("release-supply-chain")) => {
             match crate::parse_release_supply_chain_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_release_supply_chain_gate(args) {
@@ -781,7 +805,11 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                             "workspace-topology scan: {} members scanned, {} findings ({})",
                             report.members_scanned,
                             count,
-                            if report.enforced { "enforce" } else { "report-only" }
+                            if report.enforced {
+                                "enforce"
+                            } else {
+                                "report-only"
+                            }
                         );
                         if report.enforced && count > 0 {
                             eprintln!(
@@ -2298,6 +2326,10 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         // ADR-0145 Invariant 3 — ontology projection coverage (strict).
         (Some("validate"), Some("ontology-projection-coverage")) => {
             crate::adr_0145_gates::run_ontology_projection_coverage(args.collect())
+        }
+        // ADR-0340 / CAPACITY-001 — per-µservice capacity_model manifest contract.
+        (Some("validate"), Some("capacity-model-manifest")) => {
+            crate::capacity_model_manifest_gate::run_capacity_model_manifest(args.collect(), usage)
         }
         // ADR-0145 Invariant 1 — audit-chain seal coverage (DEFERRED/advisory).
         (Some("validate"), Some("audit-chain-seal-coverage")) => {

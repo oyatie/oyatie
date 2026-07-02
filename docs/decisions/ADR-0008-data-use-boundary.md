@@ -209,6 +209,7 @@ DSR (export, delete, restrict) or consent withdrawal triggers a 30-day cascade a
 - GDPR Art 6, 7, 9, 17, 22, 25
 - HIPAA Privacy Rule, Security Rule
 - PCI-DSS v4.0
+- PCI DSS source-version planning projection: `specs/pci-dss-level-1-readiness-plan.json` (stable `PCI-DSS-L1-v4` pack id with PCI DSS v4.0.1 metadata only; no readiness, control-completeness, ROC/AOC/QSA/ASV, evidence-acceptance, or tenant CDE activation claim)
 - `docs/PRIVACY-PROGRAM.md` §2 (full Data Use Boundary text)
 - `docs/COMPLIANCE-MATRIX.md` §3.1, §3.2, §3.3, §3.4
 - `docs/CONTRADICTION-LEDGER.md` LEDG-001, LEDG-003, LEDG-005, LEDG-006
