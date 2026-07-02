@@ -146,6 +146,8 @@ It directly amends ADR-0212 (buildability doctrine) by adding the canonical `cap
 
 Enforcement transitions from `advisory-until-capacity-model-declaration-lands` to `BLOCKER` per the lane sequence in §E below: at landing of the corpus-wide per-µservice capacity_model declaration sub-wave (queued as `15U-Capacity-Model-declaration` in `/specs/master-plan-sequencing.json#realignment_wave_sequence`), the lanes promote to BLOCKER for new authoring; existing manifests without `capacity_model` blocks remain compilable until their declaration bucket lands under ADR-0328 canonical-build phase order.
 
+CAPACITY-001 adds only local bridge/advisory validation evidence for this Proposed ADR. The bridge implementation and regression test live at `marketplace/facade/dev-cli/src/capacity_model_manifest_gate.rs` and `marketplace/facade/dev-cli/tests/capacity_model_gate_cli.rs`; they validate the declared manifest shape without asserting autoscaler/runtime, cloud deployment, production-ready, hyperscaler-grade, or measured-SLO readiness.
+
 The decision does not delete any existing manifest field. The decision does not change pod_runtime_tier semantics from ADR-0338. The decision does not change the tenant_class composable-billing-components shape from ADR-0330. The decision does not change cellular tier numbering from ADR-0248. The decision does not change the compliance pack model from ADR-0251. The decision does not change which µservice owns which capability; it adds a single declarative surface that every µservice owner declares once.
 
 ## Date
