@@ -1,7 +1,7 @@
 ---
 doc_class: MicroserviceREADME
 microservice: crm
-status: Wave-15A-Rewritten
+status: Preview-Inventory-Honest-Claims
 date: 2026-05-21
 owner_team: axis-crm + axis-front-office-revenue
 parity_set: [Salesforce Sales Cloud, HubSpot CRM, Microsoft Dynamics 365 Sales]
@@ -24,24 +24,37 @@ related_adrs:
   - ADR-0330
   - ADR-0331
 supersedes:
-  - microservices/crm/README.md@2026-05-20 (template-stamped, 169 evidence-row repetitions)
-companion_docs:
-  - microservices/crm/PRD.md
-  - microservices/crm/ARCHITECTURE.md
-  - microservices/crm/manifest.json
-  - microservices/crm/competitor-parity-matrix.md
-  - microservices/crm/feature-parity-matrix-2026-05-20.md
-  - microservices/crm/coherence-audit-2026-05-20.md
-  - microservices/crm/REMEDIATION-NOTES-2026-05-21.md
+  - microservices/crm/README.md@2026-05-20 (historical/provenance only; old microservices/crm paths are not current source authority)
+source_authority:
+  - specs/microservices/crm.json (current CRM PRD authority; preview metadata-only with explicit non-goals)
+claim_boundary:
+  - Runtime-looking sections below are inventory/planning/provenance only unless later source-authorized implementation evidence exists.
+  - This README does not claim GA, production readiness, cloud deployment, runtime audit-chain emission, CDP/CPQ/loyalty-wallet runtime, or hyperscaler maturity.
+companion_inventory:
+  - oya/crm/manifest.json
+  - oya/crm/contracts/openapi-v1.yaml
+  - oya/crm/contracts/asyncapi-v1.yaml
+  - oya/crm/contracts/crm-v1.proto
+  - oya/crm/policy/*.cedar
+  - oya/crm/slos/*.openslo.yaml
+  - oya/crm/catalog/*.yaml
+  - oya/crm/runbooks/*.md
+absent_legacy_docs:
+  - oya/crm/PRD.md
+  - oya/crm/ARCHITECTURE.md
+  - oya/crm/competitor-parity-matrix.md
+  - oya/crm/feature-parity-matrix-2026-05-20.md
+  - oya/crm/coherence-audit-2026-05-20.md
+  - oya/crm/REMEDIATION-NOTES-2026-05-21.md
 ---
 
 # Customer Relationship Management
 
-`crm` is Oyatie's Phase-4A.3 Big-8 customer-revenue microservice. It is the operational substrate for sales, marketing, service, partner, and loyalty motion across every tenant on the platform. The primary industry anchor is Salesforce Sales Cloud; HubSpot CRM (Sales Hub + Service Hub) is the second anchor; Microsoft Dynamics 365 Sales is the third. ADR-0328 §D-2.13-15 names the Salesforce family as the canonical CRM anchor — this README, the PRD, the ARCHITECTURE document, the competitor parity matrix, and every implementation plan in this microservice tree obey that ordering.
+`crm` is Oyatie's preview CRM product-surface inventory. Current source authority is `specs/microservices/crm.json`, whose status is `preview` and whose scope is metadata-only with explicit non-goals. The detailed vendor-parity text below is retained as planning/provenance inventory; it is not a GA, production-readiness, live runtime, cloud-deployment, runtime audit-chain, CDP, CPQ, loyalty-wallet, or hyperscaler-maturity claim.
 
-## 1. What this microservice does
+## 1. What this inventory covers
 
-`crm` owns the full lifecycle of a tenant's revenue-bearing customer relationships. Concretely, that means:
+The current source-authorized scope is the metadata foundation in `specs/microservices/crm.json`: account registration, opportunity qualification, quote preparation, service-case opening, marketing-campaign planning, and loyalty activity recording metadata. The bullets below are target/planning inventory for future CRM surfaces and do not claim live runtime ownership in this checkout:
 
 1. The Lead surface: capturing prospects from web forms, partner referrals, marketplace inbound, and integrator-loaded data; running tenant-configurable scoring; routing to the correct rep, queue, or territory; converting qualified Leads into Account + Contact + Opportunity triples.
 2. The Account + Contact surface: a tenant-scoped Account 360 view, hierarchical Account topology with rollup, Account Teams with named-role membership, Contact records with role-on-opportunity semantics, and a Person Account dual-semantic for B2C-style flows.
@@ -56,11 +69,11 @@ companion_docs:
 11. The Mobile CRM surface: Swift (iOS) + Kotlin (Android) native mobile applications per the os-support-matrix doctrine; backend offers offline-friendly delta APIs.
 12. The Migration surface: high-fidelity ingestion playbooks for Salesforce Sales Cloud, HubSpot CRM, and Microsoft Dynamics 365 Sales — explicitly field-mapped, semantics-preserving, dry-runnable, replayable, and reversible.
 
-This microservice does NOT own: ERP master data (`erp`), tenant identity (`cloud-iam`), payment rails (`payments`), workflow runtime (`workflow-engine`), ontology storage (`ontology`), marketplace listings or settlement (`marketplace`), marketing automation journeys (`marketing-automation`), contract lifecycle (`contract-lifecycle-management`), call recording transcription (`recordings`), live chat / voice channels (`contact-center`), email rendering or delivery (`mail`), or knowledge base storage (`community`). Each handoff is named explicitly in the integration topology in ARCHITECTURE.md §D.
+Current non-claims from `specs/microservices/crm.json`: no live sales-force automation runtime, CPQ pricing engine, customer data platform, service-routing engine, omnichannel messaging system, loyalty wallet, reward settlement, marketing journey runtime, durable persistence, customer profile unification, order creation, ERP price synchronization, support knowledge-base integration, Workflow execution, runtime audit-chain emission, cloud deployment, or exhaustive vendor parity. Handoff names in this README are target boundaries only until source-authorized implementation evidence exists.
 
 ## 2. Why a CRM-shaped microservice exists at Oyatie
 
-The Big-8 priority decision in ADR-0328 §D-2 makes CRM the third in sequence after HR/Workday and ERP/SAP because revenue and service motion depend on workforce, account, product, inventory, contract, financial, and fulfillment data. CRM ships immediately after ERP and immediately before ITSM (Phase 4A.4 / ServiceNow) because case management interlocks with both. ADR-0328 §D-20.111-115 declares every CRM constraint violation P0 (not P1) because CRM is the user-journey on-ramp for every revenue, service, and marketing flow.
+The Big-8 priority decision in ADR-0328 §D-2 places CRM third in the planning sequence after HR/Workday and ERP/SAP because revenue and service motion depend on workforce, account, product, inventory, contract, financial, and fulfillment data. This README preserves that sequencing rationale as planning inventory; it does not claim that a CRM runtime has shipped. ADR-0328 §D-20.111-115 declares every CRM constraint violation P0 (not P1) because CRM is the user-journey on-ramp for every revenue, service, and marketing flow.
 
 The decision to own CRM as a microservice (rather than a product family of microservices) follows ADR-0132 (no-grouping policy) + ADR-0131 (per-microservice flat layout). A single `crm` µservice with first-class bounded contexts is preferred over multiple "crm-*" grouping microservices because Salesforce, HubSpot, and Dynamics all converge on a unified relationship-management surface and the substrate dependencies (workflow, ontology, audit-chain, marketplace, intelligence) are identical across the CRM aggregates. Splitting into `crm-sales` / `crm-service` / `crm-marketing` would create three duplicate manifest files, three duplicate Cedar policy bundles, three duplicate OpenAPI surfaces, and zero capability differentiation; the resulting deduplication burden is exactly the suite-bloat anti-pattern that ADR-0132 retires.
 
@@ -70,7 +83,7 @@ A. Tenant-as-first-class-primitive. Every row, every metric, every event, every 
 
 B. Cedar-as-universal-gate. Every operation flows through a Cedar default-deny evaluation per ADR-0243. Salesforce uses Sharing Rules + Field-Level Security + Profile + Permission Sets + Permission Set Groups + Object-Permissions + Apex Sharing — a layered model with non-trivial precedence rules. Dynamics uses Field-Level + Record-Level + Position + Role + Team security. HubSpot uses Permission Sets + Object Permissions. Cedar unifies these into one policy DSL with deterministic evaluation, replayable decisions, and a single audit format.
 
-C. Audit-chain-everywhere. Every state transition emits a tamper-evident audit-chain event per ADR-0263 observability emission contract. Salesforce Field Audit Trail is a licensed add-on; HubSpot Property History is per-property; Dynamics Audit Logs are configurable per entity. Oyatie's audit emission is unconditional, default-on, and free.
+C. Audit-chain target. The inventory records the desired tamper-evident audit-chain posture per ADR-0263, while `specs/microservices/crm.json` remains explicit that there is no runtime audit-chain emission in the current preview scope.
 
 D. HTTP/3 + QUIC + ECH + PQC default transport per ADR-0253. The OpenAPI 3.2.0 surface advertises QUIC ports, advertises Encrypted Client Hello, and offers X25519MLKEM768 hybrid post-quantum handshakes when the peer supports them. Salesforce / HubSpot / Dynamics default to HTTP/1.1 or HTTP/2; HTTP/3 is opt-in at best.
 
@@ -78,7 +91,7 @@ E. Substrate-vs-product layering per ADR-0245. `crm` is a product microservice t
 
 ## 3. Bounded contexts
 
-After Wave-15A rewrite, the bounded-context set expands from the prior six-aggregate scaffold to a hyperscaler-grade thirteen-aggregate set. The expansion adds Lead, Contact, Sales Cadence, CPQ Quote (as a richer Quote surface), Forecast, Customer 360, and Partner; the previous six (Account Master, Opportunity, Quote, Service Case, Campaign, Loyalty Ledger) remain. The thirteen bounded contexts are:
+After Wave-15A rewrite, the inventory expands from the prior six-aggregate scaffold to a vendor-parity target set. The expansion adds Lead, Contact, Sales Cadence, CPQ Quote (as a richer Quote surface), Forecast, Customer 360, and Partner; the previous six (Account Master, Opportunity, Quote, Service Case, Campaign, Loyalty Ledger) remain. These bounded contexts are target inventory, not evidence of live CDP/CPQ/loyalty-wallet runtime:
 
 - `lead` — prospect capture, scoring, qualification, routing, and conversion. Aggregate root: `lead_document`. Source-system provenance is mandatory (web-to-lead form, marketplace inbound, integrator import, partner referral, manual entry). Conversion creates Account + Contact + Opportunity in a single saga.
 - `contact` — person record with role-on-opportunity and role-on-case bindings. Aggregate root: `contact_document`. Supports Person Account dual-semantic (a B2C-style contact that also serves as an Account anchor).
@@ -99,7 +112,7 @@ Aggregates 1, 2, 5, 6, 7, 9, 13, 14 are new in Wave 15A; the remaining six are i
 
 ## 4. Industry-counterpart parity stance
 
-This microservice is shaped to deliver functional equivalence with the canonical surfaces of three counterparts. Wave 15A treats Salesforce as the primary anchor, HubSpot as the second anchor, and Microsoft Dynamics 365 Sales as the third anchor. The competitor parity matrix (`competitor-parity-matrix.md`) enumerates 50+ bespoke capability rows per counterpart with explicit differentiation.
+This section is retained as planning/provenance for counterpart research. No `oya/crm/competitor-parity-matrix.md` file is present in this checkout, so the paragraphs below are not source authority and do not override the preview non-goals in `specs/microservices/crm.json`.
 
 ### 4.1 Salesforce Sales Cloud (primary anchor)
 
@@ -114,7 +127,7 @@ Coverage target per Wave 15A: 85–95% of canonical Sales Cloud surfaces at func
 - Mobile (in scope): Native iOS via Swift, native Android via Kotlin, offline sync, voice notes, business-card scan.
 - Migration: `migration-playbooks/from-salesforce-sales-cloud.md` provides Person Account dual-semantic, multi-currency CurrencyIsoCode, Territory2 assignment, QueryAll soft-deleted records, formula field recomputation, and Shield encrypted field masking.
 
-Per `competitor-parity-matrix.md` §A, the rendered Salesforce parity stance is "primary anchor — drives every CRM surface decision; Wave 15A target 85–95% functional-equivalence."
+Prior Wave 15A prose recorded Salesforce as the primary planning anchor; this is a target stance only, not a shipped parity claim.
 
 Reference docs: <https://help.salesforce.com/s/articleView?id=sf.sales_core.htm>, <https://developer.salesforce.com/docs/atlas.en-us.api.meta/api/sforce_api_objects_list.htm>.
 
@@ -132,7 +145,7 @@ Marketing Hub surfaces (Workflows, Forms, Landing Pages, Email Marketing, Lists,
 
 Operations Hub surfaces: Custom Properties (covered by Oyatie's per-tenant Custom Objects + Custom Fields extensibility primitive), Data Sync (delegated to `data-sync`), HubDB (delegated to a tenant-specific dynamic table primitive on `ontology`), Programmable Automation (delegated to `workflow-engine`).
 
-Per `competitor-parity-matrix.md` §B, the rendered HubSpot parity stance is "second anchor — explicitly added in Wave 15A after prior absence; lifecycle-stage flow + multi-pipeline pattern supported at Contact + Opportunity level."
+Prior Wave 15A prose recorded HubSpot as the second planning anchor; this is a target stance only, not a shipped parity claim.
 
 Reference docs: <https://developers.hubspot.com/docs/api/overview>, <https://knowledge.hubspot.com/get-started>.
 
@@ -146,36 +159,36 @@ Coverage target per Wave 15A: 80–90% of canonical Dynamics 365 Sales surfaces.
 
 Dynamics-specific surfaces in scope: Quote → SalesOrder → Invoice chain (Quote covered by `cpq-quote`, SalesOrder + Invoice delegated to `cloud-billing-tax` + `payments`), Product Catalog (delegated to `marketplace` + `cloud-billing-tax`), Forecasts (covered by `forecast` bounded context), Goals (covered by `quota` field on Forecast Hierarchy, with per-rep quota assignment), Territory (covered by `account-master` Territory rollup), Predictive Scoring (delegated to `intelligence`), Conversation Intelligence (delegated to `intelligence`), LinkedIn Sales Navigator integration (delegated to `workplace-integration`), Microsoft Teams integration (delegated to `workplace-integration`), Power Automate flows (delegated to `workflow-engine`), Power BI Embedded (delegated to `analytics`), Customer Service Hub (Case covered, Knowledge / SLA / Entitlement covered + handoffs declared), Customer Insights / CDP (delegated to `customer-data-platform` µservice as it scales), Field Service (out of scope; expected separate µservice), Project Operations (out of scope; expected `project-operations` µservice), Marketing / Customer Insights Journeys (delegated to `marketing-automation`), Customer Voice (delegated to `forms`), Mobile (in scope; native iOS + Android per Wave 15A mobile spec).
 
-The Wave 15A rewrite explicitly drops the legacy "Customer Engagement" suffix in favour of the current "Dynamics 365 Sales" product name per Microsoft's 2020 rebrand. The migration playbook filename `migration-playbooks/from-microsoft-dynamics-365-ce.md` is scheduled for slug rename in IP-RENAME-001 (logged in REMEDIATION-NOTES-2026-05-21.md).
+The Wave 15A prose explicitly drops the legacy "Customer Engagement" suffix in favour of the current "Dynamics 365 Sales" product name per Microsoft's 2020 rebrand. The referenced slug-rename remediation log is not present in this checkout, so the note is historical/provenance only.
 
-Per `competitor-parity-matrix.md` §C, the rendered Dynamics parity stance is "third anchor — slug refresh from 'Customer Engagement' to 'Sales'; Sales Accelerator workspace surfaced via customer-360 read-model; BPF mapped to Cedar-gated stage machine."
+Prior Wave 15A prose recorded Dynamics as the third planning anchor; this is a target stance only, not a shipped parity claim.
 
 Reference docs: <https://learn.microsoft.com/en-us/dynamics365/sales/overview>, <https://learn.microsoft.com/en-us/power-apps/developer/data-platform/reference/entities>.
 
 ### 4.4 Counterparts NOT in primary scope
 
-SAP CRM / SAP Cloud for Customer / SAP Service Cloud (the prior Wave 3-G anchors) are reclassified as "operating-model reference" only in Wave 15A. The Big-8 CRM family per ADR-0328 §D-2 names Salesforce / HubSpot / Dynamics as the anchor set; SAP CRM is treated as historical context in the operating model section of the PRD but not as a parity-driving comparator. The Wave 3-G PRD §A.1 ("This PRD defines the SAP-parity product requirement surface for Customer Relationship Management") is corrected to "This PRD defines the Salesforce-anchor Big-8 product requirement surface for Customer Relationship Management" in the Wave 15A PRD rewrite.
+SAP CRM / SAP Cloud for Customer / SAP Service Cloud (the prior Wave 3-G anchors) are reclassified as "operating-model reference" only in Wave 15A. The Big-8 CRM family per ADR-0328 §D-2 names Salesforce / HubSpot / Dynamics as the anchor set; SAP CRM is treated as historical context. No `oya/crm/PRD.md` is present in this checkout, so old PRD-rewrite references are provenance only and do not supersede `specs/microservices/crm.json`.
 
-Oracle CX Sales, Oracle Fusion Service, Zoho CRM, SugarCRM, Pipedrive, Zendesk Sell, Freshsales, Insightly, Copper, ClickUp CRM, Monday Sales CRM, and Close CRM are recognized as adjacent products with niche-segment strength. Wave 15A defers comparator coverage of these to Wave 16+. They appear in the competitor parity matrix §F (extended counterpart reference) as informational entries, not driving anchors.
+Oracle CX Sales, Oracle Fusion Service, Zoho CRM, SugarCRM, Pipedrive, Zendesk Sell, Freshsales, Insightly, Copper, ClickUp CRM, Monday Sales CRM, and Close CRM are recognized as adjacent products with niche-segment strength. Wave 15A defers comparator coverage of these to Wave 16+; any older matrix references are informational provenance only because the matrix file is absent in this checkout.
 
 ## 5. Architectural primitives
 
-The crm microservice is built on ten architectural primitives that are uniform across every Oyatie product microservice:
+The crm inventory records ten target architectural primitives that are uniform across every Oyatie product microservice. These are target boundaries, not proof of live runtime, cloud deployment, or production readiness:
 
 1. **Tenant scope** (ADR-0244). Every request, every row, every event carries `tenant_id`, `principal_id`, and `tenant_class`. No cross-tenant read or write is possible without an explicit tenant-share grant, which itself flows through Cedar.
 2. **Cedar default-deny** (ADR-0243). Every operation flows through Cedar evaluation before domain logic. Default decision is `deny`; explicit `permit` rules grant access. Cedar policies are stored per aggregate under `policy/*.cedar`.
-3. **Audit-chain emission** (ADR-0263). Every state transition emits a tamper-evident audit-chain event. The seal-event catalog is enumerated in `manifest.json` under `audit_chain.seal_events`.
+3. **Audit-chain emission target** (ADR-0263). The desired seal-event catalog is enumerated in `manifest.json` under `audit_chain.seal_events`; the current preview source authority still has no runtime audit-chain emission claim.
 4. **Ontology projection**. Every aggregate projects to a tenant-scoped ontology view (delegated to `ontology` µservice). Projections are version-pinned per aggregate.
 5. **Workflow orchestration handoff** (ADR-0145). Cross-µservice state transitions go through `workflow-engine` via direct gRPC, not synchronous in-process calls. The three invariants (idempotency, audit-chain reference, Cedar gate) are preserved across the gRPC boundary.
 6. **Marketplace settlement** (ADR-0314). Tenant deals settle through the `marketplace` µservice; `crm` records `marketplace_settlement_ref` on the relevant aggregate but does not own settlement.
 7. **HLC time** (ADR-0252). Hybrid Logical Clock is the default time substrate for causality. TrueTime-compatible external evidence is accepted when provided by the source system; not required.
-8. **HTTP/3 + QUIC + ECH + PQC transport** (ADR-0253). Default edge transport for every external API. Fallback order: HTTP/3 → HTTP/2 → HTTP/1.1. ECH advertised. X25519MLKEM768 hybrid PQC offered.
-9. **K8s + Cloud Hypervisor** (ADR-0254). Default runtime is Kubernetes; high-isolation workers (FedRAMP-High, KR-CSAP-High, healthcare break-glass) use Cloud Hypervisor + Kata pods.
-10. **Per-pack compliance overlay** (ADR-0251). SOX-404, SOC-2, ISO-27001, GDPR, LGPD, KR-PIPA, jurisdictional-tax, FedRAMP-High, KR-CSAP, HIPAA, PCI-DSS, EU-AI-Act are activated per tenant + per cell as data, not as code branches.
+8. **HTTP/3 + QUIC + ECH + PQC transport target** (ADR-0253). Desired edge transport inventory for future APIs; no deployed transport surface is claimed here.
+9. **K8s + Cloud Hypervisor target** (ADR-0254). Desired runtime placement inventory for future implementation; no cloud deployment is claimed here.
+10. **Per-pack compliance overlay target** (ADR-0251). SOX-404, SOC-2, ISO-27001, GDPR, LGPD, KR-PIPA, jurisdictional-tax, FedRAMP-High, KR-CSAP, HIPAA, PCI-DSS, and EU-AI-Act are planned as tenant/cell data overlays, not as current runtime activation claims.
 
 ## 6. Substrate dependencies
 
-`crm` depends on these substrate microservices for cross-cutting concerns. Each dependency is asymmetric (crm calls substrate, substrate does not call crm) and explicitly contract-bound. The contract path is named for every dependency.
+`crm` target planning depends on these substrate microservices for cross-cutting concerns. Each dependency below is inventory/provenance until source-authorized implementation evidence exists.
 
 - `workflow-engine` — orchestrates Lead conversion saga, Opportunity stage progression, CPQ approval chain, Service Case escalation, and Campaign-to-Order handoff. Contract: `microservices/workflow-engine/contracts/workflow-v1.proto`.
 - `ontology` — provides version-pinned projections for AccountMaster, Contact, Opportunity, Quote, Case, Campaign, Loyalty, Lead, Forecast, Partner, Customer360. Contract: `microservices/ontology/contracts/ontology-v1.proto`.
@@ -199,15 +212,15 @@ The crm microservice is built on ten architectural primitives that are uniform a
 - `data-sync` — owns bidirectional integrations to external systems. Contract: `microservices/data-sync/contracts/data-sync-v1.proto`.
 - `search` — owns full-text + semantic search across crm aggregates. Contract: `microservices/search/contracts/search-v1.proto`.
 
-The full dependency graph is rendered in ARCHITECTURE.md §D.
+No `oya/crm/ARCHITECTURE.md` is present in this checkout; dependency graph references are therefore inventory/provenance only.
 
 ## 7. Contract surface
 
-The crm contract surface is the triple (OpenAPI, AsyncAPI, proto3) plus per-aggregate Cedar policy. All three contracts are versioned independently, governed by SemVer per `ADR-0009-public-api-stability.md`.
+The current inventory includes REST, events, gRPC, and Cedar contract files. They are planning artifacts unless and until source-authorized runtime evidence exists.
 
-- REST: `contracts/openapi-v1.yaml` — OpenAPI 3.2.0 — HTTP/3 + ECH + PQC declared via `x-transport`. Endpoints for every command and query across all thirteen bounded contexts.
-- Events: `contracts/asyncapi-v1.yaml` — AsyncAPI 3.1.0 — durable event channels with replay + dead-letter semantics.
-- gRPC: `contracts/crm-v1.proto` — proto3 — internal worker and batch interfaces; no external HTTP exposure.
+- REST: `contracts/openapi-v1.yaml` — OpenAPI 3.2.0 target surface; no external HTTP runtime claim in this README.
+- Events: `contracts/asyncapi-v1.yaml` — AsyncAPI 3.1.0 target event surface; no broker/replay runtime claim in this README.
+- gRPC: `contracts/crm-v1.proto` — proto3 target worker and batch surface; no external HTTP exposure claim in this README.
 - Cedar: `policy/<aggregate>-authorization.cedar` — default-deny per aggregate.
 - Naming: BNF v4.1 per ADR's naming standard.
 - Layers: ADR-0105 13-layer enum applies to `src/` module organization.
@@ -234,34 +247,34 @@ Layer-flow rule: outer layers depend on inner layers; inner layers never depend 
 
 ## 9. Tenant-class model
 
-Per the tenant-class-demo-trial-vs-paid memory and the in-flight ADR-0330, `crm` recognizes two `tenant_class` values:
+Per the tenant-class-demo-trial-vs-paid memory and the in-flight ADR-0330, this preview inventory records two target `tenant_class` values; no runtime tenant-class gate, CRM billing runtime, support SLA, or audit-event emission is claimed by this README:
 
-- `demo_trial` — usage-capped, no contractual SLA, best-effort support, no compliance-pack activation, automatic seat cap at 5 named principals + 100 Leads + 100 Opportunities + 1 active Cadence. The demo-trial profile is the primary GTM motion: a prospect signs up free, loads a sample dataset using the migration playbook, runs Leads through a Cadence, hits the cap, and converts to paid.
-- `paid` — no usage cap (subject to per-tenant contractual ceiling); contractual SLA per tenant contract; compliance-pack activation per tenant choice; `billing_components ⊆ {revenue_share, per_seat, per_usage}`.
+- `demo_trial` — target usage-capped posture: no contractual SLA, best-effort support, no compliance-pack activation, and a planned seat/Lead/Opportunity/Cadence cap before any runtime activation.
+- `paid` — target paid-tenant posture: tenant-contract ceilings, contractual SLA, compliance-pack activation per tenant choice, and `billing_components ⊆ {revenue_share, per_seat, per_usage}` only after source-authorized billing/runtime evidence exists.
 
-The `paid.billing_components` set supports three CRM billing motions:
+The target `paid.billing_components` set records three possible CRM billing motions:
 
 - `per_seat` — Salesforce Sales Cloud Enterprise / Unlimited model ($165 / $330 per user per month list). Oyatie's equivalent: per-named-principal license with module overlays.
 - `per_usage` — HubSpot Marketing Contacts model + Dynamics Sales Insights per-prediction metering. Oyatie's equivalent: per-Lead-scored, per-Opportunity-scored, per-Cadence-enrolment, per-AI-suggestion meter.
 - `revenue_share` — a partner / marketplace seller using `crm` to manage their own channel customers settles back to Oyatie via revenue-share on tenant GMV. Used for ISV partners building on the crm substrate.
 
-The OpenAPI surface does NOT include `tenant_class` as a request parameter — the gateway / IAM enforces tenant-class behaviour transparently. Cedar policies read `tenant_class` from the principal claim and gate operations (`if context.tenant_class == "demo_trial" && opportunity.amount > 50000 then deny`). Audit events record `tenant_class` as a dimension.
+Future source-authorized OpenAPI surfaces should not expose `tenant_class` as a request parameter; gateway/IAM enforcement, Cedar principal-claim reads, and audit-event dimensions remain target design requirements until reviewed runtime evidence exists.
 
-Per-class SLO overlays:
+Per-class SLO overlay targets:
 
 - `demo_trial`: best-effort availability (no contractual target), best-effort p99 latency, no support-response SLA.
 - `paid`: tenant-contract availability target (99.95% default, 99.99% for Tier-0 cells), tenant-contract p99 latency (sub-100ms read, sub-500ms write at default), tenant-contract support-response (1h Severity-1, 4h Severity-2 default).
 
 ## 10. Deployment contexts
 
-Per the multi-context-provider-agnostic memory, `crm` supports six deployment contexts:
+The inventory records six target deployment contexts, but `specs/microservices/crm.json` remains explicit that there is no current cloud deployment claim:
 
-- `oyatie-public-cloud` — Oyatie-managed multi-tenant SaaS.
-- `aws-guest` — customer-owned AWS account; Oyatie deploys via OpenTofu module.
+- `oyatie-public-cloud` — target Oyatie-managed multi-tenant SaaS context.
+- `aws-guest` — target customer-owned AWS account context.
 - `oci-guest` — customer-owned OCI account; OCI Always Free profile is the default for `demo_trial` tenants per the oci-always-free-maximization memory.
 - `on-prem` — customer-owned bare-metal datacenter.
 - `colo` — customer-owned colocation.
-- `oyatie-as-cloud-provider` — Oyatie offering IaaS itself; `crm` runs on Oyatie cloud-* µservices.
+- `oyatie-as-cloud-provider` — target context for Oyatie-hosted substrate integration.
 
 OpenTofu modules per context land under `iac/<context>/`. Wave 15A scope keeps the existing flat `iac/` shape; the Wave 15B retrofit moves to per-context subdirectories per audit dimension §3.7.
 
@@ -285,9 +298,9 @@ Arch matrix: `linux/amd64`, `linux/arm64`, `darwin/arm64` (M5+), and Tier-2 `lin
 
 ## 11. Compliance posture
 
-`crm` activates compliance packs per tenant + per cell, NOT per microservice. The pack overlay model (ADR-0251) means the same code path can serve a SOX-404 audit-bound tenant, a GDPR-EU residency-bound tenant, a KR-PIPA Korea-localised tenant, and a healthcare HIPAA-bound tenant concurrently. The pack registry for `crm` in manifest.json is:
+The inventory maps intended compliance-pack overlays per tenant + per cell, NOT per microservice. The pack overlay model (ADR-0251) is target architecture here; no compliance runtime or certification claim is made. The pack registry for `crm` in manifest.json is:
 
-- `SOX-404` — Sarbanes-Oxley financial controls; applies to Opportunity, Quote, Forecast, Order handoff. Audit-chain emission is unconditional.
+- `SOX-404` — Sarbanes-Oxley financial-controls target for Opportunity, Quote, Forecast, and Order handoff inventory; no runtime audit-chain emission claim.
 - `SOC-2` — operational controls; Cedar evaluation logging mandatory.
 - `ISO-27001` — information security management; Cedar + audit-chain + key rotation.
 - `GDPR` / `GDPR-EU` — EU data protection; consent + right-to-erasure + right-to-portability + DPIA in `dpia.md`.
@@ -297,20 +310,20 @@ Arch matrix: `linux/amd64`, `linux/arm64`, `darwin/arm64` (M5+), and Tier-2 `lin
 - `KR-CSAP` — Korea Cyber Safety Assurance Program; high-isolation Cloud Hypervisor for KR-CSAP-bound tenants.
 - `FedRAMP-High` — US federal high-impact; Kata pods + dedicated cell.
 - `HIPAA` — US healthcare; BAA + audit-chain + encryption at rest + at transit.
-- `PCI-DSS` — payment card industry; delegated to `payments` µservice but `crm` records Quote and Order data in a PCI-aware zone.
+- `PCI-DSS` — payment card industry target; delegated to `payments` µservice with no CRM payment-runtime claim.
 - `EU-AI-Act` — High-risk AI system classification; applies when `intelligence` µservice scoring decisions enter automated routing or refusal paths.
 
-Critical-path edge cases (per manifest.json `keystone_adr_field_roster.critical_path_edge_cases`) are honoured at every gate: `emergency-services`, `account-recovery-lockout`, `financial-fraud-dispute-chargeback`, `elder-financial-abuse`, `healthcare-urgent-care-break-glass`, `whistleblower-ethics-report`, `press-freedom-journalist-source`, `domestic-violence-survivor-mode`. Bypass policies live in `policy/emergency-services-bypass.cedar` + `policy/abuse-defence.cedar`.
+Critical-path edge cases (per manifest.json `keystone_adr_field_roster.critical_path_edge_cases`) are target gate inventory: `emergency-services`, `account-recovery-lockout`, `financial-fraud-dispute-chargeback`, `elder-financial-abuse`, `healthcare-urgent-care-break-glass`, `whistleblower-ethics-report`, `press-freedom-journalist-source`, `domestic-violence-survivor-mode`. Bypass policy artifacts live in `policy/emergency-services-bypass.cedar` + `policy/abuse-defence.cedar`.
 
 ## 12. Observability
 
-Per ADR-0263 observability emission contract, `crm` emits:
+Per ADR-0263 observability emission contract, the inventory targets these observability artifacts. This is not evidence that a CRM runtime emits telemetry in this checkout:
 
-- Metrics: `oya_crm_<aggregate>_transition_total` (counter, dimensions: tenant, tenant_class, aggregate, action, region, outcome, policy_decision, source_system); `oya_crm_<aggregate>_command_latency_seconds` (histogram); `oya_crm_<aggregate>_replay_lag_seconds` (gauge); `oya_crm_cedar_eval_total` (counter); `oya_crm_cadence_step_executed_total` (counter); `oya_crm_lead_score_predicted_total` (counter); `oya_crm_forecast_snapshot_total` (counter); `oya_crm_quote_approval_pending_seconds` (histogram).
-- Traces: every command path emits a span. The span attribute set includes `tenant_id`, `tenant_class`, `aggregate_kind`, `aggregate_id`, `action`, `cedar_decision`, `idempotency_key`, `audit_chain_ref`, `workflow_run_id` (when applicable), `pack_overlays` (set), `source_system_ref` (when applicable).
-- Logs: structured JSON. Field set matches the trace span attribute set plus log-level + log-message.
-- Audit events: every state transition emits to `audit-chain` µservice. Event catalog under `manifest.json#audit_chain.seal_events`.
-- Dashboards: under `dashboards/`. The Wave 15A rewrite adds a per-tenant-class dashboard variant + a per-counterpart-migration dashboard variant.
+- Metrics target: `oya_crm_<aggregate>_transition_total`, `oya_crm_<aggregate>_command_latency_seconds`, `oya_crm_<aggregate>_replay_lag_seconds`, `oya_crm_cedar_eval_total`, `oya_crm_cadence_step_executed_total`, `oya_crm_lead_score_predicted_total`, `oya_crm_forecast_snapshot_total`, and `oya_crm_quote_approval_pending_seconds`.
+- Traces target: command-path spans with tenant, policy, idempotency, audit-reference, workflow-run, pack-overlay, and source-system attributes.
+- Logs target: structured JSON matching the target trace attribute set plus log-level and message.
+- Audit events target: desired seal-event catalog under `manifest.json#audit_chain.seal_events`; no runtime audit-chain emission claim.
+- Dashboards target: dashboard inventory under `dashboards/` when present; no dashboard runtime claim.
 
 Per the tenant-class memory, SLOs split per tenant-class. The OpenSLO files under `slos/` carry a `class_overlay` field that activates the per-class threshold.
 
@@ -319,55 +332,17 @@ Per the tenant-class memory, SLOs split per tenant-class. The OpenSLO files unde
 To work on `crm` locally:
 
 ```
-# Build (run from repository root — not from microservices/crm/)
-cargo build --workspace --release --all-features --locked
+# Parse the current CRM manifest.
+python3 -m json.tool oya/crm/manifest.json >/dev/null
 
-# Tests (workspace-wide)
-cargo test --workspace --all-features --locked
+# Focused CRM domain tests that currently exist in this checkout.
+cargo test -p oya-crm-customer-engagement-domain
 
-# Run binary
-cargo run --bin oya-crm-revenue --release
-
-# Lint
-cargo clippy --workspace --all-targets --all-features -- -D warnings
-
-# Cedar policy soak (must pass before deployment)
-oya policy soak --crate microservices/crm
-
-# OpenAPI lint
-oya contract lint --openapi microservices/crm/contracts/openapi-v1.yaml
-
-# AsyncAPI lint
-oya contract lint --asyncapi microservices/crm/contracts/asyncapi-v1.yaml
-
-# proto3 lint
-oya contract lint --proto microservices/crm/contracts/crm-v1.proto
-
-# Contract diff (SemVer compatibility check)
-oya contract diff --against main microservices/crm/contracts/openapi-v1.yaml
-
-# OpenSLO validation
-oya slo validate --crate microservices/crm
-
-# OpenTofu plan (per deployment context)
-oya iac plan --context aws-guest --crate microservices/crm
-oya iac plan --context oci-guest --crate microservices/crm
-oya iac plan --context on-prem --crate microservices/crm
-
-# Talos manifest preview
-oya iac preview --context aws-guest --crate microservices/crm
-
-# Replay coverage check
-oya replay coverage --crate microservices/crm
-
-# Run the CRM application locally (for development; production runs under K8s)
-RUST_LOG=info,oya_crm_revenue_app=debug cargo run --bin oya-crm-revenue --release -- \
-    --config-path microservices/crm/config/dev.toml \
-    --tenant-id local-dev-tenant \
-    --tenant-class demo_trial
+# Optional broader app package check, when the workspace is healthy.
+cargo test -p oya-crm-revenue-app
 ```
 
-The canonical build invocation (per the rust-strict-only memory point 6) is `cargo build --workspace --release --all-features --locked` from the repository root. Running it from `microservices/crm/` will fail because the package is a workspace member, not a standalone workspace; the Wave 3-G `[workspace]` block in `Cargo.toml` is a coherence defect tracked under Wave 15A defect R-009 in REMEDIATION-NOTES-2026-05-21.md.
+The old `microservices/crm` quickstart paths are historical/provenance only in this checkout. Current CRM inventory files live under `oya/crm/`; the current source authority is `specs/microservices/crm.json`.
 
 ### 13.1 Editor setup
 
@@ -381,7 +356,7 @@ Recommended developer workstation:
 - `cargo-nextest` for faster test runs.
 - `lefthook` or `pre-commit` for git hooks.
 - `tofu` (OpenTofu) CLI ≥ 1.8 (NOT Terraform).
-- `oya` CLI (Oyatie meta-CLI) installed and on PATH.
+- No CRM-specific `oya` CLI prerequisite: legacy `oya` commands are local bridge/provenance only and are not merge, runtime, or source-authority evidence. Authoritative promotion remains plain `git` + protected PR + the single `oya-ci-required` context per ADR-0363/ADR-0515.
 
 ### 13.2 First-time setup
 
@@ -402,8 +377,8 @@ cargo test -p oya-crm-revenue-app
 # Spin up dev dependencies (PostgreSQL, OpenBao, ontology stub)
 make crm-dev-up
 
-# Run a CRM smoke test
-oya smoke crm --tenant local-dev
+# CRM smoke/runtime harnesses are not source-authorized by this preview README.
+# Do not use retired `oya smoke` / `oya gate` / `oya verify` CLI output as authoritative evidence.
 ```
 
 ### 13.3 Common development tasks
@@ -418,20 +393,19 @@ Adding a new field to an aggregate:
 6. Update the Cedar policy if the field is policy-gated.
 7. Update the ontology projection in the corresponding catalog YAML.
 8. Add a replay-fixture under `tests/fixtures/`.
-9. Run `oya contract diff` to verify SemVer compatibility.
+9. Run the current source-authorized contract-compatibility gate when one exists; do not treat retired `oya contract diff` CLI output as authoritative evidence.
 
-Adding a new bounded context:
+Adding a new bounded context (future, source-authorized only):
 
-1. Author the bounded-context detail in `ARCHITECTURE.md` §C.
-2. Author the user-story coverage in `PRD.md` §C.
-3. Author the Cedar policy in `policy/<aggregate>-authorization.cedar`.
-4. Author the OpenAPI endpoints + AsyncAPI channels + proto3 RPCs.
-5. Author the SLOs in `slos/`.
-6. Author the migration in `migrations/`.
-7. Author the IP under `IP-NNN-<aggregate>-bounded-context.md`.
-8. Wire the aggregate into `src/usecase/`, `src/domain/`, `src/adapter/`.
-9. Add audit-chain seal event to `manifest.json#audit_chain.seal_events`.
-10. Add catalog records for each (aggregate × layer) combination.
+1. Update `specs/microservices/crm.json` or a future source-authorized CRM spec; do not rely on absent PRD/architecture Markdown.
+2. Author the Cedar policy in `policy/<aggregate>-authorization.cedar`.
+3. Author target OpenAPI endpoints, AsyncAPI channels, and proto3 RPCs under `contracts/`.
+4. Author target SLO inventory in `slos/`.
+5. Author migration plans only when a real persistence implementation is source-authorized.
+6. Author the IP under `IPs/` or another present source-authorized path.
+7. Wire implementation code only after the preview non-goals have been replaced by reviewed source authority.
+8. Add audit-chain seal-event inventory to `manifest.json#audit_chain.seal_events` without claiming runtime emission.
+9. Add catalog records for each source-authorized aggregate × layer combination.
 
 Adding a new counterpart migration playbook:
 
@@ -447,7 +421,7 @@ Adding a new counterpart migration playbook:
 
 ## 14. Configuration
 
-`crm` reads configuration from TOML files + environment variables + `cloud-iam` principal claims. The precedence (lowest to highest) is:
+The target CRM configuration model reads TOML files + environment variables + `cloud-iam` principal claims. This section is inventory/provenance only unless the referenced config files exist in the checkout:
 
 1. Default values compiled into `src/config/defaults.rs`.
 2. TOML file at `config/<context>.toml` (loaded based on `OYATIE_DEPLOYMENT_CONTEXT` env var).
@@ -476,7 +450,7 @@ Key configuration knobs:
 
 Per-pack overlay overrides modify a subset of these — e.g., `pack.eu_ai_act.intelligence.score_explainability_required = true`.
 
-The per-context TOML files live under `config/`:
+Target per-context TOML files would live under `config/` when source-authorized:
 
 - `config/oyatie-public-cloud.toml` — Oyatie-managed SaaS defaults.
 - `config/aws-guest.toml` — AWS-guest deployment defaults.
@@ -488,61 +462,34 @@ The per-context TOML files live under `config/`:
 - `config/dev.toml` — local development defaults.
 - `config/ci.toml` — CI lane defaults.
 
-The configuration loader validates the merged config against a JSON Schema (`config/schema.json`) at startup. A failing validation aborts startup with an explanatory error message naming the failing field.
+The future configuration loader should validate the merged config against a JSON Schema (`config/schema.json`) at startup. This README does not claim that loader exists.
 
 ## 15. Open invariants (substance bar)
 
-The following invariants are enforced in code, in CI, and in production:
+The following are target invariants for future implementation evidence. The current preview authority remains `specs/microservices/crm.json`, and this README does not claim code, CI, or production enforcement beyond tests that actually exist:
 
-1. Cross-tenant access is impossible. Every database query has `tenant_id = $context.tenant_id` in the WHERE clause; the query layer rejects queries without it. Verified by `cargo test --test cross_tenant_isolation`.
-2. Cedar default-deny is unconditional. Every command handler invokes Cedar evaluation before domain logic. Verified by `cargo test --test cedar_default_deny`.
-3. Audit-chain emission is unconditional. Every command handler emits to `audit-chain` after successful domain transition. Verified by `cargo test --test audit_chain_emission`.
-4. Workflow-engine handoff replaces in-process saga. Every cross-µservice transition uses `workflow-engine` direct gRPC (per ADR-0145). Verified by `cargo test --test workflow_engine_handoff`.
-5. Idempotency key replay returns the prior result. Verified by `cargo test --test idempotency_replay`.
-6. HTTP/3 + ECH + PQC negotiation. Verified by `cargo test --test transport_negotiation`.
-7. Tenant-class gating. Verified by `cargo test --test tenant_class_gating`.
-8. SemVer contract stability. Verified by `oya contract diff --against main microservices/crm/contracts/openapi-v1.yaml`.
-9. Compliance-pack overlay correctness. Verified by `cargo test --test pack_overlay_correctness` + Cedar policy soak.
-10. Replay-fixture coverage. Every command has a replay fixture under `tests/fixtures/<aggregate>/<command>.json`. Verified by `oya replay coverage --crate microservices/crm`.
+1. Cross-tenant access must be represented in any future persistence/query layer before runtime activation.
+2. Cedar default-deny must gate future command handlers before domain logic.
+3. Audit-chain emission remains target inventory only until runtime emission evidence exists.
+4. Workflow-engine handoff remains target inventory only until a reviewed integration exists.
+5. Idempotency-key replay must be tested before any command runtime claim.
+6. HTTP/3 + ECH + PQC negotiation remains target inventory only until transport tests exist.
+7. Tenant-class gating must be tested before any runtime tenant-class claim.
+8. Contract compatibility checks should use present paths such as `oya/crm/contracts/openapi-v1.yaml`.
+9. Compliance-pack overlays remain target inventory only until Cedar/policy tests exist.
+10. Replay-fixture coverage remains target inventory only until fixtures and coverage checks exist.
 
 ## 16. Wave 15A scope summary
 
-Wave 15A REWRITES the following artifacts under `microservices/crm/`:
+Historical Wave 15A prose previously referenced a `microservices/crm/` tree and companion PRD/architecture/matrix documents. In this checkout, those paths are not current authority. Current CRM authority/inventory boundaries are:
 
-- `README.md` (this file) — replaces template-stamped 169-evidence-row scaffold with Salesforce-anchor + HubSpot + Dynamics 365 substance.
-- `PRD.md` §C user stories — replaces 30+ template-stamped stories with bespoke per-aggregate user journeys + per-counterpart parity stories.
-- `ARCHITECTURE.md` §H — replaces 90 stamped "Architecture trace NN" lines with the substantive Wave-15A architecture trace section.
-- `competitor-parity-matrix.md` — replaces 327 stamped Row entries with bespoke per-counterpart capability mapping.
+- Source authority: `specs/microservices/crm.json` (preview, metadata-only, explicit non-goals).
+- Present inventory root: `oya/crm/`.
+- Present machine-readable manifest: `oya/crm/manifest.json`.
+- Present contracts: `oya/crm/contracts/openapi-v1.yaml`, `oya/crm/contracts/asyncapi-v1.yaml`, and `oya/crm/contracts/crm-v1.proto`.
+- Present policy/SLO/catalog/runbook inventory: `oya/crm/policy/`, `oya/crm/slos/`, `oya/crm/catalog/`, and `oya/crm/runbooks/`.
 
-Wave 15A AUTHORS:
-
-- New bounded-context-level documentation for Lead, Contact, OpportunityTeam, OpportunitySplit, Sales Cadence, Forecast, Partner, Customer-360.
-- CPQ Configure / Price / Document / Approval primitive specification.
-- Salesforce SObject mapping table.
-- HubSpot Contact/Company/Deal/Ticket mapping table.
-- Dynamics Account/Contact/Lead/Opportunity/Quote/SalesOrder mapping table.
-
-Wave 15A PRESERVES:
-
-- Per-µservice ADR-MS-001 (substantive mutation-envelope contract).
-- All 25 IPs (IP-001..IP-025) — verified substantive at brief review.
-- Cargo.toml + src/ (Rust kernel; workspace-block defect tracked but kernel preserved).
-- Cedar policy files (all 13).
-- Contracts (openapi-v1.yaml + asyncapi-v1.yaml + crm-v1.proto).
-- SLO YAMLs.
-- Migration playbooks (Salesforce / HubSpot / Dynamics).
-- All runbooks.
-- Dashboards.
-
-Wave 15A DEFERS to subsequent waves:
-
-- IaC per-context refactor (`iac/<context>/`) — Wave 15B.
-- Cargo.toml workspace separation — Wave 15B.
-- src/ layer-module additions (api/, rest/, kernel/, worker/, governance/) — Wave 15B.
-- Per-tenant-class SLO threshold split — Wave 15C.
-- Migration playbook slug rename for Dynamics — Wave 15C.
-
-Full deferral inventory in REMEDIATION-NOTES-2026-05-21.md.
+Absent legacy PRD/architecture/matrix/remediation documents remain provenance-only references and must not be treated as live claim authority.
 
 ## 17. References
 
@@ -577,34 +524,24 @@ Counterpart documentation:
 - Microsoft Dynamics 365 Sales: <https://learn.microsoft.com/en-us/dynamics365/sales/overview>.
 - Dataverse entity reference: <https://learn.microsoft.com/en-us/power-apps/developer/data-platform/reference/entities>.
 
-Companion docs in this tree:
+Companion inventory in this checkout:
 
-- `PRD.md` — full product requirement surface.
-- `ARCHITECTURE.md` — layered architecture + bounded-context detail + integration topology.
-- `competitor-parity-matrix.md` — bespoke parity matrix with per-counterpart capability mapping.
-- `feature-parity-matrix-2026-05-20.md` — Wave-4 audit companion matrix (preserved; informs Wave 15A rewrite).
-- `coherence-audit-2026-05-20.md` — Wave-4 coherence audit (preserved; drives Wave 15A work plan).
-- `compliance.md` — compliance-pack mapping.
-- `dpia.md` — Data Protection Impact Assessment.
-- `threat-model.md` — STRIDE threat model.
-- `capacity-model.md` — capacity planning model.
-- `cost-budget.md` — cost budget by component.
-- `failure-modes.md` — failure-mode register.
-- `multi-region.md` — multi-region deployment plan.
-- `incident-response.md` — incident response runbook.
-- `backfill-replay.md` — backfill + replay procedure.
-- `sdk-plan.md` — SDK plan.
-- `manifest.json` — machine-readable specification.
-- `migration-playbooks/from-salesforce-sales-cloud.md` — Salesforce migration.
-- `migration-playbooks/from-hubspot-sales-hub.md` — HubSpot migration.
-- `migration-playbooks/from-microsoft-dynamics-365-ce.md` — Dynamics migration (slug rename pending).
-- `IP-001..IP-025` — per-aggregate + cross-aggregate implementation plans.
-- `PHASE-01-CRM-PARITY.md` — phase-01 plan.
-- `REMEDIATION-NOTES-2026-05-21.md` — Wave 15A remediation log.
+- `specs/microservices/crm.json` — source authority, preview metadata-only PRD.
+- `oya/crm/manifest.json` — CRM inventory manifest with explicit claim boundary.
+- `oya/crm/contracts/openapi-v1.yaml` — target OpenAPI inventory.
+- `oya/crm/contracts/asyncapi-v1.yaml` — target AsyncAPI inventory.
+- `oya/crm/contracts/crm-v1.proto` — target proto inventory.
+- `oya/crm/policy/*.cedar` — target policy inventory.
+- `oya/crm/slos/*.openslo.yaml` — target SLO inventory.
+- `oya/crm/catalog/*.yaml` — target layer catalog inventory.
+- `oya/crm/runbooks/*.md` — target operational runbook inventory/provenance.
+- `oya/crm/dpia/dpia.md` — DPIA inventory/provenance.
+- `oya/crm/decisions/ADR-MS-001-customer-record-mutation-and-revenue-lineage-contract.md` — CRM-specific decision record.
+- `oya/crm/IP-024-per-tenant-territory-routing-skill-capacity-engine.md`, `oya/crm/IP-025-predictive-churn-risk-intelligence-handoff.md`, and `oya/crm/IPs/*.md` — implementation-plan inventory/provenance.
 
 ## Doctrine references
 
-- [ADR-0346](../../docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md): `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, blocking on exit-0 of each mandatory step before returning success. Enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- [ADR-0346](../../docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md) (amended by ADR-0515): legacy `oya verify` / `./bin/oya verify --ci-required` output is optional local-feedback/provenance only; protected-branch merge authority is the GitHub Actions + branch-protection `oya-ci-required` context produced by cloud-ci Rust gate packets. Historical `oya-governance-oya-verify-*` lane references are retained only as provenance unless reintroduced by current cloud-ci gates.
 - [ADR-0347](../../docs/decisions/ADR-0347-governance-fitness-bulk-rename.md): Every `oya-governance-*` CI lane prefix RENAMES to `oya-governance-*` in one Wave 15-ZB bulk-rename pull request rather than 34 per-lane migration IPs. Enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
 - [ADR-0348](../../docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md): Cellular topology MUST support control-plane-driven AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING, with manifest-declared configuration, residency/compliance constraints, audit-chain emission, and reversibility. Enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- [ADR-0349](../../docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md): Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts, and ArgoCD is the canonical GitOps CD orchestrator that replaces manual `kubectl apply` and Helm CLI deploys. Enforced by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+- [ADR-0349](../../docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md): ADR-0349 Jenkins CI wording is historical/provenance after ADR-0515; GitHub Actions produces `oya-ci-required` until explicit owned-runner cutover, and ArgoCD remains the separately authorized GitOps CD evidence surface where applicable. Enforced by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
