@@ -1,0 +1,165 @@
+{
+  "_meta": {
+    "artifact_id": "fabric-loop-closed-loop-improvement-verification-20260702",
+    "doc_class": "Durable-Evidence-Record",
+    "purpose": "Verification of the ADR-0516 drive loop's closed-loop improvement layer across ALL four proof-run dispatch passes of 2026-07-02: per-pass flow metrics recorded on every dispatch pass (strictly monotonic ledger, cross-checked verbatim against the immutable proof-run records and read back mechanically through FlowMetricsPort), and every harvested agent/reviewer observation converted into a durable backlog card on the coordination plane or explicitly documented as a duplicate/recurrence — with the metric records and card links captured here as evidence. Evidence backing masterplan-v2 Sub-AC 3.4.",
+    "created_at": "2026-07-02T18:00:00Z",
+    "verified_at_epoch_s": 1783012062,
+    "owner_team": "founder + platform-governance",
+    "doctrine_refs": ["ADR-0515", "ADR-0516"],
+    "read_contract": {
+      "audience": ["humans", "agents", "reviewers"],
+      "read_timing_class": "on-demand",
+      "freshness_rule": "Immutable verification record of the 2026-07-02 closed-loop improvement-layer audit; never edited after the fact. Live metric ledger lives at plan/fabric-loop/flow-metrics/passes (durable, PR-governed); live cards at plan/fabric-loop/cards; the layer contract lives at specs/fabric-drive-loop-state.json#flow_metrics."
+    }
+  },
+  "verification_scope": {
+    "sub_ac": "3.4: Verify the closed-loop improvement layer during the proof runs — per-pass flow metrics recorded, and harvested observations converted into backlog cards (or duplicates documented), with the metric records and card links captured as evidence",
+    "proof_runs_covered": [
+      { "pass_seq": 1, "run": "full-cycle MPV2-0000.C001", "record": "evidence/goals/fabric-loop-e2e-proof-run-20260702.json" },
+      { "pass_seq": 2, "run": "parallel lanes MPV2-0000.C003 + MPV2-0000.C004", "record": "evidence/goals/fabric-loop-parallel-lanes-proof-run-20260702.json" },
+      { "pass_seq": 3, "run": "full-cycle MPV2-0000.C005 (harvested backlog work)", "record": "evidence/goals/fabric-loop-full-cycle-c005-proof-run-20260702.json" },
+      { "pass_seq": 4, "run": "parallel lanes MPV2-0000.C006 + MPV2-0000.C008 (harvested backlog work)", "record": "evidence/goals/fabric-loop-parallel-lanes-c006-c008-proof-run-20260702.json" }
+    ],
+    "method": "Mechanical, not narrative: (a) read the durable flow-metrics ledger files byte-for-byte and cross-check every per-card metric field against the corresponding immutable proof-run record; (b) read the live state back through the port traits via the owned-Rust bridge bin (snapshot exit 0); (c) run the crate suite that enforces the ledger's monotonicity/derivation/strict-listing invariants; (d) resolve every harvested-card link named by any proof-run learning_harvest section to its durable coordination-plane file and pin its digest."
+  },
+  "flow_metrics_verification": {
+    "verdict": "PASS — a flow-metrics record exists for every dispatch pass (4/4), pass_seq strictly monotonic 1..4 with zero gaps, and every metric row matches its proof-run evidence record field-for-field",
+    "ledger_root": "plan/fabric-loop/flow-metrics/passes",
+    "durability": "in-repo-pr-governed (coordination plane; coordinator-only mutation path via FlowMetricsService over FlowMetricsPort)",
+    "pass_records": [
+      {
+        "pass_seq": 1,
+        "ledger_file": "plan/fabric-loop/flow-metrics/passes/pass-00000000000000000001.json",
+        "sha256": "09552289a47e02d6978d868b19c2a09e3acfdda6f47c55387a7709851318e213",
+        "recorded_at_epoch_s": 1782989737,
+        "cards": [
+          { "card_id": "MPV2-0000.C001", "lane_id": "lane-fabric-a", "cycle_time_s": 1862, "review_latency_s": 1235, "rework_count": 1 }
+        ],
+        "cross_check": "equal field-for-field with evidence/goals/fabric-loop-e2e-proof-run-20260702.json#flow_metrics"
+      },
+      {
+        "pass_seq": 2,
+        "ledger_file": "plan/fabric-loop/flow-metrics/passes/pass-00000000000000000002.json",
+        "sha256": "3cfd29719e853c35835044125f09395b4146645b91dc6027f1ad2c1fef6dc8f8",
+        "recorded_at_epoch_s": 1782991102,
+        "cards": [
+          { "card_id": "MPV2-0000.C003", "lane_id": "lane-fabric-b", "cycle_time_s": 551, "review_latency_s": 154, "rework_count": 0 },
+          { "card_id": "MPV2-0000.C004", "lane_id": "lane-fabric-c", "cycle_time_s": 551, "review_latency_s": 151, "rework_count": 0 }
+        ],
+        "cross_check": "equal field-for-field with evidence/goals/fabric-loop-parallel-lanes-proof-run-20260702.json#flow_metrics"
+      },
+      {
+        "pass_seq": 3,
+        "ledger_file": "plan/fabric-loop/flow-metrics/passes/pass-00000000000000000003.json",
+        "sha256": "41d43f4d342fd19603e3a60e552cf7f31ad0b67bb604fd7a27e28116bde34a19",
+        "recorded_at_epoch_s": 1783010635,
+        "cards": [
+          { "card_id": "MPV2-0000.C005", "lane_id": "lane-fabric-d", "cycle_time_s": 515, "review_latency_s": 231, "rework_count": 0 }
+        ],
+        "cross_check": "equal field-for-field with evidence/goals/fabric-loop-full-cycle-c005-proof-run-20260702.json#flow_metrics"
+      },
+      {
+        "pass_seq": 4,
+        "ledger_file": "plan/fabric-loop/flow-metrics/passes/pass-00000000000000000004.json",
+        "sha256": "24f5d9f077d40426709b31bfc21ef7e3971296f6d7c1c80104d5663043c0cbe1",
+        "recorded_at_epoch_s": 1783011703,
+        "cards": [
+          { "card_id": "MPV2-0000.C006", "lane_id": "lane-fabric-e", "cycle_time_s": 713, "review_latency_s": 296, "rework_count": 0 },
+          { "card_id": "MPV2-0000.C008", "lane_id": "lane-fabric-f", "cycle_time_s": 710, "review_latency_s": 260, "rework_count": 0 }
+        ],
+        "cross_check": "equal field-for-field with evidence/goals/fabric-loop-parallel-lanes-c006-c008-proof-run-20260702.json#flow_metrics"
+      }
+    ],
+    "mechanical_readback": {
+      "command": "cargo run -p oya-fabric-loop-state-app -- snapshot",
+      "exit_code": 0,
+      "at_epoch_s": 1783012048,
+      "observed": "coordination plane ./plan/fabric-loop (11 cards, strict file_type-aware lister refused nothing); flow metrics latest = pass 4 at 1783011703 (2 cards, rework 0, max cycle 713s, max review latency 296s); cutover target oya-cloud-ci-loop-state-service reported by every port",
+      "note": "Read path routes exclusively through CoordinationPlanePort + FlowMetricsPort via the single-writer facades; a non-canonical pass filename, gap, replay, or inverted timeline in the ledger would have failed this readback closed (NonMonotonicPass / InvalidMetrics / Corrupt per specs/fabric-drive-loop-state.json#flow_metrics.ledger_rule)."
+    },
+    "invariant_suite": {
+      "command": "cargo test -p oya-fabric-loop-state-app",
+      "result": "46/46 green (17 lib unit + 11 bin unit + 13 contract + 5 ratification-gate) at working tree of commit 586772e41",
+      "at_epoch_s": 1783012060,
+      "invariants_enforced": [
+        "strictly monotonic 1-based pass_seq, replays/out-of-order fail closed (validate_pass_record -> NonMonotonicPass)",
+        "per-card metrics derive mechanically from raw CardFlowTimeline; inverted timelines fail closed (InvalidMetrics)",
+        "canonical 20-digit pass filenames fail-closed (regression guard from harvested card MPV2-0000.C003, itself a closed-loop product)",
+        "file_type-aware strict fail-closed ledger listing (regression guards from harvested cards MPV2-0000.C005 and MPV2-0000.C008)"
+      ]
+    },
+    "constant_work_note": "Recording happened on EVERY dispatch pass with the same write load regardless of card count (passes 1 and 3 carry one card, passes 2 and 4 carry two; the record-pass step ran identically each pass), per the constant-work contract in specs/fabric-drive-loop-state.json#flow_metrics."
+  },
+  "harvest_verification": {
+    "verdict": "PASS — all 9 observation clusters named by any proof-run learning_harvest section resolve to durable backlog cards on the coordination plane (9/9 card links live), and both duplicate encounters are explicitly documented as recurrences instead of duplicate cards; zero observations left in chat",
+    "cards_root": "plan/fabric-loop/cards",
+    "harvested_cards_by_pass": [
+      {
+        "pass_seq": 1,
+        "source_record": "evidence/goals/fabric-loop-e2e-proof-run-20260702.json#learning_harvest",
+        "cards": [
+          { "card_id": "MPV2-0000.C002", "card_file": "plan/fabric-loop/cards/MPV2-0000.C002.json", "sha256": "688f588807cc8aa97969bf889ab8401f2efa977032c7841d866dbf678e18603d", "status_now": "defined", "routing": "gate/doc patch: durable verdict-file requirement on the review card contract + mechanical review-lane guard (regression guard specified)" },
+          { "card_id": "MPV2-0000.C003", "card_file": "plan/fabric-loop/cards/MPV2-0000.C003.json", "sha256": "dc5527bae6c3a822d9acc258ff7979742c58c388f9e49728bbf8d3f2fb166c93", "status_now": "done-verified (executed as pass-2 lane-fabric-b; 4 evidence refs incl git:060eca825)", "routing": "code+test patch with regression guard — shipped" },
+          { "card_id": "MPV2-0000.C004", "card_file": "plan/fabric-loop/cards/MPV2-0000.C004.json", "sha256": "d41e2e8e5dfcaf250d4da91d7f2b4613f3cc258ea6a0dac2b4b4e077eda7a700", "status_now": "done-verified (executed as pass-2 lane-fabric-c; 4 evidence refs incl git:060eca825)", "routing": "code+test patch with regression guard — shipped" }
+        ]
+      },
+      {
+        "pass_seq": 2,
+        "source_record": "evidence/goals/fabric-loop-parallel-lanes-proof-run-20260702.json#learning_harvest",
+        "cards": [
+          { "card_id": "MPV2-0000.C005", "card_file": "plan/fabric-loop/cards/MPV2-0000.C005.json", "sha256": "cab77f08da13fadc134279b4f29ed7538137c41305bcec0e0c9485a6641832b6", "status_now": "done-verified (executed as pass-3 lane-fabric-d; 4 evidence refs incl git:ebbde9a36)", "routing": "code+test patch with regression guard — shipped" },
+          { "card_id": "MPV2-0000.C006", "card_file": "plan/fabric-loop/cards/MPV2-0000.C006.json", "sha256": "5feb404e69a1e619bc8569f0f22fa01adb1373066c595d609b36e8144e59e260", "status_now": "done-verified (executed as pass-4 lane-fabric-e; 4 evidence refs incl git:20c5bae10)", "routing": "code+test patch with regression guard — shipped" }
+        ],
+        "duplicates_documented": [
+          { "observation": "detached-subagent result artifacts lossy again (all four lanes)", "disposition": "documented as recurrence of MPV2-0000.C002 in #learning_harvest.recurrence_observation — reinforces C002's routing rather than opening a duplicate card" }
+        ]
+      },
+      {
+        "pass_seq": 3,
+        "source_record": "evidence/goals/fabric-loop-full-cycle-c005-proof-run-20260702.json#learning_harvest",
+        "cards": [
+          { "card_id": "MPV2-0000.C008", "card_file": "plan/fabric-loop/cards/MPV2-0000.C008.json", "sha256": "1cf6ae9e371ddebbccade16a1d1b2368b3e6d61ab3fff67eeaa24251267175d7", "status_now": "done-verified (executed as pass-4 lane-fabric-f; 4 evidence refs incl git:20c5bae10)", "routing": "code+test patch with regression guard — shipped" },
+          { "card_id": "MPV2-0000.C009", "card_file": "plan/fabric-loop/cards/MPV2-0000.C009.json", "sha256": "89feb8e6e57204101ce7f19b3e64b6bc15461dab31e2839e40d39bf638ee9ed7", "status_now": "defined", "routing": "governance decision + mechanical encoding with regression test either way" }
+        ],
+        "duplicates_documented": [
+          { "observation": "reviewer chat artifact lost again; run explicitly checked the new harvest against the existing C002/C006/C007 backlog", "disposition": "no duplicates opened; C002 recurrence validated the durable verdict-file learning (#stage_review.c002_learning_validated)" }
+        ]
+      },
+      {
+        "pass_seq": 4,
+        "source_record": "evidence/goals/fabric-loop-parallel-lanes-c006-c008-proof-run-20260702.json#learning_harvest",
+        "cards": [
+          { "card_id": "MPV2-0000.C010", "card_file": "plan/fabric-loop/cards/MPV2-0000.C010.json", "sha256": "9917cca27992bf53350262ab4cfd7e65ab16ad820a722b8966d45e0a876c9a33", "status_now": "defined", "routing": "code+test patch: usage-class reroute + enumeration round-trip regression test" },
+          { "card_id": "MPV2-0000.C011", "card_file": "plan/fabric-loop/cards/MPV2-0000.C011.json", "sha256": "0cee8b85ace7ab4282d990004747fc599297564870959e235224e1e08861e80b", "status_now": "defined", "routing": "code+test patch: extend fail-closed file_type doctrine to symlink-loop and tmp-carve-out shapes + regression tests" }
+        ],
+        "duplicates_documented": [
+          { "observation": "detached-subagent chat artifacts lossy for all four lanes (third+ recurrence of the C002 class)", "disposition": "documented as recurrence in #learning_harvest.recurrence_observation — reinforces C002's routing rather than opening a duplicate card; run also checked new harvest against existing C002/C007/C009 backlog with no duplicates" }
+        ]
+      }
+    ],
+    "routing_discipline": "Every harvested card carries a durable routing (skill/doc/gate/test patch class) with a named regression guard, per the Seed's closed-loop constraint; 5 of 9 harvested cards (C003, C004, C005, C006, C008) were subsequently claimed, built, reviewed, merged, and verified done THROUGH the loop itself with their regression guards landed — the improvement layer demonstrably consumes its own output.",
+    "no_chat_residue": "Each proof run's agent_observation_harvest_outcome states no observation was left in chat; the durable card files above are the ground truth and all resolve on the coordination plane (snapshot listed 11/11 cards through the strict fail-closed lister)."
+  },
+  "improvement_signal_measured": {
+    "statement": "The layer is closed-loop in measurement, not just in bookkeeping: harvested learnings changed the next pass and the change is visible in the same mechanical ledger.",
+    "review_latency_trajectory_s": { "pass_1": [1235], "pass_2": [154, 151], "pass_3": [231], "pass_4": [296, 260] },
+    "rework_trajectory": { "pass_1": [1], "pass_2": [0, 0], "pass_3": [0], "pass_4": [0, 0] },
+    "readings": [
+      "C002 learning (durable verdict files) applied from pass 2 onward: review latency fell 8x pass-1 -> pass-2 and never regressed to the pass-1 regime despite chat-artifact loss recurring on every subsequent pass",
+      "rework_count fell 1 -> 0 from pass 2 onward and held (round-1 APPROVEs with findings harvested as cards instead of churned)",
+      "pass 4 measured reviewer parallelism: two concurrent independent reviews cost ~13-28% latency over one, not 2x — a scaling fact the ledger, not narration, established"
+    ]
+  },
+  "seed_traceability": {
+    "sub_ac": "3.4",
+    "ontology_concepts_evidenced": ["learning_harvest", "loop_cards", "evidence_refs"],
+    "constraints_honored": [
+      "per-pass flow metrics recorded on each dispatch pass (4/4 passes, strictly monotonic, constant-work)",
+      "agent/reviewer observations harvested into backlog cards, never left in chat (9 durable cards; 3 recurrence encounters documented instead of duplicates)",
+      "learnings routed durably as skill/doc/gate/test patches each carrying a regression guard (routing recorded per card; 5 already shipped with guards landed)",
+      "verification performed through the owned-Rust port surface (snapshot readback + 46/46 invariant suite); no shell/python state manipulation",
+      "coordinator-only mutation path untouched: this record is read-only audit output plus one coordinator commit"
+    ]
+  }
+}
