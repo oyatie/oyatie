@@ -19,12 +19,34 @@
     "version": "1.0.0"
   },
   "agent_quick_start_protocol": {
-    "step_1_read_authority": "Read entry_points.decision_principles + .agent_operating_contract + .master_plan_sequencing + .markdown_retirement_policy + .gitops_vcs_replacement.",
+    "step_1_read_authority": "Read entry_points.decision_principles + .agent_operating_contract + .masterplan + .markdown_retirement_policy + .gitops_vcs_replacement; entry_points.master_plan_sequencing is provenance/compatibility only after masterplan v2 authority consolidation.",
     "step_2_context_recall": "Prefer intelligence-native context once available (replaces prior Foundry framing per ADR-0335 Wave 15I); legacy icm recall-context is compatibility/provenance only and is never promotion authority.",
     "step_3_oya_vcs_state_transition": "Canonical path is plain `git` + protected PR against dev. Merge readiness is reviewer APPROVE plus the single protected `oya-ci-required` context produced by the cloud-ci gate apps; legacy CI/`oya gate` output is bridge/local evidence only and never merge authority. The bespoke Oya VCS claim → work → verify → done → promote ratchet is RETIRED (provenance/historical only per ADR-0363); legacy grit/icm/rtk/vox/omx/omc surfaces are likewise read/provenance only.",
     "step_4_active_artifact_contract": "Every new artifact under applicable_paths_glob conforms to active-artifact-contract v3.0.0 + registers a row in artifact-capabilities-registry.",
     "step_5_independent_review": "Preserve multi-lens review discipline through independent reviewer-agent passes, PR Code Review evidence, typed quality-gate artifacts, and cloud-ci/oya-ci gate packets. The standalone multispectrum evidence-file/spec convention is retired with the external coordination / Oya VCS / Jenkins-adapter admission path; do not emit new evidence/multispectrum files.",
     "step_6_gitops_vcs_replacement": "Before broad multi-agent fan-out, treat /specs/gitops-vcs-replacement.json as provenance/historical input only: the bespoke Oya VCS claim coverage, ChangeBundle closeout, controller rebase, and retired ratchet mechanisms are superseded by ADR-0363/ADR-0515. Live merge readiness is plain git + protected PR against dev + reviewer APPROVE + the single protected `oya-ci-required` context. Legacy CI/`oya gate` output is bridge evidence only. Tide/prow-shaped admission language is historical unless reintroduced by a new accepted authority; cloud-ci gate apps own the required context."
+  },
+  "agent_entry_surface_allowlist": {
+    "read_timing_class": "entry-surface",
+    "source_of_truth": "/specs/root-hub-pointers.json#agent_entry_surface_allowlist",
+    "validator": "cloud-ci-cross-artifact-agreement/masterplan-v2-entry-surface",
+    "paths": [
+      "/specs/masterplan.json"
+    ],
+    "superseded_entrypoints": [
+      "/specs/master-plan-sequencing.json",
+      "/specs/planning-closure-contract.json",
+      "/specs/planning-closure-status-closure-ledger.json",
+      "docs/ROADMAP.md",
+      ".omc/ultragoal/goals.json",
+      ".omc/**",
+      ".omx/**",
+      ".gjc/**",
+      "~/.hermes/kanban/boards/oyatie/kanban.db",
+      "~/.gjc/**",
+      "~/.omx/**"
+    ],
+    "freshness_rule": "The mandatory agent entry surface is exactly this allowlist; superseded plan, goal, harness, and roadmap entrypoints must be provenance/on-demand reads only and fail the entry-surface gate if reintroduced."
   },
   "by_kind": {
     "decision": "Accepted ADR or decision record that constrains implementation and promotion.",
@@ -612,15 +634,17 @@
     "master_plan_sequencing": {
       "current_path": "/specs/master-plan-sequencing.json",
       "kind": "spec",
-      "migration_phase": "wave-15-zf-master-plan-propagated",
-      "purpose": "Forbidden-primitive list + plain-git protected-PR governance protocol + ledger-required-fields + execution sequence. Platform-readiness amends its older CI-bridge language: reviewer approval plus the single protected `oya-ci-required` context is destination authority; legacy CI/oya output is bridge/local evidence only.",
-      "target_path_after_md_retirement": "same"
+      "migration_phase": "absorbed-by-masterplan-v2-sub-ac-1",
+      "authority_status": "provenance-archive-not-live-plan-authority",
+      "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+      "purpose": "Historical sequencing sidecar retained for compatibility reads and provenance. Live work-item IDs, sequencing, and plan status resolve through /specs/masterplan.json#masterplan_v2; this file must not mint live work-item IDs or contradict the canonical dependency DAG.",
+      "target_path_after_md_retirement": "archive-or-generated-projection-only"
     },
     "masterplan": {
       "current_path": "/specs/masterplan.json",
       "human_compatibility_projection": "docs/MASTERPLAN.md",
       "kind": "spec",
-      "migration_phase": "accelerated-machine-readable-authority-for-planning-closure",
+      "migration_phase": "masterplan-v2-single-live-plan-authority",
       "purpose": "Machine-readable master plan authority for implementation sequencing, vertical delivery order, first-deliverable scope, planning closure, and readiness claims. The first deliverable is Tenant/PBAC-packaged core microservices (PBAC = RBAC + ABAC) (FD-001) with core, messenger, mail, community, infra, Ops Dashboard / Control Center, intelligence (replaces Foundry per ADR-0335 Wave 15I), Workflow, Ontology, canonical base, and Korea localization pack. Canonical service split remains current-state migration inventory in {oya,cloud}/<service> with libs/ and ADR-0010/0064 pack roots governed by closed-world inventory; new platform delivery-fabric work is narrowed by /specs/platform-delivery-fabric-productization.json and must avoid treating oya-/cloud-prefixed paths as destination names. microservices/<ms>/ is legacy and removed only after P0.6 verifies all migration packets. Clean architecture, API-first contracts, independent horizontal scaling, and hyperscaler pattern mapping are required before implementation packets begin.",
       "target_path_after_md_retirement": "same (machine-readable authority; docs/MASTERPLAN.md is compatibility projection only)"
     },
@@ -698,18 +722,22 @@
     "planning_closure_contract": {
       "current_path": "/specs/planning-closure-contract.json",
       "kind": "spec",
-      "migration_phase": "fd001-planning-closure",
-      "purpose": "Machine-readable closure contract for FD-001 planning: Tenant/PBAC-packaged core microservices (PBAC = RBAC + ABAC) (FD-001) full-depth delivery, canonical base, Korea localization pack, clean architecture, API-first contracts, hyperscaler patterns, portable deployment, and no false planning-green claims. Its older CI-governance wording is amended by platform-readiness/cloud-ci authority.",
+      "migration_phase": "absorbed-by-masterplan-v2-sub-ac-1",
+      "authority_status": "provenance-archive-not-live-plan-authority",
+      "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+      "purpose": "Former machine-readable closure contract retained as evidence-policy provenance. Live plan authority and work-item IDs resolve only through /specs/masterplan.json; closure claims remain evidence requirements, not a separate plan authority.",
       "status_ledger": "/specs/planning-closure-status-closure-ledger.json",
-      "target_path_after_md_retirement": "same"
+      "target_path_after_md_retirement": "archive-or-generated-projection-only"
     },
     "planning_closure_status_ledger": {
       "contract_ref": "/specs/planning-closure-contract.json",
       "current_path": "/specs/planning-closure-status-closure-ledger.json",
       "kind": "ledger",
-      "migration_phase": "fd001-planning-closure",
-      "purpose": "Evidence ledger for the 2026-05-19 masterplan status closure: records the former blocking status count, closure rule, hyperscaler gap IP planning contracts, implementation guardrails, and exit evidence that must exist before any production or hyperscaler-grade claim.",
-      "target_path_after_md_retirement": "same (machine-readable planning-closure evidence ledger)"
+      "migration_phase": "absorbed-by-masterplan-v2-sub-ac-1",
+      "authority_status": "evidence-provenance-not-live-plan-authority",
+      "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+      "purpose": "Evidence ledger for former planning-closure status claims. It may support evidence references but cannot mint live work-item IDs or surface unverified done status outside /specs/masterplan.json.",
+      "target_path_after_md_retirement": "archive-or-generated-projection-only"
     },
     "prd_accounting": {
       "current_path": "/specs/microservices/accounting.json",

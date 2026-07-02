@@ -1,14 +1,14 @@
 {
   "_schema": {
     "version": "1.0.0",
-    "description": "Machine-readable execution sequence for autonomous master-plan completion. This sidecar references canonical Oyatie plan/checklist primitives instead of duplicating them.",
+    "description": "Historical machine-readable execution sequence sidecar. Masterplan v2 absorbed live sequencing and work-item ID authority into /specs/masterplan.json; this file is provenance/compatibility only.",
     "owner_team": "founder + axis-foundry",
-    "validation_check": "json-valid + referenced-paths-exist + retired-agentic-vcs-primitives-absent",
-    "authority_note": "Execution overlay only; /specs/masterplan.json, /specs/planning-closure-contract.json, the doctrinal substrate (decision-principles.json + forbidden-operations.json + decision-rights.json + governance-amendment.json), ADRs, and checklist templates remain authoritative. docs/MASTERPLAN.md is compatibility projection only."
+    "validation_check": "json-valid + non-authoritative-plan-surface + no-live-work-item-ids",
+    "authority_note": "NON-AUTHORITATIVE after masterplan v2 Sub-AC 1. Live plan authority, live work-item IDs, and dependency DAG ordering resolve only through /specs/masterplan.json#masterplan_v2. This sidecar may be read for provenance but must not mint IDs, select ready work, or override the canonical DAG."
   },
   "_metadata": {
     "sidecar_id": "EXE-MASTER-SEQUENCING",
-    "status": "accepted-plain-git-cloud-ci-github-authority-cutover",
+    "status": "absorbed-provenance-not-live-plan-authority",
     "created_for": "4000-character launcher prompt sidecars",
     "canonical_sources": [
       "docs/AGENTS.md",
@@ -48,6 +48,8 @@
       "retired_manifest_status": "retired-from-tracked-tree-local-only; historical evidence remains in git history, not live authority"
     },
     "updated_at": "2026-06-02T00:00:00Z",
+    "absorbed_by": "/specs/masterplan.json#masterplan_v2",
+    "work_item_id_policy": "no-live-work-item-ids",
     "op11_audit_reference": "registry/stub-audit/2026-05-17/CONSOLIDATED.md"
   },
   "master_plan_discovery_order": [

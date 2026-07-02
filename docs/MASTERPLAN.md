@@ -1,13 +1,19 @@
 ---
 doc_class: MasterPlan
-shape: compatibility_projection
+shape: compatibility_projection_non_authoritative
 length_cap: 800
-authority_tier: 0
+authority_tier: 4
 status: Accepted
 date: 2026-05-19
 owners:
 - council-architecture
 canonical_authority: /specs/masterplan.json
+live_plan_authority: false
+read_contract:
+  audience:
+    - humans
+  read_timing_class: on-demand
+  freshness_rule: "Projection only; conflicts resolve to /specs/masterplan.json#masterplan_v2."
 companion_docs:
 - /specs/root-hub-pointers.json
 - /specs/master-plan-sequencing.json
@@ -19,8 +25,8 @@ authority_chain_declaration: |
     > /specs/root-hub-pointers.json
     > docs/AGENTS.md (operating contract until explicit /specs/agent-operating-contract.json PHASE-5 promotion evidence)
     > installed agent-runtime skill and role catalog (for Codex: ~/.codex/skills + ~/.codex/agents; project .codex overlays only when intentionally checked in)
-    > machine-readable specs and registries under .omc/
-    > docs/ authority files during markdown-retirement compatibility
+    > /specs/masterplan.json#masterplan_v2 (sole live plan authority and work-item ID namespace)
+    > machine-readable specs and registries under /specs, /registry, /evidence, and /templates (supporting evidence/provenance only unless directly cited by masterplan v2)
     > external/upstream skill documentation (informational only; not vendored into this repo)
     > repo-root Redirect-class files (non-authoritative; lane-thin)
     > working drafts (never authoritative)
@@ -29,83 +35,19 @@ doc_status: published
 ---
 # Oyatie Master Plan
 
-This file is a compatibility projection for humans. It is not the implementation authority. Agents and automation must resolve master-plan truth through `/specs/root-hub-pointers.json`, `/specs/masterplan.json`, `/specs/master-plan-sequencing.json`, `/specs/planning-closure-contract.json`, `/specs/planning-closure-status-closure-ledger.json`, and the current gate output.
+This file is a human compatibility projection only. It is not a live plan authority, does not mint work-item IDs, and does not carry status claims. The canonical master plan, live work-item ID space, dependency DAG, surface dispositions, and read contracts live in `/specs/masterplan.json#masterplan_v2`.
 
 ## Current Authority
 
-The canonical master plan is `/specs/masterplan.json`.
+- Canonical plan authority: `/specs/masterplan.json`
+- Canonical fragment for this consolidation: `/specs/masterplan.json#masterplan_v2`
+- Live work-item ID namespace: `MPV2-####`, validated by the cloud-ci cross-artifact agreement masterplan-v2 authority check.
+- Former plan surfaces (`/specs/master-plan-sequencing.json`, `/specs/planning-closure-contract.json`, `/specs/planning-closure-status-closure-ledger.json`, `docs/ROADMAP.md`, and legacy `.omc/.omx/.gjc/.hermes` artifacts) are absorbed provenance or runtime data, not live plan authorities.
 
-The planning-closure gate of record is the `oya-ci-required` cloud-ci planning-closure packet
-produced by the ADR-0515 gate apps. The retired `cargo run -q -p oya-dev-cli -- gate validate
-planning-closure` command is provenance-only migration history, not implementation-start, merge, or
-exit authority.
+Historical `.omc`/`.omx` planning prompts and local runtime stores may be forensically read only when a gate or masterplan v2 evidence reference asks for them. They never override `/specs/masterplan.json`.
 
-The active long-running implementation goal is `/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json`.
+## Projection Contract
 
-Historical planning prompts and old `.omc/plans/` root drafts are archived under `.omc/archive/stale-documents/2026-05-19-planning-closure/` and must not be used as sequencing, scope, open-question, or implementation-start authority.
+This projection intentionally avoids duplicating sequence, scope, status, or dependency detail. Humans use it as a pointer; agents and gates read `/specs/masterplan.json#masterplan_v2` directly.
 
-## First Deliverable
-
-FD-001 is Tenant RBAC view plus Tenant RBAC view at full production depth. This is not a preview scope and not a reduced launch. The first deliverable exits only when the canonical base and Korea localization pack are both ready with evidence.
-
-Required FD-001 surfaces:
-
-- core
-- messenger
-- mail
-- community
-- infra
-- ops dashboard and control center
-- intelligence
-- workflow
-- ontology
-- canonical base
-- Korea localization pack
-
-Later sector-specific verticals remain downstream of FD-001. They do not dilute the first-deliverable exit bar.
-
-## Architecture Bar
-
-FD-001 uses flat microservices, clean architecture, API-first contracts, independent horizontal scaling, tenant isolation, observability, auditability, policy compliance, performance budgets, explicit rollback, and evidence-backed gates.
-
-Every microservice must have:
-
-- PRD, phase, implementation-plan, and ChangeSet coverage
-- inward dependency direction across kernel, domain, application, API, adapter, and runtime layers
-- OpenAPI, AsyncAPI, or protobuf contracts before handlers
-- service-owned data boundaries and no direct cross-service calls
-- Workflow and Ontology integration for cross-service orchestration and information flow
-- tenant quota, backpressure, and horizontal scaling strategy
-- golden-signal telemetry, SLOs, runbooks, and incident evidence
-- audit-chain events, retention, replay, and provenance evidence
-- threat model, policy controls, and compliance evidence
-- capacity model, load evidence, and cost attribution
-- import, export, migration, rollback, and vendor-exit paths
-
-The ops dashboard and control center are part of FD-001, not an afterthought. They must cover deployment state, tenant health, incident response, policy posture, audit evidence, rollback, restore, and operator-safe remediation.
-
-## Deployment Bar
-
-Deployment must be reproducible through cloud-native Kubernetes, OCI artifacts, GitOps, OpenTofu, SBOM and provenance attestations, and conformance evidence.
-
-Supported execution environments include Talos, Ubuntu LTS, Debian, Fedora Server, Oracle Linux, RHEL-compatible distributions, CentOS Stream, Rocky Linux, AlmaLinux, SUSE Linux Enterprise, and macOS Apple Silicon local parity.
-
-Production images default to distroless or scratch. Any exception requires evidence, a vulnerability budget, and a replacement path.
-
-Bootstrap must support one-command or one-click setup. Talos and other cluster hosts must be able to join remotely through a secure configuration-driven flow that fails closed when prerequisites are missing.
-
-## Development Order
-
-Execution follows vertical delivery ordering:
-
-1. Lock shared contracts, schemas, architecture rules, policy, bootstrap, deployment, and evidence gates.
-2. Build FD-001 through product-vertical slices that include customer UX, domain logic, APIs, data, policy, telemetry, tests, operations, deployment, and evidence.
-3. Parallelize only after shared contracts are locked. Safe parallel lanes include messenger, mail, community, ops dashboard/control center, intelligence, workflow, ontology, infra, and Korea localization pack.
-4. Serialize shared data model ownership, root workspace manifest changes, public API compatibility changes, branch protection, and promotion policy changes.
-5. Promote only through an isolated plain-git branch, PR against `dev`, the single required `oya-ci-required` cloud-ci gate packet (ADR-0515; no CLI, no Jenkins), and reviewer/governance approval.
-
-## Claim Rule
-
-Planning closure means the implementation contract is complete enough to start execution without inventing strategy mid-flight. It does not mean product implementation is already complete.
-
-Production-grade, hyperscaler-grade, or industry-leading claims are valid only after implementation evidence exists for the relevant ChangeSets and the required gates pass with current output.
+Any update that adds roadmap content, work-item IDs, readiness status, or sequencing here without a generated-projection freshness gate is stale on arrival and must be rejected.

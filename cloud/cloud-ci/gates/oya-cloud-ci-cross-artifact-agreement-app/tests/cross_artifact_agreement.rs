@@ -8,7 +8,12 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use oya_cloud_ci_cross_artifact_agreement_app::{Verdict, evaluate};
+use oya_cloud_ci_cross_artifact_agreement_app::{
+    Verdict, evaluate, evaluate_masterplan_v2_authority, evaluate_masterplan_v2_entry_surfaces,
+    evaluate_masterplan_v2_evidence_state, evaluate_masterplan_v2_plan_evidence_drift,
+    evaluate_masterplan_v2_program_coverage, evaluate_masterplan_v2_projection_freshness,
+    evaluate_masterplan_v2_read_contract_archives, evaluate_masterplan_v2_sequencing,
+};
 use serde_json::Value;
 
 /// Walk up to the repo root (the dir holding specs/root-hub-pointers.json), matching the
@@ -181,6 +186,212 @@ fn cross_artifact_fixtures_execute_red_green_cases() {
     assert!(
         seen_green && seen_red,
         "cross-artifact-agreement fixtures must include BOTH RED and GREEN cases"
+    );
+}
+
+#[test]
+fn masterplan_v2_live_authority_contract_is_green() {
+    let root = repo_root();
+    let masterplan = load_json(&root.join("specs/masterplan.json"));
+    let findings = evaluate_masterplan_v2_authority(&masterplan);
+    assert!(
+        findings.is_empty(),
+        "masterplan v2 authority contract must stay green: {findings:?}"
+    );
+}
+#[test]
+fn masterplan_v2_hermes_done_card_claims_are_unverified_until_evidence_attaches() {
+    let root = repo_root();
+    let masterplan = load_json(&root.join("specs/masterplan.json"));
+    let findings = evaluate_masterplan_v2_evidence_state(&masterplan);
+    assert!(
+        findings.is_empty(),
+        "masterplan v2 evidence-state policy must keep unverified Hermes done claims out of done: {findings:?}"
+    );
+
+    let imports = masterplan["masterplan_v2"]["hermes_done_card_imports"]
+        .as_array()
+        .expect("masterplan_v2.hermes_done_card_imports must be an array");
+    let unverified_hermes_done_import = imports.iter().any(|claim| {
+        claim["source_system"].as_str() == Some("hermes")
+            && claim["source_status"].as_str() == Some("done")
+            && claim["evidence_refs"].as_array().is_some_and(Vec::is_empty)
+            && claim["masterplan_status"].as_str() == Some("claimed-done-unverified")
+            && claim["evidence_state"].as_str() == Some("claimed-done-unverified")
+    });
+    assert!(
+        unverified_hermes_done_import,
+        "Hermes done-card imports without evidence must be explicitly marked claimed-done-unverified"
+    );
+}
+#[test]
+fn masterplan_v2_plan_vs_evidence_drift_contract_is_green() {
+    let root = repo_root();
+    let masterplan = load_json(&root.join("specs/masterplan.json"));
+    let findings = evaluate_masterplan_v2_plan_evidence_drift(&masterplan);
+    assert!(
+        findings.is_empty(),
+        "masterplan v2 plan-vs-evidence drift policy must stay green: {findings:?}"
+    );
+
+    assert_eq!(
+        masterplan["masterplan_v2"]["evidence_state_policy"]["validator"].as_str(),
+        Some("cloud-ci-cross-artifact-agreement/masterplan-v2-plan-vs-evidence-drift"),
+        "masterplan v2 must name the plan-vs-evidence drift validator as the evidence-state policy writer"
+    );
+}
+#[test]
+fn masterplan_v2_program_coverage_contract_is_green() {
+    let root = repo_root();
+    let masterplan = load_json(&root.join("specs/masterplan.json"));
+    let manifest_index = load_json(&root.join("specs/microservices/manifests-index.json"));
+    let findings = evaluate_masterplan_v2_program_coverage(&masterplan, &manifest_index);
+    assert!(
+        findings.is_empty(),
+        "masterplan v2 program coverage must cover every manifest-index microservice: {findings:?}"
+    );
+}
+
+#[test]
+fn masterplan_v2_projection_freshness_contract_is_green() {
+    let root = repo_root();
+    let masterplan = load_json(&root.join("specs/masterplan.json"));
+    let generated_artifacts =
+        load_json(&root.join("registry/generated-artifact-control-plane.json"));
+    let findings =
+        evaluate_masterplan_v2_projection_freshness(&masterplan, Some(&generated_artifacts));
+    assert!(
+        findings.is_empty(),
+        "masterplan v2 projection freshness must cover every generated/read projection: {findings:?}"
+    );
+
+    let projections = masterplan["masterplan_v2"]["projection_freshness"]["projections"]
+        .as_array()
+        .expect("projection_freshness.projections must be an array");
+    let covered_paths: BTreeSet<&str> = projections
+        .iter()
+        .filter_map(|projection| projection["path"].as_str())
+        .collect();
+    let expected_paths = expected_masterplan_projection_paths(&masterplan, &generated_artifacts);
+    assert_eq!(
+        covered_paths, expected_paths,
+        "projection_freshness.projections must be exact set coverage over every generated/read projection derived from specs/masterplan.json"
+    );
+}
+#[test]
+fn masterplan_v2_read_contract_archive_gate_is_green() {
+    let root = repo_root();
+    let masterplan = load_json(&root.join("specs/masterplan.json"));
+    let findings = evaluate_masterplan_v2_read_contract_archives(&masterplan);
+    assert!(
+        findings.is_empty(),
+        "archived stale read paths must only be referenced as provenance archives: {findings:?}"
+    );
+}
+
+#[test]
+fn masterplan_v2_entry_surface_allowlist_gate_is_green() {
+    let root = repo_root();
+    let masterplan = load_json(&root.join("specs/masterplan.json"));
+    let root_hub = load_json(&root.join("specs/root-hub-pointers.json"));
+    let findings = evaluate_masterplan_v2_entry_surfaces(&masterplan, &root_hub);
+    assert!(
+        findings.is_empty(),
+        "entry-surface read contracts must exactly match the bounded root-hub allowlist and exclude superseded entrypoints: {findings:?}"
+    );
+}
+
+fn expected_masterplan_projection_paths<'a>(
+    masterplan: &'a Value,
+    generated_artifacts: &'a Value,
+) -> BTreeSet<&'a str> {
+    let v2 = &masterplan["masterplan_v2"];
+    let mut expected = BTreeSet::new();
+
+    for contract in v2["read_contracts"]
+        .as_array()
+        .expect("masterplan_v2.read_contracts must be an array")
+    {
+        let path = contract["path"]
+            .as_str()
+            .expect("read contract path must be a string");
+        if path != "/specs/masterplan.json" {
+            expected.insert(path);
+        }
+    }
+
+    for surface in v2["surface_dispositions"]
+        .as_array()
+        .expect("masterplan_v2.surface_dispositions must be an array")
+    {
+        if surface["disposition"].as_str() == Some("generated-projection") {
+            expected.insert(
+                surface["path"]
+                    .as_str()
+                    .expect("generated projection surface path must be a string"),
+            );
+        }
+    }
+
+    for artifact in generated_artifacts["artifacts"]
+        .as_array()
+        .expect("generated_artifact_control_plane.artifacts must be an array")
+    {
+        if artifact_source_inputs_include_masterplan(artifact) {
+            expected.insert(
+                artifact["path"]
+                    .as_str()
+                    .expect("generated artifact path must be a string"),
+            );
+        }
+    }
+
+    expected
+}
+
+fn artifact_source_inputs_include_masterplan(artifact: &Value) -> bool {
+    artifact["source_inputs"].as_array().is_some_and(|inputs| {
+        inputs.iter().any(|input| {
+            input
+                .as_str()
+                .is_some_and(source_input_refers_to_masterplan)
+        })
+    })
+}
+
+fn source_input_refers_to_masterplan(path: &str) -> bool {
+    let path = path.trim();
+    let without_fragment = path.split_once('#').map_or(path, |(path, _)| path);
+    let mut normalized = without_fragment.trim_start_matches('/');
+    while let Some(stripped) = normalized.strip_prefix("./") {
+        normalized = stripped;
+    }
+    normalized == "specs/masterplan.json"
+}
+
+#[test]
+fn masterplan_v2_sequencing_is_zero_based_and_dispatch_blocked_pending_founder() {
+    let root = repo_root();
+    let masterplan = load_json(&root.join("specs/masterplan.json"));
+    let findings = evaluate_masterplan_v2_sequencing(&masterplan);
+    let codes: BTreeSet<&str> = findings
+        .iter()
+        .map(|finding| finding.code.as_str())
+        .collect();
+
+    assert!(
+        !codes.contains("masterplan_sequencing_invalid"),
+        "masterplan v2 sequencing must stay zero-based and DAG-derived: {findings:?}"
+    );
+    assert!(
+        codes.contains("masterplan_execution_wave_dispatch_unratified"),
+        "execution-wave dispatch must remain blocked until founder ratification is recorded"
+    );
+    assert!(
+        findings.iter().all(|finding| {
+            finding.key != "masterplan_v2.sequencing.execution_wave_dispatch.not_blocked"
+        }),
+        "pending-founder state must be fail-closed, not merely unratified: {findings:?}"
     );
 }
 
