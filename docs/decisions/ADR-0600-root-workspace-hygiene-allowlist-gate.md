@@ -159,3 +159,21 @@ not a producer-face gate).
   ADR-0555's husk-block-on-new.
 - Productizes the recurrence-prevention for FRIC-1781132000 (lane-scratch root pollution) at the
   gate layer, per "friction = process failure → productize the gate".
+
+## Addendum 2026-07-02 — GitHub community-health surfaces placement
+
+The GitHub community-health surfaces (code of conduct, contribution guidelines,
+issue forms, pull-request template) are tool-mandated GitHub special files (the
+instructions-store markdown allow-list class). Under this decision's default-DENY
+root allowlist they do NOT get root allowlist rules; they live under the
+`.github/` permitted meta home, where GitHub's community profile resolves them
+equally. The registered surface is:
+
+- `.github/CODE_OF_CONDUCT.md` — Contributor Covenant 2.1
+- `.github/CONTRIBUTING.md` — contributor on-ramp deferring to `docs/AGENTS.md`
+- `.github/PULL_REQUEST_TEMPLATE.md` — GitHub prefill mirroring `templates/pull-request-template.md`
+- `.github/ISSUE_TEMPLATE/config.yml` — blank issues off; security reports routed to private advisories
+- `.github/ISSUE_TEMPLATE/bug-report.yml` — defect form requiring a `MISTAKES-LEDGER` row check
+- `.github/ISSUE_TEMPLATE/feature-request.yml` — feature form requiring acceptance criteria + verification path
+- `.github/ISSUE_TEMPLATE/blocker-resolution-card.yml` — dispatcher-ready blocker card per the root-hub `blocker_policy`
+- `.github/OWNERS` — ADR-0555 ownership seed for the `.github/` community-health tree (`council-architecture`); `.github/workflows/` retains its narrower `cloud-ci-platform` marker
