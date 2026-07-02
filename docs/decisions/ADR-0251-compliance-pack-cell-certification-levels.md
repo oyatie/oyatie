@@ -65,6 +65,7 @@ related_specs:
   - /specs/microservices/tenancy.json
   - /specs/microservices/cell.json
   - /specs/compliance-pack-schema.json
+  - specs/derived-compliance-cell-placement-contract.json
   - /specs/cell-certification-level-matrix.json
   - /specs/data-class-registry.json
   - /specs/cedar-fragment-schema.json

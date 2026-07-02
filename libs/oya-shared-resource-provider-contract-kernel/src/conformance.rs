@@ -10,8 +10,9 @@ use std::collections::BTreeSet;
 use std::fmt;
 
 use crate::{
-    IdempotencyKey, ListEntry, OPERATION_NAME_PREFIX, OperationResult, PageRequest, ProviderError,
-    ResourceName, ResourceProvider, WriteDisposition,
+    IdempotencyKey, ListEntry, OPERATION_NAME_PREFIX, Operation, OperationLedgerEntry,
+    OperationResult, OperationState, PageRequest, ProviderError, ResourceName, ResourceProvider,
+    WriteDisposition,
 };
 
 /// Poll budget for AIP-151 operations driven by the harness.
@@ -69,6 +70,107 @@ pub trait ConformanceFixture {
         IdempotencyKey::new(format!("00000000-0000-4000-8000-{ordinal:012x}"))
             .map_err(|error| violation("fixture", error.to_string()))
     }
+
+    /// The expected ORN recorded in operation ledger rows for `name`.
+    fn resource_orn(&self, name: &ResourceName) -> String {
+        format!(
+            "orn:oya:local-test:account-test:{}:{}/{}",
+            name.collection(),
+            name.collection(),
+            name.resource_id()
+        )
+    }
+
+    /// The expected tenant/account/project scope recorded in operation ledger rows.
+    fn tenant_account_project(&self) -> &str {
+        "tenant-test/account-test/project-test"
+    }
+
+    /// The expected region/cell placement recorded in operation ledger rows.
+    fn region_cell(&self) -> &str {
+        "local-test/cell-0001"
+    }
+
+    /// The expected principal recorded in operation ledger rows.
+    fn principal(&self) -> &str {
+        "principal:test-harness"
+    }
+}
+
+fn assert_operation_ledger_matches<F: ConformanceFixture>(
+    check: &'static str,
+    fixture: &F,
+    operation: &Operation,
+    ledger: &OperationLedgerEntry,
+    name: &ResourceName,
+    idempotency_key: &IdempotencyKey,
+) -> Result<(), ConformanceViolation> {
+    operation
+        .validate()
+        .map_err(|e| violation(check, format!("operation shape invalid: {e}")))?;
+    ledger
+        .validate()
+        .map_err(|e| violation(check, format!("ledger shape invalid: {e}")))?;
+    if operation.metadata != *ledger {
+        return Err(violation(
+            check,
+            "operation metadata must be a snapshot of the durable ledger row".to_owned(),
+        ));
+    }
+    let operation_id = operation
+        .name
+        .strip_prefix(OPERATION_NAME_PREFIX)
+        .ok_or_else(|| violation(check, "operation name lacks AIP-151 prefix".to_owned()))?;
+    if ledger.operation_id != operation_id {
+        return Err(violation(
+            check,
+            format!(
+                "ledger operation_id {:?} must match operation name {:?}",
+                ledger.operation_id, operation.name
+            ),
+        ));
+    }
+    if ledger.idempotency_key != idempotency_key.as_str() {
+        return Err(violation(
+            check,
+            format!(
+                "ledger idempotency_key {:?} does not match request key {:?}",
+                ledger.idempotency_key,
+                idempotency_key.as_str()
+            ),
+        ));
+    }
+    let expected_orn = fixture.resource_orn(name);
+    if ledger.resource_orn != expected_orn {
+        return Err(violation(
+            check,
+            format!(
+                "ledger resource_orn {:?} does not match expected {:?}",
+                ledger.resource_orn, expected_orn
+            ),
+        ));
+    }
+    for (field, actual, expected) in [
+        (
+            "tenant_account_project",
+            ledger.tenant_account_project.as_str(),
+            fixture.tenant_account_project(),
+        ),
+        (
+            "region_cell",
+            ledger.region_cell.as_str(),
+            fixture.region_cell(),
+        ),
+        ("principal", ledger.principal.as_str(), fixture.principal()),
+    ] {
+        if actual != expected {
+            return Err(violation(
+                check,
+                format!("ledger {field} {actual:?} does not match expected {expected:?}"),
+            ));
+        }
+    }
+    Ok(())
 }
 
 /// Idempotent PUT: a replay under the same key is a visible no-op; a new
@@ -487,6 +589,223 @@ pub async fn check_async_delete_operation<F: ConformanceFixture>(
     }
 }
 
+/// Operation-ledger semantics for AIP-151 mutations: the durable ledger row
+/// exists before acknowledgement, carries the idempotency key/request hash,
+/// replays return the same operation, key reuse for a different mutation is
+/// rejected, transitions are monotonic, and terminal ledger snapshots are
+/// immutable.
+pub async fn check_operation_ledger_semantics<F: ConformanceFixture>(
+    fixture: &F,
+) -> Result<(), ConformanceViolation> {
+    const CHECK: &str = "operation_ledger";
+    let mut provider = fixture.fresh_provider();
+    let first_name = fixture.resource_name(1)?;
+    let second_name = fixture.resource_name(2)?;
+    provider
+        .create(
+            &first_name,
+            fixture.resource_payload(1),
+            &fixture.idempotency_key(101)?,
+        )
+        .await
+        .map_err(|e| violation(CHECK, format!("seeding first create failed: {e}")))?;
+    provider
+        .create(
+            &second_name,
+            fixture.resource_payload(2),
+            &fixture.idempotency_key(102)?,
+        )
+        .await
+        .map_err(|e| violation(CHECK, format!("seeding second create failed: {e}")))?;
+
+    let delete_key = fixture.idempotency_key(201)?;
+    let mut operation = provider
+        .delete(&first_name, &delete_key)
+        .await
+        .map_err(|e| violation(CHECK, format!("delete failed: {e}")))?;
+    let operation_name = operation.name.clone();
+    let initial_ledger = provider
+        .operation_ledger_entry(&operation_name)
+        .await
+        .map_err(|e| violation(CHECK, format!("ledger read after delete failed: {e}")))?;
+    assert_operation_ledger_matches(
+        CHECK,
+        fixture,
+        &operation,
+        &initial_ledger,
+        &first_name,
+        &delete_key,
+    )?;
+
+    let replay = provider
+        .delete(&first_name, &delete_key)
+        .await
+        .map_err(|e| violation(CHECK, format!("delete replay failed: {e}")))?;
+    if replay.name != operation_name {
+        return Err(violation(
+            CHECK,
+            format!(
+                "delete replay under the same key must return operation {operation_name:?}, got {:?}",
+                replay.name
+            ),
+        ));
+    }
+    let replay_ledger = provider
+        .operation_ledger_entry(&operation_name)
+        .await
+        .map_err(|e| violation(CHECK, format!("ledger read after replay failed: {e}")))?;
+    if replay_ledger != initial_ledger {
+        return Err(violation(
+            CHECK,
+            "idempotent replay must not create or mutate the operation ledger row".to_owned(),
+        ));
+    }
+    assert_operation_ledger_matches(
+        CHECK,
+        fixture,
+        &replay,
+        &replay_ledger,
+        &first_name,
+        &delete_key,
+    )?;
+    if replay != operation {
+        return Err(violation(
+            CHECK,
+            "immediate idempotent replay must return the same operation snapshot before polling"
+                .to_owned(),
+        ));
+    }
+
+    match provider.delete(&second_name, &delete_key).await {
+        Err(ProviderError::IdempotencyKeyReuse { .. }) => {}
+        other => {
+            return Err(violation(
+                CHECK,
+                format!(
+                    "same idempotency key against a different mutation must fail with idempotency_key_reuse, got {other:?}"
+                ),
+            ));
+        }
+    }
+
+    let mut last_ledger = initial_ledger.clone();
+    for _ in 0..MAX_OPERATION_POLLS {
+        if operation.done {
+            break;
+        }
+        operation = provider
+            .poll_operation(&operation_name)
+            .await
+            .map_err(|e| violation(CHECK, format!("poll failed: {e}")))?;
+        let ledger = provider
+            .operation_ledger_entry(&operation_name)
+            .await
+            .map_err(|e| violation(CHECK, format!("ledger read after poll failed: {e}")))?;
+        assert_operation_ledger_matches(
+            CHECK,
+            fixture,
+            &operation,
+            &ledger,
+            &first_name,
+            &delete_key,
+        )?;
+        if ledger.transition_sequence < last_ledger.transition_sequence {
+            return Err(violation(
+                CHECK,
+                format!(
+                    "transition_sequence regressed from {} to {}",
+                    last_ledger.transition_sequence, ledger.transition_sequence
+                ),
+            ));
+        }
+        if ledger.state != last_ledger.state && !last_ledger.state.can_transition_to(ledger.state) {
+            return Err(violation(
+                CHECK,
+                format!(
+                    "operation state transition {:?} -> {:?} is not allowed",
+                    last_ledger.state, ledger.state
+                ),
+            ));
+        }
+        last_ledger = ledger;
+    }
+    if !operation.done {
+        return Err(violation(
+            CHECK,
+            format!("operation did not reach done within {MAX_OPERATION_POLLS} polls"),
+        ));
+    }
+    if operation.metadata.state != OperationState::Succeeded {
+        return Err(violation(
+            CHECK,
+            format!(
+                "successful delete ledger must terminate as succeeded, got {:?}",
+                operation.metadata.state
+            ),
+        ));
+    }
+    if !initial_ledger.state.is_terminal()
+        && last_ledger.transition_sequence <= initial_ledger.transition_sequence
+    {
+        return Err(violation(
+            CHECK,
+            "non-terminal operations must advance transition_sequence before terminal".to_owned(),
+        ));
+    }
+
+    let terminal_repoll = provider
+        .poll_operation(&operation_name)
+        .await
+        .map_err(|e| violation(CHECK, format!("terminal re-poll failed: {e}")))?;
+    let terminal_ledger_repoll = provider
+        .operation_ledger_entry(&operation_name)
+        .await
+        .map_err(|e| violation(CHECK, format!("terminal ledger re-read failed: {e}")))?;
+    if terminal_repoll != operation || terminal_ledger_repoll != last_ledger {
+        return Err(violation(
+            CHECK,
+            "terminal operation and ledger row must be immutable".to_owned(),
+        ));
+    }
+
+    let terminal_replay = provider
+        .delete(&first_name, &delete_key)
+        .await
+        .map_err(|e| violation(CHECK, format!("terminal delete replay failed: {e}")))?;
+    let terminal_replay_ledger = provider
+        .operation_ledger_entry(&operation_name)
+        .await
+        .map_err(|e| violation(CHECK, format!("terminal replay ledger read failed: {e}")))?;
+    assert_operation_ledger_matches(
+        CHECK,
+        fixture,
+        &terminal_replay,
+        &terminal_replay_ledger,
+        &first_name,
+        &delete_key,
+    )?;
+    if terminal_replay != operation || terminal_replay_ledger != last_ledger {
+        return Err(violation(
+            CHECK,
+            "terminal idempotent replay must return the terminal operation snapshot without mutating the ledger row"
+                .to_owned(),
+        ));
+    }
+
+    match provider
+        .operation_ledger_entry("operations/never-issued")
+        .await
+    {
+        Err(ProviderError::NotFound { .. }) => Ok(()),
+        other => Err(violation(
+            CHECK,
+            format!(
+                "reading an unknown operation ledger row must fail with not_found, got {other:?}"
+            ),
+        )),
+    }
+}
+
 /// Run the full contract; an empty vector means the provider conforms.
 pub async fn run_all_checks<F: ConformanceFixture>(fixture: &F) -> Vec<ConformanceViolation> {
     [
@@ -495,6 +814,7 @@ pub async fn run_all_checks<F: ConformanceFixture>(fixture: &F) -> Vec<Conforman
         check_read_after_write(fixture).await,
         check_stable_pagination(fixture).await,
         check_async_delete_operation(fixture).await,
+        check_operation_ledger_semantics(fixture).await,
     ]
     .into_iter()
     .filter_map(Result::err)

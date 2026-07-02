@@ -33,8 +33,10 @@ use oya_shared_platform_contracts_kernel::tenancy::{
     Tenant, TenantLifecycleOperation, TenantLifecycleState,
 };
 use oya_shared_resource_provider_contract_kernel::{
-    CreateOutcome, IdempotencyKey, ListEntry, Operation, OperationError, Page, PageRequest,
-    PageToken, ProviderError, PutOutcome, ResourceName, ResourceProvider, WriteDisposition,
+    CancellationMetadata, CompensationMetadata, CreateOutcome, IdempotencyKey, ListEntry,
+    Operation, OperationError, OperationLedgerEntry, OperationPhase, OperationState, Page,
+    PageRequest, PageToken, ProviderError, PutOutcome, ResourceName, ResourceProvider, RetryPolicy,
+    WriteDisposition,
 };
 use tenancy_tenant_lifecycle_kernel::{
     AppliedWriteRecord, OperationRecord, StoreError, TenantLifecycleStore,
@@ -72,22 +74,102 @@ fn tenant_scope_of(name: &ResourceName) -> &str {
 }
 
 /// Recover the RLS tenant scope from a minted operation name. Operation names
-/// are `operations/<tenant_id>/lifecycle-<seq>` (see [`mint_operation_name`]),
-/// so the tenant is the segment after `operations/`. Names without that shape
+/// are `operations/<tenant_id>-lifecycle-<seq>` (see [`mint_operation_name`]),
+/// so the tenant is the prefix before `-lifecycle-`. Names without that shape
 /// (e.g. an unknown operation a client polls) yield `None`, which the caller
 /// maps to `NotFound`.
 fn tenant_scope_of_operation(operation_name: &str) -> Option<&str> {
     operation_name
         .strip_prefix("operations/")
-        .and_then(|rest| rest.split('/').next())
+        .and_then(|operation_id| operation_id.split_once("-lifecycle-"))
+        .map(|(tenant, _)| tenant)
         .filter(|tenant| !tenant.is_empty())
 }
 
-/// Mint the operation name for `tenant_id`'s `seq`-th lifecycle operation. The
-/// tenant id is embedded so `poll_operation` (which receives only the name) can
-/// recover the RLS scope without a separate lookup.
+/// Mint the operation id for `tenant_id`'s `seq`-th lifecycle operation. The
+/// id is slug-shaped so it can also be embedded in the operation-ledger row.
+fn mint_operation_id(tenant_id: &str, seq: u64) -> String {
+    format!("{tenant_id}-lifecycle-{seq:06}")
+}
+
+/// Mint the operation name for `tenant_id`'s `seq`-th lifecycle operation.
 fn mint_operation_name(tenant_id: &str, seq: u64) -> String {
-    format!("operations/{tenant_id}/lifecycle-{seq:06}")
+    format!("operations/{}", mint_operation_id(tenant_id, seq))
+}
+
+fn operation_id_from_name(operation_name: &str) -> Result<String, ProviderError> {
+    operation_name
+        .strip_prefix("operations/")
+        .filter(|operation_id| !operation_id.is_empty())
+        .map(str::to_owned)
+        .ok_or_else(|| ProviderError::Internal {
+            message: format!("operation name {operation_name:?} is not AIP-151-shaped"),
+        })
+}
+
+fn lifecycle_ledger_entry(
+    tenant_id: &str,
+    operation_name: &str,
+    idempotency_key: &IdempotencyKey,
+    target: &str,
+    operation: TenantLifecycleOperation,
+    state: OperationState,
+    transition_sequence: u64,
+) -> Result<OperationLedgerEntry, ProviderError> {
+    let operation_id = operation_id_from_name(operation_name)?;
+    let transition_sequence = transition_sequence.max(1);
+    let terminal = state.is_terminal();
+    Ok(OperationLedgerEntry {
+        operation_id: operation_id.clone(),
+        idempotency_key: idempotency_key.as_str().to_owned(),
+        request_hash: format!(
+            "tenant-lifecycle:{target}:{operation:?}:{}",
+            idempotency_key.as_str()
+        ),
+        resource_orn: format!("orn:oya:tenancy:{tenant_id}:{target}"),
+        desired_generation: transition_sequence,
+        observed_generation: if terminal {
+            transition_sequence
+        } else {
+            transition_sequence.saturating_sub(1)
+        },
+        state,
+        phase: if terminal {
+            OperationPhase::WorkflowReconciler
+        } else {
+            OperationPhase::OperationLedger
+        },
+        tenant_account_project: format!("tenant/{tenant_id}"),
+        region_cell: "control-plane/default".to_owned(),
+        principal: "tenant-lifecycle-provider".to_owned(),
+        audit_chain_id: format!("audit-chain/{operation_id}/{transition_sequence}"),
+        retry_policy: RetryPolicy {
+            backoff: "bounded-exponential-jitter".to_owned(),
+            max_attempts: 3,
+            retry_classification: "transient".to_owned(),
+        },
+        cancellation: CancellationMetadata {
+            cancel_safe: true,
+            audit_required: true,
+        },
+        compensation: CompensationMetadata {
+            required: false,
+            strategy: "none".to_owned(),
+        },
+        transition_sequence,
+    })
+}
+
+fn terminal_ledger_entry(
+    metadata: &OperationLedgerEntry,
+    state: OperationState,
+) -> OperationLedgerEntry {
+    let mut terminal = metadata.clone();
+    terminal.state = state;
+    terminal.phase = OperationPhase::WorkflowReconciler;
+    terminal.observed_generation = terminal.desired_generation;
+    terminal.transition_sequence = terminal.transition_sequence.saturating_add(1);
+    terminal
 }
 
 fn validate_tenant(tenant: &Tenant) -> Result<(), ProviderError> {
@@ -168,7 +250,17 @@ impl<S: TenantLifecycleStore> TenantLifecycleProvider<S> {
             .await
             .map_err(store_error)?;
         let operation_name = mint_operation_name(&tenant_id, seq);
-        let pending = Operation::pending(operation_name.clone()).map_err(shape_error)?;
+        let pending_metadata = lifecycle_ledger_entry(
+            &tenant_id,
+            &operation_name,
+            idempotency_key,
+            &name.to_string(),
+            operation,
+            OperationState::Running,
+            seq,
+        )?;
+        let pending =
+            Operation::pending(operation_name.clone(), pending_metadata).map_err(shape_error)?;
         self.store
             .put_operation(
                 &tenant_id,
@@ -226,6 +318,7 @@ impl<S: TenantLifecycleStore> TenantLifecycleProvider<S> {
         {
             None => Operation::failed(
                 operation_name.to_owned(),
+                terminal_ledger_entry(&record.operation.metadata, OperationState::Failed),
                 OperationError {
                     code: "not_found".to_owned(),
                     message: format!("{} no longer exists", record.target),
@@ -235,6 +328,7 @@ impl<S: TenantLifecycleStore> TenantLifecycleProvider<S> {
             Some(tenant) => match tenant.apply_operation(record.kind) {
                 Err(violation) => Operation::failed(
                     operation_name.to_owned(),
+                    terminal_ledger_entry(&record.operation.metadata, OperationState::Failed),
                     OperationError {
                         code: "failed_precondition".to_owned(),
                         message: violation.to_string(),
@@ -254,6 +348,10 @@ impl<S: TenantLifecycleStore> TenantLifecycleProvider<S> {
                             .map_err(store_error)?;
                         Operation::succeeded(
                             operation_name.to_owned(),
+                            terminal_ledger_entry(
+                                &record.operation.metadata,
+                                OperationState::Succeeded,
+                            ),
                             serde_json::json!({ "retired": record.target }),
                         )
                         .map_err(shape_error)?
@@ -262,14 +360,20 @@ impl<S: TenantLifecycleStore> TenantLifecycleProvider<S> {
                             .put_tenant(&record.target, &transitioned)
                             .await
                             .map_err(store_error)?;
-                        let response =
-                            serde_json::to_value(&transitioned).map_err(|error| {
-                                ProviderError::Internal {
-                                    message: error.to_string(),
-                                }
-                            })?;
-                        Operation::succeeded(operation_name.to_owned(), response)
-                            .map_err(shape_error)?
+                        let response = serde_json::to_value(&transitioned).map_err(|error| {
+                            ProviderError::Internal {
+                                message: error.to_string(),
+                            }
+                        })?;
+                        Operation::succeeded(
+                            operation_name.to_owned(),
+                            terminal_ledger_entry(
+                                &record.operation.metadata,
+                                OperationState::Succeeded,
+                            ),
+                            response,
+                        )
+                        .map_err(shape_error)?
                     }
                 }
             },
@@ -383,12 +487,10 @@ impl<S: TenantLifecycleStore + Send + Sync> ResourceProvider for TenantLifecycle
                     AppliedWriteRecord::Put {
                         name: applied_name,
                         tenant,
-                    } if applied_name == name.to_string() && tenant == resource => {
-                        Ok(PutOutcome {
-                            resource: tenant,
-                            disposition: WriteDisposition::Replayed,
-                        })
-                    }
+                    } if applied_name == name.to_string() && tenant == resource => Ok(PutOutcome {
+                        resource: tenant,
+                        disposition: WriteDisposition::Replayed,
+                    }),
                     _ => Err(ProviderError::IdempotencyKeyReuse { key }),
                 };
             }
@@ -402,10 +504,7 @@ impl<S: TenantLifecycleStore + Send + Sync> ResourceProvider for TenantLifecycle
                 Some(current) => {
                     if current.state == TenantLifecycleState::Retired {
                         return Err(ProviderError::FailedPrecondition {
-                            message: format!(
-                                "{} is retired; tenant ids are never reused",
-                                name
-                            ),
+                            message: format!("{} is retired; tenant ids are never reused", name),
                         });
                     }
                     if current.state != resource.state {
@@ -569,6 +668,28 @@ impl<S: TenantLifecycleStore + Send + Sync> ResourceProvider for TenantLifecycle
             }
             self.complete_operation(&tenant_id, operation_name, record)
                 .await
+        })
+    }
+
+    fn operation_ledger_entry<'a>(
+        &'a self,
+        operation_name: &'a str,
+    ) -> Pin<Box<dyn Future<Output = Result<OperationLedgerEntry, ProviderError>> + Send + 'a>>
+    {
+        Box::pin(async move {
+            let tenant_id = tenant_scope_of_operation(operation_name)
+                .ok_or_else(|| ProviderError::NotFound {
+                    name: operation_name.to_owned(),
+                })?
+                .to_owned();
+            self.store
+                .get_operation(&tenant_id, operation_name)
+                .await
+                .map_err(store_error)?
+                .map(|record| record.operation.metadata)
+                .ok_or_else(|| ProviderError::NotFound {
+                    name: operation_name.to_owned(),
+                })
         })
     }
 }

@@ -5,6 +5,9 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//audit/adapters/file:audit-file-adapter",
+        "//audit/core/chain-domain:audit-chain-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
         "//libs/oya-shared-pdp-kernel:oya-shared-pdp-kernel",
         "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
         "//libs/oya-shared-ulid-id-kernel:oya-shared-ulid-id-kernel",
@@ -21,6 +24,9 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":oya-shared-pdp-adapter-cedar",
+        "//audit/adapters/file:audit-file-adapter",
+        "//audit/core/chain-domain:audit-chain-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
         "//libs/oya-shared-pdp-kernel:oya-shared-pdp-kernel",
         "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
         "//libs/oya-shared-ulid-id-kernel:oya-shared-ulid-id-kernel",

@@ -9,17 +9,13 @@ use std::pin::Pin;
 use oya_shared_platform_contracts_kernel::tenancy::{
     IsolationPosture, Tenant, TenantLifecycleState,
 };
-use oya_shared_resource_provider_contract_kernel::{
-    ProviderError, ResourceName, ResourceProvider,
-};
+use oya_shared_resource_provider_contract_kernel::{ProviderError, ResourceName, ResourceProvider};
 use tenancy_tenant_lifecycle_domain::DesiredTenantState;
 use tenancy_tenant_lifecycle_kernel::{
     AppliedWriteRecord, OperationRecord, StoreError, TenantLifecycleStore,
 };
 use tenancy_tenant_lifecycle_usecase::TenantLifecycleProvider;
-use tenancy_tenant_lifecycle_usecase::reconcile::{
-    ReconcileContext, ReconcileOutcome, TenantSpec,
-};
+use tenancy_tenant_lifecycle_usecase::reconcile::{ReconcileContext, ReconcileOutcome, TenantSpec};
 
 // The same in-memory port fixture as tests/conformance.rs (duplicated by
 // design: integration-test binaries are independent compilation units).
@@ -111,7 +107,8 @@ impl TenantLifecycleStore for MemoryStore {
         &'a self,
         _tenant_id: &'a str,
         operation_name: &'a str,
-    ) -> Pin<Box<dyn Future<Output = Result<Option<OperationRecord>, StoreError>> + Send + 'a>> {
+    ) -> Pin<Box<dyn Future<Output = Result<Option<OperationRecord>, StoreError>> + Send + 'a>>
+    {
         Box::pin(async move { Ok(self.operations.get(operation_name).cloned()) })
     }
 
