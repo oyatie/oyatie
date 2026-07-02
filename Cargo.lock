@@ -6296,6 +6296,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-ci-cloud-resource-contracts-app"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "oya-cloud-ci-cross-artifact-agreement-app"
 version = "0.1.0"
 dependencies = [
@@ -9345,7 +9352,10 @@ version = "0.1.0"
 name = "oya-shared-pdp-adapter-cedar"
 version = "0.1.0"
 dependencies = [
+ "audit-chain-domain",
+ "audit-file-adapter",
  "cedar-policy",
+ "oya-data-boundary-kernel",
  "oya-shared-pdp-kernel",
  "oya-shared-platform-contracts-kernel",
  "oya-shared-ulid-id-kernel",
