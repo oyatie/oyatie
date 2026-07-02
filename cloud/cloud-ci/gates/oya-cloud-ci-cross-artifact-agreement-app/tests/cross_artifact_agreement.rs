@@ -439,28 +439,45 @@ fn source_input_refers_to_masterplan(path: &str) -> bool {
 }
 
 #[test]
-fn masterplan_v2_sequencing_is_zero_based_and_dispatch_blocked_pending_founder() {
+fn masterplan_v2_sequencing_is_zero_based_and_founder_ratification_recorded() {
     let root = repo_root();
     let masterplan = load_json(&root.join("specs/masterplan.json"));
     let findings = evaluate_masterplan_v2_sequencing(&masterplan);
-    let codes: BTreeSet<&str> = findings
-        .iter()
-        .map(|finding| finding.code.as_str())
-        .collect();
 
     assert!(
-        !codes.contains("masterplan_sequencing_invalid"),
-        "masterplan v2 sequencing must stay zero-based and DAG-derived: {findings:?}"
+        findings.is_empty(),
+        "masterplan v2 sequencing must stay zero-based, DAG-derived, and carry a recorded \
+         founder-ratification decision before any execution-wave dispatch: {findings:?}"
     );
-    assert!(
-        codes.contains("masterplan_execution_wave_dispatch_unratified"),
-        "execution-wave dispatch must remain blocked until founder ratification is recorded"
+
+    // The ratification decision must be durable evidence, not a bare boolean: the
+    // decision_ref must resolve to a committed evidence record.
+    let ratification = &masterplan["masterplan_v2"]["sequencing"]["founder_ratification"];
+    assert_eq!(
+        ratification["decision_recorded"].as_bool(),
+        Some(true),
+        "founder-ratification decision must be recorded before execution-wave dispatch"
     );
+    let decision_ref = ratification["decision_ref"]
+        .as_str()
+        .expect("founder_ratification.decision_ref must be a string");
     assert!(
-        findings.iter().all(|finding| {
-            finding.key != "masterplan_v2.sequencing.execution_wave_dispatch.not_blocked"
-        }),
-        "pending-founder state must be fail-closed, not merely unratified: {findings:?}"
+        root.join(decision_ref).is_file(),
+        "founder_ratification.decision_ref must resolve to a durable evidence record: {decision_ref}"
+    );
+
+    // Fail-closed dispatch contract survives ratification: dispatch without a founder
+    // decision stays structurally forbidden even after this decision is recorded.
+    let dispatch = &masterplan["masterplan_v2"]["sequencing"]["execution_wave_dispatch"];
+    assert_eq!(
+        dispatch["requires_founder_ratification"].as_bool(),
+        Some(true),
+        "execution-wave dispatch must keep requiring founder ratification"
+    );
+    assert_eq!(
+        dispatch["allowed_without_founder_ratification"].as_bool(),
+        Some(false),
+        "execution-wave dispatch must never be allowed without founder ratification"
     );
 }
 
