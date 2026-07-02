@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:5eac588315479c90",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:aaba31b3cf7248eb"
+    "source_inputs_digest": "fnv1a64:87bc7e1815cd11ce"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -21392,7 +21392,10 @@
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-axes-count-drift.json",
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-dup-adr-number.json",
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-half-supersession.json",
+          "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-dangling-dependency-ref.json",
+          "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-dependency-cycle.json",
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-dependency-dag.json",
+          "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-duplicate-work-item-id.json",
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-plan-evidence-drift.json",
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-program-coverage.json",
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-sequencing-unratified.json",

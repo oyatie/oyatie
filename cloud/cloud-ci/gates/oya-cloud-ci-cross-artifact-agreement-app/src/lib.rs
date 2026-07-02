@@ -4047,6 +4047,61 @@ mod tests {
             "MPV2-0001->MPV2-0001@self"
         )));
     }
+    /// Fail-closed contract for the masterplan structural gate: a corpus that
+    /// is MISSING the structures under test (masterplan_v2 itself, the work-item
+    /// set, or the dependency-edge set) must go RED, never silently green. An
+    /// absent graph is indistinguishable from a deleted one; both are blocking.
+    #[test]
+    fn masterplan_v2_structural_gate_fails_closed_on_missing_or_malformed_inputs() {
+        // No masterplan_v2 object at all.
+        let findings = evaluate_masterplan_v2_authority(&json!({}));
+        assert!(findings.contains(&Finding::new(
+            "masterplan_not_sole_live_authority",
+            "<missing-masterplan_v2>"
+        )));
+
+        // work_items missing entirely.
+        let mut missing_items = minimal_masterplan_v2();
+        missing_items["masterplan_v2"]
+            .as_object_mut()
+            .unwrap()
+            .remove("work_items");
+        let findings = evaluate_masterplan_v2_authority(&missing_items);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_external_live_work_item_id",
+            "<missing-work-items>"
+        )));
+
+        // work_items present but empty: an empty live ID space is not a plan.
+        let mut empty_items = minimal_masterplan_v2();
+        empty_items["masterplan_v2"]["work_items"] = json!([]);
+        let findings = evaluate_masterplan_v2_authority(&empty_items);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_external_live_work_item_id",
+            "<empty-work-items>"
+        )));
+
+        // dependency_edges missing entirely.
+        let mut missing_edges = minimal_masterplan_v2();
+        missing_edges["masterplan_v2"]
+            .as_object_mut()
+            .unwrap()
+            .remove("dependency_edges");
+        let findings = evaluate_masterplan_v2_authority(&missing_edges);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "<missing-dependency-edges>"
+        )));
+
+        // dependency_edges present but not an array.
+        let mut malformed_edges = minimal_masterplan_v2();
+        malformed_edges["masterplan_v2"]["dependency_edges"] = json!("not-an-array");
+        let findings = evaluate_masterplan_v2_authority(&malformed_edges);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "<malformed-dependency-edges>"
+        )));
+    }
     #[test]
     fn masterplan_v2_program_coverage_accepts_manifest_index_shards() {
         let findings = evaluate_masterplan_v2_program_coverage(
