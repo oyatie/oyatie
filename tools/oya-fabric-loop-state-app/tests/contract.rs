@@ -921,3 +921,94 @@ fn foreign_ledger_filenames_fail_listing_closed() {
     std::fs::remove_file(root.join("passes").join("pass-\u{0667}.json")).unwrap();
     assert_eq!(metrics.passes().unwrap().len(), 1, "ledger restored");
 }
+
+/// Harvested backlog card MPV2-0000.C008: the strict lister is also
+/// file_type-aware. A name-admitted entry (`<id>.json` passing the id
+/// contract) that is a DIRECTORY surfaces as `PlaneError::Corrupt` — not the
+/// misleading environmental `PlaneError::Io` (`EISDIR`) the pre-fix code
+/// degraded into on the later read.
+#[test]
+fn directory_named_like_card_fails_listing_corrupt_not_io() {
+    let root = scratch_dir("dir-shaped-entry");
+    let mut store = FsCoordinationStore::open(&root);
+    store
+        .put_card(&card("MPV2-L1", &[], CardStatus::Defined))
+        .unwrap();
+    let cards_dir = root.join("cards");
+
+    std::fs::create_dir(cards_dir.join("MPV2-L2.json")).unwrap();
+    assert!(
+        matches!(
+            store.cards(),
+            Err(PlaneError::Corrupt(detail))
+                if detail.contains("MPV2-L2.json") && detail.contains("directory")
+        ),
+        "planted directory must surface as Corrupt naming the entry, never Io"
+    );
+    std::fs::remove_dir(cards_dir.join("MPV2-L2.json")).unwrap();
+    assert_eq!(store.cards().unwrap().len(), 1, "listing restored");
+}
+
+/// Harvested backlog card MPV2-0000.C008: symlink shapes under the strict
+/// lister. A dangling symlink named `<id>.json` fails closed as
+/// `PlaneError::Corrupt` (the pre-fix lister admitted it and the reader then
+/// silently dropped it via the `NotFound -> Ok(None)` carve-out), while a
+/// valid symlink to a regular card JSON file is admitted and reads
+/// identically through the record reader (no false-closure regression).
+#[cfg(unix)]
+#[test]
+fn ledger_symlink_shapes_fail_closed_or_resolve() {
+    let root = scratch_dir("symlink-shapes");
+    let mut store = FsCoordinationStore::open(&root);
+    store
+        .put_card(&card("MPV2-L1", &[], CardStatus::Defined))
+        .unwrap();
+    let cards_dir = root.join("cards");
+
+    // Dangling symlink: the entry exists in the listing but resolves nowhere.
+    let dangling = cards_dir.join("MPV2-L3.json");
+    std::os::unix::fs::symlink(root.join("no-such-target.json"), &dangling).unwrap();
+    assert!(
+        matches!(
+            store.cards(),
+            Err(PlaneError::Corrupt(detail))
+                if detail.contains("MPV2-L3.json") && detail.contains("dangling symlink")
+        ),
+        "dangling symlink must surface as Corrupt naming the entry"
+    );
+    std::fs::remove_file(&dangling).unwrap();
+    assert_eq!(store.cards().unwrap().len(), 1, "listing restored");
+
+    // Symlink resolving to a non-file (a directory) is a shape violation too.
+    let to_dir = cards_dir.join("MPV2-L4.json");
+    std::os::unix::fs::symlink(&root, &to_dir).unwrap();
+    assert!(
+        matches!(
+            store.cards(),
+            Err(PlaneError::Corrupt(detail))
+                if detail.contains("MPV2-L4.json") && detail.contains("symlink to non-file")
+        ),
+        "symlink to a directory must surface as Corrupt naming the entry"
+    );
+    std::fs::remove_file(&to_dir).unwrap();
+    assert_eq!(store.cards().unwrap().len(), 1, "listing restored");
+
+    // Valid symlink to a regular card JSON file: admitted, and the card reads
+    // through the link (fs::read_to_string follows symlinks).
+    let target = root.join("linked-card-payload.json");
+    std::fs::write(
+        &target,
+        card("MPV2-L5", &[], CardStatus::Defined)
+            .to_json()
+            .to_canonical_string(),
+    )
+    .unwrap();
+    std::os::unix::fs::symlink(&target, cards_dir.join("MPV2-L5.json")).unwrap();
+    let listed = store.cards().unwrap();
+    assert_eq!(
+        listed.len(),
+        2,
+        "valid symlink to a regular file is admitted"
+    );
+    assert!(listed.iter().any(|c| c.card_id == "MPV2-L5"));
+}

@@ -1509,12 +1509,18 @@ fn is_atomic_write_tmp(name: &str) -> bool {
 }
 
 /// Strict fail-closed ledger listing: a directory entry is admitted iff its
-/// name is `<id>.json` with `id` passing [`validate_id`]. A non-UTF-8 name, a
-/// `.json` name whose id fails the contract (unicode digits, spaces,
-/// dotfiles), or any other foreign name surfaces as [`PlaneError::Corrupt`] —
-/// never silently skipped (a ledger the lister cannot fully reason about is
-/// never admitted as clean). The single carve-out is the atomic writer's own
-/// tmp shape (see [`is_atomic_write_tmp`]).
+/// name is `<id>.json` with `id` passing [`validate_id`] AND the entry is a
+/// regular file (directly, or through a symlink that resolves to a regular
+/// file). A non-UTF-8 name, a `.json` name whose id fails the contract
+/// (unicode digits, spaces, dotfiles), or any other foreign name surfaces as
+/// [`PlaneError::Corrupt`] — never silently skipped (a ledger the lister
+/// cannot fully reason about is never admitted as clean). The file-type rule
+/// applies only after a name passes the id contract: a name-admitted entry
+/// that is a directory, a dangling symlink, or a symlink to a non-file also
+/// surfaces as [`PlaneError::Corrupt`] instead of degrading later into a
+/// silent drop (dangling symlink read as `NotFound`) or an environmental
+/// [`PlaneError::Io`] (`EISDIR` on read). The single carve-out is the atomic
+/// writer's own tmp shape (see [`is_atomic_write_tmp`]).
 fn list_json_ids(dir: &Path) -> Result<Vec<String>, PlaneError> {
     let mut ids = Vec::new();
     let entries = match fs::read_dir(dir) {
@@ -1535,6 +1541,7 @@ fn list_json_ids(dir: &Path) -> Result<Vec<String>, PlaneError> {
         if let Some(id) = name.strip_suffix(".json")
             && validate_id(id).is_ok()
         {
+            require_regular_file(dir, &entry, name)?;
             ids.push(id.to_owned());
             continue;
         }
@@ -1548,6 +1555,54 @@ fn list_json_ids(dir: &Path) -> Result<Vec<String>, PlaneError> {
     }
     ids.sort();
     Ok(ids)
+}
+
+/// Fail-closed file-type admission for a name-admitted ledger entry. Only a
+/// regular file (directly, or via a symlink resolving to a regular file) is
+/// admitted: a valid symlink to a regular file reads identically through
+/// [`read_record`]. Every other shape is a ledger-structure violation and
+/// surfaces as [`PlaneError::Corrupt`] naming the directory and entry — a
+/// dangling symlink would otherwise be silently dropped by the readers
+/// (`NotFound` maps to `Ok(None)`) and a directory would degrade into a
+/// misleading environmental [`PlaneError::Io`] (`EISDIR`). [`PlaneError::Io`]
+/// is reserved for genuine environmental read failures while inspecting the
+/// entry.
+fn require_regular_file(dir: &Path, entry: &fs::DirEntry, name: &str) -> Result<(), PlaneError> {
+    // `DirEntry::file_type` does NOT follow symlinks, so the symlink case is
+    // distinguished here before any resolution.
+    let file_type = entry
+        .file_type()
+        .map_err(|e| io_err("entry file_type", &e))?;
+    if file_type.is_file() {
+        return Ok(());
+    }
+    if file_type.is_symlink() {
+        // `fs::metadata` follows symlinks: `NotFound` here means the link
+        // dangles (the entry itself was just enumerated, so it exists).
+        return match fs::metadata(entry.path()) {
+            Ok(meta) if meta.is_file() => Ok(()),
+            Ok(_) => Err(PlaneError::Corrupt(format!(
+                "symlink to non-file in ledger directory {}: {name}",
+                dir.display()
+            ))),
+            Err(err) if err.kind() == std::io::ErrorKind::NotFound => {
+                Err(PlaneError::Corrupt(format!(
+                    "dangling symlink in ledger directory {}: {name}",
+                    dir.display()
+                )))
+            }
+            Err(err) => Err(io_err("resolve symlink target", &err)),
+        };
+    }
+    let shape = if file_type.is_dir() {
+        "directory"
+    } else {
+        "non-regular file"
+    };
+    Err(PlaneError::Corrupt(format!(
+        "{shape} in ledger directory {}: {name}",
+        dir.display()
+    )))
 }
 
 /// Filesystem bridge adapter for the durable coordination plane. LOCAL BRIDGE

@@ -266,14 +266,13 @@ fn main() -> ExitCode {
                 );
             })
             .map_err(CliError::from),
-        "block" => BlockKind::parse(&kind)
-            .and_then(|kind| {
-                runtime
-                    .loop_state
-                    .mark_blocked(&card_id, &lane_id, kind, &note, at)
-                    .map(|()| println!("{card_id} blocked ({}) on lane {lane_id}", kind.as_str()))
-            })
-            .map_err(CliError::from),
+        "block" => parse_block_kind(&kind).and_then(|kind| {
+            runtime
+                .loop_state
+                .mark_blocked(&card_id, &lane_id, kind, &note, at)
+                .map(|()| println!("{card_id} blocked ({}) on lane {lane_id}", kind.as_str()))
+                .map_err(CliError::from)
+        }),
         "complete" => runtime
             .loop_state
             .complete(&card_id, &lane_id, &evidence, at)
@@ -432,6 +431,39 @@ fn parse_surface(raw: &str) -> Result<LaneWorkSurface, CliError> {
     })
 }
 
+/// Parse the `block --kind` flag. An unknown kind is operator CLI misuse —
+/// the value never touched a store — so it reroutes to `CliError::Usage`
+/// instead of leaking raw `PlaneError` corruption text.
+fn parse_block_kind(kind: &str) -> Result<BlockKind, CliError> {
+    BlockKind::parse(kind).map_err(|_| {
+        CliError::Usage(format!(
+            "--kind must be one of needs-decision, needs-dependency, needs-review, \
+             needs-infra, other; got {kind:?}"
+        ))
+    })
+}
+
+/// Parse the `check-disjoint --phase` flag. An unknown phase is operator CLI
+/// misuse, not plane corruption: reroute to `CliError::Usage`.
+fn parse_disjointness_phase(phase: &str) -> Result<DisjointnessPhase, CliError> {
+    DisjointnessPhase::parse(phase).map_err(|_| {
+        CliError::Usage(format!(
+            "--phase must be one of pre-flight, post-run; got {phase:?}"
+        ))
+    })
+}
+
+/// Parse the `check-disjoint --reviewer-capacity` flag. A non-integer value
+/// is operator CLI misuse that never touched a store; it must not fabricate
+/// a `PlaneError::InvalidSurface` with a fake lane id.
+fn parse_reviewer_capacity(raw: &str) -> Result<usize, CliError> {
+    raw.parse::<usize>().map_err(|_| {
+        CliError::Usage(format!(
+            "--reviewer-capacity must be a non-negative integer; got {raw:?}"
+        ))
+    })
+}
+
 /// Run the mechanical lane-disjointness detector and print the JSON report.
 /// Gate semantics: exits zero ONLY on a `disjoint` verdict — an overlap
 /// verdict prints the report (evidence) and fails, routing the colliding
@@ -443,15 +475,8 @@ fn check_disjoint(
     at: u64,
 ) -> ExitCode {
     let run = || -> Result<oya_fabric_loop_state_app::DisjointnessReport, CliError> {
-        let phase = DisjointnessPhase::parse(phase)?;
-        let capacity = reviewer_capacity.parse::<usize>().map_err(|_| {
-            PlaneError::InvalidSurface {
-                lane_id: "<cli>".into(),
-                detail: format!(
-                    "--reviewer-capacity must be a non-negative integer; got {reviewer_capacity:?}"
-                ),
-            }
-        })?;
+        let phase = parse_disjointness_phase(phase)?;
+        let capacity = parse_reviewer_capacity(reviewer_capacity)?;
         let surfaces = surface_specs
             .iter()
             .map(|raw| parse_surface(raw))
@@ -684,5 +709,55 @@ mod tests {
         assert_eq!(err, CliError::Plane(plane));
         assert_eq!(err.to_string(), expected);
         assert!(!err.to_string().starts_with("usage error: "));
+    }
+
+    #[test]
+    fn malformed_block_kind_is_usage_error_not_plane() {
+        let err = parse_block_kind("not-a-kind").unwrap_err();
+        assert!(matches!(err, CliError::Usage(_)), "got {err:?}");
+        assert!(
+            err.to_string().starts_with("usage error: "),
+            "message: {err}"
+        );
+        assert!(err.to_string().contains("--kind"), "message: {err}");
+        assert!(err.to_string().contains("\"not-a-kind\""), "message: {err}");
+        // Well-formed kind still parses.
+        assert_eq!(parse_block_kind("needs-review"), Ok(BlockKind::NeedsReview));
+    }
+
+    #[test]
+    fn malformed_disjointness_phase_is_usage_error_not_plane() {
+        let err = parse_disjointness_phase("mid-flight").unwrap_err();
+        assert!(matches!(err, CliError::Usage(_)), "got {err:?}");
+        assert!(
+            err.to_string().starts_with("usage error: "),
+            "message: {err}"
+        );
+        assert!(err.to_string().contains("--phase"), "message: {err}");
+        // Well-formed phase still parses.
+        assert_eq!(
+            parse_disjointness_phase("post-run"),
+            Ok(DisjointnessPhase::PostRun)
+        );
+    }
+
+    #[test]
+    fn malformed_reviewer_capacity_is_usage_error_not_plane() {
+        for bad in ["nope", "-1", "", "1.5"] {
+            let err = parse_reviewer_capacity(bad).unwrap_err();
+            assert_eq!(
+                err,
+                CliError::Usage(format!(
+                    "--reviewer-capacity must be a non-negative integer; got {bad:?}"
+                )),
+                "capacity {bad:?} must be a usage error"
+            );
+            assert!(
+                err.to_string().starts_with("usage error: "),
+                "message: {err}"
+            );
+        }
+        // Well-formed capacity still parses.
+        assert_eq!(parse_reviewer_capacity("3"), Ok(3));
     }
 }
