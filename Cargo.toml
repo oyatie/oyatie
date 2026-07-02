@@ -363,6 +363,11 @@ exclude = [
   # observability/ subtree under each cap is OWNERS-covered (ADR-0555 breadth-unlimited) but is
   # never a crate home, so excluding it is correct + future-proof.
   "iac/observability",
+  # IaC module library (specs/iac-module-library.json): `iac/modules/<provider>/<module>` holds
+  # NON-crate OpenTofu module sources (main.tofu/variables.tofu/... , no Cargo.toml). The
+  # `iac/*/*` member glob would otherwise match `iac/modules/<provider>` and make cargo error
+  # trying to read a member manifest that does not exist (same class as the SLO homes below).
+  "iac/modules",
   "observability/observability",
   "storage/observability",
   "cell/observability",
