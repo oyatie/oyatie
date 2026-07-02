@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:5eac588315479c90",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:925d43db57ca6d3f"
+    "source_inputs_digest": "fnv1a64:e3fbecb43f9c2f56"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -4448,6 +4448,11 @@
         "mode": "baseline-block-on-new",
         "remediation": "/specs/masterplan.json#masterplan_v2 must be the only live plan authority; legacy plan, goal, roadmap, sequencing, closure, omc/omx/gjc/hermes, and harness-store surfaces must be dispositioned as absorbed, archived-with-provenance, or generated-projection with is_live_plan_authority=false."
       },
+      "masterplan_plan_evidence_unrecorded": {
+        "keys": [],
+        "mode": "baseline-block-on-new",
+        "remediation": "a masterplan work-item status claim (or evidence-attached Hermes import) is not backed by RECORDED completion evidence: attach at least one recorded completion-evidence-class ref (merged commit git:<40-hex>, merged-PR / merged-commit / actions-run record under https://github.com/<owner>/<repo>/, or a tracked product-completion packet under evidence/) to every verified 'done' claim, repair evidence refs that dangle outside the committed scm-facts tracked_paths resolution universe, and never point evidence at a surface_dispositions row dispositioned absorbed or archived-with-provenance; demote unevidenced completion claims to claimed-done-unverified instead of deleting the claim."
+      },
       "masterplan_program_coverage_incomplete": {
         "keys": [],
         "mode": "baseline-block-on-new",
@@ -5437,6 +5442,7 @@
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/BUCK",
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/Cargo.toml",
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs",
+          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/plan_evidence_crosscheck.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/projection_rederivation.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app/Cargo.toml",
@@ -21402,6 +21408,9 @@
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-dependency-cycle.json",
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-dependency-dag.json",
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-duplicate-work-item-id.json",
+          "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-evidence-dangling-ref.json",
+          "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-evidence-retired-surface.json",
+          "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-evidence-unrecorded-done-claim.json",
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-plan-evidence-drift.json",
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-program-coverage.json",
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-projection-hand-edited.json",

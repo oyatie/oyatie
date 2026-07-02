@@ -6254,7 +6254,26 @@
       "hermes_done_claim_without_evidence_state": "claimed-done-unverified",
       "evidence_attached_completion_state": "evidence-attached",
       "validator": "cloud-ci-cross-artifact-agreement/masterplan-v2-plan-vs-evidence-drift",
-      "policy_ref": "Seed Sub-AC 3"
+      "policy_ref": "Seed Sub-AC 3",
+      "plan_evidence_crosscheck": {
+        "validator": "cloud-ci-cross-artifact-agreement/masterplan-v2-plan-evidence-crosscheck",
+        "violation_code": "masterplan_plan_evidence_unrecorded",
+        "rule": "Every masterplan work-item status claim and evidence-attached Hermes import is cross-checked against RECORDED completion evidence, failing closed on unevidenced 'done' claims and on evidence pointing at retired surfaces: a verified completion status must carry at least one recorded completion-evidence-class ref (merged commit git:<40-hex>, merged-PR / merged-commit / actions-run record under https://github.com/<owner>/<repo>/, or a tracked product-completion packet under evidence/); every path-class evidence ref must resolve inside the tracked-tree resolution universe; and no evidence ref may point at a surface_dispositions row dispositioned absorbed or archived-with-provenance (exact, #fragment, and /** glob rows, derived mechanically from this document).",
+        "recorded_completion_evidence_classes": [
+          "git:<40-hex-merged-commit-sha>",
+          "https://github.com/<owner>/<repo>/pull/<n>",
+          "https://github.com/<owner>/<repo>/commit/<40-hex-sha>",
+          "https://github.com/<owner>/<repo>/actions/runs/<n>",
+          "tracked product-completion packet under evidence/"
+        ],
+        "resolution_universe": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json#tracked_paths",
+        "retired_surface_source": "/specs/masterplan.json#masterplan_v2.surface_dispositions",
+        "evidence_refs": [
+          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/plan_evidence_crosscheck.rs#evaluate_masterplan_plan_evidence_crosscheck",
+          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_plan_evidence_crosscheck_gate_is_green_on_live_tree",
+          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_plan_evidence_crosscheck_fixtures_fail_closed"
+        ]
+      }
     },
     "hermes_done_card_import_summary": {
       "source_system": "hermes",
@@ -16128,7 +16147,12 @@
         "evidence_refs": [
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_plan_evidence_drift",
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_plan_vs_evidence_drift_contract_is_green",
-          "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-plan-evidence-drift.json"
+          "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-plan-evidence-drift.json",
+          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/plan_evidence_crosscheck.rs#evaluate_masterplan_plan_evidence_crosscheck",
+          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_plan_evidence_crosscheck_gate_is_green_on_live_tree",
+          "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-evidence-unrecorded-done-claim.json",
+          "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-evidence-retired-surface.json",
+          "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-evidence-dangling-ref.json"
         ]
       },
       {

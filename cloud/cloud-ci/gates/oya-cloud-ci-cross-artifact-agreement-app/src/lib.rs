@@ -56,6 +56,13 @@
 //! - `masterplan_plan_evidence_drift` — masterplan v2 status/evidence policy,
 //!   evidence references, or evidence-attached Hermes completion states drift
 //!   from the evidence-audited plan contract.
+//! - `masterplan_plan_evidence_unrecorded` — a masterplan work-item status
+//!   claim (or evidence-attached Hermes import) is not cross-checkable against
+//!   RECORDED completion evidence: a verified 'done' claim carries no merged
+//!   commit / merged-PR / gate-run record or tracked product-completion
+//!   packet, an evidence ref dangles outside the tracked tree, points at a
+//!   retired (absorbed / archived-with-provenance) surface, or is a malformed
+//!   recorded-evidence ref.
 //! - `masterplan_projection_freshness_invalid` — generated/read projections
 //!   derived from /specs/masterplan.json lack complete freshness coverage,
 //!   conflict-resolution, single-writer, or no-live-authority metadata.
@@ -87,11 +94,17 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use serde_json::Value;
 
+mod plan_evidence_crosscheck;
 mod projection_rederivation;
+
 
 pub use projection_rederivation::{
     MASTERPLAN_MD_PATH, PROJECTION_REDERIVATION_VALIDATOR, STALE_PROJECTION_CODE,
     derive_masterplan_md_projection, evaluate_masterplan_projection_rederivation,
+};
+pub use plan_evidence_crosscheck::{
+    PLAN_EVIDENCE_CROSSCHECK_VALIDATOR, UNRECORDED_EVIDENCE_CODE,
+    evaluate_masterplan_plan_evidence_crosscheck,
 };
 /// The gate id, matching the buck2 target + the §5.2 contract.
 pub const GATE_ID: &str = "cloud-ci-cross-artifact-agreement";
@@ -181,7 +194,7 @@ const REQUIRED_SURFACE_DISPOSITIONS: [(&str, &str); 13] = [
 ];
 
 /// The blocking codes, in canonical order. The fixtures pin exact subsets.
-pub const VIOLATION_CODES: [&str; 22] = [
+pub const VIOLATION_CODES: [&str; 23] = [
     "orphan_decision",
     "unpropagated_decision",
     "status_disagreement",
@@ -200,6 +213,7 @@ pub const VIOLATION_CODES: [&str; 22] = [
     "masterplan_execution_wave_dispatch_unratified",
     "masterplan_evidence_state_invalid",
     "masterplan_plan_evidence_drift",
+    "masterplan_plan_evidence_unrecorded",
     "masterplan_projection_freshness_invalid",
     "masterplan_projection_stale",
     "masterplan_read_contract_invalid",
@@ -434,6 +448,9 @@ pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
         }
         if let Some(corpus) = fixture.get("projection_rederivation") {
             findings.extend(evaluate_masterplan_projection_rederivation(fixture, corpus));
+        }
+        if let Some(corpus) = fixture.get("plan_evidence_crosscheck") {
+            findings.extend(evaluate_masterplan_plan_evidence_crosscheck(fixture, corpus));
         }
         if let Some(root_hub) = fixture.get("root_hub_pointers") {
             findings.extend(evaluate_masterplan_v2_entry_surfaces(fixture, root_hub));
@@ -4425,6 +4442,7 @@ mod tests {
             "masterplan_program_coverage_incomplete",
             "masterplan_evidence_state_invalid",
             "masterplan_plan_evidence_drift",
+            "masterplan_plan_evidence_unrecorded",
             "masterplan_projection_freshness_invalid",
             "masterplan_projection_stale",
             "masterplan_read_contract_invalid",
