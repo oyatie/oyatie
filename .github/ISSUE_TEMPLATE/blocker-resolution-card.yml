@@ -52,7 +52,7 @@ body:
     attributes:
       label: Suggested owner / profile
       description: Team handle from .github/CODEOWNERS or worker profile.
-      placeholder: "@teams/axis-foundry"
+      placeholder: "@teams/council-architecture"
     validations:
       required: true
   - type: textarea
