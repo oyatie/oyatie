@@ -14919,8 +14919,8 @@
           "disposition_ref": "/specs/masterplan.json#masterplan_v2.surface_dispositions",
           "items_absorbed": 0,
           "zero_item_rationale": "Hermes done-column cards import as completion CLAIMS in the masterplan_v2.hermes_done_card_imports ledger, never as work items in the MPV2 id space; claims_imported counts the ledger entries.",
-          "claims_imported": 914,
-          "note": "done-column completion claims are item-level imported at masterplan_v2.hermes_done_card_imports (914 per-card claims at forensic snapshot sha256 f880cda946abe54b72f3e31c1bf86f57e0d33066983718e73dd5ac28fae73945; the Seed-time count was 814 — the live board advanced before the pinned snapshot), every claim as claimed-done-unverified: 37 carry attached evidence cross-references (evidence_state evidence-attached), 877 remain flagged unverified-pending-evidence, and 0 carry verified status. Per-card forensic detail (titles, completion timestamps, source result text) lives in evidence/goals/masterplan-v2-hermes-done-card-forensic-ledger-20260702.json. Backlog cards (todo/blocked/ready) are operational cards whose item-level import happens through the Definition/Seed card class of the drive loop, per the program-sharded progressive plan-depth constraint. Read-only forensic ingest is authorized via the owned-Rust SQLite reader tools/oya-masterplan-hermes-forensic-ledger-app only (no shell/python); that tool is the single writer of the imports and summary keys."
+          "claims_imported": 934,
+          "note": "done-column completion claims are item-level imported at masterplan_v2.hermes_done_card_imports (934 per-card claims at forensic snapshot sha256 51379d8c6d48c0577baf8aa6eac4522f3d01042fec3475f0e56ed6be8b642b38; the Seed-time count was 814 — the live board advanced before the pinned snapshot), every claim as claimed-done-unverified: 34 carry attached evidence cross-references (evidence_state evidence-attached), 900 remain flagged unverified-pending-evidence, and 0 carry verified status. Per-card forensic detail (titles, completion timestamps, source result text) lives in evidence/goals/masterplan-v2-hermes-done-card-forensic-ledger-20260702.json. Backlog cards (todo/blocked/ready) are operational cards whose item-level import happens through the Definition/Seed card class of the drive loop, per the program-sharded progressive plan-depth constraint. Read-only forensic ingest is authorized via the owned-Rust SQLite reader tools/oya-masterplan-hermes-forensic-ledger-app only (no shell/python); that tool is the single writer of the imports and summary keys."
         },
         {
           "source_authority": "~/.gjc/** and ~/.omx/**",
@@ -17589,7 +17589,7 @@
     },
     "non_claims": [
       "Sub-AC 4 records the founder-ratification decision for the re-derived sequencing (see masterplan_v2.sequencing.founder_ratification and evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json); it does not claim E2E loop execution, and no execution wave has dispatched.",
-      "Hermes done-card imports are not surfaced as done: all 914 per-card claims carry masterplan_status claimed-done-unverified; attached evidence refs (37 claims) upgrade only evidence_state to evidence-attached, never the completion status, and 0 claims are verified.",
+      "Hermes done-card imports are not surfaced as done: all 934 per-card claims carry masterplan_status claimed-done-unverified; attached evidence refs (34 claims) upgrade only evidence_state to evidence-attached, never the completion status, and 0 claims are verified.",
       "Legacy completion claims absorbed from the P00 GitOps VCS phase, its implementation plans, and the realignment wave sequence are not surfaced as verified done; they remain claimed-done-unverified until evidence refs attach."
     ]
   }
