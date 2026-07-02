@@ -7161,6 +7161,72 @@
         ]
       },
       {
+        "id": "P-OWNED-STACK-KERNEL",
+        "program_class": "owned-stack",
+        "owned_stack_layer": "cloud-kernel",
+        "scope": "kuberos no_std kernel and sysroot recursion floor (cloud/cloud-kernel, ADR-0512 carve-out workspace), ADR-0537 ladder rung 0 beneath cloud-os.",
+        "owner": "cloud-platform",
+        "hyperscaler_bar_exit_criteria": [
+          "Kernel and sysroot changes carry hermetic carve-out build/test evidence before any status advances.",
+          "Every kernel capability declares success/failure semantics with failure-injection coverage at the kernel boundary."
+        ],
+        "child_work_item_classes": [
+          "definition",
+          "kernel-capability",
+          "sysroot-contract",
+          "failure-injection"
+        ],
+        "evidence_requirements": [
+          "kernel carve-out build evidence",
+          "cloud-ci gate packet",
+          "review approval"
+        ]
+      },
+      {
+        "id": "P-OWNED-STACK-OS",
+        "program_class": "owned-stack",
+        "owned_stack_layer": "cloud-os",
+        "scope": "Talos-class cloud-os node operating system (cloud/cloud-os), ADR-0537 ladder rung 1: the node substrate the capability ladder runs on, including the trust-chain/root-of-trust surfaces.",
+        "owner": "cloud-platform",
+        "hyperscaler_bar_exit_criteria": [
+          "Node OS image, boot, and trust-chain claims are backed by build/rollout evidence instead of narration.",
+          "Upstream Talos remains an ADR-0510 transitional implementation behind stable owned interfaces until cutover evidence is green."
+        ],
+        "child_work_item_classes": [
+          "definition",
+          "node-image",
+          "trust-chain-contract",
+          "failure-injection"
+        ],
+        "evidence_requirements": [
+          "node image build evidence",
+          "cloud-ci gate packet",
+          "review approval"
+        ]
+      },
+      {
+        "id": "P-OWNED-STACK-K8S",
+        "program_class": "owned-stack",
+        "owned_stack_layer": "cloud-k8s",
+        "scope": "Bespoke Rust Kubernetes substrate (k8s/ capability and the cloud-k8s microservice) plus the managed-k8s cluster-lifecycle, control-plane-host, SLA-observability, and tenant-quota services, ADR-0537 ladder rung 2.",
+        "owner": "cloud-platform",
+        "hyperscaler_bar_exit_criteria": [
+          "Managed-k8s services expose evidence receipts and SLO gates before readiness claims advance.",
+          "Upstream k8s remains an ADR-0510 transitional implementation behind stable owned interfaces until owned-substrate cutover evidence is green."
+        ],
+        "child_work_item_classes": [
+          "definition",
+          "cluster-lifecycle",
+          "control-plane-contract",
+          "cutover-evidence"
+        ],
+        "evidence_requirements": [
+          "manifest-index coverage row",
+          "SLO/tenant-quota evidence",
+          "cloud-ci gate packet"
+        ]
+      },
+      {
         "id": "P-OWNED-STACK-DURABILITY",
         "program_class": "owned-stack",
         "owned_stack_layer": "durability-plane",
@@ -7185,8 +7251,8 @@
       {
         "id": "P-OWNED-STACK-CLOUD",
         "program_class": "owned-stack",
-        "owned_stack_layer": "cloud-substrate",
-        "scope": "Owned cloud substrate layers: IaC, Kubernetes, secrets, cloud-intelligence, and managed-k8s lifecycle/control-plane/SLA/quota services.",
+        "owned_stack_layer": "cloud-services",
+        "scope": "Owned cloud-services rung (ADR-0537 ladder rung 3, shared with the durability-plane and governance-iam-console slices): IaC, secrets, and cloud-intelligence control services on the owned substrate.",
         "owner": "cloud-platform",
         "hyperscaler_bar_exit_criteria": [
           "Cloud substrate services use owned Rust gate/service authority with bridge adapters marked transitional.",
@@ -7305,10 +7371,84 @@
         "fabric"
       ],
       "required_owned_stack_layers": [
-        "cloud-substrate",
+        "cloud-kernel",
+        "cloud-os",
+        "cloud-k8s",
+        "cloud-services",
         "durability-plane",
         "governance-iam-console"
       ],
+      "owned_stack_ladder": {
+        "doctrine_refs": [
+          "ADR-0520",
+          "ADR-0536",
+          "ADR-0537"
+        ],
+        "ladder_statement": "kuberos kernel (cloud/cloud-kernel) -> cloud-os (cloud/cloud-os) -> cloud-k8s -> cloud services -> oyatie products (ADR-0537 §3; ADR-0510 transitional implementations stay behind stable owned interfaces).",
+        "rungs": [
+          {
+            "rung": 0,
+            "layer": "cloud-kernel",
+            "program_ids": [
+              "P-OWNED-STACK-KERNEL"
+            ],
+            "source_anchors": [
+              "cloud/cloud-kernel",
+              "specs/capability-registry.json#meta_directories[kernel/]"
+            ]
+          },
+          {
+            "rung": 1,
+            "layer": "cloud-os",
+            "program_ids": [
+              "P-OWNED-STACK-OS"
+            ],
+            "source_anchors": [
+              "cloud/cloud-os",
+              "specs/capability-registry.json#meta_directories[os/]"
+            ]
+          },
+          {
+            "rung": 2,
+            "layer": "cloud-k8s",
+            "program_ids": [
+              "P-OWNED-STACK-K8S"
+            ],
+            "source_anchors": [
+              "k8s",
+              "microservices/cloud-k8s/manifest.json"
+            ]
+          },
+          {
+            "rung": 3,
+            "layer": "cloud-services",
+            "program_ids": [
+              "P-OWNED-STACK-CLOUD",
+              "P-OWNED-STACK-DURABILITY",
+              "P-OWNED-STACK-GOVERNANCE-IAM-CONSOLE"
+            ],
+            "source_anchors": [
+              "cloud",
+              "/specs/microservices/manifests-index.json"
+            ]
+          },
+          {
+            "rung": 4,
+            "layer": "products",
+            "program_ids": [
+              "P-FD001-PRODUCT-SURFACES",
+              "P-ONTOLOGY",
+              "P-WORKFLOW-ENGINE",
+              "P-WORKFLOW-STUDIO",
+              "P-INTELLIGENCE"
+            ],
+            "source_anchors": [
+              "oya",
+              "/specs/microservices/manifests-index.json"
+            ]
+          }
+        ]
+      },
       "microservices": [
         {
           "microservice": "application",
@@ -7474,7 +7614,7 @@
         },
         {
           "microservice": "cloud-k8s",
-          "program_id": "P-OWNED-STACK-CLOUD",
+          "program_id": "P-OWNED-STACK-K8S",
           "source_manifest": "microservices/cloud-k8s/manifest.json",
           "coverage_status": "covered"
         },
@@ -7510,25 +7650,25 @@
         },
         {
           "microservice": "managed-k8s-cluster-lifecycle",
-          "program_id": "P-OWNED-STACK-CLOUD",
+          "program_id": "P-OWNED-STACK-K8S",
           "source_manifest": "microservices/managed-k8s-cluster-lifecycle/manifest.json",
           "coverage_status": "covered"
         },
         {
           "microservice": "managed-k8s-control-plane-host",
-          "program_id": "P-OWNED-STACK-CLOUD",
+          "program_id": "P-OWNED-STACK-K8S",
           "source_manifest": "microservices/managed-k8s-control-plane-host/manifest.json",
           "coverage_status": "covered"
         },
         {
           "microservice": "managed-k8s-sla-observability",
-          "program_id": "P-OWNED-STACK-CLOUD",
+          "program_id": "P-OWNED-STACK-K8S",
           "source_manifest": "microservices/managed-k8s-sla-observability/manifest.json",
           "coverage_status": "covered"
         },
         {
           "microservice": "managed-k8s-tenant-quota",
-          "program_id": "P-OWNED-STACK-CLOUD",
+          "program_id": "P-OWNED-STACK-K8S",
           "source_manifest": "microservices/managed-k8s-tenant-quota/manifest.json",
           "coverage_status": "covered"
         }
