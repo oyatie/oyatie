@@ -122,7 +122,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { crate: oya-cloud-ci-cross-artifact-agreement-app, label: "gate · cross-artifact-agreement (GATE-1)" }
+          - { crate: oya-cloud-ci-cross-artifact-agreement-app, label: "gate · cross-artifact-agreement (GATE-1, incl. the 4 masterplan-v2 plan gates: structural ID/DAG/orphans · projection-freshness · plan-vs-evidence · read-contract/entry-surface)" }
           - { crate: oya-cloud-ci-total-accounting-app,         label: "gate · total-accounting (GATE-2)" }
           - { crate: oya-cloud-ci-staleness-reaper-app,         label: "gate · staleness-reaper (GATE-3, born-blocking)" }
           - { crate: oya-cloud-ci-automation-ratchet-app,       label: "gate · automation-ratchet (GATE-4, polices gates)" }
