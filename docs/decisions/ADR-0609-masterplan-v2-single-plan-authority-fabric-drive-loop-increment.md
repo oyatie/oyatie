@@ -91,7 +91,10 @@ This ADR is the justification anchor (ADR-0555 accounting) for the artifacts thi
 cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/plan_evidence_crosscheck.rs
 cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/projection_rederivation.rs
 cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/read_surface_resurrection.rs
+evidence/goals/fabric-loop-closed-loop-improvement-verification-20260702.json
 evidence/goals/fabric-loop-e2e-proof-run-20260702.json
+evidence/goals/fabric-loop-full-cycle-c005-proof-run-20260702.json
+evidence/goals/fabric-loop-parallel-lanes-c006-c008-proof-run-20260702.json
 evidence/goals/fabric-loop-parallel-lanes-proof-run-20260702.json
 evidence/goals/masterplan-v2-hermes-done-card-forensic-ledger-20260702.json
 evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json
@@ -103,9 +106,16 @@ plan/fabric-loop/cards/MPV2-0000.C004.json
 plan/fabric-loop/cards/MPV2-0000.C005.json
 plan/fabric-loop/cards/MPV2-0000.C006.json
 plan/fabric-loop/cards/MPV2-0000.C007.json
+plan/fabric-loop/cards/MPV2-0000.C008.json
+plan/fabric-loop/cards/MPV2-0000.C009.json
+plan/fabric-loop/cards/MPV2-0000.C010.json
+plan/fabric-loop/cards/MPV2-0000.C011.json
 plan/fabric-loop/flow-metrics/passes/pass-00000000000000000001.json
 plan/fabric-loop/flow-metrics/passes/pass-00000000000000000002.json
+plan/fabric-loop/flow-metrics/passes/pass-00000000000000000003.json
+plan/fabric-loop/flow-metrics/passes/pass-00000000000000000004.json
 specs/fabric-drive-loop-state.json
+specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-cross-program-edge-undeclared.json
 specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-dangling-dependency-ref.json
 specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-dependency-cycle.json
 specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-dependency-dag.json
@@ -121,6 +131,7 @@ specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-projection-hand-edi
 specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-projection-stale-ledger.json
 specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-read-contract-resurrected-roadmap.json
 specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-sequencing-unratified.json
+specs/fixtures/cross-artifact-agreement/tc-XA-good-masterplan-cross-program-edge-declared.json
 specs/fixtures/cross-artifact-agreement/tc-XA-good-masterplan-read-surface-archive-clean.json
 specs/fixtures/cross-artifact-agreement/tc-XA-good-masterplan-sequencing-ratified.json
 tools/oya-fabric-loop-state-app/BUCK
@@ -129,6 +140,7 @@ tools/oya-fabric-loop-state-app/OWNERS
 tools/oya-fabric-loop-state-app/src/lib.rs
 tools/oya-fabric-loop-state-app/src/main.rs
 tools/oya-fabric-loop-state-app/tests/contract.rs
+tools/oya-fabric-loop-state-app/tests/ratification_gate.rs
 tools/oya-masterplan-hermes-forensic-ledger-app/BUCK
 tools/oya-masterplan-hermes-forensic-ledger-app/Cargo.toml
 tools/oya-masterplan-hermes-forensic-ledger-app/OWNERS
