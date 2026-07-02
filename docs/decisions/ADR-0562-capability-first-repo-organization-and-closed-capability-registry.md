@@ -730,6 +730,16 @@ tracked, born-accounted artifact paths are `cell/core/routing/Cargo.toml`, `cell
 subtree `cell/OWNERS`, and the committed move-plan `specs/reorg/cell-move-plan.json` (reached by the
 existing ADR-0563 `specs/reorg/` reachability prefix).
 
+The PACK-001 regional-pack manifest gate fixture slice later extends the same crate with the
+born-accounted surfaces `cell/core/regional-pack/src/manifest.rs`,
+`cell/core/regional-pack/tests/fixtures/kr/manifest.json`,
+`cell/core/regional-pack/tests/fixtures/kr/canonical-base.txt`,
+`cell/core/regional-pack/tests/fixtures/kr/pack-impl.txt`,
+`cell/core/regional-pack/tests/fixtures/negative/canonical-base-with-jurisdiction-markers.txt`, and
+`cell/core/regional-pack/tests/fixtures/negative/pack-impl-cross-pack-reference.txt` — a hermetic
+crate-local manifest parser/gate kernel plus RED/GREEN fixture data; test-fixture evidence only, no
+new capability dir, crate, or pack source of truth.
+
 #### §10.11 Seventh executed strangler move: `gateway` capability (oya/connector → gateway/)
 
 The seventh REAL codemod run homes the `gateway` capability's ten SaaS-integration crates from ONE
