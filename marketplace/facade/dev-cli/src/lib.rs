@@ -43,6 +43,7 @@ mod architecture_plane_gates;
 mod aspirational_enforcement_gate;
 mod banned_primitives_gate;
 mod canonical_base_neutrality_gate;
+mod capacity_model_manifest_gate;
 mod catalog_contract_gates;
 mod catalog_registry;
 mod cedar_fragment_coverage_gate;
@@ -471,6 +472,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate runbook-index-resolves [--docs-dir <docs>]"
         + "\n       oya gate validate runbook-freshness [--runbooks-dir <docs/runbooks>] [--today <YYYY-MM-DD>]"
         + "\n       oya gate validate slo-coverage [--registry <registry/catalog>]"
+        + "\n       oya gate validate capacity-model-manifest [--microservices-root <cloud|oya|microservices>]... [--manifest <path>]... [--require-tenant-class-deltas]"
         + "\n       oya gate validate architecture-boundaries [--repo-root <.>] [--registry <registry/catalog>] [--self-test]"
         + "\n       oya gate validate master-plan-completion [--master-plan <specs/masterplan.json>] [--evidence-dir <evidence/foundation>]..."
         + "\n       oya gate validate board-masterplan-consistency [--master-plan <docs/machine-readable/masterplan.generated.json>] [--board-snapshot <docs/machine-readable/board-sync.generated.json>]"
