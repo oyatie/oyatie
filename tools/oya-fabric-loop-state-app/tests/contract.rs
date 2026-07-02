@@ -12,6 +12,10 @@
 //!    state) while the durable coordination plane root is PR-governed.
 //! 4. The filesystem bridge adapters round-trip both planes across reopen and
 //!    enforce lane-exclusive claims.
+//! 5. Per-pass flow metrics (cycle time, review latency, rework count) are
+//!    recorded through the flow-metrics port on every dispatch pass and
+//!    persist across passes and process boundaries (append-only, strictly
+//!    monotonic ledger on the durable plane).
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::cell::RefCell;
@@ -21,11 +25,13 @@ use std::rc::Rc;
 
 use oya_fabric_loop_state_app::{
     BlockKind, CUTOVER_CRITERIA, CUTOVER_TARGET_DESTINATION_HOME, CUTOVER_TARGET_OWNER,
-    CUTOVER_TARGET_SERVICE_NAME, CardStatus, ClaimRecord, CoordinationPlanePort, CutoverTarget,
-    DEFAULT_DURABLE_PLANE_ROOT, DEFAULT_OPERATIONAL_PLANE_ROOT, ExecutionPlanePort,
-    FsCoordinationStore, FsExecutionStore, HeartbeatRecord, InMemoryCoordinationStore,
-    InMemoryExecutionStore, JsonValue, LoopCard, LoopStateService, PORT_CONTRACT_SPEC_PATH,
-    PlaneDescriptor, PlaneError, RunRecord, RunState,
+    CUTOVER_TARGET_SERVICE_NAME, CardFlowMetrics, CardFlowTimeline, CardStatus, ClaimRecord,
+    CoordinationPlanePort, CutoverTarget, DEFAULT_DURABLE_PLANE_ROOT, DEFAULT_FLOW_METRICS_ROOT,
+    DEFAULT_OPERATIONAL_PLANE_ROOT, ExecutionPlanePort, FlowMetricsPort, FlowMetricsService,
+    FsCoordinationStore, FsExecutionStore, FsFlowMetricsStore, HeartbeatRecord,
+    InMemoryCoordinationStore, InMemoryExecutionStore, InMemoryFlowMetricsStore, JsonValue,
+    LoopCard, LoopStateService, PORT_CONTRACT_SPEC_PATH, PassFlowMetrics, PlaneDescriptor,
+    PlaneError, RunRecord, RunState,
 };
 
 // ---------------------------------------------------------------------------
@@ -514,4 +520,170 @@ fn completion_requires_evidence_and_readiness_derives_from_the_dag() {
         ]
     );
     service.claim_ready("MPV2-B", "lane-b", 5).unwrap();
+}
+
+// ---------------------------------------------------------------------------
+// 6. Per-pass flow metrics: recorded through the port, persisted across passes
+// ---------------------------------------------------------------------------
+
+fn flow_timeline(card_id: &str, lane_id: &str, base: u64, rounds: u64) -> CardFlowTimeline {
+    CardFlowTimeline {
+        card_id: card_id.into(),
+        lane_id: lane_id.into(),
+        claimed_at_epoch_s: base,
+        review_requested_at_epoch_s: base + 100,
+        review_first_verdict_at_epoch_s: base + 130,
+        completed_at_epoch_s: base + 200,
+        review_rounds: rounds,
+    }
+}
+
+/// Spy flow-metrics port: forwards to an inner port, counting every call.
+struct SpyFlowMetrics<P: FlowMetricsPort> {
+    inner: P,
+    counts: CallCounts,
+}
+
+impl<P: FlowMetricsPort> FlowMetricsPort for SpyFlowMetrics<P> {
+    fn record_pass(&mut self, pass: &PassFlowMetrics) -> Result<(), PlaneError> {
+        bump(&self.counts, "metrics.record_pass");
+        self.inner.record_pass(pass)
+    }
+    fn pass(&self, pass_seq: u64) -> Result<Option<PassFlowMetrics>, PlaneError> {
+        bump(&self.counts, "metrics.pass");
+        self.inner.pass(pass_seq)
+    }
+    fn passes(&self) -> Result<Vec<PassFlowMetrics>, PlaneError> {
+        bump(&self.counts, "metrics.passes");
+        self.inner.passes()
+    }
+    fn descriptor(&self) -> PlaneDescriptor {
+        self.inner.descriptor()
+    }
+}
+
+#[test]
+fn flow_metric_recording_routes_through_the_metrics_port() {
+    let counts: CallCounts = Rc::new(RefCell::new(BTreeMap::new()));
+    let mut service = FlowMetricsService::new(SpyFlowMetrics {
+        inner: InMemoryFlowMetricsStore::new(),
+        counts: Rc::clone(&counts),
+    });
+
+    // One idle pass and one measured pass — metrics record on EVERY pass.
+    service.record_next_pass(&[], 1).unwrap();
+    service
+        .record_next_pass(&[flow_timeline("MPV2-M1", "lane-a", 1_000, 2)], 2)
+        .unwrap();
+    service.pass(1).unwrap();
+    service.passes().unwrap();
+    service.latest_pass().unwrap();
+
+    let observed = counts.borrow().clone();
+    for method in ["metrics.record_pass", "metrics.pass", "metrics.passes"] {
+        assert!(
+            observed.get(method).copied().unwrap_or(0) > 0,
+            "port method {method} was never crossed; observed: {observed:?}"
+        );
+    }
+    // The facade owns no store: exactly the two passes crossed record_pass.
+    assert_eq!(observed.get("metrics.record_pass"), Some(&2));
+}
+
+#[test]
+fn flow_metrics_are_recorded_and_persisted_across_passes() {
+    let root = scratch_dir("flow-metrics");
+
+    // Pass 1 recorded in one process "session"...
+    {
+        let mut service = FlowMetricsService::new(FsFlowMetricsStore::open(&root));
+        let pass = service
+            .record_next_pass(
+                &[
+                    flow_timeline("MPV2-M1", "lane-a", 1_000, 1),
+                    flow_timeline("MPV2-M2", "lane-b", 1_000, 3),
+                ],
+                1_780_000_000,
+            )
+            .unwrap();
+        assert_eq!(pass.pass_seq, 1);
+    }
+
+    // ...survives reopen, and pass 2 appends against the persisted head.
+    {
+        let mut service = FlowMetricsService::new(FsFlowMetricsStore::open(&root));
+        let restored = service.pass(1).unwrap().expect("pass 1 survives reopen");
+        assert_eq!(restored.cards_measured(), 2);
+        assert_eq!(restored.total_rework_count(), 2);
+        assert_eq!(restored.max_cycle_time_s(), Some(200));
+        assert_eq!(restored.max_review_latency_s(), Some(30));
+
+        let pass = service.record_next_pass(&[], 1_780_000_100).unwrap();
+        assert_eq!(
+            pass.pass_seq, 2,
+            "sequence continues from the persisted head"
+        );
+    }
+
+    // Both passes are durable across a third reopen with full metric content.
+    let mut store = FsFlowMetricsStore::open(&root);
+    let passes = store.passes().unwrap();
+    assert_eq!(
+        passes.iter().map(|p| p.pass_seq).collect::<Vec<_>>(),
+        vec![1, 2]
+    );
+    assert_eq!(passes[0].recorded_at_epoch_s, 1_780_000_000);
+    assert_eq!(passes[0].cards.len(), 2);
+    let m1 = &passes[0].cards[0];
+    assert_eq!(
+        (m1.card_id.as_str(), m1.lane_id.as_str()),
+        ("MPV2-M1", "lane-a")
+    );
+    assert_eq!(m1.cycle_time_s, 200);
+    assert_eq!(m1.review_latency_s, 30);
+    assert_eq!(m1.rework_count, 0);
+    assert_eq!(passes[0].cards[1].rework_count, 2);
+    assert!(passes[1].cards.is_empty(), "idle pass is still recorded");
+    assert_eq!(store.latest_pass().unwrap().unwrap().pass_seq, 2);
+
+    // Replays / out-of-order writes stay refused after reopen (append-only,
+    // strictly monotonic against the PERSISTED head — a mechanical property,
+    // not discipline).
+    assert!(matches!(
+        store.record_pass(&PassFlowMetrics {
+            pass_seq: 2,
+            recorded_at_epoch_s: 1_780_000_200,
+            cards: Vec::new(),
+        }),
+        Err(PlaneError::NonMonotonicPass {
+            pass_seq: 2,
+            latest_recorded: 2
+        })
+    ));
+
+    // The ledger self-describes as durable-plane data behind the port and
+    // models the same owned cloud-ci cutover target.
+    let descriptor = store.descriptor();
+    assert_eq!(format!("{:?}", descriptor.durability), "InRepoPrGoverned");
+    assert_eq!(store.cutover_target(), CutoverTarget::canonical());
+    assert!(
+        DEFAULT_FLOW_METRICS_ROOT.starts_with(DEFAULT_DURABLE_PLANE_ROOT),
+        "flow metrics default root rides the durable coordination plane"
+    );
+
+    // Derived metrics fail closed on malformed timelines even at this level.
+    let mut inverted = flow_timeline("MPV2-M3", "lane-a", 1_000, 1);
+    inverted.completed_at_epoch_s = 1;
+    assert!(matches!(
+        CardFlowMetrics::derive(&inverted),
+        Err(PlaneError::InvalidMetrics { .. })
+    ));
+
+    // A foreign file planted in the ledger directory is surfaced fail-closed,
+    // never silently skipped (no shadow ledger can hide beside the passes).
+    std::fs::write(root.join("passes").join("pass-shadow.json"), "{}").unwrap();
+    assert!(matches!(
+        store.passes(),
+        Err(PlaneError::Corrupt(detail)) if detail.contains("pass-shadow.json")
+    ));
 }
