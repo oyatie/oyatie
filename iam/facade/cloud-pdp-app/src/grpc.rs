@@ -15,6 +15,7 @@
 //! | `StalePolicyVersion`    | `FAILED_PRECONDITION` |
 //! | `BundleRejected`        | `UNAVAILABLE`         |
 //! | `DecisionIdUnavailable` | `INTERNAL`            |
+//! | `AuditChainEmission`    | `INTERNAL`            |
 //! | `RuntimeTimeout`        | `DEADLINE_EXCEEDED`   |
 //! | `RuntimePanic`          | `INTERNAL`            |
 //! | `CircuitOpen`           | `UNAVAILABLE`         |
@@ -224,6 +225,7 @@ fn status_from_refusal(error: &PdpError) -> Status {
         PdpError::StalePolicyVersion { .. } => Status::failed_precondition(error.to_string()),
         PdpError::BundleRejected { .. } => Status::unavailable(error.to_string()),
         PdpError::DecisionIdUnavailable { .. } => Status::internal(error.to_string()),
+        PdpError::AuditChainEmission { .. } => Status::internal(error.to_string()),
         PdpError::RuntimeTimeout { .. } => Status::deadline_exceeded(error.to_string()),
         PdpError::RuntimePanic { .. } => Status::internal(error.to_string()),
         PdpError::CircuitOpen { .. } => Status::unavailable(error.to_string()),
@@ -361,6 +363,13 @@ mod tests {
         assert_eq!(
             status_from_refusal(&PdpError::RuntimePanic {
                 detail: "panic".to_owned(),
+            })
+            .code(),
+            Code::Internal
+        );
+        assert_eq!(
+            status_from_refusal(&PdpError::AuditChainEmission {
+                detail: "append failed".to_owned(),
             })
             .code(),
             Code::Internal

@@ -19,6 +19,7 @@
 //! | `Evaluation`            | 422    | `evaluation_refused`      |
 //! | `BundleRejected`        | 503    | `bundle_rejected`         |
 //! | `DecisionIdUnavailable` | 500    | `decision_id_unavailable` |
+//! | `AuditChainEmission`    | 500    | `audit_chain_emission`     |
 //! | `RuntimeTimeout`        | 504    | `runtime_timeout`         |
 //! | `RuntimePanic`          | 500    | `runtime_panic`           |
 //! | `CircuitOpen`           | 503    | `circuit_open`            |
@@ -62,6 +63,9 @@ fn refusal_parts(error: &PdpError) -> (StatusCode, &'static str) {
         PdpError::BundleRejected { .. } => (StatusCode::SERVICE_UNAVAILABLE, "bundle_rejected"),
         PdpError::DecisionIdUnavailable { .. } => {
             (StatusCode::INTERNAL_SERVER_ERROR, "decision_id_unavailable")
+        }
+        PdpError::AuditChainEmission { .. } => {
+            (StatusCode::INTERNAL_SERVER_ERROR, "audit_chain_emission")
         }
         PdpError::RuntimeTimeout { .. } => (StatusCode::GATEWAY_TIMEOUT, "runtime_timeout"),
         PdpError::RuntimePanic { .. } => (StatusCode::INTERNAL_SERVER_ERROR, "runtime_panic"),
@@ -227,6 +231,12 @@ mod tests {
                 detail: "panic".to_owned(),
             }),
             (StatusCode::INTERNAL_SERVER_ERROR, "runtime_panic")
+        );
+        assert_eq!(
+            refusal_parts(&PdpError::AuditChainEmission {
+                detail: "append failed".to_owned(),
+            }),
+            (StatusCode::INTERNAL_SERVER_ERROR, "audit_chain_emission")
         );
         assert_eq!(
             refusal_parts(&PdpError::CircuitOpen {
