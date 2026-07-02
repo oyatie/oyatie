@@ -1,0 +1,80 @@
+name: Bug report
+description: Report a defect or regression in Oyatie
+title: "[bug] "
+labels: ["bugfix"]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Before filing, search existing issues and check
+        `docs/MISTAKES-LEDGER.md` for a prior failure-mode row (`MFL-NNNN`).
+        Security problems must NOT be filed here — use a private security
+        advisory instead.
+  - type: dropdown
+    id: change-class
+    attributes:
+      label: Affected change class
+      description: Which class of surface is broken?
+      options:
+        - feature
+        - bugfix
+        - refactor
+        - migration
+        - docs
+        - chore
+        - capability
+        - plugin
+        - runbook
+        - ADR
+        - pack-update
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened
+      description: Clear description of the defect, including error output.
+      placeholder: What broke, where, and how you noticed.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Exact commands or actions to reproduce, from a clean state.
+      placeholder: |
+        1. …
+        2. …
+        3. observe …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: >-
+        Command output excerpts, CI status links (`oya-ci-required`), audit-chain
+        emission IDs, or gate-packet excerpts.
+    validations:
+      required: false
+  - type: input
+    id: mistakes-ledger
+    attributes:
+      label: MISTAKES-LEDGER row
+      description: Relevant `MFL-NNNN` row, or "no prior row" after searching.
+      placeholder: MFL-NNNN or "no prior row"
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Commit / branch
+      placeholder: SHA or branch where the defect was observed
+    validations:
+      required: false
