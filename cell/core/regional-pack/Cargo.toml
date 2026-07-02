@@ -9,6 +9,9 @@ license = "Apache-2.0"
 [dependencies]
 oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
 network-residency = { path = "../../../network/core/residency" }
+serde = { workspace = true }
+serde_yaml = { workspace = true }
+walkdir = { workspace = true }
 
 [lib]
 name = "cell_regional_pack"

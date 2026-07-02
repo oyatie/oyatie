@@ -19,9 +19,15 @@ pub mod pack_onboarding_phase;
 pub use pack_onboarding_phase::{
     PackInstallStatus, PackOnboardingPhase, RegionalRolloutGate, RegionalRolloutGateError,
 };
+pub mod manifest;
+pub use manifest::{
+    GateCheck, GateViolation, REGIONAL_PACK_MANIFEST_SCHEMA_VERSION, RegionalPackManifest,
+    RegionalPackManifestError, RegionalPackManifestGateReport, load_regional_pack_manifest,
+    validate_regional_pack_manifest,
+};
 
-use oya_data_boundary_kernel::{Classified, DataClass};
 use network_residency::{ResidencyClass, parse_residency_class_label};
+use oya_data_boundary_kernel::{Classified, DataClass};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RegionalPack {
@@ -101,5 +107,90 @@ mod tests {
         .expect_err("regional packs use ADR-0049 residency labels");
 
         assert_eq!(error, RegionalPackError::InvalidResidencyClass);
+    }
+
+    #[test]
+    fn validates_kr_pack_manifest_fixture_and_gate_contracts() {
+        let repo_root = repo_root();
+
+        let report = validate_regional_pack_manifest(&repo_root, "kr")
+            .expect("KR fixture manifest should parse and validate");
+
+        assert_eq!(report.pack_id, "oya-pack-kr");
+        assert_eq!(report.pack_code, "kr");
+        assert!(report.passed(), "fixture should pass every local pack gate");
+        assert_eq!(
+            report
+                .check("canonical-base-neutrality")
+                .expect("neutrality check should be reported")
+                .violations,
+            Vec::<GateViolation>::new()
+        );
+        assert_eq!(
+            report
+                .check("cross-pack-refusal")
+                .expect("cross-pack refusal check should be reported")
+                .violations,
+            Vec::<GateViolation>::new()
+        );
+    }
+
+    #[test]
+    fn kr_pack_manifest_declares_minimal_regional_compliance_and_localization_shape() {
+        let manifest = load_regional_pack_manifest(repo_root(), "kr")
+            .expect("KR fixture manifest should load");
+
+        assert_eq!(
+            manifest.manifest_schema_version,
+            REGIONAL_PACK_MANIFEST_SCHEMA_VERSION
+        );
+        assert_eq!(manifest.pack.id, "oya-pack-kr");
+        assert_eq!(manifest.source_authority.accepted_adrs, vec!["ADR-0064"]);
+        assert_eq!(
+            manifest.source_authority.planning_context_adrs,
+            vec!["ADR-0010"]
+        );
+        assert_eq!(manifest.regional_pack.jurisdiction, "KR");
+        assert!(
+            manifest
+                .regional_pack
+                .residency_classes
+                .contains(&"strict_home_region".to_string())
+        );
+        assert!(
+            manifest
+                .regional_pack
+                .regulatory_controls
+                .contains(&"PIPA".to_string())
+        );
+        assert_eq!(
+            manifest.canonical_base.neutrality_gate,
+            "canonical-base-neutrality"
+        );
+        assert_eq!(
+            manifest.pack_impl.cross_pack_refusal_gate,
+            "cross-pack-refusal"
+        );
+        assert!(manifest.pack_impl.allowed_pack_dependencies.is_empty());
+    }
+
+    #[test]
+    fn rejects_non_kr_manifest_requests_against_kr_fixture_path() {
+        let error = load_regional_pack_manifest(repo_root(), "jp")
+            .expect_err("PACK-001 only authors the KR fixture manifest");
+
+        assert!(matches!(
+            error,
+            RegionalPackManifestError::ReadFailed { .. }
+        ));
+    }
+
+    fn repo_root() -> std::path::PathBuf {
+        std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(std::path::Path::parent)
+            .and_then(std::path::Path::parent)
+            .expect("cell/core/regional-pack has a repository root ancestor")
+            .to_path_buf()
     }
 }
