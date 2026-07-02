@@ -55,6 +55,17 @@ only for `Remediation::None`. AUTO-FIX is fenced to edits provably behavior-pres
 signal (manifest fields, declarative config, renames-with-full-reference-update, rustfmt/clippy --fix);
 anything that changes runtime SEMANTICS is `None`/advisory and never an applied AutoFix.
 
+## Governed surfaces
+
+The REMED-001 implementation of this gate-contract decision adds the first-party
+`oya-ci-gate-contract` crate and its review evidence. The governed, justified surfaces are:
+
+- `libs/oya-ci-gate-contract/BUCK`
+- `libs/oya-ci-gate-contract/Cargo.toml`
+- `libs/oya-ci-gate-contract/OWNERS`
+- `libs/oya-ci-gate-contract/src/lib.rs`
+- `evidence/multispectrum/remed-001-gate-contract-20260701-1782944808.json`
+
 ## Drivers
 
 - The founder automation-first directive ("comes-first").

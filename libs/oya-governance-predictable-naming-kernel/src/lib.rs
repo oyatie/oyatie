@@ -64,10 +64,10 @@ impl Default for NamingPolicy {
 ///     gate fail-CLOSED against any future `*-graphql` crate.
 ///   2026-05-15 ADR-0107 (Superseded by self): removed the
 ///     "tools/-implicit-app" carve-out. Every tools/ crate MUST take a
-///     canonical layer suffix; binary tools use `-app`. The only
-///     doctrinal lock is `oya-tooling-agent-read` (ADR-0053 sanctioned
-///     primitive), recorded in `DOCTRINAL_CARVE_OUTS` below — NOT a
-///     layer-enum exception.
+///     canonical layer suffix; binary tools use `-app`. Doctrinal locks
+///     (`oya-tooling-agent-read` per ADR-0053, `oya-ci-gate-contract` per
+///     ADR-0528) are recorded in `DOCTRINAL_CARVE_OUTS` below — NOT
+///     layer-enum exceptions.
 ///   `runtime` and `test` were removed: `runtime` is slated for
 ///   per-crate rename to `app` per ADR-0056 §"Concrete migration";
 ///   `test` was never in the canonical enum (test-only crates take
@@ -101,23 +101,21 @@ pub const BACKEND_SUFFIXES: [&str; 9] = [
 ];
 
 /// Doctrinal carve-outs: crate names whose name is locked by a
-/// higher-tier contract (CLAUDE.md sanctioned primitives per ADR-0053),
+/// higher-tier contract (sanctioned primitive per ADR-0053 or semver'd gate contract per
+/// ADR-0528),
 /// NOT by a layer-enum exception. These crates are exempted from the
 /// canonical-suffix requirement only because their name is part of the
-/// agent-operating contract.
+/// agent/gate-operating contract.
 ///
 /// This set is closed. Adding an entry requires a new ADR (do NOT
 /// expand without one).
 ///
-/// Sole entry as of ADR-0107's 2026-05-15 supersede: `oya-tooling-agent-read`.
-pub const DOCTRINAL_CARVE_OUTS: [&str; 1] = ["oya-tooling-agent-read"];
+/// Entries as of ADR-0528 REMED-001: `oya-tooling-agent-read`, `oya-ci-gate-contract`.
+pub const DOCTRINAL_CARVE_OUTS: [&str; 2] = ["oya-tooling-agent-read", "oya-ci-gate-contract"];
 
 /// True iff the crate name is in the policy's closed doctrinal-carve-out set.
 pub fn is_doctrinal_carve_out_with(crate_name: &str, policy: &NamingPolicy) -> bool {
-    policy
-        .doctrinal_carve_outs
-        .iter()
-        .any(|c| c == crate_name)
+    policy.doctrinal_carve_outs.iter().any(|c| c == crate_name)
 }
 
 /// True iff the crate name follows the `<check_family_prefix><feature>` pattern, in which
@@ -258,10 +256,9 @@ pub fn check_with_policy(
         // Adopted-pattern shortcuts (ADR-0105 §Adopted Patterns).
         // check-family is self-layering — no declared_role required.
         // backend-qualified adapter has effective layer `adapter`.
-        // Doctrinal carve-outs (CLAUDE.md sanctioned primitives per
-        // ADR-0053) are exempt from canonical-suffix enforcement — NOT
-        // because of an enum exception, but because their name is
-        // locked at the agent-operating-contract layer.
+        // Doctrinal carve-outs (ADR-0053/ADR-0528 locked names) are exempt from
+        // canonical-suffix enforcement — NOT because of an enum exception, but
+        // because their name is locked at a higher contract layer.
         let check_family = is_check_family_with(&row.crate_name, policy);
         let backend_qualified = is_backend_qualified_adapter_with(&row.crate_name, policy);
         let doctrinal_carve_out = is_doctrinal_carve_out_with(&row.crate_name, policy);
@@ -279,8 +276,8 @@ pub fn check_with_policy(
         match &row.declared_role {
             None => {
                 // check-family is self-layering (no declared_role required).
-                // Doctrinal carve-outs (ADR-0053 sanctioned primitives) are
-                // exempt — their name is locked by the agent-operating contract.
+                // Doctrinal carve-outs are exempt — their name is locked by a
+                // higher contract.
                 // All other crates (including tools/* per ADR-0107 amendment
                 // 2026-05-15) MUST declare a role; there is no directory-
                 // implicit naming surface.
@@ -568,7 +565,9 @@ mod tests {
             "oya-cloud-billing-adapter-aws"
         ));
         assert!(is_backend_qualified_adapter("oya-x-adapter-postgres"));
-        assert!(!is_backend_qualified_adapter("oya-intelligence-account-adapter")); // no backend
+        assert!(!is_backend_qualified_adapter(
+            "oya-intelligence-account-adapter"
+        )); // no backend
         assert!(!is_backend_qualified_adapter(
             "oya-intelligence-account-domain"
         ));
@@ -577,8 +576,9 @@ mod tests {
 
     #[test]
     fn is_doctrinal_carve_out_helper() {
-        // Sole entry per ADR-0107 supersede 2026-05-15.
+        // Closed entries per ADR-0107 and ADR-0528.
         assert!(is_doctrinal_carve_out("oya-tooling-agent-read"));
+        assert!(is_doctrinal_carve_out("oya-ci-gate-contract"));
         // Random non-carve-out names are not exempt.
         assert!(!is_doctrinal_carve_out("oya-governance-portfolio-citation"));
         assert!(!is_doctrinal_carve_out("oya-adapter-substitution-test"));
@@ -595,6 +595,17 @@ mod tests {
                 .iter()
                 .any(|v| v.kind == NamingViolationKind::UndeclaredRole),
             "doctrinal carve-out incorrectly flagged: {:?}",
+            r.violations
+        );
+
+        // ADR-0528 semver'd gate-contract crate — locked by doctrine, not by adding a broad
+        // `contract` layer role.
+        let r = check(&[row("oya-ci-gate-contract", None, Some("cloud-ci"))]).unwrap();
+        assert!(
+            !r.violations
+                .iter()
+                .any(|v| v.kind == NamingViolationKind::UndeclaredRole),
+            "gate-contract doctrinal carve-out incorrectly flagged: {:?}",
             r.violations
         );
     }

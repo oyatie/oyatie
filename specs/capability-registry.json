@@ -501,6 +501,7 @@
         "globs": [
           "libs/oya-advisory-mirror-kernel",
           "libs/oya-buck-syntax-kernel",
+          "libs/oya-ci-gate-contract",
           "libs/oya-ci-config",
           "libs/oya-ci-materializer-kernel",
           "libs/oya-crate-registrar-app",
