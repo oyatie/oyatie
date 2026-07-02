@@ -8,6 +8,8 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use serde_json::Value;
+
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .ancestors()
@@ -156,6 +158,70 @@ fn oya_verify_unknown_ci_required_flag_exits_two() {
 
     assert_eq!(output.status.code(), Some(2));
     assert!(stderr(&output).contains("unknown flag"));
+}
+
+#[test]
+fn oya_verify_terminal_clean_checkout_emits_machine_readable_slice_result() {
+    let fixture = VerifyFixture::new("verify-terminal-clean-checkout-pass");
+
+    let output = fixture.run(
+        &["verify", "--terminal-evidence", "clean-checkout"],
+        &[],
+        "",
+    );
+
+    assert_success(&output);
+    let result: Value = serde_json::from_str(&stdout(&output)).expect("stdout is json");
+    assert_eq!(
+        result["schema_version"],
+        "g013-terminal-verifier-harness.v1"
+    );
+    assert_eq!(result["evidence_class"], "clean-checkout");
+    assert_eq!(result["claim_scope"], "slice_evidence");
+    assert_eq!(result["outcome"], "pass");
+    assert_eq!(result["full_platform_terminal_closure_claimed"], false);
+    assert_eq!(result["g013_complete_claimed"], false);
+    assert_eq!(result["local_bridge_only"], true);
+    assert_eq!(
+        result["dirty_paths"]
+            .as_array()
+            .expect("dirty_paths array")
+            .len(),
+        0
+    );
+    assert_eq!(result["checkout_ref"], "fixture-head-1234567890abcdef");
+
+    let log = fixture.log();
+    assert_in_order(
+        &log,
+        &[
+            "git rev-parse --show-toplevel",
+            "git rev-parse HEAD",
+            "git status --short --untracked-files=all",
+        ],
+    );
+}
+
+#[test]
+fn oya_verify_terminal_clean_checkout_fails_dirty_checkout_without_terminal_claim() {
+    let fixture = VerifyFixture::new("verify-terminal-clean-checkout-dirty");
+
+    let output = fixture.run(
+        &["verify", "--terminal-evidence", "clean-checkout"],
+        &[("FAKE_VERIFY_GIT_STATUS", " M src/lib.rs\n?? scratch.txt\n")],
+        "",
+    );
+
+    assert_eq!(output.status.code(), Some(1), "{}", stderr(&output));
+    let result: Value = serde_json::from_str(&stdout(&output)).expect("stdout is json");
+    assert_eq!(result["evidence_class"], "clean-checkout");
+    assert_eq!(result["outcome"], "fail");
+    assert_eq!(result["full_platform_terminal_closure_claimed"], false);
+    assert_eq!(result["g013_complete_claimed"], false);
+    let dirty_paths = result["dirty_paths"].as_array().expect("dirty_paths array");
+    assert_eq!(dirty_paths.len(), 2);
+    assert!(dirty_paths.iter().any(|path| path == " M src/lib.rs"));
+    assert!(dirty_paths.iter().any(|path| path == "?? scratch.txt"));
 }
 
 struct VerifyFixture {
