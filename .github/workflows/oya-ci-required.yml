@@ -567,17 +567,25 @@ jobs:
       - name: Pre-provision pinned rust toolchain and PR metadata preflight
         env:
           EVENT_NAME: ${{ github.event_name }}
-          PR_TITLE: ${{ github.event.pull_request.title || '' }}
-          PR_BODY: ${{ github.event.pull_request.body || '' }}
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          # Live-fetch token (same read-scoped github.token precedent as the merge-base
+          # baseline step below): the pull_request event payload freezes title/body at
+          # trigger time, so a `## Code Review` stamp applied via `gh pr edit` followed by
+          # `gh run rerun --failed` used to re-validate the stale pre-stamp body and stay
+          # RED (CodeReviewRequired), forcing empty-commit pushes purely to mint a fresh
+          # payload. Fetching the live PR at execution time keeps rerun semantics honest
+          # with no new mechanism: same admission bin, same body_path, same triggers.
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           rustup toolchain install
           rustc --version
           if [ "${EVENT_NAME}" = "pull_request" ]; then
+            pr_title="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.title')"
             body_path="${RUNNER_TEMP}/pull-request-body.md"
-            printf '%s\n' "${PR_BODY}" > "${body_path}"
+            gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.body // ""' > "${body_path}"
             buck2 run //libs/oya-check-pr-traceability:pr-traceability-admission-bin -- \
-              --pr-title "${PR_TITLE}" \
+              --pr-title "${pr_title}" \
               --pr-body "${body_path}" \
               --require-code-review
           fi
