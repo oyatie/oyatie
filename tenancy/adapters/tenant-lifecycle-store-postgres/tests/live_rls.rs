@@ -37,7 +37,12 @@ const RUNTIME_ROLE: &str = "tenancy_lifecycle_runtime";
 
 fn enabled() -> bool {
     std::env::var(ENABLE_ENV)
-        .map(|v| matches!(v.trim().to_ascii_lowercase().as_str(), "1" | "true" | "yes" | "on"))
+        .map(|v| {
+            matches!(
+                v.trim().to_ascii_lowercase().as_str(),
+                "1" | "true" | "yes" | "on"
+            )
+        })
         .unwrap_or(false)
 }
 
@@ -332,7 +337,7 @@ async fn live_rls_denies_cross_tenant_on_applied_and_operations() {
         .await
         .unwrap();
     let cross_op = sqlx::query(&format!(
-        "INSERT INTO {OPERATIONS_TABLE} (tenant_id, operation_name, operation_seq, payload_json, schema_version, created_at) VALUES ('beta', 'operations/beta/lifecycle-000001', 1, '{{}}'::jsonb, 1, now())"
+        "INSERT INTO {OPERATIONS_TABLE} (tenant_id, operation_name, operation_seq, payload_json, schema_version, created_at) VALUES ('beta', 'operations/beta-lifecycle-000001', 1, '{{}}'::jsonb, 1, now())"
     ))
     .execute(&mut *tx)
     .await;

@@ -109,7 +109,8 @@ impl TenantLifecycleStore for MemoryStore {
         &'a self,
         _tenant_id: &'a str,
         operation_name: &'a str,
-    ) -> Pin<Box<dyn Future<Output = Result<Option<OperationRecord>, StoreError>> + Send + 'a>> {
+    ) -> Pin<Box<dyn Future<Output = Result<Option<OperationRecord>, StoreError>> + Send + 'a>>
+    {
         Box::pin(async move { Ok(self.operations.get(operation_name).cloned()) })
     }
 
@@ -159,6 +160,22 @@ impl ConformanceFixture for TenantFixture {
             cell_id: "cell-001".to_owned(),
             residency_zone: None,
         }
+    }
+
+    fn resource_orn(&self, name: &ResourceName) -> String {
+        format!("orn:oya:tenancy:{}:{}", name.resource_id(), name)
+    }
+
+    fn tenant_account_project(&self) -> &str {
+        "tenant/res-0001"
+    }
+
+    fn region_cell(&self) -> &str {
+        "control-plane/default"
+    }
+
+    fn principal(&self) -> &str {
+        "tenant-lifecycle-provider"
     }
 }
 
@@ -217,7 +234,10 @@ async fn drive_to_done(
     key_ordinal: u32,
 ) -> oya_shared_resource_provider_contract_kernel::Operation {
     let key = TenantFixture.idempotency_key(key_ordinal).unwrap();
-    let mut op = provider.apply_lifecycle(name, operation, &key).await.unwrap();
+    let mut op = provider
+        .apply_lifecycle(name, operation, &key)
+        .await
+        .unwrap();
     assert!(!op.done, "lifecycle operations start pending");
     while !op.done {
         op = provider.poll_operation(&op.name.clone()).await.unwrap();
@@ -231,13 +251,7 @@ async fn lifecycle_happy_path_walks_the_contract_state_machine() {
     let name = TenantFixture.resource_name(1).unwrap();
     let mut provider = provider_with_tenant(&name).await;
 
-    let op = drive_to_done(
-        &mut provider,
-        &name,
-        TenantLifecycleOperation::Activate,
-        10,
-    )
-    .await;
+    let op = drive_to_done(&mut provider, &name, TenantLifecycleOperation::Activate, 10).await;
     assert!(matches!(op.result, Some(OperationResult::Response(_))));
     assert_eq!(
         provider.get(&name).await.unwrap().state,
