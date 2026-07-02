@@ -319,9 +319,22 @@
     },
     "non_claim": "Contracts are schemas for current local metadata behavior, but no per-tenant API version pinning runtime is implemented by CS-CLOUD-BILLING-TAX-001."
   },
-  "consumes_upstream_oss": [],
+  "consumes_upstream_oss": [
+    "opentofu",
+    "cosign"
+  ],
   "oss_stewardship_class_overrides": [],
-  "iac_module_invocations": [],
+  "iac_module_invocations": [
+    {
+      "context": "aws-guest",
+      "primitive": "sg-baseline",
+      "version_pin": "v0.1.0",
+      "source": "git::https://github.com/oyatie/oyatie.git//cloud/cloud-iac/modules/aws-guest/sg-baseline?ref=cloud-iac/modules/aws-guest/sg-baseline/v0.1.0",
+      "wrapper": "cloud/cloud-billing/iac/aws-guest/main.tf",
+      "cosign_attestation_digest": "sha256:7c24d764bd9f70fd24769e87f10a4386df023a76e09ef828a19d5fd717c73762",
+      "tenant_class_scope": "both"
+    }
+  ],
   "data_classes_processed": [],
   "implemented_source_files": [
     "crates/oya-cloud-billing-domain/src/lib.rs",
@@ -333,6 +346,7 @@
   ],
   "explicit_non_claims": [
     "No live billing REST/gRPC server, SDK, worker, message broker, metering outbox, database ledger, payment processor, settlement rail, tax authority adapter, FOCUS export, OpenTofu plan/apply, provider-live smoke, measured SLO, capacity telemetry, DR, or audit-chain runtime persistence is implemented.",
+    "IAC-001 adds only a thin aws-guest wrapper for the shared sg-baseline module and cosign attestation metadata; it does not deploy cloud-billing infrastructure or call AWS/OpenTofu/cosign runtimes.",
     "Legacy Markdown benchmark/parity/runbook/implementation-plan files under microservices/cloud-billing remain planning/prose and are not readiness evidence for CS-CLOUD-BILLING-TAX-001."
   ],
   "c2a_billing_finops_marketplace_metering_seam": {

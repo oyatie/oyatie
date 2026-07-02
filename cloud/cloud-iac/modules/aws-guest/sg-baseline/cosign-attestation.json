@@ -1,0 +1,63 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/iac-module-cosign-attestation-metadata.schema.json",
+  "schema_version": "1.0",
+  "attestation_kind": "cosign-metadata-fixture-no-signing-execution",
+  "task_id": "t_be53da65",
+  "authority": {
+    "adr": "ADR-0339",
+    "related_adr": "ADR-0181",
+    "source": "docs/decisions/ADR-0339-shared-iac-module-library.md"
+  },
+  "subject": {
+    "namespace": "oyatie",
+    "name": "sg-baseline",
+    "context": "aws-guest",
+    "system": "opentofu",
+    "version": "v0.1.0",
+    "source_path": "cloud/cloud-iac/modules/aws-guest/sg-baseline",
+    "release_identifier": "cloud-iac/modules/aws-guest/sg-baseline/v0.1.0"
+  },
+  "source_files": [
+    {
+      "path": "cloud/cloud-iac/modules/aws-guest/sg-baseline/README.md",
+      "sha256": "2c2f383cadb056c6bacda4974e92e984e566cc75e1366dc10578eff6813aeeb9",
+      "bytes": 900
+    },
+    {
+      "path": "cloud/cloud-iac/modules/aws-guest/sg-baseline/main.tofu",
+      "sha256": "2f33342655aef6143ec1c099fe35ba5dab552ac06596c394c75feaad5e1ef109",
+      "bytes": 1466
+    },
+    {
+      "path": "cloud/cloud-iac/modules/aws-guest/sg-baseline/outputs.tofu",
+      "sha256": "d9ff8367fe6653d7208c2e4e868914a0aa4669bc4efd735463fc86311647ff7a",
+      "bytes": 820
+    },
+    {
+      "path": "cloud/cloud-iac/modules/aws-guest/sg-baseline/variables.tofu",
+      "sha256": "4f2b91596cb14f0b76e404ccfab6dd3bf16e26d5def003b38f97a1a9b4681a44",
+      "bytes": 2468
+    },
+    {
+      "path": "cloud/cloud-iac/modules/aws-guest/sg-baseline/versions.tofu",
+      "sha256": "d2a900b0d853ee8a78395ec0c8c32edeb6c449aceae82933a36499f518934ff3",
+      "bytes": 173
+    }
+  ],
+  "predicate": {
+    "predicate_type": "https://slsa.dev/provenance/v1",
+    "build_type": "oyatie.local.iac-module.metadata-fixture.v1",
+    "builder_id": "hermes-kanban:t_be53da65",
+    "module_policy": "deny-by-default-ingress-explicit-egress-allow-list",
+    "tenant_scope": "demo_trial-or-paid",
+    "provider_api_execution": false,
+    "tofu_plan_apply_executed": false,
+    "cosign_signing_executed": false,
+    "cloud_provisioning_executed": false
+  },
+  "non_claims": [
+    "no cosign key material or signing execution is present in this repository fixture",
+    "no SLSA/VSA attestation is generated or verified by this metadata fixture",
+    "no OpenTofu init, test, plan, apply, provider API call, state backend, or cloud resource provisioning is claimed"
+  ]
+}

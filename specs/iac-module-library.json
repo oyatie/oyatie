@@ -18,6 +18,7 @@
     "companion_docs": [
       "docs/standards/iac-module-catalog.md",
       "microservices/cloud-iac/modules/catalog.json",
+      "cloud/cloud-iac/modules/catalog.json",
       "microservices/cloud-iac/ARCHITECTURE.md"
     ],
     "enforced_by_planned_advisory_until_crates_land": [
@@ -98,7 +99,12 @@
       {
         "name": "sg-baseline",
         "purpose": "Security group baseline (allow-list canonical egress; deny-by-default ingress)",
-        "status": "queued-for-wave-15Q"
+        "status": "implemented-fixture-iac-001",
+        "version": "v0.1.0",
+        "source_path": "cloud/cloud-iac/modules/aws-guest/sg-baseline",
+        "wrapper_fixture": "cloud/cloud-billing/iac/aws-guest/main.tf",
+        "cosign_attestation_digest": "sha256:7c24d764bd9f70fd24769e87f10a4386df023a76e09ef828a19d5fd717c73762",
+        "catalog_doc_path": "docs/standards/iac-module-catalog.md#aws-guestsg-baseline"
       }
     ],
     "oci-guest": [
