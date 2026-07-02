@@ -199,6 +199,62 @@ fn masterplan_v2_live_authority_contract_is_green() {
         "masterplan v2 authority contract must stay green: {findings:?}"
     );
 }
+
+/// Sub-AC 4.1 masterplan structural gate: the frozen fixture corpus must keep one
+/// ISOLATED fail-closed RED fixture per structural failure class — duplicate
+/// work-item ids, dependency cycles, and dangling (orphan) dependency references.
+/// The generic runner above only demands "some RED fixture exists"; this test pins
+/// each named failure mode to its exact violation set so none can be silently
+/// dropped or diluted.
+#[test]
+fn masterplan_structural_failure_mode_fixtures_fail_closed() {
+    let cases: [(&str, &[&str]); 3] = [
+        (
+            "tc-XA-bad-masterplan-duplicate-work-item-id.json",
+            &["masterplan_work_item_id_collision"],
+        ),
+        (
+            "tc-XA-bad-masterplan-dependency-cycle.json",
+            &[
+                "masterplan_dependency_dag_invalid",
+                "masterplan_sequencing_invalid",
+            ],
+        ),
+        (
+            "tc-XA-bad-masterplan-dangling-dependency-ref.json",
+            &["masterplan_dependency_dag_invalid"],
+        ),
+    ];
+
+    for (fixture_name, expected_codes) in cases {
+        let path = fixture_dir().join(fixture_name);
+        assert!(
+            path.is_file(),
+            "structural failure-mode fixture must exist: {}",
+            path.display()
+        );
+        let fixture = load_json(&path);
+        let report = evaluate(&fixture);
+        assert_eq!(
+            report.verdict,
+            Verdict::Red,
+            "{fixture_name} must fail closed (RED)"
+        );
+        let expected: BTreeSet<String> = expected_codes
+            .iter()
+            .map(|code| (*code).to_owned())
+            .collect();
+        assert_eq!(
+            report.violations, expected,
+            "{fixture_name} must emit exactly the pinned structural violation set"
+        );
+        assert_eq!(
+            expected_violations(&fixture),
+            expected,
+            "{fixture_name} expected_violations must stay in sync with the pinned set"
+        );
+    }
+}
 #[test]
 fn masterplan_v2_hermes_done_card_claims_are_unverified_until_evidence_attaches() {
     let root = repo_root();
