@@ -14,8 +14,8 @@ use std::num::NonZeroU32;
 use std::sync::Mutex;
 
 use crate::{
-    AckToken, Delivery, MessageConsumer, MessageEnvelope, MessageId, MessagingAdmin,
-    MessagingError, MessageProducer, StreamPosition, SubscriptionName, TopicName, TopicSpec,
+    AckToken, Delivery, MessageConsumer, MessageEnvelope, MessageId, MessageProducer,
+    MessagingAdmin, MessagingError, StreamPosition, SubscriptionName, TopicName, TopicSpec,
 };
 
 /// One stored message.
