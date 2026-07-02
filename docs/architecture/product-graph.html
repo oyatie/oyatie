@@ -3086,7 +3086,7 @@ const GRAPH = {
       {
         "id": "UNASSIGNED",
         "title": "UNASSIGNED",
-        "adr_count": 57,
+        "adr_count": 22,
         "deliverables": [],
         "source": "source/docs/machine-readable/masterplan.generated.json"
       },
@@ -3362,43 +3362,9 @@ const GRAPH = {
         "source": "source/docs/machine-readable/masterplan.generated.json"
       },
       {
-        "id": "M-APP-SHELL-FRONTEND",
-        "title": "M-APP-SHELL-FRONTEND",
-        "adr_count": 2,
-        "deliverables": [
-          {
-            "id": "ADR-0372-D1",
-            "title": "App-shell frontend on TypeScript + SolidJS (+ SolidStart for SSR/streaming)",
-            "status": "declared"
-          },
-          {
-            "id": "ADR-0372-D2",
-            "title": "End-to-end type safety via OpenAPI 3.2.0 → TS codegen (orval / openapi-typescript) generated in CI from the Rust backend contracts",
-            "status": "declared"
-          },
-          {
-            "id": "ADR-0372-D3",
-            "title": "Hybrid: Rust→WASM modules ONLY for genuinely compute-bound, DOM-light widgets (virtualized data-grids with client-side sort/filter/aggreg...",
-            "status": "declared"
-          },
-          {
-            "id": "ADR-0372-D4",
-            "title": "WITHDRAWN by the 2026-05-27 amendment",
-            "status": "declared"
-          },
-          {
-            "id": "ADR-0372-D5",
-            "title": "Frontend stays OSI-clean + hyperscaler-norm: SolidJS (MIT), SolidStart (MIT); no forbidden-license frontend deps; WASM remains the server...",
-            "status": "declared"
-          }
-        ],
-        "gate": "frontend build + Lighthouse/TTI budget check in CI",
-        "source": "source/docs/machine-readable/masterplan.generated.json"
-      },
-      {
         "id": "M-CLOUD-INTELLIGENCE",
         "title": "M-CLOUD-INTELLIGENCE",
-        "adr_count": 2,
+        "adr_count": 1,
         "deliverables": [
           {
             "id": "ADR-0373-D1",
@@ -3418,46 +3384,6 @@ const GRAPH = {
           {
             "id": "ADR-0373-D4",
             "title": "OpenSLO SLI set for the gateway: availability, time-to-first-token (TTFT, headline streaming SLI), end-to-end latency (non-stream), error...",
-            "status": "declared"
-          },
-          {
-            "id": "ADR-0384-D1",
-            "title": "oya-cloud-intelligence-kernel rewrite: SubscriptionPool<OAuthSubscription> state machine",
-            "status": "declared"
-          },
-          {
-            "id": "ADR-0384-D2",
-            "title": "oya-cloud-intelligence-rest adapter rewrite: SubscriptionStore (OpenBao-bound; reads refresh-tokens)",
-            "status": "declared"
-          },
-          {
-            "id": "ADR-0384-D3",
-            "title": "Provider adapters",
-            "status": "declared"
-          },
-          {
-            "id": "ADR-0384-D4",
-            "title": "Config schema migration: microservices/cloud-intelligence/k8s/cloud-intelligence.yaml ConfigMap.data.config.json moves from .groups[].key...",
-            "status": "declared"
-          },
-          {
-            "id": "ADR-0384-D5",
-            "title": "SETUP-RUNBOOK rewrite: operator runs claude login / codex login on a host with the respective CLI installed (v1 providers only); extracts...",
-            "status": "declared"
-          },
-          {
-            "id": "ADR-0384-D6",
-            "title": "Event-emission to configurable sink",
-            "status": "declared"
-          },
-          {
-            "id": "ADR-0384-D7",
-            "title": "Per-tenant Cedar isolation contract",
-            "status": "declared"
-          },
-          {
-            "id": "ADR-0384-D8",
-            "title": "Envelope encryption for refresh tokens at rest in OpenBao",
             "status": "declared"
           }
         ],
@@ -3524,13 +3450,13 @@ const GRAPH = {
             "status": "declared"
           }
         ],
-        "gate": "cargo run -p oya-dev-cli -- gate validate adr-index",
+        "gate": "cloud-ci/Rust gate packet adr-index",
         "source": "source/docs/machine-readable/masterplan.generated.json"
       },
       {
         "id": "M-LOCAL-CI-SUBSTRATE",
         "title": "M-LOCAL-CI-SUBSTRATE",
-        "adr_count": 4,
+        "adr_count": 2,
         "deliverables": [
           {
             "id": "ADR-0378-D1",
@@ -3581,132 +3507,21 @@ const GRAPH = {
             "id": "ADR-0380-D6",
             "title": "Maximum-parallelism enablement (follow-on, gated on D5 cutover landing first): (a) restore SeaweedFS-on-Talos",
             "status": "declared"
-          },
-          {
-            "id": "ADR-0381-D1",
-            "title": "Replace Kaniko (Google Container Tools",
-            "status": "declared"
-          },
-          {
-            "id": "ADR-0381-D2",
-            "title": "Multi-node Talos cell topology",
-            "status": "declared"
-          },
-          {
-            "id": "ADR-0381-D3",
-            "title": "Cell-boundary enforcement: Cilium L3/L4 NetworkPolicies (per ADR-0148) restrict cross-cell traffic to explicit seams (oya.cell/foundation...",
-            "status": "declared"
-          },
-          {
-            "id": "ADR-0381-D4",
-            "title": "Restore SeaweedFS-on-Talos as the cluster-internal S3-API-compatible object store (per ADR-0349); deploy onto the storage specialty pool ...",
-            "status": "declared"
-          },
-          {
-            "id": "ADR-0382-D1",
-            "title": "Sidero Metal management cluster bootstrap",
-            "status": "declared"
-          },
-          {
-            "id": "ADR-0382-D2",
-            "title": "Zero-touch node enrollment via PXE + iPXE chain",
-            "status": "declared"
-          },
-          {
-            "id": "ADR-0382-D3",
-            "title": "CAPI resources for the first control-plane node",
-            "status": "declared"
-          },
-          {
-            "id": "ADR-0382-D4",
-            "title": "One-command bring-up script",
-            "status": "declared"
           }
         ],
-        "gate": "cargo run -p oya-dev-cli -- gate validate adr-index",
-        "source": "source/docs/machine-readable/masterplan.generated.json"
-      },
-      {
-        "id": "M-CI-WEBHOOK-GATEWAY",
-        "title": "M-CI-WEBHOOK-GATEWAY",
-        "adr_count": 1,
-        "deliverables": [
-          {
-            "id": "D1",
-            "title": "HTTP receiver endpoint POST /webhook/github accepting GitHub's webhook payload",
-            "status": "declared"
-          },
-          {
-            "id": "D2",
-            "title": "ed25519 signature verification using the shared secret fetched from OpenBao (sref://openbao/oya/ci/github-ed25519-secret)",
-            "status": "declared"
-          },
-          {
-            "id": "D3",
-            "title": "Payload normalization to a canonical CiTriggerEvent (repo, branch, head_sha, base_sha, pr_number)",
-            "status": "declared"
-          },
-          {
-            "id": "D4",
-            "title": "Jenkins client (REST API) that triggers a parameterized build of the oyaCiLane job with the CiTriggerEvent as parameters",
-            "status": "declared"
-          },
-          {
-            "id": "D5",
-            "title": "Jenkins-result consumer: on oyaCiLane job completion, post the 5 required commit-status contexts (cargo-fmt, cargo-check, cargo-clippy, c...",
-            "status": "declared"
-          },
-          {
-            "id": "D6",
-            "title": "Per-tenant Cedar policy (admin/operator realm)",
-            "status": "declared"
-          }
-        ],
-        "gate": "cargo nextest -p oya-ci-webhook-gateway-kernel::d1_payload_parsing",
+        "gate": "cloud-ci/Rust gate packet adr-index",
         "source": "source/docs/machine-readable/masterplan.generated.json"
       },
       {
         "id": "M-TOOLCHAIN",
         "title": "M-TOOLCHAIN",
-        "adr_count": 2,
-        "deliverables": [
-          {
-            "id": "ADR-0514-D1",
-            "title": "Hermetic clang+lld+sysroot toolchain cell as default (replaces host /usr/bin/clang).",
-            "status": "declared"
-          },
-          {
-            "id": "ADR-0514-D2",
-            "title": "Trunk-sourced gate security fix: deployed controller Job clones dev (trusted) + PR-ref as data.",
-            "status": "declared"
-          },
-          {
-            "id": "ADR-0514-D3",
-            "title": "Idempotent buckify + durable DEP propagation (post-buckify patch step).",
-            "status": "declared"
-          },
-          {
-            "id": "ADR-0514-D4",
-            "title": "ControllerDispatcher wiring + cutover from cloud-ci to deployed oya-ci-controller (P1 core only).",
-            "status": "declared"
-          },
-          {
-            "id": "ADR-0514-D5",
-            "title": "Affected-gate rdeps depth-cap + presubmit/postsubmit two-tier + NativeLink CAS MVP.",
-            "status": "declared"
-          },
-          {
-            "id": "ADR-0514-D6",
-            "title": "Structured failure summary from buck2 event-log JSON (replaces fragile grep).",
-            "status": "declared"
-          }
-        ],
-        "gate": "cloud-ci/Rust gate packet hermetic-toolchain-default",
+        "adr_count": 1,
+        "deliverables": [],
         "source": "source/docs/machine-readable/masterplan.generated.json"
       },
       {
-        "id": "M-IDP-CENTRAL-HUB",
-        "title": "M-IDP-CENTRAL-HUB",
+        "id": "M-APP-SHELL-FRONTEND",
+        "title": "M-APP-SHELL-FRONTEND",
         "adr_count": 1,
         "deliverables": [],
         "source": "source/docs/machine-readable/masterplan.generated.json"
@@ -3817,8 +3632,8 @@ const GRAPH = {
       }
     ],
     "meta": {
-      "adr_count": 106,
-      "deliverable_count": 108,
+      "adr_count": 64,
+      "deliverable_count": 75,
       "deliverable_status_model": "declared (v1; CI-derived status deferred per ADR-0364 §3)",
       "generator": "oya gen masterplan",
       "source": "source/docs/machine-readable/masterplan.generated.json"
