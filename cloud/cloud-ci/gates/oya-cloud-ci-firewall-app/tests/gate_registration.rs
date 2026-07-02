@@ -152,6 +152,13 @@ fn live_postgres_split_fan_in_is_complete(workflow: &str) -> bool {
         && !block.contains("needs.gate-live-postgres.result")
 }
 
+fn affected_set_long_step_telemetry_is_wired(workflow: &str) -> bool {
+    workflow.contains("oya-cloud-ci-step-telemetry-bin")
+        && workflow.contains("--phase derive-affected-set-tier --")
+        && workflow.contains("--phase materialize-merge-base-build-health-baseline --")
+        && workflow.contains("--phase binding-affected-set-build-test --")
+}
+
 /// True iff `crate_dir` is an entry in the `gate` job's `strategy.matrix` — i.e. it is a
 /// homogeneous matrix gate run via `cargo test -p ${{ matrix.crate }}`. Recognizes both the
 /// simple list form (`- <crate>`) and the `include`-object form (`{ crate: <crate>, label: … }`).
@@ -597,5 +604,27 @@ fn live_postgres_split_lanes_are_both_required_by_fan_in() {
     assert!(
         !live_postgres_split_fan_in_is_complete(&without_facades),
         "missing facade sublane must be detected as fan-in incomplete"
+    );
+}
+
+#[test]
+fn affected_set_long_step_telemetry_wraps_long_running_phases() {
+    let root = repo_root();
+    let wf = workflow_path(&root);
+    let workflow =
+        fs::read_to_string(&wf).unwrap_or_else(|e| panic!("read workflow {}: {e}", wf.display()));
+
+    assert!(
+        affected_set_long_step_telemetry_is_wired(&workflow),
+        "affected-set long-running derive/baseline/binding phases must be wrapped by the telemetry helper"
+    );
+
+    let without_baseline = workflow.replace(
+        "--phase materialize-merge-base-build-health-baseline --",
+        "--phase removed --",
+    );
+    assert!(
+        !affected_set_long_step_telemetry_is_wired(&without_baseline),
+        "missing baseline materialization telemetry must be detected"
     );
 }

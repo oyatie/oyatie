@@ -35,6 +35,29 @@ rust_binary(
     ],
 )
 
+# Adapter-only visibility helper for GH #901: wraps long-running workflow commands and prints
+# phase + elapsed-seconds heartbeats while preserving the wrapped command's exit status.
+rust_binary(
+    name = "oya-cloud-ci-step-telemetry-bin",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/bin/oya-cloud-ci-step-telemetry.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-ci-affected-set-app",
+    ],
+)
+
+rust_test(
+    name = "oya-cloud-ci-step-telemetry-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_cloud_ci_step_telemetry_unittest",
+    crate_root = "src/bin/oya-cloud-ci-step-telemetry.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-ci-affected-set-app",
+    ],
+)
+
 rust_test(
     name = "oya-cloud-ci-affected-set-app-unittest",
     srcs = glob(["src/**/*.rs", "**/*.json"]),

@@ -668,8 +668,12 @@ jobs:
           full_required_marker="${RUNNER_TEMP}/affected-set-full-required"
           echo "false" > "${full_required_marker}"
           gate_bin="$(buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app:oya-cloud-ci-affected-set-bin --show-output | awk '{print $2}')"
+          telemetry_bin="$(buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app:oya-cloud-ci-step-telemetry-bin --show-output | awk '{print $2}')"
+          ci_step_telemetry="${RUNNER_TEMP}/oya-cloud-ci-step-telemetry"
+          cp "${telemetry_bin}" "${ci_step_telemetry}"
+          chmod +x "${ci_step_telemetry}"
           echo "affected-set preflight: derive plan before merge-base baseline"
-          "${gate_bin}" \
+          "${ci_step_telemetry}" --phase derive-affected-set-tier -- "${gate_bin}" \
             --policy cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/affected-set-policy.json \
             --base "origin/${BASE_REF}" --mode auto --derive-only \
             --decision-artifact-out "${RUNNER_TEMP}/affected-set-derive-decision.json" \
@@ -810,7 +814,8 @@ jobs:
           # Rust-channel bump PRs intentionally go cold on both sides to avoid mixed-rustc rlibs.
           # The build is EXPECTED to be non-zero (dev carries pre-existing breakage) — that is the
           # baseline, not a failure, so we never propagate its exit code.
-          buck2 build //... --keep-going \
+          "${ci_step_telemetry}" --phase materialize-merge-base-build-health-baseline -- \
+            buck2 build //... --keep-going \
               --build-report "${RUNNER_TEMP}/build-health-baseline.json" || true
           test -s "${RUNNER_TEMP}/build-health-baseline.json" \
             || { echo "build-health: FATAL empty merge-base baseline report"; exit 1; }
@@ -821,6 +826,7 @@ jobs:
         run: |
           set -euo pipefail
           gate_bin="$(buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app:oya-cloud-ci-affected-set-bin --show-output | awk '{print $2}')"
+          telemetry_bin="$(buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app:oya-cloud-ci-step-telemetry-bin --show-output | awk '{print $2}')"
           if [ "${EVENT_NAME}" = "pull_request" ]; then
             # PR tier: auto (cone-binding, hard-fail on a NEW break in the changed cone); a FULL
             # escalation runs the build-health ratchet against the merge-base baseline. The
@@ -832,7 +838,7 @@ jobs:
                 || { echo "affected-set: FATAL missing baseline after FULL derive preflight"; exit 1; }
               baseline_args=(--baseline-report "${RUNNER_TEMP}/build-health-baseline.json")
             fi
-            "${gate_bin}" \
+            "${telemetry_bin}" --phase binding-affected-set-build-test -- "${gate_bin}" \
               --policy cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/affected-set-policy.json \
               --base "origin/${BASE_REF}" --mode auto \
               --decision-artifact-out "${RUNNER_TEMP}/affected-set-binding-decision.json" \
@@ -844,7 +850,7 @@ jobs:
             # stable RUNNER_TEMP-anchored path) as a pure byproduct; the verdict is unchanged
             # (non-empty failure set = hard fail) and the report is uploaded below only on
             # trusted push-to-dev.
-            "${gate_bin}" \
+            "${telemetry_bin}" --phase binding-affected-set-build-test -- "${gate_bin}" \
               --policy cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/affected-set-policy.json \
               --base "origin/${BASE_REF}" --mode full \
               --decision-artifact-out "${RUNNER_TEMP}/affected-set-binding-decision.json"
