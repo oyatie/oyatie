@@ -6281,6 +6281,7 @@
         {
           "source_authority": "/specs/masterplan.json (legacy fragments: milestones, gitops_vcs_replacement, portfolio_hyperscaler_gap_ips, ideal_production_roadmap, bespoke_cloud_toolchain_services)",
           "disposition_ref": "/specs/masterplan.json#masterplan_v2.surface_dispositions",
+          "disposition_path": "/specs/masterplan.json#v1-legacy-fragments",
           "items_absorbed": 29,
           "absorbed_work_item_ids": [
             "MPV2-0007",
@@ -6725,6 +6726,15 @@
         "is_live_plan_authority": true,
         "work_item_id_policy": "defines-the-single-live-id-space",
         "provenance": "Seed Sub-AC 1 consolidation target"
+      },
+      {
+        "path": "/specs/masterplan.json#v1-legacy-fragments",
+        "surface_class": "absorbed-legacy-plan-authority",
+        "disposition": "absorbed",
+        "is_live_plan_authority": false,
+        "absorbed_into": "/specs/masterplan.json#masterplan_v2",
+        "work_item_id_policy": "must-not-mint-live-work-item-ids",
+        "provenance": "Masterplan v1 legacy plan-authority fragments (milestones, gitops_vcs_replacement, portfolio_hyperscaler_gap_ips, ideal_production_roadmap, bespoke_cloud_toolchain_services) absorbed as MPV2-0007..MPV2-0035; forensic mapping lives in masterplan_v2.authority_consolidation_audit.source_authorities and per-work-item absorbed_from rows. The same file path survives only as the masterplan v2 canonical authority."
       },
       {
         "path": "/specs/master-plan-sequencing.json",
