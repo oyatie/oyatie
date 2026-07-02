@@ -285,6 +285,7 @@ fn retired_usage_for_key(key: &str) -> &'static str {
         "specs/masterplan.json.planning_authority.retired_scratch_globs",
         "specs/masterplan.json.masterplan_v2.surface_dispositions",
         "specs/masterplan.json.masterplan_v2.authority_consolidation_audit",
+        "specs/masterplan.json.masterplan_v2.surface_disposition_audit",
         "specs/masterplan.json.masterplan_v2.sequencing.rederivation.inherited_orderings_ignored",
         "specs/master-plan-sequencing.json._metadata.archived_stale_documents",
         "specs/master-plan-sequencing.json.canonical_build_sequence.canonical_anchors",
@@ -410,5 +411,53 @@ fn live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated() {
         Verdict::Green,
         "planned-maturity live corpus findings: {:#?}",
         report.findings
+    );
+}
+
+/// `masterplan_v2.surface_disposition_audit` is a newly-registered historical
+/// context: any key under it (at any nesting depth, matching the substring
+/// contract `key.contains(context)`) must classify as `historical_provenance_only`,
+/// exactly like its sibling `surface_dispositions`/`authority_consolidation_audit`
+/// contexts, so it never trips `planned_maturity_retired_plan_live_input`.
+#[test]
+fn retired_usage_for_key_classifies_surface_disposition_audit_as_historical() {
+    assert_eq!(
+        retired_usage_for_key("specs/masterplan.json.masterplan_v2.surface_disposition_audit"),
+        "historical_provenance_only"
+    );
+    assert_eq!(
+        retired_usage_for_key(
+            "specs/masterplan.json.masterplan_v2.surface_disposition_audit[0].path"
+        ),
+        "historical_provenance_only"
+    );
+    assert_eq!(
+        retired_usage_for_key(
+            "specs/masterplan.json.masterplan_v2.surface_disposition_audit.entries[2].reason"
+        ),
+        "historical_provenance_only"
+    );
+}
+
+/// Negative/boundary companion: a key that does not fall under any registered
+/// historical context (including the sibling `surface_dispositions` prefix,
+/// which is a DIFFERENT string than `surface_disposition_audit`) must still
+/// classify as `live_input`, so the historical allowlist stays precise and
+/// does not silently widen to swallow unrelated live plan fields.
+#[test]
+fn retired_usage_for_key_defaults_unmatched_keys_to_live_input() {
+    assert_eq!(
+        retired_usage_for_key("specs/masterplan.json.masterplan_v2.work_items[0].id"),
+        "live_input"
+    );
+    assert_eq!(
+        retired_usage_for_key("specs/masterplan.json.masterplan_v2.dependency_edges[0].from"),
+        "live_input"
+    );
+    // The historical_implementation_index short-circuit still fires independent
+    // of the historical_contexts array.
+    assert_eq!(
+        retired_usage_for_key("specs/masterplan.json.live_implementation_index.foo"),
+        "historical_snapshot"
     );
 }

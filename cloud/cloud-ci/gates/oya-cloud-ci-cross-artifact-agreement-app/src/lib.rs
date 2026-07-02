@@ -44,7 +44,10 @@
 //!   the canonical MPV2 namespace, or carries an external id marked as live.
 //! - `masterplan_dependency_dag_invalid` — a masterplan v2 dependency edge is
 //!   malformed, points at a missing work item, lacks the prerequisite→dependent
-//!   direction contract, or participates in a cycle.
+//!   direction contract, participates in a cycle, or crosses program shards
+//!   without a declared program-pair edge in `cross_program_edge_policy`
+//!   (including a missing/malformed policy, an unknown/self/duplicate declared
+//!   pair, and a stale declared pair no live edge instantiates).
 //! - `masterplan_program_coverage_incomplete` — masterplan v2 lacks a complete
 //!   program-sharded coverage proof for the microservice manifest index, the
 //!   required ontology/workflow/intelligence/owned-stack/reorg/AST/fabric shards,
@@ -86,9 +89,14 @@
 //!   superseded entrypoint.
 //!
 //! - `masterplan_sequencing_invalid` — masterplan v2 lacks a fully
-//!   zero-based, DAG-derived sequencing projection over every live work item.
+//!   zero-based, DAG-derived sequencing projection over every live work item,
+//!   or its embedded `sequencing_identity` (stable content hash + monotonic
+//!   version) is missing, unversioned, recipe-drifted, or disagrees with the
+//!   digest recomputed from the live DAG + order + waves.
 //! - `masterplan_execution_wave_dispatch_unratified` — execution-wave dispatch
-//!   is not fail-closed on an explicit founder-ratification decision.
+//!   is not fail-closed on an explicit founder-ratification decision, or a
+//!   recorded ratification no longer binds to the recomputed sequencing
+//!   digest (content mutated after ratification voids the decision).
 //!
 //! The evaluator is pure: the fixture (data-under-test) drives it; there are no scanner
 //! special-cases. Carve-outs/exceptions live as DATA, never as evaluator branches.
@@ -99,6 +107,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use serde_json::Value;
+use sha2::{Digest, Sha256};
 
 mod plan_evidence_crosscheck;
 mod projection_rederivation;
@@ -119,9 +128,16 @@ pub use read_surface_resurrection::{
 /// The gate id, matching the buck2 target + the §5.2 contract.
 pub const GATE_ID: &str = "cloud-ci-cross-artifact-agreement";
 const DEPENDENCY_EDGE_SEMANTICS: &str = "from is prerequisite, to is dependent";
+/// Cross-program edge contract pinned by `masterplan_v2.cross_program_edge_policy.semantics`.
+const CROSS_PROGRAM_EDGE_SEMANTICS: &str =
+    "a dependency edge crossing program shards must be backed by a declared program-pair edge";
 const MANIFEST_INDEX_REF: &str = "/specs/microservices/manifests-index.json";
 const SEQUENCING_SOURCE_OF_TRUTH: &str = "/specs/masterplan.json#masterplan_v2.dependency_edges";
 const SEQUENCING_DERIVATION_MODE: &str = "zero-based-rederived-from-masterplan-v2-dependency-dag";
+/// The pinned digest recipe for `masterplan_v2.sequencing.sequencing_identity.sequencing_hash`
+/// and `founder_ratification.ratified_sequencing_digest`. `compute_masterplan_v2_sequencing_digest`
+/// is the executable form of this sentence; the two must never drift.
+const SEQUENCING_HASH_RECIPE: &str = "sha256 over canonical JSON (sorted keys, separators ',' ':') of {\"dependency_edges\": sorted [from, to] pairs, \"execution_waves\": wave work_item_ids arrays in wave order, \"work_item_order\": work_item_id strings in index order}";
 const DISPATCH_BLOCKED_STATE: &str = "blocked";
 const DISPATCH_BLOCKED_REASON: &str = "pending_founder_ratification";
 const CLAIMED_DONE_UNVERIFIED_STATE: &str = "claimed-done-unverified";
@@ -549,7 +565,10 @@ pub fn evaluate_masterplan_v2_authority(masterplan: &Value) -> BTreeSet<Finding>
     evaluate_masterplan_dependency_dag(
         v2.get("dependency_edges"),
         v2.get("dependency_edge_semantics"),
+        v2.get("cross_program_edge_policy"),
         &work_item_ids,
+        &masterplan_work_item_programs(v2.get("work_items")),
+        &masterplan_program_id_set(v2.get("programs")),
         &mut findings,
     );
 
@@ -1583,9 +1602,11 @@ pub fn evaluate_masterplan_v2_program_coverage(
 /// Evaluate the masterplan v2 sequencing/dispatch guard.
 ///
 /// This is the Sub-AC 4 guard: sequencing must be re-derived from the MPV2 DAG,
-/// all order and execution-wave indices must be zero-based and contiguous, and
-/// execution-wave dispatch must stay fail-closed until a founder-ratification
-/// decision is recorded.
+/// all order and execution-wave indices must be zero-based and contiguous,
+/// the embedded `sequencing_identity` hash/version must byte-agree with the
+/// digest recomputed from the live content, and execution-wave dispatch must
+/// stay fail-closed until a founder-ratification decision is recorded that
+/// binds to that same digest.
 pub fn evaluate_masterplan_v2_sequencing(masterplan: &Value) -> BTreeSet<Finding> {
     let mut findings = BTreeSet::new();
 
@@ -1665,7 +1686,50 @@ pub fn evaluate_masterplan_v2_sequencing(masterplan: &Value) -> BTreeSet<Finding
         &mut findings,
     );
 
-    let founder_ratified = founder_ratification_recorded(sequencing.get("founder_ratification"));
+    let computed_digest = compute_masterplan_v2_sequencing_digest(
+        masterplan.get("masterplan_v2").unwrap_or(&Value::Null),
+    );
+    evaluate_sequencing_identity(
+        sequencing.get("sequencing_identity"),
+        computed_digest.as_deref(),
+        &mut findings,
+    );
+
+    let ratification = sequencing.get("founder_ratification");
+    let record_ratified = founder_ratification_recorded(ratification);
+    let digest_bound = ratification
+        .and_then(|record| record.get("ratified_sequencing_digest"))
+        .and_then(Value::as_str)
+        .is_some_and(|digest| computed_digest.as_deref() == Some(digest));
+    if record_ratified && !digest_bound {
+        // The invalidation rule, mechanized: a ratification decision binds only
+        // to the exact sequencing content it approved. A missing or stale
+        // ratified_sequencing_digest voids the decision and dispatch stays closed.
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.founder_ratification.ratified_sequencing_digest",
+        ));
+    }
+    // Version binding is optional (the digest is the cryptographic binding), but
+    // when the ratification record declares a ratified_sequencing_version it must
+    // equal the embedded sequencing_identity version; a mismatch means the record
+    // and the identity ledger disagree, so the ratification is void.
+    let identity_version = sequencing
+        .get("sequencing_identity")
+        .and_then(|identity| identity.get("sequencing_version"))
+        .and_then(Value::as_u64);
+    let version_bound =
+        match ratification.and_then(|record| record.get("ratified_sequencing_version")) {
+            None => true,
+            Some(declared) => declared.as_u64().is_some() && declared.as_u64() == identity_version,
+        };
+    if record_ratified && !version_bound {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.founder_ratification.ratified_sequencing_version",
+        ));
+    }
+    let founder_ratified = record_ratified && digest_bound && version_bound;
     if !founder_ratified {
         findings.insert(Finding::new(
             "masterplan_execution_wave_dispatch_unratified",
@@ -1679,6 +1743,133 @@ pub fn evaluate_masterplan_v2_sequencing(masterplan: &Value) -> BTreeSet<Finding
     );
 
     findings
+}
+
+/// Compute the stable sequencing content digest for `masterplan_v2` — the
+/// executable form of `SEQUENCING_HASH_RECIPE`.
+///
+/// The digest covers exactly the ratifiable sequencing content: the dependency
+/// DAG edges (as sorted `[from, to]` pairs), the execution-wave `work_item_ids`
+/// arrays in wave order, and the `work_item_order` ids in index order. Identity
+/// metadata, ratification records, and dispatch state are deliberately OUTSIDE
+/// the hash scope so recording a ratification never invalidates itself.
+///
+/// Returns `None` when the sequencing content is structurally malformed
+/// (missing/ill-typed edges, waves, or order entries); callers fail closed on
+/// `None`.
+pub fn compute_masterplan_v2_sequencing_digest(masterplan_v2: &Value) -> Option<String> {
+    let edges = masterplan_v2.get("dependency_edges")?.as_array()?;
+    let sequencing = masterplan_v2.get("sequencing")?.as_object()?;
+
+    let mut edge_pairs = Vec::with_capacity(edges.len());
+    for edge in edges {
+        let from = edge.get("from")?.as_str()?;
+        let to = edge.get("to")?.as_str()?;
+        edge_pairs.push((from.to_owned(), to.to_owned()));
+    }
+    edge_pairs.sort();
+
+    let mut waves = Vec::new();
+    for wave in sequencing.get("execution_waves")?.as_array()? {
+        let ids = wave.get("work_item_ids")?.as_array()?;
+        let mut wave_ids = Vec::with_capacity(ids.len());
+        for id in ids {
+            wave_ids.push(id.as_str()?.to_owned());
+        }
+        waves.push(wave_ids);
+    }
+
+    let mut order = Vec::new();
+    for entry in sequencing.get("work_item_order")?.as_array()? {
+        order.push(entry.get("work_item_id")?.as_str()?.to_owned());
+    }
+
+    // Canonical JSON is built by hand so the byte stream is deterministic and
+    // library-feature-independent: object keys in sorted order, compact ','/':'
+    // separators, standard JSON string escaping.
+    let mut canonical = String::from("{\"dependency_edges\":[");
+    for (index, (from, to)) in edge_pairs.iter().enumerate() {
+        if index > 0 {
+            canonical.push(',');
+        }
+        canonical.push('[');
+        canonical.push_str(&canonical_json_string(from));
+        canonical.push(',');
+        canonical.push_str(&canonical_json_string(to));
+        canonical.push(']');
+    }
+    canonical.push_str("],\"execution_waves\":[");
+    for (index, wave_ids) in waves.iter().enumerate() {
+        if index > 0 {
+            canonical.push(',');
+        }
+        canonical.push('[');
+        for (id_index, id) in wave_ids.iter().enumerate() {
+            if id_index > 0 {
+                canonical.push(',');
+            }
+            canonical.push_str(&canonical_json_string(id));
+        }
+        canonical.push(']');
+    }
+    canonical.push_str("],\"work_item_order\":[");
+    for (index, id) in order.iter().enumerate() {
+        if index > 0 {
+            canonical.push(',');
+        }
+        canonical.push_str(&canonical_json_string(id));
+    }
+    canonical.push_str("]}");
+
+    Some(format!("sha256:{:x}", Sha256::digest(canonical.as_bytes())))
+}
+
+/// Serialize one string as a JSON string literal (compact, standard escaping).
+/// `Value::to_string` renders via `Display`, which is infallible for strings.
+fn canonical_json_string(value: &str) -> String {
+    Value::String(value.to_owned()).to_string()
+}
+
+/// Require the embedded `sequencing_identity` block: a monotonic version >= 1,
+/// the pinned hash recipe, and a `sequencing_hash` that byte-agrees with the
+/// digest recomputed from the live sequencing content. A tampered, missing, or
+/// stale identity fails closed — including when the content itself is too
+/// malformed to hash (`computed_digest == None`).
+fn evaluate_sequencing_identity(
+    sequencing_identity: Option<&Value>,
+    computed_digest: Option<&str>,
+    findings: &mut BTreeSet<Finding>,
+) {
+    let Some(identity) = sequencing_identity.and_then(Value::as_object) else {
+        findings.insert(Finding::new(
+            "masterplan_sequencing_invalid",
+            "masterplan_v2.sequencing.sequencing_identity",
+        ));
+        return;
+    };
+    if identity
+        .get("sequencing_version")
+        .and_then(Value::as_u64)
+        .is_none_or(|version| version < 1)
+    {
+        findings.insert(Finding::new(
+            "masterplan_sequencing_invalid",
+            "masterplan_v2.sequencing.sequencing_identity.sequencing_version",
+        ));
+    }
+    if identity.get("hash_recipe").and_then(Value::as_str) != Some(SEQUENCING_HASH_RECIPE) {
+        findings.insert(Finding::new(
+            "masterplan_sequencing_invalid",
+            "masterplan_v2.sequencing.sequencing_identity.hash_recipe",
+        ));
+    }
+    let embedded_hash = identity.get("sequencing_hash").and_then(Value::as_str);
+    if embedded_hash.is_none() || embedded_hash != computed_digest {
+        findings.insert(Finding::new(
+            "masterplan_sequencing_invalid",
+            "masterplan_v2.sequencing.sequencing_identity.sequencing_hash",
+        ));
+    }
 }
 
 fn masterplan_sequence_work_item_ids(work_items: Option<&Value>) -> BTreeSet<String> {
@@ -3097,7 +3288,10 @@ fn evaluate_masterplan_work_items(
 fn evaluate_masterplan_dependency_dag(
     dependency_edges: Option<&Value>,
     dependency_edge_semantics: Option<&Value>,
+    cross_program_edge_policy: Option<&Value>,
     work_item_ids: &BTreeSet<String>,
+    work_item_programs: &BTreeMap<String, String>,
+    program_ids: &BTreeSet<String>,
     findings: &mut BTreeSet<Finding>,
 ) {
     if dependency_edge_semantics.and_then(Value::as_str) != Some(DEPENDENCY_EDGE_SEMANTICS) {
@@ -3126,6 +3320,10 @@ fn evaluate_masterplan_dependency_dag(
         .iter()
         .map(|id| (id.clone(), BTreeSet::new()))
         .collect();
+    // (from-item, to-item, from-program, to-program) for every well-formed edge
+    // whose endpoints live in DIFFERENT program shards: the program-boundary
+    // crossings the cross-program lane must see declared.
+    let mut cross_program_crossings: Vec<(String, String, String, String)> = Vec::new();
 
     for (index, edge) in dependency_edges.iter().enumerate() {
         let Some(edge) = edge.as_object() else {
@@ -3199,10 +3397,185 @@ fn evaluate_masterplan_dependency_dag(
                 .entry(from.to_owned())
                 .or_default()
                 .insert(to.to_owned());
+            if let (Some(from_program), Some(to_program)) =
+                (work_item_programs.get(from), work_item_programs.get(to))
+                && from_program != to_program
+            {
+                cross_program_crossings.push((
+                    from.to_owned(),
+                    to.to_owned(),
+                    from_program.clone(),
+                    to_program.clone(),
+                ));
+            }
         }
     }
 
+    evaluate_masterplan_cross_program_edges(
+        cross_program_edge_policy,
+        &cross_program_crossings,
+        program_ids,
+        findings,
+    );
+
     evaluate_masterplan_dependency_cycles(&adjacency, findings);
+}
+
+/// Cross-program edge lane of the dependency-DAG gate.
+///
+/// A work-item dependency edge whose endpoints live in different program
+/// shards is a program-boundary crossing and must be backed by an explicitly
+/// declared program-pair row in
+/// `masterplan_v2.cross_program_edge_policy.declared_program_edges`
+/// (`{from_program, to_program, rationale}` in prerequisite→dependent
+/// direction, matching `dependency_edge_semantics`). Fails closed on:
+///
+/// - an undeclared crossing (`{from}->{to}@cross-program-undeclared(..)`);
+/// - a missing policy while crossings exist;
+/// - a wrong/missing `semantics` pin or a non-array `declared_program_edges`;
+/// - a malformed declared row, a same-program (self) pair, a duplicate pair,
+///   or a pair naming a program id absent from `masterplan_v2.programs`;
+/// - a stale declared pair that NO live edge instantiates (anti-staleness:
+///   the allowlist cannot outlive the graph it authorizes).
+fn evaluate_masterplan_cross_program_edges(
+    policy: Option<&Value>,
+    cross_program_crossings: &[(String, String, String, String)],
+    program_ids: &BTreeSet<String>,
+    findings: &mut BTreeSet<Finding>,
+) {
+    // pair -> instantiated-by-a-live-edge
+    let mut declared_pairs: BTreeMap<(String, String), bool> = BTreeMap::new();
+
+    if let Some(policy) = policy {
+        if policy.get("semantics").and_then(Value::as_str) != Some(CROSS_PROGRAM_EDGE_SEMANTICS) {
+            findings.insert(Finding::new(
+                "masterplan_dependency_dag_invalid",
+                "<cross-program-edge-semantics>",
+            ));
+        }
+        match policy
+            .get("declared_program_edges")
+            .and_then(Value::as_array)
+        {
+            None => {
+                findings.insert(Finding::new(
+                    "masterplan_dependency_dag_invalid",
+                    "<malformed-cross-program-declared-edges>",
+                ));
+            }
+            Some(declared) => {
+                for (index, row) in declared.iter().enumerate() {
+                    let from_program = row.get("from_program").and_then(Value::as_str);
+                    let to_program = row.get("to_program").and_then(Value::as_str);
+                    let (Some(from_program), Some(to_program)) = (from_program, to_program) else {
+                        findings.insert(Finding::new(
+                            "masterplan_dependency_dag_invalid",
+                            &format!("<malformed-cross-program-declared-edge-{index}>"),
+                        ));
+                        continue;
+                    };
+                    if from_program == to_program {
+                        findings.insert(Finding::new(
+                            "masterplan_dependency_dag_invalid",
+                            &format!(
+                                "{from_program}->{to_program}@cross_program_edge_policy.declared_program_edges[{index}].self"
+                            ),
+                        ));
+                        continue;
+                    }
+                    if !program_ids.contains(from_program) {
+                        findings.insert(Finding::new(
+                            "masterplan_dependency_dag_invalid",
+                            &format!(
+                                "{from_program}@cross_program_edge_policy.declared_program_edges[{index}].from_program"
+                            ),
+                        ));
+                    }
+                    if !program_ids.contains(to_program) {
+                        findings.insert(Finding::new(
+                            "masterplan_dependency_dag_invalid",
+                            &format!(
+                                "{to_program}@cross_program_edge_policy.declared_program_edges[{index}].to_program"
+                            ),
+                        ));
+                    }
+                    if declared_pairs
+                        .insert((from_program.to_owned(), to_program.to_owned()), false)
+                        .is_some()
+                    {
+                        findings.insert(Finding::new(
+                            "masterplan_dependency_dag_invalid",
+                            &format!(
+                                "{from_program}->{to_program}@cross_program_edge_policy.declared_program_edges[{index}].duplicate"
+                            ),
+                        ));
+                    }
+                }
+            }
+        }
+    } else if !cross_program_crossings.is_empty() {
+        findings.insert(Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "<missing-cross-program-edge-policy>",
+        ));
+    }
+
+    for (from, to, from_program, to_program) in cross_program_crossings {
+        match declared_pairs.get_mut(&(from_program.clone(), to_program.clone())) {
+            Some(instantiated) => *instantiated = true,
+            None => {
+                findings.insert(Finding::new(
+                    "masterplan_dependency_dag_invalid",
+                    &format!("{from}->{to}@cross-program-undeclared({from_program}->{to_program})"),
+                ));
+            }
+        }
+    }
+    for ((from_program, to_program), instantiated) in &declared_pairs {
+        if !instantiated {
+            findings.insert(Finding::new(
+                "masterplan_dependency_dag_invalid",
+                &format!(
+                    "{from_program}->{to_program}@cross_program_edge_policy.declared_program_edges.unused"
+                ),
+            ));
+        }
+    }
+}
+
+/// id -> program shard for every work item declaring both. Lenient by design:
+/// the work-item→program dangling-reference guard lives in the program-coverage
+/// lane; this map only feeds program-boundary crossing detection.
+fn masterplan_work_item_programs(work_items: Option<&Value>) -> BTreeMap<String, String> {
+    let mut programs = BTreeMap::new();
+    let Some(work_items) = work_items.and_then(Value::as_array) else {
+        return programs;
+    };
+    for item in work_items {
+        if let (Some(id), Some(program)) = (
+            item.get("id").and_then(Value::as_str),
+            item.get("program").and_then(Value::as_str),
+        ) {
+            programs.insert(id.to_owned(), program.to_owned());
+        }
+    }
+    programs
+}
+
+/// The declared program-shard id set. Lenient by design: program-shard
+/// structural completeness lives in the program-coverage lane; this set only
+/// anchors declared cross-program pairs to real shards.
+fn masterplan_program_id_set(programs: Option<&Value>) -> BTreeSet<String> {
+    programs
+        .and_then(Value::as_array)
+        .map(|programs| {
+            programs
+                .iter()
+                .filter_map(|program| program.get("id").and_then(Value::as_str))
+                .map(str::to_owned)
+                .collect()
+        })
+        .unwrap_or_default()
 }
 
 fn evaluate_masterplan_dependency_cycles(
@@ -4098,6 +4471,257 @@ mod tests {
             "MPV2-0001->MPV2-0001@self"
         )));
     }
+    /// A masterplan work-item corpus with a program-boundary crossing:
+    /// MPV2-0000 (P-FABRIC) -> MPV2-0001 (P-REORG) via the minimal fixture's
+    /// single dependency edge.
+    fn cross_program_masterplan_v2() -> Value {
+        let mut masterplan = minimal_masterplan_v2();
+        masterplan["masterplan_v2"]["programs"] = json!([{"id": "P-FABRIC"}, {"id": "P-REORG"}]);
+        masterplan["masterplan_v2"]["work_items"] = json!([
+            {"id": "MPV2-0000", "program": "P-FABRIC"},
+            {"id": "MPV2-0001", "program": "P-REORG"}
+        ]);
+        masterplan
+    }
+    #[test]
+    fn masterplan_v2_dependency_dag_rejects_undeclared_cross_program_edges() {
+        // A crossing with NO policy at all: missing-policy + undeclared both fire.
+        let missing_policy = cross_program_masterplan_v2();
+        let findings = evaluate_masterplan_v2_authority(&missing_policy);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "<missing-cross-program-edge-policy>"
+        )));
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "MPV2-0000->MPV2-0001@cross-program-undeclared(P-FABRIC->P-REORG)"
+        )));
+
+        // A crossing with a well-formed policy that does NOT declare the pair.
+        let mut undeclared = cross_program_masterplan_v2();
+        undeclared["masterplan_v2"]["cross_program_edge_policy"] = json!({
+            "semantics": CROSS_PROGRAM_EDGE_SEMANTICS,
+            "declared_program_edges": []
+        });
+        let findings = evaluate_masterplan_v2_authority(&undeclared);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "MPV2-0000->MPV2-0001@cross-program-undeclared(P-FABRIC->P-REORG)"
+        )));
+        assert!(
+            !findings
+                .iter()
+                .any(|finding| finding.key == "<missing-cross-program-edge-policy>"),
+            "a present policy must not trip the missing-policy guard: {findings:?}"
+        );
+
+        // Same-program edges never require a declaration.
+        let mut same_program = cross_program_masterplan_v2();
+        same_program["masterplan_v2"]["work_items"] = json!([
+            {"id": "MPV2-0000", "program": "P-FABRIC"},
+            {"id": "MPV2-0001", "program": "P-FABRIC"}
+        ]);
+        let findings = evaluate_masterplan_v2_authority(&same_program);
+        assert!(
+            findings.is_empty(),
+            "same-program edges must not require cross-program declarations: {findings:?}"
+        );
+    }
+    #[test]
+    fn masterplan_v2_dependency_dag_rejects_malformed_cross_program_policy() {
+        let mut malformed = cross_program_masterplan_v2();
+        malformed["masterplan_v2"]["cross_program_edge_policy"] = json!({
+            "semantics": "wrong-contract",
+            "declared_program_edges": [
+                "not-an-object",
+                {"from_program": "P-FABRIC"},
+                {"from_program": "P-FABRIC", "to_program": "P-FABRIC"},
+                {"from_program": "P-UNKNOWN", "to_program": "P-REORG"},
+                {"from_program": "P-FABRIC", "to_program": "P-REORG"},
+                {"from_program": "P-FABRIC", "to_program": "P-REORG"}
+            ]
+        });
+        let findings = evaluate_masterplan_v2_authority(&malformed);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "<cross-program-edge-semantics>"
+        )));
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "<malformed-cross-program-declared-edge-0>"
+        )));
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "<malformed-cross-program-declared-edge-1>"
+        )));
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "P-FABRIC->P-FABRIC@cross_program_edge_policy.declared_program_edges[2].self"
+        )));
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "P-UNKNOWN@cross_program_edge_policy.declared_program_edges[3].from_program"
+        )));
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "P-FABRIC->P-REORG@cross_program_edge_policy.declared_program_edges[5].duplicate"
+        )));
+        // The declared-but-never-instantiated P-UNKNOWN pair is stale.
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "P-UNKNOWN->P-REORG@cross_program_edge_policy.declared_program_edges.unused"
+        )));
+        // The live crossing IS declared, so no undeclared finding fires.
+        assert!(
+            !findings
+                .iter()
+                .any(|finding| finding.key.contains("cross-program-undeclared")),
+            "a declared crossing must not fire the undeclared lane: {findings:?}"
+        );
+
+        // A policy whose declared_program_edges is not an array fails closed.
+        let mut non_array = cross_program_masterplan_v2();
+        non_array["masterplan_v2"]["cross_program_edge_policy"] = json!({
+            "semantics": CROSS_PROGRAM_EDGE_SEMANTICS,
+            "declared_program_edges": "not-an-array"
+        });
+        let findings = evaluate_masterplan_v2_authority(&non_array);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "<malformed-cross-program-declared-edges>"
+        )));
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "MPV2-0000->MPV2-0001@cross-program-undeclared(P-FABRIC->P-REORG)"
+        )));
+    }
+    #[test]
+    fn masterplan_v2_dependency_dag_accepts_declared_cross_program_edges() {
+        let mut declared = cross_program_masterplan_v2();
+        declared["masterplan_v2"]["cross_program_edge_policy"] = json!({
+            "semantics": CROSS_PROGRAM_EDGE_SEMANTICS,
+            "declared_program_edges": [{
+                "from_program": "P-FABRIC",
+                "to_program": "P-REORG",
+                "rationale": "test crossing"
+            }]
+        });
+        let findings = evaluate_masterplan_v2_authority(&declared);
+        assert!(
+            findings.is_empty(),
+            "a declared, instantiated cross-program edge must be green: {findings:?}"
+        );
+
+        // Anti-staleness: an extra declared pair no live edge instantiates fails.
+        let mut stale = cross_program_masterplan_v2();
+        stale["masterplan_v2"]["cross_program_edge_policy"] = json!({
+            "semantics": CROSS_PROGRAM_EDGE_SEMANTICS,
+            "declared_program_edges": [
+                {
+                    "from_program": "P-FABRIC",
+                    "to_program": "P-REORG",
+                    "rationale": "test crossing"
+                },
+                {
+                    "from_program": "P-REORG",
+                    "to_program": "P-FABRIC",
+                    "rationale": "declared but never instantiated"
+                }
+            ]
+        });
+        let findings = evaluate_masterplan_v2_authority(&stale);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "P-REORG->P-FABRIC@cross_program_edge_policy.declared_program_edges.unused"
+        )));
+    }
+    /// A declared `(from_program, to_program)` pair is directional, matching
+    /// `dependency_edge_semantics`: declaring P-FABRIC->P-REORG must NOT also
+    /// authorize the reverse P-REORG->P-FABRIC crossing. Two independent
+    /// crossings (one in each direction, on disjoint work-item pairs so no
+    /// cycle is introduced) prove the pairs are tracked directionally, not as
+    /// an unordered set.
+    #[test]
+    fn masterplan_v2_dependency_dag_declared_pair_direction_is_not_symmetric() {
+        let mut masterplan = minimal_masterplan_v2();
+        masterplan["masterplan_v2"]["programs"] = json!([{"id": "P-FABRIC"}, {"id": "P-REORG"}]);
+        masterplan["masterplan_v2"]["work_items"] = json!([
+            {"id": "MPV2-0000", "program": "P-FABRIC"},
+            {"id": "MPV2-0001", "program": "P-REORG"},
+            {"id": "MPV2-0002", "program": "P-REORG"},
+            {"id": "MPV2-0003", "program": "P-FABRIC"}
+        ]);
+        masterplan["masterplan_v2"]["dependency_edges"] = json!([
+            {"from": "MPV2-0000", "to": "MPV2-0001", "relationship": "unblocks"},
+            {"from": "MPV2-0002", "to": "MPV2-0003", "relationship": "unblocks"}
+        ]);
+        masterplan["masterplan_v2"]["cross_program_edge_policy"] = json!({
+            "semantics": CROSS_PROGRAM_EDGE_SEMANTICS,
+            "declared_program_edges": [{
+                "from_program": "P-FABRIC",
+                "to_program": "P-REORG",
+                "rationale": "only the forward direction is declared"
+            }]
+        });
+
+        let findings = evaluate_masterplan_v2_authority(&masterplan);
+        assert!(
+            !findings
+                .iter()
+                .any(|finding| finding.key.contains("MPV2-0000->MPV2-0001")),
+            "the declared, instantiated forward crossing must stay clean: {findings:?}"
+        );
+        assert!(findings.contains(&Finding::new(
+            "masterplan_dependency_dag_invalid",
+            "MPV2-0002->MPV2-0003@cross-program-undeclared(P-REORG->P-FABRIC)"
+        )));
+        // The forward pair is instantiated, so it must not also be reported as
+        // an unused/stale declaration.
+        assert!(
+            !findings
+                .iter()
+                .any(|finding| finding.key.contains("P-FABRIC->P-REORG")
+                    && finding.key.ends_with(".unused")),
+            "the instantiated declared pair must not be flagged stale: {findings:?}"
+        );
+    }
+    #[test]
+    fn masterplan_work_item_programs_is_lenient_on_missing_or_malformed_fields() {
+        let work_items = json!([
+            {"id": "MPV2-0000", "program": "P-FABRIC"},
+            {"id": "MPV2-0001"},
+            {"program": "P-REORG"},
+            {"id": "MPV2-0002", "program": "P-REORG"}
+        ]);
+        let programs = masterplan_work_item_programs(Some(&work_items));
+        assert_eq!(programs.len(), 2);
+        assert_eq!(
+            programs.get("MPV2-0000").map(String::as_str),
+            Some("P-FABRIC")
+        );
+        assert_eq!(
+            programs.get("MPV2-0002").map(String::as_str),
+            Some("P-REORG")
+        );
+        assert!(masterplan_work_item_programs(None).is_empty());
+        assert!(masterplan_work_item_programs(Some(&json!("not-an-array"))).is_empty());
+        assert!(masterplan_work_item_programs(Some(&json!([]))).is_empty());
+    }
+    #[test]
+    fn masterplan_program_id_set_is_lenient_on_missing_or_malformed_ids() {
+        let programs = json!([
+            {"id": "P-FABRIC"},
+            {"name": "no id here"},
+            {"id": "P-REORG"}
+        ]);
+        let ids = masterplan_program_id_set(Some(&programs));
+        assert_eq!(
+            ids,
+            BTreeSet::from(["P-FABRIC".to_owned(), "P-REORG".to_owned()])
+        );
+        assert!(masterplan_program_id_set(None).is_empty());
+        assert!(masterplan_program_id_set(Some(&json!("not-an-array"))).is_empty());
+    }
     /// Fail-closed contract for the masterplan structural gate: a corpus that
     /// is MISSING the structures under test (masterplan_v2 itself, the work-item
     /// set, or the dependency-edge set) must go RED, never silently green. An
@@ -4538,6 +5162,7 @@ mod tests {
         execution_wave_dispatch: Value,
     ) -> Value {
         let mut masterplan = minimal_masterplan_v2();
+        let mut founder_ratification = founder_ratification;
         masterplan["masterplan_v2"]["sequencing"] = json!({
             "derivation_mode": SEQUENCING_DERIVATION_MODE,
             "source_of_truth": SEQUENCING_SOURCE_OF_TRUTH,
@@ -4554,10 +5179,46 @@ mod tests {
                 {"wave_index": 0, "work_item_ids": ["MPV2-0000"]},
                 {"wave_index": 1, "work_item_ids": ["MPV2-0001"]}
             ],
-            "founder_ratification": founder_ratification,
-            "execution_wave_dispatch": execution_wave_dispatch,
         });
+        let digest = compute_masterplan_v2_sequencing_digest(&masterplan["masterplan_v2"])
+            .expect("minimal fixture sequencing content must hash");
+        masterplan["masterplan_v2"]["sequencing"]["sequencing_identity"] = json!({
+            "sequencing_version": 1,
+            "sequencing_hash": digest,
+            "hash_recipe": SEQUENCING_HASH_RECIPE,
+        });
+        // A genuine ratification decision binds to the digest of the content it
+        // approved; mirror that in the fixture unless the test overrides it.
+        if founder_ratification
+            .get("decision_recorded")
+            .and_then(Value::as_bool)
+            == Some(true)
+            && founder_ratification
+                .get("ratified_sequencing_digest")
+                .is_none()
+        {
+            founder_ratification["ratified_sequencing_digest"] = json!(digest);
+        }
+        masterplan["masterplan_v2"]["sequencing"]["founder_ratification"] = founder_ratification;
+        masterplan["masterplan_v2"]["sequencing"]["execution_wave_dispatch"] =
+            execution_wave_dispatch;
         masterplan
+    }
+    fn minimal_ratified_sequenced_masterplan() -> Value {
+        minimal_sequenced_masterplan(
+            json!({
+                "decision_recorded": true,
+                "decision_status": "ratified",
+                "approved_by": "founder",
+                "recorded_at": "2026-07-02T00:00:00Z",
+                "decision_ref": "evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json"
+            }),
+            json!({
+                "requires_founder_ratification": true,
+                "allowed_without_founder_ratification": false,
+                "state": "ratified-awaiting-dispatch"
+            }),
+        )
     }
     #[test]
     fn masterplan_v2_sequencing_pending_founder_stays_fail_closed() {
@@ -4623,25 +5284,350 @@ mod tests {
     }
     #[test]
     fn masterplan_v2_sequencing_accepts_recorded_founder_ratification() {
-        let ratified = minimal_sequenced_masterplan(
-            json!({
-                "decision_recorded": true,
-                "decision_status": "ratified",
-                "approved_by": "founder",
-                "recorded_at": "2026-07-02T00:00:00Z",
-                "decision_ref": "evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json"
-            }),
-            json!({
-                "requires_founder_ratification": true,
-                "allowed_without_founder_ratification": false,
-                "state": "ratified-awaiting-dispatch"
-            }),
-        );
+        let ratified = minimal_ratified_sequenced_masterplan();
         let findings = evaluate_masterplan_v2_sequencing(&ratified);
         assert!(
             findings.is_empty(),
             "a recorded founder ratification with fail-closed dispatch flags must be green: {findings:?}"
         );
+    }
+    #[test]
+    fn masterplan_v2_sequencing_identity_is_required_and_tamper_evident() {
+        let good = minimal_ratified_sequenced_masterplan();
+        assert!(
+            evaluate_masterplan_v2_sequencing(&good).is_empty(),
+            "identity-carrying ratified baseline must be green"
+        );
+
+        // Missing identity block fails closed.
+        let mut missing = good.clone();
+        missing["masterplan_v2"]["sequencing"]
+            .as_object_mut()
+            .unwrap()
+            .remove("sequencing_identity");
+        assert!(
+            evaluate_masterplan_v2_sequencing(&missing).contains(&Finding::new(
+                "masterplan_sequencing_invalid",
+                "masterplan_v2.sequencing.sequencing_identity"
+            ))
+        );
+
+        // A tampered hash is a violation even when everything else agrees.
+        let mut tampered = good.clone();
+        tampered["masterplan_v2"]["sequencing"]["sequencing_identity"]["sequencing_hash"] =
+            json!("sha256:0000000000000000000000000000000000000000000000000000000000000000");
+        assert!(
+            evaluate_masterplan_v2_sequencing(&tampered).contains(&Finding::new(
+                "masterplan_sequencing_invalid",
+                "masterplan_v2.sequencing.sequencing_identity.sequencing_hash"
+            ))
+        );
+
+        // Versions start at 1; zero/absent versions are violations.
+        let mut unversioned = good.clone();
+        unversioned["masterplan_v2"]["sequencing"]["sequencing_identity"]["sequencing_version"] =
+            json!(0);
+        assert!(
+            evaluate_masterplan_v2_sequencing(&unversioned).contains(&Finding::new(
+                "masterplan_sequencing_invalid",
+                "masterplan_v2.sequencing.sequencing_identity.sequencing_version"
+            ))
+        );
+
+        // The digest recipe is pinned; drift is a violation.
+        let mut recipe_drift = good.clone();
+        recipe_drift["masterplan_v2"]["sequencing"]["sequencing_identity"]["hash_recipe"] =
+            json!("md5 of whatever");
+        assert!(
+            evaluate_masterplan_v2_sequencing(&recipe_drift).contains(&Finding::new(
+                "masterplan_sequencing_invalid",
+                "masterplan_v2.sequencing.sequencing_identity.hash_recipe"
+            ))
+        );
+    }
+    #[test]
+    fn masterplan_v2_sequencing_content_mutation_voids_founder_ratification() {
+        // The invalidation rule, mechanized: mutating ratified sequencing content
+        // (here: swapping the wave membership) changes the recomputed digest, so
+        // BOTH the embedded identity hash and the ratified digest go stale and
+        // dispatch falls closed again.
+        let mut mutated = minimal_ratified_sequenced_masterplan();
+        mutated["masterplan_v2"]["sequencing"]["execution_waves"] = json!([
+            {"wave_index": 0, "work_item_ids": ["MPV2-0001"]},
+            {"wave_index": 1, "work_item_ids": ["MPV2-0000"]}
+        ]);
+        let findings = evaluate_masterplan_v2_sequencing(&mutated);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_sequencing_invalid",
+            "masterplan_v2.sequencing.sequencing_identity.sequencing_hash"
+        )));
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.founder_ratification.ratified_sequencing_digest"
+        )));
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.founder_ratification"
+        )));
+
+        // A ratification record that never bound to a digest is equally void.
+        let mut unbound = minimal_ratified_sequenced_masterplan();
+        unbound["masterplan_v2"]["sequencing"]["founder_ratification"]
+            .as_object_mut()
+            .unwrap()
+            .remove("ratified_sequencing_digest");
+        let findings = evaluate_masterplan_v2_sequencing(&unbound);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.founder_ratification.ratified_sequencing_digest"
+        )));
+    }
+    #[test]
+    fn masterplan_v2_sequencing_version_binding_mismatch_voids_founder_ratification() {
+        // The (version, hash) pair is one identity: a ratification record that
+        // declares a ratified_sequencing_version disagreeing with the embedded
+        // sequencing_identity version is void even when the digest still binds.
+        let mut mismatched = minimal_ratified_sequenced_masterplan();
+        mismatched["masterplan_v2"]["sequencing"]["founder_ratification"]["ratified_sequencing_version"] =
+            json!(2);
+        let findings = evaluate_masterplan_v2_sequencing(&mismatched);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.founder_ratification.ratified_sequencing_version"
+        )));
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.founder_ratification"
+        )));
+
+        // A matching declared version keeps the ratification live.
+        let mut bound = minimal_ratified_sequenced_masterplan();
+        bound["masterplan_v2"]["sequencing"]["founder_ratification"]["ratified_sequencing_version"] =
+            json!(1);
+        let findings = evaluate_masterplan_v2_sequencing(&bound);
+        assert!(
+            !findings
+                .iter()
+                .any(|finding| finding.code == "masterplan_execution_wave_dispatch_unratified"),
+            "digest+version-bound ratification must not be flagged: {findings:?}"
+        );
+    }
+    #[test]
+    fn masterplan_v2_sequencing_digest_matches_pinned_recipe_vector() {
+        // Frozen cross-implementation vector: the same payload hashed with the
+        // documented recipe (canonical JSON, sorted keys, ',' ':' separators)
+        // must produce this digest in ANY implementation of the recipe.
+        let masterplan = minimal_ratified_sequenced_masterplan();
+        let digest = compute_masterplan_v2_sequencing_digest(&masterplan["masterplan_v2"])
+            .expect("fixture content must hash");
+        // Payload: {"dependency_edges":[["MPV2-0000","MPV2-0001"]],
+        //           "execution_waves":[["MPV2-0000"],["MPV2-0001"]],
+        //           "work_item_order":["MPV2-0000","MPV2-0001"]}
+        assert_eq!(
+            digest, "sha256:b8e44b41bef2dcdea05deec44a22905ac24154494ae229f43aacd2fe078e731d",
+            "sequencing digest must stay byte-stable across implementations"
+        );
+    }
+    /// Every shape of structurally malformed sequencing content the digest
+    /// recipe depends on must fail closed to `None`, never panic and never
+    /// silently hash a partial/default view of the content.
+    #[test]
+    fn compute_masterplan_v2_sequencing_digest_fails_closed_on_malformed_content() {
+        let base = minimal_ratified_sequenced_masterplan();
+        assert!(
+            compute_masterplan_v2_sequencing_digest(&base["masterplan_v2"]).is_some(),
+            "the well-formed baseline must hash"
+        );
+
+        let mut missing_edges = base.clone();
+        missing_edges["masterplan_v2"]
+            .as_object_mut()
+            .unwrap()
+            .remove("dependency_edges");
+        assert!(compute_masterplan_v2_sequencing_digest(&missing_edges["masterplan_v2"]).is_none());
+
+        let mut non_array_edges = base.clone();
+        non_array_edges["masterplan_v2"]["dependency_edges"] = json!("not-an-array");
+        assert!(
+            compute_masterplan_v2_sequencing_digest(&non_array_edges["masterplan_v2"]).is_none()
+        );
+
+        let mut edge_missing_to = base.clone();
+        edge_missing_to["masterplan_v2"]["dependency_edges"] = json!([{"from": "MPV2-0000"}]);
+        assert!(
+            compute_masterplan_v2_sequencing_digest(&edge_missing_to["masterplan_v2"]).is_none()
+        );
+
+        let mut edge_non_string_from = base.clone();
+        edge_non_string_from["masterplan_v2"]["dependency_edges"] =
+            json!([{"from": 0, "to": "MPV2-0001"}]);
+        assert!(
+            compute_masterplan_v2_sequencing_digest(&edge_non_string_from["masterplan_v2"])
+                .is_none()
+        );
+
+        let mut missing_sequencing = base.clone();
+        missing_sequencing["masterplan_v2"]
+            .as_object_mut()
+            .unwrap()
+            .remove("sequencing");
+        assert!(
+            compute_masterplan_v2_sequencing_digest(&missing_sequencing["masterplan_v2"]).is_none()
+        );
+
+        let mut missing_waves = base.clone();
+        missing_waves["masterplan_v2"]["sequencing"]
+            .as_object_mut()
+            .unwrap()
+            .remove("execution_waves");
+        assert!(
+            compute_masterplan_v2_sequencing_digest(&missing_waves["masterplan_v2"]).is_none()
+        );
+
+        let mut wave_missing_ids = base.clone();
+        wave_missing_ids["masterplan_v2"]["sequencing"]["execution_waves"] =
+            json!([{"wave_index": 0}]);
+        assert!(
+            compute_masterplan_v2_sequencing_digest(&wave_missing_ids["masterplan_v2"]).is_none()
+        );
+
+        let mut wave_non_string_id = base.clone();
+        wave_non_string_id["masterplan_v2"]["sequencing"]["execution_waves"] =
+            json!([{"wave_index": 0, "work_item_ids": [123]}]);
+        assert!(
+            compute_masterplan_v2_sequencing_digest(&wave_non_string_id["masterplan_v2"]).is_none()
+        );
+
+        let mut missing_order = base.clone();
+        missing_order["masterplan_v2"]["sequencing"]
+            .as_object_mut()
+            .unwrap()
+            .remove("work_item_order");
+        assert!(
+            compute_masterplan_v2_sequencing_digest(&missing_order["masterplan_v2"]).is_none()
+        );
+
+        let mut order_missing_id = base.clone();
+        order_missing_id["masterplan_v2"]["sequencing"]["work_item_order"] =
+            json!([{"index": 0}]);
+        assert!(
+            compute_masterplan_v2_sequencing_digest(&order_missing_id["masterplan_v2"]).is_none()
+        );
+    }
+    /// The digest recipe explicitly sorts `dependency_edges` before hashing, so
+    /// the INPUT order of edges must never affect the digest. Execution-wave
+    /// order is NOT sorted (waves are ordered data), so reordering waves must
+    /// change the digest.
+    #[test]
+    fn compute_masterplan_v2_sequencing_digest_sorts_edges_but_not_waves() {
+        let ordered = json!({
+            "dependency_edges": [
+                {"from": "A", "to": "B"},
+                {"from": "C", "to": "D"}
+            ],
+            "sequencing": {
+                "execution_waves": [
+                    {"wave_index": 0, "work_item_ids": ["A", "C"]},
+                    {"wave_index": 1, "work_item_ids": ["B", "D"]}
+                ],
+                "work_item_order": [
+                    {"work_item_id": "A"},
+                    {"work_item_id": "C"},
+                    {"work_item_id": "B"},
+                    {"work_item_id": "D"}
+                ]
+            }
+        });
+        let mut reversed_edges = ordered.clone();
+        reversed_edges["dependency_edges"] = json!([
+            {"from": "C", "to": "D"},
+            {"from": "A", "to": "B"}
+        ]);
+
+        let digest_ordered =
+            compute_masterplan_v2_sequencing_digest(&ordered).expect("must hash");
+        let digest_reversed_edges =
+            compute_masterplan_v2_sequencing_digest(&reversed_edges).expect("must hash");
+        assert_eq!(
+            digest_ordered, digest_reversed_edges,
+            "dependency-edge input order must not affect the digest: edges are sorted before hashing"
+        );
+
+        let mut swapped_waves = ordered.clone();
+        swapped_waves["sequencing"]["execution_waves"] = json!([
+            {"wave_index": 1, "work_item_ids": ["B", "D"]},
+            {"wave_index": 0, "work_item_ids": ["A", "C"]}
+        ]);
+        let digest_swapped_waves =
+            compute_masterplan_v2_sequencing_digest(&swapped_waves).expect("must hash");
+        assert_ne!(
+            digest_ordered, digest_swapped_waves,
+            "execution-wave order is part of the hashed content and must NOT be normalized"
+        );
+    }
+    /// `canonical_json_string` must render standard, compact JSON string
+    /// escaping since the digest recipe depends on byte-stable escaping: a
+    /// plain string wraps in bare quotes, and a string containing characters
+    /// that REQUIRE escaping (quotes, backslashes, a newline) must round-trip
+    /// byte-exactly through a JSON parser back to the original input.
+    #[test]
+    fn canonical_json_string_escapes_like_standard_json() {
+        assert_eq!(canonical_json_string("plain"), "\"plain\"");
+        assert_eq!(canonical_json_string(""), "\"\"");
+        assert_eq!(canonical_json_string("MPV2-0000"), "\"MPV2-0000\"");
+
+        let tricky = "has \"quotes\" and \\backslash\\ and a\nnewline";
+        let rendered = canonical_json_string(tricky);
+        assert!(
+            rendered.starts_with('"') && rendered.ends_with('"'),
+            "rendered form must be one JSON string literal: {rendered:?}"
+        );
+        let parsed: Value =
+            serde_json::from_str(&rendered).expect("canonical_json_string output must be valid JSON");
+        assert_eq!(
+            parsed.as_str(),
+            Some(tricky),
+            "escaping must round-trip byte-exactly back to the original string"
+        );
+    }
+    /// `sequencing_identity` present but NOT a JSON object (e.g. a string or
+    /// array) must be treated identically to a MISSING identity block: only
+    /// the single container-level finding fires, not the three sub-field
+    /// findings (which would require an object to even inspect fields on).
+    #[test]
+    fn masterplan_v2_sequencing_identity_non_object_value_is_treated_as_missing() {
+        for non_object in [json!("not-an-object"), json!([1, 2, 3]), json!(42)] {
+            let mut fixture = minimal_ratified_sequenced_masterplan();
+            fixture["masterplan_v2"]["sequencing"]["sequencing_identity"] = non_object.clone();
+            let findings = evaluate_masterplan_v2_sequencing(&fixture);
+            assert!(
+                findings.contains(&Finding::new(
+                    "masterplan_sequencing_invalid",
+                    "masterplan_v2.sequencing.sequencing_identity"
+                )),
+                "non-object sequencing_identity {non_object:?} must fail closed: {findings:?}"
+            );
+            assert!(
+                !findings.iter().any(|finding| finding
+                    .key
+                    .starts_with("masterplan_v2.sequencing.sequencing_identity.")),
+                "a non-object identity must not also fire field-level findings: {findings:?}"
+            );
+        }
+    }
+    /// `sequencing_version` must be a JSON integer; a version encoded as a
+    /// string (a common hand-edit mistake) is not silently coerced and fails
+    /// closed exactly like a missing/zero version.
+    #[test]
+    fn masterplan_v2_sequencing_version_wrong_type_fails_closed() {
+        let mut fixture = minimal_ratified_sequenced_masterplan();
+        fixture["masterplan_v2"]["sequencing"]["sequencing_identity"]["sequencing_version"] =
+            json!("1");
+        let findings = evaluate_masterplan_v2_sequencing(&fixture);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_sequencing_invalid",
+            "masterplan_v2.sequencing.sequencing_identity.sequencing_version"
+        )));
     }
     fn minimal_program_coverage_masterplan() -> Value {
         let mut masterplan = minimal_masterplan_v2();
