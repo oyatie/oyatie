@@ -2,8 +2,9 @@
 //!
 //! This module models the Zanzibar/OpenFGA-style relationship tuple surface
 //! without binding the domain crate to any storage engine or serving path.  A
-//! tuple is rendered as `object#relation@subject`; the subject can be either a
-//! concrete object (`user:alice`) or another userset (`group:platform#member`).
+//! tuple is tenant-scoped and rendered within that scope as
+//! `object#relation@subject`; the subject can be either a concrete object
+//! (`user:alice`) or another userset (`group:platform#member`).
 //! Zookie and snapshot tokens are opaque policy/tuple-store consistency
 //! vocabulary: callers may carry and echo them, but ordering belongs to the
 //! tuple store implementation.
@@ -37,6 +38,44 @@ impl fmt::Display for RebacTupleValidationError {
 }
 
 impl std::error::Error for RebacTupleValidationError {}
+
+/// Explicit tenant/namespace boundary for ReBAC tuples and queries.
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct RebacTenantScope {
+    tenant_id: String, // data_class: TENANT_SCOPED
+}
+
+impl RebacTenantScope {
+    pub fn new(tenant_id: impl Into<String>) -> Result<Self, RebacTupleValidationError> {
+        let tenant_id = tenant_id.into();
+        validate_tenant_scope("rebac_tenant_scope.tenant_id", &tenant_id)?;
+        Ok(Self { tenant_id })
+    }
+
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        &self.tenant_id
+    }
+}
+
+impl Serialize for RebacTenantScope {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.tenant_id)
+    }
+}
+
+impl<'de> Deserialize<'de> for RebacTenantScope {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = String::deserialize(deserializer)?;
+        Self::new(value).map_err(serde::de::Error::custom)
+    }
+}
 
 /// Object reference in a ReBAC tuple (`type:id`).
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize)]
@@ -191,10 +230,11 @@ impl RebacSubjectRef {
     }
 }
 
-/// Relationship tuple rendered as `object#relation@subject`.
+/// Relationship tuple rendered as `object#relation@subject` inside a tenant scope.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct RebacTuple {
+    pub tenant: RebacTenantScope, // data_class: TENANT_SCOPED
     pub object: RebacObjectRef,   // data_class: TENANT_SCOPED
     pub relation: RebacRelation,  // data_class: INTERNAL_ONLY
     pub subject: RebacSubjectRef, // data_class: TENANT_SCOPED
@@ -202,15 +242,21 @@ pub struct RebacTuple {
 
 impl RebacTuple {
     #[must_use]
-    pub fn new(object: RebacObjectRef, relation: RebacRelation, subject: RebacSubjectRef) -> Self {
+    pub fn new(
+        tenant: RebacTenantScope,
+        object: RebacObjectRef,
+        relation: RebacRelation,
+        subject: RebacSubjectRef,
+    ) -> Self {
         Self {
+            tenant,
             object,
             relation,
             subject,
         }
     }
 
-    pub fn parse(input: &str) -> Result<Self, RebacTupleValidationError> {
+    pub fn parse(tenant: RebacTenantScope, input: &str) -> Result<Self, RebacTupleValidationError> {
         let Some((object_relation, subject)) = input.split_once('@') else {
             return Err(RebacTupleValidationError::InvalidCanonicalTuple {
                 detail: "tuple must be object#relation@subject".to_owned(),
@@ -233,10 +279,16 @@ impl RebacTuple {
         }
 
         Ok(Self::new(
+            tenant,
             RebacObjectRef::parse(object)?,
             RebacRelation::new(relation)?,
             RebacSubjectRef::parse(subject)?,
         ))
+    }
+
+    #[must_use]
+    pub fn tenant(&self) -> &RebacTenantScope {
+        &self.tenant
     }
 
     #[must_use]
@@ -375,10 +427,11 @@ impl RebacReadSnapshot {
     }
 }
 
-/// Tuple-store query. Any `None` field is a wildcard.
-#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+/// Tenant-scoped tuple-store query. Any `None` field is a wildcard within the tenant.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct RebacTupleQuery {
+    pub tenant: RebacTenantScope,         // data_class: TENANT_SCOPED
     pub object: Option<RebacObjectRef>,   // data_class: TENANT_SCOPED
     pub relation: Option<RebacRelation>,  // data_class: INTERNAL_ONLY
     pub subject: Option<RebacSubjectRef>, // data_class: TENANT_SCOPED
@@ -386,8 +439,23 @@ pub struct RebacTupleQuery {
 
 impl RebacTupleQuery {
     #[must_use]
-    pub fn object_relation(object: RebacObjectRef, relation: RebacRelation) -> Self {
+    pub fn new(tenant: RebacTenantScope) -> Self {
         Self {
+            tenant,
+            object: None,
+            relation: None,
+            subject: None,
+        }
+    }
+
+    #[must_use]
+    pub fn object_relation(
+        tenant: RebacTenantScope,
+        object: RebacObjectRef,
+        relation: RebacRelation,
+    ) -> Self {
+        Self {
+            tenant,
             object: Some(object),
             relation: Some(relation),
             subject: None,
@@ -396,9 +464,11 @@ impl RebacTupleQuery {
 
     #[must_use]
     pub fn matches(&self, tuple: &RebacTuple) -> bool {
-        self.object
-            .as_ref()
-            .is_none_or(|object| object == &tuple.object)
+        self.tenant == tuple.tenant
+            && self
+                .object
+                .as_ref()
+                .is_none_or(|object| object == &tuple.object)
             && self
                 .relation
                 .as_ref()
@@ -561,6 +631,24 @@ fn validate_children(
 }
 
 fn validate_object_type(field: &'static str, value: &str) -> Result<(), RebacTupleValidationError> {
+    validate_non_empty(field, value)?;
+    if value
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-' || c == '.')
+    {
+        Ok(())
+    } else {
+        Err(RebacTupleValidationError::InvalidToken {
+            field,
+            value: value.to_owned(),
+        })
+    }
+}
+
+fn validate_tenant_scope(
+    field: &'static str,
+    value: &str,
+) -> Result<(), RebacTupleValidationError> {
     validate_non_empty(field, value)?;
     if value
         .chars()

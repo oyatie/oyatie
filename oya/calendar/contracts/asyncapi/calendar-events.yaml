@@ -27,7 +27,7 @@ servers:
 channels:
   calendar.event.lifecycle.v1:
     address: calendar.event.lifecycle.v1
-    description: Event lifecycle (create / update / cancel)
+    description: Event lifecycle (create / update / cancel); source family calendar.event.v1
     messages:
       EventCreated:
         $ref: '#/components/messages/EventCreated'
@@ -35,6 +35,27 @@ channels:
         $ref: '#/components/messages/EventUpdated'
       EventCanceled:
         $ref: '#/components/messages/EventCanceled'
+
+  calendar.availability_projection.v1:
+    address: calendar.availability_projection.v1
+    description: Minimum-necessary free/busy projection; no personal event details cross the pillar boundary.
+    messages:
+      AvailabilityProjected:
+        $ref: '#/components/messages/AvailabilityProjected'
+
+  calendar.action_card.v1:
+    address: calendar.action_card.v1
+    description: Explicit calendar action-card state transitions with policy_basis and audit_ref.
+    messages:
+      ActionCardCompleted:
+        $ref: '#/components/messages/ActionCardCompleted'
+
+  calendar.workflow_handoff.v1:
+    address: calendar.workflow_handoff.v1
+    description: Policy-gated Workflow handoff created from an explicit calendar action card.
+    messages:
+      WorkflowHandoffCreated:
+        $ref: '#/components/messages/WorkflowHandoffCreated'
 
   calendar.invitation.rsvp.v1:
     address: calendar.invitation.rsvp.v1
@@ -90,6 +111,27 @@ operations:
     messages:
       - $ref: '#/channels/calendar.event.lifecycle.v1/messages/EventCanceled'
 
+  publishAvailabilityProjected:
+    action: send
+    channel:
+      $ref: '#/channels/calendar.availability_projection.v1'
+    messages:
+      - $ref: '#/channels/calendar.availability_projection.v1/messages/AvailabilityProjected'
+
+  publishActionCardCompleted:
+    action: send
+    channel:
+      $ref: '#/channels/calendar.action_card.v1'
+    messages:
+      - $ref: '#/channels/calendar.action_card.v1/messages/ActionCardCompleted'
+
+  publishWorkflowHandoffCreated:
+    action: send
+    channel:
+      $ref: '#/channels/calendar.workflow_handoff.v1'
+    messages:
+      - $ref: '#/channels/calendar.workflow_handoff.v1/messages/WorkflowHandoffCreated'
+
   publishInvitationRsvp:
     action: send
     channel:
@@ -139,6 +181,24 @@ components:
       title: Event canceled (soft-delete)
       payload:
         $ref: '#/components/schemas/EventLifecycleEvent'
+
+    AvailabilityProjected:
+      name: AvailabilityProjected
+      title: Availability projection emitted
+      payload:
+        $ref: '#/components/schemas/AvailabilityProjectionEvent'
+
+    ActionCardCompleted:
+      name: ActionCardCompleted
+      title: Explicit action card completed
+      payload:
+        $ref: '#/components/schemas/ActionCardEvent'
+
+    WorkflowHandoffCreated:
+      name: WorkflowHandoffCreated
+      title: Workflow handoff created from explicit action card
+      payload:
+        $ref: '#/components/schemas/WorkflowHandoffEvent'
 
     InvitationAcceptedDeclined:
       name: InvitationAcceptedDeclined
@@ -217,13 +277,22 @@ components:
       allOf:
         - $ref: '#/components/schemas/CloudEventEnvelope'
         - type: object
-          required: [event_id, version, lifecycle_state]
+          required: [event_id, version, lifecycle_state, ownership_pillar, retention_policy_id, audit_ref]
           properties:
             event_id: { type: string, format: uuid }
             version: { type: integer }
             lifecycle_state:
               type: string
               enum: [created, updated, canceled]
+            ownership_pillar:
+              type: string
+              enum: [Org, Personal]
+            retention_policy_id: { type: string }
+            legal_hold_ids:
+              type: array
+              items:
+                type: string
+            audit_ref: { type: string }
             starts_at: { type: string, format: date-time }
             ends_at: { type: string, format: date-time }
             attendee_count: { type: integer }
@@ -232,6 +301,57 @@ components:
               items:
                 type: string
               description: PII-redacted attendee identifiers (hashed)
+
+    AvailabilityProjectionEvent:
+      allOf:
+        - $ref: '#/components/schemas/CloudEventEnvelope'
+        - type: object
+          required: [projection_id, source_event_ref, recipient_scope, expires_at, free_busy, audit_ref]
+          properties:
+            projection_id: { type: string, format: uuid }
+            source_event_ref: { type: string, format: uuid }
+            recipient_scope: { type: string }
+            expires_at: { type: string, format: date-time }
+            audit_ref: { type: string }
+            free_busy:
+              type: array
+              description: Free/busy buckets only; no personal title, description, location, or attendees are emitted.
+              items:
+                type: object
+                required: [starts_at, ends_at, busy]
+                properties:
+                  starts_at: { type: string, format: date-time }
+                  ends_at: { type: string, format: date-time }
+                  busy: { type: boolean }
+                  attendee_count_bucket: { type: string }
+
+    ActionCardEvent:
+      allOf:
+        - $ref: '#/components/schemas/CloudEventEnvelope'
+        - type: object
+          required: [action_card_id, event_id, workflow_capability_ref, state, policy_basis, audit_ref]
+          properties:
+            action_card_id: { type: string, format: uuid }
+            event_id: { type: string, format: uuid }
+            workflow_capability_ref: { type: string }
+            state:
+              type: string
+              enum: [pending, approved, rejected, expired]
+            policy_basis: { type: string }
+            audit_ref: { type: string }
+
+    WorkflowHandoffEvent:
+      allOf:
+        - $ref: '#/components/schemas/CloudEventEnvelope'
+        - type: object
+          required: [workflow_handoff_id, event_id, action_card_id, workflow_capability_ref, policy_basis, audit_ref]
+          properties:
+            workflow_handoff_id: { type: string, format: uuid }
+            event_id: { type: string, format: uuid }
+            action_card_id: { type: string, format: uuid }
+            workflow_capability_ref: { type: string }
+            policy_basis: { type: string }
+            audit_ref: { type: string }
 
     InvitationRsvpEvent:
       allOf:

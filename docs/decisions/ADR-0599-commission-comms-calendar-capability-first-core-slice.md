@@ -127,3 +127,25 @@ maps each tracked path mentioned here to `ADR-0599`):
 The relocated domain crate `comms/core/calendar-domain/{BUCK,Cargo.toml,src/lib.rs}` and its re-keyed
 catalog record `registry/catalog/comms-calendar-domain.yaml` are rename-relabeled in the firewall
 baseline by the move-manifest (ADR-0563), not re-justified here.
+
+This ADR also justifies the bounded calendar workplace contract replay evidence slice that keeps
+PRD-CALENDAR AC-01..AC-05 source-locked without claiming runtime promotion, deployment, UI
+readiness, production/GA readiness, or customer availability. The producer's justification resolver
+maps each tracked path mentioned here to `ADR-0599`:
+
+`specs/fixtures/calendar-prd/calendar_prd_replay_check.py`,
+`specs/fixtures/calendar-prd/red-fixtures.json`,
+`specs/fixtures/calendar-prd/replay/ac/calendar-ac01-work-event-org-pillar-audit.fixture.json`,
+`specs/fixtures/calendar-prd/replay/ac/calendar-ac02-personal-detail-projection.fixture.json`,
+`specs/fixtures/calendar-prd/replay/ac/calendar-ac03-action-card-workflow-handoff.fixture.json`,
+`specs/fixtures/calendar-prd/replay/ac/calendar-ac04-legal-hold-preservation.fixture.json`,
+`specs/fixtures/calendar-prd/replay/ac/calendar-ac05-jurisdiction-retention-ux.fixture.json`,
+`specs/fixtures/calendar-prd/replay/asyncapi/calendar-asyncapi-v1-replay.fixture.json`,
+`specs/fixtures/calendar-prd/replay/authority/calendar-inventory-provenance-rejection.fixture.json`,
+`specs/fixtures/calendar-prd/replay/authority/calendar-prd-authority-source-lock.fixture.json`,
+`specs/fixtures/calendar-prd/replay/boundary/calendar-personal-work-pillar-boundary.fixture.json`,
+`specs/fixtures/calendar-prd/replay/contracts/calendar-produced-contracts.fixture.json`,
+`specs/fixtures/calendar-prd/replay/openapi/calendar-openapi-v1-replay.fixture.json`,
+`specs/fixtures/calendar-prd/replay/policy/calendar-build-parentage.fixture.json`,
+`specs/fixtures/calendar-prd/replay/proto/calendar-proto-v1-replay.fixture.json`,
+`specs/fixtures/calendar-prd/replay/ux/calendar-browser-accessibility-evidence.fixture.json`.
