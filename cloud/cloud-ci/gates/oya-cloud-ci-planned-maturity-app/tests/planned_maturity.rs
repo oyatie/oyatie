@@ -283,6 +283,8 @@ fn retired_usage_for_key(key: &str) -> &'static str {
         "specs/masterplan.json.implementation_plan_contract.legacy_",
         "specs/masterplan.json.implementation_plan_contract.live_applies_to_artifacts",
         "specs/masterplan.json.planning_authority.retired_scratch_globs",
+        "specs/masterplan.json.masterplan_v2.surface_dispositions",
+        "specs/masterplan.json.masterplan_v2.authority_consolidation_audit",
         "specs/master-plan-sequencing.json._metadata.archived_stale_documents",
         "specs/master-plan-sequencing.json.canonical_build_sequence.canonical_anchors",
         "specs/master-plan-sequencing.json.realignment_wave_sequence",
