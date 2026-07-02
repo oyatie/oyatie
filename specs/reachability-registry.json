@@ -182,6 +182,14 @@
       "prefix": "billing/OWNERS"
     },
     {
+      "anchor": "ADR-0339 IAC-001: the cloud-billing aws-guest thin-wrapper fixture invokes the shared OpenTofu sg-baseline module by in-repo relative path for the first module-library slice; ownership marker sits beside the wrapper and no cloud provisioning runtime is claimed.",
+      "prefix": "cloud/cloud-billing/iac/aws-guest/"
+    },
+    {
+      "anchor": "ADR-0339 IAC-001: the shared OpenTofu module-library fixture tree (`aws-guest/sg-baseline` plus catalog) under the de-branded iac capability home is the reviewed one-module slice; ownership marker sits at iac/modules/OWNERS and no full module registry/runtime is claimed.",
+      "prefix": "iac/modules/"
+    },
+    {
       "anchor": "ADR-0562 §10.26(a) ownership seed: the intelligence capability tree's OWNERS marker (axis-cloud-platform), ESTABLISHED by the twenty-second strangler move's FIRST sub-batch (a) — homing cloud/cloud-intelligence/crates → intelligence/{core,ports,adapters,facade}/; sixteen crates from ONE source dir. intelligence is the FINAL + LARGEST capability (the AI/intelligence substrate: SDK adapters, the OAuth subscription-pool request pipeline + proof layer, agentic capabilities), decomposed into ~7 serial sub-batch PRs; this sub-batch (a) homes ONLY cloud-intelligence and establishes the intelligence/ root, while the remaining 126 oya/intelligence crates (+ oya/detection) follow in sub-batches b-g (they stay mapped to `intelligence` via the registry absorbs_current_dirs so the PARTIAL state is membership-consistent). FACE per ENUMERATION (the acyclicity gate's owning_service() recognizes ONLY cloud/+oya/ and is STRUCTURALLY BLIND to intelligence/* edges, so face direction is hand-verified): the four kernels (the OAuth seat-pool state machine + tool-compat + translation + wire kernels — pure-serde leaves) are core; the cedar-authz / codex / gemini / openbao provider adapters + the clickhouse/valkey EventSink adapters + the claude-agent + codex vendor SDK transports + ops-infrastructure + the axum reverse-proxy `rest` crate are adapters (rest depends on the concrete codex-adapter + gemini-adapter, so it is adapters NOT ports — the suggested ports placement was a face inversion; the SecretProviderStore trait it carries → ports is a deferred crate-split refactor, out of scope for a placement move); the `app` composition-root (the cloud-intelligence binary; wires kernel + rest + four adapters via build_app()) + the `worker` are facade; dependency direction ports/adapters/facade→core non-inverting (verified by enumeration of every intelligence/core/*/Cargo.toml — ZERO relative path deps, so ZERO ../../{adapters,facade}/ edges — and the adapters carry no →facade edge; the only non-downward edge is the legitimate app(facade)→{core,adapters} composition-root edge). breadth-unlimited (ADR-0555) so it covers the whole intelligence subtree, including the co-moved intelligence/observability/slos/ flat SLO dir (ADR-0139 SLO-home convention; flat — single source dir, no cross-service basename collision; all five SLOs were already non-crate-resident at merge-base, relabeled old→new by the ADR-0563 rename-aware engine; the SLO metricSource queries retain the runtime-coupled oya_cloud_intelligence_* Prometheus metric names + service=\"cloud-intelligence\" label, a coordinated observability rename deferred to phase-2) and the eight re-keyed registry/catalog/intelligence-*.yaml records (reached by the existing registry/catalog/ prefix; eight of the sixteen moved crates had a pre-existing gate-bound catalog record, all re-keyed this move; the other eight carry none); the committed move-plan at specs/reorg/intelligence-move-plan.json is reached by the existing specs/reorg/ ADR-0563 prefix. The absorbed dir's other non-crate artifacts (cloud-intelligence manifest.json/docs/PRD/IPs/contracts/iac/k8s/policy/Dockerfile) + the runtime-coupled [[bin]] name `cloud-intelligence` (Dockerfile ENTRYPOINT + k8s workload image — LEFT verbatim) are homed in phase-2 (task #62), per the §10.5..§10.25 precedent. VIOLATION-SOURCE note: NONE — every cloud-intelligence outbound edge stays within the capability or points DOWN to libs/oya-shared-olap-* (the only cross-tree deps); zero NEW acyclicity/total-accounting violations (rename-aware engine, ADR-0563)",
       "prefix": "intelligence/OWNERS"
     },
@@ -200,6 +208,10 @@
     {
       "anchor": "ADR-0555 D2 ownership seed: the standards corpus OWNERS marker assigns council-architecture ownership for standards documents without making root OWNERS a blanket subtree owner.",
       "prefix": "docs/standards/OWNERS"
+    },
+    {
+      "anchor": "ADR-0339 IAC-001: reviewer-facing catalog documentation for the first shared OpenTofu module-library fixture, linked by iac/modules/catalog.json and scoped to aws-guest/sg-baseline only.",
+      "prefix": "docs/standards/iac-module-catalog.md"
     },
     {
       "anchor": "ADR-0555 D3: gate/agent evidence corpus — TTL-accounted decay (staleness-reaper budgets); evidence is reached by the gate runs that produced it",
