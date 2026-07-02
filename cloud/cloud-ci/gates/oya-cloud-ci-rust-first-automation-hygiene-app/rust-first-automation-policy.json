@@ -80,14 +80,14 @@
     },
     {
       "path": "scripts/tests/cloud_control_plane_operation_contract_check.py",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
+      "reason": "Primary validation for cloud control-plane operation contract validation has moved to the Rust/Buck2 cloud-resource-contracts gate; this Python file is retained only as a temporary local/provenance bridge and is not merge authority.",
+      "replacement": "Use Rust Buck2 cloud-ci gate //cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app:oya-cloud-ci-cloud-resource-contracts-app-gate; delete this legacy bridge after any remaining generated-baseline and historical-reference cleanup lands.",
       "status": "temporary_legacy_bridge"
     },
     {
       "path": "scripts/tests/cloud_enforceability_facets_check.py",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
+      "reason": "Primary validation for authz/tenancy/audit/metering/billing enforceability facets validation has moved to the Rust/Buck2 cloud-resource-contracts gate; this Python file is retained only as a temporary local/provenance bridge and is not merge authority.",
+      "replacement": "Use Rust Buck2 cloud-ci gate //cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app:oya-cloud-ci-cloud-resource-contracts-app-gate; delete this legacy bridge after any remaining generated-baseline and historical-reference cleanup lands.",
       "status": "temporary_legacy_bridge"
     },
     {
@@ -104,8 +104,8 @@
     },
     {
       "path": "scripts/tests/cloud_resource_contract_parity_catalog_check.py",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
+      "reason": "Primary validation for cloud resource contract parity catalog validation has moved to the Rust/Buck2 cloud-resource-contracts gate; this Python file is retained only as a temporary local/provenance bridge and is not merge authority.",
+      "replacement": "Use Rust Buck2 cloud-ci gate //cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app:oya-cloud-ci-cloud-resource-contracts-app-gate; delete this legacy bridge after any remaining generated-baseline and historical-reference cleanup lands.",
       "status": "temporary_legacy_bridge"
     },
     {
