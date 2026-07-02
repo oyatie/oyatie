@@ -19,9 +19,9 @@ Closes #<n> — change class: `feature | bugfix | refactor | migration | docs | 
 
 <!-- Each line MUST carry PASS/FAIL and an actual output excerpt, not a hand-wave. -->
 
-- `cargo nextest run --workspace --all-features --no-fail-fast` — `<PASS|FAIL>` — `<excerpt>`
-- `cargo clippy --workspace --all-features --all-targets -- -D warnings` — `<PASS|FAIL>` — `<excerpt>`
-- `cargo deny check` — `<PASS|FAIL>` — `<excerpt>`
+- `buck2 test <targeted test targets>` — `<PASS|FAIL|N/A>` — `<excerpt>`
+- `buck2 build <targeted build targets>` — `<PASS|FAIL|N/A>` — `<excerpt>`
+- Supplementary cargo feedback (`cargo nextest run` / `cargo clippy` / `cargo deny check`, local-only) — `<PASS|FAIL|N/A>` — `<excerpt>`
 - `oya-ci-required` protected status — `<PASS|FAIL>` — `<status URL or cloud-ci packet excerpt>`
 - Per-change-class fitness lanes: `<list lanes + PASS|FAIL each>`
 - Per-change-class reviewer agent: `<agent-name>` — verdict `<APPROVE|REQUEST CHANGES>`
