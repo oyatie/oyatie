@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema_version": "1.0",
+  "spec_id": "cell-topology-manifest-contract",
+  "spec_kind": "manifest-contract",
+  "status": "Accepted",
+  "title": "Cell / Residency / Multi-Region Topology Manifest Contract",
+  "purpose": "Defines the first atomic manifest surface that binds a service/tenant fixture to ADR-0009 cell tier, ADR-0049 residency class, ADR-0158 region disposition, ADR-0161 canonical storage class, and quarterly ADR-0009 isolation evidence handles. This is a manifest/spec/cloud-ci gate slice only; it does not implement runtime cell routing, storage provisioning, migration, or evidence collection.",
+  "authoring_task": "CELL-001R",
+  "cloud_ci_gate": "oya-cloud-ci-cell-topology-manifest-contract",
+  "authority": {
+    "merge_authority": "protected oya-ci-required context produced by cloud-ci Rust gate apps per ADR-0515",
+    "validator_surface": "cloud-ci Rust gate crate cloud/cloud-ci/gates/oya-cloud-ci-cell-topology-manifest-contract-app",
+    "proposed_adr_scope": "ADR-0009 and ADR-0049 are planning/context inputs for this spec-only manifest contract and authorize no runtime product/cloud mutation; accepted ADR-0158 and ADR-0161 provide the binding current manifest/storage-class surfaces for this slice.",
+    "deprecated_surface_guardrail": "No retired local command surface is introduced or promoted as merge authority. Local command output, if any, is provenance only."
+  },
+  "related_adrs": [
+    "ADR-0009",
+    "ADR-0049",
+    "ADR-0158",
+    "ADR-0161"
+  ],
+  "manifest_field": {
+    "path_pattern": "{cloud,oya}/<service>/manifest.json#cell_topology",
+    "fixture_path": "specs/fixtures/cell-topology-manifest/tenancy-kr-strict.json",
+    "validator": "cloud-ci Rust gate: oya-cloud-ci-cell-topology-manifest-contract-app"
+  },
+  "required_contract_fields": [
+    "service_id",
+    "tenant_id",
+    "cell_topology.cell_id",
+    "cell_topology.region",
+    "cell_topology.cell_tier",
+    "cell_topology.residency_class",
+    "cell_topology.region_disposition",
+    "cell_topology.storage_class",
+    "cell_topology.quarterly_isolation_evidence.quarter",
+    "cell_topology.quarterly_isolation_evidence.network",
+    "cell_topology.quarterly_isolation_evidence.storage",
+    "cell_topology.quarterly_isolation_evidence.crypto",
+    "cell_topology.quarterly_isolation_evidence.compute",
+    "cell_topology.quarterly_isolation_evidence.audit"
+  ],
+  "cell_tier_enum": [
+    "dedicated",
+    "shared-small",
+    "shared-medium",
+    "shared-large",
+    "agent-runtime",
+    "public-corpus"
+  ],
+  "cell_tier_sources": {
+    "dedicated": "ADR-0009 Dedicated: one tenant per cell",
+    "shared-small": "ADR-0009 Shared-small: up to approximately 10 tenants",
+    "shared-medium": "ADR-0009 Shared-medium: up to approximately 100 tenants",
+    "shared-large": "ADR-0009 Shared-large: up to approximately 1000 tenants",
+    "agent-runtime": "ADR-0009 agent invocation cells: agent execution cells with per-run worktree isolation",
+    "public-corpus": "ADR-0009 Public-corpus: search public-web ingestion only"
+  },
+  "residency_class_enum": [
+    "strict_kr",
+    "kr_with_us_failover",
+    "global",
+    "per_pack"
+  ],
+  "residency_class_sources": {
+    "strict_kr": "ADR-0049 StrictKr: all data, replicas, backups, and derived data stay in KR cells",
+    "kr_with_us_failover": "ADR-0049 KrWithUsFailover: primary in KR with opt-in US warm replica for permitted classes",
+    "global": "ADR-0049 Global: per-class per-region map",
+    "per_pack": "ADR-0049 PerPack: pack-specific region allow/deny overlay"
+  },
+  "region_disposition_enum": [
+    "active_active",
+    "active_passive",
+    "single_region"
+  ],
+  "region_disposition_sources": {
+    "active_active": "ADR-0158: multiple write-able regions with a declared convergence model",
+    "active_passive": "ADR-0158: primary region plus warm standby and declared RPO/RTO",
+    "single_region": "ADR-0158: one region; no cross-region presence"
+  },
+  "storage_class_enum": [
+    "oya-pg-hot",
+    "oya-pg-warm",
+    "oya-pg-cold",
+    "oya-redis-hot",
+    "oya-s3-warm",
+    "oya-s3-cold"
+  ],
+  "storage_class_source": "ADR-0161 canonical StorageClass naming scheme oya-<kind>-<tier>.",
+  "quarterly_isolation_evidence_kinds": [
+    "network",
+    "storage",
+    "crypto",
+    "compute",
+    "audit"
+  ],
+  "quarterly_isolation_evidence_sources": {
+    "network": "ADR-0009 network isolation evidence: VPC, security group, and mesh policies prove no cross-cell ingress or egress beyond declared contracts",
+    "storage": "ADR-0009 storage isolation evidence: RLS coverage and per-cell Citus shard residency proof",
+    "crypto": "ADR-0009 crypto isolation evidence: per-cell HSM partition audit and DEK shred test",
+    "compute": "ADR-0009 compute isolation evidence: scheduler quotas and noisy-neighbor p99 bound test",
+    "audit": "ADR-0009 audit isolation evidence: chain shard verification"
+  },
+  "path_conflicts": {
+    "conflict_class": "repo-governance-specs-docs",
+    "serialized_paths": [
+      "specs/cell-topology-manifest-contract.json",
+      "specs/fixtures/cell-topology-manifest/",
+      "specs/root-hub-pointers.json",
+      "cloud/cloud-ci/gates/oya-cloud-ci-cell-topology-manifest-contract-app/"
+    ],
+    "non_parallel_notes": "Serialize with other specs/, root-hub, governance registry, and generated-face work. This slice does not hand-edit generated faces."
+  },
+  "non_claims": [
+    "no runtime cell router or mesh policy enforcement",
+    "no Kubernetes StorageClass provisioning or CSI driver invocation",
+    "no tenant migration, autosharding, auto-rebalance, or failover execution",
+    "no live evidence collection backend; evidence:// references are contract handles only",
+    "no provider API, Argo CD API, Kubernetes API, database, KMS, or storage API calls"
+  ]
+}

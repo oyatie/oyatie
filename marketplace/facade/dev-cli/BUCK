@@ -524,6 +524,20 @@ rust_test(
 )
 
 rust_test(
+    name = "marketplace-dev-cli-capacity-model-gate-cli",
+    srcs = ["tests/capacity_model_gate_cli.rs"],
+    crate = "marketplace_dev_cli_capacity_model_gate_cli",
+    crate_root = "tests/capacity_model_gate_cli.rs",
+    env = {
+        "CARGO_BIN_EXE_oya": "$(location :oya)",
+    },
+    visibility = ["PUBLIC"],
+    deps = [
+        ":marketplace-dev-cli",
+    ],
+)
+
+rust_test(
     name = "marketplace-dev-cli-catalog-cli",
     srcs = ["tests/catalog_cli.rs"],
     crate = "marketplace_dev_cli_catalog_cli",
