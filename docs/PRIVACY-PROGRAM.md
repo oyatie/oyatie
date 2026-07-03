@@ -6,7 +6,7 @@ doc_status: published
 # Oyatie — Privacy Program
 
 > **Status:** Accepted boundary text — ADR-0008 ratified 2026-05-14; operating model remains monthly-maintained.
-> **Companion docs:** [PRD.md](PRD.md), [DESIGN.md](DESIGN.md), [SECURITY-PROGRAM.md](SECURITY-PROGRAM.md), [COMPLIANCE-MATRIX.md](COMPLIANCE-MATRIX.md).
+> **Companion docs:** [PRD.md](PRD.md), [DESIGN.md](DESIGN.md), [security-program.json](security-program.json), [COMPLIANCE-MATRIX.md](COMPLIANCE-MATRIX.md).
 > **Owners:** Privacy & Legal council; Architecture council co-signs cross-axis flows; Founder is final arbiter on scope changes.
 
 ---

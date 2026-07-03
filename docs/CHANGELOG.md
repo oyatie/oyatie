@@ -591,7 +591,7 @@ This is the founding consolidation, authored in one session as the project repos
 - **COMPLIANCE-MATRIX.md** — regulator × control × evidence × cadence × owner across KR / JP / US / EU / IN / BR / KSA / UAE / AU / SG + cross-regional standards
 - **RISK-REGISTER.md** — 27 scored risks (severity × likelihood × velocity) + 6 anti-risks + per-axis slice
 - **CONTRADICTION-LEDGER.md** — LEDG-001..029 from Codex verdict + recon files + team-charter review
-- **SECURITY-PROGRAM.md** — threat model + 12 controls + per-axis controls + continuous control monitoring
+- **security-program.json** — threat model + 12 controls + per-axis controls + continuous control monitoring
 - **SLO-CATALOG.md** — per-surface SLOs + error-budget policy + burn-rate gates
 - **RELEASE-MANAGEMENT.md** — trunk-based + release branch + CI lane catalog + progressive delivery + hotfix path + per-axis release exceptions
 - **QA-TEST-STRATEGY.md** — test pyramid + required tests per change class + fixture discipline + flaky-test policy + coverage targets

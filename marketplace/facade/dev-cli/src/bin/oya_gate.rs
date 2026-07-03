@@ -32,7 +32,11 @@ fn main() -> ExitCode {
     // Determine which lane and remaining args — avoid borrow-then-move by
     // copying the lane string before consuming `rest`.
     let (skip, lane_owned): (usize, String) = {
-        match (rest.get(0).map(String::as_str), rest.get(1).map(String::as_str), rest.get(2).map(String::as_str)) {
+        match (
+            rest.first().map(String::as_str),
+            rest.get(1).map(String::as_str),
+            rest.get(2).map(String::as_str),
+        ) {
             (Some("gate"), Some("validate"), Some(lane)) => (3, lane.to_string()),
             (Some("validate"), Some(lane), _) => (2, lane.to_string()),
             _ => {

@@ -367,7 +367,7 @@
       "agent_authoring_allowed": false
     },
     "doc.security_program": {
-      "path": "docs/SECURITY-PROGRAM.md",
+      "path": "docs/security-program.json",
       "owner_team": "ops-security",
       "tier": 1,
       "update_trigger": [
