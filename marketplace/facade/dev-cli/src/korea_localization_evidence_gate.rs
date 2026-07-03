@@ -490,7 +490,6 @@ fn build_evidence_bundle(
         },
         "acceptance_commands": [
             "cargo run -q -p oya-dev-cli -- gate validate korea-localization-evidence",
-            "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
             "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality"
         ]
     })

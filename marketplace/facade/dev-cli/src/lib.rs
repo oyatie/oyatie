@@ -95,7 +95,6 @@ mod masterplan_drift_gate;
 mod openapi_rest_route_parity_gate;
 mod path_format;
 mod placeholder_debt_gates;
-mod planning_closure_gate;
 mod planning_ssot_coverage_gate;
 mod platform_substrate_defaults_gate;
 mod pre_push_contract_gate;
@@ -273,9 +272,6 @@ pub(crate) use path_format::slash_path;
 pub(crate) use placeholder_debt_gates::{
     parse_placeholder_debt_validate_args, validate_placeholder_debt_gate,
 };
-pub(crate) use planning_closure_gate::{
-    parse_planning_closure_validate_args, validate_planning_closure_gate,
-};
 pub(crate) use platform_substrate_defaults_gate::{
     parse_platform_substrate_defaults_args, validate_platform_substrate_defaults_gate,
 };
@@ -436,7 +432,6 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate aspirational-enforcement [--clear-default-corpus] [--corpus-root <path>]... [--crates-dir <crates>] [--workflows-dir <.github/workflows>] [--quality-lanes <registry/quality/lanes.yaml>] [--branch-protection <.github/branch-protection.yaml>] [--branch <dev>]"
         + "\n       oya gate validate banned-primitives [--repo-root <.>] [--clear-default-roots] [--root <path>]... [--command-log-root <path>]... [--require-command-log-corpus] [--known-rationale <id>]..."
         + "\n       oya gate validate design-spec-maturity-claims [--standard <specs/design-spec-maturity-claims.json>] [--microservices-root <microservices>] [--deferred-surfaces <registry/design-spec-maturity/wave-3-i-deferred-surfaces.tsv>] [--emit-evidence <evidence/design-spec-maturity/after-2026-05-18.json>]"
-        + "\n       oya gate validate planning-closure [--contract <specs/planning-closure-contract.json>] [--master-plan <specs/masterplan.json>] [--sequencing <specs/master-plan-sequencing.json>] [--root-hub <specs/root-hub-pointers.json>] [--vertical-adr <docs/decisions/ADR-0217-vertical-slice-rollout-order.md>]"
         + "\n       oya gate validate adr-planning-completeness [--decisions-dir <docs/decisions>]"
         + "\n       oya gate validate masterplan-drift [--decisions-dir <docs/decisions>] [--masterplan <docs/machine-readable/masterplan.generated.json>]"
         + "\n       oya gate validate canonical-base-neutrality [--repo-root <.>] [--root <path>]... [--exclude-root <path>]... [--self-test]"

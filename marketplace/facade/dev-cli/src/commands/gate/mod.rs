@@ -2064,32 +2064,6 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         (Some("validate"), Some("masterplan-drift")) => {
             crate::masterplan_drift_gate::run_masterplan_drift(args.collect())
         }
-        (Some("validate"), Some("planning-closure")) => {
-            match crate::parse_planning_closure_validate_args(args.collect()) {
-                Ok(args) => match crate::validate_planning_closure_gate(args) {
-                    Ok(report) => {
-                        println!(
-                            "planning-closure validation passed: {} packaging axes, {} surfaces, {} regional-pack surfaces, {} architecture rules, {} status fields checked, blocker_count={}",
-                            report.packaging_axis_count,
-                            report.surface_count,
-                            report.kr_pack_surface_count,
-                            report.architecture_rule_count,
-                            report.status_fields_checked,
-                            report.blocker_count
-                        );
-                        ExitCode::SUCCESS
-                    }
-                    Err(message) => {
-                        eprintln!("planning-closure validation failed: {message}");
-                        ExitCode::FAILURE
-                    }
-                },
-                Err(message) => {
-                    eprintln!("{message}");
-                    ExitCode::from(2)
-                }
-            }
-        }
         (Some("validate"), Some("canonical-base-neutrality")) => {
             match crate::parse_canonical_base_neutrality_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_canonical_base_neutrality_gate(args) {
