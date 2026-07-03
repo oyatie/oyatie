@@ -35,7 +35,7 @@
     "stage_1_scope": "Engine-neutral verdict schema (typed-obligation result shape, reverse-query result shapes, provenance and emulation-disclosure shapes), the engine-neutral Fixture-1 request shape, and per-engine adapter contracts for the full Core-6 slate.",
     "stage_2_scope": "Fixture 1 (KR + synthetic US federal/state/city statutory workload) and Fixture 2 (>=3-hop cross-company ReBAC) definitions plus engine-neutral conformance vectors, appended under `conformance_vectors` with a new content-hash. Vectors double as the owned-IR conformance-corpus seed and as billing-wedge acceptance tests.",
     "vectors_present": false,
-    "pre_vector_invariant": "While `vectors_present` is false, `conformance_vectors` MUST be the empty array. The schema/contract validation test (scripts/tests/policy_ir_benchmark_fixture_contract_check.py) passes against this vector-free state; vector authoring is a later single-lane stage and spike fan-out is blocked until vectors land under a frozen fixture content-hash.",
+    "pre_vector_invariant": "While `vectors_present` is false, `conformance_vectors` MUST be the empty array. The schema/contract validation of this vector-free state is owed by the fixture-contract gate app (the interim Python checker was deliberately dropped per rust-first doctrine; the owned Rust gate-app reauthor is tracked at issue #1192); vector authoring is a later single-lane stage and spike fan-out is blocked until vectors land under a frozen fixture content-hash.",
     "authoring_acknowledgement": "Authoring these shapes and (later) vectors is an owned-IR design act — the verdict schema mirrors the owned decision model (typed obligations, decision_id provenance, policy_version zookies) by intent. It is pre-registered here, engine-neutrally, before any spike runs so it cannot be retro-fitted toward a preferred engine; it is not passed off as neutral measurement.",
     "grade_pinning": "Every verifier-lane grade pins both the rubric content-hash and this document's fixture content-hash. A correction to this document triggers the rubric's amendment/invalidation/re-queue protocol keyed on fixture content-hash (specs/policy-ir-benchmark-rubric.json#amendment_protocol)."
   },
@@ -1112,11 +1112,10 @@
     "canonicalization": "JSON canonical form: parse this document, set content_hash.value to the empty string, then serialize with sorted keys, separators (',', ':'), UTF-8, no ASCII escaping (python3: json.dumps(doc, sort_keys=True, separators=(',',':'), ensure_ascii=False).encode('utf-8')). The digest is sha256 over those bytes. Identical to the rubric's canonicalization.",
     "scope": "Hashes the entire FixtureSuite document including conformance_vectors; landing vectors or correcting fixtures therefore yields a new content-hash by construction, giving immutable-per-version semantics for grade pinning.",
     "pinning_rule": "Verifier-lane grades and adapter verdict provenance pin this value. A grade pinned to a stale fixture hash after a fixture correction is invalid until re-queued and re-graded per the rubric amendment protocol.",
-    "value": "fixture-suite-v1:sha256:4e7b277a2eb192449be9f2c0ffc4ec7bbf7c9dc6db17d5b4127d432dfd12d99d"
+    "value": "fixture-suite-v1:sha256:30b840be333c930a29607e71163db6a33838d113538e551e84fb561decec9e78"
   },
   "verification_commands": [
     "python3 -m json.tool specs/policy-ir-benchmark-fixture-suite.json >/dev/null",
-    "python3 scripts/tests/policy_ir_benchmark_fixture_contract_check.py",
-    "python3 scripts/tests/policy_ir_benchmark_fixture_contract_check.py --self-test"
+    "PENDING(#1192): owned Rust fixture-contract gate app — validates fixture_definitions, verdict_schema, adapter_contracts, and the pre-vector invariant (replaces the deliberately dropped scripts/tests/policy_ir_benchmark_fixture_contract_check.py)"
   ]
 }
