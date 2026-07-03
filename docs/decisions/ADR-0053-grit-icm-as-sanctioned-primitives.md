@@ -125,7 +125,7 @@ This ADR is consistent with the following Master-Plan-level principles; they sha
 
 1. **File upstream grit bug** for `grit session start` at `rtk-ai/grit` (draft at `.omc/scratch/pre-cutover-drafts-2026-05-12.md §Draft 1`). Track in oyatie's `RISK-REGISTER.md` under a new row.
 2. **ADR-0054-grit-scaffold-claim-pattern.md** for the new-crate chicken-and-egg resolution. Draft at `.omc/scratch/pre-cutover-drafts-2026-05-12.md §Draft 2`.
-3. **Document `oya-tooling-agent-read` audit-chain topic** in `oyatie/docs/SECURITY-PROGRAM.md`. Each read invocation should emit `EVT-AGENT-READ-<verb>` with agent id, args, timestamp.
+3. **Document `oya-tooling-agent-read` audit-chain topic** in `oyatie/docs/security-program.json`. Each read invocation should emit `EVT-AGENT-READ-<verb>` with agent id, args, timestamp.
 4. **Add inventory-tracker fitness lane** for the `archive/pre-grit-cutover-2026-05-12/` directory — once a file is archived, the active-path equivalent must NOT exist (and vice versa for KEEP-class files).
 5. **Schedule re-evaluation of the helper surface in 90 days** (2026-08-12) — if `grit` upstream adds `grit log`/`grit pr-view`/`grit diff` natively, deprecate the corresponding `oya-tooling-agent-read` subcommands and shrink the helper.
 6. **Forge-provider abstraction for `oya-tooling-agent-read`** — when oyatie adds a second forge (GitLab, Bitbucket, Gitea), introduce a provider trait and adapter crates (`oya-tooling-agent-read-adapter-github`, `-adapter-gitlab`, etc.) so the verb surface remains stable. Defer until second-forge requirement materializes; track in the provider-agnostic cross-cutting workstream.
