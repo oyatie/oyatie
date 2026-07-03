@@ -7,9 +7,12 @@ quality is enforced and auto-remediated so that sub-standard output cannot enter
 
 Canonical, machine-readable specs live under [`docs/`](docs/), [`specs/`](specs/), and
 [`registry/`](registry/). Agents read [`AGENTS.md`](AGENTS.md) and [`CLAUDE.md`](CLAUDE.md) for the
-canonical entry-point pointers; [`HANDOFF.md`](HANDOFF.md) carries current cross-cutting state and
-the active backlog. Architecture decisions live in [`docs/decisions/`](docs/decisions/) (ADRs); the
-apex vision is the **Agentic Delivery Fabric** (ADR-0516…0535).
+canonical entry-point pointers; the mandatory agent entry surface is
+[`specs/masterplan.json`](specs/masterplan.json) (single-writer authority for live plan content,
+work items, status evidence, and the dependency DAG — see
+[`specs/root-hub-pointers.json`](specs/root-hub-pointers.json)). Architecture decisions live in
+[`docs/decisions/`](docs/decisions/) (ADRs); the apex vision is the **Agentic Delivery Fabric**
+(ADR-0516…0535).
 
 How we build and review — the review lenses (Cartesian doubt, Red Team, blast-radius, opportunity
 cost…), the hyperscale architecture lenses, and the bars every change clears — is in
@@ -17,19 +20,20 @@ cost…), the hyperscale architecture lenses, and the bars every change clears �
 
 ## Build & verify
 
-The build is moving to a fully hermetic, lifecycle-wide [buck2](https://buck2.build) graph — a clean
-checkout builds and tests with no setup script and no prebuilt blobs:
+The canonical build is a fully hermetic, lifecycle-wide [buck2](https://buck2.build) graph — a
+clean checkout builds and tests with no setup script and no prebuilt blobs:
 
 ```sh
-buck2 build //cloud/cloud-ci/...
-buck2 test //cloud/cloud-ci/...
+buck2 build //...
+buck2 test //...
 ```
 
-Quality is enforced on every change by the canonical **conformance ratchet** — the single required
-`oya-ci-required` gate suite (accounting, cross-artifact agreement, staleness, manifest hygiene,
-layer-suffix, brand-residue, registry-drift). It is config-driven (`oya-ci.toml`) and reusable as a
-product by any project. See [`HANDOFF.md`](HANDOFF.md) and [`docs/decisions/`](docs/decisions/) for
-current build/CI state and the staged roadmap.
+Quality is enforced on every change by the cloud-ci gate fleet behind the **single required status
+context `oya-ci-required`** (ADR-0515): conformance, accounting, cross-artifact agreement,
+freshness, hygiene, security, and planning gates, each shipped as a neutral engine plus
+policy-as-data so any repo can adopt it (pipeline-as-product). Live plan state, work items, and
+status evidence live in [`specs/masterplan.json`](specs/masterplan.json); decision history is in
+[`docs/decisions/`](docs/decisions/).
 
 ## License
 

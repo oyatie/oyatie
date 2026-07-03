@@ -147,7 +147,6 @@ pub const LEGACY_DOCS_ROOT_FILES: &[&str] = &[
     "RISK-REGISTER.md",
     "ROADMAP.md",
     "RUNBOOKS-INDEX.md",
-    "SECURITY-PROGRAM.md",
     "SLO-CATALOG.md",
     "SPEC.md",
     "STANDARDS-AND-TEMPLATES.md",
