@@ -7,7 +7,7 @@ doc_status: published
 
 > **Status:** Draft v0.1 — 2026-05-09.
 > **Owner:** `ops-sre-reliability`.
-> **Companion:** [SECURITY-PROGRAM.md](SECURITY-PROGRAM.md), [RUNBOOKS-INDEX.md](RUNBOOKS-INDEX.md), [RISK-REGISTER.md](RISK-REGISTER.md), [`templates/incident-postmortem-template.md`](templates/incident-postmortem-template.md), [`checklists/incident-response.md`](checklists/incident-response.md).
+> **Companion:** [security-program.json](security-program.json), [RUNBOOKS-INDEX.md](RUNBOOKS-INDEX.md), [RISK-REGISTER.md](RISK-REGISTER.md), [`templates/incident-postmortem-template.md`](templates/incident-postmortem-template.md), [`checklists/incident-response.md`](checklists/incident-response.md).
 
 ## 1. Severity taxonomy
 
