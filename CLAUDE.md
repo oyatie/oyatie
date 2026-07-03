@@ -18,9 +18,14 @@ Lifecycle skills, role prompts, and intent→skill mapping are provided by the i
 
 Oyatie governance (`docs/AGENTS.md` operating contract + authority chain + governance pipeline + ADRs 0145+) remains the repository authority and overlays runtime skill guidance on conflict per `feedback_bominal_inheritance_precedence`. This file (root `CLAUDE.md`) remains the authoritative project-rules source.
 
-## Engineering principles & review lenses
+## Shared root contract — single-sourced in AGENTS.md
 
-Apply the review lenses, hyperscale architecture lenses, and engineering bars in [`AGENTS.md`](AGENTS.md#engineering-principles--review-lenses) before any non-trivial decision, design, or merge (single source — not duplicated here).
+Project identity and hard invariants, build & verify commands (buck2-first; cargo is
+supplementary local feedback only), coding & testing standards, and the review lenses /
+hyperscale lenses / engineering bars are single-sourced in [`AGENTS.md`](AGENTS.md)
+(§§ *What Oyatie is*, *Build & verify*, *Coding & testing standards*,
+*Engineering principles & review lenses*). Read that file together with this one before any
+non-trivial decision, design, or merge — none of it is duplicated here.
 
 <!-- agent-instructions:start -->
 coordination_surface: governance_pipeline
