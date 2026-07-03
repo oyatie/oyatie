@@ -122,7 +122,7 @@ Related sections: [§1 Architecture](#section-1-architecture), [§2 Decisions](#
 32. [RISK-REGISTER.md](RISK-REGISTER.md) - Risk Register: canonical navigation target for this shelf.
 33. [ROADMAP.md](ROADMAP.md) - Roadmap: canonical navigation target for this shelf.
 34. [RUNBOOKS-INDEX.md](RUNBOOKS-INDEX.md) - Runbooks Index: canonical navigation target for this shelf.
-35. [SECURITY-PROGRAM.md](SECURITY-PROGRAM.md) - Security Program: canonical navigation target for this shelf.
+35. [security-program.json](security-program.json) - Security Program: canonical navigation target for this shelf.
 36. [SLO-CATALOG.md](SLO-CATALOG.md) - SLO Catalog: canonical navigation target for this shelf.
 37. [SPEC.md](SPEC.md) - Spec: canonical navigation target for this shelf.
 38. [STANDARDS-AND-TEMPLATES.md](STANDARDS-AND-TEMPLATES.md) - Standards And Templates: canonical navigation target for this shelf.
@@ -1267,7 +1267,7 @@ Compliance packs bind regulatory obligations to pack manifests, localization pac
 9. [compliance pack schema](../specs/compliance-pack-schema.json) - schema for compliance pack manifests.
 10. [compliance matrix](COMPLIANCE-MATRIX.md) - human-readable compliance matrix.
 11. [privacy program](PRIVACY-PROGRAM.md) - privacy program authority.
-12. [security program](SECURITY-PROGRAM.md) - security program authority.
+12. [security program](security-program.json) - security program authority.
 13. [localization index](localization-packs/INDEX.md) - localization pack index.
 14. [regional packs README](regional-packs/README.md) - regional pack documentation entry.
 15. [KR regional pack](regional-packs/oya-pack-kr/PACK.md) - KR regional pack documentation.

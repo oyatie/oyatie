@@ -7,7 +7,7 @@ doc_status: published
 
 > **Status:** Draft v0.1 — 2026-05-09. Authored per user directive: depth on PCI-DSS scope and per-jurisdiction regulatory regimes for Oyatie fintech operations modeled on Toss / KakaoBank / KakaoPay / NaverPay / PayPal / Stripe / Adyen / Wise / Robinhood / Coinbase-class.
 > **Owner:** `vertical-fintech` + `ops-compliance` + `regional-packs` (per-jurisdiction).
-> **Companion:** [COMPLIANCE-MATRIX.md](../COMPLIANCE-MATRIX.md), [PRIVACY-PROGRAM.md](../PRIVACY-PROGRAM.md), [SECURITY-PROGRAM.md](../SECURITY-PROGRAM.md), [`products/vertical-fintech/PRD.md`](../products/vertical-fintech/PRD.md).
+> **Companion:** [COMPLIANCE-MATRIX.md](../COMPLIANCE-MATRIX.md), [PRIVACY-PROGRAM.md](../PRIVACY-PROGRAM.md), [security-program.json](../security-program.json), [`products/vertical-fintech/PRD.md`](../products/vertical-fintech/PRD.md).
 > **Critical reference for:** any tenant onboarding into the `vertical-fintech` axis; any cloud-region launch where fintech is in scope; any Workspace/Mail surface that touches cardholder data; any Foundry capability that touches financial accounts.
 
 ---
