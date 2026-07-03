@@ -7,7 +7,7 @@ doc_status: published
 > **Owner:** `<team-id>` from [`teams/`](../teams/)
 > **Severity supported:** Sev 1 | Sev 2 | Sev 3 | Sev 4
 > **Last verified:** YYYY-MM-DD by <author> in drill / production
-> **Related:** [INCIDENT-MANAGEMENT.md](../INCIDENT-MANAGEMENT.md), [SLO-CATALOG.md](../SLO-CATALOG.md), [SECURITY-PROGRAM.md](../SECURITY-PROGRAM.md)
+> **Related:** [INCIDENT-MANAGEMENT.md](../INCIDENT-MANAGEMENT.md), [SLO-CATALOG.md](../SLO-CATALOG.md), [security-program.json](../security-program.json)
 
 ---
 
