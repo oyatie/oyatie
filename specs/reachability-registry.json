@@ -364,6 +364,14 @@
     {
       "anchor": "ADR-0600 addendum 2026-07-02 + ADR-0555 ownership seed: the .github community-health tree's OWNERS marker (council-architecture).",
       "prefix": ".github/OWNERS"
+    },
+    {
+      "anchor": "ADR-0610: pre-registered frozen Policy-IR benchmark stage-0 artifacts (rubric = sole grade authority, fixture suite = graded corpus); evidence-admissibility pre-registration.",
+      "prefix": "specs/policy-ir-benchmark-rubric.json"
+    },
+    {
+      "anchor": "ADR-0610: pre-registered frozen Policy-IR benchmark stage-0 artifacts (rubric = sole grade authority, fixture suite = graded corpus); evidence-admissibility pre-registration.",
+      "prefix": "specs/policy-ir-benchmark-fixture-suite.json"
     }
   ]
 }
