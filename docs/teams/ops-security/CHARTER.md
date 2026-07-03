@@ -10,7 +10,7 @@ This team owns Oyatie's security program: threat modeling, vulnerability managem
 ## Owned axes / surfaces / contracts
 - **Axis(es):** Cross-cutting security operations
 - **Surfaces:**
-  - Security program doc (`SECURITY-PROGRAM.md`)
+  - Security program doc (`security-program.json`)
   - Threat model registry (per-axis threat models, updated per wave)
   - Vulnerability management: Trivy SARIF pipeline, dependency CVE triage, patch SLAs
   - Supply-chain: Cosign image signing attestation, SBOM registry, license-policy gate (co-owned with `axis-foundry` for tooling)

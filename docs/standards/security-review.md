@@ -19,7 +19,7 @@ purpose: |
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
 enforced_by: oya-governance-supply-chain
 companion_docs:
-  - docs/SECURITY-PROGRAM.md
+  - docs/security-program.json
   - docs/standards/data-class.md
   - docs/standards/autonomy-ceiling.md
   - docs/standards/dependency-policy.md
@@ -40,7 +40,7 @@ agents (`security-reviewer`, `privacy-reviewer`, `capability-reviewer`)
 operate against this standard; the gate is named in
 [`docs/AGENTS.md`](../AGENTS.md) §Per-change-class reviewer agents.
 
-The program-level scope is in [`docs/SECURITY-PROGRAM.md`](../SECURITY-PROGRAM.md);
+The program-level scope is in [`docs/security-program.json`](../security-program.json);
 this standard supplies the per-PR review recipe.
 
 ## 1. OWASP control surfaces inherited
@@ -202,7 +202,7 @@ When a finding cannot be fixed in the PR:
 
 ## 11. Sources scanned
 
-- [`docs/SECURITY-PROGRAM.md`](../SECURITY-PROGRAM.md) (program scope).
+- [`docs/security-program.json`](../security-program.json) (program scope).
 - [OWASP Top 10 (2024)](https://owasp.org/Top10/), [OWASP ASVS v4.0.3](https://owasp.org/www-project-application-security-verification-standard/).
 - [RustSec](https://rustsec.org/), [cargo-deny config](https://embarkstudios.github.io/cargo-deny/checks/advisories/cfg.html).
 - [Mozilla — cargo-vet](https://mozilla.github.io/cargo-vet/).
