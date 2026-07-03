@@ -10,7 +10,49 @@ Pointers: `/specs/master-plan-sequencing.json`; `/specs/markdown-retirement-poli
 
 Agent-executable instructions are fenced for the agent-coordination lane. Human terminal shortcuts belong outside this fenced agent surface.
 
-Manual Wave-B bootstrap note (prose only): agents enter the governance pipeline by creating an isolated worktree branch and opening a protected pull request against `dev`; ADR-0363 retires the bespoke VCS ratchet and ADR-0515 owns the single canonical cloud-ci admission context.
+Manual Wave-B bootstrap note (prose only): agents enter the governance pipeline by creating an isolated worktree branch and opening a protected pull request against `dev`; ADR-0363 retires the bespoke VCS ratchet and ADR-0515 owns cloud-ci/oya-ci Tide admission (ADR-0513 is historical: frontmatter status Superseded, superseded_by ADR-0515, accepted 2026-06-07). The agentic delivery fabric vision and staged rollout are governed by the ADR-0516..ADR-0535 fabric cluster.
+
+## What Oyatie is
+
+An owned, cloud-native, hyperscale platform built in Rust — a unified **delivery fabric**
+(SCM + CI + CD) plus the products that run on it; full identity in [`README.md`](README.md).
+Hard invariants every change respects: the whole stack is owned Rust — kuberos kernel → cloud-os →
+cloud-k8s → cloud services → oyatie products (founder directive 2026-06-09); automation
+deliverables are Rust, never shell/Python/Node (rust-first automation-hygiene gate); ALL CLI
+surfaces are retirement-marked — new capabilities ship as APIs + declarative state + reconcilers;
+nothing merges except a protected PR against `dev` behind the single required `oya-ci-required`
+context.
+
+Repository topology and the full operating contract live in
+[`docs/AGENTS.md`](docs/AGENTS.md) (§ Repository topology); canonical implementation homes are
+`{oya,cloud}/<service>/crates/<crate>` and `libs/<lib>/`.
+
+## Build & verify
+
+Hermetic buck2 graph — a clean checkout builds and tests with no setup script (see
+[`README.md`](README.md#build--verify)):
+
+| Command | Purpose |
+|---|---|
+| `buck2 build //cloud/cloud-ci/...` | Primary build — scope the target pattern to your lane |
+| `buck2 test //cloud/cloud-ci/...` | Primary test — BUCK + reindeer wiring is part of done |
+| `cargo test` / `cargo clippy` | Supplementary local feedback only, never merge evidence |
+| `buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin` | Regenerate `*.generated.json` faces — never hand-edit |
+
+Toolchain: Rust pinned in [`rust-toolchain.toml`](rust-toolchain.toml); the sole sanctioned
+cargo production path is release-image builds. Local green ≠ merge green: merge authority is
+only the `oya-ci-required` context on the PR.
+
+## Coding & testing standards
+
+The full battery lives in [`docs/standards/`](docs/standards/INDEX.md). Load-bearing for every
+change: `code-style-rust.md`, `error-handling.md`, `dependency-policy.md` (no ad-hoc
+dependencies; transient deps only MIT/Apache behind a port modeling the owned destination),
+`crate-naming-convention.md`, `git-workflow.md`, `commit-message.md` (Conventional Commits,
+closed type/scope enumerations), and `testing.md` (Test Pyramid 2.0: unit / integration /
+contract / E2E / property / fuzz, plus mutation); unit-green alone never satisfies acceptance.
+New HTTP surfaces are fail-closed: default-deny authn/authz via the cloud-iam PDP before any
+handler logic.
 
 ## Engineering principles & review lenses
 
