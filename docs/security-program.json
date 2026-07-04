@@ -25,7 +25,7 @@
       "docs/INCIDENT-MANAGEMENT.md"
     ],
     "purpose": "Canonical machine-readable security program: threat model, posture controls, and per-axis control catalog for continuous-control-monitoring evidence cadence.",
-    "provenance": "Converted from docs/SECURITY-PROGRAM.md (Draft v0.1, 2026-05-09) with founder-directed de-staling 2026-07-03: retire stale 'Foundry' vocabulary to the intelligence substrate naming, correct stack-posture claims to the owned-Rust destination + transitional-adapter-behind-ports framing, correct authorization claims to the cloud-iam PDP, drop retired issue-tracker citations, and drop citations to ADRs that do not exist in this checkout (ADR-0037)."
+    "provenance": "Converted from docs/SECURITY-PROGRAM.md (Draft v0.1, 2026-05-09) with founder-directed de-staling 2026-07-03: retire the stale legacy AI-runtime-axis vocabulary to the intelligence substrate naming (cloud-intelligence + oya/intelligence), correct stack-posture claims to the owned-Rust destination + transitional-adapter-behind-ports framing, correct authorization claims to the cloud-iam PDP, drop retired issue-tracker citations, and drop citations to ADRs absent from this checkout (ADR-0037)."
   },
   "threat_model": {
     "scope": "cross-axis",
