@@ -1,0 +1,21 @@
+[package]
+name = "kernel-asterinas-boundary"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license.workspace = true
+
+[lib]
+name = "kernel_asterinas_boundary"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "kernel-asterinas-soak-harness"
+path = "src/main.rs"
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true

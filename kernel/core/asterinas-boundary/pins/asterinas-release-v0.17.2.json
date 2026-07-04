@@ -1,0 +1,10 @@
+{
+  "asset_name": "asterinas-nixos-0.17.2-x86_64.iso",
+  "asset_sha256": "bf6e161ecc8b8080b842a339cee5f55d18b93d99b1e39c7c07681ff3aca0090a",
+  "asset_url": "https://github.com/asterinas/asterinas/releases/download/v0.17.2/asterinas-nixos-0.17.2-x86_64.iso",
+  "published_at": "2026-05-09T12:17:50Z",
+  "release_commit": "23adfdfd72b05cee8d232809caea81a4b33d3488",
+  "release_tag": "v0.17.2",
+  "upstream_repository": "https://github.com/asterinas/asterinas",
+  "license_boundary": "MPL-2.0 upstream ISO is consumed unmodified as a black-box artifact; Oyatie-owned harness code does not modify, vendor, or derive from upstream ISO bytes."
+}
