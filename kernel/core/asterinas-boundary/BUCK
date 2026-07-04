@@ -1,0 +1,33 @@
+rust_library(
+    name = "kernel-asterinas-boundary",
+    srcs = glob(["src/**/*.rs", "pins/**/*.json"]),
+    crate = "kernel_asterinas_boundary",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+    ],
+)
+
+rust_binary(
+    name = "kernel-asterinas-soak-harness",
+    srcs = glob(["src/**/*.rs", "pins/**/*.json"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [":kernel-asterinas-boundary"],
+)
+
+rust_test(
+    name = "kernel-asterinas-boundary-unittest",
+    srcs = glob(["src/**/*.rs", "pins/**/*.json"]),
+    crate = "kernel_asterinas_boundary",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+    ],
+)
