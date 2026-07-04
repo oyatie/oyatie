@@ -334,6 +334,10 @@
       "prefix": "docs/runbooks/cloud/root-of-trust-ceremony.md"
     },
     {
+      "anchor": "ADR-0052 KEEP-inventory: security governance program (de-staled from SECURITY-PROGRAM.md)",
+      "prefix": "docs/security-program.json"
+    },
+    {
       "anchor": "ADR-0537 step-0 root ceremony port: machine-readable ceremony evidence-packet contract with root secret values excluded.",
       "prefix": "specs/root-of-trust-ceremony-contract.json"
     },
