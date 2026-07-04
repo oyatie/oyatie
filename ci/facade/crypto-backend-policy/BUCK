@@ -1,0 +1,51 @@
+rust_library(
+    name = "ci-crypto-backend-policy",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_crypto_backend_policy",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-buck-syntax-kernel:oya-buck-syntax-kernel",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_binary(
+    name = "oya-cloud-ci-crypto-backend-purity-app-bin",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-crypto-backend-policy",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-crypto-backend-policy-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_crypto_backend_policy",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-buck-syntax-kernel:oya-buck-syntax-kernel",
+        "third-party//:serde_json",
+    ],
+)
+
+# ADR-0506 cloud-ci-crypto-backend-purity: live-tree self-test plus RED/GREEN fixtures. The live
+# leg reads first-party BUCK roots plus generated third-party/BUCK and asserts zero activated ring
+# (born-blocking green today); the RED fixture proves the gate genuinely FAILS on activated ring,
+# and the phantom fixture proves it does NOT false-RED on the unactivated Cargo.lock optional-dep
+# ring phantom (ADR-0506).
+rust_test(
+    name = "ci-crypto-backend-policy-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_crypto_backend_policy_gate",
+    crate_root = "tests/crypto_backend_purity.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-crypto-backend-policy",
+        "third-party//:serde_json",
+    ],
+)

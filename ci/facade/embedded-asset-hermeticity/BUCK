@@ -1,0 +1,58 @@
+rust_library(
+    name = "ci-embedded-asset-hermeticity",
+    srcs = glob(["src/lib.rs", "**/*.json"]),
+    crate = "ci_embedded_asset_hermeticity",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-buck-syntax-kernel:oya-buck-syntax-kernel",
+        "third-party//:serde_json",
+    ],
+)
+
+# Automation-default surface (founder directive 2026-06-11): --fix derives + applies the corrected
+# mapped_srcs entry for an unmapped embedded asset; --check reports without writing. The blocking
+# `*-gate` rust_test below is the backstop for what --fix cannot safely auto-derive.
+rust_binary(
+    name = "oya-cloud-ci-embedded-asset-hermeticity-fixer",
+    srcs = ["src/main.rs"],
+    crate = "oya_cloud_ci_embedded_asset_hermeticity_fixer",
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-embedded-asset-hermeticity",
+        "//libs/oya-buck-syntax-kernel:oya-buck-syntax-kernel",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-embedded-asset-hermeticity-unittest",
+    srcs = glob(["src/lib.rs", "**/*.json"]),
+    crate = "ci_embedded_asset_hermeticity",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-buck-syntax-kernel:oya-buck-syntax-kernel",
+        "third-party//:serde_json",
+    ],
+)
+
+# ADR-0545 embedded-asset hermeticity: Buck2-native, cargo-free live-corpus gate over the real tree.
+# The test collects every Rust include_str!/include_bytes! string-literal site, resolves each against
+# the owning Buck target's sandbox destination set, and asserts the live corpus is born-blocking green
+# on the unmapped-include code (the repo is hermetic today) while skip/no-target legacy debt stays
+# under the reviewed shrink-only ceilings (FRIC-1781112000 anti-laundering). RED fixtures prove an
+# unmapped include FAILS closed without touching the filesystem.
+rust_test(
+    name = "ci-embedded-asset-hermeticity-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_embedded_asset_hermeticity_gate",
+    crate_root = "tests/embedded_asset_hermeticity.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-embedded-asset-hermeticity",
+        "//libs/oya-buck-syntax-kernel:oya-buck-syntax-kernel",
+        "third-party//:serde_json",
+    ],
+)

@@ -1,33 +1,1473 @@
 {
-  "capability": "comms",
+  "capability": "ci",
   "crate_dirs": [
     {
-      "new_path": "comms/core/calendar-domain",
-      "old_path": "oya/calendar/crates/oya-calendar-domain"
+      "new_path": "ci/facade/artifact-inventory-registry",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app"
+    },
+    {
+      "new_path": "ci/facade/affected-target-set",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app"
+    },
+    {
+      "new_path": "ci/facade/endpoint-authorization-coverage",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-authz-coverage-app"
+    },
+    {
+      "new_path": "ci/facade/automation-coverage",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app"
+    },
+    {
+      "new_path": "ci/facade/crate-layer-suffix",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app"
+    },
+    {
+      "new_path": "ci/facade/build-cache-policy",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app"
+    },
+    {
+      "new_path": "ci/facade/canonical-json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app"
+    },
+    {
+      "new_path": "ci/facade/module-membership",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app"
+    },
+    {
+      "new_path": "ci/facade/crate-name-prefix",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app"
+    },
+    {
+      "new_path": "ci/facade/service-catalog-parity",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-catalog-liveness-app"
+    },
+    {
+      "new_path": "ci/facade/policy-deploy-parity",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cedar-deploy-parity-app"
+    },
+    {
+      "new_path": "ci/facade/topology-manifest-contract",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cell-topology-manifest-contract-app"
+    },
+    {
+      "new_path": "ci/facade/resource-contract-conformance",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app"
+    },
+    {
+      "new_path": "ci/facade/cross-artifact-agreement",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app"
+    },
+    {
+      "new_path": "ci/facade/crypto-backend-policy",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-crypto-backend-purity-app"
+    },
+    {
+      "new_path": "ci/facade/dependency-automation",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-dependency-automation-app"
+    },
+    {
+      "new_path": "ci/facade/caller-supplied-authorization",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-dto-authz-trust-app"
+    },
+    {
+      "new_path": "ci/facade/embedded-asset-hermeticity",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app"
+    },
+    {
+      "new_path": "ci/facade/hook-wiring",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-enforcement-liveness-app"
+    },
+    {
+      "new_path": "ci/facade/baseline-ratchet",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app"
+    },
+    {
+      "new_path": "ci/facade/generated-artifact-freshness",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app"
+    },
+    {
+      "new_path": "ci/facade/action-item-accounting",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app"
+    },
+    {
+      "new_path": "ci/facade/gate-self-conformance",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-gate-self-conformance-app"
+    },
+    {
+      "new_path": "ci/facade/generated-artifact-policy",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app"
+    },
+    {
+      "new_path": "ci/facade/parity-claim-evidence",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-hyperscaler-parity-taxonomy-app"
+    },
+    {
+      "new_path": "ci/facade/core-dependency-isolation",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-kernel-purity-app"
+    },
+    {
+      "new_path": "ci/facade/license-policy",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-license-policy-app"
+    },
+    {
+      "new_path": "ci/facade/package-manifest-hygiene",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-manifest-hygiene-app"
+    },
+    {
+      "new_path": "ci/facade/graphql-usage-policy",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app"
+    },
+    {
+      "new_path": "ci/facade/operator-secret-rbac",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-operator-secret-bootstrap-app"
+    },
+    {
+      "new_path": "ci/facade/feature-maturity-policy",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app"
+    },
+    {
+      "new_path": "ci/facade/port-placement",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-port-placement-app"
+    },
+    {
+      "new_path": "ci/facade/crate-registration",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-register-crate-app"
+    },
+    {
+      "new_path": "ci/facade/repo-root-hygiene",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-root-workspace-hygiene-app"
+    },
+    {
+      "new_path": "ci/facade/runner-disk-reclaim",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app"
+    },
+    {
+      "new_path": "ci/facade/scm-facts-snapshot",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app"
+    },
+    {
+      "new_path": "ci/facade/slo-coverage",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-slo-coverage-app"
+    },
+    {
+      "new_path": "ci/facade/stale-artifact-detection",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app"
+    },
+    {
+      "new_path": "ci/facade/dependency-graph-acyclicity",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app"
+    },
+    {
+      "new_path": "ci/facade/supply-chain-audit",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app"
+    },
+    {
+      "new_path": "ci/facade/build-target-parity",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app"
+    },
+    {
+      "new_path": "ci/facade/layer-dependency-acyclicity",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app"
+    },
+    {
+      "new_path": "ci/facade/service-tier-metadata",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app"
+    },
+    {
+      "new_path": "ci/facade/artifact-accountability",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app"
+    },
+    {
+      "new_path": "ci/facade/workspace-member-coverage",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-workspace-glob-coverage-app"
+    },
+    {
+      "new_path": "ci/facade/inventory-registry-drift",
+      "old_path": "cloud/cloud-ci/gates/registry-drift"
     }
   ],
   "crate_idents": [
     {
-      "new": "comms-calendar-domain",
-      "old": "oya-calendar-domain"
+      "new": "ci-artifact-inventory-registry",
+      "old": "oya-cloud-ci-accounting-registry-app"
+    },
+    {
+      "new": "ci-affected-target-set",
+      "old": "oya-cloud-ci-affected-set-app"
+    },
+    {
+      "new": "ci-endpoint-authorization-coverage",
+      "old": "oya-cloud-ci-authz-coverage-app"
+    },
+    {
+      "new": "ci-automation-coverage",
+      "old": "oya-cloud-ci-automation-ratchet-app"
+    },
+    {
+      "new": "ci-crate-layer-suffix",
+      "old": "oya-cloud-ci-bnf-layer-suffix-app"
+    },
+    {
+      "new": "ci-build-cache-policy",
+      "old": "oya-cloud-ci-cache-wiring-app"
+    },
+    {
+      "new": "ci-canonical-json",
+      "old": "oya-cloud-ci-canonical-json-app"
+    },
+    {
+      "new": "ci-module-membership",
+      "old": "oya-cloud-ci-capability-membership-app"
+    },
+    {
+      "new": "ci-crate-name-prefix",
+      "old": "oya-cloud-ci-cargo-prefix-app"
+    },
+    {
+      "new": "ci-service-catalog-parity",
+      "old": "oya-cloud-ci-catalog-liveness-app"
+    },
+    {
+      "new": "ci-policy-deploy-parity",
+      "old": "oya-cloud-ci-cedar-deploy-parity-app"
+    },
+    {
+      "new": "ci-topology-manifest-contract",
+      "old": "oya-cloud-ci-cell-topology-manifest-contract-app"
+    },
+    {
+      "new": "ci-resource-contract-conformance",
+      "old": "oya-cloud-ci-cloud-resource-contracts-app"
+    },
+    {
+      "new": "ci-cross-artifact-agreement",
+      "old": "oya-cloud-ci-cross-artifact-agreement-app"
+    },
+    {
+      "new": "ci-crypto-backend-policy",
+      "old": "oya-cloud-ci-crypto-backend-purity-app"
+    },
+    {
+      "new": "ci-dependency-automation",
+      "old": "oya-cloud-ci-dependency-automation-app"
+    },
+    {
+      "new": "ci-caller-supplied-authorization",
+      "old": "oya-cloud-ci-dto-authz-trust-app"
+    },
+    {
+      "new": "ci-embedded-asset-hermeticity",
+      "old": "oya-cloud-ci-embedded-asset-hermeticity-app"
+    },
+    {
+      "new": "ci-hook-wiring",
+      "old": "oya-cloud-ci-enforcement-liveness-app"
+    },
+    {
+      "new": "ci-baseline-ratchet",
+      "old": "oya-cloud-ci-firewall-app"
+    },
+    {
+      "new": "ci-generated-artifact-freshness",
+      "old": "oya-cloud-ci-freshness-app"
+    },
+    {
+      "new": "ci-action-item-accounting",
+      "old": "oya-cloud-ci-friction-accounting-app"
+    },
+    {
+      "new": "ci-gate-self-conformance",
+      "old": "oya-cloud-ci-gate-self-conformance-app"
+    },
+    {
+      "new": "ci-generated-artifact-policy",
+      "old": "oya-cloud-ci-generated-artifact-control-plane-app"
+    },
+    {
+      "new": "ci-parity-claim-evidence",
+      "old": "oya-cloud-ci-hyperscaler-parity-taxonomy-app"
+    },
+    {
+      "new": "ci-core-dependency-isolation",
+      "old": "oya-cloud-ci-kernel-purity-app"
+    },
+    {
+      "new": "ci-license-policy",
+      "old": "oya-cloud-ci-license-policy-app"
+    },
+    {
+      "new": "ci-package-manifest-hygiene",
+      "old": "oya-cloud-ci-manifest-hygiene-app"
+    },
+    {
+      "new": "ci-graphql-usage-policy",
+      "old": "oya-cloud-ci-no-graphql-without-adr-app"
+    },
+    {
+      "new": "ci-operator-secret-rbac",
+      "old": "oya-cloud-ci-operator-secret-bootstrap-app"
+    },
+    {
+      "new": "ci-feature-maturity-policy",
+      "old": "oya-cloud-ci-planned-maturity-app"
+    },
+    {
+      "new": "ci-port-placement",
+      "old": "oya-cloud-ci-port-placement-app"
+    },
+    {
+      "new": "ci-crate-registration",
+      "old": "oya-cloud-ci-register-crate-app"
+    },
+    {
+      "new": "ci-repo-root-hygiene",
+      "old": "oya-cloud-ci-root-workspace-hygiene-app"
+    },
+    {
+      "new": "ci-runner-disk-reclaim",
+      "old": "oya-cloud-ci-runner-disk-reclaim-app"
+    },
+    {
+      "new": "ci-scm-facts-snapshot",
+      "old": "oya-cloud-ci-scm-facts-emitter-app"
+    },
+    {
+      "new": "ci-slo-coverage",
+      "old": "oya-cloud-ci-slo-coverage-app"
+    },
+    {
+      "new": "ci-stale-artifact-detection",
+      "old": "oya-cloud-ci-staleness-reaper-app"
+    },
+    {
+      "new": "ci-dependency-graph-acyclicity",
+      "old": "oya-cloud-ci-substrate-dependency-dag-acyclicity-app"
+    },
+    {
+      "new": "ci-supply-chain-audit",
+      "old": "oya-cloud-ci-supply-chain-audit-app"
+    },
+    {
+      "new": "ci-build-target-parity",
+      "old": "oya-cloud-ci-target-parity-app"
+    },
+    {
+      "new": "ci-layer-dependency-acyclicity",
+      "old": "oya-cloud-ci-tier-dependency-acyclicity-app"
+    },
+    {
+      "new": "ci-service-tier-metadata",
+      "old": "oya-cloud-ci-tier-field-coverage-app"
+    },
+    {
+      "new": "ci-artifact-accountability",
+      "old": "oya-cloud-ci-total-accounting-app"
+    },
+    {
+      "new": "ci-workspace-member-coverage",
+      "old": "oya-cloud-ci-workspace-glob-coverage-app"
+    },
+    {
+      "new": "ci-inventory-registry-drift",
+      "old": "registry-drift"
     }
   ],
   "files": [
     {
-      "new_path": "comms/core/calendar-domain/BUCK",
-      "old_path": "oya/calendar/crates/oya-calendar-domain/BUCK"
+      "new_path": "ci/facade/artifact-inventory-registry/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/BUCK"
     },
     {
-      "new_path": "comms/core/calendar-domain/Cargo.toml",
-      "old_path": "oya/calendar/crates/oya-calendar-domain/Cargo.toml"
+      "new_path": "ci/facade/artifact-inventory-registry/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/Cargo.toml"
     },
     {
-      "new_path": "comms/core/calendar-domain/src/lib.rs",
-      "old_path": "oya/calendar/crates/oya-calendar-domain/src/lib.rs"
+      "new_path": "ci/facade/artifact-inventory-registry/gate-baseline.generated.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json"
     },
     {
-      "new_path": "registry/catalog/comms-calendar-domain.yaml",
-      "old_path": "registry/catalog/oya-calendar-domain.yaml"
+      "new_path": "ci/facade/artifact-inventory-registry/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/artifact-inventory-registry/src/main.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/main.rs"
+    },
+    {
+      "new_path": "ci/facade/artifact-inventory-registry/src/ttl-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/ttl-policy.json"
+    },
+    {
+      "new_path": "ci/facade/artifact-inventory-registry/src/unit-class-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/unit-class-policy.json"
+    },
+    {
+      "new_path": "ci/facade/affected-target-set/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/affected-target-set/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/affected-target-set/affected-set-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/affected-set-policy.json"
+    },
+    {
+      "new_path": "ci/facade/affected-target-set/src/bin/oya-cloud-ci-build-health.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/src/bin/oya-cloud-ci-build-health.rs"
+    },
+    {
+      "new_path": "ci/facade/affected-target-set/src/bin/oya-cloud-ci-step-telemetry.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/src/bin/oya-cloud-ci-step-telemetry.rs"
+    },
+    {
+      "new_path": "ci/facade/affected-target-set/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/affected-target-set/src/main.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/src/main.rs"
+    },
+    {
+      "new_path": "ci/facade/affected-target-set/tests/affected_set.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/tests/affected_set.rs"
+    },
+    {
+      "new_path": "ci/facade/endpoint-authorization-coverage/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-authz-coverage-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/endpoint-authorization-coverage/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-authz-coverage-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/endpoint-authorization-coverage/authz-coverage-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-authz-coverage-app/authz-coverage-policy.json"
+    },
+    {
+      "new_path": "ci/facade/endpoint-authorization-coverage/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-authz-coverage-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/endpoint-authorization-coverage/src/main.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-authz-coverage-app/src/main.rs"
+    },
+    {
+      "new_path": "ci/facade/endpoint-authorization-coverage/tests/authz_coverage.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-authz-coverage-app/tests/authz_coverage.rs"
+    },
+    {
+      "new_path": "ci/facade/automation-coverage/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/automation-coverage/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/automation-coverage/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/automation-coverage/tests/automation_ratchet.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/tests/automation_ratchet.rs"
+    },
+    {
+      "new_path": "ci/facade/crate-layer-suffix/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/crate-layer-suffix/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/crate-layer-suffix/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/crate-layer-suffix/tests/bnf_layer_suffix.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app/tests/bnf_layer_suffix.rs"
+    },
+    {
+      "new_path": "ci/facade/build-cache-policy/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/build-cache-policy/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/build-cache-policy/src/canary-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app/src/canary-policy.json"
+    },
+    {
+      "new_path": "ci/facade/build-cache-policy/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/build-cache-policy/src/main.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app/src/main.rs"
+    },
+    {
+      "new_path": "ci/facade/build-cache-policy/tests/cache_conformance.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app/tests/cache_conformance.rs"
+    },
+    {
+      "new_path": "ci/facade/canonical-json/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/canonical-json/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/canonical-json/canonical-json-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app/canonical-json-policy.json"
+    },
+    {
+      "new_path": "ci/facade/canonical-json/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/canonical-json/src/main.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app/src/main.rs"
+    },
+    {
+      "new_path": "ci/facade/canonical-json/src/tests.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app/src/tests.rs"
+    },
+    {
+      "new_path": "ci/facade/canonical-json/tests/canonical_json.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app/tests/canonical_json.rs"
+    },
+    {
+      "new_path": "ci/facade/module-membership/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/module-membership/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/module-membership/capability-membership-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/capability-membership-policy.json"
+    },
+    {
+      "new_path": "ci/facade/module-membership/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/module-membership/src/main.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/src/main.rs"
+    },
+    {
+      "new_path": "ci/facade/module-membership/src/tests.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/src/tests.rs"
+    },
+    {
+      "new_path": "ci/facade/module-membership/tests/capability_membership.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/tests/capability_membership.rs"
+    },
+    {
+      "new_path": "ci/facade/crate-name-prefix/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/crate-name-prefix/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/crate-name-prefix/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/crate-name-prefix/tests/cargo_prefix.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app/tests/cargo_prefix.rs"
+    },
+    {
+      "new_path": "ci/facade/service-catalog-parity/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-catalog-liveness-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/service-catalog-parity/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-catalog-liveness-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/service-catalog-parity/OWNERS",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-catalog-liveness-app/OWNERS"
+    },
+    {
+      "new_path": "ci/facade/service-catalog-parity/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-catalog-liveness-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/service-catalog-parity/tests/catalog_liveness.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-catalog-liveness-app/tests/catalog_liveness.rs"
+    },
+    {
+      "new_path": "ci/facade/policy-deploy-parity/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cedar-deploy-parity-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/policy-deploy-parity/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cedar-deploy-parity-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/policy-deploy-parity/OWNERS",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cedar-deploy-parity-app/OWNERS"
+    },
+    {
+      "new_path": "ci/facade/policy-deploy-parity/cedar-deploy-parity-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cedar-deploy-parity-app/cedar-deploy-parity-policy.json"
+    },
+    {
+      "new_path": "ci/facade/policy-deploy-parity/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cedar-deploy-parity-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/policy-deploy-parity/tests/cedar_deploy_parity.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cedar-deploy-parity-app/tests/cedar_deploy_parity.rs"
+    },
+    {
+      "new_path": "ci/facade/topology-manifest-contract/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cell-topology-manifest-contract-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/topology-manifest-contract/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cell-topology-manifest-contract-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/topology-manifest-contract/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cell-topology-manifest-contract-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/topology-manifest-contract/tests/cell_topology_manifest_contract.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cell-topology-manifest-contract-app/tests/cell_topology_manifest_contract.rs"
+    },
+    {
+      "new_path": "ci/facade/resource-contract-conformance/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/resource-contract-conformance/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/resource-contract-conformance/README.md",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app/README.md"
+    },
+    {
+      "new_path": "ci/facade/resource-contract-conformance/cloud-resource-contracts-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app/cloud-resource-contracts-policy.json"
+    },
+    {
+      "new_path": "ci/facade/resource-contract-conformance/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/resource-contract-conformance/tests/cloud_resource_contracts.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app/tests/cloud_resource_contracts.rs"
+    },
+    {
+      "new_path": "ci/facade/cross-artifact-agreement/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/cross-artifact-agreement/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/cross-artifact-agreement/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/cross-artifact-agreement/src/plan_evidence_crosscheck.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/plan_evidence_crosscheck.rs"
+    },
+    {
+      "new_path": "ci/facade/cross-artifact-agreement/src/projection_rederivation.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/projection_rederivation.rs"
+    },
+    {
+      "new_path": "ci/facade/cross-artifact-agreement/src/read_surface_resurrection.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/read_surface_resurrection.rs"
+    },
+    {
+      "new_path": "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs"
+    },
+    {
+      "new_path": "ci/facade/crypto-backend-policy/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-crypto-backend-purity-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/crypto-backend-policy/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-crypto-backend-purity-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/crypto-backend-policy/crypto-backend-purity-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-crypto-backend-purity-app/crypto-backend-purity-policy.json"
+    },
+    {
+      "new_path": "ci/facade/crypto-backend-policy/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-crypto-backend-purity-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/crypto-backend-policy/src/main.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-crypto-backend-purity-app/src/main.rs"
+    },
+    {
+      "new_path": "ci/facade/crypto-backend-policy/tests/crypto_backend_purity.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-crypto-backend-purity-app/tests/crypto_backend_purity.rs"
+    },
+    {
+      "new_path": "ci/facade/dependency-automation/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-dependency-automation-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/dependency-automation/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-dependency-automation-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/dependency-automation/OWNERS",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-dependency-automation-app/OWNERS"
+    },
+    {
+      "new_path": "ci/facade/dependency-automation/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-dependency-automation-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/dependency-automation/src/main.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-dependency-automation-app/src/main.rs"
+    },
+    {
+      "new_path": "ci/facade/dependency-automation/tests/dependency_automation.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-dependency-automation-app/tests/dependency_automation.rs"
+    },
+    {
+      "new_path": "ci/facade/caller-supplied-authorization/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-dto-authz-trust-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/caller-supplied-authorization/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-dto-authz-trust-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/caller-supplied-authorization/OWNERS",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-dto-authz-trust-app/OWNERS"
+    },
+    {
+      "new_path": "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-dto-authz-trust-app/dto-authz-trust-policy.json"
+    },
+    {
+      "new_path": "ci/facade/caller-supplied-authorization/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-dto-authz-trust-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/caller-supplied-authorization/src/main.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-dto-authz-trust-app/src/main.rs"
+    },
+    {
+      "new_path": "ci/facade/caller-supplied-authorization/tests/dto_authz_trust.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-dto-authz-trust-app/tests/dto_authz_trust.rs"
+    },
+    {
+      "new_path": "ci/facade/embedded-asset-hermeticity/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/embedded-asset-hermeticity/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-baseline.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app/embedded-asset-hermeticity-baseline.json"
+    },
+    {
+      "new_path": "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app/embedded-asset-hermeticity-policy.json"
+    },
+    {
+      "new_path": "ci/facade/embedded-asset-hermeticity/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/embedded-asset-hermeticity/src/main.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app/src/main.rs"
+    },
+    {
+      "new_path": "ci/facade/embedded-asset-hermeticity/tests/embedded_asset_hermeticity.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app/tests/embedded_asset_hermeticity.rs"
+    },
+    {
+      "new_path": "ci/facade/hook-wiring/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-enforcement-liveness-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/hook-wiring/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-enforcement-liveness-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/hook-wiring/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-enforcement-liveness-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/hook-wiring/tests/enforcement_liveness.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-enforcement-liveness-app/tests/enforcement_liveness.rs"
+    },
+    {
+      "new_path": "ci/facade/baseline-ratchet/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/baseline-ratchet/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/baseline-ratchet/gate-baseline.signoff.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.signoff.json"
+    },
+    {
+      "new_path": "ci/facade/baseline-ratchet/ratchet-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/ratchet-policy.json"
+    },
+    {
+      "new_path": "ci/facade/baseline-ratchet/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/baseline-ratchet/src/main.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/src/main.rs"
+    },
+    {
+      "new_path": "ci/facade/baseline-ratchet/src/run_observability_packet.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/src/run_observability_packet.rs"
+    },
+    {
+      "new_path": "ci/facade/baseline-ratchet/tests/firewall.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/firewall.rs"
+    },
+    {
+      "new_path": "ci/facade/baseline-ratchet/tests/gate_registration.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/gate_registration.rs"
+    },
+    {
+      "new_path": "ci/facade/baseline-ratchet/tests/run_observability_packet.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/run_observability_packet.rs"
+    },
+    {
+      "new_path": "ci/facade/generated-artifact-freshness/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/generated-artifact-freshness/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/generated-artifact-freshness/src/bin/oya-cloud-ci-face-settle.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/bin/oya-cloud-ci-face-settle.rs"
+    },
+    {
+      "new_path": "ci/facade/generated-artifact-freshness/src/bin/oya-cloud-ci-materialize-generated-faces.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/bin/oya-cloud-ci-materialize-generated-faces.rs"
+    },
+    {
+      "new_path": "ci/facade/generated-artifact-freshness/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/generated-artifact-freshness/src/main.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/main.rs"
+    },
+    {
+      "new_path": "ci/facade/generated-artifact-freshness/src/rust_toolchain_drift.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/rust_toolchain_drift.rs"
+    },
+    {
+      "new_path": "ci/facade/generated-artifact-freshness/tests/face_settle.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/tests/face_settle.rs"
+    },
+    {
+      "new_path": "ci/facade/generated-artifact-freshness/tests/freshness.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/tests/freshness.rs"
+    },
+    {
+      "new_path": "ci/facade/action-item-accounting/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/action-item-accounting/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/action-item-accounting/friction-accounting-baseline.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app/friction-accounting-baseline.json"
+    },
+    {
+      "new_path": "ci/facade/action-item-accounting/friction-accounting-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app/friction-accounting-policy.json"
+    },
+    {
+      "new_path": "ci/facade/action-item-accounting/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/action-item-accounting/tests/friction_accounting.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app/tests/friction_accounting.rs"
+    },
+    {
+      "new_path": "ci/facade/gate-self-conformance/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-gate-self-conformance-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/gate-self-conformance/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-gate-self-conformance-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/gate-self-conformance/gate-self-conformance-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-gate-self-conformance-app/gate-self-conformance-policy.json"
+    },
+    {
+      "new_path": "ci/facade/gate-self-conformance/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-gate-self-conformance-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/gate-self-conformance/tests/gate_self_conformance.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-gate-self-conformance-app/tests/gate_self_conformance.rs"
+    },
+    {
+      "new_path": "ci/facade/generated-artifact-policy/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/generated-artifact-policy/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/generated-artifact-policy/src/diff_policy.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app/src/diff_policy.rs"
+    },
+    {
+      "new_path": "ci/facade/generated-artifact-policy/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/generated-artifact-policy/tests/generated_artifact_control_plane.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app/tests/generated_artifact_control_plane.rs"
+    },
+    {
+      "new_path": "ci/facade/parity-claim-evidence/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-hyperscaler-parity-taxonomy-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/parity-claim-evidence/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-hyperscaler-parity-taxonomy-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/parity-claim-evidence/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-hyperscaler-parity-taxonomy-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/parity-claim-evidence/tests/hyperscaler_parity_taxonomy.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-hyperscaler-parity-taxonomy-app/tests/hyperscaler_parity_taxonomy.rs"
+    },
+    {
+      "new_path": "ci/facade/core-dependency-isolation/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-kernel-purity-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/core-dependency-isolation/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-kernel-purity-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/core-dependency-isolation/kernel-purity-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-kernel-purity-app/kernel-purity-policy.json"
+    },
+    {
+      "new_path": "ci/facade/core-dependency-isolation/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-kernel-purity-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/core-dependency-isolation/src/main.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-kernel-purity-app/src/main.rs"
+    },
+    {
+      "new_path": "ci/facade/core-dependency-isolation/tests/kernel_purity.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-kernel-purity-app/tests/kernel_purity.rs"
+    },
+    {
+      "new_path": "ci/facade/license-policy/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-license-policy-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/license-policy/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-license-policy-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/license-policy/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-license-policy-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/license-policy/tests/license_policy.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-license-policy-app/tests/license_policy.rs"
+    },
+    {
+      "new_path": "ci/facade/package-manifest-hygiene/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-manifest-hygiene-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/package-manifest-hygiene/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-manifest-hygiene-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/package-manifest-hygiene/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-manifest-hygiene-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/package-manifest-hygiene/tests/manifest_hygiene.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-manifest-hygiene-app/tests/manifest_hygiene.rs"
+    },
+    {
+      "new_path": "ci/facade/graphql-usage-policy/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/graphql-usage-policy/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/graphql-usage-policy/OWNERS",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/OWNERS"
+    },
+    {
+      "new_path": "ci/facade/graphql-usage-policy/no-graphql-without-adr-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/no-graphql-without-adr-policy.json"
+    },
+    {
+      "new_path": "ci/facade/graphql-usage-policy/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/graphql-usage-policy/src/main.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/src/main.rs"
+    },
+    {
+      "new_path": "ci/facade/graphql-usage-policy/tests/no_graphql_without_adr.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/tests/no_graphql_without_adr.rs"
+    },
+    {
+      "new_path": "ci/facade/operator-secret-rbac/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-operator-secret-bootstrap-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/operator-secret-rbac/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-operator-secret-bootstrap-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/operator-secret-rbac/OWNERS",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-operator-secret-bootstrap-app/OWNERS"
+    },
+    {
+      "new_path": "ci/facade/operator-secret-rbac/operator-secret-bootstrap-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-operator-secret-bootstrap-app/operator-secret-bootstrap-policy.json"
+    },
+    {
+      "new_path": "ci/facade/operator-secret-rbac/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-operator-secret-bootstrap-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/operator-secret-rbac/tests/operator_secret_bootstrap.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-operator-secret-bootstrap-app/tests/operator_secret_bootstrap.rs"
+    },
+    {
+      "new_path": "ci/facade/feature-maturity-policy/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/feature-maturity-policy/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/feature-maturity-policy/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/feature-maturity-policy/tests/planned_maturity.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app/tests/planned_maturity.rs"
+    },
+    {
+      "new_path": "ci/facade/port-placement/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-port-placement-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/port-placement/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-port-placement-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/port-placement/OWNERS",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-port-placement-app/OWNERS"
+    },
+    {
+      "new_path": "ci/facade/port-placement/port-placement-baseline.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-port-placement-app/port-placement-baseline.json"
+    },
+    {
+      "new_path": "ci/facade/port-placement/port-placement-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-port-placement-app/port-placement-policy.json"
+    },
+    {
+      "new_path": "ci/facade/port-placement/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-port-placement-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/port-placement/src/main.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-port-placement-app/src/main.rs"
+    },
+    {
+      "new_path": "ci/facade/port-placement/tests/port_placement.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-port-placement-app/tests/port_placement.rs"
+    },
+    {
+      "new_path": "ci/facade/crate-registration/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-register-crate-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/crate-registration/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-register-crate-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/crate-registration/OWNERS",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-register-crate-app/OWNERS"
+    },
+    {
+      "new_path": "ci/facade/crate-registration/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-register-crate-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/crate-registration/src/tests.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-register-crate-app/src/tests.rs"
+    },
+    {
+      "new_path": "ci/facade/repo-root-hygiene/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-root-workspace-hygiene-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/repo-root-hygiene/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-root-workspace-hygiene-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/repo-root-hygiene/root-workspace-hygiene-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-root-workspace-hygiene-app/root-workspace-hygiene-policy.json"
+    },
+    {
+      "new_path": "ci/facade/repo-root-hygiene/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-root-workspace-hygiene-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/repo-root-hygiene/tests/root_workspace_hygiene.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-root-workspace-hygiene-app/tests/root_workspace_hygiene.rs"
+    },
+    {
+      "new_path": "ci/facade/runner-disk-reclaim/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/runner-disk-reclaim/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/runner-disk-reclaim/OWNERS",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app/OWNERS"
+    },
+    {
+      "new_path": "ci/facade/runner-disk-reclaim/runner-disk-reclaim-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app/runner-disk-reclaim-policy.json"
+    },
+    {
+      "new_path": "ci/facade/runner-disk-reclaim/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/runner-disk-reclaim/src/main.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app/src/main.rs"
+    },
+    {
+      "new_path": "ci/facade/runner-disk-reclaim/tests/runner_disk_reclaim.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app/tests/runner_disk_reclaim.rs"
+    },
+    {
+      "new_path": "ci/facade/automation-language-policy/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/automation-language-policy/rust-first-automation-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app/rust-first-automation-policy.json"
+    },
+    {
+      "new_path": "ci/facade/automation-language-policy/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/automation-language-policy/tests/rust_first_automation_hygiene.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app/tests/rust_first_automation_hygiene.rs"
+    },
+    {
+      "new_path": "ci/facade/scm-facts-snapshot/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/scm-facts-snapshot/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/scm-facts-snapshot/src/main.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app/src/main.rs"
+    },
+    {
+      "new_path": "ci/facade/slo-coverage/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-slo-coverage-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/slo-coverage/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-slo-coverage-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/slo-coverage/OWNERS",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-slo-coverage-app/OWNERS"
+    },
+    {
+      "new_path": "ci/facade/slo-coverage/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-slo-coverage-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/slo-coverage/tests/slo_coverage.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-slo-coverage-app/tests/slo_coverage.rs"
+    },
+    {
+      "new_path": "ci/facade/stale-artifact-detection/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/stale-artifact-detection/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/stale-artifact-detection/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/stale-artifact-detection/tests/staleness_reaper.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app/tests/staleness_reaper.rs"
+    },
+    {
+      "new_path": "ci/facade/dependency-graph-acyclicity/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/dependency-graph-acyclicity/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/dependency-graph-acyclicity/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/dependency-graph-acyclicity/src/main.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/src/main.rs"
+    },
+    {
+      "new_path": "ci/facade/dependency-graph-acyclicity/substrate-dependency-dag-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/substrate-dependency-dag-policy.json"
+    },
+    {
+      "new_path": "ci/facade/dependency-graph-acyclicity/tests/acyclicity.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/tests/acyclicity.rs"
+    },
+    {
+      "new_path": "ci/facade/dependency-graph-acyclicity/tests/fixtures/dag-cycles/self-loop.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/tests/fixtures/dag-cycles/self-loop.json"
+    },
+    {
+      "new_path": "ci/facade/dependency-graph-acyclicity/tests/fixtures/dag-cycles/simple-two-node.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/tests/fixtures/dag-cycles/simple-two-node.json"
+    },
+    {
+      "new_path": "ci/facade/dependency-graph-acyclicity/tests/fixtures/dag-cycles/six-node-buried.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/tests/fixtures/dag-cycles/six-node-buried.json"
+    },
+    {
+      "new_path": "ci/facade/dependency-graph-acyclicity/tests/fixtures/dag-cycles/three-node.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/tests/fixtures/dag-cycles/three-node.json"
+    },
+    {
+      "new_path": "ci/facade/supply-chain-audit/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/supply-chain-audit/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/supply-chain-audit/OWNERS",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/OWNERS"
+    },
+    {
+      "new_path": "ci/facade/supply-chain-audit/advisory-mirror/advisories.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/advisory-mirror/advisories.json"
+    },
+    {
+      "new_path": "ci/facade/supply-chain-audit/advisory-mirror/mirror-manifest.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/advisory-mirror/mirror-manifest.json"
+    },
+    {
+      "new_path": "ci/facade/supply-chain-audit/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/supply-chain-audit/src/main.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/src/main.rs"
+    },
+    {
+      "new_path": "ci/facade/supply-chain-audit/supply-chain-audit-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/supply-chain-audit-policy.json"
+    },
+    {
+      "new_path": "ci/facade/supply-chain-audit/tests/supply_chain_audit.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/tests/supply_chain_audit.rs"
+    },
+    {
+      "new_path": "ci/facade/build-target-parity/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/build-target-parity/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/build-target-parity/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/build-target-parity/tests/target_parity.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app/tests/target_parity.rs"
+    },
+    {
+      "new_path": "ci/facade/layer-dependency-acyclicity/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/layer-dependency-acyclicity/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/layer-dependency-acyclicity/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/layer-dependency-acyclicity/src/main.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/src/main.rs"
+    },
+    {
+      "new_path": "ci/facade/layer-dependency-acyclicity/src/tests.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/src/tests.rs"
+    },
+    {
+      "new_path": "ci/facade/layer-dependency-acyclicity/tests/fixtures/burn-down.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/tests/fixtures/burn-down.json"
+    },
+    {
+      "new_path": "ci/facade/layer-dependency-acyclicity/tests/fixtures/red-substrate-to-product.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/tests/fixtures/red-substrate-to-product.json"
+    },
+    {
+      "new_path": "ci/facade/layer-dependency-acyclicity/tests/tier_dependency_acyclicity.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/tests/tier_dependency_acyclicity.rs"
+    },
+    {
+      "new_path": "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-baseline.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/tier-dependency-acyclicity-baseline.json"
+    },
+    {
+      "new_path": "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/tier-dependency-acyclicity-policy.json"
+    },
+    {
+      "new_path": "ci/facade/service-tier-metadata/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/service-tier-metadata/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/service-tier-metadata/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/service-tier-metadata/src/main.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/src/main.rs"
+    },
+    {
+      "new_path": "ci/facade/service-tier-metadata/src/tests.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/src/tests.rs"
+    },
+    {
+      "new_path": "ci/facade/service-tier-metadata/tests/tier_field_coverage.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/tests/tier_field_coverage.rs"
+    },
+    {
+      "new_path": "ci/facade/service-tier-metadata/tier-field-coverage-policy.json",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/tier-field-coverage-policy.json"
+    },
+    {
+      "new_path": "ci/facade/artifact-accountability/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/artifact-accountability/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/artifact-accountability/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/artifact-accountability/tests/total_accounting.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app/tests/total_accounting.rs"
+    },
+    {
+      "new_path": "ci/facade/workspace-member-coverage/BUCK",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-workspace-glob-coverage-app/BUCK"
+    },
+    {
+      "new_path": "ci/facade/workspace-member-coverage/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-workspace-glob-coverage-app/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/workspace-member-coverage/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-workspace-glob-coverage-app/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/workspace-member-coverage/tests/workspace_glob_coverage.rs",
+      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-workspace-glob-coverage-app/tests/workspace_glob_coverage.rs"
+    },
+    {
+      "new_path": "ci/facade/inventory-registry-drift/BUCK",
+      "old_path": "cloud/cloud-ci/gates/registry-drift/BUCK"
+    },
+    {
+      "new_path": "ci/facade/inventory-registry-drift/Cargo.toml",
+      "old_path": "cloud/cloud-ci/gates/registry-drift/Cargo.toml"
+    },
+    {
+      "new_path": "ci/facade/inventory-registry-drift/src/lib.rs",
+      "old_path": "cloud/cloud-ci/gates/registry-drift/src/lib.rs"
+    },
+    {
+      "new_path": "ci/facade/inventory-registry-drift/tests/registry_drift.rs",
+      "old_path": "cloud/cloud-ci/gates/registry-drift/tests/registry_drift.rs"
     }
   ],
   "schema": "oya-ci/reorg-move-manifest/v1"

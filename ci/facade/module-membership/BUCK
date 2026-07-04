@@ -1,0 +1,51 @@
+rust_library(
+    name = "ci-module-membership",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_module_membership",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+rust_binary(
+    name = "oya-cloud-ci-capability-membership-app-bin",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-module-membership",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-module-membership-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_module_membership",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+# Phase-0 capability-first reorg (ADR-0562 §6): the born-advisory MEMBERSHIP self-test over the real
+# crate corpus under cloud/ + oya/ + libs/ + tools/ plus on-disk RED/GREEN fixtures. It collects
+# every crate from the live tree and asserts the corpus is born-advisory green (every crate maps to
+# exactly one registered capability/meta home OR is in the registry's frozen unmapped baseline; no
+# NEW unmapped crate; no NEW top-level dir outside the closed set) while every regression class fails
+# closed from disk: a crate in NO capability, a NEW top-level dir common/, and a crate in TWO
+# capabilities.
+rust_test(
+    name = "ci-module-membership-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_module_membership_gate",
+    crate_root = "tests/capability_membership.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-module-membership",
+        "third-party//:serde_json",
+    ],
+)

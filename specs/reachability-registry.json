@@ -46,8 +46,8 @@
       "prefix": "oya-deps.toml"
     },
     {
-      "anchor": "ADR-0555 ownership seed: the cloud-ci gate tree's OWNERS marker (cloud-ci-platform)",
-      "prefix": "cloud/cloud-ci/gates/OWNERS"
+      "anchor": "ADR-0562 §10.14 ownership seed: the ci capability tree's OWNERS marker (cloud-ci-platform), homed by the KEYSTONE strangler move (cloud/cloud-ci/gates → ci/facade/); the committed move-plan at specs/reorg/ci-move-plan.json is reached by the existing specs/reorg/ ADR-0563 prefix",
+      "prefix": "ci/OWNERS"
     },
     {
       "anchor": "ADR-0559 ownership seed: the cloud-iam service tree's OWNERS marker (axis-cloud-platform)",

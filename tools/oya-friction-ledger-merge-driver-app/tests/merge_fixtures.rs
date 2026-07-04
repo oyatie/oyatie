@@ -13,7 +13,7 @@
 use std::collections::BTreeSet;
 use std::path::PathBuf;
 
-use oya_cloud_ci_friction_accounting_app::evaluate_keyed;
+use ci_action_item_accounting::evaluate_keyed;
 use oya_friction_ledger_merge_driver_app::{MergeErrorKind, merge_ledgers, parse_ledger};
 use serde_json::{Value, json};
 

@@ -1,0 +1,33 @@
+rust_library(
+    name = "ci-topology-manifest-contract",
+    srcs = glob(["src/**/*.rs", "**/*.json", "**/*.toml", "**/*.txt"]),
+    crate = "ci_topology_manifest_contract",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-topology-manifest-contract-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json", "**/*.toml", "**/*.txt"]),
+    crate = "ci_topology_manifest_contract",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-topology-manifest-contract-gate",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "ci_topology_manifest_contract_gate",
+    crate_root = "tests/cell_topology_manifest_contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-topology-manifest-contract",
+        "third-party//:serde_json",
+    ],
+)
