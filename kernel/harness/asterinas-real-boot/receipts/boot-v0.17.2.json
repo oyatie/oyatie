@@ -1,0 +1,130 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/kuberos-asterinas-boot-receipt.v0.1.0.json",
+  "receipt_type": "boot",
+  "acceptance_criterion": "AC2",
+  "component": "asterinas/kernel",
+  "wave": "kuberos-asterinas-wave1",
+  "slice": "real-boot-envelope",
+  "release_tag": "v0.17.2",
+  "black_box_unmodified_upstream": true,
+  "artifact": {
+    "iso_path": "kernel/target/artifacts/asterinas-nixos-0.17.2-x86_64.iso",
+    "expected_sha256": "bf6e161ecc8b8080b842a339cee5f55d18b93d99b1e39c7c07681ff3aca0090a",
+    "actual_sha256": "bf6e161ecc8b8080b842a339cee5f55d18b93d99b1e39c7c07681ff3aca0090a",
+    "digest_recomputed_from_disk_at_receipt_write": true,
+    "verified": true
+  },
+  "qemu_invocation": {
+    "program": "qemu-system-x86_64",
+    "args": [
+      "-machine",
+      "q35",
+      "-m",
+      "6144",
+      "-smp",
+      "4",
+      "-accel",
+      "tcg,thread=multi",
+      "-cdrom",
+      "kernel/target/artifacts/asterinas-nixos-0.17.2-x86_64.iso",
+      "-serial",
+      "stdio",
+      "-display",
+      "none",
+      "-no-reboot"
+    ],
+    "reproducible_command": "qemu-system-x86_64 -machine q35 -m 6144 -smp 4 -accel tcg,thread=multi -cdrom kernel/target/artifacts/asterinas-nixos-0.17.2-x86_64.iso -serial stdio -display none -no-reboot",
+    "accel": "tcg (software emulation; dev-only, no KVM)",
+    "serial_console_selection": {
+      "why": "the ISO DEFAULT boot entry emits to VGA only; LABEL boot-serial carries console=ttyS0,115200n8",
+      "input_channel": "guest first serial port <-> harness stdin (-serial stdio)",
+      "keystrokes": [
+        {
+          "delay_ms": 0,
+          "bytes_escaped": "\\x1b\\x5b\\x42",
+          "note": "highlight Options"
+        },
+        {
+          "delay_ms": 1500,
+          "bytes_escaped": "\\x0d",
+          "note": "open Options submenu"
+        },
+        {
+          "delay_ms": 2000,
+          "bytes_escaped": "\\x1b\\x5b\\x42",
+          "note": "advance toward Serial console entry"
+        },
+        {
+          "delay_ms": 1000,
+          "bytes_escaped": "\\x1b\\x5b\\x42",
+          "note": "advance toward Serial console entry"
+        },
+        {
+          "delay_ms": 1000,
+          "bytes_escaped": "\\x1b\\x5b\\x42",
+          "note": "advance toward Serial console entry"
+        },
+        {
+          "delay_ms": 1000,
+          "bytes_escaped": "\\x1b\\x5b\\x42",
+          "note": "advance toward Serial console entry"
+        },
+        {
+          "delay_ms": 1000,
+          "bytes_escaped": "\\x1b\\x5b\\x42",
+          "note": "advance toward Serial console entry"
+        },
+        {
+          "delay_ms": 1000,
+          "bytes_escaped": "\\x1b\\x5b\\x42",
+          "note": "advance toward Serial console entry"
+        },
+        {
+          "delay_ms": 1000,
+          "bytes_escaped": "\\x1b\\x5b\\x42",
+          "note": "advance toward Serial console entry"
+        },
+        {
+          "delay_ms": 1000,
+          "bytes_escaped": "\\x0d",
+          "note": "open Serial console submenu"
+        },
+        {
+          "delay_ms": 2000,
+          "bytes_escaped": "\\x0d",
+          "note": "boot boot-serial (console=ttyS0)"
+        }
+      ]
+    }
+  },
+  "serial_log": {
+    "path": "kernel/target/artifacts/boot-serial-v0.17.2.log",
+    "capture_method": "child stdout redirected to file (-serial stdio); raw verbatim bytes",
+    "sha256": "1993fe93b8222d149d9193b2e0a678e16f57cf5deb95d723669065db832d9dcf",
+    "digest_recomputed_from_disk_at_receipt_write": true,
+    "byte_size": 17362
+  },
+  "boot_verdict": {
+    "allowed_markers": [
+      "(?i)login:\\s*$",
+      "[#$]\\s$",
+      "Welcome to NixOS",
+      "Reached target .*(Multi-User|Basic System|Login Prompts)",
+      "systemd\\[1\\]:\\s+Startup finished"
+    ],
+    "boot_reached": true,
+    "matched_marker": {
+      "marker_index": 3,
+      "marker_pattern": "Reached target .*(Multi-User|Basic System|Login Prompts)",
+      "line_number": 145,
+      "matched_line_verbatim": "[\u001b[0;32m  OK  \u001b[0m] Reached target \u001b[0;1;39mBasic System\u001b[0m.\r",
+      "matched_text_verbatim": "Reached target \u001b[0;1;39mBasic System"
+    },
+    "derived_solely_from_real_captured_log": true
+  },
+  "timeout_secs": 180,
+  "wall_secs": 58,
+  "qemu_exit": "killed-at-marker",
+  "status": "pass",
+  "booted_at_unix": 1783162520
+}
