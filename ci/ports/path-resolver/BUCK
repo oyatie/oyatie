@@ -1,0 +1,20 @@
+# ci/ports: the PURE move-aware path-resolution contract (no I/O). PathId identities, the compiled
+# CURRENT-canonical seed table (MUST-PASS #1: compiled-in, never candidate-repointable), and the
+# MoveBijection + FrozenRefSource ports the git/manifest adapter implements.
+rust_library(
+    name = "ci-path-resolver-ports",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "ci_path_resolver_ports",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+rust_test(
+    name = "ci-path-resolver-ports-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "ci_path_resolver_ports",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

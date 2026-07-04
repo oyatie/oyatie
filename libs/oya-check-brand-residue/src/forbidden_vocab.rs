@@ -37,7 +37,7 @@
 //!   work;
 //! - the generated faces (`*.generated.json`) — produced by the gate machinery itself
 //!   (which legitimately records the tokens it tracks); hand-editing them is its own
-//!   `registry_drift` RED.
+//!   `ci_inventory_registry_drift` RED.
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -136,7 +136,7 @@ pub const CARVE_OUT_RULES: &[CarveOutRule] = &[
     CarveOutRule {
         kind: CarveOutKind::PathSuffix,
         value: ".generated.json",
-        reason: "producer-generated faces record the tokens the gates track; a hand-edit is its own registry_drift RED",
+        reason: "producer-generated faces record the tokens the gates track; a hand-edit is its own ci_inventory_registry_drift RED",
     },
     CarveOutRule {
         kind: CarveOutKind::LineContainsCi,

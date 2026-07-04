@@ -605,7 +605,7 @@ fn default_vocab_carve_outs() -> Vec<VocabCarveOut> {
         (
             VocabCarveOutKind::PathSuffix,
             ".generated.json",
-            "producer-generated faces record the tokens the gates track; a hand-edit is its own registry_drift RED",
+            "producer-generated faces record the tokens the gates track; a hand-edit is its own ci_inventory_registry_drift RED",
         ),
         (
             VocabCarveOutKind::LineContainsCi,

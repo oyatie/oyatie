@@ -1,0 +1,37 @@
+rust_library(
+    name = "ci-crate-registration",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "ci_crate_registration",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry",
+        "//ci/facade/module-membership:ci-module-membership",
+        "//ci/facade/service-catalog-parity:ci-service-catalog-parity",
+        "//ci/facade/slo-coverage:ci-slo-coverage",
+        "//ci/facade/artifact-accountability:ci-artifact-accountability",
+        "//libs/oya-ci-config:oya-ci-config-kernel",
+        "//libs/oya-crate-registrar-app:oya-crate-registrar-app",
+        "//libs/oya-crate-registrar-kernel:oya-crate-registrar-kernel",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-crate-registration-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "ci_crate_registration",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry",
+        "//ci/facade/module-membership:ci-module-membership",
+        "//ci/facade/service-catalog-parity:ci-service-catalog-parity",
+        "//ci/facade/slo-coverage:ci-slo-coverage",
+        "//ci/facade/artifact-accountability:ci-artifact-accountability",
+        "//libs/oya-ci-config:oya-ci-config-kernel",
+        "//libs/oya-crate-registrar-app:oya-crate-registrar-app",
+        "//libs/oya-crate-registrar-kernel:oya-crate-registrar-kernel",
+        "third-party//:serde_json",
+    ],
+)
