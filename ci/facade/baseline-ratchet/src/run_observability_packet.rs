@@ -1,6 +1,6 @@
 //! Canonical cloud-ci run observability packet validation (GH-1003).
 //!
-//! This lives in the legacy `cloud/cloud-ci/gates` firewall crate only because that is the
+//! This lives in the legacy `ci/facade` firewall crate only because that is the
 //! current required-context enforcement path; the stable contracts are the top-level
 //! `specs/cloud-ci-run-observability-{packet,status}.schema.json` specs and the eventual
 //! de-branded destination is an `observability/core` run-observability kernel.

@@ -27,7 +27,7 @@
 //!       [--volatile-out <path>] [--merge-base-baseline] [--frozen-base-ref <ref>]
 //!
 //! Default `--repo-root` is discovered up-tree (the dir holding `specs/root-hub-pointers.json`),
-//! default `--out` is `<repo-root>/cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json`,
+//! default `--out` is `<repo-root>/ci/facade/artifact-inventory-registry/scm-facts.generated.json`,
 //! default `--volatile-out` is `<repo-root>/`[`VOLATILE_FACTS_PATH`].
 //!
 //! With `--merge-base-baseline` the emitter ALSO materializes the firewall's frozen
@@ -60,11 +60,11 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use oya_check_brand_residue::forbidden_vocab::{matched_line_occurrences_with, VocabPolicy};
 use ci_artifact_inventory_registry::to_canonical_json;
-use ci_path_resolver_adapters::ManifestPathResolver;
+use ci_path_resolver_adapters::{MOVE_MANIFEST_PATH, ManifestPathResolver, MoveManifest};
 use ci_path_resolver_ports::{FrozenRefSource, MergeBaseName, PathId, PathResolver};
-use serde_json::{json, Value};
+use oya_check_brand_residue::forbidden_vocab::{VocabPolicy, matched_line_occurrences_with};
+use serde_json::{Value, json};
 
 /// The scm-facts face schema id — bumped only on a breaking shape change.
 /// v2 (ADR-0552): history-volatile fields (`last_touch_commit`, `commit_author_ts_secs`,
@@ -295,15 +295,6 @@ fn build_merge_base_baseline_snapshot(
 //  4. STRICT NO-OP when there is no move-manifest or no renames. Per-(gate,code) injective;
 //     reject fail-closed on collisions (new key already a distinct frozen key).
 
-/// The committed move-manifest's canonical repo-relative path (task #64). MUST agree with the
-/// codemod's `DEFAULT_MANIFEST_OUT` and the `registry/generated-artifact-control-plane.json`
-/// declaration; the registry-drift/freshness committed==regenerated coverage byte-binds it to
-/// the deterministic codemod output, so a hand-forged row is RED before the firewall runs.
-const MOVE_MANIFEST_PATH: &str = "specs/reorg/move-manifest.generated.json";
-
-/// The schema id of the move-manifest (must match the codemod's `REORG_MOVE_MANIFEST_SCHEMA`).
-const MOVE_MANIFEST_SCHEMA: &str = "oya-ci/reorg-move-manifest/v1";
-
 /// Repo-relative path of the oya-ci config (the LIVE VocabPolicy source — the deny-list table).
 const OYA_CI_CONFIG_PATH: &str = "oya-ci.toml";
 
@@ -315,103 +306,6 @@ const GATE_TIER_DEP_ACYCLICITY: &str = "cloud-ci-tier-dependency-acyclicity";
 
 /// The `forbidden_<stem>` code prefix (brand-residue): the stem is decoded by stripping it.
 const FORBIDDEN_CODE_PREFIX: &str = "forbidden_";
-
-/// The authoritative committed move bijection (task #64): file-level pairs (for the path-keyed
-/// relabel) + crate-IDENT pairs (for the tier-dep endpoint mapping). Parsed fail-closed: any
-/// malformed/missing field yields the EMPTY manifest (identity relabel).
-#[derive(Debug, Clone, Default)]
-struct MoveManifest {
-    /// `(old_path, new_path)` file-level pairs. Injective on `old_path` (the codemod's
-    /// `MovePlan::validate` guarantees it; re-checked here fail-closed).
-    file_pairs: Vec<(String, String)>,
-    /// `(old_crate_dir, new_crate_dir)` crate-DIR pairs for the existence-only relabel of the
-    /// total-accounting / target-parity gates (which key by crate-DIR / `member_path`, task #64
-    /// Section C). Injective on `old_crate_dir`.
-    crate_dir_pairs: Vec<(String, String)>,
-    /// `(old_cargo_name, new_cargo_name)` crate-IDENT pairs for tier-dep endpoint mapping.
-    crate_ident_pairs: Vec<(String, String)>,
-}
-
-impl MoveManifest {
-    /// Parse the committed manifest `Value`. FAIL-CLOSED: a foreign schema or any malformed row
-    /// yields the EMPTY manifest (so the relabel is the identity — the firewall reads the honest
-    /// stale frozen face). The registry-drift/freshness byte-binding is what makes a hand-forged
-    /// row impossible; this parser is the in-emitter shape guard, never the trust root.
-    fn from_value(value: &Value) -> Self {
-        if value.get("schema").and_then(Value::as_str) != Some(MOVE_MANIFEST_SCHEMA) {
-            return Self::default();
-        }
-        let mut file_pairs: Vec<(String, String)> = Vec::new();
-        if let Some(files) = value.get("files").and_then(Value::as_array) {
-            for row in files {
-                match (
-                    row.get("old_path").and_then(Value::as_str),
-                    row.get("new_path").and_then(Value::as_str),
-                ) {
-                    (Some(old), Some(new)) if !old.is_empty() && !new.is_empty() => {
-                        file_pairs.push((old.to_owned(), new.to_owned()));
-                    }
-                    // A malformed row poisons the whole manifest fail-closed (identity relabel)
-                    // rather than silently dropping just that pair.
-                    _ => return Self::default(),
-                }
-            }
-        }
-        let mut crate_dir_pairs: Vec<(String, String)> = Vec::new();
-        if let Some(dirs) = value.get("crate_dirs").and_then(Value::as_array) {
-            for row in dirs {
-                match (
-                    row.get("old_path").and_then(Value::as_str),
-                    row.get("new_path").and_then(Value::as_str),
-                ) {
-                    (Some(old), Some(new)) if !old.is_empty() && !new.is_empty() => {
-                        crate_dir_pairs.push((old.to_owned(), new.to_owned()));
-                    }
-                    _ => return Self::default(),
-                }
-            }
-        }
-        let mut crate_ident_pairs: Vec<(String, String)> = Vec::new();
-        if let Some(idents) = value.get("crate_idents").and_then(Value::as_array) {
-            for row in idents {
-                match (
-                    row.get("old").and_then(Value::as_str),
-                    row.get("new").and_then(Value::as_str),
-                ) {
-                    (Some(old), Some(new)) if !old.is_empty() && !new.is_empty() => {
-                        crate_ident_pairs.push((old.to_owned(), new.to_owned()));
-                    }
-                    _ => return Self::default(),
-                }
-            }
-        }
-        // Injectivity on old_path / old_crate_dir / old_cargo_name (the codemod guarantees it;
-        // re-verify fail-closed — a duplicated old key is an ambiguous bijection).
-        if !is_injective_on_old(&file_pairs)
-            || !is_injective_on_old(&crate_dir_pairs)
-            || !is_injective_on_old(&crate_ident_pairs)
-        {
-            return Self::default();
-        }
-        Self {
-            file_pairs,
-            crate_dir_pairs,
-            crate_ident_pairs,
-        }
-    }
-
-    fn is_empty(&self) -> bool {
-        self.file_pairs.is_empty()
-            && self.crate_dir_pairs.is_empty()
-            && self.crate_ident_pairs.is_empty()
-    }
-}
-
-/// True iff every `.0` (old side) is unique across the pairs.
-fn is_injective_on_old(pairs: &[(String, String)]) -> bool {
-    let mut seen: BTreeSet<&str> = BTreeSet::new();
-    pairs.iter().all(|(old, _)| seen.insert(old.as_str()))
-}
 
 /// The CANDIDATE-side primitive (correction #1): the producer's exact universe. `tracked_paths`
 /// is `git ls-files` (candidate EXISTENCE); `read_content` reads ON-DISK under repo_root
@@ -478,17 +372,17 @@ fn relabel_frozen_face(
     };
 
     let file_pairs: BTreeMap<&str, &str> = manifest
-        .file_pairs
+        .file_pairs()
         .iter()
         .map(|(old, new)| (old.as_str(), new.as_str()))
         .collect();
     let dir_pairs: BTreeMap<&str, &str> = manifest
-        .crate_dir_pairs
+        .crate_dir_pairs()
         .iter()
         .map(|(old, new)| (old.as_str(), new.as_str()))
         .collect();
     let ident_pairs: BTreeMap<&str, &str> = manifest
-        .crate_ident_pairs
+        .crate_ident_pairs()
         .iter()
         .map(|(old, new)| (old.as_str(), new.as_str()))
         .collect();
@@ -602,8 +496,10 @@ fn relabel_brand_residue_gate(
             let Some(new_content) = candidate.read_content(new_path) else {
                 continue;
             };
-            let old_occ = matched_line_occurrences_with(old_path, &old_content, &stem, vocab_policy);
-            let new_occ = matched_line_occurrences_with(new_path, &new_content, &stem, vocab_policy);
+            let old_occ =
+                matched_line_occurrences_with(old_path, &old_content, &stem, vocab_policy);
+            let new_occ =
+                matched_line_occurrences_with(new_path, &new_content, &stem, vocab_policy);
             if !new_occ.is_subset(&old_occ) {
                 continue; // a move may DROP residue, must ADD none
             }
@@ -813,8 +709,8 @@ where
                 let text = source.show_file(&merge_base, &name)?.ok_or_else(|| {
                     format!("{name}@{merge_base}: resolved-present policy name is absent")
                 })?;
-                let policy = parse_ratchet_policy(&text)
-                    .map_err(|e| format!("{name}@{merge_base}: {e}"))?;
+                let policy =
+                    parse_ratchet_policy(&text).map_err(|e| format!("{name}@{merge_base}: {e}"))?;
                 (policy, FROZEN_POLICY_SOURCE_MERGE_BASE)
             }
             // Declared bootstrap path: the ratchet policy does not exist at the merge-base
@@ -886,14 +782,7 @@ struct RelabelInputs<'a, C: CandidateSource> {
 /// firewall reads the honest stale frozen face). The registry-drift/freshness byte-binding is
 /// the trust root; this is the in-emitter shape guard.
 fn load_move_manifest(repo_root: &Path) -> MoveManifest {
-    let path = repo_root.join(MOVE_MANIFEST_PATH);
-    let Ok(text) = std::fs::read_to_string(&path) else {
-        return MoveManifest::default();
-    };
-    match serde_json::from_str::<Value>(&text) {
-        Ok(value) => MoveManifest::from_value(&value),
-        Err(_) => MoveManifest::default(),
-    }
+    MoveManifest::load(repo_root, MOVE_MANIFEST_PATH)
 }
 
 /// Load the LIVE VocabPolicy from `oya-ci.toml` (the deny-list SSOT — correction #2/#3), mapped
@@ -1029,11 +918,7 @@ fn git_merge_base(repo_root: &Path, base_ref: &str) -> Result<String, String> {
 /// `git show <revision>:<path>` with existence distinguished from failure: `Ok(None)` iff
 /// the path does not exist at the revision (checked via `git cat-file -e`), `Err` for any
 /// other git failure (fail-closed).
-fn git_show_file(
-    repo_root: &Path,
-    revision: &str,
-    path: &str,
-) -> Result<Option<String>, String> {
+fn git_show_file(repo_root: &Path, revision: &str, path: &str) -> Result<Option<String>, String> {
     let spec = format!("{revision}:{path}");
     let exists = Command::new("git")
         .arg("-C")
@@ -1057,7 +942,9 @@ fn git_show_file(
             String::from_utf8_lossy(&output.stderr).trim()
         ));
     }
-    String::from_utf8(output.stdout).map(Some).map_err(|e| format!("show {spec}: {e}"))
+    String::from_utf8(output.stdout)
+        .map(Some)
+        .map_err(|e| format!("show {spec}: {e}"))
 }
 
 /// Stable seam for the scm-facts source. Git CLI is transitional implementation #1;
@@ -1145,7 +1032,7 @@ fn emit_scm_facts(source: &impl ScmFactsSource) -> Result<ScmFactsEmission, Stri
     });
     let volatile = json!({
         "schema": VOLATILE_SCHEMA,
-        "_comment": "GENERATED out-of-graph by oya-cloud-ci-scm-facts-emitter-app (ADR-0552, FRIC-1781234047). HISTORY-derived volatile facts: rewritten by squash-merges, so NEVER a committed merge surface and NEVER byte-compared. Untracked + gitignored; CI rematerializes it before gates consume it (buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin).",
+        "_comment": "GENERATED out-of-graph by oya-cloud-ci-scm-facts-emitter-app (ADR-0552, FRIC-1781234047). HISTORY-derived volatile facts: rewritten by squash-merges, so NEVER a committed merge surface and NEVER byte-compared. Untracked + gitignored; CI rematerializes it before gates consume it (buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin).",
         "head_time_secs": head_time_secs,
         "last_touch_commit": last_touch_commit,
         "commit_author_ts_secs": commit_author_ts_secs,
@@ -1268,6 +1155,7 @@ fn git_last_touch(repo_root: &Path) -> Result<BTreeMap<String, String>, String> 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ci_path_resolver_adapters::MOVE_MANIFEST_SCHEMA;
 
     /// A fake candidate tree (task #64 relabel tests): tracked-path existence + per-path
     /// content, both supplied by the test (mirrors RepointAttackRepo style for the frozen side).
@@ -1429,19 +1317,17 @@ mod tests {
 
     #[test]
     fn generated_class_filter_matches_existing_policy() {
-        assert!(is_generated_class(
-            "cloud/cloud-ci/gates/app/foo.generated.json"
-        ));
+        assert!(is_generated_class("ci/facade/app/foo.generated.json"));
         assert!(is_generated_class("Cargo.lock"));
         assert!(is_generated_class("docs/machine-readable/catalog.json"));
-        assert!(!is_generated_class("cloud/cloud-ci/gates/app/src/main.rs"));
+        assert!(!is_generated_class("ci/facade/app/src/main.rs"));
     }
 
     const POLICY_TEXT: &str = r#"{
         "base_ref": "origin/dev",
         "frozen_reference": {
-            "face_path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
-            "out_path": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.merge-base.generated.json"
+            "face_path": "ci/facade/artifact-inventory-registry/gate-baseline.generated.json",
+            "out_path": "ci/facade/baseline-ratchet/gate-baseline.merge-base.generated.json"
         }
     }"#;
 
@@ -1450,15 +1336,18 @@ mod tests {
         let policy = parse_ratchet_policy(POLICY_TEXT).unwrap();
         assert_eq!(policy.base_ref, "origin/dev");
         assert!(policy.face_path.ends_with("gate-baseline.generated.json"));
-        assert!(policy.out_path.ends_with("gate-baseline.merge-base.generated.json"));
+        assert!(
+            policy
+                .out_path
+                .ends_with("gate-baseline.merge-base.generated.json")
+        );
 
         // Fail-closed: a policy missing the comparison root must be a hard error, never a
         // silently-disabled frozen reference.
         assert!(parse_ratchet_policy("{}").is_err());
         assert!(parse_ratchet_policy(r#"{"base_ref": ""}"#).is_err());
         assert!(
-            parse_ratchet_policy(r#"{"base_ref": "origin/dev", "frozen_reference": {}}"#)
-                .is_err()
+            parse_ratchet_policy(r#"{"base_ref": "origin/dev", "frozen_reference": {}}"#).is_err()
         );
     }
 
@@ -1505,8 +1394,7 @@ mod tests {
 
     const BASE_SHA: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     const HEAD_SHA: &str = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
-    const FACE_PATH: &str =
-        "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json";
+    const FACE_PATH: &str = "ci/facade/artifact-inventory-registry/gate-baseline.generated.json";
 
     /// The repoint-attack repository shape: the base branch carries the honest policy +
     /// face; HEAD carries the SAME-PR attack — `base_ref` repointed to `"HEAD"` AND the
@@ -1566,7 +1454,10 @@ mod tests {
     #[test]
     fn frozen_policy_wins_defeats_same_pr_base_ref_repoint() {
         let candidate = parse_ratchet_policy(&RepointAttackRepo::attacker_policy()).unwrap();
-        assert_eq!(candidate.base_ref, "HEAD", "the attack edit is in the candidate tree");
+        assert_eq!(
+            candidate.base_ref, "HEAD",
+            "the attack edit is in the candidate tree"
+        );
 
         let snapshot = resolve_merge_base_baseline_snapshot(
             &RepointAttackRepo,
@@ -1586,12 +1477,9 @@ mod tests {
 
         // End-to-end: the firewall over (frozen snapshot, attacked proposed/current) is
         // RED on BOTH predicates — the planted key is growth AND a compare regression.
-        let frozen =
-            ci_baseline_ratchet::FrozenBaseline::from_value(&snapshot).unwrap();
-        let proposed = ci_baseline_ratchet::Baseline::from_value(
-            &RepointAttackRepo::attacked_face(),
-        )
-        .unwrap();
+        let frozen = ci_baseline_ratchet::FrozenBaseline::from_value(&snapshot).unwrap();
+        let proposed =
+            ci_baseline_ratchet::Baseline::from_value(&RepointAttackRepo::attacked_face()).unwrap();
         let current = ci_baseline_ratchet::baseline_keys_map(&proposed);
         let report = ci_baseline_ratchet::evaluate_firewall(
             &frozen.baseline,
@@ -1628,9 +1516,11 @@ mod tests {
         )
         .unwrap();
         assert_eq!(foil_snapshot["merge_base"], HEAD_SHA);
-        assert_eq!(foil_snapshot["baseline"], RepointAttackRepo::attacked_face());
-        let foil_frozen =
-            ci_baseline_ratchet::FrozenBaseline::from_value(&foil_snapshot).unwrap();
+        assert_eq!(
+            foil_snapshot["baseline"],
+            RepointAttackRepo::attacked_face()
+        );
+        let foil_frozen = ci_baseline_ratchet::FrozenBaseline::from_value(&foil_snapshot).unwrap();
         let foil_report = ci_baseline_ratchet::evaluate_firewall(
             &foil_frozen.baseline,
             &proposed,
@@ -1784,26 +1674,35 @@ mod tests {
     }
 
     fn manifest(files: &[(&str, &str)]) -> MoveManifest {
-        MoveManifest {
-            file_pairs: files
-                .iter()
-                .map(|(o, n)| ((*o).to_owned(), (*n).to_owned()))
-                .collect(),
-            crate_dir_pairs: Vec::new(),
-            crate_ident_pairs: Vec::new(),
-        }
+        manifest_with(files, &[], &[])
     }
 
     /// A manifest carrying only crate-DIR pairs (Section C: total-accounting / target-parity).
     fn dir_manifest(dirs: &[(&str, &str)]) -> MoveManifest {
-        MoveManifest {
-            file_pairs: Vec::new(),
-            crate_dir_pairs: dirs
+        manifest_with(&[], dirs, &[])
+    }
+
+    fn manifest_with(
+        files: &[(&str, &str)],
+        dirs: &[(&str, &str)],
+        idents: &[(&str, &str)],
+    ) -> MoveManifest {
+        MoveManifest::from_manifest_value(&json!({
+            "schema": MOVE_MANIFEST_SCHEMA,
+            "capability": "test",
+            "files": files
                 .iter()
-                .map(|(o, n)| ((*o).to_owned(), (*n).to_owned()))
-                .collect(),
-            crate_ident_pairs: Vec::new(),
-        }
+                .map(|(old, new)| json!({"old_path": old, "new_path": new}))
+                .collect::<Vec<_>>(),
+            "crate_dirs": dirs
+                .iter()
+                .map(|(old, new)| json!({"old_path": old, "new_path": new}))
+                .collect::<Vec<_>>(),
+            "crate_idents": idents
+                .iter()
+                .map(|(old, new)| json!({"old": old, "new": new}))
+                .collect::<Vec<_>>(),
+        }))
     }
 
     fn brand_keys(face: &Value, code: &str) -> BTreeSet<String> {
@@ -1832,7 +1731,15 @@ mod tests {
             &[(new, &line_with(&residue_a()))],
         );
         let policy = VocabPolicy::bundled_default();
-        let out = relabel_frozen_face(&face, &manifest(&[(old, new)]), &frozen, MB, &candidate, &policy).unwrap();
+        let out = relabel_frozen_face(
+            &face,
+            &manifest(&[(old, new)]),
+            &frozen,
+            MB,
+            &candidate,
+            &policy,
+        )
+        .unwrap();
         let keys = brand_keys(&out, &code);
         assert!(keys.contains(new), "new path must be relabeled in");
         assert!(!keys.contains(old), "old path must be relabeled out");
@@ -1850,13 +1757,28 @@ mod tests {
         let face = brand_face(&code, &[old]);
         let frozen = FakeFrozen::new(&[(old, &line_with(&residue_a()))]);
         // The new file keeps the original residue line AND grows a DISTINCT new residue line.
-        let grown = format!("{}let w = \"{}-extra\";\n", line_with(&residue_a()), residue_a());
+        let grown = format!(
+            "{}let w = \"{}-extra\";\n",
+            line_with(&residue_a()),
+            residue_a()
+        );
         let candidate = FakeCandidate::new(&[new], &[(new, &grown)]);
         let policy = VocabPolicy::bundled_default();
-        let out = relabel_frozen_face(&face, &manifest(&[(old, new)]), &frozen, MB, &candidate, &policy).unwrap();
+        let out = relabel_frozen_face(
+            &face,
+            &manifest(&[(old, new)]),
+            &frozen,
+            MB,
+            &candidate,
+            &policy,
+        )
+        .unwrap();
         let keys = brand_keys(&out, &code);
         assert!(keys.contains(old), "P4 broke => old stays (no relabel)");
-        assert!(!keys.contains(new), "new must NOT be laundered into the frozen set");
+        assert!(
+            !keys.contains(new),
+            "new must NOT be laundered into the frozen set"
+        );
     }
 
     /// RED stem-swap: the move drops residue-A but the new file carries a NEW residue-B line. The
@@ -1876,15 +1798,25 @@ mod tests {
         // Candidate new: residue-A GONE, residue-B ADDED (the swap).
         let candidate = FakeCandidate::new(&[new], &[(new, &line_with(&residue_b()))]);
         let policy = VocabPolicy::bundled_default();
-        let out = relabel_frozen_face(&face, &manifest(&[(old, new)]), &frozen, MB, &candidate, &policy).unwrap();
+        let out = relabel_frozen_face(
+            &face,
+            &manifest(&[(old, new)]),
+            &frozen,
+            MB,
+            &candidate,
+            &policy,
+        )
+        .unwrap();
         let a_keys = brand_keys(&out, &code_a);
         // code-A P4: NEW_OCC (empty, A dropped) ⊆ OLD_OCC => relabel old->new under A.
         assert!(a_keys.contains(new) && !a_keys.contains(old));
         // There is NO code-B entry in the frozen face for the relabel to touch; the candidate's
         // new code-B key will be a NEW key vs the (unmoved) frozen code-B set when the firewall
         // differences candidate-vs-frozen => RED. The relabel did NOT add it.
-        assert!(out["gates"][GATE_BRAND_RESIDUE].get(&code_b).is_none(),
-            "relabel must not fabricate a second-stem key");
+        assert!(
+            out["gates"][GATE_BRAND_RESIDUE].get(&code_b).is_none(),
+            "relabel must not fabricate a second-stem key"
+        );
     }
 
     /// Carve-out asymmetry: a move where the NEW path's sole residue mention is the carved
@@ -1901,10 +1833,20 @@ mod tests {
         let new_content = format!("benchmarked vs Palantir {}\n", residue_a());
         let candidate = FakeCandidate::new(&[new], &[(new, &new_content)]);
         let policy = VocabPolicy::bundled_default();
-        let out = relabel_frozen_face(&face, &manifest(&[(old, new)]), &frozen, MB, &candidate, &policy).unwrap();
+        let out = relabel_frozen_face(
+            &face,
+            &manifest(&[(old, new)]),
+            &frozen,
+            MB,
+            &candidate,
+            &policy,
+        )
+        .unwrap();
         let keys = brand_keys(&out, &code);
-        assert!(keys.contains(new) && !keys.contains(old),
-            "a move that drops residue (palantir-carved new) relabels cleanly");
+        assert!(
+            keys.contains(new) && !keys.contains(old),
+            "a move that drops residue (palantir-carved new) relabels cleanly"
+        );
     }
 
     /// Two-stem file independence: a file frozen under BOTH code-A and code-B where the move keeps
@@ -1925,7 +1867,15 @@ mod tests {
         let new_content = format!("{} here\nclean\n", residue_a());
         let candidate = FakeCandidate::new(&[new], &[(new, &new_content)]);
         let policy = VocabPolicy::bundled_default();
-        let out = relabel_frozen_face(&face, &manifest(&[(old, new)]), &frozen, MB, &candidate, &policy).unwrap();
+        let out = relabel_frozen_face(
+            &face,
+            &manifest(&[(old, new)]),
+            &frozen,
+            MB,
+            &candidate,
+            &policy,
+        )
+        .unwrap();
         assert!(brand_keys(&out, &code_a).contains(new));
         assert!(!brand_keys(&out, &code_a).contains(old));
         assert!(brand_keys(&out, &code_b).contains(new));
@@ -1944,8 +1894,19 @@ mod tests {
         // new is NOT tracked in the candidate => P3 fails.
         let candidate = FakeCandidate::new(&[], &[(new, &line_with(&residue_a()))]);
         let policy = VocabPolicy::bundled_default();
-        let out = relabel_frozen_face(&face, &manifest(&[(old, new)]), &frozen, MB, &candidate, &policy).unwrap();
-        assert!(brand_keys(&out, &code).contains(old), "no relabel when new absent");
+        let out = relabel_frozen_face(
+            &face,
+            &manifest(&[(old, new)]),
+            &frozen,
+            MB,
+            &candidate,
+            &policy,
+        )
+        .unwrap();
+        assert!(
+            brand_keys(&out, &code).contains(old),
+            "no relabel when new absent"
+        );
     }
 
     /// P2 fail: the OLD path is STILL tracked in the candidate (it did not actually move away).
@@ -1960,8 +1921,19 @@ mod tests {
         // old STILL tracked => P2 fails.
         let candidate = FakeCandidate::new(&[old, new], &[(new, &line_with(&residue_a()))]);
         let policy = VocabPolicy::bundled_default();
-        let out = relabel_frozen_face(&face, &manifest(&[(old, new)]), &frozen, MB, &candidate, &policy).unwrap();
-        assert!(brand_keys(&out, &code).contains(old), "no relabel when old still present");
+        let out = relabel_frozen_face(
+            &face,
+            &manifest(&[(old, new)]),
+            &frozen,
+            MB,
+            &candidate,
+            &policy,
+        )
+        .unwrap();
+        assert!(
+            brand_keys(&out, &code).contains(old),
+            "no relabel when old still present"
+        );
     }
 
     /// Collision: new_path is already a DISTINCT frozen key under the same code. Fail-closed =>
@@ -1973,12 +1945,26 @@ mod tests {
         let code = code_a();
         // new is ALREADY a frozen key (a distinct pre-existing residue file at that path).
         let face = brand_face(&code, &[old, new]);
-        let frozen = FakeFrozen::new(&[(old, &line_with(&residue_a())), (new, &line_with(&residue_a()))]);
+        let frozen = FakeFrozen::new(&[
+            (old, &line_with(&residue_a())),
+            (new, &line_with(&residue_a())),
+        ]);
         let candidate = FakeCandidate::new(&[new], &[(new, &line_with(&residue_a()))]);
         let policy = VocabPolicy::bundled_default();
-        let out = relabel_frozen_face(&face, &manifest(&[(old, new)]), &frozen, MB, &candidate, &policy).unwrap();
+        let out = relabel_frozen_face(
+            &face,
+            &manifest(&[(old, new)]),
+            &frozen,
+            MB,
+            &candidate,
+            &policy,
+        )
+        .unwrap();
         let keys = brand_keys(&out, &code);
-        assert!(keys.contains(old) && keys.contains(new), "collision => leave both, no relabel");
+        assert!(
+            keys.contains(old) && keys.contains(new),
+            "collision => leave both, no relabel"
+        );
     }
 
     /// STRICT NO-OP when there is no move-manifest (correction #4): the face is returned
@@ -1991,8 +1977,19 @@ mod tests {
         let frozen = FakeFrozen::new(&[(old, &line_with(&residue_a()))]);
         let candidate = FakeCandidate::new(&["new/s/src/lib.rs"], &[]);
         let policy = VocabPolicy::bundled_default();
-        let out = relabel_frozen_face(&face, &MoveManifest::default(), &frozen, MB, &candidate, &policy).unwrap();
-        assert_eq!(out, face, "empty manifest => byte-identical face (strict no-op)");
+        let out = relabel_frozen_face(
+            &face,
+            &MoveManifest::default(),
+            &frozen,
+            MB,
+            &candidate,
+            &policy,
+        )
+        .unwrap();
+        assert_eq!(
+            out, face,
+            "empty manifest => byte-identical face (strict no-op)"
+        );
     }
 
     /// Existence-only gate (target-parity / total-accounting): pure P2+P3 relabel on the
@@ -2020,11 +2017,27 @@ mod tests {
             &[],
         );
         let policy = VocabPolicy::bundled_default();
-        let out = relabel_frozen_face(&face, &dir_manifest(&[(old, new)]), &frozen, MB, &candidate, &policy).unwrap();
-        let keys: BTreeSet<String> = out["gates"][GATE_TARGET_PARITY]
-            ["member_test_code_without_rust_test_target"]["keys"]
-            .as_array().unwrap().iter().filter_map(Value::as_str).map(str::to_owned).collect();
-        assert!(keys.contains(new) && !keys.contains(old), "crate-DIR relabeled on dir presence");
+        let out = relabel_frozen_face(
+            &face,
+            &dir_manifest(&[(old, new)]),
+            &frozen,
+            MB,
+            &candidate,
+            &policy,
+        )
+        .unwrap();
+        let keys: BTreeSet<String> =
+            out["gates"][GATE_TARGET_PARITY]["member_test_code_without_rust_test_target"]["keys"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect();
+        assert!(
+            keys.contains(new) && !keys.contains(old),
+            "crate-DIR relabeled on dir presence"
+        );
         assert!(keys.contains("other/dir"), "unmoved dir key untouched");
     }
 
@@ -2041,10 +2054,26 @@ mod tests {
         // No tracked file under the new dir => new dir absent => no relabel.
         let candidate = FakeCandidate::new(&["unrelated/x.rs"], &[]);
         let policy = VocabPolicy::bundled_default();
-        let out = relabel_frozen_face(&face, &dir_manifest(&[(old, new)]), &frozen, MB, &candidate, &policy).unwrap();
+        let out = relabel_frozen_face(
+            &face,
+            &dir_manifest(&[(old, new)]),
+            &frozen,
+            MB,
+            &candidate,
+            &policy,
+        )
+        .unwrap();
         let keys: BTreeSet<String> = out["gates"][GATE_TOTAL_ACCOUNTING]["unjustified"]["keys"]
-            .as_array().unwrap().iter().filter_map(Value::as_str).map(str::to_owned).collect();
-        assert!(keys.contains(old), "no relabel when new dir has no tracked descendant");
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(Value::as_str)
+            .map(str::to_owned)
+            .collect();
+        assert!(
+            keys.contains(old),
+            "no relabel when new dir has no tracked descendant"
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -2071,14 +2100,31 @@ mod tests {
         // Candidate has the NEW file + the unrelated keep, but NOT the old file (it moved away).
         let candidate = FakeCandidate::new(&[new, "other/keep.rs"], &[]);
         let policy = VocabPolicy::bundled_default();
-        let out =
-            relabel_frozen_face(&face, &manifest(&[(old, new)]), &frozen, MB, &candidate, &policy)
-                .unwrap();
+        let out = relabel_frozen_face(
+            &face,
+            &manifest(&[(old, new)]),
+            &frozen,
+            MB,
+            &candidate,
+            &policy,
+        )
+        .unwrap();
         let keys: BTreeSet<String> = out["gates"][GATE_TOTAL_ACCOUNTING]["unjustified"]["keys"]
-            .as_array().unwrap().iter().filter_map(Value::as_str).map(str::to_owned).collect();
-        assert!(keys.contains(new), "moved unjustified FILE key relabeled to NEW path");
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(Value::as_str)
+            .map(str::to_owned)
+            .collect();
+        assert!(
+            keys.contains(new),
+            "moved unjustified FILE key relabeled to NEW path"
+        );
         assert!(!keys.contains(old), "old FILE key relabeled out");
-        assert!(keys.contains("other/keep.rs"), "unrelated FILE key untouched");
+        assert!(
+            keys.contains("other/keep.rs"),
+            "unrelated FILE key untouched"
+        );
     }
 
     /// (b) P3 fail-closed: the NEW file is NOT in the candidate tracked set (the move did not land
@@ -2094,12 +2140,26 @@ mod tests {
         // old is gone but new never landed => P3 fails.
         let candidate = FakeCandidate::new(&["unrelated/x.rs"], &[]);
         let policy = VocabPolicy::bundled_default();
-        let out =
-            relabel_frozen_face(&face, &manifest(&[(old, new)]), &frozen, MB, &candidate, &policy)
-                .unwrap();
+        let out = relabel_frozen_face(
+            &face,
+            &manifest(&[(old, new)]),
+            &frozen,
+            MB,
+            &candidate,
+            &policy,
+        )
+        .unwrap();
         let keys: BTreeSet<String> = out["gates"][GATE_TOTAL_ACCOUNTING]["unjustified"]["keys"]
-            .as_array().unwrap().iter().filter_map(Value::as_str).map(str::to_owned).collect();
-        assert!(keys.contains(old), "no relabel when new FILE absent from candidate");
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(Value::as_str)
+            .map(str::to_owned)
+            .collect();
+        assert!(
+            keys.contains(old),
+            "no relabel when new FILE absent from candidate"
+        );
         assert!(!keys.contains(new));
     }
 
@@ -2116,12 +2176,26 @@ mod tests {
         // BOTH old and new tracked => P2 fails (old still present).
         let candidate = FakeCandidate::new(&[old, new], &[]);
         let policy = VocabPolicy::bundled_default();
-        let out =
-            relabel_frozen_face(&face, &manifest(&[(old, new)]), &frozen, MB, &candidate, &policy)
-                .unwrap();
+        let out = relabel_frozen_face(
+            &face,
+            &manifest(&[(old, new)]),
+            &frozen,
+            MB,
+            &candidate,
+            &policy,
+        )
+        .unwrap();
         let keys: BTreeSet<String> = out["gates"][GATE_TOTAL_ACCOUNTING]["unjustified"]["keys"]
-            .as_array().unwrap().iter().filter_map(Value::as_str).map(str::to_owned).collect();
-        assert!(keys.contains(old), "no relabel when old FILE still present in candidate");
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(Value::as_str)
+            .map(str::to_owned)
+            .collect();
+        assert!(
+            keys.contains(old),
+            "no relabel when old FILE still present in candidate"
+        );
     }
 
     /// (d) Injectivity/collision fail-closed: the NEW file is already a DISTINCT frozen key under
@@ -2137,12 +2211,26 @@ mod tests {
         let frozen = FakeFrozen::new(&[]);
         let candidate = FakeCandidate::new(&[new], &[]);
         let policy = VocabPolicy::bundled_default();
-        let out =
-            relabel_frozen_face(&face, &manifest(&[(old, new)]), &frozen, MB, &candidate, &policy)
-                .unwrap();
+        let out = relabel_frozen_face(
+            &face,
+            &manifest(&[(old, new)]),
+            &frozen,
+            MB,
+            &candidate,
+            &policy,
+        )
+        .unwrap();
         let keys: BTreeSet<String> = out["gates"][GATE_TOTAL_ACCOUNTING]["unjustified"]["keys"]
-            .as_array().unwrap().iter().filter_map(Value::as_str).map(str::to_owned).collect();
-        assert!(keys.contains(old) && keys.contains(new), "collision => leave both, no relabel");
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(Value::as_str)
+            .map(str::to_owned)
+            .collect();
+        assert!(
+            keys.contains(old) && keys.contains(new),
+            "collision => leave both, no relabel"
+        );
     }
 
     /// (e) Mixed code in one total-accounting face: a per-DIR member key (relabeled via crate-DIR
@@ -2166,27 +2254,31 @@ mod tests {
         let frozen = FakeFrozen::new(&[]);
         // Candidate: a tracked descendant under the NEW dir (dir-presence), plus the NEW file
         // (exact membership); neither OLD survives.
-        let candidate = FakeCandidate::new(
-            &["observability/core/aggregate/src/lib.rs", new_file],
-            &[],
-        );
+        let candidate =
+            FakeCandidate::new(&["observability/core/aggregate/src/lib.rs", new_file], &[]);
         let policy = VocabPolicy::bundled_default();
         // A manifest carrying BOTH a crate-DIR pair AND a FILE pair (no single helper builds both).
-        let m = MoveManifest {
-            file_pairs: vec![(old_file.to_owned(), new_file.to_owned())],
-            crate_dir_pairs: vec![(old_dir.to_owned(), new_dir.to_owned())],
-            ..MoveManifest::default()
-        };
+        let m = manifest_with(&[(old_file, new_file)], &[(old_dir, new_dir)], &[]);
         let out = relabel_frozen_face(&face, &m, &frozen, MB, &candidate, &policy).unwrap();
         let dir_keys: BTreeSet<String> = out["gates"][GATE_TOTAL_ACCOUNTING]
             ["member_test_code_without_rust_test_target"]["keys"]
             .as_array().unwrap().iter().filter_map(Value::as_str).map(str::to_owned).collect();
-        let file_keys: BTreeSet<String> = out["gates"][GATE_TOTAL_ACCOUNTING]["unjustified"]["keys"]
-            .as_array().unwrap().iter().filter_map(Value::as_str).map(str::to_owned).collect();
-        assert!(dir_keys.contains(new_dir) && !dir_keys.contains(old_dir),
-            "per-DIR member key relabeled via crate-DIR pairs");
-        assert!(file_keys.contains(new_file) && !file_keys.contains(old_file),
-            "per-FILE unjustified key relabeled via FILE pairs, independently in the same run");
+        let file_keys: BTreeSet<String> =
+            out["gates"][GATE_TOTAL_ACCOUNTING]["unjustified"]["keys"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect();
+        assert!(
+            dir_keys.contains(new_dir) && !dir_keys.contains(old_dir),
+            "per-DIR member key relabeled via crate-DIR pairs"
+        );
+        assert!(
+            file_keys.contains(new_file) && !file_keys.contains(old_file),
+            "per-FILE unjustified key relabeled via FILE pairs, independently in the same run"
+        );
     }
 
     /// (f) Inert without a move-plan: an EMPTY manifest must return the face BYTE-IDENTICAL even
@@ -2202,10 +2294,19 @@ mod tests {
         // strict no-op (no FILE pair to act on).
         let candidate = FakeCandidate::new(&["marketplace/facade/dev-cli/src/foo.rs"], &[]);
         let policy = VocabPolicy::bundled_default();
-        let out =
-            relabel_frozen_face(&face, &MoveManifest::default(), &frozen, MB, &candidate, &policy)
-                .unwrap();
-        assert_eq!(out, face, "empty manifest => byte-identical face (strict no-op)");
+        let out = relabel_frozen_face(
+            &face,
+            &MoveManifest::default(),
+            &frozen,
+            MB,
+            &candidate,
+            &policy,
+        )
+        .unwrap();
+        assert_eq!(
+            out, face,
+            "empty manifest => byte-identical face (strict no-op)"
+        );
     }
 
     /// (g) P1 fail-closed: the FILE pair's OLD side is NOT a frozen key under the code (the moved
@@ -2223,14 +2324,28 @@ mod tests {
         // Candidate carries the NEW path (the move landed), but the old key was never frozen.
         let candidate = FakeCandidate::new(&[new, "other/keep.rs"], &[]);
         let policy = VocabPolicy::bundled_default();
-        let out =
-            relabel_frozen_face(&face, &manifest(&[(old, new)]), &frozen, MB, &candidate, &policy)
-                .unwrap();
+        let out = relabel_frozen_face(
+            &face,
+            &manifest(&[(old, new)]),
+            &frozen,
+            MB,
+            &candidate,
+            &policy,
+        )
+        .unwrap();
         let keys: BTreeSet<String> = out["gates"][GATE_TOTAL_ACCOUNTING]["unjustified"]["keys"]
-            .as_array().unwrap().iter().filter_map(Value::as_str).map(str::to_owned).collect();
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(Value::as_str)
+            .map(str::to_owned)
+            .collect();
         assert!(!keys.contains(new), "P1 miss => no relabel onto NEW path");
         assert!(!keys.contains(old), "old was never a frozen key");
-        assert!(keys.contains("other/keep.rs"), "frozen keyset unchanged (P1 fail-closed)");
+        assert!(
+            keys.contains("other/keep.rs"),
+            "frozen keyset unchanged (P1 fail-closed)"
+        );
     }
 
     /// Non-path gate pass-through: a gate with a NON-path key space (crate names) is never
@@ -2246,8 +2361,12 @@ mod tests {
         let out = relabel_frozen_face(
             &face,
             &manifest(&[("old/oya-some-crate", "new/oya-some-crate")]),
-            &frozen, MB, &candidate, &policy,
-        ).unwrap();
+            &frozen,
+            MB,
+            &candidate,
+            &policy,
+        )
+        .unwrap();
         assert_eq!(out, face, "non-path gate must pass through untouched");
     }
 
@@ -2263,12 +2382,12 @@ mod tests {
         let frozen = FakeFrozen::new(&[]);
         let candidate = FakeCandidate::new(&[], &[]);
         let policy = VocabPolicy::bundled_default();
-        let m = MoveManifest {
-            crate_ident_pairs: vec![("oya-old-a".to_owned(), "new-a".to_owned())],
-            ..MoveManifest::default()
-        };
+        let m = manifest_with(&[], &[], &[("oya-old-a", "new-a")]);
         let out = relabel_frozen_face(&face, &m, &frozen, MB, &candidate, &policy).unwrap();
-        assert_eq!(out, face, "tier-dep branch is a safe no-op without a candidate-edge source");
+        assert_eq!(
+            out, face,
+            "tier-dep branch is a safe no-op without a candidate-edge source"
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -2276,20 +2395,21 @@ mod tests {
     //
     // These chain the CODEMOD's own derivation (file_level_manifest + crate_dir_pairs +
     // move_manifest_value over a realistic candidate POST-move tree) into the emitter's
-    // MoveManifest::from_value + relabel_frozen_face, then run the firewall end-to-end. They
+    // MoveManifest::from_manifest_value + relabel_frozen_face, then run the firewall end-to-end. They
     // FAIL if file_level_manifest reverts to enumerating-old: the candidate tree carries only
     // the NEW paths (old is GONE, as in a real post-move state), so an old-keyed enumeration
     // finds ZERO descendants => empty manifest => no relabel => the asserts below all break.
     // -----------------------------------------------------------------------
 
     use oya_reorg_codemod_app::model::{
-        move_manifest_value as codemod_manifest_value, CrateMove, MovePlan,
+        CrateMove, MovePlan, move_manifest_value as codemod_manifest_value,
     };
 
     /// Build the manifest EXACTLY as the codemod + the materialize pipeline do: derive the pairs
     /// from the plan over the candidate POST-move tracked tree, encode to the canonical JSON
-    /// face, then parse it back via the emitter's fail-closed `MoveManifest::from_value`. This is
-    /// the load-bearing chain — a regression in `file_level_manifest` flows straight through.
+    /// face, then parse it back via the shared fail-closed `MoveManifest::from_manifest_value`.
+    /// This is the load-bearing chain — a regression in `file_level_manifest` flows straight
+    /// through.
     fn manifest_from_plan(plan: &MovePlan, candidate_tracked: &[&str]) -> MoveManifest {
         let tracked: Vec<String> = candidate_tracked.iter().map(|s| (*s).to_owned()).collect();
         let value = codemod_manifest_value(
@@ -2298,7 +2418,7 @@ mod tests {
             &plan.crate_dir_pairs(&tracked),
             &plan.crate_ident_pairs(),
         );
-        MoveManifest::from_value(&value)
+        MoveManifest::from_manifest_value(&value)
     }
 
     fn observability_plan() -> MovePlan {
@@ -2323,8 +2443,7 @@ mod tests {
     #[test]
     fn relabel_fires_for_a_real_move_and_firewall_is_green() {
         let plan = observability_plan();
-        let old_file =
-            "cloud/cloud-observability/crates/oya-cloud-observability-domain/src/lib.rs";
+        let old_file = "cloud/cloud-observability/crates/oya-cloud-observability-domain/src/lib.rs";
         let new_file = "observability/core/aggregate/src/lib.rs";
         let code = code_a();
 
@@ -2340,11 +2459,11 @@ mod tests {
         );
         assert!(
             manifest
-                .file_pairs
+                .file_pairs()
                 .iter()
                 .any(|(o, n)| o == old_file && n == new_file),
             "EFFICACY: the file pair (old -> new) must be present: {:?}",
-            manifest.file_pairs
+            manifest.file_pairs()
         );
 
         // Frozen face: the residue is an ACCEPTED debt keyed at the OLD path (block-on-new).
@@ -2352,10 +2471,8 @@ mod tests {
         // Frozen content at the merge-base: the OLD file carried the residue line.
         let frozen = FakeFrozen::new(&[(old_file, &line_with(&residue_a()))]);
         // Candidate content: the NEW file carries the SAME residue line (byte-identical move).
-        let candidate = FakeCandidate::new(
-            &candidate_tracked,
-            &[(new_file, &line_with(&residue_a()))],
-        );
+        let candidate =
+            FakeCandidate::new(&candidate_tracked, &[(new_file, &line_with(&residue_a()))]);
         let policy = VocabPolicy::bundled_default();
 
         let relabeled =
@@ -2374,12 +2491,10 @@ mod tests {
             MB,
             Some(relabeled),
         );
-        let frozen_baseline =
-            ci_baseline_ratchet::FrozenBaseline::from_value(&snapshot).unwrap();
+        let frozen_baseline = ci_baseline_ratchet::FrozenBaseline::from_value(&snapshot).unwrap();
         // The candidate's observed brand-residue: the residue now lives at the NEW path.
         let candidate_face = brand_face(&code, &[new_file, "other/unmoved.rs"]);
-        let proposed =
-            ci_baseline_ratchet::Baseline::from_value(&candidate_face).unwrap();
+        let proposed = ci_baseline_ratchet::Baseline::from_value(&candidate_face).unwrap();
         let current = ci_baseline_ratchet::baseline_keys_map(&proposed);
         let report = ci_baseline_ratchet::evaluate_firewall(
             &frozen_baseline.baseline,
@@ -2401,27 +2516,39 @@ mod tests {
     #[test]
     fn relabel_does_not_fire_for_a_content_superset_move_and_firewall_is_red() {
         let plan = observability_plan();
-        let old_file =
-            "cloud/cloud-observability/crates/oya-cloud-observability-domain/src/lib.rs";
+        let old_file = "cloud/cloud-observability/crates/oya-cloud-observability-domain/src/lib.rs";
         let new_file = "observability/core/aggregate/src/lib.rs";
         let code = code_a();
 
         let candidate_tracked = [new_file];
         let manifest = manifest_from_plan(&plan, &candidate_tracked);
-        assert!(!manifest.is_empty(), "the manifest is derived (the move is real)");
+        assert!(
+            !manifest.is_empty(),
+            "the manifest is derived (the move is real)"
+        );
 
         let face = brand_face(&code, &[old_file]);
         let frozen = FakeFrozen::new(&[(old_file, &line_with(&residue_a()))]);
         // The NEW file keeps the original residue AND grows a DISTINCT residue line.
-        let grown = format!("{}let w = \"{}-extra\";\n", line_with(&residue_a()), residue_a());
+        let grown = format!(
+            "{}let w = \"{}-extra\";\n",
+            line_with(&residue_a()),
+            residue_a()
+        );
         let candidate = FakeCandidate::new(&candidate_tracked, &[(new_file, &grown)]);
         let policy = VocabPolicy::bundled_default();
 
         let relabeled =
             relabel_frozen_face(&face, &manifest, &frozen, MB, &candidate, &policy).unwrap();
         let keys = brand_keys(&relabeled, &code);
-        assert!(keys.contains(old_file), "P4 broke => OLD stays (no relabel)");
-        assert!(!keys.contains(new_file), "NEW must NOT be laundered into the frozen set");
+        assert!(
+            keys.contains(old_file),
+            "P4 broke => OLD stays (no relabel)"
+        );
+        assert!(
+            !keys.contains(new_file),
+            "NEW must NOT be laundered into the frozen set"
+        );
 
         // FIREWALL RED end-to-end: the frozen (un-relabeled) keys the OLD path; the candidate
         // keys the NEW path. The NEW path is growth (a key absent from the frozen set) => RED.
@@ -2431,11 +2558,9 @@ mod tests {
             MB,
             Some(relabeled),
         );
-        let frozen_baseline =
-            ci_baseline_ratchet::FrozenBaseline::from_value(&snapshot).unwrap();
+        let frozen_baseline = ci_baseline_ratchet::FrozenBaseline::from_value(&snapshot).unwrap();
         let candidate_face = brand_face(&code, &[new_file]);
-        let proposed =
-            ci_baseline_ratchet::Baseline::from_value(&candidate_face).unwrap();
+        let proposed = ci_baseline_ratchet::Baseline::from_value(&candidate_face).unwrap();
         let current = ci_baseline_ratchet::baseline_keys_map(&proposed);
         let report = ci_baseline_ratchet::evaluate_firewall(
             &frozen_baseline.baseline,
@@ -2450,23 +2575,40 @@ mod tests {
         );
     }
 
-    /// MoveManifest::from_value fail-closes a foreign schema and a malformed row to EMPTY.
+    /// MoveManifest::from_manifest_value fail-closes a foreign schema and a malformed row to EMPTY.
     #[test]
     fn move_manifest_parse_fails_closed() {
-        assert!(MoveManifest::from_value(&json!({"schema": "wrong", "files": [{"old_path":"a","new_path":"b"}]})).is_empty());
+        assert!(
+            MoveManifest::from_manifest_value(
+                &json!({"schema": "wrong", "files": [{"old_path":"a","new_path":"b"}]})
+            )
+            .is_empty()
+        );
         // malformed row (missing new_path) poisons the whole manifest.
-        assert!(MoveManifest::from_value(&json!({"schema": MOVE_MANIFEST_SCHEMA, "files": [{"old_path":"a"}]})).is_empty());
+        assert!(
+            MoveManifest::from_manifest_value(
+                &json!({"schema": MOVE_MANIFEST_SCHEMA, "files": [{"old_path":"a"}]})
+            )
+            .is_empty()
+        );
         // duplicate old_path => not injective => empty.
-        assert!(MoveManifest::from_value(&json!({"schema": MOVE_MANIFEST_SCHEMA,
-            "files": [{"old_path":"a","new_path":"b"},{"old_path":"a","new_path":"c"}]})).is_empty());
+        assert!(
+            MoveManifest::from_manifest_value(&json!({"schema": MOVE_MANIFEST_SCHEMA,
+            "files": [{"old_path":"a","new_path":"b"},{"old_path":"a","new_path":"c"}],
+            "crate_dirs": [], "crate_idents": []}))
+            .is_empty()
+        );
         // a malformed crate_dirs row also poisons the whole manifest fail-closed.
-        assert!(MoveManifest::from_value(&json!({"schema": MOVE_MANIFEST_SCHEMA,
-            "crate_dirs": [{"old_path":"a"}]})).is_empty());
+        assert!(
+            MoveManifest::from_manifest_value(&json!({"schema": MOVE_MANIFEST_SCHEMA,
+            "files": [], "crate_dirs": [{"old_path":"a"}], "crate_idents": []}))
+            .is_empty()
+        );
         // a well-formed manifest (incl. crate_dirs) parses.
-        let ok = MoveManifest::from_value(&json!({"schema": MOVE_MANIFEST_SCHEMA,
+        let ok = MoveManifest::from_manifest_value(&json!({"schema": MOVE_MANIFEST_SCHEMA,
             "capability": "x", "files": [{"old_path":"a","new_path":"b"}],
             "crate_dirs": [{"old_path":"a","new_path":"b"}], "crate_idents": []}));
-        assert_eq!(ok.file_pairs, vec![("a".to_owned(), "b".to_owned())]);
-        assert_eq!(ok.crate_dir_pairs, vec![("a".to_owned(), "b".to_owned())]);
+        assert_eq!(ok.file_pairs(), vec![("a".to_owned(), "b".to_owned())]);
+        assert_eq!(ok.crate_dir_pairs(), vec![("a".to_owned(), "b".to_owned())]);
     }
 }

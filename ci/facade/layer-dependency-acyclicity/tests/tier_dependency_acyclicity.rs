@@ -49,7 +49,7 @@ fn fixtures_dir() -> PathBuf {
         for cand in [
             dir.join("tests/fixtures"),
             dir.join(
-                "cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/tests/fixtures",
+                "ci/facade/layer-dependency-acyclicity/tests/fixtures",
             ),
         ] {
             if cand.is_dir() {

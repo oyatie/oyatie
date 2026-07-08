@@ -29,7 +29,7 @@ use ci_embedded_asset_hermeticity::{
 use serde_json::Value;
 
 const POLICY_REL: &str =
-    "cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app/embedded-asset-hermeticity-policy.json";
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json";
 
 enum Mode {
     Check,
@@ -176,7 +176,7 @@ fn report_check(unmapped: &[&Value], remediations: &[Remediation]) -> ExitCode {
         println!("  [manual] {} :: {}", r.buck_path, r.note);
     }
     println!(
-        "\nRun the auto-fixer:\n  buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app:oya-cloud-ci-embedded-asset-hermeticity-fixer -- --fix"
+        "\nRun the auto-fixer:\n  buck2 run //ci/facade/embedded-asset-hermeticity:oya-cloud-ci-embedded-asset-hermeticity-fixer -- --fix"
     );
     ExitCode::FAILURE
 }

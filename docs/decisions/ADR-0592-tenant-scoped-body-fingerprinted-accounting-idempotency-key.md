@@ -27,7 +27,7 @@ an internally-constructed idempotency key plus one additive storage-error varian
 record field, all behind the existing clean-architecture seam; it is reversible by reverting the key
 format without unwinding any SSOT. On approval the founder flips this to Accepted and admits the
 born-unpropagated decision into
-`cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.signoff.json` per the established
+`ci/facade/baseline-ratchet/gate-baseline.signoff.json` per the established
 new-Accepted-ADR door precedent, then propagates it into the masterplan/roadmap faces.)**
 
 ## Context
@@ -112,7 +112,7 @@ This change adds **no new crate** and therefore creates **no born-accounting reg
 modifies three existing crates (`billing-accounting-journal`, `billing-accounting-app`,
 `billing-accounting-storage-inmemory-adapter`) and one downstream test
 (`billing-accounting-http-adapter`). The generated cloud-ci faces are re-materialized via
-`buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin` so any derived totals/registry views stay
+`buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin` so any derived totals/registry views stay
 in-sync, but no new accounting identity is born.
 
 ## RED tests

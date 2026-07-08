@@ -35,7 +35,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn gate_dir(root: &Path) -> PathBuf {
-    root.join("cloud/cloud-ci/gates/oya-cloud-ci-root-workspace-hygiene-app")
+    root.join("ci/facade/repo-root-hygiene")
 }
 
 fn load_json(path: &Path) -> Value {
@@ -73,7 +73,7 @@ fn unquote_git_path(raw: &str) -> String {
 /// Build the `{ "rows": [{"path": ...}] }` observed inventory from the committed scm-facts snapshot.
 fn observed_from_scm_facts(root: &Path) -> Value {
     let scm = load_json(&root.join(
-        "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "ci/facade/artifact-inventory-registry/scm-facts.generated.json",
     ));
     let paths = scm["tracked_paths"]
         .as_array()

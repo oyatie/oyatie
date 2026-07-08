@@ -74,7 +74,7 @@ Ship the **tiered** design (option c), evaluated against the alternatives below:
   the policy universe, then runs `buck2 build` AND `buck2 test` on it (build is load-bearing:
   a broken binary no test depends on must still fail). Precedent: Bazel target determination /
   bazel-diff (Tinder); Meta/Google affected-target CI. Rust-native: the engine is
-  `cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app` — the G011 Rust successor of the
+  `ci/facade/affected-target-set` — the G011 Rust successor of the
   transitional `buck2-affected-gate.sh`, which stays untouched as the advisory speed path until
   its removal IP.
 - **D2 — Fail-closed escalation IS the automation (zero manual escape hatches).** Escape-trigger
@@ -146,20 +146,20 @@ Ship the **tiered** design (option c), evaluated against the alternatives below:
 
 ### Deliverables (engine + pack files this ADR justifies)
 
-- `cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/src/lib.rs` — pure decision kernel
+- `ci/facade/affected-target-set/src/lib.rs` — pure decision kernel
   (classification, micro-glob, verdict dominance; no repo facts).
-- `cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/src/main.rs` — composition root
+- `ci/facade/affected-target-set/src/main.rs` — composition root
   (git diff + buck2 uquery/build/test adapter; every uncertainty escalates; FULL tier runs the
   D6 build-health ratchet when given a merge-base baseline report).
-- `cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/src/bin/oya-cloud-ci-build-health.rs` —
+- `ci/facade/affected-target-set/src/bin/oya-cloud-ci-build-health.rs` —
   the D6 build-health ratchet binary (compares a merge-base build-report against a head
   build-report; blocks regressions, grandfathers pre-existing build debt).
-- `cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/affected-set-policy.json` — the oyatie
+- `ci/facade/affected-target-set/affected-set-policy.json` — the oyatie
   policy pack (all repo facts as DATA).
-- `cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/tests/affected_set.rs` — RED-class +
+- `ci/facade/affected-target-set/tests/affected_set.rs` — RED-class +
   fail-closed seam fixtures.
-- `cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/BUCK` /
-  `cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/Cargo.toml` — buck2-primary target
+- `ci/facade/affected-target-set/BUCK` /
+  `ci/facade/affected-target-set/Cargo.toml` — buck2-primary target
   wiring with cargo target parity (ADR-0540).
 
 ## Verification (RED/GREEN, data-under-test)
@@ -315,7 +315,7 @@ record, so the 3-clause filter rejects it. This is the same "trust the producer'
 candidate's input" property as the D6 out-of-band merge-base baseline.
 
 **(d) D8 ships WITH a conformance gate.** A sibling of
-`cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app/tests/cache_conformance.rs` must assert on the
+`ci/facade/build-cache-policy/tests/cache_conformance.rs` must assert on the
 workflow TEXT that (i) all 3 trusted-producer filter clauses, (ii) the `push && dev` producer gate,
 and (iii) the job-scoped `actions: read` are all present — otherwise a future edit silently drops a
 clause and reopens F1.

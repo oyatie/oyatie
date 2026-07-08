@@ -215,7 +215,7 @@ fn gate2_is_born_blocking_on_the_live_corpus() {
 /// Cargo. The producer reads the materialized scm-facts face (a declared input); it never calls git.
 fn run_producer_stdout(root: &Path) -> Value {
     let scm_facts = root
-        .join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json");
+        .join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
     let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
     let bin = producer_binary(root, producer_bin.as_deref()).unwrap_or_else(|e| panic!("{e}"));
     let output = Command::new(bin)

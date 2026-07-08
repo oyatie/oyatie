@@ -55,7 +55,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn gate_dir(root: &Path) -> PathBuf {
-    root.join("cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app")
+    root.join("ci/facade/graphql-usage-policy")
 }
 
 fn load_json(path: &Path) -> Value {

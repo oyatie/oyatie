@@ -97,10 +97,10 @@ The lane runs on every PR touching `Cargo.lock`, `pnpm-lock.yaml`, `requirements
 
 Cloud-ci replacement surface (ADR-0515 migration of this policy into the single `oya-ci-required` context):
 
-- `cloud/cloud-ci/gates/oya-cloud-ci-license-policy-app/BUCK`
-- `cloud/cloud-ci/gates/oya-cloud-ci-license-policy-app/Cargo.toml`
-- `cloud/cloud-ci/gates/oya-cloud-ci-license-policy-app/src/lib.rs`
-- `cloud/cloud-ci/gates/oya-cloud-ci-license-policy-app/tests/license_policy.rs`
+- `ci/facade/license-policy/BUCK`
+- `ci/facade/license-policy/Cargo.toml`
+- `ci/facade/license-policy/src/lib.rs`
+- `ci/facade/license-policy/tests/license_policy.rs`
 
 ### Per-release SBOM
 

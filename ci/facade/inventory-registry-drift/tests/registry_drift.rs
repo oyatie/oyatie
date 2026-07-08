@@ -37,7 +37,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn faces_dir(root: &Path) -> PathBuf {
-    root.join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app")
+    root.join("ci/facade/artifact-inventory-registry")
 }
 
 /// The PR-owned committed generated faces and the `--face` name that regenerates each.
@@ -421,7 +421,7 @@ fn committed_faces_equal_regenerated() {
             committed, regenerated,
             "REGISTRY DRIFT: committed {file} != regenerated. \
              A generated face was hand-edited, or source changed without re-running the producer. \
-             Re-run //cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app-bin to regenerate."
+             Re-run //ci/facade:oya-cloud-ci-accounting-registry-app-bin to regenerate."
         );
     }
 }

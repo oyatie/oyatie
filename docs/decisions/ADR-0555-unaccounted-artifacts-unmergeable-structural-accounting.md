@@ -129,13 +129,13 @@ the BUCK-fixer refusal precedent). Therefore:
    PR shapes already tractable (and as live burn-down proof): the ownership markers
    `docs/decisions/OWNERS` + `docs/standards/OWNERS` + `specs/OWNERS` (council-architecture —
    the dominant decisions/standards owner in ADR front-matter, incl. this ADR, and a `specs` `owner_team` value) and
-   `cloud/cloud-ci/gates/OWNERS` +
+   `ci/OWNERS` +
    `third-party/OWNERS` + `evidence/OWNERS` (cloud-ci-platform — the owner the existing
    `.omc/ultragoal/OWNERS` precedent names); registry prefixes for `docs/decisions/`
    (crosswalk-accounted), `specs/fixtures/` (dir-loaded data-under-test), `third-party/`
    (lockfile-derived), `evidence/` (TTL-accounted). The enforcement-liveness gate's
    hermetic clean-checkout producer fixture
-   `cloud/cloud-ci/gates/oya-cloud-ci-enforcement-liveness-app/tests/scm-facts.fixture.json`
+   `ci/facade/hook-wiring/tests/scm-facts.fixture.json`
    is a born-accounted data-under-test artifact under the cloud-ci gate tree, consumed by
    the enforcement-liveness Buck gate to avoid relying on an absent generated SCM face.
    New artifacts OUTSIDE these trees must register in their own PR — the paved road is
@@ -255,7 +255,7 @@ Normative, so no future gate ships CLI-first:
   `tc-FW-good-advisory-growth-allowed.json` — repointed to the surviving advisory
   exemplar (`stale_over_budget_unreachable`), matching the live disposition truth.
 - Live pin `converted_accounting_codes_block_new_keys_when_armed`
-  (`cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/firewall.rs`): the LIVE producer
+  (`ci/facade/baseline-ratchet/tests/firewall.rs`): the LIVE producer
   stamps the flipped modes + remediation; armed frozen reference tolerates today's corpus,
   goes RED on a synthetic NEW unowned file, a NEW unreachable file, and the same-PR regen
   laundering shape.

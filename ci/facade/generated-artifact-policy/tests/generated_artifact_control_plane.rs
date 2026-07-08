@@ -26,7 +26,7 @@ const SCM_FACTS_ENV: &str = "OYA_CI_GENERATED_ARTIFACT_SCM_FACTS";
 // committed oyatie firewall policy.
 const RATCHET_POLICY_ENV: &str = "OYA_CI_GENERATED_ARTIFACT_RATCHET_POLICY";
 const RATCHET_POLICY_DEFAULT_PATH: &str =
-    "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/ratchet-policy.json";
+    "ci/facade/baseline-ratchet/ratchet-policy.json";
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
@@ -138,7 +138,7 @@ fn live_generated_artifacts_are_declared_in_the_control_plane() {
     ));
     let scm_facts = read_json(input_path(
         SCM_FACTS_ENV,
-        "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "ci/facade/artifact-inventory-registry/scm-facts.generated.json",
     ));
     let frozen_reference_paths = live_frozen_reference_paths();
 
@@ -163,7 +163,7 @@ fn live_firewall_frozen_reference_must_stay_committed() {
     ));
     let scm_facts = read_json(input_path(
         SCM_FACTS_ENV,
-        "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "ci/facade/artifact-inventory-registry/scm-facts.generated.json",
     ));
     let frozen_reference_paths = live_frozen_reference_paths();
     assert!(

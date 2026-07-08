@@ -35,7 +35,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn gate_dir(root: &Path) -> PathBuf {
-    root.join("cloud/cloud-ci/gates/oya-cloud-ci-port-placement-app")
+    root.join("ci/facade/port-placement")
 }
 
 fn load_json(path: &Path) -> Value {

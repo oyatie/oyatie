@@ -28,7 +28,7 @@ use ci_endpoint_authorization_coverage::{
 use serde_json::Value;
 
 const DEFAULT_POLICY: &str =
-    "cloud/cloud-ci/gates/oya-cloud-ci-authz-coverage-app/authz-coverage-policy.json";
+    "ci/facade/endpoint-authorization-coverage/authz-coverage-policy.json";
 
 struct Args {
     repo_root: PathBuf,

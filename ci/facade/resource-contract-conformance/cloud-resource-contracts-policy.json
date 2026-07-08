@@ -7,19 +7,19 @@
     {
       "source_id": "python_script:scripts/tests/cloud_resource_contract_parity_catalog_check.py",
       "legacy_path": "scripts/tests/cloud_resource_contract_parity_catalog_check.py",
-      "replacement_target": "//cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app:oya-cloud-ci-cloud-resource-contracts-app-gate",
+      "replacement_target": "//ci/facade/resource-contract-conformance:oya-cloud-ci-cloud-resource-contracts-app-gate",
       "disposition": "retired_primary_path"
     },
     {
       "source_id": "python_script:scripts/tests/cloud_control_plane_operation_contract_check.py",
       "legacy_path": "scripts/tests/cloud_control_plane_operation_contract_check.py",
-      "replacement_target": "//cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app:oya-cloud-ci-cloud-resource-contracts-app-gate",
+      "replacement_target": "//ci/facade/resource-contract-conformance:oya-cloud-ci-cloud-resource-contracts-app-gate",
       "disposition": "retired_primary_path"
     },
     {
       "source_id": "python_script:scripts/tests/cloud_enforceability_facets_check.py",
       "legacy_path": "scripts/tests/cloud_enforceability_facets_check.py",
-      "replacement_target": "//cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app:oya-cloud-ci-cloud-resource-contracts-app-gate",
+      "replacement_target": "//ci/facade/resource-contract-conformance:oya-cloud-ci-cloud-resource-contracts-app-gate",
       "disposition": "retired_primary_path"
     }
   ],

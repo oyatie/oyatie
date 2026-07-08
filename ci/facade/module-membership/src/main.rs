@@ -21,7 +21,7 @@ use ci_module_membership::{
 use serde_json::Value;
 
 const DEFAULT_POLICY: &str =
-    "cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/capability-membership-policy.json";
+    "ci/facade/module-membership/capability-membership-policy.json";
 
 struct Args {
     repo_root: PathBuf,

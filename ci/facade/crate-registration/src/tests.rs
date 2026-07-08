@@ -72,15 +72,15 @@ fn unique_root(tag: &str) -> PathBuf {
     ))
 }
 
-/// The new crate dir under test: a cloud-ci gate-tool crate (absorbed by the `cloud/cloud-ci` dir).
-const NEW_DIR: &str = "cloud/cloud-ci/gates/oya-cloud-ci-example-app";
+/// The new crate dir under test: a ci gate-tool crate (absorbed by the `ci` capability dir).
+const NEW_DIR: &str = "ci/facade/oya-cloud-ci-example-app";
 
 /// A minimal capability-registry mirroring the REAL schema the membership-lint gate's
 /// `parse_mapping` consumes (`capabilities[].name` + the full `membership_lint_coverage` block):
 ///   - a crate-glob group (`build/`) with a `*`-suffix glob (`libs/oya-some-*`) for the closed
 ///     CapabilitySet + the glob-membership path;
-///   - a capability (`ci`, by `name`) that absorbs `cloud/cloud-ci` so the new gate crate is already
-///     capability-mapped by its dir — exactly the producer's situation;
+///   - a capability (`ci`, by `name`) that absorbs `ci` so the new gate crate is already
+///     capability-mapped by its dir — exactly the producer's situation post-keystone-move;
 ///   - `app_products` (→ `meta:app/`) absorbing `oya/application`;
 ///   - `meta_directory_absorbs` (→ `meta:kernel/`/`meta:os/`) absorbing `cloud/cloud-kernel` +
 ///     `cloud/cloud-os`.
@@ -92,7 +92,7 @@ fn capability_registry() -> &'static str {
   "capabilities": [
     {
       "name": "ci",
-      "absorbs_current_dirs": ["cloud/cloud-ci"]
+      "absorbs_current_dirs": ["ci"]
     },
     {
       "name": "data",
@@ -123,13 +123,13 @@ fn capability_registry() -> &'static str {
 "#
 }
 
-/// A root Cargo.toml whose members glob `cloud/cloud-ci/gates/*` covers the new crate dir.
+/// A root Cargo.toml whose members glob `ci/facade/*` covers the new crate dir.
 fn root_cargo_toml() -> &'static str {
     r#"[workspace]
 resolver = "2"
 members = [
     "libs/oya-*",
-    "cloud/cloud-ci/gates/*",
+    "ci/facade/*",
 ]
 
 [workspace.package]
@@ -174,7 +174,7 @@ fn fixture_tagged(tag: &str) -> TmpRepo {
 
     // An existing sibling so the gate tree is non-trivial.
     repo.write(
-        "cloud/cloud-ci/gates/oya-cloud-ci-some-app/Cargo.toml",
+        "ci/facade/oya-cloud-ci-some-app/Cargo.toml",
         "[package]\nname=\"x\"\n",
     );
 
@@ -217,7 +217,7 @@ fn happy_path_applies_all_edits_and_requires_settle() {
     //   - OWNERS is absent          → OwnersWrite IS emitted + dispatched.
     //   - the ADR block is empty    → AdrGovernedPathAppend IS emitted + dispatched.
     //   - the members glob ALREADY covers the dir → NO WorkspaceMemberGlob edit (already covered).
-    //   - the dir is absorbed by the `cloud/cloud-ci` capability → NO CapabilityMapping edit.
+    //   - the dir is absorbed by the `ci` capability → NO CapabilityMapping edit.
     //   - no catalog requested      → NO CatalogYaml edit.
     assert!(kinds.contains(&AppliedEditKind::OwnersWrite), "{kinds:?}");
     assert!(
@@ -476,9 +476,9 @@ fn meta_and_glob_homes_are_detected_as_already_mapped() {
         capability_already_mapped(&repo.root, "cloud/cloud-os/sub").unwrap(),
         "a crate under a meta_directory_absorbs os/ dir must read as already mapped"
     );
-    // capabilities[].absorbs_current_dirs : a crate under cloud/cloud-ci (the `ci` capability dir).
+    // capabilities[].absorbs_current_dirs : a crate under ci/ (the `ci` capability dir).
     assert!(
-        capability_already_mapped(&repo.root, "cloud/cloud-ci/gates/x").unwrap(),
+        capability_already_mapped(&repo.root, "ci/facade/x").unwrap(),
         "a crate under a capability absorbs_current_dirs dir must read as already mapped"
     );
     // `*`-suffix glob membership : libs/oya-some-* is mapped via the build/ group's glob.
@@ -540,7 +540,7 @@ fn meta_homed_crate_emits_no_capability_mapping_edit() {
     // The members glob must cover the new dir so no WorkspaceMemberGlob edit/abort interferes.
     repo.write(
         "Cargo.toml",
-        "[workspace]\nresolver = \"2\"\nmembers = [\n    \"libs/oya-*\",\n    \"cloud/cloud-ci/gates/*\",\n    \"oya/application/*\",\n]\n\n\
+        "[workspace]\nresolver = \"2\"\nmembers = [\n    \"libs/oya-*\",\n    \"ci/facade/*\",\n    \"oya/application/*\",\n]\n\n\
          [workspace.package]\nedition = \"2024\"\nversion = \"0.1.0\"\n",
     );
     run_git(&repo.root, &["add", "-A"]);
@@ -594,7 +594,7 @@ fn honours_non_oyatie_oya_ci_toml() {
     );
     repo.write("governance/reach.json", reachability_registry());
 
-    let new_dir = "cloud/cloud-ci/gates/oya-cloud-ci-neutral-app";
+    let new_dir = "ci/facade/oya-cloud-ci-neutral-app";
     repo.write(
         &format!("{new_dir}/Cargo.toml"),
         "[package]\nname=\"oya-cloud-ci-neutral-app\"\n",
@@ -1009,11 +1009,11 @@ fn membership_policy() -> &'static str {
 /// NOT seeded here — they are stdout-only producer faces injected via the FakeRegenPort.gate_faces map.
 fn seed_self_validation_faces(repo: &TmpRepo, ta_face: &str) {
     repo.write(
-        "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        "ci/facade/artifact-inventory-registry/accounting-registry.generated.json",
         ta_face,
     );
     repo.write(
-        "cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/capability-membership-policy.json",
+        "ci/facade/module-membership/capability-membership-policy.json",
         membership_policy(),
     );
 }
@@ -1025,7 +1025,7 @@ fn seed_self_validation_faces(repo: &TmpRepo, ta_face: &str) {
 fn self_validation_clean_crate_succeeds_with_empty_findings() {
     let repo = fixture_tagged("sv-clean");
     // A clean total-accounting face (no rows ⇒ no crate-keyed finding). The crate dir maps to the
-    // `ci` capability (cloud/cloud-ci absorbs it), so capability-membership emits no crate finding.
+    // `ci` capability (ci/ absorbs it), so capability-membership emits no crate finding.
     seed_self_validation_faces(&repo, "{\"rows\":[]}\n");
     run_git(&repo.root, &["add", "-A"]);
 
@@ -1258,8 +1258,8 @@ fn self_validation_runs_after_faces_settle() {
 #[test]
 fn buck2_regen_adapter_parses_declared_enforcement_liveness_corpus_targets() {
     let output = "\
-root//cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app:oya-cloud-ci-scm-facts-emitter-app buck-out/v2/gen/emitter\n\
-root//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin buck-out/v2/gen/producer\n\
+root//ci/facade/scm-facts-snapshot:oya-cloud-ci-scm-facts-emitter-app buck-out/v2/gen/emitter\n\
+root//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin buck-out/v2/gen/producer\n\
 root//tools/oya-reorg-codemod-app:oya-reorg-codemod buck-out/v2/gen/codemod\n\
 root//.claude:settings-json buck-out/v2/gen/.claude/__settings-json__/settings-json\n\
 root//.codex:hooks-json buck-out/v2/gen/.codex/__hooks-json__/hooks-json\n\

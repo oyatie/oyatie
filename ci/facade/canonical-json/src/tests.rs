@@ -568,7 +568,7 @@ fn gate_failure_output_prints_the_exact_runnable_fix_command() {
     assert!(rendered.contains("--fix"), "must print the --fix command: {rendered}");
     assert!(
         rendered.contains(
-            "//cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app:oya-cloud-ci-canonical-json-bin"
+            "//ci/facade/canonical-json:oya-cloud-ci-canonical-json-bin"
         ),
         "must reference the REAL buck2 binary target: {rendered}"
     );

@@ -19,9 +19,9 @@ use ci_port_placement::{
 use serde_json::Value;
 
 const DEFAULT_POLICY: &str =
-    "cloud/cloud-ci/gates/oya-cloud-ci-port-placement-app/port-placement-policy.json";
+    "ci/facade/port-placement/port-placement-policy.json";
 const DEFAULT_BASELINE: &str =
-    "cloud/cloud-ci/gates/oya-cloud-ci-port-placement-app/port-placement-baseline.json";
+    "ci/facade/port-placement/port-placement-baseline.json";
 
 struct Args {
     repo_root: PathBuf,

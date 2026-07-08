@@ -27,7 +27,7 @@ use ci_caller_supplied_authorization::{
 use serde_json::Value;
 
 const DEFAULT_POLICY: &str =
-    "cloud/cloud-ci/gates/oya-cloud-ci-dto-authz-trust-app/dto-authz-trust-policy.json";
+    "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json";
 
 struct Args {
     repo_root: PathBuf,

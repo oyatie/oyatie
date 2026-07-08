@@ -321,7 +321,7 @@ silently-stale set to zero; PR-C3 marks the last residual record
 (`registry/catalog/oya-cloud-dcops-domain.yaml`, whose crate consolidated into the de-branded
 `compute-dcops`) so the gate is born-blocking with an EMPTY frozen baseline — zero accepted debt.
 
-**New gate (born-blocking, pure evaluator):** `cloud/cloud-ci/gates/oya-cloud-ci-catalog-liveness-app/`
+**New gate (born-blocking, pure evaluator):** `ci/facade/service-catalog-parity/`
 mirrors the `oya-cloud-ci-slo-coverage-app` pattern — the producer
 (`oya-cloud-ci-accounting-registry-app`) owns all I/O, resolves the LIVE workspace crate-id
 universe IN-PROCESS via `libs/oya-workspace-members-kernel` (NEVER a `cargo metadata` / `buck2`
@@ -337,11 +337,11 @@ record is NEW debt the firewall blocks (it cannot be laundered into the baseline
 **Born record (verbatim paths, ADR-0555 total-accounting justification — same path-mention pattern
 ADR-0527 used for the slo-coverage gate so the new gate's source files are born JUSTIFIED, not new
 unjustified debt):** the new gate crate is
-`cloud/cloud-ci/gates/oya-cloud-ci-catalog-liveness-app/Cargo.toml`,
-`cloud/cloud-ci/gates/oya-cloud-ci-catalog-liveness-app/BUCK`,
-`cloud/cloud-ci/gates/oya-cloud-ci-catalog-liveness-app/OWNERS`,
-`cloud/cloud-ci/gates/oya-cloud-ci-catalog-liveness-app/src/lib.rs`, and
-`cloud/cloud-ci/gates/oya-cloud-ci-catalog-liveness-app/tests/catalog_liveness.rs`.
+`ci/facade/service-catalog-parity/Cargo.toml`,
+`ci/facade/service-catalog-parity/BUCK`,
+`ci/facade/service-catalog-parity/OWNERS`,
+`ci/facade/service-catalog-parity/src/lib.rs`, and
+`ci/facade/service-catalog-parity/tests/catalog_liveness.rs`.
 
 **SLO-coverage composition:** `oya-cloud-ci-slo-coverage-app` is tightened to additionally require
 each row's crate_id be live-OR-marked (`slo_row_no_live_crate_unmarked`, also `frozen_empty`),

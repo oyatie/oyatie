@@ -83,11 +83,11 @@ pub const GATE_ID: &str = "cloud-ci-tier-dependency-acyclicity";
 
 /// The policy DATA path, relative to the repo root.
 pub const POLICY_PATH: &str =
-    "cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/tier-dependency-acyclicity-policy.json";
+    "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json";
 
 /// The frozen known-debt baseline path, relative to the repo root.
 pub const BASELINE_PATH: &str =
-    "cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/tier-dependency-acyclicity-baseline.json";
+    "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-baseline.json";
 
 /// The violation codes, in canonical order.
 pub const VIOLATION_CODES: [&str; 8] = [
@@ -507,7 +507,7 @@ fn segment_matches(pattern: &str, name: &str) -> bool {
 
 /// The owning service of a crate dir = its 2-component `cloud/<svc>` or `oya/<svc>` prefix, matching
 /// the tier-classification roll-up's service projection. Returns `None` for meta crates (`libs/…`,
-/// `tools/…`, the CI gates under `cloud/cloud-ci/gates/…` — which carry no service tier — and any
+/// `tools/…`, the CI gates under `ci/facade/…` — which carry no service tier — and any
 /// path outside `cloud/`/`oya/`). The owning service is looked up against the collected
 /// `service_tiers` map downstream; a 2-component prefix with no tier'd manifest is treated as
 /// unclassified there.

@@ -37,7 +37,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn policy_path(root: &Path) -> PathBuf {
-    root.join("cloud/cloud-ci/gates/oya-cloud-ci-authz-coverage-app/authz-coverage-policy.json")
+    root.join("ci/facade/endpoint-authorization-coverage/authz-coverage-policy.json")
 }
 
 fn load_policy(root: &Path) -> Value {

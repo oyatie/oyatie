@@ -533,9 +533,9 @@ pub fn collect_observed_gates(repo_root: &Path, policy: &Value) -> Result<Value,
         gates.push(json!({
             "name": name,
             "package_name": package_name(&cargo_toml).unwrap_or_default(),
-            "has_buck_gate": buck.contains(&format!("name = \"{name}-gate\""))
+            "has_buck_gate": buck.contains(&format!("name = \"ci-{name}-gate\""))
                 || bespoke_buck2_gates.contains(&name),
-            "has_buck_unittest": buck.contains(&format!("name = \"{name}-unittest\"")),
+            "has_buck_unittest": buck.contains(&format!("name = \"ci-{name}-unittest\"")),
             "workflow_registered": workflow_registers_gate(&workflow, &name, gates_root_rel),
             "has_autofix": has_autofix_contract(&production_texts),
             "hermetic_observations": hermetic,
@@ -850,7 +850,7 @@ mod tests {
         row["has_autofix"] = json!(true);
         row["hermetic_observations"] = json!([{
             "gate": "bad-gate",
-            "path": "cloud/cloud-ci/gates/bad/src/lib.rs",
+            "path": "ci/facade/bad/src/lib.rs",
             "line": 7,
             "token": "Command::new"
         }]);
@@ -867,7 +867,7 @@ mod tests {
             "class": "orchestrator_regeneration_boundary",
             "reason": "This gate invokes owned generated-face tools during transition while the typed reconciler API lands.",
             "cutover_note": "Replace the subprocess edge with the typed reconciler API tracked by GH-777 before removing this exception.",
-            "allowed_paths": ["cloud/cloud-ci/gates/orchestrator/src/lib.rs"],
+            "allowed_paths": ["ci/facade/orchestrator/src/lib.rs"],
             "max_occurrences": 1,
             "tokens": ["Command::new"]
         }]);
@@ -877,7 +877,7 @@ mod tests {
         let mut row = gate("orchestrator-gate");
         row["hermetic_observations"] = json!([{
             "gate": "orchestrator-gate",
-            "path": "cloud/cloud-ci/gates/orchestrator/src/lib.rs",
+            "path": "ci/facade/orchestrator/src/lib.rs",
             "line": 12,
             "token": "Command::new"
         }]);
@@ -893,7 +893,7 @@ mod tests {
             "class": "orchestrator_regeneration_boundary",
             "reason": "This gate invokes owned generated-face tools during transition while the typed reconciler API lands.",
             "cutover_note": "Replace the subprocess edge with the typed reconciler API tracked by GH-777 before removing this exception.",
-            "allowed_paths": ["cloud/cloud-ci/gates/orchestrator/src/lib.rs"],
+            "allowed_paths": ["ci/facade/orchestrator/src/lib.rs"],
             "max_occurrences": 1,
             "tokens": ["Command::new"]
         }]);
@@ -904,13 +904,13 @@ mod tests {
         row["hermetic_observations"] = json!([
             {
                 "gate": "orchestrator-gate",
-                "path": "cloud/cloud-ci/gates/orchestrator/src/lib.rs",
+                "path": "ci/facade/orchestrator/src/lib.rs",
                 "line": 12,
                 "token": "Command::new"
             },
             {
                 "gate": "orchestrator-gate",
-                "path": "cloud/cloud-ci/gates/orchestrator/src/lib.rs",
+                "path": "ci/facade/orchestrator/src/lib.rs",
                 "line": 20,
                 "token": "Command::new"
             }
@@ -953,7 +953,7 @@ mod tests {
         row["has_autofix"] = json!(true);
         row["policy_literal_observations"] = json!([{
             "gate": "bad-gate",
-            "path": "cloud/cloud-ci/gates/bad/src/lib.rs",
+            "path": "ci/facade/bad/src/lib.rs",
             "line": 3,
             "literal": "oya/payroll/crates/oya-payroll-api"
         }]);

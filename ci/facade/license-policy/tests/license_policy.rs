@@ -102,7 +102,7 @@ fn producer_binary(root: &Path, value: Option<&str>) -> Result<PathBuf, String> 
 }
 
 fn materialized_scm_facts(root: &Path) -> PathBuf {
-    root.join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json")
+    root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json")
 }
 
 #[test]

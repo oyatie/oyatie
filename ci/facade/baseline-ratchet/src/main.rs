@@ -83,7 +83,7 @@ fn run() -> Result<i32, String> {
     let snapshot_text = std::fs::read_to_string(&snapshot_path).map_err(|e| {
         format!(
             "merge-base frozen baseline snapshot missing at {} ({e}) — materialize it: \
-             buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .",
+             buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .",
             snapshot_path.display()
         )
     })?;

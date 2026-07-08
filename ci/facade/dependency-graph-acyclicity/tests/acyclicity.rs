@@ -51,7 +51,7 @@ fn fixtures_dir() -> PathBuf {
             return candidate;
         }
         let nested = dir.join(
-            "cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/tests/fixtures/dag-cycles",
+            "ci/facade/dependency-graph-acyclicity/tests/fixtures/dag-cycles",
         );
         if nested.is_dir() {
             return nested;

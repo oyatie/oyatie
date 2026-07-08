@@ -367,7 +367,7 @@ mod tests {
                 { "id": "license",        "kind": "prefix_dot", "value": "LICENSE" },
                 { "id": "buckconfig",     "kind": "prefix_dot", "value": ".buckconfig" }
             ],
-            "allowed_root_dirs": [".claude", ".codex", ".omc", "cloud", "libs", "docs"],
+            "allowed_root_dirs": [".claude", ".codex", ".omc", "ci", "cloud", "libs", "docs"],
             "restricted_tracked_roots": [".claude", ".codex", ".omc", ".omx"],
             "allowed_tracked_paths": [
                 { "id": "claude-settings", "kind": "exact", "value": ".claude/settings.json" },
@@ -393,7 +393,7 @@ mod tests {
                 ".claude/settings.json",
                 ".codex/hooks.json",
                 ".omc/ultragoal/OWNERS",
-                "cloud/cloud-ci/gates/x/src/lib.rs",
+                "ci/facade/x/src/lib.rs",
                 "libs/oya-foo/Cargo.toml",
                 "docs/decisions/ADR-0600.md",
             ]),

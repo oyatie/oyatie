@@ -95,10 +95,10 @@ CELL-001R registers a spec-only manifest contract and cloud-ci validation surfac
 
 - `specs/cell-topology-manifest-contract.json`
 - `specs/fixtures/cell-topology-manifest/tenancy-kr-strict.json`
-- `cloud/cloud-ci/gates/oya-cloud-ci-cell-topology-manifest-contract-app/BUCK`
-- `cloud/cloud-ci/gates/oya-cloud-ci-cell-topology-manifest-contract-app/Cargo.toml`
-- `cloud/cloud-ci/gates/oya-cloud-ci-cell-topology-manifest-contract-app/src/lib.rs`
-- `cloud/cloud-ci/gates/oya-cloud-ci-cell-topology-manifest-contract-app/tests/cell_topology_manifest_contract.rs`
+- `ci/facade/topology-manifest-contract/BUCK`
+- `ci/facade/topology-manifest-contract/Cargo.toml`
+- `ci/facade/topology-manifest-contract/src/lib.rs`
+- `ci/facade/topology-manifest-contract/tests/cell_topology_manifest_contract.rs`
 
 ---
 

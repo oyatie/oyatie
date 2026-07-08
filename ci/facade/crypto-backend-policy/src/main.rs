@@ -20,7 +20,7 @@ use ci_crypto_backend_policy::{
 use serde_json::Value;
 
 const DEFAULT_POLICY: &str =
-    "cloud/cloud-ci/gates/oya-cloud-ci-crypto-backend-purity-app/crypto-backend-purity-policy.json";
+    "ci/facade/crypto-backend-policy/crypto-backend-purity-policy.json";
 
 struct Args {
     repo_root: PathBuf,

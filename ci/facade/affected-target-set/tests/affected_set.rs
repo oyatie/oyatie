@@ -160,7 +160,7 @@ fn red_f2_buildfile_and_config_classes_escalate_to_full() {
     let p = policy();
     for path in [
         "libs/oya-buck-syntax-kernel/BUCK.v2",
-        "cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/BUCK.v2",
+        "ci/facade/affected-target-set/BUCK.v2",
         "libs/oya-thing/PACKAGE",
         "PACKAGE",
         ".buckconfig.local",
@@ -473,7 +473,7 @@ fn shipped_pack_parses_and_matches_the_engine() {
     // resolver; buck2 runs tests inside the repo).
     let mut dir = std::env::current_dir().expect("cwd");
     let rel = PathBuf::from(
-        "cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/affected-set-policy.json",
+        "ci/facade/affected-target-set/affected-set-policy.json",
     );
     let pack = loop {
         let candidate = dir.join(&rel);

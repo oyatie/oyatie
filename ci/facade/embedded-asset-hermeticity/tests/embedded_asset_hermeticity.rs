@@ -34,7 +34,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn gate_dir(root: &Path) -> PathBuf {
-    root.join("cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app")
+    root.join("ci/facade/embedded-asset-hermeticity")
 }
 
 fn load_json(path: &Path) -> Value {

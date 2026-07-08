@@ -213,7 +213,7 @@ fn gate3_is_born_blocking_on_the_live_corpus() {
 /// Cargo. The producer reads the materialized scm-facts face (a declared input); it never calls git.
 fn run_producer_face(root: &Path, face: &str) -> Value {
     let scm_facts = root
-        .join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json");
+        .join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
     let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
     let bin = producer_binary(root, producer_bin.as_deref()).unwrap_or_else(|e| panic!("{e}"));
     let output = Command::new(bin)
@@ -237,7 +237,7 @@ fn run_producer_face(root: &Path, face: &str) -> Value {
 
 /// The committed scm-facts face beside the accounting faces (a declared input under buck2).
 fn scm_facts_path(root: &Path) -> PathBuf {
-    root.join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json")
+    root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json")
 }
 
 /// The commit-sha -> author-timestamp map from the volatile snapshot. Mirrors the aging the
@@ -259,13 +259,13 @@ fn volatile_commit_author_timestamps(volatile: &Value) -> BTreeMap<String, u64> 
 /// command — the gate must never silently age rows from nothing.
 fn volatile_facts_value(root: &Path) -> Value {
     let path = root.join(
-        "cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app/scm-volatile-facts.generated.json",
+        "ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json",
     );
     let text = fs::read_to_string(&path).unwrap_or_else(|e| {
         panic!(
             "FAIL-CLOSED: scm-volatile-facts snapshot missing at {} ({e}). History-derived \
              aging facts are materialized, never committed (ADR-0552). Materialize them: \
-             buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . (CI runs this before every \
+             buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . (CI runs this before every \
              gate lane).",
             path.display()
         )

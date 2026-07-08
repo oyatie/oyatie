@@ -93,12 +93,12 @@ This ADR OWNS and JUSTIFIES the gate crate; its verbatim tracked paths (the cano
 enumeration the born-accounting producer credits — the same set `register_crate` would emit) are:
 
 ```
-cloud/cloud-ci/gates/oya-cloud-ci-port-placement-app/BUCK
-cloud/cloud-ci/gates/oya-cloud-ci-port-placement-app/Cargo.toml
-cloud/cloud-ci/gates/oya-cloud-ci-port-placement-app/OWNERS
-cloud/cloud-ci/gates/oya-cloud-ci-port-placement-app/port-placement-baseline.json
-cloud/cloud-ci/gates/oya-cloud-ci-port-placement-app/port-placement-policy.json
-cloud/cloud-ci/gates/oya-cloud-ci-port-placement-app/src/lib.rs
-cloud/cloud-ci/gates/oya-cloud-ci-port-placement-app/src/main.rs
-cloud/cloud-ci/gates/oya-cloud-ci-port-placement-app/tests/port_placement.rs
+ci/facade/port-placement/BUCK
+ci/facade/port-placement/Cargo.toml
+ci/facade/port-placement/OWNERS
+ci/facade/port-placement/port-placement-baseline.json
+ci/facade/port-placement/port-placement-policy.json
+ci/facade/port-placement/src/lib.rs
+ci/facade/port-placement/src/main.rs
+ci/facade/port-placement/tests/port_placement.rs
 ```
