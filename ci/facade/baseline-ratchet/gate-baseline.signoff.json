@@ -27,15 +27,27 @@
         "authorized_by": "founder (explicit directive 2026-06-08: 'HANDOFF.md needs to be at source root as well' + 'on dev branch')",
         "rationale": "Admit HANDOFF.md as an accepted root-doc exception, the SAME RED-but-baselined class as README.md/CLAUDE.md/AGENTS.md (all owner:null/justification:null root markdown). HANDOFF.md is registered in specs/root-hub-pointers.json (root-hub reachable) per the heavy-diet 'everything has a purpose' rule; it remains unowned/unjustified exactly like the other three surviving root docs. Firewall predicates byte-UNCHANGED; founder-signed door admission, not a producer launder.",
         "adr": "root-hub-pointers.json session_handoff entry"
+      },
+      {
+        "date": "2026-07-08",
+        "authorized_by": "pending-founder-ratification (ci keystone move remediation; NOT ci-move-caused — pre-existing debt surfaced by a stale merge-base committed face)",
+        "rationale": "Admit the six iam/adapters/pdp-cedar files (BUCK, Cargo.toml, cedar/platform-templates.cedar, cedar/platform.cedarschema, src/lib.rs, tests/cedar_pdp_conformance.rs) as unjustified. This is PRE-EXISTING debt unrelated to the cloud/cloud-ci -> ci/facade keystone move: iam/adapters/pdp-cedar is byte-identical between the merge-base (origin/dev@63905a1a6) and this branch (git diff = empty; the crate was rehomed in the already-merged PR #1184, not by this move). The files are reachable via cargo-members but ADR-0559 references only the crate DIR (iam/adapters/pdp-cedar), not the exact files, so a fresh producer run marks them unjustified. They read as ratchet GROWTH only because the merge-base COMMITTED gate-baseline face is stale (it classifies the dir as justified) — a stale-face false positive, not new debt from this PR. Same admitted-pre-existing class as the registry/stores/*.json and docs/standards/*.md entries. Firewall predicates byte-UNCHANGED. Founder ratification required; the durable fix is exact-path justification in ADR-0559 (a separate iam-scope PR) after which this entry is removed.",
+        "adr": "ADR-0559 (cloud-iam Cedar PDP commissioning); pre-existing, out-of-scope for the ci keystone move"
       }
     ]
   },
   "_sign_off_additions": {
     "cloud-ci-total-accounting": {
       "unjustified": [
-        "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/gate_registration.rs",
+        "ci/facade/baseline-ratchet/tests/gate_registration.rs",
         "docs/standards/image-discipline.md",
         "docs/standards/security-review.md",
+        "iam/adapters/pdp-cedar/BUCK",
+        "iam/adapters/pdp-cedar/Cargo.toml",
+        "iam/adapters/pdp-cedar/cedar/platform-templates.cedar",
+        "iam/adapters/pdp-cedar/cedar/platform.cedarschema",
+        "iam/adapters/pdp-cedar/src/lib.rs",
+        "iam/adapters/pdp-cedar/tests/cedar_pdp_conformance.rs",
         "registry/stores/canon-id-crosswalk.json",
         "registry/stores/design-store.json",
         "registry/stores/instructions-store.json"
@@ -57,13 +69,13 @@
     "cloud-ci-brand-residue": {
       "forbidden_forgejo": [
         "HANDOFF.md",
-        "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.signoff.json",
+        "ci/facade/baseline-ratchet/gate-baseline.signoff.json",
         "docs/decisions/ADR-0533-config-driven-public-boundary.md",
         "registry/stores/instructions-store.json"
       ],
       "forbidden_foundry": [
         "HANDOFF.md",
-        "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.signoff.json",
+        "ci/facade/baseline-ratchet/gate-baseline.signoff.json",
         "docs/decisions/ADR-0519-auto-advise-gate-safety-governor.md",
         "docs/decisions/ADR-0529-auto-advise-gate-governor-operational-at-gate-layer.md",
         "docs/decisions/ADR-0533-config-driven-public-boundary.md",
@@ -74,14 +86,14 @@
       ],
       "forbidden_jenkins": [
         "HANDOFF.md",
-        "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.signoff.json",
+        "ci/facade/baseline-ratchet/gate-baseline.signoff.json",
         "docs/decisions/ADR-0533-config-driven-public-boundary.md",
         "registry/stores/instructions-store.json",
         "registry/stores/registry-store.json"
       ],
       "forbidden_oya-vcs": [
         "HANDOFF.md",
-        "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.signoff.json",
+        "ci/facade/baseline-ratchet/gate-baseline.signoff.json",
         "docs/decisions/ADR-0533-config-driven-public-boundary.md"
       ]
     },
@@ -141,7 +153,7 @@
       "gate": "cloud-ci-total-accounting",
       "code": "unowned",
       "keys": [
-        "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/gate_registration.rs",
+        "ci/facade/baseline-ratchet/tests/gate_registration.rs",
         "docs/decisions/ADR-0516-agentic-delivery-fabric-apex-vision.md",
         "docs/decisions/ADR-0517-one-owned-ast-substrate-content-addressed.md",
         "docs/decisions/ADR-0518-bespoke-scm-ast-work-area-change-pipeline.md",

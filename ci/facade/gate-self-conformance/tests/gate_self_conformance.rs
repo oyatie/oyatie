@@ -22,7 +22,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn gate_dir(root: &Path) -> PathBuf {
-    root.join("cloud/cloud-ci/gates/oya-cloud-ci-gate-self-conformance-app")
+    root.join("ci/facade/gate-self-conformance")
 }
 
 fn load_policy(root: &Path) -> Value {
@@ -57,11 +57,11 @@ fn live_gate_fleet_is_green_against_declared_exceptions() {
         "self-conformance should cover the real gate fleet, not an empty or tiny scan: {names:?}"
     );
     assert!(
-        names.contains("oya-cloud-ci-gate-self-conformance-app"),
+        names.contains("gate-self-conformance"),
         "the meta-gate must scan itself"
     );
     assert!(
-        names.contains("oya-cloud-ci-freshness-app"),
+        names.contains("generated-artifact-freshness"),
         "freshness orchestrator exception must be visible in the scan"
     );
     let report = evaluate(&policy, &observed);
@@ -76,7 +76,7 @@ fn live_gate_fleet_is_green_against_declared_exceptions() {
 #[test]
 fn freshness_system_time_is_limited_to_temp_path_helpers() {
     let root = repo_root();
-    let path = root.join("cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/lib.rs");
+    let path = root.join("ci/facade/generated-artifact-freshness/src/lib.rs");
     let text = fs::read_to_string(&path).expect("read freshness lib");
     let production = production_rust_slice(&text);
     let lines: Vec<&str> = production.lines().collect();
@@ -108,7 +108,7 @@ fn freshness_shellout_exception_has_cutover_note() {
         .expect("hermetic exceptions array");
     let freshness = exceptions
         .iter()
-        .filter(|row| row["gate"] == "oya-cloud-ci-freshness-app")
+        .filter(|row| row["gate"] == "generated-artifact-freshness")
         .collect::<Vec<_>>();
     assert!(
         freshness.len() >= 2,

@@ -90,7 +90,7 @@ merge_authority = "oya-ci-required"
 channel = "stable"
 pin = "{pin}"
 update_policy = "latest-stable"
-drift_guard = "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/rust_toolchain_drift.rs"
+drift_guard = "ci/facade/generated-artifact-freshness/src/rust_toolchain_drift.rs"
 exclusions = ["cloud/cloud-kernel/"]
 
 [supply_chain]

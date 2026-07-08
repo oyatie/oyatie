@@ -1266,7 +1266,7 @@ pub struct OutputConfig {
 }
 
 fn default_faces_dir() -> String {
-    "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app".to_owned()
+    "ci/facade/artifact-inventory-registry".to_owned()
 }
 
 impl Default for OutputConfig {
@@ -1887,7 +1887,7 @@ face = "total_accounting"
         let cfg = OyaCiConfig::oyatie();
         assert_eq!(
             cfg.output.faces_dir,
-            "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app"
+            "ci/facade/artifact-inventory-registry"
         );
         assert!(
             cfg.cross_artifact

@@ -84,7 +84,7 @@ pub const RATCHET_REGRESSION: &str = "ratchet_regression";
 /// shape change. v2 (FRIC-1781280000 frozen-policy-wins): the snapshot must declare
 /// `frozen_policy_source` — WHERE the policy facts that selected the frozen reference were
 /// read from. A stale v1 snapshot is rejected fail-closed (re-run
-/// `buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin`).
+/// `buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin`).
 pub const FROZEN_BASELINE_SCHEMA: &str = "oya-ci/merge-base-baseline/v2";
 
 /// `frozen_policy_source` value: the ratchet policy was read from the MERGE-BASE tree (the
@@ -106,22 +106,22 @@ pub const MODE_ADVISORY_UNTIL_INFRA: &str = "advisory-until-infra";
 /// Repo-relative path of the sign-off door file — the SINGLE owner of this path: the gate
 /// test and the signoff fixer both consume it from here.
 pub const SIGNOFF_PATH: &str =
-    "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.signoff.json";
+    "ci/facade/baseline-ratchet/gate-baseline.signoff.json";
 
 /// Repo-relative path of the committed ratchet policy (candidate copy; the FROZEN copy at
 /// the merge-base is what selects the frozen reference — FRIC-1781280000).
 pub const RATCHET_POLICY_PATH: &str =
-    "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/ratchet-policy.json";
+    "ci/facade/baseline-ratchet/ratchet-policy.json";
 
 /// Repo-relative path of the untracked merge-base frozen-baseline snapshot.
 pub const FROZEN_SNAPSHOT_PATH: &str =
-    "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.merge-base.generated.json";
+    "ci/facade/baseline-ratchet/gate-baseline.merge-base.generated.json";
 
 /// The exact remediation command the gate prints when the inert-door detector fires
 /// (automation-default, founder directive 2026-06-12: red-gating alone is not enough — a
 /// mechanically-derivable retirement ships as a fixer, the gate is the backstop).
 pub const SIGNOFF_FIXER_COMMAND: &str = "buck2 run \
-//cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-signoff-fixer -- --fix";
+//ci/facade/baseline-ratchet:oya-cloud-ci-firewall-signoff-fixer -- --fix";
 
 /// A baseline: `gate -> code -> (mode, frozen_empty, keys)`. Parsed from the merge-base
 /// frozen snapshot (the reference) or from a freshly-regenerated face (proposed).
@@ -272,7 +272,7 @@ impl FrozenBaseline {
             return Err(format!(
                 "frozen baseline schema mismatch: expected {FROZEN_BASELINE_SCHEMA:?}, got \
                  {schema:?} — re-materialize the snapshot: \
-                 buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root ."
+                 buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root ."
             ));
         }
         let base_ref = value

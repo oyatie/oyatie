@@ -3,7 +3,7 @@
   "gate_id": "cloud-ci-supply-chain-audit",
   "schema_version": "1.0.0",
   "lockfile_path": "Cargo.lock",
-  "mirror_dir": "cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/advisory-mirror",
+  "mirror_dir": "ci/facade/supply-chain-audit/advisory-mirror",
   "unmaintained_policy": "all",
   "min_advisories": 1000,
   "ignore": [

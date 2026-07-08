@@ -151,7 +151,7 @@ a second predicate (blocks only **new** debt). The verdict is **data, not contro
 `required_signatures:true`, `required_pull_request_reviews:null`).
 
 Issue #901's affected-set progress helper is part of that same enforcement substrate.
-cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/src/bin/oya-cloud-ci-step-telemetry.rs
+ci/facade/affected-target-set/src/bin/oya-cloud-ci-step-telemetry.rs
 reports long Buck2 phase/status/elapsed telemetry for operator visibility; it does not change the required-check verdict model.
 
 ## Decision
@@ -209,27 +209,27 @@ protection against the re-authored SSOT, making the protection config self-defen
 The hyperscaler parity taxonomy Rust gate is admitted as a born-blocking cloud-ci gate under this
 substrate; the implementation surface is intentionally limited to:
 
-- `cloud/cloud-ci/gates/oya-cloud-ci-hyperscaler-parity-taxonomy-app/BUCK`
-- `cloud/cloud-ci/gates/oya-cloud-ci-hyperscaler-parity-taxonomy-app/Cargo.toml`
-- `cloud/cloud-ci/gates/oya-cloud-ci-hyperscaler-parity-taxonomy-app/src/lib.rs`
-- `cloud/cloud-ci/gates/oya-cloud-ci-hyperscaler-parity-taxonomy-app/tests/hyperscaler_parity_taxonomy.rs`
+- `ci/facade/parity-claim-evidence/BUCK`
+- `ci/facade/parity-claim-evidence/Cargo.toml`
+- `ci/facade/parity-claim-evidence/src/lib.rs`
+- `ci/facade/parity-claim-evidence/tests/hyperscaler_parity_taxonomy.rs`
 
 The cloud-resource contracts Rust gate is admitted under the same one-canonical-CI substrate as the
 API/config-shaped replacement for the P0 Python cloud-resource validators. Its intentionally bounded
 surface is:
 
-- `cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app/BUCK`
-- `cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app/Cargo.toml`
-- `cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app/README.md`
-- `cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app/cloud-resource-contracts-policy.json`
-- `cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app/src/lib.rs`
-- `cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app/tests/cloud_resource_contracts.rs`
+- `ci/facade/resource-contract-conformance/BUCK`
+- `ci/facade/resource-contract-conformance/Cargo.toml`
+- `ci/facade/resource-contract-conformance/README.md`
+- `ci/facade/resource-contract-conformance/cloud-resource-contracts-policy.json`
+- `ci/facade/resource-contract-conformance/src/lib.rs`
+- `ci/facade/resource-contract-conformance/tests/cloud_resource_contracts.rs`
 
 The run-observability packet/status contract is part of the same single-required-context substrate:
 `specs/cloud-ci-run-observability-packet.schema.json` defines the machine-readable packet,
 `specs/cloud-ci-run-observability-status.schema.json` defines the separately serialized status/query
-projection for console/API consumers, `cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/src/run_observability_packet.rs`
-implements the pure validators, and `cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/run_observability_packet.rs`
+projection for console/API consumers, `ci/facade/baseline-ratchet/src/run_observability_packet.rs`
+implements the pure validators, and `ci/facade/baseline-ratchet/tests/run_observability_packet.rs`
 locks the regression contract. The packet fixture corpus includes
 `specs/fixtures/cloud-ci-run-observability/tc-1003-bad-actions-log-scrape-only.json`,
 `specs/fixtures/cloud-ci-run-observability/tc-1003-bad-context-mismatch.json`,

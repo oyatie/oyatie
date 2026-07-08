@@ -30,7 +30,7 @@ use std::path::Path;
 use std::process::Command;
 
 use ci_path_resolver_ports::{
-    canonical_current, FrozenRefSource, MergeBaseName, MoveBijection, PathId, PathResolver,
+    FrozenRefSource, MergeBaseName, MoveBijection, PathId, PathResolver, canonical_current,
 };
 use serde_json::Value;
 
@@ -45,57 +45,60 @@ pub const MOVE_MANIFEST_PATH: &str = "specs/reorg/move-manifest.generated.json";
 // ManifestBijection
 // ---------------------------------------------------------------------------
 
-/// The old<->new bijection from the committed move-manifest `files[]`. FAIL-CLOSED: a
-/// foreign/absent schema, any malformed row, or a non-injective side yields the EMPTY bijection
-/// (identity — no pending move), so the resolver reads the honest current-name reference.
+/// The parsed committed move-manifest. FAIL-CLOSED: a foreign/absent schema, any malformed row, or
+/// a non-injective side in any pair list yields the EMPTY manifest (identity — no pending move),
+/// so consumers never partially trust an ambiguous move map.
 #[derive(Debug, Clone, Default)]
-pub struct ManifestBijection {
-    old_to_new: BTreeMap<String, String>,
-    new_to_old: BTreeMap<String, String>,
+pub struct MoveManifest {
+    file_pairs: Vec<(String, String)>,
+    crate_dir_pairs: Vec<(String, String)>,
+    crate_ident_pairs: Vec<(String, String)>,
 }
 
-impl ManifestBijection {
+impl MoveManifest {
     /// The empty (identity) bijection.
     pub fn empty() -> Self {
         Self::default()
     }
 
     pub fn is_empty(&self) -> bool {
-        self.old_to_new.is_empty()
+        self.file_pairs.is_empty()
+            && self.crate_dir_pairs.is_empty()
+            && self.crate_ident_pairs.is_empty()
     }
 
-    /// Parse a manifest `Value` fail-closed. MUST-PASS #3: BOTH sides injective — a duplicated
-    /// old_path OR a duplicated new_path collapses to the empty bijection (an ambiguous map is
-    /// never partially trusted).
+    pub fn file_pairs(&self) -> &[(String, String)] {
+        &self.file_pairs
+    }
+
+    pub fn crate_dir_pairs(&self) -> &[(String, String)] {
+        &self.crate_dir_pairs
+    }
+
+    pub fn crate_ident_pairs(&self) -> &[(String, String)] {
+        &self.crate_ident_pairs
+    }
+
+    /// Parse a manifest `Value` fail-closed. MUST-PASS #3: BOTH sides injective — a duplicated old
+    /// OR new side in any pair list collapses to the empty manifest (an ambiguous map is never
+    /// partially trusted).
     pub fn from_manifest_value(value: &Value) -> Self {
         if value.get("schema").and_then(Value::as_str) != Some(MOVE_MANIFEST_SCHEMA) {
             return Self::empty();
         }
-        let mut old_to_new: BTreeMap<String, String> = BTreeMap::new();
-        let mut new_to_old: BTreeMap<String, String> = BTreeMap::new();
-        if let Some(files) = value.get("files").and_then(Value::as_array) {
-            for row in files {
-                match (
-                    row.get("old_path").and_then(Value::as_str),
-                    row.get("new_path").and_then(Value::as_str),
-                ) {
-                    (Some(old), Some(new)) if !old.is_empty() && !new.is_empty() => {
-                        // A malformed/duplicate row poisons the WHOLE manifest fail-closed
-                        // (identity) rather than silently trusting a partial, ambiguous map.
-                        if old_to_new.insert(old.to_owned(), new.to_owned()).is_some() {
-                            return Self::empty(); // old-side collision (not injective)
-                        }
-                        if new_to_old.insert(new.to_owned(), old.to_owned()).is_some() {
-                            return Self::empty(); // new-side collision — MUST-PASS #3
-                        }
-                    }
-                    _ => return Self::empty(),
-                }
-            }
-        }
+        let Some(file_pairs) = parse_path_pairs(value, "files") else {
+            return Self::empty();
+        };
+        let Some(crate_dir_pairs) = parse_path_pairs(value, "crate_dirs") else {
+            return Self::empty();
+        };
+        let Some(crate_ident_pairs) = parse_ident_pairs(value, "crate_idents") else {
+            return Self::empty();
+        };
         Self {
-            old_to_new,
-            new_to_old,
+            file_pairs,
+            crate_dir_pairs,
+            crate_ident_pairs,
         }
     }
 
@@ -111,6 +114,99 @@ impl ManifestBijection {
             Ok(value) => Self::from_manifest_value(&value),
             Err(_) => Self::empty(),
         }
+    }
+}
+
+fn parse_path_pairs(value: &Value, field: &str) -> Option<Vec<(String, String)>> {
+    parse_pairs(value, field, "old_path", "new_path")
+}
+
+fn parse_ident_pairs(value: &Value, field: &str) -> Option<Vec<(String, String)>> {
+    parse_pairs(value, field, "old", "new")
+}
+
+fn parse_pairs(
+    value: &Value,
+    field: &str,
+    old_key: &str,
+    new_key: &str,
+) -> Option<Vec<(String, String)>> {
+    let rows = value.get(field).and_then(Value::as_array)?;
+    let mut pairs: Vec<(String, String)> = Vec::new();
+    let mut old_to_new: BTreeMap<String, String> = BTreeMap::new();
+    let mut new_to_old: BTreeMap<String, String> = BTreeMap::new();
+    for row in rows {
+        match (
+            row.get(old_key).and_then(Value::as_str),
+            row.get(new_key).and_then(Value::as_str),
+        ) {
+            (Some(old), Some(new)) if !old.is_empty() && !new.is_empty() => {
+                // A malformed/duplicate row poisons the WHOLE manifest fail-closed (identity)
+                // rather than silently trusting a partial, ambiguous map.
+                if old_to_new.insert(old.to_owned(), new.to_owned()).is_some() {
+                    return None;
+                }
+                if new_to_old.insert(new.to_owned(), old.to_owned()).is_some() {
+                    return None;
+                }
+                pairs.push((old.to_owned(), new.to_owned()));
+            }
+            _ => return None,
+        }
+    }
+    Some(pairs)
+}
+
+/// The old<->new bijection from the committed move-manifest `files[]`.
+#[derive(Debug, Clone, Default)]
+pub struct ManifestBijection {
+    manifest: MoveManifest,
+    old_to_new: BTreeMap<String, String>,
+    new_to_old: BTreeMap<String, String>,
+}
+
+impl ManifestBijection {
+    /// The empty (identity) bijection.
+    pub fn empty() -> Self {
+        Self::default()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.old_to_new.is_empty()
+    }
+
+    pub fn manifest(&self) -> &MoveManifest {
+        &self.manifest
+    }
+
+    /// Parse a manifest `Value` fail-closed through the shared [`MoveManifest`] parser.
+    pub fn from_manifest_value(value: &Value) -> Self {
+        Self::from_manifest(MoveManifest::from_manifest_value(value))
+    }
+
+    pub fn from_manifest(manifest: MoveManifest) -> Self {
+        let old_to_new = manifest
+            .file_pairs()
+            .iter()
+            .map(|(old, new)| (old.clone(), new.clone()))
+            .collect();
+        let new_to_old = manifest
+            .file_pairs()
+            .iter()
+            .map(|(old, new)| (new.clone(), old.clone()))
+            .collect();
+        Self {
+            manifest,
+            old_to_new,
+            new_to_old,
+        }
+    }
+
+    /// Load + parse the committed manifest from the candidate tree fail-closed (missing/unreadable/
+    /// unparseable => empty). The registry-drift/freshness byte-binding is the trust root; this is
+    /// the in-adapter shape guard.
+    pub fn load(repo_root: &Path, manifest_rel_path: &str) -> Self {
+        Self::from_manifest(MoveManifest::load(repo_root, manifest_rel_path))
     }
 }
 
@@ -219,6 +315,9 @@ impl PathResolver for ManifestPathResolver {
         // where the compiled seed is still a pre-move OLD name during the landing PR; once the seed
         // is rebased NEW it is not an old-key, so this is the identity (seed) — the stable path.
         let seed = canonical_current(id);
+        if matches!(id, PathId::RatchetPolicy) {
+            return seed.to_owned();
+        }
         self.bijection
             .old_to_new(seed)
             .map(str::to_owned)
@@ -231,6 +330,18 @@ impl PathResolver for ManifestPathResolver {
         merge_base: &str,
         src: &dyn FrozenRefSource,
     ) -> Result<MergeBaseName, String> {
+        if matches!(id, PathId::RatchetPolicy) {
+            let seed = canonical_current(id);
+            if let Some(mapped) = self.bijection.old_to_new(seed) {
+                if mapped != seed {
+                    return Err(format!(
+                        "move-manifest treats RatchetPolicy canonical current seed {seed:?} as \
+                         an OLD key and repoints it to {mapped:?}; manifest new-seed must equal \
+                         canonical_current, fail-closed"
+                    ));
+                }
+            }
+        }
         let candidate = self.candidate(id);
         match self.bijection.new_to_old(&candidate) {
             // A pending move declares a pre-move OLD name for this path.
@@ -308,11 +419,15 @@ mod tests {
         serde_json::json!({
             "schema": MOVE_MANIFEST_SCHEMA,
             "files": pairs.iter().map(|(o, n)| serde_json::json!({"old_path": o, "new_path": n})).collect::<Vec<_>>(),
+            "crate_dirs": [],
+            "crate_idents": [],
         })
     }
 
     fn resolver_with(pairs: &[(&str, &str)]) -> ManifestPathResolver {
-        ManifestPathResolver::new(ManifestBijection::from_manifest_value(&manifest_with(pairs)))
+        ManifestPathResolver::new(ManifestBijection::from_manifest_value(&manifest_with(
+            pairs,
+        )))
     }
 
     /// MUST-PASS #1: `candidate` is the compiled seed — it consults NO candidate data file, and is
@@ -405,7 +520,10 @@ mod tests {
             ("old/a", "new/shared"),
             ("old/b", "new/shared"),
         ]));
-        assert!(b.is_empty(), "non-injective new side must fail closed to empty");
+        assert!(
+            b.is_empty(),
+            "non-injective new side must fail closed to empty"
+        );
         assert_eq!(b.new_to_old("new/shared"), None);
     }
 
@@ -416,7 +534,10 @@ mod tests {
             ("old/a", "new/x"),
             ("old/a", "new/y"),
         ]));
-        assert!(b.is_empty(), "non-injective old side must fail closed to empty");
+        assert!(
+            b.is_empty(),
+            "non-injective old side must fail closed to empty"
+        );
     }
 
     /// A foreign schema fails closed to empty (identity).
@@ -429,8 +550,41 @@ mod tests {
     /// A malformed row poisons the whole manifest fail-closed.
     #[test]
     fn malformed_row_is_empty() {
-        let v = serde_json::json!({"schema": MOVE_MANIFEST_SCHEMA, "files": [{"old_path": OLD}]});
+        let v = serde_json::json!({"schema": MOVE_MANIFEST_SCHEMA, "files": [{"old_path": OLD}], "crate_dirs": [], "crate_idents": []});
         assert!(ManifestBijection::from_manifest_value(&v).is_empty());
+    }
+
+    /// The shared parser covers the emitter's relabel-only pair lists too: duplicate NEW crate
+    /// dirs/idents are ambiguous and collapse the whole manifest to identity.
+    #[test]
+    fn relabel_pair_lists_are_both_side_injective() {
+        let duplicate_new_dir = serde_json::json!({
+            "schema": MOVE_MANIFEST_SCHEMA,
+            "files": [],
+            "crate_dirs": [
+                {"old_path": "old/a", "new_path": "new/shared"},
+                {"old_path": "old/b", "new_path": "new/shared"}
+            ],
+            "crate_idents": [],
+        });
+        assert!(
+            MoveManifest::from_manifest_value(&duplicate_new_dir).is_empty(),
+            "duplicate new crate_dirs must fail closed"
+        );
+
+        let duplicate_new_ident = serde_json::json!({
+            "schema": MOVE_MANIFEST_SCHEMA,
+            "files": [],
+            "crate_dirs": [],
+            "crate_idents": [
+                {"old": "old-a", "new": "new-shared"},
+                {"old": "old-b", "new": "new-shared"}
+            ],
+        });
+        assert!(
+            MoveManifest::from_manifest_value(&duplicate_new_ident).is_empty(),
+            "duplicate new crate_idents must fail closed"
+        );
     }
 
     /// Sanity: the built bijection is a real inverse pair on a well-formed manifest.
@@ -439,5 +593,25 @@ mod tests {
         let b = ManifestBijection::from_manifest_value(&manifest_with(&[(OLD, NEW)]));
         assert_eq!(b.old_to_new(OLD), Some(NEW));
         assert_eq!(b.new_to_old(NEW), Some(OLD));
+    }
+
+    /// AC4 anti-forgery: a manifest must not treat the compiled current RatchetPolicy seed as an
+    /// OLD key and repoint it to an attacker-chosen NEW key.
+    #[test]
+    fn ratchet_policy_rejects_seed_as_old_key_repoint() {
+        let forged_new = "ci/facade/baseline-ratchet/forged-ratchet-policy.json";
+        let r = resolver_with(&[(NEW, forged_new)]);
+        let src = FakeSource::with(&[(NEW, "policy")]);
+
+        assert_eq!(r.candidate(PathId::RatchetPolicy), NEW);
+
+        let err = r
+            .at_merge_base(PathId::RatchetPolicy, "mb", &src)
+            .unwrap_err();
+
+        assert!(
+            err.contains("canonical current seed"),
+            "unexpected error: {err}"
+        );
     }
 }

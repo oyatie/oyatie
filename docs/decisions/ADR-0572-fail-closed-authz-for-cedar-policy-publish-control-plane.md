@@ -112,7 +112,7 @@ The legacy `validate_authorization` header-consistency checks run after the veri
 gate as non-authoritative correlation/consistency validation, not as the authorization boundary.
 
 The AUTH-005 baseline entry for this surface is **removed** from
-`cloud/cloud-ci/gates/oya-cloud-ci-authz-coverage-app/authz-coverage-policy.json`
+`ci/facade/endpoint-authorization-coverage/authz-coverage-policy.json`
 `frozen_unauthenticated_surfaces` (shrink-only is allowed). The gate now recognizes `publish_handler`
 as covered (it invokes `verify_principal` + `ensure_authorized`, recognized `authz_guard_idents`),
 so the surface is no longer a baselined violation and the gate remains green.

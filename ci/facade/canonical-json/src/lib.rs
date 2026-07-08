@@ -962,7 +962,7 @@ pub fn render_findings(findings: &[Finding]) -> String {
 /// fixer refuses; for those the listed detail is the instruction.
 pub const AUTO_FIX_COMMAND: &str =
     "Auto-remediation (run this — do NOT hand-edit bytes; canonicalization is mechanically derivable):\n  \
-     buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app:oya-cloud-ci-canonical-json-bin -- --fix\n\
+     buck2 run //ci/facade/canonical-json:oya-cloud-ci-canonical-json-bin -- --fix\n\
      The fixer rewrites every `json_not_canonical` file to canonical form and refuses (never silently \
      rewrites) `json_parse_error`/`json_duplicate_key` defects — fix those by hand per the listed detail.";
 
@@ -1030,7 +1030,7 @@ pub fn load_policy(root: &Path, policy_path: &str) -> Result<Value, CollectError
 
 /// The repo-relative path of the bundled policy DATA for this crate.
 pub const POLICY_PATH: &str =
-    "cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app/canonical-json-policy.json";
+    "ci/facade/canonical-json/canonical-json-policy.json";
 
 #[cfg(test)]
 mod tests;

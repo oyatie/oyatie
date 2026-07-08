@@ -94,11 +94,11 @@ cluster (ADR-0532–0535), none blocking the floor. **Amends ADR-0515.** door:on
 W1 Task #26 applies this engine-vs-policy seam one legacy check at a time. The first SLO coverage
 slice is justified by the same input-binding decision: `oya-ci.toml` declares the catalog input
 globs, the producer emits the face, and the pure gate app reuses the existing kernel at
-`cloud/cloud-ci/gates/oya-cloud-ci-slo-coverage-app/Cargo.toml`,
-`cloud/cloud-ci/gates/oya-cloud-ci-slo-coverage-app/BUCK`,
-`cloud/cloud-ci/gates/oya-cloud-ci-slo-coverage-app/OWNERS`,
-`cloud/cloud-ci/gates/oya-cloud-ci-slo-coverage-app/src/lib.rs`, and
-`cloud/cloud-ci/gates/oya-cloud-ci-slo-coverage-app/tests/slo_coverage.rs`.
+`ci/facade/slo-coverage/Cargo.toml`,
+`ci/facade/slo-coverage/BUCK`,
+`ci/facade/slo-coverage/OWNERS`,
+`ci/facade/slo-coverage/src/lib.rs`, and
+`ci/facade/slo-coverage/tests/slo_coverage.rs`.
 
 ---
 *Accepted 2026-06-08 (founder-ruled; door:one-way). Source: OYA-CI-CONFORMANCE-FLOOR-PLAN.md

@@ -1364,7 +1364,7 @@ mod tests {
             "owner_team": "cloud-ci-platform",
             "generator": {
                 "runner": "buck2",
-                "generator_target": "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin",
+                "generator_target": "//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin",
                 "operation_id": "emit-accounting-face",
                 "parameters": {"face": "registry"},
                 "input_contract": ["repo-root", "declared-source-inputs", "scm-facts-snapshot"],

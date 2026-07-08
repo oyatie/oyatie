@@ -20,7 +20,7 @@ use ci_service_tier_metadata::{
 use serde_json::Value;
 
 const DEFAULT_POLICY: &str =
-    "cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/tier-field-coverage-policy.json";
+    "ci/facade/service-tier-metadata/tier-field-coverage-policy.json";
 
 struct Args {
     repo_root: PathBuf,

@@ -38,7 +38,7 @@ fn repo_root() -> PathBuf {
 }
 
 const POLICY_REL: &str =
-    "cloud/cloud-ci/gates/oya-cloud-ci-dto-authz-trust-app/dto-authz-trust-policy.json";
+    "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json";
 
 fn load_committed_policy(root: &Path) -> Value {
     let path = root.join(POLICY_REL);

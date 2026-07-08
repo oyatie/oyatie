@@ -11,7 +11,7 @@ Authority anchors: `/specs/root-hub-pointers.json` routes agents to the current 
 The Python files are no longer the primary validation path. The authoritative gate is:
 
 ```text
-//cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app:oya-cloud-ci-cloud-resource-contracts-app-gate
+//ci/facade/resource-contract-conformance:oya-cloud-ci-cloud-resource-contracts-app-gate
 ```
 
 ## API surface
@@ -54,8 +54,8 @@ Merge-authority check:
 
 ```text
 buck2 test \
-  //cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app:oya-cloud-ci-cloud-resource-contracts-app-unittest \
-  //cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app:oya-cloud-ci-cloud-resource-contracts-app-gate
+  //ci/facade/resource-contract-conformance:oya-cloud-ci-cloud-resource-contracts-app-unittest \
+  //ci/facade/resource-contract-conformance:oya-cloud-ci-cloud-resource-contracts-app-gate
 ```
 
 The GitHub Actions `oya-ci-required` matrix runs those Buck2 targets as the canonical CI surface. Any change to the six configured spec inputs should be validated by this gate instead of invoking the retired Python scripts.

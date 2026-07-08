@@ -21,7 +21,7 @@ use ci_core_dependency_isolation::{
 use serde_json::Value;
 
 const DEFAULT_POLICY: &str =
-    "cloud/cloud-ci/gates/oya-cloud-ci-kernel-purity-app/kernel-purity-policy.json";
+    "ci/facade/core-dependency-isolation/kernel-purity-policy.json";
 
 struct Args {
     repo_root: PathBuf,

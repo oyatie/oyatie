@@ -219,7 +219,7 @@ mod tests {
         let input = json!({
             "rows": [
                 {
-                    "member_path": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app",
+                    "member_path": "ci/facade/baseline-ratchet",
                     "has_buck": true,
                     "has_rust_test_target": true,
                     "has_test_code": true

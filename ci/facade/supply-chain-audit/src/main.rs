@@ -22,7 +22,7 @@ use ci_supply_chain_audit::{
 use serde_json::Value;
 
 const DEFAULT_POLICY: &str =
-    "cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/supply-chain-audit-policy.json";
+    "ci/facade/supply-chain-audit/supply-chain-audit-policy.json";
 
 struct Args {
     repo_root: PathBuf,

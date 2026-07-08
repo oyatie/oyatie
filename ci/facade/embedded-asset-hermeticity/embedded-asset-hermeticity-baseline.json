@@ -4,7 +4,7 @@
     "authority": "ADR-0545 embedded-asset hermeticity gate go-live; door:one-way",
     "baseline_schema_version": 1,
     "frozen_at": "2026-06-11",
-    "policy_path": "cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app/embedded-asset-hermeticity-policy.json",
+    "policy_path": "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json",
     "sites_floor": 72,
     "ceilings": {
       "skip_non_literal_argument": 1,

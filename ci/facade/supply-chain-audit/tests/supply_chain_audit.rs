@@ -36,7 +36,7 @@ fn repo_root() -> PathBuf {
 
 fn policy_path(root: &Path) -> PathBuf {
     root.join(
-        "cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/supply-chain-audit-policy.json",
+        "ci/facade/supply-chain-audit/supply-chain-audit-policy.json",
     )
 }
 
@@ -72,7 +72,7 @@ fn active_admission_wires_signature_provenance_sbom_and_vet_posture() {
     let workflow = std::fs::read_to_string(root.join(".github/workflows/oya-ci-required.yml"))
         .expect("read oya-ci-required workflow");
     assert!(
-        workflow.contains("oya-cloud-ci-supply-chain-audit-app")
+        workflow.contains("crate: supply-chain-audit")
             && workflow.contains("gate · supply-chain-audit"),
         "the supply-chain audit gate must be part of the active oya-ci-required admission matrix"
     );

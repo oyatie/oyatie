@@ -2641,13 +2641,13 @@ following tracked artifacts, each justified by this decision (ADR-0562) together
 ADR-0245:
 
 - specs/microservice-tier-classification.json — the generated projection: services → tier/tier_subtype/dr_tier, referenced by specs/platform-architecture.json microservice_taxonomy.tier_classification_table_ref
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/BUCK — buck2 build targets for the born-blocking tier-field-coverage gate
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/Cargo.toml — Cargo manifest for the born-blocking tier-field-coverage gate crate
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/src/lib.rs — pure kernel + collector for the tier-field-coverage gate (ADR-0562/ADR-0536/ADR-0245)
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/src/main.rs — binary entry point for the tier-field-coverage gate
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/src/tests.rs — unit tests for the tier-field-coverage gate kernel
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/tests/tier_field_coverage.rs — integration tests including live-corpus born-blocking-green test
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/tier-field-coverage-policy.json — policy DATA for the tier-field-coverage gate (enum allowlists, governed roots, minimum manifest count)
+- ci/facade/service-tier-metadata/BUCK — buck2 build targets for the born-blocking tier-field-coverage gate
+- ci/facade/service-tier-metadata/Cargo.toml — Cargo manifest for the born-blocking tier-field-coverage gate crate
+- ci/facade/service-tier-metadata/src/lib.rs — pure kernel + collector for the tier-field-coverage gate (ADR-0562/ADR-0536/ADR-0245)
+- ci/facade/service-tier-metadata/src/main.rs — binary entry point for the tier-field-coverage gate
+- ci/facade/service-tier-metadata/src/tests.rs — unit tests for the tier-field-coverage gate kernel
+- ci/facade/service-tier-metadata/tests/tier_field_coverage.rs — integration tests including live-corpus born-blocking-green test
+- ci/facade/service-tier-metadata/tier-field-coverage-policy.json — policy DATA for the tier-field-coverage gate (enum allowlists, governed roots, minimum manifest count)
 
 Phase-0 also introduces the tier-DEPENDENCY acyclicity gate (ADR-0245/ADR-0280/ADR-0562): the
 enforcement surface that asserts the ADR-0245 cross-tier dependency rules + the ADR-0280
@@ -2658,16 +2658,16 @@ against a FROZEN baseline and enforces NO REGRESSION; it flips to fully blocking
 burns down to zero. Its tracked artifacts, each justified by this decision (ADR-0562) together with
 ADR-0245 and ADR-0280:
 
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/BUCK — buck2 build targets for the born-advisory tier-dependency-acyclicity gate
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/Cargo.toml — Cargo manifest for the tier-dependency-acyclicity gate crate
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/src/lib.rs — pure kernel + cargo/buck dep-graph collector + tier-rule/S-rank/Tarjan evaluator + frozen-baseline split (ADR-0245/ADR-0280/ADR-0562)
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/src/main.rs — binary entry point + baseline re-freeze (--emit-baseline) for the tier-dependency-acyclicity gate
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/src/tests.rs — unit tests for the tier-dependency-acyclicity gate kernel
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/tests/tier_dependency_acyclicity.rs — integration tests: live-corpus zero-regression GREEN + RED wrong-tier fixture + burn-down fixture
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/tests/fixtures/red-substrate-to-product.json — RED fixture: a synthetic substrate→product edge the gate must fail closed
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/tests/fixtures/burn-down.json — burn-down fixture: a removed baselined inversion the gate must keep green
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/tier-dependency-acyclicity-policy.json — policy DATA for the tier-dependency-acyclicity gate (governed crate-root globs, tier'd service roots, unclassified meta roots, S-rank order, enforcement mode)
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/tier-dependency-acyclicity-baseline.json — the FROZEN known-debt baseline: the pre-move tier-dependency violations the reorg strangler burns down (the burn-down target)
+- ci/facade/layer-dependency-acyclicity/BUCK — buck2 build targets for the born-advisory tier-dependency-acyclicity gate
+- ci/facade/layer-dependency-acyclicity/Cargo.toml — Cargo manifest for the tier-dependency-acyclicity gate crate
+- ci/facade/layer-dependency-acyclicity/src/lib.rs — pure kernel + cargo/buck dep-graph collector + tier-rule/S-rank/Tarjan evaluator + frozen-baseline split (ADR-0245/ADR-0280/ADR-0562)
+- ci/facade/layer-dependency-acyclicity/src/main.rs — binary entry point + baseline re-freeze (--emit-baseline) for the tier-dependency-acyclicity gate
+- ci/facade/layer-dependency-acyclicity/src/tests.rs — unit tests for the tier-dependency-acyclicity gate kernel
+- ci/facade/layer-dependency-acyclicity/tests/tier_dependency_acyclicity.rs — integration tests: live-corpus zero-regression GREEN + RED wrong-tier fixture + burn-down fixture
+- ci/facade/layer-dependency-acyclicity/tests/fixtures/red-substrate-to-product.json — RED fixture: a synthetic substrate→product edge the gate must fail closed
+- ci/facade/layer-dependency-acyclicity/tests/fixtures/burn-down.json — burn-down fixture: a removed baselined inversion the gate must keep green
+- ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json — policy DATA for the tier-dependency-acyclicity gate (governed crate-root globs, tier'd service roots, unclassified meta roots, S-rank order, enforcement mode)
+- ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-baseline.json — the FROZEN known-debt baseline: the pre-move tier-dependency violations the reorg strangler burns down (the burn-down target)
 
 Phase-0 also introduces the §6 MEMBERSHIP lint (the anti-junk-drawer authority) — born-advisory with
 a frozen unmapped baseline, enforcing no-regression (no NEW unmapped crate, no NEW top-level dir
@@ -2675,13 +2675,13 @@ outside the closed set) and the base/-admission rule — plus the registry's `me
 extension that closes the per-crate mapping over the whole tree. These tracked artifacts are each
 justified by this decision (ADR-0562 §6) together with ADR-0536, ADR-0280, and ADR-0512:
 
-- cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/BUCK — buck2 build targets for the born-advisory capability-membership lint
-- cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/Cargo.toml — Cargo manifest for the capability-membership lint crate
-- cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/src/lib.rs — pure kernel + crate collector for the capability-membership lint (ADR-0562 §6/ADR-0280/ADR-0512)
-- cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/src/main.rs — binary entry point for the capability-membership lint
-- cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/src/tests.rs — unit RED/GREEN fixtures for the capability-membership kernel (crate in no/two capabilities, new top-level dir, base/-admission, frozen-baseline advisory)
-- cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/tests/capability_membership.rs — integration tests including the live-corpus born-advisory-green self-test and on-disk RED fixtures
-- cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/capability-membership-policy.json — policy DATA for the capability-membership lint (gate id, registry pointer, scan roots, closed meta-directory + top-level set, ignored build-artifact dirs, minimum crate count)
+- ci/facade/module-membership/BUCK — buck2 build targets for the born-advisory capability-membership lint
+- ci/facade/module-membership/Cargo.toml — Cargo manifest for the capability-membership lint crate
+- ci/facade/module-membership/src/lib.rs — pure kernel + crate collector for the capability-membership lint (ADR-0562 §6/ADR-0280/ADR-0512)
+- ci/facade/module-membership/src/main.rs — binary entry point for the capability-membership lint
+- ci/facade/module-membership/src/tests.rs — unit RED/GREEN fixtures for the capability-membership kernel (crate in no/two capabilities, new top-level dir, base/-admission, frozen-baseline advisory)
+- ci/facade/module-membership/tests/capability_membership.rs — integration tests including the live-corpus born-advisory-green self-test and on-disk RED fixtures
+- ci/facade/module-membership/capability-membership-policy.json — policy DATA for the capability-membership lint (gate id, registry pointer, scan roots, closed meta-directory + top-level set, ignored build-artifact dirs, minimum crate count)
 
 Wave-D G003/G006 phase-0 foundation evidence is also justified by this ADR because it records the
 no-false-green boundary work that keeps the capability reorg honest while workflow, data/ontology,

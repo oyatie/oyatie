@@ -27,7 +27,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn gate_dir(root: &Path) -> PathBuf {
-    root.join("cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app")
+    root.join("ci/facade/automation-language-policy")
 }
 
 fn policy_path(root: &Path) -> PathBuf {

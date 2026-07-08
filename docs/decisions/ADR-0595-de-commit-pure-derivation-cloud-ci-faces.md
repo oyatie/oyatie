@@ -28,7 +28,7 @@ surfaces" is a one-way commitment).**
 ## Context
 
 Six generated faces under
-`cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/` were git-tracked despite the
+`ci/facade/artifact-inventory-registry/` were git-tracked despite the
 repo-wide `.gitignore` `**/*.generated.json` rule (they were force-added):
 
 | Face | Content | Human bits |
@@ -59,7 +59,7 @@ faces.
 STOP committing the six producer faces above. They are declared `materialization_mode:
 not-tracked-in-git` in `registry/generated-artifact-control-plane.json`, removed from git
 (`git rm --cached`), and covered by the existing `**/*.generated.json` ignore. They are derived
-on demand via `buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin` and materialized out-of-graph
+on demand via `buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin` and materialized out-of-graph
 for consumers before gates run.
 
 KEEP committed (human inputs / control surface, unchanged):
@@ -109,7 +109,7 @@ de-committed (ADR-0552).
   i.e. a determinism check — for the de-commit-class faces. The materialization step must run
   before gates (already steady state per ADR-0551).
 - The materializer is now the Rust/Buck2 binary
-  `//cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin`.
+  `//ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin`.
   The former shell bridge has been retired; the remaining long-term target is an owned
   Rust/controller materialization path in cloud-ci.
 

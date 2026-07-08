@@ -25,7 +25,7 @@ use ci_graphql_usage_policy::{
 use serde_json::Value;
 
 const DEFAULT_POLICY: &str =
-    "cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/no-graphql-without-adr-policy.json";
+    "ci/facade/graphql-usage-policy/no-graphql-without-adr-policy.json";
 
 struct Args {
     repo_root: PathBuf,

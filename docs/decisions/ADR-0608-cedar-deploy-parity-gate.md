@@ -47,7 +47,7 @@ lane); this ADR ships only the gate.
 ## Decision
 
 Ship a **self-contained cloud-ci gate**, `cloud-ci-cedar-deploy-parity`
-(`cloud/cloud-ci/gates/oya-cloud-ci-cedar-deploy-parity-app`), mirroring the registration footprint of
+(`ci/facade/policy-deploy-parity`), mirroring the registration footprint of
 the supply-chain-audit (ADR-0605) and operator-secret-bootstrap (ADR-0606) gates: own crate, own
 policy JSON, one appended matrix line in `.github/workflows/oya-ci-required.yml`, no
 `libs/oya-ci-config` edit, no producer-face binding.
@@ -124,12 +124,12 @@ The exact tracked paths this decision introduces and governs (born-accounting ju
 ADR-0568; one verbatim repo-relative path per line):
 
 ```
-cloud/cloud-ci/gates/oya-cloud-ci-cedar-deploy-parity-app/BUCK
-cloud/cloud-ci/gates/oya-cloud-ci-cedar-deploy-parity-app/Cargo.toml
-cloud/cloud-ci/gates/oya-cloud-ci-cedar-deploy-parity-app/OWNERS
-cloud/cloud-ci/gates/oya-cloud-ci-cedar-deploy-parity-app/cedar-deploy-parity-policy.json
-cloud/cloud-ci/gates/oya-cloud-ci-cedar-deploy-parity-app/src/lib.rs
-cloud/cloud-ci/gates/oya-cloud-ci-cedar-deploy-parity-app/tests/cedar_deploy_parity.rs
+ci/facade/policy-deploy-parity/BUCK
+ci/facade/policy-deploy-parity/Cargo.toml
+ci/facade/policy-deploy-parity/OWNERS
+ci/facade/policy-deploy-parity/cedar-deploy-parity-policy.json
+ci/facade/policy-deploy-parity/src/lib.rs
+ci/facade/policy-deploy-parity/tests/cedar_deploy_parity.rs
 ```
 
 ## Consequences
@@ -152,7 +152,7 @@ cloud/cloud-ci/gates/oya-cloud-ci-cedar-deploy-parity-app/tests/cedar_deploy_par
 - **Owned + hermetic**: `serde_json` only, no shell/network/clock/VCS, no `cedar-policy` engine in the
   gate — clears the AWS/Google "would they ship this as their gate" bar (consistent with ADR-0605/0606).
 - **Accounting**: the new crate is owned by
-  `cloud/cloud-ci/gates/oya-cloud-ci-cedar-deploy-parity-app/OWNERS` (`cloud-ci-platform`) and reachable
+  `ci/facade/policy-deploy-parity/OWNERS` (`cloud-ci-platform`) and reachable
   via its `BUCK` `rust_test` targets + the `oya-ci-required` matrix entry; it maps to the existing
   `cloud-ci` capability, so no new capability is registered.
 

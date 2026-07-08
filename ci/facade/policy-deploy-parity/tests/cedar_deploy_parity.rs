@@ -38,7 +38,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn gate_dir(root: &Path) -> PathBuf {
-    root.join("cloud/cloud-ci/gates/oya-cloud-ci-cedar-deploy-parity-app")
+    root.join("ci/facade/policy-deploy-parity")
 }
 
 fn load_policy(root: &Path) -> Value {

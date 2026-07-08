@@ -32,7 +32,8 @@ pub const UNIT_CLASS_POLICY_JSON: &str = include_str!("unit-class-policy.json");
 pub const TTL_POLICY_JSON: &str = include_str!("ttl-policy.json");
 
 /// The buck2 target that produces the registry — recorded in `_provenance`.
-pub const PRODUCER_TARGET: &str = "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app";
+pub const PRODUCER_TARGET: &str =
+    "//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin";
 
 /// A producer error. No panics escape the production path.
 ///
@@ -617,7 +618,7 @@ pub fn build_enforcement_inventory(inputs: &EnforcementInputs) -> Result<Value, 
 // ---------------------------------------------------------------------------
 
 /// The buck2 target that runs the firewall ratchet — recorded in the baseline `_provenance`.
-pub const FIREWALL_TARGET: &str = "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app";
+pub const FIREWALL_TARGET: &str = "//ci/facade/baseline-ratchet:ci-baseline-ratchet-gate";
 
 // The hardcoded `GATE_IDS: [&str; 7]` array and the `include_str!`-embedded
 // `GATE_DISPOSITION_JSON` const were RETIRED in the config-driven floor (Stage 3): the enabled
@@ -1431,7 +1432,7 @@ pub fn fix_owners(
     Ok(format!(
         "fix-owners: wrote {owners_rel} (owner: {owner}); self-validation: {covered} tracked \
          path(s) under {dir}/ now ownership-resolve to OWNERS:{dir}. Next: git add \
-         {owners_rel}, then re-run buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . and \
+         {owners_rel}, then re-run buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . and \
          settle the regenerated faces (the settle protocol)."
     ))
 }
@@ -1505,7 +1506,7 @@ pub fn fix_reachability(
         "fix-reachability: registered {prefix} in {registry_rel} (anchor: {anchor}); \
          self-validation: round-trip OK, {covered} tracked path(s) currently covered. \
          Next: git add {registry_rel}, then re-run \
-         buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . and settle the regenerated \
+         buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . and settle the regenerated \
          faces (the settle protocol)."
     ))
 }
@@ -1714,6 +1715,22 @@ mod tests {
         assert!(
             !a.contains("generated_at"),
             "no wall-clock in the baseline face"
+        );
+        assert!(
+            a.contains(
+                "\"producer_target\": \"//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin\""
+            ),
+            "baseline provenance must name the moved ci/facade producer target"
+        );
+        assert!(
+            a.contains(
+                "\"firewall_target\": \"//ci/facade/baseline-ratchet:ci-baseline-ratchet-gate\""
+            ),
+            "baseline provenance must name the moved ci/facade firewall target"
+        );
+        assert!(
+            !a.contains("//cloud/cloud-ci/gates:"),
+            "baseline provenance must not regress to retired cloud/cloud-ci targets"
         );
     }
 

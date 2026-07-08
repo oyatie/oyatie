@@ -6266,12 +6266,12 @@
           "https://github.com/<owner>/<repo>/actions/runs/<n>",
           "tracked product-completion packet under evidence/"
         ],
-        "resolution_universe": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json#tracked_paths",
+        "resolution_universe": "ci/facade/artifact-inventory-registry/scm-facts.generated.json#tracked_paths",
         "retired_surface_source": "/specs/masterplan.json#masterplan_v2.surface_dispositions",
         "evidence_refs": [
-          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/plan_evidence_crosscheck.rs#evaluate_masterplan_plan_evidence_crosscheck",
-          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_plan_evidence_crosscheck_gate_is_green_on_live_tree",
-          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_plan_evidence_crosscheck_fixtures_fail_closed"
+          "ci/facade/cross-artifact-agreement/src/plan_evidence_crosscheck.rs#evaluate_masterplan_plan_evidence_crosscheck",
+          "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_plan_evidence_crosscheck_gate_is_green_on_live_tree",
+          "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_plan_evidence_crosscheck_fixtures_fail_closed"
         ]
       }
     },
@@ -6297,7 +6297,7 @@
       "evidence_attached_count": 34,
       "unverified_pending_evidence_count": 900,
       "invariant": "no hermes done-card claim may carry a verified/done masterplan_status without attached evidence refs; every import is claimed-done-unverified and evidence attachment is a mechanical cross-reference, not verification",
-      "invariant_enforcement": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app (masterplan_evidence_state_invalid + masterplan_plan_evidence_drift findings; live-corpus contract tests in tests/cross_artifact_agreement.rs)",
+      "invariant_enforcement": "ci/facade/cross-artifact-agreement (masterplan_evidence_state_invalid + masterplan_plan_evidence_drift findings; live-corpus contract tests in tests/cross_artifact_agreement.rs)",
       "evidence_ref_semantics": "an attached evidence_ref is a repo evidence artifact that mentions the card id, or a merged-PR/gate-run/review URL recorded in the card's own result text; attachment upgrades evidence_state to evidence-attached but never upgrades masterplan_status past claimed-done-unverified",
       "extraction_tool": "tools/oya-masterplan-hermes-forensic-ledger-app",
       "reader_contract": "read-only forensic ingest via owned-Rust SQLite reader; no shell/python board extraction",
@@ -15462,9 +15462,9 @@
           "docs/machine-readable/*.generated.json"
         ],
         "evidence_refs": [
-          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/projection_rederivation.rs#evaluate_masterplan_projection_rederivation",
-          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_projection_rederivation_gate_is_green_on_live_tree",
-          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_projection_rederivation_fixtures_fail_closed",
+          "ci/facade/cross-artifact-agreement/src/projection_rederivation.rs#evaluate_masterplan_projection_rederivation",
+          "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_projection_rederivation_gate_is_green_on_live_tree",
+          "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_projection_rederivation_fixtures_fail_closed",
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-projection-hand-edited.json",
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-projection-stale-ledger.json"
         ]
@@ -15484,8 +15484,8 @@
           "status_claims_allowed_without_evidence": false,
           "drift_policy": "fail-closed-on-conflict-or-manual-live-plan-content",
           "evidence_refs": [
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness",
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green"
+            "ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_masterplan_v2_projection_freshness",
+            "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green"
           ]
         },
         {
@@ -15502,8 +15502,8 @@
           "status_claims_allowed_without_evidence": false,
           "drift_policy": "fail-closed-on-conflict-or-manual-live-plan-content",
           "evidence_refs": [
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness",
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green"
+            "ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_masterplan_v2_projection_freshness",
+            "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green"
           ]
         },
         {
@@ -15520,8 +15520,8 @@
           "status_claims_allowed_without_evidence": false,
           "drift_policy": "fail-closed-on-conflict-or-manual-live-plan-content",
           "evidence_refs": [
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness",
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green"
+            "ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_masterplan_v2_projection_freshness",
+            "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green"
           ]
         },
         {
@@ -15539,10 +15539,10 @@
           "drift_policy": "fail-closed-on-conflict-or-manual-live-plan-content",
           "rederivation": "mechanical: docs/MASTERPLAN.md must be byte-identical to derive_masterplan_md_projection(/specs/masterplan.json); stale or hand-edited bytes fail closed as masterplan_projection_stale",
           "evidence_refs": [
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness",
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green",
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/projection_rederivation.rs#derive_masterplan_md_projection",
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_projection_rederivation_gate_is_green_on_live_tree"
+            "ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_masterplan_v2_projection_freshness",
+            "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green",
+            "ci/facade/cross-artifact-agreement/src/projection_rederivation.rs#derive_masterplan_md_projection",
+            "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_projection_rederivation_gate_is_green_on_live_tree"
           ]
         },
         {
@@ -15559,8 +15559,8 @@
           "status_claims_allowed_without_evidence": false,
           "drift_policy": "fail-closed-on-conflict-or-manual-live-plan-content",
           "evidence_refs": [
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness",
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green"
+            "ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_masterplan_v2_projection_freshness",
+            "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green"
           ]
         },
         {
@@ -15578,8 +15578,8 @@
           "drift_policy": "fail-closed-on-conflict-or-manual-live-plan-content",
           "evidence_refs": [
             "registry/generated-artifact-control-plane.json#machine-readable-board-sync-projection",
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness",
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green"
+            "ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_masterplan_v2_projection_freshness",
+            "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green"
           ]
         },
         {
@@ -15597,8 +15597,8 @@
           "drift_policy": "fail-closed-on-conflict-or-manual-live-plan-content",
           "evidence_refs": [
             "registry/generated-artifact-control-plane.json#machine-readable-masterplan-projection",
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness",
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green"
+            "ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_masterplan_v2_projection_freshness",
+            "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green"
           ]
         }
       ]
@@ -16245,7 +16245,7 @@
           "Seed Sub-AC 1"
         ],
         "evidence_refs": [
-          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#masterplan-v2-authority-validator"
+          "ci/facade/cross-artifact-agreement/src/lib.rs#masterplan-v2-authority-validator"
         ]
       },
       {
@@ -16258,8 +16258,8 @@
           "Seed Sub-AC 4"
         ],
         "evidence_refs": [
-          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_sequencing",
-          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_sequencing_is_zero_based_and_dispatch_blocked_pending_founder"
+          "ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_masterplan_v2_sequencing",
+          "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_sequencing_is_zero_based_and_dispatch_blocked_pending_founder"
         ]
       },
       {
@@ -16272,8 +16272,8 @@
           "/specs/masterplan.json#masterplan_v2.projection_freshness"
         ],
         "evidence_refs": [
-          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness",
-          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green"
+          "ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_masterplan_v2_projection_freshness",
+          "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green"
         ]
       },
       {
@@ -16287,10 +16287,10 @@
           "cloud-ci-cross-artifact-agreement/masterplan-v2-plan-vs-evidence-drift"
         ],
         "evidence_refs": [
-          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness",
-          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green",
-          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_plan_evidence_drift",
-          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_plan_vs_evidence_drift_contract_is_green",
+          "ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_masterplan_v2_projection_freshness",
+          "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green",
+          "ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_masterplan_v2_plan_evidence_drift",
+          "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_plan_vs_evidence_drift_contract_is_green",
           "evidence/goals/masterplan-gates-ci-wiring-20260702.json",
           "https://github.com/jason931225/oyatie/actions/runs/28592595372",
           "https://github.com/jason931225/oyatie/actions/runs/28594633232",
@@ -16308,8 +16308,8 @@
           "/specs/masterplan.json#masterplan_v2.program_coverage"
         ],
         "evidence_refs": [
-          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#masterplan-v2-program-coverage-validator",
-          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_program_coverage_contract_is_green"
+          "ci/facade/cross-artifact-agreement/src/lib.rs#masterplan-v2-program-coverage-validator",
+          "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_program_coverage_contract_is_green"
         ]
       },
       {
@@ -16323,11 +16323,11 @@
           "/specs/masterplan.json#masterplan_v2.hermes_done_card_imports"
         ],
         "evidence_refs": [
-          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_plan_evidence_drift",
-          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_plan_vs_evidence_drift_contract_is_green",
+          "ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_masterplan_v2_plan_evidence_drift",
+          "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_plan_vs_evidence_drift_contract_is_green",
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-plan-evidence-drift.json",
-          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/plan_evidence_crosscheck.rs#evaluate_masterplan_plan_evidence_crosscheck",
-          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_plan_evidence_crosscheck_gate_is_green_on_live_tree",
+          "ci/facade/cross-artifact-agreement/src/plan_evidence_crosscheck.rs#evaluate_masterplan_plan_evidence_crosscheck",
+          "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_plan_evidence_crosscheck_gate_is_green_on_live_tree",
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-evidence-unrecorded-done-claim.json",
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-evidence-retired-surface.json",
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-masterplan-evidence-dangling-ref.json"
@@ -17243,8 +17243,8 @@
       "index_base": 0,
       "legacy_order_imported": false,
       "derivation_evidence_refs": [
-        "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_sequencing",
-        "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_sequencing_is_zero_based_and_founder_ratification_recorded"
+        "ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_masterplan_v2_sequencing",
+        "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_sequencing_is_zero_based_and_founder_ratification_recorded"
       ],
       "rederivation": {
         "rederived_at": "2026-07-02T00:00:00Z",

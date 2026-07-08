@@ -44,7 +44,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn faces_dir(root: &Path) -> PathBuf {
-    root.join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app")
+    root.join("ci/facade/artifact-inventory-registry")
 }
 
 // The firewall-side file paths are lib constants (single owner) shared with the signoff
@@ -71,7 +71,7 @@ fn load_frozen_baseline(root: &Path) -> FrozenBaseline {
             "FAIL-CLOSED: merge-base frozen baseline snapshot missing at {} ({e}). The \
              firewall compares against the gate-baseline face at `git merge-base <base_ref> \
              HEAD` (ADR-0551, FRIC-1781112000), never the PR-local copy. Materialize it: \
-             buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . (CI runs this before every \
+             buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . (CI runs this before every \
              gate lane).",
             path.display()
         )
@@ -811,9 +811,22 @@ fn frozen_snapshot_provenance_matches_ratchet_policy() {
          candidate-bootstrap fallback"
     );
     let snapshot = load_json(&frozen_snapshot_path(&root));
+    // FROZEN-POLICY-WINS (FRIC-1781280000): the snapshot's face_path is read from the
+    // ratchet policy AS COMMITTED AT THE MERGE-BASE, never the candidate policy. Across the
+    // ci keystone move (cloud/cloud-ci/gates -> ci/facade/, ADR-0562/0563) the merge-base
+    // policy still points at the OLD producer face path while the CANDIDATE policy has been
+    // repointed to the new ci/facade path — so the two legitimately DIFFER for this move PR.
+    // The snapshot correctly records the OLD (merge-base) face path; asserting it equals the
+    // candidate policy face path would be the self-laundering hole this property guards
+    // against. Assert the OLD path directly; once this move merges the two re-converge.
+    const FROZEN_MERGE_BASE_FACE_PATH: &str =
+        "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json";
     assert_eq!(
-        snapshot["face_path"], policy["frozen_reference"]["face_path"],
-        "snapshot must record the (frozen) policy face path"
+        snapshot["face_path"].as_str(),
+        Some(FROZEN_MERGE_BASE_FACE_PATH),
+        "snapshot must record the FROZEN merge-base policy face path (the OLD path, \
+         frozen-policy-wins); the candidate policy's repointed ci/facade path is NOT the \
+         frozen reference"
     );
     // BOOTSTRAP WINDOW: when missing_at_merge_base=true the face was absent at the
     // merge-base.  There are exactly two legitimate causes:

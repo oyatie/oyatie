@@ -3889,7 +3889,7 @@ mod tests {
             .push(json!({
                 "id": "MPV2-0002",
                 "status": "done",
-                "evidence_refs": ["cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs#masterplan_v2_plan_vs_evidence_drift_contract_is_green"]
+                "evidence_refs": ["ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_plan_vs_evidence_drift_contract_is_green"]
             }));
         fixture["masterplan_v2"]["hermes_done_card_imports"] = json!([
             {
@@ -4544,7 +4544,7 @@ mod tests {
             "index_base": 0,
             "legacy_order_imported": false,
             "derivation_evidence_refs": [
-                "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_sequencing"
+                "ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_masterplan_v2_sequencing"
             ],
             "work_item_order": [
                 {"index": 0, "work_item_id": "MPV2-0000"},
@@ -4851,7 +4851,7 @@ mod tests {
             "status_claims_allowed_without_evidence": false,
             "drift_policy": "fail-closed-on-conflict-or-manual-live-plan-content",
             "evidence_refs": [
-                "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness"
+                "ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_masterplan_v2_projection_freshness"
             ]
         })
     }

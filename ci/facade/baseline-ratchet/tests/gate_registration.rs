@@ -1,7 +1,7 @@
 // gate-registration completeness meta-test (ADR-0515 D2; CICD-DESIGN-PLAN Stage 1B + Pre-mortem
 // Scenario-1c "silent-skip false-green" sibling acceptance test).
 //
-// INVARIANT: every gate crate directory under `cloud/cloud-ci/gates/` — EXCEPT the producer
+// INVARIANT: every gate crate directory under `ci/facade/` — EXCEPT the producer
 // (`oya-cloud-ci-accounting-registry-app`, the rust_binary that EMITS the faces, not a gate
 // lane) — MUST be registered as a job lane in `.github/workflows/oya-ci-required.yml`, the
 // single canonical `oya-ci-required` fan-in. A new gate cannot be added without registering
@@ -21,7 +21,7 @@ use std::path::{Path, PathBuf};
 
 use serde_json::Value;
 
-/// The crates under `cloud/cloud-ci/gates/` that are NOT gate lanes — they are the rust_binaries
+/// The crates under `ci/facade/` that are NOT gate lanes — they are the rust_binaries
 /// that EMIT the faces (registered in the workflow via a `run` step, not a `cargo test -p ...`
 /// gate lane) or the on-demand born-accounting orchestrator. These are the intentional exclusions
 /// from the gate-registration invariant:
@@ -32,11 +32,11 @@ use serde_json::Value;
 ///     source SSOTs (OWNERS/registry/ADR/catalog/reachability) to onboard a NEW crate. It is not a
 ///     gate lane and not a face-emitter — it is invoked ON DEMAND to register a crate, never in the
 ///     required fan-in (it would have nothing to assert and would mutate the tree under presubmit).
-const PRODUCER_CRATE: &str = "oya-cloud-ci-accounting-registry-app";
+const PRODUCER_CRATE: &str = "artifact-inventory-registry";
 const NON_GATE_CRATES: [&str; 3] = [
-    "oya-cloud-ci-accounting-registry-app",
-    "oya-cloud-ci-scm-facts-emitter-app",
-    "oya-cloud-ci-register-crate-app",
+    "artifact-inventory-registry",
+    "scm-facts-snapshot",
+    "crate-registration",
 ];
 
 /// Walk up from the test's working directory to the repo root (the dir holding the canonical
@@ -56,7 +56,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn gates_dir(root: &Path) -> PathBuf {
-    root.join("cloud/cloud-ci/gates")
+    root.join("ci/facade")
 }
 
 fn workflow_path(root: &Path) -> PathBuf {
@@ -94,6 +94,44 @@ fn bundled_gate_disposition_path(root: &Path) -> PathBuf {
     root.join("libs/oya-ci-config/src/bundled/gate-disposition.json")
 }
 
+/// Resolve the NEW de-branded `ci/facade/<dir>` directory a moved gate crate now lives in,
+/// keyed on its OLD cargo/crate name (`oya-<gate_id>-app`). The committed move-plan
+/// (`specs/reorg/ci-move-plan.json`, ADR-0562/0563) is the SSOT for the ci keystone rename;
+/// the required-workflow matrix `crate:` value is this NEW dir. The de-brand renamed
+/// SEMANTICALLY (e.g. cloud-ci-total-accounting -> artifact-accountability), so there is no
+/// textual prefix-strip from the gate id to the lane — the move-plan is the only authority.
+fn ci_move_new_dir(root: &Path, old_cargo_name: &str) -> Option<String> {
+    let plan: Value =
+        serde_json::from_str(&read_to_string(&root.join("specs/reorg/ci-move-plan.json"))).ok()?;
+    if let Some(moves) = plan.get("moves").and_then(Value::as_array) {
+        for m in moves {
+            if m.get("old_cargo_name").and_then(Value::as_str) == Some(old_cargo_name) {
+                return m
+                    .get("new_path")
+                    .and_then(Value::as_str)
+                    .and_then(|p| p.rsplit('/').next())
+                    .map(str::to_owned);
+            }
+        }
+    }
+    if let Some(arts) = plan.get("artifacts").and_then(Value::as_array) {
+        for a in arts {
+            let old_tail = a
+                .get("old_path")
+                .and_then(Value::as_str)
+                .and_then(|p| p.rsplit('/').next());
+            if old_tail == Some(old_cargo_name) {
+                return a
+                    .get("new_path")
+                    .and_then(Value::as_str)
+                    .and_then(|p| p.rsplit('/').next())
+                    .map(str::to_owned);
+            }
+        }
+    }
+    None
+}
+
 fn code_review_standard_path(root: &Path) -> PathBuf {
     root.join("docs/standards/code-review.md")
 }
@@ -102,7 +140,7 @@ fn fixuptasks_path(root: &Path) -> PathBuf {
     root.join("registry/fixuptasks.jsonl")
 }
 
-/// Every directory directly under `cloud/cloud-ci/gates/` that is a gate lane. Most lanes have a
+/// Every directory directly under `ci/facade/` that is a gate lane. Most lanes have a
 /// Cargo manifest, but Buck2-only productized gates are equally required workflow authority and must
 /// not be silently skipped by this meta-test.
 fn gate_crate_dirs(gates: &Path) -> Vec<String> {
@@ -172,7 +210,7 @@ fn is_matrix_gate(workflow: &str, crate_dir: &str) -> bool {
 }
 
 fn is_buck_gate(workflow: &str, crate_dir: &str) -> bool {
-    workflow.contains(&format!("//cloud/cloud-ci/gates/{crate_dir}:"))
+    workflow.contains(&format!("//ci/facade/{crate_dir}:"))
 }
 
 fn read_to_string(path: &Path) -> String {
@@ -363,7 +401,7 @@ fn every_gate_crate_is_registered_in_oya_ci_required_workflow() {
         missing.is_empty(),
         "gate crate(s) present under {} but NOT registered in {} — add the crate to the `gate` \
          job's `strategy.matrix.crate` list (homogeneous gates), give it a bespoke `-p <crate>` \
-         job, or wire a dedicated `//cloud/cloud-ci/gates/<crate>:` Buck target \
+         job, or wire a dedicated `//ci/facade/<crate>:` Buck target \
          job: {:?}\n\
          An in-tree-but-unregistered gate is a silent false-green one level below the fan-in.",
         gates.display(),
@@ -500,12 +538,16 @@ fn oya_ci_configured_gates_have_disposition_and_required_workflow_authority() {
     let mut missing_workflow_authority = Vec::new();
     for (gate_id, input_kind) in configured {
         let has_required_lane = match input_kind.as_str() {
-            "producer-face" => workflow.contains(&format!("crate: oya-{gate_id}-app")),
+            // The matrix `crate:` value is the NEW de-branded ci/facade dir; resolve it via the
+            // committed move-plan SSOT (the ci keystone move renamed the crates semantically).
+            "producer-face" => ci_move_new_dir(&root, &format!("oya-{gate_id}-app"))
+                .is_some_and(|dir| workflow.contains(&format!("crate: {dir},"))),
             "raw-corpus-collector" => {
-                workflow.contains("producer-regen") && workflow.contains("gate-cloud-ci-firewall")
+                workflow.contains("producer-regen") && workflow.contains("gate-baseline-ratchet")
             }
             "frozen-empty-meta" => {
-                gate_id == "cloud-ci-freshness" && workflow.contains("gate-freshness")
+                gate_id == "cloud-ci-freshness"
+                    && workflow.contains("gate-generated-artifact-freshness")
             }
             other => panic!("unknown gate input_kind `{other}` for {gate_id} in oya-ci.toml"),
         };

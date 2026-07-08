@@ -105,7 +105,7 @@ The root `.buckconfig` is untouched. The wiring is: two checked-in overlays
 platform (`toolchains//cache:cache-platform` — mirrors the prelude default, `local_enabled`,
 `remote_enabled = False`, adds `remote_cache_enabled`/`allow_cache_uploads` knobs read from
 `[oya_cache]`), plus a resolver
-(`cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app`) that maps
+(`ci/facade/build-cache-policy`) that maps
 `build_class → {bypass | warm-ro | warm-rw}` from `/specs/cache-warmth-policy.json` (single
 source — the classification is not duplicated) gated by the
 `/specs/cache-warm-license.json` kill-switch, and emits a buck2 argfile. Bypass = an
@@ -223,12 +223,12 @@ This decision is the justification anchor for every artifact the slice introduce
   ownership seed `toolchains/cache/OWNERS`.
 - Kill-switch DATA: `specs/cache-warm-license.json`.
 - Wiring app (gate matrix + binding buck2 lane):
-  `cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app/Cargo.toml`,
-  `cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app/BUCK`,
-  `cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app/src/lib.rs`,
-  `cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app/src/main.rs`,
-  `cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app/src/canary-policy.json`,
-  `cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app/tests/cache_conformance.rs`.
+  `ci/facade/build-cache-policy/Cargo.toml`,
+  `ci/facade/build-cache-policy/BUCK`,
+  `ci/facade/build-cache-policy/src/lib.rs`,
+  `ci/facade/build-cache-policy/src/main.rs`,
+  `ci/facade/build-cache-policy/src/canary-policy.json`,
+  `ci/facade/build-cache-policy/tests/cache_conformance.rs`.
 - Canary: `.github/workflows/cache-integrity-canary.yml`, with the workflows tree's
   ownership seed `.github/workflows/OWNERS` added so workflow files are born owned.
 

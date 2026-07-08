@@ -283,21 +283,21 @@ pack, exactly the R0 reusable shape this ADR prescribes (classification lives in
 generic).
 
 **New preflight crate (born-blocking workspace member, pure + fs-injected evaluator):**
-`cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app/`. The runner-profile classification
+`ci/facade/runner-disk-reclaim/`. The runner-profile classification
 (`reclaim_dirs` + `min_free_gib_after`) is policy-as-data in
-`cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app/runner-disk-reclaim-policy.json`; the
+`ci/facade/runner-disk-reclaim/runner-disk-reclaim-policy.json`; the
 binary best-effort removes the profile's vendor preinstall dirs BEFORE the buck-out restore, logs
 structured disk-before/after, and asserts the post-reclaim free-disk floor — emitting a distinct
 INFRA-RED exit + signal line so a downstream disk-exhaustion is attributable to INFRA, not CODE. It
 runs with ZERO dependency on the restored buck-out cache (buck2 cold-builds the tiny
 std+serde_json+libc bin from source). The crate's files born-accounted here (verbatim path mention =
 justification; reachable from `cargo-members`; OWNERS-covered):
-`cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app/Cargo.toml`,
-`cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app/BUCK`,
-`cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app/OWNERS`,
-`cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app/src/lib.rs`,
-`cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app/src/main.rs`, and
-`cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app/tests/runner_disk_reclaim.rs`.
+`ci/facade/runner-disk-reclaim/Cargo.toml`,
+`ci/facade/runner-disk-reclaim/BUCK`,
+`ci/facade/runner-disk-reclaim/OWNERS`,
+`ci/facade/runner-disk-reclaim/src/lib.rs`,
+`ci/facade/runner-disk-reclaim/src/main.rs`, and
+`ci/facade/runner-disk-reclaim/tests/runner_disk_reclaim.rs`.
 
 The rust-first-automation-hygiene ratchet (ADR-0548 pipeline-glue(a)) counted the two inline blocks
 as accepted legacy-bridge debt; this productization replaces each multi-line block with a single
@@ -316,16 +316,16 @@ contract, and scoped hermeticity exceptions with cutover metadata. This prevents
 adding one-off detector debt while enforcing D1/D2/D6/D7 against the gate fleet itself.
 
 The meta-gate is intentionally a shape-neutral Rust engine with repo-local facts in policy JSON:
-`cloud/cloud-ci/gates/oya-cloud-ci-gate-self-conformance-app/gate-self-conformance-policy.json`
+`ci/facade/gate-self-conformance/gate-self-conformance-policy.json`
 carries the current gate root, workflow path, non-gate producers, no-autofix reasons, literal-shape
 rules, and scoped temporary exceptions for existing orchestrator boundaries such as freshness.
 The crate files born-accounted here (verbatim path mention = justification; reachable from
 `cargo-members`; OWNERS-covered by the gate tree) are:
-`cloud/cloud-ci/gates/oya-cloud-ci-gate-self-conformance-app/Cargo.toml`,
-`cloud/cloud-ci/gates/oya-cloud-ci-gate-self-conformance-app/BUCK`,
-`cloud/cloud-ci/gates/oya-cloud-ci-gate-self-conformance-app/gate-self-conformance-policy.json`,
-`cloud/cloud-ci/gates/oya-cloud-ci-gate-self-conformance-app/src/lib.rs`, and
-`cloud/cloud-ci/gates/oya-cloud-ci-gate-self-conformance-app/tests/gate_self_conformance.rs`.
+`ci/facade/gate-self-conformance/Cargo.toml`,
+`ci/facade/gate-self-conformance/BUCK`,
+`ci/facade/gate-self-conformance/gate-self-conformance-policy.json`,
+`ci/facade/gate-self-conformance/src/lib.rs`, and
+`ci/facade/gate-self-conformance/tests/gate_self_conformance.rs`.
 
 ## Amendment — Shape-neutral platform delivery fabric planning packet (2026-06-29)
 

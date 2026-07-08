@@ -267,11 +267,11 @@ fn decommit_exemption_matches_canonical_path_not_basename() {
       "materialization_mode": "not-tracked-in-git"
     },
     {
-      "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/ttl-policy.generated.json",
+      "path": "ci/facade/artifact-inventory-registry/ttl-policy.generated.json",
       "materialization_mode": "not-tracked-in-git"
     },
     {
-      "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
+      "path": "ci/facade/artifact-inventory-registry/gate-baseline.generated.json",
       "materialization_mode": "main-branch-materialized"
     }
   ]
@@ -387,7 +387,7 @@ fn rendered_findings_include_codes_keys_details_and_remediation() {
 fn repo_checker_combines_lock_and_face_findings() {
     let root = fixture_root();
     std::fs::create_dir_all(root.join("libs/oya-alpha-kernel")).expect("create member");
-    std::fs::create_dir_all(root.join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app"))
+    std::fs::create_dir_all(root.join("ci/facade/artifact-inventory-registry"))
         .expect("create faces dir");
     std::fs::write(
         root.join("Cargo.toml"),
@@ -423,7 +423,7 @@ version = "0.1.0"
     .expect("write stale lock");
     std::fs::write(
         root.join(
-            "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+            "ci/facade/artifact-inventory-registry/scm-facts.generated.json",
         ),
         "old\n",
     )

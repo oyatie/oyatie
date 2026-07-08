@@ -124,7 +124,7 @@ fn mark_gate_baseline_controller_owned(root: &Path) {
         r#"{
   "artifacts": [
     {
-      "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
+      "path": "ci/facade/artifact-inventory-registry/gate-baseline.generated.json",
       "materialization_mode": "main-branch-materialized"
     }
   ]
@@ -212,7 +212,7 @@ fn face_settle_does_not_stage_controller_owned_baseline() {
     );
     assert_eq!(
         std::fs::read_to_string(root.join(
-            "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json"
+            "ci/facade/artifact-inventory-registry/gate-baseline.generated.json"
         ))
         .expect("read baseline"),
         "old face\n"
