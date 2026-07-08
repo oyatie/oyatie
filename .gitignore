@@ -173,3 +173,6 @@ cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.merge-base.generate
 # materialized by the scm-facts emitter, so it can never be a committed face; CI
 # rematerializes it before gates consume it.
 cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app/scm-volatile-facts.generated.json
+
+# Dev-only Asterinas boot-harness receipts are regenerable run outputs (reference target/ logs); not committed.
+kernel/harness/*/receipts/
