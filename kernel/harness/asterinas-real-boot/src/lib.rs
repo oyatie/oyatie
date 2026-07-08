@@ -1339,3 +1339,717 @@ mod tests {
         assert!(v.marker.is_none());
     }
 }
+
+// ============================================================================
+// SHARD-2 SOAK: prove 10 consecutive CLEAN QEMU cold boots of the unmodified upstream ISO.
+//
+// This module EXTENDS the single-boot harness above into a soak. The per-boot cleanliness
+// derivation, the attempt/aggregate receipt assembly, and the honest-fail gap-register are PURE
+// (no process/network I/O) so they are unit-tested via `buck2 test` WITHOUT QEMU — that testable
+// purity is the anti-simulation property: a boot cannot be declared clean except from a real
+// per-boot observation, and an attempt cannot pass except from ten ordered real clean boots.
+//
+// The QEMU spawn/poll is the ONLY impure part and lives in the `src/soak.rs` binary; it feeds
+// this module a [`BootObservation`] gathered from a real fresh-VM boot. The
+// [`run_soak_with_boot_runner`] orchestrator does receipt file I/O but takes the per-boot runner
+// as a closure, so the whole soak loop (incl. 3-attempt retry + honest-fail) is exercised by an
+// integration test against on-disk serial-log fixtures with NO QEMU and NO network.
+// ============================================================================
+pub mod soak {
+    use super::{MarkerMatch, now_unix, sha256_file, write_json_file};
+    use std::path::{Path, PathBuf};
+
+    /// Iterations per soak attempt: 10 consecutive fresh-VM cold boots must all be clean.
+    pub const ITERATION_COUNT: usize = 10;
+    /// Whole-soak attempt budget: up to 3 attempts to absorb host flakiness. Passing boots are
+    /// NEVER aggregated across attempts — PASS requires exactly ONE attempt of 10 ordered clean
+    /// boots.
+    pub const MAX_SOAK_ATTEMPTS: usize = 3;
+    /// Hard per-boot timeout: QEMU is force-killed at this deadline and the captured log up to
+    /// that point is the evidence (matches the single-boot harness `BOOT_TIMEOUT_SECS`).
+    pub const PER_BOOT_TIMEOUT_SECS: u64 = 180;
+
+    /// Canonical termination-reason strings recorded verbatim in every boot record. The clean
+    /// path is `TERM_MARKER_KILLED` ONLY; every other reason is honestly unclean.
+    pub const TERM_MARKER_KILLED: &str = "boot_ready_marker_matched_then_harness_terminated_qemu";
+    /// The 180s deadline was hit and the harness force-killed QEMU (unclean).
+    pub const TERM_TIMEOUT: &str = "timeout_180s_harness_terminated_qemu";
+    /// QEMU self-exited BEFORE any boot-ready marker appeared (abnormal early exit; unclean).
+    pub const TERM_QEMU_EXITED_BEFORE: &str = "qemu_exited_before_marker";
+    /// QEMU self-exited AFTER a marker was present but before the harness force-killed it
+    /// (unclean: the clean path force-kills at the marker, it does not let QEMU self-exit).
+    pub const TERM_QEMU_EXITED_AFTER: &str = "boot_ready_marker_matched_qemu_exited_after_marker";
+
+    /// How a single boot terminated, as observed by the impure QEMU driver. Fed to the pure
+    /// [`termination_reason`] / [`assemble_boot_record`] derivation.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub enum LiveTermination {
+        /// A closed-set marker was seen in the LIVE serial capture and the harness then
+        /// force-killed QEMU — the only clean termination.
+        MarkerKilled,
+        /// The 180s per-boot deadline was hit and the harness force-killed QEMU.
+        TimedOut,
+        /// QEMU exited on its own (its `ExitStatus` carries the code/signal).
+        QemuSelfExited,
+    }
+
+    /// Structured QEMU exit status recorded in the boot record. Pure data (no `std::process`
+    /// types) so the boot-record assembly stays QEMU-free and unit-testable; the binary converts
+    /// a real `std::process::ExitStatus` into this.
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub struct QemuExitStatus {
+        pub observed: bool,
+        pub code: Option<i32>,
+        pub signal: Option<i32>,
+        pub description: String,
+    }
+
+    /// The raw observed facts of ONE real fresh-VM boot, gathered by the impure QEMU driver and
+    /// handed to the pure [`assemble_boot_record`]. The serial log is referenced by path +
+    /// recomputed digest — its bytes are NEVER carried here (large-artifact-by-reference).
+    #[derive(Debug, Clone)]
+    pub struct BootObservation {
+        /// Owning attempt id (e.g. `attempt-001`).
+        pub attempt_id: String,
+        /// 1-based iteration index within the attempt (1..=10).
+        pub iteration_index: usize,
+        /// How QEMU terminated for this boot.
+        pub live: LiveTermination,
+        /// The boot-ready marker RE-DERIVED from the FINAL on-disk serial log (`None` if absent).
+        pub marker: Option<MarkerMatch>,
+        /// QEMU exit status (SIGKILL on a harness-killed boot; the real code on a self-exit).
+        pub qemu_exit_status: QemuExitStatus,
+        /// Observed wall-clock boot duration (seconds).
+        pub elapsed_seconds: f64,
+        /// Path of the per-iteration raw serial log (referenced, never inlined).
+        pub serial_log_path: String,
+        /// sha256 of the serial log RECOMPUTED from the on-disk bytes at record-build time.
+        pub serial_log_sha256: String,
+        /// Byte size of the serial log on disk.
+        pub serial_log_byte_size: u64,
+    }
+
+    /// One boot's record. Every heavy artifact (the serial log) is referenced by path + digest;
+    /// no log bytes are inlined. `clean` is derived SOLELY from a real observation via
+    /// [`boot_is_clean`] — no simulated/expected/constant input can set it.
+    #[derive(Debug, Clone)]
+    pub struct BootRecord {
+        pub attempt_id: String,
+        pub iteration_index: usize,
+        pub clean: bool,
+        pub elapsed_seconds: f64,
+        pub timeout_hit: bool,
+        pub qemu_exit_status: QemuExitStatus,
+        pub termination_reason: String,
+        pub matched_marker: Option<MarkerMatch>,
+        pub raw_serial_log_path: String,
+        pub raw_serial_log_sha256: String,
+        pub raw_serial_log_byte_size: u64,
+    }
+
+    /// One soak attempt's result: its ordered boot records plus the on-disk attempt receipt it
+    /// was serialized to (referenced by path + digest). Passing boots live inside ONE `SoakAttempt`
+    /// and are never merged across attempts.
+    #[derive(Debug, Clone)]
+    pub struct SoakAttempt {
+        pub attempt_id: String,
+        pub attempt_index: usize,
+        pub verdict: String,
+        pub clean_boots: usize,
+        pub required_clean_boots: usize,
+        pub started_at_unix: u64,
+        pub completed_at_unix: u64,
+        /// Path of the written attempt receipt (empty until the orchestrator persists it).
+        pub receipt_path: String,
+        /// sha256 of the written attempt receipt (empty until persisted).
+        pub receipt_sha256: String,
+        pub boot_records: Vec<BootRecord>,
+    }
+
+    /// The whole-soak aggregate: overall verdict, the single referenced passing attempt (on pass),
+    /// every attempt (incl. failed ones) by path + digest, and the honest-fail gap-register on
+    /// exhaustion. No large artifact is inlined.
+    #[derive(Debug, Clone)]
+    pub struct AggregateReceipt {
+        pub overall_verdict: String,
+        pub passing_attempt_id: Option<String>,
+        pub iteration_count: usize,
+        pub per_boot_timeout_secs: u64,
+        pub max_soak_attempts: usize,
+        pub attempts: Vec<SoakAttempt>,
+        pub gap_register: Option<serde_json::Value>,
+    }
+
+    /// The verified black-box ISO, referenced by path + digest (fetched + verified ONCE, reused
+    /// unmodified read-only across all boots).
+    #[derive(Debug, Clone)]
+    pub struct IsoArtifact {
+        pub asset_name: String,
+        pub download_url: String,
+        pub local_path: String,
+        pub expected_sha256: String,
+        pub actual_sha256: String,
+        pub byte_size: u64,
+        pub verified: bool,
+    }
+
+    /// Immutable soak configuration (pure data; no process/env I/O). Built once by the binary
+    /// from the compile-time pin + the recomputed ISO digest, then read by the orchestrator and
+    /// receipt builders.
+    #[derive(Debug, Clone)]
+    pub struct SoakConfig {
+        pub release_tag: String,
+        pub iso: IsoArtifact,
+        pub qemu_program: String,
+        pub qemu_args: Vec<String>,
+        pub reproducible_command: String,
+        pub iteration_count: usize,
+        pub max_attempts: usize,
+        pub per_boot_timeout_secs: u64,
+        pub allowed_markers: Vec<String>,
+    }
+
+    /// Where the soak run's receipts + per-boot logs are written (under `kernel/target/…`,
+    /// gitignored, regenerable — never committed).
+    #[derive(Debug, Clone)]
+    pub struct SoakDests {
+        pub run_dir: PathBuf,
+    }
+
+    /// A bounded, by-reference summary of a completed soak run returned to the binary for agent
+    /// context (no inlined logs).
+    #[derive(Debug, Clone)]
+    pub struct SoakOutcome {
+        pub verdict: String,
+        pub passing_attempt_id: Option<String>,
+        pub aggregate_receipt_path: PathBuf,
+        pub aggregate_receipt_sha256: String,
+        pub attempts: Vec<SoakAttempt>,
+        pub gap_register_written: bool,
+    }
+
+    /// Map a [`LiveTermination`] (and whether the final on-disk log carried a marker) to the
+    /// canonical termination-reason string. Pure.
+    pub fn termination_reason(live: LiveTermination, marker_present: bool) -> &'static str {
+        match live {
+            LiveTermination::MarkerKilled => TERM_MARKER_KILLED,
+            LiveTermination::TimedOut => TERM_TIMEOUT,
+            LiveTermination::QemuSelfExited if marker_present => TERM_QEMU_EXITED_AFTER,
+            LiveTermination::QemuSelfExited => TERM_QEMU_EXITED_BEFORE,
+        }
+    }
+
+    /// A boot is CLEAN iff a closed-set marker was found in its raw serial log AND the boot did
+    /// not hit the 180s timeout AND QEMU did not exit abnormally before the match (i.e. the
+    /// termination is the marker-then-killed path). All three conditions are checked explicitly,
+    /// so a boot with `timeout_hit == true` is unclean even if a marker-like line is present.
+    /// Pure — reads only an already-assembled real record.
+    pub fn boot_is_clean(record: &BootRecord) -> bool {
+        record.matched_marker.is_some()
+            && !record.timeout_hit
+            && record.termination_reason == TERM_MARKER_KILLED
+    }
+
+    /// Assemble a [`BootRecord`] from ONE real [`BootObservation`], deriving `timeout_hit`, the
+    /// termination reason, and `clean` from the observation. Pure — never fabricates a marker or
+    /// a clean verdict.
+    pub fn assemble_boot_record(obs: BootObservation) -> BootRecord {
+        let marker_present = obs.marker.is_some();
+        let timeout_hit = matches!(obs.live, LiveTermination::TimedOut);
+        let mut record = BootRecord {
+            attempt_id: obs.attempt_id,
+            iteration_index: obs.iteration_index,
+            clean: false,
+            elapsed_seconds: obs.elapsed_seconds,
+            timeout_hit,
+            qemu_exit_status: obs.qemu_exit_status,
+            termination_reason: termination_reason(obs.live, marker_present).to_string(),
+            matched_marker: obs.marker,
+            raw_serial_log_path: obs.serial_log_path,
+            raw_serial_log_sha256: obs.serial_log_sha256,
+            raw_serial_log_byte_size: obs.serial_log_byte_size,
+        };
+        record.clean = boot_is_clean(&record);
+        record
+    }
+
+    /// An attempt PASSES iff it holds exactly `iteration_count` boot records that are, in order,
+    /// iterations 1..=N, ALL owned by the SAME attempt id, and ALL clean. This is why passing
+    /// boots never aggregate across attempts: a record carrying a different `attempt_id` fails the
+    /// same-owner check. Pure.
+    pub fn attempt_is_pass(records: &[BootRecord], iteration_count: usize) -> bool {
+        let Some(first) = records.first() else {
+            return false;
+        };
+        records.len() == iteration_count
+            && records.iter().enumerate().all(|(offset, r)| {
+                r.iteration_index == offset + 1
+                    && r.attempt_id == first.attempt_id
+                    && r.clean
+                    && boot_is_clean(r)
+            })
+    }
+
+    fn qemu_exit_json(s: &QemuExitStatus) -> serde_json::Value {
+        serde_json::json!({
+            "observed": s.observed,
+            "code": s.code,
+            "signal": s.signal,
+            "description": s.description,
+        })
+    }
+
+    fn marker_json(m: &Option<MarkerMatch>) -> serde_json::Value {
+        match m {
+            Some(mm) => serde_json::json!({
+                "marker_index": mm.marker_index,
+                "marker_pattern": mm.marker_pattern,
+                "line_number": mm.line_number,
+                "matched_line_verbatim": mm.matched_line,
+                "matched_text_verbatim": mm.matched_text,
+            }),
+            None => serde_json::Value::Null,
+        }
+    }
+
+    /// Serialize one boot record as JSON — the serial log is referenced by path + recomputed
+    /// digest + byte size, never inlined.
+    pub fn build_boot_record_json(r: &BootRecord) -> serde_json::Value {
+        serde_json::json!({
+            "attempt_id": r.attempt_id,
+            "iteration_index": r.iteration_index,
+            "clean": r.clean,
+            "elapsed_seconds": r.elapsed_seconds,
+            "timeout_hit": r.timeout_hit,
+            "qemu_exit_status": qemu_exit_json(&r.qemu_exit_status),
+            "termination_reason": r.termination_reason,
+            "matched_marker": marker_json(&r.matched_marker),
+            "raw_serial_log": {
+                "path": r.raw_serial_log_path,
+                "sha256": r.raw_serial_log_sha256,
+                "digest_recomputed_from_disk_at_record_build": true,
+                "byte_size": r.raw_serial_log_byte_size,
+            },
+        })
+    }
+
+    fn iso_json(iso: &IsoArtifact) -> serde_json::Value {
+        serde_json::json!({
+            "asset_name": iso.asset_name,
+            "download_url": iso.download_url,
+            "local_path": iso.local_path,
+            "expected_sha256": iso.expected_sha256,
+            "actual_sha256": iso.actual_sha256,
+            "byte_size": iso.byte_size,
+            "digest_recomputed_from_disk_once": true,
+            "black_box_unmodified_upstream": true,
+            "verified": iso.verified,
+        })
+    }
+
+    fn qemu_runtime_json(cfg: &SoakConfig) -> serde_json::Value {
+        serde_json::json!({
+            "program": cfg.qemu_program,
+            "args": cfg.qemu_args,
+            "reproducible_command": cfg.reproducible_command,
+            "accel": "tcg (software emulation; dev-only, no KVM)",
+            "per_boot_timeout_seconds": cfg.per_boot_timeout_secs,
+        })
+    }
+
+    fn vm_isolation_json() -> serde_json::Value {
+        serde_json::json!({
+            "method": "each iteration spawns a NEW qemu-system-x86_64 process from the verified read-only ISO CD-ROM; no writable disk, no snapshot, a NEW per-iteration serial log file",
+            "no_disk": true,
+            "no_snapshot": true,
+            "fresh_process_per_iteration": true,
+            "serial_log_per_iteration": true,
+            "cold_boot": true,
+            "state_carryover": "none: ISO bytes reused read-only after ONE sha256 verification; VM process, memory, devices, and serial capture are recreated per iteration",
+        })
+    }
+
+    /// Assemble the per-attempt receipt JSON: the attempt verdict + its 10 ordered boot records
+    /// (each referencing its serial log by path + digest), plus the ISO/QEMU/isolation context.
+    pub fn build_attempt_receipt(cfg: &SoakConfig, attempt: &SoakAttempt) -> serde_json::Value {
+        serde_json::json!({
+            "$schema": "https://docs.oyatie.com/schemas/kuberos-asterinas-soak-attempt-receipt.v0.1.0.json",
+            "receipt_type": "soak-attempt",
+            "acceptance_criterion": "SHARD-2-SOAK",
+            "component": "asterinas/kernel",
+            "wave": "kuberos-asterinas-wave1",
+            "slice": "real-boot-soak",
+            "release_tag": cfg.release_tag,
+            "black_box_unmodified_upstream": true,
+            "attempt_id": attempt.attempt_id,
+            "attempt_index": attempt.attempt_index,
+            "verdict": attempt.verdict,
+            "clean_boots": attempt.clean_boots,
+            "required_clean_boots": attempt.required_clean_boots,
+            "started_at_unix": attempt.started_at_unix,
+            "completed_at_unix": attempt.completed_at_unix,
+            "iso_artifact": iso_json(&cfg.iso),
+            "qemu_runtime": qemu_runtime_json(cfg),
+            "vm_isolation": vm_isolation_json(),
+            "boot_ready_markers": cfg.allowed_markers,
+            "no_inlined_large_artifacts": true,
+            "boot_records": attempt.boot_records.iter().map(build_boot_record_json).collect::<Vec<_>>(),
+        })
+    }
+
+    /// Assemble the whole-soak aggregate receipt JSON: overall verdict, the referenced passing
+    /// attempt id (on pass), every attempt by path + digest with its boot records, the ISO digest,
+    /// the attempt count, and the honest-fail gap-register (on exhaustion). No large artifact is
+    /// inlined.
+    pub fn build_aggregate_receipt(cfg: &SoakConfig, agg: &AggregateReceipt) -> serde_json::Value {
+        let attempts: Vec<serde_json::Value> = agg
+            .attempts
+            .iter()
+            .map(|a| {
+                serde_json::json!({
+                    "attempt_id": a.attempt_id,
+                    "attempt_index": a.attempt_index,
+                    "verdict": a.verdict,
+                    "clean_boots": a.clean_boots,
+                    "required_clean_boots": a.required_clean_boots,
+                    "attempt_receipt": {
+                        "path": a.receipt_path,
+                        "sha256": a.receipt_sha256,
+                    },
+                    "boot_records": a.boot_records.iter().map(build_boot_record_json).collect::<Vec<_>>(),
+                })
+            })
+            .collect();
+        serde_json::json!({
+            "$schema": "https://docs.oyatie.com/schemas/kuberos-asterinas-soak-aggregate-receipt.v0.1.0.json",
+            "receipt_type": "soak-aggregate",
+            "acceptance_criterion": "SHARD-2-SOAK",
+            "component": "asterinas/kernel",
+            "wave": "kuberos-asterinas-wave1",
+            "slice": "real-boot-soak",
+            "release_tag": cfg.release_tag,
+            "black_box_unmodified_upstream": true,
+            "overall_verdict": agg.overall_verdict,
+            "passing_attempt_id": agg.passing_attempt_id,
+            "iso_artifact": iso_json(&cfg.iso),
+            "iteration_count": agg.iteration_count,
+            "per_boot_timeout_seconds": agg.per_boot_timeout_secs,
+            "max_soak_attempts": agg.max_soak_attempts,
+            "attempt_count": agg.attempts.len(),
+            "qemu_runtime": qemu_runtime_json(cfg),
+            "vm_isolation": vm_isolation_json(),
+            "boot_ready_markers": cfg.allowed_markers,
+            "no_inlined_large_artifacts": true,
+            "soak_attempts": attempts,
+            "gap_register_entry": agg.gap_register,
+        })
+    }
+
+    /// Build the honest-fail gap-register entry, emitted ONLY after the attempt budget is
+    /// exhausted without a clean 10/10 attempt. Records the observed blocker and carries
+    /// `simulated_or_inferred_evidence_produced: false` — no evidence is ever synthesized.
+    pub fn build_soak_gap_register_entry(
+        cfg: &SoakConfig,
+        run_dir: &Path,
+        recorded_at_unix: u64,
+    ) -> serde_json::Value {
+        serde_json::json!({
+            "gap_id": "KAW1-SOAK-001",
+            "title": "10-consecutive-clean cold-boot soak not proven within the attempt budget",
+            "class": "boot-soak-evidence-gap",
+            "status": "open",
+            "severity": "blocker-before-soak-envelope-proven",
+            "slice": "real-boot-soak",
+            "release_tag": cfg.release_tag,
+            "blocker": format!(
+                "No soak attempt reached {} consecutive clean isolated QEMU cold boots within {} attempts.",
+                cfg.iteration_count, cfg.max_attempts
+            ),
+            "acceptance_criteria": format!(
+                "Exactly one attempt with {} ordered clean fresh-VM cold boots (per-boot timeout {}s, no state carry-over).",
+                cfg.iteration_count, cfg.per_boot_timeout_secs
+            ),
+            "honest_fail_reference": run_dir.to_string_lossy(),
+            "verification_path": "Inspect aggregate-receipt.json and every attempt's per-boot raw serial log path + sha256.",
+            "simulated_or_inferred_evidence_produced": false,
+            "recorded_at_unix": recorded_at_unix,
+        })
+    }
+
+    /// Run the whole soak, taking the per-boot QEMU execution as an injected `boot_runner`
+    /// closure. This does receipt FILE I/O but NO QEMU and NO network of its own — the real binary
+    /// passes a QEMU-driving runner; a test passes a fixture-driving runner. That seam makes the
+    /// entire soak loop (3-attempt retry, per-attempt receipt, aggregate, honest-fail) testable
+    /// without QEMU.
+    ///
+    /// Semantics (exact): for each of up to `cfg.max_attempts` attempts, run `cfg.iteration_count`
+    /// ordered boots via `boot_runner`; a failed boot records its record and fails THAT attempt —
+    /// it does NOT abort the whole soak (the loop then starts a fresh attempt). PASS = the FIRST
+    /// attempt whose 10 ordered boots are all clean (passing boots are never aggregated across
+    /// attempts). Every attempt (incl. failed) produces its own attempt receipt. On exhaustion
+    /// the aggregate carries an honest-fail gap-register entry.
+    pub fn run_soak_with_boot_runner<F>(
+        cfg: &SoakConfig,
+        dests: &SoakDests,
+        mut boot_runner: F,
+    ) -> Result<SoakOutcome, Box<dyn std::error::Error>>
+    where
+        F: FnMut(
+            &SoakConfig,
+            &str,
+            usize,
+            &Path,
+        ) -> Result<BootRecord, Box<dyn std::error::Error>>,
+    {
+        std::fs::create_dir_all(&dests.run_dir)?;
+
+        let mut attempts: Vec<SoakAttempt> = Vec::new();
+        let mut passing_attempt_id: Option<String> = None;
+
+        for attempt_index in 1..=cfg.max_attempts {
+            let attempt_id = format!("attempt-{attempt_index:03}");
+            let attempt_dir = dests.run_dir.join(&attempt_id);
+            std::fs::create_dir_all(&attempt_dir)?;
+            let started_at_unix = now_unix();
+
+            let mut boot_records = Vec::with_capacity(cfg.iteration_count);
+            for iteration in 1..=cfg.iteration_count {
+                let record = boot_runner(cfg, &attempt_id, iteration, &attempt_dir)?;
+                // Bind the returned record to the identity the orchestrator REQUESTED, rather than
+                // trusting the runner's self-stamp: attempt_is_pass checks same-ownership against
+                // records[0].attempt_id, so a runner that mis-stamped every record with one id would
+                // otherwise yield an internally-consistent (and passing) attempt. Fail closed on any
+                // mismatch (an infrastructure invariant violation, exit 1 — never a false pass).
+                if record.attempt_id != attempt_id || record.iteration_index != iteration {
+                    return Err(format!(
+                        "boot runner returned mis-identified record: expected {attempt_id} iteration {iteration}, got {} iteration {}",
+                        record.attempt_id, record.iteration_index
+                    )
+                    .into());
+                }
+                boot_records.push(record);
+            }
+
+            let clean_boots = boot_records.iter().filter(|r| r.clean).count();
+            let verdict = if attempt_is_pass(&boot_records, cfg.iteration_count) {
+                "pass"
+            } else {
+                "fail"
+            }
+            .to_string();
+
+            let mut attempt = SoakAttempt {
+                attempt_id: attempt_id.clone(),
+                attempt_index,
+                verdict: verdict.clone(),
+                clean_boots,
+                required_clean_boots: cfg.iteration_count,
+                started_at_unix,
+                completed_at_unix: now_unix(),
+                receipt_path: String::new(),
+                receipt_sha256: String::new(),
+                boot_records,
+            };
+            // Persist the per-attempt receipt, then reference it by path + digest.
+            let receipt_json = build_attempt_receipt(cfg, &attempt);
+            let receipt_path = attempt_dir.join("attempt-receipt.json");
+            write_json_file(&receipt_path, &receipt_json)?;
+            let (receipt_sha256, _) = sha256_file(&receipt_path)?;
+            attempt.receipt_path = receipt_path.to_string_lossy().into_owned();
+            attempt.receipt_sha256 = receipt_sha256;
+
+            let is_pass = verdict == "pass";
+            attempts.push(attempt);
+            if is_pass {
+                passing_attempt_id = Some(attempt_id);
+                break;
+            }
+        }
+
+        let overall_verdict = if passing_attempt_id.is_some() {
+            "pass"
+        } else {
+            "fail"
+        }
+        .to_string();
+        // Honest-fail: only after the attempt budget is exhausted without a clean 10/10.
+        let gap_register = if passing_attempt_id.is_none() {
+            Some(build_soak_gap_register_entry(cfg, &dests.run_dir, now_unix()))
+        } else {
+            None
+        };
+
+        let aggregate = AggregateReceipt {
+            overall_verdict: overall_verdict.clone(),
+            passing_attempt_id: passing_attempt_id.clone(),
+            iteration_count: cfg.iteration_count,
+            per_boot_timeout_secs: cfg.per_boot_timeout_secs,
+            max_soak_attempts: cfg.max_attempts,
+            attempts: attempts.clone(),
+            gap_register: gap_register.clone(),
+        };
+        let aggregate_json = build_aggregate_receipt(cfg, &aggregate);
+        let aggregate_receipt_path = dests.run_dir.join("aggregate-receipt.json");
+        write_json_file(&aggregate_receipt_path, &aggregate_json)?;
+        let (aggregate_receipt_sha256, _) = sha256_file(&aggregate_receipt_path)?;
+
+        Ok(SoakOutcome {
+            verdict: overall_verdict,
+            passing_attempt_id,
+            aggregate_receipt_path,
+            aggregate_receipt_sha256,
+            attempts,
+            gap_register_written: gap_register.is_some(),
+        })
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        fn exit_sigkill() -> QemuExitStatus {
+            QemuExitStatus {
+                observed: true,
+                code: None,
+                signal: Some(9),
+                description: "signal: 9 (SIGKILL)".to_string(),
+            }
+        }
+
+        fn a_marker() -> MarkerMatch {
+            MarkerMatch {
+                marker_index: 3,
+                marker_pattern: "Reached target .*(Multi-User|Basic System|Login Prompts)"
+                    .to_string(),
+                line_number: 145,
+                matched_line: "[  OK  ] Reached target Basic System.".to_string(),
+                matched_text: "Reached target Basic System".to_string(),
+            }
+        }
+
+        fn clean_record(attempt_id: &str, iteration_index: usize) -> BootRecord {
+            assemble_boot_record(BootObservation {
+                attempt_id: attempt_id.to_string(),
+                iteration_index,
+                live: LiveTermination::MarkerKilled,
+                marker: Some(a_marker()),
+                qemu_exit_status: exit_sigkill(),
+                elapsed_seconds: 42.0,
+                serial_log_path: format!("boot-{iteration_index:02}/serial.log"),
+                serial_log_sha256: "0".repeat(64),
+                serial_log_byte_size: 20_000,
+            })
+        }
+
+        #[test]
+        fn termination_reason_maps_every_live_case() {
+            assert_eq!(
+                termination_reason(LiveTermination::MarkerKilled, true),
+                TERM_MARKER_KILLED
+            );
+            assert_eq!(
+                termination_reason(LiveTermination::TimedOut, false),
+                TERM_TIMEOUT
+            );
+            assert_eq!(
+                termination_reason(LiveTermination::QemuSelfExited, true),
+                TERM_QEMU_EXITED_AFTER
+            );
+            assert_eq!(
+                termination_reason(LiveTermination::QemuSelfExited, false),
+                TERM_QEMU_EXITED_BEFORE
+            );
+        }
+
+        #[test]
+        fn clean_requires_marker_no_timeout_and_marker_killed_termination() {
+            let record = clean_record("attempt-001", 1);
+            assert!(record.clean);
+            assert!(boot_is_clean(&record));
+
+            // A marker present but `timeout_hit == true` is UNCLEAN even though a marker-like line
+            // exists — the timeout condition is checked explicitly.
+            let mut timed_out = clean_record("attempt-001", 1);
+            timed_out.timeout_hit = true;
+            timed_out.termination_reason = TERM_TIMEOUT.to_string();
+            assert!(!boot_is_clean(&timed_out));
+
+            // A marker but QEMU self-exited before it (abnormal early exit) is UNCLEAN.
+            let mut early_exit = clean_record("attempt-001", 1);
+            early_exit.termination_reason = TERM_QEMU_EXITED_BEFORE.to_string();
+            assert!(!boot_is_clean(&early_exit));
+
+            // No marker is UNCLEAN.
+            let mut no_marker = clean_record("attempt-001", 1);
+            no_marker.matched_marker = None;
+            assert!(!boot_is_clean(&no_marker));
+        }
+
+        #[test]
+        fn timed_out_observation_assembles_unclean_record() {
+            // A boot that hit the deadline: harness-killed, no marker → unclean, timeout_hit true.
+            let record = assemble_boot_record(BootObservation {
+                attempt_id: "attempt-001".to_string(),
+                iteration_index: 4,
+                live: LiveTermination::TimedOut,
+                marker: None,
+                qemu_exit_status: exit_sigkill(),
+                elapsed_seconds: 180.0,
+                serial_log_path: "boot-04/serial.log".to_string(),
+                serial_log_sha256: "0".repeat(64),
+                serial_log_byte_size: 0,
+            });
+            assert!(!record.clean);
+            assert!(record.timeout_hit);
+            assert_eq!(record.termination_reason, TERM_TIMEOUT);
+            assert!(record.matched_marker.is_none());
+        }
+
+        #[test]
+        fn attempt_pass_requires_ten_ordered_clean_boots_in_one_attempt() {
+            let records: Vec<_> = (1..=ITERATION_COUNT)
+                .map(|i| clean_record("attempt-001", i))
+                .collect();
+            assert!(attempt_is_pass(&records, ITERATION_COUNT));
+
+            // Nine clean boots is not a pass.
+            assert!(!attempt_is_pass(&records[..ITERATION_COUNT - 1], ITERATION_COUNT));
+
+            // Passing boots NEVER aggregate across attempts: relabel the last boot's attempt id.
+            let mut split = records.clone();
+            split[9].attempt_id = "attempt-002".to_string();
+            assert!(!attempt_is_pass(&split, ITERATION_COUNT));
+            // …and the nine boots that remain owned by attempt-001 still are not a pass.
+            let attempt_one_only: Vec<_> = split
+                .iter()
+                .filter(|r| r.attempt_id == "attempt-001")
+                .cloned()
+                .collect();
+            assert!(!attempt_is_pass(&attempt_one_only, ITERATION_COUNT));
+
+            // Out-of-order iterations fail the ordered check.
+            let mut out_of_order = records.clone();
+            out_of_order.swap(8, 9);
+            assert!(!attempt_is_pass(&out_of_order, ITERATION_COUNT));
+
+            // One unclean boot fails the whole attempt.
+            let mut one_unclean = records.clone();
+            one_unclean[0].clean = false;
+            assert!(!attempt_is_pass(&one_unclean, ITERATION_COUNT));
+        }
+
+        #[test]
+        fn boot_record_json_references_log_by_path_and_digest_without_inlining() {
+            let r = clean_record("attempt-001", 1);
+            let v = build_boot_record_json(&r);
+            assert_eq!(v["clean"], serde_json::Value::Bool(true));
+            assert_eq!(v["termination_reason"], TERM_MARKER_KILLED);
+            assert_eq!(v["raw_serial_log"]["sha256"], "0".repeat(64));
+            assert_eq!(
+                v["raw_serial_log"]["digest_recomputed_from_disk_at_record_build"],
+                serde_json::Value::Bool(true)
+            );
+            assert_eq!(v["matched_marker"]["matched_text_verbatim"], "Reached target Basic System");
+        }
+    }
+}
