@@ -100,11 +100,43 @@ fn run() -> Result<bool, Box<dyn Error>> {
 /// Stream the release asset to `dest`. reqwest follows the GitHub 302 redirect to the CDN and
 /// its blocking `Response` implements `Read`, so `io::copy` streams the body straight to the
 /// file without materializing it in memory.
+///
+/// The download is the single external surface most exposed to transient network hiccups, so it
+/// retries a few times with linear backoff before surfacing the final error. The recorded digest
+/// is still recomputed from the on-disk bytes afterward, so a truncated/partial retry can never
+/// produce a false `verified` — a corrupt fetch simply fails the digest check.
 fn download_to_file(url: &str, dest: &Path) -> Result<u64, Box<dyn Error>> {
+    const MAX_ATTEMPTS: u32 = 4;
     let client = reqwest::blocking::Client::builder()
         .connect_timeout(Duration::from_secs(60))
         .timeout(Duration::from_secs(1800))
         .build()?;
+
+    let mut last_err: Option<Box<dyn Error>> = None;
+    for attempt in 1..=MAX_ATTEMPTS {
+        match try_download(&client, url, dest) {
+            Ok(n) => return Ok(n),
+            Err(e) => {
+                eprintln!("[fetch-verify] download attempt {attempt}/{MAX_ATTEMPTS} failed: {e}");
+                last_err = Some(e);
+                if attempt < MAX_ATTEMPTS {
+                    // Linear backoff (5s, 10s, 15s): enough to ride out a transient hiccup
+                    // without materially extending a genuinely-down run.
+                    std::thread::sleep(Duration::from_secs(5 * attempt as u64));
+                }
+            }
+        }
+    }
+    Err(last_err.unwrap_or_else(|| "download failed with no recorded error".into()))
+}
+
+/// One download attempt: stream the body to `dest` and fsync. A partial write leaves a
+/// truncated file that the caller's digest recomputation will reject — never a false pass.
+fn try_download(
+    client: &reqwest::blocking::Client,
+    url: &str,
+    dest: &Path,
+) -> Result<u64, Box<dyn Error>> {
     let mut resp = client.get(url).send()?.error_for_status()?;
     let mut out = fs::File::create(dest)?;
     let n = io::copy(&mut resp, &mut out)?;

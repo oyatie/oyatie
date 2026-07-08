@@ -3,18 +3,21 @@
 # performs the single permitted external surface: the release-asset download via the typed
 # reqwest HTTP client (rustls => aws-lc-rs, ADR-0506; ring is never activated).
 
+# Shared dependency sets — declared once so the common deps stay in sync across every target
+# (DRY; a bump edits one list, not five). `_BOUNDARY` = the compile-time upstream pin + closed
+# marker set; `_TP_CORE` = serde_json + sha2 (receipts + digests), used by every target;
+# `_REGEX` = the marker-scan regex, used only where boot-verdict logic compiles.
+_BOUNDARY = "//kernel/core/asterinas-boundary:kernel-asterinas-boundary"
+_TP_CORE = ["third-party//:serde_json", "third-party//:sha2"]
+_REGEX = ["third-party//:regex"]
+
 rust_library(
     name = "kernel-asterinas-real-boot",
     srcs = glob(["src/lib.rs"]),
     crate = "kernel_asterinas_real_boot",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        "//kernel/core/asterinas-boundary:kernel-asterinas-boundary",
-        "third-party//:regex",
-        "third-party//:serde_json",
-        "third-party//:sha2",
-    ],
+    deps = [_BOUNDARY] + _REGEX + _TP_CORE,
 )
 
 rust_binary(
@@ -22,13 +25,7 @@ rust_binary(
     srcs = ["src/main.rs"],
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        ":kernel-asterinas-real-boot",
-        "//kernel/core/asterinas-boundary:kernel-asterinas-boundary",
-        "third-party//:reqwest",
-        "third-party//:serde_json",
-        "third-party//:sha2",
-    ],
+    deps = [":kernel-asterinas-real-boot", _BOUNDARY, "third-party//:reqwest"] + _TP_CORE,
 )
 
 rust_binary(
@@ -39,13 +36,7 @@ rust_binary(
     srcs = ["src/boot.rs"],
     crate_root = "src/boot.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        ":kernel-asterinas-real-boot",
-        "//kernel/core/asterinas-boundary:kernel-asterinas-boundary",
-        "third-party//:regex",
-        "third-party//:serde_json",
-        "third-party//:sha2",
-    ],
+    deps = [":kernel-asterinas-real-boot", _BOUNDARY] + _REGEX + _TP_CORE,
 )
 
 rust_test(
@@ -54,12 +45,7 @@ rust_test(
     crate = "kernel_asterinas_real_boot",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        "//kernel/core/asterinas-boundary:kernel-asterinas-boundary",
-        "third-party//:regex",
-        "third-party//:serde_json",
-        "third-party//:sha2",
-    ],
+    deps = [_BOUNDARY] + _REGEX + _TP_CORE,
 )
 
 rust_test(
@@ -70,10 +56,5 @@ rust_test(
     srcs = ["tests/boot_finalize_integration.rs"],
     crate_root = "tests/boot_finalize_integration.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        ":kernel-asterinas-real-boot",
-        "//kernel/core/asterinas-boundary:kernel-asterinas-boundary",
-        "third-party//:serde_json",
-        "third-party//:sha2",
-    ],
+    deps = [":kernel-asterinas-real-boot", _BOUNDARY] + _TP_CORE,
 )

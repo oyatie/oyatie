@@ -134,8 +134,12 @@ impl Fixture {
         };
         harness::finalize_boot_evidence(&attempt, &dests).expect("finalize")
     }
+}
 
-    fn cleanup(self) {
+impl Drop for Fixture {
+    /// Remove the scratch dir on drop so temp dirs are cleaned even when a test PANICS before it
+    /// would reach an explicit teardown (a manual `cleanup()` leaked on assertion failure).
+    fn drop(&mut self) {
         let _ = fs::remove_dir_all(&self.dir);
     }
 }
@@ -243,8 +247,6 @@ fn boot_reached_outcome_writes_pass_receipt_with_self_consistent_digest_and_no_g
         !fx.gap_register.exists(),
         "no gap-register file may be produced for a reached boot"
     );
-
-    fx.cleanup();
 }
 
 #[test]
@@ -316,8 +318,6 @@ fn non_boot_outcome_writes_fail_receipt_and_gap_escalation_without_simulated_evi
             .contains(pin::BOOT_ISO_ASSET),
         "observed fact records the concrete unmodified asset"
     );
-
-    fx.cleanup();
 }
 
 #[test]
@@ -356,6 +356,4 @@ fn empty_serial_log_is_honest_fail_never_a_synthesized_pass() {
         gap["evidence"]["serial_log_sha256"],
         serde_json::Value::String(empty_digest)
     );
-
-    fx.cleanup();
 }
