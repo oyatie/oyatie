@@ -66,4 +66,11 @@ Every new file this decision governs (owner: `council-architecture`; justificati
 - `kernel/harness/asterinas-real-boot/src/main.rs` — the fetch-verify binary.
 - `kernel/harness/asterinas-real-boot/tests/boot_finalize_integration.rs` — receipt/honest-fail integration test.
 
+Shard-2 soak extension (issue #1212 — the 10-consecutive-clean-cold-boots soak of the same
+pinned ISO; extends this crate, reuses its primitives, adds no new dependency; the `soak` module
+lives inside the already-accounted `src/lib.rs`):
+
+- `kernel/harness/asterinas-real-boot/src/soak.rs` — the QEMU-driving soak binary (3-attempt in-process retry × 10 fresh-VM cold boots; per-boot 180s hard timeout).
+- `kernel/harness/asterinas-real-boot/tests/soak_integration.rs` — QEMU-free soak-loop / attempt-aggregate / honest-fail / anti-aggregation integration test.
+
 Modified governed DATA (existing owners): root `Cargo.toml` (`exclude "kernel"`), `.gitignore` (harness `receipts/`), `cloud/cloud-ci/gates/oya-cloud-ci-root-workspace-hygiene-app/root-workspace-hygiene-policy.json` (`allowed_root_dirs += "kernel"`, ADR-0600), `specs/reachability-registry.json` (`kernel/` tree registration), `docs/machine-readable/decisions.json` + `docs/ADR-INDEX.md` (this ADR).
