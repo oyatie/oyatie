@@ -70,10 +70,17 @@ fn main() -> ExitCode {
 
     if args.emit_baseline {
         // Print the CURRENT live violation set as a baseline document (the re-freeze surface).
+        // Exclude the diagnostic codes (policy/baseline-malformed + the B3 stale-baseline phantom
+        // finding): a re-emit re-freezes the LIVE violation set, so a phantom row must be dropped, not
+        // carried forward.
         let mut violations: Vec<Value> = report
             .findings
             .iter()
-            .filter(|f| f.code != "TDA-POLICY-MALFORMED" && f.code != "TDA-BASELINE-MALFORMED")
+            .filter(|f| {
+                f.code != "TDA-POLICY-MALFORMED"
+                    && f.code != "TDA-BASELINE-MALFORMED"
+                    && f.code != "TDA-STALE-BASELINE"
+            })
             .map(|f| json!({ "code": f.code, "subject": f.subject }))
             .collect();
         violations.sort_by(|a, b| {

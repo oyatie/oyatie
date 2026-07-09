@@ -1,5 +1,5 @@
 [package]
-name = "oya-messaging-substrate-kernel"
+name = "messaging-substrate-kernel"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -9,7 +9,7 @@ license = "Apache-2.0"
 [dependencies]
 
 [lib]
-name = "oya_messaging_substrate_kernel"
+name = "messaging_substrate_kernel"
 path = "src/lib.rs"
 doctest = false
 

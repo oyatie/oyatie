@@ -5621,6 +5621,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "messaging-substrate-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "miette"
 version = "7.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6073,13 +6077,21 @@ dependencies = [
 name = "oya-bus-boundary-kernel"
 version = "0.1.0"
 dependencies = [
- "oya-messaging-substrate-kernel",
+ "messaging-substrate-kernel",
 ]
 
 [[package]]
 name = "oya-cargo-lock-merge-driver-app"
 version = "0.1.0"
 dependencies = [
+ "toml_edit",
+]
+
+[[package]]
+name = "oya-cargo-lock-transform-kernel"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
  "toml_edit",
 ]
 
@@ -8744,10 +8756,6 @@ name = "oya-masterplan-hermes-forensic-ledger-app"
 version = "0.1.0"
 
 [[package]]
-name = "oya-messaging-substrate-kernel"
-version = "0.1.0"
-
-[[package]]
 name = "oya-notes-domain"
 version = "0.1.0"
 dependencies = [
@@ -9166,7 +9174,7 @@ dependencies = [
 name = "oya-queue-boundary-kernel"
 version = "0.1.0"
 dependencies = [
- "oya-messaging-substrate-kernel",
+ "messaging-substrate-kernel",
 ]
 
 [[package]]
@@ -9192,6 +9200,7 @@ dependencies = [
 name = "oya-reorg-codemod-app"
 version = "0.1.0"
 dependencies = [
+ "oya-cargo-lock-transform-kernel",
  "oya-workspace-members-kernel",
  "serde_json",
  "toml_edit",
@@ -9602,7 +9611,7 @@ dependencies = [
 name = "oya-stream-boundary-kernel"
 version = "0.1.0"
 dependencies = [
- "oya-messaging-substrate-kernel",
+ "messaging-substrate-kernel",
 ]
 
 [[package]]
@@ -9734,6 +9743,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "oya-cargo-lock-transform-kernel",
  "oya-workspace-members-kernel",
  "serde_json",
  "tempfile",

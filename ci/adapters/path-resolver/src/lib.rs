@@ -102,18 +102,43 @@ impl MoveManifest {
         }
     }
 
-    /// Load + parse the committed manifest from the candidate tree fail-closed (missing/unreadable/
-    /// unparseable => empty). The registry-drift/freshness byte-binding is the trust root; this is
-    /// the in-adapter shape guard.
-    pub fn load(repo_root: &Path, manifest_rel_path: &str) -> Self {
+    /// Load + parse the move-manifest from the candidate tree. FAIL-CLOSED on ABSENT (ADR-0614):
+    /// a missing/unreadable file is a HARD `Err` — a materialization precondition failure, not a
+    /// no-move state. A PRESENT-but-unparseable/foreign/malformed body stays `Ok(empty)` (identity):
+    /// the DELIBERATE anti-laundering leniency — a candidate-supplied forged manifest is never
+    /// trusted, it collapses to identity (the registry-drift regenerate-twice byte-binding is the
+    /// forgery trust root). So the split is purely ABSENT-file (`Err`) vs PRESENT-file (parse
+    /// leniently, `Ok`).
+    ///
+    /// PRECONDITION (ADR-0614, amends ADR-0563): move-manifest is now DE-COMMITTED — not tracked in
+    /// git (`materialization_mode: not-tracked-in-git`). cloud-ci materializes it on demand as STEP 1
+    /// of `//ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin`
+    /// (`materialize_move_manifest`) BEFORE any relabel-read leg, so the manifest is present on disk
+    /// when this loads it. Post-de-commit an ABSENT file means the materializer did not run — a
+    /// pipeline precondition failure that must block loudly (a false-RED that never merges bad),
+    /// NOT silently degrade to an identity relabel. Every scm-facts emitter invocation runs via the
+    /// materializer (audited across `.github/workflows/oya-ci-required.yml`), so this `Err` arm never
+    /// triggers in practice — it converts a latent silent hazard into a loud precondition assertion.
+    pub fn load(repo_root: &Path, manifest_rel_path: &str) -> Result<Self, String> {
         let path = repo_root.join(manifest_rel_path);
-        let Ok(text) = std::fs::read_to_string(&path) else {
-            return Self::empty();
+        let bytes = std::fs::read(&path).map_err(|e| {
+            format!(
+                "move-manifest absent/unreadable at {}: {e} — the materializer \
+                 (materialize_move_manifest, step 1 of the generated-faces materializer) must run \
+                 first (ADR-0614); refusing to silently relabel to identity",
+                path.display()
+            )
+        })?;
+        // PRESENT but unparseable => Ok(empty) identity, UNCHANGED (anti-laundering): a forged/foreign
+        // body is never trusted; it collapses to identity, never a hard error (that would let a forged
+        // manifest hard-fail CI on a different path than the registry-drift byte-binding catches it).
+        let Ok(text) = std::str::from_utf8(&bytes) else {
+            return Ok(Self::empty());
         };
-        match serde_json::from_str::<Value>(&text) {
+        Ok(match serde_json::from_str::<Value>(text) {
             Ok(value) => Self::from_manifest_value(&value),
             Err(_) => Self::empty(),
-        }
+        })
     }
 }
 
@@ -202,11 +227,15 @@ impl ManifestBijection {
         }
     }
 
-    /// Load + parse the committed manifest from the candidate tree fail-closed (missing/unreadable/
-    /// unparseable => empty). The registry-drift/freshness byte-binding is the trust root; this is
-    /// the in-adapter shape guard.
-    pub fn load(repo_root: &Path, manifest_rel_path: &str) -> Self {
-        Self::from_manifest(MoveManifest::load(repo_root, manifest_rel_path))
+    /// Load + parse the manifest from the candidate tree. FAIL-CLOSED on ABSENT (ADR-0614): a
+    /// missing/unreadable file is a HARD `Err` (materialization precondition), while a
+    /// PRESENT-but-unparseable body stays `Ok(empty)` — the anti-laundering leniency. See
+    /// [`MoveManifest::load`] for the full four-way semantics.
+    pub fn load(repo_root: &Path, manifest_rel_path: &str) -> Result<Self, String> {
+        Ok(Self::from_manifest(MoveManifest::load(
+            repo_root,
+            manifest_rel_path,
+        )?))
     }
 }
 
@@ -303,9 +332,23 @@ impl ManifestPathResolver {
         Self { bijection }
     }
 
-    /// Load the resolver from the candidate tree (committed manifest, fail-closed).
-    pub fn load(repo_root: &Path) -> Self {
-        Self::new(ManifestBijection::load(repo_root, MOVE_MANIFEST_PATH))
+    /// Load the resolver from the candidate tree. FAIL-CLOSED on ABSENT (ADR-0614): the
+    /// move-manifest is DE-COMMITTED and materialized before this reads it, so a missing file is a
+    /// HARD `Err` (the materializer did not run) rather than a silent identity relabel — see
+    /// [`MoveManifest::load`] for the materialize-first precondition and the four-way semantics.
+    pub fn load(repo_root: &Path) -> Result<Self, String> {
+        Ok(Self::new(ManifestBijection::load(
+            repo_root,
+            MOVE_MANIFEST_PATH,
+        )?))
+    }
+
+    /// The identity resolver (empty bijection). For callers that use the resolver ONLY for
+    /// `candidate()` current-canonical path lookup (identity-safe) and legitimately run WITHOUT a
+    /// materialized move-manifest — e.g. the freshness gate's non-`--merge-base-baseline` scm-facts
+    /// regen. The move-aware RELABEL path fail-closes on absence separately (see [`MoveManifest::load`]).
+    pub fn empty() -> Self {
+        Self::new(ManifestBijection::empty())
     }
 }
 
@@ -613,5 +656,120 @@ mod tests {
             err.contains("canonical current seed"),
             "unexpected error: {err}"
         );
+    }
+
+    // -----------------------------------------------------------------------
+    // MoveManifest::load — ABSENT-vs-PRESENT four-way semantics (ADR-0614 fail-closed hardening).
+    // ABSENT => Err (materialization precondition); PRESENT parses leniently => Ok (empty/bijection/
+    // identity). The anti-laundering property (present-but-forged => Ok identity, NEVER Err) is
+    // asserted explicitly so it can never silently regress into a hard-fail.
+    // -----------------------------------------------------------------------
+
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    /// A unique, writable repo-root under the temp dir — no external test dependency (the crate
+    /// carries only serde_json + the ports crate).
+    fn fresh_repo_root() -> std::path::PathBuf {
+        static SEQ: AtomicU64 = AtomicU64::new(0);
+        let nanos = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0);
+        let seq = SEQ.fetch_add(1, Ordering::Relaxed);
+        let dir = std::env::temp_dir().join(format!(
+            "oya-path-resolver-load-{}-{nanos}-{seq}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    fn write_manifest_body(root: &std::path::Path, body: &str) {
+        let path = root.join(MOVE_MANIFEST_PATH);
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(&path, body).unwrap();
+    }
+
+    /// ABSENT (file does not exist) => HARD `Err`: the materializer did not run — a pipeline
+    /// precondition failure, NOT a silent identity relabel. The whole-resolver load fails the same.
+    #[test]
+    fn load_absent_manifest_is_hard_error() {
+        let root = fresh_repo_root(); // manifest deliberately NOT written
+        let err = MoveManifest::load(&root, MOVE_MANIFEST_PATH).unwrap_err();
+        assert!(
+            err.contains("materialize_move_manifest"),
+            "absent must name the materializer precondition: {err}"
+        );
+        assert!(
+            ManifestPathResolver::load(&root).is_err(),
+            "the whole-resolver load must fail closed on an absent manifest"
+        );
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    /// PRESENT but empty (schema + empty pair lists) => `Ok(identity)`: a legitimate no-move state.
+    #[test]
+    fn load_present_empty_manifest_is_ok_identity() {
+        let root = fresh_repo_root();
+        write_manifest_body(&root, &manifest_with(&[]).to_string());
+        let m = MoveManifest::load(&root, MOVE_MANIFEST_PATH).expect("present-empty must be Ok");
+        assert!(m.is_empty(), "no-move manifest must load as identity");
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    /// PRESENT with a move => `Ok(non-empty bijection)`: the manifest is trusted (its bytes are
+    /// bound to the codemod's deterministic output by the upstream registry-drift/freshness gate).
+    #[test]
+    fn load_present_with_move_is_ok_non_empty() {
+        let root = fresh_repo_root();
+        write_manifest_body(&root, &manifest_with(&[(OLD, NEW)]).to_string());
+        let b =
+            ManifestBijection::load(&root, MOVE_MANIFEST_PATH).expect("present-move must be Ok");
+        assert!(!b.is_empty());
+        assert_eq!(b.old_to_new(OLD), Some(NEW));
+        assert_eq!(b.new_to_old(NEW), Some(OLD));
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    /// ANTI-LAUNDERING (must NOT regress): a PRESENT-but-forged body — a foreign schema OR
+    /// unparseable JSON — stays `Ok(identity)`, NEVER an `Err`. A candidate-supplied forged manifest
+    /// is never trusted; it collapses to identity rather than hard-failing CI on a path other than
+    /// the registry-drift byte-binding that actually catches the forgery.
+    #[test]
+    fn load_present_but_forged_is_ok_identity_not_error() {
+        let root = fresh_repo_root();
+
+        // (a) foreign schema — parses as JSON, wrong schema id.
+        write_manifest_body(
+            &root,
+            r#"{"schema":"attacker/forged/v1","files":[{"old_path":"a","new_path":"b"}]}"#,
+        );
+        let foreign = MoveManifest::load(&root, MOVE_MANIFEST_PATH)
+            .expect("foreign schema must stay Ok (anti-laundering), never Err");
+        assert!(
+            foreign.is_empty(),
+            "forged foreign schema must collapse to identity"
+        );
+
+        // (b) unparseable body — present file, not valid JSON.
+        write_manifest_body(&root, "{ this is not json");
+        let garbage = MoveManifest::load(&root, MOVE_MANIFEST_PATH)
+            .expect("unparseable body must stay Ok (anti-laundering), never Err");
+        assert!(
+            garbage.is_empty(),
+            "unparseable manifest must collapse to identity"
+        );
+
+        // (c) non-UTF-8 body — present file, not decodable JSON text.
+        let path = root.join(MOVE_MANIFEST_PATH);
+        std::fs::write(&path, [0xff, 0xfe, b'{']).unwrap();
+        let non_utf8 = MoveManifest::load(&root, MOVE_MANIFEST_PATH)
+            .expect("non-UTF-8 present body must stay Ok (anti-laundering), never Err");
+        assert!(
+            non_utf8.is_empty(),
+            "non-UTF-8 manifest must collapse to identity"
+        );
+
+        let _ = std::fs::remove_dir_all(&root);
     }
 }
