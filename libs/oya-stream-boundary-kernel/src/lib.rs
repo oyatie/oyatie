@@ -3,7 +3,7 @@
 //! The owned ORDERED-STREAM surface — second of the three single-concern
 //! messaging surfaces (ADR-0536 D-13 queue/stream/bus trichotomy;
 //! ADR-0132 no-grouping) composed over the ONE substrate port
-//! (`oya-messaging-substrate-kernel`).
+//! (`messaging-substrate-kernel`).
 //!
 //! Stream semantics (precedent: Google Pub/Sub seek/replay; Pulsar
 //! cursors over segmented BookKeeper storage):
@@ -27,7 +27,7 @@ use std::fmt;
 use std::num::NonZeroU32;
 use std::time::Duration;
 
-use oya_messaging_substrate_kernel::{
+use messaging_substrate_kernel::{
     AckToken, Delivery, LossClass, MessageConsumer, MessageEnvelope, MessageId, MessageProducer,
     MessagingAdmin, MessagingError, MessagingSubstrate, StreamPosition, SubscriptionName,
     TopicName, TopicSpec,
@@ -196,8 +196,8 @@ impl<S: MessagingSubstrate> StreamReader<'_, S> {
 mod tests {
     use std::collections::BTreeMap;
 
-    use oya_messaging_substrate_kernel::MessageKey;
-    use oya_messaging_substrate_kernel::reference::InMemorySubstrate;
+    use messaging_substrate_kernel::MessageKey;
+    use messaging_substrate_kernel::reference::InMemorySubstrate;
 
     use super::*;
 
