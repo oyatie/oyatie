@@ -144,3 +144,109 @@ fn red_mutations_match_the_retired_python_validator_contracts() {
         "a non-Rust primary execution path must be rejected"
     );
 }
+
+/// Proves the converted CELL-002 slice genuinely enforces (not tautologically
+/// green): a status downgrade and a dropped source ADR must both be caught.
+#[test]
+fn cell_002_slice_rejects_status_downgrade_and_missing_source_adr() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let cell_spec = "specs/cell-002-promotion-automation-contract.json";
+    // The slice must actually be wired into the live policy.
+    assert!(
+        policy["slices"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|s| s["spec_path"] == cell_spec),
+        "CELL-002 slice must be declared in the policy"
+    );
+
+    // status downgrade Proposed-target -> Accepted violates the enum.
+    let mut corpus = live_corpus(&root, &policy);
+    corpus
+        .get_mut(cell_spec)
+        .unwrap()
+        .as_object_mut()
+        .unwrap()
+        .insert("status".to_owned(), json!("Accepted"));
+    assert!(
+        evaluate_configured(&policy, &corpus)
+            .violations
+            .contains("contract_slice_enum_violation"),
+        "a CELL-002 status downgrade must be rejected"
+    );
+
+    // dropping ADR-0341 from source_adrs violates required_array_members.
+    let mut corpus = live_corpus(&root, &policy);
+    corpus
+        .get_mut(cell_spec)
+        .unwrap()
+        .as_object_mut()
+        .unwrap()
+        .insert("source_adrs".to_owned(), json!(["ADR-0348", "ADR-0351"]));
+    assert!(
+        evaluate_configured(&policy, &corpus)
+            .violations
+            .contains("contract_slice_missing_array_member"),
+        "a missing required source ADR must be rejected"
+    );
+}
+
+/// Proves the six-input promotion gate is ENFORCED, not just present: dropping an
+/// input and flipping a refusal_behavior to best-effort must both RED.
+#[test]
+fn cell_002_six_input_promotion_gate_is_enforced() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let cell_spec = "specs/cell-002-promotion-automation-contract.json";
+
+    // Drop G6 and weaken G1's refusal to best-effort.
+    let mut corpus = live_corpus(&root, &policy);
+    corpus.get_mut(cell_spec).unwrap()["promotion_gate"]["six_inputs"] = json!([
+        { "id": "G1_error_budget", "name": "Error budget intact", "source_adr": "ADR-0341",
+          "evidence_authority": "observability", "required_evidence_fields": ["cell_id"],
+          "refusal_behavior": "best_effort" }
+    ]);
+    let violations = evaluate_configured(&policy, &corpus).violations;
+    assert!(
+        violations.contains("contract_slice_missing_object_array_member"),
+        "dropping a promotion-gate input must be rejected: {violations:?}"
+    );
+    assert!(
+        violations.contains("contract_slice_object_member_enum_violation"),
+        "a non-fail-closed promotion-gate input must be rejected: {violations:?}"
+    );
+}
+
+/// Proves the rollback-audit fixture SHAPE is now mechanically enforced (the gap
+/// CodeRabbit flagged): dropping an audit-row field and flipping post_state both RED.
+#[test]
+fn cell_002_rollback_audit_fixture_shape_is_enforced() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let fixture = "specs/fixtures/cell-002-promotion-automation/rollback-audit-row.json";
+
+    let mut corpus = live_corpus(&root, &policy);
+    corpus.get_mut(fixture).unwrap()["audit_row"]
+        .as_object_mut()
+        .unwrap()
+        .remove("rollback_pointer");
+    let report = evaluate_configured(&policy, &corpus);
+    assert!(
+        report.findings.iter().any(|finding| finding.code == "contract_slice_missing_required_field"
+            && finding.key == "cell-002-rollback-audit-fixture:audit_row.rollback_pointer"),
+        "the dropped audit-row field must be rejected with its exact key: {:?}",
+        report.findings
+    );
+
+    let mut corpus = live_corpus(&root, &policy);
+    corpus.get_mut(fixture).unwrap()["audit_row"]["post_state"] = json!("Committed");
+    let report = evaluate_configured(&policy, &corpus);
+    assert!(
+        report.findings.iter().any(|finding| finding.code == "contract_slice_enum_violation"
+            && finding.key == "cell-002-rollback-audit-fixture:audit_row.post_state"),
+        "a fixture whose post_state is not RolledBack must be rejected with its exact key: {:?}",
+        report.findings
+    );
+}
