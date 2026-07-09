@@ -181,7 +181,7 @@ fn render_edit_diff(edit: &Edit, original_text: &str) -> Result<String, AutofixE
     updated.push_str(&edit.replacement);
     updated.push_str(&original_text[end..]);
 
-    Ok(render_whole_file_unified_diff(
+    Ok(render_scoped_unified_diff(
         &edit.path,
         original_text,
         &updated,
@@ -196,38 +196,90 @@ fn render_new_file_diff(new_file: &NewFile) -> String {
     ));
     diff.push_str("--- /dev/null\n");
     diff.push_str(&format!("+++ b/{path}\n", path = new_file.path));
-    diff.push_str(&format!("@@ -0,0 +1,{} @@\n", line_count(&new_file.body)));
-    for line in new_file.body.lines() {
-        diff.push('+');
-        diff.push_str(line);
-        diff.push('\n');
+    let lines = split_lines_preserving_endings(&new_file.body);
+    diff.push_str(&format!("@@ -0,0 +1,{} @@\n", lines.len()));
+    for line in lines {
+        push_diff_line(&mut diff, '+', line);
     }
     diff
 }
 
-fn render_whole_file_unified_diff(path: &str, original: &str, updated: &str) -> String {
+fn render_scoped_unified_diff(path: &str, original: &str, updated: &str) -> String {
+    const CONTEXT_LINES: usize = 3;
+
+    let original_lines = split_lines_preserving_endings(original);
+    let updated_lines = split_lines_preserving_endings(updated);
+    let prefix_len = common_prefix_len(&original_lines, &updated_lines);
+    let suffix_len = common_suffix_len(&original_lines, &updated_lines, prefix_len);
+    let original_changed_end = original_lines.len() - suffix_len;
+    let updated_changed_end = updated_lines.len() - suffix_len;
+    let context_start = prefix_len.saturating_sub(CONTEXT_LINES);
+    let suffix_context_len = CONTEXT_LINES.min(suffix_len);
+    let original_context_end =
+        (original_changed_end + suffix_context_len).min(original_lines.len());
+    let updated_context_end = (updated_changed_end + suffix_context_len).min(updated_lines.len());
+    let original_count = original_context_end - context_start;
+    let updated_count = updated_context_end - context_start;
+
     let mut diff = String::new();
     diff.push_str(&format!("diff --git a/{path} b/{path}\n"));
     diff.push_str(&format!("--- a/{path}\n"));
     diff.push_str(&format!("+++ b/{path}\n"));
     diff.push_str(&format!(
-        "@@ -1,{} +1,{} @@\n",
-        line_count(original),
-        line_count(updated)
+        "@@ -{},{} +{},{} @@\n",
+        hunk_start(context_start, original_count),
+        original_count,
+        hunk_start(context_start, updated_count),
+        updated_count
     ));
-    for line in original.lines() {
-        diff.push('-');
-        diff.push_str(line);
-        diff.push('\n');
+    for line in &original_lines[context_start..prefix_len] {
+        push_diff_line(&mut diff, ' ', line);
     }
-    for line in updated.lines() {
-        diff.push('+');
-        diff.push_str(line);
-        diff.push('\n');
+    for line in &original_lines[prefix_len..original_changed_end] {
+        push_diff_line(&mut diff, '-', line);
+    }
+    for line in &updated_lines[prefix_len..updated_changed_end] {
+        push_diff_line(&mut diff, '+', line);
+    }
+    for line in &original_lines[original_changed_end..original_context_end] {
+        push_diff_line(&mut diff, ' ', line);
     }
     diff
 }
 
-fn line_count(text: &str) -> usize {
-    text.lines().count()
+fn split_lines_preserving_endings(text: &str) -> Vec<&str> {
+    text.split_inclusive('\n').collect()
+}
+
+fn common_prefix_len<'a>(left: &[&'a str], right: &[&'a str]) -> usize {
+    left.iter()
+        .zip(right.iter())
+        .take_while(|(left, right)| left == right)
+        .count()
+}
+
+fn common_suffix_len<'a>(left: &[&'a str], right: &[&'a str], prefix_len: usize) -> usize {
+    left[prefix_len..]
+        .iter()
+        .rev()
+        .zip(right[prefix_len..].iter().rev())
+        .take_while(|(left, right)| left == right)
+        .count()
+}
+
+fn hunk_start(zero_based_start: usize, count: usize) -> usize {
+    if count == 0 {
+        zero_based_start
+    } else {
+        zero_based_start + 1
+    }
+}
+
+fn push_diff_line(diff: &mut String, marker: char, line: &str) {
+    diff.push(marker);
+    diff.push_str(line);
+    if !line.ends_with('\n') {
+        diff.push('\n');
+        diff.push_str("\\ No newline at end of file\n");
+    }
 }
