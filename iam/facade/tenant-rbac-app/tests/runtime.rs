@@ -13,12 +13,12 @@ use iam_tenant_rbac_api::{
     TenantRbacWriteKindDto, WorkflowRoutingOwnerDto,
 };
 use iam_tenant_rbac_app::{
-    ConfiguredBearerPrincipalVerifier, DecisionAuthorizer,
+    CallerCredential, ConfiguredBearerPrincipalVerifier, DecisionAuthorizer,
     TENANT_RBAC_CROSS_SERVICE_WORKFLOW_PLANS_PATH, TENANT_RBAC_GROUP_CLOSE_ROLLUPS_PATH,
     TENANT_RBAC_HEALTH_PATH, TENANT_RBAC_INCIDENT_ROLLBACK_PLANS_PATH,
     TENANT_RBAC_OPS_COMMANDS_PATH, TENANT_RBAC_POLICY_ADMISSIONS_PATH, TenantRbacAuthzProvider,
     TenantRbacMutationAction, TenantRbacMutationAuthorizationError, TenantRbacMutationAuthorizer,
-    TenantRbacMutationResource, VerifiedPrincipal, dispatch_tenant_rbac_request,
+    TenantRbacMutationResource, PrincipalVerifier, VerifiedPrincipal, dispatch_tenant_rbac_request,
     tenant_rbac_runtime_routes, tenant_rbac_server_config,
 };
 use oya_http_middleware_kernel::HttpRequest;
@@ -234,6 +234,31 @@ fn tenant_rbac_runtime_decision_authorizer_fails_closed_on_pdp_deny_and_error() 
         test_provider_with_authorizer(DecisionAuthorizer::new(Arc::new(RecordingPdp::error()))),
     );
     assert_eq!(errored.status, 403);
+}
+
+#[test]
+fn decision_authorizer_refuses_tenant_mismatch_before_pdp() {
+    let verifier =
+        ConfiguredBearerPrincipalVerifier::new(BEARER_SECRET, "sp_tenant_rbac", BOUND_TENANT)
+            .expect("verifier construction failed");
+    let principal = verifier
+        .verify_principal(&CallerCredential {
+            authorization: Some(format!("Bearer {BEARER_SECRET}")),
+        })
+        .expect("principal verifies");
+    let pdp = Arc::new(RecordingPdp::allow());
+    let authorizer = DecisionAuthorizer::new(pdp.clone());
+    let resource = TenantRbacMutationResource {
+        tenant_id: "ten_other".to_owned(),
+        action: TenantRbacMutationAction::PolicyAdmission,
+        route_template: TENANT_RBAC_POLICY_ADMISSIONS_PATH.to_owned(),
+    };
+
+    assert_eq!(
+        authorizer.ensure_authorized(&principal, &resource),
+        Err(TenantRbacMutationAuthorizationError::Refused)
+    );
+    assert!(pdp.captured().is_empty());
 }
 
 #[test]
