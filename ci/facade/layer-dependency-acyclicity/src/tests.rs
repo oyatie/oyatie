@@ -268,9 +268,16 @@ fn self_loop_is_a_cycle() {
 fn empty_scan_below_floor_is_a_regression() {
     let mut pol = policy();
     pol["min_expected_crates"] = json!(100);
+    let subject = "cloud/s/crates/oya-s -> oya/p/crates/oya-p";
     let obs = corpus(&[], &[], &[]);
-    let report = evaluate(&pol, &baseline(&[]), &obs);
+    let report = evaluate(&pol, &baseline(&[("TDA-SUBSTRATE-UPWARD", subject)]), &obs);
     assert!(report.findings.iter().any(|f| f.code == "TDA-EMPTY-SCAN"));
+    assert!(
+        !report.findings.iter().any(|f| f.code == "TDA-STALE-BASELINE"),
+        "broken scans should report the scan root cause, not phantom stale rows: {:?}",
+        report.findings
+    );
+    assert_eq!(report.burned_down, 0, "broken scans must not report fake burn-down");
     assert_eq!(report.verdict, Verdict::Red);
 }
 
