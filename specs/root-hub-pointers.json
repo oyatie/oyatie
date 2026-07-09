@@ -1105,6 +1105,13 @@
       "conflict_class": "repo-governance-specs-docs",
       "purpose": "CELL-001R manifest contract for cell tier, residency class, region disposition, storage class, and quarterly isolation evidence handles. Validation is owned by a cloud-ci Rust gate; retired local command output is provenance only."
     },
+    "spec_cell_002_promotion_automation_contract": {
+      "current_path": "/specs/cell-002-promotion-automation-contract.json",
+      "kind": "spec",
+      "migration_phase": "root-hub-covered-2026-07-09-cell-002",
+      "conflict_class": "repo-governance-specs-docs",
+      "purpose": "CELL-002 service-plan and fixture-only contract tying ADR-0351 cell-lifecycle/cell-rebalancer boundaries to ADR-0341 six-input promotion gates, ADR-0348 sharding_automation manifest checks, residency-honoring rebalance filters, and rollback audit-row fixture shape without runtime mutation or readiness claims."
+    },
     "spec_chaos_engineering_substrate_canonical": {
       "current_path": "/specs/chaos-engineering-substrate-canonical.json",
       "kind": "spec",
