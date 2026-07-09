@@ -1,0 +1,27 @@
+[package]
+name = "ci-gate-self-conformance"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "cloud-ci"
+kind = "shared"
+layer = "app"
+purpose = "Cloud CI meta-gate enforcing gate self-conformance for the pipeline-as-product bar. The Rust engine is shape-neutral and evaluates policy-as-data: current repo gate roots, non-gate producers, no-autofix reasons, and explicitly baselined orchestrator exceptions live in gate-self-conformance-policy.json. It blocks unregistered Buck2 gate wiring, missing fix/no-fix contracts, non-hermetic gate production code without declared cutover metadata, and hardcoded product-shape path literals outside policy inputs."
+
+[lib]
+name = "ci_gate_self_conformance"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde_json = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

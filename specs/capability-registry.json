@@ -304,6 +304,7 @@
         "delivery fabric"
       ],
       "absorbs_current_dirs": [
+        "ci",
         "cloud/cloud-ci",
         "oya/ci-controller",
         "oya/ci-tide",

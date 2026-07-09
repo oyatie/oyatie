@@ -38,7 +38,7 @@ dedicated cloud-ci job as the canonical admission signal.
 
 ## Decision
 
-Add `cloud/cloud-ci/gates/oya-cloud-ci-freshness-app` as a single-concern Rust gate.
+Add `ci/facade/generated-artifact-freshness` as a single-concern Rust gate.
 
 NAME: oya-cloud-ci-freshness-app
 JUSTIFICATION:
@@ -57,7 +57,7 @@ The gate enforces two freshness classes:
   violation codes are `lock_missing_member_package`, `lock_stale_member_version`, and
   `lock_orphan_path_package`.
 - **Generated-face freshness:** rebuild the same Buck2 targets used by
-  `buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin`, regenerate the SCM facts face plus the
+  `buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin`, regenerate the SCM facts face plus the
   accounting-registry producer faces, and byte-diff them against the committed
   `*.generated.json` files. The violation code is `generated_face_stale`.
 
@@ -65,7 +65,7 @@ Failure output MUST include the exact remediation commands:
 
 ```text
 cargo metadata >/dev/null
-buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
+buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
 ```
 
 Register `cloud-ci-freshness` as `frozen-empty-meta` in the oya-ci config and disposition table.
@@ -84,14 +84,14 @@ freshness check for those cloud-ci faces.
 
 | Path / Crate | Change type | BNF v4.1 name | Layer |
 |---|---|---|---|
-| `cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/` | create | `oya-cloud-ci-freshness-app` | app |
-| `cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/bin/oya-cloud-ci-materialize-generated-faces.rs` | add Rust/Buck2 generated-face materializer bridge | `oya-cloud-ci-materialize-generated-faces` | app |
+| `ci/facade/generated-artifact-freshness/` | create | `oya-cloud-ci-freshness-app` | app |
+| `ci/facade/generated-artifact-freshness/src/bin/oya-cloud-ci-materialize-generated-faces.rs` | add Rust/Buck2 generated-face materializer bridge | `oya-cloud-ci-materialize-generated-faces` | app |
 | `marketplace/facade/dev-cli/src/freshness_gate.rs` | create bridge module | `marketplace-dev-cli` | cli |
 | `.github/workflows/oya-ci-required.yml` | add independent freshness job and fan-in need | - | - |
 | `oya-ci.toml` | register `cloud-ci-freshness` | - | - |
 | `libs/oya-ci-config/src/bundled/gate-disposition.json` | add frozen-empty freshness dispositions | - | - |
 | `docs/oya-ci/gate-catalog.md` | document gate, input kind, key shapes, and frozen-empty codes | - | - |
-| `cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app/` | allow declared materialized generated artifact edits | `oya-cloud-ci-generated-artifact-control-plane-app` | app |
+| `ci/facade/generated-artifact-policy/` | allow declared materialized generated artifact edits | `oya-cloud-ci-generated-artifact-control-plane-app` | app |
 | `registry/generated-artifact-control-plane.json` | document declared materialized artifact freshness policy | - | - |
 
 ### Integration via Workflow + Ontology
@@ -122,7 +122,7 @@ events, consume Workflow events, or write Ontology objects.
 - Canonical CI: `.github/workflows/oya-ci-required.yml` runs `gate-freshness` independently, with
   no `needs` edges to the other jobs, and folds it into the `oya-ci-required` fan-in result.
 - Generated faces remain generator-owned. Contributors must run
-  `buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .`; they must not hand-edit
+  `buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .`; they must not hand-edit
   `*.generated.json`.
 
 ## Clean Architecture Impact

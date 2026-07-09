@@ -47,6 +47,26 @@ enum Commands {
         #[arg(long)]
         reverse: bool,
     },
+    /// Move-aware Cargo.lock maintenance: rename crates, register newly-created
+    /// local members, and re-canonicalize into Cargo's package/dependency order
+    /// — the owned replacement for `cargo metadata` in a capability move (no
+    /// version resolution, no Cargo in the authoring loop).
+    LockfileMove {
+        /// Path to TSV file: old-name<TAB>new-name per line.
+        #[arg(long)]
+        rename_map: String,
+        /// Path to JSON graph-additions object:
+        /// `{"new_members":[{"name","version","dependencies":[..]}],
+        ///   "add_dependencies":[{"package","add":[..]}]}`. Optional.
+        #[arg(long)]
+        graph_additions: Option<String>,
+        /// Path to Cargo.lock to rewrite.
+        #[arg(long)]
+        lockfile: String,
+        /// Rewrite in place (default: print to stdout).
+        #[arg(long)]
+        inplace: bool,
+    },
     /// Check that all workspace crates have valid [package.metadata.oya] blocks.
     RegistryCheck,
     /// Check that [lib] name matches snake_case of [package] name for all crates.
@@ -83,6 +103,17 @@ fn main() -> Result<()> {
             inplace,
             reverse,
         } => lockfile_rename::run_lockfile_rename(&rename_map, &lockfile, inplace, reverse),
+        Commands::LockfileMove {
+            rename_map,
+            graph_additions,
+            lockfile,
+            inplace,
+        } => lockfile_rename::run_lockfile_move(
+            &rename_map,
+            graph_additions.as_deref(),
+            &lockfile,
+            inplace,
+        ),
         Commands::RegistryCheck => registry_check(),
         Commands::LibNameCheck => lib_name_check(),
         Commands::GenerateRenameMap {

@@ -29,7 +29,7 @@ one-way commitment that no future control-plane edit can silently revert).**
 
 ### The #828 → #830 incident (root cause)
 
-The firewall ratchet (`cloud/cloud-ci/gates/oya-cloud-ci-firewall-app`) is a shrink-only
+The firewall ratchet (`ci/facade/baseline-ratchet`) is a shrink-only
 merge-base baseline ratchet (ADR-0551). It materializes its FROZEN reference — the enumerated
 set of currently-failing keys — from the committed git blob at the merge-base:
 
@@ -38,8 +38,8 @@ git show <merge_base>:<frozen_reference.face_path>
 ```
 
 where `frozen_reference.face_path` is declared as DATA in
-`cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/ratchet-policy.json`. Today that path is
-`cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json`.
+`ci/facade/baseline-ratchet/ratchet-policy.json`. Today that path is
+`ci/facade/artifact-inventory-registry/gate-baseline.generated.json`.
 
 ADR-0595 de-committed six pure-derivation accounting faces (they are content-addressed
 projections of the candidate tree, re-derived at gate-time, so they are not contributor merge

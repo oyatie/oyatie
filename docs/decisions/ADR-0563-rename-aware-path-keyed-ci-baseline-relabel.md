@@ -111,7 +111,7 @@ anti-laundering safety is **load-bearing on the move-manifest's registry-drift b
 old->new pair REDs at registry-drift BEFORE the firewall runs, so this relabel can only relocate
 an already-accepted entry and can never admit new debt. Inert without a committed move-plan
 (`file_pairs` empty ⇒ strict byte-identical no-op), so this amendment changes no materialized
-face on non-move PRs. `cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app/src/main.rs`
+face on non-move PRs. `ci/facade/scm-facts-snapshot/src/main.rs`
 carries the function + the split dispatch + seven unit pins (marketplace-shaped relabel, P1/P2/P3/
 collision fail-closed, mixed per-DIR + per-FILE independence, empty-manifest inert) with a
 non-vacuity canary proving the marketplace pin fails without the C2 dispatch line.
@@ -126,17 +126,30 @@ non-vacuity canary proving the marketplace pin fails without the C2 dispatch lin
   subsequent move PR that commits the observability move plan.
 - Reachability + justification: the committed move-manifest face
   `specs/reorg/move-manifest.generated.json` is justified by this ADR and reachable via the
-  `specs/reorg/` reachability-registry entry (ADR-0555 born-accounting).
+  `specs/reorg/` reachability-registry entry (ADR-0555 born-accounting). The first capability
+  move to exercise the machinery — the ci keystone (`cloud/cloud-ci/gates` → `ci/facade/`,
+  ADR-0562) — commits its per-capability plan `specs/reorg/ci-move-plan.json`, likewise
+  justified by this ADR and reachable via the same `specs/reorg/` entry. That same move also
+  commits its Cargo.lock graph-additions companion `specs/reorg/ci-graph-additions.json` — the
+  new local members and dependency edges the move introduces beyond the renames, consumed WITH
+  the plan by the owned `oya-xtask-metadata-augment lockfile-move` maintenance (deterministic
+  text/graph transform, no cargo, no version resolution) — likewise justified by this ADR and
+  reachable via the same `specs/reorg/` entry. The relabel resolves
+  every path through the move-stable `PathId` port + manifest adapter (the keystone's proven
+  security core): `ci/ports/path-resolver/src/lib.rs`, `ci/ports/path-resolver/Cargo.toml`,
+  `ci/ports/path-resolver/BUCK`, `ci/adapters/path-resolver/src/lib.rs`,
+  `ci/adapters/path-resolver/Cargo.toml`, and `ci/adapters/path-resolver/BUCK` — all justified
+  by this ADR as the load-bearing resolution seam of the rename-aware relabel.
 
 ## Files
 
-- `cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app/src/main.rs` — the relabel pass.
+- `ci/facade/scm-facts-snapshot/src/main.rs` — the relabel pass.
 - `tools/oya-reorg-codemod-app/src/model.rs` and `tools/oya-reorg-codemod-app/src/main.rs` — the move-manifest emitter.
 - `specs/reorg/move-manifest.generated.json` — the committed bijection face.
 - `registry/generated-artifact-control-plane.json` — the anti-forgery declaration.
 - `libs/oya-check-brand-residue/src/forbidden_vocab.rs` — the occurrence-identity SSOT.
-- `buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin` — the codemod->emitter->producer ordering.
-- `cloud/cloud-ci/gates/registry-drift/tests/registry_drift.rs` — the committed==regenerated coverage for the move-manifest face.
+- `buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin` — the codemod->emitter->producer ordering.
+- `ci/facade/inventory-registry-drift/tests/registry_drift.rs` — the committed==regenerated coverage for the move-manifest face.
 
 The firewall-invariance fixtures pinning the relabeled-frozen-face behavior (the firewall is
 content-blind, so they use opaque residue codes):

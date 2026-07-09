@@ -52,7 +52,7 @@ members = [
 ]
 exclude = [
   "cloud/cloud-kernel",
-  "cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app",
+  "ci/facade/automation-language-policy",
 ]
 ```
 
@@ -63,7 +63,7 @@ patterns, requires a matched directory to contain `Cargo.toml`, and applies `exc
 subtree.
 
 The cloud-ci floor adds one single-concern gate,
-`cloud/cloud-ci/gates/oya-cloud-ci-workspace-glob-coverage-app`, with stable violation codes:
+`ci/facade/workspace-member-coverage`, with stable violation codes:
 
 - `workspace_member_explicit_path`: a root workspace member entry is not a glob.
 - `crate_dir_not_covered`: a tracked first-party package manifest directory is neither covered by
@@ -85,8 +85,8 @@ access, no Cargo invocation, and no duplicated glob expansion.
 | `marketplace/facade/dev-cli/src/workspace_manifest.rs` | migrate parser to kernel | `marketplace-dev-cli` | cli |
 | `marketplace/facade/dev-cli/src/workspace_topology_gate.rs` | consume expanded members and skip nested workspaces | `marketplace-dev-cli` | cli |
 | `tools/oya-xtask-metadata-augment-app/src/metadata.rs` | migrate metadata member enumeration to kernel | `oya-xtask-metadata-augment-app` | app |
-| `cloud/cloud-ci/gates/oya-cloud-ci-workspace-glob-coverage-app/` | create gate crate | `oya-cloud-ci-workspace-glob-coverage-app` | app |
-| `cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/` | emit producer face and baseline keys | `oya-cloud-ci-accounting-registry-app` | app |
+| `ci/facade/workspace-member-coverage/` | create gate crate | `oya-cloud-ci-workspace-glob-coverage-app` | app |
+| `ci/facade/artifact-inventory-registry/` | emit producer face and baseline keys | `oya-cloud-ci-accounting-registry-app` | app |
 | `libs/oya-ci-config/` and `oya-ci.toml` | register gate face and disposition data | `oya-ci-config-kernel` | kernel |
 | `.github/workflows/oya-ci-required.yml` | add one gate matrix line | - | - |
 
@@ -133,9 +133,9 @@ not introduce new Workflow events or Ontology writes.
 ## Verification
 
 - `buck2 test //libs/oya-workspace-members-kernel:oya-workspace-members-kernel-unittest`
-- `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-workspace-glob-coverage-app:oya-cloud-ci-workspace-glob-coverage-app-unittest`
-- `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-workspace-glob-coverage-app:oya-cloud-ci-workspace-glob-coverage-app-gate`
-- `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin-unittest`
+- `buck2 test //ci/facade/workspace-member-coverage:oya-cloud-ci-workspace-glob-coverage-app-unittest`
+- `buck2 test //ci/facade/workspace-member-coverage:oya-cloud-ci-workspace-glob-coverage-app-gate`
+- `buck2 test //ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin-unittest`
 - `cargo metadata --format-version 1 --no-deps` before/after member-set equivalence proof recorded
   in the PR body.
 - Follow-up fail-closed producer-evidence guard:

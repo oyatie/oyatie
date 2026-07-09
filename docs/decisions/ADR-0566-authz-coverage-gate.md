@@ -45,18 +45,18 @@ dogfoods the cloud-iam Cedar PDP as the canonical authz substrate (ADR-0559).
 ## Decision
 
 Ship a **self-contained cloud-ci gate**, `cloud-ci-authz-coverage`
-(`cloud/cloud-ci/gates/oya-cloud-ci-authz-coverage-app`), mirroring the kernel-purity (ADR-0547)
+(`ci/facade/endpoint-authorization-coverage`), mirroring the kernel-purity (ADR-0547)
 registration footprint: own crate, own policy JSON, one appended matrix line in
 `.github/workflows/oya-ci-required.yml`, no `libs/oya-ci-config` edit, no producer-face binding.
 
 The gate's neutral Rust engine lives in
-`cloud/cloud-ci/gates/oya-cloud-ci-authz-coverage-app/src/lib.rs` (the I/O collector
+`ci/facade/endpoint-authorization-coverage/src/lib.rs` (the I/O collector
 `collect_surfaces(root, policy)` + the pure `evaluate_keyed(policy, observed)`), the binary in
-`cloud/cloud-ci/gates/oya-cloud-ci-authz-coverage-app/src/main.rs`, the live-corpus + RED/GREEN
-self-test in `cloud/cloud-ci/gates/oya-cloud-ci-authz-coverage-app/tests/authz_coverage.rs`, its
-buck2 wiring in `cloud/cloud-ci/gates/oya-cloud-ci-authz-coverage-app/BUCK`, its manifest in
-`cloud/cloud-ci/gates/oya-cloud-ci-authz-coverage-app/Cargo.toml`, and ALL repo-specifics as DATA
-in `cloud/cloud-ci/gates/oya-cloud-ci-authz-coverage-app/authz-coverage-policy.json`.
+`ci/facade/endpoint-authorization-coverage/src/main.rs`, the live-corpus + RED/GREEN
+self-test in `ci/facade/endpoint-authorization-coverage/tests/authz_coverage.rs`, its
+buck2 wiring in `ci/facade/endpoint-authorization-coverage/BUCK`, its manifest in
+`ci/facade/endpoint-authorization-coverage/Cargo.toml`, and ALL repo-specifics as DATA
+in `ci/facade/endpoint-authorization-coverage/authz-coverage-policy.json`.
 
 ### D1 — What is a control-plane surface
 

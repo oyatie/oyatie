@@ -167,13 +167,13 @@ library, which the manifest legs + the `Cargo.lock` leg DO catch. This also clos
 artifact-EXTENSION axis the "Follow-up and staging" item above tracked as an interim gap.
 
 This ADR OWNS and JUSTIFIES the gate crate; its verbatim tracked paths are:
-`cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/Cargo.toml`,
-`cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/BUCK`,
-`cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/OWNERS`,
-`cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/no-graphql-without-adr-policy.json`,
-`cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/src/lib.rs`,
-`cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/src/main.rs`, and
-`cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/tests/no_graphql_without_adr.rs`.
+`ci/facade/graphql-usage-policy/Cargo.toml`,
+`ci/facade/graphql-usage-policy/BUCK`,
+`ci/facade/graphql-usage-policy/OWNERS`,
+`ci/facade/graphql-usage-policy/no-graphql-without-adr-policy.json`,
+`ci/facade/graphql-usage-policy/src/lib.rs`,
+`ci/facade/graphql-usage-policy/src/main.rs`, and
+`ci/facade/graphql-usage-policy/tests/no_graphql_without_adr.rs`.
 
 ## Rationale
 

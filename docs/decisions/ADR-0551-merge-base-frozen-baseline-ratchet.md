@@ -64,7 +64,7 @@ Two in-tree comments already named this hole as the "merge-base ratchet" follow-
    merged siblings, which the merge queue reconciles in its own projected state.
 
 2. **Policy-as-data (R0).** The comparison root is configurable in
-   `cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/ratchet-policy.json`:
+   `ci/facade/baseline-ratchet/ratchet-policy.json`:
    `base_ref` (default `origin/dev`) plus the face path and snapshot out-path. Adopting
    repositories repoint `base_ref` to their integration branch; no code change.
 
@@ -75,11 +75,11 @@ Two in-tree comments already named this hole as the "merge-base ratchet" follow-
    (`schema oya-ci/merge-base-baseline/v2`: base_ref, merge_base, face_path,
    frozen_policy_source, missing_at_merge_base, baseline — see Verification → Hardening for
    the v2 frozen-policy-wins fields) to
-   `cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.merge-base.generated.json`.
+   `ci/facade/baseline-ratchet/gate-baseline.merge-base.generated.json`.
    The snapshot is untracked and gitignored: it varies with the base branch position, so it
    can never be a committed face; its `.generated.json` suffix makes any force-add a
    generated-output-diff-policy rejection; CI rematerializes it before gates consume it
-   (`buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin`, the canonical remediation command).
+   (`buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin`, the canonical remediation command).
    No buck2 action calls git; the firewall gate only parses the snapshot.
 
 4. **Fail-closed everywhere.** An unresolvable `base_ref` or merge-base is a hard emitter
@@ -119,7 +119,7 @@ Pure-predicate fixtures under `specs/fixtures/cloud-ci-firewall/`:
 - `specs/fixtures/cloud-ci-firewall/tc-FW-bad-mode-flip-does-not-disarm.json` — a same-PR
   mode flip cannot disarm a code that was blocking at the merge-base (RED).
 
-Live-corpus pins in `cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/firewall.rs`:
+Live-corpus pins in `ci/facade/baseline-ratchet/tests/firewall.rs`:
 `firewall_blocks_same_pr_baseline_regen_laundering` keeps the historical hole as an
 executable FOIL (PR-local reference stays green on laundering; the frozen reference goes
 red), and `frozen_snapshot_provenance_matches_ratchet_policy` audits WHICH frozen point the
@@ -174,7 +174,7 @@ trust gaps from the PR #698 independent review):
   ONLY under the old frozen-veto predicate (binding evidence the bug class is now caught at
   PR time). Per the founder automation-default directive (2026-06-12: red-gating alone is not
   enough), the PROVABLY-dead retirement is automated: `oya-cloud-ci-firewall-signoff-fixer
-  --fix` (`cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/src/main.rs`) derives and applies
+  --fix` (`ci/facade/baseline-ratchet/src/main.rs`) derives and applies
   it through the one existing door parser/detector, with reparse-and-refuse self-validation
   and a grouped audit record appended to `_sign_off_retirements`; the gate failure prints
   exactly that command (`SIGNOFF_FIXER_COMMAND`).

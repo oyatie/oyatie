@@ -49,7 +49,7 @@
 //!
 //! ## Canonical serialization (single-owner coupling, ADR-0546)
 //! Output rows are canonically serialized: the ADR-0546 canonical-json kernel
-//! (`oya_cloud_ci_canonical_json_app::canonicalize`) is the single owner of escaping, key order,
+//! (`ci_canonical_json::canonicalize`) is the single owner of escaping, key order,
 //! and number-lexeme preservation. The ledger row form pins `sort_keys=true` (stable field order),
 //! `ensure_ascii=false` (literal UTF-8 — the repo's settled ADR-0546 dialect), LF. The kernel only
 //! emits a pretty (multi-line) form, so this crate adds exactly one documented projection,
@@ -84,7 +84,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 
-use oya_cloud_ci_canonical_json_app::{CanonError, CanonicalForm, Newline, canonicalize};
+use ci_canonical_json::{CanonError, CanonicalForm, Newline, canonicalize};
 use serde_json::Value;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -1,0 +1,47 @@
+[package]
+name = "ci-layer-dependency-acyclicity"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "cloud-ci"
+kind = "shared"
+layer = "app"
+purpose = "Cloud CI tier-dependency acyclicity gate (Phase-0 capability-first reorg; ADR-0245/0280/0562). Enforces the ADR-0245 tier dependency rules + the ADR-0280 intra-substrate S-rank rule + a Tarjan cycle backstop over the REAL crate dependency graph read from BOTH surfaces — cargo (path-deps + workspace membership) AND buck (deps/visibility targets). Born ADVISORY against a FROZEN baseline of pre-existing substrate-inversions (the reorg's burn-down target); blocks ONLY on a NEW regression. Flips to fully blocking when the baseline reaches zero."
+
+# cloud-ci-tier-dependency-acyclicity (Phase-0 capability-first reorg; ADR-0245/0280/0562). Projects
+# every first-party crate -> its service's (tier, tier_subtype, stratum) via the per-service
+# manifest.json tier facet (ADR-0245) + the ADR-0562 capability registry, reads the dependency graph
+# from BOTH cargo (path-deps + workspace membership) AND buck (deps/visibility), and asserts the
+# ADR-0245 cross-tier rules + the ADR-0280 intra-substrate S-rank rule + a Tarjan cycle backstop. The
+# PRE-MOVE tree carries pre-existing tier violations (the substrate-inversions the reorg fixes), so
+# the gate is born ADVISORY vs a FROZEN baseline and enforces NO REGRESSION; it flips to blocking when
+# the baseline burns down to zero. Born pack-shaped: rules + governed roots + S-rank order are DATA in
+# tier-dependency-acyclicity-policy.json; the frozen debt is DATA in
+# tier-dependency-acyclicity-baseline.json. ADR-0083 Tier-3: production code carries no
+# unwrap/expect/panic.
+
+[lib]
+name = "ci_layer_dependency_acyclicity"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "oya-cloud-ci-tier-dependency-acyclicity"
+path = "src/main.rs"
+
+[dependencies]
+serde_json = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[[test]]
+name = "tier_dependency_acyclicity"
+path = "tests/tier_dependency_acyclicity.rs"
+
+[lints]
+workspace = true

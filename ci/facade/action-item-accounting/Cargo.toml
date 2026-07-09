@@ -1,0 +1,29 @@
+[package]
+name = "ci-action-item-accounting"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "cloud-ci"
+kind = "shared"
+layer = "app"
+purpose = "Cloud CI meta-gate enforcing closed-loop friction-ledger accounting: every friction row must terminate in a gate, an automation, or an explicit accepted-risk entry with evidence."
+
+# cloud-ci-friction-accounting (ADR-0544): pure policy over the collected friction ledger. The crate
+# owns the read-only ledger collection; the pure evaluator folds the event-sourced append rows and
+# rejects schema-invalid, undisposed, or closed-without-evidence frictions. Born pack-shaped: all
+# repo-specifics live in friction-accounting-policy.json.
+
+[lib]
+name = "ci_action_item_accounting"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true
