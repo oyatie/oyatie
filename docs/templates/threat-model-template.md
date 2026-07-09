@@ -37,7 +37,7 @@ What is being threat-modeled. One paragraph.
 - (between Oyatie / external service-provider)
 - (between human / agent)
 
-## 4. Actors (per [SECURITY-PROGRAM §1.1](../security-program.json))
+## 4. Actors (per [security-program.json §1.1](../security-program.json))
 
 | Actor | Motivation | Capabilities | Likelihood | Worst-case impact |
 |---|---|---|---|---|
@@ -45,7 +45,7 @@ What is being threat-modeled. One paragraph.
 | Cybercriminal | ransomware | phishing + lateral | | |
 | Insider (engineer) | accidental / IP theft | repo + cloud admin | | |
 | Insider (operator) | misconfig | cloud control plane | | |
-| Foundry agent (rogue or hijacked) | privilege escalation via tool use | capability invocation | | |
+| Intelligence agent (rogue or hijacked) | privilege escalation via tool use | capability invocation | | |
 | Tenant adversary | cross-tenant access | authenticated user | | |
 | Plugin author (malicious) | sandbox escape | plugin runtime | | |
 | Regulator (subpoena) | compelled disclosure | legal process | | |
@@ -57,7 +57,7 @@ What is being threat-modeled. One paragraph.
 |---|---|---|---|---|---|---|
 | (per surface enumerated) | | | | | | |
 
-## 6. Mitigations applied (cross-reference SECURITY-PROGRAM)
+## 6. Mitigations applied (cross-reference security-program.json)
 
 - mTLS via service mesh per ADR-0044
 - KMS-shred encryption at rest per ADR-0043
