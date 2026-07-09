@@ -232,19 +232,21 @@ fn cell_002_rollback_audit_fixture_shape_is_enforced() {
         .as_object_mut()
         .unwrap()
         .remove("rollback_pointer");
+    let report = evaluate_configured(&policy, &corpus);
     assert!(
-        evaluate_configured(&policy, &corpus)
-            .violations
-            .contains("contract_slice_missing_required_field"),
-        "a missing audit-row field must be rejected"
+        report.findings.iter().any(|finding| finding.code == "contract_slice_missing_required_field"
+            && finding.key == "cell-002-rollback-audit-fixture:audit_row.rollback_pointer"),
+        "the dropped audit-row field must be rejected with its exact key: {:?}",
+        report.findings
     );
 
     let mut corpus = live_corpus(&root, &policy);
     corpus.get_mut(fixture).unwrap()["audit_row"]["post_state"] = json!("Committed");
+    let report = evaluate_configured(&policy, &corpus);
     assert!(
-        evaluate_configured(&policy, &corpus)
-            .violations
-            .contains("contract_slice_enum_violation"),
-        "a fixture whose post_state is not RolledBack must be rejected"
+        report.findings.iter().any(|finding| finding.code == "contract_slice_enum_violation"
+            && finding.key == "cell-002-rollback-audit-fixture:audit_row.post_state"),
+        "a fixture whose post_state is not RolledBack must be rejected with its exact key: {:?}",
+        report.findings
     );
 }
