@@ -447,6 +447,24 @@ pub enum IngestOutcome {
     Duplicate,
 }
 
+/// One row in a batch ingest request: a usage record plus the trusted
+/// pipeline arrival time used for lateness enforcement.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BatchUsageRecord {
+    pub record: UsageRecord,           // data_class: INTERNAL_ONLY
+    pub arrived_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+}
+
+/// Per-row result from batch ingest. Batch ingest is not silent best-effort:
+/// each input row receives either its idempotent outcome or its typed
+/// rejection/conflict reason, while other rows continue through the same
+/// sink contract.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BatchIngestResult {
+    pub key: DedupKey, // data_class: INTERNAL_ONLY
+    pub outcome: Result<IngestOutcome, MeteringPipelineError>, // data_class: INTERNAL_ONLY
+}
+
 // =====================================================================
 // The sink port
 // =====================================================================
@@ -482,6 +500,26 @@ pub trait MeteringSink {
     /// Returns [`MeteringPipelineError::SinkUnavailable`] on transient
     /// failure.
     fn lookup(&self, key: &DedupKey) -> Result<Option<UsageRecord>, MeteringPipelineError>;
+
+    /// Idempotently ingests a batch of hourly usage rows.
+    ///
+    /// The default contract intentionally delegates every row to
+    /// [`MeteringSink::ingest`] so duplicate, conflict, future, late, and
+    /// sink-unavailable behavior cannot diverge from the single-row path.
+    /// A rejected row is reported in its own [`BatchIngestResult`] and is
+    /// not allowed to silently drop, overwrite, or stop later independent
+    /// rows in the batch.
+    #[must_use]
+    fn ingest_batch(&self, records: &[BatchUsageRecord]) -> Vec<BatchIngestResult> {
+        records
+            .iter()
+            .map(|entry| {
+                let key = entry.record.dedup_key();
+                let outcome = self.ingest(entry.record.clone(), entry.arrived_at_epoch_seconds);
+                BatchIngestResult { key, outcome }
+            })
+            .collect()
+    }
 }
 
 #[cfg(test)]
