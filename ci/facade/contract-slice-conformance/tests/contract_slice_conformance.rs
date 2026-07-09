@@ -144,3 +144,51 @@ fn red_mutations_match_the_retired_python_validator_contracts() {
         "a non-Rust primary execution path must be rejected"
     );
 }
+
+/// Proves the converted CELL-002 slice genuinely enforces (not tautologically
+/// green): a status downgrade and a dropped source ADR must both be caught.
+#[test]
+fn cell_002_slice_rejects_status_downgrade_and_missing_source_adr() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let cell_spec = "specs/cell-002-promotion-automation-contract.json";
+    // The slice must actually be wired into the live policy.
+    assert!(
+        policy["slices"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|s| s["spec_path"] == cell_spec),
+        "CELL-002 slice must be declared in the policy"
+    );
+
+    // status downgrade Proposed-target -> Accepted violates the enum.
+    let mut corpus = live_corpus(&root, &policy);
+    corpus
+        .get_mut(cell_spec)
+        .unwrap()
+        .as_object_mut()
+        .unwrap()
+        .insert("status".to_owned(), json!("Accepted"));
+    assert!(
+        evaluate_configured(&policy, &corpus)
+            .violations
+            .contains("contract_slice_enum_violation"),
+        "a CELL-002 status downgrade must be rejected"
+    );
+
+    // dropping ADR-0341 from source_adrs violates required_array_members.
+    let mut corpus = live_corpus(&root, &policy);
+    corpus
+        .get_mut(cell_spec)
+        .unwrap()
+        .as_object_mut()
+        .unwrap()
+        .insert("source_adrs".to_owned(), json!(["ADR-0348", "ADR-0351"]));
+    assert!(
+        evaluate_configured(&policy, &corpus)
+            .violations
+            .contains("contract_slice_missing_array_member"),
+        "a missing required source ADR must be rejected"
+    );
+}
