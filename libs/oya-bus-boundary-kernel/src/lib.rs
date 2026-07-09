@@ -3,7 +3,7 @@
 //! The owned EVENT-BUS surface — third of the three single-concern
 //! messaging surfaces (ADR-0536 D-13 queue/stream/bus trichotomy;
 //! ADR-0132 no-grouping) composed over the ONE substrate port
-//! (`oya-messaging-substrate-kernel`).
+//! (`messaging-substrate-kernel`).
 //!
 //! Bus semantics (precedent: AWS EventBridge; Google Pub/Sub fan-out):
 //! - publish/subscribe fan-out — every subscriber group independently
@@ -27,7 +27,7 @@ use std::collections::BTreeMap;
 use std::fmt;
 use std::num::NonZeroU32;
 
-use oya_messaging_substrate_kernel::{
+use messaging_substrate_kernel::{
     AckToken, Delivery, LossClass, MessageConsumer, MessageEnvelope, MessageId, MessageKey,
     MessageProducer, MessagingAdmin, MessagingError, MessagingSubstrate, SubscriptionName,
     TopicName, TopicSpec,
@@ -227,7 +227,7 @@ pub fn event_type_of(delivery: &Delivery) -> Option<&str> {
 
 #[cfg(test)]
 mod tests {
-    use oya_messaging_substrate_kernel::reference::InMemorySubstrate;
+    use messaging_substrate_kernel::reference::InMemorySubstrate;
 
     use super::*;
 
