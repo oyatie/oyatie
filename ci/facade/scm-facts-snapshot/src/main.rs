@@ -103,6 +103,12 @@ fn run() -> Result<(), String> {
     let mut volatile_out: Option<PathBuf> = None;
     let mut merge_base_baseline = false;
     let mut frozen_base_ref: Option<String> = None;
+    // ADR-0614 PR-1 (frozen-reference de-commit, approach B — safe strangler step): the
+    // materializer regenerates the frozen baseline from the merge-base SOURCE tree and hands it
+    // to us for a cross-check, and asks us to publish the merge-base sha so it can materialize
+    // exactly that tree. Both are optional — absent them the emitter behaves EXACTLY as before.
+    let mut regen_baseline_face: Option<PathBuf> = None;
+    let mut merge_base_out: Option<PathBuf> = None;
 
     let mut i = 0;
     while i < args.len() {
@@ -127,6 +133,26 @@ fn run() -> Result<(), String> {
                 frozen_base_ref = args.get(i).cloned();
                 if frozen_base_ref.as_deref().is_none_or(str::is_empty) {
                     return Err("--frozen-base-ref requires a ref".to_owned());
+                }
+            }
+            // ADR-0614 PR-1: the merge-base-source regeneration of the frozen baseline (produced
+            // by the materializer over a materialized merge-base worktree). When present, the
+            // emitter cross-checks it against the committed `git show` reference (fail-closed).
+            "--regen-baseline-face" => {
+                i += 1;
+                regen_baseline_face = args.get(i).map(PathBuf::from);
+                if regen_baseline_face.is_none() {
+                    return Err("--regen-baseline-face requires a path".to_owned());
+                }
+            }
+            // ADR-0614 PR-1: publish the computed merge-base sha to this path so the materializer
+            // can materialize exactly that source tree (mb ownership stays with this single git
+            // boundary — the materializer never recomputes it).
+            "--merge-base-out" => {
+                i += 1;
+                merge_base_out = args.get(i).map(PathBuf::from);
+                if merge_base_out.is_none() {
+                    return Err("--merge-base-out requires a path".to_owned());
                 }
             }
             other => return Err(format!("unknown argument {other}")),
@@ -169,7 +195,17 @@ fn run() -> Result<(), String> {
     if merge_base_baseline {
         let bootstrap_ref =
             frozen_base_ref.unwrap_or_else(|| DEFAULT_FROZEN_BOOTSTRAP_REF.to_owned());
-        emit_merge_base_baseline(&repo_root, &bootstrap_ref, &resolver)?;
+        emit_merge_base_baseline(
+            &repo_root,
+            &bootstrap_ref,
+            &resolver,
+            regen_baseline_face.as_deref(),
+            merge_base_out.as_deref(),
+        )?;
+    } else if regen_baseline_face.is_some() || merge_base_out.is_some() {
+        return Err(
+            "--regen-baseline-face / --merge-base-out require --merge-base-baseline".to_owned(),
+        );
     }
     Ok(())
 }
@@ -843,6 +879,8 @@ fn emit_merge_base_baseline(
     repo_root: &Path,
     bootstrap_ref: &str,
     resolver: &dyn PathResolver,
+    regen_baseline_face: Option<&Path>,
+    merge_base_out: Option<&Path>,
 ) -> Result<(), String> {
     // CANDIDATE read of the local policy (supplies `out_path` only): the file's CURRENT location.
     let policy_path = repo_root.join(resolver.candidate(PathId::RatchetPolicy));
@@ -872,6 +910,36 @@ fn emit_merge_base_baseline(
         Some(&relabel),
     )?;
 
+    // ADR-0614 PR-1: publish the merge-base sha (mb ownership stays with this single git
+    // boundary — the materializer materializes exactly this tree, never recomputing it).
+    if let Some(merge_base_out) = merge_base_out {
+        let merge_base = snapshot["merge_base"]
+            .as_str()
+            .ok_or("snapshot is missing merge_base")?;
+        std::fs::write(merge_base_out, merge_base)
+            .map_err(|e| format!("{}: {e}", merge_base_out.display()))?;
+    }
+
+    // ADR-0614 PR-1: if the materializer handed us a baseline REGENERATED from the merge-base
+    // SOURCE tree, cross-check it against the committed `git show` reference on the full ratchet
+    // projection {keys, mode, frozen_empty} — FAIL-CLOSED (a divergence refuses to materialize,
+    // it is never a fallback). The committed face stays authoritative; this is the safe strangler
+    // step that PROVES regeneration ≡ the committed reference before PR-2 de-commits it.
+    if let Some(regen_baseline_face) = regen_baseline_face {
+        let regen_text = std::fs::read_to_string(regen_baseline_face)
+            .map_err(|e| format!("{}: {e}", regen_baseline_face.display()))?;
+        let regen_face: Value = serde_json::from_str(&regen_text)
+            .map_err(|e| format!("{}: parse regen baseline: {e}", regen_baseline_face.display()))?;
+        cross_check_regen_projection(
+            &snapshot,
+            &regen_face,
+            &manifest,
+            &source,
+            &candidate,
+            &vocab_policy,
+        )?;
+    }
+
     let out = repo_root.join(&candidate_policy.out_path);
     let text = to_canonical_json(&snapshot).map_err(|e| format!("serialize snapshot: {e}"))?;
     std::fs::write(&out, &text).map_err(|e| format!("{}: {e}", out.display()))?;
@@ -888,6 +956,157 @@ fn emit_merge_base_baseline(
         out.display()
     );
     Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// Frozen-baseline regen cross-check (ADR-0614 PR-1, hardening H3/H5)
+// ---------------------------------------------------------------------------
+//
+// Approach B replaces the committed-blob read of the frozen reference
+// (`git show <merge_base>:<face>`) with a REGENERATION of it from the merge-base SOURCE tree.
+// PR-1 is the safe strangler step: the committed face stays authoritative and PRODUCTION
+// behaviour is unchanged, but when the materializer hands us a regeneration (produced by running
+// the accounting producer over a materialized merge-base worktree) we PROVE regeneration ≡ the
+// committed reference before PR-2 flips the source. The cross-check is FAIL-CLOSED.
+
+/// H3 cross-check: the baseline REGENERATED from the merge-base SOURCE tree must project
+/// IDENTICALLY to the authoritative committed `git show <merge_base>:<face>` reference on the FULL
+/// ratchet projection `{keys, mode, frozen_empty}` per `(gate, code)`.
+///
+/// - **Projection, not bytes:** both sides are parsed through the firewall's OWN
+///   [`ci_baseline_ratchet::Baseline::from_value`], which reads only `gates` — so a
+///   `_provenance.config_digest`/`_comment` byte difference (which legitimately varies as the
+///   producer/config evolves across the range) is tolerated by construction, while a mode
+///   downgrade, a key collapse, or a code appearing/disappearing is caught.
+/// - **H5 relabel:** the regeneration is relabeled with the SAME rename-aware re-keying the
+///   committed side already received ([`relabel_frozen_face`], identity when there is no pending
+///   move), so both sides are compared in the same key namespace — dropping it would give moved
+///   paths phantom divergences. Fail-closed to identity exactly as the committed side does.
+/// - **Skip only at bootstrap:** when the committed frozen face is genuinely absent at the
+///   merge-base (`missing_at_merge_base`), there is no committed reference to cross-check and
+///   production already treats it as an EMPTY reference — the cross-check is a no-op, unchanged.
+///
+/// Any divergence is a HARD ERROR: it refuses to materialize (never a fallback), because a
+/// producer/census change silently altered the frozen reference.
+fn cross_check_regen_projection<S, C>(
+    snapshot: &Value,
+    regen_face: &Value,
+    manifest: &MoveManifest,
+    frozen: &S,
+    candidate: &C,
+    vocab_policy: &VocabPolicy,
+) -> Result<(), String>
+where
+    S: FrozenRefSource,
+    C: CandidateSource,
+{
+    // Bootstrap: no committed reference exists at the merge-base, so nothing to cross-check.
+    if snapshot.get("missing_at_merge_base").and_then(Value::as_bool) == Some(true) {
+        return Ok(());
+    }
+    let merge_base = snapshot
+        .get("merge_base")
+        .and_then(Value::as_str)
+        .ok_or("frozen-baseline regen cross-check: snapshot is missing merge_base")?;
+    let committed_baseline = snapshot
+        .get("baseline")
+        .ok_or("frozen-baseline regen cross-check: snapshot is missing baseline")?;
+
+    // H5: relabel the regeneration with the SAME re-keying the committed side received (in
+    // `resolve_merge_base_baseline_snapshot`), fail-closed to identity, so both sides share a key
+    // namespace. The committed `baseline` embedded in the snapshot is ALREADY relabeled.
+    let regen_relabeled =
+        relabel_frozen_face(regen_face, manifest, frozen, merge_base, candidate, vocab_policy)
+            .unwrap_or_else(|_| regen_face.clone());
+
+    let committed = ci_baseline_ratchet::Baseline::from_value(committed_baseline)
+        .map_err(|e| format!("frozen-baseline regen cross-check: committed reference {e}"))?;
+    let regenerated = ci_baseline_ratchet::Baseline::from_value(&regen_relabeled)
+        .map_err(|e| format!("frozen-baseline regen cross-check: regenerated baseline {e}"))?;
+
+    let divergences = frozen_projection_divergences(&committed, &regenerated);
+    if divergences.is_empty() {
+        return Ok(());
+    }
+    Err(format!(
+        "ADR-0614 PR-1 frozen-baseline regen cross-check FAILED at merge-base {merge_base}: the \
+         baseline REGENERATED from the merge-base SOURCE tree diverges from the committed \
+         `git show` reference on the ratchet projection {{keys, mode, frozen_empty}} per \
+         (gate, code) — a producer/census change silently altered the frozen reference. Refusing \
+         to materialize (fail-closed). Divergences:\n  {}",
+        divergences.join("\n  ")
+    ))
+}
+
+/// The PURE projection diff (ADR-0614 H3): every `(gate, code)` whose `{mode, frozen_empty, keys}`
+/// differs between the committed reference and the regeneration, or that is present on only one
+/// side. `remediation` and every `_provenance` field are DELIBERATELY excluded — only the three
+/// fields the firewall's two predicates read can launder debt, so only those are compared.
+/// Returns an empty vec iff the two project identically. This is the security core of the
+/// cross-check: a keyset-only check would miss a `block-on-new -> advisory` mode downgrade.
+fn frozen_projection_divergences(
+    committed: &ci_baseline_ratchet::Baseline,
+    regenerated: &ci_baseline_ratchet::Baseline,
+) -> Vec<String> {
+    let mut out = Vec::new();
+    let empty = BTreeMap::new();
+    let gates: BTreeSet<&String> = committed
+        .gates
+        .keys()
+        .chain(regenerated.gates.keys())
+        .collect();
+    for gate in gates {
+        let committed_codes = committed.gates.get(gate).unwrap_or(&empty);
+        let regenerated_codes = regenerated.gates.get(gate).unwrap_or(&empty);
+        let codes: BTreeSet<&String> = committed_codes
+            .keys()
+            .chain(regenerated_codes.keys())
+            .collect();
+        for code in codes {
+            match (committed_codes.get(code), regenerated_codes.get(code)) {
+                (Some(committed), Some(regenerated)) => {
+                    if committed.mode != regenerated.mode {
+                        out.push(format!(
+                            "{gate}/{code}: mode committed={:?} regenerated={:?}",
+                            committed.mode, regenerated.mode
+                        ));
+                    }
+                    if committed.frozen_empty != regenerated.frozen_empty {
+                        out.push(format!(
+                            "{gate}/{code}: frozen_empty committed={} regenerated={}",
+                            committed.frozen_empty, regenerated.frozen_empty
+                        ));
+                    }
+                    if committed.keys != regenerated.keys {
+                        let only_committed: Vec<&str> = committed
+                            .keys
+                            .difference(&regenerated.keys)
+                            .map(String::as_str)
+                            .collect();
+                        let only_regenerated: Vec<&str> = regenerated
+                            .keys
+                            .difference(&committed.keys)
+                            .map(String::as_str)
+                            .collect();
+                        out.push(format!(
+                            "{gate}/{code}: keys diverge (only-in-committed={only_committed:?} \
+                             only-in-regenerated={only_regenerated:?})"
+                        ));
+                    }
+                }
+                (Some(_), None) => out.push(format!(
+                    "{gate}/{code}: present in the committed reference but MISSING from the \
+                     regeneration"
+                )),
+                (None, Some(_)) => out.push(format!(
+                    "{gate}/{code}: present in the regeneration but MISSING from the committed \
+                     reference"
+                )),
+                (None, None) => {}
+            }
+        }
+    }
+    out
 }
 
 /// `git merge-base <base_ref> HEAD` — the frozen comparison root. A failure (unknown ref,
@@ -2610,5 +2829,191 @@ mod tests {
             "crate_dirs": [{"old_path":"a","new_path":"b"}], "crate_idents": []}));
         assert_eq!(ok.file_pairs(), vec![("a".to_owned(), "b".to_owned())]);
         assert_eq!(ok.crate_dir_pairs(), vec![("a".to_owned(), "b".to_owned())]);
+    }
+
+    // -----------------------------------------------------------------------
+    // Frozen-baseline regen cross-check (ADR-0614 PR-1, H3/H5). These pin the SECURITY CORE of
+    // approach B's safe strangler step: the pure projection diff catches a mode downgrade / key
+    // collapse (a keyset-only check would miss the mode downgrade), provenance byte-noise is
+    // tolerated, the H5 relabel is applied to the regeneration, and the bootstrap case is a no-op.
+    // -----------------------------------------------------------------------
+
+    fn baseline(value: Value) -> ci_baseline_ratchet::Baseline {
+        ci_baseline_ratchet::Baseline::from_value(&value).unwrap()
+    }
+
+    #[test]
+    fn frozen_projection_divergences_green_for_identical() {
+        let a = baseline(json!({"gates": {"cloud-ci-total-accounting": {
+            "unjustified": {"mode": "baseline-block-on-new", "keys": ["a.rs", "b.rs"]},
+            "ci_inventory_registry_drift": {"mode": "baseline-block-on-new", "keys": [], "frozen_empty": true}
+        }}}));
+        assert!(
+            frozen_projection_divergences(&a, &a).is_empty(),
+            "identical projections must not diverge"
+        );
+    }
+
+    #[test]
+    fn frozen_projection_divergences_catches_mode_downgrade() {
+        // A keyset-only check would MISS this (keys unchanged); the FULL projection catches it.
+        let committed = baseline(json!({"gates": {"cloud-ci-total-accounting": {
+            "unjustified": {"mode": "baseline-block-on-new", "keys": ["a.rs"]}
+        }}}));
+        let regenerated = baseline(json!({"gates": {"cloud-ci-total-accounting": {
+            "unjustified": {"mode": "advisory-until-infra", "keys": ["a.rs"]}
+        }}}));
+        let divergences = frozen_projection_divergences(&committed, &regenerated);
+        assert!(
+            divergences.iter().any(|d| d.contains("mode")),
+            "a block-on-new -> advisory downgrade must be caught: {divergences:?}"
+        );
+    }
+
+    #[test]
+    fn frozen_projection_divergences_catches_key_collapse_and_missing_code() {
+        // Key collapse: the regeneration folds two frozen keys into one (new debt laundered under
+        // a pre-existing key).
+        let committed = baseline(json!({"gates": {"cloud-ci-total-accounting": {
+            "unjustified": {"mode": "baseline-block-on-new", "keys": ["a.rs", "b.rs"]},
+            "unowned": {"mode": "advisory-until-infra", "keys": ["a.rs"]}
+        }}}));
+        let regenerated = baseline(json!({"gates": {"cloud-ci-total-accounting": {
+            "unjustified": {"mode": "baseline-block-on-new", "keys": ["a.rs"]}
+        }}}));
+        let divergences = frozen_projection_divergences(&committed, &regenerated);
+        assert!(
+            divergences.iter().any(|d| d.contains("keys diverge")),
+            "a key collapse must be caught: {divergences:?}"
+        );
+        assert!(
+            divergences
+                .iter()
+                .any(|d| d.contains("unowned") && d.contains("MISSING from the regeneration")),
+            "a code the regeneration dropped must be caught: {divergences:?}"
+        );
+    }
+
+    #[test]
+    fn regen_cross_check_green_tolerates_provenance_byte_noise() {
+        // Same gates/codes/keys/mode; only `_provenance.config_digest` differs (legitimate as the
+        // producer/config evolves) — tolerated because both project through Baseline::from_value.
+        let committed_face = json!({
+            "_comment": "committed",
+            "_provenance": {"config_digest": "fnv1a64:AAAAAAAAAAAAAAAA"},
+            "gates": {"cloud-ci-total-accounting": {
+                "unjustified": {"mode": "baseline-block-on-new", "keys": ["a.rs", "b.rs"]}
+            }}
+        });
+        let regen_face = json!({
+            "_comment": "regenerated",
+            "_provenance": {"config_digest": "fnv1a64:BBBBBBBBBBBBBBBB"},
+            "gates": {"cloud-ci-total-accounting": {
+                "unjustified": {"mode": "baseline-block-on-new", "keys": ["a.rs", "b.rs"]}
+            }}
+        });
+        let snapshot =
+            json!({"merge_base": MB, "missing_at_merge_base": false, "baseline": committed_face});
+        cross_check_regen_projection(
+            &snapshot,
+            &regen_face,
+            &MoveManifest::default(),
+            &FakeFrozen::new(&[]),
+            &FakeCandidate::new(&[], &[]),
+            &VocabPolicy::bundled_default(),
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn regen_cross_check_red_divergence_is_a_hard_error() {
+        let committed_face = json!({"gates": {"cloud-ci-total-accounting": {
+            "unjustified": {"mode": "baseline-block-on-new", "keys": ["a.rs", "b.rs"]}
+        }}});
+        // The regeneration silently downgrades the mode — must FAIL CLOSED.
+        let regen_face = json!({"gates": {"cloud-ci-total-accounting": {
+            "unjustified": {"mode": "advisory-until-infra", "keys": ["a.rs", "b.rs"]}
+        }}});
+        let snapshot =
+            json!({"merge_base": MB, "missing_at_merge_base": false, "baseline": committed_face});
+        let err = cross_check_regen_projection(
+            &snapshot,
+            &regen_face,
+            &MoveManifest::default(),
+            &FakeFrozen::new(&[]),
+            &FakeCandidate::new(&[], &[]),
+            &VocabPolicy::bundled_default(),
+        )
+        .unwrap_err();
+        assert!(err.contains("ADR-0614"), "{err}");
+        assert!(err.contains("fail-closed"), "{err}");
+        assert!(err.contains("mode"), "{err}");
+    }
+
+    #[test]
+    fn regen_cross_check_skips_at_bootstrap() {
+        // missing_at_merge_base => no committed reference exists; a wildly different regeneration is
+        // tolerated (production already treats the reference as EMPTY at repo bootstrap).
+        let snapshot =
+            json!({"merge_base": MB, "missing_at_merge_base": true, "baseline": {"gates": {}}});
+        let regen_face = json!({"gates": {"cloud-ci-total-accounting": {
+            "unjustified": {"mode": "baseline-block-on-new", "keys": ["anything.rs"]}
+        }}});
+        cross_check_regen_projection(
+            &snapshot,
+            &regen_face,
+            &MoveManifest::default(),
+            &FakeFrozen::new(&[]),
+            &FakeCandidate::new(&[], &[]),
+            &VocabPolicy::bundled_default(),
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn regen_cross_check_applies_h5_relabel_to_regeneration() {
+        // H5: a pending move relocated an accepted `unjustified` FILE key old->new. The committed
+        // side embedded in the snapshot is ALREADY relabeled (new); the regeneration, computed over
+        // the merge-base tree, still keys it OLD. The cross-check relabels the regeneration with the
+        // SAME move-manifest re-keying, so both land on NEW => GREEN. The FOIL (no manifest) proves
+        // that without the relabel the OLD vs NEW keys would false-diverge.
+        let old = "oya/developer-sdk/crates/oya-dev-cli/src/foo.rs";
+        let new = "marketplace/facade/dev-cli/src/foo.rs";
+        let committed_face = json!({"gates": {GATE_TOTAL_ACCOUNTING: {
+            "unjustified": {"mode": "baseline-block-on-new", "keys": [new]}
+        }}});
+        let regen_face = json!({"gates": {GATE_TOTAL_ACCOUNTING: {
+            "unjustified": {"mode": "baseline-block-on-new", "keys": [old]}
+        }}});
+        let snapshot =
+            json!({"merge_base": MB, "missing_at_merge_base": false, "baseline": committed_face});
+        // per-FILE code is existence-only (no content guard); the move landed at NEW in candidate.
+        let frozen = FakeFrozen::new(&[]);
+        let candidate = FakeCandidate::new(&[new], &[]);
+        let policy = VocabPolicy::bundled_default();
+
+        cross_check_regen_projection(
+            &snapshot,
+            &regen_face,
+            &manifest(&[(old, new)]),
+            &frozen,
+            &candidate,
+            &policy,
+        )
+        .unwrap();
+
+        let foil = cross_check_regen_projection(
+            &snapshot,
+            &regen_face,
+            &MoveManifest::default(),
+            &frozen,
+            &candidate,
+            &policy,
+        )
+        .unwrap_err();
+        assert!(
+            foil.contains("keys diverge"),
+            "without the H5 relabel the OLD vs NEW keys must false-diverge: {foil}"
+        );
     }
 }
