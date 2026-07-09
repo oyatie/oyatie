@@ -18,7 +18,7 @@ use toml::Value as TomlValue;
 
 pub const GATE_ID: &str = "cloud-ci-rust-first-automation-hygiene";
 
-pub const VIOLATION_CODES: [&str; 12] = [
+pub const VIOLATION_CODES: [&str; 14] = [
     "rust_first_automation_gate_id_mismatch",
     "rust_first_automation_exception_duplicate",
     "rust_first_automation_exception_missing_field",
@@ -32,6 +32,13 @@ pub const VIOLATION_CODES: [&str; 12] = [
     // baseline of today's accepted legacy-bridge inline shell.
     "rust_first_automation_unbaselined_workflow_inline_shell",
     "rust_first_automation_workflow_inline_shell_baseline_stale",
+    // Non-Rust-exception SHRINK-ONLY dimension: the file scan permits a non-Rust file iff it has an
+    // exceptions[] entry (any-allowlisted-ok). These two codes additionally freeze the EXCEPTION SET
+    // shrink-only against a review-visible baseline, so a NEW .py/.sh bridge cannot be admitted by
+    // silently adding an allowlist row — growth requires a reviewed baseline edit. This forces new
+    // contract-slice validators onto //ci/facade/contract-slice-conformance instead of scripts/tests/*.py.
+    "rust_first_automation_unbaselined_non_rust_exception",
+    "rust_first_automation_non_rust_exception_baseline_stale",
     // Workflow-uses dimension: the Buck2 setup action is not an allowed bridge. The repo-owned
     // installer may download the official facebook/buck2 release asset, but CI must not outsource
     // that policy boundary to a marketplace action.
@@ -451,6 +458,79 @@ pub fn evaluate_workflow_inline_shell_keyed(
                 "rust_first_automation_workflow_inline_shell_baseline_stale",
                 key,
                 "baselined workflow inline-shell step no longer exists; shrink the baseline in this PR",
+            ));
+        }
+    }
+
+    findings
+}
+
+/// The frozen baseline exception paths, read from the baseline face's
+/// `codes.rust_first_automation_unbaselined_non_rust_exception` array.
+fn baseline_non_rust_exception_keys(baseline: &Value) -> BTreeSet<String> {
+    baseline
+        .get("codes")
+        .and_then(|codes| codes.get("rust_first_automation_unbaselined_non_rust_exception"))
+        .and_then(Value::as_array)
+        .map(|values| {
+            values
+                .iter()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+/// The exception paths currently declared in the policy's `exceptions[]` allowlist.
+fn observed_non_rust_exception_keys(policy: &Value) -> BTreeSet<String> {
+    policy
+        .get("exceptions")
+        .and_then(Value::as_array)
+        .map(|rows| {
+            rows.iter()
+                .filter_map(|row| row.get("path").and_then(Value::as_str))
+                .map(str::to_owned)
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+/// Pure evaluator for the non-Rust-exception SHRINK-ONLY dimension. The file scan already permits a
+/// non-Rust file iff it has an `exceptions[]` entry; this dimension additionally freezes the
+/// EXCEPTION SET shrink-only against the review-visible baseline. Shrink-only:
+///   - any current exception NOT in the baseline ⇒ `rust_first_automation_unbaselined_non_rust_exception`
+///     (a NEW non-Rust automation bridge is born-blocking; convert it to owned Rust — e.g. a
+///     contract-slice entry on //ci/facade/contract-slice-conformance — or extend the reviewed
+///     baseline shrink-only);
+///   - any baseline path NOT currently declared ⇒ `rust_first_automation_non_rust_exception_baseline_stale`
+///     (a removed bridge must shrink the baseline in the same PR, mirroring the workflow-shell code).
+pub fn evaluate_non_rust_exception_baseline_keyed(
+    policy: &Value,
+    baseline: &Value,
+) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+    let baseline_keys = baseline_non_rust_exception_keys(baseline);
+    let observed_keys = observed_non_rust_exception_keys(policy);
+
+    for key in &observed_keys {
+        if !baseline_keys.contains(key) {
+            findings.insert(Finding::new(
+                "rust_first_automation_unbaselined_non_rust_exception",
+                key,
+                "new non-Rust automation exception beyond the frozen review-visible baseline; \
+                 convert it to owned Rust (e.g. a contract-slice policy entry on \
+                 //ci/facade/contract-slice-conformance) or extend the reviewed baseline (shrink-only)",
+            ));
+        }
+    }
+
+    for key in &baseline_keys {
+        if !observed_keys.contains(key) {
+            findings.insert(Finding::new(
+                "rust_first_automation_non_rust_exception_baseline_stale",
+                key,
+                "baselined non-Rust exception no longer declared; shrink the baseline in this PR",
             ));
         }
     }
