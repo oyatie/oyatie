@@ -5621,6 +5621,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "messaging-substrate-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "miette"
 version = "7.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6073,7 +6077,7 @@ dependencies = [
 name = "oya-bus-boundary-kernel"
 version = "0.1.0"
 dependencies = [
- "oya-messaging-substrate-kernel",
+ "messaging-substrate-kernel",
 ]
 
 [[package]]
@@ -8744,10 +8748,6 @@ name = "oya-masterplan-hermes-forensic-ledger-app"
 version = "0.1.0"
 
 [[package]]
-name = "oya-messaging-substrate-kernel"
-version = "0.1.0"
-
-[[package]]
 name = "oya-notes-domain"
 version = "0.1.0"
 dependencies = [
@@ -9166,7 +9166,7 @@ dependencies = [
 name = "oya-queue-boundary-kernel"
 version = "0.1.0"
 dependencies = [
- "oya-messaging-substrate-kernel",
+ "messaging-substrate-kernel",
 ]
 
 [[package]]
@@ -9602,7 +9602,7 @@ dependencies = [
 name = "oya-stream-boundary-kernel"
 version = "0.1.0"
 dependencies = [
- "oya-messaging-substrate-kernel",
+ "messaging-substrate-kernel",
 ]
 
 [[package]]
