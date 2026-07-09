@@ -9,7 +9,7 @@ door: two-way
 owner: cloud-ci-platform
 supersedes: []
 superseded_by: []
-amended_by: []
+amended_by: [ADR-0614]
 depends_on: [ADR-0551, ADR-0555, ADR-0562]
 related: [ADR-0515, ADR-0532, ADR-0533, ADR-0538, ADR-0552]
 related_specs:
@@ -33,6 +33,24 @@ plan, so the move-manifest is the canonical EMPTY manifest, the relabel is a ver
 NO-OP (the frozen merge-base face is byte-identical before/after the relabel pass), and move-3 is
 NOT yet unblocked. A subsequent MOVE PR exercises the machinery by committing its plan at
 `specs/reorg/<capability>-move-plan.json`; only THAT PR's relabel fires and unblocks its move.
+
+## Amended stance — move-manifest de-committed (ADR-0614, 2026-07-09)
+
+**Amends the committed-vs-materialized stance ONLY; this ADR's lifecycle status stays Proposed and
+its relabel machinery is unchanged.** Decision clause 1 (MANIFEST, below) establishes
+`specs/reorg/move-manifest.generated.json` as the AUTHORITATIVE COMMITTED bijection, byte-bound by
+the registry-drift `committed==regenerated` coverage. ADR-0614 reverses the *committed* half of
+that stance: move-manifest is a pure derivation (a function of the committed move-plan(s) ×
+candidate tracked tree), so it is now DE-COMMITTED (`materialization_mode: not-tracked-in-git`),
+finishing the ADR-0595 → ADR-0613 pure-derivation strangler for the LAST committed reorg face. It
+is materialized on demand by the generated-face materializer
+(`//ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin`, step 1
+`materialize_move_manifest`) BEFORE the emitter relabel reads it; registry-drift now validates
+regenerate-twice DETERMINISM rather than committed-byte parity. The relabel semantics, the
+anti-forgery binding (now a determinism binding), and the fail-closed resolver are otherwise
+unchanged — the emitter reads the MATERIALIZED copy instead of a committed one. See ADR-0614 for
+the gate / registry-drift / path-resolver consequences and the fail-open → fail-closed hardening
+follow-up.
 
 ## Context
 
