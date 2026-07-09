@@ -13,12 +13,12 @@ use iam_tenant_rbac_api::{
     TenantRbacWriteKindDto, WorkflowRoutingOwnerDto,
 };
 use iam_tenant_rbac_app::{
-    CallerCredential, ConfiguredBearerPrincipalVerifier, DecisionAuthorizer,
+    CallerCredential, ConfiguredBearerPrincipalVerifier, DecisionAuthorizer, PrincipalVerifier,
     TENANT_RBAC_CROSS_SERVICE_WORKFLOW_PLANS_PATH, TENANT_RBAC_GROUP_CLOSE_ROLLUPS_PATH,
     TENANT_RBAC_HEALTH_PATH, TENANT_RBAC_INCIDENT_ROLLBACK_PLANS_PATH,
     TENANT_RBAC_OPS_COMMANDS_PATH, TENANT_RBAC_POLICY_ADMISSIONS_PATH, TenantRbacAuthzProvider,
     TenantRbacMutationAction, TenantRbacMutationAuthorizationError, TenantRbacMutationAuthorizer,
-    TenantRbacMutationResource, PrincipalVerifier, VerifiedPrincipal, dispatch_tenant_rbac_request,
+    TenantRbacMutationResource, VerifiedPrincipal, dispatch_tenant_rbac_request,
     tenant_rbac_runtime_routes, tenant_rbac_server_config,
 };
 use oya_http_middleware_kernel::HttpRequest;
