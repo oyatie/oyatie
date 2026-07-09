@@ -316,10 +316,10 @@
       "keys_by_file": {
         ".github/workflows/cache-integrity-canary.yml": 12,
         ".github/workflows/check-substrates.yml": 5,
-        ".github/workflows/docs-graph-drift.yml": 3,
+        ".github/workflows/docs-graph-drift.yml": 1,
         ".github/workflows/oya-ci-required.yml": 40
       },
-      "keys_total": 60,
+      "keys_total": 58,
       "buck2_required_ci_note": "2026-06-25 #839: the required CI bridge is Buck2-only. The gate matrix adds one reviewed inline-shell key for the repo-owned official-Buck2 installer plus the Buck2 test step (gate::step-2..4). The live-Postgres lanes replace Swatinem rust-cache and cargo test with repo-owned install-buck2, actions/cache toolchain warmup, and buck2 test --local-only against isolated Postgres services; #901 splits the accepted live-Postgres keys into adapter/facade jobs (step-1 and step-3..6 for each lane). This remains transitional runner glue until the owned cloud-ci runner models the disposable database as a managed local_resource."
     },
     "codes": {
@@ -342,8 +342,6 @@
         ".github/workflows/check-substrates.yml::oya-check-substrate-dependency-dag-acyclicity::step-4",
         ".github/workflows/check-substrates.yml::oya-check-substrate-dependency-dag-acyclicity::step-5",
         ".github/workflows/docs-graph-drift.yml::docs-graph-drift::step-3",
-        ".github/workflows/docs-graph-drift.yml::docs-graph-drift::step-4",
-        ".github/workflows/docs-graph-drift.yml::docs-graph-drift::step-5",
         ".github/workflows/oya-ci-required.yml::buck2::step-1",
         ".github/workflows/oya-ci-required.yml::buck2::step-3",
         ".github/workflows/oya-ci-required.yml::buck2::step-4",

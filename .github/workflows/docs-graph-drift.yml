@@ -52,6 +52,10 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           persist-credentials: false
+          # fetch-depth: 0 so merge-base(HEAD, origin/dev) resolves — the materializer's
+          # landed-plan carve-out needs it to exclude the committed move-plans (matches the
+          # required legs; a shallow checkout would fail-closed on the >1-plan guard).
+          fetch-depth: 0
       - name: Install pinned Rust toolchain
         uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
         with:
