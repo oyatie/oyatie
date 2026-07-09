@@ -30,6 +30,56 @@ fn dry_run_renders_diff_without_writes() {
 }
 
 #[test]
+fn dry_run_renders_scoped_hunk_instead_of_whole_file() {
+    let original = [
+        "line 1\n", "line 2\n", "line 3\n", "line 4\n", "line 5\n", "line 6\n", "line 7\n",
+        "line 8\n", "line 9\n",
+    ]
+    .concat();
+    let start = original.find("line 5").expect("line exists");
+    let end = start + "line 5".len();
+    let remediation = Remediation::AutoFix(Edit::new(
+        "fixture.txt",
+        ByteRange::new(start, end).expect("valid replacement range"),
+        "LINE 5".to_owned(),
+    ));
+
+    let report = render_dry_run(DryRunInput {
+        remediation: &remediation,
+        original_text: &original,
+    })
+    .expect("dry-run should render scoped diff");
+
+    assert!(report.diff.contains("-line 5"));
+    assert!(report.diff.contains("+LINE 5"));
+    assert!(report.diff.contains(" line 2"));
+    assert!(report.diff.contains(" line 8"));
+    assert!(!report.diff.contains("-line 1"));
+    assert!(!report.diff.contains("+line 9"));
+}
+
+#[test]
+fn dry_run_marks_missing_final_newline() {
+    let original = "alpha\nbeta";
+    let start = original.find("beta").expect("line exists");
+    let end = start + "beta".len();
+    let remediation = Remediation::AutoFix(Edit::new(
+        "fixture.txt",
+        ByteRange::new(start, end).expect("valid replacement range"),
+        "BETA".to_owned(),
+    ));
+
+    let report = render_dry_run(DryRunInput {
+        remediation: &remediation,
+        original_text: original,
+    })
+    .expect("dry-run should render newline marker");
+
+    assert!(report.diff.contains("-beta\n\\ No newline at end of file"));
+    assert!(report.diff.contains("+BETA\n\\ No newline at end of file"));
+}
+
+#[test]
 fn policy_is_propose_only_and_cannot_merge_or_bypass_gates() {
     let policy = BotPolicy::propose_only();
 
