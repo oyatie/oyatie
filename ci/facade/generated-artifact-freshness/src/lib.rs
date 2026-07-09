@@ -1371,6 +1371,13 @@ fn build_face_tools(repo_root: &Path) -> Result<FaceTools, FreshnessError> {
 }
 
 fn build_materializer_tools(repo_root: &Path) -> Result<MaterializerTools, FreshnessError> {
+    // Absolute repo-root so the derived tool binary paths are spawnable from ANY current_dir:
+    // the ADR-0614 merge-base regen runs these tools with cwd set to the merge-base worktree, where
+    // a `--repo-root .`-relative `buck-out/...` binary path would not resolve (os error 2 on spawn).
+    let repo_root_abs = std::fs::canonicalize(repo_root).map_err(|e| {
+        FreshnessError::new(format!("canonicalize repo-root {}: {e}", repo_root.display()))
+    })?;
+    let repo_root = repo_root_abs.as_path();
     let output = run_output(
         Command::new("buck2")
             .arg("build")
