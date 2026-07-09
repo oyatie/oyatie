@@ -102,11 +102,26 @@ impl MoveManifest {
         }
     }
 
-    /// Load + parse the committed manifest from the candidate tree fail-closed (missing/unreadable/
-    /// unparseable => empty). The registry-drift/freshness byte-binding is the trust root; this is
-    /// the in-adapter shape guard.
+    /// Load + parse the move-manifest from the candidate tree fail-closed (missing/unreadable/
+    /// unparseable => empty identity). The registry-drift regenerate-twice determinism binding is the
+    /// trust root; this is the in-adapter shape guard.
+    ///
+    /// PRECONDITION (ADR-0614, amends ADR-0563): move-manifest is now DE-COMMITTED — not tracked in
+    /// git (`materialization_mode: not-tracked-in-git`). cloud-ci materializes it on demand as STEP 1
+    /// of `//ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin`
+    /// (`materialize_move_manifest`) BEFORE any relabel-read leg, so the manifest is present on disk
+    /// when this loads it. That materialize-first ordering is what keeps the fail-open below safe
+    /// post-de-commit; it was audited across `.github/workflows/oya-ci-required.yml` (every scm-facts
+    /// emitter invocation runs via the materializer, never standalone).
     pub fn load(repo_root: &Path, manifest_rel_path: &str) -> Self {
         let path = repo_root.join(manifest_rel_path);
+        // ponytail: fail-CLOSED hardening follow-up (ADR-0614). This maps absent => empty() (identity),
+        // which CANNOT distinguish absent=materialization-error (should hard-fail / false-RED, never
+        // merge bad) from empty=no-move (the correct identity). Safe TODAY only because the
+        // materializer writes the manifest before every relabel-read leg (audited). Harden to a
+        // fallible `load` (absent => Err) so a skipped/broken materialize step blocks instead of
+        // silently relabeling to identity; deferred here to avoid rippling the infallible signature
+        // through ManifestBijection::load / ManifestPathResolver::load / the emitter in this PR.
         let Ok(text) = std::fs::read_to_string(&path) else {
             return Self::empty();
         };
@@ -303,7 +318,9 @@ impl ManifestPathResolver {
         Self { bijection }
     }
 
-    /// Load the resolver from the candidate tree (committed manifest, fail-closed).
+    /// Load the resolver from the candidate tree (fail-closed). ADR-0614: the move-manifest is now
+    /// DE-COMMITTED and materialized before this reads it — see [`MoveManifest::load`] for the
+    /// materialize-first precondition and the fail-closed hardening follow-up.
     pub fn load(repo_root: &Path) -> Self {
         Self::new(ManifestBijection::load(repo_root, MOVE_MANIFEST_PATH))
     }
