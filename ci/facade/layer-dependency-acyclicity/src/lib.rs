@@ -67,6 +67,21 @@
 //! - `TDA-EMPTY-SCAN`         — fewer crates than the policy floor (false-green guard).
 //! - `TDA-POLICY-MALFORMED`   — the policy is missing/wrong-typed a required field (fail-closed).
 //! - `TDA-BASELINE-MALFORMED` — the baseline document is malformed (fail-closed).
+//! - `TDA-STALE-BASELINE`     — a committed baseline subject names a crate ABSENT from the live corpus
+//!   (a phantom row; B3 hardening). See below.
+//!
+//! ## Baseline-liveness backstop (B3 hardening — phantom rows made impossible)
+//! The frozen baseline is a SUBSET-semantics ratchet: it blocks only on a NEW regression (a
+//! `code|subject` NOT in the baseline) and never REDs on a row it merely *contains*. That is sound
+//! for known-debt, but the repo runs in-flight strangler crate MOVES: when a crate MOVES paths, its
+//! OLD-path edge in the baseline becomes a PHANTOM — a row whose `from`/`to` names a crate dir that no
+//! longer exists, which subset semantics can never fire on, so the baseline silently diverges from
+//! reality (the same defect class as the firewall gate-baseline staleness fix). The gate asserts
+//! every committed baseline subject is still ANCHORED — each crate dir it names must exist in the live
+//! crate set — and emits `TDA-STALE-BASELINE` (a blocking regression) for any phantom, with the remedy
+//! being a re-emit (`--emit-baseline`) that drops it. This is ADDITIVE: it does NOT touch the subset
+//! regression check, and a baselined row whose endpoints still exist but whose EDGE was removed stays
+//! a legitimate BURN-DOWN (green), never a phantom.
 //!
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic; `#![forbid(unsafe_code)]`.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -90,7 +105,7 @@ pub const BASELINE_PATH: &str =
     "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-baseline.json";
 
 /// The violation codes, in canonical order.
-pub const VIOLATION_CODES: [&str; 8] = [
+pub const VIOLATION_CODES: [&str; 9] = [
     "TDA-SUBSTRATE-UPWARD",
     "TDA-PRODUCT-CELL-CROSS",
     "TDA-CELL-PRODUCT",
@@ -99,6 +114,7 @@ pub const VIOLATION_CODES: [&str; 8] = [
     "TDA-EMPTY-SCAN",
     "TDA-POLICY-MALFORMED",
     "TDA-BASELINE-MALFORMED",
+    "TDA-STALE-BASELINE",
 ];
 
 /// Sentinel key for policy/baseline-level (non-per-edge) findings.
@@ -924,6 +940,14 @@ pub fn evaluate(policy: &Value, baseline: &Value, observed: &Value) -> Report {
     // baseline can excuse; flag the SCC member edges as a single finding).
     detect_cycles(&edges, &baseline, &mut findings);
 
+    // Baseline-liveness backstop (B3 hardening): every committed baseline subject must still be
+    // ANCHORED in the live crate set. A subset baseline never REDs on a stale row, so a row whose
+    // subject names a crate that no longer exists (an in-flight strangler MOVE leaves the OLD-path
+    // edge as a phantom) silently diverges the baseline from reality — surface it as a blocking
+    // regression whose remedy is re-emitting the baseline. A row whose endpoints still exist but whose
+    // EDGE was removed is a legitimate burn-down (untouched here).
+    detect_stale_baseline(&baseline, &crate_service, &mut findings);
+
     let burned_down = count_burned_down(&baseline, &findings);
     let mut report = finalize(findings, crate_count as usize, edge_count, &parsed.enforcement);
     report.burned_down = burned_down;
@@ -1132,6 +1156,55 @@ fn count_burned_down(baseline: &Baseline, findings: &[Finding]) -> usize {
         .map(|f| Baseline::key_of(&f.code, &f.subject))
         .collect();
     baseline.keys.iter().filter(|k| !live.contains(*k)).count()
+}
+
+/// Baseline-liveness backstop (B3 hardening). A subset-semantics baseline blocks only on NEW
+/// regressions, so a STALE row silently rots: a crate MOVED by an in-flight strangler leaves its
+/// OLD-path edge in the baseline as a PHANTOM (`from`/`to` names a crate dir that no longer exists),
+/// and subset semantics never RED on a stale row. This asserts every committed baseline subject is
+/// still ANCHORED — each crate dir it names must exist in the live crate set (`live_crate_dirs` are the
+/// collected crate dirs, keyed by owning service). A phantom row is a blocking regression whose remedy
+/// is re-emitting the baseline (`--emit-baseline`), which drops it. A row whose endpoints still exist
+/// but whose EDGE was removed is a legitimate burn-down (the inversion was fixed) and is NOT flagged.
+fn detect_stale_baseline(
+    baseline: &Baseline,
+    live_crate_dirs: &BTreeMap<String, Option<String>>,
+    findings: &mut Vec<Finding>,
+) {
+    for key in &baseline.keys {
+        let Some((code, subject)) = key.split_once('|') else {
+            continue;
+        };
+        // Policy/scan sentinels carry no crate dir — never a phantom.
+        if subject == POLICY_KEY {
+            continue;
+        }
+        if let Some(missing) =
+            subject_crate_dirs(subject).find(|cdir| !live_crate_dirs.contains_key(*cdir))
+        {
+            findings.push(Finding::new(
+                "TDA-STALE-BASELINE",
+                subject,
+                format!(
+                    "baseline `{code}` entry names crate `{missing}`, absent from the live corpus — a \
+                     phantom row (the crate was moved/renamed/removed). A subset baseline never REDs on \
+                     a stale row, so it silently diverges from reality; re-emit the baseline \
+                     (`--emit-baseline`) to drop it"
+                ),
+                Status::Regression,
+            ));
+        }
+    }
+}
+
+/// The crate dirs a baseline subject references. An edge subject is `from -> to`; a multi-node cycle
+/// subject is a comma-joined node list; both split into the endpoint crate dirs (trimmed, non-empty).
+fn subject_crate_dirs(subject: &str) -> impl Iterator<Item = &str> {
+    subject
+        .split(" -> ")
+        .flat_map(|part| part.split(','))
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
 }
 
 /// Sort findings, tally baselined/regression counts, and decide the verdict per enforcement mode.

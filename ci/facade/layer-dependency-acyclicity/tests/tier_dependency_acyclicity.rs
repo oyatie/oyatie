@@ -186,6 +186,63 @@ fn burn_down_fixture_stays_green() {
     assert_eq!(report.burned_down, 1, "the fixed baselined edge counts as burned down");
 }
 
+#[test]
+fn stale_baseline_phantom_row_fails_closed() {
+    // B3 hardening — RED liveness fixture: a committed baseline subject whose `from` crate is ABSENT
+    // from the live corpus is a phantom row a subset baseline can never RED on (an in-flight strangler
+    // MOVE leaves the OLD-path edge behind). The liveness backstop must fail the gate closed.
+    let policy = fixture_policy();
+    let baseline = serde_json::json!({
+        "gate_id": GATE_ID,
+        "violations": [
+            {
+                "code": "TDA-SUBSTRATE-UPWARD",
+                "subject": "cloud/moved-away/crates/oya-moved-away-app -> oya/synth-product/crates/oya-synth-product-app"
+            }
+        ]
+    });
+    // burn-down.json's corpus contains oya/synth-product/... but NOT cloud/moved-away/... .
+    let observed = load_json(&fixtures_dir_root(), "burn-down.json").expect("load fixture corpus");
+    let report = evaluate(&policy, &baseline, &observed);
+    assert_eq!(
+        report.verdict,
+        Verdict::Red,
+        "a phantom baseline row (crate absent from the live corpus) MUST fail the gate; findings: {:?}",
+        report.findings
+    );
+    let f = report
+        .findings
+        .iter()
+        .find(|f| f.code == "TDA-STALE-BASELINE")
+        .expect("a stale-baseline finding");
+    assert_eq!(f.status, Status::Regression);
+}
+
+#[test]
+fn baseline_with_all_subjects_present_is_not_stale() {
+    // B3 hardening — GREEN liveness fixture: every baseline subject's endpoints exist in the live
+    // corpus, so there are no phantom rows. The liveness backstop stays quiet even though the inverting
+    // EDGE was removed (a legitimate burn-down) and the gate stays GREEN.
+    let policy = fixture_policy();
+    let baseline = serde_json::json!({
+        "gate_id": GATE_ID,
+        "violations": [
+            {
+                "code": "TDA-SUBSTRATE-UPWARD",
+                "subject": "cloud/synth-substrate/crates/oya-synth-substrate-app -> oya/synth-product/crates/oya-synth-product-app"
+            }
+        ]
+    });
+    let observed = load_json(&fixtures_dir_root(), "burn-down.json").expect("load fixture corpus");
+    let report = evaluate(&policy, &baseline, &observed);
+    assert!(
+        !report.findings.iter().any(|f| f.code == "TDA-STALE-BASELINE"),
+        "all baseline subjects present -> no phantom rows: {:?}",
+        report.findings
+    );
+    assert_eq!(report.verdict, Verdict::Green);
+}
+
 /// The fixtures dir as a `root` argument for `load_json` (which joins `root`/`path`).
 fn fixtures_dir_root() -> PathBuf {
     fixtures_dir()
