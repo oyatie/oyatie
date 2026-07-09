@@ -274,6 +274,10 @@
       "prefix": "scripts/tests/OWNERS"
     },
     {
+      "anchor": "ADR-0251 COMPLIANCE-001 contract slice: machine-readable governed-surface and claim-boundary contract for the schema/fixture review slice, enforced by the owned-Rust contract-slice-conformance gate; no production, runtime, certification, or tenant-activation authority.",
+      "prefix": "specs/compliance-001-contract-slice.json"
+    },
+    {
       "anchor": "ADR-0555: this registry registers itself — a reviewed root registration surface pointed at by oya-ci.toml [reachability].registry",
       "prefix": "specs/reachability-registry.json"
     },

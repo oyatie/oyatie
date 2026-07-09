@@ -9,8 +9,14 @@ import sys
 from pathlib import Path
 from typing import Callable, NoReturn
 
+try:
+    import jsonschema as _jsonschema  # type: ignore[import-not-found]
+except ModuleNotFoundError:  # pragma: no cover - exercised in dependency-free local runs.
+    _jsonschema = None
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCHEMA_PATH = REPO_ROOT / "specs" / "compliance-pack-schema.json"
+CONTRACT_SPEC_PATH = REPO_ROOT / "specs" / "compliance-001-contract-slice.json"
 PACK_FIXTURE_PATH = REPO_ROOT / "specs" / "fixtures" / "compliance-pack" / "compliance-001-soc2-cmp-portability.fixture.json"
 PORTABILITY_FIXTURE_PATH = REPO_ROOT / "specs" / "fixtures" / "compliance-pack" / "compliance-001-portability-export-manifest.fixture.json"
 
@@ -58,6 +64,24 @@ REQUIRED_NONCLAIM_MARKERS = {
     "not",
     "does not",
     "without claiming",
+}
+
+
+def nonclaim_pattern(marker: str) -> re.Pattern[str]:
+    escaped = re.escape(marker).replace(r"\ ", r"\s+")
+    return re.compile(rf"(?<![a-z0-9]){escaped}(?![a-z0-9])")
+
+
+REQUIRED_NONCLAIM_PATTERNS = tuple(
+    (marker, nonclaim_pattern(marker))
+    for marker in REQUIRED_NONCLAIM_MARKERS
+)
+REQUIRED_CONTRACT_SPEC_SURFACES = {
+    "specs/compliance-pack-schema.json",
+    "specs/fixtures/compliance-pack/compliance-001-soc2-cmp-portability.fixture.json",
+    "specs/fixtures/compliance-pack/compliance-001-portability-export-manifest.fixture.json",
+    "scripts/tests/compliance_pack_contract_slice_check.py",
+    "scripts/tests/OWNERS",
 }
 FORBIDDEN_ASSERTIVE_PATTERNS = [
     re.compile(pattern)
@@ -123,12 +147,132 @@ def without_claim_boundary_fields(value: object) -> object:
     return value
 
 
-def require_explicit_nonclaim(label: str, value: str) -> None:
-    lowered = value.lower()
-    require(any(marker in lowered for marker in REQUIRED_NONCLAIM_MARKERS), f"{label}: missing explicit non-claim wording")
+def require_explicit_nonclaim(label: str, value: object) -> None:
+    lowered = str(value).lower()
+    require(any(pattern.search(lowered) for _, pattern in REQUIRED_NONCLAIM_PATTERNS), f"{label}: missing explicit non-claim wording")
+
+
+def json_path(path: tuple[object, ...] | list[object]) -> str:
+    if not path:
+        return "$"
+    rendered = "$"
+    for part in path:
+        rendered += f"[{part}]" if isinstance(part, int) else f".{part}"
+    return rendered
+
+
+def matches_json_type(expected: str, value: object) -> bool:
+    if expected == "object":
+        return isinstance(value, dict)
+    if expected == "array":
+        return isinstance(value, list)
+    if expected == "string":
+        return isinstance(value, str)
+    if expected == "boolean":
+        return isinstance(value, bool)
+    if expected == "null":
+        return value is None
+    if expected == "integer":
+        return isinstance(value, int) and not isinstance(value, bool)
+    if expected == "number":
+        return isinstance(value, (int, float)) and not isinstance(value, bool)
+    return True
+
+
+def schema_error(label: str, path: str, message: str) -> NoReturn:
+    fail(f"{label}: JSON Schema validation failed at {path}: {message}")
+
+
+def validate_schema_subset(schema_node: object, instance: object, label: str, path: str = "$") -> None:
+    """Dependency-free subset used only when the jsonschema package is unavailable."""
+    if not isinstance(schema_node, dict):
+        return
+
+    if "const" in schema_node and instance != schema_node["const"]:
+        schema_error(label, path, f"expected const {schema_node['const']!r}")
+    if "enum" in schema_node and instance not in schema_node["enum"]:
+        schema_error(label, path, f"value {instance!r} not in enum {schema_node['enum']!r}")
+
+    expected_type = schema_node.get("type")
+    if expected_type is not None:
+        expected_types = expected_type if isinstance(expected_type, list) else [expected_type]
+        if not any(matches_json_type(expected, instance) for expected in expected_types):
+            schema_error(label, path, f"expected type {expected_types!r}")
+
+    if isinstance(instance, str):
+        if "pattern" in schema_node and not re.search(str(schema_node["pattern"]), instance):
+            schema_error(label, path, f"string does not match pattern {schema_node['pattern']!r}")
+        if "minLength" in schema_node and len(instance) < int(schema_node["minLength"]):
+            schema_error(label, path, f"string shorter than minLength {schema_node['minLength']}")
+        if "maxLength" in schema_node and len(instance) > int(schema_node["maxLength"]):
+            schema_error(label, path, f"string longer than maxLength {schema_node['maxLength']}")
+        if schema_node.get("format") == "date-time" and not re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})", instance):
+            schema_error(label, path, "string is not RFC3339 date-time shaped")
+
+    if isinstance(instance, (int, float)) and not isinstance(instance, bool):
+        if "minimum" in schema_node and instance < schema_node["minimum"]:
+            schema_error(label, path, f"number below minimum {schema_node['minimum']}")
+        if "maximum" in schema_node and instance > schema_node["maximum"]:
+            schema_error(label, path, f"number above maximum {schema_node['maximum']}")
+
+    if isinstance(instance, dict):
+        properties = schema_node.get("properties", {}) if isinstance(schema_node.get("properties", {}), dict) else {}
+        for key in schema_node.get("required", []):
+            if key not in instance:
+                schema_error(label, f"{path}.{key}", "required property missing")
+        for key, value in instance.items():
+            if key in properties:
+                validate_schema_subset(properties[key], value, label, f"{path}.{key}")
+            elif schema_node.get("additionalProperties") is False:
+                schema_error(label, f"{path}.{key}", "additional property is not allowed")
+            elif isinstance(schema_node.get("additionalProperties"), dict):
+                validate_schema_subset(schema_node["additionalProperties"], value, label, f"{path}.{key}")
+
+    if isinstance(instance, list):
+        if "minItems" in schema_node and len(instance) < int(schema_node["minItems"]):
+            schema_error(label, path, f"array shorter than minItems {schema_node['minItems']}")
+        if "maxItems" in schema_node and len(instance) > int(schema_node["maxItems"]):
+            schema_error(label, path, f"array longer than maxItems {schema_node['maxItems']}")
+        if schema_node.get("uniqueItems") is True:
+            seen = set()
+            for item in instance:
+                rendered = json.dumps(item, sort_keys=True, separators=(",", ":"))
+                if rendered in seen:
+                    schema_error(label, path, "array items are not unique")
+                seen.add(rendered)
+        prefix_items = schema_node.get("prefixItems", []) if isinstance(schema_node.get("prefixItems", []), list) else []
+        for index, item_schema in enumerate(prefix_items[: len(instance)]):
+            validate_schema_subset(item_schema, instance[index], label, f"{path}[{index}]")
+        item_schema = schema_node.get("items")
+        if isinstance(item_schema, dict):
+            start = len(prefix_items)
+            for index, item in enumerate(instance[start:], start=start):
+                validate_schema_subset(item_schema, item, label, f"{path}[{index}]")
+
+
+def validate_json_schema_document(schema: dict) -> None:
+    if _jsonschema is not None:
+        try:
+            _jsonschema.Draft202012Validator.check_schema(schema)
+        except Exception as exc:  # pragma: no cover - exact exception class varies by jsonschema release.
+            fail(f"compliance-pack schema is not a valid Draft 2020-12 JSON Schema: {exc}")
+    else:
+        require(schema.get("$schema") == "https://json-schema.org/draft/2020-12/schema", "schema must declare Draft 2020-12 when jsonschema is unavailable locally")
+
+
+def validate_pack_against_json_schema(schema: dict, fixture: dict) -> None:
+    if _jsonschema is not None:
+        validator = _jsonschema.Draft202012Validator(schema, format_checker=_jsonschema.FormatChecker())
+        errors = sorted(validator.iter_errors(fixture), key=lambda error: list(error.path))
+        if errors:
+            error = errors[0]
+            schema_error("pack fixture", json_path(list(error.path)), error.message)
+    else:
+        validate_schema_subset(schema, fixture, "pack fixture")
 
 
 def validate_schema(schema: dict) -> None:
+    validate_json_schema_document(schema)
     require(schema.get("version") == "1.1.0", "schema version must be bumped to 1.1.0 for COMPLIANCE-001")
     require(schema.get("_meta", {}).get("spec_id") == "EXE-COMPLIANCE-PACK-SCHEMA", "unexpected schema spec_id")
     related = set(schema.get("_meta", {}).get("related_adrs", []))
@@ -146,7 +290,7 @@ def validate_schema(schema: dict) -> None:
     require(signature_contract["properties"]["signature_algorithm"].get("enum") == ["Ed25519"], "signature algorithm must stay Ed25519")
 
     collectors = properties["evidence_collectors"].get("items", {})
-    require(REQUIRED_SIGNATURE_CONTRACT_FIELDS - {"canonicalization", "signature_algorithm", "signature_scope", "verification_inputs"} <= set(collectors.get("required", [])), "evidence collectors must require claim_boundary")
+    require("claim_boundary" in collectors.get("required", []), "evidence collectors must require claim_boundary")
     require("auditor_publishability" in collectors.get("required", []), "evidence collectors must require auditor_publishability")
 
     cell_state = properties["cell_certification_state"]
@@ -173,7 +317,8 @@ def validate_schema(schema: dict) -> None:
     require(not contains_forbidden_assertive_claim(without_claim_boundary_fields(schema)), "schema contains forbidden assertive positive-claim wording outside claim-boundary fields")
 
 
-def validate_pack_fixture(fixture: dict, portability_manifest: dict) -> None:
+def validate_pack_fixture(schema: dict, fixture: dict, portability_manifest: dict) -> None:
+    validate_pack_against_json_schema(schema, fixture)
     require(fixture.get("$schema") == "https://docs.oyatie.com/specs/compliance-pack-schema.schema.json", "pack fixture must point at compliance-pack schema")
     require(fixture.get("_meta", {}).get("fixture_id") == "COMPLIANCE-001-SOC2-CMP-PORTABILITY", "unexpected fixture_id")
     require(fixture.get("_meta", {}).get("status") == "contract-fixture-only", "fixture must remain contract-fixture-only")
@@ -246,16 +391,40 @@ def validate_pack_fixture(fixture: dict, portability_manifest: dict) -> None:
     require(not contains_forbidden_assertive_claim(without_claim_boundary_fields(portability_manifest)), "portability manifest contains forbidden assertive positive-claim wording outside claim-boundary fields")
 
 
-def validate(schema: dict, fixture: dict, portability_manifest: dict) -> None:
+def validate_contract_spec(contract_spec: dict) -> None:
+    require(contract_spec.get("_meta", {}).get("spec_id") == "COMPLIANCE-001-CONTRACT-SLICE", "contract spec_id mismatch")
+    claim_boundary = contract_spec.get("claim_boundary", {})
+    for key in [
+        "contract_fixture_only",
+        "local_validation_only",
+        "no_product_or_cloud_runtime_mutation",
+        "no_soc2_certification_claim",
+        "no_runtime_evidence_collector_claim",
+        "no_cmp_deployment_claim",
+        "no_portability_api_or_export_job_claim",
+        "no_tenant_activation_claim",
+        "no_dsr_sla_claim",
+        "no_production_readiness_claim",
+    ]:
+        require(claim_boundary.get(key) is True, f"contract spec claim_boundary.{key} must be true")
+    surfaces = {surface.get("path"): surface for surface in contract_spec.get("governed_surfaces", [])}
+    require(REQUIRED_CONTRACT_SPEC_SURFACES <= set(surfaces), f"contract spec missing governed surfaces {sorted(REQUIRED_CONTRACT_SPEC_SURFACES - set(surfaces))}")
+    for path, surface in surfaces.items():
+        require(surface.get("runtime_authority") is False, f"{path}: contract-slice surface must not claim runtime authority")
+
+
+def validate(schema: dict, fixture: dict, portability_manifest: dict, contract_spec: dict) -> None:
     validate_schema(schema)
-    validate_pack_fixture(fixture, portability_manifest)
+    validate_pack_fixture(schema, fixture, portability_manifest)
+    validate_contract_spec(contract_spec)
 
 
 def main() -> None:
-    validate(load_json(SCHEMA_PATH), load_json(PACK_FIXTURE_PATH), load_json(PORTABILITY_FIXTURE_PATH))
+    validate(load_json(SCHEMA_PATH), load_json(PACK_FIXTURE_PATH), load_json(PORTABILITY_FIXTURE_PATH), load_json(CONTRACT_SPEC_PATH))
     print(
         "compliance-pack contract slice check passed: "
         f"{SCHEMA_PATH.relative_to(REPO_ROOT)}, "
+        f"{CONTRACT_SPEC_PATH.relative_to(REPO_ROOT)}, "
         f"{PACK_FIXTURE_PATH.relative_to(REPO_ROOT)}, "
         f"{PORTABILITY_FIXTURE_PATH.relative_to(REPO_ROOT)}"
     )
@@ -265,6 +434,7 @@ def run_self_tests() -> None:
     baseline_schema = load_json(SCHEMA_PATH)
     baseline_fixture = load_json(PACK_FIXTURE_PATH)
     baseline_manifest = load_json(PORTABILITY_FIXTURE_PATH)
+    baseline_contract_spec = load_json(CONTRACT_SPEC_PATH)
 
     def expect_rejected(label: str, mutator: Callable[[dict, dict, dict], None]) -> None:
         schema = copy.deepcopy(baseline_schema)
@@ -272,7 +442,7 @@ def run_self_tests() -> None:
         manifest = copy.deepcopy(baseline_manifest)
         mutator(schema, fixture, manifest)
         try:
-            validate(schema, fixture, manifest)
+            validate(schema, fixture, manifest, baseline_contract_spec)
         except SystemExit as exc:
             require(exc.code != 0, f"self-test {label!r} exited successfully")
         else:
@@ -281,6 +451,7 @@ def run_self_tests() -> None:
     expect_rejected("missing signature contract schema", lambda schema, fixture, manifest: schema["properties"].pop("signature_contract"))
     expect_rejected("missing ADR-0272 source", lambda schema, fixture, manifest: schema["_meta"].update({"related_adrs": [adr for adr in schema["_meta"]["related_adrs"] if adr != "ADR-0272"]}))
     expect_rejected("wrong CMP order", lambda schema, fixture, manifest: fixture["cmp_consent"].update({"canonical_purposes": ["necessary", "statistics", "preference", "marketing", "personalization"]}))
+    expect_rejected("schema pattern validation", lambda schema, fixture, manifest: fixture["signature_contract"]["verification_inputs"].update({"canonical_bundle_digest_sha256": "not-a-digest"}))
     expect_rejected("CMP accept-all default", lambda schema, fixture, manifest: fixture["cmp_consent"].update({"no_accept_all_default": False}))
     expect_rejected("certified launch overclaim", lambda schema, fixture, manifest: fixture["cell_certification_state"].update({"state": "certified", "launch_gate_policy": "deny-unless-certified-and-pack-installed"}))
     expect_rejected("missing SOC2 collector", lambda schema, fixture, manifest: fixture.update({"evidence_collectors": [collector for collector in fixture["evidence_collectors"] if collector["artifact_kind"] != "pen_test_report"]}))
