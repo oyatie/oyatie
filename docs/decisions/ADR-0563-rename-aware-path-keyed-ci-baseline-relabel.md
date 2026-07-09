@@ -129,7 +129,12 @@ non-vacuity canary proving the marketplace pin fails without the C2 dispatch lin
   `specs/reorg/` reachability-registry entry (ADR-0555 born-accounting). The first capability
   move to exercise the machinery — the ci keystone (`cloud/cloud-ci/gates` → `ci/facade/`,
   ADR-0562) — commits its per-capability plan `specs/reorg/ci-move-plan.json`, likewise
-  justified by this ADR and reachable via the same `specs/reorg/` entry. The relabel resolves
+  justified by this ADR and reachable via the same `specs/reorg/` entry. That same move also
+  commits its Cargo.lock graph-additions companion `specs/reorg/ci-graph-additions.json` — the
+  new local members and dependency edges the move introduces beyond the renames, consumed WITH
+  the plan by the owned `oya-xtask-metadata-augment lockfile-move` maintenance (deterministic
+  text/graph transform, no cargo, no version resolution) — likewise justified by this ADR and
+  reachable via the same `specs/reorg/` entry. The relabel resolves
   every path through the move-stable `PathId` port + manifest adapter (the keystone's proven
   security core): `ci/ports/path-resolver/src/lib.rs`, `ci/ports/path-resolver/Cargo.toml`,
   `ci/ports/path-resolver/BUCK`, `ci/adapters/path-resolver/src/lib.rs`,
