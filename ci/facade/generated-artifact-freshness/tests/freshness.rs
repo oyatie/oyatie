@@ -233,11 +233,11 @@ fn decommit_class_face_is_stale_when_regeneration_stops_producing_it() {
 fn committed_class_face_keeps_byte_parity_when_other_faces_are_decommitted() {
     // Scope guard: de-committing one face must NOT weaken byte parity for a still-committed face.
     let committed = vec![(
-        "move-manifest.generated.json".to_owned(),
+        "example-committed-face.generated.json".to_owned(),
         "old\n".to_owned(),
     )];
     let regenerated = vec![(
-        "move-manifest.generated.json".to_owned(),
+        "example-committed-face.generated.json".to_owned(),
         "new\n".to_owned(),
     )];
     let decommitted = BTreeSet::from(["ttl-policy.generated.json".to_owned()]);
@@ -248,7 +248,7 @@ fn committed_class_face_keeps_byte_parity_when_other_faces_are_decommitted() {
         codes(&findings),
         BTreeSet::from([FindingCode::GeneratedFaceStale])
     );
-    assert_eq!(findings[0].key, "move-manifest.generated.json");
+    assert_eq!(findings[0].key, "example-committed-face.generated.json");
     assert!(findings[0].detail.contains("differ from regenerated"));
 }
 
@@ -330,8 +330,8 @@ fn determinism_canary_reds_for_nondeterministic_regeneration() {
 #[test]
 fn determinism_canary_ignores_committed_class_faces() {
     // The determinism canary is scoped to de-commit-class faces only.
-    let first = vec![("move-manifest.generated.json".to_owned(), "a\n".to_owned())];
-    let second = vec![("move-manifest.generated.json".to_owned(), "b\n".to_owned())];
+    let first = vec![("example-committed-face.generated.json".to_owned(), "a\n".to_owned())];
+    let second = vec![("example-committed-face.generated.json".to_owned(), "b\n".to_owned())];
 
     assert!(evaluate_face_determinism(&first, &second, &BTreeSet::new()).is_empty());
 }

@@ -74,12 +74,6 @@ const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: &str = ".claude/settings.json";
 const ENFORCEMENT_LIVENESS_CODEX_HOOKS: &str = ".codex/hooks.json";
 const ENFORCEMENT_LIVENESS_HOOKS_DIR: &str = "tools/hooks";
 
-/// The committed reorg move-manifest face (task #64). Byte-bound to the codemod's deterministic
-/// output exactly like the accounting faces + scm-facts: a hand-forged manifest row is
-/// ci_inventory_registry_drift RED before the firewall consumes it (the anti-forgery binding for the
-/// rename-aware path-keyed baseline relabel).
-const MOVE_MANIFEST_FACE: &str = "specs/reorg/move-manifest.generated.json";
-
 /// Run the producer to regenerate a single face to stdout. The producer binary must be
 /// provided by `OYA_CI_PRODUCER_BIN`; missing env fails closed so hermetic gates cannot silently
 /// fall back to Cargo.
@@ -232,12 +226,14 @@ fn committed_move_plan(root: &Path) -> Option<PathBuf> {
 /// Run the reorg codemod `manifest` subcommand to regenerate the move-manifest face to a temp
 /// path, returning its bytes (task #64). Prefers the buck2-provided binary
 /// (`OYA_CI_CODEMOD_BIN`), else `cargo run -p`. Passes the committed move plan via `--plan` (same
-/// as the materialize pipeline) so committed==regenerated holds for a real move PR; with no plan
-/// it emits the canonical EMPTY manifest. Reads `git ls-files`, so this is a git-boundary regen
-/// (the caller gates it to the boundary context, identical to scm-facts).
-fn regenerate_move_manifest(root: &Path) -> String {
+/// as the materialize pipeline) so the regeneration matches the materialize pipeline exactly; with
+/// no plan it emits the canonical EMPTY manifest. Reads `git ls-files`, so this is a git-boundary
+/// regen (the caller gates it to the boundary context, identical to scm-facts). `pass`
+/// discriminates the temp output path so the determinism canary can regenerate twice in one process
+/// without the two passes colliding on the same temp file.
+fn regenerate_move_manifest(root: &Path, pass: u32) -> String {
     let out = std::env::temp_dir().join(format!(
-        "oya-ci-move-manifest-regen-{}.json",
+        "oya-ci-move-manifest-regen-{}-{pass}.json",
         std::process::id()
     ));
     let plan = committed_move_plan(root);
@@ -505,15 +501,18 @@ fn scm_facts_regenerates_deterministically() {
     );
 }
 
-/// Regenerate the reorg move-manifest face (task #64) via the codemod `manifest` subcommand and
-/// assert it byte-matches the committed `specs/reorg/move-manifest.generated.json`. This extends
-/// the committed==regenerated coverage to the move-manifest: a hand-forged manifest row is
-/// ci_inventory_registry_drift RED before the firewall's rename-aware relabel consumes it (the anti-forgery
-/// binding). The codemod reads `git ls-files`, so — exactly like the scm-facts emitter — this
-/// runs ONLY at a git boundary (cargo dev / CI regen pre-step with OYA_CI_SCM_FACTS_REGEN=1) and
-/// SKIPS inside a hermetic buck2 action (no `.git` on an RBE worker).
+/// Regenerate the reorg move-manifest face (task #64) TWICE via the codemod `manifest` subcommand
+/// and assert the two emissions are byte-identical (ADR-0614 de-commit-class determinism canary,
+/// mirroring [`scm_facts_regenerates_deterministically`]). ADR-0614 amends ADR-0563 and de-commits
+/// move-manifest: it is no longer tracked in git, so there is no committed copy to byte-compare.
+/// With byte-parity-to-committed retired, the regenerate-twice determinism check is the integrity
+/// canary that keeps derive-on-demand sound — a NON-DETERMINISTIC codemod (which would silently
+/// forge a different bijection on the materialize leg vs the relabel-read leg) must hard-fail here
+/// rather than green. The codemod reads `git ls-files`, so — exactly like the scm-facts emitter —
+/// this runs ONLY at a git boundary (cargo dev / CI regen pre-step with OYA_CI_SCM_FACTS_REGEN=1)
+/// and SKIPS inside a hermetic buck2 action (no `.git` on an RBE worker).
 #[test]
-fn committed_move_manifest_equals_regenerated() {
+fn move_manifest_regenerates_deterministically() {
     let regen_boundary = std::env::var_os("CARGO").is_some()
         || std::env::var("OYA_CI_SCM_FACTS_REGEN").as_deref() == Ok("1");
     if !regen_boundary {
@@ -526,22 +525,15 @@ fn committed_move_manifest_equals_regenerated() {
     }
 
     let root = repo_root();
-    let committed_path = root.join(MOVE_MANIFEST_FACE);
-    let committed = fs::read_to_string(&committed_path).unwrap_or_else(|e| {
-        panic!(
-            "committed move-manifest face missing at {} ({e}); run the codemod manifest \
-             subcommand to generate it",
-            committed_path.display()
-        )
-    });
-
-    let regenerated = regenerate_move_manifest(&root);
+    let first = regenerate_move_manifest(&root, 1);
+    let second = regenerate_move_manifest(&root, 2);
 
     assert_eq!(
-        committed, regenerated,
-        "MOVE-MANIFEST DRIFT: committed {MOVE_MANIFEST_FACE} != regenerated. \
-         The move-manifest face was hand-edited, or the committed move plan / candidate tree \
-         changed without re-running the codemod. Re-run \
-         //tools/oya-reorg-codemod-app:oya-reorg-codemod manifest to regenerate."
+        first, second,
+        "MOVE-MANIFEST NON-DETERMINISTIC: two fresh codemod `manifest` emissions differ. \
+         move-manifest is de-committed (ADR-0614): there is no committed copy, so regenerate-twice \
+         determinism is the integrity canary. The codemod must be a pure function of the committed \
+         move plan(s) x candidate tracked tree. A non-deterministic generator is a hard failure. \
+         Re-run //tools/oya-reorg-codemod-app:oya-reorg-codemod manifest to reproduce."
     );
 }
