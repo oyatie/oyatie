@@ -225,6 +225,18 @@ surface is:
 - `ci/facade/resource-contract-conformance/src/lib.rs`
 - `ci/facade/resource-contract-conformance/tests/cloud_resource_contracts.rs`
 
+The contract-slice conformance gate is the paved-road owned-Rust/Buck2 replacement for the fleet-wide
+`scripts/tests/*_check.py` "contract slice" validators (class-fix). Its intentionally bounded surface is:
+
+- `ci/facade/contract-slice-conformance/BUCK`
+- `ci/facade/contract-slice-conformance/Cargo.toml`
+- `ci/facade/contract-slice-conformance/OWNERS`
+- `ci/facade/contract-slice-conformance/README.md`
+- `ci/facade/contract-slice-conformance/contract-slice-policy.json`
+- `ci/facade/contract-slice-conformance/fixtures/exemplar-slice.json`
+- `ci/facade/contract-slice-conformance/src/lib.rs`
+- `ci/facade/contract-slice-conformance/tests/contract_slice_conformance.rs`
+
 The run-observability packet/status contract is part of the same single-required-context substrate:
 `specs/cloud-ci-run-observability-packet.schema.json` defines the machine-readable packet,
 `specs/cloud-ci-run-observability-status.schema.json` defines the separately serialized status/query
