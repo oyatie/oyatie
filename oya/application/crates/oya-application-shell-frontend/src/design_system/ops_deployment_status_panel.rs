@@ -142,8 +142,8 @@ pub struct DeploymentStatus {
 #[component]
 pub fn OpsDeploymentStatusPanel(status: DeploymentStatus) -> impl IntoView {
     let announcement = status.state.announcement();
-    let rollback_available = status.destructive_apply.is_some()
-        || matches!(status.variant, PanelVariant::Rollback);
+    let rollback_available =
+        status.destructive_apply.is_some() || matches!(status.variant, PanelVariant::Rollback);
     view! {
         <section
             class="ds-ops-deployment-status-panel"
