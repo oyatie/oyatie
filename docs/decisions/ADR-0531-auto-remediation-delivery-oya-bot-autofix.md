@@ -67,7 +67,6 @@ human merge.
 The following repo paths are governed by this ADR. The accounting gate validates that each is justified
 (this ADR is the justification reference):
 
-`evidence/multispectrum/remed-002-bot-autofix-dry-run-20260709-1783604292.json`
 `Cargo.lock`
 `registry/catalog/oya-bot-autofix-app.yaml`
 `specs/capability-registry.json`
