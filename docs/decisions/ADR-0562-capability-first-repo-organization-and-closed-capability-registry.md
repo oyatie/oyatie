@@ -2703,3 +2703,15 @@ tracked evidence artifacts are DATA, not generated faces, and must remain under 
 - evidence/wave-d-g003-g006/g008/data-storage-no-op-evidence.md — data/storage no-op evidence that documents the verified absence of a merge-safe runtime slice.
 - evidence/wave-d-g003-g006/g009/workflow-no-op-evidence.md — workflow substrate no-op evidence for the parallel foundation wave.
 - evidence/wave-d-g003-g006/integration/foundation-wave-evidence.md — integrated Wave-D foundation evidence tying G003/G006 lane outputs to the phase-0 capability reorg.
+
+## 2026-07-09 build-tooling governed path registration
+
+ADR-0562 maps build/CI engines and workspace-manifest tooling to the `build` meta home. The
+Cargo.lock move/canonicalization helper is that build-tooling substrate, not a product capability.
+The following governed paths are intentionally owned by `cloud-ci-platform` and registered as
+build/CI tooling for the reorg codemod and metadata xtask:
+
+- libs/oya-cargo-lock-transform-kernel/BUCK
+- libs/oya-cargo-lock-transform-kernel/Cargo.toml
+- libs/oya-cargo-lock-transform-kernel/OWNERS
+- libs/oya-cargo-lock-transform-kernel/src/lib.rs
