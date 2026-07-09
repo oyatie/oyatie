@@ -138,11 +138,17 @@ fn run() -> Result<(), String> {
         Some(root) => root,
         None => discover_repo_root()?,
     };
-    // The move-aware resolver over the materialized manifest. FAIL-CLOSED on ABSENT (ADR-0614): a
-    // missing move-manifest is a HARD error here (the materializer, step 1, did not run) — NOT a
-    // silent identity relabel. The candidate write targets are its CURRENT-canonical seeds; the
-    // merge-base baseline mode below uses it for the frozen-reference name resolution.
-    let resolver = ManifestPathResolver::load(&repo_root)?;
+    // The move-aware resolver. Its `candidate(...)` lookups (the write targets below) are
+    // identity-safe; only the `--merge-base-baseline` path consumes the move-aware RELABEL. So
+    // fail-CLOSED on an ABSENT move-manifest ONLY when the relabel will actually be used
+    // (ADR-0614): a non-relabel run — e.g. the freshness gate's scm-facts regen — legitimately runs
+    // WITHOUT a materialized manifest and must not be broken by it. The relabel path
+    // (`emit_merge_base_baseline` -> `load_move_manifest`) fail-closes on absence independently.
+    let resolver = if merge_base_baseline {
+        ManifestPathResolver::load(&repo_root)?
+    } else {
+        ManifestPathResolver::load(&repo_root).unwrap_or_else(|_| ManifestPathResolver::empty())
+    };
     let out = out.unwrap_or_else(|| repo_root.join(resolver.candidate(PathId::ScmFactsFace)));
     let volatile_out =
         volatile_out.unwrap_or_else(|| repo_root.join(resolver.candidate(PathId::VolatileFacts)));
