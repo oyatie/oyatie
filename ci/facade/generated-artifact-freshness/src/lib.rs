@@ -1684,12 +1684,25 @@ mod materialize_generated_faces_tests {
     fn write_executable(path: &Path, body: &str) {
         use std::os::unix::fs::PermissionsExt;
 
-        std::fs::write(path, body).expect("write executable");
-        let mut permissions = std::fs::metadata(path)
-            .expect("executable metadata")
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system clock after epoch")
+            .as_nanos();
+        let file_name = path
+            .file_name()
+            .expect("executable file name")
+            .to_string_lossy();
+        let tmp = path.with_file_name(format!(
+            ".{file_name}.tmp-{}-{nanos}",
+            std::process::id()
+        ));
+        std::fs::write(&tmp, body).expect("write temporary executable");
+        let mut permissions = std::fs::metadata(&tmp)
+            .expect("temporary executable metadata")
             .permissions();
         permissions.set_mode(0o755);
-        std::fs::set_permissions(path, permissions).expect("chmod executable");
+        std::fs::set_permissions(&tmp, permissions).expect("chmod temporary executable");
+        std::fs::rename(&tmp, path).expect("install executable");
     }
 
     #[test]
