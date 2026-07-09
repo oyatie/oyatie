@@ -163,12 +163,6 @@
       "status": "temporary_legacy_bridge"
     },
     {
-      "path": "tools/hooks/session-start-context-inject.sh",
-      "reason": "Local agent hook bridge retained only to block retired local authority while cloud-ci admission moves into Rust gates.",
-      "replacement": "Replace with Rust Buck2 cloud-ci admission gate and Kubernetes-native policy/controller enforcement.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
       "path": "tools/hooks/spec-version-pin-suggester.sh",
       "reason": "Local agent hook bridge retained only to block retired local authority while cloud-ci admission moves into Rust gates.",
       "replacement": "Replace with Rust Buck2 cloud-ci admission gate and Kubernetes-native policy/controller enforcement.",
