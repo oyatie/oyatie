@@ -360,7 +360,7 @@ fn rewrite_root_workspace(
 }
 
 /// Relocate the moved crates' `Cargo.lock` package entries using the proven owned lock transform
-/// ([`oya_cargo_lock_transform::move_lockfile`]) — rename the `[[package]]` block + every
+/// ([`oya_cargo_lock_transform_kernel::move_lockfile`]) — rename the `[[package]]` block + every
 /// dependency reference and re-canonicalize into Cargo's package order, byte-identically and
 /// WITHOUT invoking cargo (no version resolution: a crate relocation preserves the version graph).
 ///
@@ -392,10 +392,10 @@ fn rewrite_cargo_lock(
         return Ok(());
     }
     let content = read(&lock_path, "Cargo.lock")?;
-    let rewritten = oya_cargo_lock_transform::move_lockfile(
+    let rewritten = oya_cargo_lock_transform_kernel::move_lockfile(
         &content,
         &rename_map,
-        &oya_cargo_lock_transform::GraphAdditions::empty(),
+        &oya_cargo_lock_transform_kernel::GraphAdditions::empty(),
     )
     .map_err(|e| CodemodError::LockfileTransform {
         message: e.to_string(),
