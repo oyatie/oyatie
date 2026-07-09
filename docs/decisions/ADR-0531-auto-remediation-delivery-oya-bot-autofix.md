@@ -62,6 +62,13 @@ remediation through the same signed + attested + capability-declared contract; a
 capability is default-DENIED at registration; the bot's PR is subject to the adopter's full fan-in +
 human merge.
 
+Initial REMED-002 implementation surfaces are the source-only PROPOSE/dry-run skeleton at
+`tools/oya-bot-autofix-app/BUCK`, `tools/oya-bot-autofix-app/Cargo.toml`,
+`tools/oya-bot-autofix-app/OWNERS`, `tools/oya-bot-autofix-app/src/lib.rs`,
+`tools/oya-bot-autofix-app/src/main.rs`, and `tools/oya-bot-autofix-app/tests/dry_run.rs`, plus the
+preview catalog/evidence rows `registry/catalog/oya-bot-autofix-app.yaml` and
+`evidence/multispectrum/remed-002-bot-autofix-dry-run-20260709-1783604292.json`.
+
 ## Drivers
 
 - The auto-fix-on-a-third-party-repo trust/security + supply-chain surface demands the dangerous
