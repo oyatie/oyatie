@@ -11,6 +11,8 @@
 //! 4. rewrite ALL `BUCK` labels + the moved BUCKs' own name/crate fields;
 //! 5. rewrite ALL `.rs` crate-ident references;
 //! 6. rewrite the root workspace members/exclude if needed;
+//!    then relocate the moved crates' `Cargo.lock` entries (rename + re-canonicalize) via the
+//!    owned pure transform — byte-identical, no cargo, no-op without a root lockfile;
 //! 7. `git mv` each crate dir old -> new (longest-path-first so nested moves are safe);
 //! 8. `git mv` each NON-crate artifact (SLOs, catalog records) old -> new, content-preserving
 //!    (no in-file rewrite — these carry no cargo/buck/rust idents).
@@ -20,7 +22,7 @@
 //! capability's non-crate artifacts wholesale. This ordering keeps the operation a single
 //! coherent transform and lets a `--dry-run` shadow copy prove it.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -56,6 +58,9 @@ pub struct ApplyOutcome {
     pub bucks_rewritten: Vec<String>,
     pub rust_files_rewritten: Vec<String>,
     pub root_workspace_changed: bool,
+    /// True iff the root `Cargo.lock` package entries were relocated (renamed + re-canonicalized)
+    /// by this move. False when the tree has no lockfile or no crate's cargo name changed.
+    pub cargo_lock_changed: bool,
     pub dirs_moved: Vec<(String, String)>,
 }
 
@@ -124,6 +129,7 @@ pub fn apply_plan(
         bucks_rewritten: Vec::new(),
         rust_files_rewritten: Vec::new(),
         root_workspace_changed: false,
+        cargo_lock_changed: false,
         dirs_moved: Vec::new(),
     };
 
@@ -152,6 +158,12 @@ pub fn apply_plan(
 
     // --- Step 6: root workspace members/exclude. ---
     rewrite_root_workspace(repo_root, plan, &mut outcome)?;
+
+    // --- Step 6b: relocate the moved crates' Cargo.lock package entries (rename + re-canonicalize)
+    // via the owned pure transform — byte-identically, WITHOUT invoking cargo. Keyed on the SAME
+    // name map the crate moves carry, so it needs no parallel config; a no-op when the tree has no
+    // root Cargo.lock (fixtures / sub-workspaces). ---
+    rewrite_cargo_lock(repo_root, plan, &mut outcome)?;
 
     // --- Step 7: the directory moves (longest old_path first so nested dirs move safely). ---
     let mut ordered: Vec<&CrateMove> = plan.moves.iter().collect();
@@ -343,6 +355,54 @@ fn rewrite_root_workspace(
     if changed {
         write(&root_manifest, "Cargo.toml", &new_text)?;
         outcome.root_workspace_changed = true;
+    }
+    Ok(())
+}
+
+/// Relocate the moved crates' `Cargo.lock` package entries using the proven owned lock transform
+/// ([`oya_cargo_lock_transform::move_lockfile`]) — rename the `[[package]]` block + every
+/// dependency reference and re-canonicalize into Cargo's package order, byte-identically and
+/// WITHOUT invoking cargo (no version resolution: a crate relocation preserves the version graph).
+///
+/// The rename map is derived from the plan's own name map (`old_cargo_name -> new_cargo_name`), so
+/// this is data-driven off the existing move-plan with no parallel config; `plan.validate()` has
+/// already guaranteed both sides are injective, so the map cannot collapse two crates. A pure
+/// relocation adds no new members or edges, hence [`GraphAdditions::empty`].
+///
+/// No-op (returns `Ok`) when the tree has no root `Cargo.lock` (fixtures, sub-workspaces) or when
+/// no crate's cargo name actually changes — mirroring [`rewrite_root_workspace`]'s tolerance for a
+/// missing root manifest. Runs forward AND inverse: the inverse plan swaps the name map, so
+/// `--revert` restores the lockfile byte-identically.
+fn rewrite_cargo_lock(
+    repo_root: &Path,
+    plan: &MovePlan,
+    outcome: &mut ApplyOutcome,
+) -> Result<(), CodemodError> {
+    let lock_path = repo_root.join("Cargo.lock");
+    if !lock_path.is_file() {
+        return Ok(());
+    }
+    let rename_map: HashMap<String, String> = plan
+        .moves
+        .iter()
+        .filter(|m| m.old_cargo_name != m.new_cargo_name)
+        .map(|m| (m.old_cargo_name.clone(), m.new_cargo_name.clone()))
+        .collect();
+    if rename_map.is_empty() {
+        return Ok(());
+    }
+    let content = read(&lock_path, "Cargo.lock")?;
+    let rewritten = oya_cargo_lock_transform::move_lockfile(
+        &content,
+        &rename_map,
+        &oya_cargo_lock_transform::GraphAdditions::empty(),
+    )
+    .map_err(|e| CodemodError::LockfileTransform {
+        message: e.to_string(),
+    })?;
+    if rewritten != content {
+        write(&lock_path, "Cargo.lock", &rewritten)?;
+        outcome.cargo_lock_changed = true;
     }
     Ok(())
 }
@@ -1000,6 +1060,150 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
             )],
             "empty artifacts => dirs_moved is the crate move alone (back-compat no-op)"
         );
+
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    // --- Step-6b Cargo.lock co-move: a crate relocation must ALSO relocate the crate's
+    // Cargo.lock package entry byte-identically, via the owned pure transform (no cargo). ---
+
+    /// The canonical (cargo-generated) lockfile the fixture starts from: `oya-widget` is a member,
+    /// referenced by `alpha`, and sits between `alpha` and `zeta` in name order.
+    const INPUT_LOCK: &str = "\
+# This file is automatically @generated by Cargo.
+# It is not intended for manual editing.
+version = 4
+
+[[package]]
+name = \"alpha\"
+version = \"0.1.0\"
+dependencies = [
+ \"oya-widget\",
+]
+
+[[package]]
+name = \"oya-widget\"
+version = \"0.1.0\"
+
+[[package]]
+name = \"zeta\"
+version = \"0.1.0\"
+";
+
+    /// After moving `oya-widget` -> `zzz-widget`: the package block is RENAMED, the `alpha`
+    /// dependency reference is renamed, and the block RELOCATES to its new canonical position
+    /// (past `zeta`, since `zeta` < `zzz-widget`). This is exactly `cargo`'s canonical output —
+    /// the load-bearing byte-identity property.
+    const EXPECTED_LOCK: &str = "\
+# This file is automatically @generated by Cargo.
+# It is not intended for manual editing.
+version = 4
+
+[[package]]
+name = \"alpha\"
+version = \"0.1.0\"
+dependencies = [
+ \"zzz-widget\",
+]
+
+[[package]]
+name = \"zeta\"
+version = \"0.1.0\"
+
+[[package]]
+name = \"zzz-widget\"
+version = \"0.1.0\"
+";
+
+    fn lock_move_fixture(root: &Path) {
+        wf(
+            root,
+            "Cargo.toml",
+            "[workspace]\nmembers = [\"oya/*\", \"widget/*/*\"]\nresolver = \"2\"\n",
+        );
+        wf(
+            root,
+            "oya/widget/Cargo.toml",
+            "[package]\nname = \"oya-widget\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        wf(root, "oya/widget/src/lib.rs", "pub fn w() {}\n");
+        wf(root, "Cargo.lock", INPUT_LOCK);
+    }
+
+    fn lock_move_plan() -> MovePlan {
+        MovePlan {
+            capability: "widget".to_string(),
+            moves: vec![CrateMove {
+                old_path: "oya/widget".to_string(),
+                new_path: "widget/core/widget".to_string(),
+                old_cargo_name: "oya-widget".to_string(),
+                new_cargo_name: "zzz-widget".to_string(),
+            }],
+            artifacts: vec![],
+        }
+    }
+
+    #[test]
+    fn apply_relocates_cargo_lock_entry_byte_identically() {
+        let root = artifact_tmp_root("lock");
+        lock_move_fixture(&root);
+
+        let outcome = apply_plan(&root, &lock_move_plan(), &ApplyOptions { use_git_mv: false })
+            .expect("apply must succeed and relocate the lock entry");
+
+        // The crate dir moved (sanity).
+        assert!(root.join("widget/core/widget/Cargo.toml").is_file());
+        // LOAD-BEARING: the Cargo.lock package entry was relocated BYTE-IDENTICALLY to cargo's
+        // canonical output — renamed + re-sorted, with NO cargo invoked.
+        let got = std::fs::read_to_string(root.join("Cargo.lock")).unwrap();
+        assert_eq!(got, EXPECTED_LOCK, "lock entry must relocate byte-identically");
+        assert!(
+            outcome.cargo_lock_changed,
+            "the outcome must report the lockfile change"
+        );
+
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn inverse_apply_restores_cargo_lock_byte_identically() {
+        let root = artifact_tmp_root("lock-inv");
+        lock_move_fixture(&root);
+        let plan = lock_move_plan();
+
+        apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false }).unwrap();
+        let inverse = apply_plan(&root, &plan.inverse(), &ApplyOptions { use_git_mv: false })
+            .expect("inverse apply must succeed");
+
+        // Reversibility-by-construction: --revert restores the original lockfile byte-for-byte.
+        let got = std::fs::read_to_string(root.join("Cargo.lock")).unwrap();
+        assert_eq!(got, INPUT_LOCK, "inverse must restore the lock byte-identically");
+        assert!(inverse.cargo_lock_changed);
+
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn apply_without_a_lockfile_is_a_no_op_for_the_lock_step() {
+        // BACK-COMPAT: a fixture tree with NO Cargo.lock (the existing roundtrip fixtures) must
+        // leave the lock step a no-op — no file created, cargo_lock_changed stays false.
+        let root = artifact_tmp_root("lock-absent");
+        wf(
+            &root,
+            "Cargo.toml",
+            "[workspace]\nmembers = [\"oya/*\", \"widget/*/*\"]\nresolver = \"2\"\n",
+        );
+        wf(
+            &root,
+            "oya/widget/Cargo.toml",
+            "[package]\nname = \"oya-widget\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        wf(&root, "oya/widget/src/lib.rs", "pub fn w() {}\n");
+
+        let outcome = apply_plan(&root, &lock_move_plan(), &ApplyOptions { use_git_mv: false }).unwrap();
+
+        assert!(!root.join("Cargo.lock").exists(), "no lockfile must be created");
+        assert!(!outcome.cargo_lock_changed);
 
         let _ = std::fs::remove_dir_all(&root);
     }

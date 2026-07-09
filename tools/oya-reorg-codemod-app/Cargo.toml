@@ -22,6 +22,7 @@ name = "oya-reorg-codemod"
 path = "src/main.rs"
 
 [dependencies]
+oya-cargo-lock-transform = { path = "../../libs/oya-cargo-lock-transform" }
 oya-workspace-members-kernel = { path = "../../libs/oya-workspace-members-kernel" }
 serde_json = { workspace = true }
 toml_edit = "0.22"

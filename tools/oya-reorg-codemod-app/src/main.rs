@@ -396,6 +396,7 @@ fn apply_outcome_json(o: &oya_reorg_codemod_app::plan::ApplyOutcome) -> Value {
         "bucks_rewritten": o.bucks_rewritten,
         "rust_files_rewritten": o.rust_files_rewritten,
         "root_workspace_changed": o.root_workspace_changed,
+        "cargo_lock_changed": o.cargo_lock_changed,
         "dirs_moved": o.dirs_moved.iter().map(|(a, b)| json!([a, b])).collect::<Vec<_>>(),
     })
 }
