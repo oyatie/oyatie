@@ -253,10 +253,30 @@
         "materialization_mode",
         "merge_policy",
         "owner_team",
-        "generator",
         "source_inputs",
         "final_tree_validation",
         "public_product_contract"
+      ],
+      "allOf": [
+        {
+          "description": "A generator is required for every artifact EXCEPT a hand-curated ratchet baseline, which is human-authored and has no machine producer.",
+          "if": {
+            "required": [
+              "artifact_class"
+            ],
+            "properties": {
+              "artifact_class": {
+                "const": "hand-curated-ratchet"
+              }
+            }
+          },
+          "then": true,
+          "else": {
+            "required": [
+              "generator"
+            ]
+          }
+        }
       ],
       "properties": {
         "artifact_id": {
@@ -275,7 +295,8 @@
             "append-only-ledger",
             "ephemeral-build-output",
             "review-artifact",
-            "scm-facts-boundary-snapshot"
+            "scm-facts-boundary-snapshot",
+            "hand-curated-ratchet"
           ]
         },
         "materialization_mode": {
@@ -285,7 +306,8 @@
             "merge-candidate-regenerated",
             "main-branch-materialized",
             "ci-artifact-only",
-            "not-tracked-in-git"
+            "not-tracked-in-git",
+            "hand-curated-committed"
           ]
         },
         "merge_policy": {
