@@ -79,15 +79,6 @@ test-results/
 !**/generated/
 !**/generated/.gitkeep
 
-# Rename-aware path-keyed CI baseline relabel move-manifest (task #64): a COMMITTED review
-# artifact (the authoritative move bijection the scm-facts emitter relabel consumes), unlike
-# the untracked per-checkout snapshots below. It is regenerated each PR run by the codemod
-# `manifest` subcommand and byte-bound by the registry-drift/freshness committed==regenerated
-# coverage + declared in registry/generated-artifact-control-plane.json, so it must be TRACKED
-# (the control-plane gate's declared-path-must-be-tracked predicate). Negate the broad
-# *.generated.json ignore for exactly this path.
-!specs/reorg/move-manifest.generated.json
-
 # FROZEN-REFERENCE RATCHET BASELINE — MUST stay TRACKED (dev hotfix to #828/ADR-0595). The
 # gate-baseline face is NOT a pure view like the five faces below: it is the firewall ratchet's
 # frozen reference, materialized by the scm-facts emitter via `git show <merge-base>:<this-path>`
@@ -139,11 +130,19 @@ test-results/
 #   docs/machine-readable/masterplan.generated.json  (covered by **/*.generated.json above; not negated)
 # product-graph.html is a .html (not *.generated.json), so it needs an explicit ignore line:
 docs/architecture/product-graph.html
-# move-manifest.generated.json is deliberately EXCLUDED from this de-commit (it stays committed,
-# negated above): ADR-0563 makes it the authoritative REVIEWED move-bijection, path-resolver fails
-# OPEN to identity on absence (a silent false-RED risk on move PRs), and it is codemod-deterministic
-# (never the corruption source). De-committing it would require an explicit ADR-0563 amendment plus a
-# fail-closed relabel, out of ADR-0613 scope.
+# ADR-0614 (amends ADR-0563; finishes the pure-derivation strangler for the LAST committed
+# reorg face): move-manifest.generated.json is NO LONGER excluded from the de-commit class — it
+# JOINS it. ADR-0563 originally made it the authoritative COMMITTED move-bijection; ADR-0614
+# amends that committed-vs-materialized stance. The face is a pure function of the committed
+# move-plan(s) x candidate tree, so — like the ADR-0595 faces — it is DERIVED ON DEMAND (buck2 run
+# //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin runs the
+# codemod `manifest` subcommand as step 1, materialize_move_manifest, before the scm-facts emitter's
+# rename-aware relabel reads it). registry-drift validates regenerate-twice determinism, not
+# committed-byte parity; the control-plane policy gate forbids re-tracking it (materialization_mode:
+# not-tracked-in-git). It is covered by the broad **/*.generated.json rule above and is intentionally
+# NOT negated. The path-resolver `load` still fails OPEN to identity on absence; ADR-0614 records the
+# fail-closed hardening as a follow-up, safe today because the materializer writes the manifest before
+# any relabel-read leg (audited: no CI leg runs the emitter without a preceding materialize step).
 
 # buck2 build output
 /buck-out/

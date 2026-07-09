@@ -330,7 +330,7 @@
       "prefix": "specs/root-of-trust-ceremony-contract.json"
     },
     {
-      "anchor": "ADR-0563: the rename-aware path-keyed CI baseline relabel move-manifest tree — the committed move bijection face (move-manifest.generated.json) the scm-facts emitter relabel consumes; a per-PR-regenerated review artifact reached by the codemod manifest subcommand + the emitter that reads it",
+      "anchor": "ADR-0563 (amended by ADR-0614): the rename-aware path-keyed CI baseline relabel move-manifest tree. The move-bijection face (move-manifest.generated.json) the scm-facts emitter relabel consumes is DE-COMMITTED under ADR-0614 (not tracked in git; CI-materialized on demand by the codemod manifest subcommand as step 1 of the generated-face materializer), so it is no longer in the tracked universe. The tracked members reached by this prefix are the per-capability move-plans (specs/reorg/<capability>-move-plan.json) the codemod reads to derive the bijection.",
       "prefix": "specs/reorg/"
     },
     {
