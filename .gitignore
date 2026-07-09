@@ -128,6 +128,23 @@ test-results/
 # NOTE: gate-baseline.generated.json is NOT in this de-commit class — it is the frozen ratchet
 # baseline and stays tracked (negated above).
 
+# ADR-0613 (continues the ADR-0595/0604 de-commit strangler): the two remaining controller-
+# materialized PROJECTION faces below were still committed merge surfaces. They are exactly the
+# projections a mis-invoked local materializer can silently corrupt (the motivating incident:
+# masterplan adr_count 106->64 from a partial regen). They are now DERIVED ON DEMAND by the same
+# materializer entrypoint (buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin;
+# masterplan first, then the arch-graph dashboard). Freshness is regenerate-success (masterplan-drift
+# gate, controller-materialized output_mode) + regenerate-twice determinism (product-graph), not byte
+# parity; the control-plane policy gate forbids re-tracking them (materialization_mode: not-tracked-in-git).
+#   docs/machine-readable/masterplan.generated.json  (covered by **/*.generated.json above; not negated)
+# product-graph.html is a .html (not *.generated.json), so it needs an explicit ignore line:
+docs/architecture/product-graph.html
+# move-manifest.generated.json is deliberately EXCLUDED from this de-commit (it stays committed,
+# negated above): ADR-0563 makes it the authoritative REVIEWED move-bijection, path-resolver fails
+# OPEN to identity on absence (a silent false-RED risk on move PRs), and it is codemod-deterministic
+# (never the corruption source). De-committing it would require an explicit ADR-0563 amendment plus a
+# fail-closed relabel, out of ADR-0613 scope.
+
 # buck2 build output
 /buck-out/
 
