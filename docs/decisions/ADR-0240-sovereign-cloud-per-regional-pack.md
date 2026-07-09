@@ -101,6 +101,15 @@ audit_cadence: quarterly
 regulator_pack_evidence_cadence: annual
 ```
 
+The crate-local SOV-001 fixture/parser slice is the machine-checkable
+contract surface for air-gapped regional-pack deployment evidence:
+`cell/core/regional-pack/src/sovereign_deployment.rs` parses and
+validates the fixture shape, and
+`cell/core/regional-pack/tests/fixtures/sovereign-airgap/kr-fsc-deployment-model.json`
+is the non-production KR FSC example. These surfaces are evidence-shape
+tests only; they do not claim certification, tenant activation,
+regulator acceptance, runtime deployment, or a real signed bundle.
+
 ### D-2. Per-data-class enforcement
 
 The data-class registry (`registry/data-class/`) carries each class's
