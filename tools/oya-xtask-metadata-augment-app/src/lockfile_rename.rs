@@ -1,11 +1,11 @@
 /// Cargo.lock name-rewrite / move-canonicalize CLI (§7.1.1 spec).
 ///
-/// The pure, I/O-free transform lives in the shared [`oya_cargo_lock_transform`] kernel
+/// The pure, I/O-free transform lives in the shared [`oya_cargo_lock_transform_kernel`] kernel
 /// (single source of truth, consumed by both this xtask CLI and the reorg move codemod). This
 /// module is the thin I/O layer: it loads the rename-map TSV + graph-additions JSON from disk,
 /// invokes the kernel, and writes the result back (or prints it).
 use anyhow::{Context, Result};
-use oya_cargo_lock_transform::{move_lockfile, rewrite_lockfile, GraphAdditions, NewMember};
+use oya_cargo_lock_transform_kernel::{move_lockfile, rewrite_lockfile, GraphAdditions, NewMember};
 use std::collections::HashMap;
 
 /// Load a rename-map TSV (`old<TAB>new` per line) into a map. `reverse` swaps direction.
