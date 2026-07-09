@@ -126,7 +126,8 @@ impl ContextScopedCache {
     }
 
     pub fn get(&self, context: &TenantContextOption, key: &str) -> Option<&String> {
-        self.entries.get(&format!("{}/{key}", cache_namespace(context)))
+        self.entries
+            .get(&format!("{}/{key}", cache_namespace(context)))
     }
 }
 
@@ -261,7 +262,11 @@ mod tests {
     fn admin_audit_never_appears_in_personal_context() {
         let options = vec![
             option(ContextKind::Personal, OwnershipPillar::Personal, "me"),
-            option(ContextKind::AdminAudit, OwnershipPillar::Organization, "acme"),
+            option(
+                ContextKind::AdminAudit,
+                OwnershipPillar::Organization,
+                "acme",
+            ),
         ];
         let permitted = permitted_options(OwnershipPillar::Personal, &options);
         assert!(

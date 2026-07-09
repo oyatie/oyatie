@@ -14,9 +14,8 @@
 //! - grants are deny-by-default: a grant is minted only when the session's
 //!   ACR meets the capability's floor.
 //!
-//! The transitional [`OidcClient`] implementation arrives at G05/G06 fan-in;
-//! the broker is generic over the port so the adapter swap does not change
-//! this module or its callers.
+//! The broker is generic over the [`OidcClient`] port so deployment-specific
+//! OIDC adapters can swap without changing this module or its callers.
 
 use oya_shared_oidc_client_kernel::{AcrLevel, OidcClaims, OidcClient, OidcError, VerifyConfig};
 use oya_shared_platform_contracts_kernel::shell_bff::CapabilityRegistryEntry;
@@ -53,7 +52,10 @@ pub struct ModuleGrant {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum GrantRefusal {
     /// The session's ACR does not meet the capability's required floor.
-    AcrBelowFloor { required: AcrLevel, actual: AcrLevel },
+    AcrBelowFloor {
+        required: AcrLevel,
+        actual: AcrLevel,
+    },
 }
 
 /// ACR floor per navigation sensitivity. Admin-audit-grade capabilities
@@ -115,8 +117,8 @@ impl<C: OidcClient> ShellTokenBroker<C> {
 mod tests {
     use std::collections::BTreeMap;
 
-    use oya_shared_platform_contracts_kernel::shell_bff::NavigationSurface;
     use oya_shared_oidc_client_kernel::Audience;
+    use oya_shared_platform_contracts_kernel::shell_bff::NavigationSurface;
 
     use super::*;
 
