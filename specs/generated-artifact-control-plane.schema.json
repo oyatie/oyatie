@@ -270,7 +270,13 @@
               }
             }
           },
-          "then": true,
+          "then": {
+            "properties": {
+              "materialization_mode": {
+                "const": "hand-curated-committed"
+              }
+            }
+          },
           "else": {
             "required": [
               "generator"
