@@ -1,4 +1,4 @@
-//! # oya-bus-boundary-kernel
+//! # messaging-bus-boundary
 //!
 //! The owned EVENT-BUS surface — third of the three single-concern
 //! messaging surfaces (ADR-0536 D-13 queue/stream/bus trichotomy;
@@ -14,10 +14,11 @@
 //!   horizontally without double-processing).
 //!
 //! # Naming justification
-//! `oya-bus-boundary-kernel` follows BNF v4.1:
-//! `oya-<topic:bus-boundary>-<layer:kernel>`, mirroring
-//! `oya-data-boundary-kernel` (owned substrate surfaces carry the owned
-//! name `oya-bus`, never a vendor name).
+//! `messaging-bus-boundary` = `<capability:messaging>-<leaf:bus-boundary>`,
+//! the de-branded name for path `messaging/core/bus-boundary` (ADR-0562
+//! capability-first; ADR-0532/0533 de-brand drops the vendor prefix), mirroring
+//! the sibling leaf `messaging/core/domain` (`messaging-domain`) — owned
+//! substrate surface crates carry the owned-surface name, not a vendor name.
 //!
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
