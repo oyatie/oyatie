@@ -90,7 +90,7 @@ SLAs (Contributor: P0 ≤7d, P1 ≤30d; Consumer: pin update ≤14d) become DATA
 The verified-absent renovate.json/dependabot.yml are NOT adopted; build the release-governance gate
 crates + auto-changelog + EOL/sunset + branch-protection-drift bots, all on the same closed-schema
 config, all emitting scm-facts ChangeSets. The Rust stable toolchain drift guard lives at
-`cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/rust_toolchain_drift.rs`, embedded in the Rust
+`ci/facade/generated-artifact-freshness/src/rust_toolchain_drift.rs`, embedded in the Rust
 `oya-cloud-ci-freshness-app` gate and wired into `oya-ci-required` so the repo follows the pinned
 stable channel without split-brain manifests, Docker tags, workflow pins, or active-doc residue;
 GitHub Actions remains only the transitional runner adapter, while the policy source of truth is the
@@ -99,12 +99,12 @@ governed by the AUTO/ADVISE/GATE safety governor (ADR-0519/0529).
 
 Implementation guardrail (2026-06-25): the owned dependency-automation contract is born as
 `oya-deps.toml`, with root ownership carried by `OWNERS` and the first Rust cloud-ci enforcement
-surface at `cloud/cloud-ci/gates/oya-cloud-ci-dependency-automation-app/BUCK`,
-`cloud/cloud-ci/gates/oya-cloud-ci-dependency-automation-app/Cargo.toml`,
-`cloud/cloud-ci/gates/oya-cloud-ci-dependency-automation-app/OWNERS`,
-`cloud/cloud-ci/gates/oya-cloud-ci-dependency-automation-app/src/lib.rs`,
-`cloud/cloud-ci/gates/oya-cloud-ci-dependency-automation-app/src/main.rs`, and
-`cloud/cloud-ci/gates/oya-cloud-ci-dependency-automation-app/tests/dependency_automation.rs`.
+surface at `ci/facade/dependency-automation/BUCK`,
+`ci/facade/dependency-automation/Cargo.toml`,
+`ci/facade/dependency-automation/OWNERS`,
+`ci/facade/dependency-automation/src/lib.rs`,
+`ci/facade/dependency-automation/src/main.rs`, and
+`ci/facade/dependency-automation/tests/dependency_automation.rs`.
 
 ## Drivers
 

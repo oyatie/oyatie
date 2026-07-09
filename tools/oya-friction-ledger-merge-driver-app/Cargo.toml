@@ -22,11 +22,11 @@ name = "oya-friction-ledger-merge-driver"
 path = "src/main.rs"
 
 [dependencies]
-oya-cloud-ci-canonical-json-app = { path = "../../cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app" }
+ci-canonical-json = { path = "../../ci/facade/canonical-json" }
 serde_json = { workspace = true }
 
 [dev-dependencies]
-oya-cloud-ci-friction-accounting-app = { path = "../../cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app" }
+ci-action-item-accounting = { path = "../../ci/facade/action-item-accounting" }
 
 [lints]
 workspace = true

@@ -474,6 +474,9 @@ pub enum CodemodError {
     CargoUnresolved { message: String },
     /// `buck2 targets //...` did not resolve in the dry-run sandbox (fail-closed).
     BuckUnresolved { message: String },
+    /// The owned Cargo.lock rename/canonicalize transform rejected the lockfile (e.g. a
+    /// non-canonical block boundary) — fail-closed rather than corrupt the lock.
+    LockfileTransform { message: String },
     /// More than one committed `specs/reorg/*-move-plan.json` exists in the candidate tree (#65).
     /// A MOVE PR commits exactly one plan; >1 is a contributor error the manifest materialization
     /// must fail-closed on rather than silently first-winning an arbitrary one.
@@ -519,6 +522,9 @@ impl fmt::Display for CodemodError {
             }
             CodemodError::BuckUnresolved { message } => {
                 write!(f, "buck2 targets //... did not resolve (fail-closed): {message}")
+            }
+            CodemodError::LockfileTransform { message } => {
+                write!(f, "Cargo.lock transform failed (fail-closed): {message}")
             }
             CodemodError::MultipleMovePlans { count, paths } => write!(
                 f,

@@ -71,7 +71,7 @@ comprehension form) the base is `__srcs/<pkg>/src/`, so the include resolves to 
 
 Ship a standalone, born-blocking, pack-shaped cloud-ci gate
 `cloud-ci-embedded-asset-hermeticity` (crate
-`cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app`) that mirrors the ADR-0544
+`ci/facade/embedded-asset-hermeticity`) that mirrors the ADR-0544
 gate family (pure kernel + policy DATA + reviewed shrink-only baseline + a `*-gate` rust_test
 self-test). The kernel contract (the **tree-namespace rule**):
 
@@ -136,13 +136,13 @@ repo by repointing the policy.
 
 | Path / Crate | Change type | BNF v4.1 name | Layer |
 |---|---|---|---|
-| `cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app/` | create gate crate + policy + baseline + fixer binary | `oya-cloud-ci-embedded-asset-hermeticity-app` | app |
+| `ci/facade/embedded-asset-hermeticity/` | create gate crate + policy + baseline + fixer binary | `oya-cloud-ci-embedded-asset-hermeticity-app` | app |
 | `oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-authz-cedar-adapter/BUCK` | prerequisite hermeticity fix (FRIC-1781131000 second instance) | - | - |
 | `.github/workflows/oya-ci-required.yml` | add one gate matrix line | - | - |
 | `docs/oya-ci/gate-catalog.md` | document gate, key shape, codes, auto-remediator | - | - |
 
 The gate-crate files owned by this ADR are:
-`cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app/BUCK`,
+`ci/facade/embedded-asset-hermeticity/BUCK`,
 `.../Cargo.toml`, `.../embedded-asset-hermeticity-policy.json`,
 `.../embedded-asset-hermeticity-baseline.json`, `.../src/lib.rs`, `.../src/main.rs` (the fixer),
 `.../tests/embedded_asset_hermeticity.rs`.
@@ -233,9 +233,9 @@ Workflow events nor write Ontology objects.
 
 ## Verification
 
-- `buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app/...`
-- `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app:oya-cloud-ci-embedded-asset-hermeticity-app-unittest`
-- `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app:oya-cloud-ci-embedded-asset-hermeticity-app-gate`
+- `buck2 build //ci/facade/embedded-asset-hermeticity/...`
+- `buck2 test //ci/facade/embedded-asset-hermeticity:oya-cloud-ci-embedded-asset-hermeticity-app-unittest`
+- `buck2 test //ci/facade/embedded-asset-hermeticity:oya-cloud-ci-embedded-asset-hermeticity-app-gate`
 - `buck2 build //oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-authz-cedar-adapter:oya-ci-webhook-gateway-authz-cedar-adapter` (prerequisite fix; was failing, now `BUILD SUCCEEDED`)
 - E2E auto-remediation: break the webhook BUCK, `buck2 run …:oya-cloud-ci-embedded-asset-hermeticity-fixer -- --fix`, then `buck2 build` the adapter → `BUILD SUCCEEDED` + `--check` clean.
 

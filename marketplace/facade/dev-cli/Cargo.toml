@@ -66,7 +66,7 @@ oya-intelligence-openapi-domain = { path = "../../../oya/intelligence/crates/oya
 oya-check-mobile-native = { path = "../../../libs/oya-check-mobile-native" }
 oya-check-placeholder-debt = { path = "../../../libs/oya-check-placeholder-debt" }
 oya-check-pre-push = { path = "../../../libs/oya-check-pre-push" }
-oya-cloud-ci-freshness-app = { path = "../../../cloud/cloud-ci/gates/oya-cloud-ci-freshness-app" }
+ci-generated-artifact-freshness = { path = "../../../ci/facade/generated-artifact-freshness" }
 oya-check-protection-context-match = { path = "../../../libs/oya-check-protection-context-match" }
 oya-check-pr-traceability = { path = "../../../libs/oya-check-pr-traceability" }
 oya-check-quality-lane = { path = "../../../libs/oya-check-quality-lane" }

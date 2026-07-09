@@ -26,6 +26,15 @@ pub use manifest::{
     canonical_base_neutrality_check, cross_pack_refusal_check, evaluate_regional_pack_gates,
     load_regional_pack_manifest, parse_regional_pack_manifest,
 };
+pub mod sovereign_deployment;
+pub use sovereign_deployment::{
+    NoExternalEgressValidation, SOVEREIGN_DEPLOYMENT_MODEL_MANIFEST_SCHEMA_VERSION,
+    SovereignArtifactBundleEvidence, SovereignDeploymentModelAuthority,
+    SovereignDeploymentModelIdentity, SovereignDeploymentModelKind,
+    SovereignDeploymentModelManifest, SovereignDeploymentModelManifestError,
+    SovereignDeploymentOwnership, SovereignPackOverlayBinding, SovereignRecoveryObjectives,
+    SovereignSloTarget, parse_sovereign_deployment_model_manifest,
+};
 
 use network_residency::{ResidencyClass, parse_residency_class_label};
 use oya_data_boundary_kernel::{Classified, DataClass};
@@ -277,6 +286,124 @@ mod tests {
             error,
             RegionalPackManifestError::Shape {
                 field: "pack.id",
+                ..
+            }
+        ));
+    }
+}
+
+#[cfg(test)]
+mod sovereign_deployment_tests {
+    use super::*;
+
+    const KR_FSC_AIRGAP_DEPLOYMENT_MODEL_JSON: &str =
+        include_str!("../tests/fixtures/sovereign-airgap/kr-fsc-deployment-model.json");
+
+    #[test]
+    fn sovereign_air_gapped_deployment_fixture_declares_atomic_exit_fields() {
+        let manifest =
+            parse_sovereign_deployment_model_manifest(KR_FSC_AIRGAP_DEPLOYMENT_MODEL_JSON)
+                .expect("KR FSC air-gap deployment model fixture should parse");
+
+        assert_eq!(manifest.deployment_model.id, "kr-fsc-airgap-single-cell");
+        assert_eq!(
+            manifest.deployment_model.kind,
+            SovereignDeploymentModelKind::SovereignAirGapped
+        );
+        assert_eq!(
+            manifest.pack_overlay.canonical_matrix_pack_id,
+            "pack-kr-fsc"
+        );
+        assert!(manifest.pack_overlay.air_gap);
+        assert!(manifest.artifact_bundle.bundle_ref.ends_with(".oab"));
+        assert_eq!(
+            manifest
+                .no_external_egress_validation
+                .allowed_external_hosts,
+            Vec::<String>::new()
+        );
+        assert_eq!(
+            manifest
+                .no_external_egress_validation
+                .external_api_egress_policy,
+            "DENY"
+        );
+        assert_eq!(manifest.ownership.service_owner, "axis-cloud");
+        assert_eq!(manifest.recovery_objectives.rto, "PT4H");
+        assert!(
+            manifest
+                .slo_targets
+                .iter()
+                .any(|target| target.id == "zero-external-egress-violations")
+        );
+    }
+
+    #[test]
+    fn proposed_deployment_spectrum_adrs_remain_planning_context_only() {
+        let manifest =
+            parse_sovereign_deployment_model_manifest(KR_FSC_AIRGAP_DEPLOYMENT_MODEL_JSON)
+                .expect("KR FSC air-gap deployment model fixture should parse");
+
+        assert_eq!(
+            manifest.source_authority.accepted_adrs,
+            vec!["ADR-0164", "ADR-0171", "ADR-0240"]
+        );
+        assert_eq!(
+            manifest.source_authority.planning_context_adrs,
+            vec!["ADR-0248", "ADR-0253", "ADR-0254"]
+        );
+        assert!(
+            !manifest
+                .source_authority
+                .accepted_adrs
+                .contains(&"ADR-0248".to_string())
+        );
+        assert!(
+            !manifest
+                .source_authority
+                .accepted_adrs
+                .contains(&"ADR-0253".to_string())
+        );
+        assert!(
+            !manifest
+                .source_authority
+                .accepted_adrs
+                .contains(&"ADR-0254".to_string())
+        );
+    }
+
+    #[test]
+    fn rejects_airgap_fixture_with_external_egress_allowlist() {
+        let candidate = KR_FSC_AIRGAP_DEPLOYMENT_MODEL_JSON.replace(
+            "\"allowed_external_hosts\": []",
+            "\"allowed_external_hosts\": [\"api.openai.com\"]",
+        );
+
+        let error = parse_sovereign_deployment_model_manifest(&candidate)
+            .expect_err("air-gap fixtures must not allow external hosts");
+
+        assert!(matches!(
+            error,
+            SovereignDeploymentModelManifestError::Shape {
+                field: "no_external_egress_validation.allowed_external_hosts",
+                ..
+            }
+        ));
+    }
+
+    #[test]
+    fn rejects_unsigned_or_non_oab_bundle_reference() {
+        let candidate = KR_FSC_AIRGAP_DEPLOYMENT_MODEL_JSON
+            .replace("20260709.oab", "20260709.tar")
+            .replace("20260709.oab.sig", "20260709.tar.sig");
+
+        let error = parse_sovereign_deployment_model_manifest(&candidate)
+            .expect_err("sovereign air-gap fixtures require signed .oab references");
+
+        assert!(matches!(
+            error,
+            SovereignDeploymentModelManifestError::Shape {
+                field: "artifact_bundle.bundle_ref",
                 ..
             }
         ));

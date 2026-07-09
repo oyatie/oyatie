@@ -76,7 +76,7 @@ cutover?".
 ## Decision
 
 Ship a **self-contained cloud-ci gate**, `cloud-ci-kernel-purity`
-(`cloud/cloud-ci/gates/oya-cloud-ci-kernel-purity-app`), that asserts: **no crate matching the
+(`ci/facade/core-dependency-isolation`), that asserts: **no crate matching the
 kernel-name globs (`*-kernel`, `*-core`) — nor any workspace-internal crate reachable through its
 path-dependency closure — directly depends on a denylisted transient-tech crate**, unless an
 explicit, reasoned per-(crate, dep) exception is declared in policy DATA.

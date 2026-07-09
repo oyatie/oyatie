@@ -2587,6 +2587,14 @@ The twenty-second REAL codemod run begins the `intelligence` capability — the 
 
 The move was performed by `oya-reorg-codemod-app` (NOT by hand), gated on the buck2-full-tree dry-run (`cargo metadata` + `buck2 targets //...` both resolved post-move on a shadow tree, `buck_ok=true` not null, `clean=true`). The capability registry adds the capability's own top-level slug `intelligence` to the pre-existing `intelligence.absorbs_current_dirs` (the self-slug is required or the membership gate REDs `MEM-NEW-UNMAPPED-CRATE intelligence/...`; the §10.12/§10.16..§10.25 lesson) alongside the pre-seeded `cloud/cloud-intelligence` + `oya/intelligence` + `oya/detection` source dirs (retained while the later sub-batches drain them). The membership policy adds `intelligence` to `scan_roots` + `allowed_top_level_dirs`; the acyclicity policy adds `intelligence/*/*` to `crate_root_globs` + `intelligence` to `unclassified_roots`; the embedded-asset hermeticity policy adds `intelligence` to `scan_roots` (preserving hermeticity coverage of the moved crates' `include_str!` sites — the cedar `mapped_srcs` policy include, the codex schema, the kernel capability-parity JSON — the §10.18 iam precedent); the root workspace members glob adds `intelligence/*/*` (collapsing the codemod-emitted literals) with `intelligence/observability` excluded (the non-crate SLO subtree). The move's tracked, born-accounted artifact roots are the sixteen crate dirs (each carrying its `Cargo.toml`, `BUCK`, `src/`, and, where present, `tests/`), the co-moved flat SLO dir `intelligence/observability/slos/*.openslo.yaml` (single source dir, no per-service collision; the SLO metricSource queries retain the runtime-coupled `oya_cloud_intelligence_*` Prometheus metric names + `service="cloud-intelligence"` label — a coordinated observability rename deferred to phase-2, the same runtime-coupling class as the retained `cloud-intelligence` bin name in the `Dockerfile` ENTRYPOINT + k8s workload image), the subtree `intelligence/OWNERS` (axis-cloud-platform) seeded via a `specs/reachability-registry.json` §10.26a entry (breadth-unlimited per ADR-0555, covering the whole intelligence subtree including the co-moved SLO dir), the eight re-keyed catalog records `registry/catalog/intelligence-*.yaml` (reached by the existing `registry/catalog/` reachability prefix; eight of the sixteen moved crates carried a pre-existing record, all re-keyed; the other eight carry none), and the committed move-plan `specs/reorg/intelligence-move-plan.json` (reached by the existing ADR-0563 `specs/reorg/` reachability prefix). The §10.18 move-18 ADR-justification-source relabel applies: the commissioning ADR `ADR-0542` carries a verbatim-path justification manifest listing the moved cloud-intelligence files, relabeled old->new in lockstep so the moved files stay justified. The absorbed dir's other non-crate artifacts (`cloud/cloud-intelligence/manifest.json`, docs/PRD/IPs/contracts/iac/k8s/policy/`Dockerfile`) + the remaining 126 `oya/intelligence` crates are homed in later sub-batches / phase-2 (task #62), per the §10.5..§10.25 precedent. Per the one-plan-per-PR contract the spent `specs/reorg/billing-move-plan.json` (the §10.25 move-plan) is removed. Sub-batch (a)'s test-wiring settle additionally born-accounts five NEW test-support artifacts created to make the moved crates' previously graph-invisible tests buck-wireable (the ADR-0554 affected-set wire-or-delete requirement, satisfied by wiring not deleting): the shared in-process fake-CLI test harness `intelligence/adapters/claude-agent-sdk/tests/support_fake_cli.rs` (consumed by the six hermetically-rewritten claude-agent-sdk fake-cli tests, replacing the non-hermetic python-subprocess harness); the hermetic in-process rewrite of the last python test `intelligence/adapters/claude-agent-sdk/tests/assistant_worker_fake_cli.rs` (the former in-`src/` `#[cfg(feature="network")]` `run_assistant_worker` test that wrote a `#!/usr/bin/env python3` fake CLI, converted to a `tests/`-dir integration test driving the same `support_fake_cli.rs` in-process Rust fake over the SDK's `spawn_claude_code_process` seam — eliminating the final python in the moved tree, the strictly-Rust/hermetic founder bar); and the test-only third-party forcing crate at `intelligence/testing/third-party-test-deps/` — `intelligence/testing/third-party-test-deps/Cargo.toml`, `intelligence/testing/third-party-test-deps/src/lib.rs`, and `intelligence/testing/third-party-test-deps/BUCK` — which pulls `httpmock` + `proptest` into the buck2 third-party graph so the six httpmock integration tests and the nine kernel proptest/loom invariant tests compile and run under buck2 (the reindeer-vendored forcing-crate pattern, `httpmock` `default-features=false` to drop the cookies->basic-cookies->lalrpop edge that broke the first attempt, build-green verified before wiring). These five are reached by the breadth-unlimited `intelligence/` reachability prefix seeded in §10.26a.
 
+#### §10.27 De-brand strangler MOVE-1: `messaging` capability FLOOR (libs/oya-messaging-substrate-kernel → messaging/core/substrate-kernel) — single-crate follow-on that homes the substrate kernel left in the junk-drawer by §10.5
+
+The `messaging` capability root was ESTABLISHED by §10.5 (the two `oya/eventing` crates), but the messaging substrate FLOOR — the `oya-messaging-substrate-kernel` crate the bus/queue/stream boundary kernels are built over — stayed in the `libs/` junk-drawer at that time. This move homes it into the already-established capability. It is an ADR-0083 kernel (pure-types + sync-traits, EMPTY `[dependencies]`) and a dependency SINK (zero out-edges), so it lands at FACE `core` per ADR-0570 (a cutover-stable kernel-tier port is PERMITTED in `core`; the placement mirrors the sole pre-existing leaf `messaging/core/domain`, §10.5). The de-brand drops the `oya-messaging-` prefix to the capability slug per ADR-0532/0533 (cargo name = de-branded path tail): `oya-messaging-substrate-kernel` → `messaging-substrate-kernel`.
+
+**Leaf-first rewire (the sink has no out-edges; its three consumers stay in `libs/`):** the crate's three dependents — `libs/oya-bus-boundary-kernel`, `libs/oya-queue-boundary-kernel`, `libs/oya-stream-boundary-kernel` — are NOT moved by this PR (they are de-branded in their own later move); the codemod recomputes their cargo path-deps (`path = "../../messaging/core/substrate-kernel"`), BUCK labels (`//messaging/core/substrate-kernel:messaging-substrate-kernel`), and Rust `use messaging_substrate_kernel::…` idents mechanically. The resulting `libs/` → `messaging/` edge is ACYCLIC and introduces no layer inversion: the moved crate is a sink (no back-edge), and both `libs` and `messaging` are `unclassified_roots` in the acyclicity policy (`owning_service()` recognizes only `cloud/`+`oya/` and is STRUCTURALLY BLIND to `messaging/*` edges), so the edge is ALLOWED (the §10.19 audit precedent for a preserved cross-capability boundary-kernel edge).
+
+The move was performed by `oya-reorg-codemod-app` (NOT by hand), gated on the buck2-full-tree dry-run (`cargo metadata` + `buck2 targets //...` both resolved post-move on a shadow tree, `buck_ok=true` not null, `clean=true`). The capability registry RETIRES the now-stale `libs/oya-messaging-substrate-kernel` membership glob from the closed `messaging` membership entry (the crate is now self-owned by the `messaging/` capability dir via `messaging.absorbs_current_dirs`, exactly as `messaging/core/domain` is); the three boundary-kernel globs stay. No membership/acyclicity POLICY data changes (the `messaging` root, `messaging/*/*` crate_root_glob, and root workspace `messaging/*/*` member glob were all seeded by §10.5, so `root_workspace_changed=false` — the glob already covers `messaging/core/substrate-kernel`). The move's tracked, born-accounted artifact paths are `messaging/core/substrate-kernel/Cargo.toml`, `messaging/core/substrate-kernel/BUCK`, `messaging/core/substrate-kernel/src/lib.rs`, `messaging/core/substrate-kernel/src/conformance.rs`, `messaging/core/substrate-kernel/src/reference.rs`, and `messaging/core/substrate-kernel/tests/reference_substrate.rs`; the newly-authored catalog record `registry/catalog/messaging-substrate-kernel.yaml` (`role: kernel`, mirroring `registry/catalog/messaging-domain.yaml`; reached by the existing `registry/catalog/` reachability prefix — the crate becomes catalog-governed under `messaging/`, so `ci/facade/service-catalog-parity` requires the row); and the committed move-plan `specs/reorg/messaging-substrate-kernel-move-plan.json` (reached by the existing ADR-0563 `specs/reorg/` reachability prefix). Unlike §10.26, this PR removes NO prior spent plan: the two committed plans that remain on `dev` — `specs/reorg/ci-move-plan.json` (#1216) and `specs/reorg/iam-pdp-cedar-move-plan.json` (#1184) — are LOAD-BEARING (read directly by `ci/facade/*` tests / `gate_registration.rs`) and are already excluded by the codemod's `plan_is_landed` merge-base carve-out (every old crate-dir of both is absent at the merge-base), so exactly ONE active move-plan (this one) remains and the single-active-plan invariant holds.
+
 ## Consequences
 
 **Positive.** One home per capability (path = namespace = buck2 label root); the run/sell seam is a
@@ -2641,13 +2649,13 @@ following tracked artifacts, each justified by this decision (ADR-0562) together
 ADR-0245:
 
 - specs/microservice-tier-classification.json — the generated projection: services → tier/tier_subtype/dr_tier, referenced by specs/platform-architecture.json microservice_taxonomy.tier_classification_table_ref
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/BUCK — buck2 build targets for the born-blocking tier-field-coverage gate
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/Cargo.toml — Cargo manifest for the born-blocking tier-field-coverage gate crate
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/src/lib.rs — pure kernel + collector for the tier-field-coverage gate (ADR-0562/ADR-0536/ADR-0245)
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/src/main.rs — binary entry point for the tier-field-coverage gate
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/src/tests.rs — unit tests for the tier-field-coverage gate kernel
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/tests/tier_field_coverage.rs — integration tests including live-corpus born-blocking-green test
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/tier-field-coverage-policy.json — policy DATA for the tier-field-coverage gate (enum allowlists, governed roots, minimum manifest count)
+- ci/facade/service-tier-metadata/BUCK — buck2 build targets for the born-blocking tier-field-coverage gate
+- ci/facade/service-tier-metadata/Cargo.toml — Cargo manifest for the born-blocking tier-field-coverage gate crate
+- ci/facade/service-tier-metadata/src/lib.rs — pure kernel + collector for the tier-field-coverage gate (ADR-0562/ADR-0536/ADR-0245)
+- ci/facade/service-tier-metadata/src/main.rs — binary entry point for the tier-field-coverage gate
+- ci/facade/service-tier-metadata/src/tests.rs — unit tests for the tier-field-coverage gate kernel
+- ci/facade/service-tier-metadata/tests/tier_field_coverage.rs — integration tests including live-corpus born-blocking-green test
+- ci/facade/service-tier-metadata/tier-field-coverage-policy.json — policy DATA for the tier-field-coverage gate (enum allowlists, governed roots, minimum manifest count)
 
 Phase-0 also introduces the tier-DEPENDENCY acyclicity gate (ADR-0245/ADR-0280/ADR-0562): the
 enforcement surface that asserts the ADR-0245 cross-tier dependency rules + the ADR-0280
@@ -2658,16 +2666,16 @@ against a FROZEN baseline and enforces NO REGRESSION; it flips to fully blocking
 burns down to zero. Its tracked artifacts, each justified by this decision (ADR-0562) together with
 ADR-0245 and ADR-0280:
 
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/BUCK — buck2 build targets for the born-advisory tier-dependency-acyclicity gate
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/Cargo.toml — Cargo manifest for the tier-dependency-acyclicity gate crate
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/src/lib.rs — pure kernel + cargo/buck dep-graph collector + tier-rule/S-rank/Tarjan evaluator + frozen-baseline split (ADR-0245/ADR-0280/ADR-0562)
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/src/main.rs — binary entry point + baseline re-freeze (--emit-baseline) for the tier-dependency-acyclicity gate
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/src/tests.rs — unit tests for the tier-dependency-acyclicity gate kernel
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/tests/tier_dependency_acyclicity.rs — integration tests: live-corpus zero-regression GREEN + RED wrong-tier fixture + burn-down fixture
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/tests/fixtures/red-substrate-to-product.json — RED fixture: a synthetic substrate→product edge the gate must fail closed
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/tests/fixtures/burn-down.json — burn-down fixture: a removed baselined inversion the gate must keep green
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/tier-dependency-acyclicity-policy.json — policy DATA for the tier-dependency-acyclicity gate (governed crate-root globs, tier'd service roots, unclassified meta roots, S-rank order, enforcement mode)
-- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/tier-dependency-acyclicity-baseline.json — the FROZEN known-debt baseline: the pre-move tier-dependency violations the reorg strangler burns down (the burn-down target)
+- ci/facade/layer-dependency-acyclicity/BUCK — buck2 build targets for the born-advisory tier-dependency-acyclicity gate
+- ci/facade/layer-dependency-acyclicity/Cargo.toml — Cargo manifest for the tier-dependency-acyclicity gate crate
+- ci/facade/layer-dependency-acyclicity/src/lib.rs — pure kernel + cargo/buck dep-graph collector + tier-rule/S-rank/Tarjan evaluator + frozen-baseline split (ADR-0245/ADR-0280/ADR-0562)
+- ci/facade/layer-dependency-acyclicity/src/main.rs — binary entry point + baseline re-freeze (--emit-baseline) for the tier-dependency-acyclicity gate
+- ci/facade/layer-dependency-acyclicity/src/tests.rs — unit tests for the tier-dependency-acyclicity gate kernel
+- ci/facade/layer-dependency-acyclicity/tests/tier_dependency_acyclicity.rs — integration tests: live-corpus zero-regression GREEN + RED wrong-tier fixture + burn-down fixture
+- ci/facade/layer-dependency-acyclicity/tests/fixtures/red-substrate-to-product.json — RED fixture: a synthetic substrate→product edge the gate must fail closed
+- ci/facade/layer-dependency-acyclicity/tests/fixtures/burn-down.json — burn-down fixture: a removed baselined inversion the gate must keep green
+- ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json — policy DATA for the tier-dependency-acyclicity gate (governed crate-root globs, tier'd service roots, unclassified meta roots, S-rank order, enforcement mode)
+- ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-baseline.json — the FROZEN known-debt baseline: the pre-move tier-dependency violations the reorg strangler burns down (the burn-down target)
 
 Phase-0 also introduces the §6 MEMBERSHIP lint (the anti-junk-drawer authority) — born-advisory with
 a frozen unmapped baseline, enforcing no-regression (no NEW unmapped crate, no NEW top-level dir
@@ -2675,13 +2683,13 @@ outside the closed set) and the base/-admission rule — plus the registry's `me
 extension that closes the per-crate mapping over the whole tree. These tracked artifacts are each
 justified by this decision (ADR-0562 §6) together with ADR-0536, ADR-0280, and ADR-0512:
 
-- cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/BUCK — buck2 build targets for the born-advisory capability-membership lint
-- cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/Cargo.toml — Cargo manifest for the capability-membership lint crate
-- cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/src/lib.rs — pure kernel + crate collector for the capability-membership lint (ADR-0562 §6/ADR-0280/ADR-0512)
-- cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/src/main.rs — binary entry point for the capability-membership lint
-- cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/src/tests.rs — unit RED/GREEN fixtures for the capability-membership kernel (crate in no/two capabilities, new top-level dir, base/-admission, frozen-baseline advisory)
-- cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/tests/capability_membership.rs — integration tests including the live-corpus born-advisory-green self-test and on-disk RED fixtures
-- cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/capability-membership-policy.json — policy DATA for the capability-membership lint (gate id, registry pointer, scan roots, closed meta-directory + top-level set, ignored build-artifact dirs, minimum crate count)
+- ci/facade/module-membership/BUCK — buck2 build targets for the born-advisory capability-membership lint
+- ci/facade/module-membership/Cargo.toml — Cargo manifest for the capability-membership lint crate
+- ci/facade/module-membership/src/lib.rs — pure kernel + crate collector for the capability-membership lint (ADR-0562 §6/ADR-0280/ADR-0512)
+- ci/facade/module-membership/src/main.rs — binary entry point for the capability-membership lint
+- ci/facade/module-membership/src/tests.rs — unit RED/GREEN fixtures for the capability-membership kernel (crate in no/two capabilities, new top-level dir, base/-admission, frozen-baseline advisory)
+- ci/facade/module-membership/tests/capability_membership.rs — integration tests including the live-corpus born-advisory-green self-test and on-disk RED fixtures
+- ci/facade/module-membership/capability-membership-policy.json — policy DATA for the capability-membership lint (gate id, registry pointer, scan roots, closed meta-directory + top-level set, ignored build-artifact dirs, minimum crate count)
 
 Wave-D G003/G006 phase-0 foundation evidence is also justified by this ADR because it records the
 no-false-green boundary work that keeps the capability reorg honest while workflow, data/ontology,
@@ -2695,3 +2703,15 @@ tracked evidence artifacts are DATA, not generated faces, and must remain under 
 - evidence/wave-d-g003-g006/g008/data-storage-no-op-evidence.md — data/storage no-op evidence that documents the verified absence of a merge-safe runtime slice.
 - evidence/wave-d-g003-g006/g009/workflow-no-op-evidence.md — workflow substrate no-op evidence for the parallel foundation wave.
 - evidence/wave-d-g003-g006/integration/foundation-wave-evidence.md — integrated Wave-D foundation evidence tying G003/G006 lane outputs to the phase-0 capability reorg.
+
+## 2026-07-09 build-tooling governed path registration
+
+ADR-0562 maps build/CI engines and workspace-manifest tooling to the `build` meta home. The
+Cargo.lock move/canonicalization helper is that build-tooling substrate, not a product capability.
+The following governed paths are intentionally owned by `cloud-ci-platform` and registered as
+build/CI tooling for the reorg codemod and metadata xtask:
+
+- libs/oya-cargo-lock-transform-kernel/BUCK
+- libs/oya-cargo-lock-transform-kernel/Cargo.toml
+- libs/oya-cargo-lock-transform-kernel/OWNERS
+- libs/oya-cargo-lock-transform-kernel/src/lib.rs

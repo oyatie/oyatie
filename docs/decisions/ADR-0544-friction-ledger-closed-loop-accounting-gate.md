@@ -56,7 +56,7 @@ already holds on the live corpus: every friction whose effective status is termi
 
 ## Decision
 
-Add `cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app` as a pure cloud-ci meta-gate.
+Add `ci/facade/action-item-accounting` as a pure cloud-ci meta-gate.
 
 NAME: oya-cloud-ci-friction-accounting-app
 JUSTIFICATION:
@@ -140,17 +140,17 @@ regenerate all faces for no enforcement gain today).
 
 | Path / Crate | Change type | BNF v4.1 name | Layer |
 |---|---|---|---|
-| `cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app/` | create gate crate + policy + baseline | `oya-cloud-ci-friction-accounting-app` | app |
+| `ci/facade/action-item-accounting/` | create gate crate + policy + baseline | `oya-cloud-ci-friction-accounting-app` | app |
 | `.github/workflows/oya-ci-required.yml` | add one gate matrix line | - | - |
 | `docs/oya-ci/gate-catalog.md` | document gate, input kind, key shape, frozen-empty codes | - | - |
 
 The gate-crate files owned by this ADR are:
-`cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app/BUCK`,
-`cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app/Cargo.toml`,
-`cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app/friction-accounting-policy.json`,
-`cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app/friction-accounting-baseline.json`,
-`cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app/src/lib.rs`,
-`cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app/tests/friction_accounting.rs`.
+`ci/facade/action-item-accounting/BUCK`,
+`ci/facade/action-item-accounting/Cargo.toml`,
+`ci/facade/action-item-accounting/friction-accounting-policy.json`,
+`ci/facade/action-item-accounting/friction-accounting-baseline.json`,
+`ci/facade/action-item-accounting/src/lib.rs`,
+`ci/facade/action-item-accounting/tests/friction_accounting.rs`.
 
 ### Integration via Workflow + Ontology
 
@@ -242,9 +242,9 @@ consume Workflow events, or write Ontology objects.
 
 ## Verification
 
-- `buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app/...`
-- `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app:oya-cloud-ci-friction-accounting-app-unittest`
-- `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app:oya-cloud-ci-friction-accounting-app-gate`
+- `buck2 build //ci/facade/action-item-accounting/...`
+- `buck2 test //ci/facade/action-item-accounting:oya-cloud-ci-friction-accounting-app-unittest`
+- `buck2 test //ci/facade/action-item-accounting:oya-cloud-ci-friction-accounting-app-gate`
 
 ## References
 

@@ -64,14 +64,14 @@ jobs:
       - name: Install buck2 (digest-pinned prebuilt release)
         run: infra/ci/install-buck2.sh
       - name: Materialize cloud-ci generated faces
-        run: rustup toolchain install && rustc --version && buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
+        run: rustup toolchain install && rustc --version && buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
       - name: Upload regenerated faces
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: accounting-faces
           # Two upload roots -> the artifact is rooted at their least common ancestor
-          # (cloud/cloud-ci/gates/): the regenerated accounting faces PLUS the untracked
+          # (ci/facade/): the regenerated accounting faces PLUS the untracked
           # volatile scm snapshot (ADR-0552) the staleness-reaper leg ages rows from. The
           # mere-reader gate matrix legs download this artifact instead of re-materializing
           # per leg (ADR-0556 D5 QW-1, gate-fleet-shared-graph same-run trusted reuse).
@@ -79,12 +79,12 @@ jobs:
           # materialization is per-job by design (ADR-0551 frozen-policy-wins) and must
           # never become a shareable artifact.
           path: |
-            cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/*.generated.json
-            cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app/scm-volatile-facts.generated.json
+            ci/facade/artifact-inventory-registry/*.generated.json
+            ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json
           if-no-files-found: error
 
   # ── GATE LANES (reusable matrix). Every homogeneous gate is the SAME step — one
-  #    `buck2 test //cloud/cloud-ci/gates/<crate>:{<crate>-unittest,<crate>-gate}` — so instead of copy-pasting a job per gate, a single
+  #    `buck2 test //ci/facade/<crate>:{ci-<crate>-unittest,ci-<crate>-gate}` — so instead of copy-pasting a job per gate, a single
   #    matrixed `gate` job fans out over the crate list. Adding a homogeneous gate is ONE line in the matrix
   #    below; the `gate_registration` meta-test (in the cloud-ci-firewall lane) ENFORCES that
   #    every in-tree gate crate is listed here, every oya-ci.toml accounting/firewall gate has
@@ -122,46 +122,46 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { crate: oya-cloud-ci-cross-artifact-agreement-app, label: "gate · cross-artifact-agreement (GATE-1, incl. the 4 masterplan-v2 plan gates: structural ID/DAG/orphans · projection-freshness · plan-vs-evidence · read-contract/entry-surface)" }
-          - { crate: oya-cloud-ci-total-accounting-app,         label: "gate · total-accounting (GATE-2)" }
-          - { crate: oya-cloud-ci-staleness-reaper-app,         label: "gate · staleness-reaper (GATE-3, born-blocking)" }
-          - { crate: oya-cloud-ci-automation-ratchet-app,       label: "gate · automation-ratchet (GATE-4, polices gates)" }
-          - { crate: oya-cloud-ci-bnf-layer-suffix-app,         label: "gate · bnf-layer-suffix (BNF §2.5#4, born-blocking)" }
-          - { crate: oya-cloud-ci-manifest-hygiene-app,         label: "gate · manifest-hygiene (§2.5#7, born-blocking)" }
-          - { crate: oya-cloud-ci-cargo-prefix-app,            label: "gate · cargo-prefix (ADR-0017)" }
-          - { crate: oya-cloud-ci-slo-coverage-app,            label: "gate · slo-coverage (catalog SLO input contract, born-blocking)" }
-          - { crate: oya-cloud-ci-license-policy-app,          label: "gate · license-policy (workspace package license policy, shrink-only)" }
-          - { crate: oya-cloud-ci-catalog-liveness-app,        label: "gate · catalog-liveness (PR-C3 founder live-OR-explicitly-marked policy, born-blocking, EMPTY frozen baseline)" }
-          - { crate: oya-cloud-ci-workspace-glob-coverage-app, label: "gate: workspace-glob-coverage (ADR-0538)" }
-          - { crate: oya-cloud-ci-target-parity-app,           label: "gate · target-parity (ADR-0540, test-wiring false-green)" }
-          - { crate: oya-cloud-ci-enforcement-liveness-app,    label: "gate · enforcement-liveness (FRIC-012, hook mirror liveness)" }
-          - { crate: oya-cloud-ci-friction-accounting-app,     label: "gate · friction-accounting (ADR-0544, closed-loop friction-ledger accounting)" }
-          - { crate: oya-cloud-ci-canonical-json-app,          label: "gate · canonical-json (ADR-0546, deterministic JSON serialization)" }
-          - { crate: oya-cloud-ci-hyperscaler-parity-taxonomy-app, label: "gate · hyperscaler-parity-taxonomy (cloud hyperscaler parity taxonomy, born-blocking)" }
-          - { crate: oya-cloud-ci-cloud-resource-contracts-app, label: "gate · cloud-resource-contracts (Rust/API replacement for P0 cloud-resource Python validators)" }
-          - { crate: oya-cloud-ci-embedded-asset-hermeticity-app, label: "gate · embedded-asset-hermeticity (ADR-0545, include_str!/include_bytes! __srcs-tree mapping)" }
-          - { crate: oya-cloud-ci-kernel-purity-app,           label: "gate · kernel-purity (ADR-0547, *-kernel/*-core zero transient-tech deps)" }
-          - { crate: oya-cloud-ci-crypto-backend-purity-app,   label: "gate · crypto-backend-purity (ADR-0506, ring forbidden / aws-lc-rs mandated — zero ring activation)" }
-          - { crate: oya-cloud-ci-no-graphql-without-adr-app,  label: "gate · no-graphql-without-adr (ADR-0565, zero-GraphQL: no graphql lib / .graphql/.gql/.sdl reintroduction without a reversing ADR — candidate-tree evaluated, EMPTY frozen baseline)" }
-          - { crate: oya-cloud-ci-authz-coverage-app,          label: "gate · authz-coverage (issue #770 / AUTH-005, NEW unauthenticated HTTP control planes blocked vs frozen baseline)" }
-          - { crate: oya-cloud-ci-dto-authz-trust-app,         label: "gate · dto-authz-trust (ADR-0582, the CLASS-FIX for caller-supplied-authz-trust: a NEW fn that trusts a forged *Authorization DTO / x-authorization-* header in place of a server-side PDP decide() is blocked vs the frozen baseline of ~92 known instances; v2: FN-01/02/03/04/05/06 hardened)" }
-          - { crate: oya-cloud-ci-generated-artifact-control-plane-app, label: "gate · generated-artifact-control-plane (public hermetic CI artifact policy)" }
-          - { crate: oya-cloud-ci-cache-wiring-app,            label: "gate · cache-wiring conformance (ADR-0560/ADR-0556, dark-wiring + cold floor + kill-switch)" }
-          - { crate: oya-cloud-ci-substrate-dependency-dag-acyclicity-app, label: "gate · substrate-dependency-dag-acyclicity (ADR-0280 §D-3, Tarjan SCC + Kahn topo-order + forbidden-edge honouring)" }
-          - { crate: oya-cloud-ci-tier-field-coverage-app,     label: "gate · tier-field-coverage (Phase-0 reorg ADR-0562/0536/0245, per-service tier/tier_subtype/dr_tier coverage + enum validity + no type-overload, born-blocking)" }
-          - { crate: oya-cloud-ci-tier-dependency-acyclicity-app, label: "gate · tier-dependency-acyclicity (Phase-0 reorg ADR-0245/0280/0562, cargo+buck crate-graph tier rules + S-rank + Tarjan cycle backstop, born-ADVISORY vs frozen baseline → enforce-no-regression)" }
-          - { crate: oya-cloud-ci-capability-membership-app,   label: "gate · capability-membership (Phase-0 reorg ADR-0562 §6, the anti-junk-drawer MEMBERSHIP lint: every crate → exactly one registered capability/meta home, no NEW unmapped crate, no NEW top-level dir, base/-admission; born-advisory + enforce-no-regression vs the frozen unmapped baseline)" }
-          - { crate: oya-cloud-ci-runner-disk-reclaim-app,     label: "gate · runner-disk-reclaim conformance (FRIC-017 productization, ADR-0548 pipeline-as-product: policy parse + threshold/INFRA-RED discrimination + reclaim plan)" }
-          - { crate: oya-cloud-ci-port-placement-app,          label: "gate · port-placement (ADR-0570, clean-arch ports-in-core: no storage-port trait DEFINED in an */adapters/* crate — productizes the #116 defect class; born-advisory + enforce-no-regression vs frozen baseline)" }
-          - { crate: oya-cloud-ci-root-workspace-hygiene-app,  label: "gate · root-workspace-hygiene (ADR-0600, allowlist-as-DATA default-DENY: every TRACKED repo-root file must match the allowlist + every top-level dir must be a permitted capability/meta home — makes committed root scratch structurally impossible; complements the scratch DENYLIST)" }
-          - { crate: oya-cloud-ci-dependency-automation-app, label: "gate · dependency-automation (ADR-0535, owned oya-deps.toml Rust bump-bot contract; external bot configs remain absent)" }
-          - { crate: oya-cloud-ci-supply-chain-audit-app,    label: "gate · supply-chain-audit (owned RustSec advisory scan over vendored mirror, born-blocking)" }
-          - { crate: oya-cloud-ci-planned-maturity-app, label: "gate · planned-maturity (GH #992, product PRD acceptance/verification contracts + rich capability records + retired-plan provenance boundary)" }
-          - { crate: oya-cloud-ci-operator-secret-bootstrap-app, label: "gate · operator-secret-bootstrap (GH #980 + GH #988 / ADR-0606, least-privilege secret RBAC, declarative join-token bootstrap, ESO/OpenBao role+namespace+prefix scope, and plaintext OpenBao NetworkPolicy isolation)" }
-          - { crate: oya-cloud-ci-cedar-deploy-parity-app, label: "gate · cedar-deploy-parity (GH #16 / ADR-0608, deployed-vs-authored Cedar parity: no deployed ConfigMap permit may leave the action unconstrained (action-agnostic blanket grant) and every deployed permit MUST be ⊆ the capability's authored <cap>/{policy,cedar}/*.cedar set; fail-closed on missing-authored/un-extractable/empty-scan; GH #16 byte-identical blanket ConfigMaps grandfathered in a documented shrink-only baseline pending the blanket-disarm follow-up)" }
-          - { crate: oya-cloud-ci-cell-topology-manifest-contract-app, label: "gate · cell-topology-manifest-contract (CELL-001R manifest contract)" }
-          - { crate: oya-cloud-ci-rust-first-automation-hygiene-app, label: "gate · rust-first automation hygiene (cloud-native infra anti-patterns: scripts, workflow shell, retired interpreters, and new CLI packages)" }
-          - { crate: oya-cloud-ci-gate-self-conformance-app, label: "gate · gate-self-conformance (GH #777, pipeline-as-product 7-property bar over every gate)" }
+          - { crate: cross-artifact-agreement, label: "gate · cross-artifact-agreement (GATE-1, incl. the 4 masterplan-v2 plan gates: structural ID/DAG/orphans · projection-freshness · plan-vs-evidence · read-contract/entry-surface)" }
+          - { crate: artifact-accountability,         label: "gate · total-accounting (GATE-2)" }
+          - { crate: stale-artifact-detection,         label: "gate · staleness-reaper (GATE-3, born-blocking)" }
+          - { crate: automation-coverage,       label: "gate · automation-ratchet (GATE-4, polices gates)" }
+          - { crate: crate-layer-suffix,         label: "gate · bnf-layer-suffix (BNF §2.5#4, born-blocking)" }
+          - { crate: package-manifest-hygiene,         label: "gate · manifest-hygiene (§2.5#7, born-blocking)" }
+          - { crate: crate-name-prefix,            label: "gate · cargo-prefix (ADR-0017)" }
+          - { crate: slo-coverage,            label: "gate · slo-coverage (catalog SLO input contract, born-blocking)" }
+          - { crate: license-policy,          label: "gate · license-policy (workspace package license policy, shrink-only)" }
+          - { crate: service-catalog-parity,        label: "gate · catalog-liveness (PR-C3 founder live-OR-explicitly-marked policy, born-blocking, EMPTY frozen baseline)" }
+          - { crate: workspace-member-coverage, label: "gate: workspace-glob-coverage (ADR-0538)" }
+          - { crate: build-target-parity,           label: "gate · target-parity (ADR-0540, test-wiring false-green)" }
+          - { crate: hook-wiring,    label: "gate · enforcement-liveness (FRIC-012, hook mirror liveness)" }
+          - { crate: action-item-accounting,     label: "gate · friction-accounting (ADR-0544, closed-loop friction-ledger accounting)" }
+          - { crate: canonical-json,          label: "gate · canonical-json (ADR-0546, deterministic JSON serialization)" }
+          - { crate: parity-claim-evidence, label: "gate · hyperscaler-parity-taxonomy (cloud hyperscaler parity taxonomy, born-blocking)" }
+          - { crate: resource-contract-conformance, label: "gate · cloud-resource-contracts (Rust/API replacement for P0 cloud-resource Python validators)" }
+          - { crate: embedded-asset-hermeticity, label: "gate · embedded-asset-hermeticity (ADR-0545, include_str!/include_bytes! __srcs-tree mapping)" }
+          - { crate: core-dependency-isolation,           label: "gate · kernel-purity (ADR-0547, *-kernel/*-core zero transient-tech deps)" }
+          - { crate: crypto-backend-policy,   label: "gate · crypto-backend-purity (ADR-0506, ring forbidden / aws-lc-rs mandated — zero ring activation)" }
+          - { crate: graphql-usage-policy,  label: "gate · no-graphql-without-adr (ADR-0565, zero-GraphQL: no graphql lib / .graphql/.gql/.sdl reintroduction without a reversing ADR — candidate-tree evaluated, EMPTY frozen baseline)" }
+          - { crate: endpoint-authorization-coverage,          label: "gate · authz-coverage (issue #770 / AUTH-005, NEW unauthenticated HTTP control planes blocked vs frozen baseline)" }
+          - { crate: caller-supplied-authorization,         label: "gate · dto-authz-trust (ADR-0582, the CLASS-FIX for caller-supplied-authz-trust: a NEW fn that trusts a forged *Authorization DTO / x-authorization-* header in place of a server-side PDP decide() is blocked vs the frozen baseline of ~92 known instances; v2: FN-01/02/03/04/05/06 hardened)" }
+          - { crate: generated-artifact-policy, label: "gate · generated-artifact-control-plane (public hermetic CI artifact policy)" }
+          - { crate: build-cache-policy,            label: "gate · cache-wiring conformance (ADR-0560/ADR-0556, dark-wiring + cold floor + kill-switch)" }
+          - { crate: dependency-graph-acyclicity, label: "gate · substrate-dependency-dag-acyclicity (ADR-0280 §D-3, Tarjan SCC + Kahn topo-order + forbidden-edge honouring)" }
+          - { crate: service-tier-metadata,     label: "gate · tier-field-coverage (Phase-0 reorg ADR-0562/0536/0245, per-service tier/tier_subtype/dr_tier coverage + enum validity + no type-overload, born-blocking)" }
+          - { crate: layer-dependency-acyclicity, label: "gate · tier-dependency-acyclicity (Phase-0 reorg ADR-0245/0280/0562, cargo+buck crate-graph tier rules + S-rank + Tarjan cycle backstop, born-ADVISORY vs frozen baseline → enforce-no-regression)" }
+          - { crate: module-membership,   label: "gate · capability-membership (Phase-0 reorg ADR-0562 §6, the anti-junk-drawer MEMBERSHIP lint: every crate → exactly one registered capability/meta home, no NEW unmapped crate, no NEW top-level dir, base/-admission; born-advisory + enforce-no-regression vs the frozen unmapped baseline)" }
+          - { crate: runner-disk-reclaim,     label: "gate · runner-disk-reclaim conformance (FRIC-017 productization, ADR-0548 pipeline-as-product: policy parse + threshold/INFRA-RED discrimination + reclaim plan)" }
+          - { crate: port-placement,          label: "gate · port-placement (ADR-0570, clean-arch ports-in-core: no storage-port trait DEFINED in an */adapters/* crate — productizes the #116 defect class; born-advisory + enforce-no-regression vs frozen baseline)" }
+          - { crate: repo-root-hygiene,  label: "gate · root-workspace-hygiene (ADR-0600, allowlist-as-DATA default-DENY: every TRACKED repo-root file must match the allowlist + every top-level dir must be a permitted capability/meta home — makes committed root scratch structurally impossible; complements the scratch DENYLIST)" }
+          - { crate: dependency-automation, label: "gate · dependency-automation (ADR-0535, owned oya-deps.toml Rust bump-bot contract; external bot configs remain absent)" }
+          - { crate: supply-chain-audit,    label: "gate · supply-chain-audit (owned RustSec advisory scan over vendored mirror, born-blocking)" }
+          - { crate: feature-maturity-policy, label: "gate · planned-maturity (GH #992, product PRD acceptance/verification contracts + rich capability records + retired-plan provenance boundary)" }
+          - { crate: operator-secret-rbac, label: "gate · operator-secret-bootstrap (GH #980 + GH #988 / ADR-0606, least-privilege secret RBAC, declarative join-token bootstrap, ESO/OpenBao role+namespace+prefix scope, and plaintext OpenBao NetworkPolicy isolation)" }
+          - { crate: policy-deploy-parity, label: "gate · cedar-deploy-parity (GH #16 / ADR-0608, deployed-vs-authored Cedar parity: no deployed ConfigMap permit may leave the action unconstrained (action-agnostic blanket grant) and every deployed permit MUST be ⊆ the capability's authored <cap>/{policy,cedar}/*.cedar set; fail-closed on missing-authored/un-extractable/empty-scan; GH #16 byte-identical blanket ConfigMaps grandfathered in a documented shrink-only baseline pending the blanket-disarm follow-up)" }
+          - { crate: topology-manifest-contract, label: "gate · cell-topology-manifest-contract (CELL-001R manifest contract)" }
+          - { crate: automation-language-policy, label: "gate · rust-first automation hygiene (cloud-native infra anti-patterns: scripts, workflow shell, retired interpreters, and new CLI packages)" }
+          - { crate: gate-self-conformance, label: "gate · gate-self-conformance (GH #777, pipeline-as-product 7-property bar over every gate)" }
     steps:
       # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
@@ -177,7 +177,7 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: accounting-faces
-          path: cloud/cloud-ci/gates
+          path: ci/facade
       - name: Install buck2 (digest-pinned prebuilt release)
         run: infra/ci/install-buck2.sh
       # Buck2/rustc still use the pinned workspace toolchain + components; provision it before
@@ -191,13 +191,13 @@ jobs:
         run: |
           set -euo pipefail
           buck2 test \
-            //cloud/cloud-ci/gates/${{ matrix.crate }}:${{ matrix.crate }}-unittest \
-            //cloud/cloud-ci/gates/${{ matrix.crate }}:${{ matrix.crate }}-gate
+            //ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-unittest \
+            //ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-gate
 
   # ── freshness: first-diagnosis gate for the two stale-output failures from PR #662.
   #    Runs as its own fast job with no needs edge so stale Cargo.lock and stale generated faces
   #    surface together before the broader Buck2 lanes spend a full matrix round-trip.
-  gate-freshness:
+  gate-generated-artifact-freshness:
     name: freshness (lock + generated faces, ADR-0539)
     runs-on: ubuntu-latest
     steps:
@@ -227,14 +227,14 @@ jobs:
       - name: Run freshness gate
         run: |
           set -euo pipefail
-          freshness_bin="$(buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-freshness-app-bin --show-output | awk '{print $2}')"
+          freshness_bin="$(buck2 build //ci/facade/generated-artifact-freshness:oya-cloud-ci-freshness-app-bin --show-output | awk '{print $2}')"
           "${freshness_bin}" --repo-root .
 
   # ── registry-drift: materialized workspace == regenerated byte-equal. Starts at t=0 alongside
   #    producer-regen; it rematerializes in-job so it is hermetic and self-contained. The
   #    producer-regen needs-edge was cosmetic (evidence only, nothing consumed) and serialized
   #    this job unnecessarily — removed so it starts at t=0.
-  gate-registry-drift:
+  gate-inventory-registry-drift:
     name: registry-drift (materialized == regenerated)
     runs-on: ubuntu-latest
     steps:
@@ -258,14 +258,14 @@ jobs:
         run: |
           rustup toolchain install
           rustc --version
-          buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
-          buck2 test //cloud/cloud-ci/gates/registry-drift:registry-drift-gate
+          buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
+          buck2 test //ci/facade/inventory-registry-drift:ci-inventory-registry-drift-gate
 
   # ── cloud-ci-firewall: the baseline ratchet (blocks only NEW debt) + the gate-registration
   #    meta-test (no in-tree gate may go unregistered in this workflow). This is the surface-all
   #    runner; per the runbook the existing firewall runner suffices — no separate aggregator bin
   #    is required for PRE-work.
-  gate-cloud-ci-firewall:
+  gate-baseline-ratchet:
     name: cloud-ci-firewall (baseline ratchet + gate-registration meta-test)
     runs-on: ubuntu-latest
     steps:
@@ -287,16 +287,16 @@ jobs:
       # This lane therefore KEEPS its own materialization (ADR-0556 D5 cold-must-stay list);
       # it is never converted to artifact reuse.
       - name: Materialize cloud-ci generated faces
-        run: rustup toolchain install && rustc --version && buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
+        run: rustup toolchain install && rustc --version && buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
       - name: buck2 test cloud-ci-firewall
         run: |
           set -euo pipefail
           buck2 test \
-            //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-unittest \
-            //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-signoff-fixer-unittest \
-            //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-gate \
-            //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-gate-registration \
-            //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-run-observability-packet
+            //ci/facade/baseline-ratchet:ci-baseline-ratchet-unittest \
+            //ci/facade/baseline-ratchet:oya-cloud-ci-firewall-signoff-fixer-unittest \
+            //ci/facade/baseline-ratchet:ci-baseline-ratchet-gate \
+            //ci/facade/baseline-ratchet:ci-baseline-ratchet-gate-registration \
+            //ci/facade/baseline-ratchet:ci-baseline-ratchet-run-observability-packet
 
   # ── GENERATED OUTPUT DIFF POLICY. Generated files may be deleted to retire a tracked output,
   #    but PRs must not add/modify generated outputs as merge surfaces. Classification comes from
@@ -340,8 +340,13 @@ jobs:
             exit 0
           fi
           git fetch --no-tags --prune origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
-          policy_bin="$(buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app:oya-cloud-ci-generated-output-diff-policy --show-output | awk '{print $2}')"
-          git diff --name-status "origin/${BASE_REF}"...HEAD \
+          policy_bin="$(buck2 build //ci/facade/generated-artifact-policy:oya-cloud-ci-generated-output-diff-policy --show-output | awk '{print $2}')"
+          # --find-renames is REQUIRED, not cosmetic: the policy's sanctioned-relocation exemption
+          # only accepts byte-identical (R100) renames of declared generated artifacts (a capability
+          # move relocating the firewall's frozen gate-baseline). Without explicit rename detection a
+          # runner with diff.renames=off would surface the move as A+D and RED the legit move (fails
+          # safe, but false-blocks). Detection ON + the R100-only exemption is the correct behavior.
+          git diff --find-renames --name-status "origin/${BASE_REF}"...HEAD \
             | "${policy_bin}" --manifest registry/generated-artifact-control-plane.json
 
   # ── HERMETIC BUCK2 LANE (OYA-CI-HERMETIC-EXECUTION-DESIGN §3 + Stage P1/P2). Runs the SAME
@@ -408,9 +413,9 @@ jobs:
       #
       # SAVE/RESTORE SPLIT (ADR-0554 D9; specs/cache-warmth-policy.json postmerge-dev-trunk = sole
       # writer, presubmit-trusted-affected-cone = reader). dev-push is the SOLE canonical writer via
-      # the gate-affected-set job's SAVE step (see below): that job builds the FULL //... graph on
+      # the gate-affected-target-set job's SAVE step (see below): that job builds the FULL //... graph on
       # push, so the saved buck-out is the full-graph superset. This buck2 job is READ-ONLY on every
-      # trigger — it restores the full-graph buck-out and its //cloud/cloud-ci/... build is a subset
+      # trigger — it restores the full-graph buck-out and its //ci/... build is a subset
       # hit. PRs never write, eliminating the per-commit multi-GB write-churn/eviction (the
       # Bazel/Google post-merge-fills-the-cache pattern).
       #
@@ -449,7 +454,7 @@ jobs:
           # Build as the runner user (buck2 on user PATH; never run buck2 daemon as root —
           # that corrupts cache/daemon ownership). Then sudo ONLY the prebuilt binary (needs
           # root solely to remove the root-owned vendor preinstall dirs).
-          BIN="$(buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app:oya-cloud-ci-runner-disk-reclaim-bin --show-output 2>/dev/null | awk '{print $2}')"
+          BIN="$(buck2 build //ci/facade/runner-disk-reclaim:oya-cloud-ci-runner-disk-reclaim-bin --show-output 2>/dev/null | awk '{print $2}')"
           sudo -E "$BIN" \
             --profile github-hosted-ubuntu-latest \
             --infra-red-policy fail-closed \
@@ -471,16 +476,16 @@ jobs:
       # by design (ADR-0551) and deliberately absent from the producer-regen artifact; this
       # step is the sanctioned boundary that feeds ALL declared generated inputs to the graph.
       - name: Materialize cloud-ci generated faces (out-of-graph boundary)
-        run: buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
+        run: buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
       # The hermetic gate: buck2 BUILDS every cloud-ci target (proves the env!CARGO eradication —
       # these targets could not compile under buck2 before) and TESTS them (the gate rust_tests
       # run green, fully hermetic, with verdicts identical to the targeted gate matrix). This is the
       # refactor's scope and is the binding hermetic check for this stage.
       #
-      # The repo-wide affected-set verdict is owned by the binding gate-affected-set job below.
+      # The repo-wide affected-set verdict is owned by the binding gate-affected-target-set job below.
       # Do not run a duplicate best-effort affected-set probe here: a non-blocking BUILD FAILED
       # line inside a green job is indistinguishable from a false-green to humans and agents.
-      - name: buck2 build + test (//cloud/cloud-ci/..., hermetic — binding)
+      - name: buck2 build + test (//ci/..., hermetic — binding)
         run: |
           set -euo pipefail
           # buck2 test builds its targets before running them, so a standalone
@@ -488,7 +493,7 @@ jobs:
           # --unstable-write-invocation-record is additive observability only: it
           # writes buck2's structured run record (cache_hit_rate, run_* counters)
           # for the telemetry step below and changes nothing about the build.
-          buck2 test //cloud/cloud-ci/... --unstable-write-invocation-record /tmp/buck2-lane-invocation-record.json
+          buck2 test //ci/... --unstable-write-invocation-record /tmp/buck2-lane-invocation-record.json
       # Per-lane cache-hit telemetry + warm-mode guard (ADR-0560; the audit's missing-SLO item):
       # structured counters from buck2's invocation record — never log-grep — labeled with this
       # lane's ADR-0556 build class. The report is now binding for record-shape / warm-mode
@@ -500,9 +505,9 @@ jobs:
         run: |
           set -euo pipefail
           CACHE_MODE=bypass
-          buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app:oya-cloud-ci-cache-wiring-bin -- report --record /tmp/buck2-lane-invocation-record.json --build-class gate-fleet-shared-graph --mode "${CACHE_MODE}" --out /tmp/cache-hit-report.json
+          buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- report --record /tmp/buck2-lane-invocation-record.json --build-class gate-fleet-shared-graph --mode "${CACHE_MODE}" --out /tmp/cache-hit-report.json
           cat /tmp/cache-hit-report.json
-          buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app:oya-cloud-ci-cache-wiring-bin -- assert-warm --record /tmp/buck2-lane-invocation-record.json --build-class gate-fleet-shared-graph --mode "${CACHE_MODE}"
+          buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- assert-warm --record /tmp/buck2-lane-invocation-record.json --build-class gate-fleet-shared-graph --mode "${CACHE_MODE}"
       - name: Upload cache-hit telemetry artifact
         if: always()
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
@@ -521,7 +526,7 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
   # ── BINDING WORKSPACE COVERAGE (ADR-0554, FRIC-1781310000). Closes the largest false-green
-  #    channel: the buck2 lane above is scoped to //cloud/cloud-ci/..., so code anywhere else
+  #    channel: the buck2 lane above is scoped to //ci/..., so code anywhere else
   #    (oya/*, libs/*, cloud/* services) could merge broken — proven live by PR #651 head
   #    cf16525 (E0433 x3 in oya/identity, buck2 lane green, run 27288019517) and by
   #    //oya/ci-webhook-gateway carrying an E0428 on dev itself. This lane is the BINDING
@@ -534,7 +539,7 @@ jobs:
   #    frozen pattern): it grandfathers targets already failing at the merge-base and blocks only
   #    REGRESSIONS, so a BUCK-touching PR is not held hostage to pre-existing dev build debt (no
   #    flag-day requirement). Pack-shaped per ADR-0548 R0: all repo facts live in affected-set-policy.json.
-  gate-affected-set:
+  gate-affected-target-set:
     name: "gate · affected-set (ADR-0554, binding workspace coverage)"
     runs-on: ubuntu-latest
     # SAFETY RAIL (ADR-0554 D7): bound the cold full-workspace rebuild so a runaway/exhaustion
@@ -615,7 +620,7 @@ jobs:
           # Build as the runner user (buck2 on user PATH; never run buck2 daemon as root —
           # that corrupts cache/daemon ownership). Then sudo ONLY the prebuilt binary (needs
           # root solely to remove the root-owned vendor preinstall dirs).
-          BIN="$(buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app:oya-cloud-ci-runner-disk-reclaim-bin --show-output 2>/dev/null | awk '{print $2}')"
+          BIN="$(buck2 build //ci/facade/runner-disk-reclaim:oya-cloud-ci-runner-disk-reclaim-bin --show-output 2>/dev/null | awk '{print $2}')"
           sudo -E "$BIN" \
             --profile github-hosted-ubuntu-latest \
             --infra-red-policy fail-closed \
@@ -633,7 +638,7 @@ jobs:
       # baseline (ADR-0551), and this lane's own build-health baseline below is per-job by
       # design (ADR-0554 round-3).
       - name: Materialize cloud-ci generated faces (out-of-graph boundary)
-        run: buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
+        run: buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
       - name: Fetch base ref for the merge-base anchor
         if: ${{ github.event_name == 'pull_request' }}
         env:
@@ -675,14 +680,14 @@ jobs:
           decision_log="${RUNNER_TEMP}/affected-set-derive.log"
           full_required_marker="${RUNNER_TEMP}/affected-set-full-required"
           echo "false" > "${full_required_marker}"
-          gate_bin="$(buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app:oya-cloud-ci-affected-set-bin --show-output | awk '{print $2}')"
-          telemetry_bin="$(buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app:oya-cloud-ci-step-telemetry-bin --show-output | awk '{print $2}')"
+          gate_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-affected-set-bin --show-output | awk '{print $2}')"
+          telemetry_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-step-telemetry-bin --show-output | awk '{print $2}')"
           ci_step_telemetry="${RUNNER_TEMP}/oya-cloud-ci-step-telemetry"
           cp "${telemetry_bin}" "${ci_step_telemetry}"
           chmod +x "${ci_step_telemetry}"
           echo "affected-set preflight: derive plan before merge-base baseline"
           "${ci_step_telemetry}" --phase derive-affected-set-tier -- "${gate_bin}" \
-            --policy cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/affected-set-policy.json \
+            --policy ci/facade/affected-target-set/affected-set-policy.json \
             --base "origin/${BASE_REF}" --mode auto --derive-only \
             --decision-artifact-out "${RUNNER_TEMP}/affected-set-derive-decision.json" \
             | tee "${decision_log}"
@@ -833,8 +838,8 @@ jobs:
           BASE_REF: ${{ github.base_ref || 'dev' }}
         run: |
           set -euo pipefail
-          gate_bin="$(buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app:oya-cloud-ci-affected-set-bin --show-output | awk '{print $2}')"
-          telemetry_bin="$(buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app:oya-cloud-ci-step-telemetry-bin --show-output | awk '{print $2}')"
+          gate_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-affected-set-bin --show-output | awk '{print $2}')"
+          telemetry_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-step-telemetry-bin --show-output | awk '{print $2}')"
           if [ "${EVENT_NAME}" = "pull_request" ]; then
             # PR tier: auto (cone-binding, hard-fail on a NEW break in the changed cone); a FULL
             # escalation runs the build-health ratchet against the merge-base baseline. The
@@ -847,7 +852,7 @@ jobs:
               baseline_args=(--baseline-report "${RUNNER_TEMP}/build-health-baseline.json")
             fi
             "${telemetry_bin}" --phase binding-affected-set-build-test -- "${gate_bin}" \
-              --policy cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/affected-set-policy.json \
+              --policy ci/facade/affected-target-set/affected-set-policy.json \
               --base "origin/${BASE_REF}" --mode auto \
               --decision-artifact-out "${RUNNER_TEMP}/affected-set-binding-decision.json" \
               "${baseline_args[@]}"
@@ -859,14 +864,14 @@ jobs:
             # (non-empty failure set = hard fail) and the report is uploaded below only on
             # trusted push-to-dev.
             "${telemetry_bin}" --phase binding-affected-set-build-test -- "${gate_bin}" \
-              --policy cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/affected-set-policy.json \
+              --policy ci/facade/affected-target-set/affected-set-policy.json \
               --base "origin/${BASE_REF}" --mode full \
               --decision-artifact-out "${RUNNER_TEMP}/affected-set-binding-decision.json"
           fi
       # ── FULL-GRAPH CACHE SAVE (ADR-0554 D9; sole canonical writer). On dev-push this job runs
       #    --mode full (buck2 build + test //...), so buck-out is populated with the FULL workspace
-      #    graph — not just //cloud/cloud-ci/... as in the buck2 lane. Saving here means PR
-      #    gate-affected-set restores a full-graph buck-out, so the same-root merge-base baseline
+      #    graph — not just //ci/... as in the buck2 lane. Saving here means PR
+      #    gate-affected-target-set restores a full-graph buck-out, so the same-root merge-base baseline
       #    build is near-fully-warm (the merge-base IS a recent dev commit whose full-graph buck-out
       #    was just saved). The buck2 lane restores the same key and is a subset hit. One save step,
       #    one job, one key — no two-writer race. Runs AFTER the Binding step (buck-out fully
@@ -1191,12 +1196,12 @@ jobs:
     if: ${{ always() }}
     needs:
       - gate                    # the matrix of homogeneous gate lanes (success IFF every leg passed)
-      - gate-freshness          # bespoke: stale Cargo.lock + generated faces first diagnosis
-      - gate-registry-drift     # bespoke: materialized == regenerated byte-parity
-      - gate-cloud-ci-firewall  # bespoke: baseline ratchet + gate_registration meta-test
+      - gate-generated-artifact-freshness          # bespoke: stale Cargo.lock + generated faces first diagnosis
+      - gate-inventory-registry-drift     # bespoke: materialized == regenerated byte-parity
+      - gate-baseline-ratchet  # bespoke: baseline ratchet + gate_registration meta-test
       - generated-output-diff-policy # generated outputs are never PR merge surfaces
       - buck2                   # hermetic buck2 build + affected gate tests
-      - gate-affected-set       # binding workspace coverage: affected cone or fail-closed full run (ADR-0554)
+      - gate-affected-target-set       # binding workspace coverage: affected cone or fail-closed full run (ADR-0554)
       - gate-live-postgres-adapters # #901: durable adapter RLS / CDC / SCIM tests against isolated live Postgres
       - gate-live-postgres-facades  # #901: durable facade tenant lifecycle / SCIM tests against isolated live Postgres
     steps:
@@ -1204,23 +1209,23 @@ jobs:
         run: |
           echo "Gate results:"
           echo "  gate (matrix)     = ${{ needs.gate.result }}"
-          echo "  freshness         = ${{ needs.gate-freshness.result }}"
-          echo "  registry-drift    = ${{ needs.gate-registry-drift.result }}"
-          echo "  cloud-ci-firewall = ${{ needs.gate-cloud-ci-firewall.result }}"
+          echo "  freshness         = ${{ needs.gate-generated-artifact-freshness.result }}"
+          echo "  registry-drift    = ${{ needs.gate-inventory-registry-drift.result }}"
+          echo "  cloud-ci-firewall = ${{ needs.gate-baseline-ratchet.result }}"
           echo "  generated-diff    = ${{ needs.generated-output-diff-policy.result }}"
           echo "  buck2             = ${{ needs.buck2.result }}"
-          echo "  affected-set      = ${{ needs.gate-affected-set.result }}"
+          echo "  affected-set      = ${{ needs.gate-affected-target-set.result }}"
           echo "  live-postgres/adapters = ${{ needs.gate-live-postgres-adapters.result }}"
           echo "  live-postgres/facades  = ${{ needs.gate-live-postgres-facades.result }}"
           # A matrix job's aggregate `.result` is success IFF ALL legs succeeded, failure if any
           # leg failed, skipped if it never ran — so one check covers every gate in the matrix.
           if [ "${{ needs.gate.result }}" = "success" ] \
-            && [ "${{ needs.gate-freshness.result }}" = "success" ] \
-            && [ "${{ needs.gate-registry-drift.result }}" = "success" ] \
-            && [ "${{ needs.gate-cloud-ci-firewall.result }}" = "success" ] \
+            && [ "${{ needs.gate-generated-artifact-freshness.result }}" = "success" ] \
+            && [ "${{ needs.gate-inventory-registry-drift.result }}" = "success" ] \
+            && [ "${{ needs.gate-baseline-ratchet.result }}" = "success" ] \
             && [ "${{ needs.generated-output-diff-policy.result }}" = "success" ] \
             && [ "${{ needs.buck2.result }}" = "success" ] \
-            && [ "${{ needs.gate-affected-set.result }}" = "success" ] \
+            && [ "${{ needs.gate-affected-target-set.result }}" = "success" ] \
             && [ "${{ needs.gate-live-postgres-adapters.result }}" = "success" ] \
             && [ "${{ needs.gate-live-postgres-facades.result }}" = "success" ]; then
             echo "oya-ci-required: GREEN — every constituent gate lane passed."

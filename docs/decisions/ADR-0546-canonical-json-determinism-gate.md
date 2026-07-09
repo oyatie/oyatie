@@ -64,7 +64,7 @@ safety net only).
 
 ## Decision
 
-Add `cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app` as a pure cloud-ci determinism gate.
+Add `ci/facade/canonical-json` as a pure cloud-ci determinism gate.
 
 NAME: oya-cloud-ci-canonical-json-app
 JUSTIFICATION:
@@ -130,7 +130,7 @@ is therefore *detector + auto-remediator + blocking backstop*, mirroring the fac
 (`oya-cloud-ci-face-settle --settle --commit` is the documented default remediation; the freshness
 gate is the backstop). The gate binary's `--fix` mode rewrites every non-canonical governed file to
 canonical form in one pass
-(`buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app:oya-cloud-ci-canonical-json-bin -- --fix`).
+(`buck2 run //ci/facade/canonical-json:oya-cloud-ci-canonical-json-bin -- --fix`).
 It REFUSES parse/duplicate-key defects (human-judgment residue, not drift). The blocking gate's
 failure output prints this EXACT command (the `AUTO_FIX_COMMAND` constant, asserted by a fixture so a
 typo'd target can never ship). Per the founder CLI-retirement directive, the binary is LOCAL BRIDGE

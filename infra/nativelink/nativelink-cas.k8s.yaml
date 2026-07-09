@@ -10,9 +10,14 @@
 #
 # Precedent (hyperscaler-lens): NativeLink is Rust-native (rust-purity aligned),
 # speaks the Bazel Remote-Execution gRPC CAS/AC API (the same wire protocol Bazel /
-# Buck2 / Pants / Reclient consume), Apache-2.0, self-hostable; its own production
-# guidance runs CAS and scheduler as separate processes (Buildbarn decomposes the
-# same way: bb-storage / bb-scheduler / bb-worker).
+# Buck2 / Pants / Reclient consume), FSL-1.1-Apache-2.0 (FSL 1.1, converts to
+# Apache-2.0 ~2028-06-07; deployed as a container, not a linked Rust dependency),
+# self-hostable; its own production guidance runs CAS and scheduler as separate
+# processes (Buildbarn decomposes the same way: bb-storage / bb-scheduler /
+# bb-worker).
+#
+# License posture note: FSL sits in ADR-0013's requires-review tier (AWS-FSL /
+# Sentry-FSL family); this is a conscious, reviewed exception, not Apache-2.0.
 #
 # KEYED AUTHN AT THE SERVICE BOUNDARY (founder 2026-05-30: keyed, never anonymous;
 # ADR-0556 D4.4: a property the service refuses, not a convention clients follow):

@@ -37,7 +37,7 @@ Hermetic buck2 graph — a clean checkout builds and tests with no setup script 
 | `buck2 build //cloud/cloud-ci/...` | Primary build — scope the target pattern to your lane |
 | `buck2 test //cloud/cloud-ci/...` | Primary test — BUCK + reindeer wiring is part of done |
 | `cargo test` / `cargo clippy` | Supplementary local feedback only, never merge evidence |
-| `buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin` | Regenerate `*.generated.json` faces — never hand-edit |
+| `buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin` | Regenerate `*.generated.json` faces — never hand-edit |
 
 Toolchain: Rust pinned in [`rust-toolchain.toml`](rust-toolchain.toml); the sole sanctioned
 cargo production path is release-image builds. Local green ≠ merge green: merge authority is
@@ -117,7 +117,7 @@ coordinator_worker_split:
 blocker_policy: blockers become dispatcher-ready resolution cards with source context,
   blocker class, acceptance criteria, verification path, suggested owner/profile,
   and dependency/conflict notes unless the coordinator is explicitly assigned as worker
-generated_faces_policy: never add or modify any *.generated.json by hand; buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin materializes them and the diff-policy gate fails closed on hand edits
+generated_faces_policy: never add or modify any *.generated.json by hand; buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin materializes them and the diff-policy gate fails closed on hand edits
 scaffold_protocol:
   mechanism: per-agent isolated worktree plus admission-gate concurrent-safe-paths
   adr: docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md

@@ -26,7 +26,7 @@ review. Door: two-way — additive ports + a required boundary parameter behind 
 clean-architecture seam, reversible by removing the `authz` modules and the provider argument
 without unwinding any SSOT. On approval the founder flips this to Accepted and admits the
 born-unpropagated decision into
-`cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.signoff.json` per the established
+`ci/facade/baseline-ratchet/gate-baseline.signoff.json` per the established
 new-Accepted-ADR door precedent, then propagates it into the masterplan/roadmap faces.)**
 
 ## Context
