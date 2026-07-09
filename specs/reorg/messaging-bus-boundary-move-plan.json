@@ -1,0 +1,13 @@
+{
+  "_comment": "De-brand strangler MOVE-2: home the messaging capability's EVENT-BUS boundary surface out of the libs/ junk-drawer into the messaging capability (continues MOVE-1, which homed the substrate FLOOR at messaging/core/substrate-kernel). The crate is a pure-types+traits domain surface (EventBus<'a, S: MessagingSubstrate>, SubscriberGroup, Event, ChannelName) generic over the ONE substrate port, no I/O, no adapters. It is an ORPHAN LEAF: ZERO reverse-dependencies (nothing consumes it, so nothing above it needs rewiring), and its ONLY forward dep is messaging-substrate-kernel (homed by MOVE-1 at messaging/core/substrate-kernel); after this move the cargo path-dep becomes the sibling ../substrate-kernel and the BUCK label //messaging/core/substrate-kernel is unchanged (codemod-rewritten). Face = core per ADR-0570 (a cutover-stable kernel-tier port is PERMITTED in core; mirrors the siblings messaging/core/substrate-kernel + messaging/core/domain). De-brand per ADR-0532/0533: cargo name = de-branded path tail (oya-bus-boundary-kernel -> messaging-bus-boundary). ADR-0562 capability-first placement.",
+  "capability": "messaging",
+  "moves": [
+    {
+      "old_path": "libs/oya-bus-boundary-kernel",
+      "new_path": "messaging/core/bus-boundary",
+      "old_cargo_name": "oya-bus-boundary-kernel",
+      "new_cargo_name": "messaging-bus-boundary"
+    }
+  ],
+  "artifacts": []
+}
