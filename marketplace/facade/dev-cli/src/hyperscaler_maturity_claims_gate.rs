@@ -371,7 +371,7 @@ fn validate_oya_ci_required_workflow(workflow: &str) -> Result<(), String> {
         "persist-credentials: false",
         "fetch-depth: 0",
         "Install buck2",
-        "buck2 test //cloud/cloud-ci/...",
+        "buck2 test //ci/...",
         "gate-registration meta-test",
         "generated-output-diff-policy",
         "oya-ci-required: GREEN",
