@@ -1379,13 +1379,11 @@ pub fn evaluate_keyed_with_frozen_references(
         // Hand-curated ratchet/allowlist baselines (friction accounting, embedded-asset
         // hermeticity, tier-dependency acyclicity, port-placement, glossary warning allowlist) are
         // HUMAN-authored shrink-only references that MUST stay committed and MUST NOT be recomputed
-        // over the candidate tree — de-committing one erases a hand-shrunk burn-down or launders new
-        // debt. Mirrors the #828 frozen-reference guard: a `hand-curated-ratchet` artifact declared
-        // with a de-commit materialization mode is RED. Data-driven (the class constant plus the
-        // shared `DECOMMIT_MATERIALIZATION_MODES` list), zero hardcoded paths — the class is the
-        // durable identity a naive de-commit cannot silently shed.
+        // over the candidate tree — any other materialization mode erases a hand-shrunk burn-down or
+        // launders new debt. Data-driven (the class constant plus the committed-only mode), zero
+        // hardcoded paths — the class is the durable identity a naive de-commit cannot silently shed.
         if artifact.artifact_class == HAND_CURATED_RATCHET_CLASS
-            && is_decommit_materialization_mode(&artifact.materialization_mode)
+            && artifact.materialization_mode != "hand-curated-committed"
         {
             findings.insert(Finding::new(
                 "hand_curated_ratchet_artifact_must_stay_committed",
@@ -2136,6 +2134,29 @@ mod tests {
                     && finding.key == "known-debt-baseline"
             }),
             "de-committing a hand-curated baseline must RED; findings: {findings:#?}"
+        );
+        assert_eq!(evaluate(&manifest, &scm_facts).verdict, Verdict::Red);
+    }
+
+    #[test]
+    fn hand_curated_baseline_declared_non_committed_mode_is_red() {
+        // Not enough to forbid explicit de-commit modes: this class is committed-only, or a
+        // candidate-regenerated/CI-artifact row can still launder the hand-shrunk baseline.
+        let mut face = hand_curated(
+            "known-debt-baseline",
+            "ci/facade/example/known-debt-baseline.json",
+        );
+        face["materialization_mode"] = json!("merge-candidate-regenerated");
+        face["generator"] = json!({"command": "fake-generator"});
+        let manifest = manifest(vec![face]);
+        let scm_facts = scm(&["ci/facade/example/known-debt-baseline.json"]);
+        let findings = evaluate_keyed(&manifest, &scm_facts);
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "hand_curated_ratchet_artifact_must_stay_committed"
+                    && finding.key == "known-debt-baseline"
+            }),
+            "every non-committed hand-curated mode must RED; findings: {findings:#?}"
         );
         assert_eq!(evaluate(&manifest, &scm_facts).verdict, Verdict::Red);
     }
