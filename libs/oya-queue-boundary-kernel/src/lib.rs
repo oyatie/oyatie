@@ -3,7 +3,7 @@
 //! The owned WORK-QUEUE surface — first of the three single-concern
 //! messaging surfaces (ADR-0536 D-13 queue/stream/bus trichotomy;
 //! ADR-0132 no-grouping) composed over the ONE substrate port
-//! (`oya-messaging-substrate-kernel`). Services enqueue and work jobs
+//! (`messaging-substrate-kernel`). Services enqueue and work jobs
 //! through THIS boundary; they never speak a broker protocol.
 //!
 //! Queue semantics (precedent: AWS SQS; Meta FOQS):
@@ -27,7 +27,7 @@
 use std::fmt;
 use std::num::NonZeroU32;
 
-use oya_messaging_substrate_kernel::{
+use messaging_substrate_kernel::{
     AckToken, Delivery, LossClass, MessageConsumer, MessageEnvelope, MessageId, MessageProducer,
     MessagingAdmin, MessagingError, MessagingSubstrate, SubscriptionName, TopicName, TopicSpec,
 };
@@ -203,7 +203,7 @@ impl<'a, S: MessagingSubstrate> WorkQueue<'a, S> {
 mod tests {
     use std::collections::BTreeMap;
 
-    use oya_messaging_substrate_kernel::reference::InMemorySubstrate;
+    use messaging_substrate_kernel::reference::InMemorySubstrate;
 
     use super::*;
 
