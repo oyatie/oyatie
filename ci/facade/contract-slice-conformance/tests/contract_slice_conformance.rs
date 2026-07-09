@@ -218,3 +218,33 @@ fn cell_002_six_input_promotion_gate_is_enforced() {
         "a non-fail-closed promotion-gate input must be rejected: {violations:?}"
     );
 }
+
+/// Proves the rollback-audit fixture SHAPE is now mechanically enforced (the gap
+/// CodeRabbit flagged): dropping an audit-row field and flipping post_state both RED.
+#[test]
+fn cell_002_rollback_audit_fixture_shape_is_enforced() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let fixture = "specs/fixtures/cell-002-promotion-automation/rollback-audit-row.json";
+
+    let mut corpus = live_corpus(&root, &policy);
+    corpus.get_mut(fixture).unwrap()["audit_row"]
+        .as_object_mut()
+        .unwrap()
+        .remove("rollback_pointer");
+    assert!(
+        evaluate_configured(&policy, &corpus)
+            .violations
+            .contains("contract_slice_missing_required_field"),
+        "a missing audit-row field must be rejected"
+    );
+
+    let mut corpus = live_corpus(&root, &policy);
+    corpus.get_mut(fixture).unwrap()["audit_row"]["post_state"] = json!("Committed");
+    assert!(
+        evaluate_configured(&policy, &corpus)
+            .violations
+            .contains("contract_slice_enum_violation"),
+        "a fixture whose post_state is not RolledBack must be rejected"
+    );
+}
