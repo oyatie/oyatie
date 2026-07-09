@@ -9,13 +9,19 @@
     {
       "name": "ci-path-resolver-adapters",
       "version": "0.1.0",
-      "dependencies": ["ci-path-resolver-ports", "serde_json"]
+      "dependencies": [
+        "ci-path-resolver-ports",
+        "serde_json"
+      ]
     }
   ],
   "add_dependencies": [
     {
       "package": "ci-scm-facts-snapshot",
-      "add": ["ci-path-resolver-adapters", "ci-path-resolver-ports"]
+      "add": [
+        "ci-path-resolver-adapters",
+        "ci-path-resolver-ports"
+      ]
     }
   ]
 }
