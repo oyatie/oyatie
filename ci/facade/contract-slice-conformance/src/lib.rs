@@ -155,6 +155,33 @@ fn evaluate_slice(slice: &Value, corpus: &BTreeMap<String, Value>, findings: &mu
         return;
     };
 
+    // 0. Fail-closed policy shape: an unrecognized slice key is almost always a
+    //    typo that SILENTLY disarms a rule (`"required_field"` instead of
+    //    `"required_fields"`) — the exact false-green this gate exists to kill.
+    //    Surface it rather than ignore it. (Policy is self-serve data authored by
+    //    workers without Rust review, so the gate must fail closed on its own shape.)
+    const RECOGNIZED_SLICE_KEYS: &[&str] = &[
+        "slice_id",
+        "spec_path",
+        "required_fields",
+        "required_true_fields",
+        "enum_constraints",
+        "required_array_members",
+        "required_object_array_members",
+        "forbidden_markers",
+        "source_migration_slice",
+    ];
+    if let Some(object) = slice.as_object() {
+        for key in object.keys() {
+            if !RECOGNIZED_SLICE_KEYS.contains(&key.as_str()) {
+                findings.insert(Finding::new(
+                    "contract_slice_unknown_policy_key",
+                    format!("{slice_id}:{key}"),
+                ));
+            }
+        }
+    }
+
     // 1. Forbidden content markers (universal doctrine set + per-slice extras).
     for marker in FORBIDDEN_SPEC_MARKERS {
         if recursively_contains(spec, marker) {
@@ -225,6 +252,95 @@ fn evaluate_slice(slice: &Value, corpus: &BTreeMap<String, Value>, findings: &mu
                         "contract_slice_missing_array_member",
                         format!("{slice_id}:{field}:{member}"),
                     ));
+                }
+            }
+        }
+    }
+
+    // 4b. Required-true fields: a dotted field must be boolean `true`. Pins a
+    //     fail-closed claim-control (`no_runtime_mutation`) that required-fields
+    //     presence alone cannot (presence accepts `false`).
+    for field in string_array(slice, "required_true_fields") {
+        if get_dotted(spec, &field).and_then(Value::as_bool) != Some(true) {
+            findings.insert(Finding::new(
+                "contract_slice_field_not_true",
+                format!("{slice_id}:{field}"),
+            ));
+        }
+    }
+
+    // 4c. Required object-array members: an array-of-objects field must contain an
+    //     object per declared member (matched on `member_key`, default "id"), each
+    //     object carrying `member_required_fields` and satisfying
+    //     `member_enum_constraints`. Expresses "the six-input promotion gate must
+    //     enumerate exactly these inputs, each fail-closed" as policy DATA.
+    if let Some(requirements) = slice
+        .get("required_object_array_members")
+        .and_then(Value::as_array)
+    {
+        for requirement in requirements {
+            let field = requirement.get("field").and_then(Value::as_str).unwrap_or("");
+            let member_key = requirement
+                .get("member_key")
+                .and_then(Value::as_str)
+                .unwrap_or("id");
+            let Some(objects) = get_dotted(spec, field).and_then(Value::as_array) else {
+                findings.insert(Finding::new(
+                    "contract_slice_missing_object_array",
+                    format!("{slice_id}:{field}"),
+                ));
+                continue;
+            };
+            let present: BTreeSet<&str> = objects
+                .iter()
+                .filter_map(|object| object.get(member_key).and_then(Value::as_str))
+                .collect();
+            for member in requirement
+                .get("members")
+                .and_then(Value::as_array)
+                .into_iter()
+                .flatten()
+                .filter_map(Value::as_str)
+            {
+                if !present.contains(member) {
+                    findings.insert(Finding::new(
+                        "contract_slice_missing_object_array_member",
+                        format!("{slice_id}:{field}:{member}"),
+                    ));
+                }
+            }
+            let member_required: Vec<&str> = requirement
+                .get("member_required_fields")
+                .and_then(Value::as_array)
+                .map(|a| a.iter().filter_map(Value::as_str).collect())
+                .unwrap_or_default();
+            let member_enums = requirement
+                .get("member_enum_constraints")
+                .and_then(Value::as_array);
+            for object in objects {
+                let member_id = object.get(member_key).and_then(Value::as_str).unwrap_or("<unkeyed>");
+                for required_field in &member_required {
+                    if object.get(*required_field).is_none_or(Value::is_null) {
+                        findings.insert(Finding::new(
+                            "contract_slice_object_member_missing_field",
+                            format!("{slice_id}:{field}:{member_id}:{required_field}"),
+                        ));
+                    }
+                }
+                for constraint in member_enums.into_iter().flatten() {
+                    let enum_field = constraint.get("field").and_then(Value::as_str).unwrap_or("");
+                    let allowed: Vec<&str> = constraint
+                        .get("allowed")
+                        .and_then(Value::as_array)
+                        .map(|a| a.iter().filter_map(Value::as_str).collect())
+                        .unwrap_or_default();
+                    let actual = object.get(enum_field).and_then(Value::as_str);
+                    if !actual.is_some_and(|value| allowed.contains(&value)) {
+                        findings.insert(Finding::new(
+                            "contract_slice_object_member_enum_violation",
+                            format!("{slice_id}:{field}:{member_id}:{enum_field}"),
+                        ));
+                    }
                 }
             }
         }
@@ -444,5 +560,74 @@ mod tests {
         spec["required_contract_fields"] = json!(["field_a"]);
         let report = evaluate_configured(&policy_with(slice), &corpus_with(spec));
         assert!(report.violations.contains("contract_slice_missing_array_member"));
+    }
+
+    #[test]
+    fn unknown_slice_key_is_red_fail_closed_on_policy_typo() {
+        let slice = json!({
+            "slice_id": "typo",
+            "spec_path": "fixtures/exemplar-slice.json",
+            "required_field": ["slice_id"]  // typo: should be required_fields
+        });
+        let report = evaluate_configured(&policy_with(slice), &corpus_with(valid_slice_spec()));
+        assert!(report.violations.contains("contract_slice_unknown_policy_key"));
+    }
+
+    #[test]
+    fn required_true_field_rejects_false_and_absent() {
+        let slice = json!({
+            "slice_id": "boolt",
+            "spec_path": "fixtures/exemplar-slice.json",
+            "required_fields": [],
+            "required_true_fields": ["flag"]
+        });
+        let mut spec = valid_slice_spec();
+        spec["flag"] = json!(true);
+        assert_eq!(
+            evaluate_configured(&policy_with(slice.clone()), &corpus_with(spec)).verdict,
+            Verdict::Green
+        );
+        let mut spec = valid_slice_spec();
+        spec["flag"] = json!(false);
+        assert!(
+            evaluate_configured(&policy_with(slice), &corpus_with(spec))
+                .violations
+                .contains("contract_slice_field_not_true")
+        );
+    }
+
+    #[test]
+    fn object_array_members_enforce_ids_fields_and_per_member_enums() {
+        let slice = json!({
+            "slice_id": "oarr",
+            "spec_path": "fixtures/exemplar-slice.json",
+            "required_fields": [],
+            "required_object_array_members": [{
+                "field": "gate.inputs",
+                "member_key": "id",
+                "members": ["G1", "G2"],
+                "member_required_fields": ["id", "source_adr"],
+                "member_enum_constraints": [{ "field": "refusal", "allowed": ["fail_closed"] }]
+            }]
+        });
+        // green: both ids present, fields present, refusal pinned
+        let mut spec = valid_slice_spec();
+        spec["gate"] = json!({ "inputs": [
+            { "id": "G1", "source_adr": "ADR-1", "refusal": "fail_closed" },
+            { "id": "G2", "source_adr": "ADR-1", "refusal": "fail_closed" }
+        ]});
+        assert_eq!(
+            evaluate_configured(&policy_with(slice.clone()), &corpus_with(spec)).verdict,
+            Verdict::Green
+        );
+        // red: drop G2, drop a field, flip refusal to best-effort
+        let mut spec = valid_slice_spec();
+        spec["gate"] = json!({ "inputs": [
+            { "id": "G1", "refusal": "best_effort" }
+        ]});
+        let report = evaluate_configured(&policy_with(slice), &corpus_with(spec));
+        assert!(report.violations.contains("contract_slice_missing_object_array_member"));
+        assert!(report.violations.contains("contract_slice_object_member_missing_field"));
+        assert!(report.violations.contains("contract_slice_object_member_enum_violation"));
     }
 }
