@@ -268,9 +268,16 @@ fn self_loop_is_a_cycle() {
 fn empty_scan_below_floor_is_a_regression() {
     let mut pol = policy();
     pol["min_expected_crates"] = json!(100);
+    let subject = "cloud/s/crates/oya-s -> oya/p/crates/oya-p";
     let obs = corpus(&[], &[], &[]);
-    let report = evaluate(&pol, &baseline(&[]), &obs);
+    let report = evaluate(&pol, &baseline(&[("TDA-SUBSTRATE-UPWARD", subject)]), &obs);
     assert!(report.findings.iter().any(|f| f.code == "TDA-EMPTY-SCAN"));
+    assert!(
+        !report.findings.iter().any(|f| f.code == "TDA-STALE-BASELINE"),
+        "broken scans should report the scan root cause, not phantom stale rows: {:?}",
+        report.findings
+    );
+    assert_eq!(report.burned_down, 0, "broken scans must not report fake burn-down");
     assert_eq!(report.verdict, Verdict::Red);
 }
 
@@ -384,4 +391,65 @@ fn parse_baseline_round_trips() {
     assert!(b.keys.contains("TDA-CYCLE|a -> b,c"));
     assert!(b.keys.contains("TDA-SUBSTRATE-UPWARD|x -> y"));
     assert_eq!(b.keys.len(), 2);
+}
+
+#[test]
+fn stale_baseline_row_whose_crate_vanished_is_red() {
+    // B3 hardening: the baselined inverting edge's `from` crate is NO LONGER in the corpus
+    // (moved/renamed by an in-flight strangler). The row is a phantom a subset baseline can never RED
+    // on, so the liveness backstop must flag it TDA-STALE-BASELINE and fail the gate.
+    let subject = "cloud/gone/crates/oya-gone -> oya/p/crates/oya-p";
+    let obs = corpus(
+        &[("oya/p/crates/oya-p", "oya/p")], // cloud/gone/... is absent from the live corpus
+        &[("oya/p", "product", None)],
+        &[],
+    );
+    let report = evaluate(&policy(), &baseline(&[("TDA-SUBSTRATE-UPWARD", subject)]), &obs);
+    let f = report
+        .findings
+        .iter()
+        .find(|f| f.code == "TDA-STALE-BASELINE")
+        .expect("a stale-baseline finding");
+    assert_eq!(f.status, Status::Regression);
+    assert_eq!(f.subject, subject);
+    assert_eq!(report.verdict, Verdict::Red, "a phantom baseline row must fail the gate");
+}
+
+#[test]
+fn stale_baseline_detects_a_vanished_to_endpoint() {
+    // The `to` endpoint (not just `from`) is checked: if the depended-upon crate vanished, the edge
+    // can never exist, so the row is a phantom.
+    let subject = "cloud/s/crates/oya-s -> oya/gone/crates/oya-gone";
+    let obs = corpus(
+        &[("cloud/s/crates/oya-s", "cloud/s")], // oya/gone/... is absent
+        &[("cloud/s", "substrate", Some("S0"))],
+        &[],
+    );
+    let report = evaluate(&policy(), &baseline(&[("TDA-SUBSTRATE-UPWARD", subject)]), &obs);
+    assert!(report.findings.iter().any(|f| f.code == "TDA-STALE-BASELINE"));
+    assert_eq!(report.verdict, Verdict::Red);
+}
+
+#[test]
+fn burned_down_edge_with_live_endpoints_is_not_stale() {
+    // Both endpoint crates still exist; only the inverting EDGE was removed (the inversion was fixed).
+    // This is a legitimate burn-down, NOT a phantom — the liveness backstop must stay quiet and the
+    // gate stays GREEN (the existing subset regression check is unchanged).
+    let subject = "cloud/s/crates/oya-s -> oya/p/crates/oya-p";
+    let obs = corpus(
+        &[
+            ("cloud/s/crates/oya-s", "cloud/s"),
+            ("oya/p/crates/oya-p", "oya/p"),
+        ],
+        &[("cloud/s", "substrate", Some("S0")), ("oya/p", "product", None)],
+        &[], // edge removed, both crates remain
+    );
+    let report = evaluate(&policy(), &baseline(&[("TDA-SUBSTRATE-UPWARD", subject)]), &obs);
+    assert!(
+        !report.findings.iter().any(|f| f.code == "TDA-STALE-BASELINE"),
+        "both endpoints exist -> burn-down, not a phantom: {:?}",
+        report.findings
+    );
+    assert_eq!(report.verdict, Verdict::Green);
+    assert_eq!(report.burned_down, 1);
 }
