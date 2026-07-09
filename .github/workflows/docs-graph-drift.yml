@@ -1,12 +1,16 @@
 name: docs-graph-drift
 
-# Drift gate for the architecture dashboard (docs/architecture/product-graph.html).
+# Generator health check for the architecture dashboard (docs/architecture/product-graph.html).
 #
 # The dashboard is GENERATED from SSOT by an owned-Rust CI pipeline tool
 # (tools/oya-architecture-graph-generator-app) — NOT a developer-facing `oya`
-# subcommand. This job rebuilds the generator, regenerates the dashboard, and
-# byte-compares the result against the committed HTML. If the committed file is
-# stale, the job fails (red) and the author must run the generator and commit.
+# subcommand. As of ADR-0613 the dashboard AND its masterplan input are DE-COMMITTED
+# (materialization_mode: not-tracked-in-git); byte-parity against a committed HTML copy
+# is intentionally RETIRED. Dashboard freshness/determinism is now enforced by the
+# REQUIRED generated-artifact-freshness gate (regenerate-twice determinism canary over the
+# controller-materialized path). This job's remaining role is to build the generator and run
+# its owned golden/regeneration tests — materializing the de-committed masterplan input first,
+# since it is absent from a fresh checkout.
 #
 # Transitional runner model: GitHub Actions executes this feedback adapter today,
 # but the durable policy source is the owned Rust generator/gate and future cloud-ci
@@ -17,21 +21,19 @@ name: docs-graph-drift
 on:
   pull_request:
     paths:
+      # product-graph.html + masterplan.generated.json are de-committed (ADR-0613, untracked) and
+      # can no longer appear in a PR file list; trigger only on the generator + its tracked inputs.
       - ".github/workflows/docs-graph-drift.yml"
       - "tools/oya-architecture-graph-generator-app/**"
       - "docs/architecture/product-graph.template.html"
-      - "docs/architecture/product-graph.html"
       - "docs/machine-readable/architecture-graph.json"
-      - "docs/machine-readable/masterplan.generated.json"
   push:
     branches: [dev]
     paths:
       - ".github/workflows/docs-graph-drift.yml"
       - "tools/oya-architecture-graph-generator-app/**"
       - "docs/architecture/product-graph.template.html"
-      - "docs/architecture/product-graph.html"
       - "docs/machine-readable/architecture-graph.json"
-      - "docs/machine-readable/masterplan.generated.json"
 
 permissions:
   contents: read
@@ -63,26 +65,19 @@ jobs:
           key: docs-graph-drift-${{ runner.os }}-buck2-2026-06-01-4dd9ae54c87fdcf795101074f8788232af55523885135d5e3358c77365993555
           restore-keys: |
             docs-graph-drift-${{ runner.os }}-buck2-2026-06-01-
-      - name: Build + test the architecture-graph generator
+      - name: Materialize de-committed inputs, build + test the generator
         run: |
           set -euo pipefail
           infra/ci/install-buck2.sh
           export PATH="/tmp/oya-ci-buck2-2026-06-01:${PATH}"
           rustc --version
+          # masterplan.generated.json (ADR-0613 de-commit) is absent from a fresh checkout;
+          # materialize it (and the other on-demand faces) from SSOT before the generator and its
+          # golden/regeneration tests consume it. Dashboard freshness/determinism is enforced by the
+          # required generated-artifact-freshness gate (regenerate-twice determinism canary), not by a
+          # byte-parity-against-committed check here (retired with the de-commit).
+          buck2 run root//ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
           buck2 build root//tools/oya-architecture-graph-generator-app:oya-architecture-graph-generator
           buck2 test \
             root//tools/oya-architecture-graph-generator-app:oya-architecture-graph-generator-regeneration-test \
             root//tools/oya-architecture-graph-generator-app:oya-architecture-graph-generator-golden-test
-      - name: Regenerate the dashboard
-        run: |
-          set -euo pipefail
-          generator=$(buck2 build --show-output \
-            root//tools/oya-architecture-graph-generator-app:oya-architecture-graph-generator \
-            | awk '$1 == "root//tools/oya-architecture-graph-generator-app:oya-architecture-graph-generator" { print $2 }')
-          test -n "${generator}"
-          "${generator}" --write
-      - name: Fail on dashboard drift
-        run: |
-          set -euo pipefail
-          git diff --exit-code -- docs/architecture/product-graph.html \
-            || { echo "::error::docs/architecture/product-graph.html is stale; run the generator (--write) and commit."; exit 1; }
