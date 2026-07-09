@@ -1042,11 +1042,20 @@ fn emit_merge_base_baseline(
 
     // DETERMINISM CANARY (ADR-0614): a second independent regeneration over the SAME merge-base
     // source must project identically. A non-deterministic producer is a hard error — the
-    // regenerated frozen reference is the trust root, so it must be reproducible.
-    if let Some(regen_baseline_verify) = regen_baseline_verify {
-        let regen_face_verify = read_baseline_face(regen_baseline_verify)?;
-        assert_frozen_regeneration_deterministic(&regen_face, &regen_face_verify, &merge_base)?;
-    }
+    // regenerated frozen reference is the trust root, so it must be reproducible. The canary is
+    // MANDATORY in the produce-snapshot path: a single un-verified regeneration must NEVER become
+    // the committed-into-snapshot frozen reference, so a missing verify face fails closed rather
+    // than silently skipping the check (security review F3).
+    let Some(regen_baseline_verify) = regen_baseline_verify else {
+        return Err(
+            "--merge-base-baseline produce-snapshot requires --regen-baseline-verify (ADR-0614: \
+             the regenerated frozen reference is the trust root and MUST pass the determinism \
+             canary — a single un-verified regeneration cannot become the frozen snapshot)"
+                .to_owned(),
+        );
+    };
+    let regen_face_verify = read_baseline_face(regen_baseline_verify)?;
+    assert_frozen_regeneration_deterministic(&regen_face, &regen_face_verify, &merge_base)?;
 
     // PROVENANCE (ADR-0614): bind the regeneration to the immutable merge-base tree so the firewall
     // can audit which source the frozen reference was computed over, WITHOUT committing the face.
