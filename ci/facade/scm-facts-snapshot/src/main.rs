@@ -96,6 +96,23 @@ fn main() {
 /// Changing it is a code/invocation edit — the same review class as editing the workflow.
 const DEFAULT_FROZEN_BOOTSTRAP_REF: &str = "origin/dev";
 
+/// Select the path resolver for emitter write targets.
+///
+/// Candidate-only SCM facts emission is intentionally deterministic: it writes to the compiled
+/// current-canonical face paths and ignores any ambient, materialized move manifest. The only path
+/// that may consume the move-aware resolver is `--merge-base-baseline`, where the manifest is a
+/// materialized precondition and missing/unreadable must fail closed.
+fn output_path_resolver(
+    repo_root: &Path,
+    merge_base_baseline: bool,
+) -> Result<ManifestPathResolver, String> {
+    if merge_base_baseline {
+        ManifestPathResolver::load(repo_root)
+    } else {
+        Ok(ManifestPathResolver::empty())
+    }
+}
+
 fn run() -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let mut repo_root: Option<PathBuf> = None;
@@ -138,17 +155,7 @@ fn run() -> Result<(), String> {
         Some(root) => root,
         None => discover_repo_root()?,
     };
-    // The move-aware resolver. Its `candidate(...)` lookups (the write targets below) are
-    // identity-safe; only the `--merge-base-baseline` path consumes the move-aware RELABEL. So
-    // fail-CLOSED on an ABSENT move-manifest ONLY when the relabel will actually be used
-    // (ADR-0614): a non-relabel run — e.g. the freshness gate's scm-facts regen — legitimately runs
-    // WITHOUT a materialized manifest and must not be broken by it. The relabel path
-    // (`emit_merge_base_baseline` -> `load_move_manifest`) fail-closes on absence independently.
-    let resolver = if merge_base_baseline {
-        ManifestPathResolver::load(&repo_root)?
-    } else {
-        ManifestPathResolver::load(&repo_root).unwrap_or_else(|_| ManifestPathResolver::empty())
-    };
+    let resolver = output_path_resolver(&repo_root, merge_base_baseline)?;
     let out = out.unwrap_or_else(|| repo_root.join(resolver.candidate(PathId::ScmFactsFace)));
     let volatile_out =
         volatile_out.unwrap_or_else(|| repo_root.join(resolver.candidate(PathId::VolatileFacts)));
@@ -2582,6 +2589,74 @@ mod tests {
             "EFFICACY: a content-superset move must stay RED (the relabel manufactures no \
              false-GREEN): {report:?}"
         );
+    }
+
+    fn temp_repo_root(test_name: &str) -> std::path::PathBuf {
+        let suffix = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let root = std::env::temp_dir().join(format!(
+            "oya-scm-facts-snapshot-{test_name}-{}-{suffix}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&root).unwrap();
+        root
+    }
+
+    fn write_move_manifest(root: &std::path::Path, old_path: &str, new_path: &str) {
+        let manifest_path = root.join(MOVE_MANIFEST_PATH);
+        std::fs::create_dir_all(manifest_path.parent().unwrap()).unwrap();
+        let manifest = json!({
+            "schema": MOVE_MANIFEST_SCHEMA,
+            "files": [{"old_path": old_path, "new_path": new_path}],
+            "crate_dirs": [],
+            "crate_idents": []
+        });
+        std::fs::write(&manifest_path, serde_json::to_vec(&manifest).unwrap()).unwrap();
+    }
+
+    #[test]
+    fn candidate_only_output_resolver_ignores_ambient_move_manifest() {
+        let root = temp_repo_root("candidate-only-output-resolver-ignores-ambient-manifest");
+        let canonical = ci_path_resolver_ports::canonical_current(PathId::ScmFactsFace);
+        let moved = "relocated/scm-facts.generated.json";
+        write_move_manifest(&root, canonical, moved);
+
+        let candidate_only = output_path_resolver(&root, false).unwrap();
+        assert_eq!(
+            candidate_only.candidate(PathId::ScmFactsFace),
+            canonical,
+            "non-baseline SCM facts emission must not depend on an ambient move manifest"
+        );
+
+        let merge_base = output_path_resolver(&root, true).unwrap();
+        assert_eq!(
+            merge_base.candidate(PathId::ScmFactsFace),
+            moved,
+            "baseline mode still consumes the materialized move manifest"
+        );
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn merge_base_output_resolver_fails_closed_when_manifest_absent() {
+        let root = temp_repo_root("merge-base-output-resolver-fails-closed-absent-manifest");
+        let candidate_only = output_path_resolver(&root, false).unwrap();
+        assert_eq!(
+            candidate_only.candidate(PathId::ScmFactsFace),
+            ci_path_resolver_ports::canonical_current(PathId::ScmFactsFace),
+            "candidate-only emission can run before the move manifest is materialized"
+        );
+
+        let Err(err) = output_path_resolver(&root, true) else {
+            panic!("baseline relabel path must fail closed on missing manifest");
+        };
+        assert!(
+            err.contains("move-manifest absent/unreadable"),
+            "baseline relabel path must fail closed on missing manifest; got {err}"
+        );
+        let _ = std::fs::remove_dir_all(&root);
     }
 
     /// MoveManifest::from_manifest_value fail-closes a foreign schema and a malformed row to EMPTY.

@@ -121,7 +121,7 @@ impl MoveManifest {
     /// triggers in practice — it converts a latent silent hazard into a loud precondition assertion.
     pub fn load(repo_root: &Path, manifest_rel_path: &str) -> Result<Self, String> {
         let path = repo_root.join(manifest_rel_path);
-        let text = std::fs::read_to_string(&path).map_err(|e| {
+        let bytes = std::fs::read(&path).map_err(|e| {
             format!(
                 "move-manifest absent/unreadable at {}: {e} — the materializer \
                  (materialize_move_manifest, step 1 of the generated-faces materializer) must run \
@@ -132,7 +132,10 @@ impl MoveManifest {
         // PRESENT but unparseable => Ok(empty) identity, UNCHANGED (anti-laundering): a forged/foreign
         // body is never trusted; it collapses to identity, never a hard error (that would let a forged
         // manifest hard-fail CI on a different path than the registry-drift byte-binding catches it).
-        Ok(match serde_json::from_str::<Value>(&text) {
+        let Ok(text) = std::str::from_utf8(&bytes) else {
+            return Ok(Self::empty());
+        };
+        Ok(match serde_json::from_str::<Value>(text) {
             Ok(value) => Self::from_manifest_value(&value),
             Err(_) => Self::empty(),
         })
@@ -755,6 +758,16 @@ mod tests {
         assert!(
             garbage.is_empty(),
             "unparseable manifest must collapse to identity"
+        );
+
+        // (c) non-UTF-8 body — present file, not decodable JSON text.
+        let path = root.join(MOVE_MANIFEST_PATH);
+        std::fs::write(&path, [0xff, 0xfe, b'{']).unwrap();
+        let non_utf8 = MoveManifest::load(&root, MOVE_MANIFEST_PATH)
+            .expect("non-UTF-8 present body must stay Ok (anti-laundering), never Err");
+        assert!(
+            non_utf8.is_empty(),
+            "non-UTF-8 manifest must collapse to identity"
         );
 
         let _ = std::fs::remove_dir_all(&root);
