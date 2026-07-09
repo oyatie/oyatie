@@ -32,7 +32,7 @@ fn repo_root() -> PathBuf {
 
 fn live_policy() -> Value {
     let path = repo_root().join(
-        "cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app/friction-accounting-policy.json",
+        "ci/facade/action-item-accounting/friction-accounting-policy.json",
     );
     let text =
         std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
