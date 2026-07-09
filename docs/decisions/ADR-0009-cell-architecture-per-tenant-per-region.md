@@ -89,6 +89,13 @@ Evidence emits to the trust portal per ADR-0003.
 - Applies to: every tenant data plane, every Foundry agent invocation, every cross-microservice call carrying tenant scope.
 - Does not apply to: control-plane management (region-global by design per ADR-0004); analytics-plane projections (region-global with per-cell-tagged rows); public-corpus search ingestion (its own `Public-corpus` tier).
 
+### CELL-002 spec-only validation registration
+
+CELL-002 registers a spec-only service-plan and fixture contract for the six-input cell-promotion gate, the ADR-0351 cell-lifecycle/cell-rebalancer split, sharding-automation manifest checks, and the rollback audit-row shape. These paths are accounting/validation surfaces only and do not authorize runtime cell routing, tenant migration, autosharding, auto-rebalance, audit-chain writes, provider/Kubernetes calls, or live evidence collection. Validation is owned by the cloud-ci Rust gate `//ci/facade/contract-slice-conformance`:
+
+- `specs/cell-002-promotion-automation-contract.json`
+- `specs/fixtures/cell-002-promotion-automation/rollback-audit-row.json`
+
 ### CELL-001R spec-only validation registration
 
 CELL-001R registers a spec-only manifest contract and cloud-ci validation surface for this ADR's cell tier and quarterly evidence concepts. These paths are accounting/validation surfaces only and do not authorize runtime cell routing, provider APIs, Kubernetes/Argo calls, tenant migration, autosharding, auto-rebalance, failover, or live evidence collection:
