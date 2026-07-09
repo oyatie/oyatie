@@ -223,6 +223,10 @@ mod authz {
             principal: &VerifiedPrincipal,
             resource: &TenantRbacMutationResource,
         ) -> Result<(), TenantRbacMutationAuthorizationError> {
+            if principal.tenant_id() != resource.tenant_id {
+                return Err(TenantRbacMutationAuthorizationError::Refused);
+            }
+
             let action = resource.action.surface();
             let principal_ref = EntityRef {
                 entity_type: "OyaPlatform::Principal".to_owned(),
