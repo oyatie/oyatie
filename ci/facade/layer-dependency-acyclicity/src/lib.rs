@@ -869,7 +869,8 @@ pub fn evaluate(policy: &Value, baseline: &Value, observed: &Value) -> Report {
         .unwrap_or(crates.len() as u64);
 
     // False-green guard: a broken scan (wrong CWD, empty governed roots) must fail loudly.
-    if crate_count < parsed.min_expected_crates {
+    let scan_is_broken = crate_count < parsed.min_expected_crates;
+    if scan_is_broken {
         findings.push(Finding::new(
             "TDA-EMPTY-SCAN",
             POLICY_KEY,
@@ -945,10 +946,13 @@ pub fn evaluate(policy: &Value, baseline: &Value, observed: &Value) -> Report {
     // subject names a crate that no longer exists (an in-flight strangler MOVE leaves the OLD-path
     // edge as a phantom) silently diverges the baseline from reality — surface it as a blocking
     // regression whose remedy is re-emitting the baseline. A row whose endpoints still exist but whose
-    // EDGE was removed is a legitimate burn-down (untouched here).
-    detect_stale_baseline(&baseline, &crate_service, &mut findings);
+    // EDGE was removed is a legitimate burn-down (untouched here). Do not run this on a known-broken
+    // scan; TDA-EMPTY-SCAN is already the actionable root-cause finding.
+    if !scan_is_broken {
+        detect_stale_baseline(&baseline, &crate_service, &mut findings);
+    }
 
-    let burned_down = count_burned_down(&baseline, &findings);
+    let burned_down = if scan_is_broken { 0 } else { count_burned_down(&baseline, &findings) };
     let mut report = finalize(findings, crate_count as usize, edge_count, &parsed.enforcement);
     report.burned_down = burned_down;
     report
