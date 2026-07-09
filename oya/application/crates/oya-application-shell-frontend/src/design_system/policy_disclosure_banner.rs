@@ -96,9 +96,7 @@ impl PolicyDisclosure {
         match self.state {
             BannerState::Informational => "Informational policy disclosure",
             BannerState::Blocking => "Blocking policy disclosure; the action cannot proceed",
-            BannerState::RequiresSecondApprover => {
-                "Policy disclosure requiring a second approver"
-            }
+            BannerState::RequiresSecondApprover => "Policy disclosure requiring a second approver",
             BannerState::ExpiredPolicy => "Policy basis expired; re-evaluation required",
             BannerState::OfflineUnavailable => "Policy state unavailable offline; failing closed",
         }
@@ -175,14 +173,15 @@ mod tests {
     #[test]
     fn legal_hold_blocks_delete_while_unresolved() {
         // Spec test ref: test_legal_hold_blocks_delete.
-        assert!(!disclosure(BannerState::Blocking, ContextKind::Work).destructive_actions_enabled());
+        assert!(
+            !disclosure(BannerState::Blocking, ContextKind::Work).destructive_actions_enabled()
+        );
         assert!(
             !disclosure(BannerState::RequiresSecondApprover, ContextKind::Work)
                 .destructive_actions_enabled()
         );
         assert!(
-            disclosure(BannerState::Informational, ContextKind::Work)
-                .destructive_actions_enabled()
+            disclosure(BannerState::Informational, ContextKind::Work).destructive_actions_enabled()
         );
     }
 
