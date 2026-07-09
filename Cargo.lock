@@ -6088,6 +6088,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cargo-lock-transform"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "toml_edit",
+]
+
+[[package]]
 name = "oya-check-a11y-discipline"
 version = "0.1.0"
 
@@ -9192,6 +9200,7 @@ dependencies = [
 name = "oya-reorg-codemod-app"
 version = "0.1.0"
 dependencies = [
+ "oya-cargo-lock-transform",
  "oya-workspace-members-kernel",
  "serde_json",
  "toml_edit",
@@ -9734,6 +9743,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "oya-cargo-lock-transform",
  "oya-workspace-members-kernel",
  "serde_json",
  "tempfile",
