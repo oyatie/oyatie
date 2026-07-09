@@ -147,6 +147,8 @@ It directly amends ADR-0241 (DR business continuity portfolio) so that the prior
 
 Enforcement transitions from `advisory-until-manifest-dr-block-lands` to `BLOCKER` per the lane sequence in §E below: at landing of the Wave 15-DR-Matrix sub-wave (which carries the per-µservice manifest declaration into the corpus), the `oya-check-dr-manifest-block` and `oya-check-dr-pack-floor-satisfaction` lanes promote to BLOCKER per the §G sunset schedule.
 
+DR-001 first-slice review-visible artifacts are `scripts/tests/OWNERS`, `scripts/tests/dr_001_rto_rpo_matrix_slice_check.py`, and `specs/fixtures/dr-rto-rpo-matrix/dr-001-dashboard-manifest.fixture.json`. They are contract/fixture/local-bridge evidence only: they may demonstrate the manifest `dr` block, compliance-pack floor table, effective RTO/RPO resolution, failover-runbook pointer, drill-evidence freshness, and dashboard row shape, but they do not claim runtime DR execution, pack-activation runtime enforcement, auditor acceptance, tenant workload readiness, or production readiness. The successor enforcement path remains the native Rust/Buck2 cloud-ci DR gate family listed in `enforced_by`.
+
 This ADR does not delete the four-tier T1..T4 shorthand used in ADR-0241 / `/specs/dr-business-continuity.json`. The shorthand is preserved as the per-µservice ergonomic tier-name selector; the numeric values inside the manifest `dr` block remain the source of truth. The shorthand and the numeric block are reconciled at admission per §D-8.
 
 This ADR does not change the cellular tier classification from ADR-0248. The cellular tier governs blast-radius scope per cell; the DR matrix governs RTO/RPO targets per µservice and per pack. The two axes co-vary but are independent decision surfaces.

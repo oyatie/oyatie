@@ -109,6 +109,12 @@
       "status": "temporary_legacy_bridge"
     },
     {
+      "path": "scripts/tests/dr_001_rto_rpo_matrix_slice_check.py",
+      "reason": "DR-001 / ADR-0343 first-slice contract validator retained as a temporary local/provenance bridge for the manifest dr block, compliance-pack floors, effective RTO/RPO resolution, runbook pointer, drill-evidence freshness, and dashboard fixture until the DR checks land as native Rust/Buck2 cloud-ci gates.",
+      "replacement": "Replace with native Rust/Buck2 cloud-ci DR gates for manifest dr block validation, pack-floor satisfaction, runbook presence, drill-evidence freshness, and dashboard manifest coverage; delete this bridge when those gates are authoritative.",
+      "status": "temporary_legacy_bridge"
+    },
+    {
       "path": "tools/anchor-sweep/inject_anchors.py",
       "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
       "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
