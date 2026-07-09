@@ -261,7 +261,7 @@ mod authz {
             };
             authz_request
                 .validate()
-                .map_err(|_| TenantRbacMutationAuthorizationError::Refused)?;
+                .map_err(|error| refuse_with_authz_diagnostic("request_validation", error))?;
 
             let entities = EntitySlice {
                 entities: vec![
@@ -303,16 +303,16 @@ mod authz {
             };
             entities
                 .validate()
-                .map_err(|_| TenantRbacMutationAuthorizationError::Refused)?;
+                .map_err(|error| refuse_with_authz_diagnostic("entity_validation", error))?;
 
             let outcome = self
                 .pdp
                 .authorize(&authz_request, &entities)
-                .map_err(|_| TenantRbacMutationAuthorizationError::Refused)?;
+                .map_err(|error| refuse_with_authz_diagnostic("pdp_authorize", error))?;
             outcome
                 .response
                 .validate()
-                .map_err(|_| TenantRbacMutationAuthorizationError::Refused)?;
+                .map_err(|error| refuse_with_authz_diagnostic("response_validation", error))?;
             if outcome.response.decision == Decision::Allow {
                 Ok(())
             } else {
@@ -326,6 +326,15 @@ mod authz {
             entity_type: "OyaPlatform::Tenant".to_owned(),
             entity_id: tenant_id.to_owned(),
         }
+    }
+
+    #[cold]
+    fn refuse_with_authz_diagnostic(
+        stage: &str,
+        error: impl std::fmt::Debug,
+    ) -> TenantRbacMutationAuthorizationError {
+        eprintln!("tenant-rbac authorization refused at {stage}: {error:?}");
+        TenantRbacMutationAuthorizationError::Refused
     }
 
     /// The authz provider the boundary depends on: a principal verifier PORT
