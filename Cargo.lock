@@ -6061,6 +6061,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-bot-autofix-app"
+version = "0.1.0"
+dependencies = [
+ "oya-ci-gate-contract",
+]
+
+[[package]]
 name = "oya-buck-syntax-kernel"
 version = "0.1.0"
 
