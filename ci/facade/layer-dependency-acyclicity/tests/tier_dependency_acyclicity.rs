@@ -216,6 +216,10 @@ fn stale_baseline_phantom_row_fails_closed() {
         .find(|f| f.code == "TDA-STALE-BASELINE")
         .expect("a stale-baseline finding");
     assert_eq!(f.status, Status::Regression);
+    assert_eq!(
+        report.burned_down, 0,
+        "a phantom baseline row is stale debt, not burn-down progress"
+    );
 }
 
 #[test]
