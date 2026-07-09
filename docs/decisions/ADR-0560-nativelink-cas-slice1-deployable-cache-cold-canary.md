@@ -59,10 +59,16 @@ release, 2026-06-07) as the cache-only tier of the founder-decided 2026-05-30 th
 split (`docs/ideas/nativelink-remote-cache-first.md`): CAS + Action Cache, no scheduler, no
 workers. Precedent accuracy, per the hyperscaler lens: NativeLink is **Rust-native**
 (rust-purity aligned), speaks the **Bazel Remote-Execution gRPC CAS/AC API** (the wire
-protocol Bazel/Buck2/Pants/Reclient already consume), Apache-2.0, self-hostable; its own
-production guidance runs CAS and scheduler as separate processes, the same decomposition
-Buildbarn ships (bb-storage / bb-scheduler / bb-worker). It runs as a **container, not a
-workspace crate** — zero new third-party Rust dependencies.
+protocol Bazel/Buck2/Pants/Reclient already consume), **FSL-1.1-Apache-2.0** (FSL 1.1,
+converts to Apache-2.0 ~2028-06-07; deployed as a container, not a linked Rust
+dependency), self-hostable; its own production guidance runs CAS and scheduler as
+separate processes, the same decomposition Buildbarn ships (bb-storage / bb-scheduler /
+bb-worker). It runs as a **container, not a workspace crate** — zero new third-party
+Rust dependencies.
+
+License posture note: FSL-1.1-Apache-2.0 sits in ADR-0013's requires-review tier
+(AWS-FSL / Sentry-FSL family); this deployment is a conscious, reviewed exception, not
+an Apache-2.0 dependency.
 
 Storage: fast tier = bounded node-local filesystem LRU on `emptyDir` (cache-of-cache, safe
 to lose); slow tier = **SeaweedFS S3** at the staged `oya-storage` substrate

@@ -356,6 +356,11 @@ exclude = [
   # root + per-arch userspace sub-workspaces). It must stay out of the root workspace
   # even though cloud/*/crates/oya-* would otherwise sweep its crates in.
   "cloud/cloud-kernel",
+  # kernel/ is the sanctioned top-level nested Cargo workspace (ADR-0512 carve-out; the ONLY
+  # whitelisted nested [workspace], placement per specs/capability-registry.json / ADR-0562):
+  # the rung-0 kuberos kernel + its dev-only QEMU real-boot harness resolve independently of the
+  # std-targeted root lockfile. It must stay out of the root workspace (same reason as cloud-kernel).
+  "kernel",
   # Buck2-only gate: has BUCK + src but no Cargo.toml by design, so the `ci/*/*` member
   # glob would otherwise make cargo error trying to load it as a member (ADR-0562 KEYSTONE
   # move: relocated from cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app).
