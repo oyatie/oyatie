@@ -569,6 +569,26 @@ fn diff_candidate_paths<'a>(status: &str, paths: &'a [&'a str]) -> Result<Vec<&'
     }
 }
 
+/// A rename/copy diff row is a SANCTIONED RELOCATION when its destination path is a
+/// control-plane-declared generated artifact. A capability move (ADR-0562) relocates such an
+/// artifact — e.g. the firewall's frozen `gate-baseline.generated.json`, which cannot be
+/// de-committed without breaking the merge-base ratchet's `git show <merge_base>:<path>` read
+/// (the #828 deadlock the DECOMMIT_MATERIALIZATION_MODES doc names). The relocation is NOT
+/// contributor-authored bytes: adding the destination to the control-plane manifest is a reviewed
+/// DATA act, and the relocated content is independently bound by the registry-drift / freshness
+/// gates (committed==regenerated over the declared set), so a laundered relocation fails THOSE
+/// gates, not this one. Only renames/copies are exempt; a plain add/modify of a declared artifact
+/// remains a violation.
+fn is_sanctioned_relocation(
+    status: &str,
+    candidate_paths: &[&str],
+    declared_artifact_paths: &BTreeSet<String>,
+) -> bool {
+    matches!(status.chars().next(), Some('R') | Some('C'))
+        && candidate_paths.len() == 2
+        && declared_artifact_paths.contains(candidate_paths[1])
+}
+
 /// Productized bridge predicate for presubmit diff surfaces. The caller supplies a
 /// `git diff --name-status`-compatible stream, but generated-path classification comes from the
 /// manifest's `generated_path_rules`, not from `.gitignore` or runner-local ignore heuristics.
@@ -599,11 +619,23 @@ pub fn generated_output_diff_policy_violations(
         let status = fields.next().unwrap_or_default().to_owned();
         let paths = fields.collect::<Vec<_>>();
         match diff_candidate_paths(&status, &paths) {
-            Ok(paths) => diff_rows.extend(
-                paths
-                    .into_iter()
-                    .map(|path| (status.clone(), path.to_owned())),
-            ),
+            Ok(candidate_paths) => {
+                // Sanctioned relocation (ADR-0562 capability move): a rename whose DESTINATION is a
+                // control-plane-declared generated artifact relocates an already-accepted artifact
+                // that MUST stay committed — e.g. the firewall's frozen `gate-baseline.generated.json`,
+                // which the ratchet reads from the merge-base git blob, so de-committing it is the
+                // #828 deadlock defect. This is a relocation, not contributor-authored bytes: the
+                // relocated content is independently bound by the registry-drift / freshness gates
+                // (committed==regenerated), so a laundered relocation REDs there, not here.
+                if is_sanctioned_relocation(&status, &candidate_paths, &declared_artifact_paths) {
+                    continue;
+                }
+                diff_rows.extend(
+                    candidate_paths
+                        .into_iter()
+                        .map(|path| (status.clone(), path.to_owned())),
+                );
+            }
             Err(()) => {
                 findings.insert(Finding::new(
                     "generated_artifact_diff_name_status_malformed",
@@ -1689,6 +1721,55 @@ mod tests {
         assert!(
             violations.is_empty(),
             "malformed diff input should fail before reporting partial policy violations"
+        );
+    }
+
+    #[test]
+    fn diff_policy_exempts_a_sanctioned_relocation_of_a_declared_artifact() {
+        // ADR-0562 capability move: a frozen-reference declared artifact (e.g. the firewall's
+        // gate-baseline.generated.json) relocates. A rename whose DESTINATION is control-plane
+        // declared is a sanctioned relocation, not contributor-authored bytes; content integrity
+        // is bound by the separate registry-drift/freshness gates.
+        let manifest = manifest(vec![artifact("frozen-ref", "ci/facade/frozen.generated.json")]);
+        let diff = "R098\tcloud/old/frozen.generated.json\tci/facade/frozen.generated.json\n";
+        let (findings, violations) = generated_output_diff_policy_violations(&manifest, diff);
+        assert!(findings.is_empty(), "no findings expected: {findings:#?}");
+        assert!(
+            violations.is_empty(),
+            "a rename to a declared artifact is a sanctioned relocation, not a violation: {violations:#?}"
+        );
+    }
+
+    #[test]
+    fn diff_policy_still_rejects_a_plain_modify_of_a_declared_artifact() {
+        // The relocation exemption is renames/copies ONLY — a plain modify of a declared generated
+        // artifact remains contributor-authored bytes and a violation.
+        let manifest = manifest(vec![artifact("frozen-ref", "ci/facade/frozen.generated.json")]);
+        let diff = "M\tci/facade/frozen.generated.json\n";
+        let (findings, violations) = generated_output_diff_policy_violations(&manifest, diff);
+        assert!(findings.is_empty());
+        assert!(
+            violations
+                .iter()
+                .any(|violation| violation.path == "ci/facade/frozen.generated.json"),
+            "a modify of a declared artifact must remain a violation: {violations:#?}"
+        );
+    }
+
+    #[test]
+    fn diff_policy_relocation_exemption_is_bounded_to_declared_destinations() {
+        // A rename whose destination is a generated PATH but NOT a control-plane-declared artifact
+        // is not a sanctioned relocation — it must remain a violation (bounds the exemption so a
+        // rename cannot introduce an undeclared generated output).
+        let manifest = manifest(vec![artifact("frozen-ref", "ci/facade/frozen.generated.json")]);
+        let diff = "R098\tci/facade/frozen.generated.json\tci/facade/undeclared.generated.json\n";
+        let (findings, violations) = generated_output_diff_policy_violations(&manifest, diff);
+        assert!(findings.is_empty());
+        assert!(
+            violations
+                .iter()
+                .any(|violation| violation.path == "ci/facade/undeclared.generated.json"),
+            "a rename to an UNDECLARED generated path must remain a violation: {violations:#?}"
         );
     }
 
