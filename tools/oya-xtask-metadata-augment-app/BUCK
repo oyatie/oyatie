@@ -5,6 +5,7 @@ rust_binary(
     env = {"CARGO_PKG_VERSION": "0.1.0", "CARGO_PKG_NAME": "oya-xtask-metadata-augment-app"},
     visibility = ["PUBLIC"],
     deps = [
+        "//libs/oya-cargo-lock-transform-kernel:oya-cargo-lock-transform-kernel",
         "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
         "third-party//:anyhow",
         "third-party//:clap",
@@ -21,6 +22,7 @@ rust_test(
     env = {"CARGO_PKG_VERSION": "0.1.0", "CARGO_PKG_NAME": "oya-xtask-metadata-augment-app"},
     visibility = ["PUBLIC"],
     deps = [
+        "//libs/oya-cargo-lock-transform-kernel:oya-cargo-lock-transform-kernel",
         "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
         "third-party//:anyhow",
         "third-party//:clap",

@@ -6,9 +6,9 @@
 use std::num::NonZeroU32;
 use std::time::Duration;
 
-use oya_messaging_substrate_kernel::conformance::{self, SubstrateFixture};
-use oya_messaging_substrate_kernel::reference::InMemorySubstrate;
-use oya_messaging_substrate_kernel::{
+use messaging_substrate_kernel::conformance::{self, SubstrateFixture};
+use messaging_substrate_kernel::reference::InMemorySubstrate;
+use messaging_substrate_kernel::{
     AckToken, Delivery, LossClass, MessageConsumer, MessageEnvelope, MessageId, MessageProducer,
     MessagingAdmin, MessagingError, StreamPosition, SubscriptionName, TopicName, TopicSpec,
 };

@@ -25,7 +25,7 @@ pub const GATE_ID: &str = "cloud-ci-generated-artifact-control-plane";
 const GENERATED_OUTPUT_CONFLICT_POLICY: &str =
     "reject-generated-output-conflict-hunks-regenerate-from-source-tree";
 
-const ARTIFACT_CLASSES: [&str; 7] = [
+const ARTIFACT_CLASSES: [&str; 8] = [
     "authoritative-source",
     "sharded-projection",
     "main-materialized-aggregate",
@@ -33,9 +33,23 @@ const ARTIFACT_CLASSES: [&str; 7] = [
     "ephemeral-build-output",
     "review-artifact",
     "scm-facts-boundary-snapshot",
+    // Human-authored ratchet / allowlist baseline: a reviewed, hand-curated shrink-only reference
+    // (e.g. a frozen known-debt or known-warning set) with NO machine producer authority. It MUST
+    // stay committed and MUST NOT be recomputed over the candidate tree — a candidate recompute
+    // would erase a hand-shrunk burn-down or launder new debt. Distinct from the frozen-reference
+    // firewall baseline (which the merge-base ratchet materializes via `git show`): this class is
+    // the manifest-declared durable identity for hand-curated baselines, and it is the anchor for
+    // the `hand_curated_ratchet_artifact_must_stay_committed` guard below.
+    HAND_CURATED_RATCHET_CLASS,
 ];
 
-const MATERIALIZATION_MODES: [&str; 6] = [
+/// Artifact class marking a human-authored ratchet / allowlist baseline. This is the durable
+/// identity a naive de-commit cannot silently shed: flipping such a row to a de-commit
+/// `materialization_mode` while the class stays hand-curated fires
+/// `hand_curated_ratchet_artifact_must_stay_committed` in [`evaluate_keyed_with_frozen_references`].
+const HAND_CURATED_RATCHET_CLASS: &str = "hand-curated-ratchet";
+
+const MATERIALIZATION_MODES: [&str; 7] = [
     "source-authored",
     "branch-committed-regenerated-until-controller-materialization",
     "merge-candidate-regenerated",
@@ -46,6 +60,10 @@ const MATERIALIZATION_MODES: [&str; 6] = [
     // is never a contributor merge surface. A declared path in this mode is EXEMPT from the
     // declared-path-must-be-tracked predicate below.
     "not-tracked-in-git",
+    // Hand-curated-committed class: a human-authored ratchet/allowlist baseline that stays a
+    // committed git blob and is NEVER recomputed over the candidate tree. The correct mode for a
+    // `hand-curated-ratchet` artifact; the de-commit modes are forbidden for that class.
+    "hand-curated-committed",
 ];
 
 /// Materialization mode marking a declared generated artifact as intentionally de-committed
@@ -529,6 +547,24 @@ fn tracked_generated_artifact_paths(
         }
     }
     parsed
+}
+
+/// The FULL set of tracked paths from the SCM-facts snapshot (unfiltered by generated_path_rules).
+/// Used to verify a hand-curated ratchet baseline — a committed but NOT generated-output artifact —
+/// stays tracked in git. Structural findings for a missing/malformed `tracked_paths` are emitted by
+/// [`tracked_generated_artifact_paths`], which is always evaluated first, so this reader is pure.
+fn scm_tracked_paths(scm_facts: &Value) -> BTreeSet<String> {
+    scm_facts
+        .get("tracked_paths")
+        .and_then(Value::as_array)
+        .map(|paths| {
+            paths
+                .iter()
+                .filter_map(|path| path.as_str().filter(|path| !path.trim().is_empty()))
+                .map(str::to_owned)
+                .collect()
+        })
+        .unwrap_or_default()
 }
 
 fn diff_candidate_paths<'a>(status: &str, paths: &'a [&'a str]) -> Result<Vec<&'a str>, ()> {
@@ -1075,7 +1111,12 @@ fn parse_declared_artifacts(
                 artifact_id,
             ));
         }
-        validate_generator(artifact, artifact_id, artifact_class, findings);
+        // A hand-curated ratchet baseline is HUMAN-authored, not machine-generated: there is no
+        // producer to declare, so a `generator` block is OPTIONAL for this class (and still fully
+        // validated when present). Every other class requires one.
+        if artifact_class != HAND_CURATED_RATCHET_CLASS || artifact.get("generator").is_some() {
+            validate_generator(artifact, artifact_id, artifact_class, findings);
+        }
         required_string_array(
             artifact,
             "source_inputs",
@@ -1295,6 +1336,16 @@ pub fn evaluate_keyed_with_frozen_references(
         .filter(|artifact| artifact.materialization_mode == NOT_TRACKED_IN_GIT_MODE)
         .map(|artifact| artifact.path.clone())
         .collect();
+    // Hand-curated ratchet baselines are committed source-adjacent files, NOT generated outputs:
+    // they legitimately do NOT match any generated_path_rule, so they are exempt from the "declared
+    // path must be a tracked GENERATED output" difference below. They MUST still be tracked in git;
+    // that is checked against the FULL tracked-paths set.
+    let hand_curated_paths: BTreeSet<String> = declared
+        .iter()
+        .filter(|artifact| artifact.artifact_class == HAND_CURATED_RATCHET_CLASS)
+        .map(|artifact| artifact.path.clone())
+        .collect();
+    let all_tracked_paths = scm_tracked_paths(scm_facts);
     let tracked_generated =
         tracked_generated_artifact_paths(scm_facts, &generated_path_rules, &mut findings);
 
@@ -1308,6 +1359,13 @@ pub fn evaluate_keyed_with_frozen_references(
         // A de-commit-class path is SUPPOSED to be absent from the tracked tree, so its absence
         // is the desired state, not a finding. All other declared generated paths must be tracked.
         if not_tracked_paths.contains(path) {
+            continue;
+        }
+        // A hand-curated ratchet baseline need not match a generated_path_rule (it is committed
+        // source, not a generated output), but it MUST stay tracked. Passing that full-tracked-set
+        // check clears it; an untracked hand-curated path falls through to the finding below, so a
+        // silent `git rm` of a hand-curated baseline is still RED.
+        if hand_curated_paths.contains(path) && all_tracked_paths.contains(path) {
             continue;
         }
         findings.insert(Finding::new(
@@ -1339,6 +1397,20 @@ pub fn evaluate_keyed_with_frozen_references(
         {
             findings.insert(Finding::new(
                 "generated_artifact_main_aggregate_marked_source_authored",
+                &artifact.artifact_id,
+            ));
+        }
+        // Hand-curated ratchet/allowlist baselines (friction accounting, embedded-asset
+        // hermeticity, tier-dependency acyclicity, port-placement, glossary warning allowlist) are
+        // HUMAN-authored shrink-only references that MUST stay committed and MUST NOT be recomputed
+        // over the candidate tree — any other materialization mode erases a hand-shrunk burn-down or
+        // launders new debt. Data-driven (the class constant plus the committed-only mode), zero
+        // hardcoded paths — the class is the durable identity a naive de-commit cannot silently shed.
+        if artifact.artifact_class == HAND_CURATED_RATCHET_CLASS
+            && artifact.materialization_mode != "hand-curated-committed"
+        {
+            findings.insert(Finding::new(
+                "hand_curated_ratchet_artifact_must_stay_committed",
                 &artifact.artifact_id,
             ));
         }
@@ -2008,6 +2080,109 @@ mod tests {
             }),
             "re-tracking a de-commit-class face must RED; findings: {findings:#?}"
         );
+    }
+
+    // A hand-curated ratchet/allowlist baseline: human-authored, stays committed, NO machine
+    // producer (generator omitted). Path is intentionally NOT a generated_path_rules match, mirroring
+    // the real baselines (`*-baseline.json`, `warning-baseline.tsv`).
+    fn hand_curated(id: &str, path: &str) -> Value {
+        json!({
+            "artifact_id": id,
+            "path": path,
+            "artifact_class": HAND_CURATED_RATCHET_CLASS,
+            "materialization_mode": "hand-curated-committed",
+            "merge_policy": "normal-source-merge",
+            "owner_team": "cloud-ci-platform",
+            "source_inputs": ["human review at gate go-live"],
+            "final_tree_validation": "hand-curated shrink-only reference; stays committed, never recomputed over the candidate tree",
+            "public_product_contract": "a human-authored ratchet baseline must not be de-committed or laundered"
+        })
+    }
+
+    #[test]
+    fn hand_curated_committed_baseline_is_green_without_a_generator() {
+        // GREEN: a declared, committed hand-curated ratchet baseline (no producer to declare) is
+        // clean — the generator block is OPTIONAL for this class, and a committed mode requires the
+        // path to stay tracked.
+        let manifest = manifest(vec![hand_curated(
+            "known-debt-baseline",
+            "ci/facade/example/known-debt-baseline.json",
+        )]);
+        let scm_facts = scm(&["ci/facade/example/known-debt-baseline.json"]);
+        let findings = evaluate_keyed(&manifest, &scm_facts);
+        assert!(
+            !findings
+                .iter()
+                .any(|finding| finding.code == "generated_artifact_manifest_generator_missing"),
+            "a hand-curated baseline needs no generator; findings: {findings:#?}"
+        );
+        assert_eq!(evaluate(&manifest, &scm_facts).verdict, Verdict::Green);
+    }
+
+    #[test]
+    fn hand_curated_baseline_git_rmd_without_manifest_change_is_red() {
+        // Enforcement: a hand-curated baseline that is `git rm`'d (untracked) while its row stays a
+        // committed mode is RED via declared_path_not_tracked — the committed mode requires the file
+        // to stay a tracked git blob, closing the "just delete it" de-commit path.
+        let manifest = manifest(vec![hand_curated(
+            "known-debt-baseline",
+            "ci/facade/example/known-debt-baseline.json",
+        )]);
+        let scm_facts = scm(&[]);
+        let findings = evaluate_keyed(&manifest, &scm_facts);
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "generated_artifact_declared_path_not_tracked"
+                    && finding.key == "ci/facade/example/known-debt-baseline.json"
+            }),
+            "an untracked hand-curated baseline must RED; findings: {findings:#?}"
+        );
+    }
+
+    #[test]
+    fn hand_curated_baseline_declared_de_commit_is_red() {
+        // RED make-it-impossible guard: flipping a hand-curated ratchet baseline to a de-commit
+        // materialization mode (to launder the git-rm past the declared-path-not-tracked exemption)
+        // fires hand_curated_ratchet_artifact_must_stay_committed — the class is the durable identity.
+        let mut face = hand_curated(
+            "known-debt-baseline",
+            "ci/facade/example/known-debt-baseline.json",
+        );
+        face["materialization_mode"] = json!("not-tracked-in-git");
+        let manifest = manifest(vec![face]);
+        let scm_facts = scm(&[]);
+        let findings = evaluate_keyed(&manifest, &scm_facts);
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "hand_curated_ratchet_artifact_must_stay_committed"
+                    && finding.key == "known-debt-baseline"
+            }),
+            "de-committing a hand-curated baseline must RED; findings: {findings:#?}"
+        );
+        assert_eq!(evaluate(&manifest, &scm_facts).verdict, Verdict::Red);
+    }
+
+    #[test]
+    fn hand_curated_baseline_declared_non_committed_mode_is_red() {
+        // Not enough to forbid explicit de-commit modes: this class is committed-only, or a
+        // candidate-regenerated/CI-artifact row can still launder the hand-shrunk baseline.
+        let mut face = hand_curated(
+            "known-debt-baseline",
+            "ci/facade/example/known-debt-baseline.json",
+        );
+        face["materialization_mode"] = json!("merge-candidate-regenerated");
+        face["generator"] = json!({"command": "fake-generator"});
+        let manifest = manifest(vec![face]);
+        let scm_facts = scm(&["ci/facade/example/known-debt-baseline.json"]);
+        let findings = evaluate_keyed(&manifest, &scm_facts);
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "hand_curated_ratchet_artifact_must_stay_committed"
+                    && finding.key == "known-debt-baseline"
+            }),
+            "every non-committed hand-curated mode must RED; findings: {findings:#?}"
+        );
+        assert_eq!(evaluate(&manifest, &scm_facts).verdict, Verdict::Red);
     }
 
     #[test]
