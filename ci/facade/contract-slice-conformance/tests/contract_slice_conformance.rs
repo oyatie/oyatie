@@ -41,8 +41,9 @@ fn load_policy(root: &Path) -> Value {
 fn live_corpus(root: &Path, policy: &Value) -> BTreeMap<String, Value> {
     let mut corpus = BTreeMap::new();
     for slice in policy["slices"].as_array().expect("slices array") {
+        // spec_path is repo-root-relative so real specs (specs/*.json) resolve.
         let rel = slice["spec_path"].as_str().expect("spec_path string");
-        corpus.insert(rel.to_owned(), load_json(&gate_dir(root).join(rel)));
+        corpus.insert(rel.to_owned(), load_json(&root.join(rel)));
     }
     corpus
 }

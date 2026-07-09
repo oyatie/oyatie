@@ -20,8 +20,9 @@ per-slice rules are **data** in `contract-slice-policy.json`.
      "slice_id": "<your-slice>",
      "spec_path": "specs/<your-slice>.json",
      "required_fields": ["field_a", "nested.field_b"],
-     "enum_constraints": [{ "field": "spec_kind", "allowed": ["contract-slice"] }],
-     "forbidden_markers": [],
+     "enum_constraints": [{ "field": "status", "allowed": ["Proposed-target"] }],
+     "required_array_members": [{ "field": "source_adrs", "members": ["ADR-0341"] }],
+     "forbidden_markers": ["production ready", "runtime auto-rebalance is implemented"],
      "source_migration_slice": [
        {
          "legacy_path": "scripts/tests/<your-slice>_check.py",
@@ -32,8 +33,11 @@ per-slice rules are **data** in `contract-slice-policy.json`.
    }
    ```
 
-   - `spec_path` is repo-root-relative for real slices, or gate-dir-relative for
-     bundled fixtures.
+   - `spec_path` is **repo-root-relative** (e.g. `specs/<your-slice>.json`).
+   - `required_array_members` asserts a dotted string-array field is a superset of
+     the declared members (source ADRs, nonclaim families, filters, …).
+   - `forbidden_markers` are extra per-slice substrings that must not appear in the
+     spec (e.g. runtime-overclaim phrases), on top of the universal CLI/interpreter set.
    - `source_migration_slice` is optional; include it when you are **retiring a
      Python validator** so the gate proves it is replaced, not run in parallel.
      Then `git rm` the `.py` and drop its `rust-first-automation-policy.json`
@@ -50,7 +54,8 @@ per-slice rules are **data** in `contract-slice-policy.json`.
 | `contract_slice_spec_absent` | declared `spec_path` is not in the corpus |
 | `contract_slice_missing_required_field` | a `required_fields` dotted path is absent/null |
 | `contract_slice_enum_violation` | an `enum_constraints` field value is not allowed |
-| `contract_slice_forbidden_marker` | the spec contains a retired-CLI / interpreter marker (`python3`, `oya gate`, `kubectl apply`, …) |
+| `contract_slice_missing_array_member` | a `required_array_members` array field is missing a declared member |
+| `contract_slice_forbidden_marker` | the spec contains a retired-CLI / interpreter marker (`python3`, `oya gate`, `kubectl apply`, …) or a per-slice forbidden phrase |
 | `contract_slice_migration_not_retired` | a migration row is not `disposition: retired_primary_path` |
 | `contract_slice_migration_bad_target` | migration `replacement_target` is not a `//ci/facade/…-gate` target |
 | `contract_slice_migration_bad_legacy` | migration `legacy_path` is not a `.py`/`.sh` interpreter script |

@@ -202,7 +202,35 @@ fn evaluate_slice(slice: &Value, corpus: &BTreeMap<String, Value>, findings: &mu
         }
     }
 
-    // 4. Migration declarations (optional): each retired source must declare a
+    // 4. Required array members: a dotted string-array field must contain (be a
+    //    superset of) every declared member. Covers "this contract must enumerate
+    //    exactly these source ADRs / nonclaims / filters" without hardcoding them
+    //    in Rust — they stay data in the policy.
+    if let Some(requirements) = slice.get("required_array_members").and_then(Value::as_array) {
+        for requirement in requirements {
+            let field = requirement.get("field").and_then(Value::as_str).unwrap_or("");
+            let present: Vec<&str> = get_dotted(spec, field)
+                .and_then(Value::as_array)
+                .map(|a| a.iter().filter_map(Value::as_str).collect())
+                .unwrap_or_default();
+            for member in requirement
+                .get("members")
+                .and_then(Value::as_array)
+                .into_iter()
+                .flatten()
+                .filter_map(Value::as_str)
+            {
+                if !present.contains(&member) {
+                    findings.insert(Finding::new(
+                        "contract_slice_missing_array_member",
+                        format!("{slice_id}:{field}:{member}"),
+                    ));
+                }
+            }
+        }
+    }
+
+    // 5. Migration declarations (optional): each retired source must declare a
     //    retired_primary_path disposition, a Buck2 gate replacement target, and
     //    an interpreter-script legacy path. This proves a Python validator is
     //    being retired onto this gate rather than run in parallel.
@@ -394,5 +422,27 @@ mod tests {
         let report = evaluate_configured(&policy_with(slice), &corpus_with(valid_slice_spec()));
         assert!(report.violations.contains("contract_slice_migration_not_retired"));
         assert!(report.violations.contains("contract_slice_migration_bad_target"));
+    }
+
+    #[test]
+    fn required_array_members_superset_is_green_missing_is_red() {
+        let slice = json!({
+            "slice_id": "arr",
+            "spec_path": "fixtures/exemplar-slice.json",
+            "required_fields": [],
+            "required_array_members": [
+                { "field": "required_contract_fields", "members": ["field_a", "field_b"] }
+            ]
+        });
+        // valid_slice_spec has required_contract_fields = [field_a, field_b] -> green
+        assert_eq!(
+            evaluate_configured(&policy_with(slice.clone()), &corpus_with(valid_slice_spec())).verdict,
+            Verdict::Green
+        );
+        // drop field_b -> missing member is red
+        let mut spec = valid_slice_spec();
+        spec["required_contract_fields"] = json!(["field_a"]);
+        let report = evaluate_configured(&policy_with(slice), &corpus_with(spec));
+        assert!(report.violations.contains("contract_slice_missing_array_member"));
     }
 }

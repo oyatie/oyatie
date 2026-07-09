@@ -10,7 +10,7 @@
   "slices": [
     {
       "slice_id": "contract-slice-conformance-exemplar",
-      "spec_path": "fixtures/exemplar-slice.json",
+      "spec_path": "ci/facade/contract-slice-conformance/fixtures/exemplar-slice.json",
       "required_fields": [
         "slice_id",
         "spec_kind",
