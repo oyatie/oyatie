@@ -5,8 +5,9 @@ from __future__ import annotations
 import copy
 import json
 import sys
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, NoReturn
+from typing import Any, NoReturn
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONTRACT_PATH = REPO_ROOT / "oya" / "messenger" / "resilience" / "runtime-control-loop-contract.json"
@@ -83,6 +84,100 @@ def load_json(path: Path) -> dict[str, Any]:
         fail(f"invalid JSON in {path.relative_to(REPO_ROOT)}: {exc}")
 
 
+def parse_scalar(value: str) -> Any:
+    if value in {"true", "false"}:
+        return value == "true"
+    if value in {"null", "~"}:
+        return None
+    if value.startswith(('"', "'")) and value.endswith(('"', "'")):
+        return value[1:-1]
+    try:
+        return int(value)
+    except ValueError:
+        pass
+    try:
+        return float(value)
+    except ValueError:
+        return value
+
+
+def yaml_entries(path: Path) -> list[tuple[int, str]]:
+    entries: list[tuple[int, str]] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        entries.append((len(line) - len(line.lstrip(" ")), line.strip()))
+    return entries
+
+
+def parse_yaml_block(entries: list[tuple[int, str]], index: int, indent: int) -> tuple[Any, int]:
+    if index >= len(entries) or entries[index][0] < indent:
+        return {}, index
+
+    if entries[index][0] == indent and entries[index][1].startswith("- "):
+        values: list[Any] = []
+        while index < len(entries):
+            item_indent, item_text = entries[index]
+            if item_indent < indent or item_indent != indent or not item_text.startswith("- "):
+                break
+
+            payload = item_text[2:].strip()
+            index += 1
+            if payload and ":" in payload:
+                key, raw_value = payload.split(":", 1)
+                item: dict[str, Any] = {}
+                raw_value = raw_value.strip()
+                if raw_value:
+                    item[key.strip()] = parse_scalar(raw_value)
+                elif index < len(entries) and entries[index][0] > item_indent:
+                    child, index = parse_yaml_block(entries, index, entries[index][0])
+                    item[key.strip()] = child
+                while index < len(entries) and entries[index][0] > item_indent:
+                    child, index = parse_yaml_block(entries, index, entries[index][0])
+                    if isinstance(child, dict):
+                        item.update(child)
+                values.append(item)
+            elif payload:
+                values.append(parse_scalar(payload))
+            elif index < len(entries) and entries[index][0] > item_indent:
+                child, index = parse_yaml_block(entries, index, entries[index][0])
+                values.append(child)
+        return values, index
+
+    mapping: dict[str, Any] = {}
+    while index < len(entries):
+        item_indent, item_text = entries[index]
+        if item_indent < indent:
+            break
+        if item_indent != indent:
+            index += 1
+            continue
+        if ":" not in item_text:
+            fail(f"invalid YAML-like mapping line: {item_text}")
+        key, raw_value = item_text.split(":", 1)
+        raw_value = raw_value.strip()
+        index += 1
+        if raw_value:
+            mapping[key.strip()] = parse_scalar(raw_value)
+        elif index < len(entries) and entries[index][0] > item_indent:
+            child, index = parse_yaml_block(entries, index, entries[index][0])
+            mapping[key.strip()] = child
+        else:
+            mapping[key.strip()] = None
+    return mapping, index
+
+
+def load_yaml_object(path: Path) -> dict[str, Any]:
+    try:
+        entries = yaml_entries(path)
+    except FileNotFoundError:
+        fail(f"missing {path.relative_to(REPO_ROOT)}")
+    parsed, _ = parse_yaml_block(entries, 0, 0)
+    if not isinstance(parsed, dict):
+        fail(f"invalid YAML object in {path.relative_to(REPO_ROOT)}")
+    return parsed
+
+
 def rel(path_text: str) -> Path:
     return REPO_ROOT / path_text
 
@@ -101,13 +196,7 @@ def brownout_defaults(spec: dict[str, Any]) -> tuple[str, str, set[str], str]:
     return header, metric, classes, audit_class
 
 
-def validate_contract(
-    contract: dict[str, Any],
-    manifest: dict[str, Any],
-    brownout_spec: dict[str, Any],
-    *,
-    check_files: bool = True,
-) -> None:
+def validate_identity(contract: dict[str, Any], manifest: dict[str, Any]) -> None:
     require(contract.get("contract_id") == "RESILIENCE-001-MESSENGER-RUNTIME-CONTROL-LOOP", "unexpected contract_id")
     require(contract.get("source_task") == "t_c127bb35", "contract must bind to Kanban task t_c127bb35")
     require(contract.get("status") == "Evidence-contract-only", "status must remain Evidence-contract-only")
@@ -117,11 +206,17 @@ def validate_contract(
     require(service.get("path") == "oya/messenger", "contract service.path must be oya/messenger")
     require(manifest.get("microservice") == "messenger", "manifest microservice must be messenger")
 
+
+def validate_authority(contract: dict[str, Any]) -> None:
     authority = contract.get("authority", {})
-    require(REQUIRED_ACCEPTED_ADRS <= set(authority.get("accepted_adrs", [])), "missing accepted ADR anchors")
-    require(REQUIRED_PROPOSED_CONTEXT_ADRS <= set(authority.get("proposed_context_adrs", [])), "missing Proposed ADR context anchors")
+    accepted_adrs = set(authority.get("accepted_adrs", []))
+    proposed_context_adrs = set(authority.get("proposed_context_adrs", []))
+    require(accepted_adrs >= REQUIRED_ACCEPTED_ADRS, "missing accepted ADR anchors")
+    require(proposed_context_adrs >= REQUIRED_PROPOSED_CONTEXT_ADRS, "missing Proposed ADR context anchors")
     require(authority.get("proposed_context_only") is True, "Proposed ADRs must remain context-only")
 
+
+def validate_claim_controls(contract: dict[str, Any]) -> None:
     controls = contract.get("claim_controls", {})
     for key in [
         "metadata_only",
@@ -138,9 +233,10 @@ def validate_contract(
         "proposed_adrs_not_elevated",
     ]:
         require(controls.get(key) is True, f"claim_controls.{key} must be true")
-    require(REQUIRED_NONCLAIMS <= set(contract.get("nonclaims", [])), "nonclaims are incomplete")
+    require(set(contract.get("nonclaims", [])) >= REQUIRED_NONCLAIMS, "nonclaims are incomplete")
 
-    loop = contract.get("runtime_control_loop", {})
+
+def validate_loop_sections(loop: dict[str, Any]) -> None:
     for key in [
         "chaos_catalog",
         "brownout_signal",
@@ -151,26 +247,32 @@ def validate_contract(
     ]:
         require(key in loop, f"runtime_control_loop missing {key}")
 
-    chaos = loop["chaos_catalog"]
+
+def validate_chaos_catalog(chaos: dict[str, Any], *, check_files: bool = True) -> None:
     require(chaos.get("catalog_status") == "scenario_catalog_only", "chaos catalog must be scenario_catalog_only")
     require(chaos.get("engine") == "Chaos Mesh 2.x", "chaos catalog must pin Chaos Mesh 2.x")
     scenario_ids = {row.get("id") for row in chaos.get("scenarios", [])}
-    require(REQUIRED_CHAOS_SCENARIOS <= scenario_ids, "chaos catalog missing required scenarios")
+    require(scenario_ids >= REQUIRED_CHAOS_SCENARIOS, "chaos catalog missing required scenarios")
     scenario_refs = [row.get("path") for row in chaos.get("scenarios", [])]
     require(all(isinstance(path, str) for path in scenario_refs), "chaos scenario paths must be strings")
     if check_files:
         for path_text in scenario_refs:
             path = rel(path_text)
             require(path.exists(), f"missing chaos scenario file {path_text}")
-            text = path.read_text(encoding="utf-8")
-            require("kind: Workflow" in text, f"{path_text} must declare a Chaos Mesh Workflow")
-            require("app.kubernetes.io/name: messenger" in text, f"{path_text} must target messenger")
-            require("scenario-catalog-only" in text, f"{path_text} must carry scenario-catalog-only claim status")
+            document = load_yaml_object(path)
+            labels = document.get("metadata", {}).get("labels", {})
+            annotations = document.get("metadata", {}).get("annotations", {})
+            require(document.get("kind") == "Workflow", f"{path_text} must declare a Chaos Mesh Workflow")
+            require(labels.get("app.kubernetes.io/name") == "messenger", f"{path_text} must target messenger")
+            require(labels.get("oya.dev/claim-status") == "scenario-catalog-only", f"{path_text} must carry scenario-catalog-only claim status")
+            require(annotations.get("oya.dev/nonclaim") == "no-live-chaos-execution", f"{path_text} must carry a no-live-chaos-execution nonclaim")
     require(
-        {"message-send-availability", "message-send-latency"} <= set(chaos.get("slo_gate_refs", [])),
+        set(chaos.get("slo_gate_refs", [])) >= {"message-send-availability", "message-send-latency"},
         "chaos catalog must gate on messenger availability and latency SLOs",
     )
 
+
+def validate_brownout(loop: dict[str, Any], brownout_spec: dict[str, Any]) -> None:
     expected_header, expected_metric, expected_classes, expected_audit_class = brownout_defaults(brownout_spec)
     brownout = loop["brownout_signal"]
     require(brownout.get("header_name") == expected_header, "brownout header must match specs/brownout-degradation-signal.json")
@@ -178,7 +280,8 @@ def validate_contract(
     require(set(brownout.get("classes", [])) == expected_classes, "brownout classes must match the canonical spec")
     require(brownout.get("audit_chain_class") == expected_audit_class, "brownout audit class must match the canonical spec")
 
-    composition = loop["slo_composition"]
+
+def validate_slo_composition(composition: dict[str, Any], *, check_files: bool = True) -> None:
     composition_path = composition.get("composition_ref")
     require(composition_path == "oya/messenger/slos/composition.openslo.yaml", "unexpected SLO composition ref")
     require(composition.get("composition_kind") == "critical_path", "messenger composition must use critical_path")
@@ -187,46 +290,83 @@ def validate_contract(
     if check_files:
         path = rel(composition_path)
         require(path.exists(), f"missing {composition_path}")
-        text = path.read_text(encoding="utf-8")
-        require("kind: SLOComposition" in text, "composition file must use SLOComposition")
-        require("composition_kind: critical_path" in text, "composition file must declare critical_path")
-        require("message-send-availability" in text and "message-send-latency" in text, "composition file must cite messenger SLO children")
-        require("evidence_contract_only" in text, "composition file must stay claim-bounded")
+        document = load_yaml_object(path)
+        metadata = document.get("metadata", {})
+        labels = metadata.get("labels", {})
+        annotations = metadata.get("annotations", {})
+        spec = document.get("spec", {})
+        child_refs = {row.get("slo_ref") for row in spec.get("children", [])}
+        require(document.get("kind") == "SLOComposition", "composition file must use SLOComposition")
+        require(spec.get("composition_kind") == "critical_path", "composition file must declare critical_path")
+        require(
+            any(str(ref).endswith("message-send-availability.openslo.yaml") for ref in child_refs)
+            and any(str(ref).endswith("message-send-latency.openslo.yaml") for ref in child_refs),
+            "composition file must cite messenger SLO children",
+        )
+        require(labels.get("claim_status") == "evidence_contract_only", "composition file must stay claim-bounded")
+        require("no measured SLO" in annotations.get("oya.dev/nonclaim", ""), "composition file must declare measured-SLO nonclaim")
 
-    tail = loop["tail_sampling"]
+
+def validate_tail_sampling(tail: dict[str, Any], manifest: dict[str, Any]) -> None:
     require(tail.get("manifest_field_ref") == "oya/messenger/manifest.json#/observability_trace_sampling_recipe", "tail sampling must bind to manifest field")
     require(tail.get("head_bps") == 100, "tail sampling head_bps must be the 1% baseline")
-    require(REQUIRED_TAIL_POLICIES <= set(tail.get("tail_policies", [])), "tail sampling policies incomplete")
+    require(set(tail.get("tail_policies", [])) >= REQUIRED_TAIL_POLICIES, "tail sampling policies incomplete")
     require(tail.get("decision_wait_seconds") == 30, "tail sampling decision_wait_seconds must be 30")
     manifest_recipe = manifest.get("observability_trace_sampling_recipe", {})
     require(manifest_recipe.get("head_bps") == tail.get("head_bps"), "manifest head_bps must match contract")
-    require(REQUIRED_TAIL_POLICIES <= set(manifest_recipe.get("tail_policies", [])), "manifest tail policies incomplete")
+    require(set(manifest_recipe.get("tail_policies", [])) >= REQUIRED_TAIL_POLICIES, "manifest tail policies incomplete")
     require(manifest_recipe.get("p99_latency_threshold_ms") == 100, "manifest p99 threshold must bind messenger latency SLO")
 
-    projection = loop["status_page_projection"]
+
+def validate_status_page_projection(projection: dict[str, Any]) -> None:
     require(projection.get("projection_status") == "projection_contract_only", "status page projection must be contract-only")
     require(projection.get("component") == "messenger", "status page component must be messenger")
-    require(REQUIRED_STATUS_ENUMS <= set(projection.get("status_enum_map", {})), "status enum map incomplete")
+    require(set(projection.get("status_enum_map", {})) >= REQUIRED_STATUS_ENUMS, "status enum map incomplete")
     require("Statuspage.io-compatible" in projection.get("api_shape", ""), "status page projection must preserve Statuspage.io-compatible shape")
 
-    disaster = loop["disaster_mode_evidence"]
+
+def validate_disaster_mode_evidence(disaster: dict[str, Any]) -> None:
     require(disaster.get("source_adr") == "ADR-0306", "disaster mode evidence must cite ADR-0306")
     require(disaster.get("source_adr_status") == "Proposed/context-only", "ADR-0306 must remain Proposed/context-only")
-    require(REQUIRED_DISASTER_HEADERS <= set(disaster.get("headers", [])), "disaster-mode headers incomplete")
+    require(set(disaster.get("headers", [])) >= REQUIRED_DISASTER_HEADERS, "disaster-mode headers incomplete")
     require(disaster.get("emergency_services_never_throttle") is True, "emergency-services non-throttle invariant required")
 
+
+def validate_runtime_evidence(contract: dict[str, Any]) -> None:
     evidence = set(contract.get("evidence_required_before_runtime_claim", []))
     require(
-        {
+        evidence
+        >= {
             "chaos_drill_receipt",
             "measured_slo_window",
             "brownout_state_transition_receipt",
             "tail_sampling_fidelity_receipt",
             "status_page_projection_receipt",
             "dr_or_disaster_mode_drill_receipt",
-        } <= evidence,
+        },
         "runtime evidence-before-claim set incomplete",
     )
+
+
+def validate_contract(
+    contract: dict[str, Any],
+    manifest: dict[str, Any],
+    brownout_spec: dict[str, Any],
+    *,
+    check_files: bool = True,
+) -> None:
+    loop = contract.get("runtime_control_loop", {})
+    validate_identity(contract, manifest)
+    validate_authority(contract)
+    validate_claim_controls(contract)
+    validate_loop_sections(loop)
+    validate_chaos_catalog(loop["chaos_catalog"], check_files=check_files)
+    validate_brownout(loop, brownout_spec)
+    validate_slo_composition(loop["slo_composition"], check_files=check_files)
+    validate_tail_sampling(loop["tail_sampling"], manifest)
+    validate_status_page_projection(loop["status_page_projection"])
+    validate_disaster_mode_evidence(loop["disaster_mode_evidence"])
+    validate_runtime_evidence(contract)
 
 
 def validate() -> None:
@@ -263,7 +403,7 @@ def self_test() -> None:
         contract,
         manifest,
         brownout_spec,
-        lambda c: c["authority"].__setitem__("proposed_context_only", False),
+        lambda c: c["authority"].update({"proposed_context_only": False}),
         "Proposed ADRs must remain context-only",
     )
     expect_failure(
@@ -293,6 +433,20 @@ def self_test() -> None:
         brownout_spec,
         lambda c: c["runtime_control_loop"]["status_page_projection"].__setitem__("projection_status", "live"),
         "status page projection must be contract-only",
+    )
+    expect_failure(
+        contract,
+        manifest,
+        brownout_spec,
+        lambda c: c["authority"].__setitem__("accepted_adrs", []),
+        "missing accepted ADR anchors",
+    )
+    expect_failure(
+        contract,
+        manifest,
+        brownout_spec,
+        lambda c: c.__setitem__("nonclaims", []),
+        "nonclaims are incomplete",
     )
 
 
