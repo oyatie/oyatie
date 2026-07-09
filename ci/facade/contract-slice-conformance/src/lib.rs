@@ -133,6 +133,24 @@ pub fn evaluate_configured(policy: &Value, corpus: &BTreeMap<String, Value>) -> 
     Report::from_findings(findings)
 }
 
+/// Fail-closed on nested policy shape: emit an unknown-policy-key finding for any
+/// key of a requirement `object` not in `allowed`. A typo in a nested key that
+/// carries membership (`members`, `member_required_fields`) would otherwise
+/// silently disarm that requirement (a `field`-typo fails closed by construction,
+/// but a `members`-typo yields an empty loop and zero findings).
+fn check_keys(object: &Value, allowed: &[&str], slice_id: &str, context: &str, findings: &mut BTreeSet<Finding>) {
+    if let Some(map) = object.as_object() {
+        for key in map.keys() {
+            if !allowed.contains(&key.as_str()) {
+                findings.insert(Finding::new(
+                    "contract_slice_unknown_policy_key",
+                    format!("{slice_id}:{context}:{key}"),
+                ));
+            }
+        }
+    }
+}
+
 fn evaluate_slice(slice: &Value, corpus: &BTreeMap<String, Value>, findings: &mut BTreeSet<Finding>) {
     let slice_id = slice
         .get("slice_id")
@@ -213,6 +231,7 @@ fn evaluate_slice(slice: &Value, corpus: &BTreeMap<String, Value>, findings: &mu
     // 3. Enum constraints: the dotted field's string value must be allowed.
     if let Some(constraints) = slice.get("enum_constraints").and_then(Value::as_array) {
         for constraint in constraints {
+            check_keys(constraint, &["field", "allowed"], slice_id, "enum_constraints", findings);
             let field = constraint.get("field").and_then(Value::as_str).unwrap_or("");
             let allowed: Vec<&str> = constraint
                 .get("allowed")
@@ -235,6 +254,7 @@ fn evaluate_slice(slice: &Value, corpus: &BTreeMap<String, Value>, findings: &mu
     //    in Rust — they stay data in the policy.
     if let Some(requirements) = slice.get("required_array_members").and_then(Value::as_array) {
         for requirement in requirements {
+            check_keys(requirement, &["field", "members"], slice_id, "required_array_members", findings);
             let field = requirement.get("field").and_then(Value::as_str).unwrap_or("");
             let present: Vec<&str> = get_dotted(spec, field)
                 .and_then(Value::as_array)
@@ -279,6 +299,13 @@ fn evaluate_slice(slice: &Value, corpus: &BTreeMap<String, Value>, findings: &mu
         .and_then(Value::as_array)
     {
         for requirement in requirements {
+            check_keys(
+                requirement,
+                &["field", "member_key", "members", "member_required_fields", "member_enum_constraints"],
+                slice_id,
+                "required_object_array_members",
+                findings,
+            );
             let field = requirement.get("field").and_then(Value::as_str).unwrap_or("");
             let member_key = requirement
                 .get("member_key")
@@ -568,6 +595,20 @@ mod tests {
             "slice_id": "typo",
             "spec_path": "fixtures/exemplar-slice.json",
             "required_field": ["slice_id"]  // typo: should be required_fields
+        });
+        let report = evaluate_configured(&policy_with(slice), &corpus_with(valid_slice_spec()));
+        assert!(report.violations.contains("contract_slice_unknown_policy_key"));
+    }
+
+    #[test]
+    fn nested_requirement_typo_is_red_not_silently_disarmed() {
+        // `member` instead of `members` would otherwise skip the membership check
+        // and green a slice that enforces nothing; the nested key validator REDs it.
+        let slice = json!({
+            "slice_id": "nested",
+            "spec_path": "fixtures/exemplar-slice.json",
+            "required_fields": [],
+            "required_array_members": [{ "field": "required_contract_fields", "member": ["field_a"] }]
         });
         let report = evaluate_configured(&policy_with(slice), &corpus_with(valid_slice_spec()));
         assert!(report.violations.contains("contract_slice_unknown_policy_key"));
