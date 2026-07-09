@@ -1757,6 +1757,17 @@ claim boundary for this review slice live in
 `/specs/compliance-001-contract-slice.json`; this ADR remains rationale
 and source context only, not the operative reachability contract.
 
+This ADR intentionally justifies the PR-local contract-slice artifacts
+that make that machine-readable contract executable without granting
+production, runtime, certification, auditor-acceptance, tenant-activation,
+or portability-service authority:
+
+- `/specs/compliance-001-contract-slice.json`
+- `/specs/fixtures/compliance-pack/compliance-001-soc2-cmp-portability.fixture.json`
+- `/specs/fixtures/compliance-pack/compliance-001-portability-export-manifest.fixture.json`
+- `/scripts/tests/compliance_pack_contract_slice_check.py`
+- `/scripts/tests/OWNERS`
+
 The following artifacts are required for this keystone to be considered
 implemented:
 
