@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.com/specs/compliance-pack-schema.schema.json",
   "title": "Compliance Pack Bundle Schema",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-COMPLIANCE-PACK-SCHEMA",
@@ -22,14 +22,19 @@
       "ADR-0150",
       "ADR-0174",
       "ADR-0183",
+      "ADR-0209",
       "ADR-0240",
       "ADR-0241",
       "ADR-0242",
       "ADR-0243",
       "ADR-0246",
-      "ADR-0251"
+      "ADR-0250",
+      "ADR-0251",
+      "ADR-0272",
+      "ADR-0276"
     ],
-    "purpose": "Canonical machine-readable schema for Compliance Pack bundles. Each pack ships a versioned, signed bundle of Cedar fragments + audit-chain requirements + data-class extensions + cell-eligibility constraints + retention rules + consent requirements + cross-tenant rules + jurisdiction overlays + DPIA template references + breach-notification workflow references + explicit regulator citations. Consumed by the policy-engine pack loader, the tenancy substrate's pack-activation gate, and the oya-check-compliance-pack-coverage CI lane.",
+    "purpose": "Canonical machine-readable schema for Compliance Pack bundles. Each pack ships a versioned, signed bundle of Cedar fragments + audit-chain requirements + data-class extensions + cell-eligibility constraints + retention rules + consent requirements + cross-tenant rules + jurisdiction overlays + DPIA template references + breach-notification workflow references + explicit regulator citations. The v1.1.0 contract slice also specifies optional signature-contract metadata, cell certification state, SOC2-style evidence collectors, five-purpose CMP consent, and portability-export fixture references without claiming runtime implementation, certification, tenant activation, or production readiness. Consumed by the policy-engine pack loader, the tenancy substrate's pack-activation gate, and the oya-check-compliance-pack-coverage CI lane.",
+    "claim_boundary": "Schema/fixture contract only. ADR-0250, ADR-0251, ADR-0272, and ADR-0276 remain proposed planning inputs unless separately elevated; this file alone does not implement a pack registry, runtime collector, CMP, portability service, certification, tenant activation, auditor acceptance, or production readiness.",
     "industry_citations": [
       {
         "vendor": "AWS",
@@ -163,6 +168,67 @@
       "description": "Ed25519 signature over the canonical CBOR-encoded pack bundle (excluding the `signature` field itself). Lowercase hex; 128 chars = 64 bytes.",
       "pattern": "^[0-9a-f]{128}$"
     },
+    "signature_contract": {
+      "type": "object",
+      "description": "Optional v1.1.0 signature verification contract. This records how a pack signature is computed and verified without claiming that any concrete pack is certified or auditor-accepted.",
+      "required": [
+        "canonicalization",
+        "signature_algorithm",
+        "signature_scope",
+        "verification_inputs",
+        "claim_boundary"
+      ],
+      "properties": {
+        "canonicalization": {
+          "type": "string",
+          "enum": [
+            "canonical-cbor-excluding-signature"
+          ]
+        },
+        "signature_algorithm": {
+          "type": "string",
+          "enum": [
+            "Ed25519"
+          ]
+        },
+        "signature_scope": {
+          "type": "string",
+          "enum": [
+            "bundle-without-signature-field"
+          ]
+        },
+        "verification_inputs": {
+          "type": "object",
+          "required": [
+            "public_key_ref",
+            "canonical_bundle_digest_sha256",
+            "signing_principal",
+            "signed_at"
+          ],
+          "properties": {
+            "public_key_ref": {
+              "type": "string",
+              "description": "Key registry or transparency-log reference for the signing public key."
+            },
+            "canonical_bundle_digest_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "signing_principal": {
+              "type": "string"
+            },
+            "signed_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "claim_boundary": {
+          "type": "string",
+          "description": "Explicit non-claim boundary for signature metadata."
+        }
+      }
+    },
     "cedar_fragments": {
       "type": "array",
       "description": "References to Cedar fragments shipped by this pack. Each fragment is identified by its fragment_id + version + cosign_attestation_ref. The policy-engine loads these fragments under scope `pack/<pack-id>` when a tenant activates the pack.",
@@ -266,6 +332,65 @@
         }
       }
     },
+    "evidence_collectors": {
+      "type": "array",
+      "description": "Optional v1.1.0 continuous-evidence collector declarations. SOC2-style collectors mirror ADR-0209's CI hash, deploy receipt, access review, backup drill, vulnerability scan, and pen-test evidence rows while remaining contract-only until the collector runtime exists.",
+      "items": {
+        "type": "object",
+        "required": [
+          "collector_id",
+          "framework",
+          "source_system",
+          "cadence",
+          "artifact_kind",
+          "seal_required",
+          "auditor_publishability",
+          "claim_boundary"
+        ],
+        "properties": {
+          "collector_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
+          },
+          "framework": {
+            "type": "string",
+            "examples": [
+              "SOC2-T2",
+              "ISO27001-2022",
+              "EU-GDPR-2018-baseline"
+            ]
+          },
+          "source_system": {
+            "type": "string",
+            "description": "Source of evidence, for example cloud-ci, deploy-ledger, Cedar/Zitadel access review, DR drill runner, vulnerability scanner, or external assessor upload."
+          },
+          "cadence": {
+            "type": "string",
+            "description": "Collection cadence: per-build, per-deploy, weekly, quarterly, per-image, annual, or an ISO 8601 duration."
+          },
+          "artifact_kind": {
+            "type": "string",
+            "description": "Canonical evidence artifact kind produced by the collector."
+          },
+          "seal_required": {
+            "type": "boolean",
+            "description": "Whether an audit-chain seal or equivalent tamper-evidence reference is mandatory before the artifact is publishable."
+          },
+          "auditor_publishability": {
+            "type": "string",
+            "enum": [
+              "internal-only",
+              "tenant-admin-visible",
+              "external-auditor-room"
+            ]
+          },
+          "claim_boundary": {
+            "type": "string",
+            "description": "Explicit non-claim boundary for this collector declaration."
+          }
+        }
+      }
+    },
     "data_class_extensions": {
       "type": "array",
       "description": "New data class identifiers introduced or refined by this pack per ADR-0099 data-class registry. Pack-defined classes are namespaced by pack_id to avoid collisions.",
@@ -351,6 +476,75 @@
               "data-plane-ir-*"
             ]
           ]
+        }
+      }
+    },
+    "cell_certification_state": {
+      "type": "object",
+      "description": "Optional v1.1.0 state contract for the cell certification lifecycle consumed by pack placement gates. This is a state/evidence descriptor only and does not assert that any live cell is certified.",
+      "required": [
+        "state",
+        "certification_level_ref",
+        "evidence_required",
+        "launch_gate_policy",
+        "claim_boundary"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "uncertified",
+            "evidence_collecting",
+            "assessor_review",
+            "certified",
+            "expired",
+            "suspended"
+          ],
+          "description": "Current declarative state for a cell/pack tuple. Only `certified` can satisfy launch gates, and only with external evidence references supplied by the placement substrate."
+        },
+        "certification_level_ref": {
+          "type": "string",
+          "description": "Reference to the cell certification level required by this pack, for example SOC2-T2-evidence-collecting or EU-GDPR-eligible."
+        },
+        "evidence_required": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "evidence_kind",
+              "required_before_state",
+              "freshness"
+            ],
+            "properties": {
+              "evidence_kind": {
+                "type": "string"
+              },
+              "required_before_state": {
+                "type": "string",
+                "enum": [
+                  "evidence_collecting",
+                  "assessor_review",
+                  "certified"
+                ]
+              },
+              "freshness": {
+                "type": "string",
+                "description": "ISO 8601 duration or `external-assessor-window`."
+              }
+            }
+          },
+          "minItems": 1
+        },
+        "launch_gate_policy": {
+          "type": "string",
+          "enum": [
+            "deny-unless-certified-and-pack-installed",
+            "deny-unless-evidence-collecting-sandbox-only"
+          ]
+        },
+        "claim_boundary": {
+          "type": "string",
+          "description": "Explicit non-claim boundary for certification state metadata."
         }
       }
     },
@@ -447,6 +641,90 @@
           "description": "Minimum age for valid consent without parental authorization. NULL means not applicable. GDPR Article 8: 13-16; KR PIPA: 14; COPPA: 13.",
           "minimum": 0,
           "maximum": 21
+        }
+      }
+    },
+    "cmp_consent": {
+      "type": "object",
+      "description": "Optional v1.1.0 CMP contract overlay from ADR-0272. It pins the five canonical purposes and the evidence required for consent records without implementing a CMP runtime.",
+      "required": [
+        "canonical_purposes",
+        "strictly_necessary_purpose",
+        "non_necessary_default",
+        "no_accept_all_default",
+        "audit_event_class",
+        "storage_contract",
+        "claim_boundary"
+      ],
+      "properties": {
+        "canonical_purposes": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "const": "necessary"
+            },
+            {
+              "const": "preference"
+            },
+            {
+              "const": "statistics"
+            },
+            {
+              "const": "marketing"
+            },
+            {
+              "const": "personalization"
+            }
+          ],
+          "minItems": 5,
+          "maxItems": 5,
+          "description": "ADR-0272 five-purpose order. `necessary` is informational/always-on; every other purpose defaults off."
+        },
+        "strictly_necessary_purpose": {
+          "type": "string",
+          "const": "necessary"
+        },
+        "non_necessary_default": {
+          "type": "boolean",
+          "const": false
+        },
+        "no_accept_all_default": {
+          "type": "boolean",
+          "const": true
+        },
+        "audit_event_class": {
+          "type": "string",
+          "description": "Audit event class emitted for consent grant/revoke/update records."
+        },
+        "storage_contract": {
+          "type": "object",
+          "required": [
+            "record_schema",
+            "signature_required",
+            "prior_record_ref_required",
+            "revocation_one_click"
+          ],
+          "properties": {
+            "record_schema": {
+              "type": "string"
+            },
+            "signature_required": {
+              "type": "boolean",
+              "const": true
+            },
+            "prior_record_ref_required": {
+              "type": "boolean",
+              "const": true
+            },
+            "revocation_one_click": {
+              "type": "boolean",
+              "const": true
+            }
+          }
+        },
+        "claim_boundary": {
+          "type": "string",
+          "description": "Explicit non-claim boundary for CMP metadata."
         }
       }
     },
@@ -568,6 +846,79 @@
         "wf-breach-notification-kr-pipa-72h",
         "wf-breach-notification-pci-dss"
       ]
+    },
+    "portability_export": {
+      "type": "object",
+      "description": "Optional v1.1.0 portability-export fixture contract from ADR-0276 and GDPR Article 20. This records export format/evidence expectations only; it does not implement export/import services or assert data-subject request readiness.",
+      "required": [
+        "format",
+        "bundle_media_type",
+        "manifest_schema_ref",
+        "supported_modes",
+        "signature_contract",
+        "fixture_ref",
+        "claim_boundary"
+      ],
+      "properties": {
+        "format": {
+          "type": "string",
+          "enum": [
+            "JSON-LD-1.1-tar-gzip"
+          ]
+        },
+        "bundle_media_type": {
+          "type": "string",
+          "enum": [
+            "application/gzip+tar"
+          ]
+        },
+        "manifest_schema_ref": {
+          "type": "string",
+          "description": "Schema URI or repository path for the portability export manifest."
+        },
+        "supported_modes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "full",
+              "incremental"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "signature_contract": {
+          "type": "object",
+          "required": [
+            "tenant_signature_required",
+            "oyatie_signature_required",
+            "transparency_log_ref_required"
+          ],
+          "properties": {
+            "tenant_signature_required": {
+              "type": "boolean",
+              "const": true
+            },
+            "oyatie_signature_required": {
+              "type": "boolean",
+              "const": true
+            },
+            "transparency_log_ref_required": {
+              "type": "boolean",
+              "const": true
+            }
+          }
+        },
+        "fixture_ref": {
+          "type": "string",
+          "description": "Repository path to a non-production fixture proving the portability shape."
+        },
+        "claim_boundary": {
+          "type": "string",
+          "description": "Explicit non-claim boundary for portability-export metadata."
+        }
+      }
     },
     "regulator_references": {
       "type": "array",
