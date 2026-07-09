@@ -1,0 +1,4 @@
+# Owner of the paved-road contract-slice conformance gate (ADR-0515/0523/0528).
+# The gate replaces the scripts/tests/*_check.py contract-slice validators with a
+# single owned-Rust/Buck2 cloud-ci gate driven by contract-slice-policy.json.
+cloud-ci-platform
