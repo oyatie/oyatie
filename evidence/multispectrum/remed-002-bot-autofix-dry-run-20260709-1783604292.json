@@ -14,6 +14,7 @@
       "registry/catalog/oya-bot-autofix-app.yaml",
       "tools/oya-bot-autofix-app/BUCK",
       "tools/oya-bot-autofix-app/Cargo.toml",
+      "tools/oya-bot-autofix-app/OWNERS",
       "tools/oya-bot-autofix-app/src/lib.rs",
       "tools/oya-bot-autofix-app/src/main.rs",
       "tools/oya-bot-autofix-app/tests/dry_run.rs",
@@ -60,7 +61,8 @@
     "cargo run -p oya-bot-autofix-app -- bypass-gates: PASS-deny, printed oya-ci-required/adopter fan-in bypass refusal and exited 2.",
     "buck2 test //tools/oya-bot-autofix-app:oya-bot-autofix-app-unittest //tools/oya-bot-autofix-app:oya-bot-autofix-app-dry-run-test: PASS (2 targets, dry-run test ran 2 tests).",
     "CARGO_TARGET_DIR=/tmp/oyatie-t_2ad09ed2-target cargo test -p ci-module-membership live_crate_corpus_is_born_advisory_green --test capability_membership: PASS.",
-    "git diff --check: PASS."
+    "git diff --check: PASS.",
+    "PR #1285 cloud-ci-firewall failure was total-accounting unowned/unjustified regressions for the new bot artifacts; tools/oya-bot-autofix-app/OWNERS and ADR-0531 governed-surface path justification were added."
   ],
   "known_gaps": [
     "Independent Review/fix and PR/open/oya-ci-required governance remain after this implementation handoff.",
