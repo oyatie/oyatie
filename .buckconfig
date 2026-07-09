@@ -26,3 +26,14 @@
 
 [build]
   execution_platforms = prelude//platforms:default
+
+# Bare-stock buck2 daemons default to a 4-day idle timeout, which lets stale
+# daemons (one per worktree/branch checkout) accumulate and sprawl host RAM.
+# These three keys are confirmed-recognized buck2 [buck2] section properties
+# (verified against facebook/buck2 upstream source: app/buck2_common/src/init.rs
+# for daemon_idle_timeout_s, app/buck2_execute_impl/.../clean_stale.rs for
+# clean_stale_enabled, docs/users/advanced/restarter.md for restarter).
+[buck2]
+  daemon_idle_timeout_s = 14400
+  clean_stale_enabled = true
+  restarter = true

@@ -123,11 +123,11 @@ This ADR OWNS and JUSTIFIES the gate crate; its verbatim tracked paths (the cano
 enumeration the born-accounting producer credits — the same set `register_crate` would emit) are:
 
 ```
-cloud/cloud-ci/gates/oya-cloud-ci-root-workspace-hygiene-app/BUCK
-cloud/cloud-ci/gates/oya-cloud-ci-root-workspace-hygiene-app/Cargo.toml
-cloud/cloud-ci/gates/oya-cloud-ci-root-workspace-hygiene-app/root-workspace-hygiene-policy.json
-cloud/cloud-ci/gates/oya-cloud-ci-root-workspace-hygiene-app/src/lib.rs
-cloud/cloud-ci/gates/oya-cloud-ci-root-workspace-hygiene-app/tests/root_workspace_hygiene.rs
+ci/facade/repo-root-hygiene/BUCK
+ci/facade/repo-root-hygiene/Cargo.toml
+ci/facade/repo-root-hygiene/root-workspace-hygiene-policy.json
+ci/facade/repo-root-hygiene/src/lib.rs
+ci/facade/repo-root-hygiene/tests/root_workspace_hygiene.rs
 .claude/BUCK
 .claude/OWNERS
 .codex/BUCK
@@ -143,9 +143,9 @@ without broad root-state drift or generated-face edits.
 
 ## Born-accounting
 
-Adds one gate crate (`cloud/cloud-ci/gates/oya-cloud-ci-root-workspace-hygiene-app`) and one
+Adds one gate crate (`ci/facade/repo-root-hygiene`) and one
 decision node (ADR-0600). The crate is OWNERS-covered by the breadth-unlimited
-`cloud/cloud-ci/gates/OWNERS` (`cloud-ci-platform`, ADR-0555); its Cargo.toml is swept by the
+`ci/OWNERS` (`cloud-ci-platform`, ADR-0555); its Cargo.toml is swept by the
 `cloud/cloud-ci/gates/*` workspace glob; its files are auto-accounted via the regenerated
 `scm-facts`. It is registered as a homogeneous matrix lane in
 `.github/workflows/oya-ci-required.yml` (the gate-registration meta-test requires this). Gate apps

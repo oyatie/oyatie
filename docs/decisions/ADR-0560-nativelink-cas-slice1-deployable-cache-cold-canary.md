@@ -59,10 +59,16 @@ release, 2026-06-07) as the cache-only tier of the founder-decided 2026-05-30 th
 split (`docs/ideas/nativelink-remote-cache-first.md`): CAS + Action Cache, no scheduler, no
 workers. Precedent accuracy, per the hyperscaler lens: NativeLink is **Rust-native**
 (rust-purity aligned), speaks the **Bazel Remote-Execution gRPC CAS/AC API** (the wire
-protocol Bazel/Buck2/Pants/Reclient already consume), Apache-2.0, self-hostable; its own
-production guidance runs CAS and scheduler as separate processes, the same decomposition
-Buildbarn ships (bb-storage / bb-scheduler / bb-worker). It runs as a **container, not a
-workspace crate** — zero new third-party Rust dependencies.
+protocol Bazel/Buck2/Pants/Reclient already consume), **FSL-1.1-Apache-2.0** (FSL 1.1,
+converts to Apache-2.0 ~2028-06-07; deployed as a container, not a linked Rust
+dependency), self-hostable; its own production guidance runs CAS and scheduler as
+separate processes, the same decomposition Buildbarn ships (bb-storage / bb-scheduler /
+bb-worker). It runs as a **container, not a workspace crate** — zero new third-party
+Rust dependencies.
+
+License posture note: FSL-1.1-Apache-2.0 sits in ADR-0013's requires-review tier
+(AWS-FSL / Sentry-FSL family); this deployment is a conscious, reviewed exception, not
+an Apache-2.0 dependency.
 
 Storage: fast tier = bounded node-local filesystem LRU on `emptyDir` (cache-of-cache, safe
 to lose); slow tier = **SeaweedFS S3** at the staged `oya-storage` substrate
@@ -105,7 +111,7 @@ The root `.buckconfig` is untouched. The wiring is: two checked-in overlays
 platform (`toolchains//cache:cache-platform` — mirrors the prelude default, `local_enabled`,
 `remote_enabled = False`, adds `remote_cache_enabled`/`allow_cache_uploads` knobs read from
 `[oya_cache]`), plus a resolver
-(`cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app`) that maps
+(`ci/facade/build-cache-policy`) that maps
 `build_class → {bypass | warm-ro | warm-rw}` from `/specs/cache-warmth-policy.json` (single
 source — the classification is not duplicated) gated by the
 `/specs/cache-warm-license.json` kill-switch, and emits a buck2 argfile. Bypass = an
@@ -223,12 +229,12 @@ This decision is the justification anchor for every artifact the slice introduce
   ownership seed `toolchains/cache/OWNERS`.
 - Kill-switch DATA: `specs/cache-warm-license.json`.
 - Wiring app (gate matrix + binding buck2 lane):
-  `cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app/Cargo.toml`,
-  `cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app/BUCK`,
-  `cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app/src/lib.rs`,
-  `cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app/src/main.rs`,
-  `cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app/src/canary-policy.json`,
-  `cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app/tests/cache_conformance.rs`.
+  `ci/facade/build-cache-policy/Cargo.toml`,
+  `ci/facade/build-cache-policy/BUCK`,
+  `ci/facade/build-cache-policy/src/lib.rs`,
+  `ci/facade/build-cache-policy/src/main.rs`,
+  `ci/facade/build-cache-policy/src/canary-policy.json`,
+  `ci/facade/build-cache-policy/tests/cache_conformance.rs`.
 - Canary: `.github/workflows/cache-integrity-canary.yml`, with the workflows tree's
   ownership seed `.github/workflows/OWNERS` added so workflow files are born owned.
 

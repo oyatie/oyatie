@@ -1,0 +1,34 @@
+[package]
+name = "ci-resource-contract-conformance"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "cloud-ci"
+kind = "shared"
+layer = "app"
+purpose = "Configurable Rust cloud-ci gate replacing P0 Python cloud-resource contract validators with API-shaped policy evaluation."
+
+# cloud-ci-cloud-resource-contracts: Rust/Buck2 replacement for the retired P0 Python validators:
+# - scripts/tests/cloud_resource_contract_parity_catalog_check.py
+# - scripts/tests/cloud_control_plane_operation_contract_check.py
+# - scripts/tests/cloud_enforceability_facets_check.py
+# The evaluator is policy/config driven and consumes typed JSON artifacts; Python is no longer the
+# primary execution path for this cloud-resource contract slice.
+
+[lib]
+name = "ci_resource_contract_conformance"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde_json = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

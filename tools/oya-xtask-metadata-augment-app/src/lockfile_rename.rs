@@ -1,32 +1,20 @@
-/// Cargo.lock name-rewrite subcommand per §7.1.1 spec.
+/// Cargo.lock name-rewrite / move-canonicalize CLI (§7.1.1 spec).
 ///
-/// The Cargo.lock format uses TOML with repeated `[[package]]` sections.
-/// Each section may reference `name` (string), `version`, `source`, and `checksum`.
-/// This module rewrites `name` fields for crates that appear in the rename map,
-/// preserving version, source, checksum, and all other fields unchanged.
-///
-/// The 8-row fixture matrix (§7.1.1) covers:
-///   1. Workspace-member rename: name in rename map → new name
-///   2. Dependent rename: name in `dependencies` array of another package
-///   3. External (not in rename map): unchanged
-///   4. Quoted form: `name = "old"` → `name = "new"`
-///   5. Unquoted edge: treated as quoted by toml_edit (all TOML strings are quoted)
-///   6. Version disambiguator: old-name 1.0.0 vs old-name 2.0.0 → both renamed
-///   7. Version+source disambiguator: name+source uniquely identifies; both renamed
-///   8. Missing rename-map entry: emits warning to stderr, passes through unchanged
+/// The pure, I/O-free transform lives in the shared [`oya_cargo_lock_transform_kernel`] kernel
+/// (single source of truth, consumed by both this xtask CLI and the reorg move codemod). This
+/// module is the thin I/O layer: it loads the rename-map TSV + graph-additions JSON from disk,
+/// invokes the kernel, and writes the result back (or prints it).
 use anyhow::{Context, Result};
+use oya_cargo_lock_transform_kernel::{move_lockfile, rewrite_lockfile, GraphAdditions, NewMember};
 use std::collections::HashMap;
 
-pub fn run_lockfile_rename(
-    rename_map_path: &str,
-    lockfile_path: &str,
-    inplace: bool,
-    reverse: bool,
-) -> Result<()> {
+/// Load a rename-map TSV (`old<TAB>new` per line) into a map. `reverse` swaps direction.
+fn load_rename_map(rename_map_path: &str, reverse: bool) -> Result<HashMap<String, String>> {
     let map_content = std::fs::read_to_string(rename_map_path)
         .with_context(|| format!("reading rename map at {rename_map_path}"))?;
 
     let mut rename_map: HashMap<String, String> = HashMap::new();
+    let mut seen_targets: std::collections::HashSet<String> = std::collections::HashSet::new();
     for (lineno, line) in map_content.lines().enumerate() {
         let line = line.trim();
         if line.is_empty() {
@@ -41,12 +29,38 @@ pub fn run_lockfile_rename(
             );
         }
         let (old, new) = (parts[0].trim().to_owned(), parts[1].trim().to_owned());
-        if reverse {
-            rename_map.insert(new, old);
-        } else {
-            rename_map.insert(old, new);
+        let (from, to) = if reverse { (new, old) } else { (old, new) };
+        // Both-side injective (matching the move-manifest bijection's MUST-PASS #3): a
+        // duplicate source is an ambiguous rename; a duplicate target would collapse two
+        // distinct crates into one name — either silently drops a dependency edge. Fail-closed.
+        if seen_targets.contains(&to) {
+            anyhow::bail!(
+                "rename map line {}: target {:?} appears more than once — non-injective rename \
+                 (would collapse two crates), fail-closed",
+                lineno + 1,
+                to
+            );
         }
+        if rename_map.insert(from.clone(), to.clone()).is_some() {
+            anyhow::bail!(
+                "rename map line {}: source {:?} appears more than once — ambiguous rename, \
+                 fail-closed",
+                lineno + 1,
+                from
+            );
+        }
+        seen_targets.insert(to);
     }
+    Ok(rename_map)
+}
+
+pub fn run_lockfile_rename(
+    rename_map_path: &str,
+    lockfile_path: &str,
+    inplace: bool,
+    reverse: bool,
+) -> Result<()> {
+    let rename_map = load_rename_map(rename_map_path, reverse)?;
 
     let lockfile_content = std::fs::read_to_string(lockfile_path)
         .with_context(|| format!("reading lockfile at {lockfile_path}"))?;
@@ -64,254 +78,133 @@ pub fn run_lockfile_rename(
     Ok(())
 }
 
-/// Rewrite a Cargo.lock string, renaming all occurrences of keys in `rename_map`.
-///
-/// Strategy: parse the lockfile as a TOML document using toml_edit, walk all
-/// `[[package]]` array-of-tables entries, replace `name` values found in the
-/// map, and also replace occurrences in the `dependencies` arrays (which are
-/// strings of the form `"crate-name version"` or `"crate-name version (source)"`).
-pub fn rewrite_lockfile(content: &str, rename_map: &HashMap<String, String>) -> Result<String> {
-    if rename_map.is_empty() {
-        return Ok(content.to_owned());
-    }
-
-    let mut doc: toml_edit::DocumentMut = content.parse().context("parsing Cargo.lock as TOML")?;
-
-    let packages = doc
-        .get_mut("package")
-        .and_then(|p| p.as_array_of_tables_mut());
-
-    let Some(packages) = packages else {
-        // No [[package]] entries — nothing to rename
-        return Ok(content.to_owned());
-    };
-
-    for pkg in packages.iter_mut() {
-        // Rename the package name itself
-        if let Some(name_item) = pkg.get_mut("name")
-            && let Some(name_str) = name_item.as_str()
-        {
-            let name_owned = name_str.to_owned();
-            if let Some(new_name) = rename_map.get(&name_owned) {
-                *name_item = toml_edit::value(new_name.as_str());
-            }
-        }
-
-        // Rename occurrences in the dependencies array
-        // Dependency strings have the form: "crate-name VERSION" or "crate-name VERSION (SOURCE)"
-        if let Some(deps_item) = pkg.get_mut("dependencies")
-            && let Some(deps_array) = deps_item.as_array_mut()
-        {
-            for dep in deps_array.iter_mut() {
-                if let Some(dep_str) = dep.as_str() {
-                    let dep_owned = dep_str.to_owned();
-                    let new_dep = rename_dep_string(&dep_owned, rename_map);
-                    if new_dep != dep_owned {
-                        *dep = toml_edit::Value::String(toml_edit::Formatted::new(new_dep));
-                    }
-                }
-            }
-        }
-    }
-
-    Ok(doc.to_string())
+fn json_str_array(value: &serde_json::Value, ctx: &str) -> Result<Vec<String>> {
+    value
+        .as_array()
+        .with_context(|| format!("{ctx} must be an array"))?
+        .iter()
+        .enumerate()
+        .map(|(j, x)| {
+            x.as_str()
+                .map(str::to_owned)
+                .with_context(|| format!("{ctx}[{j}] must be a string"))
+        })
+        .collect()
 }
 
-/// Rename the crate-name portion of a Cargo.lock dependency string.
-/// Format: `"crate-name"` or `"crate-name version"` or `"crate-name version (source)"`.
-fn rename_dep_string(dep: &str, rename_map: &HashMap<String, String>) -> String {
-    // Split off the first whitespace-delimited token as the crate name.
-    let mut parts = dep.splitn(2, ' ');
-    let crate_name = parts.next().unwrap_or(dep);
-    let rest = parts.next();
+/// Parse a `--graph-additions` JSON object:
+/// `{"new_members": [{"name","version","dependencies":[..]}],
+///   "add_dependencies": [{"package": .., "add": [..]}]}`. Both keys optional.
+fn load_graph_additions(path: &str) -> Result<GraphAdditions> {
+    let raw = std::fs::read_to_string(path)
+        .with_context(|| format!("reading graph-additions at {path}"))?;
+    let value: serde_json::Value = serde_json::from_str(&raw)
+        .with_context(|| format!("parsing graph-additions JSON at {path}"))?;
 
-    if let Some(new_name) = rename_map.get(crate_name) {
-        match rest {
-            Some(r) => format!("{new_name} {r}"),
-            None => new_name.clone(),
+    let mut new_members = Vec::new();
+    if let Some(arr) = value.get("new_members") {
+        for (i, item) in arr
+            .as_array()
+            .context("new_members must be an array")?
+            .iter()
+            .enumerate()
+        {
+            let name = item
+                .get("name")
+                .and_then(|v| v.as_str())
+                .with_context(|| format!("new_members[{i}]: missing string field \"name\""))?
+                .to_owned();
+            let version = item
+                .get("version")
+                .and_then(|v| v.as_str())
+                .with_context(|| format!("new_members[{i}]: missing string field \"version\""))?
+                .to_owned();
+            let dependencies = match item.get("dependencies") {
+                None => Vec::new(),
+                Some(d) => json_str_array(d, &format!("new_members[{i}].dependencies"))?,
+            };
+            new_members.push(NewMember {
+                name,
+                version,
+                dependencies,
+            });
         }
-    } else {
-        dep.to_owned()
     }
+
+    let mut add_dependencies: HashMap<String, Vec<String>> = HashMap::new();
+    if let Some(arr) = value.get("add_dependencies") {
+        for (i, item) in arr
+            .as_array()
+            .context("add_dependencies must be an array")?
+            .iter()
+            .enumerate()
+        {
+            let package = item
+                .get("package")
+                .and_then(|v| v.as_str())
+                .with_context(|| format!("add_dependencies[{i}]: missing string field \"package\""))?
+                .to_owned();
+            let add = json_str_array(
+                item.get("add")
+                    .with_context(|| format!("add_dependencies[{i}]: missing field \"add\""))?,
+                &format!("add_dependencies[{i}].add"),
+            )?;
+            add_dependencies.entry(package).or_default().extend(add);
+        }
+    }
+
+    Ok(GraphAdditions {
+        new_members,
+        add_dependencies,
+    })
+}
+
+/// `lockfile-move` subcommand: rename + graph additions + canonicalize.
+pub fn run_lockfile_move(
+    rename_map_path: &str,
+    graph_additions_path: Option<&str>,
+    lockfile_path: &str,
+    inplace: bool,
+) -> Result<()> {
+    let rename_map = load_rename_map(rename_map_path, false)?;
+    let additions = match graph_additions_path {
+        Some(p) => load_graph_additions(p)?,
+        None => GraphAdditions::empty(),
+    };
+
+    let content = std::fs::read_to_string(lockfile_path)
+        .with_context(|| format!("reading lockfile at {lockfile_path}"))?;
+    let rewritten = move_lockfile(&content, &rename_map, &additions)?;
+
+    if inplace {
+        std::fs::write(lockfile_path, &rewritten)
+            .with_context(|| format!("writing lockfile at {lockfile_path}"))?;
+        println!(
+            "lockfile-move: rewrote {lockfile_path} in place ({} renames, {} new members, {} edge targets)",
+            rename_map.len(),
+            additions.new_members.len(),
+            additions.add_dependencies.len()
+        );
+    } else {
+        print!("{rewritten}");
+    }
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn map(pairs: &[(&str, &str)]) -> HashMap<String, String> {
-        pairs
-            .iter()
-            .map(|(k, v)| (k.to_string(), v.to_string()))
-            .collect()
-    }
-
-    /// Row 1: workspace-member rename
+    /// A non-injective rename map (two olds → one new) fails closed at load.
     #[test]
-    fn test_workspace_member_rename() {
-        let content = r#"
-[[package]]
-name = "oya-platform-tenant-kernel"
-version = "0.1.0"
-"#;
-        let m = map(&[("oya-platform-tenant-kernel", "oya-shared-tenant-domain")]);
-        let out = rewrite_lockfile(content, &m).unwrap();
+    fn test_rename_map_non_injective_target_fails_closed() {
+        let dir = tempfile::tempdir().unwrap();
+        let map_path = dir.path().join("map.tsv");
+        std::fs::write(&map_path, "old-a\tnew-x\nold-b\tnew-x\n").unwrap();
+        let err = load_rename_map(map_path.to_str().unwrap(), false).unwrap_err();
         assert!(
-            out.contains("oya-shared-tenant-domain"),
-            "expected new name in output: {out}"
+            err.to_string().contains("non-injective"),
+            "unexpected: {err}"
         );
-        assert!(
-            !out.contains("oya-platform-tenant-kernel"),
-            "old name should be gone: {out}"
-        );
-    }
-
-    /// Row 2: dependent rename (name appearing in another package's dependencies)
-    #[test]
-    fn test_dependent_rename() {
-        let content = r#"
-[[package]]
-name = "oya-cloud-region-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-cell-kernel 0.1.0",
- "oya-platform-data-boundary-kernel 0.1.0",
-]
-"#;
-        let m = map(&[
-            ("oya-platform-cell-kernel", "oya-shared-cell-domain"),
-            (
-                "oya-platform-data-boundary-kernel",
-                "oya-shared-data-boundary-kernel",
-            ),
-        ]);
-        let out = rewrite_lockfile(content, &m).unwrap();
-        assert!(
-            out.contains("oya-shared-cell-domain 0.1.0"),
-            "cell dep renamed: {out}"
-        );
-        assert!(
-            out.contains("oya-shared-data-boundary-kernel 0.1.0"),
-            "data-boundary dep renamed: {out}"
-        );
-    }
-
-    /// Row 3: external crate not in rename map is unchanged
-    #[test]
-    fn test_external_unchanged() {
-        let content = r#"
-[[package]]
-name = "serde"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "abc123"
-"#;
-        let m = map(&[("oya-platform-tenant-kernel", "oya-shared-tenant-domain")]);
-        let out = rewrite_lockfile(content, &m).unwrap();
-        assert!(
-            out.contains("\"serde\"") || out.contains("name = \"serde\""),
-            "serde unchanged: {out}"
-        );
-    }
-
-    /// Row 4: quoted form works (toml_edit always emits quoted strings)
-    #[test]
-    fn test_quoted_form() {
-        let content = "[[package]]\nname = \"oya-intelligence-evidence-kernel\"\nversion = \"0.1.0\"\n";
-        let m = map(&[(
-            "oya-intelligence-evidence-kernel",
-            "oya-intelligence-evidence-domain",
-        )]);
-        let out = rewrite_lockfile(content, &m).unwrap();
-        assert!(
-            out.contains("oya-intelligence-evidence-domain"),
-            "quoted rename: {out}"
-        );
-    }
-
-    /// Row 5: unquoted edge — toml_edit parses all TOML strings as quoted; same as row 4
-    #[test]
-    fn test_toml_strings_are_always_quoted() {
-        // TOML requires string values to be quoted; toml_edit handles this transparently
-        let content = "[[package]]\nname = \"oya-cloud-compute-kernel\"\nversion = \"0.1.0\"\n";
-        let m = map(&[("oya-cloud-compute-kernel", "oya-cloud-compute-domain")]);
-        let out = rewrite_lockfile(content, &m).unwrap();
-        assert!(
-            out.contains("oya-cloud-compute-domain"),
-            "unquoted edge via toml_edit: {out}"
-        );
-    }
-
-    /// Row 6: version disambiguator — same crate name, two versions, both renamed
-    #[test]
-    fn test_version_disambiguator() {
-        let content = r#"
-[[package]]
-name = "oya-platform-secrets-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-platform-secrets-kernel"
-version = "0.2.0"
-"#;
-        let m = map(&[("oya-platform-secrets-kernel", "oya-shared-secrets-domain")]);
-        let out = rewrite_lockfile(content, &m).unwrap();
-        let count = out.matches("oya-shared-secrets-domain").count();
-        assert_eq!(count, 2, "both versions renamed: {out}");
-    }
-
-    /// Row 7: version+source disambiguator — name+source combo, both renamed
-    #[test]
-    fn test_version_source_disambiguator() {
-        let content = r#"
-[[package]]
-name = "oya-platform-eventing-kernel"
-version = "0.1.0"
-source = "path+file:///workspace/crates/oya-platform-eventing-kernel"
-
-[[package]]
-name = "oya-platform-eventing-kernel"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-"#;
-        let m = map(&[("oya-platform-eventing-kernel", "oya-shared-eventing-domain")]);
-        let out = rewrite_lockfile(content, &m).unwrap();
-        let count = out.matches("oya-shared-eventing-domain").count();
-        assert_eq!(count, 2, "both source variants renamed: {out}");
-    }
-
-    /// Row 8: missing rename-map entry → warning to stderr, pass through unchanged
-    #[test]
-    fn test_missing_rename_map_entry_passes_through() {
-        let content = "[[package]]\nname = \"oya-unknown-crate\"\nversion = \"0.1.0\"\n";
-        // rename_map has no entry for oya-unknown-crate
-        let m = map(&[("oya-platform-tenant-kernel", "oya-shared-tenant-domain")]);
-        let out = rewrite_lockfile(content, &m).unwrap();
-        assert!(
-            out.contains("oya-unknown-crate"),
-            "unknown crate passes through: {out}"
-        );
-    }
-
-    /// rename_dep_string helper tests
-    #[test]
-    fn test_rename_dep_string_with_version() {
-        let m = map(&[("old-crate", "new-crate")]);
-        assert_eq!(rename_dep_string("old-crate 1.0.0", &m), "new-crate 1.0.0");
-    }
-
-    #[test]
-    fn test_rename_dep_string_with_version_and_source() {
-        let m = map(&[("old-crate", "new-crate")]);
-        assert_eq!(
-            rename_dep_string("old-crate 1.0.0 (registry+https://example.com)", &m),
-            "new-crate 1.0.0 (registry+https://example.com)"
-        );
-    }
-
-    #[test]
-    fn test_rename_dep_string_no_match() {
-        let m = map(&[("other-crate", "new-crate")]);
-        assert_eq!(rename_dep_string("old-crate 1.0.0", &m), "old-crate 1.0.0");
     }
 }

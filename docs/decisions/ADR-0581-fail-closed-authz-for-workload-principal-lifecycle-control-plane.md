@@ -25,7 +25,7 @@ milestone: W2
 review. Door: two-way — additive ports + required constructor params behind an already-shaped
 clean-architecture seam, reversible by removing the two ports and the adapter without unwinding any
 SSOT. On approval the founder flips this to Accepted and admits the born-unpropagated decision into
-`cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.signoff.json` per the established
+`ci/facade/baseline-ratchet/gate-baseline.signoff.json` per the established
 new-Accepted-ADR door precedent, then propagates it into the masterplan/roadmap faces.)**
 
 ## Context

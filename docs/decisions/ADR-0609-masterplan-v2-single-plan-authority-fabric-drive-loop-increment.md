@@ -63,19 +63,19 @@ two-plane drive loop that executes ready work through mechanically disjoint para
 
 3. **Four masterplan plan gates, wired blocking into the ONE required context.** The plan
    authority is enforced by four owned-Rust gate lanes in the cross-artifact-agreement gate crate
-   (`cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app`):
+   (`ci/facade/cross-artifact-agreement`):
    - **structural** — work-item ID uniqueness, dependency-DAG acyclicity, dangling-reference
      detection (`masterplan_work_item_id_collision`, `masterplan_dependency_dag_invalid`);
    - **projection-freshness** — every generated projection must re-derive byte-identically from
      `masterplan_v2` (`masterplan_projection_stale`;
-     `cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/projection_rederivation.rs`);
+     `ci/facade/cross-artifact-agreement/src/projection_rederivation.rs`);
    - **plan-vs-evidence** — verified-completion claims require recorded completion evidence;
      dangling/retired/malformed refs fail closed (`masterplan_plan_evidence_unrecorded`;
-     `cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/plan_evidence_crosscheck.rs`);
+     `ci/facade/cross-artifact-agreement/src/plan_evidence_crosscheck.rs`);
    - **read-contract / entry-surface** — read contracts on surviving artifacts, exact
      entry-surface equality with `/specs/root-hub-pointers.json`, and the archive-marker
      resurrection sweep (`masterplan_read_contract_invalid`, `masterplan_entry_surface_invalid`;
-     `cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/read_surface_resurrection.rs`).
+     `ci/facade/cross-artifact-agreement/src/read_surface_resurrection.rs`).
 
    These lanes run inside the `gate · cross-artifact-agreement` matrix leg of
    `.github/workflows/oya-ci-required.yml` and therefore fan into the SINGLE protected
@@ -88,9 +88,9 @@ two-plane drive loop that executes ready work through mechanically disjoint para
 This ADR is the justification anchor (ADR-0555 accounting) for the artifacts this increment adds:
 
 ```
-cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/plan_evidence_crosscheck.rs
-cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/projection_rederivation.rs
-cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/read_surface_resurrection.rs
+ci/facade/cross-artifact-agreement/src/plan_evidence_crosscheck.rs
+ci/facade/cross-artifact-agreement/src/projection_rederivation.rs
+ci/facade/cross-artifact-agreement/src/read_surface_resurrection.rs
 evidence/goals/fabric-loop-e2e-proof-run-20260702.json
 evidence/goals/fabric-loop-parallel-lanes-proof-run-20260702.json
 evidence/goals/masterplan-v2-hermes-done-card-forensic-ledger-20260702.json

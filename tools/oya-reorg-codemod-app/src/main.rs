@@ -98,8 +98,32 @@ fn cmd_manifest(args: &[String]) -> Result<ExitCode, String> {
     // candidate tree is ambiguous full stop), and when no `--plan` is named the codemod itself
     // SELECTS the single committed plan — so the materialization is the authority and a no-move PR
     // (zero plans) still emits the canonical empty manifest.
-    let plan_path = oya_reorg_codemod_app::resolve_effective_move_plan(plan_path, &repo_root)
-        .map_err(|e: CodemodError| e.to_string())?;
+    // MUST-PASS #5 (straddle DoS): exclude ALREADY-LANDED committed plans (whose every move old
+    // crate-dir is absent from the merge-base tree) BEFORE the single-plan count guard, so a merged
+    // move-plan a prior PR never cleaned up cannot hard-error every subsequent materialization. The
+    // merge-base is the emitter's out-of-band bootstrap (`origin/dev`); on any git uncertainty the
+    // probe fails closed to PRESENT, so an undeterminable plan stays ACTIVE and the guard stays sharp.
+    let merge_base = git_merge_base(&repo_root, "origin/dev");
+    let old_dir_absent_at_merge_base = |dir: &str| -> bool {
+        match &merge_base {
+            Some(mb) => !git_dir_present_at(&repo_root, mb, dir),
+            None => false,
+        }
+    };
+    let load_old_crate_dirs = |p: &Path| -> Result<Vec<String>, CodemodError> {
+        let plan = load_plan(p, false).map_err(|message| CodemodError::Io {
+            context: format!("load committed plan {}", p.display()),
+            message,
+        })?;
+        Ok(plan.moves.iter().map(|m| m.old_path.clone()).collect())
+    };
+    let plan_path = oya_reorg_codemod_app::resolve_effective_active_move_plan(
+        plan_path,
+        &repo_root,
+        load_old_crate_dirs,
+        old_dir_absent_at_merge_base,
+    )
+    .map_err(|e: CodemodError| e.to_string())?;
 
     // The plan is OPTIONAL: a no-move PR has no plan and emits the canonical empty manifest.
     // When a plan IS supplied, validate fail-closed (its bijection back-guarantees the relabel
@@ -171,6 +195,43 @@ fn git_ls_files(repo_root: &Path) -> Result<Vec<String>, String> {
     paths.sort();
     paths.dedup();
     Ok(paths)
+}
+
+/// `git merge-base <base_ref> HEAD` (full hex sha), or `None` on any failure — the MUST-PASS #5
+/// landed-plan exclusion is a REFINEMENT of the fail-closed single-plan guard, so an unresolvable
+/// merge-base simply disables the exclusion (every plan stays ACTIVE) rather than erroring.
+fn git_merge_base(repo_root: &Path, base_ref: &str) -> Option<String> {
+    let out = Command::new("git")
+        .arg("-C")
+        .arg(repo_root)
+        .args(["merge-base", base_ref, "HEAD"])
+        .output()
+        .ok()?;
+    if !out.status.success() {
+        return None;
+    }
+    let sha = String::from_utf8_lossy(&out.stdout).trim().to_owned();
+    (sha.len() >= 40 && sha.chars().all(|c| c.is_ascii_hexdigit())).then_some(sha)
+}
+
+/// True iff any tracked file exists under `dir` at `rev`. FAIL-CLOSED to PRESENT (`true`) on any git
+/// error, so uncertainty never marks a plan landed (never excludes it): the exclusion can only ever
+/// REMOVE a false single-plan-guard trip for a PROVABLY-landed move, never hide a pending one.
+fn git_dir_present_at(repo_root: &Path, rev: &str, dir: &str) -> bool {
+    let dir = dir.trim_end_matches('/');
+    let out = match Command::new("git")
+        .arg("-C")
+        .arg(repo_root)
+        .args(["ls-tree", "-r", "--name-only", rev, "--", dir])
+        .output()
+    {
+        Ok(out) => out,
+        Err(_) => return true,
+    };
+    if !out.status.success() {
+        return true;
+    }
+    !String::from_utf8_lossy(&out.stdout).trim().is_empty()
 }
 
 fn cmd_apply(args: &[String]) -> Result<ExitCode, String> {
@@ -335,6 +396,7 @@ fn apply_outcome_json(o: &oya_reorg_codemod_app::plan::ApplyOutcome) -> Value {
         "bucks_rewritten": o.bucks_rewritten,
         "rust_files_rewritten": o.rust_files_rewritten,
         "root_workspace_changed": o.root_workspace_changed,
+        "cargo_lock_changed": o.cargo_lock_changed,
         "dirs_moved": o.dirs_moved.iter().map(|(a, b)| json!([a, b])).collect::<Vec<_>>(),
     })
 }

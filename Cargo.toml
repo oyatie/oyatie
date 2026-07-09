@@ -11,9 +11,6 @@ members = [
   # dirs (scripts, completions, vendored trees) can never break `cargo` resolution.
   "libs/oya-*",
   "cloud/*/crates/oya-*",
-  # gates/ is NOT narrowed: the `registry-drift` gate crate leaf is intentionally not
-  # oya-prefixed, so it must stay matchable by a bare `*`.
-  "cloud/cloud-ci/gates/*",
   "oya/*/crates/oya-*",
   "oya/office/oya-*",
   "tools/oya-*",
@@ -346,15 +343,28 @@ members = [
   # 3-segment crate dir). Narrow (corpus-scoped, not `governance/*/*`) per the closed-registry
   # anti-junk-drawer intent: each future governance sub-substrate adds its own glob via its own ADR.
   "governance/corpus/*",
+  # Capability-first home (ADR-0562 KEYSTONE strangler move): the `ci` capability absorbs the
+  # former cloud/cloud-ci gate crates at ci/facade/<leaf> (the delivery-fabric gate fleet). The
+  # leaf is de-branded (cargo names ci-baseline-ratchet / ci-module-membership / ... ), so the
+  # leaf segment stays a bare `*`. `ci/*/*` covers every moved gate crate (ci/facade/<leaf>) with
+  # one glob, satisfying ADR-0538's glob-only members contract (no explicit-path members). The one
+  # buck2-only gate (ci/facade/automation-language-policy, no Cargo.toml) is excluded below.
+  "ci/*/*",
 ]
 exclude = [
   # cloud/cloud-kernel is a SEPARATE no_std bare-metal workspace (its own [workspace]
   # root + per-arch userspace sub-workspaces). It must stay out of the root workspace
   # even though cloud/*/crates/oya-* would otherwise sweep its crates in.
   "cloud/cloud-kernel",
-  # Buck2-only gate: has BUCK + src but no Cargo.toml by design, so the bare `gates/*`
-  # glob would otherwise make cargo error trying to load it as a member.
-  "cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app",
+  # kernel/ is the sanctioned top-level nested Cargo workspace (ADR-0512 carve-out; the ONLY
+  # whitelisted nested [workspace], placement per specs/capability-registry.json / ADR-0562):
+  # the rung-0 kuberos kernel + its dev-only QEMU real-boot harness resolve independently of the
+  # std-targeted root lockfile. It must stay out of the root workspace (same reason as cloud-kernel).
+  "kernel",
+  # Buck2-only gate: has BUCK + src but no Cargo.toml by design, so the `ci/*/*` member
+  # glob would otherwise make cargo error trying to load it as a member (ADR-0562 KEYSTONE
+  # move: relocated from cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app).
+  "ci/facade/automation-language-policy",
   # Capability SLO homes (ADR-0139 SLO-home convention; doctrine-fix PR-B): each capability's
   # promotion-gating SLOs live at `<cap>/observability/slos/*.openslo.yaml` — a NON-crate data
   # subtree, no Cargo.toml. The `<cap>/*/*` member glob would otherwise match

@@ -44,14 +44,14 @@ direct dep adds ZERO new crate to `Cargo.lock`.
 ## Decision
 
 Ship a **self-contained cloud-ci gate**, `cloud-ci-supply-chain-audit`
-(`cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app`), mirroring the kernel-purity (ADR-0547)
+(`ci/facade/supply-chain-audit`), mirroring the kernel-purity (ADR-0547)
 / authz-coverage (ADR-0566) registration footprint: own crate, own policy JSON, one appended matrix
 line in `.github/workflows/oya-ci-required.yml`, no `libs/oya-ci-config` edit, no producer-face
 binding. The advisory parsing/normalization lives in a reusable pure kernel,
 `libs/oya-advisory-mirror-kernel`.
 
 The gate's neutral Rust engine lives in
-`cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/src/lib.rs` (the I/O collector
+`ci/facade/supply-chain-audit/src/lib.rs` (the I/O collector
 `collect(root, policy)` + the pure `evaluate_keyed(policy, observed)`), the binary in `src/main.rs`,
 the live-corpus + RED/GREEN self-test in `tests/supply_chain_audit.rs`, the buck2 wiring in `BUCK`,
 the manifest in `Cargo.toml`, the vendored snapshot in `advisory-mirror/{advisories.json,
@@ -124,15 +124,15 @@ makes the gate hermetic and buck2-cacheable. The follow-on also retires
 
 Implementation guardrail (2026-06-28): the supply-chain-audit gate and its advisory-mirror kernel
 are born with the following tracked surfaces —
-`cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/BUCK`,
-`cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/Cargo.toml`,
-`cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/OWNERS`,
-`cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/src/lib.rs`,
-`cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/src/main.rs`,
-`cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/supply-chain-audit-policy.json`,
-`cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/tests/supply_chain_audit.rs`,
-`cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/advisory-mirror/advisories.json`,
-`cloud/cloud-ci/gates/oya-cloud-ci-supply-chain-audit-app/advisory-mirror/mirror-manifest.json`,
+`ci/facade/supply-chain-audit/BUCK`,
+`ci/facade/supply-chain-audit/Cargo.toml`,
+`ci/facade/supply-chain-audit/OWNERS`,
+`ci/facade/supply-chain-audit/src/lib.rs`,
+`ci/facade/supply-chain-audit/src/main.rs`,
+`ci/facade/supply-chain-audit/supply-chain-audit-policy.json`,
+`ci/facade/supply-chain-audit/tests/supply_chain_audit.rs`,
+`ci/facade/supply-chain-audit/advisory-mirror/advisories.json`,
+`ci/facade/supply-chain-audit/advisory-mirror/mirror-manifest.json`,
 `libs/oya-advisory-mirror-kernel/BUCK`,
 `libs/oya-advisory-mirror-kernel/Cargo.toml`,
 `libs/oya-advisory-mirror-kernel/OWNERS`,

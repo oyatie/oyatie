@@ -53,7 +53,7 @@ review checklist.
 ## Decision
 
 Ship a **self-contained cloud-ci gate**, `cloud-ci-operator-secret-bootstrap`
-(`cloud/cloud-ci/gates/oya-cloud-ci-operator-secret-bootstrap-app`), mirroring the registration
+(`ci/facade/operator-secret-rbac`), mirroring the registration
 footprint of the authz-coverage (ADR-0566) and supply-chain-audit (ADR-0605) gates: own crate,
 own policy JSON, one appended matrix line in `.github/workflows/oya-ci-required.yml`, no
 `libs/oya-ci-config` edit, no producer-face binding.
@@ -106,12 +106,12 @@ The exact tracked paths this decision introduces and governs (born-accounting ju
 ADR-0568; one verbatim repo-relative path per line):
 
 ```
-cloud/cloud-ci/gates/oya-cloud-ci-operator-secret-bootstrap-app/BUCK
-cloud/cloud-ci/gates/oya-cloud-ci-operator-secret-bootstrap-app/Cargo.toml
-cloud/cloud-ci/gates/oya-cloud-ci-operator-secret-bootstrap-app/OWNERS
-cloud/cloud-ci/gates/oya-cloud-ci-operator-secret-bootstrap-app/operator-secret-bootstrap-policy.json
-cloud/cloud-ci/gates/oya-cloud-ci-operator-secret-bootstrap-app/src/lib.rs
-cloud/cloud-ci/gates/oya-cloud-ci-operator-secret-bootstrap-app/tests/operator_secret_bootstrap.rs
+ci/facade/operator-secret-rbac/BUCK
+ci/facade/operator-secret-rbac/Cargo.toml
+ci/facade/operator-secret-rbac/OWNERS
+ci/facade/operator-secret-rbac/operator-secret-bootstrap-policy.json
+ci/facade/operator-secret-rbac/src/lib.rs
+ci/facade/operator-secret-rbac/tests/operator_secret_bootstrap.rs
 cloud/cloud-iam/iac/k8s/helm/templates/svid-operator-join-token-externalsecret.yaml
 cloud/cloud-iam/iac/k8s/helm/values.yaml
 infra/external-secrets/clustersecretstore-openbao-oya.yaml
@@ -128,7 +128,7 @@ cloud/cloud-k8s/iac/kustomize/base/openbao-secret-references.yaml
   the gate, so the gate is green on introduction and blocks any future regression.
 - **Owned + hermetic**: no shell, no adhoc dependency, no network — clears the AWS/Google "would
   they ship this as their gate" bar (consistent with ADR-0605).
-- **Accounting**: the new crate is owned by `cloud/cloud-ci/gates/oya-cloud-ci-operator-secret-bootstrap-app/OWNERS`
+- **Accounting**: the new crate is owned by `ci/facade/operator-secret-rbac/OWNERS`
   (`cloud-ci-platform`) and reachable via its `BUCK` `rust_test` target + the `oya-ci-required`
   matrix entry; it maps to the existing `cloud-ci` capability (ADR-0562), so no new capability is
   registered.

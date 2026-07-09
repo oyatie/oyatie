@@ -837,7 +837,7 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                     Ok(report) => {
                         println!(
                             "{}",
-                            oya_cloud_ci_freshness_app::render_findings(&report.findings)
+                            ci_generated_artifact_freshness::render_findings(&report.findings)
                         );
                         if report.is_green() {
                             ExitCode::SUCCESS

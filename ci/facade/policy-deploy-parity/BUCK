@@ -1,0 +1,40 @@
+rust_library(
+    name = "ci-policy-deploy-parity",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_policy_deploy_parity",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-policy-deploy-parity-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_policy_deploy_parity",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+# GH #16 / ADR-0608 cloud-ci-cedar-deploy-parity: live-tree self-test plus hermetic RED/GREEN fixtures.
+# The live leg runs the real read-only collector over the worktree and asserts GREEN against the
+# documented shrink-only baseline (the known-blanket ConfigMaps are grandfathered + accurate); a
+# baseline-emptied leg proves the SAME scan goes RED on the action-agnostic blanket (not a stub); the
+# RED fixtures prove a fresh non-baselined blanket ConfigMap and a bare-resource/no-scope permit fail
+# CHECK-A, and the GREEN fixture proves a constrained permit present in the capability's authored set passes.
+# the collector reads the tree directly.
+rust_test(
+    name = "ci-policy-deploy-parity-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_policy_deploy_parity_gate",
+    crate_root = "tests/cedar_deploy_parity.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-policy-deploy-parity",
+        "third-party//:serde_json",
+    ],
+)

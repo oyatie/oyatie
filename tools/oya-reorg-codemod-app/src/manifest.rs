@@ -110,6 +110,66 @@ pub fn resolve_effective_move_plan(
     Ok(explicit.or(discovered))
 }
 
+/// A committed plan is ALREADY LANDED iff it declares >=1 move and EVERY move's old crate-dir is
+/// absent from the merge-base tree (the move is in immutable history). An empty-moves plan is NOT
+/// landed (a degenerate no-op, never inert).
+///
+/// MUST-PASS #5 (straddle DoS): a merged move-plan that a prior PR never cleaned up would otherwise
+/// trip the single-plan guard and HARD-ERROR every subsequent PR's manifest materialization. A
+/// landed plan is INERT — it contributes no manifest pairs (the resolver reads the move's NEW name,
+/// present at the merge-base) — so scoping its lifetime this way (excluding it BEFORE the count
+/// guard) makes a merged plan self-heal without a per-PR cleanup lag. Laundering-safe: excluding a
+/// plan only REMOVES relabel pairs (never adds one), and a genuinely-pending plan (any old crate-dir
+/// still present at the merge-base) is NEVER excluded, so the >1-PENDING-move fail-closed guard is
+/// preserved (and sharpened — it no longer false-positives on stale-landed leftovers).
+pub fn plan_is_landed(
+    old_crate_dirs: &[String],
+    old_dir_absent_at_merge_base: &impl Fn(&str) -> bool,
+) -> bool {
+    !old_crate_dirs.is_empty() && old_crate_dirs.iter().all(|d| old_dir_absent_at_merge_base(d))
+}
+
+/// Select the single ACTIVE (non-landed) committed plan, applying the fail-closed single-plan guard
+/// to the active set only. `load_old_crate_dirs` yields a plan's move old crate-dirs (git/parse in
+/// prod, a fake in tests); `old_dir_absent_at_merge_base` probes immutable history (fail-closed to
+/// `false`/present on uncertainty, so uncertainty keeps a plan ACTIVE and the guard sharp).
+pub fn select_active_move_plan<L, A>(
+    plans: &[PathBuf],
+    load_old_crate_dirs: L,
+    old_dir_absent_at_merge_base: A,
+) -> Result<Option<PathBuf>, CodemodError>
+where
+    L: Fn(&Path) -> Result<Vec<String>, CodemodError>,
+    A: Fn(&str) -> bool,
+{
+    let mut active: Vec<PathBuf> = Vec::new();
+    for plan in plans {
+        let old_dirs = load_old_crate_dirs(plan)?;
+        if !plan_is_landed(&old_dirs, &old_dir_absent_at_merge_base) {
+            active.push(plan.clone());
+        }
+    }
+    select_move_plan(&active)
+}
+
+/// Discover committed plans and select the single ACTIVE one (excluding already-landed plans),
+/// then apply the explicit-`--plan` precedence — the merge-base-aware analogue of
+/// [`resolve_effective_move_plan`] the `manifest` materialization runs.
+pub fn resolve_effective_active_move_plan<L, A>(
+    explicit: Option<PathBuf>,
+    repo_root: &Path,
+    load_old_crate_dirs: L,
+    old_dir_absent_at_merge_base: A,
+) -> Result<Option<PathBuf>, CodemodError>
+where
+    L: Fn(&Path) -> Result<Vec<String>, CodemodError>,
+    A: Fn(&str) -> bool,
+{
+    let discovered = discover_committed_move_plans(repo_root)?;
+    let active = select_active_move_plan(&discovered, load_old_crate_dirs, old_dir_absent_at_merge_base)?;
+    Ok(explicit.or(active))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -246,6 +306,70 @@ mod tests {
             Err(CodemodError::MultipleMovePlans { count: 2, .. })
         ));
         let _ = std::fs::remove_dir_all(&root2);
+    }
+
+    /// MUST-PASS #5: a plan whose every move old-dir is absent at the merge-base is LANDED (inert);
+    /// an empty-moves plan is NOT landed; a plan with any pending old-dir is NOT landed.
+    #[test]
+    fn plan_is_landed_semantics() {
+        let absent = |_d: &str| true; // everything absent at merge-base
+        let present = |_d: &str| false; // everything present at merge-base
+        assert!(plan_is_landed(&["old/a".to_owned()], &absent), "all-absent => landed");
+        assert!(
+            !plan_is_landed(&["old/a".to_owned()], &present),
+            "old dir still present => pending, not landed"
+        );
+        assert!(!plan_is_landed(&[], &absent), "empty-moves plan is never landed");
+        // Mixed: one dir landed, one still pending => the plan is NOT landed (fail toward pending).
+        let only_a_absent = |d: &str| d == "old/a";
+        assert!(
+            !plan_is_landed(&["old/a".to_owned(), "old/b".to_owned()], &only_a_absent),
+            "any pending old dir keeps the plan active"
+        );
+    }
+
+    /// MUST-PASS #5: a stale LANDED plan is excluded BEFORE the single-plan guard, so it can no
+    /// longer hard-error the materialization of the one genuinely-pending move (the straddle DoS).
+    #[test]
+    fn landed_plan_excluded_pending_plan_selected() {
+        let pending = PathBuf::from("specs/reorg/ci-move-plan.json");
+        let landed = PathBuf::from("specs/reorg/iam-move-plan.json");
+        // ci is pending (old dir present at merge-base); iam is landed (old dir absent).
+        let load = |p: &Path| -> Result<Vec<String>, CodemodError> {
+            if p.ends_with("ci-move-plan.json") {
+                Ok(vec!["cloud/cloud-ci/gates/oya-cloud-ci-firewall-app".to_owned()])
+            } else {
+                Ok(vec!["libs/oya-shared-pdp-adapter-cedar".to_owned()])
+            }
+        };
+        let old_dir_absent = |d: &str| d == "libs/oya-shared-pdp-adapter-cedar"; // only iam landed
+        let selected = select_active_move_plan(&[landed.clone(), pending.clone()], load, old_dir_absent)
+            .unwrap()
+            .unwrap();
+        assert_eq!(selected, pending, "the stale landed plan must not block the pending one");
+    }
+
+    /// Two genuinely-PENDING plans still FAIL-CLOSED (the guard's intent is preserved).
+    #[test]
+    fn two_pending_plans_still_hard_error() {
+        let a = PathBuf::from("specs/reorg/a-move-plan.json");
+        let b = PathBuf::from("specs/reorg/b-move-plan.json");
+        let load = |_p: &Path| Ok(vec!["some/pending/dir".to_owned()]);
+        let old_dir_absent = |_d: &str| false; // both pending
+        assert!(matches!(
+            select_active_move_plan(&[a, b], load, old_dir_absent),
+            Err(CodemodError::MultipleMovePlans { count: 2, .. })
+        ));
+    }
+
+    /// All plans landed => no active plan => canonical empty manifest (None), never an error.
+    #[test]
+    fn all_landed_is_none() {
+        let a = PathBuf::from("specs/reorg/a-move-plan.json");
+        let b = PathBuf::from("specs/reorg/b-move-plan.json");
+        let load = |_p: &Path| Ok(vec!["landed/dir".to_owned()]);
+        let old_dir_absent = |_d: &str| true; // all landed
+        assert!(select_active_move_plan(&[a, b], load, old_dir_absent).unwrap().is_none());
     }
 
     #[test]
