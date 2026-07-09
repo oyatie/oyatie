@@ -262,6 +262,10 @@
       "prefix": "scripts/tests/dr_001_rto_rpo_matrix_slice_check.py"
     },
     {
+      "anchor": "ADR-0555 + ADR-0343: narrow ownership marker for the local bridge test corpus, added with the DR-001 first-slice validator so the temporary script remains owned while merge authority stays in cloud-ci/Rust gates.",
+      "prefix": "scripts/tests/OWNERS"
+    },
+    {
       "anchor": "ADR-0555: this registry registers itself — a reviewed root registration surface pointed at by oya-ci.toml [reachability].registry",
       "prefix": "specs/reachability-registry.json"
     },
