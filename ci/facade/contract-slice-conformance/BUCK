@@ -1,0 +1,34 @@
+rust_library(
+    name = "ci-contract-slice-conformance",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_contract_slice_conformance",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-contract-slice-conformance-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_contract_slice_conformance",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+# Live-corpus gate for the contract-slice conformance slice.
+rust_test(
+    name = "ci-contract-slice-conformance-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_contract_slice_conformance_gate",
+    crate_root = "tests/contract_slice_conformance.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-contract-slice-conformance",
+        "third-party//:serde_json",
+    ],
+)

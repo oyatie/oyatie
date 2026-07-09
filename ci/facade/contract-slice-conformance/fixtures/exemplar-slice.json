@@ -1,0 +1,16 @@
+{
+  "slice_id": "contract-slice-conformance-exemplar",
+  "spec_kind": "contract-slice",
+  "cloud_ci_gate": "cloud-ci-contract-slice-conformance",
+  "required_contract_fields": [
+    "field_a",
+    "field_b"
+  ],
+  "non_claims": [
+    "fixture only; not fetched live evidence",
+    "paved-road demonstration slice; declares no runtime and no production-readiness claim"
+  ],
+  "authority": {
+    "proposed_adr_scope": "paved-road demonstration of the owned-Rust contract-slice gate; planning/context only, no runtime"
+  }
+}
