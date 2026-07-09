@@ -339,6 +339,14 @@ impl ManifestPathResolver {
             MOVE_MANIFEST_PATH,
         )?))
     }
+
+    /// The identity resolver (empty bijection). For callers that use the resolver ONLY for
+    /// `candidate()` current-canonical path lookup (identity-safe) and legitimately run WITHOUT a
+    /// materialized move-manifest — e.g. the freshness gate's non-`--merge-base-baseline` scm-facts
+    /// regen. The move-aware RELABEL path fail-closes on absence separately (see [`MoveManifest::load`]).
+    pub fn empty() -> Self {
+        Self::new(ManifestBijection::empty())
+    }
 }
 
 impl PathResolver for ManifestPathResolver {
