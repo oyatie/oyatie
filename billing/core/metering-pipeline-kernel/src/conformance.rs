@@ -9,8 +9,8 @@
 use std::fmt;
 
 use crate::{
-    CellId, ConsumedUnit, Dimension, IngestOutcome, MeteringPipelineError, MeteringSink,
-    ResourceId, TenantId, UsageHour, UsageRecord, UsageRejection,
+    BatchUsageRecord, CellId, ConsumedUnit, Dimension, IngestOutcome, MeteringPipelineError,
+    MeteringSink, ResourceId, TenantId, UsageHour, UsageRecord, UsageRejection,
 };
 
 /// A single conformance divergence: which check failed and why.
@@ -231,16 +231,122 @@ pub fn check_lateness_is_rejected_explicitly<F: SinkFixture>(
     Ok(())
 }
 
+/// Batch ingest: one batch can contain first-write rows, idempotent
+/// duplicates, conflicting duplicates, and late rows. Every row must be
+/// reported with the same typed semantics as single-row ingest; valid
+/// independent rows still store exactly once.
+pub fn check_batch_ingest_reports_per_row_outcomes<F: SinkFixture>(
+    fixture: &F,
+) -> Result<(), ConformanceViolation> {
+    const CHECK: &str = "batch_ingest_reports_per_row_outcomes";
+    let sink = fixture.fresh_sink();
+    let hour = UsageHour::from_epoch_seconds(7200);
+    let arrival = hour.start_epoch_seconds() + 60;
+    let primary = record(CHECK, 1, hour, 5_000_000)?;
+    let mut conflicting = primary.clone();
+    conflicting.consumed_quantity_microunits = 9_000_000;
+    let mut distinct_dimension = primary.clone();
+    distinct_dimension.dimension = Dimension::parse("storage-gb-seconds")
+        .map_err(|e| violation(CHECK, format!("fixture: {e}")))?;
+    let late_hour = UsageHour::from_epoch_seconds(0);
+    let late = record(CHECK, 2, late_hour, 1_000_000)?;
+    let late_arrival = late_hour.end_epoch_seconds() + sink.lateness_policy().window_seconds;
+
+    let results = sink.ingest_batch(&[
+        BatchUsageRecord {
+            record: primary.clone(),
+            arrived_at_epoch_seconds: arrival,
+        },
+        BatchUsageRecord {
+            record: primary.clone(),
+            arrived_at_epoch_seconds: arrival + 30,
+        },
+        BatchUsageRecord {
+            record: conflicting,
+            arrived_at_epoch_seconds: arrival + 60,
+        },
+        BatchUsageRecord {
+            record: distinct_dimension.clone(),
+            arrived_at_epoch_seconds: arrival + 90,
+        },
+        BatchUsageRecord {
+            record: late.clone(),
+            arrived_at_epoch_seconds: late_arrival,
+        },
+    ]);
+
+    if results.len() != 5 {
+        return Err(violation(
+            CHECK,
+            format!("batch returned {} results for 5 inputs", results.len()),
+        ));
+    }
+    if results[0].outcome != Ok(IngestOutcome::Recorded) {
+        return Err(violation(CHECK, "first row was not Recorded"));
+    }
+    if results[1].outcome != Ok(IngestOutcome::Duplicate) {
+        return Err(violation(CHECK, "idempotent duplicate was not Duplicate"));
+    }
+    if !matches!(
+        &results[2].outcome,
+        Err(MeteringPipelineError::QuantityConflict { key, .. }) if key == &primary.dedup_key()
+    ) {
+        return Err(violation(
+            CHECK,
+            "conflicting duplicate did not surface QuantityConflict",
+        ));
+    }
+    if results[3].outcome != Ok(IngestOutcome::Recorded) {
+        return Err(violation(
+            CHECK,
+            "distinct post-conflict row was not Recorded",
+        ));
+    }
+    if !matches!(
+        results[4].outcome,
+        Err(MeteringPipelineError::Rejected(
+            UsageRejection::LateArrival { .. }
+        ))
+    ) {
+        return Err(violation(CHECK, "late row did not surface LateArrival"));
+    }
+    if sink
+        .lookup(&primary.dedup_key())
+        .map_err(|e| violation(CHECK, format!("lookup failed: {e}")))?
+        .as_ref()
+        != Some(&primary)
+    {
+        return Err(violation(CHECK, "primary row was not stored exactly once"));
+    }
+    if sink
+        .lookup(&distinct_dimension.dedup_key())
+        .map_err(|e| violation(CHECK, format!("lookup failed: {e}")))?
+        .as_ref()
+        != Some(&distinct_dimension)
+    {
+        return Err(violation(CHECK, "distinct row was not stored"));
+    }
+    if sink
+        .lookup(&late.dedup_key())
+        .map_err(|e| violation(CHECK, format!("lookup failed: {e}")))?
+        .is_some()
+    {
+        return Err(violation(CHECK, "late row was stored"));
+    }
+    Ok(())
+}
+
 /// One conformance check as run by [`run_all`].
 pub type Check<F> = fn(&F) -> Result<(), ConformanceViolation>;
 
 /// Runs every check, collecting all violations.
 pub fn run_all<F: SinkFixture>(fixture: &F) -> Vec<ConformanceViolation> {
-    let checks: [Check<F>; 4] = [
+    let checks: [Check<F>; 5] = [
         check_replay_is_duplicate,
         check_conflicting_replay_is_surfaced,
         check_distinct_keys_are_isolated,
         check_lateness_is_rejected_explicitly,
+        check_batch_ingest_reports_per_row_outcomes,
     ];
     checks
         .iter()
