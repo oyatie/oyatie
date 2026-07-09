@@ -13,15 +13,13 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-/// Fail-closed authorization seam for the Tenant RBAC control-plane
-/// (AUTH-005 / PLATFORM+TENANCY-CONTROL class; ADR-0593).
+/// Fail-closed authorization seam for the Tenant RBAC control-plane.
 ///
-/// Mirrors the accounting-http adapter pattern exactly (ADR-0593). See
-/// `billing/adapters/accounting-http/src/authz.rs` for the canonical
-/// design notes. Types are renamed to the `TenantRbac*` namespace; all
-/// security properties (constant-time bearer compare, AUTHN-before-body,
-/// verified-tenant injection, fail-closed PDP, no-default-allow) are
-/// identical.
+/// Accepted ADR anchors: ADR-0145 requires per-call Cedar authorization on
+/// service calls, ADR-0379 carries forward the Cedar-owns-application-authz
+/// separation, and ADR-0572 is the accepted fail-closed verified-principal +
+/// PDP boundary pattern for Cedar control planes. Proposed ADR-0593 remains a
+/// related sibling precedent only, not the authority for this product mutation.
 ///
 /// ## Folded rationale
 ///
@@ -31,9 +29,12 @@
 /// boundary is the same logical seam as in the siblings; only the file
 /// colocation differs.
 mod authz {
+    use std::collections::BTreeMap;
     use std::sync::Arc;
 
     use oya_http_middleware_kernel::{HttpRequest, HttpResponse, Middleware, Next};
+    use oya_shared_pdp_kernel::{EntityRecord, EntitySlice, PolicyDecisionPoint};
+    use oya_shared_platform_contracts_kernel::pdp::{AuthorizationRequest, Decision, EntityRef};
 
     /// Request header the bearer credential is presented in.
     pub const AUTHORIZATION_HEADER: &str = "authorization";
@@ -72,10 +73,7 @@ mod authz {
     }
 
     impl VerifiedPrincipal {
-        pub(crate) fn new(
-            principal_id: impl Into<String>,
-            tenant_id: impl Into<String>,
-        ) -> Self {
+        pub(crate) fn new(principal_id: impl Into<String>, tenant_id: impl Into<String>) -> Self {
             Self {
                 principal_id: principal_id.into(),
                 tenant_id: tenant_id.into(),
@@ -160,7 +158,7 @@ mod authz {
     #[derive(Clone, Debug, Eq, PartialEq)]
     pub struct TenantRbacMutationResource {
         /// Verified tenant — authority source, NOT caller body input.
-        pub tenant_id: String,                // data_class: INTERNAL_ONLY
+        pub tenant_id: String, // data_class: INTERNAL_ONLY
         pub action: TenantRbacMutationAction, // data_class: INTERNAL_ONLY
         pub route_template: String,           // data_class: INTERNAL_ONLY
     }
@@ -199,13 +197,140 @@ mod authz {
         ) -> Result<(), TenantRbacMutationAuthorizationError>;
     }
 
+    /// Adapter from the shared embedded PDP port to the Tenant RBAC
+    /// serving-path authorizer port.
+    ///
+    /// This is the AUTHZ-002 serving-path bridge: the route middleware verifies
+    /// an unforgeable principal, binds the resource tenant to that verified
+    /// principal, then this adapter projects the mutation into the shared PARC
+    /// PDP contract and fail-closes on deny, invalid projection, invalid PDP
+    /// response, or PDP fault.
+    #[derive(Clone)]
+    pub struct DecisionAuthorizer {
+        pdp: Arc<dyn PolicyDecisionPoint>, // data_class: INTERNAL_ONLY
+    }
+
+    impl DecisionAuthorizer {
+        #[must_use]
+        pub fn new(pdp: Arc<dyn PolicyDecisionPoint>) -> Self {
+            Self { pdp }
+        }
+    }
+
+    impl TenantRbacMutationAuthorizer for DecisionAuthorizer {
+        fn ensure_authorized(
+            &self,
+            principal: &VerifiedPrincipal,
+            resource: &TenantRbacMutationResource,
+        ) -> Result<(), TenantRbacMutationAuthorizationError> {
+            let action = resource.action.surface();
+            let principal_ref = EntityRef {
+                entity_type: "OyaPlatform::Principal".to_owned(),
+                entity_id: principal.principal_id().to_owned(),
+            };
+            let resource_ref = EntityRef {
+                entity_type: "OyaPlatform::TenantRbacMutation".to_owned(),
+                entity_id: format!("{}:{}", resource.tenant_id, action),
+            };
+            let tenant_ref = tenant_entity_ref(&resource.tenant_id);
+            let authz_request = AuthorizationRequest {
+                request_id: format!("req-{}", action.replace('.', "-")),
+                tenant_id: resource.tenant_id.clone(),
+                principal: principal_ref.clone(),
+                action: action.to_owned(),
+                resource: resource_ref.clone(),
+                context: BTreeMap::from([
+                    (
+                        "verified_tenant_id".to_owned(),
+                        serde_json::Value::String(principal.tenant_id().to_owned()),
+                    ),
+                    (
+                        "resource_tenant_id".to_owned(),
+                        serde_json::Value::String(resource.tenant_id.clone()),
+                    ),
+                    (
+                        "route_template".to_owned(),
+                        serde_json::Value::String(resource.route_template.clone()),
+                    ),
+                ]),
+                min_policy_version: None,
+            };
+            authz_request
+                .validate()
+                .map_err(|_| TenantRbacMutationAuthorizationError::Refused)?;
+
+            let entities = EntitySlice {
+                entities: vec![
+                    EntityRecord {
+                        uid: principal_ref,
+                        attributes: BTreeMap::from([(
+                            "tenant_id".to_owned(),
+                            serde_json::Value::String(principal.tenant_id().to_owned()),
+                        )]),
+                        parents: vec![tenant_ref.clone()],
+                    },
+                    EntityRecord {
+                        uid: resource_ref,
+                        attributes: BTreeMap::from([
+                            (
+                                "tenant_id".to_owned(),
+                                serde_json::Value::String(resource.tenant_id.clone()),
+                            ),
+                            (
+                                "action".to_owned(),
+                                serde_json::Value::String(action.to_owned()),
+                            ),
+                            (
+                                "route_template".to_owned(),
+                                serde_json::Value::String(resource.route_template.clone()),
+                            ),
+                        ]),
+                        parents: vec![tenant_ref.clone()],
+                    },
+                    EntityRecord {
+                        uid: tenant_ref,
+                        attributes: BTreeMap::from([(
+                            "tenant_id".to_owned(),
+                            serde_json::Value::String(resource.tenant_id.clone()),
+                        )]),
+                        parents: Vec::new(),
+                    },
+                ],
+            };
+            entities
+                .validate()
+                .map_err(|_| TenantRbacMutationAuthorizationError::Refused)?;
+
+            let outcome = self
+                .pdp
+                .authorize(&authz_request, &entities)
+                .map_err(|_| TenantRbacMutationAuthorizationError::Refused)?;
+            outcome
+                .response
+                .validate()
+                .map_err(|_| TenantRbacMutationAuthorizationError::Refused)?;
+            if outcome.response.decision == Decision::Allow {
+                Ok(())
+            } else {
+                Err(TenantRbacMutationAuthorizationError::Denied)
+            }
+        }
+    }
+
+    fn tenant_entity_ref(tenant_id: &str) -> EntityRef {
+        EntityRef {
+            entity_type: "OyaPlatform::Tenant".to_owned(),
+            entity_id: tenant_id.to_owned(),
+        }
+    }
+
     /// The authz provider the boundary depends on: a principal verifier PORT
     /// plus a Tenant RBAC mutation authorizer PORT. No `Default` impl — the
     /// composition root MUST supply both ports. There is no default-allow
     /// fallback.
     #[derive(Clone)]
     pub struct TenantRbacAuthzProvider {
-        verifier: Arc<dyn PrincipalVerifier>,              // data_class: INTERNAL_ONLY
+        verifier: Arc<dyn PrincipalVerifier>, // data_class: INTERNAL_ONLY
         authorizer: Arc<dyn TenantRbacMutationAuthorizer>, // data_class: INTERNAL_ONLY
     }
 
@@ -215,7 +340,10 @@ mod authz {
             verifier: Arc<dyn PrincipalVerifier>,
             authorizer: Arc<dyn TenantRbacMutationAuthorizer>,
         ) -> Self {
-            Self { verifier, authorizer }
+            Self {
+                verifier,
+                authorizer,
+            }
         }
 
         /// # Errors
@@ -303,7 +431,11 @@ mod authz {
             if bound_principal_id.trim().is_empty() || bound_tenant_id.trim().is_empty() {
                 return Err(AuthzProviderConfigError::EmptyBoundIdentity);
             }
-            Ok(Self { bearer_secret, bound_principal_id, bound_tenant_id })
+            Ok(Self {
+                bearer_secret,
+                bound_principal_id,
+                bound_tenant_id,
+            })
         }
     }
 
@@ -454,7 +586,11 @@ mod authz {
                 action,
                 route_template: template,
             };
-            if self.provider.ensure_authorized(&principal, &resource).is_err() {
+            if self
+                .provider
+                .ensure_authorized(&principal, &resource)
+                .is_err()
+            {
                 return Self::forbidden_403();
             }
 
@@ -551,30 +687,32 @@ mod authz {
                 PrincipalVerificationError::MissingCredential
             );
             assert_eq!(
-                v.verify_principal(&credential(Some("Bearer wrong"))).unwrap_err(),
+                v.verify_principal(&credential(Some("Bearer wrong")))
+                    .unwrap_err(),
                 PrincipalVerificationError::InvalidCredential
             );
             assert_eq!(
-                v.verify_principal(&credential(Some("Basic xyz"))).unwrap_err(),
+                v.verify_principal(&credential(Some("Basic xyz")))
+                    .unwrap_err(),
                 PrincipalVerificationError::InvalidCredential
             );
         }
 
         #[test]
         fn provider_maps_panicking_authorizer_to_refused() {
-            let provider =
-                TenantRbacAuthzProvider::new(Arc::new(verifier()), Arc::new(Panicker));
+            let provider = TenantRbacAuthzProvider::new(Arc::new(verifier()), Arc::new(Panicker));
             let principal = VerifiedPrincipal::new_for_test("sp_tenant_rbac", "ten_acme");
             assert_eq!(
-                provider.ensure_authorized(&principal, &resource()).unwrap_err(),
+                provider
+                    .ensure_authorized(&principal, &resource())
+                    .unwrap_err(),
                 TenantRbacMutationAuthorizationError::Refused
             );
         }
 
         #[test]
         fn provider_allows_when_authorizer_allows() {
-            let provider =
-                TenantRbacAuthzProvider::new(Arc::new(verifier()), Arc::new(AllowAll));
+            let provider = TenantRbacAuthzProvider::new(Arc::new(verifier()), Arc::new(AllowAll));
             let principal = VerifiedPrincipal::new_for_test("sp_tenant_rbac", "ten_acme");
             assert!(provider.ensure_authorized(&principal, &resource()).is_ok());
         }
@@ -641,31 +779,31 @@ mod authz {
 
 pub use authz::{
     AUTHORIZATION_HEADER, AuthzProviderConfigError, CallerCredential,
-    ConfiguredBearerPrincipalVerifier, PrincipalVerificationError, PrincipalVerifier,
-    TenantRbacAuthzMiddleware, TenantRbacAuthzProvider, TenantRbacMutationAction,
-    TenantRbacMutationAuthorizationError, TenantRbacMutationAuthorizer,
+    ConfiguredBearerPrincipalVerifier, DecisionAuthorizer, PrincipalVerificationError,
+    PrincipalVerifier, TenantRbacAuthzMiddleware, TenantRbacAuthzProvider,
+    TenantRbacMutationAction, TenantRbacMutationAuthorizationError, TenantRbacMutationAuthorizer,
     TenantRbacMutationResource, VERIFIED_TENANT_CAPTURE_KEY, VerifiedPrincipal,
     action_for_template, constant_time_eq,
 };
 
 use std::time::Duration;
 
-use oya_http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
-use oya_http_router_kernel::{HttpMethod, Router, RouterError};
-use oya_http_runtime_hyper_adapter::{
-    ServerConfig, SyncHandler, dispatch as dispatch_http, handler_to_sync,
-};
 use iam_tenant_rbac_api::{
     ApiErrorEnvelope, CrossServiceWorkflowPlanRequest, GroupCloseRollupRequest,
     IncidentRollbackPlanRequest, ServiceWriteAdmissionRequest, TenantRbacOpsCommandRequest,
+};
+use iam_tenant_rbac_domain::{
+    TenantRbacDomainError, admit_service_write, plan_cross_service_workflow,
+    plan_incident_rollback, roll_up_group_close_status,
 };
 use iam_tenant_rbac_usecase::{
     TenantRbacApplicationError, prepare_cross_service_workflow_envelope,
     prepare_incident_rollback_envelope, prepare_tenant_rbac_ops_envelope,
 };
-use iam_tenant_rbac_domain::{
-    TenantRbacDomainError, admit_service_write, plan_cross_service_workflow,
-    plan_incident_rollback, roll_up_group_close_status,
+use oya_http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
+use oya_http_router_kernel::{HttpMethod, Router, RouterError};
+use oya_http_runtime_hyper_adapter::{
+    ServerConfig, SyncHandler, dispatch as dispatch_http, handler_to_sync,
 };
 use serde::Serialize;
 
