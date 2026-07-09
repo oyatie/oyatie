@@ -1,9 +1,9 @@
 //! Repo-local regeneration proofs (always on, no external golden required):
-//!   1. Rendering from the committed template + SSOT + masterplan equals the
-//!      committed `product-graph.html` (the drift gate's invariant).
+//!   1. Rendering from the committed template + SSOT + controller-materialized
+//!      masterplan is deterministic (render twice -> identical bytes). The
+//!      de-committed `product-graph.html` is no longer a git-tracked golden.
 //!   2. The baked `const GRAPH = {...};` literal parses as JSON and carries the
 //!      five dashboard keys in order.
-//!   3. Rendering is idempotent (render twice -> identical bytes).
 
 use std::path::PathBuf;
 
@@ -33,14 +33,12 @@ fn render_dashboard() -> String {
 }
 
 #[test]
-fn regenerated_matches_committed_html() {
-    let rendered = render_dashboard();
-    let committed =
-        std::fs::read_to_string(repo_root().join("docs/architecture/product-graph.html"))
-            .expect("committed product-graph.html readable");
+fn regenerated_product_graph_is_deterministic() {
+    let first = render_dashboard();
+    let second = render_dashboard();
     assert_eq!(
-        rendered, committed,
-        "committed product-graph.html must equal the regenerated dashboard (run --write to fix drift)"
+        first, second,
+        "regenerating product-graph.html from identical source inputs must be byte-deterministic; failures indicate nondeterministic generation or source-input drift, not a missing committed HTML golden"
     );
 }
 
@@ -91,9 +89,4 @@ fn baked_graph_literal_parses_with_dashboard_keys() {
         keys,
         ["_meta", "verticals", "techstack", "masterplan", "lanes"]
     );
-}
-
-#[test]
-fn rendering_is_idempotent() {
-    assert_eq!(render_dashboard(), render_dashboard());
 }
