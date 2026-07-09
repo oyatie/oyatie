@@ -19,28 +19,28 @@ const REQUIRED_EXTERNAL_LLM_DENYLIST: [&str; 3] = ["Anthropic", "OpenAI", "Googl
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct SovereignDeploymentModelManifest {
-    pub manifest_schema_version: u16,
-    pub deployment_model: SovereignDeploymentModelIdentity,
-    pub source_authority: SovereignDeploymentModelAuthority,
-    pub pack_overlay: SovereignPackOverlayBinding,
-    pub artifact_bundle: SovereignArtifactBundleEvidence,
-    pub no_external_egress_validation: NoExternalEgressValidation,
-    pub ownership: SovereignDeploymentOwnership,
-    pub recovery_objectives: SovereignRecoveryObjectives,
-    pub slo_targets: Vec<SovereignSloTarget>,
-    pub claim_ceiling: String,
+    pub manifest_schema_version: u16, // data_class: INTERNAL_ONLY
+    pub deployment_model: SovereignDeploymentModelIdentity, // data_class: INTERNAL_ONLY
+    pub source_authority: SovereignDeploymentModelAuthority, // data_class: INTERNAL_ONLY
+    pub pack_overlay: SovereignPackOverlayBinding, // data_class: INTERNAL_ONLY
+    pub artifact_bundle: SovereignArtifactBundleEvidence, // data_class: INTERNAL_ONLY
+    pub no_external_egress_validation: NoExternalEgressValidation, // data_class: INTERNAL_ONLY
+    pub ownership: SovereignDeploymentOwnership, // data_class: INTERNAL_ONLY
+    pub recovery_objectives: SovereignRecoveryObjectives, // data_class: INTERNAL_ONLY
+    pub slo_targets: Vec<SovereignSloTarget>, // data_class: INTERNAL_ONLY
+    pub claim_ceiling: String,        // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct SovereignDeploymentModelIdentity {
-    pub id: String,
-    pub kind: SovereignDeploymentModelKind,
-    pub pack_id: String,
-    pub jurisdiction: String,
-    pub home_region: String,
-    pub cell_topology: String,
-    pub status: String,
+    pub id: String,                         // data_class: INTERNAL_ONLY
+    pub kind: SovereignDeploymentModelKind, // data_class: INTERNAL_ONLY
+    pub pack_id: String,                    // data_class: INTERNAL_ONLY
+    pub jurisdiction: String,               // data_class: INTERNAL_ONLY
+    pub home_region: String,                // data_class: INTERNAL_ONLY
+    pub cell_topology: String,              // data_class: INTERNAL_ONLY
+    pub status: String,                     // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
@@ -52,68 +52,68 @@ pub enum SovereignDeploymentModelKind {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct SovereignDeploymentModelAuthority {
-    pub accepted_adrs: Vec<String>,
+    pub accepted_adrs: Vec<String>, // data_class: INTERNAL_ONLY
     #[serde(default)]
-    pub planning_context_adrs: Vec<String>,
+    pub planning_context_adrs: Vec<String>, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct SovereignPackOverlayBinding {
-    pub canonical_matrix_pack_id: String,
-    pub air_gap: bool,
-    pub sovereign_overlay_ref: String,
-    pub regulator: String,
-    pub data_classes: Vec<String>,
-    pub on_prem_substitutions: Vec<String>,
+    pub canonical_matrix_pack_id: String, // data_class: INTERNAL_ONLY
+    pub air_gap: bool,                    // data_class: INTERNAL_ONLY
+    pub sovereign_overlay_ref: String,    // data_class: INTERNAL_ONLY
+    pub regulator: String,                // data_class: INTERNAL_ONLY
+    pub data_classes: Vec<String>,        // data_class: INTERNAL_ONLY
+    pub on_prem_substitutions: Vec<String>, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct SovereignArtifactBundleEvidence {
-    pub format: String,
-    pub bundle_ref: String,
-    pub digest: String,
-    pub signature_ref: String,
-    pub signature_profile: String,
-    pub signing_status: String,
+    pub format: String,            // data_class: INTERNAL_ONLY
+    pub bundle_ref: String,        // data_class: INTERNAL_ONLY
+    pub digest: String,            // data_class: INTERNAL_ONLY
+    pub signature_ref: String,     // data_class: INTERNAL_ONLY
+    pub signature_profile: String, // data_class: INTERNAL_ONLY
+    pub signing_status: String,    // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct NoExternalEgressValidation {
-    pub mode: String,
-    pub external_api_egress_policy: String,
-    pub allowed_external_hosts: Vec<String>,
-    pub service_entry_external_hosts_absent: bool,
-    pub cilium_l7_egress_deny: bool,
-    pub forbidden_external_llm_providers: Vec<String>,
-    pub validation_evidence_ref: String,
+    pub mode: String,                                  // data_class: INTERNAL_ONLY
+    pub external_api_egress_policy: String,            // data_class: INTERNAL_ONLY
+    pub allowed_external_hosts: Vec<String>,           // data_class: INTERNAL_ONLY
+    pub service_entry_external_hosts_absent: bool,     // data_class: INTERNAL_ONLY
+    pub cilium_l7_egress_deny: bool,                   // data_class: INTERNAL_ONLY
+    pub forbidden_external_llm_providers: Vec<String>, // data_class: INTERNAL_ONLY
+    pub validation_evidence_ref: String,               // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct SovereignDeploymentOwnership {
-    pub service_owner: String,
-    pub operational_owner: String,
-    pub regulator_engagement_owner: String,
-    pub evidence_owner: String,
+    pub service_owner: String,              // data_class: INTERNAL_ONLY
+    pub operational_owner: String,          // data_class: INTERNAL_ONLY
+    pub regulator_engagement_owner: String, // data_class: INTERNAL_ONLY
+    pub evidence_owner: String,             // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct SovereignRecoveryObjectives {
-    pub rto: String,
-    pub rpo: String,
-    pub dr_mode: String,
+    pub rto: String,     // data_class: INTERNAL_ONLY
+    pub rpo: String,     // data_class: INTERNAL_ONLY
+    pub dr_mode: String, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct SovereignSloTarget {
-    pub id: String,
-    pub objective: String,
-    pub evidence_status: String,
+    pub id: String,              // data_class: INTERNAL_ONLY
+    pub objective: String,       // data_class: INTERNAL_ONLY
+    pub evidence_status: String, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
