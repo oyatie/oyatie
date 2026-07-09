@@ -341,7 +341,12 @@ jobs:
           fi
           git fetch --no-tags --prune origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
           policy_bin="$(buck2 build //ci/facade/generated-artifact-policy:oya-cloud-ci-generated-output-diff-policy --show-output | awk '{print $2}')"
-          git diff --name-status "origin/${BASE_REF}"...HEAD \
+          # --find-renames is REQUIRED, not cosmetic: the policy's sanctioned-relocation exemption
+          # only accepts byte-identical (R100) renames of declared generated artifacts (a capability
+          # move relocating the firewall's frozen gate-baseline). Without explicit rename detection a
+          # runner with diff.renames=off would surface the move as A+D and RED the legit move (fails
+          # safe, but false-blocks). Detection ON + the R100-only exemption is the correct behavior.
+          git diff --find-renames --name-status "origin/${BASE_REF}"...HEAD \
             | "${policy_bin}" --manifest registry/generated-artifact-control-plane.json
 
   # ── HERMETIC BUCK2 LANE (OYA-CI-HERMETIC-EXECUTION-DESIGN §3 + Stage P1/P2). Runs the SAME
