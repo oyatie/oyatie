@@ -1,0 +1,28 @@
+# RESILIENCE-001 scenario catalog entry only; not a live chaos execution.
+apiVersion: chaos-mesh.org/v1alpha1
+kind: Workflow
+metadata:
+  name: messenger-pod-kill
+  namespace: messenger
+  labels:
+    app.kubernetes.io/name: messenger
+    oya.dev/source-task: t_c127bb35
+    oya.dev/claim-status: scenario-catalog-only
+  annotations:
+    oya.dev/slo-gates: message-send-availability,message-send-latency
+    oya.dev/nonclaim: no-live-chaos-execution
+spec:
+  entry: messenger-pod-kill
+  templates:
+    - name: messenger-pod-kill
+      templateType: PodChaos
+      deadline: 2m
+      podChaos:
+        action: pod-kill
+        mode: one
+        selector:
+          namespaces:
+            - messenger
+          labelSelectors:
+            app.kubernetes.io/name: messenger
+        duration: 30s
