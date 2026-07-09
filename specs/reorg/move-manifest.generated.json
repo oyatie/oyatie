@@ -1,34 +1,7 @@
 {
-  "capability": "comms",
-  "crate_dirs": [
-    {
-      "new_path": "comms/core/calendar-domain",
-      "old_path": "oya/calendar/crates/oya-calendar-domain"
-    }
-  ],
-  "crate_idents": [
-    {
-      "new": "comms-calendar-domain",
-      "old": "oya-calendar-domain"
-    }
-  ],
-  "files": [
-    {
-      "new_path": "comms/core/calendar-domain/BUCK",
-      "old_path": "oya/calendar/crates/oya-calendar-domain/BUCK"
-    },
-    {
-      "new_path": "comms/core/calendar-domain/Cargo.toml",
-      "old_path": "oya/calendar/crates/oya-calendar-domain/Cargo.toml"
-    },
-    {
-      "new_path": "comms/core/calendar-domain/src/lib.rs",
-      "old_path": "oya/calendar/crates/oya-calendar-domain/src/lib.rs"
-    },
-    {
-      "new_path": "registry/catalog/comms-calendar-domain.yaml",
-      "old_path": "registry/catalog/oya-calendar-domain.yaml"
-    }
-  ],
+  "capability": "",
+  "crate_dirs": [],
+  "crate_idents": [],
+  "files": [],
   "schema": "oya-ci/reorg-move-manifest/v1"
 }

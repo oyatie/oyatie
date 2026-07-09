@@ -812,15 +812,15 @@ fn frozen_snapshot_provenance_matches_ratchet_policy() {
     );
     let snapshot = load_json(&frozen_snapshot_path(&root));
     // FROZEN-POLICY-WINS (FRIC-1781280000): the snapshot's face_path is read from the
-    // ratchet policy AS COMMITTED AT THE MERGE-BASE, never the candidate policy. Across the
-    // ci keystone move (cloud/cloud-ci/gates -> ci/facade/, ADR-0562/0563) the merge-base
-    // policy still points at the OLD producer face path while the CANDIDATE policy has been
-    // repointed to the new ci/facade path — so the two legitimately DIFFER for this move PR.
-    // The snapshot correctly records the OLD (merge-base) face path; asserting it equals the
-    // candidate policy face path would be the self-laundering hole this property guards
-    // against. Assert the OLD path directly; once this move merges the two re-converge.
+    // ratchet policy AS COMMITTED AT THE MERGE-BASE, never the candidate policy. The ci keystone
+    // move (cloud/cloud-ci/gates -> ci/facade/, ADR-0562/0563) has MERGED, so the merge-base
+    // policy now points at the NEW ci/facade face path — the merge-base and candidate policies
+    // have RE-CONVERGED (the transitional OLD-path assertion that held during the move PR is
+    // retired here, as its own comment anticipated). Asserting the frozen face_path is the
+    // concrete merge-base path (never a candidate-bootstrap fallback) still guards the
+    // self-laundering hole this property exists for.
     const FROZEN_MERGE_BASE_FACE_PATH: &str =
-        "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json";
+        "ci/facade/artifact-inventory-registry/gate-baseline.generated.json";
     assert_eq!(
         snapshot["face_path"].as_str(),
         Some(FROZEN_MERGE_BASE_FACE_PATH),
