@@ -1,0 +1,27 @@
+{
+  "gate_id": "cloud-ci-contract-slice-conformance",
+  "primary_execution_path": "rust_buck2_cloud_ci_gate",
+  "purpose": "Paved-road owned-Rust/Buck2 gate that replaces the scripts/tests/*_check.py contract-slice validators. A worker adds a slice entry here plus a committed spec JSON; no new Python, shell, CLI, or crate. See README.md for the instantiation recipe.",
+  "related_adrs": [
+    "ADR-0515",
+    "ADR-0523",
+    "ADR-0528"
+  ],
+  "slices": [
+    {
+      "slice_id": "contract-slice-conformance-exemplar",
+      "spec_path": "fixtures/exemplar-slice.json",
+      "required_fields": [
+        "slice_id",
+        "spec_kind",
+        "cloud_ci_gate",
+        "required_contract_fields",
+        "non_claims"
+      ],
+      "enum_constraints": [
+        { "field": "spec_kind", "allowed": ["contract-slice"] }
+      ],
+      "forbidden_markers": []
+    }
+  ]
+}

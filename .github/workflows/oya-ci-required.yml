@@ -139,6 +139,7 @@ jobs:
           - { crate: canonical-json,          label: "gate · canonical-json (ADR-0546, deterministic JSON serialization)" }
           - { crate: parity-claim-evidence, label: "gate · hyperscaler-parity-taxonomy (cloud hyperscaler parity taxonomy, born-blocking)" }
           - { crate: resource-contract-conformance, label: "gate · cloud-resource-contracts (Rust/API replacement for P0 cloud-resource Python validators)" }
+          - { crate: contract-slice-conformance, label: "gate · contract-slice-conformance (paved-road Rust/Buck2 replacement for scripts/tests/*_check.py contract-slice validators; ADR-0515/0523/0528)" }
           - { crate: embedded-asset-hermeticity, label: "gate · embedded-asset-hermeticity (ADR-0545, include_str!/include_bytes! __srcs-tree mapping)" }
           - { crate: core-dependency-isolation,           label: "gate · kernel-purity (ADR-0547, *-kernel/*-core zero transient-tech deps)" }
           - { crate: crypto-backend-policy,   label: "gate · crypto-backend-purity (ADR-0506, ring forbidden / aws-lc-rs mandated — zero ring activation)" }
