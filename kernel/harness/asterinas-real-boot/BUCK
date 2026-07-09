@@ -58,3 +58,29 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [":kernel-asterinas-real-boot", _BOUNDARY] + _TP_CORE,
 )
+
+rust_binary(
+    # SHARD-2 SOAK orchestration binary: the permitted std::process external-tool surface
+    # (invokes qemu-system-x86_64). Verifies the ISO once, then runs up to 3 whole-soak attempts
+    # of 10 fresh-VM cold boots each, and writes the per-attempt + aggregate receipts (honest-fail
+    # gap-register on exhaustion). The soak loop + receipt assembly are the pure harness::soak lib.
+    name = "kernel-asterinas-real-boot-soak",
+    srcs = ["src/soak.rs"],
+    crate_root = "src/soak.rs",
+    visibility = ["PUBLIC"],
+    # soak.rs scans no markers itself (it delegates to the lib, which owns _REGEX transitively),
+    # so the binary carries no direct regex dep — matches the -soak-integration/-integration sets.
+    deps = [":kernel-asterinas-real-boot", _BOUNDARY] + _TP_CORE,
+)
+
+rust_test(
+    # SHARD-2 SOAK integration test: exercises the PURE soak loop + attempt/aggregate/honest-fail
+    # assembly (run_soak_with_boot_runner) end-to-end against on-disk serial-log fixtures, covering
+    # a clean 10/10 pass, a failed-attempt retry with no cross-attempt aggregation, and the
+    # exhausted honest-fail gap-register. No QEMU / no network — deterministic file-only fixtures.
+    name = "kernel-asterinas-real-boot-soak-integration",
+    srcs = ["tests/soak_integration.rs"],
+    crate_root = "tests/soak_integration.rs",
+    visibility = ["PUBLIC"],
+    deps = [":kernel-asterinas-real-boot", _BOUNDARY] + _TP_CORE,
+)
