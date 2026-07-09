@@ -9,7 +9,8 @@ use oya_cloud_ci_rust_first_automation_hygiene_app::{
     collect_observed_forbidden_workflow_uses, collect_observed_interpreter_command_authority,
     collect_observed_non_rust_automation, collect_observed_workflow_inline_shell, evaluate,
     evaluate_cli_package_authority, evaluate_forbidden_workflow_uses,
-    evaluate_interpreter_command_authority, evaluate_keyed, evaluate_workflow_inline_shell_keyed,
+    evaluate_interpreter_command_authority, evaluate_keyed,
+    evaluate_non_rust_exception_baseline_keyed, evaluate_workflow_inline_shell_keyed,
 };
 use serde_json::{Value, json};
 
@@ -263,6 +264,95 @@ fn retired_baselined_inline_shell_is_stale_red() {
     assert!(findings.iter().any(|finding| {
         finding.code == "rust_first_automation_workflow_inline_shell_baseline_stale"
             && finding.key == ".github/workflows/docs-graph-drift.yml::docs-graph-drift::step-3"
+    }));
+}
+
+// ─────────────────── non-Rust-exception SHRINK-ONLY dimension ───────────────────
+
+/// The live exceptions[] allowlist must equal the frozen review-visible baseline EXACTLY: a NEW
+/// non-Rust bridge beyond baseline is born-blocking, a removed bridge must shrink the baseline in
+/// the same PR. With the allowlist == baseline, the dimension is GREEN today, and the
+/// _provenance.keys_total tripwire must match the baseline array length.
+#[test]
+fn live_non_rust_exceptions_match_frozen_baseline_green() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let baseline = &policy["non_rust_exception_baseline"];
+
+    let findings = evaluate_non_rust_exception_baseline_keyed(&policy, baseline);
+    assert!(
+        findings.is_empty(),
+        "non-Rust-exception dimension found shrink-only violations: \
+         {findings:#?}\n  unbaselined (new beyond baseline) = {:?}\n  stale (baselined but gone) = {:?}",
+        keys_for(&findings, "rust_first_automation_unbaselined_non_rust_exception"),
+        keys_for(&findings, "rust_first_automation_non_rust_exception_baseline_stale"),
+    );
+
+    let codes_len = baseline["codes"]["rust_first_automation_unbaselined_non_rust_exception"]
+        .as_array()
+        .expect("baseline codes array")
+        .len();
+    let provenance_total = baseline["_provenance"]["keys_total"]
+        .as_u64()
+        .expect("baseline _provenance.keys_total") as usize;
+    assert_eq!(
+        codes_len, provenance_total,
+        "baseline _provenance.keys_total ({provenance_total}) must equal the codes array length \
+         ({codes_len})"
+    );
+}
+
+/// RED FIXTURE (mandatory, proves non-inert): a NEW exceptions[] path beyond the frozen baseline
+/// must make the dimension RED with the new path surfaced under the unbaselined code, while a
+/// baselined path is not flagged.
+#[test]
+fn new_non_rust_exception_beyond_baseline_is_born_blocking_red() {
+    let baseline = json!({
+        "codes": {
+            "rust_first_automation_unbaselined_non_rust_exception": [
+                "scripts/tests/cloud_control_plane_operation_contract_check.py"
+            ]
+        }
+    });
+    let policy = json!({
+        "exceptions": [
+            { "path": "scripts/tests/cloud_control_plane_operation_contract_check.py" },
+            { "path": "scripts/tests/cell_002_promotion_automation_check.py" }
+        ]
+    });
+    let findings = evaluate_non_rust_exception_baseline_keyed(&policy, &baseline);
+    assert!(
+        findings.iter().any(|finding| {
+            finding.code == "rust_first_automation_unbaselined_non_rust_exception"
+                && finding.key == "scripts/tests/cell_002_promotion_automation_check.py"
+        }),
+        "a new non-Rust bridge beyond baseline must be born-blocking with its path surfaced; got \
+         {findings:#?}"
+    );
+    assert!(
+        !findings.iter().any(|finding| {
+            finding.key == "scripts/tests/cloud_control_plane_operation_contract_check.py"
+        }),
+        "an accepted baselined exception must not be flagged"
+    );
+}
+
+/// A baselined exception no longer declared must surface the stale code (forces the baseline to
+/// shrink in the same PR when a bridge is retired).
+#[test]
+fn retired_baselined_non_rust_exception_is_stale_red() {
+    let baseline = json!({
+        "codes": {
+            "rust_first_automation_unbaselined_non_rust_exception": [
+                "scripts/tests/cloud_control_plane_operation_contract_check.py"
+            ]
+        }
+    });
+    let policy = json!({ "exceptions": [] });
+    let findings = evaluate_non_rust_exception_baseline_keyed(&policy, &baseline);
+    assert!(findings.iter().any(|finding| {
+        finding.code == "rust_first_automation_non_rust_exception_baseline_stale"
+            && finding.key == "scripts/tests/cloud_control_plane_operation_contract_check.py"
     }));
 }
 
