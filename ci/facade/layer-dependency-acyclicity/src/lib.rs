@@ -1154,12 +1154,24 @@ pub fn tarjan_sccs(
 
 /// Count baselined violations that are NO LONGER present in the live findings (burn-down progress).
 fn count_burned_down(baseline: &Baseline, findings: &[Finding]) -> usize {
+    let stale_subjects: BTreeSet<&str> = findings
+        .iter()
+        .filter(|f| f.code == "TDA-STALE-BASELINE")
+        .map(|f| f.subject.as_str())
+        .collect();
     let live: BTreeSet<String> = findings
         .iter()
         .filter(|f| f.code != "TDA-POLICY-MALFORMED" && f.code != "TDA-BASELINE-MALFORMED")
         .map(|f| Baseline::key_of(&f.code, &f.subject))
         .collect();
-    baseline.keys.iter().filter(|k| !live.contains(*k)).count()
+    baseline
+        .keys
+        .iter()
+        .filter(|k| {
+            let subject = k.split_once('|').map_or(k.as_str(), |(_, subject)| subject);
+            !stale_subjects.contains(subject) && !live.contains(*k)
+        })
+        .count()
 }
 
 /// Baseline-liveness backstop (B3 hardening). A subset-semantics baseline blocks only on NEW
