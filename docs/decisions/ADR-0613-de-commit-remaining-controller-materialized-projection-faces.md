@@ -92,9 +92,12 @@ A future ADR may de-commit move-manifest only with an explicit ADR-0563 amendmen
    path rule for the dashboard).
 2. **Freshness gate** (`ci/facade/generated-artifact-freshness`): no code change. product-graph is
    already in `CONTROLLER_MATERIALIZED_ARTIFACT_PATHS` and validated by the regenerate-twice
-   determinism canary. masterplan is outside this gate; its freshness is owned by the
-   masterplan-drift gate, which already short-circuits on a `controller-materialized` `output_mode`
-   to a regeneration-success check rather than committed-byte parity.
+   determinism canary — and because that canary regenerates masterplan FIRST, a masterplan
+   regeneration failure is RED in required CI every run (masterplan's freshness is enforced
+   transitively through the dashboard, not by a committed-byte check it never had). The
+   `masterplan-drift` lane (`registry/quality/lanes.yaml`, a dev-cli local bridge) is feedback, not
+   merge authority; it already short-circuits on `output_mode: controller-materialized` to a
+   regeneration-success check rather than committed-byte parity.
 3. **`.gitignore`**: documents the de-commit; adds the explicit `docs/architecture/product-graph.html`
    line and records the move-manifest deferral rationale inline.
 4. **`docs-graph-drift.yml`** (feedback-only, NOT branch-protection-required): re-taught — it
