@@ -19,6 +19,13 @@ path = "src/main.rs"
 name = "kernel-asterinas-real-boot-boot"
 path = "src/boot.rs"
 
+[[bin]]
+# SHARD-2 SOAK orchestration: verify the ISO once, then run up to 3 whole-soak attempts of 10
+# fresh-VM cold boots each in QEMU, writing per-attempt + aggregate receipts (honest-fail
+# gap-register on exhaustion). The soak loop + receipt assembly are the pure harness::soak lib.
+name = "kernel-asterinas-real-boot-soak"
+path = "src/soak.rs"
+
 [dependencies]
 kernel-asterinas-boundary = { path = "../../core/asterinas-boundary" }
 # Typed HTTP client — the only permitted non-Rust surface for the fetch is the
