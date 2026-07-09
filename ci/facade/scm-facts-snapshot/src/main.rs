@@ -138,10 +138,11 @@ fn run() -> Result<(), String> {
         Some(root) => root,
         None => discover_repo_root()?,
     };
-    // The move-aware resolver over the committed manifest (fail-closed empty => identity). The
-    // candidate write targets are its CURRENT-canonical seeds; the merge-base baseline mode below
-    // uses it for the frozen-reference name resolution.
-    let resolver = ManifestPathResolver::load(&repo_root);
+    // The move-aware resolver over the materialized manifest. FAIL-CLOSED on ABSENT (ADR-0614): a
+    // missing move-manifest is a HARD error here (the materializer, step 1, did not run) — NOT a
+    // silent identity relabel. The candidate write targets are its CURRENT-canonical seeds; the
+    // merge-base baseline mode below uses it for the frozen-reference name resolution.
+    let resolver = ManifestPathResolver::load(&repo_root)?;
     let out = out.unwrap_or_else(|| repo_root.join(resolver.candidate(PathId::ScmFactsFace)));
     let volatile_out =
         volatile_out.unwrap_or_else(|| repo_root.join(resolver.candidate(PathId::VolatileFacts)));
@@ -777,11 +778,12 @@ struct RelabelInputs<'a, C: CandidateSource> {
     vocab_policy: &'a VocabPolicy,
 }
 
-/// Load the committed move-manifest from the CANDIDATE tree (task #64). FAIL-CLOSED: a
-/// missing/unreadable/unparseable manifest yields the EMPTY manifest (identity relabel — the
-/// firewall reads the honest stale frozen face). The registry-drift/freshness byte-binding is
-/// the trust root; this is the in-emitter shape guard.
-fn load_move_manifest(repo_root: &Path) -> MoveManifest {
+/// Load the move-manifest from the CANDIDATE tree (task #64). FAIL-CLOSED on ABSENT (ADR-0614): a
+/// missing/unreadable manifest is a HARD `Err` — the materializer (`materialize_move_manifest`,
+/// step 1) did not run, a pipeline precondition failure that must block loudly, not degrade to a
+/// silent identity relabel. A PRESENT-but-unparseable/foreign body stays `Ok(empty)` (identity):
+/// the anti-laundering leniency — a forged manifest is never trusted (see [`MoveManifest::load`]).
+fn load_move_manifest(repo_root: &Path) -> Result<MoveManifest, String> {
     MoveManifest::load(repo_root, MOVE_MANIFEST_PATH)
 }
 
@@ -851,10 +853,11 @@ fn emit_merge_base_baseline(
     let candidate_policy = parse_ratchet_policy(&policy_text)?;
 
     // RENAME-AWARE RELABEL inputs (task #64), all read from the CANDIDATE tree:
-    //  - the committed move-manifest (the bijection; fail-closed empty => identity relabel);
+    //  - the materialized move-manifest (the bijection; fail-CLOSED Err on ABSENT, ADR-0614; a
+    //    present-but-forged body still collapses to an identity relabel);
     //  - the LIVE VocabPolicy from oya-ci.toml (the same source the producer censuses with);
     //  - the candidate source (git ls-files existence + on-disk content).
-    let manifest = load_move_manifest(repo_root);
+    let manifest = load_move_manifest(repo_root)?;
     let vocab_policy = load_vocab_policy(repo_root)?;
     let candidate = CandidateFsSource { repo_root };
     let relabel = RelabelInputs {
