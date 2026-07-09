@@ -1,4 +1,4 @@
-//! # oya-messaging-substrate-kernel
+//! # messaging-substrate-kernel
 //!
 //! The ONE owned messaging substrate interface (ADR-0536 D-13; G009 lane).
 //!
@@ -36,10 +36,11 @@
 //! subscriptions; stream = a seekable cursor subscription.
 //!
 //! # Naming justification
-//! `oya-messaging-substrate-kernel` follows BNF v4.1:
-//! `oya-<topic:messaging-substrate>-<layer:kernel>`, mirroring
-//! `oya-data-boundary-kernel` (owned substrate interface crates carry the
-//! owned-surface name, not a vendor name).
+//! `messaging-substrate-kernel` = `<capability:messaging>-<leaf:substrate-kernel>`,
+//! the de-branded name for path `messaging/core/substrate-kernel` (ADR-0562
+//! capability-first; ADR-0532/0533 de-brand drops the vendor prefix), mirroring
+//! the sibling leaf `messaging/core/domain` (`messaging-domain`) — owned
+//! substrate interface crates carry the owned-surface name, not a vendor name.
 //!
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
