@@ -192,3 +192,29 @@ fn cell_002_slice_rejects_status_downgrade_and_missing_source_adr() {
         "a missing required source ADR must be rejected"
     );
 }
+
+/// Proves the six-input promotion gate is ENFORCED, not just present: dropping an
+/// input and flipping a refusal_behavior to best-effort must both RED.
+#[test]
+fn cell_002_six_input_promotion_gate_is_enforced() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let cell_spec = "specs/cell-002-promotion-automation-contract.json";
+
+    // Drop G6 and weaken G1's refusal to best-effort.
+    let mut corpus = live_corpus(&root, &policy);
+    corpus.get_mut(cell_spec).unwrap()["promotion_gate"]["six_inputs"] = json!([
+        { "id": "G1_error_budget", "name": "Error budget intact", "source_adr": "ADR-0341",
+          "evidence_authority": "observability", "required_evidence_fields": ["cell_id"],
+          "refusal_behavior": "best_effort" }
+    ]);
+    let violations = evaluate_configured(&policy, &corpus).violations;
+    assert!(
+        violations.contains("contract_slice_missing_object_array_member"),
+        "dropping a promotion-gate input must be rejected: {violations:?}"
+    );
+    assert!(
+        violations.contains("contract_slice_object_member_enum_violation"),
+        "a non-fail-closed promotion-gate input must be rejected: {violations:?}"
+    );
+}
