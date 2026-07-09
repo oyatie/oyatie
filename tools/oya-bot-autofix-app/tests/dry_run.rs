@@ -1,4 +1,6 @@
-use oya_bot_autofix_app::{Action, BotPolicy, DeliveryMode, DryRunInput, render_dry_run};
+use oya_bot_autofix_app::{
+    Action, AutofixError, BotPolicy, DeliveryMode, DryRunInput, render_dry_run,
+};
 use oya_ci_gate_contract::{ByteRange, Edit, Remediation};
 
 #[test]
@@ -92,4 +94,61 @@ fn policy_is_propose_only_and_cannot_merge_or_bypass_gates() {
 
     assert!(policy.authorize(Action::MergePullRequest).is_err());
     assert!(policy.authorize(Action::BypassGates).is_err());
+}
+
+#[test]
+fn dry_run_rejects_out_of_bounds_ranges() {
+    let original = "[package]\n";
+    let remediation = Remediation::AutoFix(Edit::new(
+        "libs/example/Cargo.toml",
+        ByteRange::new(0, original.len() + 1).expect("contract permits range construction"),
+        "",
+    ));
+
+    let error = render_dry_run(DryRunInput {
+        remediation: &remediation,
+        original_text: original,
+    })
+    .expect_err("dry-run must reject byte ranges outside the original text");
+
+    assert!(matches!(error, AutofixError::ByteRangeOutOfBounds { .. }));
+}
+
+#[test]
+fn dry_run_rejects_non_utf8_boundary_ranges() {
+    let original = "name = \"é\"\n";
+    let remediation = Remediation::AutoFix(Edit::new(
+        "libs/example/Cargo.toml",
+        ByteRange::new(9, 9).expect("contract permits byte offsets"),
+        "e",
+    ));
+
+    let error = render_dry_run(DryRunInput {
+        remediation: &remediation,
+        original_text: original,
+    })
+    .expect_err("dry-run must reject ranges that split UTF-8 code points");
+
+    assert!(matches!(
+        error,
+        AutofixError::ByteRangeNotUtf8Boundary { .. }
+    ));
+}
+
+#[test]
+fn dry_run_rejects_unreviewable_paths() {
+    let original = "[package]\n";
+    let remediation = Remediation::AutoFix(Edit::new(
+        "../Cargo.toml\n+++ b/forged",
+        ByteRange::new(0, 0).expect("valid insertion range"),
+        "license = \"Apache-2.0\"\n",
+    ));
+
+    let error = render_dry_run(DryRunInput {
+        remediation: &remediation,
+        original_text: original,
+    })
+    .expect_err("dry-run must reject paths that can forge diff headers");
+
+    assert!(matches!(error, AutofixError::InvalidPath { .. }));
 }

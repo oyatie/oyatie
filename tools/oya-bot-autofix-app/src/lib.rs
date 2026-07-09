@@ -8,6 +8,7 @@
 
 use std::error::Error;
 use std::fmt;
+use std::path::{Component, Path};
 
 use oya_ci_gate_contract::{Edit, NewFile, Remediation};
 
@@ -115,6 +116,10 @@ pub enum AutofixError {
         start: usize,
         end: usize,
     },
+    InvalidPath {
+        path: String,
+        reason: &'static str,
+    },
 }
 
 impl fmt::Display for AutofixError {
@@ -135,6 +140,9 @@ impl fmt::Display for AutofixError {
                 f,
                 "remediation byte range {start}..{end} does not align to UTF-8 boundaries in {path}"
             ),
+            Self::InvalidPath { path, reason } => {
+                write!(f, "remediation path {path:?} is not reviewable: {reason}")
+            }
         }
     }
 }
@@ -146,7 +154,7 @@ pub fn render_dry_run(input: DryRunInput<'_>) -> Result<DryRunReport, AutofixErr
 
     let diff = match input.remediation {
         Remediation::AutoFix(edit) => render_edit_diff(edit, input.original_text)?,
-        Remediation::AutoGenerate(new_file) => render_new_file_diff(new_file),
+        Remediation::AutoGenerate(new_file) => render_new_file_diff(new_file)?,
         Remediation::None => return Err(AutofixError::NoRemediation),
     };
 
@@ -157,6 +165,8 @@ pub fn render_dry_run(input: DryRunInput<'_>) -> Result<DryRunReport, AutofixErr
 }
 
 fn render_edit_diff(edit: &Edit, original_text: &str) -> Result<String, AutofixError> {
+    validate_reviewable_repo_path(&edit.path)?;
+
     let len = original_text.len();
     let start = edit.byte_range.start;
     let end = edit.byte_range.end;
@@ -188,7 +198,9 @@ fn render_edit_diff(edit: &Edit, original_text: &str) -> Result<String, AutofixE
     ))
 }
 
-fn render_new_file_diff(new_file: &NewFile) -> String {
+fn render_new_file_diff(new_file: &NewFile) -> Result<String, AutofixError> {
+    validate_reviewable_repo_path(&new_file.path)?;
+
     let mut diff = String::new();
     diff.push_str(&format!(
         "diff --git a/{path} b/{path}\n",
@@ -201,7 +213,7 @@ fn render_new_file_diff(new_file: &NewFile) -> String {
     for line in lines {
         push_diff_line(&mut diff, '+', line);
     }
-    diff
+    Ok(diff)
 }
 
 fn render_scoped_unified_diff(path: &str, original: &str, updated: &str) -> String {
@@ -282,4 +294,56 @@ fn push_diff_line(diff: &mut String, marker: char, line: &str) {
         diff.push('\n');
         diff.push_str("\\ No newline at end of file\n");
     }
+}
+
+fn validate_reviewable_repo_path(path: &str) -> Result<(), AutofixError> {
+    if path.is_empty() {
+        return Err(AutofixError::InvalidPath {
+            path: path.to_owned(),
+            reason: "path is empty",
+        });
+    }
+    if path
+        .chars()
+        .any(|character| matches!(character, '\n' | '\r' | '\0'))
+    {
+        return Err(AutofixError::InvalidPath {
+            path: path.to_owned(),
+            reason: "path contains a control character",
+        });
+    }
+
+    let mut has_normal_component = false;
+    for component in Path::new(path).components() {
+        match component {
+            Component::Normal(_) => has_normal_component = true,
+            Component::CurDir => {
+                return Err(AutofixError::InvalidPath {
+                    path: path.to_owned(),
+                    reason: "path must be normalized without '.' components",
+                });
+            }
+            Component::ParentDir => {
+                return Err(AutofixError::InvalidPath {
+                    path: path.to_owned(),
+                    reason: "path must stay within the repository",
+                });
+            }
+            Component::RootDir | Component::Prefix(_) => {
+                return Err(AutofixError::InvalidPath {
+                    path: path.to_owned(),
+                    reason: "path must be repository-relative",
+                });
+            }
+        }
+    }
+
+    if !has_normal_component {
+        return Err(AutofixError::InvalidPath {
+            path: path.to_owned(),
+            reason: "path does not name a file",
+        });
+    }
+
+    Ok(())
 }
