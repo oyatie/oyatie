@@ -44,7 +44,7 @@ test debt remains the exact mechanically-derived 634-key baseline.
 
 ## Decision
 
-Add `cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app` as a pure cloud-ci gate.
+Add `ci/facade/build-target-parity` as a pure cloud-ci gate.
 
 NAME: oya-cloud-ci-target-parity-app
 JUSTIFICATION:
@@ -84,7 +84,7 @@ The gate is registered in `oya-ci.toml`, `libs/oya-ci-config`, the oya-ci gate c
 materialized with:
 
 ```text
-buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
+buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
 ```
 
 ## Consequences
@@ -93,8 +93,8 @@ buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materia
 
 | Path / Crate | Change type | BNF v4.1 name | Layer |
 |---|---|---|---|
-| `cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app/` | create gate crate | `oya-cloud-ci-target-parity-app` | app |
-| `cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/` | emit `target_parity` face and baseline keys | `oya-cloud-ci-accounting-registry-app` | app |
+| `ci/facade/build-target-parity/` | create gate crate | `oya-cloud-ci-target-parity-app` | app |
+| `ci/facade/artifact-inventory-registry/` | emit `target_parity` face and baseline keys | `oya-cloud-ci-accounting-registry-app` | app |
 | `libs/oya-ci-config/` and `oya-ci.toml` | register gate face and disposition data | `oya-ci-config-kernel` | kernel |
 | `.github/workflows/oya-ci-required.yml` | add one gate matrix line | - | - |
 | `docs/oya-ci/gate-catalog.md` | document gate, input kind, key shape, and frozen-empty code | - | - |
@@ -176,13 +176,13 @@ events, consume Workflow events, or write Ontology objects.
 
 ## Verification
 
-- `buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app:oya-cloud-ci-target-parity-app`
-- `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app:oya-cloud-ci-target-parity-app-unittest`
-- `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app:oya-cloud-ci-target-parity-app-gate`
-- `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-unittest`
-- `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin-unittest`
-- `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-gate`
-- `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-gate-registration`
+- `buck2 build //ci/facade/build-target-parity:oya-cloud-ci-target-parity-app`
+- `buck2 test //ci/facade/build-target-parity:oya-cloud-ci-target-parity-app-unittest`
+- `buck2 test //ci/facade/build-target-parity:oya-cloud-ci-target-parity-app-gate`
+- `buck2 test //ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-unittest`
+- `buck2 test //ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin-unittest`
+- `buck2 test //ci/facade/baseline-ratchet:oya-cloud-ci-firewall-app-gate`
+- `buck2 test //ci/facade/baseline-ratchet:oya-cloud-ci-firewall-app-gate-registration`
 
 ## References
 

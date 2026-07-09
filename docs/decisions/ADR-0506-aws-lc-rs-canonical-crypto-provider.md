@@ -141,7 +141,7 @@ is now **mechanically enforced** by a new single-concern cloud-ci gate (ADR-0132
 no-grouping; founder doctrine "flag-only/manual = incomplete; construction >
 reaction; automate everything automatable"):
 
-- **Gate:** `cloud/cloud-ci/gates/oya-cloud-ci-crypto-backend-purity-app`
+- **Gate:** `ci/facade/crypto-backend-policy`
   (gate_id `cloud-ci-crypto-backend-purity`), wired into the `gate-affected-set`
   matrix of `.github/workflows/oya-ci-required.yml`.
 - **What it asserts:** the forbidden crypto backend(s) — at minimum `ring`,
@@ -182,14 +182,14 @@ This ADR is the justification anchor for the new gate's tracked surfaces (each
 file path is cited explicitly so the accounting-registry producer maps it to
 `justification_ref: ADR-0506`):
 
-- `cloud/cloud-ci/gates/oya-cloud-ci-crypto-backend-purity-app/Cargo.toml`
-- `cloud/cloud-ci/gates/oya-cloud-ci-crypto-backend-purity-app/BUCK`
-- `cloud/cloud-ci/gates/oya-cloud-ci-crypto-backend-purity-app/crypto-backend-purity-policy.json`
-- `cloud/cloud-ci/gates/oya-cloud-ci-crypto-backend-purity-app/src/lib.rs`
-- `cloud/cloud-ci/gates/oya-cloud-ci-crypto-backend-purity-app/src/main.rs`
-- `cloud/cloud-ci/gates/oya-cloud-ci-crypto-backend-purity-app/tests/crypto_backend_purity.rs`
+- `ci/facade/crypto-backend-policy/Cargo.toml`
+- `ci/facade/crypto-backend-policy/BUCK`
+- `ci/facade/crypto-backend-policy/crypto-backend-purity-policy.json`
+- `ci/facade/crypto-backend-policy/src/lib.rs`
+- `ci/facade/crypto-backend-policy/src/main.rs`
+- `ci/facade/crypto-backend-policy/tests/crypto_backend_purity.rs`
 
-The gate is OWNED via the inherited `cloud/cloud-ci/gates/OWNERS`
+The gate is OWNED via the inherited `ci/OWNERS`
 (`cloud-ci-platform`, the same ownership seed as every sibling gate) and
 REACHABLE via cargo workspace membership + its BUCK target (the
 `reachable_from: ["cargo-members"]` class kernel-purity also uses).

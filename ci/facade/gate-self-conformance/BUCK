@@ -1,0 +1,36 @@
+rust_library(
+    name = "ci-gate-self-conformance",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_gate_self_conformance",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-gate-self-conformance-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_gate_self_conformance",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+# Pipeline-as-product meta-gate: live-corpus scan over every gate crate's production Rust
+# plus synthetic RED/GREEN fixtures in the library unit tests. The policy file carries repo-local
+# roots and the declared transitional orchestrator exceptions; the Rust engine stays shape-neutral.
+rust_test(
+    name = "ci-gate-self-conformance-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_gate_self_conformance_gate",
+    crate_root = "tests/gate_self_conformance.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-gate-self-conformance",
+        "third-party//:serde_json",
+    ],
+)

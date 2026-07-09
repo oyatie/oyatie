@@ -99,23 +99,23 @@ test-results/
 # registry/generated-artifact-control-plane.json: committed on the integration branch for merge-base
 # consumers, but controller-owned so contributor PRs do not carry generated baseline byte churn.
 # Negate the broad *.generated.json ignore for exactly this path.
-!cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json
+!ci/facade/artifact-inventory-registry/gate-baseline.generated.json
 
 # ADR-0595/ADR-0597 de-commit class: the SIX cloud-ci faces below are pure derivations
 # (git ls-files x OWNERS x ADR front-matter x specs). They were the #1 merge-conflict /
 # merge-queue friction because every PR re-materialized multi-MB blobs. They are now DERIVED ON
-# DEMAND (buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin) and materialized out-of-graph for
+# DEMAND (buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin) and materialized out-of-graph for
 # consumers, whose gates re-derive content from the candidate tree; the freshness gate validates
 # regenerate-success + regenerate-twice determinism instead of byte parity, and the control-plane
 # gate forbids re-tracking them (materialization_mode: not-tracked-in-git). They are already
 # covered by the **/*.generated.json rule above and are intentionally NOT negated here (unlike
 # move-manifest and gate-baseline):
-#   cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json
-#   cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json
-#   cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/enforcement-inventory.generated.json
-#   cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/enforcement-liveness.generated.json
-#   cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/ttl-policy.generated.json
-#   cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json
+#   ci/facade/artifact-inventory-registry/accounting-registry.generated.json
+#   ci/facade/artifact-inventory-registry/decision-crosswalk.generated.json
+#   ci/facade/artifact-inventory-registry/enforcement-inventory.generated.json
+#   ci/facade/artifact-inventory-registry/enforcement-liveness.generated.json
+#   ci/facade/artifact-inventory-registry/ttl-policy.generated.json
+#   ci/facade/artifact-inventory-registry/scm-facts.generated.json
 # ADR-0597 (completes the ADR-0595 strangler): scm-facts.generated.json was the LAST committed
 # pure-derivation face. It was kept committed in #828 only because it is a declared hermetic input
 # to ~20 gate tests; those consumers now materialize it on demand (CI producer-regen uploads the
@@ -166,13 +166,13 @@ cloud/cloud-kernel/out/stress-summary.txt
 # reference materialized by the scm-facts emitter from `git merge-base <base_ref> HEAD`.
 # It varies with the base branch position, so it can never be a committed face; CI
 # rematerializes it before gates consume it.
-cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.merge-base.generated.json
+ci/facade/baseline-ratchet/gate-baseline.merge-base.generated.json
 
 # History-volatile SCM facts snapshot (ADR-0552, FRIC-1781234047): per-path last-touch
 # revision ids + timestamps, rewritten by every squash-merge — a per-checkout derived input
 # materialized by the scm-facts emitter, so it can never be a committed face; CI
 # rematerializes it before gates consume it.
-cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app/scm-volatile-facts.generated.json
+ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json
 
 # Dev-only Asterinas boot-harness receipts are regenerable run outputs (reference target/ logs); not committed.
 kernel/harness/*/receipts/

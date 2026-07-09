@@ -197,17 +197,17 @@ silent false-green):
   (the §D-1 v1.0.0 Tier-1 worked example, populated verbatim; de-branded
   node names per ADR-0562).
 - Prerequisite #2 (the Tarjan/Kahn validator + cycle fixtures):
-  - `cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/BUCK`
-  - `cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/Cargo.toml`
-  - `cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/substrate-dependency-dag-policy.json`
+  - `ci/facade/dependency-graph-acyclicity/BUCK`
+  - `ci/facade/dependency-graph-acyclicity/Cargo.toml`
+  - `ci/facade/dependency-graph-acyclicity/substrate-dependency-dag-policy.json`
   - `evidence/multispectrum/wavea-cloud-ci-substrate-dag-policy-boundary-20260626-1782507158.json`
-  - `cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/src/lib.rs`
-  - `cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/src/main.rs`
-  - `cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/tests/acyclicity.rs`
-  - `cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/tests/fixtures/dag-cycles/simple-two-node.json`
-  - `cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/tests/fixtures/dag-cycles/three-node.json`
-  - `cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/tests/fixtures/dag-cycles/self-loop.json`
-  - `cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/tests/fixtures/dag-cycles/six-node-buried.json`
+  - `ci/facade/dependency-graph-acyclicity/src/lib.rs`
+  - `ci/facade/dependency-graph-acyclicity/src/main.rs`
+  - `ci/facade/dependency-graph-acyclicity/tests/acyclicity.rs`
+  - `ci/facade/dependency-graph-acyclicity/tests/fixtures/dag-cycles/simple-two-node.json`
+  - `ci/facade/dependency-graph-acyclicity/tests/fixtures/dag-cycles/three-node.json`
+  - `ci/facade/dependency-graph-acyclicity/tests/fixtures/dag-cycles/self-loop.json`
+  - `ci/facade/dependency-graph-acyclicity/tests/fixtures/dag-cycles/six-node-buried.json`
 - Prerequisite #3 (the named CI lane): the lane
   `oya-check-substrate-dependency-dag-acyclicity` is authored in
   `.github/workflows/check-substrates.yml` (the ADR-prescribed surface)

@@ -80,7 +80,7 @@ leave the merged surface entirely:
 - `scm-facts.generated.json` (committed, schema `oya-ci/scm-facts/v2`) carries ONLY
   tree-derived stable facts: `tracked_paths`.
 - A new UNTRACKED, gitignored, CI-rematerialized snapshot
-  `cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app/scm-volatile-facts.generated.json`
+  `ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json`
   (schema `oya-ci/scm-volatile-facts/v1`) carries `last_touch_commit`,
   `commit_author_ts_secs`, and the deterministic `head_time_secs` aging anchor — the
   ADR-0551 materialized-snapshot pattern, emitted by the same single sanctioned git
@@ -138,7 +138,7 @@ directive, construction wins.
    split itself.
 4. **Fail-closed seams.** The producer hard-errors on a missing/malformed stable face
    (unchanged). The staleness gate hard-fails on a missing/malformed volatile snapshot,
-   naming `buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin` (CI rematerializes before
+   naming `buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin` (CI rematerializes before
    every gate lane; the snapshot is never silently defaulted). `face-settle --verify`
    stays read-only: its regeneration routes the volatile snapshot to a temp path.
 5. **Convergence pin (charter requirement).** Generated-class paths are excluded from

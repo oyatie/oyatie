@@ -1136,6 +1136,390 @@ dependencies = [
 ]
 
 [[package]]
+name = "ci-action-item-accounting"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-affected-target-set"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-artifact-accountability"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-artifact-inventory-registry"
+version = "0.1.0"
+dependencies = [
+ "ci-artifact-accountability",
+ "ci-automation-coverage",
+ "ci-build-target-parity",
+ "ci-crate-layer-suffix",
+ "ci-crate-name-prefix",
+ "ci-cross-artifact-agreement",
+ "ci-hook-wiring",
+ "ci-license-policy",
+ "ci-package-manifest-hygiene",
+ "ci-service-catalog-parity",
+ "ci-slo-coverage",
+ "ci-stale-artifact-detection",
+ "ci-workspace-member-coverage",
+ "oya-check-brand-residue",
+ "oya-ci-config-kernel",
+ "oya-workspace-members-kernel",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "ci-automation-coverage"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-baseline-ratchet"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-build-cache-policy"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
+name = "ci-build-target-parity"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-caller-supplied-authorization"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-canonical-json"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-core-dependency-isolation"
+version = "0.1.0"
+dependencies = [
+ "oya-buck-syntax-kernel",
+ "oya-workspace-members-kernel",
+ "serde_json",
+ "toml 0.8.23",
+]
+
+[[package]]
+name = "ci-crate-layer-suffix"
+version = "0.1.0"
+dependencies = [
+ "oya-ci-config-kernel",
+ "oya-governance-predictable-naming-kernel",
+ "serde_json",
+]
+
+[[package]]
+name = "ci-crate-name-prefix"
+version = "0.1.0"
+dependencies = [
+ "oya-ci-config-kernel",
+ "oya-intelligence-cargo-prefix-domain",
+ "serde_json",
+]
+
+[[package]]
+name = "ci-crate-registration"
+version = "0.1.0"
+dependencies = [
+ "ci-artifact-accountability",
+ "ci-artifact-inventory-registry",
+ "ci-module-membership",
+ "ci-service-catalog-parity",
+ "ci-slo-coverage",
+ "oya-ci-config-kernel",
+ "oya-crate-registrar-app",
+ "oya-crate-registrar-kernel",
+ "serde_json",
+]
+
+[[package]]
+name = "ci-cross-artifact-agreement"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-crypto-backend-policy"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-dependency-automation"
+version = "0.1.0"
+dependencies = [
+ "toml 0.8.23",
+]
+
+[[package]]
+name = "ci-dependency-graph-acyclicity"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-embedded-asset-hermeticity"
+version = "0.1.0"
+dependencies = [
+ "oya-buck-syntax-kernel",
+ "serde_json",
+]
+
+[[package]]
+name = "ci-endpoint-authorization-coverage"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-feature-maturity-policy"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-gate-self-conformance"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-generated-artifact-freshness"
+version = "0.1.0"
+dependencies = [
+ "oya-workspace-members-kernel",
+ "serde_json",
+ "toml 0.8.23",
+]
+
+[[package]]
+name = "ci-generated-artifact-policy"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-graphql-usage-policy"
+version = "0.1.0"
+dependencies = [
+ "oya-workspace-members-kernel",
+ "serde_json",
+ "toml 0.8.23",
+]
+
+[[package]]
+name = "ci-hook-wiring"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-inventory-registry-drift"
+version = "0.1.0"
+
+[[package]]
+name = "ci-layer-dependency-acyclicity"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-license-policy"
+version = "0.1.0"
+dependencies = [
+ "oya-check-license-policy",
+ "serde_json",
+]
+
+[[package]]
+name = "ci-module-membership"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-operator-secret-rbac"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "serde_yaml",
+]
+
+[[package]]
+name = "ci-package-manifest-hygiene"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-parity-claim-evidence"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-path-resolver-adapters"
+version = "0.1.0"
+dependencies = [
+ "ci-path-resolver-ports",
+ "serde_json",
+]
+
+[[package]]
+name = "ci-path-resolver-ports"
+version = "0.1.0"
+
+[[package]]
+name = "ci-policy-deploy-parity"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-port-placement"
+version = "0.1.0"
+dependencies = [
+ "oya-workspace-members-kernel",
+ "serde_json",
+]
+
+[[package]]
+name = "ci-repo-root-hygiene"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-resource-contract-conformance"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-runner-disk-reclaim"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "serde_json",
+]
+
+[[package]]
+name = "ci-scm-facts-snapshot"
+version = "0.1.0"
+dependencies = [
+ "ci-artifact-inventory-registry",
+ "ci-baseline-ratchet",
+ "ci-path-resolver-adapters",
+ "ci-path-resolver-ports",
+ "oya-check-brand-residue",
+ "oya-ci-config-kernel",
+ "oya-reorg-codemod-app",
+ "serde_json",
+]
+
+[[package]]
+name = "ci-service-catalog-parity"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-service-tier-metadata"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-slo-coverage"
+version = "0.1.0"
+dependencies = [
+ "oya-check-slo-coverage",
+ "serde_json",
+]
+
+[[package]]
+name = "ci-stale-artifact-detection"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-supply-chain-audit"
+version = "0.1.0"
+dependencies = [
+ "oya-advisory-mirror-kernel",
+ "semver",
+ "serde_json",
+ "toml 0.8.23",
+]
+
+[[package]]
+name = "ci-topology-manifest-contract"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-workspace-member-coverage"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "cityhash-rs"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5089,6 +5473,7 @@ version = "0.1.0"
 dependencies = [
  "audit-chain-domain",
  "audit-file-adapter",
+ "ci-generated-artifact-freshness",
  "messaging-domain",
  "messaging-file-adapter",
  "oya-application-app",
@@ -5159,7 +5544,6 @@ dependencies = [
  "oya-check-vendor-lockin-discipline",
  "oya-check-vendor-recency",
  "oya-check-wasm-runtime-discipline",
- "oya-cloud-ci-freshness-app",
  "oya-data-boundary-kernel",
  "oya-governance-banned-primitives-kernel",
  "oya-governance-gate-catalog-domain",
@@ -6206,372 +6590,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-cloud-ci-accounting-registry-app"
-version = "0.1.0"
-dependencies = [
- "oya-check-brand-residue",
- "oya-ci-config-kernel",
- "oya-cloud-ci-automation-ratchet-app",
- "oya-cloud-ci-bnf-layer-suffix-app",
- "oya-cloud-ci-cargo-prefix-app",
- "oya-cloud-ci-catalog-liveness-app",
- "oya-cloud-ci-cross-artifact-agreement-app",
- "oya-cloud-ci-enforcement-liveness-app",
- "oya-cloud-ci-license-policy-app",
- "oya-cloud-ci-manifest-hygiene-app",
- "oya-cloud-ci-slo-coverage-app",
- "oya-cloud-ci-staleness-reaper-app",
- "oya-cloud-ci-target-parity-app",
- "oya-cloud-ci-total-accounting-app",
- "oya-cloud-ci-workspace-glob-coverage-app",
- "oya-workspace-members-kernel",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-affected-set-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-authz-coverage-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-automation-ratchet-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-bnf-layer-suffix-app"
-version = "0.1.0"
-dependencies = [
- "oya-ci-config-kernel",
- "oya-governance-predictable-naming-kernel",
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-cache-wiring-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
- "sha2",
-]
-
-[[package]]
-name = "oya-cloud-ci-canonical-json-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-capability-membership-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-cargo-prefix-app"
-version = "0.1.0"
-dependencies = [
- "oya-ci-config-kernel",
- "oya-intelligence-cargo-prefix-domain",
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-catalog-liveness-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-cedar-deploy-parity-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-cell-topology-manifest-contract-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-cloud-resource-contracts-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-cross-artifact-agreement-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-crypto-backend-purity-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-dependency-automation-app"
-version = "0.1.0"
-dependencies = [
- "toml 0.8.23",
-]
-
-[[package]]
-name = "oya-cloud-ci-dto-authz-trust-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-embedded-asset-hermeticity-app"
-version = "0.1.0"
-dependencies = [
- "oya-buck-syntax-kernel",
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-enforcement-liveness-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-firewall-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-freshness-app"
-version = "0.1.0"
-dependencies = [
- "oya-workspace-members-kernel",
- "serde_json",
- "toml 0.8.23",
-]
-
-[[package]]
-name = "oya-cloud-ci-friction-accounting-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-gate-self-conformance-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-generated-artifact-control-plane-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-hyperscaler-parity-taxonomy-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-kernel-purity-app"
-version = "0.1.0"
-dependencies = [
- "oya-buck-syntax-kernel",
- "oya-workspace-members-kernel",
- "serde_json",
- "toml 0.8.23",
-]
-
-[[package]]
-name = "oya-cloud-ci-license-policy-app"
-version = "0.1.0"
-dependencies = [
- "oya-check-license-policy",
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-manifest-hygiene-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-no-graphql-without-adr-app"
-version = "0.1.0"
-dependencies = [
- "oya-workspace-members-kernel",
- "serde_json",
- "toml 0.8.23",
-]
-
-[[package]]
-name = "oya-cloud-ci-operator-secret-bootstrap-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
- "serde_yaml",
-]
-
-[[package]]
-name = "oya-cloud-ci-planned-maturity-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-port-placement-app"
-version = "0.1.0"
-dependencies = [
- "oya-workspace-members-kernel",
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-register-crate-app"
-version = "0.1.0"
-dependencies = [
- "oya-ci-config-kernel",
- "oya-cloud-ci-accounting-registry-app",
- "oya-cloud-ci-capability-membership-app",
- "oya-cloud-ci-catalog-liveness-app",
- "oya-cloud-ci-slo-coverage-app",
- "oya-cloud-ci-total-accounting-app",
- "oya-crate-registrar-app",
- "oya-crate-registrar-kernel",
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-root-workspace-hygiene-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-runner-disk-reclaim-app"
-version = "0.1.0"
-dependencies = [
- "libc",
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-scm-facts-emitter-app"
-version = "0.1.0"
-dependencies = [
- "oya-check-brand-residue",
- "oya-ci-config-kernel",
- "oya-cloud-ci-accounting-registry-app",
- "oya-cloud-ci-firewall-app",
- "oya-reorg-codemod-app",
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-slo-coverage-app"
-version = "0.1.0"
-dependencies = [
- "oya-check-slo-coverage",
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-staleness-reaper-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-substrate-dependency-dag-acyclicity-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-supply-chain-audit-app"
-version = "0.1.0"
-dependencies = [
- "oya-advisory-mirror-kernel",
- "semver",
- "serde_json",
- "toml 0.8.23",
-]
-
-[[package]]
-name = "oya-cloud-ci-target-parity-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-tier-dependency-acyclicity-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-tier-field-coverage-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-total-accounting-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-workspace-glob-coverage-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
 name = "oya-cloud-os-apid-domain"
 version = "0.1.0"
 dependencies = [
@@ -7187,8 +7205,8 @@ dependencies = [
 name = "oya-friction-ledger-merge-driver-app"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-ci-canonical-json-app",
- "oya-cloud-ci-friction-accounting-app",
+ "ci-action-item-accounting",
+ "ci-canonical-json",
  "serde_json",
 ]
 
@@ -10582,10 +10600,6 @@ name = "regex-syntax"
 version = "0.8.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dc897dd8d9e8bd1ed8cdad82b5966c3e0ecae09fb1907d58efaa013543185d0a"
-
-[[package]]
-name = "registry-drift"
-version = "0.1.0"
 
 [[package]]
 name = "replace_with"

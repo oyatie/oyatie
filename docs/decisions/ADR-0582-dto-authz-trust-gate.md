@@ -56,7 +56,7 @@ VerifiedPrincipal`) and call a **server-side PDP decision port** (`PublishAuthor
 
 ## Decision
 
-Ship `cloud/cloud-ci/gates/oya-cloud-ci-dto-authz-trust-app`, a born-blocking cloud-ci gate that
+Ship `ci/facade/caller-supplied-authorization`, a born-blocking cloud-ci gate that
 makes a NEW instance of the caller-supplied-authz-trust antipattern IMPOSSIBLE to ship while
 frozen-baselining the existing debt (shrink-only). It is a SIBLING of the authz-coverage gate
 (ADR-0566) and registers in the same `oya-ci-required` matrix gate family. It mirrors the
@@ -193,15 +193,15 @@ function census (`DAT-EMPTY-SCAN`) all fail closed against a silent false-green.
 production code carries no unwrap/expect/panic; `#![forbid(unsafe_code)]`.
 
 The gate's neutral Rust engine + I/O collector lives in
-`cloud/cloud-ci/gates/oya-cloud-ci-dto-authz-trust-app/src/lib.rs` (the I/O collector
+`ci/facade/caller-supplied-authorization/src/lib.rs` (the I/O collector
 `collect_instances(root, policy)` + the pure `evaluate_keyed(policy, observed)`), the
-`--write`-capable binary in `cloud/cloud-ci/gates/oya-cloud-ci-dto-authz-trust-app/src/main.rs`, the
+`--write`-capable binary in `ci/facade/caller-supplied-authorization/src/main.rs`, the
 live-corpus + RED/GREEN self-test in
-`cloud/cloud-ci/gates/oya-cloud-ci-dto-authz-trust-app/tests/dto_authz_trust.rs`, its buck2 wiring in
-`cloud/cloud-ci/gates/oya-cloud-ci-dto-authz-trust-app/BUCK`, its manifest in
-`cloud/cloud-ci/gates/oya-cloud-ci-dto-authz-trust-app/Cargo.toml`, its ownership in
-`cloud/cloud-ci/gates/oya-cloud-ci-dto-authz-trust-app/OWNERS`, and ALL repo-specifics as DATA in
-`cloud/cloud-ci/gates/oya-cloud-ci-dto-authz-trust-app/dto-authz-trust-policy.json`.
+`ci/facade/caller-supplied-authorization/tests/dto_authz_trust.rs`, its buck2 wiring in
+`ci/facade/caller-supplied-authorization/BUCK`, its manifest in
+`ci/facade/caller-supplied-authorization/Cargo.toml`, its ownership in
+`ci/facade/caller-supplied-authorization/OWNERS`, and ALL repo-specifics as DATA in
+`ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json`.
 
 ## Consequences
 

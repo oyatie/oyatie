@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use oya_cloud_ci_freshness_app::{CheckReport, check_repo};
+use ci_generated_artifact_freshness::{CheckReport, check_repo};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct FreshnessGateArgs {

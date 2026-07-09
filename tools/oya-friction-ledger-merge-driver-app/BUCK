@@ -5,7 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app:oya-cloud-ci-canonical-json-app",
+        "//ci/facade/canonical-json:ci-canonical-json",
         "third-party//:serde_json",
     ],
 )
@@ -27,7 +27,7 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app:oya-cloud-ci-canonical-json-app",
+        "//ci/facade/canonical-json:ci-canonical-json",
         "third-party//:serde_json",
     ],
 )
@@ -44,7 +44,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":oya-friction-ledger-merge-driver-app",
-        "//cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app:oya-cloud-ci-friction-accounting-app",
+        "//ci/facade/action-item-accounting:ci-action-item-accounting",
         "third-party//:serde_json",
     ],
 )

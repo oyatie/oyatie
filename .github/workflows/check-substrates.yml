@@ -72,15 +72,15 @@ jobs:
         run: |
           set -euo pipefail
           buck2 build \
-            //cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app:oya-cloud-ci-substrate-dependency-dag-acyclicity-app \
-            //cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app:oya-cloud-ci-substrate-dependency-dag-acyclicity-bin
+            //ci/facade/dependency-graph-acyclicity:ci-dependency-graph-acyclicity \
+            //ci/facade/dependency-graph-acyclicity:oya-cloud-ci-substrate-dependency-dag-acyclicity-bin
 
       - name: buck2 test (pure-kernel RED cycle classes + live-corpus GREEN gate)
         run: |
           set -euo pipefail
           buck2 test \
-            //cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app:oya-cloud-ci-substrate-dependency-dag-acyclicity-app-unittest \
-            //cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app:oya-cloud-ci-substrate-dependency-dag-acyclicity-app-gate
+            //ci/facade/dependency-graph-acyclicity:ci-dependency-graph-acyclicity-unittest \
+            //ci/facade/dependency-graph-acyclicity:ci-dependency-graph-acyclicity-gate
 
       # ── Run the validator binary over the canonical DAG and emit machine-readable evidence to
       #    evidence/governance-lane/ (ADR-0280 §D-3 step 9; evidence/ is the house evidence root,
@@ -89,7 +89,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p evidence/governance-lane
-          bin="$(buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app:oya-cloud-ci-substrate-dependency-dag-acyclicity-bin --show-output | awk 'NF>1 {print $2}')"
+          bin="$(buck2 build //ci/facade/dependency-graph-acyclicity:oya-cloud-ci-substrate-dependency-dag-acyclicity-bin --show-output | awk 'NF>1 {print $2}')"
           log="evidence/governance-lane/substrate-dependency-dag-validation-${GITHUB_SHA:-local}.log"
           "${bin}" --repo-root . | tee "${log}"
           echo "evidence written to ${log}"

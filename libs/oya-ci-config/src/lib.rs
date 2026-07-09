@@ -605,7 +605,7 @@ fn default_vocab_carve_outs() -> Vec<VocabCarveOut> {
         (
             VocabCarveOutKind::PathSuffix,
             ".generated.json",
-            "producer-generated faces record the tokens the gates track; a hand-edit is its own registry_drift RED",
+            "producer-generated faces record the tokens the gates track; a hand-edit is its own ci_inventory_registry_drift RED",
         ),
         (
             VocabCarveOutKind::LineContainsCi,
@@ -1266,7 +1266,7 @@ pub struct OutputConfig {
 }
 
 fn default_faces_dir() -> String {
-    "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app".to_owned()
+    "ci/facade/artifact-inventory-registry".to_owned()
 }
 
 impl Default for OutputConfig {
@@ -1887,7 +1887,7 @@ face = "total_accounting"
         let cfg = OyaCiConfig::oyatie();
         assert_eq!(
             cfg.output.faces_dir,
-            "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app"
+            "ci/facade/artifact-inventory-registry"
         );
         assert!(
             cfg.cross_artifact
