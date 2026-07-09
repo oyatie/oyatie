@@ -1379,6 +1379,12 @@ pub mod soak {
     /// QEMU self-exited AFTER a marker was present but before the harness force-killed it
     /// (unclean: the clean path force-kills at the marker, it does not let QEMU self-exit).
     pub const TERM_QEMU_EXITED_AFTER: &str = "boot_ready_marker_matched_qemu_exited_after_marker";
+    /// A marker was seen LIVE and the harness force-killed QEMU, but the FINAL on-disk log
+    /// re-derivation (subject to a flush/SIGKILL race) did NOT confirm it. Recorded honestly as
+    /// its own unclean reason rather than mislabeled `TERM_MARKER_KILLED` — the receipt must never
+    /// claim a marker match it cannot re-derive from the persisted bytes.
+    pub const TERM_MARKER_SEEN_LIVE_BUT_ABSENT_ON_FINAL_LOG: &str =
+        "boot_ready_marker_seen_live_but_absent_on_reparsed_final_log";
 
     /// How a single boot terminated, as observed by the impure QEMU driver. Fed to the pure
     /// [`termination_reason`] / [`assemble_boot_record`] derivation.
@@ -1532,7 +1538,8 @@ pub mod soak {
     /// canonical termination-reason string. Pure.
     pub fn termination_reason(live: LiveTermination, marker_present: bool) -> &'static str {
         match live {
-            LiveTermination::MarkerKilled => TERM_MARKER_KILLED,
+            LiveTermination::MarkerKilled if marker_present => TERM_MARKER_KILLED,
+            LiveTermination::MarkerKilled => TERM_MARKER_SEEN_LIVE_BUT_ABSENT_ON_FINAL_LOG,
             LiveTermination::TimedOut => TERM_TIMEOUT,
             LiveTermination::QemuSelfExited if marker_present => TERM_QEMU_EXITED_AFTER,
             LiveTermination::QemuSelfExited => TERM_QEMU_EXITED_BEFORE,
@@ -1946,6 +1953,13 @@ pub mod soak {
             assert_eq!(
                 termination_reason(LiveTermination::MarkerKilled, true),
                 TERM_MARKER_KILLED
+            );
+            // Flush/SIGKILL race: marker seen LIVE but absent from the re-derived final log.
+            // Must NOT be mislabeled a marker match — the honest reason keeps the receipt
+            // consistent with `matched_marker: null` / `clean: false`.
+            assert_eq!(
+                termination_reason(LiveTermination::MarkerKilled, false),
+                TERM_MARKER_SEEN_LIVE_BUT_ABSENT_ON_FINAL_LOG
             );
             assert_eq!(
                 termination_reason(LiveTermination::TimedOut, false),

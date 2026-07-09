@@ -68,7 +68,9 @@ rust_binary(
     srcs = ["src/soak.rs"],
     crate_root = "src/soak.rs",
     visibility = ["PUBLIC"],
-    deps = [":kernel-asterinas-real-boot", _BOUNDARY] + _REGEX + _TP_CORE,
+    # soak.rs scans no markers itself (it delegates to the lib, which owns _REGEX transitively),
+    # so the binary carries no direct regex dep — matches the -soak-integration/-integration sets.
+    deps = [":kernel-asterinas-real-boot", _BOUNDARY] + _TP_CORE,
 )
 
 rust_test(
