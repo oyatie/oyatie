@@ -255,3 +255,20 @@ status codes don't map cleanly to brown-out.
 - ADR-0042 (this portfolio) — observability stack (OTel + Prometheus).
 - ADR-0148 (this portfolio) — Cilium service mesh.
 - ADR-0009 (this portfolio) — cell architecture (static-stability hook).
+
+## RESILIENCE-001 — messenger runtime-control-loop contract artifacts
+
+The messenger service's brown-out / graceful-degradation runtime control loop
+is specified — as a contract plus non-executable catalog fixtures, none applied
+or executed at runtime — by the following PR-local artifacts (homed under the
+`comms` capability per ADR-0562 §10.16 messenger move, enforced by the
+`contract-slice-conformance` gate). As the brown-out/degradation-signal
+authority, this ADR intentionally justifies their existence without granting any
+runtime, production, or SLO-attainment claim:
+
+- `comms/messenger/resilience/runtime-control-loop-contract.json` — the machine-readable contract (brownout classes, tail-sampling recipe, chaos-scenario + SLO-gate refs).
+- `comms/messenger/chaos/scenarios/pod-kill.yaml` — non-executable chaos scenario catalog fixture referenced by the contract (per ADR-0165 chaos-engineering substrate).
+- `comms/messenger/chaos/scenarios/network-delay-100ms.yaml` — non-executable chaos scenario catalog fixture referenced by the contract (ADR-0165).
+- `comms/messenger/chaos/scenarios/dependency-failure.yaml` — non-executable chaos scenario catalog fixture referenced by the contract (ADR-0165).
+- `comms/messenger/chaos/scenarios/disk-slow-1000ms.yaml` — non-executable chaos scenario catalog fixture referenced by the contract (ADR-0165).
+- `comms/observability/slos/messenger/composition.openslo.yaml` — SLO composition joining the per-service messenger objectives referenced by the contract's `slo_gate_refs` (per ADR-0180 SLO-composition arithmetic + ADR-0139 SLO-home convention).
