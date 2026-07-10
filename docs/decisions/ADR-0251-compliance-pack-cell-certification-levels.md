@@ -1762,10 +1762,10 @@ that make that machine-readable contract executable without granting
 production, runtime, certification, auditor-acceptance, tenant-activation,
 or portability-service authority:
 
-- `/specs/compliance-001-contract-slice.json`
-- `/specs/fixtures/compliance-pack/compliance-001-soc2-cmp-portability.fixture.json`
-- `/specs/fixtures/compliance-pack/compliance-001-portability-export-manifest.fixture.json`
-- `/ci/facade/contract-slice-conformance/contract-slice-policy.json` (owned-Rust/Buck2 gate policy entries; retires the former repo-local Python validator)
+- `specs/compliance-001-contract-slice.json`
+- `specs/fixtures/compliance-pack/compliance-001-soc2-cmp-portability.fixture.json`
+- `specs/fixtures/compliance-pack/compliance-001-portability-export-manifest.fixture.json`
+- `ci/facade/contract-slice-conformance/contract-slice-policy.json` (owned-Rust/Buck2 gate policy entries; retires the former repo-local Python validator)
 
 The following artifacts are required for this keystone to be considered
 implemented:
