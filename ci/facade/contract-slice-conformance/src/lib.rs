@@ -196,6 +196,7 @@ fn evaluate_slice(
         "spec_path",
         "required_fields",
         "required_true_fields",
+        "required_false_fields",
         "enum_constraints",
         "required_array_members",
         "exact_array_fields",
@@ -224,11 +225,14 @@ fn evaluate_slice(
     //    of `oya-dev-cli`/`oya gate` in its own provenance prose — the exact
     //    strings this scan exists to catch when a slice's OWN spec bakes them in
     //    as live usage). It does not skip the slice's own `forbidden_markers`.
+    //    Matching is separator-normalized (`[^a-z0-9]+` -> a single space on both
+    //    the marker and every scanned leaf) so a substituted separator cannot slip
+    //    a forbidden phrase past the scan: `production-ready` trips `production ready`.
     let skip_universal_markers =
         slice.get("skip_universal_markers").and_then(Value::as_bool) == Some(true);
     if !skip_universal_markers {
         for marker in FORBIDDEN_SPEC_MARKERS {
-            if recursively_contains(spec, marker) {
+            if recursively_contains_normalized(spec, &normalize_separators(marker)) {
                 findings.insert(Finding::new(
                     "contract_slice_forbidden_marker",
                     format!("{slice_id}:{marker}"),
@@ -237,7 +241,7 @@ fn evaluate_slice(
         }
     }
     for marker in string_array(slice, "forbidden_markers") {
-        if recursively_contains(spec, &marker) {
+        if recursively_contains_normalized(spec, &normalize_separators(&marker)) {
             findings.insert(Finding::new(
                 "contract_slice_forbidden_marker",
                 format!("{slice_id}:{marker}"),
@@ -252,11 +256,17 @@ fn evaluate_slice(
     //     search would trivially pass on a marker that merely appears elsewhere
     //     in the document (e.g. a tier name already required by an enum
     //     constraint), silently disarming the check it exists to make.
+    //
+    //     `quantifier` (default `all_of`) selects between "every marker must be
+    //     present" and `any_of` ("at least one must be present" — e.g. an explicit
+    //     nonclaim satisfied by any one of several accepted wordings). `scope`
+    //     (default field-scoped) may be `whole_spec` for a marker that is
+    //     legitimately document-wide rather than confined to one sub-tree.
     if let Some(requirements) = slice.get("required_markers").and_then(Value::as_array) {
         for requirement in requirements {
             check_keys(
                 requirement,
-                &["field", "markers"],
+                &["field", "markers", "quantifier", "scope"],
                 slice_id,
                 "required_markers",
                 findings,
@@ -266,11 +276,21 @@ fn evaluate_slice(
                 .and_then(Value::as_array)
                 .map(|a| a.iter().filter_map(Value::as_str).collect())
                 .unwrap_or_default();
+            let quantifier = requirement
+                .get("quantifier")
+                .and_then(Value::as_str)
+                .unwrap_or("all_of");
+            let whole_spec = requirement.get("scope").and_then(Value::as_str) == Some("whole_spec");
             let target_field = requirement.get("field").and_then(Value::as_str);
             // Fail-closed on shape: an empty markers list is a silent no-op that
-            // enforces nothing, and a missing/non-string field would search the
-            // empty path — both must RED rather than pass vacuously.
-            if markers.is_empty() || target_field.is_none_or(str::is_empty) {
+            // enforces nothing; an unknown quantifier/scope, or a missing field when
+            // not searching the whole spec, would evaluate vacuously — all must RED.
+            let bad_quantifier = !matches!(quantifier, "all_of" | "any_of");
+            let bad_scope = requirement
+                .get("scope")
+                .is_some_and(|s| s.as_str() != Some("whole_spec"));
+            let bad_field = !whole_spec && target_field.is_none_or(str::is_empty);
+            if markers.is_empty() || bad_quantifier || bad_scope || bad_field {
                 findings.insert(Finding::new(
                     "contract_slice_required_markers_malformed",
                     format!("{slice_id}:{}", target_field.unwrap_or("<no-field>")),
@@ -278,14 +298,29 @@ fn evaluate_slice(
                 continue;
             }
             let target_field = target_field.unwrap_or_default();
-            let scope = get_dotted(spec, target_field);
-            for marker in markers {
-                let found = scope.is_some_and(|value| recursively_contains(value, marker));
-                if !found {
+            let scope = if whole_spec {
+                Some(spec)
+            } else {
+                get_dotted(spec, target_field)
+            };
+            let contains =
+                |marker: &str| scope.is_some_and(|value| recursively_contains(value, marker));
+            if quantifier == "any_of" {
+                // any_of REDs only when NO declared marker is present.
+                if !markers.iter().any(|marker| contains(marker)) {
                     findings.insert(Finding::new(
-                        "contract_slice_required_marker_missing",
-                        format!("{slice_id}:{target_field}:{marker}"),
+                        "contract_slice_required_marker_none_present",
+                        format!("{slice_id}:{target_field}"),
                     ));
+                }
+            } else {
+                for marker in markers {
+                    if !contains(marker) {
+                        findings.insert(Finding::new(
+                            "contract_slice_required_marker_missing",
+                            format!("{slice_id}:{target_field}:{marker}"),
+                        ));
+                    }
                 }
             }
         }
@@ -428,6 +463,19 @@ fn evaluate_slice(
         if get_dotted(spec, &field).and_then(Value::as_bool) != Some(true) {
             findings.insert(Finding::new(
                 "contract_slice_field_not_true",
+                format!("{slice_id}:{field}"),
+            ));
+        }
+    }
+
+    // 4b'. Required-false fields: the mirror of required_true_fields — a dotted
+    //      field must be boolean `false`. Pins a negative default (e.g. a
+    //      `non_necessary_default == false` claim-control) that required-fields
+    //      presence alone cannot (presence accepts `true`).
+    for field in string_array(slice, "required_false_fields") {
+        if get_dotted(spec, &field).and_then(Value::as_bool) != Some(false) {
+            findings.insert(Finding::new(
+                "contract_slice_field_not_false",
                 format!("{slice_id}:{field}"),
             ));
         }
@@ -898,6 +946,44 @@ fn contains_lowered(value: &Value, needle: &str) -> bool {
         Value::Array(items) => items.iter().any(|item| contains_lowered(item, needle)),
         Value::Object(map) => map.iter().any(|(key, val)| {
             key.to_ascii_lowercase().contains(needle) || contains_lowered(val, needle)
+        }),
+        _ => false,
+    }
+}
+
+/// Lowercase, then collapse every run of non-alphanumeric characters into a
+/// single space and trim. This canonicalizes separator variants so a forbidden
+/// marker cannot be evaded by substituting one separator for another
+/// (`production-ready` / `production_ready` / `production   ready` all fold to
+/// `production ready`). Applied to both the marker and each scanned leaf.
+fn normalize_separators(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut pending_space = false;
+    for ch in text.chars() {
+        if ch.is_ascii_alphanumeric() {
+            if pending_space && !out.is_empty() {
+                out.push(' ');
+            }
+            pending_space = false;
+            out.push(ch.to_ascii_lowercase());
+        } else {
+            pending_space = true;
+        }
+    }
+    out
+}
+
+/// True when `needle_normalized` (already separator-normalized) appears in any
+/// separator-normalized string leaf of `value` — including object keys.
+fn recursively_contains_normalized(value: &Value, needle_normalized: &str) -> bool {
+    match value {
+        Value::String(text) => normalize_separators(text).contains(needle_normalized),
+        Value::Array(items) => items
+            .iter()
+            .any(|item| recursively_contains_normalized(item, needle_normalized)),
+        Value::Object(map) => map.iter().any(|(key, val)| {
+            normalize_separators(key).contains(needle_normalized)
+                || recursively_contains_normalized(val, needle_normalized)
         }),
         _ => false,
     }
@@ -1725,6 +1811,134 @@ mod tests {
                 .violations
                 .contains("contract_slice_field_implies_required_malformed"),
             "a rule with no if_field must fail closed"
+        );
+    }
+
+    // ---- Phase 3: Group B T1 (B1 required_false_fields, B2 any_of, B3a separators) ----
+
+    #[test]
+    fn forbidden_marker_normalizes_separators_so_hyphen_trips_a_spaced_marker() {
+        // The real evasion: `production-ready` (hyphen) must trip the marker
+        // `production ready` (space). A plain substring scan misses it.
+        let slice = json!({
+            "slice_id": "sep",
+            "spec_path": "fixtures/exemplar-slice.json",
+            "required_fields": [],
+            "forbidden_markers": ["production ready"]
+        });
+        let mut spec = valid_slice_spec();
+        spec["claim"] = json!("this substrate is production-ready today");
+        assert!(
+            evaluate_configured(&policy_with(slice), &corpus_with(spec))
+                .violations
+                .contains("contract_slice_forbidden_marker"),
+            "a separator-substituted marker must still be caught"
+        );
+    }
+
+    #[test]
+    fn required_false_fields_rejects_true_and_absent() {
+        let slice = json!({
+            "slice_id": "boolf",
+            "spec_path": "fixtures/exemplar-slice.json",
+            "required_fields": [],
+            "required_false_fields": ["non_necessary_default"]
+        });
+        let mut spec = valid_slice_spec();
+        spec["non_necessary_default"] = json!(false);
+        assert_eq!(
+            evaluate_configured(&policy_with(slice.clone()), &corpus_with(spec)).verdict,
+            Verdict::Green
+        );
+        // true must be rejected...
+        let mut spec = valid_slice_spec();
+        spec["non_necessary_default"] = json!(true);
+        assert!(
+            evaluate_configured(&policy_with(slice.clone()), &corpus_with(spec))
+                .violations
+                .contains("contract_slice_field_not_false")
+        );
+        // ...and so must an absent field (fail-closed, like required_true_fields).
+        assert!(
+            evaluate_configured(&policy_with(slice), &corpus_with(valid_slice_spec()))
+                .violations
+                .contains("contract_slice_field_not_false")
+        );
+    }
+
+    #[test]
+    fn required_markers_any_of_reds_only_when_no_marker_matches() {
+        let slice = json!({
+            "slice_id": "anyof",
+            "spec_path": "fixtures/exemplar-slice.json",
+            "required_fields": [],
+            "required_markers": [{
+                "field": "nonclaims",
+                "quantifier": "any_of",
+                "markers": ["no ERP settlement authority", "no marketplace settlement authority"]
+            }]
+        });
+        // green: exactly one of the accepted wordings is present.
+        let mut spec = valid_slice_spec();
+        spec["nonclaims"] = json!(["no ERP settlement authority is claimed"]);
+        assert_eq!(
+            evaluate_configured(&policy_with(slice.clone()), &corpus_with(spec)).verdict,
+            Verdict::Green
+        );
+        // red: none of the accepted wordings appear.
+        let mut spec = valid_slice_spec();
+        spec["nonclaims"] = json!(["something unrelated"]);
+        assert!(
+            evaluate_configured(&policy_with(slice), &corpus_with(spec))
+                .violations
+                .contains("contract_slice_required_marker_none_present")
+        );
+    }
+
+    #[test]
+    fn required_markers_scope_whole_spec_searches_the_document() {
+        let slice = json!({
+            "slice_id": "wholemark",
+            "spec_path": "fixtures/exemplar-slice.json",
+            "required_fields": [],
+            "required_markers": [{
+                "scope": "whole_spec",
+                "markers": ["fixture only"]
+            }]
+        });
+        // valid_slice_spec's non_claims already contains "fixture only; not live evidence".
+        assert_eq!(
+            evaluate_configured(
+                &policy_with(slice.clone()),
+                &corpus_with(valid_slice_spec())
+            )
+            .verdict,
+            Verdict::Green
+        );
+        // red: remove the phrase entirely.
+        let mut spec = valid_slice_spec();
+        spec["non_claims"] = json!(["something else"]);
+        assert!(
+            evaluate_configured(&policy_with(slice), &corpus_with(spec))
+                .violations
+                .contains("contract_slice_required_marker_missing")
+        );
+    }
+
+    #[test]
+    fn required_markers_bad_quantifier_is_red() {
+        let slice = json!({
+            "slice_id": "badq",
+            "spec_path": "fixtures/exemplar-slice.json",
+            "required_fields": [],
+            "required_markers": [{ "field": "x", "markers": ["m"], "quantifier": "some_of" }]
+        });
+        let mut spec = valid_slice_spec();
+        spec["x"] = json!(["m"]);
+        assert!(
+            evaluate_configured(&policy_with(slice), &corpus_with(spec))
+                .violations
+                .contains("contract_slice_required_markers_malformed")
         );
     }
 }
