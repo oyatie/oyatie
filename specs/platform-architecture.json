@@ -448,37 +448,76 @@
         "reserved MAY declare planned_dependencies only; no live deps until promotion"
       ],
       "substrate_dag_canonical_ordering": {
-        "S0_leaves": [
+        "_comment": "DERIVED MIRROR of the canonical substrate DAG — NOT an independent SSOT. TOPOLOGY FORK (ADR-0562 §8 Fork 1) RESOLVED 2026-07-10 by the ADR-0280 §D-13 substrate plane-topology amendment. The sole canonical substrate topology authority is specs/substrate-dependency-dag.json (ADR-0280 §D-1: the C-plane steady-state runtime dependency graph), with its 'cell' node understood as the cell.envelope (B0) runtime face per §D-13. This block previously encoded an INVERTED, incompatible orientation (cell at stratum S2 with audit-chain/observability/cloud-secrets as S0 leaves), contradicting §D-1; it is replaced by a projection consistent with §D-1 by construction. tier1_bootstrap_order is §D-1's bootstrap_order verbatim (cell is the B0 leaf). tier1_dependency_strata is the DAG-derived dependency-depth stratification: S0 = leaf; every node sits at or above every node it depends on (no inversion). tier2_and_meta_forward_declared carries the ADR-0280 Appendix C Tier-2 substrates + the Tier-S5 meta-substrate (de-branded node delivery-fabric per specs/capability-registry.json; legacy alias 'foundry'), placed by §D-13 PLANE rather than by computed depth because their edges are not yet in the §D-1 v1.0.0 Tier-1 artifact — they gain computed strata positions in DAG v1.1.0. Authority: ADR-0280 §D-1/§D-13 as amended by ADR-0520 + ADR-0562 + ADR-0615; specs/substrate-dependency-dag.json (canonical machine artifact).",
+        "canonical_source": "/specs/substrate-dependency-dag.json",
+        "doctrine_adr": "ADR-0280",
+        "projection_kind": "derived-mirror",
+        "tier1_bootstrap_order": [
+          "cell",
+          "identity",
+          "tenancy",
+          "policy-engine",
+          "cloud-secrets",
           "audit-chain",
           "observability",
-          "cloud-secrets",
-          "cloud-iac",
-          "api-gateway"
-        ],
-        "S1": [
-          "identity",
-          "network",
-          "cloud-k8s"
-        ],
-        "S2": [
-          "tenancy",
-          "cell",
-          "comms-email"
-        ],
-        "S3": [
-          "policy-engine",
           "ontology",
-          "consent-graph"
-        ],
-        "S4": [
           "intelligence",
-          "workflow-engine",
-          "governance",
-          "compliance"
+          "workflow-engine"
         ],
-        "S5_meta": [
-          "foundry"
-        ]
+        "tier1_dependency_strata": {
+          "S0_leaf": [
+            "cell"
+          ],
+          "S1": [
+            "cloud-secrets",
+            "identity"
+          ],
+          "S2": [
+            "tenancy"
+          ],
+          "S3": [
+            "policy-engine"
+          ],
+          "S4": [
+            "audit-chain"
+          ],
+          "S5": [
+            "observability"
+          ],
+          "S6": [
+            "ontology"
+          ],
+          "S7": [
+            "intelligence"
+          ],
+          "S8": [
+            "workflow-engine"
+          ]
+        },
+        "tier2_and_meta_forward_declared": {
+          "_comment": "Forward-declared per ADR-0280 Appendix C; placed by ADR-0280 §D-13 plane (B0 bootstrap infrastructure / C0 cell-local trust / C1-C2 cell platform + workloads / R router-data-plane / G logically-global management plane / meta), NOT by computed §D-1 depth. Computed strata positions are assigned when each node's edges land in specs/substrate-dependency-dag.json v1.1.0. governance is cross-cutting (implemented via ci/iac/policy/compliance/audit per §D-13.G), retained here to mirror ADR-0280 Appendix C.",
+          "B0_bootstrap_infrastructure": [
+            "cloud-k8s",
+            "network"
+          ],
+          "R_router_and_edge": [
+            "api-gateway"
+          ],
+          "C0_trust_and_consent": [
+            "consent-graph"
+          ],
+          "C2_cell_workloads": [
+            "comms-email"
+          ],
+          "G_management_plane": [
+            "cloud-iac",
+            "compliance",
+            "governance"
+          ],
+          "S5_meta": [
+            "delivery-fabric"
+          ]
+        }
       },
       "substrate_slo_floor": {
         "monthly_availability": 0.9999,
