@@ -34,14 +34,14 @@
     {
       "gate": "affected-target-set",
       "class": "orchestrator_buck2_execution_boundary",
-      "reason": "The affected-set gate is an orchestrator that invokes the owned Buck2 build/test boundary to compute the admission cone; the predicate result is derived from Buck2 reports, not ad-hoc shell policy.",
+      "reason": "The affected-set gate is an orchestrator that invokes the owned Buck2 build/test boundary to compute the admission cone; the predicate result is derived from Buck2 reports, not ad-hoc shell policy. Count raised 5->6 for the ADR-0554 round-6 FULL-tier test-health ratchet, which spawns `buck2 test //...` to capture per-target verdicts (buck2's --build-report cannot express runtime test pass/fail).",
       "cutover_note": "Replace the subprocess edge with the typed cloud-ci runner/reconciler API when that API owns Buck2 execution; keep the exception visible until then.",
       "fixuptask_id": "GH-777-CUTOVER-AFFECTED-SET-TYPED-RUNNER",
       "allowed_paths": [
         "ci/facade/affected-target-set/src/main.rs",
         "ci/facade/affected-target-set/src/bin/oya-cloud-ci-step-telemetry.rs"
       ],
-      "max_occurrences": 5,
+      "max_occurrences": 6,
       "tokens": [
         "Command::new"
       ]
