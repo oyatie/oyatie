@@ -446,6 +446,7 @@
             "no live FOCUS export data generator",
             "no OpenCost exporter deployment or Mimir federation runtime",
             "no Karpenter Helm chart, NodePool, or cloud resource mutation",
+            "no tenant invoice PDF renderer, tenant portal UI, or public FinOps dashboard runtime",
             "no ERP or marketplace settlement authority is claimed from Proposed ADR-0314/ADR-0315"
           ]
         }
