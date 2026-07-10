@@ -62,7 +62,7 @@ Plus a fifth, project-management quadrant for the consolidated docs themselves (
 | **CLAUDE.md / AGENTS.md / CONTEXT.md** (per directory) | rooted at each directory needing context | per-directory owner | Hand-authored; agent-consumed |
 | **ADRs** | `decisions/ADR-####-<title>.md` | author per ADR; promotion by `crew-adr-promotion` | Hand-authored; indexed in [`ADR-INDEX.md`](ADR-INDEX.md) |
 | **Runbooks** | `docs/runbooks/<runbook-id>.md` | `ops-sre-reliability` + per-axis | Hand-authored; indexed in [`RUNBOOKS-INDEX.md`](RUNBOOKS-INDEX.md) |
-| **Threat models per service** | `docs/security/threat-models/<service>.md` | `ops-security` + per-team | Hand-authored; references in [`SECURITY-PROGRAM.md`](SECURITY-PROGRAM.md) |
+| **Threat models per service** | `docs/security/threat-models/<service>.md` | `ops-security` + per-team | Hand-authored; references in [`security-program/security-program.json`](security-program/security-program.json) |
 | **Audit reports** | `docs/audits/<date>-<topic>.md` | per-auditor (council member or outside auditor) | Hand-authored |
 | **Mistakes-and-fixes ledger** | `docs/MISTAKES-LEDGER.md` | `council-architecture` (curator) | Hand-authored on every prevention-loop trigger |
 | **Consolidated PM docs** | `docs/*.md` | per-doc owner (see DOC-CATALOG) | Hand-authored; agents may co-author per `agent_authoring_allowed` flag |

@@ -22,7 +22,7 @@ doc_status: published
 
 ## Cross-references
 - [`COMPLIANCE-MATRIX.md`](../COMPLIANCE-MATRIX.md) — full per-regulator × control matrix
-- [`SECURITY-PROGRAM.md`](../SECURITY-PROGRAM.md) — control implementations
+- [`security-program.json`](../security-program/security-program.json) — control implementations
 - [`PRIVACY-PROGRAM.md`](../PRIVACY-PROGRAM.md) — privacy-control evidence
 
 ## Trust-portal publication

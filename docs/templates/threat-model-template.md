@@ -5,8 +5,8 @@ doc_status: published
 # Threat Model: <Service / Surface / Capability> — <YYYY-MM-DD>
 
 > **Owner:** `ops-security` co-author + per-axis team owner
-> **Cadence:** quarterly per service per [SECURITY-PROGRAM.md §2 control 11](../SECURITY-PROGRAM.md)
-> **Companion:** [SECURITY-PROGRAM.md](../SECURITY-PROGRAM.md), ADR-0008 + ADR-0022 + ADR-0039
+> **Cadence:** quarterly per service per [security-program.json §2 control 11](../security-program/security-program.json)
+> **Companion:** [security-program.json](../security-program/security-program.json), ADR-0008 + ADR-0022 + ADR-0039
 
 ---
 
@@ -37,7 +37,7 @@ What is being threat-modeled. One paragraph.
 - (between Oyatie / external service-provider)
 - (between human / agent)
 
-## 4. Actors (per [SECURITY-PROGRAM §1.1](../SECURITY-PROGRAM.md))
+## 4. Actors (per [security-program.json §1.1](../security-program/security-program.json))
 
 | Actor | Motivation | Capabilities | Likelihood | Worst-case impact |
 |---|---|---|---|---|
@@ -45,7 +45,7 @@ What is being threat-modeled. One paragraph.
 | Cybercriminal | ransomware | phishing + lateral | | |
 | Insider (engineer) | accidental / IP theft | repo + cloud admin | | |
 | Insider (operator) | misconfig | cloud control plane | | |
-| Foundry agent (rogue or hijacked) | privilege escalation via tool use | capability invocation | | |
+| Intelligence agent (rogue or hijacked) | privilege escalation via tool use | capability invocation | | |
 | Tenant adversary | cross-tenant access | authenticated user | | |
 | Plugin author (malicious) | sandbox escape | plugin runtime | | |
 | Regulator (subpoena) | compelled disclosure | legal process | | |
@@ -57,7 +57,7 @@ What is being threat-modeled. One paragraph.
 |---|---|---|---|---|---|---|
 | (per surface enumerated) | | | | | | |
 
-## 6. Mitigations applied (cross-reference SECURITY-PROGRAM)
+## 6. Mitigations applied (cross-reference security-program.json)
 
 - mTLS via service mesh per ADR-0044
 - KMS-shred encryption at rest per ADR-0043
@@ -100,7 +100,7 @@ Per [COMPLIANCE-MATRIX.md](../COMPLIANCE-MATRIX.md):
 
 ## 11. Sources scanned
 
-- [SECURITY-PROGRAM.md](../SECURITY-PROGRAM.md)
+- [security-program.json](../security-program/security-program.json)
 - ADR-0007/0008/0022/0023/0039/0043/0044
 - Per-surface dependency ledger
 - KISA + ISO 27001 + SOC 2 + NIST CSF + OWASP Top 10 + LLM Top 10

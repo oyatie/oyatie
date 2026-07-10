@@ -108,4 +108,4 @@ Per ADR-0024:
 
 ## 12. Sources
 
-[COMPLIANCE-MATRIX.md](../COMPLIANCE-MATRIX.md), [SECURITY-PROGRAM.md](../SECURITY-PROGRAM.md), [PRIVACY-PROGRAM.md](../PRIVACY-PROGRAM.md), [`standards/fintech-compliance.md`](../standards/fintech-compliance.md), per-vertical PRDs, per-pack PACK.md, ADR-0003/0008/0013/0024/0038/0039.
+[COMPLIANCE-MATRIX.md](../COMPLIANCE-MATRIX.md), [security-program.json](../security-program/security-program.json), [PRIVACY-PROGRAM.md](../PRIVACY-PROGRAM.md), [`standards/fintech-compliance.md`](../standards/fintech-compliance.md), per-vertical PRDs, per-pack PACK.md, ADR-0003/0008/0013/0024/0038/0039.
