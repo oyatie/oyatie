@@ -234,7 +234,8 @@ fn cell_002_rollback_audit_fixture_shape_is_enforced() {
         .remove("rollback_pointer");
     let report = evaluate_configured(&policy, &corpus);
     assert!(
-        report.findings.iter().any(|finding| finding.code == "contract_slice_missing_required_field"
+        report.findings.iter().any(|finding| finding.code
+            == "contract_slice_missing_required_field"
             && finding.key == "cell-002-rollback-audit-fixture:audit_row.rollback_pointer"),
         "the dropped audit-row field must be rejected with its exact key: {:?}",
         report.findings
@@ -244,8 +245,11 @@ fn cell_002_rollback_audit_fixture_shape_is_enforced() {
     corpus.get_mut(fixture).unwrap()["audit_row"]["post_state"] = json!("Committed");
     let report = evaluate_configured(&policy, &corpus);
     assert!(
-        report.findings.iter().any(|finding| finding.code == "contract_slice_enum_violation"
-            && finding.key == "cell-002-rollback-audit-fixture:audit_row.post_state"),
+        report
+            .findings
+            .iter()
+            .any(|finding| finding.code == "contract_slice_enum_violation"
+                && finding.key == "cell-002-rollback-audit-fixture:audit_row.post_state"),
         "a fixture whose post_state is not RolledBack must be rejected with its exact key: {:?}",
         report.findings
     );
@@ -264,8 +268,11 @@ fn finops_001_cost_attribution_slice_is_enforced() {
     corpus.get_mut(spec).unwrap()["_meta"]["status"] = json!("Draft");
     let report = evaluate_configured(&policy, &corpus);
     assert!(
-        report.findings.iter().any(|finding| finding.code == "contract_slice_enum_violation"
-            && finding.key == "finops-001-cost-attribution:_meta.status"),
+        report
+            .findings
+            .iter()
+            .any(|finding| finding.code == "contract_slice_enum_violation"
+                && finding.key == "finops-001-cost-attribution:_meta.status"),
         "a finops status downgrade must be rejected: {:?}",
         report.findings
     );
@@ -279,6 +286,169 @@ fn finops_001_cost_attribution_slice_is_enforced() {
             && finding.key
                 == "finops-001-cost-attribution:_meta.authority_boundary.accepted_authority:ADR-0174"),
         "dropping ADR-0174 from accepted_authority must be rejected: {:?}",
+        report.findings
+    );
+}
+
+// ---- New-primitive live-corpus RED cases (Phase 5) --------------------------
+//
+// These exercise the DSL primitives added by the enrichment against the REAL
+// committed exemplar fixture (loaded from disk, not a `json!` literal), each
+// asserting the exact `Finding.key` a converted slice will depend on. The live
+// policy itself is left unchanged — the four conversion PRs add the data entries;
+// this PR proves the primitives fire end-to-end with the keys they will use.
+
+const EXEMPLAR_SPEC_PATH: &str =
+    "ci/facade/contract-slice-conformance/fixtures/exemplar-slice.json";
+
+fn exemplar_corpus(root: &Path) -> BTreeMap<String, Value> {
+    BTreeMap::from([(
+        EXEMPLAR_SPEC_PATH.to_owned(),
+        load_json(&root.join(EXEMPLAR_SPEC_PATH)),
+    )])
+}
+
+fn synthetic_policy(slice: Value) -> Value {
+    json!({
+        "gate_id": GATE_ID,
+        "primary_execution_path": "rust_buck2_cloud_ci_gate",
+        "slices": [slice],
+    })
+}
+
+fn has_finding(report: &ci_contract_slice_conformance::Report, code: &str, key: &str) -> bool {
+    report
+        .findings
+        .iter()
+        .any(|finding| finding.code == code && finding.key == key)
+}
+
+#[test]
+fn exact_array_fields_fires_on_the_live_exemplar_with_exact_key() {
+    let root = repo_root();
+    let slice = json!({
+        "slice_id": "live-exact-array",
+        "spec_path": EXEMPLAR_SPEC_PATH,
+        "required_fields": [],
+        "exact_array_fields": [
+            { "field": "required_contract_fields", "values": ["field_a", "field_b"] }
+        ]
+    });
+    // green against the untouched committed fixture.
+    assert_eq!(
+        evaluate_configured(&synthetic_policy(slice.clone()), &exemplar_corpus(&root)).verdict,
+        Verdict::Green
+    );
+    // reordering the real array trips array_not_exact with its exact key.
+    let mut corpus = exemplar_corpus(&root);
+    corpus.get_mut(EXEMPLAR_SPEC_PATH).unwrap()["required_contract_fields"] =
+        json!(["field_b", "field_a"]);
+    let report = evaluate_configured(&synthetic_policy(slice), &corpus);
+    assert!(
+        has_finding(
+            &report,
+            "contract_slice_array_not_exact",
+            "live-exact-array:required_contract_fields"
+        ),
+        "reordering the exemplar's required_contract_fields must RED with its exact key: {:?}",
+        report.findings
+    );
+}
+
+#[test]
+fn field_patterns_fires_on_the_live_exemplar_with_exact_key() {
+    let root = repo_root();
+    let slice = json!({
+        "slice_id": "live-pattern",
+        "spec_path": EXEMPLAR_SPEC_PATH,
+        "required_fields": [],
+        "field_patterns": [
+            { "field": "cloud_ci_gate", "pattern": "^cloud-ci-[a-z0-9-]+$" }
+        ]
+    });
+    assert_eq!(
+        evaluate_configured(&synthetic_policy(slice.clone()), &exemplar_corpus(&root)).verdict,
+        Verdict::Green
+    );
+    let mut corpus = exemplar_corpus(&root);
+    corpus.get_mut(EXEMPLAR_SPEC_PATH).unwrap()["cloud_ci_gate"] = json!("NOT A GATE ID");
+    let report = evaluate_configured(&synthetic_policy(slice), &corpus);
+    assert!(
+        has_finding(
+            &report,
+            "contract_slice_pattern_mismatch",
+            "live-pattern:cloud_ci_gate"
+        ),
+        "a cloud_ci_gate that violates the id grammar must RED with its exact key: {:?}",
+        report.findings
+    );
+}
+
+#[test]
+fn separator_normalized_forbidden_marker_fires_on_a_live_spec() {
+    let root = repo_root();
+    let slice = json!({
+        "slice_id": "live-forbidden-sep",
+        "spec_path": EXEMPLAR_SPEC_PATH,
+        "required_fields": [],
+        "forbidden_markers": ["production ready"]
+    });
+    // A hyphenated evasion baked into the real fixture still trips the marker.
+    let mut corpus = exemplar_corpus(&root);
+    corpus.get_mut(EXEMPLAR_SPEC_PATH).unwrap()["headline"] =
+        json!("this substrate is production-ready");
+    let report = evaluate_configured(&synthetic_policy(slice), &corpus);
+    assert!(
+        has_finding(
+            &report,
+            "contract_slice_forbidden_marker",
+            "live-forbidden-sep:production ready"
+        ),
+        "a separator-substituted forbidden phrase must RED with its exact key: {:?}",
+        report.findings
+    );
+}
+
+#[test]
+fn required_markers_any_of_and_array_cardinality_fire_on_the_live_exemplar() {
+    let root = repo_root();
+    // any_of over the exemplar's non_claims (which already contains "fixture only …").
+    let any_of = json!({
+        "slice_id": "live-anyof",
+        "spec_path": EXEMPLAR_SPEC_PATH,
+        "required_fields": [],
+        "required_markers": [{
+            "field": "non_claims",
+            "quantifier": "any_of",
+            "markers": ["absent phrase one", "absent phrase two"]
+        }]
+    });
+    let report = evaluate_configured(&synthetic_policy(any_of), &exemplar_corpus(&root));
+    assert!(
+        has_finding(
+            &report,
+            "contract_slice_required_marker_none_present",
+            "live-anyof:non_claims"
+        ),
+        "any_of must RED when none of the accepted wordings are present: {:?}",
+        report.findings
+    );
+
+    // array_cardinality: the exemplar's required_contract_fields has exactly 2 members.
+    let cardinality = json!({
+        "slice_id": "live-card",
+        "spec_path": EXEMPLAR_SPEC_PATH,
+        "required_fields": [],
+        "array_cardinality": [{ "field": "required_contract_fields", "min": 3 }]
+    });
+    let report = evaluate_configured(&synthetic_policy(cardinality), &exemplar_corpus(&root));
+    assert!(
+        has_finding(
+            &report,
+            "contract_slice_array_below_min",
+            "live-card:required_contract_fields"
+        ),
+        "a 2-member array must RED against min=3 with its exact key: {:?}",
         report.findings
     );
 }
