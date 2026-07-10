@@ -61,7 +61,7 @@ crates/oya-vertical-corporate-*/     @teams/vertical-corporate
 decisions/                           @teams/crew-adr-promotion @teams/council-architecture
 docs/PRD.md             @teams/council-architecture
 docs/PRIVACY-PROGRAM.md @teams/council-privacy
-docs/security-program.json @teams/ops-security
+docs/security-program/security-program.json @teams/ops-security
 docs/COMPLIANCE-MATRIX.md @teams/ops-compliance
 docs/products/<id>/PRD.md @teams/<owning-team>
 docs/teams/<id>/CHARTER.md @teams/<id>

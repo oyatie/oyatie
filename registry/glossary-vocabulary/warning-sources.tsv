@@ -902,7 +902,7 @@ uncited-acronym	APRA	docs/user-journeys/j98-au-privacy-apra-cps-234-tenant/schem
 uncited-acronym	APRA	docs/user-journeys/j98-au-privacy-apra-cps-234-tenant/story.md
 uncited-acronym	APRA	docs/user-journeys/j98-au-privacy-apra-cps-234-tenant/ux-flow.md
 uncited-acronym	APS	docs/architecture/persona-journey-microservice-cross-coverage-matrix-2026-05-21.md
-uncited-acronym	APT	docs/security-program.json
+uncited-acronym	APT	docs/security-program/security-program.json
 uncited-acronym	APT	docs/templates/threat-model-template.md
 uncited-acronym	AR	docs/COMPETITIVE-GAP-ANALYSIS.md
 uncited-acronym	AR	docs/DESIGN.md
@@ -1060,7 +1060,7 @@ uncited-acronym	ATS	docs/runbooks/cloud/dcops-power-event.md
 uncited-acronym	ATS	docs/standards/workflow-vs-direct-grpc-rubric.md
 uncited-acronym	ATS	docs/user-journeys/j132-hr-mass-hiring-event-100-roles/story.md
 uncited-acronym	ATS	docs/user-journeys/j133-hr-conducts-layoff-with-dignity-and-compliance/story.md
-uncited-acronym	ATT	docs/security-program.json
+uncited-acronym	ATT	docs/security-program/security-program.json
 uncited-acronym	ATT	docs/standards/documentation-rigor.md
 uncited-acronym	AUD	docs/INTERNATIONALIZATION.md
 uncited-acronym	AUD	docs/regional-packs/_TEMPLATE.md
@@ -2073,7 +2073,7 @@ uncited-acronym	CJ	docs/prds/workflow.md
 uncited-acronym	CJ	docs/teams/vertical-logistics/CHARTER.md
 uncited-acronym	CJIS	docs/personas/officer-rodriguez-police.md
 uncited-acronym	CJK	docs/standards/ux-best-practices.md
-uncited-acronym	CK	docs/security-program.json
+uncited-acronym	CK	docs/security-program/security-program.json
 uncited-acronym	CK	docs/standards/documentation-rigor.md
 uncited-acronym	CL	docs/advanced-cicd/branch-pipeline/ADR-0055-branch-pipeline.md
 uncited-acronym	CL	docs/architecture/wave-3-g-executive-briefing-2026-05-21.md
@@ -2520,7 +2520,7 @@ uncited-acronym	CSAM	docs/standards/messenger-e2e-encryption-mls.md
 uncited-acronym	CSAT	docs/teams/gtm-customer-success/CHARTER.md
 uncited-acronym	CSAT	docs/user-stories/b2b-work-surfaces.md
 uncited-acronym	CSF	docs/COMPLIANCE-MATRIX.md
-uncited-acronym	CSF	docs/security-program.json
+uncited-acronym	CSF	docs/security-program/security-program.json
 uncited-acronym	CSF	docs/standards/documentation-rigor.md
 uncited-acronym	CSF	docs/standards/fintech-compliance.md
 uncited-acronym	CSF	docs/templates/threat-model-template.md
@@ -5110,7 +5110,7 @@ uncited-acronym	IL	docs/architecture/wave-3-g-executive-briefing-2026-05-21.md
 uncited-acronym	IL	docs/personas/MASTER-ROSTER-2026-05-21.md
 uncited-acronym	IL	docs/standards/voice-video-call-architecture.md
 uncited-acronym	ILO	docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md
-uncited-acronym	IMAP	docs/security-program.json
+uncited-acronym	IMAP	docs/security-program/security-program.json
 uncited-acronym	IMAP	docs/SPEC.md
 uncited-acronym	IMAP	docs/advanced-cicd/progressive-delivery/playbook-workspace.md
 uncited-acronym	IMAP	docs/architecture/wave-3-g-executive-briefing-2026-05-21.md
@@ -6011,7 +6011,7 @@ uncited-acronym	MISSING	docs/architecture/wave-3-g-synthesis-adjudication-2026-0
 uncited-acronym	MISSING	docs/user-journeys/j138-corporate-audit-fraud-investigation-via-pattern-detection/story.md
 uncited-acronym	MISTAKES	docs/standards/ci-lanes.md
 uncited-acronym	MISTAKES	docs/standards/on-call.md
-uncited-acronym	MITRE	docs/security-program.json
+uncited-acronym	MITRE	docs/security-program/security-program.json
 uncited-acronym	MITRE	docs/standards/documentation-rigor.md
 uncited-acronym	MLAT	docs/standards/messenger-e2e-encryption-mls.md
 uncited-acronym	MLM	docs/user-journeys/j147-laid-off-cohort-mutual-aid-community-channel/story.md
@@ -6314,7 +6314,7 @@ uncited-acronym	NICE	docs/regional-packs/oya-pack-kr/PACK.md
 uncited-acronym	NICE	docs/standards/fintech-compliance.md
 uncited-acronym	NIN	docs/DESIGN.md
 uncited-acronym	NIST	docs/COMPLIANCE-MATRIX.md
-uncited-acronym	NIST	docs/security-program.json
+uncited-acronym	NIST	docs/security-program/security-program.json
 uncited-acronym	NIST	docs/architecture/hyperscaler-pattern-attribution.md
 uncited-acronym	NIST	docs/architecture/memory-spec-runbook-audit-2026-05-21.md
 uncited-acronym	NIST	docs/architecture/wave-3-g-executive-briefing-2026-05-21.md
@@ -6666,7 +6666,7 @@ uncited-acronym	OVERRIDE	docs/architecture/ip-corpus-line-audit-2026-05-21.md
 uncited-acronym	OVH	docs/DESIGN.md
 uncited-acronym	OVN	docs/products/cloud/PRD.md
 uncited-acronym	OVS	docs/products/cloud/PRD.md
-uncited-acronym	OWASP	docs/security-program.json
+uncited-acronym	OWASP	docs/security-program/security-program.json
 uncited-acronym	OWASP	docs/architecture/keystone-bundle-idea-refine-deep-dive.md
 uncited-acronym	OWASP	docs/architecture/keystone-bundle-intern-walkthrough.md
 uncited-acronym	OWASP	docs/quality/ai-slop-defense/additional-tooling-recommendations.md
@@ -8597,7 +8597,7 @@ uncited-acronym	SOX	docs/user-journeys/j94-sox-404-public-company-controls/schem
 uncited-acronym	SOX	docs/user-journeys/j94-sox-404-public-company-controls/story.md
 uncited-acronym	SOX	docs/user-journeys/j94-sox-404-public-company-controls/ux-flow.md
 uncited-acronym	SP	docs/COMPLIANCE-MATRIX.md
-uncited-acronym	SP	docs/security-program.json
+uncited-acronym	SP	docs/security-program/security-program.json
 uncited-acronym	SP	docs/architecture/hyperscaler-pattern-attribution.md
 uncited-acronym	SP	docs/checklists/audit-readiness.md
 uncited-acronym	SP	docs/standards/documentation-rigor.md
@@ -9026,7 +9026,7 @@ uncited-acronym	STR	docs/standards/fintech-compliance.md
 uncited-acronym	STR	docs/teams/vertical-fintech/CHARTER.md
 uncited-acronym	STRICT	docs/operators/ADR-0145-runtime-impact-changelog.md
 uncited-acronym	STRICTLY	docs/standards/authz-tier-boundaries.md
-uncited-acronym	STRIDE	docs/security-program.json
+uncited-acronym	STRIDE	docs/security-program/security-program.json
 uncited-acronym	STRIDE	docs/STANDARDS-AND-TEMPLATES.md
 uncited-acronym	STRIDE	docs/standards/security-review.md
 uncited-acronym	STRIDE	docs/teams/ops-security/CHARTER.md
@@ -9742,7 +9742,7 @@ uncited-acronym	WORK	docs/user-journeys/j20-data-residency-violation-detection/s
 uncited-acronym	WORKED	docs/user-journeys/j140-internal-audit-data-loss-prevention-egress-trip/README.md
 uncited-acronym	WORKER	docs/architecture/wave-3-g-executive-briefing-2026-05-21.md
 uncited-acronym	WORKER	docs/personas/MASTER-ROSTER-2026-05-21.md
-uncited-acronym	WORM	docs/security-program.json
+uncited-acronym	WORM	docs/security-program/security-program.json
 uncited-acronym	WORM	docs/standards/fintech-compliance.md
 uncited-acronym	WORM	docs/user-stories/b2b-work-surfaces.md
 uncited-acronym	WS	docs/standards/cross-microservice-latency-budget.md

@@ -2,10 +2,6 @@
   "_comment": "Reviewed reachability registrations (ADR-0555). Each entry registers a tree (dir prefix ending '/') or an exact path as reached, and MUST carry an anchor naming WHY. Registration is a review-visible design act — the ADR-0551 trust class (same as ratchet-policy.json) — never a silent exemption. Hand-edited (or via the transitional --fix-reachability bridge); the producer fails LOUD on a malformed entry.",
   "registered": [
     {
-      "anchor": "ADR-0052 KEEP-inventory: security governance program (de-staled from SECURITY-PROGRAM.md)",
-      "prefix": "docs/security-program.json"
-    },
-    {
       "anchor": "ADR-0512 + ADR-0562 (issue #1211, PR #1210): kernel/ is the sanctioned nested-workspace meta-dir (ADR-0512 carve-out; capability-registry meta-dir). Homes the rung-0 kuberos kernel and its dev-only QEMU real-boot harness — kernel/core/asterinas-boundary (black-box upstream pin + closed boot-ready marker set) and kernel/harness/asterinas-real-boot (fetch-verify + single-boot orchestration + receipts). Wave-1 shard-1 of the Asterinas canonical-kernel pivot.",
       "prefix": "kernel/"
     },
@@ -208,6 +204,14 @@
     {
       "anchor": "ADR-0555 D3: the governance decision corpus — every decision is crosswalk-accounted (decision-crosswalk.generated.json); orphan/unpropagated/status pathologies are the cross-artifact gate's BLOCKING codes, so per-decision reachability is derived from the corpus itself, not hand-mentioned per file",
       "prefix": "docs/decisions/"
+    },
+    {
+      "anchor": "ADR-0052 KEEP-inventory: security governance program (de-staled from SECURITY-PROGRAM.md); homed in its own docs/security-program/ subtree so ADR-0555 nearest-ancestor OWNERS can own it without over-claiming docs/.",
+      "prefix": "docs/security-program/security-program.json"
+    },
+    {
+      "anchor": "ADR-0555 ownership seed: docs/security-program/ subtree OWNERS marker (ops-security) — narrow subtree owner for the retired security program, avoiding a blanket docs/ claim.",
+      "prefix": "docs/security-program/OWNERS"
     },
     {
       "anchor": "ADR-0515 cloud-native posture projection: the reviewer-facing standards doc is the accepted no-CLI/no-shell infrastructure automation review surface, linked from the standards index and docs hub; exact path keeps the new prose artifact born-reachable under ADR-0555.",
