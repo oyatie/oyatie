@@ -209,9 +209,20 @@ fn render_new_file_diff(new_file: &NewFile) -> Result<String, AutofixError> {
     diff.push_str("--- /dev/null\n");
     diff.push_str(&format!("+++ b/{path}\n", path = new_file.path));
     let lines = split_lines_preserving_endings(&new_file.body);
-    diff.push_str(&format!("@@ -0,0 +1,{} @@\n", lines.len()));
-    for line in lines {
-        push_diff_line(&mut diff, '+', line);
+    if !lines.is_empty() {
+        // An empty new file has no lines to hunk over. `start=1, count=0` is
+        // not a valid unified-diff hunk header (git apply rejects it, along
+        // with `start=0, count=0`); the only form `git apply` accepts for a
+        // brand-new empty file is no `@@` header at all, matching what
+        // `git diff` itself renders in that case.
+        diff.push_str(&format!(
+            "@@ -0,0 +{},{} @@\n",
+            hunk_start(0, lines.len()),
+            lines.len()
+        ));
+        for line in lines {
+            push_diff_line(&mut diff, '+', line);
+        }
     }
     Ok(diff)
 }
