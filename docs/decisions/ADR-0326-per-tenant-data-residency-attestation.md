@@ -246,6 +246,23 @@ fields:
 
 The schema is a Tier-2 artifact governed by ADR-0322.
 
+RESIDENCY-001 materializes the contract-only slice through exact tracked
+paths `specs/residency-attestation-schema.json`,
+`specs/regions/registry.json`,
+`specs/regulatory-regimes/registry.json`,
+`specs/compliance-pack-residency-matrix.json`,
+`specs/residency-placement-audit-events.json`,
+`specs/fixtures/residency/residency-001-signed-footprint.fixture.json`,
+`specs/fixtures/residency/residency-001-cross-border-refusal.fixture.json`, and
+`ci/facade/contract-slice-conformance/contract-slice-policy.json` (slices
+`residency-001-attestation`, `residency-001-regions`, `residency-001-regimes`,
+`residency-001-audit-events`, `residency-001-pack-matrix`). These artifacts are
+schema, registry, fixture, and owned Rust/Buck2 gate validation evidence only;
+they do not claim runtime
+attestation, placement enforcement, cross-border data-plane enforcement,
+tenant migration, pack activation, certification, audit-chain delivery, or
+production readiness.
+
 ### D-2 Region and regime registries
 
 The region registry (`/specs/regions/registry.json`) and the regulatory
