@@ -120,7 +120,7 @@ For any question, route to its authority. Click the link; do not duplicate inlin
 | Per-region packs | [`regional-packs/`](regional-packs/) <!-- forward-reference: wave-1 --> |
 | Runbooks (incident, DR, on-call, per-service) | [`RUNBOOKS-INDEX.md`](RUNBOOKS-INDEX.md) <!-- forward-reference: wave-1 --> |
 | Templates (PR, ADR, capability, runbook, etc.) | [`templates/`](templates/) <!-- forward-reference: wave-1 --> |
-| Privacy / security / compliance | [`PRIVACY-PROGRAM.md`](PRIVACY-PROGRAM.md) <!-- forward-reference: wave-1 -->, [`security-program.json`](security-program.json) <!-- forward-reference: wave-1 -->, [`COMPLIANCE-MATRIX.md`](COMPLIANCE-MATRIX.md) <!-- forward-reference: wave-1 --> |
+| Privacy / security / compliance | [`PRIVACY-PROGRAM.md`](PRIVACY-PROGRAM.md) <!-- forward-reference: wave-1 -->, [`security-program/security-program.json`](security-program/security-program.json) <!-- forward-reference: wave-1 -->, [`COMPLIANCE-MATRIX.md`](COMPLIANCE-MATRIX.md) <!-- forward-reference: wave-1 --> |
 | Release / incident / on-call | [`RELEASE-MANAGEMENT.md`](RELEASE-MANAGEMENT.md) <!-- forward-reference: wave-1 -->, [`INCIDENT-MANAGEMENT.md`](INCIDENT-MANAGEMENT.md) <!-- forward-reference: wave-1 -->, [`standards/on-call.md`](standards/on-call.md) <!-- forward-reference: wave-1 --> |
 | Glossary (canonical vocabulary) | [`GLOSSARY.md`](GLOSSARY.md) <!-- forward-reference: wave-1 --> |
 | Machine-readable mirrors of the catalog | [`machine-readable/`](machine-readable/) <!-- forward-reference: wave-1 --> |

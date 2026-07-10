@@ -244,7 +244,8 @@ Sibling ADRs ADR-0053 (sanctioned primitives closed set) and ADR-0054 (grit scaf
 | oyatie/docs/QA-TEST-STRATEGY.md | file | KEEP | null | A8 | Test strategy |
 | oyatie/docs/RELEASE-MANAGEMENT.md | file | KEEP | null | A8 | Release process per ADR-0041 |
 | oyatie/docs/RISK-REGISTER.md | file | KEEP | null | A8 | Risk ledger |
-| docs/security-program.json | file | KEEP | null | A8 | Security governance |
+| docs/security-program/security-program.json | file | KEEP | null | A8 | Security governance |
+| docs/security-program/OWNERS | file | KEEP | null | A8 | Security governance subtree ownership marker (ops-security) |
 | oyatie/docs/SLO-CATALOG.md | file | KEEP | null | A8 | Service-level objectives |
 | oyatie/docs/STANDARDS-AND-TEMPLATES.md | file | KEEP | null | A8 | Standards index |
 | oyatie/docs/TOOLCHAIN.md | file | KEEP | null | A8 | Engineering tooling guide |

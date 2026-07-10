@@ -7,7 +7,7 @@ doc_status: published
 
 > **Status:** Draft v0.1 — 2026-05-09.
 > **Owner:** `axis-foundry` (engineering platform).
-> **Companion:** [RELEASE-MANAGEMENT.md](RELEASE-MANAGEMENT.md), [security-program.json](security-program.json), `docs/standards/testing.md`.
+> **Companion:** [RELEASE-MANAGEMENT.md](RELEASE-MANAGEMENT.md), [security-program/security-program.json](security-program/security-program.json), `docs/standards/testing.md`.
 
 ## 1. Test pyramid (per Google testing model)
 

@@ -5,8 +5,8 @@ doc_status: published
 # Threat Model: <Service / Surface / Capability> — <YYYY-MM-DD>
 
 > **Owner:** `ops-security` co-author + per-axis team owner
-> **Cadence:** quarterly per service per [security-program.json §2 control 11](../security-program.json)
-> **Companion:** [security-program.json](../security-program.json), ADR-0008 + ADR-0022 + ADR-0039
+> **Cadence:** quarterly per service per [security-program.json §2 control 11](../security-program/security-program.json)
+> **Companion:** [security-program.json](../security-program/security-program.json), ADR-0008 + ADR-0022 + ADR-0039
 
 ---
 
@@ -37,7 +37,7 @@ What is being threat-modeled. One paragraph.
 - (between Oyatie / external service-provider)
 - (between human / agent)
 
-## 4. Actors (per [security-program.json §1.1](../security-program.json))
+## 4. Actors (per [security-program.json §1.1](../security-program/security-program.json))
 
 | Actor | Motivation | Capabilities | Likelihood | Worst-case impact |
 |---|---|---|---|---|
@@ -100,7 +100,7 @@ Per [COMPLIANCE-MATRIX.md](../COMPLIANCE-MATRIX.md):
 
 ## 11. Sources scanned
 
-- [security-program.json](../security-program.json)
+- [security-program.json](../security-program/security-program.json)
 - ADR-0007/0008/0022/0023/0039/0043/0044
 - Per-surface dependency ledger
 - KISA + ISO 27001 + SOC 2 + NIST CSF + OWASP Top 10 + LLM Top 10
