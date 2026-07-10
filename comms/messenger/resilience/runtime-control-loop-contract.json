@@ -5,7 +5,7 @@
   "status": "Evidence-contract-only",
   "service": {
     "name": "messenger",
-    "path": "oya/messenger",
+    "path": "comms/messenger",
     "manifest": "oya/messenger/manifest.json",
     "bounded_context": "message-stream"
   },
@@ -48,25 +48,25 @@
       "scenarios": [
         {
           "id": "pod-kill",
-          "path": "oya/messenger/chaos/scenarios/pod-kill.yaml",
+          "path": "comms/messenger/chaos/scenarios/pod-kill.yaml",
           "failure_mode": "single messenger pod killed during staging drill",
           "target": "messenger app deployment"
         },
         {
           "id": "network-delay-100ms",
-          "path": "oya/messenger/chaos/scenarios/network-delay-100ms.yaml",
+          "path": "comms/messenger/chaos/scenarios/network-delay-100ms.yaml",
           "failure_mode": "100ms latency injection on messenger traffic",
           "target": "messenger app deployment"
         },
         {
           "id": "dependency-failure",
-          "path": "oya/messenger/chaos/scenarios/dependency-failure.yaml",
+          "path": "comms/messenger/chaos/scenarios/dependency-failure.yaml",
           "failure_mode": "Valkey Streams handoff dependency abort for POST /api/v1/messages",
           "target": "message-stream dependency boundary"
         },
         {
           "id": "disk-slow-1000ms",
-          "path": "oya/messenger/chaos/scenarios/disk-slow-1000ms.yaml",
+          "path": "comms/messenger/chaos/scenarios/disk-slow-1000ms.yaml",
           "failure_mode": "1000ms IO latency on messenger attachment/message-state paths",
           "target": "messenger app deployment"
         }
@@ -91,7 +91,7 @@
       "messenger_policy": "message-stream REST, websocket fanout, huddle signaling, and attachment worker paths must emit nominal/degraded/brownout/outage once runtime implementation exists."
     },
     "slo_composition": {
-      "composition_ref": "oya/messenger/slos/composition.openslo.yaml",
+      "composition_ref": "comms/observability/slos/messenger/composition.openslo.yaml",
       "composition_kind": "critical_path",
       "parent_slo": "messenger-runtime-reliability",
       "child_slo_refs": [
