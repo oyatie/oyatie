@@ -282,3 +282,37 @@ fn finops_001_cost_attribution_slice_is_enforced() {
         report.findings
     );
 }
+
+/// Proves the converted RESILIENCE-001 slice enforces (retires
+/// scripts/tests/resilience_001_runtime_control_loop_check.py): a status downgrade
+/// and a dropped required-evidence member both RED.
+#[test]
+fn resilience_001_runtime_control_loop_slice_is_enforced() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let spec = "oya/messenger/resilience/runtime-control-loop-contract.json";
+
+    let mut corpus = live_corpus(&root, &policy);
+    corpus.get_mut(spec).unwrap()["status"] = json!("Runtime-ready");
+    let report = evaluate_configured(&policy, &corpus);
+    assert!(
+        report.findings.iter().any(|finding| finding.code == "contract_slice_enum_violation"
+            && finding.key == "resilience-001-runtime-control-loop:status"),
+        "a resilience status downgrade must be rejected: {:?}",
+        report.findings
+    );
+
+    let mut corpus = live_corpus(&root, &policy);
+    corpus.get_mut(spec).unwrap()["evidence_required_before_runtime_claim"]
+        .as_array_mut()
+        .unwrap()
+        .retain(|entry| entry != "oya_ci_required_green");
+    let report = evaluate_configured(&policy, &corpus);
+    assert!(
+        report.findings.iter().any(|finding| finding.code == "contract_slice_missing_array_member"
+            && finding.key
+                == "resilience-001-runtime-control-loop:evidence_required_before_runtime_claim:oya_ci_required_green"),
+        "dropping oya_ci_required_green from required evidence must be rejected: {:?}",
+        report.findings
+    );
+}
