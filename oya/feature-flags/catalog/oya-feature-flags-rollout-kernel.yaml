@@ -23,4 +23,20 @@ operational_classes_owned: [ROLLOUT_ADVANCE_COUNTER, ROLLOUT_ROLLBACK_COUNTER, S
 autonomy_tier_required: T1
 rollout_stages_percent: [0, 1, 10, 50, 100]
 slo_gate_required: true
+release_runtime_safety_policy: oya/feature-flags/release/runtime-safety-policy.json
+release_runtime_safety_verification_mode: data-only-declaration
+release_runtime_safety_rust_first_rationale: "No standalone non-Rust validator; cloud-ci Rust/Buck2 gates own rust-first and artifact-accounting enforcement for this declaration until a dedicated Rust runtime-safety gate exists."
+accepted_runtime_safety_authority:
+  - specs/agentic-slo-gated-promotion.json
+  - specs/feature-flag-substrate-canonical.json
+  - specs/brownout-degradation-signal.json
+context_only_runtime_safety_adrs:
+  - docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md
+  - docs/decisions/ADR-0114-canary-observability-rollback.md
+brownout_degradation_signal: specs/brownout-degradation-signal.json
+runtime_safety_claim_ceiling:
+  declaration_only: true
+  live_rollout_execution: false
+  tenant_traffic: false
+  oya_cd_parity_or_cutover: false
 naming_justification: "oya-feature-flags-rollout-kernel — BC=rollout + layer=kernel per ADR-0105 13-layer BNF v4.1; progressive-delivery gating; SLO-gated advance per ADR-0160"
