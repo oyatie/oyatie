@@ -267,6 +267,9 @@
         "properties.portability_export.properties.signature_contract.properties.oyatie_signature_required.const",
         "properties.portability_export.properties.signature_contract.properties.transparency_log_ref_required.const"
       ],
+      "required_false_fields": [
+        "properties.cmp_consent.properties.non_necessary_default.const"
+      ],
       "enum_constraints": [
         {
           "field": "version",
@@ -277,18 +280,43 @@
           "allowed": ["EXE-COMPLIANCE-PACK-SCHEMA"]
         }
       ],
+      "required_markers": [
+        {
+          "field": "_meta.claim_boundary",
+          "markers": ["contract fixture only", "no", "not", "does not", "without claiming"],
+          "quantifier": "any_of"
+        }
+      ],
+      "exact_array_fields": [
+        {
+          "field": "properties.signature_contract.required",
+          "values": ["canonicalization", "signature_algorithm", "signature_scope", "verification_inputs", "claim_boundary"]
+        },
+        {
+          "field": "properties.signature_contract.properties.verification_inputs.required",
+          "values": ["public_key_ref", "canonical_bundle_digest_sha256", "signing_principal", "signed_at"]
+        }
+      ],
+      "exact_projected_sequence": [
+        {
+          "field": "properties.cmp_consent.properties.canonical_purposes.prefixItems",
+          "member_field": "const",
+          "values": ["necessary", "preference", "statistics", "marketing", "personalization"]
+        }
+      ],
+      "marker_exclude_fields": [
+        "_meta.claim_boundary",
+        "properties.signature_contract.properties.claim_boundary",
+        "properties.evidence_collectors.items.properties.claim_boundary",
+        "properties.cell_certification_state.properties.claim_boundary",
+        "properties.cmp_consent.properties.claim_boundary",
+        "properties.portability_export.properties.claim_boundary",
+        "properties.source_revision.properties.claim_ceiling"
+      ],
       "required_array_members": [
         {
           "field": "_meta.related_adrs",
           "members": ["ADR-0209", "ADR-0241", "ADR-0250", "ADR-0251", "ADR-0272", "ADR-0276"]
-        },
-        {
-          "field": "properties.signature_contract.required",
-          "members": ["canonicalization", "signature_algorithm", "signature_scope", "verification_inputs", "claim_boundary"]
-        },
-        {
-          "field": "properties.signature_contract.properties.verification_inputs.required",
-          "members": ["public_key_ref", "canonical_bundle_digest_sha256", "signing_principal", "signed_at"]
         },
         {
           "field": "properties.signature_contract.properties.canonicalization.enum",
@@ -444,7 +472,17 @@
             "specs/fixtures/compliance-pack/compliance-001-portability-export-manifest.fixture.json",
             "ci/facade/contract-slice-conformance/contract-slice-policy.json"
           ],
-          "member_required_fields": ["path", "surface_kind", "authority", "runtime_authority"]
+          "member_required_fields": ["path", "surface_kind", "authority", "runtime_authority"],
+          "conditional_assertions": [
+            { "when_member": "specs/compliance-pack-schema.json", "field": "surface_kind", "must_equal": "schema" },
+            { "when_member": "specs/compliance-pack-schema.json", "field": "authority", "must_equal": "contract-field shape for compliance-pack bundles" },
+            { "when_member": "specs/fixtures/compliance-pack/compliance-001-soc2-cmp-portability.fixture.json", "field": "surface_kind", "must_equal": "fixture" },
+            { "when_member": "specs/fixtures/compliance-pack/compliance-001-soc2-cmp-portability.fixture.json", "field": "authority", "must_equal": "synthetic SOC2/CMP/portability compliance-pack fixture" },
+            { "when_member": "specs/fixtures/compliance-pack/compliance-001-portability-export-manifest.fixture.json", "field": "surface_kind", "must_equal": "fixture" },
+            { "when_member": "specs/fixtures/compliance-pack/compliance-001-portability-export-manifest.fixture.json", "field": "authority", "must_equal": "synthetic portability-export manifest fixture" },
+            { "when_member": "ci/facade/contract-slice-conformance/contract-slice-policy.json", "field": "surface_kind", "must_equal": "gate-policy" },
+            { "when_member": "ci/facade/contract-slice-conformance/contract-slice-policy.json", "field": "authority", "must_equal": "owned-Rust/Buck2 contract-slice-conformance gate policy entries (compliance-001-pack-schema, compliance-001-contract-spec, compliance-001-pack-fixture, compliance-001-portability-manifest-fixture slices)" }
+          ]
         }
       ]
     },
@@ -482,6 +520,9 @@
         "portability_export.signature_contract.oyatie_signature_required",
         "portability_export.signature_contract.transparency_log_ref_required"
       ],
+      "required_false_fields": [
+        "cmp_consent.non_necessary_default"
+      ],
       "enum_constraints": [
         { "field": "$schema", "allowed": ["https://docs.oyatie.com/specs/compliance-pack-schema.schema.json"] },
         { "field": "_meta.fixture_id", "allowed": ["COMPLIANCE-001-SOC2-CMP-PORTABILITY"] },
@@ -499,9 +540,29 @@
         { "field": "portability_export.bundle_media_type", "allowed": ["application/gzip+tar"] },
         { "field": "portability_export.fixture_ref", "allowed": ["specs/fixtures/compliance-pack/compliance-001-portability-export-manifest.fixture.json"] }
       ],
+      "required_markers": [
+        { "field": "_meta.claim_boundary", "markers": ["contract fixture only", "no", "not", "does not", "without claiming"], "quantifier": "any_of" },
+        { "field": "signature_contract.claim_boundary", "markers": ["contract fixture only", "no", "not", "does not", "without claiming"], "quantifier": "any_of" },
+        { "field": "cell_certification_state.claim_boundary", "markers": ["contract fixture only", "no", "not", "does not", "without claiming"], "quantifier": "any_of" },
+        { "field": "cmp_consent.claim_boundary", "markers": ["contract fixture only", "no", "not", "does not", "without claiming"], "quantifier": "any_of" },
+        { "field": "portability_export.claim_boundary", "markers": ["contract fixture only", "no", "not", "does not", "without claiming"], "quantifier": "any_of" }
+      ],
+      "marker_exclude_fields": [
+        "_meta.claim_boundary",
+        "signature_contract.claim_boundary",
+        "cell_certification_state.claim_boundary",
+        "cmp_consent.claim_boundary",
+        "portability_export.claim_boundary"
+      ],
+      "field_patterns": [
+        { "field": "signature", "pattern": "^[0-9a-f]{128}$" },
+        { "field": "signature_contract.verification_inputs.canonical_bundle_digest_sha256", "pattern": "^[0-9a-f]{64}$" }
+      ],
+      "exact_array_fields": [
+        { "field": "_meta.source_adrs", "values": ["ADR-0209", "ADR-0241", "ADR-0250", "ADR-0251", "ADR-0272", "ADR-0276"] },
+        { "field": "cmp_consent.canonical_purposes", "values": ["necessary", "preference", "statistics", "marketing", "personalization"] }
+      ],
       "required_array_members": [
-        { "field": "_meta.source_adrs", "members": ["ADR-0209", "ADR-0241", "ADR-0250", "ADR-0251", "ADR-0272", "ADR-0276"] },
-        { "field": "cmp_consent.canonical_purposes", "members": ["necessary", "preference", "statistics", "marketing", "personalization"] },
         { "field": "portability_export.supported_modes", "members": ["full", "incremental"] }
       ],
       "required_object_array_members": [
@@ -513,6 +574,13 @@
           "member_enum_constraints": [
             { "field": "framework", "allowed": ["SOC2-T2"] },
             { "field": "auditor_publishability", "allowed": ["tenant-admin-visible", "external-auditor-room"] }
+          ],
+          "conditional_assertions": [
+            {
+              "when_member_in": ["ci_artifact_hash", "deploy_receipt", "access_review_snapshot", "backup_restore_drill_receipt", "vulnerability_scan_report", "pen_test_report"],
+              "field": "seal_required",
+              "must_be_true": true
+            }
           ]
         },
         {
@@ -596,6 +664,15 @@
         { "field": "format.container", "allowed": ["tar.gz"] },
         { "field": "format.bundle_media_type", "allowed": ["application/gzip+tar"] },
         { "field": "audit_chain_proof.proof_kind", "allowed": ["merkle-inclusion-fixture"] }
+      ],
+      "required_markers": [
+        { "field": "claim_boundary", "markers": ["contract fixture only", "no", "not", "does not", "without claiming"], "quantifier": "any_of" }
+      ],
+      "marker_exclude_fields": [
+        "claim_boundary"
+      ],
+      "array_cardinality": [
+        { "field": "entries", "min": 2 }
       ],
       "required_object_array_members": [
         {
