@@ -249,7 +249,7 @@ fn evaluate_slice(
         slice.get("skip_universal_markers").and_then(Value::as_bool) == Some(true);
     if !skip_universal_markers {
         for marker in FORBIDDEN_SPEC_MARKERS {
-            if recursively_contains_normalized(spec, &normalize_separators(marker), &excluded) {
+            if recursively_contains_normalized(spec, &canonical_alnum(marker), &excluded) {
                 findings.insert(Finding::new(
                     "contract_slice_forbidden_marker",
                     format!("{slice_id}:{marker}"),
@@ -257,8 +257,14 @@ fn evaluate_slice(
             }
         }
     }
+    if has_non_string_element(slice.get("forbidden_markers")) {
+        findings.insert(Finding::new(
+            "contract_slice_malformed_policy_value",
+            format!("{slice_id}:forbidden_markers"),
+        ));
+    }
     for marker in string_array(slice, "forbidden_markers") {
-        if recursively_contains_normalized(spec, &normalize_separators(&marker), &excluded) {
+        if recursively_contains_normalized(spec, &canonical_alnum(&marker), &excluded) {
             findings.insert(Finding::new(
                 "contract_slice_forbidden_marker",
                 format!("{slice_id}:{marker}"),
@@ -270,10 +276,7 @@ fn evaluate_slice(
     //     dotted sub-tree (e.g. a `can_claim_now` block must not contain a
     //     cannot-claim-yet phrase, though that phrase may legitimately appear
     //     elsewhere). Separator-normalized like the whole-spec scan.
-    if let Some(requirements) = slice
-        .get("forbidden_field_markers")
-        .and_then(Value::as_array)
-    {
+    if let Some(requirements) = rules_array(slice, "forbidden_field_markers", slice_id, findings) {
         for requirement in requirements {
             check_keys(
                 requirement,
@@ -288,9 +291,12 @@ fn evaluate_slice(
                 .and_then(Value::as_array)
                 .map(|a| a.iter().filter_map(Value::as_str).collect())
                 .unwrap_or_default();
-            // Fail-closed on shape: an empty markers list or missing field enforces
-            // nothing and must RED rather than pass vacuously.
-            if markers.is_empty() || field.is_none_or(str::is_empty) {
+            // Fail-closed on shape: an empty markers list, a non-string markers
+            // element, or a missing field enforces nothing and must RED.
+            if markers.is_empty()
+                || has_non_string_element(requirement.get("markers"))
+                || field.is_none_or(str::is_empty)
+            {
                 findings.insert(Finding::new(
                     "contract_slice_forbidden_field_markers_malformed",
                     format!("{slice_id}:{}", field.unwrap_or("<no-field>")),
@@ -300,7 +306,7 @@ fn evaluate_slice(
             let field = field.unwrap_or_default();
             if let Some(scope) = get_dotted(spec, field) {
                 for marker in markers {
-                    if recursively_contains_normalized(scope, &normalize_separators(marker), &[]) {
+                    if recursively_contains_normalized(scope, &canonical_alnum(marker), &[]) {
                         findings.insert(Finding::new(
                             "contract_slice_forbidden_field_marker",
                             format!("{slice_id}:{field}:{marker}"),
@@ -324,7 +330,7 @@ fn evaluate_slice(
     //     nonclaim satisfied by any one of several accepted wordings). `scope`
     //     (default field-scoped) may be `whole_spec` for a marker that is
     //     legitimately document-wide rather than confined to one sub-tree.
-    if let Some(requirements) = slice.get("required_markers").and_then(Value::as_array) {
+    if let Some(requirements) = rules_array(slice, "required_markers", slice_id, findings) {
         for requirement in requirements {
             check_keys(
                 requirement,
@@ -408,7 +414,7 @@ fn evaluate_slice(
     //    `match_scalar: true` to pin a numeric/bool leaf authored as a string
     //    literal (e.g. a `14.4` threshold). A non-string element in `allowed` is a
     //    mistyped list and fails closed.
-    if let Some(constraints) = slice.get("enum_constraints").and_then(Value::as_array) {
+    if let Some(constraints) = rules_array(slice, "enum_constraints", slice_id, findings) {
         for constraint in constraints {
             check_keys(
                 constraint,
@@ -433,6 +439,16 @@ fn evaluate_slice(
                 .and_then(Value::as_array)
                 .map(|a| a.iter().filter_map(Value::as_str).collect())
                 .unwrap_or_default();
+            if constraint
+                .get("match_scalar")
+                .is_some_and(|flag| !flag.is_boolean())
+            {
+                findings.insert(Finding::new(
+                    "contract_slice_malformed_policy_value",
+                    format!("{slice_id}:enum_constraints.match_scalar:{field}"),
+                ));
+                continue;
+            }
             let match_scalar =
                 constraint.get("match_scalar").and_then(Value::as_bool) == Some(true);
             let actual = if match_scalar {
@@ -460,10 +476,7 @@ fn evaluate_slice(
     //    canonicalization for a JSON number array (e.g. pinned rollout-stage
     //    percentages). A non-string element in `members` is a mistyped list and
     //    fails closed.
-    if let Some(requirements) = slice
-        .get("required_array_members")
-        .and_then(Value::as_array)
-    {
+    if let Some(requirements) = rules_array(slice, "required_array_members", slice_id, findings) {
         for requirement in requirements {
             check_keys(
                 requirement,
@@ -480,6 +493,16 @@ fn evaluate_slice(
                 findings.insert(Finding::new(
                     "contract_slice_malformed_policy_value",
                     format!("{slice_id}:required_array_members.members:{field}"),
+                ));
+                continue;
+            }
+            if requirement
+                .get("match_scalar")
+                .is_some_and(|flag| !flag.is_boolean())
+            {
+                findings.insert(Finding::new(
+                    "contract_slice_malformed_policy_value",
+                    format!("{slice_id}:required_array_members.match_scalar:{field}"),
                 ));
                 continue;
             }
@@ -522,7 +545,7 @@ fn evaluate_slice(
     //     tier order), which `required_array_members`'s superset check cannot
     //     express: a superset check alone would still green a spec that grew an
     //     unlisted extra value or reordered the strictness ladder.
-    if let Some(requirements) = slice.get("exact_array_fields").and_then(Value::as_array) {
+    if let Some(requirements) = rules_array(slice, "exact_array_fields", slice_id, findings) {
         for requirement in requirements {
             check_keys(
                 requirement,
@@ -605,9 +628,8 @@ fn evaluate_slice(
     //     object carrying `member_required_fields` and satisfying
     //     `member_enum_constraints`. Expresses "the six-input promotion gate must
     //     enumerate exactly these inputs, each fail-closed" as policy DATA.
-    if let Some(requirements) = slice
-        .get("required_object_array_members")
-        .and_then(Value::as_array)
+    if let Some(requirements) =
+        rules_array(slice, "required_object_array_members", slice_id, findings)
     {
         for requirement in requirements {
             check_keys(
@@ -634,6 +656,33 @@ fn evaluate_slice(
                 .get("member_key")
                 .and_then(Value::as_str)
                 .unwrap_or("id");
+            if has_non_string_element(requirement.get("members")) {
+                findings.insert(Finding::new(
+                    "contract_slice_malformed_policy_value",
+                    format!("{slice_id}:required_object_array_members.members:{field}"),
+                ));
+                continue;
+            }
+            // Validate member_enum_constraints `allowed` SHAPE independent of the
+            // spec rows, so a mistyped list fails closed even with zero committed
+            // rows (a row-gated check would silently pass then).
+            for constraint in requirement
+                .get("member_enum_constraints")
+                .and_then(Value::as_array)
+                .into_iter()
+                .flatten()
+            {
+                if has_non_string_element(constraint.get("allowed")) {
+                    let enum_field = constraint
+                        .get("field")
+                        .and_then(Value::as_str)
+                        .unwrap_or("");
+                    findings.insert(Finding::new(
+                        "contract_slice_malformed_policy_value",
+                        format!("{slice_id}:member_enum_constraints.allowed:{field}:{enum_field}"),
+                    ));
+                }
+            }
             let Some(objects) = get_dotted(spec, field).and_then(Value::as_array) else {
                 findings.insert(Finding::new(
                     "contract_slice_missing_object_array",
@@ -796,7 +845,7 @@ fn evaluate_slice(
     //     express (Ed25519 `[0-9a-f]{128}`, SHA-256 `[0-9a-f]{64}`, a region id
     //     grammar, base64url length). A malformed pattern fails closed rather than
     //     silently accepting everything.
-    if let Some(requirements) = slice.get("field_patterns").and_then(Value::as_array) {
+    if let Some(requirements) = rules_array(slice, "field_patterns", slice_id, findings) {
         for requirement in requirements {
             check_keys(
                 requirement,
@@ -844,10 +893,7 @@ fn evaluate_slice(
     //     (canonical purposes, a release stage flow) that the superset/exact-set
     //     checks cannot: order and length both matter here. Non-string/missing
     //     projected members and length differences are mismatches (fail-closed).
-    if let Some(requirements) = slice
-        .get("exact_projected_sequence")
-        .and_then(Value::as_array)
-    {
+    if let Some(requirements) = rules_array(slice, "exact_projected_sequence", slice_id, findings) {
         for requirement in requirements {
             check_keys(
                 requirement,
@@ -897,7 +943,7 @@ fn evaluate_slice(
     //     `max`, and/or `unique_by` (uniqueness of a projected member field).
     //     A non-array field or a requirement declaring no constraint at all fails
     //     closed rather than passing vacuously.
-    if let Some(requirements) = slice.get("array_cardinality").and_then(Value::as_array) {
+    if let Some(requirements) = rules_array(slice, "array_cardinality", slice_id, findings) {
         for requirement in requirements {
             check_keys(
                 requirement,
@@ -985,7 +1031,7 @@ fn evaluate_slice(
     //     declared value present, nothing extra. Catches a copy-pasted row that
     //     drops a distinct class (a registry that must cover a fixed class set).
     //     A non-array field or a non-string projected member fails closed.
-    if let Some(requirements) = slice.get("projected_value_sets").and_then(Value::as_array) {
+    if let Some(requirements) = rules_array(slice, "projected_value_sets", slice_id, findings) {
         for requirement in requirements {
             check_keys(
                 requirement,
@@ -1341,93 +1387,50 @@ fn contains_lowered(value: &Value, needle: &str) -> bool {
 
 /// True for a Unicode format / zero-width / bidi-control code point that carries
 /// no visible glyph and so can be injected to split a forbidden phrase past the
-/// scan (`produc<U+200B>tion-ready`) — the Trojan-Source class. These are folded
-/// to *nothing* (not to a space) before separator normalization so the residue
-/// re-joins into the real word.
+/// scan (`produc<U+200B>tion-ready`). A FORBIDDEN check must be fail-safe (a
+/// false RED is safe; a false GREEN hides a prohibited claim), so we canonicalize
+/// to an `[a-z0-9]`-only sequence: lowercase and drop EVERYTHING else — spaces,
+/// punctuation, and all zero-width/bidi/control chars — uniformly. Marker
+/// `production ready` -> `productionready`; this catches `production-ready`,
+/// `production ready`, `production<U+200B>ready`, and every other separator or
+/// zero-width obfuscation with one rule, and single-token markers (`python3`)
+/// stay substring so `python311` still trips `python3`.
 ///
-/// ponytail: enumerated set (the named zero-width/bidi/BOM ranges + soft hyphen +
-/// word-joiner block, the same vectors as PR #1285); swap in a full Cf-category
-/// classifier crate only if a broader set is ever needed.
-fn is_format_char(character: char) -> bool {
-    matches!(character,
-        '\u{00AD}'                 // soft hyphen
-        | '\u{200B}'..='\u{200F}'  // ZWSP, ZWNJ, ZWJ, LRM, RLM
-        | '\u{202A}'..='\u{202E}'  // bidi embeddings / overrides
-        | '\u{2060}'..='\u{2064}'  // word joiner, invisible operators
-        | '\u{2066}'..='\u{2069}'  // bidi isolates
-        | '\u{FEFF}') // BOM / zero-width no-break space
+/// ponytail: intentionally OVER-STRICT — a legitimate `preproductionreadying`
+/// token trips `productionready`. Accepted: over-match is the safe direction for
+/// a prohibition check.
+fn canonical_alnum(text: &str) -> String {
+    text.chars()
+        .filter(char::is_ascii_alphanumeric)
+        .map(|character| character.to_ascii_lowercase())
+        .collect()
 }
 
-/// Drop zero-width/bidi format chars, lowercase, then collapse every run of
-/// non-alphanumeric characters into a single space (trimmed). This canonicalizes
-/// separator variants so a forbidden marker cannot be evaded by substituting or
-/// injecting a separator: `production-ready`, `production_ready`,
-/// `production   ready`, and `produc<U+200B>tion ready` all fold to
-/// `production ready`. Applied to both the marker and each scanned leaf.
-fn normalize_separators(text: &str) -> String {
-    let mut out = String::with_capacity(text.len());
-    let mut pending_space = false;
-    for ch in text.chars() {
-        if is_format_char(ch) {
-            // Fold to nothing so the split word re-joins (anti-evasion).
-            continue;
-        }
-        if ch.is_ascii_alphanumeric() {
-            if pending_space && !out.is_empty() {
-                out.push(' ');
-            }
-            pending_space = false;
-            out.push(ch.to_ascii_lowercase());
-        } else {
-            pending_space = true;
-        }
-    }
-    out
-}
-
-/// True when the normalized `needle` appears as a contiguous run of WHOLE tokens
-/// in the normalized `haystack` — word-boundary aware, so a legitimate longer
-/// identifier does not trip a marker (`preproduction-readying-job` does NOT match
-/// `production ready`, but `production-ready` does).
-fn tokens_contain(haystack_normalized: &str, needle_normalized: &str) -> bool {
-    let needle: Vec<&str> = needle_normalized
-        .split(' ')
-        .filter(|t| !t.is_empty())
-        .collect();
-    if needle.is_empty() {
-        return false;
-    }
-    let haystack: Vec<&str> = haystack_normalized
-        .split(' ')
-        .filter(|t| !t.is_empty())
-        .collect();
-    haystack
-        .windows(needle.len())
-        .any(|window| window == needle)
-}
-
-/// True when the normalized `needle` appears (as a whole-token run) in any
-/// separator-normalized string leaf of `value` — including object keys. Any
+/// True when the canonical (`[a-z0-9]`-only) `needle` appears as a substring of
+/// the canonical form of any string leaf of `value` — including object keys. Any
 /// node whose reference is in `excluded` (and its subtree) is skipped, so a
 /// slice can carve out a sub-tree that legitimately quotes a forbidden phrase
 /// (e.g. a `claim_boundary` block that enumerates the phrases it forbids)
 /// without self-tripping the scan.
 fn recursively_contains_normalized(
     value: &Value,
-    needle_normalized: &str,
+    needle_canonical: &str,
     excluded: &[&Value],
 ) -> bool {
+    if needle_canonical.is_empty() {
+        return false;
+    }
     if excluded.iter().any(|node| std::ptr::eq(*node, value)) {
         return false;
     }
     match value {
-        Value::String(text) => tokens_contain(&normalize_separators(text), needle_normalized),
+        Value::String(text) => canonical_alnum(text).contains(needle_canonical),
         Value::Array(items) => items
             .iter()
-            .any(|item| recursively_contains_normalized(item, needle_normalized, excluded)),
+            .any(|item| recursively_contains_normalized(item, needle_canonical, excluded)),
         Value::Object(map) => map.iter().any(|(key, val)| {
-            tokens_contain(&normalize_separators(key), needle_normalized)
-                || recursively_contains_normalized(val, needle_normalized, excluded)
+            canonical_alnum(key).contains(needle_canonical)
+                || recursively_contains_normalized(val, needle_canonical, excluded)
         }),
         _ => false,
     }
@@ -1440,6 +1443,29 @@ fn recursively_contains_normalized(
 fn has_non_string_element(list: Option<&Value>) -> bool {
     list.and_then(Value::as_array)
         .is_some_and(|items| items.iter().any(|item| !item.is_string()))
+}
+
+/// The array at `key`, or `None` — but a `key` that is PRESENT yet not an array
+/// (a mistyped `{...}` where a list-of-rules is expected) emits a malformed
+/// finding, so the whole primitive fails closed instead of silently no-opping to
+/// Green. Every list-of-rules primitive routes its top-level lookup through here.
+fn rules_array<'a>(
+    container: &'a Value,
+    key: &str,
+    slice_id: &str,
+    findings: &mut BTreeSet<Finding>,
+) -> Option<&'a Vec<Value>> {
+    match container.get(key) {
+        Some(Value::Array(items)) => Some(items),
+        Some(_) => {
+            findings.insert(Finding::new(
+                "contract_slice_malformed_policy_value",
+                format!("{slice_id}:{key}"),
+            ));
+            None
+        }
+        None => None,
+    }
 }
 
 #[cfg(test)]

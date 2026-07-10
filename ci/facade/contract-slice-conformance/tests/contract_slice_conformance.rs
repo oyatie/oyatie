@@ -471,30 +471,40 @@ fn base_spec() -> Value {
 }
 
 #[test]
-fn hardening_zero_width_evasion_is_caught() {
-    // P0.1: a zero-width space injected into the word must not evade the marker.
-    let slice = json!({ "required_fields": [], "forbidden_markers": ["production ready"] });
+fn hardening_fail_safe_forbidden_matching_catches_every_obfuscation() {
+    // A: canonical [a-z0-9]-only matching catches separator + zero-width evasions
+    // uniformly, and single-token markers stay substring (python311 trips python3).
+    for (label, text, marker) in [
+        (
+            "zero-width",
+            "produc\u{200B}tion\u{200B}ready",
+            "production ready",
+        ),
+        (
+            "hyphen",
+            "this is production-ready today",
+            "production ready",
+        ),
+        ("zw+hyphen", "produc\u{200B}tion-ready", "production ready"),
+    ] {
+        let slice = json!({ "required_fields": [], "forbidden_markers": [marker] });
+        let mut spec = base_spec();
+        spec["claim"] = json!(text);
+        assert!(
+            eval_slice(slice, spec)
+                .violations
+                .contains("contract_slice_forbidden_marker"),
+            "{label}: an obfuscated forbidden phrase must still be caught"
+        );
+    }
+    // The round-2 substring regression: python311 must trip universal `python3`.
     let mut spec = base_spec();
-    spec["claim"] = json!("this is produc\u{200B}tion-ready today");
+    spec["verification"] = json!("python311 scripts/x.py");
     assert!(
-        eval_slice(slice, spec)
+        eval_slice(json!({ "required_fields": [] }), spec)
             .violations
             .contains("contract_slice_forbidden_marker"),
-        "a zero-width-split forbidden phrase must still be caught"
-    );
-}
-
-#[test]
-fn hardening_forbidden_marker_does_not_overmatch_hyphenated_identifier() {
-    // P3: a legitimate longer identifier must not trip the marker (word-boundary).
-    let slice = json!({ "required_fields": [], "forbidden_markers": ["production ready"] });
-    let mut spec = base_spec();
-    spec["job"] = json!("preproduction-readying-job");
-    assert!(
-        !eval_slice(slice, spec)
-            .violations
-            .contains("contract_slice_forbidden_marker"),
-        "a hyphenated superset identifier must not false-positive"
+        "python311 must still trip the universal python3 marker"
     );
 }
 
@@ -631,6 +641,11 @@ fn hardening_malformed_string_list_configs_fail_closed() {
         json!({ "required_fields": [], "required_false_fields": ["ok", 5] }),
         json!({ "required_fields": [], "exact_projected_sequence": [{ "field": "f", "member_field": "m", "values": [1] }] }),
         json!({ "required_fields": [], "projected_value_sets": [{ "field": "f", "member_field": "m", "exact_values": [1] }] }),
+        // round-3 finding B: the same silent-drop lived in these sibling paths.
+        json!({ "required_fields": [], "forbidden_markers": ["blocked", 7] }),
+        json!({ "required_fields": [], "forbidden_field_markers": [{ "field": "f", "markers": ["blocked", 7] }] }),
+        json!({ "required_fields": [], "required_object_array_members": [{ "field": "f", "members": ["A", 5] }] }),
+        json!({ "required_fields": [], "required_object_array_members": [{ "field": "f", "members": ["A"], "member_enum_constraints": [{ "field": "g", "allowed": ["ok", false] }] }] }),
     ];
     for slice in cases {
         let report = eval_slice(slice.clone(), base_spec());
@@ -672,4 +687,51 @@ fn hardening_wrong_typed_cardinality_and_empty_pattern_fail_closed() {
             .contains("contract_slice_bad_pattern"),
         "an empty regex (matches everything) must fail closed"
     );
+}
+
+#[test]
+fn hardening_non_bool_match_scalar_fails_closed() {
+    // C: match_scalar as a string must not be silently treated as false.
+    for slice in [
+        json!({ "required_fields": [], "enum_constraints": [{ "field": "f", "allowed": ["x"], "match_scalar": "true" }] }),
+        json!({ "required_fields": [], "required_array_members": [{ "field": "f", "members": ["x"], "match_scalar": "true" }] }),
+    ] {
+        let report = eval_slice(slice.clone(), base_spec());
+        assert!(
+            report
+                .violations
+                .contains("contract_slice_malformed_policy_value"),
+            "a non-bool match_scalar must fail closed: {slice} -> {:?}",
+            report.findings
+        );
+    }
+}
+
+#[test]
+fn hardening_non_array_primitive_container_fails_closed() {
+    // D: a primitive whose top-level config is an OBJECT (not a list-of-rules)
+    // must fail closed instead of silently no-opping to Green.
+    for key in [
+        "enum_constraints",
+        "required_array_members",
+        "exact_array_fields",
+        "required_object_array_members",
+        "required_markers",
+        "forbidden_field_markers",
+        "field_patterns",
+        "exact_projected_sequence",
+        "array_cardinality",
+        "projected_value_sets",
+    ] {
+        let mut slice = json!({ "required_fields": [] });
+        slice[key] = json!({ "oops": "not a list of rules" });
+        let report = eval_slice(slice, base_spec());
+        assert!(
+            report
+                .violations
+                .contains("contract_slice_malformed_policy_value"),
+            "a non-array {key} container must fail closed: {:?}",
+            report.findings
+        );
+    }
 }

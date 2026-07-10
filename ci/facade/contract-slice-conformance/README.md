@@ -68,9 +68,13 @@ to canonicalize a numeric/bool leaf authored as a string literal. Every primitiv
 **closed** on its own malformed shape — a mistyped string-list config (a non-string element in
 `values`/`allowed`/`members`/`markers`/…), a wrong-typed cardinality bound, or an empty
 pattern each emits a `*_malformed` finding (e.g. `contract_slice_malformed_policy_value`) rather
-than silently dropping the element. Forbidden-marker matching strips zero-width/bidi format
-characters and is word-boundary aware (`produc<U+200B>tion-ready` trips `production ready`;
-`preproduction-readying-job` does not):
+than silently dropping the element. Forbidden-marker matching is **fail-safe**: both marker and
+scanned text are canonicalized to an `[a-z0-9]`-only sequence (lowercase; every space,
+punctuation, and zero-width/bidi/control char dropped) and compared as a substring, so
+`production ready` catches `production-ready`, `production<U+200B>ready`, and every separator or
+zero-width obfuscation with one rule. This is intentionally OVER-STRICT for a prohibition check
+(a legitimate `preproductionreadying` token would also trip `productionready`) — a false RED is
+safe; a false GREEN would hide a prohibited claim:
 
 | Slice key | Code(s) | Meaning |
 |-----------|---------|---------|
