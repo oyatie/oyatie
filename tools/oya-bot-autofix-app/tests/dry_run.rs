@@ -1,7 +1,7 @@
 use oya_bot_autofix_app::{
     Action, AutofixError, BotPolicy, DeliveryMode, DryRunInput, render_dry_run,
 };
-use oya_ci_gate_contract::{ByteRange, Edit, Remediation};
+use oya_ci_gate_contract::{ByteRange, Edit, NewFile, Remediation};
 
 #[test]
 fn dry_run_renders_diff_without_writes() {
@@ -151,4 +151,143 @@ fn dry_run_rejects_unreviewable_paths() {
     .expect_err("dry-run must reject paths that can forge diff headers");
 
     assert!(matches!(error, AutofixError::InvalidPath { .. }));
+}
+
+#[test]
+fn dry_run_rejects_parent_dir_component() {
+    let remediation = Remediation::AutoFix(Edit::new(
+        "../Cargo.toml",
+        ByteRange::new(0, 0).expect("valid insertion range"),
+        "x",
+    ));
+
+    let error = render_dry_run(DryRunInput {
+        remediation: &remediation,
+        original_text: "",
+    })
+    .expect_err("dry-run must reject a '..' path component");
+
+    assert!(matches!(error, AutofixError::InvalidPath { .. }));
+}
+
+#[test]
+fn dry_run_rejects_absolute_path() {
+    let remediation = Remediation::AutoFix(Edit::new(
+        "/etc/passwd",
+        ByteRange::new(0, 0).expect("valid insertion range"),
+        "x",
+    ));
+
+    let error = render_dry_run(DryRunInput {
+        remediation: &remediation,
+        original_text: "",
+    })
+    .expect_err("dry-run must reject an absolute path");
+
+    assert!(matches!(error, AutofixError::InvalidPath { .. }));
+}
+
+#[test]
+fn dry_run_rejects_cur_dir_component() {
+    let remediation = Remediation::AutoFix(Edit::new(
+        "./x",
+        ByteRange::new(0, 0).expect("valid insertion range"),
+        "x",
+    ));
+
+    let error = render_dry_run(DryRunInput {
+        remediation: &remediation,
+        original_text: "",
+    })
+    .expect_err("dry-run must reject a '.' path component");
+
+    assert!(matches!(error, AutofixError::InvalidPath { .. }));
+}
+
+#[test]
+fn dry_run_rejects_empty_path() {
+    let remediation = Remediation::AutoFix(Edit::new(
+        "",
+        ByteRange::new(0, 0).expect("valid insertion range"),
+        "x",
+    ));
+
+    let error = render_dry_run(DryRunInput {
+        remediation: &remediation,
+        original_text: "",
+    })
+    .expect_err("dry-run must reject an empty path");
+
+    assert!(matches!(error, AutofixError::InvalidPath { .. }));
+}
+
+#[test]
+fn dry_run_rejects_control_characters_in_path() {
+    for bad_char in ['\n', '\r', '\0'] {
+        let path = format!("src/bad{bad_char}name.rs");
+        let remediation = Remediation::AutoFix(Edit::new(
+            path,
+            ByteRange::new(0, 0).expect("valid insertion range"),
+            "x",
+        ));
+
+        let error = render_dry_run(DryRunInput {
+            remediation: &remediation,
+            original_text: "",
+        })
+        .expect_err("dry-run must reject control characters in the path");
+
+        assert!(matches!(error, AutofixError::InvalidPath { .. }));
+    }
+}
+
+#[test]
+fn dry_run_rejects_no_remediation() {
+    let error = render_dry_run(DryRunInput {
+        remediation: &Remediation::None,
+        original_text: "",
+    })
+    .expect_err("dry-run must reject when there is no remediation to render");
+
+    assert!(matches!(error, AutofixError::NoRemediation));
+}
+
+#[test]
+fn dry_run_renders_new_file_diff_with_hunk() {
+    let remediation =
+        Remediation::AutoGenerate(NewFile::new("libs/example/NEW_FILE.md", "hello\n"));
+
+    let report = render_dry_run(DryRunInput {
+        remediation: &remediation,
+        original_text: "",
+    })
+    .expect("dry-run should render a new-file diff");
+
+    assert!(
+        report
+            .diff
+            .contains("diff --git a/libs/example/NEW_FILE.md b/libs/example/NEW_FILE.md")
+    );
+    assert!(report.diff.contains("@@ -0,0 +1,1 @@"));
+    assert!(report.diff.contains("+hello"));
+}
+
+#[test]
+fn dry_run_renders_valid_header_for_empty_new_file_body() {
+    let remediation = Remediation::AutoGenerate(NewFile::new("x/.gitkeep", ""));
+
+    let report = render_dry_run(DryRunInput {
+        remediation: &remediation,
+        original_text: "",
+    })
+    .expect("dry-run should render a diff for an empty new file");
+
+    // An empty new file has no lines to hunk over, so a valid diff omits the
+    // `@@` header entirely instead of emitting a malformed `start=1, count=0`
+    // hunk (verified: `git apply` rejects both `@@ -0,0 +1,0 @@` and
+    // `@@ -0,0 +0,0 @@`; it only accepts no hunk at all, matching what
+    // `git diff` itself renders for a newly added empty file).
+    assert!(!report.diff.contains("@@"));
+    assert!(report.diff.contains("diff --git a/x/.gitkeep b/x/.gitkeep"));
+    assert!(report.diff.contains("+++ b/x/.gitkeep"));
 }
