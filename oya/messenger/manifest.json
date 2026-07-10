@@ -558,6 +558,24 @@
     "failover_runbook": "runbooks/dr-failover.md",
     "replication_shape": "active-active-multi-az-cross-region-warm"
   },
+  "observability_trace_sampling_recipe": {
+    "head_bps": 100,
+    "tail_policies": [
+      "status_code=ERROR",
+      "latency_p99",
+      "new_endpoint_warmup",
+      "slo_burn",
+      "audit_event",
+      "random_baseline=0.01"
+    ],
+    "p99_latency_threshold_ms": 100,
+    "new_endpoints": [
+      {
+        "route": "POST /api/v1/messages",
+        "added_at": "2026-07-09"
+      }
+    ]
+  },
   "pod_runtime_tier": 1,
   "pod_runtime_tier_justification": "Tier 1 because messenger is a tenant-data substrate surface for MLS key recovery, huddle signaling, message fanout, and encrypted attachment paths. It does not execute tenant-authored code, so Tier 0 is rejected, but the MLS and OpenBao-backed recovery paths are stronger than ordinary first-party app isolation.",
   "pod_runtime_tier_surface_evidence": [
