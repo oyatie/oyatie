@@ -43,8 +43,11 @@ coarse-absorbed into a substrate capability **by name** (e.g. `oya/diagnostics` 
 `observability`, `oya/imaging` under `storage`) pending confirmation that the name matched the
 system's actual nature.
 
-The founder ruled all fourteen on 2026-07-10. This ADR is the durable record and the authority every
-Batch-5 reorg move-plan implements.
+The founder ruled all fourteen on 2026-07-10. This ADR is the durable **record of those decisions**;
+once it lands, the Batch-5 reorg move-plans implement the dispositions it records — while its
+lifecycle status stays **Proposed** pending formal Accept propagation (see Status, above). The
+decisions are the founder's ruling; the ADR's Accept is the propagation formality, not a precondition
+for the record to be authoritative about what was decided.
 
 ## Decision
 
@@ -75,7 +78,7 @@ confirmed as the governing rule.**
 | 5 | data product surfaces | `analytics-app`, `warehouse-tenant-olap-service`, `ontology-scorecards-resolver` → **confirmed `data/facade`** (single-capability data-plane product faces, Snowflake/BI analog). | §6; landed correctly under `data/facade` |
 | 6 | iam consent | consent = **iam sub-module** (registry §2). The DAG `consent-graph` node is a dependency-ordering forward-declaration, not a separate capability. | registry `iam` boundary_note; ADR-0280 §D-1 |
 | 7 | iam identity duplication | `oya/identity` (cloud IdP) → **iam/core**; `oya/oya-identity` (product-shared, consumes core) → **iam/facade**. | registry `iam` boundary_note; §4 face rule |
-| 8 | observability diagnostics | `oya/diagnostics` (clinical lab: HL7v2/pathology, HIPAA) → **`app/health-diagnostics`**. The registry auto-absorbed it under `observability` **by name-collision** (clinical "diagnostics" ≠ system diagnostics); the absorb is corrected. | §3#5 (corrects a name-driven placeholder) |
+| 8 | observability diagnostics | `oya/diagnostics` (clinical lab: HL7v2/pathology, HIPAA) → **`app/health-diagnostics`**. The registry auto-absorbed it under `observability` **by name-collision** (clinical "diagnostics" ≠ system diagnostics). CLASSIFICATION resolved here; the `observability.absorbs_current_dirs` entry (0-crate) is REMOVED in the observability Batch-5 move-plan, retained until then to avoid orphaning. | §3#5 (corrects a name-driven placeholder) |
 | 9 | intelligence detection | `oya/detection` (fraud/abuse) → **intelligence sub-module** (facade). A different OWNERS team alone does not trigger a split; ADR-0562 §7 requires an OWNERS boundary **and** a clean port seam **and** an ADR amendment. Stays coarse. | registry `intelligence` absorb; §7 |
 | 10 | marketplace dev-cli | `dev-cli` (generic gate binary, 122 src, zero marketplace domain logic) → **`ci/`** and is **de-CLI'd** (CLI-retirement: it becomes a gate app/API, not a CLI surface). | §3 rule #6 + ci charter (deployable gate code; rule #3's "CI engines → build/" covers build machinery, and build/ owns no crates) |
 | 11 | marketplace vs billing | escrow-reserve / revenue-share-accrue / clawback / payout-settle / tax-form → **billing** (the settlement/metering capability). marketplace keeps discovery/listing/plugin-lifecycle. The SKU/pricing sell-catalog is a **`build/`-generated VIEW**, never a marketplace crate. | registry billing+marketplace charters; §5 |

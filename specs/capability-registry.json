@@ -376,7 +376,7 @@
     },
     {
       "name": "compliance",
-      "charter": "Compliance + governance evidence substrate: regulatory packs, data-class registry, DPIA/threat-model evidence, audit-pack generation.",
+      "charter": "Compliance + regulatory-evidence substrate: regulatory packs, data-class registry, DPIA/threat-model evidence, audit-pack generation. Governance-ENGINE surfaces are NOT here (see boundary_note + ADR-0615 §2 Q13).",
       "seed_domains": [
         "audit"
       ],
