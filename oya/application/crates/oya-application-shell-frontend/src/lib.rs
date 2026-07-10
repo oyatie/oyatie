@@ -56,11 +56,13 @@ mod tests {
     use super::{shell_landmark_label, shell_scope_notice_text};
 
     #[test]
-    fn scope_notice_names_transitional_integration_constraints_honestly() {
+    fn scope_notice_names_production_contract_source_honestly() {
         let notice = shell_scope_notice_text();
 
-        assert!(notice.contains("transitional in-process data"));
-        assert!(notice.contains("live service integration"));
+        assert_eq!(
+            notice,
+            "Operator console scope: panels render from the production shell-BFF contract source with deny-by-default module visibility; no PHI/PII · shell covers close, workflow, people, mail, messenger, and community."
+        );
         assert!(notice.contains("no PHI/PII"));
     }
 
@@ -79,5 +81,9 @@ mod tests {
         assert!(html.contains("id=\"oya-dashboard-island-root\""));
         assert!(html.contains("data-island=\"render-envelope-dashboard\""));
         assert!(html.contains("Selective WASM islands"));
+        assert!(
+            html.to_ascii_lowercase()
+                .contains("production shell-bff contract source")
+        );
     }
 }

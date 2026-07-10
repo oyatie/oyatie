@@ -1,14 +1,14 @@
-//! Shell capability registry — the ADR-0061 registry seeded from the locked
-//! shell-BFF contract family (`oya-shared-platform-contracts-kernel::shell_bff`).
+//! Shell capability registry — the ADR-0061 production registry sourced from
+//! the locked shell-BFF contract family (`oya-shared-platform-contracts-kernel::shell_bff`).
 //!
 //! Module visibility is deny-by-default: a module card renders only when the
 //! operator context carries the capability's required PDP action. The full
 //! registry never ships to the browser as a catalog — the server derives the
 //! permitted envelope per context and serializes only that.
 //!
-//! Until the live shell-BFF service lands (G05/G06 fan-in), the action grants
-//! per context come from a transitional in-process table behind the same
-//! contract types; the registry shape itself is the locked contract.
+//! Context grants are expressed as contract-source data in this crate so the
+//! shell, SSR endpoint, and token broker all consume one validated source; a
+//! future remote BFF adapter must preserve this same contract shape.
 
 use std::collections::BTreeSet;
 
@@ -18,7 +18,11 @@ use oya_shared_platform_contracts_kernel::shell_bff::{
 
 use crate::render_envelope::{ModuleCard, OperatorContext};
 
-/// One registered module surface: the locked-contract registry row plus the
+const SHELL_CONTRACT_SOURCE_ID: &str = "shell-bff-contract-source:v1";
+const SHELL_CONTRACT_AUTHORITY: &str =
+    "ADR-0393 production portal-shell + oya-shared-platform-contracts-kernel::shell_bff";
+
+/// One production module surface: the locked-contract registry row plus the
 /// shell display metadata used to render its module card.
 struct RegisteredModule {
     capability_id: &'static str,
@@ -32,7 +36,7 @@ struct RegisteredModule {
     action_label: &'static str,
 }
 
-const REGISTERED_MODULES: &[RegisteredModule] = &[
+const PRODUCTION_MODULES: &[RegisteredModule] = &[
     RegisteredModule {
         capability_id: "tenant-admin",
         display_name: "Tenant Admin",
@@ -189,42 +193,95 @@ const REGISTERED_MODULES: &[RegisteredModule] = &[
     },
 ];
 
-/// PDP actions granted to each operator context.
-///
-/// Transitional in-process grant table (ADR-0510 pattern): the shape a live
-/// PDP/BFF answer takes — a set of allowed actions for the principal — so the
-/// adapter swap at G05/G06 fan-in does not change this module's callers.
-fn granted_actions(context: OperatorContext) -> BTreeSet<&'static str> {
-    match context {
-        OperatorContext::TenantAdmin => [
+#[derive(Clone, Copy, Debug)]
+pub struct ContextActionGrant {
+    context: OperatorContext,
+    actions: &'static [&'static str],
+}
+
+const CONTEXT_ACTION_GRANTS: &[ContextActionGrant] = &[
+    ContextActionGrant {
+        context: OperatorContext::TenantAdmin,
+        actions: &[
             "tenancy.administer",
             "compute.operate",
             "network.operate",
             "finops.review",
             "workflow.design",
             "audit.inspect",
-        ]
-        .into_iter()
-        .collect(),
-        OperatorContext::CorporateOffice => [
+        ],
+    },
+    ContextActionGrant {
+        context: OperatorContext::CorporateOffice,
+        actions: &[
             "workspace.use",
             "accounting.close",
             "hr.operate",
             "approvals.review",
             "workflow.design",
-        ]
-        .into_iter()
-        .collect(),
-        OperatorContext::HealthcareClinician => [
+        ],
+    },
+    ContextActionGrant {
+        context: OperatorContext::HealthcareClinician,
+        actions: &[
             "care.home",
             "care.schedule",
             "care.workflows",
             "care.message",
             "workflow.design",
-        ]
-        .into_iter()
-        .collect(),
+        ],
+    },
+];
+
+/// Production shell-BFF contract source consumed by the shell crate.
+///
+/// This intentionally centralizes the registry rows, route registrations, and
+/// per-context grants behind the same locked contract types so callers do not
+/// depend on a separate UI catalog.
+#[derive(Clone, Debug)]
+pub struct ShellContractSource {
+    source_id: &'static str,
+    authority: &'static str,
+    entries: Vec<CapabilityRegistryEntry>,
+    routes: Vec<ModuleRouteRegistration>,
+    context_grants: &'static [ContextActionGrant],
+}
+
+impl ShellContractSource {
+    pub fn source_id(&self) -> &'static str {
+        self.source_id
     }
+
+    pub fn authority(&self) -> &'static str {
+        self.authority
+    }
+
+    pub fn entries(&self) -> &[CapabilityRegistryEntry] {
+        &self.entries
+    }
+
+    pub fn routes(&self) -> &[ModuleRouteRegistration] {
+        &self.routes
+    }
+
+    pub fn granted_actions(&self, context: OperatorContext) -> BTreeSet<&'static str> {
+        grants_for(self.context_grants, context)
+    }
+}
+
+/// Resolve a context's granted actions directly from static grant data, with no
+/// registry allocation. `permitted_module_cards` (SSR render path) uses this so
+/// it never builds the full `ShellContractSource` just to read the grant set.
+fn context_action_grants(context: OperatorContext) -> BTreeSet<&'static str> {
+    grants_for(CONTEXT_ACTION_GRANTS, context)
+}
+
+fn grants_for(grants: &[ContextActionGrant], context: OperatorContext) -> BTreeSet<&'static str> {
+    grants
+        .iter()
+        .find(|grant| grant.context == context)
+        .map(|grant| grant.actions.iter().copied().collect())
+        .unwrap_or_default()
 }
 
 /// Per-context display copy for capabilities whose card text differs by
@@ -237,17 +294,22 @@ fn contextual_copy(
         (OperatorContext::CorporateOffice, "workflow-studio") => {
             Some(("Draft team workflows from templates", "Draft workflow"))
         }
-        (OperatorContext::HealthcareClinician, "workflow-studio") => Some((
-            "Draft safe care coordination workflows",
-            "Draft care flow",
-        )),
+        (OperatorContext::HealthcareClinician, "workflow-studio") => {
+            Some(("Draft safe care coordination workflows", "Draft care flow"))
+        }
         _ => None,
     }
 }
 
 /// The full registry in locked-contract form.
 pub fn capability_registry() -> (Vec<CapabilityRegistryEntry>, Vec<ModuleRouteRegistration>) {
-    let entries = REGISTERED_MODULES
+    let source = production_shell_contract_source();
+    (source.entries().to_vec(), source.routes().to_vec())
+}
+
+/// The production shell-BFF contract source in locked-contract form.
+pub fn production_shell_contract_source() -> ShellContractSource {
+    let entries = PRODUCTION_MODULES
         .iter()
         .map(|module| CapabilityRegistryEntry {
             capability_id: module.capability_id.to_owned(),
@@ -257,7 +319,7 @@ pub fn capability_registry() -> (Vec<CapabilityRegistryEntry>, Vec<ModuleRouteRe
             navigation_surface: NavigationSurface::PrimaryNav,
         })
         .collect();
-    let routes = REGISTERED_MODULES
+    let routes = PRODUCTION_MODULES
         .iter()
         .map(|module| ModuleRouteRegistration {
             module_id: module.module_id.to_owned(),
@@ -266,14 +328,20 @@ pub fn capability_registry() -> (Vec<CapabilityRegistryEntry>, Vec<ModuleRouteRe
             capability_ids: vec![module.capability_id.to_owned()],
         })
         .collect();
-    (entries, routes)
+    ShellContractSource {
+        source_id: SHELL_CONTRACT_SOURCE_ID,
+        authority: SHELL_CONTRACT_AUTHORITY,
+        entries,
+        routes,
+        context_grants: CONTEXT_ACTION_GRANTS,
+    }
 }
 
 /// Module cards the given context is permitted to see, derived deny-by-default
 /// from the capability registry: no grant, no card — never a greyed-out one.
 pub fn permitted_module_cards(context: OperatorContext) -> Vec<ModuleCard> {
-    let granted = granted_actions(context);
-    REGISTERED_MODULES
+    let granted = context_action_grants(context);
+    PRODUCTION_MODULES
         .iter()
         .filter(|module| granted.contains(module.required_action))
         .map(|module| {
@@ -300,16 +368,47 @@ mod tests {
     }
 
     #[test]
+    fn production_contract_source_is_the_registry_authority() {
+        let source = production_shell_contract_source();
+        validate_registry(source.entries(), source.routes())
+            .expect("production shell contract source must satisfy the locked contract");
+
+        assert_eq!(source.source_id(), "shell-bff-contract-source:v1");
+        assert!(
+            source
+                .authority()
+                .contains("oya-shared-platform-contracts-kernel::shell_bff")
+        );
+        assert_eq!(source.entries().len(), source.routes().len());
+    }
+
+    #[test]
     fn every_granted_action_resolves_to_a_registered_capability() {
-        let (entries, _) = capability_registry();
+        let source = production_shell_contract_source();
+        let entries = source.entries();
         let known: BTreeSet<_> = entries
             .iter()
             .map(|entry| entry.required_action.clone())
             .collect();
         for context in OperatorContext::ALL {
-            for action in granted_actions(context) {
+            for action in source.granted_actions(context) {
                 assert!(known.contains(action), "{action} grants nothing registered");
             }
+        }
+    }
+
+    #[test]
+    fn every_context_grants_at_least_one_action() {
+        // Deny-by-default must not silently degrade into deny-everything: a
+        // context added to OperatorContext::ALL without a grant entry would
+        // render a blank shell, and the resolves-to-registered test above would
+        // pass vacuously. Require every context to carry a non-empty grant set.
+        let source = production_shell_contract_source();
+        for context in OperatorContext::ALL {
+            assert!(
+                !source.granted_actions(context).is_empty(),
+                "{context:?} grants no actions; it would render an empty shell"
+            );
         }
     }
 

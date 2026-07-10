@@ -3,8 +3,8 @@ use leptos::prelude::*;
 #[cfg(any(feature = "ssr", test))]
 use crate::render_envelope::server_derived_envelope;
 use crate::render_envelope::{
-    ApprovalItem, CommunityItem, OperatorContext, IntelligenceSuggestion, MessageItem, MetricCard,
-    ModuleCard, OntologyFact, ProductActivitySpine, ProductActivityStep, ScheduleItem,
+    ApprovalItem, CommunityItem, IntelligenceSuggestion, MessageItem, MetricCard, ModuleCard,
+    OntologyFact, OperatorContext, ProductActivitySpine, ProductActivityStep, ScheduleItem,
     TenantRenderEnvelope, WorkItem, WorkflowNode,
 };
 
@@ -256,7 +256,7 @@ const BUSINESS_LOGIC_ROWS: [BusinessLogicRow; 7] = [
 ];
 
 pub fn shell_scope_notice_text() -> &'static str {
-    "Operator console scope: panels render transitional in-process data behind the locked shell-BFF contracts pending live service integration; no PHI/PII · shell covers close, workflow, people, mail, messenger, and community."
+    "Operator console scope: panels render from the production shell-BFF contract source with deny-by-default module visibility; no PHI/PII · shell covers close, workflow, people, mail, messenger, and community."
 }
 
 pub fn shell_landmark_label() -> &'static str {
@@ -454,7 +454,7 @@ fn HeroPanel() -> impl IntoView {
                         <span class="hero-lens-chip">"● Lens: tenant admin · Finance · 1,000 ppl"</span>
                     </div>
                     <p id="console-notice" class="scope-notice" role="note">
-                        "이번 주 운영 현황 — 마감, 신고, 인적자원, 결재 대기 "
+                        "Production shell-BFF contract source — deny-by-default module visibility; no PHI/PII. "
                         <span>"This week — close, filings, people, approvals."</span>
                     </p>
                 </div>
@@ -614,7 +614,7 @@ fn UtilityPanels() -> impl IntoView {
             </section>
             <div class="settings-person-card">
                 <span class="workspace-avatar" aria-hidden="true">"최"</span>
-                <div><strong>"최유나 · Choi Yu-na"</strong><p>"Tenant admin · Finance owner · PIPA-safe transitional data"</p></div>
+                <div><strong>"최유나 · Choi Yu-na"</strong><p>"Tenant admin · Finance owner · PIPA-safe contract envelope"</p></div>
             </div>
             // A-2: settings tablist — aria-orientation + id/aria-controls on tabs + role=tabpanel on panels
             <div class="settings-tabs" role="tablist" aria-label="Settings panels" aria-orientation="horizontal">
@@ -959,9 +959,10 @@ fn wire_tab_click(tab: &web_sys::HtmlElement, tabs: &[web_sys::HtmlElement]) {
 
     let owned_tabs = tabs.to_vec();
     let tab_for_handler = tab.clone();
-    let closure = Closure::<dyn FnMut(web_sys::MouseEvent)>::new(move |_event: web_sys::MouseEvent| {
-        activate_tab(&tab_for_handler, &owned_tabs);
-    });
+    let closure =
+        Closure::<dyn FnMut(web_sys::MouseEvent)>::new(move |_event: web_sys::MouseEvent| {
+            activate_tab(&tab_for_handler, &owned_tabs);
+        });
 
     register_island_listener(tab.clone().into(), "click", closure.into_js_value());
 }
@@ -973,46 +974,49 @@ fn wire_tab_click(tab: &web_sys::HtmlElement, tabs: &[web_sys::HtmlElement]) {
 fn wire_tablist_keydown(tablist: &web_sys::Element, tabs: Vec<web_sys::HtmlElement>) {
     use wasm_bindgen::closure::Closure;
 
-    let closure = Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(move |event: web_sys::KeyboardEvent| {
-        if tabs.is_empty() {
-            return;
-        }
+    let closure =
+        Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(move |event: web_sys::KeyboardEvent| {
+            if tabs.is_empty() {
+                return;
+            }
 
-        // Locate the currently focused tab within this tablist.
-        let active_element = web_sys::window()
-            .and_then(|window| window.document())
-            .and_then(|document| document.active_element());
-        let current = active_element.and_then(|active| {
-            tabs.iter().position(|tab| tab.is_same_node(Some(active.as_ref())))
-        });
-        let Some(current) = current else {
-            return;
-        };
+            // Locate the currently focused tab within this tablist.
+            let active_element = web_sys::window()
+                .and_then(|window| window.document())
+                .and_then(|document| document.active_element());
+            let current = active_element.and_then(|active| {
+                tabs.iter()
+                    .position(|tab| tab.is_same_node(Some(active.as_ref())))
+            });
+            let Some(current) = current else {
+                return;
+            };
 
-        let last = tabs.len() - 1;
-        let target = match event.key().as_str() {
-            "ArrowRight" | "ArrowDown" => Some(if current == last { 0 } else { current + 1 }),
-            "ArrowLeft" | "ArrowUp" => Some(if current == 0 { last } else { current - 1 }),
-            "Home" => Some(0),
-            "End" => Some(last),
-            "Enter" | " " | "Spacebar" => {
-                // Manual activation of the focused tab.
+            let last = tabs.len() - 1;
+            let target = match event.key().as_str() {
+                "ArrowRight" | "ArrowDown" => Some(if current == last { 0 } else { current + 1 }),
+                "ArrowLeft" | "ArrowUp" => Some(if current == 0 { last } else { current - 1 }),
+                "Home" => Some(0),
+                "End" => Some(last),
+                "Enter" | " " | "Spacebar" => {
+                    // Manual activation of the focused tab.
+                    event.prevent_default();
+                    activate_tab(&tabs[current], &tabs);
+                    None
+                }
+                _ => None,
+            };
+
+            if let Some(index) = target {
                 event.prevent_default();
-                activate_tab(&tabs[current], &tabs);
-                None
+                // Move focus + the roving tab stop without activating (manual model).
+                for (position, tab) in tabs.iter().enumerate() {
+                    let _ =
+                        tab.set_attribute("tabindex", if position == index { "0" } else { "-1" });
+                }
+                let _ = tabs[index].focus();
             }
-            _ => None,
-        };
-
-        if let Some(index) = target {
-            event.prevent_default();
-            // Move focus + the roving tab stop without activating (manual model).
-            for (position, tab) in tabs.iter().enumerate() {
-                let _ = tab.set_attribute("tabindex", if position == index { "0" } else { "-1" });
-            }
-            let _ = tabs[index].focus();
-        }
-    });
+        });
 
     register_island_listener(tablist.clone().into(), "keydown", closure.into_js_value());
 }
@@ -1204,7 +1208,7 @@ fn request_render_envelope(
 
 #[expect(
     clippy::too_many_arguments,
-    reason = "Leptos shell view composes several reactive signals at the island boundary; refactoring into state bags would obscure the explicit transitional data flow."
+    reason = "Leptos shell view composes several reactive signals at the island boundary; refactoring into state bags would obscure the explicit contract-envelope flow."
 )]
 fn dashboard_view(
     envelope: TenantRenderEnvelope,
@@ -6932,7 +6936,7 @@ fn static_header_html() -> String {
 
 #[cfg(any(feature = "ssr", test))]
 fn static_hero_html() -> String {
-    r#"<section class="hero-panel" aria-labelledby="console-title"><div class="hero-main"><div class="page-title-copy"><p class="screen-anchor">01 / Command Center</p><div class="hero-title-row"><h1 id="console-title">Operations · 2026 May, week 19</h1><span class="hero-lens-chip">● Lens: tenant admin · Finance · 1,000 ppl</span></div><p id="console-notice" class="scope-notice" role="note">이번 주 운영 현황 — 마감, 신고, 인적자원, 결재 대기 <span>This week — close, filings, people, approvals.</span></p></div><section class="hero-close-strip" aria-label="FD-001 close command proof"><div><p class="screen-anchor">FD-001 CLOSE COMMAND</p><strong>April close proves the product workload on Oyatie Cloud</strong><span data-hero-status="true">Ready · REC-CLOSE-2026-04 · cell-us-east-2 · local command only</span></div><div class="hero-close-actions" aria-label="Close package routes"><button type="button" data-hero-action="close-april">Stage close</button><button type="button" data-hero-action="route-ledger">Ledger</button><button type="button" data-hero-action="route-cloud">Cloud proof</button><button type="button" data-hero-action="route-evidence">Evidence</button></div></section><section class="render-architecture-strip" aria-label="SSR shell and selective WASM hydration model"><article class="selected" data-render-arch-card="ssr"><p class="screen-anchor">SSR SHELL</p><strong>Fast baseline, service graph visible first</strong><span>Navigation, proof copy, tenant posture, and core dashboards render before island hydration.</span><button type="button" class="is-selected" data-render-arch-action="ssr">Show shell</button></article><article data-render-arch-card="islands"><p class="screen-anchor">SELECTIVE WASM</p><strong>Only interactive product surfaces hydrate</strong><span>Workflow Studio, Work Hub, filters, canvas state, and local drafts become browser-only islands.</span><button type="button" data-render-arch-action="islands">Show islands</button></article><article data-render-arch-card="boundary"><p class="screen-anchor">LOCAL BOUNDARY</p><strong>Visually functional, deliberately unwired</strong><span data-render-arch-status="true">No workflow execution, external send, IAM, billing, deploy, or cloud mutation.</span><button type="button" data-render-arch-action="boundary">Show evidence</button></article></section></div><div class="hero-side"><div class="hero-copy page-actions"><button type="button" data-sidepeek-trigger="new-action" data-sidepeek-title="Create governed action" data-sidepeek-id="ACT-LOCAL-DRAFT" data-sidepeek-desc="Local visual-only action draft. Nothing is persisted or sent." data-sidepeek-owner="Current operator session" data-sidepeek-risk="Draft" data-sidepeek-sla="No live SLA">New action</button><button type="button" data-command-trigger="true">Search ⌘K</button><button type="button" class="primary" data-hero-action="close-april">Close April →</button></div></div></section>"#
+    r#"<section class="hero-panel" aria-labelledby="console-title"><div class="hero-main"><div class="page-title-copy"><p class="screen-anchor">01 / Command Center</p><div class="hero-title-row"><h1 id="console-title">Operations · 2026 May, week 19</h1><span class="hero-lens-chip">● Lens: tenant admin · Finance · 1,000 ppl</span></div><p id="console-notice" class="scope-notice" role="note">Production shell-BFF contract source — deny-by-default module visibility; no PHI/PII. <span>This week — close, filings, people, approvals.</span></p></div><section class="hero-close-strip" aria-label="FD-001 close command proof"><div><p class="screen-anchor">FD-001 CLOSE COMMAND</p><strong>April close proves the product workload on Oyatie Cloud</strong><span data-hero-status="true">Ready · REC-CLOSE-2026-04 · cell-us-east-2 · local command only</span></div><div class="hero-close-actions" aria-label="Close package routes"><button type="button" data-hero-action="close-april">Stage close</button><button type="button" data-hero-action="route-ledger">Ledger</button><button type="button" data-hero-action="route-cloud">Cloud proof</button><button type="button" data-hero-action="route-evidence">Evidence</button></div></section><section class="render-architecture-strip" aria-label="SSR shell and selective WASM hydration model"><article class="selected" data-render-arch-card="ssr"><p class="screen-anchor">SSR SHELL</p><strong>Fast baseline, service graph visible first</strong><span>Navigation, proof copy, tenant posture, and core dashboards render before island hydration.</span><button type="button" class="is-selected" data-render-arch-action="ssr">Show shell</button></article><article data-render-arch-card="islands"><p class="screen-anchor">SELECTIVE WASM</p><strong>Only interactive product surfaces hydrate</strong><span>Workflow Studio, Work Hub, filters, canvas state, and local drafts become browser-only islands.</span><button type="button" data-render-arch-action="islands">Show islands</button></article><article data-render-arch-card="boundary"><p class="screen-anchor">LOCAL BOUNDARY</p><strong>Visually functional, deliberately unwired</strong><span data-render-arch-status="true">No workflow execution, external send, IAM, billing, deploy, or cloud mutation.</span><button type="button" data-render-arch-action="boundary">Show evidence</button></article></section></div><div class="hero-side"><div class="hero-copy page-actions"><button type="button" data-sidepeek-trigger="new-action" data-sidepeek-title="Create governed action" data-sidepeek-id="ACT-LOCAL-DRAFT" data-sidepeek-desc="Local visual-only action draft. Nothing is persisted or sent." data-sidepeek-owner="Current operator session" data-sidepeek-risk="Draft" data-sidepeek-sla="No live SLA">New action</button><button type="button" data-command-trigger="true">Search ⌘K</button><button type="button" class="primary" data-hero-action="close-april">Close April →</button></div></div></section>"#
         .to_string()
 }
 
@@ -6978,7 +6982,7 @@ fn static_utility_panels_html() -> String {
   </section>
   <section class="utility-panel settings-center" data-utility-panel="settings" aria-label="Workspace settings" aria-hidden="true">
     <div class="utility-panel-head"><div><p class="screen-anchor">SETTINGS</p><h2>Workspace, profile, appearance, and integrations</h2></div><button type="button" data-utility-close="true" aria-label="Close settings">×</button></div><section class="utility-proof-strip settings-proof" aria-label="Settings FD-001 substrate proof"><article><p class="screen-anchor">CONTROL PLANE SETTINGS</p><strong>Workspace preferences stay tied to FD-001, policy, and Oyatie Cloud posture</strong><span>Every preference is local visual state; no auth, IAM, billing, integration, mail, or cloud mutation occurs.</span></article><div class="utility-route-grid" aria-label="Settings connected routes"><button type="button" data-utility-route="identity"><span>Identity</span><strong>Role envelope</strong></button><button type="button" data-utility-route="policy"><span>Policy</span><strong>Access matrix</strong></button><button type="button" data-utility-route="catalog"><span>Catalog</span><strong>Tenant modules</strong></button></div></section>
-    <div class="settings-person-card"><span class="workspace-avatar" aria-hidden="true">최</span><div><strong>최유나 · Choi Yu-na</strong><p>Tenant admin · Finance owner · PIPA-safe transitional data</p></div></div>
+    <div class="settings-person-card"><span class="workspace-avatar" aria-hidden="true">최</span><div><strong>최유나 · Choi Yu-na</strong><p>Tenant admin · Finance owner · PIPA-safe contract envelope</p></div></div>
     <div class="settings-tabs" role="tablist" aria-label="Settings panels" aria-orientation="horizontal"><button type="button" id="settings-tab-profile" class="active" data-settings-tab="profile" role="tab" aria-selected="true" aria-controls="settings-panel-profile">Profile</button><button type="button" id="settings-tab-appearance" data-settings-tab="appearance" role="tab" aria-selected="false" aria-controls="settings-panel-appearance">Appearance</button><button type="button" id="settings-tab-integrations" data-settings-tab="integrations" role="tab" aria-selected="false" aria-controls="settings-panel-integrations">Integrations</button><button type="button" id="settings-tab-audit" data-settings-tab="audit" role="tab" aria-selected="false" aria-controls="settings-panel-audit">Audit</button></div>
     <article id="settings-panel-profile" class="settings-panel active" data-settings-panel="profile" role="tabpanel" aria-labelledby="settings-tab-profile"><dl class="settings-kv"><div><dt>Workspace</dt><dd>Oyatie Corp. · 118 employees</dd></div><div><dt>Role</dt><dd>Admin · payroll close approver</dd></div><div><dt>Region pack</dt><dd>US/EU/KR · Korean payroll enabled</dd></div></dl><button type="button" data-settings-action="open-identity">Open identity profile</button></article>
     <article id="settings-panel-appearance" class="settings-panel" data-settings-panel="appearance" role="tabpanel" aria-labelledby="settings-tab-appearance"><p>Adjust local visual density and shell language without changing server state.</p><div class="settings-action-grid"><button type="button" data-settings-action="density-comfortable">Comfortable</button><button type="button" data-settings-action="density-compact">Compact</button><button type="button" data-settings-action="locale-ko">한국어 우선</button><button type="button" data-settings-action="locale-en">English labels</button></div></article>

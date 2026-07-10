@@ -5,8 +5,8 @@ context: application
 plane: data
 bc: shell-routing
 slo: application-shell-control-plane
-contracts_consumed: []
-contracts_exposed: []
+contracts_consumed: [libs/oya-shared-platform-contracts-kernel/src/shell_bff.rs, contracts/ops-workspace-shell-v1.openapi.yaml]
+contracts_exposed: [oya/application/crates/oya-application-shell-frontend/src/render_envelope.rs]
 regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
 lifecycle: {state: incubating, preview_since: 2026-05-17, stable_since: null, deprecated_since: null}
 traceability:

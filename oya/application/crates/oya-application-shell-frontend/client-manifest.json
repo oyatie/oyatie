@@ -23,7 +23,7 @@
     "recipe": "progenitor",
     "openapi_version": "3.2.0",
     "contract_source": "contracts/ops-workspace-shell-v1.openapi.yaml",
-    "status": "declared-client-recipe; live shell currently consumes locked Rust shell-BFF contracts until G05/G06 fan-in"
+    "status": "declared-client-recipe; shell consumes the locked Rust shell-BFF production contract source in src/shell_capability_registry.rs"
   },
   "dev_commands": [
     {
@@ -45,16 +45,15 @@
       "notes": "Builds and tests the Leptos/WASM shell without launching a dev server."
     }
   ],
-  "mock_only": false,
-  "transitional_boundaries": [
-    "panel data is transitional in-process data behind the locked shell-BFF contracts until the live BFF lands (G05/G06 fan-in)",
-    "no real authentication or authorization yet; token brokerage arrives with the G05 OIDC integration",
-    "no PHI, PII, or production tenant data",
-    "no workflow execution, external send, or cloud mutation"
+  "runtime_boundaries": [
+    "panel data is contract-enveloped through the locked shell-BFF production contract source; the browser never receives a full capability catalog",
+    "token brokerage uses the shell token-broker port and deployment-specific OIDC adapters",
+    "no PHI, PII, or customer tenant payloads are bundled in the static contract envelope",
+    "workflow execution, external send, and cloud mutation require deployment adapters outside this crate"
   ],
   "rendering_security": {
     "model": "server-derived render envelope over a deny-by-default capability registry",
-    "capability_registry": "src/shell_capability_registry.rs builds the ADR-0061 registry from oya-shared-platform-contracts-kernel::shell_bff locked contracts; validate_registry() is enforced in tests",
+    "capability_registry": "src/shell_capability_registry.rs exposes shell-bff-contract-source:v1 from oya-shared-platform-contracts-kernel::shell_bff locked contracts; validate_registry() is enforced in tests",
     "implemented_files": {
       "capability_registry": "src/shell_capability_registry.rs — locked-contract CapabilityRegistryEntry/ModuleRouteRegistration rows; module cards derive deny-by-default per operator context",
       "serializable_envelope": "src/render_envelope.rs TenantRenderEnvelope derives serde Serialize/Deserialize",
@@ -76,7 +75,7 @@
       ],
       "deny_by_default_invariant": "module visibility is deny-by-default from the capability registry; an unpermitted capability is absent from the envelope, never greyed out client-side"
     },
-    "interactive_but_unwired": "Workflow block additions, mode switching, hub channel switching, item inspection, and draft queueing are functional in local WASM state only until live service integration; no backend mutation, external send, or workflow execution occurs."
+    "adapter_required_for_mutation": "Workflow block additions, mode switching, hub channel switching, item inspection, and draft queueing are functional in local WASM state; backend mutation, external send, or workflow execution requires a configured deployment adapter."
   },
   "forbidden_fallbacks": [
     "xyflow",
