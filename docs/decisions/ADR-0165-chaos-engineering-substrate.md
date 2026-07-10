@@ -164,3 +164,9 @@ A scenario failing its SLO gate against staging:
 - ADR-0157 — api-gateway tier.
 - ADR-0158 — multi-region disposition (cross-cell partition scenarios).
 - ADR-0160 — progressive delivery via Flagger (Chaos Mesh Workflow CRD composes).
+
+## Governed surfaces
+
+RESILIENCE-001 registers a spec-only runtime-control-loop contract for this ADR's chaos/resilience substrate — the chaos catalog, brownout signal, SLO composition, tail-sampling, and disaster-mode evidence shapes. It is an accounting/validation surface only and does not authorize a runtime control loop, chaos execution, brownout actuation, tenant migration, or live evidence collection. Validation is owned by the cloud-ci Rust gate `//ci/facade/contract-slice-conformance`:
+
+- `oya/messenger/resilience/runtime-control-loop-contract.json`
