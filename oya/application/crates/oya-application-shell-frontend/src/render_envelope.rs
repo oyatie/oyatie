@@ -602,7 +602,7 @@ fn healthcare_clinician_envelope() -> TenantRenderEnvelope {
             metric(
                 "Compliance posture",
                 "Green",
-                "No PHI is present in this transitional dataset",
+                "No PHI is present in this contract envelope",
             ),
         ],
         modules: crate::shell_capability_registry::permitted_module_cards(
@@ -611,7 +611,7 @@ fn healthcare_clinician_envelope() -> TenantRenderEnvelope {
         daily_tasks: vec![
             work(
                 "Prepare visit room 4",
-                "Placeholder patient context; no PHI in transitional data",
+                "Redacted patient context; no PHI in contract envelope data",
                 "High",
             ),
             work(
@@ -636,7 +636,11 @@ fn healthcare_clinician_envelope() -> TenantRenderEnvelope {
                 "Care team huddle",
                 "Shift priorities and safety notes",
             ),
-            schedule("09:40", "Visit placeholder A", "No PHI/PII in transitional data"),
+            schedule(
+                "09:40",
+                "Visit redacted A",
+                "No PHI/PII in contract envelope data",
+            ),
             schedule(
                 "11:20",
                 "Discharge planning",
@@ -696,7 +700,7 @@ fn healthcare_clinician_envelope() -> TenantRenderEnvelope {
         ],
         workflow: workflow(
             "Care coordination handoff",
-            "Accredited healthcare workflow template with human review and no PHI in transitional data.",
+            "Accredited healthcare workflow template with human review and no PHI in contract envelope data.",
             vec![
                 node(
                     "trigger",
@@ -728,7 +732,7 @@ fn healthcare_clinician_envelope() -> TenantRenderEnvelope {
                     "Message",
                     640,
                     82,
-                    "Creates a secure-message draft; sending stays local until live service integration.",
+                    "Creates a secure-message draft; sending stays local unless a deployment adapter is configured.",
                 ),
             ],
         ),
@@ -998,7 +1002,10 @@ mod tests {
 
     #[test]
     fn regulated_care_surfaces_are_absent_from_unaccredited_contexts() {
-        for context in [OperatorContext::TenantAdmin, OperatorContext::CorporateOffice] {
+        for context in [
+            OperatorContext::TenantAdmin,
+            OperatorContext::CorporateOffice,
+        ] {
             let envelope = server_derived_envelope(context);
             let surface_names = envelope
                 .modules
