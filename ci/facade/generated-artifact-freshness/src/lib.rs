@@ -1372,7 +1372,7 @@ fn build_face_tools(repo_root: &Path) -> Result<FaceTools, FreshnessError> {
 
 fn build_materializer_tools(repo_root: &Path) -> Result<MaterializerTools, FreshnessError> {
     // Absolute repo-root so the derived tool binary paths are spawnable from ANY current_dir:
-    // the ADR-0614 merge-base regen runs these tools with cwd set to the merge-base worktree, where
+    // the ADR-0616 merge-base regen runs these tools with cwd set to the merge-base worktree, where
     // a `--repo-root .`-relative `buck-out/...` binary path would not resolve (os error 2 on spawn).
     let repo_root_abs = std::fs::canonicalize(repo_root).map_err(|e| {
         FreshnessError::new(format!("canonicalize repo-root {}: {e}", repo_root.display()))
@@ -1453,7 +1453,7 @@ fn emit_materialized_scm_facts(
     )?;
     let merge_base = read_merge_base(&merge_base_file)?;
 
-    // Phase 2 (ADR-0614): materialize the merge-base SOURCE worktree ONCE, regenerate the frozen
+    // Phase 2 (ADR-0616): materialize the merge-base SOURCE worktree ONCE, regenerate the frozen
     // baseline over it TWICE (the determinism twin), and hand both to the emitter which produces the
     // AUTHORITATIVE frozen snapshot — the regeneration IS the frozen reference (replacing the retired
     // `git show <merge_base>:<face>` committed-blob read), the determinism canary proves the producer
@@ -1546,7 +1546,7 @@ fn write_regen_baseline(path: &Path, bytes: &str) -> Result<(), FreshnessError> 
     })
 }
 
-/// ADR-0614: regenerate the frozen reference by running the accounting producer over a materialized
+/// ADR-0616: regenerate the frozen reference by running the accounting producer over a materialized
 /// merge-base SOURCE `worktree`. THIS is the frozen baseline the firewall compares against — it
 /// REPLACES the retired `git show <merge_base>:<face>` committed-blob read. Returns the baseline
 /// face JSON (producer stdout). FAIL-CLOSED: any emit/regen failure is a hard error, never a
@@ -1781,7 +1781,7 @@ fn temporary_product_graph_path() -> PathBuf {
     ))
 }
 
-/// ADR-0614: the file the emitter publishes the computed merge-base sha to, so the regeneration
+/// ADR-0616: the file the emitter publishes the computed merge-base sha to, so the regeneration
 /// materializes exactly that source tree without recomputing the merge-base.
 fn temporary_merge_base_path() -> PathBuf {
     let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
@@ -1794,7 +1794,7 @@ fn temporary_merge_base_path() -> PathBuf {
     ))
 }
 
-/// ADR-0614: the throwaway file the regenerated frozen baseline (from the merge-base source) is
+/// ADR-0616: the throwaway file the regenerated frozen baseline (from the merge-base source) is
 /// written to before the emitter turns it into the authoritative frozen snapshot.
 fn temporary_regen_baseline_path() -> PathBuf {
     let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
@@ -1807,7 +1807,7 @@ fn temporary_regen_baseline_path() -> PathBuf {
     ))
 }
 
-/// ADR-0614: the throwaway file the SECOND (determinism-twin) regeneration is written to, so the
+/// ADR-0616: the throwaway file the SECOND (determinism-twin) regeneration is written to, so the
 /// emitter can assert the two regenerations project identically (the determinism canary).
 fn temporary_regen_baseline_verify_path() -> PathBuf {
     let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
@@ -1820,7 +1820,7 @@ fn temporary_regen_baseline_verify_path() -> PathBuf {
     ))
 }
 
-/// ADR-0614: the isolated linked worktree the merge-base SOURCE tree is checked out into.
+/// ADR-0616: the isolated linked worktree the merge-base SOURCE tree is checked out into.
 fn temporary_worktree_path() -> PathBuf {
     let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(duration) => duration.as_nanos(),
@@ -1842,7 +1842,7 @@ impl Drop for TempFileCleanup {
     }
 }
 
-/// Best-effort removal of the merge-base source worktree (ADR-0614 PR-1): deregister it from the
+/// Best-effort removal of the merge-base source worktree (ADR-0616 PR-1): deregister it from the
 /// common `.git`, delete the checkout, and prune, so a failed cross-check never leaks worktrees.
 struct WorktreeCleanup {
     repo_root: PathBuf,
@@ -2295,7 +2295,7 @@ done
 test -n "$out"
 mkdir -p "$(dirname "$out")"
 printf '{{"facts":[]}}\n' > "$out"
-# ADR-0614 PR-1: publish the merge-base sha the cross-check materializes.
+# ADR-0616 PR-1: publish the merge-base sha the cross-check materializes.
 if [ -n "$mbout" ]; then git rev-parse HEAD > "$mbout"; fi
 "#
             ),
@@ -2308,7 +2308,7 @@ if [ -n "$mbout" ]; then git rev-parse HEAD > "$mbout"; fi
                 r#"#!/bin/sh
 set -eu
 printf 'producer %s\n' "$*" >> "{log_path}"
-# ADR-0614 PR-1: the frozen-baseline regeneration emits the baseline face to stdout.
+# ADR-0616 PR-1: the frozen-baseline regeneration emits the baseline face to stdout.
 face=""
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -2366,7 +2366,7 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
             },
         };
 
-        // ADR-0614 PR-1: the frozen-baseline regen cross-check materializes a merge-base worktree,
+        // ADR-0616 PR-1: the frozen-baseline regen cross-check materializes a merge-base worktree,
         // so the fixture root must be a real git repo with a committed HEAD (the fake emitter
         // publishes its sha as the merge-base).
         init_git_repo(&root);
@@ -2439,7 +2439,7 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
         run(&["commit", "-q", "-m", "seed"]);
     }
 
-    /// ADR-0614: a producer that fails to regenerate the frozen baseline from the merge-base source
+    /// ADR-0616: a producer that fails to regenerate the frozen baseline from the merge-base source
     /// is a HARD ERROR (fail-closed) — never a silent fallback, which (with the frozen reference
     /// de-committed) would empty-frozen-deadlock the firewall.
     #[cfg(unix)]
@@ -2479,7 +2479,7 @@ exit 1
         );
     }
 
-    /// ADR-0614 blob-independence: the regeneration reads only SOURCE. The worktree carries NO
+    /// ADR-0616 blob-independence: the regeneration reads only SOURCE. The worktree carries NO
     /// `gate-baseline.generated.json`, yet the regeneration still produces a baseline, and the
     /// producer command never references the committed blob path.
     #[cfg(unix)]

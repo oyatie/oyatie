@@ -120,7 +120,7 @@ fn run() -> Result<(), String> {
     let mut volatile_out: Option<PathBuf> = None;
     let mut merge_base_baseline = false;
     let mut frozen_base_ref: Option<String> = None;
-    // ADR-0614 (frozen-reference de-commit, approach B — regenerate-from-merge-base-source): the
+    // ADR-0616 (frozen-reference de-commit, approach B — regenerate-from-merge-base-source): the
     // frozen reference is no longer read from a committed git blob (`git show <merge_base>:<face>`,
     // retired). The materializer regenerates the frozen baseline by running the accounting producer
     // over the merge-base SOURCE tree and hands it here as the PRODUCTION frozen face
@@ -158,7 +158,7 @@ fn run() -> Result<(), String> {
                     return Err("--frozen-base-ref requires a ref".to_owned());
                 }
             }
-            // ADR-0614: the merge-base-source regeneration of the frozen baseline (produced by the
+            // ADR-0616: the merge-base-source regeneration of the frozen baseline (produced by the
             // materializer by running the accounting producer over a materialized merge-base
             // worktree). This IS the frozen reference the firewall compares against — it REPLACES
             // the retired `git show <merge_base>:<face>` committed-blob read.
@@ -169,7 +169,7 @@ fn run() -> Result<(), String> {
                     return Err("--regen-baseline-face requires a path".to_owned());
                 }
             }
-            // ADR-0614: a SECOND independent regeneration of the frozen baseline over the same
+            // ADR-0616: a SECOND independent regeneration of the frozen baseline over the same
             // merge-base source tree — the determinism canary. The emitter asserts it projects
             // IDENTICALLY to `--regen-baseline-face` ({keys, mode, frozen_empty} per (gate, code));
             // a non-deterministic producer is a hard error (the regenerated frozen reference is the
@@ -181,7 +181,7 @@ fn run() -> Result<(), String> {
                     return Err("--regen-baseline-verify requires a path".to_owned());
                 }
             }
-            // ADR-0614: the analyzer identity recorded in the frozen snapshot's provenance
+            // ADR-0616: the analyzer identity recorded in the frozen snapshot's provenance
             // (in-toto materials) — the buck label of the producer that regenerated the baseline.
             // Deterministic audit metadata; the firewall does not verify it (only base_tree_sha).
             "--frozen-provenance-producer" => {
@@ -191,7 +191,7 @@ fn run() -> Result<(), String> {
                     return Err("--frozen-provenance-producer requires a label".to_owned());
                 }
             }
-            // ADR-0614: publish the computed merge-base sha to this path so the materializer can
+            // ADR-0616: publish the computed merge-base sha to this path so the materializer can
             // materialize exactly that source tree (mb ownership stays with this single git
             // boundary — the materializer never recomputes it). With `--merge-base-out` but WITHOUT
             // `--regen-baseline-face` this is publish-mb-ONLY: the emitter computes+writes the
@@ -331,19 +331,19 @@ const FROZEN_POLICY_SOURCE_MERGE_BASE: &str = "merge-base";
 const FROZEN_POLICY_SOURCE_CANDIDATE_BOOTSTRAP: &str = "candidate-bootstrap";
 
 /// This emitter's own buck label — the analyzer identity recorded in the frozen snapshot's
-/// provenance (ADR-0614 in-toto materials). Compile-time constant, deterministic.
+/// provenance (ADR-0616 in-toto materials). Compile-time constant, deterministic.
 const EMITTER_ANALYZER_LABEL: &str = "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot";
 /// The `computed_by` provenance stamp: WHICH analysis produced this frozen reference. Records
 /// that the baseline was REGENERATED from the merge-base source (not read from a committed blob).
 const PROVENANCE_COMPUTED_BY: &str =
-    "oya-cloud-ci-scm-facts-emitter-app --merge-base-baseline (ADR-0614 regenerate-from-merge-base-source)";
+    "oya-cloud-ci-scm-facts-emitter-app --merge-base-baseline (ADR-0616 regenerate-from-merge-base-source)";
 
-/// Assemble the frozen snapshot's `provenance` object (ADR-0614): the in-toto-style materials +
+/// Assemble the frozen snapshot's `provenance` object (ADR-0616): the in-toto-style materials +
 /// subject that let the firewall AUDIT which merge-base tree the regenerated frozen reference was
 /// computed over, WITHOUT committing the face. `base_tree_sha` is `git rev-parse <merge_base>^{{tree}}`
 /// (the immutable content the analysis ran over); the firewall VERIFIES it is a well-formed tree id
 /// bound to the snapshot's own `merge_base` (fail-closed). Cryptographic signing of this provenance
-/// is a fleet-wide follow-on (the ceiling in ADR-0614 §Trust) — this records the attestable facts a
+/// is a fleet-wide follow-on (the ceiling in ADR-0616 §Trust) — this records the attestable facts a
 /// signer would later bind; it is NOT itself a signer.
 fn build_frozen_provenance(merge_base: &str, base_tree_sha: &str, producer: Option<&str>) -> Value {
     json!({
@@ -374,7 +374,7 @@ fn build_merge_base_baseline_snapshot(
     let missing = face.is_none();
     json!({
         "schema": "oya-ci/merge-base-baseline/v2",
-        "_comment": "GENERATED out-of-graph by oya-cloud-ci-scm-facts-emitter-app --merge-base-baseline (ADR-0551 selection semantics; ADR-0614 regenerate-from-merge-base-source). The firewall's FROZEN reference: the gate-baseline face REGENERATED by running the accounting producer over the merge-base SOURCE tree (`git merge-base <bootstrap> HEAD`) — NOT read from a committed git blob. The ratchet policy is still read AS COMMITTED AT THAT MERGE-BASE (frozen-policy-wins, FRIC-1781280000 — a same-PR base_ref repoint cannot select this PR's own frozen reference). Untracked + gitignored — it varies with the base branch position and is rematerialized by CI before gates consume it; it is NEVER a merge surface. `provenance` binds the regeneration to the immutable merge-base tree (ADR-0614).",
+        "_comment": "GENERATED out-of-graph by oya-cloud-ci-scm-facts-emitter-app --merge-base-baseline (ADR-0551 selection semantics; ADR-0616 regenerate-from-merge-base-source). The firewall's FROZEN reference: the gate-baseline face REGENERATED by running the accounting producer over the merge-base SOURCE tree (`git merge-base <bootstrap> HEAD`) — NOT read from a committed git blob. The ratchet policy is still read AS COMMITTED AT THAT MERGE-BASE (frozen-policy-wins, FRIC-1781280000 — a same-PR base_ref repoint cannot select this PR's own frozen reference). Untracked + gitignored — it varies with the base branch position and is rematerialized by CI before gates consume it; it is NEVER a merge surface. `provenance` binds the regeneration to the immutable merge-base tree (ADR-0616).",
         "base_ref": frozen_policy.base_ref,
         "merge_base": merge_base,
         "face_path": frozen_policy.face_path,
@@ -787,7 +787,7 @@ fn relabel_tier_dep_gate(
     let _ = (codes, ident_pairs);
 }
 
-/// Resolve the FROZEN reference under frozen-policy-wins (FRIC-1781280000) + ADR-0614
+/// Resolve the FROZEN reference under frozen-policy-wins (FRIC-1781280000) + ADR-0616
 /// regenerate-from-merge-base-source:
 ///
 /// 1. `merge_base` is computed by the CALLER via `git merge-base <bootstrap_ref> HEAD` (the
@@ -800,7 +800,7 @@ fn relabel_tier_dep_gate(
 ///    means the merged policy and the CI invocation no longer name the same comparison root —
 ///    repointing requires changing both, visibly.
 /// 4. The frozen FACE is the `regen_face`: the gate-baseline REGENERATED by running the accounting
-///    producer over the merge-base SOURCE tree (ADR-0614). This REPLACES the retired
+///    producer over the merge-base SOURCE tree (ADR-0616). This REPLACES the retired
 ///    `git show <merge_base>:<face_path>` committed-blob read. When the policy is present at the
 ///    merge-base the regeneration is REQUIRED (fail-closed — no `git show` fallback, so a
 ///    de-committed frozen reference can never empty-frozen-deadlock, the #828 defect). At bootstrap
@@ -810,7 +810,7 @@ fn relabel_tier_dep_gate(
 ///    frozen face's PATH-keyed keys are content-aware relabeled per the committed move-manifest
 ///    (correction-faithful, fail-closed, strict no-op when there are no renames). `relabel` is
 ///    `None` in the attack-recipe unit tests (which pin the frozen-policy-wins resolution alone).
-/// 6. PROVENANCE (ADR-0614): `provenance` (built by the caller from `git rev-parse <merge_base>^{{tree}}`)
+/// 6. PROVENANCE (ADR-0616): `provenance` (built by the caller from `git rev-parse <merge_base>^{{tree}}`)
 ///    is embedded so the firewall can audit which immutable merge-base tree the regeneration ran over.
 fn resolve_merge_base_baseline_snapshot<S, C>(
     source: &S,
@@ -864,7 +864,7 @@ where
         ));
     }
 
-    // ADR-0614: the frozen FACE is the REGENERATION over the merge-base source tree, NOT a
+    // ADR-0616: the frozen FACE is the REGENERATION over the merge-base source tree, NOT a
     // `git show` of a committed blob. When the policy is present at the merge-base (steady state)
     // the regeneration is REQUIRED — its absence is a hard error, never an empty/git-show fallback
     // (that fallback is the #828 empty-frozen deadlock). At bootstrap (policy absent → candidate
@@ -875,7 +875,7 @@ where
             regen_face
                 .ok_or_else(|| {
                     format!(
-                        "ADR-0614: the frozen reference must be REGENERATED from the merge-base \
+                        "ADR-0616: the frozen reference must be REGENERATED from the merge-base \
                          source (policy present at merge-base {merge_base}), but no regeneration \
                          was supplied (--regen-baseline-face). The retired `git show` committed-blob \
                          fallback is intentionally removed so a de-committed frozen reference can \
@@ -984,7 +984,7 @@ fn load_vocab_policy(repo_root: &Path) -> Result<VocabPolicy, String> {
     })
 }
 
-/// Materialize the frozen reference (ADR-0614 regenerate-from-merge-base-source):
+/// Materialize the frozen reference (ADR-0616 regenerate-from-merge-base-source):
 /// bootstrap -> merge-base -> frozen POLICY (read at merge-base, frozen-policy-wins) ->
 /// frozen FACE (the `--regen-baseline-face` regeneration over the merge-base source) ->
 /// provenance-wrapped snapshot. The CANDIDATE policy contributes only the local `out_path`
@@ -1020,7 +1020,7 @@ fn emit_merge_base_baseline(
     }
 
     // publish-mb-only: no regeneration supplied, so there is no frozen face to wrap. The `git show`
-    // committed-blob fallback is retired (ADR-0614), so producing a snapshot without a regeneration
+    // committed-blob fallback is retired (ADR-0616), so producing a snapshot without a regeneration
     // is a hard error unless this is the merge-base-publication leg.
     let Some(regen_baseline_face) = regen_baseline_face else {
         if merge_base_out.is_some() {
@@ -1030,7 +1030,7 @@ fn emit_merge_base_baseline(
             return Ok(());
         }
         return Err(
-            "--merge-base-baseline requires --regen-baseline-face (ADR-0614: the frozen reference \
+            "--merge-base-baseline requires --regen-baseline-face (ADR-0616: the frozen reference \
              is REGENERATED from the merge-base source; the `git show` committed-blob read is \
              retired) — or --merge-base-out for merge-base publication only"
                 .to_owned(),
@@ -1056,7 +1056,7 @@ fn emit_merge_base_baseline(
     // materializer running the accounting producer at the merge-base worktree).
     let regen_face = read_baseline_face(regen_baseline_face)?;
 
-    // DETERMINISM CANARY (ADR-0614): a second independent regeneration over the SAME merge-base
+    // DETERMINISM CANARY (ADR-0616): a second independent regeneration over the SAME merge-base
     // source must project identically. A non-deterministic producer is a hard error — the
     // regenerated frozen reference is the trust root, so it must be reproducible. The canary is
     // MANDATORY in the produce-snapshot path: a single un-verified regeneration must NEVER become
@@ -1064,7 +1064,7 @@ fn emit_merge_base_baseline(
     // than silently skipping the check (security review F3).
     let Some(regen_baseline_verify) = regen_baseline_verify else {
         return Err(
-            "--merge-base-baseline produce-snapshot requires --regen-baseline-verify (ADR-0614: \
+            "--merge-base-baseline produce-snapshot requires --regen-baseline-verify (ADR-0616: \
              the regenerated frozen reference is the trust root and MUST pass the determinism \
              canary — a single un-verified regeneration cannot become the frozen snapshot)"
                 .to_owned(),
@@ -1073,7 +1073,7 @@ fn emit_merge_base_baseline(
     let regen_face_verify = read_baseline_face(regen_baseline_verify)?;
     assert_frozen_regeneration_deterministic(&regen_face, &regen_face_verify, &merge_base)?;
 
-    // PROVENANCE (ADR-0614): bind the regeneration to the immutable merge-base tree so the firewall
+    // PROVENANCE (ADR-0616): bind the regeneration to the immutable merge-base tree so the firewall
     // can audit which source the frozen reference was computed over, WITHOUT committing the face.
     let base_tree_sha = git_rev_parse_tree(repo_root, &merge_base)?;
     let provenance = build_frozen_provenance(&merge_base, &base_tree_sha, provenance_producer);
@@ -1121,10 +1121,10 @@ fn read_baseline_face(path: &Path) -> Result<Value, String> {
 }
 
 // ---------------------------------------------------------------------------
-// Frozen-baseline regeneration determinism canary (ADR-0614)
+// Frozen-baseline regeneration determinism canary (ADR-0616)
 // ---------------------------------------------------------------------------
 //
-// ADR-0614 replaces the committed-blob read of the frozen reference (`git show <merge_base>:<face>`)
+// ADR-0616 replaces the committed-blob read of the frozen reference (`git show <merge_base>:<face>`)
 // with a REGENERATION of it by running the accounting producer over the merge-base SOURCE tree.
 // With no committed baseline to byte-compare against, the trust mechanism is DETERMINISM (the
 // hyperscaler model — Bazel/Tricorder recompute-don't-commit + attest): the frozen reference is
@@ -1132,7 +1132,7 @@ fn read_baseline_face(path: &Path) -> Result<Value, String> {
 // merge-base source and this canary asserts the two agree on the ratchet projection; a
 // non-deterministic producer is a hard error, never a silent green.
 
-/// DETERMINISM CANARY (ADR-0614): two regenerations of the frozen baseline over the SAME merge-base
+/// DETERMINISM CANARY (ADR-0616): two regenerations of the frozen baseline over the SAME merge-base
 /// source tree must project IDENTICALLY on the full ratchet projection `{keys, mode, frozen_empty}`
 /// per `(gate, code)`. A non-deterministic producer makes the regenerated frozen reference
 /// untrustworthy, so it is a HARD ERROR (fail-closed, never a fallback).
@@ -1160,7 +1160,7 @@ fn assert_frozen_regeneration_deterministic(
         return Ok(());
     }
     Err(format!(
-        "ADR-0614 frozen-baseline DETERMINISM canary FAILED at merge-base {merge_base}: two \
+        "ADR-0616 frozen-baseline DETERMINISM canary FAILED at merge-base {merge_base}: two \
          regenerations of the frozen baseline from the SAME merge-base source tree diverge on the \
          ratchet projection {{keys, mode, frozen_empty}} per (gate, code) — the accounting \
          producer is non-deterministic, so the regenerated frozen reference cannot be trusted. \
@@ -1169,7 +1169,7 @@ fn assert_frozen_regeneration_deterministic(
     ))
 }
 
-/// The PURE projection diff (ADR-0614): every `(gate, code)` whose `{mode, frozen_empty, keys}`
+/// The PURE projection diff (ADR-0616): every `(gate, code)` whose `{mode, frozen_empty, keys}`
 /// differs between two baselines, or that is present on only one side. `remediation` and every
 /// `_provenance` field are DELIBERATELY excluded — only the three fields the firewall's two
 /// predicates read can launder debt, so only those are compared. Returns an empty vec iff the two
@@ -1265,7 +1265,7 @@ fn git_merge_base(repo_root: &Path, base_ref: &str) -> Result<String, String> {
     Ok(sha)
 }
 
-/// `git rev-parse <revision>^{{tree}}` — the tree object id of `revision` (ADR-0614 provenance
+/// `git rev-parse <revision>^{{tree}}` — the tree object id of `revision` (ADR-0616 provenance
 /// `base_tree_sha`: the immutable content the frozen-baseline regeneration ran over). Fail-closed:
 /// an unresolvable revision or a non-tree-id output is a hard error, so the provenance can never
 /// record a garbage or empty tree binding.
@@ -1593,7 +1593,7 @@ mod tests {
     /// Resolve the frozen snapshot the way the emitter does in the merge-base path: compute the
     /// merge-base from the out-of-band bootstrap via the source, then wrap the regenerated frozen
     /// face with provenance. The attack-recipe tests pass the honest merge-base face AS the
-    /// regeneration (ADR-0614: the frozen reference is regenerated from the merge-base source, so
+    /// regeneration (ADR-0616: the frozen reference is regenerated from the merge-base source, so
     /// the base face the producer would emit over the merge-base tree is exactly this input).
     fn resolve_from_merge_base_regen<S, C>(
         source: &S,
@@ -1786,7 +1786,7 @@ mod tests {
         assert_eq!(snapshot["frozen_policy_source"], "merge-base");
         assert_eq!(snapshot["missing_at_merge_base"], false);
         assert_eq!(snapshot["baseline"], face);
-        // ADR-0614 provenance: the snapshot binds the regeneration to the merge-base tree, so the
+        // ADR-0616 provenance: the snapshot binds the regeneration to the merge-base tree, so the
         // firewall can audit which source it was computed over.
         assert_eq!(snapshot["provenance"]["base_tree_sha"], FAKE_BASE_TREE_SHA);
         assert_eq!(snapshot["provenance"]["merge_base"], merge_base);
@@ -1881,7 +1881,7 @@ mod tests {
             "the attack edit is in the candidate tree"
         );
 
-        // ADR-0614: the frozen FACE is the regeneration over the merge-base source tree — for the
+        // ADR-0616: the frozen FACE is the regeneration over the merge-base source tree — for the
         // honest merge-base that is `base_face` (the producer's census of the merge-base tree).
         let snapshot = resolve_from_merge_base_regen(
             &RepointAttackRepo,
@@ -2010,7 +2010,7 @@ mod tests {
             }
         }
         let candidate = parse_ratchet_policy(POLICY_TEXT).unwrap();
-        // ADR-0614: even though the materializer supplies a regeneration, at bootstrap (policy
+        // ADR-0616: even though the materializer supplies a regeneration, at bootstrap (policy
         // absent at the merge-base) the frozen reference is DECLARED empty and the regeneration is
         // IGNORED — preserving the fail-closed "absent-at-merge-base = empty reference" invariant.
         let snapshot = resolve_from_merge_base_regen(
@@ -3121,7 +3121,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // Frozen-baseline projection diff + determinism canary (ADR-0614). These pin the SECURITY CORE
+    // Frozen-baseline projection diff + determinism canary (ADR-0616). These pin the SECURITY CORE
     // of the regenerate-from-merge-base-source trust model: the pure projection diff catches a mode
     // downgrade / key collapse (a keyset-only check would miss the mode downgrade) while tolerating
     // benign provenance byte-noise, and the determinism canary hard-fails a non-deterministic
@@ -3217,13 +3217,13 @@ mod tests {
             "unjustified": {"mode": "advisory-until-infra", "keys": ["a.rs", "b.rs"]}
         }}});
         let err = assert_frozen_regeneration_deterministic(&first, &second, MB).unwrap_err();
-        assert!(err.contains("ADR-0614"), "{err}");
+        assert!(err.contains("ADR-0616"), "{err}");
         assert!(err.contains("DETERMINISM canary"), "{err}");
         assert!(err.contains("fail-closed"), "{err}");
         assert!(err.contains("mode"), "{err}");
     }
 
-    /// ADR-0614: with the policy present at the merge-base (steady state) the frozen reference MUST
+    /// ADR-0616: with the policy present at the merge-base (steady state) the frozen reference MUST
     /// be regenerated — the retired `git show` committed-blob fallback is gone, so a missing
     /// regeneration is a hard error (never an empty frozen reference, the #828 deadlock).
     #[test]
@@ -3238,7 +3238,7 @@ mod tests {
             no_relabel(),
         )
         .unwrap_err();
-        assert!(err.contains("ADR-0614"), "{err}");
+        assert!(err.contains("ADR-0616"), "{err}");
         assert!(err.contains("REGENERATED"), "{err}");
         assert!(err.contains("fail-closed"), "{err}");
     }

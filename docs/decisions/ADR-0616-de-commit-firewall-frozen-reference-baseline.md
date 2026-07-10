@@ -1,5 +1,5 @@
 ---
-id: ADR-0614
+id: ADR-0616
 title: "De-commit the firewall frozen-reference baseline — regenerate it from merge-base SOURCE (reverses ADR-0596)"
 status: Proposed
 planning_impact: false
@@ -17,7 +17,7 @@ related_specs:
 milestone: W0
 ---
 
-# ADR-0614: De-commit the firewall frozen-reference baseline
+# ADR-0616: De-commit the firewall frozen-reference baseline
 
 ## Status
 

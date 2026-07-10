@@ -153,8 +153,8 @@ fn live_generated_artifacts_are_declared_in_the_control_plane() {
 }
 
 #[test]
-fn live_firewall_frozen_reference_is_regenerate_from_source_adr_0614() {
-    // ADR-0614 (supersedes ADR-0596): the firewall frozen reference is REGENERATED from the
+fn live_firewall_frozen_reference_is_regenerate_from_source_adr_0616() {
+    // ADR-0616 (supersedes ADR-0596): the firewall frozen reference is REGENERATED from the
     // merge-base source, so the live ratchet policy declares
     // `frozen_reference.source: regenerate-from-merge-base-source`. That EXCLUDES it from the
     // committed-git-blob frozen-reference set (there is no committed blob to empty, so #828 stays
@@ -175,7 +175,7 @@ fn live_firewall_frozen_reference_is_regenerate_from_source_adr_0614() {
     assert_eq!(
         ratchet_policy["frozen_reference"]["source"].as_str(),
         Some(FROZEN_REFERENCE_SOURCE_REGENERATE),
-        "ADR-0614: the live ratchet policy must declare regenerate-from-merge-base-source"
+        "ADR-0616: the live ratchet policy must declare regenerate-from-merge-base-source"
     );
 
     // The committed-git-blob frozen-reference set is therefore EMPTY (the only frozen reference has
@@ -183,7 +183,7 @@ fn live_firewall_frozen_reference_is_regenerate_from_source_adr_0614() {
     let committed_blob_frozen_refs = live_frozen_reference_paths();
     assert!(
         committed_blob_frozen_refs.is_empty(),
-        "ADR-0614: a regenerate-from-source frozen reference must be excluded from the \
+        "ADR-0616: a regenerate-from-source frozen reference must be excluded from the \
          committed-git-blob set; got {committed_blob_frozen_refs:?}"
     );
 
