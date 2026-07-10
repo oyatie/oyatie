@@ -49,6 +49,15 @@
     "bootstrap_addons": "CAPI ClusterResourceSet installs Cilium + Argo CD per cluster (infra/capi/crs)",
     "app_delivery": "per-cell Argo CD, Helm-first app-of-apps (infra/gitops)"
   },
+  "talos_001_substrate_slice": {
+    "task_id": "t_d56e3446",
+    "slice_id": "TALOS-001",
+    "status": "specified_not_implemented",
+    "lane": "infra/kubernetes-substrate",
+    "blast_radius": "substrate smoke/contract only",
+    "spec_ref": "specs/talos-001-substrate-slice.json",
+    "note": "Full TALOS-001 matrix, authority, claim_boundary, and path_conflict_policy content lives in the dedicated spec_ref file, enforced by the //ci/facade/contract-slice-conformance gate slice talos-001-substrate-slice."
+  },
   "operator_entrypoints": {
     "makefile": {
       "path": "Makefile",
@@ -157,10 +166,16 @@
     {
       "id": "DEP-OPS-AC-005",
       "rule": "the deployment durable goal no longer routes incidents to page-on-call"
+    },
+    {
+      "id": "DEP-OPS-AC-007",
+      "rule": "TALOS-001 is represented as a non-mutating substrate slice matrix covering local vfkit/Talos smoke, Cloudflare Access tunnel posture, CAPI/Argo CD/Kamaji integration, managed-Kubernetes product surface, and Sidero zero-day design-only boundaries"
     }
   ],
   "verification_commands": [
-    "cargo run -p oya-dev-cli -- gate validate deployment-ops-contract",
+    "python3 -m json.tool specs/deployment-ops-contract.json >/dev/null",
+    "buck2 test //ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
+    "cargo run -p marketplace-dev-cli -- gate validate deployment-ops-contract",
     "make help",
     "make fleet",
     "make verify-deploy-contract",
