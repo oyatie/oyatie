@@ -765,3 +765,109 @@ fn hardening_non_array_primitive_container_fails_closed() {
         );
     }
 }
+
+/// Proves the converted TALOS-001 slice enforces (retires
+/// scripts/tests/talos_001_substrate_slice_check.py): elevating the Proposed
+/// ADR-0382 boundary to Accepted and dropping a required-surface source ADR
+/// both RED.
+#[test]
+fn talos_001_substrate_slice_is_enforced() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let spec = "specs/talos-001-substrate-slice.json";
+    assert!(
+        policy["slices"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|s| s["spec_path"] == spec),
+        "TALOS-001 slice must be declared in the policy"
+    );
+
+    // ADR-0382 elevated from Proposed to Accepted must violate the enum boundary.
+    let mut corpus = live_corpus(&root, &policy);
+    corpus.get_mut(spec).unwrap()["authority"]["ADR-0382"]["status"] = json!("Accepted");
+    let report = evaluate_configured(&policy, &corpus);
+    assert!(
+        report
+            .findings
+            .iter()
+            .any(|finding| finding.code == "contract_slice_enum_violation"
+                && finding.key == "talos-001-substrate-slice:authority.ADR-0382.status"),
+        "elevating ADR-0382 out of Proposed must be rejected: {:?}",
+        report.findings
+    );
+
+    // Dropping ADR-0378 from the local vfkit/Talos smoke surface's source_adrs
+    // must violate the per-member conditional must_contain assertion.
+    let mut corpus = live_corpus(&root, &policy);
+    let matrix = corpus.get_mut(spec).unwrap()["matrix"].as_array_mut().unwrap();
+    let row = matrix
+        .iter_mut()
+        .find(|row| row["id"] == "local_vfkit_talos_smoke")
+        .unwrap();
+    row["source_adrs"] = json!(["ADR-0370"]);
+    let report = evaluate_configured(&policy, &corpus);
+    assert!(
+        report.findings.iter().any(|finding| {
+            finding.code == "contract_slice_conditional_field_missing_contains"
+                && finding.key
+                    == "talos-001-substrate-slice:matrix:local_vfkit_talos_smoke:source_adrs:ADR-0378"
+        }),
+        "dropping ADR-0378 from local_vfkit_talos_smoke.source_adrs must be rejected: {:?}",
+        report.findings
+    );
+
+    // Dropping a declared source_paths member (not just source_adrs) must also violate
+    // the per-member must_contain assertion — every path TALOS-001 claims to validate stays
+    // pinned, so silently narrowing the matrix's source-path boundary is caught.
+    let mut corpus = live_corpus(&root, &policy);
+    let matrix = corpus.get_mut(spec).unwrap()["matrix"].as_array_mut().unwrap();
+    let row = matrix
+        .iter_mut()
+        .find(|row| row["id"] == "local_vfkit_talos_smoke")
+        .unwrap();
+    row["source_paths"] = json!(["infra/talos/local/talos-local.sh"]);
+    let report = evaluate_configured(&policy, &corpus);
+    assert!(
+        report.findings.iter().any(|finding| {
+            finding.code == "contract_slice_conditional_field_missing_contains"
+                && finding.key
+                    == "talos-001-substrate-slice:matrix:local_vfkit_talos_smoke:source_paths:infra/talos/smoke-kata.sh"
+        }),
+        "dropping infra/talos/smoke-kata.sh from local_vfkit_talos_smoke.source_paths must be \
+         rejected: {:?}",
+        report.findings
+    );
+
+    // Removing a whole matrix member (Sidero) must violate the exact-set membership check.
+    let mut corpus = live_corpus(&root, &policy);
+    corpus.get_mut(spec).unwrap()["matrix"]
+        .as_array_mut()
+        .unwrap()
+        .retain(|row| row["id"] != "sidero_zero_day_matrix");
+    let report = evaluate_configured(&policy, &corpus);
+    assert!(
+        report.findings.iter().any(|finding| {
+            finding.code == "contract_slice_missing_object_array_member"
+                && finding.key == "talos-001-substrate-slice:matrix:sidero_zero_day_matrix"
+        }),
+        "dropping the sidero_zero_day_matrix member must be rejected: {:?}",
+        report.findings
+    );
+
+    // A duplicate matrix id (same id twice) must violate cardinality uniqueness.
+    let mut corpus = live_corpus(&root, &policy);
+    let matrix = corpus.get_mut(spec).unwrap()["matrix"].as_array_mut().unwrap();
+    let dup = matrix[0].clone();
+    matrix.push(dup);
+    let report = evaluate_configured(&policy, &corpus);
+    assert!(
+        report.findings.iter().any(|finding| {
+            finding.code == "contract_slice_array_not_unique"
+                && finding.key == "talos-001-substrate-slice:matrix:id:local_vfkit_talos_smoke"
+        }),
+        "a duplicate matrix id must be rejected: {:?}",
+        report.findings
+    );
+}
