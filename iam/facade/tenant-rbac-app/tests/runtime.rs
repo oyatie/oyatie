@@ -1,10 +1,8 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::collections::BTreeMap;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
-use oya_http_middleware_kernel::HttpRequest;
-use oya_http_router_kernel::HttpMethod;
 use iam_tenant_rbac_api::{
     CloseBoundaryStateDto, CrossServiceWorkflowPlanRequest, DataClassDto, DeterministicGateDto,
     DeterministicGateEvidenceRequest, GateClosureAuthorityDto, GroupCloseRollupRequest,
@@ -15,13 +13,21 @@ use iam_tenant_rbac_api::{
     TenantRbacWriteKindDto, WorkflowRoutingOwnerDto,
 };
 use iam_tenant_rbac_app::{
-    ConfiguredBearerPrincipalVerifier, TenantRbacAuthzProvider, TenantRbacMutationAction,
-    TenantRbacMutationAuthorizationError, TenantRbacMutationAuthorizer,
-    TenantRbacMutationResource, VerifiedPrincipal, TENANT_RBAC_CROSS_SERVICE_WORKFLOW_PLANS_PATH,
-    TENANT_RBAC_GROUP_CLOSE_ROLLUPS_PATH, TENANT_RBAC_HEALTH_PATH,
-    TENANT_RBAC_INCIDENT_ROLLBACK_PLANS_PATH, TENANT_RBAC_OPS_COMMANDS_PATH,
-    TENANT_RBAC_POLICY_ADMISSIONS_PATH,
-    dispatch_tenant_rbac_request, tenant_rbac_runtime_routes, tenant_rbac_server_config,
+    CallerCredential, ConfiguredBearerPrincipalVerifier, DecisionAuthorizer,
+    TENANT_RBAC_CROSS_SERVICE_WORKFLOW_PLANS_PATH, TENANT_RBAC_GROUP_CLOSE_ROLLUPS_PATH,
+    TENANT_RBAC_HEALTH_PATH, TENANT_RBAC_INCIDENT_ROLLBACK_PLANS_PATH,
+    TENANT_RBAC_OPS_COMMANDS_PATH, TENANT_RBAC_POLICY_ADMISSIONS_PATH, TenantRbacAuthzProvider,
+    TenantRbacMutationAction, TenantRbacMutationAuthorizationError, TenantRbacMutationAuthorizer,
+    TenantRbacMutationResource, PrincipalVerifier, VerifiedPrincipal, dispatch_tenant_rbac_request,
+    tenant_rbac_runtime_routes, tenant_rbac_server_config,
+};
+use oya_http_middleware_kernel::HttpRequest;
+use oya_http_router_kernel::HttpMethod;
+use oya_shared_pdp_kernel::{
+    DecisionAuditRecord, EntitySlice, PdpError, PdpOutcome, PolicyDecisionPoint,
+};
+use oya_shared_platform_contracts_kernel::pdp::{
+    AuthorizationRequest, AuthorizationResponse, Decision, PolicyVersion,
 };
 
 const BEARER_SECRET: &str = "tenant-rbac-break-glass";
@@ -64,6 +70,98 @@ impl TenantRbacMutationAuthorizer for AssertPolicyFacts {
         Ok(())
     }
 }
+
+#[derive(Debug)]
+struct RecordingPdp {
+    mode: RecordingPdpMode,
+    requests: Mutex<Vec<(AuthorizationRequest, EntitySlice)>>,
+}
+
+#[derive(Clone, Copy, Debug)]
+enum RecordingPdpMode {
+    Decision(Decision),
+    Error,
+}
+
+impl RecordingPdp {
+    fn allow() -> Self {
+        Self {
+            mode: RecordingPdpMode::Decision(Decision::Allow),
+            requests: Mutex::new(Vec::new()),
+        }
+    }
+
+    fn deny() -> Self {
+        Self {
+            mode: RecordingPdpMode::Decision(Decision::Deny),
+            requests: Mutex::new(Vec::new()),
+        }
+    }
+
+    fn error() -> Self {
+        Self {
+            mode: RecordingPdpMode::Error,
+            requests: Mutex::new(Vec::new()),
+        }
+    }
+
+    fn captured(&self) -> Vec<(AuthorizationRequest, EntitySlice)> {
+        self.requests.lock().unwrap().clone()
+    }
+}
+
+impl PolicyDecisionPoint for RecordingPdp {
+    fn authorize(
+        &self,
+        request: &AuthorizationRequest,
+        entities: &EntitySlice,
+    ) -> Result<PdpOutcome, PdpError> {
+        self.requests
+            .lock()
+            .unwrap()
+            .push((request.clone(), entities.clone()));
+        match self.mode {
+            RecordingPdpMode::Error => Err(PdpError::UnknownAction {
+                action: request.action.clone(),
+            }),
+            RecordingPdpMode::Decision(decision) => {
+                let policy_version = self.loaded_policy_version();
+                let determining_policy_ids = match decision {
+                    Decision::Allow => vec!["tenant-rbac-route-permit".to_owned()],
+                    Decision::Deny => Vec::new(),
+                };
+                Ok(PdpOutcome {
+                    response: AuthorizationResponse {
+                        decision_id: "dec-tenant-rbac-app-001".to_owned(),
+                        request_id: request.request_id.clone(),
+                        decision,
+                        policy_version: policy_version.clone(),
+                        determining_policy_ids: determining_policy_ids.clone(),
+                        obligations: Vec::new(),
+                    },
+                    audit: DecisionAuditRecord {
+                        decision_id: "dec-tenant-rbac-app-001".to_owned(),
+                        request_id: request.request_id.clone(),
+                        tenant_id: request.tenant_id.clone(),
+                        principal: request.principal.clone(),
+                        action: request.action.clone(),
+                        resource: request.resource.clone(),
+                        decision,
+                        policy_version,
+                        determining_policy_ids,
+                        cache_hit: false,
+                    },
+                    cache_hit: false,
+                })
+            }
+        }
+    }
+
+    fn loaded_policy_version(&self) -> PolicyVersion {
+        PolicyVersion::new("psv-tenant-rbac-app-001").unwrap()
+    }
+}
+
 fn test_provider() -> TenantRbacAuthzProvider {
     test_provider_with_authorizer(AllowAll)
 }
@@ -78,9 +176,99 @@ fn test_provider_with_authorizer(
 }
 
 #[test]
+fn tenant_rbac_runtime_authorizes_mutation_through_shared_pdp_decision_authorizer() {
+    let pdp = Arc::new(RecordingPdp::allow());
+    let response = dispatch_tenant_rbac_request(
+        mock_json_request(
+            HttpMethod::Post,
+            TENANT_RBAC_POLICY_ADMISSIONS_PATH,
+            &service_write_request(),
+        ),
+        test_provider_with_authorizer(DecisionAuthorizer::new(pdp.clone())),
+    );
+
+    assert_eq!(response.status, 202);
+    let captured = pdp.captured();
+    assert_eq!(captured.len(), 1);
+    let (authz_request, entities) = &captured[0];
+    assert_eq!(authz_request.tenant_id, BOUND_TENANT);
+    assert_eq!(
+        authz_request.action,
+        TenantRbacMutationAction::PolicyAdmission.surface()
+    );
+    assert_eq!(authz_request.principal.entity_id, "sp_tenant_rbac");
+    assert_eq!(
+        authz_request.resource.entity_type,
+        "OyaPlatform::TenantRbacMutation"
+    );
+    assert_eq!(
+        authz_request.context["route_template"],
+        TENANT_RBAC_POLICY_ADMISSIONS_PATH
+    );
+    assert!(
+        entities
+            .entities
+            .iter()
+            .any(|entity| entity.uid.entity_id == "sp_tenant_rbac")
+    );
+}
+
+#[test]
+fn tenant_rbac_runtime_decision_authorizer_fails_closed_on_pdp_deny_and_error() {
+    let denied = dispatch_tenant_rbac_request(
+        mock_json_request(
+            HttpMethod::Post,
+            TENANT_RBAC_POLICY_ADMISSIONS_PATH,
+            &service_write_request(),
+        ),
+        test_provider_with_authorizer(DecisionAuthorizer::new(Arc::new(RecordingPdp::deny()))),
+    );
+    assert_eq!(denied.status, 403);
+
+    let errored = dispatch_tenant_rbac_request(
+        mock_json_request(
+            HttpMethod::Post,
+            TENANT_RBAC_POLICY_ADMISSIONS_PATH,
+            &service_write_request(),
+        ),
+        test_provider_with_authorizer(DecisionAuthorizer::new(Arc::new(RecordingPdp::error()))),
+    );
+    assert_eq!(errored.status, 403);
+}
+
+#[test]
+fn decision_authorizer_refuses_tenant_mismatch_before_pdp() {
+    let verifier =
+        ConfiguredBearerPrincipalVerifier::new(BEARER_SECRET, "sp_tenant_rbac", BOUND_TENANT)
+            .expect("verifier construction failed");
+    let principal = verifier
+        .verify_principal(&CallerCredential {
+            authorization: Some(format!("Bearer {BEARER_SECRET}")),
+        })
+        .expect("principal verifies");
+    let pdp = Arc::new(RecordingPdp::allow());
+    let authorizer = DecisionAuthorizer::new(pdp.clone());
+    let resource = TenantRbacMutationResource {
+        tenant_id: "ten_other".to_owned(),
+        action: TenantRbacMutationAction::PolicyAdmission,
+        route_template: TENANT_RBAC_POLICY_ADMISSIONS_PATH.to_owned(),
+    };
+
+    assert_eq!(
+        authorizer.ensure_authorized(&principal, &resource),
+        Err(TenantRbacMutationAuthorizationError::Refused)
+    );
+    assert!(pdp.captured().is_empty());
+}
+
+#[test]
 fn tenant_rbac_runtime_dispatches_policy_group_workflow_incident_and_ops() {
     let policy = dispatch_tenant_rbac_request(
-        mock_json_request(HttpMethod::Post, TENANT_RBAC_POLICY_ADMISSIONS_PATH, &service_write_request()),
+        mock_json_request(
+            HttpMethod::Post,
+            TENANT_RBAC_POLICY_ADMISSIONS_PATH,
+            &service_write_request(),
+        ),
         test_provider(),
     );
     let policy_body: serde_json::Value = serde_json::from_slice(&policy.body).expect("policy json");
@@ -93,7 +281,11 @@ fn tenant_rbac_runtime_dispatches_policy_group_workflow_incident_and_ops() {
     assert_eq!(policy_body["service"], "tenant-rbac");
 
     let group = dispatch_tenant_rbac_request(
-        mock_json_request(HttpMethod::Post, TENANT_RBAC_GROUP_CLOSE_ROLLUPS_PATH, &group_rollup_request()),
+        mock_json_request(
+            HttpMethod::Post,
+            TENANT_RBAC_GROUP_CLOSE_ROLLUPS_PATH,
+            &group_rollup_request(),
+        ),
         test_provider(),
     );
     let group_body: serde_json::Value = serde_json::from_slice(&group.body).expect("group json");
@@ -137,7 +329,11 @@ fn tenant_rbac_runtime_dispatches_policy_group_workflow_incident_and_ops() {
     assert_eq!(incident_body["topic"], "incident.tenant-rbac.rollback.plan");
 
     let ops = dispatch_tenant_rbac_request(
-        mock_json_request(HttpMethod::Post, TENANT_RBAC_OPS_COMMANDS_PATH, &ops_request()),
+        mock_json_request(
+            HttpMethod::Post,
+            TENANT_RBAC_OPS_COMMANDS_PATH,
+            &ops_request(),
+        ),
         test_provider(),
     );
     let ops_body: serde_json::Value = serde_json::from_slice(&ops.body).expect("ops json");
@@ -149,7 +345,10 @@ fn tenant_rbac_runtime_dispatches_policy_group_workflow_incident_and_ops() {
 fn tenant_rbac_runtime_rejects_invalid_json_and_gate_bypass_errors() {
     // Invalid JSON: bearer present so authz passes, handler returns 400.
     let mut headers = BTreeMap::new();
-    headers.insert("authorization".to_owned(), format!("Bearer {BEARER_SECRET}"));
+    headers.insert(
+        "authorization".to_owned(),
+        format!("Bearer {BEARER_SECRET}"),
+    );
     let invalid_json = HttpRequest {
         method: HttpMethod::Post,
         path: TENANT_RBAC_POLICY_ADMISSIONS_PATH.to_owned(),
@@ -312,7 +511,10 @@ fn mock_json_request<T: serde::Serialize>(
     // but the header is harmless on non-mutation routes.
     let mut headers = BTreeMap::from([
         ("content-type".to_owned(), "application/json".to_owned()),
-        ("authorization".to_owned(), format!("Bearer {BEARER_SECRET}")),
+        (
+            "authorization".to_owned(),
+            format!("Bearer {BEARER_SECRET}"),
+        ),
     ]);
     // For GET requests (health) the authorization header is not required by
     // the middleware, but including it is benign.
