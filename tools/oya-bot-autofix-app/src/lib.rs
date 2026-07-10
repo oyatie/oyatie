@@ -318,10 +318,22 @@ fn validate_reviewable_repo_path(path: &str) -> Result<(), AutofixError> {
             reason: "path is empty",
         });
     }
-    if path
-        .chars()
-        .any(|character| matches!(character, '\n' | '\r' | '\0'))
-    {
+    if path.chars().any(|character| {
+        matches!(
+            character,
+            '\n' | '\r' | '\0'
+                // Trojan-Source bidi overrides/embeddings/isolates (CVE-2021-42574 class):
+                // these can reorder how the rendered diff *displays* without changing its
+                // bytes, so a "reviewable" diff must reject them outright.
+                | '\u{202A}'..='\u{202E}'
+                | '\u{2066}'..='\u{2069}'
+                // directional marks
+                | '\u{200E}' | '\u{200F}'
+                // zero-width characters + BOM
+                | '\u{200B}'..='\u{200D}'
+                | '\u{FEFF}'
+        )
+    }) {
         return Err(AutofixError::InvalidPath {
             path: path.to_owned(),
             reason: "path contains a control character",
