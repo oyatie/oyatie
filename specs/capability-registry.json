@@ -199,7 +199,7 @@
         "oya/recordings"
       ],
       "dag_node": "storage",
-      "boundary_note": "FLAGGED for leader: storage (substrate CAS/blob) vs data (ontology/OLTP) is a clean port seam, but the consumer-facing drive/imaging/recordings facades could alternatively be modeled as app/ verticals. Kept under storage/facade pending OWNERS confirmation."
+      "boundary_note": "RESOLVED (ADR-0615, founder 2026-07-10): storage (substrate CAS/blob) vs data (ontology/OLTP) is a clean port seam. The landed storage/facade/{drive,recordings} domain crates (ADR-0562 §10.9) are CONFIRMED storage substrate product faces (single-capability, like the Q5 data facades); a future consumer Drive/Recordings product wiring storage+iam+comms+billing is app/. imaging (0 crates) is app/healthcare (PACS) — its oya/imaging scaffold relocates to app_products in the storage Batch-5 move-plan (retained in this absorb until that atomic move to avoid orphaning). storage/facade also = the S3-analog CAS sold as infra."
     },
     {
       "name": "compute",
@@ -372,11 +372,11 @@
         "oya/ops"
       ],
       "dag_node": "console",
-      "boundary_note": "FLAGGED for leader: the console SHELL is substrate (capability); the per-product surfaces that compile INTO it are app/<product>/ composition members. The boundary between console/core (shell + token broker) and app/ surfaces needs OWNERS confirmation."
+      "boundary_note": "RESOLVED (ADR-0615, founder 2026-07-10): the console SHELL is the substrate capability (core/ports/facade: shell, token broker, design system, nav). Ops-dashboard leaves composing 2+ capabilities (incident-command, cluster-health, finops-portal, on-call-handoff, ...) are app/ops-console/<vertical> composition members; single-capability views stay a capability facade. The shell/surface line is the ADR-0562 §3#5 2+-capability test."
     },
     {
       "name": "compliance",
-      "charter": "Compliance + governance evidence substrate: regulatory packs, data-class registry, DPIA/threat-model evidence, audit-pack generation.",
+      "charter": "Compliance + regulatory-evidence substrate: regulatory packs, data-class registry, DPIA/threat-model evidence, audit-pack generation. Governance-ENGINE surfaces are NOT here (see boundary_note + ADR-0615 §2 Q13).",
       "seed_domains": [
         "audit"
       ],
@@ -386,7 +386,7 @@
         "oya/governance"
       ],
       "dag_node": "compliance",
-      "boundary_note": "FLAGGED for leader: compliance (regulatory evidence) is distinguished from audit (tamper-evident log) by a clean port seam, but they share heavy coupling; a future amendment may collapse them. Kept separate pending OWNERS."
+      "boundary_note": "RESOLVED (ADR-0615, founder 2026-07-10): compliance (regulatory-evidence engine) and audit (always-on tamper-evident log substrate) stay SEPARATE across their clean port seam; compliance consumes audit. A collapse would need its own ADR amendment (ADR-0562 §7). NOTE (ADR-0615 §2 Q13): oya/governance does NOT belong in this absorb — it is 0-crate enforcement/policy residue that decomposes to governance/ (authority) + ci/gateway/cell (SLOs) + iac/ in the compliance/governance Batch-5 move-plan; this absorb entry is retained until that atomic move to avoid orphaning."
     },
     {
       "name": "comms",
@@ -404,7 +404,7 @@
         "oya/emergency"
       ],
       "dag_node": "comms",
-      "boundary_note": "FLAGGED for leader: comms is a sold product family AND a substrate (notifications). The substrate notification engine is core/; messenger/meet/mail tenant surfaces may belong in app/ instead. Needs OWNERS confirmation."
+      "boundary_note": "RESOLVED (ADR-0615, founder 2026-07-10): comms is the multi-channel comms SUBSTRATE (messenger-stream, mail-mailbox, meet-media, notifications, contact-center engines + their sold API facades) — confirmed as-landed. A future end-user collaboration product wiring comms+iam+storage+billing is app/; none exists today. oya/emergency (ED clinical) is app/healthcare, not comms; it relocates from this absorb in the comms Batch-5 move-plan (0 crates, retained until the atomic move)."
     },
     {
       "name": "flags",
@@ -421,11 +421,12 @@
     }
   ],
   "app_products_note": "Deployable SaaS verticals (crm, hr, healthcare/emr/pharmacy/patient-monitoring/imaging, itsm, incident-management, payroll, treasury, payments, supply-chain-planning, production-planning, plant-maintenance, warehouse, real-estate, global-trade, learning-management, performance-management, quality-management, contract-lifecycle-management, financial-planning, marketing-automation, social, community, connect, office/docs/sheets/slides/notes/sites/whiteboard/calendar/forms/design-collaboration, translate, etc.) are app/<product>/ composition members under the placement rule, NOT capabilities. They wire 2+ capabilities for a tenant. The exact app/ roster is enumerated by the migration lanes, not closed here; this registry closes the CAPABILITY axis only.",
+  "flagged_boundaries_resolved_by": "ADR-0615 (founder 2026-07-10) — the substrate/product split (ADR-0562 §3#5/§6: 2+ capabilities -> app/; single-capability sold surface -> facade). Structural absorbs->app_products relocations execute in each capability's Batch-5 move-plan.",
   "flagged_boundaries_for_leader": [
-    "storage vs data facades (drive/imaging/recordings): capability facade or app vertical?",
-    "console shell vs app/<product> surfaces that compile into it: where is the shell/surface line?",
-    "compliance vs audit: clean port seam exists, heavy coupling; collapse candidate.",
-    "comms substrate notifications vs comms product surfaces (messenger/meet/mail): substrate or app?",
+    "RESOLVED (ADR-0615): storage vs data facades — drive/recordings CONFIRMED storage/facade (landed storage-drive/recordings-domain crates per ADR-0562 §10.9; a future consumer product composing them is app/); imaging is app/healthcare (PACS, 0 crates); storage/facade is the S3-analog CAS-as-infra. data product surfaces (analytics-app/warehouse-olap/ontology-scorecards) confirmed data/facade.",
+    "RESOLVED (ADR-0615): console shell vs app surfaces — console is the web-shell substrate (core/ports/facade); ops-dashboard leaves composing 2+ capabilities are app/ops-console/<vertical>; single-capability views stay a facade.",
+    "RESOLVED (ADR-0615): compliance vs audit — kept SEPARATE across the clean port seam (audit = always-on log substrate; compliance = evidence engine consuming it); collapse needs its own amendment.",
+    "RESOLVED (ADR-0615): comms substrate vs product — comms is the multi-channel comms SUBSTRATE (confirmed as-landed: messenger/meet/mail substrate engines + sold API facades); a future end-user product wiring 2+ capabilities is app/. oya/emergency is app/healthcare.",
     "intelligence/workflow/iac/tenancy dag_node reconciliation (RESOLVED in Phase-0 when specs/substrate-dependency-dag.json was populated to ADR-0280 §D-1 verbatim): tenancy, intelligence, and workflow-engine ARE present in the §D-1 Tier-1 ten (this flag predated reading §D-1, which already carries them) — their dag_node names are confirmed canonical. The fourth, iac (dag_node 'iac'; ADR-0280 Appendix C names it 'cloud-iac', tier_subtype substrate-iac), is a TIER-2 substrate forward-declared per ADR-0280 Appendix C and lands in DAG v1.1.0, NOT the v1.0.0 Tier-1 file. See the substrate-dependency-dag.json _comment for the full reconciliation."
   ],
   "membership_lint_coverage": {
