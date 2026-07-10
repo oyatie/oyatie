@@ -94,6 +94,14 @@
       "prefix": "flags/OWNERS"
     },
     {
+      "anchor": "ADR-0159 RELEASE-001 amendment: narrow ownership marker for the retained non-crate feature-flags release declaration surface; owns only oya/feature-flags/release/ and does not broaden runtime or Oya CD readiness claims.",
+      "prefix": "oya/feature-flags/release/OWNERS"
+    },
+    {
+      "anchor": "ADR-0159 RELEASE-001 amendment + ADR-0139 SLO-gated promotion + ADR-0176 brownout signal: data-only runtime-safety declaration for feature-flags progressive-delivery, burn-rate rollback, brownout hold, and release-toggle cleanup guardrails; no live rollout, measured SLO, tenant traffic, runtime engine, or Oya CD parity claim.",
+      "prefix": "oya/feature-flags/release/runtime-safety-policy.json"
+    },
+    {
       "anchor": "ADR-0562 §10.13 ownership seed: the marketplace capability tree's OWNERS marker (axis-cloud-platform), homed by the ninth strangler move (cloud/cloud-marketplace/crates + oya/marketplace/crates + oya/developer-sdk/crates → marketplace/{core,facade}/); the committed move-plan at specs/reorg/marketplace-move-plan.json is reached by the existing specs/reorg/ ADR-0563 prefix",
       "prefix": "marketplace/OWNERS"
     },

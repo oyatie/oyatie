@@ -18,6 +18,8 @@ related_specs:
 
 Accepted (2026-05-18). Promotes a dedicated `feature-flags` µservice as the canonical *runtime* feature-flag substrate. Distinct from the ChangeSet `acceptance_status` (ADR-0110), which gates code-deploy. Distinct from progressive delivery (ADR-0160 / ADR-0114), which gates traffic shape during a deploy.
 
+**Amended — 2026-07-09 (RELEASE-001 runtime-safety declaration):** the retained non-crate `feature-flags` release surface may carry a data-only RELEASE-001 runtime-safety declaration at `oya/feature-flags/release/runtime-safety-policy.json`, owned narrowly by `oya/feature-flags/release/OWNERS`. The declaration documents alignment between this ADR's feature-flag lifecycle cleanup discipline and ADR-0139 SLO-gated promotion and ADR-0176 brownout degradation signaling, without claiming live rollout execution, tenant traffic, measured SLOs, runtime observability-engine readiness, or Oya CD parity/cutover.
+
 ## Context
 
 Oyatie has three conflated concepts today:
