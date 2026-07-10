@@ -1,7 +1,47 @@
+use std::io::Write;
+use std::process::{Command, Stdio};
+
 use oya_bot_autofix_app::{
     Action, AutofixError, BotPolicy, DeliveryMode, DryRunInput, render_dry_run,
 };
 use oya_ci_gate_contract::{ByteRange, Edit, NewFile, Remediation};
+
+/// Proves a rendered diff is a real, applicable patch — not just a diff that
+/// "looks right" by substring — by running it through a real `git apply
+/// --check` against a scratch repo where none of the referenced paths exist
+/// yet (matching a brand-new-file review).
+fn git_apply_check(diff: &str, tag: &str) -> std::process::Output {
+    let root = std::env::temp_dir().join(format!(
+        "oya-bot-autofix-git-apply-{tag}-{}",
+        std::process::id()
+    ));
+    let _ = std::fs::remove_dir_all(&root);
+    std::fs::create_dir_all(&root).expect("create scratch git repo dir");
+    assert!(
+        Command::new("git")
+            .args(["init", "-q"])
+            .current_dir(&root)
+            .status()
+            .expect("run git init")
+            .success()
+    );
+
+    let mut apply = Command::new("git")
+        .args(["apply", "--check", "-"])
+        .current_dir(&root)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn git apply --check");
+    apply
+        .stdin
+        .take()
+        .expect("git apply stdin")
+        .write_all(diff.as_bytes())
+        .expect("write diff to git apply stdin");
+    apply.wait_with_output().expect("run git apply --check")
+}
 
 #[test]
 fn dry_run_renders_diff_without_writes() {
@@ -253,7 +293,7 @@ fn dry_run_rejects_no_remediation() {
 }
 
 #[test]
-fn dry_run_renders_new_file_diff_with_hunk() {
+fn dry_run_new_file_diff_is_git_apply_clean_when_non_empty() {
     let remediation =
         Remediation::AutoGenerate(NewFile::new("libs/example/NEW_FILE.md", "hello\n"));
 
@@ -268,12 +308,20 @@ fn dry_run_renders_new_file_diff_with_hunk() {
             .diff
             .contains("diff --git a/libs/example/NEW_FILE.md b/libs/example/NEW_FILE.md")
     );
+    assert!(report.diff.contains("new file mode 100644"));
     assert!(report.diff.contains("@@ -0,0 +1,1 @@"));
     assert!(report.diff.contains("+hello"));
+
+    let output = git_apply_check(&report.diff, "non-empty");
+    assert!(
+        output.status.success(),
+        "git apply --check rejected the non-empty new-file diff:\n{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
 }
 
 #[test]
-fn dry_run_renders_valid_header_for_empty_new_file_body() {
+fn dry_run_new_file_diff_is_git_apply_clean_when_empty() {
     let remediation = Remediation::AutoGenerate(NewFile::new("x/.gitkeep", ""));
 
     let report = render_dry_run(DryRunInput {
@@ -282,12 +330,17 @@ fn dry_run_renders_valid_header_for_empty_new_file_body() {
     })
     .expect("dry-run should render a diff for an empty new file");
 
-    // An empty new file has no lines to hunk over, so a valid diff omits the
-    // `@@` header entirely instead of emitting a malformed `start=1, count=0`
-    // hunk (verified: `git apply` rejects both `@@ -0,0 +1,0 @@` and
-    // `@@ -0,0 +0,0 @@`; it only accepts no hunk at all, matching what
-    // `git diff` itself renders for a newly added empty file).
-    assert!(!report.diff.contains("@@"));
+    // An empty new file has no lines to hunk over, so `---`/`+++`/`@@` are
+    // omitted entirely, matching what `git diff` itself renders for a newly
+    // added empty file — its section is just `diff --git` + `new file mode`.
     assert!(report.diff.contains("diff --git a/x/.gitkeep b/x/.gitkeep"));
-    assert!(report.diff.contains("+++ b/x/.gitkeep"));
+    assert!(report.diff.contains("new file mode 100644"));
+    assert!(!report.diff.contains("@@"));
+
+    let output = git_apply_check(&report.diff, "empty");
+    assert!(
+        output.status.success(),
+        "git apply --check rejected the empty-new-file diff:\n{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
 }

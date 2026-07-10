@@ -206,15 +206,16 @@ fn render_new_file_diff(new_file: &NewFile) -> Result<String, AutofixError> {
         "diff --git a/{path} b/{path}\n",
         path = new_file.path
     ));
-    diff.push_str("--- /dev/null\n");
-    diff.push_str(&format!("+++ b/{path}\n", path = new_file.path));
+    // `git apply` only treats a `--- /dev/null` header as file-creation when a
+    // `new file mode` line marks the section as such; without it, a patch
+    // that "looks right" is still rejected (verified with `git apply
+    // --check`, see the `dry_run_new_file_diff_is_git_apply_clean_*` tests,
+    // which pipe the rendered diff through a real `git apply --check`).
+    diff.push_str("new file mode 100644\n");
     let lines = split_lines_preserving_endings(&new_file.body);
     if !lines.is_empty() {
-        // An empty new file has no lines to hunk over. `start=1, count=0` is
-        // not a valid unified-diff hunk header (git apply rejects it, along
-        // with `start=0, count=0`); the only form `git apply` accepts for a
-        // brand-new empty file is no `@@` header at all, matching what
-        // `git diff` itself renders in that case.
+        diff.push_str("--- /dev/null\n");
+        diff.push_str(&format!("+++ b/{path}\n", path = new_file.path));
         diff.push_str(&format!(
             "@@ -0,0 +{},{} @@\n",
             hunk_start(0, lines.len()),
@@ -224,6 +225,9 @@ fn render_new_file_diff(new_file: &NewFile) -> Result<String, AutofixError> {
             push_diff_line(&mut diff, '+', line);
         }
     }
+    // An empty new file has no lines to hunk over, so `---`/`+++`/`@@` are
+    // omitted entirely — matching what `git diff` itself renders for a
+    // newly added empty file.
     Ok(diff)
 }
 
