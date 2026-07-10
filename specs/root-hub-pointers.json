@@ -1118,6 +1118,13 @@
       "migration_phase": "root-hub-covered-2026-05-20",
       "purpose": "Operationalizes ADR-0165. Declares Chaos Mesh 2.x adoption, per-µservice catalog requirements, nightly drill cadence, SLO-gate semantics, and release-blocker rules."
     },
+    "spec_compliance_001_contract_slice": {
+      "current_path": "/specs/compliance-001-contract-slice.json",
+      "kind": "spec",
+      "migration_phase": "root-hub-covered-2026-07-09-compliance-001",
+      "conflict_class": "repo-governance-specs-docs",
+      "purpose": "Machine-readable governed-surface and claim-boundary contract for the COMPLIANCE-001 schema/fixture/local-validator review slice; local validation evidence only, no production/runtime/certification authority."
+    },
     "spec_compliance_pack_schema": {
       "current_path": "/specs/compliance-pack-schema.json",
       "kind": "spec",
