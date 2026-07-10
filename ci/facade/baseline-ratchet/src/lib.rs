@@ -328,14 +328,14 @@ impl FrozenBaseline {
                 "frozen baseline declares missing_at_merge_base but carries gates".to_owned(),
             );
         }
-        // PROVENANCE (ADR-0614): the frozen reference is REGENERATED from the merge-base source
+        // PROVENANCE (ADR-0616): the frozen reference is REGENERATED from the merge-base source
         // (`git rev-parse <merge_base>^{tree}` over the merge-base tree), NOT read from a committed
         // git blob. With no committed bytes to trust, the snapshot must carry provenance binding the
         // regeneration to the immutable merge-base tree. The firewall NEVER calls git, so it cannot
         // recompute the tree; it fail-closed VERIFIES that the emitter-computed provenance is present,
         // that `base_tree_sha` is a well-formed tree id, and that the provenance is bound to THIS
         // snapshot's `merge_base` (a provenance lifted from a different merge-base is rejected).
-        // Cryptographic signing of this provenance is a fleet-wide follow-on (ADR-0614 §Trust
+        // Cryptographic signing of this provenance is a fleet-wide follow-on (ADR-0616 §Trust
         // ceiling); this parser verifies the attestable facts a signer would later bind.
         Self::verify_provenance(value, &merge_base)?;
         Ok(Self {
@@ -347,11 +347,11 @@ impl FrozenBaseline {
         })
     }
 
-    /// Fail-closed provenance verification (ADR-0614): the snapshot must carry a `provenance`
+    /// Fail-closed provenance verification (ADR-0616): the snapshot must carry a `provenance`
     /// object with a well-formed `base_tree_sha` bound to this snapshot's `merge_base`.
     fn verify_provenance(value: &Value, merge_base: &str) -> Result<(), String> {
         let provenance = value.get("provenance").and_then(Value::as_object).ok_or(
-            "frozen baseline missing provenance object (ADR-0614: the frozen reference is \
+            "frozen baseline missing provenance object (ADR-0616: the frozen reference is \
              regenerated from the merge-base source and must carry regeneration provenance binding \
              it to the merge-base tree; fail-closed) — re-materialize the snapshot: \
              buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .",
@@ -1194,7 +1194,7 @@ mod tests {
                 "merge_base": FROZEN_MERGE_BASE,
                 "analyzer": {"emitter": "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot",
                              "producer": "//ci/facade/artifact-inventory-registry:x"},
-                "computed_by": "ADR-0614 regenerate-from-merge-base-source"
+                "computed_by": "ADR-0616 regenerate-from-merge-base-source"
             },
             "baseline": {
                 "gates": {
@@ -1305,7 +1305,7 @@ mod tests {
 
     #[test]
     fn frozen_baseline_rejects_missing_provenance() {
-        // ADR-0614: the frozen reference is regenerated from the merge-base source (no committed
+        // ADR-0616: the frozen reference is regenerated from the merge-base source (no committed
         // blob), so a snapshot WITHOUT regeneration provenance is fail-closed rejected.
         let mut value = frozen_value();
         value.as_object_mut().unwrap().remove("provenance");

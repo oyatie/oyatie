@@ -1170,7 +1170,7 @@ fn parse_declared_artifacts(
 }
 
 /// The ratchet policy's `frozen_reference.source` value marking a frozen reference as REGENERATED
-/// from the merge-base source tree (ADR-0614), NOT read from a committed git blob. A frozen
+/// from the merge-base source tree (ADR-0616), NOT read from a committed git blob. A frozen
 /// reference declaring this source MAY be de-committed (`not-tracked-in-git`): the emitter
 /// regenerates it by running the producer over the merge-base worktree, so there is no committed
 /// blob to empty and no #828 deadlock. Absent (the default) means the legacy committed-git-blob
@@ -1181,7 +1181,7 @@ pub const FROZEN_REFERENCE_SOURCE_REGENERATE: &str = "regenerate-from-merge-base
 /// `ratchet-policy.json` values. This set is the authoritative, repo-agnostic signal for "this path
 /// is materialized from the merge-base git BLOB" (`git show <merge_base>:<face_path>`, ADR-0551), so
 /// de-committing it is the #828 deadlock. A frozen reference that DECLARES
-/// `frozen_reference.source == FROZEN_REFERENCE_SOURCE_REGENERATE` (ADR-0614) is EXCLUDED: it is
+/// `frozen_reference.source == FROZEN_REFERENCE_SOURCE_REGENERATE` (ADR-0616) is EXCLUDED: it is
 /// regenerated from the merge-base source, so it is not a committed-blob reference and MAY be
 /// de-committed. The function tolerates either a single `frozen_reference` object or an array of them
 /// so adopters can declare multiple frozen baselines. It carries NO hardcoded oyatie path — both the
@@ -1242,7 +1242,7 @@ fn collect_frozen_reference_face_path(
         ));
         return;
     };
-    // ADR-0614 inversion: a frozen reference that declares regenerate-from-merge-base-source is NOT
+    // ADR-0616 inversion: a frozen reference that declares regenerate-from-merge-base-source is NOT
     // a committed-git-blob reference — it is regenerated from the merge-base source, so it is
     // EXEMPT from the must-stay-committed set (and MAY be de-committed). Data-driven: the exemption
     // is the policy `source` field, no hardcoded path.
@@ -1261,7 +1261,7 @@ where
     paths
 }
 
-/// Make-it-impossible guard for the #828 dev-wide deadlock class (ADR-0596), INVERTED by ADR-0614.
+/// Make-it-impossible guard for the #828 dev-wide deadlock class (ADR-0596), INVERTED by ADR-0616.
 /// A firewall frozen-reference/baseline read from the committed git BLOB at the merge-base
 /// (`git show <merge_base>:<face_path>`, ADR-0551) empties the ratchet baseline if de-committed, so
 /// every pre-existing repo-wide debt item reads as a NEW regression on every broad-affected-set PR —
@@ -1269,7 +1269,7 @@ where
 /// committed` when a declared artifact whose `path` is a committed-git-blob frozen reference is
 /// declared with a de-commit mode.
 ///
-/// ADR-0614 inversion: a frozen reference MAY be de-committed IFF its ratchet policy declares
+/// ADR-0616 inversion: a frozen reference MAY be de-committed IFF its ratchet policy declares
 /// `frozen_reference.source == FROZEN_REFERENCE_SOURCE_REGENERATE` — the emitter then REGENERATES it
 /// from the merge-base source (no committed blob to empty, so #828 stays impossible). Those paths are
 /// EXCLUDED from `frozen_reference_paths` by [`frozen_reference_face_paths_keyed`], so this predicate
@@ -2687,8 +2687,8 @@ mod tests {
     }
 
     #[test]
-    fn frozen_reference_declaring_regenerate_from_source_may_be_decommitted_adr_0614() {
-        // ADR-0614 INVERSION: a frozen reference whose ratchet policy declares
+    fn frozen_reference_declaring_regenerate_from_source_may_be_decommitted_adr_0616() {
+        // ADR-0616 INVERSION: a frozen reference whose ratchet policy declares
         // `source: regenerate-from-merge-base-source` is REGENERATED from the merge-base source, so
         // it MAY be de-committed (`not-tracked-in-git`) WITHOUT firing the must-stay-committed guard.
         // The emitter never reads a committed blob for it, so #828 stays impossible. Data-driven.
@@ -2723,7 +2723,7 @@ mod tests {
             !findings
                 .iter()
                 .any(|finding| finding.code == "frozen_reference_artifact_must_stay_committed"),
-            "de-committing a regenerate-from-source frozen reference must NOT RED (ADR-0614); \
+            "de-committing a regenerate-from-source frozen reference must NOT RED (ADR-0616); \
              findings: {findings:#?}"
         );
         assert_eq!(
@@ -2734,7 +2734,7 @@ mod tests {
 
     #[test]
     fn frozen_reference_without_regenerate_declaration_still_reds_on_decommit() {
-        // The INVERSE of the ADR-0614 case: a frozen reference whose policy does NOT declare
+        // The INVERSE of the ADR-0616 case: a frozen reference whose policy does NOT declare
         // regenerate-from-source stays a committed-git-blob reference, so de-committing it still
         // RED-blocks (the #828 guard is preserved for un-migrated frozen references).
         let mut baseline = artifact(

@@ -79,11 +79,11 @@ test-results/
 !**/generated/
 !**/generated/.gitkeep
 
-# FROZEN-REFERENCE RATCHET BASELINE — DE-COMMITTED (ADR-0614, supersedes ADR-0596/#828 hotfix).
+# FROZEN-REFERENCE RATCHET BASELINE — DE-COMMITTED (ADR-0616, supersedes ADR-0596/#828 hotfix).
 # The gate-baseline face is the firewall ratchet's frozen reference. It was kept TRACKED only
 # because the emitter read it as a committed git blob via `git show <merge-base>:<this-path>`, so
 # de-committing it emptied the frozen baseline (missing_at_merge_base=true -> every pre-existing
-# debt item read as NEW growth: the #828 deadlock). ADR-0614 removes that committed-blob read: the
+# debt item read as NEW growth: the #828 deadlock). ADR-0616 removes that committed-blob read: the
 # emitter now REGENERATES the frozen reference by running the accounting producer over the merge-base
 # SOURCE worktree (ratchet-policy.json declares frozen_reference.source: regenerate-from-merge-base-
 # source), validated by a determinism canary + merge-base-tree provenance. With no committed blob to
@@ -114,7 +114,7 @@ test-results/
 # by re-materializing it — the faces-serialization cascade is now impossible. It is NOT a frozen
 # ratchet reference (it is the SCM-facts snapshot the producer derives FROM, regenerated from
 # `git ls-files` each run).
-# NOTE: gate-baseline.generated.json IS now in the de-commit class too (ADR-0614): the frozen
+# NOTE: gate-baseline.generated.json IS now in the de-commit class too (ADR-0616): the frozen
 # reference is regenerated from the merge-base source, so its committed-blob guard was inverted and
 # it is de-committed alongside these faces (covered by **/*.generated.json above, not negated).
 
