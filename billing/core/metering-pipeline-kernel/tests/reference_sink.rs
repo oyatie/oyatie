@@ -5,7 +5,9 @@
 use billing_metering_pipeline_kernel::conformance::{self, SinkFixture};
 use billing_metering_pipeline_kernel::reference::InMemorySink;
 use billing_metering_pipeline_kernel::{
-    DedupKey, IngestOutcome, LatenessPolicy, MeteringPipelineError, MeteringSink, UsageRecord,
+    BatchUsageRecord, CellId, ConsumedUnit, DedupKey, Dimension, IngestOutcome, LatenessPolicy,
+    MeteringPipelineError, MeteringSink, ResourceId, TenantId, UsageHour, UsageRecord,
+    UsageRejection,
 };
 
 struct ReferenceFixture;
@@ -25,6 +27,99 @@ fn reference_sink_is_fully_conformant() {
         violations.is_empty(),
         "reference sink diverged: {violations:?}"
     );
+}
+
+fn usage_record(
+    tenant: &str,
+    resource: &str,
+    dimension: &str,
+    hour: UsageHour,
+    quantity_microunits: u64,
+) -> UsageRecord {
+    UsageRecord {
+        tenant: TenantId::parse(tenant).expect("fixture tenant is valid"),
+        cell: CellId::parse("cell-kr-1").expect("fixture cell is valid"),
+        resource: ResourceId::parse(resource).expect("fixture resource is valid"),
+        dimension: Dimension::parse(dimension).expect("fixture dimension is valid"),
+        usage_hour: hour,
+        consumed_quantity_microunits: quantity_microunits,
+        consumed_unit: ConsumedUnit::parse("request").expect("fixture unit is valid"),
+    }
+}
+
+#[test]
+fn batch_ingest_fixture_records_duplicates_and_rejects_late_rows() {
+    let sink = InMemorySink::new(LatenessPolicy::default());
+    let hour = UsageHour::from_epoch_seconds(7200);
+    let arrived = hour.start_epoch_seconds() + 60;
+    let primary = usage_record("ten_batch", "oya-meter", "requests", hour, 5_000_000);
+    let mut conflicting_replay = primary.clone();
+    conflicting_replay.consumed_quantity_microunits = 7_000_000;
+    let distinct_dimension = usage_record(
+        "ten_batch",
+        "oya-meter",
+        "storage-gb-seconds",
+        hour,
+        2_500_000,
+    );
+    let late_hour = UsageHour::from_epoch_seconds(0);
+    let late = usage_record(
+        "ten_batch",
+        "oya-meter",
+        "late-requests",
+        late_hour,
+        1_000_000,
+    );
+    let late_arrival = late_hour.end_epoch_seconds() + sink.lateness_policy().window_seconds;
+
+    let results = sink.ingest_batch(&[
+        BatchUsageRecord {
+            record: primary.clone(),
+            arrived_at_epoch_seconds: arrived,
+        },
+        BatchUsageRecord {
+            record: primary.clone(),
+            arrived_at_epoch_seconds: arrived + 30,
+        },
+        BatchUsageRecord {
+            record: conflicting_replay,
+            arrived_at_epoch_seconds: arrived + 60,
+        },
+        BatchUsageRecord {
+            record: distinct_dimension.clone(),
+            arrived_at_epoch_seconds: arrived + 90,
+        },
+        BatchUsageRecord {
+            record: late.clone(),
+            arrived_at_epoch_seconds: late_arrival,
+        },
+    ]);
+
+    assert_eq!(results.len(), 5);
+    assert_eq!(results[0].key, primary.dedup_key());
+    assert_eq!(results[0].outcome, Ok(IngestOutcome::Recorded));
+    assert_eq!(results[1].key, primary.dedup_key());
+    assert_eq!(results[1].outcome, Ok(IngestOutcome::Duplicate));
+    assert!(matches!(
+        &results[2].outcome,
+        Err(MeteringPipelineError::QuantityConflict { key, .. }) if key == &primary.dedup_key()
+    ));
+    assert_eq!(results[3].key, distinct_dimension.dedup_key());
+    assert_eq!(results[3].outcome, Ok(IngestOutcome::Recorded));
+    assert!(matches!(
+        results[4].outcome,
+        Err(MeteringPipelineError::Rejected(
+            UsageRejection::LateArrival { .. }
+        ))
+    ));
+
+    assert_eq!(sink.lookup(&primary.dedup_key()).unwrap(), Some(primary));
+    assert_eq!(
+        sink.lookup(&distinct_dimension.dedup_key()).unwrap(),
+        Some(distinct_dimension)
+    );
+    assert_eq!(sink.lookup(&late.dedup_key()).unwrap(), None);
+    assert_eq!(sink.len().unwrap(), 2);
 }
 
 /// A sink that last-write-wins on conflicting replays and silently drops
