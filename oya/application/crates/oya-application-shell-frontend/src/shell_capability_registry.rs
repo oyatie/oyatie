@@ -265,12 +265,23 @@ impl ShellContractSource {
     }
 
     pub fn granted_actions(&self, context: OperatorContext) -> BTreeSet<&'static str> {
-        self.context_grants
-            .iter()
-            .find(|grant| grant.context == context)
-            .map(|grant| grant.actions.iter().copied().collect())
-            .unwrap_or_default()
+        grants_for(self.context_grants, context)
     }
+}
+
+/// Resolve a context's granted actions directly from static grant data, with no
+/// registry allocation. `permitted_module_cards` (SSR render path) uses this so
+/// it never builds the full `ShellContractSource` just to read the grant set.
+fn context_action_grants(context: OperatorContext) -> BTreeSet<&'static str> {
+    grants_for(CONTEXT_ACTION_GRANTS, context)
+}
+
+fn grants_for(grants: &[ContextActionGrant], context: OperatorContext) -> BTreeSet<&'static str> {
+    grants
+        .iter()
+        .find(|grant| grant.context == context)
+        .map(|grant| grant.actions.iter().copied().collect())
+        .unwrap_or_default()
 }
 
 /// Per-context display copy for capabilities whose card text differs by
@@ -329,8 +340,7 @@ pub fn production_shell_contract_source() -> ShellContractSource {
 /// Module cards the given context is permitted to see, derived deny-by-default
 /// from the capability registry: no grant, no card — never a greyed-out one.
 pub fn permitted_module_cards(context: OperatorContext) -> Vec<ModuleCard> {
-    let source = production_shell_contract_source();
-    let granted = source.granted_actions(context);
+    let granted = context_action_grants(context);
     PRODUCTION_MODULES
         .iter()
         .filter(|module| granted.contains(module.required_action))
@@ -384,6 +394,21 @@ mod tests {
             for action in source.granted_actions(context) {
                 assert!(known.contains(action), "{action} grants nothing registered");
             }
+        }
+    }
+
+    #[test]
+    fn every_context_grants_at_least_one_action() {
+        // Deny-by-default must not silently degrade into deny-everything: a
+        // context added to OperatorContext::ALL without a grant entry would
+        // render a blank shell, and the resolves-to-registered test above would
+        // pass vacuously. Require every context to carry a non-empty grant set.
+        let source = production_shell_contract_source();
+        for context in OperatorContext::ALL {
+            assert!(
+                !source.granted_actions(context).is_empty(),
+                "{context:?} grants no actions; it would render an empty shell"
+            );
         }
     }
 
