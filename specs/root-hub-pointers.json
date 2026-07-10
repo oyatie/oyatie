@@ -226,6 +226,48 @@
       "purpose": "Contract/schema-only REGCELL-002 artifact for deriving standard/regulated/CDE/identity-assurance/sovereign/airgap placement labels from tenant home/dr cells, jurisdiction/residency, data classes, compliance packs, pack cell_eligibility, workload labels, regulatory-pack bindings, and audit decisions without creating a parallel source-of-truth cell taxonomy or runtime placement claim.",
       "target_path_after_md_retirement": "same"
     },
+    "residency_attestation_schema": {
+      "current_path": "/specs/residency-attestation-schema.json",
+      "kind": "schema",
+      "migration_phase": "residency-001-contract-slice",
+      "purpose": "Contract/schema-only ADR-0326 RESIDENCY-001 artifact for signed per-tenant residency footprints, tier conditionals, source-registry hashes, signing principals, cross-border policy, and offline-channel references without runtime attestation, placement, or migration claims.",
+      "target_path_after_md_retirement": "same"
+    },
+    "residency_region_registry": {
+      "current_path": "/specs/regions/registry.json",
+      "kind": "registry",
+      "migration_phase": "residency-001-contract-slice",
+      "purpose": "Contract-only region id registry for RESIDENCY-001 attestations. Names allowed region ids, jurisdiction families, supported tiers, cell-group patterns, and data-boundary semantics without claiming live cell inventory or certification.",
+      "target_path_after_md_retirement": "same"
+    },
+    "residency_regulatory_regime_registry": {
+      "current_path": "/specs/regulatory-regimes/registry.json",
+      "kind": "registry",
+      "migration_phase": "residency-001-contract-slice",
+      "purpose": "Contract-only regulatory regime registry for ADR-0326 residency attestations. Names regime ids, default minimum tiers, region allowlists, cross-border transfer policies, attestor requirements, and compliance-pack implications without legal-sufficiency or runtime policy claims.",
+      "target_path_after_md_retirement": "same"
+    },
+    "compliance_pack_residency_matrix": {
+      "current_path": "/specs/compliance-pack-residency-matrix.json",
+      "kind": "spec",
+      "migration_phase": "residency-001-contract-slice",
+      "purpose": "Contract-only compliance-pack residency matrix for ADR-0326 D-8/D-13. Maps HIPAA, GDPR, SOC2, CSAP, KR PIPA, PCI, and EU AI Act pack families to minimum tiers, region sets, regime refs, strictest-tier resolution, and pack-binding refusal codes without pack activation or certification claims.",
+      "target_path_after_md_retirement": "same"
+    },
+    "residency_placement_audit_events": {
+      "current_path": "/specs/residency-placement-audit-events.json",
+      "kind": "spec",
+      "migration_phase": "residency-001-contract-slice",
+      "purpose": "Contract-only ADR-0326 audit-event specification for residency attestation, placement decision/refusal, cross-border permit/refusal, pack-binding, regulatory-attestor, and offline sovereign-channel semantics without claiming emitters or audit-chain delivery exist.",
+      "target_path_after_md_retirement": "same"
+    },
+    "residency_contract_slice_checker": {
+      "current_path": "/ci/facade/contract-slice-conformance/contract-slice-policy.json",
+      "kind": "test",
+      "migration_phase": "residency-001-contract-slice",
+      "purpose": "Owned Rust/Buck2 cloud-ci contract-slice-conformance gate validation for the ADR-0326 RESIDENCY-001 slice (residency-001-attestation, residency-001-regions, residency-001-regimes, residency-001-audit-events, residency-001-pack-matrix). Retires the prior local Python validator bridge; merge authority is oya-ci-required.",
+      "target_path_after_md_retirement": "same"
+    },
     "security_validation_pipeline_matrix": {
       "current_path": "/specs/security-validation-pipeline-matrix.json",
       "kind": "spec",

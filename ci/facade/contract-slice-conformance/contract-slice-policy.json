@@ -1446,6 +1446,715 @@
           "disposition": "retired_primary_path"
         }
       ]
+    },
+    {
+      "slice_id": "residency-001-attestation",
+      "spec_path": "specs/residency-attestation-schema.json",
+      "required_fields": [
+        "_meta.source_kanban_task",
+        "_meta.binding_adr",
+        "required",
+        "properties.tier.enum",
+        "properties.regulatory_regimes.items.enum",
+        "$defs.residencyFootprint.required",
+        "$defs.signatureBundle.properties.signature_algorithm.const",
+        "claim_boundary"
+      ],
+      "required_true_fields": [
+        "claim_boundary.contract_schema_only",
+        "claim_boundary.no_runtime_attestation_service_claim",
+        "claim_boundary.no_runtime_cell_placement_claim",
+        "claim_boundary.no_cross_border_data_plane_enforcement_claim"
+      ],
+      "enum_constraints": [
+        {
+          "field": "_meta.source_kanban_task",
+          "allowed": [
+            "t_215c8b00"
+          ]
+        },
+        {
+          "field": "_meta.binding_adr",
+          "allowed": [
+            "ADR-0326"
+          ]
+        },
+        {
+          "field": "$defs.signatureBundle.properties.signature_algorithm.const",
+          "allowed": [
+            "ed25519"
+          ]
+        },
+        {
+          "field": "properties.region.pattern",
+          "allowed": [
+            "^[a-z]{2}(_[a-z0-9]+)+$|^global_multi$"
+          ]
+        }
+      ],
+      "required_array_members": [
+        {
+          "field": "required",
+          "members": [
+            "schema_version",
+            "attestation_id",
+            "tenant_id",
+            "tier",
+            "region",
+            "cell_id_or_group",
+            "regulatory_regimes",
+            "compliance_packs",
+            "residency_footprint",
+            "signing_principals",
+            "signatures",
+            "effective_at",
+            "expires_at",
+            "claim_boundary"
+          ]
+        },
+        {
+          "field": "properties.tier.enum",
+          "members": [
+            "multi_region",
+            "single_region",
+            "sovereign_cell",
+            "airgapped_cell"
+          ]
+        },
+        {
+          "field": "properties.regulatory_regimes.items.enum",
+          "members": [
+            "EU_CSRD",
+            "EU_GDPR",
+            "EU_AI_ACT",
+            "KR_PIPA",
+            "IN_DPDP",
+            "BR_LGPD",
+            "SA_PDPL",
+            "AE_PDPL",
+            "AU_PRIVACY_ACT",
+            "CN_PIPL",
+            "US_HIPAA",
+            "US_CCPA",
+            "JP_APPI",
+            "CA_PIPEDA"
+          ]
+        },
+        {
+          "field": "$defs.residencyFootprint.required",
+          "members": [
+            "home_region",
+            "allowed_regions",
+            "allowed_jurisdictions",
+            "cell_scope",
+            "permitted_cell_ids_or_groups",
+            "prohibited_cell_ids_or_groups",
+            "cross_border_transfer_policy",
+            "backup_dr_footprint",
+            "audit_chain_shard_policy",
+            "source_registry_hashes"
+          ]
+        }
+      ],
+      "exact_array_fields": [
+        {
+          "field": "properties.tier.enum",
+          "values": [
+            "multi_region",
+            "single_region",
+            "sovereign_cell",
+            "airgapped_cell"
+          ]
+        }
+      ],
+      "required_markers": [
+        {
+          "field": "allOf",
+          "markers": [
+            "single_region",
+            "sovereign_cell",
+            "airgapped_cell",
+            "offline_channel_protocol"
+          ]
+        }
+      ],
+      "forbidden_markers": [
+        "runtime attestation service is live",
+        "runtime cell placement is enforced",
+        "cross-border data-plane enforcement is live"
+      ],
+      "source_migration_slice": [
+        {
+          "legacy_path": "scripts/tests/residency_contract_slice_check.py",
+          "replacement_target": "//ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
+          "disposition": "retired_primary_path"
+        }
+      ]
+    },
+    {
+      "slice_id": "residency-001-regions",
+      "spec_path": "specs/regions/registry.json",
+      "required_fields": [
+        "registry_id",
+        "region_id_pattern",
+        "claim_boundary",
+        "regions"
+      ],
+      "required_true_fields": [
+        "claim_boundary.no_live_cell_inventory_claim"
+      ],
+      "enum_constraints": [
+        {
+          "field": "registry_id",
+          "allowed": [
+            "residency-region-registry"
+          ]
+        },
+        {
+          "field": "region_id_pattern",
+          "allowed": [
+            "^[a-z]{2}(_[a-z0-9]+)+$|^global_multi$"
+          ]
+        }
+      ],
+      "array_cardinality": [
+        {
+          "field": "regions",
+          "min": 14,
+          "unique_by": "region_id"
+        }
+      ],
+      "forbidden_markers": [
+        "live cell inventory is enforced"
+      ],
+      "required_object_array_members": [
+        {
+          "field": "regions",
+          "member_key": "region_id",
+          "members": [
+            "global_multi",
+            "us_east",
+            "us_west",
+            "eu_west",
+            "eu_central",
+            "kr_central",
+            "in_south",
+            "br_south",
+            "sa_central",
+            "ae_north",
+            "au_southeast",
+            "cn_north",
+            "jp_east",
+            "ca_central"
+          ],
+          "exact_members": true,
+          "member_required_fields": [
+            "region_id",
+            "supported_tiers",
+            "cell_group_patterns",
+            "data_boundary"
+          ],
+          "conditional_assertions": [
+            {
+              "field": "supported_tiers",
+              "must_subset_of": [
+                "multi_region",
+                "single_region",
+                "sovereign_cell",
+                "airgapped_cell"
+              ]
+            },
+            {
+              "when_member": "kr_central",
+              "field": "supported_tiers",
+              "must_contain": [
+                "airgapped_cell"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slice_id": "residency-001-regimes",
+      "spec_path": "specs/regulatory-regimes/registry.json",
+      "required_fields": [
+        "registry_id",
+        "claim_boundary",
+        "regimes"
+      ],
+      "required_true_fields": [
+        "claim_boundary.registry_only",
+        "claim_boundary.not_legal_advice",
+        "claim_boundary.no_certification_claim",
+        "claim_boundary.no_runtime_policy_claim"
+      ],
+      "enum_constraints": [
+        {
+          "field": "registry_id",
+          "allowed": [
+            "residency-regulatory-regime-registry"
+          ]
+        }
+      ],
+      "array_cardinality": [
+        {
+          "field": "regimes",
+          "min": 14,
+          "unique_by": "regime_id"
+        }
+      ],
+      "forbidden_markers": [
+        "runtime policy is enforced",
+        "regulatory certification obtained"
+      ],
+      "required_object_array_members": [
+        {
+          "field": "regimes",
+          "member_key": "regime_id",
+          "members": [
+            "EU_CSRD",
+            "EU_GDPR",
+            "EU_AI_ACT",
+            "KR_PIPA",
+            "IN_DPDP",
+            "BR_LGPD",
+            "SA_PDPL",
+            "AE_PDPL",
+            "AU_PRIVACY_ACT",
+            "CN_PIPL",
+            "US_HIPAA",
+            "US_CCPA",
+            "JP_APPI",
+            "CA_PIPEDA"
+          ],
+          "exact_members": true,
+          "member_required_fields": [
+            "regime_id",
+            "default_min_tier",
+            "cross_border_transfer_policy"
+          ],
+          "member_enum_constraints": [
+            {
+              "field": "default_min_tier",
+              "allowed": [
+                "multi_region",
+                "single_region",
+                "sovereign_cell",
+                "airgapped_cell"
+              ]
+            },
+            {
+              "field": "cross_border_transfer_policy",
+              "allowed": [
+                "deny_without_explicit_consent",
+                "deny_without_regulator_or_cedar_permit"
+              ]
+            }
+          ],
+          "field_implies_required": [
+            {
+              "if_field": "third_party_attestor_required",
+              "then_required_fields": ["attestor_required_for_tiers", "evidence_requirements"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slice_id": "residency-001-audit-events",
+      "spec_path": "specs/residency-placement-audit-events.json",
+      "required_fields": [
+        "event_classes",
+        "sample_wire_payloads",
+        "offline_sovereign_protocol"
+      ],
+      "array_cardinality": [
+        {
+          "field": "event_classes",
+          "min": 13,
+          "unique_by": "wire_class"
+        }
+      ],
+      "forbidden_markers": [
+        "audit-chain delivery is implemented"
+      ],
+      "required_object_array_members": [
+        {
+          "field": "event_classes",
+          "member_key": "wire_class",
+          "members": [
+            "tenancy.residency.attestation.created",
+            "tenancy.residency.attestation.refreshed",
+            "tenancy.residency.attestation.expired",
+            "tenancy.residency.attestation.signature.invalid",
+            "tenancy.residency.attestation.missing",
+            "tenancy.residency.placement.decided",
+            "tenancy.residency.placement.refused",
+            "tenancy.residency.cross_border.refused",
+            "tenancy.residency.cross_border.permitted",
+            "tenancy.residency.tier.upgraded",
+            "tenancy.residency.tier.downgraded",
+            "tenancy.residency.pack.binding_changed",
+            "tenancy.residency.regulatory_attestor.engaged"
+          ],
+          "exact_members": true,
+          "member_required_fields": [
+            "wire_class",
+            "registry_class",
+            "originating_adr",
+            "retention_class",
+            "required_payload_fields",
+            "severity"
+          ],
+          "member_enum_constraints": [
+            {
+              "field": "originating_adr",
+              "allowed": [
+                "ADR-0326"
+              ]
+            },
+            {
+              "field": "retention_class",
+              "allowed": [
+                "regulated"
+              ]
+            },
+            {
+              "field": "registry_class",
+              "allowed": [
+                "TenancyResidencyAttestationCreated",
+                "TenancyResidencyAttestationRefreshed",
+                "TenancyResidencyAttestationExpired",
+                "TenancyResidencyAttestationSignatureInvalid",
+                "TenancyResidencyAttestationMissing",
+                "TenancyResidencyPlacementDecided",
+                "TenancyResidencyPlacementRefused",
+                "TenancyResidencyCrossBorderRefused",
+                "TenancyResidencyCrossBorderPermitted",
+                "TenancyResidencyTierUpgraded",
+                "TenancyResidencyTierDowngraded",
+                "TenancyResidencyPackBindingChanged",
+                "TenancyResidencyRegulatoryAttestorEngaged"
+              ]
+            }
+          ],
+          "conditional_assertions": [
+            {
+              "field": "required_payload_fields",
+              "must_contain": ["tenant_id"]
+            },
+            {
+              "when_member_in": [
+                "tenancy.residency.attestation.signature.invalid",
+                "tenancy.residency.attestation.missing",
+                "tenancy.residency.placement.refused",
+                "tenancy.residency.cross_border.refused"
+              ],
+              "field": "severity",
+              "must_equal": "CRITICAL"
+            },
+            {
+              "when_member_in": [
+                "tenancy.residency.placement.decided",
+                "tenancy.residency.placement.refused",
+                "tenancy.residency.cross_border.refused",
+                "tenancy.residency.cross_border.permitted",
+                "tenancy.residency.pack.binding_changed"
+              ],
+              "field": "cedar_decision_event",
+              "must_be_true": true
+            },
+            {
+              "when_member": "tenancy.residency.cross_border.refused",
+              "field": "required_payload_fields",
+              "must_contain": ["requested_destination_cell", "requested_destination_region", "refusal_reason_codes"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slice_id": "residency-001-pack-matrix",
+      "spec_path": "specs/compliance-pack-residency-matrix.json",
+      "required_fields": [
+        "matrix_id",
+        "strictest_tier_order",
+        "claim_boundary",
+        "matrix_rows"
+      ],
+      "required_true_fields": [
+        "claim_boundary.no_pack_activation_claim"
+      ],
+      "enum_constraints": [
+        {
+          "field": "matrix_id",
+          "allowed": [
+            "compliance-pack-residency-matrix"
+          ]
+        }
+      ],
+      "array_cardinality": [
+        {
+          "field": "matrix_rows",
+          "min": 7,
+          "unique_by": "pack_id"
+        }
+      ],
+      "forbidden_markers": [
+        "pack activation is live"
+      ],
+      "exact_array_fields": [
+        {
+          "field": "strictest_tier_order",
+          "values": [
+            "multi_region",
+            "single_region",
+            "sovereign_cell",
+            "airgapped_cell"
+          ]
+        }
+      ],
+      "required_object_array_members": [
+        {
+          "field": "matrix_rows",
+          "member_key": "pack_id",
+          "members": [
+            "HIPAA-2024",
+            "EU-GDPR-2018-baseline",
+            "SOC2-T2",
+            "KR-CSAP-v3.1",
+            "KR-PIPA-2023-amendment",
+            "PCI-DSS-L1-v4",
+            "EU-AI-ACT-2024-HIGH-RISK"
+          ],
+          "member_required_fields": [
+            "pack_id",
+            "min_tier",
+            "regulatory_regimes",
+            "pack_binding_refusal_code"
+          ],
+          "member_enum_constraints": [
+            {
+              "field": "min_tier",
+              "allowed": [
+                "multi_region",
+                "single_region",
+                "sovereign_cell",
+                "airgapped_cell"
+              ]
+            }
+          ],
+          "conditional_assertions": [
+            {
+              "when_member": "KR-CSAP-v3.1",
+              "field": "min_tier",
+              "must_equal": "sovereign_cell"
+            },
+            {
+              "when_member": "KR-PIPA-2023-amendment",
+              "field": "min_tier",
+              "must_equal": "single_region"
+            },
+            {
+              "when_member": "EU-GDPR-2018-baseline",
+              "field": "min_tier",
+              "must_equal": "single_region"
+            },
+            {
+              "when_member": "SOC2-T2",
+              "field": "min_tier",
+              "must_equal": "multi_region"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slice_id": "residency-001-governance-root-hub",
+      "spec_path": "specs/root-hub-pointers.json",
+      "skip_universal_markers": true,
+      "required_fields": [
+        "entry_points.residency_attestation_schema.current_path",
+        "entry_points.residency_region_registry.current_path",
+        "entry_points.residency_regulatory_regime_registry.current_path",
+        "entry_points.compliance_pack_residency_matrix.current_path",
+        "entry_points.residency_placement_audit_events.current_path"
+      ],
+      "enum_constraints": [
+        {
+          "field": "entry_points.residency_attestation_schema.current_path",
+          "allowed": ["/specs/residency-attestation-schema.json"]
+        },
+        {
+          "field": "entry_points.residency_region_registry.current_path",
+          "allowed": ["/specs/regions/registry.json"]
+        },
+        {
+          "field": "entry_points.residency_regulatory_regime_registry.current_path",
+          "allowed": ["/specs/regulatory-regimes/registry.json"]
+        },
+        {
+          "field": "entry_points.compliance_pack_residency_matrix.current_path",
+          "allowed": ["/specs/compliance-pack-residency-matrix.json"]
+        },
+        {
+          "field": "entry_points.residency_placement_audit_events.current_path",
+          "allowed": ["/specs/residency-placement-audit-events.json"]
+        }
+      ]
+    },
+    {
+      "slice_id": "residency-001-governance-artifact-registry",
+      "spec_path": "registry/artifact-capabilities-registry.json",
+      "skip_universal_markers": true,
+      "required_fields": ["rows"],
+      "required_object_array_members": [
+        {
+          "field": "rows",
+          "member_key": "artifact_id",
+          "members": [
+            "residency-attestation-schema",
+            "residency-region-registry",
+            "residency-regulatory-regime-registry",
+            "compliance-pack-residency-matrix",
+            "residency-placement-audit-events"
+          ],
+          "conditional_assertions": [
+            {
+              "when_member": "residency-attestation-schema",
+              "field": "artifact_profile",
+              "must_equal": "schema"
+            },
+            {
+              "when_member": "residency-region-registry",
+              "field": "artifact_profile",
+              "must_equal": "registry"
+            },
+            {
+              "when_member": "residency-regulatory-regime-registry",
+              "field": "artifact_profile",
+              "must_equal": "registry"
+            },
+            {
+              "when_member": "compliance-pack-residency-matrix",
+              "field": "artifact_profile",
+              "must_equal": "schema"
+            },
+            {
+              "when_member": "residency-placement-audit-events",
+              "field": "artifact_profile",
+              "must_equal": "schema"
+            },
+            {
+              "when_member": "residency-attestation-schema",
+              "field": "capability_overrides.enforcement.lane_id",
+              "must_equal": "residency-attestation-contract-slice"
+            },
+            {
+              "when_member": "residency-region-registry",
+              "field": "capability_overrides.enforcement.lane_id",
+              "must_equal": "residency-region-registry-contract-slice"
+            },
+            {
+              "when_member": "residency-regulatory-regime-registry",
+              "field": "capability_overrides.enforcement.lane_id",
+              "must_equal": "residency-regulatory-regime-registry-contract-slice"
+            },
+            {
+              "when_member": "compliance-pack-residency-matrix",
+              "field": "capability_overrides.enforcement.lane_id",
+              "must_equal": "residency-compliance-pack-matrix-contract-slice"
+            },
+            {
+              "when_member": "residency-placement-audit-events",
+              "field": "capability_overrides.enforcement.lane_id",
+              "must_equal": "residency-placement-audit-events-contract-slice"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slice_id": "residency-001-fixture-signed-footprint",
+      "spec_path": "specs/fixtures/residency/residency-001-signed-footprint.fixture.json",
+      "required_fields": [
+        "tier",
+        "region",
+        "regulatory_regimes",
+        "compliance_packs",
+        "residency_footprint.allowed_regions",
+        "signatures.tenant_signature",
+        "signatures.oyatie_compliance_signature",
+        "claim_boundary.signed_footprint_only"
+      ],
+      "required_true_fields": [
+        "claim_boundary.contract_schema_only",
+        "claim_boundary.no_runtime_attestation_service_claim",
+        "claim_boundary.no_runtime_cell_placement_claim",
+        "claim_boundary.no_cross_border_data_plane_enforcement_claim",
+        "claim_boundary.signed_footprint_only"
+      ],
+      "enum_constraints": [
+        {
+          "field": "tier",
+          "allowed": ["multi_region", "single_region", "sovereign_cell", "airgapped_cell"]
+        }
+      ],
+      "field_patterns": [
+        {
+          "field": "region",
+          "pattern": "^[a-z]{2}(_[a-z0-9]+)+$|^global_multi$"
+        },
+        {
+          "field": "signatures.tenant_signature",
+          "pattern": "^[A-Za-z0-9_-]{86}$"
+        },
+        {
+          "field": "signatures.oyatie_compliance_signature",
+          "pattern": "^[A-Za-z0-9_-]{86}$"
+        },
+        {
+          "field": "residency_footprint.source_registry_hashes.regions_registry_sha256",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "field": "residency_footprint.source_registry_hashes.regimes_registry_sha256",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "field": "residency_footprint.source_registry_hashes.pack_matrix_sha256",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      ]
+    },
+    {
+      "slice_id": "residency-001-fixture-cross-border-refusal",
+      "spec_path": "specs/fixtures/residency/residency-001-cross-border-refusal.fixture.json",
+      "required_fields": [
+        "event_class",
+        "audit_chain_attested",
+        "requested_destination_region",
+        "requested_destination_cell",
+        "refusal_reason_codes"
+      ],
+      "required_true_fields": ["audit_chain_attested"],
+      "enum_constraints": [
+        {
+          "field": "event_class",
+          "allowed": ["tenancy.residency.cross_border.refused"]
+        }
+      ],
+      "field_patterns": [
+        {
+          "field": "residency_footprint_hash",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "field": "requested_destination_region",
+          "pattern": "^[a-z]{2}(_[a-z0-9]+)+$|^global_multi$"
+        }
+      ]
     }
   ]
 }
