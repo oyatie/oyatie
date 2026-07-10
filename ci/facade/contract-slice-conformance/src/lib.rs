@@ -24,6 +24,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use regex::Regex;
 use serde_json::Value;
 
 /// Cloud-ci gate id for the contract-slice conformance gate.
@@ -202,7 +203,13 @@ fn evaluate_slice(
         "exact_array_fields",
         "required_object_array_members",
         "forbidden_markers",
+        "forbidden_field_markers",
+        "marker_exclude_fields",
         "required_markers",
+        "field_patterns",
+        "exact_projected_sequence",
+        "array_cardinality",
+        "projected_value_sets",
         "source_migration_slice",
         "skip_universal_markers",
     ];
@@ -228,11 +235,21 @@ fn evaluate_slice(
     //    Matching is separator-normalized (`[^a-z0-9]+` -> a single space on both
     //    the marker and every scanned leaf) so a substituted separator cannot slip
     //    a forbidden phrase past the scan: `production-ready` trips `production ready`.
+    //
+    //    `marker_exclude_fields` carves named sub-trees out of the universal +
+    //    per-slice whole-spec scan for a spec that legitimately quotes a forbidden
+    //    phrase in a bounded place (e.g. a `claim_boundary` list of the phrases it
+    //    forbids); the excluded sub-trees are still subject to field-scoped
+    //    `forbidden_field_markers` and every other check.
+    let excluded: Vec<&Value> = string_array(slice, "marker_exclude_fields")
+        .iter()
+        .filter_map(|path| get_dotted(spec, path))
+        .collect();
     let skip_universal_markers =
         slice.get("skip_universal_markers").and_then(Value::as_bool) == Some(true);
     if !skip_universal_markers {
         for marker in FORBIDDEN_SPEC_MARKERS {
-            if recursively_contains_normalized(spec, &normalize_separators(marker)) {
+            if recursively_contains_normalized(spec, &normalize_separators(marker), &excluded) {
                 findings.insert(Finding::new(
                     "contract_slice_forbidden_marker",
                     format!("{slice_id}:{marker}"),
@@ -241,11 +258,56 @@ fn evaluate_slice(
         }
     }
     for marker in string_array(slice, "forbidden_markers") {
-        if recursively_contains_normalized(spec, &normalize_separators(&marker)) {
+        if recursively_contains_normalized(spec, &normalize_separators(&marker), &excluded) {
             findings.insert(Finding::new(
                 "contract_slice_forbidden_marker",
                 format!("{slice_id}:{marker}"),
             ));
+        }
+    }
+
+    // 1a. Field-scoped forbidden markers: a phrase that is forbidden only inside a
+    //     dotted sub-tree (e.g. a `can_claim_now` block must not contain a
+    //     cannot-claim-yet phrase, though that phrase may legitimately appear
+    //     elsewhere). Separator-normalized like the whole-spec scan.
+    if let Some(requirements) = slice
+        .get("forbidden_field_markers")
+        .and_then(Value::as_array)
+    {
+        for requirement in requirements {
+            check_keys(
+                requirement,
+                &["field", "markers"],
+                slice_id,
+                "forbidden_field_markers",
+                findings,
+            );
+            let field = requirement.get("field").and_then(Value::as_str);
+            let markers: Vec<&str> = requirement
+                .get("markers")
+                .and_then(Value::as_array)
+                .map(|a| a.iter().filter_map(Value::as_str).collect())
+                .unwrap_or_default();
+            // Fail-closed on shape: an empty markers list or missing field enforces
+            // nothing and must RED rather than pass vacuously.
+            if markers.is_empty() || field.is_none_or(str::is_empty) {
+                findings.insert(Finding::new(
+                    "contract_slice_forbidden_field_markers_malformed",
+                    format!("{slice_id}:{}", field.unwrap_or("<no-field>")),
+                ));
+                continue;
+            }
+            let field = field.unwrap_or_default();
+            if let Some(scope) = get_dotted(spec, field) {
+                for marker in markers {
+                    if recursively_contains_normalized(scope, &normalize_separators(marker), &[]) {
+                        findings.insert(Finding::new(
+                            "contract_slice_forbidden_field_marker",
+                            format!("{slice_id}:{field}:{marker}"),
+                        ));
+                    }
+                }
+            }
         }
     }
 
@@ -664,6 +726,233 @@ fn evaluate_slice(
         }
     }
 
+    // 4d. Field patterns: a dotted scalar field must match a declared regular
+    //     expression. Covers cryptographic/id shapes the enum/marker checks cannot
+    //     express (Ed25519 `[0-9a-f]{128}`, SHA-256 `[0-9a-f]{64}`, a region id
+    //     grammar, base64url length). A malformed pattern fails closed rather than
+    //     silently accepting everything.
+    if let Some(requirements) = slice.get("field_patterns").and_then(Value::as_array) {
+        for requirement in requirements {
+            check_keys(
+                requirement,
+                &["field", "pattern"],
+                slice_id,
+                "field_patterns",
+                findings,
+            );
+            let field = requirement
+                .get("field")
+                .and_then(Value::as_str)
+                .unwrap_or("");
+            let Some(pattern) = requirement.get("pattern").and_then(Value::as_str) else {
+                findings.insert(Finding::new(
+                    "contract_slice_bad_pattern",
+                    format!("{slice_id}:{field}"),
+                ));
+                continue;
+            };
+            let Ok(regex) = Regex::new(pattern) else {
+                findings.insert(Finding::new(
+                    "contract_slice_bad_pattern",
+                    format!("{slice_id}:{field}"),
+                ));
+                continue;
+            };
+            let value = get_dotted(spec, field).and_then(scalar_str);
+            // Fail-closed: a missing/non-scalar field cannot match, so it is a
+            // mismatch rather than a skipped check.
+            if !value.as_deref().is_some_and(|text| regex.is_match(text)) {
+                findings.insert(Finding::new(
+                    "contract_slice_pattern_mismatch",
+                    format!("{slice_id}:{field}"),
+                ));
+            }
+        }
+    }
+
+    // 4e. Exact projected sequence: project `member_field` across the array-of-
+    //     objects at `field` and require the projection to equal `values` exactly
+    //     (same members, same order, no extras). Expresses an ordered pipeline
+    //     (canonical purposes, a release stage flow) that the superset/exact-set
+    //     checks cannot: order and length both matter here. Non-string/missing
+    //     projected members and length differences are mismatches (fail-closed).
+    if let Some(requirements) = slice
+        .get("exact_projected_sequence")
+        .and_then(Value::as_array)
+    {
+        for requirement in requirements {
+            check_keys(
+                requirement,
+                &["field", "member_field", "values"],
+                slice_id,
+                "exact_projected_sequence",
+                findings,
+            );
+            let field = requirement
+                .get("field")
+                .and_then(Value::as_str)
+                .unwrap_or("");
+            let member_field = requirement
+                .get("member_field")
+                .and_then(Value::as_str)
+                .unwrap_or("");
+            let expected: Vec<&str> = requirement
+                .get("values")
+                .and_then(Value::as_array)
+                .map(|a| a.iter().filter_map(Value::as_str).collect())
+                .unwrap_or_default();
+            let matches = get_dotted(spec, field)
+                .and_then(Value::as_array)
+                .is_some_and(|objects| {
+                    objects.len() == expected.len()
+                        && objects.iter().zip(&expected).all(|(object, want)| {
+                            get_dotted(object, member_field).and_then(Value::as_str) == Some(*want)
+                        })
+                });
+            if !matches {
+                findings.insert(Finding::new(
+                    "contract_slice_projected_sequence_mismatch",
+                    format!("{slice_id}:{field}:{member_field}"),
+                ));
+            }
+        }
+    }
+
+    // 4f. Array cardinality: a dotted array field must satisfy an optional `min`,
+    //     `max`, and/or `unique_by` (uniqueness of a projected member field).
+    //     A non-array field or a requirement declaring no constraint at all fails
+    //     closed rather than passing vacuously.
+    if let Some(requirements) = slice.get("array_cardinality").and_then(Value::as_array) {
+        for requirement in requirements {
+            check_keys(
+                requirement,
+                &["field", "min", "max", "unique_by"],
+                slice_id,
+                "array_cardinality",
+                findings,
+            );
+            let field = requirement
+                .get("field")
+                .and_then(Value::as_str)
+                .unwrap_or("");
+            let min = requirement.get("min").and_then(Value::as_u64);
+            let max = requirement.get("max").and_then(Value::as_u64);
+            let unique_by = requirement.get("unique_by").and_then(Value::as_str);
+            if min.is_none() && max.is_none() && unique_by.is_none() {
+                findings.insert(Finding::new(
+                    "contract_slice_array_cardinality_malformed",
+                    format!("{slice_id}:{field}"),
+                ));
+                continue;
+            }
+            let Some(objects) = get_dotted(spec, field).and_then(Value::as_array) else {
+                findings.insert(Finding::new(
+                    "contract_slice_array_cardinality_bad_field",
+                    format!("{slice_id}:{field}"),
+                ));
+                continue;
+            };
+            let count = objects.len() as u64;
+            if min.is_some_and(|min| count < min) {
+                findings.insert(Finding::new(
+                    "contract_slice_array_below_min",
+                    format!("{slice_id}:{field}"),
+                ));
+            }
+            if max.is_some_and(|max| count > max) {
+                findings.insert(Finding::new(
+                    "contract_slice_array_above_max",
+                    format!("{slice_id}:{field}"),
+                ));
+            }
+            if let Some(unique_by) = unique_by {
+                let mut seen = BTreeSet::new();
+                for object in objects {
+                    let Some(key) = get_dotted(object, unique_by).and_then(scalar_str) else {
+                        findings.insert(Finding::new(
+                            "contract_slice_array_not_unique",
+                            format!("{slice_id}:{field}:{unique_by}:<missing>"),
+                        ));
+                        continue;
+                    };
+                    if !seen.insert(key.clone()) {
+                        findings.insert(Finding::new(
+                            "contract_slice_array_not_unique",
+                            format!("{slice_id}:{field}:{unique_by}:{key}"),
+                        ));
+                    }
+                }
+            }
+        }
+    }
+
+    // 4g. Projected value-set coverage: the SET of `member_field` values across the
+    //     array-of-objects at `field` must equal `exact_values` exactly — every
+    //     declared value present, nothing extra. Catches a copy-pasted row that
+    //     drops a distinct class (a registry that must cover a fixed class set).
+    //     A non-array field or a non-string projected member fails closed.
+    if let Some(requirements) = slice.get("projected_value_sets").and_then(Value::as_array) {
+        for requirement in requirements {
+            check_keys(
+                requirement,
+                &["field", "member_field", "exact_values"],
+                slice_id,
+                "projected_value_sets",
+                findings,
+            );
+            let field = requirement
+                .get("field")
+                .and_then(Value::as_str)
+                .unwrap_or("");
+            let member_field = requirement
+                .get("member_field")
+                .and_then(Value::as_str)
+                .unwrap_or("");
+            let expected: BTreeSet<&str> = requirement
+                .get("exact_values")
+                .and_then(Value::as_array)
+                .map(|a| a.iter().filter_map(Value::as_str).collect())
+                .unwrap_or_default();
+            let Some(objects) = get_dotted(spec, field).and_then(Value::as_array) else {
+                findings.insert(Finding::new(
+                    "contract_slice_projected_set_bad_field",
+                    format!("{slice_id}:{field}"),
+                ));
+                continue;
+            };
+            let mut actual: BTreeSet<&str> = BTreeSet::new();
+            for object in objects {
+                match get_dotted(object, member_field).and_then(Value::as_str) {
+                    Some(value) => {
+                        actual.insert(value);
+                    }
+                    None => {
+                        findings.insert(Finding::new(
+                            "contract_slice_projected_set_unexpected",
+                            format!("{slice_id}:{field}:{member_field}:<non-string>"),
+                        ));
+                    }
+                }
+            }
+            for want in &expected {
+                if !actual.contains(want) {
+                    findings.insert(Finding::new(
+                        "contract_slice_projected_set_missing",
+                        format!("{slice_id}:{field}:{member_field}:{want}"),
+                    ));
+                }
+            }
+            for got in &actual {
+                if !expected.contains(got) {
+                    findings.insert(Finding::new(
+                        "contract_slice_projected_set_unexpected",
+                        format!("{slice_id}:{field}:{member_field}:{got}"),
+                    ));
+                }
+            }
+        }
+    }
+
     // 5. Migration declarations (optional): each retired source must declare a
     //    retired_primary_path disposition, a Buck2 gate replacement target, and
     //    an interpreter-script legacy path. This proves a Python validator is
@@ -974,16 +1263,27 @@ fn normalize_separators(text: &str) -> String {
 }
 
 /// True when `needle_normalized` (already separator-normalized) appears in any
-/// separator-normalized string leaf of `value` — including object keys.
-fn recursively_contains_normalized(value: &Value, needle_normalized: &str) -> bool {
+/// separator-normalized string leaf of `value` — including object keys. Any
+/// node whose reference is in `excluded` (and its subtree) is skipped, so a
+/// slice can carve out a sub-tree that legitimately quotes a forbidden phrase
+/// (e.g. a `claim_boundary` block that enumerates the phrases it forbids)
+/// without self-tripping the scan.
+fn recursively_contains_normalized(
+    value: &Value,
+    needle_normalized: &str,
+    excluded: &[&Value],
+) -> bool {
+    if excluded.iter().any(|node| std::ptr::eq(*node, value)) {
+        return false;
+    }
     match value {
         Value::String(text) => normalize_separators(text).contains(needle_normalized),
         Value::Array(items) => items
             .iter()
-            .any(|item| recursively_contains_normalized(item, needle_normalized)),
+            .any(|item| recursively_contains_normalized(item, needle_normalized, excluded)),
         Value::Object(map) => map.iter().any(|(key, val)| {
             normalize_separators(key).contains(needle_normalized)
-                || recursively_contains_normalized(val, needle_normalized)
+                || recursively_contains_normalized(val, needle_normalized, excluded)
         }),
         _ => false,
     }
@@ -1939,6 +2239,256 @@ mod tests {
             evaluate_configured(&policy_with(slice), &corpus_with(spec))
                 .violations
                 .contains("contract_slice_required_markers_malformed")
+        );
+    }
+
+    // ---- Phase 4: Group B T2 (B4 field_patterns, B3b/B3c forbidden, B5/B6/B7) ----
+
+    #[test]
+    fn field_patterns_enforce_regex_and_bad_pattern_fails_closed() {
+        let slice = json!({
+            "slice_id": "pat",
+            "spec_path": "fixtures/exemplar-slice.json",
+            "required_fields": [],
+            "field_patterns": [{ "field": "signature", "pattern": "^[0-9a-f]{128}$" }]
+        });
+        // green: exactly 128 hex chars.
+        let mut spec = valid_slice_spec();
+        spec["signature"] = json!("a".repeat(128));
+        assert_eq!(
+            evaluate_configured(&policy_with(slice.clone()), &corpus_with(spec)).verdict,
+            Verdict::Green
+        );
+        // red: wrong shape (and a missing field is a mismatch too, fail-closed).
+        let mut spec = valid_slice_spec();
+        spec["signature"] = json!("abcdef");
+        assert!(
+            evaluate_configured(&policy_with(slice), &corpus_with(spec))
+                .violations
+                .contains("contract_slice_pattern_mismatch")
+        );
+        // a malformed regex fails closed rather than accepting everything.
+        let bad = json!({
+            "slice_id": "pat2",
+            "spec_path": "fixtures/exemplar-slice.json",
+            "required_fields": [],
+            "field_patterns": [{ "field": "x", "pattern": "([unclosed" }]
+        });
+        let mut spec = valid_slice_spec();
+        spec["x"] = json!("whatever");
+        assert!(
+            evaluate_configured(&policy_with(bad), &corpus_with(spec))
+                .violations
+                .contains("contract_slice_bad_pattern")
+        );
+    }
+
+    #[test]
+    fn forbidden_field_markers_are_scoped_to_the_field() {
+        let slice = json!({
+            "slice_id": "ffm",
+            "spec_path": "fixtures/exemplar-slice.json",
+            "required_fields": [],
+            "forbidden_field_markers": [
+                { "field": "can_claim_now", "markers": ["cannot claim yet"] }
+            ]
+        });
+        // green: the forbidden phrase appears elsewhere, but not in the scoped field.
+        let mut spec = valid_slice_spec();
+        spec["can_claim_now"] = json!(["residency honored"]);
+        spec["cannot_claim_yet_block"] = json!(["cannot claim yet: runtime migration"]);
+        assert_eq!(
+            evaluate_configured(&policy_with(slice.clone()), &corpus_with(spec)).verdict,
+            Verdict::Green
+        );
+        // red: the phrase leaks into the scoped field.
+        let mut spec = valid_slice_spec();
+        spec["can_claim_now"] = json!(["cannot-claim-yet, oops"]);
+        assert!(
+            evaluate_configured(&policy_with(slice), &corpus_with(spec))
+                .violations
+                .contains("contract_slice_forbidden_field_marker")
+        );
+    }
+
+    #[test]
+    fn marker_exclude_fields_carves_a_subtree_out_of_the_scan() {
+        let make = |exclude: bool| {
+            let mut slice = json!({
+                "slice_id": "excl",
+                "spec_path": "fixtures/exemplar-slice.json",
+                "required_fields": [],
+                "forbidden_markers": ["cannot claim yet"]
+            });
+            if exclude {
+                slice["marker_exclude_fields"] = json!(["claim_boundary"]);
+            }
+            slice
+        };
+        // The spec quotes the forbidden phrase only inside claim_boundary.
+        let mut spec = valid_slice_spec();
+        spec["claim_boundary"] = json!({ "forbids": ["cannot claim yet"] });
+        // without the carve-out the spec self-trips...
+        assert!(
+            evaluate_configured(&policy_with(make(false)), &corpus_with(spec.clone()))
+                .violations
+                .contains("contract_slice_forbidden_marker")
+        );
+        // ...with the carve-out it is green.
+        assert_eq!(
+            evaluate_configured(&policy_with(make(true)), &corpus_with(spec)).verdict,
+            Verdict::Green
+        );
+        // but the same phrase OUTSIDE the excluded subtree still REDs even with the carve-out.
+        let mut spec = valid_slice_spec();
+        spec["claim_boundary"] = json!({ "forbids": ["cannot claim yet"] });
+        spec["headline"] = json!("we cannot claim yet, really");
+        assert!(
+            evaluate_configured(&policy_with(make(true)), &corpus_with(spec))
+                .violations
+                .contains("contract_slice_forbidden_marker")
+        );
+    }
+
+    #[test]
+    fn exact_projected_sequence_enforces_order_and_length() {
+        let slice = json!({
+            "slice_id": "seq",
+            "spec_path": "fixtures/exemplar-slice.json",
+            "required_fields": [],
+            "exact_projected_sequence": [
+                { "field": "stages", "member_field": "name", "values": ["dev", "canary", "prod"] }
+            ]
+        });
+        let mut spec = valid_slice_spec();
+        spec["stages"] = json!([{ "name": "dev" }, { "name": "canary" }, { "name": "prod" }]);
+        assert_eq!(
+            evaluate_configured(&policy_with(slice.clone()), &corpus_with(spec)).verdict,
+            Verdict::Green
+        );
+        // red: reordered (a set/superset check would miss this).
+        let mut spec = valid_slice_spec();
+        spec["stages"] = json!([{ "name": "canary" }, { "name": "dev" }, { "name": "prod" }]);
+        assert!(
+            evaluate_configured(&policy_with(slice.clone()), &corpus_with(spec))
+                .violations
+                .contains("contract_slice_projected_sequence_mismatch")
+        );
+        // red: an extra trailing stage.
+        let mut spec = valid_slice_spec();
+        spec["stages"] =
+            json!([{ "name": "dev" }, { "name": "canary" }, { "name": "prod" }, { "name": "x" }]);
+        assert!(
+            evaluate_configured(&policy_with(slice), &corpus_with(spec))
+                .violations
+                .contains("contract_slice_projected_sequence_mismatch")
+        );
+    }
+
+    #[test]
+    fn array_cardinality_enforces_min_max_and_uniqueness() {
+        let slice = json!({
+            "slice_id": "card",
+            "spec_path": "fixtures/exemplar-slice.json",
+            "required_fields": [],
+            "array_cardinality": [{ "field": "entries", "min": 2, "max": 3, "unique_by": "id" }]
+        });
+        let mut spec = valid_slice_spec();
+        spec["entries"] = json!([{ "id": "a" }, { "id": "b" }]);
+        assert_eq!(
+            evaluate_configured(&policy_with(slice.clone()), &corpus_with(spec)).verdict,
+            Verdict::Green
+        );
+        // below min.
+        let mut spec = valid_slice_spec();
+        spec["entries"] = json!([{ "id": "a" }]);
+        assert!(
+            evaluate_configured(&policy_with(slice.clone()), &corpus_with(spec))
+                .violations
+                .contains("contract_slice_array_below_min")
+        );
+        // duplicate id.
+        let mut spec = valid_slice_spec();
+        spec["entries"] = json!([{ "id": "a" }, { "id": "a" }]);
+        assert!(
+            evaluate_configured(&policy_with(slice.clone()), &corpus_with(spec))
+                .violations
+                .contains("contract_slice_array_not_unique")
+        );
+        // above max.
+        let mut spec = valid_slice_spec();
+        spec["entries"] = json!([{ "id": "a" }, { "id": "b" }, { "id": "c" }, { "id": "d" }]);
+        assert!(
+            evaluate_configured(&policy_with(slice), &corpus_with(spec))
+                .violations
+                .contains("contract_slice_array_above_max")
+        );
+    }
+
+    #[test]
+    fn array_cardinality_malformed_and_bad_field_fail_closed() {
+        // No constraint declared at all -> malformed.
+        let no_constraint = json!({
+            "slice_id": "card2",
+            "spec_path": "fixtures/exemplar-slice.json",
+            "required_fields": [],
+            "array_cardinality": [{ "field": "entries" }]
+        });
+        let mut spec = valid_slice_spec();
+        spec["entries"] = json!([{ "id": "a" }]);
+        assert!(
+            evaluate_configured(&policy_with(no_constraint), &corpus_with(spec))
+                .violations
+                .contains("contract_slice_array_cardinality_malformed")
+        );
+        // Field is not an array -> bad_field.
+        let not_array = json!({
+            "slice_id": "card3",
+            "spec_path": "fixtures/exemplar-slice.json",
+            "required_fields": [],
+            "array_cardinality": [{ "field": "entries", "min": 1 }]
+        });
+        let mut spec = valid_slice_spec();
+        spec["entries"] = json!("not an array");
+        assert!(
+            evaluate_configured(&policy_with(not_array), &corpus_with(spec))
+                .violations
+                .contains("contract_slice_array_cardinality_bad_field")
+        );
+    }
+
+    #[test]
+    fn projected_value_sets_enforce_exact_coverage() {
+        let slice = json!({
+            "slice_id": "vset",
+            "spec_path": "fixtures/exemplar-slice.json",
+            "required_fields": [],
+            "projected_value_sets": [
+                { "field": "rows", "member_field": "class", "exact_values": ["A", "B", "C"] }
+            ]
+        });
+        let mut spec = valid_slice_spec();
+        spec["rows"] = json!([{ "class": "A" }, { "class": "B" }, { "class": "C" }]);
+        assert_eq!(
+            evaluate_configured(&policy_with(slice.clone()), &corpus_with(spec)).verdict,
+            Verdict::Green
+        );
+        // red: a copy-pasted row duplicated B and dropped C.
+        let mut spec = valid_slice_spec();
+        spec["rows"] = json!([{ "class": "A" }, { "class": "B" }, { "class": "B" }]);
+        assert!(
+            evaluate_configured(&policy_with(slice.clone()), &corpus_with(spec))
+                .violations
+                .contains("contract_slice_projected_set_missing")
+        );
+        // red: an unexpected extra class.
+        let mut spec = valid_slice_spec();
+        spec["rows"] =
+            json!([{ "class": "A" }, { "class": "B" }, { "class": "C" }, { "class": "D" }]);
+        assert!(
+            evaluate_configured(&policy_with(slice), &corpus_with(spec))
+                .violations
+                .contains("contract_slice_projected_set_unexpected")
         );
     }
 }
