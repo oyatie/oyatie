@@ -1,0 +1,595 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/residency-attestation-schema.json",
+  "title": "Oyatie Residency Attestation Schema",
+  "description": "RESIDENCY-001 contract-only schema for a signed per-tenant residency footprint. It binds ADR-0326 D-1/D-3/D-4/D-5/D-15 without claiming a runtime attestation service, placement scheduler, cross-border data-plane bar, or production tenant migration.",
+  "type": "object",
+  "additionalProperties": false,
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-RESIDENCY-ATTESTATION-SCHEMA",
+    "version": "0.1.0",
+    "status": "Proposed-contract-slice",
+    "enforcement_status": "advisory-until-residency-validator-and-runtime-gates-land",
+    "source_kanban_task": "t_215c8b00",
+    "lane": "residency/compliance",
+    "binding_adr": "ADR-0326",
+    "source_sections": [
+      "ADR-0326 D-1",
+      "ADR-0326 D-3",
+      "ADR-0326 D-4",
+      "ADR-0326 D-5",
+      "ADR-0326 D-15"
+    ],
+    "owner_team": "council-compliance + axis-tenancy + axis-policy-engine + axis-audit-chain",
+    "created_at": "2026-07-09T00:00:00Z",
+    "related_specs": [
+      "/specs/tenant-model.json",
+      "/specs/regions/registry.json",
+      "/specs/regulatory-regimes/registry.json",
+      "/specs/compliance-pack-residency-matrix.json",
+      "/specs/residency-placement-audit-events.json",
+      "/specs/audit-event-class-registry.json"
+    ],
+    "governance_registration": {
+      "root_hub_pointer_key": "residency_attestation_schema",
+      "artifact_registry_capability_id": "residency-attestation-schema",
+      "owning_registry_path": "/registry/artifact-capabilities-registry.json"
+    }
+  },
+  "claim_boundary": {
+    "contract_schema_only": true,
+    "metadata_only": true,
+    "no_runtime_attestation_service_claim": true,
+    "no_runtime_cell_placement_claim": true,
+    "no_cross_border_data_plane_enforcement_claim": true,
+    "no_tenant_migration_or_activation_claim": true,
+    "does_not_elevate_proposed_adr_to_merge_authority": true,
+    "can_claim_now": [
+      "A machine-readable schema now names the required fields of a signed residency footprint.",
+      "The schema declares conditional tier requirements for single-region, sovereign-cell, and air-gapped-cell attestations.",
+      "The schema points to region/regime registries, the compliance-pack residency matrix, and the residency audit-event contract."
+    ],
+    "cannot_claim_yet": [
+      "live attestation signing or verification exists",
+      "runtime cell placement consults this attestation",
+      "cross-border movement is refused in production",
+      "sovereign or air-gapped cells are certified or active",
+      "branch protection enforces this schema"
+    ]
+  },
+  "required": [
+    "schema_version",
+    "attestation_id",
+    "tenant_id",
+    "tier",
+    "region",
+    "cell_id_or_group",
+    "regulatory_regimes",
+    "compliance_packs",
+    "residency_footprint",
+    "signing_principals",
+    "signatures",
+    "effective_at",
+    "expires_at",
+    "claim_boundary"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1.0"
+    },
+    "attestation_id": {
+      "type": "string",
+      "description": "UUIDv7 attestation id. The id is stable across evidence bundles and audit events.",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "tenant_id": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 253
+    },
+    "parent_tenant_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "tier": {
+      "type": "string",
+      "enum": [
+        "multi_region",
+        "single_region",
+        "sovereign_cell",
+        "airgapped_cell"
+      ]
+    },
+    "region": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-z]{2}(_[a-z0-9]+)+$|^global_multi$"
+    },
+    "cell_id_or_group": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 3
+    },
+    "regulatory_regimes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "EU_CSRD",
+          "EU_GDPR",
+          "EU_AI_ACT",
+          "KR_PIPA",
+          "IN_DPDP",
+          "BR_LGPD",
+          "SA_PDPL",
+          "AE_PDPL",
+          "AU_PRIVACY_ACT",
+          "CN_PIPL",
+          "US_HIPAA",
+          "US_CCPA",
+          "JP_APPI",
+          "CA_PIPEDA"
+        ]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "compliance_packs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z][A-Za-z0-9]*(-[A-Za-z0-9.]+)*$"
+      },
+      "uniqueItems": true
+    },
+    "residency_footprint": {
+      "$ref": "#/$defs/residencyFootprint"
+    },
+    "signing_principals": {
+      "$ref": "#/$defs/signingPrincipals"
+    },
+    "signatures": {
+      "$ref": "#/$defs/signatureBundle"
+    },
+    "offline_channel_protocol": {
+      "$ref": "#/$defs/offlineChannelProtocol"
+    },
+    "effective_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "previous_attestation_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "claim_boundary": {
+      "type": "object",
+      "required": [
+        "signed_footprint_only",
+        "no_runtime_claim"
+      ],
+      "properties": {
+        "signed_footprint_only": {
+          "type": "boolean",
+          "const": true
+        },
+        "no_runtime_claim": {
+          "type": "boolean",
+          "const": true
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "residencyFootprint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "home_region",
+        "allowed_regions",
+        "allowed_jurisdictions",
+        "cell_scope",
+        "permitted_cell_ids_or_groups",
+        "prohibited_cell_ids_or_groups",
+        "cross_border_transfer_policy",
+        "backup_dr_footprint",
+        "audit_chain_shard_policy",
+        "source_registry_hashes"
+      ],
+      "properties": {
+        "home_region": {
+          "type": "string"
+        },
+        "allowed_regions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "allowed_jurisdictions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "cell_scope": {
+          "type": "string",
+          "enum": [
+            "global",
+            "region",
+            "cell_group",
+            "dedicated_cell",
+            "airgapped_cell"
+          ]
+        },
+        "permitted_cell_ids_or_groups": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "prohibited_cell_ids_or_groups": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "cross_border_transfer_policy": {
+          "type": "string",
+          "enum": [
+            "audit_only",
+            "deny_without_explicit_consent",
+            "deny_without_regulator_or_cedar_permit",
+            "deny_all_public_network"
+          ]
+        },
+        "explicit_cross_border_consent_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "backup_dr_footprint": {
+          "type": "object",
+          "required": [
+            "backup_regions",
+            "dr_failover_regions",
+            "cross_region_backup_allowed"
+          ],
+          "properties": {
+            "backup_regions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "dr_failover_regions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "cross_region_backup_allowed": {
+              "type": "boolean"
+            }
+          }
+        },
+        "audit_chain_shard_policy": {
+          "type": "object",
+          "required": [
+            "shard_region",
+            "replication_scope",
+            "query_cross_border_requires_permit"
+          ],
+          "properties": {
+            "shard_region": {
+              "type": "string"
+            },
+            "replication_scope": {
+              "type": "string",
+              "enum": [
+                "global",
+                "allowed_regions",
+                "home_region_only",
+                "offline_export_only"
+              ]
+            },
+            "query_cross_border_requires_permit": {
+              "type": "boolean"
+            }
+          }
+        },
+        "source_registry_hashes": {
+          "type": "object",
+          "required": [
+            "regions_registry_sha256",
+            "regimes_registry_sha256",
+            "pack_matrix_sha256"
+          ],
+          "properties": {
+            "regions_registry_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "regimes_registry_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "pack_matrix_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        }
+      }
+    },
+    "signingPrincipals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tenant_signing_principal",
+        "oyatie_compliance_signing_principal"
+      ],
+      "properties": {
+        "tenant_signing_principal": {
+          "type": "string"
+        },
+        "oyatie_compliance_signing_principal": {
+          "type": "string"
+        },
+        "regulatory_attestor_principal": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "principal_revocation_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "signatureBundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "signature_algorithm",
+        "canonicalization",
+        "tenant_signature",
+        "oyatie_compliance_signature"
+      ],
+      "properties": {
+        "signature_algorithm": {
+          "type": "string",
+          "const": "ed25519"
+        },
+        "canonicalization": {
+          "type": "string",
+          "const": "canonical-cbor-excluding-signatures"
+        },
+        "tenant_signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{86}$"
+        },
+        "oyatie_compliance_signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{86}$"
+        },
+        "regulatory_attestor_signature": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[A-Za-z0-9_-]{86}$"
+        }
+      }
+    },
+    "offlineChannelProtocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol_id",
+        "inbound_media",
+        "outbound_audit_export",
+        "emergency_channel",
+        "operator_presence"
+      ],
+      "properties": {
+        "protocol_id": {
+          "type": "string",
+          "const": "airgapped-cell-offline-channel-v0.1"
+        },
+        "inbound_media": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "accepted_media",
+            "tuf_metadata_required",
+            "dual_operator_review_required"
+          ],
+          "properties": {
+            "accepted_media": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1
+            },
+            "tuf_metadata_required": {
+              "type": "boolean",
+              "const": true
+            },
+            "dual_operator_review_required": {
+              "type": "boolean",
+              "const": true
+            },
+            "routine_network_ingress_forbidden": {
+              "type": "boolean"
+            }
+          }
+        },
+        "outbound_audit_export": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "cadence",
+            "merkle_root_required",
+            "in_jurisdiction_sink_required"
+          ],
+          "properties": {
+            "cadence": {
+              "type": "string",
+              "pattern": "^P(?:\\d+[YMWD])+$"
+            },
+            "signed_media_required": {
+              "type": "boolean"
+            },
+            "merkle_root_required": {
+              "type": "boolean",
+              "const": true
+            },
+            "in_jurisdiction_sink_required": {
+              "type": "boolean",
+              "const": true
+            }
+          }
+        },
+        "emergency_channel": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "one_way_only",
+            "routine_data_movement_forbidden"
+          ],
+          "properties": {
+            "one_way_only": {
+              "type": "boolean",
+              "const": true
+            },
+            "routine_data_movement_forbidden": {
+              "type": "boolean",
+              "const": true
+            },
+            "event_class_on_use": {
+              "type": "string"
+            }
+          }
+        },
+        "operator_presence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "minimum_cadence",
+            "attestation_refresh_required",
+            "key_rotation_required"
+          ],
+          "properties": {
+            "minimum_cadence": {
+              "type": "string",
+              "pattern": "^P(?:\\d+[YMWD])+$"
+            },
+            "attestation_refresh_required": {
+              "type": "boolean",
+              "const": true
+            },
+            "key_rotation_required": {
+              "type": "boolean",
+              "const": true
+            }
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "tier": {
+            "const": "single_region"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "region"
+        ],
+        "properties": {
+          "region": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "tier": {
+            "enum": [
+              "sovereign_cell",
+              "airgapped_cell"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "region",
+          "cell_id_or_group"
+        ],
+        "properties": {
+          "region": {
+            "type": "string"
+          },
+          "cell_id_or_group": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "tier": {
+            "const": "airgapped_cell"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "offline_channel_protocol"
+        ]
+      }
+    }
+  ]
+}

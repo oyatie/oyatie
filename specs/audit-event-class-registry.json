@@ -2,8 +2,8 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.com/specs/audit-event-class-registry.schema.json",
   "title": "Oyatie Audit Event Class Registry Schema",
-  "description": "Canonical JSON Schema 2020-12 contract and known-class registry for audit-event classes governed by ADR-0263. The registry binds emitted event classes from ADR-0297 abuse defence, ADR-0313 conglomerate tenant hierarchy, and ADR-0319 front/middle/back-office information barrier into one machine-readable surface. Every new doctrine ADR that introduces audit events must extend this registry and keep ADR-0263 reverse references current.",
-  "version": "1.0.0",
+  "description": "Canonical JSON Schema 2020-12 contract and known-class registry for audit-event classes governed by ADR-0263. The registry binds emitted event classes from ADR-0297 abuse defence, ADR-0313 conglomerate tenant hierarchy, ADR-0319 front/middle/back-office information barrier, and ADR-0326 residency attestation/placement/cross-border events into one machine-readable surface. Every new doctrine ADR that introduces audit events must extend this registry and keep ADR-0263 reverse references current.",
+  "version": "1.1.0",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-AUDIT-EVENT-CLASS-REGISTRY",
@@ -19,7 +19,8 @@
       "ADR-0263",
       "ADR-0297",
       "ADR-0313",
-      "ADR-0319"
+      "ADR-0319",
+      "ADR-0326"
     ],
     "purpose": "Define the registry row shape for every approved audit-event class and expose the current known class set from ADR-0263. The validator refuses OpenAPI, AsyncAPI, proto, Cedar, workflow, and observability contracts that emit free-form or unregistered classes."
   },
@@ -199,7 +200,20 @@
         "AdvisorRelationshipBarrierAttemptEvaluated",
         "OfficePackOverlayActivated",
         "OfficePackOverlayChanged",
-        "OfficePackOverlayRetired"
+        "OfficePackOverlayRetired",
+        "TenancyResidencyAttestationCreated",
+        "TenancyResidencyAttestationRefreshed",
+        "TenancyResidencyAttestationExpired",
+        "TenancyResidencyAttestationSignatureInvalid",
+        "TenancyResidencyAttestationMissing",
+        "TenancyResidencyPlacementDecided",
+        "TenancyResidencyPlacementRefused",
+        "TenancyResidencyCrossBorderRefused",
+        "TenancyResidencyCrossBorderPermitted",
+        "TenancyResidencyTierUpgraded",
+        "TenancyResidencyTierDowngraded",
+        "TenancyResidencyPackBindingChanged",
+        "TenancyResidencyRegulatoryAttestorEngaged"
       ]
     },
     "severity": {
@@ -660,6 +674,84 @@
       "originating_adr": "ADR-0319",
       "category": "information-barrier",
       "summary": "Office pack overlay is retired."
+    },
+    {
+      "event_class": "TenancyResidencyAttestationCreated",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "Signed per-tenant residency footprint is created and linked to its region/regime source hashes."
+    },
+    {
+      "event_class": "TenancyResidencyAttestationRefreshed",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "Residency attestation is refreshed with a new signature chain and previous attestation reference."
+    },
+    {
+      "event_class": "TenancyResidencyAttestationExpired",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "Residency attestation expiry or grace-window handling is recorded for compliance follow-up."
+    },
+    {
+      "event_class": "TenancyResidencyAttestationSignatureInvalid",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "Residency attestation signature verification fails and the dependent operation must fail closed."
+    },
+    {
+      "event_class": "TenancyResidencyAttestationMissing",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "Placement or cross-border operation lacks a current tenant residency attestation."
+    },
+    {
+      "event_class": "TenancyResidencyPlacementDecided",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "Cell placement candidates are filtered against the tenant's attested residency footprint."
+    },
+    {
+      "event_class": "TenancyResidencyPlacementRefused",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "No placement candidate satisfies the signed residency footprint, so placement is refused."
+    },
+    {
+      "event_class": "TenancyResidencyCrossBorderRefused",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "A requested cross-border operation is outside the tenant footprint and is refused."
+    },
+    {
+      "event_class": "TenancyResidencyCrossBorderPermitted",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "A cross-border operation is permitted because the footprint, consent, or Cedar permit allows it."
+    },
+    {
+      "event_class": "TenancyResidencyTierUpgraded",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "Tenant residency tier is upgraded and the attestation chain records the stricter posture."
+    },
+    {
+      "event_class": "TenancyResidencyTierDowngraded",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "Tenant residency tier is downgraded after explicit acknowledgement of reduced guarantees."
+    },
+    {
+      "event_class": "TenancyResidencyPackBindingChanged",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "Compliance-pack residency implications are evaluated and may allow or refuse pack activation."
+    },
+    {
+      "event_class": "TenancyResidencyRegulatoryAttestorEngaged",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "A regime-mandated regulatory attestor participates in the residency signature chain."
     }
   ],
   "examples": [

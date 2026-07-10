@@ -290,7 +290,7 @@
       "prefix": "scripts/tests/dr_001_rto_rpo_matrix_slice_check.py"
     },
     {
-      "anchor": "ADR-0555 + ADR-0343: narrow ownership marker for the local bridge test corpus, added with the DR-001 first-slice validator so the temporary script remains owned while merge authority stays in cloud-ci/Rust gates.",
+      "anchor": "ADR-0555 + ADR-0343 + ADR-0326 RESIDENCY-001: narrow ownership marker for the local bridge test corpus, covering the DR-001 first-slice validator and the (now-retired) residency contract-only validator bridge, while merge authority stays in cloud-ci/Rust gates.",
       "prefix": "scripts/tests/OWNERS"
     },
     {

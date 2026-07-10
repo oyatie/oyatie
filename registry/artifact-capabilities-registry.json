@@ -2404,6 +2404,166 @@
       }
     },
     {
+      "artifact_id": "residency-attestation-schema",
+      "artifact_path": "/specs/residency-attestation-schema.json",
+      "artifact_format": "json",
+      "contract_version": "v0.1.0",
+      "owner_team": "council-compliance + axis-tenancy + axis-policy-engine + axis-audit-chain",
+      "purpose_short": "RESIDENCY-001 schema-only signed per-tenant residency footprint contract with tier conditionals, signing principals, cross-border policy, source-registry hashes, and no runtime enforcement claim.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "residency-attestation-contract-slice"
+        },
+        "verification": {
+          "checker_crate": "//ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
+          "command": "buck2 test //ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate"
+        },
+        "validation": {
+          "validator": "JSON syntax plus RESIDENCY-001 structural assertions for tiers, signatures, footprint, registries, matrix, and audit-event refs"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored contract schema"
+        },
+        "selfheal": {
+          "healer": "manual-with-review until residency contract gate lands"
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "pending RESIDENCY-001 independent review",
+          "last_modified_at": "2026-07-09T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "residency-region-registry",
+      "artifact_path": "/specs/regions/registry.json",
+      "artifact_format": "json",
+      "contract_version": "v0.1.0",
+      "owner_team": "council-compliance + platform-cell + ops-sre-reliability",
+      "purpose_short": "RESIDENCY-001 contract-only region id registry for attestations; names jurisdiction families, supported tiers, cell-group patterns, and data boundaries without live-cell or certification claims.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "residency-region-registry-contract-slice"
+        },
+        "verification": {
+          "checker_crate": "//ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
+          "command": "buck2 test //ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate"
+        },
+        "validation": {
+          "validator": "JSON syntax plus region-id/tier/cell-pattern/source-regime assertions"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored registry"
+        },
+        "selfheal": {
+          "healer": "manual-with-review until residency registry gate lands"
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "pending RESIDENCY-001 independent review",
+          "last_modified_at": "2026-07-09T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "residency-regulatory-regime-registry",
+      "artifact_path": "/specs/regulatory-regimes/registry.json",
+      "artifact_format": "json",
+      "contract_version": "v0.1.0",
+      "owner_team": "council-compliance + council-legal + council-privacy",
+      "purpose_short": "RESIDENCY-001 contract-only regulatory regime registry with default minimum tiers, region allowlists, cross-border transfer policies, attestor requirements, and no legal-sufficiency claim.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "residency-regulatory-regime-registry-contract-slice"
+        },
+        "verification": {
+          "checker_crate": "//ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
+          "command": "buck2 test //ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate"
+        },
+        "validation": {
+          "validator": "JSON syntax plus regime-id/tier/region/attestor cross-reference assertions"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored registry"
+        },
+        "selfheal": {
+          "healer": "manual-with-review until residency registry gate lands"
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "pending RESIDENCY-001 independent review",
+          "last_modified_at": "2026-07-09T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "compliance-pack-residency-matrix",
+      "artifact_path": "/specs/compliance-pack-residency-matrix.json",
+      "artifact_format": "json",
+      "contract_version": "v0.1.0",
+      "owner_team": "council-compliance + council-privacy + platform-tenancy",
+      "purpose_short": "RESIDENCY-001 matrix-only mapping from compliance packs to minimum residency tier, allowed regions, regime refs, strictest-tier resolution, and pack-binding refusal codes, including the KR PIPA fixture pack.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "residency-compliance-pack-matrix-contract-slice"
+        },
+        "verification": {
+          "checker_crate": "//ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
+          "command": "buck2 test //ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate"
+        },
+        "validation": {
+          "validator": "JSON syntax plus pack/tier/regime/region and strictest-tier assertions"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored matrix"
+        },
+        "selfheal": {
+          "healer": "manual-with-review until residency matrix gate lands"
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "pending RESIDENCY-001 independent review",
+          "last_modified_at": "2026-07-09T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "residency-placement-audit-events",
+      "artifact_path": "/specs/residency-placement-audit-events.json",
+      "artifact_format": "json",
+      "contract_version": "v0.1.0",
+      "owner_team": "axis-audit-chain + council-compliance + platform-cell",
+      "purpose_short": "RESIDENCY-001 event-contract-only specification for residency attestation, placement decision/refusal, cross-border permit/refusal, pack binding, regulatory attestor, and offline-channel semantics.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "residency-placement-audit-events-contract-slice"
+        },
+        "verification": {
+          "checker_crate": "//ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
+          "command": "buck2 test //ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate"
+        },
+        "validation": {
+          "validator": "JSON syntax plus wire-class, registry-class, payload, severity, and no-emitter-claim assertions"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored event contract"
+        },
+        "selfheal": {
+          "healer": "manual-with-review until residency audit-event gate lands"
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "pending RESIDENCY-001 independent review",
+          "last_modified_at": "2026-07-09T00:00:00Z"
+        }
+      }
+    },
+    {
       "artifact_id": "vulnerability-intelligence-sbom-vex-pipeline",
       "artifact_path": "/specs/vulnerability-intelligence-sbom-vex-pipeline.json",
       "artifact_format": "json",
