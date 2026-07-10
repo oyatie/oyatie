@@ -71,6 +71,6 @@ docs/PRD.md @teams/council-architecture
 docs/DESIGN.md @teams/council-architecture
 docs/SPEC.md @teams/platform-api-sdk @teams/council-architecture
 docs/PRIVACY-PROGRAM.md @teams/council-privacy
-docs/SECURITY-PROGRAM.md @teams/ops-security
+docs/security-program/security-program.json @teams/ops-security
 docs/COMPLIANCE-MATRIX.md @teams/ops-compliance
 docs/RACI-OWNERSHIP.md @teams/council-architecture

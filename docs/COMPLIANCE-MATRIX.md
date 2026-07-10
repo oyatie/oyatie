@@ -7,7 +7,7 @@ doc_status: published
 
 > **Status:** Draft v0.1 — 2026-05-09. The compliance matrix is the regulator × control × evidence × cadence × owner table that aggregates every regulator Oyatie binds to via regional packs and verticals.
 > **Owner:** `ops-compliance`. Updates per [DOC-CATALOG.md `doc.compliance_matrix`](DOC-CATALOG.md) (monthly + per EVT-REGULATORY-CHANGE / EVT-AUDIT-FINDING).
-> **Companion:** [`machine-readable/compliance.json`](machine-readable/compliance.json), [`PRIVACY-PROGRAM.md`](PRIVACY-PROGRAM.md), [`SECURITY-PROGRAM.md`](SECURITY-PROGRAM.md).
+> **Companion:** [`machine-readable/compliance.json`](machine-readable/compliance.json), [`PRIVACY-PROGRAM.md`](PRIVACY-PROGRAM.md), [`security-program/security-program.json`](security-program/security-program.json).
 
 ---
 

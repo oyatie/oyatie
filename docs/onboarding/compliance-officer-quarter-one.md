@@ -103,7 +103,7 @@ Day-one artifact checklist:
 
 Read these files in order. Do not browse randomly; the order teaches authority, doctrine, contract, implementation, test, and operational evidence.
 1. docs/PRIVACY-PROGRAM.md
-2. docs/SECURITY-PROGRAM.md
+2. docs/security-program/security-program.json
 3. docs/RISK-REGISTER.md
 4. docs/VENDOR-PARTNER-LEDGER.md
 5. docs/standards/privacy-review.md
@@ -360,7 +360,7 @@ Handoff rules:
 ## Resources & References
 
 - docs/PRIVACY-PROGRAM.md
-- docs/SECURITY-PROGRAM.md
+- docs/security-program/security-program.json
 - docs/RISK-REGISTER.md
 - docs/standards/privacy-review.md
 - docs/runbooks/dsr-cascade-with-evidence.md
@@ -384,7 +384,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row COMP-001 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill COMP-002: lawful basis mapping
-- Read: docs/SECURITY-PROGRAM.md
+- Read: docs/security-program/security-program.json
 - Connects to: regional pack composition and regulator anchor mapping
 - Build or inspect: a minimal artifact that proves lawful basis mapping without widening beyond compliance officer, data protection officer, or privacy counsel.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for lawful basis mapping.
@@ -534,7 +534,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row COMP-016 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill COMP-017: tenant onboarding packet
-- Read: docs/SECURITY-PROGRAM.md
+- Read: docs/security-program/security-program.json
 - Connects to: build-ahead-of-certification claim boundary
 - Build or inspect: a minimal artifact that proves tenant onboarding packet without widening beyond compliance officer, data protection officer, or privacy counsel.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for tenant onboarding packet.
@@ -684,7 +684,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row COMP-031 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill COMP-032: evidence cadence miss
-- Read: docs/SECURITY-PROGRAM.md
+- Read: docs/security-program/security-program.json
 - Connects to: regional pack composition and regulator anchor mapping
 - Build or inspect: a minimal artifact that proves evidence cadence miss without widening beyond compliance officer, data protection officer, or privacy counsel.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for evidence cadence miss.
@@ -834,7 +834,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row COMP-046 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill COMP-047: audit export request
-- Read: docs/SECURITY-PROGRAM.md
+- Read: docs/security-program/security-program.json
 - Connects to: build-ahead-of-certification claim boundary
 - Build or inspect: a minimal artifact that proves audit export request without widening beyond compliance officer, data protection officer, or privacy counsel.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for audit export request.
@@ -984,7 +984,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row COMP-061 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill COMP-062: data residency exception
-- Read: docs/SECURITY-PROGRAM.md
+- Read: docs/security-program/security-program.json
 - Connects to: regional pack composition and regulator anchor mapping
 - Build or inspect: a minimal artifact that proves data residency exception without widening beyond compliance officer, data protection officer, or privacy counsel.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for data residency exception.

@@ -206,6 +206,14 @@
       "prefix": "docs/decisions/"
     },
     {
+      "anchor": "ADR-0052 KEEP-inventory: security governance program (de-staled from SECURITY-PROGRAM.md); homed in its own docs/security-program/ subtree so ADR-0555 nearest-ancestor OWNERS can own it without over-claiming docs/.",
+      "prefix": "docs/security-program/security-program.json"
+    },
+    {
+      "anchor": "ADR-0555 ownership seed: docs/security-program/ subtree OWNERS marker (ops-security) — narrow subtree owner for the retired security program, avoiding a blanket docs/ claim.",
+      "prefix": "docs/security-program/OWNERS"
+    },
+    {
       "anchor": "ADR-0515 cloud-native posture projection: the reviewer-facing standards doc is the accepted no-CLI/no-shell infrastructure automation review surface, linked from the standards index and docs hub; exact path keeps the new prose artifact born-reachable under ADR-0555.",
       "prefix": "docs/standards/cloud-native-infrastructure-automation.md"
     },

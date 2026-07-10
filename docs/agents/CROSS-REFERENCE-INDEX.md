@@ -43,7 +43,7 @@ doc_status: published
 | `docs/GLOSSARY.md` | Glossary | Canonical vocabulary | council-architecture | Tier 1 | `oya-governance-glossary` | 2026-05-12 | every doc using domain terms |
 | `docs/RACI-OWNERSHIP.md` | RACI | Per-domain RACI rows | council-architecture | Tier 1 | `oya-governance-raci-coverage` | 2026-05-12 | AGENTS, MASTERPLAN |
 | `docs/RISK-REGISTER.md` | Register | Top risks RM-NN with owner + status | council-architecture | Tier 1 | `oya-governance-risk-coverage` | 2026-05-12 | MASTERPLAN §9 |
-| `docs/PRIVACY-PROGRAM.md` / `docs/SECURITY-PROGRAM.md` / `docs/COMPLIANCE-MATRIX.md` | Programs | Cross-cutting compliance | council-privacy / ops-security / ops-compliance | Tier 1 | `oya-governance-privacy-coverage`, `-security-coverage` | 2026-05-12 | AGENTS pre-flight |
+| `docs/PRIVACY-PROGRAM.md` / `docs/security-program/security-program.json` / `docs/COMPLIANCE-MATRIX.md` | Programs | Cross-cutting compliance | council-privacy / ops-security / ops-compliance | Tier 1 | `oya-governance-privacy-coverage`, `-security-coverage` | 2026-05-12 | AGENTS pre-flight |
 | `docs/RELEASE-MANAGEMENT.md` / `docs/INCIDENT-MANAGEMENT.md` | Programs | Release + incident process | ops-sre-reliability | Tier 1 | `oya-governance-release-readiness` | 2026-05-12 | AGENTS, runbooks |
 | `docs/RUNBOOKS-INDEX.md` | Index | Runbook discovery | ops-sre-reliability | Tier 1 | `oya-governance-runbook-index-resolves` | 2026-05-12 | every runbook |
 | `docs/SLO-CATALOG.md` | Catalog | Service-level objectives | ops-sre-reliability | Tier 1 | `oya-governance-error-budget-gate` | 2026-05-12 | RELEASE-MGMT |
