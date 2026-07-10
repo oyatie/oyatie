@@ -62,6 +62,21 @@ remediation through the same signed + attested + capability-declared contract; a
 capability is default-DENIED at registration; the bot's PR is subject to the adopter's full fan-in +
 human merge.
 
+## Governed surfaces
+
+The following repo paths are governed by this ADR. The accounting gate validates that each is justified
+(this ADR is the justification reference):
+
+`Cargo.lock`
+`registry/catalog/oya-bot-autofix-app.yaml`
+`specs/capability-registry.json`
+`tools/oya-bot-autofix-app/BUCK`
+`tools/oya-bot-autofix-app/Cargo.toml`
+`tools/oya-bot-autofix-app/OWNERS`
+`tools/oya-bot-autofix-app/src/lib.rs`
+`tools/oya-bot-autofix-app/src/main.rs`
+`tools/oya-bot-autofix-app/tests/dry_run.rs`
+
 ## Drivers
 
 - The auto-fix-on-a-third-party-repo trust/security + supply-chain surface demands the dangerous
