@@ -345,14 +345,17 @@ fn evaluate_slice(
             let whole_spec = requirement.get("scope").and_then(Value::as_str) == Some("whole_spec");
             let target_field = requirement.get("field").and_then(Value::as_str);
             // Fail-closed on shape: an empty markers list is a silent no-op that
-            // enforces nothing; an unknown quantifier/scope, or a missing field when
-            // not searching the whole spec, would evaluate vacuously — all must RED.
+            // enforces nothing; a non-string markers element would be dropped; an
+            // unknown quantifier/scope, or a missing field when not searching the
+            // whole spec, would evaluate vacuously — all must RED.
             let bad_quantifier = !matches!(quantifier, "all_of" | "any_of");
             let bad_scope = requirement
                 .get("scope")
                 .is_some_and(|s| s.as_str() != Some("whole_spec"));
             let bad_field = !whole_spec && target_field.is_none_or(str::is_empty);
-            if markers.is_empty() || bad_quantifier || bad_scope || bad_field {
+            let bad_markers =
+                markers.is_empty() || has_non_string_element(requirement.get("markers"));
+            if bad_markers || bad_quantifier || bad_scope || bad_field {
                 findings.insert(Finding::new(
                     "contract_slice_required_markers_malformed",
                     format!("{slice_id}:{}", target_field.unwrap_or("<no-field>")),
@@ -398,15 +401,18 @@ fn evaluate_slice(
         }
     }
 
-    // 3. Enum constraints: the dotted field's scalar value must be allowed.
-    //    `actual` is canonicalized via `scalar_str` so a JSON number/bool leaf
-    //    (e.g. a pinned `14.4` threshold or `90`-day lifetime) compares equal to
-    //    the policy's string-authored `allowed` literal, not just string leaves.
+    // 3. Enum constraints: the dotted field's STRING value must be allowed. By
+    //    default this is type-preserving string equality (a spec number `90` does
+    //    NOT satisfy `allowed: ["90"]`), so a type-sensitive Python `==` converts
+    //    faithfully. A constraint may opt into scalar canonicalization with
+    //    `match_scalar: true` to pin a numeric/bool leaf authored as a string
+    //    literal (e.g. a `14.4` threshold). A non-string element in `allowed` is a
+    //    mistyped list and fails closed.
     if let Some(constraints) = slice.get("enum_constraints").and_then(Value::as_array) {
         for constraint in constraints {
             check_keys(
                 constraint,
-                &["field", "allowed"],
+                &["field", "allowed", "match_scalar"],
                 slice_id,
                 "enum_constraints",
                 findings,
@@ -415,12 +421,27 @@ fn evaluate_slice(
                 .get("field")
                 .and_then(Value::as_str)
                 .unwrap_or("");
+            if has_non_string_element(constraint.get("allowed")) {
+                findings.insert(Finding::new(
+                    "contract_slice_malformed_policy_value",
+                    format!("{slice_id}:enum_constraints.allowed:{field}"),
+                ));
+                continue;
+            }
             let allowed: Vec<&str> = constraint
                 .get("allowed")
                 .and_then(Value::as_array)
                 .map(|a| a.iter().filter_map(Value::as_str).collect())
                 .unwrap_or_default();
-            let actual = get_dotted(spec, field).and_then(scalar_str);
+            let match_scalar =
+                constraint.get("match_scalar").and_then(Value::as_bool) == Some(true);
+            let actual = if match_scalar {
+                get_dotted(spec, field).and_then(scalar_str)
+            } else {
+                get_dotted(spec, field)
+                    .and_then(Value::as_str)
+                    .map(str::to_owned)
+            };
             if !actual.is_some_and(|value| allowed.contains(&value.as_str())) {
                 findings.insert(Finding::new(
                     "contract_slice_enum_violation",
@@ -433,9 +454,12 @@ fn evaluate_slice(
     // 4. Required array members: a dotted array field must contain (be a
     //    superset of) every declared member. Covers "this contract must enumerate
     //    exactly these source ADRs / nonclaims / filters" without hardcoding them
-    //    in Rust — they stay data in the policy. Array elements are canonicalized
-    //    via `scalar_str` so a JSON number array (e.g. pinned rollout-stage
-    //    percentages) is checked the same as a string array.
+    //    in Rust — they stay data in the policy. Matching is type-preserving
+    //    string membership by default (a numeric spec element does NOT satisfy a
+    //    string-authored member); `match_scalar: true` opts into scalar
+    //    canonicalization for a JSON number array (e.g. pinned rollout-stage
+    //    percentages). A non-string element in `members` is a mistyped list and
+    //    fails closed.
     if let Some(requirements) = slice
         .get("required_array_members")
         .and_then(Value::as_array)
@@ -443,7 +467,7 @@ fn evaluate_slice(
         for requirement in requirements {
             check_keys(
                 requirement,
-                &["field", "members"],
+                &["field", "members", "match_scalar"],
                 slice_id,
                 "required_array_members",
                 findings,
@@ -452,9 +476,28 @@ fn evaluate_slice(
                 .get("field")
                 .and_then(Value::as_str)
                 .unwrap_or("");
+            if has_non_string_element(requirement.get("members")) {
+                findings.insert(Finding::new(
+                    "contract_slice_malformed_policy_value",
+                    format!("{slice_id}:required_array_members.members:{field}"),
+                ));
+                continue;
+            }
+            let match_scalar =
+                requirement.get("match_scalar").and_then(Value::as_bool) == Some(true);
             let present: Vec<String> = get_dotted(spec, field)
                 .and_then(Value::as_array)
-                .map(|a| a.iter().filter_map(scalar_str).collect())
+                .map(|a| {
+                    a.iter()
+                        .filter_map(|element| {
+                            if match_scalar {
+                                scalar_str(element)
+                            } else {
+                                element.as_str().map(str::to_owned)
+                            }
+                        })
+                        .collect()
+                })
                 .unwrap_or_default();
             for member in requirement
                 .get("members")
@@ -492,6 +535,13 @@ fn evaluate_slice(
                 .get("field")
                 .and_then(Value::as_str)
                 .unwrap_or("");
+            if has_non_string_element(requirement.get("values")) {
+                findings.insert(Finding::new(
+                    "contract_slice_malformed_policy_value",
+                    format!("{slice_id}:exact_array_fields.values:{field}"),
+                ));
+                continue;
+            }
             let expected: Vec<&str> = requirement
                 .get("values")
                 .and_then(Value::as_array)
@@ -533,7 +583,14 @@ fn evaluate_slice(
     // 4b'. Required-false fields: the mirror of required_true_fields — a dotted
     //      field must be boolean `false`. Pins a negative default (e.g. a
     //      `non_necessary_default == false` claim-control) that required-fields
-    //      presence alone cannot (presence accepts `true`).
+    //      presence alone cannot (presence accepts `true`). A non-string element in
+    //      the list is a mistyped config and fails closed.
+    if has_non_string_element(slice.get("required_false_fields")) {
+        findings.insert(Finding::new(
+            "contract_slice_malformed_policy_value",
+            format!("{slice_id}:required_false_fields"),
+        ));
+    }
     for field in string_array(slice, "required_false_fields") {
         if get_dotted(spec, &field).and_then(Value::as_bool) != Some(false) {
             findings.insert(Finding::new(
@@ -681,7 +738,15 @@ fn evaluate_slice(
                         continue;
                     }
                     let if_field = if_field.unwrap_or_default();
-                    if get_dotted(object, if_field).and_then(Value::as_bool) != Some(true) {
+                    // Trigger the implication when the antecedent is boolean `true`
+                    // OR present-but-wrong-typed (a string `"true"` must not silently
+                    // disable the rule — fail closed). Absent / null / boolean `false`
+                    // does not trigger.
+                    let triggered = !matches!(
+                        get_dotted(object, if_field),
+                        None | Some(Value::Null) | Some(Value::Bool(false))
+                    );
+                    if !triggered {
                         continue;
                     }
                     for then_field in then_required {
@@ -744,7 +809,10 @@ fn evaluate_slice(
                 .get("field")
                 .and_then(Value::as_str)
                 .unwrap_or("");
-            let Some(pattern) = requirement.get("pattern").and_then(Value::as_str) else {
+            let pattern = requirement.get("pattern").and_then(Value::as_str);
+            // Fail-closed: a missing or EMPTY pattern would match everything
+            // (`Regex::new("")` is Ok and matches any input) — a vacuous green.
+            let Some(pattern) = pattern.filter(|p| !p.is_empty()) else {
                 findings.insert(Finding::new(
                     "contract_slice_bad_pattern",
                     format!("{slice_id}:{field}"),
@@ -796,6 +864,13 @@ fn evaluate_slice(
                 .get("member_field")
                 .and_then(Value::as_str)
                 .unwrap_or("");
+            if has_non_string_element(requirement.get("values")) {
+                findings.insert(Finding::new(
+                    "contract_slice_malformed_policy_value",
+                    format!("{slice_id}:exact_projected_sequence.values:{field}"),
+                ));
+                continue;
+            }
             let expected: Vec<&str> = requirement
                 .get("values")
                 .and_then(Value::as_array)
@@ -838,6 +913,25 @@ fn evaluate_slice(
             let min = requirement.get("min").and_then(Value::as_u64);
             let max = requirement.get("max").and_then(Value::as_u64);
             let unique_by = requirement.get("unique_by").and_then(Value::as_str);
+            // Fail-closed: a present-but-wrong-typed bound (e.g. `min: "1"`) would be
+            // read as absent and silently ignored, weakening the check.
+            let bad_bound = |name: &str| {
+                requirement
+                    .get(name)
+                    .is_some_and(|value| value.as_u64().is_none())
+            };
+            if bad_bound("min")
+                || bad_bound("max")
+                || requirement
+                    .get("unique_by")
+                    .is_some_and(|value| !value.is_string())
+            {
+                findings.insert(Finding::new(
+                    "contract_slice_array_cardinality_malformed",
+                    format!("{slice_id}:{field}"),
+                ));
+                continue;
+            }
             if min.is_none() && max.is_none() && unique_by.is_none() {
                 findings.insert(Finding::new(
                     "contract_slice_array_cardinality_malformed",
@@ -908,6 +1002,13 @@ fn evaluate_slice(
                 .get("member_field")
                 .and_then(Value::as_str)
                 .unwrap_or("");
+            if has_non_string_element(requirement.get("exact_values")) {
+                findings.insert(Finding::new(
+                    "contract_slice_malformed_policy_value",
+                    format!("{slice_id}:projected_value_sets.exact_values:{field}"),
+                ));
+                continue;
+            }
             let expected: BTreeSet<&str> = requirement
                 .get("exact_values")
                 .and_then(Value::as_array)
@@ -1029,52 +1130,34 @@ fn evaluate_conditional_assertion(
     let target_field = assertion.get("field").and_then(Value::as_str).unwrap_or("");
     let key = format!("{slice_id}:{field}:{member_id}:{target_field}");
 
-    // Exactly one selector. Reject BOTH selectors present (the pre-hardening code
-    // silently honored only `when_member`), and reject a malformed selector
-    // (non-string `when_member` / non-array `when_member_in`) rather than falling
-    // through to the applies-to-every-member default.
+    // Validate the assertion SHAPE first, independent of whether the selector
+    // matches this row: a malformed selector/mode on a row the selector skips must
+    // still RED, otherwise a typo'd rule that happens to match no committed row is a
+    // silent fail-open.
     let when_member = assertion.get("when_member");
     let when_member_in = assertion.get("when_member_in");
-    if when_member.is_some() && when_member_in.is_some() {
+
+    // Exactly one selector, well-typed: reject both present, a non-string
+    // `when_member`, and a `when_member_in` that is not an array of only strings
+    // (a non-string element would be silently dropped and narrow the selector).
+    let selector_ok = match (when_member, when_member_in) {
+        (Some(_), Some(_)) => false,
+        (Some(one), None) => one.is_string(),
+        (None, Some(many)) => many
+            .as_array()
+            .is_some_and(|list| list.iter().all(Value::is_string)),
+        (None, None) => true,
+    };
+    if !selector_ok {
         findings.insert(Finding::new(
             "contract_slice_conditional_assertion_bad_selector",
             key,
         ));
         return;
     }
-    let applies = match (when_member, when_member_in) {
-        (Some(one), None) => match one.as_str() {
-            Some(name) => member_id == name,
-            None => {
-                findings.insert(Finding::new(
-                    "contract_slice_conditional_assertion_bad_selector",
-                    key,
-                ));
-                return;
-            }
-        },
-        (None, Some(many)) => match many.as_array() {
-            Some(list) => list
-                .iter()
-                .filter_map(Value::as_str)
-                .any(|m| m == member_id),
-            None => {
-                findings.insert(Finding::new(
-                    "contract_slice_conditional_assertion_bad_selector",
-                    key,
-                ));
-                return;
-            }
-        },
-        (None, None) => true,
-        (Some(_), Some(_)) => unreachable!("both-selector case handled above"),
-    };
-    if !applies {
-        return;
-    }
 
-    // Exactly one mode. Zero modes (a typo'd mode key) and more than one mode both
-    // fail closed rather than silently matching everything / taking the first.
+    // Exactly one mode, well-typed. Zero modes (a typo'd key), more than one, or a
+    // present-but-wrong-typed mode value all fail closed.
     const MODE_KEYS: [&str; 4] = [
         "must_equal",
         "must_be_true",
@@ -1099,17 +1182,45 @@ fn evaluate_conditional_assertion(
         ));
         return;
     }
+    let mode_well_typed = if let Some(mode) = assertion.get("must_equal") {
+        mode.is_string()
+    } else if let Some(mode) = assertion.get("must_be_true") {
+        mode.as_bool() == Some(true)
+    } else if let Some(mode) = assertion.get("must_contain") {
+        mode.is_array()
+    } else if let Some(mode) = assertion.get("must_subset_of") {
+        mode.is_array()
+    } else {
+        unreachable!("exactly one mode present")
+    };
+    if !mode_well_typed {
+        findings.insert(Finding::new(
+            "contract_slice_conditional_assertion_bad_mode",
+            key,
+        ));
+        return;
+    }
 
-    // Exactly one of the four dispatches below fires (guaranteed by the count
-    // above). Each is dotted (not a flat `object.get`) so a rule can pin a nested
-    // member field (e.g. `capability_overrides.enforcement.lane_id`); a present-
-    // but-malformed mode value (e.g. non-array `must_contain`) fails closed via
-    // `contract_slice_conditional_assertion_bad_mode` rather than silently passing.
-    if let Some(mode) = assertion.get("must_equal") {
-        let matched = mode.as_str().is_some_and(|expected| {
-            get_dotted(object, target_field).and_then(Value::as_str) == Some(expected)
-        });
-        if !matched {
+    // Shape is valid — decide whether the assertion applies to THIS row.
+    let applies = match (when_member, when_member_in) {
+        (Some(one), None) => one.as_str() == Some(member_id),
+        (None, Some(many)) => many.as_array().is_some_and(|list| {
+            list.iter()
+                .filter_map(Value::as_str)
+                .any(|m| m == member_id)
+        }),
+        (None, None) => true,
+        (Some(_), Some(_)) => unreachable!("both-selector case rejected above"),
+    };
+    if !applies {
+        return;
+    }
+
+    // Evaluate the single, well-typed mode against the row. Each is dotted (not a
+    // flat `object.get`) so a rule can pin a nested member field (e.g.
+    // `capability_overrides.enforcement.lane_id`).
+    if let Some(expected) = assertion.get("must_equal").and_then(Value::as_str) {
+        if get_dotted(object, target_field).and_then(Value::as_str) != Some(expected) {
             findings.insert(Finding::new(
                 "contract_slice_conditional_field_not_equal",
                 key,
@@ -1117,14 +1228,7 @@ fn evaluate_conditional_assertion(
         }
         return;
     }
-    if let Some(mode) = assertion.get("must_be_true") {
-        if mode.as_bool() != Some(true) {
-            findings.insert(Finding::new(
-                "contract_slice_conditional_assertion_bad_mode",
-                key,
-            ));
-            return;
-        }
+    if assertion.get("must_be_true").is_some() {
         if get_dotted(object, target_field).and_then(Value::as_bool) != Some(true) {
             findings.insert(Finding::new(
                 "contract_slice_conditional_field_not_true",
@@ -1133,18 +1237,16 @@ fn evaluate_conditional_assertion(
         }
         return;
     }
-    if let Some(mode) = assertion.get("must_contain") {
-        let Some(members) = mode.as_array() else {
+    if let Some(members) = assertion.get("must_contain").and_then(Value::as_array) {
+        // Fail-closed: an absent/non-array subject cannot contain the members.
+        let Some(subject) = get_dotted(object, target_field).and_then(Value::as_array) else {
             findings.insert(Finding::new(
-                "contract_slice_conditional_assertion_bad_mode",
-                key,
+                "contract_slice_conditional_field_missing_contains",
+                format!("{key}:<subject-not-array>"),
             ));
             return;
         };
-        let present: BTreeSet<&str> = get_dotted(object, target_field)
-            .and_then(Value::as_array)
-            .map(|a| a.iter().filter_map(Value::as_str).collect())
-            .unwrap_or_default();
+        let present: BTreeSet<&str> = subject.iter().filter_map(Value::as_str).collect();
         for expected in members.iter().filter_map(Value::as_str) {
             if !present.contains(expected) {
                 findings.insert(Finding::new(
@@ -1155,22 +1257,19 @@ fn evaluate_conditional_assertion(
         }
         return;
     }
-    if let Some(mode) = assertion.get("must_subset_of") {
-        let Some(allowed_values) = mode.as_array() else {
+    if let Some(allowed_values) = assertion.get("must_subset_of").and_then(Value::as_array) {
+        let allowed: BTreeSet<&str> = allowed_values.iter().filter_map(Value::as_str).collect();
+        // Fail-closed: an absent/non-array subject is a violation, not a vacuous
+        // pass (a missing field would otherwise loop zero times and green).
+        let Some(subject) = get_dotted(object, target_field).and_then(Value::as_array) else {
             findings.insert(Finding::new(
-                "contract_slice_conditional_assertion_bad_mode",
-                key,
+                "contract_slice_conditional_field_not_subset",
+                format!("{key}:<subject-not-array>"),
             ));
             return;
         };
-        let allowed: BTreeSet<&str> = allowed_values.iter().filter_map(Value::as_str).collect();
-        // Fail-closed on non-string subject members: a non-string element must be a
-        // violation, not silently dropped by `filter_map(as_str)` before the check.
-        for value in get_dotted(object, target_field)
-            .and_then(Value::as_array)
-            .into_iter()
-            .flatten()
-        {
+        // A non-string subject element is a violation, not silently dropped.
+        for value in subject {
             let ok = value.as_str().is_some_and(|v| allowed.contains(v));
             if !ok {
                 let repr = scalar_str(value).unwrap_or_else(|| "<non-scalar>".to_owned());
@@ -1240,15 +1339,39 @@ fn contains_lowered(value: &Value, needle: &str) -> bool {
     }
 }
 
-/// Lowercase, then collapse every run of non-alphanumeric characters into a
-/// single space and trim. This canonicalizes separator variants so a forbidden
-/// marker cannot be evaded by substituting one separator for another
-/// (`production-ready` / `production_ready` / `production   ready` all fold to
-/// `production ready`). Applied to both the marker and each scanned leaf.
+/// True for a Unicode format / zero-width / bidi-control code point that carries
+/// no visible glyph and so can be injected to split a forbidden phrase past the
+/// scan (`produc<U+200B>tion-ready`) — the Trojan-Source class. These are folded
+/// to *nothing* (not to a space) before separator normalization so the residue
+/// re-joins into the real word.
+///
+/// ponytail: enumerated set (the named zero-width/bidi/BOM ranges + soft hyphen +
+/// word-joiner block, the same vectors as PR #1285); swap in a full Cf-category
+/// classifier crate only if a broader set is ever needed.
+fn is_format_char(character: char) -> bool {
+    matches!(character,
+        '\u{00AD}'                 // soft hyphen
+        | '\u{200B}'..='\u{200F}'  // ZWSP, ZWNJ, ZWJ, LRM, RLM
+        | '\u{202A}'..='\u{202E}'  // bidi embeddings / overrides
+        | '\u{2060}'..='\u{2064}'  // word joiner, invisible operators
+        | '\u{2066}'..='\u{2069}'  // bidi isolates
+        | '\u{FEFF}') // BOM / zero-width no-break space
+}
+
+/// Drop zero-width/bidi format chars, lowercase, then collapse every run of
+/// non-alphanumeric characters into a single space (trimmed). This canonicalizes
+/// separator variants so a forbidden marker cannot be evaded by substituting or
+/// injecting a separator: `production-ready`, `production_ready`,
+/// `production   ready`, and `produc<U+200B>tion ready` all fold to
+/// `production ready`. Applied to both the marker and each scanned leaf.
 fn normalize_separators(text: &str) -> String {
     let mut out = String::with_capacity(text.len());
     let mut pending_space = false;
     for ch in text.chars() {
+        if is_format_char(ch) {
+            // Fold to nothing so the split word re-joins (anti-evasion).
+            continue;
+        }
         if ch.is_ascii_alphanumeric() {
             if pending_space && !out.is_empty() {
                 out.push(' ');
@@ -1262,7 +1385,28 @@ fn normalize_separators(text: &str) -> String {
     out
 }
 
-/// True when `needle_normalized` (already separator-normalized) appears in any
+/// True when the normalized `needle` appears as a contiguous run of WHOLE tokens
+/// in the normalized `haystack` — word-boundary aware, so a legitimate longer
+/// identifier does not trip a marker (`preproduction-readying-job` does NOT match
+/// `production ready`, but `production-ready` does).
+fn tokens_contain(haystack_normalized: &str, needle_normalized: &str) -> bool {
+    let needle: Vec<&str> = needle_normalized
+        .split(' ')
+        .filter(|t| !t.is_empty())
+        .collect();
+    if needle.is_empty() {
+        return false;
+    }
+    let haystack: Vec<&str> = haystack_normalized
+        .split(' ')
+        .filter(|t| !t.is_empty())
+        .collect();
+    haystack
+        .windows(needle.len())
+        .any(|window| window == needle)
+}
+
+/// True when the normalized `needle` appears (as a whole-token run) in any
 /// separator-normalized string leaf of `value` — including object keys. Any
 /// node whose reference is in `excluded` (and its subtree) is skipped, so a
 /// slice can carve out a sub-tree that legitimately quotes a forbidden phrase
@@ -1277,16 +1421,25 @@ fn recursively_contains_normalized(
         return false;
     }
     match value {
-        Value::String(text) => normalize_separators(text).contains(needle_normalized),
+        Value::String(text) => tokens_contain(&normalize_separators(text), needle_normalized),
         Value::Array(items) => items
             .iter()
             .any(|item| recursively_contains_normalized(item, needle_normalized, excluded)),
         Value::Object(map) => map.iter().any(|(key, val)| {
-            normalize_separators(key).contains(needle_normalized)
+            tokens_contain(&normalize_separators(key), needle_normalized)
                 || recursively_contains_normalized(val, needle_normalized, excluded)
         }),
         _ => false,
     }
+}
+
+/// True when `list` is a JSON array containing at least one non-string element.
+/// A mistyped string-list policy config (`values`, `allowed`, `markers`, …) must
+/// fail closed rather than let `filter_map(as_str)` silently drop the element and
+/// weaken the check to something the author did not intend.
+fn has_non_string_element(list: Option<&Value>) -> bool {
+    list.and_then(Value::as_array)
+        .is_some_and(|items| items.iter().any(|item| !item.is_string()))
 }
 
 #[cfg(test)]
@@ -1441,8 +1594,8 @@ mod tests {
             "spec_path": "fixtures/exemplar-slice.json",
             "required_fields": [],
             "enum_constraints": [
-                { "field": "threshold", "allowed": ["14.4"] },
-                { "field": "enabled", "allowed": ["true"] }
+                { "field": "threshold", "allowed": ["14.4"], "match_scalar": true },
+                { "field": "enabled", "allowed": ["true"], "match_scalar": true }
             ]
         });
         let mut spec = valid_slice_spec();
@@ -1466,7 +1619,7 @@ mod tests {
             "spec_path": "fixtures/exemplar-slice.json",
             "required_fields": [],
             "required_array_members": [
-                { "field": "canary_stages_percent", "members": ["1", "10", "50", "100"] }
+                { "field": "canary_stages_percent", "members": ["1", "10", "50", "100"], "match_scalar": true }
             ]
         });
         let mut spec = valid_slice_spec();

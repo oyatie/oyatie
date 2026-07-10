@@ -452,3 +452,224 @@ fn required_markers_any_of_and_array_cardinality_fire_on_the_live_exemplar() {
         report.findings
     );
 }
+
+// ---- Hardening round: fail-open holes found by cross-model review ------------
+//
+// Each of these FAILS against the pre-hardening evaluator (the hole it guards)
+// and passes after. Self-contained: one synthetic slice + spec through the
+// public evaluator.
+
+fn eval_slice(mut slice: Value, spec: Value) -> ci_contract_slice_conformance::Report {
+    let path = "specs/_synthetic-hardening.json";
+    slice["spec_path"] = json!(path);
+    let corpus: BTreeMap<String, Value> = BTreeMap::from([(path.to_owned(), spec)]);
+    evaluate_configured(&synthetic_policy(slice), &corpus)
+}
+
+fn base_spec() -> Value {
+    json!({ "slice_id": "x", "spec_kind": "contract-slice" })
+}
+
+#[test]
+fn hardening_zero_width_evasion_is_caught() {
+    // P0.1: a zero-width space injected into the word must not evade the marker.
+    let slice = json!({ "required_fields": [], "forbidden_markers": ["production ready"] });
+    let mut spec = base_spec();
+    spec["claim"] = json!("this is produc\u{200B}tion-ready today");
+    assert!(
+        eval_slice(slice, spec)
+            .violations
+            .contains("contract_slice_forbidden_marker"),
+        "a zero-width-split forbidden phrase must still be caught"
+    );
+}
+
+#[test]
+fn hardening_forbidden_marker_does_not_overmatch_hyphenated_identifier() {
+    // P3: a legitimate longer identifier must not trip the marker (word-boundary).
+    let slice = json!({ "required_fields": [], "forbidden_markers": ["production ready"] });
+    let mut spec = base_spec();
+    spec["job"] = json!("preproduction-readying-job");
+    assert!(
+        !eval_slice(slice, spec)
+            .violations
+            .contains("contract_slice_forbidden_marker"),
+        "a hyphenated superset identifier must not false-positive"
+    );
+}
+
+#[test]
+fn hardening_conditional_must_subset_of_absent_subject_is_red() {
+    // P0.2a: an absent/non-array subject must be a violation, not a vacuous pass.
+    let slice = json!({
+        "required_fields": [],
+        "required_object_array_members": [{
+            "field": "rows", "member_key": "id", "members": ["A"],
+            "conditional_assertions": [{ "when_member": "A", "field": "tiers", "must_subset_of": ["x"] }]
+        }]
+    });
+    let mut spec = base_spec();
+    spec["rows"] = json!([{ "id": "A" }]); // no "tiers" field at all
+    assert!(
+        eval_slice(slice, spec)
+            .violations
+            .contains("contract_slice_conditional_field_not_subset"),
+        "must_subset_of over an absent subject must RED"
+    );
+}
+
+#[test]
+fn hardening_conditional_malformed_mode_on_nonmatching_row_is_red() {
+    // P0.2c: a mode-less assertion whose selector matches no row must still RED.
+    let slice = json!({
+        "required_fields": [],
+        "required_object_array_members": [{
+            "field": "rows", "member_key": "id", "members": ["A"],
+            "conditional_assertions": [{ "when_member": "B", "field": "x" }]
+        }]
+    });
+    let mut spec = base_spec();
+    spec["rows"] = json!([{ "id": "A" }]);
+    assert!(
+        eval_slice(slice, spec)
+            .violations
+            .contains("contract_slice_conditional_assertion_no_mode"),
+        "a malformed assertion must RED even when its selector matches no row"
+    );
+}
+
+#[test]
+fn hardening_conditional_when_member_in_nonstring_element_is_red() {
+    // P0.2c: a non-string element in when_member_in must fail closed.
+    let slice = json!({
+        "required_fields": [],
+        "required_object_array_members": [{
+            "field": "rows", "member_key": "id", "members": ["A"],
+            "conditional_assertions": [{ "when_member_in": ["A", 5], "field": "x", "must_be_true": true }]
+        }]
+    });
+    let mut spec = base_spec();
+    spec["rows"] = json!([{ "id": "A", "x": true }]);
+    assert!(
+        eval_slice(slice, spec)
+            .violations
+            .contains("contract_slice_conditional_assertion_bad_selector"),
+        "a non-string when_member_in element must fail closed"
+    );
+}
+
+#[test]
+fn hardening_field_implies_required_string_antecedent_triggers() {
+    // P0.3: a string "true" antecedent must not silently disable the implication.
+    let slice = json!({
+        "required_fields": [],
+        "required_object_array_members": [{
+            "field": "regimes", "member_key": "id", "members": ["A"],
+            "field_implies_required": [{ "if_field": "guard", "then_required_fields": ["companion"] }]
+        }]
+    });
+    let mut spec = base_spec();
+    spec["regimes"] = json!([{ "id": "A", "guard": "true" }]); // string, companion absent
+    assert!(
+        eval_slice(slice, spec)
+            .violations
+            .contains("contract_slice_conditional_required_field_absent"),
+        "a wrong-typed antecedent must trigger the implication (fail closed)"
+    );
+}
+
+#[test]
+fn hardening_enum_is_string_strict_by_default_and_scalar_is_opt_in() {
+    // P1.4: default enum is type-preserving; a number does not satisfy "90".
+    let strict =
+        json!({ "required_fields": [], "enum_constraints": [{ "field": "n", "allowed": ["90"] }] });
+    let mut spec = base_spec();
+    spec["n"] = json!(90);
+    assert!(
+        eval_slice(strict, spec.clone())
+            .violations
+            .contains("contract_slice_enum_violation"),
+        "a numeric leaf must NOT satisfy a string-authored enum by default"
+    );
+    // opt-in restores the numeric-pin behavior.
+    let opt_in = json!({
+        "required_fields": [],
+        "enum_constraints": [{ "field": "n", "allowed": ["90"], "match_scalar": true }]
+    });
+    assert_eq!(
+        eval_slice(opt_in, spec).verdict,
+        Verdict::Green,
+        "match_scalar: true must accept the numeric leaf"
+    );
+}
+
+#[test]
+fn hardening_required_array_members_is_string_strict_by_default() {
+    // P1.4: default array membership is type-preserving.
+    let slice = json!({
+        "required_fields": [],
+        "required_array_members": [{ "field": "arr", "members": ["90"] }]
+    });
+    let mut spec = base_spec();
+    spec["arr"] = json!([90]);
+    assert!(
+        eval_slice(slice, spec)
+            .violations
+            .contains("contract_slice_missing_array_member"),
+        "a numeric array element must NOT satisfy a string-authored member by default"
+    );
+}
+
+#[test]
+fn hardening_malformed_string_list_configs_fail_closed() {
+    // P2: a non-string element in a string-list config must fail closed, not drop.
+    let cases = [
+        json!({ "required_fields": [], "enum_constraints": [{ "field": "f", "allowed": [1] }] }),
+        json!({ "required_fields": [], "required_array_members": [{ "field": "f", "members": [1] }] }),
+        json!({ "required_fields": [], "exact_array_fields": [{ "field": "f", "values": [1] }] }),
+        json!({ "required_fields": [], "required_markers": [{ "field": "f", "markers": [1] }] }),
+        json!({ "required_fields": [], "required_false_fields": ["ok", 5] }),
+        json!({ "required_fields": [], "exact_projected_sequence": [{ "field": "f", "member_field": "m", "values": [1] }] }),
+        json!({ "required_fields": [], "projected_value_sets": [{ "field": "f", "member_field": "m", "exact_values": [1] }] }),
+    ];
+    for slice in cases {
+        let report = eval_slice(slice.clone(), base_spec());
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|code| code.contains("malformed")),
+            "a mistyped string-list must fail closed with a *_malformed finding: {slice} -> {:?}",
+            report.findings
+        );
+    }
+}
+
+#[test]
+fn hardening_wrong_typed_cardinality_and_empty_pattern_fail_closed() {
+    // P2: a string cardinality bound and an empty regex must fail closed.
+    let card = json!({
+        "required_fields": [],
+        "array_cardinality": [{ "field": "arr", "min": "1" }]
+    });
+    let mut spec = base_spec();
+    spec["arr"] = json!([{ "id": "a" }]);
+    assert!(
+        eval_slice(card, spec.clone())
+            .violations
+            .contains("contract_slice_array_cardinality_malformed"),
+        "a string min bound must fail closed"
+    );
+    let pattern = json!({
+        "required_fields": [],
+        "field_patterns": [{ "field": "f", "pattern": "" }]
+    });
+    let mut spec = base_spec();
+    spec["f"] = json!("anything");
+    assert!(
+        eval_slice(pattern, spec)
+            .violations
+            .contains("contract_slice_bad_pattern"),
+        "an empty regex (matches everything) must fail closed"
+    );
+}

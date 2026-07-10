@@ -62,9 +62,15 @@ per-slice rules are **data** in `contract-slice-policy.json`.
 
 ### Full-fidelity primitives (contract-slice DSL enrichment)
 
-Enum/array-member checks canonicalize scalar leaves (`scalar_str`), so a numeric or
-boolean value compares equal to a string-authored literal. Every primitive below fails
-**closed** on its own malformed shape (the `check_keys` doctrine, extended to values):
+Enum/array-member checks are **type-preserving string equality by default** (a spec number
+`90` does NOT satisfy `allowed: ["90"]`); add `match_scalar: true` to a constraint/requirement
+to canonicalize a numeric/bool leaf authored as a string literal. Every primitive below fails
+**closed** on its own malformed shape — a mistyped string-list config (a non-string element in
+`values`/`allowed`/`members`/`markers`/…), a wrong-typed cardinality bound, or an empty
+pattern each emits a `*_malformed` finding (e.g. `contract_slice_malformed_policy_value`) rather
+than silently dropping the element. Forbidden-marker matching strips zero-width/bidi format
+characters and is word-boundary aware (`produc<U+200B>tion-ready` trips `production ready`;
+`preproduction-readying-job` does not):
 
 | Slice key | Code(s) | Meaning |
 |-----------|---------|---------|
