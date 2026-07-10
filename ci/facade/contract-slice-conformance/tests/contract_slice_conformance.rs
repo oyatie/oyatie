@@ -250,3 +250,35 @@ fn cell_002_rollback_audit_fixture_shape_is_enforced() {
         report.findings
     );
 }
+
+/// Proves the converted FINOPS-001 slice enforces (retires
+/// scripts/tests/finops_cost_attribution_contract_check.py): a status downgrade
+/// and a dropped accepted-authority ADR both RED.
+#[test]
+fn finops_001_cost_attribution_slice_is_enforced() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let spec = "specs/finops-cost-attribution.json";
+
+    let mut corpus = live_corpus(&root, &policy);
+    corpus.get_mut(spec).unwrap()["_meta"]["status"] = json!("Draft");
+    let report = evaluate_configured(&policy, &corpus);
+    assert!(
+        report.findings.iter().any(|finding| finding.code == "contract_slice_enum_violation"
+            && finding.key == "finops-001-cost-attribution:_meta.status"),
+        "a finops status downgrade must be rejected: {:?}",
+        report.findings
+    );
+
+    let mut corpus = live_corpus(&root, &policy);
+    corpus.get_mut(spec).unwrap()["_meta"]["authority_boundary"]["accepted_authority"] =
+        json!(["ADR-0198", "ADR-0199"]);
+    let report = evaluate_configured(&policy, &corpus);
+    assert!(
+        report.findings.iter().any(|finding| finding.code == "contract_slice_missing_array_member"
+            && finding.key
+                == "finops-001-cost-attribution:_meta.authority_boundary.accepted_authority:ADR-0174"),
+        "dropping ADR-0174 from accepted_authority must be rejected: {:?}",
+        report.findings
+    );
+}
