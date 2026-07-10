@@ -512,7 +512,8 @@
           "G_management_plane": [
             "cloud-iac",
             "compliance",
-            "governance"
+            "governance",
+            "marketplace-catalog"
           ],
           "S5_meta": [
             "delivery-fabric"

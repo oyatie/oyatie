@@ -1632,7 +1632,7 @@ it are external (E0) and hosting (B0). The router is not a root at all — it is
 
 #### D-13.B. The canonical plane model — four internal planes + external root
 
-```
+```text
 E0  external genesis roots: hardware RoT + signed boot/artifacts + org root key/quorum
         + bootstrap compute/network/storage facts
           |
