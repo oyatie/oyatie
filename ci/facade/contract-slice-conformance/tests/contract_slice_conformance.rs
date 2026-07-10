@@ -509,6 +509,36 @@ fn hardening_fail_safe_forbidden_matching_catches_every_obfuscation() {
 }
 
 #[test]
+fn hardening_bidi_reorder_control_in_content_is_red_but_i18n_is_green() {
+    // P0 round-4: a bidi RLO override renders "production ready" but canonicalizes
+    // reversed — its PRESENCE must fail closed.
+    let mut spec = base_spec();
+    spec["claim"] = json!("production \u{202E}ydaer\u{202C}");
+    assert!(
+        eval_slice(json!({ "required_fields": [] }), spec)
+            .violations
+            .contains("contract_slice_bidi_control_in_content"),
+        "a bidi-reorder control in content must fail closed"
+    );
+    // A plain spec and a legitimate Korean-text spec (non-ASCII, no reorder
+    // controls) must NOT be flagged.
+    assert!(
+        !eval_slice(json!({ "required_fields": [] }), base_spec())
+            .violations
+            .contains("contract_slice_bidi_control_in_content"),
+        "a plain spec must not be flagged"
+    );
+    let mut spec = base_spec();
+    spec["title"] = json!("접근 제어 정책 — 시스템 준비 완료");
+    assert!(
+        !eval_slice(json!({ "required_fields": [] }), spec)
+            .violations
+            .contains("contract_slice_bidi_control_in_content"),
+        "legitimate non-ASCII i18n text must not be flagged"
+    );
+}
+
+#[test]
 fn hardening_conditional_must_subset_of_absent_subject_is_red() {
     // P0.2a: an absent/non-array subject must be a violation, not a vacuous pass.
     let slice = json!({

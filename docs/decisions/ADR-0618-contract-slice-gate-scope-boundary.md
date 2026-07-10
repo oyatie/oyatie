@@ -79,6 +79,19 @@ cross-reference/registry-integrity gate.
 The boundary test: *if a check needs a second document's contents, the filesystem, or a non-JSON
 parser to decide pass/fail, it is not a contract-slice check.*
 
+**Obfuscation boundary (forbidden-marker content).** The deterministic forbidden-marker check
+covers case, separator, zero-width, and bidirectional-**reorder** obfuscation: matching
+canonicalizes to an `[a-z0-9]`-only form, and the presence of a bidi-reorder control
+(U+202A–202E, U+2066–2069) in scanned content is itself a fail-closed violation
+(`contract_slice_bidi_control_in_content`). Visually-**confusable homoglyph** substitution
+(non-ASCII lookalikes, e.g. Greek/Cyrillic characters that render like Latin) is **explicitly out
+of the deterministic gate's scope**: it is unbounded (the full Unicode confusables space),
+legitimate internationalized content (e.g. the Korea localization pack) legitimately uses
+non-ASCII, and rejecting non-ASCII wholesale would break that content. Homoglyph/confusable
+detection is caught by the **advisory LLM/NLI + human review** layer under ADR-0617's
+deterministic-invariants-plus-advisory doctrine — the same evidence-admissibility boundary that
+separates mechanical gates from advisory review. This is a recorded scope line, not a silent gap.
+
 ## Consequences
 
 - **Positive.** The contract-slice gate keeps its pure, single-document invariant and stays a

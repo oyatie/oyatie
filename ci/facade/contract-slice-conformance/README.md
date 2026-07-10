@@ -70,11 +70,15 @@ to canonicalize a numeric/bool leaf authored as a string literal. Every primitiv
 pattern each emits a `*_malformed` finding (e.g. `contract_slice_malformed_policy_value`) rather
 than silently dropping the element. Forbidden-marker matching is **fail-safe**: both marker and
 scanned text are canonicalized to an `[a-z0-9]`-only sequence (lowercase; every space,
-punctuation, and zero-width/bidi/control char dropped) and compared as a substring, so
+punctuation, and zero-width/format char dropped) and compared as a substring, so
 `production ready` catches `production-ready`, `production<U+200B>ready`, and every separator or
 zero-width obfuscation with one rule. This is intentionally OVER-STRICT for a prohibition check
 (a legitimate `preproductionreadying` token would also trip `productionready`) — a false RED is
-safe; a false GREEN would hide a prohibited claim:
+safe; a false GREEN would hide a prohibited claim. Bidi-**reorder** controls
+(U+202A–202E, U+2066–2069) make rendered order differ from logical order, so their PRESENCE in any
+scanned leaf is itself a violation (`contract_slice_bidi_control_in_content`) rather than
+stripped-then-matched (which would leave the reversed text). Plain directional marks (U+200E/200F)
+and general non-ASCII (i18n) are not rejected:
 
 | Slice key | Code(s) | Meaning |
 |-----------|---------|---------|
@@ -84,7 +88,7 @@ safe; a false GREEN would hide a prohibited claim:
 | `required_object_array_members[].conditional_assertions` | `contract_slice_conditional_field_not_equal` / `_not_true` / `_missing_contains` / `_not_subset` and `_conditional_assertion_bad_selector` / `_multiple_modes` / `_no_mode` / `_bad_mode` | per-member pins with EXACTLY ONE selector (`when_member`/`when_member_in`) + EXACTLY ONE mode (`must_equal`/`must_be_true`/`must_contain`/`must_subset_of`) |
 | `required_object_array_members[].field_implies_required` | `contract_slice_conditional_required_field_absent` / `_field_implies_required_malformed` | when a member flag is `true`, companion fields become required (arrays must be non-empty) |
 | `required_markers` `[{field,markers,quantifier?,scope?}]` | `contract_slice_required_marker_missing` / `_required_marker_none_present` / `_required_markers_malformed` | field-scoped (or `scope:whole_spec`) content markers; `quantifier:any_of` REDs only when none present |
-| `forbidden_markers` (separator-normalized) | `contract_slice_forbidden_marker` | `[^a-z0-9]+`→space folding: `production-ready` trips `production ready` |
+| `forbidden_markers` (fail-safe canonical match) | `contract_slice_forbidden_marker` / `contract_slice_bidi_control_in_content` | `[a-z0-9]`-only collapse: `production-ready` trips `production ready`; a bidi-reorder control in content is itself RED |
 | `forbidden_field_markers` `[{field,markers}]` | `contract_slice_forbidden_field_marker` / `_forbidden_field_markers_malformed` | a phrase forbidden only inside a dotted sub-tree |
 | `marker_exclude_fields` `[field,…]` | (carve-out) | named sub-trees excluded from the whole-spec forbidden scan (a `claim_boundary` may quote what it forbids) |
 | `field_patterns` `[{field,pattern}]` | `contract_slice_pattern_mismatch` / `_bad_pattern` | a dotted scalar must match a regex (hex/id/base64url shapes); malformed regex fails closed |
@@ -109,3 +113,11 @@ registry-integrity (and format-aware) gate** per
 The boundary test: *if a check needs a second document's contents, the filesystem, or a non-JSON
 parser to decide pass/fail, it is not a contract-slice check* — route it to the cross-reference
 gate backlog rather than distorting a spec to fit.
+
+**Obfuscation boundary.** The deterministic forbidden-marker check covers case + separator +
+zero-width + bidi-**reorder** obfuscation. Visually-**confusable homoglyph** substitution
+(non-ASCII lookalikes, e.g. Greek/Cyrillic `рrоduction`) is explicitly **out of the deterministic
+gate's scope**: it is unbounded (the full Unicode confusables space), legitimate i18n legitimately
+uses non-ASCII, and it is caught by the **advisory LLM/NLI + human review** layer per ADR-0617's
+deterministic-invariants-plus-advisory doctrine — the same evidence-admissibility boundary. This is
+a principled scope line, not a silent drop (ADR-0618).

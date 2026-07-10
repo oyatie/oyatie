@@ -232,15 +232,28 @@ fn evaluate_slice(
     //    of `oya-dev-cli`/`oya gate` in its own provenance prose — the exact
     //    strings this scan exists to catch when a slice's OWN spec bakes them in
     //    as live usage). It does not skip the slice's own `forbidden_markers`.
-    //    Matching is separator-normalized (`[^a-z0-9]+` -> a single space on both
-    //    the marker and every scanned leaf) so a substituted separator cannot slip
-    //    a forbidden phrase past the scan: `production-ready` trips `production ready`.
+    //    Matching canonicalizes both marker and leaf to an `[a-z0-9]`-only form
+    //    (see `canonical_alnum`), so `production-ready` trips `production ready`.
     //
     //    `marker_exclude_fields` carves named sub-trees out of the universal +
     //    per-slice whole-spec scan for a spec that legitimately quotes a forbidden
     //    phrase in a bounded place (e.g. a `claim_boundary` list of the phrases it
     //    forbids); the excluded sub-trees are still subject to field-scoped
     //    `forbidden_field_markers` and every other check.
+    //
+    //    Bidi-REORDER controls (LRE/RLE/PDF/LRO/RLO, LRI/RLI/FSI/PDI) make the
+    //    visual order differ from the logical order, so `production <RLO>ydaer`
+    //    renders "production ready" yet canonicalizes reversed and would evade the
+    //    scan. They have no legitimate use in claim content, so their PRESENCE is
+    //    itself a violation (fail-closed) — stripping them would leave the reversed
+    //    text and still evade. Plain directional marks (U+200E/200F) and general
+    //    non-ASCII (i18n / the Korea localization pack) are NOT rejected.
+    if contains_bidi_reorder_control(spec) {
+        findings.insert(Finding::new(
+            "contract_slice_bidi_control_in_content",
+            slice_id.to_owned(),
+        ));
+    }
     let excluded: Vec<&Value> = string_array(slice, "marker_exclude_fields")
         .iter()
         .filter_map(|path| get_dotted(spec, path))
@@ -1404,6 +1417,28 @@ fn canonical_alnum(text: &str) -> String {
         .filter(char::is_ascii_alphanumeric)
         .map(|character| character.to_ascii_lowercase())
         .collect()
+}
+
+/// A bidirectional REORDER control (embeddings/overrides U+202A–202E and
+/// isolates U+2066–2069) — the codepoints that make rendered order differ from
+/// logical order. Plain directional marks (U+200E/200F) are excluded: they are
+/// used legitimately in i18n text and do not reorder surrounding runs.
+fn is_bidi_reorder_control(character: char) -> bool {
+    matches!(character, '\u{202A}'..='\u{202E}' | '\u{2066}'..='\u{2069}')
+}
+
+/// True when any string leaf or object key of `value` contains a bidi-reorder
+/// control. Presence alone is the violation, so it is checked before (not by)
+/// canonicalization, which would drop the control and leave the reordered text.
+fn contains_bidi_reorder_control(value: &Value) -> bool {
+    match value {
+        Value::String(text) => text.chars().any(is_bidi_reorder_control),
+        Value::Array(items) => items.iter().any(contains_bidi_reorder_control),
+        Value::Object(map) => map.iter().any(|(key, val)| {
+            key.chars().any(is_bidi_reorder_control) || contains_bidi_reorder_control(val)
+        }),
+        _ => false,
+    }
 }
 
 /// True when the canonical (`[a-z0-9]`-only) `needle` appears as a substring of
