@@ -110,6 +110,18 @@
       "prefix": "comms/OWNERS"
     },
     {
+      "anchor": "ADR-0176 (brown-out + graceful-degradation signal API), with ADR-0165/0168/0180/0186/0210/0241: the messenger runtime-control-loop contract-slice tree (brownout classes, tail-sampling recipe, chaos-scenario + SLO-gate refs), homed under the comms capability per ADR-0562 §10.16 messenger move and enforced by the contract-slice-conformance gate; the contract is justified in docs/decisions/ADR-0176-brownout-degradation-signal-api.md",
+      "prefix": "comms/messenger/resilience/"
+    },
+    {
+      "anchor": "ADR-0165 (chaos-engineering substrate): the messenger chaos-scenario fixtures (pod-kill, network-delay-100ms, dependency-failure, disk-slow-1000ms) exercised by the runtime-control-loop contract scenario refs, homed under comms per ADR-0562 §10.16; justified in docs/decisions/ADR-0176-brownout-degradation-signal-api.md",
+      "prefix": "comms/messenger/chaos/"
+    },
+    {
+      "anchor": "ADR-0180 (SLO composition inheritance arithmetic) + ADR-0139 (SLO-home convention): the messenger per-service SLO home, including composition.openslo.yaml joining the per-service OpenSLO objectives referenced by the runtime-control-loop contract slo_gate_refs, homed under comms per ADR-0562 §10.16; justified in docs/decisions/ADR-0176-brownout-degradation-signal-api.md",
+      "prefix": "comms/observability/slos/messenger/"
+    },
+    {
       "anchor": "ADR-0562 §10.17 ownership seed: the k8s capability tree's OWNERS marker (axis-cloud-platform), homed by the thirteenth strangler move (cloud/managed-k8s-cluster-lifecycle + cloud/managed-k8s-control-plane-host + cloud/managed-k8s-sla-observability + cloud/managed-k8s-tenant-quota crates → k8s/{core,ports,adapters,facade}/); breadth-unlimited (ADR-0555) so it covers the whole k8s subtree, including the co-moved k8s/observability/slos/{cluster-lifecycle,control-plane-host,sla-observability,tenant-quota}/ per-service SLO subdirs (ADR-0139 SLO-home convention, per-service subdirs chosen to avoid the confirmed cross-service basename collision provisioning-latency between control-plane-host and sla-observability) and the seventeen re-keyed registry/catalog/k8s-*.yaml records (reached by the existing registry/catalog/ prefix); the committed move-plan at specs/reorg/k8s-move-plan.json is reached by the existing specs/reorg/ ADR-0563 prefix",
       "prefix": "k8s/OWNERS"
     },
