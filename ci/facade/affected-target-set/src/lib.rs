@@ -74,6 +74,14 @@ pub struct Policy {
     /// Repo-dir prefix -> buck2 cell root, longest-prefix wins; `""` is the repo root cell
     /// (e.g. `{"": "//"}`). A package file under no mapped cell is derivation uncertainty.
     pub cell_roots: BTreeMap<String, String>,
+    /// Micro-glob path pattern -> synthetic seed targets, for changed files that have NO buck2
+    /// `owner()` but ARE accounted for: either they seed specific targets (non-empty list) or
+    /// they are EXPLICITLY declared inert (empty list `[]` = "this class affects no buck target";
+    /// e.g. docs). A changed owner-query path with NO owner that matches NO synthetic pattern AND
+    /// is not owner-required is DERIVATION UNCERTAINTY -> FULL (never silently ignored). This is
+    /// the [`resolve`] "owner OR explicit synthetic dependency, otherwise FULL" rule. Optional in
+    /// the pack (absent = empty map = every unowned non-owner-required path escalates to FULL).
+    pub synthetic_dependencies: BTreeMap<String, Vec<String>>,
     /// Default base ref for the merge-base anchor (e.g. `origin/dev`); CLI `--base` overrides.
     pub default_base_ref: String,
 }
@@ -183,9 +191,46 @@ impl Policy {
             },
             package_sibling_basenames: str_list_field(&v, "package_sibling_basenames")?,
             cell_roots,
+            synthetic_dependencies: parse_synthetic_dependencies(&v)?,
             default_base_ref: str_field(&v, "default_base_ref")?,
         })
     }
+}
+
+/// Parse the optional `synthetic_dependencies` object (`{pattern: [seed,...]}`). Absent -> empty
+/// map. Fail-closed on a malformed shape (a non-object, an empty pattern key, or a non-string/
+/// empty seed) — a broken synthetic map must not silently disable the "otherwise FULL" rule.
+fn parse_synthetic_dependencies(v: &Value) -> Result<BTreeMap<String, Vec<String>>, PolicyError> {
+    let mut map = BTreeMap::new();
+    let Some(raw) = v.get("synthetic_dependencies") else {
+        return Ok(map);
+    };
+    let obj = raw.as_object().ok_or_else(|| {
+        PolicyError("policy field `synthetic_dependencies` must be an object".into())
+    })?;
+    for (pattern, targets) in obj {
+        if pattern.is_empty() {
+            return Err(PolicyError(
+                "synthetic_dependencies has an empty pattern key".into(),
+            ));
+        }
+        let arr = targets.as_array().ok_or_else(|| {
+            PolicyError(format!(
+                "synthetic_dependencies[`{pattern}`] must be an array of target strings"
+            ))
+        })?;
+        let mut seeds = Vec::with_capacity(arr.len());
+        for t in arr {
+            let s = t.as_str().filter(|s| !s.is_empty()).ok_or_else(|| {
+                PolicyError(format!(
+                    "synthetic_dependencies[`{pattern}`] has a non-string/empty target"
+                ))
+            })?;
+            seeds.push(s.to_owned());
+        }
+        map.insert(pattern.clone(), seeds);
+    }
+    Ok(map)
 }
 
 /// Micro-glob match over '/'-separated repo-relative paths.
@@ -240,21 +285,117 @@ fn match_one_segment(pat: &str, seg: &str) -> bool {
     pi == p.len()
 }
 
+/// A structural diff kind whose blast radius the HEAD-only `owner()`/`rdeps()` cone cannot
+/// bound. First safe version (ADR-0554 round-6): every one escalates to FULL. A later version
+/// may union the base and head owner graphs instead of escalating.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StructuralKind {
+    /// `git diff` status `R`: a rename moves a file between packages — the OLD package loses a
+    /// source and the NEW package gains one; the head-only cone models neither move soundly.
+    Rename,
+    /// `git diff` status `C`: a copy adds a source whose provenance the cone cannot attribute.
+    Copy,
+    /// `git diff` status `T`: a type change (e.g. file <-> symlink, blob <-> gitlink/submodule)
+    /// is graph-semantic — buck2 resolves a symlink/gitlink differently from a regular file.
+    TypeChange,
+}
+
+impl StructuralKind {
+    /// Human-facing label for the transparency block / FULL reason.
+    pub fn describe(self) -> &'static str {
+        match self {
+            StructuralKind::Rename => "rename",
+            StructuralKind::Copy => "copy",
+            StructuralKind::TypeChange => "type-change",
+        }
+    }
+}
+
 /// One diff entry, as parsed by the adapter from `git diff --name-status`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Change {
-    /// File exists at HEAD (added, modified, type-changed, copy/rename destination).
+    /// Added (`A`) or modified (`M`): a file present at HEAD, routed to `owner()` resolution.
     Present(String),
-    /// File no longer exists at HEAD (deleted, rename source).
+    /// Deleted (`D`): the file is gone at HEAD, so `owner()` cannot resolve it and deleting a
+    /// source can break every dependent of its former target -> FULL, unconditionally.
     Deleted(String),
+    /// A rename/copy/type-change (`R`/`C`/`T`): a structural change the head-only cone cannot
+    /// bound -> FULL. `path` is the file present at HEAD (destination for R/C) for the reason.
+    Structural { path: String, kind: StructuralKind },
 }
 
 impl Change {
     pub fn path(&self) -> &str {
         match self {
             Change::Present(p) | Change::Deleted(p) => p,
+            Change::Structural { path, .. } => path,
         }
     }
+}
+
+/// Parse `git diff --name-status -z` output into `Change`s (PURE; moved from the adapter so the
+/// diff-kind -> FULL escalation is unit-testable). NUL-separated records; `R`/`C` carry two
+/// paths. Rename/copy/type-change map to a single [`Change::Structural`] -> FULL (their blast
+/// radius is not bounded by the head-only cone). A submodule change surfaces as a gitlink path
+/// with no buck2 owner and is escalated by the unowned-unmapped rule in [`resolve`], or as a
+/// type change (`T`) when a path flips to/from a gitlink.
+pub fn parse_name_status_z(raw: &str) -> Result<Vec<Change>, String> {
+    let mut fields = raw.split('\0').filter(|s| !s.is_empty());
+    let mut changes = Vec::new();
+    while let Some(status) = fields.next() {
+        let kind = status.chars().next().ok_or("empty status field")?;
+        match kind {
+            'A' | 'M' => {
+                let p = fields
+                    .next()
+                    .ok_or_else(|| format!("status `{status}` without a path"))?;
+                changes.push(Change::Present(p.to_owned()));
+            }
+            'D' => {
+                let p = fields
+                    .next()
+                    .ok_or_else(|| format!("status `{status}` without a path"))?;
+                changes.push(Change::Deleted(p.to_owned()));
+            }
+            'T' => {
+                let p = fields
+                    .next()
+                    .ok_or_else(|| format!("status `{status}` without a path"))?;
+                changes.push(Change::Structural {
+                    path: p.to_owned(),
+                    kind: StructuralKind::TypeChange,
+                });
+            }
+            'R' => {
+                let _old = fields
+                    .next()
+                    .ok_or_else(|| format!("status `{status}` without source path"))?;
+                let new = fields
+                    .next()
+                    .ok_or_else(|| format!("status `{status}` without destination path"))?;
+                changes.push(Change::Structural {
+                    path: new.to_owned(),
+                    kind: StructuralKind::Rename,
+                });
+            }
+            'C' => {
+                let _src = fields
+                    .next()
+                    .ok_or_else(|| format!("status `{status}` without source path"))?;
+                let dst = fields
+                    .next()
+                    .ok_or_else(|| format!("status `{status}` without destination path"))?;
+                changes.push(Change::Structural {
+                    path: dst.to_owned(),
+                    kind: StructuralKind::Copy,
+                });
+            }
+            // U (unmerged), X (unknown), B (broken pair): states a clean CI checkout cannot
+            // produce — surface as uncertainty rather than guessing.
+            other => return Err(format!("unsupported diff status `{other}`")),
+        }
+    }
+    Ok(changes)
 }
 
 /// Why a path was classified the way it was — carried verbatim into the transparency output
@@ -263,17 +404,18 @@ impl Change {
 pub enum PathClass {
     /// Matched an escape-trigger pattern -> FULL.
     FullTrigger(String),
-    /// Deleted file in a graph-relevant class -> FULL (its cone is uncomputable at HEAD).
-    DeletedGraphFile,
-    /// Buildfile (BUCK/BUCK.v2/PACKAGE) changed or deleted -> FULL (blast radius exceeds its
-    /// own package: it can add/remove targets or shadow the file dependents load).
+    /// Deleted at HEAD -> FULL (its cone is uncomputable at HEAD; deleting a source can break
+    /// every dependent of its former target). ALL deletions escalate (first safe version).
+    Deleted,
+    /// Rename/copy/type-change -> FULL (structural change the head-only cone cannot bound).
+    Structural(StructuralKind),
+    /// Buildfile (BUCK/BUCK.v2) changed -> FULL (blast radius exceeds its own package: it can
+    /// add/remove targets or shadow the file dependents load).
     Buildfile,
-    /// Package-definition file -> expands to this package target pattern.
+    /// Package-sibling manifest -> expands to this package target pattern.
     PackagePattern(String),
     /// Sent to `owner()` resolution.
     OwnerQuery,
-    /// Deleted file outside every graph-relevant class -> no targets.
-    DeletedIrrelevant,
 }
 
 /// The pure classification of a diff (phase A). The adapter answers `owner_paths` with buck2
@@ -298,6 +440,30 @@ pub fn plan_changes(changes: &[Change], policy: &Policy) -> Plan {
     let mut plan = Plan::default();
     for change in changes {
         let path = change.path();
+        // Structural diff kinds escalate to FULL unconditionally — the head-only owner()/rdeps()
+        // cone cannot bound their blast radius (first safe version, ADR-0554 round-6). A deletion
+        // removes a source the cone cannot see at HEAD; a rename/copy/type-change moves or
+        // reshapes graph inputs the head snapshot cannot attribute. Handled BEFORE the path-class
+        // checks so, e.g., a renamed `Cargo.toml` cannot be mistaken for a plain sibling edit.
+        match change {
+            Change::Deleted(_) => {
+                plan.full_reasons.push(format!(
+                    "file `{path}` was deleted (deletion blast radius is not bounded by the head-only rdeps cone)"
+                ));
+                plan.classified.push((path.to_owned(), PathClass::Deleted));
+                continue;
+            }
+            Change::Structural { kind, .. } => {
+                plan.full_reasons.push(format!(
+                    "`{path}` is a {} (structural change the head-only cone cannot bound)",
+                    kind.describe()
+                ));
+                plan.classified
+                    .push((path.to_owned(), PathClass::Structural(*kind)));
+                continue;
+            }
+            Change::Present(_) => {}
+        }
         if let Some(pat) = policy
             .full_trigger_patterns
             .iter()
@@ -321,12 +487,8 @@ pub fn plan_changes(changes: &[Change], policy: &Policy) -> Plan {
             .iter()
             .any(|b| b == basename)
         {
-            let verb = match change {
-                Change::Deleted(_) => "deleted",
-                Change::Present(_) => "changed",
-            };
             plan.full_reasons.push(format!(
-                "buildfile `{path}` {verb} (blast radius exceeds its own package)"
+                "buildfile `{path}` changed (blast radius exceeds its own package)"
             ));
             plan.classified
                 .push((path.to_owned(), PathClass::Buildfile));
@@ -337,52 +499,27 @@ pub fn plan_changes(changes: &[Change], policy: &Policy) -> Plan {
             .iter()
             .any(|b| b == basename)
         {
-            match change {
-                Change::Deleted(_) => {
-                    plan.full_reasons
-                        .push(format!("package sibling `{path}` was deleted"));
+            match package_pattern(path, policy) {
+                Some(pat) => {
+                    plan.package_patterns.push(pat.clone());
                     plan.classified
-                        .push((path.to_owned(), PathClass::DeletedGraphFile));
+                        .push((path.to_owned(), PathClass::PackagePattern(pat)));
                 }
-                Change::Present(_) => match package_pattern(path, policy) {
-                    Some(pat) => {
-                        plan.package_patterns.push(pat.clone());
-                        plan.classified
-                            .push((path.to_owned(), PathClass::PackagePattern(pat)));
-                    }
-                    None => {
-                        plan.full_reasons.push(format!(
-                            "package sibling `{path}` maps to no configured cell root (derivation uncertainty)"
-                        ));
-                        plan.classified
-                            .push((path.to_owned(), PathClass::DeletedGraphFile));
-                    }
-                },
+                None => {
+                    plan.full_reasons.push(format!(
+                        "package sibling `{path}` maps to no configured cell root (derivation uncertainty)"
+                    ));
+                    plan.classified.push((
+                        path.to_owned(),
+                        PathClass::FullTrigger("(no cell root)".to_owned()),
+                    ));
+                }
             }
             continue;
         }
-        match change {
-            Change::Deleted(_) => {
-                if policy
-                    .require_owner_patterns
-                    .iter()
-                    .any(|pat| glob_match(pat, path))
-                {
-                    plan.full_reasons
-                        .push(format!("graph-relevant file `{path}` was deleted"));
-                    plan.classified
-                        .push((path.to_owned(), PathClass::DeletedGraphFile));
-                } else {
-                    plan.classified
-                        .push((path.to_owned(), PathClass::DeletedIrrelevant));
-                }
-            }
-            Change::Present(_) => {
-                plan.owner_paths.push(path.to_owned());
-                plan.classified
-                    .push((path.to_owned(), PathClass::OwnerQuery));
-            }
-        }
+        plan.owner_paths.push(path.to_owned());
+        plan.classified
+            .push((path.to_owned(), PathClass::OwnerQuery));
     }
     plan.package_patterns.sort();
     plan.package_patterns.dedup();
@@ -432,28 +569,44 @@ pub fn resolve(
 ) -> Decision {
     let mut refusals: Vec<String> = Vec::new();
     let mut seeds: BTreeSet<String> = plan.package_patterns.iter().cloned().collect();
+    let mut unmapped: Vec<String> = Vec::new();
     for path in &plan.owner_paths {
         let owners = owner_results.get(path).map(Vec::as_slice).unwrap_or(&[]);
-        if owners.is_empty() {
-            if policy
-                .require_owner_patterns
-                .iter()
-                .any(|pat| glob_match(pat, path))
-            {
-                refusals.push(path.clone());
-            }
-            // else: provably outside the graph (docs class) — fine.
-        } else {
+        if !owners.is_empty() {
             seeds.extend(owners.iter().cloned());
+            continue;
+        }
+        // Unowned Present file. A graph-invisibility refusal dominates: even a full-workspace run
+        // would not compile an owner-required source with no owning target.
+        if policy
+            .require_owner_patterns
+            .iter()
+            .any(|pat| glob_match(pat, path))
+        {
+            refusals.push(path.clone());
+            continue;
+        }
+        // Otherwise the path must map to an EXPLICIT synthetic-dependency declaration (specific
+        // seed targets, or `[]` = declared inert). No owner and no declaration is derivation
+        // uncertainty -> FULL (the old silent "docs class — fine" default was the selector hole).
+        match synthetic_seeds(path, policy) {
+            Some(synth) => seeds.extend(synth),
+            None => unmapped.push(path.clone()),
         }
     }
     if !refusals.is_empty() {
         refusals.sort();
         return Decision::RefuseUnowned { paths: refusals };
     }
-    if !plan.full_reasons.is_empty() {
+    let mut full_reasons = plan.full_reasons.clone();
+    for path in &unmapped {
+        full_reasons.push(format!(
+            "unowned path `{path}` has no buck2 owner and no synthetic-dependency declaration (derivation uncertainty)"
+        ));
+    }
+    if !full_reasons.is_empty() {
         return Decision::Full {
-            reasons: plan.full_reasons.clone(),
+            reasons: full_reasons,
         };
     }
     if !seeds.is_empty() {
@@ -462,6 +615,23 @@ pub fn resolve(
         };
     }
     Decision::NoGraphTargets
+}
+
+/// The union of synthetic seed targets from EVERY `synthetic_dependencies` pattern matching
+/// `path`, or `None` if NO pattern matched. `Some(vec![])` means the path matched at least one
+/// EXPLICIT inert declaration (`[]`) — accounted for, seeds no target. Used only for unowned,
+/// non-owner-required paths (owned paths are seeded by `owner()`; owner-required unowned paths
+/// refuse), so a synthetic declaration never shadows a real owner.
+fn synthetic_seeds(path: &str, policy: &Policy) -> Option<Vec<String>> {
+    let mut matched = false;
+    let mut seeds = Vec::new();
+    for (pattern, targets) in &policy.synthetic_dependencies {
+        if glob_match(pattern, path) {
+            matched = true;
+            seeds.extend(targets.iter().cloned());
+        }
+    }
+    matched.then_some(seeds)
 }
 
 /// One actual phase outcome recorded by the affected-set composition root.
@@ -775,6 +945,196 @@ pub fn build_health_verdict(
     }
 }
 
+// ── TEST-HEALTH RATCHET (ADR-0554 round-6; the FULL-tier test-health follow-up ADR-0554 §"declared
+//    next IP"). A FULL fallback that only BUILDS is "checking less": a target can BUILD and still
+//    FAIL its tests at runtime, and buck2's `--build-report` marks such a target `"success":
+//    "SUCCESS"` (verified live — the report captures BUILD status only). So the test-health ratchet
+//    cannot reuse the build-report; it parses buck2 `test`'s per-target verdict lines instead, then
+//    reuses `build_health_verdict` over the resulting failure sets (block test REGRESSIONS,
+//    grandfather pre-existing test debt — the same merge-base ratchet the build side uses).
+
+/// One test target's outcome, distilled from buck2 `test`'s per-target console verdict.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TestStatus {
+    /// buck2 printed `Pass: <label>`.
+    Pass,
+    /// buck2 printed `Fail:`/`Timeout:`/`Fatal:` for the label — not-known-good (fail-closed).
+    Fail,
+}
+
+/// buck2 `test`'s `Tests finished:` summary counts (the reconciliation ground truth).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct TestSummary {
+    pass: usize,
+    fail: usize,
+    timeout: usize,
+    fatal: usize,
+    infra_failure: usize,
+}
+
+/// Strip ANSI SGR escape sequences (`\x1b[...m`) so the parser matches on plain text.
+fn strip_ansi(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    let mut chars = s.chars();
+    while let Some(c) = chars.next() {
+        if c == '\u{1b}' {
+            // Consume up to and including the final byte of a CSI sequence (`m`, or any letter).
+            for e in chars.by_ref() {
+                if e.is_ascii_alphabetic() {
+                    break;
+                }
+            }
+        } else {
+            out.push(c);
+        }
+    }
+    out
+}
+
+/// Read the non-negative integer immediately following `keyword` in `hay` (first occurrence).
+fn count_after(hay: &str, keyword: &str) -> Option<usize> {
+    let idx = hay.find(keyword)? + keyword.len();
+    let digits: String = hay[idx..]
+        .chars()
+        .skip_while(|c| c.is_whitespace())
+        .take_while(|c| c.is_ascii_digit())
+        .collect();
+    digits.parse().ok()
+}
+
+/// Parse the `Tests finished: Pass P. Fail F. Timeout T. Fatal Ft. Skip S. Omit O. Infra Failure
+/// IF. Build failure BF` summary line. `Fail ` never matches inside `Infra Failure`/`Build failure`
+/// (the space after `Fail` is absent in `Failure`).
+fn parse_test_summary(line: &str) -> Option<TestSummary> {
+    if !line.contains("Tests finished:") {
+        return None;
+    }
+    Some(TestSummary {
+        pass: count_after(line, "Pass ")?,
+        fail: count_after(line, "Fail ")?,
+        timeout: count_after(line, "Timeout ")?,
+        fatal: count_after(line, "Fatal ")?,
+        infra_failure: count_after(line, "Infra Failure ")?,
+    })
+}
+
+/// Parse a per-target verdict line: `<glyph/timestamp...> <Verdict>: <label> (<t>s)`. Returns the
+/// target label + status for `Pass:`/`Fail:`/`Timeout:`/`Fatal:`; `None` for any other line
+/// (including `Skip:`/`Omit:`, which are not ratcheted target outcomes). The `<Verdict>: ` token
+/// (a colon) disambiguates from the summary's `Pass 1.` (a space + digit).
+fn parse_target_verdict_line(line: &str) -> Option<(String, TestStatus)> {
+    for (token, status) in [
+        ("Pass: ", TestStatus::Pass),
+        ("Fail: ", TestStatus::Fail),
+        ("Timeout: ", TestStatus::Fail),
+        ("Fatal: ", TestStatus::Fail),
+    ] {
+        if let Some(idx) = line.find(token) {
+            let rest = &line[idx + token.len()..];
+            // The label runs up to the trailing ` (<duration>)`; if absent, take the whole rest.
+            let label = rest
+                .rsplit_once(" (")
+                .map(|(l, _)| l)
+                .unwrap_or(rest)
+                .trim();
+            if !label.is_empty() {
+                return Some((label.to_owned(), status));
+            }
+        }
+    }
+    None
+}
+
+/// Parse buck2 `test`'s console stream into `{ test_target_label -> TestStatus }`, RECONCILED
+/// against the `Tests finished:` summary. Fail-closed: returns `Err` when the summary is missing,
+/// when the parsed per-target Pass/Fail counts do not equal the summary counts (an incomplete
+/// verdict set could under-count head failures and false-green a regression), or when the summary
+/// reports a build/infra failure (those are build-health's job or derivation uncertainty — a test
+/// report is only trustworthy over a cleanly-built workspace).
+pub fn parse_test_verdicts(console: &str) -> Result<BTreeMap<String, TestStatus>, String> {
+    let clean = strip_ansi(console);
+    let mut verdicts: BTreeMap<String, TestStatus> = BTreeMap::new();
+    let mut summary: Option<TestSummary> = None;
+    for line in clean.lines() {
+        if let Some(s) = parse_test_summary(line) {
+            summary = Some(s);
+            continue;
+        }
+        if let Some((label, status)) = parse_target_verdict_line(line) {
+            // A duplicate label with a WORSE status must not be masked (fail-closed): once a label
+            // is Fail it stays Fail.
+            verdicts
+                .entry(label)
+                .and_modify(|existing| {
+                    if status == TestStatus::Fail {
+                        *existing = TestStatus::Fail;
+                    }
+                })
+                .or_insert(status);
+        }
+    }
+    let summary = summary.ok_or(
+        "buck2 test console has no `Tests finished:` summary — cannot reconcile the per-target \
+         verdict set (fail-closed; refusing to grandfather against an unverifiable report)",
+    )?;
+    // Build failures are the BUILD-health ratchet's domain, not the test ratchet's: a build-failing
+    // target emits no Pass/Fail verdict line (it is counted only in `Build failure`), so it is
+    // simply absent from the runtime-verdict map. We therefore do NOT fail-closed on
+    // `Build failure` here — the composition root runs build-health FIRST, which blocks build
+    // regressions and grandfathers pre-existing build debt, so any remaining build failure is
+    // already accounted for. We DO fail-closed on `Infra Failure` (genuine derivation uncertainty).
+    if summary.infra_failure > 0 {
+        return Err(format!(
+            "buck2 test summary reports {} infra failure(s) — test derivation uncertainty (fail-closed)",
+            summary.infra_failure
+        ));
+    }
+    let parsed_pass = verdicts
+        .values()
+        .filter(|s| **s == TestStatus::Pass)
+        .count();
+    let parsed_fail = verdicts
+        .values()
+        .filter(|s| **s == TestStatus::Fail)
+        .count();
+    let expected_fail = summary.fail + summary.timeout + summary.fatal;
+    if parsed_pass != summary.pass || parsed_fail != expected_fail {
+        return Err(format!(
+            "buck2 test verdict reconciliation mismatch: parsed pass={parsed_pass} \
+             fail={parsed_fail}, summary pass={} fail+timeout+fatal={expected_fail} — refusing to \
+             grandfather against an incomplete verdict set (fail-closed)",
+            summary.pass
+        ));
+    }
+    Ok(verdicts)
+}
+
+/// The set of test target labels that FAILED (the failure set the test-health ratchet diffs).
+pub fn failing_test_targets(verdicts: &BTreeMap<String, TestStatus>) -> BTreeSet<String> {
+    verdicts
+        .iter()
+        .filter(|(_, s)| **s == TestStatus::Fail)
+        .map(|(label, _)| label.clone())
+        .collect()
+}
+
+/// Serialize a parsed test-verdict map into the SAME `{"results": {label: {"success": ...}}}`
+/// shape as a buck2 `--build-report`, so the merge-base TEST baseline artifact flows through the
+/// exact `parse_build_report`/`failing_targets` machinery the build baseline already uses.
+pub fn test_verdicts_to_report_value(verdicts: &BTreeMap<String, TestStatus>) -> Value {
+    let results: serde_json::Map<String, Value> = verdicts
+        .iter()
+        .map(|(label, status)| {
+            let success = match status {
+                TestStatus::Pass => "SUCCESS",
+                TestStatus::Fail => "FAIL",
+            };
+            (label.clone(), json!({ "success": success }))
+        })
+        .collect();
+    json!({ "results": results })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -832,6 +1192,7 @@ mod tests {
             package_definition_basenames: vec!["BUCK.v2".to_owned(), "BUCK".to_owned()],
             package_sibling_basenames: vec!["Cargo.toml".to_owned(), "build.rs".to_owned()],
             cell_roots: BTreeMap::from([(String::new(), "//".to_owned())]),
+            synthetic_dependencies: BTreeMap::new(),
             default_base_ref: "origin/main".to_owned(),
         }
     }
@@ -1218,5 +1579,137 @@ mod tests {
         assert!(line.contains("status=running"));
         assert!(line.contains("elapsed_seconds=42"));
         assert!(line.contains("command=buck2 test @targets"));
+    }
+
+    // ── Defect 1: the diff parser maps rename/copy/type-change to Structural -> FULL ─────────
+
+    #[test]
+    fn parse_name_status_maps_structural_kinds_and_present_and_deleted() {
+        // `-z` NUL-separated: A/M -> Present, D -> Deleted, T -> Structural(TypeChange),
+        // R<score> -> Structural(Rename) on the DESTINATION, C<score> -> Structural(Copy).
+        let raw = "M\0a.rs\0D\0b.rs\0T\0c.rs\0R100\0old.rs\0new.rs\0C075\0src.rs\0dst.rs\0";
+        let changes = parse_name_status_z(raw).unwrap();
+        assert_eq!(
+            changes,
+            vec![
+                Change::Present("a.rs".into()),
+                Change::Deleted("b.rs".into()),
+                Change::Structural {
+                    path: "c.rs".into(),
+                    kind: StructuralKind::TypeChange
+                },
+                Change::Structural {
+                    path: "new.rs".into(),
+                    kind: StructuralKind::Rename
+                },
+                Change::Structural {
+                    path: "dst.rs".into(),
+                    kind: StructuralKind::Copy
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn rename_of_non_source_file_escalates_to_full() {
+        // RED on the pre-round-6 parser: a rename was split into Deleted(old)+Present(new); a
+        // rename of a NON-owner-required file with an owned destination resolved to AFFECTED, not
+        // FULL — the structural move (old package loses the source) went unmodeled. Now FULL.
+        let p = test_policy();
+        let changes = parse_name_status_z("R100\0old/data.txt\0new/data.txt\0").unwrap();
+        let plan = plan_changes(&changes, &p);
+        assert!(matches!(
+            resolve(&plan, &BTreeMap::new(), &p),
+            Decision::Full { .. }
+        ));
+    }
+
+    // ── Defect 3: runtime test failures are invisible to --build-report; the verdict parser
+    //    catches them, reconciled fail-closed against the `Tests finished:` summary ────────────
+
+    fn buck2_test_console(pass: &[&str], fail: &[&str]) -> String {
+        let mut s = String::new();
+        for label in pass {
+            s.push_str(&format!("[ts] \u{2713} Pass: {label} (0.1s)\n"));
+        }
+        for label in fail {
+            s.push_str(&format!("[ts] \u{2717} Fail: {label} (0.1s)\n"));
+        }
+        // Summary carries ANSI colour codes in real output; include them to exercise strip_ansi.
+        s.push_str(&format!(
+            "Tests finished: \u{1b}[38;5;10mPass {}\u{1b}[39m. \u{1b}[38;5;9mFail {}\u{1b}[39m. \
+             Timeout 0. Fatal 0. Skip 0. Omit 0. Infra Failure 0. Build failure 0\n",
+            pass.len(),
+            fail.len()
+        ));
+        s
+    }
+
+    #[test]
+    fn test_verdict_ratchet_catches_a_runtime_failure_the_build_report_calls_success() {
+        // The exact hole: a target BUILDS (build-report `success: SUCCESS`) but its test FAILS at
+        // runtime. build_health_verdict over the BUILD report would grandfather/miss it; the
+        // TEST-verdict ratchet sees it as a regression.
+        let build_report = r#"{"results":{"root//svc:svc-test":{"success":"SUCCESS"}}}"#;
+        assert!(
+            failing_targets(&parse_build_report(build_report).unwrap()).is_empty(),
+            "build-report marks a build-OK-but-runtime-failed target SUCCESS (the hole)"
+        );
+
+        let baseline = buck2_test_console(&["root//svc:svc-test"], &[]);
+        let head = buck2_test_console(&[], &["root//svc:svc-test"]);
+        let baseline_fails = failing_test_targets(&parse_test_verdicts(&baseline).unwrap());
+        let head_fails = failing_test_targets(&parse_test_verdicts(&head).unwrap());
+        let verdict = build_health_verdict(&baseline_fails, &head_fails);
+        assert_eq!(verdict.regressions, vec!["root//svc:svc-test".to_string()]);
+        assert!(!verdict.is_green(), "a runtime test regression must block");
+    }
+
+    #[test]
+    fn test_verdict_grandfathers_pre_existing_runtime_failure() {
+        let baseline = buck2_test_console(&["root//a:a"], &["root//b:b"]);
+        let head = buck2_test_console(&["root//a:a"], &["root//b:b"]);
+        let baseline_fails = failing_test_targets(&parse_test_verdicts(&baseline).unwrap());
+        let head_fails = failing_test_targets(&parse_test_verdicts(&head).unwrap());
+        let verdict = build_health_verdict(&baseline_fails, &head_fails);
+        assert!(verdict.is_green());
+        assert_eq!(verdict.grandfathered, vec!["root//b:b".to_string()]);
+    }
+
+    #[test]
+    fn test_verdict_reconciliation_fails_closed_on_undercount() {
+        // If the parser sees FEWER Fail lines than the summary claims, the failure set is
+        // incomplete — grandfathering against it could false-green a regression. Refuse.
+        let console = "[ts] \u{2713} Pass: root//a:a (0.0s)\n\
+             Tests finished: Pass 1. Fail 2. Timeout 0. Fatal 0. Skip 0. Omit 0. \
+             Infra Failure 0. Build failure 0\n";
+        let err = parse_test_verdicts(console).unwrap_err();
+        assert!(err.contains("reconciliation mismatch"), "{err}");
+    }
+
+    #[test]
+    fn test_verdict_refuses_a_report_missing_the_summary() {
+        let console = "[ts] \u{2717} Fail: root//a:a (0.0s)\n";
+        let err = parse_test_verdicts(console).unwrap_err();
+        assert!(err.contains("no `Tests finished:` summary"), "{err}");
+    }
+
+    #[test]
+    fn test_verdict_tolerates_grandfathered_build_failures_but_refuses_infra_failures() {
+        // Build failures are the BUILD-health ratchet's domain (it runs first): a build-failing
+        // target emits no Pass/Fail verdict line, so the runtime-verdict set still reconciles. An
+        // INFRA failure is genuine derivation uncertainty and must fail-closed.
+        let ok = "[ts] \u{2713} Pass: root//a:a (0.0s)\n\
+             Tests finished: Pass 1. Fail 0. Timeout 0. Fatal 0. Skip 0. Omit 0. \
+             Infra Failure 0. Build failure 3\n";
+        assert!(
+            parse_test_verdicts(ok).is_ok(),
+            "build failures are build-health's concern, not the test parser's"
+        );
+
+        let infra = "Tests finished: Pass 0. Fail 0. Timeout 0. Fatal 0. Skip 0. Omit 0. \
+             Infra Failure 2. Build failure 0\n";
+        let err = parse_test_verdicts(infra).unwrap_err();
+        assert!(err.contains("infra failure"), "{err}");
     }
 }

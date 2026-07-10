@@ -29,6 +29,7 @@ use std::process::ExitCode;
 
 use ci_affected_target_set::{
     BuildHealthVerdict, build_health_verdict, failing_targets, parse_build_report,
+    parse_test_verdicts, test_verdicts_to_report_value,
 };
 
 const LOG: &str = "build-health";
@@ -66,7 +67,66 @@ fn parse_args(mut argv: std::env::Args) -> Result<Args, String> {
     })
 }
 
+/// NORMALIZE mode (ADR-0554 round-6, defect 3/4): distill a captured `buck2 test //...` console
+/// stream into a build-report-shaped `{results: {label: {success}}}` JSON, so a merge-base TEST
+/// baseline flows through the exact same `parse_build_report`/`failing_targets`/ratchet machinery
+/// as the build baseline. Fail-closed: an unreconcilable console (see [`parse_test_verdicts`])
+/// errors rather than emitting an under-counted baseline that could launder a test regression.
+fn run_normalize(console_path: &str, out_path: &str) -> ExitCode {
+    let console = match fs::read_to_string(console_path) {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln!("{LOG}: NORMALIZE ERROR: cannot read console `{console_path}`: {e}");
+            return ExitCode::from(2);
+        }
+    };
+    let verdicts = match parse_test_verdicts(&console) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("{LOG}: NORMALIZE ERROR: {e}");
+            return ExitCode::from(2);
+        }
+    };
+    let value = test_verdicts_to_report_value(&verdicts);
+    let bytes = match serde_json::to_vec_pretty(&value) {
+        Ok(b) => b,
+        Err(e) => {
+            eprintln!("{LOG}: NORMALIZE ERROR: serialize test-verdict report: {e}");
+            return ExitCode::from(2);
+        }
+    };
+    if let Err(e) = fs::write(out_path, bytes) {
+        eprintln!("{LOG}: NORMALIZE ERROR: write `{out_path}`: {e}");
+        return ExitCode::from(2);
+    }
+    println!(
+        "{LOG}: normalized {} test target verdict(s) -> {out_path}",
+        verdicts.len()
+    );
+    ExitCode::SUCCESS
+}
+
 fn main() -> ExitCode {
+    // Early NORMALIZE mode: `--normalize-test-console <console> --normalize-out <report.json>`.
+    // Handled before the ratchet arg parse because it needs neither baseline nor head report.
+    let raw: Vec<String> = std::env::args().skip(1).collect();
+    if let Some(idx) = raw.iter().position(|a| a == "--normalize-test-console") {
+        let console = raw.get(idx + 1).cloned();
+        let out = raw
+            .iter()
+            .position(|a| a == "--normalize-out")
+            .and_then(|i| raw.get(i + 1).cloned());
+        match (console, out) {
+            (Some(console), Some(out)) => return run_normalize(&console, &out),
+            _ => {
+                eprintln!(
+                    "{LOG}: ARGS ERROR: --normalize-test-console <console> requires --normalize-out <path>"
+                );
+                return ExitCode::from(2);
+            }
+        }
+    }
+
     let args = match parse_args(std::env::args()) {
         Ok(a) => a,
         Err(e) => {

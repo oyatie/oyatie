@@ -15,7 +15,9 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::PathBuf;
 
-use ci_affected_target_set::{Change, Decision, GATE_ID, Policy, plan_changes, resolve};
+use ci_affected_target_set::{
+    Change, Decision, GATE_ID, Policy, parse_name_status_z, plan_changes, resolve,
+};
 
 /// A pack mirroring the shipped oyatie policy shape (the tests stay engine-side: the kernel
 /// must work against ANY pack, so fixtures carry their own).
@@ -44,6 +46,10 @@ fn policy() -> Policy {
             "package_definition_basenames": ["BUCK.v2", "BUCK"],
             "package_sibling_basenames": ["Cargo.toml", "build.rs"],
             "cell_roots": {"": "//"},
+            "synthetic_dependencies": {
+                "docs/**": [],
+                "**/*.md": []
+            },
             "default_base_ref": "origin/dev"
         }"#,
     )
@@ -88,14 +94,85 @@ fn red_class_cf16525_out_of_scope_source_lands_in_the_affected_seeds() {
 }
 
 #[test]
-fn docs_only_diff_is_unowned_and_not_owner_required() {
+fn docs_only_diff_is_no_graph_targets_via_explicit_inert_declaration() {
     let p = policy();
     let changes = [Change::Present("docs/decisions/ADR-0001-x.md".into())];
     let plan = plan_changes(&changes, &p);
-    // owner() ran and found nothing — and .md is not owner-required (F3: the claim is
-    // "unowned and not owner-required", NOT "provably outside the build graph").
+    // owner() ran and found nothing. Post-round-6 (defect 2), an unowned non-owner-required path
+    // is NO LONGER silently ignored — it must map to an EXPLICIT synthetic-dependency declaration
+    // or it escalates to FULL. Docs are declared inert (`docs/**`/`**/*.md` -> []) in the pack, so
+    // this stays NoGraphTargets — now by an auditable pack rule, not a silent code default.
     let decision = resolve(&plan, &owners(&[("docs/decisions/ADR-0001-x.md", &[])]), &p);
     assert_eq!(decision, Decision::NoGraphTargets);
+}
+
+#[test]
+fn unowned_unmapped_path_escalates_to_full() {
+    // Defect 2 RED (pre-round-6: silently ignored -> NoGraphTargets/Affected-without-it). An
+    // unowned Present path that is NOT owner-required and matches NO synthetic-dependency
+    // declaration is derivation uncertainty -> FULL. Here `config/app.yaml` has no owner, is not
+    // `.rs`, and is not declared inert -> FULL (a yaml could carry runtime config the cone
+    // cannot model; the pack must explicitly declare it inert to skip it).
+    let p = policy();
+    let changes = [Change::Present("config/app.yaml".into())];
+    let plan = plan_changes(&changes, &p);
+    let decision = resolve(&plan, &owners(&[("config/app.yaml", &[])]), &p);
+    match decision {
+        Decision::Full { reasons } => assert!(
+            reasons.iter().any(|r| r.contains("config/app.yaml")
+                && r.contains("no synthetic-dependency declaration")),
+            "FULL reason must name the unmapped path; got {reasons:?}"
+        ),
+        other => panic!("an unowned unmapped path must escalate to FULL, got {other:?}"),
+    }
+}
+
+#[test]
+fn synthetic_dependency_maps_an_unowned_path_to_declared_seeds() {
+    // The other half of defect 2: an unowned path CAN be accounted for by an explicit synthetic
+    // dependency that seeds specific targets (e.g. a whole-tree-scanner input declared as a graph
+    // edge). Such a path contributes its declared seeds instead of escalating to FULL.
+    let p = Policy::from_json(
+        r#"{
+            "gate_id": "cloud-ci-affected-set",
+            "universe": "//...",
+            "full_run_targets": ["//..."],
+            "full_trigger_patterns": ["**/*.bzl"],
+            "require_owner_patterns": ["**/*.rs"],
+            "package_definition_basenames": ["BUCK.v2", "BUCK"],
+            "package_sibling_basenames": ["Cargo.toml"],
+            "cell_roots": {"": "//"},
+            "synthetic_dependencies": {
+                "policies/**": ["root//ci/facade/policy-lint:policy-lint"]
+            },
+            "default_base_ref": "origin/dev"
+        }"#,
+    )
+    .expect("pack parses");
+    let changes = [Change::Present("policies/tenancy.cedar".into())];
+    let plan = plan_changes(&changes, &p);
+    let decision = resolve(&plan, &owners(&[("policies/tenancy.cedar", &[])]), &p);
+    assert_eq!(
+        decision,
+        Decision::Affected {
+            seeds: vec!["root//ci/facade/policy-lint:policy-lint".into()]
+        }
+    );
+}
+
+#[test]
+fn renamed_non_source_file_escalates_to_full_end_to_end() {
+    // Defect 1 RED (pre-round-6: a rename was split into Deleted(old)+Present(new); a rename of a
+    // non-owner-required file whose destination is owned resolved to AFFECTED, not FULL). Parsed
+    // from `git diff --name-status -z`, a rename is a single Structural change -> FULL.
+    let p = policy();
+    let changes =
+        parse_name_status_z("R100\0old/fixtures/data.bin\0new/fixtures/data.bin\0").unwrap();
+    let plan = plan_changes(&changes, &p);
+    assert!(matches!(
+        resolve(&plan, &BTreeMap::new(), &p),
+        Decision::Full { .. }
+    ));
 }
 
 #[test]
@@ -221,14 +298,18 @@ fn deleted_package_definition_escalates_to_full() {
 }
 
 #[test]
-fn deleted_doc_is_not_an_escalation() {
+fn deleted_doc_escalates_to_full_safe_version() {
+    // Defect 1 (safe version): EVERY deletion escalates to FULL, including a doc — a deletion's
+    // blast radius is not bounded by the head-only rdeps cone (owner() cannot resolve a gone
+    // path). The pre-round-6 doc-deletion optimization is deliberately traded for soundness now;
+    // a later base+head owner-graph union may restore it.
     let p = policy();
     let changes = [Change::Deleted("docs/old-note.md".into())];
     let plan = plan_changes(&changes, &p);
-    assert_eq!(
+    assert!(matches!(
         resolve(&plan, &BTreeMap::new(), &p),
-        Decision::NoGraphTargets
-    );
+        Decision::Full { .. }
+    ));
 }
 
 // ── Buildfile changes escalate to FULL (blast radius exceeds the package's own rdeps) ────
@@ -472,9 +553,7 @@ fn shipped_pack_parses_and_matches_the_engine() {
     // Locate the shipped pack relative to the repo root (walk-up mirrors the firewall gate's
     // resolver; buck2 runs tests inside the repo).
     let mut dir = std::env::current_dir().expect("cwd");
-    let rel = PathBuf::from(
-        "ci/facade/affected-target-set/affected-set-policy.json",
-    );
+    let rel = PathBuf::from("ci/facade/affected-target-set/affected-set-policy.json");
     let pack = loop {
         let candidate = dir.join(&rel);
         if candidate.is_file() {

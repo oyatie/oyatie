@@ -543,11 +543,19 @@ jobs:
   gate-affected-target-set:
     name: "gate · affected-set (ADR-0554, binding workspace coverage)"
     runs-on: ubuntu-latest
-    # SAFETY RAIL (ADR-0554 D7): bound the cold full-workspace rebuild so a runaway/exhaustion
-    # (a wedged buck2 action, a non-terminating compile) cannot burn the runner indefinitely.
-    # Derivation: ≈4x the ADR-0554-measured warm full run (4m35s cold / 5m45s incl. tests, lines
-    # 56-58) — fires only on a genuine runaway, never on a healthy cold build.
-    timeout-minutes: 45
+    # SAFETY RAIL (ADR-0554 D7; re-derived round-6): bound the full-workspace rebuild so a
+    # runaway/exhaustion (a wedged buck2 action, a non-terminating compile) cannot burn the runner
+    # indefinitely — a backstop, NOT a per-run budget. Raised 45 -> 120 because the round-6 FULL
+    # tier now does up to TWO full workspace passes: (1) the merge-base baseline, which defect 4
+    # moved into a CLEAN detached worktree — its own cold buck-out, ~31 min build measured on run
+    # 29110398688 (vs the old same-tree ~5m45s warm) plus a merge-base test pass for the defect-3
+    # test-health ratchet — and (2) the binding head build+test. 45 min was sized for a single warm
+    # full run and killed the head build mid-flight. 120 clears a pessimistic 2x-cold-full+tests
+    # (~100 min) with margin while still firing on a genuine runaway. This is the cost of a sound
+    # FULL tier without baseline reuse; the trusted-artifact fast-path (owned-Rust selector,
+    # follow-up on #1323) makes the common merge-base case download-not-rebuild and brings this
+    # back toward one warm full run.
+    timeout-minutes: 120
     steps:
       # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
@@ -668,171 +676,91 @@ jobs:
       #    integrity-canary/release cold floor). GH #899 activates the trusted D8 consumer first:
       #    use an exact push-to-dev baseline artifact when provenance and schema validate, else
       #    fail closed to the same in-job merge-base rebuild below.
-      - name: Materialize merge-base build-health baseline when affected-set needs FULL
+      - name: Materialize merge-base build + test baselines when affected-set needs FULL
         if: ${{ github.event_name == 'pull_request' }}
         env:
           BASE_REF: ${{ github.base_ref || 'dev' }}
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          # ── MERGE-BASE BUILD + TEST BASELINES in a CLEAN detached worktree (ADR-0554 round-6,
+          #    defects 3 + 4). Most PRs stay in the affected cone and skip this entirely; only a
+          #    derived FULL decision needs the merge-base baselines the ratchets grandfather against.
+          #
+          #    SOUNDNESS (defect 4): the baselines are built in a SEPARATE `git worktree` checked out
+          #    to the merge-base COMMITTED tree — NEVER in the candidate working tree. The previous
+          #    approach ran `git checkout --detach ${merge_base}` in the MAIN tree, which LEFT the
+          #    candidate's untracked/ignored materialized faces on disk; broad `**/*.json` BUCK globs
+          #    could then consume a candidate-controlled input into the baseline, laundering the
+          #    failure set. A clean worktree cannot see the candidate tree, so the baselines come
+          #    ENTIRELY from merge-base git objects (candidate-uncontrollable), and the candidate
+          #    working tree is untouched (no checkout, no restore trap).
+          #
+          #    FOLLOW-UP (owned-Rust selector; defect 5b): a trusted push-to-dev baseline-artifact
+          #    fast-path used to reuse a prior dev build-report here via python glue. It was REMOVED
+          #    (no half-done shell) — the pure Rust fns for it already exist
+          #    (trusted_dev_push_run_id / trusted_build_health_baseline_artifact_id /
+          #    validate_trusted_build_health_baseline_artifact) and should return as an owned-Rust
+          #    selector binary reusing them. Until then every FULL-tier PR rebuilds both baselines
+          #    cold in the clean worktree (sound; slower — warmth is ADR-0556/CAS work, and the test
+          #    baseline needs an artifact producer the selector will consume).
           merge_base="$(git merge-base "origin/${BASE_REF}" HEAD)"
-          orig_ref="$(git rev-parse HEAD)"
-          candidate_toolchain="$(awk -F'"' '/channel/ {print $2; exit}' rust-toolchain.toml)"
-          decision_log="${RUNNER_TEMP}/affected-set-derive.log"
           full_required_marker="${RUNNER_TEMP}/affected-set-full-required"
           echo "false" > "${full_required_marker}"
           gate_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-affected-set-bin --show-output | awk '{print $2}')"
           telemetry_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-step-telemetry-bin --show-output | awk '{print $2}')"
+          buildhealth_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-build-health-bin --show-output | awk '{print $2}')"
           ci_step_telemetry="${RUNNER_TEMP}/oya-cloud-ci-step-telemetry"
-          cp "${telemetry_bin}" "${ci_step_telemetry}"
-          chmod +x "${ci_step_telemetry}"
-          echo "affected-set preflight: derive plan before merge-base baseline"
-          "${ci_step_telemetry}" --phase derive-affected-set-tier -- "${gate_bin}" \
+          cp "${telemetry_bin}" "${ci_step_telemetry}"; chmod +x "${ci_step_telemetry}"
+          cp "${gate_bin}" "${RUNNER_TEMP}/oya-cloud-ci-affected-set"; chmod +x "${RUNNER_TEMP}/oya-cloud-ci-affected-set"
+          cp "${buildhealth_bin}" "${RUNNER_TEMP}/oya-cloud-ci-build-health"; chmod +x "${RUNNER_TEMP}/oya-cloud-ci-build-health"
+          echo "affected-set preflight: derive plan before merge-base baselines"
+          "${ci_step_telemetry}" --phase derive-affected-set-tier -- "${RUNNER_TEMP}/oya-cloud-ci-affected-set" \
             --policy ci/facade/affected-target-set/affected-set-policy.json \
             --base "origin/${BASE_REF}" --mode auto --derive-only \
             --decision-artifact-out "${RUNNER_TEMP}/affected-set-derive-decision.json" \
-            | tee "${decision_log}"
-          if grep -Eq '^affected-set: (decision=FULL|ESCALATE to FULL)' "${decision_log}"; then
+            | tee "${RUNNER_TEMP}/affected-set-derive.log"
+          if grep -Eq '^affected-set: (decision=FULL|ESCALATE to FULL)' "${RUNNER_TEMP}/affected-set-derive.log"; then
             echo "true" > "${full_required_marker}"
-            echo "affected-set preflight: FULL decision requires merge-base build-health baseline"
+            echo "affected-set preflight: FULL decision requires merge-base build + test baselines"
           else
-            echo "affected-set preflight: derived non-FULL decision; skipping merge-base baseline"
+            echo "affected-set preflight: derived non-FULL decision; skipping merge-base baselines"
             exit 0
           fi
-          echo "build-health baseline: merge-base=${merge_base} candidate=${orig_ref}"
-          artifact_name="build-health-baseline-${merge_base}"
-          echo "build-health baseline: attempting trusted dev-push artifact ${artifact_name}"
-          try_trusted_baseline_artifact() {
-            if ! command -v gh >/dev/null 2>&1; then
-              echo "build-health baseline: gh unavailable; falling back to in-job merge-base rebuild"
-              return 1
-            fi
-            local runs_json="${RUNNER_TEMP}/build-health-trusted-runs.json"
-            local artifacts_json="${RUNNER_TEMP}/build-health-trusted-artifacts.json"
-            local trusted_zip="${RUNNER_TEMP}/build-health-trusted.zip"
-            local trusted_dir="${RUNNER_TEMP}/build-health-trusted"
-            local trusted_report="${trusted_dir}/build-health-admission-report.json"
-
-            gh api --method GET -H "Accept: application/vnd.github+json" \
-              "repos/${GITHUB_REPOSITORY}/actions/workflows/oya-ci-required.yml/runs" \
-              -f branch=dev -f event=push -f status=success -F per_page=50 > "${runs_json}" \
-              || { echo "build-health baseline: trusted run lookup failed; falling back to in-job rebuild"; return 1; }
-
-            local run_id
-            run_id="$(python3 - "${runs_json}" "${merge_base}" <<'PY'
-          import json
-          import sys
-
-          path, merge_base = sys.argv[1], sys.argv[2]
-          with open(path, encoding="utf-8") as fh:
-              payload = json.load(fh)
-          for run in payload.get("workflow_runs", []):
-              if (
-                  run.get("head_sha") == merge_base
-                  and run.get("event") == "push"
-                  and run.get("head_branch") == "dev"
-                  and run.get("conclusion") == "success"
-              ):
-                  print(run["id"])
-                  break
-          PY
-            )"
-            if [ -z "${run_id}" ]; then
-              echo "build-health baseline: no successful trusted push-to-dev run for ${merge_base}; falling back to in-job rebuild"
-              return 1
-            fi
-
-            gh api --method GET -H "Accept: application/vnd.github+json" \
-              "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts" \
-              -F per_page=100 > "${artifacts_json}" \
-              || { echo "build-health baseline: trusted artifact lookup failed; falling back to in-job rebuild"; return 1; }
-
-            local artifact_id
-            artifact_id="$(python3 - "${artifacts_json}" "${artifact_name}" <<'PY'
-          import json
-          import sys
-
-          path, expected_name = sys.argv[1], sys.argv[2]
-          with open(path, encoding="utf-8") as fh:
-              payload = json.load(fh)
-          for artifact in payload.get("artifacts", []):
-              if artifact.get("name") == expected_name and not artifact.get("expired", True):
-                  print(artifact["id"])
-                  break
-          PY
-            )"
-            if [ -z "${artifact_id}" ]; then
-              echo "build-health baseline: no unexpired exact artifact ${artifact_name} on trusted run ${run_id}; falling back to in-job rebuild"
-              return 1
-            fi
-
-            gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}/zip" > "${trusted_zip}" \
-              || { echo "build-health baseline: artifact download failed; falling back to in-job rebuild"; return 1; }
-            rm -rf "${trusted_dir}"
-            mkdir -p "${trusted_dir}"
-            python3 -m zipfile -e "${trusted_zip}" "${trusted_dir}" \
-              || { echo "build-health baseline: artifact unzip failed; falling back to in-job rebuild"; return 1; }
-
-            if ! python3 - "${trusted_report}" <<'PY'
-          import json
-          import os
-          import sys
-
-          path = sys.argv[1]
-          if not os.path.getsize(path):
-              raise SystemExit("empty report file")
-          with open(path, encoding="utf-8") as fh:
-              payload = json.load(fh)
-          results = payload.get("results")
-          if not isinstance(results, dict) or not results:
-              raise SystemExit("missing or empty results object")
-          PY
-            then
-              echo "build-health baseline: trusted artifact schema/emptiness invalid; falling back to in-job rebuild"
-              return 1
-            fi
-            cp "${trusted_report}" "${RUNNER_TEMP}/build-health-baseline.json"
-            echo "build-health baseline: trusted artifact hit run_id=${run_id} artifact_id=${artifact_id}"
-            return 0
+          mb_tree="${RUNNER_TEMP}/merge-base-worktree"
+          rm -rf "${mb_tree}"
+          git worktree add --quiet --detach "${mb_tree}" "${merge_base}"
+          cleanup_worktree() {
+            local status="$?"
+            git -C "${GITHUB_WORKSPACE}" worktree remove --force "${mb_tree}" 2>/dev/null || rm -rf "${mb_tree}"
+            exit "${status}"
           }
-          if try_trusted_baseline_artifact; then
-            exit 0
-          fi
-          # ALWAYS restore the candidate tree on EXIT — a failed baseline build can never strand CI
-          # on the merge-base tree (the subsequent Binding affected-set step runs on the candidate).
-          # NOTE: if the timeout-minutes:45 rail SIGKILLs this build, the bash EXIT trap does NOT
-          # fire (tree left detached at merge-base) — but a timeout fails the whole job RED → fan-in
-          # RED, so it is fail-closed and never produces a wrong-baseline verdict.
-          restore_candidate_tree() {
-            local exit_status="$?"
-            git checkout --quiet --detach "${orig_ref}" 2>/dev/null || git checkout --quiet "${orig_ref}"
-            if [ "${candidate_toolchain}" != "${baseline_toolchain:-${candidate_toolchain}}" ]; then
-              echo "build-health baseline: cleaning buck-out after restoring candidate toolchain ${candidate_toolchain}"
-              buck2 clean
-            fi
-            exit "${exit_status}"
-          }
-          trap restore_candidate_tree EXIT
-          # Detach the MAIN working tree to the merge-base COMMITTED tree-ish: the baseline is
-          # computed from git object history (candidate-uncontrollable), and the candidate working
-          # tree is removed from disk for the build, so a PR cannot grow its own baseline to
-          # launder a regression.
-          git checkout --quiet --detach "${merge_base}"
-          baseline_toolchain="$(awk -F'"' '/channel/ {print $2; exit}' rust-toolchain.toml)"
-          rustup toolchain install
-          if [ "${candidate_toolchain}" != "${baseline_toolchain}" ]; then
-            echo "build-health baseline: Rust toolchain changed ${baseline_toolchain} -> ${candidate_toolchain}; isolating buck-out"
-            buck2 clean
-          fi
-          # Build the whole merge-base workspace keep-going. Same-channel PRs share warm ./buck-out;
-          # Rust-channel bump PRs intentionally go cold on both sides to avoid mixed-rustc rlibs.
-          # The build is EXPECTED to be non-zero (dev carries pre-existing breakage) — that is the
-          # baseline, not a failure, so we never propagate its exit code.
-          "${ci_step_telemetry}" --phase materialize-merge-base-build-health-baseline -- \
-            buck2 build //... --keep-going \
-              --build-report "${RUNNER_TEMP}/build-health-baseline.json" || true
-          test -s "${RUNNER_TEMP}/build-health-baseline.json" \
-            || { echo "build-health: FATAL empty merge-base baseline report"; exit 1; }
+          trap cleanup_worktree EXIT
+          (
+            cd "${mb_tree}"
+            rustup toolchain install
+            # Materialize merge-base generated faces IN the clean worktree (merge-base-owned; the
+            # `buck2 run` rebuilds the materializer from merge-base source, so faces are consistent).
+            buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
+            # BUILD baseline: whole merge-base workspace keep-going. The build is EXPECTED to be
+            # non-zero (dev carries pre-existing breakage) — that IS the baseline, not a failure, so
+            # its exit code is never propagated.
+            "${ci_step_telemetry}" --phase materialize-merge-base-build-health-baseline -- \
+              buck2 build //... --keep-going \
+                --build-report "${RUNNER_TEMP}/build-health-baseline.json" || true
+            test -s "${RUNNER_TEMP}/build-health-baseline.json" \
+              || { echo "build-health: FATAL empty merge-base build baseline report"; exit 1; }
+            # TEST baseline (defect 3): run the merge-base tests keep-going, capture the per-target
+            # verdict console, and normalize it with the owned-Rust build-health binary into the
+            # build-report shape so the test-health ratchet consumes it exactly like the build
+            # baseline. Exit code not propagated (pre-existing test debt is the baseline).
+            "${ci_step_telemetry}" --phase materialize-merge-base-test-health-baseline -- \
+              buck2 test //... --keep-going > "${RUNNER_TEMP}/merge-base-test-console.log" 2>&1 || true
+            "${RUNNER_TEMP}/oya-cloud-ci-build-health" \
+              --normalize-test-console "${RUNNER_TEMP}/merge-base-test-console.log" \
+              --normalize-out "${RUNNER_TEMP}/test-health-baseline.json"
+            test -s "${RUNNER_TEMP}/test-health-baseline.json" \
+              || { echo "test-health: FATAL empty merge-base test baseline report"; exit 1; }
+          )
       - name: Binding affected-set build + test (cone-binding; FULL tier = build-health ratchet)
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -843,14 +771,20 @@ jobs:
           telemetry_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-step-telemetry-bin --show-output | awk '{print $2}')"
           if [ "${EVENT_NAME}" = "pull_request" ]; then
             # PR tier: auto (cone-binding, hard-fail on a NEW break in the changed cone); a FULL
-            # escalation runs the build-health ratchet against the merge-base baseline. The
-            # baseline is only materialized when the derive preflight proves FULL is needed.
+            # escalation runs the build-health ratchet AND the test-health ratchet (defect 3) against
+            # the merge-base build + test baselines. Both are only materialized when the derive
+            # preflight proves FULL is needed.
             baseline_args=()
             if [ -f "${RUNNER_TEMP}/affected-set-full-required" ] \
                 && grep -qx 'true' "${RUNNER_TEMP}/affected-set-full-required"; then
               test -s "${RUNNER_TEMP}/build-health-baseline.json" \
-                || { echo "affected-set: FATAL missing baseline after FULL derive preflight"; exit 1; }
-              baseline_args=(--baseline-report "${RUNNER_TEMP}/build-health-baseline.json")
+                || { echo "affected-set: FATAL missing build baseline after FULL derive preflight"; exit 1; }
+              test -s "${RUNNER_TEMP}/test-health-baseline.json" \
+                || { echo "affected-set: FATAL missing test baseline after FULL derive preflight"; exit 1; }
+              baseline_args=(
+                --baseline-report "${RUNNER_TEMP}/build-health-baseline.json"
+                --test-baseline-report "${RUNNER_TEMP}/test-health-baseline.json"
+              )
             fi
             "${telemetry_bin}" --phase binding-affected-set-build-test -- "${gate_bin}" \
               --policy ci/facade/affected-target-set/affected-set-policy.json \

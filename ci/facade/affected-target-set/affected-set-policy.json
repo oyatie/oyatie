@@ -36,13 +36,19 @@
   "cell_roots": {
     "": "//"
   },
+  "_synthetic_dependencies_note": "ADR-0554 round-6 (defect 2): every changed path must map to a buck2 owner() OR an explicit synthetic-dependency declaration here, otherwise it escalates to FULL (an unowned, undeclared path is derivation uncertainty — the old silent 'docs class — fine' default was a selector hole). Each key is a micro-glob; the value is the list of synthetic seed targets the path contributes (a whole-tree-scanner input declared as a graph edge). An EMPTY list is an explicit inert declaration: 'this class is not a buck2 graph input.' A declaration only applies when owner() is EMPTY — an owned instance (e.g. an include_str! markdown asset) is still seeded by owner(), so declaring docs inert never shadows a real owner. CONSERVATIVE by design: only clearly-inert, commonly-touched doc classes are declared, so a docs-only PR stays fast; EVERYTHING ELSE unowned (yaml/toml/json/txt config, unknown extensions) escalates to FULL until a class earns an evidence-backed declaration. Broadening this map is an optimization follow-up, never a soundness requirement.",
+  "synthetic_dependencies": {
+    "docs/**": [],
+    "**/*.md": [],
+    "**/*.mdx": []
+  },
   "default_base_ref": "origin/dev",
   "product_contract": {
     "born_pack_shaped": "The escape-trigger classes, owner-required classes, universe, full-run patterns, cell roots, and base ref are DATA here; the Rust kernel hardcodes no repo path nor any oyatie string (R0, ADR-0548). The kernel DOES fix the decision SEMANTICS — RefuseUnowned > Full > Affected > NoGraphTargets dominance, derivation-uncertainty-escalates-to-full, owner() on every existing changed file regardless of extension — that contract is the engine, not a per-repo pack value.",
     "fail_closed": "Derivation NEVER skips: git/uquery/rdeps errors, unmappable package files, deleted graph files, and empty rdeps closures all escalate to the full workspace run. The only hard failures are an unreadable/invalid pack, owner-required files with no owning target, and the build/test verdict itself.",
     "tiers": "pull_request -> auto (affected cone, escalation binding); merge_group + push + workflow_dispatch -> full (admission/integration tier per ADR-0515 Tide direction).",
     "precedent": "Bazel target determination / bazel-diff (Tinder), Meta/Google affected-target CI; reimplemented Rust-native on buck2 uquery owner()/rdeps() per the proven-patterns doctrine.",
-    "execution": "Buck2-native Rust lane; no shell logic beyond the workflow YAML step (G011 Rust-successor of the transitional infra/ci/buck2-affected-gate.sh)."
+    "execution": "Buck2-native Rust lane; no shell logic beyond the workflow YAML step (G011 Rust-successor that RETIRED the transitional infra/ci/buck2-affected-gate.sh shell driver, removed ADR-0554 round-6)."
   },
   "purpose": "Binding workspace coverage: every PR builds+tests the buck2 reverse-dependency cone of its merge-base diff as a REQUIRED context, with mechanical fail-closed escalation to the full workspace whenever the cone cannot be trusted. Any owner-required source change with a buck2 target builds+tests its cone; any buildfile/config/macro change escalates to FULL; a genuinely-unowned owner-required file (e.g. a source in a sub-workspace buck2 does not model) REFUSES the merge until it is wired — never silently passes."
 }
