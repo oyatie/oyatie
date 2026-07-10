@@ -231,6 +231,62 @@ not equality to the alphabetical sort; see the
 follow-up may reconcile §D-4's "unique alphabetical sort" prose with
 §D-1's verbatim order.
 
+## Amendment (2026-07-10, substrate plane-topology model + fork resolution)
+
+This ADR is **amended in place** (no tombstone; git history preserves the pre-amendment
+body). No new decision id and no status flip: the plane-model refinement is folded into the
+already-Accepted, already-propagated ADR-0280, so it creates **no new cross-artifact
+propagation obligation** and does not RED the cross-artifact-agreement gate. Formal
+re-ratification of the refined model rides the atomic **ADR-0562 / ADR-0615** convergence
+batch per the Accepted-must-propagate doctrine — this amendment does not front-run that batch
+by minting a fresh Accepted decision.
+
+**What this amendment adds.** The original §D-1 declared a single flat total order with `cell`
+as the leaf substrate. A cross-model verification pass — grounded in AWS cell-based
+architecture, AWS Verified Permissions (store-per-tenant), Google Zanzibar
+(logically-global / physically-distributed-with-local-replicas), SPIRE / Nested-SPIRE,
+the AWS Nitro / Google Titan hardware roots of trust, and Meta Shard Manager — established
+that a flat total order is **less wrong than the two conflicting committed SSOTs but still a
+category error**: it equates a capability *ownership boundary* with one *deployable bootstrap
+node*. A bare cell envelope is *below* the services hosted in it; hardware/boot trust is
+*below* the operational secrets service; cell lifecycle is *above* iam/policy; the router is a
+*separate* distributed data plane; and every critical control capability has BOTH a
+global-control face and a cell-local/runtime face. The canonical model is therefore a
+**face-aware, sharded, typed DAG across planes** — declared in full in the new **§D-13**. This
+amendment **supersedes the plain "cell-as-leaf total order" framing** of §D-1/§D-2/§D-4 with
+the face-aware typed DAG of §D-13. The §D-1 machine artifact remains valid and unchanged as
+the **C-plane steady-state runtime dependency graph** (one of the five edge-typed graphs of
+§D-13.C), with its `cell` node understood as the `cell.envelope` (B0) runtime face.
+
+**Fork resolution (the load-bearing fix).** Two committed SSOTs disagreed on substrate
+topology: `specs/substrate-dependency-dag.json` (cell-as-leaf flat `bootstrap_order`) and
+`specs/platform-architecture.json` `substrate_dag_canonical_ordering` (an *inverted* strata
+map with `cell` at S2 and `audit-chain` / `observability` / `cloud-secrets` as S0 leaves). The
+ADR-0562 §8 Fork-1 directive already named `substrate-dependency-dag.json` §D-1 canonical and
+`platform-architecture.json`'s block the "derived mirror, amended to match §D-1", but the
+mirror was never actually corrected — the inverted orientation stayed on disk. This amendment
+**executes that correction**: `specs/substrate-dependency-dag.json` (§D-1) is the sole
+canonical Tier-1 runtime-face DAG; `specs/platform-architecture.json`
+`substrate_dag_canonical_ordering` is rewritten as an explicit **derived projection**
+(`projection_kind: derived-mirror`, `canonical_source: /specs/substrate-dependency-dag.json`)
+that carries §D-1's `bootstrap_order` verbatim, a DAG-consistent dependency-depth
+stratification (`cell` at the S0 leaf; no node placed below a node it depends on), and the
+Tier-2 + meta nodes placed by §D-13 plane and marked forward-declared. The two SSOTs now agree
+by construction.
+
+**Capability-node mapping.** Per the founder policy-extract ruling, `policy` owns its own DAG
+node (extracted from `iam`), giving **24 capabilities ↔ 24 dag_nodes**. The §D-1 machine
+artifact already carries `policy-engine` as a node distinct from `identity`, so the runtime DAG
+needs no change on this point. The closed capability-registry's `iam`-owns-`{identity,
+policy-engine}` grouping is the surface that still expresses policy as a sub-node of `iam`;
+splitting it into a standalone `policy` capability is a **closed-registry membership change**
+that rides its own ADR-0615 / ADR-0562-§7 capability-registry lane (flagged in §D-13.H), not
+this substrate-topology amendment.
+
+See **§D-13** for the full plane model (E0/B0/C0/C1/C2 + G + R), the five edge-typed graphs,
+the per-capability face-splits, the two-kinds-of-roots distinction, and the static-stability
+invariant.
+
 ## Date
 
 2026-05-20.
@@ -1544,6 +1600,216 @@ that exercise the cascade rules under controlled conditions.
    cascade set matches the DAG-derived expected set.
 
 Exit 1 on missed drill or cascade-set deviation.
+
+### D-13. Substrate plane-topology model (E0 / B0 / C0 / C1 / C2 + G + R)
+
+**This section supersedes the "cell-as-leaf total order" framing of §D-1 / §D-2 / §D-4.**
+The flat total order was the correct *machine artifact* for one of the platform's dependency
+graphs — the C-plane steady-state runtime graph — but it is not the whole topology. The
+canonical substrate topology is a **face-aware, sharded, typed DAG across planes**. §D-1's
+machine artifact is retained unchanged; this section reframes what it is and adds the planes,
+graphs, face-splits, roots, and invariant that a single `bootstrap_order` list cannot encode.
+
+#### D-13.A. Two kinds of roots
+
+The original §D-2 R-1 called `cell` "the leaf substrate; it depends on nothing." That
+conflates two distinct notions of "root". The canonical model distinguishes them:
+
+- **Security / integrity roots (EXTERNAL to the 24 capabilities).** Hardware root of trust +
+  measured boot; an offline / threshold organisation root key + immutable trust bundle; the
+  signed bootstrap manifest + artifact digests + the initial cell identity; and the genesis /
+  break-glass authority. These are the AWS Nitro / Google Titan analog and live in plane **E0**
+  (external genesis roots). They are NOT substrate µservices and NOT registry capabilities.
+- **Liveness / hosting roots.** Bare compute; bootstrap network / DNS / time; local durable
+  boot storage; and the minimal runtime that starts Kubernetes and the first service. These
+  are the true bottom of the *hosting* order — the **B0** empty cell envelope.
+
+The consequence: operational KMS / SPIRE (`cloud-secrets`) is **not** irreducible. It runs on
+the hosting substrate (B0) and is authenticated through IAM. `secrets.root-control` is the sole
+in-graph cryptographic authority *service*, but it is NOT the bootstrap leaf; the roots below
+it are external (E0) and hosting (B0). The router is not a root at all — it is a data plane
+(R).
+
+#### D-13.B. The canonical plane model — four internal planes + external root
+
+```text
+E0  external genesis roots: hardware RoT + signed boot/artifacts + org root key/quorum
+        + bootstrap compute/network/storage facts
+          |
+B0  empty cell envelope: {network.bootstrap, compute.bootstrap, storage.bootstrap}
+        -> k8s.bootstrap -> cell.envelope
+          |
+C0  cell-local trust & authz: secrets.cell/intermediate -> iam verifier
+        -> tenancy/home-cell snapshot -> policy PDP + local versioned policy/ReBAC store
+          |
+C1  cell-local reliability & platform: audit append/seal, observability, data, messaging,
+        per-cell gateway, local flags
+          |
+C2  cell workloads: intelligence, workflow, billing metering, marketplace, console APIs,
+        compliance enforcement, comms
+
+  in parallel:
+G   logically-global, physically-PARTITIONED management plane: secrets root admin,
+        cell registry/lifecycle/placement, IAM admin, tenancy directory,
+        policy authoring/signing/distribution, fleet k8s/network/compute/storage,
+        CI/IaC + catalogs/aggregation
+          | (signed, versioned snapshots — one-way)
+R   distributed routing data plane: network edge + gateway edge + cell.router — thin,
+        cellularized, cached, NO live G-plane dependency (static stability)
+```
+
+**Generating rule.** Push everything into the cell that *can* live in the cell; the global
+plane (G) may be large, but **cell runtime must never synchronously depend on it**
+(static-stability invariant — the data plane survives a control-plane outage). The router (R)
+is a data plane, not the control plane, and must itself be cellularized (it is the only layer
+that knows all cells). The C-plane bottom-to-top ordering (B0 → C0 → C1 → C2) is exactly what
+the §D-1 machine artifact encodes as `bootstrap_order`, with the §D-1 `cell` node being the
+`cell.envelope` (B0) face.
+
+#### D-13.C. Five distinct edge-typed graphs
+
+A single `bootstrap_order` cannot encode all substrate relationships because the platform has
+**five distinct dependency graphs with different edge types, often pointing in opposite
+directions**:
+
+1. **Genesis graph** — first-ever bring-up from E0: external roots → B0 → the first management
+   cell (`cell.genesis`, break-glass).
+2. **New-cell provisioning graph** — G-plane `cell.lifecycle.cp` creates an empty cell ID, then
+   populates C0 → C1 → C2 (depends on iam / policy / tenancy / audit).
+3. **Steady-state request graph** — the C-plane runtime dependency DAG. **This is the graph
+   the §D-1 machine artifact encodes** (Tarjan-acyclic, Kahn-topo-sortable).
+4. **Control-data publication graph** — G publishes signed, versioned snapshots one-way to R
+   and C0 (policy bundles, tenant/home-cell directory, placement). Edges point G → cell, but
+   they are **asynchronous and cached**, never synchronous runtime edges.
+5. **Failure / brownout propagation graph** — the cascade closure of §D-5, honouring ADR-0176
+   brown-out.
+
+The §D-1 acyclicity invariant governs graph (3). Graphs (1), (2), (4), (5) are authored here
+in prose and **flagged for a DAG-schema extension (DAG v2)** rather than forced into the
+v1.0.0 machine artifact (see §D-13.H).
+
+#### D-13.D. Per-capability face-splits (the crux)
+
+The category error is resolved by splitting each conflated capability into its plane-specific
+**faces**. The same capability name appears in more than one plane; each face has its own
+dependency direction:
+
+- **cell** → `cell.envelope` (B0 empty failure domain — the true hosting leaf) · `cell.genesis`
+  (break-glass, first management cell) · `cell.lifecycle.cp` (G; depends on iam / policy /
+  tenancy / audit) · `cell.router.dp` (R; signed cached snapshots, no synchronous tenancy /
+  iam). **This breaks the alleged cycle**: genesis creates an empty cell ID first; lifecycle
+  needs iam / policy only later. It also reconciles the fork — the DAG's "cell is leaf" is
+  right about `cell.envelope`; platform-architecture.json's "cell at S2" was right about
+  `cell.lifecycle.cp`. Both committed specs were partially correct about *different faces*.
+- **iam** → G identity admin · C0 local token / SVID / JWK validation.
+- **policy** → G authoring / signing / distribution · C0 local PDP + versioned tenant policy /
+  ReBAC store. Standalone ✓, but **NOT a singleton global PDP**.
+- **tenancy** → G lifecycle / home-cell directory · C0 signed cached tenant context + routing
+  snapshot.
+- **secrets** → external-root-backed (E0) G root/intermediate management · C0 cell key
+  partition + downstream SPIRE issuer.
+
+**Policy placement (standalone, cell-distributed).** G authoring / signing / distribution +
+home-cell authority (tenant policy + ReBAC tuples) + per-cell runtime PDP + last-known-good
+snapshot; PEPs at the gateway and at every protected service; the router does routing (plus at
+most a cached token-signature check), **NOT full authz**. A stale snapshot must **DENY or route
+to the authoritative shard — never silently authorize**. (AWS Verified Permissions =
+store-per-tenant; Zanzibar = logically-global but physically-distributed-with-local-replicas,
+not one PDP instance.)
+
+#### D-13.E. Static-stability invariant
+
+**Cell runtime never synchronously depends on the G-plane.** Existing sessions and routes
+continue on cached, signed, versioned state (policy bundles, tenant directory, placement
+snapshots). Only *new* identity / tenant / placement / migration operations may safely stop
+when G is unavailable — and even those fail closed (deny or route-to-authoritative), never
+fail open. This is the AWS "static stability using Availability Zones" doctrine applied to the
+control/data-plane split: the data plane (C-plane runtime + R) survives a full control-plane
+(G) outage. The §D-1 `forbidden_edges_assertion` set is the machine-checked floor of this
+invariant for the C-plane faces; the G-plane no-synchronous-dependency rule is authored here
+and flagged for the DAG v2 face schema.
+
+#### D-13.F. Fork resolution — how the two SSOTs now agree
+
+`specs/substrate-dependency-dag.json` (§D-1) is the **sole canonical** substrate topology
+authority: the steady-state C-plane runtime dependency graph (graph 3 of §D-13.C). Its `cell`
+node is the `cell.envelope` (B0) face. `specs/platform-architecture.json`
+`substrate_dag_canonical_ordering` is a **derived mirror** that:
+
+1. carries §D-1's `bootstrap_order` verbatim as `tier1_bootstrap_order`;
+2. adds a DAG-consistent dependency-depth stratification (`tier1_dependency_strata`, S0 leaf =
+   `cell` … S8 = `workflow-engine`) in which no node sits below a node it depends on — the
+   inversion (cell at S2; audit / observability / secrets at S0) is deleted; and
+3. carries the Tier-2 + Tier-S5 meta nodes as `tier2_and_meta_forward_declared`, placed by
+   §D-13 plane and de-branded (`foundry` → `delivery-fabric` per the capability registry).
+
+Neither surface any longer contradicts the other; the mirror is a projection of the canonical
+DAG plus this plane model.
+
+#### D-13.G. 24-capability plane placement (summary)
+
+Every one of the 24 registry capabilities maps to exactly one DAG node; each node's faces are
+placed across the planes as follows (E0 = external, B0/C0/C1/C2 = cell planes, G = management,
+R = router; `M` = management-only, never a runtime dependency):
+
+`cell`[B0 / G / R] · `iam`[G / C0] · `policy`[G / C0] · `tenancy`[G / C0] ·
+`secrets`[E0-backed G / C0] · `audit`[C1 seal + G async aggregation] ·
+`observability`[C1 collectors + G async fleet] · `data`[C1 + optional G schema] ·
+`storage`[B0 + C1 + G capacity] · `compute`[B0 + C1 + G fleet] · `k8s`[B0 / C0 per-cell + G
+fleet] · `network`[B0 + R edge + C0 mesh + G DNS/config] · `gateway`[R edge + C1 ingress /
+PEP] · `messaging`[C1 bus / outbox + async cross-cell + optional G schema] ·
+`intelligence`[C2 + G registry] · `workflow`[C2 + G catalog] · `iac`[M desired-state — never a
+runtime dependency] · `ci`/`delivery-fabric`[M management, isolated runners — never a prod
+request dependency] · `billing`[C1 / C2 metering + G async rating / invoice] ·
+`marketplace`[G catalog + C2 cache / fulfil] · `console`[G / R shell; APIs route into cells,
+no shared tenant datastore] · `compliance`[G authoring + C1 enforcement / evidence] ·
+`comms`[C2 delivery shard + G templates] · `flags`[G authoring + C0 / C1 last-known-good
+evaluator, no synchronous global lookup].
+
+**`governance` is NOT one of the 24 capabilities** — it is cross-cutting, implemented via
+`ci` / `iac` / `policy` / `compliance` / `audit`. A standalone `governance` capability would
+make 25; ADR-0615 resolved it decomposes rather than stands alone. The registry's historical
+`iam`-owns-`{identity, policy-engine}` grouping is superseded by the founder policy-extract
+ruling → **24 capabilities ↔ 24 dag_nodes** with `policy` owning its own node. The §D-1
+machine artifact already carries `policy-engine` as a node distinct from `identity`, so the
+runtime DAG is already correct on this point.
+
+#### D-13.H. Flagged for schema extension / founder call (not forced in this increment)
+
+This amendment resolves the fork and authors the model as far as the current schemas support.
+The following are **deliberately flagged, not forced**, to keep the acyclicity, canonical-json,
+and cross-artifact-agreement gates green and to avoid a closed-registry membership change
+riding a topology ADR:
+
+1. **DAG v2 face/plane schema.** Encoding the per-node faces (envelope / genesis / lifecycle.cp
+   / router.dp; G-control vs C0-local), the plane tag per node, and graphs (1), (2), (4) of
+   §D-13.C as machine-readable structure needs a `specs/substrate-dependency-dag.json` schema
+   extension (new optional per-node `plane` / `faces` fields and a companion graph set). It is
+   NOT added to the v1.0.0 artifact here — the acyclicity validator's schema-completeness check
+   and the canonical-json determinism gate both govern that file, and a schema change is its own
+   lane.
+2. **Standalone `policy` capability in the closed registry.** Splitting `policy` out of `iam`
+   in `specs/capability-registry.json` (`closed: true`, ADR-0562 membership lint) is a
+   closed-registry change requiring an ADR-0615 / ADR-0562-§7 capability-registry amendment; it
+   is a **founder call**, not encoded here. The runtime DAG and this ADR already treat policy as
+   its own node.
+3. **Tier-2 / Tier-S5 computed strata.** The Tier-2 substrates and the meta-substrate gain
+   computed dependency-depth strata only once their edges land in DAG v1.1.0 (per Appendix B);
+   until then the mirror places them by plane and marks them forward-declared.
+
+#### D-13.I. Reasoning and precedent
+
+The model is chosen for three load-bearing reasons: **blast-radius containment** (a cell is a
+bounded failure domain; conflating it with the services it hosts destroys the boundary),
+**control-plane / data-plane separation** (the router and the cell runtime must survive a
+management-plane outage), and **static stability** (cached, signed, versioned snapshots over
+synchronous global lookups). Precedent: AWS cell-based architecture and "Static stability using
+Availability Zones" (Builders' Library); AWS Verified Permissions store-per-tenant; Google
+Zanzibar's logically-global / physically-distributed-with-local-replicas authorization; SPIRE /
+Nested-SPIRE workload identity; AWS Nitro / Google Titan hardware roots of trust; and Meta Shard
+Manager's placement / router separation. Each supports the same conclusion the flat total order
+missed: **the unit of ownership is not the unit of deployment, and every control capability has
+both a global-control face and a cell-local runtime face.**
 
 ## Alternatives considered
 
