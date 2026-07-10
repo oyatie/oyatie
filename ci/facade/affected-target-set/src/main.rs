@@ -24,9 +24,9 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use ci_affected_target_set::{
-    Change, Decision, GATE_ID, GatePhaseOutcome, PathClass, Plan, Policy,
-    affected_set_operator_artifact, build_health_verdict, failing_targets,
-    long_step_telemetry_line, parse_build_report, plan_changes, resolve,
+    Decision, GATE_ID, GatePhaseOutcome, PathClass, Plan, Policy, affected_set_operator_artifact,
+    build_health_verdict, failing_targets, failing_test_targets, long_step_telemetry_line,
+    parse_build_report, parse_name_status_z, parse_test_verdicts, plan_changes, resolve,
 };
 
 const LOG: &str = "affected-set";
@@ -44,6 +44,15 @@ struct Args {
     /// The baseline MUST be produced from the merge-base checkout out-of-band (never the
     /// candidate tree); see the build-health binary's soundness note.
     baseline_report: Option<String>,
+    /// Optional path to the merge-base TEST baseline report (ADR-0554 round-6, defect 3). A
+    /// build-report-shaped `{results: {label: {success}}}` JSON of the merge-base `buck2 test //...`
+    /// per-target verdicts (produced out-of-band from the merge-base checkout, like the build
+    /// baseline). When set, a FULL decision runs the TEST-HEALTH RATCHET after the build-health
+    /// ratchet: `buck2 test //... --keep-going` at head, whose per-target verdicts are diffed
+    /// against this baseline — blocking only test REGRESSIONS while grandfathering pre-existing
+    /// test debt. When ABSENT, the FULL tier still RUNS the tests but hard-fails on ANY test
+    /// failure (no grandfathering) — FULL must build AND test, never build-only.
+    test_baseline_report: Option<String>,
     /// Optional path for the durable machine-readable operator artifact that records the selected
     /// affected-set tier, refs, baseline requirement, and long-running phase signals.
     decision_artifact_out: Option<String>,
@@ -71,6 +80,7 @@ fn parse_args(mut argv: std::env::Args) -> Result<Args, String> {
     let mut mode = Mode::Auto;
     let mut derive_only = false;
     let mut baseline_report = None;
+    let mut test_baseline_report = None;
     let mut decision_artifact_out = None;
     while let Some(arg) = argv.next() {
         match arg.as_str() {
@@ -88,6 +98,10 @@ fn parse_args(mut argv: std::env::Args) -> Result<Args, String> {
             "--baseline-report" => {
                 baseline_report = Some(argv.next().ok_or("--baseline-report needs a value")?)
             }
+            "--test-baseline-report" => {
+                test_baseline_report =
+                    Some(argv.next().ok_or("--test-baseline-report needs a value")?)
+            }
             "--decision-artifact-out" => {
                 decision_artifact_out =
                     Some(argv.next().ok_or("--decision-artifact-out needs a value")?)
@@ -102,6 +116,7 @@ fn parse_args(mut argv: std::env::Args) -> Result<Args, String> {
         mode,
         derive_only,
         baseline_report,
+        test_baseline_report,
         decision_artifact_out,
     })
 }
@@ -112,7 +127,7 @@ fn main() -> ExitCode {
         Err(e) => {
             eprintln!("{LOG}: ARGS ERROR: {e}");
             eprintln!(
-                "{LOG}: usage: oya-cloud-ci-affected-set --policy <pack.json> [--base <ref>] [--head <ref>] [--mode auto|full] [--derive-only] [--baseline-report <merge-base-build-report.json>] [--decision-artifact-out <path>]"
+                "{LOG}: usage: oya-cloud-ci-affected-set --policy <pack.json> [--base <ref>] [--head <ref>] [--mode auto|full] [--derive-only] [--baseline-report <merge-base-build-report.json>] [--test-baseline-report <merge-base-test-report.json>] [--decision-artifact-out <path>]"
             );
             return ExitCode::from(2);
         }
@@ -237,7 +252,12 @@ fn main() -> ExitCode {
                 );
                 return ExitCode::SUCCESS;
             }
-            let code = run_full(&buck2, &policy, args.baseline_report.as_deref());
+            let code = run_full(
+                &buck2,
+                &policy,
+                args.baseline_report.as_deref(),
+                args.test_baseline_report.as_deref(),
+            );
             let phases = vec![
                 phase(
                     "derive-affected-set-tier",
@@ -347,7 +367,12 @@ fn main() -> ExitCode {
                                     "argfile write failed after AFFECTED decision: {e}"
                                 )],
                             };
-                            let code = run_full(&buck2, &policy, args.baseline_report.as_deref());
+                            let code = run_full(
+                                &buck2,
+                                &policy,
+                                args.baseline_report.as_deref(),
+                                args.test_baseline_report.as_deref(),
+                            );
                             let phases = vec![
                                 phase("derive-affected-set-tier", "completed", "decision.tier"),
                                 phase(
@@ -399,7 +424,12 @@ fn main() -> ExitCode {
                         );
                         return ExitCode::SUCCESS;
                     }
-                    let code = run_full(&buck2, &policy, args.baseline_report.as_deref());
+                    let code = run_full(
+                        &buck2,
+                        &policy,
+                        args.baseline_report.as_deref(),
+                        args.test_baseline_report.as_deref(),
+                    );
                     let phases = vec![
                         phase("derive-affected-set-tier", "completed", "decision.tier"),
                         phase("rdeps-closure", "failed-escalated", reason),
@@ -547,52 +577,6 @@ fn derive(args: &Args, base: &str, policy: &Policy, buck2: &str) -> Decision {
     resolve(&plan, &owner_results, policy)
 }
 
-/// Parse `git diff --name-status -z` output: NUL-separated records, `R`/`C` carry two paths.
-fn parse_name_status_z(raw: &str) -> Result<Vec<Change>, String> {
-    let mut fields = raw.split('\0').filter(|s| !s.is_empty());
-    let mut changes = Vec::new();
-    while let Some(status) = fields.next() {
-        let kind = status.chars().next().ok_or("empty status field")?;
-        match kind {
-            'A' | 'M' | 'T' => {
-                let p = fields
-                    .next()
-                    .ok_or_else(|| format!("status `{status}` without a path"))?;
-                changes.push(Change::Present(p.to_owned()));
-            }
-            'D' => {
-                let p = fields
-                    .next()
-                    .ok_or_else(|| format!("status `{status}` without a path"))?;
-                changes.push(Change::Deleted(p.to_owned()));
-            }
-            'R' => {
-                let old = fields
-                    .next()
-                    .ok_or_else(|| format!("status `{status}` without source path"))?;
-                let new = fields
-                    .next()
-                    .ok_or_else(|| format!("status `{status}` without destination path"))?;
-                changes.push(Change::Deleted(old.to_owned()));
-                changes.push(Change::Present(new.to_owned()));
-            }
-            'C' => {
-                let _src = fields
-                    .next()
-                    .ok_or_else(|| format!("status `{status}` without source path"))?;
-                let dst = fields
-                    .next()
-                    .ok_or_else(|| format!("status `{status}` without destination path"))?;
-                changes.push(Change::Present(dst.to_owned()));
-            }
-            // U (unmerged), X (unknown), B (broken pair): states a clean CI checkout cannot
-            // produce — surface as uncertainty rather than guessing.
-            other => return Err(format!("unsupported diff status `{other}`")),
-        }
-    }
-    Ok(changes)
-}
-
 /// Batched per-file owner resolution: `buck2 uquery --json "owner(%s)" @argfile` returns a
 /// JSON object keyed by each path. A query ERROR is uncertainty (caller escalates) — it is
 /// NEVER treated as "no owner" (the historic false-pass bug class).
@@ -659,8 +643,14 @@ fn print_classification(plan: &Plan, owners: &BTreeMap<String, Vec<String>>) {
             PathClass::FullTrigger(pat) => {
                 println!("{LOG}:   FULL-TRIGGER {path} (matches `{pat}`)")
             }
-            PathClass::DeletedGraphFile => {
-                println!("{LOG}:   FULL-TRIGGER {path} (graph file deleted/unmappable)")
+            PathClass::Deleted => {
+                println!("{LOG}:   FULL-TRIGGER {path} (deleted — cone uncomputable at HEAD)")
+            }
+            PathClass::Structural(kind) => {
+                println!(
+                    "{LOG}:   FULL-TRIGGER {path} ({} — structural change the cone cannot bound)",
+                    kind.describe()
+                )
             }
             PathClass::Buildfile => {
                 println!(
@@ -671,9 +661,6 @@ fn print_classification(plan: &Plan, owners: &BTreeMap<String, Vec<String>>) {
             PathClass::OwnerQuery => {
                 let n = owners.get(path).map(Vec::len).unwrap_or(0);
                 println!("{LOG}:   OWNER        {path} -> {n} target(s)");
-            }
-            PathClass::DeletedIrrelevant => {
-                println!("{LOG}:   NO-GRAPH     {path} (deleted, outside graph classes)")
             }
         }
     }
@@ -699,7 +686,12 @@ fn print_classification(plan: &Plan, owners: &BTreeMap<String, Vec<String>>) {
 ///   ratchet (block new debt, grandfather pre-existing — FRIC-1781112000 / #698). Tests are still
 ///   run and a TEST regression in a buildable target blocks via the test exit (the ratchet governs
 ///   BUILD failures; a build that succeeds then test-fails is a normal hard failure).
-fn run_full(buck2: &str, policy: &Policy, baseline_report: Option<&str>) -> ExitCode {
+fn run_full(
+    buck2: &str,
+    policy: &Policy,
+    baseline_report: Option<&str>,
+    test_baseline_report: Option<&str>,
+) -> ExitCode {
     let Some(baseline_path) = baseline_report else {
         // Admission/integration tier: hard full build+test, every failure blocks. D7: emit the
         // build-report as a byproduct and derive the hard verdict from an EMPTY failure set.
@@ -820,17 +812,158 @@ fn run_full(buck2: &str, policy: &Policy, baseline_report: Option<&str>) -> Exit
         return ExitCode::from(1);
     }
 
-    // No build regressions -> GREEN. SCOPE (ADR-0554 round-3): the FULL tier governs BUILD health
-    // (the cf16525 class is a COMPILE break). It deliberately does NOT run a workspace-wide
-    // `buck2 test //...`: that would reintroduce a flag-day on PRE-EXISTING test failures (the
-    // exact debt-grandfathering problem this round fixes, one layer up). Test coverage of the
-    // ACTUAL changed code is the cone path's job (auto mode, hard-fail, unchanged — the cf16525
-    // fixture); a FULL-tier TEST-health ratchet (same baseline-diff over a test report) is the
-    // declared next IP. Conservative and sound: never false-green on a build regression, never
-    // flag-day on pre-existing debt.
+    // No build regressions. The build side is GREEN, but a FULL fallback that only BUILDS is
+    // "checking less": a target can BUILD and still FAIL its tests at runtime (ADR-0554 round-6,
+    // defect 3). Run the TEST-HEALTH RATCHET so FULL builds AND tests.
     println!(
-        "{LOG}: PASS — no build regressions vs the merge-base ({} pre-existing build failure(s) \
-         grandfathered).",
+        "{LOG}: build-health PASS — no build regressions vs the merge-base ({} pre-existing build \
+         failure(s) grandfathered). Proceeding to the FULL-tier test-health ratchet.",
+        verdict.grandfathered.len()
+    );
+    run_full_test_health(buck2, test_baseline_report)
+}
+
+/// FULL-tier TEST-HEALTH RATCHET (ADR-0554 round-6, defect 3). Runs `buck2 test //... --keep-going`
+/// (builds are cache hits from the preceding build-health `buck2 build //...`), captures buck2's
+/// per-target verdict console, and diffs the HEAD test-failure set against the merge-base TEST
+/// baseline: only test REGRESSIONS block, pre-existing test debt is grandfathered — exactly the
+/// build-health ratchet, one layer up. buck2's `--build-report` marks a build-OK-but-runtime-failed
+/// target `SUCCESS` (verified live), so the console verdict lines are the ONLY per-target test
+/// signal; [`parse_test_verdicts`] reconciles them against the `Tests finished:` summary and
+/// fail-closes on any mismatch. When no `--test-baseline-report` is supplied the ratchet degrades
+/// to HARD test-health (block ANY test failure, no grandfathering) — still fail-closed, never
+/// build-only.
+fn run_full_test_health(buck2: &str, test_baseline_report: Option<&str>) -> ExitCode {
+    let console_path = match std::env::temp_dir()
+        .join(format!(
+            "{GATE_ID}-head-test-console-{}.log",
+            std::process::id()
+        ))
+        .into_os_string()
+        .into_string()
+    {
+        Ok(p) => p,
+        Err(_) => {
+            eprintln!("{LOG}: FAIL — could not form a temp path for the head test console");
+            return ExitCode::from(2);
+        }
+    };
+    let console_file = match fs::File::create(&console_path) {
+        Ok(f) => f,
+        Err(e) => {
+            eprintln!("{LOG}: FAIL — could not create head test console `{console_path}`: {e}");
+            return ExitCode::from(2);
+        }
+    };
+    let console_err = match console_file.try_clone() {
+        Ok(f) => f,
+        Err(e) => {
+            eprintln!("{LOG}: FAIL — could not clone head test console handle: {e}");
+            return ExitCode::from(2);
+        }
+    };
+    println!(
+        "{LOG}: FULL tier test-health: {buck2} test //... --keep-going (per-target verdicts \
+         captured to {console_path})"
+    );
+    // We intentionally do NOT propagate this run's exit code: --keep-going exits non-zero on ANY
+    // pre-existing test/build failure, but only test REGRESSIONS must block. The verdict comes from
+    // the reconciled per-target verdict diff below (a genuine infra/parse failure fails closed).
+    let mut command = Command::new(buck2);
+    command
+        .args(["test", "//...", "--keep-going"])
+        .stdout(Stdio::from(console_file))
+        .stderr(Stdio::from(console_err));
+    if let Err(e) = run_command_with_progress(
+        "full-tier-test-health",
+        &mut command,
+        &format!("{buck2} test //... --keep-going"),
+    ) {
+        eprintln!("{LOG}: WARN — could not execute head test-health command: {e}");
+    }
+
+    let console = match fs::read_to_string(&console_path) {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln!("{LOG}: FAIL — cannot read head test console `{console_path}`: {e}");
+            return ExitCode::from(2);
+        }
+    };
+    // Surface buck2's own test output in the CI log (it was captured, not streamed).
+    print!("{console}");
+
+    let head = match parse_test_verdicts(&console) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!(
+                "{LOG}: FAIL — could not derive a trustworthy per-target test-verdict set: {e}"
+            );
+            return ExitCode::from(2);
+        }
+    };
+    let head_failures = failing_test_targets(&head);
+
+    // Baseline test-failure set: the merge-base `buck2 test //...` verdicts, normalized to the
+    // build-report shape. ABSENT baseline => EMPTY set => every head test failure is a regression
+    // (HARD test-health, the strict end — no laundering risk).
+    let baseline_failures = match test_baseline_report {
+        Some(path) => {
+            let json = match fs::read_to_string(path) {
+                Ok(s) => s,
+                Err(e) => {
+                    eprintln!("{LOG}: FAIL — cannot read merge-base test baseline `{path}`: {e}");
+                    return ExitCode::from(2);
+                }
+            };
+            match parse_build_report(&json) {
+                Ok(r) => failing_targets(&r),
+                Err(e) => {
+                    eprintln!("{LOG}: FAIL — merge-base test baseline parse error: {e}");
+                    return ExitCode::from(2);
+                }
+            }
+        }
+        None => {
+            println!(
+                "{LOG}: no --test-baseline-report supplied — HARD test-health (any test failure \
+                 blocks; no pre-existing-debt grandfathering)"
+            );
+            std::collections::BTreeSet::new()
+        }
+    };
+
+    let verdict = build_health_verdict(&baseline_failures, &head_failures);
+    println!(
+        "{LOG}: test-health — head test failures={}, baseline test failures={}, regressions={}, \
+         grandfathered={}, fixed={}",
+        head_failures.len(),
+        baseline_failures.len(),
+        verdict.regressions.len(),
+        verdict.grandfathered.len(),
+        verdict.fixed.len()
+    );
+    for t in &verdict.grandfathered {
+        println!("{LOG}:   pre-existing test failure (grandfathered) {t}");
+    }
+    if !verdict.is_green() {
+        eprintln!(
+            "{LOG}: RED — {} TEST REGRESSION(S) vs the merge-base (passed at origin/dev, FAIL at \
+             head — or a brand-new failing test target):",
+            verdict.regressions.len()
+        );
+        for t in &verdict.regressions {
+            eprintln!("{LOG}:   TEST-REGRESSION {t}");
+        }
+        eprintln!(
+            "{LOG}: REMEDIATION: fix these tests or revert the change that broke them; pre-existing \
+             test failures are grandfathered, only NEW test debt blocks. REPRODUCE: {buck2} test {}",
+            verdict.regressions.join(" ")
+        );
+        return ExitCode::from(1);
+    }
+    println!(
+        "{LOG}: PASS — FULL tier build+test green: no build regressions and no test regressions vs \
+         the merge-base ({} pre-existing test failure(s) grandfathered).",
         verdict.grandfathered.len()
     );
     ExitCode::SUCCESS
