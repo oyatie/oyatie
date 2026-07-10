@@ -543,11 +543,19 @@ jobs:
   gate-affected-target-set:
     name: "gate · affected-set (ADR-0554, binding workspace coverage)"
     runs-on: ubuntu-latest
-    # SAFETY RAIL (ADR-0554 D7): bound the cold full-workspace rebuild so a runaway/exhaustion
-    # (a wedged buck2 action, a non-terminating compile) cannot burn the runner indefinitely.
-    # Derivation: ≈4x the ADR-0554-measured warm full run (4m35s cold / 5m45s incl. tests, lines
-    # 56-58) — fires only on a genuine runaway, never on a healthy cold build.
-    timeout-minutes: 45
+    # SAFETY RAIL (ADR-0554 D7; re-derived round-6): bound the full-workspace rebuild so a
+    # runaway/exhaustion (a wedged buck2 action, a non-terminating compile) cannot burn the runner
+    # indefinitely — a backstop, NOT a per-run budget. Raised 45 -> 120 because the round-6 FULL
+    # tier now does up to TWO full workspace passes: (1) the merge-base baseline, which defect 4
+    # moved into a CLEAN detached worktree — its own cold buck-out, ~31 min build measured on run
+    # 29110398688 (vs the old same-tree ~5m45s warm) plus a merge-base test pass for the defect-3
+    # test-health ratchet — and (2) the binding head build+test. 45 min was sized for a single warm
+    # full run and killed the head build mid-flight. 120 clears a pessimistic 2x-cold-full+tests
+    # (~100 min) with margin while still firing on a genuine runaway. This is the cost of a sound
+    # FULL tier without baseline reuse; the trusted-artifact fast-path (owned-Rust selector,
+    # follow-up on #1323) makes the common merge-base case download-not-rebuild and brings this
+    # back toward one warm full run.
+    timeout-minutes: 120
     steps:
       # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
