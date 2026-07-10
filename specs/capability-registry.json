@@ -513,6 +513,7 @@
           "libs/oya-gen-microservice-manifests-app",
           "tools/oya-adapter-substitution-test-app",
           "tools/oya-architecture-graph-generator-app",
+          "tools/oya-bot-autofix-app",
           "tools/oya-buck-test-wiring-app",
           "tools/oya-cargo-lock-merge-driver-app",
           "tools/oya-checkout-guard-app",
