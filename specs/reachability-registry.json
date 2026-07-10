@@ -114,7 +114,7 @@
       "prefix": "comms/messenger/resilience/"
     },
     {
-      "anchor": "ADR-0165 (chaos-engineering substrate): the messenger chaos-scenario fixtures (pod-kill, network-delay-100ms, dependency-failure, disk-slow-1000ms) exercised by the runtime-control-loop contract scenario refs, homed under comms per ADR-0562 §10.16; justified in docs/decisions/ADR-0176-brownout-degradation-signal-api.md",
+      "anchor": "ADR-0165 (chaos-engineering substrate): the messenger chaos-scenario catalog fixtures (pod-kill, network-delay-100ms, dependency-failure, disk-slow-1000ms) referenced by the runtime-control-loop contract scenario refs (non-executable, not applied or run at runtime), homed under comms per ADR-0562 §10.16; justified in docs/decisions/ADR-0176-brownout-degradation-signal-api.md",
       "prefix": "comms/messenger/chaos/"
     },
     {
