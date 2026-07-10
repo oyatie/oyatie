@@ -48,7 +48,7 @@
     "can_claim_now": [
       "The compliance-pack schema records optional COMPLIANCE-001 contract fields for signature verification, SOC2-style evidence collectors, cell certification state, CMP consent, and portability export metadata.",
       "Synthetic fixtures demonstrate SOC2/CMP/portability export shapes for local validation.",
-      "A repo-local Python validator checks the schema/fixture slice and claim-boundary wording."
+      "The owned-Rust/Buck2 contract-slice-conformance gate (compliance-001-pack-schema slice) checks the compliance-pack schema's required fields, enums, and claim-boundary wording."
     ],
     "cannot_claim_yet": [
       "SOC 2 certification or auditor acceptance exists",
@@ -77,27 +77,17 @@
       "runtime_authority": false
     },
     {
-      "path": "scripts/tests/compliance_pack_contract_slice_check.py",
-      "surface_kind": "local-validator",
-      "authority": "repo-local contract-slice validation harness for this review slice",
-      "runtime_authority": false
-    },
-    {
-      "path": "scripts/tests/OWNERS",
-      "surface_kind": "ownership-marker",
-      "authority": "narrow ownership marker for repo-local validation helpers under scripts/tests/",
+      "path": "ci/facade/contract-slice-conformance/contract-slice-policy.json",
+      "surface_kind": "gate-policy",
+      "authority": "owned-Rust/Buck2 contract-slice-conformance gate policy entries (compliance-001-pack-schema, compliance-001-contract-spec, compliance-001-pack-fixture, compliance-001-portability-manifest-fixture slices)",
       "runtime_authority": false
     }
   ],
   "validator_contract": {
-    "local_harness": "scripts/tests/compliance_pack_contract_slice_check.py",
+    "local_harness": "//ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
     "required_commands": [
-      "python3 scripts/tests/compliance_pack_contract_slice_check.py",
-      "python3 scripts/tests/compliance_pack_contract_slice_check.py --self-test",
-      "for f in scripts/tests/*.py; do echo \"== $f\"; python3 \"$f\"; done",
-      "python3 -m compileall -q scripts/tests",
-      "git diff --check"
+      "buck2 test //ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate"
     ],
-    "branch_protection_authority": "oya-ci-required remains the only merge-authority status context per ADR-0515; this local harness is review evidence only."
+    "branch_protection_authority": "oya-ci-required remains the only merge-authority status context per ADR-0515; this Buck2 gate target is the pure-evaluator review/merge evidence."
   }
 }
