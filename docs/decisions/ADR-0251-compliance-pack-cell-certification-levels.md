@@ -1748,6 +1748,25 @@ ADR-0242 §D-4 generalized to the compliance-tooling itself.
 
 ## Implementation surface
 
+### COMPLIANCE-001 contract-slice machine-readable contract
+
+The COMPLIANCE-001 review slice adds only schema/fixture/test-contract
+shape for SOC 2 evidence, CMP consent, cell-certification state, and
+portability-export metadata. The authoritative governed-surface list and
+claim boundary for this review slice live in
+`/specs/compliance-001-contract-slice.json`; this ADR remains rationale
+and source context only, not the operative reachability contract.
+
+This ADR intentionally justifies the PR-local contract-slice artifacts
+that make that machine-readable contract executable without granting
+production, runtime, certification, auditor-acceptance, tenant-activation,
+or portability-service authority:
+
+- `specs/compliance-001-contract-slice.json`
+- `specs/fixtures/compliance-pack/compliance-001-soc2-cmp-portability.fixture.json`
+- `specs/fixtures/compliance-pack/compliance-001-portability-export-manifest.fixture.json`
+- `ci/facade/contract-slice-conformance/contract-slice-policy.json` (owned-Rust/Buck2 gate policy entries; retires the former repo-local Python validator)
+
 The following artifacts are required for this keystone to be considered
 implemented:
 
