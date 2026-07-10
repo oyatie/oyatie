@@ -10,8 +10,8 @@ owner: council-architecture
 supersedes: []
 superseded_by: []
 amends: [ADR-0516]
-depends_on: [ADR-0516, ADR-0517, ADR-0522, ADR-0562, ADR-0280]
-related: [ADR-0518, ADR-0519, ADR-0521, ADR-0530, ADR-0541, ADR-0551, ADR-0552, ADR-0563, ADR-0580, ADR-0615]
+depends_on: [ADR-0516, ADR-0517, ADR-0520, ADR-0522, ADR-0541, ADR-0562, ADR-0580, ADR-0280]
+related: [ADR-0518, ADR-0519, ADR-0521, ADR-0530, ADR-0551, ADR-0552, ADR-0563, ADR-0615]
 related_specs:
   - /specs/capability-registry.json
   - /specs/substrate-dependency-dag.json
@@ -33,9 +33,11 @@ design the Living-Monorepo work implements. Graduated from the PM `Living Monore
 
 ## Context
 
-ADR-0516 set the agentic-delivery-fabric apex; ADR-0517 gave one owned content-addressed AST substrate
-(`governance/corpus/`); ADR-0522 established "one graph, four runners." What was still missing is the
-unifying operating model: **how the whole monorepo and its full development lifecycle are managed**.
+ADR-0516 set the agentic-delivery-fabric apex; ADR-0517 ratified the owned content-addressed AST
+substrate *doctrine*, realized so far as the ADR-0580 `governance/corpus/` Phase -1 spike; ADR-0522
+established "one graph, four runners" for the buck2 *target* graph. What was still missing is the
+unifying operating model for a *different* graph — the corpus/knowledge graph: **how the whole monorepo
+and its full development lifecycle are managed**.
 
 Today the repo bleeds **ungoverned ephemeral state** with no single source of truth and no lifecycle,
 surfacing as **contradiction, sprawl, staleness** across five surfaces that look separate but are one
@@ -62,12 +64,15 @@ is exactly one of:
 - **A projection** — rendered docs, handoffs, roadmaps, dashboards, the ADR index, the JSON SSOT view —
   compiled OUT of the graph, never hand-maintained.
 
-Development-lifecycle stages (research→design→plan→RED/GREEN→code→review→harden→perf→simplify→full-test-
-suite→slop→doubt-driven+verify→ci/cd→ship→observe→self-improve) are node **state-transitions**, each
-gated by **deterministic invariants (fail-closed)**. An LLM/NLI pass is **advisory-only** (files an issue,
-never a merge verdict — evidence-admissibility bar). Contradiction/sprawl/staleness become *structurally
-impossible* rather than merely detectable, because there is ONE single-source graph anchored to code-AST
-reality.
+Development-lifecycle stages (illustrative — research→design→plan→RED/GREEN→code→review→harden→perf→
+simplify→full-test-suite→slop→doubt-driven+verify→ci/cd→ship→observe→self-improve; the canonical stage
+list is the fabric pipeline SSOT, not minted by this ADR) are node **state-transitions**, each gated by
+**deterministic invariants (fail-closed)**. An LLM/NLI pass is **advisory-only** (files an issue, never a
+merge verdict — evidence-admissibility bar). Contradiction/sprawl/staleness become *structurally
+impossible on the durable/merge surface* — projections are compiled from one source so they cannot
+disagree, and fail-closed invariants make new ungoverned sprawl **un-mergeable** — while local ephemera
+are caught by the §3 detector and auto-expired rather than blocked at creation, because there is ONE
+single-source graph anchored to code-AST reality.
 
 ### §2 The write-authority stays git-native; the query DB is a derived projection
 
@@ -92,13 +97,19 @@ Every ephemeral work-node (git artifacts + tool markers + scratch) follows one u
   be blocked at creation). Fail-closed lands on the **durable invariant** (a stray past-TTL with no harvest
   edge is a violation), never on blocking creation, and stays non-blocking at velocity.
 - **Disposition:** **reap-by-default; harvest only on a deterministic durable signal** (keeps the 900+
-  backlog a cheap sweep, not a manual salvage).
+  backlog a cheap sweep, not a manual salvage). A reap **archives, never `rm`s** — it moves the work-node
+  into the harvest sink and is **gated by a second verifier**; the destructive step is the one place the
+  system can lose work, so it is fail-safe by construction, never a bare delete.
 - **Durable signal:** commits **not reachable from `origin/dev`** (covers unpushed-local AND
-  pushed-but-unmerged) OR an explicit harvest/promote marker; fully-merged with no marker → reap on sight.
-  Never loses unmerged/local-only work.
+  pushed-but-unmerged) OR **dirty/untracked working-tree state in a worktree** (uncommitted edits are not
+  commits, so commit-reachability alone would miss them) OR an explicit harvest/promote marker. A
+  work-node is reap-eligible ONLY when it is fully-merged, clean, AND carries no marker. Never loses
+  unmerged, uncommitted, or otherwise local-only work.
 - **TTL clock:** **per work-node kind** (worktree / branch / `.omc`-`.omx` marker / `/tmp`); **last-touch
-  (commit / checkout / write) resets** it, so the sink only ever receives *abandoned* strays; exact
-  durations are policy-pack DATA tuned post-cleanup (decide-later).
+  (commit / checkout / write) resets** it. **TTL expiry gates *eligibility*; the durable signal gates
+  *disposition*** — nothing is reaped before its TTL expires (an active long-lived worktree is therefore
+  never reaped), so the sink only ever receives *abandoned* strays; exact durations are policy-pack DATA
+  tuned post-cleanup (decide-later).
 - **Harvest sink:** **park as a durable content-addressed node** (a graph node + harvest edge, quarantined
   for later human/agent triage that promotes valuable ones to PRs/ADRs) — NOT auto-PR (floods the queue),
   NOT ref-only (ungoverned). **Uniform sink** for both the one-time backlog cleanup and the steady-state
@@ -121,18 +132,29 @@ Management is BOTH the **deterministic gates** (block bad states) AND an **opera
 (manage-through-the-graph) — delivered together. The console is a **pure projection** (read) + **governed
 commit-only mutations** (never a parallel write path). The invariant set is the enforcement backbone: it
 extends the existing `cross-artifact-agreement` evaluator (do not rebuild) with an `ungoverned_artifact`
-code + the docs-as-code invariants; fail-closed on the R0 path after a one-time cleanup to a clean
-baseline. Neutral engine + policy-as-data (ontology/rulepack/anchor-extractors as DATA); a stranger's-repo
-fixture is a required gate so no repo-specific nuance leaks into the engine.
+code plus the docs-as-code invariant battery (functional-regression / full-test-ladder, architectural
+conformance, no-silent-fallback, dead-code reachability, `anchor_fingerprint_drift`, and amends/supersede
+reciprocity); fail-closed on the R0 path after a one-time cleanup to a clean baseline. Neutral engine +
+policy-as-data (ontology/rulepack/anchor-extractors as DATA); a stranger's-repo fixture is a required gate
+so no repo-specific nuance leaks into the engine. The whole substrate is **owned-Rust, buck2-built,
+zero-shell / zero-CLI, adds no new python/shell/CLI surface, and takes on no new dependency** — the sole
+exception is the §2 embedded-DB adapter, a sanctioned **ADR-0520** transient-stack pick (best-in-class,
+MIT/Apache) behind the owned query port, subject to the transient-stack bar and replaced at owned-stack
+cutover.
 
 ### §6 What this amends / relates
 
 - **Amends ADR-0516** (fabric apex) — adds the monorepo-management + lifecycle-as-graph operating model.
-- **Depends on ADR-0517** (the owned AST/content-addressed substrate = the corpus this extends),
-  **ADR-0522** (one graph), **ADR-0562** (capability registry + membership lint = capability nodes),
-  **ADR-0280** (dependency DAG = dependency edges).
-- Consistent with ADR-0541 (docs/directives as first-class corpus nodes), ADR-0551/0552/0563 (merge-base
-  ratchet + scm-facts + rename-aware relabel), ADR-0580 (corpus), ADR-0615 (substrate/product placement).
+- **Depends on ADR-0517** (the owned AST/content-addressed substrate *doctrine* = what the corpus
+  realizes); **ADR-0580** (the `governance/corpus/` Phase -1 spike this ADR **hardens** from a
+  two-way-door tree into the management substrate); **ADR-0541** (the corpus liveness / decay-invariant
+  graph — the nearest prior art; ADR-0617 **owns the decay mechanism** it began); **ADR-0522** (the
+  buck2 *target* graph — a *different* object; the living graph is the corpus graph, sharing the
+  "one graph" discipline, not the graph); **ADR-0562** (capability registry + membership lint =
+  capability nodes); **ADR-0520** (the transient-substrate-behind-a-stable-interface rule governing the
+  §2 embedded-DB adapter); **ADR-0280** (dependency DAG = dependency edges).
+- Consistent with ADR-0551/0552/0563 (merge-base ratchet + scm-facts + rename-aware relabel), ADR-0615
+  (substrate/product placement).
 
 ## Consequences
 
@@ -160,8 +182,9 @@ fixture is a required gate so no repo-specific nuance leaks into the engine.
 ## Open questions (decide-later; policy-pack DATA)
 
 - Exact per-kind TTL durations (tuned post-cleanup).
-- Fail-closed sequencing: flip after the one-time reap (clean baseline) vs a frozen grandfather-baseline
-  that must burn to zero.
+- Fail-closed *timing* (within the committed cleanup-first posture — NOT whether to ratchet-from-debt,
+  which Alternatives rejects): flip immediately once the one-time reap reaches a clean baseline, vs a
+  short frozen grandfather-window that must burn to zero.
 - Node home for the new kinds (corpus/core vs doc-parser) + where ephemeral-work-nodes live.
 - Federation shard key + cross-shard query spanning.
 - Docs→projection migration path; console tech (greenfield Leptos/multi-platform).
