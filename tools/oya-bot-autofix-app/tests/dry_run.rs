@@ -282,6 +282,36 @@ fn dry_run_rejects_control_characters_in_path() {
 }
 
 #[test]
+fn dry_run_rejects_bidi_override_in_path() {
+    // U+202E RIGHT-TO-LEFT OVERRIDE: a Trojan-Source character that can make
+    // a rendered diff display misleadingly without changing its bytes.
+    let remediation = Remediation::AutoFix(Edit::new(
+        "src/bad\u{202E}name.rs",
+        ByteRange::new(0, 0).expect("valid insertion range"),
+        "x",
+    ));
+
+    let error = render_dry_run(DryRunInput {
+        remediation: &remediation,
+        original_text: "",
+    })
+    .expect_err("dry-run must reject a bidi override character in the path");
+
+    assert!(matches!(error, AutofixError::InvalidPath { .. }));
+
+    let normal = Remediation::AutoFix(Edit::new(
+        "src/good_name.rs",
+        ByteRange::new(0, 0).expect("valid insertion range"),
+        "x",
+    ));
+    render_dry_run(DryRunInput {
+        remediation: &normal,
+        original_text: "",
+    })
+    .expect("a normal path must still pass validation");
+}
+
+#[test]
 fn dry_run_rejects_no_remediation() {
     let error = render_dry_run(DryRunInput {
         remediation: &Remediation::None,
