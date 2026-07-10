@@ -261,18 +261,25 @@ fn evaluate_slice(
                 "required_markers",
                 findings,
             );
-            let target_field = requirement
-                .get("field")
-                .and_then(Value::as_str)
-                .unwrap_or("");
-            let scope = get_dotted(spec, target_field);
-            for marker in requirement
+            let markers: Vec<&str> = requirement
                 .get("markers")
                 .and_then(Value::as_array)
-                .into_iter()
-                .flatten()
-                .filter_map(Value::as_str)
-            {
+                .map(|a| a.iter().filter_map(Value::as_str).collect())
+                .unwrap_or_default();
+            let target_field = requirement.get("field").and_then(Value::as_str);
+            // Fail-closed on shape: an empty markers list is a silent no-op that
+            // enforces nothing, and a missing/non-string field would search the
+            // empty path — both must RED rather than pass vacuously.
+            if markers.is_empty() || target_field.is_none_or(str::is_empty) {
+                findings.insert(Finding::new(
+                    "contract_slice_required_markers_malformed",
+                    format!("{slice_id}:{}", target_field.unwrap_or("<no-field>")),
+                ));
+                continue;
+            }
+            let target_field = target_field.unwrap_or_default();
+            let scope = get_dotted(spec, target_field);
+            for marker in markers {
                 let found = scope.is_some_and(|value| recursively_contains(value, marker));
                 if !found {
                     findings.insert(Finding::new(
@@ -393,10 +400,19 @@ fn evaluate_slice(
                 .and_then(Value::as_array)
                 .map(|a| a.iter().filter_map(Value::as_str).collect())
                 .unwrap_or_default();
-            let actual: Option<Vec<&str>> = get_dotted(spec, field)
+            // Fail-closed on shape: match element-wise with a length check rather
+            // than `filter_map(as_str)`, so a non-string element (or an extra one)
+            // is a mismatch instead of being silently dropped before the compare.
+            let matches = get_dotted(spec, field)
                 .and_then(Value::as_array)
-                .map(|a| a.iter().filter_map(Value::as_str).collect());
-            if actual.as_deref() != Some(expected.as_slice()) {
+                .is_some_and(|actual| {
+                    actual.len() == expected.len()
+                        && actual
+                            .iter()
+                            .zip(&expected)
+                            .all(|(value, want)| value.as_str() == Some(*want))
+                });
+            if !matches {
                 findings.insert(Finding::new(
                     "contract_slice_array_not_exact",
                     format!("{slice_id}:{field}"),
@@ -538,17 +554,27 @@ fn evaluate_slice(
                         "field_implies_required",
                         findings,
                     );
-                    let if_field = rule.get("if_field").and_then(Value::as_str).unwrap_or("");
+                    let if_field = rule.get("if_field").and_then(Value::as_str);
+                    let then_required: Vec<&str> = rule
+                        .get("then_required_fields")
+                        .and_then(Value::as_array)
+                        .map(|a| a.iter().filter_map(Value::as_str).collect())
+                        .unwrap_or_default();
+                    // Fail-closed on shape: a missing/non-string if_field would
+                    // silently skip the whole rule, and an empty then_required_fields
+                    // would enforce nothing — both must RED.
+                    if if_field.is_none_or(str::is_empty) || then_required.is_empty() {
+                        findings.insert(Finding::new(
+                            "contract_slice_field_implies_required_malformed",
+                            format!("{slice_id}:{field}:{member_id}"),
+                        ));
+                        continue;
+                    }
+                    let if_field = if_field.unwrap_or_default();
                     if get_dotted(object, if_field).and_then(Value::as_bool) != Some(true) {
                         continue;
                     }
-                    for then_field in rule
-                        .get("then_required_fields")
-                        .and_then(Value::as_array)
-                        .into_iter()
-                        .flatten()
-                        .filter_map(Value::as_str)
-                    {
+                    for then_field in then_required {
                         let value = get_dotted(object, then_field);
                         let satisfied = match value {
                             Some(Value::Array(items)) => !items.is_empty(),
@@ -663,28 +689,90 @@ fn evaluate_conditional_assertion(
         findings,
     );
 
-    let applies = match (
-        assertion.get("when_member").and_then(Value::as_str),
-        assertion.get("when_member_in").and_then(Value::as_array),
-    ) {
-        (Some(one), _) => member_id == one,
-        (None, Some(many)) => many
-            .iter()
-            .filter_map(Value::as_str)
-            .any(|m| m == member_id),
+    let target_field = assertion.get("field").and_then(Value::as_str).unwrap_or("");
+    let key = format!("{slice_id}:{field}:{member_id}:{target_field}");
+
+    // Exactly one selector. Reject BOTH selectors present (the pre-hardening code
+    // silently honored only `when_member`), and reject a malformed selector
+    // (non-string `when_member` / non-array `when_member_in`) rather than falling
+    // through to the applies-to-every-member default.
+    let when_member = assertion.get("when_member");
+    let when_member_in = assertion.get("when_member_in");
+    if when_member.is_some() && when_member_in.is_some() {
+        findings.insert(Finding::new(
+            "contract_slice_conditional_assertion_bad_selector",
+            key,
+        ));
+        return;
+    }
+    let applies = match (when_member, when_member_in) {
+        (Some(one), None) => match one.as_str() {
+            Some(name) => member_id == name,
+            None => {
+                findings.insert(Finding::new(
+                    "contract_slice_conditional_assertion_bad_selector",
+                    key,
+                ));
+                return;
+            }
+        },
+        (None, Some(many)) => match many.as_array() {
+            Some(list) => list
+                .iter()
+                .filter_map(Value::as_str)
+                .any(|m| m == member_id),
+            None => {
+                findings.insert(Finding::new(
+                    "contract_slice_conditional_assertion_bad_selector",
+                    key,
+                ));
+                return;
+            }
+        },
         (None, None) => true,
+        (Some(_), Some(_)) => unreachable!("both-selector case handled above"),
     };
     if !applies {
         return;
     }
 
-    let target_field = assertion.get("field").and_then(Value::as_str).unwrap_or("");
-    let key = format!("{slice_id}:{field}:{member_id}:{target_field}");
+    // Exactly one mode. Zero modes (a typo'd mode key) and more than one mode both
+    // fail closed rather than silently matching everything / taking the first.
+    const MODE_KEYS: [&str; 4] = [
+        "must_equal",
+        "must_be_true",
+        "must_contain",
+        "must_subset_of",
+    ];
+    let modes_present = MODE_KEYS
+        .iter()
+        .filter(|mode| assertion.get(**mode).is_some())
+        .count();
+    if modes_present == 0 {
+        findings.insert(Finding::new(
+            "contract_slice_conditional_assertion_no_mode",
+            key,
+        ));
+        return;
+    }
+    if modes_present > 1 {
+        findings.insert(Finding::new(
+            "contract_slice_conditional_assertion_multiple_modes",
+            key,
+        ));
+        return;
+    }
 
-    // Dotted (not a flat `object.get`) so a rule can pin a nested member field
-    // (e.g. `capability_overrides.enforcement.lane_id`), not only a top-level one.
-    if let Some(expected) = assertion.get("must_equal").and_then(Value::as_str) {
-        if get_dotted(object, target_field).and_then(Value::as_str) != Some(expected) {
+    // Exactly one of the four dispatches below fires (guaranteed by the count
+    // above). Each is dotted (not a flat `object.get`) so a rule can pin a nested
+    // member field (e.g. `capability_overrides.enforcement.lane_id`); a present-
+    // but-malformed mode value (e.g. non-array `must_contain`) fails closed via
+    // `contract_slice_conditional_assertion_bad_mode` rather than silently passing.
+    if let Some(mode) = assertion.get("must_equal") {
+        let matched = mode.as_str().is_some_and(|expected| {
+            get_dotted(object, target_field).and_then(Value::as_str) == Some(expected)
+        });
+        if !matched {
             findings.insert(Finding::new(
                 "contract_slice_conditional_field_not_equal",
                 key,
@@ -692,7 +780,14 @@ fn evaluate_conditional_assertion(
         }
         return;
     }
-    if assertion.get("must_be_true").and_then(Value::as_bool) == Some(true) {
+    if let Some(mode) = assertion.get("must_be_true") {
+        if mode.as_bool() != Some(true) {
+            findings.insert(Finding::new(
+                "contract_slice_conditional_assertion_bad_mode",
+                key,
+            ));
+            return;
+        }
         if get_dotted(object, target_field).and_then(Value::as_bool) != Some(true) {
             findings.insert(Finding::new(
                 "contract_slice_conditional_field_not_true",
@@ -701,7 +796,14 @@ fn evaluate_conditional_assertion(
         }
         return;
     }
-    if let Some(members) = assertion.get("must_contain").and_then(Value::as_array) {
+    if let Some(mode) = assertion.get("must_contain") {
+        let Some(members) = mode.as_array() else {
+            findings.insert(Finding::new(
+                "contract_slice_conditional_assertion_bad_mode",
+                key,
+            ));
+            return;
+        };
         let present: BTreeSet<&str> = get_dotted(object, target_field)
             .and_then(Value::as_array)
             .map(|a| a.iter().filter_map(Value::as_str).collect())
@@ -716,26 +818,32 @@ fn evaluate_conditional_assertion(
         }
         return;
     }
-    if let Some(allowed) = assertion.get("must_subset_of").and_then(Value::as_array) {
-        let allowed: BTreeSet<&str> = allowed.iter().filter_map(Value::as_str).collect();
-        let actual: Vec<&str> = get_dotted(object, target_field)
+    if let Some(mode) = assertion.get("must_subset_of") {
+        let Some(allowed_values) = mode.as_array() else {
+            findings.insert(Finding::new(
+                "contract_slice_conditional_assertion_bad_mode",
+                key,
+            ));
+            return;
+        };
+        let allowed: BTreeSet<&str> = allowed_values.iter().filter_map(Value::as_str).collect();
+        // Fail-closed on non-string subject members: a non-string element must be a
+        // violation, not silently dropped by `filter_map(as_str)` before the check.
+        for value in get_dotted(object, target_field)
             .and_then(Value::as_array)
-            .map(|a| a.iter().filter_map(Value::as_str).collect())
-            .unwrap_or_default();
-        for value in actual {
-            if !allowed.contains(value) {
+            .into_iter()
+            .flatten()
+        {
+            let ok = value.as_str().is_some_and(|v| allowed.contains(v));
+            if !ok {
+                let repr = scalar_str(value).unwrap_or_else(|| "<non-scalar>".to_owned());
                 findings.insert(Finding::new(
                     "contract_slice_conditional_field_not_subset",
-                    format!("{key}:{value}"),
+                    format!("{key}:{repr}"),
                 ));
             }
         }
-        return;
     }
-    findings.insert(Finding::new(
-        "contract_slice_conditional_assertion_no_mode",
-        key,
-    ));
 }
 
 /// Collect a slice field that is an array-of-strings into owned strings.
@@ -1453,6 +1561,170 @@ mod tests {
             2,
             "{:#?}",
             report.findings
+        );
+    }
+
+    // ---- Phase 2: Group A fail-closed hardening (RED-first per CodeRabbit) ----
+
+    #[test]
+    fn exact_array_fields_counts_a_nonstring_extra_as_mismatch() {
+        // A non-string extra element must be a mismatch, not silently dropped by
+        // `filter_map(as_str)` (which would false-green `["a","b", 42]` vs `["a","b"]`).
+        let slice = json!({
+            "slice_id": "exactarr-nonstr",
+            "spec_path": "fixtures/exemplar-slice.json",
+            "required_fields": [],
+            "exact_array_fields": [
+                { "field": "tier_enum", "values": ["a", "b"] }
+            ]
+        });
+        let mut spec = valid_slice_spec();
+        spec["tier_enum"] = json!(["a", "b", 42]);
+        assert!(
+            evaluate_configured(&policy_with(slice), &corpus_with(spec))
+                .violations
+                .contains("contract_slice_array_not_exact"),
+            "a non-string extra must be counted as a mismatch"
+        );
+    }
+
+    #[test]
+    fn conditional_assertions_reject_both_selectors_present() {
+        // Both `when_member` and `when_member_in` present: the pre-hardening code
+        // silently honored only `when_member`, dropping the `when_member_in` intent.
+        let slice = json!({
+            "slice_id": "bothsel",
+            "spec_path": "fixtures/exemplar-slice.json",
+            "required_fields": [],
+            "required_object_array_members": [{
+                "field": "rows",
+                "member_key": "id",
+                "members": ["A"],
+                "conditional_assertions": [
+                    { "when_member": "A", "when_member_in": ["A", "B"], "field": "x", "must_be_true": true }
+                ]
+            }]
+        });
+        let mut spec = valid_slice_spec();
+        spec["rows"] = json!([{ "id": "A", "x": true }]);
+        assert!(
+            evaluate_configured(&policy_with(slice), &corpus_with(spec))
+                .violations
+                .contains("contract_slice_conditional_assertion_bad_selector"),
+            "an assertion carrying two selectors must fail closed"
+        );
+    }
+
+    #[test]
+    fn conditional_assertions_reject_multiple_modes() {
+        // Two mode keys: the pre-hardening code silently took `must_equal` first and
+        // ignored the rest, so a typo could disarm the intended mode.
+        let slice = json!({
+            "slice_id": "multimode",
+            "spec_path": "fixtures/exemplar-slice.json",
+            "required_fields": [],
+            "required_object_array_members": [{
+                "field": "rows",
+                "member_key": "id",
+                "members": ["A"],
+                "conditional_assertions": [
+                    { "when_member": "A", "field": "x", "must_equal": "v", "must_be_true": true }
+                ]
+            }]
+        });
+        let mut spec = valid_slice_spec();
+        spec["rows"] = json!([{ "id": "A", "x": "v" }]);
+        assert!(
+            evaluate_configured(&policy_with(slice), &corpus_with(spec))
+                .violations
+                .contains("contract_slice_conditional_assertion_multiple_modes"),
+            "an assertion carrying two modes must fail closed"
+        );
+    }
+
+    #[test]
+    fn conditional_assertion_must_subset_of_rejects_a_nonstring_value() {
+        // A non-string element in the subject array must be rejected, not dropped by
+        // `filter_map(as_str)` (which would let `999` escape the subset check).
+        let slice = json!({
+            "slice_id": "subsetnonstr",
+            "spec_path": "fixtures/exemplar-slice.json",
+            "required_fields": [],
+            "required_object_array_members": [{
+                "field": "rows",
+                "member_key": "id",
+                "members": ["A"],
+                "conditional_assertions": [
+                    { "when_member": "A", "field": "tiers", "must_subset_of": ["x", "y"] }
+                ]
+            }]
+        });
+        let mut spec = valid_slice_spec();
+        spec["rows"] = json!([{ "id": "A", "tiers": ["x", 999] }]);
+        assert!(
+            evaluate_configured(&policy_with(slice), &corpus_with(spec))
+                .violations
+                .contains("contract_slice_conditional_field_not_subset"),
+            "a non-string subject element must fail the subset check"
+        );
+    }
+
+    #[test]
+    fn required_markers_malformed_empty_or_missing_field_is_red() {
+        // Empty markers list would otherwise be a silent no-op that enforces nothing.
+        let empty_markers = json!({
+            "slice_id": "rm-empty",
+            "spec_path": "fixtures/exemplar-slice.json",
+            "required_fields": [],
+            "required_markers": [{ "field": "conditionals", "markers": [] }]
+        });
+        let mut spec = valid_slice_spec();
+        spec["conditionals"] = json!([{ "if_tier": "x" }]);
+        assert!(
+            evaluate_configured(&policy_with(empty_markers), &corpus_with(spec.clone()))
+                .violations
+                .contains("contract_slice_required_markers_malformed"),
+            "an empty markers list must fail closed"
+        );
+        // Missing field must also fail closed rather than search the empty path.
+        let missing_field = json!({
+            "slice_id": "rm-nofield",
+            "spec_path": "fixtures/exemplar-slice.json",
+            "required_fields": [],
+            "required_markers": [{ "markers": ["x"] }]
+        });
+        assert!(
+            evaluate_configured(&policy_with(missing_field), &corpus_with(spec))
+                .violations
+                .contains("contract_slice_required_markers_malformed"),
+            "a missing scope field must fail closed"
+        );
+    }
+
+    #[test]
+    fn field_implies_required_malformed_is_red() {
+        // Missing if_field would otherwise silently skip the rule (a false green);
+        // an empty then_required_fields would enforce nothing.
+        let slice = json!({
+            "slice_id": "fir-malformed",
+            "spec_path": "fixtures/exemplar-slice.json",
+            "required_fields": [],
+            "required_object_array_members": [{
+                "field": "rows",
+                "member_key": "id",
+                "members": ["A"],
+                "field_implies_required": [
+                    { "then_required_fields": ["companion"] }
+                ]
+            }]
+        });
+        let mut spec = valid_slice_spec();
+        spec["rows"] = json!([{ "id": "A" }]);
+        assert!(
+            evaluate_configured(&policy_with(slice), &corpus_with(spec))
+                .violations
+                .contains("contract_slice_field_implies_required_malformed"),
+            "a rule with no if_field must fail closed"
         );
     }
 }
