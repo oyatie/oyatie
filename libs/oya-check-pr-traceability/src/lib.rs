@@ -66,6 +66,21 @@ const REQUIRED_SECTIONS: [&str; 5] = [
     "Evidence",
 ];
 
+// Single source for the exact substrings the validator requires (and the scaffolder emits) so
+// the two can never drift apart — this is the fix for the recurring MissingTraceabilityField /
+// MissingEvidenceField / MissingIssueReference class of CI-preflight surprises.
+const REQUIRED_TRACEABILITY_FIELDS: [&str; 3] = [
+    "Catalog records touched",
+    "Cross-axis contracts touched",
+    "ADRs cited",
+];
+const REQUIRED_EVIDENCE_FIELDS: [&str; 3] = [
+    "Audit-chain emission",
+    "Foundation-bypass referenced",
+    "Per-pack regulator-watch impact",
+];
+const ISSUE_REFERENCE_MARKERS: [&str; 3] = ["Closes #", "Refs #", "Blocks #"];
+
 pub fn validate_pr_traceability(
     document: &PrTraceabilityDocument,
     policy: PrTraceabilityPolicy,
@@ -127,22 +142,14 @@ pub fn validate_pr_traceability(
     }
 
     let traceability = section_body(&document.body, &sections, "Traceability");
-    for field in [
-        "Catalog records touched",
-        "Cross-axis contracts touched",
-        "ADRs cited",
-    ] {
+    for field in REQUIRED_TRACEABILITY_FIELDS {
         if !traceability.contains(field) {
             return Err(PrTraceabilityError::MissingTraceabilityField { field });
         }
     }
 
     let evidence = section_body(&document.body, &sections, "Evidence");
-    for field in [
-        "Audit-chain emission",
-        "Foundation-bypass referenced",
-        "Per-pack regulator-watch impact",
-    ] {
+    for field in REQUIRED_EVIDENCE_FIELDS {
         if !evidence.contains(field) {
             return Err(PrTraceabilityError::MissingEvidenceField { field });
         }
@@ -164,6 +171,161 @@ pub fn validate_pr_traceability(
         required_sections_checked: REQUIRED_SECTIONS.len(),
         code_review_present,
     })
+}
+
+/// Emits a PR-body template that passes every author-owned check in
+/// [`validate_pr_traceability`] — every required section in order, every literal
+/// Traceability/Evidence field label, and a valid issue-reference marker — built from the
+/// SAME constants the validator checks against, so the two can never drift apart.
+///
+/// The `## Code Review` section is intentionally left at `Verdict: pending`: that is real
+/// (no review has happened yet), so `validate_pr_traceability` with `require_code_review: true`
+/// correctly still fails on `MissingCodeReviewApproval` — that is the one violation only a
+/// reviewer, not the author, can close.
+pub fn scaffold_pr_body() -> String {
+    let mut body = String::new();
+    for section in REQUIRED_SECTIONS {
+        body.push_str("## ");
+        body.push_str(section);
+        body.push('\n');
+        match section {
+            "Issue" => {
+                body.push_str(ISSUE_REFERENCE_MARKERS[1]);
+                body.push_str("<n>  <!-- one-line issue ref; use \"Closes #<n>\" if this PR closes the issue -->\n");
+            }
+            "Summary" => body.push_str("- <one-line summary of what changed and why>\n"),
+            "Verification" => {
+                body.push_str("- <pass|fail>: `<buck2 test/build command run>` (paste excerpt)\n");
+            }
+            "Traceability" => {
+                for field in REQUIRED_TRACEABILITY_FIELDS {
+                    body.push_str("- ");
+                    body.push_str(field);
+                    body.push_str(": `<list>`\n");
+                }
+            }
+            "Evidence" => {
+                for field in REQUIRED_EVIDENCE_FIELDS {
+                    body.push_str("- ");
+                    body.push_str(field);
+                    body.push_str(" (if any): `<event-id-or-none>`\n");
+                }
+            }
+            other => unreachable!("scaffold_pr_body: unhandled required section {other}"),
+        }
+        body.push('\n');
+    }
+    body.push_str("## Code Review\n");
+    body.push_str("- Reviewer agent: `<reviewer-agent>`\n");
+    body.push_str("- Verdict: pending\n");
+    body.push_str("- Resolved items: `<items-or-none>`\n");
+    body.push_str("- Deferred items: `<items-or-none>`\n");
+    body
+}
+
+/// Same rules as [`validate_pr_traceability`], but collects every violation instead of
+/// stopping at the first — so `--all-violations` can show an author every defect in one pass
+/// instead of one CI round-trip per fix. Field/content checks are skipped for a section that is
+/// itself missing (nothing meaningful to say about content of a section that doesn't exist).
+pub fn validate_pr_traceability_all(
+    document: &PrTraceabilityDocument,
+    policy: PrTraceabilityPolicy,
+) -> Vec<PrTraceabilityError> {
+    let mut errors = Vec::new();
+
+    if policy.require_code_review && policy.forbid_code_review {
+        errors.push(PrTraceabilityError::ConflictingCodeReviewPolicy);
+        return errors;
+    }
+
+    if let Some(marker) = blocked_review_marker_in_title(&document.title) {
+        errors.push(PrTraceabilityError::BlockedReviewMarker {
+            location: "title",
+            marker,
+        });
+    }
+    if let Some(marker) = blocked_review_marker_in_body(&document.body) {
+        errors.push(PrTraceabilityError::BlockedReviewMarker {
+            location: "body",
+            marker,
+        });
+    }
+
+    let sections = h2_sections(&document.body);
+    let mut previous_index = None;
+    let mut previous_section = None;
+    for required in REQUIRED_SECTIONS {
+        let Some(index) = section_index(&sections, required) else {
+            errors.push(PrTraceabilityError::MissingSection { section: required });
+            continue;
+        };
+        if let (Some(previous_index), Some(previous_section_id)) =
+            (previous_index, previous_section)
+            && index <= previous_index
+        {
+            errors.push(PrTraceabilityError::SectionOutOfOrder {
+                section: required,
+                previous_section: previous_section_id,
+            });
+        }
+        if section_body(&document.body, &sections, required)
+            .trim()
+            .is_empty()
+        {
+            errors.push(PrTraceabilityError::EmptySection { section: required });
+        }
+        previous_index = Some(index);
+        previous_section = Some(required);
+    }
+
+    if section_index(&sections, "Issue").is_some() {
+        let issue = section_body(&document.body, &sections, "Issue");
+        if !contains_issue_reference(issue) {
+            errors.push(PrTraceabilityError::MissingIssueReference);
+        }
+    }
+
+    if section_index(&sections, "Summary").is_some() {
+        let summary = section_body(&document.body, &sections, "Summary");
+        if !summary
+            .lines()
+            .any(|line| line.trim_start().starts_with("- "))
+        {
+            errors.push(PrTraceabilityError::MissingSummaryBullet);
+        }
+    }
+
+    if section_index(&sections, "Traceability").is_some() {
+        let traceability = section_body(&document.body, &sections, "Traceability");
+        for field in REQUIRED_TRACEABILITY_FIELDS {
+            if !traceability.contains(field) {
+                errors.push(PrTraceabilityError::MissingTraceabilityField { field });
+            }
+        }
+    }
+
+    if section_index(&sections, "Evidence").is_some() {
+        let evidence = section_body(&document.body, &sections, "Evidence");
+        for field in REQUIRED_EVIDENCE_FIELDS {
+            if !evidence.contains(field) {
+                errors.push(PrTraceabilityError::MissingEvidenceField { field });
+            }
+        }
+    }
+
+    let code_review = section_body(&document.body, &sections, "Code Review");
+    let code_review_present = section_index(&sections, "Code Review").is_some();
+    if policy.require_code_review && !code_review_present {
+        errors.push(PrTraceabilityError::CodeReviewRequired);
+    }
+    if policy.require_code_review && code_review_present {
+        errors.extend(validate_code_review_section_all(code_review));
+    }
+    if policy.forbid_code_review && code_review_present {
+        errors.push(PrTraceabilityError::CodeReviewForbidden);
+    }
+
+    errors
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -221,7 +383,9 @@ fn section_body<'a>(body: &'a str, sections: &[H2Section<'_>], title: &str) -> &
 }
 
 fn contains_issue_reference(issue: &str) -> bool {
-    issue.contains("Closes #") || issue.contains("Refs #") || issue.contains("Blocks #")
+    ISSUE_REFERENCE_MARKERS
+        .iter()
+        .any(|marker| issue.contains(marker))
 }
 
 fn validate_code_review_section(code_review: &str) -> Result<(), PrTraceabilityError> {
@@ -242,6 +406,27 @@ fn validate_code_review_section(code_review: &str) -> Result<(), PrTraceabilityE
     }
 
     Ok(())
+}
+
+/// Collect-all sibling of [`validate_code_review_section`] for `validate_pr_traceability_all`.
+fn validate_code_review_section_all(code_review: &str) -> Vec<PrTraceabilityError> {
+    let mut errors = Vec::new();
+    if code_review_requests_changes(code_review) {
+        errors.push(PrTraceabilityError::CodeReviewRequestsChanges);
+    }
+    if !code_review_has_reviewer(code_review) {
+        errors.push(PrTraceabilityError::MissingCodeReviewReviewer);
+    }
+    if !code_review_has_approval(code_review) {
+        errors.push(PrTraceabilityError::MissingCodeReviewApproval);
+    }
+    if !code_review_has_resolved_items(code_review) {
+        errors.push(PrTraceabilityError::MissingCodeReviewResolvedItems);
+    }
+    if !code_review_has_deferred_items(code_review) {
+        errors.push(PrTraceabilityError::MissingCodeReviewDeferredItems);
+    }
+    errors
 }
 
 fn code_review_requests_changes(code_review: &str) -> bool {
@@ -676,6 +861,63 @@ mod tests {
             Err(PrTraceabilityError::MissingEvidenceField {
                 field: "Audit-chain emission",
             })
+        );
+    }
+
+    #[test]
+    fn scaffold_contains_every_required_section_and_field_label() {
+        let scaffold = scaffold_pr_body();
+        for section in REQUIRED_SECTIONS {
+            assert!(
+                scaffold.contains(&format!("## {section}")),
+                "scaffold missing section header {section:?}:\n{scaffold}"
+            );
+        }
+        for field in REQUIRED_TRACEABILITY_FIELDS {
+            assert!(
+                scaffold.contains(field),
+                "scaffold missing Traceability field {field:?}:\n{scaffold}"
+            );
+        }
+        for field in REQUIRED_EVIDENCE_FIELDS {
+            assert!(
+                scaffold.contains(field),
+                "scaffold missing Evidence field {field:?}:\n{scaffold}"
+            );
+        }
+        assert!(scaffold.contains(ISSUE_REFERENCE_MARKERS[1]));
+        assert!(scaffold.contains("## Code Review"));
+        assert!(scaffold.contains("Verdict: pending"));
+    }
+
+    #[test]
+    fn scaffold_passes_validator_except_for_the_pending_review_verdict() {
+        // Keystone test: the scaffold satisfies every author-owned rule; the ONLY violation
+        // under merge policy is the (correct, expected) unapproved verdict.
+        let scaffold = scaffold_pr_body();
+        assert_eq!(
+            validate_pr_traceability(&document(&scaffold), merge_policy()),
+            Err(PrTraceabilityError::MissingCodeReviewApproval)
+        );
+        assert_eq!(
+            validate_pr_traceability_all(&document(&scaffold), merge_policy()),
+            vec![PrTraceabilityError::MissingCodeReviewApproval]
+        );
+    }
+
+    #[test]
+    fn all_violations_mode_reports_every_defect_not_just_the_first() {
+        let broken_body = valid_body()
+            .replace("Closes #123", "No ticket")
+            .replace("Audit-chain emission: EVT-1\n", "");
+        assert_eq!(
+            validate_pr_traceability_all(&document(&broken_body), author_policy()),
+            vec![
+                PrTraceabilityError::MissingIssueReference,
+                PrTraceabilityError::MissingEvidenceField {
+                    field: "Audit-chain emission",
+                },
+            ]
         );
     }
 
