@@ -8,7 +8,7 @@ owner: council-architecture
 supersedes: [ADR-0120, ADR-0121]
 superseded_by: []
 related: [ADR-0009, ADR-0147, ADR-0148, ADR-0306, ADR-0338, ADR-0339, ADR-0363, ADR-0370, ADR-0371, ADR-0158, ADR-0171, ADR-0198]
-related_specs: [/specs/deployment-ops-contract.json, /specs/hyperscaler-architecture-invariants.json]
+related_specs: [/specs/deployment-ops-contract.json, /specs/hyperscaler-architecture-invariants.json, /specs/talos-001-substrate-slice.json]
 milestone: M-FLEET-SUBSTRATE
 depends_on: [ADR-0370]
 door: two-way
@@ -49,7 +49,11 @@ purpose: >
 ## Status
 Accepted (2026-05-27). Supersedes ADR-0120 (rust-first on-prem tooling) and ADR-0121
 (on-prem k8s stack: kubeadm + containerd + istio-envoy). Amends the deployment-ops-contract
-(`specs/deployment-ops-contract.json` v2.0.0) accordingly.
+(`specs/deployment-ops-contract.json` v2.0.0) accordingly. The TALOS-001 substrate-slice
+validation matrix (authorities, claim boundaries, and required-surface source paths spanning
+this ADR plus ADR-0370/0371/0376/0378/0382) is specified in the dedicated
+`specs/talos-001-substrate-slice.json`, enforced by the
+`//ci/facade/contract-slice-conformance` gate.
 
 ## Product framing — Oyatie's own OKE/GKE/EKS
 

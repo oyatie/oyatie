@@ -40,7 +40,7 @@ tofu-fmt-check: check-tofu
 verify: verify-deploy-contract tofu-fmt-check
 
 verify-deploy-contract:
-	$(CARGO) run -p oya-dev-cli -- gate validate deployment-ops-contract
+	$(CARGO) run -p marketplace-dev-cli -- gate validate deployment-ops-contract
 
 # Cluster fleet is declarative + git-driven (CAPI/Talos/Argo CD), not a Makefile concern.
 fleet:
