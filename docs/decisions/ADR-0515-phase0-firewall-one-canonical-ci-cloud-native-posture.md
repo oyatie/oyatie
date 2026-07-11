@@ -237,6 +237,38 @@ The contract-slice conformance gate is the paved-road owned-Rust/Buck2 replaceme
 - `ci/facade/contract-slice-conformance/src/lib.rs`
 - `ci/facade/contract-slice-conformance/tests/contract_slice_conformance.rs`
 
+The contract-slice-policy sharding follow-up (CI class-fix #3 of the 2026-07-10 merge train:
+every slice PR editing the one shared `contract-slice-policy.json` re-dirtied every other open
+slice PR) extends that same bounded surface with a per-slice fragment directory plus the
+owned-Rust materializer that regenerates the aggregate from it (ADR-0539 `check_equals_fix`
+doctrine, applied locally to this gate — the fixer and the byte-parity gate test share one
+`aggregate_policy`/`render_policy_json` definition):
+
+- `ci/facade/contract-slice-conformance/slices/cell-002-promotion-automation.json`
+- `ci/facade/contract-slice-conformance/slices/cell-002-rollback-audit-fixture.json`
+- `ci/facade/contract-slice-conformance/slices/compliance-001-contract-spec.json`
+- `ci/facade/contract-slice-conformance/slices/compliance-001-pack-fixture.json`
+- `ci/facade/contract-slice-conformance/slices/compliance-001-pack-schema.json`
+- `ci/facade/contract-slice-conformance/slices/compliance-001-portability-manifest-fixture.json`
+- `ci/facade/contract-slice-conformance/slices/contract-slice-conformance-exemplar.json`
+- `ci/facade/contract-slice-conformance/slices/finops-001-cost-attribution.json`
+- `ci/facade/contract-slice-conformance/slices/release-001-runtime-safety-policy.json`
+- `ci/facade/contract-slice-conformance/slices/residency-001-attestation.json`
+- `ci/facade/contract-slice-conformance/slices/residency-001-audit-events.json`
+- `ci/facade/contract-slice-conformance/slices/residency-001-fixture-cross-border-refusal.json`
+- `ci/facade/contract-slice-conformance/slices/residency-001-fixture-signed-footprint.json`
+- `ci/facade/contract-slice-conformance/slices/residency-001-governance-artifact-registry.json`
+- `ci/facade/contract-slice-conformance/slices/residency-001-governance-root-hub.json`
+- `ci/facade/contract-slice-conformance/slices/residency-001-pack-matrix.json`
+- `ci/facade/contract-slice-conformance/slices/residency-001-regimes.json`
+- `ci/facade/contract-slice-conformance/slices/residency-001-regions.json`
+- `ci/facade/contract-slice-conformance/slices/resilience-001-messenger-manifest-trace-sampling.json`
+- `ci/facade/contract-slice-conformance/slices/resilience-001-messenger-runtime-control-loop.json`
+- `ci/facade/contract-slice-conformance/slices/talos-001-substrate-slice.json`
+- `ci/facade/contract-slice-conformance/src/bin/oya-cloud-ci-materialize-contract-slice-policy.rs`
+- `ci/facade/contract-slice-conformance/src/fragments.rs`
+- `ci/facade/contract-slice-conformance/tests/policy_fragment_migration.rs`
+
 The run-observability packet/status contract is part of the same single-required-context substrate:
 `specs/cloud-ci-run-observability-packet.schema.json` defines the machine-readable packet,
 `specs/cloud-ci-run-observability-status.schema.json` defines the separately serialized status/query
