@@ -100,9 +100,13 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use serde_json::Value;
 
+mod adr_index_projection_parity;
+mod gate_coverage_baseline;
 mod plan_evidence_crosscheck;
 mod projection_rederivation;
+mod prose_frontmatter_status;
 mod read_surface_resurrection;
+mod registry_policy_sync;
 
 pub use plan_evidence_crosscheck::{
     PLAN_EVIDENCE_CROSSCHECK_VALIDATOR, UNRECORDED_EVIDENCE_CODE,
@@ -115,6 +119,30 @@ pub use projection_rederivation::{
 pub use read_surface_resurrection::{
     READ_SURFACE_RESURRECTION_VALIDATOR, RESURRECTION_CODE,
     evaluate_masterplan_read_surface_resurrections,
+};
+
+// Gate-coverage-gap advisory checks (born-advisory, enforce-no-regression vs a
+// frozen baseline; NOT wired into the born-blocking `evaluate`/`VIOLATION_CODES`
+// contract). Each closes a #1327 review class no §5.2 code keys on: prose vs
+// front-matter status, capability-registry vs derived gate policy, and
+// generated ADR-index projection parity.
+pub use adr_index_projection_parity::{
+    ADR_INDEX_MD_PATH, ADR_INDEX_PARITY_VALIDATOR, ADR_INDEX_PROJECTION_STALE_CODE,
+    DECISIONS_JSON_PATH, evaluate_adr_index_projection_parity,
+};
+// Re-exported from the producer kernel so the gate test builds the source-of-truth
+// record set with the SAME type the ADR-index producer renders.
+pub use gate_coverage_baseline::{
+    GATE_COVERAGE_RATCHET_VALIDATOR, GateCoverageBaseline, RatchetReport, ratchet,
+};
+pub use oya_check_adr_index::AdrDecisionRecord;
+pub use prose_frontmatter_status::{
+    PROSE_STATUS_AGREEMENT_VALIDATOR, PROSE_STATUS_CONTRADICTION_CODE,
+    evaluate_adr_prose_frontmatter_status,
+};
+pub use registry_policy_sync::{
+    REGISTRY_POLICY_DESYNC_CODE, REGISTRY_POLICY_SYNC_VALIDATOR,
+    evaluate_registry_derived_policy_sync,
 };
 /// The gate id, matching the buck2 target + the §5.2 contract.
 pub const GATE_ID: &str = "cloud-ci-cross-artifact-agreement";

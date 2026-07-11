@@ -167,7 +167,28 @@ The Phase-0 false-green firewall is the substrate that makes merge-gate enforcem
    (RED on today's corpus), with the exact on-disk violation codes as the contract:
    - **GATE-1 cross-artifact-agreement** — `orphan_decision`, `unpropagated_decision`,
      `dual_decision_collision`, `supersession_half_edge`, `status_disagreement`,
-     `generated_face_drift`.
+     `generated_face_drift`. GATE-1 additionally carries three BORN-ADVISORY
+     coverage checks (enforce-no-regression vs the frozen ratchet
+     `ci/facade/cross-artifact-agreement/gate-coverage-baseline.json`, the born-empty
+     gate-coverage program), each closing a review class no born-blocking code keys
+     on: `adr_prose_status_contradiction` (an ADR body prose that disagrees with its
+     own front-matter status, matched against the DATA phrase policy
+     `ci/facade/cross-artifact-agreement/prose-status-agreement-policy.json`),
+     `registry_derived_policy_desync` (a capability root in
+     `specs/capability-registry.json` absent from a derived gate policy —
+     module-membership, root-hygiene, or tier-dependency), and
+     `adr_index_projection_stale` (the generated `docs/ADR-INDEX.md` /
+     `docs/machine-readable/decisions.json` projections re-rendered through the
+     `oya-check-adr-index` producer kernel, implementing the
+     `docs/automation/adr-index-pipeline.md` regeneration promise without shelling out).
+     The three checks are implemented as born-advisory submodules
+     `ci/facade/cross-artifact-agreement/src/prose_frontmatter_status.rs`,
+     `ci/facade/cross-artifact-agreement/src/registry_policy_sync.rs`, and
+     `ci/facade/cross-artifact-agreement/src/adr_index_projection_parity.rs`, sharing the
+     frozen-baseline ratchet in
+     `ci/facade/cross-artifact-agreement/src/gate_coverage_baseline.rs`; they ride the
+     already-registered `ci-cross-artifact-agreement-gate` and are NOT wired into the
+     born-blocking §5.2 verdict.
    - **GATE-2 total-accounting** — `unaccounted`, `unowned`, `unjustified`, `unreachable`,
      `no_ttl_class`, `registry_drift`.
    - **GATE-3 staleness-reaper** — REPORTS, never reaps (`report → git mv → _archive/`,
