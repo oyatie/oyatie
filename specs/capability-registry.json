@@ -1,5 +1,5 @@
 {
-  "_comment": "The CLOSED capability registry (ADR-0562). The single machine-readable source of truth for the canonical capability set of the capability-first repo organization. Coarse / Conway-aligned: one capability per two-pizza ownership boundary. Seeded from ADR-0536's sixteen substrate domains + the verified current tree (cloud/ + oya/). A crate maps to EXACTLY ONE registered capability via the ADR-0562 deterministic placement rule; new top-level dirs outside this registry plus base/build/governance/kernel/os/app FAIL the membership lint. De-brand naming is realized via the ADR-0532/0533 profile mechanism; the names here are the de-branded canonical slugs (the flip is a later Phase-0 lane). This file is governance data; its eventual home is governance/capability-registry.json after the reorg, held at specs/ until the governance/ top-level dir is created. DATA, not code: canonical-json governed, reachability-registered, council-architecture owned.",
+  "_comment": "The CLOSED capability registry (ADR-0562). The single machine-readable source of truth for the canonical capability set of the capability-first repo organization. Coarse / Conway-aligned: one capability per two-pizza ownership boundary. Seeded from ADR-0536's sixteen substrate domains + the verified current tree (cloud/ + oya/). A crate maps to EXACTLY ONE registered capability via the ADR-0562 deterministic placement rule; new top-level dirs outside this registry plus base/build/third-party/governance/kernel/os/app FAIL the membership lint. De-brand naming is realized via the ADR-0532/0533 profile mechanism; the names here are the de-branded canonical slugs (the flip is a later Phase-0 lane). This file is governance data; its eventual home is governance/capability-registry.json after the reorg, held at specs/ until the governance/ top-level dir is created. DATA, not code: canonical-json governed, reachability-registered, council-architecture owned.",
   "schema_version": "1.1.0",
   "doctrine_adr": "ADR-0562",
   "amendment_adrs": [
@@ -46,7 +46,13 @@
     {
       "dir": "build/",
       "off_runtime_ladder": true,
-      "charter": "Meta, off the runtime ladder: buck2 prelude, toolchains, reindeer, third_party vendoring, CI engines, and the generated sell-catalog (SKU/pricing) VIEW. Owns zero capability crates.",
+      "charter": "Meta, off the runtime ladder: buck2 prelude, toolchains, reindeer, CI engines, and the generated sell-catalog (SKU/pricing) VIEW. Owns zero capability crates.",
+      "owns_crates": false
+    },
+    {
+      "dir": "third-party/",
+      "off_runtime_ladder": true,
+      "charter": "Meta, off the runtime ladder: reindeer-vendored third-party crate sources (the live buck2 cell root third-party//). TOP-LEVEL per the ADR-0615 amendment (founder 2026-07-10), split out of the build/ charter text. Owns zero first-party (capability) crates.",
       "owns_crates": false
     },
     {
@@ -119,6 +125,7 @@
         "authorization"
       ],
       "absorbs_current_dirs": [
+        "policy",
         "oya/policy"
       ],
       "dag_node": "policy-engine",
@@ -462,17 +469,10 @@
       "executes_in": "specs/reorg/comms-move-plan.json (Batch-5)",
       "ruled_by": "ADR-0615 §2 Q2",
       "pending_relocation": true
-    },
-    {
-      "from": "iam.absorbs_current_dirs[oya/policy]",
-      "to": "policy.absorbs_current_dirs (24th capability, extracted in THIS batch)",
-      "executes_in": "specs/reorg/iam-pdp-cedar-move-plan.json (Batch-5, physical move of the Cedar PDP crates)",
-      "ruled_by": "ADR-0615 §5",
-      "pending_relocation": true
     }
   ],
   "membership_lint_coverage": {
-    "_comment": "ADR-0562 §6 membership-lint COVERAGE extension (Phase-0). The capabilities[].absorbs_current_dirs close the cloud/+oya/ SERVICE-dir axis; this block extends the closed registry to map EVERY remaining current crate (the cloud/oya app surfaces with no capability service-dir, plus the libs/ and tools/ crates that dissolve into capability homes + meta dirs per ADR-0562 §1, 'libs/ dissolves into capability homes + base/'). Each entry maps a PRE-MOVE current path → a registered capability slug OR a meta directory (kernel/os/base/governance/build/app). The membership lint reads these PRE-MOVE; POST-move the path itself is the namespace. Genuinely-ambiguous crates that the strangler must home per-crate are NOT force-mapped here — they live in frozen_unmapped_baseline and the gate enforces no-regression against that frozen set. DATA, not code.",
+    "_comment": "ADR-0562 §6 membership-lint COVERAGE extension (Phase-0). The capabilities[].absorbs_current_dirs close the cloud/+oya/ SERVICE-dir axis; this block extends the closed registry to map EVERY remaining current crate (the cloud/oya app surfaces with no capability service-dir, plus the libs/ and tools/ crates that dissolve into capability homes + meta dirs per ADR-0562 §1, 'libs/ dissolves into capability homes + base/'). Each entry maps a PRE-MOVE current path → a registered capability slug OR a meta directory (kernel/os/base/governance/build/third-party/app). The membership lint reads these PRE-MOVE; POST-move the path itself is the namespace. Genuinely-ambiguous crates that the strangler must home per-crate are NOT force-mapped here — they live in frozen_unmapped_baseline and the gate enforces no-regression against that frozen set. DATA, not code.",
     "app_products": {
       "_comment": "The cloud/+oya/ deployable SaaS verticals + the web/application shell that are app/<product>/ composition members (app_products_note made machine-readable). They wire 2+ capabilities for a tenant and define no capability engine. PRE-MOVE these live at oya/<product>/; POST-move at app/<product>/. workplace-integration is the 'etc.' catch-all surface in app_products_note. application is the developer application/web shell (product-developer-application-shell) that compiles INTO the console capability per the console boundary_note → app/.",
       "meta_dir": "app/",

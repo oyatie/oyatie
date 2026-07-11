@@ -26,11 +26,10 @@ milestone: W0
 an explicit 2026-07-10 ruling on the fourteen boundary questions, with "the long-term-correct,
 maintainable, hyperscaler pattern" as the bar; door: one-way — the same one-way class as ADR-0562,
 because a surface ruled `app/` vs a capability `facade/` is a placement commitment the membership
-lint then enforces). This ADR is **Accepted in the same atomic batch as ADR-0562's Accept**, so its
-formal Accept rides cross-artifact propagation (the ADR-Accepted-must-propagate gate: bound in the
-masterplan `planning_authority.bound_adrs` + the sequencing provenance in the same commit): it
-records the founder's decisions and amends ADR-0562's `flagged_boundaries_for_leader` from open
-questions to resolved dispositions; it moves no crates.
+lint then enforces). This ADR is **Accepted in the same atomic batch as ADR-0562's Accept**, riding
+cross-artifact propagation in that one commit (bound in the masterplan `planning_authority.bound_adrs`
++ the sequencing provenance): it records the founder's decisions and amends ADR-0562's
+`flagged_boundaries_for_leader` from open questions to resolved dispositions; it moves no crates.
 
 ## Context
 
@@ -44,11 +43,9 @@ coarse-absorbed into a substrate capability **by name** (e.g. `oya/diagnostics` 
 `observability`, `oya/imaging` under `storage`) pending confirmation that the name matched the
 system's actual nature.
 
-The founder ruled all fourteen on 2026-07-10. This ADR is the durable **record of those decisions**;
-once it lands, the Batch-5 reorg move-plans implement the dispositions it records — while its
-lifecycle status stays **Proposed** pending formal Accept propagation (see Status, above). The
-decisions are the founder's ruling; the ADR's Accept is the propagation formality, not a precondition
-for the record to be authoritative about what was decided.
+The founder ruled all fourteen on 2026-07-10. This ADR is the durable **record of those decisions**,
+**Accepted** in the same atomic batch as ADR-0562 (see Status, above); once it lands, the Batch-5
+reorg move-plans implement the dispositions it records.
 
 ## Decision
 
@@ -89,10 +86,11 @@ confirmed as the governing rule.**
 
 **Net effect:** the only real crate move is dev-cli → `ci` (Q10). The drive/recordings landed
 `storage/facade` domain crates are **confirmed in place** (Q3) — a future consumer product composing
-them → `app/`, but the domain crates stay storage. The three healthcare surfaces (emergency,
-imaging, diagnostics) hold **zero crates today** — parking them to `app/healthcare` removes their
-name-driven substrate absorb and *reduces* registry drift, not a code move. Twelve of fourteen need
-zero or scaffold-only relocation.
+them → `app/`, but the domain crates stay storage. The two clinical surfaces routed to
+`app/healthcare` (emergency, imaging) plus the separate clinical-lab surface routed to
+`app/health-diagnostics` (diagnostics, §6/Q8 — NOT an `app/healthcare` context) hold **zero crates
+today** — parking them removes their name-driven substrate absorb and *reduces* registry drift, not
+a code move. Twelve of fourteen need zero or scaffold-only relocation.
 
 ### §3 Registry corrections + execution deferral
 
@@ -172,9 +170,9 @@ founder ruled it 2026-07-10:
 - **`social` is a SEPARATE `app/` product**, not a healthcare context (it appears independently in
   the `app_products` roster).
 
-All three healthcare destinations (`app/healthcare`, `app/health-diagnostics`) hold **zero crates
-today** — the ruling fixes the destination and removes the name-driven substrate absorbs; the crates
-land when the products are actually built.
+Both healthcare-adjacent destinations (`app/healthcare` and the separate `app/health-diagnostics`)
+hold **zero crates today** — the ruling fixes the destination and removes the name-driven substrate
+absorbs; the crates land when the products are actually built.
 
 ## Consequences
 

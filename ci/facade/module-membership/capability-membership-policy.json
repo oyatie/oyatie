@@ -37,7 +37,8 @@
     "billing",
     "intelligence",
     "governance",
-    "ci"
+    "ci",
+    "policy"
   ],
   "meta_directories": [
     "kernel",
@@ -77,6 +78,7 @@
     "billing",
     "intelligence",
     "ci",
+    "policy",
     "cloud",
     "oya",
     "libs",
