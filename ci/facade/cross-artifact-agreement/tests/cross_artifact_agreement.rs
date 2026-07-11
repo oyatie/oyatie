@@ -9,13 +9,15 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use ci_cross_artifact_agreement::{
-    Verdict, derive_masterplan_md_projection, evaluate,
-    evaluate_masterplan_plan_evidence_crosscheck, evaluate_masterplan_projection_rederivation,
-    evaluate_masterplan_read_surface_resurrections, evaluate_masterplan_v2_authority,
-    evaluate_masterplan_v2_entry_surfaces, evaluate_masterplan_v2_evidence_state,
-    evaluate_masterplan_v2_plan_evidence_drift, evaluate_masterplan_v2_program_coverage,
-    evaluate_masterplan_v2_projection_freshness, evaluate_masterplan_v2_read_contract_archives,
-    evaluate_masterplan_v2_sequencing,
+    AdrDecisionRecord, GateCoverageBaseline, RatchetReport, Verdict,
+    derive_masterplan_md_projection, evaluate, evaluate_adr_index_projection_parity,
+    evaluate_adr_prose_frontmatter_status, evaluate_masterplan_plan_evidence_crosscheck,
+    evaluate_masterplan_projection_rederivation, evaluate_masterplan_read_surface_resurrections,
+    evaluate_masterplan_v2_authority, evaluate_masterplan_v2_entry_surfaces,
+    evaluate_masterplan_v2_evidence_state, evaluate_masterplan_v2_plan_evidence_drift,
+    evaluate_masterplan_v2_program_coverage, evaluate_masterplan_v2_projection_freshness,
+    evaluate_masterplan_v2_read_contract_archives, evaluate_masterplan_v2_sequencing,
+    evaluate_registry_derived_policy_sync, ratchet,
 };
 use serde_json::Value;
 
@@ -392,9 +394,8 @@ fn masterplan_v2_plan_vs_evidence_drift_contract_is_green() {
 fn masterplan_plan_evidence_crosscheck_gate_is_green_on_live_tree() {
     let root = repo_root();
     let masterplan = load_json(&root.join("specs/masterplan.json"));
-    let scm_facts = load_json(&root.join(
-        "ci/facade/artifact-inventory-registry/scm-facts.generated.json",
-    ));
+    let scm_facts =
+        load_json(&root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json"));
     let tracked_paths = scm_facts
         .get("tracked_paths")
         .cloned()
@@ -421,9 +422,7 @@ fn masterplan_plan_evidence_crosscheck_gate_is_green_on_live_tree() {
     );
     assert_eq!(
         crosscheck["resolution_universe"].as_str(),
-        Some(
-            "ci/facade/artifact-inventory-registry/scm-facts.generated.json#tracked_paths"
-        ),
+        Some("ci/facade/artifact-inventory-registry/scm-facts.generated.json#tracked_paths"),
         "masterplan v2 must pin the tracked-tree resolution universe this test reads"
     );
 }
@@ -703,9 +702,8 @@ fn masterplan_read_surface_resurrection_gate_is_green_on_live_tree() {
 /// JSON document, or an opaque-data marker for non-document provenance
 /// files).
 fn live_read_surface_corpus(root: &Path, masterplan: &Value) -> Value {
-    let scm_facts = load_json(&root.join(
-        "ci/facade/artifact-inventory-registry/scm-facts.generated.json",
-    ));
+    let scm_facts =
+        load_json(&root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json"));
     let tracked: BTreeSet<&str> = scm_facts["tracked_paths"]
         .as_array()
         .expect("committed scm-facts face must carry tracked_paths")
@@ -1254,8 +1252,7 @@ fn read_governed_citation_corpus(root: &Path) -> String {
 /// provided by `OYA_CI_PRODUCER_BIN`; missing env fails closed so tests cannot silently fall back to
 /// Cargo. The producer reads the materialized scm-facts face (a declared input); it never calls git.
 fn run_producer_face(root: &Path, face: &str) -> Value {
-    let scm_facts = root
-        .join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
+    let scm_facts = root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
     let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
     let bin = producer_binary(root, producer_bin.as_deref()).unwrap_or_else(|e| panic!("{e}"));
     let output = Command::new(bin)
@@ -1275,4 +1272,271 @@ fn run_producer_face(root: &Path, face: &str) -> Value {
         String::from_utf8_lossy(&output.stderr)
     );
     serde_json::from_slice(&output.stdout).expect("producer face stdout is valid JSON")
+}
+
+// ===========================================================================
+// Gate-coverage-gap advisory checks (born-advisory vs a frozen baseline).
+//
+// These three lanes close the #1327 review class that no born-blocking §5.2 code
+// keys on: the defects lived in prose / derived-policy / generated-projection
+// surfaces. Each check is BORN-ADVISORY — it does not join `evaluate`'s blocking
+// verdict; it enforces NO-REGRESSION against the committed frozen baseline
+// `gate-coverage-baseline.json`. Each live test asserts the ratchet is CLEAN: the
+// live advisory finding set equals the frozen baseline exactly (zero NEW
+// regressions AND zero stale burned-down rows). The baseline is born empty.
+// ===========================================================================
+
+fn gate_coverage_baseline(root: &Path) -> GateCoverageBaseline {
+    let doc =
+        load_json(&root.join("ci/facade/cross-artifact-agreement/gate-coverage-baseline.json"));
+    GateCoverageBaseline::from_value(&doc)
+}
+
+fn assert_ratchet_clean(report: &RatchetReport, lane: &str) {
+    assert!(
+        report.regressions.is_empty(),
+        "{lane}: NEW advisory regression(s) not in gate-coverage-baseline.json — either fix the \
+         divergence or record it in the frozen baseline with a justification: {:?}",
+        report.regressions
+    );
+    assert!(
+        report.burned_down.is_empty(),
+        "{lane}: a gate-coverage-baseline.json row no longer reproduces on the live corpus — \
+         remove it and re-freeze (a stale phantom baseline row must never rot the ratchet): {:?}",
+        report.burned_down
+    );
+}
+
+/// Enumerate `docs/decisions/*.md` file names (ADR-NNNN…md), newest amendment
+/// dedup applied — matching the ADR-index producer's `read_adr_decision_records`
+/// dedup so the id set is apples-to-apples with the projection records.
+fn decision_md_file_names(root: &Path) -> Vec<String> {
+    let dir = root.join("docs/decisions");
+    let mut names: Vec<String> = fs::read_dir(&dir)
+        .unwrap_or_else(|e| panic!("read_dir {}: {e}", dir.display()))
+        .filter_map(Result::ok)
+        .filter_map(|entry| entry.file_name().to_str().map(str::to_owned))
+        .filter(|name| name.starts_with("ADR-") && name.ends_with(".md"))
+        .collect();
+    names.sort();
+    let base_ids: BTreeSet<String> = names
+        .iter()
+        .filter(|name| !name.contains("-amendment-"))
+        .filter_map(|name| name.get(0..8).map(str::to_owned))
+        .collect();
+    names.retain(|name| {
+        if !name.contains("-amendment-") {
+            return true;
+        }
+        name.get(0..8).is_none_or(|id| !base_ids.contains(id))
+    });
+    names
+}
+
+// --- Check 1/3: prose ⇄ front-matter status agreement -----------------------
+
+/// Extract the front-matter `status:` value and the body of an ADR markdown file.
+fn adr_frontmatter_status_and_body(contents: &str) -> (Option<String>, &str) {
+    let Some(rest) = contents.strip_prefix("---\n") else {
+        return (None, contents);
+    };
+    let Some(end) = rest.find("\n---") else {
+        return (None, contents);
+    };
+    let frontmatter = &rest[..end];
+    let body = &rest[end + "\n---".len()..];
+    let status = frontmatter.lines().find_map(|line| {
+        let line = line.trim();
+        line.strip_prefix("status:")
+            .map(|value| value.trim().trim_matches('"').trim_matches('\'').to_owned())
+    });
+    (status, body)
+}
+
+fn live_prose_status_corpus(root: &Path) -> Value {
+    let dir = root.join("docs/decisions");
+    let mut adrs = Vec::new();
+    for name in decision_md_file_names(root) {
+        let id = name.get(0..8).unwrap_or_default().to_owned();
+        let contents =
+            fs::read_to_string(dir.join(&name)).unwrap_or_else(|e| panic!("read {name}: {e}"));
+        let (status, body) = adr_frontmatter_status_and_body(&contents);
+        let Some(status) = status else { continue };
+        adrs.push(serde_json::json!({
+            "id": id,
+            "frontmatter_status": status,
+            "body": body,
+        }));
+    }
+    serde_json::json!({ "adrs": adrs })
+}
+
+/// Sub-check 1/3 born-advisory over the live tree: no ADR body prose contradicts
+/// its own front-matter status (#1327 defect class (a): "stays Proposed" in an
+/// Accepted ADR). Enforces no-regression vs the frozen baseline.
+#[test]
+fn adr_prose_frontmatter_status_agreement_is_advisory_clean_on_live_tree() {
+    let root = repo_root();
+    let policy = load_json(
+        &root.join("ci/facade/cross-artifact-agreement/prose-status-agreement-policy.json"),
+    );
+    let corpus = live_prose_status_corpus(&root);
+
+    let scanned = corpus["adrs"].as_array().expect("adrs").len();
+    assert!(
+        scanned > 100,
+        "the prose⇄front-matter sweep must cover the real ADR corpus, scanned only {scanned}"
+    );
+
+    let findings = evaluate_adr_prose_frontmatter_status(&corpus, &policy);
+    let report = ratchet(&findings, &gate_coverage_baseline(&root));
+    assert_ratchet_clean(&report, "adr_prose_status_contradiction");
+}
+
+// --- Check 2/3: capability-registry ⇄ derived gate-policy sync ---------------
+
+fn live_registry_policy_corpus(root: &Path) -> Value {
+    serde_json::json!({
+        "registry": load_json(&root.join("specs/capability-registry.json")),
+        "policies": {
+            "module_membership": {
+                "path": "ci/facade/module-membership/capability-membership-policy.json",
+                "document": load_json(
+                    &root.join("ci/facade/module-membership/capability-membership-policy.json"),
+                ),
+            },
+            "root_hygiene": {
+                "path": "ci/facade/repo-root-hygiene/root-workspace-hygiene-policy.json",
+                "document": load_json(
+                    &root.join("ci/facade/repo-root-hygiene/root-workspace-hygiene-policy.json"),
+                ),
+            },
+            "tier_dependency": {
+                "path": "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json",
+                "document": load_json(&root.join(
+                    "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json",
+                )),
+            },
+        },
+    })
+}
+
+/// Sub-check 2/3 born-advisory over the live tree: every capability root in
+/// specs/capability-registry.json is present in the three derived gate policies
+/// (#1327 defect class (c): a registered capability root missing from a derived
+/// policy). Enforces no-regression vs the frozen baseline.
+#[test]
+fn registry_derived_policy_sync_is_advisory_clean_on_live_tree() {
+    let root = repo_root();
+    let corpus = live_registry_policy_corpus(&root);
+
+    let capabilities = corpus["registry"]["capabilities"]
+        .as_array()
+        .expect("capabilities")
+        .len();
+    assert!(
+        capabilities >= 20,
+        "the registry sync check must cover the real closed capability set, saw only {capabilities}"
+    );
+
+    let findings = evaluate_registry_derived_policy_sync(&corpus);
+    let report = ratchet(&findings, &gate_coverage_baseline(&root));
+    assert_ratchet_clean(&report, "registry_derived_policy_desync");
+}
+
+// --- Check 3/3: generated ADR-index projection parity -----------------------
+
+fn adr_records_from_decisions_json(decisions: &Value) -> Vec<AdrDecisionRecord> {
+    let mut records = Vec::new();
+    for entry in decisions["decisions"].as_array().expect("decisions array") {
+        let str_field = |field: &str| -> String {
+            entry[field]
+                .as_str()
+                .unwrap_or_else(|| panic!("decisions.json entry missing string field {field}"))
+                .to_owned()
+        };
+        let str_list = |field: &str| -> Vec<String> {
+            entry[field]
+                .as_array()
+                .map(|items| {
+                    items
+                        .iter()
+                        .filter_map(Value::as_str)
+                        .map(str::to_owned)
+                        .collect()
+                })
+                .unwrap_or_default()
+        };
+        records.push(AdrDecisionRecord {
+            number: u16::try_from(entry["number"].as_u64().expect("number")).expect("number u16"),
+            id: str_field("adr"),
+            title: str_field("title"),
+            status: str_field("status"),
+            owner: str_field("owner"),
+            date: str_field("date"),
+            path: str_field("path"),
+            supersedes: str_list("supersedes"),
+            superseded_by: str_list("superseded_by"),
+            related: str_list("related"),
+        });
+    }
+    records
+}
+
+/// Sub-check 3/3 born-advisory over the live tree: docs/ADR-INDEX.md and
+/// docs/machine-readable/decisions.json are byte-parity with their producer's
+/// re-render (via the oya-check-adr-index kernel, no shell-out) AND cover exactly
+/// the docs/decisions/*.md corpus (#1327 defect class (d): projections not
+/// regenerated through their producer; implements the adr-index-pipeline.md
+/// promise). Enforces no-regression vs the frozen baseline.
+#[test]
+fn adr_index_projection_parity_is_advisory_clean_on_live_tree() {
+    let root = repo_root();
+    let decisions = load_json(&root.join("docs/machine-readable/decisions.json"));
+    let records = adr_records_from_decisions_json(&decisions);
+    let on_disk_markdown =
+        fs::read_to_string(root.join("docs/ADR-INDEX.md")).expect("read docs/ADR-INDEX.md");
+    let on_disk_json = fs::read_to_string(root.join("docs/machine-readable/decisions.json"))
+        .expect("read docs/machine-readable/decisions.json");
+    let source_adr_ids: BTreeSet<String> = decision_md_file_names(&root)
+        .iter()
+        .filter_map(|name| name.get(0..8).map(str::to_owned))
+        .collect();
+
+    assert!(
+        records.len() > 400 && source_adr_ids.len() > 400,
+        "the ADR-index parity check must cover the real corpus: {} records, {} source ids",
+        records.len(),
+        source_adr_ids.len()
+    );
+
+    let findings = evaluate_adr_index_projection_parity(
+        &records,
+        &on_disk_markdown,
+        &on_disk_json,
+        &source_adr_ids,
+    );
+    let report = ratchet(&findings, &gate_coverage_baseline(&root));
+    assert_ratchet_clean(&report, "adr_index_projection_stale");
+}
+
+/// The frozen baseline must stay well-formed and, at birth, EMPTY — the three
+/// checks are born-advisory-green on the live corpus after #1327. Growth is only
+/// ever a reviewed, justified pre-existing divergence.
+#[test]
+fn gate_coverage_baseline_is_born_empty_and_wellformed() {
+    let root = repo_root();
+    let doc =
+        load_json(&root.join("ci/facade/cross-artifact-agreement/gate-coverage-baseline.json"));
+    assert_eq!(
+        doc["gate_id"].as_str(),
+        Some("cloud-ci-cross-artifact-agreement"),
+        "the baseline must name the gate it ratchets"
+    );
+    let baseline = GateCoverageBaseline::from_value(&doc);
+    assert!(
+        baseline.keys().is_empty(),
+        "the gate-coverage baseline is born empty (born-advisory-green): {:?}",
+        baseline.keys()
+    );
 }
