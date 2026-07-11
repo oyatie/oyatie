@@ -1,7 +1,10 @@
 {
-  "_comment": "The CLOSED capability registry (ADR-0562). The single machine-readable source of truth for the canonical capability set of the capability-first repo organization. Coarse / Conway-aligned: one capability per two-pizza ownership boundary. Seeded from ADR-0536's sixteen substrate domains + the verified current tree (cloud/ + oya/). A crate maps to EXACTLY ONE registered capability via the ADR-0562 deterministic placement rule; new top-level dirs outside this registry plus base/build/governance/kernel/os/app FAIL the membership lint. De-brand naming is realized via the ADR-0532/0533 profile mechanism; the names here are the de-branded canonical slugs (the flip is a later Phase-0 lane). This file is governance data; its eventual home is governance/capability-registry.json after the reorg, held at specs/ until the governance/ top-level dir is created. DATA, not code: canonical-json governed, reachability-registered, council-architecture owned.",
-  "schema_version": "1.0.0",
+  "_comment": "The CLOSED capability registry (ADR-0562). The single machine-readable source of truth for the canonical capability set of the capability-first repo organization. Coarse / Conway-aligned: one capability per two-pizza ownership boundary. Seeded from ADR-0536's sixteen substrate domains + the verified current tree (cloud/ + oya/). A crate maps to EXACTLY ONE registered capability via the ADR-0562 deterministic placement rule; new top-level dirs outside this registry plus base/build/third-party/governance/kernel/os/app FAIL the membership lint. De-brand naming is realized via the ADR-0532/0533 profile mechanism; the names here are the de-branded canonical slugs (the flip is a later Phase-0 lane). This file is governance data; its eventual home is governance/capability-registry.json after the reorg, held at specs/ until the governance/ top-level dir is created. DATA, not code: canonical-json governed, reachability-registered, council-architecture owned.",
+  "schema_version": "1.1.0",
   "doctrine_adr": "ADR-0562",
+  "amendment_adrs": [
+    "ADR-0615"
+  ],
   "closed": true,
   "registry_kind": "capability",
   "placement_authority": "ADR-0562",
@@ -43,7 +46,13 @@
     {
       "dir": "build/",
       "off_runtime_ladder": true,
-      "charter": "Meta, off the runtime ladder: buck2 prelude, toolchains, reindeer, third_party vendoring, CI engines, and the generated sell-catalog (SKU/pricing) VIEW. Owns zero capability crates.",
+      "charter": "Meta, off the runtime ladder: buck2 prelude, toolchains, reindeer, CI engines, and the generated sell-catalog (SKU/pricing) VIEW. Owns zero capability crates.",
+      "owns_crates": false
+    },
+    {
+      "dir": "third-party/",
+      "off_runtime_ladder": true,
+      "charter": "Meta, off the runtime ladder: reindeer-vendored third-party crate sources (the live buck2 cell root third-party//). TOP-LEVEL per the ADR-0615 amendment (founder 2026-07-10), split out of the build/ charter text. Owns zero first-party (capability) crates.",
       "owns_crates": false
     },
     {
@@ -93,10 +102,9 @@
     },
     {
       "name": "iam",
-      "charter": "Identity + authorization: IdP (principals/credentials/passkeys), product-shared identity, consent, tenant-RBAC, and the embedded Cedar PDP + policy store. Cross-cutting authz spectrum RBAC+ABAC+PBAC.",
+      "charter": "Identity: IdP (principals/credentials/passkeys), product-shared identity, consent(-graph), tenant-RBAC (role store/assignments), and workload-identity consumption. Produces the verified principal that the policy capability's PDP evaluates; the PBAC+ReBAC decision plane is the separate policy capability (ADR-0615). RBAC+ABAC identity facet.",
       "seed_domains": [
-        "identity",
-        "authorization"
+        "identity"
       ],
       "absorbs_current_dirs": [
         "iam",
@@ -105,14 +113,23 @@
         "oya/oya-identity",
         "oya/consent-graph",
         "oya/tenant-rbac",
-        "oya/policy",
         "oya/oya-authn-device-firmware"
       ],
-      "dag_nodes": [
-        "identity",
-        "policy-engine"
+      "dag_node": "identity",
+      "boundary_note": "Coarse collapse per founder ruling: identity + oya-identity + consent(-graph) + tenant-rbac as sub-modules of iam (distinct core vs facade faces, not separate capabilities). RESOLVED (ADR-0615, founder 2026-07-10): the Cedar PDP / PBAC+ReBAC decision plane (policy) is EXTRACTED to its own standalone capability (ADR-0562 §7 split — OWNERS boundary axis-policy-engine + clean PDP port seam + this ADR amendment; ADR-0280 §D-13.D marks policy 'Standalone'). oya/policy + the policy-engine dag_node move to the policy capability; the Cedar PDP crates physically under iam/** stay iam-mapped to avoid a membership double-map. iam keeps identity/credentials/consent/tenant-RBAC/workload-identity consumption."
+    },
+    {
+      "name": "policy",
+      "charter": "The Cedar-backed PBAC+ReBAC authorization decision plane (standalone, cell-distributed per ADR-0280 §D-13.D). G face: policy + ReBAC-tuple authoring/signing/distribution. C0 face: per-cell runtime PDP + last-known-good versioned tenant-policy/ReBAC snapshot store. Consumes iam identity (the verified principal); consumed by ~all capabilities' PEPs (gateway edge + every protected service). A stale snapshot denies or routes to the authoritative shard, never silently authorizes (static-stability invariant).",
+      "seed_domains": [
+        "authorization"
       ],
-      "boundary_note": "Coarse collapse per founder ruling: identity + oya-identity + consent(-graph) + tenant-rbac + policy as sub-modules of iam. The cloud IdP substrate and the product-shared identity that CONSUMES it are sub-modules with distinct faces (core vs facade), not separate capabilities."
+      "absorbs_current_dirs": [
+        "policy",
+        "oya/policy"
+      ],
+      "dag_node": "policy-engine",
+      "boundary_note": "EXTRACTED from iam (ADR-0615, founder 2026-07-10) as the 24th capability, reversing ADR-0562 §2's iam-absorbs-policy coarse collapse. ADR-0562 §7 split: OWNERS boundary (axis-policy-engine vs axis-identity) + clean port seam (the PDP consumes the iam principal; ~all consume the PDP) + this ADR amendment. Maps 1:1 to the pre-existing policy-engine DAG node (ADR-0280 §D-13; no DAG edit needed — the node and its identity/tenancy/cell + five consumer edges already exist). Only oya/policy moves; the Cedar PDP crates physically under iam/** stay iam-mapped (double-map avoidance). Precedent: AWS IAM vs Verified Permissions (Cedar, store-per-tenant); Google IAM vs Zanzibar (logically-global, physically-distributed-with-local-replicas). Not a singleton global PDP."
     },
     {
       "name": "tenancy",
@@ -420,17 +437,42 @@
       "dag_node": "flags"
     }
   ],
-  "app_products_note": "Deployable SaaS verticals (crm, hr, healthcare/emr/pharmacy/patient-monitoring/imaging, itsm, incident-management, payroll, treasury, payments, supply-chain-planning, production-planning, plant-maintenance, warehouse, real-estate, global-trade, learning-management, performance-management, quality-management, contract-lifecycle-management, financial-planning, marketing-automation, social, community, connect, office/docs/sheets/slides/notes/sites/whiteboard/calendar/forms/design-collaboration, translate, etc.) are app/<product>/ composition members under the placement rule, NOT capabilities. They wire 2+ capabilities for a tenant. The exact app/ roster is enumerated by the migration lanes, not closed here; this registry closes the CAPABILITY axis only.",
-  "flagged_boundaries_resolved_by": "ADR-0615 (founder 2026-07-10) — the substrate/product split (ADR-0562 §3#5/§6: 2+ capabilities -> app/; single-capability sold surface -> facade). Structural absorbs->app_products relocations execute in each capability's Batch-5 move-plan.",
-  "flagged_boundaries_for_leader": [
-    "RESOLVED (ADR-0615): storage vs data facades — drive/recordings CONFIRMED storage/facade (landed storage-drive/recordings-domain crates per ADR-0562 §10.9; a future consumer product composing them is app/); imaging is app/healthcare (PACS, 0 crates); storage/facade is the S3-analog CAS-as-infra. data product surfaces (analytics-app/warehouse-olap/ontology-scorecards) confirmed data/facade.",
-    "RESOLVED (ADR-0615): console shell vs app surfaces — console is the web-shell substrate (core/ports/facade); ops-dashboard leaves composing 2+ capabilities are app/ops-console/<vertical>; single-capability views stay a facade.",
-    "RESOLVED (ADR-0615): compliance vs audit — kept SEPARATE across the clean port seam (audit = always-on log substrate; compliance = evidence engine consuming it); collapse needs its own amendment.",
-    "RESOLVED (ADR-0615): comms substrate vs product — comms is the multi-channel comms SUBSTRATE (confirmed as-landed: messenger/meet/mail substrate engines + sold API facades); a future end-user product wiring 2+ capabilities is app/. oya/emergency is app/healthcare.",
-    "intelligence/workflow/iac/tenancy dag_node reconciliation (RESOLVED in Phase-0 when specs/substrate-dependency-dag.json was populated to ADR-0280 §D-1 verbatim): tenancy, intelligence, and workflow-engine ARE present in the §D-1 Tier-1 ten (this flag predated reading §D-1, which already carries them) — their dag_node names are confirmed canonical. The fourth, iac (dag_node 'iac'; ADR-0280 Appendix C names it 'cloud-iac', tier_subtype substrate-iac), is a TIER-2 substrate forward-declared per ADR-0280 Appendix C and lands in DAG v1.1.0, NOT the v1.0.0 Tier-1 file. See the substrate-dependency-dag.json _comment for the full reconciliation."
+  "app_products_note": "Deployable SaaS verticals (crm, hr, ONE app/healthcare product [contexts: emr, pharmacy, patient-monitoring, healthcare-integration, emergency, imaging — ADR-0615 §6], the SEPARATE app/health-diagnostics product [clinical lab, ADR-0615 §2 Q8, NOT an app/healthcare context], itsm, incident-management, payroll, treasury, payments, supply-chain-planning, production-planning, plant-maintenance, warehouse, real-estate, global-trade, learning-management, performance-management, quality-management, contract-lifecycle-management, financial-planning, marketing-automation, social [a SEPARATE app product, not a healthcare context], community, connect, office/docs/sheets/slides/notes/sites/whiteboard/calendar/forms/design-collaboration, translate, etc.) are app/<product>/ composition members under the placement rule, NOT capabilities. They wire 2+ capabilities for a tenant. The exact app/ roster is enumerated by the migration lanes, not closed here; this registry closes the CAPABILITY axis only.",
+  "flagged_boundaries_resolved_by": "ADR-0615 (founder 2026-07-10, Accepted) — the substrate/product split (ADR-0562 §3#5/§6: 2+ capabilities -> app/; single-capability sold surface -> facade). ALL flagged boundaries are resolved: (1) storage-vs-data facades — drive/recordings CONFIRMED storage/facade, imaging -> app/healthcare; (2) console shell vs app surfaces — console is the web-shell substrate, ops-dashboard leaves -> app/ops-console/<vertical>; (3) compliance vs audit — kept SEPARATE across the clean port seam; (4) comms substrate vs product — comms is the multi-channel SUBSTRATE, oya/emergency -> app/healthcare; (5) the intelligence/workflow/iac/tenancy dag_node reconciliation — RESOLVED in Phase-0 when specs/substrate-dependency-dag.json was populated to ADR-0280 §D-1 (the DAG _comment carries the full reconciliation). The per-capability boundary_note fields carry the durable rulings; structural absorbs->app_products relocations execute in each capability's Batch-5 move-plan (see pending_relocations).",
+  "flagged_boundaries_for_leader": [],
+  "pending_relocations": [
+    {
+      "_comment": "ADR-0615-ruled absorbs->app_products relocations that await their capability's Batch-5 move-plan. The path is RETAINED in its current substrate absorb (to avoid orphaning against the membership lint) until the atomic move re-homes it. 0-crate scaffolds today.",
+      "from": "storage.absorbs_current_dirs[oya/imaging]",
+      "to": "app/healthcare (imaging/PACS context)",
+      "executes_in": "specs/reorg/storage-move-plan.json (Batch-5)",
+      "ruled_by": "ADR-0615 §2 Q4",
+      "pending_relocation": true
+    },
+    {
+      "from": "observability.absorbs_current_dirs[oya/diagnostics]",
+      "to": "app/health-diagnostics (clinical lab)",
+      "executes_in": "specs/reorg/observability-move-plan.json (Batch-5)",
+      "ruled_by": "ADR-0615 §2 Q8",
+      "pending_relocation": true
+    },
+    {
+      "from": "compliance.absorbs_current_dirs[oya/governance]",
+      "to": "governance/ (authority) + ci/gateway/cell (SLOs) + iac/ decomposition",
+      "executes_in": "specs/reorg/compliance-move-plan.json (Batch-5)",
+      "ruled_by": "ADR-0615 §2 Q13",
+      "pending_relocation": true
+    },
+    {
+      "from": "comms.absorbs_current_dirs[oya/emergency]",
+      "to": "app/healthcare (emergency/ED clinical context)",
+      "executes_in": "specs/reorg/comms-move-plan.json (Batch-5)",
+      "ruled_by": "ADR-0615 §2 Q2",
+      "pending_relocation": true
+    }
   ],
   "membership_lint_coverage": {
-    "_comment": "ADR-0562 §6 membership-lint COVERAGE extension (Phase-0). The capabilities[].absorbs_current_dirs close the cloud/+oya/ SERVICE-dir axis; this block extends the closed registry to map EVERY remaining current crate (the cloud/oya app surfaces with no capability service-dir, plus the libs/ and tools/ crates that dissolve into capability homes + meta dirs per ADR-0562 §1, 'libs/ dissolves into capability homes + base/'). Each entry maps a PRE-MOVE current path → a registered capability slug OR a meta directory (kernel/os/base/governance/build/app). The membership lint reads these PRE-MOVE; POST-move the path itself is the namespace. Genuinely-ambiguous crates that the strangler must home per-crate are NOT force-mapped here — they live in frozen_unmapped_baseline and the gate enforces no-regression against that frozen set. DATA, not code.",
+    "_comment": "ADR-0562 §6 membership-lint COVERAGE extension (Phase-0). The capabilities[].absorbs_current_dirs close the cloud/+oya/ SERVICE-dir axis; this block extends the closed registry to map EVERY remaining current crate (the cloud/oya app surfaces with no capability service-dir, plus the libs/ and tools/ crates that dissolve into capability homes + meta dirs per ADR-0562 §1, 'libs/ dissolves into capability homes + base/'). Each entry maps a PRE-MOVE current path → a registered capability slug OR a meta directory (kernel/os/base/governance/build/third-party/app). The membership lint reads these PRE-MOVE; POST-move the path itself is the namespace. Genuinely-ambiguous crates that the strangler must home per-crate are NOT force-mapped here — they live in frozen_unmapped_baseline and the gate enforces no-regression against that frozen set. DATA, not code.",
     "app_products": {
       "_comment": "The cloud/+oya/ deployable SaaS verticals + the web/application shell that are app/<product>/ composition members (app_products_note made machine-readable). They wire 2+ capabilities for a tenant and define no capability engine. PRE-MOVE these live at oya/<product>/; POST-move at app/<product>/. workplace-integration is the 'etc.' catch-all surface in app_products_note. application is the developer application/web shell (product-developer-application-shell) that compiles INTO the console capability per the console boundary_note → app/.",
       "meta_dir": "app/",
