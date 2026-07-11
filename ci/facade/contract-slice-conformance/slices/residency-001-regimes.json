@@ -1,0 +1,89 @@
+{
+  "slice_id": "residency-001-regimes",
+  "spec_path": "specs/regulatory-regimes/registry.json",
+  "required_fields": [
+    "registry_id",
+    "claim_boundary",
+    "regimes"
+  ],
+  "required_true_fields": [
+    "claim_boundary.registry_only",
+    "claim_boundary.not_legal_advice",
+    "claim_boundary.no_certification_claim",
+    "claim_boundary.no_runtime_policy_claim"
+  ],
+  "enum_constraints": [
+    {
+      "field": "registry_id",
+      "allowed": [
+        "residency-regulatory-regime-registry"
+      ]
+    }
+  ],
+  "array_cardinality": [
+    {
+      "field": "regimes",
+      "min": 14,
+      "unique_by": "regime_id"
+    }
+  ],
+  "forbidden_markers": [
+    "runtime policy is enforced",
+    "regulatory certification obtained"
+  ],
+  "required_object_array_members": [
+    {
+      "field": "regimes",
+      "member_key": "regime_id",
+      "members": [
+        "EU_CSRD",
+        "EU_GDPR",
+        "EU_AI_ACT",
+        "KR_PIPA",
+        "IN_DPDP",
+        "BR_LGPD",
+        "SA_PDPL",
+        "AE_PDPL",
+        "AU_PRIVACY_ACT",
+        "CN_PIPL",
+        "US_HIPAA",
+        "US_CCPA",
+        "JP_APPI",
+        "CA_PIPEDA"
+      ],
+      "exact_members": true,
+      "member_required_fields": [
+        "regime_id",
+        "default_min_tier",
+        "cross_border_transfer_policy"
+      ],
+      "member_enum_constraints": [
+        {
+          "field": "default_min_tier",
+          "allowed": [
+            "multi_region",
+            "single_region",
+            "sovereign_cell",
+            "airgapped_cell"
+          ]
+        },
+        {
+          "field": "cross_border_transfer_policy",
+          "allowed": [
+            "deny_without_explicit_consent",
+            "deny_without_regulator_or_cedar_permit"
+          ]
+        }
+      ],
+      "field_implies_required": [
+        {
+          "if_field": "third_party_attestor_required",
+          "then_required_fields": [
+            "attestor_required_for_tiers",
+            "evidence_requirements"
+          ]
+        }
+      ]
+    }
+  ]
+}

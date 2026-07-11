@@ -77,9 +77,17 @@ fn live_exemplar_slice_is_green_under_the_gate() {
 fn red_mutations_match_the_retired_python_validator_contracts() {
     let root = repo_root();
     let policy = load_policy(&root);
-    let spec_path = policy["slices"][0]["spec_path"]
-        .as_str()
-        .expect("spec_path")
+    // Looked up by slice_id, not array position: the sharded-policy migration
+    // (contract-slice-policy.json is now GENERATED from slices/*.json, merged in
+    // deterministic slice_id order) makes the "slices" array's element order an
+    // aggregation implementation detail, not something a caller may rely on.
+    let spec_path = policy["slices"]
+        .as_array()
+        .expect("slices array")
+        .iter()
+        .find(|slice| slice["slice_id"] == "contract-slice-conformance-exemplar")
+        .and_then(|slice| slice["spec_path"].as_str())
+        .expect("contract-slice-conformance-exemplar slice must be declared")
         .to_owned();
 
     // (1) a dropped required field must surface missing_required_field.
