@@ -643,12 +643,12 @@ pub fn generated_output_diff_policy_violations(
 ) -> (BTreeSet<Finding>, Vec<DiffPolicyViolation>) {
     let mut findings = BTreeSet::new();
     let generated_path_rules = parse_generated_path_rules(manifest, &mut findings);
-    let declared_artifact_paths = parse_declared_artifacts(manifest, &mut findings)
-        .into_iter()
-        .map(|artifact| artifact.path)
+    let declared = parse_declared_artifacts(manifest, &mut findings);
+    let declared_artifact_paths = declared
+        .iter()
+        .map(|artifact| artifact.path.clone())
         .collect::<BTreeSet<_>>();
-    let allowed_generated_edit_paths =
-        diff_policy_allowed_generated_edit_paths(manifest, &mut findings);
+    let allowed_generated_edit_paths = diff_policy_allowed_generated_edit_paths(&declared);
     if !findings.is_empty() {
         return (findings, Vec::new());
     }
@@ -710,13 +710,26 @@ pub fn generated_output_diff_policy_violations(
     (findings, violations)
 }
 
-fn diff_policy_allowed_generated_edit_paths(
-    _manifest: &Value,
-    _findings: &mut BTreeSet<Finding>,
-) -> BTreeSet<String> {
-    // Contributor PRs must not own generated-output bytes. Declared artifacts can be regenerated
-    // or controller-materialized by cloud-ci, but the merge surface is the source tree.
-    BTreeSet::new()
+/// Honor the manifest-declared `merge_policy` (an enum already schema'd + validated by
+/// [`parse_declared_artifacts`] but, until this fix, never consulted by the diff-policy gate).
+/// A `normal-source-merge` artifact is a HAND-CURATED file (e.g. a `hand-curated-ratchet`
+/// baseline like `embedded-asset-hermeticity-baseline.json`) whose manifest entry says a PR
+/// author is EXPECTED to edit it directly, under normal git merge semantics — as opposed to a
+/// machine-only regenerated/materialized face. Every OTHER `merge_policy` (regenerate-only,
+/// controller-owned, append-only, not-tracked-in-git) stays blocked from any edit except a
+/// sanctioned R100/C100 relocation ([`is_sanctioned_relocation`]); this predicate does not
+/// widen those.
+///
+/// This closes the catch-22 the ADR-0563 rename-aware move-relabel engine exposed: a capability
+/// move that RELABELS a hand-curated-ratchet baseline's path key (a legitimate in-place content
+/// edit, not a byte-identical rename) was previously flagged as a bare generated-output edit
+/// regardless of the artifact's own declared policy.
+fn diff_policy_allowed_generated_edit_paths(declared: &[DeclaredArtifact]) -> BTreeSet<String> {
+    declared
+        .iter()
+        .filter(|artifact| artifact.merge_policy == "normal-source-merge")
+        .map(|artifact| artifact.path.clone())
+        .collect()
 }
 
 fn validate_lifecycle_layers(manifest: &Value, findings: &mut BTreeSet<Finding>) {
@@ -1877,6 +1890,43 @@ mod tests {
                 .iter()
                 .any(|violation| violation.path == "ci/facade/frozen.generated.json"),
             "a modify of a declared artifact must remain a violation: {violations:#?}"
+        );
+    }
+
+    #[test]
+    fn diff_policy_allows_a_plain_modify_of_a_normal_source_merge_artifact() {
+        // GREEN: a hand-curated-ratchet artifact declaring `merge_policy: normal-source-merge`
+        // (e.g. embedded-asset-hermeticity-baseline.json's move-triggered path-key relabel) is a
+        // legitimate in-place content edit, not contributor-owned generated-output bytes. This is
+        // the catch-22 fix: the manifest already schemas + validates this enum value; this proves
+        // the diff-policy gate now actually consults it instead of ignoring it.
+        let mut face = artifact("hand-curated-ratchet", "ci/facade/hand-curated-baseline.json");
+        face["merge_policy"] = json!("normal-source-merge");
+        let manifest = manifest(vec![face]);
+        let diff = "M\tci/facade/hand-curated-baseline.json\n";
+        let (findings, violations) = generated_output_diff_policy_violations(&manifest, diff);
+        assert!(findings.is_empty(), "no manifest findings expected: {findings:#?}");
+        assert!(
+            violations.is_empty(),
+            "a plain modify of a normal-source-merge artifact must NOT be a violation: {violations:#?}"
+        );
+    }
+
+    #[test]
+    fn diff_policy_still_rejects_other_merge_policies_on_plain_modify() {
+        // RED preserved: `normal-source-merge` is the ONLY merge_policy this predicate widens.
+        // Every other declared policy (regenerate-only here) keeps blocking a plain modify.
+        let mut face = artifact("regenerate-only", "ci/facade/regenerate-only.generated.json");
+        face["merge_policy"] = json!("never-manual-merge-regenerate-from-source-tree");
+        let manifest = manifest(vec![face]);
+        let diff = "M\tci/facade/regenerate-only.generated.json\n";
+        let (findings, violations) = generated_output_diff_policy_violations(&manifest, diff);
+        assert!(findings.is_empty());
+        assert!(
+            violations
+                .iter()
+                .any(|violation| violation.path == "ci/facade/regenerate-only.generated.json"),
+            "a non-normal-source-merge artifact must remain blocked on plain modify: {violations:#?}"
         );
     }
 

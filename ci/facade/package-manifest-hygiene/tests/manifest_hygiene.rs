@@ -77,11 +77,15 @@ fn manifest_hygiene_is_born_blocking_on_the_live_corpus() {
     let root = repo_root();
     let face = run_producer_face(&root, "manifest-hygiene");
     let rows = face["rows"].as_array().expect("manifest-hygiene face rows");
-    assert!(
-        rows.len() > 500,
-        "the manifest-hygiene face should enumerate the workspace's oya-* crates, got {}",
-        rows.len()
-    );
+    // NOTE: this face is scoped to `oya-*`-prefixed crates only (collect_manifest_hygiene), so its
+    // row count SHRINKS as the ADR-0562/0532/0533 de-brand strangler renames crates away from the
+    // oya- prefix — a hardcoded magnitude floor here (previously `> 500`) is a ticking time bomb
+    // against the repo's own de-brand mandate (it tripped RED at exactly 498 rows after a single
+    // 15-crate sub-batch move landed, though the corpus was never stale or under-enumerated). The
+    // load-bearing "born-blocking" proof is the verdict/findings assertions below, which the
+    // pure evaluator ALREADY fails closed on for an empty `rows` array (see
+    // `evaluate_keyed`'s `<empty-rows>` guard) — so no magnitude assertion is needed here.
+    assert!(!rows.is_empty(), "the manifest-hygiene face must enumerate at least one crate");
 
     let findings = evaluate_keyed(&face);
     eprintln!(
