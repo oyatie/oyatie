@@ -1,0 +1,144 @@
+{
+  "slice_id": "residency-001-attestation",
+  "spec_path": "specs/residency-attestation-schema.json",
+  "required_fields": [
+    "_meta.source_kanban_task",
+    "_meta.binding_adr",
+    "required",
+    "properties.tier.enum",
+    "properties.regulatory_regimes.items.enum",
+    "$defs.residencyFootprint.required",
+    "$defs.signatureBundle.properties.signature_algorithm.const",
+    "claim_boundary"
+  ],
+  "required_true_fields": [
+    "claim_boundary.contract_schema_only",
+    "claim_boundary.no_runtime_attestation_service_claim",
+    "claim_boundary.no_runtime_cell_placement_claim",
+    "claim_boundary.no_cross_border_data_plane_enforcement_claim"
+  ],
+  "enum_constraints": [
+    {
+      "field": "_meta.source_kanban_task",
+      "allowed": [
+        "t_215c8b00"
+      ]
+    },
+    {
+      "field": "_meta.binding_adr",
+      "allowed": [
+        "ADR-0326"
+      ]
+    },
+    {
+      "field": "$defs.signatureBundle.properties.signature_algorithm.const",
+      "allowed": [
+        "ed25519"
+      ]
+    },
+    {
+      "field": "properties.region.pattern",
+      "allowed": [
+        "^[a-z]{2}(_[a-z0-9]+)+$|^global_multi$"
+      ]
+    }
+  ],
+  "required_array_members": [
+    {
+      "field": "required",
+      "members": [
+        "schema_version",
+        "attestation_id",
+        "tenant_id",
+        "tier",
+        "region",
+        "cell_id_or_group",
+        "regulatory_regimes",
+        "compliance_packs",
+        "residency_footprint",
+        "signing_principals",
+        "signatures",
+        "effective_at",
+        "expires_at",
+        "claim_boundary"
+      ]
+    },
+    {
+      "field": "properties.tier.enum",
+      "members": [
+        "multi_region",
+        "single_region",
+        "sovereign_cell",
+        "airgapped_cell"
+      ]
+    },
+    {
+      "field": "properties.regulatory_regimes.items.enum",
+      "members": [
+        "EU_CSRD",
+        "EU_GDPR",
+        "EU_AI_ACT",
+        "KR_PIPA",
+        "IN_DPDP",
+        "BR_LGPD",
+        "SA_PDPL",
+        "AE_PDPL",
+        "AU_PRIVACY_ACT",
+        "CN_PIPL",
+        "US_HIPAA",
+        "US_CCPA",
+        "JP_APPI",
+        "CA_PIPEDA"
+      ]
+    },
+    {
+      "field": "$defs.residencyFootprint.required",
+      "members": [
+        "home_region",
+        "allowed_regions",
+        "allowed_jurisdictions",
+        "cell_scope",
+        "permitted_cell_ids_or_groups",
+        "prohibited_cell_ids_or_groups",
+        "cross_border_transfer_policy",
+        "backup_dr_footprint",
+        "audit_chain_shard_policy",
+        "source_registry_hashes"
+      ]
+    }
+  ],
+  "exact_array_fields": [
+    {
+      "field": "properties.tier.enum",
+      "values": [
+        "multi_region",
+        "single_region",
+        "sovereign_cell",
+        "airgapped_cell"
+      ]
+    }
+  ],
+  "required_markers": [
+    {
+      "field": "allOf",
+      "markers": [
+        "single_region",
+        "sovereign_cell",
+        "airgapped_cell",
+        "offline_channel_protocol"
+      ]
+    }
+  ],
+  "forbidden_markers": [
+    "runtime attestation service is live",
+    "runtime cell placement is enforced",
+    "cross-border data-plane enforcement is live"
+  ],
+  "source_migration_slice": [
+    {
+      "legacy_path": "scripts/tests/residency_contract_slice_check.py",
+      "replacement_target": "//ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
+      "disposition": "retired_primary_path"
+    }
+  ]
+}

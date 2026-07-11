@@ -8,12 +8,28 @@ hardcodes).
 
 The gate is a pure evaluator (`evaluate_configured(policy, corpus)`): it never
 shells out, spawns an interpreter, mutates files, or reads ambient state. All
-per-slice rules are **data** in `contract-slice-policy.json`.
+per-slice rules are **data**, sharded one slice per file under `slices/`.
+
+## `contract-slice-policy.json` is GENERATED — do not hand-edit it
+
+Every slice used to be one entry in the single, hand-edited
+`contract-slice-policy.json`, which meant every new-slice PR touched that one
+shared file — landing any one of them re-dirtied every other open slice PR.
+`slices/<slice_id>.json` (one committed file per slice, human-editable,
+self-contained) is now the source of truth; `contract-slice-policy.json` is
+the GENERATED aggregate the gate reads, merged in deterministic
+(sorted-by-`slice_id`) order. Its committed path is unchanged because
+`specs/root-hub-pointers.json`, a `governed_surfaces` entry in
+`compliance-pack-schema.json`, and several ADRs cite it by exact path — only
+who's allowed to edit it changed.
+
+**Adding a slice = adding ONE new file; no shared-file edit.**
 
 ## Add a contract slice (no new Python, shell, CLI, or crate)
 
 1. Commit your slice's spec JSON (e.g. `specs/<your-slice>.json`).
-2. Add one entry to `contract-slice-policy.json`:
+2. Add `slices/<your-slice>.json`, containing exactly the slice object (the
+   file's own `slice_id` must match its filename's stem):
 
    ```json
    {
@@ -43,7 +59,28 @@ per-slice rules are **data** in `contract-slice-policy.json`.
      Then `git rm` the `.py` and drop its `rust-first-automation-policy.json`
      exception in the same PR.
 
-3. `buck2 test //ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate`.
+3. Regenerate the aggregate:
+   `buck2 run //ci/facade/contract-slice-conformance:oya-cloud-ci-materialize-contract-slice-policy-bin`
+   (or `cargo run --bin oya-cloud-ci-materialize-contract-slice-policy` locally),
+   and commit the resulting `contract-slice-policy.json` diff alongside your new
+   fragment. The materializer refuses to write (nonzero exit, no partial file) on
+   any fragment-loader finding below.
+4. `buck2 test //ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate`
+   and `buck2 test //ci/facade/contract-slice-conformance:ci-contract-slice-conformance-fragments-gate`
+   (the latter proves the committed aggregate is still byte-identical to what the
+   fragments produce).
+
+### Fragment-loader findings (fail closed, before any slice rule ever runs)
+
+| Code | Meaning |
+|------|---------|
+| `contract_slice_fragment_parse_error` | a `slices/*.json` file is not valid JSON, or has no string `slice_id` field |
+| `contract_slice_fragment_duplicate_slice_id` | two fragments (any filenames) declare the same `slice_id`; both are excluded from the aggregate — there is no principled way to pick a winner |
+
+A per-slice key typo (e.g. `required_field` instead of `required_fields`) inside
+a fragment is **not** a load-time finding — it is caught the same way it always
+was, by the existing `contract_slice_unknown_policy_key` check once the merged
+policy reaches `evaluate_configured`.
 
 ## What the gate enforces per slice
 
