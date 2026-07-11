@@ -1,7 +1,7 @@
 ---
 id: ADR-0615
 title: "Capability boundary rulings — resolving ADR-0562's flagged_boundaries (the substrate/product split + the 14 app-vs-capability dispositions)"
-status: Proposed
+status: Accepted
 planning_impact: true
 deciders: founder
 date: 2026-07-10
@@ -22,14 +22,14 @@ milestone: W0
 
 ## Status
 
-**Proposed — 2026-07-10** (ratified under the founder's 2026-07-08 autonomous-drive delegation and
+**Accepted — 2026-07-10** (ratified under the founder's 2026-07-08 autonomous-drive delegation and
 an explicit 2026-07-10 ruling on the fourteen boundary questions, with "the long-term-correct,
 maintainable, hyperscaler pattern" as the bar; door: one-way — the same one-way class as ADR-0562,
 because a surface ruled `app/` vs a capability `facade/` is a placement commitment the membership
-lint then enforces). Lifecycle status stays **Proposed** until the formal Accept rides
-cross-artifact propagation (the ADR-Accepted-must-propagate gate): this ADR records the founder's
-decisions and amends ADR-0562's `flagged_boundaries_for_leader` from open questions to resolved
-dispositions; it moves no crates.
+lint then enforces). This ADR is **Accepted in the same atomic batch as ADR-0562's Accept**, riding
+cross-artifact propagation in that one commit (bound in the masterplan `planning_authority.bound_adrs`
++ the sequencing provenance): it records the founder's decisions and amends ADR-0562's
+`flagged_boundaries_for_leader` from open questions to resolved dispositions; it moves no crates.
 
 ## Context
 
@@ -43,11 +43,9 @@ coarse-absorbed into a substrate capability **by name** (e.g. `oya/diagnostics` 
 `observability`, `oya/imaging` under `storage`) pending confirmation that the name matched the
 system's actual nature.
 
-The founder ruled all fourteen on 2026-07-10. This ADR is the durable **record of those decisions**;
-once it lands, the Batch-5 reorg move-plans implement the dispositions it records — while its
-lifecycle status stays **Proposed** pending formal Accept propagation (see Status, above). The
-decisions are the founder's ruling; the ADR's Accept is the propagation formality, not a precondition
-for the record to be authoritative about what was decided.
+The founder ruled all fourteen on 2026-07-10. This ADR is the durable **record of those decisions**,
+**Accepted** in the same atomic batch as ADR-0562 (see Status, above); once it lands, the Batch-5
+reorg move-plans implement the dispositions it records.
 
 ## Decision
 
@@ -88,10 +86,11 @@ confirmed as the governing rule.**
 
 **Net effect:** the only real crate move is dev-cli → `ci` (Q10). The drive/recordings landed
 `storage/facade` domain crates are **confirmed in place** (Q3) — a future consumer product composing
-them → `app/`, but the domain crates stay storage. The three healthcare surfaces (emergency,
-imaging, diagnostics) hold **zero crates today** — parking them to `app/healthcare` removes their
-name-driven substrate absorb and *reduces* registry drift, not a code move. Twelve of fourteen need
-zero or scaffold-only relocation.
+them → `app/`, but the domain crates stay storage. The two clinical surfaces routed to
+`app/healthcare` (emergency, imaging) plus the separate clinical-lab surface routed to
+`app/health-diagnostics` (diagnostics, §6/Q8 — NOT an `app/healthcare` context) hold **zero crates
+today** — parking them removes their name-driven substrate absorb and *reduces* registry drift, not
+a code move. Twelve of fourteen need zero or scaffold-only relocation.
 
 ### §3 Registry corrections + execution deferral
 
@@ -116,16 +115,77 @@ masterplan — and the governance-engine crates already globbed to it (`libs/oya
 `compliance` sub-tree. `compliance` is the regulatory-evidence runtime capability. The two never
 merge; the `oya/governance` directory's non-crate residue decomposes to its true homes per §2 Q13.
 
+### §5 The policy extraction — `iam` → `policy`, the 24th capability (registry v1.1.0)
+
+**Ruling (founder, 2026-07-10).** The Cedar-backed **PBAC+ReBAC decision plane** is EXTRACTED from
+the coarse `iam` collapse into its own standalone capability **`policy`**, reversing ADR-0562 §2's
+`iam/`-absorbs-`policy` grouping. This is an ADR-0562 **§7 split** (coarse-splits-only-by-ADR-
+amendment) ridden by this ADR amendment, and it satisfies §7's twin preconditions:
+
+- **OWNERS boundary** — the Cedar PDP / policy plane is `axis-policy-engine`'s, distinct from
+  `axis-identity`'s IdP.
+- **Clean port seam** — `policy` **consumes** `iam` identity (the verified principal / token) and is
+  **consumed by ~all** capabilities' PEPs (the gateway edge + every protected service) for authz
+  decisions; the seam is the PDP request/response boundary, not a shared module.
+
+**Face model (ADR-0280 §D-13.D, which already marks `policy` "Standalone ✓"):** `policy` splits into
+a **G face** — authoring / signing / distribution of policy + ReBAC tuples — and a **C0 face** — the
+per-cell runtime PDP + last-known-good versioned tenant-policy / ReBAC snapshot store. It is NOT a
+singleton global PDP; a stale snapshot **denies or routes to the authoritative shard, never silently
+authorizes** (the static-stability invariant, §D-13.E).
+
+**iam keeps** identity / credentials / passkeys, product-shared identity, consent(-graph),
+tenant-RBAC (the role store/assignments), and workload-identity consumption — and produces the
+principal that `policy/` evaluates. **`policy` gets** `oya/policy` (the sole moved path; the Cedar
+PDP crates physically under `iam/**` stay iam-mapped to avoid a double-map) and the pre-existing
+**`policy-engine` DAG node** (ADR-0280 §D-13; the node already exists with its `→identity`,
+`→tenancy`, `→cell` edges and its five `*→policy-engine` consumer edges — no DAG edit needed). After
+extraction the registry holds **24 capabilities mapping 1:1 to the 24 DAG nodes** (iam previously
+owned two nodes, `identity` + `policy-engine`).
+
+**Precedent.** The hyperscalers keep identity and the authorization decision plane as **distinct
+planes**: AWS **IAM ↔ Verified Permissions** (Cedar, store-per-tenant); Google **Cloud IAM ↔
+Zanzibar** (logically-global, physically-distributed-with-local-replicas). Homing the PDP inside the
+IdP is the coarse convenience the closed registry now corrects.
+
+The registry records this as: a new `policy` capability entry (`dag_node: "policy-engine"`,
+`absorbs_current_dirs: ["oya/policy"]`), `oya/policy` + `policy-engine` removed from `iam`, iam's
+`dag_nodes` reduced to the single `dag_node: "identity"`, iam's charter/boundary_note de-policied,
+and `schema_version` bumped to `1.1.0`.
+
+### §6 The `app/healthcare` product shape (filling the silence)
+
+ADR-0562 named healthcare surfaces as `app/` verticals but did not fix the product boundary; the
+founder ruled it 2026-07-10:
+
+- **ONE `app/healthcare` product**, with bounded contexts **emr, pharmacy, patient-monitoring,
+  healthcare-integration** (HL7/FHIR ingest), plus the two clinical surfaces ruled here — **emergency**
+  (Q2, ED clinical: door-to-balloon/needle, MCI, trauma-alert) and **imaging** (Q4, PACS). It composes
+  2+ capabilities (comms + storage + compliance + iam + workflow) for a tenant, so it is `app/`, not a
+  substrate facade.
+- **`app/health-diagnostics` is a SEPARATE product** (Q8: `oya/diagnostics`, clinical lab —
+  HL7v2/pathology, HIPAA). It is deliberately NOT an `app/healthcare` context: the registry auto-
+  absorbed it under `observability` by name-collision ("diagnostics" ≠ system diagnostics), and the
+  clinical-lab domain is a distinct product bounded context.
+- **`social` is a SEPARATE `app/` product**, not a healthcare context (it appears independently in
+  the `app_products` roster).
+
+Both healthcare-adjacent destinations (`app/healthcare` and the separate `app/health-diagnostics`)
+hold **zero crates today** — the ruling fixes the destination and removes the name-driven substrate
+absorbs; the crates land when the products are actually built.
+
 ## Consequences
 
 - The capability axis of the closed registry is now fully ruled: no `boundary_note` remains in the
   "FLAGGED for leader … pending OWNERS" state.
 - Batch-5 reorg move-plans can be authored against a decided target: each flagged capability's move
   knows whether a surface stays `facade/` or relocates to `app/`.
-- `app/healthcare` (emergency, imaging, diagnostics) and the `app/` consumer surfaces (drive,
-  recordings) are decided destinations; they are created when those products are actually built —
-  today they are 0-crate scaffolds, so the ruling removes phantom substrate absorbs rather than
-  moving code.
+- `app/healthcare` (emr, pharmacy, patient-monitoring, healthcare-integration, emergency, imaging),
+  the SEPARATE `app/health-diagnostics` product (Q8, clinical lab — NOT an `app/healthcare` context),
+  and the `app/` consumer surfaces (drive, recordings) are decided destinations; they are created
+  when those products are actually built — today they are 0-crate scaffolds, so the ruling removes
+  phantom substrate absorbs rather than moving code. (§6 fixes the `app/healthcare` product shape;
+  diagnostics is `app/health-diagnostics` per Q8, not `app/healthcare`.)
 - The substrate/product split is now a citable rule (ADR-0615 §1) for every future placement
   question, backing the ADR-0562 §6 membership lint.
 

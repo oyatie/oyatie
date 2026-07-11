@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 414
-- **Numbering:** ADR-0001..ADR-0604 (non-contiguous; gaps: 0012, 0033, 0037, 0041, 0050, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0247, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291, 0322..0323, 0327, 0342, 0345, 0385..0386, 0395..0396, 0398..0475, 0477, 0483..0505, 0574..0579, 0583..0585, 0594, 0601..0602)
-- **Next ADR number:** 0605
-- **Status counts:** Accepted 170, Accepted (amendment) 2, Amended 1, Proposed 138, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 34, accepted 34, deprecated 1, proposed 31, superseded 1
+- **Total ADRs:** 428
+- **Numbering:** ADR-0001..ADR-0618 (non-contiguous; gaps: 0012, 0033, 0037, 0041, 0050, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0247, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291, 0322..0323, 0327, 0342, 0345, 0385..0386, 0395..0396, 0398..0475, 0477, 0483..0505, 0574..0579, 0583..0585, 0594, 0601..0602)
+- **Next ADR number:** 0619
+- **Status counts:** Accepted 172, Accepted (amendment) 2, Amended 1, Proposed 148, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 36, accepted 34, deprecated 1, proposed 31, superseded 1
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -392,7 +392,7 @@ doc_status: published
 | ADR-0547 | Proposed | Kernel-purity dependency gate | council-architecture | [`ADR-0547-kernel-purity-dependency-gate.md`](decisions/ADR-0547-kernel-purity-dependency-gate.md) |
 | ADR-0548 | Proposed | Pipeline as product — neutral ratchet engine + policy packs on the paved road | council-architecture | [`ADR-0548-pipeline-as-product-paved-road.md`](decisions/ADR-0548-pipeline-as-product-paved-road.md) |
 | ADR-0549 | Proposed | oya-buck-syntax-kernel — one sound BUCK/Starlark parsing oracle + fixer self-validation harness | council-architecture | [`ADR-0549-buck-syntax-kernel.md`](decisions/ADR-0549-buck-syntax-kernel.md) |
-| ADR-0550 | Proposed | Repository layout doctrine — hyperscaler monorepo + clean-architecture seams | council-architecture | [`ADR-0550-repository-layout-doctrine.md`](decisions/ADR-0550-repository-layout-doctrine.md) |
+| ADR-0550 | Superseded | Repository layout doctrine — hyperscaler monorepo + clean-architecture seams | council-architecture | [`ADR-0550-repository-layout-doctrine.md`](decisions/ADR-0550-repository-layout-doctrine.md) |
 | ADR-0551 | Proposed | Merge-base frozen baseline ratchet | council-architecture | [`ADR-0551-merge-base-frozen-baseline-ratchet.md`](decisions/ADR-0551-merge-base-frozen-baseline-ratchet.md) |
 | ADR-0552 | Proposed | Stable/volatile SCM-facts split — history-derived facts leave the merged surface | council-architecture | [`ADR-0552-stable-volatile-scm-facts-split.md`](decisions/ADR-0552-stable-volatile-scm-facts-split.md) |
 | ADR-0553 | Proposed | Commission the oya-identity runnable workload-identity service (G005 slice 1) | council-architecture | [`ADR-0553-oya-identity-workload-service-commissioning.md`](decisions/ADR-0553-oya-identity-workload-service-commissioning.md) |
@@ -404,7 +404,7 @@ doc_status: published
 | ADR-0559 | Proposed | Commission the cloud-iam Cedar PDP service (G004 slice 1) | council-architecture | [`ADR-0559-cloud-iam-cedar-pdp-service-commissioning.md`](decisions/ADR-0559-cloud-iam-cedar-pdp-service-commissioning.md) |
 | ADR-0560 | Proposed | NativeLink CAS slice 1 — deployable cache-only substrate + opt-in buck2 wiring + cold integrity-canary | council-architecture | [`ADR-0560-nativelink-cas-slice1-deployable-cache-cold-canary.md`](decisions/ADR-0560-nativelink-cas-slice1-deployable-cache-cold-canary.md) |
 | ADR-0561 | Proposed | Commission the workload-identity X.509-SVID issuance + PDP caller-tenant-binding substrate (G002 slice 1; live mTLS = slice-1b) | council-architecture | [`ADR-0561-commission-workload-x509-svid-issuance-and-pdp-mtls-caller-auth.md`](decisions/ADR-0561-commission-workload-x509-svid-issuance-and-pdp-mtls-caller-auth.md) |
-| ADR-0562 | Proposed | Capability-first repo organization + the closed capability registry | founder | [`ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md`](decisions/ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md) |
+| ADR-0562 | Accepted | Capability-first repo organization + the closed capability registry | founder | [`ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md`](decisions/ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md) |
 | ADR-0563 | Proposed | Rename-aware path-keyed CI baseline relabel at the scm-facts emitter | cloud-ci-platform | [`ADR-0563-rename-aware-path-keyed-ci-baseline-relabel.md`](decisions/ADR-0563-rename-aware-path-keyed-ci-baseline-relabel.md) |
 | ADR-0564 | Proposed | Commission the tenancy tenant-lifecycle registration service (G006 slice 1) | axis-cloud-platform | [`ADR-0564-tenancy-tenant-lifecycle-service-commissioning.md`](decisions/ADR-0564-tenancy-tenant-lifecycle-service-commissioning.md) |
 | ADR-0565 | Proposed | Zero GraphQL in the owned API surface | council-architecture | [`ADR-0565-zero-graphql-in-the-owned-api-surface.md`](decisions/ADR-0565-zero-graphql-in-the-owned-api-surface.md) |
@@ -428,18 +428,32 @@ doc_status: published
 | ADR-0592 | Proposed | Tenant-scoped, body-fingerprinted accounting idempotency keys | axis-billing-accounting | [`ADR-0592-tenant-scoped-body-fingerprinted-accounting-idempotency-key.md`](decisions/ADR-0592-tenant-scoped-body-fingerprinted-accounting-idempotency-key.md) |
 | ADR-0593 | Proposed | Fail-closed authz for the Accounting + Payroll money-mutation control planes (AUTH-005 / Wave-2b money-CRIT remediation) | council-architecture | [`ADR-0593-fail-closed-authz-for-accounting-payroll-money-mutation-control-plane.md`](decisions/ADR-0593-fail-closed-authz-for-accounting-payroll-money-mutation-control-plane.md) |
 | ADR-0595 | Proposed | De-commit the pure-derivation cloud-ci accounting faces | council-architecture | [`ADR-0595-de-commit-pure-derivation-cloud-ci-faces.md`](decisions/ADR-0595-de-commit-pure-derivation-cloud-ci-faces.md) |
-| ADR-0596 | Proposed | Forbid de-committing firewall frozen-reference artifacts | council-architecture | [`ADR-0596-forbid-de-committing-firewall-frozen-reference-artifacts.md`](decisions/ADR-0596-forbid-de-committing-firewall-frozen-reference-artifacts.md) |
+| ADR-0596 | Superseded | Forbid de-committing firewall frozen-reference artifacts | council-architecture | [`ADR-0596-forbid-de-committing-firewall-frozen-reference-artifacts.md`](decisions/ADR-0596-forbid-de-committing-firewall-frozen-reference-artifacts.md) |
 | ADR-0597 | Proposed | oya-ci-materializer-kernel (E1) — universal generated-artifact lifecycle, pure planner kernel | council-architecture | [`ADR-0597-oya-ci-materializer-kernel-universal-generated-artifact-lifecycle-e1.md`](decisions/ADR-0597-oya-ci-materializer-kernel-universal-generated-artifact-lifecycle-e1.md) |
 | ADR-0598 | Proposed | Commission the comms meet capability-first core slice | axis-cloud-platform | [`ADR-0598-commission-comms-meet-capability-first-core-slice.md`](decisions/ADR-0598-commission-comms-meet-capability-first-core-slice.md) |
 | ADR-0599 | Proposed | Commission the comms calendar capability-first slice | axis-cloud-platform | [`ADR-0599-commission-comms-calendar-capability-first-core-slice.md`](decisions/ADR-0599-commission-comms-calendar-capability-first-core-slice.md) |
 | ADR-0600 | Proposed | Root-workspace-hygiene allowlist gate | council-architecture | [`ADR-0600-root-workspace-hygiene-allowlist-gate.md`](decisions/ADR-0600-root-workspace-hygiene-allowlist-gate.md) |
 | ADR-0603 | Proposed | Fail-closed authz for the CRM revenue control plane (AUTH-005 remediation) | council-architecture | [`ADR-0603-fail-closed-authz-for-crm-revenue-control-plane.md`](decisions/ADR-0603-fail-closed-authz-for-crm-revenue-control-plane.md) |
 | ADR-0604 | Proposed | De-commit the scm-facts boundary snapshot | council-architecture | [`ADR-0604-de-commit-scm-facts-boundary-snapshot.md`](decisions/ADR-0604-de-commit-scm-facts-boundary-snapshot.md) |
+| ADR-0605 | Proposed | Supply-chain audit gate (owned RustSec advisory scan over a vendored mirror) | council-architecture | [`ADR-0605-supply-chain-audit-gate.md`](decisions/ADR-0605-supply-chain-audit-gate.md) |
+| ADR-0606 | Proposed | Operator secret-bootstrap RBAC gate (least-privilege secrets + declarative join-token provisioning) | council-architecture | [`ADR-0606-operator-secret-bootstrap-rbac-gate.md`](decisions/ADR-0606-operator-secret-bootstrap-rbac-gate.md) |
+| ADR-0607 | Proposed | Fail-closed Cedar authz on the managed-K8s control-plane facades | council-architecture | [`ADR-0607-k8s-control-plane-fail-closed-cedar-authz.md`](decisions/ADR-0607-k8s-control-plane-fail-closed-cedar-authz.md) |
+| ADR-0608 | Proposed | Cedar deploy-parity gate (deployed ConfigMap ⊆ authored policy; no action-agnostic blanket permit) | council-architecture | [`ADR-0608-cedar-deploy-parity-gate.md`](decisions/ADR-0608-cedar-deploy-parity-gate.md) |
+| ADR-0609 | Proposed | Masterplan v2 single plan authority + fabric drive-loop increment (four plan gates wired into oya-ci-required) | council-architecture | [`ADR-0609-masterplan-v2-single-plan-authority-fabric-drive-loop-increment.md`](decisions/ADR-0609-masterplan-v2-single-plan-authority-fabric-drive-loop-increment.md) |
+| ADR-0610 | Proposed | Policy-IR benchmark stage-0 — pre-registered frozen rubric + fixture suite as governed data | council-architecture | [`ADR-0610-policy-ir-benchmark-stage0-preregistered-rubric-and-fixture-suite.md`](decisions/ADR-0610-policy-ir-benchmark-stage0-preregistered-rubric-and-fixture-suite.md) |
+| ADR-0611 | Proposed | Land the Asterinas real-boot foundation harness under kernel/ (kuberos Wave-1 shard-1) | council-architecture | [`ADR-0611-land-asterinas-real-boot-foundation-kernel.md`](decisions/ADR-0611-land-asterinas-real-boot-foundation-kernel.md) |
+| ADR-0612 | Proposed | buck2 Remote-Execution phase — deploy the NativeLink scheduler + worker tiers, flip `remote_enabled=true` | council-architecture | [`ADR-0612-buck2-remote-execution-phase-nativelink-scheduler-worker.md`](decisions/ADR-0612-buck2-remote-execution-phase-nativelink-scheduler-worker.md) |
+| ADR-0613 | Proposed | De-commit the remaining controller-materialized projection faces | council-architecture | [`ADR-0613-de-commit-remaining-controller-materialized-projection-faces.md`](decisions/ADR-0613-de-commit-remaining-controller-materialized-projection-faces.md) |
+| ADR-0614 | Proposed | De-commit the reorg move-manifest bijection | cloud-ci-platform | [`ADR-0614-de-commit-reorg-move-manifest-bijection.md`](decisions/ADR-0614-de-commit-reorg-move-manifest-bijection.md) |
+| ADR-0615 | Accepted | Capability boundary rulings — resolving ADR-0562's flagged_boundaries | council-architecture | [`ADR-0615-capability-boundary-rulings-resolving-adr-0562-flagged-boundaries.md`](decisions/ADR-0615-capability-boundary-rulings-resolving-adr-0562-flagged-boundaries.md) |
+| ADR-0616 | Proposed | De-commit the firewall frozen-reference baseline | council-architecture | [`ADR-0616-de-commit-firewall-frozen-reference-baseline.md`](decisions/ADR-0616-de-commit-firewall-frozen-reference-baseline.md) |
+| ADR-0617 | Proposed | The Living Monorepo Governance Graph | council-architecture | [`ADR-0617-living-monorepo-governance-graph.md`](decisions/ADR-0617-living-monorepo-governance-graph.md) |
+| ADR-0618 | Proposed | Contract-slice conformance gate scope boundary | council-architecture | [`ADR-0618-contract-slice-gate-scope-boundary.md`](decisions/ADR-0618-contract-slice-gate-scope-boundary.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0605), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0619), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -483,6 +497,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 414 ADR files (sorted ascending)
+- `decisions/` directory listing — 428 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks
