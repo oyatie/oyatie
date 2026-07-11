@@ -653,7 +653,7 @@ pub struct GateInputs<'a> {
     /// The ADR-0017 cargo-prefix gate input: `{"rows":[{"member_path", "package_name"}]}` — the
     /// first-party `oya-*` workspace members the binary enumerates from the tracked Cargo.toml
     /// manifests (member-path = the dir holding the manifest; package_name = its `[package].name`).
-    /// The gate's `evaluate_keyed` reuses `oya_intelligence_cargo_prefix_domain::validate_cargo_prefix`
+    /// The gate's `evaluate_keyed` reuses `intelligence_cargo_prefix_domain::validate_cargo_prefix`
     /// per crate (surface-all). Empty in unit tests.
     pub cargo_prefix: &'a Value,
     /// The SLO coverage gate input: `{"rows":[{"crate_id", "slo"}]}`. The producer expands the

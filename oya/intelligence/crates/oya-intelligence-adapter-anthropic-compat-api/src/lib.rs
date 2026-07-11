@@ -18,7 +18,7 @@
 
 use oya_http_router_kernel::{HttpMethod, Router, RouterError};
 use oya_http_sse_kernel::SseEvent;
-use oya_intelligence_account_kernel::ProviderFamily;
+use intelligence_account_kernel::ProviderFamily;
 use oya_intelligence_provider_pool_kernel::{
     AccountHealthMap, PoolError, PoolRoutingDecision, ProviderAccountId, ProviderAccountPool,
     RequestMetadata, UnixMillis, UsageSnapshotMap, pick_account,

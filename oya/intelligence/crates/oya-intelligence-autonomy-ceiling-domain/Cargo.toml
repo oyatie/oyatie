@@ -12,7 +12,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-intelligence-autonomy-ceiling-kernel = { path = "../oya-intelligence-autonomy-ceiling-kernel" }
+intelligence-autonomy-ceiling-kernel = { path = "../../../../intelligence/core/autonomy-ceiling-kernel" }
 
 [lints]
 workspace = true

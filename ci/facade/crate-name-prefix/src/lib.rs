@@ -5,7 +5,7 @@
 //! prefix, and the two must agree.
 //!
 //! ## Reuse, not re-derive (CLI-GOVERNANCE-TO-FIREWALL-MIGRATION-PLAN Principle 1, shape b)
-//! The policy lives in the PURE, I/O-free `oya_intelligence_cargo_prefix_domain::validate_cargo_prefix`
+//! The policy lives in the PURE, I/O-free `intelligence_cargo_prefix_domain::validate_cargo_prefix`
 //! — the SAME predicate the `oya gate validate cargo-prefix` dev-cli call uses (the firewall gate
 //! and the dev-cli call coexist for now). The producer
 //! (`oya-cloud-ci-accounting-registry-app`) does the I/O — it enumerates every tracked first-party
@@ -32,7 +32,7 @@
 use std::collections::BTreeSet;
 
 use oya_ci_config_kernel::NamingConfig;
-use oya_intelligence_cargo_prefix_domain::{
+use intelligence_cargo_prefix_domain::{
     CargoPrefixError, CargoPrefixMember, validate_cargo_prefix,
 };
 use serde_json::Value;
@@ -140,7 +140,7 @@ fn is_advisory_row(row: &Value) -> bool {
 /// prefix is the PROFILE-RESOLVED config loaded from `oya-ci.toml`, NOT a hardcoded literal).
 /// Takes `{"rows": [{"member_path": "...", "package_name": "...", "cargo_prefix_scope": "..."},
 /// ...]}` and returns one `Finding` per blocking-scoped cargo-prefix violation. Reuses
-/// `oya_intelligence_cargo_prefix_domain::validate_cargo_prefix` per crate (surface-all).
+/// `intelligence_cargo_prefix_domain::validate_cargo_prefix` per crate (surface-all).
 ///
 /// Under `profile='neutral'` the resolved `required_prefix` is empty, so no
 /// `cargo_prefix_violation` is raised — the de-brand. Under `profile='oyatie'`, rows explicitly

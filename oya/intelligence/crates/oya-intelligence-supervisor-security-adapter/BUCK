@@ -7,8 +7,8 @@ rust_library(
     deps = [
         "//oya/intelligence/crates/oya-intelligence-account-domain:oya-intelligence-account-domain",
         "//oya/intelligence/crates/oya-intelligence-autonomy-ceiling-domain:oya-intelligence-autonomy-ceiling-domain",
-        "//oya/intelligence/crates/oya-intelligence-autonomy-ceiling-kernel:oya-intelligence-autonomy-ceiling-kernel",
-        "//oya/intelligence/crates/oya-intelligence-capability-registry-kernel:oya-intelligence-capability-registry-kernel",
+        "//intelligence/core/autonomy-ceiling-kernel:intelligence-autonomy-ceiling-kernel",
+        "//intelligence/core/capability-registry-kernel:intelligence-capability-registry-kernel",
         "//oya/intelligence/crates/oya-intelligence-supervisor-kernel:oya-intelligence-supervisor-kernel",
     ],
 )

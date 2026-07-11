@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use oya_intelligence_account_domain::ProviderAccount;
-use oya_intelligence_account_kernel::ProviderFamily;
+use intelligence_account_kernel::ProviderFamily;
 use oya_intelligence_settings_template_kernel::{
     DriftEntry, DriftReport, DriftState, RenderManifest, RenderedFile, SettingsRenderer,
     SettingsRendererError, SettingsTemplate,

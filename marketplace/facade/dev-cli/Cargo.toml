@@ -23,13 +23,13 @@ oya-check-cedar-fragment-coverage = { path = "../../../libs/oya-check-cedar-frag
 oya-check-dependency-seam = { path = "../../../libs/oya-check-dependency-seam" }
 oya-check-openapi-rest-route-parity = { path = "../../../libs/oya-check-openapi-rest-route-parity" }
 oya-intelligence-architecture-map-app = { path = "../../../oya/intelligence/crates/oya-intelligence-architecture-map-app" }
-oya-intelligence-api-semver-domain = { path = "../../../oya/intelligence/crates/oya-intelligence-api-semver-domain" }
+intelligence-api-semver-domain = { path = "../../../intelligence/core/api-semver-domain" }
 oya-check-authority-cohesion = { path = "../../../libs/oya-check-authority-cohesion" }
 oya-check-brand-residue = { path = "../../../libs/oya-check-brand-residue" }
 oya-check-no-grouping = { path = "../../../libs/oya-check-no-grouping" }
 oya-intelligence-bypass-domain = { path = "../../../oya/intelligence/crates/oya-intelligence-bypass-domain" }
-oya-intelligence-cargo-prefix-domain = { path = "../../../oya/intelligence/crates/oya-intelligence-cargo-prefix-domain" }
-oya-intelligence-catalog-domain = { path = "../../../oya/intelligence/crates/oya-intelligence-catalog-domain" }
+intelligence-cargo-prefix-domain = { path = "../../../intelligence/core/cargo-prefix-domain" }
+intelligence-catalog-domain = { path = "../../../intelligence/core/catalog-domain" }
 oya-governance-gate-catalog-domain = { path = "../../../libs/oya-governance-gate-catalog-domain" }
 oya-check-claim-ceiling = { path = "../../../libs/oya-check-claim-ceiling" }
 oya-check-codeowners-mirror = { path = "../../../libs/oya-check-codeowners-mirror" }
@@ -61,8 +61,8 @@ oya-check-a11y-discipline = { path = "../../../libs/oya-check-a11y-discipline" }
 oya-check-i18n-coverage = { path = "../../../libs/oya-check-i18n-coverage" }
 oya-check-compliance-evidence-coverage = { path = "../../../libs/oya-check-compliance-evidence-coverage" }
 oya-check-realtime-transport-tier = { path = "../../../libs/oya-check-realtime-transport-tier" }
-oya-intelligence-mdbook-domain = { path = "../../../oya/intelligence/crates/oya-intelligence-mdbook-domain" }
-oya-intelligence-openapi-domain = { path = "../../../oya/intelligence/crates/oya-intelligence-openapi-domain" }
+intelligence-mdbook-domain = { path = "../../../intelligence/core/mdbook-domain" }
+intelligence-openapi-domain = { path = "../../../intelligence/core/openapi-domain" }
 oya-check-mobile-native = { path = "../../../libs/oya-check-mobile-native" }
 oya-check-placeholder-debt = { path = "../../../libs/oya-check-placeholder-debt" }
 oya-check-pre-push = { path = "../../../libs/oya-check-pre-push" }
@@ -98,7 +98,7 @@ oya-check-image-signing-discipline = { path = "../../../libs/oya-check-image-sig
 oya-check-layered-architecture-discipline = { path = "../../../libs/oya-check-layered-architecture-discipline" }
 oya-check-client-stack-discipline = { path = "../../../libs/oya-check-client-stack-discipline" }
 oya-intelligence-step-file-adapter = { path = "../../../oya/intelligence/crates/oya-intelligence-step-file-adapter" }
-oya-intelligence-step-domain = { path = "../../../oya/intelligence/crates/oya-intelligence-step-domain" }
+intelligence-step-domain = { path = "../../../intelligence/core/step-domain" }
 audit-chain-domain = { path = "../../../audit/core/chain-domain" }
 audit-file-adapter = { path = "../../../audit/adapters/file" }
 oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }

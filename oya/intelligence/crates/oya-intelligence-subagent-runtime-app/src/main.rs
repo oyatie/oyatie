@@ -47,7 +47,7 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use oya_intelligence_account_kernel::SecretReference;
+use intelligence_account_kernel::SecretReference;
 use oya_intelligence_subagent_runtime_app::{
     FacetFindingJson, FacetPromptTemplate, MockSubagentPort, SubagentPort, SubagentRequest,
     fanout_panel_v23,

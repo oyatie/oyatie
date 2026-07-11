@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
-        "//oya/intelligence/crates/oya-intelligence-capability-domain:oya-intelligence-capability-domain",
+        "//intelligence/core/capability-domain:intelligence-capability-domain",
     ],
 )
 
@@ -19,6 +19,6 @@ rust_test(
     deps = [
         ":oya-intelligence-bypass-domain",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
-        "//oya/intelligence/crates/oya-intelligence-capability-domain:oya-intelligence-capability-domain",
+        "//intelligence/core/capability-domain:intelligence-capability-domain",
     ],
 )

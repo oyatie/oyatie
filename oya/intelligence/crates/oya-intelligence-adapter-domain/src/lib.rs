@@ -12,7 +12,7 @@ use oya_data_boundary_kernel::{
     Classified, DataClass, PrivacyDataClass, data_classes_from_privacy_data_classes,
     privacy_data_classes_from,
 };
-use oya_intelligence_capability_domain::Capability;
+use intelligence_capability_domain::Capability;
 use secrets_domain::SecretRef;
 
 #[derive(Clone, Debug, Eq, PartialEq)]

@@ -34,8 +34,8 @@ use oya_intelligence_adapter_domain::{
 };
 pub use oya_intelligence_bypass_domain::{AutonomyBreakGlass, AutonomyBreakGlassInput};
 use oya_intelligence_bypass_domain::{BypassError, BypassLedger, BypassLedgerRecord};
-use oya_intelligence_capability_domain::CapabilityError;
-pub use oya_intelligence_capability_domain::{
+use intelligence_capability_domain::CapabilityError;
+pub use intelligence_capability_domain::{
     AutonomyTier, Capability, CapabilityAction, CapabilityCostProfile, CapabilityMcpContract,
     CapabilityRegistry,
 };
@@ -54,8 +54,8 @@ use oya_intelligence_policy_domain::{
 };
 pub use oya_intelligence_run_domain::{Run, RunDisposition, RunState};
 use oya_intelligence_run_domain::{RunError, RunLedger, RunStart};
-pub use oya_intelligence_step_domain::{Step, StepDisposition, StepKind, StepState};
-use oya_intelligence_step_domain::{StepError, StepLedger, StepStart};
+pub use intelligence_step_domain::{Step, StepDisposition, StepKind, StepState};
+use intelligence_step_domain::{StepError, StepLedger, StepStart};
 use observability_domain::{
     CAPABILITY_INVOCATION_OPERATION_NAME, CapabilityInvocationTraceContext,
     CapabilityInvocationTraceObserver, CapabilityInvocationTraceSpan, FOUNDRY_PROVIDER_NAME,
