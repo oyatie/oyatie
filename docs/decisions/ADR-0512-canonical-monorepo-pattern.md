@@ -50,6 +50,15 @@ whitelist `kernel/` (analogous to the release-image cargo exception; the `no_std
 cannot share the std-targeted root lockfile). This is the ONLY sanctioned nested workspace. ADR-0562
 is the governing reorg ADR.
 
+**Ratification stamp — 2026-07-10 (ADR-0562 Accepted).** ADR-0562 was ratified/Accepted by the
+founder on 2026-07-10, so the supersession above is now **live and scoped**: only clause 1
+(**Layout** — the `{oya,cloud}/<service>/` + `libs/<lib>/` root assumption) is superseded by
+capability-first. Clauses 2–6 (one root Cargo workspace minus the `kernel/` carve-out, crate =
+bounded context, clean-architecture-as-modules, Buck2-graph parallelism, and the enforcement
+posture) remain **binding and unchanged** — this is a scoped amendment (`amended_by: ADR-0562`),
+NOT a full supersession of ADR-0512, which stays **Accepted**. (Contrast ADR-0550, which was a
+layout-only doctrine and is therefore superseded *in full* by ADR-0562.)
+
 ## Date
 
 2026-05-29

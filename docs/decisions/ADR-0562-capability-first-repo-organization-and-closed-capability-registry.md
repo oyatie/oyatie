@@ -1,16 +1,16 @@
 ---
 id: ADR-0562
 title: "Capability-first repo organization + the closed capability registry — the ratified hyperscaler source-tree shape every reorg lane implements"
-status: Proposed
+status: Accepted
 planning_impact: true
 deciders: founder
 date: 2026-06-14
 door: one-way
 owner: founder
-supersedes: []
+supersedes: [ADR-0550]
 superseded_by: []
 amended_by: [ADR-0615]
-depends_on: [ADR-0245, ADR-0280, ADR-0512, ADR-0536, ADR-0550]
+depends_on: [ADR-0245, ADR-0280, ADR-0512, ADR-0536]
 amends:
   - ADR-0536-hyperscaler-grounded-substrate-decision-matrix.md (its sixteen domains seed the closed capability registry; its enforcement gains face-direction + membership checks)
   - ADR-0512-canonical-monorepo-pattern.md (capability-first layout supersedes the cloud/oya/libs root assumption; libs/ dissolves into capability homes + base/; the kuberos-kernel nested-workspace carve-out)
@@ -27,14 +27,17 @@ milestone: W0
 
 ## Status
 
-**Proposed — 2026-06-14 (founder-ratified shape authored for the founder Accept door; door: one-way).**
+**Accepted — 2026-07-10 (founder ratification; shape authored + founder-ratified 2026-06-14; door: one-way).**
 
 The reorganization shape was ratified by the founder on 2026-06-14 (cost-agnostic, four-axis
 adversarial determination — hyperscaler-fidelity / dogfood-purity / maintainability / clean-arch —
-with doubt-driven verification). This ADR is the durable record of that decision and the spec every
-later reorg lane implements. It stays Proposed until the founder Accepts (the one-way door); it does
-NOT move any crates. ADR-0328 remains the canonical sequence authority; the migration contract in
-§10 is reference, not execution.
+with doubt-driven verification) and formally **Accepted on 2026-07-10** under the founder's
+autonomous-drive delegation, riding cross-artifact propagation in one atomic batch alongside ADR-0615
+(its boundary-rulings amendment). This ADR is the durable record of that decision and the spec every
+later reorg lane implements; it does NOT move any crates. ADR-0328 remains the canonical sequence
+authority; the migration contract in §10 is reference, not execution. The Accept propagates the
+supersession of **ADR-0550** (repository layout doctrine, superseded in full) and the scoped
+amendment of **ADR-0512** (its layout clause only).
 
 ## Context
 
@@ -45,8 +48,9 @@ written layout authorities are in force and partially in tension:
   bounded context, service dirs as pure containers, the Buck2 graph as the parallelism/containment
   substrate. Its layout clause roots service code at `{oya,cloud}/<service>/` and shared code at
   `libs/<lib>/`.
-- **ADR-0550** (Proposed) — the repository layout doctrine: `{oya,cloud}/<service>/` colocation +
-  the kernel/adapter/app clean-architecture seams + the `libs/` charter (rule-of-two shared root).
+- **ADR-0550** (Proposed at authoring; **Superseded by this ADR on Accept**) — the repository layout
+  doctrine: `{oya,cloud}/<service>/` colocation + the kernel/adapter/app clean-architecture seams +
+  the `libs/` charter (rule-of-two shared root).
 - **ADR-0245** (Proposed) — substrate-vs-product layering: tier (substrate / product /
   service-cell) is a **PRD-frontmatter facet, NOT a directory split** (lines 153–161); ADR-0131
   already collapses the product-vs-substrate distinction at the directory level.
@@ -79,7 +83,7 @@ mechanically safe (an open set degrades into a junk-drawer), and folds in the re
 
 ### §1 The shape
 
-The top-level source tree is organized **by capability** (the primary axis), with five meta/floor
+The top-level source tree is organized **by capability** (the primary axis), with six meta/floor
 directories that are not capabilities:
 
 ```
@@ -87,7 +91,8 @@ kernel/        # rung 0: kuberos no_std kernel + sysroot (recursion floor; its o
 os/            # rung 1: cloud-os node OS (Talos-class)
 base/          # Google //base: irreducible cross-capability primitives. ADMISSION-GATED (>=3 capability consumers AND strictly below all of them in the ADR-0280 DAG). NOT a util/ junk-drawer.
 governance/    # meta, OFF the runtime ladder: ADRs, specs, policy-as-data, the capability registry, the dep-lint authority, the masterplan
-build/         # meta, OFF the runtime ladder: buck2 prelude, toolchains, reindeer, third_party vendoring, CI engines, AND the generated sell-catalog (SKU/pricing) VIEW (build output; owns zero crates)
+build/         # meta, OFF the runtime ladder: buck2 prelude, toolchains, reindeer, CI engines, AND the generated sell-catalog (SKU/pricing) VIEW (build output; owns zero crates)
+third-party/   # meta, OFF the runtime ladder: reindeer-vendored third-party crate sources — TOP-LEVEL (amended by ADR-0615, founder 2026-07-10; already the live buck2 cell root `third-party//`). Owns zero first-party crates.
 <capability>/  # THE PRIMARY AXIS — one dir per registered system; path = namespace = buck2 label root
   core/        #   the engine we RUN (substrate face)
   ports/       #   capability traits (the stable seam)
@@ -117,9 +122,14 @@ console shell, control plane, observability, delivery fabric, KMS, network/DNS, 
 compute, messaging, metering/billing, gateway/SSOT, audit) reconciled against the verified current
 tree (`cloud/` + `oya/`). The mandated coarse collapses are encoded in the registry:
 
-- **`iam/`** absorbs identity + oya-identity + consent(-graph) + tenant-rbac + policy + the embedded
-  Cedar PDP as sub-modules (the cloud IdP substrate is `core/`; the product-shared identity that
-  CONSUMES it is `facade/`).
+- **`iam/`** absorbs identity + oya-identity + consent(-graph) + tenant-rbac as sub-modules (the
+  cloud IdP substrate is `core/`; the product-shared identity that CONSUMES it is `facade/`).
+  **Amended by ADR-0615 (founder 2026-07-10):** the Cedar-backed **PBAC+ReBAC decision plane
+  (`policy`)** is EXTRACTED from this collapse into its own standalone capability (§7 split;
+  registry v1.1.0), reversing the coarse iam-absorbs-policy grouping — iam keeps identity /
+  credentials / consent / tenant-RBAC and produces the verified principal that `policy/` evaluates.
+  Precedent: AWS IAM ↔ Verified Permissions and Google IAM ↔ Zanzibar are distinct planes; ADR-0280
+  §D-13.D marks `policy` "Standalone ✓" (G authoring/signing/distribution · C0 per-cell PDP).
 - **`ci/`** absorbs cloud-ci + ci-controller + ci-tide + ci-webhook-gateway.
 - **`compute/`** is ONE engine (vm + k8s-on-compute + functions) with facade sub-surfaces.
 - **`k8s/`** is the owned control-plane (`core/`) + managed-k8s (`facade/`); the four
@@ -130,10 +140,13 @@ tree (`cloud/` + `oya/`). The mandated coarse collapses are encoded in the regis
 
 **Cross-cutting sold-ness (billing, tenancy, marketplace) are FIRST-CLASS capabilities, NOT a
 `product/` junk-drawer.** The full set + one-line charter per capability + the absorbed current dirs
-+ the seed domains live in `specs/capability-registry.json`. The capabilities at v1.0.0 are: `cell`,
-`iam`, `tenancy`, `secrets`, `audit`, `observability`, `data`, `storage`, `compute`, `k8s`,
++ the seed domains live in `specs/capability-registry.json`. The capabilities at v1.0.0 (23) are:
+`cell`, `iam`, `tenancy`, `secrets`, `audit`, `observability`, `data`, `storage`, `compute`, `k8s`,
 `network`, `gateway`, `messaging`, `intelligence`, `workflow`, `ci`, `iac`, `billing`,
-`marketplace`, `console`, `compliance`, `comms`, `flags`.
+`marketplace`, `console`, `compliance`, `comms`, `flags`. **At v1.1.0 (ADR-0615, founder
+2026-07-10) the set is 24:** `policy` is extracted from `iam` as the 24th capability, mapping 1:1
+to the pre-existing `policy-engine` DAG node (ADR-0280 §D-13) — the 24 capabilities then map 1:1 to
+the 24 DAG nodes.
 
 ### §3 The deterministic placement rule (first match wins)
 
@@ -141,7 +154,10 @@ For any crate or artifact, apply in order; the first match decides the home:
 
 1. the kuberos kernel → `kernel/`; the node OS → `os/`;
 2. ADRs / specs / policy-as-data / the capability registry / the dep-lint authority → `governance/`;
-3. buck2 prelude / toolchains / third_party / CI engines / the generated catalog view → `build/`;
+3. buck2 prelude / toolchains / CI engines / the generated catalog view → `build/`; reindeer-vendored
+   third-party crate sources → **`third-party/`** (a TOP-LEVEL meta dir per the ADR-0615 amendment,
+   founder 2026-07-10 — it is already the live `third-party//` buck2 cell root, so this aligns the
+   ADR to the build graph);
 4. a primitive depended-on by **>=3 capabilities AND strictly below all of them in the ADR-0280
    DAG** → `base/` (admission-gated; a util consumed by one or two capabilities does NOT qualify —
    it lives in those capabilities or in `base/` only when the third consumer appears);
@@ -179,7 +195,10 @@ The lint is the precondition that makes a capability-first tree safe. It asserts
 - every crate maps to **exactly one** registered capability **and** carries a **valid face**
   (`core` / `ports` / `adapters` / `facade`) that agrees with its sub-fold;
 - a **new top-level directory** that is neither a registered capability nor one of
-  `kernel|os|base|governance|build|app` **FAILS** (the closed-set guarantee);
+  `kernel|os|base|governance|build|third-party|app` **FAILS** (the closed-set guarantee;
+  `third-party/` added as a top-level meta dir per the ADR-0615 amendment — when a physical
+  `third-party/` dir lands, the membership-lint policy's `allowed_top_level_dirs` gains it in the
+  same move);
 - the **`base/` admission rule** is enforced: a `base/` crate must have **>=3 capability consumers
   AND be strictly below all of them in the ADR-0280 DAG** (it is the structural backstop against
   `base/` becoming a util dumping ground);
@@ -230,11 +249,27 @@ the existing **ADR-0532 / ADR-0533 profile mechanism** (canonical product names 
 public boundary / `profile`); the actual flip is a **later Phase-0 lane**, not this ADR.
 
 **ADR-0245 is CITED as already-conformant** (tier is a facet, not a path) and **needs NO change**.
-**ADR-0550** is refined (its `{oya,cloud}/<service>/` colocation + kernel/adapter/app seams become
-the WITHIN-capability shape; the `libs/` charter is superseded by `base/` + capability homes).
+**ADR-0550 is SUPERSEDED in full** by this ADR (`supersedes: [ADR-0550]`; ADR-0550
+`superseded_by: [ADR-0562]`, status Superseded): its `{oya,cloud}/<service>/` colocation root and
+its `libs/` rule-of-two charter are replaced by capability-first (one top dir per capability +
+`base/`); the clean-architecture kernel/adapter/app seams it defined are **preserved** as the
+WITHIN-capability shape (the §4 face rule + the `base/` admission rule), never in tension with
+capability-first.
 **ADR-0537** (dogfood ladder, Proposed) is **implemented by this shape**; its §2 tier-dependency
 lint enforcement gates on its own founder sign-off, and the §6 membership lint promotes on the same
 sign-off.
+
+**Relationship to ADR-0132 (no-grouping forward-policy) — a coarse capability is NOT a
+bundle-µservice.** ADR-0132 forbids new multi-concern *deployable grouping SERVICES* (bundle /
+vertical / suite wrappers): a shipped microservice stays flat and single-concern. An ADR-0562
+`<capability>/` dir is an **ownership + namespace unit** (one two-pizza boundary, the buck2 label
+root), NOT a deployable service — its member crates each remain single-concern and are deployed
+individually (`core/` engines, `facade/` surfaces). The coarse-by-default rule (§7) collapses
+*ownership*, never *deployables*; the composition of 2+ capabilities into a shippable product is
+exactly what `app/<product>/` is for (§3 rule #5), which is itself the ADR-0132-conformant place for
+tenant-facing composition. The two doctrines are therefore complementary: ADR-0132 governs the
+service (deployable) axis; ADR-0562 governs the source-tree (ownership) axis. (Promoted here from
+the frontmatter `related` set to an explicit reconciliation clause.)
 
 ### §10 Migration contract (reference, NOT executed here)
 

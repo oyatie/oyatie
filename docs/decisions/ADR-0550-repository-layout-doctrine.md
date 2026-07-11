@@ -1,14 +1,14 @@
 ---
 id: ADR-0550
 title: "Repository layout doctrine — hyperscaler monorepo + clean-architecture seams"
-status: Proposed
+status: Superseded
 planning_impact: true
 deciders: founder
 date: 2026-06-11
 door: one-way
 owner: council-architecture
 supersedes: []
-superseded_by: []
+superseded_by: [ADR-0562]
 depends_on: [ADR-0131, ADR-0132, ADR-0510, ADR-0512, ADR-0543, ADR-0547]
 amends: [ADR-0512]
 related: [ADR-0017, ADR-0056, ADR-0105, ADR-0357, ADR-0362, ADR-0509, ADR-0515, ADR-0538, ADR-0540, ADR-0544, ADR-0545, ADR-0546, ADR-0548, ADR-0549]
@@ -21,9 +21,16 @@ milestone: W0
 
 ## Status
 
-**Proposed - 2026-06-11 (authored for founder sign-off; door: one-way for the seam doctrine —
-services, gates, and the W5 cutover plan build on it; the enforcement *sequencing* in D5 is
-two-way and may be reordered without unwinding the doctrine).**
+**Superseded — 2026-07-10 by ADR-0562 (founder ratification 2026-07-10).** Authored (Proposed)
+2026-06-11 for founder sign-off. The layout doctrine below is superseded **in full** by ADR-0562's
+capability-first repo organization: the `{oya,cloud}/<service>/` colocation root (D1) and the
+`libs/` rule-of-two charter (D2) are replaced by one top-level dir per registered capability
+(`core/ports/adapters/facade` faces) plus `base/` for admission-gated cross-capability primitives.
+The clean-architecture seams this ADR established — the kernel/adapter/app crate boundaries and the
+"structure encodes ports/adapters seams for frictionless cutover" litmus (D3) — are **preserved and
+carried forward** by ADR-0562 §4 (the non-negotiable face rule) and §6 (the membership lint); they
+were never in tension with capability-first. This ADR is retained as the durable record of the
+doctrine that capability-first absorbed; consult ADR-0562 for the live layout authority.
 
 ## Context
 

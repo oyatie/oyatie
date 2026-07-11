@@ -26,7 +26,9 @@
       "/templates/checklists/per-phase-completion-checklist.md",
       "/templates/evidence-bundle-template.json",
       "/specs/gitops-vcs-replacement.json",
-      "/specs/bespoke-cloud-toolchain-services.json"
+      "/specs/bespoke-cloud-toolchain-services.json",
+      "docs/decisions/ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md",
+      "docs/decisions/ADR-0615-capability-boundary-rulings-resolving-adr-0562-flagged-boundaries.md"
     ],
     "deduplicates_existing": [
       "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
