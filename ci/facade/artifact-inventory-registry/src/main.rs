@@ -3711,7 +3711,7 @@ fn resolve_reachability(
     let masterplan = read_text(&repo_root.join(&cfg.reachability.masterplan));
     let root_hub = read_text(&repo_root.join(&cfg.reachability.root_hub));
     let doc_catalog = read_text(&repo_root.join(&cfg.reachability.doc_catalog));
-    let cargo_members = read_cargo_member_prefixes(repo_root);
+    let cargo_members = read_cargo_member_prefixes(repo_root)?;
     let registrations = load_reachability_registry(&repo_root.join(&cfg.reachability.registry))?;
 
     let mut map: BTreeMap<String, Vec<String>> = BTreeMap::new();
@@ -3748,12 +3748,23 @@ fn resolve_reachability(
 /// members as GLOBS (`libs/oya-*`, `cloud/*/crates/oya-*`, ...), so the member set MUST
 /// be expanded against the tree; a textual read of the array would only see the `*`
 /// literals and would mark every crate path unreachable from `cargo-members`.
-fn read_cargo_member_prefixes(repo_root: &Path) -> Vec<String> {
-    oya_workspace_members_kernel::resolve_member_dirs(repo_root)
-        .unwrap_or_default()
+///
+/// FAIL-CLOSED, mirroring the `read_dir` NotFound-vs-other distinction: a tree with NO root
+/// Cargo.toml at all (a fixture with no cargo workspace) tolerates "zero cargo-members"; a root
+/// Cargo.toml that EXISTS but fails to resolve (malformed TOML, missing `[workspace]` shape)
+/// must propagate, not silently resolve to "zero members" — that would mark every crate path
+/// unreachable from `cargo-members` and could misclassify real crates as orphaned instead of
+/// erroring loud on a genuinely corrupt manifest.
+fn read_cargo_member_prefixes(repo_root: &Path) -> Result<Vec<String>, CliError> {
+    if !repo_root.join("Cargo.toml").is_file() {
+        return Ok(Vec::new());
+    }
+    let dirs = oya_workspace_members_kernel::resolve_member_dirs(repo_root)
+        .map_err(|e| CliError::Io(format!("resolve workspace member dirs: {e}")))?;
+    Ok(dirs
         .into_iter()
         .map(|dir| format!("{dir}/"))
-        .collect()
+        .collect())
 }
 
 /// Justification: a path traces to a decision if an ADR mentions it (front-matter

@@ -641,14 +641,43 @@ pub fn generated_output_diff_policy_violations(
     manifest: &Value,
     diff_name_status: &str,
 ) -> (BTreeSet<Finding>, Vec<DiffPolicyViolation>) {
+    generated_output_diff_policy_violations_with_ratchet_context(
+        manifest,
+        diff_name_status,
+        &BTreeMap::new(),
+        &[],
+    )
+}
+
+/// Ratchet-context-aware diff policy. Identical to
+/// [`generated_output_diff_policy_violations`] except a `normal-source-merge` artifact's plain
+/// MODIFY is no longer blanket-allowed: it must pass [`validate_ratchet_diff`] against the
+/// supplied merge-base/candidate content pair (`ratchet_contents`: declared `path` ->
+/// `(merge_base_content, candidate_content)`) and the active move plan's `(old_path, new_path)`
+/// pairs (`move_plan_pairs`). Missing content for an eligible path fails CLOSED (the exemption
+/// protects nothing it cannot verify). R100/C100 sanctioned relocations are UNCHANGED — still
+/// exempt unconditionally, since a pure relocation carries no contributor-authored bytes.
+///
+/// This closes the debt-laundering hole a blanket `merge_policy` exemption would open for the 5
+/// hand-curated-ratchet baselines that gate merges (friction-accounting, embedded-asset-
+/// hermeticity, tier-dependency-acyclicity, port-placement, the glossary-vocabulary allowlist):
+/// ONE rule — shrink-only, or a move-plan-backed bijective key substitution with unchanged
+/// cardinality/non-key values/ceilings — applies uniformly to all 5, not a special case per
+/// artifact.
+pub fn generated_output_diff_policy_violations_with_ratchet_context(
+    manifest: &Value,
+    diff_name_status: &str,
+    ratchet_contents: &BTreeMap<String, (String, String)>,
+    move_plan_pairs: &[(String, String)],
+) -> (BTreeSet<Finding>, Vec<DiffPolicyViolation>) {
     let mut findings = BTreeSet::new();
     let generated_path_rules = parse_generated_path_rules(manifest, &mut findings);
-    let declared_artifact_paths = parse_declared_artifacts(manifest, &mut findings)
-        .into_iter()
-        .map(|artifact| artifact.path)
+    let declared = parse_declared_artifacts(manifest, &mut findings);
+    let declared_artifact_paths = declared
+        .iter()
+        .map(|artifact| artifact.path.clone())
         .collect::<BTreeSet<_>>();
-    let allowed_generated_edit_paths =
-        diff_policy_allowed_generated_edit_paths(manifest, &mut findings);
+    let normal_source_merge_paths = diff_policy_allowed_generated_edit_paths(&declared);
     if !findings.is_empty() {
         return (findings, Vec::new());
     }
@@ -696,13 +725,23 @@ pub fn generated_output_diff_policy_violations(
     let violations = diff_rows
         .into_iter()
         .filter_map(|(status, path)| {
-            if (is_tracked_generated_artifact_path(&path, &generated_path_rules)
-                || declared_artifact_paths.contains(&path))
-                && !allowed_generated_edit_paths.contains(&path)
-            {
-                Some(DiffPolicyViolation { status, path })
+            let is_generated = is_tracked_generated_artifact_path(&path, &generated_path_rules)
+                || declared_artifact_paths.contains(&path);
+            if !is_generated {
+                return None;
+            }
+            if normal_source_merge_paths.contains(&path) {
+                match ratchet_contents.get(&path) {
+                    Some((merge_base, candidate)) => {
+                        match validate_ratchet_diff(merge_base, candidate, move_plan_pairs) {
+                            Ok(()) => None,
+                            Err(_reason) => Some(DiffPolicyViolation { status, path }),
+                        }
+                    }
+                    None => Some(DiffPolicyViolation { status, path }),
+                }
             } else {
-                None
+                Some(DiffPolicyViolation { status, path })
             }
         })
         .collect();
@@ -710,13 +749,256 @@ pub fn generated_output_diff_policy_violations(
     (findings, violations)
 }
 
-fn diff_policy_allowed_generated_edit_paths(
-    _manifest: &Value,
-    _findings: &mut BTreeSet<Finding>,
-) -> BTreeSet<String> {
-    // Contributor PRs must not own generated-output bytes. Declared artifacts can be regenerated
-    // or controller-materialized by cloud-ci, but the merge surface is the source tree.
-    BTreeSet::new()
+/// The set of declared-artifact paths whose `merge_policy` is `normal-source-merge` (schema'd +
+/// validated by [`parse_declared_artifacts`]) — a HAND-CURATED file (e.g. a `hand-curated-ratchet`
+/// baseline like `embedded-asset-hermeticity-baseline.json`) whose manifest entry says a PR
+/// author is EXPECTED to edit it directly, as opposed to a machine-only regenerated/materialized
+/// face. A path in this set is NOT blanket-exempt — see
+/// [`generated_output_diff_policy_violations_with_ratchet_context`], which additionally requires
+/// [`validate_ratchet_diff`] to pass. Every OTHER `merge_policy` stays blocked from any edit
+/// except a sanctioned R100/C100 relocation ([`is_sanctioned_relocation`]).
+fn diff_policy_allowed_generated_edit_paths(declared: &[DeclaredArtifact]) -> BTreeSet<String> {
+    declared
+        .iter()
+        .filter(|artifact| artifact.merge_policy == "normal-source-merge")
+        .map(|artifact| artifact.path.clone())
+        .collect()
+}
+
+/// One normalized row of a hand-curated-ratchet baseline, unified across the known on-disk
+/// shapes (JSON `codes: {code: [key, ...]}` maps, JSON arrays-of-objects keyed by `subject` or
+/// `member_path`, and TSV `<kind>\t<token>` rows): `group` is the debt CLASS a key belongs to
+/// (a `codes` map key, a `violations[].code`, a glossary `kind`; empty when the format has no
+/// grouping axis, e.g. port-placement's flat list), `key` is the per-row identity subject to
+/// shrink/move-plan-substitution, and `rest` is every OTHER field on the row canonicalized to a
+/// deterministic string (must stay byte-identical across a verified substitution).
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct RatchetRow {
+    group: String,
+    key: String,
+    rest: String,
+}
+
+/// Parse a ratchet-baseline file's content into its normalized rows plus its per-group ceiling
+/// map (`_provenance.ceilings`, present on 2 of the 5 known formats; absent elsewhere, in which
+/// case the ceiling check in [`validate_ratchet_diff`] is a no-op for that content).
+fn parse_ratchet_content(content: &str) -> Result<(Vec<RatchetRow>, BTreeMap<String, u64>), String> {
+    match serde_json::from_str::<Value>(content) {
+        Ok(value) => parse_ratchet_json(&value),
+        Err(_) => Ok((parse_ratchet_tsv(content), BTreeMap::new())),
+    }
+}
+
+fn parse_ratchet_json(value: &Value) -> Result<(Vec<RatchetRow>, BTreeMap<String, u64>), String> {
+    let ceilings: BTreeMap<String, u64> = value
+        .get("_provenance")
+        .and_then(|p| p.get("ceilings"))
+        .and_then(Value::as_object)
+        .map(|obj| {
+            obj.iter()
+                .filter_map(|(k, v)| v.as_u64().map(|n| (k.clone(), n)))
+                .collect()
+        })
+        .unwrap_or_default();
+
+    if let Some(codes) = value.get("codes").and_then(Value::as_object) {
+        // codes-map shape (friction-accounting, embedded-asset-hermeticity): { code: [key, ...] }.
+        let mut rows = Vec::new();
+        for (code, keys) in codes {
+            let Some(keys) = keys.as_array() else {
+                return Err(format!("codes.{code} is not an array"));
+            };
+            for key in keys {
+                let Some(key) = key.as_str() else {
+                    return Err(format!("codes.{code} has a non-string key"));
+                };
+                rows.push(RatchetRow {
+                    group: code.clone(),
+                    key: key.to_owned(),
+                    rest: String::new(),
+                });
+            }
+        }
+        return Ok((rows, ceilings));
+    }
+    for array_field in ["violations", "baseline"] {
+        if let Some(array) = value.get(array_field).and_then(Value::as_array) {
+            let mut rows = Vec::new();
+            for row in array {
+                let Some(obj) = row.as_object() else {
+                    return Err(format!("{array_field}[] row is not an object"));
+                };
+                // The KEY field is the first of these present on the row; every other field is
+                // `rest` (must stay unchanged across a verified substitution).
+                let key_field = ["subject", "member_path"]
+                    .into_iter()
+                    .find(|f| obj.contains_key(*f))
+                    .ok_or_else(|| format!("{array_field}[] row has no recognized key field"))?;
+                let key = obj
+                    .get(key_field)
+                    .and_then(Value::as_str)
+                    .ok_or_else(|| format!("{array_field}.{key_field} is not a string"))?;
+                let group = obj
+                    .get("code")
+                    .and_then(Value::as_str)
+                    .unwrap_or("")
+                    .to_owned();
+                let mut rest = obj.clone();
+                rest.remove(key_field);
+                rows.push(RatchetRow {
+                    group,
+                    key: key.to_owned(),
+                    rest: serde_json::to_string(&Value::Object(rest)).unwrap_or_default(),
+                });
+            }
+            return Ok((rows, ceilings));
+        }
+    }
+    Err("no recognized ratchet row shape (codes/violations/baseline)".to_owned())
+}
+
+/// `<group>\t<key>` TSV rows (the glossary-vocabulary allowlist); `#`-comment and blank lines
+/// are skipped. No ceiling concept for this format.
+fn parse_ratchet_tsv(content: &str) -> Vec<RatchetRow> {
+    content
+        .lines()
+        .filter_map(|line| {
+            let line = line.trim();
+            if line.is_empty() || line.starts_with('#') {
+                return None;
+            }
+            let mut cols = line.splitn(2, '\t');
+            let group = cols.next()?.to_owned();
+            let key = cols.next()?.to_owned();
+            Some(RatchetRow {
+                group,
+                key,
+                rest: String::new(),
+            })
+        })
+        .collect()
+}
+
+/// Boundary-safe path-token replace — mirrors
+/// `tools/oya-reorg-codemod-app/src/model.rs::rewrite_path_token` (duplicated rather than
+/// cross-crate-shared: this gate crate must not depend on the reorg codemod's local-bridge-tool
+/// surface). A match qualifies only when the byte before it (if any) is not a path-continuation
+/// byte (alnum/`_`/`-`/`/`/`.`) and the byte after it (if any) is not an identifier-continuation
+/// byte (alnum/`_`/`-`) — so `<old>/src/lib.rs:123` rewrites but a longer unrelated name that
+/// merely starts with `old`, or `old` nested inside a longer unrelated path, does not.
+fn rewrite_path_token_local(text: &str, old: &str, new: &str) -> Option<String> {
+    if old.is_empty() {
+        return None;
+    }
+    fn is_ident_continuation(b: u8) -> bool {
+        b.is_ascii_alphanumeric() || b == b'_' || b == b'-'
+    }
+    fn is_path_continuation(b: u8) -> bool {
+        is_ident_continuation(b) || b == b'/' || b == b'.'
+    }
+    let bytes = text.as_bytes();
+    let mut out = String::with_capacity(text.len());
+    let mut last = 0;
+    let mut changed = false;
+    let mut i = 0;
+    while i < text.len() {
+        if text[i..].starts_with(old) {
+            let prev_ok = i == 0 || !is_path_continuation(bytes[i - 1]);
+            let next = bytes.get(i + old.len()).copied();
+            let next_ok = next.map(|b| !is_ident_continuation(b)).unwrap_or(true);
+            if prev_ok && next_ok {
+                out.push_str(&text[last..i]);
+                out.push_str(new);
+                last = i + old.len();
+                i = last;
+                changed = true;
+                continue;
+            }
+        }
+        let Some(ch) = text[i..].chars().next() else {
+            break;
+        };
+        i += ch.len_utf8();
+    }
+    out.push_str(&text[last..]);
+    changed.then_some(out)
+}
+
+/// Validate a hand-curated-ratchet baseline's content diff (merge-base vs candidate) against
+/// the ONE rule applied uniformly to every known format: per debt-group, every key ADDED
+/// relative to the merge-base must be explained by an ACTIVE move-plan `(old_path, new_path)`
+/// pair rewriting a key that was REMOVED (cardinality-preserving 1:1 substitution, with the
+/// row's `rest` unchanged), and every group's declared ceiling (when present in both sides) must
+/// not increase. A bare addition, an unmatched substitution, or a ceiling increase is rejected.
+fn validate_ratchet_diff(
+    merge_base_content: &str,
+    candidate_content: &str,
+    move_plan_pairs: &[(String, String)],
+) -> Result<(), String> {
+    let (before_rows, before_ceilings) = parse_ratchet_content(merge_base_content)?;
+    let (after_rows, after_ceilings) = parse_ratchet_content(candidate_content)?;
+
+    let mut before_by_group: BTreeMap<&str, Vec<&RatchetRow>> = BTreeMap::new();
+    for row in &before_rows {
+        before_by_group.entry(row.group.as_str()).or_default().push(row);
+    }
+    let mut after_by_group: BTreeMap<&str, Vec<&RatchetRow>> = BTreeMap::new();
+    for row in &after_rows {
+        after_by_group.entry(row.group.as_str()).or_default().push(row);
+    }
+
+    let mut groups: BTreeSet<&str> = BTreeSet::new();
+    groups.extend(before_by_group.keys().copied());
+    groups.extend(after_by_group.keys().copied());
+
+    for group in groups {
+        let before: &[&RatchetRow] = before_by_group.get(group).map(Vec::as_slice).unwrap_or(&[]);
+        let after: &[&RatchetRow] = after_by_group.get(group).map(Vec::as_slice).unwrap_or(&[]);
+
+        let before_keys: BTreeSet<&str> = before.iter().map(|r| r.key.as_str()).collect();
+        let after_keys: BTreeSet<&str> = after.iter().map(|r| r.key.as_str()).collect();
+
+        let added: Vec<&&RatchetRow> = after
+            .iter()
+            .filter(|r| !before_keys.contains(r.key.as_str()))
+            .collect();
+        let mut removed_pool: Vec<&&RatchetRow> = before
+            .iter()
+            .filter(|r| !after_keys.contains(r.key.as_str()))
+            .collect();
+
+        for add_row in &added {
+            let matched_index = removed_pool.iter().position(|rm_row| {
+                rm_row.rest == add_row.rest
+                    && move_plan_pairs.iter().any(|(old, new)| {
+                        rewrite_path_token_local(&rm_row.key, old, new).as_deref()
+                            == Some(add_row.key.as_str())
+                    })
+            });
+            match matched_index {
+                Some(idx) => {
+                    removed_pool.remove(idx);
+                }
+                None => {
+                    return Err(format!(
+                        "unexplained new key {:?} in group {group:?} (not a move-plan-backed \
+                         substitution of any removed key)",
+                        add_row.key
+                    ));
+                }
+            }
+        }
+
+        if let (Some(&before_ceiling), Some(&after_ceiling)) =
+            (before_ceilings.get(group), after_ceilings.get(group))
+            && after_ceiling > before_ceiling
+        {
+            return Err(format!(
+                "ceiling increase in group {group:?}: {before_ceiling} -> {after_ceiling}"
+            ));
+        }
+    }
+    Ok(())
 }
 
 fn validate_lifecycle_layers(manifest: &Value, findings: &mut BTreeSet<Finding>) {
@@ -1878,6 +2160,207 @@ mod tests {
                 .any(|violation| violation.path == "ci/facade/frozen.generated.json"),
             "a modify of a declared artifact must remain a violation: {violations:#?}"
         );
+    }
+
+    #[test]
+    fn diff_policy_allows_a_plain_modify_of_a_normal_source_merge_artifact_with_valid_content() {
+        // GREEN: the ACTUAL #1335 need — embedded-asset-hermeticity-baseline.json's
+        // move-triggered path-key relabel (openapi-domain: `oya/intelligence/crates/
+        // oya-intelligence-openapi-domain` -> `intelligence/core/openapi-domain`) is a
+        // move-plan-backed bijective substitution (cardinality-preserving, ceiling unchanged),
+        // so it passes `validate_ratchet_diff` and the plain modify is allowed. A blanket
+        // `merge_policy` exemption is NOT enough on its own (see the RED tests below) — the
+        // content must actually be verified.
+        let path = "ci/facade/hand-curated-baseline.json";
+        let mut face = artifact("hand-curated-ratchet", path);
+        face["merge_policy"] = json!("normal-source-merge");
+        let manifest = manifest(vec![face]);
+        let diff = format!("M\t{path}\n");
+        let merge_base = r#"{"_provenance":{"ceilings":{"skip_non_literal_argument":1}},
+            "codes":{"skip_non_literal_argument":
+                ["oya/intelligence/crates/oya-intelligence-openapi-domain/src/lib.rs:6088"]}}"#;
+        let candidate = r#"{"_provenance":{"ceilings":{"skip_non_literal_argument":1}},
+            "codes":{"skip_non_literal_argument":
+                ["intelligence/core/openapi-domain/src/lib.rs:6088"]}}"#;
+        let mut ratchet_contents = BTreeMap::new();
+        ratchet_contents.insert(path.to_owned(), (merge_base.to_owned(), candidate.to_owned()));
+        let move_plan_pairs = vec![(
+            "oya/intelligence/crates/oya-intelligence-openapi-domain".to_owned(),
+            "intelligence/core/openapi-domain".to_owned(),
+        )];
+        let (findings, violations) = generated_output_diff_policy_violations_with_ratchet_context(
+            &manifest,
+            &diff,
+            &ratchet_contents,
+            &move_plan_pairs,
+        );
+        assert!(findings.is_empty(), "no manifest findings expected: {findings:#?}");
+        assert!(
+            violations.is_empty(),
+            "the #1335 openapi-domain move-plan-backed relabel must be allowed: {violations:#?}"
+        );
+    }
+
+    #[test]
+    fn diff_policy_rejects_a_normal_source_merge_plain_modify_with_no_ratchet_content_supplied() {
+        // RED: the blanket merge_policy exemption alone is NOT sufficient — with no
+        // merge-base/candidate content supplied (e.g. via the bare 2-arg wrapper), the
+        // exemption fails CLOSED rather than blanket-allowing.
+        let path = "ci/facade/hand-curated-baseline.json";
+        let mut face = artifact("hand-curated-ratchet", path);
+        face["merge_policy"] = json!("normal-source-merge");
+        let manifest = manifest(vec![face]);
+        let diff = format!("M\t{path}\n");
+        let (findings, violations) = generated_output_diff_policy_violations(&manifest, &diff);
+        assert!(findings.is_empty());
+        assert!(
+            violations.iter().any(|v| v.path == path),
+            "no ratchet content supplied must fail closed (still a violation): {violations:#?}"
+        );
+    }
+
+    #[test]
+    fn diff_policy_rejects_other_merge_policies_on_plain_modify() {
+        // RED preserved: `normal-source-merge` is the ONLY merge_policy this predicate widens.
+        // Every other declared policy (regenerate-only here) keeps blocking a plain modify.
+        let mut face = artifact("regenerate-only", "ci/facade/regenerate-only.generated.json");
+        face["merge_policy"] = json!("never-manual-merge-regenerate-from-source-tree");
+        let manifest = manifest(vec![face]);
+        let diff = "M\tci/facade/regenerate-only.generated.json\n";
+        let (findings, violations) = generated_output_diff_policy_violations(&manifest, diff);
+        assert!(findings.is_empty());
+        assert!(
+            violations
+                .iter()
+                .any(|violation| violation.path == "ci/facade/regenerate-only.generated.json"),
+            "a non-normal-source-merge artifact must remain blocked on plain modify: {violations:#?}"
+        );
+    }
+
+    // --- validate_ratchet_diff: the ONE shrink-only/move-plan-relabel rule, unit-tested
+    // directly across every known ratchet format (codes-map, violations-array,
+    // baseline-array, glossary TSV). ---
+
+    #[test]
+    fn ratchet_diff_allows_identical_content() {
+        let content = r#"{"codes":{"c1":["a","b"]}}"#;
+        assert_eq!(validate_ratchet_diff(content, content, &[]), Ok(()));
+    }
+
+    #[test]
+    fn ratchet_diff_allows_pure_shrink_codes_map() {
+        let before = r#"{"codes":{"c1":["a","b"]}}"#;
+        let after = r#"{"codes":{"c1":["a"]}}"#;
+        assert_eq!(validate_ratchet_diff(before, after, &[]), Ok(()));
+    }
+
+    #[test]
+    fn ratchet_diff_allows_move_plan_backed_substitution_codes_map() {
+        // The #1335 openapi-domain shape: one code, one key, rewritten by an active move.
+        let before = r#"{"_provenance":{"ceilings":{"c1":1}},"codes":{"c1":["old/dir/f.rs:1"]}}"#;
+        let after = r#"{"_provenance":{"ceilings":{"c1":1}},"codes":{"c1":["new/dir/f.rs:1"]}}"#;
+        let moves = vec![("old/dir".to_owned(), "new/dir".to_owned())];
+        assert_eq!(validate_ratchet_diff(before, after, &moves), Ok(()));
+    }
+
+    #[test]
+    fn ratchet_diff_rejects_bare_addition() {
+        let before = r#"{"codes":{"c1":["a"]}}"#;
+        let after = r#"{"codes":{"c1":["a","b"]}}"#;
+        assert!(
+            validate_ratchet_diff(before, after, &[]).is_err(),
+            "an added key with nothing removed must RED"
+        );
+    }
+
+    #[test]
+    fn ratchet_diff_rejects_unmatched_substitution_not_in_move_plan() {
+        // A key removed AND a different key added, but NO active move explains the swap — the
+        // debt-laundering hole: substituting real-debt-key-X for an unrelated laundered-key-Y.
+        let before = r#"{"codes":{"c1":["a/real-debt.rs:1"]}}"#;
+        let after = r#"{"codes":{"c1":["b/laundered.rs:1"]}}"#;
+        let moves = vec![("unrelated/old".to_owned(), "unrelated/new".to_owned())];
+        assert!(
+            validate_ratchet_diff(before, after, &moves).is_err(),
+            "a key substitution NOT backed by any active move plan entry must RED"
+        );
+    }
+
+    #[test]
+    fn ratchet_diff_rejects_ceiling_increase() {
+        let before = r#"{"_provenance":{"ceilings":{"c1":1}},"codes":{"c1":["a"]}}"#;
+        let after = r#"{"_provenance":{"ceilings":{"c1":2}},"codes":{"c1":["a"]}}"#;
+        assert!(
+            validate_ratchet_diff(before, after, &[]).is_err(),
+            "a ceiling bump with no corresponding key growth must still RED"
+        );
+    }
+
+    #[test]
+    fn ratchet_diff_rejects_ceiling_increase_even_alongside_a_valid_substitution() {
+        let before = r#"{"_provenance":{"ceilings":{"c1":1}},"codes":{"c1":["old/dir/f.rs:1"]}}"#;
+        let after = r#"{"_provenance":{"ceilings":{"c1":2}},"codes":{"c1":["new/dir/f.rs:1"]}}"#;
+        let moves = vec![("old/dir".to_owned(), "new/dir".to_owned())];
+        assert!(
+            validate_ratchet_diff(before, after, &moves).is_err(),
+            "a ceiling increase must RED even when the key substitution itself is move-plan-backed"
+        );
+    }
+
+    #[test]
+    fn ratchet_diff_allows_shrink_on_violations_array_shape() {
+        // tier-dependency-acyclicity shape: {"violations": [{"code","subject"}, ...]}.
+        let before = r#"{"violations":[
+            {"code":"TDA-X","subject":"a -> b"},
+            {"code":"TDA-X","subject":"c -> d"}
+        ]}"#;
+        let after = r#"{"violations":[{"code":"TDA-X","subject":"a -> b"}]}"#;
+        assert_eq!(validate_ratchet_diff(before, after, &[]), Ok(()));
+    }
+
+    #[test]
+    fn ratchet_diff_allows_move_plan_substitution_on_baseline_array_shape_with_rest_preserved() {
+        // port-placement shape: {"baseline": [{"member_path","trait","reason"}, ...]}. The
+        // substitution must preserve the row's OTHER fields (here: trait + reason) exactly.
+        let before = r#"{"baseline":[
+            {"member_path":"old/dir","trait":"SessionStore","reason":"same reason text"}
+        ]}"#;
+        let after = r#"{"baseline":[
+            {"member_path":"new/dir","trait":"SessionStore","reason":"same reason text"}
+        ]}"#;
+        let moves = vec![("old/dir".to_owned(), "new/dir".to_owned())];
+        assert_eq!(validate_ratchet_diff(before, after, &moves), Ok(()));
+    }
+
+    #[test]
+    fn ratchet_diff_rejects_baseline_array_substitution_when_rest_changed() {
+        // Same move-plan-backed key substitution as above, but the `reason` text ALSO changed —
+        // "all non-key values unchanged" must be enforced, not just the key.
+        let before = r#"{"baseline":[
+            {"member_path":"old/dir","trait":"SessionStore","reason":"original reason"}
+        ]}"#;
+        let after = r#"{"baseline":[
+            {"member_path":"new/dir","trait":"SessionStore","reason":"DIFFERENT reason"}
+        ]}"#;
+        let moves = vec![("old/dir".to_owned(), "new/dir".to_owned())];
+        assert!(
+            validate_ratchet_diff(before, after, &moves).is_err(),
+            "a substitution that also changes a non-key field must RED"
+        );
+    }
+
+    #[test]
+    fn ratchet_diff_allows_shrink_on_glossary_tsv_shape() {
+        let before = "# comment\ncasing-variant\tOya\nuncited-acronym\tAA\n";
+        let after = "# comment\ncasing-variant\tOya\n";
+        assert_eq!(validate_ratchet_diff(before, after, &[]), Ok(()));
+    }
+
+    #[test]
+    fn ratchet_diff_rejects_glossary_tsv_addition() {
+        let before = "casing-variant\tOya\n";
+        let after = "casing-variant\tOya\ncasing-variant\tNewToken\n";
+        assert!(validate_ratchet_diff(before, after, &[]).is_err());
     }
 
     #[test]

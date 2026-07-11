@@ -61,6 +61,13 @@ const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_TARGET: &str = "//.claude:settings-js
 const ENFORCEMENT_LIVENESS_CODEX_HOOKS_TARGET: &str = "//.codex:hooks-json";
 const ENFORCEMENT_LIVENESS_HOOKS_DIR_TARGET: &str = "//tools/hooks:top-level-hook-scripts";
 const MOVE_MANIFEST_FACE: &str = "specs/reorg/move-manifest.generated.json";
+/// De-committed face: merge-base CONTENT of every `normal-source-merge` hand-curated-ratchet
+/// artifact, keyed by declared path. Materialized from the SAME merge-base source worktree this
+/// file already checks out for frozen-baseline regeneration (a plain filesystem read — no
+/// additional git call), so the generated-output-diff-policy gate can verify a hand-curated-
+/// ratchet baseline's plain-modify content diff (shrink-only / move-plan-backed substitution)
+/// without itself calling git (gate production code must stay hermetic).
+const RATCHET_MERGE_BASE_FACE: &str = "ci/facade/generated-artifact-policy/ratchet-merge-base.generated.json";
 const PRODUCER_FACES: [(&str, &str); 6] = [
     ("accounting-registry.generated.json", "registry"),
     ("ttl-policy.generated.json", "ttl-policy"),
@@ -1427,6 +1434,49 @@ fn materialize_move_manifest(
     )
 }
 
+/// Materialize [`RATCHET_MERGE_BASE_FACE`]: for every `normal-source-merge` artifact declared in
+/// the CANDIDATE control-plane manifest, read its content from the ALREADY-MATERIALIZED
+/// merge-base source `worktree` (a plain filesystem read — the worktree checkout is the one git
+/// boundary this materializer already owns; no additional `Command::new` call). An artifact
+/// absent from the merge-base tree (e.g. brand new) is simply omitted from the face — the
+/// consuming gate then fails closed on it, never falsely permissive. A missing/malformed
+/// control-plane manifest yields an empty face for the SAME reason: the consuming gate treats
+/// "no verifiable merge-base content" as fail-closed, so an empty face is the safe default here,
+/// mirroring [`read_decommitted_face_names`]'s established lenient-parse convention.
+fn materialize_ratchet_merge_base_contents(
+    repo_root: &Path,
+    worktree: &Path,
+) -> Result<(), FreshnessError> {
+    let mut contents = serde_json::Map::new();
+    if let Ok(text) = std::fs::read_to_string(repo_root.join(CONTROL_PLANE_MANIFEST))
+        && let Ok(manifest) = serde_json::from_str::<serde_json::Value>(&text)
+        && let Some(artifacts) = manifest.get("artifacts").and_then(|value| value.as_array())
+    {
+        for artifact in artifacts {
+            if artifact.get("merge_policy").and_then(|value| value.as_str())
+                != Some("normal-source-merge")
+            {
+                continue;
+            }
+            let Some(path) = artifact.get("path").and_then(|value| value.as_str()) else {
+                continue;
+            };
+            if let Ok(content) = std::fs::read_to_string(worktree.join(path)) {
+                contents.insert(path.to_owned(), serde_json::Value::String(content));
+            }
+        }
+    }
+    let face_path = repo_root.join(RATCHET_MERGE_BASE_FACE);
+    if let Some(parent) = face_path.parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|error| FreshnessError::new(format!("mkdir {}: {error}", parent.display())))?;
+    }
+    let body = serde_json::to_string_pretty(&serde_json::Value::Object(contents))
+        .map_err(|error| FreshnessError::new(format!("serialize {RATCHET_MERGE_BASE_FACE}: {error}")))?;
+    std::fs::write(&face_path, body)
+        .map_err(|error| FreshnessError::new(format!("write {RATCHET_MERGE_BASE_FACE}: {error}")))
+}
+
 fn emit_materialized_scm_facts(
     tools: &MaterializerTools,
     repo_root: &Path,
@@ -1498,6 +1548,10 @@ fn emit_materialized_scm_facts(
             .current_dir(repo_root),
         "materialize frozen baseline from merge-base source",
     )?;
+
+    // Reuse the SAME merge-base worktree (still open) to materialize the ratchet-baseline
+    // merge-base-content face — a plain filesystem read, not a new git boundary.
+    materialize_ratchet_merge_base_contents(repo_root, &worktree)?;
 
     drop(regen_verify_cleanup);
     drop(regen_face_cleanup);
