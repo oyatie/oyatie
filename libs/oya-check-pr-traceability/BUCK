@@ -24,3 +24,13 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [],
 )
+
+rust_test(
+    name = "pr-traceability-admission-bin-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/bin/pr-traceability-admission.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-check-pr-traceability",
+    ],
+)
