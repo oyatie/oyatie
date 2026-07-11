@@ -17,6 +17,12 @@
 //!                                        [--enforcement-liveness-hooks-dir <path>]
 //!                                        [--fix-owners <dir>=<owner>]
 //!                                        [--fix-reachability <prefix>=<anchor>]
+//!                                        [--check-paths <path>...] [--check-diff <merge-base>]
+//!
+//! `--check-paths`/`--check-diff` is the AUTHOR-SIDE pre-push check (FRIC #1328): for each
+//! ADDED tracked file it reports reachable?/justified? and, if it would RED the
+//! `[cloud-ci-total-accounting]` firewall, the exact remediation — reusing the SAME resolvers +
+//! face-builder + firewall evaluator, and NEEDING NO materialized scm-facts face.
 //!
 //! With `--stdout` one generated face is written to stdout (used by the registry-drift gate
 //! to regenerate in a sandbox and byte-diff). Default writes all generated faces under
@@ -164,6 +170,12 @@ fn run() -> Result<(), CliError> {
     // The TRANSITIONAL registration bridges (ADR-0555; cli_surface_policy local bridge).
     let mut fix_owners_spec: Option<String> = None;
     let mut fix_reachability_spec: Option<String> = None;
+    // AUTHOR-SIDE pre-push check (FRIC #1328): "will these newly-added paths RED the
+    // [cloud-ci-total-accounting] firewall?" `--check-paths <path>...` names them explicitly;
+    // `--check-diff <merge-base>` derives added tracked files via `git diff --diff-filter=A`.
+    // Additive flags only — CI's default face-production path is untouched.
+    let mut check_paths: Option<Vec<String>> = None;
+    let mut check_diff_base: Option<String> = None;
 
     let mut i = 0;
     while i < args.len() {
@@ -210,6 +222,19 @@ fn run() -> Result<(), CliError> {
                 i += 1;
                 fix_reachability_spec = args.get(i).cloned();
             }
+            "--check-paths" => {
+                // Multi-value: consume following args until the next `--flag` or end.
+                let mut collected = Vec::new();
+                while i + 1 < args.len() && !args[i + 1].starts_with("--") {
+                    i += 1;
+                    collected.push(args[i].clone());
+                }
+                check_paths = Some(collected);
+            }
+            "--check-diff" => {
+                i += 1;
+                check_diff_base = args.get(i).cloned();
+            }
             "--stdout" => to_stdout = true,
             "--next-adr" => next_adr_mode = true,
             other => return Err(CliError::Io(format!("unknown argument {other}"))),
@@ -239,6 +264,28 @@ fn run() -> Result<(), CliError> {
         let cfg = load_policy_config(&repo_root, policy_root)?;
         let decisions_dir = repo_root.join(&cfg.justification.adr_dir);
         println!("{}", allocate_next_adr_id(&decisions_dir)?);
+        return Ok(());
+    }
+
+    // AUTHOR-SIDE pre-push check mode (FRIC #1328). It answers "will my new files RED the
+    // firewall?" BEFORE push, WITHOUT a materialized scm-facts face: the tracked-path universe
+    // is the added set itself, resolved with the SAME producer resolvers + face-builder + the
+    // firewall's own evaluator (drift-proof). No scm-facts load, no all-face derivation.
+    if check_paths.is_some() || check_diff_base.is_some() {
+        let cfg = load_policy_config(&repo_root, policy_root)?;
+        let policy = Policy::from_config(&cfg)?;
+        let mut paths: Vec<String> = check_paths.unwrap_or_default();
+        if let Some(base) = check_diff_base {
+            paths.extend(git_added_paths(&repo_root, &base)?);
+        }
+        paths.sort();
+        paths.dedup();
+        let verdicts = check_added_paths(&repo_root, &cfg, &policy, &paths)?;
+        if !report_check(&verdicts) {
+            // Distinct exit code (2) so a pre-push wrapper can gate on "would RED" without
+            // confusing it with a usage/IO error (exit 1).
+            std::process::exit(2);
+        }
         return Ok(());
     }
 
@@ -1767,6 +1814,158 @@ mod tests {
             justifications.get("oya-deps.toml"),
             Some(&"ADR-9998".to_owned())
         );
+
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    /// FRIC #1328 — the verdict a pre-push author-side check-mode invocation would print for
+    /// `path`, computed via `check_added_paths`. `find` panics if the path is absent.
+    fn check_verdict(root: &Path, path: &str) -> AddedPathVerdict {
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let policy = Policy::from_config(&cfg).expect("policy from bundled default");
+        let paths = vec![path.to_owned()];
+        let mut verdicts =
+            check_added_paths(root, &cfg, &policy, &paths).expect("check added paths");
+        assert_eq!(verdicts.len(), 1, "one verdict per input path");
+        verdicts.pop().expect("verdict present")
+    }
+
+    #[test]
+    fn check_mode_added_unjustified_path_reports_code_and_remediation() {
+        // A newly ADDED code file that no ADR names ⇒ the firewall's `unjustified` code, keyed
+        // by the path — exactly the `[cloud-ci-total-accounting] unjustified regressions` class.
+        let root = unique_temp_repo();
+        fs::create_dir_all(root.join("docs/decisions")).expect("create decisions dir");
+
+        let path = "newsvc/src/lib.rs";
+        let verdict = check_verdict(&root, path);
+
+        assert_eq!(verdict.unit_class, "code");
+        assert!(verdict.justification.is_none(), "no ADR justifies it");
+        assert!(
+            verdict.blocking_codes.contains("unjustified"),
+            "unjustified must be reported, got {:?}",
+            verdict.blocking_codes
+        );
+
+        // The remediation names the EXACT path token + the ADR-0515 precedent.
+        let remediation = unjustified_remediation(path);
+        assert!(
+            remediation.contains(&format!("`{path}`")),
+            "names path token"
+        );
+        assert!(remediation.contains("ADR-0515"), "names ci/ gate precedent");
+        assert!(remediation.contains("docs/decisions/"), "names the corpus");
+
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    #[test]
+    fn check_mode_added_justified_path_reports_clean_of_unjustified() {
+        // The SAME path, once an ADR names its exact token, is no longer `unjustified` — the fix
+        // the remediation prescribes actually clears the code.
+        let root = unique_temp_repo();
+        let decisions = root.join("docs/decisions");
+        fs::create_dir_all(&decisions).expect("create decisions dir");
+
+        let path = "newsvc/src/lib.rs";
+        fs::write(
+            decisions.join("ADR-9997-newsvc.md"),
+            format!("The new service entrypoint is `{path}`.\n"),
+        )
+        .expect("write ADR");
+
+        let verdict = check_verdict(&root, path);
+
+        assert_eq!(verdict.justification.as_deref(), Some("ADR-9997"));
+        assert!(
+            !verdict.blocking_codes.contains("unjustified"),
+            "a justified path is not unjustified, got {:?}",
+            verdict.blocking_codes
+        );
+
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    #[test]
+    fn check_mode_excluded_path_is_outside_the_accounting_universe() {
+        // A `third-party/` path never enters the scm-facts tracked universe ⇒ cannot RED the
+        // firewall, so the check must not flag it even without any ADR.
+        let root = unique_temp_repo();
+        fs::create_dir_all(root.join("docs/decisions")).expect("create decisions dir");
+
+        let verdict = check_verdict(&root, "third-party/vendored/lib.rs");
+
+        assert!(verdict.excluded, "path_excludes covers third-party/");
+        assert!(
+            verdict.blocking_codes.is_empty(),
+            "excluded paths carry no blocking codes, got {:?}",
+            verdict.blocking_codes
+        );
+
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    #[test]
+    fn check_mode_verdicts_equal_producer_firewall_verdicts() {
+        // PARITY: for the SAME inputs, check-mode's per-path blocking codes are byte-identical to
+        // running the producer face-builder + the firewall's own evaluator (minus `unowned`, which
+        // the pre-push partial set cannot soundly compute). This pins that no divergent verdict
+        // logic is ever introduced — the check reuses the shared functions, it does not re-derive.
+        let root = unique_temp_repo();
+        let decisions = root.join("docs/decisions");
+        fs::create_dir_all(&decisions).expect("create decisions dir");
+        let justified_path = "alpha/src/lib.rs";
+        fs::write(
+            decisions.join("ADR-9996-alpha.md"),
+            format!("The alpha crate is `{justified_path}`.\n"),
+        )
+        .expect("write ADR");
+
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let policy = Policy::from_config(&cfg).expect("policy from bundled default");
+        let paths = vec![justified_path.to_owned(), "beta/src/lib.rs".to_owned()];
+
+        // Producer reference: the exact pipeline CI runs, over the same inputs.
+        let inputs = RepoInputs {
+            tracked_paths: paths.clone(),
+            owners: BTreeMap::new(),
+            justifications: resolve_justifications(&root, &paths, &cfg),
+            reachability: resolve_reachability(&root, &paths, &cfg).expect("reachability"),
+            dup_of: BTreeMap::new(),
+        };
+        let registry = build_registry(&inputs, &policy).expect("build registry");
+        let mut producer: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+        for finding in ci_artifact_accountability::evaluate_keyed(&registry) {
+            if finding.code == "unowned" {
+                continue;
+            }
+            producer
+                .entry(finding.key)
+                .or_default()
+                .insert(finding.code);
+        }
+
+        let verdicts = check_added_paths(&root, &cfg, &policy, &paths).expect("check added paths");
+        for verdict in &verdicts {
+            let expected = producer.get(&verdict.path).cloned().unwrap_or_default();
+            assert_eq!(
+                verdict.blocking_codes, expected,
+                "check-mode codes for {} must equal producer+firewall codes",
+                verdict.path
+            );
+        }
+        // And the substance held: beta is unjustified, alpha is not.
+        let beta = verdicts
+            .iter()
+            .find(|v| v.path == "beta/src/lib.rs")
+            .expect("beta");
+        let alpha = verdicts
+            .iter()
+            .find(|v| v.path == justified_path)
+            .expect("alpha");
+        assert!(beta.blocking_codes.contains("unjustified"));
+        assert!(!alpha.blocking_codes.contains("unjustified"));
 
         fs::remove_dir_all(root).expect("remove temp repo");
     }
@@ -3625,6 +3824,203 @@ fn resolve_justifications(
         }
     }
     map
+}
+
+/// One added path's pre-push verdict (FRIC #1328).
+struct AddedPathVerdict {
+    path: String,
+    unit_class: String,
+    /// Excluded by `[repo].path_excludes` ⇒ never enters the accounting universe.
+    excluded: bool,
+    /// The ADR id that justifies the path, or `None` ⇒ would be `unjustified`.
+    justification: Option<String>,
+    /// The registries that reach the path; empty ⇒ would be `unreachable`.
+    reachable_from: Vec<String>,
+    /// The firewall codes this NEW path would introduce as regressions. Owner-independent:
+    /// `unowned` is dropped (see [`check_added_paths`]).
+    blocking_codes: BTreeSet<String>,
+}
+
+/// Added tracked files between `merge_base` and `HEAD` (`git diff --diff-filter=A`). The
+/// author-side convenience input for `--check-diff`; the pre-push flow commits new files, then
+/// runs this. Fail-loud: an unknown/unfetched base is a hard error, never a silent empty set.
+fn git_added_paths(repo_root: &Path, merge_base: &str) -> Result<Vec<String>, CliError> {
+    let output = std::process::Command::new("git")
+        .arg("-C")
+        .arg(repo_root)
+        .args(["diff", "--name-only", "--diff-filter=A", merge_base, "HEAD"])
+        .output()
+        .map_err(|e| CliError::Io(format!("git diff (added paths): {e}")))?;
+    if !output.status.success() {
+        return Err(CliError::Io(format!(
+            "git diff --name-only --diff-filter=A {merge_base} HEAD failed (exit {:?}): {} — \
+             fetch the base ref or pass a reachable merge-base",
+            output.status.code(),
+            String::from_utf8_lossy(&output.stderr).trim()
+        )));
+    }
+    Ok(String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty())
+        .map(str::to_owned)
+        .collect())
+}
+
+/// Resolve the firewall verdict for a set of ADDED paths, reusing the EXACT producer
+/// resolvers + face-builder + the firewall's own evaluator — no reimplementation, no drift.
+///
+/// The added set IS the tracked-path universe here, so no materialized scm-facts face is
+/// needed (that is why authors miss the failure): `resolve_justifications` /
+/// `resolve_reachability` read the ADR corpus + registries straight from the working tree.
+/// A NEW path is never grandfathered by the merge-base baseline, so any per-row finding on it
+/// is guaranteed to be a regression — the check needs no baseline.
+///
+/// `unowned` is intentionally not reported: owner resolution is FULL-TREE (the granting up-tree
+/// `OWNERS` file is usually not in the added set), so it is not soundly computable from a
+/// partial set. The full gate owns ownership; this check covers justification + reachability
+/// (+ the path-only `scratch_artifact` / `no_ttl_class` classes).
+fn check_added_paths(
+    repo_root: &Path,
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    policy: &Policy,
+    paths: &[String],
+) -> Result<Vec<AddedPathVerdict>, CliError> {
+    // Excluded paths never enter the scm-facts tracked universe; split them out with the SAME
+    // predicate the producer applies so the check matches CI's accounting boundary exactly.
+    let accounted: Vec<String> = paths
+        .iter()
+        .filter(|path| !is_path_excluded(path, cfg))
+        .cloned()
+        .collect();
+
+    let justifications = resolve_justifications(repo_root, &accounted, cfg);
+    let reachability = resolve_reachability(repo_root, &accounted, cfg)?;
+
+    // Route the added rows through the producer's OWN face-builder and the firewall's OWN
+    // evaluator: the unjustified/unreachable/scratch/ttl verdicts are byte-identical to CI.
+    let inputs = RepoInputs {
+        tracked_paths: accounted,
+        owners: BTreeMap::new(),
+        justifications: justifications.clone(),
+        reachability: reachability.clone(),
+        dup_of: BTreeMap::new(),
+    };
+    let registry = build_registry(&inputs, policy)?;
+    let mut codes_by_key: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    for finding in ci_artifact_accountability::evaluate_keyed(&registry) {
+        if finding.code == "unowned" {
+            continue;
+        }
+        codes_by_key
+            .entry(finding.key)
+            .or_default()
+            .insert(finding.code);
+    }
+
+    Ok(paths
+        .iter()
+        .map(|path| {
+            let excluded = is_path_excluded(path, cfg);
+            AddedPathVerdict {
+                unit_class: policy.classify(path).to_owned(),
+                justification: justifications.get(path).cloned(),
+                reachable_from: reachability.get(path).cloned().unwrap_or_default(),
+                blocking_codes: if excluded {
+                    BTreeSet::new()
+                } else {
+                    codes_by_key.get(path).cloned().unwrap_or_default()
+                },
+                excluded,
+                path: path.clone(),
+            }
+        })
+        .collect())
+}
+
+/// The exact, actionable remediation for an `unjustified` added path (FRIC #1328): name the
+/// precise path token to add and the governing-ADR precedents. Extracted so the tests can pin
+/// the author-facing text.
+fn unjustified_remediation(path: &str) -> String {
+    format!(
+        "add the exact path token `{path}` to the governing ADR under docs/decisions/ — \
+         precedent: ADR-0515 for ci/ gate surfaces, ADR-0251 for compliance artifacts"
+    )
+}
+
+/// Print the per-path pre-push report and return whether the added set is clean (no path would
+/// RED `[cloud-ci-total-accounting]`). Remediation is exact and actionable per code.
+fn report_check(verdicts: &[AddedPathVerdict]) -> bool {
+    let mut clean = true;
+    for verdict in verdicts {
+        if verdict.excluded {
+            println!(
+                "{}: OK — excluded by [repo].path_excludes; outside the accounting universe",
+                verdict.path
+            );
+            continue;
+        }
+        if verdict.unit_class == "ephemeral" {
+            println!(
+                "{}: OK — unit_class=ephemeral; carved out of the registry (no row, cannot RED)",
+                verdict.path
+            );
+            continue;
+        }
+        let reach = if verdict.reachable_from.is_empty() {
+            "UNREACHABLE".to_owned()
+        } else {
+            verdict.reachable_from.join(",")
+        };
+        let justified = verdict.justification.as_deref().unwrap_or("NO");
+        if verdict.blocking_codes.is_empty() {
+            println!(
+                "{}: OK — justified by {justified} · reachable via {reach}",
+                verdict.path
+            );
+            continue;
+        }
+        clean = false;
+        let codes: Vec<&str> = verdict.blocking_codes.iter().map(String::as_str).collect();
+        println!(
+            "{}: WOULD RED [cloud-ci-total-accounting] — {} (reachable via {reach} · justified: {justified})",
+            verdict.path,
+            codes.join(", ")
+        );
+        if verdict.blocking_codes.contains("unjustified") {
+            println!(
+                "    fix (unjustified): {}",
+                unjustified_remediation(&verdict.path)
+            );
+        }
+        if verdict.blocking_codes.contains("unreachable") {
+            println!(
+                "    fix (unreachable): register `{}` in a live reachability registry (masterplan / \
+                 root-hub-pointers / DOC-CATALOG / the reviewed reachability-registry), or land it \
+                 under a workspace Cargo member",
+                verdict.path
+            );
+        }
+        if verdict.blocking_codes.contains("scratch_artifact") {
+            println!(
+                "    fix (scratch_artifact): `{}` matches a build/test scratch shape \
+                 (unit-class-policy) — zero-tolerance, never grandfathered; relocate/rename it out \
+                 of the scratch class",
+                verdict.path
+            );
+        }
+    }
+    if clean {
+        println!(
+            "check: OK — {} added path(s); none would RED [cloud-ci-total-accounting]",
+            verdicts.len()
+        );
+    } else {
+        println!(
+            "check: WOULD RED — fix the paths above, then re-run --check-paths before pushing"
+        );
+    }
+    clean
 }
 
 fn read_text(path: &Path) -> String {
