@@ -15,6 +15,10 @@ name = "ci_contract_slice_conformance"
 path = "src/lib.rs"
 doctest = false
 
+[[bin]]
+name = "oya-cloud-ci-materialize-contract-slice-policy"
+path = "src/bin/oya-cloud-ci-materialize-contract-slice-policy.rs"
+
 [dependencies]
 serde_json = { workspace = true }
 regex = { workspace = true }
