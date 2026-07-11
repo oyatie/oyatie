@@ -10,6 +10,11 @@
 //!    names — IN PLACE at their OLD paths (so paths recompute against the to-be layout);
 //! 4. rewrite ALL `BUCK` labels + the moved BUCKs' own name/crate fields;
 //! 5. rewrite ALL `.rs` crate-ident references;
+//! 5b. rewrite ADR doc-anchor path citations (`docs/decisions/*.md`) old -> new for every moved
+//!    crate — a load-bearing `justification_ref` anchor for the total-accounting gate
+//!    (`resolve_justifications` token-walks the ADR corpus); left un-rewritten, a moved file an
+//!    ADR cites by exact path silently loses its justification (distinct from the ADR-0563
+//!    baseline-relabel class, which only covers PRE-EXISTING baselined debt, not a live citation);
 //! 6. rewrite the root workspace members/exclude if needed;
 //!    then relocate the moved crates' `Cargo.lock` entries (rename + re-canonicalize) via the
 //!    owned pure transform — byte-identical, no cargo, no-op without a root lockfile;
@@ -57,6 +62,9 @@ pub struct ApplyOutcome {
     pub manifests_rewritten: Vec<String>,
     pub bucks_rewritten: Vec<String>,
     pub rust_files_rewritten: Vec<String>,
+    /// `docs/decisions/*.md` files whose ADR body cited a moved crate's OLD exact path and were
+    /// rewritten to the NEW path (Step 5b). Empty when no ADR anchors a moved crate's path.
+    pub docs_rewritten: Vec<String>,
     pub root_workspace_changed: bool,
     /// True iff the root `Cargo.lock` package entries were relocated (renamed + re-canonicalized)
     /// by this move. False when the tree has no lockfile or no crate's cargo name changed.
@@ -128,6 +136,7 @@ pub fn apply_plan(
         manifests_rewritten: Vec::new(),
         bucks_rewritten: Vec::new(),
         rust_files_rewritten: Vec::new(),
+        docs_rewritten: Vec::new(),
         root_workspace_changed: false,
         cargo_lock_changed: false,
         dirs_moved: Vec::new(),
@@ -155,6 +164,9 @@ pub fn apply_plan(
             rewrite_one_rust(&abs, rel, &ident_renames, &mut outcome)?;
         }
     }
+
+    // --- Step 5b: rewrite ADR doc-anchor path citations. ---
+    rewrite_doc_anchors(repo_root, plan, &mut outcome)?;
 
     // --- Step 6: root workspace members/exclude. ---
     rewrite_root_workspace(repo_root, plan, &mut outcome)?;
@@ -677,6 +689,105 @@ fn write(abs: &Path, rel: &str, content: &str) -> Result<(), CodemodError> {
     })
 }
 
+/// Repo-relative directory the codemod scans for ADR doc-anchor rewrites. Mirrors
+/// `oya-ci.toml`'s `[justification].adr_dir` default (`docs/decisions`) — the two tools are
+/// independent (this codemod carries no `oya_ci_config_kernel` dependency) but conventionally
+/// agree on the path, since both read the SAME repo's ADR corpus.
+const ADR_DIR: &str = "docs/decisions";
+
+/// Step 5b: rewrite ADR doc-anchor path citations old -> new for every crate move. A doc citing
+/// a moved crate's exact path (e.g. `oya/intelligence/crates/oya-intelligence-catalog-domain/
+/// src/lib.rs`) is a load-bearing `justification_ref` anchor for the cloud-ci-total-accounting
+/// gate: `resolve_justifications` token-walks every `docs/decisions/*.md` body for tracked-path
+/// substrings, and a citation of a currently-live file (not pre-existing baselined debt) is that
+/// file's ONLY justification source. Leaving the anchor at the OLD path after a move silently
+/// drops the moved file's justification — a genuine `unjustified` regression the ADR-0563
+/// rename-aware baseline relabel does NOT cover (relabel only shifts PRE-EXISTING accepted-debt
+/// baseline keys; a live, currently-justified citation was never baselined, so there is no key to
+/// relabel). Content-preserving: only exact, boundary-safe path-token occurrences are substituted
+/// (see [`rewrite_path_token`]); every other byte in the file is untouched. A tree with no ADR
+/// dir (e.g. a codemod fixture) is a silent no-op.
+fn rewrite_doc_anchors(
+    repo_root: &Path,
+    plan: &MovePlan,
+    outcome: &mut ApplyOutcome,
+) -> Result<(), CodemodError> {
+    if plan.moves.is_empty() {
+        return Ok(());
+    }
+    let dir = repo_root.join(ADR_DIR);
+    let Ok(entries) = std::fs::read_dir(&dir) else {
+        return Ok(());
+    };
+    let mut doc_paths: Vec<String> = Vec::new();
+    for entry in entries.flatten() {
+        let Some(name) = entry.file_name().to_str().map(str::to_owned) else {
+            continue;
+        };
+        if name.ends_with(".md") {
+            doc_paths.push(format!("{ADR_DIR}/{name}"));
+        }
+    }
+    doc_paths.sort();
+
+    for rel in &doc_paths {
+        let abs = repo_root.join(rel);
+        let mut text = read(&abs, rel)?;
+        let mut file_changed = false;
+        for m in &plan.moves {
+            if let Some(rewritten) = rewrite_path_token(&text, &m.old_path, &m.new_path) {
+                text = rewritten;
+                file_changed = true;
+            }
+        }
+        if file_changed {
+            write(&abs, rel, &text)?;
+            outcome.docs_rewritten.push(rel.clone());
+        }
+    }
+    Ok(())
+}
+
+/// Replace every BOUNDARY-SAFE occurrence of `old` in `text` with `new`. A match at byte offset
+/// `i` qualifies only when the character immediately following it is NOT an identifier
+/// continuation (`[A-Za-z0-9_-]`) — so `<old_path>/src/lib.rs` (a cited file nested under the
+/// crate dir) and a bare `<old_path>` mention both rewrite, but a longer, unrelated sibling name
+/// that merely starts with `old` (e.g. `<old_path>-v2`) is left untouched. Returns `None` when no
+/// occurrence qualifies (byte-identical to input; the caller skips the write).
+fn rewrite_path_token(text: &str, old: &str, new: &str) -> Option<String> {
+    if old.is_empty() || !text.contains(old) {
+        return None;
+    }
+    let bytes = text.as_bytes();
+    let mut out = String::with_capacity(text.len());
+    let mut changed = false;
+    let mut i = 0;
+    while i < text.len() {
+        if text[i..].starts_with(old) {
+            let next = bytes.get(i + old.len()).copied();
+            let boundary_ok = next.map(|b| !is_ident_continuation(b)).unwrap_or(true);
+            if boundary_ok {
+                out.push_str(new);
+                i += old.len();
+                changed = true;
+                continue;
+            }
+        }
+        // Advance by one CHAR (not byte) to stay UTF-8-safe on multi-byte ADR prose.
+        let ch = text[i..]
+            .chars()
+            .next()
+            .expect("i < text.len() implies a char starts here");
+        out.push(ch);
+        i += ch.len_utf8();
+    }
+    changed.then_some(out)
+}
+
+fn is_ident_continuation(b: u8) -> bool {
+    b.is_ascii_alphanumeric() || b == b'_' || b == b'-'
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -703,6 +814,185 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
     fn parent_dir_handles_root_and_nested() {
         assert_eq!(parent_dir("Cargo.toml"), "");
         assert_eq!(parent_dir("a/b/Cargo.toml"), "a/b");
+    }
+
+    // --- rewrite_path_token: the ADR doc-anchor rewrite's boundary-safety unit tests ---
+
+    #[test]
+    fn rewrite_path_token_rewrites_a_nested_file_citation() {
+        let text = "See `oya/intelligence/crates/oya-intelligence-catalog-domain/src/lib.rs`, the graphql field.";
+        let out = rewrite_path_token(
+            text,
+            "oya/intelligence/crates/oya-intelligence-catalog-domain",
+            "intelligence/core/catalog-domain",
+        )
+        .expect("must rewrite");
+        assert_eq!(
+            out,
+            "See `intelligence/core/catalog-domain/src/lib.rs`, the graphql field."
+        );
+    }
+
+    #[test]
+    fn rewrite_path_token_rewrites_a_bare_crate_dir_mention() {
+        let text = "the crate at oya/intelligence/crates/oya-intelligence-catalog-domain moved.";
+        let out = rewrite_path_token(
+            text,
+            "oya/intelligence/crates/oya-intelligence-catalog-domain",
+            "intelligence/core/catalog-domain",
+        )
+        .expect("must rewrite");
+        assert_eq!(out, "the crate at intelligence/core/catalog-domain moved.");
+    }
+
+    #[test]
+    fn rewrite_path_token_does_not_corrupt_a_longer_sibling_crate_name() {
+        // `oya-intelligence-catalog-domain-v2` is a DIFFERENT, unrelated crate that merely starts
+        // with the same prefix; a naive substring replace would corrupt it.
+        let text = "oya/intelligence/crates/oya-intelligence-catalog-domain-v2/src/lib.rs";
+        assert_eq!(
+            rewrite_path_token(
+                text,
+                "oya/intelligence/crates/oya-intelligence-catalog-domain",
+                "intelligence/core/catalog-domain",
+            ),
+            None,
+            "a longer sibling crate name must NOT be rewritten"
+        );
+    }
+
+    #[test]
+    fn rewrite_path_token_returns_none_when_absent() {
+        assert_eq!(
+            rewrite_path_token("nothing relevant here", "oya/foo/bar", "foo/bar"),
+            None
+        );
+    }
+
+    #[test]
+    fn rewrite_path_token_rewrites_every_occurrence() {
+        let text = "a/b/c mentioned twice: a/b/c again.";
+        let out = rewrite_path_token(text, "a/b/c", "x/y/z").expect("must rewrite");
+        assert_eq!(out, "x/y/z mentioned twice: x/y/z again.");
+    }
+
+    // --- rewrite_doc_anchors: the full apply_plan integration RED/GREEN proof ---
+
+    fn adr_tmp_root(tag: &str) -> PathBuf {
+        artifact_tmp_root(&format!("adr-{tag}"))
+    }
+
+    fn build_adr_anchor_fixture(root: &Path) {
+        wf(
+            root,
+            "Cargo.toml",
+            "[workspace]\nmembers = [\"crates/*\", \"intelligence/*/*\"]\nresolver = \"2\"\n",
+        );
+        wf(
+            root,
+            "crates/oya-intelligence-catalog-domain/Cargo.toml",
+            "[package]\nname = \"oya-intelligence-catalog-domain\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        wf(
+            root,
+            "crates/oya-intelligence-catalog-domain/src/lib.rs",
+            "pub fn d() {}\n",
+        );
+        // The load-bearing exhibit: an ADR that cites the crate's exact OLD file path as a
+        // justification anchor (mirrors ADR-0565's real citation of catalog-domain/src/lib.rs).
+        wf(
+            root,
+            "docs/decisions/ADR-0001-graphql.md",
+            "In `crates/oya-intelligence-catalog-domain/src/lib.rs`, the \"graphql\" value is banned.\n",
+        );
+        // A SIBLING doc that must be left byte-identical (no citation of the moved crate).
+        wf(
+            root,
+            "docs/decisions/ADR-0002-unrelated.md",
+            "This ADR mentions nothing about intelligence crates.\n",
+        );
+    }
+
+    fn adr_anchor_plan() -> MovePlan {
+        MovePlan {
+            capability: "intelligence".to_string(),
+            moves: vec![CrateMove {
+                old_path: "crates/oya-intelligence-catalog-domain".to_string(),
+                new_path: "intelligence/core/catalog-domain".to_string(),
+                old_cargo_name: "oya-intelligence-catalog-domain".to_string(),
+                new_cargo_name: "intelligence-catalog-domain".to_string(),
+            }],
+            artifacts: vec![],
+        }
+    }
+
+    #[test]
+    fn apply_rewrites_an_adr_doc_anchor_old_to_new() {
+        let root = adr_tmp_root("rewrite");
+        build_adr_anchor_fixture(&root);
+        let plan = adr_anchor_plan();
+
+        let outcome = apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false }).unwrap();
+
+        let adr = std::fs::read_to_string(root.join("docs/decisions/ADR-0001-graphql.md")).unwrap();
+        assert_eq!(
+            adr,
+            "In `intelligence/core/catalog-domain/src/lib.rs`, the \"graphql\" value is banned.\n",
+            "the ADR anchor must be rewritten old -> new, content otherwise byte-identical"
+        );
+        assert!(
+            !adr.contains("crates/oya-intelligence-catalog-domain"),
+            "no residual old-path token may remain: {adr}"
+        );
+
+        // CANARY: this fails if Step 5b is removed (docs_rewritten would be empty).
+        assert_eq!(
+            outcome.docs_rewritten,
+            vec!["docs/decisions/ADR-0001-graphql.md".to_string()],
+            "only the citing doc is touched, and it must be recorded in the outcome"
+        );
+
+        // The sibling doc with no citation must be byte-identical (not merely unlisted).
+        let unrelated =
+            std::fs::read_to_string(root.join("docs/decisions/ADR-0002-unrelated.md")).unwrap();
+        assert_eq!(
+            unrelated,
+            "This ADR mentions nothing about intelligence crates.\n"
+        );
+
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn apply_leaves_docs_rewritten_empty_when_no_adr_cites_the_moved_crate() {
+        let root = adr_tmp_root("no-citation");
+        wf(
+            &root,
+            "Cargo.toml",
+            "[workspace]\nmembers = [\"crates/*\", \"intelligence/*/*\"]\nresolver = \"2\"\n",
+        );
+        wf(
+            &root,
+            "crates/oya-intelligence-catalog-domain/Cargo.toml",
+            "[package]\nname = \"oya-intelligence-catalog-domain\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        wf(
+            &root,
+            "crates/oya-intelligence-catalog-domain/src/lib.rs",
+            "pub fn d() {}\n",
+        );
+        // No docs/decisions dir at all — the RED case this must NOT crash on.
+        let plan = adr_anchor_plan();
+
+        let outcome = apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false }).unwrap();
+        assert!(
+            outcome.docs_rewritten.is_empty(),
+            "no ADR dir/citation ⇒ nothing rewritten: {:?}",
+            outcome.docs_rewritten
+        );
+        assert!(root.join("intelligence/core/catalog-domain/Cargo.toml").is_file());
+
+        let _ = std::fs::remove_dir_all(&root);
     }
 
     // --- ArtifactMove (PR-A) apply tests: NON-crate co-move (SLOs, catalog records) ---
