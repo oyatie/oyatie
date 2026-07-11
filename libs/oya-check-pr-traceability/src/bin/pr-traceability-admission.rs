@@ -4,7 +4,8 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 use oya_check_pr_traceability::{
-    PrTraceabilityDocument, PrTraceabilityPolicy, validate_pr_traceability,
+    PrTraceabilityDocument, PrTraceabilityPolicy, scaffold_pr_body, validate_pr_traceability,
+    validate_pr_traceability_all,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -13,10 +14,26 @@ struct Args {
     pr_title: String,
     require_code_review: bool,
     forbid_code_review: bool,
+    scaffold: bool,
+    all_violations: bool,
 }
 
 fn main() -> ExitCode {
-    match run(env::args().skip(1).collect()) {
+    let args = match parse_args(env::args().skip(1).collect()) {
+        Ok(args) => args,
+        Err(message) => {
+            eprintln!("PR review admission failed: {message}");
+            return ExitCode::FAILURE;
+        }
+    };
+
+    if args.scaffold {
+        // Prints ONLY the template (no banner) so `--scaffold > body.md` is clean to redirect.
+        print!("{}", scaffold_pr_body());
+        return ExitCode::SUCCESS;
+    }
+
+    match run(args) {
         Ok((sections, code_review_present)) => {
             println!(
                 "PR review admission passed: {sections} required sections, code_review_present={code_review_present}"
@@ -30,8 +47,7 @@ fn main() -> ExitCode {
     }
 }
 
-fn run(args: Vec<String>) -> Result<(usize, bool), String> {
-    let args = parse_args(args)?;
+fn run(args: Args) -> Result<(usize, bool), String> {
     let body = fs::read_to_string(&args.pr_body_path).map_err(|error| {
         format!(
             "PR body unreadable {}: {error}",
@@ -43,14 +59,25 @@ fn run(args: Vec<String>) -> Result<(usize, bool), String> {
         title: args.pr_title,
         body,
     };
-    let report = validate_pr_traceability(
-        &document,
-        PrTraceabilityPolicy {
-            require_code_review: args.require_code_review,
-            forbid_code_review: args.forbid_code_review,
-        },
-    )
-    .map_err(|error| format!("{error:?}"))?;
+    let policy = PrTraceabilityPolicy {
+        require_code_review: args.require_code_review,
+        forbid_code_review: args.forbid_code_review,
+    };
+
+    if args.all_violations {
+        let errors = validate_pr_traceability_all(&document, policy);
+        if !errors.is_empty() {
+            let listed = errors
+                .iter()
+                .map(|error| format!("  - {error:?}"))
+                .collect::<Vec<_>>()
+                .join("\n");
+            return Err(format!("{} violation(s):\n{listed}", errors.len()));
+        }
+    }
+
+    let report =
+        validate_pr_traceability(&document, policy).map_err(|error| format!("{error:?}"))?;
     Ok((report.required_sections_checked, report.code_review_present))
 }
 
@@ -60,11 +87,13 @@ fn parse_args(args: Vec<String>) -> Result<Args, String> {
         pr_title: String::new(),
         require_code_review: true,
         forbid_code_review: false,
+        scaffold: false,
+        all_violations: false,
     };
     let mut iter = args.into_iter();
     while let Some(flag) = iter.next() {
         match flag.as_str() {
-            "--pr-body" => {
+            "--pr-body" | "--check" => {
                 let Some(path) = iter.next() else {
                     return Err(usage());
                 };
@@ -84,6 +113,8 @@ fn parse_args(args: Vec<String>) -> Result<Args, String> {
                 parsed.forbid_code_review = true;
                 parsed.require_code_review = false;
             }
+            "--scaffold" => parsed.scaffold = true,
+            "--all-violations" => parsed.all_violations = true,
             _ => return Err(usage()),
         }
     }
@@ -91,7 +122,7 @@ fn parse_args(args: Vec<String>) -> Result<Args, String> {
 }
 
 fn usage() -> String {
-    "usage: pr-traceability-admission [--pr-title <title>] [--pr-body <path>] [--require-code-review|--forbid-code-review]".into()
+    "usage: pr-traceability-admission [--scaffold] [--pr-title <title>] [--pr-body|--check <path>] [--require-code-review|--forbid-code-review] [--all-violations]".into()
 }
 
 #[cfg(test)]
@@ -107,6 +138,8 @@ mod tests {
                 pr_title: String::new(),
                 require_code_review: true,
                 forbid_code_review: false,
+                scaffold: false,
+                all_violations: false,
             })
         );
     }
@@ -126,7 +159,53 @@ mod tests {
                 pr_title: "Ready".into(),
                 require_code_review: false,
                 forbid_code_review: true,
+                scaffold: false,
+                all_violations: false,
             })
+        );
+    }
+
+    #[test]
+    fn parse_accepts_scaffold_check_and_all_violations_flags() {
+        assert_eq!(
+            parse_args(vec![
+                "--scaffold".into(),
+                "--check".into(),
+                "body.md".into(),
+                "--all-violations".into(),
+            ]),
+            Ok(Args {
+                pr_body_path: PathBuf::from("body.md"),
+                pr_title: String::new(),
+                require_code_review: true,
+                forbid_code_review: false,
+                scaffold: true,
+                all_violations: true,
+            })
+        );
+    }
+
+    #[test]
+    fn scaffold_round_trips_through_check_with_only_the_pending_verdict_failing() {
+        let path = env::temp_dir().join(format!(
+            "pr-traceability-admission-scaffold-test-{}.md",
+            std::process::id()
+        ));
+        fs::write(&path, scaffold_pr_body()).expect("write scaffold to temp file");
+
+        let result = run(Args {
+            pr_body_path: path.clone(),
+            pr_title: "Scaffolded PR".into(),
+            require_code_review: true,
+            forbid_code_review: false,
+            scaffold: false,
+            all_violations: true,
+        });
+
+        let _ = fs::remove_file(&path);
+        assert_eq!(
+            result,
+            Err("1 violation(s):\n  - MissingCodeReviewApproval".into())
         );
     }
 }
