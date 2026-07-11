@@ -23,9 +23,25 @@ on:
   workflow_dispatch:
   push:
     branches: [dev]
+  # CI-CLASS-FIX (same-SHA double-trigger, 2026-07-10 merge train): `push` is already
+  # dev-only above, so a PR-branch push never double-fires push+pull_request. The actual
+  # repeat-run source was `edited` — CodeRabbit (coderabbitai[bot]) auto-edits the PR body
+  # (walkthrough/summary) ~1-2 min after nearly every push, firing a SECOND pull_request
+  # event for the SAME head SHA. Because `cancel-in-progress` (below) is true for
+  # pull_request, that edit-triggered run cancels the still-running push-triggered
+  # `synchronize` run for that identical SHA, leaving a CANCELLED `oya-ci-required`
+  # check-run instance on a SHA whose later run may still go green — the exact
+  # false-block pattern that forced hand-reruns/empty-commit pushes on ~5 PRs (verified via
+  # gh api: coderabbitai userContentEdits timestamps land within 3-5s of the second run's
+  # created_at on PR #1297, #1322, #1309, #1327). `edited` fires on ANY title/body/base
+  # edit and carries no code-relevant signal — the PR-metadata preflight step (affected-set
+  # job, `pr-traceability-admission-bin`) already re-fetches the LIVE PR body via `gh api`
+  # at execution time for exactly this reason, so a body-only edit needs no new run at all
+  # (a `gh run rerun` re-validates against the current body). Dropping `edited` removes the
+  # redundant trigger at its source instead of papering over the cancelled-run symptom.
   pull_request:
     branches: [dev]
-    types: [opened, reopened, synchronize, edited, ready_for_review]
+    types: [opened, reopened, synchronize, ready_for_review]
   merge_group:
 
 permissions:
