@@ -107,7 +107,7 @@ fn string_set(
 ///
 /// ```jsonc
 /// {
-///   "registry": { "capabilities": [ { "absorbs_current_dirs": ["policy", "oya/policy"] } ],
+///   "registry": { "capabilities": [ { "absorbs_current_dirs": ["policy", "example/policy"] } ],
 ///                 "meta_directories": [ { "dir": "kernel/" } ] },
 ///   "policies": {
 ///     "module_membership": { "path": "ci/facade/module-membership/capability-membership-policy.json",
