@@ -4,7 +4,7 @@
 //! `scripts/tests/*_check.py` "contract slice" validators with a single owned,
 //! declarative, owned-Rust gate.
 //!
-//! A worker declares a slice as one entry in `contract-slice-policy.json`
+//! A worker declares a slice as one committed fragment file under `slices/`
 //! (the committed spec path, its required fields, enum constraints, forbidden
 //! content markers, and — for a migration — the retired Python source) and
 //! ships the slice's committed spec JSON. No new Python, no shell, no CLI, no
@@ -14,8 +14,12 @@
 //! The surface is API/config shaped: callers pass the policy plus the typed
 //! JSON corpus to [`evaluate_configured`]. The gate is pure — it never shells
 //! out, spawns an interpreter, mutates files, or reads ambient repository
-//! state. Repository-specific paths and per-slice rules live in
-//! `contract-slice-policy.json`.
+//! state. Repository-specific paths and per-slice rules live as DATA, sharded
+//! one slice per file under `slices/`; `contract-slice-policy.json` is the
+//! GENERATED aggregate `evaluate_configured` consumes (see `fragments.rs` and
+//! the README) — its committed path is unchanged (external `governed_surfaces`
+//! / root-hub-pointers / ADR references cite it by exact path), but it is no
+//! longer hand-edited.
 //!
 //! Mirrors the `resource-contract-conformance` gate (ADR-0515 WS-D pure gate
 //! shape; the `source_migration_slice` Python→Rust retirement pattern).
@@ -26,6 +30,9 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use regex::Regex;
 use serde_json::Value;
+
+mod fragments;
+pub use fragments::{FragmentLoad, aggregate_policy, load_slice_fragments, render_policy_json};
 
 /// Cloud-ci gate id for the contract-slice conformance gate.
 pub const GATE_ID: &str = "cloud-ci-contract-slice-conformance";
