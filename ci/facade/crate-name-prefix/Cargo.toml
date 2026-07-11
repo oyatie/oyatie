@@ -24,9 +24,7 @@ doctest = false
 
 [dependencies]
 serde_json = { workspace = true }
-oya-intelligence-cargo-prefix-domain = { path = "../../../oya/intelligence/crates/oya-intelligence-cargo-prefix-domain" }
-# The required prefix is sourced from the oya-ci config `[naming]` section
-# (OYA-CI-CONFORMANCE-FLOOR-PLAN §3.3); the bundled default reproduces today's `oya-` (byte-parity).
+intelligence-cargo-prefix-domain = { path = "../../../intelligence/core/cargo-prefix-domain" }
 oya-ci-config-kernel = { path = "../../../libs/oya-ci-config" }
 
 [dev-dependencies]

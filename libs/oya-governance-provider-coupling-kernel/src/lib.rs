@@ -165,7 +165,7 @@ mod tests {
                 "oya-intelligence-account-domain",
                 "src/lib.rs",
                 10,
-                "oya_intelligence_account_kernel::ProviderFamily",
+                "intelligence_account_kernel::ProviderFamily",
             ),
         ];
         let r = check(&imports).unwrap();
@@ -291,7 +291,7 @@ mod tests {
             "oya-intelligence-route-policy-kernel",
             "src/lib.rs",
             5,
-            "oya_intelligence_account_kernel::ProviderFamily",
+            "intelligence_account_kernel::ProviderFamily",
         )];
         let r = check(&imports).unwrap();
         // "kernel" doesn't match any banned token; this passes.

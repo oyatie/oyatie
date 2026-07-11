@@ -42,7 +42,7 @@
 use std::collections::BTreeMap;
 use std::fmt;
 
-use oya_intelligence_account_kernel::SecretReference;
+use intelligence_account_kernel::SecretReference;
 
 /// One facet's recommendation from one subagent invocation. Mirrors
 /// the `final_recommendation` enum in the consensus debate protocol.

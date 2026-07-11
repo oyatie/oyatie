@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 
-use oya_intelligence_api_rest_kernel::{ResponseStatus, UseCaseRequest, UseCaseResponse};
+use intelligence_api_rest_kernel::{ResponseStatus, UseCaseRequest, UseCaseResponse};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SseEvent {

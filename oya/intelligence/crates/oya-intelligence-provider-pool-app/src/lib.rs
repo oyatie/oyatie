@@ -19,7 +19,7 @@
 //!   least-used / least-latency / least-remaining / sticky kernel that emits a
 //!   [`PoolRoutingDecision`] from `(pool, request, usage, health, now)`. No I/O,
 //!   no async.
-//! - [`oya_intelligence_account_kernel`] — the shared [`ProviderFamily`] +
+//! - [`intelligence_account_kernel`] — the shared [`ProviderFamily`] +
 //!   [`SecretReference`] value types the pool kernel exchanges across product
 //!   boundaries.
 //!
@@ -88,7 +88,7 @@ use oya_http_runtime_hyper_adapter::{
 use std::collections::HashSet;
 use std::sync::OnceLock;
 
-pub use oya_intelligence_account_kernel::{ProviderFamily, SecretReference};
+pub use intelligence_account_kernel::{ProviderFamily, SecretReference};
 pub use oya_intelligence_provider_pool_kernel::{
     AccountHealth, AccountHealthMap, CooldownPolicy, DurationMs, FailureKind, HealthState,
     PoolError, PoolId, PoolMembershipChange, PoolRoutingDecision, PoolRoutingReason,

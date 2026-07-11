@@ -17,8 +17,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-# Branch Y: zero new external deps; internal workspace crates only.
-oya-intelligence-account-kernel = { path = "../oya-intelligence-account-kernel" }
+intelligence-account-kernel = { path = "../../../../intelligence/core/account-kernel" }
 oya-intelligence-account-domain = { path = "../oya-intelligence-account-domain" }
 
 [lints]
