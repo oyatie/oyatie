@@ -44,6 +44,8 @@ rust_test(
     deps = [
         ":ci-crate-layer-suffix",
         "//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry",
+        "//libs/oya-ci-config:oya-ci-config-kernel",
+        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
         "third-party//:serde_json",
     ],
 )

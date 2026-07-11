@@ -10,6 +10,11 @@
 //!    names — IN PLACE at their OLD paths (so paths recompute against the to-be layout);
 //! 4. rewrite ALL `BUCK` labels + the moved BUCKs' own name/crate fields;
 //! 5. rewrite ALL `.rs` crate-ident references;
+//! 5b. rewrite ADR doc-anchor path citations (`docs/decisions/*.md`) old -> new for every moved
+//!    crate — a load-bearing `justification_ref` anchor for the total-accounting gate
+//!    (`resolve_justifications` token-walks the ADR corpus); left un-rewritten, a moved file an
+//!    ADR cites by exact path silently loses its justification (distinct from the ADR-0563
+//!    baseline-relabel class, which only covers PRE-EXISTING baselined debt, not a live citation);
 //! 6. rewrite the root workspace members/exclude if needed;
 //!    then relocate the moved crates' `Cargo.lock` entries (rename + re-canonicalize) via the
 //!    owned pure transform — byte-identical, no cargo, no-op without a root lockfile;
@@ -31,7 +36,7 @@ use oya_workspace_members_kernel::resolve_member_dirs_from_str;
 use crate::buck;
 use crate::cargo;
 use crate::model::{
-    dir_exists, snake, CodemodError, CrateMove, Mapping, MovePlan,
+    dir_exists, rewrite_path_token, snake, CodemodError, CrateMove, Mapping, MovePlan,
 };
 use crate::rust_src;
 
@@ -57,6 +62,9 @@ pub struct ApplyOutcome {
     pub manifests_rewritten: Vec<String>,
     pub bucks_rewritten: Vec<String>,
     pub rust_files_rewritten: Vec<String>,
+    /// `docs/decisions/*.md` files whose ADR body cited a moved crate's OLD exact path and were
+    /// rewritten to the NEW path (Step 5b). Empty when no ADR anchors a moved crate's path.
+    pub docs_rewritten: Vec<String>,
     pub root_workspace_changed: bool,
     /// True iff the root `Cargo.lock` package entries were relocated (renamed + re-canonicalized)
     /// by this move. False when the tree has no lockfile or no crate's cargo name changed.
@@ -128,6 +136,7 @@ pub fn apply_plan(
         manifests_rewritten: Vec::new(),
         bucks_rewritten: Vec::new(),
         rust_files_rewritten: Vec::new(),
+        docs_rewritten: Vec::new(),
         root_workspace_changed: false,
         cargo_lock_changed: false,
         dirs_moved: Vec::new(),
@@ -155,6 +164,9 @@ pub fn apply_plan(
             rewrite_one_rust(&abs, rel, &ident_renames, &mut outcome)?;
         }
     }
+
+    // --- Step 5b: rewrite ADR doc-anchor path citations. ---
+    rewrite_doc_anchors(repo_root, plan, &mut outcome)?;
 
     // --- Step 6: root workspace members/exclude. ---
     rewrite_root_workspace(repo_root, plan, &mut outcome)?;
@@ -323,7 +335,7 @@ fn rewrite_root_workspace(
 
     // Old exclude entries that pointed at a now-moved old_path should be dropped.
     let moved_old: BTreeSet<&str> = plan.moves.iter().map(|m| m.old_path.as_str()).collect();
-    let excludes_to_remove: Vec<String> = current_excludes(&text)
+    let excludes_to_remove: Vec<String> = current_excludes(&text)?
         .into_iter()
         .filter(|e| moved_old.contains(e.as_str()))
         .collect();
@@ -336,7 +348,7 @@ fn rewrite_root_workspace(
 
     // Drop LITERAL members entries that point at a now-moved old_path (the symmetric inverse of
     // the literal new-dir additions, so a forward-add/inverse-remove round-trips byte-clean).
-    let current_members = current_members(&text);
+    let current_members = current_members(&text)?;
     for entry in &current_members {
         if !entry.contains('*') && moved_old.contains(entry.as_str()) {
             globs_to_prune.push(entry.clone());
@@ -509,16 +521,28 @@ fn segment_glob(pattern: &str, name: &str) -> bool {
     true
 }
 
-fn current_excludes(root_manifest_text: &str) -> Vec<String> {
+/// FAIL-CLOSED: a malformed root manifest (or one lacking the `[workspace]` shape) must
+/// propagate, not silently read as "no excludes today" — that would let `rewrite_root_workspace`
+/// proceed on wrong data and could re-add or fail to prune entries incorrectly instead of
+/// erroring loud on a genuinely corrupt root manifest.
+fn current_excludes(root_manifest_text: &str) -> Result<Vec<String>, CodemodError> {
     oya_workspace_members_kernel::workspace_manifest_entries_from_str(root_manifest_text)
         .map(|e| e.exclude)
-        .unwrap_or_default()
+        .map_err(|e| CodemodError::Parse {
+            path: "Cargo.toml".to_string(),
+            message: e.to_string(),
+        })
 }
 
-fn current_members(root_manifest_text: &str) -> Vec<String> {
+/// FAIL-CLOSED: see [`current_excludes`] — the same malformed-manifest risk applies to the
+/// members list.
+fn current_members(root_manifest_text: &str) -> Result<Vec<String>, CodemodError> {
     oya_workspace_members_kernel::workspace_manifest_entries_from_str(root_manifest_text)
         .map(|e| e.members)
-        .unwrap_or_default()
+        .map_err(|e| CodemodError::Parse {
+            path: "Cargo.toml".to_string(),
+            message: e.to_string(),
+        })
 }
 
 /// Resolve the concrete member dirs from a manifest text against a tree (used by the oracle
@@ -677,6 +701,91 @@ fn write(abs: &Path, rel: &str, content: &str) -> Result<(), CodemodError> {
     })
 }
 
+/// Repo-relative directory the codemod scans for ADR doc-anchor rewrites. Mirrors
+/// `oya-ci.toml`'s `[justification].adr_dir` default (`docs/decisions`) — the two tools are
+/// independent (this codemod carries no `oya_ci_config_kernel` dependency) but conventionally
+/// agree on the path, since both read the SAME repo's ADR corpus.
+const ADR_DIR: &str = "docs/decisions";
+
+/// Step 5b: rewrite ADR doc-anchor path citations old -> new for every crate move. A doc citing
+/// a moved crate's exact path (e.g. `oya/intelligence/crates/oya-intelligence-catalog-domain/
+/// src/lib.rs`) is a load-bearing `justification_ref` anchor for the cloud-ci-total-accounting
+/// gate: `resolve_justifications` token-walks every `docs/decisions/*.md` body for tracked-path
+/// substrings, and a citation of a currently-live file (not pre-existing baselined debt) is that
+/// file's ONLY justification source. Leaving the anchor at the OLD path after a move silently
+/// drops the moved file's justification — a genuine `unjustified` regression the ADR-0563
+/// rename-aware baseline relabel does NOT cover (relabel only shifts PRE-EXISTING accepted-debt
+/// baseline keys; a live, currently-justified citation was never baselined, so there is no key to
+/// relabel). Content-preserving: only exact, boundary-safe path-token occurrences are substituted
+/// (see [`rewrite_path_token`]); every other byte in the file is untouched. A tree with no ADR
+/// dir (e.g. a codemod fixture) is a silent no-op.
+fn rewrite_doc_anchors(
+    repo_root: &Path,
+    plan: &MovePlan,
+    outcome: &mut ApplyOutcome,
+) -> Result<(), CodemodError> {
+    if plan.moves.is_empty() {
+        return Ok(());
+    }
+    let dir = repo_root.join(ADR_DIR);
+    // Only a MISSING ADR dir is a legitimate silent no-op (e.g. a codemod fixture with no
+    // docs/decisions tree). Any OTHER read_dir failure (permission denied, a non-directory at
+    // that path, ...) must propagate — the old `let Ok(..) else` swallowed EVERY error class,
+    // which could silently skip a real ADR corpus and drop an anchor rewrite with no signal.
+    let entries = match std::fs::read_dir(&dir) {
+        Ok(entries) => entries,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(e) => {
+            return Err(CodemodError::Io {
+                context: format!("read_dir {}", dir.display()),
+                message: e.to_string(),
+            });
+        }
+    };
+    let mut doc_paths: Vec<String> = Vec::new();
+    for entry in entries.flatten() {
+        let Some(name) = entry.file_name().to_str().map(str::to_owned) else {
+            continue;
+        };
+        if name.ends_with(".md") {
+            doc_paths.push(format!("{ADR_DIR}/{name}"));
+        }
+    }
+    doc_paths.sort();
+
+    // Longest old_path FIRST — the SAME ordering step 7's directory moves use, and for the
+    // identical reason: when one move's old_path is a PREFIX of another's (e.g. `a/b` and
+    // `a/b/c` in the same plan), processing the SHORTER one first would match its boundary-safe
+    // token at the START of a citation of the LONGER one (`a/b/c/src/lib.rs` starts with the
+    // boundary-safe substring `a/b` followed by `/`), corrupting a citation that was actually
+    // about the longer, more specific crate. Longest-first guarantees the more specific move
+    // consumes its citations before a shorter, coarser old_path ever gets a chance to match.
+    let mut ordered_moves: Vec<&CrateMove> = plan.moves.iter().collect();
+    ordered_moves.sort_by(|a, b| {
+        b.old_path
+            .len()
+            .cmp(&a.old_path.len())
+            .then(a.old_path.cmp(&b.old_path))
+    });
+
+    for rel in &doc_paths {
+        let abs = repo_root.join(rel);
+        let mut text = read(&abs, rel)?;
+        let mut file_changed = false;
+        for m in &ordered_moves {
+            if let Some(rewritten) = rewrite_path_token(&text, &m.old_path, &m.new_path) {
+                text = rewritten;
+                file_changed = true;
+            }
+        }
+        if file_changed {
+            write(&abs, rel, &text)?;
+            outcome.docs_rewritten.push(rel.clone());
+        }
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -703,6 +812,192 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
     fn parent_dir_handles_root_and_nested() {
         assert_eq!(parent_dir("Cargo.toml"), "");
         assert_eq!(parent_dir("a/b/Cargo.toml"), "a/b");
+    }
+
+    // --- rewrite_path_token pure unit tests moved to model.rs (the function's new home). ---
+    // --- rewrite_doc_anchors: the full apply_plan integration RED/GREEN proof ---
+
+    fn adr_tmp_root(tag: &str) -> PathBuf {
+        artifact_tmp_root(&format!("adr-{tag}"))
+    }
+
+    fn build_adr_anchor_fixture(root: &Path) {
+        wf(
+            root,
+            "Cargo.toml",
+            "[workspace]\nmembers = [\"crates/*\", \"intelligence/*/*\"]\nresolver = \"2\"\n",
+        );
+        wf(
+            root,
+            "crates/oya-intelligence-catalog-domain/Cargo.toml",
+            "[package]\nname = \"oya-intelligence-catalog-domain\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        wf(
+            root,
+            "crates/oya-intelligence-catalog-domain/src/lib.rs",
+            "pub fn d() {}\n",
+        );
+        // The load-bearing exhibit: an ADR that cites the crate's exact OLD file path as a
+        // justification anchor (mirrors ADR-0565's real citation of catalog-domain/src/lib.rs).
+        wf(
+            root,
+            "docs/decisions/ADR-0001-graphql.md",
+            "In `crates/oya-intelligence-catalog-domain/src/lib.rs`, the \"graphql\" value is banned.\n",
+        );
+        // A SIBLING doc that must be left byte-identical (no citation of the moved crate).
+        wf(
+            root,
+            "docs/decisions/ADR-0002-unrelated.md",
+            "This ADR mentions nothing about intelligence crates.\n",
+        );
+    }
+
+    fn adr_anchor_plan() -> MovePlan {
+        MovePlan {
+            capability: "intelligence".to_string(),
+            moves: vec![CrateMove {
+                old_path: "crates/oya-intelligence-catalog-domain".to_string(),
+                new_path: "intelligence/core/catalog-domain".to_string(),
+                old_cargo_name: "oya-intelligence-catalog-domain".to_string(),
+                new_cargo_name: "intelligence-catalog-domain".to_string(),
+            }],
+            artifacts: vec![],
+        }
+    }
+
+    #[test]
+    fn apply_rewrites_an_adr_doc_anchor_old_to_new() {
+        let root = adr_tmp_root("rewrite");
+        build_adr_anchor_fixture(&root);
+        let plan = adr_anchor_plan();
+
+        let outcome = apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false }).unwrap();
+
+        let adr = std::fs::read_to_string(root.join("docs/decisions/ADR-0001-graphql.md")).unwrap();
+        assert_eq!(
+            adr,
+            "In `intelligence/core/catalog-domain/src/lib.rs`, the \"graphql\" value is banned.\n",
+            "the ADR anchor must be rewritten old -> new, content otherwise byte-identical"
+        );
+        assert!(
+            !adr.contains("crates/oya-intelligence-catalog-domain"),
+            "no residual old-path token may remain: {adr}"
+        );
+
+        // CANARY: this fails if Step 5b is removed (docs_rewritten would be empty).
+        assert_eq!(
+            outcome.docs_rewritten,
+            vec!["docs/decisions/ADR-0001-graphql.md".to_string()],
+            "only the citing doc is touched, and it must be recorded in the outcome"
+        );
+
+        // The sibling doc with no citation must be byte-identical (not merely unlisted).
+        let unrelated =
+            std::fs::read_to_string(root.join("docs/decisions/ADR-0002-unrelated.md")).unwrap();
+        assert_eq!(
+            unrelated,
+            "This ADR mentions nothing about intelligence crates.\n"
+        );
+
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn apply_leaves_docs_rewritten_empty_when_no_adr_cites_the_moved_crate() {
+        let root = adr_tmp_root("no-citation");
+        wf(
+            &root,
+            "Cargo.toml",
+            "[workspace]\nmembers = [\"crates/*\", \"intelligence/*/*\"]\nresolver = \"2\"\n",
+        );
+        wf(
+            &root,
+            "crates/oya-intelligence-catalog-domain/Cargo.toml",
+            "[package]\nname = \"oya-intelligence-catalog-domain\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        wf(
+            &root,
+            "crates/oya-intelligence-catalog-domain/src/lib.rs",
+            "pub fn d() {}\n",
+        );
+        // No docs/decisions dir at all — the RED case this must NOT crash on.
+        let plan = adr_anchor_plan();
+
+        let outcome = apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false }).unwrap();
+        assert!(
+            outcome.docs_rewritten.is_empty(),
+            "no ADR dir/citation ⇒ nothing rewritten: {:?}",
+            outcome.docs_rewritten
+        );
+        assert!(root.join("intelligence/core/catalog-domain/Cargo.toml").is_file());
+
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn apply_rewrites_doc_anchors_correctly_when_one_old_path_is_a_prefix_of_another() {
+        // ORDERING PROOF: two moves in the SAME plan where one's old_path (`crates/a`) is a
+        // PREFIX of the other's (`crates/a/nested`) — a real, anticipated shape (step 7's
+        // directory-move already sorts longest-first for exactly this reason: a nested crate
+        // dir must move before/independent of its outer sibling). Processing `plan.moves`
+        // UNSORTED would let the SHORTER old_path's boundary-safe match fire at the START of a
+        // citation of the LONGER, more specific crate (`crates/a` matches the first segment of
+        // `crates/a/nested/src/lib.rs`, followed by `/` — a valid trailing boundary), corrupting
+        // it to `capA/nested/src/lib.rs` instead of the correct `capB/src/lib.rs`.
+        let root = adr_tmp_root("nested-ordering");
+        wf(
+            &root,
+            "Cargo.toml",
+            "[workspace]\nmembers = [\"crates/*\", \"crates/a/*\", \"capA/*\", \"capB/*\"]\nresolver = \"2\"\n",
+        );
+        wf(
+            &root,
+            "crates/a/Cargo.toml",
+            "[package]\nname = \"oya-a\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        wf(&root, "crates/a/src/lib.rs", "pub fn a() {}\n");
+        wf(
+            &root,
+            "crates/a/nested/Cargo.toml",
+            "[package]\nname = \"oya-a-nested\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        wf(&root, "crates/a/nested/src/lib.rs", "pub fn nested() {}\n");
+        wf(
+            &root,
+            "docs/decisions/ADR-0001-both.md",
+            "See `crates/a/nested/src/lib.rs` and also `crates/a/src/lib.rs`.\n",
+        );
+
+        let plan = MovePlan {
+            capability: "test".to_string(),
+            moves: vec![
+                CrateMove {
+                    old_path: "crates/a".to_string(),
+                    new_path: "capA".to_string(),
+                    old_cargo_name: "oya-a".to_string(),
+                    new_cargo_name: "cap-a".to_string(),
+                },
+                CrateMove {
+                    old_path: "crates/a/nested".to_string(),
+                    new_path: "capB".to_string(),
+                    old_cargo_name: "oya-a-nested".to_string(),
+                    new_cargo_name: "cap-b".to_string(),
+                },
+            ],
+            artifacts: vec![],
+        };
+
+        apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false }).unwrap();
+
+        let adr = std::fs::read_to_string(root.join("docs/decisions/ADR-0001-both.md")).unwrap();
+        assert_eq!(
+            adr,
+            "See `capB/src/lib.rs` and also `capA/src/lib.rs`.\n",
+            "the nested crate's citation must resolve to its OWN new_path, not get swallowed by \
+             the shorter sibling old_path processed out of order: {adr}"
+        );
+
+        let _ = std::fs::remove_dir_all(&root);
     }
 
     // --- ArtifactMove (PR-A) apply tests: NON-crate co-move (SLOs, catalog records) ---

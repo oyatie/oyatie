@@ -181,6 +181,23 @@ impl MovePlan {
                 });
             }
         }
+        // A new_path that would itself be RE-MATCHED by a later application of the ADR
+        // doc-anchor rewrite (its own move's old_path, or ANY other move's old_path, occurs as a
+        // boundary-safe path-token substring of it) makes that rewrite non-idempotent: a
+        // `--revert` then re-apply, or a mistaken double-apply, would find the old_path token
+        // INSIDE the already-rewritten text and grow it further on every pass. Reject up front
+        // (fail-closed) rather than accept a plan whose doc-anchor step corrupts on
+        // re-application.
+        for m in &self.moves {
+            for other in &self.moves {
+                if contains_path_token(&m.new_path, &other.old_path) {
+                    return Err(CodemodError::AnchorRewriteNonIdempotent {
+                        new_path: m.new_path.clone(),
+                        old_path: other.old_path.clone(),
+                    });
+                }
+            }
+        }
         // Artifacts share the old_path/new_path collision spaces with crate moves: an artifact
         // source that equals a crate source (or another artifact source) maps two things in;
         // an artifact target that equals a crate target maps two things out. Both are
@@ -481,6 +498,10 @@ pub enum CodemodError {
     /// A MOVE PR commits exactly one plan; >1 is a contributor error the manifest materialization
     /// must fail-closed on rather than silently first-winning an arbitrary one.
     MultipleMovePlans { count: usize, paths: Vec<String> },
+    /// A move's `new_path` contains another (or its own) move's `old_path` as a boundary-safe
+    /// path-token substring — the ADR doc-anchor rewrite would re-match and grow on
+    /// re-application (revert-then-reapply, or a mistaken double-apply).
+    AnchorRewriteNonIdempotent { new_path: String, old_path: String },
 }
 
 impl fmt::Display for CodemodError {
@@ -530,6 +551,11 @@ impl fmt::Display for CodemodError {
                 f,
                 "more than one committed move-plan in specs/reorg/ ({count}); a move PR commits \
                  exactly one (fail-closed): {paths:?}"
+            ),
+            CodemodError::AnchorRewriteNonIdempotent { new_path, old_path } => write!(
+                f,
+                "new_path {new_path:?} contains move old_path {old_path:?} as a path-token \
+                 substring; the ADR doc-anchor rewrite would not be idempotent on re-application"
             ),
         }
     }
@@ -588,6 +614,84 @@ fn is_deprecated_brand_file_stem(path: &str) -> bool {
             .or_else(|| leaf.strip_suffix(".json"))
             .is_some_and(is_deprecated_brand_name)
     })
+}
+
+/// A byte that continues an IDENTIFIER (crate-name segment): alphanumeric, `_`, or `-`. Used for
+/// the TRAILING boundary of a path-token match — a following `/` is explicitly NOT a
+/// continuation (citing a file nested under a matched crate dir is the common, intended case),
+/// but a following alnum/`_`/`-` means the match is a strict prefix of a longer, unrelated name
+/// (e.g. matching `old_path` inside a sibling `<old_path>-v2`).
+fn is_ident_continuation(b: u8) -> bool {
+    b.is_ascii_alphanumeric() || b == b'_' || b == b'-'
+}
+
+/// A byte that continues a PATH (identifier, `/`, or `.`). Used for the LEADING boundary of a
+/// path-token match: unlike the trailing side, a preceding `/` or `.` here means the match is
+/// NESTED inside a longer, DIFFERENT path (e.g. matching `a/b` inside `x/a/b`, where `x/a/b` is
+/// an unrelated sibling crate, not a citation of top-level `a/b`) or glued to a longer name
+/// (`za/b`) — both must be rejected, so the leading side is strictly stronger than the trailing
+/// side.
+fn is_path_continuation(b: u8) -> bool {
+    is_ident_continuation(b) || b == b'/' || b == b'.'
+}
+
+/// Find the next boundary-safe occurrence of `needle` in `haystack` at or after byte offset
+/// `from`. A match at position `i` qualifies only when BOTH: the byte immediately before `i`
+/// (if any) is not a path-continuation byte (see [`is_path_continuation`]), and the byte
+/// immediately after the match (if any) is not an identifier-continuation byte (see
+/// [`is_ident_continuation`]). Returns `None` when no further boundary-safe occurrence exists.
+fn find_path_token(haystack: &str, needle: &str, from: usize) -> Option<usize> {
+    if needle.is_empty() {
+        return None;
+    }
+    let bytes = haystack.as_bytes();
+    let mut i = from;
+    while i < haystack.len() {
+        if haystack[i..].starts_with(needle) {
+            let prev_ok = i == 0 || !is_path_continuation(bytes[i - 1]);
+            let next = bytes.get(i + needle.len()).copied();
+            let next_ok = next.map(|b| !is_ident_continuation(b)).unwrap_or(true);
+            if prev_ok && next_ok {
+                return Some(i);
+            }
+        }
+        // Advance by one CHAR (not byte) to stay UTF-8-safe on multi-byte ADR prose.
+        let Some(ch) = haystack[i..].chars().next() else {
+            break;
+        };
+        i += ch.len_utf8();
+    }
+    None
+}
+
+/// True iff `needle` occurs anywhere in `haystack` at a boundary-safe path-token position (see
+/// [`find_path_token`]). Used by [`MovePlan::validate`] to reject a plan whose `new_path` would
+/// itself be re-matched by a later pass over some move's `old_path` (the non-idempotent-growth
+/// hazard a doc-anchor rewrite must never risk).
+pub(crate) fn contains_path_token(haystack: &str, needle: &str) -> bool {
+    !needle.is_empty() && find_path_token(haystack, needle, 0).is_some()
+}
+
+/// Replace every boundary-safe occurrence of `old` in `text` with `new` (see [`find_path_token`]
+/// for the exact boundary rule on both sides). Returns `None` when no occurrence qualifies
+/// (byte-identical to input; callers skip the write in that case).
+pub(crate) fn rewrite_path_token(text: &str, old: &str, new: &str) -> Option<String> {
+    if old.is_empty() {
+        return None;
+    }
+    let mut out = String::with_capacity(text.len());
+    let mut last = 0;
+    let mut changed = false;
+    let mut cursor = 0;
+    while let Some(pos) = find_path_token(text, old, cursor) {
+        out.push_str(&text[last..pos]);
+        out.push_str(new);
+        last = pos + old.len();
+        cursor = last;
+        changed = true;
+    }
+    out.push_str(&text[last..]);
+    changed.then_some(out)
 }
 
 /// Recompute a relative `path=` dependency for a manifest that moved from `old_manifest_dir`
@@ -1365,5 +1469,190 @@ mod tests {
             plan.artifact_file_pairs(&tracked).is_empty(),
             "no artifacts => no artifact pairs (back-compat no-op)"
         );
+    }
+
+    // --- rewrite_path_token / contains_path_token: boundary-safety unit tests, including the
+    // LEFT-boundary counterexamples a right-boundary-only check misses. ---
+
+    #[test]
+    fn rewrite_path_token_rewrites_a_nested_file_citation() {
+        let text = "See `oya/intelligence/crates/oya-intelligence-catalog-domain/src/lib.rs`, the graphql field.";
+        let out = rewrite_path_token(
+            text,
+            "oya/intelligence/crates/oya-intelligence-catalog-domain",
+            "intelligence/core/catalog-domain",
+        )
+        .expect("must rewrite");
+        assert_eq!(
+            out,
+            "See `intelligence/core/catalog-domain/src/lib.rs`, the graphql field."
+        );
+    }
+
+    #[test]
+    fn rewrite_path_token_rewrites_a_bare_crate_dir_mention() {
+        let text = "the crate at oya/intelligence/crates/oya-intelligence-catalog-domain moved.";
+        let out = rewrite_path_token(
+            text,
+            "oya/intelligence/crates/oya-intelligence-catalog-domain",
+            "intelligence/core/catalog-domain",
+        )
+        .expect("must rewrite");
+        assert_eq!(out, "the crate at intelligence/core/catalog-domain moved.");
+    }
+
+    #[test]
+    fn rewrite_path_token_does_not_corrupt_a_longer_sibling_crate_name() {
+        // `oya-intelligence-catalog-domain-v2` is a DIFFERENT, unrelated crate that merely starts
+        // with the same prefix; a naive substring replace would corrupt it. RIGHT-boundary proof.
+        let text = "oya/intelligence/crates/oya-intelligence-catalog-domain-v2/src/lib.rs";
+        assert_eq!(
+            rewrite_path_token(
+                text,
+                "oya/intelligence/crates/oya-intelligence-catalog-domain",
+                "intelligence/core/catalog-domain",
+            ),
+            None,
+            "a longer sibling crate name must NOT be rewritten"
+        );
+    }
+
+    #[test]
+    fn rewrite_path_token_does_not_corrupt_a_longer_glued_identifier_left_boundary() {
+        // LEFT-boundary proof: "za/b" is a DIFFERENT, unrelated identifier that merely ENDS with
+        // "a/b" — a right-boundary-only check would incorrectly match at offset 1.
+        assert_eq!(rewrite_path_token("za/b", "a/b", "x/y"), None);
+    }
+
+    #[test]
+    fn rewrite_path_token_does_not_corrupt_a_nested_sibling_path_left_boundary() {
+        // LEFT-boundary proof: "x/a/b" cites a DIFFERENT crate nested under "x", not top-level
+        // "a/b" — a right-boundary-only check would incorrectly match "a/b" at offset 2 (preceded
+        // by '/', which the trailing-only rule would have let through).
+        assert_eq!(rewrite_path_token("x/a/b", "a/b", "c/d"), None);
+        // But a legitimate nested-file citation of the SAME top-level "a/b" still rewrites.
+        assert_eq!(
+            rewrite_path_token("a/b/src/lib.rs", "a/b", "c/d").as_deref(),
+            Some("c/d/src/lib.rs")
+        );
+    }
+
+    #[test]
+    fn rewrite_path_token_returns_none_when_absent() {
+        assert_eq!(
+            rewrite_path_token("nothing relevant here", "oya/foo/bar", "foo/bar"),
+            None
+        );
+    }
+
+    #[test]
+    fn rewrite_path_token_rewrites_every_occurrence() {
+        let text = "a/b/c mentioned twice: a/b/c again.";
+        let out = rewrite_path_token(text, "a/b/c", "x/y/z").expect("must rewrite");
+        assert_eq!(out, "x/y/z mentioned twice: x/y/z again.");
+    }
+
+    #[test]
+    fn rewrite_path_token_rewrites_correctly_inside_a_markdown_code_fence() {
+        let text = "prose\n```\nlet p = \"a/b/src/lib.rs\";\n```\nmore prose a/b here.\n";
+        let out = rewrite_path_token(text, "a/b", "c/d").expect("must rewrite");
+        assert_eq!(
+            out,
+            "prose\n```\nlet p = \"c/d/src/lib.rs\";\n```\nmore prose c/d here.\n"
+        );
+    }
+
+    #[test]
+    fn rewrite_path_token_second_pass_is_a_no_op_idempotent() {
+        let text = "See a/b/src/lib.rs here.";
+        let once = rewrite_path_token(text, "a/b", "c/d").expect("first pass rewrites");
+        assert_eq!(once, "See c/d/src/lib.rs here.");
+        // A second pass over the ALREADY-rewritten text with the SAME (old, new) pair must be a
+        // no-op — proving the rewrite doesn't oscillate/re-match its own output.
+        assert_eq!(
+            rewrite_path_token(&once, "a/b", "c/d"),
+            None,
+            "re-applying the same rewrite to already-rewritten text must be a no-op"
+        );
+    }
+
+    #[test]
+    fn contains_path_token_mirrors_rewrite_path_token_boundary_rule() {
+        assert!(contains_path_token("a/b/src/lib.rs", "a/b"));
+        assert!(!contains_path_token("za/b", "a/b"));
+        assert!(!contains_path_token("x/a/b", "a/b"));
+        assert!(!contains_path_token("nothing here", "a/b"));
+    }
+
+    // --- MovePlan::validate: the new_path/old_path containment (non-idempotent-growth) guard. ---
+
+    #[test]
+    fn validate_accepts_new_path_that_merely_extends_an_old_path_as_a_glued_identifier() {
+        let plan = MovePlan {
+            capability: "test".to_string(),
+            moves: vec![
+                CrateMove {
+                    old_path: "libs/oya-foo".to_string(),
+                    new_path: "libs/oya-foo".to_string() + "-shadow", // "libs/oya-foo-shadow"
+                    old_cargo_name: "oya-foo".to_string(),
+                    new_cargo_name: "foo-shadow".to_string(),
+                },
+                CrateMove {
+                    old_path: "cloud/bar".to_string(),
+                    new_path: "cap/bar".to_string(),
+                    old_cargo_name: "oya-bar".to_string(),
+                    new_cargo_name: "bar".to_string(),
+                },
+            ],
+            artifacts: vec![],
+        };
+        // "libs/oya-foo-shadow" does NOT boundary-match "libs/oya-foo" (glued identifier), so
+        // this plan alone should be accepted — sanity-checking the guard doesn't over-trigger.
+        assert!(plan.validate().is_ok(), "{:?}", plan.validate());
+    }
+
+    #[test]
+    fn validate_rejects_a_plan_whose_new_path_contains_an_old_path_boundary_safe() {
+        let plan = MovePlan {
+            capability: "test".to_string(),
+            moves: vec![CrateMove {
+                old_path: "libs/oya-foo".to_string(),
+                new_path: "libs/oya-foo/nested".to_string(),
+                old_cargo_name: "oya-foo".to_string(),
+                new_cargo_name: "foo-nested".to_string(),
+            }],
+            artifacts: vec![],
+        };
+        assert!(matches!(
+            plan.validate(),
+            Err(CodemodError::AnchorRewriteNonIdempotent { .. })
+        ));
+    }
+
+    #[test]
+    fn validate_rejects_new_path_containing_a_different_moves_old_path_boundary_safe() {
+        let plan = MovePlan {
+            capability: "test".to_string(),
+            moves: vec![
+                CrateMove {
+                    old_path: "libs/oya-foo".to_string(),
+                    new_path: "cap/foo".to_string(),
+                    old_cargo_name: "oya-foo".to_string(),
+                    new_cargo_name: "foo".to_string(),
+                },
+                CrateMove {
+                    old_path: "cloud/bar".to_string(),
+                    // Contains the FIRST move's old_path boundary-safely (nested continuation).
+                    new_path: "libs/oya-foo/relocated".to_string(),
+                    old_cargo_name: "oya-bar".to_string(),
+                    new_cargo_name: "bar-relocated".to_string(),
+                },
+            ],
+            artifacts: vec![],
+        };
+        assert!(matches!(
+            plan.validate(),
+            Err(CodemodError::AnchorRewriteNonIdempotent { .. })
+        ));
     }
 }

@@ -358,13 +358,24 @@ jobs:
           fi
           git fetch --no-tags --prune origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
           policy_bin="$(buck2 build //ci/facade/generated-artifact-policy:oya-cloud-ci-generated-output-diff-policy --show-output | awk '{print $2}')"
+          materializer_bin="$(buck2 build //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin --show-output | awk '{print $2}')"
+          # Materialize (de-committed, never a contributor merge surface):
+          #   - specs/reorg/move-manifest.generated.json (ADR-0563): the policy's ratchet-diff check
+          #     authenticates a hand-curated-ratchet baseline's key substitution against the ACTUAL
+          #     candidate-tree move (anti-laundering; byte-bound), not a bare claim in a hand-authored
+          #     plan file.
+          #   - ci/facade/generated-artifact-policy/ratchet-merge-base.generated.json: merge-base
+          #     CONTENT of every normal-source-merge artifact, read from the materializer's OWN
+          #     merge-base worktree checkout (the one sanctioned git boundary) so the policy gate
+          #     itself never calls git (ci-gate-self-conformance hermeticity).
+          "${materializer_bin}" --repo-root .
           # --find-renames is REQUIRED, not cosmetic: the policy's sanctioned-relocation exemption
           # only accepts byte-identical (R100) renames of declared generated artifacts (a capability
           # move relocating the firewall's frozen gate-baseline). Without explicit rename detection a
           # runner with diff.renames=off would surface the move as A+D and RED the legit move (fails
           # safe, but false-blocks). Detection ON + the R100-only exemption is the correct behavior.
           git diff --find-renames --name-status "origin/${BASE_REF}"...HEAD \
-            | "${policy_bin}" --manifest registry/generated-artifact-control-plane.json
+            | "${policy_bin}" --manifest registry/generated-artifact-control-plane.json --repo-root .
 
   # ── HERMETIC BUCK2 LANE (OYA-CI-HERMETIC-EXECUTION-DESIGN §3 + Stage P1/P2). Runs the SAME
   #    gate logic through buck2: `buck2 build` compiles every
