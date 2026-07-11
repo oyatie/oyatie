@@ -4,7 +4,7 @@
 //! The endpoint is *internal-only*: only allowlisted capability ids may
 //! call into the substrate (allowlist enforced in the domain crate).
 
-use oya_intelligence_capability_registry_kernel::{CapabilityId, EvidenceRef};
+use intelligence_capability_registry_kernel::{CapabilityId, EvidenceRef};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RagQuery {

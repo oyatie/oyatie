@@ -7,7 +7,7 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use oya_intelligence_api_rest_kernel::{
+use intelligence_api_rest_kernel::{
     AuditEvent, ResponseStatus, RestRequest, RestResponse, fixture_request_payload,
     fixture_tenant_id, fixture_use_case_id,
 };

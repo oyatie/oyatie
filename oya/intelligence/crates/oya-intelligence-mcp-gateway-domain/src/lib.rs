@@ -9,7 +9,7 @@ use std::collections::BTreeMap;
 use oya_data_boundary_kernel::{
     Classified, DataClass, PrivacyDataClass, data_classes_from_privacy_data_classes,
 };
-use oya_intelligence_capability_domain::{AutonomyTier, Capability};
+use intelligence_capability_domain::{AutonomyTier, Capability};
 
 pub const MCP_PROTOCOL_VERSION: &str = "2025-11-25";
 pub const DISCOVER_SCOPE: &str = "foundry.capability.discover";

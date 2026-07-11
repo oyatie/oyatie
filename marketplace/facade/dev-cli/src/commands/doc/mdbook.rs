@@ -2,7 +2,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use oya_intelligence_mdbook_domain::{MdbookSourceFile, validate_mdbook_source};
+use intelligence_mdbook_domain::{MdbookSourceFile, validate_mdbook_source};
 
 use crate::command_output::OutputFormat as DevCheckOutputFormat;
 use crate::slash_path;
@@ -81,7 +81,7 @@ fn run_doc_mdbook(args: DocMdbookArgs) -> ExitCode {
 
 fn run_doc_mdbook_result(
     site_dir: &Path,
-) -> Result<oya_intelligence_mdbook_domain::MdbookSourceReport, String> {
+) -> Result<intelligence_mdbook_domain::MdbookSourceReport, String> {
     let files = read_mdbook_source_files(site_dir)?;
     validate_mdbook_source(files).map_err(|error| format!("mdbook source invalid: {error:?}"))
 }

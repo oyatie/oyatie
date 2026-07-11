@@ -14,7 +14,7 @@ use audit_chain_domain::{AuditChain, AuditChainError, AuditEvent, Plane};
 use oya_data_boundary_kernel::{
     Classified, DataClass, DataClassification, OperationalDataClass, PrivacyDataClass, Purpose,
 };
-use oya_intelligence_capability_domain::{AutonomyTier, Capability};
+use intelligence_capability_domain::{AutonomyTier, Capability};
 use oya_intelligence_policy_domain::{AutonomyDecision, AutonomyVerdict};
 
 const MUTATION_SCHEMA_VERSION: u32 = 1;

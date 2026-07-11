@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::Path;
 
-use oya_intelligence_catalog_domain::{CatalogRecord, CatalogRecordInput};
+use intelligence_catalog_domain::{CatalogRecord, CatalogRecordInput};
 
 pub(crate) fn read_catalog_records(registry_dir: &Path) -> Result<Vec<CatalogRecord>, String> {
     let entries = fs::read_dir(registry_dir)

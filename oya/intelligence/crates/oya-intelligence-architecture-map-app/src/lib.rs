@@ -23,7 +23,7 @@ use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_intelligence_architecture_map_kernel::{
+use intelligence_architecture_map_kernel::{
     ArchitectureMap, Edge, EdgeKind, MapError, Node, NodeId, NodeKind,
 };
 

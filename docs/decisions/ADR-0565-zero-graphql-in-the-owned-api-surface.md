@@ -117,7 +117,7 @@ surface is sealed in this merge:
   removal makes that gate fail-CLOSED against any future `*-graphql` crate as of this merge.
 - REMOVED the live `graphql` recognizers that mapped the role into a typed value: the
   `"graphql" => CatalogRole::Api` arm in
-  `oya/intelligence/crates/oya-intelligence-catalog-domain/src/lib.rs`, the `"graphql"` valid
+  `intelligence/core/catalog-domain/src/lib.rs`, the `"graphql"` valid
   contract-extension match in `marketplace/facade/dev-cli/src/api_contract_registry.rs`, and the
   `ArchitectureLayer::Graphql` variant (plus its array/slug/scaffold-count consumers) in
   `data/facade/warehouse-tenant-olap-service/src/domain/mod.rs`.

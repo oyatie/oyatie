@@ -697,15 +697,15 @@ fn read_supply_chain_records(registry_dir: &Path) -> Result<Vec<SupplyChainRecor
 }
 
 fn supply_chain_attestation_id(
-    attestation: oya_intelligence_catalog_domain::SupplyChainAttestation,
+    attestation: intelligence_catalog_domain::SupplyChainAttestation,
 ) -> String {
     match attestation {
-        oya_intelligence_catalog_domain::SupplyChainAttestation::SourceOnly => "source-only",
-        oya_intelligence_catalog_domain::SupplyChainAttestation::LicenseChecked => {
+        intelligence_catalog_domain::SupplyChainAttestation::SourceOnly => "source-only",
+        intelligence_catalog_domain::SupplyChainAttestation::LicenseChecked => {
             "license-checked"
         }
-        oya_intelligence_catalog_domain::SupplyChainAttestation::Sbom => "sbom",
-        oya_intelligence_catalog_domain::SupplyChainAttestation::SignedProvenance => {
+        intelligence_catalog_domain::SupplyChainAttestation::Sbom => "sbom",
+        intelligence_catalog_domain::SupplyChainAttestation::SignedProvenance => {
             "signed-provenance"
         }
     }
