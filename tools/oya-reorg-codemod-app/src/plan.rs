@@ -36,7 +36,7 @@ use oya_workspace_members_kernel::resolve_member_dirs_from_str;
 use crate::buck;
 use crate::cargo;
 use crate::model::{
-    dir_exists, snake, CodemodError, CrateMove, Mapping, MovePlan,
+    dir_exists, rewrite_path_token, snake, CodemodError, CrateMove, Mapping, MovePlan,
 };
 use crate::rust_src;
 
@@ -335,7 +335,7 @@ fn rewrite_root_workspace(
 
     // Old exclude entries that pointed at a now-moved old_path should be dropped.
     let moved_old: BTreeSet<&str> = plan.moves.iter().map(|m| m.old_path.as_str()).collect();
-    let excludes_to_remove: Vec<String> = current_excludes(&text)
+    let excludes_to_remove: Vec<String> = current_excludes(&text)?
         .into_iter()
         .filter(|e| moved_old.contains(e.as_str()))
         .collect();
@@ -348,7 +348,7 @@ fn rewrite_root_workspace(
 
     // Drop LITERAL members entries that point at a now-moved old_path (the symmetric inverse of
     // the literal new-dir additions, so a forward-add/inverse-remove round-trips byte-clean).
-    let current_members = current_members(&text);
+    let current_members = current_members(&text)?;
     for entry in &current_members {
         if !entry.contains('*') && moved_old.contains(entry.as_str()) {
             globs_to_prune.push(entry.clone());
@@ -521,16 +521,28 @@ fn segment_glob(pattern: &str, name: &str) -> bool {
     true
 }
 
-fn current_excludes(root_manifest_text: &str) -> Vec<String> {
+/// FAIL-CLOSED: a malformed root manifest (or one lacking the `[workspace]` shape) must
+/// propagate, not silently read as "no excludes today" — that would let `rewrite_root_workspace`
+/// proceed on wrong data and could re-add or fail to prune entries incorrectly instead of
+/// erroring loud on a genuinely corrupt root manifest.
+fn current_excludes(root_manifest_text: &str) -> Result<Vec<String>, CodemodError> {
     oya_workspace_members_kernel::workspace_manifest_entries_from_str(root_manifest_text)
         .map(|e| e.exclude)
-        .unwrap_or_default()
+        .map_err(|e| CodemodError::Parse {
+            path: "Cargo.toml".to_string(),
+            message: e.to_string(),
+        })
 }
 
-fn current_members(root_manifest_text: &str) -> Vec<String> {
+/// FAIL-CLOSED: see [`current_excludes`] — the same malformed-manifest risk applies to the
+/// members list.
+fn current_members(root_manifest_text: &str) -> Result<Vec<String>, CodemodError> {
     oya_workspace_members_kernel::workspace_manifest_entries_from_str(root_manifest_text)
         .map(|e| e.members)
-        .unwrap_or_default()
+        .map_err(|e| CodemodError::Parse {
+            path: "Cargo.toml".to_string(),
+            message: e.to_string(),
+        })
 }
 
 /// Resolve the concrete member dirs from a manifest text against a tree (used by the oracle
@@ -716,8 +728,19 @@ fn rewrite_doc_anchors(
         return Ok(());
     }
     let dir = repo_root.join(ADR_DIR);
-    let Ok(entries) = std::fs::read_dir(&dir) else {
-        return Ok(());
+    // Only a MISSING ADR dir is a legitimate silent no-op (e.g. a codemod fixture with no
+    // docs/decisions tree). Any OTHER read_dir failure (permission denied, a non-directory at
+    // that path, ...) must propagate — the old `let Ok(..) else` swallowed EVERY error class,
+    // which could silently skip a real ADR corpus and drop an anchor rewrite with no signal.
+    let entries = match std::fs::read_dir(&dir) {
+        Ok(entries) => entries,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(e) => {
+            return Err(CodemodError::Io {
+                context: format!("read_dir {}", dir.display()),
+                message: e.to_string(),
+            });
+        }
     };
     let mut doc_paths: Vec<String> = Vec::new();
     for entry in entries.flatten() {
@@ -730,11 +753,26 @@ fn rewrite_doc_anchors(
     }
     doc_paths.sort();
 
+    // Longest old_path FIRST — the SAME ordering step 7's directory moves use, and for the
+    // identical reason: when one move's old_path is a PREFIX of another's (e.g. `a/b` and
+    // `a/b/c` in the same plan), processing the SHORTER one first would match its boundary-safe
+    // token at the START of a citation of the LONGER one (`a/b/c/src/lib.rs` starts with the
+    // boundary-safe substring `a/b` followed by `/`), corrupting a citation that was actually
+    // about the longer, more specific crate. Longest-first guarantees the more specific move
+    // consumes its citations before a shorter, coarser old_path ever gets a chance to match.
+    let mut ordered_moves: Vec<&CrateMove> = plan.moves.iter().collect();
+    ordered_moves.sort_by(|a, b| {
+        b.old_path
+            .len()
+            .cmp(&a.old_path.len())
+            .then(a.old_path.cmp(&b.old_path))
+    });
+
     for rel in &doc_paths {
         let abs = repo_root.join(rel);
         let mut text = read(&abs, rel)?;
         let mut file_changed = false;
-        for m in &plan.moves {
+        for m in &ordered_moves {
             if let Some(rewritten) = rewrite_path_token(&text, &m.old_path, &m.new_path) {
                 text = rewritten;
                 file_changed = true;
@@ -746,46 +784,6 @@ fn rewrite_doc_anchors(
         }
     }
     Ok(())
-}
-
-/// Replace every BOUNDARY-SAFE occurrence of `old` in `text` with `new`. A match at byte offset
-/// `i` qualifies only when the character immediately following it is NOT an identifier
-/// continuation (`[A-Za-z0-9_-]`) — so `<old_path>/src/lib.rs` (a cited file nested under the
-/// crate dir) and a bare `<old_path>` mention both rewrite, but a longer, unrelated sibling name
-/// that merely starts with `old` (e.g. `<old_path>-v2`) is left untouched. Returns `None` when no
-/// occurrence qualifies (byte-identical to input; the caller skips the write).
-fn rewrite_path_token(text: &str, old: &str, new: &str) -> Option<String> {
-    if old.is_empty() || !text.contains(old) {
-        return None;
-    }
-    let bytes = text.as_bytes();
-    let mut out = String::with_capacity(text.len());
-    let mut changed = false;
-    let mut i = 0;
-    while i < text.len() {
-        if text[i..].starts_with(old) {
-            let next = bytes.get(i + old.len()).copied();
-            let boundary_ok = next.map(|b| !is_ident_continuation(b)).unwrap_or(true);
-            if boundary_ok {
-                out.push_str(new);
-                i += old.len();
-                changed = true;
-                continue;
-            }
-        }
-        // Advance by one CHAR (not byte) to stay UTF-8-safe on multi-byte ADR prose.
-        let ch = text[i..]
-            .chars()
-            .next()
-            .expect("i < text.len() implies a char starts here");
-        out.push(ch);
-        i += ch.len_utf8();
-    }
-    changed.then_some(out)
-}
-
-fn is_ident_continuation(b: u8) -> bool {
-    b.is_ascii_alphanumeric() || b == b'_' || b == b'-'
 }
 
 #[cfg(test)]
@@ -816,66 +814,7 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
         assert_eq!(parent_dir("a/b/Cargo.toml"), "a/b");
     }
 
-    // --- rewrite_path_token: the ADR doc-anchor rewrite's boundary-safety unit tests ---
-
-    #[test]
-    fn rewrite_path_token_rewrites_a_nested_file_citation() {
-        let text = "See `oya/intelligence/crates/oya-intelligence-catalog-domain/src/lib.rs`, the graphql field.";
-        let out = rewrite_path_token(
-            text,
-            "oya/intelligence/crates/oya-intelligence-catalog-domain",
-            "intelligence/core/catalog-domain",
-        )
-        .expect("must rewrite");
-        assert_eq!(
-            out,
-            "See `intelligence/core/catalog-domain/src/lib.rs`, the graphql field."
-        );
-    }
-
-    #[test]
-    fn rewrite_path_token_rewrites_a_bare_crate_dir_mention() {
-        let text = "the crate at oya/intelligence/crates/oya-intelligence-catalog-domain moved.";
-        let out = rewrite_path_token(
-            text,
-            "oya/intelligence/crates/oya-intelligence-catalog-domain",
-            "intelligence/core/catalog-domain",
-        )
-        .expect("must rewrite");
-        assert_eq!(out, "the crate at intelligence/core/catalog-domain moved.");
-    }
-
-    #[test]
-    fn rewrite_path_token_does_not_corrupt_a_longer_sibling_crate_name() {
-        // `oya-intelligence-catalog-domain-v2` is a DIFFERENT, unrelated crate that merely starts
-        // with the same prefix; a naive substring replace would corrupt it.
-        let text = "oya/intelligence/crates/oya-intelligence-catalog-domain-v2/src/lib.rs";
-        assert_eq!(
-            rewrite_path_token(
-                text,
-                "oya/intelligence/crates/oya-intelligence-catalog-domain",
-                "intelligence/core/catalog-domain",
-            ),
-            None,
-            "a longer sibling crate name must NOT be rewritten"
-        );
-    }
-
-    #[test]
-    fn rewrite_path_token_returns_none_when_absent() {
-        assert_eq!(
-            rewrite_path_token("nothing relevant here", "oya/foo/bar", "foo/bar"),
-            None
-        );
-    }
-
-    #[test]
-    fn rewrite_path_token_rewrites_every_occurrence() {
-        let text = "a/b/c mentioned twice: a/b/c again.";
-        let out = rewrite_path_token(text, "a/b/c", "x/y/z").expect("must rewrite");
-        assert_eq!(out, "x/y/z mentioned twice: x/y/z again.");
-    }
-
+    // --- rewrite_path_token pure unit tests moved to model.rs (the function's new home). ---
     // --- rewrite_doc_anchors: the full apply_plan integration RED/GREEN proof ---
 
     fn adr_tmp_root(tag: &str) -> PathBuf {
@@ -991,6 +930,72 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
             outcome.docs_rewritten
         );
         assert!(root.join("intelligence/core/catalog-domain/Cargo.toml").is_file());
+
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn apply_rewrites_doc_anchors_correctly_when_one_old_path_is_a_prefix_of_another() {
+        // ORDERING PROOF: two moves in the SAME plan where one's old_path (`crates/a`) is a
+        // PREFIX of the other's (`crates/a/nested`) — a real, anticipated shape (step 7's
+        // directory-move already sorts longest-first for exactly this reason: a nested crate
+        // dir must move before/independent of its outer sibling). Processing `plan.moves`
+        // UNSORTED would let the SHORTER old_path's boundary-safe match fire at the START of a
+        // citation of the LONGER, more specific crate (`crates/a` matches the first segment of
+        // `crates/a/nested/src/lib.rs`, followed by `/` — a valid trailing boundary), corrupting
+        // it to `capA/nested/src/lib.rs` instead of the correct `capB/src/lib.rs`.
+        let root = adr_tmp_root("nested-ordering");
+        wf(
+            &root,
+            "Cargo.toml",
+            "[workspace]\nmembers = [\"crates/*\", \"crates/a/*\", \"capA/*\", \"capB/*\"]\nresolver = \"2\"\n",
+        );
+        wf(
+            &root,
+            "crates/a/Cargo.toml",
+            "[package]\nname = \"oya-a\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        wf(&root, "crates/a/src/lib.rs", "pub fn a() {}\n");
+        wf(
+            &root,
+            "crates/a/nested/Cargo.toml",
+            "[package]\nname = \"oya-a-nested\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        wf(&root, "crates/a/nested/src/lib.rs", "pub fn nested() {}\n");
+        wf(
+            &root,
+            "docs/decisions/ADR-0001-both.md",
+            "See `crates/a/nested/src/lib.rs` and also `crates/a/src/lib.rs`.\n",
+        );
+
+        let plan = MovePlan {
+            capability: "test".to_string(),
+            moves: vec![
+                CrateMove {
+                    old_path: "crates/a".to_string(),
+                    new_path: "capA".to_string(),
+                    old_cargo_name: "oya-a".to_string(),
+                    new_cargo_name: "cap-a".to_string(),
+                },
+                CrateMove {
+                    old_path: "crates/a/nested".to_string(),
+                    new_path: "capB".to_string(),
+                    old_cargo_name: "oya-a-nested".to_string(),
+                    new_cargo_name: "cap-b".to_string(),
+                },
+            ],
+            artifacts: vec![],
+        };
+
+        apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false }).unwrap();
+
+        let adr = std::fs::read_to_string(root.join("docs/decisions/ADR-0001-both.md")).unwrap();
+        assert_eq!(
+            adr,
+            "See `capB/src/lib.rs` and also `capA/src/lib.rs`.\n",
+            "the nested crate's citation must resolve to its OWN new_path, not get swallowed by \
+             the shorter sibling old_path processed out of order: {adr}"
+        );
 
         let _ = std::fs::remove_dir_all(&root);
     }
