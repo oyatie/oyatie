@@ -44,11 +44,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-# IP-009 wiring: dispatcher invokes the subagent runtime inline when
-# `--runtime-mode` is passed, then loads the per-facet findings it
-# wrote. Without this wiring the dispatcher would still emit
-# `subagent_runtime_pending=true` because no findings would exist.
-oya-intelligence-account-kernel = { path = "../oya-intelligence-account-kernel" }
+intelligence-account-kernel = { path = "../../../../intelligence/core/account-kernel" }
 oya-intelligence-subagent-runtime-kernel = { path = "../oya-intelligence-subagent-runtime-kernel" }
 oya-intelligence-subagent-runtime-usecase = { path = "../oya-intelligence-subagent-runtime-usecase" }
 

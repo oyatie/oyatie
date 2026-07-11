@@ -15,7 +15,7 @@ use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::fmt;
 
 use oya_intelligence_capability_registry_domain::{PublishValidationError, validate_publish};
-use oya_intelligence_capability_registry_kernel::{AutonomyTier, Capability, CapabilityId};
+use intelligence_capability_registry_kernel::{AutonomyTier, Capability, CapabilityId};
 
 #[derive(Default)]
 pub struct CapabilityRegistry {

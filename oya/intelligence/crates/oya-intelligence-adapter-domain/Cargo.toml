@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-intelligence-capability-domain = { path = "../oya-intelligence-capability-domain" }
+intelligence-capability-domain = { path = "../../../../intelligence/core/capability-domain" }
 oya-check-cost-budget = { path = "../../../../libs/oya-check-cost-budget" }
 oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
 secrets-domain = { path = "../../../../secrets/core/domain" }

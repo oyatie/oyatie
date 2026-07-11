@@ -12,7 +12,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-intelligence-capability-registry-kernel = { path = "../oya-intelligence-capability-registry-kernel" }
+intelligence-capability-registry-kernel = { path = "../../../../intelligence/core/capability-registry-kernel" }
 
 [lints]
 workspace = true

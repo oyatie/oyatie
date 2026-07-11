@@ -12,9 +12,9 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-intelligence-autonomy-ceiling-kernel = { path = "../oya-intelligence-autonomy-ceiling-kernel" }
+intelligence-autonomy-ceiling-kernel = { path = "../../../../intelligence/core/autonomy-ceiling-kernel" }
 oya-intelligence-autonomy-ceiling-domain = { path = "../oya-intelligence-autonomy-ceiling-domain" }
-oya-intelligence-capability-registry-kernel = { path = "../oya-intelligence-capability-registry-kernel" }
+intelligence-capability-registry-kernel = { path = "../../../../intelligence/core/capability-registry-kernel" }
 
 [lints]
 workspace = true

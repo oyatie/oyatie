@@ -4,8 +4,8 @@
 
 use oya_intelligence_account_domain::{SecretMaterial, SecretReference, SecretStorePort};
 use oya_intelligence_autonomy_ceiling_domain::{CeilingPolicy, TenantId};
-use oya_intelligence_autonomy_ceiling_kernel::{AutonomyTier as CeilingTier, check_tier};
-use oya_intelligence_capability_registry_kernel::AutonomyTier as CapabilityTier;
+use intelligence_autonomy_ceiling_kernel::{AutonomyTier as CeilingTier, check_tier};
+use intelligence_capability_registry_kernel::AutonomyTier as CapabilityTier;
 use oya_intelligence_supervisor_kernel::{
     AccountId, AutonomyCeilingPort, AutonomyTier, SupervisorError,
 };
@@ -26,24 +26,24 @@ impl AutonomyCeilingPort for CedarAutonomyCeilingAdapter {
         let tenant_id = TenantId::new(&account_id.0);
 
         // Construct a dummy capability for the check
-        let cap_id = oya_intelligence_capability_registry_kernel::CapabilityId::new(
+        let cap_id = intelligence_capability_registry_kernel::CapabilityId::new(
             "foundry.supervisor.spawn",
         );
-        let cap = oya_intelligence_capability_registry_kernel::Capability::new(
+        let cap = intelligence_capability_registry_kernel::Capability::new(
             cap_id,
             "spawn",
             match tier {
                 AutonomyTier::T1Read => {
-                    oya_intelligence_capability_registry_kernel::AutonomyTier::T1Read
+                    intelligence_capability_registry_kernel::AutonomyTier::T1Read
                 }
                 AutonomyTier::T2Suggest => {
-                    oya_intelligence_capability_registry_kernel::AutonomyTier::T2Suggest
+                    intelligence_capability_registry_kernel::AutonomyTier::T2Suggest
                 }
                 AutonomyTier::T3PropAct => {
-                    oya_intelligence_capability_registry_kernel::AutonomyTier::T3PropAct
+                    intelligence_capability_registry_kernel::AutonomyTier::T3PropAct
                 }
                 AutonomyTier::T4Actuate => {
-                    oya_intelligence_capability_registry_kernel::AutonomyTier::T4Actuate
+                    intelligence_capability_registry_kernel::AutonomyTier::T4Actuate
                 }
             },
             true,
@@ -53,8 +53,8 @@ impl AutonomyCeilingPort for CedarAutonomyCeilingAdapter {
             bridge_capability_tier(cap.autonomy_tier),
             self.policy.ceiling_for(&tenant_id),
         ) {
-            oya_intelligence_autonomy_ceiling_kernel::CeilingVerdict::Allow => Ok(()),
-            oya_intelligence_autonomy_ceiling_kernel::CeilingVerdict::Block {
+            intelligence_autonomy_ceiling_kernel::CeilingVerdict::Allow => Ok(()),
+            intelligence_autonomy_ceiling_kernel::CeilingVerdict::Block {
                 capability_tier,
                 ceiling,
             } => Err(SupervisorError::Quarantined(format!(

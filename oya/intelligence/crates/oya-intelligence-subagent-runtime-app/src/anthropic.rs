@@ -34,7 +34,7 @@
 //! header) and discards it immediately. No key text is written to
 //! any file, log, or evidence path.
 
-use oya_intelligence_account_kernel::SecretReference;
+use intelligence_account_kernel::SecretReference;
 use oya_intelligence_subagent_runtime_kernel::{
     SubagentError, SubagentPort, SubagentRequest, SubagentResponse,
 };

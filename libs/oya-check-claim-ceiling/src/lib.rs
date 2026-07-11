@@ -1,6 +1,6 @@
 //! Foundry claim-ceiling kernel.
 
-use oya_intelligence_catalog_domain::{
+use intelligence_catalog_domain::{
     ApiStability, CatalogIndex, CatalogRecord, SecurityReview, SupplyChainAttestation,
 };
 

@@ -1,6 +1,6 @@
 //! M02-P04-IP-002 — WebSocket transport adapter (stub).
 
-use oya_intelligence_api_rest_kernel::{
+use intelligence_api_rest_kernel::{
     AuditEvent, ResponseStatus, fixture_request_payload, fixture_tenant_id, fixture_use_case_id,
 };
 use oya_intelligence_api_websocket_kernel::{WsRequest, WsResponse};
