@@ -321,6 +321,33 @@
       }
     },
     {
+      "artifact_id": "ci-generated-artifact-policy-ratchet-merge-base",
+      "path": "ci/facade/generated-artifact-policy/ratchet-merge-base.generated.json",
+      "artifact_class": "review-artifact",
+      "materialization_mode": "not-tracked-in-git",
+      "merge_policy": "never-manual-merge-regenerate-from-source-tree",
+      "owner_team": "cloud-ci-platform",
+      "source_inputs": [
+        "registry/generated-artifact-control-plane.json (normal-source-merge artifacts)",
+        "merge-base source worktree (git show equivalent, read via plain fs from the checkout)"
+      ],
+      "final_tree_validation": "De-commit class: this face is NOT tracked in git; cloud-ci materializes it on demand. //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin reuses the SAME merge-base source worktree it already checks out for frozen-baseline regeneration (the one sanctioned git boundary) to read each declared normal-source-merge artifact's content at the merge-base — a plain filesystem read, no additional git call. Consumed by the generated-output-diff-policy gate so it can verify a hand-curated-ratchet baseline's plain-modify content diff (shrink-only / move-plan-backed substitution, see specs/reorg/move-manifest.generated.json) without itself calling git (ci-gate-self-conformance forbids subprocess/network/clock/randomness primitives in gate production code).",
+      "public_product_contract": "Declared normal-source-merge artifact path -> its content at the merge-base. An artifact absent from the merge-base tree (e.g. brand new) is simply omitted; the consuming gate fails closed on it. Never hand-edited; the freshness materializer is the sole generator.",
+      "generator": {
+        "runner": "buck2",
+        "generator_target": "//ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin",
+        "operation_id": "emit-ratchet-merge-base-contents",
+        "parameters": {
+          "mode": "materialize"
+        },
+        "input_contract": [
+          "repo-root",
+          "declared-source-inputs"
+        ],
+        "output_mode": "declared-artifact-path-write"
+      }
+    },
+    {
       "artifact_id": "ci-friction-accounting-hand-shrunk-baseline",
       "path": "ci/facade/action-item-accounting/friction-accounting-baseline.json",
       "artifact_class": "hand-curated-ratchet",
