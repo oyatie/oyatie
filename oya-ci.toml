@@ -83,13 +83,18 @@ reason = "integration test fixtures that reference live repo contracts/openapi/f
 
 [[vocab.carve_outs]]
 kind = "line_contains_ci"
-value = "contracts/openapi/foundry/"
-reason = "structural references to the existing live contract directory are exempt line-by-line; the rest of each source file remains scanned for forbidden vocabulary"
+value = "/../../../contracts/openapi/foundry/capability-v1.yaml"
+reason = "the moved OpenAPI domain's one relocation-adjusted include path is exempt line-by-line; unchanged historical occurrences remain governed by the rename-aware shrink-only baseline"
 
 [[vocab.carve_outs]]
 kind = "line_contains_ci"
-value = "//contracts/openapi/foundry:"
-reason = "the exact canonical Buck package label is exempt line-by-line; the containing BUCK file remains scanned for unrelated forbidden vocabulary"
+value = "//contracts/openapi/foundry:capability-v1.yaml"
+reason = "the one newly wired canonical Buck source label is exempt line-by-line; the containing BUCK file remains scanned for unrelated forbidden vocabulary"
+
+[[vocab.carve_outs]]
+kind = "line_contains_ci"
+value = "contracts/openapi/foundry/buck"
+reason = "the exact canonical Buck package marker must be named by its ADR-0562 justification and exact-path reachability registration; only lines containing that full structural path are exempt"
 
 [[vocab.carve_outs]]
 kind = "path_exact"
