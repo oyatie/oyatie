@@ -6125,7 +6125,7 @@ pub struct TagResponse {
 
     const VALID: &str = include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/../../../../contracts/openapi/foundry/capability-v1.yaml"
+        "/../../../contracts/openapi/foundry/capability-v1.yaml"
     ));
 
     fn query_operation_document() -> String {
