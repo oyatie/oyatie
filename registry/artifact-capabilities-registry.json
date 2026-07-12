@@ -621,7 +621,7 @@
       }
     },
     {
-      "artifact_id": "oya-intelligence-architecture-map-kernel-manifest",
+      "artifact_id": "intelligence-architecture-map-kernel-manifest",
       "artifact_path": "intelligence/core/architecture-map-kernel/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
