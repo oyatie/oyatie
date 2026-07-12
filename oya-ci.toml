@@ -82,19 +82,14 @@ value = "marketplace/facade/dev-cli/tests/"
 reason = "integration test fixtures that reference live repo contracts/openapi/foundry/ paths and fixture data strings — structural references to real contract paths, not brand residue; moved from oya/developer-sdk/crates/oya-dev-cli/tests/ where it was already baselined"
 
 [[vocab.carve_outs]]
-kind = "path_exact"
-value = "intelligence/core/openapi-domain/BUCK"
-reason = "structural references to the existing live `contracts/openapi/foundry/` contract path, moved from an already-baselined old source path, not revived product/governance branding"
-
-[[vocab.carve_outs]]
-kind = "path_exact"
-value = "intelligence/core/openapi-domain/src/lib.rs"
-reason = "structural references to the existing live `contracts/openapi/foundry/` contract path, moved from an already-baselined old source path, not revived product/governance branding"
+kind = "line_contains_ci"
+value = "contracts/openapi/foundry/"
+reason = "structural references to the existing live contract directory are exempt line-by-line; the rest of each source file remains scanned for forbidden vocabulary"
 
 [[vocab.carve_outs]]
 kind = "line_contains_ci"
-value = "contracts/openapi/foundry/buck"
-reason = "the exact canonical Buck package marker must be named by its ADR-0562 justification and exact-path reachability registration; this carves out only lines containing that full structural path, not the forbidden stem generally"
+value = "//contracts/openapi/foundry:"
+reason = "the exact canonical Buck package label is exempt line-by-line; the containing BUCK file remains scanned for unrelated forbidden vocabulary"
 
 [[vocab.carve_outs]]
 kind = "path_exact"
