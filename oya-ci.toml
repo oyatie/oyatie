@@ -83,6 +83,21 @@ reason = "integration test fixtures that reference live repo contracts/openapi/f
 
 [[vocab.carve_outs]]
 kind = "path_exact"
+value = "intelligence/core/openapi-domain/BUCK"
+reason = "structural references to the existing live `contracts/openapi/foundry/` contract path, moved from an already-baselined old source path, not revived product/governance branding"
+
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = "intelligence/core/openapi-domain/src/lib.rs"
+reason = "structural references to the existing live `contracts/openapi/foundry/` contract path, moved from an already-baselined old source path, not revived product/governance branding"
+
+[[vocab.carve_outs]]
+kind = "line_contains_ci"
+value = "contracts/openapi/foundry/buck"
+reason = "the exact canonical Buck package marker must be named by its ADR-0562 justification and exact-path reachability registration; this carves out only lines containing that full structural path, not the forbidden stem generally"
+
+[[vocab.carve_outs]]
+kind = "path_exact"
 value = "evidence/audit-chain.jsonl"
 reason = "append-only audit chain — NEVER rewritten"
 
