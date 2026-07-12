@@ -21,9 +21,14 @@ doctest = false
 
 [dependencies]
 serde_json = { workspace = true }
+# The ADR-index producer kernel (pure, std-only): gate-coverage check 3/3 invokes
+# the SAME library code the `oya doc adr-index` step uses to re-render the
+# generated projections, instead of shelling out.
+oya-check-adr-index = { path = "../../../libs/oya-check-adr-index" }
 
 [dev-dependencies]
 serde_json = { workspace = true }
+oya-check-adr-index = { path = "../../../libs/oya-check-adr-index" }
 
 [lints]
 workspace = true

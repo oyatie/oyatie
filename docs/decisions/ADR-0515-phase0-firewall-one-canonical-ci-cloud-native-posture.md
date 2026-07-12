@@ -167,7 +167,28 @@ The Phase-0 false-green firewall is the substrate that makes merge-gate enforcem
    (RED on today's corpus), with the exact on-disk violation codes as the contract:
    - **GATE-1 cross-artifact-agreement** — `orphan_decision`, `unpropagated_decision`,
      `dual_decision_collision`, `supersession_half_edge`, `status_disagreement`,
-     `generated_face_drift`.
+     `generated_face_drift`. GATE-1 additionally carries three BORN-ADVISORY
+     coverage checks (enforce-no-regression vs the frozen ratchet
+     `ci/facade/cross-artifact-agreement/gate-coverage-baseline.json`, the born-empty
+     gate-coverage program), each closing a review class no born-blocking code keys
+     on: `adr_prose_status_contradiction` (an ADR body prose that disagrees with its
+     own front-matter status, matched against the DATA phrase policy
+     `ci/facade/cross-artifact-agreement/prose-status-agreement-policy.json`),
+     `registry_derived_policy_desync` (a capability root in
+     `specs/capability-registry.json` absent from a derived gate policy —
+     module-membership, root-hygiene, or tier-dependency), and
+     `adr_index_projection_stale` (the generated `docs/ADR-INDEX.md` /
+     `docs/machine-readable/decisions.json` projections re-rendered through the
+     `oya-check-adr-index` producer kernel, implementing the
+     `docs/automation/adr-index-pipeline.md` regeneration promise without shelling out).
+     The three checks are implemented as born-advisory submodules
+     `ci/facade/cross-artifact-agreement/src/prose_frontmatter_status.rs`,
+     `ci/facade/cross-artifact-agreement/src/registry_policy_sync.rs`, and
+     `ci/facade/cross-artifact-agreement/src/adr_index_projection_parity.rs`, sharing the
+     frozen-baseline ratchet in
+     `ci/facade/cross-artifact-agreement/src/gate_coverage_baseline.rs`; they ride the
+     already-registered `ci-cross-artifact-agreement-gate` and are NOT wired into the
+     born-blocking §5.2 verdict.
    - **GATE-2 total-accounting** — `unaccounted`, `unowned`, `unjustified`, `unreachable`,
      `no_ttl_class`, `registry_drift`.
    - **GATE-3 staleness-reaper** — REPORTS, never reaps (`report → git mv → _archive/`,
@@ -290,6 +311,7 @@ locks the regression contract. The packet fixture corpus includes
 `specs/fixtures/cloud-ci-run-observability/tc-1003-bad-status-untyped-refs.json`. The contract closes the false-green class where a failed `oya-ci-required` run is only diagnosable by scraping GitHub Actions logs instead of reading typed cloud-ci/oya-ci status artifacts.
 GATE-4's review-admission fixture extension is likewise governed by this ADR: `specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-untrusted-review-authority-source.json`, `specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-standalone-multispectrum-review-evidence.json`, and `specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-review-title-body-evidence.json` prove that review authority comes from trusted cloud-ci/oya-ci review packets, not target-only branch-protection shadows, retired standalone multispectrum files, or packets missing PR title/body binding.
 The GH #983 metadata packet implementation is the Rust binary `libs/oya-check-pr-traceability/src/bin/pr-traceability-admission.rs`, owned through `libs/oya-check-pr-traceability/OWNERS`; it is a PR title/body hygiene preflight and not the trusted review-producer closure for F-PR5-06. The binary's `--scaffold`/`--check`/`--all-violations` author workflow (scaffold an admission-passing body, edit, validate locally before opening the PR) is documented in `libs/oya-check-pr-traceability/README.md`.
+The total-accounting producer carries the paired author-side preflight for the `unjustified regressions` class (CI class-fix #4: every PR adding tracked files hit `[cloud-ci-total-accounting] unjustified regressions`, discoverable only after materializing scm-facts faces + running the firewall). The producer binary `ci/facade/artifact-inventory-registry/src/main.rs` gains a `--check-paths`/`--check-diff` mode that, for each ADDED tracked file, reports reachable?/justified? and the exact remediation — reusing the SAME resolvers + face-builder + firewall evaluator (no drift) and requiring NO materialized scm-facts face (the added set is the tracked universe). The pre-push author workflow is documented in `ci/facade/artifact-inventory-registry/README.md`.
 ### D3. Gates are Rust binaries run automatically — no CLI, no shell, declarative gitops
 - **Pipeline, not CLI** (D-CLOUD-NATIVE / D-GOVERNANCE-CENTRAL). All CI / governance / automation are
   **Rust gate binaries run by GitHub Actions** (live) and oya-ci (shadow readiness); evidence is
