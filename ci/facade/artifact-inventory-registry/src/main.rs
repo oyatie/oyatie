@@ -907,6 +907,14 @@ fn cargo_prefix_scope(crate_id: &str, package_name: &str, required_prefix: &str)
     }
 }
 
+/// Return valid workspace member directories while preserving invalid matches for the dedicated
+/// workspace-glob-coverage face. Structural manifest errors still fail every producer face.
+fn scan_valid_member_dirs(repo_root: &Path, face: &str) -> Result<Vec<String>, CliError> {
+    oya_workspace_members_kernel::scan_member_dirs(repo_root)
+        .map(|scan| scan.member_dirs)
+        .map_err(|error| CliError::Io(format!("{face} scan member dirs: {error}")))
+}
+
 fn collect_cargo_prefix(
     repo_root: &Path,
     tracked_paths: &[String],
@@ -917,8 +925,7 @@ fn collect_cargo_prefix(
         .filter(|path| !is_path_excluded(path, cfg))
         .map(String::as_str)
         .collect();
-    let member_dirs = oya_workspace_members_kernel::resolve_member_dirs(repo_root)
-        .map_err(|error| CliError::Io(format!("cargo-prefix resolve member dirs: {error}")))?;
+    let member_dirs = scan_valid_member_dirs(repo_root, "cargo-prefix")?;
 
     let mut by_member: BTreeMap<String, String> = BTreeMap::new();
     for member_path in member_dirs {
@@ -961,8 +968,7 @@ fn collect_license_policy(
         .filter(|path| !is_path_excluded(path, cfg))
         .map(String::as_str)
         .collect();
-    let member_dirs = oya_workspace_members_kernel::resolve_member_dirs(repo_root)
-        .map_err(|error| CliError::Io(format!("license-policy resolve member dirs: {error}")))?;
+    let member_dirs = scan_valid_member_dirs(repo_root, "license-policy")?;
 
     let mut rows: Vec<Value> = Vec::new();
     for member_path in member_dirs {
@@ -1146,15 +1152,15 @@ struct LiveWorkspaceCrate {
 }
 
 /// The LIVE workspace crate universe: the `[package].name` and member directory of every resolved
-/// workspace member. Resolved IN-PROCESS via `oya-workspace-members-kernel::resolve_member_dirs`
-/// (the same glob-aware oracle the cohesion gate + the workspace-glob/target-parity faces use) + a
-/// shallow Cargo.toml `[package].name` parse. NEVER a `cargo metadata`/`buck2` shell-out
+/// workspace member. Scanned IN-PROCESS via `oya-workspace-members-kernel` (the same glob-aware
+/// oracle the cohesion gate + the workspace-glob/target-parity faces use) + a shallow Cargo.toml
+/// `[package].name` parse. Invalid matches remain blocking workspace-glob-coverage rows. NEVER a
+/// `cargo metadata`/`buck2` shell-out
 /// (all-CLI-retirement + hermeticity). The catalog crate_id (the file stem) is compared to package
 /// names, since de-brand path-as-namespace means the crate identity is `[package].name`, not the
 /// directory basename.
 fn live_workspace_crates(repo_root: &Path) -> Result<Vec<LiveWorkspaceCrate>, CliError> {
-    let member_dirs = oya_workspace_members_kernel::resolve_member_dirs(repo_root)
-        .map_err(|error| CliError::Io(format!("catalog-liveness resolve member dirs: {error}")))?;
+    let member_dirs = scan_valid_member_dirs(repo_root, "catalog-liveness")?;
     let mut rows = Vec::new();
     for dir in member_dirs {
         let manifest = repo_root.join(&dir).join("Cargo.toml");
@@ -1329,9 +1335,10 @@ fn collect_catalog_liveness(
 }
 
 /// Enumerate ADR-0538 workspace-glob-coverage rows. Member-entry rows preserve the raw root
-/// `[workspace].members` entries; crate-dir rows cover tracked first-party package manifests
-/// that are not the root manifest, not repo-policy-excluded, and not inside nested workspaces.
-/// Coverage itself comes only from `oya-workspace-members-kernel`.
+/// `[workspace].members` entries; member-match rows expose unexcluded concrete matches without a
+/// manifest; crate-dir rows cover tracked first-party package manifests that are not the root
+/// manifest, not repo-policy-excluded, and not inside nested workspaces. Expansion and coverage
+/// come only from `oya-workspace-members-kernel`.
 fn collect_workspace_glob_coverage(
     repo_root: &Path,
     tracked_paths: &[String],
@@ -1343,15 +1350,11 @@ fn collect_workspace_glob_coverage(
                 "workspace-glob-coverage read root workspace entries: {error}"
             ))
         })?;
-    let covered_dirs: BTreeSet<String> =
-        oya_workspace_members_kernel::resolve_member_dirs(repo_root)
-            .map_err(|error| {
-                CliError::Io(format!(
-                    "workspace-glob-coverage resolve member dirs: {error}"
-                ))
-            })?
-            .into_iter()
-            .collect();
+    let member_scan =
+        oya_workspace_members_kernel::scan_member_dirs(repo_root).map_err(|error| {
+            CliError::Io(format!("workspace-glob-coverage scan member dirs: {error}"))
+        })?;
+    let covered_dirs: BTreeSet<String> = member_scan.member_dirs.into_iter().collect();
 
     let mut rows: Vec<Value> = entries
         .members
@@ -1363,6 +1366,17 @@ fn collect_workspace_glob_coverage(
             })
         })
         .collect();
+    rows.extend(
+        member_scan
+            .missing_manifests
+            .into_iter()
+            .map(|member_match| {
+                json!({
+                    "member_match": member_match,
+                    "has_manifest": false,
+                })
+            }),
+    );
 
     let mut crate_dirs: BTreeMap<String, (bool, bool)> = BTreeMap::new();
     for path in tracked_paths {
@@ -1416,12 +1430,10 @@ fn collect_target_parity(
         .filter(|path| !is_path_excluded(path, cfg))
         .map(String::as_str)
         .collect();
-    let member_dirs: BTreeSet<String> =
-        oya_workspace_members_kernel::resolve_member_dirs(repo_root)
-            .map_err(|error| CliError::Io(format!("target-parity resolve member dirs: {error}")))?
-            .into_iter()
-            .filter(|member| tracked.contains(format!("{member}/Cargo.toml").as_str()))
-            .collect();
+    let member_dirs: BTreeSet<String> = scan_valid_member_dirs(repo_root, "target-parity")?
+        .into_iter()
+        .filter(|member| tracked.contains(format!("{member}/Cargo.toml").as_str()))
+        .collect();
 
     let mut rows: Vec<Value> = Vec::with_capacity(member_dirs.len());
     for member_path in member_dirs {
@@ -2905,6 +2917,62 @@ status: Accepted
     }
 
     #[test]
+    fn workspace_glob_coverage_reports_matched_directory_without_manifest() {
+        let root = unique_temp_repo();
+        fs::write(
+            root.join("Cargo.toml"),
+            "[workspace]\nmembers = [\"comms/*/*\"]\nexclude = []\n",
+        )
+        .expect("write root manifest");
+        fs::create_dir_all(root.join("comms/messenger/chaos"))
+            .expect("create non-crate member match");
+
+        let face = collect_workspace_glob_coverage(
+            &root,
+            &["Cargo.toml".to_owned()],
+            &oya_ci_config_kernel::OyaCiConfig::bundled_default(),
+        )
+        .expect("collect workspace glob coverage");
+        let findings = ci_workspace_member_coverage::evaluate_keyed(&face);
+
+        assert!(face["rows"].as_array().expect("rows").iter().any(|row| {
+            row["member_match"] == "comms/messenger/chaos"
+                && row["has_manifest"].as_bool() == Some(false)
+        }));
+        assert!(findings.iter().any(|finding| {
+            finding.code == "workspace_member_missing_manifest"
+                && finding.key == "comms/messenger/chaos"
+        }));
+
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    #[test]
+    fn cargo_reachability_uses_valid_members_while_coverage_reports_invalid_matches() {
+        let root = unique_temp_repo();
+        fs::write(
+            root.join("Cargo.toml"),
+            "[workspace]\nmembers = [\"libs/*\", \"comms/*/*\"]\nexclude = []\n",
+        )
+        .expect("write root manifest");
+        fs::create_dir_all(root.join("libs/valid-kernel")).expect("create valid member");
+        fs::write(
+            root.join("libs/valid-kernel/Cargo.toml"),
+            "[package]\nname = \"valid-kernel\"\n",
+        )
+        .expect("write member manifest");
+        fs::create_dir_all(root.join("comms/messenger/chaos"))
+            .expect("create invalid member match");
+
+        assert_eq!(
+            read_cargo_member_prefixes(&root).expect("scan valid cargo member prefixes"),
+            vec!["libs/valid-kernel/".to_owned()]
+        );
+
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    #[test]
     fn reachability_registry_matches_prefixes_exactly_and_fails_loud() {
         let root = unique_temp_repo();
         let reg = root.join("specs/reachability-registry.json");
@@ -4108,14 +4176,14 @@ fn resolve_reachability(
 /// Cargo.toml that EXISTS but fails to resolve (malformed TOML, missing `[workspace]` shape)
 /// must propagate, not silently resolve to "zero members" — that would mark every crate path
 /// unreachable from `cargo-members` and could misclassify real crates as orphaned instead of
-/// erroring loud on a genuinely corrupt manifest.
+/// erroring loud on a genuinely corrupt manifest. Missing member manifests are retained by the
+/// diagnostic scan and emitted through the workspace-glob-coverage face, so reachability can be
+/// produced without hiding or short-circuiting that blocking finding.
 fn read_cargo_member_prefixes(repo_root: &Path) -> Result<Vec<String>, CliError> {
     if !repo_root.join("Cargo.toml").is_file() {
         return Ok(Vec::new());
     }
-    let dirs = oya_workspace_members_kernel::resolve_member_dirs(repo_root)
-        .map_err(|e| CliError::Io(format!("resolve workspace member dirs: {e}")))?;
-    Ok(dirs
+    Ok(scan_valid_member_dirs(repo_root, "cargo-members")?
         .into_iter()
         .map(|dir| format!("{dir}/"))
         .collect())
