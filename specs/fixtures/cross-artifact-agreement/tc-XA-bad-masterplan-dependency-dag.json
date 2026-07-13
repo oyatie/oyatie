@@ -182,6 +182,22 @@
         "relationship": "unblocks"
       }
     ],
+    "planning_entry_contract": {
+      "state": "open",
+      "dispatch_allowed": false,
+      "nonbinding_planning_discussion_allowed": true,
+      "current_pr_candidate": "fixture://preplanning-authority-closure/current-pr",
+      "authority_choice_matrix": [
+        "fixture-authority-choice"
+      ],
+      "entry_conditions": [
+        "fixture-entry-condition"
+      ],
+      "no_dispatch_stop_conditions": [
+        "fixture-preplanning-hold-open"
+      ],
+      "binding_plan_approval_allowed": false
+    },
     "sequencing": {
       "derivation_mode": "zero-based-rederived-from-masterplan-v2-dependency-dag",
       "source_of_truth": "/specs/masterplan.json#masterplan_v2.dependency_edges",
@@ -219,12 +235,18 @@
         "decision_ref": "fixture://founder-ratification",
         "recorded_at": "2026-07-02T00:00:00Z",
         "approved_by": "founder",
-        "decision_status": "ratified"
+        "decision_status": "ratified",
+        "ratified_sequencing_digest": "sha256:8cd72d506ca2ebd87ac9708e78d60a693fdf5549552d5215d577e4c2766924b6"
       },
       "execution_wave_dispatch": {
         "requires_founder_ratification": true,
         "allowed_without_founder_ratification": false,
-        "state": "open"
+        "state": "blocked",
+        "requires_preplanning_authority_closure": true,
+        "allowed_without_preplanning_authority_closure": false,
+        "blocked_reason": "preplanning_authority_closure",
+        "preplanning_authority_closure_ref": "fixture://preplanning-authority-closure/current-pr",
+        "dispatched_waves": []
       }
     },
     "evidence_state_policy": {

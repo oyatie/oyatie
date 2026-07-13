@@ -88,7 +88,9 @@
 //! - `masterplan_sequencing_invalid` — masterplan v2 lacks a fully
 //!   zero-based, DAG-derived sequencing projection over every live work item.
 //! - `masterplan_execution_wave_dispatch_unratified` — execution-wave dispatch
-//!   is not fail-closed on an explicit founder-ratification decision.
+//!   is not fail-closed on an explicit founder-ratification decision, or the
+//!   recorded ratification digest no longer matches the ratified sequencing,
+//!   or the open pre-planning authority-closure hold can be bypassed.
 //!
 //! The evaluator is pure: the fixture (data-under-test) drives it; there are no scanner
 //! special-cases. Carve-outs/exceptions live as DATA, never as evaluator branches.
@@ -99,6 +101,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use serde_json::Value;
+use sha2::{Digest, Sha256};
 
 mod adr_index_projection_parity;
 mod gate_coverage_baseline;
@@ -151,7 +154,8 @@ const MANIFEST_INDEX_REF: &str = "/specs/microservices/manifests-index.json";
 const SEQUENCING_SOURCE_OF_TRUTH: &str = "/specs/masterplan.json#masterplan_v2.dependency_edges";
 const SEQUENCING_DERIVATION_MODE: &str = "zero-based-rederived-from-masterplan-v2-dependency-dag";
 const DISPATCH_BLOCKED_STATE: &str = "blocked";
-const DISPATCH_BLOCKED_REASON: &str = "pending_founder_ratification";
+const PREPLANNING_ENTRY_STATE: &str = "open";
+const PREPLANNING_BLOCKED_REASON: &str = "preplanning_authority_closure";
 const CLAIMED_DONE_UNVERIFIED_STATE: &str = "claimed-done-unverified";
 const EVIDENCE_ATTACHED_STATE: &str = "evidence-attached";
 const PROJECTION_FRESHNESS_VALIDATOR: &str =
@@ -287,7 +291,8 @@ pub enum Verdict {
 /// freshness coverage, `masterplan_v2.read_contracts` keys for stale archived
 /// read paths referenced as non-archive surfaces, `masterplan_v2.entry_surface`
 /// keys for root-hub allowlist drift, and `masterplan_v2.sequencing` keys for
-/// zero-based order/wave and founder-ratification dispatch violations.
+/// zero-based order/wave, founder-ratification, and pre-planning dispatch-hold
+/// violations.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Finding {
     pub code: String,
@@ -1693,7 +1698,13 @@ pub fn evaluate_masterplan_v2_sequencing(masterplan: &Value) -> BTreeSet<Finding
         &mut findings,
     );
 
-    let founder_ratified = founder_ratification_recorded(sequencing.get("founder_ratification"));
+    let preplanning_hold_open =
+        evaluate_preplanning_entry_contract(v2.get("planning_entry_contract"), &mut findings);
+    let ratification_recorded =
+        founder_ratification_recorded(sequencing.get("founder_ratification"));
+    let ratification_digest_matches =
+        recorded_masterplan_ratification_digest_matches(v2, sequencing, &mut findings);
+    let founder_ratified = ratification_recorded && ratification_digest_matches;
     if !founder_ratified {
         findings.insert(Finding::new(
             "masterplan_execution_wave_dispatch_unratified",
@@ -1703,10 +1714,148 @@ pub fn evaluate_masterplan_v2_sequencing(masterplan: &Value) -> BTreeSet<Finding
     evaluate_execution_wave_dispatch(
         sequencing.get("execution_wave_dispatch"),
         founder_ratified,
+        preplanning_hold_open,
         &mut findings,
     );
 
     findings
+}
+
+/// Verify that the current masterplan sequencing, its recorded founder digest,
+/// and the digest in the referenced founder-ratification evidence all agree.
+///
+/// The caller owns resolving `decision_ref` to the supplied evidence document;
+/// keeping file I/O outside this function preserves the pure evaluator boundary.
+pub fn evaluate_masterplan_v2_ratification_digest(
+    masterplan: &Value,
+    ratification_evidence: &Value,
+) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+    let key = "masterplan_v2.sequencing.founder_ratification.ratified_sequencing_digest";
+
+    let Some(v2) = masterplan.get("masterplan_v2").and_then(Value::as_object) else {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            key,
+        ));
+        return findings;
+    };
+    let Some(sequencing) = v2.get("sequencing").and_then(Value::as_object) else {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            key,
+        ));
+        return findings;
+    };
+
+    let computed = compute_masterplan_v2_sequencing_digest(v2, sequencing);
+    let recorded = sequencing
+        .get("founder_ratification")
+        .and_then(|ratification| non_empty_field(ratification, "ratified_sequencing_digest"));
+    if computed.as_deref() != recorded {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            key,
+        ));
+    }
+
+    let evidence_digest = non_empty_field(ratification_evidence, "ratified_sequencing_digest");
+    if computed.as_deref() != evidence_digest || recorded != evidence_digest {
+        let evidence_key = sequencing
+            .get("founder_ratification")
+            .and_then(|ratification| non_empty_field(ratification, "decision_ref"))
+            .map_or_else(
+                || "<founder-ratification-evidence>.ratified_sequencing_digest".to_owned(),
+                |decision_ref| format!("{decision_ref}.ratified_sequencing_digest"),
+            );
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            &evidence_key,
+        ));
+    }
+
+    findings
+}
+
+fn recorded_masterplan_ratification_digest_matches(
+    v2: &serde_json::Map<String, Value>,
+    sequencing: &serde_json::Map<String, Value>,
+    findings: &mut BTreeSet<Finding>,
+) -> bool {
+    let Some(ratification) = sequencing.get("founder_ratification") else {
+        return false;
+    };
+    if ratification
+        .get("decision_recorded")
+        .and_then(Value::as_bool)
+        != Some(true)
+    {
+        return false;
+    }
+    let Some(recorded) = sequencing
+        .get("founder_ratification")
+        .and_then(|value| non_empty_field(value, "ratified_sequencing_digest"))
+    else {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.founder_ratification.ratified_sequencing_digest",
+        ));
+        return false;
+    };
+
+    let matches =
+        compute_masterplan_v2_sequencing_digest(v2, sequencing).as_deref() == Some(recorded);
+    if !matches {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.founder_ratification.ratified_sequencing_digest",
+        ));
+    }
+    matches
+}
+
+fn compute_masterplan_v2_sequencing_digest(
+    v2: &serde_json::Map<String, Value>,
+    sequencing: &serde_json::Map<String, Value>,
+) -> Option<String> {
+    let edges = v2.get("dependency_edges")?.as_array()?;
+    let mut dependency_edges = Vec::with_capacity(edges.len());
+    for edge in edges {
+        dependency_edges.push((
+            edge.get("from")?.as_str()?.to_owned(),
+            edge.get("to")?.as_str()?.to_owned(),
+        ));
+    }
+    dependency_edges.sort();
+
+    let order = sequencing.get("work_item_order")?.as_array()?;
+    let mut work_item_order = Vec::with_capacity(order.len());
+    for item in order {
+        work_item_order.push(item.get("work_item_id")?.as_str()?.to_owned());
+    }
+
+    let waves = sequencing.get("execution_waves")?.as_array()?;
+    let mut execution_waves = Vec::with_capacity(waves.len());
+    for wave in waves {
+        let ids = wave.get("work_item_ids")?.as_array()?;
+        let mut work_item_ids = Vec::with_capacity(ids.len());
+        for id in ids {
+            work_item_ids.push(id.as_str()?.to_owned());
+        }
+        execution_waves.push(work_item_ids);
+    }
+
+    // The three field names are emitted in lexical order, matching the
+    // founder-recorded sorted-key canonical JSON recipe. Each value consists
+    // only of arrays and strings, so serde_json's compact rendering is the
+    // required separators(',', ':') representation.
+    let canonical = format!(
+        "{{\"dependency_edges\":{},\"execution_waves\":{},\"work_item_order\":{}}}",
+        serde_json::to_string(&dependency_edges).ok()?,
+        serde_json::to_string(&execution_waves).ok()?,
+        serde_json::to_string(&work_item_order).ok()?,
+    );
+    Some(format!("sha256:{:x}", Sha256::digest(canonical.as_bytes())))
 }
 
 fn masterplan_sequence_work_item_ids(work_items: Option<&Value>) -> BTreeSet<String> {
@@ -1995,9 +2144,91 @@ fn founder_ratification_recorded(founder_ratification: Option<&Value>) -> bool {
         })
 }
 
+fn evaluate_preplanning_entry_contract(
+    planning_entry_contract: Option<&Value>,
+    findings: &mut BTreeSet<Finding>,
+) -> bool {
+    let Some(contract) = planning_entry_contract.and_then(Value::as_object) else {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.planning_entry_contract",
+        ));
+        return false;
+    };
+
+    let mut valid = true;
+    if contract.get("state").and_then(Value::as_str) != Some(PREPLANNING_ENTRY_STATE) {
+        valid = false;
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.planning_entry_contract.state",
+        ));
+    }
+    if contract.get("dispatch_allowed").and_then(Value::as_bool) != Some(false) {
+        valid = false;
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.planning_entry_contract.dispatch_allowed",
+        ));
+    }
+    if contract
+        .get("binding_plan_approval_allowed")
+        .and_then(Value::as_bool)
+        != Some(false)
+    {
+        valid = false;
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.planning_entry_contract.binding_plan_approval_allowed",
+        ));
+    }
+    if contract
+        .get("nonbinding_planning_discussion_allowed")
+        .and_then(Value::as_bool)
+        != Some(true)
+    {
+        valid = false;
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.planning_entry_contract.nonbinding_planning_discussion_allowed",
+        ));
+    }
+    if contract
+        .get("current_pr_candidate")
+        .and_then(Value::as_str)
+        .is_none_or(|value| value.trim().is_empty())
+    {
+        valid = false;
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.planning_entry_contract.current_pr_candidate",
+        ));
+    }
+    for field in [
+        "authority_choice_matrix",
+        "entry_conditions",
+        "no_dispatch_stop_conditions",
+    ] {
+        if contract
+            .get(field)
+            .and_then(Value::as_array)
+            .is_none_or(Vec::is_empty)
+        {
+            valid = false;
+            findings.insert(Finding::new(
+                "masterplan_execution_wave_dispatch_unratified",
+                &format!("masterplan_v2.planning_entry_contract.{field}"),
+            ));
+        }
+    }
+
+    valid
+}
+
 fn evaluate_execution_wave_dispatch(
     execution_wave_dispatch: Option<&Value>,
     founder_ratified: bool,
+    preplanning_hold_open: bool,
     findings: &mut BTreeSet<Finding>,
 ) {
     let Some(dispatch) = execution_wave_dispatch else {
@@ -2028,16 +2259,61 @@ fn evaluate_execution_wave_dispatch(
             "masterplan_v2.sequencing.execution_wave_dispatch.allowed_without_founder_ratification",
         ));
     }
-    if !founder_ratified {
-        let blocked = dispatch.get("state").and_then(Value::as_str) == Some(DISPATCH_BLOCKED_STATE)
-            && dispatch.get("blocked_reason").and_then(Value::as_str)
-                == Some(DISPATCH_BLOCKED_REASON);
-        if !blocked {
-            findings.insert(Finding::new(
-                "masterplan_execution_wave_dispatch_unratified",
-                "masterplan_v2.sequencing.execution_wave_dispatch.not_blocked",
-            ));
-        }
+    if dispatch
+        .get("requires_preplanning_authority_closure")
+        .and_then(Value::as_bool)
+        != Some(true)
+    {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.execution_wave_dispatch.requires_preplanning_authority_closure",
+        ));
+    }
+    if dispatch
+        .get("allowed_without_preplanning_authority_closure")
+        .and_then(Value::as_bool)
+        != Some(false)
+    {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.execution_wave_dispatch.allowed_without_preplanning_authority_closure",
+        ));
+    }
+    if non_empty_field(dispatch, "preplanning_authority_closure_ref").is_none() {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.execution_wave_dispatch.preplanning_authority_closure_ref",
+        ));
+    }
+
+    let dispatched_waves_empty = dispatch
+        .get("dispatched_waves")
+        .and_then(Value::as_array)
+        .is_some_and(Vec::is_empty);
+    if !dispatched_waves_empty {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.execution_wave_dispatch.dispatched_waves",
+        ));
+    }
+
+    let dispatch_blocked =
+        dispatch.get("state").and_then(Value::as_str) == Some(DISPATCH_BLOCKED_STATE);
+    if !founder_ratified && (!dispatch_blocked || !dispatched_waves_empty) {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.execution_wave_dispatch.not_blocked",
+        ));
+    }
+    if preplanning_hold_open
+        && (!dispatch_blocked
+            || dispatch.get("blocked_reason").and_then(Value::as_str)
+                != Some(PREPLANNING_BLOCKED_REASON))
+    {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.execution_wave_dispatch.preplanning_hold_bypassed",
+        ));
     }
 }
 
@@ -4566,6 +4842,16 @@ mod tests {
         execution_wave_dispatch: Value,
     ) -> Value {
         let mut masterplan = minimal_masterplan_v2();
+        masterplan["masterplan_v2"]["planning_entry_contract"] = json!({
+            "state": "open",
+            "dispatch_allowed": false,
+            "binding_plan_approval_allowed": false,
+            "nonbinding_planning_discussion_allowed": true,
+            "current_pr_candidate": "evidence/consolidation/preplanning-authority-closure-20260713.json",
+            "authority_choice_matrix": ["founder-authority-choices-remain-explicit"],
+            "entry_conditions": ["authority-snapshot-is-current"],
+            "no_dispatch_stop_conditions": ["preplanning-authority-closure-remains-open"]
+        });
         masterplan["masterplan_v2"]["sequencing"] = json!({
             "derivation_mode": SEQUENCING_DERIVATION_MODE,
             "source_of_truth": SEQUENCING_SOURCE_OF_TRUTH,
@@ -4599,8 +4885,12 @@ mod tests {
             json!({
                 "requires_founder_ratification": true,
                 "allowed_without_founder_ratification": false,
+                "requires_preplanning_authority_closure": true,
+                "allowed_without_preplanning_authority_closure": false,
+                "preplanning_authority_closure_ref": "evidence/consolidation/preplanning-authority-closure-20260713.json",
                 "state": DISPATCH_BLOCKED_STATE,
-                "blocked_reason": DISPATCH_BLOCKED_REASON
+                "blocked_reason": "preplanning_authority_closure",
+                "dispatched_waves": []
             }),
         );
         let findings = evaluate_masterplan_v2_sequencing(&pending_blocked);
@@ -4621,13 +4911,133 @@ mod tests {
             json!({
                 "requires_founder_ratification": true,
                 "allowed_without_founder_ratification": false,
-                "state": "ratified-awaiting-dispatch"
+                "requires_preplanning_authority_closure": true,
+                "allowed_without_preplanning_authority_closure": false,
+                "preplanning_authority_closure_ref": "evidence/consolidation/preplanning-authority-closure-20260713.json",
+                "state": "ratified-awaiting-dispatch",
+                "dispatched_waves": []
             }),
         );
         let findings = evaluate_masterplan_v2_sequencing(&pending_unblocked);
         assert!(findings.contains(&Finding::new(
             "masterplan_execution_wave_dispatch_unratified",
             "masterplan_v2.sequencing.execution_wave_dispatch.not_blocked"
+        )));
+    }
+    #[test]
+    fn masterplan_v2_sequencing_rejects_missing_preplanning_entry_contract() {
+        let mut missing_contract = minimal_sequenced_masterplan(
+            json!({
+                "decision_recorded": true,
+                "decision_status": "ratified",
+                "approved_by": "founder",
+                "recorded_at": "2026-07-02T00:00:00Z",
+                "decision_ref": "evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json",
+                "ratified_sequencing_digest": "sha256:b8e44b41bef2dcdea05deec44a22905ac24154494ae229f43aacd2fe078e731d"
+            }),
+            json!({
+                "requires_founder_ratification": true,
+                "allowed_without_founder_ratification": false,
+                "requires_preplanning_authority_closure": true,
+                "allowed_without_preplanning_authority_closure": false,
+                "preplanning_authority_closure_ref": "evidence/consolidation/preplanning-authority-closure-20260713.json",
+                "state": DISPATCH_BLOCKED_STATE,
+                "blocked_reason": "preplanning_authority_closure",
+                "dispatched_waves": []
+            }),
+        );
+        missing_contract["masterplan_v2"]
+            .as_object_mut()
+            .expect("minimal fixture masterplan_v2 must be an object")
+            .remove("planning_entry_contract");
+
+        let findings = evaluate_masterplan_v2_sequencing(&missing_contract);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.planning_entry_contract"
+        )));
+    }
+    #[test]
+    fn masterplan_v2_sequencing_rejects_incomplete_preplanning_entry_contract() {
+        let valid = minimal_sequenced_masterplan(
+            json!({
+                "decision_recorded": true,
+                "decision_status": "ratified",
+                "approved_by": "founder",
+                "recorded_at": "2026-07-02T00:00:00Z",
+                "decision_ref": "evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json",
+                "ratified_sequencing_digest": "sha256:b8e44b41bef2dcdea05deec44a22905ac24154494ae229f43aacd2fe078e731d"
+            }),
+            json!({
+                "requires_founder_ratification": true,
+                "allowed_without_founder_ratification": false,
+                "requires_preplanning_authority_closure": true,
+                "allowed_without_preplanning_authority_closure": false,
+                "preplanning_authority_closure_ref": "evidence/consolidation/preplanning-authority-closure-20260713.json",
+                "state": DISPATCH_BLOCKED_STATE,
+                "blocked_reason": "preplanning_authority_closure",
+                "dispatched_waves": []
+            }),
+        );
+
+        for field in [
+            "binding_plan_approval_allowed",
+            "nonbinding_planning_discussion_allowed",
+            "current_pr_candidate",
+            "authority_choice_matrix",
+            "entry_conditions",
+            "no_dispatch_stop_conditions",
+        ] {
+            let mut incomplete = valid.clone();
+            incomplete["masterplan_v2"]["planning_entry_contract"]
+                .as_object_mut()
+                .expect("minimal planning_entry_contract must be an object")
+                .remove(field);
+            if field == "binding_plan_approval_allowed" {
+                incomplete["masterplan_v2"]["planning_entry_contract"]["binding_plan_approval_allowed"] =
+                    json!(true);
+            } else if field == "nonbinding_planning_discussion_allowed" {
+                incomplete["masterplan_v2"]["planning_entry_contract"]["nonbinding_walkthrough_allowed"] =
+                    json!(true);
+            }
+
+            let findings = evaluate_masterplan_v2_sequencing(&incomplete);
+            assert!(findings.contains(&Finding::new(
+                "masterplan_execution_wave_dispatch_unratified",
+                &format!("masterplan_v2.planning_entry_contract.{field}")
+            )));
+        }
+    }
+    #[test]
+    fn masterplan_v2_sequencing_rejects_preplanning_dispatch_bypass() {
+        let bypass = minimal_sequenced_masterplan(
+            json!({
+                "decision_recorded": true,
+                "decision_status": "ratified",
+                "approved_by": "founder",
+                "recorded_at": "2026-07-02T00:00:00Z",
+                "decision_ref": "evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json",
+                "ratified_sequencing_digest": "sha256:b8e44b41bef2dcdea05deec44a22905ac24154494ae229f43aacd2fe078e731d"
+            }),
+            json!({
+                "requires_founder_ratification": true,
+                "allowed_without_founder_ratification": false,
+                "requires_preplanning_authority_closure": true,
+                "allowed_without_preplanning_authority_closure": false,
+                "preplanning_authority_closure_ref": "evidence/consolidation/preplanning-authority-closure-20260713.json",
+                "state": "ratified-awaiting-dispatch",
+                "dispatched_waves": [0]
+            }),
+        );
+
+        let findings = evaluate_masterplan_v2_sequencing(&bypass);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.execution_wave_dispatch.preplanning_hold_bypassed"
+        )));
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.execution_wave_dispatch.dispatched_waves"
         )));
     }
     #[test]
@@ -4639,8 +5049,12 @@ mod tests {
             json!({
                 "requires_founder_ratification": true,
                 "allowed_without_founder_ratification": false,
+                "requires_preplanning_authority_closure": true,
+                "allowed_without_preplanning_authority_closure": false,
+                "preplanning_authority_closure_ref": "evidence/consolidation/preplanning-authority-closure-20260713.json",
                 "state": DISPATCH_BLOCKED_STATE,
-                "blocked_reason": DISPATCH_BLOCKED_REASON
+                "blocked_reason": "preplanning_authority_closure",
+                "dispatched_waves": []
             }),
         );
         let findings = evaluate_masterplan_v2_sequencing(&incomplete);
@@ -4650,8 +5064,8 @@ mod tests {
         )));
     }
     #[test]
-    fn masterplan_v2_sequencing_accepts_recorded_founder_ratification() {
-        let ratified = minimal_sequenced_masterplan(
+    fn masterplan_v2_sequencing_rejects_digestless_recorded_ratification() {
+        let digestless = minimal_sequenced_masterplan(
             json!({
                 "decision_recorded": true,
                 "decision_status": "ratified",
@@ -4662,13 +5076,155 @@ mod tests {
             json!({
                 "requires_founder_ratification": true,
                 "allowed_without_founder_ratification": false,
-                "state": "ratified-awaiting-dispatch"
+                "requires_preplanning_authority_closure": true,
+                "allowed_without_preplanning_authority_closure": false,
+                "preplanning_authority_closure_ref": "evidence/consolidation/preplanning-authority-closure-20260713.json",
+                "state": DISPATCH_BLOCKED_STATE,
+                "blocked_reason": "preplanning_authority_closure",
+                "dispatched_waves": []
+            }),
+        );
+
+        let findings = evaluate_masterplan_v2_sequencing(&digestless);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.founder_ratification.ratified_sequencing_digest"
+        )));
+
+        let live_digest_findings =
+            evaluate_masterplan_v2_ratification_digest(&digestless, &json!({}));
+        assert!(live_digest_findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.founder_ratification.ratified_sequencing_digest"
+        )));
+        assert!(live_digest_findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json.ratified_sequencing_digest"
+        )));
+    }
+    #[test]
+    fn masterplan_v2_sequencing_accepts_recorded_founder_ratification() {
+        let ratified = minimal_sequenced_masterplan(
+            json!({
+                "decision_recorded": true,
+                "decision_status": "ratified",
+                "approved_by": "founder",
+                "recorded_at": "2026-07-02T00:00:00Z",
+                "decision_ref": "evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json",
+                "ratified_sequencing_digest": "sha256:b8e44b41bef2dcdea05deec44a22905ac24154494ae229f43aacd2fe078e731d"
+            }),
+            json!({
+                "requires_founder_ratification": true,
+                "allowed_without_founder_ratification": false,
+                "requires_preplanning_authority_closure": true,
+                "allowed_without_preplanning_authority_closure": false,
+                "preplanning_authority_closure_ref": "evidence/consolidation/preplanning-authority-closure-20260713.json",
+                "state": DISPATCH_BLOCKED_STATE,
+                "blocked_reason": "preplanning_authority_closure",
+                "dispatched_waves": []
             }),
         );
         let findings = evaluate_masterplan_v2_sequencing(&ratified);
         assert!(
             findings.is_empty(),
             "a recorded founder ratification with fail-closed dispatch flags must be green: {findings:?}"
+        );
+    }
+    #[test]
+    fn masterplan_v2_sequencing_rejects_stale_ratification_digest_after_graph_mutation() {
+        let mut ratified = minimal_sequenced_masterplan(
+            json!({
+                "decision_recorded": true,
+                "decision_status": "ratified",
+                "approved_by": "founder",
+                "recorded_at": "2026-07-02T00:00:00Z",
+                "decision_ref": "evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json",
+                "ratified_sequencing_digest": "sha256:b8e44b41bef2dcdea05deec44a22905ac24154494ae229f43aacd2fe078e731d"
+            }),
+            json!({
+                "requires_founder_ratification": true,
+                "allowed_without_founder_ratification": false,
+                "requires_preplanning_authority_closure": true,
+                "allowed_without_preplanning_authority_closure": false,
+                "preplanning_authority_closure_ref": "evidence/consolidation/preplanning-authority-closure-20260713.json",
+                "state": DISPATCH_BLOCKED_STATE,
+                "blocked_reason": "preplanning_authority_closure",
+                "dispatched_waves": []
+            }),
+        );
+        let evidence = json!({
+            "ratified_sequencing_digest": "sha256:b8e44b41bef2dcdea05deec44a22905ac24154494ae229f43aacd2fe078e731d"
+        });
+        assert!(
+            evaluate_masterplan_v2_ratification_digest(&ratified, &evidence).is_empty(),
+            "the fixture's computed, masterplan, and evidence digests must start aligned"
+        );
+
+        // Reverse the edge and re-derive both order and waves so the sequencing
+        // remains structurally valid. The unchanged founder digest must still
+        // invalidate the ratification.
+        ratified["masterplan_v2"]["dependency_edges"] = json!([{
+            "from": "MPV2-0001",
+            "to": "MPV2-0000",
+            "relationship": "unblocks"
+        }]);
+        ratified["masterplan_v2"]["sequencing"]["work_item_order"] = json!([
+            {"index": 0, "work_item_id": "MPV2-0001"},
+            {"index": 1, "work_item_id": "MPV2-0000"}
+        ]);
+        ratified["masterplan_v2"]["sequencing"]["execution_waves"] = json!([
+            {"wave_index": 0, "work_item_ids": ["MPV2-0001"]},
+            {"wave_index": 1, "work_item_ids": ["MPV2-0000"]}
+        ]);
+
+        let findings = evaluate_masterplan_v2_sequencing(&ratified);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.founder_ratification.ratified_sequencing_digest"
+        )));
+
+        let digest_findings = evaluate_masterplan_v2_ratification_digest(&ratified, &evidence);
+        assert!(digest_findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.founder_ratification.ratified_sequencing_digest"
+        )));
+        assert!(digest_findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json.ratified_sequencing_digest"
+        )));
+    }
+    #[test]
+    fn masterplan_v2_ratification_digest_rejects_evidence_only_drift() {
+        let ratified = minimal_sequenced_masterplan(
+            json!({
+                "decision_recorded": true,
+                "decision_status": "ratified",
+                "approved_by": "founder",
+                "recorded_at": "2026-07-02T00:00:00Z",
+                "decision_ref": "evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json",
+                "ratified_sequencing_digest": "sha256:b8e44b41bef2dcdea05deec44a22905ac24154494ae229f43aacd2fe078e731d"
+            }),
+            json!({
+                "requires_founder_ratification": true,
+                "allowed_without_founder_ratification": false,
+                "requires_preplanning_authority_closure": true,
+                "allowed_without_preplanning_authority_closure": false,
+                "preplanning_authority_closure_ref": "evidence/consolidation/preplanning-authority-closure-20260713.json",
+                "state": DISPATCH_BLOCKED_STATE,
+                "blocked_reason": "preplanning_authority_closure",
+                "dispatched_waves": []
+            }),
+        );
+        let evidence = json!({
+            "ratified_sequencing_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+        });
+
+        assert_eq!(
+            evaluate_masterplan_v2_ratification_digest(&ratified, &evidence),
+            BTreeSet::from([Finding::new(
+                "masterplan_execution_wave_dispatch_unratified",
+                "evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json.ratified_sequencing_digest"
+            )])
         );
     }
     fn minimal_program_coverage_masterplan() -> Value {

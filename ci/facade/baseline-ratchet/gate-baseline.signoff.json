@@ -68,13 +68,11 @@
     },
     "cloud-ci-brand-residue": {
       "forbidden_forgejo": [
-        "HANDOFF.md",
         "ci/facade/baseline-ratchet/gate-baseline.signoff.json",
         "docs/decisions/ADR-0533-config-driven-public-boundary.md",
         "registry/stores/instructions-store.json"
       ],
       "forbidden_foundry": [
-        "HANDOFF.md",
         "ci/facade/baseline-ratchet/gate-baseline.signoff.json",
         "docs/decisions/ADR-0519-auto-advise-gate-safety-governor.md",
         "docs/decisions/ADR-0529-auto-advise-gate-governor-operational-at-gate-layer.md",
@@ -85,14 +83,12 @@
         "registry/stores/registry-store.json"
       ],
       "forbidden_jenkins": [
-        "HANDOFF.md",
         "ci/facade/baseline-ratchet/gate-baseline.signoff.json",
         "docs/decisions/ADR-0533-config-driven-public-boundary.md",
         "registry/stores/instructions-store.json",
         "registry/stores/registry-store.json"
       ],
       "forbidden_oya-vcs": [
-        "HANDOFF.md",
         "ci/facade/baseline-ratchet/gate-baseline.signoff.json",
         "docs/decisions/ADR-0533-config-driven-public-boundary.md"
       ]
@@ -241,6 +237,46 @@
       "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
       "gate": "cloud-ci-total-accounting",
       "code": "unowned",
+      "keys": [
+        "HANDOFF.md"
+      ]
+    },
+    {
+      "date": "2026-07-13",
+      "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "gate": "cloud-ci-brand-residue",
+      "code": "forbidden_forgejo",
+      "keys": [
+        "HANDOFF.md"
+      ]
+    },
+    {
+      "date": "2026-07-13",
+      "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "gate": "cloud-ci-brand-residue",
+      "code": "forbidden_foundry",
+      "keys": [
+        "HANDOFF.md"
+      ]
+    },
+    {
+      "date": "2026-07-13",
+      "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "gate": "cloud-ci-brand-residue",
+      "code": "forbidden_jenkins",
+      "keys": [
+        "HANDOFF.md"
+      ]
+    },
+    {
+      "date": "2026-07-13",
+      "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "gate": "cloud-ci-brand-residue",
+      "code": "forbidden_oya-vcs",
       "keys": [
         "HANDOFF.md"
       ]

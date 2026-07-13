@@ -10,7 +10,7 @@ owner: council-architecture
 supersedes: []
 superseded_by: []
 amended_by: []
-depends_on: [ADR-0083, ADR-0131, ADR-0090, ADR-0559, ADR-0561, ADR-0566]
+depends_on: [ADR-0083, ADR-0131, ADR-0090]
 amends: []
 related: [ADR-0559, ADR-0561, ADR-0564, ADR-0566]
 related_specs:

@@ -30,6 +30,26 @@
       "docs/decisions/ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md",
       "docs/decisions/ADR-0615-capability-boundary-rulings-resolving-adr-0562-flagged-boundaries.md"
     ],
+    "accepted_decision_propagation_dispositions": {
+      "authority_note": "Gate-facing lifecycle propagation only. These markers satisfy the historical roadmap face of the artifact-inventory firewall; they do not restore this sidecar as live plan authority, mint work-item IDs, order work, or prove rollout.",
+      "decisions": [
+        {
+          "id": "ADR-0170",
+          "lifecycle_state": "Accepted",
+          "sequencing_effect": "none",
+          "disposition_ref": "/specs/masterplan.json#masterplan_v2.planning_entry_contract",
+          "note": "Lifecycle-repair propagation only; the unresolved internal-developer-portal choice remains a founder decision and this marker does not schedule its rollout."
+        },
+        {
+          "id": "ADR-0613",
+          "lifecycle_state": "Accepted",
+          "sequencing_effect": "none",
+          "disposition_ref": "/specs/masterplan.json#masterplan_v2.planning_entry_contract",
+          "note": "Accepted projection-policy propagation only; planning_impact is false and this marker does not add plan work."
+        }
+      ],
+      "evidence": "/evidence/consolidation/preplanning-authority-closure-20260713.json"
+    },
     "deduplicates_existing": [
       "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
       "/templates/checklists/agent-kickoff-checklist.md",

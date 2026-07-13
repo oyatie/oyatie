@@ -1764,7 +1764,7 @@ mod phase0_ci_enforcement_baseline_tests {
         assert_eq!(
             baseline["gap_packet"]["required_context"]["status"].as_str(),
             Some("CLOSED_WITH_EVIDENCE"),
-            "required_context row must carry the verified 2026-06-09 cutover evidence"
+            "required_context row must carry verified cutover evidence"
         );
         assert!(
             baseline["gap_packet"]["required_context"]["evidence"]["green_post_merge_run_id"]
@@ -2010,11 +2010,23 @@ mod phase0_ci_enforcement_baseline_tests {
                 && automation_text.contains("specs/fixtures/phase0-ci-enforcement-baseline"),
             "automation matrix should map AC-0.0 to the baseline and fixture corpus"
         );
+        let required_context_row = automation_matrix["seed_rows"]
+            .as_array()
+            .and_then(|rows| {
+                rows.iter()
+                    .find(|row| row["id"] == "AC-0.0-cloud-ci-required-context")
+            })
+            .expect("AC-0.0 required-context row");
+        assert_eq!(
+            required_context_row["target_gate_or_controller"].as_str(),
+            Some("oya-ci-required branch-protection context"),
+            "automation matrix should name the exact live required context, not retain an obsolete alternative"
+        );
         assert!(
-            automation_text.contains("cloud-ci-required")
-                && automation_text.contains("oya-ci-required")
-                && automation_text.contains("oya verify"),
-            "automation matrix should preserve current gap and target-context evidence"
+            automation_text
+                .contains("Candidate-independent trusted gate definitions remain required")
+                && automation_text.contains("F-PR5-06"),
+            "automation matrix should preserve the trusted-producer and review-admission gaps after context cutover"
         );
 
         let claim_text = claim_map.to_string();

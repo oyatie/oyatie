@@ -1,11 +1,11 @@
 ---
 id: ADR-0170
-status: Superseded
+status: Accepted
 deciders: council-architecture, axis-developer-experience, ops-sre-reliability, council-api-sdk
 date: 2026-05-18
 owner: axis-developer-experience
 supersedes: []
-superseded_by: [ADR-0394]
+superseded_by: []
 related: [ADR-0011, ADR-0019, ADR-0025, ADR-0042, ADR-0131, ADR-0139, ADR-0167, ADR-0394]
 related_specs:
   - /specs/hyperscaler-architecture-invariants.json
@@ -16,9 +16,11 @@ related_specs:
 
 ## Status
 
-**SUPERSEDED by ADR-0394 (2026-05-29).** The internal developer portal is now a bespoke-Rust IDP central hub (Leptos portal over a bespoke-Rust ops-BFF); Backstage is retained as a feature reference only, and the Backstage Helm charts (observability + developer-sdk) plus ADR-SDK-0007 are quarantined/superseded. The discoverability *problem* and the catalog/SLO/ADR/runbook *surfaces* identified below stand; only the Backstage substrate is reversed. ADR-0203/0209/0213 references are retargeted onto ADR-0394. The body below is retained as the historical record.
-
-~~Accepted (2026-05-18). Authorizes Backstage (Spotify) as the internal developer-portal substrate aggregating per-µservice catalog records, TechDocs, SLO dashboards, runbooks, team membership, and the ADR index. Tier C "nice-to-have" hyperscaler pattern per `/specs/hyperscaler-architecture-invariants.json` audit Row C4.~~
+**Accepted (2026-05-18; lifecycle repaired 2026-07-13).** ADR-0394 has frontmatter status `Proposed` and therefore
+cannot supersede this Accepted decision. ADR-0394 records a candidate bespoke-Rust replacement that
+requires explicit founder ratification before it becomes binding. Until then, this ADR's portal
+substrate remains current; its rollout state must still be proven independently and is not inferred
+from lifecycle status.
 
 ## Context
 

@@ -1,7 +1,7 @@
 ---
 id: ADR-0613
 title: "De-commit the remaining controller-materialized projection faces (masterplan + product-graph) — finish the pure-derivation strangler"
-status: Proposed
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-07-09
@@ -10,8 +10,8 @@ owner: council-architecture
 supersedes: []
 superseded_by: []
 amends: [ADR-0364]
-depends_on: [ADR-0595, ADR-0597, ADR-0539, ADR-0515]
-related: [ADR-0596, ADR-0364, ADR-0066, ADR-0563]
+depends_on: [ADR-0515]
+related: [ADR-0539, ADR-0595, ADR-0596, ADR-0597, ADR-0364, ADR-0066, ADR-0563]
 related_specs:
   - /specs/root-hub-pointers.json
 milestone: W0
@@ -21,13 +21,14 @@ milestone: W0
 
 ## Status
 
-**Proposed - 2026-07-09** (ratified under the founder's 2026-07-08 autonomous-drive delegation
-and the 2026-07-09 scope-refinement approval; door: one-way — same policy class as ADR-0595:
-once the re-tracking guard covers these paths, "pure-derivation projection faces are not
-contributor merge surfaces" is a one-way commitment). Lifecycle status stays **Proposed** and
-advances to Accepted when the manifest/gitignore/gate propagation lands (the ADR-0595 pattern —
-a fresh `Accepted` ADR that has not yet reached its propagation faces trips the
-cross-artifact-agreement `unpropagated_decision` invariant).
+**Accepted - 2026-07-13** (ratified under the founder's 2026-07-08 autonomous-drive delegation and
+the 2026-07-09 scope-refinement approval; door: one-way — same policy class as ADR-0595). The
+manifest/gitignore/controller propagation landed in PR #1222. The 2026-07-13 lifecycle promotion is
+paired with direct, independent masterplan and product-graph regeneration/determinism enforcement;
+the prior transitive dashboard-only claim was a false-green and is not acceptance evidence.
+ADR-0539, ADR-0595, and ADR-0597 have frontmatter status `Proposed` and are nonbinding
+implementation provenance; this
+Accepted decision depends only on the Accepted ADR-0515 admission authority.
 
 ## Context
 
@@ -67,9 +68,10 @@ arch-graph dashboard) and materialized out-of-graph for consumers before gates r
 ADR-0595 already special-cased move-manifest as "stays committed"; this ADR **reaffirms** that and
 records why it is NOT swept into this de-commit:
 
-1. **It reverses an accepted decision.** ADR-0563 made move-manifest the *authoritative committed*
-   rename-aware move-bijection that the path-keyed CI baseline relabel consumes. De-committing it
-   would reverse ADR-0563 and requires an explicit amendment, not a side effect of this ADR.
+1. **It conflicts with a proposed design.** ADR-0563 is Proposed, not Accepted; it proposed making
+   move-manifest the authoritative committed rename-aware move-bijection that the path-keyed CI
+   baseline relabel consumes. This rationale did not make ADR-0563 binding. ADR-0614 later proposed
+   and implemented de-commitment, but its lifecycle/propagation proof must be resolved separately.
 2. **It introduces a silent failure mode.** `ci/adapters/path-resolver` `ManifestBijection::load`
    fails **open to identity** on an absent manifest. De-committed, any emitter leg not preceded by
    a full materialize would silently relabel to identity — turning every pre-existing renamed-path
@@ -79,8 +81,8 @@ records why it is NOT swept into this de-commit:
    of the committed move-plan × candidate tree); it regenerated correctly in the same incident that
    corrupted masterplan. It is the *reviewed* artifact — a human reads the bijection.
 
-A future ADR may de-commit move-manifest only with an explicit ADR-0563 amendment and a fail-closed
-(not fail-open) relabel. It is out of ADR-0613 scope.
+A separate decision may de-commit move-manifest only with a fail-closed (not fail-open) relabel. It
+is out of ADR-0613 scope; ADR-0614 records that later proposal and implementation.
 
 ### Gate teaching (no flag day)
 
@@ -90,14 +92,14 @@ A future ADR may de-commit move-manifest only with an explicit ADR-0563 amendmen
    the two newly de-committed paths; `generated_path_rules` already classifies both (the
    `*.generated.json` suffix rule for masterplan, the explicit `docs/architecture/product-graph.html`
    path rule for the dashboard).
-2. **Freshness gate** (`ci/facade/generated-artifact-freshness`): no code change. product-graph is
-   already in `CONTROLLER_MATERIALIZED_ARTIFACT_PATHS` and validated by the regenerate-twice
-   determinism canary — and because that canary regenerates masterplan FIRST, a masterplan
-   regeneration failure is RED in required CI every run (masterplan's freshness is enforced
-   transitively through the dashboard, not by a committed-byte check it never had). The
-   `masterplan-drift` lane (`registry/quality/lanes.yaml`, a dev-cli local bridge) is feedback, not
-   merge authority; it already short-circuits on `output_mode: controller-materialized` to a
-   regeneration-success check rather than committed-byte parity.
+2. **Freshness gate** (`ci/facade/generated-artifact-freshness`): the acceptance closure explicitly
+   registers both de-committed faces as independent regenerate-twice outputs. Each pass generates a
+   temporary masterplan projection and then generates product-graph from that projection; the gate
+   compares the masterplan bytes and product-graph bytes independently between the two passes. A
+   masterplan mismatch is therefore RED even when product-graph is stable. This direct required-CI
+   enforcement replaces the earlier false-green transitive claim. The `masterplan-drift` lane
+   (`registry/quality/lanes.yaml`, a dev-cli local bridge) remains feedback-only and checks successful
+   regeneration rather than committed-byte parity; it is not merge authority.
 3. **`.gitignore`**: documents the de-commit; adds the explicit `docs/architecture/product-graph.html`
    line and records the move-manifest deferral rationale inline.
 4. **`docs-graph-drift.yml`** (feedback-only, NOT branch-protection-required): re-taught — it
@@ -110,9 +112,9 @@ A future ADR may de-commit move-manifest only with an explicit ADR-0563 amendmen
 - The two projection faces are never in a PR diff again; the move-corruption class is structurally
   impossible (a strangler move performs a pure structural rename+rewire and never touches a
   materializer-derived face). This is the fix for the incident above.
-- Determinism (regenerate-twice) becomes the load-bearing integrity invariant for product-graph, as
-  it already is for the ADR-0595 faces; masterplan freshness rides the drift gate's
-  regeneration-success check. Byte parity against a committed copy is retired for both.
+- Direct, independent regenerate-twice determinism is the load-bearing integrity invariant for both
+  masterplan and product-graph. Byte parity against a committed copy is retired for both; successful
+  local-bridge regeneration is supplementary feedback, not a substitute for required-CI enforcement.
 - Consumer safety (verified): no BUCK `srcs` reference either face, so `buck2 build` is unaffected.
   The CI-required masterplan consumers materialize-first or are tolerant (masterplan-drift gate
   short-circuit; cross-artifact-agreement reads masterplan in a leg that runs the materializer
@@ -122,10 +124,9 @@ A future ADR may de-commit move-manifest only with an explicit ADR-0563 amendmen
 
 ## Alternatives considered
 
-- **De-commit all three faces (include move-manifest).** Rejected for this ADR: it reverses
-  ADR-0563, adds a silent fail-open relabel risk, and buys nothing — move-manifest is
-  codemod-deterministic and was never the corruption source. Deferred to an explicit ADR-0563
-  amendment.
+- **De-commit all three faces (include move-manifest).** Rejected for this ADR because the then-live
+  relabel path failed open when the manifest was absent. ADR-0614 later addresses this as a separate
+  proposal; neither proposal becomes binding merely because implementation landed.
 - **Hand-revert the corrupt face and keep committing.** Rejected: it leaves the identical trap
   armed for the next move; it treats a symptom, not the class (the friction-is-process-failure
   doctrine).
@@ -146,5 +147,6 @@ land-time materialized, not hand-edited in this PR.
   projection faces.
 - Amends ADR-0364's committed-surface stance for the masterplan projection and the product-graph
   dashboard (they become derive-on-demand, not committed).
-- Reaffirms ADR-0563 (move-manifest stays committed) and ADR-0596 (frozen references — gate-baseline
-  — stay committed); neither is touched.
+- Leaves Proposed ADR-0563/ADR-0614's move-manifest disposition outside this ADR. At acceptance,
+  ADR-0613 also reaffirmed ADR-0596's committed frozen-reference rule; the later implementation of
+  Proposed ADR-0616 is separate lifecycle drift until ADR-0616 is accepted or rolled back.

@@ -249,7 +249,7 @@
         "specs/master-plan-sequencing.json",
         "docs/decisions/**"
       ],
-      "final_tree_validation": "ADR-0613 de-commit class: this face is NOT tracked in git; cloud-ci materializes it on demand from the checked-out candidate tree (//ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin) before gates consume it. Required-CI freshness is enforced TRANSITIVELY by the generated-artifact-freshness gate, whose product-graph determinism canary regenerates masterplan then the dashboard twice per run (a masterplan regeneration failure is RED; masterplan nondeterminism surfaces as dashboard byte instability). The masterplan-drift lane (dev-cli local bridge) is feedback, not merge authority. Byte parity against a committed copy is intentionally retired for this face.",
+      "final_tree_validation": "ADR-0613 de-commit class: this face is NOT tracked in git; cloud-ci materializes it on demand from the checked-out candidate tree (//ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin) before gates consume it. Required-CI freshness is enforced DIRECTLY by the generated-artifact-freshness gate: both the masterplan projection and its downstream product-graph dashboard must regenerate successfully and be independently byte-stable across two regenerations. The masterplan-drift lane (dev-cli local bridge) is feedback, not merge authority. Byte parity against a committed copy is intentionally retired for this face.",
       "public_product_contract": "Masterplan projection is generated planning data and must be materialized by a controller, not manually resolved in PR branches.",
       "generator": {
         "runner": "oya-ci-native-controller",

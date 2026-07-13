@@ -140,7 +140,7 @@
             "event/AsyncAPI",
             "realtime (SSE/WebSocket/gRPC-streaming) bindings"
           ],
-          "zero_graphql": "Per ADR-0565 the owned API surface carries NO GraphQL (no husk, no generated BFF); reintroduction requires a future ADR that explicitly reverses ADR-0565.",
+          "zero_graphql": "Observed candidate implementation assumption: the owned API surface currently carries no GraphQL husk or generated BFF. ADR-0565 remains Proposed, so this records repository state rather than binding doctrine and must not override Accepted API choices; the founder choice in masterplan_v2.planning_entry_contract must resolve acceptance or rollback before a binding plan relies on it.",
           "requirement": "Every owned API surface (REST/OpenAPI, gRPC/Protobuf, event/AsyncAPI, realtime) must be generated or validated from the same shared Rust-native contract source; it must not become a separately hand-maintained schema."
         },
         "workload_specific_substrates": {
@@ -3520,7 +3520,8 @@
                 "id": "M02-P04-IP-001",
                 "file": ".omc/plans/milestones/M02-foundry-preview/phases/P04-transport-parity-write-gates/IP-001-rest-transports.md",
                 "title": "REST API transports",
-                "superseded_by_adr": "ADR-0565",
+                "related_proposed_adr": "ADR-0565",
+                "lifecycle_note": "ADR-0565 remains Proposed and therefore does not supersede this implementation plan. The zero-GraphQL founder choice must be resolved before binding planning decides whether this transport plan is retained, narrowed, or retired.",
                 "status": "planning-closed-contract-authored",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -14921,8 +14922,8 @@
           "disposition_ref": "/specs/masterplan.json#masterplan_v2.surface_dispositions",
           "items_absorbed": 0,
           "zero_item_rationale": "Hermes done-column cards import as completion CLAIMS in the masterplan_v2.hermes_done_card_imports ledger, never as work items in the MPV2 id space; claims_imported counts the ledger entries.",
-          "claims_imported": 914,
-          "note": "done-column completion claims are item-level imported at masterplan_v2.hermes_done_card_imports (914 per-card claims at forensic snapshot sha256 f880cda946abe54b72f3e31c1bf86f57e0d33066983718e73dd5ac28fae73945; the Seed-time count was 814 — the live board advanced before the pinned snapshot), every claim as claimed-done-unverified: 37 carry attached evidence cross-references (evidence_state evidence-attached), 877 remain flagged unverified-pending-evidence, and 0 carry verified status. Per-card forensic detail (titles, completion timestamps, source result text) lives in evidence/goals/masterplan-v2-hermes-done-card-forensic-ledger-20260702.json. Backlog cards (todo/blocked/ready) are operational cards whose item-level import happens through the Definition/Seed card class of the drive loop, per the program-sharded progressive plan-depth constraint. Read-only forensic ingest is authorized via the owned-Rust SQLite reader tools/oya-masterplan-hermes-forensic-ledger-app only (no shell/python); that tool is the single writer of the imports and summary keys."
+          "claims_imported": 934,
+          "note": "done-column completion claims are item-level imported at masterplan_v2.hermes_done_card_imports (934 per-card claims at forensic snapshot sha256 51379d8c6d48c0577baf8aa6eac4522f3d01042fec3475f0e56ed6be8b642b38; the Seed-time count was 814 — the live board advanced before the pinned snapshot), every claim as claimed-done-unverified: 34 carry attached evidence cross-references (evidence_state evidence-attached), 900 remain flagged unverified-pending-evidence, and 0 carry verified status. Per-card forensic detail (titles, completion timestamps, source result text) lives in evidence/goals/masterplan-v2-hermes-done-card-forensic-ledger-20260702.json. Backlog cards (todo/blocked/ready) are operational cards whose item-level import happens through the Definition/Seed card class of the drive loop, per the program-sharded progressive plan-depth constraint. Read-only forensic ingest is authorized via the owned-Rust SQLite reader tools/oya-masterplan-hermes-forensic-ledger-app only (no shell/python); that tool is the single writer of the imports and summary keys."
         },
         {
           "source_authority": "~/.gjc/** and ~/.omx/**",
@@ -16271,11 +16272,13 @@
         "program": "P-REORG",
         "source_refs": [
           "/specs/masterplan.json#masterplan_v2.surface_dispositions",
-          "/specs/masterplan.json#masterplan_v2.projection_freshness"
+          "/specs/masterplan.json#masterplan_v2.projection_freshness",
+          "/specs/markdown-retirement-policy.json"
         ],
         "evidence_refs": [
           "ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_masterplan_v2_projection_freshness",
-          "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green"
+          "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green",
+          "evidence/ledger/markdown-retirement-ledger.json"
         ]
       },
       {
@@ -17577,21 +17580,144 @@
         "ratification_authority": "Founder-authored masterplan-v2 consolidation directive (Seed contract, 2026-07-02) requiring fully zero-based re-derived sequencing ratified by the founder before any execution wave dispatches; decision binds only to the sequencing content identified by ratified_sequencing_digest.",
         "ratified_sequencing_digest": "sha256:a6ddc2a8f372c71aa31f9a7e84087d8d2de84c283baee0c8746e054d58564c3c",
         "digest_recipe": "sha256 over canonical JSON (sorted keys, separators ',' ':') of {\"dependency_edges\": sorted [from, to] pairs, \"execution_waves\": wave work_item_ids arrays in wave order, \"work_item_order\": work_item_id strings in index order}",
-        "invalidation_rule": "Any mutation of masterplan_v2.dependency_edges, sequencing.work_item_order, or sequencing.execution_waves work_item_ids changes the digest and voids this ratification; a fresh re-derivation and a fresh founder-ratification record are then required before further wave dispatch.",
+        "invalidation_rule": "Any mutation of a masterplan_v2.dependency_edges from/to endpoint pair, sequencing.work_item_order, or sequencing.execution_waves work_item_ids changes the digest and voids this ratification; relationship labels and other edge metadata are outside this sequencing digest. A fresh re-derivation and founder-ratification record are required before further wave dispatch whenever a covered field changes.",
         "required_before": "execution-wave-dispatch"
       },
       "execution_wave_dispatch": {
         "requires_founder_ratification": true,
         "allowed_without_founder_ratification": false,
-        "state": "ratified-awaiting-dispatch",
+        "requires_preplanning_authority_closure": true,
+        "allowed_without_preplanning_authority_closure": false,
+        "state": "blocked",
+        "blocked_reason": "preplanning_authority_closure",
         "ratification_ref": "/specs/masterplan.json#masterplan_v2.sequencing.founder_ratification",
+        "preplanning_authority_closure_ref": "evidence/consolidation/preplanning-authority-closure-20260713.json",
         "dispatched_waves": [],
-        "note": "Founder ratification was recorded 2026-07-02 before any execution-wave dispatch; no wave has dispatched. Ready-work derivation, lane disjointness, and coordinator-only commits remain governed by the ADR-0516 fabric loop contracts."
+        "note": "Founder sequencing ratification was recorded 2026-07-02 before any execution-wave dispatch, but it does not close the 2026-07-13 pre-planning authority review. Dispatch remains blocked while masterplan_v2.planning_entry_contract.state is open; no wave has dispatched."
       }
+    },
+    "planning_entry_contract": {
+      "state": "open",
+      "opened_at": "2026-07-13T00:00:00Z",
+      "purpose": "Hold binding planning and all execution-wave dispatch until current authority, lifecycle, evidence, and admission contradictions are resolved without treating Proposed ADRs or local candidate edits as binding state.",
+      "evidence_ref": "evidence/consolidation/preplanning-authority-closure-20260713.json",
+      "nonbinding_planning_discussion_allowed": true,
+      "binding_plan_approval_allowed": false,
+      "dispatch_allowed": false,
+      "current_pr_candidate": "evidence/consolidation/preplanning-authority-closure-20260713.json",
+      "current_pr_candidate_state": {
+        "baseline_commit": "1d21a7fd5fbc29d6853b3863a6d2680e6ac44224",
+        "branch": "chore/preplanning-authority-closure-20260713T142158Z",
+        "recorded_candidate_state": "signed-first-content-commit-pushed-draft-pr-open-local-gates-green-not-cloud-admitted",
+        "protected_pr_against_dev": true,
+        "oya_ci_required_green_for_candidate": false,
+        "merged_to_dev": false,
+        "completion_packet_recorded": false,
+        "claim_ceiling": "Pre-planning consolidation draft PR candidate only. A signed commit, draft PR, independent local review, and local gates exist; oya-ci-required, server-side approval, merge, founder-choice resolution, binding-plan approval, wave dispatch, and product completion remain unproven.",
+        "candidate_first_content_commit": "e4527935562b669c221cc548536886e4ba37cd4c",
+        "protected_pr_number": 1340,
+        "protected_pr_url": "https://github.com/jason931225/oyatie/pull/1340",
+        "independent_reviewer_verdict": "APPROVE for protected-PR submission; merge authorization remains pending protected cloud and server-side review evidence.",
+        "local_gate_evidence": {
+          "targeted_buck2_targets_passed": 10,
+          "cross_artifact_live_gate": "24/24 passed",
+          "automation_coverage_live_gate": "3/3 passed",
+          "canonical_json_live_gate": "4/4 passed",
+          "repo_root_hygiene_live_gate": "7/7 passed",
+          "parity_claim_evidence_live_gate": "3/3 passed",
+          "baseline_ratchet_registration": "6/6 passed",
+          "generated_artifact_freshness": "passed after official local materialization",
+          "authority": "shift-left evidence only; none is protected merge authority"
+        },
+        "audit_event_id": "EVT-PREPLANNING-AUTHORITY-CLOSURE-20260713-E45279355"
+      },
+      "accepted_adr_guardrail": {
+        "binding_statuses": [
+          "Accepted",
+          "Amended",
+          "Accepted (amendment)"
+        ],
+        "rule": "A higher ADR number does not override an earlier Accepted ADR by itself. The newer ADR must itself be Accepted and carry an explicit amends or supersedes relation with reciprocal lifecycle propagation. Proposed, conditional, or implementation-landed decisions remain nonbinding until that happens.",
+        "conflict_rule": "When a Proposed ADR conflicts with an Accepted ADR, planning follows the Accepted ADR and records the proposal as an unresolved founder choice; shipped code or delegation prose does not silently promote lifecycle state."
+      },
+      "authority_choice_matrix": [
+        {
+          "choice_id": "ADR-0515-SUPERSEDED-HISTORY-DISPOSITION",
+          "current_binding_state": "ADR-0515 is Accepted and its binding rule requires hard deletion of superseded ADR files; preserved superseded files in the repository are implementation drift, not an amendment.",
+          "founder_choice_required": "Choose preservation through a new higher Accepted amendment, or enforce ADR-0515's current hard-delete rule consistently.",
+          "planning_default_while_open": "Do not perform destructive deletion during the walkthrough. Treat preserved superseded files as nonbinding data and do not call their preservation an amendment or policy resolution.",
+          "blocks_binding_plan": true
+        },
+        {
+          "choice_id": "ADR-0170-VS-ADR-0394-IDP-SUBSTRATE",
+          "current_binding_state": "ADR-0170 is Accepted; ADR-0394 is Proposed and cannot supersede it.",
+          "founder_choice_required": "Retain the Backstage substrate under ADR-0170, or Accept a reconciled ADR-0394 with explicit dependent retargeting.",
+          "planning_default_while_open": "ADR-0170 remains binding.",
+          "blocks_binding_plan": true
+        },
+        {
+          "choice_id": "ADR-0565-ZERO-GRAPHQL",
+          "current_binding_state": "The zero-GraphQL decision remains Proposed while later repository text and implementation assumptions reflect parts of it.",
+          "founder_choice_required": "Accept and propagate the one-way removal decision, or roll back/defer the conflicting assumptions.",
+          "planning_default_while_open": "Do not use ADR-0565 to override Accepted API choices.",
+          "blocks_binding_plan": true
+        },
+        {
+          "choice_id": "ADR-0614-MOVE-MANIFEST-DECOMMIT",
+          "current_binding_state": "The move-manifest de-commit implementation is present while ADR-0614 remains Proposed.",
+          "founder_choice_required": "Accept ADR-0614 as lifecycle reconciliation, or roll back the landed policy and implementation.",
+          "planning_default_while_open": "Treat the implementation as observed candidate state, not binding authority.",
+          "blocks_binding_plan": true
+        },
+        {
+          "choice_id": "ADR-0616-FROZEN-BASELINE-DECOMMIT",
+          "current_binding_state": "The merge-base regeneration implementation is present while ADR-0616 remains Proposed and conflicts with ADR-0613's Accepted reaffirmation of the committed frozen-reference rule originally described by ADR-0596.",
+          "founder_choice_required": "Accept ADR-0616's documented trust delta and lifecycle reversal, or restore ADR-0613's Accepted committed-baseline contract.",
+          "planning_default_while_open": "Do not claim Proposed ADR-0616 displaces Accepted ADR-0613.",
+          "blocks_binding_plan": true
+        },
+        {
+          "choice_id": "ADR-0609-MASTERPLAN-FABRIC-SCOPE",
+          "current_binding_state": "ADR-0609 remains Proposed; only the single-masterplan authority and digest enforcement have current evidence.",
+          "founder_choice_required": "Accept only the evidenced narrow authority/digest scope, or keep the ADR Proposed; do not infer the broader drive loop.",
+          "planning_default_while_open": "Use masterplan_v2 as the canonical plan authority without a broader fabric-loop completion claim.",
+          "blocks_binding_plan": false
+        },
+        {
+          "choice_id": "ADR-0610-ADR-0611-SHIPPED-ARTIFACT-SCOPE",
+          "current_binding_state": "ADRs 0610 and 0611 remain Proposed although bounded stage-0 and kernel harness artifacts are present.",
+          "founder_choice_required": "Ratify only the shipped artifact scope when needed, or leave both proposals nonbinding; do not infer a benchmark-engine or product pivot.",
+          "planning_default_while_open": "Treat the artifacts as evidence/prototypes under existing Accepted authority only.",
+          "blocks_binding_plan": false
+        },
+        {
+          "choice_id": "ADR-0617-LIVING-MONOREPO-GRAPH",
+          "current_binding_state": "ADR-0617 is a Proposed one-way governance-graph design and does not yet bind the masterplan.",
+          "founder_choice_required": "Defer it unless the next plan depends on the graph substrate, or explicitly Accept it with scoped implementation and evidence obligations.",
+          "planning_default_while_open": "Defer; do not make the proposed graph a planning prerequisite.",
+          "blocks_binding_plan": false
+        }
+      ],
+      "entry_conditions": [
+        "Every blocks_binding_plan authority choice is resolved by explicit founder decision and represented through supported ADR lifecycle fields.",
+        "Any nonblocking Proposed ADR used by the plan is either narrowly Accepted for its evidenced scope or explicitly deferred as nonbinding.",
+        "The consolidation candidate is committed, opened as a protected PR against dev, independently reviewed with threads resolved, conflict-free, and green under the single required oya-ci-required context.",
+        "The Phase-0 gap packet remains explicit; no P0.0-green, Phase-0-complete, mechanically-enforced, or production-ready claim is imported into planning without live evidence.",
+        "A fresh evidence snapshot confirms no execution wave dispatched while this contract was open."
+      ],
+      "no_dispatch_stop_conditions": [
+        "planning_entry_contract.state is not closed",
+        "planning_entry_contract.dispatch_allowed is not true",
+        "any blocks_binding_plan authority choice remains unresolved",
+        "the consolidation change is not merged to dev through a protected PR with oya-ci-required green and independent review complete",
+        "the sequencing digest differs from sha256:a6ddc2a8f372c71aa31f9a7e84087d8d2de84c283baee0c8746e054d58564c3c without a fresh founder ratification record",
+        "any dispatched_waves entry exists before all prior conditions close"
+      ],
+      "closure_rule": "A later protected evidence-bearing amendment must extend the cross-artifact evaluator with the closed-state proof contract and may then set state=closed, binding_plan_approval_allowed=true, and dispatch_allowed=true only after every entry condition is proven. The current evaluator deliberately accepts only the open hold. Until the transition lands, the exact terminal state is blocked-preplanning-authority-closure, not ready or complete."
     },
     "non_claims": [
       "Sub-AC 4 records the founder-ratification decision for the re-derived sequencing (see masterplan_v2.sequencing.founder_ratification and evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json); it does not claim E2E loop execution, and no execution wave has dispatched.",
-      "Hermes done-card imports are not surfaced as done: all 914 per-card claims carry masterplan_status claimed-done-unverified; attached evidence refs (37 claims) upgrade only evidence_state to evidence-attached, never the completion status, and 0 claims are verified.",
+      "Hermes done-card imports are not surfaced as done: all 934 per-card claims carry masterplan_status claimed-done-unverified; attached evidence refs (34 claims) upgrade only evidence_state to evidence-attached, never the completion status, 900 claims have no evidence attachment, and 0 claims are verified.",
       "Legacy completion claims absorbed from the P00 GitOps VCS phase, its implementation plans, and the realignment wave sequence are not surfaced as verified done; they remain claimed-done-unverified until evidence refs attach."
     ]
   }

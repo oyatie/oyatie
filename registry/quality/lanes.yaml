@@ -802,7 +802,7 @@ lanes:
     stage: per-pr
     status: active
     owner_team: council-architecture
-    purpose: ADR-0364 D4 — masterplan.generated.json (de-committed per ADR-0613) regenerates successfully from the planning_impact ADR log (regeneration-success, not committed-byte parity; wraps `gen masterplan --check`). Local-bridge feedback; required-CI freshness is owned by gate-generated-artifact-freshness (transitively, via the product-graph determinism canary).
+    purpose: ADR-0364 D4 — masterplan.generated.json (de-committed per ADR-0613) regenerates successfully from the planning_impact ADR log (regeneration-success, not committed-byte parity; wraps `gen masterplan --check`). Local-bridge feedback only; required-CI freshness directly regenerates masterplan and product-graph twice and compares each face independently in gate-generated-artifact-freshness.
     source: ADR-0364
     runtime_budget_seconds: 60
     check_command: cargo run -p oya-dev-cli -- gate validate masterplan-drift

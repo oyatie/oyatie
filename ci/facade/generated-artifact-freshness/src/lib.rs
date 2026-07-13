@@ -33,6 +33,8 @@ const NOT_TRACKED_IN_GIT_MODE: &str = "not-tracked-in-git";
 /// Materialization mode marking a declared generated artifact as an integration-branch baseline:
 /// committed on the protected branch for merge-base consumers, but not a contributor PR byte-diff.
 const MAIN_BRANCH_MATERIALIZED_MODE: &str = "main-branch-materialized";
+const MASTERPLAN_PROJECTION_FACE: &str = "masterplan.generated.json";
+const MASTERPLAN_PROJECTION_PATH: &str = "docs/machine-readable/masterplan.generated.json";
 const ARCHITECTURE_PRODUCT_GRAPH_FACE: &str = "product-graph.html";
 const ARCHITECTURE_PRODUCT_GRAPH_PATH: &str = "docs/architecture/product-graph.html";
 /// PR-owned / face-settle generated paths. Controller-owned generated artifacts that must be
@@ -49,10 +51,11 @@ const GENERATED_FACE_PATHS: [&str; 7] = [
 ];
 /// Controller-owned generated artifacts whose freshness is proven by regeneration/determinism,
 /// but whose byte diffs are not staged by `oya-cloud-ci-face-settle` in contributor PRs.
-const CONTROLLER_MATERIALIZED_ARTIFACT_PATHS: [&str; 1] = [ARCHITECTURE_PRODUCT_GRAPH_PATH];
-const EMITTER_TARGET: &str =
-    "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot";
-const PRODUCER_TARGET: &str = "//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin";
+const CONTROLLER_MATERIALIZED_ARTIFACT_PATHS: [&str; 2] =
+    [MASTERPLAN_PROJECTION_PATH, ARCHITECTURE_PRODUCT_GRAPH_PATH];
+const EMITTER_TARGET: &str = "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot";
+const PRODUCER_TARGET: &str =
+    "//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin";
 const CODEMOD_TARGET: &str = "//tools/oya-reorg-codemod-app:oya-reorg-codemod";
 const ARCHITECTURE_GRAPH_GENERATOR_TARGET: &str =
     "//tools/oya-architecture-graph-generator-app:oya-architecture-graph-generator";
@@ -67,7 +70,8 @@ const MOVE_MANIFEST_FACE: &str = "specs/reorg/move-manifest.generated.json";
 /// additional git call), so the generated-output-diff-policy gate can verify a hand-curated-
 /// ratchet baseline's plain-modify content diff (shrink-only / move-plan-backed substitution)
 /// without itself calling git (gate production code must stay hermetic).
-const RATCHET_MERGE_BASE_FACE: &str = "ci/facade/generated-artifact-policy/ratchet-merge-base.generated.json";
+const RATCHET_MERGE_BASE_FACE: &str =
+    "ci/facade/generated-artifact-policy/ratchet-merge-base.generated.json";
 const PRODUCER_FACES: [(&str, &str); 6] = [
     ("accounting-registry.generated.json", "registry"),
     ("ttl-policy.generated.json", "ttl-policy"),
@@ -921,6 +925,13 @@ pub fn read_committed_generated_faces(
             read_to_string(&product_graph)?,
         ));
     }
+    let masterplan = repo_root.join(MASTERPLAN_PROJECTION_PATH);
+    if masterplan.exists() {
+        faces.push((
+            MASTERPLAN_PROJECTION_FACE.to_owned(),
+            read_to_string(&masterplan)?,
+        ));
+    }
     faces.sort_by(|left, right| left.0.cmp(&right.0));
     Ok(faces)
 }
@@ -1104,15 +1115,15 @@ fn regenerate_all_faces(
     scm_facts: &Path,
 ) -> Result<RegeneratedFaces, FreshnessError> {
     let mut regenerated = regenerate_producer_faces(tools, repo_root, scm_facts)?;
-    regenerated.push(regenerate_architecture_product_graph(tools, repo_root)?);
+    regenerated.extend(regenerate_architecture_projection_faces(tools, repo_root)?);
     regenerated.sort_by(|left, right| left.0.cmp(&right.0));
     Ok(regenerated)
 }
 
-fn regenerate_architecture_product_graph(
+fn regenerate_architecture_projection_faces(
     tools: &FaceTools,
     repo_root: &Path,
-) -> Result<(String, String), FreshnessError> {
+) -> Result<RegeneratedFaces, FreshnessError> {
     let masterplan = temporary_masterplan_path();
     let masterplan_cleanup = TempFileCleanup {
         path: masterplan.clone(),
@@ -1138,10 +1149,17 @@ fn regenerate_architecture_product_graph(
             .current_dir(repo_root),
         "regenerate architecture product graph",
     )?;
-    let bytes = read_to_string(&output)?;
+    let masterplan_bytes = read_to_string(&masterplan)?;
+    let product_graph_bytes = read_to_string(&output)?;
     drop(cleanup);
     drop(masterplan_cleanup);
-    Ok((ARCHITECTURE_PRODUCT_GRAPH_FACE.to_owned(), bytes))
+    Ok(vec![
+        (MASTERPLAN_PROJECTION_FACE.to_owned(), masterplan_bytes),
+        (
+            ARCHITECTURE_PRODUCT_GRAPH_FACE.to_owned(),
+            product_graph_bytes,
+        ),
+    ])
 }
 
 fn write_regenerated_faces(
@@ -1382,7 +1400,10 @@ fn build_materializer_tools(repo_root: &Path) -> Result<MaterializerTools, Fresh
     // the ADR-0616 merge-base regen runs these tools with cwd set to the merge-base worktree, where
     // a `--repo-root .`-relative `buck-out/...` binary path would not resolve (os error 2 on spawn).
     let repo_root_abs = std::fs::canonicalize(repo_root).map_err(|e| {
-        FreshnessError::new(format!("canonicalize repo-root {}: {e}", repo_root.display()))
+        FreshnessError::new(format!(
+            "canonicalize repo-root {}: {e}",
+            repo_root.display()
+        ))
     })?;
     let repo_root = repo_root_abs.as_path();
     let output = run_output(
@@ -1453,7 +1474,9 @@ fn materialize_ratchet_merge_base_contents(
         && let Some(artifacts) = manifest.get("artifacts").and_then(|value| value.as_array())
     {
         for artifact in artifacts {
-            if artifact.get("merge_policy").and_then(|value| value.as_str())
+            if artifact
+                .get("merge_policy")
+                .and_then(|value| value.as_str())
                 != Some("normal-source-merge")
             {
                 continue;
@@ -1471,8 +1494,10 @@ fn materialize_ratchet_merge_base_contents(
         std::fs::create_dir_all(parent)
             .map_err(|error| FreshnessError::new(format!("mkdir {}: {error}", parent.display())))?;
     }
-    let body = serde_json::to_string_pretty(&serde_json::Value::Object(contents))
-        .map_err(|error| FreshnessError::new(format!("serialize {RATCHET_MERGE_BASE_FACE}: {error}")))?;
+    let body =
+        serde_json::to_string_pretty(&serde_json::Value::Object(contents)).map_err(|error| {
+            FreshnessError::new(format!("serialize {RATCHET_MERGE_BASE_FACE}: {error}"))
+        })?;
     std::fs::write(&face_path, body)
         .map_err(|error| FreshnessError::new(format!("write {RATCHET_MERGE_BASE_FACE}: {error}")))
 }
@@ -1994,10 +2019,7 @@ mod materialize_generated_faces_tests {
             .file_name()
             .expect("executable file name")
             .to_string_lossy();
-        let tmp = path.with_file_name(format!(
-            ".{file_name}.tmp-{}-{nanos}",
-            std::process::id()
-        ));
+        let tmp = path.with_file_name(format!(".{file_name}.tmp-{}-{nanos}", std::process::id()));
         std::fs::write(&tmp, body).expect("write temporary executable");
         let mut permissions = std::fs::metadata(&tmp)
             .expect("temporary executable metadata")
@@ -2165,13 +2187,17 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
     }
 
     #[test]
-    fn architecture_product_graph_is_controller_owned_not_pr_owned_face_path() {
+    fn architecture_projection_faces_are_controller_owned_not_pr_owned_face_paths() {
         let root = temp_root("oya-product-graph-controller-owned");
         std::fs::create_dir_all(root.join("registry")).expect("create registry dir");
         std::fs::write(
             root.join(CONTROL_PLANE_MANIFEST),
             serde_json::json!({
                 "artifacts": [
+                    {
+                        "path": MASTERPLAN_PROJECTION_PATH,
+                        "materialization_mode": NOT_TRACKED_IN_GIT_MODE
+                    },
                     {
                         "path": ARCHITECTURE_PRODUCT_GRAPH_PATH,
                         "materialization_mode": MAIN_BRANCH_MATERIALIZED_MODE
@@ -2190,19 +2216,26 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
         let generated_paths = generated_face_paths();
         let pr_owned_paths = pr_owned_generated_face_paths(&non_pr_owned);
 
+        assert!(non_pr_owned.contains(MASTERPLAN_PROJECTION_FACE));
         assert!(non_pr_owned.contains(ARCHITECTURE_PRODUCT_GRAPH_FACE));
+        assert!(!generated_paths.contains(&MASTERPLAN_PROJECTION_PATH.to_owned()));
         assert!(!generated_paths.contains(&ARCHITECTURE_PRODUCT_GRAPH_PATH.to_owned()));
+        assert!(!pr_owned_paths.contains(&MASTERPLAN_PROJECTION_PATH.to_owned()));
         assert!(!pr_owned_paths.contains(&ARCHITECTURE_PRODUCT_GRAPH_PATH.to_owned()));
     }
 
     #[test]
-    fn read_committed_generated_faces_includes_architecture_product_graph() {
+    fn read_committed_generated_faces_includes_architecture_projection_faces() {
         let root = temp_root("oya-committed-faces");
         std::fs::create_dir_all(root.join(FACES_DIR)).expect("create faces dir");
         std::fs::create_dir_all(root.join("docs/architecture")).expect("create docs dir");
+        std::fs::create_dir_all(root.join("docs/machine-readable"))
+            .expect("create machine-readable dir");
         std::fs::write(root.join(FACES_DIR).join(SCM_FACTS_FACE), "scm\n").expect("write scm face");
         std::fs::write(root.join(ARCHITECTURE_PRODUCT_GRAPH_PATH), "graph\n")
             .expect("write product graph");
+        std::fs::write(root.join(MASTERPLAN_PROJECTION_PATH), "masterplan\n")
+            .expect("write masterplan projection");
 
         let faces = read_committed_generated_faces(&root).expect("read committed generated faces");
 
@@ -2210,6 +2243,10 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
         assert!(faces.contains(&(
             ARCHITECTURE_PRODUCT_GRAPH_FACE.to_owned(),
             "graph\n".to_owned()
+        )));
+        assert!(faces.contains(&(
+            MASTERPLAN_PROJECTION_FACE.to_owned(),
+            "masterplan\n".to_owned()
         )));
     }
 
@@ -2279,15 +2316,22 @@ printf 'fresh graph\n' > "$out"
             },
         };
 
-        let regenerated = regenerate_architecture_product_graph(&tools, &root)
-            .expect("regenerate architecture product graph");
+        let regenerated = regenerate_architecture_projection_faces(&tools, &root)
+            .expect("regenerate architecture projection faces");
 
         assert_eq!(
             regenerated,
-            (
+            vec![
+                (
+                    MASTERPLAN_PROJECTION_FACE.to_owned(),
+                    "{\"milestones\":[],\"adr_count\":0,\"deliverable_count\":0,\"generator\":\"test\"}\n"
+                        .to_owned(),
+                ),
+                (
                 ARCHITECTURE_PRODUCT_GRAPH_FACE.to_owned(),
                 "fresh graph\n".to_owned()
-            )
+                ),
+            ]
         );
         assert_eq!(
             std::fs::read_to_string(root.join(ARCHITECTURE_PRODUCT_GRAPH_PATH))
@@ -2295,7 +2339,7 @@ printf 'fresh graph\n' > "$out"
             "committed graph\n"
         );
         assert_eq!(
-            std::fs::read_to_string(root.join("docs/machine-readable/masterplan.generated.json"))
+            std::fs::read_to_string(root.join(MASTERPLAN_PROJECTION_PATH))
                 .expect("committed masterplan"),
             "committed masterplan\n"
         );
@@ -2573,9 +2617,13 @@ printf '{{"gates":{{}}}}\n'
         );
 
         let tools = regen_tools(&root, emitter, producer);
-        let baseline = regenerate_frozen_baseline_from_merge_base_source(&tools, &root)
-            .expect("the regeneration must succeed with the committed blob absent (blob-independent)");
-        assert!(baseline.contains("gates"), "regeneration produced a baseline: {baseline}");
+        let baseline = regenerate_frozen_baseline_from_merge_base_source(&tools, &root).expect(
+            "the regeneration must succeed with the committed blob absent (blob-independent)",
+        );
+        assert!(
+            baseline.contains("gates"),
+            "regeneration produced a baseline: {baseline}"
+        );
 
         let calls = std::fs::read_to_string(&log).expect("read producer log");
         assert!(

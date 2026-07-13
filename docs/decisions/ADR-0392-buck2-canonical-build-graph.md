@@ -15,7 +15,7 @@ related_specs:
   - /specs/masterplan.json
   - /specs/root-hub-pointers.json
 milestone: M-TOOLCHAIN
-depends_on: [ADR-0358]
+depends_on: []
 door: two-way
 numbering_note: "decisions.json next_adr is ADR-0377; this ADR is deliberately allocated ADR-0392 (not the next-sequential number) to resolve the founder-assigned forward-reference for the Buck2 build-graph reversal of the masterplan P-TOOLCHAIN build-graph step. The numbering gap ADR-0377..ADR-0391 is left open and is NOT claimed by this lane; the ADR index will record ADR-0392 as a non-contiguous allocation alongside the existing documented gaps. ADR-0408 (its CI/CD sibling) is allocated by the same forward-reference convention."
 affected_surfaces:
