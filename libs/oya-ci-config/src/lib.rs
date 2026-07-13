@@ -46,10 +46,10 @@ const BUNDLED_TTL_JSON: &str = include_str!("bundled/ttl-policy.json");
 /// The closed-schema version (ADR-0533 §Decision item 5): a published `$id`/`$schema` + a
 /// `schema_version` so the closed schema can evolve without silently breaking adopters. Bumped
 /// when a breaking schema change ships; additive (back-compatible) keys do NOT bump it.
-pub const SCHEMA_VERSION: u32 = 1;
+pub const SCHEMA_VERSION: u32 = 2;
 
 /// The published `$id` URL for the closed `oya-ci.toml` schema (ADR-0533 §Decision item 5).
-pub const SCHEMA_ID: &str = "https://oya-ci.dev/schema/oya-ci-config/v1";
+pub const SCHEMA_ID: &str = "https://oya-ci.dev/schema/oya-ci-config/v2";
 
 /// The JSON-Schema dialect the published schema is authored against (ADR-0533 item 5).
 pub const SCHEMA_DIALECT: &str = "https://json-schema.org/draft/2020-12/schema";
@@ -272,6 +272,34 @@ impl OyaCiConfig {
     /// change for first-party — or [`neutral`](Self::neutral)); each section AUTHORED in the
     /// file overlays that base, and an OMITTED section keeps the base value. Unknown keys error.
     pub fn from_toml_str(text: &str) -> Result<Self, ConfigError> {
+        Self::from_toml_str_with_line_scope_mode(text, LegacyLineScope::Reject)
+    }
+
+    /// Parse a v1 frozen-reference config while preserving its historical line-rule semantics.
+    ///
+    /// Schema v1 `line_contains_ci` rows had no `exempt_stems` field and skipped the entire
+    /// matching line. Merge-base regeneration must reproduce that historical policy even after
+    /// the candidate binary upgrades to schema v2; otherwise the current parser cannot regenerate
+    /// an older frozen reference. Empty line-rule scopes are therefore expanded to every forbidden
+    /// stem only on this explicitly named compatibility path. Candidate config loading continues
+    /// through [`Self::from_toml_str`] and rejects the same input fail-closed.
+    pub fn from_frozen_reference_toml_str(text: &str) -> Result<Self, ConfigError> {
+        Self::from_toml_str_with_line_scope_mode(text, LegacyLineScope::ExpandToAllStems)
+    }
+
+    /// The absent-config fallback for a v1 frozen reference. This is intentionally separate from
+    /// [`Self::bundled_default`]: historical line rules skipped every matching line, while the v2
+    /// bundled default exempts only the explicitly named stems.
+    pub fn frozen_reference_bundled_default() -> Self {
+        let mut config = Self::bundled_default();
+        config.vocab.set_all_line_scopes_to_all_stems();
+        config
+    }
+
+    fn from_toml_str_with_line_scope_mode(
+        text: &str,
+        line_scope_mode: LegacyLineScope,
+    ) -> Result<Self, ConfigError> {
         let shadow: OyaCiConfigShadow =
             toml::from_str(text).map_err(|e| ConfigError::Parse(e.to_string()))?;
         // `extends` (the explicit base-to-extend) wins over `profile` when both are present.
@@ -325,6 +353,9 @@ impl OyaCiConfig {
         }
         if let Some(v) = shadow.cross_artifact {
             base.cross_artifact = v;
+        }
+        if line_scope_mode == LegacyLineScope::ExpandToAllStems {
+            base.vocab.expand_legacy_line_scopes();
         }
         base.vocab.validate()?;
         Ok(base)
@@ -648,6 +679,33 @@ impl Default for VocabConfig {
 }
 
 impl VocabConfig {
+    fn all_stems(&self) -> Vec<String> {
+        self.forbidden_stems
+            .iter()
+            .map(|stem| stem.stem.clone())
+            .collect()
+    }
+
+    fn expand_legacy_line_scopes(&mut self) {
+        let all_stems = self.all_stems();
+        for carve_out in &mut self.carve_outs {
+            if carve_out.kind == VocabCarveOutKind::LineContainsCi
+                && carve_out.exempt_stems.is_empty()
+            {
+                carve_out.exempt_stems.clone_from(&all_stems);
+            }
+        }
+    }
+
+    fn set_all_line_scopes_to_all_stems(&mut self) {
+        let all_stems = self.all_stems();
+        for carve_out in &mut self.carve_outs {
+            if carve_out.kind == VocabCarveOutKind::LineContainsCi {
+                carve_out.exempt_stems.clone_from(&all_stems);
+            }
+        }
+    }
+
     fn validate(&self) -> Result<(), ConfigError> {
         for carve_out in &self.carve_outs {
             match carve_out.kind {
@@ -683,6 +741,12 @@ impl VocabConfig {
             carve_outs: Vec::new(),
         }
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum LegacyLineScope {
+    Reject,
+    ExpandToAllStems,
 }
 
 // ---------------------------------------------------------------------------
@@ -1773,6 +1837,74 @@ exempt_stems = ["foundry"]
     }
 
     #[test]
+    fn frozen_reference_v1_line_scope_expands_to_all_configured_stems() {
+        let text = r#"
+[[vocab.forbidden_stems]]
+stem = "alpha"
+code = "forbidden_alpha"
+
+[[vocab.forbidden_stems]]
+stem = "beta"
+code = "forbidden_beta"
+
+[[vocab.carve_outs]]
+kind = "line_contains_ci"
+value = "legacy-marker"
+"#;
+
+        assert!(
+            OyaCiConfig::from_toml_str(text).is_err(),
+            "candidate configs must declare an explicit v2 line scope"
+        );
+        let frozen = OyaCiConfig::from_frozen_reference_toml_str(text)
+            .expect("v1 frozen-reference config migrates in memory");
+        assert_eq!(
+            frozen.vocab.carve_outs[0].exempt_stems,
+            vec!["alpha", "beta"]
+        );
+    }
+
+    #[test]
+    fn frozen_reference_compatibility_preserves_explicit_v2_scope() {
+        let text = r#"
+[[vocab.forbidden_stems]]
+stem = "alpha"
+code = "forbidden_alpha"
+
+[[vocab.forbidden_stems]]
+stem = "beta"
+code = "forbidden_beta"
+
+[[vocab.carve_outs]]
+kind = "line_contains_ci"
+value = "scoped-marker"
+exempt_stems = ["alpha"]
+"#;
+
+        let frozen = OyaCiConfig::from_frozen_reference_toml_str(text)
+            .expect("v2 frozen-reference config remains valid");
+        assert_eq!(frozen.vocab.carve_outs[0].exempt_stems, vec!["alpha"]);
+    }
+
+    #[test]
+    fn absent_v1_frozen_reference_uses_legacy_all_stem_line_scope() {
+        let frozen = OyaCiConfig::frozen_reference_bundled_default();
+        let expected: Vec<String> = frozen
+            .vocab
+            .forbidden_stems
+            .iter()
+            .map(|stem| stem.stem.clone())
+            .collect();
+        let palantir = frozen
+            .vocab
+            .carve_outs
+            .iter()
+            .find(|rule| rule.value == "palantir")
+            .expect("bundled legacy line rule");
+        assert_eq!(palantir.exempt_stems, expected);
+    }
+
+    #[test]
     fn gate_input_kind_round_trips_kebab_case() {
         let toml = r#"
 [[gates.enabled]]
@@ -1990,7 +2122,8 @@ face = "total_accounting"
     #[test]
     fn schema_version_and_id_are_published() {
         assert_eq!(OyaCiConfig::oyatie().schema_version(), SCHEMA_VERSION);
-        assert_eq!(SCHEMA_VERSION, 1);
+        assert_eq!(SCHEMA_VERSION, 2);
+        assert!(SCHEMA_ID.ends_with("/v2"));
         assert!(SCHEMA_ID.starts_with("https://"));
         assert!(SCHEMA_DIALECT.contains("json-schema.org"));
     }
