@@ -674,9 +674,10 @@ pub struct GateInputs<'a> {
     /// `evaluate_keyed` is pure live-OR-marked policy.
     pub catalog_liveness: &'a Value,
     /// The ADR-0538 workspace-glob-coverage gate input:
-    /// `{"rows":[{"member_entry","is_glob"},{"crate_dir","covered","excluded"}]}`. The
-    /// producer reads the root workspace entries and resolves covered dirs via
-    /// `oya-workspace-members-kernel`; the gate's `evaluate_keyed` is pure boolean policy.
+    /// `{"rows":[{"member_entry","is_glob"},{"member_match","has_manifest"},
+    /// {"crate_dir","covered","excluded"}]}`. The producer reads the root workspace entries and
+    /// scans concrete matches via `oya-workspace-members-kernel`; the gate's `evaluate_keyed` is
+    /// pure boolean policy.
     pub workspace_glob_coverage: &'a Value,
     /// The ADR-0540 target-parity gate input:
     /// `{"rows":[{"member_path","has_buck","has_rust_test_target","has_test_code"}]}`. The

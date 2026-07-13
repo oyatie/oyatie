@@ -16,7 +16,7 @@
 //! # Semantics (mirror Cargo's own member-glob behavior)
 //!
 //! * Each `*` matches exactly one path component; `*` never matches `/`.
-//! * A matched directory is a member only if it contains a `Cargo.toml`.
+//! * An unexcluded matched directory without `Cargo.toml` is an error, just as it is for Cargo.
 //! * `exclude` entries remove a directory and everything beneath it from the match set
 //!   (this is how the `cloud/cloud-kernel` nested `no_std` workspace stays out of the
 //!   root workspace even though `cloud/*/crates/*` would otherwise sweep its crates in).
@@ -34,6 +34,15 @@ pub struct WorkspaceManifestEntries {
     pub exclude: Vec<String>,
 }
 
+/// Cargo-faithful expansion diagnostics for root workspace member globs.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct WorkspaceMemberScan {
+    /// Valid member directories, sorted and de-duplicated.
+    pub member_dirs: Vec<String>,
+    /// Unexcluded glob matches that do not contain `Cargo.toml`, sorted and de-duplicated.
+    pub missing_manifests: Vec<String>,
+}
+
 /// Failure resolving the workspace member set.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ResolveError {
@@ -43,6 +52,8 @@ pub enum ResolveError {
     Parse(String),
     /// The manifest is missing a required `[workspace]` shape.
     Shape(String),
+    /// One or more unexcluded member-glob matches do not contain `Cargo.toml`.
+    MissingManifests(Vec<String>),
 }
 
 impl std::fmt::Display for ResolveError {
@@ -51,6 +62,11 @@ impl std::fmt::Display for ResolveError {
             ResolveError::Read(message) => write!(f, "read workspace manifest: {message}"),
             ResolveError::Parse(message) => write!(f, "parse workspace manifest: {message}"),
             ResolveError::Shape(message) => write!(f, "workspace manifest shape: {message}"),
+            ResolveError::MissingManifests(paths) => write!(
+                f,
+                "workspace member glob matched directories without Cargo.toml: {}",
+                paths.join(", ")
+            ),
         }
     }
 }
@@ -62,12 +78,24 @@ impl std::error::Error for ResolveError {}
 ///
 /// Returns repo-relative, forward-slash directory paths (e.g. `libs/oya-foo-kernel`),
 /// sorted and de-duplicated. Each returned directory is guaranteed to contain a
-/// `Cargo.toml` and to NOT live under any `[workspace].exclude` entry.
+/// `Cargo.toml` and to NOT live under any `[workspace].exclude` entry. Returns
+/// [`ResolveError::MissingManifests`] when an unexcluded glob match has no manifest.
 pub fn resolve_member_dirs(repo_root: &Path) -> Result<Vec<String>, ResolveError> {
     let manifest_path = repo_root.join("Cargo.toml");
     let text = std::fs::read_to_string(&manifest_path)
         .map_err(|error| ResolveError::Read(format!("{}: {error}", manifest_path.display())))?;
     resolve_member_dirs_from_str(&text, repo_root)
+}
+
+/// Scan concrete member-glob matches while retaining missing-manifest diagnostics.
+///
+/// Gate producers use this surface to emit every invalid match as policy input. Ordinary callers
+/// should use [`resolve_member_dirs`], which fails closed when `missing_manifests` is non-empty.
+pub fn scan_member_dirs(repo_root: &Path) -> Result<WorkspaceMemberScan, ResolveError> {
+    let manifest_path = repo_root.join("Cargo.toml");
+    let text = std::fs::read_to_string(&manifest_path)
+        .map_err(|error| ResolveError::Read(format!("{}: {error}", manifest_path.display())))?;
+    scan_member_dirs_from_str(&text, repo_root)
 }
 
 /// Read the raw root `[workspace].members` and `[workspace].exclude` string arrays from
@@ -97,20 +125,41 @@ pub fn resolve_member_dirs_from_str(
     manifest_text: &str,
     repo_root: &Path,
 ) -> Result<Vec<String>, ResolveError> {
+    let scan = scan_member_dirs_from_str(manifest_text, repo_root)?;
+    if scan.missing_manifests.is_empty() {
+        Ok(scan.member_dirs)
+    } else {
+        Err(ResolveError::MissingManifests(scan.missing_manifests))
+    }
+}
+
+/// As [`scan_member_dirs`] but with the manifest text already in hand.
+pub fn scan_member_dirs_from_str(
+    manifest_text: &str,
+    repo_root: &Path,
+) -> Result<WorkspaceMemberScan, ResolveError> {
     let document: toml::Value =
         toml::from_str(manifest_text).map_err(|error| ResolveError::Parse(error.to_string()))?;
     let entries = parse_manifest_entries(&document)?;
 
     let mut resolved: BTreeSet<String> = BTreeSet::new();
+    let mut missing_manifests: BTreeSet<String> = BTreeSet::new();
     for pattern in &entries.members {
         for dir in expand_pattern(repo_root, pattern) {
             if is_excluded(&dir, &entries.exclude) {
                 continue;
             }
-            resolved.insert(dir);
+            if repo_root.join(&dir).join("Cargo.toml").is_file() {
+                resolved.insert(dir);
+            } else {
+                missing_manifests.insert(dir);
+            }
         }
     }
-    Ok(resolved.into_iter().collect())
+    Ok(WorkspaceMemberScan {
+        member_dirs: resolved.into_iter().collect(),
+        missing_manifests: missing_manifests.into_iter().collect(),
+    })
 }
 
 fn parse_manifest_entries(
@@ -180,8 +229,8 @@ pub fn member_entries_cover_dir(entries: &WorkspaceManifestEntries, dir: &str) -
         && !is_excluded(dir, &entries.exclude)
 }
 
-/// Expand one `members` pattern into the repo-relative directories that contain a
-/// `Cargo.toml`. A path component may be a literal (`libs`), a bare wildcard (`*`), or a
+/// Expand one `members` pattern into all matching repo-relative directories. A path component may
+/// be a literal (`libs`), a bare wildcard (`*`), or a
 /// partial wildcard (`oya-*`). A `*` never spans `/`; each component is matched
 /// independently against one directory level, mirroring Cargo's `glob`-crate semantics.
 fn expand_pattern(repo_root: &Path, pattern: &str) -> Vec<String> {
@@ -213,7 +262,6 @@ fn expand_pattern(repo_root: &Path, pattern: &str) -> Vec<String> {
     }
     frontier
         .into_iter()
-        .filter(|relative| repo_root.join(relative).join("Cargo.toml").is_file())
         .map(|relative| relative.to_string_lossy().replace('\\', "/"))
         .collect()
 }
@@ -301,7 +349,7 @@ mod tests {
     }
 
     #[test]
-    fn star_matches_one_component_and_requires_cargo_toml() {
+    fn star_matches_one_component_and_honors_non_crate_excludes() {
         let root = fixture_root();
         make_crate(&root, "libs/oya-a-kernel");
         make_crate(&root, "libs/oya-b-kernel");
@@ -310,7 +358,7 @@ mod tests {
         // A crate one level deeper must NOT be swept by the single-`*` glob.
         make_crate(&root, "libs/group/oya-nested-kernel");
 
-        let manifest = root_manifest(&["libs/*"], &[]);
+        let manifest = root_manifest(&["libs/*"], &["libs/not-a-crate", "libs/group"]);
         let resolved = resolve_member_dirs_from_str(&manifest, &root).expect("resolve");
 
         assert_eq!(
@@ -320,6 +368,34 @@ mod tests {
                 "libs/oya-b-kernel".to_string()
             ]
         );
+    }
+
+    #[test]
+    fn unexcluded_glob_match_without_manifest_fails_like_cargo() {
+        let root = fixture_root();
+        std::fs::create_dir_all(root.join("comms/messenger/chaos"))
+            .expect("create non-crate member match");
+
+        let manifest = root_manifest(&["comms/*/*"], &[]);
+        let error = resolve_member_dirs_from_str(&manifest, &root)
+            .expect_err("Cargo rejects an unexcluded member-glob match without Cargo.toml");
+
+        assert_eq!(
+            error.to_string(),
+            "workspace member glob matched directories without Cargo.toml: comms/messenger/chaos"
+        );
+    }
+
+    #[test]
+    fn explicit_exclude_suppresses_non_manifest_glob_match() {
+        let root = fixture_root();
+        std::fs::create_dir_all(root.join("comms/messenger/chaos"))
+            .expect("create excluded non-crate member match");
+
+        let manifest = root_manifest(&["comms/*/*"], &["comms/messenger/chaos"]);
+        let resolved = resolve_member_dirs_from_str(&manifest, &root).expect("resolve");
+
+        assert!(resolved.is_empty());
     }
 
     #[test]

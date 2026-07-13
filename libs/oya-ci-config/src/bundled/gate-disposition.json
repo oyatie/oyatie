@@ -107,6 +107,7 @@
     },
     "cloud-ci-workspace-glob-coverage": {
       "workspace_member_explicit_path": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "workspace_member_missing_manifest": {"mode": "baseline-block-on-new", "frozen_empty": true},
       "crate_dir_not_covered": {"mode": "baseline-block-on-new"}
     },
     "cloud-ci-target-parity": {
