@@ -9,7 +9,7 @@
 use std::collections::HashMap;
 use std::fmt;
 
-use oya_intelligence_autonomy_ceiling_kernel::{AutonomyTier, default_ceiling};
+use intelligence_autonomy_ceiling_kernel::{AutonomyTier, default_ceiling};
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub struct TenantId(pub String);

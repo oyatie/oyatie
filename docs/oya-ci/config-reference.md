@@ -36,11 +36,18 @@ boundary — its current occurrences baseline on the next regen, and every later
 baseline is RED. oyatie's checked-in `oya-ci.toml` declares the active set; see it for the exact
 stems and codes.
 
-`[[vocab.carve_outs]]` is an array of `{ kind, value, reason }` rows. `kind` is one of
-`path_prefix` / `path_exact` / `path_suffix` (drops the whole file) or `line_contains_ci` (drops a
-single line, lower-cased contains — for legitimate proper-noun prose). A carve-out exempts a file
-or line from the census (e.g. the deny-list definition files themselves, the generated faces, the
-intentional historical archive, the append-only audit chain).
+`[[vocab.carve_outs]]` is an array of `{ kind, value, exempt_stems, reason }` rows. `kind` is one
+of `path_prefix` / `path_exact` / `path_suffix` (drops the whole file) or `line_contains_ci`
+(lower-cased contains). Path rules omit `exempt_stems`. Every `line_contains_ci` rule must list the
+exact forbidden stem(s) it may suppress in `exempt_stems`; matching the marker never exempts an
+unlisted stem on the same line. Carve-outs cover deny-list definition files, generated faces,
+intentional historical archives, append-only audit chains, and narrowly named structural or
+proper-noun occurrences.
+
+This conditional requirement is schema v2. Candidate configs missing `exempt_stems` fail closed.
+Frozen-reference regeneration retains a bounded v1 compatibility path: a historical line rule
+without the field expands in memory to every forbidden stem, exactly reproducing v1's whole-line
+exception semantics without weakening candidate validation.
 
 ## `[manifest]` — the rust-cargo manifest-hygiene field-set (declared for `cloud-ci-manifest-hygiene`)
 

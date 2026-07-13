@@ -64,7 +64,7 @@
     ]
   },
   "pre_filter_N1": {
-    "rule": "forbidden-vocab crates excised (foundry/oya-vcs/jenkins/forgejo); no multispectrum doctrine; carve-out external 'Palantir Foundry'",
+    "rule": "forbidden-vocab crates excised under the scoped deny-list; no multispectrum doctrine; external competitor proper nouns follow their scoped policy rows",
     "source_catalog_count": 903,
     "dropped_by_name": 71,
     "dropped_by_context_foundry": 202,

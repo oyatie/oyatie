@@ -46,10 +46,10 @@ const BUNDLED_TTL_JSON: &str = include_str!("bundled/ttl-policy.json");
 /// The closed-schema version (ADR-0533 §Decision item 5): a published `$id`/`$schema` + a
 /// `schema_version` so the closed schema can evolve without silently breaking adopters. Bumped
 /// when a breaking schema change ships; additive (back-compatible) keys do NOT bump it.
-pub const SCHEMA_VERSION: u32 = 1;
+pub const SCHEMA_VERSION: u32 = 2;
 
 /// The published `$id` URL for the closed `oya-ci.toml` schema (ADR-0533 §Decision item 5).
-pub const SCHEMA_ID: &str = "https://oya-ci.dev/schema/oya-ci-config/v1";
+pub const SCHEMA_ID: &str = "https://oya-ci.dev/schema/oya-ci-config/v2";
 
 /// The JSON-Schema dialect the published schema is authored against (ADR-0533 item 5).
 pub const SCHEMA_DIALECT: &str = "https://json-schema.org/draft/2020-12/schema";
@@ -272,6 +272,34 @@ impl OyaCiConfig {
     /// change for first-party — or [`neutral`](Self::neutral)); each section AUTHORED in the
     /// file overlays that base, and an OMITTED section keeps the base value. Unknown keys error.
     pub fn from_toml_str(text: &str) -> Result<Self, ConfigError> {
+        Self::from_toml_str_with_line_scope_mode(text, LegacyLineScope::Reject)
+    }
+
+    /// Parse a v1 frozen-reference config while preserving its historical line-rule semantics.
+    ///
+    /// Schema v1 `line_contains_ci` rows had no `exempt_stems` field and skipped the entire
+    /// matching line. Merge-base regeneration must reproduce that historical policy even after
+    /// the candidate binary upgrades to schema v2; otherwise the current parser cannot regenerate
+    /// an older frozen reference. Empty line-rule scopes are therefore expanded to every forbidden
+    /// stem only on this explicitly named compatibility path. Candidate config loading continues
+    /// through [`Self::from_toml_str`] and rejects the same input fail-closed.
+    pub fn from_frozen_reference_toml_str(text: &str) -> Result<Self, ConfigError> {
+        Self::from_toml_str_with_line_scope_mode(text, LegacyLineScope::ExpandToAllStems)
+    }
+
+    /// The absent-config fallback for a v1 frozen reference. This is intentionally separate from
+    /// [`Self::bundled_default`]: historical line rules skipped every matching line, while the v2
+    /// bundled default exempts only the explicitly named stems.
+    pub fn frozen_reference_bundled_default() -> Self {
+        let mut config = Self::bundled_default();
+        config.vocab.set_all_line_scopes_to_all_stems();
+        config
+    }
+
+    fn from_toml_str_with_line_scope_mode(
+        text: &str,
+        line_scope_mode: LegacyLineScope,
+    ) -> Result<Self, ConfigError> {
         let shadow: OyaCiConfigShadow =
             toml::from_str(text).map_err(|e| ConfigError::Parse(e.to_string()))?;
         // `extends` (the explicit base-to-extend) wins over `profile` when both are present.
@@ -326,6 +354,10 @@ impl OyaCiConfig {
         if let Some(v) = shadow.cross_artifact {
             base.cross_artifact = v;
         }
+        if line_scope_mode == LegacyLineScope::ExpandToAllStems {
+            base.vocab.expand_legacy_line_scopes();
+        }
+        base.vocab.validate()?;
         Ok(base)
     }
 
@@ -536,6 +568,10 @@ pub enum VocabCarveOutKind {
 pub struct VocabCarveOut {
     pub kind: VocabCarveOutKind,
     pub value: String,
+    /// Stems a line-level rule may exempt. Empty for path rules; required and validated for
+    /// `line_contains_ci` so one structural/proper-noun marker cannot suppress other stems.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub exempt_stems: Vec<String>,
     #[serde(default)]
     pub reason: String,
 }
@@ -566,57 +602,68 @@ fn default_forbidden_stems() -> Vec<ForbiddenStem> {
 }
 
 fn default_vocab_carve_outs() -> Vec<VocabCarveOut> {
-    [
+    let rows: &[(VocabCarveOutKind, &str, &[&str], &str)] = &[
         (
             VocabCarveOutKind::PathPrefix,
             "libs/oya-check-brand-residue/",
+            &[],
             "the deny-list patterns themselves are not residue",
         ),
         (
             VocabCarveOutKind::PathPrefix,
             "libs/oya-ci-config/",
+            &[],
             "the config-era deny-list SSOT (forbidden-stem table + bundled disposition) — naming a stem here is the deny-list, not residue (same rationale as oya-check-brand-residue)",
         ),
         (
             VocabCarveOutKind::PathExact,
             "oya-ci.toml",
+            &[],
             "the repo-root oya-ci config IS the deny-list (it declares the forbidden-stem table) — naming a stem here is the deny-list, not residue",
         ),
         (
             VocabCarveOutKind::PathExact,
             "registry/catalog/oya-check-brand-residue.yaml",
+            &[],
             "the catalog deny-list spec is not residue",
         ),
         (
             VocabCarveOutKind::PathPrefix,
             "oya/intelligence/_legacy-foundry/",
+            &[],
             "intentional historical archive of the dropped work",
         ),
         (
             VocabCarveOutKind::PathPrefix,
             "marketplace/facade/dev-cli/tests/",
+            &[],
             "integration test fixtures that reference live repo contracts/openapi/foundry/ paths and fixture data strings — structural references to real contract paths, not brand residue; moved from oya/developer-sdk/crates/oya-dev-cli/tests/ where it was already baselined",
         ),
         (
             VocabCarveOutKind::PathExact,
             "evidence/audit-chain.jsonl",
+            &[],
             "append-only audit chain — NEVER rewritten",
         ),
         (
             VocabCarveOutKind::PathSuffix,
             ".generated.json",
+            &[],
             "producer-generated faces record the tokens the gates track; a hand-edit is its own ci_inventory_registry_drift RED",
         ),
         (
             VocabCarveOutKind::LineContainsCi,
             "palantir",
+            &["foundry"],
             "Palantir-Foundry is a competitor proper noun, not brand residue",
         ),
-    ]
+    ];
+    rows
     .iter()
-    .map(|(kind, value, reason)| VocabCarveOut {
+    .map(|(kind, value, exempt_stems, reason)| VocabCarveOut {
         kind: *kind,
         value: (*value).to_owned(),
+        exempt_stems: exempt_stems.iter().map(|stem| (*stem).to_owned()).collect(),
         reason: (*reason).to_owned(),
     })
     .collect()
@@ -632,6 +679,59 @@ impl Default for VocabConfig {
 }
 
 impl VocabConfig {
+    fn all_stems(&self) -> Vec<String> {
+        self.forbidden_stems
+            .iter()
+            .map(|stem| stem.stem.clone())
+            .collect()
+    }
+
+    fn expand_legacy_line_scopes(&mut self) {
+        let all_stems = self.all_stems();
+        for carve_out in &mut self.carve_outs {
+            if carve_out.kind == VocabCarveOutKind::LineContainsCi
+                && carve_out.exempt_stems.is_empty()
+            {
+                carve_out.exempt_stems.clone_from(&all_stems);
+            }
+        }
+    }
+
+    fn set_all_line_scopes_to_all_stems(&mut self) {
+        let all_stems = self.all_stems();
+        for carve_out in &mut self.carve_outs {
+            if carve_out.kind == VocabCarveOutKind::LineContainsCi {
+                carve_out.exempt_stems.clone_from(&all_stems);
+            }
+        }
+    }
+
+    fn validate(&self) -> Result<(), ConfigError> {
+        for carve_out in &self.carve_outs {
+            match carve_out.kind {
+                VocabCarveOutKind::LineContainsCi => {
+                    if carve_out.exempt_stems.is_empty() {
+                        return Err(ConfigError::Parse(format!(
+                            "vocab line_contains_ci carve-out {:?} must declare at least one exempt_stems entry",
+                            carve_out.value
+                        )));
+                    }
+                }
+                VocabCarveOutKind::PathPrefix
+                | VocabCarveOutKind::PathExact
+                | VocabCarveOutKind::PathSuffix => {
+                    if !carve_out.exempt_stems.is_empty() {
+                        return Err(ConfigError::Parse(format!(
+                            "vocab path carve-out {:?} must not declare exempt_stems",
+                            carve_out.value
+                        )));
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
     /// The neutral profile's `[vocab]`: an EMPTY forbidden-stem list (ADR-0533 item 1) — the
     /// brand-residue census finds nothing, so a neutral repo carries no oyatie deny-list. No
     /// carve-outs either (carve-outs only exist to exempt the deny-list, which is empty).
@@ -641,6 +741,12 @@ impl VocabConfig {
             carve_outs: Vec::new(),
         }
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum LegacyLineScope {
+    Reject,
+    ExpandToAllStems,
 }
 
 // ---------------------------------------------------------------------------
@@ -1386,7 +1492,9 @@ mod tests {
             cfg.vocab
                 .carve_outs
                 .iter()
-                .any(|c| c.kind == VocabCarveOutKind::LineContainsCi && c.value == "palantir")
+                .any(|c| c.kind == VocabCarveOutKind::LineContainsCi
+                    && c.value == "palantir"
+                    && c.exempt_stems == ["foundry"])
         );
     }
 
@@ -1689,6 +1797,114 @@ code = "forbidden_oya-vcs"
     }
 
     #[test]
+    fn line_carve_out_stem_scope_round_trips_through_the_closed_schema() {
+        let text = r#"
+[[vocab.carve_outs]]
+kind = "line_contains_ci"
+value = "//contracts/openapi/foundry:capability-v1.yaml"
+exempt_stems = ["foundry"]
+reason = "structural reference"
+"#;
+        let cfg = OyaCiConfig::from_toml_str(text).expect("scoped line carve-out parses");
+        assert_eq!(cfg.vocab.carve_outs[0].exempt_stems, vec!["foundry"]);
+
+        let serialized = toml::to_string(&cfg).expect("serialize scoped carve-out");
+        assert!(serialized.contains("exempt_stems = [\"foundry\"]"));
+        assert_eq!(
+            OyaCiConfig::from_toml_str(&serialized).expect("reparse scoped carve-out"),
+            cfg
+        );
+    }
+
+    #[test]
+    fn line_carve_out_requires_explicit_stem_scope() {
+        for text in [
+            r#"
+[[vocab.carve_outs]]
+kind = "line_contains_ci"
+value = "palantir"
+"#,
+            r#"
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = "docs/example.md"
+exempt_stems = ["foundry"]
+"#,
+        ] {
+            let err = OyaCiConfig::from_toml_str(text).unwrap_err();
+            assert!(matches!(err, ConfigError::Parse(_)), "got {err:?}");
+        }
+    }
+
+    #[test]
+    fn frozen_reference_v1_line_scope_expands_to_all_configured_stems() {
+        let text = r#"
+[[vocab.forbidden_stems]]
+stem = "alpha"
+code = "forbidden_alpha"
+
+[[vocab.forbidden_stems]]
+stem = "beta"
+code = "forbidden_beta"
+
+[[vocab.carve_outs]]
+kind = "line_contains_ci"
+value = "legacy-marker"
+"#;
+
+        assert!(
+            OyaCiConfig::from_toml_str(text).is_err(),
+            "candidate configs must declare an explicit v2 line scope"
+        );
+        let frozen = OyaCiConfig::from_frozen_reference_toml_str(text)
+            .expect("v1 frozen-reference config migrates in memory");
+        assert_eq!(
+            frozen.vocab.carve_outs[0].exempt_stems,
+            vec!["alpha", "beta"]
+        );
+    }
+
+    #[test]
+    fn frozen_reference_compatibility_preserves_explicit_v2_scope() {
+        let text = r#"
+[[vocab.forbidden_stems]]
+stem = "alpha"
+code = "forbidden_alpha"
+
+[[vocab.forbidden_stems]]
+stem = "beta"
+code = "forbidden_beta"
+
+[[vocab.carve_outs]]
+kind = "line_contains_ci"
+value = "scoped-marker"
+exempt_stems = ["alpha"]
+"#;
+
+        let frozen = OyaCiConfig::from_frozen_reference_toml_str(text)
+            .expect("v2 frozen-reference config remains valid");
+        assert_eq!(frozen.vocab.carve_outs[0].exempt_stems, vec!["alpha"]);
+    }
+
+    #[test]
+    fn absent_v1_frozen_reference_uses_legacy_all_stem_line_scope() {
+        let frozen = OyaCiConfig::frozen_reference_bundled_default();
+        let expected: Vec<String> = frozen
+            .vocab
+            .forbidden_stems
+            .iter()
+            .map(|stem| stem.stem.clone())
+            .collect();
+        let palantir = frozen
+            .vocab
+            .carve_outs
+            .iter()
+            .find(|rule| rule.value == "palantir")
+            .expect("bundled legacy line rule");
+        assert_eq!(palantir.exempt_stems, expected);
+    }
+
+    #[test]
     fn gate_input_kind_round_trips_kebab_case() {
         let toml = r#"
 [[gates.enabled]]
@@ -1906,7 +2122,8 @@ face = "total_accounting"
     #[test]
     fn schema_version_and_id_are_published() {
         assert_eq!(OyaCiConfig::oyatie().schema_version(), SCHEMA_VERSION);
-        assert_eq!(SCHEMA_VERSION, 1);
+        assert_eq!(SCHEMA_VERSION, 2);
+        assert!(SCHEMA_ID.ends_with("/v2"));
         assert!(SCHEMA_ID.starts_with("https://"));
         assert!(SCHEMA_DIALECT.contains("json-schema.org"));
     }

@@ -9,7 +9,7 @@ use std::fmt;
 // ── Identity types (live in kernel; re-exported here for back-compat) ──────
 // Per ADR-0056 port-in-kernel: types that cross product boundaries belong
 // in the kernel. Existing call sites continue to import from domain.
-pub use oya_intelligence_account_kernel::{
+pub use intelligence_account_kernel::{
     AccountId, ProviderFamily, ProviderFamilyError, SecretReference, SecretReferenceError,
     SessionId,
 };

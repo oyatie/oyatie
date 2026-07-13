@@ -128,7 +128,7 @@
       "edge_type": "declares"
     },
     {
-      "source": "oya-intelligence-architecture-map-kernel-manifest",
+      "source": "intelligence-architecture-map-kernel-manifest",
       "target": "registry",
       "edge_type": "declares"
     },

@@ -13,7 +13,7 @@ use oya_intelligence_adapter_domain::{
     ProviderRoutePreference, ProviderRouteRequest, ProviderStreamEndReason,
     SubscriptionBindingRegistry, ToolSchemaSet, invoke_provider_route, resolve_route,
 };
-use oya_intelligence_capability_domain::{AutonomyTier, Capability, CapabilityError};
+use intelligence_capability_domain::{AutonomyTier, Capability, CapabilityError};
 use secrets_domain::SecretRef;
 use std::sync::atomic::{AtomicUsize, Ordering};
 

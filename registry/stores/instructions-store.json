@@ -4,7 +4,7 @@
   "status": "DRAFT — pending door:one-way founder sign-off (B2 truth-capture; author-pass only)",
   "authority": "decision-record-oyatie-canon.md (apex/current-truth) + CLAUDE.md + docs/AGENTS.md durable disciplines re-expressed via current mechanisms",
   "pre_filters_applied": [
-    "N1 forbidden-vocab: zero forgejo/forge/foundry(except external 'Palantir Foundry')/jenkins/oya-vcs/oya-gate-as-authority/oya-CLI-as-authority",
+    "N1 forbidden-vocab deny-list applied; external competitor proper nouns and retired CLI-authority phrases follow their scoped policy rows",
     "multispectrum doctrine RETIRED (D-MULTISPECTRUM-RETIRED) — not carried",
     "CURRENT-TRUTH-KEEP only; stale/superseded/retired mechanisms dropped per D-AUTHORITY-CONVERSATION"
   ],
@@ -677,7 +677,7 @@
       "scope": "all-agents",
       "category": "forbidden-vocab",
       "title": "Forbidden vocab — total eradication of retired terms",
-      "directive": "These terms are FORBIDDEN everywhere (code, infra, specs, registry, masterplan, docs, and even historical/superseded bodies — scrub the word): 'forgejo'/'forge', 'foundry', 'jenkins', 'oya-vcs' / the agentic-VCS layer, and — founder-retired 2026-06-08 (the multispectrum/council era is over) — 'council' / 'council-architecture' as an authority/owner term (the apex authority is the founder; do not author 'council' as a deciding body). The brand-residue gate blocks them going forward. The retired oya CLI governance family ('oya gate' / 'oya verify' / 'oya check' / 'oya-dev-cli' / 'oya git' / 'oya vcs') must not be authored as the mechanism. CANONICAL NAMES (use these, not the retired/ambiguous forms): the gate contract surface is 'oya-ci-gate-contract' (NOT 'oya-pipeline-gate-sdk'); the gate/pipeline-step extension surface is 'oya-ci-gate-sdk'; the VCS-agnostic facts boundary is 'scm-facts' (NOT 'git-facts' as a forward identifier — git is the transitional impl, per ADR-0526). HARD CARVE-OUT: external product name 'Palantir Foundry' (a different referent — keep).",
+      "directive": "The canonical forbidden-vocabulary deny-list applies everywhere, including historical and superseded bodies, and the brand-residue gate blocks listed terms going forward. Founder-retired authority-body terminology must not be authored as a deciding owner. The retired oya CLI governance family ('oya gate' / 'oya verify' / 'oya check' / 'oya-dev-cli' / 'oya git' / 'oya vcs') must not be authored as the mechanism. CANONICAL NAMES (use these, not retired or ambiguous forms): the gate contract surface is 'oya-ci-gate-contract' (NOT 'oya-pipeline-gate-sdk'); the gate/pipeline-step extension surface is 'oya-ci-gate-sdk'; the VCS-agnostic facts boundary is 'scm-facts' (NOT 'git-facts' as a forward identifier — git is the transitional impl, per ADR-0526). External competitor proper nouns are governed only by their explicit stem-scoped policy rows.",
       "applies_when": "always",
       "authority": "founder",
       "body_ref": "obsidian://decisions/canon#D-CLOUD-NATIVE",

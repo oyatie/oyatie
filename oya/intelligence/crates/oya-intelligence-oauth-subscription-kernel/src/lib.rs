@@ -22,7 +22,7 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use oya_intelligence_account_kernel::{ProviderFamily, SecretReference};
+use intelligence_account_kernel::{ProviderFamily, SecretReference};
 use std::fmt;
 
 /// data_class: INTERNAL_ONLY — PKCE verifier (high-entropy random secret).

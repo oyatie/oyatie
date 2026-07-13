@@ -8,7 +8,7 @@
 
 use std::fmt;
 
-use oya_intelligence_capability_registry_kernel::{AutonomyTier, Capability, CapabilityId};
+use intelligence_capability_registry_kernel::{AutonomyTier, Capability, CapabilityId};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum PublishValidationError {

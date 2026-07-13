@@ -11,7 +11,7 @@ use std::collections::BTreeMap;
 use oya_data_boundary_kernel::{
     AgeBand, DataClass, PrivacyDataClass, SubjectClass, parse_data_class_label,
 };
-use oya_intelligence_capability_domain::{AutonomyTier, Capability, CapabilityAction, CapabilityError};
+use intelligence_capability_domain::{AutonomyTier, Capability, CapabilityAction, CapabilityError};
 use oya_intelligence_policy_domain::{
     AutonomyCapReason, AutonomyCapSource, AutonomyDecision, AutonomyVerdict, TenantPolicy,
 };

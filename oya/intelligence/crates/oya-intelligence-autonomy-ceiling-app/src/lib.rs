@@ -7,10 +7,10 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use oya_intelligence_autonomy_ceiling_domain::{CeilingPolicy, TenantId};
-use oya_intelligence_autonomy_ceiling_kernel::{
+use intelligence_autonomy_ceiling_kernel::{
     AutonomyTier as CeilingTier, CeilingVerdict, check_tier,
 };
-use oya_intelligence_capability_registry_kernel::{AutonomyTier as CapTier, Capability};
+use intelligence_capability_registry_kernel::{AutonomyTier as CapTier, Capability};
 
 fn bridge(t: CapTier) -> CeilingTier {
     match t {
@@ -38,7 +38,7 @@ pub fn enforce_for_tenant(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_intelligence_capability_registry_kernel::CapabilityId;
+    use intelligence_capability_registry_kernel::CapabilityId;
 
     fn cap(tier: CapTier) -> Capability {
         Capability::new(CapabilityId::new("foundry.x.y"), "n", tier, true)

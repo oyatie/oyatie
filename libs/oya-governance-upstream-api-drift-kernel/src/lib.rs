@@ -16,7 +16,7 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use oya_intelligence_account_kernel::ProviderFamily;
+use intelligence_account_kernel::ProviderFamily;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 

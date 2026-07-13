@@ -979,6 +979,7 @@ fn load_vocab_policy(repo_root: &Path) -> Result<VocabPolicy, String> {
                     VocabCarveOutKind::LineContainsCi => CarveOutKind::LineContainsCi,
                 },
                 value: c.value.clone(),
+                exempt_stems: c.exempt_stems.clone(),
             })
             .collect(),
     })
@@ -3026,6 +3027,30 @@ mod tests {
         ));
         std::fs::create_dir_all(&root).unwrap();
         root
+    }
+
+    #[test]
+    fn live_vocab_policy_mapping_preserves_line_exception_stem_scope() {
+        let root = temp_repo_root("vocab-policy-line-scope");
+        std::fs::write(
+            root.join(OYA_CI_CONFIG_PATH),
+            r#"
+[[vocab.carve_outs]]
+kind = "line_contains_ci"
+value = "structural-marker"
+exempt_stems = ["alpha"]
+"#,
+        )
+        .unwrap();
+
+        let policy = load_vocab_policy(&root).expect("live vocab policy loads");
+        let rule = policy
+            .carve_outs
+            .iter()
+            .find(|rule| rule.value == "structural-marker")
+            .expect("mapped line rule");
+        assert_eq!(rule.exempt_stems, vec!["alpha"]);
+        let _ = std::fs::remove_dir_all(&root);
     }
 
     fn write_move_manifest(root: &std::path::Path, old_path: &str, new_path: &str) {

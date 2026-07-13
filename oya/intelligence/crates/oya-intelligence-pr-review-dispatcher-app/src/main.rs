@@ -23,7 +23,7 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use oya_intelligence_account_kernel::SecretReference;
+use intelligence_account_kernel::SecretReference;
 use oya_intelligence_pr_review_dispatcher_app::fanout::FacetId;
 use oya_intelligence_pr_review_dispatcher_app::rollup::{
     FacetFinding, FacetRecommendation, Verdict, audit_panel_completeness, rollup_verdict,
