@@ -10,12 +10,12 @@ owner: founder
 supersedes: [ADR-0550]
 superseded_by: []
 amended_by: [ADR-0615]
-depends_on: [ADR-0245, ADR-0280, ADR-0512, ADR-0536]
+depends_on: [ADR-0280, ADR-0512]
 amends:
   - ADR-0536-hyperscaler-grounded-substrate-decision-matrix.md (its sixteen domains seed the closed capability registry; its enforcement gains face-direction + membership checks)
   - ADR-0512-canonical-monorepo-pattern.md (capability-first layout supersedes the cloud/oya/libs root assumption; libs/ dissolves into capability homes + base/; the kuberos-kernel nested-workspace carve-out)
   - ADR-0280-substrate-of-substrate-dependency-doctrine.md (DAG nodes use de-branded capability names; D-1 is the canonical substrate bootstrap ordering source)
-related: [ADR-0131, ADR-0132, ADR-0510, ADR-0520, ADR-0532, ADR-0533, ADR-0537, ADR-0543, ADR-0547, ADR-0549, ADR-0555]
+related: [ADR-0131, ADR-0132, ADR-0245, ADR-0510, ADR-0520, ADR-0532, ADR-0533, ADR-0536, ADR-0537, ADR-0543, ADR-0547, ADR-0549, ADR-0555]
 related_specs:
   - /specs/capability-registry.json
   - /specs/substrate-dependency-dag.json

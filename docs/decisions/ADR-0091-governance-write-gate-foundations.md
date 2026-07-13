@@ -2,8 +2,6 @@
 id: ADR-0091
 status: accepted
 doc_status: published
-amended_by:
-  - ADR-0565-zero-graphql-in-the-owned-api-surface.md (its transport-parity context and single-state-machine driver named GraphQL among the owned transports; GraphQL is dropped from the owned surface per ADR-0565 — the write-gate state machine itself is unchanged)
 ---
 
 # ADR-0091: Foundry write-gate foundations (Phase 05 contract)

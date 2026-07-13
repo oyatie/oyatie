@@ -36,7 +36,7 @@ doc_status: published
 > **Status:** planning-closed contract authored, implementation changesets still required. This document closes the missing per-product PRD surface for the existing SaaS Platform entry; it does not claim live production readiness.
 > **Owning team:** [`docs/teams/axis-saas/CHARTER.md`](../../teams/axis-saas/CHARTER.md)
 > **Planning authority:** `specs/masterplan.json` M03-P04 and M03-P08.
-> **Current-truth authority:** `HANDOFF.md`, `registry/stores/design-store.json`, `registry/stores/instructions-store.json`, `registry/stores/registry-store.json`, and `registry/stores/canon-id-crosswalk.json`.
+> **Current-truth authority:** `specs/root-hub-pointers.json` routes to `specs/masterplan.json#masterplan_v2` and the applicable Accepted ADRs. `HANDOFF.md` is a thin fresh-session redirect only. The `registry/stores/*` files remain product-domain inputs, not portfolio plan/status authority.
 > **Live CI authority:** the branch-protected `oya-ci-required` context produced by GitHub Actions until the owned runner cutover is proven.
 
 ## 1. North star
@@ -202,7 +202,7 @@ No product-scope question blocks this PRD surface. Implementation readiness rema
 
 ## 13. Sources scanned
 
-- `HANDOFF.md` — durable repo/CI/current-truth readback.
+- `HANDOFF.md` — thin fresh-session redirect; derive repo/CI/current truth from its canonical targets and live GitHub state.
 - `registry/stores/design-store.json` — D-CLOUD-NATIVE, D-CICD-AUTHORITY, D-GOVERNANCE-CENTRAL, plugin/workflow/marketplace current-truth entries.
 - `registry/stores/instructions-store.json` — no CLI authority, no shell/governance CLI, one `oya-ci-required` context, GitHub Actions live authority.
 - `registry/stores/registry-store.json` and `registry/stores/canon-id-crosswalk.json` — canon/store authority chain.
