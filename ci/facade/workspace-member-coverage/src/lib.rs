@@ -211,17 +211,24 @@ mod tests {
     }
 
     #[test]
-    fn member_glob_match_without_manifest_is_red() {
+    fn every_member_glob_match_without_manifest_is_red() {
         let input = json!({
             "rows": [
-                {"member_match": "comms/messenger/chaos", "has_manifest": false}
+                {"member_match": "comms/messenger/chaos", "has_manifest": false},
+                {"member_match": "comms/messenger/resilience", "has_manifest": false}
             ]
         });
         let findings = evaluate_keyed(&input);
-        assert_eq!(findings.len(), 1);
-        let finding = findings.iter().next().unwrap();
-        assert_eq!(finding.code, "workspace_member_missing_manifest");
-        assert_eq!(finding.key, "comms/messenger/chaos");
+        assert_eq!(
+            findings,
+            BTreeSet::from([
+                Finding::new("workspace_member_missing_manifest", "comms/messenger/chaos"),
+                Finding::new(
+                    "workspace_member_missing_manifest",
+                    "comms/messenger/resilience",
+                ),
+            ])
+        );
         assert_eq!(evaluate(&input).verdict, Verdict::Red);
     }
 

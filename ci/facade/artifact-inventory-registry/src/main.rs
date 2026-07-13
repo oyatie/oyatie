@@ -2563,15 +2563,19 @@ status: Accepted
     }
 
     #[test]
-    fn workspace_glob_coverage_reports_matched_directory_without_manifest() {
+    fn workspace_glob_coverage_reports_every_unexcluded_match_without_manifest() {
         let root = unique_temp_repo();
         fs::write(
             root.join("Cargo.toml"),
-            "[workspace]\nmembers = [\"comms/*/*\"]\nexclude = []\n",
+            "[workspace]\nmembers = [\"comms/*/*\"]\nexclude = [\"comms/messenger/fixtures\"]\n",
         )
         .expect("write root manifest");
         fs::create_dir_all(root.join("comms/messenger/chaos"))
             .expect("create non-crate member match");
+        fs::create_dir_all(root.join("comms/messenger/resilience"))
+            .expect("create second non-crate member match");
+        fs::create_dir_all(root.join("comms/messenger/fixtures"))
+            .expect("create excluded non-crate member match");
 
         let face = collect_workspace_glob_coverage(
             &root,
@@ -2581,14 +2585,25 @@ status: Accepted
         .expect("collect workspace glob coverage");
         let findings = ci_workspace_member_coverage::evaluate_keyed(&face);
 
-        assert!(face["rows"].as_array().expect("rows").iter().any(|row| {
-            row["member_match"] == "comms/messenger/chaos"
-                && row["has_manifest"].as_bool() == Some(false)
-        }));
-        assert!(findings.iter().any(|finding| {
-            finding.code == "workspace_member_missing_manifest"
-                && finding.key == "comms/messenger/chaos"
-        }));
+        let member_matches: BTreeSet<String> = face["rows"]
+            .as_array()
+            .expect("rows")
+            .iter()
+            .filter_map(|row| row["member_match"].as_str().map(str::to_owned))
+            .collect();
+        assert_eq!(
+            member_matches,
+            BTreeSet::from([
+                "comms/messenger/chaos".to_owned(),
+                "comms/messenger/resilience".to_owned(),
+            ])
+        );
+        let missing_manifest_findings: BTreeSet<String> = findings
+            .iter()
+            .filter(|finding| finding.code == "workspace_member_missing_manifest")
+            .map(|finding| finding.key.clone())
+            .collect();
+        assert_eq!(missing_manifest_findings, member_matches);
 
         fs::remove_dir_all(root).expect("remove temp repo");
     }
