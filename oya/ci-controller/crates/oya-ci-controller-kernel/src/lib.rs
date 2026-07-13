@@ -1764,7 +1764,7 @@ mod phase0_ci_enforcement_baseline_tests {
         assert_eq!(
             baseline["gap_packet"]["required_context"]["status"].as_str(),
             Some("CLOSED_WITH_EVIDENCE"),
-            "required_context row must carry the verified 2026-06-09 cutover evidence"
+            "required_context row must carry verified cutover evidence"
         );
         assert!(
             baseline["gap_packet"]["required_context"]["evidence"]["green_post_merge_run_id"]
