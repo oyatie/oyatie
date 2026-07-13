@@ -527,6 +527,12 @@ a known-good it passes + proof it runs in the pipeline and BLOCKS):
   `evidence/goals/governance-integrity-dispatch-validation-20260628.json` are Dispatch-control evidence for the
   approval-gated G1/G2 lane claim checkpoint. They are justified only as audit/quality-gate records under this
   `oya-ci-required` governed path; they do not create merge authority, bypass CI, or authorize implementation.
+- **Pre-planning authority-closure evidence registration (2026-07-13):** the repo-relative artifact
+  `evidence/consolidation/preplanning-authority-closure-20260713.json` is non-authoritative inventory,
+  lifecycle-reconciliation, and admission evidence for the founder decision hold before a planning session.
+  It is justified only as an audit record under this `oya-ci-required` governed path; it does not make a
+  planning choice, authorize dispatch or implementation, prove product readiness, bypass CI, or mutate
+  generated artifacts.
 
 ## Amendment (2026-06-08, WAVE-1 Agentic Delivery Fabric convergence — refined, NOT superseded)
 
