@@ -2,6 +2,7 @@
 //!
 //! Enforces the globbed root workspace contract:
 //! - every root `[workspace].members` entry must be a glob;
+//! - every unexcluded member-glob match must contain `Cargo.toml`;
 //! - every tracked first-party crate manifest dir must be covered by the resolved member set
 //!   unless it is explicitly excluded.
 //!
@@ -11,6 +12,7 @@
 //!
 //! ## Contract
 //! Input: `{"rows":[{"member_entry": "...", "is_glob": bool},
+//! {"member_match": "...", "has_manifest": bool},
 //! {"crate_dir": "...", "covered": bool, "excluded": bool}]}`.
 //! Missing or empty `rows` is red: the producer must prove it enumerated the workspace.
 //!
@@ -28,8 +30,9 @@ use serde_json::Value;
 pub const GATE_ID: &str = "cloud-ci-workspace-glob-coverage";
 
 /// The blocking violation codes for ADR-0538's workspace glob contract.
-pub const VIOLATION_CODES: [&str; 3] = [
+pub const VIOLATION_CODES: [&str; 4] = [
     "workspace_member_explicit_path",
+    "workspace_member_missing_manifest",
     "crate_dir_not_covered",
     "workspace_glob_row_malformed",
 ];
@@ -88,8 +91,12 @@ pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
     }
     for (index, row) in rows.iter().enumerate() {
         let malformed_key = format!("<row-{index}>");
-        match (row.get("member_entry"), row.get("crate_dir")) {
-            (Some(member_entry), None) => {
+        match (
+            row.get("member_entry"),
+            row.get("member_match"),
+            row.get("crate_dir"),
+        ) {
+            (Some(member_entry), None, None) => {
                 let Some(member_entry) = member_entry.as_str().filter(|value| !value.is_empty())
                 else {
                     findings.insert(Finding::new("workspace_glob_row_malformed", &malformed_key));
@@ -103,7 +110,24 @@ pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
                     findings.insert(Finding::new("workspace_member_explicit_path", member_entry));
                 }
             }
-            (None, Some(crate_dir)) => {
+            (None, Some(member_match), None) => {
+                let Some(member_match) = member_match.as_str().filter(|value| !value.is_empty())
+                else {
+                    findings.insert(Finding::new("workspace_glob_row_malformed", &malformed_key));
+                    continue;
+                };
+                let Some(has_manifest) = row.get("has_manifest").and_then(Value::as_bool) else {
+                    findings.insert(Finding::new("workspace_glob_row_malformed", &malformed_key));
+                    continue;
+                };
+                if !has_manifest {
+                    findings.insert(Finding::new(
+                        "workspace_member_missing_manifest",
+                        member_match,
+                    ));
+                }
+            }
+            (None, None, Some(crate_dir)) => {
                 let Some(crate_dir) = crate_dir.as_str().filter(|value| !value.is_empty()) else {
                     findings.insert(Finding::new("workspace_glob_row_malformed", &malformed_key));
                     continue;
@@ -187,6 +211,21 @@ mod tests {
     }
 
     #[test]
+    fn member_glob_match_without_manifest_is_red() {
+        let input = json!({
+            "rows": [
+                {"member_match": "comms/messenger/chaos", "has_manifest": false}
+            ]
+        });
+        let findings = evaluate_keyed(&input);
+        assert_eq!(findings.len(), 1);
+        let finding = findings.iter().next().unwrap();
+        assert_eq!(finding.code, "workspace_member_missing_manifest");
+        assert_eq!(finding.key, "comms/messenger/chaos");
+        assert_eq!(evaluate(&input).verdict, Verdict::Red);
+    }
+
+    #[test]
     fn uncovered_excluded_crate_is_green() {
         let input = json!({
             "rows": [
@@ -202,6 +241,7 @@ mod tests {
         let input = json!({
             "rows": [
                 {"member_entry": "libs/oya-foo-kernel", "is_glob": false},
+                {"member_match": "comms/messenger/chaos", "has_manifest": false},
                 {"crate_dir": "tools/oya-orphan-app", "covered": false, "excluded": false},
                 {"unexpected": "producer-shape-regression"}
             ]
