@@ -9,7 +9,7 @@ For every fresh session, read current truth in this order:
 1. [`specs/root-hub-pointers.json`](specs/root-hub-pointers.json) — canonical authority router.
 2. [`docs/AGENTS.md`](docs/AGENTS.md) — live operating contract until explicit PHASE-5 promotion
    evidence elevates `specs/agent-operating-contract.json`.
-3. [`specs/masterplan.json#masterplan_v2`](specs/masterplan.json) — the only live plan authority;
+3. [`specs/masterplan.json`](specs/masterplan.json), `masterplan_v2` — the only live plan authority;
    `specs/master-plan-sequencing.json` is compatibility/provenance only.
 4. [`docs/decisions/README.md`](docs/decisions/README.md) and ADR frontmatter — decision lifecycle.
    A higher ADR number does not override an earlier Accepted ADR by itself. A newer ADR controls
