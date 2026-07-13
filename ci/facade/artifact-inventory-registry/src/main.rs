@@ -666,6 +666,7 @@ fn vocab_policy(cfg: &oya_ci_config_kernel::VocabConfig) -> VocabPolicy {
                     VocabCarveOutKind::LineContainsCi => CarveOutKind::LineContainsCi,
                 },
                 value: c.value.clone(),
+                exempt_stems: c.exempt_stems.clone(),
             })
             .collect(),
     }
@@ -1587,6 +1588,27 @@ mod tests {
             face.display()
         );
         load_scm_facts(&face).expect("materialized scm-facts face loads")
+    }
+
+    #[test]
+    fn vocab_policy_mapping_preserves_line_exception_stem_scope() {
+        let cfg = oya_ci_config_kernel::OyaCiConfig::from_toml_str(
+            r#"
+[[vocab.carve_outs]]
+kind = "line_contains_ci"
+value = "structural-marker"
+exempt_stems = ["alpha"]
+"#,
+        )
+        .expect("scoped vocab config parses");
+
+        let policy = vocab_policy(&cfg.vocab);
+        let rule = policy
+            .carve_outs
+            .iter()
+            .find(|rule| rule.value == "structural-marker")
+            .expect("mapped line rule");
+        assert_eq!(rule.exempt_stems, vec!["alpha"]);
     }
 
     #[test]
