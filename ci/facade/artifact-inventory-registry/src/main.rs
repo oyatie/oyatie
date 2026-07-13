@@ -304,8 +304,16 @@ fn run() -> Result<(), CliError> {
     // CLOSED-schema loader. `--policy-root` is the cloud-ci product boundary: the candidate repo
     // supplies the corpus under test, while a controller can source gate policy from trusted
     // control state. With no `--policy-root`, the default remains `<repo-root>/oya-ci.toml`,
-    // preserving today's byte-for-byte first-party behaviour.
-    let cfg = load_policy_config(&repo_root, policy_root)?;
+    // preserving today's byte-for-byte first-party behaviour. Frozen-reference regeneration runs
+    // the candidate producer over a historical merge-base source tree. Schema v1 line rules had
+    // no `exempt_stems` and skipped the whole matching line, so this exact output mode uses the
+    // config kernel's bounded v1 compatibility parser. Every candidate production/check path
+    // remains on the strict v2 parser.
+    let cfg = if to_stdout && face == "baseline" {
+        load_frozen_reference_policy_config(&repo_root, policy_root)?
+    } else {
+        load_policy_config(&repo_root, policy_root)?
+    };
     let config_digest = cfg.digest();
 
     // The TRANSITIONAL registration bridges run INSTEAD of face generation: apply the
@@ -514,6 +522,16 @@ fn load_policy_config(
     load_config(policy_root.unwrap_or(repo_root))
 }
 
+/// Load policy for ADR-0616 merge-base regeneration. This compatibility path exists only for
+/// `--stdout --face baseline`: it reproduces schema v1's whole-line exception semantics while the
+/// strict candidate loader rejects missing v2 `exempt_stems`.
+fn load_frozen_reference_policy_config(
+    repo_root: &Path,
+    policy_root: Option<&Path>,
+) -> Result<oya_ci_config_kernel::OyaCiConfig, CliError> {
+    load_frozen_reference_config(policy_root.unwrap_or(repo_root))
+}
+
 /// Load a root's `oya-ci.toml` (OYA-CI-CONFORMANCE-FLOOR-PLAN §3.3). When the file is present
 /// it is parsed by the CLOSED-schema loader (a malformed file / unknown key is a hard error, so
 /// a broken config fails LOUDLY rather than silently reverting policy); when it is absent the
@@ -525,6 +543,20 @@ fn load_config(config_root: &Path) -> Result<oya_ci_config_kernel::OyaCiConfig, 
             .map_err(|e| CliError::Io(format!("{}: {e}", path.display()))),
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
             Ok(oya_ci_config_kernel::OyaCiConfig::bundled_default())
+        }
+        Err(e) => Err(CliError::Io(format!("{}: {e}", path.display()))),
+    }
+}
+
+fn load_frozen_reference_config(
+    config_root: &Path,
+) -> Result<oya_ci_config_kernel::OyaCiConfig, CliError> {
+    let path = config_root.join("oya-ci.toml");
+    match std::fs::read_to_string(&path) {
+        Ok(text) => oya_ci_config_kernel::OyaCiConfig::from_frozen_reference_toml_str(&text)
+            .map_err(|e| CliError::Io(format!("{}: {e}", path.display()))),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            Ok(oya_ci_config_kernel::OyaCiConfig::frozen_reference_bundled_default())
         }
         Err(e) => Err(CliError::Io(format!("{}: {e}", path.display()))),
     }
@@ -1609,6 +1641,40 @@ exempt_stems = ["alpha"]
             .find(|rule| rule.value == "structural-marker")
             .expect("mapped line rule");
         assert_eq!(rule.exempt_stems, vec!["alpha"]);
+    }
+
+    #[test]
+    fn frozen_reference_loader_migrates_v1_line_scope_without_weakening_candidate_loader() {
+        let root = unique_temp_repo();
+        write_test_file(
+            &root,
+            "oya-ci.toml",
+            r#"
+[[vocab.forbidden_stems]]
+stem = "alpha"
+code = "forbidden_alpha"
+
+[[vocab.forbidden_stems]]
+stem = "beta"
+code = "forbidden_beta"
+
+[[vocab.carve_outs]]
+kind = "line_contains_ci"
+value = "legacy-marker"
+"#,
+        );
+
+        assert!(
+            load_config(&root).is_err(),
+            "candidate policy must reject a schema v1 line rule"
+        );
+        let frozen = load_frozen_reference_config(&root)
+            .expect("frozen-reference loader migrates schema v1 line scope");
+        assert_eq!(
+            frozen.vocab.carve_outs[0].exempt_stems,
+            vec!["alpha", "beta"]
+        );
+        fs::remove_dir_all(root).expect("remove temp repo");
     }
 
     #[test]

@@ -44,6 +44,11 @@ unlisted stem on the same line. Carve-outs cover deny-list definition files, gen
 intentional historical archives, append-only audit chains, and narrowly named structural or
 proper-noun occurrences.
 
+This conditional requirement is schema v2. Candidate configs missing `exempt_stems` fail closed.
+Frozen-reference regeneration retains a bounded v1 compatibility path: a historical line rule
+without the field expands in memory to every forbidden stem, exactly reproducing v1's whole-line
+exception semantics without weakening candidate validation.
+
 ## `[manifest]` — the rust-cargo manifest-hygiene field-set (declared for `cloud-ci-manifest-hygiene`)
 
 | Key | Default |
