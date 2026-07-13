@@ -93,7 +93,7 @@
       "retired_path": "infra/ci/jenkins/reported-status-contexts.json",
       "status": "retired"
     },
-    "verified_cutover_2026_06_09": {
+    "verified_cutover_2026_07_13": {
       "branch_protection_target": "infra/branch-protection/dev.json",
       "green_post_merge_run": {
         "commit": "1d21a7fd5fbc29d6853b3863a6d2680e6ac44224",

@@ -3,6 +3,8 @@ purpose: Oyatie — Canonical Docs Changelog
 doc_status: published
 ---
 
+# Changelog
+
 ## 2026-07-13 — Pre-planning authority consolidation
 
 - Reconciled the root authority chain around `specs/root-hub-pointers.json`,
@@ -13,6 +15,10 @@ doc_status: published
   dependency graph, work-item order, execution waves, or sequencing digest.
 - Added direct, independent determinism coverage for both de-committed controller
   projections and made digestless sequencing ratification fail closed.
+- Recorded MFL-0017 for the direct-masterplan determinism gap and its independent
+  masterplan-and-product-graph regeneration checks.
+- Recorded MFL-0018 for missing or stale sequencing-digest proof and its three-way
+  digest plus open-hold approval/dispatch regressions.
 - Corrected Markdown-retirement, ADR-lifecycle, and Phase-0 evidence surfaces while
   preserving explicit nonclaims: the candidate is not current authority until protected-PR
   admission, and Phase 0 remains non-green.
