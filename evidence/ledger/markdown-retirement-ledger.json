@@ -44,6 +44,17 @@
       "commit_sha": "pending-this-commit (retirement scheduled; deletion follows after content redistribution lands)",
       "replacement_notes": "Per user directive 2026-05-13 'i dont think constitution is necessary'. Constitution-as-a-concept retired. Content redistributes: (a) mission → masterplan.json §1; (b) decision principles → agent-operating-contract.json `principles` section; (c) prohibitions → new `/specs/forbidden-operations.json` (extends master-plan-sequencing.json forbidden_primitives); (d) decision rights → docs/RACI-OWNERSHIP.md (existing). Existing inbound citations from CI check crates + ADRs + plans must redirect after content redistributes; tracked in PHASE-8 check-crate rewrites.",
       "consolidation_action": "content-redistributed-across-4-sinks; constitution concept retired"
+    },
+    {
+      "ledger_id": "LDG-MDR-004",
+      "source_md_path": "HANDOFF.md",
+      "target_json_path": "specs/root-hub-pointers.json + specs/masterplan.json#masterplan_v2",
+      "status": "retained-thin-redirect",
+      "migration_date": "2026-07-13",
+      "retirement_phase": "POLICY-LIVE-REBASELINE-EXECUTION-OPEN",
+      "commit_sha": "e4527935562b669c221cc548536886e4ba37cd4c",
+      "replacement_notes": "Removed stale embedded plan/status/baseline content. HANDOFF.md now routes fresh sessions to the root hub, live operating contract, masterplan_v2, ADR lifecycle, and live Git/GitHub evidence; historical prose remains in Git history.",
+      "consolidation_action": "authority-content-migrated; root Markdown retained only as a non-authoritative thin redirect"
     }
   ],
   "planned_backlog_rows": [

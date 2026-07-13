@@ -17608,12 +17608,28 @@
       "current_pr_candidate_state": {
         "baseline_commit": "1d21a7fd5fbc29d6853b3863a6d2680e6ac44224",
         "branch": "chore/preplanning-authority-closure-20260713T142158Z",
-        "recorded_candidate_state": "local-uncommitted-not-admitted",
-        "protected_pr_against_dev": false,
+        "recorded_candidate_state": "signed-first-content-commit-pushed-draft-pr-open-local-gates-green-not-cloud-admitted",
+        "protected_pr_against_dev": true,
         "oya_ci_required_green_for_candidate": false,
         "merged_to_dev": false,
         "completion_packet_recorded": false,
-        "claim_ceiling": "Pre-planning consolidation candidate only. It is not accepted authority, a completed plan, an admitted change, a dispatched wave, or product completion evidence."
+        "claim_ceiling": "Pre-planning consolidation draft PR candidate only. A signed commit, draft PR, independent local review, and local gates exist; oya-ci-required, server-side approval, merge, founder-choice resolution, binding-plan approval, wave dispatch, and product completion remain unproven.",
+        "candidate_first_content_commit": "e4527935562b669c221cc548536886e4ba37cd4c",
+        "protected_pr_number": 1340,
+        "protected_pr_url": "https://github.com/jason931225/oyatie/pull/1340",
+        "independent_reviewer_verdict": "APPROVE for protected-PR submission; merge authorization remains pending protected cloud and server-side review evidence.",
+        "local_gate_evidence": {
+          "targeted_buck2_targets_passed": 10,
+          "cross_artifact_live_gate": "24/24 passed",
+          "automation_coverage_live_gate": "3/3 passed",
+          "canonical_json_live_gate": "4/4 passed",
+          "repo_root_hygiene_live_gate": "7/7 passed",
+          "parity_claim_evidence_live_gate": "3/3 passed",
+          "baseline_ratchet_registration": "6/6 passed",
+          "generated_artifact_freshness": "passed after official local materialization",
+          "authority": "shift-left evidence only; none is protected merge authority"
+        },
+        "audit_event_id": "EVT-PREPLANNING-AUTHORITY-CLOSURE-20260713-E45279355"
       },
       "accepted_adr_guardrail": {
         "binding_statuses": [

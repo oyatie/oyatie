@@ -25,7 +25,7 @@
       "dependency_edge_count": 36,
       "execution_wave_count": 5,
       "dispatched_wave_count": 0,
-      "scope_limit": "The ratification binds only dependency_edges, sequencing.work_item_order, and execution_waves work_item_ids. It does not ratify later authority choices, admit the current candidate, or authorize dispatch while the pre-planning contract is open."
+      "scope_limit": "The ratification binds dependency-edge from/to endpoint pairs, sequencing.work_item_order, and execution_waves work_item_ids. Relationship labels and other edge metadata are outside the digest. It does not ratify later authority choices, admit the current candidate, or authorize dispatch while the pre-planning contract is open."
     }
   },
   "present": {
@@ -33,12 +33,16 @@
       "head_at_snapshot": "1d21a7fd5fbc29d6853b3863a6d2680e6ac44224",
       "origin_dev_at_snapshot": "1d21a7fd5fbc29d6853b3863a6d2680e6ac44224",
       "branch": "chore/preplanning-authority-closure-20260713T142158Z",
-      "baseline_relation": "HEAD equals origin/dev before the candidate is committed",
-      "candidate_state": "local-uncommitted-not-admitted",
-      "protected_pr_against_dev": false,
+      "baseline_relation": "The signed candidate first-content commit is one commit ahead of the snapshotted origin/dev baseline.",
+      "candidate_state": "signed-first-content-commit-pushed-draft-pr-open-local-gates-green-not-cloud-admitted",
+      "protected_pr_against_dev": true,
       "candidate_oya_ci_required_green": false,
       "merged_to_dev": false,
-      "claim_ceiling": "This snapshot and its companion edits are a local PR candidate. They are not accepted authority, merge evidence, planning completion, product completion, or wave-dispatch authority."
+      "claim_ceiling": "A signed first-content commit is pushed and draft PR #1340 is open against dev with independent local review and local gates green. Protected oya-ci-required, server-side approval, merge, founder-choice closure, binding planning, and product completion remain unproven.",
+      "candidate_first_content_commit": "e4527935562b669c221cc548536886e4ba37cd4c",
+      "protected_pr_number": 1340,
+      "protected_pr_url": "https://github.com/jason931225/oyatie/pull/1340",
+      "pr_opened_on_head": "e4527935562b669c221cc548536886e4ba37cd4c"
     },
     "adr_lifecycle_inventory": {
       "source": "docs/machine-readable/decisions.json",
@@ -139,6 +143,23 @@
       "execution_wave_dispatch_allowed": false,
       "execution_wave_dispatch_state": "blocked",
       "execution_wave_dispatch_blocked_reason": "preplanning_authority_closure"
+    },
+    "candidate_verification": {
+      "audit_event_id": "EVT-PREPLANNING-AUTHORITY-CLOSURE-20260713-E45279355",
+      "independent_reviewer": "preplanning_candidate_review",
+      "reviewer_verdict": "APPROVE for protected-PR submission; not merge-authorized before protected cloud and server-side review evidence.",
+      "targeted_buck2_targets_passed": 10,
+      "live_gates": {
+        "cross_artifact_agreement": "24/24 passed",
+        "automation_coverage": "3/3 passed",
+        "canonical_json": "4/4 passed",
+        "repo_root_hygiene": "7/7 passed",
+        "parity_claim_evidence": "3/3 passed",
+        "baseline_ratchet_registration": "6/6 passed",
+        "generated_artifact_freshness": "passed"
+      },
+      "generated_faces": "Official materializer used locally; no tracked generated JSON is part of the candidate diff.",
+      "authority_limit": "Local results are shift-left evidence only. The protected oya-ci-required context and server-side review remain admission authority."
     }
   },
   "founder_choice_matrix": [
@@ -258,5 +279,6 @@
     ],
     "stop_state": "blocked-preplanning-authority-closure"
   },
-  "claim_ceiling": "This is a dated consolidation and decision-readiness snapshot. It authorizes a nonbinding walkthrough only. It does not Accept an ADR, resolve a founder choice, attest a PR or CI result for this candidate, close Phase 0, approve a binding plan, dispatch an execution wave, or prove product completion."
+  "claim_ceiling": "This dated consolidation snapshot now attests a signed first-content commit, draft PR #1340, independent local review, and local gate results. It does not attest protected oya-ci-required green, server-side merge approval, an Accepted founder choice, Phase-0 completion, binding plan approval, execution-wave dispatch, merge, rollout, or product completion.",
+  "updated_at": "2026-07-13T16:06:56Z"
 }
