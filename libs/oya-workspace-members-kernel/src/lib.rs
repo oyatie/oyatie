@@ -52,6 +52,8 @@ pub enum ResolveError {
     Parse(String),
     /// The manifest is missing a required `[workspace]` shape.
     Shape(String),
+    /// A filesystem path needed for member-glob expansion could not be inspected.
+    InspectMemberPath { path: String, message: String },
     /// One or more unexcluded member-glob matches do not contain `Cargo.toml`.
     MissingManifests(Vec<String>),
 }
@@ -62,6 +64,9 @@ impl std::fmt::Display for ResolveError {
             ResolveError::Read(message) => write!(f, "read workspace manifest: {message}"),
             ResolveError::Parse(message) => write!(f, "parse workspace manifest: {message}"),
             ResolveError::Shape(message) => write!(f, "workspace manifest shape: {message}"),
+            ResolveError::InspectMemberPath { path, message } => {
+                write!(f, "inspect workspace member path {path}: {message}")
+            }
             ResolveError::MissingManifests(paths) => write!(
                 f,
                 "workspace member glob matched directories without Cargo.toml: {}",
@@ -145,7 +150,7 @@ pub fn scan_member_dirs_from_str(
     let mut resolved: BTreeSet<String> = BTreeSet::new();
     let mut missing_manifests: BTreeSet<String> = BTreeSet::new();
     for pattern in &entries.members {
-        for dir in expand_pattern(repo_root, pattern) {
+        for dir in expand_pattern(repo_root, pattern, &entries.exclude)? {
             if is_excluded(&dir, &entries.exclude) {
                 continue;
             }
@@ -171,7 +176,12 @@ fn parse_manifest_entries(
         .ok_or_else(|| ResolveError::Shape("missing [workspace] table".to_string()))?;
     let members = string_array(workspace.get("members"))
         .ok_or_else(|| ResolveError::Shape("missing [workspace].members array".to_string()))?;
-    let exclude = string_array(workspace.get("exclude")).unwrap_or_default();
+    let exclude = match workspace.get("exclude") {
+        Some(value) => string_array(Some(value)).ok_or_else(|| {
+            ResolveError::Shape("[workspace].exclude must be an array of strings".to_string())
+        })?,
+        None => Vec::new(),
+    };
     Ok(WorkspaceManifestEntries { members, exclude })
 }
 
@@ -233,37 +243,85 @@ pub fn member_entries_cover_dir(entries: &WorkspaceManifestEntries, dir: &str) -
 /// be a literal (`libs`), a bare wildcard (`*`), or a
 /// partial wildcard (`oya-*`). A `*` never spans `/`; each component is matched
 /// independently against one directory level, mirroring Cargo's `glob`-crate semantics.
-fn expand_pattern(repo_root: &Path, pattern: &str) -> Vec<String> {
+fn expand_pattern(
+    repo_root: &Path,
+    pattern: &str,
+    exclude: &[String],
+) -> Result<Vec<String>, ResolveError> {
     let segments: Vec<&str> = pattern.split('/').filter(|s| !s.is_empty()).collect();
     let mut frontier: Vec<PathBuf> = vec![PathBuf::new()];
     for segment in segments {
         let mut next: Vec<PathBuf> = Vec::new();
         for base in &frontier {
             if segment.contains('*') {
-                if let Ok(entries) = std::fs::read_dir(repo_root.join(base)) {
-                    for entry in entries.flatten() {
-                        if !entry.file_type().map(|t| t.is_dir()).unwrap_or(false) {
-                            continue;
-                        }
-                        let name = entry.file_name();
-                        if segment_matches(segment, &name.to_string_lossy()) {
-                            next.push(base.join(&name));
-                        }
+                let parent = repo_root.join(base);
+                let entries = std::fs::read_dir(&parent)
+                    .map_err(|error| inspect_member_path_error(&parent, error))?;
+                for entry in entries {
+                    let entry = entry.map_err(|error| inspect_member_path_error(&parent, error))?;
+                    let name = entry.file_name();
+                    if !segment_matches(segment, &name.to_string_lossy()) {
+                        continue;
                     }
+                    let candidate = base.join(&name);
+                    if is_excluded(&relative_path_string(&candidate), exclude) {
+                        continue;
+                    }
+                    let entry_path = repo_root.join(&candidate);
+                    let file_type = entry
+                        .file_type()
+                        .map_err(|error| inspect_member_path_error(&entry_path, error))?;
+                    let is_directory = if file_type.is_dir() {
+                        true
+                    } else if file_type.is_symlink() {
+                        match std::fs::metadata(&entry_path) {
+                            Ok(metadata) => metadata.is_dir(),
+                            Err(error) if error.kind() == std::io::ErrorKind::NotFound => false,
+                            Err(error) => {
+                                return Err(inspect_member_path_error(&entry_path, error));
+                            }
+                        }
+                    } else {
+                        false
+                    };
+                    if !is_directory {
+                        continue;
+                    }
+                    next.push(candidate);
                 }
             } else {
                 let candidate = base.join(segment);
-                if repo_root.join(&candidate).is_dir() {
-                    next.push(candidate);
+                if is_excluded(&relative_path_string(&candidate), exclude) {
+                    continue;
+                }
+                let candidate_path = repo_root.join(&candidate);
+                match std::fs::metadata(&candidate_path) {
+                    Ok(metadata) if metadata.is_dir() => next.push(candidate),
+                    Ok(_) => {}
+                    Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+                    Err(error) => {
+                        return Err(inspect_member_path_error(&candidate_path, error));
+                    }
                 }
             }
         }
         frontier = next;
     }
-    frontier
+    Ok(frontier
         .into_iter()
-        .map(|relative| relative.to_string_lossy().replace('\\', "/"))
-        .collect()
+        .map(|relative| relative_path_string(&relative))
+        .collect())
+}
+
+fn relative_path_string(path: &Path) -> String {
+    path.to_string_lossy().replace('\\', "/")
+}
+
+fn inspect_member_path_error(path: &Path, error: std::io::Error) -> ResolveError {
+    ResolveError::InspectMemberPath {
+        path: path.display().to_string(),
+        message: error.to_string(),
+    }
 }
 
 /// Match one path component against a single-segment glob containing zero or more `*`
@@ -328,10 +386,7 @@ mod tests {
         std::fs::create_dir_all(&dir).expect("create crate dir");
         std::fs::write(
             dir.join("Cargo.toml"),
-            format!(
-                "[package]\nname = \"{}\"\n",
-                relative.replace('/', "-")
-            ),
+            format!("[package]\nname = \"{}\"\n", relative.replace('/', "-")),
         )
         .expect("write Cargo.toml");
     }
@@ -415,6 +470,72 @@ mod tests {
         assert!(resolved.is_empty());
     }
 
+    #[cfg(unix)]
+    #[test]
+    fn wildcard_includes_directory_symlink_like_cargo() {
+        use std::os::unix::fs::symlink;
+
+        let root = fixture_root();
+        make_crate(&root, "real");
+        std::fs::create_dir_all(root.join("libs")).unwrap();
+        symlink("../real", root.join("libs/link")).unwrap();
+
+        let manifest = root_manifest(&["libs/*"], &[]);
+        let resolved = resolve_member_dirs_from_str(&manifest, &root).expect("resolve symlink");
+
+        assert_eq!(resolved, vec!["libs/link".to_owned()]);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn wildcard_reports_directory_symlink_missing_manifest_like_cargo() {
+        use std::os::unix::fs::symlink;
+
+        let root = fixture_root();
+        std::fs::create_dir_all(root.join("real")).unwrap();
+        std::fs::create_dir_all(root.join("libs")).unwrap();
+        symlink("../real", root.join("libs/link")).unwrap();
+
+        let manifest = root_manifest(&["libs/*"], &[]);
+        let scan = scan_member_dirs_from_str(&manifest, &root).expect("scan symlink");
+
+        assert!(scan.member_dirs.is_empty());
+        assert_eq!(scan.missing_manifests, vec!["libs/link".to_owned()]);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn wildcard_exclude_precedes_directory_symlink_manifest_check() {
+        use std::os::unix::fs::symlink;
+
+        let root = fixture_root();
+        std::fs::create_dir_all(root.join("real")).unwrap();
+        std::fs::create_dir_all(root.join("libs")).unwrap();
+        symlink("../real", root.join("libs/link")).unwrap();
+
+        let manifest = root_manifest(&["libs/*"], &["libs/link"]);
+        let scan = scan_member_dirs_from_str(&manifest, &root).expect("scan excluded symlink");
+
+        assert!(scan.member_dirs.is_empty());
+        assert!(scan.missing_manifests.is_empty());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn wildcard_skips_dangling_symlink_like_cargo() {
+        use std::os::unix::fs::symlink;
+
+        let root = fixture_root();
+        std::fs::create_dir_all(root.join("libs")).unwrap();
+        symlink("../missing", root.join("libs/link")).unwrap();
+
+        let manifest = root_manifest(&["libs/*"], &[]);
+        let scan = scan_member_dirs_from_str(&manifest, &root).expect("scan dangling symlink");
+
+        assert!(scan.member_dirs.is_empty());
+        assert!(scan.missing_manifests.is_empty());
+    }
+
     #[test]
     fn exclude_drops_a_nested_workspace_subtree() {
         let root = fixture_root();
@@ -494,10 +615,7 @@ mod tests {
         let entries = workspace_manifest_entries_from_str(&manifest).expect("entries");
         assert_eq!(
             entries.members,
-            vec![
-                "libs/oya-*".to_owned(),
-                "cloud/*/crates/oya-*".to_owned()
-            ]
+            vec!["libs/oya-*".to_owned(), "cloud/*/crates/oya-*".to_owned()]
         );
         assert_eq!(entries.exclude, vec!["cloud/cloud-kernel".to_owned()]);
     }
@@ -519,12 +637,61 @@ mod tests {
     }
 
     #[test]
+    fn malformed_exclude_is_a_shape_error() {
+        let root = fixture_root();
+        let error = scan_member_dirs_from_str(
+            "[workspace]\nmembers = []\nexclude = \"libs/skip\"\n",
+            &root,
+        )
+        .expect_err("must reject a non-array [workspace].exclude value");
+
+        assert!(matches!(error, ResolveError::Shape(_)));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn expansion_metadata_errors_fail_closed() {
+        use std::os::unix::fs::symlink;
+
+        let root = fixture_root();
+        symlink("loop", root.join("loop")).unwrap();
+
+        let result =
+            scan_member_dirs_from_str("[workspace]\nmembers = [\"*\"]\nexclude = []\n", &root);
+
+        assert!(
+            matches!(&result, Err(ResolveError::InspectMemberPath { .. })),
+            "a symlink loop must not be treated as an unmatched member path: {result:?}"
+        );
+    }
+
+    #[test]
+    fn expansion_read_dir_errors_fail_closed() {
+        let root = fixture_root();
+        let not_a_directory = root.join("not-a-directory");
+        std::fs::write(&not_a_directory, "fixture").unwrap();
+
+        let result = scan_member_dirs_from_str(
+            "[workspace]\nmembers = [\"*\"]\nexclude = []\n",
+            &not_a_directory,
+        );
+
+        assert!(
+            matches!(&result, Err(ResolveError::InspectMemberPath { .. })),
+            "a member directory read error must fail closed: {result:?}"
+        );
+    }
+
+    #[test]
     fn pattern_covers_dir_honors_per_component_glob_semantics() {
         // A narrowed leaf glob covers a matching leaf, never a sibling that fails the prefix.
         assert!(pattern_covers_dir("libs/oya-*", "libs/oya-foo-kernel"));
         assert!(!pattern_covers_dir("libs/oya-*", "libs/registry-drift"));
         // `*` never spans `/`: a 2-segment glob cannot cover a 3-segment dir.
-        assert!(!pattern_covers_dir("libs/*", "libs/group/oya-nested-kernel"));
+        assert!(!pattern_covers_dir(
+            "libs/*",
+            "libs/group/oya-nested-kernel"
+        ));
         // A 3-segment capability glob covers a 3-segment face/leaf dir.
         assert!(pattern_covers_dir("messaging/*/*", "messaging/core/domain"));
         assert!(!pattern_covers_dir("messaging/*/*", "messaging/core"));
