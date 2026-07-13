@@ -3,7 +3,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_data_boundary_kernel::{DataClass, PrivacyDataClass, privacy_data_classes_from};
-use oya_intelligence_capability_domain::AutonomyTier;
+use intelligence_capability_domain::AutonomyTier;
 use oya_intelligence_run_domain::{RunDisposition, RunError, RunLedger, RunStart, RunState};
 
 fn privacy_data_classes(data_classes: Vec<DataClass>) -> Vec<PrivacyDataClass> {

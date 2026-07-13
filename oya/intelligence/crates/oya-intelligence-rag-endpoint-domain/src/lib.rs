@@ -9,7 +9,7 @@
 use std::collections::BTreeSet;
 use std::fmt;
 
-use oya_intelligence_capability_registry_kernel::CapabilityId;
+use intelligence_capability_registry_kernel::CapabilityId;
 
 #[derive(Default, Clone, Debug)]
 pub struct RagAllowlist {

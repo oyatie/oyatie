@@ -14,7 +14,7 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use oya_intelligence_account_kernel::ProviderFamily;
+use intelligence_account_kernel::ProviderFamily;
 use oya_intelligence_provider_pool_kernel::{
     PoolId, PoolRoutingDecision, PoolRoutingReason, ProviderAccountId, TenantId, TosAckId,
 };

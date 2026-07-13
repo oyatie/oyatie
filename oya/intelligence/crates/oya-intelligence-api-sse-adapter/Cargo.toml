@@ -12,8 +12,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-intelligence-api-rest-kernel = { path = "../oya-intelligence-api-rest-kernel" }
-
+intelligence-api-rest-kernel = { path = "../../../../intelligence/core/api-rest-kernel" }
 oya-intelligence-api-sse-kernel = { path = "../oya-intelligence-api-sse-kernel" }
 
 [dev-dependencies]

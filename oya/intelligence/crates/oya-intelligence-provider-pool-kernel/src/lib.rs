@@ -25,7 +25,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
-pub use oya_intelligence_account_kernel::ProviderFamily;
+pub use intelligence_account_kernel::ProviderFamily;
 
 /// data_class: INTERNAL_ONLY
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]

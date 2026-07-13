@@ -1,0 +1,28 @@
+rust_library(
+    name = "intelligence-openapi-domain",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_openapi_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "intelligence-openapi-domain-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_openapi_domain",
+    crate_root = "src/lib.rs",
+    env = {
+        "CARGO_MANIFEST_DIR": "intelligence/core/openapi-domain",
+    },
+    mapped_srcs = {
+        "Cargo.toml": "intelligence/core/openapi-domain/Cargo.toml",
+        "//contracts/openapi/foundry:capability-v1.yaml": "contracts/openapi/foundry/capability-v1.yaml",
+    },
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)

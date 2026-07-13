@@ -10,7 +10,7 @@ use oya_data_boundary_kernel::{
     Classified, DataClass, PrivacyDataClass, parse_data_class_pascal_label,
     privacy_data_classes_from,
 };
-use oya_intelligence_step_domain::{
+use intelligence_step_domain::{
     Step, StepDisposition, StepError, StepKind, StepLedger, StepState,
 };
 

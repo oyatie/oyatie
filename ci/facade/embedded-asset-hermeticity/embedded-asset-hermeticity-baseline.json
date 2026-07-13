@@ -16,7 +16,7 @@
   },
   "codes": {
     "skip_non_literal_argument": [
-      "oya/intelligence/crates/oya-intelligence-openapi-domain/src/lib.rs:6088"
+      "intelligence/core/openapi-domain/src/lib.rs:6088"
     ],
     "skip_absolute_literal": [],
     "skip_build_output_path": [

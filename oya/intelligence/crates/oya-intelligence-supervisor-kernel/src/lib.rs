@@ -13,7 +13,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 pub use oya_intelligence_account_domain::{
     AccountId, AccountState, ProviderAccount, ProviderFamily, SecretReference,
 };
-pub use oya_intelligence_autonomy_ceiling_kernel::{AutonomyTier, CeilingVerdict};
+pub use intelligence_autonomy_ceiling_kernel::{AutonomyTier, CeilingVerdict};
 
 // ── Scalar newtypes ───────────────────────────────────────────────────────────
 

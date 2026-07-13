@@ -3,7 +3,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_check_claim_ceiling::{ClaimCeilingError, FoundationClaimCeiling};
-use oya_intelligence_catalog_domain::{CatalogIndex, CatalogRecordInput};
+use intelligence_catalog_domain::{CatalogIndex, CatalogRecordInput};
 
 #[test]
 fn foundation_claim_ceiling_accepts_preview_source_only_records() {

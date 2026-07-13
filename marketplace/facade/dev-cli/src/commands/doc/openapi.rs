@@ -4,8 +4,8 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use oya_data_boundary_kernel::parse_data_class_label;
-use oya_intelligence_api_semver_domain::validate_api_semver;
-use oya_intelligence_openapi_domain::{
+use intelligence_api_semver_domain::validate_api_semver;
+use intelligence_openapi_domain::{
     OpenApiContractMirrorLocation, OpenApiContractMirrorReport, OpenApiDocument,
     OpenApiRuntimeBinding, OpenApiRuntimeParityReport, OpenApiRuntimeSource, OpenApiSchemaBinding,
     OpenApiSchemaParityReport, OpenApiSourceReport, validate_openapi_contract_mirror,

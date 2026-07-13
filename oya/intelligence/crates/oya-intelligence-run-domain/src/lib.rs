@@ -9,7 +9,7 @@ use oya_data_boundary_kernel::{
     data_classes_from_privacy_data_classes, most_restrictive_privacy_data_class,
     privacy_data_classes_from,
 };
-use oya_intelligence_capability_domain::AutonomyTier;
+use intelligence_capability_domain::AutonomyTier;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RunState {
