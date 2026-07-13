@@ -5,9 +5,9 @@
     "audit_scope": "ADR index consolidation, spec hub gardening, direct root-hub coverage for top-level specs/*.json, and Wave 15-ZF master-plan pointer coverage for ADR-0346..0349.",
     "created_at": "2026-05-13T00:00:00Z",
     "doc_class": "Machine-Readable-Spec",
-    "last_audited": "2026-06-02",
+    "last_audited": "2026-07-13",
     "owner_team": "founder + platform-governance",
-    "purpose": "Canonical machine-readable pointer registry. README.md + CLAUDE.md + AGENTS.md (only Markdown files surviving at repo root per user directive 2026-05-13) include a section that references this file.",
+    "purpose": "Canonical machine-readable pointer registry. README.md + CLAUDE.md + AGENTS.md survive as authority/entry hubs; HANDOFF.md survives under the founder's 2026-06-08 exception as a thin fresh-session redirect only.",
     "spec_id": "EXE-ROOT-HUB-POINTERS",
     "status": "Accepted",
     "user_directives_2026_05_13": [
@@ -60,12 +60,12 @@
     "schema": "JSON Schema (Draft 2020-12). Validates instances.",
     "spec": "Schema or canonical-truth definition. Read by validators + agents."
   },
-  "description": "Canonical machine-readable pointer registry. README.md + CLAUDE.md + AGENTS.md (only Markdown files surviving at repo root per user directive 2026-05-13) include a section that references this file. Agents read this JSON to discover canonical entry points; humans read the README/CLAUDE/AGENTS summaries that mirror this.",
+  "description": "Canonical machine-readable pointer registry. README.md + CLAUDE.md + AGENTS.md survive as authority/entry hubs; HANDOFF.md survives under the founder's 2026-06-08 exception as a thin fresh-session redirect only. Agents read this JSON to discover canonical entry points.",
   "entry_points": {
     "session_handoff": {
       "current_path": "HANDOFF.md",
       "kind": "doc",
-      "purpose": "Fresh-session handoff at repo root (founder directive 2026-06-08): cross-repo state, full backlog, hard guardrails, and the sibling/kernel consolidation map. Joins README/CLAUDE/AGENTS as a purposeful root markdown; agents read this to resume with zero context loss.",
+      "purpose": "Founder-authorized thin fresh-session redirect. It carries no plan, backlog, baseline-SHA, or completion claims; agents follow it to this root hub, docs/AGENTS.md, masterplan_v2, Accepted ADRs, and live Git/GitHub state.",
       "target_path_after_md_retirement": "same"
     },
     "_retired_constitutional_authority": {
@@ -81,7 +81,7 @@
     "active_artifact_contract": {
       "current_path": "/specs/active-machine-readable-artifact-contract.json",
       "kind": "spec",
-      "migration_phase": "complete",
+      "migration_phase": "policy-live-rebaseline-execution-open",
       "purpose": "v3.0.0 9-capability contract per ADR-0069. Every machine-readable artifact declares enforcement+verification+validation+autogen+selfheal+selfupdate+selfmaintain+telemetry+provenance.",
       "target_path_after_md_retirement": "same (already machine-readable)"
     },
@@ -670,7 +670,7 @@
       "current_path": "/specs/markdown-retirement-policy.json",
       "kind": "spec",
       "migration_phase": "complete",
-      "purpose": "Migration policy per user 'we don't need markdown' directive. 8 phases; ~250 files to retire by 2026-08-31.",
+      "purpose": "Migration policy per the 'we don't need markdown' directive, rebaselined against the 2026-07-13 tracked corpus and MPV2-0003. Historical deadlines are not completion claims.",
       "target_path_after_md_retirement": "same"
     },
     "master_plan_sequencing": {

@@ -15,7 +15,8 @@
     "source_request": "Founder refinement: anything enforceable or automatable must be enforced/automated; no new oya CLI surface.",
     "spec_id": "EXE-PHASE0-AUTOMATION-MATRIX",
     "status": "seed-contract-not-green",
-    "version": "0.1.0"
+    "version": "0.2.0",
+    "updated_at": "2026-07-13T00:00:00Z"
   },
   "classifications": [
     "automated_blocking_now",
@@ -77,8 +78,8 @@
   },
   "gate_contract": {
     "id": "cloud-ci-automation-ratchet",
-    "phase0_exit_status": "must_be_required_context_before_AC_0_12_green",
-    "producer": "cloud-ci/oya-ci Rust gate packet",
+    "phase0_exit_status": "required_context_cutover_verified_remaining_gaps_block_AC_0_12_green",
+    "producer": "GitHub Actions .github/workflows/oya-ci-required.yml fan-in over Rust/Buck2 gate packets; owned oya-ci runner only after explicit proven cutover",
     "reds_when": [
       "any Phase-0 acceptance criterion, test, ADR amendment, operating-contract requirement, structural-lock/revert rule, pack-root classifier, generated registry, branch-protection constraint, or claim gate lacks a row",
       "an automatable item is classified as not_automatable_human_judgment",
@@ -89,14 +90,15 @@
     ]
   },
   "known_gaps_before_green": [
-    "Seed rows are not exhaustive; AC-0.12 remains RED until generated coverage proves every Phase-0 rule has a row.",
-    "Checked-in branch-protection target now names oya-ci-required, but live GitHub branch protection still lacks cloud-ci-required/oya-ci-required and live producer evidence; P0.0 must replace live authority with cloud-ci/oya-ci required context before any green/enforcement claim.",
-    "Manual human approval alone is not cloud-ci merge authority; pre-merge review must be productized as live durable review evidence or a machine-verifiable blocking review status, and the current dev branch target is target-only shadow state with no live review-authority source."
+    "Required-context identity is CLOSED_WITH_EVIDENCE: dev requires exactly oya-ci-required and a current origin/dev workflow run is green. This closes only context naming/cutover, not Phase-0.",
+    "Trusted-control-state and candidate-independent producer proof remains GAP: the candidate checkout can still influence workflow/gate definitions until a trusted controller catalog is proven.",
+    "Live dev protection has enforce_admins=false and required_signatures=false while the checked-in target requires true; drift reconciliation and enforcement remain GAP.",
+    "Pre-merge review authority remains GAP (F-PR5-06): required_pull_request_reviews is absent and no trusted reviewer!=author admission producer blocks merge."
   ],
   "non_negotiables": [
     "No new oya CLI commands or protected-branch authority are introduced by this matrix.",
     "Operator procedure is a temporary defect unless classified as irreducible human judgment and backed by evidence, owner, and retirement path for automatable subparts.",
-    "Mechanically enforced means required cloud-ci context plus RED/GREEN fixtures or an equivalent controller-owned block, not advisory output."
+    "Mechanically enforced requires the live oya-ci-required context plus RED/GREEN fixtures or an equivalent controller-owned block and closure of trusted-producer/control-state gaps; context identity alone is insufficient."
   ],
   "required_row_fields": [
     "id",
@@ -115,38 +117,38 @@
       "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.0 + specs/fixtures/phase0-ci-enforcement-baseline/",
       "classification": "automated_blocking_now",
       "current_gap_packet": "specs/phase0-ci-enforcement-baseline.json#gap_packet",
-      "evidence_path": "specs/phase0-ci-enforcement-baseline.json + specs/fixtures/phase0-ci-enforcement-baseline/ + infra/branch-protection/dev.json + cloud-ci required-status evidence bundle",
+      "evidence_path": "specs/phase0-ci-enforcement-baseline.json + specs/fixtures/phase0-ci-enforcement-baseline/ + .github/workflows/oya-ci-required.yml + infra/branch-protection/dev.json + live protected-status receipt",
       "id": "AC-0.0-cloud-ci-required-context",
       "no_new_oya_cli_surface": true,
       "owner": "platform-toolchain",
-      "requirement": "Protected branch merge/exit authority must be a Prow-shaped cloud-ci/oya-ci required context sourced from trusted trunk/controller state; affected-only/buck2-only/local oya output is not authority.",
+      "requirement": "Protected branch merge/exit authority is exactly the live oya-ci-required context produced by GitHub Actions today; an owned oya-ci runner may replace that producer only after explicit cutover proof. Candidate-independent trusted gate definitions remain required.",
       "retirement_phase": "P0.0",
       "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.0",
-      "target_gate_or_controller": "cloud-ci-required / oya-ci-required branch-protection context"
+      "target_gate_or_controller": "oya-ci-required branch-protection context"
     },
     {
       "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.0 and #T0.16",
-      "classification": "automated_advisory_until_p0_0",
-      "evidence_path": "docs/AGENTS.md sanctioned primitives + root-hub pointers + CI context inventory",
+      "classification": "automated_blocking_now",
+      "evidence_path": "specs/fixtures/phase0-automation-ratchet/tc-0.11-bad-oya-cli-blocking-invariant.json + docs/AGENTS.md + .github/workflows/oya-ci-required.yml",
       "id": "ADR-0363-oya-cli-retirement",
       "no_new_oya_cli_surface": true,
       "owner": "platform-governance",
-      "requirement": "Retire oya vcs/oya git and prevent oya verify/oya gate from becoming protected-branch CI authority.",
+      "requirement": "Prevent new oya CLI commands or legacy wrappers from becoming protected CI/merge authority; complete retirement of residual local surfaces remains tracked debt.",
       "retirement_phase": "P0.0/P1 cutover",
       "source_artifact": "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md",
-      "target_gate_or_controller": "cloud-ci/governance retired-surface scanner + required-context producer check"
+      "target_gate_or_controller": "cloud-ci-automation-ratchet blocking_invariant_mapped_to_oya_cli + oya-ci-required"
     },
     {
       "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.15",
       "classification": "controller_owned_in_phase_1",
-      "evidence_path": "specs/generated-artifact-registry.json + Tide admission evidence bundle",
+      "evidence_path": "ADR-0515 current GitHub admission contract + future Tide admission evidence bundle",
       "id": "ADR-0513-tide-ownership",
       "no_new_oya_cli_surface": true,
       "owner": "platform-toolchain",
-      "requirement": "Tide/merge queue is owned by cloud-ci/oya-ci now; Phase 0 places admission contract and Phase 1 scales projected-state/batching/auto-rebase.",
+      "requirement": "ADR-0515 retains GitHub protected-PR admission as current authority. Tide is a future/reference controller shape only; Phase 1 must prove projected-state, batching, and auto-rebase before any live ownership claim.",
       "retirement_phase": "Phase 1 projected-state Tide scale",
-      "source_artifact": "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
-      "target_gate_or_controller": "oya-ci-tide admission controller"
+      "source_artifact": "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md + historical ADR-0513",
+      "target_gate_or_controller": "future oya-ci Tide admission controller (not live)"
     },
     {
       "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.7",
@@ -223,7 +225,7 @@
     {
       "blocking_fixture": "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-pre-merge-review-authority.json",
       "classification": "automated_blocking_now",
-      "evidence_path": "infra/branch-protection/dev.json (target-only shadow; not live review authority)",
+      "evidence_path": ".github/branch-protection.yaml + infra/branch-protection/dev.json + registry/fixuptasks.jsonl#F-PR5-06 (target/live drift; review authority remains absent)",
       "has_durable_review_evidence": false,
       "has_machine_verifiable_review_status": false,
       "has_review_title_evidence": false,

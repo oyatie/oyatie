@@ -2,8 +2,6 @@
 id: ADR-0066
 status: accepted
 doc_status: published
-amended_by:
-  - ADR-0565-zero-graphql-in-the-owned-api-surface.md (its extractor table listed `crates/*/schema.graphql` / `async-graphql` as a canonical source; its endpoint-coverage gate and portal surfaces enumerated GraphQL endpoints; its agent-readable manifest schema included `"graphql"` as an endpoint kind; GraphQL is dropped from the owned surface per ADR-0565 — the REST/gRPC/async extractor coverage posture is unchanged)
 ---
 
 # ADR-0066: Live code-introspection — docs portal reflects realtime project state with full endpoint / dep graph / dead-code coverage

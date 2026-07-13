@@ -11,7 +11,8 @@
     "source_request": "Founder refinement: no false promises or aspirational claims without substance; hyperscaler-grade/production-ready/mechanically-enforced claims need evidence specs befitting the claim.",
     "spec_id": "EXE-PHASE0-CLAIM-EVIDENCE-MAP",
     "status": "seed-contract-not-green",
-    "version": "0.1.0"
+    "version": "0.2.0",
+    "updated_at": "2026-07-13T00:00:00Z"
   },
   "description": "Seed claim/evidence map for Phase 0. This is not a readiness claim: it prevents empty promises by labeling current regulated language as target/spec/enforced/production/hyperscaler tiers and by identifying the evidence still required before stronger claims are allowed.",
   "fixture_set": {
@@ -43,8 +44,8 @@
   },
   "gate_contract": {
     "id": "cloud-ci-claim-ceiling",
-    "phase0_exit_status": "must_be_required_context_before_AC_0_12_green",
-    "producer": "cloud-ci/oya-ci Rust gate packet",
+    "phase0_exit_status": "required_context_cutover_verified_remaining_gaps_block_AC_0_12_green",
+    "producer": "GitHub Actions .github/workflows/oya-ci-required.yml fan-in over Rust/Buck2 gate packets; owned oya-ci runner only after explicit proven cutover",
     "reds_when": [
       "regulated vocabulary appears in authoritative ADR/spec/plan/operating-contract text without a claim row",
       "the row's claim tier lacks the evidence required by /specs/hyperscaler-production-readiness-claim-contract.json",
@@ -56,7 +57,7 @@
   "known_gaps_before_green": [
     "Seed rows are not exhaustive; the claim-ceiling gate must discover and require rows for all regulated terms in authoritative artifacts.",
     "No production_ready or hyperscaler_grade claim is currently allowed for the program as a whole.",
-    "Current live enforcement evidence is advisory/bridge until P0.0 cloud-ci required context is live."
+    "The exact oya-ci-required cutover is verified. Mechanical-enforcement/P0-green remains disallowed because trusted producer/candidate isolation, F-PR5-06 review authority, enforce-admin/signature drift, override, structured-result, and tenant-isolation gaps remain."
   ],
   "regulated_vocabulary": [
     "hyperscaler-grade",
@@ -107,19 +108,20 @@
       ]
     },
     {
-      "allowed_language_now": "specified/target/gap-packet only until P0.0 required-context evidence lands",
+      "allowed_language_now": "verified required-context-cutover evidence plus explicit remaining-gap language only",
       "artifact": ".omx/plans/prd-platform-readiness.md#AC-0.0",
-      "claim_text": "mechanical enforcement / required context",
+      "claim_text": "required-context cutover verified; Phase-0 mechanical enforcement not green",
       "claim_tier": "spec_ready",
       "current_evidence": [
-        "P0.0/AC-0.0/T0.0 specify required cloud-ci context and negative fixtures",
-        "Live rebaseline shows current branch protection still lacks cloud-ci-required/oya-ci-required; reported status metadata / legacy bridge inventory still includes oya-verify and affected-only paths",
-        "specs/phase0-ci-enforcement-baseline.json records current P0.0 RED gap packet and T0.0 fixture paths"
+        "specs/phase0-ci-enforcement-baseline.json records required_context CLOSED_WITH_EVIDENCE for exactly oya-ci-required",
+        "Live dev protection and current origin/dev workflow receipt prove the exact context is required and green",
+        "Trusted-producer isolation, F-PR5-06 review admission, enforce-admin/signature parity, override, structured-result, and tenant-isolation rows remain GAP"
       ],
       "id": "CLAIM-P0-mechanically-enforced",
       "missing_for_next_tier": [
-        "branch protection requires cloud-ci-required or oya-ci-required",
-        "required status producer is non-PR-controllable and trunk/controller-sourced",
+        "candidate-independent trusted producer and gate catalog",
+        "live enforce_admins/signature parity plus drift enforcement",
+        "trusted blocking review admission with reviewer distinct from author",
         "known BAD/GOOD fixtures pass through protected admission"
       ],
       "owner": "platform-toolchain",
@@ -130,19 +132,18 @@
       ]
     },
     {
-      "allowed_language_now": "retirement path / retired from authority in plan, not fully deleted",
+      "allowed_language_now": "retired from protected CI authority; residual local-surface retirement remains open",
       "artifact": "docs/AGENTS.md + docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md",
       "claim_text": "oya CLI retired from CI authority",
       "claim_tier": "spec_ready",
       "current_evidence": [
-        "docs/AGENTS.md marks oya verify/gate as legacy mirror evidence",
-        "ADR-0363 amendment narrows oya CLI to migration wrappers"
+        "dev requires only oya-ci-required; no oya CLI status is merge authority",
+        "automation ratchet blocks mapping new blocking invariants to oya CLI commands",
+        "ADR-0363 and docs/AGENTS.md retain residual CLI surfaces as retirement debt/local feedback only"
       ],
       "id": "CLAIM-P0-oya-cli-retired-from-ci-authority",
       "missing_for_next_tier": [
-        "no residual protected-branch mapping to oya CLI",
-        "cloud-ci/Rust gate contexts replace all required authority",
-        "retired-surface scanner blocks reintroduction"
+        "complete retired-surface and canonical-reference scanner coverage for all residual oya CLI entrypoints"
       ],
       "owner": "platform-governance",
       "regulated_terms": [
@@ -173,13 +174,13 @@
       ]
     },
     {
-      "allowed_language_now": "ownership/placement specified; full automation remains Phase-1 target",
-      "artifact": "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md + docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md",
-      "claim_text": "Tide/merge queue is owned by cloud-ci now and not deferred",
+      "allowed_language_now": "future/reference ownership only; no live Tide claim",
+      "artifact": "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md + historical ADR-0513",
+      "claim_text": "Tide is a future/reference admission-controller shape; GitHub protected PRs remain current authority",
       "claim_tier": "spec_ready",
       "current_evidence": [
-        "ADR-0513 amendment places Tide ownership",
-        "ADR-0363 amendment rejects retired VCS merge queue"
+        "ADR-0515 makes GitHub Actions plus protected GitHub PRs the current authority",
+        "No live Tide producer, projected-state, batch, or auto-rebase evidence is attached"
       ],
       "id": "CLAIM-P0-tide-ownership-not-deferred",
       "missing_for_next_tier": [

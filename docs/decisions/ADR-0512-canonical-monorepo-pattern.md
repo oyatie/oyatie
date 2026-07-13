@@ -12,17 +12,17 @@ supersedes:
 amends:
   - ADR-0131
 amended_by:
-  - ADR-0550
   - ADR-0562
 relates:
   - ADR-0392
-  - ADR-0408
+  - ADR-0550
+  - ADR-0525
 ---
 # ADR-0512: Canonical monorepo pattern — vertical-slice nesting, one workspace, bounded-context crates, dependency-rule modules, Buck2 graph
 
 ## Status
 
-Accepted — 2026-05-29 (founder-locked). Supersedes ADR-0357 (vertical-slice nesting, was Proposed) and ADR-0509 (single-crate-per-service); amends ADR-0131; the build-graph clauses align with ADR-0392/0408 (Buck2).
+Accepted — 2026-05-29 (founder-locked). Supersedes ADR-0357 (vertical-slice nesting, was Proposed) and ADR-0509 (single-crate-per-service); amends ADR-0131; the build-graph clauses align with ADR-0392 (Buck2), with later CI orchestration refinement in ADR-0525.
 
 **Amendment — 2026-06-02 (platform-readiness pure split):** the top-level service root is no longer
 `microservices/<ms>/`. Canonical service homes are `{oya,cloud}/<service>/` with shared cross-cutting libraries under

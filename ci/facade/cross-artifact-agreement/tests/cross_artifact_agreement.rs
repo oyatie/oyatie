@@ -16,8 +16,8 @@ use ci_cross_artifact_agreement::{
     evaluate_masterplan_v2_authority, evaluate_masterplan_v2_entry_surfaces,
     evaluate_masterplan_v2_evidence_state, evaluate_masterplan_v2_plan_evidence_drift,
     evaluate_masterplan_v2_program_coverage, evaluate_masterplan_v2_projection_freshness,
-    evaluate_masterplan_v2_read_contract_archives, evaluate_masterplan_v2_sequencing,
-    evaluate_registry_derived_policy_sync, ratchet,
+    evaluate_masterplan_v2_ratification_digest, evaluate_masterplan_v2_read_contract_archives,
+    evaluate_masterplan_v2_sequencing, evaluate_registry_derived_policy_sync, ratchet,
 };
 use serde_json::Value;
 
@@ -969,13 +969,7 @@ fn source_input_refers_to_masterplan(path: &str) -> bool {
 fn masterplan_v2_sequencing_is_zero_based_and_founder_ratification_recorded() {
     let root = repo_root();
     let masterplan = load_json(&root.join("specs/masterplan.json"));
-    let findings = evaluate_masterplan_v2_sequencing(&masterplan);
-
-    assert!(
-        findings.is_empty(),
-        "masterplan v2 sequencing must stay zero-based, DAG-derived, and carry a recorded \
-         founder-ratification decision before any execution-wave dispatch: {findings:?}"
-    );
+    let mut findings = evaluate_masterplan_v2_sequencing(&masterplan);
 
     // The ratification decision must be durable evidence, not a bare boolean: the
     // decision_ref must resolve to a committed evidence record.
@@ -991,6 +985,16 @@ fn masterplan_v2_sequencing_is_zero_based_and_founder_ratification_recorded() {
     assert!(
         root.join(decision_ref).is_file(),
         "founder_ratification.decision_ref must resolve to a durable evidence record: {decision_ref}"
+    );
+    let evidence = load_json(&root.join(decision_ref));
+    findings.extend(evaluate_masterplan_v2_ratification_digest(
+        &masterplan,
+        &evidence,
+    ));
+    assert!(
+        findings.is_empty(),
+        "masterplan v2 sequencing must stay zero-based, DAG-derived, and match its durable \
+         founder-ratification digest before any execution-wave dispatch: {findings:?}"
     );
 
     // Fail-closed dispatch contract survives ratification: dispatch without a founder

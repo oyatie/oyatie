@@ -4,7 +4,7 @@
   "expected_violations": [
     "masterplan_plan_evidence_unrecorded"
   ],
-  "description": "Masterplan plan-vs-evidence cross-check gate: a work item claiming a verified completion status (done-verified) carries only a supporting source-code evidence ref \u2014 no merged commit (git:<40-hex>), no merged-PR/actions-run record, and no tracked product-completion packet under evidence/. Recorded completion evidence is absent, so the gate must fail closed with masterplan_plan_evidence_unrecorded. The ref itself resolves inside the tracked tree and points at no retired surface, isolating the unevidenced-done-claim lane.",
+  "description": "Masterplan plan-vs-evidence cross-check gate: a work item claiming a verified completion status (done-verified) carries only a supporting source-code evidence ref — no merged commit (git:<40-hex>), no merged-PR/actions-run record, and no tracked product-completion packet under evidence/. Recorded completion evidence is absent, so the gate must fail closed with masterplan_plan_evidence_unrecorded. The ref itself resolves inside the tracked tree and points at no retired surface, isolating the unevidenced-done-claim lane.",
   "decisions": [
     {
       "id": "ADR-0516",
@@ -170,6 +170,22 @@
         "relationship": "unblocks"
       }
     ],
+    "planning_entry_contract": {
+      "state": "open",
+      "dispatch_allowed": false,
+      "nonbinding_planning_discussion_allowed": true,
+      "current_pr_candidate": "fixture://preplanning-authority-closure/current-pr",
+      "authority_choice_matrix": [
+        "fixture-authority-choice"
+      ],
+      "entry_conditions": [
+        "fixture-entry-condition"
+      ],
+      "no_dispatch_stop_conditions": [
+        "fixture-preplanning-hold-open"
+      ],
+      "binding_plan_approval_allowed": false
+    },
     "sequencing": {
       "derivation_mode": "zero-based-rederived-from-masterplan-v2-dependency-dag",
       "source_of_truth": "/specs/masterplan.json#masterplan_v2.dependency_edges",
@@ -207,12 +223,18 @@
         "decision_ref": "fixture://founder-ratification",
         "recorded_at": "2026-07-02T00:00:00Z",
         "approved_by": "founder",
-        "decision_status": "ratified"
+        "decision_status": "ratified",
+        "ratified_sequencing_digest": "sha256:b8e44b41bef2dcdea05deec44a22905ac24154494ae229f43aacd2fe078e731d"
       },
       "execution_wave_dispatch": {
         "requires_founder_ratification": true,
         "allowed_without_founder_ratification": false,
-        "state": "open"
+        "state": "blocked",
+        "requires_preplanning_authority_closure": true,
+        "allowed_without_preplanning_authority_closure": false,
+        "blocked_reason": "preplanning_authority_closure",
+        "preplanning_authority_closure_ref": "fixture://preplanning-authority-closure/current-pr",
+        "dispatched_waves": []
       }
     },
     "evidence_state_policy": {

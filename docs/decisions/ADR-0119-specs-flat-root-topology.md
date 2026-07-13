@@ -6,6 +6,8 @@ date: 2026-05-16
 owner: council-architecture
 supersedes: []
 superseded_by: []
+amended_by:
+  - ADR-0131-per-microservice-flat-layout.md (partial product-owned-spec colocation only; the flat cross-cutting specs root remains binding)
 related:
   - ADR-0115-registry-consolidation-flat-singular.md
   - ADR-0116-retire-external-agent-coordination-tooling.md

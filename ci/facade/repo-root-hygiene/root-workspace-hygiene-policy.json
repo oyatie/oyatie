@@ -21,7 +21,7 @@
     { "id": "license",               "kind": "prefix_dot", "value": "LICENSE",         "reason": "LICENSE, LICENSE.md, LICENSE-Apache-2.0 — NOT LICENSEKEY.txt (no separator)" },
     { "id": "claude-md",             "kind": "exact",  "value": "CLAUDE.md",           "reason": "project agent-rules source (root authority)" },
     { "id": "agents-md",             "kind": "exact",  "value": "AGENTS.md",           "reason": "agent operating contract pointer" },
-    { "id": "handoff-md",            "kind": "exact",  "value": "HANDOFF.md",          "reason": "session handoff anchor (masterplan companion)" },
+    { "id": "handoff-md",            "kind": "exact",  "value": "HANDOFF.md",          "reason": "founder-authorized thin fresh-session redirect; never a plan, backlog, or status authority" },
     { "id": "owners",                "kind": "exact",  "value": "OWNERS",              "reason": "root-level ownership marker for root DATA files" },
     { "id": "oya-deps-toml",         "kind": "exact",  "value": "oya-deps.toml",       "reason": "owned dependency automation config (DATA)" },
     { "id": "oya-ci-toml",           "kind": "exact",  "value": "oya-ci.toml",         "reason": "oya-ci enforcement config (DATA)" },
