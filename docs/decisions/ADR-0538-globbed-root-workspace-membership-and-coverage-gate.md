@@ -73,9 +73,10 @@ The cloud-ci floor adds one single-concern gate,
   the resolved member set nor explicitly excluded.
 
 The accounting-registry producer emits the gate face rows:
-`{member_entry,is_glob}` for every raw member entry and `{crate_dir,covered,excluded}` for every
-eligible crate manifest directory. The evaluator itself is pure policy over booleans: no filesystem
-access, no Cargo invocation, and no duplicated glob expansion.
+`{member_entry,is_glob}` for every raw member entry, `{member_match,has_manifest}` for every invalid
+unexcluded concrete glob match, and `{crate_dir,covered,excluded}` for every eligible crate manifest
+directory. The evaluator itself is pure policy over booleans: no filesystem access, no Cargo
+invocation, and no duplicated glob expansion.
 
 ## Consequences
 

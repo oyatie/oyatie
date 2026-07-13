@@ -353,7 +353,7 @@ mod tests {
         let root = fixture_root();
         make_crate(&root, "libs/oya-a-kernel");
         make_crate(&root, "libs/oya-b-kernel");
-        // A directory under libs/ WITHOUT a Cargo.toml is not a member.
+        // An explicitly excluded directory under libs/ does not need a Cargo.toml.
         std::fs::create_dir_all(root.join("libs/not-a-crate")).unwrap();
         // A crate one level deeper must NOT be swept by the single-`*` glob.
         make_crate(&root, "libs/group/oya-nested-kernel");
@@ -371,18 +371,35 @@ mod tests {
     }
 
     #[test]
-    fn unexcluded_glob_match_without_manifest_fails_like_cargo() {
+    fn diagnostic_scan_reports_every_unexcluded_missing_manifest() {
         let root = fixture_root();
         std::fs::create_dir_all(root.join("comms/messenger/chaos"))
             .expect("create non-crate member match");
+        std::fs::create_dir_all(root.join("comms/messenger/resilience"))
+            .expect("create second non-crate member match");
+        std::fs::create_dir_all(root.join("comms/messenger/fixtures"))
+            .expect("create excluded non-crate member match");
 
-        let manifest = root_manifest(&["comms/*/*"], &[]);
+        let manifest = root_manifest(&["comms/*/*"], &["comms/messenger/fixtures"]);
+        let scan = scan_member_dirs_from_str(&manifest, &root).expect("scan diagnostics");
+        assert!(scan.member_dirs.is_empty());
+        assert_eq!(
+            scan.missing_manifests,
+            vec![
+                "comms/messenger/chaos".to_owned(),
+                "comms/messenger/resilience".to_owned(),
+            ]
+        );
+
         let error = resolve_member_dirs_from_str(&manifest, &root)
             .expect_err("Cargo rejects an unexcluded member-glob match without Cargo.toml");
 
         assert_eq!(
-            error.to_string(),
-            "workspace member glob matched directories without Cargo.toml: comms/messenger/chaos"
+            error,
+            ResolveError::MissingManifests(vec![
+                "comms/messenger/chaos".to_owned(),
+                "comms/messenger/resilience".to_owned(),
+            ])
         );
     }
 
@@ -491,6 +508,14 @@ mod tests {
         let error = resolve_member_dirs_from_str("[package]\nname = \"x\"\n", &root)
             .expect_err("must reject non-workspace manifest");
         assert!(matches!(error, ResolveError::Shape(_)));
+    }
+
+    #[test]
+    fn malformed_root_manifest_is_a_parse_error() {
+        let root = fixture_root();
+        let error = scan_member_dirs_from_str("[workspace\nmembers = []\n", &root)
+            .expect_err("must reject malformed root manifest");
+        assert!(matches!(error, ResolveError::Parse(_)));
     }
 
     #[test]
