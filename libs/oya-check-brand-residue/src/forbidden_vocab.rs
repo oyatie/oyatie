@@ -78,6 +78,9 @@ pub const FORBIDDEN_VOCAB_STEMS: &[ForbiddenStem] = &[
 pub struct CarveOutRule {
     pub kind: CarveOutKind,
     pub value: &'static str,
+    /// Forbidden stems exempted by this rule. Path rules leave this empty; line rules name
+    /// every stem they may suppress so matching one marker never hides unrelated residue.
+    pub exempt_stems: &'static [&'static str],
     pub reason: &'static str,
 }
 
@@ -93,54 +96,62 @@ pub enum CarveOutKind {
     LineContainsCi,
 }
 
-/// The carve-out DATA table. Path carve-outs drop the whole file; the `LineContainsCi`
-/// carve-out drops only the matching line (so a file that legitimately cites
-/// "Palantir Foundry" once but also carries real residue elsewhere is still partially
-/// scanned). Order is irrelevant — a single match exempts.
+/// The carve-out DATA table. Path carve-outs drop the whole file; a `LineContainsCi` carve-out
+/// drops only its explicitly named stem(s) on a matching line. A line that legitimately cites
+/// "Palantir Foundry" but also carries Jenkins residue still reports Jenkins. Order is irrelevant.
 pub const CARVE_OUT_RULES: &[CarveOutRule] = &[
     CarveOutRule {
         kind: CarveOutKind::PathPrefix,
         value: "libs/oya-check-brand-residue/",
+        exempt_stems: &[],
         reason: "the deny-list patterns themselves are not residue",
     },
     CarveOutRule {
         kind: CarveOutKind::PathPrefix,
         value: "libs/oya-ci-config/",
+        exempt_stems: &[],
         reason: "the config-era deny-list SSOT (forbidden-stem table + bundled disposition) — naming a stem here is the deny-list, not residue (same rationale as oya-check-brand-residue)",
     },
     CarveOutRule {
         kind: CarveOutKind::PathExact,
         value: "oya-ci.toml",
+        exempt_stems: &[],
         reason: "the repo-root oya-ci config IS the deny-list (it declares the forbidden-stem table) — naming a stem here is the deny-list, not residue",
     },
     CarveOutRule {
         kind: CarveOutKind::PathExact,
         value: "registry/catalog/oya-check-brand-residue.yaml",
+        exempt_stems: &[],
         reason: "the catalog deny-list spec is not residue",
     },
     CarveOutRule {
         kind: CarveOutKind::PathPrefix,
         value: "oya/intelligence/_legacy-foundry/",
+        exempt_stems: &[],
         reason: "intentional historical archive of the dropped work",
     },
     CarveOutRule {
         kind: CarveOutKind::PathPrefix,
         value: "marketplace/facade/dev-cli/tests/",
+        exempt_stems: &[],
         reason: "integration test fixtures that reference live repo contracts/openapi/foundry/ paths and fixture data strings — these are structural references to real contract paths, not brand residue; the file was moved from oya/developer-sdk/crates/oya-dev-cli/tests/ where it was already baselined",
     },
     CarveOutRule {
         kind: CarveOutKind::PathExact,
         value: "evidence/audit-chain.jsonl",
+        exempt_stems: &[],
         reason: "append-only audit chain — NEVER rewritten",
     },
     CarveOutRule {
         kind: CarveOutKind::PathSuffix,
         value: ".generated.json",
+        exempt_stems: &[],
         reason: "producer-generated faces record the tokens the gates track; a hand-edit is its own ci_inventory_registry_drift RED",
     },
     CarveOutRule {
         kind: CarveOutKind::LineContainsCi,
         value: "palantir",
+        exempt_stems: &["foundry"],
         reason: "Palantir-Foundry is a competitor proper noun, not brand residue",
     },
 ];
@@ -157,6 +168,7 @@ pub struct OwnedStem {
 pub struct OwnedCarveOut {
     pub kind: CarveOutKind,
     pub value: String,
+    pub exempt_stems: Vec<String>,
 }
 
 /// The INJECTABLE forbidden-vocab policy (OYA-CI-CONFORMANCE-FLOOR-PLAN §3.3 / Stage 3): the
@@ -186,6 +198,7 @@ impl VocabPolicy {
                 .map(|c| OwnedCarveOut {
                     kind: c.kind,
                     value: c.value.to_owned(),
+                    exempt_stems: c.exempt_stems.iter().map(|stem| (*stem).to_owned()).collect(),
                 })
                 .collect(),
         }
@@ -213,11 +226,26 @@ pub fn is_path_carved_out(path: &str) -> bool {
     is_path_carved_out_with(path, &VocabPolicy::bundled_default())
 }
 
-/// Whether `line_lower` is carved out by an INJECTED policy's line-level rule.
-pub fn is_line_carved_out_with(line_lower: &str, policy: &VocabPolicy) -> bool {
+/// Whether an INJECTED line-level rule exempts this exact `stem` on `line_lower`.
+pub fn is_line_stem_carved_out_with(
+    line_lower: &str,
+    stem: &str,
+    policy: &VocabPolicy,
+) -> bool {
     policy.carve_outs.iter().any(|rule| {
-        rule.kind == CarveOutKind::LineContainsCi && line_lower.contains(rule.value.as_str())
+        rule.kind == CarveOutKind::LineContainsCi
+            && line_lower.contains(rule.value.as_str())
+            && rule
+                .exempt_stems
+                .iter()
+                .any(|exempt_stem| exempt_stem.eq_ignore_ascii_case(stem))
     })
+}
+
+/// The shared census/occurrence decision: the line contains `stem` and no matching line rule
+/// explicitly exempts that stem.
+fn line_has_unexempted_stem(line_lower: &str, stem: &str, policy: &VocabPolicy) -> bool {
+    line_lower.contains(stem) && !is_line_stem_carved_out_with(line_lower, stem, policy)
 }
 
 /// A document in the corpus the census scans: a repo-relative path + its contents.
@@ -227,30 +255,29 @@ pub struct CensusDocument<'a> {
     pub contents: &'a str,
 }
 
-/// Whether a non-carved-out line carries ANY forbidden stem (boolean convenience for the
-/// adversarial RED test). Returns the first matching stem, or `None` for a clean/carved line.
+/// Whether a line carries ANY unexempted forbidden stem (boolean convenience for the adversarial
+/// RED test). Returns the first matching stem, or `None` for a clean/fully exempted line.
 pub fn line_has_forbidden_stem(line: &str) -> Option<&'static ForbiddenStem> {
     line_forbidden_stems(line).into_iter().next()
 }
 
-/// EVERY forbidden stem present on a non-carved-out line. A single line can carry more than
+/// EVERY unexempted forbidden stem present on a line. A single line can carry more than
 /// one stem (e.g. a sentence naming both `foundry` and `jenkins`), and the census must flag
 /// the file for each — so the census uses this, not the first-match convenience above.
-/// A line carved out by a line-level rule (e.g. Palantir proper-noun prose) yields nothing.
+/// A line-level rule removes only its explicitly exempted stems.
 pub fn line_forbidden_stems(line: &str) -> Vec<&'static ForbiddenStem> {
     let lower = line.to_ascii_lowercase();
-    if is_line_carved_out_with(&lower, &VocabPolicy::bundled_default()) {
-        return Vec::new();
-    }
+    let policy = VocabPolicy::bundled_default();
     FORBIDDEN_VOCAB_STEMS
         .iter()
-        .filter(|stem| lower.contains(stem.stem))
+        .filter(|stem| line_has_unexempted_stem(&lower, stem.stem, &policy))
         .collect()
 }
 
 /// The pure per-(stem, file) census over an INJECTED [`VocabPolicy`] (OYA-CI-CONFORMANCE-FLOOR
 /// §3.3 / Stage 3). For each document NOT wholly carved out, a file contributes one [`Finding`]
-/// per stem it contains on any non-carved-out line. Deterministic (BTreeSet); the bundled-default
+/// per stem it contains on any line where that stem is not explicitly exempted. Deterministic
+/// (BTreeSet); the bundled-default
 /// policy reproduces the legacy const-based census byte-for-byte.
 pub fn census_findings_with<'a, I>(documents: I, policy: &VocabPolicy) -> BTreeSet<Finding>
 where
@@ -266,11 +293,8 @@ where
         let mut codes_in_file: BTreeSet<String> = BTreeSet::new();
         for line in doc.contents.lines() {
             let lower = line.to_ascii_lowercase();
-            if is_line_carved_out_with(&lower, policy) {
-                continue;
-            }
             for stem in &policy.stems {
-                if lower.contains(stem.stem.as_str()) {
+                if line_has_unexempted_stem(&lower, stem.stem.as_str(), policy) {
                     codes_in_file.insert(stem.code.clone());
                 }
             }
@@ -295,8 +319,8 @@ where
 
 /// The de-duplicated, line-number-free SET of normalized (lower-cased) matched-line TEXTS for
 /// a single `stem` in `contents`, computed by the SAME line-walk [`census_findings_with`] uses
-/// (skip wholly path-carved files; skip `LineContainsCi`-carved lines; case-fold with
-/// `to_ascii_lowercase`; substring match). This is the occurrence-identity SSOT for the
+/// (skip wholly path-carved files; apply `LineContainsCi` rules only to their exempt stems;
+/// case-fold with `to_ascii_lowercase`; substring match). This is the occurrence-identity SSOT for the
 /// rename-aware path-keyed CI baseline relabel (task #64): the relabel's P4 content-subset guard
 /// (`NEW_OCC ⊆ OLD_OCC`) is `matched_line_occurrences_with(new) ⊆ matched_line_occurrences_with(old)`.
 ///
@@ -319,10 +343,7 @@ pub fn matched_line_occurrences_with(
     let stem_lower = stem.to_ascii_lowercase();
     for line in contents.lines() {
         let lower = line.to_ascii_lowercase();
-        if is_line_carved_out_with(&lower, policy) {
-            continue;
-        }
-        if lower.contains(stem_lower.as_str()) {
+        if line_has_unexempted_stem(&lower, stem_lower.as_str(), policy) {
             // The normalized (lower-cased) matched-line text, de-duplicated (BTreeSet) and
             // line-number-free (churn-stable): two identical foundry lines collapse to one
             // occurrence, and reordering/whitespace-above edits never change the set.
@@ -355,6 +376,16 @@ mod tests {
 
     fn doc<'a>(path: &'a str, contents: &'a str) -> CensusDocument<'a> {
         CensusDocument { path, contents }
+    }
+
+    fn policy_with_foundry_marker(marker: &str) -> VocabPolicy {
+        let mut policy = VocabPolicy::bundled_default();
+        policy.carve_outs.push(OwnedCarveOut {
+            kind: CarveOutKind::LineContainsCi,
+            value: marker.to_owned(),
+            exempt_stems: vec!["foundry".to_owned()],
+        });
+        policy
     }
 
     #[test]
@@ -448,6 +479,62 @@ mod tests {
             "Ontology layer benchmarked against Palantir Foundry.",
         )]);
         assert!(clean.is_empty());
+    }
+
+    #[test]
+    fn palantir_line_exempts_only_foundry_stem() {
+        let path = "docs/competitors.md";
+        let contents = "Palantir Foundry benchmark; Forgejo, Jenkins, and oya-vcs resurrected.";
+        let policy = VocabPolicy::bundled_default();
+        let findings = census_findings_with([doc(path, contents)], &policy);
+
+        assert!(!findings.contains(&Finding {
+            code: "forbidden_foundry".into(),
+            key: path.into(),
+        }));
+        for code in ["forbidden_forgejo", "forbidden_jenkins", "forbidden_oya-vcs"] {
+            assert!(
+                findings.contains(&Finding { code: code.into(), key: path.into() }),
+                "Palantir must not suppress unrelated {code}"
+            );
+        }
+    }
+
+    #[test]
+    fn openapi_markers_exempt_only_foundry_in_census_and_occurrences() {
+        for marker in [
+            "/../../../contracts/openapi/foundry/capability-v1.yaml",
+            "//contracts/openapi/foundry:capability-v1.yaml",
+            "contracts/openapi/foundry/buck",
+        ] {
+            let path = "consumer/BUCK";
+            let contents = format!("{marker} Forgejo Jenkins oya-vcs resurrected");
+            let policy = policy_with_foundry_marker(marker);
+            let findings = census_findings_with([doc(path, &contents)], &policy);
+
+            assert!(!findings.contains(&Finding {
+                code: "forbidden_foundry".into(),
+                key: path.into(),
+            }));
+            for (stem, code) in [
+                ("forgejo", "forbidden_forgejo"),
+                ("jenkins", "forbidden_jenkins"),
+                ("oya-vcs", "forbidden_oya-vcs"),
+            ] {
+                assert!(
+                    findings.contains(&Finding { code: code.into(), key: path.into() }),
+                    "marker {marker:?} must not suppress unrelated {code}"
+                );
+                assert!(
+                    !matched_line_occurrences_with(path, &contents, stem, &policy).is_empty(),
+                    "occurrence semantics diverged for marker {marker:?} and stem {stem:?}"
+                );
+            }
+            assert!(
+                matched_line_occurrences_with(path, &contents, "foundry", &policy).is_empty(),
+                "marker {marker:?} must exempt only its foundry occurrence"
+            );
+        }
     }
 
     #[test]

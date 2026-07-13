@@ -326,6 +326,7 @@ impl OyaCiConfig {
         if let Some(v) = shadow.cross_artifact {
             base.cross_artifact = v;
         }
+        base.vocab.validate()?;
         Ok(base)
     }
 
@@ -536,6 +537,10 @@ pub enum VocabCarveOutKind {
 pub struct VocabCarveOut {
     pub kind: VocabCarveOutKind,
     pub value: String,
+    /// Stems a line-level rule may exempt. Empty for path rules; required and validated for
+    /// `line_contains_ci` so one structural/proper-noun marker cannot suppress other stems.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub exempt_stems: Vec<String>,
     #[serde(default)]
     pub reason: String,
 }
@@ -566,57 +571,68 @@ fn default_forbidden_stems() -> Vec<ForbiddenStem> {
 }
 
 fn default_vocab_carve_outs() -> Vec<VocabCarveOut> {
-    [
+    let rows: &[(VocabCarveOutKind, &str, &[&str], &str)] = &[
         (
             VocabCarveOutKind::PathPrefix,
             "libs/oya-check-brand-residue/",
+            &[],
             "the deny-list patterns themselves are not residue",
         ),
         (
             VocabCarveOutKind::PathPrefix,
             "libs/oya-ci-config/",
+            &[],
             "the config-era deny-list SSOT (forbidden-stem table + bundled disposition) — naming a stem here is the deny-list, not residue (same rationale as oya-check-brand-residue)",
         ),
         (
             VocabCarveOutKind::PathExact,
             "oya-ci.toml",
+            &[],
             "the repo-root oya-ci config IS the deny-list (it declares the forbidden-stem table) — naming a stem here is the deny-list, not residue",
         ),
         (
             VocabCarveOutKind::PathExact,
             "registry/catalog/oya-check-brand-residue.yaml",
+            &[],
             "the catalog deny-list spec is not residue",
         ),
         (
             VocabCarveOutKind::PathPrefix,
             "oya/intelligence/_legacy-foundry/",
+            &[],
             "intentional historical archive of the dropped work",
         ),
         (
             VocabCarveOutKind::PathPrefix,
             "marketplace/facade/dev-cli/tests/",
+            &[],
             "integration test fixtures that reference live repo contracts/openapi/foundry/ paths and fixture data strings — structural references to real contract paths, not brand residue; moved from oya/developer-sdk/crates/oya-dev-cli/tests/ where it was already baselined",
         ),
         (
             VocabCarveOutKind::PathExact,
             "evidence/audit-chain.jsonl",
+            &[],
             "append-only audit chain — NEVER rewritten",
         ),
         (
             VocabCarveOutKind::PathSuffix,
             ".generated.json",
+            &[],
             "producer-generated faces record the tokens the gates track; a hand-edit is its own ci_inventory_registry_drift RED",
         ),
         (
             VocabCarveOutKind::LineContainsCi,
             "palantir",
+            &["foundry"],
             "Palantir-Foundry is a competitor proper noun, not brand residue",
         ),
-    ]
+    ];
+    rows
     .iter()
-    .map(|(kind, value, reason)| VocabCarveOut {
+    .map(|(kind, value, exempt_stems, reason)| VocabCarveOut {
         kind: *kind,
         value: (*value).to_owned(),
+        exempt_stems: exempt_stems.iter().map(|stem| (*stem).to_owned()).collect(),
         reason: (*reason).to_owned(),
     })
     .collect()
@@ -632,6 +648,32 @@ impl Default for VocabConfig {
 }
 
 impl VocabConfig {
+    fn validate(&self) -> Result<(), ConfigError> {
+        for carve_out in &self.carve_outs {
+            match carve_out.kind {
+                VocabCarveOutKind::LineContainsCi => {
+                    if carve_out.exempt_stems.is_empty() {
+                        return Err(ConfigError::Parse(format!(
+                            "vocab line_contains_ci carve-out {:?} must declare at least one exempt_stems entry",
+                            carve_out.value
+                        )));
+                    }
+                }
+                VocabCarveOutKind::PathPrefix
+                | VocabCarveOutKind::PathExact
+                | VocabCarveOutKind::PathSuffix => {
+                    if !carve_out.exempt_stems.is_empty() {
+                        return Err(ConfigError::Parse(format!(
+                            "vocab path carve-out {:?} must not declare exempt_stems",
+                            carve_out.value
+                        )));
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
     /// The neutral profile's `[vocab]`: an EMPTY forbidden-stem list (ADR-0533 item 1) — the
     /// brand-residue census finds nothing, so a neutral repo carries no oyatie deny-list. No
     /// carve-outs either (carve-outs only exist to exempt the deny-list, which is empty).
@@ -1386,7 +1428,9 @@ mod tests {
             cfg.vocab
                 .carve_outs
                 .iter()
-                .any(|c| c.kind == VocabCarveOutKind::LineContainsCi && c.value == "palantir")
+                .any(|c| c.kind == VocabCarveOutKind::LineContainsCi
+                    && c.value == "palantir"
+                    && c.exempt_stems == ["foundry"])
         );
     }
 
@@ -1686,6 +1730,46 @@ code = "forbidden_oya-vcs"
                 .iter()
                 .any(|s| s.code == "forbidden_oya-vcs")
         );
+    }
+
+    #[test]
+    fn line_carve_out_stem_scope_round_trips_through_the_closed_schema() {
+        let text = r#"
+[[vocab.carve_outs]]
+kind = "line_contains_ci"
+value = "//contracts/openapi/foundry:capability-v1.yaml"
+exempt_stems = ["foundry"]
+reason = "structural reference"
+"#;
+        let cfg = OyaCiConfig::from_toml_str(text).expect("scoped line carve-out parses");
+        assert_eq!(cfg.vocab.carve_outs[0].exempt_stems, vec!["foundry"]);
+
+        let serialized = toml::to_string(&cfg).expect("serialize scoped carve-out");
+        assert!(serialized.contains("exempt_stems = [\"foundry\"]"));
+        assert_eq!(
+            OyaCiConfig::from_toml_str(&serialized).expect("reparse scoped carve-out"),
+            cfg
+        );
+    }
+
+    #[test]
+    fn line_carve_out_requires_explicit_stem_scope() {
+        for text in [
+            r#"
+[[vocab.carve_outs]]
+kind = "line_contains_ci"
+value = "palantir"
+"#,
+            r#"
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = "docs/example.md"
+exempt_stems = ["foundry"]
+"#,
+        ] {
+            let err = OyaCiConfig::from_toml_str(text).unwrap_err();
+            assert!(matches!(err, ConfigError::Parse(_)), "got {err:?}");
+        }
     }
 
     #[test]
