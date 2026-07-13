@@ -7,9 +7,9 @@ date: 2026-05-26
 owner: council-architecture
 supersedes: [ADR-0110, ADR-0112, ADR-0113]
 superseded_by: []
-amended_by: [ADR-0510, ADR-0513]
+amended_by: [ADR-0510, ADR-0515]
 amends: [ADR-0116]
-related: [ADR-0053, ADR-0111, ADR-0116, ADR-0131, ADR-0173, ADR-0247, ADR-0248, ADR-0349, ADR-0357, ADR-0361, ADR-0362]
+related: [ADR-0053, ADR-0111, ADR-0116, ADR-0131, ADR-0173, ADR-0247, ADR-0248, ADR-0349, ADR-0357, ADR-0361, ADR-0362, ADR-0513]
 related_specs: [/specs/gitops-vcs-replacement.json, /registry/vcs/changeset-event-log.json]
 session_context:
   authored: 2026-05-26
@@ -23,10 +23,14 @@ purpose: Retire the bespoke agentic-VCS layer (oya vcs CLI + oya git wrapper + c
 
 Accepted — 2026-05-26. Supersedes ADR-0110 (changeset state machine), ADR-0112 (webhook-driven invocation), ADR-0113 (vcs orchestrator end-to-end). Amends ADR-0116 (which parked external coordination tooling behind a manual-bootstrap seam — that seam is now removed, not deployed).
 
-**Amended by ADR-0513 / platform-readiness 2026-06-02:** this ADR still retires the bespoke agentic-VCS CLI/wrapper
+**Historical amendment recorded by ADR-0513 / platform-readiness 2026-06-02 (ADR-0513 is now Superseded):** this ADR still retires the bespoke agentic-VCS CLI/wrapper
 and dormant changeset ratchet. Its former no-Tide-queue and cloud-ci-as-destination readings are no
 longer current. Merge automation belongs in the Prow-shaped cloud-ci/oya-ci Tide component, and `oya` CLI entrypoints
 are retirement/migration wrappers rather than CI authority.
+
+**Current amendment — ADR-0515:** plain Git and protected GitHub PRs remain the live substrate;
+`oya-ci-required` is the sole merge-status authority. ADR-0513 is retained only as nonbinding
+history and does not amend this ADR's current meaning.
 
 ## Context
 

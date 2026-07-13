@@ -2,8 +2,6 @@
 id: ADR-0051
 status: accepted
 doc_status: published
-amended_by:
-  - ADR-0565-zero-graphql-in-the-owned-api-surface.md (its canonical-contracts clause named GraphQL among the contract families native clients consume; GraphQL is dropped from the owned surface per ADR-0565 — the REST/gRPC/Connect-protocol + mTLS gateway posture is unchanged)
 ---
 
 # ADR-0051: Mobile and Native Client Strategy

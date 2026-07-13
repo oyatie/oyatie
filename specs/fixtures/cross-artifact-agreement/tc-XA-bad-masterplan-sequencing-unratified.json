@@ -167,6 +167,22 @@
         "relationship": "unblocks"
       }
     ],
+    "planning_entry_contract": {
+      "state": "open",
+      "dispatch_allowed": false,
+      "nonbinding_planning_discussion_allowed": true,
+      "current_pr_candidate": "fixture://preplanning-authority-closure/current-pr",
+      "authority_choice_matrix": [
+        "fixture-authority-choice"
+      ],
+      "entry_conditions": [
+        "fixture-entry-condition"
+      ],
+      "no_dispatch_stop_conditions": [
+        "fixture-preplanning-hold-open"
+      ],
+      "binding_plan_approval_allowed": false
+    },
     "sequencing": {
       "derivation_mode": "legacy-imported-from-master-plan-sequencing",
       "source_of_truth": "/specs/master-plan-sequencing.json",
@@ -200,10 +216,14 @@
         "decision_status": "pending"
       },
       "execution_wave_dispatch": {
-        "requires_founder_ratification": false,
-        "allowed_without_founder_ratification": true,
-        "state": "open",
-        "blocked_reason": null
+        "requires_founder_ratification": true,
+        "allowed_without_founder_ratification": false,
+        "state": "blocked",
+        "blocked_reason": "preplanning_authority_closure",
+        "requires_preplanning_authority_closure": true,
+        "allowed_without_preplanning_authority_closure": false,
+        "preplanning_authority_closure_ref": "fixture://preplanning-authority-closure/current-pr",
+        "dispatched_waves": []
       }
     },
     "evidence_state_policy": {

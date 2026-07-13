@@ -3,6 +3,26 @@ purpose: Oyatie — Canonical Docs Changelog
 doc_status: published
 ---
 
+# Changelog
+
+## 2026-07-13 — Pre-planning authority consolidation
+
+- Reconciled the root authority chain around `specs/root-hub-pointers.json`,
+  `docs/AGENTS.md`, `specs/masterplan.json#masterplan_v2`, Accepted ADRs, and live
+  Git/GitHub evidence; reduced `HANDOFF.md` to a redirect rather than a parallel plan.
+- Recorded a machine-readable Past/Present/Future snapshot, unresolved founder-choice
+  matrix, and fail-closed pre-planning dispatch hold without changing the founder-ratified
+  dependency graph, work-item order, execution waves, or sequencing digest.
+- Added direct, independent determinism coverage for both de-committed controller
+  projections and made digestless sequencing ratification fail closed.
+- Recorded MFL-0017 for the direct-masterplan determinism gap and its independent
+  masterplan-and-product-graph regeneration checks.
+- Recorded MFL-0018 for missing or stale sequencing-digest proof and its three-way
+  digest plus open-hold approval/dispatch regressions.
+- Corrected Markdown-retirement, ADR-lifecycle, and Phase-0 evidence surfaces while
+  preserving explicit nonclaims: the candidate is not current authority until protected-PR
+  admission, and Phase 0 remains non-green.
+
 ## 2026-07-01 — Data Use Boundary policy-gate ownership
 
 - Recorded the first Data Use Boundary policy-gate implementation surface and

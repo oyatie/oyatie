@@ -1,14 +1,21 @@
 ---
-purpose: "Doc Catalog & Update Protocol"
-doc_status: published
+purpose: "Legacy projection of the pre-PHASE-5 doc catalog and update protocol"
+doc_status: legacy_projection
 ---
 
 # Doc Catalog & Update Protocol
 
-## Doctrinal authority — [decision-principles.json](../specs/decision-principles.json) + [forbidden-operations.json](../specs/forbidden-operations.json)
+## Historical doctrinal inputs — [decision-principles.json](../specs/decision-principles.json) + [forbidden-operations.json](../specs/forbidden-operations.json)
 
 
-> **Status:** Draft v0.1 — 2026-05-09. Treat as a *protocol*, not a guideline. Every consolidated doc is mutable but the *trigger* for the mutation is rule-bound. Agents and humans both consult this catalog before authoring or auto-updating any doc.
+> **Status:** Legacy, non-authoritative projection — 2026-07-13. This file preserves the
+> pre-PHASE-5 catalog design for provenance and migration input. It is not a live lifecycle protocol,
+> gate inventory, or sequencing authority. Current routing comes from
+> [`/specs/root-hub-pointers.json`](../specs/root-hub-pointers.json); Markdown lifecycle comes from
+> [`/specs/markdown-retirement-policy.json`](../specs/markdown-retirement-policy.json); execution
+> sequencing comes only from [`/specs/masterplan.json#masterplan_v2`](../specs/masterplan.json).
+> Promotion requires the PHASE-5 schema, producer, consumers, and cross-artifact enforcement to land
+> atomically. Historical imperative language below is nonbinding until that promotion evidence exists.
 
 ---
 
@@ -27,7 +34,9 @@ Each doc has a row in §2 with these columns:
 | `validation_check` | The CI / agent / reviewer check that must pass after an update |
 | `agent_authoring_allowed` | Whether agents may author updates without human review (rare) |
 
-The machine-readable mirror is [`machine-readable/catalog.json`](machine-readable/catalog.json).
+The checked-in [`machine-readable/catalog.json`](machine-readable/catalog.json) is a historical
+mirror of this legacy projection. It is not the promised live `/registry/doc-catalog.json` producer
+or lifecycle authority.
 
 ---
 
@@ -61,7 +70,9 @@ Each event below maps to specific docs. The §2 rows enumerate the docs per even
 
 ## 2. The catalog
 
-> Path conventions: rooted at `docs/`. Owner team IDs match `teams/<team-id>/CHARTER.md`. Validation checks named here exist (or will be created) under `oya-governance-doc-catalog`.
+> Historical path conventions: rooted at `docs/`. Owner team IDs were intended to match
+> `teams/<team-id>/CHARTER.md`. Validation names in this projection are design inventory only; their
+> presence does not prove a live gate or producer.
 
 ### 2.1 Tier 1 — Strategy / Architecture / Compliance
 
@@ -80,7 +91,7 @@ Each event below maps to specific docs. The §2 rows enumerate the docs per even
 | `doc.spec_governance_amendment` | `/specs/governance-amendment.json` | `council-architecture` | amendment procedure change | quarterly | decision-principles.json, forbidden-operations.json | `authority-cohesion` | NO |
 | `doc.spec_oyatie_doctrine` | `/specs/oyatie-doctrine.json` | `council-architecture` | repository_layout / BNF / 12-layer enum change | quarterly | DESIGN.md, ADR-INDEX.md | `authority-cohesion`, `spec-contract-mirror` | NO |
 | `doc.spec_masterplan` | `/specs/masterplan.json` | `council-architecture` | milestone/phase/IP topology change | per event | ROADMAP.md, all .omc/plans/milestones/*/INDEX.md | `masterplan-coherence`, `spec-contract-mirror` | NO |
-| `doc.spec_master_plan_sequencing` | `/specs/master-plan-sequencing.json` | `council-architecture` | forbidden-primitive / execution-sequence change | per event | masterplan.json, gitops-vcs-replacement.json | `spec-contract-mirror`, `authority-cohesion` | NO |
+| `doc.spec_master_plan_sequencing` | `/specs/master-plan-sequencing.json` | `council-architecture` | historical sequencing-sidecar change | provenance only | masterplan.json, gitops-vcs-replacement.json | historical validation inventory only | NO |
 | `doc.spec_root_hub_pointers` | `/specs/root-hub-pointers.json` | `council-architecture` | canonical entry-point change | per event | README.md, CLAUDE.md, AGENTS.md | `authority-cohesion` | NO |
 | `doc.spec_active_machine_readable_artifact_contract` | `/specs/active-machine-readable-artifact-contract.json` | `council-architecture` | active-artifact capability contract change (ADR-0069) | per event | artifact-profile-defaults.json | `spec-contract-mirror` | NO |
 | `doc.spec_artifact_profile_defaults` | `/specs/artifact-profile-defaults.json` | `council-architecture` | per-profile defaults change | per event | active-machine-readable-artifact-contract.json | `spec-contract-mirror` | NO |
@@ -249,9 +260,11 @@ Every team charter is owned by the team itself; meta-supervised by `council-arch
 
 ---
 
-## 3. The update protocol (the "how")
+## 3. Historical update protocol (nonbinding migration input)
 
-For *any* update to *any* doc in this catalog, follow:
+The following checklist records the pre-PHASE-5 design. It does not override the root hub, the
+Markdown-retirement policy, masterplan v2, the protected-PR admission contract, or live reviewer and
+`oya-ci-required` evidence.
 
 ### 3.1 Pre-flight checklist
 
@@ -295,9 +308,11 @@ For *any* update to *any* doc in this catalog, follow:
 
 ---
 
-## 4. Validation checks (the "is it right" layer)
+## 4. Historical validation-check inventory
 
-Each validation check below is a binary CI gate. Failing one blocks the merge.
+These names are historical design inventory. They are not proof of a wired binary CI gate and do
+not block or authorize a merge unless the current `oya-ci-required` producer and change-class gate
+mapping include them.
 
 | Check | Does what |
 |---|---|
@@ -352,7 +367,8 @@ Each validation check below is a binary CI gate. Failing one blocks the merge.
 | `documentation-system` | `docs/DOCUMENTATION.md`, `registry/docs/pipeline.tsv`, and `docs/wiki/quickref/README.md` stay mutually grounded. |
 | `readme-doc-coverage` | Every cataloged root doc in `docs/` has a link in README. |
 
-The `oya-governance-doc-catalog` CI lane runs all of the above on every PR touching `docs/**`.
+No live `oya-governance-doc-catalog` producer or all-checks fan-out is claimed. PHASE-5 remains
+blocked until the machine catalog, producer, consumers, and cross-artifact enforcement land together.
 
 ---
 

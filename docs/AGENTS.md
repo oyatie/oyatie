@@ -14,7 +14,7 @@ excludes:
   reason: Markdown lifecycle and root-hub survival policy; cited and not duplicated
     fully.
 - path: docs/DOC-CATALOG.md
-  reason: Per-doc lifecycle protocol and trigger taxonomy.
+  reason: Legacy pre-PHASE-5 projection and trigger taxonomy; non-authoritative migration input only.
 - path: docs/templates/pull-request-template.md
   reason: PR body shape; cited and not inlined.
 - path: docs/decisions/
@@ -111,7 +111,7 @@ For any question, route to its authority. Click the link; do not duplicate inlin
 | Surfaces (capabilities, APIs, events, indexes, ad slots, cloud resources) | [`SPEC.md`](SPEC.md) <!-- forward-reference: wave-1 --> |
 | North star, axes, scope, success metrics, decision log | [`PRD.md`](PRD.md) <!-- forward-reference: wave-1 --> |
 | Human plan projection / archived roadmap provenance | [`MASTERPLAN.md`](MASTERPLAN.md), [`ROADMAP.md`](ROADMAP.md) |
-| Per-doc lifecycle and update protocol | [`DOC-CATALOG.md`](DOC-CATALOG.md) |
+| Markdown lifecycle and current doc-authority routing | [`/specs/markdown-retirement-policy.json`](../specs/markdown-retirement-policy.json), [`/specs/root-hub-pointers.json`](../specs/root-hub-pointers.json); [`DOC-CATALOG.md`](DOC-CATALOG.md) is legacy migration input only |
 | Doc-class taxonomy, voice, dual-audience rules | [`standards/doc-style.md`](standards/doc-style.md) <!-- forward-reference: wave-1 --> |
 | Architectural decisions (ADR pack) | [`ADR-INDEX.md`](ADR-INDEX.md) <!-- forward-reference: wave-1 --> |
 | Recurring failure modes + mechanical preventions | [`MISTAKES-LEDGER.md`](MISTAKES-LEDGER.md) <!-- forward-reference: wave-1 --> |
@@ -240,12 +240,12 @@ The automated reviewer pipeline supplies `## Code Review` with the reviewer-agen
 Before declaring any change complete, every agent and every human MUST re-walk these items. Each box has a typed artifact (a command, a lane, or an explicit `(advisory)` marker).
 
 - [ ] **D1** All §"Pre-flight checklist" items checked. *Test:* per-item reviewer audit on PR.
-- [ ] **D2** Affected canonical docs updated in this same PR per [`DOC-CATALOG.md`](DOC-CATALOG.md). *Test:* `oya-governance-doc-catalog` lane.
+- [ ] **D2** Affected canonical docs updated in this same PR. *Test:* current cross-artifact/canonical-JSON checks plus reviewer inspection. `DOC-CATALOG.md` is a legacy projection; a live machine-catalog producer/gate is still a PHASE-5 prerequisite and must not be claimed as active.
 - [ ] **D3** New ADRs (if any) authored from [`templates/adr-template.md`](templates/adr-template.md) <!-- forward-reference: wave-1 --> with all required sections. *Test:* `oya-governance-adr-shape` lane.
 - [ ] **D4** New runbooks (if any) authored from [`templates/runbook-template.md`](templates/runbook-template.md) <!-- forward-reference: wave-1 -->; discoverable in [`RUNBOOKS-INDEX.md`](RUNBOOKS-INDEX.md) <!-- forward-reference: wave-1 -->. *Test:* `oya-governance-runbook-index-resolves` lane.
 - [ ] **D5** New capabilities (if any) ship: capability record, eval set (golden + adversarial + linguistic), autonomy tier, audit-chain topic, Cosign signing. *Test:* `oya-governance-capability-publish` lane.
 - [ ] **D6** New schemas (if any) carry `oyatie.data_class = "..."` per field. *Test:* `oya-governance-data-class` lane.
-- [ ] **D7** Per-PR fitness lanes pass: `oya-governance-{license, data-class, cohesion, glossary, adr-citation, brand-residue, bypass, flat-crates, runbook-index-resolves, doc-catalog}`. *Test:* CI status check.
+- [ ] **D7** Applicable per-PR fitness lanes actually wired into `oya-ci-required` pass. Historical lane names in prose are not evidence that a producer is live. *Test:* the PR-head `oya-ci-required` job/packet inventory plus the change-class gate mapping.
 - [ ] **D8** Per-change-class reviewer agent ran; verdict captured in `## Code Review`. *Test:* `oya-ci-required` PR metadata preflight plus reviewer audit on PR; live review-admission closure remains F-PR5-06.
 - [ ] **D9** Targeted `buck2 test <target(s)>` passes. *Test:* command output pasted in `## Verification`.
 - [ ] **D10** Targeted `buck2 build <target(s)>` and relevant cloud-ci lint/static-analysis gate packets pass. *Test:* command output.
@@ -274,12 +274,12 @@ If any box is unchecked, the change is not complete. Loop back; do not declare s
 |---|---|
 | [`docs/`](.) | Canonical engineering doc tree. Authority. |
 | [`docs/raw/`](raw/) <!-- forward-reference: wave-1 --> | Working drafts. Never authoritative. |
-| `{oya,cloud}/<service>/crates/<crate>` + `libs/<lib>/` | Canonical implementation homes per ADR-0131/ADR-0512 platform-readiness amendment. Top-level `crates/` is legacy/removal-candidate until verified migration. |
+| Registered capability roots with `core/`, `ports/`, `adapters/`, `facade/`; `app/<product>/` for multi-capability compositions | Canonical destination topology per ADR-0562 as amended by ADR-0615. Existing `{oya,cloud}/...`, `libs/`, and top-level `crates/` paths are migration inventory until their strangler moves are verified. |
 | `infra/`, `scripts/`, `registry/` | Supporting implementation and governance tree; `registry/catalog/` is the live crate catalog. |
 | `modules/`, `services/`, `platform/`, `tools/` | Retired legacy implementation roots; do not recreate. |
 | `registry/capability-templates/` | Capability records + metering events (Foundry-consumed). |
 | `contracts/` | Per-cross-axis contract spec files (OpenAPI, Protobuf, AsyncAPI). |
-| Repo root (`README.md`, `CLAUDE.md`, `AGENTS.md`) | Authoritative entry/operating-contract discovery surfaces. `CLAUDE.md` and this file are binding for agents; `/specs/root-hub-pointers.json` remains the redirect hub. Thinness lint may apply to redirect/index helper files only; it does not demote CLAUDE.md or docs/AGENTS.md. |
+| Repo root (`README.md`, `CLAUDE.md`, `AGENTS.md`, `HANDOFF.md`) | Founder-authorized Markdown survival set. `HANDOFF.md` is a thin fresh-session redirect only, never a plan/backlog/status authority. `CLAUDE.md` and this file are binding for agents; `/specs/root-hub-pointers.json` remains the redirect hub. Thinness lint may apply to redirect/index helper files only; it does not demote CLAUDE.md or docs/AGENTS.md. |
 
 ## Boundaries
 
@@ -350,8 +350,8 @@ State: legacy OMC writes to `.omc/state/`, `.omc/notepad.md`, `.omc/project-memo
 
 This contract does not cover:
 
-- **Machine-readable authority registry** — see [`/specs/root-hub-pointers.json`](..//specs/root-hub-pointers.json).
-- **Per-doc lifecycle protocol** — see [`DOC-CATALOG.md`](DOC-CATALOG.md).
+- **Machine-readable authority registry** — see [`/specs/root-hub-pointers.json`](../specs/root-hub-pointers.json).
+- **Historical per-doc catalog design** — [`DOC-CATALOG.md`](DOC-CATALOG.md) is non-authoritative migration input until PHASE-5 promotion; current lifecycle/routing comes from [`/specs/markdown-retirement-policy.json`](../specs/markdown-retirement-policy.json) and [`/specs/root-hub-pointers.json`](../specs/root-hub-pointers.json).
 - **PR template body** — see [`templates/pull-request-template.md`](templates/pull-request-template.md) <!-- forward-reference: wave-1 -->.
 - **Architectural rationale per decision** — see [`decisions/`](decisions/) <!-- forward-reference: wave-1 --> indexed at [`ADR-INDEX.md`](ADR-INDEX.md) <!-- forward-reference: wave-1 -->.
 - **Per-team norms** — see [`teams/`](teams/) <!-- forward-reference: wave-1 -->.

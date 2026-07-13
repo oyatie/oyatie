@@ -5,10 +5,11 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use ci_generated_artifact_freshness::{
-    FACE_REMEDIATION_COMMAND, FACE_SETTLE_PROTOCOL, Finding, FindingCode, LockPackage, MemberPackage,
-    check_repo_with_regenerated_faces, evaluate_face_determinism, evaluate_face_freshness,
-    evaluate_lock_freshness, parse_lock_packages, parse_member_package_manifest,
-    read_decommitted_face_names, render_findings, render_remediation,
+    FACE_REMEDIATION_COMMAND, FACE_SETTLE_PROTOCOL, Finding, FindingCode, LockPackage,
+    MemberPackage, check_repo_with_regenerated_faces, evaluate_face_determinism,
+    evaluate_face_freshness, evaluate_lock_freshness, parse_lock_packages,
+    parse_member_package_manifest, read_decommitted_face_names, render_findings,
+    render_remediation,
 };
 
 static COUNTER: AtomicU64 = AtomicU64::new(0);
@@ -328,10 +329,44 @@ fn determinism_canary_reds_for_nondeterministic_regeneration() {
 }
 
 #[test]
+fn determinism_canary_detects_masterplan_drift_when_product_graph_is_stable() {
+    let first = vec![
+        (
+            "masterplan.generated.json".to_owned(),
+            "first plan\n".to_owned(),
+        ),
+        ("product-graph.html".to_owned(), "stable graph\n".to_owned()),
+    ];
+    let second = vec![
+        (
+            "masterplan.generated.json".to_owned(),
+            "second plan\n".to_owned(),
+        ),
+        ("product-graph.html".to_owned(), "stable graph\n".to_owned()),
+    ];
+    let decommitted = BTreeSet::from([
+        "masterplan.generated.json".to_owned(),
+        "product-graph.html".to_owned(),
+    ]);
+
+    let findings = evaluate_face_determinism(&first, &second, &decommitted);
+
+    assert_eq!(findings.len(), 1);
+    assert_eq!(findings[0].code, FindingCode::GeneratedFaceStale);
+    assert_eq!(findings[0].key, "masterplan.generated.json");
+}
+
+#[test]
 fn determinism_canary_ignores_committed_class_faces() {
     // The determinism canary is scoped to de-commit-class faces only.
-    let first = vec![("example-committed-face.generated.json".to_owned(), "a\n".to_owned())];
-    let second = vec![("example-committed-face.generated.json".to_owned(), "b\n".to_owned())];
+    let first = vec![(
+        "example-committed-face.generated.json".to_owned(),
+        "a\n".to_owned(),
+    )];
+    let second = vec![(
+        "example-committed-face.generated.json".to_owned(),
+        "b\n".to_owned(),
+    )];
 
     assert!(evaluate_face_determinism(&first, &second, &BTreeSet::new()).is_empty());
 }
@@ -422,9 +457,7 @@ version = "0.1.0"
     )
     .expect("write stale lock");
     std::fs::write(
-        root.join(
-            "ci/facade/artifact-inventory-registry/scm-facts.generated.json",
-        ),
+        root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json"),
         "old\n",
     )
     .expect("write committed face");

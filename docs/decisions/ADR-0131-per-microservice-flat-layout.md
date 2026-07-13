@@ -7,7 +7,8 @@ date: 2026-05-17
 owner: council-architecture
 supersedes:
   - "ADR-0015 (partial — supersedes the docs-vs-crates top-level split for per-service ownership; ADR-0015's BC and layer rules remain in force)"
-  - "ADR-0119 (partial — supersedes the per-product slice of specs-flat-root; /specs/ retains only cross-cutting specs)"
+amends:
+  - "ADR-0119 (partial — product-owned specs colocate with their owner; /specs/ remains the flat root for cross-cutting specifications)"
 superseded_by: []
 related: [ADR-0015, ADR-0056, ADR-0105, ADR-0110, ADR-0115, ADR-0116, ADR-0119, ADR-0122, ADR-0139, ADR-0512]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/masterplan.json, /specs/master-plan-sequencing.json]
@@ -28,6 +29,11 @@ root is legacy only and must be removed after migration evidence proves every se
 `cloud/` (or shared code under `libs/`).
 
 **Amended — 2026-06-29 (review evidence retirement):** ADR-0515 and `docs/AGENTS.md` retire the standalone multispectrum evidence-file convention. The colocated `evidence/` slot remains available for typed quality-gate artifacts and audit bundles only; existing multispectrum paths are historical provenance and are not a current coverage or review-evidence requirement.
+
+**Amended — 2026-07-13 (lifecycle metadata repair):** this ADR partially amends, rather than
+supersedes, ADR-0119. ADR-0119's flat `specs/` rule remains binding for cross-cutting specifications;
+this ADR only colocates product-owned specifications with their owning boundary. ADR-0562 as
+amended by ADR-0615 controls the current destination topology.
 
 ## Context
 

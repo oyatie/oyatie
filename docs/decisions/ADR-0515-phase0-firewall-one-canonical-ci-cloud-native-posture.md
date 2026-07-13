@@ -8,8 +8,8 @@ date: 2026-06-07
 door: one-way
 supersedes: [ADR-0124, ADR-0349, ADR-0359, ADR-0361, ADR-0511, ADR-0513, ADR-0514]
 superseded_by: []
-depends_on: [ADR-0408, ADR-0392]
-amends: [ADR-0092]
+depends_on: [ADR-0392]
+amends: [ADR-0092, ADR-0363]
 related:
   - ADR-0111
   - ADR-0116
@@ -23,6 +23,7 @@ related:
   - ADR-0374
   - ADR-0388
   - ADR-0510
+  - ADR-0525
 related_specs:
   - /specs/phase0-ci-enforcement-baseline.json
   - /specs/phase0-ci-enforcement-result-schema.json
@@ -79,7 +80,8 @@ onto the 2026-06-07 posture: GitHub Actions is the sole live CI authority, `oya-
 one canonical blocking context, gates are Rust binaries the pipeline runs automatically, and there is
 no CLI/shell interaction model. It **supersedes** ADR-0124, ADR-0349, ADR-0359, ADR-0361, ADR-0511,
 ADR-0513, ADR-0514, and the 21-facet multispectrum-review enforcement doctrine; it **depends on**
-(does not absorb) ADR-0408/ADR-0392 (the Buck2 build substrate, a distinct bounded context); it
+(does not absorb) ADR-0392 (the Buck2 build substrate, a distinct bounded context); ADR-0525 later
+refines the CI orchestration boundary. It
 **amends** ADR-0092 (strip the multispectrum dependency-seam subchecks).
 
 The concise reviewer-facing projection of this cloud-native/no-CLI/no-shell posture is
@@ -347,7 +349,7 @@ product reimplementing the **patterns** of Prow + Tekton + Argo Workflows + Argo
 ("do what Go does, cloud-native, in Rust"), homed as tenant-facing dogfood products under
 `cloud/cloud-scm`, `cloud/cloud-ci`, `cloud/cloud-cd` (D-PURESPLIT: a service dir exists only under
 `oya/` or `cloud/`, exactly once; no `oya/`→`cloud/` internal dependency). It depends on (does not
-absorb) the Buck2 build substrate (ADR-0408/0392). It runs the **same** canonical gate logic as the
+absorb) the Buck2 build substrate (ADR-0392). It runs the **same** canonical gate logic as the
 live GitHub Actions runner (owned-runner readiness), so the GitHub→owned cutover is a **runner-swap of
 the one canonical pipeline**, validated at swap time — **out of this campaign's scope**. The forge
 ratchet is GitHub-interim → bespoke Sapling-inspired `cloud/cloud-scm` (ADR-0510 cutover-trigger;
@@ -364,7 +366,7 @@ Forgejo is dropped entirely, not a bridge).
 | **ADR-0124** own webhook merge-queue | Superseded-in-mechanism | merge-queue intent + the blocker taxonomy → GitHub-native `merge_group` interim → owned Tide; file-overlap clustering → graph-exact `conflicts(a,b)` |
 | **Multispectrum-review enforcement** (21-facet doctrine; the legacy bridge tie + the Proposed 0327/0323/0322/0247 framings) | Superseded (accounting half) + Dropped (critique half) | accounting/structural half → this firewall + one-canonical-CI; per-changeset multi-lens critique → **dropped, no replacement** (recorded loss of ADR-0322 anti-template-stamping + ADR-0247 SOC2 CC8.1 self-modification attestation) |
 | **ADR-0092** workspace dependency-seam policy | **Amended** (not superseded) | keep the 3 mechanical seam subchecks; **strip the 3 multispectrum subchecks** before the `oya-check-dependency-seam` lane logic is removed |
-| **ADR-0408 / ADR-0392** Buck2 build substrate | **NOT superseded — depends_on** | the build substrate stays authoritative as a separate bounded context; amend its refs to cite this ADR for orchestration |
+| **ADR-0392** Buck2 build substrate | **NOT superseded — depends_on** | the build substrate stays authoritative as a separate bounded context; ADR-0525 carries the later orchestration refinement |
 
 Per **D-SSOT-CURRENT-TRUTH**: the superseded ADR files are hard-destroyed (`git rm`; git history is the
 sole archive), every dangling reference to a deleted id is scrubbed (no-dangling satisfied by full
@@ -525,6 +527,12 @@ a known-good it passes + proof it runs in the pipeline and BLOCKS):
   `evidence/goals/governance-integrity-dispatch-validation-20260628.json` are Dispatch-control evidence for the
   approval-gated G1/G2 lane claim checkpoint. They are justified only as audit/quality-gate records under this
   `oya-ci-required` governed path; they do not create merge authority, bypass CI, or authorize implementation.
+- **Pre-planning authority-closure evidence registration (2026-07-13):** the repo-relative artifact
+  `evidence/consolidation/preplanning-authority-closure-20260713.json` is non-authoritative inventory,
+  lifecycle-reconciliation, and admission evidence for the founder decision hold before a planning session.
+  It is justified only as an audit record under this `oya-ci-required` governed path; it does not make a
+  planning choice, authorize dispatch or implementation, prove product readiness, bypass CI, or mutate
+  generated artifacts.
 
 ## Amendment (2026-06-08, WAVE-1 Agentic Delivery Fabric convergence — refined, NOT superseded)
 
@@ -549,4 +557,4 @@ preserves the pre-amendment body. The refinements:
 None of these reverses a decision of ADR-0515; it is the governing floor the fabric builds upon.
 
 ---
-*Accepted 2026-06-07 (founder-ruled; door:one-way). Authority: D-CICD-AUTHORITY · ONE CANONICAL CI · D-CLOUD-NATIVE · D-GOVERNANCE-CENTRAL · D-MULTISPECTRUM-RETIRED · D-SSOT-CURRENT-TRUTH · D-SEQUENCE · D-DOCTRINE (decision-record-oyatie-canon.md). Plan: CICD-DESIGN-PLAN.md (ralplan-APPROVED). Reciprocal `superseded_by` edges written on 0124/0349/0359/0361/0511/0513/0514; 0092 amended; 0392 depends_on (the former ADR-0408 CI/CD reversal is re-authored into ADR-0525). Superseded files hard-destroyed per D-SSOT-CURRENT-TRUTH (git history is the sole archive). Refined (not superseded) 2026-06-08 by the WAVE-1 fabric cluster ADR-0516/0519/0522/0523/0525/0526/0527/0528/0529/0530.*
+*Accepted 2026-06-07 (founder-ruled; door:one-way). Authority: D-CICD-AUTHORITY · ONE CANONICAL CI · D-CLOUD-NATIVE · D-GOVERNANCE-CENTRAL · D-MULTISPECTRUM-RETIRED · D-SSOT-CURRENT-TRUTH · D-SEQUENCE · D-DOCTRINE (decision-record-oyatie-canon.md). Plan: CICD-DESIGN-PLAN.md (ralplan-APPROVED). Reciprocal `superseded_by` edges written on 0124/0349/0359/0361/0511/0513/0514; 0092 amended; ADR-0392 is the Buck2 dependency and ADR-0525 carries the later CI/CD refinement. Refined (not superseded) 2026-06-08 by the WAVE-1 fabric cluster ADR-0516/0519/0522/0523/0525/0526/0527/0528/0529/0530. D-SSOT-CURRENT-TRUTH still requires hard deletion with git history as the archive. The repository's present retention of superseded ADR files is implementation drift, not a silent amendment; changing that rule requires a higher Accepted founder-ratified ADR.*
