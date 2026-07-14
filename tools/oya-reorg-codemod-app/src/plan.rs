@@ -10,7 +10,7 @@
 //!    names — IN PLACE at their OLD paths (so paths recompute against the to-be layout);
 //! 4. rewrite ALL `BUCK` labels + the moved BUCKs' own name/crate fields;
 //! 5. rewrite ALL `.rs` crate-ident references;
-//! 5b. rewrite ADR doc-anchor path citations (`docs/decisions/*.md`) old -> new for every moved
+//!    5b. rewrite ADR doc-anchor path citations (`docs/decisions/*.md`) old -> new for every moved
 //!    crate — a load-bearing `justification_ref` anchor for the total-accounting gate
 //!    (`resolve_justifications` token-walks the ADR corpus); left un-rewritten, a moved file an
 //!    ADR cites by exact path silently loses its justification (distinct from the ADR-0563
@@ -31,7 +31,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use oya_workspace_members_kernel::resolve_member_dirs_from_str;
+use oya_workspace_members_kernel::{ResolveError, resolve_member_dirs_from_str};
 
 use crate::buck;
 use crate::cargo;
@@ -118,6 +118,11 @@ pub fn apply_plan(
             });
         }
     }
+
+    // Resolve the current root workspace before any transform writes. A missing-manifest or
+    // filesystem inspection failure must not become an empty member set after steps 3-5 have
+    // already edited files: that could prune unrelated globs and leave a partial move.
+    validate_root_workspace_members(repo_root)?;
 
     // resolve_target: OLD repo-relative crate dir -> NEW dir (identity if unmoved).
     let resolve_target = |old: &str| -> Option<String> {
@@ -344,7 +349,7 @@ fn rewrite_root_workspace(
     // dir; the stale glob would make cargo error `failed to read <glob>/Cargo.toml`). We
     // resolve the CURRENT member dirs from the live tree, simulate the move (remove old_paths,
     // add new_paths), and drop a glob whose post-move match set is empty.
-    let mut globs_to_prune = compute_globs_to_prune(repo_root, &text, plan);
+    let mut globs_to_prune = compute_globs_to_prune(repo_root, &text, plan)?;
 
     // Drop LITERAL members entries that point at a now-moved old_path (the symmetric inverse of
     // the literal new-dir additions, so a forward-add/inverse-remove round-trips byte-clean).
@@ -428,16 +433,13 @@ fn compute_globs_to_prune(
     repo_root: &Path,
     root_manifest_text: &str,
     plan: &MovePlan,
-) -> Vec<String> {
-    let entries = match oya_workspace_members_kernel::workspace_manifest_entries_from_str(
-        root_manifest_text,
-    ) {
-        Ok(e) => e,
-        Err(_) => return Vec::new(),
-    };
+) -> Result<Vec<String>, CodemodError> {
+    let entries =
+        oya_workspace_members_kernel::workspace_manifest_entries_from_str(root_manifest_text)
+            .map_err(workspace_member_resolution_error)?;
     // Current resolved member dirs from the live (pre-move) tree.
-    let current: Vec<String> =
-        resolve_member_dirs_from_str(root_manifest_text, repo_root).unwrap_or_default();
+    let current = resolve_member_dirs_from_str(root_manifest_text, repo_root)
+        .map_err(workspace_member_resolution_error)?;
     let moved_old: BTreeSet<&str> = plan.moves.iter().map(|m| m.old_path.as_str()).collect();
     let mut post_move: BTreeSet<String> = current
         .into_iter()
@@ -462,7 +464,35 @@ fn compute_globs_to_prune(
     }
     prune.sort();
     prune.dedup();
-    prune
+    Ok(prune)
+}
+
+/// Validate root workspace membership before the codemod performs any writes.
+fn validate_root_workspace_members(repo_root: &Path) -> Result<(), CodemodError> {
+    let root_manifest = repo_root.join("Cargo.toml");
+    if !root_manifest.is_file() {
+        return Ok(());
+    }
+    let text = read(&root_manifest, "Cargo.toml")?;
+    resolve_member_dirs_from_str(&text, repo_root)
+        .map(|_| ())
+        .map_err(workspace_member_resolution_error)
+}
+
+fn workspace_member_resolution_error(error: ResolveError) -> CodemodError {
+    let message = error.to_string();
+    match error {
+        ResolveError::Read(_) | ResolveError::InspectMemberPath { .. } => CodemodError::Io {
+            context: "resolve root workspace members".to_string(),
+            message,
+        },
+        ResolveError::Parse(_) | ResolveError::Shape(_) | ResolveError::MissingManifests(_) => {
+            CodemodError::Parse {
+                path: "Cargo.toml".to_string(),
+                message,
+            }
+        }
+    }
 }
 
 /// True if the root manifest's `[workspace].members` glob set would match `new_dir`. We use
@@ -547,8 +577,11 @@ fn current_members(root_manifest_text: &str) -> Result<Vec<String>, CodemodError
 
 /// Resolve the concrete member dirs from a manifest text against a tree (used by the oracle
 /// to assert the post-move member set is non-empty / well-formed).
-pub fn resolve_members(root_manifest_text: &str, repo_root: &Path) -> Vec<String> {
-    resolve_member_dirs_from_str(root_manifest_text, repo_root).unwrap_or_default()
+pub fn resolve_members(
+    root_manifest_text: &str,
+    repo_root: &Path,
+) -> Result<Vec<String>, ResolveError> {
+    resolve_member_dirs_from_str(root_manifest_text, repo_root)
 }
 
 /// True if `rel` exists on disk (file OR directory) under `repo_root`. Used for the artifact
@@ -948,7 +981,7 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
         wf(
             &root,
             "Cargo.toml",
-            "[workspace]\nmembers = [\"crates/*\", \"crates/a/*\", \"capA/*\", \"capB/*\"]\nresolver = \"2\"\n",
+            "[workspace]\nmembers = [\"crates/a\", \"crates/a/nested\"]\nresolver = \"2\"\n",
         );
         wf(
             &root,
@@ -1024,6 +1057,68 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
         let p = root.join(rel);
         std::fs::create_dir_all(p.parent().unwrap()).unwrap();
         std::fs::write(p, content).unwrap();
+    }
+
+    #[test]
+    fn apply_fails_before_mutation_when_workspace_member_resolution_fails() {
+        let root = artifact_tmp_root("workspace-resolve-fail");
+        wf(
+            &root,
+            "Cargo.toml",
+            "[workspace]\nmembers = [\"crates/*\", \"libs/*\"]\nresolver = \"2\"\n",
+        );
+        wf(
+            &root,
+            "crates/oya-widget/Cargo.toml",
+            "[package]\nname = \"oya-widget\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        wf(
+            &root,
+            "crates/oya-widget/src/lib.rs",
+            "pub fn widget() {}\n",
+        );
+        wf(
+            &root,
+            "libs/keep/Cargo.toml",
+            "[package]\nname = \"keep\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        std::fs::create_dir_all(root.join("libs/missing-manifest")).unwrap();
+
+        let plan = MovePlan {
+            capability: "widget".to_string(),
+            moves: vec![CrateMove {
+                old_path: "crates/oya-widget".to_string(),
+                new_path: "widget/core/widget".to_string(),
+                old_cargo_name: "oya-widget".to_string(),
+                new_cargo_name: "widget-domain".to_string(),
+            }],
+            artifacts: vec![],
+        };
+        let root_manifest_before = std::fs::read(root.join("Cargo.toml")).unwrap();
+        let crate_manifest_before =
+            std::fs::read(root.join("crates/oya-widget/Cargo.toml")).unwrap();
+
+        let error = apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false })
+            .expect_err("invalid current workspace membership must abort the codemod");
+
+        assert!(
+            error.to_string().contains("libs/missing-manifest"),
+            "the typed resolver error must remain visible: {error}"
+        );
+        assert_eq!(
+            std::fs::read(root.join("Cargo.toml")).unwrap(),
+            root_manifest_before,
+            "a failed resolver preflight must not prune unrelated workspace globs"
+        );
+        assert_eq!(
+            std::fs::read(root.join("crates/oya-widget/Cargo.toml")).unwrap(),
+            crate_manifest_before,
+            "a failed resolver preflight must precede package rewrites"
+        );
+        assert!(root.join("crates/oya-widget").is_dir());
+        assert!(!root.join("widget/core/widget").exists());
+
+        let _ = std::fs::remove_dir_all(&root);
     }
 
     /// A minimal one-crate workspace plus a NON-crate SLO dir + a catalog file, so an artifact

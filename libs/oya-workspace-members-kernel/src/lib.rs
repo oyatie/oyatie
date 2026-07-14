@@ -276,7 +276,7 @@ fn expand_pattern(
                     } else if file_type.is_symlink() {
                         match std::fs::metadata(&entry_path) {
                             Ok(metadata) => metadata.is_dir(),
-                            Err(error) if error.kind() == std::io::ErrorKind::NotFound => false,
+                            Err(error) if cargo_skips_symlink_target_error(&error) => false,
                             Err(error) => {
                                 return Err(inspect_member_path_error(&entry_path, error));
                             }
@@ -298,7 +298,7 @@ fn expand_pattern(
                 match std::fs::metadata(&candidate_path) {
                     Ok(metadata) if metadata.is_dir() => next.push(candidate),
                     Ok(_) => {}
-                    Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+                    Err(error) if cargo_skips_symlink_target_error(&error) => {}
                     Err(error) => {
                         return Err(inspect_member_path_error(&candidate_path, error));
                     }
@@ -322,6 +322,27 @@ fn inspect_member_path_error(path: &Path, error: std::io::Error) -> ResolveError
         path: path.display().to_string(),
         message: error.to_string(),
     }
+}
+
+/// Cargo's member-glob expansion treats dangling and cyclic symlinks as unmatched paths.
+/// Other inspection failures remain hard errors so an incomplete member scan cannot go green.
+fn cargo_skips_symlink_target_error(error: &std::io::Error) -> bool {
+    if error.kind() == std::io::ErrorKind::NotFound {
+        return true;
+    }
+
+    // `ErrorKind::FilesystemLoop` remains unstable on the pinned toolchain, so recognize the
+    // platform error codes returned by metadata(2) / CreateFile for a cyclic symlink.
+    #[cfg(unix)]
+    if matches!(error.raw_os_error(), Some(40 | 62)) {
+        return true;
+    }
+    #[cfg(windows)]
+    if error.raw_os_error() == Some(1921) {
+        return true;
+    }
+
+    false
 }
 
 /// Match one path component against a single-segment glob containing zero or more `*`
@@ -650,19 +671,24 @@ mod tests {
 
     #[cfg(unix)]
     #[test]
-    fn expansion_metadata_errors_fail_closed() {
+    fn symlink_loops_are_skipped_like_cargo_for_glob_and_literal_members() {
         use std::os::unix::fs::symlink;
 
         let root = fixture_root();
         symlink("loop", root.join("loop")).unwrap();
 
-        let result =
-            scan_member_dirs_from_str("[workspace]\nmembers = [\"*\"]\nexclude = []\n", &root);
+        for member in ["*", "loop"] {
+            let manifest =
+                format!("[workspace]\nmembers = [\"{member}\"]\nexclude = []\nresolver = \"2\"\n");
+            let scan = scan_member_dirs_from_str(&manifest, &root)
+                .expect("Cargo skips a self-referential symlink member");
 
-        assert!(
-            matches!(&result, Err(ResolveError::InspectMemberPath { .. })),
-            "a symlink loop must not be treated as an unmatched member path: {result:?}"
-        );
+            assert!(scan.member_dirs.is_empty(), "member pattern: {member}");
+            assert!(
+                scan.missing_manifests.is_empty(),
+                "member pattern: {member}"
+            );
+        }
     }
 
     #[test]
