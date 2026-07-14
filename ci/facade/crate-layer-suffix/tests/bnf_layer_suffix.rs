@@ -140,7 +140,7 @@ fn resolve_nested_workspace_member_dirs(root: &Path) -> Vec<String> {
             &nested_text,
             &nested_root,
         )
-        .unwrap_or_default();
+        .expect("resolve nested workspace members");
         dirs.extend(members.into_iter().map(|m| format!("{excluded}/{m}")));
     }
     dirs
@@ -322,11 +322,9 @@ fn census_tmp_root(tag: &str) -> PathBuf {
 #[test]
 #[should_panic(expected = "unreadable manifest")]
 fn independent_census_fails_closed_on_unreadable_member_manifest() {
-    // `resolve_member_dirs` itself only returns dirs with an EXISTING Cargo.toml (a member with
-    // no Cargo.toml at all is filtered out upstream — not a "member" by Cargo's own rule, so it
-    // never reaches the census loop). The RED fixture this test actually needs: a Cargo.toml
-    // that EXISTS (passes that presence filter) but is unreadable AT READ TIME (permission
-    // denied) — a deliberately-unreadable oya-* manifest must RED the census.
+    // `resolve_member_dirs` fails when a matched directory has no Cargo.toml. This fixture tests
+    // the next boundary: the manifest exists for membership resolution but is unreadable when the
+    // census parses it. A deliberately unreadable oya-* manifest must RED the census.
     let root = census_tmp_root("unreadable");
     let manifest_path = root.join("crates/oya-ghost-domain/Cargo.toml");
     std::fs::create_dir_all(manifest_path.parent().unwrap()).expect("mkdir");

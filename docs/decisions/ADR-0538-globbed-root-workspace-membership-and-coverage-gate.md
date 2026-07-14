@@ -56,13 +56,15 @@ exclude = [
 ]
 ```
 
-Every parser, gate, or tool that needs concrete root workspace members MUST call
-`libs/oya-workspace-members-kernel::resolve_member_dirs(repo_root)` rather than reading
-`[workspace].members` text directly. The kernel expands single-component `*` and partial-component
-patterns, follows matched directory symlinks like Cargo, fails closed on glob-expansion I/O errors,
-fails when an unexcluded matched directory lacks `Cargo.toml`, and applies each reviewed explicit
-`exclude` to the whole subtree before manifest validation. Gate producers use the kernel's
-diagnostic scan surface to report every such invalid match without re-deriving glob semantics.
+Consumers requiring a Cargo-valid concrete member set MUST call
+`libs/oya-workspace-members-kernel::resolve_member_dirs(repo_root)`. Diagnostic gate producers that
+must preserve every invalid glob match MUST call
+`libs/oya-workspace-members-kernel::scan_member_dirs(repo_root)`. Neither consumer category may
+reimplement `[workspace].members` expansion. The kernel expands single-component `*` and
+partial-component patterns, follows matched directory symlinks like Cargo, skips Cargo-unmatched
+dangling and cyclic symlinks, fails closed on other glob-expansion I/O errors, fails when an
+unexcluded matched directory lacks `Cargo.toml`, and applies each reviewed explicit `exclude` to
+the whole subtree before manifest validation.
 
 The cloud-ci floor adds one single-concern gate,
 `ci/facade/workspace-member-coverage`, with stable violation codes:
