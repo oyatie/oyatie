@@ -18,6 +18,10 @@
 //! baseline as keys disappear (file cleaned => GREEN). Same compare-mode + ratchet-invariant
 //! predicates, zero firewall code change.
 //!
+//! A separate born-empty class for a retired external coordination brand is also folded into
+//! this same gate. It scans raw bytes and pathnames and intentionally does not use the carve-outs
+//! described below.
+//!
 //! ## Granularity: per-(stem, file), not per-line
 //! The ratchet key is `"<path>"` per `(stem, file)` finding — NOT `path:line`. Per-line keys
 //! would churn on every edit above a residue line (line numbers shift => spurious
@@ -48,6 +52,46 @@ use std::collections::{BTreeMap, BTreeSet};
 pub struct Finding {
     pub code: String,
     pub key: String,
+}
+
+/// Born-empty firewall code for the retired external coordination brand. Unlike the
+/// shrink-only vocabulary rules below, this class has no baseline and no exceptions.
+pub const STRICT_ZERO_RETIRED_BRAND_CODE: &str = "forbidden_retired_coordination_brand";
+
+// Numeric representation keeps the retired name out of the very source that enforces its
+// absence. The bytes are lowercase ASCII and are matched case-insensitively.
+const STRICT_ZERO_RETIRED_BRAND_NEEDLE: [u8; 6] = [104, 101, 114, 109, 101, 115];
+
+fn contains_ascii_case_insensitive(haystack: &[u8], needle: &[u8]) -> bool {
+    !needle.is_empty()
+        && haystack.windows(needle.len()).any(|window| {
+            window
+                .iter()
+                .zip(needle)
+                .all(|(left, right)| left.eq_ignore_ascii_case(right))
+        })
+}
+
+/// Inspect one tracked pathname and its exact blob bytes for the retired coordination brand.
+/// `key` is the stable string carried by the SCM-facts face; `raw_path` is the decoded Git
+/// pathname byte sequence. Keeping them separate preserves arbitrary-byte paths without making
+/// the JSON firewall key lossy. This deliberately has no policy argument: callers cannot
+/// configure exceptions, and binary blobs are scanned without UTF-8 decoding or conversion.
+pub fn strict_zero_retired_brand_finding(
+    key: &str,
+    raw_path: &[u8],
+    raw_blob: &[u8],
+) -> Option<Finding> {
+    if contains_ascii_case_insensitive(raw_path, &STRICT_ZERO_RETIRED_BRAND_NEEDLE)
+        || contains_ascii_case_insensitive(raw_blob, &STRICT_ZERO_RETIRED_BRAND_NEEDLE)
+    {
+        Some(Finding {
+            code: STRICT_ZERO_RETIRED_BRAND_CODE.to_owned(),
+            key: key.to_owned(),
+        })
+    } else {
+        None
+    }
 }
 
 /// One forbidden-vocab stem: the lowercase substring to match and the firewall code it
@@ -373,6 +417,61 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn retired_coordination_brand_bytes() -> Vec<u8> {
+        vec![104, 101, 114, 109, 101, 115]
+    }
+
+    #[test]
+    fn strict_zero_scans_paths_and_arbitrary_blob_bytes_case_insensitively() {
+        let needle = retired_coordination_brand_bytes();
+        let upper: Vec<u8> = needle.iter().map(u8::to_ascii_uppercase).collect();
+        let path = String::from_utf8(
+            [
+                b"docs/decisions/".as_slice(),
+                needle.as_slice(),
+                b".md".as_slice(),
+            ]
+            .concat(),
+        )
+        .expect("ASCII test path");
+
+        assert_eq!(
+            strict_zero_retired_brand_finding(&path, path.as_bytes(), b"clean"),
+            Some(Finding {
+                code: STRICT_ZERO_RETIRED_BRAND_CODE.to_owned(),
+                key: path.clone(),
+            })
+        );
+        assert_eq!(
+            strict_zero_retired_brand_finding(
+                "assets/blob.bin",
+                b"assets/blob.bin",
+                &[&[0, 255][..], &upper].concat(),
+            ),
+            Some(Finding {
+                code: STRICT_ZERO_RETIRED_BRAND_CODE.to_owned(),
+                key: "assets/blob.bin".to_owned(),
+            })
+        );
+    }
+
+    #[test]
+    fn strict_zero_has_no_path_class_carve_outs() {
+        let body = retired_coordination_brand_bytes();
+        for path in [
+            "docs/decisions/ADR-9999.md",
+            "evidence/audit-chain.jsonl",
+            "_archive/retired.md",
+            "ci/facade/example.generated.json",
+            "libs/oya-check-brand-residue/src/forbidden_vocab.rs",
+        ] {
+            assert!(
+                strict_zero_retired_brand_finding(path, path.as_bytes(), &body).is_some(),
+                "strict-zero scan must inspect {path}"
+            );
+        }
+    }
 
     fn doc<'a>(path: &'a str, contents: &'a str) -> CensusDocument<'a> {
         CensusDocument { path, contents }

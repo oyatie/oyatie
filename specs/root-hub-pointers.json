@@ -42,7 +42,6 @@
       ".omc/**",
       ".omx/**",
       ".gjc/**",
-      "~/.hermes/kanban/boards/oyatie/kanban.db",
       "~/.gjc/**",
       "~/.omx/**"
     ],

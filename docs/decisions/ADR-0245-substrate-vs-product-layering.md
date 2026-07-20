@@ -172,7 +172,7 @@ substrate-vs-product distinction without a shared definition:
 
 - **ADR-0136 (Foundry as single µservice, 2026-05-18) +
   ADR-0136-amendment + ADR-0239.** Tags Foundry as "internal
-  µservice serving the Hermes agentic development pipeline" — an
+  µservice serving the retired external agent harness agentic development pipeline" — an
   audience-shaped framing rather than a tier-shaped framing.
 - **ADR-0220 (Consumer Intelligence Substrate, 2026-05-18).** Names
   Intelligence a "substrate" but in a consumer-facing audience sense,

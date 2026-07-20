@@ -1450,30 +1450,6 @@
       "protocol_step_4": "If quorum converges on root-cause: emit ADR + lane + regression test through normal pipeline",
       "protocol_step_5": "If quorum cannot converge after 48h wall-clock: leave the case OPEN in registry/incidents/open/; file F-OPEN-INCIDENT-COMPOUNDING for the next planning round to weight as priority input"
     },
-    "hermes_research_integration": {
-      "_naming_note": "Key name retained for cross-reference continuity to evidence/autoresearch/. The 'Hermes' canonical-primitive name is RETIRED per ADR-0247 D-10 + ADR-0335 D-26..D-36; this block references the EXTERNAL repo NousResearch/hermes-agent as a research-provenance citation only (allowed per ADR-0335 D-30 historical-citation policy). The internal Hermes pipeline brand is RETIRED.",
-      "evidence_path": "evidence/autoresearch/hermes-integration-candidates.json",
-      "source_commit": "NousResearch/hermes-agent@a91a57fa5a13d516c38b07a141a9ce8a3daabeb0",
-      "adopted_patterns": [
-        "durable_agent_workboard",
-        "worker_liveness_reclaim_and_failure_circuit_breaker",
-        "persistent_goals_checkpoints_live_handoff",
-        "per_turn_file_mutation_verifier",
-        "curated_learning_loop_for_agent_created_procedures",
-        "progressive_disclosure_knowledge_surfaces",
-        "bounded_memory_plus_on_demand_session_search",
-        "scheduled_ops_jobs_with_loop_guard",
-        "hardline_forbidden_operations_floor",
-        "provider_capability_and_credential_registry"
-      ],
-      "rejected_or_constrained_patterns": [
-        "manual chat as control authority",
-        "remote shell/serverless terminal backends for deployment",
-        "yolo/off approval modes as autonomy mechanism",
-        "agent-managed canonical skill/spec mutation outside PR gates"
-      ],
-      "deployment_constraint": "Hermes shell/server patterns are rejected for deployment. Oyatie deployment remains OpenTofu + Makefile bootstrap/install + ops-managed day-2 only per specs/deployment-ops-contract.json; no manual SSH troubleshooting."
-    },
     "audit_chain_requirement": "Every autonomous_foundry decision emits one or more audit-chain rows with per-decision distinct session_id + timestamp + role attribution. PR17 anti-pattern (shared session_id) is forbidden per OP-08.",
     "references": [
       "agent-skills:idea-refine (user invocation 2026-05-16)",

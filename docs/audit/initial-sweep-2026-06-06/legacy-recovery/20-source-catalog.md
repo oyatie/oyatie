@@ -174,7 +174,7 @@ Single-crate-per-service (ADR-0509). Replace named OSS with bespoke Rust.
 | `eventing` ✚ | substrate | Eventing backbone / outbox (ADR-0005) — crate-only scaffold |
 
 > Retired/merged (tombstones, do NOT expect as live services): `foundry` (→ absorbed
-> by `intelligence`, ADR-0335; "Hermes" brand dropped), `cell` (→ pattern not service,
+> by `intelligence`, ADR-0335; "retired external agent harness" brand dropped), `cell` (→ pattern not service,
 > ADR-0333; rebalancing/lifecycle carved into cloud `cell-rebalancer`/`cell-lifecycle`),
 > `shorts` (→ merged into `social`, ADR-0334), `anonymous` (→ folded into `community`),
 > `tenant-rbac` grouping wrapper (→ deprecated tombstone, ADR-0362).
@@ -326,7 +326,7 @@ depend on products.
 | ADR | Covers |
 |---|---|
 | ADR-0333 | cell µservice retired — cellular architecture kept as a pattern |
-| ADR-0335 | foundry retired — absorbed by intelligence; "Hermes" dropped |
+| ADR-0335 | foundry retired — absorbed by intelligence; "retired external agent harness" dropped |
 | ADR-0334 | shorts merged into social |
 | ADR-0351 | cell-rebalancer + cell-lifecycle carved out of the cell absorption |
 | ADR-0363 | Agentic VCS foundry → intelligence + Forgejo substrate |

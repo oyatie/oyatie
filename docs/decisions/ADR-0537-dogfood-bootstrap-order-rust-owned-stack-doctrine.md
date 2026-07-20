@@ -146,7 +146,7 @@ shadow → warn → enforce ladder, sequenced under ADR-0328.
 
 ## Governed surfaces added by trust/root/IaC port
 
-The cloud trust/root/IaC drift port (Hermes Kanban t_3e97188f / t_8360046d) adds the following
+The cloud trust/root/IaC drift port (retired external agent harness Kanban t_3e97188f / t_8360046d) adds the following
 governed surfaces under this ADR's step-0 root ceremony and Rust-owned cloud-os ladder:
 
 - `cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/persistence.rs` — trustd sealed-state

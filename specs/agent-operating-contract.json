@@ -41,7 +41,7 @@
     ]
   },
   "coordinator_worker_split": {
-    "coordinator_role": "The external Hermes board-steward / portfolio coordinator evaluates architecture, system design, completed and upcoming work, maturity gaps, documentation/procedure/process health, regressions, and Kanban decomposition/prioritization.",
+    "coordinator_role": "The capability-neutral portfolio/architecture coordinator evaluates architecture, system design, completed and upcoming work, maturity gaps, documentation/procedure/process health, regressions, and work-item decomposition/prioritization.",
     "worker_role": "Dispatcher-assigned implementation and review workers execute scoped lane edits, tests, review, and PR evidence in isolated worktrees.",
     "boundary": "The coordinator is not the default implementation worker unless explicitly assigned as that lane worker.",
     "blocker_policy": "Coordinator-discovered blockers become dispatcher-ready resolution cards with source context, blocker class, acceptance criteria, verification path, suggested owner/profile, and dependency/conflict notes unless the coordinator is explicitly assigned as worker.",

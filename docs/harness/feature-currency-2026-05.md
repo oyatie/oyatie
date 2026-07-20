@@ -114,7 +114,7 @@ the PascalCase Codex schema are both up to date.
 | G2 | `pre-dispatch-guide.sh` (PreToolUse:Task) reads `.prompt` top-level; real Task input nests at `.tool_input.prompt`, so dispatch guidance never fires. | Medium | **APPLIED** |
 | G3 | Misleading `$TOOL_INPUT` env-var reads across 5 hooks imply Claude Code sets that env var. It does not (docs: "no env var carries event data"). Harmless (stdin fallback covers it) but a latent footgun. | Low | **APPLIED-partial** (kept as documented fallback for the CI harness; comments now state stdin is the real source) |
 | G4 | Pre-existing broken test: `scripts/tests/governance-hooks-retired-vcs-surfaces.test.sh:43` calls `tools/hooks/retired-vcs-surface-inventory.sh`, which commit `451987f24` deleted. Test exits 127. Unrelated to harness currency. | Medium (red test) | **RECOMMENDATION** (out of scope; fixing risks parent's CI work) |
-| G5 | `install.sh` summary still prints/handles `.hermes/hooks.json` and `HERMES_DETECTED` even though Hermes is retired (ADR-0335/0247). Dead branch. | Low | **RECOMMENDATION** |
+| G5 | `install.sh` summary still handled a source-specific home-hook detection branch after that harness was retired (ADR-0335/0247). Dead branch. | Low | **RECOMMENDATION** |
 | G6 | `_note` drift: `install.sh` CODEX_CONTENT `_note` ("PascalCase event keys…") differs from the committed `.codex/hooks.json` `_note` ("Removed 4 dead hooks…"). Cosmetic; both describe the same valid schema. | Low | **RECOMMENDATION** |
 | G7 | New Claude Code events unused: `SubagentStop`/`SessionEnd`/`PreCompact`. Could host future guidance, but adding them now is speculative and risks noise. | Info | **RECOMMENDATION** (defer) |
 | G8 | Optional sandbox hardening keys available: `autoAllowBashIfSandboxed` (fewer prompts once sandboxed), `permissions.defaultMode`, `WebFetch(domain:...)` allow rules, and (per `docs/security.md`'s own note) moving `denyRead`/`allowedDomains`/`disableBypassPermissionsMode` + `failIfUnavailable:true` into **managed** scope for a hard guarantee. | Info | **RECOMMENDATION** (policy/managed-scope decision; not a worktree change) |
@@ -159,8 +159,8 @@ already parse `.tool_input` correctly via python and need no edit;
   line 43 — the referenced `retired-vcs-surface-inventory.sh` was deleted in
   `451987f24`. Either restore the inventory hook or drop that assertion. This is a
   currently-red test independent of harness currency; left for the CI owner.
-- **R2 (G5):** Drop the dead `HERMES_DETECTED` branch and `.hermes/hooks.json` summary
-  line from the retired hook bootstrap generator (Hermes retired per ADR-0335/0247).
+- **R2 (G5):** Drop the dead source-specific detection branch and home-hook summary
+  line from the retired hook bootstrap generator (external agent harness retired per ADR-0335/0247).
 - **R3 (G6):** Re-sync the `install.sh` CODEX_CONTENT `_note` and the committed
   `.codex/hooks.json` `_note` so the generator and its output match verbatim.
 - **R4 (G3 full):** Optionally delete the `$TOOL_INPUT` env-var branch entirely once

@@ -1,6 +1,6 @@
 {
-  "agent_id": "hermes-default",
-  "branch": "work-hermes-t_b97e1471-ast-001",
+  "agent_id": "unresolved-legacy-automation",
+  "branch": "retired-source-branch-redacted",
   "change_class_id": "CC-3_tooling_feature",
   "change_id": "work-area-rust-parser-20260630",
   "created_at": "2026-06-30T17:23:01Z",

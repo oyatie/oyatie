@@ -172,7 +172,7 @@ While the change is in flight, every agent and every human MUST observe these ru
 - **No quarantining flaky tests without a 14-day fix SLA.** Quarantine assigns the test to the `flaky/` lane; the SLA is tracked.
 - **No editing legacy retired paths.** If a path was retired in a consolidation event, do not recreate it.
 - **Buck2 for evidence.** Local editor loops are advisory; final evidence comes from targeted `buck2 test` / `buck2 build` plus cloud-ci gate packets per [`standards/testing.md`](standards/testing.md) <!-- forward-reference: wave-1 -->.
-- **Kanban coordinator / worker split.** The external Hermes board-steward role is the portfolio/architecture coordinator: it evaluates architecture, system design, completed and upcoming work, maturity gaps, documentation/procedure/process health, regressions, and Kanban decomposition/prioritization. Dispatcher-assigned workers execute scoped implementation, review, verification, and PR evidence lanes in isolated worktrees. The coordinator MUST NOT become the default implementation worker unless explicitly assigned as that lane worker.
+- **Portfolio/architecture coordinator / worker split.** The capability-neutral portfolio/architecture coordinator evaluates architecture, system design, completed and upcoming work, maturity gaps, documentation/procedure/process health, regressions, and work-item decomposition/prioritization. Dispatcher-assigned workers execute scoped implementation, review, verification, and PR evidence lanes in isolated worktrees. The coordinator MUST NOT become the default implementation worker unless explicitly assigned as that lane worker.
 - **Blockers become work.** A coordinator that finds a blocker MUST create/link a dispatcher-ready resolution card with source context, blocker class, acceptance criteria, verification path, suggested owner/profile, and dependency/conflict notes. Do not convert blockers into ad hoc coordinator implementation unless the coordinator is explicitly assigned as worker for that lane.
 - **Autonomous merge boundary.** Autonomous merge authority exists only when the PR is fully reviewed, review threads are resolved, the required `oya-ci-required` context is green, the branch has no merge conflict, and branch protection is satisfied. Green CI alone is insufficient.
 
@@ -210,8 +210,8 @@ required_sequence:
     rollout verification, rollback note, observability check, browser UX/user-story evidence,
     and release-governance/release-note impact (Release Please applies only when a live repo config/workflow exists)
 coordinator_worker_split:
-  coordinator: external Hermes/portfolio steward owns architecture, system design, maturity,
-    regression audit, and Kanban decomposition/prioritization
+  coordinator: portfolio/architecture coordinator owns architecture, system design, maturity,
+    regression audit, and work-item decomposition/prioritization
   worker: dispatcher-assigned implementation/review worker owns scoped edits, tests,
     review, and PR evidence
   boundary: coordinator is not the default implementation worker unless explicitly assigned

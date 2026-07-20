@@ -26,14 +26,20 @@
     "work_item_count": 45,
     "dependency_edge_count": 36,
     "wave_count": 5,
-    "wave_sizes": [23, 15, 4, 2, 1],
+    "wave_sizes": [
+      23,
+      15,
+      4,
+      2,
+      1
+    ],
     "wave_rule": "wave(n) = 0 when n has no prerequisite edges in masterplan_v2.dependency_edges; otherwise 1 + max(wave(prerequisite)) over all prerequisites of n. Within a wave, items order lexicographically by work-item id. work_item_order is the wave-major concatenation of that ordering with contiguous zero-based indices.",
     "inherited_orderings_ignored": [
       "/specs/master-plan-sequencing.json (absorbed provenance; sequence indices not imported)",
       "docs/MASTERPLAN.md and docs/ROADMAP.md milestone/phase ordering (projections/provenance; not imported)",
       "specs/planning-closure-status-closure-ledger.json ordering (absorbed provenance; not imported)",
       ".omc/ultragoal/goals.json goal ordering (local-only harness store; not imported)",
-      "hermes board column/priority ordering (~/.hermes/kanban/boards/oyatie/kanban.db; forensic ingest only, ordering not imported)"
+      "retired external work-source column/priority ordering (forensic input only; ordering not imported)"
     ]
   },
   "accepted_adr_contradiction_review": {
