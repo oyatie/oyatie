@@ -46,7 +46,6 @@ REQUIRED_TOP_LEVEL_SOURCES = {
     "specs/microservices/calendar.json",
     "specs/microservices/manifests-index.json#microservices[name=calendar]",
     "oya/calendar/manifest.json",
-    "/Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_9aca64a9/calendar-source-map-and-backlog.md",
 }
 
 INVENTORY_NOT_AUTHORITY_MARKERS = {

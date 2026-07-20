@@ -13,7 +13,7 @@
   ],
   "past": {
     "authority_consolidation": [
-      "Masterplan v2 absorbed former sequencing, planning-closure, roadmap, harness, and Hermes planning surfaces; those sources remain provenance or evidence inputs, not parallel live plan authorities.",
+      "Masterplan v2 absorbed former sequencing, planning-closure, roadmap, and agent-harness planning surfaces; those sources remain provenance or evidence inputs, not parallel live plan authorities.",
       "ADR-0363 retired the bespoke Oya VCS claim/verify/done/promote ratchet in favor of isolated git worktrees and protected GitHub pull requests.",
       "ADR-0515 retired the pre-cutover CI backbone and made the single protected oya-ci-required context the admission target.",
       "The zero-based masterplan v2 sequencing was founder-ratified on 2026-07-02 before any execution-wave dispatch."
@@ -73,16 +73,6 @@
         "Implementation already present in the tree, autonomous-delegation prose, or a body statement that a choice was made does not silently promote frontmatter lifecycle status.",
         "Any still-present superseded or deprecated ADR is nonbinding historical data only; its continued presence is implementation drift against ADR-0515's current hard-delete rule and cannot be mistaken for live authority or an amendment."
       ]
-    },
-    "hermes_claim_tiers": {
-      "source_ref": "/specs/masterplan.json#masterplan_v2.hermes_done_card_import_summary",
-      "forensic_ledger": "evidence/goals/masterplan-v2-hermes-done-card-forensic-ledger-20260702.json",
-      "snapshot_sha256": "51379d8c6d48c0577baf8aa6eac4522f3d01042fec3475f0e56ed6be8b642b38",
-      "claimed_done_total": 934,
-      "evidence_attached_not_verified": 34,
-      "no_evidence_attachment": 900,
-      "verified": 0,
-      "claim_rule": "Hermes done-column state is a completion claim only. Evidence attachment is a mechanical cross-reference and never upgrades masterplan_status to verified or done."
     },
     "phase0_ci_enforcement": {
       "source_ref": "specs/phase0-ci-enforcement-baseline.json",
@@ -160,6 +150,15 @@
       },
       "generated_faces": "Official materializer used locally; no tracked generated JSON is part of the candidate diff.",
       "authority_limit": "Local results are shift-left evidence only. The protected oya-ci-required context and server-side review remain admission authority."
+    },
+    "external_claim_import_retirement": {
+      "status": "retired-and-deleted",
+      "closure_receipt": "/evidence/goals/masterplan-v2-external-board-import-retirement-closure-20260720.json",
+      "imported_claim_count": 934,
+      "evidence_attached_count": 34,
+      "unverified_count": 934,
+      "verified_count": 0,
+      "claim_rule": "No imported claim was promoted. Any future external completion claim requires provider-neutral schema and recorded completion evidence."
     }
   },
   "founder_choice_matrix": [
@@ -255,7 +254,7 @@
   "future": {
     "walkthrough_order": [
       "Confirm the authority order and the historical systems that are now provenance only.",
-      "Review the present evidence ceilings: baseline, ADR lifecycle counts, Hermes claim tiers, and Phase-0 gaps.",
+      "Review the present evidence ceilings: baseline, ADR lifecycle counts, retired external-claim import receipt, and Phase-0 gaps.",
       "Resolve every founder choice marked blocks_binding_plan, and explicitly scope or defer any other Proposed ADR the plan would use.",
       "Admit this consolidation through an isolated signed commit, protected PR against dev, independent review, resolved threads, no conflicts, and green oya-ci-required.",
       "Close planning_entry_contract with evidence; only then begin binding plan approval and later execution-wave dispatch."

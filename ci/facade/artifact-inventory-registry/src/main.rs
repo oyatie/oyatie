@@ -41,15 +41,16 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-use oya_check_brand_residue::forbidden_vocab::{
-    CensusDocument, VocabPolicy, census_findings_with, is_path_carved_out_with,
-};
 use ci_artifact_inventory_registry::{
     CrosswalkInputs, DecisionCrosswalkRow, EnforcementInputs, EnforcementRow, GateInputs,
     OwnersIntegrity, Policy, ProducerError, RepoInputs, adr_id_from_filename, allocate_next_adr_id,
     build_decision_crosswalk, build_enforcement_inventory, build_gate_baseline, build_registry,
     fix_owners, fix_reachability, front_matter_field, load_reachability_registry,
     registration_matches, resolve_owners, to_canonical_json,
+};
+use oya_check_brand_residue::forbidden_vocab::{
+    CensusDocument, VocabPolicy, census_findings_with, is_path_carved_out_with,
+    strict_zero_retired_brand_finding,
 };
 use serde_json::{Value, json};
 
@@ -394,9 +395,13 @@ fn run() -> Result<(), CliError> {
     // through the back door. The staleness gate ages rows from the untracked volatile
     // snapshot at evaluation time; its blocking authority is its own gate lane.
     let automation_matrix = build_automation_matrix(&enforcement);
-    // The fifth gate (cloud-ci-brand-residue) scans the raw tracked corpus for the forbidden
-    // vocab stems and freezes the per-(stem,file) residue as the shrink-only-ratchet baseline.
-    let brand_residue = collect_brand_residue(&repo_root, &inputs.tracked_paths, &cfg);
+    // The fifth gate (cloud-ci-brand-residue) scans the raw tracked corpus only when baseline
+    // materialization needs it. Other single-face stdout queries never consume this input.
+    let brand_residue = if should_collect_brand_residue(to_stdout, &face) {
+        collect_brand_residue(&repo_root, &inputs.tracked_paths, &cfg)?
+    } else {
+        BTreeMap::new()
+    };
     // The §2.5#4 bnf-layer-suffix gate input: the first-party oya-* crate names enumerated from
     // the tracked Cargo.toml manifests. The gate's evaluate_keyed resolves the role carve-out-
     // aware and reuses oya_governance_predictable_naming_kernel::check.
@@ -633,13 +638,14 @@ fn build_automation_matrix(enforcement: &Value) -> Value {
     json!({ "rows": matrix_rows })
 }
 
-/// Build the cloud-ci-brand-residue gate's `code -> keys` (the forbidden-vocab shrink-only
-/// ratchet). Scans the raw tracked corpus (NOT a generated face) for the four forbidden stems
-/// and freezes ONE key per `(stem, file)` so the firewall blocks any NEW occurrence while the
-/// historical residue ages out. Carve-outs (the deny-list source, the catalog spec, the
-/// Palantir proper-noun prose, the append-only audit chain, the `_legacy-foundry/` archive,
-/// and the generated faces) are DATA in `oya_check_brand_residue::forbidden_vocab`, applied
-/// here so wholly-carved files are never even read.
+fn should_collect_brand_residue(to_stdout: bool, face: &str) -> bool {
+    !to_stdout || face == "baseline"
+}
+
+/// Build the cloud-ci-brand-residue gate's `code -> keys`. The legacy forbidden-vocab census
+/// remains a shrink-only ratchet with policy carve-outs. The strict-zero retired-brand class is
+/// folded into the same gate but separately reads every tracked pathname and raw blob, including
+/// every path carved out of the legacy census.
 ///
 /// Deterministic + churn-free: per-file keys are stable under in-file edits (line numbers
 /// never enter the key), so editing prose in an already-listed file stays GREEN; only fully
@@ -648,7 +654,7 @@ fn collect_brand_residue(
     repo_root: &Path,
     tracked_paths: &[String],
     cfg: &oya_ci_config_kernel::OyaCiConfig,
-) -> BTreeMap<String, BTreeSet<String>> {
+) -> Result<BTreeMap<String, BTreeSet<String>>, CliError> {
     // The forbidden-stem table + carve-outs are sourced from the oya-ci config `[vocab]` section
     // (§3.3 / Stage 3); the bundled default reproduces today's consts, so the census is
     // byte-for-byte unchanged.
@@ -669,7 +675,151 @@ fn collect_brand_residue(
     for finding in census_findings_with(documents, &policy) {
         grouped.entry(finding.code).or_default().insert(finding.key);
     }
-    grouped
+    for path in tracked_paths {
+        let (raw_path, raw_blob) = read_tracked_blob(repo_root, path)?;
+        if let Some(finding) = strict_zero_retired_brand_finding(path, &raw_path, &raw_blob) {
+            grouped.entry(finding.code).or_default().insert(finding.key);
+        }
+    }
+    Ok(grouped)
+}
+
+/// Read the exact working-tree representation of a tracked Git blob. Regular files are read
+/// as arbitrary bytes. Symlinks contribute their link payload rather than the target contents,
+/// matching Git's blob semantics. Every error is fatal so an incomplete checkout cannot erase a
+/// strict-zero finding.
+fn read_tracked_blob(repo_root: &Path, tracked_path: &str) -> Result<(Vec<u8>, Vec<u8>), CliError> {
+    let raw_path = decode_git_path(tracked_path)?;
+    let relative_path = path_buf_from_bytes(raw_path.clone(), tracked_path)?;
+    if relative_path.as_os_str().is_empty()
+        || relative_path.is_absolute()
+        || relative_path.components().any(|component| {
+            matches!(
+                component,
+                std::path::Component::ParentDir | std::path::Component::RootDir
+            )
+        })
+    {
+        return Err(CliError::Io(format!(
+            "strict-zero brand scan: tracked path is not repo-relative: {tracked_path:?}"
+        )));
+    }
+    let path = repo_root.join(relative_path);
+    let metadata = std::fs::symlink_metadata(&path).map_err(|error| {
+        CliError::Io(format!(
+            "strict-zero brand scan: inspect tracked path {tracked_path:?}: {error}"
+        ))
+    })?;
+    if metadata.file_type().is_symlink() {
+        let target = std::fs::read_link(&path).map_err(|error| {
+            CliError::Io(format!(
+                "strict-zero brand scan: read tracked symlink {tracked_path:?}: {error}"
+            ))
+        })?;
+        return Ok((
+            raw_path,
+            target.as_os_str().as_encoded_bytes().to_vec(),
+        ));
+    }
+    if !metadata.is_file() {
+        return Err(CliError::Io(format!(
+            "strict-zero brand scan: tracked path {tracked_path:?} is not a file or symlink"
+        )));
+    }
+    let raw_blob = std::fs::read(&path).map_err(|error| {
+        CliError::Io(format!(
+            "strict-zero brand scan: read tracked blob {tracked_path:?}: {error}"
+        ))
+    })?;
+    Ok((raw_path, raw_blob))
+}
+
+/// Decode the line-oriented pathname representation emitted by `git ls-files` without `-z`.
+/// Git wraps paths requiring quoting in double quotes and uses C escapes, including three-digit
+/// octal escapes for arbitrary bytes. Unquoted entries are already their literal byte sequence.
+fn decode_git_path(tracked_path: &str) -> Result<Vec<u8>, CliError> {
+    let encoded = tracked_path.as_bytes();
+    if encoded.first() != Some(&b'"') {
+        return Ok(encoded.to_vec());
+    }
+    if encoded.len() < 2 || encoded.last() != Some(&b'"') {
+        return Err(invalid_git_path(tracked_path, "unterminated quoted path"));
+    }
+
+    let mut decoded = Vec::with_capacity(encoded.len() - 2);
+    let mut index = 1;
+    let end = encoded.len() - 1;
+    while index < end {
+        let byte = encoded[index];
+        if byte == b'"' {
+            return Err(invalid_git_path(tracked_path, "unescaped quote"));
+        }
+        if byte != b'\\' {
+            decoded.push(byte);
+            index += 1;
+            continue;
+        }
+
+        index += 1;
+        if index >= end {
+            return Err(invalid_git_path(tracked_path, "trailing escape"));
+        }
+        let escaped = encoded[index];
+        match escaped {
+            b'a' => decoded.push(0x07),
+            b'b' => decoded.push(0x08),
+            b't' => decoded.push(b'\t'),
+            b'n' => decoded.push(b'\n'),
+            b'v' => decoded.push(0x0b),
+            b'f' => decoded.push(0x0c),
+            b'r' => decoded.push(b'\r'),
+            b'\\' => decoded.push(b'\\'),
+            b'"' => decoded.push(b'"'),
+            first @ b'0'..=b'3' => {
+                if index + 2 >= end {
+                    return Err(invalid_git_path(tracked_path, "short octal escape"));
+                }
+                let second = encoded[index + 1];
+                let third = encoded[index + 2];
+                if !(b'0'..=b'7').contains(&second) || !(b'0'..=b'7').contains(&third) {
+                    return Err(invalid_git_path(tracked_path, "invalid octal escape"));
+                }
+                decoded.push(
+                    ((first - b'0') << 6) | ((second - b'0') << 3) | (third - b'0'),
+                );
+                index += 2;
+            }
+            _ => return Err(invalid_git_path(tracked_path, "unknown escape")),
+        }
+        index += 1;
+    }
+    if decoded.contains(&0) {
+        return Err(invalid_git_path(tracked_path, "NUL byte"));
+    }
+    Ok(decoded)
+}
+
+fn invalid_git_path(tracked_path: &str, reason: &str) -> CliError {
+    CliError::Io(format!(
+        "strict-zero brand scan: invalid Git C-quoted tracked path {tracked_path:?}: {reason}"
+    ))
+}
+
+#[cfg(unix)]
+fn path_buf_from_bytes(raw_path: Vec<u8>, _tracked_path: &str) -> Result<PathBuf, CliError> {
+    use std::os::unix::ffi::OsStringExt;
+
+    Ok(PathBuf::from(std::ffi::OsString::from_vec(raw_path)))
+}
+
+#[cfg(not(unix))]
+fn path_buf_from_bytes(raw_path: Vec<u8>, tracked_path: &str) -> Result<PathBuf, CliError> {
+    String::from_utf8(raw_path).map(PathBuf::from).map_err(|_| {
+        invalid_git_path(
+            tracked_path,
+            "pathname bytes are not valid UTF-8 on this platform",
+        )
+    })
 }
 
 /// Map the oya-ci config `[vocab]` section onto the brand crate's injected [`VocabPolicy`]
@@ -1608,6 +1758,122 @@ mod tests {
         }
         fs::write(&path, body).expect("write test file");
         path
+    }
+
+    fn retired_coordination_brand_bytes() -> Vec<u8> {
+        vec![104, 101, 114, 109, 101, 115]
+    }
+
+    #[test]
+    fn brand_residue_scan_runs_only_when_baseline_materialization_needs_it() {
+        assert!(should_collect_brand_residue(false, "registry"));
+        assert!(should_collect_brand_residue(true, "baseline"));
+        assert!(!should_collect_brand_residue(true, "registry"));
+        assert!(!should_collect_brand_residue(true, "enforcement-inventory"));
+    }
+
+    #[test]
+    fn strict_zero_collector_scans_every_tracked_path_class_and_binary_blob() {
+        let root = unique_temp_repo();
+        let needle = retired_coordination_brand_bytes();
+        let upper: Vec<u8> = needle.iter().map(u8::to_ascii_uppercase).collect();
+        let tracked_paths = vec![
+            "docs/decisions/ADR-9999.md".to_owned(),
+            "evidence/audit-chain.jsonl".to_owned(),
+            "_archive/retired.md".to_owned(),
+            "ci/facade/example.generated.json".to_owned(),
+            "assets/blob.bin".to_owned(),
+        ];
+        for path in &tracked_paths[..4] {
+            let full = root.join(path);
+            fs::create_dir_all(full.parent().expect("fixture parent")).expect("create parent");
+            fs::write(full, &needle).expect("write fixture");
+        }
+        let binary = root.join(&tracked_paths[4]);
+        fs::create_dir_all(binary.parent().expect("binary parent")).expect("create parent");
+        fs::write(binary, [&[0, 255][..], upper.as_slice()].concat()).expect("write binary");
+
+        let cfg =
+            oya_ci_config_kernel::OyaCiConfig::from_toml_str("").expect("default config parses");
+        let grouped = collect_brand_residue(&root, &tracked_paths, &cfg)
+            .expect("strict-zero collection succeeds");
+        let keys =
+            &grouped[oya_check_brand_residue::forbidden_vocab::STRICT_ZERO_RETIRED_BRAND_CODE];
+        assert_eq!(keys, &tracked_paths.into_iter().collect());
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn strict_zero_collector_scans_symlink_payload_without_following_target() {
+        use std::os::unix::ffi::OsStringExt;
+        use std::os::unix::fs::symlink;
+
+        let root = unique_temp_repo();
+        let link = root.join("links/retired-target");
+        fs::create_dir_all(link.parent().expect("link parent")).expect("create parent");
+        let target = std::ffi::OsString::from_vec(
+            [
+                b"../outside-".as_slice(),
+                retired_coordination_brand_bytes().as_slice(),
+            ]
+            .concat(),
+        );
+        symlink(target, &link).expect("create symlink fixture");
+        let tracked_paths = vec!["links/retired-target".to_owned()];
+        let cfg =
+            oya_ci_config_kernel::OyaCiConfig::from_toml_str("").expect("default config parses");
+
+        let grouped = collect_brand_residue(&root, &tracked_paths, &cfg)
+            .expect("dangling tracked symlink payload is readable");
+        assert!(
+            grouped[oya_check_brand_residue::forbidden_vocab::STRICT_ZERO_RETIRED_BRAND_CODE]
+                .contains("links/retired-target")
+        );
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    #[test]
+    fn strict_zero_collector_fails_closed_on_missing_tracked_blob() {
+        let root = unique_temp_repo();
+        let cfg =
+            oya_ci_config_kernel::OyaCiConfig::from_toml_str("").expect("default config parses");
+        let error = collect_brand_residue(&root, &["missing.bin".to_owned()], &cfg)
+            .expect_err("missing tracked blob must fail closed");
+        assert!(error.to_string().contains("missing.bin"));
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn strict_zero_collector_decodes_git_c_quoted_path_bytes() {
+        use std::os::unix::ffi::OsStringExt;
+
+        let root = unique_temp_repo();
+        let raw_relative = std::ffi::OsString::from_vec(
+            [
+                b"oya/developer-sdk/decisions/ADR-SDK-0003-tenancy-".as_slice(),
+                &[0xc2, 0xb5],
+                b"service.md".as_slice(),
+            ]
+            .concat(),
+        );
+        let full = root.join(raw_relative);
+        fs::create_dir_all(full.parent().expect("fixture parent")).expect("create parent");
+        fs::write(&full, retired_coordination_brand_bytes()).expect("write quoted-path fixture");
+        let tracked_key =
+            r#""oya/developer-sdk/decisions/ADR-SDK-0003-tenancy-\302\265service.md""#
+                .to_owned();
+        let cfg =
+            oya_ci_config_kernel::OyaCiConfig::from_toml_str("").expect("default config parses");
+
+        let grouped = collect_brand_residue(&root, std::slice::from_ref(&tracked_key), &cfg)
+            .expect("Git C-quoted tracked pathname resolves to its exact bytes");
+        assert!(
+            grouped[oya_check_brand_residue::forbidden_vocab::STRICT_ZERO_RETIRED_BRAND_CODE]
+                .contains(&tracked_key)
+        );
+        fs::remove_dir_all(root).expect("remove temp repo");
     }
 
     fn load_live_test_scm_facts(root: &Path) -> ScmFacts {

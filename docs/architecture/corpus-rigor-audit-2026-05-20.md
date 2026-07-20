@@ -578,7 +578,7 @@ Note: The compliance µservice carries the compliance-pack evaluation surface. T
 **Composite:** 20 + 6.6 + 18.0 + 8.9 + 9.2 + 10.0 = **72.7 — GOOD**
 
 **Priority findings:**
-- B-FDY-01 (HIGH): 561 files, 0 keystone ADR references — this is the largest gap in absolute terms. Foundry was the internal agentic-development pipeline (ADR-0136-amendment, historical; RETIRED per ADR-0335 Wave 15I — absorbed into intelligence per ADR-0255 KS#14; the "Hermes" name is RETIRED per ADR-0247 D-10 + ADR-0335 D-26..D-36). For new authoring, target intelligence and cite ADR-0335 (retirement), ADR-0255 (intelligence two-layer), ADR-0247 (self-modification doctrine via oyatie.foundry.* Cedar principals — namespace persists), ADR-0243 (Cedar gating of pipeline transitions), ADR-0246 (policy-engine substrate), ADR-0295 (bootstrap SPIFFE for bootstrap runners).
+- B-FDY-01 (HIGH): 561 files, 0 keystone ADR references — this is the largest gap in absolute terms. Foundry was the internal agentic-development pipeline (ADR-0136-amendment, historical; RETIRED per ADR-0335 Wave 15I — absorbed into intelligence per ADR-0255 KS#14; the "retired external agent harness" name is RETIRED per ADR-0247 D-10 + ADR-0335 D-26..D-36). For new authoring, target intelligence and cite ADR-0335 (retirement), ADR-0255 (intelligence two-layer), ADR-0247 (self-modification doctrine via oyatie.foundry.* Cedar principals — namespace persists), ADR-0243 (Cedar gating of pipeline transitions), ADR-0246 (policy-engine substrate), ADR-0295 (bootstrap SPIFFE for bootstrap runners).
 - Strength: Best abuse-defence (83 files) and Cedar coverage (201 files) in the entire corpus. Engineering rigor is excellent.
 
 ---

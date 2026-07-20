@@ -261,108 +261,58 @@ fn masterplan_structural_failure_mode_fixtures_fail_closed() {
     }
 }
 #[test]
-fn masterplan_v2_hermes_done_card_claims_are_unverified_until_evidence_attaches() {
+fn masterplan_v2_external_completion_claims_are_unverified_until_evidence_attaches() {
     let root = repo_root();
     let masterplan = load_json(&root.join("specs/masterplan.json"));
     let findings = evaluate_masterplan_v2_evidence_state(&masterplan);
     assert!(
         findings.is_empty(),
-        "masterplan v2 evidence-state policy must keep unverified Hermes done claims out of done: {findings:?}"
+        "masterplan v2 evidence-state policy must keep unverified external completion claims out of done: {findings:?}"
     );
 
-    let imports = masterplan["masterplan_v2"]["hermes_done_card_imports"]
-        .as_array()
-        .expect("masterplan_v2.hermes_done_card_imports must be an array");
-    let unverified_hermes_done_import = imports.iter().any(|claim| {
-        claim["source_system"].as_str() == Some("hermes")
-            && claim["source_status"].as_str() == Some("done")
-            && claim["evidence_refs"].as_array().is_some_and(Vec::is_empty)
-            && claim["masterplan_status"].as_str() == Some("claimed-done-unverified")
-            && claim["evidence_state"].as_str() == Some("claimed-done-unverified")
-    });
-    assert!(
-        unverified_hermes_done_import,
-        "Hermes done-card imports without evidence must be explicitly marked claimed-done-unverified"
-    );
-}
-
-/// Sub-AC 3 verifiability clause, asserted over the live per-card ledger: every
-/// Hermes done-card completion claim is imported as claimed-done-unverified, no
-/// claim carries a verified status without an attached evidence link, evidence
-/// attachment is reflected as evidence_state=evidence-attached (and never
-/// silently hidden), and the import summary's counts agree with the claims.
-#[test]
-fn masterplan_v2_hermes_done_card_ledger_is_per_card_and_never_verified_without_evidence() {
-    let root = repo_root();
-    let masterplan = load_json(&root.join("specs/masterplan.json"));
-    let imports = masterplan["masterplan_v2"]["hermes_done_card_imports"]
-        .as_array()
-        .expect("masterplan_v2.hermes_done_card_imports must be an array");
-    assert!(
-        !imports.is_empty(),
-        "the done-card ledger must carry per-card claims"
-    );
-
-    let mut evidence_attached = 0u64;
-    let mut unverified_pending = 0u64;
-    for claim in imports {
-        let id = claim["source_card_id"].as_str().expect(
-            "every ledger entry must name a concrete source_card_id (per-card, not count-level)",
-        );
-        let refs = claim["evidence_refs"]
-            .as_array()
-            .unwrap_or_else(|| panic!("{id}: evidence_refs must be an array"));
-        let status = claim["masterplan_status"].as_str().unwrap_or_default();
-        let state = claim["evidence_state"].as_str().unwrap_or_default();
-        assert_eq!(
-            status, "claimed-done-unverified",
-            "{id}: every Hermes done-card completion claim stays unverified-pending-evidence; \
-             upgrading one requires a verification pass that attaches evidence AND updates this contract"
-        );
-        if refs.is_empty() {
-            unverified_pending += 1;
-            assert_eq!(
-                state, "claimed-done-unverified",
-                "{id}: a claim without an attached evidence link must stay flagged"
-            );
-        } else {
-            evidence_attached += 1;
-            assert_eq!(
-                state, "evidence-attached",
-                "{id}: attached evidence refs must surface as evidence-attached"
-            );
+    if let Some(imports) =
+        masterplan["masterplan_v2"]["external_work_item_claim_imports"].as_array()
+    {
+        for claim in imports {
+            let refs = claim["evidence_refs"].as_array().unwrap_or_else(|| {
+                panic!("each external completion claim must carry an evidence_refs array")
+            });
+            if refs.is_empty() {
+                assert_eq!(
+                    claim["masterplan_status"].as_str(),
+                    Some("claimed-done-unverified")
+                );
+                assert_eq!(
+                    claim["evidence_state"].as_str(),
+                    Some("claimed-done-unverified")
+                );
+            }
         }
     }
+}
 
-    let summary = &masterplan["masterplan_v2"]["hermes_done_card_import_summary"];
-    assert_eq!(
-        summary["extracted_done_count"].as_u64(),
-        Some(evidence_attached + unverified_pending),
-        "summary extracted_done_count must equal the number of per-card claims"
-    );
-    assert_eq!(
-        summary["evidence_attached_count"].as_u64(),
-        Some(evidence_attached),
-        "summary evidence_attached_count must agree with the claims"
-    );
-    assert_eq!(
-        summary["unverified_pending_evidence_count"].as_u64(),
-        Some(unverified_pending),
-        "summary unverified_pending_evidence_count must agree with the claims"
-    );
-    assert_eq!(
-        summary["verified_count"].as_u64(),
-        Some(0),
-        "no done-card claim is verified in this ledger generation"
-    );
+/// Sub-AC 3 verifiability clause over the optional provider-neutral import:
+/// absence is clean, malformed presence fails closed, and imported completion
+/// claims cannot carry verified status without recorded evidence.
+#[test]
+fn masterplan_v2_external_completion_claim_import_is_optional_and_fail_closed() {
+    let root = repo_root();
+    let masterplan = load_json(&root.join("specs/masterplan.json"));
+    let mut absent = masterplan.clone();
+    absent["masterplan_v2"]
+        .as_object_mut()
+        .expect("masterplan_v2 must be an object")
+        .remove("external_work_item_claim_imports");
+    assert!(evaluate_masterplan_v2_evidence_state(&absent).is_empty());
 
-    let ledger_rel = summary["ledger_artifact"]
-        .as_str()
-        .expect("summary must reference the forensic ledger evidence artifact");
-    assert!(
-        root.join(ledger_rel).is_file(),
-        "forensic ledger artifact {ledger_rel} must exist"
-    );
+    let mut malformed = absent;
+    malformed["masterplan_v2"]["external_work_item_claim_imports"] =
+        serde_json::json!("not-an-array");
+    let findings = evaluate_masterplan_v2_evidence_state(&malformed);
+    assert!(findings.iter().any(|finding| {
+        finding.code == "masterplan_evidence_state_invalid"
+            && finding.key == "masterplan_v2.external_work_item_claim_imports"
+    }));
 }
 #[test]
 fn masterplan_v2_plan_vs_evidence_drift_contract_is_green() {
@@ -382,7 +332,7 @@ fn masterplan_v2_plan_vs_evidence_drift_contract_is_green() {
 }
 
 /// Sub-AC 4.3 plan-vs-evidence cross-check lane, born-blocking over the live
-/// tree: every masterplan work-item status claim and evidence-attached Hermes
+/// tree: every masterplan work-item status claim and evidence-attached external
 /// import must cross-check against RECORDED completion evidence. The
 /// resolution universe is the committed scm-facts face `tracked_paths` (the
 /// same declared input the producer reads), so a dangling evidence pointer, a

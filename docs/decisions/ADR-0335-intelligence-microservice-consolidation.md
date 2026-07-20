@@ -53,11 +53,11 @@ purpose: >
   Retire the foundry µservice as a standalone service surface; absorb its AI
   pipeline orchestration, eval, training, RLHF, red-team, and model registry
   responsibilities into the intelligence µservice per ADR-0255 KS#14
-  two-layer AI substrate; drop "Hermes" terminology corpus-wide as the
+  two-layer AI substrate; drop "retired external agent harness" terminology corpus-wide as the
   retired internal pipeline brand name.
 ---
 
-# ADR-0335: foundry µservice retired; absorbed by intelligence; Hermes terminology dropped
+# ADR-0335: foundry µservice retired; absorbed by intelligence; retired external agent harness terminology dropped
 
 ## Status
 
@@ -90,7 +90,7 @@ The retirement does not weaken ADR-0255 (intelligence two-layer substrate).
 
 This ADR codifies where every retired `foundry` responsibility now lives.
 
-It also retires "Hermes" as a canonical primitive, executing the
+It also retires "retired external agent harness" as a canonical primitive, executing the
 retirement queued by ADR-0247 D-10 and confirmed by ADR-0328 D-9.18 +
 D-9.22 + D-12.22..D-12.24.
 
@@ -99,15 +99,15 @@ D-9.22 + D-12.22..D-12.24.
 The prior `foundry` µservice was the consolidation of six earlier
 candidates per ADR-0136: runtime, supervisor, eval, evidence, guardrails,
 providers. ADR-0138 sequenced the six-path deprecation. ADR-0239
-amendment clarified foundry as INTERNAL-only — the Hermes agentic
+amendment clarified foundry as INTERNAL-only — the retired external agent harness agentic
 development pipeline — and split consumer AI into the separate
 intelligence µservice per ADR-0220.
 
 ADR-0247 then established the self-modification doctrine: foundry runs
 as `oyatie.foundry.*` principals inside the `oyatie` tenant; foundry IS
 self-modification, not a separate axis. ADR-0247 D-10 queued the
-retirement of the "Hermes" name as inherited-from-external terminology
-(NousResearch/hermes-agent) that never became canonical.
+retirement of the "retired external agent harness" name as inherited-from-external terminology
+(an inherited external package) that never became canonical.
 
 ADR-0255 then established the intelligence two-layer substrate (Layer A
 AI substrate + Layer B Consumer Brand Surface) and named intelligence
@@ -115,8 +115,8 @@ as the canonical AI µservice that absorbs Foundry. The session memory
 note `feedback_intelligence_two_layer_substrate` records this as KS#14.
 
 ADR-0328 then sequenced this retirement explicitly: D-9.18 assigns
-"Foundry retirement plus Hermes-drop cleanup" to sub-wave 15I; D-9.22
-states "15I drops `Hermes` as a canonical primitive"; D-12.22..D-12.24
+"Foundry retirement plus retired external agent harness-drop cleanup" to sub-wave 15I; D-9.22
+states "15I drops `retired external agent harness` as a canonical primitive"; D-12.22..D-12.24
 establish the corpus-wide drop policy.
 
 Waves 15K (network → community), 15L (cell retired as pattern), and
@@ -225,48 +225,47 @@ D-25. End-to-end VCS orchestration per ADR-0113 remains a Foundry
 self-modification concern under the `oyatie.foundry.*` Cedar principal
 namespace; the principal namespace persists, the µservice does not.
 
-### D-26..D-36. Hermes terminology drop
+### D-26..D-36. retired external agent harness terminology drop
 
-D-26. "Hermes" is retired as a canonical primitive corpus-wide,
+D-26. "retired external agent harness" is retired as a canonical primitive corpus-wide,
 executing ADR-0247 D-10 + ADR-0328 D-9.22 + ADR-0328 D-12.22.
 
-D-27. "Hermes pipeline" is replaced by "intelligence pipeline" or
+D-27. "retired external agent harness pipeline" is replaced by "intelligence pipeline" or
 "AI substrate pipeline" depending on context.
 
-D-28. "Hermes agentic development pipeline" is replaced by
+D-28. "retired external agent harness agentic development pipeline" is replaced by
 "oyatie.foundry workflow library" (per ADR-0247 D-10 mapping) when
 the context is self-modification; replaced by "intelligence pipeline"
 when the context is AI workflow execution.
 
-D-29. "Hermes agent" is replaced by "oyatie.foundry.<workflow-id>
+D-29. "retired external agent harness agent" is replaced by "oyatie.foundry.<workflow-id>
 instance" (per ADR-0247 D-10).
 
-D-30. ADRs documenting Hermes history (ADR-0136-amendment, ADR-0220,
+D-30. ADRs documenting retired external agent harness history (ADR-0136-amendment, ADR-0220,
 ADR-0239, ADR-0242, ADR-0245, ADR-0247, ADR-0211, ADR-0253-amendment,
-ADR-0328) retain Hermes references in their historical sections; new
-content does not introduce Hermes.
+ADR-0328) retain retired external agent harness references in their historical sections; new
+content does not introduce retired external agent harness.
 
-D-31. Onboarding and FAQ documents previously framed around Hermes
-are rewritten to drop the Hermes brand. The substantive content
-moves to intelligence as appropriate, or retires as Hermes-specific
+D-31. Onboarding and FAQ documents previously framed around retired external agent harness
+are rewritten to drop the retired external agent harness brand. The substantive content
+moves to intelligence as appropriate, or retires as retired external agent harness-specific
 internal onboarding that does not carry forward.
 
 D-32. Canonical primitives (`tools/hooks/_canonical-primitives.md`)
-drop the foundry / Hermes line and route AI substrate references to
+drop the foundry / retired external agent harness line and route AI substrate references to
 intelligence only.
 
-D-33. CLAUDE.md and other agent-rules surfaces drop active "Hermes"
+D-33. CLAUDE.md and other agent-rules surfaces drop active "retired external agent harness"
 references; historical pointers remain only inside ADRs marked as
 history.
 
-D-34. Memory files may retain historical Hermes references; new
-memory entries do not introduce Hermes terminology.
+D-34. Memory files may retain historical retired external agent harness references; new
+memory entries do not introduce retired external agent harness terminology.
 
-D-35. Future implementation may add `oya-governance-hermes-drop` (per
-ADR-0328 E.10) and `oya-check-hermes-name-retired` (per ADR-0247
-D-10) CI checks; this ADR does not require those checks at landing.
+D-35. ADR-0619 replaces the proposed source-derived gate names with one neutral strict-zero
+residue rule that scans every tracked path and raw blob without carve-outs.
 
-D-36. The Hermes drop is structural; no replacement term is needed
+D-36. The retired external agent harness drop is structural; no replacement term is needed
 because the underlying capability is now "intelligence" (consumer) or
 "oyatie.foundry workflow library inside dev-tools-cell-N"
 (self-modification).
@@ -343,7 +342,7 @@ D-56. `tools/hooks/_canonical-primitives.md` updates the AI Substrate
 section: foundry retired; intelligence is the single AI surface.
 
 D-57. The canonical primitives section drops the line claiming
-`microservices/foundry/` is "internal Hermes dev pipeline".
+`microservices/foundry/` is "internal retired external agent harness dev pipeline".
 
 D-58. The canonical primitives section retains the existing
 intelligence pointer and adds an explicit "foundry retired per
@@ -651,12 +650,12 @@ R-14. Rejected because the rename cascade across 43 dependent crates
 risks breaking `cargo check --workspace`; the rename is sequenced as
 a separate cleanup wave per D-43.
 
-R-15. Keep the "Hermes" brand as a sub-namespace under intelligence.
+R-15. Keep the "retired external agent harness" brand as a sub-namespace under intelligence.
 
 R-16. Rejected because ADR-0247 D-10 + ADR-0328 D-9.22 explicitly
-retire Hermes as a canonical primitive.
+retire retired external agent harness as a canonical primitive.
 
-R-17. Replace "Hermes" with a new internal brand name.
+R-17. Replace "retired external agent harness" with a new internal brand name.
 
 R-18. Rejected because no replacement is needed; "intelligence pipeline"
 or "oyatie.foundry workflow library" already covers every use case.
@@ -675,10 +674,10 @@ S-2. Replace active `microservices/foundry/` content authority with
 `RETIRED.md`.
 
 S-3. Rewrite `microservices/foundry/onboarding/pipeline-engineer-first-week.md`
-to drop "Hermes" or retire the file in place.
+to drop "retired external agent harness" or retire the file in place.
 
 S-4. Rewrite `microservices/foundry/faqs/pipeline-engineer-faq.md`
-to drop "Hermes" or retire the file in place.
+to drop "retired external agent harness" or retire the file in place.
 
 S-5. Rewrite `microservices/foundry/spec/*.md` files where they are
 operative agentic-pipeline doctrine that should remain accessible;
@@ -701,9 +700,9 @@ retired with absorption pointer.
 
 S-11. Update `tools/hooks/_canonical-primitives.md` AI Substrate
 section: foundry retired; intelligence is the single AI surface; drop
-the Hermes line.
+the retired external agent harness line.
 
-S-12. Sweep corpus-wide for "Hermes" references and rewrite per
+S-12. Sweep corpus-wide for "retired external agent harness" references and rewrite per
 D-26..D-36.
 
 S-13. Update memory note
@@ -739,12 +738,12 @@ V-7. `specs/root-hub-pointers.json` `prd_foundry` is marked retired
 with absorption pointer.
 
 V-8. `tools/hooks/_canonical-primitives.md` AI Substrate section
-names intelligence only; drops the Hermes line.
+names intelligence only; drops the retired external agent harness line.
 
 V-9. Active docs and specs cross-reference sweep points to successor
 owner intelligence.
 
-V-10. Historical Hermes mentions remain only in ADRs documenting the
+V-10. Historical retired external agent harness mentions remain only in ADRs documenting the
 retirement (this ADR, ADR-0136-amendment, ADR-0220, ADR-0239,
 ADR-0247, ADR-0211, ADR-0245, ADR-0253-amendment, ADR-0328) plus
 memory files.
@@ -769,7 +768,7 @@ readers can parse the ADR without changing the visible decision text.
 <!--
 wave: 15I
 status: completed-locally
-decision: foundry µservice retired; AI substrate absorbed into intelligence; Hermes terminology dropped corpus-wide
+decision: foundry µservice retired; AI substrate absorbed into intelligence; retired external agent harness terminology dropped corpus-wide
 absorbing_microservice: microservices/intelligence/
 retired_marker: microservices/foundry/RETIRED.md
 absorption_map_owner: microservices/intelligence/manifest.json
@@ -777,7 +776,7 @@ prd_owner: microservices/intelligence/PRD.md
 manifest_owner: microservices/intelligence/manifest.json
 precedent_waves: Wave 15K network→community; Wave 15L cell retire; Wave 15O shorts→social
 authority_adrs: ADR-0255 KS#14 intelligence two-layer; ADR-0247 self-modification; ADR-0220 consumer intelligence; ADR-0239 foundry internal-only amendment; ADR-0132 no-grouping; ADR-0138 strangler; ADR-0328 D-9.18/D-9.22 wave-15I sequencing
-hermes_drop_authority: ADR-0247 D-10; ADR-0328 D-9.22 + D-12.22..D-12.24
+retired_brand_drop_authority: ADR-0247 D-10; ADR-0328 D-9.22 + D-12.22..D-12.24; ADR-0619
 crate_transition_debt_policy: ADR-0333 D-59 precedent; existing oya-foundry-* crates retained as transition debt; future rename in separate cleanup wave
 commits: none
 -->

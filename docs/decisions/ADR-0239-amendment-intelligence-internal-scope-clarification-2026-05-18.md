@@ -12,7 +12,7 @@
 ADR-0136 consolidated six prior foundry candidates into a single `microservices/foundry/` µservice. Subsequent session work (PR #142–#143) drifted on Foundry's audience:
 
 - Some agent dispatches assumed Foundry hosts CONSUMER AI surfaces ("Foundry-powered 1:1 prep", "Foundry HR Q&A agent", "Foundry management-cockpit insights").
-- Reality: Foundry is the INTERNAL Hermes agentic development pipeline. Consumer-facing AI is a SEPARATE substrate.
+- Reality: Foundry is the INTERNAL retired external agent harness agentic development pipeline. Consumer-facing AI is a SEPARATE substrate.
 
 User directive 2026-05-18: "Foundry is internal tool. oyatie intelligence + ontology + workflow is consumer facing." This amendment codifies the split so future agent dispatches don't conflate.
 
@@ -20,7 +20,7 @@ User directive 2026-05-18: "Foundry is internal tool. oyatie intelligence + onto
 
 **`microservices/foundry/` is INTERNAL only.** Its surfaces serve:
 
-1. Hermes agentic development toolchain (agent dispatch, eval, gates).
+1. retired external agent harness agentic development toolchain (agent dispatch, eval, gates).
 2. CI/CD orchestration (build, deploy, evidence collection).
 3. Internal eval substrate (multispectrum review, A-family adherence facets).
 4. Internal evidence collection (audit chain integration for build provenance).
@@ -36,7 +36,7 @@ Consumer-facing AI is a SEPARATE µservice **`microservices/intelligence/`** (ca
 | "Foundry-powered customer feature X" | "oyatie intelligence feature X (consumer surface)" |
 | "Foundry eval substrate" | KEEP — internal eval IS Foundry |
 | "Foundry CI gate" | KEEP — CI orchestration IS Foundry |
-| "Foundry agentic dev pipeline" | KEEP — Hermes IS Foundry |
+| "Foundry agentic dev pipeline" | KEEP — retired external agent harness IS Foundry |
 
 ### Substrate-sharing
 
@@ -62,7 +62,7 @@ Both Foundry AND Intelligence are Class C in-house mandatory per ADR-0211 — th
 
 ### Alternative 2 — "Rebrand Foundry to include consumer scope"
 
-**Rejected because** the naming "Foundry" (Palantir-class internal product platform) is established for the internal Hermes / dev / eval surface. Renaming would create churn across 100+ ADR / IP citations.
+**Rejected because** the naming "Foundry" (Palantir-class internal product platform) is established for the internal retired external agent harness / dev / eval surface. Renaming would create churn across 100+ ADR / IP citations.
 
 ### Alternative 3 — "Keep current drift; tolerate ambiguous framing"
 

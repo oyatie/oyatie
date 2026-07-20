@@ -228,7 +228,7 @@
     },
     "evidence_state_policy": {
       "status_claims_require_evidence_refs": true,
-      "hermes_done_claim_without_evidence_state": "claimed-done-unverified",
+      "external_claim_without_evidence_state": "claimed-done-unverified",
       "evidence_attached_completion_state": "evidence-attached",
       "validator": "cloud-ci-cross-artifact-agreement/masterplan-v2-plan-vs-evidence-drift",
       "policy_ref": "Seed Sub-AC 3"

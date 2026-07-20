@@ -8,7 +8,7 @@
 //! cross-checked against RECORDED completion evidence, failing closed on
 //!
 //! - **unevidenced 'done' claims** — a verified-completion status (`done`,
-//!   `done-verified`, `complete`, …) or an `evidence-attached` Hermes import
+//!   `done-verified`, `complete`, …) or an `evidence-attached` external import
 //!   whose evidence set contains no *recorded completion evidence class*:
 //!   a merged commit (`git:<40-hex>`), a merged-PR / gate-run record
 //!   (`https://github.com/<owner>/<repo>/pull|commit|actions/runs/…`), or a
@@ -131,8 +131,8 @@ pub fn evaluate_masterplan_plan_evidence_crosscheck(
     let retired = retired_surfaces(v2);
 
     evaluate_work_item_claims(v2.get("work_items"), &tracked, &retired, &mut findings);
-    evaluate_hermes_import_claims(
-        v2.get("hermes_done_card_imports"),
+    evaluate_external_import_claims(
+        v2.get("external_work_item_claim_imports"),
         &tracked,
         &retired,
         &mut findings,
@@ -243,7 +243,7 @@ fn evaluate_work_item_claims(
     }
 }
 
-fn evaluate_hermes_import_claims(
+fn evaluate_external_import_claims(
     claims: Option<&Value>,
     tracked: &BTreeSet<String>,
     retired: &[RetiredSurface],
@@ -253,16 +253,23 @@ fn evaluate_hermes_import_claims(
         return;
     };
     let Some(claims) = claims.as_array() else {
-        findings.insert(unrecorded("masterplan_v2.hermes_done_card_imports"));
+        findings.insert(unrecorded("masterplan_v2.external_work_item_claim_imports"));
         return;
     };
 
     for (index, claim) in claims.iter().enumerate() {
-        let key = non_empty_field(claim, "source_card_id")
-            .or_else(|| non_empty_field(claim, "card_id"))
+        if !claim.is_object() {
+            findings.insert(unrecorded(&format!(
+                "external_work_item_claim_imports[{index}]"
+            )));
+            continue;
+        }
+        let key = non_empty_field(claim, "external_work_item_id")
+            .or_else(|| non_empty_field(claim, "work_item_id"))
+            .or_else(|| non_empty_field(claim, "claim_id"))
             .map(str::to_owned)
-            .unwrap_or_else(|| format!("hermes_done_card_imports[{index}]"));
-        let scoped_key = format!("{key}@hermes_done_card_imports[{index}]");
+            .unwrap_or_else(|| format!("external_work_item_claim_imports[{index}]"));
+        let scoped_key = format!("{key}@external_work_item_claim_imports[{index}]");
         let has_completion_evidence =
             validate_claim_evidence(claim, &scoped_key, tracked, retired, findings);
 
@@ -529,16 +536,16 @@ mod tests {
                         ]
                     }
                 ],
-                "hermes_done_card_imports": [
+                "external_work_item_claim_imports": [
                     {
-                        "source_card_id": "t_0001",
+                        "external_work_item_id": "t_0001",
                         "evidence_state": "evidence-attached",
                         "evidence_refs": [
                             "https://github.com/jason931225/oyatie/pull/1054#issuecomment-1"
                         ]
                     },
                     {
-                        "source_card_id": "t_0002",
+                        "external_work_item_id": "t_0002",
                         "evidence_state": "claimed-done-unverified",
                         "evidence_refs": []
                     }
@@ -776,35 +783,39 @@ mod tests {
     }
 
     #[test]
-    fn hermes_evidence_attached_without_completion_class_evidence_is_unrecorded() {
+    fn external_claim_with_only_supporting_evidence_is_unrecorded() {
         let mut masterplan = green_masterplan();
-        masterplan["masterplan_v2"]["hermes_done_card_imports"][0]["evidence_refs"] =
+        masterplan["masterplan_v2"]["external_work_item_claim_imports"][0]["evidence_refs"] =
             json!(["cloud/gates/app/src/lib.rs#evaluator"]);
         let findings = evaluate_masterplan_plan_evidence_crosscheck(&masterplan, &green_corpus());
         assert_eq!(
             keys(&findings),
-            vec!["t_0001@hermes_done_card_imports[0].recorded-completion-evidence"]
+            vec!["t_0001@external_work_item_claim_imports[0].recorded-completion-evidence"]
         );
     }
 
     #[test]
-    fn hermes_tracked_completion_packet_satisfies_evidence_attachment() {
+    fn external_claim_tracked_completion_packet_satisfies_evidence_attachment() {
         let mut masterplan = green_masterplan();
-        masterplan["masterplan_v2"]["hermes_done_card_imports"][0]["evidence_refs"] =
+        masterplan["masterplan_v2"]["external_work_item_claim_imports"][0]["evidence_refs"] =
             json!(["evidence/goals/proof-run.json"]);
         let findings = evaluate_masterplan_plan_evidence_crosscheck(&masterplan, &green_corpus());
         assert!(findings.is_empty(), "expected green, got {findings:?}");
     }
 
     #[test]
-    fn malformed_hermes_imports_fail_closed() {
+    fn malformed_external_imports_fail_closed() {
         let mut masterplan = green_masterplan();
-        masterplan["masterplan_v2"]["hermes_done_card_imports"] = json!("not-an-array");
+        masterplan["masterplan_v2"]["external_work_item_claim_imports"] = json!("not-an-array");
         let findings = evaluate_masterplan_plan_evidence_crosscheck(&masterplan, &green_corpus());
         assert_eq!(
             keys(&findings),
-            vec!["masterplan_v2.hermes_done_card_imports"]
+            vec!["masterplan_v2.external_work_item_claim_imports"]
         );
+
+        masterplan["masterplan_v2"]["external_work_item_claim_imports"] = json!([42]);
+        let findings = evaluate_masterplan_plan_evidence_crosscheck(&masterplan, &green_corpus());
+        assert_eq!(keys(&findings), vec!["external_work_item_claim_imports[0]"]);
     }
 
     #[test]

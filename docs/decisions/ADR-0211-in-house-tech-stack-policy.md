@@ -104,7 +104,7 @@ The capability IS our differentiation. It must be 100% in-house from day one. No
 **Concrete Class C examples:**
 - **Workflow Studio** (n8n-class hero product) — the user-facing automation engine + visual canvas that bridges every µservice via Workflow + Ontology adapter layer.
 - **Ontology** (Palantir-class canonical data layer) — the typed entity graph that makes Workflow + intelligence cross-product coherent.
-- **Foundry** (internal Hermes agentic substrate per ADR-0136 amendment) — the dev pipeline that builds every µservice + the eval substrate.
+- **Foundry** (internal retired external agent harness agentic substrate per ADR-0136 amendment) — the dev pipeline that builds every µservice + the eval substrate.
 - **Intelligence** (consumer AI substrate per ADR-0220) — the user-facing AI brand surface.
 - **Audit Chain** (Ed25519 + Merkle per Bominal ADR-0028) — the tamper-evident regulatory substrate.
 - **Cell architecture** (per ADR-0009) — the multi-tenant blast-radius isolation.

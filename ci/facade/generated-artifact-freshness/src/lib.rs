@@ -7,6 +7,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use ci_cross_artifact_agreement::{MASTERPLAN_MD_PATH, derive_masterplan_md_projection};
 use oya_workspace_members_kernel::resolve_member_dirs;
 
 mod rust_toolchain_drift;
@@ -35,6 +36,7 @@ const NOT_TRACKED_IN_GIT_MODE: &str = "not-tracked-in-git";
 const MAIN_BRANCH_MATERIALIZED_MODE: &str = "main-branch-materialized";
 const MASTERPLAN_PROJECTION_FACE: &str = "masterplan.generated.json";
 const MASTERPLAN_PROJECTION_PATH: &str = "docs/machine-readable/masterplan.generated.json";
+const MASTERPLAN_SOURCE_PATH: &str = "specs/masterplan.json";
 const ARCHITECTURE_PRODUCT_GRAPH_FACE: &str = "product-graph.html";
 const ARCHITECTURE_PRODUCT_GRAPH_PATH: &str = "docs/architecture/product-graph.html";
 /// PR-owned / face-settle generated paths. Controller-owned generated artifacts that must be
@@ -379,6 +381,7 @@ fn materialize_generated_faces_with_tools(
     command.current_dir(repo_root);
     run_status(&mut command, "materialize generated accounting faces")?;
     materialize_masterplan_projection(tools, repo_root)?;
+    materialize_masterplan_md_projection(repo_root)?;
     materialize_architecture_product_graph(tools, repo_root)
 }
 
@@ -1701,6 +1704,35 @@ fn materialize_masterplan_projection(
     )
 }
 
+fn materialize_masterplan_md_projection(repo_root: &Path) -> Result<(), FreshnessError> {
+    let source_path = repo_root.join(MASTERPLAN_SOURCE_PATH);
+    let source = std::fs::read_to_string(&source_path).map_err(|error| {
+        FreshnessError::new(format!(
+            "read masterplan source {}: {error}",
+            source_path.display()
+        ))
+    })?;
+    let masterplan: serde_json::Value = serde_json::from_str(&source).map_err(|error| {
+        FreshnessError::new(format!(
+            "parse masterplan source {}: {error}",
+            source_path.display()
+        ))
+    })?;
+    let projection = derive_masterplan_md_projection(&masterplan).map_err(|fragment| {
+        FreshnessError::new(format!(
+            "derive masterplan Markdown projection from {}: missing or invalid {fragment}",
+            source_path.display()
+        ))
+    })?;
+    let output_path = repo_root.join(MASTERPLAN_MD_PATH);
+    std::fs::write(&output_path, projection).map_err(|error| {
+        FreshnessError::new(format!(
+            "write masterplan Markdown projection {}: {error}",
+            output_path.display()
+        ))
+    })
+}
+
 fn materialize_architecture_product_graph(
     tools: &MaterializerTools,
     repo_root: &Path,
@@ -2029,6 +2061,91 @@ mod materialize_generated_faces_tests {
         std::fs::rename(&tmp, path).expect("install executable");
     }
 
+    fn derivable_masterplan() -> serde_json::Value {
+        serde_json::json!({
+            "masterplan_v2": {
+                "canonical_plan_authority": {
+                    "path": "/specs/masterplan.json",
+                    "live_work_item_id_space": {
+                        "id_prefix": "MPV2-",
+                        "numeric_width": 4
+                    }
+                },
+                "surface_dispositions": [
+                    {
+                        "path": "/specs/legacy-plan.json",
+                        "disposition": "absorbed"
+                    }
+                ]
+            }
+        })
+    }
+
+    fn write_masterplan(root: &Path, masterplan: &serde_json::Value) {
+        std::fs::create_dir_all(root.join("specs")).expect("create specs dir");
+        std::fs::write(
+            root.join(MASTERPLAN_SOURCE_PATH),
+            serde_json::to_vec(masterplan).expect("serialize masterplan fixture"),
+        )
+        .expect("write masterplan fixture");
+    }
+
+    #[test]
+    fn masterplan_markdown_materialization_fails_closed_on_read_error() {
+        let root = temp_root("masterplan-markdown-read-error");
+
+        let error = materialize_masterplan_md_projection(&root)
+            .expect_err("missing canonical source must fail closed");
+
+        assert!(error.to_string().contains("read masterplan source"));
+    }
+
+    #[test]
+    fn masterplan_markdown_materialization_fails_closed_on_parse_error() {
+        let root = temp_root("masterplan-markdown-parse-error");
+        std::fs::create_dir_all(root.join("specs")).expect("create specs dir");
+        std::fs::write(root.join(MASTERPLAN_SOURCE_PATH), "{")
+            .expect("write malformed masterplan fixture");
+
+        let error = materialize_masterplan_md_projection(&root)
+            .expect_err("malformed canonical source must fail closed");
+
+        assert!(error.to_string().contains("parse masterplan source"));
+    }
+
+    #[test]
+    fn masterplan_markdown_materialization_fails_closed_on_derivation_error() {
+        let root = temp_root("masterplan-markdown-derivation-error");
+        write_masterplan(&root, &serde_json::json!({}));
+
+        let error = materialize_masterplan_md_projection(&root)
+            .expect_err("underivable canonical source must fail closed");
+
+        assert!(
+            error
+                .to_string()
+                .contains("derive masterplan Markdown projection")
+        );
+        assert!(error.to_string().contains("masterplan_v2"));
+    }
+
+    #[test]
+    fn masterplan_markdown_materialization_fails_closed_on_write_error() {
+        let root = temp_root("masterplan-markdown-write-error");
+        write_masterplan(&root, &derivable_masterplan());
+        std::fs::create_dir_all(root.join(MASTERPLAN_MD_PATH))
+            .expect("create directory at projection path");
+
+        let error = materialize_masterplan_md_projection(&root)
+            .expect_err("unwritable projection path must fail closed");
+
+        assert!(
+            error
+                .to_string()
+                .contains("write masterplan Markdown projection")
+        );
+    }
+
     #[test]
     fn parse_materialize_generated_faces_args_defaults_to_repo_root_dot() {
         let parsed = parse_materialize_generated_faces_args(Vec::new())
@@ -2350,6 +2467,8 @@ printf 'fresh graph\n' > "$out"
     fn materializer_invokes_architecture_product_graph_generator() {
         let root = temp_root("oya-materialize-faces");
         std::fs::create_dir_all(root.join("bin")).expect("create bin dir");
+        let masterplan = derivable_masterplan();
+        write_masterplan(&root, &masterplan);
         let log = root.join("calls.log");
         let log_path = log.display();
 
@@ -2506,6 +2625,12 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
             std::fs::read_to_string(root.join("docs/machine-readable/masterplan.generated.json"))
                 .expect("masterplan materialized"),
             "{\"milestones\":[],\"adr_count\":0,\"deliverable_count\":0,\"generator\":\"test\"}\n"
+        );
+        assert_eq!(
+            std::fs::read_to_string(root.join(ci_cross_artifact_agreement::MASTERPLAN_MD_PATH))
+                .expect("masterplan Markdown materialized"),
+            ci_cross_artifact_agreement::derive_masterplan_md_projection(&masterplan)
+                .expect("derive expected masterplan Markdown")
         );
         assert_eq!(
             std::fs::read_to_string(root.join("docs/architecture/product-graph.html"))

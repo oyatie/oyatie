@@ -3,8 +3,8 @@
   "change_id": "remed-001-gate-contract-20260701",
   "change_class_id": "CC-2_contract_change",
   "created_at": "2026-07-01T22:26:48Z",
-  "agent_id": "hermes-default-kanban-t_754574e9",
-  "branch": "hermes-t_754574e9-remed-001",
+  "agent_id": "unresolved-legacy-automation",
+  "branch": "retired-source-branch-redacted",
   "kanban_task": "t_754574e9",
   "scope": {
     "summary": "Introduce the first oya-ci-gate-contract remediation POC crate with a pure remediate() contract, per-code remediation tiers, and an idempotence regression proving the described edit returns None after the same face is fixed.",
@@ -55,7 +55,7 @@
       "A5_dependency_adherence",
       "A7_algorithm_adherence"
     ],
-    "report_path": "/Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_5c60d8a3/t_9be6fe5c-review-report.md",
+    "report_path": "unavailable in the live tree; recoverable from authorized Git history",
     "note": "Prior independent review approved the REMED-001 scope; this PR binds the same approved diff to a clean current origin/dev branch and protected CI governance."
   },
   "verification_evidence": [

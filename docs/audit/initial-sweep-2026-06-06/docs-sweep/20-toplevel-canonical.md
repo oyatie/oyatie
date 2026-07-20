@@ -88,7 +88,7 @@ GENERATED-REFERENCE→built-from-specs ; ORPHAN→archive.
 - No AI-slop. This is the model for what a forensic ledger should look like (per-entry, mechanical, dated).
 
 ### GLOSSARY.md — AMEND (reconcile internal split) — reachability: GENERATED-REFERENCE
-- **Most canon-AWARE doc but internally bifurcated:** the **bottom** (`:1034–1100`) correctly records foundry RETIRED (ADR-0335), Hermes RETIRED (ADR-0247), successor=`intelligence`, and the `oyatie.foundry.*` Cedar-principal-namespace-persists nuance. The **top tables** (`:105,:140,:250,:504,:507`) still carry pre-retirement framing.
+- **Most canon-AWARE doc but internally bifurcated:** the **bottom** (`:1034–1100`) correctly records foundry RETIRED (ADR-0335), retired external agent harness RETIRED (ADR-0247), successor=`intelligence`, and the `oyatie.foundry.*` Cedar-principal-namespace-persists nuance. The **top tables** (`:105,:140,:250,:504,:507`) still carry pre-retirement framing.
 - **Canon C (the sharp one):** `:894` "Cedar is Oyatie's… policy **engine**", `:105` "Cedar… authorization policy DSL", `:577–591` whole Cedar-permit/fragment vocabulary treats Cedar as the engine. **No PARC entry exists.** This is the authoritative term definition and it directly contradicts canon #6.
 - **Refinement:** glossary should add PARC (owned engine), framekernel-host, assume-breach-microVM, oya-ci, oya-identity, Pulsar, tenant-class as canonical terms, and mark Cedar-as-engine / Jenkins-as-endpoint / foundry as retired in the *top* tables too (not just the bottom narrative).
 

@@ -70,12 +70,12 @@
 - **disposition:** AMEND
 - **proposed_resolution:** NA (already Accepted)
 - **governing:** — (doctrine survives; sub-references drift)
-- **truth_flag:** PARTIAL — the A/B/C doctrine is TRUE, load-bearing, and a keystone fault-line anchor (the "own when proven" ratchet, keystone §5). BUT the worked examples carry heavy retired-vocab and superseded-dep leakage: "Foundry (internal Hermes agentic substrate per ADR-0136 amendment)" as a Class-C example — **foundry/Hermes are RETIRED** (ADR-0335/0347; →intelligence+governance); ADR-0136 itself is flagged stale-superseded in keystone §1.3. Also lists "Backstage (developer portal)" as a live Class-B vendor (superseded by ADR-0394), and the deciders front-matter is `axis-foundry` (retired axis name).
+- **truth_flag:** PARTIAL — the A/B/C doctrine is TRUE, load-bearing, and a keystone fault-line anchor (the "own when proven" ratchet, keystone §5). BUT the worked examples carry heavy retired-vocab and superseded-dep leakage: "Foundry (internal retired external agent harness agentic substrate per ADR-0136 amendment)" as a Class-C example — **foundry/retired external agent harness are RETIRED** (ADR-0335/0347; →intelligence+governance); ADR-0136 itself is flagged stale-superseded in keystone §1.3. Also lists "Backstage (developer portal)" as a live Class-B vendor (superseded by ADR-0394), and the deciders front-matter is `axis-foundry` (retired axis name).
 - **in_masterplan:** YES — this IS the substrate-doctrine that the vendor-lockin gate enforces corpus-wide; deeply planning-binding.
 - **tensions:** (1) The Class-B table's value-anchored triggers (≥50K tenants Zitadel, ≥1B vectors Milvus, ≥100TB ClickHouse) are the SOURCE side of the keystone fault-line vs LINUX ADR-0019/0020 "own when proven" — keystone §5 says the *principle* is shared, only the *trigger threshold* differs. (2) Milvus Phase-2 trigger here (≥1B vectors) is looser than LINUX ADR-0020's hard vector-count gate. (3) "Foundry vs Intelligence split per ADR-0136/0220" in §Operational is pre-0335 framing.
-- **hyperscaler_challenge:** Aligned (strongly). The named-industry-sources section is exactly right — AWS/Google/Azure/Oracle adopt CNCF + build the moat. This is the most hyperscaler-defensible decision in the chunk. Argues for AMEND (scrub foundry/Hermes/Backstage residue), emphatically not archive.
+- **hyperscaler_challenge:** Aligned (strongly). The named-industry-sources section is exactly right — AWS/Google/Azure/Oracle adopt CNCF + build the moat. This is the most hyperscaler-defensible decision in the chunk. Argues for AMEND (scrub foundry/retired external agent harness/Backstage residue), emphatically not archive.
 - **ai_slop:** Low. Genuinely substantive (the doc even self-cites as meeting ADR-0212's bar). The Class-C "Foundry" bullet is the one slop/staleness artifact.
-- **refinement:** Replace Class-C "Foundry (Hermes)" example with "Intelligence (consumer AI) + Governance (CI/gates)" per ADR-0335/0347; drop Class-B "Backstage" → ADR-0394 bespoke IDP; rename `axis-foundry` decider.
+- **refinement:** Replace Class-C "Foundry (retired external agent harness)" example with "Intelligence (consumer AI) + Governance (CI/gates)" per ADR-0335/0347; drop Class-B "Backstage" → ADR-0394 bespoke IDP; rename `axis-foundry` decider.
 - **consensus_needed:** "Is the Class-B *trigger threshold* (≥50K tenants / ≥1B vectors / ≥100TB) the right own-when-proven gate, or does the LINUX pilot's lower/harder gate win on merge?" — the keystone §5 founder question, surfaced here concretely.
 
 ---
@@ -141,7 +141,7 @@
 **Retired-vocabulary leakage tally (auditor must flag for the masterplan generator):**
 - `Redis` (ADR-0208 §multi-region) → Valkey (ADR-0336).
 - `Backstage` / ADR-0170 dev-portal (ADR-0209, 0211, 0213) → bespoke-Rust IDP (ADR-0394).
-- `Foundry` + `Hermes` (ADR-0211 Class-C example; `axis-foundry` decider in 0211/0212; `foundry_pipeline` coordination in 0214) → intelligence + governance (ADR-0335/0347).
+- `Foundry` + `retired external agent harness` (ADR-0211 Class-C example; `axis-foundry` decider in 0211/0212; `foundry_pipeline` coordination in 0214) → intelligence + governance (ADR-0335/0347).
 - `Kafka` (ADR-0214 §8 swap-target) → Pulsar/Oxia (ADR-0377).
 - `M02b/M04…M07` milestone labels (ADR-0213 phased rollout) → Wave names (GLOSSARY, retired 2026-05-09).
 - `ADR-0183` Cedar lineage (ADR-0209, 0214) → ADR-0243/0246 (app-authz) + ADR-0379 (admission).

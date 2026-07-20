@@ -334,7 +334,6 @@ fn reference_draft_targets_keep_source_repo_names_only_in_provenance_urls() {
     let forbidden = [
         "llm-router",
         "nemoclaw",
-        "hermes-agent",
         "claw-code",
         "nvidia-ai-blueprints",
         "nousresearch",

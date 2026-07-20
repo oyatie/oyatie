@@ -18,9 +18,9 @@ related_oyatie_adrs:
 
 # Foundry Pipeline Substrate Documentation Checkpoint
 
-> RETIRED-CONTEXT NOTE 2026-05-21: The `foundry` µservice this checkpoint references is RETIRED per ADR-0335 (Wave 15I). The substantive agentic-pipeline doctrine (changeset state, admission gate, merge queue, completion gate, webhook-driven invocation, VCS orchestrator) lives in ADRs 0110, 0111, 0112, 0113, 0116, 0247, 0255 and is implemented across vcs-orchestrator + intelligence + workflow + audit-chain + observability + identity + tenancy + policy-engine. The "Hermes" name is RETIRED corpus-wide per ADR-0247 D-10 + ADR-0328 D-9.22 + ADR-0335 D-26..D-36. This checkpoint is preserved as historical evidence; for live AI substrate authority cite `microservices/intelligence/manifest.json`.
+> RETIRED-CONTEXT NOTE 2026-05-21: The `foundry` µservice this checkpoint references is RETIRED per ADR-0335 (Wave 15I). The substantive agentic-pipeline doctrine (changeset state, admission gate, merge queue, completion gate, webhook-driven invocation, VCS orchestrator) lives in ADRs 0110, 0111, 0112, 0113, 0116, 0247, 0255 and is implemented across vcs-orchestrator + intelligence + workflow + audit-chain + observability + identity + tenancy + policy-engine. The "retired external agent harness" name is RETIRED corpus-wide per ADR-0247 D-10 + ADR-0328 D-9.22 + ADR-0335 D-26..D-36. This checkpoint is preserved as historical evidence; for live AI substrate authority cite `microservices/intelligence/manifest.json`.
 
-This checkpoint records the May 20, 2026 documentation slice for the internal agentic-development pipeline (previously branded Hermes, now retired).
+This checkpoint records the May 20, 2026 documentation slice for the internal agentic-development pipeline (previously branded retired external agent harness, now retired).
 
 Canonical authored specs live under `microservices/intelligence/spec/` because the active Oya VCS claim, verify, done, and promote scope for this slice was `microservices/intelligence`. Authority is HISTORICAL after ADR-0335.
 

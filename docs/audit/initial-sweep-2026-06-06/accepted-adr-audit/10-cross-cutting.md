@@ -84,7 +84,7 @@ Two Accepted ADRs each declare THE canonical human-identity substrate, name DIFF
 The Accepted corpus simultaneously (a) retires the Foundry µservice and (b) keeps six Accepted ADRs that operate Foundry as a live, bounded-context µservice with write-gates, release pointers, and settings templates. None of the six is superseded.
 
 **Retirement side (Accepted):**
-- `ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md:3` — `status: Accepted`; title `:60` — *"foundry µservice retired; absorbed by intelligence; Hermes terminology dropped"*; it only **amends** (not supersedes) 0136/0138 (`:36-40`).
+- `ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md:3` — `status: Accepted`; title `:60` — *"foundry µservice retired; absorbed by intelligence; retired external agent harness terminology dropped"*; it only **amends** (not supersedes) 0136/0138 (`:36-40`).
 - `ADR-0363-...:35` — *"The Foundry name was eradicated (ADR-0362 + the #181–#184 cutover): the former `oya-foundry-*` crates were renamed … `microservices/foundry/` (597 files) was kept as a now-name-mismatched doc shell."*
 
 **Live-µservice side (Accepted, all `supersedes/superseded_by: []`):**
