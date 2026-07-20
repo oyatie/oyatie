@@ -120,10 +120,10 @@ The oyatie portfolio inherited from Bominal a doctrine that treated
 
 - **ADR-0136 (Foundry as single µservice, 2026-05-18)** consolidated six
   prior foundry candidates into one `microservices/foundry/` µservice
-  but framed the µservice as serving the *internal Hermes agentic
+  but framed the µservice as serving the *internal retired external agent harness agentic
   development pipeline*.
 - **ADR-0136-amendment (Foundry internal-only, 2026-05-18)** codified
-  that Foundry serves "Hermes agentic development toolchain; CI/CD
+  that Foundry serves "retired external agent harness agentic development toolchain; CI/CD
   orchestration; internal eval substrate; internal evidence collection"
   — explicitly *not* tenant-facing.
 - **ADR-0220 (Consumer Intelligence Substrate, 2026-05-18)** created
@@ -243,7 +243,7 @@ The doctrine establishes:
 
 1. The org `oyatie` is registered as a tenant in `microservices/tenancy/`
    the same way `tenant-acme-corp` or `tenant-customer-xyz` is registered.
-2. Every internal use case (Hermes / CI / eval / multispectrum review /
+2. Every internal use case (retired external agent harness / CI / eval / multispectrum review /
    ADR authoring / sovereign-pack regulator evidence emission / FinOps
    internal reporting / security / devrel / customer success / sales /
    marketing / finance) operates as a *principal* under the `oyatie`
@@ -376,7 +376,7 @@ Concretely:
   `oya-check-audience-coherence` is removed; replaced by
   `oya-check-tenant-audience-coherence` operating against the tenant
   table, not against µservice manifests.
-- Foundry's role of "internal Hermes pipeline" is preserved
+- Foundry's role of "internal retired external agent harness pipeline" is preserved
   *operationally* — `oyatie.foundry.*` principals are the heaviest
   consumers — but Foundry as a *µservice with internal-only audience*
   dissolves (per ADR-0247 self-modification doctrine + the marketplace

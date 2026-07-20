@@ -15,7 +15,7 @@
 
 PR #143 found and corrected a recurring taxonomy error: Foundry was sometimes described as if it hosted consumer-facing AI features. The user directive on 2026-05-18 was explicit: Foundry is an internal tool; oyatie intelligence plus ontology plus workflow is consumer-facing.
 
-ADR-0136 amendment makes `microservices/foundry/` internal only. This ADR defines the separate consumer AI substrate: `microservices/intelligence/`. The split prevents internal Hermes, CI, source-code, and eval workflows from sharing an audience boundary with tenant and consumer AI.
+ADR-0136 amendment makes `microservices/foundry/` internal only. This ADR defines the separate consumer AI substrate: `microservices/intelligence/`. The split prevents internal retired external agent harness, CI, source-code, and eval workflows from sharing an audience boundary with tenant and consumer AI.
 
 ## Decision
 
@@ -23,7 +23,7 @@ Create `microservices/intelligence/` as the consumer-facing AI substrate for B2B
 
 Foundry remains internal only:
 
-- Hermes agentic development toolchain;
+- retired external agent harness agentic development toolchain;
 - CI/CD orchestration;
 - internal eval substrate;
 - internal evidence collection.

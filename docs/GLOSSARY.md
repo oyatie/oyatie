@@ -1038,7 +1038,7 @@ Retirement: ADR-0136 originally consolidated Foundry as one µservice with inter
 
 Successor: `microservices/intelligence/` — the canonical AI substrate. Layer A covers model routing, providers, guardrails, eval, attribution, audit-tap, credential resolver, assist-draft, and context-aware retrieval. Layer B covers the consumer brand UX surface. Self-modification execution remains under the `oyatie.foundry.*` Cedar principal namespace per ADR-0247 (the Cedar principal namespace persists even though the µservice retires).
 
-Hermes terminology: The "Hermes" brand name for the internal pipeline is RETIRED corpus-wide per ADR-0247 D-10 + ADR-0328 D-9.22 + ADR-0335 D-26..D-36. No replacement is needed; the underlying capability is now "intelligence" (consumer AI) or "oyatie.foundry workflow library inside dev-tools-cell-N" (self-modification).
+retired external agent harness terminology: The "retired external agent harness" brand name for the internal pipeline is RETIRED corpus-wide per ADR-0247 D-10 + ADR-0328 D-9.22 + ADR-0335 D-26..D-36. No replacement is needed; the underlying capability is now "intelligence" (consumer AI) or "oyatie.foundry workflow library inside dev-tools-cell-N" (self-modification).
 
 Crate transition debt: Existing `oya-foundry-*` workspace crates are retained as transition debt per ADR-0335 D-37..D-50 (following the ADR-0333 D-59 precedent). New AI substrate code lands under `oya-intelligence-*`.
 

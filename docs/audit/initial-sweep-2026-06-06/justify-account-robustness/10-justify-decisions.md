@@ -88,7 +88,7 @@ These are the findings a founder must rule on first — each is a CONFIRMED char
 |---|---|---|---|
 | 0363 | **AMEND (mandatory)** | **S1** false "eradicated" claim + forge fault-line. | Per S1: drop "eradicated," enumerate residue, wire a proven `no-foundry-token` gate. |
 | 0335 | **AMEND** | **S5** dual status line (`Accepted`+`completed-locally`). Correctly supersedes 0136/0247/0239 (verified `:15-49`) — that half is sound. | Per S5: remove stray `:771` status. Keep the supersession (the 0136/0247 dissolution tension IS properly resolved here — no action there). |
-| 0247 | **KEEP/RATIFY** | (e): self-modification doctrine; `:94` cleanly states 0136/0239 DISSOLVE. Resolved by 0335 supersession. | RATIFY; foundry/Hermes vocab scrub; self-mod ceiling = door:one-way. |
+| 0247 | **KEEP/RATIFY** | (e): self-modification doctrine; `:94` cleanly states 0136/0239 DISSOLVE. Resolved by 0335 supersession. | RATIFY; foundry/retired external agent harness vocab scrub; self-mod ceiling = door:one-way. |
 | 0365 | **KEEP** | (a) generated-not-hand-maintained: automated ADR lifecycle = the charter's drift-proof backbone; `status: Accepted`. | KEEP; ensure the lifecycle gate is RED/GREEN-proven (not advisory) — robust-not-false. |
 | 0123 | **KEEP** | (d) robust-not-false: maturity-claim-gate forbids "hyperscaler mature" without evidence — IS the charter's no-false-promise primitive. | KEEP; verify the gate actually blocks (RED fixture). |
 | 0135 | **KEEP** | (d): aspirational-enforcement gate (fail-closed on claims naming non-existent surfaces) = the meta-gate the whole charter relies on. | KEEP — promote as the keystone robust-not-false enforcer; PROVE it blocks. |

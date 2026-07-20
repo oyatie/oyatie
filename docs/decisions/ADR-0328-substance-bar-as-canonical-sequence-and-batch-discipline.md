@@ -302,7 +302,7 @@ This ADR does not permit scripted or template-generated substantive content.
 
 This ADR does not retire the `oyatie.foundry.*` principal namespace.
 
-This ADR does not make `Hermes` a canonical primitive.
+This ADR does not make `retired external agent harness` a canonical primitive.
 
 ### B.3 Decision drivers
 
@@ -1357,7 +1357,7 @@ paths, missing inbound citations, and mismatch between frontmatter and body.
 D-9.17. Cosmetic cleanup is allowed only after blocking substance and coherence
 work is clear.
 
-D-9.18. Sub-wave 15I handles Foundry retirement plus Hermes-drop cleanup.
+D-9.18. Sub-wave 15I handles Foundry retirement plus retired external agent harness-drop cleanup.
 
 D-9.19. 15I retires `microservices/foundry/` through ADR-0138.
 
@@ -1366,7 +1366,7 @@ D-9.20. 15I preserves `oyatie.foundry.*` Cedar principal namespace.
 D-9.21. 15I moves capability references to intelligence, workflow-engine,
 workflow-studio, ontology, governance, and tenancy.
 
-D-9.22. 15I drops `Hermes` as a canonical primitive.
+D-9.22. 15I drops `retired external agent harness` as a canonical primitive.
 
 D-9.23. A remediation sub-wave must not combine P0 contradiction fixes with
 cosmetic cleanup unless the same line cannot be edited safely twice.
@@ -1587,12 +1587,12 @@ capability references.
 D-12.21. Invalid references to foundry as a standalone runtime become Wave 15I
 remediation findings.
 
-D-12.22. `Hermes` framing is dropped from canonical primitives.
+D-12.22. `retired external agent harness` framing is dropped from canonical primitives.
 
-D-12.23. Hermes may remain as historical prose only if the artifact clearly says
+D-12.23. retired external agent harness may remain as historical prose only if the artifact clearly says
 it is not a canonical primitive.
 
-D-12.24. No new brief may cite Hermes as a build target, primitive, service, or
+D-12.24. No new brief may cite retired external agent harness as a build target, primitive, service, or
 capability owner.
 
 D-12.25. A Phase 2 audit that ignores Foundry absorption fails D-10.
@@ -4262,8 +4262,8 @@ feature-parity matrix shape.
 E.9. Future implementation may add `oya-governance-foundry-absorption` to detect
 standalone foundry runtime references after Wave 15I.
 
-E.10. Future implementation may add `oya-governance-hermes-drop` to detect
-Hermes as a canonical primitive.
+E.10. Future implementation must use the neutral strict-zero residue gate required by ADR-0619;
+source-derived gate names are forbidden.
 
 E.11. The ADR does not require those lanes to exist before Wave 1 can use the
 human-readable doctrine.
@@ -4357,7 +4357,7 @@ G.20. The body must define the verification SLA.
 
 G.21. The body must define the brief format convention.
 
-G.22. The body must define Foundry absorption and Hermes-drop.
+G.22. The body must define Foundry absorption and retired external agent harness-drop.
 
 G.23. The body must define the ADR-0321 in-scope universe.
 

@@ -6,7 +6,7 @@
     "Build declares allowed path prefixes",
     "Build does not hand edit generated JSON",
     "Build does not restore microservices/calendar/manifest.json",
-    "Build ran in isolated worktree /Users/jasonlee/Developer/oyatie/.worktrees/t_7b437a23-calendar-build on branch work-hermes-t_7b437a23-calendar-build.",
+    "Build ran in an isolated worktree on a dedicated branch.",
     "Allowed path prefixes are calendar contracts, calendar PRD fixtures/checker, and calendar PRD source-lock copy; no generated JSON, broad cloud/runtime, Release Please, or retired microservices/calendar/manifest.json restoration."
   ],
   "build_kanban_task": "t_7b437a23",

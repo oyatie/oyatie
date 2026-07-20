@@ -21,7 +21,7 @@ superseded_by: []
 amends:
   - ADR-0132-no-grouping-policy-and-flat-microservice-layout.md (the new_governance_lane_prefix declaration from ADR-0132 is materialized corpus-wide; the prior CLAUDE.md sentence "existing oya-governance-fitness-* lanes retained until each is renamed in its own migration IP" is replaced by the bulk-rename approach in this ADR, which collapses 34 per-lane migration IPs into a single Wave 15-ZB executor PR)
   - ADR-0335-intelligence-microservice-consolidation.md (the retirement of the foundry microservice declared in ADR-0335 is reflected in CI lane terminology: continuing to use the `oya-governance-fitness-*` prefix after foundry is retired is anachronistic and misleads readers about which µservice / team owns the lane; this ADR removes the anachronism)
-  - ADR-0136-amendment-foundry-as-hermes-internal-pipeline.md (the foundry-as-Hermes-internal-pipeline shape from ADR-0136 amendment is consistent with ADR-0335 retirement; this ADR carries the consistent terminology forward by aligning CI lane prefixes with the actual owning surface (governance) rather than the retired pipeline owner (foundry))
+  - ADR-0136-intelligence-as-single-microservice.md (the historical internal-pipeline shape is consistent with ADR-0335 retirement; this ADR carries the consistent terminology forward by aligning CI lane prefixes with the actual owning surface (governance) rather than the retired pipeline owner (foundry))
   - ADR-0245-substrate-vs-product-layering.md (the substrate-vs-product split applies cleanly to CI lanes: governance is the substrate concern; foundry-fitness was the legacy operator label; the rename clarifies that lane authority sits on the substrate axis owned by axis-governance + council-architecture, not on the retired foundry product surface)
   - ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md (the oya-governance-stewardship-class-vocabulary lane authored in ADR-0345 already uses the canonical `oya-governance-*` prefix; this ADR generalizes that prefix discipline corpus-wide so the governance prefix is the sole canonical lane prefix for governance-owned checks)
 related_adrs:
@@ -32,7 +32,7 @@ related_adrs:
   - ADR-0116-retire-external-agent-coordination-tooling.md
   - ADR-0131-per-microservice-flat-layout.md
   - ADR-0132-no-grouping-policy-and-flat-microservice-layout.md
-  - ADR-0136-amendment-foundry-as-hermes-internal-pipeline.md
+  - ADR-0136-intelligence-as-single-microservice.md
   - ADR-0145-inter-microservice-communication-reform.md
   - ADR-0211-in-house-tech-stack-preference.md
   - ADR-0212-buildability-doctrine.md
@@ -146,7 +146,7 @@ This ADR is the canonical bulk-rename doctrine decision binding every `oya-gover
 
 It runs in coordination with the in-flight 2026-05-21 realignment effort: ADR-0335 (foundry retired, absorbed by intelligence), ADR-0340 (capacity model), ADR-0341 (cellular promotion gates explicit per-tier), ADR-0342 (API versioning hybrid date + semver), ADR-0343 (DR + RTO/RPO matrix per microservice per compliance pack), ADR-0344 (sustainability + finops dimensional model), ADR-0345 (OSS stewardship class policy + CVE-response SLA), and ADR-0346 (product readiness checklist) are sibling decisions from the same 2026-05-21 realignment-wave authoring session. This ADR closes the rename-terminology backlog created by the conjunction of ADR-0132 (no-grouping policy + new_governance_lane_prefix declaration) and ADR-0335 (foundry retirement).
 
-It directly amends ADR-0132 (no-grouping policy + governance prefix) by replacing the per-lane migration-IP cadence with a single bulk-rename PR cadence; the new_governance_lane_prefix declaration in ADR-0132 is preserved verbatim, only the migration-velocity contract changes. It directly amends ADR-0335 (foundry retired, absorbed by intelligence) by aligning CI lane terminology with the retirement; continuing to author lanes under the `oya-governance-fitness-*` prefix after foundry is retired is anachronistic and misleads readers about ownership. It directly amends ADR-0136-amendment (foundry as Hermes-internal pipeline) by carrying the consistent terminology forward — the foundry pipeline is retired; the lanes formerly named for it are renamed to reflect the actual owning surface (governance) under axis-governance + council-architecture.
+It directly amends ADR-0132 (no-grouping policy + governance prefix) by replacing the per-lane migration-IP cadence with a single bulk-rename PR cadence; the new_governance_lane_prefix declaration in ADR-0132 is preserved verbatim, only the migration-velocity contract changes. It directly amends ADR-0335 (foundry retired, absorbed by intelligence) by aligning CI lane terminology with the retirement; continuing to author lanes under the `oya-governance-fitness-*` prefix after foundry is retired is anachronistic and misleads readers about ownership. It directly amends ADR-0136-amendment (foundry as retired external agent harness-internal pipeline) by carrying the consistent terminology forward — the foundry pipeline is retired; the lanes formerly named for it are renamed to reflect the actual owning surface (governance) under axis-governance + council-architecture.
 
 Enforcement transitions from `advisory-until-wave-15-zb-bulk-rename-pr-lands` to `BLOCKER` per the lane sequence in §E below: at landing of the Wave 15-ZB bulk-rename PR (the executor PR sequenced under ADR-0328 batch discipline), the three new lanes (`oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, `oya-governance-rename-inventory-presence`) promote from REPORT-ONLY to BLOCKER 30 days post-Wave-15-ZB-completion for new authoring; the residue lane retains a path-allowlist for the two historical-context paragraphs inside ADR-0335 + ADR-0347 retirement narrative.
 
@@ -210,7 +210,7 @@ The prefix is established. The rename is not introducing new terminology; it is 
 - Anchor 1: CLAUDE.md `new_governance_lane_prefix: oya-governance-* (per ADR-0132); existing oya-governance-fitness-* lanes retained until each is renamed in its own migration IP` — this ADR amends the velocity contract from per-lane IPs to bulk rename while preserving the canonical-prefix declaration.
 - Anchor 2: ADR-0132 (no-grouping policy + governance prefix) — declaration of the canonical governance prefix.
 - Anchor 3: ADR-0335 (foundry retired, absorbed by intelligence) — the retirement that makes the foundry-fitness prefix anachronistic.
-- Anchor 4: ADR-0136-amendment (foundry as Hermes-internal pipeline) — consistent with ADR-0335 retirement.
+- Anchor 4: ADR-0136-amendment (foundry as retired external agent harness-internal pipeline) — consistent with ADR-0335 retirement.
 - Anchor 5: ADR-0245 (substrate vs product layering) — governance is the substrate concern; foundry-fitness was the product label for a retired µservice.
 - Anchor 6: ADR-0345 (OSS stewardship class) — `oya-governance-stewardship-class-vocabulary` lane already uses the canonical governance prefix.
 - Anchor 7: `feedback_foundry_pipeline_canonical` (2026-05-16) — pipeline shape preserved under intelligence ownership; lane-identifier rename is independent.
@@ -577,7 +577,7 @@ I.2 ADR anchors:
 - ADR-0116 (retire external agent coordination tooling) — bulk-rename uses plain git/gh per the canonical-primitives doctrine.
 - ADR-0131 (per-microservice flat layout) — flat layout preserved across the rename.
 - ADR-0132 (no-grouping policy + governance prefix) — amended; per-lane IP cadence replaced by bulk-rename cadence.
-- ADR-0136-amendment (foundry as Hermes-internal pipeline) — amended; consistent terminology carried forward.
+- ADR-0136-amendment (foundry as retired external agent harness-internal pipeline) — amended; consistent terminology carried forward.
 - ADR-0145 (inter-microservice communication reform) — `oya-governance-dependency-seam` lane already uses the canonical prefix.
 - ADR-0211 (in-house tech stack preference) — preserved verbatim.
 - ADR-0212 (buildability doctrine) — preserved verbatim.

@@ -46,6 +46,13 @@
           "sequencing_effect": "none",
           "disposition_ref": "/specs/masterplan.json#masterplan_v2.planning_entry_contract",
           "note": "Accepted projection-policy propagation only; planning_impact is false and this marker does not add plan work."
+        },
+        {
+          "id": "ADR-0619",
+          "lifecycle_state": "Accepted",
+          "sequencing_effect": "none",
+          "disposition_ref": "/specs/masterplan.json#masterplan_v2.planning_authority.bound_adrs",
+          "note": "Accepted hard-retirement propagation only; this marker records lifecycle propagation without restoring the retired source as an authority or adding independent sequencing. Implementation closure is recorded by /evidence/goals/masterplan-v2-external-board-import-retirement-closure-20260720.json."
         }
       ],
       "evidence": "/evidence/consolidation/preplanning-authority-closure-20260713.json"
@@ -515,7 +522,6 @@
         "foundry_retirement_landed_at": "2026-05-21",
         "foundry_retirement_marker": "microservices/intelligence/RETIRED.md",
         "foundry_absorbed_by": "intelligence",
-        "hermes_terminology_status": "retired per ADR-0247 D-10 + ADR-0328 D-9.22 + ADR-0335 D-26..D-36",
         "dependencies": [
           1
         ]
@@ -772,8 +778,7 @@
           "status": "landed",
           "landed_at": "2026-05-21",
           "adr": "ADR-0335",
-          "absorbed_into": "intelligence",
-          "hermes_drop": "executed corpus-wide"
+          "absorbed_into": "intelligence"
         },
         "15K-network-merges-community": {
           "status": "landed",

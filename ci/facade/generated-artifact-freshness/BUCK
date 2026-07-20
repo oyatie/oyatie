@@ -5,6 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement",
         "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
         "third-party//:serde_json",
         "third-party//:toml",
@@ -48,6 +49,7 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement",
         "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
         "third-party//:serde_json",
         "third-party//:toml",

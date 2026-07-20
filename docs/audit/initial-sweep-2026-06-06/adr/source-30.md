@@ -12,7 +12,7 @@
 
 ### ADR-0239 — Foundry Scope Clarification (Internal-Only Amendment)
 
-- **decision_atom:** `microservices/foundry/` is the INTERNAL-only Hermes/CI/eval/evidence substrate; consumer-facing AI is the separate `microservices/intelligence/` µservice ("oyatie intelligence" brand), and every µservice manifest declares an `audience` field.
+- **decision_atom:** `microservices/foundry/` is the INTERNAL-only retired external agent harness/CI/eval/evidence substrate; consumer-facing AI is the separate `microservices/intelligence/` µservice ("oyatie intelligence" brand), and every µservice manifest declares an `audience` field.
 - **domain:** intelligence-ai, agentic-platform
 - **current_status:** Accepted (amendment to ADR-0136)
 - **disposition:** ARCHIVE

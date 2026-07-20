@@ -79,7 +79,7 @@
 |---|---|---|---|
 | **foundry** (the BRAND/µservice) | **cloud-intelligence** (consumer AI) + **governance** (CI/gates) | ADR-0335, ADR-0347; GLOSSARY §"Foundry (RETIRED)" L1032 | Founder: "cloud-intelligence is the valid name." Brand is dead even though hundreds of `oya-foundry-*` / "Foundry" strings persist corpus-wide. |
 | **Foundry Furnace** / "Furnace" | (self-improvement loop inside intelligence) | CONTRADICTION-LEDGER LEDG-013 ("retire Furnace branding"); GLOSSARY L241 | |
-| **Hermes** (internal-pipeline brand) | "intelligence" (consumer AI) / "oyatie.foundry workflow library inside dev-tools-cell-N" | GLOSSARY L1042 (ADR-0247 D-10 + ADR-0328 + ADR-0335) | No replacement brand needed |
+| **retired external agent harness** (internal-pipeline brand) | "intelligence" (consumer AI) / "oyatie.foundry workflow library inside dev-tools-cell-N" | GLOSSARY L1042 (ADR-0247 D-10 + ADR-0328 + ADR-0335) | No replacement brand needed |
 | **tier / tier-system / capability-tier** | **tenant-class** (`demo_trial`\|`paid`) + composable `billing_components` (`per_seat`,`per_usage`) | ADR-0329 (supersedes ADR-0316); GLOSSARY L6 | Autonomy *tiers* T1–T4 are a DIFFERENT, live concept (policy autonomy ceiling) — do not conflate |
 | **cell (as a microservice)** | **cell (as a deployment pattern only)** | ADR-0333 | `microservices/cell/*` retired |
 | **shorts (as a microservice)** | merged into **social** | ADR-0334 | |

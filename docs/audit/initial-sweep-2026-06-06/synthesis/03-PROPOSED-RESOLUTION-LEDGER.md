@@ -151,7 +151,7 @@ These are load-bearing substrates that read `proposed` only because the Foundati
 | 0349 Jenkins(LTS)+ArgoCD | **DROP Jenkins-half / KEEP ArgoCD-CD** | one-way | superseded-in-fact by 0349→0359→0408→0511→0513; Jenkins = bootstrap-only, Argo Workflows + oya-ci destination. (The one DROP-half in the CI chain.) |
 | 0352 from-scratch handoff | **AMEND-MANDATORY → RATIFY OR archive-as-bootstrap+regenerate** | **one-way** | wanted artifact but largest retired-vocab drift magnet (5 stack axes WRONG); IS the §4 authored-vs-generated question in concrete form — needs founder ruling. |
 | 0353 library-first policy-engine | RATIFY (amend) | two-way | amends 0246; allocate dangling credential-sidecar id. |
-| 0354 HTTP/3/TLS/ECH/PQC | RATIFY (one fix) | two-way | amends 0253; replace foundry/Hermes row + 0121 ref. |
+| 0354 HTTP/3/TLS/ECH/PQC | RATIFY (one fix) | two-way | amends 0253; replace foundry/retired external agent harness row + 0121 ref. |
 | 0355 library-first intelligence | RATIFY (amend) | two-way | amends 0255; Redis/KeyDB→Valkey; axis-foundry; Kafka 0050→0377. |
 | 0356 library-first ontology read-path | RATIFY (amend) | two-way | amends 0257; recovers 0141 intent; Kafka→0377; dangling sidecar ref. |
 | 0357 vertical-slice monorepo nesting | RATIFY | two-way | resolves 0131 gap; later superseded-by 0512 (note edge). |

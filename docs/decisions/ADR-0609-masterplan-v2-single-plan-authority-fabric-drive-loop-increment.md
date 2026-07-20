@@ -36,7 +36,7 @@ record is `specs/masterplan.json` `masterplan_v2.sequencing.founder_ratification
 Oyatie's plan authority was fragmented across seven live-looking surfaces (`specs/masterplan.json`
 v1 fragments, `specs/master-plan-sequencing.json`, the planning-closure contract + status ledger,
 `docs/MASTERPLAN.md`, `docs/ROADMAP.md`, `.omc/ultragoal/goals.json`) plus repo-local and global
-agent-harness stores (`.omc/`, `.omx/`, `.gjc/`, `.hermes/`). Duplicate authority rots by
+agent-harness stores (`.omc/`, `.omx/`, and `.gjc/`). Duplicate authority rots by
 discipline, not by mechanism: status claims drifted from evidence, projections went stale by hand,
 and superseded surfaces kept being read as live. ADR-0516 names the Agentic Delivery Fabric as the
 apex product; this consolidation is a fabric increment: one evidence-audited plan authority plus a
@@ -48,10 +48,9 @@ two-plane drive loop that executes ready work through mechanically disjoint para
    authority: one `MPV2-*` work-item ID space, an explicit dependency DAG, program-sharded
    coverage, per-claim evidence refs, and an auditable `surface_dispositions` ledger that absorbs
    or archives-with-provenance every legacy surface. Surviving human-facing surfaces
-   (`docs/MASTERPLAN.md`) are GENERATED projections; external board done-claims import as
-   claimed-done-unverified until evidence attaches (forensic ingest ledger:
-   `evidence/goals/masterplan-v2-hermes-done-card-forensic-ledger-20260702.json`, extracted by the
-   owned-Rust reader `tools/oya-masterplan-hermes-forensic-ledger-app`).
+   (`docs/MASTERPLAN.md`) are GENERATED projections. ADR-0619 removes the source-specific external
+   board import and its 934 unverified claims. Any future external claim surface must be
+   provider-neutral and cannot attain verified completion without recorded completion evidence.
 
 2. **Two-plane drive loop.** The durable plane lives in-repo and PR-governed under
    `plan/fabric-loop/` (cards + per-pass flow-metrics ledger), written only through
@@ -93,7 +92,7 @@ ci/facade/cross-artifact-agreement/src/projection_rederivation.rs
 ci/facade/cross-artifact-agreement/src/read_surface_resurrection.rs
 evidence/goals/fabric-loop-e2e-proof-run-20260702.json
 evidence/goals/fabric-loop-parallel-lanes-proof-run-20260702.json
-evidence/goals/masterplan-v2-hermes-done-card-forensic-ledger-20260702.json
+evidence/goals/masterplan-v2-external-board-import-retirement-closure-20260720.json
 evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json
 evidence/goals/masterplan-gates-ci-wiring-20260702.json
 plan/fabric-loop/cards/MPV2-0000.C001.json
@@ -129,20 +128,10 @@ tools/oya-fabric-loop-state-app/OWNERS
 tools/oya-fabric-loop-state-app/src/lib.rs
 tools/oya-fabric-loop-state-app/src/main.rs
 tools/oya-fabric-loop-state-app/tests/contract.rs
-tools/oya-masterplan-hermes-forensic-ledger-app/BUCK
-tools/oya-masterplan-hermes-forensic-ledger-app/Cargo.toml
-tools/oya-masterplan-hermes-forensic-ledger-app/OWNERS
-tools/oya-masterplan-hermes-forensic-ledger-app/src/json.rs
-tools/oya-masterplan-hermes-forensic-ledger-app/src/ledger.rs
-tools/oya-masterplan-hermes-forensic-ledger-app/src/lib.rs
-tools/oya-masterplan-hermes-forensic-ledger-app/src/main.rs
-tools/oya-masterplan-hermes-forensic-ledger-app/src/sha256.rs
-tools/oya-masterplan-hermes-forensic-ledger-app/src/sqlite.rs
-tools/oya-masterplan-hermes-forensic-ledger-app/tests/contract.rs
 ```
 
-Both tool crates are capability-registered under the `build/` meta home
-(`specs/capability-registry.json`), ownership-seeded by their `OWNERS` markers, and the
+The surviving fabric-loop tool crate is capability-registered under the `build/` meta home
+(`specs/capability-registry.json`), ownership-seeded by its `OWNERS` marker, and the
 `plan/fabric-loop/` durable-plane tree is reachability-registered by prefix in
 `specs/reachability-registry.json`.
 
