@@ -233,7 +233,7 @@ Rows are ordered by ADR number, then by decision number within ADR.
 | ADR-0247 D-7 | Workflow versioning + atomic swap | Immutable Workflow Version Pinning | Temporal workflow versioning; AWS Step Functions versioning; GCP Workflows versioning | Mutable Workflow Drift — running instances change underfoot |
 | ADR-0247 D-8 | Cedar fragment gating self-modification | Policy-Engine-Gated Self-Modification | AWS Verified Permissions + KMS chain; Sigstore signed-fragment provenance | Trust-On-First-Use Self-Modification — first publisher acquires unbounded modification rights |
 | ADR-0247 D-9 | Artifact migration plan (lossless lineage) | Lossless Substrate Distribution | rustc stage0/1/2 maintains historical artifact lineage; Nix flakes preserve input provenance | Lossy Migration — primitives drop during reorganisation |
-| ADR-0247 D-10 | Hermes name retirement | Inherited-Term Decommission | Glossary discipline; canonical-glossary enforcement | Vestigial Terminology Sprawl — inherited names persist with no canonical meaning |
+| ADR-0247 D-10 | retired external agent harness name retirement | Inherited-Term Decommission | Glossary discipline; canonical-glossary enforcement | Vestigial Terminology Sprawl — inherited names persist with no canonical meaning |
 | ADR-0247 D-11 | CI lanes for self-modification | Coverage-Required Self-Modification | Google SRE Workbook ch. 4 (SLO coverage); AWS Config conformance packs | Untested Self-Modification Surface — paths discovered missing in production |
 | ADR-0247 D-12 | Failure modes + bootstrap-replay runbook | Documented Recovery Procedure | AWS Builder's Library "Static Stability"; NIST SP 800-34 contingency planning; Google SRE incident-response runbooks | Tribal Recovery Knowledge — only one engineer knows how to recover |
 
@@ -1256,7 +1256,7 @@ Per-ADR scorecard. Columns:
 - ADR-0246 D-9 (Substrate Cohesion via PRD Amendment) cites DDD + ADR
   pattern only — should pick up a hyperscaler precedent at next
   multispectrum review.
-- ADR-0247 D-10 (Hermes name retirement) cites internal glossary
+- ADR-0247 D-10 (retired external agent harness name retirement) cites internal glossary
   discipline only — defensible (the term is internal); accept as-is.
 - ADR-0255 D-17 (ADR-0220 fate) cites internal portfolio practice;
   defensible because it's an ADR-on-ADR meta decision.

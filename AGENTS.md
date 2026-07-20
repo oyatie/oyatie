@@ -110,7 +110,7 @@ required_sequence:
     release-governance/release-note impact (Release Please applies only when a live repo config/workflow exists),
     and agent-observation harvest outcome (cards created/linked or duplicates documented)
 coordinator_worker_split:
-  coordinator: external Hermes/portfolio steward evaluates architecture, system design,
+  coordinator: portfolio/architecture coordinator evaluates architecture, system design,
     completed/upcoming work, maturity gaps, docs/procedure/process health, regressions,
     and Kanban decomposition/prioritization
   worker: dispatcher-assigned implementation/review worker executes scoped lane edits,

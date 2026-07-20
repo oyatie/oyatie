@@ -36,7 +36,7 @@
 //!   does not declare itself as the sole live plan authority, or a legacy surface
 //!   still claims live plan authority.
 //! - `masterplan_surface_disposition_incomplete` — a legacy plan/goal surface
-//!   or non-Hermes harness store from the ingest set lacks an explicit absorbed,
+//!   or harness store from the ingest set lacks an explicit absorbed,
 //!   archived-with-provenance, or generated-projection disposition.
 //! - `masterplan_work_item_id_collision` — two masterplan v2 work items carry one
 //!   live work-item id.
@@ -50,14 +50,14 @@
 //!   required ontology/workflow/intelligence/owned-stack/reorg/AST/fabric shards,
 //!   or the ADR-0537 owned-stack ladder (cloud-kernel → cloud-os → cloud-k8s →
 //!   cloud-services → products).
-//! - `masterplan_evidence_state_invalid` — a Hermes done-card completion
+//! - `masterplan_evidence_state_invalid` — an external work-item completion
 //!   claim without attached evidence is not projected as claimed-done-unverified,
 //!   or a masterplan completion status lacks evidence references.
 //! - `masterplan_plan_evidence_drift` — masterplan v2 status/evidence policy,
-//!   evidence references, or evidence-attached Hermes completion states drift
+//!   evidence references, or evidence-attached external completion states drift
 //!   from the evidence-audited plan contract.
 //! - `masterplan_plan_evidence_unrecorded` — a masterplan work-item status
-//!   claim (or evidence-attached Hermes import) is not cross-checkable against
+//!   claim (or evidence-attached external import) is not cross-checkable against
 //!   RECORDED completion evidence: a verified 'done' claim carries no merged
 //!   commit / merged-PR / gate-run record or tracked product-completion
 //!   packet, an evidence ref dangles outside the tracked tree, points at a
@@ -590,8 +590,8 @@ pub fn evaluate_masterplan_v2_authority(masterplan: &Value) -> BTreeSet<Finding>
 }
 /// Evaluate masterplan v2 completion evidence-state projections.
 ///
-/// Hermes done-card imports are forensic completion claims, not verified plan
-/// completion. A Hermes source card in a `done` column may only surface as
+/// External work-item imports are completion claims, not verified plan
+/// completion. An imported completion claim may only surface as
 /// `claimed-done-unverified` until evidence refs attach; all masterplan work-item
 /// completion statuses likewise require evidence references.
 pub fn evaluate_masterplan_v2_evidence_state(masterplan: &Value) -> BTreeSet<Finding> {
@@ -606,7 +606,10 @@ pub fn evaluate_masterplan_v2_evidence_state(masterplan: &Value) -> BTreeSet<Fin
     };
 
     evaluate_work_item_completion_evidence(v2.get("work_items"), &mut findings);
-    evaluate_hermes_done_card_imports(v2.get("hermes_done_card_imports"), &mut findings);
+    evaluate_external_work_item_claim_imports(
+        v2.get("external_work_item_claim_imports"),
+        &mut findings,
+    );
 
     findings
 }
@@ -614,7 +617,7 @@ pub fn evaluate_masterplan_v2_evidence_state(masterplan: &Value) -> BTreeSet<Fin
 ///
 /// This is the Sub-AC 3 guard for the evidence-audited MPV2 contract: status
 /// claims stay tied to auditable evidence refs, legacy/local planning stores
-/// cannot be laundered into completion evidence, and Hermes done-card imports
+/// cannot be laundered into completion evidence, and external work-item imports
 /// only surface as verified completion after evidence attaches.
 pub fn evaluate_masterplan_v2_plan_evidence_drift(masterplan: &Value) -> BTreeSet<Finding> {
     let mut findings = BTreeSet::new();
@@ -629,7 +632,10 @@ pub fn evaluate_masterplan_v2_plan_evidence_drift(masterplan: &Value) -> BTreeSe
 
     evaluate_plan_evidence_policy(v2.get("evidence_state_policy"), &mut findings);
     evaluate_work_item_plan_evidence_drift(v2.get("work_items"), &mut findings);
-    evaluate_hermes_plan_evidence_drift(v2.get("hermes_done_card_imports"), &mut findings);
+    evaluate_external_claim_plan_evidence_drift(
+        v2.get("external_work_item_claim_imports"),
+        &mut findings,
+    );
 
     findings
 }
@@ -2349,30 +2355,40 @@ fn evaluate_work_item_completion_evidence(
     }
 }
 
-fn evaluate_hermes_done_card_imports(claims: Option<&Value>, findings: &mut BTreeSet<Finding>) {
+fn evaluate_external_work_item_claim_imports(
+    claims: Option<&Value>,
+    findings: &mut BTreeSet<Finding>,
+) {
     let Some(claims) = claims else {
         return;
     };
     let Some(claims) = claims.as_array() else {
         findings.insert(Finding::new(
             "masterplan_evidence_state_invalid",
-            "masterplan_v2.hermes_done_card_imports",
+            "masterplan_v2.external_work_item_claim_imports",
         ));
         return;
     };
 
     for (index, claim) in claims.iter().enumerate() {
-        if !is_hermes_done_claim(claim) || completion_evidence_attached(claim) {
+        if !claim.is_object() {
+            findings.insert(Finding::new(
+                "masterplan_evidence_state_invalid",
+                &format!("external_work_item_claim_imports[{index}]"),
+            ));
+            continue;
+        }
+        if !is_external_completion_claim(claim) || completion_evidence_attached(claim) {
             continue;
         }
 
-        let key = hermes_done_claim_key(claim, index);
+        let key = external_claim_key(claim, index);
         if !any_non_empty_field(claim, &["evidence_state"])
             .is_some_and(is_claimed_done_unverified_state)
         {
             findings.insert(Finding::new(
                 "masterplan_evidence_state_invalid",
-                &format!("{key}@hermes_done_card_imports[{index}].evidence_state"),
+                &format!("{key}@external_work_item_claim_imports[{index}].evidence_state"),
             ));
         }
 
@@ -2381,7 +2397,7 @@ fn evaluate_hermes_done_card_imports(claims: Option<&Value>, findings: &mut BTre
         {
             findings.insert(Finding::new(
                 "masterplan_evidence_state_invalid",
-                &format!("{key}@hermes_done_card_imports[{index}].masterplan_status"),
+                &format!("{key}@external_work_item_claim_imports[{index}].masterplan_status"),
             ));
         }
     }
@@ -2413,13 +2429,13 @@ fn evaluate_plan_evidence_policy(policy: Option<&Value>, findings: &mut BTreeSet
         ));
     }
     if !policy
-        .get("hermes_done_claim_without_evidence_state")
+        .get("external_claim_without_evidence_state")
         .and_then(Value::as_str)
         .is_some_and(is_claimed_done_unverified_state)
     {
         findings.insert(Finding::new(
             "masterplan_plan_evidence_drift",
-            "masterplan_v2.evidence_state_policy.hermes_done_claim_without_evidence_state",
+            "masterplan_v2.evidence_state_policy.external_claim_without_evidence_state",
         ));
     }
     if !policy
@@ -2478,24 +2494,27 @@ fn evaluate_work_item_plan_evidence_drift(
     }
 }
 
-fn evaluate_hermes_plan_evidence_drift(claims: Option<&Value>, findings: &mut BTreeSet<Finding>) {
+fn evaluate_external_claim_plan_evidence_drift(
+    claims: Option<&Value>,
+    findings: &mut BTreeSet<Finding>,
+) {
     let Some(claims) = claims else {
         return;
     };
     let Some(claims) = claims.as_array() else {
         findings.insert(Finding::new(
             "masterplan_plan_evidence_drift",
-            "masterplan_v2.hermes_done_card_imports",
+            "masterplan_v2.external_work_item_claim_imports",
         ));
         return;
     };
 
     for (index, claim) in claims.iter().enumerate() {
-        let key = hermes_done_claim_key(claim, index);
-        let scoped_key = format!("{key}@hermes_done_card_imports[{index}]");
+        let key = external_claim_key(claim, index);
+        let scoped_key = format!("{key}@external_work_item_claim_imports[{index}]");
         evaluate_plan_evidence_refs(claim, &scoped_key, findings);
 
-        if !is_hermes_done_claim(claim) {
+        if !is_external_completion_claim(claim) {
             continue;
         }
 
@@ -2585,16 +2604,9 @@ fn plan_evidence_ref_is_stale_or_local(evidence_ref: &str) -> bool {
         .map_or(normalized, |(path, _)| path);
     let lower = path.to_ascii_lowercase();
 
-    [
-        ".omc/",
-        ".omx/",
-        ".gjc/",
-        "~/.hermes/",
-        "~/.gjc/",
-        "~/.omx/",
-    ]
-    .iter()
-    .any(|prefix| lower.starts_with(prefix))
+    [".omc/", ".omx/", ".gjc/", "~/.gjc/", "~/.omx/"]
+        .iter()
+        .any(|prefix| lower.starts_with(prefix))
         || matches!(
             lower.as_str(),
             "specs/master-plan-sequencing.json"
@@ -2605,20 +2617,8 @@ fn plan_evidence_ref_is_stale_or_local(evidence_ref: &str) -> bool {
         )
 }
 
-fn is_hermes_done_claim(claim: &Value) -> bool {
-    let source_is_hermes = any_non_empty_field(
-        claim,
-        &[
-            "source_system",
-            "source",
-            "source_path",
-            "source_ref",
-            "source_board",
-        ],
-    )
-    .is_some_and(|source| normalized_status_token(source).contains("hermes"));
-
-    let source_claims_done = any_non_empty_field(
+fn is_external_completion_claim(claim: &Value) -> bool {
+    any_non_empty_field(
         claim,
         &[
             "source_status",
@@ -2627,9 +2627,7 @@ fn is_hermes_done_claim(claim: &Value) -> bool {
             "completion_claim",
         ],
     )
-    .is_some_and(is_done_claim_status);
-
-    source_is_hermes && source_claims_done
+    .is_some_and(is_done_claim_status)
 }
 
 fn completion_evidence_attached(value: &Value) -> bool {
@@ -2647,19 +2645,13 @@ fn completion_evidence_attached(value: &Value) -> bool {
         .is_some()
 }
 
-fn hermes_done_claim_key(claim: &Value, index: usize) -> String {
+fn external_claim_key(claim: &Value, index: usize) -> String {
     any_non_empty_field(
         claim,
-        &[
-            "source_card_id",
-            "card_id",
-            "task_id",
-            "source_task_id",
-            "source_ref",
-        ],
+        &["external_work_item_id", "work_item_id", "claim_id"],
     )
     .map(str::to_owned)
-    .unwrap_or_else(|| format!("hermes_done_card_imports[{index}]"))
+    .unwrap_or_else(|| format!("external_work_item_claim_imports[{index}]"))
 }
 
 fn is_verified_completion_status(status: &str) -> bool {
@@ -4109,23 +4101,49 @@ mod tests {
     }
 
     #[test]
-    fn masterplan_v2_evidence_state_marks_hermes_done_claims_unverified_without_evidence() {
+    fn absent_external_work_item_claim_imports_are_clean() {
+        let findings = evaluate_masterplan_v2_evidence_state(&minimal_masterplan_v2());
+        assert!(
+            findings.is_empty(),
+            "the optional external completion-claim import must be clean when absent: {findings:?}"
+        );
+    }
+
+    #[test]
+    fn malformed_external_work_item_claim_imports_fail_closed() {
         let mut fixture = minimal_masterplan_v2();
-        fixture["masterplan_v2"]["hermes_done_card_imports"] = json!([
+        fixture["masterplan_v2"]["external_work_item_claim_imports"] = json!("not-an-array");
+
+        let findings = evaluate_masterplan_v2_evidence_state(&fixture);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_evidence_state_invalid",
+            "masterplan_v2.external_work_item_claim_imports"
+        )));
+
+        fixture["masterplan_v2"]["external_work_item_claim_imports"] = json!([42]);
+        let findings = evaluate_masterplan_v2_evidence_state(&fixture);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_evidence_state_invalid",
+            "external_work_item_claim_imports[0]"
+        )));
+    }
+
+    #[test]
+    fn masterplan_v2_evidence_state_marks_external_completion_claims_unverified_without_evidence() {
+        let mut fixture = minimal_masterplan_v2();
+        fixture["masterplan_v2"]["external_work_item_claim_imports"] = json!([
             {
-                "source_system": "hermes",
-                "source_card_id": "t_done_without_evidence",
+                "external_work_item_id": "t_done_without_evidence",
                 "source_status": "done",
-                "completion_claim": "hermes-done-card",
+                "completion_claim": "external-completion-claim",
                 "masterplan_status": "claimed-done-unverified",
                 "evidence_state": "claimed-done-unverified",
                 "evidence_refs": []
             },
             {
-                "source_system": "hermes",
-                "source_card_id": "t_done_with_evidence",
+                "external_work_item_id": "t_done_with_evidence",
                 "source_status": "done",
-                "completion_claim": "hermes-done-card",
+                "completion_claim": "external-completion-claim",
                 "masterplan_status": "done",
                 "evidence_state": "evidence-attached",
                 "evidence_refs": ["fixture://merged-pr/evidence"]
@@ -4143,19 +4161,18 @@ mod tests {
         let findings = evaluate_masterplan_v2_evidence_state(&fixture);
         assert!(
             findings.is_empty(),
-            "Hermes done claims without evidence must be unverified, and evidence-backed completion may surface: {findings:?}"
+            "external completion claims without evidence must be unverified, and evidence-backed completion may surface: {findings:?}"
         );
     }
 
     #[test]
-    fn masterplan_v2_evidence_state_rejects_unverified_hermes_done_as_done() {
+    fn masterplan_v2_evidence_state_rejects_unverified_external_claim_as_done() {
         let mut fixture = minimal_masterplan_v2();
-        fixture["masterplan_v2"]["hermes_done_card_imports"] = json!([
+        fixture["masterplan_v2"]["external_work_item_claim_imports"] = json!([
             {
-                "source_system": "hermes",
-                "source_card_id": "t_unverified_done",
+                "external_work_item_id": "t_unverified_done",
                 "source_status": "done",
-                "completion_claim": "hermes-done-card",
+                "completion_claim": "external-completion-claim",
                 "masterplan_status": "done",
                 "evidence_state": "done",
                 "evidence_refs": []
@@ -4173,11 +4190,11 @@ mod tests {
         let findings = evaluate_masterplan_v2_evidence_state(&fixture);
         assert!(findings.contains(&Finding::new(
             "masterplan_evidence_state_invalid",
-            "t_unverified_done@hermes_done_card_imports[0].evidence_state"
+            "t_unverified_done@external_work_item_claim_imports[0].evidence_state"
         )));
         assert!(findings.contains(&Finding::new(
             "masterplan_evidence_state_invalid",
-            "t_unverified_done@hermes_done_card_imports[0].masterplan_status"
+            "t_unverified_done@external_work_item_claim_imports[0].masterplan_status"
         )));
         assert!(findings.contains(&Finding::new(
             "masterplan_evidence_state_invalid",
@@ -4195,12 +4212,11 @@ mod tests {
                 "status": "done",
                 "evidence_refs": ["ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_plan_vs_evidence_drift_contract_is_green"]
             }));
-        fixture["masterplan_v2"]["hermes_done_card_imports"] = json!([
+        fixture["masterplan_v2"]["external_work_item_claim_imports"] = json!([
             {
-                "source_system": "hermes",
-                "source_card_id": "t_done_with_evidence",
+                "external_work_item_id": "t_done_with_evidence",
                 "source_status": "done",
-                "completion_claim": "hermes-done-card",
+                "completion_claim": "external-completion-claim",
                 "masterplan_status": "done",
                 "evidence_state": "evidence-attached",
                 "evidence_refs": ["evidence/quality-gate/G013-quality-gate-checkpoint.json"]
@@ -4210,7 +4226,7 @@ mod tests {
         let findings = evaluate_masterplan_v2_plan_evidence_drift(&fixture);
         assert!(
             findings.is_empty(),
-            "audited evidence refs and evidence-attached Hermes done claims should be green: {findings:?}"
+            "audited evidence refs and evidence-attached external completion claims should be green: {findings:?}"
         );
     }
 
@@ -4227,12 +4243,11 @@ mod tests {
                 "status": "done",
                 "evidence_refs": [".omc/ultragoal/goals.json#done-card"]
             }));
-        fixture["masterplan_v2"]["hermes_done_card_imports"] = json!([
+        fixture["masterplan_v2"]["external_work_item_claim_imports"] = json!([
             {
-                "source_system": "hermes",
-                "source_card_id": "t_evidence_attached",
+                "external_work_item_id": "t_evidence_attached",
                 "source_status": "done",
-                "completion_claim": "hermes-done-card",
+                "completion_claim": "external-completion-claim",
                 "masterplan_status": "done",
                 "evidence_state": "claimed-done-unverified",
                 "evidence_refs": ["fixture://merged-pr/evidence"]
@@ -4250,7 +4265,7 @@ mod tests {
         )));
         assert!(findings.contains(&Finding::new(
             "masterplan_plan_evidence_drift",
-            "t_evidence_attached@hermes_done_card_imports[0].evidence_state"
+            "t_evidence_attached@external_work_item_claim_imports[0].evidence_state"
         )));
     }
 
@@ -4295,7 +4310,7 @@ mod tests {
         )));
     }
     #[test]
-    fn masterplan_v2_authority_requires_non_hermes_surface_disposition_coverage() {
+    fn masterplan_v2_authority_requires_noncanonical_surface_disposition_coverage() {
         let mut fixture = minimal_masterplan_v2();
         fixture["masterplan_v2"]["surface_dispositions"]
             .as_array_mut()
@@ -4817,7 +4832,7 @@ mod tests {
                 },
                 "evidence_state_policy": {
                     "status_claims_require_evidence_refs": true,
-                    "hermes_done_claim_without_evidence_state": CLAIMED_DONE_UNVERIFIED_STATE,
+                    "external_claim_without_evidence_state": CLAIMED_DONE_UNVERIFIED_STATE,
                     "evidence_attached_completion_state": EVIDENCE_ATTACHED_STATE,
                     "validator": PLAN_EVIDENCE_DRIFT_VALIDATOR,
                     "policy_ref": "test"

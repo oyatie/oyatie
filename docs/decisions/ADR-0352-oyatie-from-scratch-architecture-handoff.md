@@ -229,7 +229,7 @@ The following service-boundary decisions are mandatory in a from-scratch build:
 - Foundry responsibilities live inside intelligence.
 - The `oyatie.foundry.*` principal namespace remains only for
   self-modification authorization, operational identity, and audit.
-- Hermes terminology is retired.
+- retired external agent harness terminology is retired.
 - `cell` is not a standalone microservice.
 - Cellular architecture remains mandatory as a topology and runtime pattern.
 - `network` is retired into community.

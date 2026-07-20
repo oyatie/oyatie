@@ -270,7 +270,7 @@ ADR-0331-cross-microservice-tenant-class-adoption-template.md	adr	explanation	de
 ADR-0332-healthcare-domain-decomposition.md	adr	explanation	decision/ADR	Accepted	Healthcare Domain Decomposition
 ADR-0333-cell-microservice-retired-pattern-not-service.md	adr	explanation	decision/ADR	Accepted	Cell µservice retired; cellular architecture is a pattern, not
 ADR-0334-shorts-microservice-merged-into-social.md	adr	explanation	decision/ADR	Accepted	shorts µservice retired; absorbed into social as short-video flavor
-ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md	adr	explanation	decision/ADR	Accepted	foundry µservice retired; absorbed by intelligence; Hermes terminology dropped
+ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md	adr	explanation	decision/ADR	Accepted	foundry µservice retired; absorbed by intelligence; retired external agent harness terminology dropped
 ADR-0336-valkey-not-redis-substrate.md	adr	explanation	decision/ADR	Proposed	Valkey is the canonical in-memory KV / cache /
 ADR-0337-iceberg-canonical-olap-write-path.md	adr	explanation	decision/ADR	Proposed	Apache Iceberg is the canonical OLAP table-format write path
 ADR-0338-pod-runtime-tier-0-to-3.md	adr	explanation	decision/ADR	Proposed	Pod runtime tier 0..3 (Kata + Cloud Hypervisor for

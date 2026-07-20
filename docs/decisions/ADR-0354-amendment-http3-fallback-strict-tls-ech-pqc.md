@@ -426,7 +426,7 @@ intra-cell or inter-cell mesh only.
 | payments | yes | REQUIRED | REQUIRED | REQUIRED | PCI scope |
 | cloud-billing-* | no (internal only) | RECOMMENDED | EXEMPT | REQUIRED | Billing substrate |
 | cloud-network-* | no (internal only) | RECOMMENDED | EXEMPT | REQUIRED | Network management |
-| foundry | no (internal only) | RECOMMENDED | EXEMPT | REQUIRED | Hermes pipeline; internal |
+| foundry | no (internal only) | RECOMMENDED | EXEMPT | REQUIRED | retired external agent harness pipeline; internal |
 
 **Default rule for µservices not listed:** If a µservice exposes
 any endpoint reachable from outside the cell boundary, HTTP/3,

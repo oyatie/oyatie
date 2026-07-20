@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 428
-- **Numbering:** ADR-0001..ADR-0618 (non-contiguous; gaps: 0012, 0033, 0037, 0041, 0050, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0247, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291, 0322..0323, 0327, 0342, 0345, 0385..0386, 0395..0396, 0398..0475, 0477, 0483..0505, 0574..0579, 0583..0585, 0594, 0601..0602)
-- **Next ADR number:** 0619
-- **Status counts:** Accepted 174, Accepted (amendment) 2, Amended 1, Proposed 147, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 35, accepted 34, deprecated 1, proposed 31, superseded 1
+- **Total ADRs:** 429
+- **Numbering:** ADR-0001..ADR-0619 (non-contiguous; gaps: 0012, 0033, 0037, 0041, 0050, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0247, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291, 0322..0323, 0327, 0342, 0345, 0385..0386, 0395..0396, 0398..0475, 0477, 0483..0505, 0574..0579, 0583..0585, 0594, 0601..0602)
+- **Next ADR number:** 0620
+- **Status counts:** Accepted 175, Accepted (amendment) 2, Amended 1, Proposed 147, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 35, accepted 34, deprecated 1, proposed 31, superseded 1
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -285,7 +285,7 @@ doc_status: published
 | ADR-0332 | Accepted | Healthcare Domain Decomposition | council-architecture | [`ADR-0332-healthcare-domain-decomposition.md`](decisions/ADR-0332-healthcare-domain-decomposition.md) |
 | ADR-0333 | Accepted | Cell µservice retired; cellular architecture is a pattern, not a service | council-architecture, axis-tenancy, axis-cloud-iac, axis-observability, axis-audit-chain, axis-api-gateway | [`ADR-0333-cell-microservice-retired-pattern-not-service.md`](decisions/ADR-0333-cell-microservice-retired-pattern-not-service.md) |
 | ADR-0334 | Accepted | shorts µservice retired; absorbed into social as short-video flavor | council-architecture, axis-social, axis-shorts | [`ADR-0334-shorts-microservice-merged-into-social.md`](decisions/ADR-0334-shorts-microservice-merged-into-social.md) |
-| ADR-0335 | Accepted | foundry µservice retired; absorbed by intelligence; Hermes terminology dropped | council-architecture, axis-intelligence, axis-foundry | [`ADR-0335-intelligence-microservice-consolidation.md`](decisions/ADR-0335-intelligence-microservice-consolidation.md) |
+| ADR-0335 | Accepted | foundry µservice retired; absorbed by intelligence; retired external agent harness terminology dropped | council-architecture, axis-intelligence, axis-foundry | [`ADR-0335-intelligence-microservice-consolidation.md`](decisions/ADR-0335-intelligence-microservice-consolidation.md) |
 | ADR-0336 | Proposed | Valkey is the canonical in-memory KV / cache / pubsub substrate (Redis retired for license drift) | council-architecture, council-security, council-legal, council-supply-chain, ops-sre-reliability, axis-cloud-data, axis-cloud-secrets, axis-observability, axis-policy-engine | [`ADR-0336-valkey-not-redis-substrate.md`](decisions/ADR-0336-valkey-not-redis-substrate.md) |
 | ADR-0337 | Proposed | Apache Iceberg is the canonical OLAP table-format write path (Delta + Hudi demoted to migration adapters; ClickHouse compute layered on Iceberg) | council-architecture, ops-data-platform, council-supply-chain, axis-data-warehouse, axis-data-pipeline, axis-cloud-data, axis-observability, axis-policy-engine | [`ADR-0337-iceberg-canonical-olap-write-path.md`](decisions/ADR-0337-iceberg-canonical-olap-write-path.md) |
 | ADR-0338 | Proposed | Pod runtime tier 0..3 (Kata + Cloud Hypervisor for tenant-untrusted + tenant-data substrate; runc for first-party + edge) | council-architecture, council-security, ops-sre-reliability, ops-security, ops-dr-capacity, axis-cloud, axis-cell, axis-deployment, axis-policy-engine, axis-observability | [`ADR-0338-pod-runtime-tier-0-to-3.md`](decisions/ADR-0338-pod-runtime-tier-0-to-3.md) |
@@ -449,11 +449,12 @@ doc_status: published
 | ADR-0616 | Proposed | De-commit the firewall frozen-reference baseline | council-architecture | [`ADR-0616-de-commit-firewall-frozen-reference-baseline.md`](decisions/ADR-0616-de-commit-firewall-frozen-reference-baseline.md) |
 | ADR-0617 | Proposed | The Living Monorepo Governance Graph | council-architecture | [`ADR-0617-living-monorepo-governance-graph.md`](decisions/ADR-0617-living-monorepo-governance-graph.md) |
 | ADR-0618 | Proposed | Contract-slice conformance gate scope boundary | council-architecture | [`ADR-0618-contract-slice-gate-scope-boundary.md`](decisions/ADR-0618-contract-slice-gate-scope-boundary.md) |
+| ADR-0619 | Accepted | Zero-live-context retirement of an external agent-harness brand | council-architecture | [`ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md`](decisions/ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0619), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0620), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -497,6 +498,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 428 ADR files (sorted ascending)
+- `decisions/` directory listing — 429 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks

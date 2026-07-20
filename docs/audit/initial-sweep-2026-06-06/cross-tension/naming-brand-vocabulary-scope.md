@@ -18,7 +18,7 @@ Severity legend: **CRITICAL** (corrupts the corpus or blocks merge) · **MAJOR**
 **Severity: CRITICAL. Class: TRUE CONTRADICTION (between two Accepted ADRs) + measured residue.**
 
 **Positions:**
-- **Brand retired.** `ADR-0335` (Accepted 2026-05-21) retires the `foundry` µservice, absorbs it into `intelligence`, drops "Hermes"; founder-confirmed "cloud-intelligence is the valid name" (map §2, GLOSSARY L1032). `ADR-0347` (Proposed) renames every `oya-foundry-fitness-*` CI lane to `oya-governance-*`.
+- **Brand retired.** `ADR-0335` (Accepted 2026-05-21) retires the `foundry` µservice, absorbs it into `intelligence`, drops "retired external agent harness"; founder-confirmed "cloud-intelligence is the valid name" (map §2, GLOSSARY L1032). `ADR-0347` (Proposed) renames every `oya-foundry-fitness-*` CI lane to `oya-governance-*`.
 - **Rename DEFERRED.** `ADR-0335` D-37..D-48 + R-13/R-14 explicitly **do NOT rename** the crates: *"existing crates are not renamed in this ADR to avoid a 122-crate rename cascade across 43 dependent crates… future rename is a separate cleanup wave"* (`source/docs/decisions/ADR-0335-…md:276-301, 647-652`). `oya-foundry-*` survives as "transition debt."
 - **Rename DECLARED DONE.** `ADR-0363` (Accepted 2026-05-26, **5 days later**) §Context-1: *"**The Foundry name was eradicated** (ADR-0362 + the #181–#184 cutover): the former `oya-foundry-*` crates were renamed across three namespaces — `oya-intelligence-*` (116), `oya-governance-*` (39+2), `oya-vcs-*` (20). `microservices/foundry/` (597 files) was kept as a now-name-mismatched doc shell"* (`ADR-0363-…md:35`).
 - **Ground truth (grep, 2026-06-06):** `oya-foundry-*` still appears across **59 ADR files** in `docs/decisions/` (excl. the retirement ADRs), incl. `oya-foundry-fitness-*` ×71, `oya-foundry-capability-kernel` ×6, `oya-foundry-vcs-merge-queue-fix-loop-app` ×5, `oya-foundry-supervisor-kernel`, `oya-foundry-eval-*`, `oya-foundry-account-adapter-*`. **222 ADR files** mention "foundry" at all.
@@ -200,10 +200,10 @@ Plus, per the per-chunk findings, downstream ADRs add **even more** "tier" axes:
 
 ---
 
-## T-9 — `cell` / `shorts` / `Hermes` / `Furnace` / `CUG` retired-vocabulary leakage (low-severity confirmation)
+## T-9 — `cell` / `shorts` / `retired external agent harness` / `Furnace` / `CUG` retired-vocabulary leakage (low-severity confirmation)
 **Severity: MINOR. Class: RECONCILABLE OVERLAP (retired-vocab residue).**
 
-**Positions / evidence:** `ADR-0333` retires `cell`-as-microservice → cell-as-pattern; `ADR-0334` merges `shorts`→`social`; `ADR-0335` drops `Hermes`; `Furnace`/`Foundry Furnace` retired (LEDG-013); `CUG`→`Team` (GLOSSARY L252). Grep confirms low residue: `microservices/cell/` in 1 ADR file; the bulk of the leakage is the `foundry` brand (T-1) and `tier` (T-3), already covered. LINUX side is clean: **0** Bronze/tier, **0** tenant-class, only **1** "foundry" mention (`ADR-0020:89` — an OTel example "all Foundry invocations", which is correct-as-history but should read "intelligence").
+**Positions / evidence:** `ADR-0333` retires `cell`-as-microservice → cell-as-pattern; `ADR-0334` merges `shorts`→`social`; `ADR-0335` drops `retired external agent harness`; `Furnace`/`Foundry Furnace` retired (LEDG-013); `CUG`→`Team` (GLOSSARY L252). Grep confirms low residue: `microservices/cell/` in 1 ADR file; the bulk of the leakage is the `foundry` brand (T-1) and `tier` (T-3), already covered. LINUX side is clean: **0** Bronze/tier, **0** tenant-class, only **1** "foundry" mention (`ADR-0020:89` — an OTel example "all Foundry invocations", which is correct-as-history but should read "intelligence").
 
 **Verdict:** **Reconcilable** — minor retired-vocab residue, fully governed by existing retirement ADRs. No contradiction.
 
@@ -244,4 +244,4 @@ Plus, per the per-chunk findings, downstream ADRs add **even more** "tier" axes:
 7. **[T-3/T-5] Vocabulary namespacing** — enforce a namespaced "tier" map + the canonical-naming lint (forbid ADR-number/M0x-keyed names) as backfill preconditions?
 
 ---
-*End of register. READ-ONLY pass; the only write is this file. Trust the superseding ADR over stale front-matter; treat `foundry`/`tier`/`Hermes`/`M0–M3`/`KCMVP-corruption` per the resolutions above; the masterplan authored-vs-generated fork (T-4) is the keystone founder call that gates all backfill.*
+*End of register. READ-ONLY pass; the only write is this file. Trust the superseding ADR over stale front-matter; treat `foundry`/`tier`/`retired external agent harness`/`M0–M3`/`KCMVP-corruption` per the resolutions above; the masterplan authored-vs-generated fork (T-4) is the keystone founder call that gates all backfill.*

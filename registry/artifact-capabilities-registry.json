@@ -2022,7 +2022,7 @@
           ]
         },
         "provenance": {
-          "current_author": "hermes-agent",
+          "current_author": "unresolved-legacy-automation",
           "current_reviewed_by": "pending code-review",
           "last_modified_at": "2026-06-30T09:41:10Z"
         }
@@ -2068,7 +2068,7 @@
           ]
         },
         "provenance": {
-          "current_author": "hermes-agent",
+          "current_author": "unresolved-legacy-automation",
           "current_reviewed_by": "pending code-review",
           "last_modified_at": "2026-06-30T23:15:00Z"
         }
@@ -2162,7 +2162,7 @@
           "command": "python3 -m json.tool specs/delivery-readiness-reconciliation.json && focused delivery-readiness structural validation"
         },
         "provenance": {
-          "current_author": "GJC + Ouroboros seed_f2f2be6d7c0f + Hermes t_8b27fa72 + Hermes t_dda96067",
+          "current_author": "unresolved-legacy-automation",
           "current_reviewed_by": "pending",
           "last_modified_at": "2026-06-30T13:27:56Z"
         }
@@ -2181,7 +2181,7 @@
           "command": "focused delivery-readiness structural validation"
         },
         "provenance": {
-          "current_author": "GJC + Ouroboros seed_f2f2be6d7c0f + Hermes t_dda96067",
+          "current_author": "unresolved-legacy-automation",
           "current_reviewed_by": "pending",
           "last_modified_at": "2026-06-30T13:27:56Z"
         }
@@ -2213,7 +2213,7 @@
           "healer": "manual-with-review until regulatory source-index gate lands"
         },
         "provenance": {
-          "current_author": "hermes-gjc",
+          "current_author": "unresolved-legacy-automation",
           "current_reviewed_by": "critic-132 + architect-131 planning review",
           "last_modified_at": "2026-07-01T00:51:42Z"
         }
@@ -2259,7 +2259,7 @@
           ]
         },
         "provenance": {
-          "current_author": "hermes-agent",
+          "current_author": "unresolved-legacy-automation",
           "current_reviewed_by": "pending code-review",
           "last_modified_at": "2026-07-01T00:03:40Z"
         }
@@ -2305,7 +2305,7 @@
           ]
         },
         "provenance": {
-          "current_author": "hermes-agent",
+          "current_author": "unresolved-legacy-automation",
           "current_reviewed_by": "REGID-002 PR review evidence at https://github.com/jason931225/oyatie/pull/1098; tracking issue https://github.com/jason931225/oyatie/issues/1097",
           "last_modified_at": "2026-07-01T06:17:41Z"
         }
@@ -2351,7 +2351,7 @@
           ]
         },
         "provenance": {
-          "current_author": "hermes-gjc",
+          "current_author": "unresolved-legacy-automation",
           "current_reviewed_by": "critic-132 + architect-131 planning review",
           "last_modified_at": "2026-07-01T00:51:42Z"
         }
@@ -2397,7 +2397,7 @@
           ]
         },
         "provenance": {
-          "current_author": "hermes-agent",
+          "current_author": "unresolved-legacy-automation",
           "current_reviewed_by": "architect 162-ReviewPr1149 APPROVE",
           "last_modified_at": "2026-07-02T03:15:00Z"
         }
@@ -2429,7 +2429,7 @@
           "healer": "manual-with-review until residency contract gate lands"
         },
         "provenance": {
-          "current_author": "hermes-agent",
+          "current_author": "unresolved-legacy-automation",
           "current_reviewed_by": "pending RESIDENCY-001 independent review",
           "last_modified_at": "2026-07-09T00:00:00Z"
         }
@@ -2461,7 +2461,7 @@
           "healer": "manual-with-review until residency registry gate lands"
         },
         "provenance": {
-          "current_author": "hermes-agent",
+          "current_author": "unresolved-legacy-automation",
           "current_reviewed_by": "pending RESIDENCY-001 independent review",
           "last_modified_at": "2026-07-09T00:00:00Z"
         }
@@ -2493,7 +2493,7 @@
           "healer": "manual-with-review until residency registry gate lands"
         },
         "provenance": {
-          "current_author": "hermes-agent",
+          "current_author": "unresolved-legacy-automation",
           "current_reviewed_by": "pending RESIDENCY-001 independent review",
           "last_modified_at": "2026-07-09T00:00:00Z"
         }
@@ -2525,7 +2525,7 @@
           "healer": "manual-with-review until residency matrix gate lands"
         },
         "provenance": {
-          "current_author": "hermes-agent",
+          "current_author": "unresolved-legacy-automation",
           "current_reviewed_by": "pending RESIDENCY-001 independent review",
           "last_modified_at": "2026-07-09T00:00:00Z"
         }
@@ -2557,7 +2557,7 @@
           "healer": "manual-with-review until residency audit-event gate lands"
         },
         "provenance": {
-          "current_author": "hermes-agent",
+          "current_author": "unresolved-legacy-automation",
           "current_reviewed_by": "pending RESIDENCY-001 independent review",
           "last_modified_at": "2026-07-09T00:00:00Z"
         }
@@ -2603,23 +2603,23 @@
           ]
         },
         "provenance": {
-          "current_author": "hermes-agent",
+          "current_author": "unresolved-legacy-automation",
           "current_reviewed_by": "REGSEC-001 T3 review t_59bf50cb APPROVE; REGVULN-002 review child t_4d5c525f pending",
           "last_modified_at": "2026-07-01T13:28:43Z"
         }
       }
     },
     {
-      "artifact_id": "regulatory-hermes-decomposition-preservation-20260701",
-      "artifact_path": "/evidence/regulatory/regulatory-hermes-decomposition-preservation-20260701.json",
+      "artifact_id": "regulatory-external-agent-decomposition-preservation-20260701",
+      "artifact_path": "/evidence/regulatory/regulatory-external-agent-decomposition-preservation-20260701.json",
       "artifact_format": "json",
       "contract_version": "v0.1.0",
       "owner_team": "ops-compliance + platform-toolchain",
-      "purpose_short": "Durable preservation packet for regulatory Hermes decomposition, plan/matrix text, QA/review evidence, claim ceilings, and downstream no-go state.",
-      "artifact_profile": "evidence",
+      "purpose_short": "Durable preservation packet for the retired external-agent decomposition, plan/matrix text, QA/review evidence, claim ceilings, and downstream no-go state.",
+      "artifact_profile": "evidence-bundle",
       "capability_overrides": {
         "verification": {
-          "command": "python3 -m json.tool evidence/regulatory/regulatory-hermes-decomposition-preservation-20260701.json >/dev/null"
+          "command": "python3 -m json.tool evidence/regulatory/regulatory-external-agent-decomposition-preservation-20260701.json >/dev/null"
         },
         "validation": {
           "validator": "JSON syntax plus review-ledger inspection"
@@ -2628,6 +2628,38 @@
           "current_author": "gjc",
           "current_reviewed_by": "ouroboros-qa-2851cca6 + critic-132 + architect-131",
           "last_modified_at": "2026-07-01T00:51:42Z"
+        }
+      },
+      "evidence_contract": {
+        "verification": {
+          "command": "python3 -m json.tool evidence/regulatory/regulatory-external-agent-decomposition-preservation-20260701.json >/dev/null"
+        }
+      }
+    },
+    {
+      "artifact_id": "masterplan-v2-external-board-import-retirement-closure-20260720",
+      "artifact_path": "/evidence/goals/masterplan-v2-external-board-import-retirement-closure-20260720.json",
+      "artifact_format": "json",
+      "contract_version": "v0.1.0",
+      "owner_team": "council-architecture + platform-toolchain",
+      "purpose_short": "Recorded non-authoritative closure receipt for removing an external completion-claim import without promoting or verifying any imported claim.",
+      "artifact_profile": "evidence-bundle",
+      "capability_overrides": {
+        "verification": {
+          "command": "python3 -m json.tool evidence/goals/masterplan-v2-external-board-import-retirement-closure-20260720.json >/dev/null"
+        },
+        "validation": {
+          "validator": "JSON syntax plus masterplan and audit-chain cross-artifact agreement"
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "ADR-0619 retirement migration fresh-context review pending",
+          "last_modified_at": "2026-07-20T00:00:00Z"
+        }
+      },
+      "evidence_contract": {
+        "verification": {
+          "command": "python3 -m json.tool evidence/goals/masterplan-v2-external-board-import-retirement-closure-20260720.json >/dev/null"
         }
       }
     }

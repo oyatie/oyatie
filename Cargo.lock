@@ -1335,6 +1335,7 @@ dependencies = [
 name = "ci-generated-artifact-freshness"
 version = "0.1.0"
 dependencies = [
+ "ci-cross-artifact-agreement",
  "oya-workspace-members-kernel",
  "serde_json",
  "toml 0.8.23",
@@ -8767,10 +8768,6 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
 ]
-
-[[package]]
-name = "oya-masterplan-hermes-forensic-ledger-app"
-version = "0.1.0"
 
 [[package]]
 name = "oya-notes-domain"

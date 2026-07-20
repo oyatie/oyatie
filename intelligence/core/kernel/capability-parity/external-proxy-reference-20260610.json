@@ -517,7 +517,7 @@
         "README",
         "compat matrix"
       ],
-      "source_behavior_summary": "Works with Claude Code, Cursor, Aider, Cline/Roo/Kilo, Continue.dev, Zed, OpenHands, OpenClaw, Hermes, Codex-compatible client, Claude Agent SDK, scripts.",
+      "source_behavior_summary": "Works with Claude Code, Cursor, Aider, Cline/Roo/Kilo, Continue.dev, Zed, OpenHands, OpenClaw, Codex-compatible client, Claude Agent SDK, and scripts.",
       "target_boundary": "contract-gateway-tool-compat",
       "target_capability": "Maintain executable compatibility matrix with supported/inferred/blocked states and canaries.",
       "target_tests": [

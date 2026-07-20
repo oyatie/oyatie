@@ -130,11 +130,6 @@ kind = "path_exact"
 value = "evidence/audits/ci-011-shell-cli-retirement-inventory-2026-06-30.json"
 reason = "CI-011 faithful point-in-time inventory of retiring CLI subcommands; forbidden stems occur only as quoted legacy command names targeted for retirement, not live product/governance vocabulary."
 
-[[vocab.carve_outs]]
-kind = "path_exact"
-value = "evidence/goals/masterplan-v2-hermes-done-card-forensic-ledger-20260702.json"
-reason = "ADR-0609 masterplan-v2 consolidation: faithful read-only forensic ingest of the external hermes kanban board (per-card done-claim ledger, claimed-done-unverified until evidence attaches); forbidden stems occur only inside quoted historical card titles/notes, never as live product/governance vocabulary."
-
 [manifest]
 required_flags = ["version_workspace", "rust_version_workspace", "publish_false", "license", "lints_workspace", "lib_doctest_false"]
 
