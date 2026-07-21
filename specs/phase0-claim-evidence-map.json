@@ -175,7 +175,7 @@
     },
     {
       "allowed_language_now": "future/reference ownership only; no live Tide claim",
-      "artifact": "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md + historical ADR-0513",
+      "artifact": "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md + historical ADR-0515",
       "claim_text": "Tide is a future/reference admission-controller shape; GitHub protected PRs remain current authority",
       "claim_tier": "spec_ready",
       "current_evidence": [

@@ -6,7 +6,7 @@ date: 2026-05-18
 owner: council-architecture
 supersedes: []
 superseded_by: []
-related: [ADR-0039, ADR-0041, ADR-0114, ADR-0124, ADR-0146, ADR-0148, ADR-0160]
+related: [ADR-0039, ADR-0041, ADR-0114, ADR-0515, ADR-0146, ADR-0148, ADR-0160]
 related_specs:
   - /specs/hyperscaler-architecture-invariants.json
   - /specs/gitops-vcs-replacement.json
@@ -21,7 +21,7 @@ Accepted (2026-05-18). Authored as part of PR #143 Fix-L anti-hyperscaler patter
 
 ## Context
 
-ADR-0039 (supply-chain-security) requires every container image to ship with a Cosign signature, an SBOM, and Trivy scan evidence. ADR-0041 (gitops-trunk-based) declares the code promotion ladder. ADR-0124 (own-merge-queue) handles code change admission. ADR-0146 (distroless-nonroot) pins the base image.
+ADR-0039 (supply-chain-security) requires every container image to ship with a Cosign signature, an SBOM, and Trivy scan evidence. ADR-0041 (gitops-trunk-based) declares the code promotion ladder. ADR-0515 (own-merge-queue) handles code change admission. ADR-0146 (distroless-nonroot) pins the base image.
 
 None of these declares the **image promotion ladder**: how does a container image authored on `dev` reach `staging` and then `production` with explicit per-tier signature evidence? Without an explicit ladder, three failure modes occur:
 
@@ -146,7 +146,7 @@ Oyatie declares a **three-tier container image promotion ladder**: `dev` → `st
 - ADR-0043 secrets-management-openbao-and-hsm-per-cell.
 - ADR-0114 canary-observability-rollback.
 - ADR-0117 repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.
-- ADR-0124 own-merge-queue-webhook-driven.
+- ADR-0515 own-merge-queue-webhook-driven.
 - ADR-0146 container-base-image-distroless-nonroot.
 - ADR-0148 service-mesh-cilium.
 - ADR-0160 progressive-delivery-flagger.

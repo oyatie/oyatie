@@ -2621,7 +2621,7 @@ status: Accepted
         );
         assert!(
             !list.contains(&"ADR-0488"),
-            "ADR-0488 lost its last governed citation with ADR-0514; it must not remain grandfathered"
+            "ADR-0488 lost its last governed citation with ADR-0515; it must not remain grandfathered"
         );
         let mut sorted = list.to_vec();
         sorted.sort_unstable();

@@ -43,6 +43,6 @@ is the authenticator; rotate it (SETUP-RUNBOOK §rotate) if you suspect leak.
 ## Escalation
 
 - Gateway crashloop / bind failure → ops-platform.
-- Repeated dispatch 502 with Jenkins healthy → CI-farm owner (ADR-0349).
+- Repeated dispatch 502 with `oya-ci-required` dispatch healthy → cloud-ci owner (ADR-0515).
 - Reviewer-gate / merge-queue "501 unimplemented" responses are EXPECTED until
   those downstreams are built (placeholder-debt `adr-0374-*`); not an incident.

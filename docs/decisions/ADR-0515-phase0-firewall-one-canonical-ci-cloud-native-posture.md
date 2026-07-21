@@ -13,7 +13,6 @@ amends: [ADR-0092, ADR-0363]
 related:
   - ADR-0111
   - ADR-0116
-  - ADR-0124
   - ADR-0181
   - ADR-0247
   - ADR-0363
@@ -75,11 +74,11 @@ purpose: >
 **Accepted — 2026-06-07 (founder-ruled; door: one-way).**
 
 This is the single current-truth CI/CD enforcement ADR. It re-authors the earlier 2026-06-06
-CI/CD consolidation off the superseded ADR-0513 "Prow-native authority, GitHub = shadow" worldview
+CI/CD consolidation off the superseded "Prow-native authority, GitHub = shadow" worldview
 onto the 2026-06-07 posture: GitHub Actions is the sole live CI authority, `oya-ci-required` is the
 one canonical blocking context, gates are Rust binaries the pipeline runs automatically, and there is
-no CLI/shell interaction model. It **supersedes** ADR-0124, ADR-0349, ADR-0359, ADR-0361, ADR-0511,
-ADR-0513, ADR-0514, and the 21-facet multispectrum-review enforcement doctrine; it **depends on**
+no CLI/shell interaction model. Its frontmatter records seven superseded predecessor decisions, and
+it also supersedes the 21-facet multispectrum-review enforcement doctrine; it **depends on**
 (does not absorb) ADR-0392 (the Buck2 build substrate, a distinct bounded context); ADR-0525 later
 refines the CI orchestration boundary. It
 **amends** ADR-0092 (strip the multispectrum dependency-seam subchecks).
@@ -359,11 +358,11 @@ Forgejo is dropped entirely, not a bridge).
 
 | Item | Fate | Retained substance (re-homed into this ADR / git history) |
 |---|---|---|
-| **ADR-0513** bespoke-Rust Prow clone | Superseded | the bespoke-Rust + own-the-build-graph-brain instinct → D5 (owned destination); "Prow-native authority, GitHub = shadow" framing dropped (→ D-CICD-AUTHORITY) |
-| **ADR-0514** target-arch / hyperscaler remediation | Superseded | the throughput / affected-gate / trunk-sourced-gate / structured-failure-summary items → D2/D4 (Phase-1 work-items) |
-| **ADR-0511** Argo-Workflows wholesale | Superseded | the DAG / event-correlation **ideas** → owned-destination DAG face; etcd-CRD substrate rejected |
-| **ADR-0349 / 0359 / 0361** Jenkins ± ArgoCD substrate | Superseded | none as authority; **jenkins = drop now** (no bridge); the license-vetted supply-chain tool stack (cargo-deny / gitleaks / Syft / Trivy / osv / cosign / SLSA) → pipeline gate steps; resolve the `byp_adr_0349` bypass record |
-| **ADR-0124** own webhook merge-queue | Superseded-in-mechanism | merge-queue intent + the blocker taxonomy → GitHub-native `merge_group` interim → owned Tide; file-overlap clustering → graph-exact `conflicts(a,b)` |
+| Bespoke-Rust Prow clone predecessor | Superseded | the bespoke-Rust + own-the-build-graph-brain instinct → D5 (owned destination); "Prow-native authority, GitHub = shadow" framing dropped (→ D-CICD-AUTHORITY) |
+| Target-architecture / hyperscaler-remediation predecessor | Superseded | the throughput / affected-gate / trunk-sourced-gate / structured-failure-summary items → D2/D4 (Phase-1 work-items) |
+| Argo-Workflows-wholesale predecessor | Superseded | the DAG / event-correlation **ideas** → owned-destination DAG face; etcd-CRD substrate rejected |
+| Jenkins ± ArgoCD substrate predecessors | Superseded | none as authority; **jenkins = drop now** (no bridge); the license-vetted supply-chain tool stack (cargo-deny / gitleaks / Syft / Trivy / osv / cosign / SLSA) → pipeline gate steps; resolve the legacy bypass record |
+| Own-webhook merge-queue predecessor | Superseded-in-mechanism | merge-queue intent + the blocker taxonomy → GitHub-native `merge_group` interim → owned Tide; file-overlap clustering → graph-exact `conflicts(a,b)` |
 | **Multispectrum-review enforcement** (21-facet doctrine; the legacy bridge tie + the Proposed 0327/0323/0322/0247 framings) | Superseded (accounting half) + Dropped (critique half) | accounting/structural half → this firewall + one-canonical-CI; per-changeset multi-lens critique → **dropped, no replacement** (recorded loss of ADR-0322 anti-template-stamping + ADR-0247 SOC2 CC8.1 self-modification attestation) |
 | **ADR-0092** workspace dependency-seam policy | **Amended** (not superseded) | keep the 3 mechanical seam subchecks; **strip the 3 multispectrum subchecks** before the `oya-check-dependency-seam` lane logic is removed |
 | **ADR-0392** Buck2 build substrate | **NOT superseded — depends_on** | the build substrate stays authoritative as a separate bounded context; ADR-0525 carries the later orchestration refinement |
@@ -447,7 +446,7 @@ sitting** to bound the half-hardened window:
    hardened — its soak target is "live == re-authored SSOT") + kill within-lane fail-fast. Prove the
    fan-in GREEN on a real PR. Topology **B**: a thin fresh-root-import PR lands the canonical pipeline
    source (committed `phase0/producer` + uncommitted working-tree) plus the re-authored SSOT onto `dev`.
-2. **Door 1 — SSOT re-author off ADR-0513.** A framing change to `infra/branch-protection/dev.json` +
+2. **Door 1 — SSOT re-author off the superseded Prow-native framing.** A framing change to `infra/branch-protection/dev.json` +
    `.github/branch-protection.yaml`: KEEP the `oya-ci-required` context name; change only the
    producer/authority story to "produced by GitHub Actions now = the live blocking authority; owned
    `oya-ci` runner later." Reconcile the two-branch SSOT divergence onto one D-CICD-AUTHORITY SSOT. This

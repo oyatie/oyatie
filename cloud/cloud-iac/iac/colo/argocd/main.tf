@@ -10,7 +10,7 @@ locals {
     "app.kubernetes.io/part-of"     = "oya-ci-cd-substrate"
     "app.kubernetes.io/component"   = "gitops-controller"
     "app.kubernetes.io/managed-by"  = "opentofu"
-    "oyatie.com/adr"                = "ADR-0349"
+    "oyatie.com/adr"                = "ADR-0515"
     "oyatie.com/context"            = var.context
     "oyatie.com/tenant-id"          = var.tenant_id
     "oyatie.com/tenant-class"       = var.tenant_class

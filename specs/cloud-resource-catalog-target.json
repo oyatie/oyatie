@@ -10,7 +10,7 @@
     "ADR-0340 (capacity/SLO)",
     "ADR-0344 (FinOps)",
     "ADR-0348 (autosharding)",
-    "ADR-0349 (ArgoCD actuation)"
+    "ADR-0515 (ArgoCD actuation)"
   ],
   "related_specs": [
     "specs/cloud-control-plane-canonical.json",

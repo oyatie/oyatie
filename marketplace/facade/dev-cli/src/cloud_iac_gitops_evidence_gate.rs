@@ -568,7 +568,7 @@ fn required_template_lines(context: &str) -> Vec<String> {
         "kind: Application".to_string(),
         "namespace: oya-cd-argocd".to_string(),
         "app.kubernetes.io/part-of: oya-ci-cd-substrate".to_string(),
-        "oyatie.com/adr: ADR-0349".to_string(),
+        "oyatie.com/adr: ADR-0515".to_string(),
         "oyatie.com/image-promotion: ADR-0181".to_string(),
         format!("oyatie.com/context: \"{context}\""),
         "cosign.sigstore.dev/required: \"true\"".to_string(),
@@ -975,7 +975,7 @@ metadata:
   namespace: oya-cd-argocd
   labels:
     app.kubernetes.io/part-of: oya-ci-cd-substrate
-    oyatie.com/adr: ADR-0349
+    oyatie.com/adr: ADR-0515
     oyatie.com/image-promotion: ADR-0181
     oyatie.com/context: "{context}"
   annotations:

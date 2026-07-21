@@ -10,7 +10,7 @@ security_review: unreviewed
 supply_chain: source-only
 traceability:
   changeset: CS-CLOUD-IAC-MODULE-REGISTRY-REST-ROUTER-001
-  source_adrs: [ADR-0056, ADR-0092, ADR-0094, ADR-0339, ADR-0349]
+  source_adrs: [ADR-0056, ADR-0092, ADR-0094, ADR-0339, ADR-0515]
 non_claims:
   - framework-free REST router boundary only
   - no live HTTP listener, Hyper server composition, deployed endpoint, auth runtime, persistence, signing, SLSA/VSA, tofu plan/apply, provider runtime, FD-001 tenant workload hosting, or cloud provisioning claim

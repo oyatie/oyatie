@@ -12,7 +12,7 @@ source_adrs:
   - ADR-0346
   - ADR-0347
   - ADR-0348
-  - ADR-0349
+  - ADR-0515
 ---
 
 # Data Protection Impact Assessment: workplace-integration
@@ -32,7 +32,7 @@ source_adrs:
 - ADR-0346: historical verifier wording is subordinate to current SSOT. D-CICD-AUTHORITY binds this lane to the branch-protected `oya-ci-required` cloud-ci/oya-ci gate as live merge authority; local command output is transition evidence only.
 - ADR-0347: historical lane-vocabulary wording is subordinate to current SSOT. D-GOVERNANCE-CENTRAL: central PaC/CaC/PDP/evidence pipelines own governance authority; do not scatter authority across local CLI lanes.
 - ADR-0348: automation controls remain required; evidence flows through central governance and the branch-protected `oya-ci-required` gate.
-- ADR-0349: historical self-hostable substrate wording is subordinate to current SSOT. D-CICD-AUTHORITY keeps one canonical CI authority now (`oya-ci-required`) and the owned oya-ci cutover later; self-hostable delivery references are subordinate to the current SSOT and are not parallel merge authorities.
+- ADR-0515: historical self-hostable substrate wording is subordinate to current SSOT. D-CICD-AUTHORITY keeps one canonical CI authority now (`oya-ci-required`) and the owned oya-ci cutover later; self-hostable delivery references are subordinate to the current SSOT and are not parallel merge authorities.
 
 ### DPIA Assessment
 - Necessity: automation evidence is necessary to prove verifier completeness, governance lane vocabulary, tenant placement, rebalance reversibility, dynamic shard threshold decisions, and CI/CD deployment accountability.

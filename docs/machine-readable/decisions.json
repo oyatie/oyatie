@@ -1223,7 +1223,7 @@
       "path": "decisions/ADR-0129-changeset-plan-dag-and-honest-claims-gate.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0116", "ADR-0124", "ADR-0128"]
+      "related": ["ADR-0116", "ADR-0515", "ADR-0128"]
     },
     {
       "adr": "ADR-0130",
@@ -1283,7 +1283,7 @@
       "path": "decisions/ADR-0134-portfolio-hyperscaler-pattern-remediation-backlog.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0114", "ADR-0123", "ADR-0133", "ADR-0514"]
+      "related": ["ADR-0114", "ADR-0123", "ADR-0133", "ADR-0515"]
     },
     {
       "adr": "ADR-0135",
@@ -1595,7 +1595,7 @@
       "path": "decisions/ADR-0160-progressive-delivery-flagger.md",
       "supersedes": [],
       "superseded_by": ["ADR-0515"],
-      "related": ["ADR-0110", "ADR-0114", "ADR-0121", "ADR-0124", "ADR-0139", "ADR-0148", "ADR-0157", "ADR-0158"]
+      "related": ["ADR-0110", "ADR-0114", "ADR-0121", "ADR-0515", "ADR-0139", "ADR-0148", "ADR-0157", "ADR-0158"]
     },
     {
       "adr": "ADR-0161",
@@ -1847,7 +1847,7 @@
       "path": "decisions/ADR-0181-container-image-promotion-pipeline.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0039", "ADR-0041", "ADR-0114", "ADR-0124", "ADR-0146", "ADR-0148", "ADR-0160"]
+      "related": ["ADR-0039", "ADR-0041", "ADR-0114", "ADR-0515", "ADR-0146", "ADR-0148", "ADR-0160"]
     },
     {
       "adr": "ADR-0182",
@@ -3335,7 +3335,7 @@
       "path": "decisions/ADR-0350-uuidv7-canonical-id-primitive.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0003", "ADR-0005", "ADR-0113", "ADR-0128", "ADR-0131", "ADR-0132", "ADR-0145", "ADR-0150", "ADR-0211", "ADR-0212", "ADR-0214", "ADR-0243", "ADR-0244", "ADR-0247", "ADR-0248", "ADR-0251", "ADR-0252", "ADR-0253", "ADR-0263", "ADR-0292", "ADR-0322", "ADR-0324", "ADR-0328", "ADR-0333", "ADR-0345", "ADR-0348", "ADR-0349", "ADR-0351"]
+      "related": ["ADR-0003", "ADR-0005", "ADR-0113", "ADR-0128", "ADR-0131", "ADR-0132", "ADR-0145", "ADR-0150", "ADR-0211", "ADR-0212", "ADR-0214", "ADR-0243", "ADR-0244", "ADR-0247", "ADR-0248", "ADR-0251", "ADR-0252", "ADR-0253", "ADR-0263", "ADR-0292", "ADR-0322", "ADR-0324", "ADR-0328", "ADR-0333", "ADR-0345", "ADR-0348", "ADR-0515", "ADR-0351"]
     },
     {
       "adr": "ADR-0351",
@@ -3467,7 +3467,7 @@
       "path": "decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md",
       "supersedes": ["ADR-0110, ADR-0112, ADR-0113"],
       "superseded_by": [],
-      "related": ["ADR-0053", "ADR-0111", "ADR-0116", "ADR-0131", "ADR-0173", "ADR-0247", "ADR-0248", "ADR-0349", "ADR-0357", "ADR-0361", "ADR-0362", "ADR-0513"]
+      "related": ["ADR-0053", "ADR-0111", "ADR-0116", "ADR-0131", "ADR-0173", "ADR-0247", "ADR-0248", "ADR-0515", "ADR-0357", "ADR-0515", "ADR-0362", "ADR-0515"]
     },
     {
       "adr": "ADR-0364",
@@ -3503,7 +3503,7 @@
       "path": "decisions/ADR-0366-agentic-high-throughput-self-enforcing-pipeline.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0365", "ADR-0364", "ADR-0363", "ADR-0111", "ADR-0130", "ADR-0349", "ADR-0361"]
+      "related": ["ADR-0365", "ADR-0364", "ADR-0363", "ADR-0111", "ADR-0130", "ADR-0515", "ADR-0515"]
     },
     {
       "adr": "ADR-0367",
@@ -3515,7 +3515,7 @@
       "path": "decisions/ADR-0367-trustless-pre-merge-verification-gateway.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0366", "ADR-0363", "ADR-0111", "ADR-0349"]
+      "related": ["ADR-0366", "ADR-0363", "ADR-0111", "ADR-0515"]
     },
     {
       "adr": "ADR-0368",
@@ -3599,7 +3599,7 @@
       "path": "decisions/ADR-0374-ci-webhook-gateway-github-actions.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0363", "ADR-0366", "ADR-0367", "ADR-0349", "ADR-0361", "ADR-0124", "ADR-0039", "ADR-0043", "ADR-0131"]
+      "related": ["ADR-0363", "ADR-0366", "ADR-0367", "ADR-0515", "ADR-0515", "ADR-0515", "ADR-0039", "ADR-0043", "ADR-0131"]
     },
     {
       "adr": "ADR-0375",
@@ -3647,7 +3647,7 @@
       "path": "decisions/ADR-0378-canonical-local-substrate-vfkit-talos.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0375", "ADR-0376", "ADR-0363", "ADR-0349", "ADR-0130", "ADR-0131", "ADR-0132"]
+      "related": ["ADR-0375", "ADR-0376", "ADR-0363", "ADR-0515", "ADR-0130", "ADR-0131", "ADR-0132"]
     },
     {
       "adr": "ADR-0379",
@@ -3671,7 +3671,7 @@
       "path": "decisions/ADR-0380-ci-loop-closure-on-talos-jenkins-farm-re-establishment.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0374", "ADR-0378", "ADR-0379", "ADR-0363", "ADR-0349", "ADR-0359", "ADR-0361", "ADR-0148", "ADR-0360", "ADR-0111"]
+      "related": ["ADR-0374", "ADR-0378", "ADR-0379", "ADR-0363", "ADR-0515", "ADR-0515", "ADR-0515", "ADR-0148", "ADR-0360", "ADR-0111"]
     },
     {
       "adr": "ADR-0381",
@@ -3683,7 +3683,7 @@
       "path": "decisions/ADR-0381-kaniko-to-buildkit-and-multinode-talos-cell-topology.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0378", "ADR-0349", "ADR-0380", "ADR-0148", "ADR-0083", "ADR-0375"]
+      "related": ["ADR-0378", "ADR-0515", "ADR-0380", "ADR-0148", "ADR-0083", "ADR-0375"]
     },
     {
       "adr": "ADR-0382",
@@ -3707,7 +3707,7 @@
       "path": "decisions/ADR-0383-observability-stack-reconciliation-loki-tempo-mimir-grafana.md",
       "supersedes": ["ADR-0042"],
       "superseded_by": [],
-      "related": ["ADR-0186", "ADR-0173", "ADR-0211", "ADR-0349"]
+      "related": ["ADR-0186", "ADR-0173", "ADR-0211", "ADR-0515"]
     },
     {
       "adr": "ADR-0384",
@@ -3731,7 +3731,7 @@
       "path": "decisions/ADR-0387-ci-webhook-gateway-github-actions-commit-status.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0112", "ADR-0359", "ADR-0361", "ADR-0363", "ADR-0374"]
+      "related": ["ADR-0112", "ADR-0515", "ADR-0515", "ADR-0363", "ADR-0374"]
     },
     {
       "adr": "ADR-0388",
@@ -3791,7 +3791,7 @@
       "path": "decisions/ADR-0392-buck2-canonical-build-graph.md",
       "supersedes": ["ADR-0358"],
       "superseded_by": [],
-      "related": ["ADR-0358", "ADR-0408", "ADR-0359", "ADR-0346", "ADR-0111", "ADR-0181", "ADR-0357", "ADR-0092"]
+      "related": ["ADR-0358", "ADR-0408", "ADR-0515", "ADR-0346", "ADR-0111", "ADR-0181", "ADR-0357", "ADR-0092"]
     },
     {
       "adr": "ADR-0393",
@@ -3959,7 +3959,7 @@
       "path": "decisions/ADR-0510-scm-bespoke-hyperscaler-destination-cutover-trigger.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0363", "ADR-0367", "ADR-0369", "ADR-0111", "ADR-0173", "ADR-0247", "ADR-0248", "ADR-0362", "ADR-0511"]
+      "related": ["ADR-0363", "ADR-0367", "ADR-0369", "ADR-0111", "ADR-0173", "ADR-0247", "ADR-0248", "ADR-0362", "ADR-0515"]
     },
     {
       "adr": "ADR-0512",
@@ -3983,7 +3983,7 @@
       "path": "decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
       "supersedes": ["ADR-0124, ADR-0349, ADR-0359, ADR-0361, ADR-0511, ADR-0513, ADR-0514"],
       "superseded_by": [],
-      "related": ["ADR-0111", "ADR-0116", "ADR-0124", "ADR-0181", "ADR-0247", "ADR-0363", "ADR-0366", "ADR-0367", "ADR-0369", "ADR-0374", "ADR-0388", "ADR-0510", "ADR-0525"]
+      "related": ["ADR-0111", "ADR-0116", "ADR-0181", "ADR-0247", "ADR-0363", "ADR-0366", "ADR-0367", "ADR-0369", "ADR-0374", "ADR-0388", "ADR-0510", "ADR-0525"]
     },
     {
       "adr": "ADR-0516",
@@ -4235,7 +4235,7 @@
       "path": "decisions/ADR-0536-hyperscaler-grounded-substrate-decision-matrix.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0131", "ADR-0132", "ADR-0243", "ADR-0328", "ADR-0341", "ADR-0348", "ADR-0393", "ADR-0476", "ADR-0510", "ADR-0513", "ADR-0515", "ADR-0516", "ADR-0517", "ADR-0518", "ADR-0519", "ADR-0520", "ADR-0521", "ADR-0522", "ADR-0523", "ADR-0524", "ADR-0525", "ADR-0526", "ADR-0527", "ADR-0528", "ADR-0529", "ADR-0530", "ADR-0531", "ADR-0532", "ADR-0533", "ADR-0534", "ADR-0535", "ADR-0537"]
+      "related": ["ADR-0131", "ADR-0132", "ADR-0243", "ADR-0328", "ADR-0341", "ADR-0348", "ADR-0393", "ADR-0476", "ADR-0510", "ADR-0515", "ADR-0515", "ADR-0516", "ADR-0517", "ADR-0518", "ADR-0519", "ADR-0520", "ADR-0521", "ADR-0522", "ADR-0523", "ADR-0524", "ADR-0525", "ADR-0526", "ADR-0527", "ADR-0528", "ADR-0529", "ADR-0530", "ADR-0531", "ADR-0532", "ADR-0533", "ADR-0534", "ADR-0535", "ADR-0537"]
     },
     {
       "adr": "ADR-0537",
@@ -4247,7 +4247,7 @@
       "path": "decisions/ADR-0537-dogfood-bootstrap-order-rust-owned-stack-doctrine.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0131", "ADR-0132", "ADR-0243", "ADR-0328", "ADR-0341", "ADR-0348", "ADR-0393", "ADR-0476", "ADR-0510", "ADR-0513", "ADR-0515", "ADR-0516", "ADR-0517", "ADR-0518", "ADR-0519", "ADR-0520", "ADR-0521", "ADR-0522", "ADR-0523", "ADR-0524", "ADR-0525", "ADR-0526", "ADR-0527", "ADR-0528", "ADR-0529", "ADR-0530", "ADR-0531", "ADR-0532", "ADR-0533", "ADR-0534", "ADR-0535", "ADR-0536"]
+      "related": ["ADR-0131", "ADR-0132", "ADR-0243", "ADR-0328", "ADR-0341", "ADR-0348", "ADR-0393", "ADR-0476", "ADR-0510", "ADR-0515", "ADR-0515", "ADR-0516", "ADR-0517", "ADR-0518", "ADR-0519", "ADR-0520", "ADR-0521", "ADR-0522", "ADR-0523", "ADR-0524", "ADR-0525", "ADR-0526", "ADR-0527", "ADR-0528", "ADR-0529", "ADR-0530", "ADR-0531", "ADR-0532", "ADR-0533", "ADR-0534", "ADR-0535", "ADR-0536"]
     },
     {
       "adr": "ADR-0538",
@@ -4271,7 +4271,7 @@
       "path": "decisions/ADR-0539-cloud-ci-freshness-gate.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0083", "ADR-0131", "ADR-0132", "ADR-0346", "ADR-0363", "ADR-0513", "ADR-0515", "ADR-0538"]
+      "related": ["ADR-0083", "ADR-0131", "ADR-0132", "ADR-0346", "ADR-0363", "ADR-0515", "ADR-0515", "ADR-0538"]
     },
     {
       "adr": "ADR-0540",

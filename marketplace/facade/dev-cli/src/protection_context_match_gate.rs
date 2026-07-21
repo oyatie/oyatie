@@ -46,7 +46,7 @@ pub(crate) struct ProtectionContextMatchValidateArgs {
     pub branch_name: String,
     pub applied_branch_protection_path: Option<PathBuf>,
     pub live_required_contexts_path: Option<PathBuf>,
-    /// ADR-0361: the Jenkins-reported status-context manifest. Producer source
+    /// ADR-0515: the cloud-ci-produced status-context manifest. Producer source
     /// when GitHub Actions workflows are retired (the dir may be absent).
     pub reported_contexts_path: Option<PathBuf>,
 }
@@ -169,7 +169,7 @@ pub(crate) fn validate_protection_context_match_gate(
 
     let mut workflows: Vec<WorkflowJobNames> = Vec::new();
 
-    // ADR-0361: the Jenkins-reported status-context manifest is a first-class
+    // ADR-0515: the cloud-ci-produced status-context manifest is a first-class
     // producer source, so retiring `.github/workflows` does not strand the gate.
     if let Some(reported_contexts_path) = &args.reported_contexts_path {
         match fs::read_to_string(reported_contexts_path) {
@@ -217,7 +217,7 @@ pub(crate) fn validate_protection_context_match_gate(
             }
         }
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-            // Retired per ADR-0361 — the Jenkins manifest is the producer source.
+            // ADR-0515: the cloud-ci status manifest is the producer source.
         }
         Err(error) => {
             return Err(format!(
@@ -231,7 +231,7 @@ pub(crate) fn validate_protection_context_match_gate(
 }
 
 /// Parse the `reported_status_contexts` array from the Jenkins-reported
-/// status-context manifest (ADR-0361).
+/// status-context manifest (ADR-0515).
 fn parse_reported_status_contexts(text: &str) -> Result<Vec<String>, String> {
     let value: serde_json::Value = serde_json::from_str(text)
         .map_err(|error| format!("reported-status-contexts manifest is invalid JSON: {error}"))?;

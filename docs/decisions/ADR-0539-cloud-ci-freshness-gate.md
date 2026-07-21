@@ -11,7 +11,7 @@ supersedes: []
 superseded_by: []
 depends_on: [ADR-0132, ADR-0363, ADR-0515, ADR-0538]
 amends: []
-related: [ADR-0083, ADR-0131, ADR-0132, ADR-0346, ADR-0363, ADR-0513, ADR-0515, ADR-0538]
+related: [ADR-0083, ADR-0131, ADR-0132, ADR-0346, ADR-0363, ADR-0515, ADR-0515, ADR-0538]
 related_specs:
   - /specs/root-hub-pointers.json
 milestone: W0

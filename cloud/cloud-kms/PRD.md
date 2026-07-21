@@ -7,7 +7,7 @@ status: Drafting
 sales_segment: cloud-provider-substrate
 tier: internal
 milestone_first_ship: M02-cloud-substrate
-related_adrs: [ADR-0346, ADR-0347, ADR-0348, ADR-0349]
+related_adrs: [ADR-0346, ADR-0347, ADR-0348, ADR-0515]
 date: 2026-05-21
 owner_team: axis-cloud-kms
 doc_status: drafted
@@ -17,7 +17,7 @@ doc_status: drafted
 
 ## Purpose
 
-`cloud-kms` is an active µservice directory with no existing PRD artifact in this checkout. This PRD records the standard PRD header and the Wave 15-ZF doctrine references required before downstream implementation waves consume ADR-0346 through ADR-0349.
+`cloud-kms` is an active µservice directory with no existing PRD artifact in this checkout. This PRD records the standard PRD header and the Wave 15-ZF doctrine references required before downstream implementation waves consume ADR-0346 through ADR-0515.
 
 ## Current authority
 
@@ -34,7 +34,7 @@ doc_status: drafted
   declarative manifests are canonical. ArgoCD/GitOps consumes signed
   declarative state; manual `kubectl apply`, Helm CLI deploys, and local
   operator scripts are break-glass diagnostics only, not canonical procedure.
-- ADR-0346/ADR-0349 text below preserves historical control intent only where
+- ADR-0346/ADR-0515 text below preserves historical control intent only where
   it does not conflict with the current authority chain above.
 
 ## Doctrine refs (ADR-0346..0349)
@@ -42,7 +42,7 @@ doc_status: drafted
 - ADR-0346 — legacy CI-mirror control intent only. The former local verifier authority wording is superseded for `cloud-kms`; the branch-protected `oya-ci-required` context is the live required gate, and reusable Rust gate logic must be re-homed into cloud-ci / owned `oya-ci` rather than revived as local CLI authority.
 - ADR-0347 — every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-retired-vocab-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
 - ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 — legacy self-hostable substrate control intent only. The retired build-server bridge is not a parallel merge authority for `cloud-kms`; GitHub Actions `oya-ci-required` remains the live required context until owned `oya-ci` cutover. ArgoCD/GitOps remains the declarative CD direction and replaces manual `kubectl apply` or Helm CLI deploys as canonical procedure.
+- ADR-0515 — legacy self-hostable substrate control intent only. The retired build-server bridge is not a parallel merge authority for `cloud-kms`; GitHub Actions `oya-ci-required` remains the live required context until owned `oya-ci` cutover. ArgoCD/GitOps remains the declarative CD direction and replaces manual `kubectl apply` or Helm CLI deploys as canonical procedure.
 
 ## ADR-0339 adoption
 - Lifecycle: PROPOSED for `cloud-kms` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.

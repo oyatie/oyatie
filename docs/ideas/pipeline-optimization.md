@@ -64,7 +64,7 @@ re-runs work the lane already did?
   interim forms; don't block them on the big migration.
 - **Replace nextest / rewrite gates** — the tools are fine; the problems are
   *scope precision* and *redundancy*.
-- **Tune GitHub Actions** — being retired for Jenkins (ADR-0359).
+- **Tune GitHub Actions** — being retired for Jenkins (ADR-0515).
 
 ## Open Questions
 - Does the affected-scope over-selection come from Cargo.toml/catalog churn

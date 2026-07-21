@@ -55,7 +55,7 @@ components:
           auto_rebalance: tenant migration honors residency and compliance pack constraints and is observable, reversible, and audit-chain-emit per ADR-0263.
           dynamic_sharding: HOT-SPLIT and COLD-MERGE shard-count operations are atomic and audit-emit.
           manifest_block: sharding_automation declares autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
-      ADR-0349:
+      ADR-0515:
         purpose: >-
           Record Jenkins and ArgoCD as bridge/reference CI/CD substrates only; network contract review must not claim canonical destination CI/CD authority outside cloud-ci/oya-ci required contexts and separately authorized CD adapters.
         enforced_by:

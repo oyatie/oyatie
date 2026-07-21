@@ -211,7 +211,7 @@ fn read_crate_names(crates_dir: &Path) -> Result<BTreeSet<String>, String> {
 
 fn read_workflow_contexts(workflows_dir: &Path) -> Result<BTreeSet<String>, String> {
     let mut contexts = BTreeSet::new();
-    // ADR-0361: Jenkins is the CI. The Jenkins-reported status contexts are the
+    // ADR-0515: `oya-ci-required` is the single protected CI context. The cloud-ci-produced status context is the
     // authoritative job/context source; an absent .github/workflows dir is tolerated.
     seed_jenkins_reported_contexts(&mut contexts);
     let entries = match fs::read_dir(workflows_dir) {
@@ -249,7 +249,7 @@ fn read_workflow_contexts(workflows_dir: &Path) -> Result<BTreeSet<String>, Stri
     Ok(contexts)
 }
 
-/// ADR-0361: seed the valid job/context set from the Jenkins-reported status
+/// ADR-0515: seed the valid job/context set from the cloud-ci-produced status
 /// contexts manifest, so binding claims that reference CI contexts resolve once
 /// the GitHub Actions workflows are retired. Best-effort; absent manifest = no-op.
 fn seed_jenkins_reported_contexts(contexts: &mut BTreeSet<String>) {

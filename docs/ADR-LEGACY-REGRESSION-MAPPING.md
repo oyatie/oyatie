@@ -79,7 +79,7 @@ doc_status: published
 | ADR-0121 | Ecosystem as a Service Bench and industry preset composition | Accepted | bench + preset model | ADR-0033 vertical-industry-cloud-pack-architecture + ADR-0017 brand-naming-and-repo-layout | FULL | Bench naming canonized in ADR-0017; preset composition in ADR-0033 |
 | ADR-0122 | ADR due diligence and polish roadmap | Proposed | ADR-promotion process | ADR-0019 doc-catalog-and-update-protocol | EXPANDED | New pack folds promotion + catalog protocol; supersession by this consolidation pass itself |
 | ADR-0006 | Cross-product cookie and redirect contract for auth.oyatie.com | Accepted | cross-product cookie + redirect | ADR-0002 tenant-and-identity-kernel | FULL | |
-| ADR-0124 | Extract oyatie-quant to standalone repository | Accepted | repo extraction for quant | ADR-0017 brand-naming-and-repo-layout + ADR-0015 architectural-flattening-target | DROPPED-WITH-REASON | One-time repo split (operational, not architectural). Substance preserved in git history; no new ADR needed. Confirmed via consolidation plan §7 anti-pattern (don't promote one-time ops events to ADRs) |
+| ADR-0515 | Extract oyatie-quant to standalone repository | Accepted | repo extraction for quant | ADR-0017 brand-naming-and-repo-layout + ADR-0015 architectural-flattening-target | DROPPED-WITH-REASON | One-time repo split (operational, not architectural). Substance preserved in git history; no new ADR needed. Confirmed via consolidation plan §7 anti-pattern (don't promote one-time ops events to ADRs) |
 | ADR-0017 | Domain naming canon — Tenant, Organization, User, Person, Employee, Employment | Accepted | domain naming canon | ADR-0018 glossary-and-terminology-canon | FULL | |
 | ADR-0033 | Employment classification model for Korean workforce compliance | Proposed | KR employment classes | ADR-0010 regional-pack-architecture + ADR-0033 vertical-industry-cloud-pack-architecture | EXPANDED | New pack moves regulatory-class to per-region pack overlay; KR is one of N regions |
 | ADR-0033 | Sector, tier, and employment compliance pack composition | Proposed | sector/tier compliance packs | ADR-0010 regional-pack-architecture + ADR-0034 per-vertical-data-class-overrides | EXPANDED | Generalized to per-region + per-vertical overlay model |
@@ -203,7 +203,7 @@ The following 22 rows require explicit council sign-off before legacy deletion p
 
 | Legacy ADR | Drop reason | Council ratification needed |
 |---|---|---|
-| ADR-0124 | One-time repo split (operational, not architectural). Substance preserved in git history. Per consolidation plan §7 anti-pattern (don't promote one-time ops events to ADRs) | Founder + council-architecture |
+| ADR-0515 | One-time repo split (operational, not architectural). Substance preserved in git history. Per consolidation plan §7 anti-pattern (don't promote one-time ops events to ADRs) | Founder + council-architecture |
 | ADR-0191 | "Ecosystem MVP" vocabulary retired per consolidation plan §1; substance preserved in axis-admission + wave-plane integration | Founder + council-architecture |
 | ADR-0050 | "M3" wave vocabulary retired per consolidation plan §1; substance preserved in regional pack + wave-plane framework. Per-customer launch scope is operational, not architectural | Founder + council-architecture |
 | ADR-0001 | "Foundry engineering platform" axis vocabulary retired per consolidation plan §1; substance lives in foundry-as-engineering-platform + catalog + automation-first pipeline | Founder + council-architecture |

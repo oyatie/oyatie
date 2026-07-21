@@ -335,8 +335,7 @@ const FROZEN_POLICY_SOURCE_CANDIDATE_BOOTSTRAP: &str = "candidate-bootstrap";
 const EMITTER_ANALYZER_LABEL: &str = "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot";
 /// The `computed_by` provenance stamp: WHICH analysis produced this frozen reference. Records
 /// that the baseline was REGENERATED from the merge-base source (not read from a committed blob).
-const PROVENANCE_COMPUTED_BY: &str =
-    "oya-cloud-ci-scm-facts-emitter-app --merge-base-baseline (ADR-0616 regenerate-from-merge-base-source)";
+const PROVENANCE_COMPUTED_BY: &str = "oya-cloud-ci-scm-facts-emitter-app --merge-base-baseline (ADR-0616 regenerate-from-merge-base-source)";
 
 /// Assemble the frozen snapshot's `provenance` object (ADR-0616): the in-toto-style materials +
 /// subject that let the firewall AUDIT which merge-base tree the regenerated frozen reference was
@@ -1467,7 +1466,7 @@ fn git_ls_files(repo_root: &Path) -> Result<Vec<String>, String> {
     let output = Command::new("git")
         .arg("-C")
         .arg(repo_root)
-        .arg("ls-files")
+        .args(["-c", "core.quotepath=false", "ls-files"])
         .output()
         .map_err(|e| format!("ls-files: {e}"))?;
     if !output.status.success() {

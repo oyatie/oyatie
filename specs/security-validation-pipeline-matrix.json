@@ -24,7 +24,7 @@
     ],
     "related_decisions": [
       "ADR-0039",
-      "ADR-0361 (superseded; retained only for license-vetted security-tool stack provenance)",
+      "ADR-0515 (superseded; retained only for license-vetted security-tool stack provenance)",
       "ADR-0515"
     ],
     "primary_external_references": [

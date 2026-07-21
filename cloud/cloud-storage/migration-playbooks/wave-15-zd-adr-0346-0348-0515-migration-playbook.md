@@ -2,7 +2,7 @@
 doc_class: MigrationPlaybook
 microservice: cloud-storage
 source_vendor: Wave 15-ZD doctrine propagation
-related_adrs: [ADR-0346, ADR-0347, ADR-0348, ADR-0349]
+related_adrs: [ADR-0346, ADR-0347, ADR-0348, ADR-0515]
 date: 2026-05-21
 doc_status: published
 ---
@@ -27,9 +27,9 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 8. ADR-0348: AUTOSHARDING computes tenant->cell/shard placement automatically with no human operator picking placement.
 9. ADR-0348: AUTO-REBALANCE migrates tenants from hot cells to cooler cells, honors residency and compliance pack constraints, requires Cedar permits for cross-jurisdiction migration, and remains observable, reversible, and audit-chain-emit per ADR-0263.
 10. ADR-0348: DYNAMIC SHARDING adjusts shard count within a cell by HOT-SPLIT and COLD-MERGE thresholds, and both operations are atomic plus audit-emit.
-11. ADR-0349: Declare Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
-12. ADR-0349: Jenkins augments rather than replaces GitHub Actions, and ArgoCD REPLACES manual `kubectl apply` and Helm CLI deploys across all contexts.
-13. ADR-0349: Both substrates are provisioned via OpenTofu modules under `microservices/cloud-iac/modules/<context>/jenkins/` and `/argocd/` per ADR-0339.
+11. ADR-0515: Declare GitHub Actions plus branch protection as live CI authority until explicit owned-runner cutover, with cloud-ci producing the single protected `oya-ci-required` context.
+12. ADR-0515: GitHub Actions remains live merge authority until explicit owned-runner cutover, and ArgoCD REPLACES manual `kubectl apply` and Helm CLI deploys across all contexts.
+13. ADR-0515: The separately authorized bridge/reference CD adapter is provisioned through reviewed infrastructure modules; it is not merge authority.
 
 ## ADR-0346 enforcement lanes
 
@@ -54,12 +54,12 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 - `oya-governance-audit-chain-emit-on-automation-events` - refuses every manifest declaring auto_rebalance.enabled true OR dynamic_sharding.enabled true if audit_chain_emit is omitted on the corresponding sub-block.
 - `oya-governance-tenant-migration-reversibility` - refuses any microservice IP authoring under `microservices/<ms>/IPs/IP-*-auto-rebalance-*.md` that lacks an explicit `rollback_path` section.
 
-## ADR-0349 enforcement lanes
+## ADR-0515 enforcement lanes
 
-- `oya-governance-jenkins-github-actions-parity` - refuses Jenkinsfile / .github/workflows drift such that a CI step exists in one surface but not the other across the per-microservice CI-parity contract.
+- `oya-ci-required` - refuses Jenkinsfile / .github/workflows drift such that a CI step exists in one surface but not the other across the per-microservice CI-parity contract.
 - `oya-governance-argocd-application-cosign-verified` - refuses ArgoCD Application CRD sources that reference an image without a cosign-verify policy attached per D-6 + ADR-0181.
 - `oya-governance-argocd-tenant-namespace-isolation` - refuses ArgoCD Application authoring that crosses tenant namespaces without a Cedar policy gate granting cross-tenant access per D-11 + ADR-0243.
-- `oya-governance-jenkins-jcasc-only` - refuses Jenkins controller state declared via the UI; every Jenkins controller state file is authored under the declarative JCasC module path.
+- `oya-ci-required` - refuses Jenkins controller state declared via the UI; every Jenkins controller state file is authored under the declarative JCasC module path.
 - `oya-governance-deploy-audit-chain-emit` - refuses ArgoCD sync transitions that do not emit an audit-chain row per ADR-0263 D.4 deploy-event class.
 
 ## Phase 0 - Inventory
@@ -67,7 +67,7 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 1. Confirm the `cloud-storage` manifest exists and is not marked with `status: "Retired"` and is not `doc_class: RetiredMicroserviceMarker`.
 2. Capture the current migration-playbooks directory listing before authoring implementation follow-up.
 3. Capture whether `cloud-storage` already has CI, CD, cellular, sharding, or governance lane references in PRD, ARCH, README, IPs, manifests, runbooks, contracts, Cedar, SLOs, and capabilities.
-4. Record current references to ADR-0346, ADR-0347, ADR-0348, and ADR-0349. Absence is acceptable at this scaffold stage; downstream artifacts own their own propagation lanes.
+4. Record current references to ADR-0346, ADR-0347, ADR-0348, and ADR-0515. Absence is acceptable at this scaffold stage; downstream artifacts own their own propagation lanes.
 5. Do not mutate runtime manifests or source code in this playbook pass.
 
 ## Phase 1 - ADR-0346 verification migration
@@ -96,7 +96,7 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 6. Auto-rebalance and dynamic-sharding automation events must set audit-chain emission expectations per ADR-0263.
 7. The implementation IP must document `rollback_path` for automation-event-driven tenant migration.
 
-## Phase 4 - ADR-0349 self-hostable CI/CD migration
+## Phase 4 - ADR-0515 single-context CI/CD migration
 
 1. Treat Jenkins LTS as the self-hostable CI substrate for `cloud-storage` when GitHub Actions runners are unavailable.
 2. Keep GitHub Actions as the hosted PR review surface; Jenkins augments rather than replaces it.
@@ -132,7 +132,7 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 
 ## Phase 8 - Acceptance checks
 
-1. This playbook cites ADR-0346, ADR-0347, ADR-0348, and ADR-0349 by exact ID.
+1. This playbook cites ADR-0346, ADR-0347, ADR-0348, and ADR-0515 by exact ID.
 2. This playbook lists every enforced_by lane from the four ADRs that can affect `cloud-storage`.
 3. This playbook keeps implementation out of scope.
 4. This playbook avoids runtime mutations, manifest mutations, source edits, and policy edits.

@@ -8,7 +8,7 @@ operational_classes_owned: []
 api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
-source_adrs: [ADR-0105, ADR-0112, ADR-0131, ADR-0359, ADR-0361, ADR-0363, ADR-0387]
+source_adrs: [ADR-0105, ADR-0112, ADR-0131, ADR-0515, ADR-0515, ADR-0363, ADR-0387]
 traceability:
   changeset: CS-CI-WEBHOOK-GATEWAY-KERNEL-001
   source_crate: oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-kernel/Cargo.toml

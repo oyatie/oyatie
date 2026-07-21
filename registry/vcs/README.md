@@ -32,7 +32,7 @@ states) plus the three terminal-fail states (`abandoned`, `rejected`,
 - The non-decreasing-subsequence invariant from ADR-0110 §"Monotonic
   invariant" is enforced by the `changeset-state-monotonicity` governance gate
   lane (`oya gate validate changeset-state-monotonicity`), run by the Jenkins CI
-  (ADR-0361; the retired GitHub Actions job is superseded).
+  (ADR-0515; the retired GitHub Actions job is superseded).
 - Every `to_state` value MUST be one of the 13 closed-enum values
   emitted by `ChangesetState::as_wire()` in
   `crates/oya-vcs-changeset-state-kernel`. Drift is caught by

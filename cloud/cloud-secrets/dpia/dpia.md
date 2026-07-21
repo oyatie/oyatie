@@ -12,7 +12,7 @@ source_adrs:
   - ADR-0346
   - ADR-0347
   - ADR-0348
-  - ADR-0349
+  - ADR-0515
 ---
 
 # Data Protection Impact Assessment: cloud-secrets
@@ -32,7 +32,7 @@ source_adrs:
 - ADR-0346: full-matrix parity is required, but local `oya verify --ci-required` is rehearsal only; live merge authority is the branch-protected GitHub Actions `oya-ci-required` context until owned `oya-ci` cutover re-homes the shared Rust gate logic. Evidence remains tied to `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
 - ADR-0347: every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB). Enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
 - ADR-0348: AUTOSHARDING means tenant→cell/shard placement is computed by the control plane automatically; AUTO-REBALANCE automatically migrates tenants from hot cells to cooler cells; DYNAMIC SHARDING adjusts shard count within a cell based on load. Enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- ADR-0349: ArgoCD/GitOps remains the declarative CD direction; Jenkins mirrors are not parallel merge authority and may only support disconnected/self-hosted contexts after cloud-ci re-homes shared Rust gate logic. Evidence remains tied to `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+- ADR-0515: ArgoCD/GitOps remains the declarative CD direction; Jenkins mirrors are not parallel merge authority and may only support disconnected/self-hosted contexts after cloud-ci re-homes shared Rust gate logic. Evidence remains tied to `oya-ci-required`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-ci-required`, and `oya-governance-deploy-audit-chain-emit`.
 
 ### DPIA Assessment
 - Necessity: automation evidence is necessary to prove verifier completeness, governance lane vocabulary, tenant placement, rebalance reversibility, dynamic shard threshold decisions, and CI/CD deployment accountability.
@@ -43,4 +43,4 @@ source_adrs:
 
 ### Residual Risk
 - Residual risk is medium until Wave 15-ZA/ZB/ZD/ZE implementation PRs land branch-protected cloud-ci evidence, governance rename, sharding automation bodies, and ArgoCD/GitOps substrate evidence; Jenkins/local verifier outputs remain non-authoritative unless reconciled by the current SSOT.
-- Residual risk becomes low when the ADR-0346, ADR-0347, ADR-0348, and ADR-0349 enforcement lanes promote from advisory/report-only to BLOCKER and pass for this microservice.
+- Residual risk becomes low when the ADR-0346, ADR-0347, ADR-0348, and ADR-0515 enforcement lanes promote from advisory/report-only to BLOCKER and pass for this microservice.

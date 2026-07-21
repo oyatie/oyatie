@@ -1,6 +1,6 @@
 //! # oya-ci-tide binary
 //!
-//! Entry point for the tide merge-queue service (ADR-0513 Phase 2).
+//! Entry point for the tide merge-queue service (ADR-0515 Phase 2).
 //!
 //! ## Bootstrap
 //!

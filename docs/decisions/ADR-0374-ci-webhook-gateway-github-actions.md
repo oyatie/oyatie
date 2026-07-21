@@ -7,7 +7,7 @@ date: 2026-05-26
 owner: council-architecture
 supersedes: []
 superseded_by: []
-related: [ADR-0363, ADR-0366, ADR-0367, ADR-0349, ADR-0361, ADR-0124, ADR-0039, ADR-0043, ADR-0131]
+related: [ADR-0363, ADR-0366, ADR-0367, ADR-0515, ADR-0515, ADR-0515, ADR-0039, ADR-0043, ADR-0131]
 related_specs: [/infra/branch-protection/dev.json, /infra/ci/jenkins/reported-status-contexts.json]
 milestone: M-AGENTIC-PIPELINE
 depends_on: [ADR-0363]
@@ -125,7 +125,7 @@ of the relax-merge hack (the gateway removes the required-checks half).
 
 - **Revive the ADR-0112 GitHub/foundry webhook-receiver** — rejected: superseded
   by ADR-0363; substrate is GitHub (interim), and "foundry" is eradicated.
-- **Trigger Jenkins via polling / cron** — rejected: ADR-0124's webhook-driven,
+- **Trigger Jenkins via polling / cron** — rejected: ADR-0515's webhook-driven,
   no-cron principle; polling wastes cycles and adds latency.
 - **Let the gateway run the gates + post statuses itself** — rejected: violates
   ADR-0367's trusted-runner separation (the producer must not certify its own
@@ -173,7 +173,7 @@ port* but deliberately does NOT settle WHO owns multi-stage orchestration once
 past the first kick:
 
 - **Jenkins-as-orchestrator**: Jenkins pipeline stages sequence admission →
-  gates → reviewer → merge (a Jenkinsfile DAG). Simplest; rides ADR-0361's
+  gates → reviewer → merge (historical Jenkinsfile DAG). This design is superseded by ADR-0515's
   Jenkins-native posture; one system owns CI ordering. But it puts agentic
   reviewer logic inside a Groovy pipeline, and couples orchestration to the CI
   engine.
@@ -186,7 +186,7 @@ past the first kick:
   layering concern (an orchestrator that depends on the service it orchestrates).
 
 **Decision (2026-05-26, founder): Jenkins-as-orchestrator.** Jenkins sequences
-admission → gates → reviewer → merge, riding ADR-0361's Jenkins-native posture —
+admission → gates → reviewer → merge, riding ADR-0515's single-context posture —
 the fastest path to retiring the admin-relax-merge seam. The gateway's
 `PipelineDispatcher` trait stays intentionally agnostic, so migrating
 orchestration into the Intelligence dogfood (the ADR-0368 north star) remains a
@@ -207,7 +207,7 @@ future evolution, not a commitment here.
 - ADR-0363 (substrate: git + Jenkins + GitHub (interim); supersedes the
   ADR-0112 webhook-receiver), ADR-0366 (self-enforcing pipeline), ADR-0367
   (trustless pre-merge gateway — trusted runner + adversarial reviewer),
-  ADR-0349/0361 (Jenkins-native CI farm), ADR-0124 (webhook-driven, no-cron),
+  ADR-0515 (single-context GitHub Actions plus cloud-ci authority; webhook-driven, no cron),
   ADR-0039 (signed commits), ADR-0043 (OpenBao secrets), ADR-0131 (flat
   microservice layout).
 - `infra/branch-protection/dev.json`, `infra/gitops/vcs-substrate.yaml`

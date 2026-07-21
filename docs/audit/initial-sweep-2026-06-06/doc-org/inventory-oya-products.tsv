@@ -97,7 +97,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/data-warehouse/decisions/ADR-MS-001-tenant-olap-freshness-and-lineage-contract.md	adr	explanation	decision/ADR	current	ADR-MS-001: Tenant OLAP freshness, dimensional completeness, and lineage contract for data-warehouse
 /Users/jasonlee/Developer/source/oya/data-warehouse/decisions/ADR-MS-004-virtual-warehouse-sizing.md	adr	explanation	decision/ADR	current	ADR-MS-004 — Virtual warehouse sizing model
 /Users/jasonlee/Developer/source/oya/data-warehouse/decisions/ADR-MS-005-zero-copy-clone-scope.md	adr	explanation	decision/ADR	current	ADR-MS-005 — Zero-copy clone scope
-/Users/jasonlee/Developer/source/oya/data-warehouse/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `data-warehouse`
+/Users/jasonlee/Developer/source/oya/data-warehouse/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `data-warehouse`
 /Users/jasonlee/Developer/source/oya/data-warehouse/migration-playbooks/from-redshift.md	governance	how-to	governance/compliance	current	Migration Playbook: Amazon Redshift to Oyatie data-warehouse
 /Users/jasonlee/Developer/source/oya/data-warehouse/migration-playbooks/from-snowflake.md	governance	how-to	governance/compliance	current	Migration Playbook: Snowflake to Oyatie data-warehouse
 /Users/jasonlee/Developer/source/oya/data-warehouse/migration-playbooks/from-bigquery.md	governance	how-to	governance/compliance	current	Migration Playbook: Google BigQuery to Oyatie data-warehouse
@@ -187,7 +187,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/contact-center/faqs/contact-center-admin-faq.md	guide	how-to	product	current	contact-center — Admin FAQ
 /Users/jasonlee/Developer/source/oya/contact-center/benchmarks/genesys-vs-five9-vs-aws-connect-vs-oyatie.md	reference	reference	product	current	Benchmarks — oyatie contact-center vs Genesys Cloud CX vs Five9 vs AWS vs Talkdesk vs NICE CXone
 /Users/jasonlee/Developer/source/oya/contact-center/tutorials/build-ivr-flow-with-pci-suppression.md	guide	tutorial	product	current	Tutorial — Build an IVR flow with PCI-DTMF suppression for card-payment-over-voice
-/Users/jasonlee/Developer/source/oya/contact-center/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `contact-center`
+/Users/jasonlee/Developer/source/oya/contact-center/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `contact-center`
 /Users/jasonlee/Developer/source/oya/contact-center/migration-playbooks/from-genesys.md	governance	how-to	governance/compliance	current	Migration Playbook — Genesys Cloud CX → oyatie contact-center
 /Users/jasonlee/Developer/source/oya/contact-center/onboarding/contact-center-admin-first-week.md	guide	tutorial	product	current	contact-center — Contact Center Admin First Week
 /Users/jasonlee/Developer/source/oya/contact-center/policy/data-residency.md	governance	explanation	governance/compliance	current	Contact Center Policy Data Residency
@@ -252,7 +252,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/global-trade/runbooks/policy-deny-spike.md	runbook	how-to	operations/runbook	current	Runbook: Global Trade policy-deny-spike
 /Users/jasonlee/Developer/source/oya/global-trade/decisions/ADR-GT-001-sanctions-export-control-and-broker-filing-hold-state-machine.md	adr	explanation	decision/ADR	current	ADR-GT-001: Sanctions, Export Control, And Broker Filing Hold State Machine
 /Users/jasonlee/Developer/source/oya/global-trade/dashboards/sanctions-screening-residency.md	runbook	how-to	governance/compliance	current	Dashboard Guide: Global Trade sanctions-screening
-/Users/jasonlee/Developer/source/oya/global-trade/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `global-trade`
+/Users/jasonlee/Developer/source/oya/global-trade/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `global-trade`
 /Users/jasonlee/Developer/source/oya/global-trade/policy/data-residency.md	governance	explanation	governance/compliance	current	Data Residency Policy: Global Trade
 /Users/jasonlee/Developer/source/oya/global-trade/policy/tenant-isolation.md	governance	explanation	governance/compliance	current	Tenant Isolation Policy: Global Trade
 /Users/jasonlee/Developer/source/oya/global-trade/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: global-trade
@@ -408,7 +408,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/workflow-engine/faqs/workflow-engineer-faq.md	guide	how-to	product	current	Workflow Engineer FAQ — workflow-engine
 /Users/jasonlee/Developer/source/oya/workflow-engine/benchmarks/temporal-camunda-airflow-step-functions-vs-oyatie.md	reference	reference	product	current	Benchmarks — oyatie workflow-engine vs Temporal Cloud vs Camunda 8 vs Apache Airflow vs AWS Step Functions
 /Users/jasonlee/Developer/source/oya/workflow-engine/tutorials/author-and-run-saga-with-compensation.md	guide	tutorial	product	current	Tutorial — Author + run an order-fulfillment saga with compensation across payments + inventory + shipping
-/Users/jasonlee/Developer/source/oya/workflow-engine/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `workflow-engine`
+/Users/jasonlee/Developer/source/oya/workflow-engine/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `workflow-engine`
 /Users/jasonlee/Developer/source/oya/workflow-engine/migration-playbooks/from-temporal-cloud.md	governance	how-to	governance/compliance	current	Migration playbook — Temporal Cloud → oyatie workflow-engine
 /Users/jasonlee/Developer/source/oya/workflow-engine/onboarding/workflow-engineer-first-week.md	guide	tutorial	product	current	Workflow Engineer onboarding — first 5 working days on `workflow-engine`
 /Users/jasonlee/Developer/source/oya/workflow-engine/policy/spec-integrity.md	governance	explanation	governance/compliance	current	Workflow Spec Integrity Contract (workflow-engine µservice)
@@ -442,7 +442,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/pharmacy/decisions/ADR-MS-001-ePrescribe-substrate.md	adr	explanation	decision/ADR	current	ADR-MS-PHARM-001 — ePrescribe substrate (Surescripts + NCPDP SCRIPT + EPCS)
 /Users/jasonlee/Developer/source/oya/pharmacy/decisions/ADR-MS-002-controlled-substance-DEA-compliance.md	adr	explanation	decision/ADR	current	ADR-MS-PHARM-002 — Controlled-substance DEA compliance
 /Users/jasonlee/Developer/source/oya/pharmacy/design-spec-maturity/failure-modes-cost-finops-tenant-isolation-operational-boundaries.md	spec	reference	spec/contract	current	Pharmacy design/spec maturity boundary pack
-/Users/jasonlee/Developer/source/oya/pharmacy/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `pharmacy`
+/Users/jasonlee/Developer/source/oya/pharmacy/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `pharmacy`
 /Users/jasonlee/Developer/source/oya/pharmacy/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: pharmacy
 /Users/jasonlee/Developer/source/oya/payments/IP-journey-j65-receipt-export.md	research	explanation	research	current	IP: j65 `payments` — `receipt-export`
 /Users/jasonlee/Developer/source/oya/payments/IP-journey-j115-escrow-and-settlement.md	research	explanation	research	current	IP - payments role in j115: SaaS vendor sells API to multiple tenant customers
@@ -590,7 +590,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/payments/benchmarks/stripe-vs-adyen-vs-checkout-vs-oyatie.md	reference	reference	product	current	Benchmarks — oyatie payments vs Stripe vs Adyen vs Checkout.com vs Braintree
 /Users/jasonlee/Developer/source/oya/payments/tutorials/process-cross-currency-charge.md	guide	tutorial	product	current	Tutorial — Process a cross-currency charge end-to-end (USD-presented, EUR-settled, ledger walk + audit verify)
 /Users/jasonlee/Developer/source/oya/payments/migration-playbooks/from-stripe.md	governance	how-to	governance/compliance	current	Migration playbook — Stripe (direct) → oyatie payments
-/Users/jasonlee/Developer/source/oya/payments/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `payments`
+/Users/jasonlee/Developer/source/oya/payments/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `payments`
 /Users/jasonlee/Developer/source/oya/payments/migration-playbooks/from-adyen.md	governance	how-to	governance/compliance	current	Migration Playbook: Adyen to Oyatie payments
 /Users/jasonlee/Developer/source/oya/payments/migration-playbooks/from-braintree.md	governance	how-to	governance/compliance	current	Migration Playbook: Braintree to Oyatie payments
 /Users/jasonlee/Developer/source/oya/payments/migration-playbooks/from-checkout-com.md	governance	how-to	governance/compliance	current	Migration Playbook: Checkout.com to Oyatie payments
@@ -681,7 +681,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/performance-management/iac/guest-on-aws/README.md	readme	reference	product	current	performance-management — guest-on-aws
 /Users/jasonlee/Developer/source/oya/performance-management/iac/oci-guest/always-free/README.md	readme	reference	product	current	performance-management — OCI Always Free demo_trial deployment
 /Users/jasonlee/Developer/source/oya/performance-management/iac/oyatie-public-cloud/README.md	readme	reference	product	current	performance-management — oyatie-public-cloud deployment
-/Users/jasonlee/Developer/source/oya/performance-management/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `performance-management`
+/Users/jasonlee/Developer/source/oya/performance-management/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `performance-management`
 /Users/jasonlee/Developer/source/oya/performance-management/policy/data-residency.md	governance	explanation	governance/compliance	current	Performance Management Policy Data Residency
 /Users/jasonlee/Developer/source/oya/performance-management/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: performance-management
 /Users/jasonlee/Developer/source/oya/comms-email/failure-modes.md	architecture	explanation	architecture	current	Failure modes — `comms-email` µservice
@@ -770,7 +770,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/comms-email/faqs/deliverability-engineer-faq.md	guide	how-to	product	current	Deliverability Engineer FAQ
 /Users/jasonlee/Developer/source/oya/comms-email/benchmarks/comms-email-vs-sendgrid-vs-mailgun-vs-ses-vs-postmark.md	reference	reference	product	current	Benchmarks — oyatie comms-email vs SendGrid / Mailgun / Postmark / Amazon SES / Mailjet / SparkPost / Brevo
 /Users/jasonlee/Developer/source/oya/comms-email/tutorials/send-1m-transactional-campaign-with-warmup.md	guide	tutorial	product	current	Tutorial — Send a 1 M transactional campaign with IP-warmup, DKIM signing, and deliverability tracking
-/Users/jasonlee/Developer/source/oya/comms-email/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `comms-email`
+/Users/jasonlee/Developer/source/oya/comms-email/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `comms-email`
 /Users/jasonlee/Developer/source/oya/comms-email/migration-playbooks/from-sendgrid-and-mailgun.md	governance	how-to	governance/compliance	current	Migration playbook — SendGrid / Mailgun / Postmark / Amazon SES → oyatie comms-email
 /Users/jasonlee/Developer/source/oya/comms-email/onboarding/deliverability-engineer-first-week.md	guide	tutorial	product	current	Deliverability Engineer onboarding — first 5 working days
 /Users/jasonlee/Developer/source/oya/comms-email/policy/dual-context.md	governance	explanation	governance/compliance	current	Dual-context policy — `comms-email` µservice
@@ -850,7 +850,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/tasks/faqs/engineer-faq.md	guide	how-to	product	current	Engineer FAQ — tasks
 /Users/jasonlee/Developer/source/oya/tasks/benchmarks/tasks-vs-asana-jira-linear-monday.md	reference	reference	product	current	Benchmarks — oyatie tasks vs Asana / Jira / Linear / Monday.com
 /Users/jasonlee/Developer/source/oya/tasks/tutorials/migrate-asana-project.md	guide	tutorial	product	current	Tutorial — Migrate an Asana project to oyatie tasks in 30 minutes
-/Users/jasonlee/Developer/source/oya/tasks/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `tasks`
+/Users/jasonlee/Developer/source/oya/tasks/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `tasks`
 /Users/jasonlee/Developer/source/oya/tasks/migration-playbooks/from-jira-cloud.md	governance	how-to	governance/compliance	current	Migration playbook — Jira Cloud → oyatie tasks
 /Users/jasonlee/Developer/source/oya/tasks/onboarding/engineer-first-week.md	guide	tutorial	product	current	Engineer onboarding — first 5 working days
 /Users/jasonlee/Developer/source/oya/tasks/policy/data-residency.md	governance	explanation	governance/compliance	current	Data Residency Policy — tasks µservice
@@ -884,7 +884,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/emr/decisions/ADR-MS-001-bounded-contexts.md	adr	explanation	decision/ADR	current	ADR-EMR-MS-001: EMR bounded-context decomposition
 /Users/jasonlee/Developer/source/oya/emr/decisions/ADR-MS-002-fhir-r5-default.md	adr	explanation	decision/ADR	current	ADR-EMR-MS-002: FHIR R5 as default; R4 as compatibility surface
 /Users/jasonlee/Developer/source/oya/emr/design-spec-maturity/failure-modes-data-residency-cost-finops-tenant-isolation-operational-boundaries.md	governance	explanation	governance/compliance	current	EMR design/spec maturity boundary pack
-/Users/jasonlee/Developer/source/oya/emr/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `emr`
+/Users/jasonlee/Developer/source/oya/emr/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `emr`
 /Users/jasonlee/Developer/source/oya/emr/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: emr
 /Users/jasonlee/Developer/source/oya/calendar/IP-journey-j35-work-freebusy.md	research	explanation	research	current	IP j35 - calendar - work-freebusy
 /Users/jasonlee/Developer/source/oya/calendar/failure-modes.md	architecture	explanation	architecture	current	Failure Modes — calendar µservice
@@ -978,7 +978,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/calendar/faqs/calendar-engineer-faq.md	guide	how-to	product	current	Calendar Engineer FAQ — calendar
 /Users/jasonlee/Developer/source/oya/calendar/benchmarks/gcal-outlook-calendly-vs-oyatie.md	reference	reference	product	current	Benchmarks — oyatie calendar vs Google Calendar vs Outlook Calendar vs Calendly vs Doodle
 /Users/jasonlee/Developer/source/oya/calendar/tutorials/configure-freebusy-acl-cross-tenant-interview.md	guide	tutorial	product	current	Tutorial — Configure cross-tenant FREEBUSY ACL for an interview booking flow
-/Users/jasonlee/Developer/source/oya/calendar/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `calendar`
+/Users/jasonlee/Developer/source/oya/calendar/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `calendar`
 /Users/jasonlee/Developer/source/oya/calendar/migration-playbooks/from-google-calendar.md	governance	how-to	governance/compliance	current	Migration playbook — Google Calendar → oyatie calendar
 /Users/jasonlee/Developer/source/oya/calendar/onboarding/calendar-engineer-first-week.md	guide	tutorial	product	current	Calendar Engineer onboarding — first 5 working days on `calendar`
 /Users/jasonlee/Developer/source/oya/calendar/policy/event-isolation.md	governance	explanation	governance/compliance	current	Event Isolation Policy — calendar µservice
@@ -1065,7 +1065,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/recordings/tutorials/legal-hold-engage-and-ediscovery-export.md	guide	tutorial	product	current	Tutorial — Engage a legal hold + produce an EDRM-XML eDiscovery export
 /Users/jasonlee/Developer/source/oya/recordings/legal/balancing-test-watermark.md	governance	explanation	governance/compliance	current	Balancing Test: per-viewer watermarking (GDPR Art. 6(1)(f))
 /Users/jasonlee/Developer/source/oya/recordings/legal/transfer-register.md	governance	explanation	governance/compliance	current	Cross-Border Transfer Register (recordings µservice)
-/Users/jasonlee/Developer/source/oya/recordings/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `recordings`
+/Users/jasonlee/Developer/source/oya/recordings/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `recordings`
 /Users/jasonlee/Developer/source/oya/recordings/migration-playbooks/from-zoom-cloud-recordings.md	governance	how-to	governance/compliance	current	Migration playbook — Zoom Cloud Recordings / Microsoft Stream → oyatie recordings
 /Users/jasonlee/Developer/source/oya/recordings/onboarding/compliance-officer-first-week.md	guide	tutorial	governance/compliance	current	Compliance Officer onboarding — first 5 working days on `recordings`
 /Users/jasonlee/Developer/source/oya/recordings/policy/data-residency.md	governance	explanation	governance/compliance	current	Data Residency Contract (recordings µservice)
@@ -1145,7 +1145,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/sheets/faqs/sheets-engineer-faq.md	guide	how-to	product	current	Sheets Engineer FAQ
 /Users/jasonlee/Developer/source/oya/sheets/benchmarks/sheets-vs-google-sheets-vs-excel-web-vs-airtable.md	reference	reference	product	current	Benchmarks — oyatie sheets vs Google Sheets / Microsoft Excel Web / Airtable / Coda / Notion-database
 /Users/jasonlee/Developer/source/oya/sheets/tutorials/build-100k-cell-financial-model.md	guide	tutorial	product	current	Tutorial — Build a 100k-cell financial model + collaborate in real-time + export to XLSX
-/Users/jasonlee/Developer/source/oya/sheets/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `sheets`
+/Users/jasonlee/Developer/source/oya/sheets/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `sheets`
 /Users/jasonlee/Developer/source/oya/sheets/migration-playbooks/from-google-sheets-and-airtable.md	governance	how-to	governance/compliance	current	Migration playbook — Google Sheets / Airtable / Coda → oyatie sheets
 /Users/jasonlee/Developer/source/oya/sheets/onboarding/sheets-engineer-first-week.md	guide	tutorial	product	current	Sheets Engineer onboarding — first 5 working days
 /Users/jasonlee/Developer/source/oya/sheets/policy/editor-isolation.md	governance	explanation	governance/compliance	current	Editor Isolation Contract (sheets µservice)
@@ -1231,7 +1231,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/forms/faqs/forms-engineer-faq.md	guide	how-to	product	current	Forms Engineer FAQ
 /Users/jasonlee/Developer/source/oya/forms/benchmarks/forms-vs-google-forms-vs-typeform-vs-jotform-vs-surveymonkey.md	reference	reference	product	current	Benchmarks — oyatie forms vs Google Forms / Typeform / Jotform / SurveyMonkey / Formstack / Tally / Microsoft Forms / Wu
 /Users/jasonlee/Developer/source/oya/forms/tutorials/build-multi-page-survey-with-logic-jump-payment-warehouse.md	guide	tutorial	product	current	Tutorial — Build a multi-page conference-registration form with logic-jump, payment, and warehouse-export
-/Users/jasonlee/Developer/source/oya/forms/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `forms`
+/Users/jasonlee/Developer/source/oya/forms/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `forms`
 /Users/jasonlee/Developer/source/oya/forms/migration-playbooks/from-google-forms-and-typeform.md	governance	how-to	governance/compliance	current	Migration playbook — Google Forms / Typeform / Jotform / SurveyMonkey / Formstack / Tally / Microsoft Forms → oyatie for
 /Users/jasonlee/Developer/source/oya/forms/onboarding/forms-engineer-first-week.md	guide	tutorial	product	current	Forms Engineer onboarding — first 5 working days
 /Users/jasonlee/Developer/source/oya/forms/policy/dual-context.md	governance	explanation	governance/compliance	current	Dual-Context Policy: Five Principal Classes
@@ -1430,7 +1430,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/identity/benchmarks/okta-auth0-entra-vs-oyatie.md	reference	reference	product	current	Benchmarks — oyatie identity vs Okta vs Auth0 vs Microsoft Entra ID vs Ping Identity vs JumpCloud
 /Users/jasonlee/Developer/source/oya/identity/tutorials/register-passkey-and-recovery-envelope.md	guide	tutorial	product	current	Tutorial — Register a hardware passkey + create a recovery envelope + exercise recovery
 /Users/jasonlee/Developer/source/oya/identity/workload-identity/PRD.md	product-prd	reference	product	current	PRD — Workload-Identity + Authorization Substrate
-/Users/jasonlee/Developer/source/oya/identity/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `identity`
+/Users/jasonlee/Developer/source/oya/identity/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `identity`
 /Users/jasonlee/Developer/source/oya/identity/migration-playbooks/from-okta.md	governance	how-to	governance/compliance	current	Migration playbook — Okta → oyatie identity
 /Users/jasonlee/Developer/source/oya/identity/onboarding/identity-engineer-first-week.md	guide	tutorial	product	current	Identity Engineer onboarding — first 5 working days on `identity`
 /Users/jasonlee/Developer/source/oya/identity/policy/data-residency.md	governance	explanation	governance/compliance	current	Data Residency Policy — identity µservice
@@ -1506,7 +1506,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/quality-management/runbooks/capacity-saturation.md	runbook	how-to	operations/runbook	current	Runbook: Quality Management capacity-saturation
 /Users/jasonlee/Developer/source/oya/quality-management/runbooks/policy-deny-spike.md	runbook	how-to	operations/runbook	current	Runbook: Quality Management policy-deny-spike
 /Users/jasonlee/Developer/source/oya/quality-management/dashboards/inspection-lot-residency.md	runbook	how-to	governance/compliance	current	Dashboard Guide: Quality Management inspection-lot
-/Users/jasonlee/Developer/source/oya/quality-management/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `quality-management`
+/Users/jasonlee/Developer/source/oya/quality-management/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `quality-management`
 /Users/jasonlee/Developer/source/oya/quality-management/policy/data-residency.md	governance	explanation	governance/compliance	current	Data Residency Policy: Quality Management
 /Users/jasonlee/Developer/source/oya/quality-management/policy/tenant-isolation.md	governance	explanation	governance/compliance	current	Tenant Isolation Policy: Quality Management
 /Users/jasonlee/Developer/source/oya/quality-management/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: quality-management
@@ -1622,7 +1622,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/finops-portal/benchmarks/aws-cost-explorer-gcp-billing-apptio-vs-oyatie.md	reference	reference	product	current	Benchmarks — oyatie finops-portal vs AWS Cost Explorer vs GCP Billing vs Apptio Cloudability vs CloudHealth
 /Users/jasonlee/Developer/source/oya/finops-portal/tutorials/build-chargeback-dashboard.md	guide	tutorial	product	current	Tutorial — Build a per-cost-center chargeback dashboard for a tenant
 /Users/jasonlee/Developer/source/oya/finops-portal/migration-playbooks/from-apptio-cloudability.md	governance	how-to	governance/compliance	current	Migration playbook — Apptio Cloudability → oyatie finops-portal
-/Users/jasonlee/Developer/source/oya/finops-portal/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `finops-portal`
+/Users/jasonlee/Developer/source/oya/finops-portal/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `finops-portal`
 /Users/jasonlee/Developer/source/oya/finops-portal/scorecards/adr-0186-observability-backplane.md	adr	explanation	decision/ADR	current	Scorecard — ADR-0186 Observability backplane
 /Users/jasonlee/Developer/source/oya/finops-portal/scorecards/adr-0083-kernel-tier-invariants.md	adr	explanation	decision/ADR	current	Scorecard — ADR-0083 Tier-A 4-INV kernel-tier invariants
 /Users/jasonlee/Developer/source/oya/finops-portal/scorecards/adr-0064-canonical-base.md	adr	explanation	decision/ADR	current	Scorecard — ADR-0064 Canonical-base + localization
@@ -1709,7 +1709,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/design-collaboration/runbooks/cold-merge.md	runbook	how-to	operations/runbook	current	Runbook: Design Collaboration Cold Merge
 /Users/jasonlee/Developer/source/oya/design-collaboration/runbooks/export-render-queue.md	runbook	how-to	operations/runbook	current	Design Collaboration Runbook: export-render-queue
 /Users/jasonlee/Developer/source/oya/design-collaboration/decisions/ADR-DC-001-creative-artifact-operation-log-and-token-promotion-gate.md	adr	explanation	decision/ADR	current	ADR-DC-001: Creative artifact operation log and token promotion gate
-/Users/jasonlee/Developer/source/oya/design-collaboration/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `design-collaboration`
+/Users/jasonlee/Developer/source/oya/design-collaboration/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `design-collaboration`
 /Users/jasonlee/Developer/source/oya/design-collaboration/policy/data-residency.md	governance	explanation	governance/compliance	current	Design Collaboration Policy Data Residency
 /Users/jasonlee/Developer/source/oya/design-collaboration/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: design-collaboration
 /Users/jasonlee/Developer/source/oya/api-gateway/IP-006-routing-rest-crate.md	spec	reference	spec/contract	current	IP-006: `oya-api-gateway-routing-rest` crate
@@ -1795,7 +1795,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/api-gateway/dashboards/tls-health.md	runbook	how-to	operations/runbook	current	Dashboard — TLS Health
 /Users/jasonlee/Developer/source/oya/api-gateway/benchmarks/api-gateway-vs-envoy-vs-kong-vs-tyk-vs-apigee-vs-aws-api-gateway.md	reference	reference	product	current	Benchmarks — oyatie api-gateway vs Envoy / Kong / Tyk / Apigee / AWS API Gateway / Cloudflare Workers
 /Users/jasonlee/Developer/source/oya/api-gateway/tutorials/configure-tenant-edge-listener-with-canary.md	guide	tutorial	product	current	Tutorial — Configure a tenant edge listener with HTTP/3, WAF, rate-limit, and canary rollout
-/Users/jasonlee/Developer/source/oya/api-gateway/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `api-gateway`
+/Users/jasonlee/Developer/source/oya/api-gateway/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `api-gateway`
 /Users/jasonlee/Developer/source/oya/api-gateway/migration-playbooks/from-kong-and-aws-api-gateway.md	governance	how-to	governance/compliance	current	Migration playbook — Kong Gateway / AWS API Gateway → oyatie api-gateway
 /Users/jasonlee/Developer/source/oya/api-gateway/onboarding/edge-engineer-first-week.md	guide	tutorial	product	current	Edge Engineer onboarding — first 5 working days
 /Users/jasonlee/Developer/source/oya/api-gateway/policy/data-residency.md	governance	explanation	governance/compliance	current	API Gateway Data Residency
@@ -2192,11 +2192,11 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/intelligence/_legacy-foundry/IP-journey-j93-in-dpdpa-rbi-overlay.md	research	explanation	research	duplicate	IP - foundry role in j93 India DPDPA and RBI financial overlay for Aiyana
 /Users/jasonlee/Developer/source/oya/intelligence/_legacy-foundry/IP-journey-j94-sox404-public-company-controls.md	research	explanation	research	duplicate	IP - foundry role in j94 SOX 404 public-company controls for Marcus
 /Users/jasonlee/Developer/source/oya/intelligence/_legacy-foundry/IPs/IP-ADR-0339-Shared-IaC-Modules.md	adr	explanation	decision/ADR	duplicate	Not applicable to foundry: not active in the canonical 2026-05-21 active microservice registry; ADR-0339 propagation is 
-/Users/jasonlee/Developer/source/oya/intelligence/_legacy-foundry/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	duplicate	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `foundry`
+/Users/jasonlee/Developer/source/oya/intelligence/_legacy-foundry/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	duplicate	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `foundry`
 /Users/jasonlee/Developer/source/oya/intelligence/_legacy-foundry/threat-models/threat-model.md	governance	explanation	governance/compliance	duplicate	STRIDE Threat Model: foundry
 /Users/jasonlee/Developer/source/oya/intelligence/tutorials/claim-work-done-verify-promote-cycle.md	guide	tutorial	product	current	Tutorial — Walk the full claim → work → done → verify → promote cycle
 /Users/jasonlee/Developer/source/oya/intelligence/tutorials/build-rag-augmented-chat.md	guide	tutorial	product	current	Tutorial — Build a RAG-augmented chat for a tenant's product knowledge base
-/Users/jasonlee/Developer/source/oya/intelligence/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `intelligence`
+/Users/jasonlee/Developer/source/oya/intelligence/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `intelligence`
 /Users/jasonlee/Developer/source/oya/intelligence/migration-playbooks/from-github-merge-queue-and-bors.md	governance	how-to	governance/compliance	current	Migration playbook — GitHub Merge Queue or Bors → Oyatie `foundry`
 /Users/jasonlee/Developer/source/oya/intelligence/migration-playbooks/from-openai-enterprise.md	governance	how-to	governance/compliance	current	Migration playbook — OpenAI Enterprise (direct) → oyatie intelligence
 /Users/jasonlee/Developer/source/oya/intelligence/onboarding/ai-platform-engineer-first-week.md	guide	tutorial	product	current	AI Platform Engineer onboarding — first 5 working days on `intelligence`
@@ -2290,7 +2290,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/translate/faqs/engineer-faq.md	guide	how-to	product	current	Engineer FAQ — translate
 /Users/jasonlee/Developer/source/oya/translate/benchmarks/translate-vs-deepl-google-smartling-crowdin.md	reference	reference	product	current	Benchmarks — oyatie translate vs DeepL / Google / Smartling / Crowdin / Lokalise
 /Users/jasonlee/Developer/source/oya/translate/tutorials/first-translation-with-tm-seed.md	guide	tutorial	product	current	Tutorial — First translation with TM seed in 20 minutes
-/Users/jasonlee/Developer/source/oya/translate/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `translate`
+/Users/jasonlee/Developer/source/oya/translate/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `translate`
 /Users/jasonlee/Developer/source/oya/translate/migration-playbooks/from-smartling.md	governance	how-to	governance/compliance	current	Migration playbook — Smartling → oyatie translate
 /Users/jasonlee/Developer/source/oya/translate/onboarding/engineer-first-week.md	guide	tutorial	product	current	Engineer onboarding — first 5 working days
 /Users/jasonlee/Developer/source/oya/translate/policy/data-residency.md	governance	explanation	governance/compliance	current	Data Residency Contract — translate µservice
@@ -2357,7 +2357,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/production-planning/runbooks/capacity-saturation.md	runbook	how-to	operations/runbook	current	Runbook: Production Planning capacity-saturation
 /Users/jasonlee/Developer/source/oya/production-planning/runbooks/policy-deny-spike.md	runbook	how-to	operations/runbook	current	Runbook: Production Planning policy-deny-spike
 /Users/jasonlee/Developer/source/oya/production-planning/dashboards/mrp-run-residency.md	runbook	how-to	governance/compliance	current	Dashboard Guide: Production Planning mrp-run
-/Users/jasonlee/Developer/source/oya/production-planning/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `production-planning`
+/Users/jasonlee/Developer/source/oya/production-planning/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `production-planning`
 /Users/jasonlee/Developer/source/oya/production-planning/policy/data-residency.md	governance	explanation	governance/compliance	current	Data Residency Policy: Production Planning
 /Users/jasonlee/Developer/source/oya/production-planning/policy/tenant-isolation.md	governance	explanation	governance/compliance	current	Tenant Isolation Policy: Production Planning
 /Users/jasonlee/Developer/source/oya/production-planning/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: production-planning
@@ -2445,7 +2445,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/meet/faqs/realtime-engineer-faq.md	guide	how-to	product	current	Realtime Engineer FAQ
 /Users/jasonlee/Developer/source/oya/meet/benchmarks/meet-vs-zoom-vs-google-meet-vs-teams-vs-webex.md	reference	reference	product	current	Benchmarks — oyatie meet vs Zoom / Google Meet / Microsoft Teams / Webex / Jitsi / Whereby
 /Users/jasonlee/Developer/source/oya/meet/tutorials/host-100-person-webinar-with-recording-transcription-translation.md	guide	tutorial	product	current	Tutorial — Host a 100-person webinar with recording, transcription, real-time translation, and breakout rooms
-/Users/jasonlee/Developer/source/oya/meet/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `meet`
+/Users/jasonlee/Developer/source/oya/meet/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `meet`
 /Users/jasonlee/Developer/source/oya/meet/migration-playbooks/from-zoom-and-google-meet.md	governance	how-to	governance/compliance	current	Migration playbook — Zoom / Google Meet / Microsoft Teams / Webex → oyatie meet
 /Users/jasonlee/Developer/source/oya/meet/onboarding/realtime-engineer-first-week.md	guide	tutorial	product	current	Realtime Engineer onboarding — first 5 working days
 /Users/jasonlee/Developer/source/oya/meet/policy/redaction-phi.md	governance	explanation	governance/compliance	current	PHI Redaction Policy (meet µservice — pack-us-healthcare overlay)
@@ -2531,7 +2531,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/whiteboard/runbooks/local-cursor-latency-burn.md	runbook	how-to	operations/runbook	current	Whiteboard Runbook: Cursor Latency Burn
 /Users/jasonlee/Developer/source/oya/whiteboard/runbooks/cold-merge.md	runbook	how-to	operations/runbook	current	Runbook: Whiteboard Cold Merge
 /Users/jasonlee/Developer/source/oya/whiteboard/runbooks/presence-fanout-lag.md	runbook	how-to	operations/runbook	current	Whiteboard Runbook: presence-fanout-lag
-/Users/jasonlee/Developer/source/oya/whiteboard/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `whiteboard`
+/Users/jasonlee/Developer/source/oya/whiteboard/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `whiteboard`
 /Users/jasonlee/Developer/source/oya/whiteboard/policy/data-residency.md	governance	explanation	governance/compliance	current	Whiteboard Policy Data Residency
 /Users/jasonlee/Developer/source/oya/whiteboard/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: whiteboard
 /Users/jasonlee/Developer/source/oya/financial-planning/IP-030-planful-driver-import-displacement.md	spec	reference	spec/contract	current	IP-030 Financial Planning planful-driver-import-displacement
@@ -2614,7 +2614,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/financial-planning/runbooks/cold-merge.md	runbook	how-to	operations/runbook	current	Runbook: Financial Planning Cold Merge
 /Users/jasonlee/Developer/source/oya/financial-planning/runbooks/budget-lock-breakglass.md	runbook	how-to	operations/runbook	current	Financial Planning Runbook: budget-lock-breakglass
 /Users/jasonlee/Developer/source/oya/financial-planning/decisions/ADR-FP-001-scenario-calculation-graph-and-forecast-version-ledger.md	adr	explanation	decision/ADR	current	ADR-FP-001: Scenario calculation graph and forecast version ledger
-/Users/jasonlee/Developer/source/oya/financial-planning/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `financial-planning`
+/Users/jasonlee/Developer/source/oya/financial-planning/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `financial-planning`
 /Users/jasonlee/Developer/source/oya/financial-planning/policy/data-residency.md	governance	explanation	governance/compliance	current	Financial Planning Policy Data Residency
 /Users/jasonlee/Developer/source/oya/financial-planning/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: financial-planning
 /Users/jasonlee/Developer/source/oya/mail/IP-journey-j122-vendor-remittance-notices.md	research	explanation	research	current	IP - mail role in j122 Vendor payment batch with tax withholding
@@ -2768,7 +2768,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/mail/faqs/mail-engineer-faq.md	guide	how-to	product	current	Mail Engineer FAQ — mail
 /Users/jasonlee/Developer/source/oya/mail/benchmarks/gmail-m365-proton-vs-oyatie.md	reference	reference	product	current	Benchmarks — oyatie mail vs Gmail Workspace vs Microsoft 365 vs Proton Mail Business vs Zoho Mail vs Tutanota
 /Users/jasonlee/Developer/source/oya/mail/tutorials/promote-dmarc-policy-with-soak.md	guide	tutorial	product	current	Tutorial — Promote DMARC policy from `none` to `quarantine` to `reject` with full soak windows
-/Users/jasonlee/Developer/source/oya/mail/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `mail`
+/Users/jasonlee/Developer/source/oya/mail/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `mail`
 /Users/jasonlee/Developer/source/oya/mail/migration-playbooks/from-gmail-workspace.md	governance	how-to	governance/compliance	current	Migration playbook — Gmail Workspace → oyatie mail
 /Users/jasonlee/Developer/source/oya/mail/onboarding/mail-engineer-first-week.md	guide	tutorial	product	current	Mail Engineer onboarding — first 5 working days on `mail`
 /Users/jasonlee/Developer/source/oya/mail/policy/data-residency.md	governance	explanation	governance/compliance	current	Data Residency Contract (mail µservice)
@@ -2857,7 +2857,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/feature-flags/benchmarks/openfeature-server-providers.md	reference	reference	product	current	Benchmarks — oyatie feature-flags vs OpenFeature server providers
 /Users/jasonlee/Developer/source/oya/feature-flags/tutorials/cohort-rollout-with-analytics.md	guide	tutorial	product	current	Cohort rollout end-to-end with `analytics`
 /Users/jasonlee/Developer/source/oya/feature-flags/tutorials/getting-started-rust-sdk.md	guide	tutorial	product	current	Getting started — Rust SDK in 15 minutes
-/Users/jasonlee/Developer/source/oya/feature-flags/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `feature-flags`
+/Users/jasonlee/Developer/source/oya/feature-flags/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `feature-flags`
 /Users/jasonlee/Developer/source/oya/feature-flags/migration-playbooks/from-launchdarkly.md	governance	how-to	governance/compliance	current	Migration playbook — LaunchDarkly → oyatie feature-flags
 /Users/jasonlee/Developer/source/oya/feature-flags/onboarding/engineer-first-week.md	guide	tutorial	product	current	Engineer onboarding — first 5 working days
 /Users/jasonlee/Developer/source/oya/feature-flags/policy/data-residency.md	governance	explanation	governance/compliance	current	Feature Flags Data Residency
@@ -2957,7 +2957,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/marketplace/ip/IP-010-appointment-commitment-domain.md	spec	reference	spec/contract	current	IP-010: Appointment Commitment Domain
 /Users/jasonlee/Developer/source/oya/marketplace/ip/IP-020-counterparty-grant-domain.md	spec	reference	spec/contract	current	IP-020: Counterparty Grant Domain
 /Users/jasonlee/Developer/source/oya/marketplace/ip/IP-021-multi-region-replay.md	spec	reference	cloud-substrate	current	IP-021: Multi Region Replay
-/Users/jasonlee/Developer/source/oya/marketplace/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `marketplace`
+/Users/jasonlee/Developer/source/oya/marketplace/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `marketplace`
 /Users/jasonlee/Developer/source/oya/marketplace/migration-playbooks/from-stripe-connect.md	governance	how-to	governance/compliance	current	Migration playbook — Stripe → Oyatie `marketplace`
 /Users/jasonlee/Developer/source/oya/marketplace/onboarding/marketplace-engineer-first-week.md	guide	tutorial	product	current	Marketplace Engineer — First Week on `marketplace`
 /Users/jasonlee/Developer/source/oya/marketplace/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: marketplace
@@ -3022,7 +3022,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/crm/runbooks/policy-deny-spike.md	runbook	how-to	operations/runbook	current	Runbook: Customer Relationship Management policy-deny-spike
 /Users/jasonlee/Developer/source/oya/crm/decisions/ADR-MS-001-customer-record-mutation-and-revenue-lineage-contract.md	adr	explanation	decision/ADR	current	ADR-MS-001: Customer record mutation and revenue lineage contract for crm
 /Users/jasonlee/Developer/source/oya/crm/dashboards/opportunity-residency.md	runbook	how-to	governance/compliance	current	Dashboard Guide: Customer Relationship Management opportunity
-/Users/jasonlee/Developer/source/oya/crm/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `crm`
+/Users/jasonlee/Developer/source/oya/crm/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `crm`
 /Users/jasonlee/Developer/source/oya/crm/migration-playbooks/from-microsoft-dynamics-365-ce.md	governance	how-to	governance/compliance	current	Migration Playbook: Microsoft Dynamics 365 Customer Engagement to Oyatie crm
 /Users/jasonlee/Developer/source/oya/crm/migration-playbooks/from-hubspot-sales-hub.md	governance	how-to	governance/compliance	current	Migration Playbook: HubSpot Sales Hub to Oyatie crm
 /Users/jasonlee/Developer/source/oya/crm/migration-playbooks/from-salesforce-sales-cloud.md	governance	how-to	governance/compliance	current	Migration Playbook: Salesforce Sales Cloud to Oyatie crm
@@ -3088,7 +3088,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/real-estate/runbooks/capacity-saturation.md	runbook	how-to	operations/runbook	current	Runbook: Real Estate capacity-saturation
 /Users/jasonlee/Developer/source/oya/real-estate/runbooks/policy-deny-spike.md	runbook	how-to	operations/runbook	current	Runbook: Real Estate policy-deny-spike
 /Users/jasonlee/Developer/source/oya/real-estate/dashboards/facility-master-residency.md	runbook	how-to	governance/compliance	current	Dashboard Guide: Real Estate facility-master
-/Users/jasonlee/Developer/source/oya/real-estate/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `real-estate`
+/Users/jasonlee/Developer/source/oya/real-estate/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `real-estate`
 /Users/jasonlee/Developer/source/oya/real-estate/policy/data-residency.md	governance	explanation	governance/compliance	current	Data Residency Policy: Real Estate
 /Users/jasonlee/Developer/source/oya/real-estate/policy/tenant-isolation.md	governance	explanation	governance/compliance	current	Tenant Isolation Policy: Real Estate
 /Users/jasonlee/Developer/source/oya/real-estate/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: real-estate
@@ -3150,7 +3150,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/supply-chain-planning/runbooks/capacity-saturation.md	runbook	how-to	operations/runbook	current	Runbook: Supply Chain Planning capacity-saturation
 /Users/jasonlee/Developer/source/oya/supply-chain-planning/runbooks/policy-deny-spike.md	runbook	how-to	operations/runbook	current	Runbook: Supply Chain Planning policy-deny-spike
 /Users/jasonlee/Developer/source/oya/supply-chain-planning/dashboards/supply-network-plan-residency.md	runbook	how-to	governance/compliance	current	Dashboard Guide: Supply Chain Planning supply-network-plan
-/Users/jasonlee/Developer/source/oya/supply-chain-planning/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `supply-chain-planning`
+/Users/jasonlee/Developer/source/oya/supply-chain-planning/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `supply-chain-planning`
 /Users/jasonlee/Developer/source/oya/supply-chain-planning/policy/data-residency.md	governance	explanation	governance/compliance	current	Data Residency Policy: Supply Chain Planning
 /Users/jasonlee/Developer/source/oya/supply-chain-planning/policy/tenant-isolation.md	governance	explanation	governance/compliance	current	Tenant Isolation Policy: Supply Chain Planning
 /Users/jasonlee/Developer/source/oya/supply-chain-planning/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: supply-chain-planning
@@ -3243,7 +3243,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/ops-dashboard-control-center/dashboards/on-call-handoff.md	runbook	how-to	operations/runbook	current	On-Call Handoff Panel — Reference
 /Users/jasonlee/Developer/source/oya/ops-dashboard-control-center/benchmarks/odcc-vs-pagerduty-vs-statuspage-vs-incident-io-vs-firehydrant.md	reference	how-to	product	current	Benchmarks — oyatie ODCC vs PagerDuty / Atlassian Statuspage / incident.io / FireHydrant / Rootly / ServiceNow ITSM
 /Users/jasonlee/Developer/source/oya/ops-dashboard-control-center/tutorials/declare-incident-rollback-and-export-signed-evidence-pack.md	guide	tutorial	product	current	Tutorial — Declare an incident, hold + rollback a deployment, and export a signed evidence pack
-/Users/jasonlee/Developer/source/oya/ops-dashboard-control-center/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `ops-dashboard-control-center`
+/Users/jasonlee/Developer/source/oya/ops-dashboard-control-center/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `ops-dashboard-control-center`
 /Users/jasonlee/Developer/source/oya/ops-dashboard-control-center/migration-playbooks/from-pagerduty-and-incident-io-and-servicenow-itsm.md	governance	how-to	governance/compliance	current	Migration playbook — PagerDuty / incident.io / ServiceNow ITSM / FireHydrant / Atlassian Statuspage → oyatie ODCC
 /Users/jasonlee/Developer/source/oya/ops-dashboard-control-center/onboarding/sre-on-call-first-week.md	guide	tutorial	product	current	SRE On-Call Onboarding — first 5 working days at ops-dashboard-control-center
 /Users/jasonlee/Developer/source/oya/ops-dashboard-control-center/policy/data-residency.md	governance	explanation	governance/compliance	current	Data Residency Policy — ops-dashboard-control-center
@@ -3275,7 +3275,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/emergency/decisions/ADR-MS-002-mass-casualty-mode.md	adr	explanation	decision/ADR	current	ADR-MS-002 — Mass-Casualty Mode: Lifecycle, Composability, Partition Behavior
 /Users/jasonlee/Developer/source/oya/emergency/decisions/ADR-MS-001-triage-engine.md	adr	explanation	decision/ADR	current	ADR-MS-001 — Triage Engine: ESI 5-Level Core + Reassessment + Pediatric Overlay
 /Users/jasonlee/Developer/source/oya/emergency/design-spec-maturity/failure-modes-data-residency-cost-finops-audit-evidence-emission-tenant-isolation-operational-boundaries.md	governance	explanation	governance/compliance	current	Emergency design/spec maturity boundary pack
-/Users/jasonlee/Developer/source/oya/emergency/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `emergency`
+/Users/jasonlee/Developer/source/oya/emergency/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `emergency`
 /Users/jasonlee/Developer/source/oya/emergency/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: emergency
 /Users/jasonlee/Developer/source/oya/imaging/PRD.md	product-prd	reference	product	current	Imaging Microservice — Product Requirements Document (PRD)
 /Users/jasonlee/Developer/source/oya/imaging/ARCHITECTURE.md	architecture	explanation	architecture	current	Imaging Microservice — Architecture
@@ -3311,7 +3311,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/imaging/decisions/ADR-MS-004-enterprise-imaging-scope.md	adr	explanation	decision/ADR	current	ADR-MS-004 — Enterprise imaging scope (beyond radiology)
 /Users/jasonlee/Developer/source/oya/imaging/decisions/ADR-MS-001-dicomweb-substrate.md	adr	explanation	decision/ADR	current	ADR-MS-001 — DICOMweb-first substrate
 /Users/jasonlee/Developer/source/oya/imaging/design-spec-maturity/failure-modes-cost-finops-tenant-isolation-operational-boundaries.md	spec	reference	spec/contract	current	Imaging design/spec maturity boundary pack
-/Users/jasonlee/Developer/source/oya/imaging/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `imaging`
+/Users/jasonlee/Developer/source/oya/imaging/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `imaging`
 /Users/jasonlee/Developer/source/oya/imaging/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: imaging
 /Users/jasonlee/Developer/source/oya/incident-management/PHASE-01-INCIDENT-MANAGEMENT-OPERATING-BAR.md	spec	how-to	spec/contract	current	Incident Management PHASE-01 Operating Bar
 /Users/jasonlee/Developer/source/oya/incident-management/failure-modes.md	architecture	explanation	architecture	current	Incident Management Failure Modes
@@ -3397,7 +3397,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/incident-management/faqs/incident-commander-faq.md	guide	how-to	product	current	incident-management — Incident Commander FAQ
 /Users/jasonlee/Developer/source/oya/incident-management/benchmarks/pagerduty-vs-opsgenie-vs-incidentio-vs-oyatie.md	reference	how-to	product	current	Benchmarks — oyatie incident-management vs PagerDuty vs Opsgenie vs Squadcast vs Rootly vs FireHydrant vs incident.io
 /Users/jasonlee/Developer/source/oya/incident-management/tutorials/declare-sev1-incident-end-to-end.md	guide	tutorial	product	current	Tutorial — Declare a SEV-1 incident end-to-end with war-room + status-page + post-mortem
-/Users/jasonlee/Developer/source/oya/incident-management/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `incident-management`
+/Users/jasonlee/Developer/source/oya/incident-management/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `incident-management`
 /Users/jasonlee/Developer/source/oya/incident-management/migration-playbooks/from-pagerduty.md	governance	how-to	governance/compliance	current	Migration Playbook — PagerDuty → oyatie incident-management
 /Users/jasonlee/Developer/source/oya/incident-management/onboarding/incident-commander-first-week.md	guide	tutorial	product	current	incident-management — Incident Commander First Week
 /Users/jasonlee/Developer/source/oya/incident-management/policy/data-residency.md	governance	explanation	governance/compliance	current	Incident Management Policy Data Residency
@@ -3487,7 +3487,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/healthcare-integration/faqs/clinical-integrator-faq.md	guide	how-to	product	current	healthcare-integration — Clinical Integrator FAQ
 /Users/jasonlee/Developer/source/oya/healthcare-integration/benchmarks/intersystems-vs-redox-vs-aws-healthlake-vs-oyatie.md	reference	reference	product	current	Benchmarks — oyatie healthcare-integration vs InterSystems HealthShare vs Redox vs Health Gorilla vs AWS HealthLake vs G
 /Users/jasonlee/Developer/source/oya/healthcare-integration/tutorials/ingest-hl7-orm-and-publish-fhir-servicerequest.md	guide	tutorial	product	current	Tutorial — Ingest an HL7v2 ORM lab order and publish a FHIR ServiceRequest
-/Users/jasonlee/Developer/source/oya/healthcare-integration/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `healthcare-integration`
+/Users/jasonlee/Developer/source/oya/healthcare-integration/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `healthcare-integration`
 /Users/jasonlee/Developer/source/oya/healthcare-integration/migration-playbooks/from-redox.md	governance	how-to	governance/compliance	current	Migration Playbook — Redox → oyatie healthcare-integration
 /Users/jasonlee/Developer/source/oya/healthcare-integration/onboarding/clinical-integrator-first-week.md	guide	tutorial	product	current	healthcare-integration — Clinical Integrator First Week
 /Users/jasonlee/Developer/source/oya/healthcare-integration/policy/data-residency.md	governance	explanation	governance/compliance	current	Healthcare Integration Policy Data Residency
@@ -3573,7 +3573,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/docs/faqs/docs-engineer-faq.md	guide	how-to	product	current	`docs` µservice — Docs Engineer FAQ
 /Users/jasonlee/Developer/source/oya/docs/benchmarks/docs-vs-google-docs-vs-word-online-vs-notion-vs-coda-vs-quip.md	reference	reference	product	current	`docs` µservice — Benchmark vs Google Docs, Microsoft Word Online, Notion, Coda, Quip
 /Users/jasonlee/Developer/source/oya/docs/tutorials/create-collab-edit-branch-merge-sign.md	guide	tutorial	product	current	Tutorial — Create, collaborate, branch, merge, and sign a document
-/Users/jasonlee/Developer/source/oya/docs/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `docs`
+/Users/jasonlee/Developer/source/oya/docs/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `docs`
 /Users/jasonlee/Developer/source/oya/docs/migration-playbooks/from-google-docs-and-notion.md	governance	how-to	governance/compliance	current	Migration playbook — Google Docs or Notion → Oyatie `docs`
 /Users/jasonlee/Developer/source/oya/docs/onboarding/docs-engineer-first-week.md	guide	tutorial	product	current	Docs Engineer — First Week on `docs`
 /Users/jasonlee/Developer/source/oya/docs/policy/editor-isolation.md	governance	explanation	governance/compliance	current	Editor Isolation Contract (docs µservice)
@@ -3717,7 +3717,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/observability/dashboards/dr-business-continuity.md	runbook	how-to	operations/runbook	current	Observability dashboard — DR + business-continuity
 /Users/jasonlee/Developer/source/oya/observability/benchmarks/datadog-vs-newrelic-vs-honeycomb-vs-oyatie.md	reference	reference	product	current	Benchmarks — oyatie observability vs Datadog APM vs New Relic vs Honeycomb vs Splunk Observability
 /Users/jasonlee/Developer/source/oya/observability/tutorials/wire-microservice-slos-into-promotion-gate.md	adr	explanation	decision/ADR	current	Tutorial — Wire a µservice's SLOs into the ADR-0130 promotion gate
-/Users/jasonlee/Developer/source/oya/observability/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `observability`
+/Users/jasonlee/Developer/source/oya/observability/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `observability`
 /Users/jasonlee/Developer/source/oya/observability/migration-playbooks/from-datadog.md	governance	how-to	governance/compliance	current	Migration Playbook — Datadog → oyatie observability
 /Users/jasonlee/Developer/source/oya/observability/onboarding/sre-lead-first-week.md	guide	tutorial	product	current	observability — SRE Lead First Week
 /Users/jasonlee/Developer/source/oya/observability/policy/data-residency.md	governance	explanation	governance/compliance	current	Data Residency Contract (observability µservice)
@@ -3801,7 +3801,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/learning-management/runbooks/local-assessment-submit-errors.md	runbook	how-to	operations/runbook	current	Learning Management Runbook: Assessment Submit Errors
 /Users/jasonlee/Developer/source/oya/learning-management/runbooks/cold-merge.md	runbook	how-to	operations/runbook	current	Runbook: Learning Management Cold Merge
 /Users/jasonlee/Developer/source/oya/learning-management/runbooks/local-content-cdn-region-failover.md	runbook	how-to	operations/runbook	current	Learning Management Runbook: Content Cdn Region Failover
-/Users/jasonlee/Developer/source/oya/learning-management/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `learning-management`
+/Users/jasonlee/Developer/source/oya/learning-management/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `learning-management`
 /Users/jasonlee/Developer/source/oya/learning-management/policy/data-residency.md	governance	explanation	governance/compliance	current	Learning Management Policy Data Residency
 /Users/jasonlee/Developer/source/oya/learning-management/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: learning-management
 /Users/jasonlee/Developer/source/oya/ontology/IP-journey-j84-typed-record-writer.md	research	explanation	research	current	IP-journey-j84-typed-record-writer - ontology
@@ -3903,7 +3903,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/ontology/faqs/ontology-engineer-faq.md	guide	how-to	product	current	Ontology Engineer FAQ — ontology
 /Users/jasonlee/Developer/source/oya/ontology/benchmarks/palantir-stardog-neo4j-neptune-vs-oyatie.md	reference	reference	product	current	Benchmarks — oyatie ontology vs Palantir Foundry Ontology vs Stardog vs Neo4j AuraDB vs Amazon Neptune
 /Users/jasonlee/Developer/source/oya/ontology/tutorials/model-tenant-ontology-and-query.md	guide	tutorial	product	current	Tutorial — Model a 5-entity tenant ontology + query it via Cypher and GraphQL
-/Users/jasonlee/Developer/source/oya/ontology/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `ontology`
+/Users/jasonlee/Developer/source/oya/ontology/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `ontology`
 /Users/jasonlee/Developer/source/oya/ontology/migration-playbooks/from-palantir-foundry.md	governance	how-to	governance/compliance	current	Migration playbook — Palantir Foundry Ontology → oyatie ontology
 /Users/jasonlee/Developer/source/oya/ontology/onboarding/ontology-engineer-first-week.md	guide	tutorial	product	current	Ontology Engineer onboarding — first 5 working days on `ontology`
 /Users/jasonlee/Developer/source/oya/ontology/policy/data-residency.md	governance	explanation	governance/compliance	current	Data Residency Contract (ontology µservice)
@@ -4059,7 +4059,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/compliance/iac/helm/evidence-collector/README.md	readme	reference	product	current	oya-compliance-evidence-collector
 /Users/jasonlee/Developer/source/oya/compliance/benchmarks/drata-vanta-onetrust-auditboard-vs-oyatie.md	reference	reference	product	current	Benchmarks — oyatie compliance vs Drata vs Vanta vs Hyperproof vs AuditBoard vs LogicGate
 /Users/jasonlee/Developer/source/oya/compliance/tutorials/resolve-multi-pack-erasure-conflict.md	guide	tutorial	product	current	Tutorial — Resolve a multi-pack erasure conflict (GDPR Art 17 vs HIPAA retention) end-to-end
-/Users/jasonlee/Developer/source/oya/compliance/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `compliance`
+/Users/jasonlee/Developer/source/oya/compliance/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `compliance`
 /Users/jasonlee/Developer/source/oya/compliance/migration-playbooks/from-onetrust.md	governance	how-to	governance/compliance	current	Migration playbook — OneTrust → oyatie compliance
 /Users/jasonlee/Developer/source/oya/compliance/onboarding/compliance-engineer-first-week.md	guide	tutorial	governance/compliance	current	Compliance Engineer onboarding — first 5 working days on `compliance`
 /Users/jasonlee/Developer/source/oya/compliance/policy/data-residency.md	governance	explanation	governance/compliance	current	Data Residency Contract (compliance µservice)
@@ -4140,7 +4140,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/slides/faqs/slides-engineer-faq.md	guide	how-to	product	current	Slides Engineer FAQ
 /Users/jasonlee/Developer/source/oya/slides/benchmarks/slides-vs-google-slides-vs-powerpoint-vs-keynote-vs-pitch.md	reference	reference	product	current	Benchmarks — oyatie slides vs Google Slides / Microsoft PowerPoint (Web + Desktop) / Apple Keynote / Pitch / Canva Docs
 /Users/jasonlee/Developer/source/oya/slides/tutorials/build-investor-deck-with-charts-and-collab.md	guide	tutorial	product	current	Tutorial — Build a 30-slide investor deck with brand-pack, live-data charts, AI assistance, and real-time collaboration
-/Users/jasonlee/Developer/source/oya/slides/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `slides`
+/Users/jasonlee/Developer/source/oya/slides/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `slides`
 /Users/jasonlee/Developer/source/oya/slides/migration-playbooks/from-google-slides-and-powerpoint.md	governance	how-to	governance/compliance	current	Migration playbook — Google Slides / Microsoft PowerPoint / Apple Keynote / Pitch / Canva → oyatie slides
 /Users/jasonlee/Developer/source/oya/slides/onboarding/slides-engineer-first-week.md	guide	tutorial	product	current	Slides Engineer onboarding — first 5 working days
 /Users/jasonlee/Developer/source/oya/slides/policy/editor-isolation.md	governance	explanation	governance/compliance	current	Editor isolation — slides µservice
@@ -4268,7 +4268,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/contract-lifecycle-management/taxonomies/clause-family-taxonomy.md	reference	reference	product	current	Clause Family Taxonomy
 /Users/jasonlee/Developer/source/oya/contract-lifecycle-management/taxonomies/contract-type-taxonomy.md	reference	reference	product	current	Contract Type Taxonomy
 /Users/jasonlee/Developer/source/oya/contract-lifecycle-management/migration-playbooks/from-conga-clm.md	governance	how-to	governance/compliance	current	Migration Playbook: Conga CLM → Oyatie CLM
-/Users/jasonlee/Developer/source/oya/contract-lifecycle-management/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `contract-lifecycle-management`
+/Users/jasonlee/Developer/source/oya/contract-lifecycle-management/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `contract-lifecycle-management`
 /Users/jasonlee/Developer/source/oya/contract-lifecycle-management/migration-playbooks/from-docusign-clm.md	governance	how-to	governance/compliance	current	Migration Playbook — DocuSign CLM → oyatie contract-lifecycle-management
 /Users/jasonlee/Developer/source/oya/contract-lifecycle-management/migration-playbooks/from-ironclad.md	governance	how-to	governance/compliance	current	Migration Playbook: Ironclad → Oyatie CLM
 /Users/jasonlee/Developer/source/oya/contract-lifecycle-management/onboarding/legal-ops-first-week.md	guide	tutorial	product	current	contract-lifecycle-management — Legal Ops First Week
@@ -4350,7 +4350,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/sites/faqs/sites-engineer-faq.md	guide	how-to	product	current	Sites Engineer FAQ
 /Users/jasonlee/Developer/source/oya/sites/benchmarks/sites-vs-webflow-vs-wix-vs-wordpress-vs-ghost.md	reference	reference	product	current	Benchmarks — oyatie sites vs Webflow / Wix Business / WordPress.com Business / Squarespace / Ghost / Carrd / Framer
 /Users/jasonlee/Developer/source/oya/sites/tutorials/launch-site-with-custom-domain-cms-and-accessibility.md	guide	tutorial	product	current	Tutorial — Launch a marketing site with custom domain + CMS-collection + accessibility-checked
-/Users/jasonlee/Developer/source/oya/sites/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `sites`
+/Users/jasonlee/Developer/source/oya/sites/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `sites`
 /Users/jasonlee/Developer/source/oya/sites/migration-playbooks/from-webflow-wix-business-and-wordpress.md	governance	how-to	governance/compliance	current	Migration playbook — Webflow / Wix Business / WordPress / Squarespace → oyatie sites
 /Users/jasonlee/Developer/source/oya/sites/onboarding/sites-engineer-first-week.md	guide	tutorial	product	current	Sites Engineer onboarding — first 5 working days
 /Users/jasonlee/Developer/source/oya/sites/policy/editor-isolation.md	governance	explanation	governance/compliance	current	Editor Isolation Policy — sites µservice
@@ -4437,7 +4437,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/social/decisions/README.md	adr	explanation	decision/ADR	current	social µservice — service-scoped ADRs
 /Users/jasonlee/Developer/source/oya/social/decisions/ADR-SOC-0001-feed-ranking-algorithm.md	adr	explanation	decision/ADR	current	ADR-SOC-0001: Feed-ranking algorithm — hybrid chronological-first + heuristic-algorithmic in P01; ML-driven ranking sche
 /Users/jasonlee/Developer/source/oya/social/decisions/ADR-SOC-0003-content-moderation-classifier-bounds.md	adr	explanation	decision/ADR	current	ADR-SOC-0003: Content-moderation classifier bounds — EU AI Act 2024/1689 high-risk classification; Arts. 9-15 + Art. 50 
-/Users/jasonlee/Developer/source/oya/social/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `social`
+/Users/jasonlee/Developer/source/oya/social/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `social`
 /Users/jasonlee/Developer/source/oya/social/policy/data-residency.md	governance	explanation	governance/compliance	current	Data Residency Contract (social µservice)
 /Users/jasonlee/Developer/source/oya/social/policy/dual-context-isolation.md	governance	explanation	governance/compliance	current	Dual-Context Isolation Specification (social µservice)
 /Users/jasonlee/Developer/source/oya/social/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: social
@@ -4536,7 +4536,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/data-pipeline/runbooks/dealset-connector-hold.md	runbook	how-to	operations/runbook	current	Data Pipeline Runbook: dealset-connector-hold
 /Users/jasonlee/Developer/source/oya/data-pipeline/runbooks/schema-drift-quarantine.md	runbook	how-to	operations/runbook	current	Data Pipeline Runbook: schema-drift-quarantine
 /Users/jasonlee/Developer/source/oya/data-pipeline/decisions/ADR-MS-001-lineage-first-ingest-transform-and-replay-contract.md	adr	explanation	decision/ADR	current	ADR-MS-001: Lineage-first ingest, transform, and replay contract for data-pipeline
-/Users/jasonlee/Developer/source/oya/data-pipeline/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `data-pipeline`
+/Users/jasonlee/Developer/source/oya/data-pipeline/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `data-pipeline`
 /Users/jasonlee/Developer/source/oya/data-pipeline/policy/data-residency.md	governance	explanation	governance/compliance	current	Data Pipeline Policy Data Residency
 /Users/jasonlee/Developer/source/oya/data-pipeline/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: data-pipeline
 /Users/jasonlee/Developer/source/oya/messenger/IP-012-websocket-frame-protocol.md	spec	reference	spec/contract	current	IP-012: WebSocket frame protocol + AsyncAPI 3.1.0 conformance
@@ -4662,7 +4662,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/messenger/iac/guest-on-oci/README.md	readme	reference	product	current	OpenTofu Module - messenger / guest-on-oci
 /Users/jasonlee/Developer/source/oya/messenger/benchmarks/slack-teams-discord-vs-oyatie.md	reference	reference	product	current	Benchmarks — oyatie messenger vs Slack vs Microsoft Teams vs Discord vs Telegram vs WhatsApp Business
 /Users/jasonlee/Developer/source/oya/messenger/tutorials/configure-cross-tenant-cohort-channel.md	guide	tutorial	product	current	Tutorial — Configure a cross-tenant cohort channel with MLS E2EE + verified-corp-email gate
-/Users/jasonlee/Developer/source/oya/messenger/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `messenger`
+/Users/jasonlee/Developer/source/oya/messenger/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `messenger`
 /Users/jasonlee/Developer/source/oya/messenger/migration-playbooks/from-slack.md	governance	how-to	governance/compliance	current	Migration playbook — Slack → oyatie messenger
 /Users/jasonlee/Developer/source/oya/messenger/onboarding/messenger-engineer-first-week.md	guide	tutorial	product	current	Messenger Engineer onboarding — first 5 working days on `messenger`
 /Users/jasonlee/Developer/source/oya/messenger/policy/redaction-phi.md	governance	explanation	governance/compliance	current	PHI Redaction Policy (messenger µservice — pack-us-healthcare overlay)
@@ -4768,7 +4768,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/notes/faqs/notes-engineer-faq.md	guide	how-to	product	current	Notes Engineer FAQ
 /Users/jasonlee/Developer/source/oya/notes/benchmarks/notes-vs-notion-vs-roam-vs-obsidian-vs-evernote.md	reference	reference	product	current	Benchmarks — oyatie notes vs Notion / Roam Research / Obsidian / Evernote Business / Bear
 /Users/jasonlee/Developer/source/oya/notes/tutorials/build-research-notebook-with-bidirectional-links-and-ai-summary.md	guide	tutorial	product	current	Tutorial — Build a research notebook with daily-notes, bidirectional links, and AI summarisation
-/Users/jasonlee/Developer/source/oya/notes/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `notes`
+/Users/jasonlee/Developer/source/oya/notes/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `notes`
 /Users/jasonlee/Developer/source/oya/notes/migration-playbooks/from-notion-and-roam-and-obsidian.md	governance	how-to	governance/compliance	current	Migration playbook — Notion / Roam Research / Obsidian / Evernote Business / Bear → oyatie notes
 /Users/jasonlee/Developer/source/oya/notes/onboarding/notes-engineer-first-week.md	guide	tutorial	product	current	Notes Engineer onboarding — first 5 working days
 /Users/jasonlee/Developer/source/oya/notes/policy/data-residency.md	governance	explanation	governance/compliance	current	Data Residency Contract (notes µservice)
@@ -4876,7 +4876,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/marketing-automation/runbooks/local-consent-propagation-lag.md	runbook	how-to	operations/runbook	current	Marketing Automation Runbook: Consent Propagation Lag
 /Users/jasonlee/Developer/source/oya/marketing-automation/runbooks/local-audience-license-quarantine.md	runbook	how-to	operations/runbook	current	Marketing Automation Runbook: Audience License Quarantine
 /Users/jasonlee/Developer/source/oya/marketing-automation/runbooks/suppression-list-drift.md	runbook	how-to	operations/runbook	current	Marketing Automation Runbook: suppression-list-drift
-/Users/jasonlee/Developer/source/oya/marketing-automation/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `marketing-automation`
+/Users/jasonlee/Developer/source/oya/marketing-automation/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `marketing-automation`
 /Users/jasonlee/Developer/source/oya/marketing-automation/policy/data-residency.md	governance	explanation	governance/compliance	current	Marketing Automation Policy Data Residency
 /Users/jasonlee/Developer/source/oya/marketing-automation/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: marketing-automation
 /Users/jasonlee/Developer/source/oya/plant-maintenance/IP-017-permit-to-work-issuance-workflow.md	spec	reference	spec/contract	current	IP-017: Permit-to-work issuance workflow with safety-authority quorum
@@ -4939,7 +4939,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/plant-maintenance/runbooks/capacity-saturation.md	runbook	how-to	operations/runbook	current	Runbook: Plant Maintenance capacity-saturation
 /Users/jasonlee/Developer/source/oya/plant-maintenance/runbooks/policy-deny-spike.md	runbook	how-to	operations/runbook	current	Runbook: Plant Maintenance policy-deny-spike
 /Users/jasonlee/Developer/source/oya/plant-maintenance/dashboards/maintenance-plan-residency.md	runbook	how-to	governance/compliance	current	Dashboard Guide: Plant Maintenance maintenance-plan
-/Users/jasonlee/Developer/source/oya/plant-maintenance/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `plant-maintenance`
+/Users/jasonlee/Developer/source/oya/plant-maintenance/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `plant-maintenance`
 /Users/jasonlee/Developer/source/oya/plant-maintenance/policy/data-residency.md	governance	explanation	governance/compliance	current	Data Residency Policy: Plant Maintenance
 /Users/jasonlee/Developer/source/oya/plant-maintenance/policy/tenant-isolation.md	governance	explanation	governance/compliance	current	Tenant Isolation Policy: Plant Maintenance
 /Users/jasonlee/Developer/source/oya/plant-maintenance/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: plant-maintenance
@@ -4969,7 +4969,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/diagnostics/runbooks/cold-merge.md	runbook	how-to	operations/runbook	current	Runbook: Diagnostics Cold Merge
 /Users/jasonlee/Developer/source/oya/diagnostics/decisions/ADR-MS-001-lab-vs-imaging-vs-pathology-split.md	adr	explanation	decision/ADR	current	ADR-MS-001: Diagnostics Owns Lab + Pathology Only
 /Users/jasonlee/Developer/source/oya/diagnostics/design-spec-maturity/failure-modes-cost-finops-audit-evidence-emission-operational-boundaries.md	spec	reference	spec/contract	current	Diagnostics design/spec maturity boundary pack
-/Users/jasonlee/Developer/source/oya/diagnostics/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `diagnostics`
+/Users/jasonlee/Developer/source/oya/diagnostics/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `diagnostics`
 /Users/jasonlee/Developer/source/oya/diagnostics/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: diagnostics
 /Users/jasonlee/Developer/source/oya/connector/IP-journey-j29-shipping-label-ingest.md	research	explanation	research	current	IP j29 - connect - shipping-label-ingest
 /Users/jasonlee/Developer/source/oya/connector/failure-modes.md	architecture	explanation	architecture	current	Failure Modes — connector (Integration Substrate)
@@ -5082,7 +5082,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/connector/dashboards/oauth-token-health.md	runbook	how-to	operations/runbook	current	Dashboard Reference — OAuth Token Health
 /Users/jasonlee/Developer/source/oya/connector/benchmarks/connect-vs-slack-connect-vs-teams-external-vs-discord.md	reference	reference	product	current	Benchmarks — oyatie connect vs Slack / Microsoft Teams External Access / Discord servers / Matrix federation / Mattermos
 /Users/jasonlee/Developer/source/oya/connector/tutorials/establish-cross-tenant-channel-with-mls-and-cedar.md	guide	tutorial	product	current	Tutorial — Establish a cross-tenant channel with MLS encryption and Cedar disclosure rules
-/Users/jasonlee/Developer/source/oya/connector/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `connector`
+/Users/jasonlee/Developer/source/oya/connector/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `connector`
 /Users/jasonlee/Developer/source/oya/connector/migration-playbooks/from-slack-connect-and-teams-external.md	governance	how-to	governance/compliance	current	Migration playbook — Slack / Microsoft Teams External Access / Discord servers / Matrix → oyatie connect
 /Users/jasonlee/Developer/source/oya/connector/onboarding/federation-engineer-first-week.md	guide	tutorial	product	current	Federation Engineer onboarding — first 5 working days
 /Users/jasonlee/Developer/source/oya/connector/policy/data-residency.md	governance	explanation	governance/compliance	current	Data Residency Contract — connector
@@ -5174,7 +5174,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/governance/faqs/governance-engineer-faq.md	guide	how-to	product	current	Governance Engineer FAQ — governance
 /Users/jasonlee/Developer/source/oya/governance/benchmarks/drata-vanta-onetrust-vs-oyatie.md	reference	reference	product	current	Benchmarks — oyatie governance vs OneTrust vs TrustArc vs Drata vs Vanta vs Secureframe
 /Users/jasonlee/Developer/source/oya/governance/tutorials/configure-retention-policy-and-resolve-conflict.md	guide	tutorial	product	current	Tutorial — Configure pack-overlay retention policies + resolve a cross-pack conflict
-/Users/jasonlee/Developer/source/oya/governance/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `governance`
+/Users/jasonlee/Developer/source/oya/governance/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `governance`
 /Users/jasonlee/Developer/source/oya/governance/migration-playbooks/from-drata.md	governance	how-to	governance/compliance	current	Migration playbook — Drata → oyatie governance
 /Users/jasonlee/Developer/source/oya/governance/onboarding/governance-engineer-first-week.md	guide	tutorial	product	current	Governance Engineer onboarding — first 5 working days on `governance`
 /Users/jasonlee/Developer/source/oya/governance/policy/lane-execution.md	governance	explanation	governance/compliance	current	Lane Execution Invariants
@@ -5259,7 +5259,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/developer-sdk/faqs/sdk-engineer-faq.md	guide	how-to	product	current	`developer-sdk` µservice — SDK Engineer FAQ
 /Users/jasonlee/Developer/source/oya/developer-sdk/benchmarks/developer-sdk-vs-stripe-twilio-auth0-aws-sdk-v3.md	reference	reference	product	current	`developer-sdk` µservice — Benchmark vs Stripe SDKs, Twilio SDKs, Auth0 SDKs, AWS SDK v3
 /Users/jasonlee/Developer/source/oya/developer-sdk/tutorials/generate-publish-and-verify-rust-typescript-python-sdks.md	guide	tutorial	product	current	Tutorial — Generate, publish, and verify Rust/TypeScript/Python SDKs from a canonical OpenAPI spec
-/Users/jasonlee/Developer/source/oya/developer-sdk/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `developer-sdk`
+/Users/jasonlee/Developer/source/oya/developer-sdk/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `developer-sdk`
 /Users/jasonlee/Developer/source/oya/developer-sdk/migration-playbooks/from-stripe-and-twilio-sdks.md	governance	how-to	governance/compliance	current	Migration playbook — Stripe + Twilio SDKs → Oyatie `developer-sdk`
 /Users/jasonlee/Developer/source/oya/developer-sdk/onboarding/sdk-engineer-first-week.md	guide	tutorial	product	current	SDK Engineer — First Week on `developer-sdk`
 /Users/jasonlee/Developer/source/oya/developer-sdk/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: developer-sdk
@@ -5346,7 +5346,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/consent-graph/faqs/data-steward-faq.md	guide	how-to	product	current	Data Steward FAQ — consent-graph
 /Users/jasonlee/Developer/source/oya/consent-graph/benchmarks/consent-graph-vs-onetrust-vs-snowflake-share-vs-databricks-clean-room.md	reference	reference	product	current	Benchmarks — oyatie consent-graph vs OneTrust + TrustArc + Snowflake Secure Data Share + Databricks Clean Rooms + AWS Da
 /Users/jasonlee/Developer/source/oya/consent-graph/tutorials/draft-and-activate-data-sharing-agreement.md	guide	tutorial	product	current	Tutorial — Draft a DataSharingAgreement, activate, projection-stream, revoke
-/Users/jasonlee/Developer/source/oya/consent-graph/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `consent-graph`
+/Users/jasonlee/Developer/source/oya/consent-graph/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `consent-graph`
 /Users/jasonlee/Developer/source/oya/consent-graph/migration-playbooks/from-onetrust-and-trustarc.md	governance	how-to	governance/compliance	current	Migration playbook — OneTrust + TrustArc → oyatie consent-graph
 /Users/jasonlee/Developer/source/oya/consent-graph/onboarding/data-steward-first-week.md	guide	tutorial	product	current	Data Steward onboarding — first 5 working days on `consent-graph`
 /Users/jasonlee/Developer/source/oya/consent-graph/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: consent-graph
@@ -5417,7 +5417,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/application/faqs/platform-engineer-faq.md	guide	how-to	product	current	`application` µservice — Platform Engineer FAQ
 /Users/jasonlee/Developer/source/oya/application/benchmarks/application-vs-aws-app-runner-vs-cloud-run-vs-fly-vs-azure-container-apps.md	reference	reference	product	current	`application` µservice — Benchmark vs AWS App Runner, GCP Cloud Run, Fly.io, Azure Container Apps
 /Users/jasonlee/Developer/source/oya/application/tutorials/dispatch-intent-and-trace-through-cells.md	guide	tutorial	product	current	Tutorial — Dispatch an intent and trace it through cells
-/Users/jasonlee/Developer/source/oya/application/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `application`
+/Users/jasonlee/Developer/source/oya/application/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `application`
 /Users/jasonlee/Developer/source/oya/application/migration-playbooks/from-aws-app-runner.md	governance	how-to	governance/compliance	current	Migration playbook — AWS App Runner → Oyatie `application`
 /Users/jasonlee/Developer/source/oya/application/onboarding/platform-engineer-first-week.md	guide	tutorial	product	current	Platform Engineer — First Week on `application`
 /Users/jasonlee/Developer/source/oya/application/policy/data-residency.md	governance	explanation	governance/compliance	current	Data Residency Contract (application µservice)
@@ -5482,7 +5482,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/treasury/runbooks/capacity-saturation.md	runbook	how-to	operations/runbook	current	Runbook: Treasury capacity-saturation
 /Users/jasonlee/Developer/source/oya/treasury/runbooks/policy-deny-spike.md	runbook	how-to	operations/runbook	current	Runbook: Treasury policy-deny-spike
 /Users/jasonlee/Developer/source/oya/treasury/dashboards/liquidity-forecast-residency.md	runbook	how-to	governance/compliance	current	Dashboard Guide: Treasury liquidity-forecast
-/Users/jasonlee/Developer/source/oya/treasury/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `treasury`
+/Users/jasonlee/Developer/source/oya/treasury/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `treasury`
 /Users/jasonlee/Developer/source/oya/treasury/policy/data-residency.md	governance	explanation	governance/compliance	current	Data Residency Policy: Treasury
 /Users/jasonlee/Developer/source/oya/treasury/policy/tenant-isolation.md	governance	explanation	governance/compliance	current	Tenant Isolation Policy: Treasury
 /Users/jasonlee/Developer/source/oya/treasury/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: treasury
@@ -5545,7 +5545,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/warehouse/runbooks/capacity-saturation.md	runbook	how-to	operations/runbook	current	Runbook: Warehouse capacity-saturation
 /Users/jasonlee/Developer/source/oya/warehouse/runbooks/policy-deny-spike.md	runbook	how-to	operations/runbook	current	Runbook: Warehouse policy-deny-spike
 /Users/jasonlee/Developer/source/oya/warehouse/dashboards/outbound-delivery-residency.md	runbook	how-to	governance/compliance	current	Dashboard Guide: Warehouse outbound-delivery
-/Users/jasonlee/Developer/source/oya/warehouse/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `warehouse`
+/Users/jasonlee/Developer/source/oya/warehouse/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `warehouse`
 /Users/jasonlee/Developer/source/oya/warehouse/policy/data-residency.md	governance	explanation	governance/compliance	current	Data Residency Policy: Warehouse
 /Users/jasonlee/Developer/source/oya/warehouse/policy/tenant-isolation.md	governance	explanation	governance/compliance	current	Tenant Isolation Policy: Warehouse
 /Users/jasonlee/Developer/source/oya/warehouse/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: warehouse
@@ -5665,7 +5665,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/community/faqs/community-engineer-faq.md	guide	how-to	product	current	Community Engineer FAQ — community
 /Users/jasonlee/Developer/source/oya/community/benchmarks/discourse-khoros-bevy-mighty-vs-oyatie.md	reference	reference	product	current	Benchmarks — oyatie community vs Discourse vs Khoros vs Bevy vs Mighty Networks vs Circle
 /Users/jasonlee/Developer/source/oya/community/tutorials/configure-anonymous-board-and-moderation.md	guide	tutorial	product	current	Tutorial — Configure a TeamBlind-class anonymous board with LLM-assisted moderation
-/Users/jasonlee/Developer/source/oya/community/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `community`
+/Users/jasonlee/Developer/source/oya/community/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `community`
 /Users/jasonlee/Developer/source/oya/community/migration-playbooks/from-discourse.md	governance	how-to	governance/compliance	current	Migration playbook — Discourse → oyatie community
 /Users/jasonlee/Developer/source/oya/community/onboarding/community-engineer-first-week.md	guide	tutorial	product	current	Community Engineer onboarding — first 5 working days on `community`
 /Users/jasonlee/Developer/source/oya/community/policy/data-residency.md	governance	explanation	governance/compliance	current	Data-residency policy: community µservice
@@ -5792,7 +5792,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/drive/faqs/drive-engineer-faq.md	guide	how-to	product	current	Drive Engineer FAQ — drive
 /Users/jasonlee/Developer/source/oya/drive/benchmarks/gdrive-onedrive-dropbox-box-vs-oyatie.md	reference	reference	product	current	Benchmarks — oyatie drive vs Google Drive vs Microsoft OneDrive vs Dropbox Business vs Box vs Egnyte
 /Users/jasonlee/Developer/source/oya/drive/tutorials/upload-file-with-cmk-rotation.md	guide	tutorial	product	current	Tutorial — Upload an encrypted file, rotate the tenant KEK, and verify lazy rewrap
-/Users/jasonlee/Developer/source/oya/drive/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `drive`
+/Users/jasonlee/Developer/source/oya/drive/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `drive`
 /Users/jasonlee/Developer/source/oya/drive/migration-playbooks/from-google-drive.md	governance	how-to	governance/compliance	current	Migration playbook — Google Drive → oyatie drive
 /Users/jasonlee/Developer/source/oya/drive/onboarding/drive-engineer-first-week.md	guide	tutorial	product	current	Drive Engineer onboarding — first 5 working days on `drive`
 /Users/jasonlee/Developer/source/oya/drive/policy/data-residency.md	governance	explanation	governance/compliance	current	Data Residency — drive µservice
@@ -5887,7 +5887,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/plugin-app-store/faqs/marketplace-publisher-faq.md	guide	how-to	product	current	plugin-app-store — Publisher FAQ
 /Users/jasonlee/Developer/source/oya/plugin-app-store/benchmarks/salesforce-appexchange-vs-atlassian-marketplace-vs-oyatie.md	reference	reference	product	current	Benchmarks — oyatie plugin-app-store vs Salesforce AppExchange vs Atlassian Marketplace vs GitHub Marketplace vs Service
 /Users/jasonlee/Developer/source/oya/plugin-app-store/tutorials/publish-paid-plugin-with-sbom-and-stripe.md	guide	tutorial	product	current	Tutorial — Publish a paid plugin with SBOM, Stripe revenue share, and EU VAT compliance
-/Users/jasonlee/Developer/source/oya/plugin-app-store/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `plugin-app-store`
+/Users/jasonlee/Developer/source/oya/plugin-app-store/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `plugin-app-store`
 /Users/jasonlee/Developer/source/oya/plugin-app-store/migration-playbooks/from-salesforce-appexchange.md	governance	how-to	governance/compliance	current	Migration Playbook — Salesforce AppExchange → oyatie plugin-app-store
 /Users/jasonlee/Developer/source/oya/plugin-app-store/onboarding/marketplace-publisher-first-week.md	guide	tutorial	product	current	plugin-app-store — Marketplace Publisher First Week
 /Users/jasonlee/Developer/source/oya/plugin-app-store/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: plugin-app-store
@@ -6038,7 +6038,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/audit-chain/faqs/compliance-officer-faq.md	guide	how-to	governance/compliance	current	Compliance Officer FAQ — audit-chain
 /Users/jasonlee/Developer/source/oya/audit-chain/benchmarks/splunk-vs-datadog-vs-cloudtrail-vs-oyatie.md	reference	reference	product	current	Benchmarks — oyatie audit-chain vs Splunk Audit vs Datadog Audit Logs vs AWS CloudTrail Lake
 /Users/jasonlee/Developer/source/oya/audit-chain/tutorials/regulator-evidence-export.md	guide	tutorial	product	current	Tutorial — Generate a SOC 2 + SEC 17a-4(f) regulator-evidence bundle for a tenant
-/Users/jasonlee/Developer/source/oya/audit-chain/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `audit-chain`
+/Users/jasonlee/Developer/source/oya/audit-chain/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `audit-chain`
 /Users/jasonlee/Developer/source/oya/audit-chain/migration-playbooks/from-splunk-audit.md	governance	how-to	governance/compliance	current	Migration playbook — Splunk Audit → oyatie audit-chain
 /Users/jasonlee/Developer/source/oya/audit-chain/onboarding/compliance-officer-first-week.md	guide	tutorial	governance/compliance	current	Compliance Officer onboarding — first 5 working days on `audit-chain`
 /Users/jasonlee/Developer/source/oya/audit-chain/policy/seal-integrity.md	governance	explanation	governance/compliance	current	Seal Integrity + HSM Signing Policy (audit-chain µservice)
@@ -6141,7 +6141,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/itsm/faqs/itsm-admin-faq.md	guide	how-to	product	current	itsm — ITSM Administrator FAQ
 /Users/jasonlee/Developer/source/oya/itsm/benchmarks/servicenow-vs-jsm-vs-freshservice-vs-oyatie.md	reference	reference	product	current	Benchmarks — oyatie itsm vs ServiceNow vs Jira Service Management vs Freshservice vs BMC Helix vs Ivanti Neurons
 /Users/jasonlee/Developer/source/oya/itsm/tutorials/configure-change-management-with-cmdb-impact-analysis.md	guide	tutorial	product	current	Tutorial — Configure ITIL v4 Change Enablement with CMDB impact analysis
-/Users/jasonlee/Developer/source/oya/itsm/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `itsm`
+/Users/jasonlee/Developer/source/oya/itsm/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `itsm`
 /Users/jasonlee/Developer/source/oya/itsm/migration-playbooks/from-servicenow-itsm.md	governance	how-to	governance/compliance	current	Migration Playbook: ServiceNow ITSM to Oyatie itsm
 /Users/jasonlee/Developer/source/oya/itsm/migration-playbooks/from-bmc-helix-itsm.md	governance	how-to	governance/compliance	current	Migration Playbook: BMC Helix ITSM to Oyatie itsm
 /Users/jasonlee/Developer/source/oya/itsm/migration-playbooks/from-jira-service-management.md	governance	how-to	governance/compliance	current	Migration Playbook: Jira Service Management to Oyatie itsm
@@ -6220,7 +6220,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/detection/dashboards/fairness-and-drift.md	runbook	how-to	operations/runbook	current	Dashboard fairness-and-drift
 /Users/jasonlee/Developer/source/oya/detection/benchmarks/detection-vs-stripe-radar-vs-guardduty-vs-chronicle.md	reference	reference	product	current	Benchmarks — oyatie detection vs Stripe Radar / AWS GuardDuty / Google Chronicle / Adyen RevenueProtect
 /Users/jasonlee/Developer/source/oya/detection/tutorials/build-payment-fraud-cedar-rule.md	guide	tutorial	product	current	Tutorial — Build a payment-fraud Cedar rule with `rule-of-N` + `temporal-aggregate` extensions
-/Users/jasonlee/Developer/source/oya/detection/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `detection`
+/Users/jasonlee/Developer/source/oya/detection/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `detection`
 /Users/jasonlee/Developer/source/oya/detection/migration-playbooks/from-stripe-radar-and-sift.md	governance	how-to	governance/compliance	current	Migration playbook — Stripe Radar / Sift / Adyen RevenueProtect → oyatie detection
 /Users/jasonlee/Developer/source/oya/detection/onboarding/detection-engineer-first-week.md	guide	tutorial	product	current	Detection Engineer onboarding — first 5 working days on `detection`
 /Users/jasonlee/Developer/source/oya/detection/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: detection
@@ -6341,7 +6341,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/workflow-studio/templates/explainers/oya-workflow-studio-template-req-approval-posting-sourcing.md	guide	how-to	product	current	Req approval -> posting -> sourcing automation
 /Users/jasonlee/Developer/source/oya/workflow-studio/templates/explainers/oya-workflow-studio-template-offer-esign-onboarding-handoff.md	guide	how-to	product	current	Offer letter -> e-signature -> onboarding handoff
 /Users/jasonlee/Developer/source/oya/workflow-studio/tutorials/build-customer-onboarding-flow.md	guide	tutorial	product	current	Tutorial — Build a customer-onboarding flow visually in the studio
-/Users/jasonlee/Developer/source/oya/workflow-studio/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `workflow-studio`
+/Users/jasonlee/Developer/source/oya/workflow-studio/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `workflow-studio`
 /Users/jasonlee/Developer/source/oya/workflow-studio/migration-playbooks/from-n8n.md	governance	how-to	governance/compliance	current	Migration playbook — n8n → oyatie workflow-studio
 /Users/jasonlee/Developer/source/oya/workflow-studio/onboarding/no-code-builder-first-week.md	guide	tutorial	product	current	No-Code Builder onboarding — first 5 working days on `workflow-studio`
 /Users/jasonlee/Developer/source/oya/workflow-studio/policy/editor-isolation.md	governance	explanation	governance/compliance	current	Editor Isolation Contract (workflow-studio µservice)
@@ -6381,7 +6381,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/patient-monitoring/iac/oyatie-public-cloud/README.md	readme	reference	product	current	iac/oyatie-public-cloud — patient-monitoring
 /Users/jasonlee/Developer/source/oya/patient-monitoring/iac/guest-on-oci/README.md	readme	reference	product	current	iac/guest-on-oci — patient-monitoring
 /Users/jasonlee/Developer/source/oya/patient-monitoring/design-spec-maturity/failure-modes-data-residency-cost-finops-audit-evidence-emission-tenant-isolation-operational-boundaries.md	governance	explanation	governance/compliance	current	Patient Monitoring design/spec maturity boundary pack
-/Users/jasonlee/Developer/source/oya/patient-monitoring/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `patient-monitoring`
+/Users/jasonlee/Developer/source/oya/patient-monitoring/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `patient-monitoring`
 /Users/jasonlee/Developer/source/oya/patient-monitoring/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: patient-monitoring
 /Users/jasonlee/Developer/source/oya/oya-meter/README.md	readme	reference	product	current	oya-meter
 /Users/jasonlee/Developer/source/oya/analytics/failure-modes.md	architecture	explanation	architecture	current	Analytics µservice — Failure Modes and Effects Analysis (FMEA)
@@ -6453,7 +6453,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/analytics/faqs/data-engineer-faq.md	guide	how-to	product	current	Data Engineer FAQ — analytics
 /Users/jasonlee/Developer/source/oya/analytics/benchmarks/clickhouse-vs-snowflake-vs-bigquery-vs-druid.md	reference	reference	product	current	Benchmarks — oyatie analytics (ClickHouse) vs Snowflake vs BigQuery vs Druid vs Pinot
 /Users/jasonlee/Developer/source/oya/analytics/tutorials/build-funnel-query.md	guide	tutorial	product	current	Tutorial — Build a 5-step conversion funnel query in oyatie analytics
-/Users/jasonlee/Developer/source/oya/analytics/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `analytics`
+/Users/jasonlee/Developer/source/oya/analytics/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `analytics`
 /Users/jasonlee/Developer/source/oya/analytics/migration-playbooks/from-mixpanel-and-amplitude.md	governance	how-to	governance/compliance	current	Migration playbook — Mixpanel / Amplitude → oyatie analytics
 /Users/jasonlee/Developer/source/oya/analytics/onboarding/data-engineer-first-week.md	guide	tutorial	product	current	Data Engineer onboarding — first 5 working days on `analytics`
 /Users/jasonlee/Developer/source/oya/analytics/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: analytics
@@ -6545,7 +6545,7 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/oya/workplace-integration/ip/IP-010-engagement-agreement-usecase.md	spec	reference	spec/contract	current	IP-010: Engagement Agreement Usecase
 /Users/jasonlee/Developer/source/oya/workplace-integration/ip/IP-021-multi-region-replay.md	spec	reference	cloud-substrate	current	IP-021: Multi Region Replay
 /Users/jasonlee/Developer/source/oya/workplace-integration/ip/IP-008-informed-consent-domain.md	spec	reference	spec/contract	current	IP-008: Informed Consent Domain
-/Users/jasonlee/Developer/source/oya/workplace-integration/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `workplace-integration`
+/Users/jasonlee/Developer/source/oya/workplace-integration/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	adr	how-to	decision/ADR	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `workplace-integration`
 /Users/jasonlee/Developer/source/oya/workplace-integration/migration-playbooks/from-rippling-and-gusto.md	governance	how-to	governance/compliance	current	Migration playbook — Rippling or Gusto → Oyatie `workplace-integration`
 /Users/jasonlee/Developer/source/oya/workplace-integration/onboarding/hris-engineer-first-week.md	guide	tutorial	product	current	HRIS Engineer — First Week on `workplace-integration`
 /Users/jasonlee/Developer/source/oya/workplace-integration/threat-models/threat-model.md	governance	explanation	governance/compliance	current	STRIDE Threat Model: workplace-integration

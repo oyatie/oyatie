@@ -1,6 +1,6 @@
 # ArgoCD — CD half of the local CI/CD substrate
 
-Realizes the CD side of `specs/ci-farm-substrate-canonical.json` / ADR-0349:
+Realizes the CD side of `specs/ci-farm-substrate-canonical.json` / ADR-0515:
 ArgoCD drives GitOps deploys and (with Argo Rollouts) progressive delivery
 — canary → bake-time SLO observation → metric-gated rollback.
 
@@ -23,7 +23,7 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.pas
 
 | Element | Production | Local profile |
 |---|---|---|
-| progressive delivery | Argo Rollouts canary + automated metric-gated rollback (ADR-0349) | Argo Rollouts installed; canary + AnalysisTemplate wired (`rollouts-demo.yaml`); metric provider is a job placeholder (prod: Prometheus burn-rate) |
+| progressive delivery | Argo Rollouts canary + automated metric-gated rollback (ADR-0515) | Argo Rollouts installed; canary + AnalysisTemplate wired (`rollouts-demo.yaml`); metric provider is a job placeholder (prod: Prometheus burn-rate) |
 | image trust | cosign-verified images (ADR-0181) admission-gated | not enforced locally |
 | HA | redundant controllers/repo-servers | single replicas (upstream `install.yaml`) |
 | exposure | ingress + SSO (dex/OIDC) | `port-forward` + initial admin secret |

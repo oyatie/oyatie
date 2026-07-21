@@ -774,7 +774,7 @@
       "source_controls": [
         "design-time PRR checklist",
         "automated canary eval against SLO",
-        "rollback triggers (ArgoCD, ADR-0349)"
+        "rollback triggers (ArgoCD, ADR-0515)"
       ],
       "harness_backlog": {
         "backlog_id": "QK-04-canary-prr-HARNESS-BACKLOG",

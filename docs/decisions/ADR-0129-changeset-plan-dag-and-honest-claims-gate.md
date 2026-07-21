@@ -8,7 +8,7 @@ supersedes: []
 superseded_by: []
 related:
   - ADR-0116
-  - ADR-0124
+  - ADR-0515
   - ADR-0128
 related_specs:
   - /specs/masterplan.json

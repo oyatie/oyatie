@@ -8,7 +8,7 @@ owner_team: axis-workplace-integration
 bounded_context: WorkplaceAgreement
 implementation_phase: documentation-and-contracts-only
 rust_code_status: not-authored-in-this-wave
-source_adrs: ADR-0346, ADR-0347, ADR-0348, ADR-0349
+source_adrs: ADR-0346, ADR-0347, ADR-0348, ADR-0515
 slot_owner: ZF-9
 sharding_role: tenant-state-owner
 ---
@@ -22,7 +22,7 @@ SCOPE-004: workplace-integration uses D-CICD-AUTHORITY as the live CI authority 
 SCOPE-005: workplace-integration uses ADR-0347 lane vocabulary, so governance-owned checks cite `central-governance-*` and not the pre-rename fitness prefix.
 SCOPE-006: workplace-integration uses D-CICD-AUTHORITY for the one canonical `oya-ci-required` gate now and owned oya-ci cutover later; delivery substrates are subordinate context.
 SCOPE-007: This file records the rollback_path required by ADR-0348's IP-level reversibility lane.
-SCOPE-008: The plan is accepted only when the file remains at least 150 lines and cites ADR-0346, ADR-0347, ADR-0348, and ADR-0349 by exact ID.
+SCOPE-008: The plan is accepted only when the file remains at least 150 lines and cites ADR-0346, ADR-0347, ADR-0348, and ADR-0515 by exact ID.
 
 ## 2. Microservice Stance
 STANCE-001: Microservice: workplace-integration.
@@ -74,7 +74,7 @@ ADR348-ENFORCED-BY-004: central-governance-dynamic-sharding-threshold-coverage (
 ADR348-ENFORCED-BY-005: central-governance-audit-chain-emit-on-automation-events (new lane; greps every manifest declaring auto_rebalance.enabled true OR dynamic_sharding.enabled true and refuses if the same manifest omits audit_chain_emit true on the corresponding sub-block; every automation event MUST emit per ADR-0263 observability-emission-contract)
 ADR348-ENFORCED-BY-006: central-governance-tenant-migration-reversibility (new lane; refuses service IP authoring under `oya/<ms>/IPs/IP-*-auto-rebalance-*.md` that lacks an explicit `rollback_path` section enumerating how an automation-event-driven tenant migration is reversed via the audit-chain trail)
 
-## 6. Current D-CICD-AUTHORITY Replacement For ADR-0349
+## 6. Current D-CICD-AUTHORITY Replacement For ADR-0515
 D-CICD-AUTHORITY-004: One canonical CI authority exists: GitHub Actions required context `oya-ci-required` now, owned oya-ci after cutover.
 D-CICD-AUTHORITY-005: Delivery substrate references are subordinate implementation context and do not create a second merge authority.
 D-CICD-AUTHORITY-006: GitOps delivery remains declarative and evidence-backed; manual deploy commands are not promotion authority.
@@ -136,11 +136,11 @@ ROLLBACK-012: If rollback is refused, escalate as an operator-visible refusal; d
 VERIFY-001: Static read confirms this file cites ADR-0346 by exact ID.
 VERIFY-002: Static read confirms this file cites ADR-0347 by exact ID.
 VERIFY-003: Static read confirms this file cites ADR-0348 by exact ID.
-VERIFY-004: Static read confirms this file cites ADR-0349 by exact ID.
+VERIFY-004: Static read confirms this file cites ADR-0515 by exact ID.
 VERIFY-005: Static read confirms at least one ADR-0346 enforced_by lane appears.
 VERIFY-006: Static read confirms at least one ADR-0347 enforced_by lane appears.
 VERIFY-007: Static read confirms at least one ADR-0348 enforced_by lane appears.
-VERIFY-008: Static read confirms at least one ADR-0349 enforced_by lane appears.
+VERIFY-008: Static read confirms at least one ADR-0515 enforced_by lane appears.
 VERIFY-009: Static read confirms rollback_path section exists.
 VERIFY-010: Static read confirms no implementation code is introduced.
 VERIFY-011: Static read confirms no manifest fields are edited by this artifact.
@@ -179,7 +179,7 @@ ACCEPT-011: The file keeps this wave documentation-only.
 ACCEPT-012: The file does not edit another agent slot artifact type.
 ACCEPT-013: The file cites governance lane vocabulary from ADR-0347.
 ACCEPT-014: The file cites full CI mirror expectations from ADR-0346.
-ACCEPT-015: The file cites historical self-hosted CI plus ArgoCD substrate expectations from ADR-0349.
+ACCEPT-015: The file cites historical self-hosted CI plus ArgoCD substrate expectations from ADR-0515.
 ACCEPT-016: The file declares microservice-specific owner and role context.
 ACCEPT-017: The file names bounded context evidence from the manifest when present.
 ACCEPT-018: The file names capacity or placement input from the manifest when present.

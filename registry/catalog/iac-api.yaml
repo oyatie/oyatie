@@ -10,4 +10,4 @@ security_review: unreviewed
 supply_chain: source-only
 traceability:
   changeset: CS-CLOUD-IAC-MODULE-REGISTRY-API-BOUNDARY-001
-  source_adrs: [ADR-0056, ADR-0218, ADR-0339, ADR-0348, ADR-0349]
+  source_adrs: [ADR-0056, ADR-0218, ADR-0339, ADR-0348, ADR-0515]

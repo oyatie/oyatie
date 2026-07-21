@@ -5,7 +5,7 @@ metadata:
   namespace: oya-cd-argocd
   labels:
     app.kubernetes.io/part-of: oya-ci-cd-substrate
-    oyatie.com/adr: ADR-0349
+    oyatie.com/adr: ADR-0515
     oyatie.com/image-promotion: ADR-0181
     oyatie.com/context: "oci-guest"
     oyatie.com/region: "us-ashburn-1"

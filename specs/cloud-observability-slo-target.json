@@ -31,7 +31,7 @@
   },
   "slo_gated_promotion": {
     "model": "agentic SLO-gated promotion (specs/agentic-slo-gated-promotion.json): a service/resource promotes dev->staging->prod only when its SLO evidence window is green",
-    "ci_cd": "wired into ArgoCD progressive delivery (canary -> bake-time SLO observation -> automatic metric-gated rollback, ADR-0349) and the promotion workflows"
+    "ci_cd": "wired into ArgoCD progressive delivery (canary -> bake-time SLO observation -> automatic metric-gated rollback, ADR-0515) and the promotion workflows"
   },
   "dr_observability": "RTO/RPO matrix (ADR-0343) instrumented; failover drills emit measured recovery-time/point evidence (not declared).",
   "cost_observability": "FinOps per-tenant cost attribution + OpenCost/FOCUS export (ADR-0344) as first-class observability dimensions.",

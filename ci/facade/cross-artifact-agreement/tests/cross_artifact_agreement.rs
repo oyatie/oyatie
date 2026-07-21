@@ -10,8 +10,8 @@ use std::process::Command;
 
 use ci_cross_artifact_agreement::{
     AdrDecisionRecord, GateCoverageBaseline, RatchetReport, Verdict,
-    derive_masterplan_md_projection, evaluate, evaluate_adr_0515_current_tree_references,
-    evaluate_adr_0515_history_only, evaluate_adr_index_projection_parity,
+    derive_masterplan_md_projection, evaluate, evaluate_adr_0515_history_only,
+    evaluate_adr_0515_tracked_surfaces, evaluate_adr_index_projection_parity,
     evaluate_adr_prose_frontmatter_status, evaluate_masterplan_plan_evidence_crosscheck,
     evaluate_masterplan_projection_rederivation, evaluate_masterplan_read_surface_resurrections,
     evaluate_masterplan_v2_authority, evaluate_masterplan_v2_entry_surfaces,
@@ -997,7 +997,7 @@ fn planning_closure_architecture_rules_agree_across_authority_artifacts() {
 /// the producer's decision-crosswalk face over the live tree and asserts the gate flags the
 /// real defects:
 /// - `generated_face_drift` — catalog.json axes_count:6 vs contracts.json axes_count:7
-/// - `supersession_half_edge` — ADR-0511 supersedes ADR-0359 while ADR-0359 omits it
+/// - `supersession_half_edge` — ADR-0901 supersedes ADR-0902 while ADR-0902 omits it
 ///
 /// Plus two lanes that must stay CLEAN on the live corpus:
 /// - `dual_decision_collision` — the historical two-ADR-0377-files exhibit was resolved
@@ -1509,45 +1509,42 @@ fn adr_0515_history_only_contract_is_green_on_live_tree() {
         "ADR-0515 Git-history-only contract drifted: {findings:?}"
     );
 
-    let reference_sources = current_tree_deleted_adr_path_references(&root);
-    let reference_findings = evaluate_adr_0515_current_tree_references(&reference_sources);
+    let scm_facts =
+        load_json(&root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json"));
+    let reference_findings = evaluate_adr_0515_tracked_surfaces(&root, &scm_facts["tracked_paths"]);
     assert!(
         reference_findings.is_empty(),
         "ADR-0515 deleted decision paths remain on current live/read surfaces: {reference_findings:?}"
     );
 }
 
-fn current_tree_deleted_adr_path_references(root: &Path) -> BTreeSet<String> {
-    let deleted_prefixes: Vec<String> = [
-        "ADR-0124", "ADR-0349", "ADR-0359", "ADR-0361", "ADR-0511", "ADR-0513", "ADR-0514",
-    ]
-    .into_iter()
-    .map(|id| format!("docs/decisions/{id}-"))
-    .collect();
-
-    let scm_facts =
-        load_json(&root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json"));
-    let tracked_paths = scm_facts
-        .get("tracked_paths")
-        .and_then(Value::as_array)
-        .expect("committed scm-facts face must carry tracked_paths");
-    let mut references = BTreeSet::new();
-    for relative in tracked_paths {
-        let Some(relative) = relative.as_str() else {
-            continue;
-        };
-        let Ok(bytes) = fs::read(root.join(relative)) else {
-            continue;
-        };
-        let text = String::from_utf8_lossy(&bytes);
-        if deleted_prefixes
-            .iter()
-            .any(|deleted| text.contains(deleted))
-        {
-            references.insert(relative.to_owned());
-        }
+#[cfg(unix)]
+#[test]
+fn connector_contract_aliases_resolve_to_exact_internal_targets() {
+    let root = repo_root();
+    for (alias, target) in [
+        (
+            "oya/connector/contracts/asyncapi-v1.yaml",
+            "oya/connector/contracts/asyncapi/connector-integration-events.yaml",
+        ),
+        (
+            "oya/connector/contracts/openapi-v1.yaml",
+            "oya/connector/contracts/openapi/connector-integration.yaml",
+        ),
+    ] {
+        let alias_path = root.join(alias);
+        assert!(
+            fs::symlink_metadata(&alias_path)
+                .expect("tracked connector alias")
+                .file_type()
+                .is_symlink(),
+            "{alias} must remain a symlink"
+        );
+        assert_eq!(
+            alias_path.canonicalize().expect("resolved connector alias"),
+            root.join(target).canonicalize().expect("connector target")
+        );
     }
-    references
 }
 
 /// The frozen baseline must stay well-formed and, at birth, EMPTY — the three

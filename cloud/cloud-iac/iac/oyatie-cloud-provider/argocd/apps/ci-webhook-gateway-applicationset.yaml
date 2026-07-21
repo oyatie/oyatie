@@ -6,7 +6,7 @@ metadata:
   labels:
     app.kubernetes.io/part-of: oya-ci-cd-substrate
     app.kubernetes.io/managed-by: argocd
-    oyatie.com/adr: ADR-0349
+    oyatie.com/adr: ADR-0515
     oyatie.com/image-promotion: ADR-0181
     oyatie.com/adr-0387: ci-webhook-gateway-talos-deploy
     oyatie.com/context: oyatie-cloud-provider
@@ -54,7 +54,7 @@ spec:
         app.kubernetes.io/name: ci-webhook-gateway
         app.kubernetes.io/part-of: oyatie-microservices
         app.kubernetes.io/managed-by: argocd
-        oyatie.com/adr: ADR-0349
+        oyatie.com/adr: ADR-0515
         oyatie.com/image-promotion: ADR-0181
         oyatie.com/adr-0387: ci-webhook-gateway-talos-deploy
         oyatie.com/context: oyatie-cloud-provider

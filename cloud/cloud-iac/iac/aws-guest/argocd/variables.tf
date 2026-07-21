@@ -35,7 +35,7 @@ variable "argocd_host" {
 }
 
 variable "argocd_image" {
-  description = "ArgoCD image. ADR-0349 selects ArgoCD and rejects Flux CD."
+  description = "ArgoCD image. ADR-0515 selects ArgoCD and rejects Flux CD."
   type        = string
   default     = "quay.io/argoproj/argocd:v2.11.7"
 }

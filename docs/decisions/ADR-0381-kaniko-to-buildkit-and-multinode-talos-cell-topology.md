@@ -7,7 +7,7 @@ date: 2026-05-28
 owner: ops-platform
 supersedes: []
 superseded_by: []
-related: [ADR-0378, ADR-0349, ADR-0380, ADR-0148, ADR-0083, ADR-0375]
+related: [ADR-0378, ADR-0515, ADR-0380, ADR-0148, ADR-0083, ADR-0375]
 related_specs: [/specs/deployment-ops-contract.json]
 milestone: M-LOCAL-CI-SUBSTRATE
 depends_on: [ADR-0378]
@@ -18,7 +18,7 @@ affected_surfaces:
   specs: []
 deliverables:
   - id: ADR-0381-D1
-    description: "Replace Kaniko (Google Container Tools — placed into maintenance/archive in 2024; GitHub repo is read-only) with BuildKit (Moby, Apache 2 — what Docker itself uses) as the in-cluster image-build substrate. Rewrite infra/ci-webhook-gateway/kaniko-build.yaml as buildkit-build.yaml (a buildkitd Deployment on the CI specialty pool from D2 + a buildctl client invoked from the Jenkins agent pod template); update infra/registry/registry.k8s.yaml and microservices/ci-webhook-gateway/Dockerfile so the build path is buildctl-driven. Wire BuildKit's `s3` cache backend to SeaweedFS-on-Talos (per ADR-0349) once D4 (storage pool + SeaweedFS) lands. Hyperscaler-lens: BuildKit is Apache 2, actively maintained, used by Docker / GitHub Actions / Cloud Build / Earthly — passes (a)-(d)."
+    description: "Replace Kaniko (Google Container Tools — placed into maintenance/archive in 2024; GitHub repo is read-only) with BuildKit (Moby, Apache 2 — what Docker itself uses) as the in-cluster image-build substrate. Rewrite infra/ci-webhook-gateway/kaniko-build.yaml as buildkit-build.yaml (a buildkitd Deployment on the CI specialty pool from D2 + a buildctl client invoked from the Jenkins agent pod template); update infra/registry/registry.k8s.yaml and microservices/ci-webhook-gateway/Dockerfile so the build path is buildctl-driven. Wire BuildKit's `s3` cache backend to SeaweedFS-on-Talos (under the historical storage posture superseded by ADR-0515) once D4 (storage pool + SeaweedFS) lands. Hyperscaler-lens: BuildKit is Apache 2, actively maintained, used by Docker / GitHub Actions / Cloud Build / Earthly — passes (a)-(d)."
     exit_criteria: "All Kaniko references in infra/ + microservices/ci-webhook-gateway/ are replaced with BuildKit equivalents (git grep -i kaniko returns 0 matches in those trees); an end-to-end in-cluster image build produces an OCI image consumable by ArgoCD without using Kaniko."
     verified_by: "git grep -i 'kaniko' -- infra/ microservices/ci-webhook-gateway/ shows 0 matches; a buildkit-built image is pulled + deployed via ArgoCD in a smoke run."
   - id: ADR-0381-D2
@@ -30,7 +30,7 @@ deliverables:
     exit_criteria: "kubectl exec from a tenant pod to a CI agent pod fails (NetworkPolicy denial); a pod annotated with runtime-tier=1 schedules onto a worker (not a CP, not a CI specialty); kubectl describe verifies the nodeSelector + tolerations match the tier."
     verified_by: "NetworkPolicy denial test (kubectl exec curl across cells fails); a tier-1 + tier-3 pod scheduling-test confirms node-pool affinity."
   - id: ADR-0381-D4
-    description: "Restore SeaweedFS-on-Talos as the cluster-internal S3-API-compatible object store (per ADR-0349); deploy onto the storage specialty pool from D2; back BuildKit's `s3` cache backend (from D1) and Jenkins agent sccache (the deferred-half of ADR-0380 D6) on the same SeaweedFS instance. Single object-store substrate serves CI cache + image-registry overlay + artifact storage. Zero AWS S3 dependency anywhere in the data path. Hyperscaler-lens: SeaweedFS is Apache 2, actively maintained, S3-API-compatible — the OSS analogue of S3/Colossus/Blob; passes (a)-(d)."
+    description: "Restore SeaweedFS-on-Talos as the cluster-internal S3-API-compatible object store under the historical storage posture superseded by ADR-0515; deploy onto the storage specialty pool from D2; back BuildKit's `s3` cache backend (from D1) and Jenkins agent sccache (the deferred-half of ADR-0380 D6) on the same SeaweedFS instance. Single object-store substrate serves CI cache + image-registry overlay + artifact storage. Zero AWS S3 dependency anywhere in the data path. Hyperscaler-lens: SeaweedFS is Apache 2, actively maintained, S3-API-compatible — the OSS analogue of S3/Colossus/Blob; passes (a)-(d)."
     exit_criteria: "SeaweedFS pods run on storage specialty nodes (label oya.cell/storage=true); BuildKit cache writes succeed against the SeaweedFS S3 backend (cache-miss → write → cache-hit → read works end-to-end); Jenkins agent sccache can be re-enabled and shares the same SeaweedFS substrate."
     verified_by: "kubectl exec into a SeaweedFS pod + check buckets exist; a buildkit build with --cache-from registry,ref=s3://... + --cache-to type=s3 demonstrates write+hit cycle; ADR-0380 D6 sccache wiring can be smoke-tested off this substrate."
 purpose: >
@@ -161,7 +161,7 @@ mismatch), tier-3 batch cannot schedule onto worker (taint mismatch).
 
 ### Object-store substrate (D4)
 
-SeaweedFS-on-Talos (per ADR-0349 restoration) is the cluster-internal
+SeaweedFS-on-Talos (per ADR-0515 restoration) is the cluster-internal
 S3-API-compatible object store. It serves three workloads simultaneously:
 
 1. BuildKit `s3` cache backend (D1).
@@ -206,7 +206,7 @@ A single object-store substrate; zero AWS dependency.
 ## Related
 
 - ADR-0378: vfkit + Talos canonical local substrate.
-- ADR-0349: CI farm + SeaweedFS object store (canonical).
+- ADR-0515: CI farm + SeaweedFS object store (canonical).
 - ADR-0380: CI-loop closure on Talos (D1-D5 MVP + D6 max-parallelism path);
   this ADR is the substrate-correctness companion.
 - ADR-0148: Service mesh: Cilium L3/L4 + Istio Ambient L7.

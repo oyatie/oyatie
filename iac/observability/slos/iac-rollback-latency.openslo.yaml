@@ -18,7 +18,7 @@ spec:
     IaC rollback latency p95 SLO. A rollback is "good" when the previous-
     known-good revision is re-applied + healthcheck-confirmed within
     ≤ 60s p95. Required to keep incident MTTR within budget. Per
-    ADR-0124 automated-rollback primitive.
+    ADR-0515 automated-rollback primitive.
   indicator:
     metadata:
       name: cloud-iac-rollback-latency-p95

@@ -6,7 +6,7 @@ date: 2026-05-26
 owner: council-architecture
 supersedes: []
 superseded_by: []
-related: [ADR-0365, ADR-0364, ADR-0363, ADR-0111, ADR-0130, ADR-0349, ADR-0361]
+related: [ADR-0365, ADR-0364, ADR-0363, ADR-0111, ADR-0130, ADR-0515, ADR-0515]
 planning_impact: true
 milestone: M-AGENTIC-PIPELINE
 depends_on: [ADR-0363, ADR-0365]
@@ -104,7 +104,7 @@ gate (tests + docs + ADR + SLO + evidence present) so a *green* build means subs
 - Negative/cost: the pipeline (D1–D6) is substantial build work and must precede feature delivery —
   deliberately, per this ADR. Risk of over-engineering; mitigated by adopting (not building) where
   possible (Argo AnalysisTemplates, Chaos Mesh, merge-queue patterns).
-- Neutral: rides the existing substrate (ADR-0363 git+Jenkins+GitHub, ADR-0349 farm).
+- Neutral: follows ADR-0515 single-context GitHub Actions plus cloud-ci authority; earlier Jenkins substrate wording is superseded.
 
 ## Verification
 Per-deliverable `verified_by`: `oya gate validate concurrent-safe-paths | merge-queue-health |
@@ -113,6 +113,6 @@ runs end-to-end on the farm with agents merging concurrently, conflict-free, sel
 
 ## References
 ADR-0365 (automated ADR lifecycle — this pipeline executes it), ADR-0364 (generated masterplan),
-ADR-0363 (substrate), ADR-0111 (speculative merge-queue), ADR-0130 (SLO-gated promotion), ADR-0349
-(CI farm), ADR-0361 (Jenkins-native CI). Research backlog: docs/ideas/hyperscaler-practices-to-adopt.md
+ADR-0363 (substrate), ADR-0111 (speculative merge-queue), ADR-0130 (SLO-gated promotion), ADR-0515
+(CI farm), ADR-0515 (single-context CI authority). Research backlog: docs/ideas/hyperscaler-practices-to-adopt.md
 (STO, one-way/two-way-door, COE→gate, PR-FAQ, DoD, Kayenta canary, chaos, DORA, error-budget policy).

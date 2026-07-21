@@ -1,5 +1,5 @@
 # SeaweedFS-on-Talos — Oyatie's cluster-internal object-bucket substrate
-# (ADR-0349 canonical; restored on Talos per ADR-0381 D4 after colima retirement).
+# (ADR-0515 canonical; restored on Talos per ADR-0381 D4 after colima retirement).
 # Speaks the industry-standard bucket-api wire protocol for tool interop
 # (sccache, BuildKit, etc. consume it unchanged); the substrate is NOT AWS —
 # we ship it.
@@ -54,7 +54,7 @@ metadata:
   namespace: oya-storage
   labels:
     app: seaweedfs
-    oya.adr/decided-by: ADR-0349
+    oya.adr/decided-by: ADR-0515
     oya.adr/restored-by: ADR-0381-D4
 spec:
   replicas: 1

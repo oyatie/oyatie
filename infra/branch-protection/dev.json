@@ -1,10 +1,10 @@
 {
   "_comment": "Shadow/target branch-protection config for the dev branch. scripts/branch-protection-apply.sh consumes it as a local bridge artifact only; P0.0 records live drift and this file is not Phase-0 exit authority until a trusted cloud-ci/oya-ci producer is live and applied.",
-  "_adr": "ADR-0124-own-merge-queue-webhook-driven.md",
+  "_adr": "ADR-0515-own-merge-queue-webhook-driven.md",
   "branch": "dev",
   "required_status_checks": {
     "strict": false,
-    "_strict_rationale": "Set to false per ADR-0124 to break the O(N^2) rebase cascade; the merge bridge enforces required status contexts without GitHub-side up-to-date enforcement.",
+    "_strict_rationale": "Set to false per ADR-0515 to break the O(N^2) rebase cascade; the merge bridge enforces required status contexts without GitHub-side up-to-date enforcement.",
     "_oya_pr_review_note": "oya-pr-review is intentionally absent from Phase-1 required contexts. Its producer (reviewer-agent HTTP endpoint) returns HTTP 501 (not yet shipped); requiring it would deadlock every PR. Returns as required in Phase-2 once the reviewer-agent endpoint is live.",
     "contexts": [
       "oya-ci-required"

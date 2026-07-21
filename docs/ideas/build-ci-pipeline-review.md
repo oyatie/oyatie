@@ -50,7 +50,7 @@ loads `Jenkinsfile-oya-ci-gate` from `dev` → ephemeral K8s agent checks out PR
 `buck2-affected-gate.sh` (`owner()` + `rdeps(//…, %Ss)` @argfile, fail-closed) →
 `buck2 build`+`test` affected closure → GitHub commit-status `oya-ci-gate`. The two bespoke
 pieces (gateway + gate.sh) are clean and well-tested; **all fragility is in the
-Jenkins+Groovy+cpsScm+JCasC orchestration layer**, which ADR-0513 already plans to retire.
+Jenkins+Groovy+cpsScm+JCasC orchestration layer**, which ADR-0515 already plans to retire.
 
 | # | Severity | Issue | Locus | Durable fix |
 |---|---|---|---|---|
@@ -73,7 +73,7 @@ Jenkins+Groovy+cpsScm+JCasC orchestration layer**, which ADR-0513 already plans 
 
 - **DELETE the entire Jenkins+Groovy+cpsScm+genericTrigger+JCasC stack.** 6 hops, logic
   split across YAML + Groovy-in-YAML + Groovy-in-a-file, none locally lintable
-  (`values-local.yaml:251-301`, `Jenkinsfile:40-97`). ADR-0513 already scopes its removal.
+  (`values-local.yaml:251-301`, `Jenkinsfile:40-97`). ADR-0515 already scopes its removal.
   Collapse to: **gateway → deployed controller → K8s Job → status**. Three hops, one
   language (Rust), one config source (the controller binary + the trunk gate.sh).
 - **DELETE the second CI definition.** `oyaCiLane.groovy` + its 16 cargo-era contexts
@@ -88,7 +88,7 @@ Jenkins+Groovy+cpsScm+JCasC orchestration layer**, which ADR-0513 already plans 
 - **COLLAPSE the double-CRT firefight to one locus.** Every `LDFLAGS=-nostartfiles` fixup is
   a per-crate patch of a prelude bug. Fix it once at the linker layer (toolchain or vendored
   prelude `__ld_shim`), then delete the per-crate workarounds.
-- **DO NOT build tide + deck + plugins now.** ADR-0513 scopes the full Prow set; the only
+- **DO NOT build tide + deck + plugins now.** ADR-0515 scopes the full Prow set; the only
   live problem is **gate reliability**. Ship P1 (controller) alone; defer merge-queue, UI,
   ChatOps behind explicit demand. Saying no to four subsystems is the biggest simplification.
 
@@ -167,7 +167,7 @@ Rust → doctrine-aligned; skip BuildBarn/EngFlow/BuildBuddy).
 
 ### (d) Controller vs hardening Jenkins — phased, controller wins
 
-**Decision: cut over to the deployed `oya-ci-controller` (ADR-0513 Phase 1); do not invest
+**Decision: cut over to the deployed `oya-ci-controller` (ADR-0515 Phase 1); do not invest
 further in Jenkins beyond the minimum to keep dev landable during cutover.** The controller's
 kernel/k8s-adapter (on `feat/oya-ci-controller`) is genuinely good: pure no-IO state machine,
 trunk-sourcing enforced in the Job command, least-privilege RBAC, terminal-status-always. It
@@ -237,9 +237,9 @@ Steps 1-4 are **unblocked today** and need no controller. Step 5 depends on step
 ## 7. NOT Doing (and why)
 
 - **NOT building tide (merge-queue) + deck (Leptos UI) + plugins (ChatOps) now.** Only the
-  gate is unreliable; these are separately-justified systems folded into ADR-0513 for
+  gate is unreliable; these are separately-justified systems folded into ADR-0515 for
   narrative unity. They expand owned surface against narrow-spine/single-bootstrap. Defer
-  behind explicit demand. (Trade-off: ADR-0513's "one platform" story lands incrementally,
+  behind explicit demand. (Trade-off: ADR-0515's "one platform" story lands incrementally,
   not at once — acceptable.)
 - **NOT adopting Zuul / BuildBarn / EngFlow / BuildBuddy / Datadog.** Zuul is Python+Ansible+
   Zookeeper; BuildBarn is Go; the rest are managed services. All fail bespoke-over-OSS or

@@ -9,7 +9,7 @@ supersedes: [ADR-0358]
 superseded_by: []
 amends: []
 amended_by: [ADR-0522, ADR-0524]
-related: [ADR-0358, ADR-0408, ADR-0359, ADR-0346, ADR-0111, ADR-0181, ADR-0357, ADR-0092]
+related: [ADR-0358, ADR-0408, ADR-0515, ADR-0346, ADR-0111, ADR-0181, ADR-0357, ADR-0092]
 related_specs:
   - /specs/cloud-toolchain-target.json
   - /specs/masterplan.json
@@ -58,7 +58,7 @@ ADR-0358 (§2 toolchain build-graph only — "Toolchain overhaul = Bazel `rules_
 
 ## Related
 
-ADR-0408 (Buck2-driven CI/CD — the sibling reversal of the CI engine), ADR-0358 (the roadmap whose §2 this reverses), ADR-0359 (Jenkins-sole-CI, unchanged), ADR-0346 (oya verify CI mirror), ADR-0111 (merge queue), ADR-0181 (image promotion), ADR-0357 (monorepo nesting — already names Meta/Buck2 monorepo practice), ADR-0092 (workspace dependency-seam policy).
+ADR-0408 (Buck2-driven CI/CD — the sibling reversal of the CI engine), ADR-0358 (the roadmap whose §2 this reverses), ADR-0515 (single-context CI authority), ADR-0346 (oya verify CI mirror), ADR-0111 (merge queue), ADR-0181 (image promotion), ADR-0357 (monorepo nesting — already names Meta/Buck2 monorepo practice), ADR-0092 (workspace dependency-seam policy).
 
 ## Owner
 
@@ -92,4 +92,4 @@ Research grounding (2026-05): Buck2 is Meta's open-source successor to Buck, the
 
 ## Consequences
 
-Positive: the canonical build graph moves to a Rust-native engine (Buck2) consistent with the kernel+OS bespoke-Rust ambition and the Meta-monorepo production pedigree; graph-exact incrementality + content-addressed correctness; a self-hostable NativeLink RBE that passes the hyperscaler-lens with no managed-service dependency; `Cargo.toml`/`Cargo.lock` remain the human dependency SSOT (Reindeer is a generator off it). Negative/cost: we accept the Reindeer buckification step (an extra generated `third-party/rust/BUCK` that must be regenerated and reviewed when deps change) — the exact objection ADR-0358 raised; the migration across the first-party crates is a substantial program; Buck2 first-party Rust + NativeLink operational maturity must be proven before any parity claim. Neutral: ADR-0358's strangler-fig posture, define-production-100-first phase, and masterplan planning authority are unchanged; ADR-0359 (Jenkins-sole-CI) is complementary (Jenkins drives Buck2 — see ADR-0408); the machine-readable specs that encode Bazel are superseded inputs awaiting a separate generated-artifact update; this ADR is doctrine, not the migration execution.
+Positive: the canonical build graph moves to a Rust-native engine (Buck2) consistent with the kernel+OS bespoke-Rust ambition and the Meta-monorepo production pedigree; graph-exact incrementality + content-addressed correctness; a self-hostable NativeLink RBE that passes the hyperscaler-lens with no managed-service dependency; `Cargo.toml`/`Cargo.lock` remain the human dependency SSOT (Reindeer is a generator off it). Negative/cost: we accept the Reindeer buckification step (an extra generated `third-party/rust/BUCK` that must be regenerated and reviewed when deps change) — the exact objection ADR-0358 raised; the migration across the first-party crates is a substantial program; Buck2 first-party Rust + NativeLink operational maturity must be proven before any parity claim. Neutral: ADR-0358's strangler-fig posture, define-production-100-first phase, and masterplan planning authority are unchanged; ADR-0515 (Jenkins-sole-CI) is complementary (Jenkins drives Buck2 — see ADR-0408); the machine-readable specs that encode Bazel are superseded inputs awaiting a separate generated-artifact update; this ADR is doctrine, not the migration execution.

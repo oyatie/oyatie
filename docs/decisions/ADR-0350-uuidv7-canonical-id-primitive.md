@@ -72,7 +72,7 @@ related_adrs:
   - ADR-0333-cell-microservice-retired-pattern-not-service.md
   - ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md
   - ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md
-  - ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md
+  - ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md
   - ADR-0351-cell-rebalancer-and-cell-lifecycle-microservices.md
 related_specs:
   - /specs/master-plan-sequencing.json
