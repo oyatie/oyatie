@@ -6,6 +6,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
+use intelligence_api_semver_domain::validate_api_semver;
+use intelligence_cargo_prefix_domain::{CargoPrefixMember, validate_cargo_prefix};
 use oya_check_adr_citation::{AdrCitationDocument, validate_adr_citations};
 use oya_check_brand_residue::{BrandResidueDocument, validate_brand_residue};
 use oya_check_glossary_vocabulary::{
@@ -27,8 +29,6 @@ use oya_check_vendor_lockin_discipline::{
 use oya_check_vendor_recency::{
     VendorContractRecencyPolicy, VendorContractRecord, validate_vendor_contract_recency,
 };
-use intelligence_api_semver_domain::validate_api_semver;
-use intelligence_cargo_prefix_domain::{CargoPrefixMember, validate_cargo_prefix};
 
 mod active_artifact_contract_gate;
 mod adr_0145_gates;
@@ -422,7 +422,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate glossary-cross-doc-coverage [--docs-dir <docs>] [--glossary <docs/GLOSSARY.md>] [--machine <docs/machine-readable/glossary.json>]"
         + "\n       oya gate validate glossary-vocabulary [--docs-dir <docs>] [--glossary <docs/GLOSSARY.md>] [--baseline <registry/glossary-vocabulary/warning-baseline.tsv>] [--ignored-uppercase-words <registry/glossary-vocabulary/ignored-uppercase-words.tsv>] [--write-baseline <path>] [--write-warning-report <path>]"
         + "\n       oya gate validate placeholder-debt [--docs-dir <docs>] [--registry <registry/placeholder-debt/registry.tsv>] [--write-registry <path>] [--write-report <path>]"
-        + "\n       oya gate validate loop-recovery-patterns [--agent-durable-goal <specs/agent-durable-goal.json>] [--score-cards <specs/score-cards.json>] [--patterns-dir <registry/loop-recovery-patterns>] [--mistakes-ledger <registry/mistakes-ledger.json>]"
+        + "\n       oya gate validate loop-recovery-patterns [--score-cards <specs/score-cards.json>] [--patterns-dir <registry/loop-recovery-patterns>] [--mistakes-ledger <registry/mistakes-ledger.json>]"
         + "\n       oya gate validate pre-push-contract [--done-definition <docs/checklists/done-definition-checklist.md>] [--cli-dispatch-source <crates/oya-dev-cli/src/lib.rs>] [--hook-script <scripts/hooks/pre-push.sh>]"
         + "\n       oya gate validate freshness [--repo-root <.>]"
         + "\n       oya gate validate protection-context-match [--branch-protection <.github/branch-protection.yaml>] [--workflows-dir <.github/workflows>] [--branch <dev>] [--applied-branch-protection <infra/branch-protection/dev.json>] [--skip-applied-branch-protection] [--live-required-contexts <required_status_checks.json>]"

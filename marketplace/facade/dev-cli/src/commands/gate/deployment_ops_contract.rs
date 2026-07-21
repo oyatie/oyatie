@@ -193,19 +193,6 @@ fn validate_deployment_ops_contract(
     {
         errors.push("root-hub pointers must expose deployment_ops_contract".to_string());
     }
-    let durable_goal =
-        fs::read_to_string(repo_root.join("specs/agent-durable-goal.json")).unwrap_or_default();
-    if !durable_goal.contains("specs/deployment-ops-contract.json") {
-        errors.push(
-            "agent durable goal must reference specs/deployment-ops-contract.json".to_string(),
-        );
-    }
-    if durable_goal.contains("page on-call") {
-        errors.push(
-            "agent durable goal still contains human page-on-call deployment flow".to_string(),
-        );
-    }
-
     if !errors.is_empty() {
         return Err(errors);
     }

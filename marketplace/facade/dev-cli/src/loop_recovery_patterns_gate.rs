@@ -1,11 +1,10 @@
 //! `oya gate validate loop-recovery-patterns` runner.
 //!
 //! This gate makes the autonomous-Foundry repeat-mistake harness executable
-//! without expanding shell-hook logic: `scripts/hooks/pre-push.sh` continues
-//! to delegate to `oya verify`, while `oya verify`/`gate run-all` invokes this
-//! Rust lane. The lane validates the deterministic `score_cards` contract from
-//! `specs/agent-durable-goal.json`, the concrete score-card inventory, and the
-//! repeat-loop patterns under `registry/loop-recovery-patterns/`.
+//! without expanding legacy bridge logic. This local CLI lane validates the
+//! self-contained deterministic `score_cards` contract, the concrete
+//! score-card inventory, and repeat-loop patterns under
+//! `registry/loop-recovery-patterns/`. It is not merge authority.
 
 use std::collections::BTreeSet;
 use std::fs;
@@ -32,7 +31,6 @@ const ADVISORY_SCORE_CARD_STATUS: &str = "advisory-until-validator";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct LoopRecoveryPatternsValidateArgs {
-    agent_durable_goal_path: PathBuf,
     score_cards_path: PathBuf,
     patterns_dir: PathBuf,
     mistakes_ledger_path: PathBuf,
@@ -41,7 +39,6 @@ pub(crate) struct LoopRecoveryPatternsValidateArgs {
 impl Default for LoopRecoveryPatternsValidateArgs {
     fn default() -> Self {
         Self {
-            agent_durable_goal_path: PathBuf::from("specs/agent-durable-goal.json"),
             score_cards_path: PathBuf::from("specs/score-cards.json"),
             patterns_dir: PathBuf::from("registry/loop-recovery-patterns"),
             mistakes_ledger_path: PathBuf::from("registry/mistakes-ledger.json"),
@@ -70,7 +67,6 @@ pub(crate) fn parse_loop_recovery_patterns_validate_args(
             return Err(usage());
         };
         match flag.as_str() {
-            "--agent-durable-goal" => parsed.agent_durable_goal_path = PathBuf::from(value),
             "--score-cards" => parsed.score_cards_path = PathBuf::from(value),
             "--patterns-dir" => parsed.patterns_dir = PathBuf::from(value),
             "--mistakes-ledger" => parsed.mistakes_ledger_path = PathBuf::from(value),
@@ -83,14 +79,11 @@ pub(crate) fn parse_loop_recovery_patterns_validate_args(
 pub(crate) fn validate_loop_recovery_patterns_gate(
     args: LoopRecoveryPatternsValidateArgs,
 ) -> Result<LoopRecoveryPatternsReport, String> {
-    let agent_goal = read_json("agent-durable-goal", &args.agent_durable_goal_path)?;
-    let score_card_schema_fields_checked = validate_agent_durable_goal_score_cards(
-        &agent_goal,
-        &args.agent_durable_goal_path,
-        &args.score_cards_path,
-    )?;
+    let score_cards = read_json("score-cards", &args.score_cards_path)?;
+    let score_card_schema_fields_checked =
+        validate_score_card_contract(&score_cards, &args.score_cards_path)?;
     let anomaly_watch_signals_checked =
-        validate_autonomous_foundry_loop_references(&agent_goal, &args.agent_durable_goal_path)?;
+        validate_loop_recovery_contract(&score_cards, &args.score_cards_path)?;
 
     let score_card_inventory = read_score_card_inventory(&args.score_cards_path)?;
     let mistake_ids = read_mistakes_ledger_ids(&args.mistakes_ledger_path)?;
@@ -113,104 +106,89 @@ pub(crate) fn validate_loop_recovery_patterns_gate(
     })
 }
 
-fn validate_agent_durable_goal_score_cards(
-    agent_goal: &Value,
-    agent_goal_path: &Path,
-    score_cards_path: &Path,
-) -> Result<usize, String> {
-    let score_cards = required_object(agent_goal, "score_cards", agent_goal_path)?;
-    let description = required_str_in_object(score_cards, "description", agent_goal_path)?;
+fn validate_score_card_contract(score_cards: &Value, path: &Path) -> Result<usize, String> {
+    let contract = required_object(score_cards, "score_card_contract", path)?;
+    let description = required_str_in_object(contract, "description", path)?;
     require_keywords(
         "score_cards.description",
         description,
         &["deterministic", "llm", "pass/fail"],
-        agent_goal_path,
+        path,
     )?;
-    let design_principle =
-        required_str_in_object(score_cards, "design_principle", agent_goal_path)?;
+    let design_principle = required_str_in_object(contract, "design_principle", path)?;
     require_keywords(
         "score_cards.design_principle",
         design_principle,
         &["llm", "forbidden", "pass/fail"],
-        agent_goal_path,
+        path,
     )?;
 
-    let check_schema = score_cards
+    let check_schema = contract
         .get("check_schema")
         .and_then(Value::as_object)
-        .ok_or_else(|| {
-            format!(
-                "{} missing score_cards.check_schema object",
-                agent_goal_path.display()
-            )
-        })?;
+        .ok_or_else(|| format!("{} missing score_cards.check_schema object", path.display()))?;
     for field in REQUIRED_SCORE_CARD_FIELDS {
         if !check_schema.contains_key(*field) {
             return Err(format!(
                 "{} score_cards.check_schema missing required field `{field}`",
-                agent_goal_path.display()
+                path.display()
             ));
         }
     }
 
-    let spec_path = required_str_in_object(score_cards, "spec_path", agent_goal_path)?;
-    let expected = score_cards_path.to_string_lossy();
-    if !spec_path.contains(expected.as_ref()) {
+    let spec_path = required_str_in_object(contract, "spec_path", path)?;
+    if spec_path != "specs/score-cards.json" {
         return Err(format!(
-            "{} score_cards.spec_path must reference `{}`",
-            agent_goal_path.display(),
-            score_cards_path.display()
+            "{} score_card_contract.spec_path must be exactly `specs/score-cards.json`",
+            path.display()
         ));
     }
     Ok(REQUIRED_SCORE_CARD_FIELDS.len())
 }
 
-fn validate_autonomous_foundry_loop_references(
-    agent_goal: &Value,
-    agent_goal_path: &Path,
-) -> Result<usize, String> {
-    let autonomous_foundry = required_object(agent_goal, "autonomous_foundry", agent_goal_path)?;
-    let stuck_loop = autonomous_foundry
+fn validate_loop_recovery_contract(score_cards: &Value, path: &Path) -> Result<usize, String> {
+    let contract = required_object(score_cards, "loop_recovery_contract", path)?;
+    let stuck_loop = contract
         .get("stuck_loop_recovery")
         .and_then(Value::as_object)
         .ok_or_else(|| {
             format!(
                 "{} missing autonomous_foundry.stuck_loop_recovery object",
-                agent_goal_path.display()
+                path.display()
             )
         })?;
-    let step_3 = required_str_in_object(stuck_loop, "step_3_if_resolves", agent_goal_path)?;
+    let step_3 = required_str_in_object(stuck_loop, "step_3_if_resolves", path)?;
     require_keywords(
         "autonomous_foundry.stuck_loop_recovery.step_3_if_resolves",
         step_3,
         &["registry/loop-recovery-patterns"],
-        agent_goal_path,
+        path,
     )?;
 
-    let first_of_kind = autonomous_foundry
+    let first_of_kind = contract
         .get("first_of_kind_protocol")
         .and_then(Value::as_object)
         .ok_or_else(|| {
             format!(
                 "{} missing autonomous_foundry.first_of_kind_protocol object",
-                agent_goal_path.display()
+                path.display()
             )
         })?;
-    let detection = required_str_in_object(first_of_kind, "detection", agent_goal_path)?;
+    let detection = required_str_in_object(first_of_kind, "detection", path)?;
     require_keywords(
         "autonomous_foundry.first_of_kind_protocol.detection",
         detection,
         &["registry/loop-recovery-patterns", "registry/incidents"],
-        agent_goal_path,
+        path,
     )?;
 
-    let anomaly_watch = autonomous_foundry
+    let anomaly_watch = contract
         .get("meta_agent_anomaly_watch")
         .and_then(Value::as_object)
         .ok_or_else(|| {
             format!(
                 "{} missing autonomous_foundry.meta_agent_anomaly_watch object",
-                agent_goal_path.display()
+                path.display()
             )
         })?;
     let watched_signals = anomaly_watch
@@ -219,13 +197,13 @@ fn validate_autonomous_foundry_loop_references(
         .ok_or_else(|| {
             format!(
                 "{} missing autonomous_foundry.meta_agent_anomaly_watch.watched_signals array",
-                agent_goal_path.display()
+                path.display()
             )
         })?;
     if watched_signals.len() < 5 {
         return Err(format!(
             "{} meta_agent_anomaly_watch requires at least 5 watched signals",
-            agent_goal_path.display()
+            path.display()
         ));
     }
     Ok(watched_signals.len())
