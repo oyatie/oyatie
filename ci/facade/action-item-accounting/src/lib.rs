@@ -34,16 +34,14 @@
 //! - `friction_policy_gate_id_mismatch`        — policy `gate_id` != [`GATE_ID`].
 //! - `friction_missing_required_field`         — a PRIMARY row omits/blanks a required field.
 //! - `friction_unknown_status`                 — a friction's effective status maps to no taxonomy class.
-//! - `friction_no_disposition`                 — a friction declares no non-blank `enforcement_fix`
-//!                                               and is not in the accepted-risk class.
+//! - `friction_no_disposition` — a friction declares no non-blank `enforcement_fix` and is not in
+//!   the accepted-risk class.
 //! - `friction_closed_without_evidence`        — a terminal-class friction cites no evidence.
 //! - `friction_accepted_risk_without_evidence` — an accepted-risk friction cites no evidence.
 //! - `friction_duplicate_primary_row`          — two PRIMARY rows share one `id` (appends are legitimate).
-//! - `friction_orphan_update_row`              — a friction id has ONLY update-shaped rows and no
-//!                                               anchoring PRIMARY record. Without a primary the
-//!                                               schema/required-field/disposition checks cannot
-//!                                               bind, so an update-only row would otherwise evade
-//!                                               every check and be silently unaccounted.
+//! - `friction_orphan_update_row` — a friction id has ONLY update-shaped rows and no anchoring
+//!   PRIMARY record. Without a primary the schema/disposition checks cannot bind, so an update-only
+//!   row would otherwise evade every check and be silently unaccounted.
 //!
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic; `#![forbid(unsafe_code)]`.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -100,7 +98,10 @@ impl std::fmt::Display for CollectError {
             }
             CollectError::Io(message) => write!(f, "friction ledger io: {message}"),
             CollectError::Parse { line, message } => {
-                write!(f, "friction ledger line {line} is not valid JSON: {message}")
+                write!(
+                    f,
+                    "friction ledger line {line} is not valid JSON: {message}"
+                )
             }
         }
     }
@@ -360,7 +361,10 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
             findings.insert(Finding::new(
                 "friction_duplicate_primary_row",
                 id,
-                format!("{} primary rows share id `{id}`; updates append, primaries do not", state.primary_count),
+                format!(
+                    "{} primary rows share id `{id}`; updates append, primaries do not",
+                    state.primary_count
+                ),
             ));
         }
 
@@ -423,6 +427,189 @@ pub fn evaluate(policy: &Value, observed: &Value) -> Report {
     Report::from_findings(&evaluate_keyed(policy, observed))
 }
 
+/// Closed v2 lifecycle states. Rows written or changed after the protected merge base must use one
+/// of these values; untouched legacy free-text rows are deliberately outside this enum.
+const FIXUPTASK_V2_STATUSES: [&str; 5] = [
+    "open",
+    "in-progress",
+    "blocked",
+    "resolved",
+    "accepted-risk",
+];
+
+const FIXUPTASK_V2_ACCOUNTABILITY_FIELDS: [&str; 5] = [
+    "accountable_owner",
+    "accountable_role",
+    "acceptance_criteria",
+    "verification_path",
+    "blocker_for",
+];
+
+fn object_rows(value: &Value) -> Vec<&Value> {
+    value
+        .get("rows")
+        .and_then(Value::as_array)
+        .map(|rows| rows.iter().filter(|row| row.is_object()).collect())
+        .unwrap_or_default()
+}
+
+/// Validates the strict FixupTask v2 contract for rows introduced or changed relative to a
+/// protected merge-base snapshot. Exact byte-for-byte JSON equality is the sole grandfathering
+/// condition; the evaluator never accepts a candidate-supplied legacy baseline.
+///
+/// Qualified-human decision values are opaque accountability references. This pure kernel proves
+/// their presence and expiry shape only; it cannot, and does not, claim that a person approved one.
+pub fn evaluate_fixuptasks_v2(merge_base: &Value, candidate: &Value) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+    let mut base_by_id: BTreeMap<&str, &Value> = BTreeMap::new();
+    let mut duplicate_base_ids = BTreeSet::new();
+    for row in object_rows(merge_base) {
+        if let Some(id) = non_blank_str(row, "id")
+            && base_by_id.insert(id, row).is_some()
+        {
+            duplicate_base_ids.insert(id);
+        }
+    }
+
+    let mut candidate_ids = BTreeSet::new();
+    for row in object_rows(candidate) {
+        let Some(id) = non_blank_str(row, "id") else {
+            findings.insert(Finding::new(
+                "fixuptask_v2_missing_id",
+                "<row-without-id>",
+                "candidate FixupTask row carries no non-blank `id`",
+            ));
+            continue;
+        };
+        if !candidate_ids.insert(id) {
+            findings.insert(Finding::new(
+                "fixuptask_v2_duplicate_id",
+                id,
+                "candidate FixupTask ids must be unique",
+            ));
+        }
+        let unchanged_legacy = !duplicate_base_ids.contains(id)
+            && base_by_id.get(id).is_some_and(|base_row| *base_row == row);
+        if unchanged_legacy {
+            continue;
+        }
+
+        let status = non_blank_str(row, "status");
+        if !status.is_some_and(|value| FIXUPTASK_V2_STATUSES.contains(&value)) {
+            findings.insert(Finding::new(
+                "fixuptask_v2_unknown_status",
+                id,
+                "new or modified FixupTask status must be one of open, in-progress, blocked, resolved, accepted-risk",
+            ));
+        }
+        for field in FIXUPTASK_V2_ACCOUNTABILITY_FIELDS {
+            if non_blank_str(row, field).is_none() {
+                findings.insert(Finding::new(
+                    "fixuptask_v2_missing_accountability",
+                    id,
+                    format!("new or modified FixupTask row missing non-blank `{field}`"),
+                ));
+            }
+        }
+
+        match status {
+            Some("resolved") => {
+                for field in ["resolved_at", "resolved_in_change_id", "resolved_evidence"] {
+                    if non_blank_str(row, field).is_none() {
+                        findings.insert(Finding::new(
+                            "fixuptask_v2_resolved_without_evidence",
+                            id,
+                            format!("resolved FixupTask row missing non-blank `{field}`"),
+                        ));
+                    }
+                }
+            }
+            Some("accepted-risk") => {
+                for field in [
+                    "qualified_human_decision_ref",
+                    "accepted_risk_expires_at",
+                    "accepted_risk_evidence",
+                ] {
+                    if non_blank_str(row, field).is_none() {
+                        findings.insert(Finding::new(
+                            "fixuptask_v2_accepted_risk_missing_decision_or_expiry",
+                            id,
+                            format!("accepted-risk FixupTask row missing non-blank `{field}`"),
+                        ));
+                    }
+                }
+            }
+            Some("blocked") if non_blank_str(row, "qualified_human_decision_ref").is_none() => {
+                findings.insert(Finding::new(
+                    "fixuptask_v2_blocked_missing_qualified_human_decision",
+                    id,
+                    "blocked FixupTask row missing non-blank `qualified_human_decision_ref`",
+                ));
+            }
+            _ => {}
+        }
+    }
+    findings
+}
+
+/// Checks an identity-only predecessor mapping. It deliberately accepts predecessor identifiers,
+/// never predecessor text, and therefore cannot recreate a readable retirement archive.
+pub fn evaluate_friction_predecessor_mapping(
+    expected_source: &str,
+    predecessor_ids: &BTreeSet<String>,
+    mapping: &Value,
+    fixuptasks: &Value,
+) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+    if non_blank_str(mapping, "source") != Some(expected_source) {
+        findings.insert(Finding::new(
+            "friction_mapping_source_mismatch",
+            "<mapping>",
+            "mapping source must match the protected predecessor source identifier",
+        ));
+    }
+    let target_ids: BTreeSet<&str> = object_rows(fixuptasks)
+        .into_iter()
+        .filter_map(|row| non_blank_str(row, "id"))
+        .collect();
+    let mut mapped = BTreeSet::new();
+    for entry in mapping
+        .get("entries")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter(|entry| entry.is_object())
+    {
+        let predecessor_id =
+            non_blank_str(entry, "predecessor_id").unwrap_or("<entry-without-predecessor-id>");
+        if !mapped.insert(predecessor_id) {
+            findings.insert(Finding::new(
+                "friction_mapping_duplicate_predecessor_id",
+                predecessor_id,
+                "each predecessor friction id maps to exactly one FixupTask id",
+            ));
+        }
+        let target_id = non_blank_str(entry, "target_fixuptask_id");
+        if !target_id.is_some_and(|id| target_ids.contains(id)) {
+            findings.insert(Finding::new(
+                "friction_mapping_missing_target_fixuptask",
+                predecessor_id,
+                "mapping target_fixuptask_id does not name a candidate FixupTask",
+            ));
+        }
+    }
+    for predecessor_id in predecessor_ids {
+        if !mapped.contains(predecessor_id.as_str()) {
+            findings.insert(Finding::new(
+                "friction_mapping_omitted_predecessor_id",
+                predecessor_id,
+                "every protected predecessor friction id requires one identity-only mapping",
+            ));
+        }
+    }
+    findings
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -470,14 +657,23 @@ mod tests {
 
     #[test]
     fn empty_ledger_is_green() {
-        assert_eq!(evaluate(&policy(), &observed(vec![])).verdict, Verdict::Green);
+        assert_eq!(
+            evaluate(&policy(), &observed(vec![])).verdict,
+            Verdict::Green
+        );
     }
 
     #[test]
     fn appending_a_well_formed_row_never_fails_the_gate() {
         // The ratchet must never punish logging: a brand-new valid open friction is green.
-        let findings = evaluate_keyed(&policy(), &observed(vec![primary("FRIC-NEW", "queued-G11")]));
-        assert!(findings.is_empty(), "logging a valid friction must not block: {findings:#?}");
+        let findings = evaluate_keyed(
+            &policy(),
+            &observed(vec![primary("FRIC-NEW", "queued-G11")]),
+        );
+        assert!(
+            findings.is_empty(),
+            "logging a valid friction must not block: {findings:#?}"
+        );
     }
 
     #[test]
@@ -486,9 +682,11 @@ mod tests {
             &policy(),
             &observed(vec![primary("FRIC-X", "totally-made-up-status")]),
         );
-        assert!(findings.iter().any(|f| {
-            f.code == "friction_unknown_status" && f.key == "FRIC-X"
-        }));
+        assert!(
+            findings
+                .iter()
+                .any(|f| { f.code == "friction_unknown_status" && f.key == "FRIC-X" })
+        );
     }
 
     #[test]
@@ -496,21 +694,27 @@ mod tests {
         let mut row = primary("FRIC-ND", "open");
         row["enforcement_fix"] = json!("   ");
         let findings = evaluate_keyed(&policy(), &observed(vec![row]));
-        assert!(findings.iter().any(|f| {
-            f.code == "friction_no_disposition" && f.key == "FRIC-ND"
-        }));
+        assert!(
+            findings
+                .iter()
+                .any(|f| { f.code == "friction_no_disposition" && f.key == "FRIC-ND" })
+        );
         // The blank required field is ALSO a schema violation.
-        assert!(findings.iter().any(|f| {
-            f.code == "friction_missing_required_field" && f.key == "FRIC-ND"
-        }));
+        assert!(
+            findings
+                .iter()
+                .any(|f| { f.code == "friction_missing_required_field" && f.key == "FRIC-ND" })
+        );
     }
 
     #[test]
     fn terminal_status_without_evidence_fails_closed() {
         let findings = evaluate_keyed(&policy(), &observed(vec![primary("FRIC-T", "RESOLVED")]));
-        assert!(findings.iter().any(|f| {
-            f.code == "friction_closed_without_evidence" && f.key == "FRIC-T"
-        }));
+        assert!(
+            findings
+                .iter()
+                .any(|f| { f.code == "friction_closed_without_evidence" && f.key == "FRIC-T" })
+        );
     }
 
     #[test]
@@ -518,7 +722,10 @@ mod tests {
         let mut row = primary("FRIC-T2", "RESOLVED-fully");
         row["evidence"] = json!("PR #669 merged @ 16f2e3b54: enforcement-liveness gate");
         let findings = evaluate_keyed(&policy(), &observed(vec![row]));
-        assert!(findings.is_empty(), "terminal+evidence must be green: {findings:#?}");
+        assert!(
+            findings.is_empty(),
+            "terminal+evidence must be green: {findings:#?}"
+        );
     }
 
     #[test]
@@ -537,7 +744,10 @@ mod tests {
         let mut row = primary("FRIC-AR2", "interim-accepted");
         row["evidence"] = json!("founder-held 2026-06-10; leader-side transition pending");
         let findings = evaluate_keyed(&policy(), &observed(vec![row]));
-        assert!(findings.is_empty(), "accepted-risk+evidence must be green: {findings:#?}");
+        assert!(
+            findings.is_empty(),
+            "accepted-risk+evidence must be green: {findings:#?}"
+        );
     }
 
     #[test]
@@ -547,9 +757,10 @@ mod tests {
             &policy(),
             &observed(vec![primary("FRIC-D", "open"), primary("FRIC-D", "open")]),
         );
-        assert!(dup.iter().any(|f| {
-            f.code == "friction_duplicate_primary_row" && f.key == "FRIC-D"
-        }));
+        assert!(
+            dup.iter()
+                .any(|f| { f.code == "friction_duplicate_primary_row" && f.key == "FRIC-D" })
+        );
 
         // A primary + an append (update row) sharing an id is LEGITIMATE event-sourcing.
         let append = json!({
@@ -563,7 +774,9 @@ mod tests {
             &observed(vec![primary("FRIC-D2", "open"), append]),
         );
         assert!(
-            !folded.iter().any(|f| f.code == "friction_duplicate_primary_row"),
+            !folded
+                .iter()
+                .any(|f| f.code == "friction_duplicate_primary_row"),
             "an append must not count as a duplicate primary: {folded:#?}"
         );
     }
@@ -581,7 +794,11 @@ mod tests {
         });
         let findings = evaluate_keyed(&policy(), &observed(vec![orphan]));
         let mine: Vec<_> = findings.iter().filter(|f| f.key == "FRIC-ORPHAN").collect();
-        assert_eq!(mine.len(), 1, "orphan emits exactly one finding: {findings:#?}");
+        assert_eq!(
+            mine.len(),
+            1,
+            "orphan emits exactly one finding: {findings:#?}"
+        );
         assert_eq!(mine[0].code, "friction_orphan_update_row");
     }
 
@@ -599,7 +816,9 @@ mod tests {
             &observed(vec![primary("FRIC-REAL", "open"), append]),
         );
         assert!(
-            !findings.iter().any(|f| f.code == "friction_orphan_update_row"),
+            !findings
+                .iter()
+                .any(|f| f.code == "friction_orphan_update_row"),
             "primary+updates must not be an orphan: {findings:#?}"
         );
     }
@@ -617,7 +836,9 @@ mod tests {
             &observed(vec![primary("FRIC-U", "open"), append_no_evidence]),
         );
         assert!(
-            findings.iter().any(|f| f.code == "friction_closed_without_evidence" && f.key == "FRIC-U"),
+            findings
+                .iter()
+                .any(|f| f.code == "friction_closed_without_evidence" && f.key == "FRIC-U"),
             "update closing a friction must require evidence: {findings:#?}"
         );
 
@@ -632,7 +853,10 @@ mod tests {
             &policy(),
             &observed(vec![primary("FRIC-U2", "open"), append_with_evidence]),
         );
-        assert!(green.is_empty(), "closed-with-evidence via update must be green: {green:#?}");
+        assert!(
+            green.is_empty(),
+            "closed-with-evidence via update must be green: {green:#?}"
+        );
     }
 
     #[test]
@@ -640,7 +864,11 @@ mod tests {
         let mut bad = policy();
         bad["gate_id"] = json!("cloud-ci-wrong");
         let findings = evaluate_keyed(&bad, &observed(vec![]));
-        assert!(findings.iter().any(|f| f.code == "friction_policy_gate_id_mismatch"));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "friction_policy_gate_id_mismatch")
+        );
     }
 
     #[test]
@@ -666,5 +894,164 @@ mod tests {
             .map(|finding| finding.code)
             .collect();
         assert_eq!(evaluate(&policy(), &input).violations, projected);
+    }
+
+    #[test]
+    fn fixuptask_v2_rejects_new_rows_without_accountability_and_closed_state_evidence() {
+        let base = json!({ "rows": [] });
+        let candidate = json!({
+            "rows": [{
+                "id": "F-V2-1",
+                "title": "make the successor durable",
+                "priority": "high",
+                "status": "resolved",
+                "source_session": "session",
+                "source_change_id": "change",
+                "named_in": "ADR-0621",
+                "created_at": "2026-07-21T00:00:00Z"
+            }]
+        });
+
+        let findings = evaluate_fixuptasks_v2(&base, &candidate);
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "fixuptask_v2_missing_accountability")
+        );
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "fixuptask_v2_resolved_without_evidence")
+        );
+    }
+
+    #[test]
+    fn fixuptask_v2_grandfathers_only_exact_legacy_rows_from_merge_base() {
+        let legacy = json!({
+            "id": "F-LEGACY",
+            "title": "historical row",
+            "status": "free-text-legacy"
+        });
+        let base = json!({ "rows": [legacy.clone()] });
+        let unchanged = json!({ "rows": [legacy] });
+        assert!(evaluate_fixuptasks_v2(&base, &unchanged).is_empty());
+
+        let changed = json!({
+            "rows": [{
+                "id": "F-LEGACY",
+                "title": "historical row revised",
+                "status": "free-text-legacy"
+            }]
+        });
+        assert!(
+            evaluate_fixuptasks_v2(&base, &changed)
+                .iter()
+                .any(|f| f.code == "fixuptask_v2_unknown_status")
+        );
+    }
+
+    #[test]
+    fn fixuptask_v2_requires_decision_expiry_for_accepted_risk_and_decision_for_blocked() {
+        let base = json!({ "rows": [] });
+        let common = json!({
+            "id": "F-V2-2",
+            "title": "strict accountability",
+            "priority": "high",
+            "source_session": "session",
+            "source_change_id": "change",
+            "named_in": "ADR-0621",
+            "created_at": "2026-07-21T00:00:00Z",
+            "accountable_owner": "owner-id",
+            "accountable_role": "role-id",
+            "acceptance_criteria": "criterion",
+            "verification_path": "cargo test",
+            "blocker_for": "roadmap"
+        });
+        let mut accepted_risk = common.clone();
+        accepted_risk["status"] = json!("accepted-risk");
+        let accepted = evaluate_fixuptasks_v2(&base, &json!({ "rows": [accepted_risk] }));
+        assert!(
+            accepted
+                .iter()
+                .any(|f| { f.code == "fixuptask_v2_accepted_risk_missing_decision_or_expiry" })
+        );
+
+        let mut blocked = common;
+        blocked["status"] = json!("blocked");
+        let blocked_findings = evaluate_fixuptasks_v2(&base, &json!({ "rows": [blocked] }));
+        assert!(
+            blocked_findings
+                .iter()
+                .any(|f| { f.code == "fixuptask_v2_blocked_missing_qualified_human_decision" })
+        );
+    }
+
+    #[test]
+    fn friction_mapping_is_identity_only_and_fails_closed_on_all_join_gaps() {
+        let predecessor_ids = BTreeSet::from(["FRIC-1".to_owned(), "FRIC-2".to_owned()]);
+        let fixuptasks = json!({ "rows": [{ "id": "F-1" }] });
+        let mapping = json!({
+            "source": "git-history:predecessor-ledger",
+            "entries": [
+                { "predecessor_id": "FRIC-1", "target_fixuptask_id": "F-1" },
+                { "predecessor_id": "FRIC-1", "target_fixuptask_id": "F-MISSING" }
+            ]
+        });
+
+        let findings = evaluate_friction_predecessor_mapping(
+            "git-history:expected-predecessor",
+            &predecessor_ids,
+            &mapping,
+            &fixuptasks,
+        );
+        let codes: BTreeSet<_> = findings.iter().map(|f| f.code.as_str()).collect();
+        assert!(codes.contains("friction_mapping_source_mismatch"));
+        assert!(codes.contains("friction_mapping_duplicate_predecessor_id"));
+        assert!(codes.contains("friction_mapping_omitted_predecessor_id"));
+        assert!(codes.contains("friction_mapping_missing_target_fixuptask"));
+    }
+
+    #[test]
+    fn friction_mapping_green_fixture_contains_only_ids_and_existing_targets() {
+        let predecessor_ids = BTreeSet::from(["FRIC-1".to_owned(), "FRIC-2".to_owned()]);
+        let fixuptasks = json!({ "rows": [{ "id": "F-1" }, { "id": "F-2" }] });
+        let mapping = json!({
+            "source": "git-history:expected-predecessor",
+            "entries": [
+                { "predecessor_id": "FRIC-1", "target_fixuptask_id": "F-1" },
+                { "predecessor_id": "FRIC-2", "target_fixuptask_id": "F-2" }
+            ]
+        });
+        assert!(
+            evaluate_friction_predecessor_mapping(
+                "git-history:expected-predecessor",
+                &predecessor_ids,
+                &mapping,
+                &fixuptasks,
+            )
+            .is_empty()
+        );
+    }
+
+    #[test]
+    fn fixuptask_v2_schema_stays_aligned_with_the_pure_kernel_contract() {
+        let schema: Value = serde_json::from_str(include_str!("../fixuptask-v2-schema.json"))
+            .expect("embedded FixupTask v2 schema is valid JSON");
+        let required = schema["required"]
+            .as_array()
+            .expect("schema required fields");
+        for field in FIXUPTASK_V2_ACCOUNTABILITY_FIELDS {
+            assert!(required.iter().any(|value| value == field));
+        }
+        let statuses = schema["properties"]["status"]["enum"]
+            .as_array()
+            .expect("schema closed status enum");
+        assert_eq!(
+            statuses
+                .iter()
+                .filter_map(Value::as_str)
+                .collect::<Vec<_>>(),
+            FIXUPTASK_V2_STATUSES
+        );
     }
 }

@@ -450,11 +450,12 @@ doc_status: published
 | ADR-0617 | Proposed | The Living Monorepo Governance Graph | council-architecture | [`ADR-0617-living-monorepo-governance-graph.md`](decisions/ADR-0617-living-monorepo-governance-graph.md) |
 | ADR-0618 | Proposed | Contract-slice conformance gate scope boundary | council-architecture | [`ADR-0618-contract-slice-gate-scope-boundary.md`](decisions/ADR-0618-contract-slice-gate-scope-boundary.md) |
 | ADR-0619 | Accepted | Zero-live-context retirement of an external agent-harness brand | council-architecture | [`ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md`](decisions/ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md) |
+| ADR-0621 | Proposed | FixupTask v2 as the proposed durable successor foundation for friction-ledger accounting | council-architecture | [`ADR-0621-fixuptask-v2-friction-ledger-successor-foundation.md`](decisions/ADR-0621-fixuptask-v2-friction-ledger-successor-foundation.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0620), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next actually-free number after checking `origin/dev` and active local branches, unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
