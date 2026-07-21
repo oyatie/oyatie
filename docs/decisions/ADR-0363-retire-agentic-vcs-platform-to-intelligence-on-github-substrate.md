@@ -9,7 +9,7 @@ supersedes: [ADR-0110, ADR-0112, ADR-0113]
 superseded_by: []
 amended_by: [ADR-0510, ADR-0515]
 amends: [ADR-0116]
-related: [ADR-0053, ADR-0111, ADR-0116, ADR-0131, ADR-0173, ADR-0247, ADR-0248, ADR-0515, ADR-0357, ADR-0515, ADR-0362, ADR-0515]
+related: [ADR-0053, ADR-0111, ADR-0116, ADR-0131, ADR-0173, ADR-0247, ADR-0248, ADR-0357, ADR-0362, ADR-0515]
 related_specs: [/specs/gitops-vcs-replacement.json, /registry/vcs/changeset-event-log.json]
 session_context:
   authored: 2026-05-26
@@ -23,14 +23,14 @@ purpose: Retire the bespoke agentic-VCS layer (oya vcs CLI + oya git wrapper + c
 
 Accepted — 2026-05-26. Supersedes ADR-0110 (changeset state machine), ADR-0112 (webhook-driven invocation), ADR-0113 (vcs orchestrator end-to-end). Amends ADR-0116 (which parked external coordination tooling behind a manual-bootstrap seam — that seam is now removed, not deployed).
 
-**Historical amendment recorded by ADR-0515 / platform-readiness 2026-06-02 (ADR-0515 is now Superseded):** this ADR still retires the bespoke agentic-VCS CLI/wrapper
+**Historical platform-readiness amendment recorded 2026-06-02 (its predecessor decision is retired to Git history):** this ADR still retires the bespoke agentic-VCS CLI/wrapper
 and dormant changeset ratchet. Its former no-Tide-queue and cloud-ci-as-destination readings are no
 longer current. Merge automation belongs in the Prow-shaped cloud-ci/oya-ci Tide component, and `oya` CLI entrypoints
 are retirement/migration wrappers rather than CI authority.
 
 **Current amendment — ADR-0515:** plain Git and protected GitHub PRs remain the live substrate;
-`oya-ci-required` is the sole merge-status authority. ADR-0515 is retained only as nonbinding
-history and does not amend this ADR's current meaning.
+`oya-ci-required` is the sole merge-status authority. The retired predecessor is Git-history-only
+provenance and does not amend this ADR's current meaning.
 
 ## Context
 
@@ -123,6 +123,6 @@ Narrow the toolchain to its **differentiated core while removing CLI authority**
 - ADR-0110 / 0112 / 0113 — agentic-VCS (superseded here).
 - ADR-0116 — retire external agent-coordination tooling (amended: manual-bootstrap seam removed).
 - ADR-0173 / 0247 / 0248 — vendor-lock-in avoidance + self-hosting doctrine; GitHub (interim) as the forge target.
-- ADR-0515 — historical cloud-ci-native CI bridge; ADR-0362 — flat-only catalog; ADR-0515 — CI farm bridge/reference evidence superseded by ADR-0515 destination authority.
+- Retired cloud-ci-native and CI-farm bridge decisions remain Git-history-only provenance; ADR-0362 owns the flat-only catalog, and ADR-0515 owns current destination authority.
 - GitHub capabilities (v15.0.2 / v11.x LTS, GPLv3+): github.org/docs (protection, webhooks, auto-merge), github#5102 (no native merge queue), LWN GPLv3+ relicense.
 - Founder deep-interview 2026-05-26 (session_context above).
