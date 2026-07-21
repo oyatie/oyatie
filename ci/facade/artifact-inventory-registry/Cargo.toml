@@ -22,6 +22,7 @@ name = "oya-cloud-ci-accounting-registry-app"
 path = "src/main.rs"
 
 [dependencies]
+regex = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 oya-ci-config-kernel = { path = "../../../libs/oya-ci-config" }
