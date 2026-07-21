@@ -11,7 +11,7 @@ rust_library(
 
 rust_test(
     name = "ci-planning-projection-unittest",
-    srcs = glob(["src/**/*.rs"]),
+    srcs = glob(["src/**/*.rs", "src/**/*.json"]),
     crate = "ci_planning_projection",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],

@@ -208,29 +208,36 @@ mod tests {
     #[test]
     fn board_sync_projection_is_byte_stable_and_uses_the_legacy_wire_shape() {
         let masterplan = json!({
-            "milestones": [{
-                "milestone": "M-AGENTIC-PIPELINE",
-                "adrs": [{
-                    "deliverables": [{
-                        "id": "ADR-0377-D3",
-                        "description": "board sync",
-                        "status": "declared"
+            "milestones": [
+                {
+                    "milestone": "M-AGENTIC-PIPELINE",
+                    "adrs": [{
+                        "deliverables": [{
+                            "id": "ADR-0377-D3",
+                            "description": "board sync",
+                            "status": "declared"
+                        }]
                     }]
-                }]
-            }]
+                },
+                {
+                    "milestone": "M-ALPHA",
+                    "adrs": [{
+                        "deliverables": [{
+                            "id": "A-1",
+                            "description": "first item",
+                            "status": "in progress"
+                        }]
+                    }]
+                }
+            ]
         });
 
         let rendered = render_board_sync_projection(&masterplan).expect("projection renders");
 
         assert_eq!(
             rendered,
-            render_board_sync_projection(&masterplan).expect("rerender")
+            include_str!("fixtures/board-sync-legacy-canonical.json")
         );
-        assert!(rendered.contains("\"deliverable_id\": \"ADR-0377-D3\""));
-        assert!(rendered.contains("\"state/declared\""));
-        assert!(rendered.contains("\"owner/unassigned\""));
-        assert!(rendered.contains("\"deliverable/adr-0377-d3\""));
-        assert!(rendered.contains("\"milestone/m-agentic-pipeline\""));
     }
 
     #[test]

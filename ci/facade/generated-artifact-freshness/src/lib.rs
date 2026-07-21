@@ -2190,6 +2190,71 @@ mod materialize_generated_faces_tests {
     }
 
     #[test]
+    fn board_sync_materialization_fails_closed_on_read_error() {
+        let root = temp_root("board-sync-read-error");
+
+        let error = materialize_board_sync_projection(&root)
+            .expect_err("missing masterplan projection must fail closed");
+
+        assert!(error.to_string().contains("read"));
+        assert!(!root.join(BOARD_SYNC_PROJECTION_PATH).exists());
+    }
+
+    #[test]
+    fn board_sync_materialization_fails_closed_on_parse_error() {
+        let root = temp_root("board-sync-parse-error");
+        std::fs::create_dir_all(
+            root.join(MASTERPLAN_PROJECTION_PATH)
+                .parent()
+                .expect("masterplan projection parent"),
+        )
+        .expect("create projection dir");
+        std::fs::write(root.join(MASTERPLAN_PROJECTION_PATH), "{")
+            .expect("write malformed masterplan projection");
+
+        let error = materialize_board_sync_projection(&root)
+            .expect_err("malformed masterplan projection must fail closed");
+
+        assert!(error.to_string().contains("parse masterplan projection"));
+        assert!(!root.join(BOARD_SYNC_PROJECTION_PATH).exists());
+    }
+
+    #[test]
+    fn board_sync_materialization_fails_closed_on_write_error() {
+        let root = temp_root("board-sync-write-error");
+        std::fs::create_dir_all(
+            root.join(MASTERPLAN_PROJECTION_PATH)
+                .parent()
+                .expect("masterplan projection parent"),
+        )
+        .expect("create projection dir");
+        std::fs::write(
+            root.join(MASTERPLAN_PROJECTION_PATH),
+            serde_json::to_vec(&serde_json::json!({
+                "milestones": [{
+                    "milestone": "M-ALPHA",
+                    "adrs": [{
+                        "deliverables": [{
+                            "id": "A-1",
+                            "description": "first item",
+                            "status": "declared"
+                        }]
+                    }]
+                }]
+            }))
+            .expect("serialize masterplan projection fixture"),
+        )
+        .expect("write masterplan projection fixture");
+        std::fs::create_dir(root.join(BOARD_SYNC_PROJECTION_PATH))
+            .expect("create directory at board projection path");
+
+        let error = materialize_board_sync_projection(&root)
+            .expect_err("unwritable board projection path must fail closed");
+
+        assert!(error.to_string().contains("write board-sync projection"));
+    }
+
+    #[test]
     fn parse_materialize_generated_faces_args_defaults_to_repo_root_dot() {
         let parsed = parse_materialize_generated_faces_args(Vec::new())
             .expect("empty args should use repository root default");
