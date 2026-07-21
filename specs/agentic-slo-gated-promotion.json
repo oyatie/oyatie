@@ -15,9 +15,14 @@
       "ADR-0114",
       "ADR-0116",
       "ADR-0123",
-      "ADR-0131"
+      "ADR-0131",
+      "ADR-0363",
+      "ADR-0515",
+      "ADR-0613",
+      "ADR-0619"
     ],
-    "purpose": "Machine-readable contract for the agentic SLO-gated promotion pipeline. Consumed by the oya-observability-slo-engine crate family, the oya-governance-promotion-readiness CI lane, and the cloud-ci promotion jobs."
+    "purpose": "Machine-readable contract for the agentic SLO-gated promotion pipeline. Consumed by the oya-observability-slo-engine crate family, the oya-governance-promotion-readiness CI lane, and the cloud-ci promotion jobs.",
+    "current_authority_boundary": "plain git + protected GitHub PRs; oya-ci-required is the sole merge-status authority; cloud-ci runtime-promotion claims remain held pending independently verified runtime evidence"
   },
   "industry_baseline": {
     "burn_rate_model": "Google SRE Workbook ch. 5 multi-window multi-burn-rate",
@@ -503,7 +508,7 @@
       "exit 0 only when every microservice has an 'eligible' verdict",
       "exit non-zero with structured JSON listing which microservices are held|rejected|rollback and the burn-rate snapshot"
     ],
-    "implementation": "cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --sha <sha> --env <env>"
+    "implementation": "cloud-ci Rust promotion-readiness gate evaluates the candidate SHA and target environment; local tooling may provide feedback only and cannot authorize merge or promotion"
   },
   "bootstrap_order_decision": {
     "policy": "incremental — each microservice brings its OpenSLO manifest at the time it migrates to microservices/<ms>/ per ADR-0131. Until a microservice has a manifest, the gate treats its eligibility as 'held' (fail-closed) and that microservice cannot promote past 'dev'.",
@@ -516,7 +521,7 @@
     "backfill_event_label": "verdict_kind=backfilled",
     "backfill_consumed_by_promote_workflow": false,
     "backfill_per_tenant_rate_limit": "1 per microservice per hour",
-    "replay_trigger": "manual via `cargo run -p oya-dev-cli -- promotion replay-eligibility`",
+    "replay_trigger": "manual replay request through the operations control surface; replay is evidence-only and cannot authorize merge or promotion",
     "replay_authority": "2-person rule (operator + ops-security) + audit-chain seal",
     "replay_event_label": "verdict_kind=replayed",
     "replay_immutability_invariant": "replay appends new verdict record; never mutates original"
