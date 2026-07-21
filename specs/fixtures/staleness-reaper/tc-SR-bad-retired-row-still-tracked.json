@@ -1,0 +1,19 @@
+{
+  "fixture_id": "TC-SR-BAD-retired-row-still-tracked",
+  "expected_verdict": "RED",
+  "expected_violations": [
+    "retired_row_still_tracked"
+  ],
+  "description": "A row marked as reaped remains in the candidate tree. Retirement is deletion from HEAD with Git-object provenance, so any tracked retirement marker fails closed even when a prior report exists.",
+  "rows": [
+    {
+      "path": "docs/scratch/_verify-old.md",
+      "age_days": 5,
+      "reachable_from": ["doc-catalog"],
+      "ttl": {"ttl_class": "husk", "budget_days": 14, "protected": false, "action": "review-for-retirement"},
+      "reaped": true,
+      "reported_then_archived": false
+    }
+  ],
+  "source_test": "ci/facade/stale-artifact-detection/tests/staleness_reaper.rs"
+}

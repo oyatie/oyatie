@@ -58,7 +58,7 @@ agent-wiring + catalog`.
 | `cloud-ci-total-accounting` | core | producer-face (`total_accounting`) | `unaccounted`, `unowned`, `unjustified`, `unreachable`, `no_ttl_class`, `registry_drift` (frozen-empty) |
 | `cloud-ci-cross-artifact-agreement` | core | producer-face (`cross_artifact`) | `generated_face_drift`, `dual_decision_collision`, `decision_id_mismatch` (frozen-empty), `phantom_decision_citation` (frozen-empty), `supersession_half_edge`, `unpropagated_decision`, `orphan_decision`, `status_disagreement` |
 | `cloud-ci-automation-ratchet` | core | producer-face (`automation_ratchet`) | `advisory_claiming_enforced`, `blocking_invariant_mapped_to_oya_cli`, `ratchet_regression` (frozen-empty), `enforceable_or_automatable_marked_human_judgment`, `duplicate_row_id` (frozen-empty), `unknown_classification`, `missing_or_empty_required_field` |
-| `cloud-ci-staleness-reaper` | core | producer-face (`staleness`) | `stale_over_budget_unreachable`, `untyped_staleness`, `reap_without_report` (frozen-empty) |
+| `cloud-ci-staleness-reaper` | core | producer-face (`staleness`) | `stale_over_budget_unreachable`, `untyped_staleness`, `readable_archive_path` (frozen-empty), `retired_row_still_tracked` (frozen-empty) |
 | `cloud-ci-brand-residue` | core | raw-corpus-collector | one `forbidden_<stem>` code per configured `[vocab]` stem |
 | `cloud-ci-bnf-layer-suffix` | rust-cargo | producer-face (`bnf_layer_suffix`) | `bnf_unknown_role`, `bnf_role_mismatch`, `bnf_missing_oya_prefix`, `bnf_empty_after_prefix`, `bnf_undeclared_role`, `bnf_undeclared_context`, `bnf_name_uppercase` |
 | `cloud-ci-manifest-hygiene` | rust-cargo | producer-face (`manifest_hygiene`) | `manifest_missing_version_workspace`, `manifest_missing_rust_version_workspace`, `manifest_missing_publish_false`, `manifest_missing_license`, `manifest_missing_lints_workspace`, `manifest_missing_lib_doctest_false` |
@@ -251,7 +251,7 @@ DATA in `no-graphql-without-adr-policy.json` (R0), so the gate runs on any repo 
 A `frozen_empty: true` disposition forces a code's baseline to be permanently empty regardless of
 current keys, so ANY occurrence is NEW debt the firewall blocks. `registry_drift` (under
 total-accounting), `ratchet_regression` + `duplicate_row_id` (under automation-ratchet),
-`reap_without_report` (under staleness), `member_missing_buck` (under target-parity), all
+`readable_archive_path` + `retired_row_still_tracked` (under staleness), `member_missing_buck` (under target-parity), all
 `cloud-ci-enforcement-liveness` codes, all `cloud-ci-freshness` codes, and
 `friction_policy_gate_id_mismatch` + `friction_unknown_status` + `friction_duplicate_primary_row`
 (under friction-accounting) are frozen-empty meta codes — they cannot accumulate a baseline.
@@ -273,4 +273,4 @@ bridges per `cli_surface_policy` — the gate test is the merge authority; their
 ADR-0548 D3 reconcilers). The ONE deliberately-advisory survivor is
 `stale_over_budget_unreachable`: its keys enter by TIME passing, not by PR action, so
 admission-blocking would blame PRs for age accrued on other clocks — its convergence surface is
-the staleness-reaper archival reconciler, and `unreachable`-at-creation now starves its growth.
+the non-actuating staleness-retirement review controller, and `unreachable`-at-creation now starves its growth.

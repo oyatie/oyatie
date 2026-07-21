@@ -15,7 +15,9 @@ related: [ADR-0364, ADR-0377]
 
 ## Status
 
-Accepted — 2026-05-28.
+Accepted — 2026-05-28. The transient-idea disposition below is constrained by later Accepted
+ADR-0515 and ADR-0619: retired content leaves candidate HEAD; Git object history is the sole content
+store and no readable archive directory or tombstone copy remains.
 
 ## Context
 
@@ -49,7 +51,7 @@ explicitly forbids everything else.
 
 | Axis | Canonical home | Auto-gen | Lifecycle rule |
 |---|---|---|---|
-| `IDEAS` (transient) | `docs/ideas/<topic>-<YYYY-MM-DD>.md` | no | MUST be either promoted to an ADR within 14 days of its date-stamp, OR archived to `docs/ideas/archive/` with a `superseded_by: ADR-NNNN` frontmatter field. Files that exceed the 14-day window without promotion or archival are gate violations. |
+| `IDEAS` (transient) | `docs/ideas/<topic>-<YYYY-MM-DD>.md` | no | MUST be promoted into an Accepted successor or declined within 14 days, then deleted from candidate HEAD through a reviewed protected PR. A neutral receipt records predecessor Git blob OID, SHA-256, and successor or decline disposition. A `superseded_by` field does not authorize a readable retired copy. |
 
 ### Allowed `docs/` subdirectories
 
@@ -57,7 +59,6 @@ Only the following subdirectories are canonical under `docs/`:
 
 - `docs/decisions/`
 - `docs/ideas/`
-- `docs/ideas/archive/`
 - `docs/conventions/`
 - `docs/machine-readable/`
 - `docs/products/`
@@ -98,13 +99,17 @@ is a gate violation.
   enforces all four rules on every PR.
 - Idea-pagers that age past 14 days without promotion automatically block the
   gate, creating intentional self-pressure toward decision closure.
+- An expired or promoted idea that remains in candidate HEAD blocks even when it carries a
+  `superseded_by` marker. Current-tree archive directories are independently blocking.
 - The `docs/` tree is now closed: new subdirectory types require an ADR amendment.
 - Existing ADR casing violations are warnings until the follow-up normalisation
   sweep ships.
 
 ## Notes
 
-Completed in chore/doc-consolidation-2026-05-28 (PR coming): 3 idea-pagers promoted to ADR-0389/0390/0391; originals archived to docs/ideas/archive/; 11 Superseded/Deprecated ADRs archived to docs/decisions/archive/.
+Historical 2026-05-28 note: three idea-pagers were promoted to ADR-0389/0390/0391 but their source
+copies were moved into a readable directory. ADR-0515 and ADR-0619 later invalidated that disposition;
+the copies must be deleted from candidate HEAD with neutral Git-object receipts.
 (and any sibling idea-pagers) to formal ADRs (using the next available
 ADR id minted at promotion time) before the 14-day timer expires on
 2026-06-11.

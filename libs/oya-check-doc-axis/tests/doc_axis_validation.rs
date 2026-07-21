@@ -93,7 +93,6 @@ fn rule1_bad_casing_blocks_in_strict_mode() {
 // ---------------------------------------------------------------------------
 
 #[test]
-#[ignore = "gate validate() trips on missing registry/catalog/ in synthetic tempdir — fix in Stage-2 by making validator gracefully skip missing axes; tracked in placeholder-debt"]
 fn rule2_fresh_idea_passes() {
     set_today("2026-05-28");
     let dir = tempfile::tempdir().unwrap();
@@ -131,7 +130,7 @@ fn rule2_stale_idea_without_promotion_blocks() {
 }
 
 #[test]
-fn rule2_stale_idea_with_valid_superseded_by_passes() {
+fn rule2_stale_idea_with_valid_superseded_by_still_blocks_until_deleted_from_head() {
     set_today("2026-06-15");
     let dir = tempfile::tempdir().unwrap();
     let root = dir.path();
@@ -148,8 +147,14 @@ fn rule2_stale_idea_with_valid_superseded_by_passes() {
     );
     let result = validate(root, false);
     assert!(
-        result.is_ok(),
-        "idea with valid superseded_by should pass: {result:?}"
+        result.is_err(),
+        "a promoted idea still present in candidate HEAD must block: {result:?}"
+    );
+    assert!(
+        result
+            .unwrap_err()
+            .iter()
+            .any(|finding| finding.rule_violated == DocAxisRule::ShadowIdea)
     );
 }
 
@@ -186,6 +191,25 @@ fn rule3_unknown_subdir_under_docs_blocks() {
             .iter()
             .any(|f| f.rule_violated == DocAxisRule::DocsProliferation),
         "should have a DocsProliferation finding for unknown subdir"
+    );
+}
+
+#[test]
+fn rule3_readable_archive_directory_under_canonical_axis_blocks() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    write_file(
+        root,
+        "docs/ideas/archive/promoted-idea.md",
+        "superseded current-tree copy\n",
+    );
+    let result = validate(root, false);
+    assert!(result.is_err(), "readable archive directory must block");
+    assert!(
+        result
+            .unwrap_err()
+            .iter()
+            .any(|finding| finding.rule_violated == DocAxisRule::ReadableArchiveDirectory)
     );
 }
 

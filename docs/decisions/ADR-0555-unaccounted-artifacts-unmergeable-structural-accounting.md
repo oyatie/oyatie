@@ -77,10 +77,12 @@ code) flips:
 `stale_over_budget_unreachable` stays advisory **by design, not by debt**: its keys enter
 by TIME passing (a file ages past its TTL budget on everyone's clock), not by PR action.
 Blocking-on-new for a time-driven set blames PRs for age accrued elsewhere — the
-archetypal unfair brick. Its convergence surface is the staleness-reaper reconciler
-(report → `git mv` → `_archive/`, second-verifier-gated), and — after this conversion —
+archetypal unfair brick. As constrained by later Accepted ADR-0619, its convergence surface is a
+non-actuating retirement review: report, then either re-anchor or delete from candidate HEAD in a
+separately reviewed protected PR with predecessor Git blob OID and SHA-256 receipts. No readable
+archive directory or tombstone copy is retained, and — after this conversion —
 no NEW artifact can even enter its population unregistered, because `unreachable` blocks
-at creation. Its `infra_prereq` is renamed to `staleness-reaper-archival-reconciler` to
+at creation. Its `infra_prereq` is renamed to `staleness-retirement-review-controller` to
 state the true prerequisite.
 
 **Grandfather mechanics (no new machinery — ADR-0551 verbatim):** the per-code mode is
@@ -210,7 +212,7 @@ Honest map of the CURRENT classes:
 | `specs/*.json` | (a) | root-hub/masterplan mentions + registry; OWNERS seed (`specs/`) | fixtures registered as a tree (consuming tests are the pointer); per-fixture pointers = ADR-0541 graph edges |
 | configs (`oya-ci.toml`, policies) | (a) | closed-schema loaders (fail-loud) + canonical-json (ADR-0546) | — |
 | workflows (`.github/`) | (a) | gate-registration meta-test (completeness invariant) | OWNERS not seeded; new workflow files print the D2 decision |
-| `evidence/` | (a) | OWNERS seed + registry prefix + TTL accounting (staleness budgets) | archival reconciler (D4) is the decay sink |
+| `evidence/` | (a) | OWNERS seed + registry prefix + TTL accounting (staleness budgets) | retirement-review controller (D4) is the non-actuating decay signal |
 | `*.generated.json` faces | (b) | registry-drift + freshness byte-parity (committed==regenerated); under member dirs ⇒ structurally reachable | a *foreign* hand-written `.generated.json` is structurally UNTRACKABLE (`**/*.generated.json` is gitignored by default; verified adversarially); a force-add is governed by `registry/generated-artifact-control-plane.json` (owner/generator/materialization declared, Rust gate authoritative) |
 | `ephemeral` class (`.omc/state/`, run scratch) | excluded BY REVIEWED DATA | carved out by class in `unit-class-policy.json` — not part of the durable corpus, so it carries no registry row | the carve-out table itself is reviewed, drift-checked DATA; widening it is a visible policy edit |
 | `third-party/` vendor | (b) | derived from `Cargo.lock` via reindeer; registry prefix + OWNERS seed encode that derivation | — |
@@ -233,7 +235,7 @@ Normative, so no future gate ships CLI-first:
    **K8s operator/CRD direction of ADR-0548 D3** — `GatePolicy` / `Baseline` /
    `Exception` / `GateRun` — with **reconciliation loops as the drift-convergence
    mechanism** (the registration registries and baselines of this decision are exactly
-   the declared state those reconcilers converge on; the staleness-reaper archival loop
+   the declared state those reconcilers converge on; the staleness-retirement review loop
    is the first nominated reconciler).
 2. Every `--fix` / `--verify` binary — including this decision's `--fix-owners` /
    `--fix-reachability`, the face-settle `--verify`, the embedded-asset fixer, and the
@@ -306,5 +308,5 @@ Normative, so no future gate ships CLI-first:
    for now: redesigns the baseline schema for a need the prefix registry covers with
    review-visible DATA; revisit inside the ADR-0541 graph where class is a node property.
 4. **Also convert `stale_over_budget_unreachable`.** Rejected: time-driven sets blame the
-   wrong PR (D1); its sink is the archival reconciler, and `unreachable`-at-creation now
+   wrong PR (D1); its sink is the retirement-review controller, and `unreachable`-at-creation now
    starves its growth.

@@ -2,10 +2,11 @@
 //!
 //! The staleness-reaper gate (PHASE-0-FIREWALL-PLAN §5.2; pillar-G sinker++). It consumes
 //! the `ttl-policy.generated.json` budgets + the accounting registry and REPORTS — never
-//! reaps — artifacts that are over their TTL budget AND unreachable as ARCHIVE candidates.
-//! Auto-archive is `report -> git mv -> _archive/`, second-verifier-gated, NEVER `rm`
-//! (founder rule: never delete on an unverified verdict). It evaluates a fixture/registry
-//! `Value` and emits `{verdict, violations}`; its tests assert
+//! deletes — artifacts that are over their TTL budget AND unreachable as retirement
+//! candidates. Retirement is a separately reviewed deletion from candidate HEAD; neutral
+//! predecessor Git object identifiers and digests preserve provenance without leaving an
+//! agent-readable archive in the current tree. It evaluates a fixture/registry `Value` and
+//! emits `{verdict, violations}`; its tests assert
 //! `report.violations == fixture.expected_violations` over
 //! `specs/fixtures/staleness-reaper/tc-*.json`.
 //!
@@ -17,9 +18,12 @@
 //! - `untyped_staleness`             — a row that cannot be aged because it carries no
 //!   TTL type (`ttl.ttl_class` empty/missing): staleness is undecidable, which is itself
 //!   a defect (every resource must be typed so it CAN be aged).
-//! - `reap_without_report`           — a row carrying a reap action (`reaped:true`) that
-//!   was not first REPORTED + archived (`reported_then_archived` not true): a reap that
-//!   skipped the report -> git mv -> _archive/ discipline (the `rm` defect).
+//! - `readable_archive_path`         — a tracked row lives below a directory whose exact
+//!   path segment is `_archive`, `archive`, or `archived` (ASCII-case-insensitive). Current
+//!   repository authority cannot retain readable archive directories.
+//! - `retired_row_still_tracked`     — a tracked row carries either legacy retirement
+//!   marker (`reaped:true` or `reported_then_archived:true`). A retired artifact must be
+//!   absent from candidate HEAD; its predecessor Git object receipt lives outside that row.
 //!
 //! The evaluator is pure: fixtures (data-under-test) drive it; there are no scanner
 //! special-cases. ADR-0083 Tier-3: production code carries no unwrap/expect/panic.
@@ -33,11 +37,12 @@ use serde_json::Value;
 /// The gate id, matching the buck2 target + the §5.2 contract.
 pub const GATE_ID: &str = "cloud-ci-staleness-reaper";
 
-/// The three blocking codes, in canonical order. The fixtures pin exact subsets.
-pub const VIOLATION_CODES: [&str; 3] = [
+/// The four blocking codes, in canonical order. The fixtures pin exact subsets.
+pub const VIOLATION_CODES: [&str; 4] = [
     "stale_over_budget_unreachable",
     "untyped_staleness",
-    "reap_without_report",
+    "readable_archive_path",
+    "retired_row_still_tracked",
 ];
 
 const STALENESS_ROWS_KEY: &str = "<cloud-ci-staleness-reaper#rows>";
@@ -98,9 +103,7 @@ impl Report {
 ///       "path": "docs/scratch/_partial-foo.md",
 ///       "age_days": 120,
 ///       "reachable_from": [],
-///       "ttl": {"ttl_class": "husk", "budget_days": 14, "protected": false, "action": "archive"},
-///       "reaped": false,                 // a reap action was applied to this row
-///       "reported_then_archived": false  // it was first reported + git-mv archived
+///       "ttl": {"ttl_class": "husk", "budget_days": 14, "protected": false, "action": "retire-from-head"}
 ///     }
 ///   ]
 /// }
@@ -146,12 +149,17 @@ fn evaluate_row(row: &Value, findings: &mut BTreeSet<Finding>) {
         return;
     };
 
-    // reap_without_report: a reap that skipped report -> git mv -> _archive/.
+    if has_readable_archive_segment(key) {
+        findings.insert(Finding::new("readable_archive_path", key));
+    }
+
+    // Legacy retirement markers on a still-tracked row prove that retirement left a
+    // readable current-tree copy. The only valid retired row is one absent from this input.
     let reaped = row.get("reaped").and_then(Value::as_bool) == Some(true);
     let reported_then_archived =
         row.get("reported_then_archived").and_then(Value::as_bool) == Some(true);
-    if reaped && !reported_then_archived {
-        findings.insert(Finding::new("reap_without_report", key));
+    if reaped || reported_then_archived {
+        findings.insert(Finding::new("retired_row_still_tracked", key));
     }
 
     let ttl = row.get("ttl");
@@ -194,6 +202,14 @@ fn evaluate_row(row: &Value, findings: &mut BTreeSet<Finding>) {
     }
 }
 
+fn has_readable_archive_segment(path: &str) -> bool {
+    path.split(['/', '\\']).any(|segment| {
+        ["_archive", "archive", "archived"]
+            .iter()
+            .any(|reserved| segment.eq_ignore_ascii_case(reserved))
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -217,7 +233,7 @@ mod tests {
         let fixture = json!({"rows":[{
             "age_days": 120,
             "reachable_from": [],
-            "ttl": {"ttl_class": "husk", "budget_days": 14, "protected": false, "action": "archive"}
+            "ttl": {"ttl_class": "husk", "budget_days": 14, "protected": false, "action": "review-for-retirement"}
         }]});
 
         let findings = evaluate_keyed(&fixture);
@@ -259,7 +275,7 @@ mod tests {
                 "path": "docs/scratch/_partial-foo.md",
                 "age_days": 120,
                 "reachable_from": [],
-                "ttl": {"ttl_class": "husk", "budget_days": 14, "protected": false, "action": "archive"}
+                "ttl": {"ttl_class": "husk", "budget_days": 14, "protected": false, "action": "review-for-retirement"}
             }]
         });
         assert!(
@@ -273,7 +289,7 @@ mod tests {
     fn evaluate_keyed_carries_the_row_path_as_key() {
         let fixture = json!({"rows":[{
             "path":"docs/scratch/_partial-foo.md","age_days":120,"reachable_from":[],
-            "ttl":{"ttl_class":"husk","budget_days":14,"protected":false,"action":"archive"}
+            "ttl":{"ttl_class":"husk","budget_days":14,"protected":false,"action":"review-for-retirement"}
         }]});
         let findings = evaluate_keyed(&fixture);
         assert!(findings.contains(&Finding::new(
@@ -292,24 +308,74 @@ mod tests {
                 .violations
                 .contains("untyped_staleness")
         );
-        // reap_without_report
+        // retired_row_still_tracked
         assert!(evaluate(&json!({"rows":[{"path":"a","reaped":true,"reported_then_archived":false,"ttl":{"ttl_class":"husk","budget_days":14,"protected":false}}]}))
-            .violations.contains("reap_without_report"));
+            .violations.contains("retired_row_still_tracked"));
     }
 
     #[test]
-    fn stale_reported_then_archived_is_green() {
-        // report -> git mv -> _archive/ (no rm): the disciplined path passes.
+    fn readable_archive_directory_and_tracked_retirement_are_rejected() {
         let fixture = json!({
             "rows": [{
                 "path": "_archive/docs/scratch/_partial-foo.md",
                 "age_days": 120,
                 "reachable_from": ["archive-index"],
-                "ttl": {"ttl_class": "husk", "budget_days": 14, "protected": false, "action": "archive"},
+                "ttl": {"ttl_class": "husk", "budget_days": 14, "protected": false, "action": "review-for-retirement"},
                 "reaped": true,
                 "reported_then_archived": true
             }]
         });
-        assert_eq!(evaluate(&fixture).verdict, Verdict::Green);
+        assert_eq!(evaluate(&fixture).verdict, Verdict::Red);
+        assert_eq!(
+            evaluate(&fixture).violations,
+            BTreeSet::from([
+                "readable_archive_path".to_owned(),
+                "retired_row_still_tracked".to_owned(),
+            ])
+        );
+    }
+
+    #[test]
+    fn archive_path_segment_detection_is_precise_and_cross_platform() {
+        for path in [
+            "_archive/docs/old.md",
+            "docs/archive/old.md",
+            "docs/ARCHIVED/old.md",
+            "docs\\archive\\old.md",
+        ] {
+            let fixture = json!({
+                "rows": [{
+                    "path": path,
+                    "reachable_from": ["ordinary-reader"],
+                    "ttl": {"ttl_class": "doc", "budget_days": null, "protected": false, "action": "report"}
+                }]
+            });
+            assert!(
+                evaluate(&fixture)
+                    .violations
+                    .contains("readable_archive_path"),
+                "archive segment must fail closed: {path}"
+            );
+        }
+
+        for path in [
+            "docs/archive-glue.md",
+            "docs/unarchived-notes.md",
+            "docs/archive.md",
+        ] {
+            let fixture = json!({
+                "rows": [{
+                    "path": path,
+                    "reachable_from": ["ordinary-reader"],
+                    "ttl": {"ttl_class": "doc", "budget_days": null, "protected": false, "action": "report"}
+                }]
+            });
+            assert!(
+                !evaluate(&fixture)
+                    .violations
+                    .contains("readable_archive_path"),
+                "ordinary filename must not be mistaken for an archive directory: {path}"
+            );
+        }
     }
 }

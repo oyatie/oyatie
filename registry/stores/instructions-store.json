@@ -229,7 +229,7 @@
       "scope": "all-agents",
       "category": "discipline",
       "title": "The SSOT holds ONLY current truth — no tombstones, git is the archive",
-      "directive": "The doc/decision stores and the live source/docs tree hold ONLY current truth: no superseded entities, no history, no tombstones, no live _archive/ dirs. Retired/legacy/superseded ADRs and docs are hard-destroyed (git rm — git history is the sole archive; the 'why' is recovered via git-archaeology), with every reference to a deleted id scrubbed so there is ZERO dangling (no-dangling satisfied by full excision, not tombstone-entities). Overrides generic supersede-don't-discard / archive-not-delete advice.",
+      "directive": "The doc/decision stores and live source/docs tree hold ONLY current truth: no superseded entities, history copies, tombstones, or readable archive directories. After successor extraction and independent review, retired/legacy/superseded artifacts are deleted from candidate HEAD through a protected PR; Git object history is the sole content store and neutral closure receipts record predecessor blob OID plus digest. Every active reference to the deleted artifact is scrubbed so no dangling read path remains.",
       "applies_when": "delete",
       "authority": "founder",
       "body_ref": "obsidian://decisions/canon#D-SSOT-CURRENT-TRUTH",
@@ -314,7 +314,7 @@
         ],
         "related": [
           "no-shadow-docs",
-          "ideas-14-day-promote-or-archive"
+          "ideas-14-day-promote-or-retire"
         ]
       }
     },
@@ -337,7 +337,7 @@
       }
     },
     {
-      "key": "ideas-14-day-promote-or-archive",
+      "key": "ideas-14-day-promote-or-retire",
       "scope": "all-agents",
       "category": "discipline",
       "title": "IDEAS are transient — promote or destroy within 14 days",
@@ -376,7 +376,7 @@
       "scope": "all-agents",
       "category": "discipline",
       "title": "Worth-documenting => worth-reading => must be reachable from masterplan/workflow",
-      "directive": "If something is worth documenting it is worth reading, and therefore MUST be reachable from the masterplan / workflow. Unreachable docs are archived or destroyed. Generation must also emit/point-to the must-read session-context bundle a fresh session needs (operational instructions, not just decisions).",
+      "directive": "If something is worth documenting it is worth reading, and therefore MUST be reachable from the masterplan / workflow. Unreachable docs are reported for salvage review and then either re-anchored or deleted from candidate HEAD with neutral predecessor Git object receipts; they are never moved into a readable current-tree archive. Generation must also emit/point-to the must-read session-context bundle a fresh session needs (operational instructions, not just decisions).",
       "applies_when": "author",
       "authority": "founder",
       "body_ref": "obsidian://decisions/canon#D1",
@@ -394,7 +394,7 @@
       "scope": "all-agents",
       "category": "verification",
       "title": "Total accounting — every file/doc/folder owned, justified, reachable, TTL'd",
-      "directive": "Every file, doc, and folder MUST be accounted-for AND justified: owner + justification (-> decision/need) + reachability (-> masterplan) + staleness policy (TTL). Unaccounted/unjustified content blocks or auto-archives. Prefer generated-not-hand-maintained.",
+      "directive": "Every file, doc, and folder MUST be accounted-for AND justified: owner + justification (-> decision/need) + reachability (-> masterplan) + staleness policy (TTL). Unaccounted or unjustified content blocks and enters non-actuating retirement review; automation never moves or deletes it. Prefer generated-not-hand-maintained.",
       "applies_when": "author",
       "authority": "founder",
       "body_ref": "obsidian://decisions/canon#D-DOCTRINE",
@@ -412,7 +412,7 @@
       "scope": "all-agents",
       "category": "verification",
       "title": "Staleness policy (TTL) on every artifact; the reaper enforces it",
-      "directive": "Every artifact declares a staleness policy (TTL). The staleness-reaper gate flags/auto-archives aged or stale-referenced artifacts. Stale references to retired symbols/ids are caught at the doc-class level. Keep current; let the reaper prevent regression to sprawl.",
+      "directive": "Every artifact declares a staleness policy (TTL). The staleness-reaper reports aged or stale-referenced artifacts without moving or deleting them. A reviewed protected PR may re-anchor or delete from candidate HEAD with predecessor Git blob OID and SHA-256 receipts; readable archive directories and tombstone copies are forbidden. Stale references to retired symbols/ids are caught at the doc-class level.",
       "applies_when": "always",
       "authority": "doctrine",
       "body_ref": "obsidian://decisions/canon#D-DOCTRINE",
@@ -421,7 +421,7 @@
           "total-accounting"
         ],
         "related": [
-          "ideas-14-day-promote-or-archive"
+          "ideas-14-day-promote-or-retire"
         ]
       }
     },
@@ -642,7 +642,7 @@
       "scope": "verifier",
       "category": "verification",
       "title": "Verify nothing worth preserving is dropped (no baby-with-bathwater)",
-      "directive": "When dropping/archiving/declining content, verify that nothing genuinely worth preserving is lost. A dropped/ARCHIVE/declined item that holds genuinely-worth-preserving substance is flagged for salvage BEFORE the drop. Pair every aggressive deletion with this no-baby-with-bathwater check.",
+      "directive": "Before retiring, deleting, or declining content, verify that no current obligation or genuinely valuable substance is lost. Extract any current truth into its accepted successor before deletion. Preserve provenance as neutral predecessor Git object OID and digest receipts, never as a readable current-tree tombstone.",
       "applies_when": "delete",
       "authority": "founder",
       "body_ref": "obsidian://decisions/canon#D-AUTHORITY-CONVERSATION",

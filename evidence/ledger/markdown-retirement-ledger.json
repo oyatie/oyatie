@@ -31,7 +31,7 @@
       "migration_date": "2026-05-13",
       "retirement_phase": "PHASE-1-PATTERN-PROVE",
       "commit_sha": "pending-this-commit",
-      "replacement_notes": "Wave 7 v1.0.0 was draft (not Accepted); .md deleted; .json instance follows the same pattern as Wave 6 in a next slice. Defer-with-anchor (not silent loss): plan content captured in source_md_archived_at git history.",
+      "replacement_notes": "Wave 7 v1.0.0 was draft (not Accepted); .md deleted; .json instance follows the same pattern as Wave 6 in a next slice. Defer-with-anchor (not silent loss): predecessor content remains only in authorized Git object history; closure should record its blob OID and digest without reproducing content.",
       "consolidation_action": "none"
     },
     {

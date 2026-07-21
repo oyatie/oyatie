@@ -193,9 +193,11 @@ The Phase-0 false-green firewall is the substrate that makes merge-gate enforcem
      born-blocking §5.2 verdict.
    - **GATE-2 total-accounting** — `unaccounted`, `unowned`, `unjustified`, `unreachable`,
      `no_ttl_class`, `registry_drift`.
-   - **GATE-3 staleness-reaper** — REPORTS, never reaps (`report → git mv → _archive/`,
-     second-verifier-gated, **never `rm`**): `stale_over_budget_unreachable`, `untyped_staleness`,
-     `reap_without_report`.
+   - **GATE-3 staleness-reaper** — REPORTS, never moves or deletes. A separately reviewed
+     protected PR either re-anchors the artifact or deletes it from candidate HEAD while recording
+     neutral predecessor Git blob OID and SHA-256 receipts. Protected classes are never retirement
+     candidates; readable archive directories, tombstone copies, and tracked retirement markers are
+     frozen-empty violations (`readable_archive_path`, `retired_row_still_tracked`).
    - **GATE-4 automation-ratchet** — polices the *other* gates (anything enforceable/automatable must
      be a wired Rust gate, never a CLI call, never an unwired surface that *claims* to enforce):
      `advisory_claiming_enforced`, `blocking_invariant_mapped_to_oya_cli`, `ratchet_regression`,

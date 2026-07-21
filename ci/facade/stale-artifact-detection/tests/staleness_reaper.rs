@@ -123,7 +123,7 @@ fn staleness_reaper_fixtures_execute_red_green_cases() {
     );
 }
 
-/// Born-blocking self-test: GATE-3 must REPORT over-budget AND unreachable archive
+/// Born-blocking self-test: GATE-3 must REPORT over-budget AND unreachable retirement
 /// candidates on TODAY's real corpus. Per the firewall doctrine, "a firewall that doesn't
 /// block today is the facade we're killing." This ages the live registry rows from the
 /// UNTRACKED scm-volatile-facts snapshot (ADR-0552: history-derived aging data is
@@ -165,7 +165,7 @@ fn gate3_is_born_blocking_on_the_live_corpus() {
         if let Value::Object(map) = &mut aged {
             map.insert("age_days".into(), json!(age_days));
         }
-        // Count the real archive candidates (the evidence digest).
+        // Count the real retirement-review candidates (the evidence digest).
         let ttl = &row["ttl"];
         let budget = ttl["budget_days"].as_u64();
         let protected = ttl["protected"].as_bool() == Some(true);
@@ -186,7 +186,7 @@ fn gate3_is_born_blocking_on_the_live_corpus() {
     let report = evaluate(&json!({"rows": aged_rows}));
 
     eprintln!(
-        "BORN-BLOCKING live-corpus counts: total_rows={} now_secs={} archive_candidates(over-budget+unreachable+unprotected)={} violations={:?}",
+        "BORN-BLOCKING live-corpus counts: total_rows={} now_secs={} retirement_candidates(over-budget+unreachable+unprotected)={} violations={:?}",
         rows.len(),
         now_secs,
         candidate_count,
@@ -204,7 +204,7 @@ fn gate3_is_born_blocking_on_the_live_corpus() {
     );
     assert!(
         candidate_count > 0,
-        "the live corpus must surface at least one over-budget unreachable archive candidate"
+        "the live corpus must surface at least one over-budget unreachable retirement candidate"
     );
 }
 
@@ -212,8 +212,7 @@ fn gate3_is_born_blocking_on_the_live_corpus() {
 /// provided by `OYA_CI_PRODUCER_BIN`; missing env fails closed so tests cannot silently fall back to
 /// Cargo. The producer reads the materialized scm-facts face (a declared input); it never calls git.
 fn run_producer_face(root: &Path, face: &str) -> Value {
-    let scm_facts = root
-        .join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
+    let scm_facts = root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
     let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
     let bin = producer_binary(root, producer_bin.as_deref()).unwrap_or_else(|e| panic!("{e}"));
     let output = Command::new(bin)
@@ -258,9 +257,7 @@ fn volatile_commit_author_timestamps(volatile: &Value) -> BTreeMap<String, u64> 
 /// FAIL-CLOSED: a missing snapshot is a hard failure naming the exact materialization
 /// command — the gate must never silently age rows from nothing.
 fn volatile_facts_value(root: &Path) -> Value {
-    let path = root.join(
-        "ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json",
-    );
+    let path = root.join("ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json");
     let text = fs::read_to_string(&path).unwrap_or_else(|e| {
         panic!(
             "FAIL-CLOSED: scm-volatile-facts snapshot missing at {} ({e}). History-derived \
