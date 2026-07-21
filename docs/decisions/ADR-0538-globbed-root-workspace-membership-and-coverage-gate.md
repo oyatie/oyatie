@@ -56,23 +56,30 @@ exclude = [
 ]
 ```
 
-Every parser, gate, or tool that needs concrete root workspace members MUST call
-`libs/oya-workspace-members-kernel::resolve_member_dirs(repo_root)` rather than reading
-`[workspace].members` text directly. The kernel expands single-component `*` and partial-component
-patterns, requires a matched directory to contain `Cargo.toml`, and applies `exclude` to the whole
-subtree.
+Consumers requiring a Cargo-valid concrete member set MUST call
+`libs/oya-workspace-members-kernel::resolve_member_dirs(repo_root)`. Diagnostic gate producers that
+must preserve every invalid glob match MUST call
+`libs/oya-workspace-members-kernel::scan_member_dirs(repo_root)`. Neither consumer category may
+reimplement `[workspace].members` expansion. The kernel expands single-component `*` and
+partial-component patterns, follows matched directory symlinks like Cargo, skips Cargo-unmatched
+dangling and cyclic symlinks, fails closed on other glob-expansion I/O errors, fails when an
+unexcluded matched directory lacks `Cargo.toml`, and applies each reviewed explicit `exclude` to
+the whole subtree before manifest validation.
 
 The cloud-ci floor adds one single-concern gate,
 `ci/facade/workspace-member-coverage`, with stable violation codes:
 
 - `workspace_member_explicit_path`: a root workspace member entry is not a glob.
+- `workspace_member_missing_manifest`: an unexcluded concrete member-glob match does not contain
+  `Cargo.toml` and would make Cargo reject the workspace.
 - `crate_dir_not_covered`: a tracked first-party package manifest directory is neither covered by
   the resolved member set nor explicitly excluded.
 
 The accounting-registry producer emits the gate face rows:
-`{member_entry,is_glob}` for every raw member entry and `{crate_dir,covered,excluded}` for every
-eligible crate manifest directory. The evaluator itself is pure policy over booleans: no filesystem
-access, no Cargo invocation, and no duplicated glob expansion.
+`{member_entry,is_glob}` for every raw member entry, `{member_match,has_manifest}` for every invalid
+unexcluded concrete glob match, and `{crate_dir,covered,excluded}` for every eligible crate manifest
+directory. The evaluator itself is pure policy over booleans: no filesystem access, no Cargo
+invocation, and no duplicated glob expansion.
 
 ## Consequences
 

@@ -16,7 +16,7 @@
 //! # Semantics (mirror Cargo's own member-glob behavior)
 //!
 //! * Each `*` matches exactly one path component; `*` never matches `/`.
-//! * A matched directory is a member only if it contains a `Cargo.toml`.
+//! * An unexcluded matched directory without `Cargo.toml` is an error, just as it is for Cargo.
 //! * `exclude` entries remove a directory and everything beneath it from the match set
 //!   (this is how the `cloud/cloud-kernel` nested `no_std` workspace stays out of the
 //!   root workspace even though `cloud/*/crates/*` would otherwise sweep its crates in).
@@ -34,6 +34,15 @@ pub struct WorkspaceManifestEntries {
     pub exclude: Vec<String>,
 }
 
+/// Cargo-faithful expansion diagnostics for root workspace member globs.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct WorkspaceMemberScan {
+    /// Valid member directories, sorted and de-duplicated.
+    pub member_dirs: Vec<String>,
+    /// Unexcluded glob matches that do not contain `Cargo.toml`, sorted and de-duplicated.
+    pub missing_manifests: Vec<String>,
+}
+
 /// Failure resolving the workspace member set.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ResolveError {
@@ -43,6 +52,10 @@ pub enum ResolveError {
     Parse(String),
     /// The manifest is missing a required `[workspace]` shape.
     Shape(String),
+    /// A filesystem path needed for member-glob expansion could not be inspected.
+    InspectMemberPath { path: String, message: String },
+    /// One or more unexcluded member-glob matches do not contain `Cargo.toml`.
+    MissingManifests(Vec<String>),
 }
 
 impl std::fmt::Display for ResolveError {
@@ -51,6 +64,14 @@ impl std::fmt::Display for ResolveError {
             ResolveError::Read(message) => write!(f, "read workspace manifest: {message}"),
             ResolveError::Parse(message) => write!(f, "parse workspace manifest: {message}"),
             ResolveError::Shape(message) => write!(f, "workspace manifest shape: {message}"),
+            ResolveError::InspectMemberPath { path, message } => {
+                write!(f, "inspect workspace member path {path}: {message}")
+            }
+            ResolveError::MissingManifests(paths) => write!(
+                f,
+                "workspace member glob matched directories without Cargo.toml: {}",
+                paths.join(", ")
+            ),
         }
     }
 }
@@ -62,12 +83,24 @@ impl std::error::Error for ResolveError {}
 ///
 /// Returns repo-relative, forward-slash directory paths (e.g. `libs/oya-foo-kernel`),
 /// sorted and de-duplicated. Each returned directory is guaranteed to contain a
-/// `Cargo.toml` and to NOT live under any `[workspace].exclude` entry.
+/// `Cargo.toml` and to NOT live under any `[workspace].exclude` entry. Returns
+/// [`ResolveError::MissingManifests`] when an unexcluded glob match has no manifest.
 pub fn resolve_member_dirs(repo_root: &Path) -> Result<Vec<String>, ResolveError> {
     let manifest_path = repo_root.join("Cargo.toml");
     let text = std::fs::read_to_string(&manifest_path)
         .map_err(|error| ResolveError::Read(format!("{}: {error}", manifest_path.display())))?;
     resolve_member_dirs_from_str(&text, repo_root)
+}
+
+/// Scan concrete member-glob matches while retaining missing-manifest diagnostics.
+///
+/// Gate producers use this surface to emit every invalid match as policy input. Ordinary callers
+/// should use [`resolve_member_dirs`], which fails closed when `missing_manifests` is non-empty.
+pub fn scan_member_dirs(repo_root: &Path) -> Result<WorkspaceMemberScan, ResolveError> {
+    let manifest_path = repo_root.join("Cargo.toml");
+    let text = std::fs::read_to_string(&manifest_path)
+        .map_err(|error| ResolveError::Read(format!("{}: {error}", manifest_path.display())))?;
+    scan_member_dirs_from_str(&text, repo_root)
 }
 
 /// Read the raw root `[workspace].members` and `[workspace].exclude` string arrays from
@@ -97,20 +130,41 @@ pub fn resolve_member_dirs_from_str(
     manifest_text: &str,
     repo_root: &Path,
 ) -> Result<Vec<String>, ResolveError> {
+    let scan = scan_member_dirs_from_str(manifest_text, repo_root)?;
+    if scan.missing_manifests.is_empty() {
+        Ok(scan.member_dirs)
+    } else {
+        Err(ResolveError::MissingManifests(scan.missing_manifests))
+    }
+}
+
+/// As [`scan_member_dirs`] but with the manifest text already in hand.
+pub fn scan_member_dirs_from_str(
+    manifest_text: &str,
+    repo_root: &Path,
+) -> Result<WorkspaceMemberScan, ResolveError> {
     let document: toml::Value =
         toml::from_str(manifest_text).map_err(|error| ResolveError::Parse(error.to_string()))?;
     let entries = parse_manifest_entries(&document)?;
 
     let mut resolved: BTreeSet<String> = BTreeSet::new();
+    let mut missing_manifests: BTreeSet<String> = BTreeSet::new();
     for pattern in &entries.members {
-        for dir in expand_pattern(repo_root, pattern) {
+        for dir in expand_pattern(repo_root, pattern, &entries.exclude)? {
             if is_excluded(&dir, &entries.exclude) {
                 continue;
             }
-            resolved.insert(dir);
+            if repo_root.join(&dir).join("Cargo.toml").is_file() {
+                resolved.insert(dir);
+            } else {
+                missing_manifests.insert(dir);
+            }
         }
     }
-    Ok(resolved.into_iter().collect())
+    Ok(WorkspaceMemberScan {
+        member_dirs: resolved.into_iter().collect(),
+        missing_manifests: missing_manifests.into_iter().collect(),
+    })
 }
 
 fn parse_manifest_entries(
@@ -122,7 +176,12 @@ fn parse_manifest_entries(
         .ok_or_else(|| ResolveError::Shape("missing [workspace] table".to_string()))?;
     let members = string_array(workspace.get("members"))
         .ok_or_else(|| ResolveError::Shape("missing [workspace].members array".to_string()))?;
-    let exclude = string_array(workspace.get("exclude")).unwrap_or_default();
+    let exclude = match workspace.get("exclude") {
+        Some(value) => string_array(Some(value)).ok_or_else(|| {
+            ResolveError::Shape("[workspace].exclude must be an array of strings".to_string())
+        })?,
+        None => Vec::new(),
+    };
     Ok(WorkspaceManifestEntries { members, exclude })
 }
 
@@ -180,42 +239,110 @@ pub fn member_entries_cover_dir(entries: &WorkspaceManifestEntries, dir: &str) -
         && !is_excluded(dir, &entries.exclude)
 }
 
-/// Expand one `members` pattern into the repo-relative directories that contain a
-/// `Cargo.toml`. A path component may be a literal (`libs`), a bare wildcard (`*`), or a
+/// Expand one `members` pattern into all matching repo-relative directories. A path component may
+/// be a literal (`libs`), a bare wildcard (`*`), or a
 /// partial wildcard (`oya-*`). A `*` never spans `/`; each component is matched
 /// independently against one directory level, mirroring Cargo's `glob`-crate semantics.
-fn expand_pattern(repo_root: &Path, pattern: &str) -> Vec<String> {
+fn expand_pattern(
+    repo_root: &Path,
+    pattern: &str,
+    exclude: &[String],
+) -> Result<Vec<String>, ResolveError> {
     let segments: Vec<&str> = pattern.split('/').filter(|s| !s.is_empty()).collect();
     let mut frontier: Vec<PathBuf> = vec![PathBuf::new()];
     for segment in segments {
         let mut next: Vec<PathBuf> = Vec::new();
         for base in &frontier {
             if segment.contains('*') {
-                if let Ok(entries) = std::fs::read_dir(repo_root.join(base)) {
-                    for entry in entries.flatten() {
-                        if !entry.file_type().map(|t| t.is_dir()).unwrap_or(false) {
-                            continue;
-                        }
-                        let name = entry.file_name();
-                        if segment_matches(segment, &name.to_string_lossy()) {
-                            next.push(base.join(&name));
-                        }
+                let parent = repo_root.join(base);
+                let entries = std::fs::read_dir(&parent)
+                    .map_err(|error| inspect_member_path_error(&parent, error))?;
+                for entry in entries {
+                    let entry = entry.map_err(|error| inspect_member_path_error(&parent, error))?;
+                    let name = entry.file_name();
+                    if !segment_matches(segment, &name.to_string_lossy()) {
+                        continue;
                     }
+                    let candidate = base.join(&name);
+                    if is_excluded(&relative_path_string(&candidate), exclude) {
+                        continue;
+                    }
+                    let entry_path = repo_root.join(&candidate);
+                    let file_type = entry
+                        .file_type()
+                        .map_err(|error| inspect_member_path_error(&entry_path, error))?;
+                    let is_directory = if file_type.is_dir() {
+                        true
+                    } else if file_type.is_symlink() {
+                        match std::fs::metadata(&entry_path) {
+                            Ok(metadata) => metadata.is_dir(),
+                            Err(error) if cargo_skips_symlink_target_error(&error) => false,
+                            Err(error) => {
+                                return Err(inspect_member_path_error(&entry_path, error));
+                            }
+                        }
+                    } else {
+                        false
+                    };
+                    if !is_directory {
+                        continue;
+                    }
+                    next.push(candidate);
                 }
             } else {
                 let candidate = base.join(segment);
-                if repo_root.join(&candidate).is_dir() {
-                    next.push(candidate);
+                if is_excluded(&relative_path_string(&candidate), exclude) {
+                    continue;
+                }
+                let candidate_path = repo_root.join(&candidate);
+                match std::fs::metadata(&candidate_path) {
+                    Ok(metadata) if metadata.is_dir() => next.push(candidate),
+                    Ok(_) => {}
+                    Err(error) if cargo_skips_symlink_target_error(&error) => {}
+                    Err(error) => {
+                        return Err(inspect_member_path_error(&candidate_path, error));
+                    }
                 }
             }
         }
         frontier = next;
     }
-    frontier
+    Ok(frontier
         .into_iter()
-        .filter(|relative| repo_root.join(relative).join("Cargo.toml").is_file())
-        .map(|relative| relative.to_string_lossy().replace('\\', "/"))
-        .collect()
+        .map(|relative| relative_path_string(&relative))
+        .collect())
+}
+
+fn relative_path_string(path: &Path) -> String {
+    path.to_string_lossy().replace('\\', "/")
+}
+
+fn inspect_member_path_error(path: &Path, error: std::io::Error) -> ResolveError {
+    ResolveError::InspectMemberPath {
+        path: path.display().to_string(),
+        message: error.to_string(),
+    }
+}
+
+/// Cargo's member-glob expansion treats dangling and cyclic symlinks as unmatched paths.
+/// Other inspection failures remain hard errors so an incomplete member scan cannot go green.
+fn cargo_skips_symlink_target_error(error: &std::io::Error) -> bool {
+    if error.kind() == std::io::ErrorKind::NotFound {
+        return true;
+    }
+
+    // `ErrorKind::FilesystemLoop` remains unstable on the pinned toolchain, so recognize the
+    // platform error codes returned by metadata(2) / CreateFile for a cyclic symlink.
+    #[cfg(unix)]
+    if matches!(error.raw_os_error(), Some(40 | 62)) {
+        return true;
+    }
+    #[cfg(windows)]
+    if error.raw_os_error() == Some(1921) {
+        return true;
+    }
+
+    false
 }
 
 /// Match one path component against a single-segment glob containing zero or more `*`
@@ -280,10 +407,7 @@ mod tests {
         std::fs::create_dir_all(&dir).expect("create crate dir");
         std::fs::write(
             dir.join("Cargo.toml"),
-            format!(
-                "[package]\nname = \"{}\"\n",
-                relative.replace('/', "-")
-            ),
+            format!("[package]\nname = \"{}\"\n", relative.replace('/', "-")),
         )
         .expect("write Cargo.toml");
     }
@@ -301,16 +425,16 @@ mod tests {
     }
 
     #[test]
-    fn star_matches_one_component_and_requires_cargo_toml() {
+    fn star_matches_one_component_and_honors_non_crate_excludes() {
         let root = fixture_root();
         make_crate(&root, "libs/oya-a-kernel");
         make_crate(&root, "libs/oya-b-kernel");
-        // A directory under libs/ WITHOUT a Cargo.toml is not a member.
+        // An explicitly excluded directory under libs/ does not need a Cargo.toml.
         std::fs::create_dir_all(root.join("libs/not-a-crate")).unwrap();
         // A crate one level deeper must NOT be swept by the single-`*` glob.
         make_crate(&root, "libs/group/oya-nested-kernel");
 
-        let manifest = root_manifest(&["libs/*"], &[]);
+        let manifest = root_manifest(&["libs/*"], &["libs/not-a-crate", "libs/group"]);
         let resolved = resolve_member_dirs_from_str(&manifest, &root).expect("resolve");
 
         assert_eq!(
@@ -320,6 +444,117 @@ mod tests {
                 "libs/oya-b-kernel".to_string()
             ]
         );
+    }
+
+    #[test]
+    fn diagnostic_scan_reports_every_unexcluded_missing_manifest() {
+        let root = fixture_root();
+        std::fs::create_dir_all(root.join("comms/messenger/chaos"))
+            .expect("create non-crate member match");
+        std::fs::create_dir_all(root.join("comms/messenger/resilience"))
+            .expect("create second non-crate member match");
+        std::fs::create_dir_all(root.join("comms/messenger/fixtures"))
+            .expect("create excluded non-crate member match");
+
+        let manifest = root_manifest(&["comms/*/*"], &["comms/messenger/fixtures"]);
+        let scan = scan_member_dirs_from_str(&manifest, &root).expect("scan diagnostics");
+        assert!(scan.member_dirs.is_empty());
+        assert_eq!(
+            scan.missing_manifests,
+            vec![
+                "comms/messenger/chaos".to_owned(),
+                "comms/messenger/resilience".to_owned(),
+            ]
+        );
+
+        let error = resolve_member_dirs_from_str(&manifest, &root)
+            .expect_err("Cargo rejects an unexcluded member-glob match without Cargo.toml");
+
+        assert_eq!(
+            error,
+            ResolveError::MissingManifests(vec![
+                "comms/messenger/chaos".to_owned(),
+                "comms/messenger/resilience".to_owned(),
+            ])
+        );
+    }
+
+    #[test]
+    fn explicit_exclude_suppresses_non_manifest_glob_match() {
+        let root = fixture_root();
+        std::fs::create_dir_all(root.join("comms/messenger/chaos"))
+            .expect("create excluded non-crate member match");
+
+        let manifest = root_manifest(&["comms/*/*"], &["comms/messenger/chaos"]);
+        let resolved = resolve_member_dirs_from_str(&manifest, &root).expect("resolve");
+
+        assert!(resolved.is_empty());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn wildcard_includes_directory_symlink_like_cargo() {
+        use std::os::unix::fs::symlink;
+
+        let root = fixture_root();
+        make_crate(&root, "real");
+        std::fs::create_dir_all(root.join("libs")).unwrap();
+        symlink("../real", root.join("libs/link")).unwrap();
+
+        let manifest = root_manifest(&["libs/*"], &[]);
+        let resolved = resolve_member_dirs_from_str(&manifest, &root).expect("resolve symlink");
+
+        assert_eq!(resolved, vec!["libs/link".to_owned()]);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn wildcard_reports_directory_symlink_missing_manifest_like_cargo() {
+        use std::os::unix::fs::symlink;
+
+        let root = fixture_root();
+        std::fs::create_dir_all(root.join("real")).unwrap();
+        std::fs::create_dir_all(root.join("libs")).unwrap();
+        symlink("../real", root.join("libs/link")).unwrap();
+
+        let manifest = root_manifest(&["libs/*"], &[]);
+        let scan = scan_member_dirs_from_str(&manifest, &root).expect("scan symlink");
+
+        assert!(scan.member_dirs.is_empty());
+        assert_eq!(scan.missing_manifests, vec!["libs/link".to_owned()]);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn wildcard_exclude_precedes_directory_symlink_manifest_check() {
+        use std::os::unix::fs::symlink;
+
+        let root = fixture_root();
+        std::fs::create_dir_all(root.join("real")).unwrap();
+        std::fs::create_dir_all(root.join("libs")).unwrap();
+        symlink("../real", root.join("libs/link")).unwrap();
+
+        let manifest = root_manifest(&["libs/*"], &["libs/link"]);
+        let scan = scan_member_dirs_from_str(&manifest, &root).expect("scan excluded symlink");
+
+        assert!(scan.member_dirs.is_empty());
+        assert!(scan.missing_manifests.is_empty());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn wildcard_skips_dangling_symlink_like_cargo() {
+        use std::os::unix::fs::symlink;
+
+        let root = fixture_root();
+        std::fs::create_dir_all(root.join("libs")).unwrap();
+        symlink("../missing", root.join("libs/link")).unwrap();
+
+        let manifest = root_manifest(&["libs/*"], &[]);
+        let scan = scan_member_dirs_from_str(&manifest, &root).expect("scan dangling symlink");
+
+        assert!(scan.member_dirs.is_empty());
+        assert!(scan.missing_manifests.is_empty());
     }
 
     #[test]
@@ -401,10 +636,7 @@ mod tests {
         let entries = workspace_manifest_entries_from_str(&manifest).expect("entries");
         assert_eq!(
             entries.members,
-            vec![
-                "libs/oya-*".to_owned(),
-                "cloud/*/crates/oya-*".to_owned()
-            ]
+            vec!["libs/oya-*".to_owned(), "cloud/*/crates/oya-*".to_owned()]
         );
         assert_eq!(entries.exclude, vec!["cloud/cloud-kernel".to_owned()]);
     }
@@ -418,12 +650,74 @@ mod tests {
     }
 
     #[test]
+    fn malformed_root_manifest_is_a_parse_error() {
+        let root = fixture_root();
+        let error = scan_member_dirs_from_str("[workspace\nmembers = []\n", &root)
+            .expect_err("must reject malformed root manifest");
+        assert!(matches!(error, ResolveError::Parse(_)));
+    }
+
+    #[test]
+    fn malformed_exclude_is_a_shape_error() {
+        let root = fixture_root();
+        let error = scan_member_dirs_from_str(
+            "[workspace]\nmembers = []\nexclude = \"libs/skip\"\n",
+            &root,
+        )
+        .expect_err("must reject a non-array [workspace].exclude value");
+
+        assert!(matches!(error, ResolveError::Shape(_)));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn symlink_loops_are_skipped_like_cargo_for_glob_and_literal_members() {
+        use std::os::unix::fs::symlink;
+
+        let root = fixture_root();
+        symlink("loop", root.join("loop")).unwrap();
+
+        for member in ["*", "loop"] {
+            let manifest =
+                format!("[workspace]\nmembers = [\"{member}\"]\nexclude = []\nresolver = \"2\"\n");
+            let scan = scan_member_dirs_from_str(&manifest, &root)
+                .expect("Cargo skips a self-referential symlink member");
+
+            assert!(scan.member_dirs.is_empty(), "member pattern: {member}");
+            assert!(
+                scan.missing_manifests.is_empty(),
+                "member pattern: {member}"
+            );
+        }
+    }
+
+    #[test]
+    fn expansion_read_dir_errors_fail_closed() {
+        let root = fixture_root();
+        let not_a_directory = root.join("not-a-directory");
+        std::fs::write(&not_a_directory, "fixture").unwrap();
+
+        let result = scan_member_dirs_from_str(
+            "[workspace]\nmembers = [\"*\"]\nexclude = []\n",
+            &not_a_directory,
+        );
+
+        assert!(
+            matches!(&result, Err(ResolveError::InspectMemberPath { .. })),
+            "a member directory read error must fail closed: {result:?}"
+        );
+    }
+
+    #[test]
     fn pattern_covers_dir_honors_per_component_glob_semantics() {
         // A narrowed leaf glob covers a matching leaf, never a sibling that fails the prefix.
         assert!(pattern_covers_dir("libs/oya-*", "libs/oya-foo-kernel"));
         assert!(!pattern_covers_dir("libs/oya-*", "libs/registry-drift"));
         // `*` never spans `/`: a 2-segment glob cannot cover a 3-segment dir.
-        assert!(!pattern_covers_dir("libs/*", "libs/group/oya-nested-kernel"));
+        assert!(!pattern_covers_dir(
+            "libs/*",
+            "libs/group/oya-nested-kernel"
+        ));
         // A 3-segment capability glob covers a 3-segment face/leaf dir.
         assert!(pattern_covers_dir("messaging/*/*", "messaging/core/domain"));
         assert!(!pattern_covers_dir("messaging/*/*", "messaging/core"));
