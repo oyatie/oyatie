@@ -7,6 +7,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
 
+const LEGACY_AMENDMENT_EDGES: &str = include_str!("../legacy-amendment-edges.tsv");
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AdrDecisionRecord {
     pub number: u16,                        // data_class: INTERNAL_ONLY
@@ -94,12 +96,22 @@ pub fn read_adr_decision_records(
         .iter()
         .map(|path| read_adr_decision_record(path))
         .collect::<Result<Vec<_>, _>>()?;
+    if is_live_oyatie_decisions_dir(decisions_dir) {
+        validate_legacy_baseline(&records)?;
+    }
     validate_lifecycle(&records)?;
     Ok(records)
 }
 
 fn source_read(reason: String) -> AdrIndexError {
     AdrIndexError::SourceRead { reason }
+}
+
+fn is_live_oyatie_decisions_dir(decisions_dir: &Path) -> bool {
+    decisions_dir
+        .parent()
+        .and_then(Path::parent)
+        .is_some_and(|root| root.join("specs/root-hub-pointers.json").is_file())
 }
 
 pub fn generate_adr_index<I>(records: I) -> Result<AdrIndexArtifacts, AdrIndexError>
@@ -202,11 +214,13 @@ fn validate_record(record: &AdrDecisionRecord) -> Result<(), AdrIndexError> {
 
 fn validate_lifecycle(records: &[AdrDecisionRecord]) -> Result<(), AdrIndexError> {
     const RECIPROCAL_ACCEPTED_V1: &str = "reciprocal-accepted-v1";
+    let frozen_legacy_edges = frozen_legacy_edges()?;
     let by_id = records
         .iter()
         .map(|record| (record.id.as_str(), record))
         .collect::<BTreeMap<_, _>>();
     for record in records {
+        validate_edge_contracts(record, &frozen_legacy_edges)?;
         let Some(contract) = record.lifecycle_contract.as_deref() else {
             continue;
         };
@@ -248,6 +262,102 @@ fn validate_lifecycle(records: &[AdrDecisionRecord]) -> Result<(), AdrIndexError
         }
     }
     Ok(())
+}
+
+fn validate_legacy_baseline(records: &[AdrDecisionRecord]) -> Result<(), AdrIndexError> {
+    let frozen_legacy_edges = frozen_legacy_edges()?;
+    let actual_legacy_edges = records
+        .iter()
+        .filter(|record| record.lifecycle_contract.is_none())
+        .flat_map(amendment_edges)
+        .collect::<BTreeSet<_>>();
+    if actual_legacy_edges == frozen_legacy_edges {
+        return Ok(());
+    }
+    Err(lifecycle_error(
+        "legacy-amendment-edges",
+        format!(
+            "frozen legacy relationship-edge baseline drift: missing={:?}; unexpected={:?}",
+            frozen_legacy_edges
+                .difference(&actual_legacy_edges)
+                .collect::<Vec<_>>(),
+            actual_legacy_edges
+                .difference(&frozen_legacy_edges)
+                .collect::<Vec<_>>()
+        ),
+    ))
+}
+
+fn validate_edge_contracts(
+    record: &AdrDecisionRecord,
+    frozen_legacy_edges: &BTreeSet<AmendmentEdge>,
+) -> Result<(), AdrIndexError> {
+    for edge in amendment_edges(record) {
+        if frozen_legacy_edges.contains(&edge) {
+            continue;
+        }
+        if record.lifecycle_contract.is_some() {
+            continue;
+        }
+        return Err(lifecycle_error(
+            &record.id,
+            format!(
+                "new or changed {} endpoint {} must declare lifecycle_contract reciprocal-accepted-v1",
+                edge.field, edge.endpoint
+            ),
+        ));
+    }
+    Ok(())
+}
+
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+struct AmendmentEdge {
+    source: String,
+    field: &'static str,
+    endpoint: String,
+}
+
+fn amendment_edges(record: &AdrDecisionRecord) -> impl Iterator<Item = AmendmentEdge> + '_ {
+    record
+        .amends
+        .iter()
+        .map(|endpoint| AmendmentEdge {
+            source: record.id.clone(),
+            field: "amends",
+            endpoint: endpoint.clone(),
+        })
+        .chain(record.amended_by.iter().map(|endpoint| AmendmentEdge {
+            source: record.id.clone(),
+            field: "amended_by",
+            endpoint: endpoint.clone(),
+        }))
+}
+
+fn frozen_legacy_edges() -> Result<BTreeSet<AmendmentEdge>, AdrIndexError> {
+    LEGACY_AMENDMENT_EDGES
+        .lines()
+        .filter(|line| !line.is_empty() && !line.starts_with('#'))
+        .map(|line| {
+            let mut cells = line.split('\t');
+            let (Some(source), Some(field), Some(endpoint), None) =
+                (cells.next(), cells.next(), cells.next(), cells.next())
+            else {
+                return Err(source_read(format!(
+                    "invalid frozen legacy amendment edge {line:?}"
+                )));
+            };
+            if !matches!(field, "amends" | "amended_by") {
+                return Err(source_read(format!(
+                    "invalid frozen legacy amendment field {field:?}"
+                )));
+            }
+            Ok(AmendmentEdge {
+                source: source.to_owned(),
+                field,
+                endpoint: endpoint.to_owned(),
+            })
+        })
+        .collect()
 }
 
 fn validate_unique_lifecycle_endpoints(
@@ -347,8 +457,8 @@ fn read_adr_decision_record(path: &Path) -> Result<AdrDecisionRecord, AdrIndexEr
         owner,
         date,
         path: format!("decisions/{file_name}"),
-        supersedes: optional_list_adr_metadata(&metadata, "Supersedes"),
-        superseded_by: optional_list_adr_metadata(&metadata, "Superseded-by"),
+        supersedes: optional_single_adr_metadata(&metadata, "Supersedes"),
+        superseded_by: optional_single_adr_metadata(&metadata, "Superseded-by"),
         amends: optional_list_adr_metadata(&metadata, "Amends"),
         amended_by: optional_list_adr_metadata(&metadata, "Amended-by"),
         lifecycle_contract: metadata.get("Lifecycle-contract").cloned(),
@@ -653,6 +763,15 @@ fn optional_list_adr_metadata(metadata: &BTreeMap<String, String>, key: &str) ->
                 .map(|item| extract_adr_id(item).unwrap_or_else(|| item.to_string()))
                 .collect::<Vec<_>>()
         })
+        .unwrap_or_default()
+}
+
+fn optional_single_adr_metadata(metadata: &BTreeMap<String, String>, key: &str) -> Vec<String> {
+    metadata
+        .get(key)
+        .map(|value| value.trim())
+        .filter(|value| !is_empty_metadata_value(value))
+        .map(|value| vec![value.to_owned()])
         .unwrap_or_default()
 }
 
@@ -1180,6 +1299,20 @@ mod tests {
             generate_adr_index([amender, amended]),
             Err(AdrIndexError::LifecycleViolation { reason, .. })
                 if reason.contains("must be Accepted")
+        ));
+    }
+
+    #[test]
+    fn lifecycle_rejects_bilateral_edge_without_contract_marker() {
+        let mut amender = record(1, "Accepted");
+        amender.amends = vec!["ADR-0002".into()];
+        let mut amended = record(2, "Accepted");
+        amended.amended_by = vec!["ADR-0001".into()];
+
+        assert!(matches!(
+            generate_adr_index([amender, amended]),
+            Err(AdrIndexError::LifecycleViolation { reason, .. })
+                if reason.contains("must declare lifecycle_contract reciprocal-accepted-v1")
         ));
     }
 
