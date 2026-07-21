@@ -402,6 +402,10 @@ fn preplanning_candidate_pr_identity_cannot_move_in_lockstep() {
     evidence["present"]["repository_baseline"]["protected_pr_number"] = serde_json::json!(9999);
     evidence["present"]["repository_baseline"]["protected_pr_url"] =
         serde_json::json!("https://github.com/jason931225/oyatie/pull/9999");
+    evidence["present"]["factual_reconciliation"]["immutable_pull_request_facts"]["number"] =
+        serde_json::json!(9999);
+    evidence["present"]["factual_reconciliation"]["immutable_pull_request_facts"]["url"] =
+        serde_json::json!("https://github.com/jason931225/oyatie/pull/9999");
 
     assert_preplanning_candidate_drift(&masterplan, &evidence);
 }
@@ -413,6 +417,8 @@ fn preplanning_candidate_state_cannot_move_in_lockstep() {
     masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["recorded_candidate_state"] =
         false_state.clone();
     evidence["present"]["repository_baseline"]["candidate_state"] = false_state;
+    evidence["present"]["factual_reconciliation"]["immutable_pull_request_facts"]["candidate_state"] =
+        serde_json::json!("merged-and-all-authority-closed");
 
     assert_preplanning_candidate_drift(&masterplan, &evidence);
 }
@@ -424,6 +430,8 @@ fn preplanning_candidate_claim_ceiling_cannot_move_in_lockstep() {
     masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["claim_ceiling"] =
         false_claim.clone();
     evidence["present"]["repository_baseline"]["claim_ceiling"] = false_claim;
+    evidence["present"]["factual_reconciliation"]["immutable_pull_request_facts"]["claim_ceiling"] =
+        serde_json::json!("PR #1340 closes every authority and product gate.");
 
     assert_preplanning_candidate_drift(&masterplan, &evidence);
 }
