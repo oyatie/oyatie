@@ -698,7 +698,7 @@ fn founder_product_intent_validator_is_fail_closed_for_pipeline_contract_drift()
     let registry = load_json(&root.join("registry/artifact-capabilities-registry.json"));
     let graph = load_json(&root.join("registry/graph/active-artifact-contract-edges.json"));
 
-    let cases: [(&str, JsonMutation); 25] = [
+    let cases: [(&str, JsonMutation); 27] = [
         (
             "missing-work-graph-contract",
             Box::new(|candidate| {
@@ -783,6 +783,25 @@ fn founder_product_intent_validator_is_fail_closed_for_pipeline_contract_drift()
             Box::new(|candidate| {
                 candidate["founder_execution_authorization"]["pipeline_evolution_contract"]["generated_artifact_rule"] =
                     Value::String("generated output is editable cache data".to_owned());
+            }),
+        ),
+        (
+            "demand-driven-execution-bypass-inserted",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]
+                    ["demand_driven_execution_rule"] = Value::String(
+                    "every requested face may evaluate the full universe and ignore unknown dependencies"
+                        .to_owned(),
+                );
+            }),
+        ),
+        (
+            "node-face-resource-evidence-erased",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]
+                    .as_object_mut()
+                    .expect("pipeline evolution contract object")
+                    .remove("node_face_resource_evidence_contract");
             }),
         ),
         (
