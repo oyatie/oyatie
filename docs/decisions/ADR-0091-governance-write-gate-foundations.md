@@ -2,6 +2,7 @@
 id: ADR-0091
 status: accepted
 doc_status: published
+amended_by: [ADR-0565]
 ---
 
 # ADR-0091: Foundry write-gate foundations (Phase 05 contract)

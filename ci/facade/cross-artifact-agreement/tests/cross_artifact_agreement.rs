@@ -1347,6 +1347,74 @@ fn adr_prose_frontmatter_status_agreement_is_advisory_clean_on_live_tree() {
     assert_ratchet_clean(&report, "adr_prose_status_contradiction");
 }
 
+/// ADR-0565 is a one-way, binding API-surface decision.  Its acceptance must
+/// be explicit in the source ADR, propagate reciprocally to every Accepted
+/// ADR it amends, and remove the stale "Proposed" closure blocker from the
+/// sole live masterplan.  This is intentionally a live-corpus contract: the
+/// generated ADR-index parity check below separately proves the projections
+/// came from these source records.
+#[test]
+fn adr_0565_acceptance_and_reciprocal_amendments_are_authoritative() {
+    let root = repo_root();
+    let decisions = root.join("docs/decisions");
+    let adr_0565 = fs::read_to_string(decisions.join(
+        "ADR-0565-zero-graphql-in-the-owned-api-surface.md",
+    ))
+    .expect("read ADR-0565");
+
+    assert!(
+        adr_0565.contains("status: Accepted"),
+        "ADR-0565 must be Accepted before it constrains the owned API surface"
+    );
+    assert!(
+        adr_0565.contains("amends: [ADR-0051, ADR-0066, ADR-0091, ADR-0258]"),
+        "ADR-0565 must explicitly enumerate every Accepted ADR it amends"
+    );
+    assert!(
+        adr_0565.contains("reverses ADR-0565"),
+        "ADR-0565 must retain its Accepted-ADR-only reversal escape hatch"
+    );
+
+    for (id, filename) in [
+        ("ADR-0051", "ADR-0051-mobile-and-native-client-strategy.md"),
+        ("ADR-0066", "ADR-0066-live-code-introspection-docs-portal.md"),
+        ("ADR-0091", "ADR-0091-governance-write-gate-foundations.md"),
+        ("ADR-0258", "ADR-0258-api-versioning-model.md"),
+    ] {
+        let amended = fs::read_to_string(decisions.join(filename))
+            .unwrap_or_else(|error| panic!("read {id}: {error}"));
+        assert!(
+            amended.contains("amended_by: [ADR-0565]"),
+            "{id} must carry the reciprocal ADR-0565 amendment edge"
+        );
+    }
+
+    let masterplan_path = root.join("specs/masterplan.json");
+    let masterplan = fs::read_to_string(&masterplan_path).expect("read live masterplan");
+    assert!(
+        !masterplan.contains("ADR-0565 remains Proposed"),
+        "the sole live masterplan must not preserve ADR-0565 as a Proposed assumption"
+    );
+    assert!(
+        masterplan.contains("ADR-0565 is Accepted and binding"),
+        "the sole live masterplan must record ADR-0565 as binding authority"
+    );
+    let masterplan_doc = load_json(&masterplan_path);
+    let choices = masterplan_doc["masterplan_v2"]["planning_entry_contract"]
+        ["authority_choice_matrix"]
+        .as_array()
+        .expect("masterplan authority choice matrix");
+    let choice = choices
+        .iter()
+        .find(|choice| choice["choice_id"] == "ADR-0565-ZERO-GRAPHQL")
+        .expect("ADR-0565 authority choice");
+    assert_eq!(
+        choice["blocks_binding_plan"].as_bool(),
+        Some(false),
+        "the resolved ADR-0565 choice must no longer be a standalone binding-plan blocker"
+    );
+}
+
 // --- Check 2/3: capability-registry ⇄ derived gate-policy sync ---------------
 
 fn live_registry_policy_corpus(root: &Path) -> Value {

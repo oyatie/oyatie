@@ -14,7 +14,7 @@ doc_status: published
 - **Total ADRs:** 429
 - **Numbering:** ADR-0001..ADR-0619 (non-contiguous; gaps: 0012, 0033, 0037, 0041, 0050, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0247, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291, 0322..0323, 0327, 0342, 0345, 0385..0386, 0395..0396, 0398..0475, 0477, 0483..0505, 0574..0579, 0583..0585, 0594, 0601..0602)
 - **Next ADR number:** 0620
-- **Status counts:** Accepted 175, Accepted (amendment) 2, Amended 1, Proposed 147, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 35, accepted 34, deprecated 1, proposed 31, superseded 1
+- **Status counts:** Accepted 176, Accepted (amendment) 2, Amended 1, Proposed 146, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 35, accepted 34, deprecated 1, proposed 31, superseded 1
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -407,7 +407,7 @@ doc_status: published
 | ADR-0562 | Accepted | Capability-first repo organization + the closed capability registry | founder | [`ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md`](decisions/ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md) |
 | ADR-0563 | Proposed | Rename-aware path-keyed CI baseline relabel at the scm-facts emitter | cloud-ci-platform | [`ADR-0563-rename-aware-path-keyed-ci-baseline-relabel.md`](decisions/ADR-0563-rename-aware-path-keyed-ci-baseline-relabel.md) |
 | ADR-0564 | Proposed | Commission the tenancy tenant-lifecycle registration service (G006 slice 1) | axis-cloud-platform | [`ADR-0564-tenancy-tenant-lifecycle-service-commissioning.md`](decisions/ADR-0564-tenancy-tenant-lifecycle-service-commissioning.md) |
-| ADR-0565 | Proposed | Zero GraphQL in the owned API surface | council-architecture | [`ADR-0565-zero-graphql-in-the-owned-api-surface.md`](decisions/ADR-0565-zero-graphql-in-the-owned-api-surface.md) |
+| ADR-0565 | Accepted | Zero GraphQL in the owned API surface | council-architecture | [`ADR-0565-zero-graphql-in-the-owned-api-surface.md`](decisions/ADR-0565-zero-graphql-in-the-owned-api-surface.md) |
 | ADR-0566 | Proposed | Authz-coverage gate (unauthenticated HTTP control-plane backstop) | council-architecture | [`ADR-0566-authz-coverage-gate.md`](decisions/ADR-0566-authz-coverage-gate.md) |
 | ADR-0567 | Proposed | Commission auth durable stores with Postgres + RLS | axis-cloud-platform | [`ADR-0567-auth-durable-store-postgres-rls-plans.md`](decisions/ADR-0567-auth-durable-store-postgres-rls-plans.md) |
 | ADR-0568 | Proposed | born-accounting register_crate — the pure registrar kernel | cloud-ci-platform | [`ADR-0568-born-accounting-register-crate-registrar-kernel.md`](decisions/ADR-0568-born-accounting-register-crate-registrar-kernel.md) |
