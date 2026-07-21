@@ -179,9 +179,13 @@
         "https://github.com/jason931225/oyatie/commit/73fea9ffc3d48f331f7cb6f086657a9d7b4a096b"
       ],
       "immutable_pull_request_facts": {
+        "number": 1340,
+        "url": "https://github.com/jason931225/oyatie/pull/1340",
         "base_ref": "dev",
         "base_sha": "1d21a7fd5fbc29d6853b3863a6d2680e6ac44224",
         "head_ref": "chore/preplanning-authority-closure-20260713T142158Z",
+        "first_content_commit_sha": "e4527935562b669c221cc548536886e4ba37cd4c",
+        "candidate_state": "merged-to-dev-protected-context-green-github-review-decision-approved-bot-only-no-qualified-human-proof-authority-holds-open",
         "head_sha": "1f0bd754813faeb15d55bbaefb5e6bfa0bf5a857",
         "merge_commit_sha": "73fea9ffc3d48f331f7cb6f086657a9d7b4a096b",
         "state": "MERGED",

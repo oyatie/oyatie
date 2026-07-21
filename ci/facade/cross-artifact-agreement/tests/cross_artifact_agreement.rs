@@ -392,6 +392,55 @@ fn preplanning_candidate_review_must_be_approved_on_final_head() {
     assert_preplanning_candidate_drift(&masterplan, &evidence);
 }
 
+#[test]
+fn preplanning_candidate_pr_identity_cannot_move_in_lockstep() {
+    let (mut masterplan, mut evidence) = live_preplanning_candidate_fixture();
+    masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["protected_pr_number"] =
+        serde_json::json!(9999);
+    masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["protected_pr_url"] =
+        serde_json::json!("https://github.com/jason931225/oyatie/pull/9999");
+    evidence["present"]["repository_baseline"]["protected_pr_number"] = serde_json::json!(9999);
+    evidence["present"]["repository_baseline"]["protected_pr_url"] =
+        serde_json::json!("https://github.com/jason931225/oyatie/pull/9999");
+
+    assert_preplanning_candidate_drift(&masterplan, &evidence);
+}
+
+#[test]
+fn preplanning_candidate_state_cannot_move_in_lockstep() {
+    let (mut masterplan, mut evidence) = live_preplanning_candidate_fixture();
+    let false_state = serde_json::json!("merged-and-all-authority-closed");
+    masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["recorded_candidate_state"] =
+        false_state.clone();
+    evidence["present"]["repository_baseline"]["candidate_state"] = false_state;
+
+    assert_preplanning_candidate_drift(&masterplan, &evidence);
+}
+
+#[test]
+fn preplanning_candidate_claim_ceiling_cannot_move_in_lockstep() {
+    let (mut masterplan, mut evidence) = live_preplanning_candidate_fixture();
+    let false_claim = serde_json::json!("PR #1340 closes every authority and product gate.");
+    masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["claim_ceiling"] =
+        false_claim.clone();
+    evidence["present"]["repository_baseline"]["claim_ceiling"] = false_claim;
+
+    assert_preplanning_candidate_drift(&masterplan, &evidence);
+}
+
+#[test]
+fn preplanning_candidate_first_commit_cannot_move_in_lockstep() {
+    let (mut masterplan, mut evidence) = live_preplanning_candidate_fixture();
+    let false_first_commit = serde_json::json!("cccccccccccccccccccccccccccccccccccccccc");
+    masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["candidate_first_content_commit"] =
+        false_first_commit.clone();
+    evidence["present"]["repository_baseline"]["candidate_first_content_commit"] =
+        false_first_commit.clone();
+    evidence["present"]["repository_baseline"]["pr_opened_on_head"] = false_first_commit;
+
+    assert_preplanning_candidate_drift(&masterplan, &evidence);
+}
+
 fn live_preplanning_candidate_fixture() -> (Value, Value) {
     let root = repo_root();
     let masterplan = load_json(&root.join("specs/masterplan.json"));
