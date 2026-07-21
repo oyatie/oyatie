@@ -334,6 +334,65 @@ fn masterplan_v2_plan_vs_evidence_drift_contract_is_green() {
 
 #[test]
 fn masterplan_v2_current_preplanning_candidate_matches_cited_evidence() {
+    let (masterplan, evidence) = live_preplanning_candidate_fixture();
+
+    let findings = evaluate_masterplan_v2_preplanning_candidate_facts(&masterplan, &evidence);
+    assert!(
+        findings.is_empty(),
+        "masterplan current-candidate facts must agree with their cited time-scoped receipt: {findings:?}"
+    );
+}
+
+#[test]
+fn preplanning_candidate_paired_missing_fields_fail_closed() {
+    let (mut masterplan, mut evidence) = live_preplanning_candidate_fixture();
+    masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]
+        .as_object_mut()
+        .expect("current candidate state must be an object")
+        .remove("protected_pr_number");
+    evidence["present"]["repository_baseline"]
+        .as_object_mut()
+        .expect("repository baseline must be an object")
+        .remove("protected_pr_number");
+
+    assert_preplanning_candidate_drift(&masterplan, &evidence);
+}
+
+#[test]
+fn preplanning_candidate_wrong_field_types_fail_closed() {
+    let (mut masterplan, mut evidence) = live_preplanning_candidate_fixture();
+    masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["protected_pr_number"] =
+        serde_json::json!("1340");
+    evidence["present"]["repository_baseline"]["protected_pr_number"] = serde_json::json!("1340");
+
+    assert_preplanning_candidate_drift(&masterplan, &evidence);
+}
+
+#[test]
+fn preplanning_candidate_baseline_must_match_immutable_pr_facts() {
+    let (mut masterplan, mut evidence) = live_preplanning_candidate_fixture();
+    let divergent_base = serde_json::json!("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+    masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["baseline_commit"] =
+        divergent_base.clone();
+    masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["candidate_base"] =
+        divergent_base.clone();
+    evidence["present"]["repository_baseline"]["pr_base"] = divergent_base;
+
+    assert_preplanning_candidate_drift(&masterplan, &evidence);
+}
+
+#[test]
+fn preplanning_candidate_review_must_be_approved_on_final_head() {
+    let (masterplan, mut evidence) = live_preplanning_candidate_fixture();
+    evidence["present"]["factual_reconciliation"]["github_approved_review_receipt"]["state"] =
+        serde_json::json!("CHANGES_REQUESTED");
+    evidence["present"]["factual_reconciliation"]["github_approved_review_receipt"]["commit_sha"] =
+        serde_json::json!("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+
+    assert_preplanning_candidate_drift(&masterplan, &evidence);
+}
+
+fn live_preplanning_candidate_fixture() -> (Value, Value) {
     let root = repo_root();
     let masterplan = load_json(&root.join("specs/masterplan.json"));
     let evidence_ref =
@@ -341,21 +400,18 @@ fn masterplan_v2_current_preplanning_candidate_matches_cited_evidence() {
             .as_str()
             .expect("current_pr_candidate must cite a repository-relative evidence file");
     let evidence = load_json(&root.join(evidence_ref));
+    (masterplan, evidence)
+}
 
-    let findings = evaluate_masterplan_v2_preplanning_candidate_facts(&masterplan, &evidence);
+fn assert_preplanning_candidate_drift(masterplan: &Value, evidence: &Value) {
+    let findings = evaluate_masterplan_v2_preplanning_candidate_facts(masterplan, evidence);
     assert!(
-        findings.is_empty(),
-        "masterplan current-candidate facts must agree with their cited time-scoped receipt: {findings:?}"
+        findings.iter().any(|finding| {
+            finding.code == "masterplan_plan_evidence_drift"
+                && finding.key == "masterplan_v2.planning_entry_contract.current_pr_candidate_state"
+        }),
+        "candidate drift must fail closed: {findings:?}"
     );
-
-    let mut stale = masterplan;
-    stale["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["merged_to_dev"] =
-        serde_json::json!(false);
-    let findings = evaluate_masterplan_v2_preplanning_candidate_facts(&stale, &evidence);
-    assert!(findings.iter().any(|finding| {
-        finding.code == "masterplan_plan_evidence_drift"
-            && finding.key == "masterplan_v2.planning_entry_contract.current_pr_candidate_state"
-    }));
 }
 
 /// Sub-AC 4.3 plan-vs-evidence cross-check lane, born-blocking over the live
