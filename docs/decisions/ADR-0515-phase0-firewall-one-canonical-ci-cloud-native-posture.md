@@ -176,6 +176,9 @@ The Phase-0 false-green firewall is the substrate that makes merge-gate enforcem
      on: `adr_prose_status_contradiction` (an ADR body prose that disagrees with its
      own front-matter status, matched against the DATA phrase policy
      `ci/facade/cross-artifact-agreement/prose-status-agreement-policy.json`),
+     `ci/facade/cross-artifact-agreement/src/preplanning-candidate-policy.json` is the
+     reviewed DATA policy that binds the historical pre-planning candidate identity and
+     non-closure claim ceiling used by the same cross-artifact-agreement gate,
      `registry_derived_policy_desync` (a capability root in
      `specs/capability-registry.json` absent from a derived gate policy —
      module-membership, root-hygiene, or tier-dependency), and
