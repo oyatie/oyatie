@@ -2610,15 +2610,18 @@ status: Accepted
         assert_eq!(tokens, expected);
     }
 
-    /// The grandfathered inventory is shrink-only DATA: it must never contain ADR-0397
-    /// (healed by the minted record — the exhibit that keeps this lane frozen-empty) and
-    /// must stay sorted+deduped so reviews see a canonical list.
+    /// The grandfathered inventory is shrink-only DATA: it must never contain healed or
+    /// orphaned exceptions and must stay sorted+deduped so reviews see a canonical list.
     #[test]
     fn grandfathered_phantom_inventory_is_canonical_and_excludes_healed_ids() {
         let list = GRANDFATHERED_PHANTOM_DECISION_IDS;
         assert!(
             !list.contains(&"ADR-0397"),
             "ADR-0397 was healed by minting the record; it must not be grandfathered"
+        );
+        assert!(
+            !list.contains(&"ADR-0488"),
+            "ADR-0488 lost its last governed citation with ADR-0514; it must not remain grandfathered"
         );
         let mut sorted = list.to_vec();
         sorted.sort_unstable();
@@ -3338,7 +3341,7 @@ fn is_workspace_inherited(line: &str, key: &str) -> bool {
 /// any non-grandfathered phantom edge is born-blocking). ADR-0397 itself is deliberately
 /// NOT in this list: it was healed by minting the record, which is what keeps this lane's
 /// live key set empty.
-const GRANDFATHERED_PHANTOM_DECISION_IDS: [&str; 63] = [
+const GRANDFATHERED_PHANTOM_DECISION_IDS: [&str; 62] = [
     "ADR-0000", "ADR-0012", "ADR-0033", "ADR-0037", "ADR-0041", "ADR-0050", "ADR-0086", "ADR-0088",
     "ADR-0125", "ADR-0126", "ADR-0127", "ADR-0224", "ADR-0231", "ADR-0232", "ADR-0247", "ADR-0322",
     "ADR-0323", "ADR-0327", "ADR-0342", "ADR-0345", "ADR-0395", "ADR-0399", "ADR-0403", "ADR-0406",
@@ -3346,7 +3349,7 @@ const GRANDFATHERED_PHANTOM_DECISION_IDS: [&str; 63] = [
     "ADR-0419", "ADR-0420", "ADR-0421", "ADR-0423", "ADR-0428", "ADR-0429", "ADR-0434", "ADR-0436",
     "ADR-0441", "ADR-0443", "ADR-0448", "ADR-0449", "ADR-0450", "ADR-0451", "ADR-0454", "ADR-0457",
     "ADR-0458", "ADR-0459", "ADR-0460", "ADR-0461", "ADR-0462", "ADR-0466", "ADR-0468", "ADR-0472",
-    "ADR-0473", "ADR-0474", "ADR-0475", "ADR-0477", "ADR-0483", "ADR-0484", "ADR-0488",
+    "ADR-0473", "ADR-0474", "ADR-0475", "ADR-0477", "ADR-0483", "ADR-0484",
 ];
 
 /// Every `ADR-NNNN` token in a text (exactly four digits, not followed by a fifth digit).

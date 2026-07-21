@@ -6,9 +6,9 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 429,
-    "numbering": "ADR-0001..ADR-0619 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0037, ADR-0041, ADR-0050, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0247, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291, ADR-0322..ADR-0323, ADR-0327, ADR-0342, ADR-0345, ADR-0385..ADR-0386, ADR-0395..ADR-0396, ADR-0398..ADR-0475, ADR-0477, ADR-0483..ADR-0505, ADR-0574..ADR-0579, ADR-0583..ADR-0585, ADR-0594, ADR-0601..ADR-0602)",
-    "gaps": ["ADR-0012", "ADR-0033", "ADR-0037", "ADR-0041", "ADR-0050", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0127", "ADR-0224..ADR-0233", "ADR-0247", "ADR-0256", "ADR-0259..ADR-0262", "ADR-0264..ADR-0271", "ADR-0274..ADR-0275", "ADR-0277..ADR-0279", "ADR-0281..ADR-0283", "ADR-0285..ADR-0291", "ADR-0322..ADR-0323", "ADR-0327", "ADR-0342", "ADR-0345", "ADR-0385..ADR-0386", "ADR-0395..ADR-0396", "ADR-0398..ADR-0475", "ADR-0477", "ADR-0483..ADR-0505", "ADR-0574..ADR-0579", "ADR-0583..ADR-0585", "ADR-0594", "ADR-0601..ADR-0602"],
+    "total_adrs": 422,
+    "numbering": "ADR-0001..ADR-0619 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0037, ADR-0041, ADR-0050, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0124..ADR-0127, ADR-0224..ADR-0233, ADR-0247, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291, ADR-0322..ADR-0323, ADR-0327, ADR-0342, ADR-0345, ADR-0349, ADR-0359, ADR-0361, ADR-0385..ADR-0386, ADR-0395..ADR-0396, ADR-0398..ADR-0475, ADR-0477, ADR-0483..ADR-0505, ADR-0511, ADR-0513..ADR-0514, ADR-0574..ADR-0579, ADR-0583..ADR-0585, ADR-0594, ADR-0601..ADR-0602)",
+    "gaps": ["ADR-0012", "ADR-0033", "ADR-0037", "ADR-0041", "ADR-0050", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0124..ADR-0127", "ADR-0224..ADR-0233", "ADR-0247", "ADR-0256", "ADR-0259..ADR-0262", "ADR-0264..ADR-0271", "ADR-0274..ADR-0275", "ADR-0277..ADR-0279", "ADR-0281..ADR-0283", "ADR-0285..ADR-0291", "ADR-0322..ADR-0323", "ADR-0327", "ADR-0342", "ADR-0345", "ADR-0349", "ADR-0359", "ADR-0361", "ADR-0385..ADR-0386", "ADR-0395..ADR-0396", "ADR-0398..ADR-0475", "ADR-0477", "ADR-0483..ADR-0505", "ADR-0511", "ADR-0513..ADR-0514", "ADR-0574..ADR-0579", "ADR-0583..ADR-0585", "ADR-0594", "ADR-0601..ADR-0602"],
     "next_adr": "ADR-0620",
     "status_counts": {
       "Accepted": 175,
@@ -17,7 +17,7 @@
       "Proposed": 147,
       "Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass)": 1,
       "Proposed (target: Accepted upon PR #143 merge to dev)": 1,
-      "Superseded": 35,
+      "Superseded": 28,
       "accepted": 34,
       "deprecated": 1,
       "proposed": 31,
@@ -1200,18 +1200,6 @@
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0116"]
-    },
-    {
-      "adr": "ADR-0124",
-      "number": 124,
-      "title": "Own merge-queue policy — webhook-driven, GitHub-merge-queue-free",
-      "status": "Superseded",
-      "owner": "jason931225",
-      "date": "2026-05-17",
-      "path": "decisions/ADR-0124-own-merge-queue-webhook-driven.md",
-      "supersedes": [],
-      "superseded_by": ["ADR-0515"],
-      "related": ["ADR-0111", "ADR-0112", "ADR-0113", "ADR-0116"]
     },
     {
       "adr": "ADR-0128",
@@ -3338,18 +3326,6 @@
       "related": ["ADR-0110", "ADR-0111", "ADR-0131", "ADR-0132", "ADR-0145", "ADR-0150", "ADR-0158", "ADR-0181", "ADR-0211", "ADR-0212", "ADR-0240", "ADR-0241", "ADR-0242", "ADR-0243", "ADR-0244", "ADR-0245", "ADR-0247", "ADR-0248", "ADR-0250", "ADR-0251", "ADR-0252", "ADR-0253", "ADR-0254", "ADR-0263", "ADR-0322", "ADR-0324", "ADR-0327", "ADR-0328", "ADR-0333", "ADR-0335", "ADR-0338", "ADR-0340", "ADR-0341", "ADR-0342", "ADR-0343", "ADR-0344", "ADR-0345", "ADR-0346", "ADR-0347"]
     },
     {
-      "adr": "ADR-0349",
-      "number": 349,
-      "title": "Self-hostable CI/CD substrate — cloud-ci augments GitHub Actions; ArgoCD replaces manual kubectl/Helm CLI deploys; both OSS Class C approved per ADR-0211 + Contributor stewardship per ADR-0345; provisioned via OpenTofu modules per ADR-0339 in every multi-context deployment per ADR-0215 including air-gap per ADR-0164 (superseded by ADR-0515)",
-      "status": "Superseded",
-      "owner": "council-architecture, ops-platform, ops-sre-reliability, axis-cloud-iac, axis-observability, council-security",
-      "date": "2026-05-21",
-      "path": "decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md",
-      "supersedes": [],
-      "superseded_by": ["ADR-0515"],
-      "related": ["ADR-0028", "ADR-0105", "ADR-0106", "ADR-0107", "ADR-0108", "ADR-0110", "ADR-0111", "ADR-0112", "ADR-0113", "ADR-0116", "ADR-0145", "ADR-0150", "ADR-0164", "ADR-0181", "ADR-0211", "ADR-0212", "ADR-0215", "ADR-0218", "ADR-0221", "ADR-0242", "ADR-0243", "ADR-0244", "ADR-0245", "ADR-0247", "ADR-0248", "ADR-0250", "ADR-0251", "ADR-0254", "ADR-0263", "ADR-0322", "ADR-0324", "ADR-0327", "ADR-0328", "ADR-0335", "ADR-0339", "ADR-0340", "ADR-0341", "ADR-0342", "ADR-0343", "ADR-0344", "ADR-0345", "ADR-0346", "ADR-0347"]
-    },
-    {
       "adr": "ADR-0350",
       "number": 350,
       "title": "UUIDv7 Canonical ID Primitive Across Oyatie",
@@ -3458,18 +3434,6 @@
       "related": []
     },
     {
-      "adr": "ADR-0359",
-      "number": 359,
-      "title": "cloud-ci completely replaces GitHub Actions as the CI orchestrator (superseded by ADR-0515)",
-      "status": "Superseded",
-      "owner": "council-architecture",
-      "date": "2026-05-25",
-      "path": "decisions/ADR-0359-jenkins-completely-replaces-github-actions.md",
-      "supersedes": [],
-      "superseded_by": ["ADR-0515"],
-      "related": []
-    },
-    {
       "adr": "ADR-0360",
       "number": 360,
       "title": "CI/CD pipeline optimization program — affected-target precision, gate-only overlay, warm shared cache, test sharding, pinned+signed agent image, speculative merge queue, content-addressed gate caching",
@@ -3479,18 +3443,6 @@
       "path": "decisions/ADR-0360-ci-pipeline-optimization-program.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": []
-    },
-    {
-      "adr": "ADR-0361",
-      "number": 361,
-      "title": "Execute the cloud-ci-native CI/CD revamp — license-vetted hyperscaler supply-chain stack, retire GitHub Actions, drop the parity gate (superseded by ADR-0515)",
-      "status": "Superseded",
-      "owner": "council-architecture, ops-platform, axis-dev-cli, ops-sre-reliability",
-      "date": "2026-05-25",
-      "path": "decisions/ADR-0361-jenkins-native-cicd-revamp-execution.md",
-      "supersedes": [],
-      "superseded_by": ["ADR-0515"],
       "related": []
     },
     {
@@ -4010,18 +3962,6 @@
       "related": ["ADR-0363", "ADR-0367", "ADR-0369", "ADR-0111", "ADR-0173", "ADR-0247", "ADR-0248", "ADR-0362", "ADR-0511"]
     },
     {
-      "adr": "ADR-0511",
-      "number": 511,
-      "title": "CI orchestration = Argo Workflows (k8s-native); cloud-ci transitory; supersede Proposed ADR-0359 (superseded by ADR-0515)",
-      "status": "Superseded",
-      "owner": "council-architecture",
-      "date": "2026-05-29",
-      "path": "decisions/ADR-0511-ci-orchestration-argo-workflows-supersede-jenkins.md",
-      "supersedes": ["ADR-0359"],
-      "superseded_by": ["ADR-0515"],
-      "related": ["ADR-0359", "ADR-0358", "ADR-0349", "ADR-0361", "ADR-0363", "ADR-0366", "ADR-0367", "ADR-0369", "ADR-0111", "ADR-0181", "ADR-0387", "ADR-0510"]
-    },
-    {
       "adr": "ADR-0512",
       "number": 512,
       "title": "Canonical monorepo pattern — vertical-slice nesting, one workspace, bounded-context crates, dependency-rule modules, Buck2 graph",
@@ -4032,30 +3972,6 @@
       "supersedes": ["ADR-0357, ADR-0509"],
       "superseded_by": [],
       "related": []
-    },
-    {
-      "adr": "ADR-0513",
-      "number": 513,
-      "title": "oya-ci — bespoke-Rust Prow (cloud-scm-native CI/CD platform) (superseded by ADR-0515)",
-      "status": "Superseded",
-      "owner": "council-architecture, founder",
-      "date": "2026-05-30",
-      "path": "decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
-      "supersedes": [],
-      "superseded_by": ["ADR-0515"],
-      "related": []
-    },
-    {
-      "adr": "ADR-0514",
-      "number": 514,
-      "title": "Build/CI/CD Pipeline Target Architecture + Hyperscaler Remediation",
-      "status": "Superseded",
-      "owner": "council-architecture",
-      "date": "2026-05-31",
-      "path": "decisions/ADR-0514-build-ci-cd-pipeline-target-architecture-hyperscaler-remediation.md",
-      "supersedes": [],
-      "superseded_by": ["ADR-0515"],
-      "related": ["ADR-0513", "ADR-0381", "ADR-0146", "ADR-0181", "ADR-0111", "ADR-0374", "ADR-0130", "ADR-0131", "ADR-0134"]
     },
     {
       "adr": "ADR-0515",
