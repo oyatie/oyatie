@@ -302,7 +302,7 @@ components:
         purpose: >-
           Declare that every oya-governance-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
         enforced_by:
-          - retired-fitness-residue-detection
+          - oya-governance-brand-residue
           - oya-governance-lane-prefix-vocabulary
           - oya-governance-rename-inventory-presence
       ADR-0348:
