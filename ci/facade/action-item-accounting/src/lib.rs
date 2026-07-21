@@ -56,6 +56,13 @@ use serde_json::{Value, json};
 /// The gate id, matching the buck2 target + the oya-ci registry id.
 pub const GATE_ID: &str = "cloud-ci-friction-accounting";
 
+/// Candidate and protected inputs for the v2 admission extension. The protected-facts path is an
+/// untracked SCM-materializer output: CI owns its merge-base contents, never the candidate PR.
+pub const FIXUPTASK_V2_CANDIDATE_JSONL_PATH: &str = "registry/fixuptasks.jsonl";
+pub const FIXUPTASK_V2_MAPPING_PATH: &str = "registry/fixuptask-v2-predecessor-mapping.json";
+pub const FIXUPTASK_V2_PROTECTED_FACTS_PATH: &str =
+    "ci/facade/scm-facts-snapshot/fixuptask-v2-admission.generated.json";
+
 /// The eight blocking violation codes, in canonical order.
 pub const VIOLATION_CODES: [&str; 8] = [
     "friction_policy_gate_id_mismatch",
@@ -138,6 +145,51 @@ pub fn collect_observed_frictions(root: &Path, policy: &Value) -> Result<Value, 
         rows.push(row);
     }
     Ok(json!({ "rows": rows }))
+}
+
+/// Read the candidate JSONL registry without treating its required descriptive header as a row.
+/// The caller supplies the path so tests and the materializer can use the same adapter.
+pub fn collect_fixuptask_candidate_jsonl(root: &Path, path: &str) -> Result<Value, CollectError> {
+    let text = fs::read_to_string(root.join(path))
+        .map_err(|error| CollectError::Io(format!("read {path}: {error}")))?;
+    let mut rows = Vec::new();
+    for (index, raw) in text.lines().enumerate() {
+        let line = raw.trim();
+        if line.is_empty() {
+            continue;
+        }
+        let value: Value = serde_json::from_str(line).map_err(|error| CollectError::Parse {
+            line: index + 1,
+            message: error.to_string(),
+        })?;
+        if value.get("_meta").is_some() && value.get("id").is_none() {
+            continue;
+        }
+        rows.push(value);
+    }
+    Ok(json!({ "rows": rows }))
+}
+
+fn collect_json_input(root: &Path, path: &str) -> Result<Value, CollectError> {
+    let text = fs::read_to_string(root.join(path))
+        .map_err(|error| CollectError::Io(format!("read {path}: {error}")))?;
+    serde_json::from_str(&text).map_err(|error| CollectError::Parse {
+        line: 1,
+        message: format!("parse {path}: {error}"),
+    })
+}
+
+/// Runs the v2 admission extension from its real gate inputs. The protected facts MUST be the
+/// SCM-materializer sidecar; this adapter has no candidate parameter for a merge-base baseline.
+pub fn evaluate_fixuptask_v2_materialized_gate(
+    root: &Path,
+) -> Result<BTreeSet<Finding>, CollectError> {
+    let candidate = collect_fixuptask_candidate_jsonl(root, FIXUPTASK_V2_CANDIDATE_JSONL_PATH)?;
+    let mapping = collect_json_input(root, FIXUPTASK_V2_MAPPING_PATH)?;
+    let protected = collect_json_input(root, FIXUPTASK_V2_PROTECTED_FACTS_PATH)?;
+    Ok(evaluate_fixuptask_v2_admission(
+        &protected, &candidate, &mapping,
+    ))
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -438,6 +490,7 @@ struct FixupTaskV2Contract {
     properties: BTreeSet<String>,
     statuses: BTreeSet<String>,
     conditionals: BTreeMap<String, BTreeSet<String>>,
+    date_time_fields: BTreeSet<String>,
 }
 
 fn fixuptask_v2_contract() -> Result<FixupTaskV2Contract, String> {
@@ -460,16 +513,21 @@ fn fixuptask_v2_contract() -> Result<FixupTaskV2Contract, String> {
             .collect()
     };
     let required = strings(schema.get("required"), "required")?;
-    let properties = schema
+    let properties_object = schema
         .get("properties")
         .and_then(Value::as_object)
-        .ok_or_else(|| "FixupTask v2 schema properties must be an object".to_owned())?
-        .keys()
-        .cloned()
-        .collect();
+        .ok_or_else(|| "FixupTask v2 schema properties must be an object".to_owned())?;
+    let properties = properties_object.keys().cloned().collect();
     if !required.is_subset(&properties) {
         return Err("FixupTask v2 schema required field is not a declared property".to_owned());
     }
+    let date_time_fields = properties_object
+        .iter()
+        .filter_map(|(field, definition)| {
+            (definition.get("format").and_then(Value::as_str) == Some("date-time"))
+                .then_some(field.clone())
+        })
+        .collect();
     let statuses = strings(
         schema
             .get("properties")
@@ -506,6 +564,7 @@ fn fixuptask_v2_contract() -> Result<FixupTaskV2Contract, String> {
         properties,
         statuses,
         conditionals,
+        date_time_fields,
     })
 }
 
@@ -615,6 +674,17 @@ fn validate_v2_row(
             ));
         }
     }
+    for field in &contract.date_time_fields {
+        if let Some(value) = non_blank_str(row, field)
+            && canonical_timestamp(value).is_none()
+        {
+            findings.insert(Finding::new(
+                "fixuptask_v2_invalid_datetime",
+                id,
+                format!("schema date-time field `{field}` must be canonical UTC RFC3339 `YYYY-MM-DDTHH:MM:SSZ`"),
+            ));
+        }
+    }
     let status = non_blank_str(row, "status");
     if !status.is_some_and(|value| contract.statuses.contains(value)) {
         findings.insert(Finding::new(
@@ -639,13 +709,7 @@ fn validate_v2_row(
     if status == "accepted-risk" {
         let expires = non_blank_str(row, "accepted_risk_expires_at");
         let parsed = expires.and_then(canonical_timestamp);
-        if parsed.is_none() {
-            findings.insert(Finding::new(
-                "fixuptask_v2_invalid_accepted_risk_expiry",
-                id,
-                "accepted_risk_expires_at must be canonical UTC RFC3339 `YYYY-MM-DDTHH:MM:SSZ`",
-            ));
-        } else if evaluation_time.is_some_and(|now| parsed <= Some(now)) {
+        if parsed.is_some() && evaluation_time.is_some_and(|now| parsed <= Some(now)) {
             findings.insert(Finding::new(
                 "fixuptask_v2_accepted_risk_expired",
                 id,
@@ -1419,6 +1483,14 @@ mod tests {
         assert!(contract.required.contains("accountable_owner"));
         assert!(contract.required.contains("blocker_for"));
         assert_eq!(contract.statuses.len(), 5);
+        assert_eq!(
+            contract.date_time_fields,
+            BTreeSet::from([
+                "accepted_risk_expires_at".to_owned(),
+                "created_at".to_owned(),
+                "resolved_at".to_owned(),
+            ])
+        );
         assert_eq!(contract.conditionals["resolved"].len(), 3);
         assert_eq!(contract.conditionals["accepted-risk"].len(), 3);
         assert_eq!(contract.conditionals["blocked"].len(), 1);
@@ -1448,6 +1520,34 @@ mod tests {
             findings
                 .iter()
                 .any(|finding| finding.code == "fixuptask_v2_accepted_risk_expired")
+        );
+    }
+
+    #[test]
+    fn fixuptask_v2_validates_all_schema_datetime_fields() {
+        let base = json!({ "rows": [] });
+        let mut resolved = json!({ "id": "F-RESOLVED", "title": "x", "priority": "p", "status": "resolved", "source_session": "s", "source_change_id": "c", "named_in": "n", "created_at": "not-a-time", "accountable_owner": "o", "accountable_role": "r", "acceptance_criteria": "a", "verification_path": "v", "blocker_for": "b", "resolved_at": "also-not-a-time", "resolved_in_change_id": "change", "resolved_evidence": "e" });
+        let invalid = evaluate_fixuptasks_v2_at(
+            &base,
+            &json!({ "rows": [resolved.clone()] }),
+            "2026-07-21T00:00:00Z",
+        );
+        assert_eq!(
+            invalid
+                .iter()
+                .filter(|finding| finding.code == "fixuptask_v2_invalid_datetime")
+                .count(),
+            2
+        );
+        resolved["created_at"] = json!("2026-07-20T00:00:00Z");
+        resolved["resolved_at"] = json!("2026-07-21T00:00:00Z");
+        assert!(
+            evaluate_fixuptasks_v2_at(
+                &base,
+                &json!({ "rows": [resolved] }),
+                "2026-07-21T00:00:00Z"
+            )
+            .is_empty()
         );
     }
 
