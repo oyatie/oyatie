@@ -5,7 +5,24 @@
   "required_status_checks": {
     "strict": false,
     "_strict_rationale": "Set to false per ADR-0124 to break the O(N^2) rebase cascade; the merge bridge enforces required status contexts without GitHub-side up-to-date enforcement.",
-    "_oya_pr_review_note": "oya-pr-review is intentionally absent from Phase-1 required contexts. Its producer (reviewer-agent HTTP endpoint) returns HTTP 501 (not yet shipped); requiring it would deadlock every PR. Returns as required in Phase-2 once the reviewer-agent endpoint is live.",
+    "_oya_pr_review_note": "oya-pr-review is intentionally absent from protected contexts. The repo-owned GitHub adapter producer contract exists, but controller deployment, trusted credentials, oya-ci-required fan-in wiring, branch-protection application, and live PR API readback remain external prerequisites.",
+    "_oya_pr_review_target": {
+      "status_context": "oya-pr-review",
+      "merge_authority_context": "oya-ci-required",
+      "integration": "constituent_input_to_single_required_context",
+      "producer": "oya-ci-controller-github-adapter",
+      "decision_inputs": [
+        "pr_number",
+        "head_sha",
+        "author_identity",
+        "distinct_reviewer_identity",
+        "reviewer_eligibility_policy_ref",
+        "approved_verdict",
+        "durable_review_url"
+      ],
+      "author_editable_pr_body_is_authority": false,
+      "live": false
+    },
     "contexts": [
       "oya-ci-required"
     ],

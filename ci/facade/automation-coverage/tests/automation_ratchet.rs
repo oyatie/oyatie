@@ -180,8 +180,11 @@ fn gate4_is_born_blocking_on_the_live_corpus() {
             "review_authority_source": surface["review_authority_source"].as_str().unwrap_or(""),
             "has_durable_review_evidence": surface["has_durable_review_evidence"].as_bool() == Some(true),
             "has_machine_verifiable_review_status": surface["has_machine_verifiable_review_status"].as_bool() == Some(true),
-            "has_review_title_evidence": surface["has_review_title_evidence"].as_bool() == Some(true),
-            "has_review_body_evidence": surface["has_review_body_evidence"].as_bool() == Some(true),
+            "binds_pr_number": surface["binds_pr_number"].as_bool() == Some(true),
+            "binds_head_sha": surface["binds_head_sha"].as_bool() == Some(true),
+            "binds_author_identity": surface["binds_author_identity"].as_bool() == Some(true),
+            "binds_reviewer_identity": surface["binds_reviewer_identity"].as_bool() == Some(true),
+            "binds_review_verdict": surface["binds_review_verdict"].as_bool() == Some(true),
             "review_blocks_merge": surface["review_blocks_merge"].as_bool() == Some(true),
             "reviewer_identity_distinct_from_author": surface["reviewer_identity_distinct_from_author"].as_bool() == Some(true)
         }));
@@ -226,8 +229,7 @@ fn gate4_is_born_blocking_on_the_live_corpus() {
 /// provided by `OYA_CI_PRODUCER_BIN`; missing env fails closed so tests cannot silently fall back to
 /// Cargo. The producer reads the materialized scm-facts face (a declared input); it never calls git.
 fn run_producer_face(root: &Path, face: &str) -> Value {
-    let scm_facts = root
-        .join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
+    let scm_facts = root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
     let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
     let bin = producer_binary(root, producer_bin.as_deref()).unwrap_or_else(|e| panic!("{e}"));
     let output = Command::new(bin)

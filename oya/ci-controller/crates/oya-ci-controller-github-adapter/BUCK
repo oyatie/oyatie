@@ -10,3 +10,17 @@ rust_library(
         "third-party//:serde",
     ],
 )
+
+rust_test(
+    name = "review-admission-tests",
+    srcs = ["tests/review_admission.rs"],
+    crate = "review_admission",
+    crate_root = "tests/review_admission.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-ci-controller-github-adapter",
+        "//oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel",
+        "third-party//:httpmock",
+        "third-party//:serde_json",
+    ],
+)
