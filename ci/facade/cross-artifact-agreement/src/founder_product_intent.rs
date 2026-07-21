@@ -533,6 +533,35 @@ fn validate_pipeline_contract(findings: &mut BTreeSet<Finding>, authorization: &
     require_contains_all(
         findings,
         evolution,
+        "resource_lineage_and_health_rule",
+        &[
+            "one typed, versioned lineage graph",
+            "source, input, intermediate, output, user-facing, and sink roles",
+            "schema, content, freshness, build, schedule, sync, latency, error, and outcome health",
+            "dynamically scoped monitoring",
+            "orphaned, unowned, or unmonitored",
+            "does not become authority",
+        ],
+        "founder_execution_authorization.pipeline_evolution_contract.resource_lineage_and_health_rule",
+    );
+    require_contains_all(
+        findings,
+        evolution,
+        "probabilistic_evaluation_rule",
+        &[
+            "versioned evaluation suites",
+            "frozen population",
+            "repeated runs and variance",
+            "model, prompt, tool, data, policy, and evaluator versions",
+            "subgroup and affected-party outcomes",
+            "passing evaluation never establishes authority",
+            "draft-only",
+        ],
+        "founder_execution_authorization.pipeline_evolution_contract.probabilistic_evaluation_rule",
+    );
+    require_contains_all(
+        findings,
+        evolution,
         "pipeline_slo_rule",
         &[
             "service-level objectives",

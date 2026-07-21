@@ -163,6 +163,8 @@
       "runtime_promotion_fail_closed_rule": "Every admitted artifact begins runtime evaluation in held, not eligible. Eligibility is a deterministic, non-LLM decision over fresh live evidence and independently controlled policy. Missing, stale, unparseable, inconclusive, evaluator-unavailable, replay-only, synthetic, or backfilled evidence remains held and cannot mint promotion authority; later valid evidence may supersede it only through a new attributable receipt.",
       "current_protected_admission_rule": "While plain Git and protected GitHub pull requests remain the current substrate, a candidate may merge only when it is based on the current protected target, signed, conflict-free, independently reviewed at the exact head, free of unresolved review threads, and green in the single required oya-ci-required context. Merge state is serialized and re-read immediately before admission; any head, base, policy, review, or required-check change invalidates prior admission evidence.",
       "post_merge_closure_rule": "A merge receipt is not product completion. Bind the promoted commit to required-context readback, rollout or explicit non-runtime scope, rollback or reversion path, observability and user-story evidence where applicable, release-governance impact, and preventive-learning or duplicate disposition. State the exact claim ceiling and keep downstream roadmap or readiness claims blocked unless their independent evidence contracts are satisfied.",
+      "resource_lineage_and_health_rule": "Every data source, transform, model, function, policy, agent, action, artifact, deployment, schedule, sync, and user-facing outcome participates in one typed, versioned lineage graph from source to effect and realized outcome. Classify source, input, intermediate, output, user-facing, and sink roles and derive schema, content, freshness, build, schedule, sync, latency, error, and outcome health from the declared graph and user expectation. The dynamically scoped monitoring follows additions, removals, ownership, permissions, and dependency changes; orphaned, unowned, or unmonitored material resources block the applicable readiness claim. Alerts bind severity, affected population, owner, runbook, diagnosis evidence, noise budget, and resolution receipt. A health projection is evidence and does not become authority or silently authorize promotion.",
+      "probabilistic_evaluation_rule": "Deterministic, statistical, agentic, and model-backed components use versioned evaluation suites over a frozen population with expected outcomes, refusal and recourse cases, repeated runs and variance, baselines, confidence and calibration where applicable, and exact model, prompt, tool, data, policy, and evaluator versions. Results remain disaggregated for safety, privacy, accessibility, subgroup and affected-party outcomes and preserve failures, inconclusive cases, evaluator disagreement, and drift. A passing evaluation never establishes authority, erases Accepted ADR-0219's draft-only model-output boundary, or substitutes for independent policy, legal, affected-party, operational, or runtime-promotion evidence.",
       "promotion_state_machine": [
         "proposed",
         "verified",
@@ -201,7 +203,7 @@
       "learning_rule": "Incidents, near misses, failed changes, false greens, false reds, rollbacks, security findings, affected-set misses, and experiments produce attributable preventive actions with an owner, due condition, verification method, and later effectiveness check. Narrative alone is not closure; ineffective actions are revised or deleted, and obsolete mechanisms are removed from readable authority rather than archived beside current truth.",
       "research_rule": "Before material pipeline changes, read the current controlling Oyatie authorities and fresh primary official sources relevant to the mechanism, record versions, retrieval times, scope, digests where permitted, limitations, and observed-versus-inferred claims, and keep external documentation as evidence rather than repository authority.",
       "research_basis": {
-        "retrieved_at": "2026-07-21T20:31:22Z",
+        "retrieved_at": "2026-07-21T20:49:16Z",
         "claim_boundary": "These official sources are external evidence for the operating-model candidate. They do not override Oyatie authority, prove implementation, or authorize a roadmap. Revalidate the applicable sources before a material pipeline amendment.",
         "sources": [
           {
@@ -269,6 +271,42 @@
             "url": "https://www.palantir.com/docs/apollo/core/helm-rollouts",
             "scope": "managed rollout readiness, failure-triggered rollback, no-wait iteration modes, scoped readiness timeouts, and image pre-pulling",
             "adoption": "Use Apollo only as a minimum comparative baseline for explicit readiness, timeout, and rollback semantics; Oyatie must remain provider-neutral, evidence-typed, policy-governed, and measurably better on matched journeys rather than copying Apollo's product or manifest shape."
+          },
+          {
+            "source_id": "palantir-foundry-building-pipelines",
+            "url": "https://www.palantir.com/docs/foundry/building-pipelines/overview",
+            "scope": "data-quality foundations, governed project structure, batch, incremental, and streaming pipeline choices, unit tests, branching, release, scheduling, and health checks",
+            "adoption": "Use as a minimum baseline for lifecycle-complete data-pipeline hygiene; Oyatie extends the graph through authority, policy, evidence, decisions, actions, recourse, runtime exposure, and realized outcomes rather than copying Foundry project or product structure."
+          },
+          {
+            "source_id": "palantir-foundry-pipeline-management",
+            "url": "https://www.palantir.com/docs/foundry/pipeline-builder/management-overview",
+            "scope": "reusable parameters and custom functions, large-graph grouping, job and compute-profile grouping, checkpoints, selective visibility, and sampled previews",
+            "adoption": "Use as a minimum usability and compute-efficiency baseline while requiring one typed IR, semantic-preserving multiple views, full-population admission evidence, graph-derived concurrency, explicit authority, and portable non-vendor execution."
+          },
+          {
+            "source_id": "palantir-foundry-data-lineage",
+            "url": "https://www.palantir.com/docs/foundry/data-lineage/overview",
+            "scope": "interactive discovery of datasets, ancestors and descendants, schema, build freshness, producing code, shared snapshots, and lineage visualization",
+            "adoption": "Use data lineage as a minimum visibility baseline; Oyatie requires continuous source-to-observation-to-decision-to-authorized-action-to-outcome lineage with corrections, uncertainty, authority, custody, privacy, and recourse preserved."
+          },
+          {
+            "source_id": "palantir-foundry-data-health",
+            "url": "https://www.palantir.com/docs/foundry/observability/data-health",
+            "scope": "scope-aware monitoring views, fine-grained resource health checks, dynamic coverage as resources change, alerting, and integration with operational response systems",
+            "adoption": "Use as a minimum resource-health baseline while requiring typed ownership, affected populations, outcome health, evidence freshness, noise budgets, diagnosis and recovery receipts, and fail-closed readiness for unowned or unmonitored material resources."
+          },
+          {
+            "source_id": "palantir-foundry-aip-evals",
+            "url": "https://www.palantir.com/docs/foundry/aip-evals/overview",
+            "scope": "evaluation suites, target and evaluation functions, test cases, per-case and aggregate metrics, version comparison, model comparison, and variance across repeated runs",
+            "adoption": "Use as a minimum nondeterministic-evaluation baseline while preserving exact populations, disaggregated affected-party outcomes, refusal and recourse cases, evaluator disagreement, drift, draft-only model outputs, and a strict separation between evaluation evidence and authority."
+          },
+          {
+            "source_id": "palantir-foundry-branching-release",
+            "url": "https://www.palantir.com/docs/foundry/building-pipelines/branching-release-process",
+            "scope": "conceptual product release units spanning multiple repositories and resources, protected production branches, development and feature branches, end-user verification, and retained collaboration evidence",
+            "adoption": "Use only as comparative release-process evidence; Oyatie retains one hyperscale monorepo, current plain-Git protected-PR admission, exact-head review, one required status, graph-derived impact, and independent runtime promotion rather than copying GitFlow or Foundry branch semantics."
           },
           {
             "source_id": "google-sre-postmortem-culture",

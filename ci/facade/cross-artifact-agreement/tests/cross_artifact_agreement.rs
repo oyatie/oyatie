@@ -598,7 +598,7 @@ fn founder_product_intent_validator_is_fail_closed_for_pipeline_contract_drift()
     let registry = load_json(&root.join("registry/artifact-capabilities-registry.json"));
     let graph = load_json(&root.join("registry/graph/active-artifact-contract-edges.json"));
 
-    let cases: [(&str, Box<dyn Fn(&mut Value)>); 23] = [
+    let cases: [(&str, Box<dyn Fn(&mut Value)>); 25] = [
         (
             "missing-work-graph-contract",
             Box::new(|candidate| {
@@ -725,6 +725,24 @@ fn founder_product_intent_validator_is_fail_closed_for_pipeline_contract_drift()
             Box::new(|candidate| {
                 candidate["founder_execution_authorization"]["pipeline_evolution_contract"]["post_merge_closure_rule"] =
                     Value::String("merge receipt is product completion".to_owned());
+            }),
+        ),
+        (
+            "resource-lineage-health-erased",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]
+                    .as_object_mut()
+                    .expect("pipeline evolution contract object")
+                    .remove("resource_lineage_and_health_rule");
+            }),
+        ),
+        (
+            "probabilistic-evaluation-boundary-erased",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]
+                    .as_object_mut()
+                    .expect("pipeline evolution contract object")
+                    .remove("probabilistic_evaluation_rule");
             }),
         ),
         (
