@@ -107,7 +107,7 @@ Protected-branch authority is the single `oya-ci-required` fan-in plus constitue
 | `quality-shardability` | all DB designs declare tenant_id partition key + RLS per ADR-0062 |
 | `quality-perf-budget` | impl plans include load-test results meeting declared perf targets per ADR-0062 |
 | `quality-benchmark` | PRDs include competitive-benchmark section before L4→L5 per ADR-0062 |
-| `lean-a-active-artifact-contract` | every machine-readable artifact under applicable_paths_glob conforms to v3.0.0 9-capability contract per ADR-0089; invoked from `oya gate run-all`; emits evidence + graph-edges artifacts on every run |
+| `lean-a-active-artifact-contract` | every machine-readable artifact under `applicable_paths_glob` conforms to the v3.0.0 9-capability contract; ADR-0620 makes the complete graph-edges projection controller-only and untracked, materialized by the canonical generated-face controller before consumers run, with exact semantic/byte projection and regenerate-twice checks; local CLI invocation is feedback only, never merge authority |
 | `lean-a-cedar-fragment-coverage` | enforces invariants C01..C04 from /registry/cedar-fragments.json — no orphan .cedar files, no dangling cedar_fragments[] references in OpenAPI contracts or bounded-contexts.json, status↔path consistency; invoked from `oya gate run-all` |
 | `lean-a-openapi-rest-route-parity` | enforces 1:1 parity between `pub const *_ROUTE` constants in crates/oya-ops-*-rest/src/lib.rs and `paths:` keys in contracts/ops-*.openapi.yaml; default scope ops-only via --crate-prefix/--contract-prefix flags |
 

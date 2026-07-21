@@ -180,7 +180,21 @@
       "current_path": "/specs/artifact-profile-defaults.json",
       "kind": "spec",
       "migration_phase": "complete",
-      "purpose": "8 profiles (schema/spec/registry/template/plan-attestation/ledger/claim-matrix/evidence-bundle); reduces per-row authoring burden.",
+      "canonical_profile_count": 11,
+      "canonical_profile_ids": [
+        "schema",
+        "spec",
+        "registry",
+        "template",
+        "plan-attestation",
+        "ledger",
+        "claim-matrix",
+        "evidence-bundle",
+        "kernel-crate",
+        "ci-lane",
+        "verifier"
+      ],
+      "purpose": "11 profiles (schema/spec/registry/template/plan-attestation/ledger/claim-matrix/evidence-bundle/kernel-crate/ci-lane/verifier); reduces per-row authoring burden. The identifier list and count are exact mirrors guarded against canonical-default drift.",
       "target_path_after_md_retirement": "same"
     },
     "audit_chain": {

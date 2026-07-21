@@ -15,8 +15,8 @@ use std::process::{Command, Stdio};
 use std::time::Instant;
 
 use oya_check_active_artifact_contract::{
-    ArtifactRow, CapabilityDeclaration, CapabilityKind, CapabilityStatus, Severity,
-    ValidationReport, validate,
+    ArtifactProfile, ArtifactRow, CapabilityDeclaration, CapabilityKind, CapabilityStatus,
+    Severity, ValidationReport, validate,
 };
 use serde_json::{Value, json};
 
@@ -162,15 +162,11 @@ pub(crate) fn validate_active_artifact_contract_gate(
     let mut duplicate_ids: Vec<String> = Vec::new();
     let mut artifact_ids: BTreeMap<String, usize> = BTreeMap::new();
     let mut graph_edges: Vec<(String, String, String)> = Vec::new();
-    let profile_defaults = if rows_json
-        .iter()
-        .any(|row| row.get("capabilities").is_none())
-    {
-        let defaults_path = profile_defaults_path();
-        Some(load_artifact_profile_defaults(&defaults_path)?)
-    } else {
-        None
-    };
+    // The profile identifier mirror is a closed contract even when a synthetic
+    // registry happens to inline every capability. Load and validate it on every
+    // gate run so missing or newly invented canonical profiles fail closed.
+    let defaults_path = profile_defaults_path();
+    let profile_defaults = Some(load_artifact_profile_defaults(&defaults_path)?);
 
     for (index, row_json) in rows_json.iter().enumerate() {
         let row = parse_artifact_row(
@@ -349,7 +345,29 @@ fn load_artifact_profile_defaults(path: &Path) -> Result<ProfileDefaults, String
         validate_profile_default_capabilities(profile_name, &capabilities)?;
         defaults.insert(profile_name.clone(), capabilities);
     }
+    validate_profile_identifier_parity(&defaults, path)?;
     Ok(defaults)
+}
+
+fn validate_profile_identifier_parity(
+    defaults: &ProfileDefaults,
+    path: &Path,
+) -> Result<(), String> {
+    let canonical: BTreeSet<&str> = defaults.keys().map(String::as_str).collect();
+    let kernel: BTreeSet<&str> = ArtifactProfile::all()
+        .into_iter()
+        .map(ArtifactProfile::name)
+        .collect();
+    if canonical == kernel {
+        return Ok(());
+    }
+
+    let missing_from_defaults: Vec<&str> = kernel.difference(&canonical).copied().collect();
+    let unsupported_by_kernel: Vec<&str> = canonical.difference(&kernel).copied().collect();
+    Err(format!(
+        "active-artifact-contract profile identifier parity failed in {}: missing_from_defaults={missing_from_defaults:?}, unsupported_by_kernel={unsupported_by_kernel:?}",
+        path.display()
+    ))
 }
 
 fn validate_profile_default_capabilities(
@@ -409,11 +427,12 @@ fn profile_defaults_path() -> PathBuf {
     if relative.exists() {
         return relative;
     }
-    PathBuf::from(option_env!("CARGO_MANIFEST_DIR").unwrap_or("."))
+    let manifest_dir = PathBuf::from(option_env!("CARGO_MANIFEST_DIR").unwrap_or("."));
+    manifest_dir
         .ancestors()
-        .nth(4)
-        .unwrap_or_else(|| Path::new("."))
-        .join(PROFILE_DEFAULTS_PATH)
+        .map(|ancestor| ancestor.join(PROFILE_DEFAULTS_PATH))
+        .find(|candidate| candidate.is_file())
+        .unwrap_or(relative)
 }
 
 fn parse_declared_capabilities(value: &Value) -> Result<CapabilityMap, String> {
@@ -685,6 +704,44 @@ mod tests {
 
     fn profile_defaults() -> ProfileDefaults {
         load_artifact_profile_defaults(&profile_defaults_path()).unwrap()
+    }
+
+    #[test]
+    fn canonical_profile_defaults_match_kernel_profile_identifiers() {
+        let defaults = profile_defaults();
+        let default_names: BTreeSet<&str> = defaults.keys().map(String::as_str).collect();
+        let kernel_names: BTreeSet<&str> =
+            oya_check_active_artifact_contract::ArtifactProfile::all()
+                .into_iter()
+                .map(|profile| profile.name())
+                .collect();
+
+        assert_eq!(
+            default_names, kernel_names,
+            "canonical artifact-profile defaults and the kernel identifier mirror must have exact set equality"
+        );
+    }
+
+    #[test]
+    fn profile_identifier_parity_rejects_missing_and_extra_defaults() {
+        let path = profile_defaults_path();
+        let defaults = profile_defaults();
+
+        let mut missing = defaults.clone();
+        missing.remove("spec");
+        let error = validate_profile_identifier_parity(&missing, &path)
+            .expect_err("a missing canonical profile must fail closed");
+        assert!(error.contains("missing_from_defaults=[\"spec\"]"));
+
+        let mut extra = defaults;
+        let template = extra
+            .get("spec")
+            .cloned()
+            .expect("spec profile defaults exist");
+        extra.insert("invented-profile".to_owned(), template);
+        let error = validate_profile_identifier_parity(&extra, &path)
+            .expect_err("an unsupported canonical profile must fail closed");
+        assert!(error.contains("unsupported_by_kernel=[\"invented-profile\"]"));
     }
 
     #[test]
