@@ -1795,133 +1795,184 @@ pub fn evaluate_masterplan_v2_preplanning_candidate_facts(
     let mut findings = BTreeSet::new();
     let key = "masterplan_v2.planning_entry_contract.current_pr_candidate_state";
 
-    let Some(contract) = masterplan
-        .pointer("/masterplan_v2/planning_entry_contract")
-        .and_then(Value::as_object)
-    else {
-        findings.insert(Finding::new("masterplan_plan_evidence_drift", key));
-        return findings;
-    };
-    let Some(state) = contract
-        .get("current_pr_candidate_state")
-        .and_then(Value::as_object)
-    else {
-        findings.insert(Finding::new("masterplan_plan_evidence_drift", key));
-        return findings;
-    };
-    let Some(baseline) = candidate_evidence
-        .pointer("/present/repository_baseline")
-        .and_then(Value::as_object)
-    else {
-        findings.insert(Finding::new("masterplan_plan_evidence_drift", key));
-        return findings;
-    };
-    let Some(receipt) = candidate_evidence
-        .pointer("/present/factual_reconciliation")
-        .and_then(Value::as_object)
-    else {
-        findings.insert(Finding::new("masterplan_plan_evidence_drift", key));
-        return findings;
-    };
-
-    let exact_fields = [
-        ("baseline_commit", "pr_base"),
-        ("branch", "branch"),
-        ("recorded_candidate_state", "candidate_state"),
-        ("protected_pr_against_dev", "protected_pr_against_dev"),
-        (
-            "oya_ci_required_green_for_candidate",
-            "candidate_oya_ci_required_green",
-        ),
-        ("merged_to_dev", "merged_to_dev"),
-        ("claim_ceiling", "claim_ceiling"),
-        (
-            "candidate_first_content_commit",
-            "candidate_first_content_commit",
-        ),
-        ("protected_pr_number", "protected_pr_number"),
-        ("protected_pr_url", "protected_pr_url"),
-        ("candidate_final_head", "pr_final_head"),
-        ("candidate_base", "pr_base"),
-        ("merge_commit", "merge_commit"),
-        ("merged_at", "merged_at"),
-    ];
-    if exact_fields.iter().any(|(state_field, evidence_field)| {
-        state.get(*state_field) != baseline.get(*evidence_field)
-    }) {
-        findings.insert(Finding::new("masterplan_plan_evidence_drift", key));
-    }
-
-    let immutable_facts = receipt
-        .get("immutable_pull_request_facts")
-        .and_then(Value::as_object);
-    let approved_review = receipt
-        .get("github_approved_review_receipt")
-        .and_then(Value::as_object);
-    let authority_nonclosure = receipt
-        .get("authority_gate_nonclosure")
-        .and_then(Value::as_object);
-    let receipt_is_time_scoped = receipt
-        .get("queried_at")
-        .and_then(Value::as_str)
-        .is_some_and(|value| !value.trim().is_empty())
-        && receipt.get("receipt_class").and_then(Value::as_str)
-            == Some("git-github-factual-state-only-non-authoritative-non-closure");
-    let receipt_metadata_matches = state.get("factual_reconciliation_queried_at")
-        == receipt.get("queried_at")
-        && state.get("github_review_decision")
-            == immutable_facts.and_then(|facts| facts.get("github_review_decision"))
-        && state.get("github_approved_reviewer")
-            == approved_review.and_then(|review| review.get("reviewer"));
-    let authority_stays_open = contract.get("state").and_then(Value::as_str) == Some("open")
-        && contract
-            .get("binding_plan_approval_allowed")
-            .and_then(Value::as_bool)
-            == Some(false)
-        && contract.get("dispatch_allowed").and_then(Value::as_bool) == Some(false)
-        && state
-            .get("qualified_human_approval_proven")
-            .and_then(Value::as_bool)
-            == Some(false)
-        && state
-            .get("completion_packet_recorded")
-            .and_then(Value::as_bool)
-            == Some(false)
-        && authority_nonclosure
-            .and_then(|nonclosure| nonclosure.get("founder_gates_closed_by_this_receipt"))
-            .and_then(Value::as_array)
-            .is_some_and(Vec::is_empty)
-        && authority_nonclosure
-            .and_then(|nonclosure| nonclosure.get("qualified_human_gates_closed_by_this_receipt"))
-            .and_then(Value::as_array)
-            .is_some_and(Vec::is_empty);
-
-    let final_head = baseline.get("pr_final_head").and_then(Value::as_str);
-    let merge_commit = baseline.get("merge_commit").and_then(Value::as_str);
-    let successful_receipts: BTreeSet<&str> = receipt
-        .get("protected_context_receipts")
-        .and_then(Value::as_array)
-        .into_iter()
-        .flatten()
-        .filter(|entry| {
-            entry.get("context").and_then(Value::as_str) == Some("oya-ci-required")
-                && entry.get("status").and_then(Value::as_str) == Some("completed")
-                && entry.get("conclusion").and_then(Value::as_str) == Some("success")
-        })
-        .filter_map(|entry| entry.get("commit_sha").and_then(Value::as_str))
-        .collect();
-    let protected_contexts_match = final_head.is_some_and(|sha| successful_receipts.contains(sha))
-        && merge_commit.is_some_and(|sha| successful_receipts.contains(sha));
-
-    if !receipt_is_time_scoped
-        || !receipt_metadata_matches
-        || !authority_stays_open
-        || !protected_contexts_match
-    {
+    if preplanning_candidate_facts_agree(masterplan, candidate_evidence) != Some(true) {
         findings.insert(Finding::new("masterplan_plan_evidence_drift", key));
     }
 
     findings
+}
+
+fn preplanning_candidate_facts_agree(
+    masterplan: &Value,
+    candidate_evidence: &Value,
+) -> Option<bool> {
+    let contract = masterplan.pointer("/masterplan_v2/planning_entry_contract")?;
+    let state = contract.get("current_pr_candidate_state")?;
+    let baseline = candidate_evidence.pointer("/present/repository_baseline")?;
+    let receipt = candidate_evidence.pointer("/present/factual_reconciliation")?;
+    let immutable = receipt.get("immutable_pull_request_facts")?;
+    let review = receipt.get("github_approved_review_receipt")?;
+    let nonclosure = receipt.get("authority_gate_nonclosure")?;
+
+    let candidate_ref = non_empty_field(contract, "current_pr_candidate")?;
+    let contract_state = non_empty_field(contract, "state")?;
+    let binding_allowed = contract.get("binding_plan_approval_allowed")?.as_bool()?;
+    let dispatch_allowed = contract.get("dispatch_allowed")?.as_bool()?;
+
+    let state_baseline = non_empty_field(state, "baseline_commit")?;
+    let state_branch = non_empty_field(state, "branch")?;
+    let state_candidate = non_empty_field(state, "recorded_candidate_state")?;
+    let state_protected = state.get("protected_pr_against_dev")?.as_bool()?;
+    let state_green = state
+        .get("oya_ci_required_green_for_candidate")?
+        .as_bool()?;
+    let state_merged = state.get("merged_to_dev")?.as_bool()?;
+    let completion_recorded = state.get("completion_packet_recorded")?.as_bool()?;
+    let state_claim = non_empty_field(state, "claim_ceiling")?;
+    let state_first_commit = non_empty_field(state, "candidate_first_content_commit")?;
+    let state_final_head = non_empty_field(state, "candidate_final_head")?;
+    let state_base = non_empty_field(state, "candidate_base")?;
+    let state_merge = non_empty_field(state, "merge_commit")?;
+    let state_merged_at = non_empty_field(state, "merged_at")?;
+    let state_pr_number = state.get("protected_pr_number")?.as_u64()?;
+    let state_pr_url = non_empty_field(state, "protected_pr_url")?;
+    let state_queried_at = non_empty_field(state, "factual_reconciliation_queried_at")?;
+    let state_review_decision = non_empty_field(state, "github_review_decision")?;
+    let state_reviewer = non_empty_field(state, "github_approved_reviewer")?;
+    let qualified_human_proven = state.get("qualified_human_approval_proven")?.as_bool()?;
+
+    let baseline_head = non_empty_field(baseline, "head_at_snapshot")?;
+    let baseline_origin = non_empty_field(baseline, "origin_dev_at_snapshot")?;
+    let baseline_relation = non_empty_field(baseline, "baseline_relation")?;
+    let baseline_branch = non_empty_field(baseline, "branch")?;
+    let baseline_candidate = non_empty_field(baseline, "candidate_state")?;
+    let baseline_protected = baseline.get("protected_pr_against_dev")?.as_bool()?;
+    let baseline_green = baseline.get("candidate_oya_ci_required_green")?.as_bool()?;
+    let baseline_merged = baseline.get("merged_to_dev")?.as_bool()?;
+    let baseline_claim = non_empty_field(baseline, "claim_ceiling")?;
+    let baseline_first_commit = non_empty_field(baseline, "candidate_first_content_commit")?;
+    let baseline_pr_number = baseline.get("protected_pr_number")?.as_u64()?;
+    let baseline_pr_url = non_empty_field(baseline, "protected_pr_url")?;
+    let baseline_opened_head = non_empty_field(baseline, "pr_opened_on_head")?;
+    let baseline_final_head = non_empty_field(baseline, "pr_final_head")?;
+    let baseline_base = non_empty_field(baseline, "pr_base")?;
+    let baseline_merge = non_empty_field(baseline, "merge_commit")?;
+    let baseline_merged_at = non_empty_field(baseline, "merged_at")?;
+
+    let immutable_base_ref = non_empty_field(immutable, "base_ref")?;
+    let immutable_base = non_empty_field(immutable, "base_sha")?;
+    let immutable_branch = non_empty_field(immutable, "head_ref")?;
+    let immutable_head = non_empty_field(immutable, "head_sha")?;
+    let immutable_merge = non_empty_field(immutable, "merge_commit_sha")?;
+    let immutable_state = non_empty_field(immutable, "state")?;
+    let immutable_draft = immutable.get("draft")?.as_bool()?;
+    let immutable_merged_at = non_empty_field(immutable, "merged_at")?;
+    let immutable_review_decision = non_empty_field(immutable, "github_review_decision")?;
+    let immutable_origin_at_query = non_empty_field(immutable, "origin_dev_at_query")?;
+    let merge_is_ancestor = immutable
+        .get("merge_commit_is_ancestor_of_origin_dev_at_query")?
+        .as_bool()?;
+
+    let receipt_queried_at = non_empty_field(receipt, "queried_at")?;
+    let receipt_class = non_empty_field(receipt, "receipt_class")?;
+    let review_id = review.get("review_id")?.as_u64()?;
+    let review_state = non_empty_field(review, "state")?;
+    let reviewer = non_empty_field(review, "reviewer")?;
+    let review_commit = non_empty_field(review, "commit_sha")?;
+    let review_submitted_at = non_empty_field(review, "submitted_at")?;
+    let review_url = non_empty_field(review, "url")?;
+
+    let founder_gates = nonclosure
+        .get("founder_gates_closed_by_this_receipt")?
+        .as_array()?;
+    let human_gates = nonclosure
+        .get("qualified_human_gates_closed_by_this_receipt")?
+        .as_array()?;
+    let nonclosure_state = non_empty_field(nonclosure, "planning_entry_contract_state")?;
+    let nonclosure_binding = nonclosure.get("binding_plan_approval_allowed")?.as_bool()?;
+    let nonclosure_dispatch = nonclosure
+        .get("execution_wave_dispatch_allowed")?
+        .as_bool()?;
+    let phase0_complete = nonclosure.get("phase0_complete")?.as_bool()?;
+    let stage1_pass = nonclosure.get("stage1_pass_attested")?.as_bool()?;
+
+    let protected_receipts = receipt.get("protected_context_receipts")?.as_array()?;
+    let expected_pr_url = format!("https://github.com/jason931225/oyatie/pull/{state_pr_number}");
+
+    Some(
+        !candidate_ref.is_empty()
+            && contract_state == "open"
+            && !binding_allowed
+            && !dispatch_allowed
+            && state_baseline == baseline_base
+            && state_base == baseline_base
+            && baseline_base == immutable_base
+            && baseline_head == immutable_base
+            && baseline_origin == immutable_base
+            && !baseline_relation.is_empty()
+            && state_branch == baseline_branch
+            && baseline_branch == immutable_branch
+            && state_candidate == baseline_candidate
+            && state_protected
+            && state_protected == baseline_protected
+            && state_green
+            && state_green == baseline_green
+            && state_merged
+            && state_merged == baseline_merged
+            && !completion_recorded
+            && state_claim == baseline_claim
+            && state_first_commit == baseline_first_commit
+            && baseline_first_commit == baseline_opened_head
+            && state_pr_number == baseline_pr_number
+            && state_pr_url == baseline_pr_url
+            && state_pr_url == expected_pr_url
+            && state_final_head == baseline_final_head
+            && baseline_final_head == immutable_head
+            && state_merge == baseline_merge
+            && baseline_merge == immutable_merge
+            && state_merged_at == baseline_merged_at
+            && baseline_merged_at == immutable_merged_at
+            && immutable_base_ref == "dev"
+            && immutable_state == "MERGED"
+            && !immutable_draft
+            && immutable_review_decision == "APPROVED"
+            && !immutable_origin_at_query.is_empty()
+            && merge_is_ancestor
+            && state_queried_at == receipt_queried_at
+            && receipt_class == "git-github-factual-state-only-non-authoritative-non-closure"
+            && review_id > 0
+            && review_state == "APPROVED"
+            && state_review_decision == immutable_review_decision
+            && state_reviewer == reviewer
+            && review_commit == baseline_final_head
+            && !review_submitted_at.is_empty()
+            && !review_url.is_empty()
+            && !qualified_human_proven
+            && founder_gates.is_empty()
+            && human_gates.is_empty()
+            && nonclosure_state == contract_state
+            && !nonclosure_binding
+            && !nonclosure_dispatch
+            && !phase0_complete
+            && !stage1_pass
+            && non_empty_string_array(
+                nonclosure.get("founder_choices_still_blocking_binding_plan"),
+            )
+            && successful_protected_context_receipt(protected_receipts, baseline_final_head)
+            && successful_protected_context_receipt(protected_receipts, baseline_merge),
+    )
+}
+
+fn successful_protected_context_receipt(receipts: &[Value], commit_sha: &str) -> bool {
+    receipts.iter().any(|entry| {
+        non_empty_field(entry, "commit_sha") == Some(commit_sha)
+            && non_empty_field(entry, "context") == Some("oya-ci-required")
+            && non_empty_field(entry, "status") == Some("completed")
+            && non_empty_field(entry, "conclusion") == Some("success")
+            && non_empty_field(entry, "started_at").is_some()
+            && non_empty_field(entry, "completed_at").is_some()
+            && non_empty_field(entry, "details_url").is_some()
+    })
 }
 
 fn recorded_masterplan_ratification_digest_matches(
