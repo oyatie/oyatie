@@ -179,6 +179,7 @@ struct PreplanningCandidatePolicy {
     policy_id: String,
     schema_version: u64,
     purpose: String,
+    candidate_receipt_digest: String,
     immutable_pull_request: PreplanningCandidateIdentity,
 }
 
@@ -312,11 +313,70 @@ fn parse_preplanning_candidate_policy(policy_json: &str) -> Option<PreplanningCa
     (policy.schema_version == 1
         && !policy.policy_id.trim().is_empty()
         && !policy.purpose.trim().is_empty()
+        && valid_sha256_digest(&policy.candidate_receipt_digest)
         && identity.number > 0
         && canonical_https_origin_and_path(&identity.base_url)
         && !identity.candidate_state.trim().is_empty()
         && !identity.claim_ceiling.trim().is_empty())
     .then_some(policy)
+}
+
+fn valid_sha256_digest(value: &str) -> bool {
+    let Some(hex) = value.strip_prefix("sha256:") else {
+        return false;
+    };
+    hex.len() == 64
+        && hex
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || matches!(byte, b'a'..=b'f'))
+}
+
+/// Render JSON in a stable, recursively sorted form before binding it to a
+/// policy digest. This makes the receipt identity semantic rather than an
+/// artifact of object insertion order.
+fn canonical_json(value: &Value) -> Option<String> {
+    match value {
+        Value::Null | Value::Bool(_) | Value::Number(_) => Some(value.to_string()),
+        Value::String(_) => serde_json::to_string(value).ok(),
+        Value::Array(values) => values
+            .iter()
+            .map(canonical_json)
+            .collect::<Option<Vec<_>>>()
+            .map(|values| format!("[{}]", values.join(","))),
+        Value::Object(values) => {
+            let mut canonical_fields = BTreeMap::new();
+            for (key, value) in values {
+                canonical_fields.insert(serde_json::to_string(key).ok()?, canonical_json(value)?);
+            }
+            Some(format!(
+                "{{{}}}",
+                canonical_fields
+                    .into_iter()
+                    .map(|(key, value)| format!("{key}:{value}"))
+                    .collect::<Vec<_>>()
+                    .join(",")
+            ))
+        }
+    }
+}
+
+/// Bind the whole candidate record that may otherwise move in coordinated
+/// lockstep: the planning-state mirror, repository baseline, and complete
+/// time-scoped factual reconciliation (including review and protected-context
+/// receipts). The digest is fixed in separately reviewed policy data.
+fn preplanning_candidate_receipt_digest(
+    candidate_ref: &str,
+    state: &Value,
+    baseline: &Value,
+    receipt: &Value,
+) -> Option<String> {
+    let canonical = canonical_json(&serde_json::json!({
+        "candidate_evidence_ref": candidate_ref,
+        "planning_entry_contract_current_pr_candidate_state": state,
+        "repository_baseline": baseline,
+        "factual_reconciliation": receipt,
+    }))?;
+    Some(format!("sha256:{:x}", Sha256::digest(canonical.as_bytes())))
 }
 const PROJECTION_CLASS_READ: &str = "read-projection";
 const READ_CONTRACT_ARCHIVED_TIMING_CLASS: &str = "provenance-archive";
@@ -2061,9 +2121,12 @@ fn preplanning_candidate_facts_agree(
     let stage1_pass = nonclosure.get("stage1_pass_attested")?.as_bool()?;
 
     let protected_receipts = receipt.get("protected_context_receipts")?.as_array()?;
+    let candidate_receipt_digest =
+        preplanning_candidate_receipt_digest(candidate_ref, state, baseline, receipt)?;
 
     Some(
         !candidate_ref.is_empty()
+            && candidate_receipt_digest == policy.candidate_receipt_digest
             && contract_state == "open"
             && !binding_allowed
             && !dispatch_allowed
@@ -4149,6 +4212,7 @@ mod tests {
           "policy_id":"test-policy",
           "schema_version":1,
           "purpose":"test",
+          "candidate_receipt_digest":"sha256:0000000000000000000000000000000000000000000000000000000000000000",
           "immutable_pull_request":{
             "number":1340,
             "base_url":"https://example.test/pull",
@@ -4164,6 +4228,13 @@ mod tests {
             .unwrap()
             .remove("claim_ceiling");
         assert!(parse_preplanning_candidate_policy(&missing.to_string()).is_none());
+        assert!(
+            parse_preplanning_candidate_policy(&valid.replace(
+                "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+                "sha256:ABCDEF0000000000000000000000000000000000000000000000000000000000"
+            ))
+            .is_none()
+        );
         assert!(
             parse_preplanning_candidate_policy(&valid.replace(
                 "\"schema_version\":1,",

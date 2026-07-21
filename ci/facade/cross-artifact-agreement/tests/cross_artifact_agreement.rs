@@ -449,6 +449,64 @@ fn preplanning_candidate_first_commit_cannot_move_in_lockstep() {
     assert_preplanning_candidate_drift(&masterplan, &evidence);
 }
 
+#[test]
+fn preplanning_candidate_final_head_cannot_move_in_lockstep_with_its_receipts() {
+    let (mut masterplan, mut evidence) = live_preplanning_candidate_fixture();
+    let false_head = serde_json::json!("dddddddddddddddddddddddddddddddddddddddd");
+    masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["candidate_final_head"] =
+        false_head.clone();
+    evidence["present"]["repository_baseline"]["pr_final_head"] = false_head.clone();
+    evidence["present"]["factual_reconciliation"]["immutable_pull_request_facts"]["head_sha"] =
+        false_head.clone();
+    evidence["present"]["factual_reconciliation"]["github_approved_review_receipt"]["commit_sha"] =
+        false_head.clone();
+    evidence["present"]["factual_reconciliation"]["protected_context_receipts"][0]["commit_sha"] =
+        false_head;
+
+    assert_preplanning_candidate_drift(&masterplan, &evidence);
+}
+
+#[test]
+fn preplanning_candidate_merge_sha_cannot_move_in_lockstep_with_its_receipt() {
+    let (mut masterplan, mut evidence) = live_preplanning_candidate_fixture();
+    let false_merge = serde_json::json!("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+    masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["merge_commit"] =
+        false_merge.clone();
+    evidence["present"]["repository_baseline"]["merge_commit"] = false_merge.clone();
+    evidence["present"]["factual_reconciliation"]["immutable_pull_request_facts"]["merge_commit_sha"] =
+        false_merge.clone();
+    evidence["present"]["factual_reconciliation"]["protected_context_receipts"][1]["commit_sha"] =
+        false_merge;
+
+    assert_preplanning_candidate_drift(&masterplan, &evidence);
+}
+
+#[test]
+fn preplanning_candidate_review_receipt_cannot_mutate_in_lockstep() {
+    let (mut masterplan, mut evidence) = live_preplanning_candidate_fixture();
+    masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["github_approved_reviewer"] =
+        serde_json::json!("replacement-reviewer");
+    evidence["present"]["factual_reconciliation"]["github_approved_review_receipt"]["review_id"] =
+        serde_json::json!(999_999);
+    evidence["present"]["factual_reconciliation"]["github_approved_review_receipt"]["reviewer"] =
+        serde_json::json!("replacement-reviewer");
+    evidence["present"]["factual_reconciliation"]["github_approved_review_receipt"]["submitted_at"] =
+        serde_json::json!("2026-07-14T00:00:00Z");
+    evidence["present"]["factual_reconciliation"]["github_approved_review_receipt"]["url"] =
+        serde_json::json!("https://github.com/jason931225/oyatie/pull/1340#replacement");
+
+    assert_preplanning_candidate_drift(&masterplan, &evidence);
+}
+
+#[test]
+fn preplanning_candidate_protected_context_receipt_cannot_mutate() {
+    let (masterplan, mut evidence) = live_preplanning_candidate_fixture();
+    evidence["present"]["factual_reconciliation"]["protected_context_receipts"][0]["details_url"] =
+        serde_json::json!("https://github.com/jason931225/oyatie/actions/runs/replaced");
+
+    assert_preplanning_candidate_drift(&masterplan, &evidence);
+}
+
 fn live_preplanning_candidate_fixture() -> (Value, Value) {
     let root = repo_root();
     let masterplan = load_json(&root.join("specs/masterplan.json"));
