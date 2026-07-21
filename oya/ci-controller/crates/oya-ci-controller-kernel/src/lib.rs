@@ -118,25 +118,57 @@ pub struct ReviewEvidence {
     pub evidence_url: String,   // data_class: INTERNAL_ONLY
 }
 
+/// Trusted reviewer-eligibility policy supplied by the controller.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ReviewAdmissionPolicy {
+    pub policy_ref: String,                         // data_class: INTERNAL_ONLY
+    pub eligible_reviewer_logins: BTreeSet<String>, // data_class: INTERNAL_ONLY
+}
+
+impl ReviewAdmissionPolicy {
+    /// Build a case-insensitive designated-reviewer allowlist.
+    pub fn new<I, S>(policy_ref: impl Into<String>, reviewers: I) -> Self
+    where
+        I: IntoIterator<Item = S>,
+        S: AsRef<str>,
+    {
+        Self {
+            policy_ref: policy_ref.into(),
+            eligible_reviewer_logins: reviewers
+                .into_iter()
+                .map(|reviewer| reviewer.as_ref().trim().to_ascii_lowercase())
+                .filter(|reviewer| !reviewer.is_empty())
+                .collect(),
+        }
+    }
+
+    fn admits(&self, reviewer_login: &str) -> bool {
+        self.eligible_reviewer_logins
+            .contains(&reviewer_login.trim().to_ascii_lowercase())
+    }
+}
+
 /// Trusted inputs used to decide review admission for one PR head.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReviewAdmissionInput {
-    pub pr_number: u64,               // data_class: INTERNAL_ONLY
-    pub expected_head_sha: String,    // data_class: INTERNAL_ONLY
-    pub observed_head_sha: String,    // data_class: INTERNAL_ONLY
-    pub author_login: String,         // data_class: INTERNAL_ONLY
-    pub reviews: Vec<ReviewEvidence>, // data_class: INTERNAL_ONLY
+    pub pr_number: u64,                // data_class: INTERNAL_ONLY
+    pub expected_head_sha: String,     // data_class: INTERNAL_ONLY
+    pub observed_head_sha: String,     // data_class: INTERNAL_ONLY
+    pub author_login: String,          // data_class: INTERNAL_ONLY
+    pub policy: ReviewAdmissionPolicy, // data_class: INTERNAL_ONLY
+    pub reviews: Vec<ReviewEvidence>,  // data_class: INTERNAL_ONLY
 }
 
 /// Durable, head-bound packet emitted only after review admission succeeds.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ReviewAdmissionPacket {
-    pub pr_number: u64,         // data_class: INTERNAL_ONLY
-    pub head_sha: String,       // data_class: INTERNAL_ONLY
-    pub author_login: String,   // data_class: INTERNAL_ONLY
-    pub reviewer_login: String, // data_class: INTERNAL_ONLY
-    pub verdict: ReviewVerdict, // data_class: INTERNAL_ONLY
-    pub evidence_url: String,   // data_class: INTERNAL_ONLY
+    pub pr_number: u64,                          // data_class: INTERNAL_ONLY
+    pub head_sha: String,                        // data_class: INTERNAL_ONLY
+    pub author_login: String,                    // data_class: INTERNAL_ONLY
+    pub reviewer_login: String,                  // data_class: INTERNAL_ONLY
+    pub reviewer_eligibility_policy_ref: String, // data_class: INTERNAL_ONLY
+    pub verdict: ReviewVerdict,                  // data_class: INTERNAL_ONLY
+    pub evidence_url: String,                    // data_class: INTERNAL_ONLY
 }
 
 /// Validate forge review observations and select the newest effective approval.
@@ -169,6 +201,12 @@ pub fn admit_review(input: &ReviewAdmissionInput) -> Result<ReviewAdmissionPacke
             "review admission requires an author identity".to_owned(),
         ));
     }
+    let policy_ref = input.policy.policy_ref.trim();
+    if policy_ref.is_empty() || input.policy.eligible_reviewer_logins.is_empty() {
+        return Err(KernelError::InvalidInput(
+            "review admission requires a non-empty reviewer eligibility policy".to_owned(),
+        ));
+    }
 
     // GitHub returns review events in creation order. Keep the highest-id
     // decisive event per reviewer so a later request-changes or dismissal
@@ -193,6 +231,7 @@ pub fn admit_review(input: &ReviewAdmissionInput) -> Result<ReviewAdmissionPacke
 
     let author_key = author.to_ascii_lowercase();
     let mut author_approval_present = false;
+    let mut ineligible_approval_present = false;
     let mut newest_approval: Option<&ReviewEvidence> = None;
     for (reviewer_key, review) in latest_by_reviewer {
         if review.verdict != ReviewVerdict::Approved {
@@ -200,6 +239,10 @@ pub fn admit_review(input: &ReviewAdmissionInput) -> Result<ReviewAdmissionPacke
         }
         if reviewer_key == author_key {
             author_approval_present = true;
+            continue;
+        }
+        if !input.policy.admits(&review.reviewer_login) {
+            ineligible_approval_present = true;
             continue;
         }
         if !is_durable_http_url(&review.evidence_url) {
@@ -215,6 +258,8 @@ pub fn admit_review(input: &ReviewAdmissionInput) -> Result<ReviewAdmissionPacke
     let Some(review) = newest_approval else {
         let reason = if author_approval_present {
             "reviewer identity must be distinct from the PR author"
+        } else if ineligible_approval_present {
+            "approved reviewer is not eligible under the designated reviewer policy"
         } else {
             "no current head-bound APPROVED review evidence was found"
         };
@@ -226,6 +271,7 @@ pub fn admit_review(input: &ReviewAdmissionInput) -> Result<ReviewAdmissionPacke
         head_sha: input.expected_head_sha.clone(),
         author_login: author.to_owned(),
         reviewer_login: review.reviewer_login.trim().to_owned(),
+        reviewer_eligibility_policy_ref: policy_ref.to_owned(),
         verdict: ReviewVerdict::Approved,
         evidence_url: review.evidence_url.clone(),
     })

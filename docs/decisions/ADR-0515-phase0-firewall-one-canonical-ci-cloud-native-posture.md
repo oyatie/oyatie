@@ -533,6 +533,14 @@ a known-good it passes + proof it runs in the pipeline and BLOCKS):
   It is justified only as an audit record under this `oya-ci-required` governed path; it does not make a
   planning choice, authorize dispatch or implementation, prove product readiness, bypass CI, or mutate
   generated artifacts.
+- **Review-admission GitHub adapter ownership and regression registration (2026-07-20):** the
+  repo-relative ownership marker
+  `oya/ci-controller/crates/oya-ci-controller-github-adapter/OWNERS` assigns the adapter crate narrowly
+  to `cloud-ci-platform`, and
+  `oya/ci-controller/crates/oya-ci-controller-github-adapter/tests/review_admission.rs` is its
+  repo-owned regression suite. These paths implement and test only the non-live `oya-pr-review`
+  producer contract; they do not deploy the producer, modify branch protection, bypass
+  `oya-ci-required`, or claim F-PR5-06 closure.
 
 ## Amendment (2026-06-08, WAVE-1 Agentic Delivery Fabric convergence — refined, NOT superseded)
 

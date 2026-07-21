@@ -16,6 +16,7 @@
         "head_sha",
         "author_identity",
         "distinct_reviewer_identity",
+        "reviewer_eligibility_policy_ref",
         "approved_verdict",
         "durable_review_url"
       ],
