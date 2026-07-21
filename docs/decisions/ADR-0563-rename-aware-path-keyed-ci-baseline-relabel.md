@@ -49,8 +49,8 @@ is materialized on demand by the generated-face materializer
 regenerate-twice DETERMINISM rather than committed-byte parity. The relabel semantics, the
 anti-forgery binding (now a determinism binding), and the fail-closed resolver are otherwise
 unchanged — the emitter reads the MATERIALIZED copy instead of a committed one. See ADR-0614 for
-the gate / registry-drift / path-resolver consequences and the fail-open → fail-closed hardening
-follow-up.
+the gate / registry-drift / path-resolver consequences and the accepted fail-closed
+materialize-first loader contract.
 
 ## Context
 

@@ -139,9 +139,9 @@ docs/architecture/product-graph.html
 # rename-aware relabel reads it). registry-drift validates regenerate-twice determinism, not
 # committed-byte parity; the control-plane policy gate forbids re-tracking it (materialization_mode:
 # not-tracked-in-git). It is covered by the broad **/*.generated.json rule above and is intentionally
-# NOT negated. The path-resolver `load` still fails OPEN to identity on absence; ADR-0614 records the
-# fail-closed hardening as a follow-up, safe today because the materializer writes the manifest before
-# any relabel-read leg (audited: no CI leg runs the emitter without a preceding materialize step).
+# NOT negated. The path-resolver `load` fails CLOSED on absence: an absent or unreadable manifest is
+# a hard materialize-first precondition error, never an identity relabel. The materializer writes it
+# before any relabel-read leg (audited: no CI leg runs the emitter without a preceding materialize step).
 
 # buck2 build output
 /buck-out/

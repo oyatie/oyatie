@@ -10,6 +10,7 @@ owner: council-architecture
 supersedes: []
 superseded_by: []
 amends: [ADR-0364]
+amended_by: [ADR-0614]
 depends_on: [ADR-0515]
 related: [ADR-0539, ADR-0595, ADR-0596, ADR-0597, ADR-0364, ADR-0066, ADR-0563]
 related_specs:
@@ -68,21 +69,23 @@ arch-graph dashboard) and materialized out-of-graph for consumers before gates r
 ADR-0595 already special-cased move-manifest as "stays committed"; this ADR **reaffirms** that and
 records why it is NOT swept into this de-commit:
 
-1. **It conflicts with a proposed design.** ADR-0563 is Proposed, not Accepted; it proposed making
+1. **It conflicted with a not-yet-accepted design at the decision time.** ADR-0563 is Proposed, not Accepted; it proposed making
    move-manifest the authoritative committed rename-aware move-bijection that the path-keyed CI
-   baseline relabel consumes. This rationale did not make ADR-0563 binding. ADR-0614 later proposed
-   and implemented de-commitment, but its lifecycle/propagation proof must be resolved separately.
-2. **It introduces a silent failure mode.** `ci/adapters/path-resolver` `ManifestBijection::load`
-   fails **open to identity** on an absent manifest. De-committed, any emitter leg not preceded by
-   a full materialize would silently relabel to identity — turning every pre-existing renamed-path
-   debt item into a phantom "new regression" (a silent false-RED on move PRs), a worse failure than
-   the one this ADR fixes.
+   baseline relabel consumes. This rationale did not make ADR-0563 binding. Accepted ADR-0614 later
+   completed the separate lifecycle/propagation proof and amended this deferral.
+2. **It introduced a silent failure mode at the decision time.** `ci/adapters/path-resolver`
+   `ManifestBijection::load` then failed **open to identity** on an absent manifest. De-committed,
+   any emitter leg not preceded by a full materialize would have silently relabeled to identity —
+   turning every pre-existing renamed-path debt item into a phantom "new regression" (a silent
+   false-RED on move PRs), a worse failure than the one this ADR fixed. Accepted ADR-0614 repaired
+   that loader contract to fail closed before accepting the de-commit.
 3. **It was never the corruption source.** move-manifest is codemod-deterministic (a pure function
    of the committed move-plan × candidate tree); it regenerated correctly in the same incident that
    corrupted masterplan. It is the *reviewed* artifact — a human reads the bijection.
 
-A separate decision may de-commit move-manifest only with a fail-closed (not fail-open) relabel. It
-is out of ADR-0613 scope; ADR-0614 records that later proposal and implementation.
+ADR-0614 subsequently satisfies that separate-decision condition with a fail-closed loader and
+amends this ADR's move-manifest deferral. This paragraph preserves the decision-time boundary; the
+current lifecycle relationship is the reciprocal `amended_by: [ADR-0614]` metadata above.
 
 ### Gate teaching (no flag day)
 
@@ -147,6 +150,8 @@ land-time materialized, not hand-edited in this PR.
   projection faces.
 - Amends ADR-0364's committed-surface stance for the masterplan projection and the product-graph
   dashboard (they become derive-on-demand, not committed).
-- Leaves Proposed ADR-0563/ADR-0614's move-manifest disposition outside this ADR. At acceptance,
-  ADR-0613 also reaffirmed ADR-0596's committed frozen-reference rule; the later implementation of
-  Proposed ADR-0616 is separate lifecycle drift until ADR-0616 is accepted or rolled back.
+- Its decision-time boundary left ADR-0563's then-unaccepted move-manifest disposition outside
+  this ADR; Accepted ADR-0614 now amends that boundary with a fail-closed materialized-manifest
+  loader. At acceptance, ADR-0613 also reaffirmed ADR-0596's committed frozen-reference rule; the
+  later implementation of Proposed ADR-0616 is separate lifecycle drift until ADR-0616 is accepted
+  or rolled back.

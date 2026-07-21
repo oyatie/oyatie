@@ -14,7 +14,7 @@ doc_status: published
 - **Total ADRs:** 429
 - **Numbering:** ADR-0001..ADR-0619 (non-contiguous; gaps: 0012, 0033, 0037, 0041, 0050, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0247, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291, 0322..0323, 0327, 0342, 0345, 0385..0386, 0395..0396, 0398..0475, 0477, 0483..0505, 0574..0579, 0583..0585, 0594, 0601..0602)
 - **Next ADR number:** 0620
-- **Status counts:** Accepted 175, Accepted (amendment) 2, Amended 1, Proposed 147, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 35, accepted 34, deprecated 1, proposed 31, superseded 1
+- **Status counts:** Accepted 176, Accepted (amendment) 2, Amended 1, Proposed 146, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 35, accepted 34, deprecated 1, proposed 31, superseded 1
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -444,7 +444,7 @@ doc_status: published
 | ADR-0611 | Proposed | Land the Asterinas real-boot foundation harness under kernel/ (kuberos Wave-1 shard-1) | council-architecture | [`ADR-0611-land-asterinas-real-boot-foundation-kernel.md`](decisions/ADR-0611-land-asterinas-real-boot-foundation-kernel.md) |
 | ADR-0612 | Proposed | buck2 Remote-Execution phase — deploy the NativeLink scheduler + worker tiers, flip `remote_enabled=true` | council-architecture | [`ADR-0612-buck2-remote-execution-phase-nativelink-scheduler-worker.md`](decisions/ADR-0612-buck2-remote-execution-phase-nativelink-scheduler-worker.md) |
 | ADR-0613 | Accepted | De-commit the remaining controller-materialized projection faces | council-architecture | [`ADR-0613-de-commit-remaining-controller-materialized-projection-faces.md`](decisions/ADR-0613-de-commit-remaining-controller-materialized-projection-faces.md) |
-| ADR-0614 | Proposed | De-commit the reorg move-manifest bijection | cloud-ci-platform | [`ADR-0614-de-commit-reorg-move-manifest-bijection.md`](decisions/ADR-0614-de-commit-reorg-move-manifest-bijection.md) |
+| ADR-0614 | Accepted | De-commit the reorg move-manifest bijection | cloud-ci-platform | [`ADR-0614-de-commit-reorg-move-manifest-bijection.md`](decisions/ADR-0614-de-commit-reorg-move-manifest-bijection.md) |
 | ADR-0615 | Accepted | Capability boundary rulings — resolving ADR-0562's flagged_boundaries | council-architecture | [`ADR-0615-capability-boundary-rulings-resolving-adr-0562-flagged-boundaries.md`](decisions/ADR-0615-capability-boundary-rulings-resolving-adr-0562-flagged-boundaries.md) |
 | ADR-0616 | Proposed | De-commit the firewall frozen-reference baseline | council-architecture | [`ADR-0616-de-commit-firewall-frozen-reference-baseline.md`](decisions/ADR-0616-de-commit-firewall-frozen-reference-baseline.md) |
 | ADR-0617 | Proposed | The Living Monorepo Governance Graph | council-architecture | [`ADR-0617-living-monorepo-governance-graph.md`](decisions/ADR-0617-living-monorepo-governance-graph.md) |
