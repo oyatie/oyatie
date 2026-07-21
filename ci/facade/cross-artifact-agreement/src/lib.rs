@@ -2007,23 +2007,41 @@ pub fn evaluate_masterplan_v2_preplanning_candidate_facts(
     let mut findings = BTreeSet::new();
     let key = "masterplan_v2.planning_entry_contract.current_pr_candidate_state";
 
-    if preplanning_candidate_facts_agree(
+    let disagreement = match preplanning_candidate_facts_agree(
         masterplan,
         candidate_evidence,
         preplanning_candidate_policy().as_ref(),
-    ) != Some(true)
-    {
-        findings.insert(Finding::new("masterplan_plan_evidence_drift", key));
+    ) {
+        Some(PreplanningCandidateAgreement::Agree) => None,
+        Some(PreplanningCandidateAgreement::ReceiptDigestMismatch) => {
+            Some("candidate_receipt_digest")
+        }
+        Some(PreplanningCandidateAgreement::FieldMismatch) => Some("field_mismatch"),
+        None => Some("missing_or_malformed"),
+    };
+
+    if let Some(reason) = disagreement {
+        findings.insert(Finding::new(
+            "masterplan_plan_evidence_drift",
+            &format!("{key}.{reason}"),
+        ));
     }
 
     findings
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum PreplanningCandidateAgreement {
+    Agree,
+    ReceiptDigestMismatch,
+    FieldMismatch,
 }
 
 fn preplanning_candidate_facts_agree(
     masterplan: &Value,
     candidate_evidence: &Value,
     policy: Option<&PreplanningCandidatePolicy>,
-) -> Option<bool> {
+) -> Option<PreplanningCandidateAgreement> {
     let policy = policy?;
     let policy_identity = &policy.immutable_pull_request;
     let contract = masterplan.pointer("/masterplan_v2/planning_entry_contract")?;
@@ -2124,77 +2142,81 @@ fn preplanning_candidate_facts_agree(
     let candidate_receipt_digest =
         preplanning_candidate_receipt_digest(candidate_ref, state, baseline, receipt)?;
 
-    Some(
-        !candidate_ref.is_empty()
-            && candidate_receipt_digest == policy.candidate_receipt_digest
-            && contract_state == "open"
-            && !binding_allowed
-            && !dispatch_allowed
-            && state_baseline == baseline_base
-            && state_base == baseline_base
-            && baseline_base == immutable_base
-            && baseline_head == immutable_base
-            && baseline_origin == immutable_base
-            && !baseline_relation.is_empty()
-            && state_branch == baseline_branch
-            && baseline_branch == immutable_branch
-            && state_candidate == baseline_candidate
-            && baseline_candidate == immutable_candidate_state
-            && immutable_candidate_state == policy_identity.candidate_state
-            && state_protected
-            && state_protected == baseline_protected
-            && state_green
-            && state_green == baseline_green
-            && state_merged
-            && state_merged == baseline_merged
-            && !completion_recorded
-            && state_claim == baseline_claim
-            && baseline_claim == policy_identity.claim_ceiling
-            && state_first_commit == baseline_first_commit
-            && baseline_first_commit == baseline_opened_head
-            && baseline_first_commit == immutable_first_commit
-            && state_pr_number == baseline_pr_number
-            && baseline_pr_number == immutable_pr_number
-            && immutable_pr_number == policy_identity.number
-            && state_pr_url == baseline_pr_url
-            && baseline_pr_url == immutable_pr_url
-            && immutable_pr_url
-                == format!("{}/{}", policy_identity.base_url, policy_identity.number)
-            && state_final_head == baseline_final_head
-            && baseline_final_head == immutable_head
-            && state_merge == baseline_merge
-            && baseline_merge == immutable_merge
-            && state_merged_at == baseline_merged_at
-            && baseline_merged_at == immutable_merged_at
-            && immutable_base_ref == "dev"
-            && immutable_state == "MERGED"
-            && !immutable_draft
-            && immutable_review_decision == "APPROVED"
-            && !immutable_origin_at_query.is_empty()
-            && merge_is_ancestor
-            && state_queried_at == receipt_queried_at
-            && receipt_class == "git-github-factual-state-only-non-authoritative-non-closure"
-            && review_id > 0
-            && review_state == "APPROVED"
-            && state_review_decision == immutable_review_decision
-            && state_reviewer == reviewer
-            && review_commit == baseline_final_head
-            && !review_submitted_at.is_empty()
-            && !review_url.is_empty()
-            && !qualified_human_proven
-            && founder_gates.is_empty()
-            && human_gates.is_empty()
-            && nonclosure_state == contract_state
-            && !nonclosure_binding
-            && !nonclosure_dispatch
-            && !phase0_complete
-            && !stage1_pass
-            && non_empty_string_array(
-                nonclosure.get("founder_choices_still_blocking_binding_plan"),
-            )
-            && successful_protected_context_receipt(protected_receipts, baseline_final_head)
-            && successful_protected_context_receipt(protected_receipts, baseline_merge),
-    )
+    if candidate_receipt_digest != policy.candidate_receipt_digest {
+        return Some(PreplanningCandidateAgreement::ReceiptDigestMismatch);
+    }
+
+    let fields_agree = !candidate_ref.is_empty()
+        && contract_state == "open"
+        && !binding_allowed
+        && !dispatch_allowed
+        && state_baseline == baseline_base
+        && state_base == baseline_base
+        && baseline_base == immutable_base
+        && baseline_head == immutable_base
+        && baseline_origin == immutable_base
+        && !baseline_relation.is_empty()
+        && state_branch == baseline_branch
+        && baseline_branch == immutable_branch
+        && state_candidate == baseline_candidate
+        && baseline_candidate == immutable_candidate_state
+        && immutable_candidate_state == policy_identity.candidate_state
+        && state_protected
+        && state_protected == baseline_protected
+        && state_green
+        && state_green == baseline_green
+        && state_merged
+        && state_merged == baseline_merged
+        && !completion_recorded
+        && state_claim == baseline_claim
+        && baseline_claim == policy_identity.claim_ceiling
+        && state_first_commit == baseline_first_commit
+        && baseline_first_commit == baseline_opened_head
+        && baseline_first_commit == immutable_first_commit
+        && state_pr_number == baseline_pr_number
+        && baseline_pr_number == immutable_pr_number
+        && immutable_pr_number == policy_identity.number
+        && state_pr_url == baseline_pr_url
+        && baseline_pr_url == immutable_pr_url
+        && immutable_pr_url == format!("{}/{}", policy_identity.base_url, policy_identity.number)
+        && state_final_head == baseline_final_head
+        && baseline_final_head == immutable_head
+        && state_merge == baseline_merge
+        && baseline_merge == immutable_merge
+        && state_merged_at == baseline_merged_at
+        && baseline_merged_at == immutable_merged_at
+        && immutable_base_ref == "dev"
+        && immutable_state == "MERGED"
+        && !immutable_draft
+        && immutable_review_decision == "APPROVED"
+        && !immutable_origin_at_query.is_empty()
+        && merge_is_ancestor
+        && state_queried_at == receipt_queried_at
+        && receipt_class == "git-github-factual-state-only-non-authoritative-non-closure"
+        && review_id > 0
+        && review_state == "APPROVED"
+        && state_review_decision == immutable_review_decision
+        && state_reviewer == reviewer
+        && review_commit == baseline_final_head
+        && !review_submitted_at.is_empty()
+        && !review_url.is_empty()
+        && !qualified_human_proven
+        && founder_gates.is_empty()
+        && human_gates.is_empty()
+        && nonclosure_state == contract_state
+        && !nonclosure_binding
+        && !nonclosure_dispatch
+        && !phase0_complete
+        && !stage1_pass
+        && non_empty_string_array(nonclosure.get("founder_choices_still_blocking_binding_plan"))
+        && successful_protected_context_receipt(protected_receipts, baseline_final_head)
+        && successful_protected_context_receipt(protected_receipts, baseline_merge);
+
+    Some(if fields_agree {
+        PreplanningCandidateAgreement::Agree
+    } else {
+        PreplanningCandidateAgreement::FieldMismatch
+    })
 }
 
 fn successful_protected_context_receipt(receipts: &[Value], commit_sha: &str) -> bool {
