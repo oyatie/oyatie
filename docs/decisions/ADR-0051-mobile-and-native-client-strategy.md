@@ -2,6 +2,7 @@
 id: ADR-0051
 status: accepted
 doc_status: published
+amended_by: [ADR-0565]
 ---
 
 # ADR-0051: Mobile and Native Client Strategy

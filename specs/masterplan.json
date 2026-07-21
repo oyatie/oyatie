@@ -140,7 +140,7 @@
             "event/AsyncAPI",
             "realtime (SSE/WebSocket/gRPC-streaming) bindings"
           ],
-          "zero_graphql": "Observed candidate implementation assumption: the owned API surface currently carries no GraphQL husk or generated BFF. ADR-0565 remains Proposed, so this records repository state rather than binding doctrine and must not override Accepted API choices; the founder choice in masterplan_v2.planning_entry_contract must resolve acceptance or rollback before a binding plan relies on it.",
+          "zero_graphql": "ADR-0565 is Accepted and binding: the owned API surface carries no GraphQL husk or generated BFF. The canonical surface set is REST/OpenAPI, gRPC/Protobuf, event/AsyncAPI, and realtime SSE/WebSocket/gRPC-streaming. GraphQL may return only through a later Accepted ADR that explicitly reverses ADR-0565. This authority repair does not relax HOLD(Planning) or dispatch implementation work.",
           "requirement": "Every owned API surface (REST/OpenAPI, gRPC/Protobuf, event/AsyncAPI, realtime) must be generated or validated from the same shared Rust-native contract source; it must not become a separately hand-maintained schema."
         },
         "workload_specific_substrates": {
@@ -3520,8 +3520,8 @@
                 "id": "M02-P04-IP-001",
                 "file": ".omc/plans/milestones/M02-foundry-preview/phases/P04-transport-parity-write-gates/IP-001-rest-transports.md",
                 "title": "REST API transports",
-                "related_proposed_adr": "ADR-0565",
-                "lifecycle_note": "ADR-0565 remains Proposed and therefore does not supersede this implementation plan. The zero-GraphQL founder choice must be resolved before binding planning decides whether this transport plan is retained, narrowed, or retired.",
+                "related_accepted_adr": "ADR-0565",
+                "lifecycle_note": "ADR-0565 is Accepted and binding. It narrows the allowed API surface to REST/gRPC/async/realtime and does not dispatch this historical implementation-plan record while HOLD(Planning) remains active.",
                 "status": "planning-closed-contract-authored",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -9126,10 +9126,10 @@
         },
         {
           "choice_id": "ADR-0565-ZERO-GRAPHQL",
-          "current_binding_state": "The zero-GraphQL decision remains Proposed while later repository text and implementation assumptions reflect parts of it.",
-          "founder_choice_required": "Accept and propagate the one-way removal decision, or roll back/defer the conflicting assumptions.",
-          "planning_default_while_open": "Do not use ADR-0565 to override Accepted API choices.",
-          "blocks_binding_plan": true
+          "current_binding_state": "ADR-0565 is Accepted and binding. It explicitly amends ADR-0051, ADR-0066, ADR-0091, and ADR-0258; reciprocal lifecycle metadata is recorded in each amended Accepted ADR.",
+          "founder_choice_required": "Resolved: founder technical/API authority accepted the one-way zero-GraphQL removal decision on 2026-07-21.",
+          "planning_default_while_open": "Apply ADR-0565 as the binding API-surface constraint; this resolution does not relax HOLD(Planning) or dispatch implementation work.",
+          "blocks_binding_plan": false
         },
         {
           "choice_id": "ADR-0614-MOVE-MANIFEST-DECOMMIT",
