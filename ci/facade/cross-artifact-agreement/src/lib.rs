@@ -156,6 +156,8 @@ const SEQUENCING_DERIVATION_MODE: &str = "zero-based-rederived-from-masterplan-v
 const DISPATCH_BLOCKED_STATE: &str = "blocked";
 const PREPLANNING_ENTRY_STATE: &str = "open";
 const PREPLANNING_BLOCKED_REASON: &str = "preplanning_authority_closure";
+const PREPLANNING_CANDIDATE_STATE: &str = "merged-to-dev-protected-context-green-github-review-decision-approved-bot-only-no-qualified-human-proof-authority-holds-open";
+const PREPLANNING_CLAIM_CEILING: &str = "PR #1340 is merged to dev, its immutable final head and squash-merge commits each have a completed successful oya-ci-required check, and GitHub reports APPROVED. These repository-admission facts do not close or imply any founder-choice, qualified-human, Phase-0, binding-planning, execution-dispatch, rollout, or product-completion gate.";
 const CLAIMED_DONE_UNVERIFIED_STATE: &str = "claimed-done-unverified";
 const EVIDENCE_ATTACHED_STATE: &str = "evidence-attached";
 const PROJECTION_FRESHNESS_VALIDATOR: &str =
@@ -1860,8 +1862,12 @@ fn preplanning_candidate_facts_agree(
     let baseline_merged_at = non_empty_field(baseline, "merged_at")?;
 
     let immutable_base_ref = non_empty_field(immutable, "base_ref")?;
+    let immutable_pr_number = immutable.get("number")?.as_u64()?;
+    let immutable_pr_url = non_empty_field(immutable, "url")?;
     let immutable_base = non_empty_field(immutable, "base_sha")?;
     let immutable_branch = non_empty_field(immutable, "head_ref")?;
+    let immutable_first_commit = non_empty_field(immutable, "first_content_commit_sha")?;
+    let immutable_candidate_state = non_empty_field(immutable, "candidate_state")?;
     let immutable_head = non_empty_field(immutable, "head_sha")?;
     let immutable_merge = non_empty_field(immutable, "merge_commit_sha")?;
     let immutable_state = non_empty_field(immutable, "state")?;
@@ -1897,7 +1903,8 @@ fn preplanning_candidate_facts_agree(
     let stage1_pass = nonclosure.get("stage1_pass_attested")?.as_bool()?;
 
     let protected_receipts = receipt.get("protected_context_receipts")?.as_array()?;
-    let expected_pr_url = format!("https://github.com/jason931225/oyatie/pull/{state_pr_number}");
+    let expected_pr_url =
+        format!("https://github.com/jason931225/oyatie/pull/{immutable_pr_number}");
 
     Some(
         !candidate_ref.is_empty()
@@ -1913,6 +1920,8 @@ fn preplanning_candidate_facts_agree(
             && state_branch == baseline_branch
             && baseline_branch == immutable_branch
             && state_candidate == baseline_candidate
+            && baseline_candidate == immutable_candidate_state
+            && immutable_candidate_state == PREPLANNING_CANDIDATE_STATE
             && state_protected
             && state_protected == baseline_protected
             && state_green
@@ -1921,10 +1930,14 @@ fn preplanning_candidate_facts_agree(
             && state_merged == baseline_merged
             && !completion_recorded
             && state_claim == baseline_claim
+            && baseline_claim == PREPLANNING_CLAIM_CEILING
             && state_first_commit == baseline_first_commit
             && baseline_first_commit == baseline_opened_head
+            && baseline_first_commit == immutable_first_commit
             && state_pr_number == baseline_pr_number
+            && baseline_pr_number == immutable_pr_number
             && state_pr_url == baseline_pr_url
+            && baseline_pr_url == immutable_pr_url
             && state_pr_url == expected_pr_url
             && state_final_head == baseline_final_head
             && baseline_final_head == immutable_head
