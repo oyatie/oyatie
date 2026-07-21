@@ -28,8 +28,11 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-use oya_ci_controller_kernel::{CommitState, CommitStatusPoster, KernelError, Result};
-use serde::Serialize;
+use oya_ci_controller_kernel::{
+    CommitState, CommitStatusPoster, KernelError, REVIEW_CONTEXT, Result, ReviewAdmissionInput,
+    ReviewAdmissionPacket, ReviewEvidence, ReviewVerdict, admit_review,
+};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
 /// GitHub Statuses API version header value.
 const GITHUB_API_VERSION: &str = "2022-11-28";
@@ -76,6 +79,148 @@ impl GitHubCommitStatusPoster {
             "{}/repos/{}/{}/statuses/{}",
             self.api_base, self.repo_owner, self.repo_name, sha
         )
+    }
+
+    fn pull_url(&self, pr_number: u64) -> String {
+        format!(
+            "{}/repos/{}/{}/pulls/{pr_number}",
+            self.api_base, self.repo_owner, self.repo_name
+        )
+    }
+
+    fn reviews_url(&self, pr_number: u64) -> String {
+        format!("{}/reviews", self.pull_url(pr_number))
+    }
+
+    fn get_json<T: DeserializeOwned>(&self, url: &str) -> Result<T> {
+        let response = self
+            .client
+            .get(url)
+            .bearer_auth(&self.github_token)
+            .header("X-GitHub-Api-Version", GITHUB_API_VERSION)
+            .header("Accept", "application/vnd.github+json")
+            .header("User-Agent", "oya-ci-controller")
+            .send()
+            .map_err(|error| {
+                KernelError::DownstreamTransport(format!("github review fetch: {error}"))
+            })?;
+
+        if !response.status().is_success() {
+            return Err(KernelError::DownstreamTransport(format!(
+                "github review fetch returned HTTP {}",
+                response.status()
+            )));
+        }
+
+        response.json().map_err(|error| {
+            KernelError::DownstreamTransport(format!("github review response decode: {error}"))
+        })
+    }
+
+    /// Fetch trusted GitHub PR/review API data, validate it against the expected
+    /// candidate head, and post the `oya-pr-review` commit status.
+    ///
+    /// Success carries the exact durable GitHub review URL. Invalid or missing
+    /// evidence posts a terminal failure on the expected head before returning
+    /// the validation error, so a wired fan-in fails closed.
+    pub fn produce_review_admission_status(
+        &self,
+        pr_number: u64,
+        expected_head_sha: &str,
+    ) -> Result<ReviewAdmissionPacket> {
+        let result = self.fetch_review_admission(pr_number, expected_head_sha);
+        match result {
+            Ok(packet) => {
+                self.post(
+                    expected_head_sha,
+                    CommitState::Success,
+                    REVIEW_CONTEXT,
+                    &format!("oya-pr-review approved by {}", packet.reviewer_login),
+                    Some(&packet.evidence_url),
+                )?;
+                Ok(packet)
+            }
+            Err(error) => {
+                let state = match &error {
+                    KernelError::InvalidInput(_) => CommitState::Failure,
+                    KernelError::DownstreamTransport(_) => CommitState::Error,
+                };
+                let description = format!("oya-pr-review rejected: {error}");
+                if let Err(post_error) =
+                    self.post(expected_head_sha, state, REVIEW_CONTEXT, &description, None)
+                {
+                    return Err(KernelError::DownstreamTransport(format!(
+                        "{error}; additionally failed to post {REVIEW_CONTEXT}: {post_error}"
+                    )));
+                }
+                Err(error)
+            }
+        }
+    }
+
+    fn fetch_review_admission(
+        &self,
+        pr_number: u64,
+        expected_head_sha: &str,
+    ) -> Result<ReviewAdmissionPacket> {
+        let pull: GitHubPullResponse = self.get_json(&self.pull_url(pr_number))?;
+        if pull.number != pr_number {
+            return Err(KernelError::InvalidInput(format!(
+                "review admission PR mismatch: expected {pr_number}, observed {}",
+                pull.number
+            )));
+        }
+
+        // Reject a moved PR head before fetching review evidence. An approval
+        // for any other SHA can never satisfy this candidate status.
+        if pull.head.sha != expected_head_sha {
+            return admit_review(&ReviewAdmissionInput {
+                pr_number,
+                expected_head_sha: expected_head_sha.to_owned(),
+                observed_head_sha: pull.head.sha,
+                author_login: pull.user.login,
+                reviews: Vec::new(),
+            });
+        }
+
+        let reviews: Vec<GitHubReviewResponse> = self
+            .client
+            .get(format!("{}?per_page=100", self.reviews_url(pr_number)))
+            .bearer_auth(&self.github_token)
+            .header("X-GitHub-Api-Version", GITHUB_API_VERSION)
+            .header("Accept", "application/vnd.github+json")
+            .header("User-Agent", "oya-ci-controller")
+            .send()
+            .map_err(|error| {
+                KernelError::DownstreamTransport(format!("github review fetch: {error}"))
+            })?
+            .error_for_status()
+            .map_err(|error| {
+                KernelError::DownstreamTransport(format!("github review fetch: {error}"))
+            })?
+            .json()
+            .map_err(|error| {
+                KernelError::DownstreamTransport(format!("github review response decode: {error}"))
+            })?;
+
+        let evidence = reviews
+            .into_iter()
+            .map(|review| ReviewEvidence {
+                review_id: review.id,
+                head_sha: review.commit_id.unwrap_or_default(),
+                reviewer_login: review.user.map(|user| user.login).unwrap_or_default(),
+                verdict: github_review_verdict(&review.state),
+                evidence_url: review.html_url.unwrap_or_default(),
+            })
+            .collect();
+
+        admit_review(&ReviewAdmissionInput {
+            pr_number,
+            expected_head_sha: expected_head_sha.to_owned(),
+            observed_head_sha: pull.head.sha,
+            author_login: pull.user.login,
+            reviews: evidence,
+        })
     }
 }
 
@@ -140,4 +285,39 @@ struct GitHubStatusBody {
     description: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     target_url: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct GitHubPullResponse {
+    number: u64,
+    user: GitHubUser,
+    head: GitHubHead,
+}
+
+#[derive(Deserialize)]
+struct GitHubHead {
+    sha: String,
+}
+
+#[derive(Deserialize)]
+struct GitHubUser {
+    login: String,
+}
+
+#[derive(Deserialize)]
+struct GitHubReviewResponse {
+    id: u64,
+    state: String,
+    commit_id: Option<String>,
+    html_url: Option<String>,
+    user: Option<GitHubUser>,
+}
+
+fn github_review_verdict(state: &str) -> ReviewVerdict {
+    match state {
+        "APPROVED" => ReviewVerdict::Approved,
+        "CHANGES_REQUESTED" => ReviewVerdict::ChangesRequested,
+        "DISMISSED" => ReviewVerdict::Dismissed,
+        _ => ReviewVerdict::Commented,
+    }
 }
