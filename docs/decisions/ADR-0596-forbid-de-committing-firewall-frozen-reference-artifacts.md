@@ -1,14 +1,14 @@
 ---
 id: ADR-0596
 title: "Forbid de-committing firewall frozen-reference artifacts — make the #828 ratchet-baseline deadlock class impossible"
-status: Superseded
+status: Proposed
 planning_impact: false
 deciders: founder
 date: 2026-06-23
 door: one-way
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-0616]
+superseded_by: []
 amends: [ADR-0595]
 depends_on: [ADR-0515, ADR-0539, ADR-0551, ADR-0552, ADR-0595]
 related: [ADR-0111, ADR-0363, ADR-0541, ADR-0558]
@@ -21,16 +21,9 @@ milestone: W0
 
 ## Status
 
-**Superseded by [ADR-0616](ADR-0616-de-commit-firewall-frozen-reference-baseline.md) - 2026-07-09.**
-ADR-0616 keeps the #828 deadlock class IMPOSSIBLE but INVERTS the mechanism: instead of forbidding
-de-commit of the frozen reference, it REGENERATES the frozen reference from the merge-base source
-(so there is no committed blob to empty), and a frozen reference MAY be de-committed IFF its ratchet
-policy declares `frozen_reference.source: regenerate-from-merge-base-source`. A committed-git-blob
-frozen reference de-committed WITHOUT that declaration still RED-blocks (this ADR's guard, preserved).
-
-Originally **Proposed - 2026-06-23** (door: one-way — the control-plane guard that a firewall
-frozen-reference baseline must stay committed; ADR-0616 is the deliberate one-way reversal to the
-regenerate-from-source model).
+**Proposed - 2026-06-23 (authored for founder sign-off; door: one-way — once the control-plane
+guard lands, the policy class "a firewall frozen-reference baseline must stay committed" is a
+one-way commitment that no future control-plane edit can silently revert).**
 
 ## Context
 

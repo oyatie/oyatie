@@ -129,16 +129,16 @@
       "artifact_id": "cloud-ci-gate-baseline-ratchet-face",
       "path": "ci/facade/artifact-inventory-registry/gate-baseline.generated.json",
       "artifact_class": "main-materialized-aggregate",
-      "materialization_mode": "not-tracked-in-git",
-      "merge_policy": "never-manual-merge-regenerate-from-source-tree",
+      "materialization_mode": "main-branch-materialized",
+      "merge_policy": "controller-owned-main-materialization",
       "owner_team": "cloud-ci-platform",
       "source_inputs": [
         "all enabled gate faces",
         "ci/facade/baseline-ratchet/gate-baseline.signoff.json",
         "oya-ci.toml"
       ],
-      "final_tree_validation": "FROZEN-REFERENCE BASELINE, DE-COMMITTED (ADR-0616, supersedes ADR-0596). This face is the firewall ratchet's FROZEN reference AND the candidate baseline; it is now NOT tracked in git. The scm-facts emitter REGENERATES the FROZEN reference by running the accounting producer over the `git merge-base <base_ref> HEAD` SOURCE worktree (the ratchet policy declares frozen_reference.source: regenerate-from-merge-base-source) — it is NO LONGER read from a committed git blob via `git show <merge-base>:<this-path>`. Removing that committed blob is exactly what makes de-commit safe: with no blob to empty there is no #828 empty-frozen deadlock, and the retired `git show` fallback cannot silently produce an empty reference (regen is the sole path, fail-closed). Trust is the hyperscaler recompute-don't-commit model (Bazel affected-set / Tricorder): the emitter regenerates the frozen baseline TWICE and asserts the two project identically (determinism canary), and binds the regeneration to the merge-base tree via provenance (base_tree_sha). The freshness gate proves the CANDIDATE baseline by regeneration-success + regenerate-twice determinism (the same class as every other de-committed face) rather than byte parity against a committed copy — a committed copy would list itself in tracked_paths and mutate on every PR, the faces-serialization cascade this de-commit kills. cloud-ci materializes the candidate baseline from source before gates consume it.",
-      "public_product_contract": "The baseline ratchet is shrink-only generated policy; the frozen reference is regenerated from the merge-base source and validated by determinism + provenance, never a committed merge surface that could launder new debt.",
+      "final_tree_validation": "FROZEN-REFERENCE BASELINE — this face MUST stay committed on the integration branch for merge-base ratchet consumers, but contributor PRs MUST NOT own generated baseline byte churn. Unlike the pure-view faces whose consumers re-derive content from the candidate tree at gate-time, this face is the firewall ratchet's FROZEN reference: the scm-facts emitter materializes it via `git show <merge-base>:<this-path>`, so merge-base materialization requires this path to remain a committed git blob on the protected branch. cloud-ci materializes the candidate baseline from source before gates consume it; freshness requires regeneration plus determinism for this controller-owned face, and generated-output diff policy rejects PR-local edits to the generated JSON. Integration/main materialization is controller-owned to avoid generated JSON merge conflicts while preserving shrink-only ratchet semantics.",
+      "public_product_contract": "The baseline ratchet is shrink-only generated policy; merge conflict handling must not launder new debt into the baseline.",
       "generator": {
         "runner": "buck2",
         "generator_target": "//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin",

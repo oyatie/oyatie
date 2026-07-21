@@ -236,7 +236,7 @@ const REQUIRED_SURFACE_DISPOSITIONS: [(&str, &str); 13] = [
 ];
 
 /// The blocking codes, in canonical order. The fixtures pin exact subsets.
-pub const VIOLATION_CODES: [&str; 23] = [
+pub const VIOLATION_CODES: [&str; 24] = [
     "orphan_decision",
     "unpropagated_decision",
     "status_disagreement",
@@ -244,6 +244,7 @@ pub const VIOLATION_CODES: [&str; 23] = [
     "dual_decision_collision",
     "decision_id_mismatch",
     "supersession_half_edge",
+    "supersession_proposed_source",
     "phantom_decision_citation",
     "masterplan_not_sole_live_authority",
     "masterplan_surface_disposition_incomplete",
@@ -394,12 +395,21 @@ pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
     // symmetrically (A.supersedes vs B.superseded_by, and the reverse).
     let mut supersedes: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     let mut superseded_by: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut statuses: BTreeMap<String, String> = BTreeMap::new();
     let mut known_ids: BTreeSet<String> = BTreeSet::new();
     for decision in &decisions {
         let Some(id) = decision.get("id").and_then(Value::as_str) else {
             continue;
         };
         known_ids.insert(id.to_owned());
+        statuses.insert(
+            id.to_owned(),
+            decision
+                .get("status")
+                .and_then(Value::as_str)
+                .unwrap_or_default()
+                .to_ascii_lowercase(),
+        );
         supersedes.insert(id.to_owned(), str_set(decision, "supersedes"));
         superseded_by.insert(id.to_owned(), str_set(decision, "superseded_by"));
     }
@@ -411,6 +421,12 @@ pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
     // supersession_half_edge: every edge must be reciprocal. Keyed by the directed pair.
     for (id, targets) in &supersedes {
         for target in targets {
+            if statuses.get(id).is_some_and(|status| status == "proposed") {
+                findings.insert(Finding::new(
+                    "supersession_proposed_source",
+                    &format!("{id}->{target}"),
+                ));
+            }
             // Only assert reciprocity when the counterpart decision is in-corpus; an
             // edge to an out-of-corpus id is not evidence of a half-edge here.
             if known_ids.contains(target)
@@ -3887,6 +3903,46 @@ mod tests {
             evaluate(&fixture)
                 .violations
                 .contains("supersession_half_edge")
+        );
+    }
+
+    #[test]
+    fn proposed_adr_cannot_supersede_accepted_authority() {
+        let fixture = json!({
+            "decisions": [{
+                "id": "ADR-0616", "status": "Proposed",
+                "in_spec": false, "in_masterplan": false, "in_roadmap": false,
+                "supersedes": ["ADR-0596"], "superseded_by": []
+            }, {
+                "id": "ADR-0596", "status": "Accepted",
+                "in_spec": true, "in_masterplan": false, "in_roadmap": false,
+                "supersedes": [], "superseded_by": ["ADR-0616"]
+            }]
+        });
+
+        let report = evaluate(&fixture);
+        assert_eq!(report.verdict, Verdict::Red);
+        assert!(report.violations.contains("supersession_proposed_source"));
+    }
+
+    #[test]
+    fn accepted_adr_may_supersede_reciprocally() {
+        let fixture = json!({
+            "decisions": [{
+                "id": "ADR-0616", "status": "Accepted",
+                "in_spec": true, "in_masterplan": false, "in_roadmap": false,
+                "supersedes": ["ADR-0596"], "superseded_by": []
+            }, {
+                "id": "ADR-0596", "status": "Superseded",
+                "in_spec": true, "in_masterplan": false, "in_roadmap": false,
+                "supersedes": [], "superseded_by": ["ADR-0616"]
+            }]
+        });
+
+        assert!(
+            !evaluate(&fixture)
+                .violations
+                .contains("supersession_proposed_source")
         );
     }
 

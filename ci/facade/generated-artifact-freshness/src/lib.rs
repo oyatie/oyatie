@@ -1399,16 +1399,6 @@ fn build_face_tools(repo_root: &Path) -> Result<FaceTools, FreshnessError> {
 }
 
 fn build_materializer_tools(repo_root: &Path) -> Result<MaterializerTools, FreshnessError> {
-    // Absolute repo-root so the derived tool binary paths are spawnable from ANY current_dir:
-    // the ADR-0616 merge-base regen runs these tools with cwd set to the merge-base worktree, where
-    // a `--repo-root .`-relative `buck-out/...` binary path would not resolve (os error 2 on spawn).
-    let repo_root_abs = std::fs::canonicalize(repo_root).map_err(|e| {
-        FreshnessError::new(format!(
-            "canonicalize repo-root {}: {e}",
-            repo_root.display()
-        ))
-    })?;
-    let repo_root = repo_root_abs.as_path();
     let output = run_output(
         Command::new("buck2")
             .arg("build")
@@ -1510,13 +1500,6 @@ fn emit_materialized_scm_facts(
     repo_root: &Path,
     scm_facts: &Path,
 ) -> Result<(), FreshnessError> {
-    // Phase 1: publish the merge-base sha (the emitter owns it — the single git boundary — and the
-    // materializer materializes EXACTLY that source tree, never recomputing it). This same call
-    // writes the candidate scm-facts face (--out).
-    let merge_base_file = temporary_merge_base_path();
-    let merge_base_cleanup = TempFileCleanup {
-        path: merge_base_file.clone(),
-    };
     run_status(
         Command::new(&tools.emitter)
             .args(["--repo-root"])
@@ -1524,172 +1507,9 @@ fn emit_materialized_scm_facts(
             .args(["--out"])
             .arg(scm_facts)
             .arg("--merge-base-baseline")
-            .args(["--merge-base-out"])
-            .arg(&merge_base_file)
             .current_dir(repo_root),
-        "publish merge-base for frozen-baseline regeneration",
-    )?;
-    let merge_base = read_merge_base(&merge_base_file)?;
-
-    // Phase 2 (ADR-0616): materialize the merge-base SOURCE worktree ONCE, regenerate the frozen
-    // baseline over it TWICE (the determinism twin), and hand both to the emitter which produces the
-    // AUTHORITATIVE frozen snapshot — the regeneration IS the frozen reference (replacing the retired
-    // `git show <merge_base>:<face>` committed-blob read), the determinism canary proves the producer
-    // is reproducible, and provenance binds it to the merge-base tree. FAIL-CLOSED throughout.
-    let worktree = temporary_worktree_path();
-    let worktree_cleanup = WorktreeCleanup {
-        repo_root: repo_root.to_path_buf(),
-        path: worktree.clone(),
-    };
-    add_merge_base_worktree(repo_root, &merge_base, &worktree)?;
-
-    let regen_first = regenerate_frozen_baseline_from_merge_base_source(tools, &worktree)?;
-    let regen_second = regenerate_frozen_baseline_from_merge_base_source(tools, &worktree)?;
-
-    let regen_face_file = temporary_regen_baseline_path();
-    let regen_face_cleanup = TempFileCleanup {
-        path: regen_face_file.clone(),
-    };
-    write_regen_baseline(&regen_face_file, &regen_first)?;
-    let regen_verify_file = temporary_regen_baseline_verify_path();
-    let regen_verify_cleanup = TempFileCleanup {
-        path: regen_verify_file.clone(),
-    };
-    write_regen_baseline(&regen_verify_file, &regen_second)?;
-
-    // The emitter (the single git boundary — owns the merge-base policy read, the rename-aware
-    // relabel, and the provenance tree read) turns the regeneration into the authoritative frozen
-    // snapshot: `--regen-baseline-verify` triggers the determinism canary, and
-    // `--frozen-provenance-producer` records the analyzer identity in the provenance materials.
-    run_status(
-        Command::new(&tools.emitter)
-            .args(["--repo-root"])
-            .arg(repo_root)
-            .args(["--out"])
-            .arg(scm_facts)
-            .arg("--merge-base-baseline")
-            .args(["--regen-baseline-face"])
-            .arg(&regen_face_file)
-            .args(["--regen-baseline-verify"])
-            .arg(&regen_verify_file)
-            .args(["--frozen-provenance-producer", PRODUCER_TARGET])
-            .current_dir(repo_root),
-        "materialize frozen baseline from merge-base source",
-    )?;
-
-    // Reuse the SAME merge-base worktree (still open) to materialize the ratchet-baseline
-    // merge-base-content face — a plain filesystem read, not a new git boundary.
-    materialize_ratchet_merge_base_contents(repo_root, &worktree)?;
-
-    drop(regen_verify_cleanup);
-    drop(regen_face_cleanup);
-    drop(worktree_cleanup);
-    drop(merge_base_cleanup);
-    Ok(())
-}
-
-/// Validate + read the merge-base sha the emitter published.
-fn read_merge_base(merge_base_file: &Path) -> Result<String, FreshnessError> {
-    let merge_base = read_to_string(merge_base_file)?.trim().to_owned();
-    if merge_base.len() < 40 || !merge_base.bytes().all(|byte| byte.is_ascii_hexdigit()) {
-        return Err(FreshnessError::new(format!(
-            "frozen-baseline regeneration: merge-base {merge_base:?} is not a revision id"
-        )));
-    }
-    Ok(merge_base)
-}
-
-/// Materialize the merge-base SOURCE into an isolated linked worktree. A PHYSICAL checkout (not
-/// `git archive`) is required because the emitter needs `.git` for `git ls-files`; `--detach` so a
-/// merge-base that is also checked out elsewhere (e.g. HEAD) does not error. Registered in the
-/// common `.git`, so a unique path is safe under parallel materialize runs.
-fn add_merge_base_worktree(
-    repo_root: &Path,
-    merge_base: &str,
-    worktree: &Path,
-) -> Result<(), FreshnessError> {
-    run_status(
-        Command::new("git")
-            .arg("-C")
-            .arg(repo_root)
-            .args(["worktree", "add", "--detach"])
-            .arg(worktree)
-            .arg(merge_base),
-        "add merge-base source worktree",
+        "materialize scm-facts boundary snapshot",
     )
-}
-
-fn write_regen_baseline(path: &Path, bytes: &str) -> Result<(), FreshnessError> {
-    std::fs::write(path, bytes).map_err(|error| {
-        FreshnessError::new(format!(
-            "write regenerated frozen baseline {}: {error}",
-            path.display()
-        ))
-    })
-}
-
-/// ADR-0616: regenerate the frozen reference by running the accounting producer over a materialized
-/// merge-base SOURCE `worktree`. THIS is the frozen baseline the firewall compares against — it
-/// REPLACES the retired `git show <merge_base>:<face>` committed-blob read. Returns the baseline
-/// face JSON (producer stdout). FAIL-CLOSED: any emit/regen failure is a hard error, never a
-/// fallback (a de-committed frozen with a fallback would empty-frozen-deadlock — the #828 defect).
-///
-/// Blob-INDEPENDENT: it runs the producer's `--face baseline`, which PRODUCES the baseline from
-/// source (merge-base scm-facts + `oya-ci.toml` + the tracked tree + the enforcement-liveness
-/// corpus) and never reads the (de-committed) `gate-baseline.generated.json`. Called TWICE by the
-/// materializer over the same worktree for the determinism canary; the producer is deterministic,
-/// so both runs agree on the ratchet projection.
-fn regenerate_frozen_baseline_from_merge_base_source(
-    tools: &MaterializerTools,
-    worktree: &Path,
-) -> Result<String, FreshnessError> {
-    // Merge-base scm-facts (STABLE tracked-paths over the mb tree) via the emitter; volatile facts
-    // are routed to a throwaway temp path (this regeneration is read-only w.r.t. the checkout).
-    let mb_scm_facts = temporary_scm_facts_path();
-    let mb_scm_facts_cleanup = TempFileCleanup {
-        path: mb_scm_facts.clone(),
-    };
-    let mb_volatile = temporary_volatile_facts_path();
-    let mb_volatile_cleanup = TempFileCleanup {
-        path: mb_volatile.clone(),
-    };
-    run_status(
-        Command::new(&tools.emitter)
-            .args(["--repo-root"])
-            .arg(worktree)
-            .args(["--out"])
-            .arg(&mb_scm_facts)
-            .args(["--volatile-out"])
-            .arg(&mb_volatile)
-            .current_dir(worktree),
-        "emit merge-base scm-facts",
-    )?;
-
-    // Run the producer rooted at the worktree with the mb tree's OWN enforcement-liveness corpus
-    // (faithful mb inputs), emitting the baseline face to stdout. Never reads the committed blob.
-    let mut producer = Command::new(&tools.producer);
-    producer
-        .args(["--repo-root"])
-        .arg(worktree)
-        .args(["--scm-facts"])
-        .arg(&mb_scm_facts);
-    append_enforcement_liveness_corpus_paths(
-        &mut producer,
-        &worktree.join(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS),
-        &worktree.join(ENFORCEMENT_LIVENESS_CODEX_HOOKS),
-        &worktree.join(ENFORCEMENT_LIVENESS_HOOKS_DIR),
-    );
-    producer
-        .args(["--stdout", "--face", "baseline"])
-        .current_dir(worktree);
-    let regen_baseline = run_output(
-        &mut producer,
-        "regenerate frozen baseline from merge-base source",
-    )?;
-
-    drop(mb_volatile_cleanup);
-    drop(mb_scm_facts_cleanup);
-    Ok(regen_baseline)
 }
 
 fn materialize_masterplan_projection(
@@ -1892,57 +1712,6 @@ fn temporary_product_graph_path() -> PathBuf {
     ))
 }
 
-/// ADR-0616: the file the emitter publishes the computed merge-base sha to, so the regeneration
-/// materializes exactly that source tree without recomputing the merge-base.
-fn temporary_merge_base_path() -> PathBuf {
-    let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
-        Ok(duration) => duration.as_nanos(),
-        Err(_) => 0,
-    };
-    std::env::temp_dir().join(format!(
-        "oya-ci-freshness-merge-base-{}-{nanos}.txt",
-        std::process::id()
-    ))
-}
-
-/// ADR-0616: the throwaway file the regenerated frozen baseline (from the merge-base source) is
-/// written to before the emitter turns it into the authoritative frozen snapshot.
-fn temporary_regen_baseline_path() -> PathBuf {
-    let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
-        Ok(duration) => duration.as_nanos(),
-        Err(_) => 0,
-    };
-    std::env::temp_dir().join(format!(
-        "oya-ci-freshness-regen-baseline-{}-{nanos}.generated.json",
-        std::process::id()
-    ))
-}
-
-/// ADR-0616: the throwaway file the SECOND (determinism-twin) regeneration is written to, so the
-/// emitter can assert the two regenerations project identically (the determinism canary).
-fn temporary_regen_baseline_verify_path() -> PathBuf {
-    let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
-        Ok(duration) => duration.as_nanos(),
-        Err(_) => 0,
-    };
-    std::env::temp_dir().join(format!(
-        "oya-ci-freshness-regen-baseline-verify-{}-{nanos}.generated.json",
-        std::process::id()
-    ))
-}
-
-/// ADR-0616: the isolated linked worktree the merge-base SOURCE tree is checked out into.
-fn temporary_worktree_path() -> PathBuf {
-    let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
-        Ok(duration) => duration.as_nanos(),
-        Err(_) => 0,
-    };
-    std::env::temp_dir().join(format!(
-        "oya-ci-freshness-mb-worktree-{}-{nanos}",
-        std::process::id()
-    ))
-}
-
 struct TempFileCleanup {
     path: PathBuf,
 }
@@ -1950,30 +1719,6 @@ struct TempFileCleanup {
 impl Drop for TempFileCleanup {
     fn drop(&mut self) {
         let _ = std::fs::remove_file(&self.path);
-    }
-}
-
-/// Best-effort removal of the merge-base source worktree (ADR-0616 PR-1): deregister it from the
-/// common `.git`, delete the checkout, and prune, so a failed cross-check never leaks worktrees.
-struct WorktreeCleanup {
-    repo_root: PathBuf,
-    path: PathBuf,
-}
-
-impl Drop for WorktreeCleanup {
-    fn drop(&mut self) {
-        let _ = Command::new("git")
-            .arg("-C")
-            .arg(&self.repo_root)
-            .args(["worktree", "remove", "--force"])
-            .arg(&self.path)
-            .output();
-        let _ = std::fs::remove_dir_all(&self.path);
-        let _ = Command::new("git")
-            .arg("-C")
-            .arg(&self.repo_root)
-            .args(["worktree", "prune"])
-            .output();
     }
 }
 
@@ -2501,19 +2246,15 @@ printf '{{"moves":[]}}\n' > "$out"
 set -eu
 printf 'emitter %s\n' "$*" >> "{log_path}"
 out=""
-mbout=""
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --out) shift; out="$1" ;;
-    --merge-base-out) shift; mbout="$1" ;;
   esac
   shift || true
 done
 test -n "$out"
 mkdir -p "$(dirname "$out")"
 printf '{{"facts":[]}}\n' > "$out"
-# ADR-0616 PR-1: publish the merge-base sha the cross-check materializes.
-if [ -n "$mbout" ]; then git rev-parse HEAD > "$mbout"; fi
 "#
             ),
         );
@@ -2525,15 +2266,6 @@ if [ -n "$mbout" ]; then git rev-parse HEAD > "$mbout"; fi
                 r#"#!/bin/sh
 set -eu
 printf 'producer %s\n' "$*" >> "{log_path}"
-# ADR-0616 PR-1: the frozen-baseline regeneration emits the baseline face to stdout.
-face=""
-while [ "$#" -gt 0 ]; do
-  case "$1" in
-    --face) shift; face="$1" ;;
-  esac
-  shift || true
-done
-if [ "$face" = "baseline" ]; then printf '{{"gates":{{}}}}\n'; fi
 "#
             ),
         );
@@ -2582,11 +2314,6 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
                 hooks_dir: root.join("buck/declared/hooks"),
             },
         };
-
-        // ADR-0616 PR-1: the frozen-baseline regen cross-check materializes a merge-base worktree,
-        // so the fixture root must be a real git repo with a committed HEAD (the fake emitter
-        // publishes its sha as the merge-base).
-        init_git_repo(&root);
 
         materialize_generated_faces_with_tools(&tools, &root)
             .expect("materialize faces and architecture product graph");
@@ -2637,145 +2364,5 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
                 .expect("product graph materialized"),
             "generated dashboard\n"
         );
-    }
-
-    #[cfg(unix)]
-    fn init_git_repo(root: &Path) {
-        let run = |args: &[&str]| {
-            let output = Command::new("git")
-                .arg("-C")
-                .arg(root)
-                .args(args)
-                .output()
-                .expect("run git");
-            assert!(
-                output.status.success(),
-                "git {args:?} failed: {}",
-                String::from_utf8_lossy(&output.stderr)
-            );
-        };
-        run(&["init", "-q"]);
-        run(&["config", "user.name", "Oyatie Test"]);
-        run(&["config", "user.email", "oyatie-test@example.com"]);
-        run(&["config", "commit.gpgsign", "false"]);
-        run(&["add", "-A"]);
-        run(&["commit", "-q", "-m", "seed"]);
-    }
-
-    /// ADR-0616: a producer that fails to regenerate the frozen baseline from the merge-base source
-    /// is a HARD ERROR (fail-closed) — never a silent fallback, which (with the frozen reference
-    /// de-committed) would empty-frozen-deadlock the firewall.
-    #[cfg(unix)]
-    #[test]
-    fn frozen_baseline_regen_is_fail_closed_on_producer_failure() {
-        let root = temp_root("oya-regen-fail-closed");
-        std::fs::create_dir_all(root.join("bin")).expect("create bin dir");
-        let emitter = root.join("bin/emitter");
-        write_executable(
-            &emitter,
-            r#"#!/bin/sh
-set -eu
-out=""
-while [ "$#" -gt 0 ]; do case "$1" in --out) shift; out="$1" ;; esac; shift || true; done
-test -n "$out"; mkdir -p "$(dirname "$out")"
-printf '{"schema":"oya-ci/scm-facts/v2","tracked_paths":[]}\n' > "$out"
-"#,
-        );
-        // The producer FAILS the baseline regeneration.
-        let producer = root.join("bin/producer");
-        write_executable(
-            &producer,
-            r#"#!/bin/sh
-echo "boom: cannot regenerate the baseline" >&2
-exit 1
-"#,
-        );
-
-        let tools = regen_tools(&root, emitter, producer);
-        let error = regenerate_frozen_baseline_from_merge_base_source(&tools, &root)
-            .expect_err("a producer regen failure must be a hard error (fail-closed)");
-        assert!(
-            error
-                .to_string()
-                .contains("regenerate frozen baseline from merge-base source"),
-            "{error}"
-        );
-    }
-
-    /// ADR-0616 blob-independence: the regeneration reads only SOURCE. The worktree carries NO
-    /// `gate-baseline.generated.json`, yet the regeneration still produces a baseline, and the
-    /// producer command never references the committed blob path.
-    #[cfg(unix)]
-    #[test]
-    fn frozen_baseline_regen_is_blob_independent() {
-        let root = temp_root("oya-regen-blob-independent");
-        std::fs::create_dir_all(root.join("bin")).expect("create bin dir");
-        let log = root.join("producer.log");
-        let log_path = log.display();
-        let emitter = root.join("bin/emitter");
-        write_executable(
-            &emitter,
-            r#"#!/bin/sh
-set -eu
-out=""
-while [ "$#" -gt 0 ]; do case "$1" in --out) shift; out="$1" ;; esac; shift || true; done
-test -n "$out"; mkdir -p "$(dirname "$out")"
-printf '{"schema":"oya-ci/scm-facts/v2","tracked_paths":[]}\n' > "$out"
-"#,
-        );
-        // The producer asserts the committed blob is ABSENT from its source tree, yet still
-        // produces a baseline (it PRODUCES `--face baseline`, never reads the committed blob).
-        let producer = root.join("bin/producer");
-        write_executable(
-            &producer,
-            &format!(
-                r#"#!/bin/sh
-set -eu
-printf 'producer %s\n' "$*" >> "{log_path}"
-face=""
-while [ "$#" -gt 0 ]; do case "$1" in --face) shift; face="$1" ;; esac; shift || true; done
-test "$face" = "baseline"
-test ! -e "ci/facade/artifact-inventory-registry/gate-baseline.generated.json"
-printf '{{"gates":{{}}}}\n'
-"#
-            ),
-        );
-
-        let tools = regen_tools(&root, emitter, producer);
-        let baseline = regenerate_frozen_baseline_from_merge_base_source(&tools, &root).expect(
-            "the regeneration must succeed with the committed blob absent (blob-independent)",
-        );
-        assert!(
-            baseline.contains("gates"),
-            "regeneration produced a baseline: {baseline}"
-        );
-
-        let calls = std::fs::read_to_string(&log).expect("read producer log");
-        assert!(
-            calls.contains("--face baseline"),
-            "the regeneration must run the producer's baseline face: {calls}"
-        );
-        assert!(
-            !calls.contains("gate-baseline.generated.json"),
-            "the regeneration must NEVER reference the committed blob path: {calls}"
-        );
-    }
-
-    /// Materializer tools with only the emitter + producer wired (the frozen-baseline regeneration
-    /// uses only those two); every other tool is an unused placeholder.
-    #[cfg(unix)]
-    fn regen_tools(root: &Path, emitter: PathBuf, producer: PathBuf) -> MaterializerTools {
-        MaterializerTools {
-            emitter,
-            producer,
-            codemod: PathBuf::from("/unused-codemod"),
-            masterplan_generator: PathBuf::from("/unused-masterplan"),
-            architecture_graph_generator: PathBuf::from("/unused-architecture"),
-            enforcement_liveness_corpus: EnforcementLivenessCorpusPaths {
-                claude_settings: root.join(".claude/settings.json"),
-                codex_hooks: root.join(".codex/hooks.json"),
-                hooks_dir: root.join("tools/hooks"),
-            },
-        }
     }
 }
