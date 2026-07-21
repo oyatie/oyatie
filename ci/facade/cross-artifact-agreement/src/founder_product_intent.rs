@@ -186,6 +186,25 @@ const PROMOTION_STATES: [&str; 10] = [
 const AUTOMATION_SAFETY_GOVERNOR_KEYS: [&str; 4] =
     ["AUTO", "ADVISE", "GATE", "classification_rule"];
 
+const TIME_STATE_IDS: [&str; 3] = ["past", "present", "future"];
+
+const KNOWLEDGE_CLASS_MAPPINGS: [(&str, &str); 14] = [
+    ("SourceAssertion", "source_assertion"),
+    ("ReportedClaim", "reported_claim"),
+    ("DerivedState", "computed_state"),
+    ("InferredRelationship", "inferred_relationship"),
+    ("AnomalySignal", "anomaly_signal"),
+    ("CausalHypothesis", "causal_hypothesis"),
+    ("CausalClaim", "causal_claim"),
+    ("Forecast", "forecast"),
+    ("Scenario", "scenario"),
+    ("Recommendation", "recommendation"),
+    ("OptimizationProposal", "optimization_proposal"),
+    ("Decision", "decision"),
+    ("AuthorizedAction", "authorized_action"),
+    ("Outcome", "verified_outcome"),
+];
+
 /// Check the founder-intent spec plus its root-hub, capability-registry, and graph faces.
 /// Missing, malformed, or drifted data yields a stable blocking finding.
 pub fn evaluate_founder_product_intent_agreement(
@@ -223,6 +242,10 @@ pub fn evaluate_founder_product_intent_agreement(
     }
 
     validate_pipeline_contract(&mut findings, &intent["founder_execution_authorization"]);
+    validate_temporal_and_epistemic_contract(
+        &mut findings,
+        &intent["temporal_and_epistemic_contract"],
+    );
 
     let stage1 = &intent["stage1_entry_requirements"];
     let controls = stage1.get("controls").and_then(Value::as_array);
@@ -286,6 +309,123 @@ pub fn evaluate_founder_product_intent_agreement(
     validate_registry_row(&mut findings, registry);
     validate_graph_edge(&mut findings, graph);
     findings
+}
+
+fn validate_temporal_and_epistemic_contract(findings: &mut BTreeSet<Finding>, contract: &Value) {
+    let time_states = contract.get("time_states").and_then(Value::as_array);
+    if !exact_ids(time_states, &TIME_STATE_IDS) {
+        invalid(findings, "temporal_and_epistemic_contract.time_states");
+    }
+    if time_states.is_none_or(|states| {
+        states.iter().any(|state| {
+            state
+                .get("rule")
+                .and_then(Value::as_str)
+                .is_none_or(|value| value.trim().is_empty())
+        })
+    }) {
+        invalid(findings, "temporal_and_epistemic_contract.time_states.rule");
+    }
+
+    let expected_classes: Vec<&str> = KNOWLEDGE_CLASS_MAPPINGS
+        .iter()
+        .map(|(_, knowledge_class)| *knowledge_class)
+        .collect();
+    if !exact_string_values(contract.get("knowledge_classes"), &expected_classes) {
+        invalid(
+            findings,
+            "temporal_and_epistemic_contract.knowledge_classes",
+        );
+    }
+
+    let Some(artifacts) = contract.get("typed_artifacts").and_then(Value::as_array) else {
+        invalid(findings, "temporal_and_epistemic_contract.typed_artifacts");
+        return;
+    };
+    if artifacts.len() != KNOWLEDGE_CLASS_MAPPINGS.len() {
+        invalid(findings, "temporal_and_epistemic_contract.typed_artifacts");
+    }
+
+    let mut artifact_ids = HashSet::new();
+    let mut mapped_classes = HashSet::new();
+    let mut observed_mappings = HashSet::new();
+    for artifact in artifacts {
+        let Some(artifact_id) = artifact.get("id").and_then(Value::as_str) else {
+            invalid(
+                findings,
+                "temporal_and_epistemic_contract.typed_artifacts.id",
+            );
+            continue;
+        };
+        if artifact_id.is_empty() || !artifact_ids.insert(artifact_id) {
+            invalid(
+                findings,
+                "temporal_and_epistemic_contract.typed_artifacts.id",
+            );
+        }
+
+        let Some(knowledge_class) = artifact.get("knowledge_class").and_then(Value::as_str) else {
+            invalid(
+                findings,
+                "temporal_and_epistemic_contract.typed_artifacts.knowledge_class",
+            );
+            continue;
+        };
+        if knowledge_class.is_empty() || !mapped_classes.insert(knowledge_class) {
+            invalid(
+                findings,
+                "temporal_and_epistemic_contract.typed_artifacts.knowledge_class",
+            );
+        }
+        observed_mappings.insert((artifact_id, knowledge_class));
+
+        if artifact
+            .get("minimum")
+            .and_then(Value::as_str)
+            .is_none_or(|value| value.trim().is_empty())
+        {
+            invalid(
+                findings,
+                "temporal_and_epistemic_contract.typed_artifacts.minimum",
+            );
+        }
+    }
+
+    let expected_mappings: HashSet<(&str, &str)> =
+        KNOWLEDGE_CLASS_MAPPINGS.iter().copied().collect();
+    if observed_mappings != expected_mappings {
+        invalid(
+            findings,
+            "temporal_and_epistemic_contract.typed_artifacts.mapping",
+        );
+    }
+    if mapped_classes != expected_classes.iter().copied().collect() {
+        invalid(
+            findings,
+            "temporal_and_epistemic_contract.typed_artifacts.knowledge_class",
+        );
+    }
+
+    require_contains_all(
+        findings,
+        contract,
+        "mapping_rule",
+        &[
+            "Every knowledge class has exactly one explicit typed-artifact mapping",
+            "must not silently promote",
+        ],
+        "temporal_and_epistemic_contract.mapping_rule",
+    );
+    require_contains_all(
+        findings,
+        contract,
+        "rule",
+        &[
+            "must never collapse different knowledge classes",
+            "valid, event, observed, recorded, and effective time",
+        ],
+        "temporal_and_epistemic_contract.rule",
+    );
 }
 
 fn validate_pipeline_contract(findings: &mut BTreeSet<Finding>, authorization: &Value) {

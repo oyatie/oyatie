@@ -22,6 +22,8 @@ use ci_cross_artifact_agreement::{
 };
 use serde_json::Value;
 
+type JsonMutation = Box<dyn Fn(&mut Value)>;
+
 /// Walk up to the repo root (the dir holding specs/root-hub-pointers.json), matching the
 /// existing kernel-test convention.
 fn repo_root() -> PathBuf {
@@ -587,6 +589,90 @@ fn founder_product_intent_validator_is_fail_closed_for_authorization_and_control
     );
 }
 
+/// The product intent must keep temporal states and epistemic artifact types as
+/// executable structure, not prose that can silently drift after review.
+#[test]
+fn founder_product_intent_validator_is_fail_closed_for_temporal_and_epistemic_drift() {
+    let root = repo_root();
+    let intent = load_json(&root.join("specs/founder-product-intent.json"));
+    let root_hub = load_json(&root.join("specs/root-hub-pointers.json"));
+    let registry = load_json(&root.join("registry/artifact-capabilities-registry.json"));
+    let graph = load_json(&root.join("registry/graph/active-artifact-contract-edges.json"));
+
+    let cases: [(&str, &str, JsonMutation); 6] = [
+        (
+            "duplicate-knowledge-class-mapping",
+            "temporal_and_epistemic_contract.typed_artifacts.knowledge_class",
+            Box::new(|candidate| {
+                let first_class = candidate["temporal_and_epistemic_contract"]["typed_artifacts"]
+                    [0]["knowledge_class"]
+                    .clone();
+                candidate["temporal_and_epistemic_contract"]["typed_artifacts"][1]["knowledge_class"] =
+                    first_class;
+            }),
+        ),
+        (
+            "empty-typed-artifact-minimum",
+            "temporal_and_epistemic_contract.typed_artifacts.minimum",
+            Box::new(|candidate| {
+                candidate["temporal_and_epistemic_contract"]["typed_artifacts"][0]["minimum"] =
+                    Value::String(String::new());
+            }),
+        ),
+        (
+            "blank-typed-artifact-minimum",
+            "temporal_and_epistemic_contract.typed_artifacts.minimum",
+            Box::new(|candidate| {
+                candidate["temporal_and_epistemic_contract"]["typed_artifacts"][0]["minimum"] =
+                    Value::String(" \t\n".to_owned());
+            }),
+        ),
+        (
+            "time-state-drift",
+            "temporal_and_epistemic_contract.time_states",
+            Box::new(|candidate| {
+                candidate["temporal_and_epistemic_contract"]["time_states"][0]["id"] =
+                    Value::String("timeless".to_owned());
+            }),
+        ),
+        (
+            "blank-time-state-rule",
+            "temporal_and_epistemic_contract.time_states.rule",
+            Box::new(|candidate| {
+                candidate["temporal_and_epistemic_contract"]["time_states"][0]["rule"] =
+                    Value::String(" \t\n".to_owned());
+            }),
+        ),
+        (
+            "artifact-class-pair-swap",
+            "temporal_and_epistemic_contract.typed_artifacts.mapping",
+            Box::new(|candidate| {
+                let first_class = candidate["temporal_and_epistemic_contract"]["typed_artifacts"]
+                    [0]["knowledge_class"]
+                    .clone();
+                let second_class = candidate["temporal_and_epistemic_contract"]["typed_artifacts"]
+                    [1]["knowledge_class"]
+                    .clone();
+                candidate["temporal_and_epistemic_contract"]["typed_artifacts"][0]["knowledge_class"] =
+                    second_class;
+                candidate["temporal_and_epistemic_contract"]["typed_artifacts"][1]["knowledge_class"] =
+                    first_class;
+            }),
+        ),
+    ];
+
+    for (name, expected_key, mutate) in cases {
+        let mut candidate = intent.clone();
+        mutate(&mut candidate);
+        let findings =
+            evaluate_founder_product_intent_agreement(&candidate, &root_hub, &registry, &graph);
+        assert!(
+            findings.iter().any(|finding| finding.key == expected_key),
+            "{name} must fail closed with {expected_key}: {findings:?}"
+        );
+    }
+}
+
 /// Pipeline evolution is itself a safety-critical contract. These isolated RED
 /// mutations pin the structural controls that keep parallel work from turning
 /// into self-authorizing promotion or a weaker safety tier.
@@ -598,7 +684,7 @@ fn founder_product_intent_validator_is_fail_closed_for_pipeline_contract_drift()
     let registry = load_json(&root.join("registry/artifact-capabilities-registry.json"));
     let graph = load_json(&root.join("registry/graph/active-artifact-contract-edges.json"));
 
-    let cases: [(&str, Box<dyn Fn(&mut Value)>); 25] = [
+    let cases: [(&str, JsonMutation); 25] = [
         (
             "missing-work-graph-contract",
             Box::new(|candidate| {
