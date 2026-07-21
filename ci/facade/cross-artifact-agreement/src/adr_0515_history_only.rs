@@ -33,6 +33,16 @@ const CANONICAL_HISTORY_GAP_SUFFIXES: [(&str, &str); 6] = [
     ("/_metadata/gaps/30", "0511"),
     ("/_metadata/gaps/31", "0513..0514"),
 ];
+const REVIEWED_ELF_PATHS: [(&str, u16); 7] = [
+    ("cloud/cloud-kernel/out/user-exec-x86_64.elf", 62),
+    ("cloud/cloud-kernel/out/user-exec.elf", 183),
+    ("cloud/cloud-kernel/out/user-hello.elf", 183),
+    ("cloud/cloud-kernel/out/user-musl.elf", 183),
+    ("cloud/cloud-kernel/out/user-spawn-x86_64.elf", 62),
+    ("cloud/cloud-kernel/out/user-spawn.elf", 183),
+    ("cloud/cloud-kernel/out/user-x86_64.elf", 62),
+];
+const REVIEWED_GZIP_PATH: &str = "evidence/ci/slsa/sbom.cdx.json.gz";
 const REVIEWED_ARCHITECTURE_PROVENANCE: [&str; 5] = [
     "docs/architecture/adr-corpus-line-audit-2026-05-21.md",
     "docs/architecture/adr-cross-reference-graph-2026-05-20.md",
@@ -258,9 +268,6 @@ pub fn evaluate_adr_0515_tracked_surfaces(root: &Path, tracked_paths: &Value) ->
             findings.insert(drift(format!("tracked_path_not_file:{relative}")));
             continue;
         }
-        if relative.ends_with(".elf") || relative.ends_with(".gz") {
-            continue;
-        }
         let bytes = match std::fs::read(&full_path) {
             Ok(bytes) => bytes,
             Err(_) => {
@@ -268,6 +275,38 @@ pub fn evaluate_adr_0515_tracked_surfaces(root: &Path, tracked_paths: &Value) ->
                 continue;
             }
         };
+        if let Some((_, expected_machine)) = REVIEWED_ELF_PATHS
+            .iter()
+            .find(|(path, _)| *path == relative)
+        {
+            let valid = bytes.len() >= 20
+                && bytes.starts_with(b"\x7fELF")
+                && bytes[4..7] == [2, 1, 1]
+                && u16::from_le_bytes([bytes[16], bytes[17]]) == 2
+                && u16::from_le_bytes([bytes[18], bytes[19]]) == *expected_machine;
+            if !valid {
+                findings.insert(drift(format!("tracked_path_binary_format:{relative}")));
+            }
+            continue;
+        }
+        if relative == REVIEWED_GZIP_PATH {
+            let output = std::process::Command::new("gzip")
+                .arg("-dc")
+                .arg(&full_path)
+                .output();
+            match output {
+                Ok(output) if output.status.success() => match std::str::from_utf8(&output.stdout) {
+                    Ok(content) => findings.extend(evaluate_adr_0515_reference_content(relative, content)),
+                    Err(_) => {
+                        findings.insert(drift(format!("tracked_path_invalid_utf8:{relative}")));
+                    }
+                },
+                _ => {
+                    findings.insert(drift(format!("tracked_path_gzip_error:{relative}")));
+                }
+            }
+            continue;
+        }
         match std::str::from_utf8(&bytes) {
             Ok(content) => findings.extend(evaluate_adr_0515_reference_content(relative, content)),
             Err(_) => {
@@ -763,8 +802,60 @@ mod tests {
         std::fs::create_dir_all(&root).unwrap();
         std::fs::write(root.join("invalid.txt"), [0xff, 0xfe]).unwrap();
 
-        let findings = evaluate_adr_0515_tracked_surfaces(&root, &json!(["invalid.txt"]));
-        assert!(keys(&findings).contains(&"tracked_path_invalid_utf8:invalid.txt".to_owned()));
+        std::fs::write(root.join("spoof.elf"), [0xff, 0xfe]).unwrap();
+        std::fs::write(root.join("spoof.gz"), [0xff, 0xfe]).unwrap();
+        std::fs::create_dir_all(root.join("cloud/cloud-kernel/out")).unwrap();
+        std::fs::write(
+            root.join("cloud/cloud-kernel/out/user-exec.elf"),
+            b"not an elf",
+        )
+        .unwrap();
+        std::fs::create_dir_all(root.join("evidence/ci/slsa")).unwrap();
+        std::fs::write(
+            root.join("evidence/ci/slsa/sbom.cdx.json.gz"),
+            b"not gzip",
+        )
+        .unwrap();
+
+        let findings = evaluate_adr_0515_tracked_surfaces(
+            &root,
+            &json!([
+                "invalid.txt",
+                "spoof.elf",
+                "spoof.gz",
+                "cloud/cloud-kernel/out/user-exec.elf",
+                "evidence/ci/slsa/sbom.cdx.json.gz"
+            ]),
+        );
+        let finding_keys = keys(&findings);
+        assert!(finding_keys.contains(&"tracked_path_invalid_utf8:invalid.txt".to_owned()));
+        assert!(finding_keys.contains(&"tracked_path_invalid_utf8:spoof.elf".to_owned()));
+        assert!(finding_keys.contains(&"tracked_path_invalid_utf8:spoof.gz".to_owned()));
+        assert!(finding_keys.contains(
+            &"tracked_path_binary_format:cloud/cloud-kernel/out/user-exec.elf".to_owned()
+        ));
+        assert!(finding_keys.contains(
+            &"tracked_path_gzip_error:evidence/ci/slsa/sbom.cdx.json.gz".to_owned()
+        ));
+
+        let compressed_legacy = [
+            0x1f, 0x8b, 0x08, 0x00, 0x21, 0xfa, 0x5e, 0x6a, 0x00, 0x03, 0x4b, 0x2c,
+            0x2d, 0xc9, 0xc8, 0x2f, 0xca, 0x2c, 0xa9, 0xb4, 0x52, 0x70, 0x74, 0x09,
+            0xd2, 0x35, 0x30, 0x36, 0xb1, 0xe4, 0x02, 0x00, 0x56, 0x98, 0xc1, 0xcc,
+            0x14, 0x00, 0x00, 0x00,
+        ];
+        std::fs::write(
+            root.join("evidence/ci/slsa/sbom.cdx.json.gz"),
+            compressed_legacy,
+        )
+        .unwrap();
+        let findings = evaluate_adr_0515_tracked_surfaces(
+            &root,
+            &json!(["evidence/ci/slsa/sbom.cdx.json.gz"]),
+        );
+        assert!(keys(&findings).iter().any(|key| key.starts_with(
+            "current_tree_identifier_reference:evidence/ci/slsa/sbom.cdx.json.gz"
+        )));
 
         std::fs::remove_dir_all(root).unwrap();
     }
