@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 429
-- **Numbering:** ADR-0001..ADR-0619 (non-contiguous; gaps: 0012, 0033, 0037, 0041, 0050, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0247, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291, 0322..0323, 0327, 0342, 0345, 0385..0386, 0395..0396, 0398..0475, 0477, 0483..0505, 0574..0579, 0583..0585, 0594, 0601..0602)
+- **Total ADRs:** 422
+- **Numbering:** ADR-0001..ADR-0619 (non-contiguous; gaps: 0012, 0033, 0037, 0041, 0050, 0068, 0070..0082, 0084..0089, 0124..0127, 0224..0233, 0247, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291, 0322..0323, 0327, 0342, 0345, 0349, 0359, 0361, 0385..0386, 0395..0396, 0398..0475, 0477, 0483..0505, 0511, 0513..0514, 0574..0579, 0583..0585, 0594, 0601..0602)
 - **Next ADR number:** 0620
-- **Status counts:** Accepted 175, Accepted (amendment) 2, Amended 1, Proposed 147, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 35, accepted 34, deprecated 1, proposed 31, superseded 1
+- **Status counts:** Accepted 175, Accepted (amendment) 2, Amended 1, Proposed 147, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 28, accepted 34, deprecated 1, proposed 31, superseded 1
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -119,7 +119,6 @@ doc_status: published
 | ADR-0121 | Superseded | On-prem Kubernetes stack — vanilla kubeadm + containerd + Istio + Envoy | axis-cloud + axis-foundry | [`ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md`](decisions/ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md) |
 | ADR-0122 | Accepted | Ontology crate rename — retire "object-graph" naming | council-architecture | [`ADR-0122-ontology-crate-rename-from-object-graph.md`](decisions/ADR-0122-ontology-crate-rename-from-object-graph.md) |
 | ADR-0123 | Accepted | Hyperscaler maturity claim gate | council-architecture | [`ADR-0123-hyperscaler-maturity-claim-gate.md`](decisions/ADR-0123-hyperscaler-maturity-claim-gate.md) |
-| ADR-0124 | Superseded | Own merge-queue policy — webhook-driven, GitHub-merge-queue-free | jason931225 | [`ADR-0124-own-merge-queue-webhook-driven.md`](decisions/ADR-0124-own-merge-queue-webhook-driven.md) |
 | ADR-0128 | Accepted | Hyperscaler architecture invariants — canonical spec + portfolio binding | council-architecture, ops-sre-reliability, ops-security | [`ADR-0128-hyperscaler-architecture-invariants.md`](decisions/ADR-0128-hyperscaler-architecture-invariants.md) |
 | ADR-0129 | Accepted | ChangeSet Plan DAG and Honest Claims Gate | council-architecture | [`ADR-0129-changeset-plan-dag-and-honest-claims-gate.md`](decisions/ADR-0129-changeset-plan-dag-and-honest-claims-gate.md) |
 | ADR-0130 | Accepted | Deprecate `registry/knowledge-graph-semantic.json` and Migrate to Ontology Type System | council-architecture + ontology-team | [`ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md`](decisions/ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md) |
@@ -297,7 +296,6 @@ doc_status: published
 | ADR-0346 | Proposed | oya verify --ci-required MUST locally mirror the full CI matrix and block on exit-0 of EACH step before returning success | council-architecture, ops-platform, axis-dev-cli, ops-sre-reliability | [`ADR-0346-oya-verify-must-run-full-ci-mirror.md`](decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md) |
 | ADR-0347 | Proposed | Foundry-fitness to governance bulk rename (doctrine-only; all oya-governance-fitness-* CI lanes + crates + catalog + ADR cross-references collapse to oya-governance-* per ADR-0132 + ADR-0335; per-lane migration IPs collapsed into one bulk rename) | council-architecture, ops-sre-reliability, ops-platform, council-security, axis-governance | [`ADR-0347-governance-fitness-bulk-rename.md`](decisions/ADR-0347-governance-fitness-bulk-rename.md) |
 | ADR-0348 | Proposed | Autosharding + auto-rebalance + dynamic sharding (cellular topology MUST support three control-plane-driven automation modes for tenant→cell/shard placement, hot-cell rebalancing, and within-cell hot-split + cold-merge shard count adjustment; manifest-declared per-µservice; cell-orchestrator (within tenancy + observability) executes; honors residency + compliance packs; emits audit-chain per ADR-0263; reversible) | council-architecture, ops-sre-reliability, axis-tenancy, axis-observability, axis-cloud-iac | [`ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md`](decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md) |
-| ADR-0349 | Superseded | Self-hostable CI/CD substrate — cloud-ci augments GitHub Actions; ArgoCD replaces manual kubectl/Helm CLI deploys; both OSS Class C approved per ADR-0211 + Contributor stewardship per ADR-0345; provisioned via OpenTofu modules per ADR-0339 in every multi-context deployment per ADR-0215 including air-gap per ADR-0164 (superseded by ADR-0515) | council-architecture, ops-platform, ops-sre-reliability, axis-cloud-iac, axis-observability, council-security | [`ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md`](decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md) |
 | ADR-0350 | Accepted | UUIDv7 Canonical ID Primitive Across Oyatie | council-architecture, council-security, axis-governance, axis-audit-chain, axis-workflow-engine, axis-tenancy, axis-identity, axis-observability | [`ADR-0350-uuidv7-canonical-id-primitive.md`](decisions/ADR-0350-uuidv7-canonical-id-primitive.md) |
 | ADR-0351 | Accepted | Cell-rebalancer + cell-lifecycle microservices (amends ADR-0333) | council-architecture | [`ADR-0351-cell-rebalancer-and-cell-lifecycle-microservices.md`](decisions/ADR-0351-cell-rebalancer-and-cell-lifecycle-microservices.md) |
 | ADR-0352 | Proposed | Oyatie from-scratch architecture handoff | council-architecture | [`ADR-0352-oyatie-from-scratch-architecture-handoff.md`](decisions/ADR-0352-oyatie-from-scratch-architecture-handoff.md) |
@@ -307,9 +305,7 @@ doc_status: published
 | ADR-0356 | Proposed | Amendment — Library-First Ontology Read-Path Clarification | council-architecture, council-product, council-privacy, council-security, ops-sre-reliability, ops-compliance, axis-ontology, axis-policy-engine, axis-workflow-engine, axis-audit-chain, axis-tenancy, axis-intelligence | [`ADR-0356-amendment-library-first-ontology-read-path.md`](decisions/ADR-0356-amendment-library-first-ontology-read-path.md) |
 | ADR-0357 | Proposed | Vertical-slice monorepo nesting (co-locate crate code under microservices/<ms>/crates/) | council-architecture | [`ADR-0357-vertical-slice-monorepo-nesting.md`](decisions/ADR-0357-vertical-slice-monorepo-nesting.md) |
 | ADR-0358 | Proposed | Ideal 0→100 production roadmap — strangler-fig migration, Bazel rules_rust + oya governance overlay, define-production-100-first | council-architecture | [`ADR-0358-ideal-production-roadmap-strangler-bazel-oya-overlay.md`](decisions/ADR-0358-ideal-production-roadmap-strangler-bazel-oya-overlay.md) |
-| ADR-0359 | Superseded | cloud-ci completely replaces GitHub Actions as the CI orchestrator (superseded by ADR-0515) | council-architecture | [`ADR-0359-jenkins-completely-replaces-github-actions.md`](decisions/ADR-0359-jenkins-completely-replaces-github-actions.md) |
 | ADR-0360 | Proposed | CI/CD pipeline optimization program — affected-target precision, gate-only overlay, warm shared cache, test sharding, pinned+signed agent image, speculative merge queue, content-addressed gate caching | council-architecture, ops-platform, axis-dev-cli, ops-sre-reliability | [`ADR-0360-ci-pipeline-optimization-program.md`](decisions/ADR-0360-ci-pipeline-optimization-program.md) |
-| ADR-0361 | Superseded | Execute the cloud-ci-native CI/CD revamp — license-vetted hyperscaler supply-chain stack, retire GitHub Actions, drop the parity gate (superseded by ADR-0515) | council-architecture, ops-platform, axis-dev-cli, ops-sre-reliability | [`ADR-0361-jenkins-native-cicd-revamp-execution.md`](decisions/ADR-0361-jenkins-native-cicd-revamp-execution.md) |
 | ADR-0362 | Accepted | Full grouping retirement (flat-only catalog) | council-architecture | [`ADR-0362-full-grouping-retirement-flat-only-catalog.md`](decisions/ADR-0362-full-grouping-retirement-flat-only-catalog.md) |
 | ADR-0363 | Accepted | Retire bespoke agentic-VCS; Foundry→Intelligence; `oya` is a governance-gate engine | council-architecture | [`ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md`](decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md) |
 | ADR-0364 | Accepted | Generative ADR template; masterplan generated from the ADR log | council-architecture | [`ADR-0364-generative-adr-template-and-masterplan-generation.md`](decisions/ADR-0364-generative-adr-template-and-masterplan-generation.md) |
@@ -353,10 +349,7 @@ doc_status: published
 | ADR-0508 | Accepted | OpenSK canonical authenticator-side reference (Phase-1) + oya-authn-device Tier-3 bespoke hardware destination | council-architecture | [`ADR-0508-opensk-canonical-authenticator-reference.md`](decisions/ADR-0508-opensk-canonical-authenticator-reference.md) |
 | ADR-0509 | Superseded | Hyperscaler service decomposition pattern (single-crate-per-service + mod-based subsystems) | council-architecture | [`ADR-0509-hyperscaler-service-decomposition-pattern.md`](decisions/ADR-0509-hyperscaler-service-decomposition-pattern.md) |
 | ADR-0510 | Accepted | SCM destination = bespoke hyperscaler monorepo-VCS; GitHub transitory; cutover numerically triggered | council-architecture | [`ADR-0510-scm-bespoke-hyperscaler-destination-cutover-trigger.md`](decisions/ADR-0510-scm-bespoke-hyperscaler-destination-cutover-trigger.md) |
-| ADR-0511 | Superseded | CI orchestration = Argo Workflows (k8s-native); cloud-ci transitory; supersede Proposed ADR-0359 (superseded by ADR-0515) | council-architecture | [`ADR-0511-ci-orchestration-argo-workflows-supersede-jenkins.md`](decisions/ADR-0511-ci-orchestration-argo-workflows-supersede-jenkins.md) |
 | ADR-0512 | Accepted | Canonical monorepo pattern — vertical-slice nesting, one workspace, bounded-context crates, dependency-rule modules, Buck2 graph | council-architecture, founder | [`ADR-0512-canonical-monorepo-pattern.md`](decisions/ADR-0512-canonical-monorepo-pattern.md) |
-| ADR-0513 | Superseded | oya-ci — bespoke-Rust Prow (cloud-scm-native CI/CD platform) (superseded by ADR-0515) | council-architecture, founder | [`ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md`](decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md) |
-| ADR-0514 | Superseded | Build/CI/CD Pipeline Target Architecture + Hyperscaler Remediation | council-architecture | [`ADR-0514-build-ci-cd-pipeline-target-architecture-hyperscaler-remediation.md`](decisions/ADR-0514-build-ci-cd-pipeline-target-architecture-hyperscaler-remediation.md) |
 | ADR-0515 | Accepted | Phase-0 firewall, one-canonical-CI, and the cloud-native enforcement posture | founder, council-architecture | [`ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md`](decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md) |
 | ADR-0516 | Accepted | Agentic Delivery Fabric — the apex product north-star (5-component topology) | founder | [`ADR-0516-agentic-delivery-fabric-apex-vision.md`](decisions/ADR-0516-agentic-delivery-fabric-apex-vision.md) |
 | ADR-0517 | Accepted | One owned AST substrate read by every consumer | founder | [`ADR-0517-one-owned-ast-substrate-content-addressed.md`](decisions/ADR-0517-one-owned-ast-substrate-content-addressed.md) |
@@ -472,7 +465,7 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 | 0068 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 | 0070..0082 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 | 0084..0089 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
-| 0125..0127 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
+| 0124..0127 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 | 0224..0233 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 | 0247 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 | 0256 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
@@ -486,11 +479,16 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 | 0327 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 | 0342 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 | 0345 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
+| 0349 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
+| 0359 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
+| 0361 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 | 0385..0386 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 | 0395..0396 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 | 0398..0475 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 | 0477 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 | 0483..0505 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
+| 0511 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
+| 0513..0514 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 | 0574..0579 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 | 0583..0585 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 | 0594 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
@@ -498,6 +496,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 429 ADR files (sorted ascending)
+- `decisions/` directory listing — 422 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks

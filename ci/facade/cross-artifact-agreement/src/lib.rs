@@ -103,6 +103,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
+mod adr_0515_history_only;
 mod adr_index_projection_parity;
 mod gate_coverage_baseline;
 mod plan_evidence_crosscheck;
@@ -129,6 +130,10 @@ pub use read_surface_resurrection::{
 // contract). Each closes a #1327 review class no §5.2 code keys on: prose vs
 // front-matter status, capability-registry vs derived gate policy, and
 // generated ADR-index projection parity.
+pub use adr_0515_history_only::{
+    ADR_0515_HISTORY_ONLY_CODE, ADR_0515_HISTORY_ONLY_VALIDATOR, evaluate_adr_0515_history_only,
+    is_adr_0515_history_only_citation,
+};
 pub use adr_index_projection_parity::{
     ADR_INDEX_MD_PATH, ADR_INDEX_PARITY_VALIDATOR, ADR_INDEX_PROJECTION_STALE_CODE,
     DECISIONS_JSON_PATH, evaluate_adr_index_projection_parity,
@@ -454,11 +459,14 @@ pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
 
     // phantom_decision_citation: a governed surface cites a decision id with no decision
     // file on disk (the phantom-0397 shape — FRIC-1781430000). Keyed by the producer's
-    // `<cited-id>@<source-path>` edge. The carve-out for the ledgered historical
-    // inventory is producer-side DATA, never an evaluator branch, so anything in the
-    // face IS a violation.
+    // `<cited-id>@<source-path>` edge. ADR-0515's seven deleted predecessors are an
+    // explicit exception: their remaining citations are classified Git-history
+    // provenance, while the separate history-only guard fails current source,
+    // projection, root-hub, and masterplan re-exposure closed.
     for entry in str_array(fixture, "phantom_citations") {
-        findings.insert(Finding::new("phantom_decision_citation", &entry));
+        if !is_adr_0515_history_only_citation(&entry) {
+            findings.insert(Finding::new("phantom_decision_citation", &entry));
+        }
     }
 
     // generated_face_drift: two generated faces disagree on a shared value. Keyed by
@@ -3852,6 +3860,16 @@ mod tests {
     fn empty_phantom_citations_is_quiet() {
         let fixture = json!({"decisions": [valid_decision()], "phantom_citations": []});
         assert_eq!(evaluate(&fixture).verdict, Verdict::Green);
+    }
+
+    #[test]
+    fn adr_0515_history_only_provenance_is_not_a_phantom_citation() {
+        let fixture = json!({
+            "decisions": [valid_decision()],
+            "phantom_citations": ["ADR-0349@docs/decisions/ADR-0515-current.md"]
+        });
+        let report = evaluate(&fixture);
+        assert!(!report.violations.contains("phantom_decision_citation"));
     }
 
     /// RED fixture (FRIC-1781320000): a filename/front-matter id disagreement — the

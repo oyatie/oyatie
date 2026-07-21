@@ -10,14 +10,15 @@ use std::process::Command;
 
 use ci_cross_artifact_agreement::{
     AdrDecisionRecord, GateCoverageBaseline, RatchetReport, Verdict,
-    derive_masterplan_md_projection, evaluate, evaluate_adr_index_projection_parity,
-    evaluate_adr_prose_frontmatter_status, evaluate_masterplan_plan_evidence_crosscheck,
-    evaluate_masterplan_projection_rederivation, evaluate_masterplan_read_surface_resurrections,
-    evaluate_masterplan_v2_authority, evaluate_masterplan_v2_entry_surfaces,
-    evaluate_masterplan_v2_evidence_state, evaluate_masterplan_v2_plan_evidence_drift,
-    evaluate_masterplan_v2_program_coverage, evaluate_masterplan_v2_projection_freshness,
-    evaluate_masterplan_v2_ratification_digest, evaluate_masterplan_v2_read_contract_archives,
-    evaluate_masterplan_v2_sequencing, evaluate_registry_derived_policy_sync, ratchet,
+    derive_masterplan_md_projection, evaluate, evaluate_adr_0515_history_only,
+    evaluate_adr_index_projection_parity, evaluate_adr_prose_frontmatter_status,
+    evaluate_masterplan_plan_evidence_crosscheck, evaluate_masterplan_projection_rederivation,
+    evaluate_masterplan_read_surface_resurrections, evaluate_masterplan_v2_authority,
+    evaluate_masterplan_v2_entry_surfaces, evaluate_masterplan_v2_evidence_state,
+    evaluate_masterplan_v2_plan_evidence_drift, evaluate_masterplan_v2_program_coverage,
+    evaluate_masterplan_v2_projection_freshness, evaluate_masterplan_v2_ratification_digest,
+    evaluate_masterplan_v2_read_contract_archives, evaluate_masterplan_v2_sequencing,
+    evaluate_registry_derived_policy_sync, is_adr_0515_history_only_citation, ratchet,
 };
 use serde_json::Value;
 
@@ -1055,18 +1056,22 @@ fn gate1_is_born_blocking_on_the_live_corpus() {
         "next_free_id must be an ADR-NNNN allocator output, got {next_free_id:?}"
     );
 
-    // phantom_decision_citation is frozen-empty (born-blocking, FRIC-1781430000): the
+    // phantom_decision_citation is frozen-empty apart from ADR-0515's explicitly
+    // classified Git-history-only predecessor citations (born-blocking,
+    // FRIC-1781430000): the
     // phantom-0397 exhibit (seven governed surfaces citing "ADR-0397 Pulsar 4.x + Oxia
     // canonical event-bus" with no file at the number — audit register H-19) was healed
     // 2026-06-12 by MINTING docs/decisions/ADR-0397-pulsar-oxia-canonical-event-bus.md,
     // and the pre-existing phantom inventory is grandfathered shrink-only DATA in the
-    // producer (each id ledgered with its citation sites). Any edge here is NEW debt.
+    // producer (each id ledgered with its citation sites). Any other edge here is NEW debt.
     let phantom_citations = crosswalk["phantom_citations"]
         .as_array()
         .expect("phantom_citations");
     assert!(
-        phantom_citations.is_empty(),
-        "phantom_decision_citation must stay frozen-empty: {phantom_citations:?} — mint the \
+        phantom_citations.iter().all(|entry| entry
+            .as_str()
+            .is_some_and(is_adr_0515_history_only_citation)),
+        "phantom_decision_citation must stay frozen-empty outside ADR-0515 history-only provenance: {phantom_citations:?} — mint the \
          record at the cited number (status Proposed, reconstruction banner; allocate NEW \
          numbers via the accounting-registry producer's --next-adr) or retarget the citation"
     );
@@ -1093,7 +1098,7 @@ fn gate1_is_born_blocking_on_the_live_corpus() {
     //     pattern): laundering a NEW phantom citation by adding its id to the inventory
     //     in the same PR forces a loud edit of this pinned ceiling, which may only ever
     //     go DOWN as ids are healed (mint-or-retarget per their ledger rows).
-    const GRANDFATHERED_PHANTOM_CEILING: usize = 63; // decrease-only; never raise
+    const GRANDFATHERED_PHANTOM_CEILING: usize = 62; // decrease-only; never raise
     let grandfathered: Vec<&str> = crosswalk["grandfathered_phantom_ids"]
         .as_array()
         .expect("grandfathered_phantom_ids")
@@ -1472,6 +1477,36 @@ fn adr_index_projection_parity_is_advisory_clean_on_live_tree() {
     );
     let report = ratchet(&findings, &gate_coverage_baseline(&root));
     assert_ratchet_clean(&report, "adr_index_projection_stale");
+}
+
+/// ADR-0515 is the current CI/CD authority and requires its seven superseded
+/// source records to exist only in Git history. Historical prose may retain
+/// identifier provenance, but current source/projection/pointer/binding faces
+/// must never restore one of the deleted ADRs.
+#[test]
+fn adr_0515_history_only_contract_is_green_on_live_tree() {
+    let root = repo_root();
+    let decision_source_paths: BTreeSet<String> = decision_md_file_names(&root)
+        .into_iter()
+        .map(|name| format!("docs/decisions/{name}"))
+        .collect();
+    let adr_index_markdown =
+        fs::read_to_string(root.join("docs/ADR-INDEX.md")).expect("read docs/ADR-INDEX.md");
+    let decisions = load_json(&root.join("docs/machine-readable/decisions.json"));
+    let root_hub = load_json(&root.join("specs/root-hub-pointers.json"));
+    let masterplan = load_json(&root.join("specs/masterplan.json"));
+
+    let findings = evaluate_adr_0515_history_only(
+        &decision_source_paths,
+        &adr_index_markdown,
+        &decisions,
+        &root_hub,
+        &masterplan,
+    );
+    assert!(
+        findings.is_empty(),
+        "ADR-0515 Git-history-only contract drifted: {findings:?}"
+    );
 }
 
 /// The frozen baseline must stay well-formed and, at birth, EMPTY — the three
