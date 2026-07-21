@@ -13,8 +13,8 @@
 //! - The parser never resolves external URLs, local paths, credentials, or
 //!   ambient files while extracting references; link targets are recorded as
 //!   strings and suspicious targets are tainted.
-//! - Tenant/source identity is part of the content-address preimage so caches
-//!   and graph rows do not collide across tenants or source paths.
+//! - Tenant namespaces wrap content identities externally and do not alter
+//!   digest bytes; normalized source paths remain part of occurrence identity.
 //! - Every node carries source path, byte span, parser version, stable ID, and a
 //!   `WorkAreaNodeId` provenance bridge for auditability.
 //! - Malformed frontmatter fails closed; executable HTML and exfil-like link
@@ -212,7 +212,6 @@ pub fn parse_markdown_doc(input: &DocParseInput) -> Result<ParsedDocument, DocPa
     let work_area_hash = WorkAreaHash::from_bytes(sha256_frame(&[
         b"work-area",
         DOC_PARSER_VERSION.as_bytes(),
-        input.tenant_id().as_bytes(),
         input.source_path().as_bytes(),
         input.source().as_bytes(),
     ]));
@@ -512,7 +511,6 @@ fn build_node(
     let node_hash = NodeContentHash::from_bytes(sha256_frame(&[
         b"node",
         DOC_PARSER_VERSION.as_bytes(),
-        input.tenant_id().as_bytes(),
         input.source_path().as_bytes(),
         kind_tag.as_bytes(),
         text.as_bytes(),

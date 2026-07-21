@@ -142,7 +142,7 @@ fn adversarial_markdown_is_data_not_instruction_or_exfil() {
 }
 
 #[test]
-fn tenant_and_source_are_part_of_stable_ids() {
+fn tenant_namespace_is_external_while_source_path_remains_part_of_identity() {
     let tenant_a = parse_markdown_doc(&DocParseInput::new(
         "tenant-a",
         "docs/decisions/ADR-0517-one-owned-ast-substrate-content-addressed.md",
@@ -162,16 +162,38 @@ fn tenant_and_source_are_part_of_stable_ids() {
     ))
     .expect("moved source parses");
 
-    let ids = |parsed: &corpus_doc_parser::ParsedDocument| -> Vec<String> {
-        parsed
-            .nodes()
-            .iter()
-            .map(|node| node.stable_id().to_owned())
-            .collect()
-    };
+    assert_eq!(tenant_a.nodes().len(), tenant_b.nodes().len());
+    for (tenant_a_node, tenant_b_node) in tenant_a.nodes().iter().zip(tenant_b.nodes()) {
+        assert_eq!(
+            tenant_a_node.work_area_node_id().work_area_hash(),
+            tenant_b_node.work_area_node_id().work_area_hash(),
+            "tenant namespaces must not alter WorkAreaHash bytes"
+        );
+        assert_eq!(
+            tenant_a_node.work_area_node_id().node_hash(),
+            tenant_b_node.work_area_node_id().node_hash(),
+            "tenant namespaces must not alter NodeContentHash bytes"
+        );
+        assert_eq!(
+            tenant_a_node.stable_id(),
+            tenant_b_node.stable_id(),
+            "tenant namespaces must wrap stable identities externally"
+        );
+    }
 
-    assert_ne!(ids(&tenant_a), ids(&tenant_b));
-    assert_ne!(ids(&tenant_a), ids(&moved_source));
+    assert_eq!(tenant_a.nodes().len(), moved_source.nodes().len());
+    for (original_node, moved_node) in tenant_a.nodes().iter().zip(moved_source.nodes()) {
+        assert_ne!(
+            original_node.work_area_node_id().locator().artifact_path(),
+            moved_node.work_area_node_id().locator().artifact_path(),
+            "moving identical bytes must change the source locator"
+        );
+        assert_ne!(
+            original_node.stable_id(),
+            moved_node.stable_id(),
+            "source path remains part of stable occurrence identity"
+        );
+    }
 }
 
 #[test]
