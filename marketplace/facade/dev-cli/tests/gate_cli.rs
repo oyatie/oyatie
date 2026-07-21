@@ -1235,8 +1235,8 @@ fn brand_residue_gate_excludes_superseded_adr_history() {
     );
     write_brand_residue_file(
         &temp,
-        "docs/decisions/ADR-0511-ci-orchestration.md",
-        "---\nid: ADR-0511\nstatus: Superseded\nsuperseded_by: [ADR-0515]\n---\n\n# ADR-0511\n\nForgejo Commit Status remained the gate-result sink before the cutover.\n",
+        "docs/decisions/ADR-0900-retired-ci-orchestration.md",
+        "---\nid: ADR-0900\nstatus: Superseded\nsuperseded_by: [ADR-0901]\n---\n\n# ADR-0900\n\nForgejo Commit Status remained the gate-result sink before the cutover.\n",
     );
 
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))

@@ -22,9 +22,27 @@ const HISTORY_ONLY_ADRS: [&str; 7] = [
 /// Git-history-only predecessors. These are classified provenance edges, not
 /// phantom decisions; the current-authority surfaces are guarded separately.
 pub fn is_adr_0515_history_only_citation(entry: &str) -> bool {
-    entry
-        .split_once('@')
-        .is_some_and(|(id, _source)| HISTORY_ONLY_ADRS.contains(&id))
+    entry.split_once('@').is_some_and(|(id, source)| {
+        HISTORY_ONLY_ADRS.contains(&id)
+            && source.starts_with("docs/decisions/")
+            && history_only_id_in_decision_path(source).is_none()
+    })
+}
+
+pub fn evaluate_adr_0515_current_tree_references(
+    reference_sources: &BTreeSet<String>,
+) -> BTreeSet<Finding> {
+    reference_sources
+        .iter()
+        .filter(|source| !is_history_only_provenance_source(source))
+        .map(|source| drift(format!("current_tree_path_reference:{source}")))
+        .collect()
+}
+
+fn is_history_only_provenance_source(path: &str) -> bool {
+    path.starts_with("docs/audit/")
+        || path.starts_with("docs/architecture/")
+        || path.starts_with(".omc/")
 }
 
 fn drift(key: impl Into<String>) -> Finding {
@@ -222,9 +240,10 @@ mod tests {
     #[test]
     fn restored_deleted_adr_source_fails_closed() {
         let mut sources = clean_sources();
-        sources.insert(
-            "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md".to_owned(),
-        );
+        sources.insert(format!(
+            "docs/decisions/{}-jenkins-argocd-self-hostable-ci-cd-substrate.md",
+            "ADR-0349"
+        ));
 
         let findings = evaluate_adr_0515_history_only(
             &sources,
@@ -261,7 +280,10 @@ mod tests {
         let root_hub = json!({
             "entry_points": {
                 "stale": {
-                    "current_path": "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md"
+                    "current_path": format!(
+                        "docs/decisions/{}-jenkins-argocd-self-hostable-ci-cd-substrate.md",
+                        "ADR-0349"
+                    )
                 }
             }
         });
@@ -309,9 +331,56 @@ mod tests {
         assert!(is_adr_0515_history_only_citation(
             "ADR-0349@docs/decisions/ADR-0515-current.md"
         ));
+        assert!(!is_adr_0515_history_only_citation("ADR-0513@CLAUDE.md"));
+        assert!(!is_adr_0515_history_only_citation(
+            "ADR-0349@oya/analytics/README.md"
+        ));
+        assert!(!is_adr_0515_history_only_citation(
+            "ADR-0349@cloud/cloud-k8s/manifest.json"
+        ));
+        assert!(!is_adr_0515_history_only_citation(
+            "ADR-0349@oya/tenant-rbac/contracts/openapi-v1.meta.yaml"
+        ));
+        assert!(!is_adr_0515_history_only_citation(
+            "ADR-0349@specs/master-plan-sequencing.json"
+        ));
         assert!(!is_adr_0515_history_only_citation(
             "ADR-0397@specs/master-plan-sequencing.json"
         ));
         assert!(!is_adr_0515_history_only_citation("ADR-0349"));
+    }
+
+    #[test]
+    fn active_tree_path_references_fail_closed() {
+        let sources = BTreeSet::from([
+            "CLAUDE.md".to_owned(),
+            "cloud/cloud-k8s/manifest.json".to_owned(),
+            "oya/analytics/README.md".to_owned(),
+            "oya/tenant-rbac/contracts/openapi-v1.meta.yaml".to_owned(),
+        ]);
+
+        let findings = evaluate_adr_0515_current_tree_references(&sources);
+
+        assert_eq!(
+            keys(&findings),
+            vec![
+                "current_tree_path_reference:CLAUDE.md".to_owned(),
+                "current_tree_path_reference:cloud/cloud-k8s/manifest.json".to_owned(),
+                "current_tree_path_reference:oya/analytics/README.md".to_owned(),
+                "current_tree_path_reference:oya/tenant-rbac/contracts/openapi-v1.meta.yaml"
+                    .to_owned(),
+            ]
+        );
+    }
+
+    #[test]
+    fn historical_evidence_and_runtime_ledgers_remain_scoped_provenance() {
+        let sources = BTreeSet::from([
+            ".omc/ultragoal/friction-ledger.jsonl".to_owned(),
+            "docs/architecture/2026-05-19/decision-provenance.md".to_owned(),
+            "docs/audit/initial-sweep/source.md".to_owned(),
+        ]);
+
+        assert!(evaluate_adr_0515_current_tree_references(&sources).is_empty());
     }
 }

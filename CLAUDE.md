@@ -10,7 +10,7 @@ Pointers: `/specs/masterplan.json#masterplan_v2` (the only live plan authority);
 
 Agent-executable instructions are fenced for the agent-coordination lane. Human terminal shortcuts belong outside this fenced agent surface.
 
-Manual Wave-B bootstrap note (prose only): agents enter the governance pipeline by creating an isolated worktree branch and opening a protected pull request against `dev`; ADR-0363 retires the bespoke VCS ratchet and ADR-0515 owns cloud-ci/oya-ci Tide admission (ADR-0513 is historical: frontmatter status Superseded, superseded_by ADR-0515, accepted 2026-06-07). The agentic delivery fabric vision and staged rollout are governed by the ADR-0516..ADR-0535 fabric cluster.
+Manual Wave-B bootstrap note (prose only): agents enter the governance pipeline by creating an isolated worktree branch and opening a protected pull request against `dev`; ADR-0363 retires the bespoke VCS ratchet and ADR-0515 owns cloud-ci/oya-ci Tide admission. The agentic delivery fabric vision and staged rollout are governed by the ADR-0516..ADR-0535 fabric cluster.
 
 ## Skill discovery doctrine (runtime-installed)
 
@@ -55,8 +55,6 @@ current_substrate_adrs:
   - docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md
   - docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md
   - docs/decisions/ADR-0516-agentic-delivery-fabric-apex-vision.md # entry point of the ADR-0516..ADR-0535 fabric cluster
-historical_substrate_adrs:
-  - docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md # status Superseded; superseded_by ADR-0515 (accepted 2026-06-07)
 historical_vcs_ratchet_adrs:
   - docs/decisions/ADR-0110-changeset-state-machine.md
   - docs/decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md

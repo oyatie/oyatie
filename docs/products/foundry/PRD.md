@@ -2610,7 +2610,7 @@ This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automat
 - ADR-0346 full-mirror semantics are migration input only: Foundry acceptance must be evidenced by current cloud-ci/oya-ci Rust gate packets and promotion artifacts. The retired `./bin/oya verify --ci-required` path is historical/provenance-only and must not be invoked, recreated, or treated as merge/exit authority.
 - ADR-0347 binds Foundry engineering-platform lane authoring to the `oya-governance-*` lane vocabulary after the `oya-governance-*` bulk rename. Enforced-by cross-reference: `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, `oya-governance-rename-inventory-presence`.
 - ADR-0348 binds Foundry capability execution locality, tenant-scoped agent runs, and cross-product write placement to cellular topology that MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING as control-plane-driven automation modes. Enforced-by cross-reference: `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 is amended by ADR-0513/platform-readiness: Jenkins is bridge evidence only until cutover, ArgoCD/Rollouts remain authorized bridge/reference CD adapters where separately governed, and canonical readiness/promotion evidence comes from cloud-ci/oya-ci gate packets plus deployment/audit artifacts rather than Jenkins as destination CI authority.
+- ADR-0515 is the current authority: GitHub Actions plus branch protection remain the live CI authority until explicit owned-runner cutover, cloud-ci Rust gate apps produce the single protected `oya-ci-required` context, and Argo CD/Rollouts remain bridge or reference CD adapters only where separately authorized.
 
 ## References
 
@@ -2633,7 +2633,7 @@ This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automat
 - docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md
 - docs/decisions/ADR-0347-governance-fitness-bulk-rename.md
 - docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md
-- docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md
+- docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md
 - docs/products/foundry/PHASE-00-SPEC.md
 - specs/microservices/intelligence.json
 - specs/microservices/workflow-engine.json
