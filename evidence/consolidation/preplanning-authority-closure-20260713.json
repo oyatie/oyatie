@@ -33,16 +33,20 @@
       "head_at_snapshot": "1d21a7fd5fbc29d6853b3863a6d2680e6ac44224",
       "origin_dev_at_snapshot": "1d21a7fd5fbc29d6853b3863a6d2680e6ac44224",
       "branch": "chore/preplanning-authority-closure-20260713T142158Z",
-      "baseline_relation": "The signed candidate first-content commit is one commit ahead of the snapshotted origin/dev baseline.",
-      "candidate_state": "signed-first-content-commit-pushed-draft-pr-open-local-gates-green-not-cloud-admitted",
+      "baseline_relation": "PR #1340 was based on the snapshotted origin/dev commit, advanced to immutable head 1f0bd754813faeb15d55bbaefb5e6bfa0bf5a857, and was squash-merged as 73fea9ffc3d48f331f7cb6f086657a9d7b4a096b. The squash merge is an ancestor of origin/dev at the 2026-07-21 reconciliation query.",
+      "candidate_state": "merged-to-dev-protected-context-green-github-review-decision-approved-bot-only-no-qualified-human-proof-authority-holds-open",
       "protected_pr_against_dev": true,
-      "candidate_oya_ci_required_green": false,
-      "merged_to_dev": false,
-      "claim_ceiling": "A signed first-content commit is pushed and draft PR #1340 is open against dev with independent local review and local gates green. Protected oya-ci-required, server-side approval, merge, founder-choice closure, binding planning, and product completion remain unproven.",
+      "candidate_oya_ci_required_green": true,
+      "merged_to_dev": true,
+      "claim_ceiling": "PR #1340 is merged to dev, its immutable final head and squash-merge commits each have a completed successful oya-ci-required check, and GitHub reports APPROVED. These repository-admission facts do not close or imply any founder-choice, qualified-human, Phase-0, binding-planning, execution-dispatch, rollout, or product-completion gate.",
       "candidate_first_content_commit": "e4527935562b669c221cc548536886e4ba37cd4c",
       "protected_pr_number": 1340,
       "protected_pr_url": "https://github.com/jason931225/oyatie/pull/1340",
-      "pr_opened_on_head": "e4527935562b669c221cc548536886e4ba37cd4c"
+      "pr_opened_on_head": "e4527935562b669c221cc548536886e4ba37cd4c",
+      "pr_final_head": "1f0bd754813faeb15d55bbaefb5e6bfa0bf5a857",
+      "pr_base": "1d21a7fd5fbc29d6853b3863a6d2680e6ac44224",
+      "merge_commit": "73fea9ffc3d48f331f7cb6f086657a9d7b4a096b",
+      "merged_at": "2026-07-13T18:12:26Z"
     },
     "adr_lifecycle_inventory": {
       "source": "docs/machine-readable/decisions.json",
@@ -151,6 +155,89 @@
       "generated_faces": "Official materializer used locally; no tracked generated JSON is part of the candidate diff.",
       "authority_limit": "Local results are shift-left evidence only. The protected oya-ci-required context and server-side review remain admission authority."
     },
+    "factual_reconciliation": {
+      "queried_at": "2026-07-21T01:25:13Z",
+      "receipt_class": "git-github-factual-state-only-non-authoritative-non-closure",
+      "source_commands": [
+        "git fetch origin dev",
+        "gh api repos/jason931225/oyatie/pulls/1340",
+        "gh pr view 1340 --repo jason931225/oyatie --json number,url,state,isDraft,baseRefName,baseRefOid,headRefName,headRefOid,mergeCommit,mergedAt,mergedBy,reviewDecision,statusCheckRollup,commits,createdAt,updatedAt",
+        "gh api repos/jason931225/oyatie/commits/1f0bd754813faeb15d55bbaefb5e6bfa0bf5a857/check-runs",
+        "gh api repos/jason931225/oyatie/commits/73fea9ffc3d48f331f7cb6f086657a9d7b4a096b/check-runs",
+        "gh api repos/jason931225/oyatie/pulls/1340/reviews",
+        "git rev-parse origin/dev",
+        "git merge-base --is-ancestor 73fea9ffc3d48f331f7cb6f086657a9d7b4a096b origin/dev"
+      ],
+      "source_urls": [
+        "https://github.com/jason931225/oyatie/pull/1340",
+        "https://api.github.com/repos/jason931225/oyatie/pulls/1340",
+        "https://api.github.com/repos/jason931225/oyatie/commits/1f0bd754813faeb15d55bbaefb5e6bfa0bf5a857/check-runs",
+        "https://api.github.com/repos/jason931225/oyatie/commits/73fea9ffc3d48f331f7cb6f086657a9d7b4a096b/check-runs",
+        "https://api.github.com/repos/jason931225/oyatie/pulls/1340/reviews",
+        "https://github.com/jason931225/oyatie/actions/runs/29267509341/job/86896581531",
+        "https://github.com/jason931225/oyatie/actions/runs/29273533688/job/86908619277",
+        "https://github.com/jason931225/oyatie/commit/73fea9ffc3d48f331f7cb6f086657a9d7b4a096b"
+      ],
+      "immutable_pull_request_facts": {
+        "base_ref": "dev",
+        "base_sha": "1d21a7fd5fbc29d6853b3863a6d2680e6ac44224",
+        "head_ref": "chore/preplanning-authority-closure-20260713T142158Z",
+        "head_sha": "1f0bd754813faeb15d55bbaefb5e6bfa0bf5a857",
+        "merge_commit_sha": "73fea9ffc3d48f331f7cb6f086657a9d7b4a096b",
+        "state": "MERGED",
+        "draft": false,
+        "merged_at": "2026-07-13T18:12:26Z",
+        "github_review_decision": "APPROVED",
+        "origin_dev_at_query": "c89fbadba8ebe81b3825ad1e6eb3ffe310991885",
+        "merge_commit_is_ancestor_of_origin_dev_at_query": true
+      },
+      "protected_context_receipts": [
+        {
+          "commit_sha": "1f0bd754813faeb15d55bbaefb5e6bfa0bf5a857",
+          "context": "oya-ci-required",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-07-13T18:11:17Z",
+          "completed_at": "2026-07-13T18:11:20Z",
+          "details_url": "https://github.com/jason931225/oyatie/actions/runs/29267509341/job/86896581531"
+        },
+        {
+          "commit_sha": "73fea9ffc3d48f331f7cb6f086657a9d7b4a096b",
+          "context": "oya-ci-required",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-07-13T19:04:38Z",
+          "completed_at": "2026-07-13T19:04:40Z",
+          "details_url": "https://github.com/jason931225/oyatie/actions/runs/29273533688/job/86908619277"
+        }
+      ],
+      "github_approved_review_receipt": {
+        "review_id": 4686860411,
+        "state": "APPROVED",
+        "reviewer": "coderabbitai[bot]",
+        "commit_sha": "1f0bd754813faeb15d55bbaefb5e6bfa0bf5a857",
+        "submitted_at": "2026-07-13T16:48:58Z",
+        "url": "https://github.com/jason931225/oyatie/pull/1340#pullrequestreview-4686860411"
+      },
+      "review_receipt_limit": "GitHub reports APPROVED, but the approving review was submitted by coderabbitai[bot]. That server-side state proves PR review metadata only; it is not evidence of a qualified-human approval and does not ratify any founder choice.",
+      "authority_gate_nonclosure": {
+        "founder_gates_closed_by_this_receipt": [],
+        "qualified_human_gates_closed_by_this_receipt": [],
+        "founder_choices_still_blocking_binding_plan": [
+          "ADR-0515-SUPERSEDED-HISTORY-DISPOSITION",
+          "ADR-0170-VS-ADR-0394-IDP-SUBSTRATE",
+          "ADR-0565-ZERO-GRAPHQL",
+          "ADR-0614-MOVE-MANIFEST-DECOMMIT",
+          "ADR-0616-FROZEN-BASELINE-DECOMMIT"
+        ],
+        "planning_entry_contract_state": "open",
+        "binding_plan_approval_allowed": false,
+        "execution_wave_dispatch_allowed": false,
+        "phase0_complete": false,
+        "stage1_pass_attested": false
+      },
+      "claim_ceiling": "This receipt corrects only stale Git/GitHub facts for PR #1340. It records no authority choice, no qualified-human acceptance, no planning-entry closure, no Phase-0 completion, no Stage-1 PASS, no dispatch authorization, and no product-completion claim."
+    },
     "external_claim_import_retirement": {
       "status": "retired-and-deleted",
       "closure_receipt": "/evidence/goals/masterplan-v2-external-board-import-retirement-closure-20260720.json",
@@ -256,7 +343,7 @@
       "Confirm the authority order and the historical systems that are now provenance only.",
       "Review the present evidence ceilings: baseline, ADR lifecycle counts, retired external-claim import receipt, and Phase-0 gaps.",
       "Resolve every founder choice marked blocks_binding_plan, and explicitly scope or defer any other Proposed ADR the plan would use.",
-      "Admit this consolidation through an isolated signed commit, protected PR against dev, independent review, resolved threads, no conflicts, and green oya-ci-required.",
+      "Record that the consolidation was admitted through PR #1340 with green oya-ci-required and GitHub APPROVED metadata, without treating that repository admission as founder-choice or qualified-human authority closure.",
       "Close planning_entry_contract with evidence; only then begin binding plan approval and later execution-wave dispatch."
     ],
     "planning_entry_conditions": [
@@ -278,6 +365,6 @@
     ],
     "stop_state": "blocked-preplanning-authority-closure"
   },
-  "claim_ceiling": "This dated consolidation snapshot now attests a signed first-content commit, draft PR #1340, independent local review, and local gate results. It does not attest protected oya-ci-required green, server-side merge approval, an Accepted founder choice, Phase-0 completion, binding plan approval, execution-wave dispatch, merge, rollout, or product completion.",
-  "updated_at": "2026-07-13T16:06:56Z"
+  "claim_ceiling": "This dated consolidation snapshot, reconciled against live Git/GitHub on 2026-07-21, attests that PR #1340 merged to dev with successful oya-ci-required checks on its immutable final head and squash-merge commits and with GitHub APPROVED metadata. It does not attest a qualified-human approval, an Accepted founder choice, Phase-0 completion, Stage-1 PASS, binding plan approval, execution-wave dispatch, rollout, or product completion.",
+  "updated_at": "2026-07-21T01:25:13Z"
 }
