@@ -320,9 +320,38 @@ dependency of the generated-artifact controller/freshness path. This is file-acc
 wiring provenance only: it does not accept ADR-0377, authorize board actuation, authorize roadmap
 planning or implementation dispatch, or lift `HOLD(Planning)`.
 
+Its operational contract is fail closed:
+
+- **Success criteria:** for every admitted candidate tree, the controller reads the candidate's
+  materialized masterplan projection, renders a non-empty board projection in the approved legacy
+  byte format, and produces byte-identical output in two independent regenerations. The face stays
+  absent from Git tracking and contributor staging; successful rendering does not actuate a board.
+- **Failure criteria:** the same required-CI run is red when the masterplan projection is missing or
+  malformed, a deliverable is missing its identity, identities collide, rendering or writing fails,
+  regeneration omits the board face, or two regenerations differ. The controller must not publish a
+  partial projection, reuse a stale committed copy, or downgrade any such failure to advisory.
+- **SLO objective:** 100% of admitted heads pass regenerate-twice byte parity with zero tracked board
+  copies; at least 99.9% of controller materialization attempts complete within five seconds per
+  board face over a rolling 30-day window, measured from controller start to durable local write.
+  This is an objective for controller telemetry, not a claim that roadmap or board actuation is live.
+- **Failure modes and injection:** missing or malformed deliverables and duplicate identities are
+  injected by `board_sync_projection_rejects_a_masterplan_without_deliverables`,
+  `malformed_deliverable_entries_do_not_materialize_an_empty_projection`,
+  `malformed_deliverable_cannot_be_hidden_among_valid_deliverables`, and
+  `duplicate_deliverable_ids_fail_closed`; controller read, parse, and write failures are injected by
+  `board_sync_materialization_fails_closed_on_read_error`,
+  `board_sync_materialization_fails_closed_on_parse_error`, and
+  `board_sync_materialization_fails_closed_on_write_error`; legacy-format drift is caught
+  byte-for-byte by `board_sync_projection_is_byte_stable_and_uses_the_legacy_wire_shape`; missing
+  output and nondeterminism are injected by
+  `decommit_class_face_is_stale_when_regeneration_stops_producing_it` and
+  `determinism_canary_detects_board_sync_drift_when_other_projections_are_stable`. Each injected mode
+  must return a blocking error/finding and must not leave a tracked fallback face.
+
 - `ci/facade/planning-projection/BUCK`
 - `ci/facade/planning-projection/Cargo.toml`
 - `ci/facade/planning-projection/src/lib.rs`
+- `ci/facade/planning-projection/src/fixtures/board-sync-legacy-canonical.json`
 
 ### D3. Gates are Rust binaries run automatically — no CLI, no shell, declarative gitops
 - **Pipeline, not CLI** (D-CLOUD-NATIVE / D-GOVERNANCE-CENTRAL). All CI / governance / automation are
