@@ -2,7 +2,7 @@
 id: ADR-0621
 title: "FixupTask v2 as the proposed durable successor foundation for friction-ledger accounting"
 status: Proposed
-planning_impact: true
+planning_impact: false
 deciders: []
 date: 2026-07-21
 door: two-way
