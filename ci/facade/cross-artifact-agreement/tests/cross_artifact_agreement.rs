@@ -1437,6 +1437,24 @@ fn adr_0565_acceptance_and_reciprocal_amendments_are_authoritative() {
     );
 }
 
+#[test]
+fn adr_0051_prose_supersedes_remains_an_atomic_projection_value() {
+    let root = repo_root();
+    let records = read_adr_decision_records(&root.join("docs/decisions"))
+        .expect("parse authoritative ADR markdown source");
+    let mobile_strategy = records
+        .iter()
+        .find(|record| record.id == "ADR-0051")
+        .expect("ADR-0051 source record");
+    assert_eq!(
+        mobile_strategy.supersedes,
+        [
+            "the legacy mobile-clients quality-bar, multi-form-factor, and Compose↔SwiftUI parity cluster per [ADR-LEGACY-REGRESSION-MAPPING.md](../ADR-LEGACY-REGRESSION-MAPPING.md)"
+        ],
+        "supersedes is a compatibility field, not a generic comma-separated ADR relationship list"
+    );
+}
+
 // --- Check 2/3: capability-registry ⇄ derived gate-policy sync ---------------
 
 fn live_registry_policy_corpus(root: &Path) -> Value {
