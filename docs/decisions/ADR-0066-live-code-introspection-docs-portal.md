@@ -3,6 +3,7 @@ id: ADR-0066
 status: accepted
 doc_status: published
 amended_by: [ADR-0565]
+lifecycle_contract: reciprocal-accepted-v1
 ---
 
 # ADR-0066: Live code-introspection — docs portal reflects realtime project state with full endpoint / dep graph / dead-code coverage

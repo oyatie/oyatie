@@ -9,16 +9,17 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use ci_cross_artifact_agreement::{
-    AdrDecisionRecord, GateCoverageBaseline, RatchetReport, Verdict,
-    derive_masterplan_md_projection, evaluate, evaluate_adr_index_projection_parity,
-    evaluate_adr_prose_frontmatter_status, evaluate_masterplan_plan_evidence_crosscheck,
-    evaluate_masterplan_projection_rederivation, evaluate_masterplan_read_surface_resurrections,
-    evaluate_masterplan_v2_authority, evaluate_masterplan_v2_entry_surfaces,
-    evaluate_masterplan_v2_evidence_state, evaluate_masterplan_v2_plan_evidence_drift,
-    evaluate_masterplan_v2_program_coverage, evaluate_masterplan_v2_projection_freshness,
-    evaluate_masterplan_v2_ratification_digest, evaluate_masterplan_v2_read_contract_archives,
-    evaluate_masterplan_v2_sequencing, evaluate_registry_derived_policy_sync, ratchet,
+    GateCoverageBaseline, RatchetReport, Verdict, derive_masterplan_md_projection, evaluate,
+    evaluate_adr_index_projection_parity, evaluate_adr_prose_frontmatter_status,
+    evaluate_masterplan_plan_evidence_crosscheck, evaluate_masterplan_projection_rederivation,
+    evaluate_masterplan_read_surface_resurrections, evaluate_masterplan_v2_authority,
+    evaluate_masterplan_v2_entry_surfaces, evaluate_masterplan_v2_evidence_state,
+    evaluate_masterplan_v2_plan_evidence_drift, evaluate_masterplan_v2_program_coverage,
+    evaluate_masterplan_v2_projection_freshness, evaluate_masterplan_v2_ratification_digest,
+    evaluate_masterplan_v2_read_contract_archives, evaluate_masterplan_v2_sequencing,
+    evaluate_registry_derived_policy_sync, ratchet,
 };
+use oya_check_adr_index::read_adr_decision_records;
 use serde_json::Value;
 
 /// Walk up to the repo root (the dir holding specs/root-hub-pointers.json), matching the
@@ -1357,10 +1358,10 @@ fn adr_prose_frontmatter_status_agreement_is_advisory_clean_on_live_tree() {
 fn adr_0565_acceptance_and_reciprocal_amendments_are_authoritative() {
     let root = repo_root();
     let decisions = root.join("docs/decisions");
-    let adr_0565 = fs::read_to_string(decisions.join(
-        "ADR-0565-zero-graphql-in-the-owned-api-surface.md",
-    ))
-    .expect("read ADR-0565");
+    let records = read_adr_decision_records(&decisions).expect("parse source ADR records");
+    let adr_0565 =
+        fs::read_to_string(decisions.join("ADR-0565-zero-graphql-in-the-owned-api-surface.md"))
+            .expect("read ADR-0565");
 
     assert!(
         adr_0565.contains("status: Accepted"),
@@ -1374,18 +1375,39 @@ fn adr_0565_acceptance_and_reciprocal_amendments_are_authoritative() {
         adr_0565.contains("reverses ADR-0565"),
         "ADR-0565 must retain its Accepted-ADR-only reversal escape hatch"
     );
+    let zero_graphql = records
+        .iter()
+        .find(|record| record.id == "ADR-0565")
+        .expect("ADR-0565 source record");
+    assert_eq!(
+        zero_graphql.amends,
+        ["ADR-0051", "ADR-0066", "ADR-0091", "ADR-0258"],
+        "the source parser/IR must carry the authoritative amendment endpoints"
+    );
+    assert_eq!(
+        zero_graphql.lifecycle_contract.as_deref(),
+        Some("reciprocal-accepted-v1"),
+        "ADR-0565 must opt into fail-closed reciprocal lifecycle validation"
+    );
 
     for (id, filename) in [
         ("ADR-0051", "ADR-0051-mobile-and-native-client-strategy.md"),
-        ("ADR-0066", "ADR-0066-live-code-introspection-docs-portal.md"),
+        (
+            "ADR-0066",
+            "ADR-0066-live-code-introspection-docs-portal.md",
+        ),
         ("ADR-0091", "ADR-0091-governance-write-gate-foundations.md"),
         ("ADR-0258", "ADR-0258-api-versioning-model.md"),
     ] {
-        let amended = fs::read_to_string(decisions.join(filename))
-            .unwrap_or_else(|error| panic!("read {id}: {error}"));
-        assert!(
-            amended.contains("amended_by: [ADR-0565]"),
-            "{id} must carry the reciprocal ADR-0565 amendment edge"
+        let amended = records
+            .iter()
+            .find(|record| record.id == id)
+            .unwrap_or_else(|| panic!("{id} source record"));
+        assert_eq!(amended.amended_by, ["ADR-0565"], "{filename}");
+        assert_eq!(
+            amended.lifecycle_contract.as_deref(),
+            Some("reciprocal-accepted-v1"),
+            "{filename} must participate in the same fail-closed lifecycle contract"
         );
     }
 
@@ -1400,10 +1422,10 @@ fn adr_0565_acceptance_and_reciprocal_amendments_are_authoritative() {
         "the sole live masterplan must record ADR-0565 as binding authority"
     );
     let masterplan_doc = load_json(&masterplan_path);
-    let choices = masterplan_doc["masterplan_v2"]["planning_entry_contract"]
-        ["authority_choice_matrix"]
-        .as_array()
-        .expect("masterplan authority choice matrix");
+    let choices =
+        masterplan_doc["masterplan_v2"]["planning_entry_contract"]["authority_choice_matrix"]
+            .as_array()
+            .expect("masterplan authority choice matrix");
     let choice = choices
         .iter()
         .find(|choice| choice["choice_id"] == "ADR-0565-ZERO-GRAPHQL")
@@ -1468,43 +1490,6 @@ fn registry_derived_policy_sync_is_advisory_clean_on_live_tree() {
 
 // --- Check 3/3: generated ADR-index projection parity -----------------------
 
-fn adr_records_from_decisions_json(decisions: &Value) -> Vec<AdrDecisionRecord> {
-    let mut records = Vec::new();
-    for entry in decisions["decisions"].as_array().expect("decisions array") {
-        let str_field = |field: &str| -> String {
-            entry[field]
-                .as_str()
-                .unwrap_or_else(|| panic!("decisions.json entry missing string field {field}"))
-                .to_owned()
-        };
-        let str_list = |field: &str| -> Vec<String> {
-            entry[field]
-                .as_array()
-                .map(|items| {
-                    items
-                        .iter()
-                        .filter_map(Value::as_str)
-                        .map(str::to_owned)
-                        .collect()
-                })
-                .unwrap_or_default()
-        };
-        records.push(AdrDecisionRecord {
-            number: u16::try_from(entry["number"].as_u64().expect("number")).expect("number u16"),
-            id: str_field("adr"),
-            title: str_field("title"),
-            status: str_field("status"),
-            owner: str_field("owner"),
-            date: str_field("date"),
-            path: str_field("path"),
-            supersedes: str_list("supersedes"),
-            superseded_by: str_list("superseded_by"),
-            related: str_list("related"),
-        });
-    }
-    records
-}
-
 /// Sub-check 3/3 born-advisory over the live tree: docs/ADR-INDEX.md and
 /// docs/machine-readable/decisions.json are byte-parity with their producer's
 /// re-render (via the oya-check-adr-index kernel, no shell-out) AND cover exactly
@@ -1514,8 +1499,8 @@ fn adr_records_from_decisions_json(decisions: &Value) -> Vec<AdrDecisionRecord> 
 #[test]
 fn adr_index_projection_parity_is_advisory_clean_on_live_tree() {
     let root = repo_root();
-    let decisions = load_json(&root.join("docs/machine-readable/decisions.json"));
-    let records = adr_records_from_decisions_json(&decisions);
+    let records = read_adr_decision_records(&root.join("docs/decisions"))
+        .expect("parse authoritative ADR markdown source");
     let on_disk_markdown =
         fs::read_to_string(root.join("docs/ADR-INDEX.md")).expect("read docs/ADR-INDEX.md");
     let on_disk_json = fs::read_to_string(root.join("docs/machine-readable/decisions.json"))

@@ -3,7 +3,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use oya_check_adr_index::{AdrDecisionRecord, generate_adr_index, validate_adr_index};
+use oya_check_adr_index::{
+    AdrDecisionRecord, generate_adr_index,
+    read_adr_decision_records as read_source_adr_decision_records, validate_adr_index,
+};
 
 use crate::command_output::{OutputFormat as DevCheckOutputFormat, json_escape};
 
@@ -160,46 +163,7 @@ fn run_doc_adr_index_result(
 }
 
 fn read_adr_decision_records(decisions_dir: &Path) -> Result<Vec<AdrDecisionRecord>, String> {
-    let mut paths = fs::read_dir(decisions_dir)
-        .map_err(|error| {
-            format!(
-                "ADR decisions dir unreadable {}: {error}",
-                decisions_dir.display()
-            )
-        })?
-        .map(|entry| {
-            entry
-                .map(|entry| entry.path())
-                .map_err(|error| format!("ADR decisions dir entry unreadable: {error}"))
-        })
-        .collect::<Result<Vec<_>, _>>()?;
-    paths.retain(|path| {
-        path.file_name()
-            .and_then(|name| name.to_str())
-            .is_some_and(|name| name.starts_with("ADR-") && name.ends_with(".md"))
-    });
-    paths.sort();
-    let base_decision_ids = paths
-        .iter()
-        .filter_map(|path| path.file_name().and_then(|name| name.to_str()))
-        .filter(|name| !name.contains("-amendment-"))
-        .filter_map(|name| name.get(0..8).map(str::to_string))
-        .collect::<BTreeSet<_>>();
-    paths.retain(|path| {
-        let Some(name) = path.file_name().and_then(|name| name.to_str()) else {
-            return true;
-        };
-        if !name.contains("-amendment-") {
-            return true;
-        }
-        name.get(0..8)
-            .is_none_or(|id| !base_decision_ids.contains(id))
-    });
-
-    paths
-        .iter()
-        .map(|path| read_adr_decision_record(path))
-        .collect()
+    read_source_adr_decision_records(decisions_dir).map_err(|error| format!("{error:?}"))
 }
 
 fn read_adr_decision_record(path: &Path) -> Result<AdrDecisionRecord, String> {
@@ -234,6 +198,9 @@ fn read_adr_decision_record(path: &Path) -> Result<AdrDecisionRecord, String> {
         path: format!("decisions/{file_name}"),
         supersedes: optional_single_adr_metadata(&metadata, "Supersedes"),
         superseded_by: optional_single_adr_metadata(&metadata, "Superseded-by"),
+        amends: optional_list_adr_metadata(&metadata, "Amends"),
+        amended_by: optional_list_adr_metadata(&metadata, "Amended-by"),
+        lifecycle_contract: metadata.get("Lifecycle-contract").cloned(),
         related: optional_list_adr_metadata(&metadata, "Related"),
     })
 }
@@ -426,6 +393,9 @@ fn frontmatter_metadata_key(key: &str) -> Option<&'static str> {
         "owners" => Some("Owners"),
         "supersedes" => Some("Supersedes"),
         "superseded_by" => Some("Superseded-by"),
+        "amends" => Some("Amends"),
+        "amended_by" => Some("Amended-by"),
+        "lifecycle_contract" => Some("Lifecycle-contract"),
         "related" | "related_adrs" => Some("Related"),
         _ => None,
     }
@@ -469,8 +439,10 @@ fn clean_yaml_scalar(value: &str) -> String {
 }
 
 fn normalize_frontmatter_metadata_value(key: &str, value: &str) -> String {
-    if matches!(key, "Supersedes" | "Superseded-by" | "Related")
-        && let Some(adr) = extract_adr_id(value)
+    if matches!(
+        key,
+        "Supersedes" | "Superseded-by" | "Amends" | "Amended-by" | "Related"
+    ) && let Some(adr) = extract_adr_id(value)
     {
         return adr;
     }
