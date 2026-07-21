@@ -643,6 +643,24 @@ fn founder_product_intent_validator_is_fail_closed_for_authorization_and_control
         "the graph must classify the normative founder intent as a spec: {findings:?}"
     );
 
+    let mut incomplete_projection = graph.clone();
+    incomplete_projection["edges"]
+        .as_array_mut()
+        .expect("active artifact contract edges")
+        .remove(0);
+    let findings = evaluate_founder_product_intent_agreement(
+        &intent,
+        &root_hub,
+        &registry,
+        &incomplete_projection,
+    );
+    assert!(
+        findings.iter().any(|finding| {
+            finding.key == "active_artifact_contract_edges.complete_registry_projection"
+        }),
+        "the graph must fail closed when any registry-row projection edge is missing: {findings:?}"
+    );
+
     let mut readable_archive_resurrection = root_hub.clone();
     readable_archive_resurrection["entry_points"]["agent_durable_goal"]["retired_archive_manifest_path"] =
         Value::String(
@@ -1003,6 +1021,36 @@ fn founder_product_intent_agreement_gate_is_green_on_live_corpus() {
         findings.is_empty(),
         "founder product intent, root hub, registry row, and graph edge must agree without \
          promoting Stage-1: {findings:?}"
+    );
+}
+
+#[test]
+fn artifact_profile_defaults_and_root_hub_have_exact_identifier_parity() {
+    let root = repo_root();
+    let defaults = load_json(&root.join("specs/artifact-profile-defaults.json"));
+    let root_hub = load_json(&root.join("specs/root-hub-pointers.json"));
+    let canonical_ids: BTreeSet<&str> = defaults["profiles"]
+        .as_object()
+        .expect("artifact profile defaults profiles object")
+        .keys()
+        .map(String::as_str)
+        .collect();
+    let pointer = &root_hub["entry_points"]["artifact_profile_defaults"];
+    let pointer_ids: BTreeSet<&str> = pointer["canonical_profile_ids"]
+        .as_array()
+        .expect("root-hub artifact-profile canonical_profile_ids array")
+        .iter()
+        .map(|value| value.as_str().expect("canonical profile id string"))
+        .collect();
+
+    assert_eq!(
+        pointer["canonical_profile_count"].as_u64(),
+        Some(canonical_ids.len() as u64),
+        "root-hub artifact-profile count must equal the canonical defaults"
+    );
+    assert_eq!(
+        pointer_ids, canonical_ids,
+        "root-hub artifact-profile identifiers must exactly match the canonical defaults"
     );
 }
 

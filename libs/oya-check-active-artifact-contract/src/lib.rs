@@ -25,10 +25,13 @@ pub enum ArtifactProfile {
     Ledger,
     ClaimMatrix,
     EvidenceBundle,
+    KernelCrate,
+    CiLane,
+    Verifier,
 }
 
 impl ArtifactProfile {
-    pub fn all() -> [ArtifactProfile; 8] {
+    pub fn all() -> [ArtifactProfile; 11] {
         [
             ArtifactProfile::Schema,
             ArtifactProfile::Spec,
@@ -38,6 +41,9 @@ impl ArtifactProfile {
             ArtifactProfile::Ledger,
             ArtifactProfile::ClaimMatrix,
             ArtifactProfile::EvidenceBundle,
+            ArtifactProfile::KernelCrate,
+            ArtifactProfile::CiLane,
+            ArtifactProfile::Verifier,
         ]
     }
 
@@ -51,6 +57,9 @@ impl ArtifactProfile {
             "ledger" => Some(ArtifactProfile::Ledger),
             "claim-matrix" => Some(ArtifactProfile::ClaimMatrix),
             "evidence-bundle" => Some(ArtifactProfile::EvidenceBundle),
+            "kernel-crate" => Some(ArtifactProfile::KernelCrate),
+            "ci-lane" => Some(ArtifactProfile::CiLane),
+            "verifier" => Some(ArtifactProfile::Verifier),
             _ => None,
         }
     }
@@ -65,6 +74,9 @@ impl ArtifactProfile {
             ArtifactProfile::Ledger => "ledger",
             ArtifactProfile::ClaimMatrix => "claim-matrix",
             ArtifactProfile::EvidenceBundle => "evidence-bundle",
+            ArtifactProfile::KernelCrate => "kernel-crate",
+            ArtifactProfile::CiLane => "ci-lane",
+            ArtifactProfile::Verifier => "verifier",
         }
     }
 
@@ -521,6 +533,9 @@ mod tests {
             "ledger",
             "claim-matrix",
             "evidence-bundle",
+            "kernel-crate",
+            "ci-lane",
+            "verifier",
         ];
         for n in names {
             assert!(ArtifactProfile::parse(n).is_some(), "should parse: {n}");

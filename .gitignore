@@ -129,6 +129,13 @@ test-results/
 #   docs/machine-readable/masterplan.generated.json  (covered by **/*.generated.json above; not negated)
 # product-graph.html is a .html (not *.generated.json), so it needs an explicit ignore line:
 docs/architecture/product-graph.html
+
+# ADR-0620 extends the pure-projection de-commit invariant to the active-artifact semantic graph.
+# Its legacy filename does not carry the .generated.json suffix, so keep the exact controller-only
+# output path out of Git explicitly. The official generated-face materializer writes it before
+# consumers run; control-plane policy rejects any attempt to re-track or directly edit it.
+registry/graph/active-artifact-contract-edges.json
+
 # ADR-0614 (amends ADR-0563; finishes the pure-derivation strangler for the LAST committed
 # reorg face): move-manifest.generated.json is NO LONGER excluded from the de-commit class — it
 # JOINS it. ADR-0563 originally made it the authoritative COMMITTED move-bijection; ADR-0614

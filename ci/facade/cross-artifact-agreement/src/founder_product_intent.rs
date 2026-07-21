@@ -6,7 +6,7 @@
 
 use std::collections::{BTreeSet, HashSet};
 
-use serde_json::Value;
+use serde_json::{Value, json};
 
 use crate::Finding;
 
@@ -312,6 +312,7 @@ pub fn evaluate_founder_product_intent_agreement(
     validate_root_hub(&mut findings, root_hub);
     validate_registry_row(&mut findings, registry);
     validate_graph_edge(&mut findings, graph);
+    validate_complete_graph_projection(&mut findings, registry, graph);
     findings
 }
 
@@ -950,6 +951,60 @@ fn validate_graph_edge(findings: &mut BTreeSet<Finding>, graph: &Value) {
         invalid(
             findings,
             "active_artifact_contract_edges.founder-product-intent",
+        );
+    }
+}
+
+fn validate_complete_graph_projection(
+    findings: &mut BTreeSet<Finding>,
+    registry: &Value,
+    graph: &Value,
+) {
+    let Some(rows) = registry.get("rows").and_then(Value::as_array) else {
+        invalid(
+            findings,
+            "active_artifact_contract_edges.complete_registry_projection",
+        );
+        return;
+    };
+
+    let mut edges = Vec::with_capacity(rows.len());
+    for row in rows {
+        let Some(source) = row.get("artifact_id").and_then(Value::as_str) else {
+            invalid(
+                findings,
+                "active_artifact_contract_edges.complete_registry_projection",
+            );
+            return;
+        };
+        let Some(target) = row.get("artifact_profile").and_then(Value::as_str) else {
+            invalid(
+                findings,
+                "active_artifact_contract_edges.complete_registry_projection",
+            );
+            return;
+        };
+        edges.push(json!({
+            "source": source,
+            "target": target,
+            "edge_type": "declares"
+        }));
+    }
+
+    let expected = json!({
+        "$schema_ref": "specs/knowledge-graph-schema.json",
+        "_artifact_id": "active-artifact-contract-edges",
+        "_meta": {
+            "emitter": "oya-dev-cli gate validate active-artifact-contract",
+            "layer": "semantic",
+            "purpose": "Generated graph edges that connect active machine-readable artifacts to their declared schemas, registries, templates, and ledgers."
+        },
+        "edges": edges
+    });
+    if graph != &expected {
+        invalid(
+            findings,
+            "active_artifact_contract_edges.complete_registry_projection",
         );
     }
 }
