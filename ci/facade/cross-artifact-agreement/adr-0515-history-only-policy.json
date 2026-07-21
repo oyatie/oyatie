@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "policy_id": "cloud-ci-cross-artifact-agreement/adr-0515-history-only",
+  "reviewed_elf_paths": [
+    {
+      "path": "cloud/cloud-kernel/out/user-exec-x86_64.elf",
+      "machine": 62
+    },
+    {
+      "path": "cloud/cloud-kernel/out/user-exec.elf",
+      "machine": 183
+    },
+    {
+      "path": "cloud/cloud-kernel/out/user-hello.elf",
+      "machine": 183
+    },
+    {
+      "path": "cloud/cloud-kernel/out/user-musl.elf",
+      "machine": 183
+    },
+    {
+      "path": "cloud/cloud-kernel/out/user-spawn-x86_64.elf",
+      "machine": 62
+    },
+    {
+      "path": "cloud/cloud-kernel/out/user-spawn.elf",
+      "machine": 183
+    },
+    {
+      "path": "cloud/cloud-kernel/out/user-x86_64.elf",
+      "machine": 62
+    }
+  ],
+  "reviewed_gzip_paths": [
+    {
+      "path": "evidence/ci/slsa/sbom.cdx.json.gz",
+      "max_decompressed_bytes": 16777216,
+      "timeout_millis": 30000
+    }
+  ],
+  "reviewed_architecture_provenance": [
+    "docs/architecture/adr-corpus-line-audit-2026-05-21.md",
+    "docs/architecture/adr-cross-reference-graph-2026-05-20.md",
+    "docs/architecture/foundr\u0079-fitness-to-governance-transition-2026-05-21.md",
+    "docs/architecture/transition-classification-2026-05-21.json",
+    "docs/architecture/wave-3-final-scorecard-2026-05-20.md"
+  ],
+  "reviewed_internal_symlinks": [
+    {
+      "path": "oya/connector/contracts/asyncapi-v1.yaml",
+      "target": "asyncapi/connector-integration-events.yaml"
+    },
+    {
+      "path": "oya/connector/contracts/openapi-v1.yaml",
+      "target": "openapi/connector-integration.yaml"
+    },
+    {
+      "path": "oya/ops-dashboard-control-center/contracts/asyncapi-v1.yaml",
+      "target": "asyncapi/ops-dashboard-control-center-events.yaml"
+    },
+    {
+      "path": "oya/ops-dashboard-control-center/contracts/openapi-v1.yaml",
+      "target": "openapi/ops-dashboard-control-center.yaml"
+    },
+    {
+      "path": "oya/ops-dashboard-control-center/iac/ech-config.yaml",
+      "target": "prod-ech-config.yaml"
+    },
+    {
+      "path": "oya/ops-dashboard-control-center/iac/edge-waf.yaml",
+      "target": "prod-edge-waf.yaml"
+    },
+    {
+      "path": "oya/ops-dashboard-control-center/iac/pqc-cert.yaml",
+      "target": "prod-pqc-cert.yaml"
+    },
+    {
+      "path": "oya/ops-dashboard-control-center/policy/abuse-defence.cedar",
+      "target": "cedar/abuse-defence.cedar"
+    },
+    {
+      "path": "oya/ops-dashboard-control-center/policy/admin-action-authorization.cedar",
+      "target": "cedar/admin-action-authorization.cedar"
+    },
+    {
+      "path": "oya/ops-dashboard-control-center/policy/audit-emission-required.cedar",
+      "target": "cedar/audit-emission-required.cedar"
+    },
+    {
+      "path": "oya/ops-dashboard-control-center/policy/emergency-services-bypass.cedar",
+      "target": "cedar/emergency-services-bypass.cedar"
+    },
+    {
+      "path": "oya/ops-dashboard-control-center/policy/on-call-handoff-authorization.cedar",
+      "target": "cedar/on-call-handoff-authorization.cedar"
+    },
+    {
+      "path": "oya/ops-dashboard-control-center/policy/pack-author-authorization.cedar",
+      "target": "cedar/pack-author-authorization.cedar"
+    },
+    {
+      "path": "oya/ops-dashboard-control-center/policy/step-up-auth-required.cedar",
+      "target": "cedar/step-up-auth-required.cedar"
+    },
+    {
+      "path": "oya/ops-dashboard-control-center/policy/tenant-scope-enforcement.cedar",
+      "target": "cedar/tenant-scope-enforcement.cedar"
+    }
+  ]
+}

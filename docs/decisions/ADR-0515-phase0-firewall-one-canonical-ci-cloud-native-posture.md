@@ -197,6 +197,11 @@ The Phase-0 false-green firewall is the substrate that makes merge-gate enforcem
      `ci/facade/cross-artifact-agreement/src/gate_coverage_baseline.rs`; they ride the
      already-registered `ci-cross-artifact-agreement-gate` and are NOT wired into the
      born-blocking §5.2 verdict.
+     The same gate enforces this ADR's Git-history-only predecessor rule through
+     `ci/facade/cross-artifact-agreement/src/adr_0515_history_only.rs`; its reviewed binary,
+     compressed-evidence, architecture-provenance, and internal-symlink inventory is DATA in
+     `ci/facade/cross-artifact-agreement/adr-0515-history-only-policy.json` and is parsed
+     fail-closed before any candidate surface is trusted.
    - **GATE-2 total-accounting** — `unaccounted`, `unowned`, `unjustified`, `unreachable`,
      `no_ttl_class`, `registry_drift`.
    - **GATE-3 staleness-reaper** — REPORTS, never reaps (`report → git mv → _archive/`,
