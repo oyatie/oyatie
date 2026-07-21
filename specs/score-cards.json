@@ -1,11 +1,43 @@
 {
-  "$schema_ref": "/specs/agent-durable-goal.json#score_cards.check_schema",
   "doc_class": "Machine-Readable-Spec",
   "spec_id": "SCORE-CARDS-V1",
   "version": "1.0.0",
   "status": "active",
   "owner_team": "axis-foundry",
-  "purpose": "Concrete deterministic score-card inventory consumed by oya gate validate loop-recovery-patterns and the canonical oya verify pre-push path. LLM judgment is forbidden in pass/fail.",
+  "purpose": "Self-contained deterministic score-card inventory consumed by the local bridge validator `oya gate validate loop-recovery-patterns`. LLM judgment is forbidden in pass/fail; this inventory and local bridge do not supply merge, pre-push, or protected-admission authority.",
+  "authority_boundary": "Local bridge feedback only. Protected admission authority remains the single cloud-ci context defined by accepted governance; score cards neither create nor replace it.",
+  "score_card_contract": {
+    "description": "Deterministic checks computed mechanically (jq / regex / cargo lane / local bridge command). LLM has NO role in pass/fail — only in triage WHY a failure occurred and proposing a fix. Same input produces the same output; prompt drift cannot create a score signal.",
+    "design_principle": "LLM judgment is forbidden in a pass/fail decision. A subjective check is not a score card; it belongs in a separately bounded review facet.",
+    "check_schema": {
+      "id": "string",
+      "facet": "string",
+      "query": "deterministic command",
+      "pass_criterion": "string",
+      "score": "integer 0-10",
+      "severity_tier": "enum",
+      "empirical_evidence_path": "repository-relative evidence path"
+    },
+    "spec_path": "specs/score-cards.json"
+  },
+  "loop_recovery_contract": {
+    "stuck_loop_recovery": {
+      "step_3_if_resolves": "A fresh-context repair proceeds through the normal protected pipeline; record the recovery pattern in registry/loop-recovery-patterns/<pattern-id>.json for future learning."
+    },
+    "first_of_kind_protocol": {
+      "detection": "An incident or finding signature has no match in registry/loop-recovery-patterns/ and no match in registry/incidents/ history."
+    },
+    "meta_agent_anomaly_watch": {
+      "watched_signals": [
+        "Per-vendor PR-open rate versus 7-day baseline",
+        "Per-vendor merge-success rate versus 7-day baseline",
+        "Per-lane false-positive rate",
+        "Repeated rollbacks of the same image digest",
+        "Token spend per PR versus baseline",
+        "Vendor-disagreement rate"
+      ]
+    }
+  },
   "checks": [
     {
       "id": "score-card:pre-push:github-action-sha",
