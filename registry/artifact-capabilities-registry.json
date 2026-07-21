@@ -854,7 +854,7 @@
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "council-architecture + axis-foundry",
-      "purpose_short": "Active FD-001 planning-closure and implementation goal artifact replacing the archived implement-masterplan-goal-prompt draft.",
+      "purpose_short": "Temporary compatibility FD-001 goal artifact pending consumer migration and Git-history-only retirement; it is not current product intent.",
       "artifact_profile": "template",
       "capability_overrides": {
         "enforcement": {
@@ -880,6 +880,41 @@
           "current_author": "codex",
           "current_reviewed_by": "planning-closure FD-001 replacement recorded in /evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
           "last_modified_at": "2026-05-20T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "founder-product-intent",
+      "artifact_path": "/specs/founder-product-intent.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "founder",
+      "purpose_short": "Durable mechanism-neutral founder product intent and non-dispatching Stage-1 entry boundary; it records no implementation, roadmap, production, or qualified-authority claim.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "lean-a-founder-product-intent"
+        },
+        "verification": {
+          "checker_crate": "libs/oya-check-active-artifact-contract + ci/facade/cross-artifact-agreement",
+          "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract + cross-artifact-agreement"
+        },
+        "validation": {
+          "validator": "jq empty + active-artifact-contract + cross-artifact-agreement"
+        },
+        "autogen": {
+          "generator": ""
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion; no live automatic path"
+        },
+        "telemetry": {
+          "metrics": []
+        },
+        "provenance": {
+          "current_author": "founder directive captured by codex",
+          "current_reviewed_by": "pending exact-head council-architecture review; qualified product authority remains unresolved",
+          "last_modified_at": "2026-07-21T19:49:24Z"
         }
       }
     },

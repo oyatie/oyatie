@@ -19,7 +19,7 @@
     "version": "1.0.0"
   },
   "agent_quick_start_protocol": {
-    "step_1_read_authority": "Read entry_points.decision_principles + .agent_operating_contract + .masterplan + .markdown_retirement_policy + .gitops_vcs_replacement; entry_points.master_plan_sequencing is provenance/compatibility only after masterplan v2 authority consolidation.",
+    "step_1_read_authority": "Read entry_points.decision_principles + .agent_operating_contract + .founder_product_intent + .masterplan + .markdown_retirement_policy + .gitops_vcs_replacement; entry_points.master_plan_sequencing is provenance/compatibility only after masterplan v2 authority consolidation. Founder product intent constrains outcomes and Stage-1 entry but does not authorize a roadmap or implementation dispatch.",
     "step_2_context_recall": "Prefer intelligence-native context once available (replaces prior Foundry framing per ADR-0335 Wave 15I); legacy icm recall-context is compatibility/provenance only and is never promotion authority.",
     "step_3_oya_vcs_state_transition": "Canonical path is plain `git` + protected PR against dev. Merge readiness is reviewer APPROVE plus the single protected `oya-ci-required` context produced by the cloud-ci gate apps; legacy CI/`oya gate` output is bridge/local evidence only and never merge authority. The bespoke Oya VCS claim → work → verify → done → promote ratchet is RETIRED (provenance/historical only per ADR-0363); legacy grit/icm/rtk/vox/omx/omc surfaces are likewise read/provenance only.",
     "step_4_active_artifact_contract": "Every new artifact under applicable_paths_glob conforms to active-artifact-contract v3.0.0 + registers a row in artifact-capabilities-registry.",
@@ -129,9 +129,18 @@
       "migration_phase": "fd001-planning-closure-supersedes-2026-05-16-durable-goal",
       "purpose": "Historical FD-001 durable-goal prompt for planning closure/implementation. Its plain-git protected-PR governance portions are superseded/amended by platform-readiness: reviewer approval plus the single protected `oya-ci-required` context is destination authority; legacy CI bridge output is evidence only. The former .omc archive manifest is retired from the tracked tree and is not live authority.",
       "superseded_path": "/specs/agent-durable-goal.json",
-      "target_path_after_md_retirement": "same active goal prompt until promoted into /specs/agent-durable-goal.json successor schema",
+      "target_path_after_md_retirement": "temporary compatibility source pending consumer migration and Git-history-only retirement",
       "retired_archive_manifest_path": ".omc/archive/stale-documents/2026-05-19-planning-closure/manifest.json",
       "archive_manifest_status": "retired-from-tracked-tree-local-only; use git history for provenance, not live authority"
+    },
+    "founder_product_intent": {
+      "current_path": "/specs/founder-product-intent.json",
+      "kind": "spec",
+      "migration_phase": "stage1-user-directed-product-intent-hold-planning",
+      "purpose": "Current durable, mechanism-neutral Oyatie product goal and Stage-1 entry boundary. It records the universal no-code operational-world-model ambition across cloud, developer, enterprise, and consumer continuity domains; keeps execution-profile, substrate-topology, and capability-ownership classifications distinct; and preserves HOLD(Planning), binding_plan_approval_allowed=false, dispatch_allowed=false, and implementation_authorized=false.",
+      "history_only_retirement_status": "No contradictory goal source is deleted by this bounded candidate. Consumer migration and Git-history-only retirement remain separate Stage-1 corpus-closure prerequisites.",
+      "historical_paths_rule": "Non-current contradictory goal sources must be deleted from the active tree after surviving consumers migrate; provenance remains only in Git history and is never moved into a readable archive directory.",
+      "target_path_after_md_retirement": "same"
     },
     "agent_operating_contract": {
       "current_path": "docs/AGENTS.md",
@@ -1094,7 +1103,7 @@
       "current_path": "/specs/score-cards.json",
       "kind": "spec",
       "migration_phase": "complete",
-      "purpose": "Concrete deterministic score-card inventory consumed by the loop-recovery-patterns gate. Legacy `oya` mirror invocations are migration evidence only until ported to cloud-ci/Rust gate contexts. Companion to agent_durable_goal.score_cards.",
+      "purpose": "Concrete deterministic score-card inventory consumed by the loop-recovery-patterns gate. Legacy `oya` mirror invocations are migration evidence only until ported to cloud-ci/Rust gate contexts. This inventory does not define the current product goal or grant planning authority.",
       "target_path_after_md_retirement": "same (machine-readable from inception)"
     },
     "spec_agentic_slo_gated_promotion": {

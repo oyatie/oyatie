@@ -20,7 +20,7 @@
       "docs/decisions/ADR-0217-vertical-slice-rollout-order.md",
       "docs/standards/clean-architecture.md",
       "docs/standards/hyperscaler-best-practices.md",
-      "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
+      "/specs/founder-product-intent.json",
       "/templates/checklists/done-definition-checklist.md",
       "/templates/checklists/per-implementation-plan-checklist.md",
       "/templates/checklists/per-phase-completion-checklist.md",
@@ -58,12 +58,12 @@
       "evidence": "/evidence/consolidation/preplanning-authority-closure-20260713.json"
     },
     "deduplicates_existing": [
-      "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
+      "/specs/founder-product-intent.json",
       "/templates/checklists/agent-kickoff-checklist.md",
       "/templates/checklists/per-implementation-plan-checklist.md",
       "/templates/checklists/per-phase-completion-checklist.md"
     ],
-    "archived_stale_documents": {
+    "retired_authority_policy": {
       "do_not_use_as_authority": [
         "/evidence/goals/implement-masterplan.md",
         "/evidence/goals/implement-masterplan-goal-prompt.json",
@@ -72,9 +72,8 @@
         ".omc/**",
         ".omx/**"
       ],
-      "live_replacement": "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
-      "retired_manifest_path": ".omc/archive/stale-documents/2026-05-19-planning-closure/manifest.json",
-      "retired_manifest_status": "retired-from-tracked-tree-local-only; historical evidence remains in git history, not live authority"
+      "live_replacement": "/specs/founder-product-intent.json",
+      "retirement_rule": "Remove retired authority from the active tree after migrating surviving invariants. Preserve provenance only in Git history; do not create or publish a readable archive directory or archive manifest."
     },
     "updated_at": "2026-06-02T00:00:00Z",
     "absorbed_by": "/specs/masterplan.json#masterplan_v2",
@@ -90,7 +89,7 @@
     "/specs/master-plan-sequencing.json",
     "docs/decisions/ADR-0217-vertical-slice-rollout-order.md",
     "/specs/gitops-vcs-replacement.json",
-    "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
+    "/specs/founder-product-intent.json",
     "docs/MASTERPLAN.md"
   ],
   "planning_closure_contract": {
