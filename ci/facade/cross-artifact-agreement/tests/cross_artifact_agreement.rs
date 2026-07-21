@@ -355,7 +355,7 @@ fn preplanning_candidate_paired_missing_fields_fail_closed() {
         .expect("repository baseline must be an object")
         .remove("protected_pr_number");
 
-    assert_preplanning_candidate_drift(&masterplan, &evidence);
+    assert_preplanning_candidate_drift_reason(&masterplan, &evidence, "missing_or_malformed");
 }
 
 #[test]
@@ -366,6 +366,14 @@ fn preplanning_candidate_wrong_field_types_fail_closed() {
     evidence["present"]["repository_baseline"]["protected_pr_number"] = serde_json::json!("1340");
 
     assert_preplanning_candidate_drift(&masterplan, &evidence);
+}
+
+#[test]
+fn preplanning_candidate_contract_field_drift_has_a_keyed_reason() {
+    let (mut masterplan, evidence) = live_preplanning_candidate_fixture();
+    masterplan["masterplan_v2"]["planning_entry_contract"]["state"] = serde_json::json!("closed");
+
+    assert_preplanning_candidate_drift_reason(&masterplan, &evidence, "field_mismatch");
 }
 
 #[test]
@@ -504,7 +512,7 @@ fn preplanning_candidate_protected_context_receipt_cannot_mutate() {
     evidence["present"]["factual_reconciliation"]["protected_context_receipts"][0]["details_url"] =
         serde_json::json!("https://github.com/jason931225/oyatie/actions/runs/replaced");
 
-    assert_preplanning_candidate_drift(&masterplan, &evidence);
+    assert_preplanning_candidate_drift_reason(&masterplan, &evidence, "candidate_receipt_digest");
 }
 
 fn live_preplanning_candidate_fixture() -> (Value, Value) {
@@ -523,9 +531,25 @@ fn assert_preplanning_candidate_drift(masterplan: &Value, evidence: &Value) {
     assert!(
         findings.iter().any(|finding| {
             finding.code == "masterplan_plan_evidence_drift"
-                && finding.key == "masterplan_v2.planning_entry_contract.current_pr_candidate_state"
+                && finding.key.starts_with(
+                    "masterplan_v2.planning_entry_contract.current_pr_candidate_state.",
+                )
         }),
         "candidate drift must fail closed: {findings:?}"
+    );
+}
+
+fn assert_preplanning_candidate_drift_reason(masterplan: &Value, evidence: &Value, reason: &str) {
+    let findings = evaluate_masterplan_v2_preplanning_candidate_facts(masterplan, evidence);
+    assert!(
+        findings.iter().any(|finding| {
+            finding.code == "masterplan_plan_evidence_drift"
+                && finding.key
+                    == format!(
+                        "masterplan_v2.planning_entry_contract.current_pr_candidate_state.{reason}"
+                    )
+        }),
+        "candidate drift must identify reason {reason}: {findings:?}"
     );
 }
 
