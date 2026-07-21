@@ -52,6 +52,7 @@ use oya_check_brand_residue::forbidden_vocab::{
     CensusDocument, VocabPolicy, census_findings_with, is_path_carved_out_with,
     strict_zero_retired_brand_finding,
 };
+use regex::RegexSet;
 use serde_json::{Value, json};
 
 const SCM_FACTS_SCHEMA: &str = "oya-ci/scm-facts/v2";
@@ -3065,6 +3066,46 @@ status: Accepted
         fs::remove_dir_all(root).expect("remove temp repo");
     }
 
+    /// The multi-pattern accelerator is intentionally a drop-in replacement for one
+    /// `str::contains` call per tracked path. In particular, reachability has no token or
+    /// path-boundary semantics: punctuation, mid-token matches, overlaps, duplicate inputs,
+    /// empty paths, and UTF-8 all retain the standard-library result.
+    #[test]
+    fn reachability_document_match_indices_match_naive_contains_semantics() {
+        let paths = vec![
+            "specs/a.b.json".to_owned(),
+            "foo/bar".to_owned(),
+            "foo/bar/baz".to_owned(),
+            "bar/baz".to_owned(),
+            "foo/bar".to_owned(),
+            "".to_owned(),
+            "α/東京".to_owned(),
+            "x+y".to_owned(),
+            "[brackets]".to_owned(),
+            "absent".to_owned(),
+        ];
+        let documents = [
+            "prefix:specs/a.b.json; midfoo/bar/baztail α/東京 x+y [brackets]",
+            "only punctuation (foo/bar), foo/bar/baz, and α/東京.",
+            "unrelated",
+            "",
+        ];
+
+        for document in documents {
+            let expected: BTreeSet<usize> = paths
+                .iter()
+                .enumerate()
+                .filter_map(|(index, path)| document.contains(path).then_some(index))
+                .collect();
+            assert_eq!(
+                reachability_document_match_indices(document, &paths)
+                    .expect("accelerated matcher builds"),
+                expected,
+                "accelerated matching must preserve str::contains for {document:?}"
+            );
+        }
+    }
+
     /// ADR-0555 hardening (FRIC-1781400000): the OWNERS content schema + breadth bound
     /// RED/GREEN corpus, dir-loaded from `specs/fixtures/owners-schema/` (data-under-test
     /// — the fixtures are the reviewable spec of the schema).
@@ -4193,17 +4234,21 @@ fn resolve_reachability(
     let doc_catalog = read_text(&repo_root.join(&cfg.reachability.doc_catalog));
     let cargo_members = read_cargo_member_prefixes(repo_root)?;
     let registrations = load_reachability_registry(&repo_root.join(&cfg.reachability.registry))?;
+    let document_matcher = ReachabilityDocumentMatcher::new(paths)?;
+    let masterplan_matches = document_matcher.match_indices(&masterplan);
+    let root_hub_matches = document_matcher.match_indices(&root_hub);
+    let doc_catalog_matches = document_matcher.match_indices(&doc_catalog);
 
     let mut map: BTreeMap<String, Vec<String>> = BTreeMap::new();
-    for path in paths {
+    for (index, path) in paths.iter().enumerate() {
         let mut reach: Vec<String> = Vec::new();
-        if masterplan.contains(path.as_str()) {
+        if masterplan_matches.contains(&index) {
             reach.push("masterplan".into());
         }
-        if root_hub.contains(path.as_str()) {
+        if root_hub_matches.contains(&index) {
             reach.push("root-hub".into());
         }
-        if doc_catalog.contains(path.as_str()) {
+        if doc_catalog_matches.contains(&index) {
             reach.push("doc-catalog".into());
         }
         if cargo_members.iter().any(|m| path.starts_with(m.as_str())) {
@@ -4220,6 +4265,70 @@ fn resolve_reachability(
         }
     }
     Ok(map)
+}
+
+/// Exact multi-pattern implementation of the three reachability document scans. This retains
+/// `str::contains` semantics rather than adding path or token boundaries: overlapping and
+/// mid-token matches count, duplicate paths are all matched, and an empty path matches every
+/// document.
+struct ReachabilityDocumentMatcher {
+    matcher: Option<RegexSet>,
+    original_indices_by_pattern: Vec<Vec<usize>>,
+    empty_indices: Vec<usize>,
+}
+
+impl ReachabilityDocumentMatcher {
+    fn new(paths: &[String]) -> Result<Self, CliError> {
+        let mut indices_by_path: BTreeMap<&str, Vec<usize>> = BTreeMap::new();
+        let mut empty_indices = Vec::new();
+        for (index, path) in paths.iter().enumerate() {
+            if path.is_empty() {
+                empty_indices.push(index);
+            } else {
+                indices_by_path.entry(path).or_default().push(index);
+            }
+        }
+
+        let patterns: Vec<&str> = indices_by_path.keys().copied().collect();
+        let original_indices_by_pattern: Vec<Vec<usize>> = indices_by_path.into_values().collect();
+        let matcher = if patterns.is_empty() {
+            None
+        } else {
+            Some(
+                RegexSet::new(patterns.iter().map(|pattern| regex::escape(pattern))).map_err(
+                    |error| CliError::Io(format!("build reachability document matcher: {error}")),
+                )?,
+            )
+        };
+
+        Ok(Self {
+            matcher,
+            original_indices_by_pattern,
+            empty_indices,
+        })
+    }
+
+    fn match_indices(&self, document: &str) -> BTreeSet<usize> {
+        let mut matched: BTreeSet<usize> = self.empty_indices.iter().copied().collect();
+        if let Some(matcher) = &self.matcher {
+            for pattern_index in matcher.matches(document).iter() {
+                matched.extend(
+                    self.original_indices_by_pattern[pattern_index]
+                        .iter()
+                        .copied(),
+                );
+            }
+        }
+        matched
+    }
+}
+
+#[cfg(test)]
+fn reachability_document_match_indices(
+    document: &str,
+    paths: &[String],
+) -> Result<BTreeSet<usize>, CliError> {
+    Ok(ReachabilityDocumentMatcher::new(paths)?.match_indices(document))
 }
 
 /// Member directory prefixes from the workspace Cargo.toml — a path under a member

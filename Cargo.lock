@@ -1176,6 +1176,7 @@ dependencies = [
  "oya-check-brand-residue",
  "oya-ci-config-kernel",
  "oya-workspace-members-kernel",
+ "regex",
  "serde",
  "serde_json",
 ]
