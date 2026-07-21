@@ -25,7 +25,7 @@ doc_class: MilestoneIndex
 template_id: TPL-MILE
 milestone_id: M0N
 parent: ../../MASTERPLAN.md
-wave: W-<wave-name>             # per docs/ROADMAP.md
+masterplan_work_item_id: MPV2-<nnnn> # /specs/masterplan.json#masterplan_v2.work_items; derived wave is in .sequencing
 status: pending approval | gated | open | in-progress | merged | blocked
 purpose: |
   One paragraph: what this milestone delivers; which axes it touches; which wave it aligns to.
@@ -43,7 +43,7 @@ authority_chain_declaration: |
 
 ## Purpose
 
-One paragraph. What this milestone delivers; which axes it touches; which wave from `docs/ROADMAP.md` it aligns to.
+One paragraph. What this milestone delivers, which axes it touches, and its `masterplan_work_item_id` from `/specs/masterplan.json#masterplan_v2.work_items`.
 
 ## Status
 
@@ -66,7 +66,7 @@ Out-of-scope (referenced explicitly to prevent scope creep):
 
 ## Acceptance gate
 
-Numbered list of measurable criteria the milestone must meet to merge. Each row names a fitness lane OR command OR `(advisory)` marker. The gate **MUST** trace to a wave-gate row in `docs/ROADMAP.md §2`.
+Numbered list of measurable criteria the milestone must meet to merge. Each row names a fitness lane OR command OR `(advisory)` marker. **BLOCKED:** masterplan v2 has no field-level successor for legacy wave-gate acceptance criteria, so do not claim this gate traces to one.
 
 ## Phases
 
@@ -109,7 +109,8 @@ Full register: `docs/RISK-REGISTER.md`.
 ## Sources
 
 - `.omc/plans/MASTERPLAN.md`
-- `docs/ROADMAP.md §2`
+- `/specs/masterplan.json#masterplan_v2.work_items`
+- `/specs/masterplan.json#masterplan_v2.sequencing`
 - `docs/RACI-OWNERSHIP.md`
 - `.omc/scratch/hyperscaler-best-practices-2026-05-12.md`
 - ADR-0052 (inventory), ADR-0053 (sanctioned primitives), ADR-0054 (scaffold-claim).

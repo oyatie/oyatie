@@ -9,7 +9,7 @@ doc_status: published
 
 
 > **Brand:** Oyatie (logo: `oYa`, domain: `oyatie.com`).
-> **Repo:** `jason931225/oyatie` (slug + filesystem path retained per ADR-0017; *only* the product/package/UI brand is rebranded — see [ROADMAP.md](ROADMAP.md) "Rename batch").
+> **Repo:** `jason931225/oyatie` (slug + filesystem path retained per ADR-0017; *only* the product/package/UI brand is rebranded — see [`/specs/masterplan.json#masterplan_v2.work_items`](../specs/masterplan.json#masterplan_v2.work_items)).
 > **Status:** Draft v0.2 — 2026-05-09. Authoritative-deep consolidation. Expected to grow over the next two consolidation revisions.
 > **Owners:** Architecture council (cross-axis); Founder Jason Lee (north-star arbiter).
 >
@@ -45,7 +45,7 @@ The strategic premise: a single tenant boundary, single identity, single audit c
 
 6. **Compute trajectory: OCI + AWS first, scale to our own mega-datacenter.** Phase 1: every Oyatie surface runs on OCI (per ADR-0044 cloud foundation + ADR-0009 cell architecture) and AWS as the consumed hyperscaler substrate. Phase 2: as scale economics flip, capacity moves to Oyatie-operated colo + (long-horizon) own mega-datacenter. The Cloud axis is BOTH (a) the in-house compute substrate we *consume* AND (b) the cloud product we *sell* to customers. Both halves share the same control plane; the underlying compute substrate evolves over waves without changing the product surface.
 
-7. **Foundry early is the force multiplier.** Building Foundry (the AI agent runtime + control plane) early accelerates *every other axis* exponentially: Foundry agents run the cloud control plane, populate the search index, author vertical workflows, operate the ad auctions, and execute the Foundry lanes. Every additional month before Foundry preview is a month of linear-only progress in all six other axes. *This makes Foundry a P0 force-multiplier — not just one axis among seven, but the substrate that compresses the build-out of the other six.* See [DESIGN.md §3 Foundry-as-accelerator](DESIGN.md) and [ROADMAP.md W-Foundry-Preview](ROADMAP.md).
+7. **Foundry early is the force multiplier.** Building Foundry (the AI agent runtime + control plane) early accelerates *every other axis* exponentially: Foundry agents run the cloud control plane, populate the search index, author vertical workflows, operate the ad auctions, and execute the Foundry lanes. Every additional month before Foundry preview is a month of linear-only progress in all six other axes. *This makes Foundry a P0 force-multiplier — not just one axis among seven, but the substrate that compresses the build-out of the other six.* See [DESIGN.md §3 Foundry-as-accelerator](DESIGN.md) and the derived dependency order in [`/specs/masterplan.json#masterplan_v2.sequencing`](../specs/masterplan.json#masterplan_v2.sequencing).
 
 ### Non-goals (explicit)
 
@@ -114,7 +114,7 @@ The **optimal path** assumes we can afford to build everything correctly the fir
 | **W-AI-Model-Stable** (further out) | Public Foundry capabilities default to in-house models for the supported task profiles; external providers stay as failover under autonomy ceiling | foundry | per-capability eval pass + cost / latency parity |
 | **W-Region-Fan-Out** | Adds regional packs in parallel (whichever markets are commercially ready: secondary KR regions, JP-Osaka, US-West, EU-Paris, EU-Stockholm, IN-Mumbai, BR-São Paulo, KSA-Riyadh, UAE-Dubai, ANZ-Sydney, SG-Singapore, etc.); cross-region replication contract per residency class | cloud + cross-cutting | Per-region regulator-equivalent (CSAP/ISMAP/FedRAMP/GAIA-X/MeitY/LGPD/NDMO/TDRA/IRAP) + residency contracts |
 
-This wave list is the *target-state sequence*. ROADMAP.md decomposes each wave into bands and Foundry batches.
+This wave list is the *target-state sequence*. The canonical plan derives execution order from [`/specs/masterplan.json#masterplan_v2.dependency_edges`](../specs/masterplan.json#masterplan_v2.dependency_edges); legacy bands and Foundry-batch decomposition have no field-level successor and remain blocked rather than inferred.
 
 ### 3.2 Out-of-scope at any wave (anti-scope, will not do)
 
@@ -254,7 +254,7 @@ These are open at PRD draft v0.1 and need a council decision before promoting to
 ## 10. Sources scanned
 
 - ADRs: `decisions/ADR-0001..ADR-0051` (51 files)
-- Roadmap: `docs/ROADMAP.md`, `decisions/ADR-0015-architectural-flattening-target.md`
+- Plan authority: [`/specs/masterplan.json#masterplan_v2`](../specs/masterplan.json#masterplan_v2), `decisions/ADR-0015-architectural-flattening-target.md`
 - Doctrine: `/specs/decision-principles.json` + `/specs/forbidden-operations.json`
 - Source of truth: `docs/DOC-CATALOG.md` (per [`DOC-CATALOG.md`](DOC-CATALOG.md))
 - Mistakes & fixes: `docs/MISTAKES-LEDGER.md`

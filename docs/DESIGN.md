@@ -9,7 +9,7 @@ doc_status: published
 
 
 > **Status:** Draft v0.1 — 2026-05-09. Authoritative-deep. Expected ~60-80 pages with reviewed contributions.
-> **Companion docs:** [PRD.md](PRD.md) (the *what* and *why*), [SPEC.md](SPEC.md) (the *what surfaces*), [ROADMAP.md](ROADMAP.md) (the *when*), [ADR-INDEX.md](ADR-INDEX.md) (the *what's been decided*).
+> **Companion docs:** [PRD.md](PRD.md) (the *what* and *why*), [SPEC.md](SPEC.md) (the *what surfaces*), [`/specs/masterplan.json#masterplan_v2`](../specs/masterplan.json#masterplan_v2) (the *when*), [ADR-INDEX.md](ADR-INDEX.md) (the *what's been decided*).
 > **Key sources cited inline:** ADR-0015 repo structure, ADR-0050 master plan, ADR-0015 flat crates, ADR-0003 audit chain, ADR-0050 AI/ML governance, ADR-0040 launch readiness, ADR-0017 wave integration framework.
 
 ---
@@ -276,7 +276,7 @@ Foundry is axis 3 of the six, but it is also the *substrate* for the other five.
 - **Search axis** ships its index lifecycle (crawl scheduling, ranker tuning, freshness decisions) *operated by* agents.
 - **Ads axis** ships smart-bidding ML loops *operated by* agents under explicit privacy gates.
 
-Without Foundry early, every one of those gains is replaced by linear human effort. Quantitatively: Oyatie's headcount doesn't grow; only Foundry's capability catalog grows. **Foundry is therefore the single highest-leverage investment in the v2 backlog and is sequenced first** (see [ROADMAP.md](ROADMAP.md) W-Foundry-Preview wave).
+Without Foundry early, every one of those gains is replaced by linear human effort. Quantitatively: Oyatie's headcount doesn't grow; only Foundry's capability catalog grows. **Foundry is therefore the single highest-leverage investment in the v2 backlog and is sequenced first** (see the derived dependency order in [`/specs/masterplan.json#masterplan_v2.sequencing`](../specs/masterplan.json#masterplan_v2.sequencing)).
 
 ### Foundry's own internal sequencing (per home-dir-agent finding 2026-05-09)
 
@@ -502,7 +502,7 @@ Service runtime split (Axis E, ADR-0015 §6) is deferred until after all domain/
 
 ### Risk-managed assumption
 
-If the flat-crates migration stalls or reverses, the v2 backlog must be re-derived. We assume forward-only progress on ADR-0015; if that breaks, ROADMAP.md highlights this as a *blast-radius re-rank trigger*.
+If the flat-crates migration stalls or reverses, the v2 backlog must be re-derived. We assume forward-only progress on ADR-0015; if that breaks, record the *blast-radius re-rank trigger* against [`/specs/masterplan.json#masterplan_v2.work_items`](../specs/masterplan.json#masterplan_v2.work_items).
 
 ---
 
@@ -571,7 +571,7 @@ This section is the *active* audit point: every quarter, the consolidated docs a
 | Contradiction | Source axis | Conflicting axis | Resolution path |
 |---|---|---|---|
 | "Tenant data is never indexed externally" (legacy privacy ADR draft) | SaaS / privacy | Search (which must index tenant data into the cross-tenant search-axis index for any cross-tenant findability) | Data Use Boundary ADR (P0 prereq) — class taxonomy resolves it |
-| "No ads ever" (some legacy roadmap text) | SaaS / brand | Ads | PRD §1 amendment + supersede legacy text via ROADMAP changelog |
+| "No ads ever" (some legacy planning text) | SaaS / brand | Ads | PRD §1 amendment + supersede legacy text through the masterplan-v2 work-item/evidence process |
 | "Oyatie does not host customer-builder workflows" (suspect legacy ADR text — agent to confirm) | SaaS / scope | Plugin substrate (#29), Workflow Studio | If found, supersede; SaaS axis is multi-tenant-builder by design |
 | "Vertical-only product" (architecture-sweep finding 2026-04-22) | Architecture | All axes (we are also SaaS, cloud, search, ads) | Update CONSTITUTION.md and source-of-truth.md |
 | "All metering goes through one path" (per ADR-0007) | SaaS metering | Cloud billing (which has its own meter ingest) | Cross-axis billing event contract — already in §10 row |
@@ -581,7 +581,7 @@ This section is the *active* audit point: every quarter, the consolidated docs a
 
 1. Cross-axis PR class label is required on any PR touching a row in §10.
 2. The audit happens via the rename+contradiction agent every quarter (and on demand before any wave-gate).
-3. Findings get added to ROADMAP.md as P0 resolution leaves until the contradiction is closed.
+3. Findings become P0 resolution work items in [`/specs/masterplan.json#masterplan_v2.work_items`](../specs/masterplan.json#masterplan_v2.work_items) until the contradiction is closed.
 4. Any contradiction left open at a wave gate blocks the gate.
 
 ---
@@ -695,7 +695,7 @@ This section will expand to ~3-5 pages per axis in v0.2 once the recon agents la
 
 #### 13.3.1 Top-20 Foundry improvements (synthesized from `/Users/jasonlee/oyatie/docs/raw/foundry-improvements.md`)
 
-The Foundry-improvements research (2026-05-09, 128 leaves) surfaced these high-impact additions. Each maps to a backlog leaf in [ROADMAP.md](ROADMAP.md):
+The Foundry-improvements research (2026-05-09, 128 leaves) surfaced these high-impact additions. Each maps to a backlog work item in [`/specs/masterplan.json#masterplan_v2.work_items`](../specs/masterplan.json#masterplan_v2.work_items):
 
 | # | Improvement | Impact / Urgency | Notes |
 |---|---|---|---|
@@ -737,7 +737,7 @@ The Foundry-improvements research (2026-05-09, 128 leaves) surfaced these high-i
 
 The foundry is a *persona slice* of Foundry, not a separate axis. The same agent runtime that authors workflows also authors PRs; the same fitness function that gates a PR also evaluates an agent step.
 
-> **v0.2 expansion scope** — detailed coverage of repoctl split (see ROADMAP.md §8 Q16), catalog, claim-ceiling validator, foundation-bypass ledger, plane-gated CI lanes, ADR templates, scorecards (Move #7), fitness functions (Move #8), CODEOWNERS coverage, branch-protection-as-code (#239 / #1295), Kyverno/OPA admission, signed commits (#1299), supply-chain (#614 ADR-0039 Trivy 4-layer), plugin substrate trust gates (ADR-0036/0157/0161/0162), plugin marketplace authoring, marketplace economics.
+> **v0.2 expansion scope** — detailed coverage of repoctl split, catalog, claim-ceiling validator, foundation-bypass ledger, plane-gated CI lanes, ADR templates, scorecards (Move #7), fitness functions (Move #8), CODEOWNERS coverage, branch-protection-as-code (#239 / #1295), Kyverno/OPA admission, signed commits (#1299), supply-chain (#614 ADR-0039 Trivy 4-layer), plugin substrate trust gates (ADR-0036/0157/0161/0162), plugin marketplace authoring, marketplace economics. **BLOCKED:** the legacy `§8 Q16` reference has no field-level successor in masterplan v2; do not infer one.
 
 #### 13.4.1 Persona-split CLI (recommended)
 
@@ -797,7 +797,7 @@ Crate targets: `crates/oya-tooling-cli-{dev,admin,build,agent,ops,pack,catalog,g
 
 - ADRs: `decisions/ ADR-0001..ADR-0051` (51 files; index at [ADR-INDEX.md](ADR-INDEX.md))
 - Flat-crates plan: `decisions/ADR-0015-architectural-flattening-target.md` (REV7)
-- Master plan: `docs/ROADMAP.md`
+- Master plan: [`/specs/masterplan.json#masterplan_v2`](../specs/masterplan.json#masterplan_v2)
 - Constitution: `CONSTITUTION.md`
 - Source of truth: `docs/DOC-CATALOG.md` (per [`DOC-CATALOG.md`](DOC-CATALOG.md))
 - Mistakes & fixes: `docs/MISTAKES-LEDGER.md`

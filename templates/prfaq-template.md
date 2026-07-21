@@ -29,7 +29,7 @@ prfaq_id: PRFAQ-NNNN-<slug>
 title: "<future-dated press-release headline>"
 status: draft | in-review | accepted | superseded
 target_launch_date: YYYY-MM-DD
-target_wave: W-<wave-name>                # per docs/ROADMAP.md
+masterplan_work_item_id: MPV2-<nnnn>      # /specs/masterplan.json#masterplan_v2.work_items; derived wave is in .sequencing
 owner_team: <team-id>
 co_owners: [council-architecture, gtm-marketing]
 reviewers: [Founder, Council-Architecture, GTM-Marketing, GTM-Sales-SE]
@@ -80,7 +80,7 @@ authority_chain_declaration: |
 <Answer: customer pain + strategic premise (per `docs/CONSTITUTION.md §Mission`). Cite the specific PRD §1 axis claim this serves.>
 
 ### IF2. Why now? Why not later?
-<Answer: regulatory window, competitive window, capacity readiness, dependency completion (per `docs/ROADMAP.md` wave sequence).>
+<Answer: regulatory window, competitive window, capacity readiness, dependency completion (per `/specs/masterplan.json#masterplan_v2.dependency_edges` and `.sequencing`).>
 
 ### IF3. What are the risks and how are we mitigating?
 <Answer: top-3 risks with mitigation owner + tracking row in `docs/RISK-REGISTER.md`.>
@@ -124,4 +124,4 @@ authority_chain_declaration: |
 
 - AWS — Working Backwards / PRFAQ process (`workingbackwards.com`).
 - `.omc/scratch/hyperscaler-best-practices-2026-05-12.md §Domain 1 AWS`.
-- `docs/PRD.md`, `docs/GTM-PLAN.md`, `docs/ROADMAP.md`.
+- `docs/PRD.md`, `docs/GTM-PLAN.md`, `/specs/masterplan.json#masterplan_v2`.
