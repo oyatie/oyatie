@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Schema",
     "schema_id": "EXE-ARTIFACT-PROFILE-DEFAULTS",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "status": "draft-sidecar",
     "owner_team": "council-architecture + axis-foundry",
     "created_at": "2026-05-13T00:00:00Z",
@@ -15,7 +15,7 @@
     "merge_semantics": "Validator walks profiles[<row.artifact_profile>].capabilities then applies row.capability_overrides as a per-capability partial override. Override resolution rules: (a) capability.status override REPLACES profile default; (b) string fields (evidence_ref, validator path, generator path) override REPLACE profile default; (c) array fields (prerequisite_for_operational, blocks_on, verifies, validates) APPEND row-overrides to profile defaults unless override declares replace_mode=true.",
     "validator_crate": "crates/oya-check-active-artifact-contract",
     "purpose": "Profile defaults for the 9-capability artifact contract. Reduces per-row authoring burden: each registry row declares `artifact_profile` + optional overrides.",
-    "updated_at": "2026-05-17T12:57:05Z",
+    "updated_at": "2026-07-21T00:00:00Z",
     "profile_contract_defaults_note": "Every profile default capability must satisfy the active R04-R07 contract shape: operational requires evidence_ref, planned/blocked-by-foundation require prerequisite_for_operational, and not-applicable requires not_applicable_rationale."
   },
   "profiles": {
@@ -132,6 +132,121 @@
           "grit_done_seal_event_id": null,
           "prerequisite_for_operational": [
             "artifact-profile-defaults:schema:provenance:operational-readiness"
+          ]
+        }
+      }
+    },
+    "spec": {
+      "purpose": "Normative machine-readable canonical-truth definition. Read by validators and agents; it is not a JSON Schema unless the artifact explicitly declares a JSON Schema dialect.",
+      "applicable_formats": [
+        "json",
+        "yaml",
+        "toml"
+      ],
+      "examples": [
+        "/specs/founder-product-intent.json"
+      ],
+      "default_capabilities": {
+        "enforcement": {
+          "status": "planned",
+          "timing": "pr_time",
+          "action": "block",
+          "blocks_on": [
+            "canonical-truth-drift"
+          ],
+          "prerequisite_for_operational": [
+            "validator crate"
+          ]
+        },
+        "verification": {
+          "status": "planned",
+          "verifies": [
+            "canonical-truth structure",
+            "required semantic invariants",
+            "referenced authority paths resolve"
+          ],
+          "prerequisite_for_operational": [
+            "validator crate"
+          ]
+        },
+        "validation": {
+          "status": "planned",
+          "trigger": "pre-commit-hook",
+          "validates": [
+            "serialized syntax",
+            "canonical-truth invariants"
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:spec:validation:operational-readiness"
+          ]
+        },
+        "autogen": {
+          "status": "not-applicable",
+          "generator": "",
+          "inputs": [],
+          "idempotency_class": "deterministic",
+          "not_applicable_rationale": "autogen is not applicable to canonical-truth specifications by profile default."
+        },
+        "selfheal": {
+          "status": "planned",
+          "heals_what": [
+            "broken canonical cross-references"
+          ],
+          "safe_unattended": [
+            "suggest-repair-without-applying"
+          ],
+          "requires_human_approval_for": [
+            "change canonical meaning"
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:spec:selfheal:operational-readiness"
+          ]
+        },
+        "selfupdate": {
+          "status": "planned",
+          "triggers": [
+            "Accepted authority changes a required invariant"
+          ],
+          "update_mechanism": "manual-with-suggestion",
+          "incremental_vs_full": "incremental-diff",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:spec:selfupdate:operational-readiness"
+          ]
+        },
+        "selfmaintain": {
+          "status": "planned",
+          "policies": [
+            {
+              "name": "review-superseded-canonical-truth",
+              "action": "alert",
+              "trigger": "on-new-version-Accepted",
+              "destination": "/evidence/audits/",
+              "audit_emission_required": true
+            }
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:spec:selfmaintain:operational-readiness"
+          ]
+        },
+        "telemetry": {
+          "status": "planned",
+          "observability_standard": "opentelemetry",
+          "metrics": [],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:spec:telemetry:operational-readiness"
+          ]
+        },
+        "provenance": {
+          "status": "planned",
+          "fields_required": [
+            "author",
+            "reviewed_by",
+            "last_modified_at"
+          ],
+          "slsa_level_target": "L3",
+          "grit_done_seal_event_id": null,
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:spec:provenance:operational-readiness"
           ]
         }
       }

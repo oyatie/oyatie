@@ -601,6 +601,65 @@ fn founder_product_intent_validator_is_fail_closed_for_authorization_and_control
         }),
         "the current founder intent must remain a mandatory bounded entry surface: {findings:?}"
     );
+
+    let mut schema_misclassification = registry.clone();
+    schema_misclassification["rows"]
+        .as_array_mut()
+        .expect("artifact capability rows")
+        .iter_mut()
+        .find(|row| row["artifact_id"].as_str() == Some("founder-product-intent"))
+        .expect("founder product intent registry row")["artifact_profile"] =
+        Value::String("schema".to_owned());
+    let findings = evaluate_founder_product_intent_agreement(
+        &intent,
+        &root_hub,
+        &schema_misclassification,
+        &graph,
+    );
+    assert!(
+        findings.iter().any(|finding| {
+            finding.key == "artifact_capabilities_registry.founder-product-intent"
+        }),
+        "a normative founder intent must not be misclassified as a JSON Schema: {findings:?}"
+    );
+
+    let mut schema_declaration = graph.clone();
+    schema_declaration["edges"]
+        .as_array_mut()
+        .expect("active artifact contract edges")
+        .iter_mut()
+        .find(|edge| edge["source"].as_str() == Some("founder-product-intent"))
+        .expect("founder product intent graph edge")["target"] = Value::String("schema".to_owned());
+    let findings = evaluate_founder_product_intent_agreement(
+        &intent,
+        &root_hub,
+        &registry,
+        &schema_declaration,
+    );
+    assert!(
+        findings.iter().any(|finding| {
+            finding.key == "active_artifact_contract_edges.founder-product-intent"
+        }),
+        "the graph must classify the normative founder intent as a spec: {findings:?}"
+    );
+
+    let mut readable_archive_resurrection = root_hub.clone();
+    readable_archive_resurrection["entry_points"]["agent_durable_goal"]["retired_archive_manifest_path"] =
+        Value::String(
+            ".omc/archive/stale-documents/2026-05-19-planning-closure/manifest.json".to_owned(),
+        );
+    let findings = evaluate_founder_product_intent_agreement(
+        &intent,
+        &readable_archive_resurrection,
+        &registry,
+        &graph,
+    );
+    assert!(
+        findings.iter().any(|finding| {
+            finding.key == "root_hub.entry_points.agent_durable_goal.history_only_provenance"
+        }),
+        "retired goal provenance must not resurrect a readable archive path: {findings:?}"
+    );
 }
 
 /// The product intent must keep temporal states and epistemic artifact types as

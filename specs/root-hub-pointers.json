@@ -58,7 +58,7 @@
     "regional-pack": "Regional policy, regulatory, operational, and market-specific pack authority.",
     "registry": "Data plane with rows. Validators check row conformance to schema.",
     "schema": "JSON Schema (Draft 2020-12). Validates instances.",
-    "spec": "Schema or canonical-truth definition. Read by validators + agents."
+    "spec": "Canonical-truth definition read by validators and agents. A spec is not a JSON Schema unless it explicitly declares the JSON Schema dialect."
   },
   "description": "Canonical machine-readable pointer registry. README.md + CLAUDE.md + AGENTS.md survive as authority/entry hubs; HANDOFF.md survives under the founder's 2026-06-08 exception as a thin fresh-session redirect only. Agents read this JSON to discover canonical entry points.",
   "entry_points": {
@@ -128,11 +128,10 @@
       "current_path": "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
       "kind": "goal_prompt",
       "migration_phase": "fd001-planning-closure-supersedes-2026-05-16-durable-goal",
-      "purpose": "Historical FD-001 durable-goal prompt for planning closure/implementation. Its plain-git protected-PR governance portions are superseded/amended by platform-readiness: reviewer approval plus the single protected `oya-ci-required` context is destination authority; legacy CI bridge output is evidence only. The former .omc archive manifest is retired from the tracked tree and is not live authority.",
+      "purpose": "Historical FD-001 durable-goal prompt for planning closure/implementation. Its plain-git protected-PR governance portions are superseded/amended by platform-readiness: reviewer approval plus the single protected `oya-ci-required` context is destination authority; legacy CI bridge output is evidence only.",
       "superseded_path": "/specs/agent-durable-goal.json",
       "target_path_after_md_retirement": "temporary compatibility source pending consumer migration and Git-history-only retirement",
-      "retired_archive_manifest_path": ".omc/archive/stale-documents/2026-05-19-planning-closure/manifest.json",
-      "archive_manifest_status": "retired-from-tracked-tree-local-only; use git history for provenance, not live authority"
+      "history_only_provenance_rule": "Historical source provenance is available only through Git history; the active tree must not contain or direct readers to a readable archive, manifest, or local compatibility copy."
     },
     "founder_product_intent": {
       "current_path": "/specs/founder-product-intent.json",
@@ -181,7 +180,7 @@
       "current_path": "/specs/artifact-profile-defaults.json",
       "kind": "spec",
       "migration_phase": "complete",
-      "purpose": "7 profiles (schema/registry/template/plan-attestation/ledger/claim-matrix/evidence-bundle); reduces per-row authoring burden.",
+      "purpose": "8 profiles (schema/spec/registry/template/plan-attestation/ledger/claim-matrix/evidence-bundle); reduces per-row authoring burden.",
       "target_path_after_md_retirement": "same"
     },
     "audit_chain": {

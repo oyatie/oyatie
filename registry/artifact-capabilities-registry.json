@@ -890,7 +890,7 @@
       "contract_version": "v3.0.0",
       "owner_team": "founder",
       "purpose_short": "Durable mechanism-neutral founder product intent and non-dispatching Stage-1 entry boundary; it records no implementation, roadmap, production, or qualified-authority claim.",
-      "artifact_profile": "schema",
+      "artifact_profile": "spec",
       "capability_overrides": {
         "enforcement": {
           "lane_id": "lean-a-founder-product-intent"
