@@ -1,6 +1,5 @@
 {
   "$id": "https://docs.oyatie.com/specs/founder-product-intent.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "_meta": {
     "created_at": "2026-07-21T18:38:35Z",
     "doc_class": "Machine-Readable-Spec",

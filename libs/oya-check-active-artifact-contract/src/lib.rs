@@ -18,6 +18,7 @@ use std::collections::{BTreeMap, BTreeSet};
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum ArtifactProfile {
     Schema,
+    Spec,
     Registry,
     Template,
     PlanAttestation,
@@ -27,9 +28,10 @@ pub enum ArtifactProfile {
 }
 
 impl ArtifactProfile {
-    pub fn all() -> [ArtifactProfile; 7] {
+    pub fn all() -> [ArtifactProfile; 8] {
         [
             ArtifactProfile::Schema,
+            ArtifactProfile::Spec,
             ArtifactProfile::Registry,
             ArtifactProfile::Template,
             ArtifactProfile::PlanAttestation,
@@ -42,6 +44,7 @@ impl ArtifactProfile {
     pub fn parse(s: &str) -> Option<ArtifactProfile> {
         match s {
             "schema" => Some(ArtifactProfile::Schema),
+            "spec" => Some(ArtifactProfile::Spec),
             "registry" => Some(ArtifactProfile::Registry),
             "template" => Some(ArtifactProfile::Template),
             "plan-attestation" => Some(ArtifactProfile::PlanAttestation),
@@ -55,6 +58,7 @@ impl ArtifactProfile {
     pub fn name(self) -> &'static str {
         match self {
             ArtifactProfile::Schema => "schema",
+            ArtifactProfile::Spec => "spec",
             ArtifactProfile::Registry => "registry",
             ArtifactProfile::Template => "template",
             ArtifactProfile::PlanAttestation => "plan-attestation",
@@ -510,6 +514,7 @@ mod tests {
     fn artifact_profile_parses_all_known_names() {
         let names = [
             "schema",
+            "spec",
             "registry",
             "template",
             "plan-attestation",

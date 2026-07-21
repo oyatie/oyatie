@@ -15,6 +15,7 @@ pub const FOUNDER_PRODUCT_INTENT_VALIDATOR: &str =
 const INVALID_CODE: &str = "founder_product_intent_agreement_invalid";
 /// Canonical current founder product-intent authority path.
 pub const FOUNDER_PRODUCT_INTENT_PATH: &str = "/specs/founder-product-intent.json";
+const AGENT_DURABLE_GOAL_HISTORY_ONLY_PROVENANCE_RULE: &str = "Historical source provenance is available only through Git history; the active tree must not contain or direct readers to a readable archive, manifest, or local compatibility copy.";
 
 const REQUIRED_SECTIONS: [&str; 18] = [
     "authority_boundary",
@@ -903,6 +904,21 @@ fn validate_root_hub(findings: &mut BTreeSet<Finding>, root_hub: &Value) {
             "root_hub.agent_entry_surface_allowlist.founder_product_intent",
         );
     }
+
+    let durable_goal = &root_hub["entry_points"]["agent_durable_goal"];
+    let history_only_provenance = durable_goal
+        .get("history_only_provenance_rule")
+        .and_then(Value::as_str)
+        == Some(AGENT_DURABLE_GOAL_HISTORY_ONLY_PROVENANCE_RULE);
+    if !history_only_provenance
+        || durable_goal.get("retired_archive_manifest_path").is_some()
+        || durable_goal.get("archive_manifest_status").is_some()
+    {
+        invalid(
+            findings,
+            "root_hub.entry_points.agent_durable_goal.history_only_provenance",
+        );
+    }
 }
 
 fn validate_registry_row(findings: &mut BTreeSet<Finding>, registry: &Value) {
@@ -911,7 +927,7 @@ fn validate_registry_row(findings: &mut BTreeSet<Finding>, registry: &Value) {
             row["artifact_id"].as_str() == Some("founder-product-intent")
                 && row["artifact_path"].as_str() == Some(FOUNDER_PRODUCT_INTENT_PATH)
                 && row["artifact_format"].as_str() == Some("json")
-                && row["artifact_profile"].as_str() == Some("schema")
+                && row["artifact_profile"].as_str() == Some("spec")
         })
     });
     if !valid {
@@ -926,7 +942,7 @@ fn validate_graph_edge(findings: &mut BTreeSet<Finding>, graph: &Value) {
     let valid = graph["edges"].as_array().is_some_and(|edges| {
         edges.iter().any(|edge| {
             edge["source"].as_str() == Some("founder-product-intent")
-                && edge["target"].as_str() == Some("schema")
+                && edge["target"].as_str() == Some("spec")
                 && edge["edge_type"].as_str() == Some("declares")
         })
     });
