@@ -26,22 +26,22 @@ const REVIEWED_ARCHITECTURE_PROVENANCE: [&str; 5] = [
     "docs/architecture/transition-classification-2026-05-21.json",
     "docs/architecture/wave-3-final-scorecard-2026-05-20.md",
 ];
-const REVIEWED_INTERNAL_SYMLINKS: [&str; 15] = [
-    "oya/connector/contracts/asyncapi-v1.yaml",
-    "oya/connector/contracts/openapi-v1.yaml",
-    "oya/ops-dashboard-control-center/contracts/asyncapi-v1.yaml",
-    "oya/ops-dashboard-control-center/contracts/openapi-v1.yaml",
-    "oya/ops-dashboard-control-center/iac/ech-config.yaml",
-    "oya/ops-dashboard-control-center/iac/edge-waf.yaml",
-    "oya/ops-dashboard-control-center/iac/pqc-cert.yaml",
-    "oya/ops-dashboard-control-center/policy/abuse-defence.cedar",
-    "oya/ops-dashboard-control-center/policy/admin-action-authorization.cedar",
-    "oya/ops-dashboard-control-center/policy/audit-emission-required.cedar",
-    "oya/ops-dashboard-control-center/policy/emergency-services-bypass.cedar",
-    "oya/ops-dashboard-control-center/policy/on-call-handoff-authorization.cedar",
-    "oya/ops-dashboard-control-center/policy/pack-author-authorization.cedar",
-    "oya/ops-dashboard-control-center/policy/step-up-auth-required.cedar",
-    "oya/ops-dashboard-control-center/policy/tenant-scope-enforcement.cedar",
+const REVIEWED_INTERNAL_SYMLINKS: [(&str, &str); 15] = [
+    ("oya/connector/contracts/asyncapi-v1.yaml", "asyncapi/connector-integration-events.yaml"),
+    ("oya/connector/contracts/openapi-v1.yaml", "openapi/connector-integration.yaml"),
+    ("oya/ops-dashboard-control-center/contracts/asyncapi-v1.yaml", "asyncapi/ops-dashboard-control-center-events.yaml"),
+    ("oya/ops-dashboard-control-center/contracts/openapi-v1.yaml", "openapi/ops-dashboard-control-center.yaml"),
+    ("oya/ops-dashboard-control-center/iac/ech-config.yaml", "prod-ech-config.yaml"),
+    ("oya/ops-dashboard-control-center/iac/edge-waf.yaml", "prod-edge-waf.yaml"),
+    ("oya/ops-dashboard-control-center/iac/pqc-cert.yaml", "prod-pqc-cert.yaml"),
+    ("oya/ops-dashboard-control-center/policy/abuse-defence.cedar", "cedar/abuse-defence.cedar"),
+    ("oya/ops-dashboard-control-center/policy/admin-action-authorization.cedar", "cedar/admin-action-authorization.cedar"),
+    ("oya/ops-dashboard-control-center/policy/audit-emission-required.cedar", "cedar/audit-emission-required.cedar"),
+    ("oya/ops-dashboard-control-center/policy/emergency-services-bypass.cedar", "cedar/emergency-services-bypass.cedar"),
+    ("oya/ops-dashboard-control-center/policy/on-call-handoff-authorization.cedar", "cedar/on-call-handoff-authorization.cedar"),
+    ("oya/ops-dashboard-control-center/policy/pack-author-authorization.cedar", "cedar/pack-author-authorization.cedar"),
+    ("oya/ops-dashboard-control-center/policy/step-up-auth-required.cedar", "cedar/step-up-auth-required.cedar"),
+    ("oya/ops-dashboard-control-center/policy/tenant-scope-enforcement.cedar", "cedar/tenant-scope-enforcement.cedar"),
 ];
 
 /// True when a producer citation edge names one of ADR-0515's seven
@@ -67,6 +67,9 @@ pub fn evaluate_adr_0515_reference_content(path: &str, content: &str) -> BTreeSe
     if is_history_only_provenance_source(path) {
         return BTreeSet::new();
     }
+    if path == "docs/machine-readable/decisions.json" {
+        return evaluate_decisions_json_references(content);
+    }
 
     let mut findings = BTreeSet::new();
     for (line_index, line) in content.lines().enumerate() {
@@ -75,6 +78,103 @@ pub fn evaluate_adr_0515_reference_content(path: &str, content: &str) -> BTreeSe
             continue;
         }
         for id in ids {
+            findings.insert(drift(format!(
+                "current_tree_identifier_reference:{path}:{}:{id}",
+                line_index + 1
+            )));
+        }
+    }
+    findings
+}
+
+fn evaluate_decisions_json_references(content: &str) -> BTreeSet<Finding> {
+    let Ok(document) = serde_json::from_str::<Value>(content) else {
+        return evaluate_generic_reference_content("docs/machine-readable/decisions.json", content);
+    };
+    let mut allowed = BTreeSet::new();
+    let gaps = document
+        .pointer("/_metadata/gaps")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let gap_strings: Vec<&str> = gaps.iter().filter_map(Value::as_str).collect();
+    let max_adr = document
+        .get("decisions")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(|row| row.get("adr").and_then(Value::as_str))
+        .filter_map(|id| id.strip_prefix("ADR-")?.parse::<u16>().ok())
+        .max()
+        .unwrap_or_default();
+    let numbering = format!(
+        "ADR-0001..ADR-{max_adr:04} (non-contiguous; gaps: {})",
+        gap_strings.join(", ")
+    );
+    allowed.insert(("/_metadata/numbering".to_owned(), numbering));
+    for (index, gap) in gap_strings.iter().enumerate() {
+        if history_only_ids().any(|id| gap.contains(&id)) {
+            allowed.insert((format!("/_metadata/gaps/{index}"), (*gap).to_owned()));
+        }
+    }
+    if let Some(decisions) = document.get("decisions").and_then(Value::as_array) {
+        for (row_index, row) in decisions.iter().enumerate() {
+            if row.get("adr").and_then(Value::as_str) != Some("ADR-0515") {
+                continue;
+            }
+            if let Some(values) = row.get("supersedes").and_then(Value::as_array) {
+                let exact: Vec<String> = history_only_ids().collect();
+                if values.iter().filter_map(Value::as_str).eq(exact.iter().map(String::as_str)) {
+                    for (value_index, value) in exact.into_iter().enumerate() {
+                        allowed.insert((
+                            format!("/decisions/{row_index}/supersedes/{value_index}"),
+                            value,
+                        ));
+                    }
+                }
+            }
+        }
+    }
+
+    fn walk(
+        value: &Value,
+        pointer: &str,
+        allowed: &BTreeSet<(String, String)>,
+        findings: &mut BTreeSet<Finding>,
+    ) {
+        match value {
+            Value::String(text) => {
+                for id in history_only_ids().filter(|id| text.contains(id)) {
+                    if !allowed.contains(&(pointer.to_owned(), text.to_owned())) {
+                        findings.insert(drift(format!(
+                            "current_tree_identifier_reference:docs/machine-readable/decisions.json:{pointer}:{id}"
+                        )));
+                    }
+                }
+            }
+            Value::Array(values) => {
+                for (index, value) in values.iter().enumerate() {
+                    walk(value, &format!("{pointer}/{index}"), allowed, findings);
+                }
+            }
+            Value::Object(values) => {
+                for (key, value) in values {
+                    walk(value, &format!("{pointer}/{key}"), allowed, findings);
+                }
+            }
+            _ => {}
+        }
+    }
+
+    let mut findings = BTreeSet::new();
+    walk(&document, "", &allowed, &mut findings);
+    findings
+}
+
+fn evaluate_generic_reference_content(path: &str, content: &str) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+    for (line_index, line) in content.lines().enumerate() {
+        for id in history_only_ids().filter(|id| line.contains(id)) {
             findings.insert(drift(format!(
                 "current_tree_identifier_reference:{path}:{}:{id}",
                 line_index + 1
@@ -117,8 +217,15 @@ pub fn evaluate_adr_0515_tracked_surfaces(root: &Path, tracked_paths: &Value) ->
             }
         };
         if metadata.file_type().is_symlink() {
-            if !REVIEWED_INTERNAL_SYMLINKS.contains(&relative) {
+            let Some((_, expected_target)) = REVIEWED_INTERNAL_SYMLINKS
+                .iter()
+                .find(|(link, _)| *link == relative)
+            else {
                 findings.insert(drift(format!("tracked_path_symlink:{relative}")));
+                continue;
+            };
+            if std::fs::read_link(&full_path).ok().as_deref() != Some(Path::new(expected_target)) {
+                findings.insert(drift(format!("tracked_path_symlink_target:{relative}")));
                 continue;
             }
             let Ok(canonical_root) = root.canonicalize() else {
@@ -134,10 +241,12 @@ pub fn evaluate_adr_0515_tracked_surfaces(root: &Path, tracked_paths: &Value) ->
                 continue;
             }
             match std::fs::read(&canonical_target) {
-                Ok(bytes) => findings.extend(evaluate_adr_0515_reference_content(
-                    relative,
-                    &String::from_utf8_lossy(&bytes),
-                )),
+                Ok(bytes) => match std::str::from_utf8(&bytes) {
+                    Ok(content) => findings.extend(evaluate_adr_0515_reference_content(relative, content)),
+                    Err(_) => {
+                        findings.insert(drift(format!("tracked_path_invalid_utf8:{relative}")));
+                    }
+                },
                 Err(_) => {
                     findings.insert(drift(format!("tracked_path_read_error:{relative}")));
                 }
@@ -155,10 +264,12 @@ pub fn evaluate_adr_0515_tracked_surfaces(root: &Path, tracked_paths: &Value) ->
                 continue;
             }
         };
-        findings.extend(evaluate_adr_0515_reference_content(
-            relative,
-            &String::from_utf8_lossy(&bytes),
-        ));
+        match std::str::from_utf8(&bytes) {
+            Ok(content) => findings.extend(evaluate_adr_0515_reference_content(relative, content)),
+            Err(_) => {
+                findings.insert(drift(format!("tracked_path_invalid_utf8:{relative}")));
+            }
+        }
     }
     findings
 }
@@ -172,20 +283,7 @@ fn is_history_only_provenance_source(path: &str) -> bool {
 fn is_exact_lifecycle_reference(path: &str, line: &str) -> bool {
     let trimmed = line.trim();
     if path == ADR_0515_SOURCE {
-        return trimmed
-            == format!(
-                "supersedes: [{}]",
-                history_only_ids().collect::<Vec<_>>().join(", ")
-            );
-    }
-    if path == "docs/machine-readable/decisions.json" {
-        return trimmed.starts_with("\"numbering\":")
-            || trimmed.starts_with("\"gaps\":")
-            || trimmed
-                == format!(
-                    "\"supersedes\": [\"{}\"],",
-                    history_only_ids().collect::<Vec<_>>().join(", ")
-                );
+        return history_only_ids().any(|id| trimmed == format!("- {id}"));
     }
     false
 }
@@ -597,16 +695,10 @@ mod tests {
 
     #[test]
     fn only_exact_lifecycle_and_reviewed_provenance_references_are_allowed() {
-        let lifecycle = format!(
-            "supersedes: [{}, {}, {}, {}, {}, {}, {}]",
-            legacy_adr("0124"),
-            legacy_adr("0349"),
-            legacy_adr("0359"),
-            legacy_adr("0361"),
-            legacy_adr("0511"),
-            legacy_adr("0513"),
-            legacy_adr("0514")
-        );
+        let lifecycle = history_only_ids()
+            .map(|id| format!("  - {id}"))
+            .collect::<Vec<_>>()
+            .join("\n");
         assert!(
             evaluate_adr_0515_reference_content(
                 "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
@@ -628,6 +720,35 @@ mod tests {
             )
             .is_empty()
         );
+
+        let lookalike = format!(
+            "{{\n  \"_metadata\": {{\n    \"numbering\": \"{} corrupted\"\n  }},\n  \"decisions\": []\n}}",
+            legacy_adr("0349")
+        );
+        assert!(
+            !evaluate_adr_0515_reference_content(
+                "docs/machine-readable/decisions.json",
+                &lookalike,
+            )
+            .is_empty(),
+            "field-name lookalikes must not inherit structural exceptions"
+        );
+    }
+
+    #[test]
+    fn invalid_utf8_regular_files_fail_closed() {
+        let root = std::env::temp_dir().join(format!(
+            "adr-0515-invalid-utf8-test-{}",
+            std::process::id()
+        ));
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(&root).unwrap();
+        std::fs::write(root.join("invalid.txt"), [0xff, 0xfe]).unwrap();
+
+        let findings = evaluate_adr_0515_tracked_surfaces(&root, &json!(["invalid.txt"]));
+        assert!(keys(&findings).contains(&"tracked_path_invalid_utf8:invalid.txt".to_owned()));
+
+        std::fs::remove_dir_all(root).unwrap();
     }
 
     #[test]
@@ -709,7 +830,7 @@ mod tests {
         );
         assert!(
             finding_keys.contains(
-                &"tracked_path_symlink:oya/connector/contracts/asyncapi-v1.yaml".to_owned()
+                &"tracked_path_symlink_target:oya/connector/contracts/asyncapi-v1.yaml".to_owned()
             )
         );
 
@@ -721,6 +842,37 @@ mod tests {
         assert!(keys(&findings).iter().any(|key| key.starts_with(
             "current_tree_identifier_reference:oya/connector/contracts/openapi-v1.yaml"
         )));
+
+        std::fs::remove_file(root.join("oya/connector/contracts/openapi-v1.yaml")).unwrap();
+        let alternate = root.join("oya/connector/contracts/openapi/alternate.yaml");
+        std::fs::write(&alternate, "authority: ADR-0515\n").unwrap();
+        std::os::unix::fs::symlink(
+            "openapi/alternate.yaml",
+            root.join("oya/connector/contracts/openapi-v1.yaml"),
+        )
+        .unwrap();
+        let findings = evaluate_adr_0515_tracked_surfaces(
+            &root,
+            &json!(["oya/connector/contracts/openapi-v1.yaml"]),
+        );
+        assert!(keys(&findings).contains(
+            &"tracked_path_symlink_target:oya/connector/contracts/openapi-v1.yaml".to_owned()
+        ));
+
+        std::fs::remove_file(root.join("oya/connector/contracts/openapi-v1.yaml")).unwrap();
+        std::os::unix::fs::symlink(
+            "openapi/connector-integration.yaml",
+            root.join("oya/connector/contracts/openapi-v1.yaml"),
+        )
+        .unwrap();
+        std::fs::write(&target, [0xff, 0xfe]).unwrap();
+        let findings = evaluate_adr_0515_tracked_surfaces(
+            &root,
+            &json!(["oya/connector/contracts/openapi-v1.yaml"]),
+        );
+        assert!(keys(&findings).contains(
+            &"tracked_path_invalid_utf8:oya/connector/contracts/openapi-v1.yaml".to_owned()
+        ));
 
         std::fs::remove_dir_all(root).unwrap();
         std::fs::remove_file(outside).unwrap();

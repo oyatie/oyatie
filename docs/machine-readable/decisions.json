@@ -573,7 +573,7 @@
       "owner": "axis-workspace (productivity native apps) + axis-saas (tenant-builder native apps) + council-architecture",
       "date": "2026-05-09",
       "path": "decisions/ADR-0051-mobile-and-native-client-strategy.md",
-      "supersedes": ["the legacy mobile-clients quality-bar, multi-form-factor, and Compose↔SwiftUI parity cluster per [ADR-LEGACY-REGRESSION-MAPPING.md](../ADR-LEGACY-REGRESSION-MAPPING.md)"],
+      "supersedes": ["the legacy mobile-clients quality-bar", "multi-form-factor", "and Compose↔SwiftUI parity cluster per [ADR-LEGACY-REGRESSION-MAPPING.md](../ADR-LEGACY-REGRESSION-MAPPING.md)"],
       "superseded_by": [],
       "related": ["ADR-0001", "ADR-0010", "ADR-0017", "ADR-0044"]
     },
@@ -1113,7 +1113,7 @@
       "owner": "council-architecture + foundry-vcs",
       "date": "2026-05-16",
       "path": "decisions/ADR-0116-retire-external-agent-coordination-tooling.md",
-      "supersedes": ["ADR-0054 (grit scaffold-claim pattern)"],
+      "supersedes": ["ADR-0054"],
       "superseded_by": [],
       "related": ["ADR-0054", "ADR-0052", "ADR-0110", "ADR-0115"]
     },
@@ -1413,7 +1413,7 @@
       "owner": "council-architecture",
       "date": "2026-05-18",
       "path": "decisions/ADR-0145-inter-microservice-communication-reform.md",
-      "supersedes": ["ADR-0140, ADR-0141"],
+      "supersedes": ["ADR-0140", "ADR-0141"],
       "superseded_by": [],
       "related": ["ADR-0064", "ADR-0131", "ADR-0132", "ADR-0135", "ADR-0136", "ADR-0139"]
     },
@@ -3165,7 +3165,7 @@
       "owner": "council-architecture, axis-tenancy, axis-cloud-iac, axis-observability, axis-audit-chain, axis-api-gateway",
       "date": "2026-05-21",
       "path": "decisions/ADR-0333-cell-microservice-retired-pattern-not-service.md",
-      "supersedes": ["microservices/cell/PRD.md, microservices/cell/ARCHITECTURE.md"],
+      "supersedes": ["microservices/cell/PRD.md", "microservices/cell/ARCHITECTURE.md"],
       "superseded_by": [],
       "related": ["ADR-0248", "ADR-0138", "ADR-0131", "ADR-0244", "ADR-0243", "ADR-0263"]
     },
@@ -3177,7 +3177,7 @@
       "owner": "council-architecture, axis-social, axis-shorts",
       "date": "2026-05-21",
       "path": "decisions/ADR-0334-shorts-microservice-merged-into-social.md",
-      "supersedes": ["microservices/shorts/PRD.md, microservices/shorts/ARCHITECTURE.md"],
+      "supersedes": ["microservices/shorts/PRD.md", "microservices/shorts/ARCHITECTURE.md"],
       "superseded_by": [],
       "related": ["ADR-0132", "ADR-0138", "ADR-0238", "ADR-0245", "ADR-0317", "ADR-0329", "ADR-0330", "ADR-0333"]
     },
@@ -3189,7 +3189,7 @@
       "owner": "council-architecture, axis-intelligence, axis-foundry",
       "date": "2026-05-21",
       "path": "decisions/ADR-0335-intelligence-microservice-consolidation.md",
-      "supersedes": ["microservices/foundry/PRD.md, microservices/foundry/ARCHITECTURE.md, microservices/foundry/PHASE-01-FOUNDRY-FOUNDATION.md, microservices/foundry/PHASE-02-FOUNDRY-DATA-SUBSTRATE-ADDENDUM.md"],
+      "supersedes": ["microservices/foundry/PRD.md", "microservices/foundry/ARCHITECTURE.md", "microservices/foundry/PHASE-01-FOUNDRY-FOUNDATION.md", "microservices/foundry/PHASE-02-FOUNDRY-DATA-SUBSTRATE-ADDENDUM.md"],
       "superseded_by": [],
       "related": ["ADR-0255", "ADR-0247", "ADR-0220", "ADR-0239", "ADR-0136", "ADR-0138", "ADR-0116", "ADR-0112", "ADR-0113", "ADR-0132", "ADR-0245", "ADR-0333", "ADR-0334", "ADR-0328"]
     },
@@ -3465,9 +3465,9 @@
       "owner": "council-architecture",
       "date": "2026-05-26",
       "path": "decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md",
-      "supersedes": ["ADR-0110, ADR-0112, ADR-0113"],
+      "supersedes": ["ADR-0110", "ADR-0112", "ADR-0113"],
       "superseded_by": [],
-      "related": ["ADR-0053", "ADR-0111", "ADR-0116", "ADR-0131", "ADR-0173", "ADR-0247", "ADR-0248", "ADR-0515", "ADR-0357", "ADR-0515", "ADR-0362", "ADR-0515"]
+      "related": ["ADR-0053", "ADR-0111", "ADR-0116", "ADR-0131", "ADR-0173", "ADR-0247", "ADR-0248", "ADR-0357", "ADR-0362", "ADR-0515"]
     },
     {
       "adr": "ADR-0364",
@@ -3609,7 +3609,7 @@
       "owner": "council-architecture",
       "date": "2026-05-27",
       "path": "decisions/ADR-0375-talos-capi-argocd-fleet-substrate.md",
-      "supersedes": ["ADR-0120, ADR-0121"],
+      "supersedes": ["ADR-0120", "ADR-0121"],
       "superseded_by": [],
       "related": ["ADR-0009", "ADR-0147", "ADR-0148", "ADR-0306", "ADR-0338", "ADR-0339", "ADR-0363", "ADR-0370", "ADR-0371", "ADR-0158", "ADR-0171", "ADR-0198"]
     },
@@ -3969,7 +3969,7 @@
       "owner": "council-architecture, founder",
       "date": "2026-05-29",
       "path": "decisions/ADR-0512-canonical-monorepo-pattern.md",
-      "supersedes": ["ADR-0357, ADR-0509"],
+      "supersedes": ["ADR-0357", "ADR-0509"],
       "superseded_by": [],
       "related": []
     },
@@ -3981,7 +3981,7 @@
       "owner": "founder, council-architecture",
       "date": "2026-06-07",
       "path": "decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-      "supersedes": ["ADR-0124, ADR-0349, ADR-0359, ADR-0361, ADR-0511, ADR-0513, ADR-0514"],
+      "supersedes": ["ADR-0124", "ADR-0349", "ADR-0359", "ADR-0361", "ADR-0511", "ADR-0513", "ADR-0514"],
       "superseded_by": [],
       "related": ["ADR-0111", "ADR-0116", "ADR-0181", "ADR-0247", "ADR-0363", "ADR-0366", "ADR-0367", "ADR-0369", "ADR-0374", "ADR-0388", "ADR-0510", "ADR-0525"]
     },
