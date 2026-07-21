@@ -3,9 +3,10 @@ members = [
   # Globbed workspace membership (FRIC-1781069288 / ADR-0538): adding a crate under any
   # of these roots requires ZERO edit to this shared array, eliminating the
   # 100%-by-construction merge-conflict class on Cargo.toml across concurrent lanes.
-  # Each glob star matches exactly one path component; a directory is a member only if it
-  # holds a Cargo.toml. The canonical resolver is libs/oya-workspace-members-kernel
-  # (reuse, not re-derive; gates must resolve members there, never parse this array).
+  # Each glob star matches exactly one path component; every unexcluded matched directory must
+  # hold a Cargo.toml or Cargo rejects the workspace. The canonical resolver is
+  # libs/oya-workspace-members-kernel (reuse, not re-derive; gates must resolve members there,
+  # never parse this array).
   # The crate segment is narrowed to `oya-*` wherever every first-party crate leaf is
   # oya-prefixed (enforced by the born-blocking cargo-prefix gate), so non-crate sibling
   # dirs (scripts, completions, vendored trees) can never break `cargo` resolution.
@@ -386,6 +387,11 @@ exclude = [
   "marketplace/observability",
   "compliance/observability",
   "comms/observability",
+  # Messenger chaos scenarios and the resilience control-loop contract are tracked operational
+  # data subtrees, not Rust crates. `comms/*/*` matches both directories, so Cargo requires these
+  # reviewed explicit excludes to avoid treating either as a workspace package.
+  "comms/messenger/chaos",
+  "comms/messenger/resilience",
   "k8s/observability",
   "tenancy/observability",
   "audit/observability",
