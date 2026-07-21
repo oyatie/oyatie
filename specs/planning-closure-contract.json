@@ -475,15 +475,17 @@
     "ratchet_rule": "When an evolution trigger fires, update the relevant gate, baseline, skill routing, evidence template, and masterplan sequencing before the next ChangeSet is promoted."
   },
   "stale_document_policy": {
-    "stale_documents_must_be_archived": true,
-    "current_goal_prompt": "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
+    "retired_authority_must_leave_active_tree": true,
+    "retired_authority_provenance_store": "git-history-only",
+    "readable_archive_directories_allowed": false,
+    "current_goal_prompt": "/specs/founder-product-intent.json",
     "live_planning_roots": [
       "/specs/root-hub-pointers.json",
       "/specs/masterplan.json",
       "/specs/planning-closure-contract.json",
       "/specs/planning-closure-status-closure-ledger.json",
       "/specs/master-plan-sequencing.json",
-      "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json"
+      "/specs/founder-product-intent.json"
     ],
     "forbidden_live_authority_paths": [
       "/evidence/goals/implement-masterplan.md",
@@ -493,8 +495,7 @@
       ".omc/**",
       ".omx/**"
     ],
-    "rule": "Any document that encodes retired authority, obsolete sequencing, open-question ledgers, stale dispatch scripts, or deprecated execution primitives must be either migrated to a tracked machine-readable authority under /specs, /registry, /evidence, or /templates, or remain historical evidence in git history only. Archived files are historical evidence only and cannot be used as implementation-start permission. The .omc/ and .omx/ durable roots are local-only runtime state and must stay gitignored.",
-    "retired_archive_manifest_path": ".omc/archive/stale-documents/2026-05-19-planning-closure/manifest.json",
+    "rule": "Any document that encodes retired authority, obsolete sequencing, open-question ledgers, stale dispatch scripts, or deprecated execution primitives must have surviving current invariants migrated to a tracked authority and then be removed from the active tree. Its provenance remains only in Git history. Do not move retired authority into a readable archive directory or publish a live archive manifest. The .omc/ and .omx/ durable roots are local-only runtime state and must stay gitignored.",
     "durable_roots_must_be_local_only": true,
     "ignored_durable_roots": [
       ".omc/",

@@ -11,13 +11,14 @@ use std::process::Command;
 use ci_cross_artifact_agreement::{
     AdrDecisionRecord, GateCoverageBaseline, RatchetReport, Verdict,
     derive_masterplan_md_projection, evaluate, evaluate_adr_index_projection_parity,
-    evaluate_adr_prose_frontmatter_status, evaluate_masterplan_plan_evidence_crosscheck,
-    evaluate_masterplan_projection_rederivation, evaluate_masterplan_read_surface_resurrections,
-    evaluate_masterplan_v2_authority, evaluate_masterplan_v2_entry_surfaces,
-    evaluate_masterplan_v2_evidence_state, evaluate_masterplan_v2_plan_evidence_drift,
-    evaluate_masterplan_v2_program_coverage, evaluate_masterplan_v2_projection_freshness,
-    evaluate_masterplan_v2_ratification_digest, evaluate_masterplan_v2_read_contract_archives,
-    evaluate_masterplan_v2_sequencing, evaluate_registry_derived_policy_sync, ratchet,
+    evaluate_adr_prose_frontmatter_status, evaluate_founder_product_intent_agreement,
+    evaluate_masterplan_plan_evidence_crosscheck, evaluate_masterplan_projection_rederivation,
+    evaluate_masterplan_read_surface_resurrections, evaluate_masterplan_v2_authority,
+    evaluate_masterplan_v2_entry_surfaces, evaluate_masterplan_v2_evidence_state,
+    evaluate_masterplan_v2_plan_evidence_drift, evaluate_masterplan_v2_program_coverage,
+    evaluate_masterplan_v2_projection_freshness, evaluate_masterplan_v2_ratification_digest,
+    evaluate_masterplan_v2_read_contract_archives, evaluate_masterplan_v2_sequencing,
+    evaluate_registry_derived_policy_sync, ratchet,
 };
 use serde_json::Value;
 
@@ -542,6 +543,270 @@ fn masterplan_v2_entry_surface_allowlist_gate_is_green() {
     assert!(
         findings.is_empty(),
         "entry-surface read contracts must exactly match the bounded root-hub allowlist and exclude superseded entrypoints: {findings:?}"
+    );
+}
+
+/// The founder product-intent contract is an entry boundary, not a promotion path.
+/// Its structural agreement checker must reject both accidental authorization and
+/// cross-artifact registration drift before a live gate can mistake the artifact for
+/// a satisfied Stage-1 control.
+#[test]
+fn founder_product_intent_validator_is_fail_closed_for_authorization_and_control_drift() {
+    let root = repo_root();
+    let intent = load_json(&root.join("specs/founder-product-intent.json"));
+    let root_hub = load_json(&root.join("specs/root-hub-pointers.json"));
+    let registry = load_json(&root.join("registry/artifact-capabilities-registry.json"));
+    let graph = load_json(&root.join("registry/graph/active-artifact-contract-edges.json"));
+
+    let mut unsafe_intent = intent.clone();
+    unsafe_intent["authority_boundary"]["dispatch_allowed"] = Value::Bool(true);
+    unsafe_intent["stage1_entry_requirements"]["controls"][0]["id"] =
+        Value::String("renamed-control".to_owned());
+    unsafe_intent["stage1_entry_requirements"]["controls"][0]["decision"] =
+        Value::String("satisfied".to_owned());
+
+    let findings =
+        evaluate_founder_product_intent_agreement(&unsafe_intent, &root_hub, &registry, &graph);
+    assert!(
+        findings
+            .iter()
+            .any(|finding| finding.key == "authority_boundary.dispatch_allowed"),
+        "dispatch authorization must be rejected: {findings:?}"
+    );
+    assert!(
+        findings
+            .iter()
+            .any(|finding| finding.key == "stage1_entry_requirements.controls"),
+        "Stage-1 control IDs must be exact: {findings:?}"
+    );
+    assert!(
+        findings
+            .iter()
+            .any(|finding| finding.key == "stage1_entry_requirements.controls.nonclaim"),
+        "the intent artifact must never record a satisfied Stage-1 control: {findings:?}"
+    );
+}
+
+/// Pipeline evolution is itself a safety-critical contract. These isolated RED
+/// mutations pin the structural controls that keep parallel work from turning
+/// into self-authorizing promotion or a weaker safety tier.
+#[test]
+fn founder_product_intent_validator_is_fail_closed_for_pipeline_contract_drift() {
+    let root = repo_root();
+    let intent = load_json(&root.join("specs/founder-product-intent.json"));
+    let root_hub = load_json(&root.join("specs/root-hub-pointers.json"));
+    let registry = load_json(&root.join("registry/artifact-capabilities-registry.json"));
+    let graph = load_json(&root.join("registry/graph/active-artifact-contract-edges.json"));
+
+    let cases: [(&str, Box<dyn Fn(&mut Value)>); 23] = [
+        (
+            "missing-work-graph-contract",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]
+                    .as_object_mut()
+                    .expect("pipeline evolution contract object")
+                    .remove("work_graph_contract");
+            }),
+        ),
+        (
+            "work-graph-state-drift",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]["work_graph_contract"]
+                    ["states"][0] = Value::String("self-promoting".to_owned());
+            }),
+        ),
+        (
+            "promotion-state-drift",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]["promotion_state_machine"]
+                    [0] = Value::String("auto-promoted".to_owned());
+            }),
+        ),
+        (
+            "automation-tier-drift",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]
+                    ["automation_safety_governor"]
+                    .as_object_mut()
+                    .expect("automation safety governor object")
+                    .remove("GATE");
+            }),
+        ),
+        (
+            "empty-safety-classification",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]["automation_safety_governor"]
+                    ["classification_rule"] = Value::String(String::new());
+            }),
+        ),
+        (
+            "candidate-control-dual-evaluation-erased",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]["trusted_control_rule"] =
+                    Value::String("candidate controls itself".to_owned());
+            }),
+        ),
+        (
+            "merge-runtime-separation-erased",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]["merge_and_release_separation"] =
+                    Value::String("merge is runtime promotion".to_owned());
+            }),
+        ),
+        (
+            "proposed-artifact-self-promotion",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]["authority_rule"] =
+                    Value::String(
+                        "proposed implementation becomes authority through use".to_owned(),
+                    );
+            }),
+        ),
+        (
+            "hold-pass-promotion-barrier-erased",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["concurrency_pipeline"]["promotion_barrier"] =
+                    Value::String("any candidate may dispatch and merge immediately".to_owned());
+            }),
+        ),
+        (
+            "implementation-claim-ceiling-erased",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]
+                    .as_object_mut()
+                    .expect("pipeline evolution contract object")
+                    .remove("implementation_claim_ceiling");
+            }),
+        ),
+        (
+            "generated-face-lifecycle-erased",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]["generated_artifact_rule"] =
+                    Value::String("generated output is editable cache data".to_owned());
+            }),
+        ),
+        (
+            "auto-merge-bypass-inserted",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]["automation_safety_governor"]
+                    ["AUTO"] = Value::String("AUTO may merge and bypass admission".to_owned());
+            }),
+        ),
+        (
+            "tenant-isolation-erased",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]["tenant_pipeline_isolation_rule"] =
+                    Value::String("tenants share pipeline credentials and evidence".to_owned());
+            }),
+        ),
+        (
+            "runtime-held-backfill-boundary-erased",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]["runtime_promotion_fail_closed_rule"] =
+                    Value::String("backfilled evidence immediately promotes artifacts".to_owned());
+            }),
+        ),
+        (
+            "vulnerability-invalidation-becomes-live-claim",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]["continuous_vulnerability_invalidation_rule"] =
+                    Value::String("the proposed pipeline is live authority".to_owned());
+            }),
+        ),
+        (
+            "protected-admission-exact-head-erased",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]["current_protected_admission_rule"] =
+                    Value::String("old head may merge without review or CI".to_owned());
+            }),
+        ),
+        (
+            "post-merge-completion-overclaim",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]["post_merge_closure_rule"] =
+                    Value::String("merge receipt is product completion".to_owned());
+            }),
+        ),
+        (
+            "research-evidence-self-authorizes",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]["research_basis"]
+                    ["claim_boundary"] =
+                    Value::String("external sources authorize the roadmap".to_owned());
+            }),
+        ),
+        (
+            "portability-cutover-equivalence-erased",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]["productization_and_portability_rule"] =
+                    Value::String("one vendor runner is sufficient".to_owned());
+            }),
+        ),
+        (
+            "pipeline-migration-deletion-erased",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]["pipeline_migration_rule"] =
+                    Value::String("keep every retired controller indefinitely".to_owned());
+            }),
+        ),
+        (
+            "research-source-scope-erased",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]
+                    ["research_basis"]["sources"][0]
+                    .as_object_mut()
+                    .expect("research source object")
+                    .remove("scope");
+            }),
+        ),
+        (
+            "research-source-id-collision",
+            Box::new(|candidate| {
+                let first_id = candidate["founder_execution_authorization"]
+                    ["pipeline_evolution_contract"]["research_basis"]["sources"][0]
+                    ["source_id"]
+                    .clone();
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]["research_basis"]
+                    ["sources"][1]["source_id"] = first_id;
+            }),
+        ),
+        (
+            "research-source-non-https",
+            Box::new(|candidate| {
+                candidate["founder_execution_authorization"]["pipeline_evolution_contract"]["research_basis"]
+                    ["sources"][0]["url"] =
+                    Value::String("file:///untrusted-local-reference".to_owned());
+            }),
+        ),
+    ];
+
+    for (name, mutate) in cases {
+        let mut candidate = intent.clone();
+        mutate(&mut candidate);
+        let findings =
+            evaluate_founder_product_intent_agreement(&candidate, &root_hub, &registry, &graph);
+        assert!(
+            !findings.is_empty(),
+            "{name} must fail closed instead of weakening the pipeline contract"
+        );
+    }
+}
+
+/// Live GATE-1 integration: the four founder-intent faces must remain mutually
+/// coherent while preserving HOLD(Planning) and non-dispatching control status.
+#[test]
+fn founder_product_intent_agreement_gate_is_green_on_live_corpus() {
+    let root = repo_root();
+    let findings = evaluate_founder_product_intent_agreement(
+        &load_json(&root.join("specs/founder-product-intent.json")),
+        &load_json(&root.join("specs/root-hub-pointers.json")),
+        &load_json(&root.join("registry/artifact-capabilities-registry.json")),
+        &load_json(&root.join("registry/graph/active-artifact-contract-edges.json")),
+    );
+    assert!(
+        findings.is_empty(),
+        "founder product intent, root hub, registry row, and graph edge must agree without \
+         promoting Stage-1: {findings:?}"
     );
 }
 

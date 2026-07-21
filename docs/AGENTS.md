@@ -109,7 +109,8 @@ For any question, route to its authority. Click the link; do not duplicate inlin
 | Bootstrap routing for the canonical tree | [`README.md`](README.md) |
 | Architecture, planes, cross-axis contracts, cohesion thesis | [`DESIGN.md`](DESIGN.md) <!-- forward-reference: wave-1 --> |
 | Surfaces (capabilities, APIs, events, indexes, ad slots, cloud resources) | [`SPEC.md`](SPEC.md) <!-- forward-reference: wave-1 --> |
-| North star, axes, scope, success metrics, decision log | [`PRD.md`](PRD.md) <!-- forward-reference: wave-1 --> |
+| Durable product north star, outcome scope, Stage-1 entry boundary, and claim limits | [`/specs/founder-product-intent.json`](../specs/founder-product-intent.json) |
+| Legacy PRD invariants awaiting migration and Git-history-only retirement; not current product authority | `PRD.md` (migration input only; do not use as an agent authority surface) |
 | Human plan projection / archived roadmap provenance | [`MASTERPLAN.md`](MASTERPLAN.md), [`ROADMAP.md`](ROADMAP.md) |
 | Markdown lifecycle and current doc-authority routing | [`/specs/markdown-retirement-policy.json`](../specs/markdown-retirement-policy.json), [`/specs/root-hub-pointers.json`](../specs/root-hub-pointers.json); [`DOC-CATALOG.md`](DOC-CATALOG.md) is legacy migration input only |
 | Doc-class taxonomy, voice, dual-audience rules | [`standards/doc-style.md`](standards/doc-style.md) <!-- forward-reference: wave-1 --> |

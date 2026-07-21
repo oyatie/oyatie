@@ -5,6 +5,27 @@ doc_status: published
 
 # Changelog
 
+## 2026-07-21 — Founder product intent and Stage-1 entry boundary
+
+- Added a durable, mechanism-neutral founder-intent spec for Oyatie's no-code typed
+  operational world model across cloud, developer, enterprise, and consumer continuity
+  domains, with execution profiles kept distinct from substrate topology and capability
+  ownership.
+- Captured representative supply-chain, small-business, household, high-impact recourse,
+  absence handoff, delegated reservation, subscription, payment-anomaly, operational,
+  infrastructure, disruption, and hostile-delegation journeys without claiming coverage.
+- Recorded the exact fifteen Stage-1 entry requirements and a fail-closed receipt shape as
+  non-dispatching founder requirements; ownership, qualification, evidence population, and
+  ratification remain unresolved until independently proven.
+- Recorded founder authorization for autonomous repository migrations, merges, exact-target
+  deletions, amendments, and technical decisions, together with a sixteen-lens advisory method
+  covering outcomes, UX, semantics, architecture, reliability, trust, privacy, legal, affected
+  parties, maintainability, cloud, economics, ecosystem, migration, adversarial, and evidence
+  concerns; advisory agent consensus is explicitly not qualified-human closure evidence.
+- Preserved `HOLD(Planning)`, roadmap and implementation authorization false, Git-history-only
+  retirement of superseded goal authority, and the rule that Palantir is only one legally/JCR-
+  gated outcome benchmark rather than a product or implementation template.
+
 ## 2026-07-13 — Pre-planning authority consolidation
 
 - Reconciled the root authority chain around `specs/root-hub-pointers.json`,

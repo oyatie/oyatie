@@ -1,0 +1,800 @@
+//! Fail-closed structural agreement for the founder product-intent entry boundary.
+//!
+//! This checker only verifies that the four declared faces continue to describe a
+//! non-dispatching, unresolved Stage-1 entry contract. It deliberately has no path
+//! that can mark a control satisfied or promote `HOLD(Planning)`.
+
+use std::collections::{BTreeSet, HashSet};
+
+use serde_json::Value;
+
+use crate::Finding;
+
+pub const FOUNDER_PRODUCT_INTENT_VALIDATOR: &str =
+    "cloud-ci-cross-artifact-agreement/founder-product-intent";
+const INVALID_CODE: &str = "founder_product_intent_agreement_invalid";
+const FOUNDER_INTENT_PATH: &str = "/specs/founder-product-intent.json";
+
+const REQUIRED_SECTIONS: [&str; 18] = [
+    "authority_boundary",
+    "provenance",
+    "founder_execution_authorization",
+    "durable_goal",
+    "stage1_entry_requirements",
+    "advisory_16_lens_council",
+    "benchmark_and_measurement_contract",
+    "participant_and_journey_census",
+    "product_model",
+    "experience_contract",
+    "data_and_lineage_contract",
+    "temporal_and_epistemic_contract",
+    "intelligence_and_automation_contract",
+    "safety_rights_and_recourse",
+    "representative_scenarios",
+    "economics_and_sustainability_contract",
+    "future_specification_requirements",
+    "durability",
+];
+
+const STAGE1_CONTROL_IDS: [&str; 15] = [
+    "adr_chronology",
+    "decision_parser_ir",
+    "corpus_archive_freshness",
+    "decision_population",
+    "comparator",
+    "legal_jcr",
+    "affected_party",
+    "operations",
+    "custody",
+    "veto",
+    "pilot",
+    "immutable_successor",
+    "council_16_lens",
+    "fresh_dissent",
+    "context_free_exit",
+];
+
+const COUNCIL_LENS_IDS: [&str; 16] = [
+    "L01-product-outcomes-and-north-star",
+    "L02-intuitive-ux-accessibility-and-adoption",
+    "L03-ontology-data-time-and-epistemics",
+    "L04-architecture-boundaries-and-monorepo",
+    "L05-distributed-systems-reliability-and-resilience",
+    "L06-security-identity-trust-and-custody",
+    "L07-privacy-consent-and-data-governance",
+    "L08-legal-regulatory-and-jcr",
+    "L09-affected-party-safety-fairness-and-recourse",
+    "L10-developer-experience-maintainability-and-quality",
+    "L11-cloud-platform-tenancy-and-sovereignty",
+    "L12-economics-finops-and-business-sustainability",
+    "L13-ecosystem-integration-portability-and-supply-chain",
+    "L14-migration-deprecation-compatibility-and-change",
+    "L15-adversarial-abuse-failure-and-dissent",
+    "L16-evidence-measurement-comparator-and-reproducibility",
+];
+
+const RECEIPT_FIELDS: [&str; 14] = [
+    "control_id",
+    "candidate_commit",
+    "candidate_digest",
+    "corpus_scope_digest",
+    "evidence_ids",
+    "evidence_digests",
+    "qualified_owner_principal",
+    "independent_reviewer_principal",
+    "decision",
+    "recorded_at",
+    "valid_until_or_invalidation_events",
+    "claim_ceiling",
+    "signature_or_protected_receipt",
+    "reproduction_command_or_method",
+];
+
+const RECEIPT_DECISIONS: [&str; 5] = [
+    "satisfied",
+    "unsatisfied",
+    "unknown",
+    "expired",
+    "superseded",
+];
+
+const CONCURRENCY_PIPELINE_KEYS: [&str; 3] = [
+    "parallel_lanes",
+    "serialization_points",
+    "promotion_barrier",
+];
+
+const PIPELINE_EVOLUTION_REQUIRED_KEYS: [&str; 35] = [
+    "outcome",
+    "authority_rule",
+    "work_graph_contract",
+    "closed_loop",
+    "parallelism_rule",
+    "serialization_rule",
+    "lifecycle_graph_rule",
+    "trusted_control_rule",
+    "impact_rule",
+    "test_and_evidence_rule",
+    "automation_safety_governor",
+    "exception_rule",
+    "security_and_supply_chain_rule",
+    "merge_and_release_separation",
+    "promotion_state_machine",
+    "candidate_evidence_minimum",
+    "health_measures",
+    "measurement_use_rule",
+    "learning_rule",
+    "research_rule",
+    "self_modification_boundary",
+    "implementation_claim_ceiling",
+    "generated_artifact_rule",
+    "failure_taxonomy_rule",
+    "diagnosability_rule",
+    "continuous_vulnerability_invalidation_rule",
+    "tenant_pipeline_isolation_rule",
+    "runtime_promotion_fail_closed_rule",
+    "current_protected_admission_rule",
+    "post_merge_closure_rule",
+    "pipeline_slo_rule",
+    "capacity_rule",
+    "research_basis",
+    "productization_and_portability_rule",
+    "pipeline_migration_rule",
+];
+
+const WORK_GRAPH_REQUIRED_FIELDS: [&str; 11] = [
+    "stable_work_id",
+    "owner_principal_or_explicitly_unassigned",
+    "scope_and_owned_paths",
+    "dependencies_and_serialization_keys",
+    "risk_and_authority_class",
+    "acceptance_and_stop_conditions",
+    "verification_and_evidence_contract",
+    "claim_ceiling",
+    "freshness_and_invalidation_events",
+    "rollback_or_abandonment_path",
+    "state",
+];
+
+const WORK_GRAPH_STATES: [&str; 11] = [
+    "proposed",
+    "ready",
+    "active",
+    "blocked",
+    "verified",
+    "admitted",
+    "stable",
+    "rejected",
+    "rolled_back",
+    "superseded",
+    "retired",
+];
+
+const PROMOTION_STATES: [&str; 10] = [
+    "proposed",
+    "verified",
+    "integrated_candidate",
+    "admitted",
+    "held",
+    "eligible",
+    "progressively_exposed",
+    "stable",
+    "rejected",
+    "rolled_back",
+];
+
+const AUTOMATION_SAFETY_GOVERNOR_KEYS: [&str; 4] =
+    ["AUTO", "ADVISE", "GATE", "classification_rule"];
+
+/// Check the founder-intent spec plus its root-hub, capability-registry, and graph faces.
+/// Missing, malformed, or drifted data yields a stable blocking finding.
+pub fn evaluate_founder_product_intent_agreement(
+    intent: &Value,
+    root_hub: &Value,
+    registry: &Value,
+    graph: &Value,
+) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+
+    for section in REQUIRED_SECTIONS {
+        if intent.get(section).is_none_or(Value::is_null) {
+            invalid(&mut findings, section);
+        }
+    }
+
+    let boundary = &intent["authority_boundary"];
+    require_string(
+        &mut findings,
+        boundary,
+        "planning_state",
+        "HOLD(Planning)",
+        "authority_boundary.planning_state",
+    );
+    for field in [
+        "architecture_ratified",
+        "binding_plan_approval_allowed",
+        "dispatch_allowed",
+        "implementation_authorized",
+        "roadmap_authorized",
+    ] {
+        if boundary.get(field).and_then(Value::as_bool) != Some(false) {
+            invalid(&mut findings, &format!("authority_boundary.{field}"));
+        }
+    }
+
+    validate_pipeline_contract(&mut findings, &intent["founder_execution_authorization"]);
+
+    let stage1 = &intent["stage1_entry_requirements"];
+    let controls = stage1.get("controls").and_then(Value::as_array);
+    if !exact_ids(controls, &STAGE1_CONTROL_IDS) {
+        invalid(&mut findings, "stage1_entry_requirements.controls");
+    }
+    if let Some(controls) = controls {
+        for control in controls {
+            let unresolved = control
+                .get("qualified_owner_status")
+                .and_then(Value::as_str)
+                .is_some_and(|value| value.starts_with("unresolved"));
+            if !unresolved {
+                invalid(&mut findings, "stage1_entry_requirements.controls.nonclaim");
+                break;
+            }
+            if control.get("decision").is_some() {
+                invalid(&mut findings, "stage1_entry_requirements.controls.nonclaim");
+                break;
+            }
+        }
+    }
+    if !stage1
+        .get("authority_status")
+        .and_then(Value::as_str)
+        .is_some_and(|value| value.contains("no control is satisfied"))
+    {
+        invalid(&mut findings, "stage1_entry_requirements.authority_status");
+    }
+
+    let receipt = &stage1["receipt_contract"];
+    if !exact_string_values(receipt.get("required_fields"), &RECEIPT_FIELDS) {
+        invalid(
+            &mut findings,
+            "stage1_entry_requirements.receipt_contract.required_fields",
+        );
+    }
+    if !exact_string_values(receipt.get("allowed_decisions"), &RECEIPT_DECISIONS) {
+        invalid(
+            &mut findings,
+            "stage1_entry_requirements.receipt_contract.allowed_decisions",
+        );
+    }
+
+    let council = &intent["advisory_16_lens_council"];
+    if !exact_ids(
+        council.get("lenses").and_then(Value::as_array),
+        &COUNCIL_LENS_IDS,
+    ) {
+        invalid(&mut findings, "advisory_16_lens_council.lenses");
+    }
+    if !council
+        .get("stage1_nonclaim")
+        .and_then(Value::as_str)
+        .is_some_and(|value| value.contains("not the independently ratified"))
+    {
+        invalid(&mut findings, "advisory_16_lens_council.stage1_nonclaim");
+    }
+
+    validate_root_hub(&mut findings, root_hub);
+    validate_registry_row(&mut findings, registry);
+    validate_graph_edge(&mut findings, graph);
+    findings
+}
+
+fn validate_pipeline_contract(findings: &mut BTreeSet<Finding>, authorization: &Value) {
+    let concurrency = &authorization["concurrency_pipeline"];
+    if !exact_object_keys(Some(concurrency), &CONCURRENCY_PIPELINE_KEYS) {
+        invalid(
+            findings,
+            "founder_execution_authorization.concurrency_pipeline.keys",
+        );
+    }
+    require_contains_all(
+        findings,
+        concurrency,
+        "promotion_barrier",
+        &[
+            "Before qualified PASS(Planning)",
+            "cannot amend the controlling roadmap",
+            "implementation dispatch",
+            "After PASS(Planning)",
+        ],
+        "founder_execution_authorization.concurrency_pipeline.promotion_barrier",
+    );
+    require_contains_all(
+        findings,
+        authorization,
+        "hold_interaction",
+        &["HOLD(Planning)", "PASS(Planning)"],
+        "founder_execution_authorization.hold_interaction",
+    );
+
+    let evolution = &authorization["pipeline_evolution_contract"];
+    if !has_object_keys(Some(evolution), &PIPELINE_EVOLUTION_REQUIRED_KEYS) {
+        invalid(
+            findings,
+            "founder_execution_authorization.pipeline_evolution_contract.required_keys",
+        );
+    }
+    require_contains_all(
+        findings,
+        evolution,
+        "authority_rule",
+        &[
+            "Proposed",
+            "implemented artifacts",
+            "do not become authority",
+            "agent inference",
+        ],
+        "founder_execution_authorization.pipeline_evolution_contract.authority_rule",
+    );
+
+    let work_graph = &evolution["work_graph_contract"];
+    if !exact_string_values(
+        work_graph.get("required_fields"),
+        &WORK_GRAPH_REQUIRED_FIELDS,
+    ) {
+        invalid(
+            findings,
+            "founder_execution_authorization.pipeline_evolution_contract.work_graph_contract.required_fields",
+        );
+    }
+    if !exact_string_values(work_graph.get("states"), &WORK_GRAPH_STATES) {
+        invalid(
+            findings,
+            "founder_execution_authorization.pipeline_evolution_contract.work_graph_contract.states",
+        );
+    }
+
+    if !exact_string_values(evolution.get("promotion_state_machine"), &PROMOTION_STATES) {
+        invalid(
+            findings,
+            "founder_execution_authorization.pipeline_evolution_contract.promotion_state_machine",
+        );
+    }
+
+    let governor = &evolution["automation_safety_governor"];
+    if !exact_object_keys(Some(governor), &AUTOMATION_SAFETY_GOVERNOR_KEYS) {
+        invalid(
+            findings,
+            "founder_execution_authorization.pipeline_evolution_contract.automation_safety_governor.keys",
+        );
+    }
+    for tier in ["AUTO", "ADVISE", "GATE"] {
+        if governor
+            .get(tier)
+            .and_then(Value::as_str)
+            .is_none_or(str::is_empty)
+        {
+            invalid(
+                findings,
+                &format!(
+                    "founder_execution_authorization.pipeline_evolution_contract.automation_safety_governor.{tier}"
+                ),
+            );
+        }
+    }
+    if governor
+        .get("classification_rule")
+        .and_then(Value::as_str)
+        .is_none_or(str::is_empty)
+    {
+        invalid(
+            findings,
+            "founder_execution_authorization.pipeline_evolution_contract.automation_safety_governor.classification_rule",
+        );
+    }
+
+    require_contains_all(
+        findings,
+        evolution,
+        "trusted_control_rule",
+        &[
+            "candidate revision is untrusted data",
+            "protected control state",
+            "cannot weaken",
+            "prior protected control",
+            "proposed successor",
+        ],
+        "founder_execution_authorization.pipeline_evolution_contract.trusted_control_rule",
+    );
+    require_contains_all(
+        findings,
+        evolution,
+        "merge_and_release_separation",
+        &[
+            "does not prove runtime readiness",
+            "Runtime promotion separately requires",
+            "immutable artifact",
+            "automatic stop or rollback",
+        ],
+        "founder_execution_authorization.pipeline_evolution_contract.merge_and_release_separation",
+    );
+    require_contains_all(
+        findings,
+        evolution,
+        "implementation_claim_ceiling",
+        &[
+            "does not claim every mechanism is implemented",
+            "current lifecycle authority",
+            "exact runtime receipts",
+        ],
+        "founder_execution_authorization.pipeline_evolution_contract.implementation_claim_ceiling",
+    );
+    require_contains_all(
+        findings,
+        evolution,
+        "generated_artifact_rule",
+        &[
+            "never hand-edited authority",
+            "tracked or not-tracked-in-git",
+            "materialize through the registered controller",
+            "regenerate-twice determinism",
+            "stale, unregistered, manually altered, or re-tracked decommitted",
+        ],
+        "founder_execution_authorization.pipeline_evolution_contract.generated_artifact_rule",
+    );
+    require_contains_all(
+        findings,
+        evolution,
+        "failure_taxonomy_rule",
+        &[
+            "code regression",
+            "policy violation",
+            "security or privacy finding",
+            "infrastructure failure",
+            "suspected flake",
+            "cancellation",
+            "timeout",
+            "first failing evidence",
+        ],
+        "founder_execution_authorization.pipeline_evolution_contract.failure_taxonomy_rule",
+    );
+    require_contains_all(
+        findings,
+        evolution,
+        "diagnosability_rule",
+        &[
+            "typed, redacted, retained evidence packet",
+            "exact subject, base, merge-base",
+            "reproduction path",
+            "never become a second merge authority",
+        ],
+        "founder_execution_authorization.pipeline_evolution_contract.diagnosability_rule",
+    );
+    require_contains_all(
+        findings,
+        evolution,
+        "continuous_vulnerability_invalidation_rule",
+        &[
+            "fresh vulnerability",
+            "re-evaluates already admitted and stable artifacts",
+            "does not claim the current Proposed vulnerability-intelligence pipeline is live authority",
+        ],
+        "founder_execution_authorization.pipeline_evolution_contract.continuous_vulnerability_invalidation_rule",
+    );
+    require_contains_all(
+        findings,
+        evolution,
+        "tenant_pipeline_isolation_rule",
+        &[
+            "tenant-scoped",
+            "default-deny across tenant boundaries",
+            "Negative cross-tenant fixtures",
+            "does not claim those Phase-0 gaps are closed",
+        ],
+        "founder_execution_authorization.pipeline_evolution_contract.tenant_pipeline_isolation_rule",
+    );
+    require_contains_all(
+        findings,
+        evolution,
+        "runtime_promotion_fail_closed_rule",
+        &[
+            "begins runtime evaluation in held, not eligible",
+            "deterministic, non-LLM decision",
+            "backfilled evidence remains held",
+            "cannot mint promotion authority",
+            "new attributable receipt",
+        ],
+        "founder_execution_authorization.pipeline_evolution_contract.runtime_promotion_fail_closed_rule",
+    );
+    require_contains_all(
+        findings,
+        evolution,
+        "current_protected_admission_rule",
+        &[
+            "current protected target",
+            "signed",
+            "exact head",
+            "unresolved review threads",
+            "oya-ci-required",
+            "invalidates prior admission evidence",
+        ],
+        "founder_execution_authorization.pipeline_evolution_contract.current_protected_admission_rule",
+    );
+    require_contains_all(
+        findings,
+        evolution,
+        "post_merge_closure_rule",
+        &[
+            "not product completion",
+            "exact claim ceiling",
+            "claims blocked",
+        ],
+        "founder_execution_authorization.pipeline_evolution_contract.post_merge_closure_rule",
+    );
+    require_contains_all(
+        findings,
+        evolution,
+        "pipeline_slo_rule",
+        &[
+            "service-level objectives",
+            "false-green and false-red escape rates",
+            "never spend them to bypass",
+        ],
+        "founder_execution_authorization.pipeline_evolution_contract.pipeline_slo_rule",
+    );
+    require_contains_all(
+        findings,
+        evolution,
+        "capacity_rule",
+        &[
+            "maximum safe useful concurrency",
+            "ready work graph",
+            "reduce concurrency automatically",
+        ],
+        "founder_execution_authorization.pipeline_evolution_contract.capacity_rule",
+    );
+    validate_research_basis(findings, evolution.get("research_basis"));
+    require_contains_all(
+        findings,
+        evolution,
+        "productization_and_portability_rule",
+        &[
+            "version and digest",
+            "fresh checkout and immutable inputs",
+            "equivalence evidence",
+            "avoid making any vendor, UI, CLI, or hosted control plane the only way",
+        ],
+        "founder_execution_authorization.pipeline_evolution_contract.productization_and_portability_rule",
+    );
+    require_contains_all(
+        findings,
+        evolution,
+        "pipeline_migration_rule",
+        &[
+            "old and new authorities",
+            "cutover and rollback conditions",
+            "remove the retired mechanism",
+            "readable authority surfaces",
+        ],
+        "founder_execution_authorization.pipeline_evolution_contract.pipeline_migration_rule",
+    );
+    require_contains_all(
+        findings,
+        governor,
+        "AUTO",
+        &["may never merge it", "bypass a gate", "widen a baseline"],
+        "founder_execution_authorization.pipeline_evolution_contract.automation_safety_governor.AUTO.prohibited_authority",
+    );
+}
+
+fn validate_research_basis(findings: &mut BTreeSet<Finding>, value: Option<&Value>) {
+    let Some(research_basis) = value else {
+        invalid(
+            findings,
+            "founder_execution_authorization.pipeline_evolution_contract.research_basis",
+        );
+        return;
+    };
+    if research_basis
+        .get("retrieved_at")
+        .and_then(Value::as_str)
+        .is_none_or(str::is_empty)
+    {
+        invalid(
+            findings,
+            "founder_execution_authorization.pipeline_evolution_contract.research_basis.retrieved_at",
+        );
+    }
+    require_contains_all(
+        findings,
+        research_basis,
+        "claim_boundary",
+        &[
+            "external evidence",
+            "do not override Oyatie authority",
+            "prove implementation",
+            "authorize a roadmap",
+        ],
+        "founder_execution_authorization.pipeline_evolution_contract.research_basis.claim_boundary",
+    );
+    let Some(sources) = research_basis.get("sources").and_then(Value::as_array) else {
+        invalid(
+            findings,
+            "founder_execution_authorization.pipeline_evolution_contract.research_basis.sources",
+        );
+        return;
+    };
+    if sources.is_empty() {
+        invalid(
+            findings,
+            "founder_execution_authorization.pipeline_evolution_contract.research_basis.sources",
+        );
+        return;
+    }
+
+    let mut source_ids = HashSet::new();
+    let mut urls = HashSet::new();
+    for (index, source) in sources.iter().enumerate() {
+        let key = format!(
+            "founder_execution_authorization.pipeline_evolution_contract.research_basis.sources[{index}]"
+        );
+        let Some(source_id) = source.get("source_id").and_then(Value::as_str) else {
+            invalid(findings, &format!("{key}.source_id"));
+            continue;
+        };
+        if source_id.is_empty()
+            || !source_id.chars().all(|character| {
+                character.is_ascii_lowercase() || character.is_ascii_digit() || character == '-'
+            })
+            || !source_ids.insert(source_id)
+        {
+            invalid(findings, &format!("{key}.source_id"));
+        }
+
+        let Some(url) = source.get("url").and_then(Value::as_str) else {
+            invalid(findings, &format!("{key}.url"));
+            continue;
+        };
+        if !url.starts_with("https://") || !urls.insert(url) {
+            invalid(findings, &format!("{key}.url"));
+        }
+
+        for field in ["scope", "adoption"] {
+            if source
+                .get(field)
+                .and_then(Value::as_str)
+                .is_none_or(str::is_empty)
+            {
+                invalid(findings, &format!("{key}.{field}"));
+            }
+        }
+    }
+}
+
+fn validate_root_hub(findings: &mut BTreeSet<Finding>, root_hub: &Value) {
+    let entry = &root_hub["entry_points"]["founder_product_intent"];
+    require_string(
+        findings,
+        entry,
+        "current_path",
+        FOUNDER_INTENT_PATH,
+        "root_hub.entry_points.founder_product_intent.current_path",
+    );
+    if !root_hub["agent_quick_start_protocol"]["step_1_read_authority"]
+        .as_str()
+        .is_some_and(|value| value.contains(".founder_product_intent"))
+    {
+        invalid(
+            findings,
+            "root_hub.agent_quick_start_protocol.founder_product_intent",
+        );
+    }
+}
+
+fn validate_registry_row(findings: &mut BTreeSet<Finding>, registry: &Value) {
+    let valid = registry["rows"].as_array().is_some_and(|rows| {
+        rows.iter().any(|row| {
+            row["artifact_id"].as_str() == Some("founder-product-intent")
+                && row["artifact_path"].as_str() == Some(FOUNDER_INTENT_PATH)
+                && row["artifact_format"].as_str() == Some("json")
+                && row["artifact_profile"].as_str() == Some("schema")
+        })
+    });
+    if !valid {
+        invalid(
+            findings,
+            "artifact_capabilities_registry.founder-product-intent",
+        );
+    }
+}
+
+fn validate_graph_edge(findings: &mut BTreeSet<Finding>, graph: &Value) {
+    let valid = graph["edges"].as_array().is_some_and(|edges| {
+        edges.iter().any(|edge| {
+            edge["source"].as_str() == Some("founder-product-intent")
+                && edge["target"].as_str() == Some("schema")
+                && edge["edge_type"].as_str() == Some("declares")
+        })
+    });
+    if !valid {
+        invalid(
+            findings,
+            "active_artifact_contract_edges.founder-product-intent",
+        );
+    }
+}
+
+fn exact_ids(values: Option<&Vec<Value>>, expected: &[&str]) -> bool {
+    values.is_some_and(|values| {
+        values.len() == expected.len()
+            && values
+                .iter()
+                .all(|value| value.get("id").and_then(Value::as_str).is_some())
+            && values
+                .iter()
+                .filter_map(|value| value["id"].as_str())
+                .collect::<HashSet<_>>()
+                == expected.iter().copied().collect()
+    })
+}
+
+fn exact_string_values(value: Option<&Value>, expected: &[&str]) -> bool {
+    value.and_then(Value::as_array).is_some_and(|values| {
+        values.len() == expected.len()
+            && values.iter().all(Value::is_string)
+            && values
+                .iter()
+                .filter_map(Value::as_str)
+                .collect::<HashSet<_>>()
+                == expected.iter().copied().collect()
+    })
+}
+
+fn has_object_keys(value: Option<&Value>, expected: &[&str]) -> bool {
+    value
+        .and_then(Value::as_object)
+        .is_some_and(|object| expected.iter().all(|key| object.contains_key(*key)))
+}
+
+fn exact_object_keys(value: Option<&Value>, expected: &[&str]) -> bool {
+    value.and_then(Value::as_object).is_some_and(|object| {
+        object.len() == expected.len()
+            && object.keys().map(String::as_str).collect::<HashSet<_>>()
+                == expected.iter().copied().collect()
+    })
+}
+
+fn require_contains_all(
+    findings: &mut BTreeSet<Finding>,
+    object: &Value,
+    field: &str,
+    required_fragments: &[&str],
+    key: &str,
+) {
+    if !object
+        .get(field)
+        .and_then(Value::as_str)
+        .is_some_and(|value| {
+            required_fragments
+                .iter()
+                .all(|fragment| value.contains(fragment))
+        })
+    {
+        invalid(findings, key);
+    }
+}
+
+fn require_string(
+    findings: &mut BTreeSet<Finding>,
+    object: &Value,
+    field: &str,
+    expected: &str,
+    key: &str,
+) {
+    if object.get(field).and_then(Value::as_str) != Some(expected) {
+        invalid(findings, key);
+    }
+}
+
+fn invalid(findings: &mut BTreeSet<Finding>, key: &str) {
+    findings.insert(Finding::new(INVALID_CODE, key));
+}

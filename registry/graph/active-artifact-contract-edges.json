@@ -198,6 +198,11 @@
       "edge_type": "declares"
     },
     {
+      "source": "founder-product-intent",
+      "target": "schema",
+      "edge_type": "declares"
+    },
+    {
       "source": "masterplan",
       "target": "schema",
       "edge_type": "declares"
