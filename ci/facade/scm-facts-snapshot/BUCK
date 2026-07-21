@@ -18,11 +18,6 @@ rust_binary(
         # Reuse the producer's exact canonicalizer so the scm-facts face is byte-formatted
         # identically to the other five faces.
         "//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry",
-        # The firewall's baseline PARSER (ADR-0616 PR-1): the frozen-baseline regen cross-check
-        # projects the committed reference AND the merge-base-source regeneration through the
-        # firewall's own Baseline::from_value and compares {keys, mode, frozen_empty} per (gate,
-        # code). Acyclic: the ratchet lib depends only on serde_json.
-        "//ci/facade/baseline-ratchet:ci-baseline-ratchet",
         # Rename-aware path-keyed baseline relabel (task #64): the P4 content-subset guard reuses
         # the brand-residue census SSOT under the LIVE VocabPolicy from oya-ci.toml (config kernel),
         # so carve-outs + case-folding are byte-identical to the producer's collect_brand_residue.

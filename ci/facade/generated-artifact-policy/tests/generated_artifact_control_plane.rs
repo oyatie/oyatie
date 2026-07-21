@@ -14,9 +14,8 @@ use std::path::PathBuf;
 use serde_json::{Value, json};
 
 use ci_generated_artifact_policy::{
-    FROZEN_REFERENCE_SOURCE_REGENERATE, Verdict, evaluate_keyed,
-    evaluate_keyed_with_frozen_references, evaluate_with_frozen_references,
-    frozen_reference_face_paths_keyed,
+    Verdict, evaluate_keyed, evaluate_keyed_with_frozen_references,
+    evaluate_with_frozen_references, frozen_reference_face_paths_keyed,
 };
 
 const MANIFEST_ENV: &str = "OYA_CI_GENERATED_ARTIFACT_MANIFEST";
@@ -153,13 +152,11 @@ fn live_generated_artifacts_are_declared_in_the_control_plane() {
 }
 
 #[test]
-fn live_firewall_frozen_reference_is_regenerate_from_source_adr_0616() {
-    // ADR-0616 (supersedes ADR-0596): the firewall frozen reference is REGENERATED from the
-    // merge-base source, so the live ratchet policy declares
-    // `frozen_reference.source: regenerate-from-merge-base-source`. That EXCLUDES it from the
-    // committed-git-blob frozen-reference set (there is no committed blob to empty, so #828 stays
-    // impossible), and the control plane may declare it de-commit class WITHOUT firing the
-    // must-stay-committed guard.
+fn live_firewall_frozen_reference_must_stay_committed() {
+    // #828 make-it-impossible guard, evaluated live against the committed ratchet policy + manifest.
+    // The firewall frozen-reference face MUST NOT be declared de-commit class in the control plane:
+    // de-committing it empties the merge-base ratchet baseline (frozen_empty) and deadlocks the
+    // merge queue (the #828 dev regression, hotfixed by #830).
     let manifest = read_json(input_path(
         MANIFEST_ENV,
         "registry/generated-artifact-control-plane.json",
@@ -168,34 +165,19 @@ fn live_firewall_frozen_reference_is_regenerate_from_source_adr_0616() {
         SCM_FACTS_ENV,
         "ci/facade/artifact-inventory-registry/scm-facts.generated.json",
     ));
-
-    // The live ratchet policy MUST declare regenerate-from-merge-base-source (the migration is real,
-    // not a parse failure that silently empties the set).
-    let ratchet_policy = read_json(input_path(RATCHET_POLICY_ENV, RATCHET_POLICY_DEFAULT_PATH));
-    assert_eq!(
-        ratchet_policy["frozen_reference"]["source"].as_str(),
-        Some(FROZEN_REFERENCE_SOURCE_REGENERATE),
-        "ADR-0616: the live ratchet policy must declare regenerate-from-merge-base-source"
-    );
-
-    // The committed-git-blob frozen-reference set is therefore EMPTY (the only frozen reference has
-    // migrated to regenerate-from-source).
-    let committed_blob_frozen_refs = live_frozen_reference_paths();
+    let frozen_reference_paths = live_frozen_reference_paths();
     assert!(
-        committed_blob_frozen_refs.is_empty(),
-        "ADR-0616: a regenerate-from-source frozen reference must be excluded from the \
-         committed-git-blob set; got {committed_blob_frozen_refs:?}"
+        !frozen_reference_paths.is_empty(),
+        "ratchet policy must declare at least one frozen reference"
     );
 
-    // The de-committed frozen reference must NOT fire the must-stay-committed guard.
     let findings =
-        evaluate_keyed_with_frozen_references(&manifest, &scm_facts, &committed_blob_frozen_refs);
+        evaluate_keyed_with_frozen_references(&manifest, &scm_facts, &frozen_reference_paths);
     assert!(
         !findings
             .iter()
             .any(|finding| finding.code == "frozen_reference_artifact_must_stay_committed"),
-        "the regenerate-from-source frozen reference must not fire the must-stay-committed guard; \
-         findings: {findings:#?}"
+        "a firewall frozen reference is declared de-commit class in the control plane; findings: {findings:#?}"
     );
 }
 

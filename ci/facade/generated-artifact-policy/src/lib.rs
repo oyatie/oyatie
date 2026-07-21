@@ -1451,23 +1451,13 @@ fn parse_declared_artifacts(
     declared
 }
 
-/// The ratchet policy's `frozen_reference.source` value marking a frozen reference as REGENERATED
-/// from the merge-base source tree (ADR-0616), NOT read from a committed git blob. A frozen
-/// reference declaring this source MAY be de-committed (`not-tracked-in-git`): the emitter
-/// regenerates it by running the producer over the merge-base worktree, so there is no committed
-/// blob to empty and no #828 deadlock. Absent (the default) means the legacy committed-git-blob
-/// source (ADR-0596 must-stay-committed).
-pub const FROZEN_REFERENCE_SOURCE_REGENERATE: &str = "regenerate-from-merge-base-source";
-
-/// Extract the COMMITTED-GIT-BLOB firewall frozen-reference face paths from one or more parsed
-/// `ratchet-policy.json` values. This set is the authoritative, repo-agnostic signal for "this path
-/// is materialized from the merge-base git BLOB" (`git show <merge_base>:<face_path>`, ADR-0551), so
-/// de-committing it is the #828 deadlock. A frozen reference that DECLARES
-/// `frozen_reference.source == FROZEN_REFERENCE_SOURCE_REGENERATE` (ADR-0616) is EXCLUDED: it is
-/// regenerated from the merge-base source, so it is not a committed-blob reference and MAY be
-/// de-committed. The function tolerates either a single `frozen_reference` object or an array of them
-/// so adopters can declare multiple frozen baselines. It carries NO hardcoded oyatie path — both the
-/// set and the regenerate-from-source exemption are pure data from the policy files.
+/// Extract the firewall FROZEN-REFERENCE face paths from one or more parsed `ratchet-policy.json`
+/// values. The frozen-reference set is the authoritative, repo-agnostic signal for "this path is
+/// materialized from the merge-base git blob": the firewall ratchet (`oya-cloud-ci-firewall-app`)
+/// and the scm-facts emitter resolve the baseline via `git show <merge_base>:<frozen_reference.
+/// face_path>` (ADR-0551). The function reads `frozen_reference.face_path`, tolerating either a
+/// single `frozen_reference` object or an array of them so adopters can declare multiple frozen
+/// baselines. It carries NO hardcoded oyatie path — the set is pure data from the policy files.
 pub fn frozen_reference_face_paths_keyed<'a, I>(
     ratchet_policies: I,
 ) -> (BTreeSet<String>, BTreeSet<Finding>)
@@ -1524,14 +1514,6 @@ fn collect_frozen_reference_face_path(
         ));
         return;
     };
-    // ADR-0616 inversion: a frozen reference that declares regenerate-from-merge-base-source is NOT
-    // a committed-git-blob reference — it is regenerated from the merge-base source, so it is
-    // EXEMPT from the must-stay-committed set (and MAY be de-committed). Data-driven: the exemption
-    // is the policy `source` field, no hardcoded path.
-    if frozen_reference.get("source").and_then(Value::as_str) == Some(FROZEN_REFERENCE_SOURCE_REGENERATE)
-    {
-        return;
-    }
     paths.insert(face_path.to_owned());
 }
 
@@ -1543,20 +1525,14 @@ where
     paths
 }
 
-/// Make-it-impossible guard for the #828 dev-wide deadlock class (ADR-0596), INVERTED by ADR-0616.
-/// A firewall frozen-reference/baseline read from the committed git BLOB at the merge-base
-/// (`git show <merge_base>:<face_path>`, ADR-0551) empties the ratchet baseline if de-committed, so
-/// every pre-existing repo-wide debt item reads as a NEW regression on every broad-affected-set PR —
-/// the #828 dev regression, hotfixed by #830. This rule fires `frozen_reference_artifact_must_stay_
-/// committed` when a declared artifact whose `path` is a committed-git-blob frozen reference is
-/// declared with a de-commit mode.
-///
-/// ADR-0616 inversion: a frozen reference MAY be de-committed IFF its ratchet policy declares
-/// `frozen_reference.source == FROZEN_REFERENCE_SOURCE_REGENERATE` — the emitter then REGENERATES it
-/// from the merge-base source (no committed blob to empty, so #828 stays impossible). Those paths are
-/// EXCLUDED from `frozen_reference_paths` by [`frozen_reference_face_paths_keyed`], so this predicate
-/// still RED-blocks a de-commit of a committed-git-blob reference while allowing a de-commit of a
-/// regenerate-from-source reference. The set is supplied as DATA by the caller (from
+/// Make-it-impossible guard for the #828 dev-wide deadlock class. A firewall FROZEN-REFERENCE /
+/// baseline artifact is materialized from the committed git blob at the merge-base (`git show
+/// <merge_base>:<face_path>`, ADR-0551). De-committing it (declaring it with a derive-on-demand /
+/// de-commit `materialization_mode`) empties the ratchet baseline at the merge-base, so every
+/// pre-existing repo-wide debt item reads as a NEW regression on every broad-affected-set PR — the
+/// #828 dev regression, hotfixed by #830. This rule fires `frozen_reference_artifact_must_stay_
+/// committed` when a declared artifact whose `path` is a frozen reference is declared with a
+/// de-commit mode. The frozen-reference set is supplied as DATA by the caller (from
 /// `frozen_reference_face_paths` over the repo's `ratchet-policy.json` files), so the predicate has
 /// no hardcoded paths and works on any repo with its own ratchet policy + control-plane manifest.
 pub fn frozen_reference_decommit_findings(
@@ -3139,6 +3115,35 @@ mod tests {
     }
 
     #[test]
+    fn candidate_regeneration_declaration_cannot_replace_committed_frozen_reference() {
+        let mut baseline = artifact(
+            "cloud-ci-gate-baseline-ratchet-face",
+            "out/gate-baseline.generated.json",
+        );
+        baseline["materialization_mode"] = json!("not-tracked-in-git");
+        baseline["merge_policy"] = json!("never-manual-merge-regenerate-from-source-tree");
+        let manifest = manifest(vec![baseline]);
+        let scm_facts = scm(&[]);
+        let candidate_policy = json!({
+            "frozen_reference": {
+                "face_path": "out/gate-baseline.generated.json",
+                "source": "regenerate-from-merge-base-source"
+            }
+        });
+        let frozen = frozen_reference_face_paths(std::iter::once(&candidate_policy));
+
+        let findings = evaluate_keyed_with_frozen_references(&manifest, &scm_facts, &frozen);
+        assert!(findings.iter().any(|finding| {
+            finding.code == "frozen_reference_artifact_must_stay_committed"
+                && finding.key == "cloud-ci-gate-baseline-ratchet-face"
+        }));
+        assert_eq!(
+            evaluate_with_frozen_references(&manifest, &scm_facts, &frozen).verdict,
+            Verdict::Red
+        );
+    }
+
+    #[test]
     fn frozen_reference_committed_with_decommitted_pure_views_is_green() {
         // GREEN fixture (current dev state): the frozen-reference baseline stays committed
         // (a non-de-commit materialization mode), while a sibling pure-view face is de-committed.
@@ -3166,78 +3171,6 @@ mod tests {
         assert_eq!(
             evaluate_with_frozen_references(&manifest, &scm_facts, &frozen).verdict,
             Verdict::Green
-        );
-    }
-
-    #[test]
-    fn frozen_reference_declaring_regenerate_from_source_may_be_decommitted_adr_0616() {
-        // ADR-0616 INVERSION: a frozen reference whose ratchet policy declares
-        // `source: regenerate-from-merge-base-source` is REGENERATED from the merge-base source, so
-        // it MAY be de-committed (`not-tracked-in-git`) WITHOUT firing the must-stay-committed guard.
-        // The emitter never reads a committed blob for it, so #828 stays impossible. Data-driven.
-        let mut baseline = artifact(
-            "cloud-ci-gate-baseline-ratchet-face",
-            "out/gate-baseline.generated.json",
-        );
-        baseline["materialization_mode"] = json!("not-tracked-in-git");
-        baseline["merge_policy"] = json!("not-tracked-in-git");
-        let manifest = manifest(vec![baseline]);
-        // The frozen reference is de-committed (absent from the tracked tree) — the desired state.
-        let scm_facts = scm(&[]);
-
-        // The ratchet policy DECLARES regenerate-from-merge-base-source, so the face_path is EXCLUDED
-        // from the committed-git-blob frozen-reference set.
-        let policy = json!({
-            "base_ref": "origin/dev",
-            "frozen_reference": {
-                "face_path": "out/gate-baseline.generated.json",
-                "out_path": "out/frozen.merge-base.generated.json",
-                "source": FROZEN_REFERENCE_SOURCE_REGENERATE
-            }
-        });
-        let frozen = frozen_reference_face_paths(std::iter::once(&policy));
-        assert!(
-            frozen.is_empty(),
-            "a regenerate-from-source frozen reference must be excluded from the committed-blob set"
-        );
-
-        let findings = evaluate_keyed_with_frozen_references(&manifest, &scm_facts, &frozen);
-        assert!(
-            !findings
-                .iter()
-                .any(|finding| finding.code == "frozen_reference_artifact_must_stay_committed"),
-            "de-committing a regenerate-from-source frozen reference must NOT RED (ADR-0616); \
-             findings: {findings:#?}"
-        );
-        assert_eq!(
-            evaluate_with_frozen_references(&manifest, &scm_facts, &frozen).verdict,
-            Verdict::Green
-        );
-    }
-
-    #[test]
-    fn frozen_reference_without_regenerate_declaration_still_reds_on_decommit() {
-        // The INVERSE of the ADR-0616 case: a frozen reference whose policy does NOT declare
-        // regenerate-from-source stays a committed-git-blob reference, so de-committing it still
-        // RED-blocks (the #828 guard is preserved for un-migrated frozen references).
-        let mut baseline = artifact(
-            "cloud-ci-gate-baseline-ratchet-face",
-            "out/gate-baseline.generated.json",
-        );
-        baseline["materialization_mode"] = json!("not-tracked-in-git");
-        let manifest = manifest(vec![baseline]);
-        let scm_facts = scm(&[]);
-        // ratchet_policy() declares NO source → committed-git-blob → in the must-stay-committed set.
-        let frozen = frozen_set(&["out/gate-baseline.generated.json"]);
-        assert!(frozen.contains("out/gate-baseline.generated.json"));
-
-        let findings = evaluate_keyed_with_frozen_references(&manifest, &scm_facts, &frozen);
-        assert!(
-            findings
-                .iter()
-                .any(|finding| finding.code == "frozen_reference_artifact_must_stay_committed"),
-            "an un-migrated (committed-blob) frozen reference must still RED on de-commit; \
-             findings: {findings:#?}"
         );
     }
 

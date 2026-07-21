@@ -328,16 +328,6 @@ impl FrozenBaseline {
                 "frozen baseline declares missing_at_merge_base but carries gates".to_owned(),
             );
         }
-        // PROVENANCE (ADR-0616): the frozen reference is REGENERATED from the merge-base source
-        // (`git rev-parse <merge_base>^{tree}` over the merge-base tree), NOT read from a committed
-        // git blob. With no committed bytes to trust, the snapshot must carry provenance binding the
-        // regeneration to the immutable merge-base tree. The firewall NEVER calls git, so it cannot
-        // recompute the tree; it fail-closed VERIFIES that the emitter-computed provenance is present,
-        // that `base_tree_sha` is a well-formed tree id, and that the provenance is bound to THIS
-        // snapshot's `merge_base` (a provenance lifted from a different merge-base is rejected).
-        // Cryptographic signing of this provenance is a fleet-wide follow-on (ADR-0616 §Trust
-        // ceiling); this parser verifies the attestable facts a signer would later bind.
-        Self::verify_provenance(value, &merge_base)?;
         Ok(Self {
             base_ref,
             merge_base,
@@ -345,39 +335,6 @@ impl FrozenBaseline {
             missing_at_merge_base,
             baseline,
         })
-    }
-
-    /// Fail-closed provenance verification (ADR-0616): the snapshot must carry a `provenance`
-    /// object with a well-formed `base_tree_sha` bound to this snapshot's `merge_base`.
-    fn verify_provenance(value: &Value, merge_base: &str) -> Result<(), String> {
-        let provenance = value.get("provenance").and_then(Value::as_object).ok_or(
-            "frozen baseline missing provenance object (ADR-0616: the frozen reference is \
-             regenerated from the merge-base source and must carry regeneration provenance binding \
-             it to the merge-base tree; fail-closed) — re-materialize the snapshot: \
-             buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .",
-        )?;
-        let base_tree_sha = provenance
-            .get("base_tree_sha")
-            .and_then(Value::as_str)
-            .unwrap_or("");
-        if base_tree_sha.len() < 40 || !base_tree_sha.chars().all(|c| c.is_ascii_hexdigit()) {
-            return Err(format!(
-                "frozen baseline provenance base_tree_sha is not a full hex tree id: \
-                 {base_tree_sha:?} (fail-closed)"
-            ));
-        }
-        let provenance_merge_base = provenance
-            .get("merge_base")
-            .and_then(Value::as_str)
-            .unwrap_or("");
-        if provenance_merge_base != merge_base {
-            return Err(format!(
-                "frozen baseline provenance merge_base {provenance_merge_base:?} disagrees with \
-                 the snapshot merge_base {merge_base:?} — the regeneration provenance must be bound \
-                 to THIS merge-base (fail-closed)"
-            ));
-        }
-        Ok(())
     }
 }
 
@@ -1179,23 +1136,13 @@ mod tests {
         assert!(!push.is_green());
     }
 
-    const FROZEN_MERGE_BASE: &str = "d5d8be5d4121e91655d7ba361f63271c98c57a68";
-    const FROZEN_BASE_TREE: &str = "9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f";
-
     fn frozen_value() -> Value {
         json!({
             "schema": FROZEN_BASELINE_SCHEMA,
             "base_ref": "origin/dev",
-            "merge_base": FROZEN_MERGE_BASE,
+            "merge_base": "d5d8be5d4121e91655d7ba361f63271c98c57a68",
             "frozen_policy_source": FROZEN_POLICY_SOURCE_MERGE_BASE,
             "missing_at_merge_base": false,
-            "provenance": {
-                "base_tree_sha": FROZEN_BASE_TREE,
-                "merge_base": FROZEN_MERGE_BASE,
-                "analyzer": {"emitter": "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot",
-                             "producer": "//ci/facade/artifact-inventory-registry:x"},
-                "computed_by": "ADR-0616 regenerate-from-merge-base-source"
-            },
             "baseline": {
                 "gates": {
                     "cloud-ci-total-accounting": {
@@ -1301,34 +1248,5 @@ mod tests {
         let frozen = FrozenBaseline::from_value(&value).unwrap();
         assert!(frozen.missing_at_merge_base);
         assert!(frozen.baseline.gates.is_empty());
-    }
-
-    #[test]
-    fn frozen_baseline_rejects_missing_provenance() {
-        // ADR-0616: the frozen reference is regenerated from the merge-base source (no committed
-        // blob), so a snapshot WITHOUT regeneration provenance is fail-closed rejected.
-        let mut value = frozen_value();
-        value.as_object_mut().unwrap().remove("provenance");
-        let err = FrozenBaseline::from_value(&value).unwrap_err();
-        assert!(err.contains("provenance"), "{err}");
-    }
-
-    #[test]
-    fn frozen_baseline_rejects_malformed_base_tree_sha() {
-        let mut value = frozen_value();
-        value["provenance"]["base_tree_sha"] = json!("not-a-tree");
-        let err = FrozenBaseline::from_value(&value).unwrap_err();
-        assert!(err.contains("base_tree_sha"), "{err}");
-    }
-
-    #[test]
-    fn frozen_baseline_rejects_provenance_bound_to_a_different_merge_base() {
-        // A provenance lifted from a DIFFERENT merge-base (tamper / stale snapshot) is rejected:
-        // the firewall cannot recompute the tree, so it binds provenance to THIS merge_base.
-        let mut value = frozen_value();
-        value["provenance"]["merge_base"] =
-            json!("cccccccccccccccccccccccccccccccccccccccc");
-        let err = FrozenBaseline::from_value(&value).unwrap_err();
-        assert!(err.contains("disagrees"), "{err}");
     }
 }

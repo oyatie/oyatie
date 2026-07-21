@@ -79,17 +79,18 @@ test-results/
 !**/generated/
 !**/generated/.gitkeep
 
-# FROZEN-REFERENCE RATCHET BASELINE — DE-COMMITTED (ADR-0616, supersedes ADR-0596/#828 hotfix).
-# The gate-baseline face is the firewall ratchet's frozen reference. It was kept TRACKED only
-# because the emitter read it as a committed git blob via `git show <merge-base>:<this-path>`, so
-# de-committing it emptied the frozen baseline (missing_at_merge_base=true -> every pre-existing
-# debt item read as NEW growth: the #828 deadlock). ADR-0616 removes that committed-blob read: the
-# emitter now REGENERATES the frozen reference by running the accounting producer over the merge-base
-# SOURCE worktree (ratchet-policy.json declares frozen_reference.source: regenerate-from-merge-base-
-# source), validated by a determinism canary + merge-base-tree provenance. With no committed blob to
-# empty, de-commit is safe and the deadlock is impossible. It is declared materialization_mode:
-# not-tracked-in-git in registry/generated-artifact-control-plane.json and is covered by the broad
-# **/*.generated.json rule above — deliberately NOT negated (unlike move-manifest below).
+# FROZEN-REFERENCE RATCHET BASELINE — MUST stay TRACKED (dev hotfix to #828/ADR-0595). The
+# gate-baseline face is NOT a pure view like the five faces below: it is the firewall ratchet's
+# frozen reference, materialized by the scm-facts emitter via `git show <merge-base>:<this-path>`
+# (oya-cloud-ci-scm-facts-emitter-app git_show_file). That merge-base materialization REQUIRES the
+# path to be a committed git blob on the main branch. #828 de-committed it, so at gate-time
+# `git cat-file -e <merge-base>:<path>` failed -> missing_at_merge_base=true -> empty frozen
+# baseline -> every pre-existing repo-wide debt item reported as a NEW regression on every
+# broad-affected-set PR. It is declared materialization_mode: main-branch-materialized in
+# registry/generated-artifact-control-plane.json: committed on the integration branch for merge-base
+# consumers, but controller-owned so contributor PRs do not carry generated baseline byte churn.
+# Negate the broad *.generated.json ignore for exactly this path.
+!ci/facade/artifact-inventory-registry/gate-baseline.generated.json
 
 # ADR-0595/ADR-0597 de-commit class: the SIX cloud-ci faces below are pure derivations
 # (git ls-files x OWNERS x ADR front-matter x specs). They were the #1 merge-conflict /
@@ -111,12 +112,12 @@ test-results/
 # to ~20 gate tests; those consumers now materialize it on demand (CI producer-regen uploads the
 # materialized face; every gate matrix leg downloads it before `cargo test`). De-committing it
 # removes the last shared committed merge surface, so a PR can no longer dirty every other open PR
-# by re-materializing it — the faces-serialization cascade is now impossible. It is NOT a frozen
-# ratchet reference (it is the SCM-facts snapshot the producer derives FROM, regenerated from
-# `git ls-files` each run).
-# NOTE: gate-baseline.generated.json IS now in the de-commit class too (ADR-0616): the frozen
-# reference is regenerated from the merge-base source, so its committed-blob guard was inverted and
-# it is de-committed alongside these faces (covered by **/*.generated.json above, not negated).
+# by re-materializing it — the faces-serialization cascade is now impossible. Unlike gate-baseline
+# it is NOT a frozen ratchet reference (it is the SCM-facts snapshot the producer derives FROM,
+# regenerated from `git ls-files` each run), so de-committing it does NOT trip the #831/ADR-0596
+# frozen-reference guard.
+# NOTE: gate-baseline.generated.json is NOT in this de-commit class — it is the frozen ratchet
+# baseline and stays tracked (negated above).
 
 # ADR-0613 (continues the ADR-0595/0604 de-commit strangler): the two remaining controller-
 # materialized PROJECTION faces below were still committed merge surfaces. They are exactly the
