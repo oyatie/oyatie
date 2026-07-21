@@ -220,6 +220,8 @@ fn validate_lifecycle(records: &[AdrDecisionRecord]) -> Result<(), AdrIndexError
         .map(|record| (record.id.as_str(), record))
         .collect::<BTreeMap<_, _>>();
     for record in records {
+        validate_unique_lifecycle_endpoints(record, "amends", &record.amends)?;
+        validate_unique_lifecycle_endpoints(record, "amended_by", &record.amended_by)?;
         validate_edge_contracts(record, &frozen_legacy_edges)?;
         let Some(contract) = record.lifecycle_contract.as_deref() else {
             continue;
@@ -230,8 +232,6 @@ fn validate_lifecycle(records: &[AdrDecisionRecord]) -> Result<(), AdrIndexError
                 format!("unsupported lifecycle_contract {contract}"),
             ));
         }
-        validate_unique_lifecycle_endpoints(record, "amends", &record.amends)?;
-        validate_unique_lifecycle_endpoints(record, "amended_by", &record.amended_by)?;
         for amended_id in &record.amends {
             let amended = lifecycle_endpoint(&by_id, &record.id, "amends", amended_id)?;
             validate_accepted_lifecycle_pair(record, amended)?;
@@ -1313,6 +1313,18 @@ mod tests {
             generate_adr_index([amender, amended]),
             Err(AdrIndexError::LifecycleViolation { reason, .. })
                 if reason.contains("must declare lifecycle_contract reciprocal-accepted-v1")
+        ));
+    }
+
+    #[test]
+    fn lifecycle_rejects_duplicate_uncontracted_relationship_occurrence() {
+        let mut amender = record(1, "Accepted");
+        amender.amends = vec!["ADR-0002".into(), "ADR-0002".into()];
+
+        assert!(matches!(
+            generate_adr_index([amender]),
+            Err(AdrIndexError::LifecycleViolation { reason, .. })
+                if reason.contains("duplicate endpoint ADR-0002")
         ));
     }
 
