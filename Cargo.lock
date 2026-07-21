@@ -1278,7 +1278,10 @@ dependencies = [
 name = "ci-cross-artifact-agreement"
 version = "0.1.0"
 dependencies = [
+ "oya-check-adr-index",
+ "serde",
  "serde_json",
+ "sha2",
 ]
 
 [[package]]
