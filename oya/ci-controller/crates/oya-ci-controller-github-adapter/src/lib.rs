@@ -28,15 +28,19 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
+use std::time::Duration;
+
 use oya_ci_controller_kernel::{
     CommitState, CommitStatusPoster, GitHubPrincipal, KernelError, REVIEW_CONTEXT, Result,
     ReviewAdmissionInput, ReviewAdmissionPacket, ReviewAdmissionPolicy, ReviewAdmissionProducer,
     ReviewEvidence, ReviewVerdict, admit_review,
 };
+use reqwest::{Method, blocking::RequestBuilder};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
 /// GitHub Statuses API version header value.
 const GITHUB_API_VERSION: &str = "2022-11-28";
+const GITHUB_REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 const REVIEWS_PER_PAGE: usize = 100;
 const MAX_REVIEW_PAGES: usize = 100;
 /// Default GitHub API base URL.
@@ -54,6 +58,7 @@ pub struct GitHubCommitStatusPoster {
     api_base: String,     // data_class: INTERNAL_ONLY
     web_base: String,     // data_class: INTERNAL_ONLY
     client: reqwest::blocking::Client,
+    request_timeout: Duration,
 }
 
 impl GitHubCommitStatusPoster {
@@ -66,6 +71,7 @@ impl GitHubCommitStatusPoster {
             api_base: GITHUB_API_BASE.to_owned(),
             web_base: GITHUB_WEB_BASE.to_owned(),
             client: reqwest::blocking::Client::new(),
+            request_timeout: GITHUB_REQUEST_TIMEOUT,
         }
     }
 
@@ -84,6 +90,22 @@ impl GitHubCommitStatusPoster {
     pub fn with_web_base(mut self, base: &str) -> Self {
         self.web_base = base.trim_end_matches('/').to_owned();
         self
+    }
+
+    /// Override the finite timeout applied to every GitHub HTTP request.
+    pub fn with_request_timeout(mut self, timeout: Duration) -> Self {
+        self.request_timeout = timeout;
+        self
+    }
+
+    fn authed_request(&self, method: Method, url: &str) -> RequestBuilder {
+        self.client
+            .request(method, url)
+            .bearer_auth(&self.github_token)
+            .header("X-GitHub-Api-Version", GITHUB_API_VERSION)
+            .header("Accept", "application/vnd.github+json")
+            .header("User-Agent", "oya-ci-controller")
+            .timeout(self.request_timeout)
     }
 
     fn statuses_url(&self, sha: &str) -> String {
@@ -106,12 +128,7 @@ impl GitHubCommitStatusPoster {
 
     fn get_json<T: DeserializeOwned>(&self, url: &str) -> Result<T> {
         let response = self
-            .client
-            .get(url)
-            .bearer_auth(&self.github_token)
-            .header("X-GitHub-Api-Version", GITHUB_API_VERSION)
-            .header("Accept", "application/vnd.github+json")
-            .header("User-Agent", "oya-ci-controller")
+            .authed_request(Method::GET, url)
             .send()
             .map_err(|error| {
                 KernelError::DownstreamTransport(format!("github review fetch: {error}"))
@@ -217,31 +234,36 @@ impl GitHubCommitStatusPoster {
 
         let reviews = self.fetch_all_reviews(pr_number)?;
 
+        let mut invalid_review_url_present = false;
         let evidence = reviews
             .into_iter()
             .map(|review| {
                 let evidence_url = review.html_url.unwrap_or_default();
-                if !self.is_exact_review_url(&evidence_url, pr_number, review.id) {
-                    return Err(KernelError::InvalidInput(
-                        "review evidence URL does not bind the configured repository, PR, and review"
-                            .to_owned(),
-                    ));
-                }
-                Ok(ReviewEvidence {
+                let evidence_url = if self.is_exact_review_url(&evidence_url, pr_number, review.id)
+                {
+                    evidence_url
+                } else {
+                    invalid_review_url_present = true;
+                    String::new()
+                };
+                ReviewEvidence {
                     review_id: review.id,
                     head_sha: review.commit_id.unwrap_or_default(),
-                    reviewer: review.user.map(github_principal).unwrap_or(GitHubPrincipal {
-                        id: 0,
-                        account_type: oya_ci_controller_kernel::GitHubAccountType::User,
-                        login: String::new(),
-                    }),
+                    reviewer: review
+                        .user
+                        .map(github_principal)
+                        .unwrap_or(GitHubPrincipal {
+                            id: 0,
+                            account_type: oya_ci_controller_kernel::GitHubAccountType::User,
+                            login: String::new(),
+                        }),
                     verdict: github_review_verdict(&review.state),
                     evidence_url,
-                })
+                }
             })
-            .collect::<Result<Vec<_>>>()?;
+            .collect::<Vec<_>>();
 
-        admit_review(&ReviewAdmissionInput {
+        let result = admit_review(&ReviewAdmissionInput {
             pr_number,
             expected_head_sha: expected_head_sha.to_owned(),
             observed_head_sha: pull.head.sha,
@@ -250,7 +272,19 @@ impl GitHubCommitStatusPoster {
             evaluated_at_unix_s,
             producer: producer.clone(),
             reviews: evidence,
-        })
+        });
+        match result {
+            Err(KernelError::InvalidInput(message))
+                if invalid_review_url_present
+                    && message == "approved review is missing a durable HTTP(S) evidence URL" =>
+            {
+                Err(KernelError::InvalidInput(
+                    "review evidence URL does not bind the configured repository, PR, and review"
+                        .to_owned(),
+                ))
+            }
+            other => other,
+        }
     }
 
     fn verify_current_pull_head(&self, pr_number: u64, expected_head_sha: &str) -> Result<()> {
@@ -274,16 +308,12 @@ impl GitHubCommitStatusPoster {
     fn fetch_all_reviews(&self, pr_number: u64) -> Result<Vec<GitHubReviewResponse>> {
         let mut reviews = Vec::new();
         for page in 1..=MAX_REVIEW_PAGES {
+            let url = format!(
+                "{}?per_page={REVIEWS_PER_PAGE}&page={page}",
+                self.reviews_url(pr_number)
+            );
             let response = self
-                .client
-                .get(format!(
-                    "{}?per_page={REVIEWS_PER_PAGE}&page={page}",
-                    self.reviews_url(pr_number)
-                ))
-                .bearer_auth(&self.github_token)
-                .header("X-GitHub-Api-Version", GITHUB_API_VERSION)
-                .header("Accept", "application/vnd.github+json")
-                .header("User-Agent", "oya-ci-controller")
+                .authed_request(Method::GET, &url)
                 .send()
                 .map_err(|error| {
                     KernelError::DownstreamTransport(format!("github review fetch: {error}"))
@@ -427,13 +457,9 @@ impl CommitStatusPoster for GitHubCommitStatusPoster {
             target_url: target_url.map(ToOwned::to_owned),
         };
 
+        let statuses_url = self.statuses_url(sha);
         let resp = self
-            .client
-            .post(self.statuses_url(sha))
-            .bearer_auth(&self.github_token)
-            .header("X-GitHub-Api-Version", GITHUB_API_VERSION)
-            .header("Accept", "application/vnd.github+json")
-            .header("User-Agent", "oya-ci-controller")
+            .authed_request(Method::POST, &statuses_url)
             .json(&body)
             .send()
             .map_err(|e| KernelError::DownstreamTransport(format!("github status post: {e}")))?;

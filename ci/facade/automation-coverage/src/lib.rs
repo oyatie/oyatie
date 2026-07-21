@@ -580,9 +580,9 @@ mod tests {
     }
 
     #[test]
-    fn missing_pre_merge_review_authority_fires_without_required_identity_bindings() {
+    fn review_admission_without_verdict_binding_fails_closed() {
         let mut row = good_row();
-        row["id"] = json!("BAD-review-status-without-title-body");
+        row["id"] = json!("BAD-review-status-without-verdict-binding");
         row["classification"] = json!("automated_blocking_now");
         row["requires_pre_merge_review_authority"] = json!(true);
         row["review_authority_live"] = json!(true);
@@ -594,6 +594,56 @@ mod tests {
         row["binds_author_identity"] = json!(true);
         row["binds_reviewer_identity"] = json!(true);
         row["binds_review_verdict"] = json!(false);
+        row["review_blocks_merge"] = json!(true);
+        row["reviewer_identity_distinct_from_author"] = json!(true);
+        let report = evaluate(&json!({"rows": [row]}));
+        assert!(
+            report
+                .violations
+                .contains("missing_pre_merge_review_authority")
+        );
+    }
+
+    #[test]
+    fn review_admission_without_author_identity_binding_fails_closed() {
+        let mut row = good_row();
+        row["id"] = json!("BAD-review-status-without-author-identity-binding");
+        row["classification"] = json!("automated_blocking_now");
+        row["requires_pre_merge_review_authority"] = json!(true);
+        row["review_authority_live"] = json!(true);
+        row["review_authority_source"] = json!("trusted_runner_signed_oya_pr_review_status");
+        row["has_durable_review_evidence"] = json!(true);
+        row["has_machine_verifiable_review_status"] = json!(true);
+        row["binds_pr_number"] = json!(true);
+        row["binds_head_sha"] = json!(true);
+        row["binds_author_identity"] = json!(false);
+        row["binds_reviewer_identity"] = json!(true);
+        row["binds_review_verdict"] = json!(true);
+        row["review_blocks_merge"] = json!(true);
+        row["reviewer_identity_distinct_from_author"] = json!(true);
+        let report = evaluate(&json!({"rows": [row]}));
+        assert!(
+            report
+                .violations
+                .contains("missing_pre_merge_review_authority")
+        );
+    }
+
+    #[test]
+    fn review_admission_without_reviewer_identity_binding_fails_closed() {
+        let mut row = good_row();
+        row["id"] = json!("BAD-review-status-without-reviewer-identity-binding");
+        row["classification"] = json!("automated_blocking_now");
+        row["requires_pre_merge_review_authority"] = json!(true);
+        row["review_authority_live"] = json!(true);
+        row["review_authority_source"] = json!("trusted_runner_signed_oya_pr_review_status");
+        row["has_durable_review_evidence"] = json!(true);
+        row["has_machine_verifiable_review_status"] = json!(true);
+        row["binds_pr_number"] = json!(true);
+        row["binds_head_sha"] = json!(true);
+        row["binds_author_identity"] = json!(true);
+        row["binds_reviewer_identity"] = json!(false);
+        row["binds_review_verdict"] = json!(true);
         row["review_blocks_merge"] = json!(true);
         row["reviewer_identity_distinct_from_author"] = json!(true);
         let report = evaluate(&json!({"rows": [row]}));
