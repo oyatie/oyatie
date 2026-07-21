@@ -722,15 +722,15 @@
         "15-ZA-oya-verify-full-ci-mirror",
         "15-ZB-foundry-fitness-to-governance-rename",
         "15-ZD-autosharding-doctrine",
-        "15-ZE-jenkins-argocd-self-hostable-ci-cd-substrate",
-        "15-ZF-doctrine-propagation-adr-0346-0349",
+        "15-ZE-adr-0515-cloud-native-ci-authority",
+        "15-ZF-doctrine-propagation-adr-0346-0348-0515",
         "15-ZG-kafka-standalone-retirement-pulsar-kop"
       ],
       "doctrine_propagation_adrs": {
         "ADR-0346": {
           "path": "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
           "queued_sub_wave": "15-ZA-oya-verify-full-ci-mirror",
-          "purpose_excerpt": "ADR-0346 is amended by ADR-0513/platform-readiness: the retired `./bin/oya verify --ci-required` path is historical/provenance-only and must not be invoked or recreated; its full-mirror semantics remain migration input only, never protected-branch merge/exit authority. Destination enforcement is Prow-shaped cloud-ci/oya-ci Rust required contexts with full-matrix gate packets, RED/GREEN fixtures, and branch protection.",
+          "purpose_excerpt": "ADR-0346 is amended by ADR-0515: the retired `./bin/oya verify --ci-required` path is historical/provenance-only and must not be invoked or recreated; its full-mirror semantics remain migration input only, never protected-branch merge/exit authority. Destination enforcement is the cloud-ci Rust gate apps producing the single protected `oya-ci-required` context with full-matrix gate packets, RED/GREEN fixtures, and branch protection.",
           "enforced_by": [
             "cloud-ci-required-context-producer (blocks required contexts produced by legacy oya CLI/local-only/advisory status)",
             "cloud-ci-full-matrix-gate-packet (format/build/test/lint/supply-chain/security/governance semantics as Rust/cloud-ci gates, not oya-dev-cli extension)",
@@ -760,10 +760,10 @@
             "oya-governance-tenant-migration-reversibility (new lane; refuses any µservice IP authoring under microservices/<ms>/IPs/IP-*-auto-rebalance-*.md that lacks an explicit `rollback_path` section enumerating how an automation-event-driven tenant migration is reversed via the audit-chain trail)"
           ]
         },
-        "ADR-0349": {
-          "path": "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md",
-          "queued_sub_wave": "15-ZE-jenkins-argocd-self-hostable-ci-cd-substrate",
-          "purpose_excerpt": "Historical bridge ADR for cloud-scm CI/CD substrates (superseded; current authority is /specs/bespoke-cloud-toolchain-services.json). Bespoke Rust cloud-ci/cloud-cd services are the destination; legacy bridge/reference adapters require deletion criteria, tenant isolation, trusted status production, and no sole/canonical authority claim.",
+        "ADR-0515": {
+          "path": "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
+          "queued_sub_wave": "15-ZE-adr-0515-cloud-native-ci-authority",
+          "purpose_excerpt": "GitHub Actions plus branch protection are the live CI authority until explicit owned-runner cutover; cloud-ci Rust gate apps produce the single protected `oya-ci-required` context. Jenkins/Prow and legacy CLI governance are superseded history, not current authority; Argo CD/Rollouts are bridge or reference CD adapters only where separately authorized.",
           "enforced_by": [
             "oya-governance-provider-ci-residue (successor to provider-CI parity wording; refuses new provider workflow authority unless explicitly marked bridge/provenance under cloud-ci)",
             "oya-governance-argocd-application-cosign-verified (bridge/reference lane; refuses ArgoCD Application CRD sources that reference an image without a cosign-verify policy attached per D-6 + ADR-0181 while Argo remains an adapter)",
@@ -1648,12 +1648,12 @@
             "ADR-0335 foundry-retired"
           ]
         },
-        "15-ZE-jenkins-argocd-self-hostable-ci-cd-substrate": {
+        "15-ZE-adr-0515-cloud-native-ci-authority": {
           "status": "queued-bridge-reconciled-by-bespoke-toolchain-spec",
           "queued_at": "2026-05-21",
-          "adr": "ADR-0349",
-          "scope": "Bridge/backfill work for legacy CI and ArgoCD GitOps CD only while cloud-ci/cloud-cd Rust service authority is being built. Legacy adapters are no longer sole/canonical destinations; they are self-hostable provider adapters/reference substrates with deletion criteria, tenant isolation fixtures, trusted status production, cosign/audit-chain evidence, and no customer-facing product-authority claim.",
-          "dispatch_mode": "Bridge orchestrator for OpenTofu/config-as-code/Argo adapter surfaces plus governance lanes, executed after the P0.0/full bespoke CI baseline and reconciled into cloud-ci/cloud-cd parity/deletion evidence.",
+          "adr": "ADR-0515",
+          "scope": "Propagate and enforce ADR-0515's current CI authority: GitHub Actions plus branch protection until explicit owned-runner cutover, with cloud-ci Rust gate apps producing the single protected `oya-ci-required` context. Jenkins/Prow and legacy CLI governance remain superseded history; Argo CD/Rollouts remain bridge or reference CD adapters only where separately authorized.",
+          "dispatch_mode": "Cloud-ci authority implementation and governance lanes, with separately authorized bridge/reference CD adapter work reconciled into parity and deletion evidence.",
           "five_new_lanes": [
             "oya-governance-provider-ci-residue",
             "oya-governance-argocd-application-cosign-verified",
@@ -1670,7 +1670,7 @@
             "GitHub Actions self-hosted runners (ties to GitHub.com control plane; not air-gap)"
           ],
           "depends_on": [
-            "ADR-0349 Acceptance",
+            "ADR-0515 Acceptance",
             "ADR-0028 cloud-microservice-architecture",
             "ADR-0181 container-image-promotion-pipeline (Trivy + cosign + SBOM)",
             "ADR-0211 in-house-tech-stack-policy (Class C approved)",
@@ -1681,11 +1681,11 @@
             "ADR-0164 sovereign-cloud-air-gapped"
           ]
         },
-        "15-ZF-doctrine-propagation-adr-0346-0349": {
+        "15-ZF-doctrine-propagation-adr-0346-0348-0515": {
           "status": "queued",
           "queued_at": "2026-05-21",
-          "adr": "ADR-0346 + ADR-0347 + ADR-0348 + ADR-0349 (cumulative)",
-          "scope": "propagate ADR-0346, ADR-0347, ADR-0348, and ADR-0349 doctrine across the 16 artifact types named in .omc/state/wave-15-zf-canonical-brief.md: machine-readable decision mirrors, ADR indexes, canonical primitives, master-plan pointers, agent contracts, PRDs, ARCHs, manifests, IPs, runbooks, threat-models, DPIA, contracts, Cedar, SLOs, capabilities, READMEs, migration-playbooks, workflow parity comments, verify wrapper plumbing, registries, templates, and product PRDs. ZF-4 owns only /specs/root-hub-pointers.json and /specs/master-plan-sequencing.json. This wave is doctrine propagation only; implementation remains in Wave 15-ZA, Wave 15-ZB, Wave 15-ZD, and Wave 15-ZE.",
+          "adr": "ADR-0346 + ADR-0347 + ADR-0348 + ADR-0515 (cumulative)",
+          "scope": "propagate ADR-0346, ADR-0347, ADR-0348, and ADR-0515 doctrine across the 16 artifact types named in .omc/state/wave-15-zf-canonical-brief.md: machine-readable decision mirrors, ADR indexes, canonical primitives, master-plan pointers, agent contracts, PRDs, ARCHs, manifests, IPs, runbooks, threat-models, DPIA, contracts, Cedar, SLOs, capabilities, READMEs, migration-playbooks, workflow parity comments, verify wrapper plumbing, registries, templates, and product PRDs. ZF-4 owns only /specs/root-hub-pointers.json and /specs/master-plan-sequencing.json. This wave is doctrine propagation only; implementation remains in Wave 15-ZA, Wave 15-ZB, Wave 15-ZD, and Wave 15-ZE.",
           "dispatch_mode": "23 codex agents in three batches, max 8 simultaneous; each slot owns a disjoint artifact type or path slice and pushes to post-merge-2026-05-18 after slice-local validation",
           "agent_count_estimate": "23 codex agents",
           "canonical_brief": ".omc/state/wave-15-zf-canonical-brief.md",
@@ -1699,7 +1699,7 @@
             "ADR-0346",
             "ADR-0347",
             "ADR-0348",
-            "ADR-0349"
+            "ADR-0515"
           ],
           "batch_order": {
             "batch_1_foundational": [
@@ -1736,12 +1736,12 @@
             "oya-ci-required cloud-ci ADR-citation Rust gate packet",
             "jq empty specs/root-hub-pointers.json specs/master-plan-sequencing.json"
           ],
-          "skill_binding": "every subagent uses installed runtime skills {spec-driven-development,documentation-and-adrs} + .omc/state/oyatie-architecture-2026-05-21.md + .omc/state/audit-doctrine-2026-05-21.md + ADR-0346/0347/0348/0349 before authoring per feedback_wave_d_skill_bound_dispatch_2026_05_21; repo-vendored tools/agent-skills is retired",
+          "skill_binding": "every subagent uses installed runtime skills {spec-driven-development,documentation-and-adrs} + .omc/state/oyatie-architecture-2026-05-21.md + .omc/state/audit-doctrine-2026-05-21.md + ADR-0346/0347/0348/0515 before authoring per feedback_wave_d_skill_bound_dispatch_2026_05_21; repo-vendored tools/agent-skills is retired",
           "depends_on": [
             "ADR-0346 Acceptance",
             "ADR-0347 Acceptance",
             "ADR-0348 Acceptance",
-            "ADR-0349 Acceptance",
+            "ADR-0515 Acceptance",
             "Wave 15-ZA + 15-ZB + 15-ZD + 15-ZE implementation PRs preferable but not blocking"
           ]
         },

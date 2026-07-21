@@ -131,7 +131,8 @@ pub use read_surface_resurrection::{
 // front-matter status, capability-registry vs derived gate policy, and
 // generated ADR-index projection parity.
 pub use adr_0515_history_only::{
-    ADR_0515_HISTORY_ONLY_CODE, ADR_0515_HISTORY_ONLY_VALIDATOR, evaluate_adr_0515_history_only,
+    ADR_0515_HISTORY_ONLY_CODE, ADR_0515_HISTORY_ONLY_VALIDATOR,
+    evaluate_adr_0515_current_tree_references, evaluate_adr_0515_history_only,
     is_adr_0515_history_only_citation,
 };
 pub use adr_index_projection_parity::{

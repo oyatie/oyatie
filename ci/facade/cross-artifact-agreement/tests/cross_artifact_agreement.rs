@@ -10,15 +10,16 @@ use std::process::Command;
 
 use ci_cross_artifact_agreement::{
     AdrDecisionRecord, GateCoverageBaseline, RatchetReport, Verdict,
-    derive_masterplan_md_projection, evaluate, evaluate_adr_0515_history_only,
-    evaluate_adr_index_projection_parity, evaluate_adr_prose_frontmatter_status,
-    evaluate_masterplan_plan_evidence_crosscheck, evaluate_masterplan_projection_rederivation,
-    evaluate_masterplan_read_surface_resurrections, evaluate_masterplan_v2_authority,
-    evaluate_masterplan_v2_entry_surfaces, evaluate_masterplan_v2_evidence_state,
-    evaluate_masterplan_v2_plan_evidence_drift, evaluate_masterplan_v2_program_coverage,
-    evaluate_masterplan_v2_projection_freshness, evaluate_masterplan_v2_ratification_digest,
-    evaluate_masterplan_v2_read_contract_archives, evaluate_masterplan_v2_sequencing,
-    evaluate_registry_derived_policy_sync, is_adr_0515_history_only_citation, ratchet,
+    derive_masterplan_md_projection, evaluate, evaluate_adr_0515_current_tree_references,
+    evaluate_adr_0515_history_only, evaluate_adr_index_projection_parity,
+    evaluate_adr_prose_frontmatter_status, evaluate_masterplan_plan_evidence_crosscheck,
+    evaluate_masterplan_projection_rederivation, evaluate_masterplan_read_surface_resurrections,
+    evaluate_masterplan_v2_authority, evaluate_masterplan_v2_entry_surfaces,
+    evaluate_masterplan_v2_evidence_state, evaluate_masterplan_v2_plan_evidence_drift,
+    evaluate_masterplan_v2_program_coverage, evaluate_masterplan_v2_projection_freshness,
+    evaluate_masterplan_v2_ratification_digest, evaluate_masterplan_v2_read_contract_archives,
+    evaluate_masterplan_v2_sequencing, evaluate_registry_derived_policy_sync,
+    is_adr_0515_history_only_citation, ratchet,
 };
 use serde_json::Value;
 
@@ -1507,6 +1508,46 @@ fn adr_0515_history_only_contract_is_green_on_live_tree() {
         findings.is_empty(),
         "ADR-0515 Git-history-only contract drifted: {findings:?}"
     );
+
+    let reference_sources = current_tree_deleted_adr_path_references(&root);
+    let reference_findings = evaluate_adr_0515_current_tree_references(&reference_sources);
+    assert!(
+        reference_findings.is_empty(),
+        "ADR-0515 deleted decision paths remain on current live/read surfaces: {reference_findings:?}"
+    );
+}
+
+fn current_tree_deleted_adr_path_references(root: &Path) -> BTreeSet<String> {
+    let deleted_prefixes: Vec<String> = [
+        "ADR-0124", "ADR-0349", "ADR-0359", "ADR-0361", "ADR-0511", "ADR-0513", "ADR-0514",
+    ]
+    .into_iter()
+    .map(|id| format!("docs/decisions/{id}-"))
+    .collect();
+
+    let scm_facts =
+        load_json(&root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json"));
+    let tracked_paths = scm_facts
+        .get("tracked_paths")
+        .and_then(Value::as_array)
+        .expect("committed scm-facts face must carry tracked_paths");
+    let mut references = BTreeSet::new();
+    for relative in tracked_paths {
+        let Some(relative) = relative.as_str() else {
+            continue;
+        };
+        let Ok(bytes) = fs::read(root.join(relative)) else {
+            continue;
+        };
+        let text = String::from_utf8_lossy(&bytes);
+        if deleted_prefixes
+            .iter()
+            .any(|deleted| text.contains(deleted))
+        {
+            references.insert(relative.to_owned());
+        }
+    }
+    references
 }
 
 /// The frozen baseline must stay well-formed and, at birth, EMPTY — the three
