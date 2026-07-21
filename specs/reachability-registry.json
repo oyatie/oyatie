@@ -54,6 +54,10 @@
       "prefix": "ci/OWNERS"
     },
     {
+      "anchor": "ADR-0515 review-admission producer amendment: narrow cloud-ci-platform ownership for the repo-owned GitHub adapter crate; this marker does not make oya-pr-review live or create a second protected context.",
+      "prefix": "oya/ci-controller/crates/oya-ci-controller-github-adapter/OWNERS"
+    },
+    {
       "anchor": "ADR-0559 ownership seed: the cloud-iam service tree's OWNERS marker (axis-cloud-platform)",
       "prefix": "cloud/cloud-iam/OWNERS"
     },

@@ -30,12 +30,14 @@
 
 use oya_ci_controller_kernel::{
     CommitState, CommitStatusPoster, KernelError, REVIEW_CONTEXT, Result, ReviewAdmissionInput,
-    ReviewAdmissionPacket, ReviewEvidence, ReviewVerdict, admit_review,
+    ReviewAdmissionPacket, ReviewAdmissionPolicy, ReviewEvidence, ReviewVerdict, admit_review,
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
 /// GitHub Statuses API version header value.
 const GITHUB_API_VERSION: &str = "2022-11-28";
+const REVIEWS_PER_PAGE: usize = 100;
+const MAX_REVIEW_PAGES: usize = 100;
 /// Default GitHub API base URL.
 const GITHUB_API_BASE: &str = "https://api.github.com";
 /// Forge of record (D2): GitHub interim until the Sapling-inspired bespoke SCM.
@@ -127,8 +129,9 @@ impl GitHubCommitStatusPoster {
         &self,
         pr_number: u64,
         expected_head_sha: &str,
+        policy: &ReviewAdmissionPolicy,
     ) -> Result<ReviewAdmissionPacket> {
-        let result = self.fetch_review_admission(pr_number, expected_head_sha);
+        let result = self.fetch_review_admission(pr_number, expected_head_sha, policy);
         match result {
             Ok(packet) => {
                 self.post(
@@ -162,6 +165,7 @@ impl GitHubCommitStatusPoster {
         &self,
         pr_number: u64,
         expected_head_sha: &str,
+        policy: &ReviewAdmissionPolicy,
     ) -> Result<ReviewAdmissionPacket> {
         let pull: GitHubPullResponse = self.get_json(&self.pull_url(pr_number))?;
         if pull.number != pr_number {
@@ -179,29 +183,12 @@ impl GitHubCommitStatusPoster {
                 expected_head_sha: expected_head_sha.to_owned(),
                 observed_head_sha: pull.head.sha,
                 author_login: pull.user.login,
+                policy: policy.clone(),
                 reviews: Vec::new(),
             });
         }
 
-        let reviews: Vec<GitHubReviewResponse> = self
-            .client
-            .get(format!("{}?per_page=100", self.reviews_url(pr_number)))
-            .bearer_auth(&self.github_token)
-            .header("X-GitHub-Api-Version", GITHUB_API_VERSION)
-            .header("Accept", "application/vnd.github+json")
-            .header("User-Agent", "oya-ci-controller")
-            .send()
-            .map_err(|error| {
-                KernelError::DownstreamTransport(format!("github review fetch: {error}"))
-            })?
-            .error_for_status()
-            .map_err(|error| {
-                KernelError::DownstreamTransport(format!("github review fetch: {error}"))
-            })?
-            .json()
-            .map_err(|error| {
-                KernelError::DownstreamTransport(format!("github review response decode: {error}"))
-            })?;
+        let reviews = self.fetch_all_reviews(pr_number)?;
 
         let evidence = reviews
             .into_iter()
@@ -219,8 +206,71 @@ impl GitHubCommitStatusPoster {
             expected_head_sha: expected_head_sha.to_owned(),
             observed_head_sha: pull.head.sha,
             author_login: pull.user.login,
+            policy: policy.clone(),
             reviews: evidence,
         })
+    }
+
+    fn fetch_all_reviews(&self, pr_number: u64) -> Result<Vec<GitHubReviewResponse>> {
+        let mut reviews = Vec::new();
+        for page in 1..=MAX_REVIEW_PAGES {
+            let response = self
+                .client
+                .get(format!(
+                    "{}?per_page={REVIEWS_PER_PAGE}&page={page}",
+                    self.reviews_url(pr_number)
+                ))
+                .bearer_auth(&self.github_token)
+                .header("X-GitHub-Api-Version", GITHUB_API_VERSION)
+                .header("Accept", "application/vnd.github+json")
+                .header("User-Agent", "oya-ci-controller")
+                .send()
+                .map_err(|error| {
+                    KernelError::DownstreamTransport(format!("github review fetch: {error}"))
+                })?
+                .error_for_status()
+                .map_err(|error| {
+                    KernelError::DownstreamTransport(format!("github review fetch: {error}"))
+                })?;
+
+            let link_header = response
+                .headers()
+                .get("Link")
+                .map(|value| {
+                    value.to_str().map(str::to_owned).map_err(|error| {
+                        KernelError::DownstreamTransport(format!(
+                            "github review pagination header decode: {error}"
+                        ))
+                    })
+                })
+                .transpose()?;
+            let has_next = link_header
+                .as_deref()
+                .is_some_and(|value| value.split(',').any(|link| link.contains("rel=\"next\"")));
+            let page_reviews: Vec<GitHubReviewResponse> = response.json().map_err(|error| {
+                KernelError::DownstreamTransport(format!("github review response decode: {error}"))
+            })?;
+
+            if page_reviews.len() == REVIEWS_PER_PAGE && link_header.is_none() {
+                return Err(KernelError::DownstreamTransport(
+                    "github review pagination completeness cannot be proven".to_owned(),
+                ));
+            }
+            if has_next && page_reviews.is_empty() {
+                return Err(KernelError::DownstreamTransport(
+                    "github review pagination advertised an empty next page".to_owned(),
+                ));
+            }
+            reviews.extend(page_reviews);
+
+            if !has_next {
+                return Ok(reviews);
+            }
+        }
+
+        Err(KernelError::DownstreamTransport(format!(
+            "github review pagination exceeded {MAX_REVIEW_PAGES} pages"
+        )))
     }
 }
 

@@ -5,7 +5,7 @@
 use httpmock::Mock;
 use httpmock::prelude::*;
 use oya_ci_controller_github_adapter::GitHubCommitStatusPoster;
-use oya_ci_controller_kernel::{KernelError, ReviewVerdict};
+use oya_ci_controller_kernel::{KernelError, ReviewAdmissionPolicy, ReviewVerdict};
 use serde_json::json;
 
 const PR_NUMBER: u64 = 42;
@@ -16,6 +16,13 @@ const REVIEW_URL: &str = "https://github.com/jason931225/oyatie/pull/42#pullrequ
 fn make_poster(server: &MockServer) -> GitHubCommitStatusPoster {
     GitHubCommitStatusPoster::new("jason931225", "oyatie", "test-token")
         .with_api_base(&server.base_url())
+}
+
+fn review_policy(reviewers: &[&str]) -> ReviewAdmissionPolicy {
+    ReviewAdmissionPolicy::new(
+        "repo://review-policy/rust-reviewers",
+        reviewers.iter().copied(),
+    )
 }
 
 fn mock_pull<'a>(server: &'a MockServer, author: &str, head_sha: &str) -> Mock<'a> {
@@ -73,13 +80,21 @@ fn approved_distinct_reviewer_posts_head_bound_status_with_durable_evidence() {
     });
 
     let packet = make_poster(&server)
-        .produce_review_admission_status(PR_NUMBER, HEAD_SHA)
+        .produce_review_admission_status(
+            PR_NUMBER,
+            HEAD_SHA,
+            &review_policy(&["independent-reviewer"]),
+        )
         .expect("distinct approved review should be admitted");
 
     assert_eq!(packet.pr_number, PR_NUMBER);
     assert_eq!(packet.head_sha, HEAD_SHA);
     assert_eq!(packet.author_login, "change-author");
     assert_eq!(packet.reviewer_login, "independent-reviewer");
+    assert_eq!(
+        packet.reviewer_eligibility_policy_ref,
+        "repo://review-policy/rust-reviewers"
+    );
     assert_eq!(packet.verdict, ReviewVerdict::Approved);
     assert_eq!(packet.evidence_url, REVIEW_URL);
     pull.assert();
@@ -99,7 +114,11 @@ fn missing_durable_review_url_is_rejected_and_posts_failure() {
         then.status(201);
     });
 
-    let result = make_poster(&server).produce_review_admission_status(PR_NUMBER, HEAD_SHA);
+    let result = make_poster(&server).produce_review_admission_status(
+        PR_NUMBER,
+        HEAD_SHA,
+        &review_policy(&["independent-reviewer"]),
+    );
 
     assert!(
         matches!(result, Err(KernelError::InvalidInput(message)) if message.contains("evidence URL"))
@@ -121,7 +140,11 @@ fn author_cannot_satisfy_review_admission_and_failure_is_posted() {
         then.status(201);
     });
 
-    let result = make_poster(&server).produce_review_admission_status(PR_NUMBER, HEAD_SHA);
+    let result = make_poster(&server).produce_review_admission_status(
+        PR_NUMBER,
+        HEAD_SHA,
+        &review_policy(&["same-user"]),
+    );
 
     assert!(
         matches!(result, Err(KernelError::InvalidInput(message)) if message.contains("distinct"))
@@ -142,7 +165,11 @@ fn pull_head_mismatch_is_rejected_before_review_evidence_can_pass() {
         then.status(201);
     });
 
-    let result = make_poster(&server).produce_review_admission_status(PR_NUMBER, HEAD_SHA);
+    let result = make_poster(&server).produce_review_admission_status(
+        PR_NUMBER,
+        HEAD_SHA,
+        &review_policy(&["independent-reviewer"]),
+    );
 
     assert!(
         matches!(result, Err(KernelError::InvalidInput(message)) if message.contains("head SHA"))
@@ -183,12 +210,107 @@ fn newer_changes_requested_verdict_supersedes_older_approval() {
         then.status(201);
     });
 
-    let result = make_poster(&server).produce_review_admission_status(PR_NUMBER, HEAD_SHA);
+    let result = make_poster(&server).produce_review_admission_status(
+        PR_NUMBER,
+        HEAD_SHA,
+        &review_policy(&["independent-reviewer"]),
+    );
 
     assert!(
         matches!(result, Err(KernelError::InvalidInput(message)) if message.contains("APPROVED"))
     );
     pull.assert();
     reviews.assert();
+    status.assert();
+}
+
+#[test]
+fn distinct_but_unauthorized_reviewer_cannot_satisfy_admission() {
+    let server = MockServer::start();
+    let pull = mock_pull(&server, "change-author", HEAD_SHA);
+    let reviews = mock_reviews(&server, "drive-by-reviewer", HEAD_SHA, REVIEW_URL);
+    let status = server.mock(|when, then| {
+        when.method(POST)
+            .path(format!("/repos/jason931225/oyatie/statuses/{HEAD_SHA}"))
+            .json_body_partial(r#"{"state":"failure","context":"oya-pr-review"}"#);
+        then.status(201);
+    });
+
+    let result = make_poster(&server).produce_review_admission_status(
+        PR_NUMBER,
+        HEAD_SHA,
+        &review_policy(&["designated-reviewer"]),
+    );
+
+    assert!(
+        matches!(result, Err(KernelError::InvalidInput(message)) if message.contains("eligible"))
+    );
+    pull.assert();
+    reviews.assert();
+    status.assert();
+}
+
+#[test]
+fn page_two_changes_requested_supersedes_page_one_approval() {
+    let server = MockServer::start();
+    let pull = mock_pull(&server, "change-author", HEAD_SHA);
+    let page_one_reviews = (1..=100)
+        .map(|id| {
+            json!({
+                "id": id,
+                "state": "APPROVED",
+                "commit_id": HEAD_SHA,
+                "html_url": format!("{REVIEW_URL}-{id}"),
+                "user": { "login": "independent-reviewer" }
+            })
+        })
+        .collect::<Vec<_>>();
+    let page_one = server.mock(|when, then| {
+        when.method(GET)
+            .path("/repos/jason931225/oyatie/pulls/42/reviews")
+            .query_param("per_page", "100")
+            .query_param("page", "1");
+        then.status(200)
+            .header(
+                "Link",
+                &format!(
+                    "<{}/repos/jason931225/oyatie/pulls/42/reviews?per_page=100&page=2>; rel=\"next\"",
+                    server.base_url()
+                ),
+            )
+            .json_body(json!(page_one_reviews));
+    });
+    let page_two = server.mock(|when, then| {
+        when.method(GET)
+            .path("/repos/jason931225/oyatie/pulls/42/reviews")
+            .query_param("per_page", "100")
+            .query_param("page", "2");
+        then.status(200).json_body(json!([{
+            "id": 101,
+            "state": "CHANGES_REQUESTED",
+            "commit_id": HEAD_SHA,
+            "html_url": format!("{REVIEW_URL}-101"),
+            "user": { "login": "independent-reviewer" }
+        }]));
+    });
+    let status = server.mock(|when, then| {
+        when.method(POST)
+            .path(format!("/repos/jason931225/oyatie/statuses/{HEAD_SHA}"))
+            .json_body_partial(r#"{"state":"failure","context":"oya-pr-review"}"#);
+        then.status(201);
+    });
+
+    let result = make_poster(&server).produce_review_admission_status(
+        PR_NUMBER,
+        HEAD_SHA,
+        &review_policy(&["independent-reviewer"]),
+    );
+
+    assert!(
+        matches!(result, Err(KernelError::InvalidInput(message)) if message.contains("APPROVED"))
+    );
+    pull.assert();
+    page_one.assert();
+    page_two.assert();
     status.assert();
 }
