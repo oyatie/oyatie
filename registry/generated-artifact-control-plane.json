@@ -213,7 +213,7 @@
       "artifact_id": "machine-readable-board-sync-projection",
       "path": "docs/machine-readable/board-sync.generated.json",
       "artifact_class": "main-materialized-aggregate",
-      "materialization_mode": "branch-committed-regenerated-until-controller-materialization",
+      "materialization_mode": "not-tracked-in-git",
       "merge_policy": "never-manual-merge-regenerate-from-source-tree",
       "owner_team": "planning-platform",
       "source_inputs": [
@@ -221,7 +221,7 @@
         "specs/masterplan.json",
         "registry/**"
       ],
-      "final_tree_validation": "generated artifact controller must regenerate the projection from final candidate sources before merge",
+      "final_tree_validation": "ADR-0613 de-commit class: this face is NOT tracked in git; cloud-ci materializes it on demand from the checked-out candidate tree through oya-ci://generated-artifact-controller/planning/board-sync after materializing the masterplan projection. Required-CI freshness enforces independent regenerate-twice byte determinism; byte parity against a committed copy is intentionally retired for this face.",
       "public_product_contract": "Board-sync is a generated planning projection; public adopters must declare equivalent derived planning outputs instead of hand-merging them.",
       "generator": {
         "runner": "oya-ci-native-controller",
