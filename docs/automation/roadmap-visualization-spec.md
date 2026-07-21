@@ -26,14 +26,15 @@ doc_status: published
 
 ## 1. Purpose
 
-The roadmap is the single answer to "when does what ship." Today the answer is fragmented across `docs/ROADMAP.md`, `MASTERPLAN.md`, and individual milestone INDEXes. This pipeline lifts it to a single visual artifact, auto-derived, refreshed on every plan edit.
+The roadmap is the single answer to "when does what ship." The canonical source is `/specs/masterplan.json#masterplan_v2`; this pipeline lifts its dependency graph to a single visual artifact, auto-derived and refreshed on every plan edit.
 
 ## 2. Inputs
 
 - `docs/MASTERPLAN.md` §3 Milestone index table (canonical post-Stage-1-Wave-1 lift).
 - Each milestone INDEX `.omc/plans/milestones/<MNN>/INDEX.md` frontmatter (status, wave, start_date_target, end_date_target).
 - Each phase INDEX `.omc/plans/milestones/<MNN>/phases/<PNN>/INDEX.md` frontmatter (start_after, est_duration_days, status).
-- `docs/ROADMAP.md` for wave-gate criteria.
+- `/specs/masterplan.json#masterplan_v2.dependency_edges` and `.sequencing` for derived ordering.
+- **BLOCKED:** no masterplan-v2 field succeeds legacy wave-gate acceptance criteria; the visualization must not render or validate them as current data.
 
 ## 3. Frontmatter conventions (additions)
 
@@ -79,7 +80,7 @@ Sections grouped by milestone; M-CC threaded as its own section with `:crit` tag
 
 ### 4.2 Secondary: D2 wave-gate diagram
 
-A separate D2 view showing wave-gate edges (M01 → M02 → M03 → M04 → M05 → M06) with gate-criteria labels. Each gate node lists the acceptance bullets from `docs/ROADMAP.md` §2.
+A separate D2 view showing dependency edges from `/specs/masterplan.json#masterplan_v2.dependency_edges`. **BLOCKED:** no field-level successor exists for legacy gate-criteria labels, so they are omitted rather than invented.
 
 ### 4.3 Cumulative-progress chart
 
@@ -87,17 +88,17 @@ A Mermaid `xychart-beta` showing cumulative phase completion over time, broken b
 
 ## 5. Wave-gate annotation
 
-Each wave gate is rendered as a diamond node containing:
-- Wave id (e.g. `W-Foundry-Preview`).
-- Gate criteria list (lifted verbatim from `docs/ROADMAP.md` §2 row).
+Each derived dependency wave is rendered as a diamond node containing:
+- Derived `wave_index` from `/specs/masterplan.json#masterplan_v2.sequencing`.
 - Current pass/fail state (from `oya-governance-lane-rollup` aggregate).
+- **BLOCKED:** no masterplan-v2 field exists for legacy gate-criteria labels.
 
 ## 6. Validation gates (`oya-governance-roadmap-viz`)
 
 1. **Frontmatter completeness.** Every milestone/phase INDEX has the required date/duration fields (BLOCKER).
 2. **DAG validity.** `start_after:` references resolve; no cycles (BLOCKER).
 3. **Status validity.** `status:` ∈ {`open`, `active`, `gated`, `done`} (BLOCKER).
-4. **Wave coverage.** Every wave in `docs/ROADMAP.md` §2 has at least one phase assigned (HIGH).
+4. **Derived-wave coverage.** Every `wave_index` in `/specs/masterplan.json#masterplan_v2.sequencing` has at least one work item assigned (HIGH).
 5. **Generated drift.** Committed roadmap viz differs from re-rendered (BLOCKER).
 6. **Critical-path integrity.** The critical path (M01 → M02 → ... → M06) renders as a continuous chain; gap → HIGH.
 
@@ -106,7 +107,7 @@ Each wave gate is rendered as a diamond node containing:
 | Event | Action |
 |---|---|
 | Per-PR touching `docs/MASTERPLAN.md` or any milestone/phase INDEX | Re-render; lane runs. |
-| Per-PR touching `docs/ROADMAP.md` | Re-render (wave-gate criteria may change). |
+| Per-PR touching `/specs/masterplan.json` | Re-render (dependency order may change). |
 | Nightly | Full re-render; archive weekly snapshot for trend. |
 | On phase `status:` transition to `done` | Re-render with green styling; auto-notify stakeholders. |
 

@@ -244,7 +244,80 @@ fn rule3_canonical_subdirs_pass() {
 }
 
 // ---------------------------------------------------------------------------
-// Rule 4 — Catalog/manifest crate-claim consistency
+// Rule 4 — Retired roadmap authority
+// ---------------------------------------------------------------------------
+
+#[test]
+fn rule4_active_docs_and_templates_cannot_read_roadmap_as_current_authority() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+
+    write_file(
+        root,
+        "docs/DESIGN.md",
+        "See [the current plan](ROADMAP.md) for sequencing.\n",
+    );
+
+    let result = validate(root, false);
+    assert!(
+        result.is_err(),
+        "an active document must not read docs/ROADMAP.md as current authority: {result:?}"
+    );
+}
+
+#[test]
+fn rule4_allows_historical_and_negative_fixture_roadmap_citations() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+
+    write_file(
+        root,
+        "docs/decisions/ADR-0001-test.md",
+        "---\nid: ADR-0001\nstatus: Accepted\n---\nHistorical evidence: docs/ROADMAP.md.\n",
+    );
+    write_file(
+        root,
+        "docs/audits/roadmap-audit.md",
+        "Audit evidence cited docs/ROADMAP.md.\n",
+    );
+    write_file(
+        root,
+        "specs/fixtures/doc-axis/negative-roadmap-reference.md",
+        "Negative fixture: docs/ROADMAP.md.\n",
+    );
+    write_file(
+        root,
+        "docs/DESIGN.md",
+        "Current authority: /specs/masterplan.json#masterplan_v2.\n",
+    );
+
+    let result = validate(root, false);
+    assert!(
+        result.is_ok(),
+        "historical and negative-fixture citations must remain permitted: {result:?}"
+    );
+}
+
+#[test]
+fn rule4_repository_active_docs_and_templates_are_roadmap_authority_free() {
+    let root = std::env::current_dir().expect("project-root working directory");
+    let findings = match validate(&root, false) {
+        Ok(_) => Vec::new(),
+        Err(findings) => findings,
+    };
+
+    let roadmap_authority_findings: Vec<_> = findings
+        .iter()
+        .filter(|finding| finding.rule_violated == DocAxisRule::RetiredRoadmapAuthority)
+        .collect();
+    assert!(
+        roadmap_authority_findings.is_empty(),
+        "active docs/templates must not read ROADMAP as current authority: {roadmap_authority_findings:?}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Rule 5 — Catalog/manifest crate-claim consistency
 // ---------------------------------------------------------------------------
 
 #[test]

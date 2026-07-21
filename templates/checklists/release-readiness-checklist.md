@@ -3,13 +3,13 @@ doc_class: Checklist
 checklist_id: CHK-REL
 status: pending approval
 purpose: |
-  Milestone-level release gate. Walked at every wave-gate boundary per `docs/ROADMAP.md §2`. Trace to `.omc/plans/MASTERPLAN.md §13 Definition of done`.
+  Milestone-level release gate. Walked against `/specs/masterplan.json#masterplan_v2.dependency_edges` and `.sequencing`. BLOCKED: masterplan v2 has no field-level successor for legacy wave-gate acceptance criteria, so this checklist cannot authorize release from such criteria.
 lift_target: oyatie/docs/checklists/release-readiness.md
 enforcing_fitness_lane: oya-governance-release-readiness
 owner_team: ops-sre-reliability + council-architecture
 related:
   - docs/RELEASE-MANAGEMENT.md
-  - docs/ROADMAP.md
+  - /specs/masterplan.json#masterplan_v2
   - .omc/plans/MASTERPLAN.md
   - /templates/checklists/per-phase-completion-checklist.md
 ---
@@ -22,7 +22,7 @@ related:
 
 - [ ] **RR1** Milestone INDEX `status: merged`. *Lane:* `oya-governance-plan-hierarchy`.
 - [ ] **RR2** Every phase under the milestone walked through `per-phase-completion-checklist.md`. *(transitive)*
-- [ ] **RR3** Wave-gate row in `docs/ROADMAP.md §2` has every acceptance criterion checked. *Lane:* `oya-governance-release-readiness`.
+- [ ] **RR3** **BLOCKED:** no masterplan-v2 field-level successor exists for the legacy wave-gate acceptance-criteria row; do not claim this check is complete. *Lane:* `oya-governance-release-readiness`.
 - [ ] **RR4** `docs/PRD.md §4 success metrics` for the wave-gate met (if applicable). *(advisory; founder + council review)*
 
 ## Engineering bar (hyperscaler-grade)

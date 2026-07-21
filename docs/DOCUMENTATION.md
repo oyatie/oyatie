@@ -24,7 +24,7 @@ The four Diátaxis quadrants:
 | **Reference** | Look up exact info | `oya verify --help`; `Capability` Rust struct rustdoc |
 | **Explanation** | Understand the *why* | "Why Foundry consolidates Foundry — DESIGN §3" |
 
-Plus a fifth, project-management quadrant for the consolidated docs themselves (PRD/ROADMAP/RISK-REGISTER/etc.). The consolidated docs are *project artifacts*, not user docs. They are exposed selectively to outside readers (trust portal mirrors).
+Plus a fifth, project-management quadrant for the consolidated docs themselves (PRD/masterplan/RISK-REGISTER/etc.). The consolidated docs are *project artifacts*, not user docs. They are exposed selectively to outside readers (trust portal mirrors).
 
 ---
 
@@ -39,7 +39,7 @@ Plus a fifth, project-management quadrant for the consolidated docs themselves (
 | **Foundry agent** | Machine-readable catalog (`machine-readable/`), capability schemas, evidence emission contracts |
 | **Operator (SRE)** | Runbooks, SLO catalog, incident-management playbook, dashboards |
 | **Auditor / Regulator** | Compliance matrix, evidence portal, control-evidence packs, trust portal |
-| **Council / Founder** | PRD, ROADMAP, RISK-REGISTER, FINOPS, HIRING-CAPACITY, GTM-PLAN |
+| **Council / Founder** | PRD, masterplan v2, RISK-REGISTER, FINOPS, HIRING-CAPACITY, GTM-PLAN |
 
 ---
 
@@ -134,7 +134,7 @@ For other docs:
 | `docs/PRD.md` | Project-management (the 5th quadrant we add) | What we're building |
 | `docs/DESIGN.md` | Project-management + Explanation | How it interlocks + why |
 | `docs/SPEC.md` | Reference | Surface lookup |
-| `docs/ROADMAP.md` | Project-management | When |
+| `/specs/masterplan.json#masterplan_v2` | Project-management | When |
 | `docs/TOOLCHAIN.md` | Explanation | Why these tools |
 | `docs/PRIVACY-PROGRAM.md` | Reference + Explanation | Lookup of policy + why |
 | `docs/COMPLIANCE-MATRIX.md` | Reference | Lookup |

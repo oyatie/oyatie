@@ -197,7 +197,7 @@ prevent double-payment.
 
 Scale-out: worker layer HPA on queue depth >500; min 2; max 50 worker pods.
 Payroll run workers are stateless; state in Postgres only.
-Cross-region: M03 KR only; post-M03 per `docs/ROADMAP.md`.
+Cross-region: M03 KR only. **BLOCKED:** no masterplan-v2 field-level successor defines the post-M03 expansion sequence; do not infer one.
 
 ---
 

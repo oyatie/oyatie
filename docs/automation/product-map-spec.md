@@ -7,8 +7,8 @@ status: Accepted
 date: 2026-05-12
 purpose: |
   Render the 7-axes × N-products product map with per-product status, owner,
-  wave, and dependencies. Source: `docs/products/<axis>/PRD.md` frontmatter +
-  `docs/ROADMAP.md` wave-mapping. Lift to `docs/visualization/product-map.md`
+  dependencies. Source: `docs/products/<axis>/PRD.md` frontmatter +
+  `/specs/masterplan.json#masterplan_v2.work_items`. Lift to `docs/visualization/product-map.md`
   with a Mermaid graph as the primary render.
 planned_enforcement_ref: oya-governance-product-map
 extends_crates:
@@ -47,7 +47,8 @@ companion_docs:
   - SPEC.md
 ```
 
-- `docs/ROADMAP.md` wave-mapping (which wave each status corresponds to).
+- `/specs/masterplan.json#masterplan_v2.work_items` for canonical work-item identity and status.
+- **BLOCKED:** masterplan v2 has no product-frontmatter-to-derived-wave mapping; do not infer one from legacy wave labels.
 - `docs/RACI-OWNERSHIP.md` for owner-team resolution.
 
 ## 3. Output renderings
@@ -89,14 +90,14 @@ A sortable table appears below the diagrams: `product_id | axis | status | owner
 | Event | Action |
 |---|---|
 | Per-PR touching `docs/products/**` | Re-render; lane runs. |
-| Per-PR touching `docs/ROADMAP.md` | Re-render (wave colors / mapping may change). |
+| Per-PR touching `/specs/masterplan.json` | Re-render when work-item data changes. |
 | Nightly | Full sweep; orphan product detection (PRD without a matching catalog record). |
 
 ## 6. Validation gates (`oya-governance-product-map`)
 
 1. **Frontmatter coverage.** Every `docs/products/<axis>/<product>/PRD.md` has all required fields (BLOCKER on omission).
 2. **Status validity.** `status:` ∈ {`pre-preview`, `preview`, `stable`, `sunset`} (BLOCKER).
-3. **Wave validity.** `wave:` resolves to a wave in `docs/ROADMAP.md` §2 (BLOCKER).
+3. **Planning reference validity.** A product may reference only a resolvable `masterplan_work_item_id:` in `/specs/masterplan.json#masterplan_v2.work_items` (BLOCKER). **BLOCKED:** no successor field exists for legacy `wave:` labels.
 4. **Owner-team validity.** `owner_team:` resolves to `docs/teams/<id>/CHARTER.md` (HIGH).
 5. **depends_on referential integrity.** Every dependency resolves to another product PRD (BLOCKER).
 6. **Cycle ban.** Dependency cycle across products → BLOCKER absent ADR-tracked exception.
@@ -108,7 +109,7 @@ For each axis, the pipeline emits an additional standalone SVG to `docs/visualiz
 
 ## 8. Cross-link with roadmap visualization
 
-The same `wave:` field anchors `roadmap-visualization-spec.md`'s Gantt rendering. Both views consume the same product-frontmatter sources to guarantee a single source of wave-truth.
+`masterplan_work_item_id:` anchors `roadmap-visualization-spec.md`'s rendering where present. **BLOCKED:** no product-to-derived-wave field exists in masterplan v2, so the two views must not claim a single wave-truth.
 
 ## 9. Out-of-scope
 

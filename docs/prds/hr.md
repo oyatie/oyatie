@@ -189,7 +189,7 @@ changes are serialized per employee; single-writer per tenant shard).
 | Max concurrent API users | 500 | 5,000 | Memory > 80% |
 
 Scale-out: Kubernetes HPA on CPU >70%; min 2 replicas; max 20.
-Cross-region: M03 KR only; post-M03 expansion documented in `docs/ROADMAP.md`.
+Cross-region: M03 KR only. **BLOCKED:** no masterplan-v2 field-level successor defines the post-M03 expansion sequence; do not infer one.
 
 ---
 

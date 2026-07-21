@@ -243,7 +243,7 @@ Scale-out policy:
 
 Cross-region story:
 - M03 launch: single KR region (OCI ap-seoul-1); residency locked per ADR-0117
-- Post-M03: `<expansion plan>` — deferred, documented in `docs/ROADMAP.md`
+- Post-M03: `<expansion plan>` — **BLOCKED:** no masterplan-v2 field-level successor defines this expansion sequence; do not infer one.
 - Cross-region replication required if domain is: Medical | Payments | Connect-Pro mail
 
 Sharding:

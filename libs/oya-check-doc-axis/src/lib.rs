@@ -1,7 +1,7 @@
 //! Doc-axis enforcement kernel (ADR-0388).
 //!
 //! Validates that the `docs/` tree and related registry artifacts stay within
-//! the seven canonical doc axes defined by ADR-0388. Four rules are checked:
+//! the seven canonical doc axes defined by ADR-0388. Five rules are checked:
 //!
 //! 1. **ADR status casing** — every `docs/decisions/ADR-*.md` frontmatter
 //!    `status:` value is one of the five allowed literals (case-sensitive).
@@ -20,6 +20,9 @@
 //! 4. **Catalog/manifest crate-claim consistency** — every crate listed in a
 //!    microservice `manifest.json` `bounded_contexts[].crates[]` array must
 //!    have a corresponding file under `registry/catalog/<crate>.yaml`.
+//!
+//! 5. **No retired roadmap authority reads** — active docs and templates must
+//!    point at `/specs/masterplan.json#masterplan_v2`, not `docs/ROADMAP.md`.
 
 #![forbid(unsafe_code)]
 // ADR-0083 Tier 1 (kernel): no unwrap/expect/panic in non-test code.
@@ -48,7 +51,7 @@ pub struct DocAxisFinding {
     pub blocking: bool,
 }
 
-/// The four doc-axis rule identifiers.
+/// The five doc-axis rule identifiers.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DocAxisRule {
     /// Rule 1: ADR status field must be one of the five canonical values.
@@ -59,6 +62,8 @@ pub enum DocAxisRule {
     DocsProliferation,
     /// Rule 4: crate claimed in manifest.json but missing from registry/catalog/.
     CatalogManifestDrift,
+    /// Rule 5: active documentation or templates read the retired roadmap.
+    RetiredRoadmapAuthority,
 }
 
 /// Summary counters returned on a clean (no blocking violations) run.
@@ -197,6 +202,28 @@ pub const LEGACY_DOCS_SUBDIRS: &[&str] = &[
     "wiki",
 ];
 
+/// Active document and template surfaces that formerly read `docs/ROADMAP.md`.
+///
+/// Historical ADRs, audits, evidence, and negative fixtures intentionally do
+/// not appear here: they may cite the retired surface as provenance.
+pub const ACTIVE_ROADMAP_AUTHORITY_PATHS: &[&str] = &[
+    "docs/DESIGN.md",
+    "docs/DOCUMENTATION.md",
+    "docs/PRD.md",
+    "docs/automation/product-map-spec.md",
+    "docs/automation/roadmap-visualization-spec.md",
+    "docs/checklists/release-readiness-checklist.md",
+    "docs/prds/hr.md",
+    "docs/prds/payroll.md",
+    "docs/templates/milestone-index-template.md",
+    "docs/templates/prd-template.md",
+    "docs/templates/prfaq-template.md",
+    "templates/checklists/release-readiness-checklist.md",
+    "templates/milestone-index-template.md",
+    "templates/prd-template.md",
+    "templates/prfaq-template.md",
+];
+
 // ---------------------------------------------------------------------------
 // Idea-pager promotion window
 // ---------------------------------------------------------------------------
@@ -230,6 +257,7 @@ pub fn validate(repo_root: &Path, strict: bool) -> ValidationResult {
     check_adr_status_casing(repo_root, strict, &mut findings, &mut report);
     check_shadow_ideas(repo_root, &mut findings, &mut report);
     check_docs_proliferation(repo_root, &mut findings, &mut report);
+    check_retired_roadmap_authority(repo_root, &mut findings);
     check_catalog_manifest_drift(repo_root, &mut findings, &mut report);
 
     // Count warnings from non-blocking findings.
@@ -241,6 +269,46 @@ pub fn validate(repo_root: &Path, strict: bool) -> ValidationResult {
     } else {
         Err(blocking)
     }
+}
+
+// ---------------------------------------------------------------------------
+// Rule 5 — No retired roadmap authority reads
+// ---------------------------------------------------------------------------
+
+fn check_retired_roadmap_authority(repo_root: &Path, findings: &mut Vec<DocAxisFinding>) {
+    for rel in ACTIVE_ROADMAP_AUTHORITY_PATHS {
+        let path = repo_root.join(rel);
+        let contents = match fs::read_to_string(&path) {
+            Ok(contents) => contents,
+            Err(_) => continue,
+        };
+
+        for (index, line) in contents.lines().enumerate() {
+            if contains_retired_roadmap_reference(line) {
+                findings.push(DocAxisFinding {
+                    path: (*rel).to_string(),
+                    line: Some(index + 1),
+                    rule_violated: DocAxisRule::RetiredRoadmapAuthority,
+                    suggested_fix: "Replace the current-authority/read reference with `/specs/masterplan.json#masterplan_v2`; use a narrower masterplan_v2 field only when it truthfully preserves the referenced semantics. Historical ADR, audit, evidence, and negative-fixture citations remain allowed outside this active-path set.".to_string(),
+                    blocking: true,
+                });
+            }
+        }
+    }
+}
+
+fn contains_retired_roadmap_reference(line: &str) -> bool {
+    const RETIRED_NAME: &str = "ROADMAP.md";
+
+    line.match_indices(RETIRED_NAME).any(|(start, _)| {
+        let before = line[..start].chars().next_back();
+        let after = line[start + RETIRED_NAME.len()..].chars().next();
+        !before.is_some_and(is_path_name_character) && !after.is_some_and(is_path_name_character)
+    })
+}
+
+fn is_path_name_character(character: char) -> bool {
+    character.is_ascii_alphanumeric() || matches!(character, '-' | '_')
 }
 
 // ---------------------------------------------------------------------------
