@@ -707,6 +707,50 @@ mod tests {
         let _ = std::fs::remove_dir_all(&root);
     }
 
+    /// Live-corpus contract for the ADR-0614 acceptance repair.  The loader has
+    /// already been fail-closed since its hardening landed; this prevents the
+    /// governing ADRs and ignore-policy explanation from drifting back to the
+    /// obsolete fail-open account of that behavior.
+    #[test]
+    fn adr0614_live_corpus_matches_the_fail_closed_loader_contract() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .ancestors()
+            .find(|dir| dir.join("specs/root-hub-pointers.json").is_file())
+            .expect("path-resolver test source is checked out beneath the repository root");
+
+        let adr0614 = std::fs::read_to_string(
+            root.join("docs/decisions/ADR-0614-de-commit-reorg-move-manifest-bijection.md"),
+        )
+        .expect("read ADR-0614 from the live corpus");
+        assert!(
+            adr0614.starts_with("---\nid: ADR-0614\n")
+                && adr0614.contains("status: Accepted\n")
+                && adr0614.contains("amends: [ADR-0563, ADR-0613]\n")
+                && adr0614.contains("depends_on: [ADR-0515]\n"),
+            "ADR-0614 must be Accepted, amend both controlling ADRs, and depend only on Accepted admission authority"
+        );
+        assert!(
+            !adr0614.contains("fail-OPEN") && !adr0614.contains("fail-open"),
+            "ADR-0614 must not claim that the loader fails open"
+        );
+
+        let adr0613 = std::fs::read_to_string(
+            root.join("docs/decisions/ADR-0613-de-commit-remaining-controller-materialized-projection-faces.md"),
+        )
+        .expect("read ADR-0613 from the live corpus");
+        assert!(
+            adr0613.contains("amended_by: [ADR-0614]\n"),
+            "ADR-0613 must reciprocally record the Accepted ADR-0614 amendment"
+        );
+
+        let gitignore = std::fs::read_to_string(root.join(".gitignore"))
+            .expect("read live ignore policy");
+        assert!(
+            gitignore.contains("fails CLOSED on absence"),
+            ".gitignore must describe the fail-closed materialize-first loader contract"
+        );
+    }
+
     /// PRESENT but empty (schema + empty pair lists) => `Ok(identity)`: a legitimate no-move state.
     #[test]
     fn load_present_empty_manifest_is_ok_identity() {

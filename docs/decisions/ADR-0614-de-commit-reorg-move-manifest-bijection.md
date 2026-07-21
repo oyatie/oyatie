@@ -1,7 +1,7 @@
 ---
 id: ADR-0614
 title: "De-commit the reorg move-manifest bijection (finish the pure-derivation strangler for the last committed reorg face)"
-status: Proposed
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-07-09
@@ -9,9 +9,9 @@ door: one-way
 owner: cloud-ci-platform
 supersedes: []
 superseded_by: []
-amends: [ADR-0563]
-depends_on: [ADR-0595, ADR-0613, ADR-0597]
-related: [ADR-0596, ADR-0551, ADR-0562, ADR-0555, ADR-0364]
+amends: [ADR-0563, ADR-0613]
+depends_on: [ADR-0515]
+related: [ADR-0595, ADR-0596, ADR-0597, ADR-0551, ADR-0562, ADR-0555, ADR-0364]
 related_specs:
   - /specs/reorg/move-manifest.generated.json
   - /registry/generated-artifact-control-plane.json
@@ -22,15 +22,14 @@ milestone: W0
 
 ## Status
 
-**Proposed - 2026-07-09** (ratified under the founder's 2026-07-08 autonomous-drive delegation and
-an explicit 2026-07-09 delegation for this fix with "what would hyperscalers do" as the bar and
-"ADR reversal is ok" as the standing approval to reverse ADR-0563's committed stance; door:
-one-way — same policy class as ADR-0595/ADR-0613: once the control-plane re-tracking guard
-(`generated_artifact_not_tracked_path_is_tracked`) covers this path, "the move bijection is a pure
-derivation, not a contributor merge surface" is a one-way commitment). Lifecycle status stays
-**Proposed** and advances to Accepted when the manifest / gitignore / registry-drift / ADR-0563
-propagation lands (the ADR-0595/ADR-0613 pattern — a fresh `Accepted` ADR that has not yet reached
-its propagation faces trips the cross-artifact-agreement `unpropagated_decision` invariant).
+**Accepted - 2026-07-21** under the founder's technical/CI authority. The manifest is declared
+`not-tracked-in-git`, ignored, materialized before every relabel read, and checked by direct
+regenerate-twice determinism. The path resolver now makes an absent or unreadable materialized
+manifest a hard error; its live unit contract covers the materialize-first precondition. The
+control-plane re-tracking guard (`generated_artifact_not_tracked_path_is_tracked`) makes "the move
+bijection is a pure derivation, not a contributor merge surface" a one-way commitment. ADR-0595 and
+ADR-0597 remain nonbinding implementation provenance in `related`; this Accepted decision depends
+only on the Accepted ADR-0515 admission authority.
 
 ## Context
 
@@ -41,8 +40,8 @@ controller-materialized projection faces (`masterplan.generated.json`, `product-
 `specs/reorg/move-manifest.generated.json` — the rename-aware path-keyed CI baseline relabel's
 move-bijection (ADR-0563) — was the LAST committed pure-derivation reorg face. ADR-0613 explicitly
 deferred it, reaffirming ADR-0563's "stays committed" stance and naming the three preconditions for
-reversal (an explicit ADR-0563 amendment; the path-resolver fail-open; move-manifest was never the
-corruption source). This ADR is that amendment.
+reversal (an explicit ADR-0563 amendment; a fail-closed materialized-manifest loader; and evidence
+that move-manifest was never the corruption source). This ADR is that amendment.
 
 Leaving move-manifest committed is not merely friction — it is a **catch-22 that blocks every
 capability-move reorg PR**:
@@ -98,13 +97,14 @@ Gate / consumer consequences (all verified against the code, no flag day):
    `ci/facade/artifact-inventory-registry/` + `product-graph.html`; `read_decommitted_face_names`
    matches only `GENERATED_FACE_PATHS` / `CONTROLLER_MATERIALIZED_ARTIFACT_PATHS`). move-manifest's
    freshness is governed solely by registry-drift.
-4. **path-resolver** (`ci/adapters/path-resolver`): `MoveManifest::load` / `ManifestBijection::load`
-   / `ManifestPathResolver::load` still return `Self` infallibly, mapping absent → `empty()`
-   (identity). This fail-OPEN is safe post-de-commit because the materializer writes the manifest as
-   step 1 of every leg BEFORE any relabel-read (audited across
-   `.github/workflows/oya-ci-required.yml`: every scm-facts emitter invocation runs via
-   `materialize-generated-faces-bin`; there is no standalone-emitter leg). The doc comment records
-   the materialize-first precondition and the fail-closed hardening follow-up.
+4. **path-resolver** (`ci/adapters/path-resolver`): `MoveManifest::load` /
+   `ManifestBijection::load` / `ManifestPathResolver::load` return `Result`; an absent or unreadable
+   file is a hard error, while a present-but-forged body remains the intentional empty identity
+   anti-laundering result. The materializer writes the manifest as step 1 of every leg BEFORE any
+   relabel-read (audited across `.github/workflows/oya-ci-required.yml`: every scm-facts emitter
+   invocation runs via `materialize-generated-faces-bin`; there is no standalone-emitter leg).
+   Absence is therefore a loud materialize-first precondition failure, never a silent identity
+   relabel.
 
 ## Consequences
 
@@ -115,13 +115,10 @@ Gate / consumer consequences (all verified against the code, no flag day):
   bijection blob.
 - Determinism (regenerate-twice) becomes the load-bearing integrity invariant for move-manifest, as
   it already is for the ADR-0595/ADR-0613 faces. Byte parity against a committed copy is retired.
-- Latent hazard recorded, not dropped: the path-resolver `load` fails OPEN to identity on an absent
-  manifest, which cannot distinguish `absent = materialization-error` (should hard-fail / false-RED,
-  never merge bad) from `empty = no-move` (the correct identity). It is safe TODAY only because the
-  materializer is ordered first on every leg. The fail-open → fail-CLOSED hardening (make `load`
-  fallible; absent ⇒ error) is a tracked follow-up (a `ponytail:` marker on the `load` body + this
-  note), deferred here to avoid rippling the infallible `load` signature through the emitter in this
-  PR. Its failure mode today is a safe false-RED (blocks, never merges bad).
+- The loader distinguishes `absent = materialization-error` (hard error / false-RED, never merge
+  bad) from `present empty = no-move` (the correct identity). The materialize-first ordering is
+  both an operational precondition and independently enforced loader behavior; an omitted
+  materialization cannot silently change relabel semantics.
 - Consumer safety (verified): no BUCK `srcs` reference the face, so `buck2 build` is unaffected. The
   only runtime reader is the scm-facts emitter (`ci/facade/scm-facts-snapshot`,
   `ManifestPathResolver::load`), which runs inside the materializer AFTER `materialize_move_manifest`.
@@ -133,10 +130,9 @@ Gate / consumer consequences (all verified against the code, no flag day):
 - **Keep move-manifest committed and special-case the two gates.** Rejected: it hard-codes an
   exception into the diff-policy (which is empty-allowlist BY DESIGN) and preserves the anti-pattern
   the whole ADR-0595 → ADR-0613 strangler retires — a committed pure-derivation merge surface.
-- **De-commit AND refactor `load` to fail-closed in one PR.** Deferred: the fail-closed refactor
-  ripples the infallible signature through `ManifestBijection` / `ManifestPathResolver` / the emitter
-  and is a materially larger, higher-risk change. The materialize-first ordering makes the fail-open
-  safe today; the hardening is a recorded follow-up rather than a blocker.
+- **De-commit without fail-closed loading.** Rejected: acceptance requires the loader's `Result`
+  propagation through `ManifestBijection` / `ManifestPathResolver` / the emitter. Materialize-first
+  ordering is defense in depth, not a substitute for a hard absence error.
 
 ## Artifact accounting (ADR-0555)
 
@@ -149,8 +145,8 @@ final_tree_validation + public_product_contract); `.gitignore` (remove the ADR-0
 comment; rewrite the ADR-0613 "move-manifest is EXCLUDED" note to document that move-manifest joins
 the de-commit class); the registry-drift test (byte-parity → regenerate-twice determinism); the
 freshness-gate unit fixtures (rename a misleading `move-manifest` committed-class example to a
-neutral placeholder); `ci/adapters/path-resolver` doc comments (materialize-first precondition +
-fail-closed follow-up); `specs/reachability-registry.json` (refresh the `specs/reorg/` anchor prose
+neutral placeholder); `ci/adapters/path-resolver` loader contract (materialize-first precondition +
+fail-closed absence error); `specs/reachability-registry.json` (refresh the `specs/reorg/` anchor prose
 — the prefix still covers the tracked move-plans); ADR-0563 (`amended_by: [ADR-0614]` + an "Amended
 stance" note); and adds this ADR. It adds no new crate. `decisions.json` / `ADR-INDEX.md` are
 land-time materialized, not hand-edited in this PR.
@@ -158,7 +154,8 @@ land-time materialized, not hand-edited in this PR.
 ## Supersedes / feeds
 
 - Amends ADR-0563's committed-vs-materialized stance for move-manifest (committed → derive-on-demand)
-  WITHOUT changing ADR-0563's lifecycle status or its relabel machinery.
+  WITHOUT changing ADR-0563's lifecycle status or relabel machinery, and amends ADR-0613's former
+  move-manifest deferral now that the loader is fail-closed.
 - Completes (does NOT supersede) the ADR-0595 → ADR-0597 → ADR-0613 pure-derivation de-commit
   strangler for the last committed reorg face.
 - Reaffirms ADR-0596 (frozen references — gate-baseline — stay committed) and ADR-0551 (the
