@@ -13,7 +13,8 @@ use crate::Finding;
 pub const FOUNDER_PRODUCT_INTENT_VALIDATOR: &str =
     "cloud-ci-cross-artifact-agreement/founder-product-intent";
 const INVALID_CODE: &str = "founder_product_intent_agreement_invalid";
-const FOUNDER_INTENT_PATH: &str = "/specs/founder-product-intent.json";
+/// Canonical current founder product-intent authority path.
+pub const FOUNDER_PRODUCT_INTENT_PATH: &str = "/specs/founder-product-intent.json";
 
 const REQUIRED_SECTIONS: [&str; 18] = [
     "authority_boundary",
@@ -845,7 +846,7 @@ fn validate_root_hub(findings: &mut BTreeSet<Finding>, root_hub: &Value) {
         findings,
         entry,
         "current_path",
-        FOUNDER_INTENT_PATH,
+        FOUNDER_PRODUCT_INTENT_PATH,
         "root_hub.entry_points.founder_product_intent.current_path",
     );
     if !root_hub["agent_quick_start_protocol"]["step_1_read_authority"]
@@ -857,13 +858,26 @@ fn validate_root_hub(findings: &mut BTreeSet<Finding>, root_hub: &Value) {
             "root_hub.agent_quick_start_protocol.founder_product_intent",
         );
     }
+    if !root_hub["agent_entry_surface_allowlist"]["paths"]
+        .as_array()
+        .is_some_and(|paths| {
+            paths
+                .iter()
+                .any(|path| path.as_str() == Some(FOUNDER_PRODUCT_INTENT_PATH))
+        })
+    {
+        invalid(
+            findings,
+            "root_hub.agent_entry_surface_allowlist.founder_product_intent",
+        );
+    }
 }
 
 fn validate_registry_row(findings: &mut BTreeSet<Finding>, registry: &Value) {
     let valid = registry["rows"].as_array().is_some_and(|rows| {
         rows.iter().any(|row| {
             row["artifact_id"].as_str() == Some("founder-product-intent")
-                && row["artifact_path"].as_str() == Some(FOUNDER_INTENT_PATH)
+                && row["artifact_path"].as_str() == Some(FOUNDER_PRODUCT_INTENT_PATH)
                 && row["artifact_format"].as_str() == Some("json")
                 && row["artifact_profile"].as_str() == Some("schema")
         })

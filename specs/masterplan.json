@@ -6859,6 +6859,16 @@
         "freshness_rule": "single-writer canonical authority; validator rejects duplicate or external live work-item ids"
       },
       {
+        "path": "/specs/founder-product-intent.json",
+        "audience": [
+          "agents",
+          "humans",
+          "cloud-ci-gates"
+        ],
+        "read_timing_class": "entry-surface",
+        "freshness_rule": "current separately governed product-intent authority and Stage-1 entry boundary; content is not derived from masterplan v2 and never authorizes roadmap dispatch while HOLD(Planning) remains"
+      },
+      {
         "path": "/specs/master-plan-sequencing.json",
         "audience": [
           "agents",
@@ -6924,7 +6934,7 @@
       "source_of_truth": "/specs/masterplan.json#masterplan_v2",
       "validator": "cloud-ci-cross-artifact-agreement/masterplan-v2-projection-freshness",
       "single_writer_mutation_path": "/specs/masterplan.json",
-      "coverage_scope": "All non-canonical read_contract rows, all generated-projection surface_dispositions, and all generated-artifact-control-plane projections whose source_inputs include specs/masterplan.json.",
+      "coverage_scope": "All non-canonical read_contract rows except the separately governed /specs/founder-product-intent.json authority, all generated-projection surface_dispositions, and all generated-artifact-control-plane projections whose source_inputs include specs/masterplan.json.",
       "rederivation_gate": {
         "validator": "cloud-ci-cross-artifact-agreement/masterplan-v2-projection-rederivation",
         "violation_code": "masterplan_projection_stale",

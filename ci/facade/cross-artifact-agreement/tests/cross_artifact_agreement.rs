@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use ci_cross_artifact_agreement::{
-    AdrDecisionRecord, GateCoverageBaseline, RatchetReport, Verdict,
+    AdrDecisionRecord, FOUNDER_PRODUCT_INTENT_PATH, GateCoverageBaseline, RatchetReport, Verdict,
     derive_masterplan_md_projection, evaluate, evaluate_adr_index_projection_parity,
     evaluate_adr_prose_frontmatter_status, evaluate_founder_product_intent_agreement,
     evaluate_masterplan_plan_evidence_crosscheck, evaluate_masterplan_projection_rederivation,
@@ -586,6 +586,20 @@ fn founder_product_intent_validator_is_fail_closed_for_authorization_and_control
             .iter()
             .any(|finding| finding.key == "stage1_entry_requirements.controls.nonclaim"),
         "the intent artifact must never record a satisfied Stage-1 control: {findings:?}"
+    );
+
+    let mut hidden_root_hub = root_hub.clone();
+    hidden_root_hub["agent_entry_surface_allowlist"]["paths"]
+        .as_array_mut()
+        .expect("entry-surface paths array")
+        .retain(|path| path.as_str() != Some("/specs/founder-product-intent.json"));
+    let findings =
+        evaluate_founder_product_intent_agreement(&intent, &hidden_root_hub, &registry, &graph);
+    assert!(
+        findings.iter().any(|finding| {
+            finding.key == "root_hub.agent_entry_surface_allowlist.founder_product_intent"
+        }),
+        "the current founder intent must remain a mandatory bounded entry surface: {findings:?}"
     );
 }
 
@@ -1230,7 +1244,7 @@ fn expected_masterplan_projection_paths<'a>(
         let path = contract["path"]
             .as_str()
             .expect("read contract path must be a string");
-        if path != "/specs/masterplan.json" {
+        if path != "/specs/masterplan.json" && path != FOUNDER_PRODUCT_INTENT_PATH {
             expected.insert(path);
         }
     }
