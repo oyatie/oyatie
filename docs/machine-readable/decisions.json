@@ -2877,7 +2877,7 @@
       "path": "decisions/ADR-0242-oyatie-is-a-tenant-doctrine.md",
       "supersedes": [],
       "superseded_by": [],
-      "amends": ["ADR-0136", "ADR-0136", "ADR-0220", "ADR-0239", "ADR-0221"],
+      "amends": ["ADR-0136", "ADR-0220", "ADR-0239", "ADR-0221"],
       "amended_by": [],
       "related": ["ADR-0009", "ADR-0010", "ADR-0049", "ADR-0105", "ADR-0128", "ADR-0131", "ADR-0132", "ADR-0145", "ADR-0150", "ADR-0183", "ADR-0211", "ADR-0212", "ADR-0213", "ADR-0215", "ADR-0218", "ADR-0240", "ADR-0241", "ADR-0243", "ADR-0244", "ADR-0245", "ADR-0246", "ADR-0247", "ADR-0248"]
     },

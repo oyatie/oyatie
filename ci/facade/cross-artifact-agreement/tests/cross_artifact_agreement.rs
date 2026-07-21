@@ -1455,6 +1455,42 @@ fn adr_0051_prose_supersedes_remains_an_atomic_projection_value() {
     );
 }
 
+#[test]
+fn legacy_amendment_edge_baseline_is_shrink_only_against_its_trusted_parent() {
+    const TRUSTED_BASELINE_COMMIT: &str = "0bcddf43bf2df1eced4ea44f63d74c98e14ae2e0";
+    const BASELINE_PATH: &str = "libs/oya-check-adr-index/legacy-amendment-edges.tsv";
+
+    let root = repo_root();
+    let trusted = Command::new("git")
+        .args([
+            "show",
+            &format!("{TRUSTED_BASELINE_COMMIT}:{BASELINE_PATH}"),
+        ])
+        .current_dir(&root)
+        .output()
+        .expect("run git show for trusted legacy baseline");
+    assert!(
+        trusted.status.success(),
+        "trusted legacy baseline must resolve from immutable parent {TRUSTED_BASELINE_COMMIT}"
+    );
+    let current =
+        fs::read_to_string(root.join(BASELINE_PATH)).expect("read current legacy baseline");
+    let rows = |contents: &str| {
+        contents
+            .lines()
+            .filter(|line| !line.is_empty() && !line.starts_with('#'))
+            .map(str::to_owned)
+            .collect::<BTreeSet<_>>()
+    };
+    let trusted_rows = rows(&String::from_utf8(trusted.stdout).expect("trusted baseline UTF-8"));
+    let current_rows = rows(&current);
+    assert!(
+        current_rows.is_subset(&trusted_rows),
+        "legacy amendment baseline may only shrink; candidate additions={:?}",
+        current_rows.difference(&trusted_rows).collect::<Vec<_>>()
+    );
+}
+
 // --- Check 2/3: capability-registry ⇄ derived gate-policy sync ---------------
 
 fn live_registry_policy_corpus(root: &Path) -> Value {
