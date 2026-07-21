@@ -326,6 +326,7 @@ pub fn admit_review(input: &ReviewAdmissionInput) -> Result<ReviewAdmissionPacke
 
     let mut author_approval_present = false;
     let mut ineligible_approval_present = false;
+    let mut malformed_evidence_present = false;
     let mut newest_approval: Option<&ReviewEvidence> = None;
     for (reviewer_key, review) in latest_by_reviewer {
         if review.verdict != ReviewVerdict::Approved {
@@ -340,9 +341,8 @@ pub fn admit_review(input: &ReviewAdmissionInput) -> Result<ReviewAdmissionPacke
             continue;
         }
         if !is_durable_http_url(&review.evidence_url) {
-            return Err(KernelError::InvalidInput(
-                "approved review is missing a durable HTTP(S) evidence URL".to_owned(),
-            ));
+            malformed_evidence_present = true;
+            continue;
         }
         if newest_approval.is_none_or(|current| review.review_id > current.review_id) {
             newest_approval = Some(review);
@@ -354,6 +354,8 @@ pub fn admit_review(input: &ReviewAdmissionInput) -> Result<ReviewAdmissionPacke
             "reviewer identity must be distinct from the PR author"
         } else if ineligible_approval_present {
             "approved reviewer is not eligible under the designated reviewer policy"
+        } else if malformed_evidence_present {
+            "approved review is missing a durable HTTP(S) evidence URL"
         } else {
             "no current head-bound APPROVED review evidence was found"
         };

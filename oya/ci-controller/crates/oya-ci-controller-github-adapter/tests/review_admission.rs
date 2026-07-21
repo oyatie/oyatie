@@ -3,18 +3,19 @@
 #![allow(clippy::expect_used, clippy::panic, clippy::unwrap_used)]
 
 use std::{
-    io::{BufRead, BufReader, Read, Write},
+    io::{BufRead, BufReader, ErrorKind, Read, Write},
     net::TcpListener,
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, mpsc},
     thread,
+    time::{Duration, Instant},
 };
 
 use httpmock::Mock;
 use httpmock::prelude::*;
 use oya_ci_controller_github_adapter::GitHubCommitStatusPoster;
 use oya_ci_controller_kernel::{
-    GitHubAccountType, GitHubPrincipal, KernelError, ReviewAdmissionPolicy,
-    ReviewAdmissionProducer, ReviewVerdict,
+    CommitState, CommitStatusPoster, GitHubAccountType, GitHubPrincipal, KernelError,
+    ReviewAdmissionPolicy, ReviewAdmissionProducer, ReviewVerdict,
 };
 use serde_json::json;
 
@@ -309,6 +310,60 @@ fn evidence_url_must_bind_the_configured_repository_pr_and_review() {
         matches!(result, Err(KernelError::InvalidInput(message)) if message.contains("repository, PR, and review"))
     );
     pull.assert();
+    reviews.assert();
+    status.assert();
+}
+
+#[test]
+fn malformed_eligible_approval_does_not_veto_another_valid_eligible_approval() {
+    let server = MockServer::start();
+    let pull = mock_pull(&server, "change-author", HEAD_SHA);
+    let reviews = server.mock(|when, then| {
+        when.method(GET)
+            .path("/repos/jason931225/oyatie/pulls/42/reviews")
+            .query_param("per_page", "100");
+        then.status(200).json_body(json!([
+            {
+                "id": 9002,
+                "state": "APPROVED",
+                "commit_id": HEAD_SHA,
+                "html_url": "https://github.com/other/repository/pull/42#pullrequestreview-9002",
+                "user": github_user("independent-reviewer")
+            },
+            {
+                "id": 9001,
+                "state": "APPROVED",
+                "commit_id": HEAD_SHA,
+                "html_url": REVIEW_URL,
+                "user": github_user("designated-reviewer")
+            }
+        ]));
+    });
+    let status = server.mock(|when, then| {
+        when.method(POST)
+            .path(format!("/repos/jason931225/oyatie/statuses/{HEAD_SHA}"))
+            .json_body(json!({
+                "state": "success",
+                "context": "oya-pr-review",
+                "description": "oya-pr-review approved by designated-reviewer",
+                "target_url": REVIEW_URL
+            }));
+        then.status(201);
+    });
+
+    let packet = make_poster(&server)
+        .produce_review_admission_status(
+            PR_NUMBER,
+            HEAD_SHA,
+            &review_policy(&["independent-reviewer", "designated-reviewer"]),
+            &producer(),
+            EVALUATED_AT_UNIX_S,
+        )
+        .expect("another eligible reviewer with durable evidence should be selected");
+
+    assert_eq!(packet.reviewer, principal("designated-reviewer"));
+    assert_eq!(packet.evidence_url, REVIEW_URL);
+    pull.assert_hits(2);
     reviews.assert();
     status.assert();
 }
@@ -633,7 +688,7 @@ fn page_two_changes_requested_supersedes_page_one_approval() {
         then.status(200)
             .header(
                 "Link",
-                &format!(
+                format!(
                     "<{}/repos/jason931225/oyatie/pulls/42/reviews?per_page=100&page=2>; rel=\"next\"",
                     server.base_url()
                 ),
@@ -700,12 +755,9 @@ fn spaced_next_relation_is_followed_even_when_title_mentions_next() {
         then.status(200)
             .header(
                 "Link",
-                &format!(
-                    "<{}?per_page=100&page=2>; title=\"rel=\\\"next\\\"\"; rel = \"next\"",
-                    format!(
-                        "{}/repos/jason931225/oyatie/pulls/42/reviews",
-                        server.base_url()
-                    )
+                format!(
+                    "<{}/repos/jason931225/oyatie/pulls/42/reviews?per_page=100&page=2>; title=\"rel=\\\"next\\\"\"; rel = \"next\"",
+                    server.base_url()
                 ),
             )
             .json_body(json!(page_one_reviews));
@@ -874,4 +926,56 @@ fn mismatched_pr_number_does_not_fetch_reviews() {
     pull.assert();
     reviews.assert_hits(0);
     status.assert();
+}
+
+#[test]
+fn configured_request_timeout_stops_a_stalled_blocking_github_call() {
+    let listener = TcpListener::bind("127.0.0.1:0").expect("bind stalled HTTP server");
+    let address = listener.local_addr().expect("read stalled server address");
+    listener
+        .set_nonblocking(true)
+        .expect("configure bounded stalled HTTP server");
+    let (stop_tx, stop_rx) = mpsc::channel();
+    let server = thread::spawn(move || {
+        let accept_deadline = Instant::now() + Duration::from_secs(2);
+        loop {
+            match listener.accept() {
+                Ok((_stream, _)) => {
+                    let _ = stop_rx.recv_timeout(Duration::from_secs(2));
+                    return;
+                }
+                Err(error) if error.kind() == ErrorKind::WouldBlock => {
+                    if stop_rx.try_recv().is_ok() || Instant::now() >= accept_deadline {
+                        return;
+                    }
+                    thread::sleep(Duration::from_millis(5));
+                }
+                Err(error) => panic!("accept stalled HTTP request: {error}"),
+            }
+        }
+    });
+    let poster = GitHubCommitStatusPoster::new("jason931225", "oyatie", "test-token")
+        .with_api_base(&format!("http://{address}"))
+        .with_request_timeout(Duration::from_millis(100));
+
+    let started = Instant::now();
+    let result = poster.post(
+        HEAD_SHA,
+        CommitState::Failure,
+        "oya-pr-review",
+        "timeout regression",
+        None,
+    );
+    let elapsed = started.elapsed();
+    let _ = stop_tx.send(());
+    server.join().expect("join stalled HTTP server");
+
+    assert!(
+        matches!(result, Err(KernelError::DownstreamTransport(_))),
+        "a stalled GitHub request must fail closed, got {result:?}"
+    );
+    assert!(
+        elapsed < Duration::from_secs(1),
+        "configured request timeout was not enforced: {elapsed:?}"
+    );
 }
