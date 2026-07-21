@@ -37,7 +37,7 @@ from `pr-review.yml`/`ci-failure-fix-loop.yml` to the Jenkins pipeline closure, 
 - [ ] Jenkins plugin licenses (mixed GPL / Eclipse Public License) are allowlisted at the infra layer.
 
 ## Minimum first slice (this lane, committed in-code)
-**In:** ADR-0361 (cutover); a shared Jenkins library + one reference
+ **Historical input, superseded by ADR-0515:** a shared Jenkins library + one reference
 `microservices/<ms>/ci/Jenkinsfile` lane + root orchestrator with the mandatory stage
 order; the repointed closure gate (TDD); branch-protection context swap; deletion of
 the 36 Actions workflows + parity gate; `oya verify` green.

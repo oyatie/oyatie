@@ -10,7 +10,7 @@ security_review: unreviewed
 supply_chain: source-only
 traceability:
   changeset: CS-CLOUD-IAC-MODULE-REGISTRY-APP-OBJECT-PINNING-001
-  source_adrs: [ADR-0056, ADR-0092, ADR-0094, ADR-0181, ADR-0339, ADR-0349]
+  source_adrs: [ADR-0056, ADR-0092, ADR-0094, ADR-0181, ADR-0339, ADR-0515]
 non_claims:
   - local app composition root with health/liveness routes and module-registry service wiring only
   - local release-index loader seeds the in-memory app registry from gate-validated repo-local OpenTofu module metadata only

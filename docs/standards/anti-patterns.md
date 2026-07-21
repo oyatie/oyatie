@@ -1883,7 +1883,7 @@ Review cue: ask for unresolved thread list before merge.
 Safer replacement: close every thread by fix, evidence-backed rebuttal, or
 accepted follow-up.
 
-Anchor: ADR-0124 own merge queue webhook driven.
+Anchor: ADR-0515 own merge queue webhook driven.
 
 ### AP-C17 "Read-Only" While Writing Artifacts
 

@@ -12,7 +12,7 @@ source_adrs:
   - ADR-0346
   - ADR-0347
   - ADR-0348
-  - ADR-0349
+  - ADR-0515
 ---
 
 # Runbook: Observability Auto Rebalance
@@ -39,8 +39,8 @@ source_adrs:
 - ADR-0348 auto-rebalance wording: when cell load skews beyond promotion-gate criteria, the cell-orchestrator automatically migrates tenants from hot cells to cooler cells.
 - ADR-0348 dynamic-sharding wording: shard count within a cell adjusts based on load: HOT-SPLIT when shard p99 latency exceeds SLO OR capacity utilization exceeds 80%; COLD-MERGE when adjacent shards both run below 20% utilization for more than 24 hours.
 - ADR-0348 enforced_by lanes: `oya-governance-sharding-automation-coverage`; `oya-governance-autosharding-manual-mode-refusal`; `oya-governance-auto-rebalance-residency-honored`; `oya-governance-dynamic-sharding-threshold-coverage`; `oya-governance-audit-chain-emit-on-automation-events`; `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 purpose wording: Jenkins (LTS) and ArgoCD are the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
-- ADR-0349 enforced_by lanes: `oya-governance-jenkins-canonical-no-gha-residue`; `oya-governance-argocd-application-cosign-verified`; `oya-governance-argocd-tenant-namespace-isolation`; `oya-governance-jenkins-jcasc-only`; `oya-governance-deploy-audit-chain-emit`.
+- ADR-0515 purpose wording: GitHub Actions plus branch protection are the live CI substrate, cloud-ci Rust apps produce the single protected `oya-ci-required` context, and Argo CD is only a separately authorized bridge/reference CD adapter for the Oyatie corpus.
+- ADR-0515 enforced_by lanes: `oya-ci-required`; `oya-governance-argocd-application-cosign-verified`; `oya-governance-argocd-tenant-namespace-isolation`; `oya-ci-required`; `oya-governance-deploy-audit-chain-emit`.
 
 ## Trigger Conditions
 - Trigger 1: cell promotion criteria breach due to load skew.
@@ -62,7 +62,7 @@ source_adrs:
 7. Verify residency and compliance pack filters before any candidate target is accepted.
 8. Verify audit-chain availability: `oya audit-chain health --cell $CELL --tenant $TENANT`.
 9. Verify ArgoCD sync health: `argocd app get $SERVICE --refresh`.
-10. Verify Jenkins required-check evidence exists for this service before declaring the runbook complete.
+10. Verify the protected `oya-ci-required` context evidence exists for this service before declaring the runbook complete.
 
 ## Decision Tree
 1. If Cedar denies the operation, stop the automation and attach the decision id to the incident.
@@ -95,7 +95,7 @@ source_adrs:
 - Evidence 6: ArgoCD Application sync id and cosign verification policy result.
 - Evidence 7: Jenkins build id proving required-check coverage for this service.
 - Evidence 8: `oya verify --ci-required` local mirror result before any push related to this runbook.
-- Evidence 9: governance lane names from ADR-0347, ADR-0348, and ADR-0349 included in the incident handoff.
+- Evidence 9: governance lane names from ADR-0347, ADR-0348, and ADR-0515 included in the incident handoff.
 - Evidence 10: rollback rehearsal output proving reversibility from the audit-chain trail.
 
 ## Rollback Path
@@ -113,9 +113,9 @@ source_adrs:
 3. Confirm Cedar decisions are sealed and tied to the incident id.
 4. Confirm `oya-governance-auto-rebalance-residency-honored` or `oya-governance-dynamic-sharding-threshold-coverage` evidence is attached as applicable.
 5. Confirm `oya-governance-audit-chain-emit-on-automation-events` evidence is attached for every automation event.
-6. Confirm Jenkins required-check evidence is attached per ADR-0349.
+6. Confirm the protected `oya-ci-required` context evidence is attached per ADR-0515.
 7. Confirm ArgoCD did not sync unsigned images and did not cross tenant namespaces.
-8. Confirm the post-incident note cites ADR-0346, ADR-0347, ADR-0348, and ADR-0349 by exact ID.
+8. Confirm the post-incident note cites ADR-0346, ADR-0347, ADR-0348, and ADR-0515 by exact ID.
 9. Close only after the incident commander records the stop condition and evidence bundle hash.
 10. Leave implementation gaps to Wave 15-ZA/ZB/ZD/ZE; do not add code from this runbook lane.
 
@@ -123,7 +123,7 @@ source_adrs:
 - ADR-0346
 - ADR-0347
 - ADR-0348
-- ADR-0349
+- ADR-0515
 - ADR-0263
 - ADR-0243
 - ADR-0181

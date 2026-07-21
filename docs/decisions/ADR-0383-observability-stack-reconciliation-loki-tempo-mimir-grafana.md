@@ -7,7 +7,7 @@ date: 2026-05-28
 owner: ops-platform
 supersedes: [ADR-0042]
 superseded_by: []
-related: [ADR-0186, ADR-0173, ADR-0211, ADR-0349]
+related: [ADR-0186, ADR-0173, ADR-0211, ADR-0515]
 related_specs: []
 door: two-way
 ---
@@ -130,7 +130,7 @@ plugins and lose native OTLP ingestion.
   choices)
 - ADR-0173 — vendor lock-in avoidance and stack ownership (Class A/B/C dependency classification)
 - ADR-0211 §35 — in-house tech stack policy (AGPL-3 self-hosted exception)
-- ADR-0349 — Jenkins + ArgoCD self-hostable CI/CD substrate (deployment pipeline for the
+- ADR-0515 — single-context GitHub Actions plus cloud-ci CI authority; separately authorized Argo CD bridge/reference adapter (deployment pipeline for the
   observability backplane Helm releases)
 - Grafana Mimir — https://grafana.com/oss/mimir/ ; AGPL3 community edition
 - Grafana Loki — https://grafana.com/oss/loki/ ; AGPL3 community edition

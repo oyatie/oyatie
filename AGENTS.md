@@ -10,7 +10,7 @@ Pointers: `/specs/masterplan.json#masterplan_v2` (the only live plan authority);
 
 Agent-executable instructions are fenced for the agent-coordination lane. Human terminal shortcuts belong outside this fenced agent surface.
 
-Manual Wave-B bootstrap note (prose only): agents enter the governance pipeline by creating an isolated worktree branch and opening a protected pull request against `dev`; ADR-0363 retires the bespoke VCS ratchet and ADR-0515 owns cloud-ci/oya-ci Tide admission (ADR-0513 is historical: frontmatter status Superseded, superseded_by ADR-0515, accepted 2026-06-07). The agentic delivery fabric vision and staged rollout are governed by the ADR-0516..ADR-0535 fabric cluster.
+Manual Wave-B bootstrap note (prose only): agents enter the governance pipeline by creating an isolated worktree branch and opening a protected pull request against `dev`; ADR-0363 retires the bespoke VCS ratchet and ADR-0515 owns cloud-ci/oya-ci Tide admission (ADR-0515 is historical: frontmatter status Superseded, superseded_by ADR-0515, accepted 2026-06-07). The agentic delivery fabric vision and staged rollout are governed by the ADR-0516..ADR-0535 fabric cluster.
 
 ## What Oyatie is
 

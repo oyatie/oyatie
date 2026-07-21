@@ -12,7 +12,7 @@ supersedes: []
 superseded_by: []
 amends: [ADR-0363]
 amended_by: [ADR-0518, ADR-0526]
-related: [ADR-0363, ADR-0367, ADR-0369, ADR-0111, ADR-0173, ADR-0247, ADR-0248, ADR-0362, ADR-0511]
+related: [ADR-0363, ADR-0367, ADR-0369, ADR-0111, ADR-0173, ADR-0247, ADR-0248, ADR-0362, ADR-0515]
 related_specs: [/specs/gitops-vcs-replacement.json, /specs/hyperscaler-architecture-invariants.json]
 numbering_note: "decisions.json records next_adr=ADR-0392, but that index is stale: origin/dev already carries ADRs through ADR-0509, and ADR-0392/ADR-0408 are reserved by the in-flight Buck2-reversal branch (feat/adr-0392-0408-buck2-reversal-2026-05-29). To avoid collision this ADR takes ADR-0510 (first free number above dev's highest, ADR-0509). decisions.json next_adr must be re-derived from the on-disk corpus, not trusted at face value."
 session_context:
@@ -138,7 +138,7 @@ The destination is bespoke, but the *interim* must survive the bespoke-over-OSS 
 - ADR-0111 — speculative merge-queue (deferred behind concurrency trigger per ADR-0363 §3).
 - ADR-0173 / 0247 / 0248 — vendor-lock-in avoidance + self-hosting doctrine.
 - ADR-0362 — flat/no-grouping catalog (disjoint per-lane paths → per-lane sparse-checkout profiles).
-- ADR-0511 — cloud-ci→Argo Workflows CI orchestration (sibling SCM/CI-CD governance ADR).
+- ADR-0515 — cloud-ci→Argo Workflows CI orchestration (sibling SCM/CI-CD governance ADR).
 - Ground truth (2026-05-29): 657 workspace members, ~23,164 git-tracked files, ~482M `.git`.
 - Native git scale tooling: Git 2.37+ sparse-index + partial-clone (no FUSE, no server). Rejected: EdenFS/Mononoke (externally unsupported).
 - Founder decision 2026-05-29 + scm-cicd-overhaul-campaign reconciliation_note (session_context above).

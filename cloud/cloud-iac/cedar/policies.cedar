@@ -1,13 +1,13 @@
 // Cedar policy fragments for cloud-iac.
-// Wave 15-ZF-14 propagation for ADR-0346, ADR-0347, ADR-0348, and ADR-0349.
+// Wave 15-ZF-14 propagation for ADR-0346, ADR-0347, ADR-0348, and ADR-0515.
 // ADR-0346 supersession: retired local oya verifier/gate/check wrappers are not authority mechanisms for active work; cloud-ci/oya-ci produces the single required oya-ci-required context.
 // ADR-0346 enforced_by: oya-ci-required; cloud-ci shared Rust gate logic; local-authority-enforcer.
 // ADR-0347 purpose: every oya-governance-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
 // ADR-0347 enforced_by: retired-fitness-residue detection; oya-governance-lane-prefix-vocabulary; oya-governance-rename-inventory-presence.
 // ADR-0348 purpose: cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; tenant migration honors residency + compliance pack constraints; cross-jurisdiction migration requires an explicit Cedar permit per ADR-0243; every automation event MUST emit per ADR-0263.
 // ADR-0348 enforced_by: oya-governance-sharding-automation-coverage; oya-governance-autosharding-manual-mode-refusal; oya-governance-auto-rebalance-residency-honored; oya-governance-dynamic-sharding-threshold-coverage; oya-governance-audit-chain-emit-on-automation-events; oya-governance-tenant-migration-reversibility.
-// ADR-0349 supersession: GitHub Actions produces the live oya-ci-required context until owned oya-ci runner cutover; ArgoCD remains the GitOps CD bridge/reference adapter and replaces manual kubectl apply / Helm CLI deploys.
-// ADR-0349 enforced_by: oya-ci-required; oya-governance-argocd-application-cosign-verified; oya-governance-argocd-tenant-namespace-isolation; oya-governance-deploy-audit-chain-emit.
+// ADR-0515 supersession: GitHub Actions produces the live oya-ci-required context until owned oya-ci runner cutover; ArgoCD remains the GitOps CD bridge/reference adapter and replaces manual kubectl apply / Helm CLI deploys.
+// ADR-0515 enforced_by: oya-ci-required; oya-governance-argocd-application-cosign-verified; oya-governance-argocd-tenant-namespace-isolation; oya-governance-deploy-audit-chain-emit.
 
 permit(
   principal == ServicePrincipal::"oyatie.cloud.cell-orchestrator",

@@ -7,7 +7,7 @@ status: Drafting
 sales_segment: cloud-provider-substrate
 tier: internal
 milestone_first_ship: M02-cloud-substrate
-related_adrs: [ADR-0346, ADR-0347, ADR-0348, ADR-0349]
+related_adrs: [ADR-0346, ADR-0347, ADR-0348, ADR-0515]
 date: 2026-05-21
 owner_team: axis-cloud-data
 doc_status: drafted
@@ -17,14 +17,14 @@ doc_status: drafted
 
 ## Purpose
 
-`cloud-data` is an active µservice directory with no existing PRD artifact in this checkout. This PRD records the standard PRD header and the Wave 15-ZF doctrine references required before downstream implementation waves consume ADR-0346 through ADR-0349.
+`cloud-data` is an active µservice directory with no existing PRD artifact in this checkout. This PRD records the standard PRD header and the Wave 15-ZF doctrine references required before downstream implementation waves consume ADR-0346 through ADR-0515.
 
 ## Doctrine refs (ADR-0346..0349)
 
 - ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
 - ADR-0347 — every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
 - ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+- ADR-0515 — GitHub Actions plus branch protection remain live CI authority until explicit owned-runner cutover; cloud-ci Rust apps produce the single protected `oya-ci-required` context, while Argo CD is only a separately authorized bridge/reference CD adapter.
 
 ## ADR-0339 adoption
 - Lifecycle: PROPOSED for `cloud-data` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.

@@ -12,7 +12,7 @@ source_adrs:
   - ADR-0346
   - ADR-0347
   - ADR-0348
-  - ADR-0349
+  - ADR-0515
 ---
 
 # Runbook: Cloud Iac Auto Rebalance
@@ -39,8 +39,8 @@ source_adrs:
 - ADR-0348 auto-rebalance wording: when cell load skews beyond promotion-gate criteria, the cell-orchestrator automatically migrates tenants from hot cells to cooler cells.
 - ADR-0348 dynamic-sharding wording: shard count within a cell adjusts based on load: HOT-SPLIT when shard p99 latency exceeds SLO OR capacity utilization exceeds 80%; COLD-MERGE when adjacent shards both run below 20% utilization for more than 24 hours.
 - ADR-0348 enforced_by lanes: `oya-governance-sharding-automation-coverage`; `oya-governance-autosharding-manual-mode-refusal`; `oya-governance-auto-rebalance-residency-honored`; `oya-governance-dynamic-sharding-threshold-coverage`; `oya-governance-audit-chain-emit-on-automation-events`; `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 supersession: GitHub Actions produces live `oya-ci-required` until owned oya-ci runner cutover; ArgoCD remains the GitOps CD bridge/reference adapter.
-- ADR-0349 enforced_by lanes: `oya-ci-required`; `oya-governance-argocd-application-cosign-verified`; `oya-governance-argocd-tenant-namespace-isolation`; `oya-governance-deploy-audit-chain-emit`.
+- ADR-0515 supersession: GitHub Actions produces live `oya-ci-required` until owned oya-ci runner cutover; ArgoCD remains the GitOps CD bridge/reference adapter.
+- ADR-0515 enforced_by lanes: `oya-ci-required`; `oya-governance-argocd-application-cosign-verified`; `oya-governance-argocd-tenant-namespace-isolation`; `oya-governance-deploy-audit-chain-emit`.
 
 ## Trigger Conditions
 - Trigger 1: cell promotion criteria breach due to load skew.
@@ -95,7 +95,7 @@ source_adrs:
 - Evidence 6: ArgoCD Application sync id and cosign verification policy result.
 - Evidence 7: GitHub Actions or owned oya-ci run id producing the required `oya-ci-required` context for this service.
 - Evidence 8: local confidence output, if attached, explicitly labeled non-authoritative and paired with the protected `oya-ci-required` run id.
-- Evidence 9: governance lane names from ADR-0347, ADR-0348, and ADR-0349 included in the incident handoff.
+- Evidence 9: governance lane names from ADR-0347, ADR-0348, and ADR-0515 included in the incident handoff.
 - Evidence 10: rollback rehearsal output proving reversibility from the audit-chain trail.
 
 ## Rollback Path
@@ -115,7 +115,7 @@ source_adrs:
 5. Confirm `oya-governance-audit-chain-emit-on-automation-events` evidence is attached for every automation event.
 6. Confirm `oya-ci-required` and ArgoCD GitOps evidence is attached per current cloud-ci/oya-ci authority.
 7. Confirm ArgoCD did not sync unsigned images and did not cross tenant namespaces.
-8. Confirm the post-incident note cites ADR-0346, ADR-0347, ADR-0348, and ADR-0349 by exact ID.
+8. Confirm the post-incident note cites ADR-0346, ADR-0347, ADR-0348, and ADR-0515 by exact ID.
 9. Close only after the incident commander records the stop condition and evidence bundle hash.
 10. Leave implementation gaps to Wave 15-ZA/ZB/ZD/ZE; do not add code from this runbook lane.
 
@@ -123,7 +123,7 @@ source_adrs:
 - ADR-0346
 - ADR-0347
 - ADR-0348
-- ADR-0349
+- ADR-0515
 - ADR-0263
 - ADR-0243
 - ADR-0181

@@ -1,17 +1,17 @@
 ---
 doc_class: MigrationPlaybook
-microservice: cloud-billing-tax
+microservice: cloud-data
 source_vendor: Wave 15-ZD doctrine propagation
-related_adrs: [ADR-0346, ADR-0347, ADR-0348, ADR-0349]
+related_adrs: [ADR-0346, ADR-0347, ADR-0348, ADR-0515]
 date: 2026-05-21
 doc_status: published
 ---
 
-# Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-billing-tax`
+# Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-data`
 
-Audience: an Oyatie operator or migration owner preparing `cloud-billing-tax` for the Wave 15-ZD doctrine surface before implementation waves author runtime code, manifests, Jenkinsfiles, ArgoCD applications, or sharding bodies.
+Audience: an Oyatie operator or migration owner preparing `cloud-data` for the Wave 15-ZD doctrine surface before implementation waves author runtime code, manifests, Jenkinsfiles, ArgoCD applications, or sharding bodies.
 
-Outcome: `cloud-billing-tax` has a documented migration path for the four doctrine decisions, with no runtime mutation and no manifest mutation.
+Outcome: `cloud-data` has a documented migration path for the four doctrine decisions, with no runtime mutation and no manifest mutation.
 
 Scope boundary: this playbook is documentation-only. It records the migration sequence for this microservice and cites the exact ADR enforcement lanes that downstream implementation must satisfy.
 
@@ -27,9 +27,9 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 8. ADR-0348: AUTOSHARDING computes tenant->cell/shard placement automatically with no human operator picking placement.
 9. ADR-0348: AUTO-REBALANCE migrates tenants from hot cells to cooler cells, honors residency and compliance pack constraints, requires Cedar permits for cross-jurisdiction migration, and remains observable, reversible, and audit-chain-emit per ADR-0263.
 10. ADR-0348: DYNAMIC SHARDING adjusts shard count within a cell by HOT-SPLIT and COLD-MERGE thresholds, and both operations are atomic plus audit-emit.
-11. ADR-0349: Declare Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
-12. ADR-0349: Jenkins augments rather than replaces GitHub Actions, and ArgoCD REPLACES manual `kubectl apply` and Helm CLI deploys across all contexts.
-13. ADR-0349: Both substrates are provisioned via OpenTofu modules under `microservices/cloud-iac/modules/<context>/jenkins/` and `/argocd/` per ADR-0339.
+11. ADR-0515: Declare GitHub Actions plus branch protection as live CI authority until explicit owned-runner cutover, with cloud-ci producing the single protected `oya-ci-required` context.
+12. ADR-0515: GitHub Actions remains live merge authority until explicit owned-runner cutover, and ArgoCD REPLACES manual `kubectl apply` and Helm CLI deploys across all contexts.
+13. ADR-0515: The separately authorized bridge/reference CD adapter is provisioned through reviewed infrastructure modules; it is not merge authority.
 
 ## ADR-0346 enforcement lanes
 
@@ -54,41 +54,41 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 - `oya-governance-audit-chain-emit-on-automation-events` - refuses every manifest declaring auto_rebalance.enabled true OR dynamic_sharding.enabled true if audit_chain_emit is omitted on the corresponding sub-block.
 - `oya-governance-tenant-migration-reversibility` - refuses any microservice IP authoring under `microservices/<ms>/IPs/IP-*-auto-rebalance-*.md` that lacks an explicit `rollback_path` section.
 
-## ADR-0349 enforcement lanes
+## ADR-0515 enforcement lanes
 
-- `oya-governance-jenkins-github-actions-parity` - refuses Jenkinsfile / .github/workflows drift such that a CI step exists in one surface but not the other across the per-microservice CI-parity contract.
+- `oya-ci-required` - refuses Jenkinsfile / .github/workflows drift such that a CI step exists in one surface but not the other across the per-microservice CI-parity contract.
 - `oya-governance-argocd-application-cosign-verified` - refuses ArgoCD Application CRD sources that reference an image without a cosign-verify policy attached per D-6 + ADR-0181.
 - `oya-governance-argocd-tenant-namespace-isolation` - refuses ArgoCD Application authoring that crosses tenant namespaces without a Cedar policy gate granting cross-tenant access per D-11 + ADR-0243.
-- `oya-governance-jenkins-jcasc-only` - refuses Jenkins controller state declared via the UI; every Jenkins controller state file is authored under the declarative JCasC module path.
+- `oya-ci-required` - refuses Jenkins controller state declared via the UI; every Jenkins controller state file is authored under the declarative JCasC module path.
 - `oya-governance-deploy-audit-chain-emit` - refuses ArgoCD sync transitions that do not emit an audit-chain row per ADR-0263 D.4 deploy-event class.
 
 ## Phase 0 - Inventory
 
-1. Confirm the `cloud-billing-tax` manifest exists and is not marked with `status: "Retired"` and is not `doc_class: RetiredMicroserviceMarker`.
+1. Confirm the `cloud-data` manifest exists and is not marked with `status: "Retired"` and is not `doc_class: RetiredMicroserviceMarker`.
 2. Capture the current migration-playbooks directory listing before authoring implementation follow-up.
-3. Capture whether `cloud-billing-tax` already has CI, CD, cellular, sharding, or governance lane references in PRD, ARCH, README, IPs, manifests, runbooks, contracts, Cedar, SLOs, and capabilities.
-4. Record current references to ADR-0346, ADR-0347, ADR-0348, and ADR-0349. Absence is acceptable at this scaffold stage; downstream artifacts own their own propagation lanes.
+3. Capture whether `cloud-data` already has CI, CD, cellular, sharding, or governance lane references in PRD, ARCH, README, IPs, manifests, runbooks, contracts, Cedar, SLOs, and capabilities.
+4. Record current references to ADR-0346, ADR-0347, ADR-0348, and ADR-0515. Absence is acceptable at this scaffold stage; downstream artifacts own their own propagation lanes.
 5. Do not mutate runtime manifests or source code in this playbook pass.
 
 ## Phase 1 - ADR-0346 verification migration
 
-1. Treat `oya verify --ci-required` as the local rehearsal for `cloud-billing-tax` changes before push.
+1. Treat `oya verify --ci-required` as the local rehearsal for `cloud-data` changes before push.
 2. Do not claim this microservice is push-ready unless the full mirror contract can pass or a documented skip flag from the closed allowlist is intentionally used during incremental development.
-3. When `cloud-billing-tax` changes touch Rust, contracts, manifests, generated docs, or governance lanes, run the verifier before handoff.
+3. When `cloud-data` changes touch Rust, contracts, manifests, generated docs, or governance lanes, run the verifier before handoff.
 4. Preserve the exit-code contract: 0 means all passed, 1 means at least one failed, and 2 means invalid arguments.
 5. Preserve `oya submit` as the path that calls `oya verify --ci-required` before push.
 
 ## Phase 2 - ADR-0347 governance lane rename migration
 
-1. Search `cloud-billing-tax` artifact surfaces for `oya-governance-*` references.
+1. Search `cloud-data` artifact surfaces for `oya-governance-*` references.
 2. Convert non-historical fitness lane references to `oya-governance-*` in the Wave 15-ZB implementation lane, not in this playbook scaffold.
 3. Preserve historical ADR context when an ADR-specific allowlist says the old prefix is historical context.
-4. Update any future `cloud-billing-tax` manifest `governance_lanes` array only in the manifest-owning slot.
+4. Update any future `cloud-data` manifest `governance_lanes` array only in the manifest-owning slot.
 5. Use the rename inventory path under `.omc/state/` as the deterministic source for target governance names.
 
 ## Phase 3 - ADR-0348 sharding automation migration
 
-1. Prepare `cloud-billing-tax` for a future `sharding_automation` block with autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
+1. Prepare `cloud-data` for a future `sharding_automation` block with autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
 2. Autosharding mode must be `control_plane_driven`; manual mode is refused unless an ADR amendment explicitly enumerates the exception.
 3. Auto-rebalance must honor residency and compliance pack constraints before any tenant movement.
 4. Cross-jurisdiction migration requires an explicit Cedar permit per ADR-0243.
@@ -96,21 +96,21 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 6. Auto-rebalance and dynamic-sharding automation events must set audit-chain emission expectations per ADR-0263.
 7. The implementation IP must document `rollback_path` for automation-event-driven tenant migration.
 
-## Phase 4 - ADR-0349 self-hostable CI/CD migration
+## Phase 4 - ADR-0515 single-context CI/CD migration
 
-1. Treat Jenkins LTS as the self-hostable CI substrate for `cloud-billing-tax` when GitHub Actions runners are unavailable.
+1. Treat Jenkins LTS as the self-hostable CI substrate for `cloud-data` when GitHub Actions runners are unavailable.
 2. Keep GitHub Actions as the hosted PR review surface; Jenkins augments rather than replaces it.
 3. Treat ArgoCD as the GitOps CD orchestrator for this microservice once deployment artifacts exist.
 4. Do not author manual `kubectl apply` or Helm CLI deployment paths as canonical deployment procedure.
-5. Future Jenkinsfile parity must mirror the GitHub Actions CI steps for `cloud-billing-tax`.
+5. Future Jenkinsfile parity must mirror the GitHub Actions CI steps for `cloud-data`.
 6. Future ArgoCD Application sources must attach cosign verification policy and preserve tenant namespace isolation.
 7. Every ArgoCD sync transition must emit an audit-chain deploy event.
 
 ## Phase 5 - Cutover preparation
 
-1. Freeze the current `cloud-billing-tax` doctrine references before implementation starts.
+1. Freeze the current `cloud-data` doctrine references before implementation starts.
 2. Assign ownership for the Wave 15-ZA, 15-ZB, 15-ZD, and 15-ZE follow-up surfaces touching this microservice.
-3. Confirm whether `cloud-billing-tax` is stateful, tenant-facing, edge-facing, or substrate-facing; that classification drives sharding and CI/CD evidence.
+3. Confirm whether `cloud-data` is stateful, tenant-facing, edge-facing, or substrate-facing; that classification drives sharding and CI/CD evidence.
 4. Confirm compliance-pack constraints that can block tenant movement.
 5. Confirm data-class and tenant-scope invariants before any migration executor writes state.
 
@@ -120,7 +120,7 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 2. Wave 15-ZB owns lane rename implementation, not this playbook.
 3. Wave 15-ZD owns sharding automation implementation and manifest body work, not this playbook.
 4. Wave 15-ZE owns Jenkins/ArgoCD substrate rollout, not this playbook.
-5. This file is the `cloud-billing-tax` migration scaffold that those implementation lanes can cite.
+5. This file is the `cloud-data` migration scaffold that those implementation lanes can cite.
 
 ## Phase 7 - Rollback and reversibility
 
@@ -132,8 +132,8 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 
 ## Phase 8 - Acceptance checks
 
-1. This playbook cites ADR-0346, ADR-0347, ADR-0348, and ADR-0349 by exact ID.
-2. This playbook lists every enforced_by lane from the four ADRs that can affect `cloud-billing-tax`.
+1. This playbook cites ADR-0346, ADR-0347, ADR-0348, and ADR-0515 by exact ID.
+2. This playbook lists every enforced_by lane from the four ADRs that can affect `cloud-data`.
 3. This playbook keeps implementation out of scope.
 4. This playbook avoids runtime mutations, manifest mutations, source edits, and policy edits.
 5. This playbook gives downstream waves a per-microservice migration sequence.
@@ -141,12 +141,12 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 
 ## Evidence to collect downstream
 
-- Local verifier transcript for `cloud-billing-tax` once Wave 15-ZA lands.
-- Rename inventory diff for `cloud-billing-tax` once Wave 15-ZB lands.
+- Local verifier transcript for `cloud-data` once Wave 15-ZA lands.
+- Rename inventory diff for `cloud-data` once Wave 15-ZB lands.
 - `sharding_automation` manifest excerpt and rollback_path IP link once Wave 15-ZD lands.
 - Jenkinsfile parity evidence and ArgoCD Application policy evidence once Wave 15-ZE lands.
 - ADR citation gate result proving this playbook resolves ADR IDs against `docs/decisions`.
 
 ## Stop condition
 
-Stop when `cloud-billing-tax` has this scaffold committed under `migration-playbooks/`, ADR citation validation passes for the docs corpus, and no file outside this slot boundary is staged for the ZF-18 commit.
+Stop when `cloud-data` has this scaffold committed under `migration-playbooks/`, ADR citation validation passes for the docs corpus, and no file outside this slot boundary is staged for the ZF-18 commit.

@@ -28,7 +28,7 @@ See `manifest.json` for this microservice canonical machine-readable declaration
   owned `oya-ci` rather than revived as local CLI authority.
 - ADR-0347: Every `oya-governance-*` CI lane prefix RENAMES to `oya-governance-*` in one Wave 15-ZB bulk-rename pull request rather than 34 per-lane migration IPs. Enforced by `oya-governance-retired-vocab-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
 - ADR-0348: Cellular topology MUST support control-plane-driven AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING, with manifest-declared configuration, residency/compliance constraints, audit-chain emission, and reversibility. Enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- ADR-0349: legacy self-hostable substrate control intent only. The retired build-server bridge is not a
+- ADR-0515: legacy self-hostable substrate control intent only. The retired build-server bridge is not a
   parallel merge authority for `cloud-iam`; GitHub Actions
   `oya-ci-required` remains the live required context until owned `oya-ci`
   cutover. ArgoCD/GitOps remains the declarative CD direction and replaces

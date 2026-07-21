@@ -8,7 +8,7 @@
   "related_adrs": [
     "ADR-0342 (API versioning hybrid date/semver)",
     "ADR-0094 (contract-first)",
-    "ADR-0349/0359 (Jenkins CI runs the drift gate)",
+    "ADR-0515 (cloud-ci runs the drift gate)",
     "ADR-0358 (ideal roadmap)",
     "ADR-0565 (zero GraphQL in the owned API surface)"
   ],
@@ -54,7 +54,7 @@
   "drift_gate": {
     "name": "api-contract-ssot-drift (planned)",
     "rule": "regenerate the projections from the Rust source and diff against the committed contracts; any divergence (REST/gRPC/async out of sync with the source) fails the gate (lockfile-style, like cargo's Cargo.lock check).",
-    "ci": "runs under Jenkins (ADR-0359) as a required check"
+    "ci": "runs under the protected `oya-ci-required` context (ADR-0515)"
   },
   "messaging_directives": {
     "launch_primary": "Apache Pulsar (eventing/messaging)",

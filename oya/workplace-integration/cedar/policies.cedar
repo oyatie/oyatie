@@ -1,5 +1,5 @@
 // Cedar policy fragments for workplace-integration.
-// Wave 15-ZF-14 propagation for ADR-0346, ADR-0347, ADR-0348, and ADR-0349.
+// Wave 15-ZF-14 propagation for ADR-0346, ADR-0347, ADR-0348, and ADR-0515.
 // D-CICD-AUTHORITY purpose: branch-protected oya-ci-required is the live cloud CI merge authority; local verifier output is transition evidence only.
 // D-CLOUD-NATIVE purpose: do not revive local or dev CLI authority; re-home sound checks into cloud-native Rust gate and pipeline surfaces.
 // D-GOVERNANCE-CENTRAL purpose: central governance vocabulary supersedes scattered lane naming in active authority surfaces.

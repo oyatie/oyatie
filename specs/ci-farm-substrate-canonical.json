@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "spec_id": "EXE-CI-FARM-SUBSTRATE-CANONICAL",
   "spec_kind": "substrate-canonical",
-  "authoring_adr": "ADR-0349",
+  "authoring_adr": "ADR-0515",
   "related_adrs": [
     "ADR-0111 (merge queue projected state — serial admission of parallel lanes)",
     "ADR-0181 (cosign-verified image promotion)",
@@ -28,7 +28,7 @@
       "travis",
       "buildkite-saas"
     ],
-    "github_actions_parity": "RETIRED per ADR-0361: GitHub Actions removed entirely; cloud-ci is the sole CI. No Actions<->cloud-ci parity is maintained (parity gate dropped). The oya verify CI-mirror (ADR-0346) remains the lane authority."
+    "github_actions_parity": "RETIRED per ADR-0515: GitHub Actions removed entirely; cloud-ci is the sole CI. No Actions<->cloud-ci parity is maintained (parity gate dropped). The oya verify CI-mirror (ADR-0346) remains the lane authority."
   },
   "ephemeral_agents": {
     "provider": "cloud-ci kubernetes plugin clouds",
@@ -77,10 +77,10 @@
   "merge_queue_integration": {
     "admission": "Parallel lane branches fan in through the ADR-0111 merge-queue projected state; the merge queue serializes admission so concurrent lanes never corrupt trunk.",
     "fan_in_verify": "A single serial ./bin/oya verify --ci-required runs the whole-workspace mirror at fan-in; cross-cutting failures route back to the owning lane.",
-    "deploy_audit": "ArgoCD-driven deploy emits audit-chain rows (ADR-0349 E.5 / ADR-0263)."
+    "deploy_audit": "ArgoCD-driven deploy emits audit-chain rows (ADR-0515 E.5 / ADR-0263)."
   },
   "ci_lane": {
-    "parity_gate": "RETIRED (ADR-0361): no Actions<->cloud-ci parity; cloud-ci is the sole CI",
+    "parity_gate": "RETIRED (ADR-0515): no Actions<->cloud-ci parity; cloud-ci is the sole CI",
     "cache_discipline_gate": "oya-governance-ci-farm-remote-cache (planned: asserts every microservices/<ms>/ci/pipeline.yaml and the cloud-ci agent templates declare the sccache->SeaweedFS env and do not inline credentials)",
     "verify_mirror": "ADR-0346 oya verify --ci-required"
   },

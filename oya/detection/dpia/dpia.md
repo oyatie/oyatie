@@ -12,7 +12,7 @@ source_adrs:
   - ADR-0346
   - ADR-0347
   - ADR-0348
-  - ADR-0349
+  - ADR-0515
 ---
 
 # Data Protection Impact Assessment: detection
@@ -32,7 +32,7 @@ source_adrs:
 - ADR-0346: `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix; it MUST block on exit-0 of EACH step before returning success. Enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
 - ADR-0347: every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB). Enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
 - ADR-0348: AUTOSHARDING means tenant→cell/shard placement is computed by the control plane automatically; AUTO-REBALANCE automatically migrates tenants from hot cells to cooler cells; DYNAMIC SHARDING adjusts shard count within a cell based on load. Enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- ADR-0349: Jenkins (LTS) and ArgoCD are the two canonical self-hostable CI/CD substrates; Jenkins augments rather than replaces GitHub Actions, and ArgoCD REPLACES manual `kubectl apply` and Helm CLI deploys. Enforced by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+- ADR-0515: GitHub Actions plus branch protection are the live CI substrate, cloud-ci Rust apps produce the single protected `oya-ci-required` context, and Argo CD is only a separately authorized bridge/reference CD adapter; GitHub Actions remains live merge authority until explicit owned-runner cutover, and ArgoCD REPLACES manual `kubectl apply` and Helm CLI deploys. Enforced by `oya-ci-required`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-ci-required`, and `oya-governance-deploy-audit-chain-emit`.
 
 ### DPIA Assessment
 - Necessity: automation evidence is necessary to prove verifier completeness, governance lane vocabulary, tenant placement, rebalance reversibility, dynamic shard threshold decisions, and CI/CD deployment accountability.
@@ -43,4 +43,4 @@ source_adrs:
 
 ### Residual Risk
 - Residual risk is medium until Wave 15-ZA/ZB/ZD/ZE implementation PRs land the verifier mirror, governance rename, sharding automation bodies, and Jenkins/ArgoCD substrate files.
-- Residual risk becomes low when the ADR-0346, ADR-0347, ADR-0348, and ADR-0349 enforcement lanes promote from advisory/report-only to BLOCKER and pass for this microservice.
+- Residual risk becomes low when the ADR-0346, ADR-0347, ADR-0348, and ADR-0515 enforcement lanes promote from advisory/report-only to BLOCKER and pass for this microservice.

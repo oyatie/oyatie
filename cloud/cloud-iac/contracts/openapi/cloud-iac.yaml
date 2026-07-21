@@ -63,7 +63,7 @@ components:
           auto_rebalance: tenant migration honors residency and compliance pack constraints and is observable, reversible, and audit-chain-emit per ADR-0263.
           dynamic_sharding: HOT-SPLIT and COLD-MERGE shard-count operations are atomic and audit-emit.
           manifest_block: sharding_automation declares autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
-      ADR-0349:
+      ADR-0515:
         purpose: >-
           Historical bridge-CI parity wording is superseded for active work: GitHub Actions produces the live required oya-ci-required context until the owned oya-ci runner cutover; ArgoCD remains the GitOps CD bridge/reference adapter.
         enforced_by:

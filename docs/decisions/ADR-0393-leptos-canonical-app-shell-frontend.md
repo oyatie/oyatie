@@ -27,7 +27,7 @@ affected_surfaces:
 
 ## Status
 
-Accepted — 2026-06-01 (founder-confirmed: all frontend work is Leptos/Rust-WASM; SolidJS is retired). Supersedes ADR-0372 (SolidJS). Originally drafted Proposed 2026-05-29 to overturn an Accepted decision and reconcile live codebase drift; founder confirmation on 2026-06-01 promotes it to Accepted. Downstream (tracked in the readiness backlog): regenerate the ADR index / machine-readable decisions from source; migrate the live `oya/app-shell-frontend` SolidJS app to Leptos; flip the `oya-ci-deck` reference (ADR-0513) to Leptos; add a superseded-reference lint so SolidJS cannot reappear as canonical.
+Accepted — 2026-06-01 (founder-confirmed: all frontend work is Leptos/Rust-WASM; SolidJS is retired). Supersedes ADR-0372 (SolidJS). Originally drafted Proposed 2026-05-29 to overturn an Accepted decision and reconcile live codebase drift; founder confirmation on 2026-06-01 promotes it to Accepted. Downstream (tracked in the readiness backlog): regenerate the ADR index / machine-readable decisions from source; migrate the live `oya/app-shell-frontend` SolidJS app to Leptos; flip the `oya-ci-deck` reference (ADR-0515) to Leptos; add a superseded-reference lint so SolidJS cannot reappear as canonical.
 
 ## Date
 

@@ -110,9 +110,9 @@
       "tier": 2,
       "update_trigger": [
         "Wave 15-ZF operating-contract doctrine propagation",
-        "ADR-0346..ADR-0349 doctrine update"
+        "ADR-0346..ADR-0348 plus ADR-0515 doctrine update"
       ],
-      "update_cadence": "per ADR-0346..ADR-0349 doctrine update",
+      "update_cadence": "per ADR-0346..ADR-0348 plus ADR-0515 doctrine update",
       "dependent_docs": [
         "doc.agents"
       ],

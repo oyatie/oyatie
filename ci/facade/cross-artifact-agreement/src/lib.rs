@@ -133,6 +133,7 @@ pub use read_surface_resurrection::{
 pub use adr_0515_history_only::{
     ADR_0515_HISTORY_ONLY_CODE, ADR_0515_HISTORY_ONLY_VALIDATOR,
     evaluate_adr_0515_current_tree_references, evaluate_adr_0515_history_only,
+    evaluate_adr_0515_reference_content, evaluate_adr_0515_tracked_surfaces,
     is_adr_0515_history_only_citation,
 };
 pub use adr_index_projection_parity::{
@@ -348,7 +349,7 @@ impl Report {
 ///       "in_spec": true,               // appears in the spec corpus
 ///       "in_masterplan": true,         // appears as a masterplan node
 ///       "in_roadmap": true,            // appears as a roadmap/sequencing node
-///       "supersedes": ["ADR-0511"],
+///       "supersedes": ["ADR-0901"],
 ///       "superseded_by": [],
 ///       "face_statuses": {             // status as each face records it (optional)
 ///         "roadmap": "Accepted"
@@ -3797,11 +3798,11 @@ mod tests {
                 "in_spec": true,
                 "in_masterplan": true,
                 "in_roadmap": true,
-                "supersedes": ["ADR-0511"],
+                "supersedes": ["ADR-0901"],
                 "superseded_by": [],
                 "face_statuses": {"roadmap": "Accepted"}
             }, {
-                "id": "ADR-0511",
+                "id": "ADR-0901",
                 "status": "Superseded",
                 "in_spec": true,
                 "in_masterplan": false,
@@ -3865,9 +3866,13 @@ mod tests {
 
     #[test]
     fn adr_0515_history_only_provenance_is_not_a_phantom_citation() {
+        let citation = format!(
+            "ADR-{}@docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
+            "0349"
+        );
         let fixture = json!({
             "decisions": [valid_decision()],
-            "phantom_citations": ["ADR-0349@docs/decisions/ADR-0515-current.md"]
+            "phantom_citations": [citation]
         });
         let report = evaluate(&fixture);
         assert!(!report.violations.contains("phantom_decision_citation"));
@@ -3888,15 +3893,15 @@ mod tests {
 
     #[test]
     fn half_supersession_fires_half_edge() {
-        // ADR-0511 supersedes ADR-0359, but ADR-0359.superseded_by omits ADR-0511.
+        // ADR-0901 supersedes ADR-0902, but ADR-0902.superseded_by omits ADR-0901.
         let fixture = json!({
             "decisions": [{
-                "id": "ADR-0511",
+                "id": "ADR-0901",
                 "status": "Superseded",
                 "in_spec": true, "in_masterplan": false, "in_roadmap": false,
-                "supersedes": ["ADR-0359"], "superseded_by": ["ADR-0515"]
+                "supersedes": ["ADR-0902"], "superseded_by": ["ADR-0515"]
             }, {
-                "id": "ADR-0359",
+                "id": "ADR-0902",
                 "status": "Superseded",
                 "in_spec": true, "in_masterplan": false, "in_roadmap": false,
                 "supersedes": [], "superseded_by": ["ADR-0515"]
@@ -3914,12 +3919,12 @@ mod tests {
         // half-edge keyed by directed pair, dual keyed by id, drift keyed by faces.
         let fixture = json!({
             "decisions": [{
-                "id": "ADR-0511",
+                "id": "ADR-0901",
                 "status": "Superseded",
                 "in_spec": true, "in_masterplan": false, "in_roadmap": false,
-                "supersedes": ["ADR-0359"], "superseded_by": []
+                "supersedes": ["ADR-0902"], "superseded_by": []
             }, {
-                "id": "ADR-0359",
+                "id": "ADR-0902",
                 "status": "Superseded",
                 "in_spec": true, "in_masterplan": false, "in_roadmap": false,
                 "supersedes": [], "superseded_by": []
@@ -3932,7 +3937,7 @@ mod tests {
         let findings = evaluate_keyed(&fixture);
         assert!(findings.contains(&Finding::new(
             "supersession_half_edge",
-            "ADR-0511->ADR-0359"
+            "ADR-0901->ADR-0902"
         )));
         assert!(findings.contains(&Finding::new("dual_decision_collision", "ADR-0377")));
         assert!(findings.contains(&Finding::new(

@@ -340,7 +340,7 @@
           "title": "Autosharding + auto-rebalance + dynamic sharding"
         },
         {
-          "adr": "ADR-0349",
+          "adr": "ADR-0515",
           "title": "Jenkins (LTS) + ArgoCD self-hostable CI/CD substrate"
         },
         {
@@ -352,7 +352,7 @@
       "cloud_foundations_status": {
         "scope": "metadata-only local foundations for cloud-iac/iam/kms/secrets/network/data/storage/compute/billing/capacity per their manifests",
         "anchor_verification": "Historical local bridge evidence on the cloud-foundation anchor recorded Rust format/check/lint/test lanes (4472 passed / 1 skipped) and gate run-all (103 lanes); this is not merge or Phase-0 exit authority.",
-        "pre_existing_advisory_blocker": "D-7 ADR-shape advisory currently fails on 27 pre-existing lettered ADRs (ADR-0322..ADR-0349) that use '## A. Context' rather than the canonical '## Context' heading the ADR-shape gate requires. Tracked as a separate doc-convention normalization; it predates and is orthogonal to cloud-service consolidation."
+        "pre_existing_advisory_blocker": "D-7 ADR-shape advisory currently fails on 27 pre-existing lettered ADRs (ADR-0322..ADR-0515) that use '## A. Context' rather than the canonical '## Context' heading the ADR-shape gate requires. Tracked as a separate doc-convention normalization; it predates and is orthogonal to cloud-service consolidation."
       },
       "worktree_consolidation_plan": {
         "model": "anchor-first, then replay+green each disjoint agent worktree bundle one at a time, ascending merge risk",
@@ -6134,8 +6134,8 @@
         "rationale": "license-clean, self-hostable, hyperscaler-pattern-aligned"
       },
       {
-        "choice": "GitHub Actions as primary CI (ADR-0349 augment stance)",
-        "verdict": "CHANGE -> cloud-ci/oya-ci Rust gate authority with GitHub/Jenkins bridge evidence only until cutover (ADR-0513/ADR-0515)",
+        "choice": "GitHub Actions as primary CI (ADR-0515 augment stance)",
+        "verdict": "CHANGE -> cloud-ci/oya-ci Rust gate authority with the single protected context until explicit cutover (ADR-0515)",
         "rationale": "Actions-budget and bridge-runner fragility cannot become destination authority; bespoke cloud-ci/oya-ci status producers own merge evidence while bridge CI remains provenance/reference during cutover"
       }
     ],

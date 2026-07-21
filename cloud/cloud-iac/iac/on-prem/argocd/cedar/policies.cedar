@@ -1,4 +1,4 @@
-// ADR-0349 ArgoCD UI, API, and sync authorization boundary.
+// ADR-0515 ArgoCD UI, API, and sync authorization boundary.
 permit(
   principal,
   action in [

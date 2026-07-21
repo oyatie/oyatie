@@ -198,7 +198,7 @@ Status legend: ⬜ pending · 🟦 in-progress · ✅ done
   - EVIDENCE: `evidence/multispectrum/cs-ent-openapi-contracts-1779528000.json`; Oya VCS status/verify/done/promote returned accepted locally; transcript captured at `evidence/vcs/cs-ent-openapi-contracts-oya-vcs-lifecycle-20260523.json`; registry/vcs event-log persistence is not asserted by this branch.
 
 - ✅ CS-ENT-CICD-001 — HR/payroll/accounting Jenkins quality gates.
-  - LAYOUT: service-local Jenkinsfiles under `microservices/{hr,payroll,accounting}/ci/Jenkinsfile` following ADR-0349 Jenkins LTS + Kubernetes agent patterns.
+  - LAYOUT: service-local cloud-ci integration following ADR-0515 single-context authority.
   - COVERAGE: cargo fmt, per-service package-group check/clippy/nextest, OpenAPI semver, Oya VCS admission, and Wave 15-ZE evidence archival.
   - BOUNDARY: CI quality gate only; no ArgoCD Application, Helm chart, runtime deployment, storage, Workflow execution, statutory filing, payment execution, or cloud adapter is claimed.
   - EVIDENCE: `evidence/multispectrum/cs-ent-cicd-quality-gates-1779528600.json`; Oya VCS transcript captured at `evidence/vcs/cs-ent-cicd-quality-gates-oya-vcs-lifecycle-20260523.json`; registry/vcs event-log persistence is not asserted by this branch.
@@ -234,7 +234,7 @@ Status legend: ⬜ pending · 🟦 in-progress · ✅ done
   - EVIDENCE: `evidence/multispectrum/cs-ent-platform-openapi-contracts-1779531600.json`; Oya VCS transcript captured at `evidence/vcs/cs-ent-platform-openapi-contracts-oya-vcs-lifecycle-20260523.json`; registry/vcs event-log persistence is not asserted by this branch.
 
 - ✅ CS-ENT-SUITE-006 — Tenant RBAC Jenkins quality gate.
-  - LAYOUT: service-local Jenkinsfile under `microservices/tenant-rbac/ci/Jenkinsfile` following ADR-0349 Jenkins LTS + Kubernetes agent patterns.
+  - LAYOUT: service-local cloud-ci integration following ADR-0515 single-context authority.
   - COVERAGE: cargo fmt, package-group check/clippy/nextest, OpenAPI semver, Oya VCS admission, and Wave 15-ZE evidence archival for platform domain/app/API crates.
   - BOUNDARY: CI quality gate only; no live Jenkins controller execution, ArgoCD Application, Helm chart, runtime deployment, storage, Workflow execution, incident runtime, OpenTofu execution, or cloud adapter is claimed.
   - EVIDENCE: `evidence/multispectrum/cs-ent-platform-cicd-quality-gate-1779532200.json`; Oya VCS transcript captured at `evidence/vcs/cs-ent-platform-cicd-quality-gate-oya-vcs-lifecycle-20260523.json`; registry/vcs event-log persistence is not asserted by this branch.

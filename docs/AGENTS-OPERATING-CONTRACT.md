@@ -2,17 +2,17 @@
 doc_class: Operating-Contract
 shape: Doctrine-Reference
 authority_tier: 2
-purpose: "Operating-contract companion for Wave 15-ZF propagation of ADR-0346..ADR-0349 doctrine."
+purpose: "Operating-contract companion for Wave 15-ZF propagation of ADR-0346..ADR-0515 doctrine."
 doc_status: published
 related_adrs:
   - ADR-0346
   - ADR-0347
   - ADR-0348
-  - ADR-0349
+  - ADR-0515
 ---
 # Agents Operating Contract Doctrine References
 
-Authority: [docs/AGENTS.md](AGENTS.md) remains the live agent operating contract until `/specs/agent-operating-contract.json` is explicitly promoted in PHASE-5. This companion carries the Wave 15-ZF operating-contract doctrine references for ADR-0346..ADR-0349 without superseding the live contract.
+Authority: [docs/AGENTS.md](AGENTS.md) remains the live agent operating contract until `/specs/agent-operating-contract.json` is explicitly promoted in PHASE-5. This companion carries the Wave 15-ZF operating-contract doctrine references for ADR-0346..ADR-0515 without superseding the live contract.
 
 ## ADR-0346
 
@@ -32,8 +32,8 @@ Enforced by: `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-p
 
 Enforced by: `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, `oya-governance-tenant-migration-reversibility`.
 
-## ADR-0349
+## ADR-0515
 
-[ADR-0349](decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md) declares Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus. Jenkins augments GitHub Actions for self-hostable CI contexts, while ArgoCD is the canonical GitOps CD orchestrator and replaces manual `kubectl apply` plus Helm CLI deploys across all contexts.
+[ADR-0515](decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md) declares GitHub Actions plus branch protection the live CI authority until explicit owned-runner cutover, with cloud-ci Rust apps producing the single protected `oya-ci-required` context; Argo CD is only a separately authorized bridge/reference CD adapter.
 
-Enforced by: `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, `oya-governance-deploy-audit-chain-emit`.
+Enforced by: `oya-ci-required`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-ci-required`, `oya-governance-deploy-audit-chain-emit`.

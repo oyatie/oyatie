@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 # oya-ci tide application — merge-queue poll loop + binary.
-# Phase 2 of oya-ci bespoke-Prow (ADR-0513): polls GitHub for eligible PRs
+# Phase 2 of oya-ci bespoke-Prow (ADR-0515): polls GitHub for eligible PRs
 # and merges them when CI is green, approved, and not held.
 
 [[bin]]

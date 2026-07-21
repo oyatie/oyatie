@@ -8699,7 +8699,7 @@ fn documentation_system_gate_passes_clean_pipeline() {
     fs::remove_dir_all(temp).ok();
 }
 
-/// ADR-0361 R3b: with GitHub Actions workflows retired (absent dir), the
+/// ADR-0515 R3b: with GitHub Actions workflows retired (absent dir), the
 /// Jenkins-reported status-context manifest is the producer source, and the
 /// protection-context-match gate still passes for aligned contexts.
 #[test]
@@ -8726,7 +8726,7 @@ fn protection_context_match_gate_passes_from_jenkins_manifest_without_workflows(
             "protection-context-match",
             "--branch-protection",
             protection_file.to_str().expect("utf8 protection path"),
-            // workflows dir intentionally ABSENT (retired per ADR-0361)
+            // workflows dir intentionally ABSENT (retired per ADR-0515)
             "--workflows-dir",
             temp.join("no-such-workflows-dir").to_str().expect("utf8"),
             "--reported-contexts",

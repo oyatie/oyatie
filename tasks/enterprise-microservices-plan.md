@@ -561,7 +561,7 @@ Disjoint path envelope:
 - `evidence/multispectrum/cs-ent-cicd-quality-gates-1779528600.json`
 - `evidence/vcs/cs-ent-cicd-quality-gates-oya-vcs-lifecycle-20260523.json`
 
-Acceptance focus: Jenkins LTS self-hostable CI parity per ADR-0349 for the
+Acceptance focus: the protected `oya-ci-required` context per ADR-0515 for the
 three enterprise services. Each Jenkinsfile runs checkout, Rust CI tooling,
 workspace fmt, per-service package-group check/clippy/nextest, OpenAPI semver,
 Oya VCS admission, and Wave 15-ZE CI evidence archival. This slice makes no
@@ -741,7 +741,7 @@ Disjoint path envelope:
 - `evidence/multispectrum/cs-ent-platform-cicd-quality-gate-1779532200.json`
 - `evidence/vcs/cs-ent-platform-cicd-quality-gate-oya-vcs-lifecycle-20260523.json`
 
-Acceptance focus: AC-08 Jenkins LTS self-hostable quality gate per ADR-0349
+Acceptance focus: AC-08 protected `oya-ci-required` quality gate per ADR-0515
 for Tenant RBAC. The Jenkinsfile runs checkout, Rust CI tooling, workspace
 fmt, package-group check/clippy/nextest, OpenAPI semver, Oya VCS admission, and
 Wave 15-ZE evidence archival. This slice makes no live Jenkins controller run,

@@ -2,7 +2,7 @@
 doc_class: MigrationPlaybook
 microservice: cloud-iac
 source_vendor: Wave 15-ZD doctrine propagation
-related_adrs: [ADR-0346, ADR-0347, ADR-0348, ADR-0349]
+related_adrs: [ADR-0346, ADR-0347, ADR-0348, ADR-0515]
 date: 2026-05-21
 doc_status: published
 ---
@@ -27,9 +27,9 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 8. ADR-0348: AUTOSHARDING computes tenant->cell/shard placement automatically with no human operator picking placement.
 9. ADR-0348: AUTO-REBALANCE migrates tenants from hot cells to cooler cells, honors residency and compliance pack constraints, requires Cedar permits for cross-jurisdiction migration, and remains observable, reversible, and audit-chain-emit per ADR-0263.
 10. ADR-0348: DYNAMIC SHARDING adjusts shard count within a cell by HOT-SPLIT and COLD-MERGE thresholds, and both operations are atomic plus audit-emit.
-11. ADR-0349: Declare GitHub Actions oya-ci (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
-12. ADR-0349: GitHub Actions oya-ci augments rather than replaces GitHub Actions, and ArgoCD REPLACES manual `kubectl apply` and Helm CLI deploys across all contexts.
-13. ADR-0349: Both substrates are provisioned via OpenTofu modules under `microservices/cloud-iac/modules/<context>/github-actions-oya-ci/` and `/argocd/` per ADR-0339.
+11. ADR-0515: Declare GitHub Actions oya-ci (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
+12. ADR-0515: GitHub Actions oya-ci augments rather than replaces GitHub Actions, and ArgoCD REPLACES manual `kubectl apply` and Helm CLI deploys across all contexts.
+13. ADR-0515: Both substrates are provisioned via OpenTofu modules under `microservices/cloud-iac/modules/<context>/github-actions-oya-ci/` and `/argocd/` per ADR-0339.
 
 ## ADR-0346 enforcement lanes
 
@@ -54,7 +54,7 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 - `oya-governance-audit-chain-emit-on-automation-events` - refuses every manifest declaring auto_rebalance.enabled true OR dynamic_sharding.enabled true if audit_chain_emit is omitted on the corresponding sub-block.
 - `oya-governance-tenant-migration-reversibility` - refuses any microservice IP authoring under `microservices/<ms>/IPs/IP-*-auto-rebalance-*.md` that lacks an explicit `rollback_path` section.
 
-## ADR-0349 enforcement lanes
+## ADR-0515 enforcement lanes
 
 - `oya-governance-github-actions-oya-ci-required-continuity` - refuses GitHub Actions oya-cifile / .github/workflows drift such that a CI step exists in one surface but not the other across the per-microservice CI-parity contract.
 - `oya-governance-argocd-application-cosign-verified` - refuses ArgoCD Application CRD sources that reference an image without a cosign-verify policy attached per D-6 + ADR-0181.
@@ -67,7 +67,7 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 1. Confirm the `cloud-iac` manifest exists and is not marked with `status: "Retired"` and is not `doc_class: RetiredMicroserviceMarker`.
 2. Capture the current migration-playbooks directory listing before authoring implementation follow-up.
 3. Capture whether `cloud-iac` already has CI, CD, cellular, sharding, or governance lane references in PRD, ARCH, README, IPs, manifests, runbooks, contracts, Cedar, SLOs, and capabilities.
-4. Record current references to ADR-0346, ADR-0347, ADR-0348, and ADR-0349. Absence is acceptable at this scaffold stage; downstream artifacts own their own propagation lanes.
+4. Record current references to ADR-0346, ADR-0347, ADR-0348, and ADR-0515. Absence is acceptable at this scaffold stage; downstream artifacts own their own propagation lanes.
 5. Do not mutate runtime manifests or source code in this playbook pass.
 
 ## Phase 1 - ADR-0346 verification migration
@@ -96,7 +96,7 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 6. Auto-rebalance and dynamic-sharding automation events must set audit-chain emission expectations per ADR-0263.
 7. The implementation IP must document `rollback_path` for automation-event-driven tenant migration.
 
-## Phase 4 - ADR-0349 self-hostable CI/CD migration
+## Phase 4 - ADR-0515 single-context CI/CD migration
 
 1. Treat GitHub Actions oya-ci LTS as the self-hostable CI substrate for `cloud-iac` when GitHub Actions runners are unavailable.
 2. Keep GitHub Actions as the hosted PR review surface; GitHub Actions oya-ci augments rather than replaces it.
@@ -132,7 +132,7 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 
 ## Phase 8 - Acceptance checks
 
-1. This playbook cites ADR-0346, ADR-0347, ADR-0348, and ADR-0349 by exact ID.
+1. This playbook cites ADR-0346, ADR-0347, ADR-0348, and ADR-0515 by exact ID.
 2. This playbook lists every enforced_by lane from the four ADRs that can affect `cloud-iac`.
 3. This playbook keeps implementation out of scope.
 4. This playbook avoids runtime mutations, manifest mutations, source edits, and policy edits.

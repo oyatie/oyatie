@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 # GitHub API client adapter for the oya-ci tide component.
 # Implements kernel::ForgeClient via reqwest blocking HTTP.
-# Forge of record = GitHub (D-FORGE; ADR-0513 Phase 2).
+# Forge of record = GitHub (D-FORGE; ADR-0515 Phase 2).
 
 [lib]
 name = "oya_ci_tide_github_adapter"

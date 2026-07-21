@@ -12,7 +12,7 @@ source_adrs:
   - ADR-0346
   - ADR-0347
   - ADR-0348
-  - ADR-0349
+  - ADR-0515
 ---
 
 # Runbook: Workplace Integration Hot Split
@@ -95,7 +95,7 @@ source_adrs:
 - Evidence 6: ArgoCD Application sync id and cosign verification policy result.
 - Evidence 7: branch-protected `oya-ci-required` run id proving the live required context accepted this service surface.
 - Evidence 8: local command output, if collected, marked as transition evidence only and not as merge authority.
-- Evidence 9: governance lane names from ADR-0347, ADR-0348, and ADR-0349 included in the incident handoff.
+- Evidence 9: governance lane names from ADR-0347, ADR-0348, and ADR-0515 included in the incident handoff.
 - Evidence 10: rollback rehearsal output proving reversibility from the audit-chain trail.
 
 ## Rollback Path
@@ -115,7 +115,7 @@ source_adrs:
 5. Confirm central governance evidence is attached for every automation event.
 6. Confirm branch-protected `oya-ci-required` acceptance evidence is attached per D-CICD-AUTHORITY.
 7. Confirm ArgoCD did not sync unsigned images and did not cross tenant namespaces.
-8. Confirm the post-incident note cites ADR-0346, ADR-0347, ADR-0348, and ADR-0349 by exact ID.
+8. Confirm the post-incident note cites ADR-0346, ADR-0347, ADR-0348, and ADR-0515 by exact ID.
 9. Close only after the incident commander records the stop condition and evidence bundle hash.
 10. Leave implementation gaps to Wave 15-ZA/ZB/ZD/ZE; do not add code from this runbook lane.
 
@@ -123,7 +123,7 @@ source_adrs:
 - ADR-0346
 - ADR-0347
 - ADR-0348
-- ADR-0349
+- ADR-0515
 - ADR-0263
 - ADR-0243
 - ADR-0181

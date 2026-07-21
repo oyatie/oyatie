@@ -98,7 +98,7 @@ impl SlsaPrimitive {
                 "cosign sign-blob",
                 "cosign-installer",
                 "rekor",
-                // ADR-0361 Jenkins-native grounding tokens:
+                // ADR-0515 single-context grounding tokens:
                 "cosign attest",
                 "slsaprovenance",
                 "slsa provenance",
@@ -234,7 +234,7 @@ where
         // Canonical SLSA L3 citation set: every µservice claiming
         // `slsa_l3: green` is required to be grounded by AT LEAST the
         // three canonical workflow files.
-        // ADR-0361: SLSA-L3 evidence is grounded in the Jenkins pipeline, not the
+        // ADR-0515: SLSA-L3 evidence is grounded in the cloud-ci Rust gate pipeline, not the
         // retired GitHub Actions workflows. The shared CI lane grounds both
         // SignedProvenance (cosign attest --type slsaprovenance) and HermeticBuild
         // (cargo cyclonedx SBOM); the captured signing evidence README grounds the
@@ -355,7 +355,7 @@ mod tests {
   "slsa_l3": { "overall_status": "yellow", "deltas": [] }
 }"#;
 
-    // ADR-0361: SLSA-L3 evidence is grounded in the Jenkins pipeline.
+    // ADR-0515: SLSA-L3 evidence is grounded in the cloud-ci Rust gate pipeline.
     const OYACILANE_LANE: &str = r#"
 // oya-jenkins-shared :: oyaCiLane
 stage('sign + provenance') {

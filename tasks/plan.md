@@ -671,7 +671,7 @@ Distrusted markers found before correction:
 - `oya gate validate cloud-iac-gitops-evidence` is a first-class fail-closed local gate and is included in the run-all gate catalog.
 - The gate parses `microservices/cloud-iac/manifest.json` and scans repo-local `microservices/cloud-iac/iac/*/argocd/apps/template.yaml` files with no Argo CD API, Kubernetes API, Git, cosign, provider, or OpenTofu calls.
 - Manifest `gitops_evidence_scope.templates_root`, `template_count`, `contexts`, modeled Application fields, non-claims, and coherence guard must match the repo-local templates.
-- Each template must remain an `argoproj.io/v1alpha1` `Application` with ADR-0349, ADR-0181/image-promotion, cosign-required, audit-chain-event, and fail-open=false metadata.
+- Each template must remain an `argoproj.io/v1alpha1` `Application` with ADR-0515, ADR-0181/image-promotion, cosign-required, audit-chain-event, and fail-open=false metadata.
 - Manifest `application_kind` and `metadata_only_posture` must preserve the Argo CD Application/placeholder-only repo, revision, cluster server, and tenant namespace contract.
 - Each template must preserve placeholder-only `repoURL`, `targetRevision`, cluster server, and tenant namespace fields, include automated prune/selfHeal plus CreateNamespace/ServerSideApply sync options, and reject credential-like markers.
 - Manifest claims only this local filesystem/YAML-template gate; Argo CD API integration, repository credentials, Kubernetes API calls, live sync/diff/health/prune/self-heal execution, cosign verification, provider APIs, and OpenTofu runtime remain explicit non-claims.
@@ -685,7 +685,7 @@ Distrusted markers found before correction:
 - Regression guard: `./bin/oya gate validate cloud-iac-module-catalog` remains green after adding the GitOps evidence gate.
 - GREEN aggregate: `./bin/oya gate run-all` passed 83/83 lanes, including `cloud-iac-gitops-evidence`.
 - Oya VCS lifecycle accepted: `work`, `verify`, `done --controller-promote`, and `promote --environment local-foundry`.
-- Full `./bin/oya verify --ci-required` was attempted and is currently blocked by unrelated/concurrent repository state: application-shell `resource_audit_console` compile drift in CI-profile loop-recovery, two unrelated application-shell evidence files missing audit-chain coverage for provider admission, and pre-existing ADR-0322..ADR-0349 shape diagnostics.
+- Full `./bin/oya verify --ci-required` was attempted and is currently blocked by unrelated/concurrent repository state: application-shell `resource_audit_console` compile drift in CI-profile loop-recovery, two unrelated application-shell evidence files missing audit-chain coverage for provider admission, and pre-existing ADR-0322..ADR-0515 shape diagnostics.
 
 ### CS-CLOUD-IAC-CELL-TOPOLOGY-GATE-001 — first-class local Oya gate for Cloud IaC cell topology evidence
 
@@ -721,7 +721,7 @@ Distrusted markers found before correction:
 - Regression guards: existing `cloud-iac-module-catalog` and `cloud-iac-gitops-evidence` gates remain green.
 - GREEN closeout gates: scoped check/clippy/fmt, JSON parse, dependency-seam strict with this evidence, scoped honest-claims, scoped retired-vocabulary, planning-closure, api-semver, architecture-boundaries, and default `./bin/oya gate run-all` 84/84 passed.
 - Oya VCS lifecycle accepted: `work`, `verify`, `done`, and `promote --environment local-foundry`.
-- Full `./bin/oya verify --ci-required` was attempted and is not green because of unrelated/concurrent repository blockers: D-1 fmt, D-2 workspace check, D-3 workspace clippy, D-4 workspace nextest (4343 passed / 1 skipped), and D-6 ADR index write passed; D-5 `gate run-all --ci-required` failed only on `oya-vcs-admission-gate-app` because four unrelated app-shell evidence files are missing audit-chain coverage; D-7 ADR-shape still fails on pre-existing ADR-0322..ADR-0349 section-shape diagnostics.
+- Full `./bin/oya verify --ci-required` was attempted and is not green because of unrelated/concurrent repository blockers: D-1 fmt, D-2 workspace check, D-3 workspace clippy, D-4 workspace nextest (4343 passed / 1 skipped), and D-6 ADR index write passed; D-5 `gate run-all --ci-required` failed only on `oya-vcs-admission-gate-app` because four unrelated app-shell evidence files are missing audit-chain coverage; D-7 ADR-shape still fails on pre-existing ADR-0322..ADR-0515 section-shape diagnostics.
 
 ### CS-CLOUD-IAC-OPENTOFU-VALIDATION-GATE-001 — first-class local OpenTofu init/validate evidence gate
 
@@ -757,7 +757,7 @@ Distrusted markers found before correction:
 - RED first: `./bin/oya gate validate cloud-iac-opentofu-validation --repo-root . --manifest microservices/cloud-iac/manifest.json --catalog microservices/cloud-iac/tofu/modules/catalog.json --modules-root microservices/cloud-iac/tofu/modules` exited `2` before dispatcher implementation because the lane was unknown.
 - RED factual probe before syntax repair: OpenTofu v1.12.0 temp-copy validation passed only for `cloud-account` and `dns`; `k8s-namespace-bootstrap`, `kms`, `secrets-bootstrap`, and `vpc` failed on invalid single-line variable blocks.
 - GREEN closeout: focused dev-cli tests (7), gate-catalog tests (19), live OpenTofu validation gate (6 modules / 6 init runs / 6 validate runs), `tofu fmt -check -recursive microservices/cloud-iac/tofu/modules`, module-catalog/GitOps/cell-topology regression gates, scoped check/clippy/fmt, JSON/audit parsing, dependency-seam strict with evidence, scoped honest-claims, scoped retired-vocabulary over the new gate/manifest/module/task corpus, planning/api/architecture gates, and default `./bin/oya gate run-all` 85/85 passed.
-- Full `./bin/oya verify --ci-required` was attempted and is not green because of unrelated/concurrent repository blockers: D-1 fmt, D-2 workspace check, D-3 workspace clippy, D-4 workspace nextest (4350 passed / 1 skipped), D-6 ADR index write, provider execution, and required-secrets preflight passed; D-5 CI-required run-all failed on unrelated app-shell compile drift (`identity_workforce_suite` missing) plus app-shell evidence metadata/audit-chain admission gaps; D-7 ADR-shape still fails on pre-existing ADR-0322..ADR-0349 section-shape diagnostics.
+- Full `./bin/oya verify --ci-required` was attempted and is not green because of unrelated/concurrent repository blockers: D-1 fmt, D-2 workspace check, D-3 workspace clippy, D-4 workspace nextest (4350 passed / 1 skipped), D-6 ADR index write, provider execution, and required-secrets preflight passed; D-5 CI-required run-all failed on unrelated app-shell compile drift (`identity_workforce_suite` missing) plus app-shell evidence metadata/audit-chain admission gaps; D-7 ADR-shape still fails on pre-existing ADR-0322..ADR-0515 section-shape diagnostics.
 
 ### CS-CLOUD-IAC-MODULE-PROVENANCE-GATE-001 — first-class local SHA-256 module provenance gate
 

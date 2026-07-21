@@ -218,7 +218,7 @@ components:
           auto_rebalance: tenant migration honors residency and compliance pack constraints and is observable, reversible, and audit-chain-emit per ADR-0263.
           dynamic_sharding: HOT-SPLIT and COLD-MERGE shard-count operations are atomic and audit-emit.
           manifest_block: sharding_automation declares autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
-      ADR-0349:
+      ADR-0515:
         purpose: >-
           Current SSOT replacement: one canonical oya-ci-required authority remains live until the owned oya-ci cutover; delivery substrates are subordinate and not parallel merge authorities.
         enforced_by:

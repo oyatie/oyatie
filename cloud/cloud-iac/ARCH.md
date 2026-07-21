@@ -15,7 +15,7 @@ related_adrs:
   - ADR-0346
   - ADR-0347
   - ADR-0348
-  - ADR-0349
+  - ADR-0515
 companion_docs:
   - microservices/cloud-iac/manifest.json
   - microservices/cloud-iac/PRD.md
@@ -27,11 +27,11 @@ companion_docs:
 
 ## Architecture Boundary
 
-`cloud-iac` keeps its existing bounded context and flat `microservices/cloud-iac/src/` ownership under ADR-0131 and ADR-0132. This `ARCH.md` is the Wave 15-ZF architecture propagation surface for ADR-0346, ADR-0347, ADR-0348, and ADR-0349; service-specific deep architecture remains in `ARCHITECTURE.md` when that artifact exists.
+`cloud-iac` keeps its existing bounded context and flat `microservices/cloud-iac/src/` ownership under ADR-0131 and ADR-0132. This `ARCH.md` is the Wave 15-ZF architecture propagation surface for ADR-0346, ADR-0347, ADR-0348, and ADR-0515; service-specific deep architecture remains in `ARCHITECTURE.md` when that artifact exists.
 
 ## Wave 15-ZF Doctrine Context
 
-This architecture artifact carries doctrine propagation for ADR-0346, ADR-0347, ADR-0348, and ADR-0349 only. It does not implement Wave 15-ZA, Wave 15-ZB, Wave 15-ZD, or Wave 15-ZE bodies.
+This architecture artifact carries doctrine propagation for ADR-0346, ADR-0347, ADR-0348, and ADR-0515 only. It does not implement Wave 15-ZA, Wave 15-ZB, Wave 15-ZD, or Wave 15-ZE bodies.
 
 ### ADR-0346 Supersession: Cloud-CI Authority
 - Retired local oya verifier/gate/check wrappers are not authority mechanisms for this microservice's future architecture changes.
@@ -49,7 +49,7 @@ This architecture artifact carries doctrine propagation for ADR-0346, ADR-0347, 
 - DYNAMIC SHARDING adjusts shard count within a cell by HOT-SPLIT when shard p99 latency exceeds SLO or utilization exceeds 80 percent, and by COLD-MERGE when adjacent shards both run below 20 percent utilization for more than 24 hours; per-microservice overrides must be explicit.
 - Relevant admission lanes are `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, and `oya-governance-audit-chain-emit-on-automation-events`.
 
-### ADR-0349 Supersession: Oya-CI And ArgoCD Context
+### ADR-0515 Supersession: Oya-CI And ArgoCD Context
 - GitHub Actions produces the live `oya-ci-required` context until the owned oya-ci runner cutover; owned oya-ci is the same canonical pipeline migrated over time, not a parallel CI authority.
 - ArgoCD is the GitOps CD bridge/reference adapter. Application syncs verify cosign signatures per ADR-0181, emit audit-chain rows per ADR-0263, and preserve tenant namespace isolation through Cedar per ADR-0243.
 - CI/CD architecture references must preserve `oya-ci-required`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, and `oya-governance-deploy-audit-chain-emit` as acceptance context.

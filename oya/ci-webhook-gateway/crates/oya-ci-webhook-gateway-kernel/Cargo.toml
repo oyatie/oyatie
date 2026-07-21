@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 # CI webhook gateway kernel — pure-Rust contracts for the GitHub→Jenkins→GitHub
-# commit-status bridge (ADR-0112, ADR-0359, ADR-0361, ADR-0363, ADR-0387).
+# commit-status bridge (ADR-0112, ADR-0515, ADR-0515, ADR-0363, ADR-0387).
 # Stage-4 RED: data types + trait seams + failing tests. No I/O deps.
 
 [lib]

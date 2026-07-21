@@ -7,7 +7,7 @@ owner: council-architecture
 supersedes: []
 superseded_by: [ADR-0515]
 supersession_note: "Flagger superseded by Argo Rollouts per D10 ruling; ADR-0515 is the canonical CI/CD + progressive-delivery ADR. D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-12/P1."
-related: [ADR-0110, ADR-0114, ADR-0121, ADR-0124, ADR-0139, ADR-0148, ADR-0157, ADR-0158]
+related: [ADR-0110, ADR-0114, ADR-0121, ADR-0515, ADR-0139, ADR-0148, ADR-0157, ADR-0158]
 related_specs:
   - /specs/agentic-slo-gated-promotion.json
   - /specs/hyperscaler-architecture-invariants.json
@@ -149,7 +149,7 @@ A CI lane `oya gate validate progressive-delivery-canary` validates (a) every wo
 - ADR-0110 — ChangeSet state machine.
 - ADR-0114 — canary observability + rollback (this ADR is the controller for ADR-0114's shape).
 - ADR-0121 — onprem K8s stack (ArgoCD already in-stack).
-- ADR-0124 — own merge queue (interacts with ChangeSet promotion).
+- ADR-0515 — own merge queue (interacts with ChangeSet promotion).
 - ADR-0139 — agentic SLO-gated promotion (this ADR is the operationalization).
 - ADR-0148 — Istio service mesh (Flagger writes `VirtualService`).
 - ADR-0157 — api-gateway tier (webhook gates).

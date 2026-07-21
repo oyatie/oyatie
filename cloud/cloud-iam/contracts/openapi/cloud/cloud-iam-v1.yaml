@@ -506,7 +506,7 @@ components:
           - oya-governance-dynamic-sharding-threshold-coverage
           - oya-governance-audit-chain-emit-on-automation-events
           - oya-governance-tenant-migration-reversibility
-      ADR-0349:
+      ADR-0515:
         purpose: >-
           Jenkins is bridge history; cloud-ci/oya-ci owns destination merge
           admission and ArgoCD remains a CD bridge/reference adapter where

@@ -12,7 +12,7 @@
 #   - psm         psm_asm preprocessor_flags per-OS select() (undefined
 #                 rust_psm_stack_pointer at the rust_binary final link, #96/#78)
 #   - aws-lc-sys  DEP_AWS_LC_*_INCLUDE = $(location ...) link env
-# (See docs/decisions/ADR-0514 + the per-crate notes in third-party/fixups/*.)
+# (See docs/decisions/ADR-0515 + the per-crate notes in third-party/fixups/*.)
 #
 # This wrapper runs buckify THEN re-applies those hand-edits from a captured patch,
 # so the regen is reproducible and the Linux build stays green. ALWAYS regenerate via

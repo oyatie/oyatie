@@ -4,19 +4,19 @@
   "expected_violations": [
     "supersession_half_edge"
   ],
-  "description": "Frozen live exhibit: a supersession edge that is not reciprocal. ADR-0511 declares supersedes:[ADR-0359], but ADR-0359.superseded_by lists only [ADR-0515] (it omits ADR-0511) — a half-built edge. Both are Superseded (not Accepted) so no propagation codes fire; only the half-edge does.",
+  "description": "Frozen live exhibit: a supersession edge that is not reciprocal. ADR-0901 declares supersedes:[ADR-0902], but ADR-0902.superseded_by lists only [ADR-0515] (it omits ADR-0901) — a half-built edge. Both are Superseded (not Accepted) so no propagation codes fire; only the half-edge does.",
   "decisions": [
     {
-      "id": "ADR-0511",
+      "id": "ADR-0901",
       "status": "Superseded",
       "in_spec": true,
       "in_masterplan": false,
       "in_roadmap": false,
-      "supersedes": ["ADR-0359"],
+      "supersedes": ["ADR-0902"],
       "superseded_by": ["ADR-0515"]
     },
     {
-      "id": "ADR-0359",
+      "id": "ADR-0902",
       "status": "Superseded",
       "in_spec": true,
       "in_masterplan": false,
@@ -30,7 +30,7 @@
       "in_spec": true,
       "in_masterplan": true,
       "in_roadmap": true,
-      "supersedes": ["ADR-0511", "ADR-0359"],
+      "supersedes": ["ADR-0901", "ADR-0902"],
       "superseded_by": []
     }
   ],

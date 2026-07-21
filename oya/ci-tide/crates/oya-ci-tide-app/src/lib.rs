@@ -1,6 +1,6 @@
 //! # oya-ci-tide-app
 //!
-//! Tide merge-queue loop for the oya-ci platform (Phase 2, ADR-0513).
+//! Tide merge-queue loop for the oya-ci platform (Phase 2, ADR-0515).
 //!
 //! ## Responsibilities
 //!

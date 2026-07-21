@@ -7,7 +7,7 @@ date: 2026-05-28
 owner: council-architecture + ops-platform
 supersedes: []
 superseded_by: []
-related: [ADR-0112, ADR-0359, ADR-0361, ADR-0363, ADR-0374]
+related: [ADR-0112, ADR-0515, ADR-0515, ADR-0363, ADR-0374]
 related_specs:
   - /specs/hyperscaler-architecture-invariants.json
   - /specs/microservices/manifest-schema.json
@@ -68,10 +68,10 @@ This is the missing trigger. It eliminates the admin-merge bridge by:
 - **ADR-0112**: webhook-driven Foundry/Intelligence agent invocation — the
   original design that establishes the GitHub-webhook-to-pipeline pattern,
   ed25519 signature mandate, and fail-closed security invariants.
-- **ADR-0359**: Jenkins-native CI execution model — `oyaCiLane.groovy` is the
+- **ADR-0515**: single-context GitHub Actions plus cloud-ci CI execution model — `oyaCiLane.groovy` is the
   trusted runner that executes `./bin/oya verify --ci-required` and
   `cargo nextest` on Talos.
-- **ADR-0361**: Jenkins substrate configuration — the parameterized job schema,
+- **ADR-0515**: cloud-ci gate configuration — the parameterized job schema,
   build parameter names, and the callback mechanism this gateway relies on.
 - **ADR-0363**: GitHub as the self-hosted git substrate — webhook delivery
   format, signature headers (`X-Hub-Signature-256` / `X-GitHub-Delivery`),
@@ -116,7 +116,7 @@ See YAML frontmatter for D1–D6 with exit criteria and verification commands.
 - Stage-5 requires a live OpenBao `sref://openbao/oya/ci/github-ed25519-secret`
   pre-provisioned before the gateway can accept real webhook traffic.
 - Jenkins `oyaCiLane` callback URL must be configured as a build parameter or
-  a webhook-notification plugin trigger (follow-up ADR-0361 amendment).
+  a webhook-notification plugin trigger (follow-up ADR-0515 amendment).
 
 ## Compliance
 

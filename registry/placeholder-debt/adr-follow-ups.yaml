@@ -1056,7 +1056,7 @@ follow_ups:
 
   - id: observability-loki-prod-storage
     intent: |
-      Wire Loki to SeaweedFS-bucket-api (ADR-0349) for production; remove
+      Wire Loki to SeaweedFS-bucket-api (ADR-0515) for production; remove
       useTestSchema=true + storage.type=filesystem. Current state is dev-only.
     driver_docs:
       - microservices/observability/iac/k8s/helm/values.yaml
@@ -1067,7 +1067,7 @@ follow_ups:
 
   - id: observability-tempo-prod-storage
     intent: |
-      Wire Tempo to SeaweedFS-bucket-api (ADR-0349) for production; remove
+      Wire Tempo to SeaweedFS-bucket-api (ADR-0515) for production; remove
       storage.trace.backend=local. Current state is dev-only.
     driver_docs:
       - microservices/observability/iac/k8s/helm/values.yaml
@@ -1078,7 +1078,7 @@ follow_ups:
 
   - id: observability-mimir-prod-storage
     intent: |
-      Wire Mimir to SeaweedFS-bucket-api (ADR-0349) for production; remove
+      Wire Mimir to SeaweedFS-bucket-api (ADR-0515) for production; remove
       filesystem blocks storage from the dev-cell umbrella. Current state is
       dev-only and production rendering fails closed until this is supplied.
     driver_docs:

@@ -91,7 +91,7 @@
       "controls": [
         "design-time PRR checklist",
         "automated canary eval against SLO",
-        "rollback triggers (ArgoCD, ADR-0349)"
+        "rollback triggers (ArgoCD, ADR-0515)"
       ],
       "evidence": "canary eval reports; PRR sign-offs; rollback drill evidence",
       "gate": "production_100_bar.ci_cd_exit"

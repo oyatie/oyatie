@@ -114,7 +114,7 @@ apps:
     namespace: oya-registry
     syncWave: "1"
 
-  # SeaweedFS (Apache 2; ADR-0349 canonical) — Oyatie's cluster-internal
+  # SeaweedFS (Apache 2; ADR-0515 canonical) — Oyatie's cluster-internal
   # object-bucket substrate, restored on Talos per ADR-0381 D4. Speaks the
   # S3 wire protocol for tool interop; the substrate is NOT AWS. Serves:
   # BuildKit cache (ADR-0381 D1 cache backend wires here once Deployed);

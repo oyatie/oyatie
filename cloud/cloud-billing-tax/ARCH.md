@@ -15,7 +15,7 @@ related_adrs:
   - ADR-0346
   - ADR-0347
   - ADR-0348
-  - ADR-0349
+  - ADR-0515
 companion_docs:
   - microservices/cloud-billing-tax/manifest.json
   - microservices/cloud-billing-tax/PRD.md
@@ -26,11 +26,11 @@ companion_docs:
 
 ## Architecture Boundary
 
-`cloud-billing-tax` keeps its existing bounded context and flat `microservices/cloud-billing-tax/src/` ownership under ADR-0131 and ADR-0132. This `ARCH.md` is the Wave 15-ZF architecture propagation surface for ADR-0346, ADR-0347, ADR-0348, and ADR-0349; service-specific deep architecture remains in `ARCHITECTURE.md` when that artifact exists.
+`cloud-billing-tax` keeps its existing bounded context and flat `microservices/cloud-billing-tax/src/` ownership under ADR-0131 and ADR-0132. This `ARCH.md` is the Wave 15-ZF architecture propagation surface for ADR-0346, ADR-0347, ADR-0348, and ADR-0515; service-specific deep architecture remains in `ARCHITECTURE.md` when that artifact exists.
 
 ## Wave 15-ZF Doctrine Context
 
-This architecture artifact carries doctrine propagation for ADR-0346, ADR-0347, ADR-0348, and ADR-0349 only. It does not implement Wave 15-ZA, Wave 15-ZB, Wave 15-ZD, or Wave 15-ZE bodies.
+This architecture artifact carries doctrine propagation for ADR-0346, ADR-0347, ADR-0348, and ADR-0515 only. It does not implement Wave 15-ZA, Wave 15-ZB, Wave 15-ZD, or Wave 15-ZE bodies.
 
 ### ADR-0346 Local CI Mirror
 - `oya verify --ci-required` is the canonical local pre-push verifier for this microservice's future architecture changes.
@@ -48,11 +48,11 @@ This architecture artifact carries doctrine propagation for ADR-0346, ADR-0347, 
 - DYNAMIC SHARDING adjusts shard count within a cell by HOT-SPLIT when shard p99 latency exceeds SLO or utilization exceeds 80 percent, and by COLD-MERGE when adjacent shards both run below 20 percent utilization for more than 24 hours; per-microservice overrides must be explicit.
 - Relevant admission lanes are `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, and `oya-governance-audit-chain-emit-on-automation-events`.
 
-### ADR-0349 Jenkins And ArgoCD CI/CD Context
+### ADR-0515 CI/CD Authority Context
 - Jenkins LTS and ArgoCD are the canonical self-hostable CI/CD substrates for this microservice across air-gap, on-prem, colo, and Oyatie-as-provider deployment contexts.
-- GitHub Actions remains the hosted PR CI surface; Jenkins augments it in self-hosted contexts with JCasC plus Jenkinsfile parity enforced by `oya-governance-jenkins-github-actions-parity`.
+- GitHub Actions remains the hosted PR CI surface; Jenkins augments it in self-hosted contexts with JCasC plus Jenkinsfile parity enforced by `oya-ci-required`.
 - ArgoCD is the GitOps CD orchestrator. Application syncs verify cosign signatures per ADR-0181, emit audit-chain rows per ADR-0263, and preserve tenant namespace isolation through Cedar per ADR-0243.
-- CI/CD architecture references must preserve `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit` as acceptance context.
+- CI/CD architecture references must preserve `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-ci-required`, and `oya-governance-deploy-audit-chain-emit` as acceptance context.
 
 ## ADR-0339 integration
 - Integration state: PROPOSED for `cloud-billing-tax`; ACCEPTED waits for service wrapper implementation and signed module evidence.

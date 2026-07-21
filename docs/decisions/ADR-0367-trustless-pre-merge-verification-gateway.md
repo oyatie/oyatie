@@ -6,7 +6,7 @@ date: 2026-05-26
 owner: council-architecture
 supersedes: []
 superseded_by: []
-related: [ADR-0366, ADR-0363, ADR-0111, ADR-0349]
+related: [ADR-0366, ADR-0363, ADR-0111, ADR-0515]
 planning_impact: true
 milestone: M-AGENTIC-PIPELINE
 depends_on: [ADR-0366]
@@ -66,7 +66,7 @@ The author-agent's self-reported evidence (claimed test/gate results) is **never
 merge decision. It is at most a hint.
 
 ### 2. Trusted-runner-signed evidence
-The **trusted runner** (the farm / Jenkins, ADR-0349/0361) re-executes every gate **hermetically from
+The **trusted runner** (GitHub Actions plus branch protection, with cloud-ci producing `oya-ci-required` under ADR-0515) re-executes every gate **hermetically from
 a clean checkout** and **signs** the results (SLSA provenance + cosign). The merge gate verifies the
 *signature* of the trusted runner — a fabricated or self-reported evidence file has no valid signature
 and is rejected (`untrusted-evidence` gate). This is the structural answer to "evidence could be false."
@@ -116,6 +116,6 @@ changeset is rejected; a changeset with trusted-runner-signed green + independen
 
 ## References
 ADR-0366 (the pipeline this gateway sits in), ADR-0363 (substrate / GitHub auto-merge), ADR-0111
-(speculative merge-queue), ADR-0349/0361 (the trusted runner — CI farm / Jenkins, SLSA + cosign).
+(speculative merge-queue), ADR-0515 (the live GitHub Actions plus cloud-ci `oya-ci-required` authority, SLSA + cosign).
 Research backlog: docs/ideas/hyperscaler-practices-to-adopt.md (separation of duties, SLSA provenance,
 doubt-driven/adversarial review).

@@ -2465,7 +2465,7 @@ This product consumes current SSOT doctrine for the intelligence substrate, cell
 - D-CICD-AUTHORITY binds this lane to the branch-protected `oya-ci-required` cloud-ci/oya-ci gate as live merge authority; local command output is transition evidence only. Historical ADR-0346 verifier wording is retained only where it does not conflict with `registry/stores/design-store.json` current truth.
 - D-GOVERNANCE-CENTRAL: central PaC/CaC/PDP/evidence pipelines own governance authority; do not scatter authority across local CLI lanes.
 - ADR-0348 binds workplace tenant placement, workflow execution locality, and plugin blast-radius control to cellular topology. Enforcement evidence flows through central governance and the branch-protected `oya-ci-required` gate, not scattered local lanes.
-- D-CICD-AUTHORITY keeps one canonical CI authority now (`oya-ci-required`) and the owned oya-ci cutover later; self-hostable delivery references are subordinate to the current SSOT and are not parallel merge authorities. Historical ADR-0349 substrate wording is retained only as non-authoritative context until reconciled with the current stores.
+- D-CICD-AUTHORITY keeps one canonical CI authority now (`oya-ci-required`) and the owned oya-ci cutover later; self-hostable delivery references are subordinate to the current SSOT and are not parallel merge authorities. Historical ADR-0515 substrate wording is retained only as non-authoritative context until reconciled with the current stores.
 
 ## References
 

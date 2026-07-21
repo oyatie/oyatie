@@ -70,7 +70,7 @@ loki:
     storage:
       type: filesystem
     # NOTE: filesystem storage + useTestSchema=true is dev-only.
-    # Production wires SeaweedFS-bucket-api per ADR-0349; tracked at
+    # Production wires SeaweedFS-bucket-api per ADR-0515; tracked at
     # registry/placeholder-debt/adr-follow-ups.yaml#observability-loki-prod-storage.
     useTestSchema: true
     podSecurityContext:
@@ -154,7 +154,7 @@ tempo:
     trace:
       backend: local
       # NOTE: local backend is dev-only.
-      # Production wires SeaweedFS-bucket-api per ADR-0349; tracked at
+      # Production wires SeaweedFS-bucket-api per ADR-0515; tracked at
       # registry/placeholder-debt/adr-follow-ups.yaml#observability-tempo-prod-storage.
   minio:
     enabled: false
@@ -164,7 +164,7 @@ tempo:
 mimir:
   enabled: true
   minio:
-    enabled: false   # SeaweedFS-on-Talos canonical per ADR-0349; do NOT ship MinIO transitive
+    enabled: false   # SeaweedFS-on-Talos canonical per ADR-0515; do NOT ship MinIO transitive
   # mimir-distributed 6.x enables Kafka + ingest-storage by default. On this dev-cell
   # Kafka is Pending (no storage pool yet), so every stateful Mimir component crashes at
   # startup trying to create the mimir-ingest topic. Disable Kafka and revert to the

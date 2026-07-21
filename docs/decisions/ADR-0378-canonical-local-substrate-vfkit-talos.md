@@ -7,7 +7,7 @@ date: 2026-05-27
 owner: ops-platform
 supersedes: []
 superseded_by: []
-related: [ADR-0375, ADR-0376, ADR-0363, ADR-0349, ADR-0130, ADR-0131, ADR-0132]
+related: [ADR-0375, ADR-0376, ADR-0363, ADR-0515, ADR-0130, ADR-0131, ADR-0132]
 related_specs: [/specs/deployment-ops-contract.json]
 milestone: M-LOCAL-CI-SUBSTRATE
 depends_on: [ADR-0375]
@@ -105,7 +105,7 @@ profile after retirement; the ADR index lists ADR-0378 as Accepted.
 
 ## References
 ADR-0375 (Talos + Cluster API + Argo CD fleet substrate), ADR-0376 (managed-Kubernetes
-product surface), ADR-0363 (git + cloud-ci + GitHub (interim) substrate), ADR-0349
+product surface), ADR-0363 (git + cloud-ci + GitHub (interim) substrate), ADR-0515
 (CI farm), ADR-0130 (observability substrate), ADR-0131/0132 (flat single-concern
 microservice layout). External: Talos Linux (https://www.talos.dev/), Cilium
 (https://cilium.io/), colima (https://github.com/abiosoft/colima), Sidero Omni

@@ -7,7 +7,7 @@ date: 2026-05-28
 owner: ops-platform
 supersedes: []
 superseded_by: []
-related: [ADR-0374, ADR-0378, ADR-0379, ADR-0363, ADR-0349, ADR-0359, ADR-0361, ADR-0148, ADR-0360, ADR-0111]
+related: [ADR-0374, ADR-0378, ADR-0379, ADR-0363, ADR-0515, ADR-0515, ADR-0515, ADR-0148, ADR-0360, ADR-0111]
 related_specs: [/specs/deployment-ops-contract.json]
 milestone: M-LOCAL-CI-SUBSTRATE
 depends_on: [ADR-0378, ADR-0374]
@@ -18,11 +18,11 @@ affected_surfaces:
   specs: []
 deliverables:
   - id: ADR-0380-D1
-    description: "Re-establish the Jenkins CI farm on the Talos substrate (ADR-0378) by installing the gating plugins (generic-webhook-trigger + build-token-root + http_request + git) into the Jenkins managed by infra/talos/local/bring-up.sh (helm upgrade with infra/ci/jenkins/values-local.yaml installPlugins list). The base Talos Jenkins is currently configuration-as-code + workflow-job only; the ADR-0359 plugin set lived on the now-retired colima farm and must be re-installed. Amendment (2026-05-28): the gitea plugin is intentionally NOT installed — GitHub-canonical brand correctness + the gateway already does webhook discovery."
+    description: "Re-establish the Jenkins CI farm on the Talos substrate (ADR-0378) by installing the gating plugins (generic-webhook-trigger + build-token-root + http_request + git) into the Jenkins managed by infra/talos/local/bring-up.sh (helm upgrade with infra/ci/jenkins/values-local.yaml installPlugins list). The base Talos Jenkins is currently configuration-as-code + workflow-job only; the ADR-0515 plugin set lived on the now-retired colima farm and must be re-installed. Amendment (2026-05-28): the gitea plugin is intentionally NOT installed — GitHub-canonical brand correctness + the gateway already does webhook discovery."
     exit_criteria: "Jenkins on Talos has generic-webhook-trigger + build-token-root + http_request + git installed and visible in /pluginManager/api; helm upgrade completes; Jenkins restart leaves the existing CasC oya-ci-farm cloud config valid (no boot failure)."
     verified_by: "kubectl -n oya-ci-jenkins exec oya-jenkins-0 -c jenkins -- sh -c 'curl -sf -u admin:$PASS http://localhost:8080/pluginManager/api/json?depth=1 | grep -c generic-webhook-trigger'"
   - id: ADR-0380-D2
-    description: "Redesign the Jenkins agent pod templates for Talos: drop the SeaweedFS sccache substrate (retired with colima) and the hostPath /Users/jasonlee/Developer/source mount (a Talos VM cannot see the macOS host filesystem). Replace with a self-contained git-clone-on-demand agent: a rust:1.96.0-bookworm container that clones the repo (via the gateway-build-git Secret's gh token, ESO-projected) and runs `oya gate run-all` against the cloned tree. Caching is honest-deferred (no sccache) until Oyatie's own SeaweedFS-on-Talos object-store substrate (per ADR-0349; we ship + run an S3-API-compatible store, NOT a dependency on AWS S3) is restored on the Talos cluster."
+    description: "Redesign the Jenkins agent pod templates for Talos: drop the SeaweedFS sccache substrate (retired with colima) and the hostPath /Users/jasonlee/Developer/source mount (a Talos VM cannot see the macOS host filesystem). Replace with a self-contained git-clone-on-demand agent: a rust:1.96.0-bookworm container that clones the repo (via the gateway-build-git Secret's gh token, ESO-projected) and runs `oya gate run-all` against the cloned tree. Caching is honest-deferred (no sccache) until Oyatie's own SeaweedFS-on-Talos object-store substrate (per ADR-0515; we ship + run an S3-API-compatible store, NOT a dependency on AWS S3) is restored on the Talos cluster."
     exit_criteria: "infra/ci/jenkins/values-local.yaml's agent pod templates do NOT reference seaweedfs-s3.oya-ci-jenkins.svc nor hostPath /Users/jasonlee; the rust-ci template clones from git via a Secret-bound token; cargo runs in /workspace (cloned, not bind-mounted) and succeeds."
     verified_by: "a manually-launched rust-ci agent pod clones the repo + runs `oya gate validate fmt` (smoke) end-to-end without sccache or hostPath."
   - id: ADR-0380-D3
@@ -38,9 +38,9 @@ deliverables:
     exit_criteria: "dev merges happen on green CI without `--admin` override on at least one full PR cycle; the memory oya-dev-branch-protection-merge is updated to reflect the retired seam."
     verified_by: "a PR is merged into dev on green GitHub commit-status without admin override; the lax-merge memory is updated."
   - id: ADR-0380-D6
-    description: "Maximum-parallelism enablement (follow-on, gated on D5 cutover landing first): (a) restore SeaweedFS-on-Talos — Oyatie's own object store per ADR-0349 — for sccache + buildkit cache + artifact storage; (b) switch the gated pipeline from `oya gate run-all` to `oya verify --affected` per ADR-0360 O1 so per-PR scope shrinks to the affected reverse-dependency closure; (c) enable Jenkinsfile.sharded nextest --partition (ADR-0360 O4) for in-build sharding; (d) grow agent capacity (Talos VM resize or multi-node cluster) so many PR builds co-schedule; (e) enable ADR-0111 merge-queue projected/speculative admission so PRs admit in parallel without serial bottleneck. Brings CI throughput to the hyperscaler-grade bar the ADR-0349 farm claimed on colima, now Talos-native."
-    exit_criteria: "On a sustained 20-PR concurrent-build test, the Talos cluster runs >=8 parallel agent pods with cache reuse; per-PR gate completion under N minutes (vs the cold-build pre-D6 baseline); ADR-0111 merge-queue admits PRs in parallel without serial bottleneck. Throughput meets or beats the ADR-0349 farm-throughput claims."
-    verified_by: "20-PR sustained-load benchmark post-D5; throughput vs ADR-0349 targets recorded; honest pass/fail."
+    description: "Superseded by ADR-0515; do not execute this Jenkins-era deliverable. Maximum-parallelism enablement (follow-on, gated on D5 cutover landing first): (a) restore SeaweedFS-on-Talos — Oyatie's own object store per ADR-0515 — for sccache + buildkit cache + artifact storage; (b) switch the gated pipeline from `oya gate run-all` to `oya verify --affected` per ADR-0360 O1 so per-PR scope shrinks to the affected reverse-dependency closure; (c) enable Jenkinsfile.sharded nextest --partition (ADR-0360 O4) for in-build sharding; (d) grow agent capacity (Talos VM resize or multi-node cluster) so many PR builds co-schedule; (e) enable ADR-0111 merge-queue projected/speculative admission so PRs admit in parallel without serial bottleneck. Brings CI throughput to the hyperscaler-grade bar the ADR-0515 farm claimed on colima, now Talos-native."
+    exit_criteria: "On a sustained 20-PR concurrent-build test, the Talos cluster runs >=8 parallel agent pods with cache reuse; per-PR gate completion under N minutes (vs the cold-build pre-D6 baseline); ADR-0111 merge-queue admits PRs in parallel without serial bottleneck. Throughput meets or beats the ADR-0515 farm-throughput claims."
+    verified_by: "20-PR sustained-load benchmark post-D5; throughput vs ADR-0515 targets recorded; honest pass/fail."
 purpose: >
   Close the CI loop on the Talos substrate (ADR-0378) by re-establishing the
   Jenkins CI farm: install the gating plugins, redesign agent pods for Talos
@@ -64,7 +64,7 @@ remaining work to retire the admin-merge seam.
 Two corrections to the plugin set + agent-redesign detail; the 5-deliverable structure
 and end goal stand.
 
-**(1) Drop the `gitea` Jenkins plugin from D1.** It was a carryover from the ADR-0359
+**(1) Drop the `gitea` Jenkins plugin from D1.** It was a carryover from a predecessor posture superseded by ADR-0515
 plugin manifest (authored when the original upstream was Gitea, before GitHub became
 canonical per ADR-0363). The plugin works against GitHub via API compatibility, but
 (a) reintroduces the `gitea` brand into a GitHub-canonical stack, and (b) is
@@ -80,7 +80,7 @@ API + `github-ci-token`. No gitea plugin involvement.
 **(2) Sharpen D2 agent redesign.** The concrete changes to `infra/ci/jenkins/values-local.yaml`:
 - Collapse the three colima-era templates (`rust-ci` + `rust-build` + `rust-parallel`)
   into ONE `rust-ci` template. The split only existed for sccache-cached throughput
-  experiments under ADR-0349 (now superseded for Talos).
+  experiments under ADR-0515 (now superseded for Talos).
 - Strip all sccache wiring (`RUSTC_WRAPPER`, `SCCACHE_*`, `AWS_*` envs, the
   `seaweedfs-s3` Secret reference). Remote build cache is honest-deferred to a follow-on
   when an in-cluster S3 lands.
@@ -99,7 +99,7 @@ API + `github-ci-token`. No gitea plugin involvement.
 **(4) Maximum-parallelism is a named follow-on, not this MVP.** D1-D5 deliver
 REAL CI gating (better than admin-merge), but this is NOT yet hyperscaler-grade
 concurrent throughput. The single-node Talos (~6 vCPU) caps concurrent cargo
-agents at ~3-4; without remote build cache (sccache->SeaweedFS-on-Talos, ADR-0349
+agents at ~3-4; without remote build cache (sccache->SeaweedFS-on-Talos, ADR-0515
 restoration deferred), every parallel build cold-compiles its full dep tree;
 the gated pipeline runs `oya gate run-all` per PR instead of the tight
 `oya verify --affected` (ADR-0360 O1); no in-build nextest sharding
@@ -111,12 +111,12 @@ named in D6 as the path; the fan-out's ceiling lifts when D6 lands, not D5.
 **(3) Object-store substrate is Oyatie's own, NOT AWS S3.** Earlier drafts of
 this ADR loosely referred to "in-cluster S3" as the deferred build-cache
 backend. Correcting the language + reasserting the doctrine: Oyatie ships
-**SeaweedFS** (Apache 2 — per ADR-0349) as our cluster-internal object store;
+**SeaweedFS** (Apache 2 — per ADR-0515) as our cluster-internal object store;
 its S3-compatible wire protocol exists for client/tooling interop, NOT as a
 dependency on the AWS S3 service. As a cloud provider competing with
 hyperscalers, Oyatie does not consume hyperscaler-managed services — we provide
 them. Any remaining "S3" mention in this ADR is shorthand for SeaweedFS-on-Talos
-(our own substrate, restored as a follow-on to ADR-0349), never AWS S3.
+(our own substrate, restored as a follow-on to ADR-0515), never AWS S3.
 
 **(5) Two further substrate catches surfaced mid-amendment, deferred to ADR-0381.**
 Both fail Oyatie's standing **hyperscaler-grade self-hosted substrate** lens
@@ -163,7 +163,7 @@ The CI webhook gateway is **live** on Talos (oya-ci namespace; `/healthz` ok;
 listening on `/webhook/github`; HMAC fail-closed). GitHub + Jenkins are also up
 on Talos. But the Jenkins on Talos is a **base install** — `configuration-as-code`
 + `workflow-job` only, no generic-webhook-trigger plugin, no `oyaCiLane` shared
-library, no gated job, no `github-ci-token` credential. The ADR-0359/R1–R5
+library, no gated job, no `github-ci-token` credential. The ADR-0515/R1–R5
 Jenkins CI configuration was provisioned on the **colima farm**, which was
 retired (ADR-0378); none of that configuration carried over.
 
@@ -190,7 +190,7 @@ Sequence the re-establishment into five deliverables (D1–D5):
    intentionally NOT installed — brand-correct + unnecessary given the gateway-
    front-door design; status posting uses http_request + GitHub API directly.)
 2. **D2**: Redesign agent pods for Talos — **drop SeaweedFS sccache** (no
-   cache substrate until SeaweedFS-on-Talos is restored per ADR-0349 — Oyatie's
+   cache substrate until SeaweedFS-on-Talos is restored per ADR-0515 — Oyatie's
    own S3-API-compatible object store, never AWS S3), **drop the hostPath mount**
    (use `git clone` from inside the pod with the existing `gateway-build-git`
    Secret's gh token, projected into the agent via env or volume). Caching is
@@ -245,8 +245,8 @@ without `--admin`.
 
 ## References
 ADR-0374 (CI webhook gateway), ADR-0378 (Talos canonical substrate), ADR-0379
-(Kubewarden default), ADR-0363 (git + Jenkins + GitHub substrate), ADR-0349
-(CI farm, on retired colima — superseded for Talos by this ADR), ADR-0359/
+(Kubewarden default), ADR-0363 (git + Jenkins + GitHub substrate), ADR-0515
+(CI farm, on retired colima — superseded for Talos by this ADR), ADR-0515/
 0361 (Jenkins CI revamp, plugin set), ADR-0148 (Cilium + Istio Ambient,
 the network plane for Jenkins agents). Repo: `infra/ci/jenkins/values-local.yaml`
 (plugin list + agent templates), `infra/ci/jenkins/Jenkinsfile.sharded`

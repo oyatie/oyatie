@@ -1,4 +1,4 @@
-# Argo Rollouts canary demo — the progressive-delivery substance of ADR-0349.
+# Argo Rollouts canary demo — the progressive-delivery substance of ADR-0515.
 # A Rollout with a stepped canary (setWeight + pause + analysis gate); on an
 # image change, traffic shifts gradually instead of all-at-once.
 #

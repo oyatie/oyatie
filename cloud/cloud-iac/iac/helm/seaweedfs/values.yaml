@@ -114,7 +114,7 @@ seaweedfs:
         ttl: 10y  # regulatory archival per ADR-0162
       - name: oya-ci-sccache-shared-prod
         quota: 200Gi
-        ttl: 30d  # CI remote build cache (sccache backend) per ADR-0349 + specs/ci-farm-substrate-canonical.json; regenerable, short TTL
+        ttl: 30d  # CI remote build cache (sccache backend) per ADR-0515 + specs/ci-farm-substrate-canonical.json; regenerable, short TTL
 
   # ---- replication topology ----
   # Cross-AZ within region by default; cross-region replication via volume server pairing

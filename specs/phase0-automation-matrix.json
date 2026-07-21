@@ -142,12 +142,12 @@
       "blocking_fixture": ".omx/plans/test-spec-phase0.md#T0.15",
       "classification": "controller_owned_in_phase_1",
       "evidence_path": "ADR-0515 current GitHub admission contract + future Tide admission evidence bundle",
-      "id": "ADR-0513-tide-ownership",
+      "id": "ADR-0515-tide-ownership",
       "no_new_oya_cli_surface": true,
       "owner": "platform-toolchain",
       "requirement": "ADR-0515 retains GitHub protected-PR admission as current authority. Tide is a future/reference controller shape only; Phase 1 must prove projected-state, batching, and auto-rebase before any live ownership claim.",
       "retirement_phase": "Phase 1 projected-state Tide scale",
-      "source_artifact": "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md + historical ADR-0513",
+      "source_artifact": "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md + historical ADR-0515",
       "target_gate_or_controller": "future oya-ci Tide admission controller (not live)"
     },
     {

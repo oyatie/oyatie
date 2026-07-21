@@ -18,7 +18,7 @@ cloud/cell-lifecycle/README.md	readme	explanation	index/meta	likely-stale	cell-l
 cloud/cell-lifecycle/capabilities/capability-catalog.md	reference	reference	cloud-substrate	likely-stale	Capability Catalog: cell-lifecycle
 cloud/cell-lifecycle/design-spec-maturity/failure-modes-cost-finops-tenant-isolation-operational-boundaries.md	reference	reference	cloud-substrate	likely-stale	Cell Lifecycle design/spec maturity boundary pack
 cloud/cell-lifecycle/dpia/dpia.md	governance	explanation	governance/compliance	likely-stale	DPIA: cell-lifecycle
-cloud/cell-lifecycle/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	runbook	how-to	operations/runbook	likely-stale	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cell-lifecycle`
+cloud/cell-lifecycle/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	runbook	how-to	operations/runbook	likely-stale	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cell-lifecycle`
 cloud/cell-lifecycle/runbooks/auto-rebalance.md	runbook	how-to	operations/runbook	likely-stale	Runbook: Cell Lifecycle Auto Rebalance
 cloud/cell-lifecycle/runbooks/cold-merge.md	runbook	how-to	operations/runbook	likely-stale	Runbook: Cell Lifecycle Cold Merge
 cloud/cell-lifecycle/runbooks/decommission-cell.md	runbook	how-to	operations/runbook	likely-stale	Runbook: Decommission Cell
@@ -43,7 +43,7 @@ cloud/cell-rebalancer/README.md	readme	explanation	index/meta	likely-stale	cell-
 cloud/cell-rebalancer/capabilities/capability-catalog.md	reference	reference	cloud-substrate	likely-stale	Capability Catalog: cell-rebalancer
 cloud/cell-rebalancer/design-spec-maturity/failure-modes-cost-finops-operational-boundaries.md	reference	reference	cloud-substrate	likely-stale	Cell Rebalancer design/spec maturity boundary pack
 cloud/cell-rebalancer/dpia/dpia.md	governance	explanation	governance/compliance	likely-stale	Data Protection Impact Assessment: cell-rebalancer
-cloud/cell-rebalancer/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	runbook	how-to	operations/runbook	likely-stale	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cell-rebalancer`
+cloud/cell-rebalancer/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	runbook	how-to	operations/runbook	likely-stale	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cell-rebalancer`
 cloud/cell-rebalancer/runbooks/auto-rebalance-trigger.md	runbook	how-to	operations/runbook	likely-stale	Runbook: Auto Rebalance Trigger
 cloud/cell-rebalancer/runbooks/auto-rebalance.md	runbook	how-to	operations/runbook	likely-stale	Runbook: Cell Rebalancer Auto Rebalance
 cloud/cell-rebalancer/runbooks/cold-merge.md	runbook	how-to	operations/runbook	likely-stale	Runbook: Cell Rebalancer Cold Merge
@@ -68,7 +68,7 @@ cloud/cloud-billing-tax/dpia/dpia.md	governance	explanation	governance/complianc
 cloud/cloud-billing-tax/faqs/tax-engineer-faq.md	guide	how-to	product	current	`cloud-billing-tax` µservice — Tax Engineer FAQ
 cloud/cloud-billing-tax/feature-parity-matrix-2026-05-20.md	reference	reference	product	likely-stale	`cloud-billing-tax` Feature Parity Matrix — Stripe Tax / Avalara / TaxJar UNION coverage — 2026-05-21
 cloud/cloud-billing-tax/migration-playbooks/from-avalara-and-vertex.md	runbook	how-to	operations/runbook	current	Migration playbook — Avalara AvaTax + Vertex O Series → Oyatie `cloud-billing-tax`
-cloud/cloud-billing-tax/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	runbook	how-to	operations/runbook	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-billing-tax`
+cloud/cloud-billing-tax/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	runbook	how-to	operations/runbook	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-billing-tax`
 cloud/cloud-billing-tax/onboarding/tax-engineer-first-week.md	guide	tutorial	operations/runbook	current	Tax Engineer — First Week on `cloud-billing-tax`
 cloud/cloud-billing-tax/performance-benchmark-numbers-2026-05-20.md	reference	reference	cloud-substrate	likely-stale	`cloud-billing-tax` Performance Benchmark Numbers — 2026-05-21
 cloud/cloud-billing-tax/reference-implementations/calculate-tax-batch-rust-sdk.md	reference	how-to	cloud-substrate	current	Reference implementation — Calculate batch tax + file a return via `oya-cloud-billing-tax-sdk`
@@ -110,7 +110,7 @@ cloud/cloud-billing/implementation-plans/IP-013-dsr-cascade-retention-erasure.md
 cloud/cloud-billing/implementation-plans/IP-014-cell-aware-billing-data-residency.md	spec	reference	spec/contract	current	IP-014 — Cell-aware billing-data residency
 cloud/cloud-billing/implementation-plans/IP-015-counterpart-parity-stripe-recurly-zuora-chargebee.md	spec	reference	spec/contract	current	IP-015 — Counterpart parity: Stripe / Recurly / Zuora / Chargebee
 cloud/cloud-billing/migration-playbooks/from-aws-cur-and-cloudability.md	runbook	how-to	operations/runbook	current	Migration playbook — AWS CUR + Apptio Cloudability → Oyatie `cloud-billing`
-cloud/cloud-billing/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	runbook	how-to	operations/runbook	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-billing`
+cloud/cloud-billing/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	runbook	how-to	operations/runbook	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-billing`
 cloud/cloud-billing/onboarding/billing-engineer-first-week.md	guide	tutorial	operations/runbook	current	Billing Engineer — First Week on `cloud-billing`
 cloud/cloud-billing/performance-benchmark-numbers-2026-05-20.md	reference	reference	cloud-substrate	likely-stale	`cloud-billing` Performance Benchmark Numbers — 2026-05-21
 cloud/cloud-billing/reference-implementations/emit-usage-and-generate-invoice-rust-sdk.md	reference	how-to	cloud-substrate	current	Reference implementation — Emit usage + generate invoice + export FOCUS via `oya-cloud-billing-sdk`
@@ -137,7 +137,7 @@ cloud/cloud-data/dpia/dpia.md	governance	explanation	governance/compliance	curre
 cloud/cloud-data/faqs/data-engineer-faq.md	guide	how-to	product	current	`cloud-data` µservice — Data Engineer FAQ
 cloud/cloud-data/feature-parity-matrix-2026-05-20.md	reference	reference	product	likely-stale	cloud-data feature parity matrix - 2026-05-20
 cloud/cloud-data/migration-playbooks/from-aurora-and-dynamodb.md	runbook	how-to	operations/runbook	current	Migration playbook — AWS Aurora Postgres + DynamoDB → Oyatie `cloud-data`
-cloud/cloud-data/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	runbook	how-to	operations/runbook	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-data`
+cloud/cloud-data/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	runbook	how-to	operations/runbook	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-data`
 cloud/cloud-data/onboarding/data-engineer-first-week.md	guide	tutorial	operations/runbook	current	Data Engineer — First Week on `cloud-data`
 cloud/cloud-data/reference-implementations/multi-engine-and-pitr-rust-sdk.md	reference	how-to	cloud-substrate	current	Reference implementation — Multi-engine workload + PITR restore via `oya-cloud-data-sdk`
 cloud/cloud-data/runbooks/auto-rebalance.md	runbook	how-to	operations/runbook	current	Runbook: Cloud Data Auto Rebalance
@@ -211,7 +211,7 @@ cloud/cloud-iac/implementation-plans/IP-seaweedfs-signed-url-substrate.md	spec	r
 cloud/cloud-iac/implementation-plans/IP-velero-pgbackrest-restic-bootstrap.md	spec	reference	spec/contract	current	IP — Backup substrate bootstrap (Velero + pgBackRest + Restic)
 cloud/cloud-iac/incident-response.md	reference	reference	cloud-substrate	current	Incident Response Playbook (cloud-iac µservice)
 cloud/cloud-iac/migration-playbooks/from-terraform-cloud-and-spacelift.md	runbook	how-to	operations/runbook	current	Migration playbook — Terraform Cloud or Spacelift → Oyatie `cloud-iac`
-cloud/cloud-iac/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	runbook	how-to	operations/runbook	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-iac`
+cloud/cloud-iac/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	runbook	how-to	operations/runbook	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-iac`
 cloud/cloud-iac/multi-region.md	reference	reference	cloud-substrate	current	Multi-Region Topology + BCDR (cloud-iac µservice)
 cloud/cloud-iac/onboarding/infrastructure-engineer-first-week.md	guide	tutorial	operations/runbook	current	Infrastructure Engineer — First Week on `cloud-iac`
 cloud/cloud-iac/policy/data-residency.md	governance	explanation	governance/compliance	current	Data Residency Contract (cloud-iac µservice)
@@ -252,7 +252,7 @@ cloud/cloud-iam/dpia/dpia.md	governance	explanation	governance/compliance	curren
 cloud/cloud-iam/faqs/iam-engineer-faq.md	guide	how-to	product	current	`cloud-iam` µservice — IAM Engineer FAQ
 cloud/cloud-iam/feature-parity-matrix-2026-05-20.md	reference	reference	product	likely-stale	cloud-iam feature parity matrix - 2026-05-20
 cloud/cloud-iam/migration-playbooks/from-okta-and-aws-iam.md	runbook	how-to	operations/runbook	current	Migration playbook — Okta Workforce + AWS IAM → Oyatie `cloud-iam`
-cloud/cloud-iam/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	runbook	how-to	operations/runbook	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-iam`
+cloud/cloud-iam/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	runbook	how-to	operations/runbook	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-iam`
 cloud/cloud-iam/onboarding/iam-engineer-first-week.md	guide	tutorial	operations/runbook	current	IAM Engineer — First Week on `cloud-iam`
 cloud/cloud-iam/performance-benchmark-numbers-2026-05-20.md	reference	reference	cloud-substrate	likely-stale	cloud-iam performance benchmark numbers - 2026-05-20
 cloud/cloud-iam/reference-implementations/issue-scoped-token-rust-sdk.md	reference	how-to	cloud-substrate	current	Reference implementation — Issue + introspect a scoped token with `oya-cloud-iam-sdk`
@@ -337,7 +337,7 @@ cloud/cloud-k8s/feature-parity-matrix-2026-05-20.md	reference	reference	product	
 cloud/cloud-k8s/implementation-plans/IP-karpenter-bootstrap.md	spec	reference	spec/contract	current	IP — Karpenter bootstrap (4 NodePools per workload class)
 cloud/cloud-k8s/incident-response.md	reference	reference	cloud-substrate	current	Incident Response Playbook (cloud-k8s µservice)
 cloud/cloud-k8s/migration-playbooks/from-rancher-rke2.md	runbook	how-to	operations/runbook	current	Migration playbook — Rancher RKE2 → oyatie cloud-k8s
-cloud/cloud-k8s/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	runbook	how-to	operations/runbook	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-k8s`
+cloud/cloud-k8s/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	runbook	how-to	operations/runbook	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-k8s`
 cloud/cloud-k8s/multi-region.md	reference	reference	cloud-substrate	current	Multi-Region Topology + BCDR (cloud-k8s µservice)
 cloud/cloud-k8s/onboarding/sre-first-week.md	guide	tutorial	operations/runbook	current	SRE onboarding — first 5 working days
 cloud/cloud-k8s/performance-benchmark-numbers-2026-05-20.md	reference	reference	cloud-substrate	likely-stale	cloud-k8s — Performance Benchmark Numbers vs Industry Leader Target (2026-05-21)
@@ -375,7 +375,7 @@ cloud/cloud-kms/dpia/dpia.md	governance	explanation	governance/compliance	curren
 cloud/cloud-kms/faqs/kms-engineer-faq.md	guide	how-to	product	current	`cloud-kms` µservice — KMS Engineer FAQ
 cloud/cloud-kms/feature-parity-matrix-2026-05-20.md	reference	reference	product	likely-stale	cloud-kms Feature Parity Matrix - 2026-05-20
 cloud/cloud-kms/migration-playbooks/from-aws-kms-and-vault-enterprise.md	runbook	how-to	operations/runbook	current	Migration playbook — AWS KMS + Vault Enterprise → Oyatie `cloud-kms`
-cloud/cloud-kms/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	runbook	how-to	operations/runbook	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-kms`
+cloud/cloud-kms/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	runbook	how-to	operations/runbook	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-kms`
 cloud/cloud-kms/onboarding/kms-engineer-first-week.md	guide	tutorial	operations/runbook	current	KMS Engineer — First Week on `cloud-kms`
 cloud/cloud-kms/performance-benchmark-numbers-2026-05-20.md	reference	reference	cloud-substrate	likely-stale	cloud-kms Performance Benchmark Numbers - 2026-05-20
 cloud/cloud-kms/reference-implementations/envelope-encrypt-rust-sdk.md	reference	how-to	cloud-substrate	current	Reference implementation — Envelope-encrypt + rotate + cryptoshred via `oya-cloud-kms-sdk`
@@ -403,7 +403,7 @@ cloud/cloud-network-dns/dpia/dpia.md	governance	explanation	governance/complianc
 cloud/cloud-network-dns/faqs/dns-engineer-faq.md	guide	how-to	product	current	`cloud-network-dns` µservice — DNS Engineer FAQ
 cloud/cloud-network-dns/feature-parity-matrix-2026-05-20.md	reference	reference	product	likely-stale	cloud-network-dns feature parity matrix — 2026-05-20
 cloud/cloud-network-dns/migration-playbooks/from-route53-and-ns1.md	runbook	how-to	operations/runbook	current	Migration playbook — AWS Route 53 + NS1 Managed DNS → Oyatie `cloud-network-dns`
-cloud/cloud-network-dns/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	runbook	how-to	operations/runbook	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-network-dns`
+cloud/cloud-network-dns/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	runbook	how-to	operations/runbook	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-network-dns`
 cloud/cloud-network-dns/onboarding/dns-engineer-first-week.md	guide	tutorial	operations/runbook	current	DNS Engineer — First Week on `cloud-network-dns`
 cloud/cloud-network-dns/performance-benchmark-numbers-2026-05-20.md	reference	reference	cloud-substrate	likely-stale	cloud-network-dns performance benchmark numbers — 2026-05-20
 cloud/cloud-network-dns/reference-implementations/provision-zone-dnssec-and-geo-routing-rust-sdk.md	reference	how-to	cloud-substrate	current	Reference implementation — Provision zone + DNSSEC + geo-routing + health-checks via `oya-cloud-network-dns-sdk`
@@ -429,7 +429,7 @@ cloud/cloud-network/dpia/dpia.md	governance	explanation	governance/compliance	cu
 cloud/cloud-network/faqs/network-engineer-faq.md	guide	how-to	product	current	`cloud-network` µservice — Network Engineer FAQ
 cloud/cloud-network/feature-parity-matrix-2026-05-20.md	reference	reference	product	likely-stale	cloud-network feature parity matrix — 2026-05-20
 cloud/cloud-network/migration-playbooks/from-aws-vpc-and-istio.md	runbook	how-to	operations/runbook	current	Migration playbook — AWS VPC + Istio service mesh → Oyatie `cloud-network`
-cloud/cloud-network/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	runbook	how-to	operations/runbook	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-network`
+cloud/cloud-network/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	runbook	how-to	operations/runbook	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-network`
 cloud/cloud-network/onboarding/network-engineer-first-week.md	guide	tutorial	operations/runbook	current	Network Engineer — First Week on `cloud-network`
 cloud/cloud-network/performance-benchmark-numbers-2026-05-20.md	reference	reference	cloud-substrate	likely-stale	cloud-network performance benchmark numbers — 2026-05-20
 cloud/cloud-network/reference-implementations/provision-vpc-and-mtls-ingress-rust-sdk.md	reference	how-to	cloud-substrate	current	Reference implementation — Provision VPC + deploy service + create mTLS ingress via `oya-cloud-network-sdk`
@@ -501,7 +501,7 @@ cloud/cloud-secrets/faqs/security-engineer-faq.md	guide	how-to	product	current	`
 cloud/cloud-secrets/feature-parity-matrix-2026-05-20.md	reference	reference	product	likely-stale	cloud-secrets feature parity matrix - 2026-05-20
 cloud/cloud-secrets/incident-response.md	reference	reference	cloud-substrate	current	Incident Response: cloud-secrets µservice
 cloud/cloud-secrets/migration-playbooks/from-hashicorp-vault.md	runbook	how-to	operations/runbook	current	Migration playbook — HashiCorp Vault → Oyatie `cloud-secrets`
-cloud/cloud-secrets/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	runbook	how-to	operations/runbook	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-secrets`
+cloud/cloud-secrets/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	runbook	how-to	operations/runbook	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-secrets`
 cloud/cloud-secrets/multi-region.md	reference	reference	cloud-substrate	current	Multi-Region: cloud-secrets µservice
 cloud/cloud-secrets/onboarding/security-engineer-first-week.md	guide	tutorial	operations/runbook	current	Security Engineer — First Week on `cloud-secrets`
 cloud/cloud-secrets/performance-benchmark-numbers-2026-05-20.md	reference	reference	cloud-substrate	likely-stale	cloud-secrets performance benchmark numbers - 2026-05-20
@@ -538,7 +538,7 @@ cloud/cloud-storage/dpia/dpia.md	governance	explanation	governance/compliance	cu
 cloud/cloud-storage/faqs/storage-engineer-faq.md	guide	how-to	product	current	`cloud-storage` µservice — Storage Engineer FAQ
 cloud/cloud-storage/feature-parity-matrix-2026-05-20.md	reference	reference	product	likely-stale	cloud-storage feature parity matrix - 2026-05-20
 cloud/cloud-storage/migration-playbooks/from-s3-and-azure-blob.md	runbook	how-to	operations/runbook	current	Migration playbook — AWS S3 + Azure Blob Storage → Oyatie `cloud-storage`
-cloud/cloud-storage/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	runbook	how-to	operations/runbook	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-storage`
+cloud/cloud-storage/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	runbook	how-to	operations/runbook	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-storage`
 cloud/cloud-storage/onboarding/storage-engineer-first-week.md	guide	tutorial	operations/runbook	current	Storage Engineer — First Week on `cloud-storage`
 cloud/cloud-storage/performance-benchmark-numbers-2026-05-20.md	reference	reference	cloud-substrate	likely-stale	cloud-storage performance benchmark numbers - 2026-05-20
 cloud/cloud-storage/reference-implementations/lifecycle-versioning-replication-rust-sdk.md	reference	how-to	cloud-substrate	current	Reference implementation — Bucket + lifecycle + versioning + cross-region replication via `oya-cloud-storage-sdk`
@@ -709,7 +709,7 @@ cloud/tenancy/faqs/tenancy-engineer-faq.md	guide	how-to	product	current	Tenancy 
 cloud/tenancy/incident-response.md	reference	reference	cloud-substrate	current	Incident Response Playbook (tenancy µservice)
 cloud/tenancy/migration-playbooks/from-auth0-organizations.md	runbook	how-to	operations/runbook	current	Migration Playbook — Auth0 Organizations → oyatie tenancy
 cloud/tenancy/migration-playbooks/from-azure-ad-b2c.md	runbook	how-to	operations/runbook	current	Migration playbook — Azure AD B2C → oyatie tenancy
-cloud/tenancy/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md	runbook	how-to	operations/runbook	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `tenancy`
+cloud/tenancy/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md	runbook	how-to	operations/runbook	current	Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `tenancy`
 cloud/tenancy/multi-region.md	reference	reference	cloud-substrate	current	Multi-Region Topology + BCDR (tenancy µservice)
 cloud/tenancy/onboarding/platform-admin-first-week.md	guide	tutorial	operations/runbook	current	tenancy — Platform Administrator First Week
 cloud/tenancy/onboarding/tenancy-engineer-first-week.md	guide	tutorial	operations/runbook	current	Tenancy Engineer onboarding — first 5 working days on `tenancy`
