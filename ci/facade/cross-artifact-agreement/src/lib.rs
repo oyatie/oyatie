@@ -100,6 +100,10 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use serde::{
+    Deserialize,
+    de::{self, MapAccess, SeqAccess, Visitor},
+};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
@@ -156,8 +160,8 @@ const SEQUENCING_DERIVATION_MODE: &str = "zero-based-rederived-from-masterplan-v
 const DISPATCH_BLOCKED_STATE: &str = "blocked";
 const PREPLANNING_ENTRY_STATE: &str = "open";
 const PREPLANNING_BLOCKED_REASON: &str = "preplanning_authority_closure";
-const PREPLANNING_CANDIDATE_STATE: &str = "merged-to-dev-protected-context-green-github-review-decision-approved-bot-only-no-qualified-human-proof-authority-holds-open";
-const PREPLANNING_CLAIM_CEILING: &str = "PR #1340 is merged to dev, its immutable final head and squash-merge commits each have a completed successful oya-ci-required check, and GitHub reports APPROVED. These repository-admission facts do not close or imply any founder-choice, qualified-human, Phase-0, binding-planning, execution-dispatch, rollout, or product-completion gate.";
+const PREPLANNING_CANDIDATE_IDENTITY_POLICY: &str =
+    include_str!("preplanning-candidate-policy.json");
 const CLAIMED_DONE_UNVERIFIED_STATE: &str = "claimed-done-unverified";
 const EVIDENCE_ATTACHED_STATE: &str = "evidence-attached";
 const PROJECTION_FRESHNESS_VALIDATOR: &str =
@@ -168,6 +172,152 @@ const ENTRY_SURFACE_VALIDATOR: &str =
     "cloud-ci-cross-artifact-agreement/masterplan-v2-entry-surface";
 const ENTRY_SURFACE_ALLOWLIST_REF: &str =
     "/specs/root-hub-pointers.json#agent_entry_surface_allowlist";
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct PreplanningCandidatePolicy {
+    policy_id: String,
+    schema_version: u64,
+    purpose: String,
+    immutable_pull_request: PreplanningCandidateIdentity,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct PreplanningCandidateIdentity {
+    number: u64,
+    base_url: String,
+    candidate_state: String,
+    claim_ceiling: String,
+}
+
+struct DuplicateKeyFreeJson;
+
+impl<'de> Deserialize<'de> for DuplicateKeyFreeJson {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserializer.deserialize_any(DuplicateKeyFreeJsonVisitor)
+    }
+}
+
+struct DuplicateKeyFreeJsonVisitor;
+
+impl<'de> Visitor<'de> for DuplicateKeyFreeJsonVisitor {
+    type Value = DuplicateKeyFreeJson;
+
+    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("JSON without duplicate object keys")
+    }
+
+    fn visit_bool<E>(self, _value: bool) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(DuplicateKeyFreeJson)
+    }
+
+    fn visit_i64<E>(self, _value: i64) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(DuplicateKeyFreeJson)
+    }
+
+    fn visit_u64<E>(self, _value: u64) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(DuplicateKeyFreeJson)
+    }
+
+    fn visit_f64<E>(self, _value: f64) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(DuplicateKeyFreeJson)
+    }
+
+    fn visit_str<E>(self, _value: &str) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(DuplicateKeyFreeJson)
+    }
+
+    fn visit_none<E>(self) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(DuplicateKeyFreeJson)
+    }
+
+    fn visit_some<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        DuplicateKeyFreeJson::deserialize(deserializer)
+    }
+
+    fn visit_seq<A>(self, mut sequence: A) -> Result<Self::Value, A::Error>
+    where
+        A: SeqAccess<'de>,
+    {
+        while sequence.next_element::<DuplicateKeyFreeJson>()?.is_some() {}
+        Ok(DuplicateKeyFreeJson)
+    }
+
+    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+    where
+        A: MapAccess<'de>,
+    {
+        let mut keys = BTreeSet::new();
+        while let Some(key) = map.next_key::<String>()? {
+            if !keys.insert(key.clone()) {
+                return Err(de::Error::custom(format!("duplicate object key: {key}")));
+            }
+            map.next_value::<DuplicateKeyFreeJson>()?;
+        }
+        Ok(DuplicateKeyFreeJson)
+    }
+}
+
+fn canonical_https_origin_and_path(value: &str) -> bool {
+    let Some(authority_and_path) = value.strip_prefix("https://") else {
+        return false;
+    };
+    if authority_and_path.contains(['@', '?', '#']) || authority_and_path.ends_with('/') {
+        return false;
+    }
+    let Some((authority, path)) = authority_and_path.split_once('/') else {
+        return false;
+    };
+    !authority.is_empty()
+        && !path.is_empty()
+        && !authority.chars().any(char::is_whitespace)
+        && !path.chars().any(char::is_whitespace)
+}
+
+fn preplanning_candidate_policy() -> Option<PreplanningCandidatePolicy> {
+    parse_preplanning_candidate_policy(PREPLANNING_CANDIDATE_IDENTITY_POLICY)
+}
+
+fn parse_preplanning_candidate_policy(policy_json: &str) -> Option<PreplanningCandidatePolicy> {
+    let mut duplicate_key_deserializer = serde_json::Deserializer::from_str(policy_json);
+    DuplicateKeyFreeJson::deserialize(&mut duplicate_key_deserializer).ok()?;
+    duplicate_key_deserializer.end().ok()?;
+    let policy: PreplanningCandidatePolicy = serde_json::from_str(policy_json).ok()?;
+    let identity = &policy.immutable_pull_request;
+    (policy.schema_version == 1
+        && !policy.policy_id.trim().is_empty()
+        && !policy.purpose.trim().is_empty()
+        && identity.number > 0
+        && canonical_https_origin_and_path(&identity.base_url)
+        && !identity.candidate_state.trim().is_empty()
+        && !identity.claim_ceiling.trim().is_empty())
+    .then_some(policy)
+}
 const PROJECTION_CLASS_READ: &str = "read-projection";
 const READ_CONTRACT_ARCHIVED_TIMING_CLASS: &str = "provenance-archive";
 const READ_CONTRACT_ENTRY_TIMING_CLASS: &str = "entry-surface";
@@ -1797,7 +1947,12 @@ pub fn evaluate_masterplan_v2_preplanning_candidate_facts(
     let mut findings = BTreeSet::new();
     let key = "masterplan_v2.planning_entry_contract.current_pr_candidate_state";
 
-    if preplanning_candidate_facts_agree(masterplan, candidate_evidence) != Some(true) {
+    if preplanning_candidate_facts_agree(
+        masterplan,
+        candidate_evidence,
+        preplanning_candidate_policy().as_ref(),
+    ) != Some(true)
+    {
         findings.insert(Finding::new("masterplan_plan_evidence_drift", key));
     }
 
@@ -1807,7 +1962,10 @@ pub fn evaluate_masterplan_v2_preplanning_candidate_facts(
 fn preplanning_candidate_facts_agree(
     masterplan: &Value,
     candidate_evidence: &Value,
+    policy: Option<&PreplanningCandidatePolicy>,
 ) -> Option<bool> {
+    let policy = policy?;
+    let policy_identity = &policy.immutable_pull_request;
     let contract = masterplan.pointer("/masterplan_v2/planning_entry_contract")?;
     let state = contract.get("current_pr_candidate_state")?;
     let baseline = candidate_evidence.pointer("/present/repository_baseline")?;
@@ -1903,8 +2061,6 @@ fn preplanning_candidate_facts_agree(
     let stage1_pass = nonclosure.get("stage1_pass_attested")?.as_bool()?;
 
     let protected_receipts = receipt.get("protected_context_receipts")?.as_array()?;
-    let expected_pr_url =
-        format!("https://github.com/jason931225/oyatie/pull/{immutable_pr_number}");
 
     Some(
         !candidate_ref.is_empty()
@@ -1921,7 +2077,7 @@ fn preplanning_candidate_facts_agree(
             && baseline_branch == immutable_branch
             && state_candidate == baseline_candidate
             && baseline_candidate == immutable_candidate_state
-            && immutable_candidate_state == PREPLANNING_CANDIDATE_STATE
+            && immutable_candidate_state == policy_identity.candidate_state
             && state_protected
             && state_protected == baseline_protected
             && state_green
@@ -1930,15 +2086,17 @@ fn preplanning_candidate_facts_agree(
             && state_merged == baseline_merged
             && !completion_recorded
             && state_claim == baseline_claim
-            && baseline_claim == PREPLANNING_CLAIM_CEILING
+            && baseline_claim == policy_identity.claim_ceiling
             && state_first_commit == baseline_first_commit
             && baseline_first_commit == baseline_opened_head
             && baseline_first_commit == immutable_first_commit
             && state_pr_number == baseline_pr_number
             && baseline_pr_number == immutable_pr_number
+            && immutable_pr_number == policy_identity.number
             && state_pr_url == baseline_pr_url
             && baseline_pr_url == immutable_pr_url
-            && state_pr_url == expected_pr_url
+            && immutable_pr_url
+                == format!("{}/{}", policy_identity.base_url, policy_identity.number)
             && state_final_head == baseline_final_head
             && baseline_final_head == immutable_head
             && state_merge == baseline_merge
@@ -3983,6 +4141,77 @@ fn str_array(value: &Value, field: &str) -> Vec<String> {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn preplanning_candidate_policy_rejects_malformed_missing_unknown_duplicate_zero_and_bad_base()
+    {
+        let valid = r#"{
+          "policy_id":"test-policy",
+          "schema_version":1,
+          "purpose":"test",
+          "immutable_pull_request":{
+            "number":1340,
+            "base_url":"https://example.test/pull",
+            "candidate_state":"open",
+            "claim_ceiling":"does not close authority"
+          }
+        }"#;
+        assert!(parse_preplanning_candidate_policy(valid).is_some());
+        assert!(parse_preplanning_candidate_policy("{").is_none());
+        let mut missing: Value = serde_json::from_str(valid).unwrap();
+        missing["immutable_pull_request"]
+            .as_object_mut()
+            .unwrap()
+            .remove("claim_ceiling");
+        assert!(parse_preplanning_candidate_policy(&missing.to_string()).is_none());
+        assert!(
+            parse_preplanning_candidate_policy(&valid.replace(
+                "\"schema_version\":1,",
+                "\"schema_version\":1,\"extra\":true,"
+            ))
+            .is_none()
+        );
+        assert!(
+            parse_preplanning_candidate_policy(&valid.replace(
+                "\"schema_version\":1,",
+                "\"schema_version\":1,\"schema_version\":1,"
+            ))
+            .is_none()
+        );
+        assert!(
+            parse_preplanning_candidate_policy(
+                &valid.replace("\"number\":1340", "\"number\":1340,\"number\":1340")
+            )
+            .is_none()
+        );
+        assert!(
+            parse_preplanning_candidate_policy(&valid.replace("\"number\":1340", "\"number\":0"))
+                .is_none()
+        );
+        assert!(
+            parse_preplanning_candidate_policy(
+                &valid.replace("https://example.test/pull", "not-a-url")
+            )
+            .is_none()
+        );
+        for malformed_base in [
+            "https://",
+            "https://example.test",
+            "https://example.test/pull/",
+            "https://user@example.test/pull",
+            "https://example.test/pull?query=1",
+            "https://example.test/pull#fragment",
+            "http://example.test/pull",
+        ] {
+            assert!(
+                parse_preplanning_candidate_policy(
+                    &valid.replace("https://example.test/pull", malformed_base)
+                )
+                .is_none(),
+                "must reject non-canonical base URL: {malformed_base}"
+            );
+        }
+    }
 
     #[test]
     fn all_four_agree_is_green() {
