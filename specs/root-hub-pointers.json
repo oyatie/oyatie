@@ -31,7 +31,8 @@
     "source_of_truth": "/specs/root-hub-pointers.json#agent_entry_surface_allowlist",
     "validator": "cloud-ci-cross-artifact-agreement/masterplan-v2-entry-surface",
     "paths": [
-      "/specs/masterplan.json"
+      "/specs/masterplan.json",
+      "/specs/founder-product-intent.json"
     ],
     "superseded_entrypoints": [
       "/specs/master-plan-sequencing.json",

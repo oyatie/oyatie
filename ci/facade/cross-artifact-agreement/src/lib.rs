@@ -113,7 +113,8 @@ mod read_surface_resurrection;
 mod registry_policy_sync;
 
 pub use founder_product_intent::{
-    FOUNDER_PRODUCT_INTENT_VALIDATOR, evaluate_founder_product_intent_agreement,
+    FOUNDER_PRODUCT_INTENT_PATH, FOUNDER_PRODUCT_INTENT_VALIDATOR,
+    evaluate_founder_product_intent_agreement,
 };
 pub use plan_evidence_crosscheck::{
     PLAN_EVIDENCE_CROSSCHECK_VALIDATOR, UNRECORDED_EVIDENCE_CODE,
@@ -1278,7 +1279,7 @@ fn projection_obligations(
             ));
             continue;
         };
-        if path == "/specs/masterplan.json" {
+        if path == "/specs/masterplan.json" || path == FOUNDER_PRODUCT_INTENT_PATH {
             continue;
         }
         let Some(read_timing_class) = contract
@@ -4582,6 +4583,28 @@ mod tests {
         assert!(
             findings.is_empty(),
             "minimal generated/read projection freshness contract should be green: {findings:?}"
+        );
+    }
+
+    #[test]
+    fn masterplan_v2_projection_freshness_does_not_reclassify_founder_intent_as_a_projection() {
+        let mut masterplan = minimal_projection_freshness_masterplan();
+        masterplan["masterplan_v2"]["read_contracts"]
+            .as_array_mut()
+            .expect("read contracts array")
+            .push(read_contract(
+                FOUNDER_PRODUCT_INTENT_PATH,
+                "entry-surface",
+                "current product-intent authority; content is not derived from masterplan v2",
+            ));
+
+        let findings = evaluate_masterplan_v2_projection_freshness(
+            &masterplan,
+            Some(&minimal_generated_artifact_control_plane()),
+        );
+        assert!(
+            findings.is_empty(),
+            "a separately governed current authority may be routed by masterplan without becoming a read projection: {findings:?}"
         );
     }
 
