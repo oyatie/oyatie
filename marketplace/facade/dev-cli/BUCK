@@ -609,6 +609,20 @@ rust_test(
 )
 
 rust_test(
+    name = "marketplace-dev-cli-pipeline-authority-conformance",
+    srcs = ["tests/pipeline_authority_conformance.rs"],
+    crate = "marketplace_dev_cli_pipeline_authority_conformance",
+    crate_root = "tests/pipeline_authority_conformance.rs",
+    env = {
+        "CARGO_MANIFEST_DIR": ".",
+    },
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
     name = "marketplace-dev-cli-doc-cli",
     srcs = ["tests/doc_cli.rs"],
     crate = "marketplace_dev_cli_doc_cli",

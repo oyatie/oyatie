@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.com/specs/test-standard.json",
   "title": "OyatieTestStandard",
-  "description": "Machine-readable unit/integration/e2e test standard enforced by M01-P07 GitOps VCS admission and CI/CD promotion.",
+  "description": "Machine-readable unit/integration/e2e test standard evaluated as part of protected pull-request admission and runtime-promotion evidence.",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-TEST-STANDARD",
@@ -10,17 +10,18 @@
     "status": "Accepted",
     "owner_team": "axis-foundry + ops-quality",
     "created_at": "2026-05-14T07:22:20Z",
-    "updated_at": "2026-05-14T07:22:20Z",
+    "updated_at": "2026-07-21T20:31:03Z",
     "markdown_authority": "docs/standards/testing.md",
+    "current_authority_boundary": "plain git + protected GitHub PRs; oya-ci-required is the sole merge-status authority; cloud-ci runtime-promotion claims remain held pending independently verified runtime evidence",
     "evidence_sources": [
-      "M01-P07 GitOps VCS admission",
-      "merge-queue CI/CD gates"
+      "protected GitHub PR admission",
+      "oya-ci-required CI evidence"
     ],
     "planned_enforcement_refs": [
       "oya-governance-test-evidence",
-      "merge-queue CI/CD gates"
+      "cloud-ci test-evidence gate"
     ],
-    "purpose": "Machine-readable unit/integration/e2e test standard enforced by M01-P07 GitOps VCS admission and CI/CD promotion."
+    "purpose": "Machine-readable unit/integration/e2e test standard evaluated by protected pull-request admission and runtime-promotion evidence."
   },
   "tiers": [
     {
@@ -132,9 +133,9 @@
     "Compute semantic diff from AST/artifact index.",
     "Map changed symbols to surfaces, languages, contracts, and generated clients.",
     "Resolve required test tiers from tiers[].must_run_when and test-set-registry rows.",
-    "Reject ChangeBundle if required evidence is missing or stale after controller-owned rebase.",
+    "Reject a candidate pull-request head if required evidence is missing or stale after refresh onto the current protected base.",
     "Convert CI/review failures to typed FixupTasks with affected symbol/test refs.",
-    "Block merge queue promotion until required tiers are pass or recorded as production-blocking gap when permitted."
+    "Hold runtime promotion until required tiers pass or a production-blocking gap is explicitly recorded."
   ],
   "flaky_policy": {
     "quarantine_requires_owner_and_sla": true,
@@ -150,7 +151,7 @@
       "affected-test selection",
       "review/fix mapping",
       "semantic conflict detection",
-      "merge queue rebase validation"
+      "candidate-head refresh validation"
     ]
   }
 }
