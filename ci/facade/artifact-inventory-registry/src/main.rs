@@ -152,7 +152,11 @@ impl CliError {
 }
 
 fn run() -> Result<(), CliError> {
-    let args: Vec<String> = std::env::args().skip(1).collect();
+    run_with_args(std::env::args().skip(1))
+}
+
+fn run_with_args(args: impl IntoIterator<Item = String>) -> Result<(), CliError> {
+    let args: Vec<String> = args.into_iter().collect();
     let mut repo_root: Option<PathBuf> = None;
     let mut policy_root: Option<PathBuf> = None;
     let mut out_dir: Option<PathBuf> = None;
@@ -333,6 +337,17 @@ fn run() -> Result<(), CliError> {
         return Ok(());
     }
 
+    // A decision-crosswalk stdout request is independent of the total-accounting inputs. Keep
+    // its declared SCM/config *and policy* inputs fail-closed above, but do not make it pay for
+    // (or fail on) an unrelated reachability registry before producing the requested canonical
+    // face. Policy construction validates inline unit-class and TTL tables even though this face
+    // does not otherwise consume them.
+    if to_stdout && face == "decision-crosswalk" {
+        let _ = Policy::from_config(&cfg)?;
+        print!("{}", render_decision_crosswalk_stdout(&repo_root, &cfg)?);
+        return Ok(());
+    }
+
     let policy = Policy::from_config(&cfg)?;
     let (inputs, owners_integrity) = collect_repo_inputs(&repo_root, &cfg, &scm_facts)?;
     // Fast path for the license-policy producer face: this new face only needs the tracked path
@@ -368,18 +383,7 @@ fn run() -> Result<(), CliError> {
     }
     let registry = build_registry(&inputs, &policy)?;
     let crosswalk_inputs = collect_crosswalk_inputs(&repo_root, &cfg);
-    if !crosswalk_inputs.duplicate_ids.is_empty() || !crosswalk_inputs.id_mismatches.is_empty() {
-        // Decision-id integrity remediation (FRIC-1781320000): name the exact renumber
-        // target so a collision/mismatch is fixable from this output alone.
-        eprintln!(
-            "decision-id integrity: duplicate ids {:?}; filename/front-matter mismatches {:?}; \
-             remediation: renumber the newer decision (filename AND front-matter id) to the next \
-             free number {} (allocate via --next-adr)",
-            crosswalk_inputs.duplicate_ids,
-            crosswalk_inputs.id_mismatches,
-            crosswalk_inputs.next_free_id
-        );
-    }
+    emit_decision_integrity_diagnostics(&crosswalk_inputs);
     let crosswalk = build_decision_crosswalk(&crosswalk_inputs)?;
     let enforcement =
         build_enforcement_inventory(&collect_enforcement_inputs(&repo_root, &cfg, &scm_facts))?;
@@ -3043,6 +3047,69 @@ status: Accepted
         fs::remove_dir_all(root).expect("remove temp repo");
     }
 
+    #[test]
+    fn decision_crosswalk_stdout_ignores_unrelated_malformed_reachability_registry() {
+        let root = unique_temp_repo();
+        fs::create_dir_all(root.join("specs")).expect("create specs");
+        fs::write(root.join("specs/reachability-registry.json"), "not json")
+            .expect("write malformed registry");
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+
+        assert!(
+            resolve_reachability(&root, &["unreachable.rs".to_owned()], &cfg).is_err(),
+            "the full reachability resolver must remain fail-loud"
+        );
+        let expected = to_canonical_json(
+            &build_decision_crosswalk(&collect_crosswalk_inputs(&root, &cfg))
+                .expect("crosswalk builds"),
+        )
+        .expect("canonical crosswalk");
+        assert_eq!(
+            render_decision_crosswalk_stdout(&root, &cfg).expect("crosswalk stdout fast path"),
+            expected,
+            "the fast path must preserve the exact canonical face bytes"
+        );
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    #[test]
+    fn decision_crosswalk_stdout_validates_inline_policy_before_fast_path() {
+        for policy_table in ["unit_class", "ttl"] {
+            let root = unique_temp_repo();
+            let policy_root = unique_temp_repo();
+            let scm_facts = write_test_file(
+                &root,
+                "scm-facts.generated.json",
+                r#"{"schema":"oya-ci/scm-facts/v2","tracked_paths":[]}"#,
+            );
+            write_test_file(
+                &policy_root,
+                "oya-ci.toml",
+                &format!("[{policy_table}]\ninline_json = \"not json\"\n"),
+            );
+
+            let error = run_with_args([
+                "--repo-root".to_owned(),
+                root.display().to_string(),
+                "--policy-root".to_owned(),
+                policy_root.display().to_string(),
+                "--scm-facts".to_owned(),
+                scm_facts.display().to_string(),
+                "--stdout".to_owned(),
+                "--face".to_owned(),
+                "decision-crosswalk".to_owned(),
+            ])
+            .expect_err("malformed inline policy must fail before the fast path");
+
+            assert!(
+                error.to_string().contains("policy"),
+                "{policy_table} policy error should retain its policy context: {error}"
+            );
+            fs::remove_dir_all(root).expect("remove temp repo");
+            fs::remove_dir_all(policy_root).expect("remove temp policy root");
+        }
+    }
+
     /// ADR-0555 hardening (FRIC-1781400000): the OWNERS content schema + breadth bound
     /// RED/GREEN corpus, dir-loaded from `specs/fixtures/owners-schema/` (data-under-test
     /// — the fixtures are the reviewable spec of the schema).
@@ -3515,6 +3582,32 @@ fn collect_bound_adrs(value: &Value, out: &mut BTreeSet<String>) {
             }
         }
         _ => {}
+    }
+}
+
+fn render_decision_crosswalk_stdout(
+    repo_root: &Path,
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+) -> Result<String, CliError> {
+    let crosswalk_inputs = collect_crosswalk_inputs(repo_root, cfg);
+    emit_decision_integrity_diagnostics(&crosswalk_inputs);
+    Ok(to_canonical_json(&build_decision_crosswalk(
+        &crosswalk_inputs,
+    )?)?)
+}
+
+fn emit_decision_integrity_diagnostics(crosswalk_inputs: &CrosswalkInputs) {
+    if !crosswalk_inputs.duplicate_ids.is_empty() || !crosswalk_inputs.id_mismatches.is_empty() {
+        // Decision-id integrity remediation (FRIC-1781320000): name the exact renumber
+        // target so a collision/mismatch is fixable from this output alone.
+        eprintln!(
+            "decision-id integrity: duplicate ids {:?}; filename/front-matter mismatches {:?}; \
+             remediation: renumber the newer decision (filename AND front-matter id) to the next \
+             free number {} (allocate via --next-adr)",
+            crosswalk_inputs.duplicate_ids,
+            crosswalk_inputs.id_mismatches,
+            crosswalk_inputs.next_free_id
+        );
     }
 }
 
