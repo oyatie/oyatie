@@ -105,7 +105,7 @@ const CONCURRENCY_PIPELINE_KEYS: [&str; 3] = [
     "promotion_barrier",
 ];
 
-const PIPELINE_EVOLUTION_REQUIRED_KEYS: [&str; 35] = [
+const PIPELINE_EVOLUTION_REQUIRED_KEYS: [&str; 37] = [
     "outcome",
     "authority_rule",
     "work_graph_contract",
@@ -115,6 +115,8 @@ const PIPELINE_EVOLUTION_REQUIRED_KEYS: [&str; 35] = [
     "lifecycle_graph_rule",
     "trusted_control_rule",
     "impact_rule",
+    "demand_driven_execution_rule",
+    "node_face_resource_evidence_contract",
     "test_and_evidence_rule",
     "automation_safety_governor",
     "exception_rule",
@@ -545,6 +547,36 @@ fn validate_pipeline_contract(findings: &mut BTreeSet<Finding>, authorization: &
             "proposed successor",
         ],
         "founder_execution_authorization.pipeline_evolution_contract.trusted_control_rule",
+    );
+    require_contains_all(
+        findings,
+        evolution,
+        "demand_driven_execution_rule",
+        &[
+            "requested face or action evaluates only its declared transitive dependency slice",
+            "no runner may eagerly compute unrelated faces",
+            "Unknown, undeclared, incomplete, stale, conflicting, or graph-changing dependencies broaden evaluation to the applicable full universe or block",
+            "never silently bypass",
+        ],
+        "founder_execution_authorization.pipeline_evolution_contract.demand_driven_execution_rule",
+    );
+    require_contains_all(
+        findings,
+        evolution,
+        "node_face_resource_evidence_contract",
+        &[
+            "every executed node, requested face, and action",
+            "cold and warm wall time",
+            "user and system CPU",
+            "max RSS",
+            "input bytes and bytes scanned",
+            "cache state, key identity, hit/miss and invalidation reason",
+            "I/O",
+            "queue wait and contention",
+            "deterministic output hash",
+            "no numeric threshold is implied",
+        ],
+        "founder_execution_authorization.pipeline_evolution_contract.node_face_resource_evidence_contract",
     );
     require_contains_all(
         findings,
