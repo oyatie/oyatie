@@ -19,7 +19,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use serde::{Deserialize, Serialize};
 
@@ -83,6 +83,161 @@ impl std::fmt::Display for CommitState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(self.as_str())
     }
+}
+
+// ---------------------------------------------------------------------------
+// Trusted PR-review admission contract
+// ---------------------------------------------------------------------------
+
+/// Commit-status context produced by trusted review admission.
+pub const REVIEW_CONTEXT: &str = "oya-pr-review";
+
+/// Forge-neutral pull-request review verdict.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ReviewVerdict {
+    Approved,
+    ChangesRequested,
+    Dismissed,
+    Commented,
+}
+
+impl ReviewVerdict {
+    const fn is_decisive(self) -> bool {
+        !matches!(self, Self::Commented)
+    }
+}
+
+/// One durable forge review observation.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ReviewEvidence {
+    pub review_id: u64,         // data_class: INTERNAL_ONLY
+    pub head_sha: String,       // data_class: INTERNAL_ONLY
+    pub reviewer_login: String, // data_class: INTERNAL_ONLY
+    pub verdict: ReviewVerdict, // data_class: INTERNAL_ONLY
+    pub evidence_url: String,   // data_class: INTERNAL_ONLY
+}
+
+/// Trusted inputs used to decide review admission for one PR head.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ReviewAdmissionInput {
+    pub pr_number: u64,               // data_class: INTERNAL_ONLY
+    pub expected_head_sha: String,    // data_class: INTERNAL_ONLY
+    pub observed_head_sha: String,    // data_class: INTERNAL_ONLY
+    pub author_login: String,         // data_class: INTERNAL_ONLY
+    pub reviews: Vec<ReviewEvidence>, // data_class: INTERNAL_ONLY
+}
+
+/// Durable, head-bound packet emitted only after review admission succeeds.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ReviewAdmissionPacket {
+    pub pr_number: u64,         // data_class: INTERNAL_ONLY
+    pub head_sha: String,       // data_class: INTERNAL_ONLY
+    pub author_login: String,   // data_class: INTERNAL_ONLY
+    pub reviewer_login: String, // data_class: INTERNAL_ONLY
+    pub verdict: ReviewVerdict, // data_class: INTERNAL_ONLY
+    pub evidence_url: String,   // data_class: INTERNAL_ONLY
+}
+
+/// Validate forge review observations and select the newest effective approval.
+///
+/// The decision is fail-closed: the PR number, exact candidate head, author,
+/// distinct reviewer, approved verdict, and durable HTTP(S) review URL are all
+/// required. Candidate-authored PR title/body text is deliberately not an
+/// input to this contract.
+pub fn admit_review(input: &ReviewAdmissionInput) -> Result<ReviewAdmissionPacket> {
+    if input.pr_number == 0 {
+        return Err(KernelError::InvalidInput(
+            "review admission requires a non-zero PR number".to_owned(),
+        ));
+    }
+    if !is_full_sha(&input.expected_head_sha) || !is_full_sha(&input.observed_head_sha) {
+        return Err(KernelError::InvalidInput(
+            "review admission requires a full 40-hex head SHA".to_owned(),
+        ));
+    }
+    if input.expected_head_sha != input.observed_head_sha {
+        return Err(KernelError::InvalidInput(format!(
+            "review admission head SHA mismatch: expected {}, observed {}",
+            input.expected_head_sha, input.observed_head_sha
+        )));
+    }
+
+    let author = input.author_login.trim();
+    if author.is_empty() {
+        return Err(KernelError::InvalidInput(
+            "review admission requires an author identity".to_owned(),
+        ));
+    }
+
+    // GitHub returns review events in creation order. Keep the highest-id
+    // decisive event per reviewer so a later request-changes or dismissal
+    // cannot be bypassed by an older approval. COMMENTED is non-decisive.
+    let mut latest_by_reviewer: BTreeMap<String, &ReviewEvidence> = BTreeMap::new();
+    for review in &input.reviews {
+        let reviewer = review.reviewer_login.trim();
+        if review.head_sha != input.expected_head_sha
+            || reviewer.is_empty()
+            || !review.verdict.is_decisive()
+        {
+            continue;
+        }
+        let key = reviewer.to_ascii_lowercase();
+        let should_replace = latest_by_reviewer
+            .get(&key)
+            .is_none_or(|current| review.review_id > current.review_id);
+        if should_replace {
+            latest_by_reviewer.insert(key, review);
+        }
+    }
+
+    let author_key = author.to_ascii_lowercase();
+    let mut author_approval_present = false;
+    let mut newest_approval: Option<&ReviewEvidence> = None;
+    for (reviewer_key, review) in latest_by_reviewer {
+        if review.verdict != ReviewVerdict::Approved {
+            continue;
+        }
+        if reviewer_key == author_key {
+            author_approval_present = true;
+            continue;
+        }
+        if !is_durable_http_url(&review.evidence_url) {
+            return Err(KernelError::InvalidInput(
+                "approved review is missing a durable HTTP(S) evidence URL".to_owned(),
+            ));
+        }
+        if newest_approval.is_none_or(|current| review.review_id > current.review_id) {
+            newest_approval = Some(review);
+        }
+    }
+
+    let Some(review) = newest_approval else {
+        let reason = if author_approval_present {
+            "reviewer identity must be distinct from the PR author"
+        } else {
+            "no current head-bound APPROVED review evidence was found"
+        };
+        return Err(KernelError::InvalidInput(reason.to_owned()));
+    };
+
+    Ok(ReviewAdmissionPacket {
+        pr_number: input.pr_number,
+        head_sha: input.expected_head_sha.clone(),
+        author_login: author.to_owned(),
+        reviewer_login: review.reviewer_login.trim().to_owned(),
+        verdict: ReviewVerdict::Approved,
+        evidence_url: review.evidence_url.clone(),
+    })
+}
+
+fn is_full_sha(value: &str) -> bool {
+    value.len() == 40 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
+}
+
+fn is_durable_http_url(value: &str) -> bool {
+    let value = value.trim();
+    value.starts_with("https://") || value.starts_with("http://")
 }
 
 // ---------------------------------------------------------------------------
@@ -1450,8 +1605,11 @@ mod phase0_ci_enforcement_baseline_tests {
         let live_authority = row["review_authority_live"].as_bool() == Some(true);
         let durable_evidence = row["has_durable_review_evidence"].as_bool() == Some(true);
         let machine_status = row["has_machine_verifiable_review_status"].as_bool() == Some(true);
-        let title_evidence = row["has_review_title_evidence"].as_bool() == Some(true);
-        let body_evidence = row["has_review_body_evidence"].as_bool() == Some(true);
+        let binds_pr_number = row["binds_pr_number"].as_bool() == Some(true);
+        let binds_head_sha = row["binds_head_sha"].as_bool() == Some(true);
+        let binds_author = row["binds_author_identity"].as_bool() == Some(true);
+        let binds_reviewer = row["binds_reviewer_identity"].as_bool() == Some(true);
+        let binds_verdict = row["binds_review_verdict"].as_bool() == Some(true);
         let trusted_source = matches!(
             row["review_authority_source"].as_str().map(str::trim),
             Some(
@@ -1465,9 +1623,13 @@ mod phase0_ci_enforcement_baseline_tests {
             row["reviewer_identity_distinct_from_author"].as_bool() == Some(true);
         live_authority
             && trusted_source
-            && (durable_evidence || machine_status)
-            && title_evidence
-            && body_evidence
+            && durable_evidence
+            && machine_status
+            && binds_pr_number
+            && binds_head_sha
+            && binds_author
+            && binds_reviewer
+            && binds_verdict
             && blocks_merge
             && reviewer_distinct
     }

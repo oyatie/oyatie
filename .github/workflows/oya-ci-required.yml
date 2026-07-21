@@ -9,6 +9,11 @@
 # `oya-ci-required` that has NO command set of its own — it is green IFF every constituent
 # gate lane is green. Branch protection keys on that one context name. The GH #983 PR
 # metadata preflight is folded into the affected-set lane so it adds no new workflow shell surface.
+# F-PR5-06 target: the repo-owned controller adapter can produce fail-closed `oya-pr-review`
+# packets from GitHub PR/review APIs, bound to PR + exact head + author + distinct reviewer +
+# APPROVED verdict + durable review URL. It is deliberately NOT wired here until the trusted
+# controller is deployed and API/readback evidence exists. At cutover it becomes a constituent
+# input to this fan-in; branch protection continues to require only `oya-ci-required`.
 #
 # ░░ LIVE ░░
 # Go-live executed 2026-06-08 (founder-authorized "fully autonomous through both"): the blocking

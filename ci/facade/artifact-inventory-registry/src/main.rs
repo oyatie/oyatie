@@ -252,9 +252,8 @@ fn run() -> Result<(), CliError> {
         Some(root) => root,
         None => discover_repo_root(&bootstrap_cfg)?,
     };
-    let out_dir = out_dir.unwrap_or_else(|| {
-        repo_root.join("ci/facade/artifact-inventory-registry")
-    });
+    let out_dir =
+        out_dir.unwrap_or_else(|| repo_root.join("ci/facade/artifact-inventory-registry"));
     let policy_root = policy_root.as_deref();
 
     // Allocator mode: derive the next free decision number from the tree and exit.
@@ -294,9 +293,7 @@ fn run() -> Result<(), CliError> {
     // the face beside the accounting faces; CI / the local regen hook re-run the emitter to keep
     // it current, and registry-drift byte-diffs it like the other faces.
     let scm_facts_path = scm_facts_path.unwrap_or_else(|| {
-        repo_root.join(
-            "ci/facade/artifact-inventory-registry/scm-facts.generated.json",
-        )
+        repo_root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json")
     });
     let scm_facts = load_scm_facts(&scm_facts_path)?;
 
@@ -629,8 +626,11 @@ fn build_automation_matrix(enforcement: &Value) -> Value {
             "review_authority_source": surface["review_authority_source"].as_str().unwrap_or(""),
             "has_durable_review_evidence": surface["has_durable_review_evidence"].as_bool() == Some(true),
             "has_machine_verifiable_review_status": surface["has_machine_verifiable_review_status"].as_bool() == Some(true),
-            "has_review_title_evidence": surface["has_review_title_evidence"].as_bool() == Some(true),
-            "has_review_body_evidence": surface["has_review_body_evidence"].as_bool() == Some(true),
+            "binds_pr_number": surface["binds_pr_number"].as_bool() == Some(true),
+            "binds_head_sha": surface["binds_head_sha"].as_bool() == Some(true),
+            "binds_author_identity": surface["binds_author_identity"].as_bool() == Some(true),
+            "binds_reviewer_identity": surface["binds_reviewer_identity"].as_bool() == Some(true),
+            "binds_review_verdict": surface["binds_review_verdict"].as_bool() == Some(true),
             "review_blocks_merge": surface["review_blocks_merge"].as_bool() == Some(true),
             "reviewer_identity_distinct_from_author": surface["reviewer_identity_distinct_from_author"].as_bool() == Some(true)
         }));
@@ -716,10 +716,7 @@ fn read_tracked_blob(repo_root: &Path, tracked_path: &str) -> Result<(Vec<u8>, V
                 "strict-zero brand scan: read tracked symlink {tracked_path:?}: {error}"
             ))
         })?;
-        return Ok((
-            raw_path,
-            target.as_os_str().as_encoded_bytes().to_vec(),
-        ));
+        return Ok((raw_path, target.as_os_str().as_encoded_bytes().to_vec()));
     }
     if !metadata.is_file() {
         return Err(CliError::Io(format!(
@@ -784,9 +781,7 @@ fn decode_git_path(tracked_path: &str) -> Result<Vec<u8>, CliError> {
                 if !(b'0'..=b'7').contains(&second) || !(b'0'..=b'7').contains(&third) {
                     return Err(invalid_git_path(tracked_path, "invalid octal escape"));
                 }
-                decoded.push(
-                    ((first - b'0') << 6) | ((second - b'0') << 3) | (third - b'0'),
-                );
+                decoded.push(((first - b'0') << 6) | ((second - b'0') << 3) | (third - b'0'));
                 index += 2;
             }
             _ => return Err(invalid_git_path(tracked_path, "unknown escape")),
@@ -1862,8 +1857,7 @@ mod tests {
         fs::create_dir_all(full.parent().expect("fixture parent")).expect("create parent");
         fs::write(&full, retired_coordination_brand_bytes()).expect("write quoted-path fixture");
         let tracked_key =
-            r#""oya/developer-sdk/decisions/ADR-SDK-0003-tenancy-\302\265service.md""#
-                .to_owned();
+            r#""oya/developer-sdk/decisions/ADR-SDK-0003-tenancy-\302\265service.md""#.to_owned();
         let cfg =
             oya_ci_config_kernel::OyaCiConfig::from_toml_str("").expect("default config parses");
 
@@ -1877,9 +1871,7 @@ mod tests {
     }
 
     fn load_live_test_scm_facts(root: &Path) -> ScmFacts {
-        let face = root.join(
-            "ci/facade/artifact-inventory-registry/scm-facts.generated.json",
-        );
+        let face = root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
         assert!(
             face.is_file(),
             "missing materialized scm-facts face at {}; run the producer-regen/materialization boundary before this live-corpus test",
@@ -3945,8 +3937,11 @@ fn collect_review_authority_row(repo_root: &Path, rows: &mut Vec<EnforcementRow>
         review_authority_source: "target_branch_protection_shadow_only".to_owned(),
         has_durable_review_evidence: false,
         has_machine_verifiable_review_status: false,
-        has_review_title_evidence: false,
-        has_review_body_evidence: false,
+        binds_pr_number: false,
+        binds_head_sha: false,
+        binds_author_identity: false,
+        binds_reviewer_identity: false,
+        binds_review_verdict: false,
         review_blocks_merge: false,
         reviewer_identity_distinct_from_author: false,
     });
@@ -4115,10 +4110,7 @@ fn read_cargo_member_prefixes(repo_root: &Path) -> Result<Vec<String>, CliError>
     }
     let dirs = oya_workspace_members_kernel::resolve_member_dirs(repo_root)
         .map_err(|e| CliError::Io(format!("resolve workspace member dirs: {e}")))?;
-    Ok(dirs
-        .into_iter()
-        .map(|dir| format!("{dir}/"))
-        .collect())
+    Ok(dirs.into_iter().map(|dir| format!("{dir}/")).collect())
 }
 
 /// Justification: a path traces to a decision if an ADR mentions it (front-matter
