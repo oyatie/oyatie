@@ -1,7 +1,8 @@
 //! Doc-axis enforcement kernel (ADR-0388).
 //!
 //! Validates that the `docs/` tree and related registry artifacts stay within
-//! the seven canonical doc axes defined by ADR-0388. Four rules are checked:
+//! the seven canonical doc axes defined by ADR-0388 as amended by the repository
+//! history-only retirement rule. Five rules are checked:
 //!
 //! 1. **ADR status casing** — every `docs/decisions/ADR-*.md` frontmatter
 //!    `status:` value is one of the five allowed literals (case-sensitive).
@@ -10,14 +11,17 @@
 //!    follow-up normalisation sweep will promote this to an error.
 //!
 //! 2. **No shadow docs** — `docs/ideas/*.md` files whose filename date-stamp
-//!    is older than 14 days must be either archived (`docs/ideas/archive/`) or
-//!    carry a `superseded_by: ADR-NNNN` frontmatter field linking to a real
-//!    existing ADR file.
+//!    is older than 14 days must be promoted or declined and deleted from candidate
+//!    HEAD through a reviewed change. A `superseded_by` marker does not make a stale
+//!    current-tree copy valid.
 //!
 //! 3. **No docs proliferation** — only the canonical subdirectories are
 //!    permitted under `docs/`. Any `.md` file placed outside them is an error.
 //!
-//! 4. **Catalog/manifest crate-claim consistency** — every crate listed in a
+//! 4. **No readable archive directories** — `_archive`, `archive`, and `archived`
+//!    path segments are forbidden below `docs/`; Git object history is the content store.
+//!
+//! 5. **Catalog/manifest crate-claim consistency** — every crate listed in a
 //!    microservice `manifest.json` `bounded_contexts[].crates[]` array must
 //!    have a corresponding file under `registry/catalog/<crate>.yaml`.
 
@@ -25,7 +29,6 @@
 // ADR-0083 Tier 1 (kernel): no unwrap/expect/panic in non-test code.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -48,16 +51,18 @@ pub struct DocAxisFinding {
     pub blocking: bool,
 }
 
-/// The four doc-axis rule identifiers.
+/// The five doc-axis rule identifiers.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DocAxisRule {
     /// Rule 1: ADR status field must be one of the five canonical values.
     AdrStatusCasing,
-    /// Rule 2: idea-pager older than 14 days without promotion or archival.
+    /// Rule 2: idea-pager older than 14 days and still present in candidate HEAD.
     ShadowIdea,
     /// Rule 3: markdown file placed outside a canonical `docs/` subdirectory.
     DocsProliferation,
-    /// Rule 4: crate claimed in manifest.json but missing from registry/catalog/.
+    /// Rule 4: readable current-tree archive directory.
+    ReadableArchiveDirectory,
+    /// Rule 5: crate claimed in manifest.json but missing from registry/catalog/.
     CatalogManifestDrift,
 }
 
@@ -66,7 +71,7 @@ pub enum DocAxisRule {
 pub struct DocAxisReport {
     /// `docs/decisions/ADR-*.md` files inspected. data_class: INTERNAL_ONLY
     pub adrs_checked: usize,
-    /// `docs/ideas/*.md` files inspected (excluding archive/). data_class: INTERNAL_ONLY
+    /// `docs/ideas/*.md` files inspected. data_class: INTERNAL_ONLY
     pub ideas_checked: usize,
     /// Canonical subdirectory check: markdown files inspected under `docs/`. data_class: INTERNAL_ONLY
     pub docs_files_checked: usize,
@@ -229,6 +234,7 @@ pub fn validate(repo_root: &Path, strict: bool) -> ValidationResult {
 
     check_adr_status_casing(repo_root, strict, &mut findings, &mut report);
     check_shadow_ideas(repo_root, &mut findings, &mut report);
+    check_readable_archive_directories(repo_root, &mut findings, &mut report);
     check_docs_proliferation(repo_root, &mut findings, &mut report);
     check_catalog_manifest_drift(repo_root, &mut findings, &mut report);
 
@@ -323,21 +329,13 @@ fn check_shadow_ideas(
     report: &mut DocAxisReport,
 ) {
     let ideas_dir = repo_root.join("docs").join("ideas");
-    let archive_dir = ideas_dir.join("archive");
     let entries = match fs::read_dir(&ideas_dir) {
         Ok(e) => e,
         Err(_) => return,
     };
 
-    // Collect the set of ADR filenames that exist under docs/decisions/ for
-    // cross-referencing `superseded_by` claims.
-    let existing_adrs = collect_existing_adr_ids(repo_root);
-
     for entry in entries.flatten() {
         let path = entry.path();
-        if path.starts_with(&archive_dir) {
-            continue;
-        }
         if path.is_dir() {
             continue;
         }
@@ -362,40 +360,16 @@ fn check_shadow_ideas(
             continue; // still within the promotion window
         }
 
-        // Over 14 days: must have superseded_by in frontmatter pointing to a
-        // real ADR, OR be moved to archive (archive check is implicit — files
-        // in archive/ are skipped above).
-        let contents = match fs::read_to_string(&path) {
-            Ok(c) => c,
-            Err(_) => continue,
-        };
         let rel = repo_relative(repo_root, &path);
-
-        if let Some(adr_id) = find_superseded_by(&contents) {
-            // Verify the cited ADR actually exists.
-            if !existing_adrs.contains(&adr_id) {
-                findings.push(DocAxisFinding {
-                    path: rel,
-                    line: None,
-                    rule_violated: DocAxisRule::ShadowIdea,
-                    suggested_fix: format!(
-                        "`superseded_by: {adr_id}` references an ADR that does not exist in docs/decisions/. Create the ADR or fix the reference."
-                    ),
-                    blocking: true,
-                });
-            }
-            // Otherwise the citation is valid — file is promoted.
-        } else {
-            findings.push(DocAxisFinding {
-                path: rel,
-                line: None,
-                rule_violated: DocAxisRule::ShadowIdea,
-                suggested_fix: format!(
-                    "Idea-pager is {age_days} days old (limit: {IDEA_PROMOTION_DAYS}). Promote to an ADR and add `superseded_by: ADR-NNNN`, or move to docs/ideas/archive/."
-                ),
-                blocking: true,
-            });
-        }
+        findings.push(DocAxisFinding {
+            path: rel,
+            line: None,
+            rule_violated: DocAxisRule::ShadowIdea,
+            suggested_fix: format!(
+                "Idea-pager is {age_days} days old (limit: {IDEA_PROMOTION_DAYS}). Extract accepted current truth into an ADR or decline it, then delete the idea from candidate HEAD in a reviewed protected PR. Record predecessor Git blob OID and SHA-256; do not retain a readable archive copy."
+            ),
+            blocking: true,
+        });
     }
 }
 
@@ -488,58 +462,54 @@ fn ymd_to_days(ymd: &str) -> Option<i64> {
     Some(365 * adj_y + adj_y / 4 - adj_y / 100 + adj_y / 400 + (153 * adj_m + 8) / 5 + d - 428)
 }
 
-/// Look for `superseded_by:` in frontmatter. Returns the ADR id (e.g. `ADR-0388`).
-fn find_superseded_by(contents: &str) -> Option<String> {
-    let mut in_frontmatter = false;
-    let mut opened = false;
-    for (idx, line) in contents.lines().enumerate() {
-        let trimmed = line.trim();
-        if idx == 0 && trimmed == "---" {
-            in_frontmatter = true;
-            opened = true;
-            continue;
-        }
-        if opened && trimmed == "---" && idx > 0 {
-            break;
-        }
-        if !in_frontmatter {
-            break;
-        }
-        if let Some(rest) = trimmed.strip_prefix("superseded_by:") {
-            let value = rest.trim().trim_matches('"').trim_matches('\'');
-            if !value.is_empty() && value != "[]" && value != "null" {
-                return Some(value.to_string());
+// ---------------------------------------------------------------------------
+// Rule 3 — No docs proliferation; Rule 4 — no readable archive directories
+// ---------------------------------------------------------------------------
+
+fn check_readable_archive_directories(
+    repo_root: &Path,
+    findings: &mut Vec<DocAxisFinding>,
+    report: &mut DocAxisReport,
+) {
+    let docs_dir = repo_root.join("docs");
+    if !docs_dir.is_dir() {
+        return;
+    }
+
+    let mut pending = vec![docs_dir];
+    while let Some(directory) = pending.pop() {
+        let entries = match fs::read_dir(&directory) {
+            Ok(entries) => entries,
+            Err(_) => continue,
+        };
+        for entry in entries.flatten() {
+            let file_type = match entry.file_type() {
+                Ok(file_type) => file_type,
+                Err(_) => continue,
+            };
+            if !file_type.is_dir() {
+                continue;
+            }
+            let path = entry.path();
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if ["_archive", "archive", "archived"]
+                .iter()
+                .any(|reserved| name.eq_ignore_ascii_case(reserved))
+            {
+                report.docs_files_checked += 1;
+                findings.push(DocAxisFinding {
+                    path: repo_relative(repo_root, &path),
+                    line: None,
+                    rule_violated: DocAxisRule::ReadableArchiveDirectory,
+                    suggested_fix: "Delete the readable archive directory from candidate HEAD after successor extraction; preserve only neutral predecessor Git blob OID and digest receipts.".to_owned(),
+                    blocking: true,
+                });
+            } else {
+                pending.push(path);
             }
         }
     }
-    None
 }
-
-/// Collect all ADR ids (e.g. `ADR-0388`) that have a corresponding file in
-/// `docs/decisions/`.
-fn collect_existing_adr_ids(repo_root: &Path) -> BTreeSet<String> {
-    let mut ids = BTreeSet::new();
-    let decisions_dir = repo_root.join("docs").join("decisions");
-    let entries = match fs::read_dir(&decisions_dir) {
-        Ok(e) => e,
-        Err(_) => return ids,
-    };
-    for entry in entries.flatten() {
-        let name = entry.file_name().to_string_lossy().into_owned();
-        // Accept filenames like ADR-0388-*.md — extract the ADR-NNNN prefix.
-        if name.starts_with("ADR-") && name.ends_with(".md") {
-            let parts: Vec<&str> = name.splitn(3, '-').collect();
-            if parts.len() >= 2 {
-                ids.insert(format!("{}-{}", parts[0], parts[1]));
-            }
-        }
-    }
-    ids
-}
-
-// ---------------------------------------------------------------------------
-// Rule 3 — No docs proliferation
-// ---------------------------------------------------------------------------
 
 fn check_docs_proliferation(
     repo_root: &Path,
@@ -766,18 +736,6 @@ mod tests {
         assert_eq!(days_between("2026-05-28", "2026-05-28"), Some(0));
         // 15 days ago.
         assert_eq!(days_between("2026-05-28", "2026-05-13"), Some(15));
-    }
-
-    #[test]
-    fn find_superseded_by_parses_adr_id() {
-        let doc = "---\nsuperseded_by: ADR-0388\n---\n# body\n";
-        assert_eq!(find_superseded_by(doc), Some("ADR-0388".to_string()));
-    }
-
-    #[test]
-    fn find_superseded_by_returns_none_when_absent() {
-        let doc = "---\nid: ADR-0001\nstatus: Accepted\n---\n# body\n";
-        assert_eq!(find_superseded_by(doc), None);
     }
 
     #[test]

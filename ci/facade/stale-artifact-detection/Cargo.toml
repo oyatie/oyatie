@@ -8,8 +8,9 @@ license = "Apache-2.0"
 
 # GATE-3 cloud-ci-staleness-reaper (PHASE-0-FIREWALL-PLAN §5.2; pillar-G sinker++).
 # Pure evaluator over the registry rows + ttl-policy budgets; REPORTS (never reaps)
-# over-budget AND unreachable artifacts as ARCHIVE candidates. Auto-archive is
-# report -> git mv -> _archive/, never rm. The integration test globs
+# over-budget AND unreachable artifacts as non-actuating retirement-review candidates.
+# Retirement is a reviewed deletion from candidate HEAD with neutral predecessor Git OID and digest
+# receipts; readable current-tree archive directories are forbidden. The integration test globs
 # specs/fixtures/staleness-reaper/tc-*.json and asserts report.violations against each
 # fixture's expected_violations. The born-blocking self-test ages the live registry via
 # git commit dates. G-INTEGRITY track: no buck2 build-graph dep.

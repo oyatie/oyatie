@@ -164,6 +164,20 @@ impl Policy {
             serde_json::from_value(by_class_value.clone())
                 .map_err(|e| ProducerError::Policy(format!("by_unit_class: {e}")))?;
 
+        for (unit_class, record) in &ttl_by_class {
+            if !matches!(record.action.as_str(), "report" | "review-for-retirement") {
+                return Err(ProducerError::Policy(format!(
+                    "ttl-policy.json class `{unit_class}` has unsupported action `{}`; only `report` or non-actuating `review-for-retirement` are allowed",
+                    record.action
+                )));
+            }
+            if record.protected && record.action != "report" {
+                return Err(ProducerError::Policy(format!(
+                    "ttl-policy.json class `{unit_class}` is protected and must use action `report`"
+                )));
+            }
+        }
+
         Ok(Self {
             rules,
             ttl_by_class,
@@ -252,7 +266,7 @@ impl TtlRecord {
         Self {
             ttl_class: "husk".into(),
             budget_days: Some(14),
-            action: "archive".into(),
+            action: "review-for-retirement".into(),
             protected: false,
         }
     }
@@ -277,9 +291,10 @@ fn derive_verdict(
     if owner.is_none() {
         return "NEEDS-OWNER".into();
     }
-    // Over-TTL, unprotected, archive-action class ⇒ ARCHIVE candidate (REPORTED, not deleted).
-    if !ttl.protected && ttl.action == "archive" {
-        return "ARCHIVE".into();
+    // Retirement policy is a non-actuating review signal. Deletion from candidate HEAD and
+    // predecessor Git-object receipts happen only in a separately reviewed protected PR.
+    if !ttl.protected && ttl.action == "review-for-retirement" {
+        return "RETIRE-CANDIDATE".into();
     }
     "KEEP".into()
 }
@@ -2146,5 +2161,54 @@ mod tests {
                 "{invalid:?} must be rejected"
             );
         }
+    }
+
+    #[test]
+    fn ttl_policy_rejects_archive_delete_and_unknown_actions() {
+        let unit_classes = r#"{"rules":[{"kind":"prefix","value":"","unit_class":"doc"}]}"#;
+        for action in ["archive", "delete", "invented"] {
+            let ttl = format!(
+                r#"{{"by_unit_class":{{"doc":{{"ttl_class":"doc","budget_days":1,"action":"{action}","protected":false}}}}}}"#
+            );
+            let error = Policy::from_strs(unit_classes, &ttl)
+                .err()
+                .expect("unsafe or unknown retirement action must fail closed");
+            assert!(
+                format!("{error:?}").contains("unsupported action"),
+                "rejection must identify the action contract: {error:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn ttl_policy_accepts_report_or_review_for_retirement_only() {
+        let unit_classes = r#"{"rules":[{"kind":"prefix","value":"","unit_class":"doc"}]}"#;
+        for action in ["report", "review-for-retirement"] {
+            let ttl = format!(
+                r#"{{"by_unit_class":{{"doc":{{"ttl_class":"doc","budget_days":1,"action":"{action}","protected":false}}}}}}"#
+            );
+            Policy::from_strs(unit_classes, &ttl)
+                .unwrap_or_else(|error| panic!("supported action {action} rejected: {error:?}"));
+        }
+    }
+
+    #[test]
+    fn review_for_retirement_is_a_non_actuating_candidate_verdict() {
+        let ttl = TtlRecord {
+            ttl_class: "husk".to_owned(),
+            budget_days: Some(14),
+            action: "review-for-retirement".to_owned(),
+            protected: false,
+        };
+        assert_eq!(
+            derive_verdict(
+                &Some("platform-governance".to_owned()),
+                &Some("ADR-0619".to_owned()),
+                &["masterplan".to_owned()],
+                &ttl,
+                &None,
+            ),
+            "RETIRE-CANDIDATE"
+        );
     }
 }

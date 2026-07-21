@@ -404,7 +404,7 @@ mod tests {
                 "justification_ref": "ADR-0555",
                 "justification_resolves": true,
                 "reachable_from": ["specs/masterplan.json"],
-                "ttl": {"ttl_class": "scratch", "budget_days": 0, "action": "delete", "protected": false}
+                "ttl": {"ttl_class": "scratch", "budget_days": 0, "action": "review-for-retirement", "protected": false}
             }]
         });
         let findings = evaluate_keyed(&fully_registered_scratch);

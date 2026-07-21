@@ -1,0 +1,20 @@
+{
+  "fixture_id": "TC-TA-GOOD-retirement-candidate-reported",
+  "expected_verdict": "GREEN",
+  "expected_violations": [],
+  "description": "An over-TTL evidence artifact is reported for retirement review (ttl.action=review-for-retirement), never moved or deleted in-gate. It remains fully accounted while the gate emits zero violations. Any later retirement is a protected-PR deletion from candidate HEAD with predecessor Git object OID and digest receipts.",
+  "rows": [
+    {
+      "path": "evidence/multispectrum/old-change-1700000000.json",
+      "unit_class": "evidence",
+      "owner": "platform-governance",
+      "justification_ref": "ADR-0365",
+      "justification_resolves": true,
+      "reachable_from": ["root-hub"],
+      "ttl": {"ttl_class": "evidence", "budget_days": 90, "action": "review-for-retirement", "protected": false},
+      "days_since_last_touch": 200,
+      "retirement_candidate_reported": true
+    }
+  ],
+  "source_test": "ci/facade/artifact-accountability/tests/total_accounting.rs"
+}

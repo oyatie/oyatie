@@ -1463,10 +1463,16 @@
         "selfmaintain": {
           "policies": [
             {
-              "name": "archive-superseded-kernel-version",
-              "action": "archive",
+              "name": "retire-superseded-kernel-version",
+              "action": "retire-from-head",
               "trigger": "on-new-version-Accepted",
-              "audit_emission_required": true
+              "destination": "authorized-git-object-history-only",
+              "audit_emission_required": true,
+              "readable_current_tree_copy_allowed": false,
+              "required_receipt_fields": [
+                "predecessor_blob_oid",
+                "sha256"
+              ]
             }
           ]
         },
@@ -2660,6 +2666,33 @@
       "evidence_contract": {
         "verification": {
           "command": "python3 -m json.tool evidence/goals/masterplan-v2-external-board-import-retirement-closure-20260720.json >/dev/null"
+        }
+      }
+    },
+    {
+      "artifact_id": "readable-idea-archive-retirement-closure-20260721",
+      "artifact_path": "/evidence/goals/readable-idea-archive-retirement-closure-20260721.json",
+      "artifact_format": "json",
+      "contract_version": "v0.1.0",
+      "owner_team": "council-architecture + platform-toolchain",
+      "purpose_short": "Neutral Git-object closure receipt for deleting three promoted idea source copies from candidate HEAD without retaining a readable archive or promoting completion claims.",
+      "artifact_profile": "evidence-bundle",
+      "capability_overrides": {
+        "verification": {
+          "command": "python3 -m json.tool evidence/goals/readable-idea-archive-retirement-closure-20260721.json >/dev/null"
+        },
+        "validation": {
+          "validator": "JSON syntax plus predecessor Git blob OID, SHA-256, successor, and absence checks"
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "fresh exact-head review pending",
+          "last_modified_at": "2026-07-21T00:00:00Z"
+        }
+      },
+      "evidence_contract": {
+        "verification": {
+          "command": "python3 -m json.tool evidence/goals/readable-idea-archive-retirement-closure-20260721.json >/dev/null"
         }
       }
     }

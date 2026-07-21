@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Schema",
     "schema_id": "EXE-ARTIFACT-PROFILE-DEFAULTS",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "status": "draft-sidecar",
     "owner_team": "council-architecture + axis-foundry",
     "created_at": "2026-05-13T00:00:00Z",
@@ -15,8 +15,9 @@
     "merge_semantics": "Validator walks profiles[<row.artifact_profile>].capabilities then applies row.capability_overrides as a per-capability partial override. Override resolution rules: (a) capability.status override REPLACES profile default; (b) string fields (evidence_ref, validator path, generator path) override REPLACE profile default; (c) array fields (prerequisite_for_operational, blocks_on, verifies, validates) APPEND row-overrides to profile defaults unless override declares replace_mode=true.",
     "validator_crate": "crates/oya-check-active-artifact-contract",
     "purpose": "Profile defaults for the 9-capability artifact contract. Reduces per-row authoring burden: each registry row declares `artifact_profile` + optional overrides.",
-    "updated_at": "2026-05-17T12:57:05Z",
-    "profile_contract_defaults_note": "Every profile default capability must satisfy the active R04-R07 contract shape: operational requires evidence_ref, planned/blocked-by-foundation require prerequisite_for_operational, and not-applicable requires not_applicable_rationale."
+    "updated_at": "2026-07-21T00:00:00Z",
+    "profile_contract_defaults_note": "Every profile default capability must satisfy the active R04-R07 contract shape: operational requires evidence_ref, planned/blocked-by-foundation require prerequisite_for_operational, and not-applicable requires not_applicable_rationale.",
+    "repository_retirement_contract": "Repository artifacts retire only by reviewed deletion from candidate HEAD. Current-tree archive directories and readable tombstone copies are forbidden. Neutral closure receipts preserve predecessor Git blob OID and SHA-256 without reproducing retired content. Externally retained tenant evidence is a data-governance surface, never repository authority, and is not agent-readable by default."
   },
   "profiles": {
     "schema": {
@@ -102,11 +103,16 @@
           "status": "planned",
           "policies": [
             {
-              "name": "deprecate-superseded-version",
-              "action": "archive",
+              "name": "retire-superseded-version",
+              "action": "retire-from-head",
               "trigger": "on-new-version-Accepted",
-              "destination": "/specs/archived/",
-              "audit_emission_required": true
+              "destination": "authorized-git-object-history-only",
+              "audit_emission_required": true,
+              "readable_current_tree_copy_allowed": false,
+              "required_receipt_fields": [
+                "predecessor_blob_oid",
+                "sha256"
+              ]
             }
           ],
           "prerequisite_for_operational": [
@@ -467,11 +473,16 @@
           "status": "planned",
           "policies": [
             {
-              "name": "archive-superseded-attestations",
-              "action": "archive",
+              "name": "retire-superseded-attestations",
+              "action": "retire-from-head",
               "trigger": "on-supersession",
-              "destination": "/evidence/archived/",
-              "audit_emission_required": true
+              "destination": "authorized-git-object-history-only",
+              "audit_emission_required": true,
+              "readable_current_tree_copy_allowed": false,
+              "required_receipt_fields": [
+                "predecessor_blob_oid",
+                "sha256"
+              ]
             }
           ],
           "prerequisite_for_operational": [
@@ -598,11 +609,16 @@
           "status": "planned",
           "policies": [
             {
-              "name": "archive-closed-rows",
-              "action": "archive",
+              "name": "retire-closed-rows",
+              "action": "retire-from-head",
               "trigger": "on-operational-close",
-              "destination": "/evidence/ledger/archived/",
-              "audit_emission_required": true
+              "destination": "authorized-git-object-history-only",
+              "audit_emission_required": true,
+              "readable_current_tree_copy_allowed": false,
+              "required_receipt_fields": [
+                "predecessor_blob_oid",
+                "sha256"
+              ]
             }
           ],
           "prerequisite_for_operational": [
@@ -853,10 +869,18 @@
           "policies": [
             {
               "name": "retention-per-data-class",
-              "action": "archive",
+              "action": "retain-per-data-class-policy",
               "trigger": "per-data-class-policy",
-              "destination": "tenant-cold-storage",
-              "audit_emission_required": true
+              "destination": "tenant-access-controlled-cold-storage",
+              "audit_emission_required": true,
+              "repository_authority_surface": false,
+              "agent_readable_by_default": false,
+              "required_controls": [
+                "qualified retention basis",
+                "tenant-scoped authorization",
+                "legal hold precedence",
+                "audited deletion or extension"
+              ]
             }
           ],
           "prerequisite_for_operational": [

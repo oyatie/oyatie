@@ -125,8 +125,8 @@ The corpus is complete when ALL of the following hold:
 6. **Every term used is defined.** Every term appearing in ≥2 canonical docs has a glossary entry at `docs/GLOSSARY.md` with: definition, first-introduced ADR, hyperscaler analog, related terms.
 7. **Every cross-reference resolves.** No `[broken link]`. No unresolved placeholder markers in canonical doc bodies. CI lane `oya-governance-doc-link-resolves` enforces.
 8. **Every cell-tier / compliance-pack / sovereign-cloud variant is documented.** For each µservice and each primitive: which packs activate it, which cell tiers it deploys to, which sovereign-cloud overlays apply.
-9. **Every retired doc is retired explicitly.** Files removed from canonical scope get a tombstone entry in `docs/retired/` per the markdown-retirement-policy. No silent deletions.
-10. **No orphan files.** Every file under `docs/`, `microservices/`, `packs/`, `specs/`, `crates/*/docs/` is reachable via the §3.1 graph traversal OR is explicitly tombstoned. CI lane `oya-governance-doc-orphan-detection` enforces.
+9. **Every retired doc is retired explicitly.** After successor extraction and independent review, files leave candidate HEAD in a protected PR. A neutral closure receipt records predecessor Git blob OID, SHA-256, and successor references; no readable tombstone or archive directory is created.
+10. **No orphan files.** Every file under `docs/`, `microservices/`, `packs/`, `specs/`, `crates/*/docs/` is reachable via the §3.1 graph traversal. A retired file is absent from candidate HEAD and discoverable only through its neutral receipt plus authorized Git object history. CI lane `oya-governance-doc-orphan-detection` enforces.
 
 The completeness invariants apply to the corpus as a whole, not per-PR. The `oya-governance-doc-completeness` aggregate lane reports the corpus-wide gap count daily and gates the platform's promotion-to-GA milestones (per ADR-0250 build-ahead-of-certification).
 

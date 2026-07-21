@@ -8,7 +8,7 @@
     "_note": "Historical 2026-05-13 target retained as provenance. The 2026-08-31 date is not a current completion claim; current sequencing and dispatch authority live only in /specs/masterplan.json#masterplan_v2 (MPV2-0003)."
   },
   "title": "MarkdownRetirementPolicy",
-  "description": "Rebaselined policy for retiring hand-authored Markdown. README.md, CLAUDE.md, and AGENTS.md survive as root authority/entry hubs; HANDOFF.md survives under the founder 2026-06-08 bounded exception as a thin fresh-session redirect. Other Markdown is classified as immutable audit history, a tool-required transitional source/projection, or retirement corpus sequenced only through MPV2-0003.",
+  "description": "Rebaselined policy for retiring hand-authored Markdown. README.md, CLAUDE.md, and AGENTS.md survive as root authority/entry hubs; HANDOFF.md survives under the founder 2026-06-08 bounded exception as a thin fresh-session redirect. Other Markdown is either a tool-required transitional source/projection or retirement corpus sequenced only through MPV2-0003. Retired content is deleted from candidate HEAD after successor extraction; Git object history is the sole content store.",
   "_meta": {
     "doc_class": "Machine-Readable-Policy",
     "schema_id": "EXE-MD-RETIREMENT-POLICY",
@@ -23,7 +23,7 @@
       "CLAUDE.md and AGENTS.md",
       "that should utilize machine readable pointers to relevent files"
     ],
-    "purpose": "Classify and retire hand-authored Markdown without creating a competing plan. The four-file root survival set is README.md, CLAUDE.md, AGENTS.md, and the founder-authorized thin HANDOFF.md redirect; execution is owned by MPV2-0003.",
+    "purpose": "Classify and retire hand-authored Markdown without creating a competing plan or readable archive. The four-file root survival set is README.md, CLAUDE.md, AGENTS.md, and the founder-authorized thin HANDOFF.md redirect; execution is owned by MPV2-0003.",
     "rebaselined_at": "2026-07-13T00:00:00Z",
     "rebaseline_baseline": "origin/dev@1d21a7fd5fbc29d6853b3863a6d2680e6ac44224",
     "founder_exception": {
@@ -44,9 +44,21 @@
       "AGENTS.md",
       "HANDOFF.md (founder-authorized thin redirect exception)"
     ],
-    "survive_as_immutable_audit_archive": [
-      "/evidence/audits/consensus/**/*.md (historical consensus outputs; immutable; logged as audit-archive profile)"
+    "retire_to_git_history_after_structured_extraction": [
+      "/evidence/audits/consensus/**/*.md (historical consensus prose; extract current obligations and neutral receipts, then delete from candidate HEAD)"
     ],
+    "repository_history_only_contract": {
+      "readable_archive_directories_allowed": false,
+      "readable_tombstone_copies_allowed": false,
+      "retirement_action": "reviewed-protected-pr-deletion-from-head",
+      "content_store": "authorized-git-object-history-only",
+      "required_neutral_receipt_fields": [
+        "predecessor_blob_oid",
+        "sha256",
+        "successor_refs",
+        "readable_tracked_copy_retained"
+      ]
+    },
     "retire_via_json_migration": [
       "docs/CONSTITUTION.md → RETIRED (per user 2026-05-13 'i dont think constitution is necessary'; content redistributed: mission→masterplan; principles→agent-operating-contract; prohibitions→forbidden-operations.json; decision rights→RACI-OWNERSHIP)",
       "docs/AGENTS.md → /specs/agent-operating-contract.json",
@@ -168,7 +180,7 @@
     }
   ],
   "honest_gaps": [
-    "Some Markdown semantic content (prose explanations, narrative ADR Context sections) does not naturally project to JSON without loss. Mitigation: each registry row carries a `body_markdown_archived_at` field pointing to the historical .md preserved under .git history; JSON instances carry the EXTRACTED structured fields only.",
+    "Some Markdown semantic content (prose explanations, narrative ADR Context sections) does not naturally project to JSON without loss. Mitigation: extract current structured obligations, then record predecessor Git blob OID and SHA-256 in a neutral closure receipt. Do not retain a readable current-tree copy.",
     "Existing tooling (rustdoc, mdbook, IDE Markdown previews) is markdown-aware. Replacement tooling (JSON-rendering UIs, generated HTML from JSON) is foundation-prerequisite per Wave 1 docs portal v7 + ADR-0066.",
     "External-facing docs (anything published to https://docs.oyatie.com) is foundation-side; this policy covers repo-internal docs only. Public docs site can render from JSON via Leptos SSR per ADR-0065.",
     "The 2026-05-13 phase dates and corpus estimates are historical and stale; this 2026-07-13 rebaseline delegates all executable sequencing to MPV2-0003.",
