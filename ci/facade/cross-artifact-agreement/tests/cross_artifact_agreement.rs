@@ -15,9 +15,10 @@ use ci_cross_artifact_agreement::{
     evaluate_masterplan_projection_rederivation, evaluate_masterplan_read_surface_resurrections,
     evaluate_masterplan_v2_authority, evaluate_masterplan_v2_entry_surfaces,
     evaluate_masterplan_v2_evidence_state, evaluate_masterplan_v2_plan_evidence_drift,
-    evaluate_masterplan_v2_program_coverage, evaluate_masterplan_v2_projection_freshness,
-    evaluate_masterplan_v2_ratification_digest, evaluate_masterplan_v2_read_contract_archives,
-    evaluate_masterplan_v2_sequencing, evaluate_registry_derived_policy_sync, ratchet,
+    evaluate_masterplan_v2_preplanning_candidate_facts, evaluate_masterplan_v2_program_coverage,
+    evaluate_masterplan_v2_projection_freshness, evaluate_masterplan_v2_ratification_digest,
+    evaluate_masterplan_v2_read_contract_archives, evaluate_masterplan_v2_sequencing,
+    evaluate_registry_derived_policy_sync, ratchet,
 };
 use serde_json::Value;
 
@@ -329,6 +330,32 @@ fn masterplan_v2_plan_vs_evidence_drift_contract_is_green() {
         Some("cloud-ci-cross-artifact-agreement/masterplan-v2-plan-vs-evidence-drift"),
         "masterplan v2 must name the plan-vs-evidence drift validator as the evidence-state policy writer"
     );
+}
+
+#[test]
+fn masterplan_v2_current_preplanning_candidate_matches_cited_evidence() {
+    let root = repo_root();
+    let masterplan = load_json(&root.join("specs/masterplan.json"));
+    let evidence_ref =
+        masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate"]
+            .as_str()
+            .expect("current_pr_candidate must cite a repository-relative evidence file");
+    let evidence = load_json(&root.join(evidence_ref));
+
+    let findings = evaluate_masterplan_v2_preplanning_candidate_facts(&masterplan, &evidence);
+    assert!(
+        findings.is_empty(),
+        "masterplan current-candidate facts must agree with their cited time-scoped receipt: {findings:?}"
+    );
+
+    let mut stale = masterplan;
+    stale["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["merged_to_dev"] =
+        serde_json::json!(false);
+    let findings = evaluate_masterplan_v2_preplanning_candidate_facts(&stale, &evidence);
+    assert!(findings.iter().any(|finding| {
+        finding.code == "masterplan_plan_evidence_drift"
+            && finding.key == "masterplan_v2.planning_entry_contract.current_pr_candidate_state"
+    }));
 }
 
 /// Sub-AC 4.3 plan-vs-evidence cross-check lane, born-blocking over the live
