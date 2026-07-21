@@ -22,7 +22,7 @@
 /Users/jasonlee/Developer/source/cloud/cell-lifecycle/IPs/IP-CL-006-audit-chain-transition-evidence.md
 /Users/jasonlee/Developer/source/cloud/cell-lifecycle/IPs/IP-CL-007-slo-metrics-observability.md
 /Users/jasonlee/Developer/source/cloud/cell-lifecycle/IPs/IP-CL-008-foundry-self-modification-boundary.md
-/Users/jasonlee/Developer/source/cloud/cell-lifecycle/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/cloud/cell-lifecycle/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/cloud/cell-lifecycle/PRD.md
 /Users/jasonlee/Developer/source/cloud/cell-lifecycle/README.md
 /Users/jasonlee/Developer/source/cloud/cell-lifecycle/runbooks/auto-rebalance.md
@@ -47,7 +47,7 @@
 /Users/jasonlee/Developer/source/cloud/cell-rebalancer/IPs/IP-CR-006-audit-chain-evidence-emission.md
 /Users/jasonlee/Developer/source/cloud/cell-rebalancer/IPs/IP-CR-007-slo-metrics-observability.md
 /Users/jasonlee/Developer/source/cloud/cell-rebalancer/IPs/IP-CR-008-foundry-self-modification-boundary.md
-/Users/jasonlee/Developer/source/cloud/cell-rebalancer/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/cloud/cell-rebalancer/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/cloud/cell-rebalancer/PRD.md
 /Users/jasonlee/Developer/source/cloud/cell-rebalancer/README.md
 /Users/jasonlee/Developer/source/cloud/cell-rebalancer/runbooks/auto-rebalance-trigger.md
@@ -70,7 +70,7 @@
 /Users/jasonlee/Developer/source/cloud/cloud-billing-tax/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/cloud/cloud-billing-tax/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/cloud/cloud-billing-tax/migration-playbooks/from-avalara-and-vertex.md
-/Users/jasonlee/Developer/source/cloud/cloud-billing-tax/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/cloud/cloud-billing-tax/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/cloud/cloud-billing-tax/onboarding/tax-engineer-first-week.md
 /Users/jasonlee/Developer/source/cloud/cloud-billing-tax/performance-benchmark-numbers-2026-05-20.md
 /Users/jasonlee/Developer/source/cloud/cloud-billing-tax/PRD.md
@@ -111,7 +111,7 @@
 /Users/jasonlee/Developer/source/cloud/cloud-billing/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/cloud/cloud-billing/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/cloud/cloud-billing/migration-playbooks/from-aws-cur-and-cloudability.md
-/Users/jasonlee/Developer/source/cloud/cloud-billing/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/cloud/cloud-billing/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/cloud/cloud-billing/onboarding/billing-engineer-first-week.md
 /Users/jasonlee/Developer/source/cloud/cloud-billing/performance-benchmark-numbers-2026-05-20.md
 /Users/jasonlee/Developer/source/cloud/cloud-billing/PRD.md
@@ -139,7 +139,7 @@
 /Users/jasonlee/Developer/source/cloud/cloud-data/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/cloud/cloud-data/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/cloud/cloud-data/migration-playbooks/from-aurora-and-dynamodb.md
-/Users/jasonlee/Developer/source/cloud/cloud-data/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/cloud/cloud-data/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/cloud/cloud-data/onboarding/data-engineer-first-week.md
 /Users/jasonlee/Developer/source/cloud/cloud-data/PRD.md
 /Users/jasonlee/Developer/source/cloud/cloud-data/README.md
@@ -212,7 +212,7 @@
 /Users/jasonlee/Developer/source/cloud/cloud-iac/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/cloud/cloud-iac/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/cloud/cloud-iac/migration-playbooks/from-terraform-cloud-and-spacelift.md
-/Users/jasonlee/Developer/source/cloud/cloud-iac/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/cloud/cloud-iac/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/cloud/cloud-iac/multi-region.md
 /Users/jasonlee/Developer/source/cloud/cloud-iac/onboarding/infrastructure-engineer-first-week.md
 /Users/jasonlee/Developer/source/cloud/cloud-iac/PHASE-01-META-IAC-PIPELINE-SUBSTRATE.md
@@ -254,7 +254,7 @@
 /Users/jasonlee/Developer/source/cloud/cloud-iam/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/cloud/cloud-iam/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/cloud/cloud-iam/migration-playbooks/from-okta-and-aws-iam.md
-/Users/jasonlee/Developer/source/cloud/cloud-iam/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/cloud/cloud-iam/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/cloud/cloud-iam/onboarding/iam-engineer-first-week.md
 /Users/jasonlee/Developer/source/cloud/cloud-iam/performance-benchmark-numbers-2026-05-20.md
 /Users/jasonlee/Developer/source/cloud/cloud-iam/PRD.md
@@ -338,7 +338,7 @@
 /Users/jasonlee/Developer/source/cloud/cloud-k8s/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/cloud/cloud-k8s/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/cloud/cloud-k8s/migration-playbooks/from-rancher-rke2.md
-/Users/jasonlee/Developer/source/cloud/cloud-k8s/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/cloud/cloud-k8s/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/cloud/cloud-k8s/multi-region.md
 /Users/jasonlee/Developer/source/cloud/cloud-k8s/onboarding/sre-first-week.md
 /Users/jasonlee/Developer/source/cloud/cloud-k8s/performance-benchmark-numbers-2026-05-20.md
@@ -377,7 +377,7 @@
 /Users/jasonlee/Developer/source/cloud/cloud-kms/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/cloud/cloud-kms/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/cloud/cloud-kms/migration-playbooks/from-aws-kms-and-vault-enterprise.md
-/Users/jasonlee/Developer/source/cloud/cloud-kms/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/cloud/cloud-kms/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/cloud/cloud-kms/onboarding/kms-engineer-first-week.md
 /Users/jasonlee/Developer/source/cloud/cloud-kms/performance-benchmark-numbers-2026-05-20.md
 /Users/jasonlee/Developer/source/cloud/cloud-kms/PRD.md
@@ -405,7 +405,7 @@
 /Users/jasonlee/Developer/source/cloud/cloud-network-dns/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/cloud/cloud-network-dns/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/cloud/cloud-network-dns/migration-playbooks/from-route53-and-ns1.md
-/Users/jasonlee/Developer/source/cloud/cloud-network-dns/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/cloud/cloud-network-dns/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/cloud/cloud-network-dns/onboarding/dns-engineer-first-week.md
 /Users/jasonlee/Developer/source/cloud/cloud-network-dns/performance-benchmark-numbers-2026-05-20.md
 /Users/jasonlee/Developer/source/cloud/cloud-network-dns/PRD.md
@@ -431,7 +431,7 @@
 /Users/jasonlee/Developer/source/cloud/cloud-network/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/cloud/cloud-network/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/cloud/cloud-network/migration-playbooks/from-aws-vpc-and-istio.md
-/Users/jasonlee/Developer/source/cloud/cloud-network/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/cloud/cloud-network/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/cloud/cloud-network/onboarding/network-engineer-first-week.md
 /Users/jasonlee/Developer/source/cloud/cloud-network/performance-benchmark-numbers-2026-05-20.md
 /Users/jasonlee/Developer/source/cloud/cloud-network/PRD.md
@@ -502,7 +502,7 @@
 /Users/jasonlee/Developer/source/cloud/cloud-secrets/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/cloud/cloud-secrets/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/cloud/cloud-secrets/migration-playbooks/from-hashicorp-vault.md
-/Users/jasonlee/Developer/source/cloud/cloud-secrets/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/cloud/cloud-secrets/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/cloud/cloud-secrets/multi-region.md
 /Users/jasonlee/Developer/source/cloud/cloud-secrets/onboarding/security-engineer-first-week.md
 /Users/jasonlee/Developer/source/cloud/cloud-secrets/performance-benchmark-numbers-2026-05-20.md
@@ -541,7 +541,7 @@
 /Users/jasonlee/Developer/source/cloud/cloud-storage/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/cloud/cloud-storage/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/cloud/cloud-storage/migration-playbooks/from-s3-and-azure-blob.md
-/Users/jasonlee/Developer/source/cloud/cloud-storage/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/cloud/cloud-storage/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/cloud/cloud-storage/onboarding/storage-engineer-first-week.md
 /Users/jasonlee/Developer/source/cloud/cloud-storage/performance-benchmark-numbers-2026-05-20.md
 /Users/jasonlee/Developer/source/cloud/cloud-storage/PRD.md
@@ -710,7 +710,7 @@
 /Users/jasonlee/Developer/source/cloud/tenancy/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/cloud/tenancy/migration-playbooks/from-auth0-organizations.md
 /Users/jasonlee/Developer/source/cloud/tenancy/migration-playbooks/from-azure-ad-b2c.md
-/Users/jasonlee/Developer/source/cloud/tenancy/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/cloud/tenancy/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/cloud/tenancy/multi-region.md
 /Users/jasonlee/Developer/source/cloud/tenancy/onboarding/platform-admin-first-week.md
 /Users/jasonlee/Developer/source/cloud/tenancy/onboarding/tenancy-engineer-first-week.md
@@ -3230,7 +3230,7 @@
 /Users/jasonlee/Developer/source/oya/analytics/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/analytics/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/analytics/migration-playbooks/from-mixpanel-and-amplitude.md
-/Users/jasonlee/Developer/source/oya/analytics/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/analytics/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/analytics/multi-region.md
 /Users/jasonlee/Developer/source/oya/analytics/onboarding/data-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/analytics/PHASE-01-ANALYTICS-OLAP-BOOTSTRAP.md
@@ -3326,7 +3326,7 @@
 /Users/jasonlee/Developer/source/oya/api-gateway/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/api-gateway/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/api-gateway/migration-playbooks/from-kong-and-aws-api-gateway.md
-/Users/jasonlee/Developer/source/oya/api-gateway/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/api-gateway/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/api-gateway/multi-region.md
 /Users/jasonlee/Developer/source/oya/api-gateway/onboarding/edge-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/api-gateway/operational-boundaries.md
@@ -3406,7 +3406,7 @@
 /Users/jasonlee/Developer/source/oya/application/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/application/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/application/migration-playbooks/from-aws-app-runner.md
-/Users/jasonlee/Developer/source/oya/application/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/application/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/application/multi-region.md
 /Users/jasonlee/Developer/source/oya/application/onboarding/platform-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/application/performance-benchmark-numbers-2026-05-20.md
@@ -3548,7 +3548,7 @@
 /Users/jasonlee/Developer/source/oya/audit-chain/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/audit-chain/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/audit-chain/migration-playbooks/from-splunk-audit.md
-/Users/jasonlee/Developer/source/oya/audit-chain/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/audit-chain/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/audit-chain/multi-region.md
 /Users/jasonlee/Developer/source/oya/audit-chain/onboarding/compliance-officer-first-week.md
 /Users/jasonlee/Developer/source/oya/audit-chain/packs/EU-AI-Act.md
@@ -3645,7 +3645,7 @@
 /Users/jasonlee/Developer/source/oya/calendar/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/calendar/migration-from-connect.md
 /Users/jasonlee/Developer/source/oya/calendar/migration-playbooks/from-google-calendar.md
-/Users/jasonlee/Developer/source/oya/calendar/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/calendar/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/calendar/multi-region.md
 /Users/jasonlee/Developer/source/oya/calendar/onboarding/calendar-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/calendar/packs/EU-AI-Act.md
@@ -3757,7 +3757,7 @@
 /Users/jasonlee/Developer/source/oya/comms-email/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/comms-email/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/comms-email/migration-playbooks/from-sendgrid-and-mailgun.md
-/Users/jasonlee/Developer/source/oya/comms-email/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/comms-email/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/comms-email/multi-region.md
 /Users/jasonlee/Developer/source/oya/comms-email/onboarding/deliverability-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/comms-email/performance-benchmark-numbers-2026-05-20.md
@@ -3879,7 +3879,7 @@
 /Users/jasonlee/Developer/source/oya/community/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/community/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/community/migration-playbooks/from-discourse.md
-/Users/jasonlee/Developer/source/oya/community/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/community/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/community/multi-region.md
 /Users/jasonlee/Developer/source/oya/community/onboarding/community-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/community/performance-benchmark-numbers-2026-05-20.md
@@ -4026,7 +4026,7 @@
 /Users/jasonlee/Developer/source/oya/compliance/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/compliance/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/compliance/migration-playbooks/from-onetrust.md
-/Users/jasonlee/Developer/source/oya/compliance/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/compliance/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/compliance/multi-region.md
 /Users/jasonlee/Developer/source/oya/compliance/onboarding/compliance-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/compliance/packs/EU-AI-Act.md
@@ -4148,7 +4148,7 @@
 /Users/jasonlee/Developer/source/oya/connector/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/connector/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/connector/migration-playbooks/from-slack-connect-and-teams-external.md
-/Users/jasonlee/Developer/source/oya/connector/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/connector/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/connector/multi-region.md
 /Users/jasonlee/Developer/source/oya/connector/onboarding/federation-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/connector/operational-boundaries.md
@@ -4240,7 +4240,7 @@
 /Users/jasonlee/Developer/source/oya/consent-graph/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/consent-graph/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/consent-graph/migration-playbooks/from-onetrust-and-trustarc.md
-/Users/jasonlee/Developer/source/oya/consent-graph/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/consent-graph/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/consent-graph/multi-region.md
 /Users/jasonlee/Developer/source/oya/consent-graph/onboarding/data-steward-first-week.md
 /Users/jasonlee/Developer/source/oya/consent-graph/partnership-onboarding.md
@@ -4317,7 +4317,7 @@
 /Users/jasonlee/Developer/source/oya/contact-center/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/contact-center/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/contact-center/migration-playbooks/from-genesys.md
-/Users/jasonlee/Developer/source/oya/contact-center/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/contact-center/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/contact-center/multi-region.md
 /Users/jasonlee/Developer/source/oya/contact-center/onboarding/contact-center-admin-first-week.md
 /Users/jasonlee/Developer/source/oya/contact-center/performance-benchmark-numbers-2026-05-20.md
@@ -4436,7 +4436,7 @@
 /Users/jasonlee/Developer/source/oya/contract-lifecycle-management/migration-playbooks/from-conga-clm.md
 /Users/jasonlee/Developer/source/oya/contract-lifecycle-management/migration-playbooks/from-docusign-clm.md
 /Users/jasonlee/Developer/source/oya/contract-lifecycle-management/migration-playbooks/from-ironclad.md
-/Users/jasonlee/Developer/source/oya/contract-lifecycle-management/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/contract-lifecycle-management/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/contract-lifecycle-management/multi-region.md
 /Users/jasonlee/Developer/source/oya/contract-lifecycle-management/onboarding/legal-ops-first-week.md
 /Users/jasonlee/Developer/source/oya/contract-lifecycle-management/packs/eidas/README.md
@@ -4529,7 +4529,7 @@
 /Users/jasonlee/Developer/source/oya/crm/migration-playbooks/from-hubspot-sales-hub.md
 /Users/jasonlee/Developer/source/oya/crm/migration-playbooks/from-microsoft-dynamics-365-ce.md
 /Users/jasonlee/Developer/source/oya/crm/migration-playbooks/from-salesforce-sales-cloud.md
-/Users/jasonlee/Developer/source/oya/crm/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/crm/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/crm/multi-region.md
 /Users/jasonlee/Developer/source/oya/crm/performance-benchmark-numbers-2026-05-20.md
 /Users/jasonlee/Developer/source/oya/crm/PHASE-01-CRM-PARITY.md
@@ -4615,7 +4615,7 @@
 /Users/jasonlee/Developer/source/oya/data-pipeline/IP-VALIDATE-empirical-numbers.md
 /Users/jasonlee/Developer/source/oya/data-pipeline/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/data-pipeline/IPs/IP-WAVE-15-ZD-sharding-automation.md
-/Users/jasonlee/Developer/source/oya/data-pipeline/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/data-pipeline/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/data-pipeline/multi-region.md
 /Users/jasonlee/Developer/source/oya/data-pipeline/performance-benchmark-numbers-2026-05-20.md
 /Users/jasonlee/Developer/source/oya/data-pipeline/PHASE-01-DATA-PIPELINE-OPERATING-BAR.md
@@ -4718,7 +4718,7 @@
 /Users/jasonlee/Developer/source/oya/data-warehouse/migration-playbooks/from-bigquery.md
 /Users/jasonlee/Developer/source/oya/data-warehouse/migration-playbooks/from-redshift.md
 /Users/jasonlee/Developer/source/oya/data-warehouse/migration-playbooks/from-snowflake.md
-/Users/jasonlee/Developer/source/oya/data-warehouse/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/data-warehouse/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/data-warehouse/multi-region.md
 /Users/jasonlee/Developer/source/oya/data-warehouse/performance-benchmark-numbers-2026-05-20.md
 /Users/jasonlee/Developer/source/oya/data-warehouse/PHASE-01-DATA-WAREHOUSE-OPERATING-BAR.md
@@ -4799,7 +4799,7 @@
 /Users/jasonlee/Developer/source/oya/design-collaboration/IP-030-review-comment-resolution-ledger.md
 /Users/jasonlee/Developer/source/oya/design-collaboration/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/design-collaboration/IPs/IP-WAVE-15-ZD-sharding-automation.md
-/Users/jasonlee/Developer/source/oya/design-collaboration/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/design-collaboration/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/design-collaboration/multi-region.md
 /Users/jasonlee/Developer/source/oya/design-collaboration/performance-benchmark-numbers-2026-05-20.md
 /Users/jasonlee/Developer/source/oya/design-collaboration/PHASE-01-DESIGN-COLLABORATION-OPERATING-BAR.md
@@ -4886,7 +4886,7 @@
 /Users/jasonlee/Developer/source/oya/detection/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/detection/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/detection/migration-playbooks/from-stripe-radar-and-sift.md
-/Users/jasonlee/Developer/source/oya/detection/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/detection/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/detection/multi-region.md
 /Users/jasonlee/Developer/source/oya/detection/onboarding/detection-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/detection/performance-benchmark-numbers-2026-05-20.md
@@ -4966,7 +4966,7 @@
 /Users/jasonlee/Developer/source/oya/developer-sdk/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/developer-sdk/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/developer-sdk/migration-playbooks/from-stripe-and-twilio-sdks.md
-/Users/jasonlee/Developer/source/oya/developer-sdk/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/developer-sdk/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/developer-sdk/multi-region.md
 /Users/jasonlee/Developer/source/oya/developer-sdk/onboarding/sdk-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/developer-sdk/performance-bench.md
@@ -5012,7 +5012,7 @@
 /Users/jasonlee/Developer/source/oya/diagnostics/implementation-plans/IP-010-pack-overlay-and-migration.md
 /Users/jasonlee/Developer/source/oya/diagnostics/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/diagnostics/IPs/IP-WAVE-15-ZD-sharding-automation.md
-/Users/jasonlee/Developer/source/oya/diagnostics/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/diagnostics/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/diagnostics/PRD.md
 /Users/jasonlee/Developer/source/oya/diagnostics/README.md
 /Users/jasonlee/Developer/source/oya/diagnostics/REMEDIATION-NOTES-2026-05-21.md
@@ -5080,7 +5080,7 @@
 /Users/jasonlee/Developer/source/oya/docs/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/docs/migration-from-connect.md
 /Users/jasonlee/Developer/source/oya/docs/migration-playbooks/from-google-docs-and-notion.md
-/Users/jasonlee/Developer/source/oya/docs/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/docs/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/docs/multi-region.md
 /Users/jasonlee/Developer/source/oya/docs/onboarding/docs-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/docs/performance-benchmark-numbers-2026-05-20.md
@@ -5198,7 +5198,7 @@
 /Users/jasonlee/Developer/source/oya/drive/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/drive/migration-from-connect.md
 /Users/jasonlee/Developer/source/oya/drive/migration-playbooks/from-google-drive.md
-/Users/jasonlee/Developer/source/oya/drive/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/drive/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/drive/multi-region.md
 /Users/jasonlee/Developer/source/oya/drive/onboarding/drive-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/drive/packs/EU-AI-Act.md
@@ -5255,7 +5255,7 @@
 /Users/jasonlee/Developer/source/oya/emergency/implementation-plans/IP-010-disaster-response-cell-promotion.md
 /Users/jasonlee/Developer/source/oya/emergency/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/emergency/IPs/IP-WAVE-15-ZD-sharding-automation.md
-/Users/jasonlee/Developer/source/oya/emergency/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/emergency/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/emergency/PRD.md
 /Users/jasonlee/Developer/source/oya/emergency/README.md
 /Users/jasonlee/Developer/source/oya/emergency/REMEDIATION-NOTES-2026-05-21.md
@@ -5285,7 +5285,7 @@
 /Users/jasonlee/Developer/source/oya/emr/implementation-plans/IP-010-app-composition-deploy.md
 /Users/jasonlee/Developer/source/oya/emr/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/emr/IPs/IP-WAVE-15-ZD-sharding-automation.md
-/Users/jasonlee/Developer/source/oya/emr/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/emr/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/emr/PRD.md
 /Users/jasonlee/Developer/source/oya/emr/README.md
 /Users/jasonlee/Developer/source/oya/emr/REMEDIATION-NOTES-2026-05-21.md
@@ -5354,7 +5354,7 @@
 /Users/jasonlee/Developer/source/oya/feature-flags/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/feature-flags/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/feature-flags/migration-playbooks/from-launchdarkly.md
-/Users/jasonlee/Developer/source/oya/feature-flags/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/feature-flags/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/feature-flags/multi-region.md
 /Users/jasonlee/Developer/source/oya/feature-flags/onboarding/engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/feature-flags/operational-boundaries.md
@@ -5430,7 +5430,7 @@
 /Users/jasonlee/Developer/source/oya/financial-planning/IP-030-planful-driver-import-displacement.md
 /Users/jasonlee/Developer/source/oya/financial-planning/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/financial-planning/IPs/IP-WAVE-15-ZD-sharding-automation.md
-/Users/jasonlee/Developer/source/oya/financial-planning/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/financial-planning/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/financial-planning/multi-region.md
 /Users/jasonlee/Developer/source/oya/financial-planning/performance-benchmark-numbers-2026-05-20.md
 /Users/jasonlee/Developer/source/oya/financial-planning/PHASE-01-FINANCIAL-PLANNING-OPERATING-BAR.md
@@ -5550,7 +5550,7 @@
 /Users/jasonlee/Developer/source/oya/finops-portal/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/finops-portal/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/finops-portal/migration-playbooks/from-apptio-cloudability.md
-/Users/jasonlee/Developer/source/oya/finops-portal/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/finops-portal/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/finops-portal/multi-region-strategy.md
 /Users/jasonlee/Developer/source/oya/finops-portal/onboarding/finops-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/finops-portal/performance-benchmark-numbers-2026-05-20.md
@@ -5641,7 +5641,7 @@
 /Users/jasonlee/Developer/source/oya/forms/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/forms/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/forms/migration-playbooks/from-google-forms-and-typeform.md
-/Users/jasonlee/Developer/source/oya/forms/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/forms/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/forms/multi-region.md
 /Users/jasonlee/Developer/source/oya/forms/onboarding/forms-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/forms/performance-benchmark-numbers-2026-05-20.md
@@ -5711,7 +5711,7 @@
 /Users/jasonlee/Developer/source/oya/global-trade/IP-023-preferential-trade-agreement-origin-determination-logic.md
 /Users/jasonlee/Developer/source/oya/global-trade/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/global-trade/IPs/IP-WAVE-15-ZD-sharding-automation.md
-/Users/jasonlee/Developer/source/oya/global-trade/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/global-trade/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/global-trade/multi-region.md
 /Users/jasonlee/Developer/source/oya/global-trade/performance-benchmark-numbers-2026-05-20.md
 /Users/jasonlee/Developer/source/oya/global-trade/PHASE-01-GLOBAL-TRADE-PARITY.md
@@ -5793,7 +5793,7 @@
 /Users/jasonlee/Developer/source/oya/governance/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/governance/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/governance/migration-playbooks/from-drata.md
-/Users/jasonlee/Developer/source/oya/governance/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/governance/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/governance/multi-region.md
 /Users/jasonlee/Developer/source/oya/governance/onboarding/governance-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/governance/PHASE-01-CI-FITNESS-CONSOLIDATION.md
@@ -5873,7 +5873,7 @@
 /Users/jasonlee/Developer/source/oya/healthcare-integration/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/healthcare-integration/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/healthcare-integration/migration-playbooks/from-redox.md
-/Users/jasonlee/Developer/source/oya/healthcare-integration/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/healthcare-integration/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/healthcare-integration/multi-region.md
 /Users/jasonlee/Developer/source/oya/healthcare-integration/onboarding/clinical-integrator-first-week.md
 /Users/jasonlee/Developer/source/oya/healthcare-integration/performance-benchmark-numbers-2026-05-20.md
@@ -6076,7 +6076,7 @@
 /Users/jasonlee/Developer/source/oya/identity/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/identity/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/identity/migration-playbooks/from-okta.md
-/Users/jasonlee/Developer/source/oya/identity/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/identity/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/identity/multi-region.md
 /Users/jasonlee/Developer/source/oya/identity/onboarding/identity-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/identity/performance-benchmark-numbers-2026-05-20.md
@@ -6138,7 +6138,7 @@
 /Users/jasonlee/Developer/source/oya/imaging/implementation-plans/IP-015-mammography-dose-ihe-rem.md
 /Users/jasonlee/Developer/source/oya/imaging/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/imaging/IPs/IP-WAVE-15-ZD-sharding-automation.md
-/Users/jasonlee/Developer/source/oya/imaging/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/imaging/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/imaging/PRD.md
 /Users/jasonlee/Developer/source/oya/imaging/README.md
 /Users/jasonlee/Developer/source/oya/imaging/REMEDIATION-NOTES-2026-05-21.md
@@ -6198,7 +6198,7 @@
 /Users/jasonlee/Developer/source/oya/incident-management/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/incident-management/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/incident-management/migration-playbooks/from-pagerduty.md
-/Users/jasonlee/Developer/source/oya/incident-management/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/incident-management/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/incident-management/multi-region.md
 /Users/jasonlee/Developer/source/oya/incident-management/onboarding/incident-commander-first-week.md
 /Users/jasonlee/Developer/source/oya/incident-management/performance-benchmark-numbers-2026-05-20.md
@@ -6256,7 +6256,7 @@
 /Users/jasonlee/Developer/source/oya/intelligence/_legacy-foundry/IP-journey-j98-au-privacy-apra-cps234.md
 /Users/jasonlee/Developer/source/oya/intelligence/_legacy-foundry/IP-journey-j99-multi-pack-conflict-resolution.md
 /Users/jasonlee/Developer/source/oya/intelligence/_legacy-foundry/IPs/IP-ADR-0339-Shared-IaC-Modules.md
-/Users/jasonlee/Developer/source/oya/intelligence/_legacy-foundry/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/intelligence/_legacy-foundry/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/intelligence/_legacy-foundry/multi-region.md
 /Users/jasonlee/Developer/source/oya/intelligence/_legacy-foundry/PRD.md
 /Users/jasonlee/Developer/source/oya/intelligence/_legacy-foundry/README.md
@@ -6543,7 +6543,7 @@
 /Users/jasonlee/Developer/source/oya/intelligence/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/intelligence/migration-playbooks/from-github-merge-queue-and-bors.md
 /Users/jasonlee/Developer/source/oya/intelligence/migration-playbooks/from-openai-enterprise.md
-/Users/jasonlee/Developer/source/oya/intelligence/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/intelligence/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/intelligence/multi-region.md
 /Users/jasonlee/Developer/source/oya/intelligence/onboarding/ai-platform-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/intelligence/onboarding/pipeline-engineer-first-week.md
@@ -6723,7 +6723,7 @@
 /Users/jasonlee/Developer/source/oya/itsm/migration-playbooks/from-jira-service-management.md
 /Users/jasonlee/Developer/source/oya/itsm/migration-playbooks/from-servicenow-itsm.md
 /Users/jasonlee/Developer/source/oya/itsm/migration-playbooks/from-servicenow.md
-/Users/jasonlee/Developer/source/oya/itsm/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/itsm/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/itsm/multi-region.md
 /Users/jasonlee/Developer/source/oya/itsm/onboarding/itsm-admin-first-week.md
 /Users/jasonlee/Developer/source/oya/itsm/performance-benchmark-numbers-2026-05-20.md
@@ -6808,7 +6808,7 @@
 /Users/jasonlee/Developer/source/oya/learning-management/IP-030-credential-expiry-renewal-orchestrator.md
 /Users/jasonlee/Developer/source/oya/learning-management/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/learning-management/IPs/IP-WAVE-15-ZD-sharding-automation.md
-/Users/jasonlee/Developer/source/oya/learning-management/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/learning-management/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/learning-management/multi-region.md
 /Users/jasonlee/Developer/source/oya/learning-management/performance-benchmark-numbers-2026-05-20.md
 /Users/jasonlee/Developer/source/oya/learning-management/PHASE-01-LEARNING-MANAGEMENT-OPERATING-BAR.md
@@ -6963,7 +6963,7 @@
 /Users/jasonlee/Developer/source/oya/mail/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/mail/migration-from-connect.md
 /Users/jasonlee/Developer/source/oya/mail/migration-playbooks/from-gmail-workspace.md
-/Users/jasonlee/Developer/source/oya/mail/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/mail/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/mail/multi-region.md
 /Users/jasonlee/Developer/source/oya/mail/onboarding/mail-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/mail/packs/EU-AI-Act.md
@@ -7069,7 +7069,7 @@
 /Users/jasonlee/Developer/source/oya/marketing-automation/IP-055-chatflow.md
 /Users/jasonlee/Developer/source/oya/marketing-automation/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/marketing-automation/IPs/IP-WAVE-15-ZD-sharding-automation.md
-/Users/jasonlee/Developer/source/oya/marketing-automation/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/marketing-automation/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/marketing-automation/multi-region.md
 /Users/jasonlee/Developer/source/oya/marketing-automation/performance-benchmark-numbers-2026-05-20.md
 /Users/jasonlee/Developer/source/oya/marketing-automation/PHASE-01-MARKETING-AUTOMATION-OPERATING-BAR.md
@@ -7173,7 +7173,7 @@
 /Users/jasonlee/Developer/source/oya/marketplace/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/marketplace/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/marketplace/migration-playbooks/from-stripe-connect.md
-/Users/jasonlee/Developer/source/oya/marketplace/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/marketplace/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/marketplace/multi-region.md
 /Users/jasonlee/Developer/source/oya/marketplace/onboarding/marketplace-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/marketplace/performance-benchmark-numbers-2026-05-20.md
@@ -7265,7 +7265,7 @@
 /Users/jasonlee/Developer/source/oya/meet/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/meet/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/meet/migration-playbooks/from-zoom-and-google-meet.md
-/Users/jasonlee/Developer/source/oya/meet/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/meet/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/meet/multi-region.md
 /Users/jasonlee/Developer/source/oya/meet/onboarding/realtime-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/meet/performance-benchmark-numbers-2026-05-20.md
@@ -7389,7 +7389,7 @@
 /Users/jasonlee/Developer/source/oya/messenger/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/messenger/migration-from-connect.md
 /Users/jasonlee/Developer/source/oya/messenger/migration-playbooks/from-slack.md
-/Users/jasonlee/Developer/source/oya/messenger/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/messenger/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/messenger/multi-region.md
 /Users/jasonlee/Developer/source/oya/messenger/onboarding/messenger-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/messenger/performance-benchmark-numbers-2026-05-20.md
@@ -7497,7 +7497,7 @@
 /Users/jasonlee/Developer/source/oya/notes/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/notes/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/notes/migration-playbooks/from-notion-and-roam-and-obsidian.md
-/Users/jasonlee/Developer/source/oya/notes/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/notes/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/notes/multi-region.md
 /Users/jasonlee/Developer/source/oya/notes/onboarding/notes-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/notes/performance-benchmark-numbers-2026-05-20.md
@@ -7634,7 +7634,7 @@
 /Users/jasonlee/Developer/source/oya/observability/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/observability/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/observability/migration-playbooks/from-datadog.md
-/Users/jasonlee/Developer/source/oya/observability/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/observability/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/observability/multi-region.md
 /Users/jasonlee/Developer/source/oya/observability/onboarding/sre-lead-first-week.md
 /Users/jasonlee/Developer/source/oya/observability/packs/EU-AI-Act.md
@@ -7747,7 +7747,7 @@
 /Users/jasonlee/Developer/source/oya/ontology/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/ontology/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/ontology/migration-playbooks/from-palantir-foundry.md
-/Users/jasonlee/Developer/source/oya/ontology/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/ontology/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/ontology/multi-region.md
 /Users/jasonlee/Developer/source/oya/ontology/onboarding/ontology-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/ontology/PHASE-01-TYPED-ENTITY-SUBSTRATE.md
@@ -7840,7 +7840,7 @@
 /Users/jasonlee/Developer/source/oya/ops-dashboard-control-center/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/ops-dashboard-control-center/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/ops-dashboard-control-center/migration-playbooks/from-pagerduty-and-incident-io-and-servicenow-itsm.md
-/Users/jasonlee/Developer/source/oya/ops-dashboard-control-center/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/ops-dashboard-control-center/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/ops-dashboard-control-center/multi-region.md
 /Users/jasonlee/Developer/source/oya/ops-dashboard-control-center/onboarding/sre-on-call-first-week.md
 /Users/jasonlee/Developer/source/oya/ops-dashboard-control-center/operational-boundaries.md
@@ -7905,7 +7905,7 @@
 /Users/jasonlee/Developer/source/oya/patient-monitoring/implementation-plans/IP-010-icu-bundle-compliance.md
 /Users/jasonlee/Developer/source/oya/patient-monitoring/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/patient-monitoring/IPs/IP-WAVE-15-ZD-sharding-automation.md
-/Users/jasonlee/Developer/source/oya/patient-monitoring/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/patient-monitoring/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/patient-monitoring/PRD.md
 /Users/jasonlee/Developer/source/oya/patient-monitoring/README.md
 /Users/jasonlee/Developer/source/oya/patient-monitoring/REMEDIATION-NOTES-2026-05-21.md
@@ -8031,7 +8031,7 @@
 /Users/jasonlee/Developer/source/oya/payments/migration-playbooks/from-braintree.md
 /Users/jasonlee/Developer/source/oya/payments/migration-playbooks/from-checkout-com.md
 /Users/jasonlee/Developer/source/oya/payments/migration-playbooks/from-stripe.md
-/Users/jasonlee/Developer/source/oya/payments/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/payments/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/payments/multi-region.md
 /Users/jasonlee/Developer/source/oya/payments/onboarding/payments-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/payments/performance-benchmark-numbers-2026-05-20.md
@@ -8122,7 +8122,7 @@
 /Users/jasonlee/Developer/source/oya/performance-management/IP-030-compensation-readiness-handoff.md
 /Users/jasonlee/Developer/source/oya/performance-management/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/performance-management/IPs/IP-WAVE-15-ZD-sharding-automation.md
-/Users/jasonlee/Developer/source/oya/performance-management/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/performance-management/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/performance-management/multi-region.md
 /Users/jasonlee/Developer/source/oya/performance-management/performance-benchmark-numbers-2026-05-20.md
 /Users/jasonlee/Developer/source/oya/performance-management/PHASE-01-PERFORMANCE-MANAGEMENT-OPERATING-BAR.md
@@ -8176,7 +8176,7 @@
 /Users/jasonlee/Developer/source/oya/pharmacy/implementation-plans/IP-010-reimbursement-340b-pbm.md
 /Users/jasonlee/Developer/source/oya/pharmacy/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/pharmacy/IPs/IP-WAVE-15-ZD-sharding-automation.md
-/Users/jasonlee/Developer/source/oya/pharmacy/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/pharmacy/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/pharmacy/PRD.md
 /Users/jasonlee/Developer/source/oya/pharmacy/README.md
 /Users/jasonlee/Developer/source/oya/pharmacy/REMEDIATION-NOTES-2026-05-21.md
@@ -8228,7 +8228,7 @@
 /Users/jasonlee/Developer/source/oya/plant-maintenance/IP-025-equipment-hierarchy-class-characteristic-schema-and-relocation.md
 /Users/jasonlee/Developer/source/oya/plant-maintenance/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/plant-maintenance/IPs/IP-WAVE-15-ZD-sharding-automation.md
-/Users/jasonlee/Developer/source/oya/plant-maintenance/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/plant-maintenance/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/plant-maintenance/multi-region.md
 /Users/jasonlee/Developer/source/oya/plant-maintenance/performance-benchmark-numbers-2026-05-20.md
 /Users/jasonlee/Developer/source/oya/plant-maintenance/PHASE-01-PLANT-MAINTENANCE-PARITY.md
@@ -8313,7 +8313,7 @@
 /Users/jasonlee/Developer/source/oya/plugin-app-store/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/plugin-app-store/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/plugin-app-store/migration-playbooks/from-salesforce-appexchange.md
-/Users/jasonlee/Developer/source/oya/plugin-app-store/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/plugin-app-store/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/plugin-app-store/multi-region.md
 /Users/jasonlee/Developer/source/oya/plugin-app-store/onboarding/marketplace-publisher-first-week.md
 /Users/jasonlee/Developer/source/oya/plugin-app-store/performance-bench.md
@@ -8384,7 +8384,7 @@
 /Users/jasonlee/Developer/source/oya/production-planning/IP-025-production-line-balancing-takt-time-workstation-load-smoothing.md
 /Users/jasonlee/Developer/source/oya/production-planning/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/production-planning/IPs/IP-WAVE-15-ZD-sharding-automation.md
-/Users/jasonlee/Developer/source/oya/production-planning/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/production-planning/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/production-planning/multi-region.md
 /Users/jasonlee/Developer/source/oya/production-planning/performance-benchmark-numbers-2026-05-20.md
 /Users/jasonlee/Developer/source/oya/production-planning/PHASE-01-PRODUCTION-PLANNING-PARITY.md
@@ -8447,7 +8447,7 @@
 /Users/jasonlee/Developer/source/oya/quality-management/IP-025-fmea-workspace-with-rpn-scoring.md
 /Users/jasonlee/Developer/source/oya/quality-management/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/quality-management/IPs/IP-WAVE-15-ZD-sharding-automation.md
-/Users/jasonlee/Developer/source/oya/quality-management/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/quality-management/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/quality-management/multi-region.md
 /Users/jasonlee/Developer/source/oya/quality-management/performance-benchmark-numbers-2026-05-20.md
 /Users/jasonlee/Developer/source/oya/quality-management/PHASE-01-QUALITY-MANAGEMENT-PARITY.md
@@ -8510,7 +8510,7 @@
 /Users/jasonlee/Developer/source/oya/real-estate/IP-025-portfolio-analytics-dashboard.md
 /Users/jasonlee/Developer/source/oya/real-estate/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/real-estate/IPs/IP-WAVE-15-ZD-sharding-automation.md
-/Users/jasonlee/Developer/source/oya/real-estate/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/real-estate/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/real-estate/multi-region.md
 /Users/jasonlee/Developer/source/oya/real-estate/performance-benchmark-numbers-2026-05-20.md
 /Users/jasonlee/Developer/source/oya/real-estate/PHASE-01-REAL-ESTATE-PARITY.md
@@ -8591,7 +8591,7 @@
 /Users/jasonlee/Developer/source/oya/recordings/legal/transfer-register.md
 /Users/jasonlee/Developer/source/oya/recordings/migration-from-connect.md
 /Users/jasonlee/Developer/source/oya/recordings/migration-playbooks/from-zoom-cloud-recordings.md
-/Users/jasonlee/Developer/source/oya/recordings/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/recordings/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/recordings/multi-region.md
 /Users/jasonlee/Developer/source/oya/recordings/onboarding/compliance-officer-first-week.md
 /Users/jasonlee/Developer/source/oya/recordings/performance-benchmark-numbers-2026-05-20.md
@@ -8671,7 +8671,7 @@
 /Users/jasonlee/Developer/source/oya/sheets/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/sheets/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/sheets/migration-playbooks/from-google-sheets-and-airtable.md
-/Users/jasonlee/Developer/source/oya/sheets/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/sheets/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/sheets/multi-region.md
 /Users/jasonlee/Developer/source/oya/sheets/onboarding/sheets-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/sheets/performance-benchmark-numbers-2026-05-20.md
@@ -8753,7 +8753,7 @@
 /Users/jasonlee/Developer/source/oya/sites/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/sites/migration-from-connect.md
 /Users/jasonlee/Developer/source/oya/sites/migration-playbooks/from-webflow-wix-business-and-wordpress.md
-/Users/jasonlee/Developer/source/oya/sites/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/sites/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/sites/multi-region.md
 /Users/jasonlee/Developer/source/oya/sites/onboarding/sites-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/sites/performance-benchmark-numbers-2026-05-20.md
@@ -8835,7 +8835,7 @@
 /Users/jasonlee/Developer/source/oya/slides/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/slides/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/slides/migration-playbooks/from-google-slides-and-powerpoint.md
-/Users/jasonlee/Developer/source/oya/slides/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/slides/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/slides/multi-region.md
 /Users/jasonlee/Developer/source/oya/slides/onboarding/slides-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/slides/performance-benchmark-numbers-2026-05-20.md
@@ -8919,7 +8919,7 @@
 /Users/jasonlee/Developer/source/oya/social/IP-journey-j99-multi-pack-conflict-resolution.md
 /Users/jasonlee/Developer/source/oya/social/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/social/IPs/IP-WAVE-15-ZD-sharding-automation.md
-/Users/jasonlee/Developer/source/oya/social/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/social/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/social/multi-region.md
 /Users/jasonlee/Developer/source/oya/social/performance-benchmark-numbers-2026-05-20.md
 /Users/jasonlee/Developer/source/oya/social/PHASE-01-SOCIAL-FOUNDATION.md
@@ -8987,7 +8987,7 @@
 /Users/jasonlee/Developer/source/oya/supply-chain-planning/IP-023-constraint-based-supply-heuristic.md
 /Users/jasonlee/Developer/source/oya/supply-chain-planning/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/supply-chain-planning/IPs/IP-WAVE-15-ZD-sharding-automation.md
-/Users/jasonlee/Developer/source/oya/supply-chain-planning/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/supply-chain-planning/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/supply-chain-planning/multi-region.md
 /Users/jasonlee/Developer/source/oya/supply-chain-planning/performance-benchmark-numbers-2026-05-20.md
 /Users/jasonlee/Developer/source/oya/supply-chain-planning/PHASE-01-SUPPLY-CHAIN-PLANNING-PARITY.md
@@ -9063,7 +9063,7 @@
 /Users/jasonlee/Developer/source/oya/tasks/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/tasks/migration-from-connect.md
 /Users/jasonlee/Developer/source/oya/tasks/migration-playbooks/from-jira-cloud.md
-/Users/jasonlee/Developer/source/oya/tasks/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/tasks/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/tasks/multi-region.md
 /Users/jasonlee/Developer/source/oya/tasks/onboarding/engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/tasks/performance-benchmark-numbers-2026-05-20.md
@@ -9139,7 +9139,7 @@
 /Users/jasonlee/Developer/source/oya/translate/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/translate/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/translate/migration-playbooks/from-smartling.md
-/Users/jasonlee/Developer/source/oya/translate/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/translate/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/translate/multi-region.md
 /Users/jasonlee/Developer/source/oya/translate/onboarding/engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/translate/PHASE-01-TRANSLATE-PLATFORM.md
@@ -9205,7 +9205,7 @@
 /Users/jasonlee/Developer/source/oya/treasury/IP-025-payment-factory-routing.md
 /Users/jasonlee/Developer/source/oya/treasury/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/treasury/IPs/IP-WAVE-15-ZD-sharding-automation.md
-/Users/jasonlee/Developer/source/oya/treasury/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/treasury/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/treasury/multi-region.md
 /Users/jasonlee/Developer/source/oya/treasury/performance-benchmark-numbers-2026-05-20.md
 /Users/jasonlee/Developer/source/oya/treasury/PHASE-01-TREASURY-PARITY.md
@@ -9268,7 +9268,7 @@
 /Users/jasonlee/Developer/source/oya/warehouse/IP-025-bin-replenishment-trigger-logic.md
 /Users/jasonlee/Developer/source/oya/warehouse/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/warehouse/IPs/IP-WAVE-15-ZD-sharding-automation.md
-/Users/jasonlee/Developer/source/oya/warehouse/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/warehouse/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/warehouse/multi-region.md
 /Users/jasonlee/Developer/source/oya/warehouse/performance-benchmark-numbers-2026-05-20.md
 /Users/jasonlee/Developer/source/oya/warehouse/PHASE-01-WAREHOUSE-PARITY.md
@@ -9335,7 +9335,7 @@
 /Users/jasonlee/Developer/source/oya/whiteboard/IP-030-cross-board-template-marketplace-review.md
 /Users/jasonlee/Developer/source/oya/whiteboard/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/whiteboard/IPs/IP-WAVE-15-ZD-sharding-automation.md
-/Users/jasonlee/Developer/source/oya/whiteboard/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/whiteboard/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/whiteboard/multi-region.md
 /Users/jasonlee/Developer/source/oya/whiteboard/performance-benchmark-numbers-2026-05-20.md
 /Users/jasonlee/Developer/source/oya/whiteboard/PHASE-01-WHITEBOARD-OPERATING-BAR.md
@@ -9501,7 +9501,7 @@
 /Users/jasonlee/Developer/source/oya/workflow-engine/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/workflow-engine/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/workflow-engine/migration-playbooks/from-temporal-cloud.md
-/Users/jasonlee/Developer/source/oya/workflow-engine/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/workflow-engine/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/workflow-engine/multi-region.md
 /Users/jasonlee/Developer/source/oya/workflow-engine/onboarding/workflow-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/workflow-engine/performance-benchmark-numbers-2026-05-20.md
@@ -9596,7 +9596,7 @@
 /Users/jasonlee/Developer/source/oya/workflow-studio/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/workflow-studio/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/workflow-studio/migration-playbooks/from-n8n.md
-/Users/jasonlee/Developer/source/oya/workflow-studio/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/workflow-studio/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/workflow-studio/multi-region.md
 /Users/jasonlee/Developer/source/oya/workflow-studio/onboarding/no-code-builder-first-week.md
 /Users/jasonlee/Developer/source/oya/workflow-studio/PHASE-01-VISUAL-AUTHORING-SUBSTRATE.md
@@ -9714,7 +9714,7 @@
 /Users/jasonlee/Developer/source/oya/workplace-integration/IPs/IP-ADR-0339-Shared-IaC-Modules.md
 /Users/jasonlee/Developer/source/oya/workplace-integration/IPs/IP-WAVE-15-ZD-sharding-automation.md
 /Users/jasonlee/Developer/source/oya/workplace-integration/migration-playbooks/from-rippling-and-gusto.md
-/Users/jasonlee/Developer/source/oya/workplace-integration/migration-playbooks/wave-15-zd-adr-0346-0348-0515-migration-playbook.md
+/Users/jasonlee/Developer/source/oya/workplace-integration/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md
 /Users/jasonlee/Developer/source/oya/workplace-integration/multi-region.md
 /Users/jasonlee/Developer/source/oya/workplace-integration/onboarding/hris-engineer-first-week.md
 /Users/jasonlee/Developer/source/oya/workplace-integration/performance-benchmark-numbers-2026-05-20.md

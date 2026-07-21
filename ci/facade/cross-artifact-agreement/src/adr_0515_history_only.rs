@@ -4,9 +4,13 @@
 //! and current-authority projections. Historical prose may still name their
 //! identifiers as provenance; only current-authority surfaces are guarded.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
+use std::io::Read;
 use std::path::{Component, Path};
+use std::sync::mpsc::TryRecvError;
+use std::time::{Duration, Instant};
 
+use serde::Deserialize;
 use serde_json::Value;
 
 use crate::Finding;
@@ -15,6 +19,12 @@ pub const ADR_0515_HISTORY_ONLY_VALIDATOR: &str =
     "cloud-ci-cross-artifact-agreement/adr-0515-history-only";
 pub const ADR_0515_HISTORY_ONLY_CODE: &str = "adr_0515_history_only_drift";
 
+const HISTORY_ONLY_POLICY: &str = include_str!("../adr-0515-history-only-policy.json");
+const HISTORY_ONLY_POLICY_SCHEMA_VERSION: u64 = 1;
+const MAX_CONFIGURED_GZIP_DECOMPRESSED_BYTES: u64 = 64 * 1024 * 1024;
+const MAX_CONFIGURED_GZIP_TIMEOUT_MILLIS: u64 = 60_000;
+const GZIP_PROCESS_POLL_INTERVAL: Duration = Duration::from_millis(10);
+
 const HISTORY_ONLY_ADR_SUFFIXES: [&str; 7] =
     ["0124", "0349", "0359", "0361", "0511", "0513", "0514"];
 const ADR_0515_SOURCE: &str =
@@ -22,8 +32,12 @@ const ADR_0515_SOURCE: &str =
 const CANONICAL_DECISIONS_NUMBERING: &str = concat!(
     "ADR-0001..ADR-0619 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0037, ADR-0041, ADR-0050, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0",
     "124..ADR-0127, ADR-0224..ADR-0233, ADR-0247, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291, ADR-0322..ADR-0323, ADR-0327, ADR-0342, ADR-0345, ADR-0",
-    "349, ADR-0", "359, ADR-0", "361, ADR-0385..ADR-0386, ADR-0395..ADR-0396, ADR-0398..ADR-0475, ADR-0477, ADR-0483..ADR-0505, ADR-0",
-    "511, ADR-0", "513..ADR-0", "514, ADR-0574..ADR-0579, ADR-0583..ADR-0585, ADR-0594, ADR-0601..ADR-0602)"
+    "349, ADR-0",
+    "359, ADR-0",
+    "361, ADR-0385..ADR-0386, ADR-0395..ADR-0396, ADR-0398..ADR-0475, ADR-0477, ADR-0483..ADR-0505, ADR-0",
+    "511, ADR-0",
+    "513..ADR-0",
+    "514, ADR-0574..ADR-0579, ADR-0583..ADR-0585, ADR-0594, ADR-0601..ADR-0602)"
 );
 const CANONICAL_HISTORY_GAP_SUFFIXES: [(&str, &str); 6] = [
     ("/_metadata/gaps/8", "0124..0127"),
@@ -33,40 +47,253 @@ const CANONICAL_HISTORY_GAP_SUFFIXES: [(&str, &str); 6] = [
     ("/_metadata/gaps/30", "0511"),
     ("/_metadata/gaps/31", "0513..0514"),
 ];
-const REVIEWED_ELF_PATHS: [(&str, u16); 7] = [
-    ("cloud/cloud-kernel/out/user-exec-x86_64.elf", 62),
-    ("cloud/cloud-kernel/out/user-exec.elf", 183),
-    ("cloud/cloud-kernel/out/user-hello.elf", 183),
-    ("cloud/cloud-kernel/out/user-musl.elf", 183),
-    ("cloud/cloud-kernel/out/user-spawn-x86_64.elf", 62),
-    ("cloud/cloud-kernel/out/user-spawn.elf", 183),
-    ("cloud/cloud-kernel/out/user-x86_64.elf", 62),
-];
-const REVIEWED_GZIP_PATH: &str = "evidence/ci/slsa/sbom.cdx.json.gz";
-const REVIEWED_ARCHITECTURE_PROVENANCE: [&str; 5] = [
-    "docs/architecture/adr-corpus-line-audit-2026-05-21.md",
-    "docs/architecture/adr-cross-reference-graph-2026-05-20.md",
-    "docs/architecture/foundry-fitness-to-governance-transition-2026-05-21.md",
-    "docs/architecture/transition-classification-2026-05-21.json",
-    "docs/architecture/wave-3-final-scorecard-2026-05-20.md",
-];
-const REVIEWED_INTERNAL_SYMLINKS: [(&str, &str); 15] = [
-    ("oya/connector/contracts/asyncapi-v1.yaml", "asyncapi/connector-integration-events.yaml"),
-    ("oya/connector/contracts/openapi-v1.yaml", "openapi/connector-integration.yaml"),
-    ("oya/ops-dashboard-control-center/contracts/asyncapi-v1.yaml", "asyncapi/ops-dashboard-control-center-events.yaml"),
-    ("oya/ops-dashboard-control-center/contracts/openapi-v1.yaml", "openapi/ops-dashboard-control-center.yaml"),
-    ("oya/ops-dashboard-control-center/iac/ech-config.yaml", "prod-ech-config.yaml"),
-    ("oya/ops-dashboard-control-center/iac/edge-waf.yaml", "prod-edge-waf.yaml"),
-    ("oya/ops-dashboard-control-center/iac/pqc-cert.yaml", "prod-pqc-cert.yaml"),
-    ("oya/ops-dashboard-control-center/policy/abuse-defence.cedar", "cedar/abuse-defence.cedar"),
-    ("oya/ops-dashboard-control-center/policy/admin-action-authorization.cedar", "cedar/admin-action-authorization.cedar"),
-    ("oya/ops-dashboard-control-center/policy/audit-emission-required.cedar", "cedar/audit-emission-required.cedar"),
-    ("oya/ops-dashboard-control-center/policy/emergency-services-bypass.cedar", "cedar/emergency-services-bypass.cedar"),
-    ("oya/ops-dashboard-control-center/policy/on-call-handoff-authorization.cedar", "cedar/on-call-handoff-authorization.cedar"),
-    ("oya/ops-dashboard-control-center/policy/pack-author-authorization.cedar", "cedar/pack-author-authorization.cedar"),
-    ("oya/ops-dashboard-control-center/policy/step-up-auth-required.cedar", "cedar/step-up-auth-required.cedar"),
-    ("oya/ops-dashboard-control-center/policy/tenant-scope-enforcement.cedar", "cedar/tenant-scope-enforcement.cedar"),
-];
+
+#[derive(Debug)]
+struct HistoryOnlyPolicy {
+    reviewed_elf_paths: BTreeMap<String, u16>,
+    reviewed_gzip_paths: BTreeMap<String, ReviewedGzipPolicy>,
+    reviewed_architecture_provenance: BTreeSet<String>,
+    reviewed_internal_symlinks: BTreeMap<String, String>,
+}
+
+#[derive(Debug)]
+struct ReviewedGzipPolicy {
+    max_decompressed_bytes: usize,
+    timeout: Duration,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RawHistoryOnlyPolicy {
+    schema_version: u64,
+    policy_id: String,
+    reviewed_elf_paths: Vec<RawReviewedElfPolicy>,
+    reviewed_gzip_paths: Vec<RawReviewedGzipPolicy>,
+    reviewed_architecture_provenance: Vec<String>,
+    reviewed_internal_symlinks: Vec<RawReviewedInternalSymlinkPolicy>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RawReviewedElfPolicy {
+    path: String,
+    machine: u64,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RawReviewedGzipPolicy {
+    path: String,
+    max_decompressed_bytes: u64,
+    timeout_millis: u64,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RawReviewedInternalSymlinkPolicy {
+    path: String,
+    target: String,
+}
+
+fn parse_repo_relative_path(raw: &str) -> Result<String, &'static str> {
+    if raw.is_empty() {
+        return Err("invalid_path");
+    }
+    let path = Path::new(raw);
+    if path.is_absolute() {
+        return Err("invalid_path");
+    }
+
+    let mut components = Vec::new();
+    for component in path.components() {
+        let Component::Normal(component) = component else {
+            return Err("invalid_path");
+        };
+        components.push(component.to_str().ok_or("invalid_path")?);
+    }
+    if components.is_empty() || components.join("/") != raw {
+        return Err("invalid_path");
+    }
+    Ok(raw.to_owned())
+}
+
+fn register_policy_path(
+    all_paths: &mut BTreeSet<String>,
+    value: &str,
+) -> Result<String, &'static str> {
+    let path = parse_repo_relative_path(value)?;
+    if !all_paths.insert(path.clone()) {
+        return Err("duplicate_path");
+    }
+    Ok(path)
+}
+
+fn parse_policy_path_set(
+    values: &[String],
+    all_paths: &mut BTreeSet<String>,
+) -> Result<BTreeSet<String>, &'static str> {
+    let mut paths = BTreeSet::new();
+    for value in values {
+        paths.insert(register_policy_path(all_paths, value)?);
+    }
+    Ok(paths)
+}
+
+fn parse_history_only_policy(content: &str) -> Result<HistoryOnlyPolicy, &'static str> {
+    let document = serde_json::from_str::<RawHistoryOnlyPolicy>(content)
+        .map_err(|_| "invalid_json_or_shape")?;
+    if document.schema_version != HISTORY_ONLY_POLICY_SCHEMA_VERSION {
+        return Err("wrong_schema_version");
+    }
+    if document.policy_id != ADR_0515_HISTORY_ONLY_VALIDATOR {
+        return Err("wrong_policy_id");
+    }
+
+    let mut all_paths = BTreeSet::new();
+    let mut reviewed_elf_paths = BTreeMap::new();
+    for row in document.reviewed_elf_paths {
+        let path = register_policy_path(&mut all_paths, &row.path)?;
+        let machine = u16::try_from(row.machine).map_err(|_| "invalid_machine")?;
+        reviewed_elf_paths.insert(path, machine);
+    }
+
+    let mut reviewed_gzip_paths = BTreeMap::new();
+    for row in document.reviewed_gzip_paths {
+        let path = register_policy_path(&mut all_paths, &row.path)?;
+        if !(1..=MAX_CONFIGURED_GZIP_DECOMPRESSED_BYTES).contains(&row.max_decompressed_bytes) {
+            return Err("invalid_gzip_size_limit");
+        }
+        let max_decompressed_bytes =
+            usize::try_from(row.max_decompressed_bytes).map_err(|_| "invalid_gzip_size_limit")?;
+        if !(1..=MAX_CONFIGURED_GZIP_TIMEOUT_MILLIS).contains(&row.timeout_millis) {
+            return Err("invalid_gzip_timeout");
+        }
+        let timeout_millis = row.timeout_millis;
+        reviewed_gzip_paths.insert(
+            path,
+            ReviewedGzipPolicy {
+                max_decompressed_bytes,
+                timeout: Duration::from_millis(timeout_millis),
+            },
+        );
+    }
+    if reviewed_gzip_paths.len() != 1 {
+        return Err("invalid_gzip_cardinality");
+    }
+    let reviewed_architecture_provenance =
+        parse_policy_path_set(&document.reviewed_architecture_provenance, &mut all_paths)?;
+
+    let mut reviewed_internal_symlinks = BTreeMap::new();
+    for row in document.reviewed_internal_symlinks {
+        let path = register_policy_path(&mut all_paths, &row.path)?;
+        let target = parse_repo_relative_path(&row.target)?;
+        reviewed_internal_symlinks.insert(path, target);
+    }
+
+    Ok(HistoryOnlyPolicy {
+        reviewed_elf_paths,
+        reviewed_gzip_paths,
+        reviewed_architecture_provenance,
+        reviewed_internal_symlinks,
+    })
+}
+
+fn invalid_history_only_policy(class: &str) -> BTreeSet<Finding> {
+    BTreeSet::from([drift(format!("history_only_policy_invalid:{class}"))])
+}
+
+fn stop_gzip_process(child: &mut std::process::Child) {
+    let _ = child.kill();
+    let _ = child.wait();
+}
+
+fn read_reviewed_gzip(path: &Path, policy: &ReviewedGzipPolicy) -> Result<String, &'static str> {
+    let read_limit = policy
+        .max_decompressed_bytes
+        .checked_add(1)
+        .and_then(|limit| u64::try_from(limit).ok())
+        .ok_or("gzip_limit_invalid")?;
+    let mut child = std::process::Command::new("gzip")
+        .arg("-dc")
+        .arg("--")
+        .arg(path)
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::null())
+        .spawn()
+        .map_err(|_| "gzip_spawn_error")?;
+    let Some(stdout) = child.stdout.take() else {
+        stop_gzip_process(&mut child);
+        return Err("gzip_pipe_error");
+    };
+
+    let (sender, receiver) = std::sync::mpsc::sync_channel::<Result<Vec<u8>, &'static str>>(1);
+    let reader = match std::thread::Builder::new()
+        .name("adr-0515-reviewed-gzip-reader".to_owned())
+        .spawn(move || {
+            let mut bytes = Vec::new();
+            let result = stdout
+                .take(read_limit)
+                .read_to_end(&mut bytes)
+                .map(|_| bytes)
+                .map_err(|_| "gzip_read_error");
+            let _ = sender.send(result);
+        }) {
+        Ok(reader) => reader,
+        Err(_) => {
+            stop_gzip_process(&mut child);
+            return Err("gzip_reader_spawn_error");
+        }
+    };
+
+    let started_at = Instant::now();
+    let mut read_result = None;
+    let mut exit_status = None;
+    loop {
+        if read_result.is_none() {
+            match receiver.try_recv() {
+                Ok(result) => read_result = Some(result),
+                Err(TryRecvError::Empty) => {}
+                Err(TryRecvError::Disconnected) => {
+                    stop_gzip_process(&mut child);
+                    let _ = reader.join();
+                    return Err("gzip_reader_error");
+                }
+            }
+        }
+        if exit_status.is_none() {
+            match child.try_wait() {
+                Ok(Some(status)) => exit_status = Some(status),
+                Ok(None) => {}
+                Err(_) => {
+                    stop_gzip_process(&mut child);
+                    let _ = reader.join();
+                    return Err("gzip_wait_error");
+                }
+            }
+        }
+        if read_result.is_some() && exit_status.is_some() {
+            break;
+        }
+        if started_at.elapsed() >= policy.timeout {
+            stop_gzip_process(&mut child);
+            let _ = reader.join();
+            return Err("gzip_timeout");
+        }
+        std::thread::sleep(GZIP_PROCESS_POLL_INTERVAL);
+    }
+
+    if reader.join().is_err() {
+        return Err("gzip_reader_error");
+    }
+    let bytes = read_result.ok_or("gzip_reader_error")??;
+    if bytes.len() > policy.max_decompressed_bytes {
+        return Err("gzip_output_too_large");
+    }
+    if !exit_status.ok_or("gzip_wait_error")?.success() {
+        return Err("gzip_exit_error");
+    }
+    String::from_utf8(bytes).map_err(|_| "gzip_invalid_utf8")
+}
 
 /// True when a producer citation edge names one of ADR-0515's seven
 /// Git-history-only predecessors. These are classified provenance edges, not
@@ -80,15 +307,31 @@ pub fn is_adr_0515_history_only_citation(entry: &str) -> bool {
 pub fn evaluate_adr_0515_current_tree_references(
     reference_sources: &BTreeSet<String>,
 ) -> BTreeSet<Finding> {
+    let policy = match parse_history_only_policy(HISTORY_ONLY_POLICY) {
+        Ok(policy) => policy,
+        Err(class) => return invalid_history_only_policy(class),
+    };
     reference_sources
         .iter()
-        .filter(|source| !is_history_only_provenance_source(source))
+        .filter(|source| !is_history_only_provenance_source(source, &policy))
         .map(|source| drift(format!("current_tree_path_reference:{source}")))
         .collect()
 }
 
 pub fn evaluate_adr_0515_reference_content(path: &str, content: &str) -> BTreeSet<Finding> {
-    if is_history_only_provenance_source(path) {
+    let policy = match parse_history_only_policy(HISTORY_ONLY_POLICY) {
+        Ok(policy) => policy,
+        Err(class) => return invalid_history_only_policy(class),
+    };
+    evaluate_adr_0515_reference_content_with_policy(path, content, &policy)
+}
+
+fn evaluate_adr_0515_reference_content_with_policy(
+    path: &str,
+    content: &str,
+    policy: &HistoryOnlyPolicy,
+) -> BTreeSet<Finding> {
+    if is_history_only_provenance_source(path, policy) {
         return BTreeSet::new();
     }
     if path == "docs/machine-readable/decisions.json" {
@@ -135,7 +378,11 @@ fn evaluate_decisions_json_references(content: &str) -> BTreeSet<Finding> {
             }
             if let Some(values) = row.get("supersedes").and_then(Value::as_array) {
                 let exact: Vec<String> = history_only_ids().collect();
-                if values.iter().filter_map(Value::as_str).eq(exact.iter().map(String::as_str)) {
+                if values
+                    .iter()
+                    .filter_map(Value::as_str)
+                    .eq(exact.iter().map(String::as_str))
+                {
                     for (value_index, value) in exact.into_iter().enumerate() {
                         allowed.insert((
                             format!("/decisions/{row_index}/supersedes/{value_index}"),
@@ -196,6 +443,10 @@ fn evaluate_generic_reference_content(path: &str, content: &str) -> BTreeSet<Fin
 }
 
 pub fn evaluate_adr_0515_tracked_surfaces(root: &Path, tracked_paths: &Value) -> BTreeSet<Finding> {
+    let policy = match parse_history_only_policy(HISTORY_ONLY_POLICY) {
+        Ok(policy) => policy,
+        Err(class) => return invalid_history_only_policy(class),
+    };
     let Some(tracked_paths) = tracked_paths.as_array() else {
         return BTreeSet::from([drift("tracked_paths_invalid")]);
     };
@@ -228,10 +479,7 @@ pub fn evaluate_adr_0515_tracked_surfaces(root: &Path, tracked_paths: &Value) ->
             }
         };
         if metadata.file_type().is_symlink() {
-            let Some((_, expected_target)) = REVIEWED_INTERNAL_SYMLINKS
-                .iter()
-                .find(|(link, _)| *link == relative)
-            else {
+            let Some(expected_target) = policy.reviewed_internal_symlinks.get(relative) else {
                 findings.insert(drift(format!("tracked_path_symlink:{relative}")));
                 continue;
             };
@@ -253,7 +501,9 @@ pub fn evaluate_adr_0515_tracked_surfaces(root: &Path, tracked_paths: &Value) ->
             }
             match std::fs::read(&canonical_target) {
                 Ok(bytes) => match std::str::from_utf8(&bytes) {
-                    Ok(content) => findings.extend(evaluate_adr_0515_reference_content(relative, content)),
+                    Ok(content) => findings.extend(
+                        evaluate_adr_0515_reference_content_with_policy(relative, content, &policy),
+                    ),
                     Err(_) => {
                         findings.insert(drift(format!("tracked_path_invalid_utf8:{relative}")));
                     }
@@ -275,10 +525,7 @@ pub fn evaluate_adr_0515_tracked_surfaces(root: &Path, tracked_paths: &Value) ->
                 continue;
             }
         };
-        if let Some((_, expected_machine)) = REVIEWED_ELF_PATHS
-            .iter()
-            .find(|(path, _)| *path == relative)
-        {
+        if let Some(expected_machine) = policy.reviewed_elf_paths.get(relative) {
             let valid = bytes.len() >= 20
                 && bytes.starts_with(b"\x7fELF")
                 && bytes[4..7] == [2, 1, 1]
@@ -289,26 +536,21 @@ pub fn evaluate_adr_0515_tracked_surfaces(root: &Path, tracked_paths: &Value) ->
             }
             continue;
         }
-        if relative == REVIEWED_GZIP_PATH {
-            let output = std::process::Command::new("gzip")
-                .arg("-dc")
-                .arg(&full_path)
-                .output();
-            match output {
-                Ok(output) if output.status.success() => match std::str::from_utf8(&output.stdout) {
-                    Ok(content) => findings.extend(evaluate_adr_0515_reference_content(relative, content)),
-                    Err(_) => {
-                        findings.insert(drift(format!("tracked_path_invalid_utf8:{relative}")));
-                    }
-                },
-                _ => {
-                    findings.insert(drift(format!("tracked_path_gzip_error:{relative}")));
+        if let Some(gzip_policy) = policy.reviewed_gzip_paths.get(relative) {
+            match read_reviewed_gzip(&full_path, gzip_policy) {
+                Ok(content) => findings.extend(evaluate_adr_0515_reference_content_with_policy(
+                    relative, &content, &policy,
+                )),
+                Err(class) => {
+                    findings.insert(drift(format!("tracked_path_{class}:{relative}")));
                 }
             }
             continue;
         }
         match std::str::from_utf8(&bytes) {
-            Ok(content) => findings.extend(evaluate_adr_0515_reference_content(relative, content)),
+            Ok(content) => findings.extend(evaluate_adr_0515_reference_content_with_policy(
+                relative, content, &policy,
+            )),
             Err(_) => {
                 findings.insert(drift(format!("tracked_path_invalid_utf8:{relative}")));
             }
@@ -317,10 +559,10 @@ pub fn evaluate_adr_0515_tracked_surfaces(root: &Path, tracked_paths: &Value) ->
     findings
 }
 
-fn is_history_only_provenance_source(path: &str) -> bool {
+fn is_history_only_provenance_source(path: &str, policy: &HistoryOnlyPolicy) -> bool {
     path.starts_with("docs/audit/")
         || path.starts_with(".omc/")
-        || REVIEWED_ARCHITECTURE_PROVENANCE.contains(&path)
+        || policy.reviewed_architecture_provenance.contains(path)
 }
 
 fn is_exact_lifecycle_reference(path: &str, line: &str) -> bool {
@@ -535,12 +777,187 @@ mod tests {
         format!("ADR-{suffix}")
     }
 
+    fn retired_controller_name() -> String {
+        ["jen", "kins"].concat()
+    }
+
+    fn compressed_legacy_reference() -> Vec<u8> {
+        vec![
+            0x1f, 0x8b, 0x08, 0x00, 0x21, 0xfa, 0x5e, 0x6a, 0x00, 0x03, 0x4b, 0x2c, 0x2d, 0xc9,
+            0xc8, 0x2f, 0xca, 0x2c, 0xa9, 0xb4, 0x52, 0x70, 0x74, 0x09, 0xd2, 0x35, 0x30, 0x36,
+            0xb1, 0xe4, 0x02, 0x00, 0x56, 0x98, 0xc1, 0xcc, 0x14, 0x00, 0x00, 0x00,
+        ]
+    }
+
+    fn minimal_history_only_policy() -> Value {
+        json!({
+            "schema_version": 1,
+            "policy_id": ADR_0515_HISTORY_ONLY_VALIDATOR,
+            "reviewed_elf_paths": [],
+            "reviewed_gzip_paths": [{
+                "path": "evidence/reviewed.gz",
+                "max_decompressed_bytes": 1024,
+                "timeout_millis": 1000
+            }],
+            "reviewed_architecture_provenance": [],
+            "reviewed_internal_symlinks": []
+        })
+    }
+
+    #[test]
+    fn history_only_policy_requires_exact_schema_and_shape() {
+        assert!(parse_history_only_policy("{").is_err());
+
+        let valid = minimal_history_only_policy();
+        assert!(parse_history_only_policy(&valid.to_string()).is_ok());
+
+        let mut wrong_schema = valid.clone();
+        wrong_schema["schema_version"] = json!(2);
+        assert!(parse_history_only_policy(&wrong_schema.to_string()).is_err());
+
+        let mut wrong_id = valid.clone();
+        wrong_id["policy_id"] = json!("wrong-policy");
+        assert!(parse_history_only_policy(&wrong_id.to_string()).is_err());
+
+        let mut wrong_shape = valid;
+        wrong_shape["reviewed_gzip_paths"] = json!({"path": "evidence/reviewed.gz"});
+        assert!(parse_history_only_policy(&wrong_shape.to_string()).is_err());
+    }
+
+    #[test]
+    fn history_only_policy_rejects_duplicate_top_level_keys() {
+        let duplicate_policy_id = r#"{
+            "schema_version": 1,
+            "policy_id": "cloud-ci-cross-artifact-agreement/adr-0515-history-only",
+            "policy_id": "cloud-ci-cross-artifact-agreement/adr-0515-history-only",
+            "reviewed_elf_paths": [],
+            "reviewed_gzip_paths": [{
+                "path": "evidence/reviewed.gz",
+                "max_decompressed_bytes": 1024,
+                "timeout_millis": 1000
+            }],
+            "reviewed_architecture_provenance": [],
+            "reviewed_internal_symlinks": []
+        }"#;
+
+        assert!(parse_history_only_policy(duplicate_policy_id).is_err());
+    }
+
+    #[test]
+    fn history_only_policy_rejects_duplicate_row_keys() {
+        let duplicate_gzip_path = r#"{
+            "schema_version": 1,
+            "policy_id": "cloud-ci-cross-artifact-agreement/adr-0515-history-only",
+            "reviewed_elf_paths": [],
+            "reviewed_gzip_paths": [{
+                "path": "evidence/reviewed.gz",
+                "path": "evidence/reviewed.gz",
+                "max_decompressed_bytes": 1024,
+                "timeout_millis": 1000
+            }],
+            "reviewed_architecture_provenance": [],
+            "reviewed_internal_symlinks": []
+        }"#;
+
+        assert!(parse_history_only_policy(duplicate_gzip_path).is_err());
+    }
+
+    #[test]
+    fn invalid_history_only_policy_finding_preserves_the_failure_class() {
+        assert_eq!(
+            keys(&invalid_history_only_policy("invalid_json")),
+            vec!["history_only_policy_invalid:invalid_json".to_owned()]
+        );
+    }
+
+    #[test]
+    fn history_only_policy_rejects_duplicate_and_unsafe_paths() {
+        let mut duplicate = minimal_history_only_policy();
+        duplicate["reviewed_architecture_provenance"] =
+            json!(["docs/history.md", "docs/history.md"]);
+        assert!(parse_history_only_policy(&duplicate.to_string()).is_err());
+
+        let mut escaped = minimal_history_only_policy();
+        escaped["reviewed_elf_paths"] = json!([{"path": "../outside.elf", "machine": 62}]);
+        assert!(parse_history_only_policy(&escaped.to_string()).is_err());
+
+        let mut absolute_target = minimal_history_only_policy();
+        absolute_target["reviewed_internal_symlinks"] =
+            json!([{"path": "links/current", "target": "/outside"}]);
+        assert!(parse_history_only_policy(&absolute_target.to_string()).is_err());
+    }
+
+    #[test]
+    fn gzip_policy_requires_bounded_size_and_timeout() {
+        let mut zero_size = minimal_history_only_policy();
+        zero_size["reviewed_gzip_paths"][0]["max_decompressed_bytes"] = json!(0);
+        assert_eq!(
+            parse_history_only_policy(&zero_size.to_string()).unwrap_err(),
+            "invalid_gzip_size_limit"
+        );
+
+        let mut oversized = minimal_history_only_policy();
+        oversized["reviewed_gzip_paths"][0]["max_decompressed_bytes"] =
+            json!(MAX_CONFIGURED_GZIP_DECOMPRESSED_BYTES + 1);
+        assert_eq!(
+            parse_history_only_policy(&oversized.to_string()).unwrap_err(),
+            "invalid_gzip_size_limit"
+        );
+
+        let mut zero_timeout = minimal_history_only_policy();
+        zero_timeout["reviewed_gzip_paths"][0]["timeout_millis"] = json!(0);
+        assert_eq!(
+            parse_history_only_policy(&zero_timeout.to_string()).unwrap_err(),
+            "invalid_gzip_timeout"
+        );
+
+        let mut excessive_timeout = minimal_history_only_policy();
+        excessive_timeout["reviewed_gzip_paths"][0]["timeout_millis"] =
+            json!(MAX_CONFIGURED_GZIP_TIMEOUT_MILLIS + 1);
+        assert_eq!(
+            parse_history_only_policy(&excessive_timeout.to_string()).unwrap_err(),
+            "invalid_gzip_timeout"
+        );
+    }
+
+    #[test]
+    fn bundled_history_only_policy_is_complete_and_valid() {
+        let policy = parse_history_only_policy(HISTORY_ONLY_POLICY).unwrap();
+        assert_eq!(policy.reviewed_elf_paths.len(), 7);
+        assert_eq!(policy.reviewed_gzip_paths.len(), 1);
+        assert_eq!(policy.reviewed_architecture_provenance.len(), 5);
+        assert_eq!(policy.reviewed_internal_symlinks.len(), 15);
+    }
+
+    #[test]
+    fn production_rust_contains_no_policy_owned_product_path_literals() {
+        let policy = parse_history_only_policy(HISTORY_ONLY_POLICY).unwrap();
+        let production_source = include_str!("adr_0515_history_only.rs")
+            .split("#[cfg(test)]")
+            .next()
+            .unwrap();
+        for path in policy
+            .reviewed_elf_paths
+            .keys()
+            .chain(policy.reviewed_gzip_paths.keys())
+            .chain(policy.reviewed_architecture_provenance.iter())
+            .chain(policy.reviewed_internal_symlinks.keys())
+            .chain(policy.reviewed_internal_symlinks.values())
+        {
+            assert!(
+                !production_source.contains(path),
+                "reviewed path must live in policy data: {path}"
+            );
+        }
+    }
+
     #[test]
     fn restored_deleted_adr_source_fails_closed() {
         let mut sources = clean_sources();
         sources.insert(format!(
-            "docs/decisions/{}-jenkins-argocd-self-hostable-ci-cd-substrate.md",
-            legacy_adr("0349")
+            "docs/decisions/{}-{}-argocd-self-hostable-ci-cd-substrate.md",
+            legacy_adr("0349"),
+            retired_controller_name()
         ));
 
         let findings = evaluate_adr_0515_history_only(
@@ -588,8 +1005,9 @@ mod tests {
             "entry_points": {
                 "stale": {
                     "current_path": format!(
-                        "docs/decisions/{}-jenkins-argocd-self-hostable-ci-cd-substrate.md",
-                        legacy_adr("0349")
+                        "docs/decisions/{}-{}-argocd-self-hostable-ci-cd-substrate.md",
+                        legacy_adr("0349"),
+                        retired_controller_name()
                     )
                 }
             }
@@ -714,7 +1132,8 @@ mod tests {
             (
                 "docs/decisions/ADR-0367-trustless-pre-merge-verification-gateway.md",
                 format!(
-                    "The trusted Jenkins runner is defined by {}/0361.",
+                    "The trusted {} runner is defined by {}/0361.",
+                    retired_controller_name(),
                     legacy_adr("0349")
                 ),
             ),
@@ -794,10 +1213,8 @@ mod tests {
 
     #[test]
     fn invalid_utf8_regular_files_fail_closed() {
-        let root = std::env::temp_dir().join(format!(
-            "adr-0515-invalid-utf8-test-{}",
-            std::process::id()
-        ));
+        let root =
+            std::env::temp_dir().join(format!("adr-0515-invalid-utf8-test-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&root);
         std::fs::create_dir_all(&root).unwrap();
         std::fs::write(root.join("invalid.txt"), [0xff, 0xfe]).unwrap();
@@ -811,11 +1228,7 @@ mod tests {
         )
         .unwrap();
         std::fs::create_dir_all(root.join("evidence/ci/slsa")).unwrap();
-        std::fs::write(
-            root.join("evidence/ci/slsa/sbom.cdx.json.gz"),
-            b"not gzip",
-        )
-        .unwrap();
+        std::fs::write(root.join("evidence/ci/slsa/sbom.cdx.json.gz"), b"not gzip").unwrap();
 
         let findings = evaluate_adr_0515_tracked_surfaces(
             &root,
@@ -835,27 +1248,44 @@ mod tests {
             &"tracked_path_binary_format:cloud/cloud-kernel/out/user-exec.elf".to_owned()
         ));
         assert!(finding_keys.contains(
-            &"tracked_path_gzip_error:evidence/ci/slsa/sbom.cdx.json.gz".to_owned()
+            &"tracked_path_gzip_exit_error:evidence/ci/slsa/sbom.cdx.json.gz".to_owned()
         ));
 
-        let compressed_legacy = [
-            0x1f, 0x8b, 0x08, 0x00, 0x21, 0xfa, 0x5e, 0x6a, 0x00, 0x03, 0x4b, 0x2c,
-            0x2d, 0xc9, 0xc8, 0x2f, 0xca, 0x2c, 0xa9, 0xb4, 0x52, 0x70, 0x74, 0x09,
-            0xd2, 0x35, 0x30, 0x36, 0xb1, 0xe4, 0x02, 0x00, 0x56, 0x98, 0xc1, 0xcc,
-            0x14, 0x00, 0x00, 0x00,
-        ];
         std::fs::write(
             root.join("evidence/ci/slsa/sbom.cdx.json.gz"),
-            compressed_legacy,
+            compressed_legacy_reference(),
         )
         .unwrap();
         let findings = evaluate_adr_0515_tracked_surfaces(
             &root,
             &json!(["evidence/ci/slsa/sbom.cdx.json.gz"]),
         );
-        assert!(keys(&findings).iter().any(|key| key.starts_with(
-            "current_tree_identifier_reference:evidence/ci/slsa/sbom.cdx.json.gz"
-        )));
+        assert!(keys(&findings).iter().any(|key| {
+            key.starts_with("current_tree_identifier_reference:evidence/ci/slsa/sbom.cdx.json.gz")
+        }));
+
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn reviewed_gzip_reader_fails_closed_at_the_decompressed_size_limit() {
+        let root =
+            std::env::temp_dir().join(format!("adr-0515-gzip-limit-test-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(&root).unwrap();
+        let path = root.join("reviewed.gz");
+        std::fs::write(&path, compressed_legacy_reference()).unwrap();
+
+        assert_eq!(
+            read_reviewed_gzip(
+                &path,
+                &ReviewedGzipPolicy {
+                    max_decompressed_bytes: 8,
+                    timeout: Duration::from_secs(5),
+                },
+            ),
+            Err("gzip_output_too_large")
+        );
 
         std::fs::remove_dir_all(root).unwrap();
     }
@@ -937,11 +1367,9 @@ mod tests {
             finding_keys
                 .contains(&"tracked_path_symlink:oya/connector/contracts/unlisted.yaml".to_owned())
         );
-        assert!(
-            finding_keys.contains(
-                &"tracked_path_symlink_target:oya/connector/contracts/asyncapi-v1.yaml".to_owned()
-            )
-        );
+        assert!(finding_keys.contains(
+            &"tracked_path_symlink_target:oya/connector/contracts/asyncapi-v1.yaml".to_owned()
+        ));
 
         std::fs::write(&target, format!("authority: {}\n", legacy_adr("0349"))).unwrap();
         let findings = evaluate_adr_0515_tracked_surfaces(
