@@ -19,6 +19,20 @@ const HISTORY_ONLY_ADR_SUFFIXES: [&str; 7] =
     ["0124", "0349", "0359", "0361", "0511", "0513", "0514"];
 const ADR_0515_SOURCE: &str =
     "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md";
+const CANONICAL_DECISIONS_NUMBERING: &str = concat!(
+    "ADR-0001..ADR-0619 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0037, ADR-0041, ADR-0050, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0",
+    "124..ADR-0127, ADR-0224..ADR-0233, ADR-0247, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291, ADR-0322..ADR-0323, ADR-0327, ADR-0342, ADR-0345, ADR-0",
+    "349, ADR-0", "359, ADR-0", "361, ADR-0385..ADR-0386, ADR-0395..ADR-0396, ADR-0398..ADR-0475, ADR-0477, ADR-0483..ADR-0505, ADR-0",
+    "511, ADR-0", "513..ADR-0", "514, ADR-0574..ADR-0579, ADR-0583..ADR-0585, ADR-0594, ADR-0601..ADR-0602)"
+);
+const CANONICAL_HISTORY_GAP_SUFFIXES: [(&str, &str); 6] = [
+    ("/_metadata/gaps/8", "0124..0127"),
+    ("/_metadata/gaps/22", "0349"),
+    ("/_metadata/gaps/23", "0359"),
+    ("/_metadata/gaps/24", "0361"),
+    ("/_metadata/gaps/30", "0511"),
+    ("/_metadata/gaps/31", "0513..0514"),
+];
 const REVIEWED_ARCHITECTURE_PROVENANCE: [&str; 5] = [
     "docs/architecture/adr-corpus-line-audit-2026-05-21.md",
     "docs/architecture/adr-cross-reference-graph-2026-05-20.md",
@@ -92,30 +106,17 @@ fn evaluate_decisions_json_references(content: &str) -> BTreeSet<Finding> {
         return evaluate_generic_reference_content("docs/machine-readable/decisions.json", content);
     };
     let mut allowed = BTreeSet::new();
-    let gaps = document
-        .pointer("/_metadata/gaps")
-        .and_then(Value::as_array)
-        .cloned()
-        .unwrap_or_default();
-    let gap_strings: Vec<&str> = gaps.iter().filter_map(Value::as_str).collect();
-    let max_adr = document
-        .get("decisions")
-        .and_then(Value::as_array)
-        .into_iter()
-        .flatten()
-        .filter_map(|row| row.get("adr").and_then(Value::as_str))
-        .filter_map(|id| id.strip_prefix("ADR-")?.parse::<u16>().ok())
-        .max()
-        .unwrap_or_default();
-    let numbering = format!(
-        "ADR-0001..ADR-{max_adr:04} (non-contiguous; gaps: {})",
-        gap_strings.join(", ")
-    );
-    allowed.insert(("/_metadata/numbering".to_owned(), numbering));
-    for (index, gap) in gap_strings.iter().enumerate() {
-        if history_only_ids().any(|id| gap.contains(&id)) {
-            allowed.insert((format!("/_metadata/gaps/{index}"), (*gap).to_owned()));
-        }
+    allowed.insert((
+        "/_metadata/numbering".to_owned(),
+        CANONICAL_DECISIONS_NUMBERING.to_owned(),
+    ));
+    for (pointer, suffixes) in CANONICAL_HISTORY_GAP_SUFFIXES {
+        let value = suffixes
+            .split("..")
+            .map(|suffix| format!("ADR-{suffix}"))
+            .collect::<Vec<_>>()
+            .join("..");
+        allowed.insert((pointer.to_owned(), value));
     }
     if let Some(decisions) = document.get("decisions").and_then(Value::as_array) {
         for (row_index, row) in decisions.iter().enumerate() {
@@ -255,6 +256,9 @@ pub fn evaluate_adr_0515_tracked_surfaces(root: &Path, tracked_paths: &Value) ->
         }
         if !metadata.is_file() {
             findings.insert(drift(format!("tracked_path_not_file:{relative}")));
+            continue;
+        }
+        if relative.ends_with(".elf") || relative.ends_with(".gz") {
             continue;
         }
         let bytes = match std::fs::read(&full_path) {
@@ -732,6 +736,20 @@ mod tests {
             )
             .is_empty(),
             "field-name lookalikes must not inherit structural exceptions"
+        );
+
+        let mutually_consistent_corruption = format!(
+            "{{\n  \"_metadata\": {{\n    \"numbering\": \"ADR-0001..ADR-0619 (non-contiguous; gaps: {}..ADR-0350)\",\n    \"gaps\": [\"{}..ADR-0350\"]\n  }},\n  \"decisions\": [{{\"adr\": \"ADR-0619\"}}]\n}}",
+            legacy_adr("0349"),
+            legacy_adr("0349")
+        );
+        assert!(
+            !evaluate_adr_0515_reference_content(
+                "docs/machine-readable/decisions.json",
+                &mutually_consistent_corruption,
+            )
+            .is_empty(),
+            "candidate-derived gaps and numbering must not authorize each other"
         );
     }
 
