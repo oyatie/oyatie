@@ -29,8 +29,9 @@
 #![forbid(unsafe_code)]
 
 use oya_ci_controller_kernel::{
-    CommitState, CommitStatusPoster, KernelError, REVIEW_CONTEXT, Result, ReviewAdmissionInput,
-    ReviewAdmissionPacket, ReviewAdmissionPolicy, ReviewEvidence, ReviewVerdict, admit_review,
+    CommitState, CommitStatusPoster, GitHubPrincipal, KernelError, REVIEW_CONTEXT, Result,
+    ReviewAdmissionInput, ReviewAdmissionPacket, ReviewAdmissionPolicy, ReviewAdmissionProducer,
+    ReviewEvidence, ReviewVerdict, admit_review,
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
@@ -40,6 +41,7 @@ const REVIEWS_PER_PAGE: usize = 100;
 const MAX_REVIEW_PAGES: usize = 100;
 /// Default GitHub API base URL.
 const GITHUB_API_BASE: &str = "https://api.github.com";
+const GITHUB_WEB_BASE: &str = "https://github.com";
 /// Forge of record (D2): GitHub interim until the Sapling-inspired bespoke SCM.
 const DEFAULT_REPO_OWNER: &str = "jason931225";
 const DEFAULT_REPO_NAME: &str = "oyatie";
@@ -50,6 +52,7 @@ pub struct GitHubCommitStatusPoster {
     repo_name: String,    // data_class: INTERNAL_ONLY
     github_token: String, // data_class: INTERNAL_ONLY  (controller crier token ONLY; never to runner)
     api_base: String,     // data_class: INTERNAL_ONLY
+    web_base: String,     // data_class: INTERNAL_ONLY
     client: reqwest::blocking::Client,
 }
 
@@ -61,6 +64,7 @@ impl GitHubCommitStatusPoster {
             repo_name: repo_name.to_owned(),
             github_token: github_token.to_owned(),
             api_base: GITHUB_API_BASE.to_owned(),
+            web_base: GITHUB_WEB_BASE.to_owned(),
             client: reqwest::blocking::Client::new(),
         }
     }
@@ -73,6 +77,12 @@ impl GitHubCommitStatusPoster {
     /// Override the API base URL (useful in tests to point at httpmock).
     pub fn with_api_base(mut self, base: &str) -> Self {
         self.api_base = base.trim_end_matches('/').to_owned();
+        self
+    }
+
+    /// Override the GitHub web base URL (useful for an explicit forge mirror).
+    pub fn with_web_base(mut self, base: &str) -> Self {
+        self.web_base = base.trim_end_matches('/').to_owned();
         self
     }
 
@@ -130,15 +140,28 @@ impl GitHubCommitStatusPoster {
         pr_number: u64,
         expected_head_sha: &str,
         policy: &ReviewAdmissionPolicy,
+        producer: &ReviewAdmissionProducer,
+        evaluated_at_unix_s: i64,
     ) -> Result<ReviewAdmissionPacket> {
-        let result = self.fetch_review_admission(pr_number, expected_head_sha, policy);
+        let result = self
+            .fetch_review_admission(
+                pr_number,
+                expected_head_sha,
+                policy,
+                producer,
+                evaluated_at_unix_s,
+            )
+            .and_then(|packet| {
+                self.verify_current_pull_head(pr_number, expected_head_sha)?;
+                Ok(packet)
+            });
         match result {
             Ok(packet) => {
                 self.post(
                     expected_head_sha,
                     CommitState::Success,
                     REVIEW_CONTEXT,
-                    &format!("oya-pr-review approved by {}", packet.reviewer_login),
+                    &format!("oya-pr-review approved by {}", packet.reviewer.login),
                     Some(&packet.evidence_url),
                 )?;
                 Ok(packet)
@@ -166,6 +189,8 @@ impl GitHubCommitStatusPoster {
         pr_number: u64,
         expected_head_sha: &str,
         policy: &ReviewAdmissionPolicy,
+        producer: &ReviewAdmissionProducer,
+        evaluated_at_unix_s: i64,
     ) -> Result<ReviewAdmissionPacket> {
         let pull: GitHubPullResponse = self.get_json(&self.pull_url(pr_number))?;
         if pull.number != pr_number {
@@ -182,8 +207,10 @@ impl GitHubCommitStatusPoster {
                 pr_number,
                 expected_head_sha: expected_head_sha.to_owned(),
                 observed_head_sha: pull.head.sha,
-                author_login: pull.user.login,
+                author: github_principal(pull.user),
                 policy: policy.clone(),
+                evaluated_at_unix_s,
+                producer: producer.clone(),
                 reviews: Vec::new(),
             });
         }
@@ -192,23 +219,56 @@ impl GitHubCommitStatusPoster {
 
         let evidence = reviews
             .into_iter()
-            .map(|review| ReviewEvidence {
-                review_id: review.id,
-                head_sha: review.commit_id.unwrap_or_default(),
-                reviewer_login: review.user.map(|user| user.login).unwrap_or_default(),
-                verdict: github_review_verdict(&review.state),
-                evidence_url: review.html_url.unwrap_or_default(),
+            .map(|review| {
+                let evidence_url = review.html_url.unwrap_or_default();
+                if !self.is_exact_review_url(&evidence_url, pr_number, review.id) {
+                    return Err(KernelError::InvalidInput(
+                        "review evidence URL does not bind the configured repository, PR, and review"
+                            .to_owned(),
+                    ));
+                }
+                Ok(ReviewEvidence {
+                    review_id: review.id,
+                    head_sha: review.commit_id.unwrap_or_default(),
+                    reviewer: review.user.map(github_principal).unwrap_or(GitHubPrincipal {
+                        id: 0,
+                        account_type: oya_ci_controller_kernel::GitHubAccountType::User,
+                        login: String::new(),
+                    }),
+                    verdict: github_review_verdict(&review.state),
+                    evidence_url,
+                })
             })
-            .collect();
+            .collect::<Result<Vec<_>>>()?;
 
         admit_review(&ReviewAdmissionInput {
             pr_number,
             expected_head_sha: expected_head_sha.to_owned(),
             observed_head_sha: pull.head.sha,
-            author_login: pull.user.login,
+            author: github_principal(pull.user),
             policy: policy.clone(),
+            evaluated_at_unix_s,
+            producer: producer.clone(),
             reviews: evidence,
         })
+    }
+
+    fn verify_current_pull_head(&self, pr_number: u64, expected_head_sha: &str) -> Result<()> {
+        let pull: GitHubPullResponse = self.get_json(&self.pull_url(pr_number))?;
+        if pull.number != pr_number || pull.head.sha != expected_head_sha {
+            return Err(KernelError::InvalidInput(
+                "review admission final PR-head readback changed before status emission".to_owned(),
+            ));
+        }
+        Ok(())
+    }
+
+    fn is_exact_review_url(&self, evidence_url: &str, pr_number: u64, review_id: u64) -> bool {
+        evidence_url
+            == format!(
+                "{}/{}/{}/pull/{pr_number}#pullrequestreview-{review_id}",
+                self.web_base, self.repo_owner, self.repo_name
+            )
     }
 
     fn fetch_all_reviews(&self, pr_number: u64) -> Result<Vec<GitHubReviewResponse>> {
@@ -246,12 +306,12 @@ impl GitHubCommitStatusPoster {
                 .transpose()?;
             let has_next = link_header
                 .as_deref()
-                .is_some_and(|value| value.split(',').any(|link| link.contains("rel=\"next\"")));
+                .is_some_and(header_has_next_link_relation);
             let page_reviews: Vec<GitHubReviewResponse> = response.json().map_err(|error| {
                 KernelError::DownstreamTransport(format!("github review response decode: {error}"))
             })?;
 
-            if page_reviews.len() == REVIEWS_PER_PAGE && link_header.is_none() {
+            if page_reviews.len() >= REVIEWS_PER_PAGE && !has_next {
                 return Err(KernelError::DownstreamTransport(
                     "github review pagination completeness cannot be proven".to_owned(),
                 ));
@@ -272,6 +332,69 @@ impl GitHubCommitStatusPoster {
             "github review pagination exceeded {MAX_REVIEW_PAGES} pages"
         )))
     }
+}
+
+fn header_has_next_link_relation(header: &str) -> bool {
+    let mut in_uri = false;
+    let mut in_quotes = false;
+    let mut escaped = false;
+    let mut start = 0;
+
+    for (index, character) in header.char_indices() {
+        match character {
+            '\\' if in_quotes => escaped = !escaped,
+            '"' if !escaped => in_quotes = !in_quotes,
+            '<' if !in_quotes => in_uri = true,
+            '>' if !in_quotes => in_uri = false,
+            ',' if !in_quotes && !in_uri => {
+                if link_relation_is_next(&header[start..index]) {
+                    return true;
+                }
+                start = index + character.len_utf8();
+            }
+            _ => escaped = false,
+        }
+    }
+
+    link_relation_is_next(&header[start..])
+}
+
+fn link_relation_is_next(link: &str) -> bool {
+    let Some((_, parameters)) = link.split_once('>') else {
+        return false;
+    };
+
+    let mut in_quotes = false;
+    let mut escaped = false;
+    let mut start = 0;
+    for (index, character) in parameters.char_indices() {
+        match character {
+            '\\' if in_quotes => escaped = !escaped,
+            '"' if !escaped => in_quotes = !in_quotes,
+            ';' if !in_quotes => {
+                if relation_parameter_is_next(&parameters[start..index]) {
+                    return true;
+                }
+                start = index + character.len_utf8();
+            }
+            _ => escaped = false,
+        }
+    }
+
+    relation_parameter_is_next(&parameters[start..])
+}
+
+fn relation_parameter_is_next(parameter: &str) -> bool {
+    let Some((name, value)) = parameter.trim().split_once('=') else {
+        return false;
+    };
+
+    name.trim().eq_ignore_ascii_case("rel")
+        && value
+            .trim()
+            .trim_matches('"')
+            .split_ascii_whitespace()
+            .any(|relation| relation.eq_ignore_ascii_case("next"))
 }
 
 impl CommitStatusPoster for GitHubCommitStatusPoster {
@@ -351,7 +474,10 @@ struct GitHubHead {
 
 #[derive(Deserialize)]
 struct GitHubUser {
+    id: u64,
     login: String,
+    #[serde(rename = "type")]
+    account_type: oya_ci_controller_kernel::GitHubAccountType,
 }
 
 #[derive(Deserialize)]
@@ -369,5 +495,13 @@ fn github_review_verdict(state: &str) -> ReviewVerdict {
         "CHANGES_REQUESTED" => ReviewVerdict::ChangesRequested,
         "DISMISSED" => ReviewVerdict::Dismissed,
         _ => ReviewVerdict::Commented,
+    }
+}
+
+fn github_principal(user: GitHubUser) -> GitHubPrincipal {
+    GitHubPrincipal {
+        id: user.id,
+        account_type: user.account_type,
+        login: user.login,
     }
 }

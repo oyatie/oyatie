@@ -22,6 +22,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 
 // ---------------------------------------------------------------------------
 // Error type
@@ -108,67 +109,128 @@ impl ReviewVerdict {
     }
 }
 
+/// Immutable GitHub identity type returned by the forge API.
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+pub enum GitHubAccountType {
+    User,
+    Bot,
+    Organization,
+}
+
+impl GitHubAccountType {
+    const fn canonical_tag(self) -> u8 {
+        match self {
+            Self::User => 1,
+            Self::Bot => 2,
+            Self::Organization => 3,
+        }
+    }
+}
+
+/// Immutable GitHub principal, with login retained only as display evidence.
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+pub struct GitHubPrincipal {
+    pub id: u64,                         // data_class: INTERNAL_ONLY
+    pub account_type: GitHubAccountType, // data_class: INTERNAL_ONLY
+    pub login: String,                   // data_class: INTERNAL_ONLY
+}
+
+impl GitHubPrincipal {
+    fn is_valid(&self) -> bool {
+        self.id != 0 && !self.login.trim().is_empty()
+    }
+}
+
 /// One durable forge review observation.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReviewEvidence {
-    pub review_id: u64,         // data_class: INTERNAL_ONLY
-    pub head_sha: String,       // data_class: INTERNAL_ONLY
-    pub reviewer_login: String, // data_class: INTERNAL_ONLY
-    pub verdict: ReviewVerdict, // data_class: INTERNAL_ONLY
-    pub evidence_url: String,   // data_class: INTERNAL_ONLY
+    pub review_id: u64,            // data_class: INTERNAL_ONLY
+    pub head_sha: String,          // data_class: INTERNAL_ONLY
+    pub reviewer: GitHubPrincipal, // data_class: INTERNAL_ONLY
+    pub verdict: ReviewVerdict,    // data_class: INTERNAL_ONLY
+    pub evidence_url: String,      // data_class: INTERNAL_ONLY
 }
 
-/// Trusted reviewer-eligibility policy supplied by the controller.
+/// Versioned reviewer-eligibility policy supplied by the trusted controller.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReviewAdmissionPolicy {
-    pub policy_ref: String,                         // data_class: INTERNAL_ONLY
-    pub eligible_reviewer_logins: BTreeSet<String>, // data_class: INTERNAL_ONLY
+    pub policy_ref: String,                            // data_class: INTERNAL_ONLY
+    pub version: String,                               // data_class: INTERNAL_ONLY
+    pub sha256_digest: String,                         // data_class: INTERNAL_ONLY
+    pub issuer: String,                                // data_class: INTERNAL_ONLY
+    pub effective_at_unix_s: i64,                      // data_class: INTERNAL_ONLY
+    pub expires_at_unix_s: i64,                        // data_class: INTERNAL_ONLY
+    pub revoked: bool,                                 // data_class: INTERNAL_ONLY
+    pub eligible_reviewers: BTreeSet<GitHubPrincipal>, // data_class: INTERNAL_ONLY
 }
 
 impl ReviewAdmissionPolicy {
-    /// Build a case-insensitive designated-reviewer allowlist.
-    pub fn new<I, S>(policy_ref: impl Into<String>, reviewers: I) -> Self
-    where
-        I: IntoIterator<Item = S>,
-        S: AsRef<str>,
-    {
-        Self {
-            policy_ref: policy_ref.into(),
-            eligible_reviewer_logins: reviewers
-                .into_iter()
-                .map(|reviewer| reviewer.as_ref().trim().to_ascii_lowercase())
-                .filter(|reviewer| !reviewer.is_empty())
-                .collect(),
+    /// SHA-256 over every authoritative policy field in a length-delimited,
+    /// versioned encoding. The receipt digest must match this exact value at
+    /// the trusted admission boundary; it is not caller-asserted metadata.
+    pub fn canonical_sha256(&self) -> String {
+        let mut hasher = Sha256::new();
+        hasher.update(b"oya-ci/review-admission-policy/v1");
+        update_canonical_string(&mut hasher, &self.policy_ref);
+        update_canonical_string(&mut hasher, &self.version);
+        update_canonical_string(&mut hasher, &self.issuer);
+        hasher.update(self.effective_at_unix_s.to_be_bytes());
+        hasher.update(self.expires_at_unix_s.to_be_bytes());
+        hasher.update([u8::from(self.revoked)]);
+        hasher.update((self.eligible_reviewers.len() as u64).to_be_bytes());
+        for reviewer in &self.eligible_reviewers {
+            hasher.update(reviewer.id.to_be_bytes());
+            hasher.update([reviewer.account_type.canonical_tag()]);
+            update_canonical_string(&mut hasher, &reviewer.login);
         }
+        format!("{:x}", hasher.finalize())
     }
 
-    fn admits(&self, reviewer_login: &str) -> bool {
-        self.eligible_reviewer_logins
-            .contains(&reviewer_login.trim().to_ascii_lowercase())
+    fn admits(&self, reviewer: &GitHubPrincipal) -> bool {
+        self.eligible_reviewers.iter().any(|eligible| {
+            eligible.id == reviewer.id && eligible.account_type == reviewer.account_type
+        })
     }
+}
+
+/// Identity of the non-live controller workload that produced this receipt.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ReviewAdmissionProducer {
+    pub github_app_id: u64,        // data_class: INTERNAL_ONLY
+    pub workload_identity: String, // data_class: INTERNAL_ONLY
 }
 
 /// Trusted inputs used to decide review admission for one PR head.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReviewAdmissionInput {
-    pub pr_number: u64,                // data_class: INTERNAL_ONLY
-    pub expected_head_sha: String,     // data_class: INTERNAL_ONLY
-    pub observed_head_sha: String,     // data_class: INTERNAL_ONLY
-    pub author_login: String,          // data_class: INTERNAL_ONLY
-    pub policy: ReviewAdmissionPolicy, // data_class: INTERNAL_ONLY
-    pub reviews: Vec<ReviewEvidence>,  // data_class: INTERNAL_ONLY
+    pub pr_number: u64,                    // data_class: INTERNAL_ONLY
+    pub expected_head_sha: String,         // data_class: INTERNAL_ONLY
+    pub observed_head_sha: String,         // data_class: INTERNAL_ONLY
+    pub author: GitHubPrincipal,           // data_class: INTERNAL_ONLY
+    pub policy: ReviewAdmissionPolicy,     // data_class: INTERNAL_ONLY
+    pub evaluated_at_unix_s: i64,          // data_class: INTERNAL_ONLY
+    pub producer: ReviewAdmissionProducer, // data_class: INTERNAL_ONLY
+    pub reviews: Vec<ReviewEvidence>,      // data_class: INTERNAL_ONLY
 }
 
 /// Durable, head-bound packet emitted only after review admission succeeds.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ReviewAdmissionPacket {
-    pub pr_number: u64,                          // data_class: INTERNAL_ONLY
-    pub head_sha: String,                        // data_class: INTERNAL_ONLY
-    pub author_login: String,                    // data_class: INTERNAL_ONLY
-    pub reviewer_login: String,                  // data_class: INTERNAL_ONLY
-    pub reviewer_eligibility_policy_ref: String, // data_class: INTERNAL_ONLY
-    pub verdict: ReviewVerdict,                  // data_class: INTERNAL_ONLY
-    pub evidence_url: String,                    // data_class: INTERNAL_ONLY
+    pub pr_number: u64,                              // data_class: INTERNAL_ONLY
+    pub head_sha: String,                            // data_class: INTERNAL_ONLY
+    pub author: GitHubPrincipal,                     // data_class: INTERNAL_ONLY
+    pub reviewer: GitHubPrincipal,                   // data_class: INTERNAL_ONLY
+    pub reviewer_eligibility_policy_ref: String,     // data_class: INTERNAL_ONLY
+    pub reviewer_eligibility_policy_version: String, // data_class: INTERNAL_ONLY
+    pub reviewer_eligibility_policy_sha256: String,  // data_class: INTERNAL_ONLY
+    pub reviewer_eligibility_policy_issuer: String,  // data_class: INTERNAL_ONLY
+    pub policy_evaluated_at_unix_s: i64,             // data_class: INTERNAL_ONLY
+    pub reviewer_eligibility_policy_effective_at_unix_s: i64, // data_class: INTERNAL_ONLY
+    pub reviewer_eligibility_policy_expires_at_unix_s: i64, // data_class: INTERNAL_ONLY
+    pub reviewer_eligibility_policy_revoked: bool,   // data_class: INTERNAL_ONLY
+    pub producer: ReviewAdmissionProducer,           // data_class: INTERNAL_ONLY
+    pub verdict: ReviewVerdict,                      // data_class: INTERNAL_ONLY
+    pub evidence_url: String,                        // data_class: INTERNAL_ONLY
 }
 
 /// Validate forge review observations and select the newest effective approval.
@@ -195,32 +257,65 @@ pub fn admit_review(input: &ReviewAdmissionInput) -> Result<ReviewAdmissionPacke
         )));
     }
 
-    let author = input.author_login.trim();
-    if author.is_empty() {
+    if !input.author.is_valid() {
         return Err(KernelError::InvalidInput(
-            "review admission requires an author identity".to_owned(),
+            "review admission requires an immutable author identity".to_owned(),
         ));
     }
     let policy_ref = input.policy.policy_ref.trim();
-    if policy_ref.is_empty() || input.policy.eligible_reviewer_logins.is_empty() {
+    if policy_ref.is_empty()
+        || input.policy.version.trim().is_empty()
+        || !is_sha256_hex(&input.policy.sha256_digest)
+        || input.policy.issuer.trim().is_empty()
+        || input.policy.eligible_reviewers.is_empty()
+        || input
+            .policy
+            .eligible_reviewers
+            .iter()
+            .any(|reviewer| !reviewer.is_valid())
+    {
         return Err(KernelError::InvalidInput(
-            "review admission requires a non-empty reviewer eligibility policy".to_owned(),
+            "review admission requires a complete reviewer eligibility policy receipt".to_owned(),
+        ));
+    }
+    if !input
+        .policy
+        .sha256_digest
+        .eq_ignore_ascii_case(&input.policy.canonical_sha256())
+    {
+        return Err(KernelError::InvalidInput(
+            "review admission policy receipt digest does not bind its authoritative bytes"
+                .to_owned(),
+        ));
+    }
+    if input.policy.revoked
+        || input.policy.effective_at_unix_s > input.evaluated_at_unix_s
+        || input.policy.expires_at_unix_s <= input.evaluated_at_unix_s
+        || input.policy.expires_at_unix_s <= input.policy.effective_at_unix_s
+    {
+        return Err(KernelError::InvalidInput(
+            "review admission policy receipt is not currently valid".to_owned(),
+        ));
+    }
+    if input.producer.github_app_id == 0 || input.producer.workload_identity.trim().is_empty() {
+        return Err(KernelError::InvalidInput(
+            "review admission requires an identified producer workload".to_owned(),
         ));
     }
 
     // GitHub returns review events in creation order. Keep the highest-id
     // decisive event per reviewer so a later request-changes or dismissal
     // cannot be bypassed by an older approval. COMMENTED is non-decisive.
-    let mut latest_by_reviewer: BTreeMap<String, &ReviewEvidence> = BTreeMap::new();
+    let mut latest_by_reviewer: BTreeMap<(u64, GitHubAccountType), &ReviewEvidence> =
+        BTreeMap::new();
     for review in &input.reviews {
-        let reviewer = review.reviewer_login.trim();
         if review.head_sha != input.expected_head_sha
-            || reviewer.is_empty()
+            || !review.reviewer.is_valid()
             || !review.verdict.is_decisive()
         {
             continue;
         }
-        let key = reviewer.to_ascii_lowercase();
+        let key = (review.reviewer.id, review.reviewer.account_type);
         let should_replace = latest_by_reviewer
             .get(&key)
             .is_none_or(|current| review.review_id > current.review_id);
@@ -229,7 +324,6 @@ pub fn admit_review(input: &ReviewAdmissionInput) -> Result<ReviewAdmissionPacke
         }
     }
 
-    let author_key = author.to_ascii_lowercase();
     let mut author_approval_present = false;
     let mut ineligible_approval_present = false;
     let mut newest_approval: Option<&ReviewEvidence> = None;
@@ -237,11 +331,11 @@ pub fn admit_review(input: &ReviewAdmissionInput) -> Result<ReviewAdmissionPacke
         if review.verdict != ReviewVerdict::Approved {
             continue;
         }
-        if reviewer_key == author_key {
+        if reviewer_key == (input.author.id, input.author.account_type) {
             author_approval_present = true;
             continue;
         }
-        if !input.policy.admits(&review.reviewer_login) {
+        if !input.policy.admits(&review.reviewer) {
             ineligible_approval_present = true;
             continue;
         }
@@ -269,9 +363,17 @@ pub fn admit_review(input: &ReviewAdmissionInput) -> Result<ReviewAdmissionPacke
     Ok(ReviewAdmissionPacket {
         pr_number: input.pr_number,
         head_sha: input.expected_head_sha.clone(),
-        author_login: author.to_owned(),
-        reviewer_login: review.reviewer_login.trim().to_owned(),
+        author: input.author.clone(),
+        reviewer: review.reviewer.clone(),
         reviewer_eligibility_policy_ref: policy_ref.to_owned(),
+        reviewer_eligibility_policy_version: input.policy.version.trim().to_owned(),
+        reviewer_eligibility_policy_sha256: input.policy.sha256_digest.to_ascii_lowercase(),
+        reviewer_eligibility_policy_issuer: input.policy.issuer.trim().to_owned(),
+        policy_evaluated_at_unix_s: input.evaluated_at_unix_s,
+        reviewer_eligibility_policy_effective_at_unix_s: input.policy.effective_at_unix_s,
+        reviewer_eligibility_policy_expires_at_unix_s: input.policy.expires_at_unix_s,
+        reviewer_eligibility_policy_revoked: input.policy.revoked,
+        producer: input.producer.clone(),
         verdict: ReviewVerdict::Approved,
         evidence_url: review.evidence_url.clone(),
     })
@@ -279,6 +381,15 @@ pub fn admit_review(input: &ReviewAdmissionInput) -> Result<ReviewAdmissionPacke
 
 fn is_full_sha(value: &str) -> bool {
     value.len() == 40 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
+}
+
+fn is_sha256_hex(value: &str) -> bool {
+    value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
+}
+
+fn update_canonical_string(hasher: &mut Sha256, value: &str) {
+    hasher.update((value.len() as u64).to_be_bytes());
+    hasher.update(value.as_bytes());
 }
 
 fn is_durable_http_url(value: &str) -> bool {
