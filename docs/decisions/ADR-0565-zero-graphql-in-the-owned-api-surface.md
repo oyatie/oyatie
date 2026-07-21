@@ -11,6 +11,7 @@ supersedes: []
 superseded_by: []
 amends: [ADR-0051, ADR-0066, ADR-0091, ADR-0258]
 amended_by: []
+lifecycle_contract: reciprocal-accepted-v1
 # NOTE: the Phase-00 product spec under docs/products/<de-brand-target>/ also named GraphQL in its
 # transport-parity scope; its GraphQL retraction is deferred to the de-brand of that directory
 # (it cannot be cited here without re-introducing the brand-residue token the brand-residue gate forbids).

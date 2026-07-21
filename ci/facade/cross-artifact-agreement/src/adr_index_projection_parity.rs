@@ -164,6 +164,9 @@ mod tests {
             path: format!("decisions/ADR-{number:04}-fixture.md"),
             supersedes: Vec::new(),
             superseded_by: Vec::new(),
+            amends: Vec::new(),
+            amended_by: Vec::new(),
+            lifecycle_contract: None,
             related: Vec::new(),
         }
     }
