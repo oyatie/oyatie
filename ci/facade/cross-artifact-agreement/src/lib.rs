@@ -1783,6 +1783,147 @@ pub fn evaluate_masterplan_v2_ratification_digest(
     findings
 }
 
+/// Verify that the masterplan's current pre-planning PR facts agree with the
+/// cited, time-scoped evidence receipt without widening any authority claim.
+///
+/// The caller owns resolving `current_pr_candidate` to `candidate_evidence`.
+/// Missing or malformed facts fail closed as plan/evidence drift.
+pub fn evaluate_masterplan_v2_preplanning_candidate_facts(
+    masterplan: &Value,
+    candidate_evidence: &Value,
+) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+    let key = "masterplan_v2.planning_entry_contract.current_pr_candidate_state";
+
+    let Some(contract) = masterplan
+        .pointer("/masterplan_v2/planning_entry_contract")
+        .and_then(Value::as_object)
+    else {
+        findings.insert(Finding::new("masterplan_plan_evidence_drift", key));
+        return findings;
+    };
+    let Some(state) = contract
+        .get("current_pr_candidate_state")
+        .and_then(Value::as_object)
+    else {
+        findings.insert(Finding::new("masterplan_plan_evidence_drift", key));
+        return findings;
+    };
+    let Some(baseline) = candidate_evidence
+        .pointer("/present/repository_baseline")
+        .and_then(Value::as_object)
+    else {
+        findings.insert(Finding::new("masterplan_plan_evidence_drift", key));
+        return findings;
+    };
+    let Some(receipt) = candidate_evidence
+        .pointer("/present/factual_reconciliation")
+        .and_then(Value::as_object)
+    else {
+        findings.insert(Finding::new("masterplan_plan_evidence_drift", key));
+        return findings;
+    };
+
+    let exact_fields = [
+        ("baseline_commit", "pr_base"),
+        ("branch", "branch"),
+        ("recorded_candidate_state", "candidate_state"),
+        ("protected_pr_against_dev", "protected_pr_against_dev"),
+        (
+            "oya_ci_required_green_for_candidate",
+            "candidate_oya_ci_required_green",
+        ),
+        ("merged_to_dev", "merged_to_dev"),
+        ("claim_ceiling", "claim_ceiling"),
+        (
+            "candidate_first_content_commit",
+            "candidate_first_content_commit",
+        ),
+        ("protected_pr_number", "protected_pr_number"),
+        ("protected_pr_url", "protected_pr_url"),
+        ("candidate_final_head", "pr_final_head"),
+        ("candidate_base", "pr_base"),
+        ("merge_commit", "merge_commit"),
+        ("merged_at", "merged_at"),
+    ];
+    if exact_fields.iter().any(|(state_field, evidence_field)| {
+        state.get(*state_field) != baseline.get(*evidence_field)
+    }) {
+        findings.insert(Finding::new("masterplan_plan_evidence_drift", key));
+    }
+
+    let immutable_facts = receipt
+        .get("immutable_pull_request_facts")
+        .and_then(Value::as_object);
+    let approved_review = receipt
+        .get("github_approved_review_receipt")
+        .and_then(Value::as_object);
+    let authority_nonclosure = receipt
+        .get("authority_gate_nonclosure")
+        .and_then(Value::as_object);
+    let receipt_is_time_scoped = receipt
+        .get("queried_at")
+        .and_then(Value::as_str)
+        .is_some_and(|value| !value.trim().is_empty())
+        && receipt.get("receipt_class").and_then(Value::as_str)
+            == Some("git-github-factual-state-only-non-authoritative-non-closure");
+    let receipt_metadata_matches = state.get("factual_reconciliation_queried_at")
+        == receipt.get("queried_at")
+        && state.get("github_review_decision")
+            == immutable_facts.and_then(|facts| facts.get("github_review_decision"))
+        && state.get("github_approved_reviewer")
+            == approved_review.and_then(|review| review.get("reviewer"));
+    let authority_stays_open = contract.get("state").and_then(Value::as_str) == Some("open")
+        && contract
+            .get("binding_plan_approval_allowed")
+            .and_then(Value::as_bool)
+            == Some(false)
+        && contract.get("dispatch_allowed").and_then(Value::as_bool) == Some(false)
+        && state
+            .get("qualified_human_approval_proven")
+            .and_then(Value::as_bool)
+            == Some(false)
+        && state
+            .get("completion_packet_recorded")
+            .and_then(Value::as_bool)
+            == Some(false)
+        && authority_nonclosure
+            .and_then(|nonclosure| nonclosure.get("founder_gates_closed_by_this_receipt"))
+            .and_then(Value::as_array)
+            .is_some_and(Vec::is_empty)
+        && authority_nonclosure
+            .and_then(|nonclosure| nonclosure.get("qualified_human_gates_closed_by_this_receipt"))
+            .and_then(Value::as_array)
+            .is_some_and(Vec::is_empty);
+
+    let final_head = baseline.get("pr_final_head").and_then(Value::as_str);
+    let merge_commit = baseline.get("merge_commit").and_then(Value::as_str);
+    let successful_receipts: BTreeSet<&str> = receipt
+        .get("protected_context_receipts")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter(|entry| {
+            entry.get("context").and_then(Value::as_str) == Some("oya-ci-required")
+                && entry.get("status").and_then(Value::as_str) == Some("completed")
+                && entry.get("conclusion").and_then(Value::as_str) == Some("success")
+        })
+        .filter_map(|entry| entry.get("commit_sha").and_then(Value::as_str))
+        .collect();
+    let protected_contexts_match = final_head.is_some_and(|sha| successful_receipts.contains(sha))
+        && merge_commit.is_some_and(|sha| successful_receipts.contains(sha));
+
+    if !receipt_is_time_scoped
+        || !receipt_metadata_matches
+        || !authority_stays_open
+        || !protected_contexts_match
+    {
+        findings.insert(Finding::new("masterplan_plan_evidence_drift", key));
+    }
+
+    findings
+}
+
 fn recorded_masterplan_ratification_digest_matches(
     v2: &serde_json::Map<String, Value>,
     sequencing: &serde_json::Map<String, Value>,
