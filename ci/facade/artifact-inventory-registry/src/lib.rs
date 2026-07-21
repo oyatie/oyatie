@@ -564,12 +564,21 @@ pub struct EnforcementRow {
     /// Whether a machine-verifiable review status is a required merge context.
     #[serde(skip_serializing_if = "is_false")]
     pub has_machine_verifiable_review_status: bool,
-    /// Whether the admission evidence includes the PR title that reviewers approved.
+    /// Whether the admission packet binds the forge PR number.
     #[serde(skip_serializing_if = "is_false")]
-    pub has_review_title_evidence: bool,
-    /// Whether the admission evidence includes the PR body / traceability sections that reviewers approved.
+    pub binds_pr_number: bool,
+    /// Whether the admission packet binds the exact candidate head SHA.
     #[serde(skip_serializing_if = "is_false")]
-    pub has_review_body_evidence: bool,
+    pub binds_head_sha: bool,
+    /// Whether the admission packet binds the forge-reported PR author identity.
+    #[serde(skip_serializing_if = "is_false")]
+    pub binds_author_identity: bool,
+    /// Whether the admission packet binds the forge-reported reviewer identity.
+    #[serde(skip_serializing_if = "is_false")]
+    pub binds_reviewer_identity: bool,
+    /// Whether the admission packet binds the forge review verdict.
+    #[serde(skip_serializing_if = "is_false")]
+    pub binds_review_verdict: bool,
     /// Whether the review authority blocks merge admission.
     #[serde(skip_serializing_if = "is_false")]
     pub review_blocks_merge: bool,
@@ -767,11 +776,9 @@ fn producer_face_keys(
                 .map(|f| (f.code, f.key)),
         ),
         GateFace::WorkspaceGlobCoverage => group_findings(
-            ci_workspace_member_coverage::evaluate_keyed(
-                inputs.workspace_glob_coverage,
-            )
-            .into_iter()
-            .map(|f| (f.code, f.key)),
+            ci_workspace_member_coverage::evaluate_keyed(inputs.workspace_glob_coverage)
+                .into_iter()
+                .map(|f| (f.code, f.key)),
         ),
         GateFace::TargetParity => group_findings(
             ci_build_target_parity::evaluate_keyed(inputs.target_parity)
@@ -1654,7 +1661,13 @@ mod tests {
         assert_eq!(sr["untyped_staleness"]["mode"], "baseline-block-on-new");
         // ci_inventory_registry_drift is frozen_empty: never accumulates a key even if one were present.
         assert_eq!(ta["ci_inventory_registry_drift"]["frozen_empty"], true);
-        assert_eq!(ta["ci_inventory_registry_drift"]["keys"].as_array().unwrap().len(), 0);
+        assert_eq!(
+            ta["ci_inventory_registry_drift"]["keys"]
+                .as_array()
+                .unwrap()
+                .len(),
+            0
+        );
 
         let xa = &baseline["gates"]["cloud-ci-cross-artifact-agreement"];
         assert_eq!(xa["dual_decision_collision"]["keys"][0], "ADR-0377");

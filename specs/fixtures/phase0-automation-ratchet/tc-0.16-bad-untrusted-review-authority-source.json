@@ -1,5 +1,5 @@
 {
-  "description": "A live review-authority row with title/body evidence still fails when review_authority_source is missing or target-only; provenance must identify a trusted review-admission producer.",
+  "description": "A live, fully bound review-authority row still fails when review_authority_source is missing or target-only; provenance must identify a trusted review-admission producer.",
   "expected_verdict": "RED",
   "expected_violations": [
     "missing_pre_merge_review_authority"
@@ -11,14 +11,19 @@
       "classification": "automated_blocking_now",
       "enforceable_or_automatable": true,
       "evidence_path": "target-only branch-protection shadow; not trusted review-admission provenance",
-      "has_durable_review_evidence": false,
+      "binds_author_identity": true,
+      "binds_head_sha": true,
+      "binds_pr_number": true,
+      "binds_review_verdict": true,
+      "binds_reviewer_identity": true,
+      "has_durable_review_evidence": true,
       "has_machine_verifiable_review_status": true,
       "has_review_title_evidence": true,
       "has_review_body_evidence": true,
       "id": "BAD-live-review-authority-untrusted-source",
       "no_new_oya_cli_surface": true,
       "owner": "platform-toolchain + platform-governance",
-      "requirement": "Protected branch merge admission review authority must name a trusted provenance source for the title/body-bound review status.",
+      "requirement": "Protected branch merge admission review authority must name a trusted provenance source for the PR/head/identity/verdict-bound review status.",
       "requires_pre_merge_review_authority": true,
       "retirement_phase": "P0.0/P1 review-admission producer",
       "review_blocks_merge": true,
