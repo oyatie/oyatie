@@ -9,8 +9,8 @@
     "ratification_status": "user-directed-founder-intent-pending-council-architecture-review-and-separately-ratified-product-authority",
     "spec_id": "OYA-FOUNDER-PRODUCT-INTENT",
     "status": "Intent-Only-HOLD-Planning",
-    "updated_at": "2026-07-21T20:31:22Z",
-    "version": "1.0.0"
+    "updated_at": "2026-07-21T21:20:00Z",
+    "version": "1.1.0"
   },
   "authority_boundary": {
     "architecture_ratified": false,
@@ -49,9 +49,28 @@
       "Converge later implementation planning on the Accepted capability-first hyperscale monorepo direction: research, inventory, dependency analysis, regression preparation, and reversible shadow moves may run in parallel where ownership is disjoint, while ADR-0562 capability-move application and admission remain one capability per protected PR at a time until amended by later Accepted authority.",
       "Treat communications, mail, messaging, notifications, and collaboration as composable interaction modes over governed context rather than permanent channel-shaped end-user product silos, while preserving the Accepted ADR-0615 multi-channel comms substrate and its capability boundary.",
       "Grant autonomous repository and protected-PR execution authority for migrations, merges, deletions, amendments, and technical decisions, using a sixteen-lens council method and optimizing for final product quality, maintainability, long-term architecture, and engineering excellence.",
-      "Run planning research, reorganization analysis, feature discovery and preparation, tangent investigation, verification, testing, repair, and admission as a concurrent pipeline, while serializing shared authority and promotion."
+      "Run planning research, reorganization analysis, feature discovery and preparation, tangent investigation, verification, testing, repair, and admission as a concurrent pipeline, while serializing shared authority and promotion.",
+      "Use a game-engine mental model for Oyatie's ontology, workflow, and no-code platform: revisioned world/state; stable entities; composable components and traits; explicit systems; durable events; business, effective, processing, and simulation time; deterministic preview and replay; scenes and views as projections; a visual world editor; multi-user tenancy; policy gates; save/load/audit; compensation and rollback; and dependency-aware scheduling.",
+      "Treat types as first-class tenant, pack, or platform definitions: extensible, customizable, configurable, no-code, composed rather than closed vendor enums, versioned and content-addressed, visually authored to canonical IR, template/default/constraint capable, policy-bound, compatibility-classified, previewable, and reversibly migratable or explicitly approved when irreversible.",
+      "Do not reduce legal authority, privacy, accounting, distributed consistency, irreversible external effects, or human accountability to game state."
     ]
   },
+  "change_accounting": [
+    {
+      "version": "1.1.0",
+      "provenance": "direct founder directives in Codex task 019f80ef-bf93-77c2-a817-7bf77ee2f25c on 2026-07-21",
+      "added_outcomes": [
+        "Use a game-engine operational-world mental model spanning revisioned state, stable entities, composable components and traits, explicit systems, durable events, distinct time semantics, deterministic preview and replay with declared limits, rebuildable projections, visual canonical-IR authoring, tenant boundaries, policy gates, audit, recovery, and dependency-aware scheduling.",
+        "Make types first-class tenant, pack, or platform definitions that are extensible, customizable, configurable, no-code capable, composed instead of closed vendor enums, versioned and content-addressed, visually authored to canonical IR, template/default/constraint capable, policy-bound, compatibility-classified, previewable, and safely migratable.",
+        "Keep legal authority, privacy, accounting, distributed consistency, irreversible external effects, and human accountability outside the game-state metaphor as separately governed constraints.",
+        "Record game-engine documentation URLs only as inactive source pointers pending fresh scope-specific qualified legal/JCR disposition."
+      ],
+      "changed_outcomes": [],
+      "removed_outcomes": [],
+      "relaxed_boundaries": [],
+      "review_status": "pending-independent-rereview-and-protected-admission"
+    }
+  ],
   "founder_execution_authorization": {
     "source": "direct founder directive in Codex task 019f80ef-bf93-77c2-a817-7bf77ee2f25c at 2026-07-21T19:36:22Z",
     "scope": "Oyatie repository, isolated worktrees, branches, protected pull requests, current documentation and decision surfaces, source and test code, generated-face producers, migration artifacts, and ordinary GitHub admission state placed in scope by the active goal.",
@@ -340,6 +359,41 @@
     "quality_bar": "The system must be more intuitive, more continuous, more interoperable, more explainable, and safer to act through than the relevant alternatives under matched user journeys and conditions. No superiority claim is valid without a bounded comparator population and independent measurements.",
     "scope": "Business-to-consumer and machine-to-human continuity across cloud, developer, enterprise, and consumer domains, including the data, workflow, policy, identity, communication, analytics, automation, and recourse needed for end-to-end outcomes.",
     "time_horizon": "indefinite product direction; versioned as understanding and qualified evidence improve"
+  },
+  "game_engine_product_model": {
+    "status": "founder-intent-only; non-binding until independently reviewed and ratified",
+    "purpose": "Use game-engine concepts as a product-design mental model for a governed operational world, not as a claim that Oyatie is a game, a chosen implementation architecture, or a roadmap dispatch.",
+    "world_contract": [
+      "Model a revisioned world/state through stable entities, composable components and traits, explicit systems, and durable events.",
+      "Represent business, effective, processing, and simulation time explicitly; preserve their distinctions rather than deriving one silently from another.",
+      "Support deterministic preview and replay from declared inputs, versions, policies, and schedules, with uncertainty, external nondeterminism, and claim limits visible.",
+      "Treat scenes and views as contextual projections of governed state, and support a visual world editor that authors canonical representations rather than a separate opaque visual truth.",
+      "Support multi-user and tenant-scoped worlds, policy gates, save/load/audit, compensation and rollback where technically possible, and dependency-aware scheduling."
+    ],
+    "type_contract": {
+      "rule": "Types are first-class tenant, pack, or platform definitions, not a closed vendor enum or code-only implementation detail.",
+      "requirements": [
+        "extensible, customizable, configurable, and no-code capable",
+        "composed from stable definitions, components, traits, templates, defaults, and constraints rather than closed vendor enums",
+        "versioned and content-addressed with provenance",
+        "visually authored to canonical IR with round-trip traceability",
+        "policy-bound and compatibility-classified",
+        "previewable before application",
+        "reversibly migratable, or explicitly approved with a stated irreversible boundary, affected population, recourse, and rollback or compensation limit"
+      ]
+    },
+    "hard_limits": [
+      "Legal authority is established by qualified principals and applicable law, never by a world-state transition.",
+      "Privacy, consent, purpose limitation, retention, residency, and deletion constraints bind the world model and cannot be reduced to state.",
+      "Accounting requires independently governed records, controls, reconciliation, and accountable sign-off; simulation or replay does not establish a financial fact.",
+      "Distributed consistency limits, partial failure, and external concurrency require explicit semantics; a deterministic local replay does not prove global consistency.",
+      "Irreversible external effects require separately established authority, policy, confirmation, and recourse; they are not made reversible by representation.",
+      "Human accountability, affected-party rights, explanation, approval, appeal, remedy, and legal recourse remain human and institutional obligations, not game mechanics."
+    ],
+    "non_claims": [
+      "No game-engine framework, ECS implementation, rendering stack, data model, or roadmap is selected by this intent.",
+      "No implementation, migration, dispatch, production-readiness, determinism, or reversibility claim is made by this intent."
+    ]
   },
   "stage1_entry_requirements": {
     "authority_status": "non-dispatching founder requirement vocabulary; no control is satisfied or assigned an owner by this artifact",
@@ -1605,6 +1659,121 @@
         "url": "https://www.palantir.com/terms-and-conditions/"
       }
     ],
+    "game_engine_comparator_refs": [
+      {
+        "source_id": "unity-entities-concepts",
+        "url": "https://docs.unity3d.com/Packages/com.unity.entities@1.0/manual/concepts-entities.html",
+        "declared_scope": "Unity entity-component-system concepts documentation pointer",
+        "classification": "inactive-source-pointer",
+        "collection_status": "uncollected-for-admitted-comparator-use",
+        "retrieved_at": null,
+        "source_version": "Unknown",
+        "content_digest": "Unknown",
+        "legal_jcr_disposition": "Unknown-uncollected-pending-fresh-scope-specific-qualified-legal-JCR-disposition",
+        "evidence_eligible": false,
+        "automated_expansion_allowed": false,
+        "use": "Pointer preservation only; do not retrieve, expand, analyze, or cite as admitted comparator evidence until qualified disposition exists; does not select Unity, copy its product shape, or authorize implementation."
+      },
+      {
+        "source_id": "unity-entities-subscenes",
+        "url": "https://docs.unity3d.com/Packages/com.unity.entities@1.0/manual/conversion-subscenes.html",
+        "declared_scope": "Unity SubScenes and entity-scene conversion documentation pointer",
+        "classification": "inactive-source-pointer",
+        "collection_status": "uncollected-for-admitted-comparator-use",
+        "retrieved_at": null,
+        "source_version": "Unknown",
+        "content_digest": "Unknown",
+        "legal_jcr_disposition": "Unknown-uncollected-pending-fresh-scope-specific-qualified-legal-JCR-disposition",
+        "evidence_eligible": false,
+        "automated_expansion_allowed": false,
+        "use": "Pointer preservation only; do not retrieve, expand, analyze, or cite as admitted comparator evidence until qualified disposition exists; does not select Unity, copy its product shape, or authorize implementation."
+      },
+      {
+        "source_id": "unreal-gameplay-framework",
+        "url": "https://dev.epicgames.com/documentation/en-us/unreal-engine/gameplay-framework-in-unreal-engine",
+        "declared_scope": "Unreal Gameplay Framework documentation pointer",
+        "classification": "inactive-source-pointer",
+        "collection_status": "uncollected-for-admitted-comparator-use",
+        "retrieved_at": null,
+        "source_version": "Unknown",
+        "content_digest": "Unknown",
+        "legal_jcr_disposition": "Unknown-uncollected-pending-fresh-scope-specific-qualified-legal-JCR-disposition",
+        "evidence_eligible": false,
+        "automated_expansion_allowed": false,
+        "use": "Pointer preservation only; do not retrieve, expand, analyze, or cite as admitted comparator evidence until qualified disposition exists; does not select Unreal, copy its product shape, or authorize implementation."
+      },
+      {
+        "source_id": "unreal-mass-entity",
+        "url": "https://dev.epicgames.com/documentation/en-us/unreal-engine/overview-of-mass-entity-in-unreal-engine",
+        "declared_scope": "Unreal Mass Entity documentation pointer",
+        "classification": "inactive-source-pointer",
+        "collection_status": "uncollected-for-admitted-comparator-use",
+        "retrieved_at": null,
+        "source_version": "Unknown",
+        "content_digest": "Unknown",
+        "legal_jcr_disposition": "Unknown-uncollected-pending-fresh-scope-specific-qualified-legal-JCR-disposition",
+        "evidence_eligible": false,
+        "automated_expansion_allowed": false,
+        "use": "Pointer preservation only; do not retrieve, expand, analyze, or cite as admitted comparator evidence until qualified disposition exists; does not select Unreal, copy its product shape, or authorize implementation."
+      },
+      {
+        "source_id": "unreal-statetree",
+        "url": "https://dev.epicgames.com/documentation/en-us/unreal-engine/overview-of-state-tree-in-unreal-engine",
+        "declared_scope": "Unreal StateTree documentation pointer",
+        "classification": "inactive-source-pointer",
+        "collection_status": "uncollected-for-admitted-comparator-use",
+        "retrieved_at": null,
+        "source_version": "Unknown",
+        "content_digest": "Unknown",
+        "legal_jcr_disposition": "Unknown-uncollected-pending-fresh-scope-specific-qualified-legal-JCR-disposition",
+        "evidence_eligible": false,
+        "automated_expansion_allowed": false,
+        "use": "Pointer preservation only; do not retrieve, expand, analyze, or cite as admitted comparator evidence until qualified disposition exists; does not select Unreal, copy its product shape, or authorize implementation."
+      },
+      {
+        "source_id": "bevy-ecs",
+        "url": "https://bevyengine.org/learn/quick-start/getting-started/ecs/",
+        "declared_scope": "Bevy ECS documentation pointer",
+        "classification": "inactive-source-pointer",
+        "collection_status": "uncollected-for-admitted-comparator-use",
+        "retrieved_at": null,
+        "source_version": "Unknown",
+        "content_digest": "Unknown",
+        "legal_jcr_disposition": "Unknown-uncollected-pending-fresh-scope-specific-qualified-legal-JCR-disposition",
+        "evidence_eligible": false,
+        "automated_expansion_allowed": false,
+        "use": "Pointer preservation only; do not retrieve, expand, analyze, or cite as admitted comparator evidence until qualified disposition exists; does not select Bevy, copy its product shape, or authorize implementation."
+      },
+      {
+        "source_id": "bevy-schedules",
+        "url": "https://bevyengine.org/learn/quick-start/getting-started/schedules/",
+        "declared_scope": "Bevy schedules documentation pointer",
+        "classification": "inactive-source-pointer",
+        "collection_status": "uncollected-for-admitted-comparator-use",
+        "retrieved_at": null,
+        "source_version": "Unknown",
+        "content_digest": "Unknown",
+        "legal_jcr_disposition": "Unknown-uncollected-pending-fresh-scope-specific-qualified-legal-JCR-disposition",
+        "evidence_eligible": false,
+        "automated_expansion_allowed": false,
+        "use": "Pointer preservation only; do not retrieve, expand, analyze, or cite as admitted comparator evidence until qualified disposition exists; does not select Bevy, copy its product shape, or authorize implementation."
+      },
+      {
+        "source_id": "bevy-time",
+        "url": "https://bevyengine.org/learn/quick-start/getting-started/time/",
+        "declared_scope": "Bevy time documentation pointer",
+        "classification": "inactive-source-pointer",
+        "collection_status": "uncollected-for-admitted-comparator-use",
+        "retrieved_at": null,
+        "source_version": "Unknown",
+        "content_digest": "Unknown",
+        "legal_jcr_disposition": "Unknown-uncollected-pending-fresh-scope-specific-qualified-legal-JCR-disposition",
+        "evidence_eligible": false,
+        "automated_expansion_allowed": false,
+        "use": "Pointer preservation only; do not retrieve, expand, analyze, or cite as admitted comparator evidence until qualified disposition exists; does not select Bevy, copy its product shape, or authorize implementation."
+      }
+    ],
+    "game_engine_comparator_rule": "These URLs are inactive source pointers only, not admitted comparator evidence. They may not be retrieved, expanded, analyzed, or used for a claim until a fresh scope-specific qualified legal/JCR disposition authorizes collection. Palantir remains the user-supplied minimum product baseline, not a template to copy; no pointer or comparator selects an implementation or expands product authority.",
     "measurement_families": [
       "time to first useful outcome",
       "training time and assisted-completion rate",
